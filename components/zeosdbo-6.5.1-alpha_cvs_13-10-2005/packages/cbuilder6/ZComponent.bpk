@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="ZComponent.bpl"/>
+    <OBJFILES value="build\ZComponent.obj build\ZStreamBlob.obj build\ZAbstractRODataset.obj 
+      build\ZComponentReg.obj build\ZConnection.obj build\ZDataset.obj 
+      build\ZDatasetUtils.obj build\ZSqlProcessor.obj build\ZSqlStrings.obj 
+      build\ZSqlUpdate.obj build\ZAbstractDataset.obj build\ZPropertyEditor.obj 
+      build\ZSqlMonitor.obj build\ZStoredProcedure.obj build\ZAbstractTable.obj 
+      build\ZSqlMetadata.obj build\ZSequence.obj"/>
+    <RESFILES value="ZComponent.res ZComponent.dcr"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib"/>
+    <PACKAGES value="ZPlain.bpi ZDbc.bpi ZParseSql.bpi ZCore.bpi vcl.bpi dbrtl.bpi rtl.bpi 
+      designide.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component;..\..\src\component"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value="_DEBUG"/>
+    <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
+    <MAINSOURCE value="ZComponent.cpp"/>
+    <INCLUDEPATH value="..\..\src\component;$(BCB)\include;$(BCB)\include\vcl;build;$(BCB)\Source\Toolsapi"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;build;..\..\src\component;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\Source\Toolsapi"/>
+    <WARNINGS value="-w-par"/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\..\src\component -I$(BCB)\include -I$(BCB)\include\vcl -Ibuild 
+      -I$(BCB)\Source\Toolsapi -src_suffix cpp -D_DEBUG -boa"/>
+    <CFLAG1 value="-Od -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- -c -tWM"/>
+    <PFLAGS value="-N2build -N0build -$YD -$W -$R -$Q -$O- -$A8 -v -JPHNE -M -LUDesignIde"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zi"/>
+    <LFLAGS value="-Ibuild -D&quot;Zeos Database Components&quot; -aa -Tpp -x -Gn -Gl -Gi -v"/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) Memmgr.Lib sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="ZComponent.cpp" FORMNAME="" UNITNAME="ZComponent" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="ZComponent.res" FORMNAME="" UNITNAME="ZComponent" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="ZComponent.dcr" FORMNAME="" UNITNAME="ZComponent" CONTAINERID="DcrTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZStreamBlob.pas" FORMNAME="" UNITNAME="ZStreamBlob" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZAbstractRODataset.pas" FORMNAME="" UNITNAME="ZAbstractRODataset" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZComponentReg.pas" FORMNAME="" UNITNAME="ZComponentReg" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZConnection.pas" FORMNAME="" UNITNAME="ZConnection" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZDataset.pas" FORMNAME="" UNITNAME="ZDataset" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZDatasetUtils.pas" FORMNAME="" UNITNAME="ZDatasetUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZSqlProcessor.pas" FORMNAME="" UNITNAME="ZSqlProcessor" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZSqlStrings.pas" FORMNAME="" UNITNAME="ZSqlStrings" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZSqlUpdate.pas" FORMNAME="" UNITNAME="ZSqlUpdate" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZAbstractDataset.pas" FORMNAME="" UNITNAME="ZAbstractDataset" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZPlain.bpi" FORMNAME="" UNITNAME="ZPlain" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZDbc.bpi" FORMNAME="" UNITNAME="ZDbc" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZParseSql.bpi" FORMNAME="" UNITNAME="ZParseSql" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZCore.bpi" FORMNAME="" UNITNAME="ZCore" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZPropertyEditor.pas" FORMNAME="" UNITNAME="ZPropertyEditor" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\vcl.bpi" FORMNAME="" UNITNAME="vcl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\dbrtl.bpi" FORMNAME="" UNITNAME="dbrtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\designide.bpi" FORMNAME="" UNITNAME="designide" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZSqlMonitor.pas" FORMNAME="" UNITNAME="ZSqlMonitor" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZStoredProcedure.pas" FORMNAME="" UNITNAME="ZStoredProcedure" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZAbstractTable.pas" FORMNAME="" UNITNAME="ZAbstractTable" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZSqlMetadata.pas" FORMNAME="" UNITNAME="ZSqlMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\component\ZSequence.pas" FORMNAME="" UNITNAME="ZSequence" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl;build
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[CORBA]
+AddServerUnit=1
+AddClientUnit=1
+PrecompiledHeaders=1
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

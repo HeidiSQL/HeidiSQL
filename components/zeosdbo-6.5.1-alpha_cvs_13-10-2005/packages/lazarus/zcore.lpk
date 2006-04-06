@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="2">
+    <Name Value="zcore"/>
+    <CompilerOptions>
+      <Version Value="5"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="../../src/core/"/>
+        <UnitOutputDirectory Value="build"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <DelphiCompat Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Generate Value="Faster"/>
+      </CodeGeneration>
+      <Other>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Zeos Core Classes and Interfaces"/>
+    <Version Major="6" Minor="5" Release="1"/>
+    <Files Count="13">
+      <Item1>
+        <Filename Value="../../src/core/ZClasses.pas"/>
+        <UnitName Value="ZClasses"/>
+      </Item1>
+      <Item2>
+        <Filename Value="../../src/core/ZCollections.pas"/>
+        <UnitName Value="ZCollections"/>
+      </Item2>
+      <Item3>
+        <Filename Value="../../src/core/ZCompatibility.pas"/>
+        <UnitName Value="ZCompatibility"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../../src/core/ZExpression.pas"/>
+        <UnitName Value="ZExpression"/>
+      </Item4>
+      <Item5>
+        <Filename Value="../../src/core/ZExprParser.pas"/>
+        <UnitName Value="ZExprParser"/>
+      </Item5>
+      <Item6>
+        <Filename Value="../../src/core/ZExprToken.pas"/>
+        <UnitName Value="ZExprToken"/>
+      </Item6>
+      <Item7>
+        <Filename Value="../../src/core/ZFunctions.pas"/>
+        <UnitName Value="ZFunctions"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../../src/core/ZMatchPattern.pas"/>
+        <UnitName Value="ZMatchPattern"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../../src/core/ZMessages.pas"/>
+        <UnitName Value="ZMessages"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../../src/core/ZSysUtils.pas"/>
+        <UnitName Value="ZSysUtils"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../../src/core/ZTokenizer.pas"/>
+        <UnitName Value="ZTokenizer"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../../src/core/ZVariables.pas"/>
+        <UnitName Value="ZVariables"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../../src/core/ZVariant.pas"/>
+        <UnitName Value="ZVariant"/>
+      </Item13>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)/"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
