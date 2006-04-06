@@ -79,7 +79,7 @@ contains
   ZDbcSqLiteUtils in '..\..\src\dbc\ZDbcSqLiteUtils.pas',
   ZDbcSqLiteStatement in '..\..\src\dbc\ZDbcSqLiteStatement.pas',
   ZDbcSqLiteResultSet in '..\..\src\dbc\ZDbcSqLiteResultSet.pas',
-  ZDbcSqLiteMetadata in '..\..\src\dbc\ZDbcSqLiteMetadata.pas';
+  ZDbcSqLiteMetadata in '..\..\src\dbc\ZDbcSqLiteMetadata.pas',
   ZDbcASAUtils in '..\..\src\dbc\ZDbcASAUtils.pas',
   ZDbcASAMetadata in '..\..\src\dbc\ZDbcASAMetadata.pas',
   ZDbcASAResultSet in '..\..\src\dbc\ZDbcASAResultSet.pas',
