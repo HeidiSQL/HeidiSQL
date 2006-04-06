@@ -372,20 +372,8 @@ var
   f : TextFile;
   functionname, functionhint : String;
   i, pipeposition : Integer;
-//  OSVersion   : OSVERSIONINFO;
 begin
-
-{
-  // Windows XP ?
-  FillChar(OSVersion,SizeOf(OSVersion),0);
-  OSVersion.dwOSVersionInfoSize:=SizeOf(OSVersion);
-  if not GetVersionEx(OSVersion) then RaiseLastWin32Error;
-  if (OSVersion.dwMajorVersion=5) and (OSVersion.dwMinorVersion>0) then begin
-    ActionList1.Images := ImageList1XP;
-    Toolbar2.Images := ImageList1XP;
-    Toolbar2.HotImages := ImageList1XP;
-  end;
-}
+  caption := appname;
 
   with TRegistry.Create do
   begin
