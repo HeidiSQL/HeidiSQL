@@ -239,10 +239,10 @@ begin
   if Table <> '' then
   begin
     Result := IdentifierConvertor.Quote(Table);
-    if Schema <> '' then
+{    if Schema <> '' then
       Result := IdentifierConvertor.Quote(Schema) + '.' + Result;
     if Catalog <> '' then
-      Result := IdentifierConvertor.Quote(Catalog) + '.' + Result;
+      Result := IdentifierConvertor.Quote(Catalog) + '.' + Result; }
   end else
     Result := '';
 end;
