@@ -14,12 +14,12 @@ AppUpdatesURL=http://www.heidisql.com/download/
 AppContact=heidisql@anse.de
 DefaultDirName={pf}\HeidiSQL
 DefaultGroupName=HeidiSQL
-;AlwaysCreateUninstallIcon=yes
 InfoAfterFile=readme.txt
-;LicenseFile=license.txt
+LicenseFile=license.txt
 ChangesAssociations=yes
-;WizardImageFile=installer-image.bmp
+WizardImageFile=.\..\res\installer-logo.bmp
 WizardImageBackColor=$ffffff
+WizardSmallImageFile=.\..\res\installer-small-logo.bmp
 OutputDir=.
 OutputBaseFilename=HeidiSQL_3.0_Setup
 UninstallDisplayIcon={app}\heidisql.exe
@@ -33,25 +33,25 @@ Name: "quicklaunchicon"; Description: "Create a &Quick Launch icon"; GroupDescri
 Name: "associatesqlfiles"; Description: "Associate .&SQL-Files with HeidiSQL"; GroupDescription: "Options:";
 
 [Files]
-Source: "heidisql.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "readme.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "function.txt"; DestDir: "{app}"; CopyMode: onlyifdoesntexist
-Source: "libmySQL.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "libmysql40.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "libmysql41.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
-Source: "my.ini"; DestDir: "{app}"; CopyMode: onlyifdoesntexist
-Source: "heidisql.exe.manifest"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "heidisql.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "function.txt"; DestDir: "{app}"; Flags: onlyifdoesntexist
+Source: "libmySQL.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libmysql40.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libmysql41.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "heidisql.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 
 [INI]
 Filename: "{app}\heidisql.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/"
-Filename: "{app}\donate.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/donate/"
+Filename: "{app}\heidisql_forum.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/forum/"
+;Filename: "{app}\donate.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/donate/"
 
 [Icons]
 Name: "{group}\HeidiSQL"; Filename: "{app}\heidisql.exe"
 Name: "{group}\HeidiSQL on the Web"; Filename: "{app}\heidisql.url"
-Name: "{group}\Donate"; Filename: "{app}\donate.url"
-Name: "{group}\Readme"; Filename: "{app}\readme.txt"
-Name: "{group}\Edit configuration (my.ini)"; Filename: "{app}\my.ini"
+Name: "{group}\HeidiSQL Forum"; Filename: "{app}\heidisql_forum.url"
+;Name: "{group}\Donate"; Filename: "{app}\donate.url"
+Name: "{group}\Uninstall HeidiSQL"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\HeidiSQL"; Filename: "{app}\heidisql.exe"; MinVersion: 4,4; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\HeidiSQL"; Filename: "{app}\heidisql.exe"; MinVersion: 4,4; Tasks: quicklaunchicon
 
@@ -66,5 +66,5 @@ Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait po
 
 [UninstallDelete]
 Type: files; Name: "{app}\heidisql.url"
-Type: files; Name: "{app}\donate.url"
+;Type: files; Name: "{app}\donate.url"
 
