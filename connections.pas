@@ -100,57 +100,20 @@ end;
 // Init
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  i : Integer;
-  host, user, pw, port, timeout, des : String;
+  oldkey : String;
+  TempPath      : Array [0..255] of Char;
+  TempFileName  : Array [0..255] of Char;
+  TempFileNameS  : String;
 begin
-	EditHost.MaxLength := HOSTNAME_LENGTH;
-//	EditBenutzer.MaxLength := USERNAME_LENGTH;
-//	EditPasswort.MaxLength := USERNAME_LENGTH;
-  // Import old connections!
+  // Import old settings from MySQL-Front 2.5
+  oldkey := 'Software\MySQL-Front';
   with TRegistry.Create do
   begin
-    OpenKey(regpath, true);
-    if ValueExists('connection0') then
-    begin
-      ShowMessage(main.appname + ' has detected some connection-settings from an older version.' + crlf + crlf + 'These settings will now be converted.');
-      i := 0;
-      DeleteValue('lastcon');
-      while ValueExists('connection' + inttostr(i)) do
-      begin
-        host := ReadString('connection' + inttostr(i));
-        des := host;
-        if InputQuery('Import Connection...', 'Description for ''' + host + '''', des) then
-        begin
-          user := ReadString('user' + inttostr(i));
-          pw := ReadString('pw' + inttostr(i));
-          port := ReadString('port' + inttostr(i));
-          timeout := ReadString('timeout' + inttostr(i));
-          if not KeyExists('Servers\' + des) then with TRegistry.Create do
-          begin
-            OpenKey(regpath + '\Servers\' + des, true);
-            WriteString('Host', host);
-            WriteString('User', user);
-            WriteString('Password', encrypt(pw));
-            WriteString('Port', port);
-            WriteString('Timeout', timeout);
-            WriteBool('Compressed', false);
-            WriteString('OnlyDBs', '');
-            CloseKey;
-          end
-          else
-          begin
-            MessageDlg('This Description (' + des + ') is already used.' + crlf + 'Please specify another description!', mtError, [mbOK], 0);
-            continue;
-          end;
-        end;
-        DeleteValue('connection' + inttostr(i));
-        DeleteValue('host' + inttostr(i));
-        DeleteValue('user' + inttostr(i));
-        DeleteValue('pw' + inttostr(i));
-        DeleteValue('port' + inttostr(i));
-        DeleteValue('timeout' + inttostr(i));
-        inc(i);
-      end;
+    if OpenKey(oldkey, false) and (not Openkey(main.regpath, false)) then
+    try
+      RenameRegistryItem( rootkey, oldkey, main.regpath );
+    finally
+      free;
     end;
   end;
 end;

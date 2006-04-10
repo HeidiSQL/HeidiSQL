@@ -38,6 +38,9 @@ uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
+  procedure RenameRegistryItem(AKey: HKEY; Old, New: String);
+  procedure CopyRegistryKey(Source, Dest: HKEY);
+  procedure DeleteRegistryKey(Key: HKEY);
 
 
 
@@ -541,5 +544,151 @@ Begin
     sl.Free;
   End;
 End;
+
+
+procedure RenameRegistryItem(AKey: HKEY; Old, New: String);
+
+var OldKey,
+    NewKey  : HKEY;
+    Status  : Integer;
+
+begin
+  // Open Source key
+  Status:=RegOpenKey(AKey,PChar(Old),OldKey);
+  if Status = ERROR_SUCCESS then
+  begin
+    // Create Destination key
+    Status:=RegCreateKey(AKey,PChar(New),NewKey);
+    if Status = ERROR_SUCCESS then CopyRegistryKey(OldKey,NewKey);
+    RegCloseKey(OldKey);
+    RegCloseKey(NewKey);
+    // Delete last top-level key
+    RegDeleteKey(AKey,PChar(Old));
+  end;
+end;
+
+//--------------------------------------------------------------------------------
+
+procedure CopyRegistryKey(Source, Dest: HKEY);
+
+const DefValueSize  = 512;
+      DefBufferSize = 8192;
+
+var Status      : Integer;
+    Key         : Integer;
+    ValueSize,
+    BufferSize  : Cardinal;
+    KeyType     : Integer;
+    ValueName   : String;
+    Buffer      : Pointer;
+    NewTo,
+    NewFrom     : HKEY;
+
+begin
+  SetLength(ValueName,DefValueSize);
+  Buffer:=AllocMem(DefBufferSize);
+  try
+    Key:=0;
+    repeat
+      ValueSize:=DefValueSize;
+      BufferSize:=DefBufferSize;
+      //  enumerate data values at current key
+      Status:=RegEnumValue(Source,Key,PChar(ValueName),ValueSize,nil,@KeyType,Buffer,@BufferSize);
+      if Status = ERROR_SUCCESS then
+      begin
+        // move each value to new place
+        Status:=RegSetValueEx(Dest,PChar(ValueName),0,KeyType,Buffer,BufferSize);
+         // delete old value
+        RegDeleteValue(Source,PChar(ValueName));
+      end;
+    until Status <> ERROR_SUCCESS; // Loop until all values found
+
+    // start over, looking for keys now instead of values
+    Key:=0;
+    repeat
+      ValueSize:=DefValueSize;
+      BufferSize:=DefBufferSize;
+      Status:=RegEnumKeyEx(Source,Key,PChar(ValueName),ValueSize,nil,Buffer,@BufferSize,nil);
+      // was a valid key found?
+      if Status = ERROR_SUCCESS then
+      begin
+        // open the key if found
+        Status:=RegCreateKey(Dest,PChar(ValueName),NewTo);
+        if Status = ERROR_SUCCESS then
+        begin                                       //  Create new key of old name
+          Status:=RegCreateKey(Source,PChar(ValueName),NewFrom);
+          if Status = ERROR_SUCCESS then
+          begin
+            // if that worked, recurse back here
+            CopyRegistryKey(NewFrom,NewTo);
+            RegCloseKey(NewFrom);
+            RegDeleteKey(Source,PChar(ValueName));
+          end;
+          RegCloseKey(NewTo);
+        end;
+      end;
+    until Status <> ERROR_SUCCESS; // loop until key enum fails
+  finally
+    FreeMem(Buffer);
+  end;
+end;
+
+//--------------------------------------------------------------------------------
+
+procedure DeleteRegistryKey(Key: HKEY);
+
+const DefValueSize  = 512;
+      DefBufferSize = 8192;
+
+var Status     : Integer;
+    Index      : Integer;
+    ValueSize,
+    BufferSize : Cardinal;
+    KeyType    : Integer;
+    ValueName  : String;
+    Buffer     : Pointer;
+    SubKey     : HKEY;
+
+begin
+  SetLength(ValueName,DefValueSize);
+  Buffer:=AllocMem(DefBufferSize);
+  try
+    Index:=0;
+    repeat
+      ValueSize:=DefValueSize;
+      BufferSize:=DefBufferSize;
+      // enumerate data values at current key
+      Status:=RegEnumValue(Key,Index,PChar(ValueName),ValueSize,nil,@KeyType,Buffer,@BufferSize);
+      // delete old value
+      if Status = ERROR_SUCCESS then RegDeleteValue(Key,PChar(ValueName));
+    until Status <> ERROR_SUCCESS; // Loop until all values found
+
+    // start over, looking for keys now instead of values
+    Index:=0;
+    repeat
+      ValueSize:=DefValueSize;
+      BufferSize:=DefBufferSize;
+      Status:=RegEnumKeyEx(Key,Index,PChar(ValueName),ValueSize,nil,Buffer,@BufferSize,nil);
+      // was a valid key found?
+      if Status = ERROR_SUCCESS then
+      begin
+        // open the key if found
+        Status:=RegOpenKey(Key,PChar(ValueName),SubKey);
+        if Status = ERROR_SUCCESS then
+        begin
+          // if that worked, recurse back here
+          DeleteRegistryKey(SubKey);
+          RegCloseKey(SubKey);
+          RegDeleteKey(Key,PChar(ValueName));
+        end;
+      end;
+    until Status <> ERROR_SUCCESS; // loop until key enum fails
+  finally
+    FreeMem(Buffer);
+  end;
+end;
+
+
+
 end.
 
