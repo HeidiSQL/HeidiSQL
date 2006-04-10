@@ -41,7 +41,7 @@ uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure RenameRegistryItem(AKey: HKEY; Old, New: String);
   procedure CopyRegistryKey(Source, Dest: HKEY);
   procedure DeleteRegistryKey(Key: HKEY);
-
+  function MakeInt( Str: String ) : Integer;
 
 
 implementation
@@ -688,7 +688,21 @@ begin
   end;
 end;
 
-
+function MakeInt( Str: String ) : Integer;
+var
+  test, i : Integer;
+  StrWithInts : String;
+begin
+  StrWithInts := '';
+  for i:=1 to Length(str) do
+  begin
+    if StrToIntDef( str[i], -1 ) <> -1 then
+    begin
+      StrWithInts := StrWithInts + str[i];
+    end;
+  end;
+  result := StrToIntDef( StrWithInts, 0 );
+end;
 
 end.
 

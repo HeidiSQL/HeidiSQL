@@ -192,8 +192,8 @@ begin
 
     with TMDIChild(Application.Mainform.ActiveMDIChild) do
     begin
-      mysql_select_db(mysql, pchar(DBComboBox.Text));
-      q(ctquery);
+      ExecQuery( 'USE ' + DBComboBox.Text );
+      ExecQuery( ctquery );
       ShowDBProperties(self);
       ActualTable := EditTablename.Text;
 //      DBTree.Selected := ti;

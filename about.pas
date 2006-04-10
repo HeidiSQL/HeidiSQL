@@ -29,6 +29,7 @@ type
     Label6: TLabel;
     Button2: TButton;
     Button3: TButton;
+    Image2: TImage;
     procedure OKButtonClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     procedure Button1Click(Sender: TObject);

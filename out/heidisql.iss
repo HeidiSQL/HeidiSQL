@@ -6,18 +6,24 @@
 [Setup]
 AppName=HeidiSQL
 AppVerName=HeidiSQL 3.0
+AppVersion=3.0
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
 AppSupportURL=http://www.heidisql.com/forum/
 AppUpdatesURL=http://www.heidisql.com/download/
+AppContact=heidisql@anse.de
 DefaultDirName={pf}\HeidiSQL
 DefaultGroupName=HeidiSQL
-AlwaysCreateUninstallIcon=yes
+;AlwaysCreateUninstallIcon=yes
 InfoAfterFile=readme.txt
-LicenseFile=license.txt
+;LicenseFile=license.txt
 ChangesAssociations=yes
-WizardImageFile=installer-image.bmp
+;WizardImageFile=installer-image.bmp
 WizardImageBackColor=$ffffff
+OutputDir=.
+OutputBaseFilename=HeidiSQL_3.0_Setup
+UninstallDisplayIcon={app}\heidisql.exe
+SetupIconFile=.\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
 ; MinVersion=4,3.51
 
@@ -31,6 +37,8 @@ Source: "heidisql.exe"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "readme.txt"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "function.txt"; DestDir: "{app}"; CopyMode: onlyifdoesntexist
 Source: "libmySQL.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "libmysql40.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
+Source: "libmysql41.dll"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 Source: "my.ini"; DestDir: "{app}"; CopyMode: onlyifdoesntexist
 Source: "heidisql.exe.manifest"; DestDir: "{app}"; CopyMode: alwaysoverwrite
 

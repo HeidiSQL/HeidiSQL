@@ -2,9 +2,9 @@
 
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
 	<assemblyIdentity
-		version="1.23.0.0"
+		version="3.0.0.0"
 		processorArchitecture="X86"
-		name="MySQL-Front"
+		name="HeidiSQL"
 		type="win32" />
 	<description>MySQL-Host Administration</description>
 	<dependency>

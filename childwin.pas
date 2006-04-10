@@ -10,7 +10,7 @@ UNIT Childwin;
 INTERFACE
 
 uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
-  ExtCtrls, ComCtrls, ImgList, mysql, SysUtils, Dialogs, Menus, SortListView,
+  ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus, SortListView,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL,
   Registry, Spin, Clipbrd, Shellapi,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
@@ -255,7 +255,6 @@ type
     procedure ShowDBProperties(Sender: TObject);
     procedure ShowTableProperties(Sender: TObject);
     procedure Fail(createexc: boolean = true; querystr: String = '');
-    function q(query:String; createexc: boolean = true; storeresult: boolean = true) : PMYSQL_RES;
     procedure TabellenlisteChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure TabelleAnzeigen(Sender: TObject);
@@ -367,7 +366,8 @@ type
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQuery2AfterScroll(DataSet: TDataSet);
     procedure ZQuery2BeforeClose(DataSet: TDataSet);
-    procedure ExecQuery(DataSet: TDataSet; SQLQuery: String);
+    procedure ExecQuery( SQLQuery: String );
+    function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
 
     private
@@ -385,15 +385,10 @@ type
 
     public
       { Public declarations }
-      MySQL                      : PMYSQL;
       MyHost, MyUser,
       ActualDatabase, ActualTable: string;
       MyPort, MyComp             : integer;
       MyTime                     : longword;
-      Fields                     : PMYSQL_FIELDS;
-			Field                      : PMYSQL_FIELD;
-      MyResult                   : PMYSQL_RES;
-      row, row2                  : PMYSQL_ROW;
       dataselected, editing      : Boolean;
       mysql_version              : Integer;
       tnodehost                  : TTreeNode;
@@ -447,6 +442,7 @@ begin
 
   ReadWindowOptions;
   MyHost := connform.EditHost.Text;
+  ZConn.
   MyPort := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
   MyUser := connform.EditBenutzer.Text;
   MyPass := connform.EditPasswort.Text;
@@ -1051,54 +1047,59 @@ begin
   Screen.Cursor := crSQLWait;
   mysql_select_db(mysql, pchar(ActualDatabase));
   ZConn.Database := ActualDatabase;
-  ExecQuery(ZQuery3, 'USE ' + ActualDatabase);
+  ExecQuery( 'USE ' + ActualDatabase );
 
-  if mysql_version >= 32300 then begin
-    // get quick results with versions 3.23.xx and newer
-    ZQuery3.SQL.Clear;
-    ZQuery3.SQL.Add('SHOW TABLE STATUS');
-    ZQuery3.Open();
-    ZQuery3.First;
-    for i := 1 to ZQuery3.RecordCount do begin
-      n := Tabellenliste.Items.Add;
-      n.ImageIndex := 1;
-      // Table
-      n.Caption := ZQuery3.FieldByName('Name').AsString;
-      // Records
-      n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
-      // Size: Data_length + Index_length
-      bytes := ZQuery3.FieldByName('Data_length').AsInteger + ZQuery3.FieldByName('Index_length').AsInteger;
-      n.SubItems.Add(format('%d KB', [bytes div 1024 + 1]));
-      // Created:
-      n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
-      // Updated:
-      n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) );
-      // Type
-      Try // Until 4.x
-        n.SubItems.Add( ZQuery3.FieldByName('Type').AsString );
-      Except // Since 5.x
-        n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
-      End;
-      // Comment
-      n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
-      ZQuery3.Next;
+  Try
+    if mysql_version >= 32300 then begin
+      // get quick results with versions 3.23.xx and newer
+      ZQuery3.SQL.Clear;
+      ZQuery3.SQL.Add('SHOW TABLE STATUS');
+      ZQuery3.Open();
+      ZQuery3.First;
+      for i := 1 to ZQuery3.RecordCount do begin
+        n := Tabellenliste.Items.Add;
+        n.ImageIndex := 1;
+        // Table
+        n.Caption := ZQuery3.FieldByName('Name').AsString;
+        // Records
+        n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
+        // Size: Data_length + Index_length
+        bytes := ZQuery3.FieldByName('Data_length').AsInteger + ZQuery3.FieldByName('Index_length').AsInteger;
+        n.SubItems.Add(format('%d KB', [bytes div 1024 + 1]));
+        // Created:
+        n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
+        // Updated:
+        n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) );
+        // Type
+        Try // Until 4.x
+          n.SubItems.Add( ZQuery3.FieldByName('Type').AsString );
+        Except // Since 5.x
+          n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
+        End;
+        // Comment
+        n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
+        ZQuery3.Next;
+      end;
+    end
+    else begin
+      // get slower results with versions 3.22.xx and older
+      ZQuery3.SQL.Clear;
+      ZQuery3.SQL.Add('SHOW TABLES');
+      ZQuery3.Open;
+      ZQuery3.First;
+      for i := 1 to ZQuery3.RecordCount do begin
+        n := Tabellenliste.Items.Add;
+        n.Caption := ZQuery3.Fields[0].AsString;
+        n.ImageIndex := 1;
+        n.SubItems.Add( GetVar( 'SELECT COUNT(*) FROM '+ZQuery3.Fields[0].AsString ) );
+        ZQuery3.Next;
+      end;
     end;
-  end
-  else begin
-    // get slower results with versions 3.22.xx and older
-    MyResult := mysql_list_tables(mysql, nil);
-    for i := 1 to mysql_num_rows(MyResult) do begin
-      row := mysql_fetch_row(MyResult);
-      n := Tabellenliste.Items.Add;
-      n.Caption := row[0];
-      n.ImageIndex := 1;
-      row2 := mysql_fetch_row(q('SELECT count(*) FROM '+mainform.mask(row[0])));
-      n.SubItems.Add(row2[0]);
-    end;
-    mysql_free_result(MyResult);
-  end;
-
-  Tabellenliste.Items.EndUpdate();
+  Finally
+    Tabellenliste.Items.EndUpdate();
+    Screen.Cursor := crDefault;
+  End;
+  Screen.Cursor := crHourglass;
 
   // update dbtree with new/deleted tables
   if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
@@ -1108,7 +1109,8 @@ begin
   // get all tables back into dbtree
   for u:=tndb.Count-1 downto 0 do
     tndb.Item[u].delete;
-  for t:=0 to TabellenListe.Items.Count-1 do begin
+  for t:=0 to TabellenListe.Items.Count-1 do
+  begin
     with DBtree.Items.AddChild(tndb, TabellenListe.Items[t].Caption) do begin
       ImageIndex := 1;
       selectedIndex := 11;
@@ -1363,10 +1365,9 @@ begin
 
   Screen.Cursor := crSQLWait;
   for i:=0 to t.count-1 do
-    q('DELETE FROM ' + mainform.mask(t[i]));
+    ExecQuery( 'DELETE FROM ' + mainform.mask(t[i]) );
   ShowDBProperties(self);
   Screen.Cursor := crDefault;
-
 end;
 
 
@@ -1396,7 +1397,7 @@ begin
     exit;
 
   Screen.Cursor := crSQLWait;
-  q('DROP TABLE ' + implodestr(', ', t));
+  ExecQuery( 'DROP TABLE ' + implodestr(', ', t) );
 
 
   if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
@@ -1449,8 +1450,10 @@ end;
 
 procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
 var
+  v : String[10];
   i : Integer;
   n : TListItem;
+  versions : TStringList;
 begin
 // Variables und Process-List aktualisieren
   Screen.Cursor := crSQLWait;
@@ -1459,34 +1462,41 @@ begin
   Variabelliste.Items.Clear;
 
   // VERSION
-  MyResult := q('SELECT VERSION()');
-  Row := mysql_fetch_row(MyResult);
-  if row[0][0] = '3' then // 3.x.x.x
-    mysql_version := StrToIntDef(row[0][0] + row[0][2] + row[0][3] + row[0][5] + row[0][6], 10000)
-  else // 4.x.x +
-    mysql_version := StrToIntDef(row[0][0] + '0' + row[0][2] + '0' + row[0][4], 10000);
-  strHostRunning := MyHost + ' running MySQL-Version ' + row[0] + ' / Uptime: ';
+  v := GetVar( 'SELECT VERSION()' );
+  versions := explode( '.', v );
+  mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
+  strHostRunning := MyHost + ' running MySQL-Version ' + v + ' / Uptime: ';
 
   // VARIABLES
-  MyResult := q('SHOW VARIABLES');
-  for i := 1 to mysql_num_rows(MyResult) do begin
-    Row := mysql_fetch_row(MyResult);
+  ZQuery3.Close;
+  ZQuery3.SQL.Clear;
+  ZQuery3.SQL.Add( 'SHOW VARIABLES' );
+  ZQuery3.Open;
+  ZQuery3.First;
+  for i:=1 to ZQuery3.RecordCount do
+  begin
     n := VariabelListe.Items.Add;
-    n.Caption := row[0];
-    n.Subitems.Add(row[1]);
+    n.Caption := ZQuery3.Fields[0].AsString;
+    n.Subitems.Add( ZQuery3.Fields[1].AsString );
+    ZQuery3.Next;
   end;
 
   uptime := 0;
 
   // STATUS
-  MyResult := q('SHOW STATUS');
-  for i := 1 to mysql_num_rows(MyResult) do begin
-    Row := mysql_fetch_row(MyResult);
+  ZQuery3.Close;
+  ZQuery3.SQL.Clear;
+  ZQuery3.SQL.Add( 'SHOW STATUS' );
+  ZQuery3.Open;
+  ZQuery3.First;
+  for i:=1 to ZQuery3.RecordCount do
+  begin
     n := VariabelListe.Items.Add;
-    n.Caption := row[0];
-    n.Subitems.Add(row[1]);
-    if lowercase(row[0]) = 'uptime' then
-      uptime := strToIntDef(row[1], 0);
+    n.Caption := ZQuery3.Fields[0].AsString;
+    n.Subitems.Add( ZQuery3.Fields[1].AsString );
+    if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
+      uptime := strToIntDef(ZQuery3.Fields[1].AsString, 0);
+    ZQuery3.Next;
   end;
 
   Timer1Timer(self);
@@ -1494,12 +1504,11 @@ begin
 
   VariabelListe.Items.EndUpdate;
   TabSheet6.Caption := 'Variables (' + inttostr(VariabelListe.Items.Count) + ')';
-  mysql_free_result(MyResult);
   Screen.Cursor := crDefault;
 
   ShowProcesslist(self); // look at next procedure
-
 end;
+
 
 
 procedure TMDIChild.ShowProcessList(sender: TObject);
@@ -1512,26 +1521,30 @@ begin
   try
     ProcessListe.Items.BeginUpdate;
     ProcessListe.Items.Clear;
-    if mysql_version >= 32200 then begin
-      MyResult := q('SHOW PROCESSLIST', false);
-      for i := 1 to mysql_num_rows(MyResult) do begin
-        row := mysql_fetch_row(MyResult);
-        n := ProcessListe.Items.Add;
-        n.Caption := row[0];
-        if CompareText(row[4], 'Killed') = 0 then
-          n.ImageIndex := 1  // killed
-        else
-          n.ImageIndex := 0; // running
-        for j := 1 to 8 do
-          n.Subitems.Add(row[j]);
-      end;
-      mysql_free_result(myresult);
+    ZQuery3.Close;
+    ZQuery3.SQL.Clear;
+    ZQuery3.SQL.Add( 'SHOW PROCESSLIST' );
+    ZQuery3.Open;
+    ZQuery3.First;
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      n := ProcessListe.Items.Add;
+      n.Caption := ZQuery3.Fields[0].AsString;
+      if CompareText( ZQuery3.Fields[4].AsString, 'Killed') = 0 then
+        n.ImageIndex := 1  // killed
+      else
+        n.ImageIndex := 0; // running
+      for j := 1 to 7 do
+        n.Subitems.Add(ZQuery3.Fields[j].AsString);
+      ZQuery3.Next;
     end;
+    ZQuery3.Close;
     ProcessListe.Items.EndUpdate;
     TabSheet7.Caption := 'Process-List (' + inttostr(ProcessListe.Items.Count) + ')';
   except
-    LogSQL('# Process-List not available');
+    LogSQL('# Error on loading process-list!');
   end;
+  ProcessListe.Items.EndUpdate;
   Screen.Cursor := crDefault;
 end;
 
@@ -1553,7 +1566,7 @@ begin
     TimerProcessList.Enabled := false; // prevent av (processliste.selected...)
     if MessageDlg('Kill Process '+ProcessListe.Selected.Caption+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
-      q('KILL '+ProcessListe.Selected.Caption);
+      ExecQuery( 'KILL '+ProcessListe.Selected.Caption );
       ShowVariablesAndProcesses(self);
     end;
     TimerProcessList.Enabled := t; // re-enable autorefresh timer
@@ -1727,7 +1740,7 @@ begin
     if MessageDlg('Can''t drop the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
       Screen.Cursor := crSQLWait;
-      q('DROP TABLE '+mainform.mask(ActualTable));
+      ExecQuery( 'DROP TABLE '+mainform.mask(ActualTable) );
       tn := DBTree.Selected;
       DBTree.Selected := DBTree.Selected.Parent;
       tn.Destroy;
@@ -1737,7 +1750,7 @@ begin
   end else
   if MessageDlg('Drop field ' + FeldListe.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
-    q('ALTER TABLE '+mainform.mask(ActualTable)+' DROP '+mainform.mask(FeldListe.Selected.Caption));
+    ExecQuery( 'ALTER TABLE '+mainform.mask(ActualTable)+' DROP '+mainform.mask(FeldListe.Selected.Caption) );
     ShowTableProperties(self);
   end;
 end;
@@ -1944,7 +1957,7 @@ begin
   // edit table-name
   menudroptable.ShortCut := TextToShortCut('Del');
 
-  q('ALTER TABLE ' + mainform.mask(Item.Caption) + ' RENAME ' + mainform.mask(S));
+  ExecQuery( 'ALTER TABLE ' + mainform.mask(Item.Caption) + ' RENAME ' + mainform.mask(S) );
   ActualTable := S;
   ShowDBProperties(self);
   // Re-Select Entry
@@ -1975,8 +1988,7 @@ procedure TMDIChild.Timer3Timer(Sender: TObject);
 begin
   try
     showstatus('Pinging host...', 2, 51);
-    mysql_ping(mysql);
-    ExecQuery( ZQuery3, SQL_PING );
+    ExecQuery( SQL_PING );
     showstatus('Ready', 2);
   except
     showstatus('Connection to Host terminated abnormally!');
@@ -2054,9 +2066,16 @@ var
   i : Integer;
 begin
   // Optimize tables
-  for i:=0 to Tabellenliste.Items.Count - 1 do
-    if Tabellenliste.Items[i].Selected then
-      q('OPTIMIZE TABLE ' + mainform.mask(Tabellenliste.Items[i].Caption));
+  Screen.Cursor := crHourGlass;
+  try
+    for i:=0 to Tabellenliste.Items.Count - 1 do
+    begin
+      if Tabellenliste.Items[i].Selected then
+        ExecQuery( 'OPTIMIZE TABLE ' + mainform.mask(Tabellenliste.Items[i].Caption) );
+    end;
+  finally
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
@@ -2066,14 +2085,19 @@ var
   tables : String;
 begin
   // Check tables
-  tables := '';
-  for i:=0 to Tabellenliste.Items.Count - 1 do
-    if Tabellenliste.Items[i].Selected then begin
-      if tables <> '' then
-        tables := tables + ', ';
-      tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
-    end;
-  q('CHECK TABLE ' + tables + ' TYPE = QUICK');
+  Screen.Cursor := crHourGlass;
+  try
+    tables := '';
+    for i:=0 to Tabellenliste.Items.Count - 1 do
+      if Tabellenliste.Items[i].Selected then begin
+        if tables <> '' then
+          tables := tables + ', ';
+        tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
+      end;
+    ExecQuery( 'CHECK TABLE ' + tables + ' QUICK' );
+  finally
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
@@ -2083,14 +2107,19 @@ var
   tables : String;
 begin
   // Analyze tables
-  tables := '';
-  for i:=0 to Tabellenliste.Items.Count - 1 do
-    if Tabellenliste.Items[i].Selected then begin
-      if tables <> '' then
-        tables := tables + ', ';
-      tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
-    end;
-  q('ANALYZE TABLE ' + tables);
+  Screen.Cursor := crHourGlass;
+  try
+    tables := '';
+    for i:=0 to Tabellenliste.Items.Count - 1 do
+      if Tabellenliste.Items[i].Selected then begin
+        if tables <> '' then
+          tables := tables + ', ';
+        tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
+      end;
+    ExecQuery( 'ANALYZE TABLE ' + tables );
+  finally
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
@@ -2100,14 +2129,19 @@ var
   tables : String;
 begin
   // Repair tables
-  tables := '';
-  for i:=0 to Tabellenliste.Items.Count - 1 do
-    if Tabellenliste.Items[i].Selected then begin
-      if tables <> '' then
-        tables := tables + ', ';
-      tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
-    end;
-  q('REPAIR TABLE ' + tables + ' TYPE = QUICK');
+  Screen.Cursor := crHourGlass;
+  try
+    tables := '';
+    for i:=0 to Tabellenliste.Items.Count - 1 do
+      if Tabellenliste.Items[i].Selected then begin
+        if tables <> '' then
+          tables := tables + ', ';
+        tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
+      end;
+    ExecQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
+  finally
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
@@ -2504,7 +2538,7 @@ var
 begin
   for i:=0 to Tabellenliste.Items.Count - 1 do
     if Tabellenliste.Items[i].Selected then
-      q('ALTER TABLE ' + Tabellenliste.Items[i].Caption + ' TYPE = ' + (Sender as TMenuItem).Hint);
+      ExecQuery( 'ALTER TABLE ' + Tabellenliste.Items[i].Caption + ' TYPE = ' + (Sender as TMenuItem).Hint);
   ShowDBProperties(self);
 end;
 
@@ -2517,7 +2551,7 @@ begin
   if inputquery('Change table-type...','New table-type:', strtype) then begin
     for i:=0 to Tabellenliste.Items.Count - 1 do
       if Tabellenliste.Items[i].Selected then
-        q('ALTER TABLE ' + Tabellenliste.Items[i].Caption + ' TYPE = ' + strtype);
+        ExecQuery( 'ALTER TABLE ' + Tabellenliste.Items[i].Caption + ' TYPE = ' + strtype );
     ShowDBProperties(self);
   end;
 end;
@@ -2886,25 +2920,36 @@ begin
 end;
 
 
-// Execute a query without wanting any resultset
-procedure TMDIChild.ExecQuery(DataSet: TDataSet; SQLQuery: String);
+// Execute a query without returning a resultset
+procedure TMDIChild.ExecQuery( SQLQuery: String );
 begin
-  if DataSet is TZQuery then with (DataSet as TZQuery) do
+  With TZReadOnlyQuery.Create( self ) do
   begin
+    Connection := ZConn;
     SQL.Clear;
     SQL.Add( SQLQuery );
     ExecSQL;
-  end;
-  if DataSet is TZReadonlyQuery then with (DataSet as TZReadonlyQuery) do
-  begin
-    SQL.Clear;
-    SQL.Add( SQLQuery );
-    ExecSQL;
+    Free;
   end;
 end;
 
 
-// Monitor SQL 
+// Execute a query and return data from a single cell
+function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
+begin
+  With TZReadOnlyQuery.Create( self ) do
+  begin
+    Connection := ZConn;
+    SQL.Clear;
+    SQL.Add( SQLQuery );
+    Open;
+    Result := Fields[x].AsString;
+    Free;
+  end;
+end;
+
+
+// Monitor SQL
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
