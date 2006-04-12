@@ -160,18 +160,17 @@ end;
 procedure Tloaddataform.TablesComboBoxChange(Sender: TObject);
 var
   i : Integer;
-  r : PMYSQL_ROW;
 begin
   // fill columns:
   ColumnsCheckListBox.Items.Clear;
   if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    myresult := q('SHOW FIELDS FROM ' + DBComboBox.Text + '.' +  TablesComboBox.Text);
-    for i:=0 to myresult.row_count - 1 do
+    GetResults( 'SHOW FIELDS FROM ' + DBComboBox.Text + '.' +  TablesComboBox.Text, ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
     begin
-      r := mysql_fetch_row(myresult);
-      ColumnsCheckListBox.Items.Add(r[0]);
+      ColumnsCheckListBox.Items.Add(ZQuery3.Fields[0].AsString);
+      ZQuery3.Next;
     end;
   end;
 
@@ -266,7 +265,7 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  TMDIChild(Application.Mainform.ActiveMDIChild).q(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
   close;
 end;
 

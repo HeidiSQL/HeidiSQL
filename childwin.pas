@@ -254,7 +254,6 @@ type
     procedure viewdata(Sender: TObject);
     procedure ShowDBProperties(Sender: TObject);
     procedure ShowTableProperties(Sender: TObject);
-    procedure Fail(createexc: boolean = true; querystr: String = '');
     procedure TabellenlisteChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure TabelleAnzeigen(Sender: TObject);
@@ -368,11 +367,11 @@ type
     procedure ZQuery2BeforeClose(DataSet: TDataSet);
     procedure ExecQuery( SQLQuery: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
+    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
 
     private
       { Private declarations }
-      MyPass                     : string;
       strHostRunning             : String;
       uptime, time_connected     : Integer;
       OnlyDBs                    : TStringList;  // used on connecting
@@ -385,10 +384,7 @@ type
 
     public
       { Public declarations }
-      MyHost, MyUser,
       ActualDatabase, ActualTable: string;
-      MyPort, MyComp             : integer;
-      MyTime                     : longword;
       dataselected, editing      : Boolean;
       mysql_version              : Integer;
       tnodehost                  : TTreeNode;
@@ -417,9 +413,7 @@ const
 
 procedure TMDIChild.FormCreate(Sender: TObject);
 var
-  AutoReconnect : Boolean;
-  p : Integer;
-	stats: string;
+  AutoReconnect    : Boolean;
 begin
   // initialization: establish connection and read some vars from registry
   Screen.Cursor := crHourGlass;
@@ -441,73 +435,38 @@ begin
   end;
 
   ReadWindowOptions;
-  MyHost := connform.EditHost.Text;
-  ZConn.
-  MyPort := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
-  MyUser := connform.EditBenutzer.Text;
-  MyPass := connform.EditPasswort.Text;
-  MyTime := strToIntDef(connform.EditTimeOut.Text, 30);
-  MyComp := integer(connform.CheckBoxCompressed.Checked) * CLIENT_COMPRESS;
 
-  MySQL := mysql_init(nil);
-  // timeout
-  mysql_options(MySQL, MYSQL_OPT_CONNECT_TIMEOUT, @MyTime);
-  // read ini-file
-  mysql_options(MySQL, MYSQL_READ_DEFAULT_FILE, pchar(ExtractFilePath(paramstr(0)) + 'my.ini'));
-  // read [Client]-section from ini-file
-  mysql_options(MySQL, MYSQL_READ_DEFAULT_GROUP, pchar('Client'));
-
-  // connect!!!!!!!!
-  mainform.Showstatus('Connecting to ' + MyHost + '...', 2, 51);
-  if mysql_real_connect(MySQL, pChar(MyHost), pChar(MyUser), pChar(MyPass),
-      nil, MyPort, nil, MyComp) = nil then begin
-      formerror.Memo1.text := 'Connection failed:' + CRLF + Format('%d - %s', [mysql_errno(MySQL), mysql_error(MySQL)]);
-      formerror.errormsg := mysql_error(MySQL);
-      formerror.errornr := mysql_errno(MySQL);
-      formerror.ShowModal;
-{      messagedlg('Connection failed:' + CRLF + '====================' + CRLF +
-        Format('%d - %s', [mysql_errno(MySQL), mysql_error(MySQL)]),
-        mtError, [mbOK], 0);
-}
-      timer5.Enabled := true;
-  end else begin
-    // ok, we have a connection...
-    ZConn.Hostname := MyHost;
-    ZConn.User := MyUser;
-    ZConn.Password := MyPass;
-    ZConn.Port := MyPort;
+  ZConn.Hostname := connform.EditHost.Text;
+  ZConn.User := connform.EditBenutzer.Text;
+  ZConn.Password := connform.EditPasswort.Text;
+  ZConn.Port := strToIntDef(connform.EditPort.Text, 3306);
+  try
     ZConn.Connect;
-
-    Description := connform.ComboBoxDescription.Text;
-    Caption := Description;
-    OnlyDBs := explode(';', connform.EditOnlyDBs.Text);
-
-    // Versions and Statistics
-		LogSQL('------------------------------ Statistics ------------------------------');
-    LogSQL('· Connection established with host "' + myhost + '" on port ' + inttostr(MyPort));
-    LogSQL('· Server: ' + mysql_get_server_info(MySQL));
-    LogSQL('· Client: ' + mysql_get_client_info());
-    LogSQL('· Protocol-Version: ' + intToStr(mysql_get_proto_info(MySQL)));
-		Stats := mysql_stat(MySQL);
-		P := pos('  ', Stats);
-		while P > 0 do begin
-			LogSQL('· ' + copy(Stats, 1, P - 1));
-			Stats := copy(Stats, P + 2, MaxInt);
-			P := pos('  ', Stats);
-		end;
-		LogSQL('· ' + Stats);
-		LogSQL('-----------------------------------------------------------------------');
-
-    ShowVariablesAndProcesses(self);
-    ReadDatabasesAndTables(self);
-
-    // re-enable AutoReconnect in Registry!
-    if AutoReconnect then
-    with TRegistry.Create do begin
-      openkey(regpath, true);
-      WriteBool('AutoReconnect', true);
-      closekey();
+  except
+    on E: Exception do
+    begin
+      timer5.Enabled := true;
     end;
+  end;
+
+  Description := connform.ComboBoxDescription.Text;
+  Caption := Description;
+  OnlyDBs := explode(';', connform.EditOnlyDBs.Text);
+
+  // Versions and Statistics
+  LogSQL('------------------------------ Statistics ------------------------------');
+  LogSQL('· Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port));
+  LogSQL('-----------------------------------------------------------------------');
+
+  ShowVariablesAndProcesses(self);
+  ReadDatabasesAndTables(self);
+
+  // re-enable AutoReconnect in Registry!
+  if AutoReconnect then
+  with TRegistry.Create do begin
+    openkey(regpath, true);
+    WriteBool('AutoReconnect', true);
+    closekey();
   end;
 
   ActualDatabase := '';
@@ -613,7 +572,6 @@ var
   ws : String;
 begin
   // closing connection and saving some vars into registry
-	mysql_close(MySQL);
   if windowstate = wsNormal then
     ws := 'Normal' else
   if windowstate = wsMinimized
@@ -639,44 +597,6 @@ begin
   mainform.ToolBarData.visible := false;
   FormDeactivate(sender);
   Action := caFree;
-end;
-
-
-procedure TMDIChild.Fail(createexc: boolean = true; querystr: String = '');
-var msg : String;
-begin
-  // Executed query failed!
-  Msg := Format('%d - %s', [mysql_errno(MySQL), mysql_error(MySQL)]);
-  LogSQL('Error: ' + msg);
-  Screen.Cursor := crDefault;
-  Tabellenliste.Items.EndUpdate;
-  Feldliste.Items.EndUpdate;
-  mainform.Showstatus('Ready', 2);
-  if createexc then begin
-//  	raise Exception.Create('MySQL-Error:' + CRLF + '====================' + CRLF + Msg);
-    viewingdata := false;
-    formerror.errormsg := mysql_error(MySQL);
-    formerror.errornr := mysql_errno(MySQL);
-    formerror.Memo1.Text := msg;
-    formerror.ShowModal;
-    abort;
-  end;
-end;
-
-
-function TMDIChild.q(query:String; createexc: boolean = true; storeresult: boolean = true) : PMYSQL_RES;
-begin
-  // Execute Query and create an exception on error (only if createexc = true)!
-  LogSQL(query);
-  showstatus('Executing Query...', 2, 51);
-  if mysql_real_query(MySQL, pChar(Query), length(Query)) <> 0 then
-    fail(createexc, query);
-  showstatus('Retrieving Result...', 2, 51);
-  if storeresult then
-    result := mysql_store_result(MySQL)
-  else
-    result := mysql_use_result(MySQL);
-  showstatus('Ready', 2);
 end;
 
 
@@ -717,7 +637,7 @@ begin
   DBTree.OnChange := nil;
   DBTree.items.Clear;
 
-  tnodehost := DBtree.Items.Add(nil, MyUser + '@' + MyHost);  // Host or Root
+  tnodehost := DBtree.Items.Add(nil, ZConn.User + '@' + ZConn.Password);  // Host or Root
   tnodehost.ImageIndex := 13;
   tnodehost.SelectedIndex := 6;
 
@@ -1011,7 +931,7 @@ begin
     if ActualDatabase <> '' then
       Panel6.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
-      Panel6.Caption := 'SQL-Query on Host ' + MyHost + ':';
+      Panel6.Caption := 'SQL-Query on Host ' + ZConn.HostName + ':';
 
   // copy and save csv-buttons
   DataOrQueryTab := (PageControl1.ActivePage = SheetQuery) or (PageControl1.ActivePage = SheetData);
@@ -1045,7 +965,6 @@ begin
   Tabellenliste.Items.Clear;
 
   Screen.Cursor := crSQLWait;
-  mysql_select_db(mysql, pchar(ActualDatabase));
   ZConn.Database := ActualDatabase;
   ExecQuery( 'USE ' + ActualDatabase );
 
@@ -1438,11 +1357,12 @@ begin
     abort;
 
   Screen.Cursor := crSQLWait;
-  LogSQL('DROP DATABASE ' + tndb_.Text);
-  if mysql_drop_db(mysql, pchar(tndb_.Text)) <> 0 then
-    MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
-  else
+  try
+    ExecQuery( 'DROP DATABASE ' + tndb_.Text );
     tndb_.Delete;
+  except
+    MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
+  end;
   Screen.Cursor := crDefault;
 end;
 
@@ -1465,7 +1385,7 @@ begin
   v := GetVar( 'SELECT VERSION()' );
   versions := explode( '.', v );
   mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
-  strHostRunning := MyHost + ' running MySQL-Version ' + v + ' / Uptime: ';
+  strHostRunning := ZConn.HostName + ' running MySQL-Version ' + v + ' / Uptime: ';
 
   // VARIABLES
   ZQuery3.Close;
@@ -1559,7 +1479,7 @@ end;
 procedure TMDIChild.KillProcess(Sender: TObject);
 var t : boolean;
 begin
-  if strtoint(ProcessListe.Selected.Caption) = mysql_thread_id(MySQL) then
+  if ProcessListe.Selected.Caption = GetVar( 'SELECT CONNECTION_ID()' ) then
     MessageDlg('Fatal: Better not kill my own Process...', mtError, [mbok], 0)
   else begin
     t := TimerProcessList.Enabled;
@@ -1795,7 +1715,7 @@ end;
 
 procedure TMDIChild.FormActivate(Sender: TObject);
 begin
-  if MySQL <> nil then
+  if ZConn.Connected then
   begin
     Application.Title := Description + ' - ' + main.appname;
     with MainForm do
@@ -2943,9 +2863,23 @@ begin
     SQL.Clear;
     SQL.Add( SQLQuery );
     Open;
-    Result := Fields[x].AsString;
-    Free;
+    try
+      First;
+      Result := Fields[x].AsString;
+    finally
+      Free;
+    end;
   end;
+end;
+
+
+// Executes a query with an existing ZQuery-object
+procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
+begin
+  ZQuery.SQL.Clear();
+  ZQuery.SQL.Add( SQLQuery );
+  ZQuery.Open;
+  ZQuery.First;
 end;
 
 

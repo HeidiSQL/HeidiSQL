@@ -88,7 +88,7 @@ begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do begin
-    self.Caption := MyHost + ' - Export Tables...';
+    self.Caption := ZConn.HostName + ' - Export Tables...';
     for i:=0 to DBTree.Items.Count-1 do begin
       tn := DBTree.Items[i];
       if tn.Level = 1 then
@@ -126,7 +126,7 @@ begin
     if MainForm.MDIChildren[i] <> MainForm.ActiveMDIChild then
       with TMDIChild(MainForm.MDIChildren[i]) do begin
         for j:=0 to tnodehost.Count-1 do
-          self.ComboBoxHost.Items.Add(MyHost + ':' + tnodehost.Item[j].text);
+          self.ComboBoxHost.Items.Add(ZConn.HostName + ':' + tnodehost.Item[j].text);
       end;
   end;
   if ComboBoxHost.Items.Count > 0 then
@@ -211,7 +211,6 @@ var
   win2export                : TMDIChild;
   StrProgress               : String;
   value                     : String;
-  lengths                   : PMYSQL_LENGTHS;
   Escaped,fullvalue         : PChar;
 begin
   // export!
@@ -254,7 +253,7 @@ begin
     DB2export := HostDb[1];
     for m:=0 to mainform.MDIChildCount-1 do begin
       if (TMDIChild(mainform.MDIChildren[m]) <> TMDIChild(mainform.ActiveMDIChild)) and
-        (TMDIChild(mainform.MDIChildren[m]).MyHost = HostDb[0]) then
+        (TMDIChild(mainform.MDIChildren[m]).ZConn.HostName = HostDb[0]) then
         win2export := TMDIChild(mainform.MDIChildren[m]);
     end;
   end;
@@ -262,12 +261,12 @@ begin
   TRY
     with TMDIChild(Mainform.ActiveMDIChild) do
     begin
-      mysql_select_db(mysql, pchar(DBComBoBox.Text));
+      ExecQuery( 'USE ' + DBComBoBox.Text );
       if tofile then
       begin
-        wfs(f, '# Host: ' + myhost + '   Database: ' + DBComBoBox.Text);
+        wfs(f, '# Host: ' + ZConn.HostName + '   Database: ' + DBComBoBox.Text);
         wfs(f, '# --------------------------------------------------------');
-        wfs(f, '# Server version ' + mysql_get_server_info(MySQL));
+        wfs(f, '# Server version: ' + GetVar( 'SELECT VERSION()' ) + ' ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"' ) );
         if CheckBoxWithUseDB.Checked then
         begin
           wfs(f);
@@ -421,21 +420,21 @@ begin
           // Another Database
           else if RadioButtonDB.Checked then begin
             if mysql_version >= 32320 then
-              q('USE ' + DB2Export, false);
+              ExecQuery( 'USE ' + DB2Export );
             if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then
-              q(dropquery, false);
-            q(createquery, false);
+              ExecQuery( dropquery );
+            ExecQuery( createquery );
             if mysql_version >= 32320 then
-              q('USE ' + DBComboBox.Text, false);
+              ExecQuery( 'USE ' + DBComboBox.Text );
           end
 
           // Another Host / DB:
           else if RadioButtonHost.Checked then begin
             if mysql_version >= 32320 then
-              win2export.q('USE ' + DB2Export, false);
+              win2export.ExecQuery('USE ' + DB2Export);
             if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then
-              win2export.q(dropquery, false);
-            win2export.q(createquery, false);
+              win2export.ExecQuery(dropquery);
+            win2export.ExecQuery(createquery);
           end;
 
           ProgressBar1.StepIt;
@@ -488,9 +487,9 @@ begin
             if tofile then
               wfs(f, insertquery + ';')
             else if RadioButtonDB.Checked then
-              q(insertquery, false, false)
+              ExecQuery(insertquery)
             else if RadioButtonHost.Checked then
-              win2export.q(insertquery, false, false);
+              win2export.ExecQuery(insertquery, false, false);
             row := mysql_fetch_row(MyResult);
           end;
           mysql_free_result(myresult);

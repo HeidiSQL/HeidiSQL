@@ -313,7 +313,7 @@ begin
   else if sender is TToolButton then
     flushwhat := 'PRIVILEGES';
   delete(flushwhat, pos('&', flushwhat), 1);
-  TMDIChild(Application.Mainform.ActiveMDIChild).q('FLUSH ' + flushwhat, false);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery('FLUSH ' + flushwhat);
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);

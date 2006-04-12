@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst;
+  StdCtrls, Buttons, CheckLst, ZDataSet;
 
 type
   TCopyTableForm = class(TForm)
@@ -74,7 +74,6 @@ end;
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   i : Integer;
-  r : PMYSQL_ROW;
 begin
   oldTableName := TMDIChild(Mainform.ActiveMDIChild).TabellenListe.Selected.Caption;
   Edit1.Text := oldTableName + '_copy';
@@ -85,11 +84,11 @@ begin
   CheckListBoxFields.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    myresult := q('SHOW FIELDS FROM ' + mainform.mask(oldTableName));
-    for i:=0 to myresult.row_count - 1 do
+    GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName), ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
     begin
-      r := mysql_fetch_row(myresult);
-      CheckListBoxFields.Items.Add(r[0]);
+      CheckListBoxFields.Items.Add( ZQuery3.Fields[0].AsString );
+      ZQuery3.Next;
     end;
   end;
 
@@ -102,31 +101,29 @@ end;
 procedure TCopyTableForm.ButtonOKClick(Sender: TObject);
 var
   strquery : String;
-  i,j,which,k        : Integer;
+  i,which,k        : Integer;
   keylist  : Array of TMyKey;
   keystr   : String;
-  MyResult : PMYSQL_RES;
-  row : PMYSQL_ROW;
   ai_q, notnull, default    : String;
+  zq : TZReadOnlyQuery;
 begin
   // copy table!
   strquery := 'CREATE TABLE ' + mainform.mask(Edit1.Text) + ' ';
+  zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
 
   // keys >
   if CheckBoxWithIndexes.Checked then begin
-
-    MyResult := TMDIChild(Mainform.ActiveMDIChild).q('SHOW KEYS FROM ' + mainform.mask(oldtablename));
+    TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename), zq );
     setLength(keylist, 0);
     keystr := '';
 
-    for j := 1 to mysql_num_rows(MyResult) do
+    for i:=1 to zq.RecordCount do
     begin
-      row := mysql_fetch_row(MyResult);
       which := -1;
 
       for k:=0 to length(keylist)-1 do
       begin
-        if keylist[k].Name = row[2] then // keyname exists!
+        if keylist[k].Name = zq.Fields[2].AsString then // keyname exists!
           which := k;
       end;
       if which = -1 then
@@ -136,18 +133,19 @@ begin
         keylist[which].Columns := TStringList.Create;
         with keylist[which] do // set properties for new key
         begin
-          Name := row[2];
-          if row[2] = 'PRIMARY' then
+          Name := zq.Fields[2].AsString;
+          if zq.Fields[2].AsString = 'PRIMARY' then
             _type := 'PRIMARY'
-          else if mysql_num_fields(MyResult) >= 10 then if row[9] = 'FULLTEXT' then
+          else if zq.FieldCount >= 10 then if zq.Fields[9].AsString = 'FULLTEXT' then
             _type := 'FULLTEXT'
-          else if row[1] = '1' then
+          else if zq.Fields[1].AsString = '1' then
             _type := ''
-          else if row[1] = '0' then
+          else if zq.Fields[1].AsString = '0' then
             _type := 'UNIQUE';
         end;
+        zq.Next;
       end;
-      keylist[which].Columns.add(row[4]); // add column(s)
+      keylist[which].Columns.add(zq.Fields[4].AsString); // add column(s)
     end;
     for k:=0 to high(keylist) do
     begin
@@ -182,22 +180,23 @@ begin
   if RadioButton1.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
-  TMDIChild(Mainform.ActiveMDIChild).q(strquery);
+  TMDIChild(Mainform.ActiveMDIChild).ExecQuery(strquery);
 
   // Find a auto_increment-column
-  MyResult := TMDIChild(Mainform.ActiveMDIChild).q('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
-  for j := 0 to mysql_num_rows(MyResult)-1 do begin
-    row := mysql_fetch_row(MyResult);
-    if row[5] = 'auto_increment' then begin
-      if row[2] = '' then notnull := 'NOT NULL' else notnull := '';
-      if row[4] <> '' then default := 'DEFAULT "'+row[4]+'"' else default := '';
-      ai_q := 'ALTER TABLE '+mainform.mask(Edit1.Text)+' CHANGE '+mainform.mask(row[0])+' '+mainform.mask(row[0])+' '+row[1]+' '+default+' '+notnull+' AUTO_INCREMENT';
-      TMDIChild(Mainform.ActiveMDIChild).q(ai_q);
+  zq.SQL.Clear();
+  zq.SQL.Add( 'SHOW FIELDS FROM ' + mainform.mask(oldtablename) );
+  zq.Open;
+  zq.First;
+  for i:=1 to zq.RecordCount do
+  begin
+    if zq.Fields[5].AsString = 'auto_increment' then begin
+      if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
+      if zq.Fields[4].AsString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsString+'"' else default := '';
+      ai_q := 'ALTER TABLE '+mainform.mask(Edit1.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
+      TMDIChild(Mainform.ActiveMDIChild).ExecQuery(ai_q);
     end;
+    zq.Next;
   end;
-  mysql_free_result(MyResult);
-
-
 
   TMDIChild(Mainform.ActiveMDIChild).ShowDBProperties(self);
   close;

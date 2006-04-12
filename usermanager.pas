@@ -84,13 +84,10 @@ type
     procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
-    mresult               : PMYSQL_RES;
-    mrow                  : PMYSQL_ROW;
     editcurrent           : Boolean;
   public
     { Public declarations }
     User, Host            : String; // Remember for setting privileges
-    usersresult, dbsresult, tablesresult, columnsresult     : PMYSQL_RES;
   end;
 
 var
@@ -244,8 +241,8 @@ begin
     grant := ' WITH GRANT OPTION';
 
   query := 'GRANT ' + priv + ' ON ' + access + ' TO ''' + EditUser.Text + '''@''' + fromhost + '''' + pass + grant;
-  TMDIChild(Application.Mainform.ActiveMDIChild).q(query);
-  TMDIChild(Application.Mainform.ActiveMDIChild).q('FLUSH PRIVILEGES');
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
   ShowMessage('User succesfully created.');
 end;
 
@@ -622,7 +619,7 @@ begin
           sql := sql + ' ' + CheckListBoxPrivs.Items[i] + '_priv = ''' + checked2yn(i) + '''';
         end;
         sql := sql + ' WHERE Host = ''' + Host + ''' AND User = ''' + User + '''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         mysql_free_result(usersresult);
         usersresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.user');
       end;
@@ -647,7 +644,7 @@ begin
           sql := sql + ')';
           editcurrent := true;
         end;
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         mysql_free_result(dbsresult);
         dbsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.db');
       end;
@@ -674,7 +671,7 @@ begin
           sql := sql + ''')';
           editcurrent := true;
         end;
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         mysql_free_result(tablesresult);
         tablesresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.tables_priv');
       end;
@@ -701,12 +698,12 @@ begin
           sql := sql + ''')';
           editcurrent := true;
         end;
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         mysql_free_result(columnsresult);
         columnsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.columns_priv');
       end;
   end;
-  TMDIChild(Mainform.ActiveMDIChild).q('FLUSH PRIVILEGES');
+  TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
   ButtonRevoke.Enabled := editcurrent;
   Screen.Cursor := crDefault;
 end;
@@ -751,13 +748,13 @@ begin
     0 : // delete user
       if MessageDLG('Delete User '''+User+''' and all its privileges?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then begin
         sql := 'DELETE FROM mysql.user WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         sql := 'DELETE FROM mysql.db WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         sql := 'DELETE FROM mysql.tables_priv WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         sql := 'DELETE FROM mysql.columns_priv WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         TreeViewUsers.Selected.Delete;
         mysql_free_result(UsersResult);
         mysql_free_result(DBsResult);
@@ -767,34 +764,34 @@ begin
         mysql_free_result(ColumnsResult);
         ColumnsResult := nil;
         usersresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.user');
-        TMDIChild(Mainform.ActiveMDIChild).q('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     1 : // delete db-privs
       begin
         sql := 'DELETE FROM mysql.db WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Text+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
         mysql_free_result(DBsResult);
         dbsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.db');
-        TMDIChild(Mainform.ActiveMDIChild).q('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     2 : // delete table-privs
       begin
         sql := 'DELETE FROM mysql.tables_priv WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Text+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
         mysql_free_result(TablesResult);
         TablesResult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.tables_priv');
-        TMDIChild(Mainform.ActiveMDIChild).q('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     3 : // delete column-privs
       begin
         sql := 'DELETE FROM mysql.columns_priv WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Parent.Text+''' AND Column_name='''+TreeViewUsers.Selected.Text+'''';
-        TMDIChild(Mainform.ActiveMDIChild).q(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
         mysql_free_result(ColumnsResult);
         ColumnsResult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.columns_priv');
-        TMDIChild(Mainform.ActiveMDIChild).q('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
   end;
   Screen.Cursor := crDefault;

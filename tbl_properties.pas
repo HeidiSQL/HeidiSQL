@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, SortListView, ExtCtrls;
+  StdCtrls, ComCtrls, SortListView, ExtCtrls, ZDataset;
 
 type
   Ttbl_properties_form = class(TForm)
@@ -51,10 +51,8 @@ var
   list, tabellenliste : TSortListView;
   datasize, indexsize : Integer;
   isSelected : Boolean;
-  row        : PMYSQL_ROW;
-  MyResult   : PMYSQL_RES;
-  Field      : PMYSQL_FIELD;
   FieldList  : TStringList;
+  zq : TZReadOnlyQuery;
 begin
   tabellenliste := TMDIChild(Mainform.ActiveMDIChild).TabellenListe;
   for i:=PageControl1.PageCount-1 downto 0 do
@@ -63,18 +61,24 @@ begin
   datasize := 0;
   indexsize := 0;
 
-  MyResult := TMDIChild(Mainform.ActiveMDIChild).q('SHOW TABLE STATUS');
+  zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
+  zq.SQL.Clear();
+  zq.SQL.Add( 'SHOW TABLE STATUS' );
+  zq.Open;
+  zq.First;
   FieldList := TStringList.Create;
-  for i:=0 to myResult.field_count-1 do begin
-    field := mysql_fetch_field(MyResult);
-    FieldList.add(field.name);
+  for i:=1 to zq.FieldCount do
+  begin
+    FieldList.add( zq.Fields[i].Fieldname );
   end;
 
-  for t:=0 to mysql_num_rows(MyResult)-1 do begin
-    row := mysql_fetch_row(MyResult);
+  zq.First;
+  for t:=1 to zq.RecordCount do
+  begin
     isSelected := false;
-    for i:=0 to TabellenListe.Items.Count-1 do begin
-      isSelected := (TabellenListe.Items[i].caption = row[0]) and TabellenListe.Items[i].Selected;
+    for i:=0 to TabellenListe.Items.Count-1 do
+    begin
+      isSelected := (TabellenListe.Items[i].caption = zq.Fields[0].AsString) and TabellenListe.Items[i].Selected;
       if isSelected then
         break;
     end;
@@ -92,11 +96,13 @@ begin
     list.GridLines := true;
     list.RowSelect := true;
 
-    with list.Columns.Add do begin
+    with list.Columns.Add do
+    begin
       Caption := 'Variable';
       Width := 100;
     end;
-    with list.Columns.Add do begin
+    with list.Columns.Add do
+    begin
       Caption := 'Value';
       Width := -1;
     end;
@@ -104,12 +110,13 @@ begin
     for i:=0 to FieldList.count-1 do
     begin
       if i=5 then
-        inc(datasize, StrToIntDef(row[i], 0));
+        inc(datasize, StrToIntDef(zq.Fields[i].AsString, 0));
       if i=7 then
-        inc(indexsize, StrToIntDef(row[i], 0));
-      with List.Items.add do begin
+        inc(indexsize, StrToIntDef(zq.Fields[i].AsString, 0));
+      with List.Items.add do
+      begin
         Caption := FieldList[i];
-        SubItems.Add(row[i]);
+        SubItems.Add( zq.Fields[i].AsString);
       end;
     end;
 

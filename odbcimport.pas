@@ -341,7 +341,7 @@ begin
     ctquery := ctquery + ') ';
     with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
       mysql_select_db(mysql, pchar(CheckListBoxTables.Items[i]));
-      q(ctquery, false);
+      ExecQuery(ctquery);
 
       if RadioButton2.Checked then // access file - safety-brackets
         AdoQuery1.SQL.Add('SELECT * FROM [' + CheckListBoxTables.Items[i] + ']')
@@ -366,7 +366,7 @@ begin
           if k < AdoQuery1.FieldCount-1 then
             insquery := insquery + ',';
         end;
-        q('INSERT INTO ' + mainform.mask(ComboBoxTargetDB.Text) + '.' + mainform.mask(CheckListBoxTables.Items[i]) + ' VALUES(' + insquery + ')', false);
+        ExecQuery('INSERT INTO ' + mainform.mask(ComboBoxTargetDB.Text) + '.' + mainform.mask(CheckListBoxTables.Items[i]) + ' VALUES(' + insquery + ')');
         AdoQuery1.Next;
       end;
     end;

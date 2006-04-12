@@ -220,9 +220,6 @@ end;
 procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
-  keyrow : PMYSQL_ROW;
-  keyresult : PMYSQL_RES;
-//  rect : Trect;
 begin
   // ====================
   // Index-Editor:
@@ -234,40 +231,42 @@ begin
 
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    keyresult := q('SHOW KEYS FROM ' + mainform.mask(ActualTable));
-    for i:=0 to mysql_num_rows(keyresult)-1 do begin
-      keyrow := mysql_fetch_row(keyresult);
-      if TempKeys.IndexOf(keyrow[2]) = -1 then begin
-        TempKeys.Add(keyrow[2]);
+    ZQuery3.SQL.Clear();
+    ZQuery3.SQL.Add( 'SHOW KEYS FROM ' + mainform.mask(ActualTable) );
+    ZQuery3.Open;
+    ZQuery3.First;
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      if TempKeys.IndexOf(ZQuery3.Fields[2].AsString) = -1 then
+      begin
+        TempKeys.Add(ZQuery3.Fields[2].AsString);
         setlength(klist, length(klist)+1);
-        klist[length(klist)-1].Name := keyrow[2];
+        klist[length(klist)-1].Name := ZQuery3.Fields[2].AsString;
         klist[length(klist)-1].Columns := TStringList.Create;
-        klist[length(klist)-1].Columns.Add(keyrow[4]);
+        klist[length(klist)-1].Columns.Add(ZQuery3.Fields[4].AsString);
         klist[length(klist)-1].Modified := false;
-        klist[length(klist)-1].Unique := (keyrow[1] = '0');
-        if mysql_num_fields(KeyResult) >= 10 then
-          klist[length(klist)-1].Fulltext := (keyrow[9] = 'FULLTEXT')
+        klist[length(klist)-1].Unique := (ZQuery3.Fields[1].AsString = '0');
+        if ZQuery3.FieldCount >= 10 then
+          klist[length(klist)-1].Fulltext := (ZQuery3.Fields[9].AsString = 'FULLTEXT')
         else
           klist[length(klist)-1].Fulltext := false;
       end else
-        klist[TempKeys.IndexOf(keyrow[2])].Columns.Add(keyrow[4]);
+        klist[TempKeys.IndexOf(ZQuery3.Fields[2].AsString)].Columns.Add(ZQuery3.Fields[4].AsString);
+      ZQuery3.Next;
     end;
-    mysql_free_result(keyresult);
 
     for i:=0 to Feldliste.Items.Count-1 do begin
       if Feldliste.Items[i] <> nil then
         self.ListBox2.Items.Add(Feldliste.Items[i].Caption);
     end;
   end;
-
-//  ComboBoxKeys.OnDrawItem := ComboBoxKeysOnDrawItem(ComboBoxKeys, 0, rect, [odDefault]);
   showkeys();
 end;
 
 
 procedure TFieldEditForm.FormShow(Sender: TObject);
 begin
-  Caption := TMDIChild(Mainform.ActiveMDIChild).MyHost + ' - Field-Editor';
+  Caption := TMDIChild(Mainform.ActiveMDIChild).ZConn.Hostname + ' - Field-Editor';
   InitFieldEditor(self);
   InitIndexEditor(self);
   ComboBoxTypeChange(self);
@@ -397,26 +396,26 @@ begin
   with TMDIChild(Mainform.ActiveMDIChild) do
   begin
     if not self.UpdateField then
-      q('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
+      ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
         ' ADD ' + mainform.mask(EditFieldname.Text) + ' ' +     // new name
         fielddef +
         strPosition                                             // Position
         )
     else begin
-      q('ALTER TABLE ' + mainform.mask(ActualTable) +                      // table
+      ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +                      // table
         ' CHANGE ' + mainform.mask(FeldListe.Selected.Caption) + ' ' +     // old name
         mainform.mask(EditFieldName.Text) + ' ' +                          // new name
         fielddef
         );
       if ComboBoxPosition.ItemIndex > -1 then begin // Move field position
-        q('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
+        ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
           ' ADD ' + mainform.mask(tempfieldname) + ' ' +          // new name
           fielddef +
           strPosition                                             // Position
           );
-        q('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(tempfieldname)+'='+mainform.mask(EditFieldName.Text));
-        q('ALTER TABLE ' + mainform.mask(ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
-        q('ALTER TABLE ' + mainform.mask(ActualTable) + ' CHANGE '+
+        ExecQuery('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(tempfieldname)+'='+mainform.mask(EditFieldName.Text));
+        ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+        ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' CHANGE '+
           mainform.mask(tempfieldname)+' '+mainform.mask(EditFieldName.Text) + ' ' +
           fielddef
         );
@@ -641,7 +640,7 @@ begin
       else
         query := query1 + ' DROP INDEX '+klist[index].Name +
           ', ADD INDEX '+klist[index].Name+' (' + implodestr(',', klist[index].Columns) + ')';
-      TMDIChild(Application.Mainform.ActiveMDIChild).q(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
       klist[index].Modified := false;
     end
 
@@ -651,7 +650,7 @@ begin
         query := query1 + ' DROP PRIMARY KEY'
       else
         query := query1 + ' DROP INDEX ' + TempKeys[i];
-      TMDIChild(Application.Mainform.ActiveMDIChild).q(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
     end;
 
     if index > -1 then
@@ -673,7 +672,7 @@ begin
       // INDEX:
       else
         query := query1 + ' ADD INDEX '+ klist[j].Name+' (' + implodestr(',', klist[j].Columns) + ')';
-      TMDIChild(Application.Mainform.ActiveMDIChild).q(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
     end;
   end;
 

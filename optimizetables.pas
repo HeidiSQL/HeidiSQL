@@ -43,7 +43,6 @@ type
     procedure TablesCheckListBoxClickCheck(Sender: TObject);
   private
     { Private declarations }
-    MyResult  : PMYSQL_RES;
   public
     { Public declarations }
   end;
@@ -138,11 +137,11 @@ begin
   ListViewResults.Items.EndUpdate();
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    mysql_select_db(mysql, pchar(self.DBComboBox.Text));
+    ExecQuery( 'USE ' + self.DBComboBox.Text );
     for i:=0 to self.TablesCheckListBox.Items.Count - 1 do
     begin
       if TablesCheckListBox.Checked[i] then
-        q('OPTIMIZE TABLE ' + TablesCheckListBox.Items[i]);
+        ExecQuery('OPTIMIZE TABLE ' + TablesCheckListBox.Items[i]);
     end;
   end;
   screen.Cursor := crDefault;
@@ -165,8 +164,8 @@ begin
     querystr := 'CHECK TABLE ' + implodestrs(',', checkedtables);
     if CheckBoxQuickCheck.Checked then
       querystr := querystr + ' TYPE = QUICK';
-    mysql_select_db(mysql, pchar(self.DBComboBox.Text));
-    self.myresult := q(querystr);
+    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    GetResults( querystr, ZQuery3 );
     showresult(self);
   end;
   screen.Cursor := crDefault;
@@ -187,8 +186,8 @@ begin
         if Checked[i] then
           checkedtables.Add(Items[i]);
     querystr := 'ANALYZE TABLE ' + implodestrs(',', checkedtables);
-    mysql_select_db(mysql, pchar(self.DBComboBox.Text));
-    self.myresult := q(querystr);
+    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    GetResults( querystr, ZQuery3 );
     showresult(self);
   end;
   screen.Cursor := crDefault;
@@ -211,8 +210,8 @@ begin
     querystr := 'REPAIR TABLE ' + implodestrs(',', checkedtables);
     if CheckBoxQuickRepair.Checked then
       querystr := querystr + ' TYPE = QUICK';
-    mysql_select_db(mysql, pchar(self.DBComboBox.Text));
-    self.myresult := q(querystr);
+    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    GetResults( querystr, ZQuery3 );
     showresult(self);
   end;
   screen.Cursor := crDefault;
@@ -221,8 +220,6 @@ end;
 procedure Toptimize.showresult(Sender: TObject);
 var
   i,j,fieldcount : Integer;
-  Field        : PMYSQL_FIELD;
-  row          : PMYSQL_ROW;
   li           : TListItem;
   lc           : TListColumn;
 begin
@@ -230,23 +227,22 @@ begin
   ListViewResults.Columns.Clear;
   ListViewResults.Items.BeginUpdate();
   ListViewResults.Items.Clear;
-  if MyResult <> nil then
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    fieldcount := mysql_num_fields(MyResult);
+    fieldcount := ZQuery3.FieldCount;
     for i := 0 to fieldcount -1 do
     begin
-      Field  := mysql_fetch_field(self.MyResult);
       lc := ListViewResults.Columns.Add;
-      lc.Caption := Field.name;
+      lc.Caption := ZQuery3.Fields[i].Fieldname;
     end;
 
-    for i := 1 to mysql_num_rows(MyResult) do
+    for i:=1 to ZQuery3.RecordCount do
     begin
-      row := mysql_fetch_row(MyResult);
       li := ListViewResults.Items.Add;
-      li.Caption := row[0];
+      li.Caption := ZQuery3.Fields[0].AsString;
       for j := 1 to fieldcount -1 do // fill cells
-        li.SubItems.Add(row[j]);
+        li.SubItems.Add(ZQuery3.Fields[j].AsString);
+      ZQuery3.Next;
     end;
 
     for i := 0 to ListViewResults.Columns.Count-1 do
@@ -259,7 +255,7 @@ end;
 procedure Toptimize.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
-    mysql_select_db(mysql, pchar(ActualDatabase));
+    ExecQuery( 'USE ' + ActualDatabase );
 end;
 
 procedure Toptimize.TablesCheckListBoxClickCheck(Sender: TObject);

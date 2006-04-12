@@ -119,7 +119,7 @@ begin
         SQL := SQL + '"';
         GetMem(Query, Size * 2 + 1 + length(SQL)+2);
         StrCopy(StrECopy(StrECopy(Query, pchar(SQL)), Escaped), '")');
-        q(Query);
+        ExecQuery(Query);
 //        if mysql_query(Mysql, Query) <> 0 then
 //          die('Error while executing query'+query);
         self.Label6.caption := 'Freeing memory ...';

@@ -72,11 +72,11 @@ begin
       passwdset := '';
   end;
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-    q('UPDATE mysql.user SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' '+passwdset+' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    q('UPDATE mysql.db SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    q('UPDATE mysql.tables_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    q('UPDATE mysql.columns_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    q('FLUSH PRIVILEGES');
+    ExecQuery('UPDATE mysql.user SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' '+passwdset+' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+    ExecQuery('UPDATE mysql.db SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+    ExecQuery('UPDATE mysql.tables_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+    ExecQuery('UPDATE mysql.columns_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+    ExecQuery('FLUSH PRIVILEGES');
   end;
   // Clear and refill user-list
   with UserManagerForm do begin

@@ -140,17 +140,18 @@ var i : Integer;
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then
-    with TMDIChild(Mainform.ActiveMDIChild) do begin
-      MyResult := q('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
-      for i:=1 to mysql_num_rows(MyResult) do begin
-        row := mysql_fetch_row(MyResult);
+    with TMDIChild(Mainform.ActiveMDIChild) do
+    begin
+      GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text), ZQuery3);
+      for i:=1 to ZQuery3.RecordCount do
+      begin
         setlength(cols, length(cols)+1);
-        cols[length(cols)-1].Name := row[0];
-        cols[length(cols)-1].isBLOB := (pos('blob', lowercase(row[1])) > 0) or (pos('text', lowercase(row[1])) > 0);
+        cols[length(cols)-1].Name := ZQuery3.Fields[0].AsString;
+        cols[length(cols)-1].isBLOB := (pos('blob', lowercase(ZQuery3.Fields[1].AsString)) > 0) or (pos('text', lowercase(ZQuery3.Fields[1].AsString)) > 0);
         cols[length(cols)-1].Value := 'NULL';
         cols[length(cols)-1].Quote := false;
+        ZQuery3.Next;
       end;
-      mysql_free_result(MyResult);
     end;
   DisplayColumns(self);
 end;
