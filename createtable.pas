@@ -106,7 +106,7 @@ var
 
 implementation
 
-uses Main, mysql, Childwin, helpers;
+uses Main, Childwin, helpers;
 
 {$R *.DFM}
 

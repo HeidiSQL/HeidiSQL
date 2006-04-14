@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Registry, Buttons, ExtCtrls;
+  StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver;
 
 type
   Tconnform = class(TForm)
@@ -64,7 +64,7 @@ var
   connform: Tconnform;
 
 implementation
- uses Main, mysql, helpers;
+ uses Main, helpers;
 
 const
 	CRLF = #13#10;
@@ -239,11 +239,11 @@ begin
 
     if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
-      WriteString('Host', LOCAL_HOST);
+      WriteString('Host', 'localhost');
       WriteString('User', 'root');
       WriteString('Password', encrypt(''));
       WriteString('Port', inttostr(MYSQL_PORT));
-      WriteString('Timeout', inttostr(NET_READ_TIMEOUT));
+      WriteString('Timeout', inttostr(30));
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
       CloseKey;

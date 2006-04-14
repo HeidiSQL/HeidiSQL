@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, mysql, ToolWin;
+  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin;
 
 type
   Toptimize = class(TForm)
@@ -163,7 +163,7 @@ begin
           checkedtables.Add(Items[i]);
     querystr := 'CHECK TABLE ' + implodestrs(',', checkedtables);
     if CheckBoxQuickCheck.Checked then
-      querystr := querystr + ' TYPE = QUICK';
+      querystr := querystr + ' QUICK';
     ExecQuery( 'USE ' + self.DBComboBox.Text );
     GetResults( querystr, ZQuery3 );
     showresult(self);
@@ -209,7 +209,7 @@ begin
           checkedtables.Add(Items[i]);
     querystr := 'REPAIR TABLE ' + implodestrs(',', checkedtables);
     if CheckBoxQuickRepair.Checked then
-      querystr := querystr + ' TYPE = QUICK';
+      querystr := querystr + ' QUICK';
     ExecQuery( 'USE ' + self.DBComboBox.Text );
     GetResults( querystr, ZQuery3 );
     showresult(self);

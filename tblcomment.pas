@@ -36,7 +36,7 @@ var
 
 implementation
 
-uses Childwin, helpers, mysql, Main;
+uses Childwin, helpers, Main;
 
 {$R *.DFM}
 

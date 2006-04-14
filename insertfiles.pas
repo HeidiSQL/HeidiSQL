@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, mysql, ImgList, Buttons, ShellApi, Math;
+  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math;
 
 type TCol = record
   Name   : String;   // for displaying in lists
@@ -87,7 +87,7 @@ var
 begin
   ComboBoxDBs.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do begin
-    self.Caption := MyHost + ' - Insert files into table ...';
+    self.Caption := ZConn.HostName + ' - Insert files into table ...';
     for i:=0 to DBTree.Items.Count-1 do begin
       tn := DBTree.Items[i];
       if tn.Level = 1 then

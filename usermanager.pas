@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, CheckLst, ImgList, ExtCtrls, Registry, mysql;
+  ComCtrls, StdCtrls, CheckLst, ImgList, ExtCtrls, Registry, ZDataset;
   // winsock
 
 type
@@ -82,12 +82,18 @@ type
     procedure ButtonRevokeClick(Sender: TObject);
     procedure ButtonEditUserClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure GetResUsers;
+    procedure GetResDBs;
+    procedure GetResTables;
+    procedure GetResColumns;
+
   private
     { Private declarations }
     editcurrent           : Boolean;
   public
     { Public declarations }
     User, Host            : String; // Remember for setting privileges
+    ZQueryDBs, ZQueryTables, ZQueryColumns, ZQueryUsers, ZQueryF : TZReadOnlyQuery;
   end;
 
 var
@@ -150,7 +156,7 @@ begin
 
       TreeViewUsers.Images := ImageList1;
     end;
-    EditUser.Text := MyUser;
+    EditUser.Text := ZConn.User;
 
   end;
   tnu1.Expand(false);
@@ -170,6 +176,21 @@ begin
   EditHost.Text := ph.h_name;
   WSACleanup();
 }
+  ZQueryDBs := TZReadOnlyQuery.Create(self);
+  ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+
+  ZQueryTables := TZReadOnlyQuery.Create(self);
+  ZQueryTables.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+
+  ZQueryColumns := TZReadOnlyQuery.Create(self);
+  ZQueryColumns.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+
+  ZQueryUsers := TZReadOnlyQuery.Create(self);
+  ZQueryUsers.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+
+  ZQueryF := TZReadOnlyQuery.Create(self);
+  ZQueryF.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+
   Screen.Cursor := crDefault;
 end;
 
@@ -197,11 +218,11 @@ begin
     else with TRegistry.Create do
     begin
       OpenKey(regpath + '\Servers\' + EditDescription.Text, true);
-      WriteString('Host', TMDIChild(Application.Mainform.ActiveMDIChild).MyHost);
+      WriteString('Host', TMDIChild(Application.Mainform.ActiveMDIChild).ZConn.HostName);
       WriteString('User', EditUser.Text);
       WriteString('Password', encrypt(EditPassword.Text));
-      WriteString('Port', IntToStr(TMDIChild(Application.Mainform.ActiveMDIChild).MyPort));
-      WriteString('Timeout', IntToStr(TMDIChild(Application.Mainform.ActiveMDIChild).MyTime));
+      WriteString('Port', IntToStr(TMDIChild(Application.Mainform.ActiveMDIChild).ZConn.Port));
+      WriteString('Timeout', '30');
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
       CloseKey;
@@ -305,12 +326,13 @@ begin
     2 : // add columns to user-node...
       begin
         // find fields from table
-        mresult := TMDIChild(Mainform.ActiveMDIChild).q('SHOW FIELDS FROM ' + TreeViewUsers.Selected.Parent.Text + '.' + TreeViewUsers.Selected.Text);
-        for i:=0 to mysql_num_rows(mresult)-1 do begin
-          mrow := mysql_fetch_row(mresult);
-          tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, mrow[0]);
+        TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW FIELDS FROM ' + TreeViewUsers.Selected.Parent.Text + '.' + TreeViewUsers.Selected.Text, ZQueryF );
+        for i:=1 to ZQueryF.RecordCount do
+        begin
+          tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, ZQueryF.Fields[0].AsString);
           tnu.ImageIndex := 17;
           tnu.SelectedIndex := 18;
+          ZQueryF.Next;
         end;
       end;
 
@@ -352,24 +374,24 @@ begin
         LabelDB.Caption := Node.Text; LabelDB.Font.Color := clWindowText;
         LabelTable.Caption := '<All Tables>'; LabelTable.Font.Color := highlight;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
-        if dbsresult = nil then
-          dbsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.db');
+        if not ZQueryDBs.Active then
+          TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.db', ZQueryDBs );
         ButtonEditUser.Enabled := false;
       end;
     2 : begin
         LabelDB.Caption := Node.Parent.Text; LabelDB.Font.Color := clWindowText;
         LabelTable.Caption := Node.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
-        if tablesresult = nil then
-          tablesresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.tables_priv');
+        if not ZQueryTables.Active then
+          TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.tables_priv', ZQueryTables );
         ButtonEditUser.Enabled := false;
       end;
     3 : begin
         LabelDB.Caption := Node.Parent.Parent.Text; LabelDB.Font.Color := clWindowText;
         LabelTable.Caption := Node.Parent.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := Node.Text; LabelColumn.Font.Color := clWindowText;
-        if columnsresult = nil then
-          columnsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.columns_priv');
+        if not ZQueryColumns.Active then
+          TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.columns_priv', ZQueryColumns );
         ButtonEditUser.Enabled := false;
       end;
   end;
@@ -393,13 +415,15 @@ begin
 
   // Fill Tree with Registered Users:
   if (PageControl1.ActivePage = TabSheetEditUsers) and
-    (TreeViewUsers.Items.Count = 0) then begin
-    usersresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.user');
-    for i:=0 to mysql_num_rows(usersresult)-1 do begin
-      mrow := mysql_fetch_row(usersresult);
-      tn := TreeViewUsers.Items.AddChild(nil, mrow[1] + '@' + mrow[0]);
+    (TreeViewUsers.Items.Count = 0) then
+  begin
+    TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.user', ZQueryUsers );
+    for i:=1 to ZQueryUsers.RecordCount do
+    begin
+      tn := TreeViewUsers.Items.AddChild(nil, ZQueryUsers.Fields[1].AsString + '@' + ZQueryUsers.Fields[0].AsString );
       tn.ImageIndex := 16;
       tn.SelectedIndex := 15;
+      ZQueryUsers.Next;
     end;
   end;
   // ---------------------
@@ -511,80 +535,93 @@ begin
 
   case Node.Level of
     0 : begin // General user-privileges
-        mysql_data_seek(usersresult, 0);
-        for i:=1 to mysql_num_rows(usersresult) do begin
-          mrow := mysql_fetch_row(usersresult);
-          if (mrow[0]+'' = Host) and (mrow[1]+'' = User) then begin // found the according user!
+        ZQueryUsers.First;
+        for i:=1 to ZQueryUsers.RecordCount do
+        begin
+          if (ZQueryUsers.Fields[0].AsString+'' = Host) and (ZQueryUsers.Fields[1].AsString+'' = User) then
+          begin // found the according user!
             ShowPrivilegesControls(true, false, false);
-            CheckListBoxPrivs.Checked[0] := mrow[3] = 'Y'; // Select
-            CheckListBoxPrivs.Checked[1] := mrow[4] = 'Y'; // Insert
-            CheckListBoxPrivs.Checked[2] := mrow[5] = 'Y'; // Update
-            CheckListBoxPrivs.Checked[3] := mrow[6] = 'Y'; // Delete
-            CheckListBoxPrivs.Checked[4] := mrow[7] = 'Y'; // Create
-            CheckListBoxPrivs.Checked[5] := mrow[8] = 'Y'; // Drop
-            CheckListBoxPrivs.Checked[6] := mrow[9] = 'Y'; // Reload
-            CheckListBoxPrivs.Checked[7] := mrow[10] = 'Y'; // Shutdown
-            CheckListBoxPrivs.Checked[8] := mrow[11] = 'Y'; // Process
-            CheckListBoxPrivs.Checked[9] := mrow[12] = 'Y'; // File
-            CheckListBoxPrivs.Checked[10] := mrow[13] = 'Y'; // Grant
-            CheckListBoxPrivs.Checked[11] := mrow[14] = 'Y'; // References
-            CheckListBoxPrivs.Checked[12] := mrow[15] = 'Y'; // Index
-            CheckListBoxPrivs.Checked[13] := mrow[16] = 'Y'; // Alter
+            CheckListBoxPrivs.Checked[0] := ZQueryUsers.Fields[3].AsString = 'Y'; // Select
+            CheckListBoxPrivs.Checked[1] := ZQueryUsers.Fields[4].AsString = 'Y'; // Insert
+            CheckListBoxPrivs.Checked[2] := ZQueryUsers.Fields[5].AsString = 'Y'; // Update
+            CheckListBoxPrivs.Checked[3] := ZQueryUsers.Fields[6].AsString = 'Y'; // Delete
+            CheckListBoxPrivs.Checked[4] := ZQueryUsers.Fields[7].AsString = 'Y'; // Create
+            CheckListBoxPrivs.Checked[5] := ZQueryUsers.Fields[8].AsString = 'Y'; // Drop
+            CheckListBoxPrivs.Checked[6] := ZQueryUsers.Fields[9].AsString = 'Y'; // Reload
+            CheckListBoxPrivs.Checked[7] := ZQueryUsers.Fields[10].AsString = 'Y'; // Shutdown
+            CheckListBoxPrivs.Checked[8] := ZQueryUsers.Fields[11].AsString = 'Y'; // Process
+            CheckListBoxPrivs.Checked[9] := ZQueryUsers.Fields[12].AsString = 'Y'; // File
+            CheckListBoxPrivs.Checked[10] := ZQueryUsers.Fields[13].AsString = 'Y'; // Grant
+            CheckListBoxPrivs.Checked[11] := ZQueryUsers.Fields[14].AsString = 'Y'; // References
+            CheckListBoxPrivs.Checked[12] := ZQueryUsers.Fields[15].AsString = 'Y'; // Index
+            CheckListBoxPrivs.Checked[13] := ZQueryUsers.Fields[16].AsString = 'Y'; // Alter
             break;
           end;
+          ZQueryUsers.Next;
         end;
       end;
 
     1 : begin // db-privileges
-        mysql_data_seek(dbsresult, 0);
-        for i:=1 to mysql_num_rows(dbsresult) do begin
-          mrow := mysql_fetch_row(dbsresult);
-          if (mrow[0]+'' = Host) and (mrow[1]+'' = Node.Text) and (mrow[2]+'' = User) then begin
+        ZQueryDBs.First;
+        for i:=1 to ZQueryDBs.RecordCount do
+        begin
+          if (ZQueryDBs.Fields[0].AsString = Host)
+            and (ZQueryDBs.Fields[1].AsString = Node.Text)
+            and (ZQueryDBs.Fields[2].AsString = User) then
+          begin
             // some privs are set:
             ShowPrivilegesControls(true, false, false);
-            CheckListBoxPrivs.Checked[0] := mrow[3] = 'Y'; // Select
-            CheckListBoxPrivs.Checked[1] := mrow[4] = 'Y'; // Insert
-            CheckListBoxPrivs.Checked[2] := mrow[5] = 'Y'; // Update
-            CheckListBoxPrivs.Checked[3] := mrow[6] = 'Y'; // Delete
-            CheckListBoxPrivs.Checked[4] := mrow[7] = 'Y'; // Create
-            CheckListBoxPrivs.Checked[5] := mrow[8] = 'Y'; // Drop
-            CheckListBoxPrivs.Checked[6] := mrow[9] = 'Y'; // Grant
-            CheckListBoxPrivs.Checked[7] := mrow[10] = 'Y'; // References
-            CheckListBoxPrivs.Checked[8] := mrow[11] = 'Y'; // Index
-            CheckListBoxPrivs.Checked[9] := mrow[12] = 'Y'; // Alter
-            break;
+            CheckListBoxPrivs.Checked[0] := ZQueryDBs.Fields[3].AsString = 'Y'; // Select
+            CheckListBoxPrivs.Checked[1] := ZQueryDBs.Fields[4].AsString = 'Y'; // Insert
+            CheckListBoxPrivs.Checked[2] := ZQueryDBs.Fields[5].AsString = 'Y'; // Update
+            CheckListBoxPrivs.Checked[3] := ZQueryDBs.Fields[6].AsString = 'Y'; // Delete
+            CheckListBoxPrivs.Checked[4] := ZQueryDBs.Fields[7].AsString = 'Y'; // Create
+            CheckListBoxPrivs.Checked[5] := ZQueryDBs.Fields[8].AsString = 'Y'; // Drop
+            CheckListBoxPrivs.Checked[6] := ZQueryDBs.Fields[9].AsString = 'Y'; // Grant
+            CheckListBoxPrivs.Checked[7] := ZQueryDBs.Fields[10].AsString = 'Y'; // References
+            CheckListBoxPrivs.Checked[8] := ZQueryDBs.Fields[11].AsString = 'Y'; // Index
+            CheckListBoxPrivs.Checked[9] := ZQueryDBs.Fields[12].AsString = 'Y'; // Alter
           end;
+          ZQueryDBs.Next;
         end;
       end;
 
     2 : begin // table-privileges
-        mysql_data_seek(tablesresult, 0);
-        for i:=1 to mysql_num_rows(tablesresult) do begin
-          mrow := mysql_fetch_row(tablesresult);
-          if (mrow[0]+'' = Host) and (mrow[1]+'' = Node.Parent.Text) and (mrow[2]+'' = User) and (mrow[3]+'' = Node.Text) then begin // found the according record!
+        ZQueryTables.First;
+        for i:=1 to ZQueryTables.RecordCount do
+        begin
+          if (ZQueryTables.Fields[0].AsString = Host)
+            and (ZQueryTables.Fields[1].AsString = Node.Parent.Text)
+            and (ZQueryTables.Fields[2].AsString = User)
+            and (ZQueryTables.Fields[3].AsString = Node.Text) then
+          begin // found the according record!
             // some privs are set:
             ShowPrivilegesControls(true, false, false);
             // find values in set-field:
             for j:=0 to CheckListBoxPrivs.Items.Count-1 do
-              CheckListBoxPrivs.Checked[j] := pos(CheckListBoxPrivs.Items[j], mrow[6]) > 0;
-            break;
+              CheckListBoxPrivs.Checked[j] := pos(CheckListBoxPrivs.Items[j], ZQueryTables.Fields[6].AsString) > 0;
           end;
+          ZQueryTables.Next;
         end;
       end;
 
     3 : begin // column-privileges
-        mysql_data_seek(columnsresult, 0);
-        for i:=1 to mysql_num_rows(columnsresult) do begin
-          mrow := mysql_fetch_row(columnsresult);
-          if (mrow[0]+'' = Host) and (mrow[1]+'' = Node.Parent.Parent.Text) and (mrow[2]+'' = User)
-            and (mrow[3]+'' = Node.Parent.Text) and (mrow[4]+'' = Node.Text) then begin
+        ZQueryColumns.First;
+        for i:=1 to ZQueryColumns.RecordCount do
+        begin
+          if (ZQueryColumns.Fields[0].AsString = Host)
+            and (ZQueryColumns.Fields[1].AsString = Node.Parent.Parent.Text)
+            and (ZQueryColumns.Fields[2].AsString = User)
+            and (ZQueryColumns.Fields[3].AsString = Node.Parent.Text)
+            and (ZQueryColumns.Fields[4].AsString = Node.Text) then
+          begin
             // some privs are set:
             ShowPrivilegesControls(true, false, false);
             // find values in set-field:
             for j:=0 to CheckListBoxPrivs.Items.Count-1 do
-              CheckListBoxPrivs.Checked[j] := pos(CheckListBoxPrivs.Items[j], mrow[6]) > 0;
-            break;
+              CheckListBoxPrivs.Checked[j] := pos(CheckListBoxPrivs.Items[j], ZQueryColumns.Fields[6].AsString) > 0;
           end;
+          ZQueryColumns.Next;
         end;
       end;
   end;
@@ -620,8 +657,7 @@ begin
         end;
         sql := sql + ' WHERE Host = ''' + Host + ''' AND User = ''' + User + '''';
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
-        mysql_free_result(usersresult);
-        usersresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.user');
+        GetResUsers;
       end;
 
     1 : begin // db
@@ -645,8 +681,7 @@ begin
           editcurrent := true;
         end;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
-        mysql_free_result(dbsresult);
-        dbsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.db');
+        GetResDBs;
       end;
 
     2 : begin // table
@@ -661,7 +696,7 @@ begin
           sql := sql + ''' WHERE Host = ''' + Host + ''' AND Db = ''' + TreeViewUsers.Selected.Parent.Text + ''' AND User = ''' + User + ''' AND Table_name = ''' + TreeViewUsers.Selected.Text + '''';
         end
         else begin
-          sql := 'INSERT INTO mysql.tables_priv (Host, Db, User, Table_name, Grantor, Table_priv) VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+TMDIChild(Mainform.ActiveMDIChild).MyUser+''',''';
+          sql := 'INSERT INTO mysql.tables_priv (Host, Db, User, Table_name, Grantor, Table_priv) VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+TMDIChild(Mainform.ActiveMDIChild).ZConn.User+''',''';
           for i:=0 to CheckListBoxPrivs.Items.Count-1 do begin
             if CheckListBoxPrivs.Checked[i] then
               sql := sql + CheckListBoxPrivs.Items[i] + ',';
@@ -672,8 +707,7 @@ begin
           editcurrent := true;
         end;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
-        mysql_free_result(tablesresult);
-        tablesresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.tables_priv');
+        GetResTables;
       end;
 
     3 : begin // column
@@ -699,8 +733,7 @@ begin
           editcurrent := true;
         end;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
-        mysql_free_result(columnsresult);
-        columnsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.columns_priv');
+        GetResColumns;
       end;
   end;
   TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
@@ -715,21 +748,11 @@ procedure TUserManagerForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   // free memory
-  if UsersResult <> nil then
-    mysql_free_result(UsersResult);
-    UsersResult := nil;
-  if DBsResult <> nil then begin
-    mysql_free_result(DBsResult);
-    dbsresult := nil;
-  end;
-  if TablesResult <> nil then begin
-    mysql_free_result(TablesResult);
-    TablesResult := nil;
-  end;
-  if ColumnsResult <> nil then begin
-    mysql_free_result(ColumnsResult);
-    ColumnsResult := nil;
-  end;
+  ZQueryUsers.Active := False;
+  ZQueryDBs.Active := False;
+  ZQueryTables.Active := False;
+  ZQueryColumns.Active := False;
+  ZQueryF.Active := False;
 end;
 
 
@@ -756,14 +779,10 @@ begin
         sql := 'DELETE FROM mysql.columns_priv WHERE Host='''+Host+''' AND User='''+User+'''';
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         TreeViewUsers.Selected.Delete;
-        mysql_free_result(UsersResult);
-        mysql_free_result(DBsResult);
-        DBsResult := nil;
-        mysql_free_result(TablesResult);
-        TablesResult := nil;
-        mysql_free_result(ColumnsResult);
-        ColumnsResult := nil;
-        usersresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.user');
+        ZQueryDBs.Active := False;
+        ZQueryTables.Active := False;
+        ZQueryColumns.Active := False;
+        GetResUsers;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     1 : // delete db-privs
@@ -771,8 +790,7 @@ begin
         sql := 'DELETE FROM mysql.db WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Text+'''';
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
-        mysql_free_result(DBsResult);
-        dbsresult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.db');
+        GetResDBs;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     2 : // delete table-privs
@@ -780,8 +798,7 @@ begin
         sql := 'DELETE FROM mysql.tables_priv WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Text+'''';
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
-        mysql_free_result(TablesResult);
-        TablesResult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.tables_priv');
+        GetResTables;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     3 : // delete column-privs
@@ -789,8 +806,7 @@ begin
         sql := 'DELETE FROM mysql.columns_priv WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Parent.Text+''' AND Column_name='''+TreeViewUsers.Selected.Text+'''';
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
-        mysql_free_result(ColumnsResult);
-        ColumnsResult := TMDIChild(Mainform.ActiveMDIChild).q('SELECT * FROM mysql.columns_priv');
+        GetResColumns;
         TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
   end;
@@ -805,24 +821,35 @@ end;
 procedure TUserManagerForm.Button1Click(Sender: TObject);
 begin
   // free memory
-  if UsersResult <> nil then
-    mysql_free_result(UsersResult);
-    UsersResult := nil;
-  if DBsResult <> nil then begin
-    mysql_free_result(DBsResult);
-    dbsresult := nil;
-  end;
-  if TablesResult <> nil then begin
-    mysql_free_result(TablesResult);
-    TablesResult := nil;
-  end;
-  if ColumnsResult <> nil then begin
-    mysql_free_result(ColumnsResult);
-    ColumnsResult := nil;
-  end;
+  ZQueryUsers.Active := False;
+  ZQueryDBs.Active := False;
+  ZQueryTables.Active := False;
+  ZQueryColumns.Active := False;
+  ZQueryF.Active := False;
   ShowPrivilegesControls(false, true, false);
   TreeViewUsers.Items.Clear;
   PageControl1.OnChange(self);
+end;
+
+
+procedure TUserManagerForm.GetResUsers;
+begin
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.user', ZQueryUsers );
+end;
+
+procedure TUserManagerForm.GetResDBs;
+begin
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.db', ZQueryDBs );
+end;
+
+procedure TUserManagerForm.GetResTables;
+begin
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.tables_priv', ZQueryTables );
+end;
+
+procedure TUserManagerForm.GetResColumns;
+begin
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM mysql.columns_priv', ZQueryColumns );
 end;
 
 end.

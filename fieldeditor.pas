@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, SortListView, Buttons, mysql;
+  StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, SortListView, Buttons;
 
 type
   TFieldEditForm = class(TForm)

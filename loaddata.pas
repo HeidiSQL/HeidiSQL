@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses Main, Childwin, helpers, mysql;
+uses Main, Childwin, helpers;
 
 {$R *.DFM}
 

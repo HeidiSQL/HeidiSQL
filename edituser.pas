@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses usermanager, childwin, mysql;
+uses usermanager, childwin;
 
 {$R *.DFM}
 
@@ -78,29 +78,18 @@ begin
     ExecQuery('UPDATE mysql.columns_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
     ExecQuery('FLUSH PRIVILEGES');
   end;
-  // Clear and refill user-list
-  with UserManagerForm do begin
-    if UsersResult <> nil then begin
-      mysql_free_result(UsersResult);
-      UsersResult := nil;
-    end;
-    if DBsResult <> nil then begin
-      mysql_free_result(DBsResult);
-      dbsresult := nil;
-    end;
-    if TablesResult <> nil then begin
-      mysql_free_result(TablesResult);
-      tablesresult := nil;
-    end;
-    if ColumnsResult <> nil then begin
-      mysql_free_result(ColumnsResult);
-      columnsresult := nil;
-    end;
-  end;
 
   UserManagerForm.ShowPrivilegesControls(false, true, false);
+
+  // Clear and refill user-list
+  UserManagerForm.ZQueryDBs.Close;
+  UserManagerForm.ZQueryTables.Close;
+  UserManagerForm.ZQueryColumns.Close;
+  UserManagerForm.ZQueryUsers.Close;
+  UserManagerForm.ZQueryF.Close;
   UserManagerForm.TreeViewUsers.Items.Clear;
   UserManagerForm.PageControl1.OnChange(self);
+
   Screen.Cursor := crdefault;
   Close;
 end;

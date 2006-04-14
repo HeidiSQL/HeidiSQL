@@ -69,7 +69,7 @@ const
 
 implementation
 
-uses Main, Childwin, helpers, mysql;
+uses Main, Childwin, helpers;
 
 {$R *.DFM}
 
@@ -298,10 +298,10 @@ begin
 
         if exportstruc then begin
           if mysql_version < 32320 then begin
-            MyResult := q('SHOW FIELDS FROM ' + mainform.mask(TablesCheckListBox.Items[i]));
-            fieldcount := mysql_num_rows(MyResult);
+            GetResults( 'SHOW FIELDS FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
+            fieldcount := ZQuery3.FieldCount;
           end else begin
-            MyResult := q('SHOW CREATE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
+            GetResults('SHOW CREATE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
           end;
           createquery := '';
           if tofile then begin
@@ -323,44 +323,40 @@ begin
             else
               createquery := createquery + 'CREATE TABLE IF NOT EXISTS ' + mask(DB2Export) + '.' + mask(TablesCheckListBox.Items[i]) + ' (' + crlf;
           end else begin
-            row := mysql_fetch_row(MyResult);
             if CheckBoxuseBackticks.checked then
-              createquery := createquery + row[1]
+              createquery := createquery + ZQuery3.Fields[1].AsString
             else
-              createquery := createquery + stringreplace(row[1], '`', '', [rfReplaceAll]);
+              createquery := createquery + stringreplace(ZQuery3.Fields[1].AsString, '`', '', [rfReplaceAll]);
           end;
 
           if mysql_version < 32320 then begin
             for j := 1 to fieldcount do
             begin
-              row := mysql_fetch_row(MyResult);
-
-              createquery := createquery + '  ' + mask(row[0]) + ' ' + row[1];
-              if row[2] <> 'YES' then
+              createquery := createquery + '  ' + mask(ZQuery3.Fields[0].AsString) + ' ' + ZQuery3.Fields[1].AsString;
+              if ZQuery3.Fields[2].AsString <> 'YES' then
                 createquery := createquery + ' NOT NULL';
-              if row[4] <> '' then
-                createquery := createquery + ' DEFAULT ''' + row[4] + '''';
-              if row[5] <> '' then
-                createquery := createquery + ' ' + row[5];
+              if ZQuery3.Fields[4].AsString <> '' then
+                createquery := createquery + ' DEFAULT ''' + ZQuery3.Fields[4].AsString + '''';
+              if ZQuery3.Fields[5].AsString <> '' then
+                createquery := createquery + ' ' + ZQuery3.Fields[5].AsString;
               if j < fieldcount then
                 createquery := createquery + ',' + crlf;
             end;
 
             // Keys:
-            MyResult := q('SHOW KEYS FROM ' + TablesCheckListBox.Items[i]);
+            GetResults( 'SHOW KEYS FROM ' + TablesCheckListBox.Items[i], ZQuery3 );
             setLength(keylist, 0);
             keystr := '';
-            if mysql_num_rows(MyResult) > 0 then
+            if ZQuery3.RecordCount > 0 then
               keystr := ',';
 
-            for j := 1 to mysql_num_rows(MyResult) do
+            for j := 1 to ZQuery3.RecordCount do
             begin
-              row := mysql_fetch_row(MyResult);
               which := -1;
 
               for k:=0 to length(keylist)-1 do
               begin
-                if keylist[k].Name = row[2] then // keyname exists!
+                if keylist[k].Name = ZQuery3.Fields[2].AsString then // keyname exists!
                   which := k;
               end;
               if which = -1 then
@@ -370,18 +366,19 @@ begin
                 keylist[which].Columns := TStringList.Create;
                 with keylist[which] do // set properties for new key
                 begin
-                  Name := row[2];
-                  if row[2] = 'PRIMARY' then
+                  Name := ZQuery3.Fields[2].AsString;
+                  if ZQuery3.Fields[2].AsString = 'PRIMARY' then
                     _type := 'PRIMARY'
-                  else if mysql_num_fields(MyResult) >= 10 then if row[9] = 'FULLTEXT' then
+                  else if ZQuery3.FieldCount >= 10 then if ZQuery3.Fields[9].AsString = 'FULLTEXT' then
                     _type := 'FULLTEXT'
-                  else if row[1] = '1' then
+                  else if ZQuery3.Fields[1].AsString = '1' then
                     _type := ''
-                  else if row[1] = '0' then
+                  else if ZQuery3.Fields[1].AsString = '0' then
                     _type := 'UNIQUE';
                 end;
               end;
-              keylist[which].Columns.add(mask(row[4])); // add column(s)
+              keylist[which].Columns.add(mask(ZQuery3.Fields[4].AsString)); // add column(s)
+              ZQuery3.Next;
             end;
             for k:=0 to high(keylist) do
             begin
@@ -397,14 +394,16 @@ begin
           end; // mysql_version < 32320
 
           feldnamen := '';
-          if CheckBoxCompleteInserts.Checked then begin
+          if CheckBoxCompleteInserts.Checked then
+          begin
             feldnamen := ' (';
-            MyResult := q('SHOW FIELDS FROM ' + mainform.mask(TablesCheckListBox.Items[i]));
-            for k := 1 to mysql_num_rows(MyResult) do begin
-              row := mysql_fetch_row(MyResult);
+            GetResults( 'SHOW FIELDS FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
+            for k:=1 to ZQuery3.RecordCount do
+            begin
               if k>1 then
                 feldnamen := feldnamen + ', ';
-              feldnamen := feldnamen + mask(row[0]);
+              feldnamen := feldnamen + mask(ZQuery3.Fields[0].AsString);
+              ZQuery3.Next;
             end;
             feldnamen := feldnamen+')';
           end;
@@ -443,7 +442,7 @@ begin
         // export data:
         if exportdata then
         begin
-          MyResult := q('SELECT * FROM ' + mainform.mask(TablesCheckListBox.Items[i]), true, RadioButtonDB.Checked);
+          GetResults( 'SELECT * FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
           if tofile then
           begin
             wfs(f);
@@ -453,11 +452,8 @@ begin
             wfs(f, '#');
             wfs(f);
           end;
-          row := mysql_fetch_row(MyResult);
-          j := 0;
-          while row <> nil do begin
-            lengths := mysql_fetch_lengths(MyResult);
-            inc(j);
+          for j:=1 to ZQuery3.RecordCount do
+          begin
             Label2.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
             Application.ProcessMessages;
             if tofile then
@@ -466,21 +462,15 @@ begin
               insertquery := 'INSERT INTO ' + mask(DB2Export) + '.' + mask(TablesCheckListBox.Items[i]);
             insertquery := insertquery + feldnamen;
             insertquery := insertquery + ' VALUES(';
-            for k := 0 to myresult.field_count-1 do
+            for k := 0 to ZQuery3.fieldcount-1 do
             begin
-              if row[k] <> '' then begin
-                GetMem(Escaped, lengths[k] * 2 + 1);
-                mysql_real_escape_string(MySQL, Escaped, row[k], lengths[k]);
-                GetMem(Fullvalue, lengths[k] * 2 + 3);
-                strecopy(strecopy(strecopy(Fullvalue, '"'), Escaped), '"');
-                value := Fullvalue;
-                FreeMem(Escaped);
-                FreeMem(Fullvalue);
+              if ZQuery3.Fields[k].AsString <> '' then begin
+                QuotedStr(ZQuery3.Fields[k].AsString);
               end
               else
                 value := 'NULL';
               insertquery := insertquery + value;
-              if k < myresult.field_count-1 then
+              if k < ZQuery3.Fieldcount-1 then
                 insertquery := insertquery + ', ';
             end;
             insertquery := insertquery + ')';
@@ -489,14 +479,13 @@ begin
             else if RadioButtonDB.Checked then
               ExecQuery(insertquery)
             else if RadioButtonHost.Checked then
-              win2export.ExecQuery(insertquery, false, false);
-            row := mysql_fetch_row(MyResult);
+              win2export.ExecQuery(insertquery);
+            ZQuery3.Next;
           end;
-          mysql_free_result(myresult);
           ProgressBar1.StepIt;
         end;
       end;
-      mysql_select_db(mysql, pchar(ActualDatabase));
+      ExecQuery( 'USE ' + ActualDatabase );
     end;
   FINALLY
     if tofile then f.Free;

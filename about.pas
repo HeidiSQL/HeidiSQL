@@ -21,7 +21,6 @@ type
     ProductName: TLabel;
     LabelVersion: TLabel;
     LabelPlatform: TLabel;
-    LabelLibrary: TLabel;
     LabelCompiled: TLabel;
     Label1: TLabel;
     LabelWebpage: TLabel;
@@ -47,7 +46,7 @@ var
 
 implementation
 
-uses mysql, main;
+uses main;
 {$R *.DFM}
 
 
@@ -117,9 +116,6 @@ begin
     ver := ver + '.' + IntToStr(OSVersion.dwMinorVersion);
   ver := ver + ' ' + OSVersion.szCSDVersion;              // Servicepack
   LabelPlatform.Caption := 'Client-OS: ' + os + ' ' + ver;
-
-  // libmysql.dll-version
-  LabelLibrary.Caption := 'Client-Library: Version ' + mysql_get_client_info;
 
   Screen.Cursor := crDefault;
 end;

@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, Db, ADODB, ExtCtrls, comctrls, mysql,
+  StdCtrls, Buttons, CheckLst, Db, ADODB, ExtCtrls, comctrls,
   DBTables;
 
 type
@@ -99,7 +99,7 @@ var
 begin
   GetODBCDataSourceNames(ComboBoxDSN.Items);
   with TMDIChild(Mainform.ActiveMDIChild) do begin
-    self.Caption := MyHost + ' - ODBC Import';
+    self.Caption := ZConn.HostName + ' - ODBC Import';
     self.ComboBoxTargetDB.Items.Clear;
     for i:=0 to tnodehost.count-1 do begin
       tn := tnodehost.Item[i];
@@ -340,7 +340,7 @@ begin
     // Abschluss-Klammer:
     ctquery := ctquery + ') ';
     with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-      mysql_select_db(mysql, pchar(CheckListBoxTables.Items[i]));
+      ExecQuery( 'USE ' + CheckListBoxTables.Items[i] );
       ExecQuery(ctquery);
 
       if RadioButton2.Checked then // access file - safety-brackets

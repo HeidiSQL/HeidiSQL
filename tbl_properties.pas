@@ -40,7 +40,7 @@ var
 
 implementation
 
-uses Childwin, mysql, Main;
+uses Childwin, Main;
 
 {$R *.DFM}
 
@@ -62,18 +62,14 @@ begin
   indexsize := 0;
 
   zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
-  zq.SQL.Clear();
-  zq.SQL.Add( 'SHOW TABLE STATUS' );
-  zq.Open;
-  zq.First;
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW TABLE STATUS', zq );
   FieldList := TStringList.Create;
-  for i:=1 to zq.FieldCount do
+  for i:=0 to zq.FieldCount-1 do
   begin
     FieldList.add( zq.Fields[i].Fieldname );
   end;
 
-  zq.First;
-  for t:=1 to zq.RecordCount do
+  for t:=0 to zq.RecordCount-1 do
   begin
     isSelected := false;
     for i:=0 to TabellenListe.Items.Count-1 do
@@ -83,7 +79,10 @@ begin
         break;
     end;
     if not isSelected then
+    begin
+      zq.Next;
       continue;
+    end;
     ts := TTabSheet.Create(PageControl1);
     ts.Caption := TabellenListe.Items[t].Caption;
     ts.PageControl := PageControl1;
@@ -107,19 +106,17 @@ begin
       Width := -1;
     end;
 
+    inc( datasize, zq.FieldByName('Data_length').AsInteger );
+    inc(indexsize, zq.FieldByName('Index_length').AsInteger);
     for i:=0 to FieldList.count-1 do
     begin
-      if i=5 then
-        inc(datasize, StrToIntDef(zq.Fields[i].AsString, 0));
-      if i=7 then
-        inc(indexsize, StrToIntDef(zq.Fields[i].AsString, 0));
       with List.Items.add do
       begin
         Caption := FieldList[i];
         SubItems.Add( zq.Fields[i].AsString);
       end;
     end;
-
+    zq.Next;
   end;
 
   Label3.Caption := IntToStr(datasize div 1024) + ' KB';

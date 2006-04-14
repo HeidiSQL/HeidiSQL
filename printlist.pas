@@ -59,8 +59,8 @@ begin
   with TMDIChild(Mainform.activeMDIChild) do begin
     case PageControl1.ActivePageIndex of
     0 : case PageControl2.ActivePageIndex of
-      0 : begin list := VariabelListe; title := 'Server-Variables for ' + MyHost; end;
-      1 : begin list := ProcessListe; title := 'Processlist for ' + MyHost; end;
+      0 : begin list := VariabelListe; title := 'Server-Variables for ' + ZConn.HostName; end;
+      1 : begin list := ProcessListe; title := 'Processlist for ' + ZConn.HostName; end;
       end;
     1 : begin list := TabellenListe; title := 'Tables-List for Database ' + ActualDatabase; end;
     2 : begin list := FeldListe; title := 'Field-List for ' + ActualDatabase + '/' + ActualTable; end;

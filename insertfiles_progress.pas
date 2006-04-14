@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, mysql;
+  StdCtrls, ComCtrls, ExtCtrls;
 
 type
   TfrmInsertFilesProgress = class(TForm)
@@ -91,7 +91,7 @@ begin
         Label6.caption := 'Escaping file data ...';
         Application.ProcessMessages;
         GetMem(Escaped, Size * 2 + 1);
-        mysql_real_escape_string(mysql, Escaped, Raw, Size);
+        //mysql_real_escape_string(mysql, Escaped, Raw, Size);
         self.Label6.caption := 'Inserting data ...';
         Application.ProcessMessages;
         SQL := 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) + ' (';
