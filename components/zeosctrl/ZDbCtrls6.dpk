@@ -1,0 +1,47 @@
+package ZDbCtrls6;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Dbware Controls'}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  vcljpg,
+  dbrtl,
+  vcldb,
+  bdertl,
+  ZCommon6,
+  ZDbware6,
+  ZUtils6;
+
+contains
+  ZImage in 'dbctrls\ZImage.pas',
+  ZDbCtrlsReg in 'dbctrls\ZDbCtrlsReg.pas',
+  ZFilterDlg in 'dbctrls\ZFilterDlg.pas' {frmFilterDlg},
+  ZFindDlg in 'dbctrls\ZFindDlg.pas' {frmFindDlg},
+  ZGrid in 'dbctrls\ZGrid.pas',
+  ZDbCtrlsConst in 'dbctrls\ZDbCtrlsConst.pas';
+
+end.

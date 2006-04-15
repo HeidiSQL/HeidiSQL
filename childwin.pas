@@ -17,7 +17,7 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   DBCtrls, helpers,
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZAbstractDataset, ZAbstractTable, ZConnection,
-  ZSqlUpdate, ZSqlMonitor, ZPlainMySqlDriver;
+  ZSqlUpdate, ZSqlMonitor, ZPlainMySqlDriver, ZImage;
 
 
 type
@@ -171,7 +171,6 @@ type
     TabSheet3: TTabSheet;
     DBMemo1: TDBMemo;
     TabSheet4: TTabSheet;
-    TabSheet5: TTabSheet;
     SynMemo3: TSynMemo;
     ToolButton14: TToolButton;
     MenuTabelleLoeschen: TToolButton;
@@ -247,6 +246,7 @@ type
     ZQuery2: TZQuery;
     ZQuery3: TZReadOnlyQuery;
     ZSQLMonitor1: TZSQLMonitor;
+    ZDbImage1: TZDbImage;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
@@ -796,6 +796,8 @@ begin
   // set db-aware-component's properties...
   DBMemo1.DataField := '';
   DBMemo1.DataSource := DataSource1;
+  ZDBImage1.DataField := '';
+  ZDBImage1.DataSource := DataSource1;
 
   if not dataselected then
     dbgrid1.SortColumns.Clear
@@ -1551,6 +1553,8 @@ begin
       // set db-aware-component's properties..
       DBMemo1.DataField := '';
       DBMemo1.DataSource := DataSource2;
+      ZDBImage1.DataField := '';
+      ZDBImage1.DataSource := DataSource2;
       // ok, let's rock
       SQLstart := GetTickCount;
 
@@ -2241,12 +2245,6 @@ begin
     ToolButton7.Enabled := true;
     ToolButton8.Enabled := true;
   end
-  else if PageControl4.ActivePage = Tabsheet5 then begin //HEX
-    ToolButton5.Enabled := false;
-    ToolButton6.Enabled := false;
-    ToolButton7.Enabled := false;
-    ToolButton8.Enabled := false;
-  end
 end;
 
 procedure TMDIChild.ToolButton8Click(Sender: TObject);
@@ -2275,6 +2273,7 @@ begin
       Screen.Cursor := crHourGlass;
       case PageControl4.ActivePageIndex of
         0 : DBMemo1.Lines.SaveToFile(filename);
+        1 : ZDBImage1.Picture.SaveToFile(filename);
       end;
       Screen.Cursor := crDefault;
     except
@@ -2303,6 +2302,7 @@ begin
     if execute then
     case PageControl4.ActivePageIndex of
       0 : DBMemo1.Lines.LoadFromFile(filename);
+      1 : ZDBImage1.Picture.LoadFromFile(filename);
     end;
 
   end;
@@ -2598,9 +2598,12 @@ begin
   if DBMemo1.DataSource <> ds then begin
     DBMemo1.DataField := '';
     DBMemo1.DataSource := ds;
+    ZDBImage1.DataField := '';
+    ZDBImage1.DataSource := ds;
   end;
   if grid.SelectedField.IsBlob then begin
     DBMemo1.DataField := grid.SelectedField.FieldName;
+    ZDBImage1.DataField := grid.SelectedField.FieldName;
     PageControl3.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
     header := copy(grid.SelectedField.AsString, 0, 20);
@@ -2609,6 +2612,7 @@ begin
     end;
   end else begin
     DBMemo1.DataField := '';
+    ZDBImage1.DataField := '';
     MenuViewBlob.Enabled := false;
   end;
   PageControl4Change(self);
@@ -2805,6 +2809,7 @@ begin
   if dbmemo1.DataField = '' then exit;
   case PageControl4.ActivePageIndex of
     0 : clipboard.astext := DBMemo1.lines.Text;
+// TODO    1 : 
   end;
 end;
 
@@ -2833,6 +2838,7 @@ procedure TMDIChild.ZQuery2BeforeClose(DataSet: TDataSet);
 begin
   // unassign data-aware controls
   DBMemo1.DataField := '';
+  ZDBImage1.DataField := '';
 end;
 
 

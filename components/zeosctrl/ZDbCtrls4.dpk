@@ -1,0 +1,44 @@
+package ZDbCtrls4;
+
+{$R *.RES}
+{$ALIGN ON}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Dbware Controls'}
+{$IMPLICITBUILD ON}
+
+requires
+  vcl40,
+  VCLDB40,
+  ZCommon4,
+  ZDbware4,
+  ZUtils4,
+  vcljpg40;
+
+contains
+  ZGrid in 'dbctrls\ZGrid.pas',
+  ZImage in 'dbctrls\ZImage.pas',
+  ZDbCtrlsReg in 'dbctrls\ZDbCtrlsReg.pas',
+  ZFilterDlg in 'dbctrls\ZFilterDlg.pas' {frmFilterDlg},
+  ZFindDlg in 'dbctrls\ZFindDlg.pas' {frmFindDlg},
+  ZDbCtrlsConst in 'dbctrls\ZDbCtrlsConst.pas';
+
+end.
