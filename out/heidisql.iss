@@ -5,23 +5,22 @@
 
 [Setup]
 AppName=HeidiSQL
-AppVerName=HeidiSQL 3.0
-AppVersion=3.0
+AppVerName=HeidiSQL 3.0 BETA
+AppVersion=3.0 BETA
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
-AppSupportURL=http://www.heidisql.com/forum/
-AppUpdatesURL=http://www.heidisql.com/download/
+AppSupportURL=http://forum.heidisql.com/
+AppUpdatesURL=http://download.heidisql.com/
 AppContact=heidisql@anse.de
 DefaultDirName={pf}\HeidiSQL
 DefaultGroupName=HeidiSQL
-InfoAfterFile=readme.txt
 LicenseFile=license.txt
 ChangesAssociations=yes
 WizardImageFile=.\..\res\installer-logo.bmp
 WizardImageBackColor=$ffffff
 WizardSmallImageFile=.\..\res\installer-small-logo.bmp
 OutputDir=.
-OutputBaseFilename=HeidiSQL_3.0_Setup
+OutputBaseFilename=HeidiSQL_3.0BETA_Setup
 UninstallDisplayIcon={app}\heidisql.exe
 SetupIconFile=.\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
@@ -35,6 +34,7 @@ Name: "associatesqlfiles"; Description: "Associate .&SQL-Files with HeidiSQL"; G
 [Files]
 Source: "heidisql.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "function.txt"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "libmySQL.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libmysql40.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -66,5 +66,6 @@ Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait po
 
 [UninstallDelete]
 Type: files; Name: "{app}\heidisql.url"
+Type: files; Name: "{app}\heidisql_forum.url"
 ;Type: files; Name: "{app}\donate.url"
 

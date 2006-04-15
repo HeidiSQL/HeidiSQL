@@ -20,7 +20,6 @@ type
     Panel2: TPanel;
     ProductName: TLabel;
     LabelVersion: TLabel;
-    LabelPlatform: TLabel;
     LabelCompiled: TLabel;
     Label1: TLabel;
     LabelWebpage: TLabel;
@@ -29,6 +28,8 @@ type
     Button2: TButton;
     Button3: TButton;
     Image2: TImage;
+    Memo1: TMemo;
+    Label2: TLabel;
     procedure OKButtonClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -97,25 +98,6 @@ begin
   CompiledInt := Fileage(paramstr(0));
   Compiled := FileDateToDateTime(CompiledInt);
   LabelCompiled.Caption := 'Compiled on: ' + DateTimeToStr(Compiled);
-
-  // Windows-version
-  FillChar(OSVersion,SizeOf(OSVersion),0);
-  OSVersion.dwOSVersionInfoSize:=SizeOf(OSVersion);
-  if not GetVersionEx(OSVersion) then RaiseLastWin32Error;
-  case OSVersion.dwPlatformId of
-    VER_PLATFORM_WIN32s : os := 'Windows® 3.1';
-    VER_PLATFORM_WIN32_WINDOWS : os := 'Windows® 9x';
-    VER_PLATFORM_WIN32_NT : os := 'Windows® NT';
-  end;
-  if (OSVersion.dwMajorVersion=5) and (OSVersion.dwMinorVersion=0) then
-    os := 'Windows® 2000';
-  if (OSVersion.dwMajorVersion=5) and (OSVersion.dwMinorVersion>0) then
-    os := 'Windows® XP';
-  ver := IntToStr(OSVersion.dwMajorVersion);
-  if IntToStr(OSVersion.dwMinorVersion) <> '' then
-    ver := ver + '.' + IntToStr(OSVersion.dwMinorVersion);
-  ver := ver + ' ' + OSVersion.szCSDVersion;              // Servicepack
-  LabelPlatform.Caption := 'Client-OS: ' + os + ' ' + ver;
 
   Screen.Cursor := crDefault;
 end;

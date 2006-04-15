@@ -1,1 +1,0 @@
-upx.exe heidisql.exe
