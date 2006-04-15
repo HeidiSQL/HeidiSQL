@@ -17,7 +17,7 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   DBCtrls, helpers,
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZAbstractDataset, ZAbstractTable, ZConnection,
-  ZSqlUpdate, ZSqlMonitor;
+  ZSqlUpdate, ZSqlMonitor, ZPlainMySqlDriver;
 
 
 type
@@ -439,13 +439,16 @@ begin
   ZConn.Hostname := connform.EditHost.Text;
   ZConn.User := connform.EditBenutzer.Text;
   ZConn.Password := connform.EditPasswort.Text;
-  ZConn.Port := strToIntDef(connform.EditPort.Text, 3306);
+  ZConn.Port := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
   try
     ZConn.Connect;
   except
     on E: Exception do
     begin
+      MessageDlg( E.Message, mtError, [mbOK], 0 );
+      Screen.Cursor := crDefault;
       timer5.Enabled := true;
+      Exit;
     end;
   end;
 
@@ -454,9 +457,8 @@ begin
   OnlyDBs := explode(';', connform.EditOnlyDBs.Text);
 
   // Versions and Statistics
-  LogSQL('------------------------------ Statistics ------------------------------');
-  LogSQL('· Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port));
-  LogSQL('-----------------------------------------------------------------------');
+  LogSQL( ' Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port));
+  LogSQL( ' Server-Version: ' + GetVar( 'SELECT VERSION()' ) );
 
   ShowVariablesAndProcesses(self);
   ReadDatabasesAndTables(self);
@@ -1073,11 +1075,7 @@ begin
   Feldliste.Items.BeginUpdate;
   FeldListe.Items.Clear;
   Try
-    ZQuery3.Close;
-    ZQuery3.SQL.Clear;
-    ZQuery3.SQL.Add( 'SHOW FIELDS FROM ' + ActualTable );
-    ZQuery3.Open;
-    ZQuery3.First;
+    GetResults( 'SHOW FIELDS FROM ' + ActualTable, ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
       n := FeldListe.Items.Add;
@@ -1104,10 +1102,12 @@ begin
     if not DBTree.Selected.HasChildren then
     begin
       ZQuery3.First;
-      for i:=0 to ZQuery3.RecordCount do begin
+      for i:=1 to ZQuery3.RecordCount do begin
         tn := DBtree.Items.AddChild(Dbtree.Selected, ZQuery3.FieldByName('Field').AsString );
         if ZQuery3.FieldByName('Key').AsString = 'PRI' then
-          tn.ImageIndex := 21;
+          tn.ImageIndex := 21
+        else
+          tn.ImageIndex := 17;
         tn.SelectedIndex := tn.ImageIndex;
         ZQuery3.Next;
       end;
@@ -1118,11 +1118,7 @@ begin
 
 
 
-  ZQuery3.Close;
-  ZQuery3.SQL.Clear;
-  ZQuery3.SQL.Add( 'SHOW KEYS FROM ' + ActualTable );
-  ZQuery3.Open;
-  ZQuery3.First;
+  GetResults( 'SHOW KEYS FROM ' + ActualTable, ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
     // primary key
@@ -2846,8 +2842,7 @@ begin
   With TZReadOnlyQuery.Create( self ) do
   begin
     Connection := ZConn;
-    SQL.Clear;
-    SQL.Add( SQLQuery );
+    SQL.Text := SQLQuery;
     ExecSQL;
     Free;
   end;
@@ -2860,8 +2855,7 @@ begin
   With TZReadOnlyQuery.Create( self ) do
   begin
     Connection := ZConn;
-    SQL.Clear;
-    SQL.Add( SQLQuery );
+    SQL.Text := SQLQuery;
     Open;
     try
       First;
@@ -2876,8 +2870,7 @@ end;
 // Executes a query with an existing ZQuery-object
 procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
 begin
-  ZQuery.SQL.Clear();
-  ZQuery.SQL.Add( SQLQuery );
+  ZQuery.SQL.Text := SQLQuery;
   ZQuery.Open;
   ZQuery.First;
 end;
@@ -2889,7 +2882,7 @@ procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
 begin
   if Trim( Event.Message ) = SQL_PING then
     exit;
-  LogSQL( DateTimeToStr (Event.Timestamp) + ': ' + Trim( Event.Message ) );
+  LogSQL( Trim( Event.Message ) );
 end;
 
 

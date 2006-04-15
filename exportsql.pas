@@ -464,8 +464,8 @@ begin
             insertquery := insertquery + ' VALUES(';
             for k := 0 to ZQuery3.fieldcount-1 do
             begin
-              if ZQuery3.Fields[k].AsString <> '' then begin
-                QuotedStr(ZQuery3.Fields[k].AsString);
+              if Not ZQuery3.Fields[k].IsNull then begin
+                value := QuotedStr(ZQuery3.Fields[k].AsString);
               end
               else
                 value := 'NULL';
@@ -485,7 +485,8 @@ begin
           ProgressBar1.StepIt;
         end;
       end;
-      ExecQuery( 'USE ' + ActualDatabase );
+      if ActualDatabase <> '' then
+        ExecQuery( 'USE ' + ActualDatabase );
     end;
   FINALLY
     if tofile then f.Free;

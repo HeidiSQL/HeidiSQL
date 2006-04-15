@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls;
+  StdCtrls, ComCtrls, ExtCtrls, Db;
 
 type
   TfrmInsertFilesProgress = class(TForm)
@@ -54,14 +54,10 @@ end;
 
 var
   i,j: Integer;
-  Handl: THandle;
   Size: DWORD;
-  Bytes: DWORD;
-  Raw: pChar;
-  Escaped: pChar;
-  Query: pChar;
-  SQL, value, filename : String;
+  value, filename : String;
   y,m,d,h,mi,s,ms : Word;
+  FileStream : TFileStream;
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
@@ -70,40 +66,35 @@ begin
   TRY
 
   with frmInsertFiles do begin
-    for i:=0 to ListViewFiles.Items.Count-1 do begin
+    for i:=0 to ListViewFiles.Items.Count-1 do
+    begin
       if self.canceled then break;
       self.Label4.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
       filename := ListViewFiles.Items[i].Caption;
       self.Label5.Caption := mince(filename, 30) + ' ('+ListViewFiles.Items[i].SubItems[0]+' KB)';
       Application.ProcessMessages;
-      Handl := CreateFile(Pchar(filename), GENERIC_READ, 0, nil, OPEN_EXISTING, 0, 0);
-      if Handl = INVALID_HANDLE_VALUE then
-        die('Error reading file:'#13#10+filename);
-      self.Label6.caption := 'Reading file data ...';
-      Application.ProcessMessages;
-      Size := GetFileSize(Handl, nil);
-      GetMem(Raw, Size);
-      if not ReadFile(Handl, Raw^, Size, Bytes, nil) or (Bytes <> Size) then
-        die('Error reading file:'#13#10+filename);
-      CloseHandle(Handl);
-      Handl := INVALID_HANDLE_VALUE;
-      with TMDIChild(Mainform.ActiveMDIChild) do begin
-        Label6.caption := 'Escaping file data ...';
-        Application.ProcessMessages;
-        GetMem(Escaped, Size * 2 + 1);
-        //mysql_real_escape_string(mysql, Escaped, Raw, Size);
+      with TMDIChild(Mainform.ActiveMDIChild) do
+      begin
+        ZQuery3.SQL.Clear;
+        ZQuery3.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
+          ' (' + mainform.mask(ComboBoxColumns.Text) );
         self.Label6.caption := 'Inserting data ...';
         Application.ProcessMessages;
-        SQL := 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) + ' (';
-        for j:=0 to length(cols)-1 do begin
-          if cols[j].Name = ComboBoxColumns.Text then continue;
-          SQL := SQL + mainform.mask(cols[j].Name) + ', ';
+        for j:=0 to length(cols)-1 do
+        begin
+          if cols[j].Name = ComboBoxColumns.Text then
+            continue;
+          ZQuery3.SQL.Add( ', ' + mainform.mask(cols[j].Name) );
         end;
-        SQL := SQL + mainform.mask(ComboBoxColumns.Text)+') VALUES (';
-        for j:=0 to length(cols)-1 do begin
-          if cols[j].Name = ComboBoxColumns.Text then continue;
+        ZQuery3.SQL.Add( ') VALUES (:STREAM,' );
+
+        for j:=0 to length(cols)-1 do
+        begin
+          if cols[j].Name = ComboBoxColumns.Text then
+            continue;
           Value := cols[j].Value;
-          if pos('%', Value) > 0 then begin
+          if pos('%', Value) > 0 then
+          begin
             Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
             Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
             Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
@@ -113,20 +104,27 @@ begin
             Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
             Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
           end;
-          if cols[j].Quote then Value := '"' + escape_string(Value) + '"';
-          SQL := SQL + Value + ', ';
+          if cols[j].Quote then
+            Value := '"' + escape_string(Value) + '"';
+          ZQuery3.SQL.Add( Value );
         end;
-        SQL := SQL + '"';
-        GetMem(Query, Size * 2 + 1 + length(SQL)+2);
-        StrCopy(StrECopy(StrECopy(Query, pchar(SQL)), Escaped), '")');
-        ExecQuery(Query);
-//        if mysql_query(Mysql, Query) <> 0 then
-//          die('Error while executing query'+query);
+        ZQuery3.SQL.Add( ')' );
+        try
+          self.Label6.caption := 'Reading file ...';
+          Application.ProcessMessages;
+          FileStream := TFileStream.Create( filename, fmShareDenyWrite );
+          ZQuery3.Params.Clear;
+          ZQuery3.Params.CreateParam( ftBlob, 'STREAM', ptInput );
+          ZQuery3.ParamByName('STREAM').LoadfromStream( FileStream, ftBlob );
+        except
+          FileStream.Free;
+          MessageDlg( 'Error reading file:'#13#10+filename, mtError, [mbOK], 0 );
+          break;
+        end;
+        ZQuery3.ExecSQL;
         self.Label6.caption := 'Freeing memory ...';
         Application.ProcessMessages;
-        freemem(Raw);
-        freemem(Escaped);
-        freemem(Query);
+        FileStream.Free;
       end;
       ProgressBar1.StepIt;
       Application.ProcessMessages;

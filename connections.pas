@@ -101,9 +101,6 @@ end;
 procedure Tconnform.FormCreate(Sender: TObject);
 var
   oldkey : String;
-  TempPath      : Array [0..255] of Char;
-  TempFileName  : Array [0..255] of Char;
-  TempFileNameS  : String;
 begin
   // Import old settings from MySQL-Front 2.5
   oldkey := 'Software\MySQL-Front';
@@ -239,7 +236,7 @@ begin
 
     if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
-      WriteString('Host', 'localhost');
+      WriteString('Host', LOCAL_HOST);
       WriteString('User', 'root');
       WriteString('Password', encrypt(''));
       WriteString('Port', inttostr(MYSQL_PORT));
