@@ -130,6 +130,7 @@ begin
   Screen.Cursor := crHourglass;
   DBUserTree.Items.Clear;
   TreeViewUsers.Items.Clear;
+  PageControl1.ActivePageIndex := 0;
   ShowPrivilegesControls(false, true, false);
 
   tnu1 := DBUserTree.Items.Add(nil, 'Global Access');
@@ -176,6 +177,8 @@ begin
   EditHost.Text := ph.h_name;
   WSACleanup();
 }
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery( 'USE mysql' );
+
   ZQueryDBs := TZReadOnlyQuery.Create(self);
   ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
 

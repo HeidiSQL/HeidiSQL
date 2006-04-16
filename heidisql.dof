@@ -45,8 +45,8 @@ OutputDir=./out/
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=components\zeosdbo-6.5.1-alpha_cvs_13-10-2005\packages\delphi6\build;components\smdbgrid;components\SynEdit1.1\Source;components\SynEdit1.1\Packages;components\zeosctrl\dbctrls;components\zeosctrl\utils
-Packages=Vcl50;Vclx50;VclSmp50;Vcldb50;vclado50;ibevnt50;Vclbde50;vcldbx50;Qrpt50;TeeUI50;TeeDB50;Tee50;Dss50;TeeQR50;VCLIB50;Vclmid50;vclie50;Inetdb50;Inet50;NMFast50;webmid50;dclocx50;dclaxserver50
+SearchPath=components\zeosdbo-6.5.1-alpha_cvs_13-10-2005\packages\delphi6\build;components\smdbgrid;components\SynEdit1.1\Source;components\SynEdit1.1\Packages;components\edbimage
+Packages=Vcl50;Vclx50;VclSmp50;Vcldb50;vclado50;ibevnt50;Vclbde50;vcldbx50;Qrpt50;TeeUI50;TeeDB50;Tee50;Dss50;TeeQR50;VCLIB50;Vclmid50;vclie50;Inetdb50;Inet50;NMFast50;webmid50;dclocx50;dclaxserver50;vcl;rtl;dbrtl;vcldb;bdertl;ZUtils6;ZCommon6
 Conditionals=
 DebugSourceDirs=
 UsePackages=0
@@ -85,3 +85,13 @@ OriginalFilename=heidisql.exe
 ProductName=HeidiSQL
 ProductVersion=3
 Comments=
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=2
+Item0=components\zeosdbo-6.5.1-alpha_cvs_13-10-2005\packages\delphi6\build;components\smdbgrid;components\SynEdit1.1\Source;components\SynEdit1.1\Packages;components\edbimage
+Item1=D:\Dokumente\Delphi\heidisql\components\smdbgrid
+[HistoryLists\hlOutputDirectorry]
+Count=1
+Item0=./out/
