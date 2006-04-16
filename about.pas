@@ -84,8 +84,6 @@ end;
 
 procedure TAboutBox.FormShow(Sender: TObject);
 var
-  OSVersion   : OSVERSIONINFO;
-  os, ver     : String;
   CompiledInt : Integer;
   Compiled    : TDateTime;
 begin
