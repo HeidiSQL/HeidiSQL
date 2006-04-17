@@ -44,13 +44,13 @@ Source: "heidisql.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 [INI]
 Filename: "{app}\heidisql.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/"
 Filename: "{app}\heidisql_forum.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/forum/"
-;Filename: "{app}\donate.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/donate/"
+Filename: "{app}\donate.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/donate.php"
 
 [Icons]
 Name: "{group}\HeidiSQL"; Filename: "{app}\heidisql.exe"
 Name: "{group}\HeidiSQL on the Web"; Filename: "{app}\heidisql.url"
 Name: "{group}\HeidiSQL Forum"; Filename: "{app}\heidisql_forum.url"
-;Name: "{group}\Donate"; Filename: "{app}\donate.url"
+Name: "{group}\Donate"; Filename: "{app}\donate.url"
 Name: "{group}\Uninstall HeidiSQL"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\HeidiSQL"; Filename: "{app}\heidisql.exe"; MinVersion: 4,4; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\HeidiSQL"; Filename: "{app}\heidisql.exe"; MinVersion: 4,4; Tasks: quicklaunchicon
@@ -67,5 +67,5 @@ Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait po
 [UninstallDelete]
 Type: files; Name: "{app}\heidisql.url"
 Type: files; Name: "{app}\heidisql_forum.url"
-;Type: files; Name: "{app}\donate.url"
+Type: files; Name: "{app}\donate.url"
 
