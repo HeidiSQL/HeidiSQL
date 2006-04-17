@@ -80,8 +80,6 @@ type
     Diagnostics: TAction;
     OptimizeTables1: TMenuItem;
     ImExport1: TMenuItem;
-    ODBCImport1: TMenuItem;
-    ODBCImport: TAction;
     CopyContentsasHTMLTable1: TMenuItem;
     CopyHTMLtable: TAction;
     Copy2CSV: TAction;
@@ -183,7 +181,6 @@ type
     procedure UserManagerExecute(Sender: TObject);
     procedure ShowAboutBoxExecute(Sender: TObject);
     procedure DiagnosticsExecute(Sender: TObject);
-    procedure ODBCImportExecute(Sender: TObject);
     procedure CopyHTMLtableExecute(Sender: TObject);
     procedure Copy2CSVExecute(Sender: TObject);
     procedure Save2CSVExecute(Sender: TObject);
@@ -265,7 +262,7 @@ type TMyKey = record
 implementation
 
 uses ChildWin, About, connections, exportsql, tbl_properties, loaddata,
-  usermanager, options, optimizetables, odbcimport, helpers,
+  usermanager, options, optimizetables, helpers,
   printlist, copytable, insertfiles;
 
 {$R *.DFM}
@@ -665,12 +662,6 @@ procedure TMainForm.DiagnosticsExecute(Sender: TObject);
 begin
   // optimize / repair... tables
   optimize.showmodal;
-end;
-
-procedure TMainForm.ODBCImportExecute(Sender: TObject);
-begin
-  // ODBC
-  ODBCImportForm.ShowModal;
 end;
 
 

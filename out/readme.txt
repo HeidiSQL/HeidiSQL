@@ -45,7 +45,6 @@ Just doubleclick the setup-file and follow the instructions.
 - manage users
 - flush Host/Logs/Privileges/Tables 
 - write SQL-queries with syntax-highlighting 
-- import data from ODBC-datasources
 - do table-diagnostics (check, optimize, repair, analyze)
 - insert files into BLOBs in batch-mode
 - and a lot more... 
@@ -59,16 +58,6 @@ Just doubleclick the setup-file and follow the instructions.
 - libmysql.dll (Client-library for MySQL-Server) 
 - msvcrt.dll (Microsoft (R) C Runtime Library) 
 - TCP/IP-Protocol 
-- ODBC-Engine (for the ODBC-import-option) 
-
-In case ODBC makes problems, you need to go to the Microsoft site,
-download and install DCOM95 from
-http://www.microsoft.com/com/dcom/dcom95/download.asp and then
-download and install MDAC 2.6.RTM from
-http://www.microsoft.com/data/download_260rtm.htm
-Note: DCOM95 is only needed for Windows 95 - it is not needed for
-later Windows versions.
-
 
 
 --------------------------------------
