@@ -333,7 +333,6 @@ type
     procedure SynMemo1DragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemo1DropFiles(Sender: TObject; X, Y: Integer;
       AFiles: TStrings);
-    procedure DBGridColEnter(Sender: TObject);
     procedure SynMemo1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure PopupMenu2Popup(Sender: TObject);
@@ -369,6 +368,10 @@ type
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
     procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
+    procedure ResizeImageToFit;
+    procedure Splitter2Moved(Sender: TObject);
+    procedure DBGridDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
 
     private
       { Private declarations }
@@ -613,8 +616,10 @@ end;
 procedure TMDIChild.LogSQL(msg: string = '');
 begin
   // add a sql-command or info-line to history-memo
-  if SynMemo2.Lines.Count > mainform.logsqlnum then
-    SynMemo2.Lines.Clear;
+  while SynMemo2.Lines.Count > mainform.logsqlnum do
+  begin
+    SynMemo2.Text := Copy( SynMemo2.Text, Length(SynMemo2.Lines[0])+3, Length(SynMemo2.Text) );
+  end;
   msg := Copy(msg, 0, 2000);
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );
@@ -639,7 +644,7 @@ begin
   DBTree.OnChange := nil;
   DBTree.items.Clear;
 
-  tnodehost := DBtree.Items.Add(nil, ZConn.User + '@' + ZConn.User);  // Host or Root
+  tnodehost := DBtree.Items.Add(nil, ZConn.User + '@' + ZConn.Hostname);  // Host or Root
   tnodehost.ImageIndex := 13;
   tnodehost.SelectedIndex := 6;
 
@@ -800,7 +805,10 @@ begin
   EDBImage1.DataSource := DataSource1;
 
   if not dataselected then
-    dbgrid1.SortColumns.Clear
+  begin
+    SynMemo3.Text := '';
+    DBGrid1.SortColumns.Clear;
+  end
   else
   begin
     sorting := '';
@@ -915,7 +923,6 @@ begin
     pcChange(self);
   end;
   viewingdata := false;
-  DBGridColenter(dbgrid1);
   Screen.Cursor := crDefault;
 end;
 
@@ -1571,7 +1578,6 @@ begin
         end
         else
         begin
-          LogSQL(ZQuery1.SQL.GetText);
           ZQuery1.ExecSql;
           fieldcount := 0;
           recordcount := 0;
@@ -1621,7 +1627,6 @@ begin
       for i:=0 to DBGrid2.Columns.count-1 do
         if DBGrid2.Columns[i].Width > Mainform.DefaultColWidth then
           DBGrid2.Columns[i].Width := Mainform.DefaultColWidth;
-    DBGridColenter(dbgrid2);
     Screen.Cursor := crdefault;
     showstatus('Ready', 2);
   END;
@@ -1745,7 +1750,6 @@ begin
       Diagnostics.Enabled := true;
       InsertFiles.Enabled := true;
       PrintList.Enabled := true;
-      ODBCImport.Enabled := true;
       if (PageControl1.ActivePage = SheetData) or
         (PageControl1.ActivePage = SheetQuery) then begin
         Copy2CSV.Enabled := true;
@@ -1790,7 +1794,6 @@ begin
     Diagnostics.Enabled := false;
     InsertFiles.Enabled := false;
     PrintList.Enabled := false;
-    ODBCImport.Enabled := false;
     Copy2CSV.Enabled := false;
     CopyHTMLtable.Enabled := false;
     Copy2XML.Enabled := false;
@@ -2584,40 +2587,6 @@ begin
   SynMemo1.OnChange(self);
 end;
 
-procedure TMDIChild.DBGridColEnter(Sender: TObject);
-var
-  Grid : TSMDBGrid;
-  ds : Tdatasource;
-  header : String;
-begin
-  // view blob or memo while Data-Tabsheet is active!
-  grid := (sender as TSMDBGrid);
-  ds := grid.DataSource;
-  if grid.SelectedField = nil then exit;
-
-  if DBMemo1.DataSource <> ds then begin
-    DBMemo1.DataField := '';
-    DBMemo1.DataSource := ds;
-    EDBImage1.DataField := '';
-    EDBImage1.DataSource := ds;
-  end;
-  if grid.SelectedField.IsBlob then begin
-    DBMemo1.DataField := grid.SelectedField.FieldName;
-    EDBImage1.DataField := grid.SelectedField.FieldName;
-    PageControl3.ActivePageIndex := 1;
-    MenuViewBlob.Enabled := true;
-    header := copy(grid.SelectedField.AsString, 0, 20);
-    if (pos('JFIF', header) <> 0) or StrCmpBegin('GIF', header) or StrCmpBegin('BM', header) then begin
-      PageControl4.ActivePageIndex := 1;
-    end;
-  end else begin
-    DBMemo1.DataField := '';
-    EDBImage1.DataField := '';
-    MenuViewBlob.Enabled := false;
-  end;
-  PageControl4Change(self);
-end;
-
 procedure TMDIChild.SynMemo1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -2893,9 +2862,59 @@ end;
 
 
 
+procedure TMDIChild.ResizeImageToFit;
+begin
+  // Resize image to fit
+  EDBImage1.Width := MulDiv(EDBImage1.Height, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
+end;
 
 
+procedure TMDIChild.Splitter2Moved(Sender: TObject);
+begin
+  ResizeImageToFit;
+end;
 
+procedure TMDIChild.DBGridDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn;
+  State: TGridDrawState);
+var
+  Grid : TSMDBGrid;
+  ds : Tdatasource;
+begin
+  // view blob or memo while Data-Tabsheet is active!
+  grid := (sender as TSMDBGrid);
+  ds := grid.DataSource;
+  if grid.SelectedField = nil then exit;
+  
+
+  if DBMemo1.DataSource <> ds then begin
+    DBMemo1.DataField := '';
+    DBMemo1.DataSource := ds;
+    EDBImage1.DataField := '';
+    EDBImage1.DataSource := ds;
+  end;
+  if grid.SelectedField.IsBlob then begin
+    DBMemo1.DataField := grid.SelectedField.FieldName;
+    EDBImage1.DataField := grid.SelectedField.FieldName;
+    PageControl3.ActivePageIndex := 1;
+    MenuViewBlob.Enabled := true;
+    if EDBImage1.Picture.Height > 0 then
+    begin
+      PageControl4.ActivePageIndex := 1;
+    end
+    else
+    begin
+      PageControl4.ActivePageIndex := 0;
+    end;
+    ResizeImageToFit;
+  end else
+  begin
+    DBMemo1.DataField := '';
+    EDBImage1.DataField := '';
+    MenuViewBlob.Enabled := false;
+  end;
+  PageControl4Change(self);
+end;
 
 end.
 
