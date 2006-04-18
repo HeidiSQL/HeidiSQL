@@ -16,8 +16,8 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
   DBCtrls, helpers,
   Grids, messages, smdbgrid, Mask, ZDataset,
-  ZAbstractRODataset, ZAbstractDataset, ZAbstractTable, ZConnection,
-  ZSqlUpdate, ZSqlMonitor, ZPlainMySqlDriver, EDBImage;
+  ZAbstractRODataset, ZConnection,
+  ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset;
 
 
 type
@@ -242,7 +242,7 @@ type
     Gemini1: TMenuItem;
     setNULL1: TMenuItem;
     ZConn: TZConnection;
-    ZQuery1: TZReadOnlyQuery;
+    ZQuery1: TZQuery;
     ZQuery2: TZQuery;
     ZQuery3: TZReadOnlyQuery;
     ZSQLMonitor1: TZSQLMonitor;
@@ -351,18 +351,15 @@ type
     procedure ToolButtonStopOnErrorsClick(Sender: TObject);
     procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
-    procedure DBGrid1GetCellParams(Sender: TObject; Field: TField;
+    procedure DBGridGetCellParams(Sender: TObject; Field: TField;
       AFont: TFont; var Background: TColor; Highlight: Boolean);
     procedure DBGridEnter(Sender: TObject);
     procedure DBGridExit(Sender: TObject);
     procedure PopupMenuDataPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure ToolButton5Click(Sender: TObject);
-    procedure DBGrid2GetCellParams(Sender: TObject; Field: TField;
-      AFont: TFont; var Background: TColor; Highlight: Boolean);
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
-    procedure ZQuery2AfterScroll(DataSet: TDataSet);
     procedure ZQuery2BeforeClose(DataSet: TDataSet);
     procedure ExecQuery( SQLQuery: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
@@ -372,6 +369,10 @@ type
     procedure Splitter2Moved(Sender: TObject);
     procedure DBGridDrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure ZSQLMonitor1Trace(Sender: TObject; Event: TZLoggingEvent;
+      var LogTrace: Boolean);
+    procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
+      var Action: TDataAction);
 
     private
       { Private declarations }
@@ -618,7 +619,7 @@ begin
   // add a sql-command or info-line to history-memo
   while SynMemo2.Lines.Count > mainform.logsqlnum do
   begin
-    SynMemo2.Text := Copy( SynMemo2.Text, Length(SynMemo2.Lines[0])+3, Length(SynMemo2.Text) );
+    SynMemo2.Lines.Delete(0);
   end;
   msg := Copy(msg, 0, 2000);
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
@@ -653,11 +654,9 @@ begin
   if OnlyDBs.Count = 0 then
   begin
     OnlyDBs2 := TStringList.Create;
-    ZQuery3.SQL.Clear();
-    ZQuery3.SQL.Add('SHOW DATABASES');
-    ZQuery3.Open;
-    ZQuery3.First;
-    for i:=1 to ZQuery3.RecordCount do begin
+    GetResults( 'SHOW DATABASES', ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
+    begin
       OnlyDBs2.Add(ZQuery3.FieldByName('Database').AsString);
       ZQuery3.Next;
     end;
@@ -673,11 +672,7 @@ begin
   // List Databases and Tables-Names
   for i:=0 to OnlyDBs2.Count-1 do
   try
-    ZQuery3.Close;
-    ZQuery3.SQL.Clear;
-    ZQuery3.SQL.Add( 'SHOW TABLES FROM ' + OnlyDBs2[i] );
-    ZQuery3.Open;
-    ZQuery3.First;
+    GetResults( 'SHOW TABLES FROM ' + OnlyDBs2[i], ZQuery3 );
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 12;
     tnode.SelectedIndex := 0;
@@ -838,9 +833,15 @@ begin
     SheetTable.TabVisible := true;
     SheetData.TabVisible := true;
     if Mainform.DataAlwaysEditMode then
-      DBGrid1.Options := DBGrid1.Options + [dgAlwaysShowEditor]
+    begin
+      DBGrid1.Options := DBGrid1.Options + [dgAlwaysShowEditor];
+      DBGrid2.Options := DBGrid2.Options + [dgAlwaysShowEditor];
+    end
     else
+    begin
       DBGrid1.Options := DBGrid1.Options - [dgAlwaysShowEditor];
+      DBGrid2.Options := DBGrid2.Options - [dgAlwaysShowEditor];
+    end;
     PageControl1.ActivePage := SheetData;
 
     ZConn.Database := ActualDatabase;
@@ -917,7 +918,7 @@ begin
 
     Panel5.Caption := ActualDatabase + ' / ' + ActualTable + ': ' +
       IntToStr(rowcount) + ' Records (' +
-      IntToStr(ZQuery2.RecordCount) + ' retrieved)';
+      IntToStr(ZQuery2.RecordCount) + ' selected)';
 
     dataselected := true;
     pcChange(self);
@@ -982,11 +983,9 @@ begin
   Try
     if mysql_version >= 32300 then begin
       // get quick results with versions 3.23.xx and newer
-      ZQuery3.SQL.Clear;
-      ZQuery3.SQL.Add('SHOW TABLE STATUS');
-      ZQuery3.Open();
-      ZQuery3.First;
-      for i := 1 to ZQuery3.RecordCount do begin
+      GetResults( 'SHOW TABLE STATUS', ZQuery3 );
+      for i := 1 to ZQuery3.RecordCount do
+      begin
         n := Tabellenliste.Items.Add;
         n.ImageIndex := 1;
         // Table
@@ -1393,11 +1392,7 @@ begin
   strHostRunning := ZConn.HostName + ' running MySQL-Version ' + v + ' / Uptime: ';
 
   // VARIABLES
-  ZQuery3.Close;
-  ZQuery3.SQL.Clear;
-  ZQuery3.SQL.Add( 'SHOW VARIABLES' );
-  ZQuery3.Open;
-  ZQuery3.First;
+  GetResults( 'SHOW VARIABLES', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
     n := VariabelListe.Items.Add;
@@ -1409,11 +1404,7 @@ begin
   uptime := 0;
 
   // STATUS
-  ZQuery3.Close;
-  ZQuery3.SQL.Clear;
-  ZQuery3.SQL.Add( 'SHOW STATUS' );
-  ZQuery3.Open;
-  ZQuery3.First;
+  GetResults( 'SHOW STATUS', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
     n := VariabelListe.Items.Add;
@@ -2729,10 +2720,10 @@ begin
   end;
 end;
 
-procedure TMDIChild.DBGrid1GetCellParams(Sender: TObject; Field: TField;
+procedure TMDIChild.DBGridGetCellParams(Sender: TObject; Field: TField;
   AFont: TFont; var Background: TColor; Highlight: Boolean);
 begin
-  if DBGrid1.SelectedRows.CurrentRowSelected then begin
+  if (Sender as TDBGrid).SelectedRows.CurrentRowSelected then begin
     background := clInfoBK;
     afont.Color := clInfoText;
   end;
@@ -2782,25 +2773,11 @@ begin
   end;
 end;
 
-procedure TMDIChild.DBGrid2GetCellParams(Sender: TObject; Field: TField;
-  AFont: TFont; var Background: TColor; Highlight: Boolean);
-begin
-  if field.IsNull then background := mainform.DataNullBackground;
-end;
-
 procedure TMDIChild.setNULL1Click(Sender: TObject);
 begin
   if not (DataSource1.State in [dsEdit, dsInsert]) then
     DataSource1.Edit;
   //dbgrid1.SelectedField.Value := NULL;
-end;
-
-procedure TMDIChild.ZQuery2AfterScroll(DataSet: TDataSet);
-begin
-  // Update record-count
-  Panel5.Caption := ActualDatabase + ' / ' + ActualTable + ': ' +
-    IntToStr(rowcount) + ' Records (' +
-    IntToStr(ZQuery2.RecordCount) + ' retrieved)';
 end;
 
 procedure TMDIChild.ZQuery2BeforeClose(DataSet: TDataSet);
@@ -2855,8 +2832,6 @@ end;
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
-  if Trim( Event.Message ) = SQL_PING then
-    exit;
   LogSQL( Trim( Event.Message ) );
 end;
 
@@ -2865,7 +2840,14 @@ end;
 procedure TMDIChild.ResizeImageToFit;
 begin
   // Resize image to fit
+  if EDBImage1.Picture.Width = 0 then
+    exit;
   EDBImage1.Width := MulDiv(EDBImage1.Height, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
+  showstatus('Image: ' + inttostr( EDBImage1.Picture.width)
+    + ' x ' + inttostr( EDBImage1.Picture.Height ) + ' pixel, '
+    + 'zoomed to ' + IntToStr(round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'
+    );
+
 end;
 
 
@@ -2914,6 +2896,19 @@ begin
     MenuViewBlob.Enabled := false;
   end;
   PageControl4Change(self);
+end;
+
+procedure TMDIChild.ZSQLMonitor1Trace(Sender: TObject;
+  Event: TZLoggingEvent; var LogTrace: Boolean);
+begin
+  if Trim( Event.Message ) = SQL_PING then
+    LogTrace := false;
+end;
+
+procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
+  var Action: TDataAction);
+begin
+  LogSQL( E.Message );
 end;
 
 end.
