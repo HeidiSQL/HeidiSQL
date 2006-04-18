@@ -246,10 +246,7 @@ begin
         klist[length(klist)-1].Columns.Add(ZQuery3.Fields[4].AsString);
         klist[length(klist)-1].Modified := false;
         klist[length(klist)-1].Unique := (ZQuery3.Fields[1].AsString = '0');
-        if ZQuery3.FieldCount >= 10 then
-          klist[length(klist)-1].Fulltext := (ZQuery3.Fields[9].AsString = 'FULLTEXT')
-        else
-          klist[length(klist)-1].Fulltext := false;
+        klist[length(klist)-1].Fulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT')
       end else
         klist[TempKeys.IndexOf(ZQuery3.Fields[2].AsString)].Columns.Add(ZQuery3.Fields[4].AsString);
       ZQuery3.Next;
