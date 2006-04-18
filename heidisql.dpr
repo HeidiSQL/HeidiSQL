@@ -18,7 +18,6 @@ uses
   options in 'options.pas' {optionsform},
   selectsomedatabases in 'selectsomedatabases.pas' {SelectFromManyDatabases},
   optimizetables in 'optimizetables.pas' {optimize},
-  odbcimport in 'odbcimport.pas' {odbcimportform},
   printlist in 'printlist.pas' {printlistForm},
   copytable in 'copytable.pas' {CopyTableForm},
   edituser in 'edituser.pas' {FormEditUser},
@@ -48,7 +47,6 @@ begin
   Application.CreateForm(Toptionsform, optionsform);
   Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases);
   Application.CreateForm(Toptimize, optimize);
-  Application.CreateForm(Todbcimportform, odbcimportform);
   Application.CreateForm(TprintlistForm, printlistForm);
   Application.CreateForm(TCopyTableForm, CopyTableForm);
   Application.CreateForm(TFormEditUser, FormEditUser);
