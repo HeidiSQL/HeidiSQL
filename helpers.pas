@@ -28,7 +28,9 @@ uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
-  function color2rgb(c: TColor):longint;
+  function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''): Boolean;
+  function dataset2csv(ds: TZQuery; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+  function dataset2xml(ds: TZQuery; title: String; filename: String = ''): Boolean;
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -396,13 +398,273 @@ begin
 end;
 
 
-// convert TColor to HTML-color-string
-function color2rgb(c:TColor):longint;
+
+// convert a TZDataSet to HTML-Table.
+// if a filename is given, save HTML to disk, otherwise to clipboard
+function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''): Boolean;
 var
-  temp:longint;
+  I, J                      : Integer;
+  Buffer, cbuffer, data     : string;
+  FStream                   : TFileStream;
+  blobfilename, extension   : String;
+  bf                        : Textfile;
+  header                    : String;
+  cursorpos                 : Integer;
 begin
-  temp:=colortorgb(c);
-  result:=((temp and $ff) shl 16) or (temp and $ff00) or ((temp and $ff0000) shr 16);
+  try
+    if filename <> '' then
+      FStream := TFileStream.Create(FileName, fmCreate)
+    else
+      clipboard.astext := '';
+    buffer := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + crlf + crlf +
+      '<html>' + crlf +
+      '<head>' + crlf +
+      '  <title>' + htmltitle + '</title>' + crlf +
+      '  <meta name="GENERATOR" content="'+ appname + ' ' + appversion + '">' + crlf +
+      '  <style type="text/css"><!--' + crlf +
+      '    .header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
+      '    th {vertical-align: top;}' + crlf +
+      '    td {vertical-align: top;}' + crlf +
+      '  //--></style>' + crlf +
+      '</head>' + crlf + crlf +
+      '<body>' + crlf + crlf +
+      '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
+      '<table border="1">' + crlf +
+      '  <tr class="header">' + crlf;
+    for j:=0 to ds.FieldCount-1 do
+      buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
+    buffer := buffer + '  </tr>' + crlf;
+    if filename <> '' then
+      FStream.Write(pchar(buffer)^, length(buffer))
+    else
+      cbuffer := buffer;
+
+    cursorpos := ds.RecNo;
+    ds.DisableControls;
+    ds.First;
+    for I := 0 to ds.RecordCount-1 do
+    begin
+      Buffer := '  <tr>' + crlf;
+      // collect data:
+      for j:=0 to ds.FieldCount-1 do
+      begin
+        data := ds.Fields[j].AsString;
+        if (filename <> '') and ds.Fields[j].IsBlob then
+        begin
+          header := copy(data, 0, 20);
+          extension := '';
+          if pos('JFIF', header) <> 0 then
+            extension := 'jpg'
+          else if StrCmpBegin('GIF', header) then
+            extension := 'gif'
+          else if StrCmpBegin('BM', header) then
+            extension := 'bmp';
+          if extension <> '' then begin
+            blobfilename := 'rec'+inttostr(i)+'fld'+inttostr(j)+'.'+extension;
+            AssignFile(bf, blobfilename);
+            Rewrite(bf);
+            Write(bf, data);
+            CloseFile(bf);
+            data := '<a href="'+blobfilename+'"><img border="0" src="'+blobfilename+'" alt="'+blobfilename+' ('+floattostr(length(data) div 1024)+' KB)" width="100" /></a>';
+          end
+          else
+          begin
+            if mainform.ConvertHTMLEntities then
+              data := htmlentities(data);
+            data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
+            data := data + '&nbsp;';
+          end;
+        end
+        else
+        begin
+          if mainform.ConvertHTMLEntities then
+            data := htmlentities(data);
+          data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
+          data := data + '&nbsp;';
+        end;
+        Buffer := Buffer + '    <td>' + data + '</td>' + crlf;
+      end;
+      buffer := buffer + '  </tr>' + crlf;
+      // write buffer:
+      if filename <> '' then
+        FStream.Write(pchar(buffer)^, length(buffer))
+      else
+        cbuffer := cbuffer + buffer;
+      ds.Next;
+    end;
+    ds.RecNo := cursorpos;
+    ds.EnableControls;
+    // footer:
+    buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
+      '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
+      ' by <a href="http://www.'+appname+'.com/">' + appname + ' ' + appversion + '</a></em></p>' + crlf + crlf +
+      '</body></html>';
+    if filename <> '' then
+      FStream.Write(pchar(buffer)^, length(buffer))
+    else
+    begin
+      cbuffer := cbuffer + buffer;
+      clipboard.astext := cbuffer;
+    end;
+
+  except
+    Screen.Cursor := crDefault;
+    if filename <> '' then
+    begin
+      messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
+      FStream.Free;
+    end else
+      messagedlg('Error while copying data to Clipboard.', mterror, [mbOK], 0)
+  end;
+  if filename <> '' then
+    FStream.Free;
+  // open file:
+  if filename <> '' then
+    shellexecute(0, 'open', pchar(filename), Nil, NIL, 5);
+  result := true;
+end;
+
+
+// convert a TDataSet to CSV-Values.
+// if a filename is given, save CSV-data to disk, otherwise to clipboard
+function dataset2csv(ds: TZQuery; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+var
+  I, J                      : Integer;
+  Buffer, cbuffer           : string;
+  FStream                   : TFileStream;
+  cursorpos                 : Integer;
+begin
+  separator := esc2ascii(separator);
+  encloser := esc2ascii(encloser);
+  terminator := esc2ascii(terminator);
+
+  try
+    Buffer := '';
+    if filename <> '' then
+      FStream := TFileStream.Create(FileName, fmCreate)
+    else
+      clipboard.astext := '';
+
+    // collect fields:
+    for j:=0 to ds.FieldCount-1 do begin
+      if j > 0 then
+        Buffer := Buffer + Separator;
+      Buffer := Buffer + Encloser + ds.Fields[J].FieldName + Encloser;
+    end;
+    // write buffer:
+    if filename <> '' then
+      FStream.Write(pchar(buffer)^, length(buffer))
+    else
+      cbuffer := cbuffer + buffer;
+
+    // collect data:
+    cursorpos := ds.RecNo;
+    ds.DisableControls;
+    ds.First;
+    for i:=0 to ds.RecordCount-1 do
+    begin
+      Buffer := '';
+      Buffer := Buffer + Terminator;
+      for j:=0 to ds.FieldCount-1 do
+      begin
+        if j>0 then
+          Buffer := Buffer + Separator;
+        Buffer := Buffer + Encloser + ds.Fields[j].AsString + Encloser;
+      end;
+      // write buffer:
+      if filename <> '' then
+        FStream.Write(pchar(buffer)^, length(buffer))
+      else
+        cbuffer := cbuffer + buffer;
+      ds.Next;
+    end;
+    ds.RecNo := cursorpos;
+    ds.EnableControls;
+    if filename = '' then
+      clipboard.astext := cbuffer;
+  except
+    Screen.Cursor := crDefault;
+    if filename <> '' then
+    begin
+      messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
+      FStream.Free;
+    end
+    else
+      messagedlg('Error while copying data to Clipboard.', mterror, [mbOK], 0)
+  end;
+  if filename <> '' then
+    FStream.Free;
+
+  result := true;
+end;
+
+
+
+// convert a TZDataSet to XML.
+// if a filename is given, save XML to disk, otherwise to clipboard
+function dataset2xml(ds: TZQuery; title: String; filename: String = ''): Boolean;
+var
+  I, J                      : Integer;
+  Buffer, cbuffer, data     : string;
+  FStream                   : TFileStream;
+  cursorpos                 : Integer;
+begin
+  try
+    if filename <> '' then
+      FStream := TFileStream.Create(FileName, fmCreate)
+    else
+      clipboard.astext := '';
+    buffer := '<?xml version="1.0"?>' + crlf + crlf +
+           '<'+title+'>' + crlf;
+    if filename <> '' then
+      FStream.Write(pchar(buffer)^, length(buffer))
+    else
+      cbuffer := buffer;
+
+    cursorpos := ds.RecNo;
+    ds.DisableControls;
+    ds.First;
+    for i:=0 to ds.RecordCount-1 do
+    begin
+      Buffer := #9'<row>' + crlf;
+      // collect data:
+      for j:=0 to ds.FieldCount-1 do
+      begin
+        data := ds.Fields[j].AsString;
+        data := htmlentities(data);
+        Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
+      end;
+      buffer := buffer + #9'</row>' + crlf;
+      // write buffer:
+      if filename <> '' then
+        FStream.Write(pchar(buffer)^, length(buffer))
+      else
+        cbuffer := cbuffer + buffer;
+      ds.Next;
+    end;
+    ds.RecNo := cursorpos;
+    ds.EnableControls;
+    // footer:
+    buffer := '</'+title+'>' + crlf;
+    if filename <> '' then
+      FStream.Write(pchar(buffer)^, length(buffer))
+    else begin
+      cbuffer := cbuffer + buffer;
+      clipboard.astext := cbuffer;
+    end;
+
+  except
+    Screen.Cursor := crDefault;
+    if filename <> '' then
+    begin
+      messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
+      FStream.Free;
+    end else
+      messagedlg('Error while copying data to Clipboard.', mterror, [mbOK], 0)
+  end;
+  if filename <> '' then
+    FStream.Free;
+  result := true;
 end;
 
 
@@ -690,7 +952,7 @@ end;
 
 function MakeInt( Str: String ) : Integer;
 var
-  test, i : Integer;
+  i : Integer;
   StrWithInts : String;
 begin
   StrWithInts := '';

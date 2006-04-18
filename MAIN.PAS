@@ -12,7 +12,7 @@ interface
 uses Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, smdbgrid;
+  SynMemo, synedit, smdbgrid, ZDataSet;
 
 type
   TMainForm = class(TForm)
@@ -251,7 +251,7 @@ var
 const
   appname = 'HeidiSQL';
   regpath = 'Software\' + appname;
-  appversion = '3.0 BETA';
+  appversion = '3.1 BETA';
 
 type TMyKey = record
   Name    : String;
@@ -489,7 +489,6 @@ begin
     CloseFile(f);
   end;
   timer1.Enabled := true;
-  debug('-------> Programstart!');
 end;
 
 procedure TMainform.LoadSQLFile(sender: TObject);
@@ -668,6 +667,12 @@ end;
 procedure TMainForm.Copy2CSVExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as CSV
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    if PageControl1.ActivePage = SheetData then
+      dataset2csv(ZQuery2, CSVSeparator, CSVEncloser, CSVTerminator)
+    else if PageControl1.ActivePage = SheetQuery then
+      dataset2csv((ZQuery1 as TZQuery), CSVSeparator, CSVEncloser, CSVTerminator);
+  end;
 end;
 
 
@@ -688,6 +693,10 @@ begin
     Options := [ofOverwritePrompt,ofEnableSizing];
 
     if Execute and (FileName <> '') then begin
+      if PageControl1.ActivePage = SheetData then
+        dataset2csv(ZQuery2, CSVSeparator, CSVEncloser, CSVTerminator, Filename)
+      else if PageControl1.ActivePage = SheetQuery then
+        dataset2csv(ZQuery1, CSVSeparator, CSVEncloser, CSVTerminator, Filename);
     end;
   end;
 end;
@@ -697,6 +706,10 @@ procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    if PageControl1.ActivePage = SheetData then
+      dataset2html(ZQuery2, ZConn.HostName + ': ' + ActualDatabase + '.' + ActualTable)
+    else if PageControl1.ActivePage = SheetQuery then
+      dataset2html(ZQuery1, ZQuery1.Sql[0]);
   end;
 end;
 
@@ -717,6 +730,10 @@ begin
 
       if Execute and (FileName <> '') then
       begin
+        if PageControl1.ActivePage = SheetData then
+          dataset2html(ZQuery2, ZConn.HostName + ' / ' + ActualDatabase + ' / ' + ActualTable, FileName)
+        else                       
+          dataset2html(ZQuery1, ZQuery1.Sql[0], FileName);
       end;
     end;
 
@@ -1006,6 +1023,10 @@ begin
       Options := [ofOverwritePrompt,ofEnableSizing];
 
       if Execute and (FileName <> '') then begin
+        if PageControl1.ActivePage = SheetData then
+          dataset2xml(ZQuery2, ActualTable, FileName)
+        else
+          dataset2xml(ZQuery1, 'SQL-query', FileName);
       end;
     end;
 
@@ -1016,6 +1037,10 @@ procedure TMainForm.Copy2XMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as XML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    if PageControl1.ActivePage = SheetData then
+      dataset2xml(ZQuery2, ActualTable)
+    else if PageControl1.ActivePage = SheetQuery then
+      dataset2xml(ZQuery1, 'SQL-query');
   end;
 end;
 
@@ -1030,9 +1055,33 @@ end;
 
 procedure TMainForm.ExportDataExecute(Sender: TObject);
 var
+  query : TZQuery;
   titel : String;
 begin
   // Save data in actual dataset as CSV, HTML or XML
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    case PageControl1.ActivePageIndex of
+      3 : begin query := ZQuery2; titel := ActualTable; end;
+      4 : begin query := ZQuery1; titel := 'SQL-query'; end;
+    end;
+
+    with SaveDialogExportData do begin
+      Title := 'Export result-set from '+titel+'...';
+      FileName := titel;
+
+      if Execute and (FileName <> '') then
+      begin
+        Screen.Cursor := crHourGlass;
+        case FilterIndex of
+          1 : dataset2csv(query, CSVSeparator, CSVEncloser, CSVTerminator, Filename);
+          2 : dataset2html(query, titel, FileName);
+          3 : dataset2xml(query, titel, FileName);
+        end;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+
+  end;
 end;
 
 procedure TMainForm.SearchReplaceExecute(Sender: TObject);
