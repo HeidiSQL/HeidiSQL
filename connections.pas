@@ -106,7 +106,7 @@ begin
   oldkey := 'Software\MySQL-Front';
   with TRegistry.Create do
   begin
-    if OpenKey(oldkey, false) and (not Openkey(main.regpath, false)) then
+    if (not Openkey(main.regpath, false)) and OpenKey(oldkey, false) then
     try
       RenameRegistryItem( rootkey, oldkey, main.regpath );
     finally
