@@ -159,6 +159,7 @@ type
     HTMLview: TAction;
     InsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
+    ExportTables: TAction;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
     procedure connect(Sender: TObject);
@@ -166,7 +167,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure ButtonRefreshClick(Sender: TObject);
-    procedure ButtonExportClick(Sender: TObject);
     procedure ButtonCreateDatabaseClick(Sender: TObject);
     procedure ButtonCreateTableClick(Sender: TObject);
     procedure ButtonDropDatabaseClick(Sender: TObject);
@@ -223,6 +223,7 @@ type
     procedure HTMLviewExecute(Sender: TObject);
     procedure InsertFilesExecute(Sender: TObject);
     procedure debug( msg : String = '' );
+    procedure ExportTablesExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -251,7 +252,7 @@ var
 const
   appname = 'HeidiSQL';
   regpath = 'Software\' + appname;
-  appversion = '3.1 BETA';
+  appversion = '3.0 RC1';
 
 type TMyKey = record
   Name    : String;
@@ -537,12 +538,6 @@ begin
     else
       ReadDatabasesAndTables(self);
   end;
-end;
-
-procedure TMainForm.ButtonExportClick(Sender: TObject);
-begin
-  // Export SQL
-  exportsqlform.showmodal;
 end;
 
 procedure TMainForm.ButtonCreateDatabaseClick(Sender: TObject);
@@ -1214,5 +1209,11 @@ end;
 
 
 
+
+procedure TMainForm.ExportTablesExecute(Sender: TObject);
+begin
+  // Export SQL
+  exportsqlform.showmodal;
+end;
 
 end.

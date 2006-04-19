@@ -247,6 +247,8 @@ type
     ZQuery3: TZReadOnlyQuery;
     ZSQLMonitor1: TZSQLMonitor;
     EDBImage1: TEDBImage;
+    Exporttables1: TMenuItem;
+    Exporttables2: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
@@ -381,7 +383,6 @@ type
       OnlyDBs                    : TStringList;  // used on connecting
       rowcount                   : Integer;      // rowcount of ActualTable
       viewingdata                : Boolean;
-      ItemToDrop                 : TTreeNode;    // TreeNode for dropping with right-click
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
@@ -394,6 +395,7 @@ type
       tnodehost                  : TTreeNode;
       OnlyDBs2                   : TStringList;
       Description                : String;
+      DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
   end;
 
 
@@ -630,7 +632,7 @@ begin
   SynMemo2.SetBookMark(0,0,SynMemo2.Lines.Count);
   SynMemo2.GotoBookMark(0);
   SynMemo2.ClearBookMark(0);
-  //Application.ProcessMessages;
+  SynMemo2.Repaint;
 end;
 
 
@@ -1122,10 +1124,11 @@ begin
     end;
   finally
     Feldliste.Items.EndUpdate;
+    Screen.Cursor := crDefault;
   end;
 
 
-
+  Screen.Cursor := crHourglass;
   GetResults( 'SHOW KEYS FROM ' + ActualTable, ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
@@ -1305,7 +1308,7 @@ begin
 
   if (Sender as TComponent).Name = 'PopupMenuDropTable' then begin
     // delete-command was sended by dbtree-popupmenu:
-    t.add(mainform.mask(ItemToDrop.Parent.text) + '.' + mainform.mask(ItemToDrop.text));
+    t.add(mainform.mask(DBRightClickSelectedItem.Parent.text) + '.' + mainform.mask(DBRightClickSelectedItem.text));
   end
   else with Tabellenliste do begin
     // delete-command was sended by tabellenliste-popupmenu:
@@ -1350,7 +1353,7 @@ var
 begin
   // Drop DB?
   if (Sender as TComponent).Name = 'PopupmenuDropDatabase' then // drop cmd from popupmenu
-    tndb_ := itemtodrop
+    tndb_ := DBRightClickSelectedItem
   else case DBTree.Selected.Level of  // drop cmd from toolbar
     1 : tndb_ := DBTree.Selected;
     2 : tndb_ := DBTree.Selected.Parent;
@@ -1718,7 +1721,7 @@ begin
     begin
       ButtonRefresh.Enabled := true;
       ButtonReload.Enabled := true;
-      ButtonExport.Enabled := true;
+      ExportTables.Enabled := true;
       ButtonImportTextfile.Enabled := true;
       ButtonCreateTable.Enabled := true;
       ButtonCreateDatabase.Enabled := true;
@@ -1762,7 +1765,7 @@ begin
   begin
     ButtonRefresh.Enabled := false;
     ButtonReload.Enabled := false;
-    ButtonExport.Enabled := false;
+    ExportTables.Enabled := false;
     ButtonImportTextfile.Enabled := false;
     ButtonCreateTable.Enabled := false;
     ButtonCreateDatabase.Enabled := false;
@@ -2626,7 +2629,7 @@ begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
   PopupMenuDropTable.Enabled := DBtree.Selected.Level = 2;
-  ItemToDrop := DBtree.Selected;
+  DBRightClickSelectedItem := DBtree.Selected;
 end;
 
 procedure TMDIChild.ToolButton15Click(Sender: TObject);
@@ -2812,6 +2815,7 @@ begin
     try
       First;
       Result := Fields[x].AsString;
+      Close;
     finally
       Free;
     end;
@@ -2824,6 +2828,7 @@ procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
 begin
   ZQuery.SQL.Text := SQLQuery;
   ZQuery.Open;
+  ZQuery.DisableControls;
   ZQuery.First;
 end;
 
