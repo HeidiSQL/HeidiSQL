@@ -1,10 +1,10 @@
 object ExportSQLForm: TExportSQLForm
   Left = 429
-  Top = 112
+  Top = 106
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'Export Tables...'
-  ClientHeight = 405
+  ClientHeight = 343
   ClientWidth = 558
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,34 +14,20 @@ object ExportSQLForm: TExportSQLForm
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Bevel1: TBevel
-    Left = 0
-    Top = 367
-    Width = 558
-    Height = 38
-    Align = alBottom
-    Shape = bsTopLine
-  end
-  object Label1: TLabel
-    Left = 16
-    Top = 8
-    Width = 144
-    Height = 13
-    Caption = 'Select Database and Table(s):'
-  end
   object Label2: TLabel
-    Left = 16
-    Top = 328
+    Left = 8
+    Top = 264
     Width = 32
     Height = 13
     Caption = 'Label2'
   end
   object Button1: TButton
     Left = 395
-    Top = 376
+    Top = 312
     Width = 75
     Height = 25
     Caption = 'Export!'
@@ -51,7 +37,7 @@ object ExportSQLForm: TExportSQLForm
   end
   object Button2: TButton
     Left = 477
-    Top = 376
+    Top = 312
     Width = 75
     Height = 25
     Cancel = True
@@ -59,31 +45,13 @@ object ExportSQLForm: TExportSQLForm
     TabOrder = 1
     OnClick = Button2Click
   end
-  object TablesCheckListBox: TCheckListBox
-    Left = 16
-    Top = 48
-    Width = 217
-    Height = 145
-    ItemHeight = 13
-    TabOrder = 2
-  end
-  object DBComboBox: TComboBox
-    Left = 16
-    Top = 24
-    Width = 169
-    Height = 21
-    Style = csDropDownList
-    ItemHeight = 13
-    TabOrder = 3
-    OnChange = DBComboBoxChange
-  end
   object GroupBox1: TGroupBox
     Left = 256
-    Top = 80
+    Top = 0
     Width = 297
-    Height = 241
+    Height = 257
     Caption = 'Output'
-    TabOrder = 4
+    TabOrder = 2
     object BitBtn1: TBitBtn
       Left = 259
       Top = 43
@@ -163,117 +131,158 @@ object ExportSQLForm: TExportSQLForm
     end
   end
   object ProgressBar1: TProgressBar
-    Left = 16
-    Top = 344
-    Width = 537
+    Left = 8
+    Top = 280
+    Width = 545
     Height = 17
     Min = 0
     Max = 0
     Smooth = True
     Step = 1
-    TabOrder = 5
+    TabOrder = 3
   end
-  object GroupBox2: TGroupBox
-    Left = 256
-    Top = 16
-    Width = 297
-    Height = 57
-    Caption = 'What to export'
-    TabOrder = 6
-    object CheckBox1: TCheckBox
-      Left = 16
-      Top = 24
-      Width = 73
-      Height = 17
-      Caption = 'Structure'
-      Checked = True
-      State = cbChecked
-      TabOrder = 0
-      OnClick = CheckBox1Click
+  object PageControl1: TPageControl
+    Left = 4
+    Top = 0
+    Width = 241
+    Height = 257
+    ActivePage = TabSheet2
+    TabIndex = 1
+    TabOrder = 4
+    object TabSheet1: TTabSheet
+      Caption = 'Selection'
+      DesignSize = (
+        233
+        229)
+      object Label1: TLabel
+        Left = 8
+        Top = 8
+        Width = 144
+        Height = 13
+        Caption = 'Select Database and Table(s):'
+      end
+      object TablesCheckListBox: TCheckListBox
+        Left = 8
+        Top = 52
+        Width = 216
+        Height = 167
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ItemHeight = 13
+        TabOrder = 0
+      end
+      object DBComboBox: TComboBox
+        Left = 8
+        Top = 24
+        Width = 161
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        ItemHeight = 13
+        TabOrder = 1
+        OnChange = DBComboBoxChange
+      end
+      object ToolBar1: TToolBar
+        Left = 177
+        Top = 24
+        Width = 46
+        Height = 22
+        Align = alNone
+        Anchors = [akTop, akRight]
+        AutoSize = True
+        Caption = 'ToolBar1'
+        EdgeInner = esNone
+        EdgeOuter = esNone
+        Flat = True
+        Images = MainForm.ImageList1
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+        object ToolButton1: TToolButton
+          Left = 0
+          Top = 0
+          Hint = 'Check none'
+          Caption = 'ToolButton1'
+          ImageIndex = 42
+          OnClick = CheckListToggle
+        end
+        object ToolButton2: TToolButton
+          Tag = 1
+          Left = 23
+          Top = 0
+          Hint = 'Check all'
+          Caption = 'ToolButton2'
+          ImageIndex = 43
+          OnClick = CheckListToggle
+        end
+      end
     end
-    object CheckBox2: TCheckBox
-      Left = 112
-      Top = 24
-      Width = 73
-      Height = 17
-      Caption = 'Data'
-      Checked = True
-      State = cbChecked
-      TabOrder = 1
-      OnClick = CheckBox2Click
-    end
-  end
-  object ToolBar1: TToolBar
-    Left = 187
-    Top = 24
-    Width = 46
-    Height = 22
-    Align = alNone
-    AutoSize = True
-    Caption = 'ToolBar1'
-    EdgeInner = esNone
-    EdgeOuter = esNone
-    Flat = True
-    Images = MainForm.ImageList1
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 7
-    object ToolButton1: TToolButton
-      Left = 0
-      Top = 0
-      Hint = 'Check none'
-      Caption = 'ToolButton1'
-      ImageIndex = 42
-      OnClick = CheckListToggle
-    end
-    object ToolButton2: TToolButton
-      Tag = 1
-      Left = 23
-      Top = 0
-      Hint = 'Check all'
-      Caption = 'ToolButton2'
-      ImageIndex = 43
-      OnClick = CheckListToggle
-    end
-  end
-  object GroupBox3: TGroupBox
-    Left = 16
-    Top = 200
-    Width = 217
-    Height = 121
-    Caption = 'Options'
-    TabOrder = 8
-    object CheckBoxWithUseDB: TCheckBox
-      Left = 8
-      Top = 24
-      Width = 193
-      Height = 17
-      Caption = 'Include "USE dbname"-Statement'
-      TabOrder = 0
-    end
-    object CheckBoxWithDropTable: TCheckBox
-      Left = 8
-      Top = 48
-      Width = 193
-      Height = 17
-      Caption = 'Include "DROP TABLE"-Statements'
-      TabOrder = 1
-    end
-    object CheckBoxCompleteInserts: TCheckBox
-      Left = 8
-      Top = 72
-      Width = 193
-      Height = 17
-      Caption = 'Complete insert statements'
-      TabOrder = 2
-    end
-    object CheckBoxUseBackticks: TCheckBox
-      Left = 8
-      Top = 96
-      Width = 193
-      Height = 17
-      Caption = 'Use backticks (`) for names'
-      TabOrder = 3
+    object TabSheet2: TTabSheet
+      Caption = 'Options'
+      ImageIndex = 1
+      object CheckBoxWithUseDB: TCheckBox
+        Left = 8
+        Top = 16
+        Width = 193
+        Height = 17
+        Caption = 'Include "USE dbname"-statement'
+        TabOrder = 0
+      end
+      object CheckBoxWithDropTable: TCheckBox
+        Left = 24
+        Top = 96
+        Width = 193
+        Height = 17
+        Caption = 'Include "DROP TABLE"-statements'
+        TabOrder = 1
+      end
+      object CheckBoxCompleteInserts: TCheckBox
+        Left = 24
+        Top = 152
+        Width = 193
+        Height = 17
+        Caption = 'Complete INSERT statements'
+        TabOrder = 2
+      end
+      object CheckBoxUseBackticks: TCheckBox
+        Left = 8
+        Top = 40
+        Width = 193
+        Height = 17
+        Caption = 'Use backticks (`) for names'
+        TabOrder = 3
+      end
+      object CheckBox1: TCheckBox
+        Left = 8
+        Top = 72
+        Width = 73
+        Height = 17
+        Caption = 'Structure'
+        Checked = True
+        State = cbChecked
+        TabOrder = 4
+        OnClick = CheckBox1Click
+      end
+      object CheckBox2: TCheckBox
+        Left = 8
+        Top = 128
+        Width = 73
+        Height = 17
+        Caption = 'Data'
+        Checked = True
+        State = cbChecked
+        TabOrder = 5
+        OnClick = CheckBox2Click
+      end
+      object CheckBoxExtendedInsert: TCheckBox
+        Left = 24
+        Top = 176
+        Width = 177
+        Height = 17
+        Caption = 'Extended INSERT'
+        Checked = True
+        State = cbChecked
+        TabOrder = 6
+      end
     end
   end
   object SaveDialog1: TSaveDialog
