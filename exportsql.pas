@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, CheckLst, Buttons, comctrls, Registry, ToolWin;
+  StdCtrls, ExtCtrls, CheckLst, Buttons, comctrls, Registry, ToolWin, DB;
 
 type
   TExportSQLForm = class(TForm)
@@ -44,6 +44,7 @@ type
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBoxExtendedInsert: TCheckBox;
+    CheckBoxWithCreateDatabase: TCheckBox;
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
@@ -129,14 +130,15 @@ begin
   // save filename
   with TRegistry.Create do
     if OpenKey(regpath, true) then begin
-      if Valueexists('exportfilename') then EditFileName.Text := ReadString('exportfilename');
-      if Valueexists('CompleteInserts') then CheckBoxCompleteInserts.Checked := ReadBool('CompleteInserts');
-      if Valueexists('WithDropTable') then CheckBoxWithDropTable.Checked := ReadBool('WithDropTable');
       if Valueexists('WithUseDB') then CheckBoxWithUseDB.Checked := ReadBool('WithUseDB');
-      if Valueexists('ExportStructure') then CheckBox1.Checked := ReadBool('ExportStructure');
-      if Valueexists('ExportData') then CheckBox2.Checked := ReadBool('ExportData');
       if Valueexists('UseBackticks') then CheckBoxUseBackticks.Checked := ReadBool('UseBackticks');
+      if Valueexists('ExportStructure') then CheckBox1.Checked := ReadBool('ExportStructure');
+      if Valueexists('WithCreateDatabase') then CheckBoxWithCreateDatabase.Checked := ReadBool('WithCreateDatabase');
+      if Valueexists('WithDropTable') then CheckBoxWithDropTable.Checked := ReadBool('WithDropTable');
+      if Valueexists('ExportData') then CheckBox2.Checked := ReadBool('ExportData');
+      if Valueexists('CompleteInserts') then CheckBoxCompleteInserts.Checked := ReadBool('CompleteInserts');
       if Valueexists('ExtendedInsert') then CheckBoxExtendedInsert.Checked := ReadBool('ExtendedInsert');
+      if Valueexists('exportfilename') then EditFileName.Text := ReadString('exportfilename');
     end;
   CheckBox1Click(self);
   CheckBox2Click(self);
@@ -261,7 +263,9 @@ var
   Escaped,fullvalue         : PChar;
   max_allowed_packet        : Integer;
   thesevalues               : String;
-  valuescount               : Integer;
+  valuescount, recordcount  : Integer;
+  donext                    : Boolean;
+  PBuffer                   : PChar;
 begin
   // export!
   PageControl1.ActivePageIndex := 0;
@@ -282,7 +286,7 @@ begin
       Screen.Cursor := crDefault;
       abort;
     end;
-    wfs(f, '# ' + main.appname + ' Dump ' + appversion);
+    wfs(f, '# ' + main.appname + ' Dump ');
     wfs(f, '#');
   end
   else if RadioButtonDB.Checked then
@@ -301,14 +305,28 @@ begin
     with TMDIChild(Mainform.ActiveMDIChild) do
     begin
       ExecQuery( 'USE ' + DBComBoBox.Text );
+      if CheckBoxExtendedInsert.Checked then
+      begin
+        max_allowed_packet := StrToIntDef( GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
+      end;
       if tofile then
       begin
         wfs(f, '# --------------------------------------------------------');
-        wfs(f, '# Host: ' + ZConn.HostName );
-        wfs(f, '# Database: ' + DBComBoBox.Text );
-        wfs(f, '# Server version: ' + GetVar( 'SELECT VERSION()' ) );
-        wfs(f, '# Server OS: ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
+        wfs(f, '# Host:                 ' + ZConn.HostName );
+        wfs(f, '# Database:             ' + DBComBoBox.Text );
+        wfs(f, '# Server version:       ' + GetVar( 'SELECT VERSION()' ) );
+        wfs(f, '# Server OS:            ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
+        if CheckBoxExtendedInsert.Checked then
+        begin
+          wfs(f, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
+        end;
+        wfs(f, '# ' + appname + ' version:     ' + appversion );
         wfs(f, '# --------------------------------------------------------');
+        if CheckBoxWithCreateDatabase.Checked then
+        begin
+          wfs(f);
+          wfs(f, 'CREATE DATABASE ' + DBComBoBox.Text + ';');
+        end;
         if CheckBoxWithUseDB.Checked then
         begin
           wfs(f);
@@ -328,6 +346,7 @@ begin
 
       TablesCheckListBox.ItemIndex := -1;
       tablecounter := 0;
+
 
       for i:=0 to TablesCheckListBox.Items.Count-1 do if TablesCheckListBox.checked[i] then
       begin
@@ -488,27 +507,46 @@ begin
           end;
 
           GetResults( 'SELECT * FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
-          if CheckBoxExtendedInsert.Checked then
-          begin
-            max_allowed_packet := StrToIntDef( GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
-          end;
           if tofile then
           begin
-            wfs(f);
             wfs(f);
             wfs(f, '#');
             wfs(f, '# Dumping data for table ''' + TablesCheckListBox.Items[i] + '''');
             wfs(f, '#');
             wfs(f);
           end;
+          if ZQuery3.RecordCount > 0 then
+          begin
+            if tofile then
+            begin
+              wfs(f, '/*!40000 ALTER TABLE '+TablesCheckListBox.Items[i]+' DISABLE KEYS */;' );
+              wfs(f, 'LOCK TABLES '+TablesCheckListBox.Items[i]+' WRITE;' );
+            end
+            else if RadioButtonDB.Checked then
+            begin
+              if mysql_version > 40000 then
+                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' DISABLE KEYS' );
+              ExecQuery( 'LOCK TABLES '+TablesCheckListBox.Items[i]+' WRITE' );
+            end
+            else if RadioButtonHost.Checked then with win2export do
+            begin
+              if mysql_version > 40000 then
+                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' DISABLE KEYS' );
+              ExecQuery( 'LOCK TABLES '+TablesCheckListBox.Items[i]+' WRITE' );
+            end;
+          end;
 
           insertquery := '';
           valuescount := 0;
+          j := 0;
+          donext := true;
+          recordcount := ZQuery3.RecordCount;
           while not ZQuery3.Eof do
           begin
-            Label2.caption := StrProgress + ' (Record ' + inttostr(ZQuery3.RecNo) + ')';
+            inc(j);
+            Label2.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
             if ZQuery3.RecNo mod 10 = 0 then
-              Application.ProcessMessages;
+              self.Repaint;
             if insertquery = '' then
             begin
               if tofile then
@@ -519,28 +557,37 @@ begin
               insertquery := insertquery + ' VALUES ';
             end;
             thesevalues := '(';
+            DateSeparator := '-';
+            TimeSeparator := ':';
+            ShortDateFormat := 'yyyy/mm/dd';
+            LongTimeFormat := 'hh:nn:ss';
+            DecimalSeparator := '.';
             for k := 0 to ZQuery3.fieldcount-1 do
             begin
-              if Not ZQuery3.Fields[k].IsNull then begin
-                value := QuotedStr(ZQuery3.Fields[k].AsString);
-              end
-              else
-                value := 'NULL';
+              case ZQuery3.Fields[k].DataType of
+                ftTimeStamp:
+                  value := QuotedStr( IntToStr(ZQuery3.Fields[k].AsInteger)+'TTT!' );
+                ftInteger, ftSmallint, ftWord, ftFloat:
+                  value := ZQuery3.Fields[k].AsString;
+                else
+                  value := QuotedStr( ZQuery3.Fields[k].AsString );
+              end;
               thesevalues := thesevalues + value;
               if k < ZQuery3.Fieldcount-1 then
-                thesevalues := thesevalues + ', ';
+                thesevalues := thesevalues + ',';
             end;
             thesevalues := thesevalues + ')';
             if CheckBoxExtendedInsert.Checked then
             begin
               if (valuescount > 1)
-                and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet) then
+                and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
+                then
               begin
                 // Rewind one record and throw thesevalues away
-                ZQuery3.FindPrior;
+                donext := false;
                 delete( insertquery, length(insertquery)-1, 2 );
               end
-              else if ZQuery3.RecNo = ZQuery3.RecordCount then
+              else if j = RecordCount then
               begin
                 insertquery := insertquery + thesevalues;
               end
@@ -562,9 +609,32 @@ begin
               ExecQuery(insertquery)
             else if RadioButtonHost.Checked then
               win2export.ExecQuery(insertquery);
-            ZQuery3.Next;
+            if donext then
+              ZQuery3.Next;
+            donext := true;
             insertquery := '';
           end;
+          if ZQuery3.RecordCount > 0 then
+          begin
+            if tofile then
+            begin
+              wfs(f, 'UNLOCK TABLES;' );
+              wfs(f, '/*!40000 ALTER TABLE '+TablesCheckListBox.Items[i]+' ENABLE KEYS */;' );
+            end
+            else if RadioButtonDB.Checked then
+            begin
+              ExecQuery( 'UNLOCK TABLES' );
+              if mysql_version > 40000 then
+                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' ENABLE KEYS' );
+            end
+            else if RadioButtonHost.Checked then with win2export do
+            begin
+              ExecQuery( 'UNLOCK TABLES' );
+              if mysql_version > 40000 then
+                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' ENABLE KEYS' );
+            end;
+          end;
+          ZQuery3.Close;
           ProgressBar1.StepIt;
         end;
       end;
@@ -572,7 +642,8 @@ begin
         ExecQuery( 'USE ' + ActualDatabase );
     end;
   FINALLY
-    if tofile then f.Free;
+    if tofile then
+      f.Free;
     Screen.Cursor := crDefault;
   END;
 
@@ -628,6 +699,7 @@ end;
 procedure TExportSQLForm.CheckBox1Click(Sender: TObject);
 begin
   CheckBoxWithDropTable.Enabled := CheckBox1.checked;
+  CheckBoxWithCreateDatabase.Enabled := CheckBox1.checked;
   Button1.Enabled := (CheckBox1.Checked or CheckBox2.Checked);
 end;
 
@@ -670,6 +742,7 @@ begin
     OpenKey(regpath, true);
     WriteString('exportfilename',   EditFileName.Text);
     WriteBool('CompleteInserts',    CheckBoxCompleteInserts.Checked);
+    WriteBool('WithCreateDatabase', CheckBoxWithCreateDatabase.Checked);
     WriteBool('WithDropTable',      CheckBoxWithDropTable.Checked);
     WriteBool('WithUseDB',          CheckBoxWithUseDB.Checked);
     WriteBool('ExportStructure',    CheckBox1.Checked);

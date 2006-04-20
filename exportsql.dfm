@@ -177,7 +177,7 @@ object ExportSQLForm: TExportSQLForm
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
         OnChange = DBComboBoxChange
       end
@@ -224,20 +224,20 @@ object ExportSQLForm: TExportSQLForm
         Top = 16
         Width = 193
         Height = 17
-        Caption = 'Include "USE dbname"-statement'
+        Caption = 'Include USE DBNAME'
         TabOrder = 0
       end
       object CheckBoxWithDropTable: TCheckBox
         Left = 24
-        Top = 96
+        Top = 120
         Width = 193
         Height = 17
-        Caption = 'Include "DROP TABLE"-statements'
+        Caption = 'Include DROP TABLE'
         TabOrder = 1
       end
       object CheckBoxCompleteInserts: TCheckBox
         Left = 24
-        Top = 152
+        Top = 176
         Width = 193
         Height = 17
         Caption = 'Complete INSERT statements'
@@ -264,7 +264,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBox2: TCheckBox
         Left = 8
-        Top = 128
+        Top = 152
         Width = 73
         Height = 17
         Caption = 'Data'
@@ -275,13 +275,21 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBoxExtendedInsert: TCheckBox
         Left = 24
-        Top = 176
+        Top = 200
         Width = 177
         Height = 17
-        Caption = 'Extended INSERT'
+        Caption = 'Extended INSERT (faster import)'
         Checked = True
         State = cbChecked
         TabOrder = 6
+      end
+      object CheckBoxWithCreateDatabase: TCheckBox
+        Left = 24
+        Top = 96
+        Width = 193
+        Height = 17
+        Caption = 'Include CREATE DATABASE'
+        TabOrder = 7
       end
     end
   end
