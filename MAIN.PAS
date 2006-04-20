@@ -252,7 +252,7 @@ var
 const
   appname = 'HeidiSQL';
   regpath = 'Software\' + appname;
-  appversion = '3.0 RC1';
+  appversion = '3.0 RC1 $Rev$';
 
 type TMyKey = record
   Name    : String;
