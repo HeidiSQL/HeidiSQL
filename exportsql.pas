@@ -525,14 +525,14 @@ begin
             else if RadioButtonDB.Checked then
             begin
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' DISABLE KEYS' );
-              ExecQuery( 'LOCK TABLES '+TablesCheckListBox.Items[i]+' WRITE' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' DISABLE KEYS' );
+              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' WRITE' );
             end
             else if RadioButtonHost.Checked then with win2export do
             begin
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' DISABLE KEYS' );
-              ExecQuery( 'LOCK TABLES '+TablesCheckListBox.Items[i]+' WRITE' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' DISABLE KEYS' );
+              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' WRITE' );
             end;
           end;
 
@@ -557,16 +557,9 @@ begin
               insertquery := insertquery + ' VALUES ';
             end;
             thesevalues := '(';
-            DateSeparator := '-';
-            TimeSeparator := ':';
-            ShortDateFormat := 'yyyy/mm/dd';
-            LongTimeFormat := 'hh:nn:ss';
-            DecimalSeparator := '.';
             for k := 0 to ZQuery3.fieldcount-1 do
             begin
               case ZQuery3.Fields[k].DataType of
-                ftTimeStamp:
-                  value := QuotedStr( IntToStr(ZQuery3.Fields[k].AsInteger)+'TTT!' );
                 ftInteger, ftSmallint, ftWord, ftFloat:
                   value := ZQuery3.Fields[k].AsString;
                 else
@@ -625,13 +618,13 @@ begin
             begin
               ExecQuery( 'UNLOCK TABLES' );
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' ENABLE KEYS' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' ENABLE KEYS' );
             end
             else if RadioButtonHost.Checked then with win2export do
             begin
               ExecQuery( 'UNLOCK TABLES' );
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE '+TablesCheckListBox.Items[i]+' ENABLE KEYS' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' ENABLE KEYS' );
             end;
           end;
           ZQuery3.Close;

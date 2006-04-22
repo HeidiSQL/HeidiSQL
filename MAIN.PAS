@@ -12,7 +12,7 @@ interface
 uses Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, smdbgrid, ZDataSet;
+  SynMemo, synedit, smdbgrid, ZDataSet, ThemeMgr, ThemeMgrDB;
 
 type
   TMainForm = class(TForm)
@@ -160,6 +160,7 @@ type
     InsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
+    ThemeManager1: TThemeManager;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
     procedure connect(Sender: TObject);
@@ -372,6 +373,11 @@ var
   i, pipeposition : Integer;
 begin
   caption := appname;
+  DateSeparator := '-';
+  TimeSeparator := ':';
+  ShortDateFormat := 'yyyy/mm/dd';
+  LongTimeFormat := 'hh:nn:ss';
+  DecimalSeparator := '.';
 
   with TRegistry.Create do
   begin
