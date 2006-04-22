@@ -75,6 +75,7 @@ begin
       Application.ProcessMessages;
       with TMDIChild(Mainform.ActiveMDIChild) do
       begin
+        ZQuery3.ParamCheck := true;
         ZQuery3.SQL.Clear;
         ZQuery3.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
           ' (' + mainform.mask(ComboBoxColumns.Text) );
@@ -132,6 +133,7 @@ begin
   end;
 
   FINALLY
+    TMDIChild(Mainform.ActiveMDIChild).ZQuery3.ParamCheck := false;
     screen.Cursor := crDefault;
     close;
   END;
