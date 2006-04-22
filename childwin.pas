@@ -375,6 +375,7 @@ type
       var LogTrace: Boolean);
     procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
       var Action: TDataAction);
+    procedure FormResize(Sender: TObject);
 
     private
       { Private declarations }
@@ -1805,16 +1806,18 @@ begin
   timer2.Enabled := true;
   timer3.Enabled := true;
   timer4.Enabled := true;
-//  ComboBoxOperator.ItemIndex := 0;
 
   { TODO : nur bei autoconnected file laden }
-  if (paramstr(1) <> '') and Main.loadsqlfile then try
+  if (paramstr(1) <> '') and Main.loadsqlfile then
+  try
     // load sql-file from paramstr
     SynMemo1.Lines.LoadFromFile(paramstr(1));
     Main.loadsqlfile := false;
   except
     MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
   end;
+
+  ZQuery3.DisableControls;
 end;
 
 { Edit field }
@@ -2914,6 +2917,14 @@ procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
   var Action: TDataAction);
 begin
   LogSQL( E.Message );
+end;
+
+procedure TMDIChild.FormResize(Sender: TObject);
+begin
+  Tabellenliste.Width := SheetDatabase.Width - Toolbar1.Width - Toolbar1.Left;
+  Tabellenliste.Height := SheetDatabase.Height - Panel2.Height;
+  Panel9.Width := SheetTable.Width - Toolbar2.Width - Toolbar2.Left;
+  Panel9.Height := SheetTable.Height - Panel3.Height;
 end;
 
 end.
