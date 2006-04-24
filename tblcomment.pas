@@ -62,18 +62,22 @@ begin
   // read tables
 //  messagedlg('sdf',mtwarning, [], 0);
   ComboBoxTableName.Items.Clear;
-  with TMDIChild(Application.Mainform.ActiveMDIChild).Tabellenliste do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    for i:=0 to Items.Count-1 do
-      self.ComboBoxTableName.Items.Add(Items[i].Caption);
-    self.ComboBoxTableName.ItemIndex := Selected.Index;
-    self.EditComment.Text := Selected.SubItems[4];
+    for i:=0 to Tabellenliste.Items.Count-1 do
+      self.ComboBoxTableName.Items.Add( Tabellenliste.Items[i].Caption );
+    self.ComboBoxTableName.ItemIndex := Tabellenliste.Selected.Index;
   end;
+  ComboBoxTableNameChange( self );
 end;
 
 procedure Ttablecomment.ComboBoxTableNameChange(Sender: TObject);
 begin
- EditComment.Text := TMDIChild(Mainform.ActiveMDIChild).Tabellenliste.Items[ComboBoxTableName.ItemIndex].SubItems[5];
+  with TMDIChild(Mainform.ActiveMDIChild) do
+  begin
+    GetResults( 'SHOW TABLE STATUS LIKE ''' + ComboBoxTableName.Text + '''', ZQuery3 );
+    self.EditComment.Text := ZQuery3.FieldByName( 'Comment' ).AsString;
+  end;
 end;
 
 end.
