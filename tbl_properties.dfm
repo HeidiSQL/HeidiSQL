@@ -2,7 +2,7 @@ object tbl_properties_form: Ttbl_properties_form
   Left = 611
   Top = 109
   Width = 304
-  Height = 376
+  Height = 383
   BorderIcons = [biSystemMenu]
   BorderWidth = 5
   Caption = 'Table-Properties'

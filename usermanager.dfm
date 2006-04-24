@@ -2,7 +2,7 @@ object UserManagerForm: TUserManagerForm
   Left = 231
   Top = 131
   Width = 551
-  Height = 417
+  Height = 424
   BorderWidth = 5
   Caption = 'User-Manager'
   Color = clBtnFace
@@ -26,11 +26,11 @@ object UserManagerForm: TUserManagerForm
     Top = 0
     Width = 533
     Height = 343
-    ActivePage = TabSheetAddUser
+    ActivePage = TabSheetEditUsers
     Align = alClient
     Images = ImageList1
     TabHeight = 22
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     OnChange = PageControl1Change
     object TabSheetAddUser: TTabSheet
