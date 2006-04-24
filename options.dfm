@@ -4,8 +4,8 @@ object optionsform: Toptionsform
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'Preferences'
-  ClientHeight = 288
-  ClientWidth = 417
+  ClientHeight = 304
+  ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,53 +15,36 @@ object optionsform: Toptionsform
   OldCreateOrder = False
   Position = poMainFormCenter
   OnShow = FormShow
+  DesignSize = (
+    421
+    304)
   PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 417
-    Height = 249
+    Width = 421
+    Height = 271
     ActivePage = TabSheet1
     Align = alTop
+    Anchors = [akLeft, akTop, akRight, akBottom]
     TabIndex = 0
     TabOrder = 3
     object TabSheet1: TTabSheet
       Caption = 'Miscellaneous'
       object Label4: TLabel
         Left = 16
-        Top = 117
+        Top = 85
         Width = 37
         Height = 13
         Caption = 'Log last'
       end
       object Label5: TLabel
         Left = 128
-        Top = 117
+        Top = 85
         Width = 95
         Height = 13
         Caption = 'Lines in SQL-History'
-      end
-      object Label19: TLabel
-        Left = 16
-        Top = 144
-        Width = 172
-        Height = 13
-        Caption = 'Maximum column-width in data-grids:'
-      end
-      object Label20: TLabel
-        Left = 256
-        Top = 144
-        Width = 70
-        Height = 13
-        Caption = '(0 = automatic)'
-      end
-      object Label26: TLabel
-        Left = 256
-        Top = 88
-        Width = 35
-        Height = 13
-        Caption = 'records'
       end
       object CheckBoxAutoReconnect: TCheckBox
         Left = 16
@@ -74,7 +57,7 @@ object optionsform: Toptionsform
       end
       object SpinEditLogSQL: TSpinEdit
         Left = 64
-        Top = 112
+        Top = 80
         Width = 57
         Height = 22
         MaxValue = 9999
@@ -85,7 +68,7 @@ object optionsform: Toptionsform
       end
       object CheckBoxConvertHTMLEntities: TCheckBox
         Left = 16
-        Top = 40
+        Top = 48
         Width = 305
         Height = 17
         Caption = 'Convert HTML-entities when copying/saving data (<, >)'
@@ -93,59 +76,6 @@ object optionsform: Toptionsform
         State = cbChecked
         TabOrder = 2
         OnClick = Modified
-      end
-      object SpinEditDefaultColWidth: TSpinEdit
-        Left = 197
-        Top = 140
-        Width = 49
-        Height = 22
-        MaxValue = 999
-        MinValue = 0
-        TabOrder = 3
-        Value = 100
-        OnChange = Modified
-      end
-      object CheckBoxNativeFieldTypes: TCheckBox
-        Left = 16
-        Top = 64
-        Width = 321
-        Height = 17
-        Caption = 'Show native field-contents for Text- and BLOB-Fields'
-        TabOrder = 4
-        OnClick = Modified
-      end
-      object CheckBoxlimit: TCheckBox
-        Left = 16
-        Top = 88
-        Width = 169
-        Height = 17
-        Caption = 'View data by default limited to'
-        Checked = True
-        State = cbChecked
-        TabOrder = 5
-        OnClick = CheckBoxlimitClick
-      end
-      object UpDownLimit: TUpDown
-        Left = 225
-        Top = 85
-        Width = 16
-        Height = 21
-        Associate = EditLimit
-        Min = 0
-        Max = 32767
-        Position = 0
-        TabOrder = 6
-        Wrap = False
-        OnChanging = UpDownLimitChanging
-      end
-      object EditLimit: TEdit
-        Left = 184
-        Top = 85
-        Width = 41
-        Height = 21
-        TabOrder = 7
-        Text = '0'
-        OnChange = Modified
       end
     end
     object TabSheet2: TTabSheet
@@ -155,8 +85,8 @@ object optionsform: Toptionsform
       object PageControl2: TPageControl
         Left = 0
         Top = 0
-        Width = 399
-        Height = 211
+        Width = 403
+        Height = 233
         ActivePage = TabSheet3
         Align = alClient
         TabIndex = 0
@@ -345,22 +275,36 @@ object optionsform: Toptionsform
       ImageIndex = 4
       object Label27: TLabel
         Left = 8
-        Top = 64
+        Top = 93
         Width = 167
         Height = 13
         Caption = 'Background-color for NULL-values:'
       end
-      object Label28: TLabel
-        Left = 8
+      object Label26: TLabel
+        Left = 257
         Top = 40
-        Width = 48
+        Width = 35
         Height = 13
-        Caption = 'Encoding:'
+        Caption = 'records'
+      end
+      object Label19: TLabel
+        Left = 8
+        Top = 68
+        Width = 172
+        Height = 13
+        Caption = 'Maximum column-width in data-grids:'
+      end
+      object Label20: TLabel
+        Left = 256
+        Top = 68
+        Width = 70
+        Height = 13
+        Caption = '(0 = automatic)'
       end
       object GroupBox2: TGroupBox
         Left = 0
-        Top = 96
-        Width = 399
+        Top = 118
+        Width = 403
         Height = 115
         Align = alBottom
         Caption = 
@@ -447,32 +391,59 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object Panel9: TPanel
-        Left = 192
-        Top = 59
-        Width = 25
-        Height = 25
+        Left = 190
+        Top = 91
+        Width = 60
+        Height = 18
         Cursor = crHandPoint
         BevelOuter = bvLowered
         Color = clAqua
         TabOrder = 2
         OnClick = CallColorDialog
       end
-      object ComboBoxEncoding: TComboBox
-        Left = 192
-        Top = 35
-        Width = 145
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
+      object CheckBoxlimit: TCheckBox
+        Left = 8
+        Top = 40
+        Width = 169
+        Height = 17
+        Caption = 'View data by default limited to'
+        Checked = True
+        State = cbChecked
         TabOrder = 3
+        OnClick = CheckBoxlimitClick
+      end
+      object EditLimit: TEdit
+        Left = 189
+        Top = 37
+        Width = 41
+        Height = 21
+        TabOrder = 4
+        Text = '0'
         OnChange = Modified
-        Items.Strings = (
-          'None'
-          'Cp1250'
-          'Cp1251'
-          'Iso88592'
-          'Koi8r'
-          'Koi8u')
+      end
+      object UpDownLimit: TUpDown
+        Left = 230
+        Top = 37
+        Width = 16
+        Height = 21
+        Associate = EditLimit
+        Min = 0
+        Max = 32767
+        Position = 0
+        TabOrder = 5
+        Wrap = False
+        OnChanging = UpDownLimitChanging
+      end
+      object SpinEditDefaultColWidth: TSpinEdit
+        Left = 189
+        Top = 64
+        Width = 60
+        Height = 22
+        MaxValue = 999
+        MinValue = 0
+        TabOrder = 6
+        Value = 100
+        OnChange = Modified
       end
     end
     object TabSheet5: TTabSheet
@@ -570,30 +541,33 @@ object optionsform: Toptionsform
     end
   end
   object ButtonCancel: TButton
-    Left = 262
-    Top = 256
+    Left = 266
+    Top = 278
     Width = 75
     Height = 25
+    Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 1
     OnClick = ButtonCancelClick
   end
   object ButtonOK: TButton
-    Left = 182
-    Top = 256
+    Left = 186
+    Top = 278
     Width = 75
     Height = 25
+    Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
     TabOrder = 0
     OnClick = ButtonOKClick
   end
   object ButtonApply: TButton
-    Left = 342
-    Top = 256
+    Left = 346
+    Top = 278
     Width = 75
     Height = 25
+    Anchors = [akRight, akBottom]
     Caption = 'Apply'
     Enabled = False
     TabOrder = 2

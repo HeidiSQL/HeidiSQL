@@ -59,10 +59,6 @@ type
     Label17: TLabel;
     CheckBoxConvertHTMLEntities: TCheckBox;
     Label18: TLabel;
-    SpinEditDefaultColWidth: TSpinEdit;
-    Label19: TLabel;
-    Label20: TLabel;
-    CheckBoxNativeFieldTypes: TCheckBox;
     TabSheet7: TTabSheet;
     GroupBox2: TGroupBox;
     Panel8: TPanel;
@@ -76,15 +72,16 @@ type
     Label22: TLabel;
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
-    CheckBoxlimit: TCheckBox;
-    UpDownLimit: TUpDown;
-    EditLimit: TEdit;
-    Label26: TLabel;
     CheckBoxDataAlwaysEditMode: TCheckBox;
     Label27: TLabel;
     Panel9: TPanel;
-    Label28: TLabel;
-    ComboBoxEncoding: TComboBox;
+    CheckBoxlimit: TCheckBox;
+    EditLimit: TEdit;
+    UpDownLimit: TUpDown;
+    Label26: TLabel;
+    Label19: TLabel;
+    SpinEditDefaultColWidth: TSpinEdit;
+    Label20: TLabel;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -152,13 +149,11 @@ begin
     WriteString('CSVEncloser', Edit2.Text);
     WriteString('CSVTerminator', Edit3.Text);
     WriteInteger('DefaultColWidth', SpinEditDefaultColWidth.Value);
-    WriteBool('NativeFieldTypes', CheckBoxNativeFieldTypes.Checked);
     WriteBool('DataLimit', CheckBoxLimit.Checked);
     WriteInteger('DataLimitEnd', UpDownLimit.Position);
     WriteString('DataFontName', Panel8.Font.Name);
     WriteInteger('DataFontSize', UpDownDataFontSize.Position);
     WriteString('DataNullBackground', ColorToString(Panel9.color));
-    WriteInteger('DataEncoding', comboboxencoding.ItemIndex);
   end;
   ButtonApply.Enabled := false;
 
@@ -194,7 +189,6 @@ begin
     CSVEncloser := self.Edit2.text;
     CSVTerminator := self.Edit3.text;
     ConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
-    NativeFieldTypes := CheckBoxNativeFieldTypes.Checked;
     CheckBoxLimit.Checked := self.CheckBoxLimit.Checked;
     UpDownLimitEnd.Position := UpDownLimit.Position;
     DataAlwaysEditMode := CheckBoxDataAlwaysEditMode.Checked;
@@ -241,8 +235,6 @@ begin
       AutoReconnect := ReadBool('AutoReconnect');
     if ValueExists('ConvertHTMLEntities') then
       CheckBoxConvertHTMLEntities.Checked := ReadBool('ConvertHTMLEntities');
-    if ValueExists('NativeFieldTypes') then
-      CheckBoxNativeFieldTypes.Checked := ReadBool('NativeFieldTypes');
     if ValueExists('DataLimit') then
       CheckBoxLimit.Checked := ReadBool('DataLimit');
     if ValueExists('DataLimitEnd') then
@@ -289,10 +281,6 @@ begin
       Panel9.Color := StringToColor(ReadString('DataNullBackground'))
     else
       Panel9.Color := clAqua;
-
-    // Encoding
-    if ValueExists('DataEncoding') then
-      ComboBoxEncoding.ItemIndex := ReadInteger('DataEncoding');
 
     closekey;
   end;
