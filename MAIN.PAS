@@ -161,6 +161,7 @@ type
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
     ThemeManager1: TThemeManager;
+    DataSearch: TAction;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
     procedure connect(Sender: TObject);
@@ -225,6 +226,7 @@ type
     procedure InsertFilesExecute(Sender: TObject);
     procedure debug( msg : String = '' );
     procedure ExportTablesExecute(Sender: TObject);
+    procedure DataSearchExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -1220,6 +1222,15 @@ procedure TMainForm.ExportTablesExecute(Sender: TObject);
 begin
   // Export SQL
   exportsqlform.showmodal;
+end;
+
+procedure TMainForm.DataSearchExecute(Sender: TObject);
+begin
+  with TMDIChild(Mainform.ActiveMDIChild).EditDataSearch do
+  begin
+    SetFocus;
+    SelectAll;
+  end;
 end;
 
 end.

@@ -2,7 +2,7 @@ object frmInsertFiles: TfrmInsertFiles
   Left = 262
   Top = 131
   Width = 519
-  Height = 468
+  Height = 475
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Insert files...'
   Color = clBtnFace
@@ -17,6 +17,9 @@ object frmInsertFiles: TfrmInsertFiles
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnShow = FormShow
+  DesignSize = (
+    511
+    441)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -198,6 +201,9 @@ object frmInsertFiles: TfrmInsertFiles
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Other field-values'
     TabOrder = 10
+    DesignSize = (
+      492
+      129)
     object Label4: TLabel
       Left = 170
       Top = 66

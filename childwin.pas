@@ -17,7 +17,7 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   DBCtrls, helpers,
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
-  ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset;
+  ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging;
 
 
 type
@@ -249,6 +249,12 @@ type
     EDBImage1: TEDBImage;
     Exporttables1: TMenuItem;
     Exporttables2: TMenuItem;
+    EditDataSearch: TEdit;
+    ButtonDataSearch: TButton;
+    Find1: TMenuItem;
+    PopupMenuTablelistColumns: TPopupMenu;
+    DefaultColumnLayout1: TMenuItem;
+    N20: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
@@ -264,7 +270,7 @@ type
     procedure DBLoeschen(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
-    procedure LogSQL(msg: string = '');
+    procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure ProcessListeChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
@@ -338,7 +344,6 @@ type
     procedure SynMemo1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure PopupMenu2Popup(Sender: TObject);
-    procedure TabellenlisteKeyPress(Sender: TObject; var Key: Char);
     procedure TabellenlisteEditing(Sender: TObject; Item: TListItem;
       var AllowEdit: Boolean);
     procedure Saveastextfile1Click(Sender: TObject);
@@ -376,6 +381,14 @@ type
     procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
       var Action: TDataAction);
     procedure FormResize(Sender: TObject);
+    procedure ButtonDataSearchClick(Sender: TObject);
+    procedure EditDataSearchEnter(Sender: TObject);
+    procedure EditDataSearchExit(Sender: TObject);
+    procedure TabellenlisteColumnRightClick(Sender: TObject;
+      Column: TListColumn; Point: TPoint);
+    procedure MenuTablelistColumnsClick(Sender: TObject);
+    procedure TabellenlisteMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
 
     private
       { Private declarations }
@@ -447,6 +460,9 @@ begin
   ZConn.User := connform.EditBenutzer.Text;
   ZConn.Password := connform.EditPasswort.Text;
   ZConn.Port := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
+//  zquery3.Properties.Values['UseResult'] := '1'; // doesn't work...
+//  ZConn.Properties.Values['UseResult'] := '1'; // doesn't work...
+  ZConn.Properties.Values['compress'] := IntToStr( integer(connform.CheckBoxCompressed.Checked) ); // don't know if this works?
   try
     ZConn.Connect;
   except
@@ -464,8 +480,7 @@ begin
   OnlyDBs := explode(';', connform.EditOnlyDBs.Text);
 
   // Versions and Statistics
-  LogSQL( ' Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port));
-  LogSQL( ' Server-Version: ' + GetVar( 'SELECT VERSION()' ) );
+  LogSQL( 'Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port) );
 
   ShowVariablesAndProcesses(self);
   ReadDatabasesAndTables(self);
@@ -617,7 +632,7 @@ begin
 end;
 
 
-procedure TMDIChild.LogSQL(msg: string = '');
+procedure TMDIChild.LogSQL(msg: string = ''; comment: Boolean = true);
 begin
   // add a sql-command or info-line to history-memo
   while SynMemo2.Lines.Count > mainform.logsqlnum do
@@ -629,6 +644,8 @@ begin
   msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #13, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, '  ', ' ', [rfReplaceAll] );
+  if comment then
+    msg := '/* ' + msg + ' */';
   SynMemo2.Lines.Add(msg);
   SynMemo2.SetBookMark(0,0,SynMemo2.Lines.Count);
   SynMemo2.GotoBookMark(0);
@@ -691,7 +708,7 @@ begin
       ZQuery3.Next;
     end;
   except
-    LogSQL('# Could not open database ''' + OnlyDBs2[i] + ''' - ignoring.');
+    LogSQL( 'Could not open database ''' + OnlyDBs2[i] + ''' - ignoring.' );
     continue;
   end;
 
@@ -863,7 +880,7 @@ begin
       on E:Exception do
       begin
         MessageDlg(E.Message , mtError, [mbOK], 0);
-        LogSQL(E.Message);
+        LogSQL( E.Message );
         ZQuery2.Active := false;
         viewingdata := false;
         Screen.Cursor := crDefault;
@@ -969,17 +986,16 @@ end;
 procedure TMDIChild.ShowDBProperties(Sender: TObject);
 var
   n               : TListItem;
-  i,t,u,bytes     : Integer;
+  i,j,k,t,u,bytes : Integer;
   tndb            : TTreenode;
+  menuitem        : TMenuItem;
+  TablelistColumns: TStringList;
+  column          : TListColumn;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
 
-  Tabellenliste.Items.BeginUpdate();
-  Tabellenliste.Items.Clear;
-
-  Screen.Cursor := crSQLWait;
   ZConn.Database := ActualDatabase;
   ExecQuery( 'USE ' + ActualDatabase );
 
@@ -987,29 +1003,119 @@ begin
     if mysql_version >= 32300 then begin
       // get quick results with versions 3.23.xx and newer
       GetResults( 'SHOW TABLE STATUS', ZQuery3 );
+      for i:=PopupMenuTablelistColumns.Items.Count-1 downto 2 do
+        PopupMenuTablelistColumns.Items.Delete( i );
+      with TRegistry.Create do
+      begin
+        openkey( regpath + '\Servers\' + description, true );
+        if ValueExists( 'TablelistDefaultColumns' ) then
+          PopupMenuTablelistColumns.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
+        if ValueExists( 'TablelistColumns' ) then
+          TablelistColumns := Explode( ',', ReadString( 'TablelistColumns' ) )
+        else
+          TablelistColumns := TStringList.Create;
+        free;
+      end;
+      for i:=0 to ZQuery3.FieldCount-1 do
+      begin
+        menuitem := TMenuItem.Create( self );
+        menuitem.Caption := ZQuery3.Fields[i].Fieldname;
+        menuitem.Tag := 2;
+        menuitem.OnClick := MenuTablelistColumnsClick;
+        if i=0 then
+        begin
+          menuitem.Enabled := false; // tablename should always be kept
+          menuitem.Checked := true;
+        end
+        else if TablelistColumns.Count > 0 then
+        begin
+          menuitem.Checked := TablelistColumns.IndexOf( menuitem.Caption ) > -1;
+        end;
+        PopupMenuTablelistColumns.Items.Add( menuitem );
+      end;
+
+      Tabellenliste.Columns.BeginUpdate;
+      Tabellenliste.Columns.Clear;
+      column := Tabellenliste.Columns.Add;
+      column.Caption := 'Table';
+      column.Width := -1;
+      if PopupMenuTablelistColumns.Items[0].Checked then
+      begin // Default columns - initialize column headers
+        column := Tabellenliste.Columns.Add;
+        column.Caption := 'Records';
+        column.Alignment := taRightJustify;
+        column.Width := 80;
+
+        column := Tabellenliste.Columns.Add;
+        column.Caption := 'Size';
+        column.Alignment := taRightJustify;
+        column.Width := -1;
+
+        column := Tabellenliste.Columns.Add;
+        column.Caption := 'Created';
+        column.Width := -1;
+
+        column := Tabellenliste.Columns.Add;
+        column.Caption := 'Updated';
+        column.Width := -1;
+
+        column := Tabellenliste.Columns.Add;
+        column.Caption := 'Type';
+        column.Width := -1;
+
+        column := Tabellenliste.Columns.Add;
+        column.Caption := 'Comment';
+        column.Width := -1;
+      end;
+      for i:=0 to TablelistColumns.Count-1 do
+      begin
+        column := Tabellenliste.Columns.Add;
+        column.Caption := TablelistColumns[i];
+        column.Width := -1;
+        column.MinWidth := 50;
+        column.Autosize := true;
+      end;
+
+      Tabellenliste.Items.BeginUpdate;
+      Tabellenliste.Items.Clear;
       for i := 1 to ZQuery3.RecordCount do
       begin
         n := Tabellenliste.Items.Add;
         n.ImageIndex := 1;
         // Table
         n.Caption := ZQuery3.FieldByName('Name').AsString;
-        // Records
-        n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
-        // Size: Data_length + Index_length
-        bytes := ZQuery3.FieldByName('Data_length').AsInteger + ZQuery3.FieldByName('Index_length').AsInteger;
-        n.SubItems.Add(format('%d KB', [bytes div 1024 + 1]));
-        // Created:
-        n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
-        // Updated:
-        n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) );
-        // Type
-        Try // Until 4.x
-          n.SubItems.Add( ZQuery3.FieldByName('Type').AsString );
-        Except // Since 5.x
-          n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
-        End;
-        // Comment
-        n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
+        if PopupMenuTablelistColumns.Items[0].Checked then
+        begin // Default columns
+          // Records
+          n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
+          // Size: Data_length + Index_length
+          bytes := ZQuery3.FieldByName('Data_length').AsInteger + ZQuery3.FieldByName('Index_length').AsInteger;
+          n.SubItems.Add(format('%d KB', [bytes div 1024 + 1]));
+          // Created:
+          n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
+          // Updated:
+          n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) );
+          // Type
+          Try // Until 4.x
+            n.SubItems.Add( ZQuery3.FieldByName('Type').AsString );
+          Except // Since 5.x
+            n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
+          End;
+          // Comment
+          n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
+        end;
+        for j:=0 to TablelistColumns.Count-1 do
+        begin
+          for k:=0 to ZQuery3.FieldCount-1 do
+          begin
+            if TablelistColumns[j] = ZQuery3.Fields[k].FieldName then
+            begin
+              n.SubItems.Add( ZQuery3.Fields[k].AsString );
+              if IntToStr(StrToIntDef(ZQuery3.Fields[k].AsString,-1)) =  ZQuery3.Fields[k].AsString then
+                Tabellenliste.Columns[n.SubItems.Count].Alignment := taRightJustify
+            end;
+          end;
+        end;
         ZQuery3.Next;
       end;
     end
@@ -1019,7 +1125,8 @@ begin
       ZQuery3.SQL.Add('SHOW TABLES');
       ZQuery3.Open;
       ZQuery3.First;
-      for i := 1 to ZQuery3.RecordCount do begin
+      for i := 1 to ZQuery3.RecordCount do
+      begin
         n := Tabellenliste.Items.Add;
         n.Caption := ZQuery3.Fields[0].AsString;
         n.ImageIndex := 1;
@@ -1028,7 +1135,8 @@ begin
       end;
     end;
   Finally
-    Tabellenliste.Items.EndUpdate();
+    Tabellenliste.Columns.EndUpdate;
+    Tabellenliste.Items.EndUpdate;
     Screen.Cursor := crDefault;
   End;
   Screen.Cursor := crHourglass;
@@ -1197,7 +1305,8 @@ var someselected : Boolean;
 begin
   someselected := (Tabellenliste.Selected <> nil);
   // Tabelle aus der DB ausgewählt
-  with Toolbar1 do begin
+  with Toolbar1 do
+  begin
     Toolbutton2.Enabled := someselected; // eigenschaften
     menuproperties.Enabled := someselected;
     Toolbutton3.Enabled := someselected; //einfügen
@@ -1218,33 +1327,16 @@ begin
     MenuChangeTypeOther.Enabled := someselected;
     Mainform.CopyTable.Enabled := someselected;
     MenuTabelleLoeschen.Enabled := someselected;
-
-    if someselected then begin
-      ActualTable := Tabellenliste.Selected.Caption;
-//      dataselected := ActualTable = ZQuery2.TableName;
-    end
-    else begin
-      ActualTable := '';
-      // führt zum Verhalten, dass immer die erste Tabelle ohne Daten angezeigt wird:
-      // dataselected := ActualTable = ZQuery2.TableName;
-    end;
-//    dataselected := someselected;
-    {$B-} // enable short-circuit evaluation
-    if someselected and (Tabellenliste.Selected.SubItems.Count > 1) then
-      MenuTableComment.Enabled := someselected
+    if someselected then
+      ActualTable := Tabellenliste.Selected.Caption
     else
-      MenuTableComment.Enabled := false;
-    {$B+} // disable short-circuit evaluation
+      ActualTable := '';
+    MenuTableComment.Enabled := someselected;
     MenuOptimize.Enabled := someselected;
     MenuCheck.Enabled := someselected;
     MenuAnalyze.Enabled := someselected;
     MenuRepair.Enabled := someselected;
   end;
-// führt zu seltsamen Verhalten bei Auswahl einer Tabelle im DBTree:
-//  if not (csDestroying in ComponentState) then begin
-//    SheetTable.TabVisible := someselected;
-//    SheetData.TabVisible := someselected;
-//  end;
 
 end;
 
@@ -1462,7 +1554,7 @@ begin
     ProcessListe.Items.EndUpdate;
     TabSheet7.Caption := 'Process-List (' + inttostr(ProcessListe.Items.Count) + ')';
   except
-    LogSQL('# Error on loading process-list!');
+    LogSQL( 'Error on loading process-list!' );
   end;
   ProcessListe.Items.EndUpdate;
   Screen.Cursor := crDefault;
@@ -2595,12 +2687,6 @@ begin
   MenuAutoupdate.Enabled := PageControl2.ActivePageIndex=1;
 end;
 
-procedure TMDIChild.TabellenlisteKeyPress(Sender: TObject; var Key: Char);
-begin
-//  if key = del then
-//    abort;
-end;
-
 procedure TMDIChild.TabellenlisteEditing(Sender: TObject; Item: TListItem;
   var AllowEdit: Boolean);
 begin
@@ -2783,8 +2869,9 @@ procedure TMDIChild.setNULL1Click(Sender: TObject);
 begin
   if not (DataSource1.State in [dsEdit, dsInsert]) then
     DataSource1.Edit;
-  //dbgrid1.SelectedField.Value := NULL;
+  DBgrid1.SelectedField.Clear;
 end;
+
 
 procedure TMDIChild.ZQuery2BeforeClose(DataSet: TDataSet);
 begin
@@ -2840,7 +2927,7 @@ end;
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
-  LogSQL( Trim( Event.Message ) );
+  LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
 end;
 
 
@@ -2864,6 +2951,7 @@ begin
   ResizeImageToFit;
 end;
 
+
 procedure TMDIChild.DBGridDrawColumnCell(Sender: TObject;
   const Rect: TRect; DataCol: Integer; Column: TColumn;
   State: TGridDrawState);
@@ -2875,7 +2963,7 @@ begin
   grid := (sender as TSMDBGrid);
   ds := grid.DataSource;
   if grid.SelectedField = nil then exit;
-  
+
 
   if DBMemo1.DataSource <> ds then begin
     DBMemo1.DataField := '';
@@ -2906,6 +2994,7 @@ begin
   PageControl4Change(self);
 end;
 
+
 procedure TMDIChild.ZSQLMonitor1Trace(Sender: TObject;
   Event: TZLoggingEvent; var LogTrace: Boolean);
 begin
@@ -2913,11 +3002,13 @@ begin
     LogTrace := false;
 end;
 
+
 procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
   var Action: TDataAction);
 begin
-  LogSQL( E.Message );
+  LogSQL( E.Message, true );
 end;
+
 
 procedure TMDIChild.FormResize(Sender: TObject);
 begin
@@ -2925,6 +3016,89 @@ begin
   Tabellenliste.Height := SheetDatabase.Height - Panel2.Height;
   Panel9.Width := SheetTable.Width - Toolbar2.Width - Toolbar2.Left;
   Panel9.Height := SheetTable.Height - Panel3.Height;
+end;
+
+
+procedure TMDIChild.ButtonDataSearchClick(Sender: TObject);
+var
+  i : Integer;
+  where : String;
+begin
+  if not ZQuery2.Active then
+    exit;
+  where := '';
+  for i:=0 to DBGrid1.FieldCount-1 do
+  begin
+    if where <> '' then
+      where := where + CRLF + ' OR ';
+    where := where + DBGrid1.Fields[i].FieldName + ' LIKE ''%' + EditDataSearch.text + '%''';
+  end;
+  SynMemo3.Text := where;
+  viewdata(self);
+end;
+
+procedure TMDIChild.EditDataSearchEnter(Sender: TObject);
+begin
+  ButtonDataSearch.Default := true;
+end;
+
+procedure TMDIChild.EditDataSearchExit(Sender: TObject);
+begin
+  ButtonDataSearch.Default := false;
+end;
+
+
+// Click on first menu-item in context-menu of tablelist-columns
+procedure TMDIChild.MenuTablelistColumnsClick(Sender: TObject);
+var
+  menuitem : TMenuItem;
+  TablelistColumnsList : TStringList;
+begin
+  menuitem := (Sender as TMenuItem);
+  with TRegistry.Create do
+  try
+    openkey( regpath + '\Servers\' + description, true );
+    case menuitem.Tag of
+      1 : // Toggle default-columns
+        WriteBool( 'TablelistDefaultColumns', not menuitem.Checked );
+      2 :
+        begin
+          if ValueExists( 'TablelistColumns' ) then
+            TablelistColumnsList := Explode( ',', ReadString( 'TablelistColumns' ) )
+          else
+            TablelistColumnsList := TStringList.Create;
+          if TablelistColumnsList.IndexOf( menuitem.Caption ) > -1 then
+            TablelistColumnsList.Delete( TablelistColumnsList.IndexOf( menuitem.Caption ) )
+          else
+            TablelistColumnsList.Add( menuitem.Caption );
+          WriteString( 'TablelistColumns', implodestr( ',', TablelistColumnsList ) );
+        end;
+     end;
+    free;
+  except
+    free;
+    MessageDlg( 'Error when writing to registry.', mtError, [mbOK], 0 );
+    exit;
+  end;
+  menuitem.Checked := not menuitem.Checked;
+  ShowDBProperties( self );
+end;
+
+
+// Rightclick on tablelist-columns
+procedure TMDIChild.TabellenlisteColumnRightClick(Sender: TObject;
+  Column: TListColumn; Point: TPoint);
+begin
+  PopupMenuTablelistColumns.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
+end;
+
+
+// Rightclick in tablelist-area, not on columns!
+procedure TMDIChild.TabellenlisteMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if button = mbright then
+    pmenu2.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
 end;
 
 end.
