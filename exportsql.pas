@@ -545,8 +545,8 @@ begin
           begin
             inc(j);
             Label2.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
-            if ZQuery3.RecNo mod 10 = 0 then
-              self.Repaint;
+            if ZQuery3.RecNo mod 100 = 0 then
+              Application.ProcessMessages;
             if insertquery = '' then
             begin
               if tofile then
@@ -559,7 +559,9 @@ begin
             thesevalues := '(';
             for k := 0 to ZQuery3.fieldcount-1 do
             begin
-              case ZQuery3.Fields[k].DataType of
+              if ZQuery3.Fields[k].IsNull then
+                value := 'NULL'
+              else case ZQuery3.Fields[k].DataType of
                 ftInteger, ftSmallint, ftWord, ftFloat:
                   value := ZQuery3.Fields[k].AsString;
                 else
