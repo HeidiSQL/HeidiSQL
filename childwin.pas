@@ -462,7 +462,9 @@ begin
   ZConn.Port := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
 //  zquery3.Properties.Values['UseResult'] := '1'; // doesn't work...
 //  ZConn.Properties.Values['UseResult'] := '1'; // doesn't work...
-  ZConn.Properties.Values['compress'] := IntToStr( integer(connform.CheckBoxCompressed.Checked) ); // don't know if this works?
+  ZConn.Properties.Values['compress'] := IntToStr( integer(connform.CheckBoxCompressed.Checked) );
+  ZConn.Properties.Values['timeout'] := connform.EditTimeout.Text;
+  ZConn.Properties.Values['dbless'] := '1';
   try
     ZConn.Connect;
   except
@@ -1035,6 +1037,7 @@ begin
       end;
 
       Tabellenliste.Columns.BeginUpdate;
+      Tabellenliste.Items.BeginUpdate;
       Tabellenliste.Columns.Clear;
       column := Tabellenliste.Columns.Add;
       column.Caption := 'Table';
@@ -1076,7 +1079,6 @@ begin
         column.Autosize := true;
       end;
 
-      Tabellenliste.Items.BeginUpdate;
       Tabellenliste.Items.Clear;
       for i := 1 to ZQuery3.RecordCount do
       begin
