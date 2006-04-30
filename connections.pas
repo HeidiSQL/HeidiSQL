@@ -44,7 +44,6 @@ type
     ButtonEditDesc: TSpeedButton;
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
@@ -96,24 +95,6 @@ begin
   MainForm.connect(sender);
 end;
 
-
-// Init
-procedure Tconnform.FormCreate(Sender: TObject);
-var
-  oldkey : String;
-begin
-  // Import old settings from MySQL-Front 2.5
-  oldkey := 'Software\MySQL-Front';
-  with TRegistry.Create do
-  begin
-    if (not Openkey(main.regpath, false)) and OpenKey(oldkey, false) then
-    try
-      RenameRegistryItem( rootkey, oldkey, main.regpath );
-    finally
-      free;
-    end;
-  end;
-end;
 
 
 // Read all connections from registry
