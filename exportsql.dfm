@@ -219,9 +219,19 @@ object ExportSQLForm: TExportSQLForm
     object TabSheet2: TTabSheet
       Caption = 'Options'
       ImageIndex = 1
+      DesignSize = (
+        233
+        229)
+      object Label3: TLabel
+        Left = 8
+        Top = 168
+        Width = 94
+        Height = 13
+        Caption = 'Target compatibility:'
+      end
       object CheckBoxWithUseDB: TCheckBox
         Left = 8
-        Top = 16
+        Top = 8
         Width = 193
         Height = 17
         Caption = 'Include USE DBNAME'
@@ -229,7 +239,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBoxWithDropTable: TCheckBox
         Left = 24
-        Top = 120
+        Top = 88
         Width = 193
         Height = 17
         Caption = 'Include DROP TABLE'
@@ -237,7 +247,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBoxCompleteInserts: TCheckBox
         Left = 24
-        Top = 176
+        Top = 128
         Width = 193
         Height = 17
         Caption = 'Complete INSERT statements'
@@ -245,7 +255,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBoxUseBackticks: TCheckBox
         Left = 8
-        Top = 40
+        Top = 32
         Width = 193
         Height = 17
         Caption = 'Use backticks (`) for names'
@@ -253,7 +263,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBox1: TCheckBox
         Left = 8
-        Top = 72
+        Top = 56
         Width = 73
         Height = 17
         Caption = 'Structure'
@@ -264,7 +274,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBox2: TCheckBox
         Left = 8
-        Top = 152
+        Top = 112
         Width = 73
         Height = 17
         Caption = 'Data'
@@ -275,7 +285,7 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBoxExtendedInsert: TCheckBox
         Left = 24
-        Top = 200
+        Top = 144
         Width = 177
         Height = 17
         Caption = 'Extended INSERT (faster import)'
@@ -285,11 +295,26 @@ object ExportSQLForm: TExportSQLForm
       end
       object CheckBoxWithCreateDatabase: TCheckBox
         Left = 24
-        Top = 96
+        Top = 72
         Width = 193
         Height = 17
         Caption = 'Include CREATE DATABASE'
         TabOrder = 7
+      end
+      object ComboBoxCompatibility: TComboBox
+        Left = 24
+        Top = 184
+        Width = 185
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        ItemHeight = 13
+        ItemIndex = 0
+        TabOrder = 8
+        Text = 'MySQL 3.23 - 5.0'
+        Items.Strings = (
+          'MySQL 3.23 - 5.0'
+          'MySQL 5.1 and above')
       end
     end
   end

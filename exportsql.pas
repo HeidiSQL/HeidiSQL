@@ -45,6 +45,8 @@ type
     CheckBox2: TCheckBox;
     CheckBoxExtendedInsert: TCheckBox;
     CheckBoxWithCreateDatabase: TCheckBox;
+    Label3: TLabel;
+    ComboBoxCompatibility: TComboBox;
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
@@ -138,6 +140,7 @@ begin
       if Valueexists('ExportData') then CheckBox2.Checked := ReadBool('ExportData');
       if Valueexists('CompleteInserts') then CheckBoxCompleteInserts.Checked := ReadBool('CompleteInserts');
       if Valueexists('ExtendedInsert') then CheckBoxExtendedInsert.Checked := ReadBool('ExtendedInsert');
+      if Valueexists('Compatibility') then ComboBoxCompatibility.ItemIndex := ReadInteger('Compatibility');
       if Valueexists('exportfilename') then EditFileName.Text := ReadString('exportfilename');
     end;
   CheckBox1Click(self);
@@ -391,6 +394,9 @@ begin
               createquery := createquery + ZQuery3.Fields[1].AsString
             else
               createquery := createquery + stringreplace(ZQuery3.Fields[1].AsString, '`', '', [rfReplaceAll]);
+            if ComboBoxCompatibility.ItemIndex = 1 then begin
+              createquery := stringreplace(createquery, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
+            end;
           end;
 
           if mysql_version < 32320 then begin
@@ -744,6 +750,7 @@ begin
     WriteBool('ExportData',         CheckBox2.Checked);
     WriteBool('UseBackticks',       CheckBoxUseBackticks.Checked);
     WriteBool('ExtendedInsert',     CheckBoxExtendedInsert.Checked);
+    WriteInteger('Compatibility',   ComboBoxCompatibility.ItemIndex);
     CloseKey();
   end;
 end;
