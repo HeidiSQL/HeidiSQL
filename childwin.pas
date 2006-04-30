@@ -389,6 +389,8 @@ type
     procedure MenuTablelistColumnsClick(Sender: TObject);
     procedure TabellenlisteMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure DBMemo1KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
 
     private
       { Private declarations }
@@ -464,7 +466,9 @@ begin
 //  ZConn.Properties.Values['UseResult'] := '1'; // doesn't work...
   ZConn.Properties.Values['compress'] := IntToStr( integer(connform.CheckBoxCompressed.Checked) );
   ZConn.Properties.Values['timeout'] := connform.EditTimeout.Text;
-  ZConn.Properties.Values['dbless'] := '1';
+  ZConn.Properties.Values['dbless'] := 'true';
+//  ZConn.Properties.Values['CLIENT_SSL'] := 'true';
+
   try
     ZConn.Connect;
   except
@@ -890,7 +894,8 @@ begin
       end;
     end;
 
-    for i:=0 to FeldListe.Items.Count-1 do begin
+    for i:=0 to FeldListe.Items.Count-1 do
+    begin
       Columns.Add( FeldListe.Items[i].Caption );
 
       // give all enum-fields a PickList with its Items
@@ -921,6 +926,11 @@ begin
 
     for j:=0 to DBGrid1.Columns.count-1 do
     begin
+      // for letting NULLs being inserted into "NOT NULL" fields
+      // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
+      // so the Required-check on client-side is not needed at any time 
+      ZQuery2.Fields[j].Required := false;
+
       // set column-width
       if (Mainform.DefaultColWidth <> 0) and (DBGrid1.Columns[j].Width > Mainform.DefaultColWidth) then
       begin
@@ -1005,6 +1015,8 @@ begin
     if mysql_version >= 32300 then begin
       // get quick results with versions 3.23.xx and newer
       GetResults( 'SHOW TABLE STATUS', ZQuery3 );
+
+      // Generate items for PopupMenuTablelistColumns
       for i:=PopupMenuTablelistColumns.Items.Count-1 downto 2 do
         PopupMenuTablelistColumns.Items.Delete( i );
       with TRegistry.Create do
@@ -3029,7 +3041,7 @@ begin
   if not ZQuery2.Active then
     exit;
   where := '';
-  for i:=0 to DBGrid1.FieldCount-1 do
+  if EditDataSearch.text <> '' then for i:=0 to DBGrid1.FieldCount-1 do
   begin
     if where <> '' then
       where := where + CRLF + ' OR ';
@@ -3101,6 +3113,16 @@ procedure TMDIChild.TabellenlisteMouseDown(Sender: TObject;
 begin
   if button = mbright then
     pmenu2.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
+end;
+
+
+
+// Simulate Ctrl+A-behaviour of common editors
+procedure TMDIChild.DBMemo1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
+    DBMemo1.SelectAll;
 end;
 
 end.
