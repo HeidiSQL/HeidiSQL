@@ -251,11 +251,11 @@ var
   StatusText : String = 'Initializing...';
   StatusIconIndex : Integer = 51;
   loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
+  appversion : String = '3.0 RC1 $Rev$';
 
 const
   appname = 'HeidiSQL';
   regpath = 'Software\' + appname;
-  appversion = '3.0 RC1 $Rev$';
 
 type TMyKey = record
   Name    : String;
@@ -497,6 +497,12 @@ begin
   finally
     CloseFile(f);
   end;
+
+  // Beautify appversion
+  appversion := StringReplace( appversion, '$Rev', 'Revision', [rfIgnoreCase] );
+  appversion := StringReplace( appversion, '$', '', [] );
+  appversion := Trim( appversion );
+
   timer1.Enabled := true;
 end;
 
