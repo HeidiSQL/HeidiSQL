@@ -797,11 +797,15 @@ end;
 
 procedure TMDIChild.viewdata(Sender: TObject);
 var
-  sorting               : String;
-  DropDown              : TStringList;
-  i, j                  : Integer;
+  sorting                  : String;
+  DropDown                 : TStringList;
+  i, j                     : Integer;
   Columns,
-  PrimaryKeyColumns     : TStringList;
+  PrimaryKeyColumns        : TStringList;
+  reg                      : TRegistry;
+  reg_value                : String;
+  orderclauses             : TStringList;
+
 begin
   // view table-data with zeos
   if viewingdata then
@@ -825,31 +829,58 @@ begin
   EDBImage1.DataField := '';
   EDBImage1.DataSource := DataSource1;
 
+  reg := TRegistry.Create;
+  reg.openkey( regpath + '\Servers\' + description, true );
+
   if not dataselected then
   begin
     SynMemo3.Text := '';
     DBGrid1.SortColumns.Clear;
-  end
-  else
-  begin
-    sorting := '';
-    for i:=0 to dbgrid1.SortColumns.Count-1 do
+    // Read cached WHERE-clause and set filter
+    reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
+    if reg.ValueExists( reg_value ) then
+      SynMemo3.Text := reg.ReadString( reg_value );
+    // Read cached ORDER-clause and set Grid.Sortcolumns
+    reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+    if reg.ValueExists( reg_value ) then
     begin
-      with dbgrid1.SortColumns[i] do begin
-        if SortType <> stNone then begin
-          if sorting <> '' then
-            sorting := sorting + ', ';
-          sorting := sorting + FieldName;
-        end;
-        if SortType = stAscending then
-          sorting := sorting + ' DESC'
-        else if SortType = stDescending then
-          sorting := sorting + ' ASC';
+      orderclauses := explode( ',', reg.ReadString( reg_value ) );
+      for i:=0 to orderclauses.Count-1 do with DBGrid1.SortColumns.Add do
+      begin
+        Fieldname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
+        if copy( orderclauses[i], length(orderclauses[i])-3, 4 ) = 'DESC' then
+          SortType := stAscending
+        else
+          SortType := stDescending;
       end;
     end;
-    if sorting <> '' then
-      sorting := 'ORDER BY ' + sorting;
   end;
+
+  sorting := '';
+  for i:=0 to dbgrid1.SortColumns.Count-1 do
+  begin
+    with dbgrid1.SortColumns[i] do
+    begin
+      if SortType <> stNone then begin
+        if sorting <> '' then
+          sorting := sorting + ', ';
+        sorting := sorting + FieldName;
+      end;
+      if SortType = stAscending then
+        sorting := sorting + ' DESC'
+      else if SortType = stDescending then
+        sorting := sorting + ' ASC';
+    end;
+  end;
+  reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+  if sorting <> '' then
+  begin
+    reg.WriteString( reg_value, sorting );
+    sorting := 'ORDER BY ' + sorting;
+  end
+  else if reg.ValueExists( reg_value ) then
+    reg.DeleteValue( reg_value );
+
   MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
   Columns := TStringList.Create;
   PrimaryKeyColumns := TStringList.Create;
@@ -1863,6 +1894,7 @@ begin
     end;
   end;
   timer4.OnTimer(self);
+  ZSQLMonitor1.Active := true;
 end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
@@ -1901,6 +1933,8 @@ begin
     ExportData.Enabled := false;
   end;
   showstatus('', 1); // empty connected_time
+
+  ZSQLMonitor1.Active := false;
 end;
 
 
@@ -1924,6 +1958,7 @@ begin
   end;
 
   ZQuery3.DisableControls;
+  FormResize( self );
 end;
 
 { Edit field }
@@ -2200,7 +2235,7 @@ var
   i  : Integer;
   existed : Boolean;
 begin
-  // column-title is clicked -> "order by"
+  // column-title clicked -> generate "ORDER BY"
 
   Grid := Column.Grid as TSMDBGrid;
   Grid.DataSource.DataSet.DisableControls;
@@ -2494,10 +2529,28 @@ begin
 end;
 
 procedure TMDIChild.SetFilter(Sender: TObject);
-var where : String;
+var
+  where : String;
+  reg : TRegistry;
+  reg_value : String;
 begin
   // set filter for data-tab
   where := trim(self.SynMemo3.Text);
+
+  // Store whereclause in Registry
+  reg := TRegistry.Create;
+  try
+    reg.openkey( regpath + '\Servers\' + description, false );
+    reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
+    if where <> '' then
+      reg.WriteString( reg_value, where )
+    else
+    if reg.ValueExists( reg_value ) then
+      reg.DeleteValue( reg_value );
+  finally
+    reg.Free;
+  end;
+
   // store filter for browsing purpose:
   if where <> '' then begin
     if WhereFilters = nil then begin // Create filters-list
@@ -2515,6 +2568,7 @@ begin
     ComboBoxWhereFilters.ItemIndex := WhereFiltersIndex;
   end;
   Filter1.checked := where <> '';
+
   viewdata(self);
 end;
 
@@ -3033,6 +3087,7 @@ begin
 end;
 
 
+// Search with searchbox
 procedure TMDIChild.ButtonDataSearchClick(Sender: TObject);
 var
   i : Integer;
@@ -3048,14 +3103,17 @@ begin
     where := where + DBGrid1.Fields[i].FieldName + ' LIKE ''%' + EditDataSearch.text + '%''';
   end;
   SynMemo3.Text := where;
-  viewdata(self);
+
+  SetFilter(self);
 end;
 
+// Searchbox focused
 procedure TMDIChild.EditDataSearchEnter(Sender: TObject);
 begin
   ButtonDataSearch.Default := true;
 end;
 
+// Searchbox unfocused
 procedure TMDIChild.EditDataSearchExit(Sender: TObject);
 begin
   ButtonDataSearch.Default := false;
