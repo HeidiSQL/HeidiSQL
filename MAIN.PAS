@@ -287,8 +287,7 @@ begin
   end
   else
     StatusBar.Panels[panel].Text := msg;
-  StatusBar.Invalidate;
-//  StatusBar.Update;
+  StatusBar.Repaint;
 end;
 
 procedure TMainForm.FileExit1Execute(Sender: TObject);
@@ -473,7 +472,6 @@ begin
       if pipeposition > 0 then // read hint
       begin
         functionhint := copy(functionname, 0, pipeposition-1) + ' - ' + copy(functionname, pipeposition+1, length(functionname)-1);
-//        functionnametoinsert := copy(functionname, 0, pos('(', functionname)-1);
         functionname := copy(functionname, 0, pos('(', functionname)-1)
       end else
         functionhint := '';
