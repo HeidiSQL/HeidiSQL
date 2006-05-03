@@ -96,7 +96,7 @@ http://www.heidisql.de/donate.php
 --------------------------------------
  Project-Homepage
 --------------------------------------
-http://www.heidisql.de/
+http://www.heidisql.com/
 
 
 EOF
