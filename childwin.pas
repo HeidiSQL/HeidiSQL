@@ -462,12 +462,15 @@ begin
   ZConn.User := connform.EditBenutzer.Text;
   ZConn.Password := connform.EditPasswort.Text;
   ZConn.Port := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
-//  zquery3.Properties.Values['UseResult'] := '1'; // doesn't work...
-//  ZConn.Properties.Values['UseResult'] := '1'; // doesn't work...
-  ZConn.Properties.Values['compress'] := IntToStr( integer(connform.CheckBoxCompressed.Checked) );
+  if connform.CheckBoxCompressed.Checked then
+    ZConn.Properties.Values['compress'] := 'true';
   ZConn.Properties.Values['timeout'] := connform.EditTimeout.Text;
   ZConn.Properties.Values['dbless'] := 'true';
-//  ZConn.Properties.Values['CLIENT_SSL'] := 'true';
+  ZConn.Properties.Values['CLIENT_LOCAL_FILES'] := 'true';
+  ZConn.Properties.Values['CLIENT_INTERACTIVE'] := 'true';
+  // ZConn.Properties.Values['USE_RESULT'] := 'true'; // doesn't work
+
+  //  ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
 
   try
     ZConn.Connect;
@@ -805,7 +808,8 @@ var
   reg                      : TRegistry;
   reg_value                : String;
   orderclauses             : TStringList;
-
+  columnname                : String;
+  columnexists              : Boolean;
 begin
   // view table-data with zeos
   if viewingdata then
@@ -813,12 +817,8 @@ begin
   viewingdata := true;
 
   // rowcount:
-  ZQuery3.SQL.Clear;
-  ZQuery3.SQL.Add( 'SELECT COUNT(*) FROM ' + mainform.mask(ActualTable) );
-  Try
-    ZQuery3.Open;
-    ZQuery3.First;
-    rowcount := ZQuery3.Fields[0].AsInteger;
+  try
+    rowcount := StrToIntDef( GetVar( 'SELECT COUNT(*) FROM ' + mainform.mask(ActualTable), 0 ), 0 );
   except
     rowcount := 0;
   end;
@@ -845,13 +845,31 @@ begin
     if reg.ValueExists( reg_value ) then
     begin
       orderclauses := explode( ',', reg.ReadString( reg_value ) );
-      for i:=0 to orderclauses.Count-1 do with DBGrid1.SortColumns.Add do
+      for i:=0 to orderclauses.Count-1 do
       begin
-        Fieldname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
-        if copy( orderclauses[i], length(orderclauses[i])-3, 4 ) = 'DESC' then
-          SortType := stAscending
-        else
-          SortType := stDescending;
+        columnname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
+        columnexists := false;
+        for j:=0 to FeldListe.Items.Count-1 do
+        begin
+          if FeldListe.Items[j].Caption = columnname then
+          begin
+            columnexists := true;
+            break;
+          end;
+        end;
+        if not columnexists then
+        begin
+          logsql('Notice: A stored ORDER-BY clause could not be applied, because the column "' + columnname + '" does not exist!');
+          continue;
+        end;
+        with DBGrid1.SortColumns.Add do
+        begin
+          Fieldname := columnname;
+          if copy( orderclauses[i], length(orderclauses[i])-3, 4 ) = 'DESC' then
+            SortType := stAscending
+          else
+            SortType := stDescending;
+        end;
       end;
     end;
   end;
