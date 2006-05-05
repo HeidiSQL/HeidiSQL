@@ -1231,6 +1231,7 @@ var
   i,j : Integer;
   n : TListItem;
   tn, tndb : TTreeNode;
+  isFulltext : Boolean;
 begin
   // Table-Properties
   Screen.Cursor := crHourGlass;
@@ -1344,7 +1345,11 @@ begin
     end;
 
     // column is part of a fulltext key, available since 3.23.xx
-    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT') then
+    if mysql_version < 40002 then
+      isFulltext := (ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
+    else
+      isFulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT');
+    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
     begin
       for j:=0 to FeldListe.Items.Count-1 do
       begin
