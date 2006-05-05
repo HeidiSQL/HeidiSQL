@@ -26,11 +26,11 @@ object UserManagerForm: TUserManagerForm
     Top = 0
     Width = 533
     Height = 343
-    ActivePage = TabSheetEditUsers
+    ActivePage = TabSheetAddUser
     Align = alClient
     Images = ImageList1
     TabHeight = 22
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = PageControl1Change
     object TabSheetAddUser: TTabSheet
@@ -206,7 +206,7 @@ object UserManagerForm: TUserManagerForm
         Top = 248
         Width = 249
         Height = 17
-        Caption = 'Create Connection-Account for &MySQL-Front'
+        Caption = 'Create Connection-Account for appname'
         TabOrder = 7
         OnClick = CheckBoxCreateAccountClick
       end

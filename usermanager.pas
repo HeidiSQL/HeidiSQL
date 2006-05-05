@@ -132,6 +132,7 @@ begin
   TreeViewUsers.Items.Clear;
   PageControl1.ActivePageIndex := 0;
   ShowPrivilegesControls(false, true, false);
+  CheckBoxCreateAccount.Caption := 'Create connection account for ' + appname;
 
   tnu1 := DBUserTree.Items.Add(nil, 'Global Access');
   tnu1.ImageIndex := 13;
