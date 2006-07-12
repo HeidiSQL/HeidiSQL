@@ -887,7 +887,7 @@ begin
       if SortType <> stNone then begin
         if sorting <> '' then
           sorting := sorting + ', ';
-        sorting := sorting + FieldName;
+        sorting := sorting + mask(FieldName);
       end;
       if SortType = stAscending then
         sorting := sorting + ' DESC'
@@ -927,7 +927,7 @@ begin
     ZConn.Database := ActualDatabase;
     ZQuery2.Close;
     ZQuery2.SQL.Clear;
-    ZQuery2.SQL.Add( 'SELECT * FROM ' + ActualTable );
+    ZQuery2.SQL.Add( 'SELECT * FROM ' + mask(ActualTable) );
     if trim(self.SynMemo3.Text) <> '' then
       ZQuery2.SQL.Add( 'WHERE ' + trim(self.SynMemo3.Text) );
     if sorting <> '' then
@@ -3219,6 +3219,7 @@ function TMDIChild.mask(str: String) : String;
 begin
   if mysql_version >= 32300 then
   begin
+    // TODO: For better readability, it would be neat if we only escaped when necessary.
     result := StringReplace(str, '`', '``', [rfReplaceAll]);
     result := '`' + str + '`';
   end
