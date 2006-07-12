@@ -90,7 +90,12 @@ unit SMDBGrid;
 
 interface
 
+{$I ../../../compilerdetection/compilers.inc}
+
 uses
+{$ifdef COMPILER_9_UP}
+  Variants,
+{$endif}
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Menus, Grids, DBGrids, DB, StdCtrls, SMCnst;
 
