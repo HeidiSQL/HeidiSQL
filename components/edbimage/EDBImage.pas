@@ -1,5 +1,5 @@
 unit EDBImage;
-{$I Definitions.inc}
+{$I ../compilerdetection/compilers.inc}
 {
  TEDBImage 1.4 (Enhaced TDBImage):
   by Sebastián Mayorá - Argentina - DelphiHelper@yahoo.com.ar
@@ -103,7 +103,7 @@ type
     property TabStop default True;
     property Visible;
     property OnClick;
-    {$IFDEF DELPHI5}
+    {$IFDEF DELPHI_5_UP}
     property OnContextPopup;
     {$ENDIF}
     property OnDblClick;

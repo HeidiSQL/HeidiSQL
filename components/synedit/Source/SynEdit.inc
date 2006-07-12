@@ -1,3 +1,5 @@
+{$I ../../compilerdetection/Compilers.inc}
+
 (******************************************************************************)
 (* SynEdit Include File.  This file was adapted from Brad Stowers' DFS.INC    *)
 (* file and used with permission.  This will help reduce headaches when new   *)
@@ -42,7 +44,6 @@
 (* SYN_CPPB_6           : C++B v6.0x is being used.                           *) //js 07-04-2002
 (* SYN_CPPB_6_UP        : C++B v6.0x or higher is being used.                 *) //js 07-04-2002
 (* SYN_DELPHI           : Any version of Delphi is being used.                *)
-(* SYN_DELPHI_PE        : The personal edition of Delphi is being used.       *)
 (* SYN_DELPHI_2         : Delphi v2.0x is being used.                         *)
 (* SYN_DELPHI_2_UP      : Delphi v2.0x or higher is being used.               *)
 (* SYN_DELPHI_3         : Delphi v3.0x is being used.                         *)
@@ -65,160 +66,110 @@
 
 {$IFDEF LINUX}
   {$DEFINE SYN_KYLIX}
-  {$DEFINE SYN_COMPILER_6}
-  {$DEFINE SYN_DELPHI}
-  {$DEFINE SYN_DELPHI_6}
 {$ENDIF}
 
-{$IFDEF VER140}
-  {$DEFINE SYN_COMPILER_6}
-  {$IFNDEF BCB}
-    {$DEFINE SYN_DELPHI}
-    {$DEFINE SYN_DELPHI_6}
-  {$ELSE}
-    {$DEFINE SYN_CPPB}
-    {$DEFINE SYN_CPPB_6}
-  {$ENDIF}
-{$ENDIF}
-
-{$IFDEF VER130}
-  {$DEFINE SYN_COMPILER_5}
-  {$IFNDEF BCB}
-    {$DEFINE SYN_DELPHI}
-    {$DEFINE SYN_DELPHI_5}
-  {$ELSE}
-    {$DEFINE SYN_CPPB}
-    {$DEFINE SYN_CPPB_5}
-  {$ENDIF}
-{$ENDIF}
-
-{$IFDEF VER125}
-  {$DEFINE SYN_COMPILER_4}
-  {$DEFINE SYN_CPPB}
-  {$DEFINE SYN_CPPB_4}
-{$ENDIF}
-
-{$IFDEF VER120}
-  {$DEFINE SYN_COMPILER_4}
-  {$DEFINE SYN_DELPHI}
-  {$DEFINE SYN_DELPHI_4}
-{$ENDIF}
-
-{$IFDEF VER110}
-  {$DEFINE SYN_COMPILER_3}
-  {$DEFINE SYN_CPPB}
-  {$DEFINE SYN_CPPB_3}
-{$ENDIF}
-
-{$IFDEF VER100}
-  {$DEFINE SYN_COMPILER_3}
-  {$DEFINE SYN_DELPHI}
-  {$DEFINE SYN_DELPHI_3}
-{$ENDIF}
-
-{$IFDEF VER93}
-  {$DEFINE SYN_COMPILER_2}  { C++B v1 compiler is really v2 }
-  {$DEFINE SYN_CPPB}
-  {$DEFINE SYN_CPPB_1}
-{$ENDIF}
-
-{$IFDEF VER90}
+{$IFDEF COMPILER_2}
   {$DEFINE SYN_COMPILER_2}
-  {$DEFINE SYN_DELPHI}
-  {$DEFINE SYN_DELPHI_2}
 {$ENDIF}
-
-{$IFDEF SYN_COMPILER_2}
-  {$DEFINE SYN_COMPILER_1_UP}
+{$IFDEF COMPILER_2_UP}
   {$DEFINE SYN_COMPILER_2_UP}
 {$ENDIF}
-
-{$IFDEF SYN_COMPILER_3}
-  {$DEFINE SYN_COMPILER_1_UP}
-  {$DEFINE SYN_COMPILER_2_UP}
+{$IFDEF COMPILER_3}
+  {$DEFINE SYN_COMPILER_3}
+{$ENDIF}
+{$IFDEF COMPILER_3_UP}
   {$DEFINE SYN_COMPILER_3_UP}
 {$ENDIF}
-
-{$IFDEF SYN_COMPILER_4}
-  {$DEFINE SYN_COMPILER_1_UP}
-  {$DEFINE SYN_COMPILER_2_UP}
-  {$DEFINE SYN_COMPILER_3_UP}
+{$IFDEF COMPILER_4}
+  {$DEFINE SYN_COMPILER_4}
+{$ENDIF}
+{$IFDEF COMPILER_4_UP}
   {$DEFINE SYN_COMPILER_4_UP}
 {$ENDIF}
-
-{$IFDEF SYN_COMPILER_5}
-  {$DEFINE SYN_COMPILER_1_UP}
-  {$DEFINE SYN_COMPILER_2_UP}
-  {$DEFINE SYN_COMPILER_3_UP}
-  {$DEFINE SYN_COMPILER_4_UP}
+{$IFDEF COMPILER_5}
+  {$DEFINE SYN_COMPILER_5}
+{$ENDIF}
+{$IFDEF COMPILER_5_UP}
   {$DEFINE SYN_COMPILER_5_UP}
 {$ENDIF}
-
-{$IFDEF SYN_COMPILER_6}
-  {$DEFINE SYN_COMPILER_1_UP}
-  {$DEFINE SYN_COMPILER_2_UP}
-  {$DEFINE SYN_COMPILER_3_UP}
-  {$DEFINE SYN_COMPILER_4_UP}
-  {$DEFINE SYN_COMPILER_5_UP}
+{$IFDEF COMPILER_6}
+  {$DEFINE SYN_COMPILER_6}
+{$ENDIF}
+{$IFDEF COMPILER_6_UP}
   {$DEFINE SYN_COMPILER_6_UP}
 {$ENDIF}
 
-{$IFDEF SYN_DELPHI_2}
-  {$DEFINE SYN_DELPHI_2_UP}
+{$IFDEF CPPB}
+  {$DEFINE SYN_CPPB}
 {$ENDIF}
-
-{$IFDEF SYN_DELPHI_3}
-  {$DEFINE SYN_DELPHI_2_UP}
-  {$DEFINE SYN_DELPHI_3_UP}
+{$IFDEF CPPB_1}
+  {$DEFINE SYN_CPPB_1}
 {$ENDIF}
-
-{$IFDEF SYN_DELPHI_4}
-  {$DEFINE SYN_DELPHI_2_UP}
-  {$DEFINE SYN_DELPHI_3_UP}
-  {$DEFINE SYN_DELPHI_4_UP}
+{$IFDEF CPPB_3}
+  {$DEFINE SYN_CPPB_3}
 {$ENDIF}
-
-{$IFDEF SYN_DELPHI_5}
-  {$DEFINE SYN_DELPHI_2_UP}
-  {$DEFINE SYN_DELPHI_3_UP}
-  {$DEFINE SYN_DELPHI_4_UP}
-  {$DEFINE SYN_DELPHI_5_UP}
-{$ENDIF}
-
-{$IFDEF SYN_DELPHI_6}
-  {$DEFINE SYN_DELPHI_2_UP}
-  {$DEFINE SYN_DELPHI_3_UP}
-  {$DEFINE SYN_DELPHI_4_UP}
-  {$DEFINE SYN_DELPHI_5_UP}
-  {$DEFINE SYN_DELPHI_6_UP}
-{$ENDIF}
-
-{$IFDEF SYN_CPPB_6}  //js 07-04-2002
+{$IFDEF CPPB_3_UP}
   {$DEFINE SYN_CPPB_3_UP}
+{$ENDIF}
+{$IFDEF CPPB_4}
+  {$DEFINE SYN_CPPB_4}
+{$ENDIF}
+{$IFDEF CPPB_4_UP}
   {$DEFINE SYN_CPPB_4_UP}
+{$ENDIF}
+{$IFDEF CPPB_5}
+  {$DEFINE SYN_CPPB_5}
+{$ENDIF}
+{$IFDEF CPPB_5_UP}
   {$DEFINE SYN_CPPB_5_UP}
+{$ENDIF}
+{$IFDEF CPPB_6}
+  {$DEFINE SYN_CPPB_6}
+{$ENDIF}
+{$IFDEF CPPB_6_UP}
   {$DEFINE SYN_CPPB_6_UP}
 {$ENDIF}
 
-{$IFDEF SYN_CPPB_3}
-  {$DEFINE SYN_CPPB_3_UP}
+{$IFDEF DELPHI}
+  {$DEFINE SYN_DELPHI}
 {$ENDIF}
 
-{$IFDEF SYN_COMPILER_3_UP}
-  {$DEFINE SYN_NO_COM_CLEANUP}
+{$IFDEF DELPHI_2}
+  {$DEFINE SYN_DELPHI_2}
+{$ENDIF}
+{$IFDEF DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_2_UP}
+{$ENDIF}
+{$IFDEF DELPHI_3}
+  {$DEFINE SYN_DELPHI_3}
+{$ENDIF}
+{$IFDEF DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+{$ENDIF}
+{$IFDEF DELPHI_4}
+  {$DEFINE SYN_DELPHI_4}
+{$ENDIF}
+{$IFDEF DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+{$ENDIF}
+{$IFDEF DELPHI_5}
+  {$DEFINE SYN_DELPHI_5}
+{$ENDIF}
+{$IFDEF DELPHI_5_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+{$ENDIF}
+{$IFDEF DELPHI_6}
+  {$DEFINE SYN_DELPHI_6}
+{$ENDIF}
+{$IFDEF DELPHI_6_UP}
+  {$DEFINE SYN_DELPHI_6_UP}
 {$ENDIF}
 
-{$IFDEF SYN_CPPB_3_UP}
-  // C++Builder requires this if you use Delphi components in run-time packages.
-  {$ObjExportAll On}
-{$ENDIF}
-
-{$IFDEF SYN_KYLIX}
-  // A Kylix application is always a CLX application
+{$IFDEF KYLIX}
+  {$DEFINE SYN_KYLIX}
   {$DEFINE SYN_CLX}
-{$ELSE}
-  {$DEFINE SYN_WIN32}
 {$ENDIF}
+
 
 {------------------------------------------------------------------------------}
 { Common compiler defines                                                      }

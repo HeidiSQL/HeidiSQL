@@ -1605,18 +1605,10 @@ const
 var
   B, R, rect1: TRect;
   txth: Integer;
-  {$IFDEF VER120}
-  I: TColorRef;
-  {$ELSE}
-  {$IFDEF VER130}
-  I: TColorRef;
-  {$ELSE}
-  {$IFDEF VER140}
+  {$IFDEF COMPILER_4_UP}
   I: TColorRef;
   {$ELSE}
   I: Integer;
-  {$ENDIF}
-  {$ENDIF}
   {$ENDIF}
 
   lpDTP: TDrawTextParams;

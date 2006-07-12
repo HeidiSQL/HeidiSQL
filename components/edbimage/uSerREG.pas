@@ -3,13 +3,13 @@ unit uSerREG;
 interface
 
 {$R CompsSer.dcr}
-{$I Definitions.inc}
+{$I ../compilerdetection/compilers.inc}
 procedure Register;
 
 implementation
 uses Classes , {RegisterComponent}
 
-     {$IFDEF DELPHI6}
+     {$IFDEF DELPHI_6_UP}
       DesignIntf, DesignEditors,
      {$ELSE}
       DsgnIntf, { RegisterComponentEditor}

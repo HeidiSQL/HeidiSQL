@@ -1,16 +1,12 @@
-// Compilation directives for Lazarus
-{$IFDEF FPC}
+{$I ../../compilerdetection/compilers.inc}
+
+// Compilation directives for Lazarus and Delphi 5
+{$IFDEF COMPILER_5}
 {$DEFINE VER130BELOW}
 {$DEFINE VER140BELOW}
 {$ENDIF}
 
-// Compilation directives for Delphi 5
-{$IFDEF VER130}
-{$DEFINE VER130BELOW}
-{$DEFINE VER140BELOW}
-{$ENDIF}
-
-{$IFDEF VER140}
+{$IFDEF COMPILER_6_UP}
 {$DEFINE VER140BELOW}
 {$ENDIF}
 
