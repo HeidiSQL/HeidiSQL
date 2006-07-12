@@ -6,13 +6,18 @@ unit Main;
 // Main-window
 // -------------------------------------
 
+{$I ../../components/compilerdetection/compilers.inc}
 
 interface
 
-uses Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
+uses
+{$ifndef COMPILER_7_UP}
+  ThemeMgr, ThemeMgrDB,
+{$endif}
+  Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, smdbgrid, ZDataSet, ThemeMgr, ThemeMgrDB;
+  SynMemo, synedit, smdbgrid, ZDataSet;
 
 type
   TMainForm = class(TForm)
@@ -160,7 +165,9 @@ type
     InsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
+{$ifndef COMPILER_7_UP}
     ThemeManager1: TThemeManager;
+{$endif}
     DataSearch: TAction;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
@@ -260,8 +267,8 @@ const
 type TMyKey = record
   Name    : String;
   _type   : String;
-  Columns : TStringList
-  end;
+  Columns : TStringList;
+end;
 
 implementation
 
