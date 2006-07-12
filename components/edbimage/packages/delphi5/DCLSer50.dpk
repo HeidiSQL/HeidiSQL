@@ -30,6 +30,6 @@ requires
   VCLSer50;
 
 contains
-  uSerREG in 'uSerREG.pas';
+  uSerREG in '..\..\uSerREG.pas';
 
 end.

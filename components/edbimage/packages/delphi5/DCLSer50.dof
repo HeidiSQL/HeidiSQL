@@ -42,7 +42,7 @@ ExeDescription=QREDBImage 1.0 and EDBImage 1.4 - by SER
 
 [Directories]
 OutputDir=
-UnitOutputDir=build
+UnitOutputDir=..\..\build
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=

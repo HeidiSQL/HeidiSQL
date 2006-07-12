@@ -1,7 +1,7 @@
-package VCLSer60;
+package VCLser40;
 
-{$R *.res}
-{$ALIGN 8}
+{$R *.RES}
+{$ALIGN ON}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -21,20 +21,21 @@ package VCLSer60;
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST ON}
 {$MINENUMSIZE 1}
-{$IMAGEBASE $400000}
+{$IMAGEBASE $00400000}
 {$DESCRIPTION 'QREDBImage 1.0 and EDBImage 1.4 Runtime- by SER'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
-  vcljpg,
-  dbrtl,
-  vcldb,
-  bdertl,
-  qrpt;
+  VCL40,
+  VCLJPG40,
+  VCLDB40,
+  QRPT40,
+  VCLBDE40;
 
 contains
-  EDBImage in 'EDBImage.pas',
-  QREDBImage in 'QREDBImage.pas';
+  EDBImage in '..\..\EDBImage.pas',
+  QREDBImage in '..\..\QREDBImage.pas';
+
 
 end.

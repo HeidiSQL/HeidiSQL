@@ -1,7 +1,7 @@
-package VCLSer50;
+package VCLSer60;
 
-{$R *.RES}
-{$ALIGN ON}
+{$R *.res}
+{$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -27,14 +27,14 @@ package VCLSer50;
 {$IMPLICITBUILD OFF}
 
 requires
-  VCL50,
-  VCLJPG50,
-  VCLDB50,
-  QRPT50,
-  VCLBDE50;
+  vcljpg,
+  dbrtl,
+  vcldb,
+  bdertl,
+  qrpt;
 
 contains
-  EDBImage in 'EDBImage.pas',
-  QREDBImage in 'QREDBImage.pas';
+  EDBImage in '..\..\EDBImage.pas',
+  QREDBImage in '..\..\QREDBImage.pas';
 
 end.

@@ -41,11 +41,11 @@ RemoteSymbols=0
 MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
-ExeDescription=QREDBImage 1.0 and EDBImage 1.4 - by SER
+ExeDescription=QREDBImage 1.0 and EDBImage 1.4 Runtime- by SER
 
 [Directories]
 OutputDir=
-UnitOutputDir=build
+UnitOutputDir=..\..\build
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
@@ -67,7 +67,7 @@ ProjectLang=
 RootDir=
 
 [Version Info]
-IncludeVerInfo=0
+IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=1
 MinorVer=0
@@ -93,21 +93,22 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 
+[Excluded Packages]
+e:\archivos de programa\borland\delphi6\Bin\DCLIB60.bpl=InterBase Data Access Components
+
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 
 [HistoryLists\hlUnitOutputDirectory]
-Count=2
-Item0=$(Delphi)\Lib
-Item1=
+Count=1
+Item0=$(Delphi)\lib
 
 [HistoryLists\hlBPLOutput]
 Count=2
 Item0=C:\windows\system
-Item1=
+Item1=$(Delphi)\bin
 
 [HistoryLists\hlDCPOutput]
-Count=2
+Count=1
 Item0=$(Delphi)\bin
-Item1=

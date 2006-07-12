@@ -33,6 +33,6 @@ requires
   VCLser40;
 
 contains
-  uSerReg in 'uSerREG.pas';
+  uSerReg in '..\..\uSerREG.pas';
 
 end.
