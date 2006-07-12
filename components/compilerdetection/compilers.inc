@@ -15,8 +15,8 @@
 // - COMPILER_3_UP : Kylix/Delphi/BCB 3.x or higher is the compiler.
 // - COMPILER_4    : Kylix/Delphi/BCB 4.x is the compiler.
 // - COMPILER_4_UP : Kylix/Delphi/BCB 4.x or higher is the compiler.
-// - COMPILER_5    : Kylix/Delphi/BCB 5.x is the compiler.
-// - COMPILER_5_UP : Kylix/Delphi/BCB 5.x or higher is the compiler.
+// - COMPILER_5    : Kylix/Delphi/BCB 5.x/FreePascal is the compiler.
+// - COMPILER_5_UP : Kylix/Delphi/BCB 5.x/FreePascal or higher is the compiler.
 // - COMPILER_6    : Kylix/Delphi/BCB 6.x is the compiler.
 // - COMPILER_6_UP : Kylix/Delphi/BCB 6.x or higher is the compiler.
 // - COMPILER_7    : Kylix/Delphi/BCB 7.x is the compiler.
@@ -25,6 +25,8 @@
 // - COMPILER_8_UP : Kylix/Delphi/BCB 8.x or higher is the compiler.
 // - COMPILER_9    : Kylix/Delphi/BCB 9.x is the compiler.
 // - COMPILER_9_UP : Kylix/Delphi/BCB 9.x or higher is the compiler.
+// - COMPILER_10   : Kylix/Delphi/BCB 10.x is the compiler.
+// - COMPILER_10_UP : Kylix/Delphi/BCB 10.x or higher is the compiler.
 //
 // Only defined if Windows is the target:
 // - CPPB        : Any version of BCB is being used.
@@ -57,6 +59,8 @@
 // - DELPHI_8_UP : Delphi v8.x or higher is being used.
 // - DELPHI_9    : Delphi v9.x is being used.
 // - DELPHI_9_UP : Delphi v9.x or higher is being used.
+// - DELPHI_10   : Delphi v9.x is being used.
+// - DELPHI_10_UP : Delphi v9.x or higher is being used.
 //
 // Only defined if Linux is the target:
 // - KYLIX       : Any version of Kylix is being used.
@@ -88,7 +92,18 @@
   {$endif DELPHI.NET_1}
 {$endif CLR}
 
+// Consider FreePascal compiler to be roughly equivalent to version 5.
+{$ifdef FPC}
+  {$define COMPILER_5}
+{$endif}
+
 {$ifdef Win32}
+  {$ifdef VER180}
+    {$define COMPILER_10}
+    {$define DELPHI}
+    {$define DELPHI_10}
+  {$endif}
+
   {$ifdef VER170}
     {$define COMPILER_9}
     {$define DELPHI}
@@ -231,6 +246,18 @@
     {$define DELPHI_9_UP}
   {$endif}
 
+  {$ifdef DELPHI_10}
+    {$define DELPHI_2_UP}
+    {$define DELPHI_3_UP}
+    {$define DELPHI_4_UP}
+    {$define DELPHI_5_UP}
+    {$define DELPHI_6_UP}
+    {$define DELPHI_7_UP}
+    {$define DELPHI_8_UP}
+    {$define DELPHI_9_UP}
+    {$define DELPHI_10_UP}
+  {$endif}
+
   {$ifdef CPPB_3}
     {$define CPPB_3_UP}
   {$endif}
@@ -258,8 +285,9 @@
     {$ObjExportAll On}
   {$endif}
 
-{$else (not Windows)}
-  // Linux is the target
+{$else}
+  // not Windows, eg. Linux is the target
+  // Other things to check: 'if LINUX' and 'if FREEBSD'.
   {$define QT_CLX}
 
   {$define KYLIX}
@@ -296,17 +324,19 @@
   {$endif}
 
   {$ifdef KYLIX_2}
+    {$define KYLIX_1_UP}
     {$define KYLIX_2_UP}
   {$endif}
 
   {$ifdef KYLIX_3}
+    {$define KYLIX_1_UP}
     {$define KYLIX_2_UP}
     {$define KYLIX_3_UP}
   {$endif}
 
-{$endif Win32}
+{$endif}
 
-// Compiler defines not specific to a particlular platform.
+// Compiler defines not specific to a particular platform.
 {$ifdef COMPILER_1}
   {$define COMPILER_1_UP}
 {$endif}
@@ -377,6 +407,24 @@
   {$define COMPILER_7_UP}
   {$define COMPILER_8_UP}
   {$define COMPILER_9_UP}
+{$endif}
+
+{$ifdef COMPILER_10}
+  {$define COMPILER_1_UP}
+  {$define COMPILER_2_UP}
+  {$define COMPILER_3_UP}
+  {$define COMPILER_4_UP}
+  {$define COMPILER_5_UP}
+  {$define COMPILER_6_UP}
+  {$define COMPILER_7_UP}
+  {$define COMPILER_8_UP}
+  {$define COMPILER_9_UP}
+  {$define COMPILER_10_UP}
+{$endif}
+
+{$ifndef COMPILER_1_UP}
+  // Die on unknown compiler.
+  ERROR: Unknown compiler - please update detection logic.
 {$endif}
 
 //----------------------------------------------------------------------------------------------------------------------
