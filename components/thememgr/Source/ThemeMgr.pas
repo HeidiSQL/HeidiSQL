@@ -45,7 +45,7 @@ unit ThemeMgr;
 
 interface
 
-{$I Compilers.inc}
+{$I ../../compilerdetection/compilers.inc}
 
 {$ifdef COMPILER_7_UP}
   ATTENTION! Theme support is already included in this Borland product.

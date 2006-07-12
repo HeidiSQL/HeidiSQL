@@ -8,7 +8,7 @@ unit Main;
 
 interface
                                          
-{$I Compilers.inc}
+{$I ../../../compilerdetection/compilers.inc}
 {$R WinXP.res}
 
 uses 

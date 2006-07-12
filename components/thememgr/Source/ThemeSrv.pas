@@ -40,7 +40,7 @@ uses
   Windows, Classes, Messages, Graphics, Controls,
   UxTheme, TmSchema;
 
-{$I Compilers.inc}
+{$I ../../compilerdetection/compilers.inc}
 
 type
   // These are all elements which can be themed.
