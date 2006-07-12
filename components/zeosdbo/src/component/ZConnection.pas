@@ -42,6 +42,9 @@ interface
 {$I ZComponent.inc}
 
 uses
+{$ifdef COMPILER_10_UP}
+  DBCommonTypes,
+{$endif}
 {$IFNDEF VER130BELOW}
   Types,
 {$ENDIF}

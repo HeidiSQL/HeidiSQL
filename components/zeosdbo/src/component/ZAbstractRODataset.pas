@@ -2929,8 +2929,11 @@ const
     ftFloat, ftBCD, ftDateTime, ftDateTime, ftDateTime, ftBytes, ftVarBytes,
     ftInteger, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftUnknown,
     ftString, ftString, ftLargeInt, ftADT, ftArray, ftReference, ftDataSet,
-    ftBlob, ftBlob, ftVariant, ftInterface, ftInterface, ftString, ftTimeStamp, ftFMTBcd);
-
+    ftBlob, ftBlob, ftVariant, ftInterface, ftInterface, ftString, ftTimeStamp, ftFMTBcd
+{$ifdef COMPILER_10_UP}
+    , ftString, ftBlob, ftTimeStamp, ftString
+{$endif}
+  );
   CheckTypeSizes = [ftBytes, ftVarBytes, ftBCD, ftReference];
 
 begin
