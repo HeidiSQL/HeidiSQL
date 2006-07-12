@@ -269,6 +269,7 @@ var
   valuescount, recordcount  : Integer;
   donext                    : Boolean;
   PBuffer                   : PChar;
+  sql                       : String;
 begin
   // export!
   PageControl1.ActivePageIndex := 0;
@@ -307,7 +308,7 @@ begin
   TRY
     with TMDIChild(Mainform.ActiveMDIChild) do
     begin
-      ExecQuery( 'USE ' + DBComBoBox.Text );
+      ExecUseQuery( DBComBoBox.Text );
       if CheckBoxExtendedInsert.Checked then
       begin
         max_allowed_packet := StrToIntDef( GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
@@ -328,12 +329,14 @@ begin
         if CheckBoxWithCreateDatabase.Checked then
         begin
           wfs(f);
-          wfs(f, 'CREATE DATABASE ' + DBComBoBox.Text + ';');
+          sql := 'CREATE DATABASE ' + mainform.mask(DBComBoBox.Text) + ';';
+          wfs(f, sql );
         end;
         if CheckBoxWithUseDB.Checked then
         begin
           wfs(f);
-          wfs(f, 'USE ' + DBComBoBox.Text + ';');
+          sql := 'USE ' + mainform.mask(DBComBoBox.Text) + ';';
+          wfs(f, sql );
         end;
       end;
 
@@ -414,7 +417,7 @@ begin
             end;
 
             // Keys:
-            GetResults( 'SHOW KEYS FROM ' + TablesCheckListBox.Items[i], ZQuery3 );
+            GetResults( 'SHOW KEYS FROM ' + mask(TablesCheckListBox.Items[i]), ZQuery3 );
             setLength(keylist, 0);
             keystr := '';
             if ZQuery3.RecordCount > 0 then
@@ -457,7 +460,7 @@ begin
               if keylist[k].Name = 'PRIMARY' then
                 keystr := keystr + crlf + '  PRIMARY KEY ('
               else
-                keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + keylist[k].Name + ' (';
+                keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + mask(keylist[k].Name) + ' (';
               keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
             end;
             createquery := createquery + keystr + crlf + ')';
@@ -474,18 +477,24 @@ begin
           // Another Database
           else if RadioButtonDB.Checked then begin
             if mysql_version >= 32320 then
-              ExecQuery( 'USE ' + DB2Export );
+            begin
+              ExecUseQuery( DB2Export );
+            end;
             if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then
               ExecQuery( dropquery );
             ExecQuery( createquery );
             if mysql_version >= 32320 then
-              ExecQuery( 'USE ' + DBComboBox.Text );
+            begin
+              ExecUseQuery( DBComboBox.Text );
+            end;
           end
 
           // Another Host / DB:
           else if RadioButtonHost.Checked then begin
             if mysql_version >= 32320 then
-              win2export.ExecQuery('USE ' + DB2Export);
+            begin
+              win2export.ExecUseQuery( DB2Export );
+            end;
             if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then
               win2export.ExecQuery(dropquery);
             win2export.ExecQuery(createquery);
@@ -525,8 +534,11 @@ begin
           begin
             if tofile then
             begin
-              wfs(f, '/*!40000 ALTER TABLE '+TablesCheckListBox.Items[i]+' DISABLE KEYS */;' );
-              wfs(f, 'LOCK TABLES '+TablesCheckListBox.Items[i]+' WRITE;' );
+              // TODO: Ack, not a pretty syntax.  Other DBs will definitely choke over that last
+              //       semicolon which is out of context of the comment.  Can it be moved somehow,
+              //       or is this a MySQL misfeature?
+              wfs(f, '/*!40000 ALTER TABLE '+ mask(TablesCheckListBox.Items[i]) +' DISABLE KEYS */;' );
+              wfs(f, 'LOCK TABLES '+ mask(TablesCheckListBox.Items[i]) +' WRITE;' );
             end
             else if RadioButtonDB.Checked then
             begin
@@ -620,7 +632,10 @@ begin
             if tofile then
             begin
               wfs(f, 'UNLOCK TABLES;' );
-              wfs(f, '/*!40000 ALTER TABLE '+TablesCheckListBox.Items[i]+' ENABLE KEYS */;' );
+              // TODO: Ack, not a pretty syntax.  Other DBs will definitely choke over that last
+              //       semicolon which is out of context of the comment.  Can it be moved somehow,
+              //       or is this a MySQL misfeature?
+              wfs(f, '/*!40000 ALTER TABLE '+mask(TablesCheckListBox.Items[i])+' ENABLE KEYS */;' );
             end
             else if RadioButtonDB.Checked then
             begin
@@ -640,7 +655,9 @@ begin
         end;
       end;
       if ActualDatabase <> '' then
-        ExecQuery( 'USE ' + ActualDatabase );
+      begin
+        ExecUseQuery( ActualDatabase );
+      end;
     end;
   FINALLY
     if tofile then

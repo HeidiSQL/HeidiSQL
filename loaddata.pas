@@ -166,7 +166,7 @@ begin
   if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    GetResults( 'SHOW FIELDS FROM ' + DBComboBox.Text + '.' +  TablesComboBox.Text, ZQuery3 );
+    GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text), ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
       ColumnsCheckListBox.Items.Add(ZQuery3.Fields[0].AsString);

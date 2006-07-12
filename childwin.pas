@@ -703,7 +703,7 @@ begin
   // List Databases and Tables-Names
   for i:=0 to OnlyDBs2.Count-1 do
   try
-    GetResults( 'SHOW TABLES FROM ' + OnlyDBs2[i], ZQuery3 );
+    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3 );
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 12;
     tnode.SelectedIndex := 0;
@@ -719,8 +719,11 @@ begin
       ZQuery3.Next;
     end;
   except
-    LogSQL( 'Could not open database ''' + OnlyDBs2[i] + ''' - ignoring.' );
-    continue;
+    on E : Exception do
+    begin
+      LogSQL( 'Could not open database ''' + OnlyDBs2[i] + ''' - ignoring: ' + e.Message );
+      continue;
+    end;
   end;
 
   showstatus(inttostr(OnlyDBs2.count) + ' Databases');
@@ -820,7 +823,7 @@ begin
 
   // rowcount:
   try
-    rowcount := StrToIntDef( GetVar( 'SELECT COUNT(*) FROM ' + mainform.mask(ActualTable), 0 ), 0 );
+    rowcount := StrToIntDef( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ), 0 );
   except
     rowcount := 0;
   end;
@@ -1060,7 +1063,7 @@ begin
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
 
   ZConn.Database := ActualDatabase;
-  ExecQuery( 'USE ' + ActualDatabase );
+  ExecUseQuery( ActualDatabase );
 
   Try
     if mysql_version >= 32300 then begin
@@ -1260,7 +1263,7 @@ begin
   Feldliste.Items.BeginUpdate;
   FeldListe.Items.Clear;
   Try
-    GetResults( 'SHOW FIELDS FROM ' + ActualTable, ZQuery3 );
+    GetResults( 'SHOW FIELDS FROM ' + mask(ActualTable), ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
       n := FeldListe.Items.Add;
@@ -1304,7 +1307,7 @@ begin
 
 
   Screen.Cursor := crHourglass;
-  GetResults( 'SHOW KEYS FROM ' + ActualTable, ZQuery3 );
+  GetResults( 'SHOW KEYS FROM ' + mask(ActualTable), ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
     // primary key
@@ -1454,7 +1457,7 @@ begin
 
   Screen.Cursor := crSQLWait;
   for i:=0 to t.count-1 do
-    ExecQuery( 'DELETE FROM ' + mainform.mask(t[i]) );
+    ExecQuery( 'DELETE FROM ' + mask(t[i]) );
   ShowDBProperties(self);
   Screen.Cursor := crDefault;
 end;
@@ -1471,13 +1474,13 @@ begin
 
   if (Sender as TComponent).Name = 'PopupMenuDropTable' then begin
     // delete-command was sended by dbtree-popupmenu:
-    t.add(mainform.mask(DBRightClickSelectedItem.Parent.text) + '.' + mainform.mask(DBRightClickSelectedItem.text));
+    t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
   end
   else with Tabellenliste do begin
     // delete-command was sended by tabellenliste-popupmenu:
     for i:=0 to Items.count-1 do
       if Items[i].Selected then
-        t.add(mainform.mask(Items[i].Caption));
+        t.add(mask(Items[i].Caption));
     if t.count = 0 then
       exit;
   end;
@@ -1528,7 +1531,7 @@ begin
 
   Screen.Cursor := crSQLWait;
   try
-    ExecQuery( 'DROP DATABASE ' + tndb_.Text );
+    ExecQuery( 'DROP DATABASE ' + mask(tndb_.Text) );
     tndb_.Delete;
   except
     MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
@@ -1822,7 +1825,7 @@ begin
     if MessageDlg('Can''t drop the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
       Screen.Cursor := crSQLWait;
-      ExecQuery( 'DROP TABLE '+mainform.mask(ActualTable) );
+      ExecQuery( 'DROP TABLE '+mask(ActualTable) );
       tn := DBTree.Selected;
       DBTree.Selected := DBTree.Selected.Parent;
       tn.Destroy;
@@ -1832,7 +1835,7 @@ begin
   end else
   if MessageDlg('Drop field ' + FeldListe.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
-    ExecQuery( 'ALTER TABLE '+mainform.mask(ActualTable)+' DROP '+mainform.mask(FeldListe.Selected.Caption) );
+    ExecQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(FeldListe.Selected.Caption) );
     ShowTableProperties(self);
   end;
 end;
@@ -2043,7 +2046,7 @@ begin
   // edit table-name
   menudroptable.ShortCut := TextToShortCut('Del');
 
-  ExecQuery( 'ALTER TABLE ' + mainform.mask(Item.Caption) + ' RENAME ' + mainform.mask(S) );
+  ExecQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S) );
   ActualTable := S;
   ShowDBProperties(self);
   // Re-Select Entry
@@ -2157,7 +2160,7 @@ begin
     for i:=0 to Tabellenliste.Items.Count - 1 do
     begin
       if Tabellenliste.Items[i].Selected then
-        ExecQuery( 'OPTIMIZE TABLE ' + mainform.mask(Tabellenliste.Items[i].Caption) );
+        ExecQuery( 'OPTIMIZE TABLE ' + mask(Tabellenliste.Items[i].Caption) );
     end;
   finally
     Screen.Cursor := crDefault;
@@ -2178,7 +2181,7 @@ begin
       if Tabellenliste.Items[i].Selected then begin
         if tables <> '' then
           tables := tables + ', ';
-        tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
+        tables := tables + mask(Tabellenliste.Items[i].Caption);
       end;
     ExecQuery( 'CHECK TABLE ' + tables + ' QUICK' );
   finally
@@ -2200,7 +2203,7 @@ begin
       if Tabellenliste.Items[i].Selected then begin
         if tables <> '' then
           tables := tables + ', ';
-        tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
+        tables := tables + mask(Tabellenliste.Items[i].Caption);
       end;
     ExecQuery( 'ANALYZE TABLE ' + tables );
   finally
@@ -2222,7 +2225,7 @@ begin
       if Tabellenliste.Items[i].Selected then begin
         if tables <> '' then
           tables := tables + ', ';
-        tables := tables + mainform.mask(Tabellenliste.Items[i].Caption);
+        tables := tables + mask(Tabellenliste.Items[i].Caption);
       end;
     ExecQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
   finally
@@ -2347,31 +2350,31 @@ begin
   else if menuitem = 'QF7' then
     filter := 'LIKE' + ' ''%' + value + '%'''
   else if menuitem = 'QF8' then begin
-    filter := InputBox('Specify filter-value...', mainform.mask(DBGrid1.SelectedField.FieldName)+' = ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' = ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '= ''' + filter + '''';
   end
   else if menuitem = 'QF9' then begin
-    filter := InputBox('Specify filter-value...', mainform.mask(DBGrid1.SelectedField.FieldName)+' != ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' != ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '!= ''' + filter + '''';
   end
   else if menuitem = 'QF10' then begin
-    filter := InputBox('Specify filter-value...', mainform.mask(DBGrid1.SelectedField.FieldName)+' > ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' > ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '> ''' + filter + '''';
   end
   else if menuitem = 'QF11' then begin
-    filter := InputBox('Specify filter-value...', mainform.mask(DBGrid1.SelectedField.FieldName)+' < ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' < ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '< ''' + filter + '''';
   end
   else if menuitem = 'QF12' then begin
-    filter := InputBox('Specify filter-value...', mainform.mask(DBGrid1.SelectedField.FieldName)+' like ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' like ', 'Value');
     if filter = 'Value' then
       abort;
     filter := 'LIKE ''' + filter + '''';
@@ -2639,7 +2642,7 @@ var
 begin
   for i:=0 to Tabellenliste.Items.Count - 1 do
     if Tabellenliste.Items[i].Selected then
-      ExecQuery( 'ALTER TABLE ' + Tabellenliste.Items[i].Caption + ' TYPE = ' + (Sender as TMenuItem).Hint);
+      ExecQuery( 'ALTER TABLE ' + mask(Tabellenliste.Items[i].Caption) + ' TYPE = ' + (Sender as TMenuItem).Hint);
   ShowDBProperties(self);
 end;
 
@@ -2652,7 +2655,7 @@ begin
   if inputquery('Change table-type...','New table-type:', strtype) then begin
     for i:=0 to Tabellenliste.Items.Count - 1 do
       if Tabellenliste.Items[i].Selected then
-        ExecQuery( 'ALTER TABLE ' + Tabellenliste.Items[i].Caption + ' TYPE = ' + strtype );
+        ExecQuery( 'ALTER TABLE ' + mask(Tabellenliste.Items[i].Caption) + ' TYPE = ' + strtype );
     ShowDBProperties(self);
   end;
 end;
@@ -3202,7 +3205,6 @@ begin
   if button = mbright then
     pmenu2.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
 end;
-
 
 
 // Simulate Ctrl+A-behaviour of common editors

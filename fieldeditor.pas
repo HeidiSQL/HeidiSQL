@@ -630,15 +630,15 @@ begin
           ', ADD PRIMARY KEY (' + implodestr(',', klist[index].Columns) + ')'
       // UNIQUE:
       else if klist[index].Unique then
-        query := query1 + ' DROP INDEX ' + klist[index].Name +
+        query := query1 + ' DROP INDEX ' + mainform.mask(klist[index].Name) +
           ', ADD UNIQUE ' + klist[index].Name + ' (' + implodestr(',', klist[index].Columns) + ')'
       // FULLTEXT:
       else if klist[index].Fulltext then
-        query := query1 + ' DROP INDEX ' + klist[index].Name +
+        query := query1 + ' DROP INDEX ' + mainform.mask(klist[index].Name) +
           ', ADD FULLTEXT ' + klist[index].Name + ' (' + implodestr(',', klist[index].Columns) + ')'
       // INDEX:
       else
-        query := query1 + ' DROP INDEX '+klist[index].Name +
+        query := query1 + ' DROP INDEX '+ mainform.mask(klist[index].Name) +
           ', ADD INDEX '+klist[index].Name+' (' + implodestr(',', klist[index].Columns) + ')';
       TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
       klist[index].Modified := false;
@@ -649,7 +649,7 @@ begin
       if TempKeys[i] = 'PRIMARY' then
         query := query1 + ' DROP PRIMARY KEY'
       else
-        query := query1 + ' DROP INDEX ' + TempKeys[i];
+        query := query1 + ' DROP INDEX ' + mainform.mask(TempKeys[i]);
       TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
     end;
 
@@ -665,13 +665,13 @@ begin
         query := query1 + ' ADD PRIMARY KEY (' + implodestr(',', klist[j].Columns) + ')'
       // UNIQUE:
       else if klist[j].Unique then
-        query := query1 + ' ADD UNIQUE ' + klist[j].Name + ' (' + implodestr(',', klist[j].Columns) + ')'
+        query := query1 + ' ADD UNIQUE ' + mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')'
       // UNIQUE:
       else if klist[j].Fulltext then
-        query := query1 + ' ADD FULLTEXT ' + klist[j].Name + ' (' + implodestr(',', klist[j].Columns) + ')'
+        query := query1 + ' ADD FULLTEXT ' + mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')'
       // INDEX:
       else
-        query := query1 + ' ADD INDEX '+ klist[j].Name+' (' + implodestr(',', klist[j].Columns) + ')';
+        query := query1 + ' ADD INDEX '+ mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')';
       TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
     end;
   end;

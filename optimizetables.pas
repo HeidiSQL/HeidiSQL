@@ -137,11 +137,11 @@ begin
   ListViewResults.Items.EndUpdate();
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    ExecUseQuery( self.DBComboBox.Text );
     for i:=0 to self.TablesCheckListBox.Items.Count - 1 do
     begin
       if TablesCheckListBox.Checked[i] then
-        ExecQuery('OPTIMIZE TABLE ' + TablesCheckListBox.Items[i]);
+        ExecQuery('OPTIMIZE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
     end;
   end;
   screen.Cursor := crDefault;
@@ -160,11 +160,11 @@ begin
     with self.TablesCheckListBox do
       for i:=0 to Items.Count - 1 do
         if Checked[i] then
-          checkedtables.Add(Items[i]);
+          checkedtables.Add(mainform.mask(Items[i]));
     querystr := 'CHECK TABLE ' + implodestrs(',', checkedtables);
     if CheckBoxQuickCheck.Checked then
       querystr := querystr + ' QUICK';
-    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    ExecUseQuery( self.DBComboBox.Text );
     GetResults( querystr, ZQuery3 );
     showresult(self);
   end;
@@ -184,9 +184,9 @@ begin
     with self.TablesCheckListBox do
       for i:=0 to Items.Count - 1 do
         if Checked[i] then
-          checkedtables.Add(Items[i]);
+          checkedtables.Add(mainform.mask(Items[i]));
     querystr := 'ANALYZE TABLE ' + implodestrs(',', checkedtables);
-    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    ExecUseQuery( self.DBComboBox.Text );
     GetResults( querystr, ZQuery3 );
     showresult(self);
   end;
@@ -206,11 +206,11 @@ begin
     with self.TablesCheckListBox do
       for i:=0 to Items.Count - 1 do
         if Checked[i] then
-          checkedtables.Add(Items[i]);
+          checkedtables.Add(mainform.mask(Items[i]));
     querystr := 'REPAIR TABLE ' + implodestrs(',', checkedtables);
     if CheckBoxQuickRepair.Checked then
       querystr := querystr + ' QUICK';
-    ExecQuery( 'USE ' + self.DBComboBox.Text );
+    ExecUseQuery( self.DBComboBox.Text );
     GetResults( querystr, ZQuery3 );
     showresult(self);
   end;
@@ -255,7 +255,7 @@ end;
 procedure Toptimize.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
-    ExecQuery( 'USE ' + ActualDatabase );
+    ExecUseQuery( ActualDatabase );
 end;
 
 procedure Toptimize.TablesCheckListBoxClickCheck(Sender: TObject);

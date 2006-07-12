@@ -178,7 +178,7 @@ begin
   EditHost.Text := ph.h_name;
   WSACleanup();
 }
-  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery( 'USE mysql' );
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUseQuery( 'mysql' );
 
   ZQueryDBs := TZReadOnlyQuery.Create(self);
   ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
@@ -330,7 +330,7 @@ begin
     2 : // add columns to user-node...
       begin
         // find fields from table
-        TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW FIELDS FROM ' + TreeViewUsers.Selected.Parent.Text + '.' + TreeViewUsers.Selected.Text, ZQueryF );
+        TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW FIELDS FROM ' + mainform.mask(TreeViewUsers.Selected.Parent.Text) + '.' + mainform.mask(TreeViewUsers.Selected.Text), ZQueryF );
         for i:=1 to ZQueryF.RecordCount do
         begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, ZQueryF.Fields[0].AsString);

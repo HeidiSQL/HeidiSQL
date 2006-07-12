@@ -192,7 +192,7 @@ begin
 
     with TMDIChild(Application.Mainform.ActiveMDIChild) do
     begin
-      ExecQuery( 'USE ' + DBComboBox.Text );
+      ExecUseQuery( DBComboBox.Text );
       ExecQuery( ctquery );
       ShowDBProperties(self);
       ActualTable := EditTablename.Text;

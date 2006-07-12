@@ -13,8 +13,11 @@ uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset;
 
   function trimc(s: String; c: Char) : String;
+  // TODO: Look at each caller to see if escaping is necessary.
   function implode(seperator: String; a: array of string) :String;
+  // TODO: Look at each caller to see if escaping is necessary.
   function implodestr(seperator: String; a: TStringList) :String;
+  // TODO: Look at each caller to see if escaping is necessary.
   function implodestrs(seperator: String; a: TStrings) :String;
   function explode(separator, a: String) :TStringList;
   function strpos(haystack, needle: String; offset: Integer=0) : Integer;

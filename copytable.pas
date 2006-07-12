@@ -170,7 +170,7 @@ begin
   else begin
     for i:=0 to CheckListBoxFields.Items.Count-1 do
       if CheckListBoxFields.Checked[i] then
-        strquery := strquery + ' ' + CheckListBoxFields.Items[i] + ',';
+        strquery := strquery + ' ' + mainform.mask(CheckListBoxFields.Items[i]) + ',';
     delete(strquery, length(strquery), 1);
   end;
 
