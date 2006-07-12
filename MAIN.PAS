@@ -276,8 +276,13 @@ uses ChildWin, About, connections, exportsql, tbl_properties, loaddata,
   usermanager, options, optimizetables, helpers,
   printlist, copytable, insertfiles;
 
-{$R *.DFM}
-
+{ TODO: Using two copies of the DFM is ugly,
+  but it's the only way I can think of.. }
+{$ifndef COMPILER_7_UP}
+  {$R MAIN.DFM}
+{$else}
+  {$R MAIN_NOTHEMEMGR.DFM}
+{$endif}
 
 procedure TMainForm.ShowConnections(Sender: TObject);
 begin
