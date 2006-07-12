@@ -44,6 +44,8 @@ uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure CopyRegistryKey(Source, Dest: HKEY);
   procedure DeleteRegistryKey(Key: HKEY);
   function MakeInt( Str: String ) : Integer;
+  function esc(Text: string): string;
+  function escLike(Text: string): string;
 
 
 implementation
@@ -964,6 +966,24 @@ begin
     end;
   end;
   result := StrToIntDef( StrWithInts, 0 );
+end;
+
+// Escape text string.
+function esc(Text: string): string;
+begin
+  Result := StringReplace(Text, #39, #39#39, [rfReplaceAll]);
+  Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
+  Result := #39 + Result + #39;
+end;
+
+// Escape text string for comparison.
+function escLike(Text: string): string;
+begin
+  Result := StringReplace(Text, #39, #39#39, [rfReplaceAll]);
+  Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
+  Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
+  Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
+  Result := #39 + Result + #39;
 end;
 
 end.

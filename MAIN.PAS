@@ -965,13 +965,12 @@ end;
 
 
 
-// mask tablenames, dbs and so on with backtick
+// Escape database, table, field, index or key name.
 function TMainform.mask(str: String) : String;
 begin
-  if TMDIChild(ActiveMDIChild).mysql_version >= 32300 then
-    result := '`' + str + '`'
-  else
-    result := str;
+  if ActiveMDIChild = nil then
+    raise Exception.Create('Cannot mask SQL without active MDI');
+  result := TMDIChild(ActiveMDIChild).mask(str);
 end;
 
 

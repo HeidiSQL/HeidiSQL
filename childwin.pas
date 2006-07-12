@@ -369,6 +369,7 @@ type
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQuery2BeforeClose(DataSet: TDataSet);
     procedure ExecQuery( SQLQuery: String );
+    procedure ExecUseQuery( DbName: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
     procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
@@ -391,6 +392,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure DBMemo1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    function mask(str: String) : String;
 
     private
       { Private declarations }
@@ -2972,6 +2974,11 @@ begin
 end;
 
 
+procedure TMDIChild.ExecUseQuery( DbName: String );
+begin
+  ExecQuery('USE ' + mask(DbName));
+end;
+
 // Execute a query without returning a resultset
 procedure TMDIChild.ExecQuery( SQLQuery: String );
 begin
@@ -3204,6 +3211,17 @@ procedure TMDIChild.DBMemo1KeyDown(Sender: TObject; var Key: Word;
 begin
   if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
     DBMemo1.SelectAll;
+end;
+
+function TMDIChild.mask(str: String) : String;
+begin
+  if mysql_version >= 32300 then
+  begin
+    result := StringReplace(str, '`', '``', [rfReplaceAll]);
+    result := '`' + str + '`';
+  end
+  else
+    result := str;
 end;
 
 end.
