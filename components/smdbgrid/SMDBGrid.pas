@@ -90,7 +90,7 @@ unit SMDBGrid;
 
 interface
 
-{$I ../../../compilerdetection/compilers.inc}
+{$I compilers.inc}
 
 uses
 {$ifdef COMPILER_9_UP}
