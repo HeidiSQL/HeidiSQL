@@ -41,7 +41,7 @@ RemoteSymbols=0
 MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
-ExeDescription=QREDBImage 1.0 and EDBImage 1.4 - by SER
+ExeDescription=EDBImage 1.4 by SER
 
 [Directories]
 OutputDir=

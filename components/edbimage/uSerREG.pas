@@ -19,7 +19,8 @@ uses Classes , {RegisterComponent}
       DB, {para acceder al Dataset del reporte}
 
       {     PictEdit, {TGraphicEditor }
-     edbimage, qrEDBimage;  { mis componentes }
+     // qrEDBimage,
+     edbimage;  { mis componentes }
 
 type
   TQREDBImageFieldProperty = Class (TStringProperty)
@@ -70,8 +71,8 @@ end;
 procedure Register;
 begin
   RegisterComponents('Data Controls', [TEDBImage]);
-  RegisterComponents('QReport',[TQREDBImage]);
-  RegisterPropertyEditor(TypeInfo(string), TQREDBImage, 'DataField', TQREDBImageFieldProperty); {<-- do not resource }
+  //RegisterComponents('QReport',[TQREDBImage]);
+  //RegisterPropertyEditor(TypeInfo(string), TQREDBImage, 'DataField', TQREDBImageFieldProperty); {<-- do not resource }
 end;
 
 

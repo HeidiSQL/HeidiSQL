@@ -22,7 +22,7 @@ package VCLser40;
 {$WRITEABLECONST ON}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $00400000}
-{$DESCRIPTION 'QREDBImage 1.0 and EDBImage 1.4 Runtime- by SER'}
+{$DESCRIPTION 'EDBImage 1.4 Runtime by SER'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
@@ -30,12 +30,10 @@ requires
   VCL40,
   VCLJPG40,
   VCLDB40,
-  QRPT40,
   VCLBDE40;
 
 contains
-  EDBImage in '..\..\EDBImage.pas',
-  QREDBImage in '..\..\QREDBImage.pas';
+  EDBImage in '..\..\EDBImage.pas';
 
 
 end.
