@@ -45,9 +45,9 @@ ExeDescription=QREDBImage 1.0 and EDBImage 1.4 Runtime- by SER
 
 [Directories]
 OutputDir=
-UnitOutputDir=$(Delphi)\lib
-PackageDLLOutputDir=C:\windows\system
-PackageDCPOutputDir=$(Delphi)\bin
+UnitOutputDir=build
+PackageDLLOutputDir=
+PackageDCPOutputDir=
 SearchPath=
 Packages=
 Conditionals=

@@ -28,7 +28,6 @@ Z=1
 ShowHints=1
 ShowWarnings=1
 UnitAliases=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
-
 [Linker]
 MapFile=0
 OutputObjs=0
@@ -38,11 +37,10 @@ RemoteSymbols=0
 MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
-ExeDescription=EDBImage  and QREDBImage Runtime - by Ser
-
+ExeDescription=Theme Manager design-time components
 [Directories]
 OutputDir=
-UnitOutputDir=build
+UnitOutputDir=..\build
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
@@ -50,13 +48,15 @@ Packages=
 Conditionals=
 DebugSourceDirs=
 UsePackages=0
-
 [Parameters]
 RunParams=
 HostApplication=
-
+[Language]
+ActiveLang=
+ProjectLang=$00000407
+RootDir=
 [Version Info]
-IncludeVerInfo=1
+IncludeVerInfo=0
 AutoIncBuild=0
 MajorVer=1
 MinorVer=0
@@ -67,9 +67,8 @@ PreRelease=0
 Special=0
 Private=0
 DLL=0
-Locale=2058
+Locale=1031
 CodePage=1252
-
 [Version Info Keys]
 CompanyName=
 FileDescription=
@@ -81,19 +80,3 @@ OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
-
-[HistoryLists\hlUnitAliases]
-Count=1
-Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
-
-[HistoryLists\hlUnitOutputDirectory]
-Count=2
-Item0=$(Delphi)\Lib
-
-[HistoryLists\hlBPLOutput]
-Count=2
-Item0=C:\windows\system
-
-[HistoryLists\hlDCPOutput]
-Count=2
-Item0=$(Delphi)\bin

@@ -7,7 +7,7 @@
       <SearchPaths>
         <IncludeFiles Value="../../src/component/"/>
         <OtherUnitFiles Value="../../src/component/"/>
-        <UnitOutputDirectory Value="build/"/>
+        <UnitOutputDirectory Value="../../build/"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>

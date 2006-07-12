@@ -91,13 +91,13 @@ ImageBase=4194304
 ExeDescription=Zeos Database Components
 [Directories]
 OutputDir=
-UnitOutputDir=build
+UnitOutputDir=..\..\build
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=build
+SearchPath=..\..\build
 Packages=
 Conditionals=
-DebugSourceDirs=build
+DebugSourceDirs=..\..\build
 UsePackages=0
 [Parameters]
 RunParams=

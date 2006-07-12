@@ -6,7 +6,7 @@
       <Version Value="5"/>
       <SearchPaths>
         <OtherUnitFiles Value="../../src/dbc/"/>
-        <UnitOutputDirectory Value="build/"/>
+        <UnitOutputDirectory Value="../../build/"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>

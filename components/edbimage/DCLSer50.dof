@@ -42,9 +42,9 @@ ExeDescription=QREDBImage 1.0 and EDBImage 1.4 - by SER
 
 [Directories]
 OutputDir=
-UnitOutputDir=$(DELPHI)\lib
-PackageDLLOutputDir=$(DELPHI)\bin
-PackageDCPOutputDir=$(DELPHI)\bin
+UnitOutputDir=build
+PackageDLLOutputDir=
+PackageDCPOutputDir=
 SearchPath=
 Packages=
 Conditionals=

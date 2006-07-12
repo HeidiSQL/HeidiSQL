@@ -42,7 +42,7 @@ ImageBase=4194304
 ExeDescription=SynEdit component suite
 [Directories]
 OutputDir=
-UnitOutputDir=
+UnitOutputDir=..\build
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
