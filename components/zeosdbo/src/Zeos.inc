@@ -1,4 +1,4 @@
-{$I ../../compilerdetection/compilers.inc}
+{$I ../../../compilerdetection/compilers.inc}
 
 // Compilation directives for Lazarus and Delphi 5
 {$IFDEF COMPILER_5}
