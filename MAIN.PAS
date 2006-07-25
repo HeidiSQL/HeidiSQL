@@ -11,9 +11,6 @@ unit Main;
 interface
 
 uses
-{$ifndef COMPILER_7_UP}
-  ThemeMgr, ThemeMgrDB,
-{$endif}
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
@@ -77,7 +74,6 @@ type
     MenuUserManager: TMenuItem;
     MenuPreferences: TMenuItem;
     N7: TMenuItem;
-    ImageList2: TImageList;
     Readme1: TMenuItem;
     N8: TMenuItem;
     UserManager: TAction;
@@ -165,9 +161,6 @@ type
     InsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
-{$ifndef COMPILER_7_UP}
-    ThemeManager1: TThemeManager;
-{$endif}
     DataSearch: TAction;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
@@ -276,13 +269,7 @@ uses ChildWin, About, connections, exportsql, tbl_properties, loaddata,
   usermanager, options, optimizetables, helpers,
   printlist, copytable, insertfiles;
 
-{ TODO: Using two copies of the DFM is ugly,
-  but it's the only way I can think of.. }
-{$ifndef COMPILER_7_UP}
-  {$R MAIN.DFM}
-{$else}
-  {$R MAIN_NOTHEMEMGR.DFM}
-{$endif}
+{$R *.DFM}
 
 procedure TMainForm.ShowConnections(Sender: TObject);
 begin
@@ -726,9 +713,9 @@ begin
   // Copy data in actual dataset as HTML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
     if PageControl1.ActivePage = SheetData then
-      dataset2html(ZQuery2, ZConn.HostName + ': ' + ActualDatabase + '.' + ActualTable)
+      dataset2html(ZQuery2, ZConn.HostName + ': ' + ActualDatabase + '.' + ActualTable, '', ConvertHTMLEntities, appname + ' ' + appversion )
     else if PageControl1.ActivePage = SheetQuery then
-      dataset2html(ZQuery1, ZQuery1.Sql[0]);
+      dataset2html(ZQuery1, ZQuery1.Sql[0], '', ConvertHTMLEntities, appname + ' ' + appversion);
   end;
 end;
 
@@ -750,9 +737,9 @@ begin
       if Execute and (FileName <> '') then
       begin
         if PageControl1.ActivePage = SheetData then
-          dataset2html(ZQuery2, ZConn.HostName + ' / ' + ActualDatabase + ' / ' + ActualTable, FileName)
-        else                       
-          dataset2html(ZQuery1, ZQuery1.Sql[0], FileName);
+          dataset2html(ZQuery2, ZConn.HostName + ' / ' + ActualDatabase + ' / ' + ActualTable, FileName, ConvertHTMLEntities, appname+' '+appversion)
+        else
+          dataset2html(ZQuery1, ZQuery1.Sql[0], FileName, ConvertHTMLEntities, appname+' '+appversion);
       end;
     end;
 
@@ -1092,7 +1079,7 @@ begin
         Screen.Cursor := crHourGlass;
         case FilterIndex of
           1 : dataset2csv(query, CSVSeparator, CSVEncloser, CSVTerminator, Filename);
-          2 : dataset2html(query, titel, FileName);
+          2 : dataset2html(query, titel, FileName, ConvertHTMLEntities, appname+' '+appversion);
           3 : dataset2xml(query, titel, FileName);
         end;
         Screen.Cursor := crDefault;

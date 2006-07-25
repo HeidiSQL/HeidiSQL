@@ -9,7 +9,7 @@ unit helpers;
 
 interface
 
-uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
+uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset;
 
   function trimc(s: String; c: Char) : String;
@@ -31,7 +31,7 @@ uses main, Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
-  function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''): Boolean;
+  function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
   function dataset2csv(ds: TZQuery; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
   function dataset2xml(ds: TZQuery; title: String; filename: String = ''): Boolean;
   function esc2ascii(str: String): String;
@@ -406,7 +406,7 @@ end;
 
 // convert a TZDataSet to HTML-Table.
 // if a filename is given, save HTML to disk, otherwise to clipboard
-function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''): Boolean;
+function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer, data     : string;
@@ -425,7 +425,7 @@ begin
       '<html>' + crlf +
       '<head>' + crlf +
       '  <title>' + htmltitle + '</title>' + crlf +
-      '  <meta name="GENERATOR" content="'+ appname + ' ' + appversion + '">' + crlf +
+      '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
       '  <style type="text/css"><!--' + crlf +
       '    .header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
       '    th {vertical-align: top;}' + crlf +
@@ -474,7 +474,7 @@ begin
           end
           else
           begin
-            if mainform.ConvertHTMLEntities then
+            if ConvertHTMLEntities then
               data := htmlentities(data);
             data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
             data := data + '&nbsp;';
@@ -482,7 +482,7 @@ begin
         end
         else
         begin
-          if mainform.ConvertHTMLEntities then
+          if ConvertHTMLEntities then
             data := htmlentities(data);
           data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
           data := data + '&nbsp;';
@@ -502,7 +502,7 @@ begin
     // footer:
     buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
       '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
-      ' by <a href="http://www.'+appname+'.com/">' + appname + ' ' + appversion + '</a></em></p>' + crlf + crlf +
+      ' by <a href="http://www.heidisql.com/">' + Generator + '</a></em></p>' + crlf + crlf +
       '</body></html>';
     if filename <> '' then
       FStream.Write(pchar(buffer)^, length(buffer))
