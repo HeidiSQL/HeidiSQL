@@ -33,7 +33,6 @@ type
     CheckBoxZerofill: TCheckBox;
     CheckBoxNotNull: TCheckBox;
     CheckBoxAutoIncrement: TCheckBox;
-    ImageList1: TImageList;
     TabSheet2: TTabSheet;
     ComboBoxKeys: TComboBox;
     Label4: TLabel;
@@ -770,14 +769,14 @@ begin
       Brush.Color := clWindow;
       FillRect(rect);
       if (klist[index].Unique) and (klist[index].Name <> 'PRIMARY') then
-        icon := 7
+        icon := 64
       else if klist[index].Fulltext then
-        icon := 8
+        icon := 65
       else if klist[index].Name = 'PRIMARY' then
-        icon := 5
+        icon := 26
       else
-        icon := 6;
-      ImageList1.Draw(c.canvas, Rect.Left, Rect.Top, Icon);
+        icon := 63;
+      Mainform.ImageList1.Draw(c.canvas, Rect.Left, Rect.Top, Icon);
       Font.Color := clWindowText;
       TextOut(Rect.Left + 18, Rect.Top, c.Items[Index]);
     end;

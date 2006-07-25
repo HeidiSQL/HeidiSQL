@@ -23,7 +23,6 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
 type
   TMDIChild = class(TForm)
     Panel1: TPanel;
-    ImageList1: TImageList;
     DBtree: TTreeView;
     Splitter1: TSplitter;
     TableShow: TPanel;
@@ -35,7 +34,6 @@ type
     PopupMenu1: TPopupMenu;
     Drop1: TMenuItem;
     Panel2: TPanel;
-    ImageList2: TImageList;
     SheetTable: TTabSheet;
     Panel3: TPanel;
     pmenu2: TPopupMenu;
@@ -143,7 +141,6 @@ type
     N7: TMenuItem;
     DropFilter1: TMenuItem;
     Table1: TMenuItem;
-    ImageList3: TImageList;
     PopupMenu7: TPopupMenu;
     OpenDialog2: TOpenDialog;
     PrintList2: TMenuItem;
@@ -178,7 +175,6 @@ type
     MenuChangeType5: TMenuItem;
     MenuChangeType6: TMenuItem;
     selectall1: TMenuItem;
-    ImageListProcesslist: TImageList;
     MenuAutoupdate: TMenuItem;
     TimerProcesslist: TTimer;
     Set1: TMenuItem;
@@ -677,8 +673,8 @@ begin
   DBTree.items.Clear;
 
   tnodehost := DBtree.Items.Add(nil, ZConn.User + '@' + ZConn.Hostname);  // Host or Root
-  tnodehost.ImageIndex := 13;
-  tnodehost.SelectedIndex := 6;
+  tnodehost.ImageIndex := 41;
+  tnodehost.SelectedIndex := 41;
 
   Screen.Cursor := crSQLWait;
   mainform.Showstatus('Reading Databases...', 2, 51);
@@ -705,15 +701,15 @@ begin
   try
     GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3 );
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
-    tnode.ImageIndex := 12;
-    tnode.SelectedIndex := 0;
+    tnode.ImageIndex := 37;
+    tnode.SelectedIndex := 38;
     if ActualDatabase = OnlyDBs2[i] then
       tmpSelected := tnode;
     for j:=1 to ZQuery3.RecordCount do
     begin
       tchild := DBtree.Items.AddChild( tnode, ZQuery3.Fields[0].AsString );
-      tchild.ImageIndex := 1;
-      tchild.SelectedIndex := 11;
+      tchild.ImageIndex := 39;
+      tchild.SelectedIndex := 40;
       if (ActualTable = ZQuery3.Fields[0].AsString) and (tmpSelected.Text = OnlyDBs2[i]) then
         tmpSelected := tchild;
       ZQuery3.Next;
@@ -970,7 +966,7 @@ begin
       for j:=0 to DBGrid1.Columns.count-1 do
       begin
         if (DBGrid1.Columns[j].FieldName = FeldListe.Items[i].Caption) and
-          (FeldListe.Items[i].ImageIndex = 9) then
+          (FeldListe.Items[i].ImageIndex = 26) then
         begin
           PrimaryKeyColumns.Add( FeldListe.Items[i].Caption );
         end;
@@ -1149,7 +1145,7 @@ begin
       for i := 1 to ZQuery3.RecordCount do
       begin
         n := Tabellenliste.Items.Add;
-        n.ImageIndex := 1;
+        n.ImageIndex := 39;
         // Table
         n.Caption := ZQuery3.FieldByName('Name').AsString;
         if PopupMenuTablelistColumns.Items[0].Checked then
@@ -1197,7 +1193,7 @@ begin
       begin
         n := Tabellenliste.Items.Add;
         n.Caption := ZQuery3.Fields[0].AsString;
-        n.ImageIndex := 1;
+        n.ImageIndex := 39;
         n.SubItems.Add( GetVar( 'SELECT COUNT(*) FROM '+ZQuery3.Fields[0].AsString ) );
         ZQuery3.Next;
       end;
@@ -1220,8 +1216,8 @@ begin
   for t:=0 to TabellenListe.Items.Count-1 do
   begin
     with DBtree.Items.AddChild(tndb, TabellenListe.Items[t].Caption) do begin
-      ImageIndex := 1;
-      selectedIndex := 11;
+      ImageIndex := 39;
+      selectedIndex := 40;
     end;
   end;
 
@@ -1268,13 +1264,13 @@ begin
     begin
       n := FeldListe.Items.Add;
       if ZQuery3.FieldByName('Key').AsString = 'PRI' then
-        n.ImageIndex := 9
+        n.ImageIndex := 26
       else if ZQuery3.FieldByName('Key').AsString = 'UNI' then
-        n.ImageIndex := 11
+        n.ImageIndex := 64
       else if ZQuery3.FieldByName('Key').AsString = 'MUL' then
-        n.ImageIndex := 10
+        n.ImageIndex := 63
       else
-        n.ImageIndex := 14;
+        n.ImageIndex := 62;
 
       n.Caption := ZQuery3.FieldByName('Field').AsString;
       n.Subitems.Add( ZQuery3.FieldByName('Type').AsString );
@@ -1293,9 +1289,9 @@ begin
       for i:=1 to ZQuery3.RecordCount do begin
         tn := DBtree.Items.AddChild(Dbtree.Selected, ZQuery3.FieldByName('Field').AsString );
         if ZQuery3.FieldByName('Key').AsString = 'PRI' then
-          tn.ImageIndex := 21
+          tn.ImageIndex := 26
         else
-          tn.ImageIndex := 17;
+          tn.ImageIndex := 62;
         tn.SelectedIndex := tn.ImageIndex;
         ZQuery3.Next;
       end;
@@ -1317,7 +1313,7 @@ begin
       begin
         if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 9;
+          FeldListe.Items[j].ImageIndex := 26;
           break;
         end;
       end;
@@ -1330,7 +1326,7 @@ begin
       begin
         if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 10;
+          FeldListe.Items[j].ImageIndex := 63;
           break;
         end;
       end;
@@ -1343,7 +1339,7 @@ begin
       begin
         if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 11;
+          FeldListe.Items[j].ImageIndex := 64;
           break;
         end;
       end;
@@ -1360,7 +1356,7 @@ begin
       begin
         if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 25;
+          FeldListe.Items[j].ImageIndex := 65;
           break;
         end;
       end;
@@ -1616,9 +1612,9 @@ begin
       n := ProcessListe.Items.Add;
       n.Caption := ZQuery3.Fields[0].AsString;
       if CompareText( ZQuery3.Fields[4].AsString, 'Killed') = 0 then
-        n.ImageIndex := 1  // killed
+        n.ImageIndex := 83  // killed
       else
-        n.ImageIndex := 0; // running
+        n.ImageIndex := 82; // running
       for j := 1 to 7 do
         n.Subitems.Add(ZQuery3.Fields[j].AsString);
       ZQuery3.Next;

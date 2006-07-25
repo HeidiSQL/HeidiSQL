@@ -146,8 +146,8 @@ object ExportSQLForm: TExportSQLForm
     Top = 0
     Width = 241
     Height = 257
-    ActivePage = TabSheet2
-    TabIndex = 1
+    ActivePage = TabSheet1
+    TabIndex = 0
     TabOrder = 4
     object TabSheet1: TTabSheet
       Caption = 'Selection'
@@ -177,7 +177,7 @@ object ExportSQLForm: TExportSQLForm
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 1
         OnChange = DBComboBoxChange
       end
@@ -202,7 +202,7 @@ object ExportSQLForm: TExportSQLForm
           Top = 0
           Hint = 'Check none'
           Caption = 'ToolButton1'
-          ImageIndex = 42
+          ImageIndex = 35
           OnClick = CheckListToggle
         end
         object ToolButton2: TToolButton
@@ -211,7 +211,7 @@ object ExportSQLForm: TExportSQLForm
           Top = 0
           Hint = 'Check all'
           Caption = 'ToolButton2'
-          ImageIndex = 43
+          ImageIndex = 36
           OnClick = CheckListToggle
         end
       end

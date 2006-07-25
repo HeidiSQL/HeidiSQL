@@ -31,7 +31,6 @@ type
     Label8: TLabel;
     CheckBoxWithGrant: TCheckBox;
     Label9: TLabel;
-    ImageList1: TImageList;
     Bevel1: TBevel;
     CheckBoxCreateAccount: TCheckBox;
     EditDescription: TEdit;
@@ -135,28 +134,26 @@ begin
   CheckBoxCreateAccount.Caption := 'Create connection account for ' + appname;
 
   tnu1 := DBUserTree.Items.Add(nil, 'Global Access');
-  tnu1.ImageIndex := 13;
-  tnu1.SelectedIndex := 6;
+  tnu1.ImageIndex := 41;
+  tnu1.SelectedIndex := tnu1.ImageIndex;
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    DBUserTree.Images := ImageList1;
     tntop := tnodehost;  // tnodehost on childwin
     tn1 := tntop.GetFirstChild;
     for i:=0 to tntop.Count-1 do
     begin
       tnu2 := DBUserTree.Items.AddChild(tnu1, tn1.Text);
-      tnu2.ImageIndex := 12;
-      tnu2.SelectedIndex := 0;
+      tnu2.ImageIndex := tn1.ImageIndex;
+      tnu2.SelectedIndex := tn1.SelectedIndex;
       for j:=0 to tn1.Count-1 do
       begin
         tn2 := tntop.Item[i].Item[j];
         tnu3 := DBUserTree.Items.AddChild(tnu2, tn1.Text + '.' + tn2.Text);
-        tnu3.ImageIndex := 1;
-        tnu3.SelectedIndex := 11;
+        tnu3.ImageIndex := tn2.ImageIndex;
+        tnu3.SelectedIndex := tn2.SelectedIndex;
       end;
       tn1 := tntop.getNextChild(tn1);
 
-      TreeViewUsers.Images := ImageList1;
     end;
     EditUser.Text := ZConn.User;
 
@@ -299,16 +296,18 @@ begin
     0 : // add dbs to user-node...
       with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
         tndb := tnodehost.GetFirstChild;
-        for i:=0 to tnodehost.Count-1 do begin
+        for i:=0 to tnodehost.Count-1 do
+        begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, tndb.Text);
-          tnu.ImageIndex := 12;
-          tnu.SelectedIndex := 0;
+          tnu.ImageIndex := tndb.ImageIndex;
+          tnu.SelectedIndex := tndb.SelectedIndex;
           tndb := tnodehost.getNextChild(tndb);
         end;
       end;
 
     1 : // add tables to user-node...
-      with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+      with TMDIChild(Application.Mainform.ActiveMDIChild) do
+      begin
         tndb := tnodehost.GetFirstChild;
         // find according db in dbtree
         for i:=0 to tnodehost.Count-1 do begin
@@ -320,8 +319,8 @@ begin
         tntbl := tndb.GetFirstChild;
         for i:=0 to tndb.Count-1 do begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, tntbl.Text);
-          tnu.ImageIndex := 1;
-          tnu.SelectedIndex := 11;
+          tnu.ImageIndex := tntbl.ImageIndex;
+          tnu.SelectedIndex := tntbl.SelectedIndex;
           tntbl := tndb.getNextChild(tntbl);
         end;
       end;
@@ -334,8 +333,8 @@ begin
         for i:=1 to ZQueryF.RecordCount do
         begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, ZQueryF.Fields[0].AsString);
-          tnu.ImageIndex := 17;
-          tnu.SelectedIndex := 18;
+          tnu.ImageIndex := 62;
+          tnu.SelectedIndex := 62;
           ZQueryF.Next;
         end;
       end;
@@ -425,8 +424,8 @@ begin
     for i:=1 to ZQueryUsers.RecordCount do
     begin
       tn := TreeViewUsers.Items.AddChild(nil, ZQueryUsers.Fields[1].AsString + '@' + ZQueryUsers.Fields[0].AsString );
-      tn.ImageIndex := 16;
-      tn.SelectedIndex := 15;
+      tn.ImageIndex := 61;
+      tn.SelectedIndex := 60;
       ZQueryUsers.Next;
     end;
   end;

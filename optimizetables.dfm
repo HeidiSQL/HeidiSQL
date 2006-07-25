@@ -1,6 +1,6 @@
 object optimize: Toptimize
-  Left = 568
-  Top = 111
+  Left = 734
+  Top = 126
   BorderStyle = bsDialog
   Caption = 'Table-Diagnostics'
   ClientHeight = 386
@@ -217,7 +217,7 @@ object optimize: Toptimize
       Top = 0
       Hint = 'Check none'
       Caption = 'ToolButton1'
-      ImageIndex = 42
+      ImageIndex = 35
       ParentShowHint = False
       ShowHint = True
       OnClick = CheckListToggle
@@ -228,7 +228,7 @@ object optimize: Toptimize
       Top = 0
       Hint = 'Check all'
       Caption = 'ToolButton2'
-      ImageIndex = 43
+      ImageIndex = 36
       ParentShowHint = False
       ShowHint = True
       OnClick = CheckListToggle
