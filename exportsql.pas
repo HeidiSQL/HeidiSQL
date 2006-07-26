@@ -329,7 +329,16 @@ begin
         if CheckBoxWithCreateDatabase.Checked then
         begin
           wfs(f);
-          sql := 'CREATE DATABASE ' + mainform.mask(DBComBoBox.Text) + ';';
+          sql := 'SET CHARACTER SET ' + GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 ) + ';';
+          wfs(f, sql);
+          if mysql_version < 50002 then
+          begin
+            sql := 'CREATE DATABASE /*!32312 IF NOT EXISTS*/ ' + mainform.mask(DBComBoBox.Text) + ';';
+          end
+          else
+          begin
+            sql := GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(DBComBoBox.Text), 1 );
+          end;
           wfs(f, sql );
         end;
         if CheckBoxWithUseDB.Checked then
@@ -575,11 +584,13 @@ begin
               insertquery := insertquery + ' VALUES ';
             end;
             thesevalues := '(';
+
             for k := 0 to ZQuery3.fieldcount-1 do
             begin
               if ZQuery3.Fields[k].IsNull then
                 value := 'NULL'
-              else case ZQuery3.Fields[k].DataType of
+              else
+              case ZQuery3.Fields[k].DataType of
                 ftInteger, ftSmallint, ftWord, ftFloat:
                   value := ZQuery3.Fields[k].AsString;
                 else
