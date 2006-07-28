@@ -180,7 +180,7 @@ begin
 
   for i:=1 to length(name) do
   begin
-    if (name[i] in ['\','/',':','*','?','"','<','>','|','.',' ']) then
+    if (name[i] in ['\','/',':','*','?','"','<','>','|','.']) then
     begin
       result := false;
       break;
