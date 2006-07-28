@@ -594,7 +594,7 @@ begin
                 ftInteger, ftSmallint, ftWord, ftFloat:
                   value := ZQuery3.Fields[k].AsString;
                 else
-                  value := QuotedStr( ZQuery3.Fields[k].AsString );
+                  value := escapeAuto( ZQuery3.Fields[k].AsString );
               end;
               thesevalues := thesevalues + value;
               if k < ZQuery3.Fieldcount-1 then

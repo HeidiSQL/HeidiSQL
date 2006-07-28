@@ -49,6 +49,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function MakeInt( Str: String ) : Integer;
   function esc(Text: string): string;
   function escLike(Text: string): string;
+  function escOtherChars(Text: string): string;
+  function escapeAuto(Text: string): string;
 
 
 implementation
@@ -987,6 +989,73 @@ begin
   Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
   Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
   Result := #39 + Result + #39;
+end;
+
+// Escape characters which MySQL doesn't strictly care about, but which might confuse editors etc.
+function escOtherChars(Text: string): string;
+begin
+  Result := StringReplace(Text, '"', '\"', [rfReplaceAll]);
+  {NUL} Result := StringReplace(Text, #0, '\0', [rfReplaceAll]);
+  {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
+  {TAB} Result := StringReplace(Result, #9, '\b', [rfReplaceAll]);
+  {CR}  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
+  {LF}  Result := StringReplace(Result, #10, '\r', [rfReplaceAll]);
+  {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
+end;
+
+// Test for non-Latin1 characters.
+function hasNonLatin1Chars(Text: string): boolean;
+var
+  i: integer;
+  b: byte;
+begin
+  result := false;
+  for i:=1 to length(Text) do
+  begin
+    b := Ord(Text[i]);
+    if ((b < 32) or ((b > 126) and (b < 160))) then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
+end;
+
+// Escape everything within a single CHAR() call.
+// Tried a more efficient implementation, but using more than a few CHAR() calls quickly blows mysqld's default stack, effectively limiting us to this approach.
+function escAllCharacters(Text: string): string;
+const
+  VALUES_PER_ROW: integer = 15;
+var
+  i: integer;
+  s, tmp: string;
+begin
+  s := 'CHAR(' + CRLF;
+  for i:=1 to length(Text) do
+  begin
+    Str(Ord(Text[i]), tmp);
+    if i < length(Text) then
+    begin
+      s := s + tmp + ', ';
+      if i mod VALUES_PER_ROW = 0 then s := s + CRLF;
+    end
+    else s := s + tmp;
+  end;
+  s := s + ')';
+  Result := s;
+end;
+
+// Escapes as necessary.
+function escapeAuto(Text: string): string;
+begin
+  if hasNonLatin1Chars(Text) then
+  begin
+    Result := escAllCharacters(Text);
+  end
+  else
+  begin
+    Result := esc(escOtherChars(Text));
+  end;
 end;
 
 end.
