@@ -432,7 +432,7 @@ begin
       '    .header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
       '    th {vertical-align: top;}' + crlf +
       '    td {vertical-align: top;}' + crlf +
-      '  //--></style>' + crlf +
+      '  --></style>' + crlf +
       '</head>' + crlf + crlf +
       '<body>' + crlf + crlf +
       '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
@@ -1030,6 +1030,8 @@ var
   i: integer;
   s, tmp: string;
 begin
+  // Instead of CHAR(127, 127), we could use x'7F7F' or 0x7F7F.
+  // TODO: Find out when these notations were introduced and switch to one of them (0x7F7F ?) if they work on all MySQL versions..
   s := 'CHAR(' + CRLF;
   for i:=1 to length(Text) do
   begin
