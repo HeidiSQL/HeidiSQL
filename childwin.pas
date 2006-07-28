@@ -3217,7 +3217,7 @@ begin
   begin
     // TODO: For better readability, it would be neat if we only escaped when necessary.
     result := StringReplace(str, '`', '``', [rfReplaceAll]);
-    result := '`' + str + '`';
+    result := '`' + result + '`';
   end
   else
     result := str;
