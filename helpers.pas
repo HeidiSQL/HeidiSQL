@@ -49,6 +49,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function MakeInt( Str: String ) : Integer;
   function esc(Text: string): string;
   function escLike(Text: string): string;
+  function hasNonLatin1Chars(Text: string): boolean;
   function escOtherChars(Text: string): string;
   function escapeAuto(Text: string): string;
 
