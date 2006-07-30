@@ -2413,6 +2413,7 @@ begin
 end;
 
 procedure TMDIChild.ToolButton8Click(Sender: TObject);
+var bf: Textfile;
 begin
   // Save BLOB
   if not (DataSource1.State in [dsEdit, dsInsert]) then
@@ -2437,7 +2438,12 @@ begin
     if execute then try
       Screen.Cursor := crHourGlass;
       case PageControl4.ActivePageIndex of
-        0 : DBMemo1.Lines.SaveToFile(filename);
+        0 : begin
+            AssignFile(bf, filename);
+            Rewrite(bf);
+            Write(bf, ZQuery2.FieldByName(DBMemo1.DataField).AsString);
+            CloseFile(bf);
+          end;
         1 : EDBImage1.Picture.SaveToFile(filename);
       end;
       Screen.Cursor := crDefault;
@@ -2952,8 +2958,8 @@ procedure TMDIChild.ToolButton5Click(Sender: TObject);
 begin
   if dbmemo1.DataField = '' then exit;
   case PageControl4.ActivePageIndex of
-    0 : clipboard.astext := DBMemo1.lines.Text;
-// TODO    1 : 
+    0 : clipboard.astext := ZQuery2.FieldByName(DBMemo1.DataField).AsString;
+    1 : EDBImage1.CopyToClipboard;
   end;
 end;
 
@@ -3062,14 +3068,18 @@ begin
   if grid.SelectedField = nil then exit;
 
 
-  if DBMemo1.DataSource <> ds then begin
+  if DBMemo1.DataSource <> ds then
+  begin
     DBMemo1.DataField := '';
     DBMemo1.DataSource := ds;
     EDBImage1.DataField := '';
     EDBImage1.DataSource := ds;
   end;
-  if grid.SelectedField.IsBlob then begin
+  if grid.SelectedField.IsBlob then
+  begin
     DBMemo1.DataField := grid.SelectedField.FieldName;
+    DBMemo1.ReadOnly := hasNonLatin1Chars( DBMemo1.Field.AsString );
+    ToolButton7.Enabled := not DBMemo1.ReadOnly;
     EDBImage1.DataField := grid.SelectedField.FieldName;
     PageControl3.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
