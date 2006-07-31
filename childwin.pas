@@ -251,6 +251,7 @@ type
     PopupMenuTablelistColumns: TPopupMenu;
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
+    procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
@@ -371,8 +372,7 @@ type
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
     procedure Splitter2Moved(Sender: TObject);
-    procedure DBGridDrawColumnCell(Sender: TObject; const Rect: TRect;
-      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure DataSource1DataChange(Sender: TObject; Field: TField);
     procedure ZSQLMonitor1Trace(Sender: TObject; Event: TZLoggingEvent;
       var LogTrace: Boolean);
     procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
@@ -400,6 +400,8 @@ type
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
+      procedure SaveBlob;
+      function GetActiveGrid: TSMDBGrid;
 
     public
       { Public declarations }
@@ -410,6 +412,7 @@ type
       OnlyDBs2                   : TStringList;
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
+      property ActiveGrid: TSMDBGrid read GetActiveGrid;
   end;
 
 
@@ -1125,7 +1128,7 @@ begin
         column.Width := -1;
 
         column := Tabellenliste.Columns.Add;
-        column.Caption := 'Type';
+        column.Caption := 'Engine';
         column.Width := -1;
 
         column := Tabellenliste.Columns.Add;
@@ -1163,7 +1166,8 @@ begin
           Try // Until 4.x
             n.SubItems.Add( ZQuery3.FieldByName('Type').AsString );
           Except // Since 5.x
-            n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
+            on EDatabaseError do
+              n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
           End;
           // Comment
           n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
@@ -2397,43 +2401,51 @@ end;
 
 procedure TMDIChild.PageControl4Change(Sender: TObject);
 begin
-  // BLOB-Type change
-  if PageControl4.ActivePage = Tabsheet3 then begin      // MEMO
-    ToolButton5.Enabled := true;
+  ToolButton5.Enabled := true;
+  ToolButton7.Enabled := not DBMemo1.ReadOnly;
+  ToolButton8.Enabled := true;
+  if PageControl4.ActivePage = Tabsheet3 then
+  begin
+    // MEMO tab activated.
     ToolButton6.Enabled := true;
-    ToolButton7.Enabled := true;
-    ToolButton8.Enabled := true;
-  end
-  else if PageControl4.ActivePage = Tabsheet4 then begin // ImageBLOB
-    ToolButton5.Enabled := true;
+  end;
+  if PageControl4.ActivePage = Tabsheet4 then
+  begin
+    // Image tab activated.
     ToolButton6.Enabled := false;
-    ToolButton7.Enabled := true;
-    ToolButton8.Enabled := true;
   end
 end;
 
-procedure TMDIChild.ToolButton8Click(Sender: TObject);
-var bf: Textfile;
+// Force a save of the user-edited contents of the BLOB editor.
+procedure TMDIChild.SaveBlob;
 begin
-  // Save BLOB
-  if not (DataSource1.State in [dsEdit, dsInsert]) then
-  try
-    DataSource1.Edit;
-  except
-    exit;
-  end;
+  if not DBMemo1.Modified then exit;
+  if DBMemo1.ReadOnly then exit;
+  if length(DBMemo1.DataField) = 0 then exit;
+  DBMemo1.DataSource.DataSet.Post;
+  //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
+end;
+
+procedure TMDIChild.ToolButton8Click(Sender: TObject);
+var
+  bf: Textfile;
+  grid: TSMDBGrid;
+begin
+  SaveBlob();
+  grid := ActiveGrid;
+
   with TSaveDialog.Create(self) do begin
     case PageControl4.ActivePageIndex of
       0 : begin
-            Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
+            Filter := 'Text files (*.txt)|*.txt|All files (*.*)|*.*';
             DefaultExt := 'txt';
           end;
       1 : begin
-            Filter := 'Bitmaps(*.bmp)|*.bmp|All files (*.*)|*.*';
+            Filter := 'Bitmaps (*.bmp)|*.bmp|All files (*.*)|*.*';
             DefaultExt := 'bmp';
           end;
     end;
-    FileName := DBGrid1.SelectedField.FieldName;
+    FileName := grid.SelectedField.FieldName;
     Options := [ofOverwritePrompt,ofEnableSizing];
     if execute then try
       Screen.Cursor := crHourGlass;
@@ -2824,6 +2836,12 @@ begin
   mainform.FindDialog1.execute;
 end;
 
+procedure TMDIChild.ToolButton4Click(Sender: TObject);
+begin
+  SaveBlob;
+  mainform.HTMLviewExecute(Sender);
+end;
+
 procedure TMDIChild.LoadSQLClick(Sender: TObject);
 var
   filename : String;
@@ -2957,6 +2975,7 @@ end;
 procedure TMDIChild.ToolButton5Click(Sender: TObject);
 begin
   if dbmemo1.DataField = '' then exit;
+  SaveBlob;
   case PageControl4.ActivePageIndex of
     0 : clipboard.astext := ZQuery2.FieldByName(DBMemo1.DataField).AsString;
     1 : EDBImage1.CopyToClipboard;
@@ -3055,19 +3074,23 @@ begin
 end;
 
 
-procedure TMDIChild.DBGridDrawColumnCell(Sender: TObject;
-  const Rect: TRect; DataCol: Integer; Column: TColumn;
-  State: TGridDrawState);
+procedure TMDIChild.DataSource1DataChange(Sender: TObject; Field: TField);
+const
+  booleanDescr: array[Boolean] of ShortString = ('False', 'True');
 var
-  Grid : TSMDBGrid;
-  ds : Tdatasource;
+  ds: TDataSource;
 begin
-  // view blob or memo while Data-Tabsheet is active!
-  grid := (sender as TSMDBGrid);
-  ds := grid.DataSource;
-  if grid.SelectedField = nil then exit;
+  // 'Current selected row' in DataSet has changed.
 
+  // (This probably only happens when something is clicked
+  //  in the DBGrid, but if we really wanted to be sure, we
+  //  could hook DBGrid.GridEnter and set a bool variable
+  //  to true (meaning "grid has focus, row change events
+  //  probably comes from grid"), and vice versa in GridExit..)
 
+  if DBGrid1.SelectedField = nil then exit;
+
+  ds := DBGrid1.DataSource;
   if DBMemo1.DataSource <> ds then
   begin
     DBMemo1.DataField := '';
@@ -3075,12 +3098,18 @@ begin
     EDBImage1.DataField := '';
     EDBImage1.DataSource := ds;
   end;
-  if grid.SelectedField.IsBlob then
+
+  if DBGrid1.SelectedField.IsBlob then
   begin
-    DBMemo1.DataField := grid.SelectedField.FieldName;
+    DBMemo1.DataField := DBGrid1.SelectedField.FieldName;
+    EDBImage1.DataField := DBGrid1.SelectedField.FieldName;
+
+    // Disable text editor if there's binary data in the field,
+    // since the text editor may silently corrupt it if used.
     DBMemo1.ReadOnly := hasNonLatin1Chars( DBMemo1.Field.AsString );
-    ToolButton7.Enabled := not DBMemo1.ReadOnly;
-    EDBImage1.DataField := grid.SelectedField.FieldName;
+    if DBMemo1.ReadOnly then DBMemo1.Color := clInactiveCaptionText
+    else DBMemo1.Color := clWindow;
+
     PageControl3.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
     if EDBImage1.Picture.Height > 0 then
@@ -3092,7 +3121,8 @@ begin
       PageControl4.ActivePageIndex := 0;
     end;
     ResizeImageToFit;
-  end else
+  end
+  else
   begin
     DBMemo1.DataField := '';
     EDBImage1.DataField := '';
@@ -3231,6 +3261,13 @@ begin
   end
   else
     result := str;
+end;
+
+function TMDIChild.GetActiveGrid: TSMDBGrid;
+begin
+  Result := nil;
+  if PageControl1.ActivePage = SheetData then Result := DBGrid1;
+  if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
 end;
 
 end.
