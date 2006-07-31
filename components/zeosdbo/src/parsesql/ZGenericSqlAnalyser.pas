@@ -641,6 +641,20 @@ begin
       Schema := Table;
       Table := CurrentValue;
     end
+    { Reads quoted table name. }
+    { I suppose this gets called twice in case of `db_name`.`table_name`? }
+    else if (ReadTable = True) and (CurrentType = ttQuoted) then
+    begin
+      Catalog := Schema;
+      Schema := Table;
+      {
+       Perform a schema-decode.
+       On MySQL, means strip head and tail ` and convert inline `` to `.
+       On MS SQL, means strip head [ and tail ] and convert inline ]] to ].
+      }
+      Table := Copy(CurrentValue, 2, Length(CurrentValue) - 2);
+      Table := StringReplace(Table, '``', '`', [rfReplaceAll]);
+    end
     { Skips a '.' in table part. }
     else if (ReadTable = True) and (CurrentValue = '.') then
     begin
