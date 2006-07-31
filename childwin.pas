@@ -372,7 +372,8 @@ type
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
     procedure Splitter2Moved(Sender: TObject);
-    procedure DataSource1DataChange(Sender: TObject; Field: TField);
+    procedure DataSourceDataChange(Sender: TObject; Field: TField);
+    procedure DBGridColEnter(Sender: TObject);
     procedure ZSQLMonitor1Trace(Sender: TObject; Event: TZLoggingEvent;
       var LogTrace: Boolean);
     procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
@@ -400,6 +401,7 @@ type
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
+      procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
 
@@ -413,6 +415,7 @@ type
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
+      procedure debug(txt: String);
   end;
 
 
@@ -429,6 +432,10 @@ uses
 const
 	CRLF = #13#10;
   SQL_PING = 'SELECT 1';
+
+var
+  dbgCounter: Integer = 0;
+
 
 {$R *.DFM}
 
@@ -3074,13 +3081,22 @@ begin
 end;
 
 
-procedure TMDIChild.DataSource1DataChange(Sender: TObject; Field: TField);
-const
-  booleanDescr: array[Boolean] of ShortString = ('False', 'True');
+procedure TMDIChild.DataSourceDataChange(Sender: TObject; Field: TField);
+begin
+  GridHighlightChanged(Sender);
+end;
+
+procedure TMDIChild.DBGridColEnter(Sender: TObject);
+begin
+  GridHighlightChanged(Sender);
+end;
+
+procedure TMDIChild.GridHighlightChanged(Sender: TObject);
 var
+  grid: TSMDBGrid;
   ds: TDataSource;
 begin
-  // 'Current selected row' in DataSet has changed.
+  // Current highlighted row and/or column in grid has changed.
 
   // (This probably only happens when something is clicked
   //  in the DBGrid, but if we really wanted to be sure, we
@@ -3088,9 +3104,10 @@ begin
   //  to true (meaning "grid has focus, row change events
   //  probably comes from grid"), and vice versa in GridExit..)
 
-  if DBGrid1.SelectedField = nil then exit;
+  grid := ActiveGrid;
+  ds := grid.DataSource;
+  if grid.SelectedField = nil then exit;
 
-  ds := DBGrid1.DataSource;
   if DBMemo1.DataSource <> ds then
   begin
     DBMemo1.DataField := '';
@@ -3099,16 +3116,14 @@ begin
     EDBImage1.DataSource := ds;
   end;
 
-  if DBGrid1.SelectedField.IsBlob then
+  if grid.SelectedField.IsBlob then
   begin
-    DBMemo1.DataField := DBGrid1.SelectedField.FieldName;
-    EDBImage1.DataField := DBGrid1.SelectedField.FieldName;
+    DBMemo1.DataField := grid.SelectedField.FieldName;
+    EDBImage1.DataField := grid.SelectedField.FieldName;
 
     // Disable text editor if there's binary data in the field,
     // since the text editor may silently corrupt it if used.
     DBMemo1.ReadOnly := hasNonLatin1Chars( DBMemo1.Field.AsString );
-    if DBMemo1.ReadOnly then DBMemo1.Color := clInactiveCaptionText
-    else DBMemo1.Color := clWindow;
 
     PageControl3.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
@@ -3128,6 +3143,8 @@ begin
     EDBImage1.DataField := '';
     MenuViewBlob.Enabled := false;
   end;
+  if (DBMemo1.ReadOnly or (Length(DBMemo1.DataField) = 0)) then DBMemo1.Color := clInactiveCaptionText
+  else DBMemo1.Color := clWindow;
   PageControl4Change(self);
 end;
 
@@ -3268,6 +3285,16 @@ begin
   Result := nil;
   if PageControl1.ActivePage = SheetData then Result := DBGrid1;
   if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
+end;
+
+// Use DebugView from SysInternals or Delphi's Event Log to view.
+procedure TMDIChild.debug(txt: String);
+begin
+  if length(txt) = 0 then txt := '(debug: blank output?)';
+  // Todo: not thread safe.
+  dbgCounter := dbgCounter + 1;
+  txt := Format('%d %s', [dbgCounter, txt]);
+  OutputDebugString(PChar(txt));
 end;
 
 end.
