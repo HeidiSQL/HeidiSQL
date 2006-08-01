@@ -2439,6 +2439,13 @@ var
   bf: Textfile;
   grid: TSMDBGrid;
 begin
+  // Todo: Weird fix, we probably shouldn't even be showing the button in the first place.
+  if Length(DBMemo1.DataField) = 0 then
+  begin
+    ShowMessage('Please choose a BLOB field in the data grid before using the "Save BLOB" function.');
+    exit;
+  end;
+
   SaveBlob();
   grid := ActiveGrid;
 
