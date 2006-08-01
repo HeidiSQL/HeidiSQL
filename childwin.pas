@@ -1759,7 +1759,8 @@ begin
             Mainform.ExecuteQuery.Enabled := true;
             Mainform.ExecuteSelection.Enabled := true;
             break;
-          end;
+          end
+          else LogSQL(E.Message, true);
         end;
       end;
       rowsaffected := rowsaffected + ZQuery1.RowsAffected;
