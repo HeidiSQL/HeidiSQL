@@ -276,7 +276,6 @@ begin
   connform.showmodal;
 end;
 
-
 procedure TMainForm.showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
 begin
   // show Message in statusbar
