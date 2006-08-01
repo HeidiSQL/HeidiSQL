@@ -251,7 +251,7 @@ var
   StatusText : String = 'Initializing...';
   StatusIconIndex : Integer = 51;
   loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
-  appversion : String = '3.0 RC2 $Rev$';
+  appversion : String = '3.0 RC3 $Rev$';
 
 const
   appname = 'HeidiSQL';
