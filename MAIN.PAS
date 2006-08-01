@@ -1217,8 +1217,6 @@ begin
 end;
 
 
-
-
 procedure TMainForm.ExportTablesExecute(Sender: TObject);
 begin
   // Export SQL
