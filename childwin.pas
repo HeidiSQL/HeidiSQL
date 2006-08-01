@@ -340,6 +340,8 @@ type
       AFiles: TStrings);
     procedure SynMemo1KeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure SynMemo1MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure PopupMenu2Popup(Sender: TObject);
     procedure TabellenlisteEditing(Sender: TObject; Item: TListItem;
       var AllowEdit: Boolean);
@@ -2805,6 +2807,12 @@ procedure TMDIChild.SynMemo1KeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   SynMemo1.OnChange(self);
+end;
+
+procedure TMDIChild.SynMemo1MouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  SynMemo1.OnChange(Self);
 end;
 
 procedure TMDIChild.PopupMenu2Popup(Sender: TObject);
