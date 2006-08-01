@@ -199,7 +199,10 @@ begin
           2 : dbtree_table := DBRightClickSelectedItem.Text;
           3 : dbtree_table := DBRightClickSelectedItem.Parent.Text;
         end;
-        TablesCheckListBox.checked[i] := dbtree_table = TablesCheckListBox.Items[i];
+        case DBRightClickSelectedItem.Level of
+          1 : TablesCheckListBox.checked[i] := true;
+          2,3 : TablesCheckListBox.checked[i] := dbtree_table = TablesCheckListBox.Items[i];
+        end;
       end
       else if ActualDatabase = DBComboBox.Text then for j:=0 to Tabellenliste.Items.Count-1 do
       begin
@@ -337,7 +340,7 @@ begin
           end
           else
           begin
-            sql := GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(DBComBoBox.Text), 1 );
+            sql := GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(DBComBoBox.Text), 1 ) + ';';
           end;
           wfs(f, sql );
         end;
@@ -609,7 +612,8 @@ begin
               begin
                 // Rewind one record and throw thesevalues away
                 donext := false;
-                delete( insertquery, length(insertquery)-1, 2 );
+                dec(j);
+                delete( insertquery, length(insertquery)-3, 4 );
               end
               else if j = RecordCount then
               begin
@@ -618,7 +622,7 @@ begin
               else
               begin
                 inc(valuescount);
-                insertquery := insertquery + thesevalues + ', ';
+                insertquery := insertquery + thesevalues + ',' + crlf + #9;
                 ZQuery3.Next;
                 continue;
               end;
