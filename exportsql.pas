@@ -15,50 +15,60 @@ uses
 
 type
   TExportSQLForm = class(TForm)
-    Button1: TButton;
-    Button2: TButton;
-    GroupBox1: TGroupBox;
-    SaveDialog1: TSaveDialog;
-    BitBtn1: TBitBtn;
-    EditFileName: TEdit;
-    RadioButtonDB: TRadioButton;
-    RadioButtonFile: TRadioButton;
-    ComboBoxODB: TComboBox;
-    ProgressBar1: TProgressBar;
-    RadioButtonHost: TRadioButton;
-    ComboBoxHost: TComboBox;
-    Label2: TLabel;
-    PageControl1: TPageControl;
+    btnExport: TButton;
+    btnCancel: TButton;
+    groupOutput: TGroupBox;
+    dialogSave: TSaveDialog;
+    btnFileBrowse: TBitBtn;
+    editFileName: TEdit;
+    radioOtherDatabase: TRadioButton;
+    radioFile: TRadioButton;
+    comboOtherDatabase: TComboBox;
+    barProgress: TProgressBar;
+    radioOtherHost: TRadioButton;
+    comboOtherHost: TComboBox;
+    lblProgress: TLabel;
+    pageControl1: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
-    Label1: TLabel;
-    TablesCheckListBox: TCheckListBox;
-    DBComboBox: TComboBox;
-    ToolBar1: TToolBar;
+    lblSelectDbTables: TLabel;
+    checkListTables: TCheckListBox;
+    comboSelectDatabase: TComboBox;
+    toolbarSelectTools: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
-    CheckBoxWithUseDB: TCheckBox;
-    CheckBoxWithDropTable: TCheckBox;
-    CheckBoxCompleteInserts: TCheckBox;
-    CheckBoxUseBackticks: TCheckBox;
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    CheckBoxExtendedInsert: TCheckBox;
-    CheckBoxWithCreateDatabase: TCheckBox;
-    Label3: TLabel;
-    ComboBoxCompatibility: TComboBox;
-    procedure Button2Click(Sender: TObject);
+    cbxStructure: TCheckBox;
+    cbxData: TCheckBox;
+    cbxExtendedInsert: TCheckBox;
+    lblTargetCompat: TLabel;
+    comboTargetCompat: TComboBox;
+    cbxDatabase: TCheckBox;
+    cbxTables: TCheckBox;
+    comboTables: TComboBox;
+    groupExampleSql: TGroupBox;
+    memoExampleSql: TMemo;
+    comboDatabase: TComboBox;
+    comboData: TComboBox;
+    procedure cbxExtendedInsertClick(Sender: TObject);
+    procedure comboDataChange(Sender: TObject);
+    procedure comboTablesChange(Sender: TObject);
+    procedure comboDatabaseChange(Sender: TObject);
+    procedure cbxTablesClick(Sender: TObject);
+    procedure cbxDatabaseClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure DBComboBoxChange(Sender: TObject);
+    procedure comboSelectDatabaseChange(Sender: TObject);
     procedure CheckListToggle(Sender: TObject);
-    procedure BitBtn1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure RadioButtonDBClick(Sender: TObject);
-    procedure RadioButtonFileClick(Sender: TObject);
+    procedure btnFileBrowseClick(Sender: TObject);
+    procedure btnExportClick(Sender: TObject);
+    procedure radioOtherDatabaseClick(Sender: TObject);
+    procedure radioFileClick(Sender: TObject);
     procedure fillcombo_anotherdb(Sender: TObject);
-    procedure CheckBox1Click(Sender: TObject);
-    procedure RadioButtonHostClick(Sender: TObject);
-    procedure CheckBox2Click(Sender: TObject);
+    procedure generateExampleSQL;
+    procedure validateControls(Sender: TObject);
+    procedure cbxStructureClick(Sender: TObject);
+    procedure radioOtherHostClick(Sender: TObject);
+    procedure cbxDataClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
@@ -78,7 +88,23 @@ uses Main, Childwin, helpers;
 
 {$R *.DFM}
 
-procedure TExportSQLForm.Button2Click(Sender: TObject);
+const
+  // Order of items in combo box: comboDatabase
+  DB_DROP_CREATE   = 0;
+  DB_CREATE        = 1;
+  DB_CREATE_IGNORE = 2;
+  // Order of items in combo box: comboTables
+  TAB_DROP_CREATE   = 0;
+  TAB_CREATE        = 1;
+  TAB_CREATE_IGNORE = 2;
+  // Order of items in combo box: comboData
+  DATA_TRUNCATE_INSERT = 0;
+  DATA_INSERT          = 1;
+  DATA_INSERT_IGNORE   = 2;
+  DATA_REPLACE_INTO    = 3;
+
+
+procedure TExportSQLForm.btnCancelClick(Sender: TObject);
 begin
   close;
 end;
@@ -89,11 +115,11 @@ var
   i,j : Integer;
   dbtree_db : String;
 begin
-  ProgressBar1.Position := 0;
-  Label2.Caption := '';
+  barProgress.Position := 0;
+  lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
   // read dbs and Tables from treeview
-  DBComboBox.Items.Clear;
+  comboSelectDatabase.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do
   begin
     self.Caption := ZConn.HostName + ' - Export Tables...';
@@ -101,7 +127,7 @@ begin
     begin
       tn := DBTree.Items[i];
       if tn.Level = 1 then
-        DBComboBox.Items.Add(tn.Text);
+        comboSelectDatabase.Items.Add(tn.Text);
     end;
 
     if DBRightClickSelectedItem <> nil then
@@ -113,85 +139,99 @@ begin
       end;
     end;
 
-    for i:=0 to DBComboBox.Items.Count-1 do
+    for i:=0 to comboSelectDatabase.Items.Count-1 do
     begin
-      if ((dbtree_db = '') and (DBComboBox.Items[i] = ActualDatabase))
-        or ((dbtree_db <> '') and (DBComboBox.Items[i] = dbtree_db)) then
+      if ((dbtree_db = '') and (comboSelectDatabase.Items[i] = ActualDatabase))
+        or ((dbtree_db <> '') and (comboSelectDatabase.Items[i] = dbtree_db)) then
       begin
-        DBComboBox.ItemIndex := i;
+        comboSelectDatabase.ItemIndex := i;
         break;
       end;
     end;
 
-    if DBComboBox.ItemIndex = -1 then
-      DBComboBox.ItemIndex := 0;
+    if comboSelectDatabase.ItemIndex = -1 then
+      comboSelectDatabase.ItemIndex := 0;
 
   end;
-  DBComboBoxChange(self);
+  comboSelectDatabaseChange(self);
 
-  // save filename
   with TRegistry.Create do
     if OpenKey(regpath, true) then begin
-      if Valueexists('WithUseDB') then CheckBoxWithUseDB.Checked := ReadBool('WithUseDB');
-      if Valueexists('UseBackticks') then CheckBoxUseBackticks.Checked := ReadBool('UseBackticks');
-      if Valueexists('ExportStructure') then CheckBox1.Checked := ReadBool('ExportStructure');
-      if Valueexists('WithCreateDatabase') then CheckBoxWithCreateDatabase.Checked := ReadBool('WithCreateDatabase');
-      if Valueexists('WithDropTable') then CheckBoxWithDropTable.Checked := ReadBool('WithDropTable');
-      if Valueexists('ExportData') then CheckBox2.Checked := ReadBool('ExportData');
-      if Valueexists('CompleteInserts') then CheckBoxCompleteInserts.Checked := ReadBool('CompleteInserts');
-      if Valueexists('ExtendedInsert') then CheckBoxExtendedInsert.Checked := ReadBool('ExtendedInsert');
-      if Valueexists('Compatibility') then ComboBoxCompatibility.ItemIndex := ReadInteger('Compatibility');
-      if Valueexists('exportfilename') then EditFileName.Text := ReadString('exportfilename');
-    end;
-  CheckBox1Click(self);
-  CheckBox2Click(self);
-  if EditFileName.Text = '' then
-    EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
+    // WithUseDB, UseBackticks, CompleteInserts: deprecated (hardcoded true now)
+    if Valueexists('ExportStructure') then cbxStructure.Checked := ReadBool('ExportStructure');
+    if Valueexists('WithCreateDatabase') then cbxDatabase.Checked := ReadBool('WithCreateDatabase');
+    if Valueexists('WithCreateTable') then cbxTables.Checked := ReadBool('WithCreateTable');
+    if Valueexists('ExportData') then cbxData.Checked := ReadBool('ExportData');
+    if Valueexists('CreateDatabaseHow') then comboDatabase.ItemIndex := ReadInteger('CreateDatabaseHow');
+    if Valueexists('CreateTablesHow') then comboTables.ItemIndex := ReadInteger('CreateTablesHow')
+    else if Valueexists('WithDropTable') and ReadBool('WithDropTable') then comboTables.ItemIndex := TAB_DROP_CREATE;
+    if Valueexists('CreateDataHow') then comboData.ItemIndex := ReadInteger('CreateDataHow');
+    if Valueexists('ExtendedInsert') then cbxExtendedInsert.Checked := ReadBool('ExtendedInsert');
+    if Valueexists('Compatibility') then comboTargetCompat.ItemIndex := ReadInteger('Compatibility');
+    if Valueexists('exportfilename') then editFileName.Text := ReadString('exportfilename');
+  end;
 
   // Another Host / DB
-  ComboBoxHost.Items.Clear;
+  comboOtherHost.Items.Clear;
   for i:=0 to MainForm.MDIChildCount-1 do
   begin
     if MainForm.MDIChildren[i] <> MainForm.ActiveMDIChild then
       with TMDIChild(MainForm.MDIChildren[i]) do
       begin
         for j:=0 to tnodehost.Count-1 do
-          self.ComboBoxHost.Items.Add(ZConn.HostName + ':' + tnodehost.Item[j].text);
+          self.comboOtherHost.Items.Add(ZConn.HostName + ':' + tnodehost.Item[j].text);
       end;
   end;
-  if ComboBoxHost.Items.Count > 0 then
-    ComboBoxHost.ItemIndex := 0;
-  RadioButtonFile.OnClick(self);
+  if comboOtherHost.Items.Count > 0 then
+    comboOtherHost.ItemIndex := 0;
+
+  if EditFileName.Text = '' then
+    EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
+  radioFile.OnClick(self);
+
+  validateControls(Sender);
+  generateExampleSQL;
 end;
 
 
+procedure TExportSQLForm.comboDatabaseChange(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
 
-procedure TExportSQLForm.DBComboBoxChange(Sender: TObject);
+procedure TExportSQLForm.comboDataChange(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
+procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   tn, child : TTreeNode;
   i,j : Integer;
   dbtree_table : String;
 begin
   // read tables from db
-  TablesCheckListBox.Items.Clear;
+  checkListTables.Items.Clear;
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
     for i:=0 to DBTree.Items.Count-1 do
     begin
       tn := DBTree.Items[i];
-      if tn.Text = DBComboBox.Text then
+      if tn.Text = comboSelectDatabase.Text then
       begin
         child := tn.getFirstChild;
         for j:=0 to tn.Count-1 do
         begin
-          TablesCheckListBox.Items.Add(child.Text);
+          checkListTables.Items.Add(child.Text);
           child := tn.getNextChild(child);
         end;
       end;
     end;
 
     // select all/some:
-    for i:=0 to TablesCheckListBox.Items.Count-1 do
+    for i:=0 to checkListTables.Items.Count-1 do
     begin
       if DBRightClickSelectedItem <> nil then
       begin
@@ -200,20 +240,20 @@ begin
           3 : dbtree_table := DBRightClickSelectedItem.Parent.Text;
         end;
         case DBRightClickSelectedItem.Level of
-          1 : TablesCheckListBox.checked[i] := true;
-          2,3 : TablesCheckListBox.checked[i] := dbtree_table = TablesCheckListBox.Items[i];
+          1 : checkListTables.checked[i] := true;
+          2,3 : checkListTables.checked[i] := dbtree_table = checkListTables.Items[i];
         end;
       end
-      else if ActualDatabase = DBComboBox.Text then for j:=0 to Tabellenliste.Items.Count-1 do
+      else if ActualDatabase = comboSelectDatabase.Text then for j:=0 to Tabellenliste.Items.Count-1 do
       begin
-        if TablesCheckListBox.Items[i] = Tabellenliste.Items[j].Caption then
+        if checkListTables.Items[i] = Tabellenliste.Items[j].Caption then
         begin
-          TablesCheckListBox.checked[i] := Tabellenliste.Items[j].Selected;
+          checkListTables.checked[i] := Tabellenliste.Items[j].Selected;
           break;
         end;
       end
       else
-        TablesCheckListBox.checked[i] := true;
+        checkListTables.checked[i] := true;
     end;
     DBRightClickSelectedItem := nil;
   end;
@@ -223,44 +263,41 @@ begin
 end;
 
 
+procedure TExportSQLForm.comboTablesChange(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
 procedure TExportSQLForm.CheckListToggle(Sender: TObject);
 begin
   // check all or none
-  ToggleCheckListBox(TablesCheckListBox, ((Sender as TControl).Tag = 1));
+  ToggleCheckListBox(checkListTables, ((Sender as TControl).Tag = 1));
 end;
 
 
 
-procedure TExportSQLForm.BitBtn1Click(Sender: TObject);
+procedure TExportSQLForm.btnFileBrowseClick(Sender: TObject);
 begin
-  SaveDialog1.Filename := DBComboBox.Text;
-  if SaveDialog1.Execute then
-    if SaveDialog1.Filename <> '' then
-      EditFileName.Text := SaveDialog1.Filename;
+  dialogSave.Filename := comboSelectDatabase.Text;
+  if dialogSave.Execute then
+    if dialogSave.Filename <> '' then
+      EditFileName.Text := dialogSave.Filename;
 end;
 
 
-procedure TExportSQLForm.Button1Click(Sender: TObject);
-
-function mask (str: String): String;
-begin
-  if CheckBoxUseBackticks.Checked then
-    result := '`'+str+'`'
-  else
-    result := str;
-end;
-
+procedure TExportSQLForm.btnExportClick(Sender: TObject);
 var
   f                         : TFileStream;
-
   i,j,k,fieldcount,m        : Integer;
-  exportdata,exportstruc    : boolean;
+  exportdb,exporttables     : boolean;
+  exportdata                : boolean;
   dropquery,createquery,insertquery,
   feldnamen                 : String;
   keylist                   : Array of TMyKey;
   keystr,DB2export          : String;
   which                     : Integer;
-  tofile                    : boolean;
+  tofile,todb,tohost        : boolean;
   tcount,tablecounter       : Integer;
   HostDb                    : TStringList;
   win2export                : TMDIChild;
@@ -275,15 +312,20 @@ var
   sql                       : String;
 begin
   // export!
-  PageControl1.ActivePageIndex := 0;
-
+  pageControl1.ActivePageIndex := 0;
   Screen.Cursor := crHourGlass;
 
   // export what?
-  exportstruc := CheckBox1.Checked;
-  exportdata := CheckBox2.Checked;
+  exportdb      := cbxDatabase.Checked;
+  exporttables  := cbxTables.Checked;
+  exportdata    := cbxData.Checked;
 
-  tofile := RadioButtonFile.Checked;
+  // to where?
+  tofile := radioFile.Checked;
+  todb := radioOtherDatabase.Checked;
+  tohost := radioOtherHost.Checked;
+
+  // open output file if needed.
   if tofile then begin
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
@@ -295,11 +337,13 @@ begin
     end;
     wfs(f, '# ' + main.appname + ' Dump ');
     wfs(f, '#');
-  end
-  else if RadioButtonDB.Checked then
-    DB2export := ComboBoxODB.Text
-  else if RadioButtonHost.Checked then begin
-    HostDb := explode(':', ComboBoxHost.Items[ComboBoxHost.ItemIndex]);
+  end;
+
+  // which db is destination?
+  if todb then DB2export := comboOtherDatabase.Text;
+
+  if tohost then begin
+    HostDb := explode(':', comboOtherHost.Items[comboOtherHost.ItemIndex]);
     DB2export := HostDb[1];
     for m:=0 to mainform.MDIChildCount-1 do begin
       if (TMDIChild(mainform.MDIChildren[m]) <> TMDIChild(mainform.ActiveMDIChild)) and
@@ -311,8 +355,8 @@ begin
   TRY
     with TMDIChild(Mainform.ActiveMDIChild) do
     begin
-      ExecUseQuery( DBComBoBox.Text );
-      if CheckBoxExtendedInsert.Checked then
+      ExecUseQuery( comboSelectDatabase.Text );
+      if cbxExtendedInsert.Checked then
       begin
         max_allowed_packet := StrToIntDef( GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
       end;
@@ -320,116 +364,131 @@ begin
       begin
         wfs(f, '# --------------------------------------------------------');
         wfs(f, '# Host:                 ' + ZConn.HostName );
-        wfs(f, '# Database:             ' + DBComBoBox.Text );
+        wfs(f, '# Database:             ' + comboSelectDatabase.Text );
         wfs(f, '# Server version:       ' + GetVar( 'SELECT VERSION()' ) );
         wfs(f, '# Server OS:            ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
-        if CheckBoxExtendedInsert.Checked then
+        if cbxExtendedInsert.Checked then
         begin
           wfs(f, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
         end;
         wfs(f, '# ' + appname + ' version:     ' + appversion );
         wfs(f, '# --------------------------------------------------------');
-        if CheckBoxWithCreateDatabase.Checked then
+        wfs(f);
+        sql := '/*!40100 SET CHARACTER SET ' + GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 ) + ';*/';
+        wfs(f, sql);
+        if cbxDatabase.Checked then
         begin
           wfs(f);
-          sql := 'SET CHARACTER SET ' + GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 ) + ';';
-          wfs(f, sql);
+          wfs(f);
+          wfs(f, '#');
+          wfs(f, '# Database structure for database ''' + comboSelectDatabase.Text + '''');
+          wfs(f, '#');
+          wfs(f);
+          if comboDatabase.ItemIndex = DB_DROP_CREATE then
+          begin
+            sql := 'DROP DATABASE IF EXISTS ' + mainform.mask(comboSelectDatabase.Text) + ';';
+            wfs(f, sql);
+          end;
           if mysql_version < 50002 then
           begin
-            sql := 'CREATE DATABASE /*!32312 IF NOT EXISTS*/ ' + mainform.mask(DBComBoBox.Text) + ';';
+            sql := 'CREATE DATABASE ';
+            if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
+            begin
+              sql := sql + '/*!32312 IF NOT EXISTS*/ ';
+            end;
+            sql := sql + mainform.mask(comboSelectDatabase.Text) + ';';
           end
           else
           begin
-            sql := GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(DBComBoBox.Text), 1 ) + ';';
+            sql := GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(comboSelectDatabase.Text), 1 );
+            sql := fixNewlines(sql) + ';';
+            if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
+            begin
+              Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('DATABASE', sql) + 9);
+            end;
           end;
           wfs(f, sql );
-        end;
-        if CheckBoxWithUseDB.Checked then
-        begin
-          wfs(f);
-          sql := 'USE ' + mainform.mask(DBComBoBox.Text) + ';';
-          wfs(f, sql );
+          if exporttables then
+          begin
+            wfs(f);
+            sql := 'USE ' + mainform.mask(comboSelectDatabase.Text) + ';';
+            wfs(f, sql );
+          end;
         end;
       end;
 
       // How many tables?
       tcount := 0;
-      for i:=0 to TablesCheckListBox.Items.Count-1 do if TablesCheckListBox.checked[i] then
-        inc(tcount);
-      ProgressBar1.Max := 0;
-      if exportstruc then
-        ProgressBar1.Max := tcount;
+      for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then inc(tcount);
+      barProgress.Max := 0;
+      if exporttables then barProgress.Max := tcount;
       if exportdata then
-        ProgressBar1.Max := ProgressBar1.Max + tcount;
+        barProgress.Max := barProgress.Max + tcount;
 
-      TablesCheckListBox.ItemIndex := -1;
-      tablecounter := 0;
+      checkListTables.ItemIndex := -1;
+	    tablecounter := 0;
 
-
-      for i:=0 to TablesCheckListBox.Items.Count-1 do if TablesCheckListBox.checked[i] then
+      for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then
       begin
         inc(tablecounter);
-        if TablesCheckListBox.ItemIndex > -1 then
-          TablesCheckListBox.Checked[TablesCheckListBox.ItemIndex] := false;
-        TablesCheckListBox.ItemIndex := i;
-        StrProgress := 'Table ' + inttostr(tablecounter) + '/' + inttostr(tcount) + ': ' + TablesCheckListBox.Items[i];
-        Label2.caption := StrProgress;
+        if checkListTables.ItemIndex > -1 then
+          checkListTables.Checked[checkListTables.ItemIndex] := false;
+        checkListTables.ItemIndex := i;
+        StrProgress := 'Table ' + inttostr(tablecounter) + '/' + inttostr(tcount) + ': ' + checkListTables.Items[i];
+        lblProgress.caption := StrProgress;
 
-        if exportstruc then
+        if exporttables then
         begin
           if mysql_version < 32320 then begin
-            GetResults( 'SHOW FIELDS FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
+            GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
             fieldcount := ZQuery3.FieldCount;
           end else begin
-            GetResults('SHOW CREATE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
+            GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
           end;
           createquery := '';
+          dropquery := '';
           if tofile then begin
             createquery := '#' + crlf;
-            createquery := createquery + '# Table structure for table ''' + TablesCheckListBox.Items[i] + '''' + crlf;
+            createquery := createquery + '# Table structure for table ''' + checkListTables.Items[i] + '''' + crlf;
             createquery := createquery + '#' + crlf + crlf;
           end;
 
-          if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then begin
+          if comboTables.ItemIndex = TAB_DROP_CREATE then begin
             if tofile then
-              createquery := createquery + 'DROP TABLE IF EXISTS ' + mask(TablesCheckListBox.Items[i]) + ';' + crlf
+              createquery := createquery + 'DROP TABLE IF EXISTS ' + mask(checkListTables.Items[i]) + ';' + crlf
             else
-              dropquery := createquery + 'DROP TABLE IF EXISTS ' + mask(DB2Export) + '.' + mask(TablesCheckListBox.Items[i]) + '' + crlf;
+              dropquery := createquery + 'DROP TABLE IF EXISTS ' + mask(DB2Export) + '.' + mask(checkListTables.Items[i]) + '' + crlf;
           end;
 
-          if mysql_version < 32320 then
+          if mysql_version >= 32320 then
           begin
-            if tofile then
-              createquery := createquery + 'CREATE TABLE IF NOT EXISTS ' + mask(TablesCheckListBox.Items[i]) + ' (' + crlf
-            else
-              createquery := createquery + 'CREATE TABLE IF NOT EXISTS ' + mask(DB2Export) + '.' + mask(TablesCheckListBox.Items[i]) + ' (' + crlf;
-          end else
-          begin
-            if CheckBoxuseBackticks.checked then
-              createquery := createquery + ZQuery3.Fields[1].AsString
-            else
-              createquery := createquery + stringreplace(ZQuery3.Fields[1].AsString, '`', '', [rfReplaceAll]);
-            if ComboBoxCompatibility.ItemIndex = 1 then begin
-              createquery := stringreplace(createquery, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
+            sql := ZQuery3.Fields[1].AsString;
+            sql := fixNewlines(sql) + ';';
+            if comboTargetCompat.ItemIndex = 1 then begin
+              sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
             end;
           end;
 
           if mysql_version < 32320 then begin
+            if tofile then
+              sql := 'CREATE TABLE IF NOT EXISTS ' + mask(checkListTables.Items[i]) + ' (' + crlf
+            else
+              sql := sql + 'CREATE TABLE IF NOT EXISTS ' + mask(DB2Export) + '.' + mask(checkListTables.Items[i]) + ' (' + crlf;
             for j := 1 to fieldcount do
             begin
-              createquery := createquery + '  ' + mask(ZQuery3.Fields[0].AsString) + ' ' + ZQuery3.Fields[1].AsString;
+              sql := sql + '  ' + mask(ZQuery3.Fields[0].AsString) + ' ' + ZQuery3.Fields[1].AsString;
               if ZQuery3.Fields[2].AsString <> 'YES' then
-                createquery := createquery + ' NOT NULL';
+                sql := sql + ' NOT NULL';
               if ZQuery3.Fields[4].AsString <> '' then
-                createquery := createquery + ' DEFAULT ''' + ZQuery3.Fields[4].AsString + '''';
+                sql := sql + ' DEFAULT ''' + ZQuery3.Fields[4].AsString + '''';
               if ZQuery3.Fields[5].AsString <> '' then
-                createquery := createquery + ' ' + ZQuery3.Fields[5].AsString;
+                sql := sql + ' ' + ZQuery3.Fields[5].AsString;
               if j < fieldcount then
-                createquery := createquery + ',' + crlf;
+                sql := sql + ',' + crlf;
             end;
 
             // Keys:
-            GetResults( 'SHOW KEYS FROM ' + mask(TablesCheckListBox.Items[i]), ZQuery3 );
+            GetResults( 'SHOW KEYS FROM ' + mask(checkListTables.Items[i]), ZQuery3 );
             setLength(keylist, 0);
             keystr := '';
             if ZQuery3.RecordCount > 0 then
@@ -475,94 +534,112 @@ begin
                 keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + mask(keylist[k].Name) + ' (';
               keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
             end;
-            createquery := createquery + keystr + crlf + ')';
+            sql := sql + keystr + crlf + ');';
           end; // mysql_version < 32320
 
-          // File:
+          if comboTables.ItemIndex = TAB_CREATE_IGNORE then
+          begin
+            Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('TABLE', sql) + 6);
+          end;
+
+          createquery := createquery + sql;
+
+          // Output CREATE TABLE to file
           if tofile then begin
-            createquery := createquery + ';' + crlf;
+            createquery := createquery + crlf;
             wfs(f);
             wfs(f);
             wfs(f, createquery);
           end
 
-          // Another Database
-          else if RadioButtonDB.Checked then begin
+          // Run CREATE TABLE on another Database
+          else if todb then begin
             if mysql_version >= 32320 then
             begin
               ExecUseQuery( DB2Export );
             end;
-            if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then
+            if comboTables.ItemIndex = TAB_DROP_CREATE then
               ExecQuery( dropquery );
             ExecQuery( createquery );
             if mysql_version >= 32320 then
             begin
-              ExecUseQuery( DBComboBox.Text );
+              ExecUseQuery( comboSelectDatabase.Text );
             end;
           end
 
-          // Another Host / DB:
-          else if RadioButtonHost.Checked then begin
+          // Run CREATE TABLE on another host
+          else if tohost then begin
             if mysql_version >= 32320 then
             begin
               win2export.ExecUseQuery( DB2Export );
             end;
-            if CheckBoxWithDropTable.checked and CheckBoxWithDropTable.Enabled then
+            if comboTables.ItemIndex = TAB_DROP_CREATE then
               win2export.ExecQuery(dropquery);
             win2export.ExecQuery(createquery);
           end;
 
-          ProgressBar1.StepIt;
+          barProgress.StepIt;
         end;
 
-        // export data:
+        // export data
         if exportdata then
         begin
-          feldnamen := '';
-          if CheckBoxCompleteInserts.Checked then
+          feldnamen := ' (';
+          GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
+          for k:=1 to ZQuery3.RecordCount do
           begin
-            feldnamen := ' (';
-            GetResults( 'SHOW FIELDS FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
-            for k:=1 to ZQuery3.RecordCount do
-            begin
-              if k>1 then
-                feldnamen := feldnamen + ', ';
-              feldnamen := feldnamen + mask(ZQuery3.Fields[0].AsString);
-              ZQuery3.Next;
-            end;
-            feldnamen := feldnamen+')';
+            if k>1 then
+              feldnamen := feldnamen + ', ';
+            feldnamen := feldnamen + mask(ZQuery3.Fields[0].AsString);
+            ZQuery3.Next;
           end;
+          feldnamen := feldnamen+')';
 
-          GetResults( 'SELECT * FROM ' + mainform.mask(TablesCheckListBox.Items[i]), ZQuery3 );
+          GetResults( 'SELECT * FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
           if tofile then
           begin
             wfs(f);
+            wfs(f);
             wfs(f, '#');
-            wfs(f, '# Dumping data for table ''' + TablesCheckListBox.Items[i] + '''');
+            wfs(f, '# Dumping data for table ''' + checkListTables.Items[i] + '''');
             wfs(f, '#');
             wfs(f);
           end;
+
+          if comboData.ItemIndex = DATA_TRUNCATE_INSERT then
+          begin
+            if tofile then
+            begin
+              wfs(f, 'TRUNCATE TABLE ' + mask(checkListTables.Items[i]) + ';');
+            end
+            else if todb then
+            begin
+              ExecQuery('TRUNCATE TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]);
+            end
+            else if tohost then with win2export do
+            begin
+              ExecQuery('TRUNCATE TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]);
+            end;
+          end;
+
           if ZQuery3.RecordCount > 0 then
           begin
             if tofile then
             begin
-              // TODO: Ack, not a pretty syntax.  Other DBs will definitely choke over that last
-              //       semicolon which is out of context of the comment.  Can it be moved somehow,
-              //       or is this a MySQL misfeature?
-              wfs(f, '/*!40000 ALTER TABLE '+ mask(TablesCheckListBox.Items[i]) +' DISABLE KEYS */;' );
-              wfs(f, 'LOCK TABLES '+ mask(TablesCheckListBox.Items[i]) +' WRITE;' );
+              wfs(f, '/*!40000 ALTER TABLE '+ mask(checkListTables.Items[i]) +' DISABLE KEYS;*/' );
+              wfs(f, 'LOCK TABLES '+ mask(checkListTables.Items[i]) +' WRITE;' );
             end
-            else if RadioButtonDB.Checked then
+            else if todb then
             begin
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' DISABLE KEYS' );
-              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' WRITE' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
+              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
             end
-            else if RadioButtonHost.Checked then with win2export do
+            else if tohost then with win2export do
             begin
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' DISABLE KEYS' );
-              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' WRITE' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
+              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
             end;
           end;
 
@@ -574,15 +651,21 @@ begin
           while not ZQuery3.Eof do
           begin
             inc(j);
-            Label2.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
+            lblProgress.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
             if ZQuery3.RecNo mod 100 = 0 then
               Application.ProcessMessages;
             if insertquery = '' then
             begin
+              case comboData.ItemIndex of
+                DATA_TRUNCATE_INSERT: insertquery := 'INSERT INTO ';
+                DATA_INSERT: insertquery := 'INSERT INTO ';
+                DATA_INSERT_IGNORE: insertquery := 'INSERT IGNORE INTO ';
+                DATA_REPLACE_INTO: insertquery := 'REPLACE INTO ';
+              end;
               if tofile then
-                insertquery := 'INSERT INTO ' + mask(TablesCheckListBox.Items[i])
+                insertquery := insertquery + mask(checkListTables.Items[i])
               else
-                insertquery := 'INSERT INTO ' + mask(DB2Export) + '.' + mask(TablesCheckListBox.Items[i]);
+                insertquery := insertquery + mask(DB2Export) + '.' + mask(checkListTables.Items[i]);
               insertquery := insertquery + feldnamen;
               insertquery := insertquery + ' VALUES ';
             end;
@@ -604,7 +687,7 @@ begin
                 thesevalues := thesevalues + ',';
             end;
             thesevalues := thesevalues + ')';
-            if CheckBoxExtendedInsert.Checked then
+            if cbxExtendedInsert.Checked then
             begin
               if (valuescount > 1)
                 and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
@@ -633,9 +716,9 @@ begin
             end;
             if tofile then
               wfs(f, insertquery + ';')
-            else if RadioButtonDB.Checked then
+            else if todb then
               ExecQuery(insertquery)
-            else if RadioButtonHost.Checked then
+            else if tohost then
               win2export.ExecQuery(insertquery);
             if donext then
               ZQuery3.Next;
@@ -647,26 +730,23 @@ begin
             if tofile then
             begin
               wfs(f, 'UNLOCK TABLES;' );
-              // TODO: Ack, not a pretty syntax.  Other DBs will definitely choke over that last
-              //       semicolon which is out of context of the comment.  Can it be moved somehow,
-              //       or is this a MySQL misfeature?
-              wfs(f, '/*!40000 ALTER TABLE '+mask(TablesCheckListBox.Items[i])+' ENABLE KEYS */;' );
+              wfs(f, '/*!40000 ALTER TABLE '+mask(checkListTables.Items[i])+' ENABLE KEYS;*/' );
             end
-            else if RadioButtonDB.Checked then
+            else if todb then
             begin
               ExecQuery( 'UNLOCK TABLES' );
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' ENABLE KEYS' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS' );
             end
-            else if RadioButtonHost.Checked then with win2export do
+            else if tohost then with win2export do
             begin
               ExecQuery( 'UNLOCK TABLES' );
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + TablesCheckListBox.Items[i]+' ENABLE KEYS' );
+                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS' );
             end;
           end;
           ZQuery3.Close;
-          ProgressBar1.StepIt;
+          barProgress.StepIt;
         end;
       end;
       if ActualDatabase <> '' then
@@ -683,88 +763,193 @@ begin
   close;
 end;
 
-procedure TExportSQLForm.RadioButtonDBClick(Sender: TObject);
+procedure TExportSQLForm.radioOtherDatabaseClick(Sender: TObject);
 begin
-  if DBComboBox.Items.Count <= 1 then begin
+  if comboSelectDatabase.Items.Count <= 1 then begin
     MessageDLG('There must be more than one database to enable this option.', mtError, [mbOK], 0);
-    RadioButtonFile.OnClick(self);
+    radioFile.OnClick(self);
     abort;
   end;
-  RadioButtonFile.Checked := false;
-  RadioButtonHost.Checked := false;
-  RadioButtonDB.Checked := true;
+  radioFile.Checked := false;
+  radioOtherHost.Checked := false;
+  radioOtherDatabase.Checked := true;
   EditFileName.Enabled := false;
   EditFileName.Color := clBtnFace;
-  BitBtn1.Enabled := false;
-  ComboBoxODB.Enabled := true;
-  ComboBoxODB.Color := clWindow;
-  ComboBoxHost.Enabled := false;
-  ComboBoxHost.Color := clBtnFace;
-  CheckBoxWithUseDB.Enabled := false;
-  ComboBoxODB.SetFocus;
+  btnFileBrowse.Enabled := false;
+  comboOtherDatabase.Enabled := true;
+  comboOtherDatabase.Color := clWindow;
+  comboOtherHost.Enabled := false;
+  comboOtherHost.Color := clBtnFace;
+  comboOtherDatabase.SetFocus;
 end;
 
-procedure TExportSQLForm.RadioButtonFileClick(Sender: TObject);
+procedure TExportSQLForm.radioFileClick(Sender: TObject);
 begin
-  RadioButtonFile.Checked := true;
-  RadioButtonDB.Checked := false;
-  RadioButtonHost.Checked := false;
+  radioFile.Checked := true;
+  radioOtherDatabase.Checked := false;
+  radioOtherHost.Checked := false;
   EditFileName.Enabled := true;
   EditFileName.Color := clWindow;
-  BitBtn1.Enabled := true;
-  ComboBoxODB.Enabled := false;
-  ComboBoxODB.Color := clBtnFace;
-  ComboBoxHost.Enabled := false;
-  ComboBoxHost.Color := clBtnFace;
-  CheckBoxWithUseDB.Enabled := true;
-  EditFileName.SetFocus;
+  btnFileBrowse.Enabled := true;
+  comboOtherDatabase.Enabled := false;
+  comboOtherDatabase.Color := clBtnFace;
+  comboOtherHost.Enabled := false;
+  comboOtherHost.Color := clBtnFace;
+  editFileName.SetFocus;
 end;
 
 
 procedure TExportSQLForm.fillcombo_anotherdb(Sender: TObject);
 begin
-  ComboBoxODB.Items := DBComboBox.Items;
-  ComboBoxODB.Items.delete(DBComboBox.ItemIndex);
-  if ComboBoxODB.ItemIndex = -1 then
-    ComboBoxODB.ItemIndex := 0;
+  comboOtherDatabase.Items := comboSelectDatabase.Items;
+  comboOtherDatabase.Items.delete(comboSelectDatabase.ItemIndex);
+  if comboOtherDatabase.ItemIndex = -1 then
+    comboOtherDatabase.ItemIndex := 0;
 end;
 
-procedure TExportSQLForm.CheckBox1Click(Sender: TObject);
+procedure TExportSQLForm.generateExampleSQL;
+const
+  STR_DROP_DB              = 'DROP DATABASE <db>;'#13#10;
+  STR_CREATE_DB            = 'CREATE DATABASE <db>;'#13#10;
+  STR_CREATE_DB_IGNORE     = 'CREATE DATABASE IF NOT EXISTS <db>;'#13#10;
+  STR_DROP_TABLE           = 'DROP TABLE <table>;'#13#10;
+  STR_CREATE_TABLE         = 'CREATE TABLE <table> <definition>;'#13#10;
+  STR_CREATE_TABLE_IGNORE  = 'CREATE TABLE IF NOT EXISTS <table> <definition>;'#13#10;
+  STR_TRUNCATE_TABLE       = 'TRUNCATE TABLE <table>;'#13#10;
+  STR_INSERT               = 'INSERT INTO <table> (<columns>) <values>';
+  STR_INSERT_IGNORE        = 'INSERT IGNORE INTO <table> (<columns>) <values>';
+  STR_REPLACE_INTO         = 'REPLACE INTO <table> (<columns>) <values>';
+  STR_END_INSERT_REG       = ';'#13#10'(...)'#13#10;
+  STR_END_INSERT_EXT       = ', <values...>;'#13#10;
+var
+  s: string;
+procedure add(str: string); overload;
 begin
-  CheckBoxWithDropTable.Enabled := CheckBox1.checked;
-  CheckBoxWithCreateDatabase.Enabled := CheckBox1.checked;
-  Button1.Enabled := (CheckBox1.Checked or CheckBox2.Checked);
+  s := s + str;
+end;
+procedure add(str1: string; str2: string); overload;
+begin
+  s := s + str1 + str2;
+end;
+begin
+  s := '';
+  if cbxStructure.Checked then begin
+    if cbxDatabase.Checked then begin
+      case comboDatabase.ItemIndex of
+        DB_DROP_CREATE:        add(STR_DROP_DB, STR_CREATE_DB);
+        DB_CREATE:             add(STR_CREATE_DB);
+        DB_CREATE_IGNORE:      add(STR_CREATE_DB_IGNORE);
+      end;
+      add(#13#10);
+    end;
+    if cbxTables.Checked then begin
+      case comboTables.ItemIndex of
+        TAB_DROP_CREATE:       add(STR_DROP_TABLE, STR_CREATE_TABLE);
+        TAB_CREATE:            add(STR_CREATE_TABLE);
+        TAB_CREATE_IGNORE:     add(STR_CREATE_TABLE_IGNORE);
+      end;
+      add(#13#10);
+    end;
+  end;
+  if cbxData.Checked then begin
+    case comboData.ItemIndex of
+      DATA_TRUNCATE_INSERT:  add(STR_TRUNCATE_TABLE, STR_INSERT);
+      DATA_INSERT:           add(STR_INSERT);
+      DATA_INSERT_IGNORE:    add(STR_INSERT_IGNORE);
+      DATA_REPLACE_INTO:     add(STR_REPLACE_INTO);
+    end;
+    if cbxExtendedInsert.Checked then add(STR_END_INSERT_EXT)
+    else add(STR_END_INSERT_REG);
+  end;
+  s := TrimRight(s);
+  memoExampleSql.Text := s;
 end;
 
-procedure TExportSQLForm.RadioButtonHostClick(Sender: TObject);
+procedure TExportSQLForm.validateControls(Sender: TObject);
 begin
-  if ComboBoxHost.Items.Count = 0 then begin
+  cbxDatabase.Enabled := cbxStructure.Checked;
+  comboDatabase.Enabled := cbxStructure.Checked and cbxDatabase.Checked;
+
+  cbxTables.Enabled := cbxStructure.Checked;
+  comboTables.Enabled := cbxStructure.Checked and cbxTables.Checked;
+
+  comboData.Enabled := cbxData.Checked;
+  cbxExtendedInsert.Enabled := cbxData.Checked;
+
+  // Prevent choosing export of db struct + data but no table struct.
+  if cbxData.Checked then begin
+    if Sender = cbxTables then cbxDatabase.Checked := cbxDatabase.Checked And cbxTables.Checked
+    else cbxTables.Checked := cbxTables.Checked or cbxDatabase.Checked;
+  end;
+
+  btnExport.Enabled := cbxData.Checked or
+  (cbxStructure.Checked and (cbxDatabase.Checked or cbxTables.Checked));
+
+  if cbxStructure.Checked and cbxDatabase.Checked and (comboDatabase.ItemIndex = DB_DROP_CREATE) then begin
+    // 'drop tables', 'truncate data', 'insert ignore' and 'replace into' is useless.
+    comboTables.ItemIndex := TAB_CREATE;
+    comboTables.Enabled := false;
+    comboData.ItemIndex := DATA_INSERT;
+    comboData.Enabled := false;
+  end;
+
+  if cbxStructure.Checked and cbxTables.Checked and (comboTables.ItemIndex = TAB_DROP_CREATE) then begin
+    // 'truncate data', 'insert ignore' and 'replace into' is useless.
+    comboData.ItemIndex := DATA_INSERT;
+    comboData.Enabled := false;
+  end;
+end;
+
+procedure TExportSQLForm.cbxStructureClick(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
+procedure TExportSQLForm.cbxDataClick(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
+procedure TExportSQLForm.cbxExtendedInsertClick(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
+procedure TExportSQLForm.cbxTablesClick(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
+procedure TExportSQLForm.cbxDatabaseClick(Sender: TObject);
+begin
+  validateControls(Sender);
+  generateExampleSQL;
+end;
+
+
+procedure TExportSQLForm.radioOtherHostClick(Sender: TObject);
+begin
+  if comboOtherHost.Items.Count = 0 then begin
     MessageDLG('You need at least two open connection-windows to enable this option.', mtError, [mbOK], 0);
-    RadioButtonFile.OnClick(self);
+    radioFile.OnClick(self);
     abort;
   end;
-  RadioButtonFile.Checked := false;
-  RadioButtonDB.Checked := false;
-  RadioButtonHost.Checked := true;
+  radioFile.Checked := false;
+  radioOtherDatabase.Checked := false;
+  radioOtherHost.Checked := true;
   EditFileName.Enabled := false;
   EditFileName.Color := clBtnFace;
-  BitBtn1.Enabled := false;
-  ComboBoxODB.Enabled := false;
-  ComboBoxODB.Color := clBtnFace;
-  ComboBoxHost.Enabled := true;
-  ComboBoxHost.Color := clWindow;
-  CheckBoxWithUseDB.Enabled := false;
-  ComboBoxHost.SetFocus;
+  btnFileBrowse.Enabled := false;
+  comboOtherDatabase.Enabled := false;
+  comboOtherDatabase.Color := clBtnFace;
+  comboOtherHost.Enabled := true;
+  comboOtherHost.Color := clWindow;
+  comboOtherHost.SetFocus;
 end;
-
-
-procedure TExportSQLForm.CheckBox2Click(Sender: TObject);
-begin
-  Button1.Enabled := (CheckBox1.Checked or CheckBox2.Checked);
-  CheckBoxCompleteInserts.Enabled := CheckBox2.checked;
-  CheckBoxExtendedInsert.Enabled := CheckBox2.checked;
-end;
-
 
 
 procedure TExportSQLForm.FormClose(Sender: TObject;
@@ -773,18 +958,20 @@ begin
   with TRegistry.Create do
   begin
     OpenKey(regpath, true);
+    // WithUseDB, UseBackticks, CompleteInserts, WithDropTable: deprecated (currently not automagically removed)
+    WriteBool('ExportStructure',      cbxStructure.Checked);
+    WriteBool('WithCreateDatabase',   cbxDatabase.Checked);
+    WriteBool('WithCreateTable',      cbxTables.Checked);
+    WriteBool('ExportData',           cbxData.Checked);
+    WriteInteger('CreateDatabaseHow', comboDatabase.ItemIndex);
+    WriteInteger('CreateTablesHow',   comboTables.ItemIndex);
+    WriteInteger('CreateDataHow',     comboData.ItemIndex);
+    WriteBool('ExtendedInsert',       cbxExtendedInsert.Checked);
+    WriteInteger('Compatibility',     comboTargetCompat.ItemIndex);
     WriteString('exportfilename',   EditFileName.Text);
-    WriteBool('CompleteInserts',    CheckBoxCompleteInserts.Checked);
-    WriteBool('WithCreateDatabase', CheckBoxWithCreateDatabase.Checked);
-    WriteBool('WithDropTable',      CheckBoxWithDropTable.Checked);
-    WriteBool('WithUseDB',          CheckBoxWithUseDB.Checked);
-    WriteBool('ExportStructure',    CheckBox1.Checked);
-    WriteBool('ExportData',         CheckBox2.Checked);
-    WriteBool('UseBackticks',       CheckBoxUseBackticks.Checked);
-    WriteBool('ExtendedInsert',     CheckBoxExtendedInsert.Checked);
-    WriteInteger('Compatibility',   ComboBoxCompatibility.ItemIndex);
     CloseKey();
   end;
 end;
 
 end.
+

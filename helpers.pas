@@ -52,6 +52,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function hasNonLatin1Chars(Text: string): boolean;
   function escOtherChars(Text: string): string;
   function escapeAuto(Text: string): string;
+  procedure debug(txt: String);
+  function fixNewlines(txt: string): string;
 
 
 implementation
@@ -59,6 +61,8 @@ implementation
 const
 	CRLF = #13#10;
 
+var
+  dbgCounter: Integer = 0;
 
 
 
@@ -209,7 +213,9 @@ function parsesql(sql: String) : TStringList;
 var
   i, start                          : Integer;
   instring, backslash, incomment    : Boolean;
-  encloser                          : Char;
+  inconditional, condterminated     : Boolean;
+  skip, inbigcomment                : Boolean;
+  encloser, secchar, thdchar        : Char;
 begin
   result := TStringList.Create;
   sql := trim(sql);
@@ -217,27 +223,72 @@ begin
   start := 1;
   backslash := false;
   incomment := false;
+  inbigcomment := false;
+  inconditional := false;
+  condterminated := false;
+  skip := false;
   encloser := ' ';
 
   for i:=1 to length(sql) do begin
-    if (sql[i] in ['#']) and (not backslash) and (not instring) then begin
-      incomment := not incomment;
-      sql[i] := ' ';
+    if skip then begin
+      // workaround for inability to modify for loop variable..
+      skip := false;
       continue;
     end;
-    if (sql[i] = #13) and incomment then
+
+    secchar := ' ';
+    thdchar := ' ';
+    if i < length(sql) then secchar := sql[i + 1];
+    if i + 1 < length(sql) then thdchar := sql[i + 2];
+
+    if ((sql[i] = '#') or (sql[i] + secchar = '--')) and (not instring) and (not inbigcomment) then begin
+      incomment := true;
+    end;
+    if (sql[i] + secchar = '/*') and (not (thdchar = '!')) and (not instring) and (not incomment) then begin
+      inbigcomment := true;
+      incomment := true;
+      sql[i + 1] := ' ';
+      skip := true;
+    end;
+    if (sql[i] in [#13, #10]) and incomment and (not inbigcomment) then incomment := false;
+    if (sql[i] + secchar = '*/') and inbigcomment then begin
+      inbigcomment := false;
       incomment := false;
-    if incomment then begin
+      skip := true;
+      sql[i] := ' ';
+      sql[i + 1] := ' ';
+      continue;
+    end;
+    if incomment or inbigcomment then begin
       sql[i] := ' ';
       continue;
     end;
 
-    if (sql[i] in ['''','"']) and (not backslash) and (not incomment) then begin
-      if instring and (sql[i] = encloser) then  // string closed
-        instring := not instring
+    if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) then begin
+      if instring and (sql[i] = encloser) then begin
+        if secchar = encloser then
+          skip := true                          // encoded encloser-char
+        else
+          instring := not instring              // string closed
+      end
       else if (not instring) then begin         // string is following
         instring := true;
         encloser := sql[i];                     // remember enclosing-character
+      end;
+    end;
+
+    if (not instring) and (not incomment) and (sql[i] + secchar + thdchar = '/*!') then begin
+      inconditional := true;
+      condterminated := false;
+    end;
+
+    if (not instring) and (not incomment) and (sql[i] + secchar = '*/') and inconditional then begin
+      inconditional := false;
+      if condterminated then begin
+        result.Add(trim(copy(sql, start, i-start+2)));
+        start := i+2;
+        skip := true;
+        condterminated := false;
       end;
     end;
 
@@ -246,14 +297,19 @@ begin
 
     if (sql[i] = ';') and (not instring) then
     begin
-      result.Add(trim(copy(sql, start, i-start)));
-      start := i+1;
+      if inconditional then
+      begin
+        condterminated := true;
+        sql[i] := ' ';
+      end else begin
+        result.Add(trim(copy(sql, start, i-start)));
+        start := i+1;
+      end;
     end;
   end;
 
   if start < i then
     result.Add(trim(copy(sql, start, i-start)));
-
 end;
 
 
@@ -1059,6 +1115,24 @@ begin
   begin
     Result := esc(escOtherChars(Text));
   end;
+end;
+
+// Use DebugView from SysInternals or Delphi's Event Log to view.
+procedure debug(txt: String);
+begin
+  if length(txt) = 0 then txt := '(debug: blank output?)';
+  // Todo: not thread safe.
+  dbgCounter := dbgCounter + 1;
+  txt := Format('%d %s', [dbgCounter, txt]);
+  OutputDebugString(PChar(txt));
+end;
+
+function fixNewlines(txt: string): string;
+begin
+  txt := StringReplace(txt, #13#10, #10, [rfReplaceAll]);
+  txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
+  txt := StringReplace(txt, #10, #13#10, [rfReplaceAll]);
+  result := txt;
 end;
 
 end.

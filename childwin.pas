@@ -417,7 +417,6 @@ type
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
-      procedure debug(txt: String);
   end;
 
 
@@ -434,9 +433,6 @@ uses
 const
 	CRLF = #13#10;
   SQL_PING = 'SELECT 1';
-
-var
-  dbgCounter: Integer = 0;
 
 
 {$R *.DFM}
@@ -1708,7 +1704,9 @@ begin
         SQL := parsesql(SynMemo1.Text);          // Run all
     end;
     if SQL.Count > 1 then
-      SQLscriptstart := GetTickCount;
+      SQLscriptstart := GetTickCount
+    else
+      Label4.Caption := '';
 
     rowsaffected := 0;
     ProgressBarQuery.Max := SQL.Count;
@@ -3301,16 +3299,6 @@ begin
   Result := nil;
   if PageControl1.ActivePage = SheetData then Result := DBGrid1;
   if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
-end;
-
-// Use DebugView from SysInternals or Delphi's Event Log to view.
-procedure TMDIChild.debug(txt: String);
-begin
-  if length(txt) = 0 then txt := '(debug: blank output?)';
-  // Todo: not thread safe.
-  dbgCounter := dbgCounter + 1;
-  txt := Format('%d %s', [dbgCounter, txt]);
-  OutputDebugString(PChar(txt));
 end;
 
 end.
