@@ -22,6 +22,13 @@ Just doubleclick the setup-file and follow the instructions.
 
 
 --------------------------------------
+ Changelog:
+--------------------------------------
+http://www.heidisql.com/changes.php
+
+
+
+--------------------------------------
  With HeidiSQL you can...
 --------------------------------------
 - create/drop databases 
