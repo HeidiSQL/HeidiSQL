@@ -949,8 +949,6 @@ begin
 end;
 
 
-
-
 // Escape database, table, field, index or key name.
 function TMainform.mask(str: String) : String;
 begin
