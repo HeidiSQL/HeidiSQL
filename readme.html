@@ -2,66 +2,267 @@
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
+
 <head>
 	<title>HeidiSQL - information file for developers</title>
 	<meta name="Content-Language" content="en" />
 	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 	<meta name="description" content="Information file for installing and using the HeidiSQL sources." />
 	<meta name="author" content="Ansgar Becker, David Dindorp" />
-
-  <style type="text/css">
- 	body {
-		font-family: Verdana, Arial, Helvetica, sans-serif;
-		font-size: 80%;
-	}
-	h1, h2 {
-		color: rgb(121,211,31);
-  }
-  .floatleft {
-    float: left;
-  }
-  img {
-    border: none;
-  }
+	<style type="text/css">
+		body {
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 80%;
+		}
+		h1, h2 {
+			color: rgb(121,211,31);
+		}
+		img {
+			border: none;
+		}
+		td {
+			font-style: italic;
+			padding-left: 15pt;
+		}
+		hr {
+			margin-top: 15pt;
+			margin-bottom: 15pt;
+		}
 	</style>
+</head>
 
-	</head>
-  <body>
-
+<body>
 	<a href="http://www.heidisql.com/">
-    <img src="http://www.heidisql.com/images/heidisql_logo.gif" alt="HeidiSQL Logo" />
-  </a>
-  
-  <h1>HeidiSQL - information file for developers</h1>
+		<img src="http://www.heidisql.com/images/heidisql_logo.gif" alt="HeidiSQL Logo" />
+	</a>
 
-  <hr />
+	<h1>HeidiSQL - information file for developers</h1>
 
-  <h2>Table of content</h2>
-  <ol>
-    <li><a href="#requirements">Requirements</a></li>
-    <li><a href="#components">Installing components</a></li>
-    <li><a href="#notes">Notes</a></li>
-  </ol>
-  
-  <hr />
-  
-  <h2 id="requirements">Requirements</h2>
-  
-  <hr />
-  
-  <h2 id="components">Installing components</h2>
-  
-  <hr />
-  
-  <h2 id="notes">Notes</h2>
+	<hr />
 
+	<h2>Table of content</h2>
+	<ol>
+		<li><a href="#prerequisites">Prerequisites</a></li>
+		<li><a href="#compiler">What is Borland Developer Studio?</a></li>
+		<li><a href="#compilerversion">Which version of Delphi do I need?</a></li>
+		<li><a href="#downloading">Downloading the source code</a></li>
+		<li><a href="#gettingstarted">Getting started</a></li>
+		<li><a href="#troubleshooting">Troubleshooting</a></li>
+		<li><a href="#notes">Notes</a></li>
+	</ol>
 
-  <hr />
-  <p>
-    Revision of this file: <em>$Rev$</em><br />
-    Last changed: <em>$Date$</em><br />
-    Last author: <em>$Author$</em>
-  </p>
+	<hr />
 
-  </body>
+	<h2 id="requirements">Prerequisites</h2>
+	<p>
+		We will assume that you have some general developer experience.<br />
+		If you do find anything which you don't understand in this document, feel free to ask.
+	</p>
+	<p>
+		In the software department, you'll need the following for building HeidiSQL:
+		<ul><li>Borland Developer Studio 2006</li></ul>
+	</p>
+	<p>
+		All third party components and dependencies used by HeidiSQL is included in the Subversion
+		repository and the source package.
+	</p>
+
+	<hr />
+
+	<h2 id="compiler">What is Borland Developer Studio?</h2>
+	<p>
+		Delphi is a graphical development environment.  It uses a language which is as powerful as C++,
+		but has a much clearer and better syntax, named Pascal.  Pascal is a modern language, with major
+		benefits compared to other languages, among them is great support for Structured Exception Handling,
+		the various types of strings in existence, componentized development, and other things.  It also has
+		it's drawbacks, mostly minor things on the technical front like for example the newbie-friendly but
+		overly verbose "begin -> end" scope declarators and lack of various syntactic sugar such as "+=" and "?:".
+	</p>
+
+	<p>
+		On the corporate side of things are more grave issues, such as lack of communication with developers
+		and Borland seemingly wanting to get rid of the compiler business as a whole.  Luckily, we don't have
+		to care too much about that, as the product pretty much works just fine as it is :-).
+	</p>
+
+	<p>
+		Borland Developer Studio (BDS) is the name of the successor of the Delphi environment.
+		BDS 2005 is also known as Delphi 9, and BDS 2006 is also known as Delphi 10.  We'll be using the name
+		"Delphi", both when we refer to older versions and to newer ones (BDS).
+	</p>
+
+	<hr />
+
+	<h2 id="compilerversion">Which version of Delphi do I need?</h2>
+	<p>
+		HeidiSQL actually builds with at least Delphi 6 and upwards, but there's only a complete set of project
+		files for Delphi 10.  There's incomplete support for Delphi 6 in the source codes, only a few
+		projects are missing.  For other environments, much more may be missing.  If you want to make life
+		easy for yourself, just get Delphi 10 ;-).
+	</p>
+
+	<hr />
+
+	<h2 id="downloading">Downloading the source code</h2>
+	<p>
+		If you haven't already done so, retrieve a copy of the source code.<br />
+		Preferably, use Subversion to check out a working copy.
+	</p>
+	<p>
+		You can use TortoiseSVN (a graphical client), or the command line Subversion client like so:
+		<div>
+			<code>svn co https://svn.sourceforge.net/svnroot/heidisql heidisql</code>
+		</div>
+	</p>
+	<p>
+		Alternatively, download a source tarball from the file area:<br />
+		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>HeidiSQL file area on SourceForge</a>
+	</p>
+
+	<hr />
+
+	<h2 id="gettingstarted">Getting started</h2>
+	<p>
+		Start by compiling and installing the components that HeidiSQL depends on.
+	</p>
+
+	<p>
+		HeidiSQL has one directory named "packages" for each component and for HeidiSQL itself, this is where
+		you'll find the project files.
+	</p>
+
+	<p>
+		Delphi has a distinction between "design-time components" and "run-time components".  To compile
+		HeidiSQL correctly, the designtime components that it depends on needs to be "Installed" into the
+		Borland environment, otherwise Delphi will fail to compile HeidiSQL.  You can Install a project
+		by right-clicking the project in the "Project Manager" in Delphi and choosing "Install".
+	</p>
+
+	<p>
+		Open these projects in Delphi and perform the action listed:
+		<table>
+			<tr>
+				<th>Relative path</th>
+				<th>Action</th>
+			</tr>
+			<tr>
+				<td>components/edbimage/packages/delphi10/VCLSer100.bdsproj</td>
+				<td>Build All</td>
+			</tr>
+			<tr>
+				<td>components/edbimage/packages/delphi10/DCLSer100.bdsproj</td>
+				<td>Build All + Install "DCLSer100"</td>
+			</tr>
+			<tr>
+				<td>components/heidisql/packages/delphi10/HeidiComponents.bdsproj</td>
+				<td>Build All + Install "HeidiComponents"</td>
+			</tr>
+			<tr>
+				<td>components/smdbgrid/packages/delphi10/SMDBGridComponents.bdsproj</td>
+				<td>Build All + Install "SMDBGridComponents"</td>
+			</tr>
+			<tr>
+				<td>components/synedit/packages/delphi10/SynEdit_D10.bdsproj</td>
+				<td>Build All + Install "SynEdit_D10"</td>
+			</tr>
+			<tr>
+				<td>components/zeosdbo/packages/delphi10/ZeosDbo.bdsgroup</td>
+				<td>Build All + Install "ZComponent"</td>
+			</tr>
+		</table>
+	</p>
+
+	<p>
+		Once you're done, you are ready to compile HeidiSQL itself:
+		<table>
+			<tr>
+				<th>Relative path</th>
+				<th>Action</th>
+			</tr>
+			<tr>
+				<td>packages/delphi10/heidisql.bdsproj</td>
+				<td>Build All</td>
+			</tr>
+		</table>
+	</p>
+
+	<p>
+		You should end up with a "heidisql.exe" binary in the "out" folder.
+	</p>
+	<p>
+		Ta-ta!  We're done ;-).
+	</p>
+
+	<hr />
+
+	<h2 id="troubleshooting">Troubleshooting</h2>
+
+	<h3>"Unable to install component" error message</h3>
+	<p>
+		Remove the (already installed) component by going to Project --> Options --> Packages,
+		selecting the relevant component and clicking 'Remove'.
+	</p>
+	<p>
+		Then try installing the component again.
+	</p>
+	<p>
+		Once you've successfully installed a design-time component, Delphi should reinstall
+		it the next time you compile the package containing the component.
+	</p>
+
+	<hr />
+
+	<h2 id="notes">Notes</h2>
+
+	<h3>What's the difference between designtime and runtime components?</h3>
+	<p>
+		(Note: "a component" in this context equals "a project".)
+	</p>
+	<p>
+		Designtime components are meant to provide functionality to the Borland environment.  For example,
+		a designtime component often has a procedure named "Register", which will install the component into
+		the Borland environment.
+	</p>
+	<p>
+		The idea of separating designtime and runtime is that designtime code does not need to be linked
+		into the final executable, thus saving space.  See this article for details:<br />
+		<a href='http://community.borland.com/article/0,1410,27717,00.html'>http://community.borland.com/article/0,1410,27717,00.html</a>
+	</p>
+	<p>
+		If in doubt, you can always choose "designtime and runtime".  If you do designate a project as being
+		"designtime only", but some code is really required at runtime, the linker seems to be clever enough
+		to include the component in the final executable anyway.
+	</p>
+	<p>
+		Runtime components are meant to be included in the final executable.  Runtime components can probably
+		not be "Installed" into the Borland environment.  Runtime components can be compiled into BPL files,
+		which is a sort of fancy DLL.
+	</p>
+	<p>
+		You can Google for more information about components here:<br />
+		<a href='http://groups.google.com/groups/dir?sel=33614735'>borland.public.delphi.vcl usenet groups</a><br />
+		<a href='http://groups.google.com/groups/dir?sel=33614713'>borland.public.cppbuilder.vcl usenet groups</a>
+	</p>
+
+	<h3>How do I find out what's changed in a ".res" file?</h3>
+	<p>
+		I have no clue.  If you find out, please update this readme.<br />
+		Supposedly, one can use textual RC files instead of binary RES files, and by adding the RC files to
+		a project, Delphi should compile them into RES files on demand.  That's probably what we should do.
+	</p>
+
+	<h3>What tool is practical for editing the multi-icon bitmap in /res/icons8bit.bmp?</h3>
+	<p>
+		I have no clue.  If you know, please update this readme.
+	</p>
+
+	<hr />
+
+	<p>
+		Revision of this file: <em>$Rev$</em><br />
+		Last changed: <em>$Date$</em><br />
+		Last author: <em>$Author$</em>
+	</p>
+</body>
+
 </html>
