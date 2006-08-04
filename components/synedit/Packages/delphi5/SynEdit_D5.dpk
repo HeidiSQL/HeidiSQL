@@ -1,8 +1,8 @@
-package SynEdit_D6;
+package SynEdit_D5;
 
-{$R *.res}
-{$R '..\Source\SynEditReg.dcr'}
-{$ALIGN 8}
+{$R *.RES}
+{$R '..\..\Source\SynEditReg.dcr'}
+{$ALIGN ON}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -27,13 +27,12 @@ package SynEdit_D6;
 {$IMPLICITBUILD OFF}
 
 requires
-  vcl,
-  vclx,
-  vcldb,
-  designide;
+  vcl50,
+  Vclx50,
+  Vcldb50;
 
 contains
-  SynEditReg in '..\Source\SynEditReg.pas',
-  SynEditPropertyReg in '..\Source\SynEditPropertyReg.pas';
+  SynEditReg in '..\..\Source\SynEditReg.pas',
+  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas';
 
 end.

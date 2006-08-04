@@ -1,8 +1,8 @@
-package SynEdit_D4;
+package SynEdit_D6;
 
-{.$R *.RES}
-{$R '..\Source\SynEditReg.dcr'}
-{$ALIGN ON}
+{$R *.res}
+{$R '..\..\Source\SynEditReg.dcr'}
+{$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -22,18 +22,18 @@ package SynEdit_D4;
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST ON}
 {$MINENUMSIZE 1}
-{$IMAGEBASE $00400000}
+{$IMAGEBASE $400000}
 {$DESCRIPTION 'SynEdit component suite'}
-{$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
-  vcl40,
-  Vclx40,
-  Vcldb40;
+  vcl,
+  vclx,
+  vcldb,
+  designide;
 
 contains
-  SynEditReg in '..\Source\SynEditReg.pas',
-  SynEditPropertyReg in '..\Source\SynEditPropertyReg.pas';
+  SynEditReg in '..\..\Source\SynEditReg.pas',
+  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas';
 
 end.
