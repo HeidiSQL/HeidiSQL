@@ -101,6 +101,7 @@ object MainForm: TMainForm
       object ToolButton14: TToolButton
         Left = 100
         Top = 0
+        Hint = 'Undo'
         Action = EditUndo1
       end
       object ToolButton12: TToolButton
@@ -206,6 +207,7 @@ object MainForm: TMainForm
       object ButtonExport: TToolButton
         Left = 331
         Top = 0
+        Hint = 'Export tables'
         Action = ExportTables
         AutoSize = True
       end
@@ -348,6 +350,7 @@ object MainForm: TMainForm
     end
   end
   object MainMenu1: TMainMenu
+    Images = ImageList1
     Left = 104
     Top = 88
     object File1: TMenuItem
@@ -407,7 +410,7 @@ object MainForm: TMainForm
         Tag = 28
         Caption = 'Refresh'
         Enabled = False
-        ImageIndex = 23
+        ImageIndex = 18
         OnClick = ButtonRefreshClick
       end
       object N3: TMenuItem
@@ -417,28 +420,28 @@ object MainForm: TMainForm
         Tag = 29
         Caption = 'Create Database...'
         Enabled = False
-        ImageIndex = 26
+        ImageIndex = 21
         OnClick = ButtonCreateDatabaseClick
       end
       object MenuCreateTable: TMenuItem
         Tag = 30
         Caption = 'Create Table...'
         Enabled = False
-        ImageIndex = 25
+        ImageIndex = 20
         OnClick = ButtonCreateTableClick
       end
       object MenuDropDatabase: TMenuItem
         Tag = 31
         Caption = 'Drop Database...'
         Enabled = False
-        ImageIndex = 27
+        ImageIndex = 22
         OnClick = ButtonDropDatabaseClick
       end
       object MenuDropTable: TMenuItem
         Tag = 32
         Caption = 'Drop Table...'
         Enabled = False
-        ImageIndex = 28
+        ImageIndex = 23
         OnClick = ButtonDropTableClick
       end
       object N4: TMenuItem
@@ -466,7 +469,7 @@ object MainForm: TMainForm
           Caption = 'Privileges'
           Enabled = False
           Hint = 'Flush Privileges|Flush User-Privileges'
-          ImageIndex = 20
+          ImageIndex = 16
           OnClick = FlushClick
         end
         object MenuFlushTables: TMenuItem
@@ -587,7 +590,6 @@ object MainForm: TMainForm
       object menuForum: TMenuItem
         Caption = 'Forum'
         Hint = 'http://www.heidisql.com/forum/'
-        ImageIndex = 18
         OnClick = OpenURL
       end
       object menuOnTheWeb: TMenuItem
