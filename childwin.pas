@@ -251,6 +251,8 @@ type
     PopupMenuTablelistColumns: TPopupMenu;
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
+    ToolBar5: TToolBar;
+    ToolBar6: TToolBar;
     procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
