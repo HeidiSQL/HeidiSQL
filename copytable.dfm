@@ -1,10 +1,10 @@
 object CopyTableForm: TCopyTableForm
-  Left = 443
-  Top = 79
+  Left = 393
+  Top = 115
   BorderStyle = bsDialog
   Caption = 'Copy Table...'
-  ClientHeight = 251
-  ClientWidth = 347
+  ClientHeight = 295
+  ClientWidth = 396
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,6 +14,9 @@ object CopyTableForm: TCopyTableForm
   OldCreateOrder = False
   Position = poMainFormCenter
   OnShow = FormShow
+  DesignSize = (
+    396
+    295)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -24,28 +27,37 @@ object CopyTableForm: TCopyTableForm
     Caption = 'Copy .. to new Table:'
   end
   object Label2: TLabel
-    Left = 160
-    Top = 136
+    Left = 200
+    Top = 181
     Width = 164
     Height = 52
+    Anchors = [akLeft, akBottom]
     Caption = 
       'Note: This copy is done using a special and fast create-statemen' +
       't, which will work only in MySQL-Versions 3.23.x and above'
     WordWrap = True
   end
+  object Label3: TLabel
+    Left = 16
+    Top = 64
+    Width = 83
+    Height = 13
+    Caption = 'Target Database:'
+  end
   object Edit1: TEdit
     Left = 16
     Top = 32
-    Width = 313
+    Width = 361
     Height = 21
     TabOrder = 0
     OnChange = Edit1Change
   end
   object RadioButton1: TRadioButton
-    Left = 160
-    Top = 72
+    Left = 200
+    Top = 117
     Width = 81
     Height = 17
+    Anchors = [akLeft, akBottom]
     Caption = 'Structure'
     Checked = True
     TabOrder = 3
@@ -53,28 +65,31 @@ object CopyTableForm: TCopyTableForm
     OnClick = RadioButton1Click
   end
   object RadioButton2: TRadioButton
-    Left = 160
-    Top = 96
+    Left = 200
+    Top = 141
     Width = 113
     Height = 17
+    Anchors = [akLeft, akBottom]
     Caption = 'Structure and Data'
     TabOrder = 4
     OnClick = RadioButton2Click
   end
   object CheckListBoxFields: TCheckListBox
     Left = 16
-    Top = 120
-    Width = 121
+    Top = 165
+    Width = 161
     Height = 113
+    Anchors = [akLeft, akBottom]
     Enabled = False
     ItemHeight = 13
     TabOrder = 2
   end
   object CheckBoxWithAllFields: TCheckBox
     Left = 16
-    Top = 96
+    Top = 141
     Width = 97
     Height = 17
+    Anchors = [akLeft, akBottom]
     Caption = 'With all Fields'
     Checked = True
     State = cbChecked
@@ -82,10 +97,11 @@ object CopyTableForm: TCopyTableForm
     OnClick = CheckBoxWithAllFieldsClick
   end
   object ButtonOK: TBitBtn
-    Left = 160
-    Top = 208
+    Left = 200
+    Top = 253
     Width = 83
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'OK'
     Default = True
     TabOrder = 5
@@ -135,10 +151,11 @@ object CopyTableForm: TCopyTableForm
       569B9B9B9B9B9B9B9B9B}
   end
   object ButtonCancel: TButton
-    Left = 256
-    Top = 208
+    Left = 296
+    Top = 253
     Width = 83
     Height = 25
+    Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 6
@@ -146,12 +163,22 @@ object CopyTableForm: TCopyTableForm
   end
   object CheckBoxWithIndexes: TCheckBox
     Left = 16
-    Top = 72
+    Top = 117
     Width = 97
     Height = 17
+    Anchors = [akLeft, akBottom]
     Caption = 'With Indexes'
     Checked = True
     State = cbChecked
     TabOrder = 7
+  end
+  object ComboSelectDatabase: TComboBox
+    Left = 16
+    Top = 80
+    Width = 361
+    Height = 21
+    Style = csDropDownList
+    ItemHeight = 13
+    TabOrder = 8
   end
 end

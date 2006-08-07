@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ZDataSet;
+  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls;
 
 type
   TCopyTableForm = class(TForm)
@@ -25,6 +25,8 @@ type
     ButtonCancel: TButton;
     Label2: TLabel;
     CheckBoxWithIndexes: TCheckBox;
+    Label3: TLabel;
+    ComboSelectDatabase: TComboBox;
     procedure RadioButton1Click(Sender: TObject);
     procedure RadioButton2Click(Sender: TObject);
     procedure CheckBoxWithAllFieldsClick(Sender: TObject);
@@ -74,11 +76,36 @@ end;
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   i : Integer;
+  tn : TTreeNode;
 begin
-  oldTableName := TMDIChild(Mainform.ActiveMDIChild).TabellenListe.Selected.Caption;
+  oldTableName := TMDIChild(Mainform.ActiveMDIChild).ListTables.Selected.Caption;
   Edit1.Text := oldTableName + '_copy';
   Edit1.SetFocus;
   Label1.Caption := 'Copy ''' + oldTableName + ''' to new Table:';
+
+	// Select TargetDatabase
+  ComboSelectDatabase.Items.Clear;
+  with TMDIChild(Mainform.ActiveMDIChild) do
+  begin
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        comboSelectDatabase.Items.Add(tn.Text);
+    end;
+
+    for i:=0 to comboSelectDatabase.Items.Count-1 do
+    begin
+      if (comboSelectDatabase.Items[i] = ActualDatabase) then
+      begin
+        comboSelectDatabase.ItemIndex := i;
+        break;
+      end;
+    end;
+    if comboSelectDatabase.ItemIndex = -1 then
+      comboSelectDatabase.ItemIndex := 0;
+  end;
+
 
   // fill columns:
   CheckListBoxFields.Items.Clear;
@@ -95,20 +122,22 @@ begin
   // select all:
   for i:=0 to CheckListBoxFields.Items.Count-1 do
     CheckListBoxFields.checked[i] := true;
+
 end;
 
 
 procedure TCopyTableForm.ButtonOKClick(Sender: TObject);
 var
-  strquery : String;
-  i,which,k        : Integer;
-  keylist  : Array of TMyKey;
-  keystr   : String;
+  strquery     : String;
+  i,which,k    : Integer;
+  keylist      : Array of TMyKey;
+  keystr       : String;
   ai_q, notnull, default    : String;
-  zq : TZReadOnlyQuery;
+  zq           : TZReadOnlyQuery;
+  isFulltext   : Boolean;
 begin
   // copy table!
-  strquery := 'CREATE TABLE ' + mainform.mask(Edit1.Text) + ' ';
+  strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(Edit1.Text) + ' ';
   zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
 
   // keys >
@@ -133,19 +162,23 @@ begin
         keylist[which].Columns := TStringList.Create;
         with keylist[which] do // set properties for new key
         begin
+          if TMDIChild(Mainform.ActiveMDIChild).mysql_version < 40002 then
+            isFulltext := (zq.FieldByName('Comment').AsString = 'FULLTEXT')
+          else
+            isFulltext := (zq.FieldByName('Index_type').AsString = 'FULLTEXT');
           Name := zq.Fields[2].AsString;
           if zq.Fields[2].AsString = 'PRIMARY' then
             _type := 'PRIMARY'
-          else if zq.FieldCount >= 10 then if zq.Fields[9].AsString = 'FULLTEXT' then
+          else if isFulltext then
             _type := 'FULLTEXT'
           else if zq.Fields[1].AsString = '1' then
             _type := ''
           else if zq.Fields[1].AsString = '0' then
             _type := 'UNIQUE';
         end;
-        zq.Next;
       end;
       keylist[which].Columns.add(zq.Fields[4].AsString); // add column(s)
+      zq.Next;
     end;
     for k:=0 to high(keylist) do
     begin
@@ -192,7 +225,7 @@ begin
     if zq.Fields[5].AsString = 'auto_increment' then begin
       if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
       if zq.Fields[4].AsString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsString+'"' else default := '';
-      ai_q := 'ALTER TABLE '+mainform.mask(Edit1.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
+      ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(Edit1.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
       TMDIChild(Mainform.ActiveMDIChild).ExecQuery(ai_q);
     end;
     zq.Next;
