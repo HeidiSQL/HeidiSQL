@@ -64,9 +64,9 @@ begin
   ComboBoxTableName.Items.Clear;
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    for i:=0 to Tabellenliste.Items.Count-1 do
-      self.ComboBoxTableName.Items.Add( Tabellenliste.Items[i].Caption );
-    self.ComboBoxTableName.ItemIndex := Tabellenliste.Selected.Index;
+    for i:=0 to ListTables.Items.Count-1 do
+      self.ComboBoxTableName.Items.Add( ListTables.Items[i].Caption );
+    self.ComboBoxTableName.ItemIndex := ListTables.Selected.Index;
   end;
   ComboBoxTableNameChange( self );
 end;

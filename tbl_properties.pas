@@ -48,13 +48,13 @@ procedure Ttbl_properties_form.FormShow(Sender: TObject);
 var
   i,t : Integer;
   ts : TTabSheet;
-  list, tabellenliste : TSortListView;
+  list, ListTables : TSortListView;
   datasize, indexsize : Integer;
   isSelected : Boolean;
   FieldList  : TStringList;
   zq : TZReadOnlyQuery;
 begin
-  tabellenliste := TMDIChild(Mainform.ActiveMDIChild).TabellenListe;
+  ListTables := TMDIChild(Mainform.ActiveMDIChild).ListTables;
   for i:=PageControl1.PageCount-1 downto 0 do
     PageControl1.Pages[i].Free;
 
@@ -72,9 +72,9 @@ begin
   for t:=0 to zq.RecordCount-1 do
   begin
     isSelected := false;
-    for i:=0 to TabellenListe.Items.Count-1 do
+    for i:=0 to ListTables.Items.Count-1 do
     begin
-      isSelected := (TabellenListe.Items[i].caption = zq.Fields[0].AsString) and TabellenListe.Items[i].Selected;
+      isSelected := (ListTables.Items[i].caption = zq.Fields[0].AsString) and ListTables.Items[i].Selected;
       if isSelected then
         break;
     end;
@@ -84,7 +84,7 @@ begin
       continue;
     end;
     ts := TTabSheet.Create(PageControl1);
-    ts.Caption := TabellenListe.Items[t].Caption;
+    ts.Caption := ListTables.Items[t].Caption;
     ts.PageControl := PageControl1;
 
     list := TSortListView.Create(self);

@@ -121,7 +121,7 @@ begin
   ComboBoxPosition.Items.Clear;
   ComboBoxPosition.Items.Add('At End of Table');
   ComboBoxPosition.Items.Add('At Beginning of Table');
-  with TMDIChild(Application.Mainform.ActiveMDIChild).Feldliste do begin
+  with TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns do begin
     for i:=0 to items.Count-1 do
       ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(items[i].Caption));
   end;
@@ -131,13 +131,13 @@ begin
     EditLength.Text := '';
     EditDefault.Text := '';
     CheckBoxUnsigned.Checked := true;
-    if TMDIChild(Application.Mainform.ActiveMDIChild).Feldliste.Selected <> nil then
-      ComboBoxPosition.ItemIndex := TMDIChild(Application.Mainform.ActiveMDIChild).Feldliste.Selected.Index+2
+    if TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected <> nil then
+      ComboBoxPosition.ItemIndex := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected.Index+2
     else
       ComboBoxPosition.ItemIndex := 0;
   end else
   begin // edit exising field
-    with TMDIChild(Application.Mainform.ActiveMDIChild).Feldliste.Selected do
+    with TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected do
     begin
       EditFieldname.Text := Caption;
       EditLength.Text := getklammervalues(Subitems[0]);
@@ -254,9 +254,9 @@ begin
       ZQuery3.Next;
     end;
 
-    for i:=0 to Feldliste.Items.Count-1 do begin
-      if Feldliste.Items[i] <> nil then
-        self.ListBox2.Items.Add(Feldliste.Items[i].Caption);
+    for i:=0 to ListColumns.Items.Count-1 do begin
+      if ListColumns.Items[i] <> nil then
+        self.ListBox2.Items.Add(ListColumns.Items[i].Caption);
     end;
   end;
   showkeys();
@@ -402,7 +402,7 @@ begin
         )
     else begin
       ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +                      // table
-        ' CHANGE ' + mainform.mask(FeldListe.Selected.Caption) + ' ' +     // old name
+        ' CHANGE ' + mainform.mask(ListColumns.Selected.Caption) + ' ' +     // old name
         mainform.mask(EditFieldName.Text) + ' ' +                          // new name
         fielddef
         );
@@ -467,9 +467,9 @@ begin
   if ComboBoxKeys.ItemIndex > -1 then begin
     ListBox2.Items.Clear;
     with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-      for i:=0 to Feldliste.Items.Count-1 do
-        if (Feldliste.Items[i] <> nil) and (klist[self.ComboBoxKeys.ItemIndex].columns.Indexof(Feldliste.Items[i].Caption)=-1) then
-          self.ListBox2.Items.Add(Feldliste.Items[i].Caption);
+      for i:=0 to ListColumns.Items.Count-1 do
+        if (ListColumns.Items[i] <> nil) and (klist[self.ComboBoxKeys.ItemIndex].columns.Indexof(ListColumns.Items[i].Caption)=-1) then
+          self.ListBox2.Items.Add(ListColumns.Items[i].Caption);
     end;
     with klist[ComboBoxKeys.ItemIndex] do begin
       ListBox1.Items := Columns;

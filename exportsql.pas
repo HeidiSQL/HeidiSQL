@@ -244,11 +244,11 @@ begin
           2,3 : checkListTables.checked[i] := dbtree_table = checkListTables.Items[i];
         end;
       end
-      else if ActualDatabase = comboSelectDatabase.Text then for j:=0 to Tabellenliste.Items.Count-1 do
+      else if ActualDatabase = comboSelectDatabase.Text then for j:=0 to ListTables.Items.Count-1 do
       begin
-        if checkListTables.Items[i] = Tabellenliste.Items[j].Caption then
+        if checkListTables.Items[i] = ListTables.Items[j].Caption then
         begin
-          checkListTables.checked[i] := Tabellenliste.Items[j].Selected;
+          checkListTables.checked[i] := ListTables.Items[j].Selected;
           break;
         end;
       end
