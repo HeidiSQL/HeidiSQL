@@ -38,7 +38,6 @@ type
     Label2: TLabel;
     EditDescription: TEdit;
     Label3: TLabel;
-    ListColumns: TListBox;
     ButtonMoveUp: TBitBtn;
     ButtonMoveDown: TBitBtn;
     ButtonAdd: TButton;
@@ -51,6 +50,7 @@ type
     ComboBoxTableType: TComboBox;
     Label5: TLabel;
     Bevel2: TBevel;
+    feldListe: TListBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonCreateClick(Sender: TObject);
     procedure ButtonDeleteClick(Sender: TObject);
@@ -64,7 +64,7 @@ type
     procedure CheckBoxAutoincrementClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure EditFieldnameChange(Sender: TObject);
-    procedure ListColumnsClick(Sender: TObject);
+    procedure feldListeClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure refreshfields(Sender: TObject);
     procedure ButtonChangeClick(Sender: TObject);
@@ -209,7 +209,7 @@ procedure TCreateTableForm.refreshfields(Sender: TObject);
 var i : word;
 begin
   // refresh field-list
-  with ListColumns do
+  with feldListe do
   begin
     Items.Clear;
     if length(fields) > 0 then
@@ -227,7 +227,7 @@ begin
     enableControls(self);
     fillControls(self);
   end;
-  if index = ListColumns.Items.Count - 1 then
+  if index = feldListe.Items.Count - 1 then
     ButtonMoveDown.Enabled := false
   else
     ButtonMoveDown.Enabled := true;
@@ -250,7 +250,7 @@ begin
   dec(index);
   refreshfields(self);
   EditFieldNameChange(self);
-  ListColumnsClick(self);
+  feldListeClick(self);
   if length(fields) = 0 then
   begin
     ButtonMoveUp.Enabled := false;
@@ -374,11 +374,11 @@ begin
     Zerofill := false;
     NotNull := false;
     Autoincrement := false;
-    ListColumns.Items.Add(Name);
+    feldListe.Items.Add(Name);
   end;
   refreshfields(self);
   EditFieldnameChange(self);
-  ListColumns.ItemIndex := index;
+  feldListe.ItemIndex := index;
   // ButtonCreate enablen
   ButtonCreate.Enabled := length(fields)>0;
 end;
@@ -386,7 +386,7 @@ end;
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
 begin
   // Field Name EditChange
-  if (validName(EditFieldName.Text)) and (notinlist(EditFieldName.Text, ListColumns.Items)) then
+  if (validName(EditFieldName.Text)) and (notinlist(EditFieldName.Text, feldListe.Items)) then
   begin
     buttonAdd.Enabled := true;
     buttonChange.Enabled := true;
@@ -399,10 +399,10 @@ begin
   ButtonsChange(self);
 end;
 
-procedure TCreateTableForm.ListColumnsClick(Sender: TObject);
+procedure TCreateTableForm.feldListeClick(Sender: TObject);
 begin
   // ListColumns Change
-  index := ListColumns.ItemIndex;
+  index := feldListe.ItemIndex;
   if index > -1 then
     editfieldname.Text := fields[index].Name;
   refreshfields(self);
@@ -419,7 +419,7 @@ begin
   end else
   begin
     buttonDelete.Enabled := true;
-    if notinlist(EditFieldName.Text, ListColumns.Items) then
+    if notinlist(EditFieldName.Text, feldListe.Items) then
       buttonChange.Enabled := true
     else
       buttonChange.Enabled := false;
@@ -466,7 +466,7 @@ begin
   end;
   index := -1;
   setLength(fields, 0);
-  ListColumns.Items.Clear;
+  feldListe.Items.Clear;
   EditTableName.Text := 'TableName';
   EditFieldName.Text := 'FieldName';
   Editdescription.Text := '';
