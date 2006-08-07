@@ -122,7 +122,7 @@ object MDIChild: TMDIChild
               ExplicitTop = 0
               ExplicitWidth = 0
               ExplicitHeight = 0
-              object VariabelListe: TSortListView
+              object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
                 Top = 0
@@ -155,7 +155,7 @@ object MDIChild: TMDIChild
               ExplicitTop = 0
               ExplicitWidth = 0
               ExplicitHeight = 0
-              object ProcessListe: TSortListView
+              object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
                 Top = 0
@@ -212,7 +212,7 @@ object MDIChild: TMDIChild
                 SmallImages = MainForm.ImageList1
                 TabOrder = 0
                 ViewStyle = vsReport
-                OnChange = ProcessListeChange
+                OnChange = ListProcessesChange
               end
             end
           end
@@ -261,7 +261,7 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
           end
-          object Tabellenliste: TSortListView
+          object ListTables: TSortListView
             Tag = -1
             Left = 30
             Top = 17
@@ -324,12 +324,12 @@ object MDIChild: TMDIChild
             SmallImages = MainForm.ImageList1
             TabOrder = 1
             ViewStyle = vsReport
-            OnChange = TabellenlisteChange
-            OnColumnRightClick = TabellenlisteColumnRightClick
-            OnDblClick = TabellenlisteDblClick
-            OnEdited = TabellenlisteEdited
-            OnEditing = TabellenlisteEditing
-            OnMouseDown = TabellenlisteMouseDown
+            OnChange = ListTablesChange
+            OnColumnRightClick = ListTablesColumnRightClick
+            OnDblClick = ListTablesDblClick
+            OnEdited = ListTablesEdited
+            OnEditing = ListTablesEditing
+            OnMouseDown = ListTablesMouseDown
           end
           object ToolBar1: TToolBar
             Left = 3
@@ -380,11 +380,8 @@ object MDIChild: TMDIChild
             object MenuTabelleLoeschen: TToolButton
               Left = 0
               Top = 69
-              Hint = 'Drop table(s)...'
-              Caption = 'MenuTabelleLoeschen'
-              ImageIndex = 84
+              Action = MainForm.DropTable
               Wrap = True
-              OnClick = TabelleLoeschen
             end
             object ToolButton14: TToolButton
               Left = 0
@@ -504,7 +501,7 @@ object MDIChild: TMDIChild
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
             TabOrder = 2
-            object FeldListe: TSortListView
+            object ListColumns: TSortListView
               Tag = -1
               Left = 0
               Top = 0
@@ -546,7 +543,7 @@ object MDIChild: TMDIChild
               SmallImages = MainForm.ImageList1
               TabOrder = 0
               ViewStyle = vsReport
-              OnChange = FeldListeChange
+              OnChange = ListColumnsChange
               OnDblClick = UpdateField
             end
           end
@@ -2177,9 +2174,7 @@ object MDIChild: TMDIChild
       OnClick = DBLoeschen
     end
     object PopupMenuDropTable: TMenuItem
-      Caption = 'Drop Table...'
-      ImageIndex = 3
-      OnClick = TabelleLoeschen
+      Action = MainForm.DropTable
     end
     object Exporttables2: TMenuItem
       Action = MainForm.ExportTables
@@ -2230,11 +2225,7 @@ object MDIChild: TMDIChild
       Caption = 'Commands'
       ImageIndex = 63
       object menudroptable: TMenuItem
-        Caption = 'Drop ...'
-        Enabled = False
-        ImageIndex = 28
-        ShortCut = 46
-        OnClick = TabelleLoeschen
+        Action = MainForm.DropTable
       end
       object menuemptytable: TMenuItem
         Caption = 'Empty ...'
@@ -2413,6 +2404,7 @@ object MDIChild: TMDIChild
     NumberAttri.Foreground = clPurple
     StringAttri.Foreground = clGreen
     SymbolAttri.Foreground = clBlue
+    TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
     Left = 39

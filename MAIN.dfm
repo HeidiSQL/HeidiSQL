@@ -150,12 +150,8 @@ object MainForm: TMainForm
       object ButtonDropTable: TToolButton
         Left = 223
         Top = 0
-        Hint = 'Drop Table...'
+        Action = DropTable
         AutoSize = True
-        Caption = 'Drop Table'
-        Enabled = False
-        ImageIndex = 84
-        OnClick = ButtonDropTableClick
       end
       object ToolButton4: TToolButton
         Left = 246
@@ -439,10 +435,7 @@ object MainForm: TMainForm
       end
       object MenuDropTable: TMenuItem
         Tag = 32
-        Caption = 'Drop Table...'
-        Enabled = False
-        ImageIndex = 84
-        OnClick = ButtonDropTableClick
+        Action = DropTable
       end
       object N4: TMenuItem
         Caption = '-'
@@ -532,6 +525,9 @@ object MainForm: TMainForm
         Tag = 45
         Action = ExportTables
         Caption = 'Export tables...'
+      end
+      object ImportSQL1: TMenuItem
+        Action = ImportSQL
       end
       object N11: TMenuItem
         Caption = '-'
@@ -807,11 +803,24 @@ object MainForm: TMainForm
       ImageIndex = 19
       OnExecute = ExportTablesExecute
     end
+    object ImportSQL: TAction
+      Caption = 'Import SQL-file ...'
+      Hint = 'Load and import SQL-file ...'
+      ImageIndex = 85
+      OnExecute = ImportSQLExecute
+    end
     object DataSearch: TAction
       Caption = 'Find...'
       ImageIndex = 50
       ShortCut = 16454
       OnExecute = DataSearchExecute
+    end
+    object DropTable: TAction
+      Caption = 'Drop Table ...'
+      Enabled = False
+      Hint = 'Drop Table ...'
+      ImageIndex = 84
+      OnExecute = DropTableExecute
     end
   end
   object ImageList1: TImageList

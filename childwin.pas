@@ -46,12 +46,12 @@ type
     PageControl2: TPageControl;
     TabSheet6: TTabSheet;
     TabSheet7: TTabSheet;
-    VariabelListe: TSortListView;
-    ProcessListe: TSortListView;
+    ListVariables: TSortListView;
+    ListProcesses: TSortListView;
     PopupMenu2: TPopupMenu;
     Kill1: TMenuItem;
     NewDatabase1: TMenuItem;
-    Tabellenliste: TSortListView;
+    ListTables: TSortListView;
     Refresh1: TMenuItem;
     Panel4: TPanel;
     Panel5: TPanel;
@@ -118,7 +118,7 @@ type
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
     Panel9: TPanel;
-    FeldListe: TSortListView;
+    ListColumns: TSortListView;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
     Copy3: TMenuItem;
@@ -261,23 +261,22 @@ type
     procedure viewdata(Sender: TObject);
     procedure ShowDBProperties(Sender: TObject);
     procedure ShowTableProperties(Sender: TObject);
-    procedure TabellenlisteChange(Sender: TObject; Item: TListItem;
+    procedure ListTablesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure TabelleAnzeigen(Sender: TObject);
     procedure TabelleLeeren(Sender: TObject);
-    procedure TabelleLoeschen(Sender: TObject);
     procedure DBLoeschen(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
     procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
-    procedure ProcessListeChange(Sender: TObject; Item: TListItem;
+    procedure ListProcessesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
     procedure PageControl2Change(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false; CurrentLine: Boolean=false);
-    procedure FeldListeChange(Sender: TObject; Item: TListItem;
+    procedure ListColumnsChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure DropField(Sender: TObject);
     procedure SynMemo1Change(Sender: TObject);
@@ -289,7 +288,7 @@ type
     procedure UpdateField(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure MenuAdvancedPropertiesClick(Sender: TObject);
-    procedure TabellenlisteEdited(Sender: TObject; Item: TListItem;
+    procedure ListTablesEdited(Sender: TObject; Item: TListItem;
       var S: String);
     procedure MenuRenameTableClick(Sender: TObject);
     procedure MenuViewBlobClick(Sender: TObject);
@@ -306,7 +305,7 @@ type
     procedure MenuCheckClick(Sender: TObject);
     procedure MenuAnalyzeClick(Sender: TObject);
     procedure MenuRepairClick(Sender: TObject);
-    procedure TabellenlisteDblClick(Sender: TObject);
+    procedure ListTablesDblClick(Sender: TObject);
     procedure Timer5Timer(Sender: TObject);
     procedure DBGrid1TitleClick(Column: TColumn);
     procedure Filter1Click(Sender: TObject);
@@ -345,7 +344,7 @@ type
     procedure SynMemo1MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure PopupMenu2Popup(Sender: TObject);
-    procedure TabellenlisteEditing(Sender: TObject; Item: TListItem;
+    procedure ListTablesEditing(Sender: TObject; Item: TListItem;
       var AllowEdit: Boolean);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
@@ -386,10 +385,10 @@ type
     procedure ButtonDataSearchClick(Sender: TObject);
     procedure EditDataSearchEnter(Sender: TObject);
     procedure EditDataSearchExit(Sender: TObject);
-    procedure TabellenlisteColumnRightClick(Sender: TObject;
+    procedure ListTablesColumnRightClick(Sender: TObject;
       Column: TListColumn; Point: TPoint);
     procedure MenuTablelistColumnsClick(Sender: TObject);
-    procedure TabellenlisteMouseDown(Sender: TObject; Button: TMouseButton;
+    procedure ListTablesMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure DBMemo1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -776,7 +775,7 @@ begin
         ActualDatabase := strdb;
         ActualTable := '';
         ToolButton9.Enabled := False;
-        FeldListe.Items.Clear;
+        ListColumns.Items.Clear;
         Panel3.Caption := 'Table-Properties';
         ShowDBProperties(self);
       end;
@@ -790,21 +789,27 @@ begin
       strtable := Node.Text;
       if (ActualDatabase <> strdb) or (ActualTable <> strtable) then
         dataselected := false;
-      if ActualDatabase <> strdb then begin
+      if ActualDatabase <> strdb then
+      begin
         ActualDatabase := strdb;
         ShowDBProperties(self);
       end;
-      if (ActualTable <> strtable) or (ActualDatabase <> strdb) then begin
+      if (ActualTable <> strtable) or (ActualDatabase <> strdb) then
+      begin
         ActualTable := strtable;
         ShowTableProperties(self);
       end;
-      showstatus(strdb + ': '+strtable +': ' + inttostr(FeldListe.Items.count) +' field(s)');
+      showstatus(strdb + ': '+strtable +': ' + inttostr(ListColumns.Items.count) +' field(s)');
 //      if not dataselected then pcChange(self);
       Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
     end;
   end;
 
+  MainForm.ButtonDropDatabase.Enabled := ActualDatabase <> '';
+  MainForm.DropTable.Enabled := ActualTable <> '';
+  MainForm.ButtonCreateTable.Enabled := ActualDatabase <> '';
   pcChange(self);
+
   Screen.Cursor := crDefault;
 end;
 
@@ -860,9 +865,9 @@ begin
       begin
         columnname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
         columnexists := false;
-        for j:=0 to FeldListe.Items.Count-1 do
+        for j:=0 to ListColumns.Items.Count-1 do
         begin
-          if FeldListe.Items[j].Caption = columnname then
+          if ListColumns.Items[j].Caption = columnname then
           begin
             columnexists := true;
             break;
@@ -954,20 +959,20 @@ begin
       end;
     end;
 
-    for i:=0 to FeldListe.Items.Count-1 do
+    for i:=0 to ListColumns.Items.Count-1 do
     begin
-      Columns.Add( FeldListe.Items[i].Caption );
+      Columns.Add( ListColumns.Items[i].Caption );
 
       // give all enum-fields a PickList with its Items
-      if StrCmpBegin('enum', FeldListe.Items[i].SubItems[0]) then begin
-        DropDown := explode(''',''', getklammervalues(FeldListe.Items[i].SubItems[0]));
+      if StrCmpBegin('enum', ListColumns.Items[i].SubItems[0]) then begin
+        DropDown := explode(''',''', getklammervalues(ListColumns.Items[i].SubItems[0]));
         for j:=0 to DropDown.count-1 do
         begin
           DropDown[j] := trimc(DropDown[j], '''');
         end;
         for j:=0 to DBGrid1.Columns.count-1 do
         begin
-          if DBGrid1.Columns[j].FieldName = FeldListe.Items[i].Caption then
+          if DBGrid1.Columns[j].FieldName = ListColumns.Items[i].Caption then
             DBGrid1.Columns[j].PickList := DropDown;
         end;
       end;
@@ -975,10 +980,10 @@ begin
       // make PK-columns = fsBold
       for j:=0 to DBGrid1.Columns.count-1 do
       begin
-        if (DBGrid1.Columns[j].FieldName = FeldListe.Items[i].Caption) and
-          (FeldListe.Items[i].ImageIndex = 26) then
+        if (DBGrid1.Columns[j].FieldName = ListColumns.Items[i].Caption) and
+          (ListColumns.Items[i].ImageIndex = 26) then
         begin
-          PrimaryKeyColumns.Add( FeldListe.Items[i].Caption );
+          PrimaryKeyColumns.Add( ListColumns.Items[i].Caption );
         end;
       end;
 
@@ -1055,10 +1060,12 @@ begin
 end;
 
 
+{ Show tables and their properties on the tabsheet "Database" }
 procedure TMDIChild.ShowDBProperties(Sender: TObject);
 var
   n               : TListItem;
-  i,j,k,t,u,bytes : Integer;
+  i,j,k,t,u       : Integer;
+  bytes           : Int64;
   tndb            : TTreenode;
   menuitem        : TMenuItem;
   TablelistColumns: TStringList;
@@ -1072,7 +1079,8 @@ begin
   ExecUseQuery( ActualDatabase );
 
   Try
-    if mysql_version >= 32300 then begin
+    if mysql_version >= 32300 then
+    begin
       // get quick results with versions 3.23.xx and newer
       GetResults( 'SHOW TABLE STATUS', ZQuery3 );
 
@@ -1108,62 +1116,66 @@ begin
         PopupMenuTablelistColumns.Items.Add( menuitem );
       end;
 
-      Tabellenliste.Columns.BeginUpdate;
-      Tabellenliste.Items.BeginUpdate;
-      Tabellenliste.Columns.Clear;
-      column := Tabellenliste.Columns.Add;
+      ListTables.Items.BeginUpdate;
+      ListTables.Items.Clear;
+      ListTables.Columns.BeginUpdate;
+      ListTables.Columns.Clear;
+      column := ListTables.Columns.Add;
       column.Caption := 'Table';
       column.Width := -1;
       if PopupMenuTablelistColumns.Items[0].Checked then
       begin // Default columns - initialize column headers
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := 'Records';
         column.Alignment := taRightJustify;
         column.Width := 80;
 
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := 'Size';
         column.Alignment := taRightJustify;
         column.Width := -1;
 
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := 'Created';
         column.Width := -1;
 
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := 'Updated';
         column.Width := -1;
 
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := 'Engine';
         column.Width := -1;
 
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := 'Comment';
         column.Width := -1;
       end;
       for i:=0 to TablelistColumns.Count-1 do
       begin
-        column := Tabellenliste.Columns.Add;
+        column := ListTables.Columns.Add;
         column.Caption := TablelistColumns[i];
         column.Width := -1;
         column.MinWidth := 50;
         column.Autosize := true;
       end;
 
-      Tabellenliste.Items.Clear;
+      SynSQLSyn1.TableNames.Clear;
+
       for i := 1 to ZQuery3.RecordCount do
       begin
-        n := Tabellenliste.Items.Add;
+        n := ListTables.Items.Add;
         n.ImageIndex := 39;
         // Table
         n.Caption := ZQuery3.FieldByName('Name').AsString;
+        // Let synedit know all tablenames so that they can be highlighted
+        SynSQLSyn1.TableNames.Add( ZQuery3.FieldByName('Name').AsString );
         if PopupMenuTablelistColumns.Items[0].Checked then
         begin // Default columns
           // Records
           n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
           // Size: Data_length + Index_length
-          bytes := ZQuery3.FieldByName('Data_length').AsInteger + ZQuery3.FieldByName('Index_length').AsInteger;
+          bytes := StrToInt64(ZQuery3.FieldByName('Data_length').AsString) + StrToInt64(ZQuery3.FieldByName('Index_length').AsString);
           n.SubItems.Add(format('%d KB', [bytes div 1024 + 1]));
           // Created:
           n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
@@ -1187,7 +1199,7 @@ begin
             begin
               n.SubItems.Add( ZQuery3.Fields[k].AsString );
               if IntToStr(StrToIntDef(ZQuery3.Fields[k].AsString,-1)) =  ZQuery3.Fields[k].AsString then
-                Tabellenliste.Columns[n.SubItems.Count].Alignment := taRightJustify
+                ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify
             end;
           end;
         end;
@@ -1202,7 +1214,7 @@ begin
       ZQuery3.First;
       for i := 1 to ZQuery3.RecordCount do
       begin
-        n := Tabellenliste.Items.Add;
+        n := ListTables.Items.Add;
         n.Caption := ZQuery3.Fields[0].AsString;
         n.ImageIndex := 39;
         n.SubItems.Add( GetVar( 'SELECT COUNT(*) FROM '+ZQuery3.Fields[0].AsString ) );
@@ -1210,8 +1222,8 @@ begin
       end;
     end;
   Finally
-    Tabellenliste.Columns.EndUpdate;
-    Tabellenliste.Items.EndUpdate;
+    ListTables.Columns.EndUpdate;
+    ListTables.Items.EndUpdate;
     Screen.Cursor := crDefault;
   End;
   Screen.Cursor := crHourglass;
@@ -1224,20 +1236,21 @@ begin
   // get all tables back into dbtree
   for u:=tndb.Count-1 downto 0 do
     tndb.Item[u].delete;
-  for t:=0 to TabellenListe.Items.Count-1 do
+  for t:=0 to ListTables.Items.Count-1 do
   begin
-    with DBtree.Items.AddChild(tndb, TabellenListe.Items[t].Caption) do begin
+    with DBtree.Items.AddChild(tndb, ListTables.Items[t].Caption) do begin
       ImageIndex := 39;
       selectedIndex := 40;
     end;
   end;
 
-  Panel2.Caption := 'Database ' + ActualDatabase + ': ' + inttostr(TabellenListe.Items.Count) + ' table(s)';
+  Panel2.Caption := 'Database ' + ActualDatabase + ': ' + inttostr(ListTables.Items.Count) + ' table(s)';
   Screen.Cursor := crDefault;
 end;
 
 
 
+{ Show columns of selected table, indicate indexed columns by certain icons }
 procedure TMDIChild.ShowTableProperties(Sender: TObject);
 var
   i,j : Integer;
@@ -1246,12 +1259,13 @@ var
   isFulltext : Boolean;
 begin
   // Table-Properties
+
   Screen.Cursor := crHourGlass;
   if (PageControl1.ActivePage <> SheetData) and (not DBTree.Dragging) then
     PageControl1.ActivePage := SheetTable;
   Panel3.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
 
-  // Tabelle auch im TreeView selektieren:
+  // set current node in DBTree to ActualTable:
   with DBTree do begin
     if Selected.Level = 1 then tndb := Selected
     else if Selected.Level = 2 then tndb := Selected.Parent
@@ -1259,29 +1273,30 @@ begin
     else exit;
   end;
   tn := tndb.getFirstChild;
-  for i:=0 to tndb.Count -1 do begin
-    if ActualTable = tn.Text then begin
+  for i:=0 to tndb.Count -1 do
+  begin
+    if ActualTable = tn.Text then
+    begin
       DBTree.Selected := tn; // select table
       break;
     end;
     tn := tndb.GetNextChild(tn);
   end;
 
-  Feldliste.Items.BeginUpdate;
-  FeldListe.Items.Clear;
+  // and the other way around: set current listitem in tableslist to ActualTable:
+  for i:=0 to ListTables.items.Count -1 do
+  begin
+    // ListTables.Items[i].Selected := (ActualTable = ListTables.Items[i].Caption); // ListTablesOnChange will be called by this line
+  end;
+
+  ListColumns.Items.BeginUpdate;
+  ListColumns.Items.Clear;
   Try
     GetResults( 'SHOW FIELDS FROM ' + mask(ActualTable), ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
-      n := FeldListe.Items.Add;
-      if ZQuery3.FieldByName('Key').AsString = 'PRI' then
-        n.ImageIndex := 26
-      else if ZQuery3.FieldByName('Key').AsString = 'UNI' then
-        n.ImageIndex := 64
-      else if ZQuery3.FieldByName('Key').AsString = 'MUL' then
-        n.ImageIndex := 63
-      else
-        n.ImageIndex := 62;
+      n := ListColumns.Items.Add;
+      n.ImageIndex := 62;
 
       n.Caption := ZQuery3.FieldByName('Field').AsString;
       n.Subitems.Add( ZQuery3.FieldByName('Type').AsString );
@@ -1308,7 +1323,7 @@ begin
       end;
     end;
   finally
-    Feldliste.Items.EndUpdate;
+    ListColumns.Items.EndUpdate;
     Screen.Cursor := crDefault;
   end;
 
@@ -1320,24 +1335,26 @@ begin
     // primary key
     if ZQuery3.FieldByName('Key_name').AsString = 'PRIMARY' then
     begin
-      for j:=0 to FeldListe.Items.Count-1 do
+      for j:=0 to ListColumns.Items.Count-1 do
       begin
-        if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
+        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 26;
+          ListColumns.Items[j].ImageIndex := 26;
           break;
         end;
       end;
     end;
 
     // index
-    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and (ZQuery3.FieldByName('Non_unique').AsString = '1') then
+    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY')
+    	and (ZQuery3.FieldByName('Non_unique').AsString = '1') then
     begin
-      for j:=0 to FeldListe.Items.Count-1 do
+      for j:=0 to ListColumns.Items.Count-1 do
       begin
-        if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
+        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 63;
+          if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
+            ListColumns.Items[j].ImageIndex := 63;
           break;
         end;
       end;
@@ -1346,11 +1363,12 @@ begin
     // unique
     if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and (ZQuery3.FieldByName('Non_unique').AsString = '0') then
     begin
-      for j:=0 to FeldListe.Items.Count-1 do
+      for j:=0 to ListColumns.Items.Count-1 do
       begin
-        if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
+        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 64;
+          if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
+            ListColumns.Items[j].ImageIndex := 64;
           break;
         end;
       end;
@@ -1363,11 +1381,12 @@ begin
       isFulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT');
     if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
     begin
-      for j:=0 to FeldListe.Items.Count-1 do
+      for j:=0 to ListColumns.Items.Count-1 do
       begin
-        if ZQuery3.FieldByName('Column_name').AsString = FeldListe.Items[j].Caption then
+        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
         begin
-          FeldListe.Items[j].ImageIndex := 65;
+          if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
+            ListColumns.Items[j].ImageIndex := 65;
           break;
         end;
       end;
@@ -1379,45 +1398,41 @@ begin
 end;
 
 
-procedure TMDIChild.TabellenlisteChange(Sender: TObject; Item: TListItem;
+procedure TMDIChild.ListTablesChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 var someselected : Boolean;
 begin
-  someselected := (Tabellenliste.Selected <> nil);
-  // Tabelle aus der DB ausgewählt
-  with Toolbar1 do
-  begin
-    Toolbutton2.Enabled := someselected; // eigenschaften
-    menuproperties.Enabled := someselected;
-    Toolbutton3.Enabled := someselected; //einfügen
-    menuinsert.Enabled := someselected;
-    Toolbutton1.Enabled := someselected; //anzeigen
-    menuviewdata.Enabled := someselected;
-    Toolbutton13.Enabled := someselected; // leeren
-    menuemptytable.Enabled := someselected;
-    MenuAdvancedProperties.Enabled := someselected;
-    MenuRenameTable.Enabled := someselected;
-    MenuDropTable.Enabled := someselected;
-    MenuChangeType1.Enabled := someselected;
-    MenuChangeType2.Enabled := someselected;
-    MenuChangeType3.Enabled := someselected;
-    MenuChangeType4.Enabled := someselected;
-    MenuChangeType5.Enabled := someselected;
-    MenuChangeType6.Enabled := someselected;
-    MenuChangeTypeOther.Enabled := someselected;
-    Mainform.CopyTable.Enabled := someselected;
-    MenuTabelleLoeschen.Enabled := someselected;
-    if someselected then
-      ActualTable := Tabellenliste.Selected.Caption
-    else
-      ActualTable := '';
-    MenuTableComment.Enabled := someselected;
-    MenuOptimize.Enabled := someselected;
-    MenuCheck.Enabled := someselected;
-    MenuAnalyze.Enabled := someselected;
-    MenuRepair.Enabled := someselected;
-  end;
-
+  someselected := (ListTables.Selected <> nil);
+  // table selected
+  Toolbutton2.Enabled := someselected; // properties
+  menuproperties.Enabled := someselected;
+  Toolbutton3.Enabled := someselected; //insert
+  menuinsert.Enabled := someselected;
+  Toolbutton1.Enabled := someselected; //view data
+  menuviewdata.Enabled := someselected;
+  Toolbutton13.Enabled := someselected; // empty
+  menuemptytable.Enabled := someselected;
+  MenuAdvancedProperties.Enabled := someselected;
+  MenuRenameTable.Enabled := someselected;
+  MenuChangeType1.Enabled := someselected;
+  MenuChangeType2.Enabled := someselected;
+  MenuChangeType3.Enabled := someselected;
+  MenuChangeType4.Enabled := someselected;
+  MenuChangeType5.Enabled := someselected;
+  MenuChangeType6.Enabled := someselected;
+  MenuChangeTypeOther.Enabled := someselected;
+  Mainform.CopyTable.Enabled := someselected;
+  MenuTabelleLoeschen.Enabled := someselected;
+  if someselected then
+    ActualTable := ListTables.Selected.Caption
+  else
+    ActualTable := '';
+  MainForm.DropTable.Enabled := someselected;
+  MenuTableComment.Enabled := someselected;
+  MenuOptimize.Enabled := someselected;
+  MenuCheck.Enabled := someselected;
+  MenuAnalyze.Enabled := someselected;
+  MenuRepair.Enabled := someselected;
 end;
 
 
@@ -1433,7 +1448,7 @@ begin
 
   tn := tndb.getFirstChild;
   for i:=0 to tndb.Count -1 do begin
-    if Tabellenliste.Selected.Caption = tn.Text then
+    if ListTables.Selected.Caption = tn.Text then
     begin
       DBTree.Selected := tn;
       PageControl1.ActivePage := SheetData;
@@ -1451,10 +1466,10 @@ var
   i : Integer;
 begin
   // Empty Table(s)
-  if Tabellenliste.SelCount = 0 then
+  if ListTables.SelCount = 0 then
     exit;
   t := TStringlist.Create;
-  with Tabellenliste do
+  with ListTables do
   for i:=0 to Items.count-1 do
     if Items[i].Selected then
       t.add(Items[i].Caption);
@@ -1465,56 +1480,6 @@ begin
   Screen.Cursor := crSQLWait;
   for i:=0 to t.count-1 do
     ExecQuery( 'DELETE FROM ' + mask(t[i]) );
-  ShowDBProperties(self);
-  Screen.Cursor := crDefault;
-end;
-
-
-procedure TMDIChild.TabelleLoeschen(Sender: TObject);
-var
-  i,j : Integer;
-  tn, tndb : TTreeNode;
-  t : TStringList;
-begin
-  // Drop Table(s)
-  t := TStringlist.Create;
-
-  if (Sender as TComponent).Name = 'PopupMenuDropTable' then begin
-    // delete-command was sended by dbtree-popupmenu:
-    t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
-  end
-  else with Tabellenliste do begin
-    // delete-command was sended by tabellenliste-popupmenu:
-    for i:=0 to Items.count-1 do
-      if Items[i].Selected then
-        t.add(mask(Items[i].Caption));
-    if t.count = 0 then
-      exit;
-  end;
-
-  if MessageDlg('Drop ' + inttostr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
-    exit;
-
-  Screen.Cursor := crSQLWait;
-  ExecQuery( 'DROP TABLE ' + implodestr(', ', t) );
-
-
-  if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
-  else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
-  else exit;
-
-  for i:=0 to t.count-1 do begin
-    // delete it in dbtree too...
-    tn := tndb.getFirstChild;
-    for j:=0 to tndb.Count -1 do begin
-      if t[i] = tn.Text then begin
-        tn.Delete;
-        break;
-      end;
-      tn := tndb.GetNextChild(tn);
-    end;
-  end;
-
   ShowDBProperties(self);
   Screen.Cursor := crDefault;
 end;
@@ -1558,8 +1523,8 @@ begin
 // Variables und Process-List aktualisieren
   Screen.Cursor := crSQLWait;
 
-  Variabelliste.Items.BeginUpdate;
-  Variabelliste.Items.Clear;
+  ListVariables.Items.BeginUpdate;
+  ListVariables.Items.Clear;
 
   // VERSION
   v := GetVar( 'SELECT VERSION()' );
@@ -1571,7 +1536,7 @@ begin
   GetResults( 'SHOW VARIABLES', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
-    n := VariabelListe.Items.Add;
+    n := ListVariables.Items.Add;
     n.Caption := ZQuery3.Fields[0].AsString;
     n.Subitems.Add( ZQuery3.Fields[1].AsString );
     ZQuery3.Next;
@@ -1583,7 +1548,7 @@ begin
   GetResults( 'SHOW STATUS', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
-    n := VariabelListe.Items.Add;
+    n := ListVariables.Items.Add;
     n.Caption := ZQuery3.Fields[0].AsString;
     n.Subitems.Add( ZQuery3.Fields[1].AsString );
     if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
@@ -1594,8 +1559,8 @@ begin
   Timer1Timer(self);
   Timer1.OnTimer := Timer1Timer;
 
-  VariabelListe.Items.EndUpdate;
-  TabSheet6.Caption := 'Variables (' + inttostr(VariabelListe.Items.Count) + ')';
+  ListVariables.Items.EndUpdate;
+  TabSheet6.Caption := 'Variables (' + inttostr(ListVariables.Items.Count) + ')';
   Screen.Cursor := crDefault;
 
   ShowProcesslist(self); // look at next procedure
@@ -1611,8 +1576,8 @@ begin
   // PROCESSLIST
   Screen.Cursor := crSQLWait;
   try
-    ProcessListe.Items.BeginUpdate;
-    ProcessListe.Items.Clear;
+    ListProcesses.Items.BeginUpdate;
+    ListProcesses.Items.Clear;
     ZQuery3.Close;
     ZQuery3.SQL.Clear;
     ZQuery3.SQL.Add( 'SHOW PROCESSLIST' );
@@ -1620,7 +1585,7 @@ begin
     ZQuery3.First;
     for i:=1 to ZQuery3.RecordCount do
     begin
-      n := ProcessListe.Items.Add;
+      n := ListProcesses.Items.Add;
       n.Caption := ZQuery3.Fields[0].AsString;
       if CompareText( ZQuery3.Fields[4].AsString, 'Killed') = 0 then
         n.ImageIndex := 83  // killed
@@ -1631,34 +1596,34 @@ begin
       ZQuery3.Next;
     end;
     ZQuery3.Close;
-    ProcessListe.Items.EndUpdate;
-    TabSheet7.Caption := 'Process-List (' + inttostr(ProcessListe.Items.Count) + ')';
+    ListProcesses.Items.EndUpdate;
+    TabSheet7.Caption := 'Process-List (' + inttostr(ListProcesses.Items.Count) + ')';
   except
     LogSQL( 'Error on loading process-list!' );
   end;
-  ProcessListe.Items.EndUpdate;
+  ListProcesses.Items.EndUpdate;
   Screen.Cursor := crDefault;
 end;
 
 
-procedure TMDIChild.ProcessListeChange(Sender: TObject; Item: TListItem;
+procedure TMDIChild.ListProcessesChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
-  Kill1.Enabled := (ProcessListe.Selected <> nil) and (PageControl2.ActivePage = TabSheet7);
+  Kill1.Enabled := (ListProcesses.Selected <> nil) and (PageControl2.ActivePage = TabSheet7);
 end;
 
 
 procedure TMDIChild.KillProcess(Sender: TObject);
 var t : boolean;
 begin
-  if ProcessListe.Selected.Caption = GetVar( 'SELECT CONNECTION_ID()' ) then
+  if ListProcesses.Selected.Caption = GetVar( 'SELECT CONNECTION_ID()' ) then
     MessageDlg('Fatal: Better not kill my own Process...', mtError, [mbok], 0)
   else begin
     t := TimerProcessList.Enabled;
-    TimerProcessList.Enabled := false; // prevent av (processliste.selected...)
-    if MessageDlg('Kill Process '+ProcessListe.Selected.Caption+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+    TimerProcessList.Enabled := false; // prevent av (ListProcesses.selected...)
+    if MessageDlg('Kill Process '+ListProcesses.Selected.Caption+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
-      ExecQuery( 'KILL '+ProcessListe.Selected.Caption );
+      ExecQuery( 'KILL '+ListProcesses.Selected.Caption );
       ShowVariablesAndProcesses(self);
     end;
     TimerProcessList.Enabled := t; // re-enable autorefresh timer
@@ -1668,7 +1633,7 @@ end;
 
 procedure TMDIChild.PageControl2Change(Sender: TObject);
 begin
-  ProcessListeChange(self, nil, TItemChange(self));
+  ListProcessesChange(self, nil, TItemChange(self));
 end;
 
 
@@ -1805,13 +1770,13 @@ end;
 
 
 
-procedure TMDIChild.FeldListeChange(Sender: TObject; Item: TListItem;
+procedure TMDIChild.ListColumnsChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
   // Feldeigenschaften anzeigen
 
-  if FeldListe.Selected <> nil then
-  with Feldliste.Selected do begin
+  if ListColumns.Selected <> nil then
+  with ListColumns.Selected do begin
     Toolbutton9.Enabled := True;
     DropField1.Enabled := True; //drop field
     MenuEditField.Enabled := true;
@@ -1830,7 +1795,7 @@ var
   tn : TTreeNode;
 begin
   // Feld löschen
-  if Feldliste.Items.Count = 1 then
+  if ListColumns.Items.Count = 1 then
   begin
     if MessageDlg('Can''t drop the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
@@ -1843,9 +1808,9 @@ begin
       Screen.Cursor := crDefault;
     end;
   end else
-  if MessageDlg('Drop field ' + FeldListe.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  if MessageDlg('Drop field ' + ListColumns.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
-    ExecQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(FeldListe.Selected.Caption) );
+    ExecQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(ListColumns.Selected.Caption) );
     ShowTableProperties(self);
   end;
 end;
@@ -1901,15 +1866,14 @@ begin
       ButtonImportTextfile.Enabled := true;
       ButtonCreateTable.Enabled := true;
       ButtonCreateDatabase.Enabled := true;
-      ButtonDropDatabase.Enabled := true;
-      ButtonDropTable.Enabled := true;
+      ButtonDropDatabase.Enabled := false;
       MenuRefresh.Enabled := true;
       MenuExport.Enabled := true;
       MenuImportTextFile.Enabled := true;
       MenuCreateTable.Enabled := true;
       MenuCreateDatabase.Enabled := true;
       MenuDropDatabase.Enabled := true;
-      MenuDropTable.Enabled := true;
+      //DropTable.Enabled := true;
       MenuFlushHosts.Enabled := true;
       MenuFlushLogs.Enabled := true;
       FlushUserPrivileges1.Enabled := true;
@@ -1929,6 +1893,7 @@ begin
       end;
       mainform.ToolBarData.visible := (PageControl1.ActivePage = SheetData);
       mainform.DBNavigator1.DataSource := DataSource1;
+      DBtreeChange( self, DBTree.Selected );
     end;
   end;
   timer4.OnTimer(self);
@@ -1947,14 +1912,13 @@ begin
     ButtonCreateTable.Enabled := false;
     ButtonCreateDatabase.Enabled := false;
     ButtonDropDatabase.Enabled := false;
-    ButtonDropTable.Enabled := false;
     MenuRefresh.Enabled := false;
     MenuExport.Enabled := false;
     MenuImportTextFile.Enabled := false;
     MenuCreateTable.Enabled := false;
     MenuCreateDatabase.Enabled := false;
     MenuDropDatabase.Enabled := false;
-    MenuDropTable.Enabled := false;
+    //DropTable.Enabled := false;
     MenuFlushHosts.Enabled := false;
     MenuFlushLogs.Enabled := false;
     FlushUserPrivileges1.Enabled := false;
@@ -2002,7 +1966,7 @@ end;
 { Edit field }
 procedure TMDIChild.UpdateField(Sender: TObject);
 begin
-  FieldEditForm.UpdateField := FeldListe.Selected <> nil;
+  FieldEditForm.UpdateField := ListColumns.Selected <> nil;
   FieldEditForm.showmodal;
 end;
 
@@ -2049,7 +2013,7 @@ begin
 end;
 
 
-procedure TMDIChild.TabellenlisteEdited(Sender: TObject; Item: TListItem;
+procedure TMDIChild.ListTablesEdited(Sender: TObject; Item: TListItem;
   var S: String);
 var i : Integer;
 begin
@@ -2060,11 +2024,11 @@ begin
   ActualTable := S;
   ShowDBProperties(self);
   // Re-Select Entry
-  for i:=0 to Tabellenliste.Items.Count-1 do
-    if TabellenListe.Items[i].Caption = S then
+  for i:=0 to ListTables.Items.Count-1 do
+    if ListTables.Items[i].Caption = S then
       break;
-  TabellenListe.Selected := TabellenListe.Items[i];
-  TabellenListe.Items[i].Focused := true;
+  ListTables.Selected := ListTables.Items[i];
+  ListTables.Items[i].Focused := true;
   // Important! Otherwise OnEdited refreshes list too:
   abort;
 end;
@@ -2073,7 +2037,7 @@ end;
 procedure TMDIChild.MenuRenameTableClick(Sender: TObject);
 begin
   // menuitem for edit table-name
-  Tabellenliste.Selected.EditCaption;
+  ListTables.Selected.EditCaption;
 end;
 
 
@@ -2167,10 +2131,10 @@ begin
   // Optimize tables
   Screen.Cursor := crHourGlass;
   try
-    for i:=0 to Tabellenliste.Items.Count - 1 do
+    for i:=0 to ListTables.Items.Count - 1 do
     begin
-      if Tabellenliste.Items[i].Selected then
-        ExecQuery( 'OPTIMIZE TABLE ' + mask(Tabellenliste.Items[i].Caption) );
+      if ListTables.Items[i].Selected then
+        ExecQuery( 'OPTIMIZE TABLE ' + mask(ListTables.Items[i].Caption) );
     end;
   finally
     Screen.Cursor := crDefault;
@@ -2187,11 +2151,11 @@ begin
   Screen.Cursor := crHourGlass;
   try
     tables := '';
-    for i:=0 to Tabellenliste.Items.Count - 1 do
-      if Tabellenliste.Items[i].Selected then begin
+    for i:=0 to ListTables.Items.Count - 1 do
+      if ListTables.Items[i].Selected then begin
         if tables <> '' then
           tables := tables + ', ';
-        tables := tables + mask(Tabellenliste.Items[i].Caption);
+        tables := tables + mask(ListTables.Items[i].Caption);
       end;
     ExecQuery( 'CHECK TABLE ' + tables + ' QUICK' );
   finally
@@ -2209,11 +2173,11 @@ begin
   Screen.Cursor := crHourGlass;
   try
     tables := '';
-    for i:=0 to Tabellenliste.Items.Count - 1 do
-      if Tabellenliste.Items[i].Selected then begin
+    for i:=0 to ListTables.Items.Count - 1 do
+      if ListTables.Items[i].Selected then begin
         if tables <> '' then
           tables := tables + ', ';
-        tables := tables + mask(Tabellenliste.Items[i].Caption);
+        tables := tables + mask(ListTables.Items[i].Caption);
       end;
     ExecQuery( 'ANALYZE TABLE ' + tables );
   finally
@@ -2231,11 +2195,11 @@ begin
   Screen.Cursor := crHourGlass;
   try
     tables := '';
-    for i:=0 to Tabellenliste.Items.Count - 1 do
-      if Tabellenliste.Items[i].Selected then begin
+    for i:=0 to ListTables.Items.Count - 1 do
+      if ListTables.Items[i].Selected then begin
         if tables <> '' then
           tables := tables + ', ';
-        tables := tables + mask(Tabellenliste.Items[i].Caption);
+        tables := tables + mask(ListTables.Items[i].Caption);
       end;
     ExecQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
   finally
@@ -2244,13 +2208,13 @@ begin
 end;
 
 
-procedure TMDIChild.TabellenlisteDblClick(Sender: TObject);
+procedure TMDIChild.ListTablesDblClick(Sender: TObject);
 begin
   // table-doubleclick
-  if Tabellenliste.Selected <> nil then begin
-    SheetTable.TabVisible := Tabellenliste.Selected <> nil;
-    SheetData.TabVisible := Tabellenliste.Selected <> nil;
-    ActualTable := Tabellenliste.Selected.Caption;
+  if ListTables.Selected <> nil then begin
+    SheetTable.TabVisible := ListTables.Selected <> nil;
+    SheetData.TabVisible := ListTables.Selected <> nil;
+    ActualTable := ListTables.Selected.Caption;
     ShowTableProperties(self);
   end;
 end;
@@ -2671,9 +2635,9 @@ procedure TMDIChild.MenuChangeTypeClick(Sender: TObject);
 var
   i : Integer;
 begin
-  for i:=0 to Tabellenliste.Items.Count - 1 do
-    if Tabellenliste.Items[i].Selected then
-      ExecQuery( 'ALTER TABLE ' + mask(Tabellenliste.Items[i].Caption) + ' TYPE = ' + (Sender as TMenuItem).Hint);
+  for i:=0 to ListTables.Items.Count - 1 do
+    if ListTables.Items[i].Selected then
+      ExecQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + (Sender as TMenuItem).Hint);
   ShowDBProperties(self);
 end;
 
@@ -2684,9 +2648,9 @@ var
 begin
   // change table-type:
   if inputquery('Change table-type...','New table-type:', strtype) then begin
-    for i:=0 to Tabellenliste.Items.Count - 1 do
-      if Tabellenliste.Items[i].Selected then
-        ExecQuery( 'ALTER TABLE ' + mask(Tabellenliste.Items[i].Caption) + ' TYPE = ' + strtype );
+    for i:=0 to ListTables.Items.Count - 1 do
+      if ListTables.Items[i].Selected then
+        ExecQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + strtype );
     ShowDBProperties(self);
   end;
 end;
@@ -2706,8 +2670,8 @@ end;
 procedure TMDIChild.selectall1Click(Sender: TObject);
 var i : Integer;
 begin
-  for i:=0 to Tabellenliste.Items.count-1 do
-    Tabellenliste.Items[i].Selected := true;
+  for i:=0 to ListTables.Items.count-1 do
+    ListTables.Items[i].Selected := true;
 end;
 
 procedure TMDIChild.ResultPopup(Sender: TObject);
@@ -2820,7 +2784,7 @@ begin
   MenuAutoupdate.Enabled := PageControl2.ActivePageIndex=1;
 end;
 
-procedure TMDIChild.TabellenlisteEditing(Sender: TObject; Item: TListItem;
+procedure TMDIChild.ListTablesEditing(Sender: TObject; Item: TListItem;
   var AllowEdit: Boolean);
 begin
   // so that one can press DEL when editing
@@ -2850,7 +2814,7 @@ procedure TMDIChild.PopupMenu1Popup(Sender: TObject);
 begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
-  PopupMenuDropTable.Enabled := DBtree.Selected.Level = 2;
+  MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
   DBRightClickSelectedItem := DBtree.Selected;
 end;
 
@@ -3182,8 +3146,8 @@ end;
 
 procedure TMDIChild.FormResize(Sender: TObject);
 begin
-  Tabellenliste.Width := SheetDatabase.Width - Toolbar1.Width - Toolbar1.Left;
-  Tabellenliste.Height := SheetDatabase.Height - Panel2.Height;
+  ListTables.Width := SheetDatabase.Width - Toolbar1.Width - Toolbar1.Left;
+  ListTables.Height := SheetDatabase.Height - Panel2.Height;
   Panel9.Width := SheetTable.Width - Toolbar2.Width - Toolbar2.Left;
   Panel9.Height := SheetTable.Height - Panel3.Height;
 end;
@@ -3260,7 +3224,7 @@ end;
 
 
 // Rightclick on tablelist-columns
-procedure TMDIChild.TabellenlisteColumnRightClick(Sender: TObject;
+procedure TMDIChild.ListTablesColumnRightClick(Sender: TObject;
   Column: TListColumn; Point: TPoint);
 begin
   PopupMenuTablelistColumns.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
@@ -3268,7 +3232,7 @@ end;
 
 
 // Rightclick in tablelist-area, not on columns!
-procedure TMDIChild.TabellenlisteMouseDown(Sender: TObject;
+procedure TMDIChild.ListTablesMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if button = mbright then

@@ -14,7 +14,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, smdbgrid, ZDataSet;
+  SynMemo, synedit, smdbgrid, ZDataSet, ZSqlProcessor;
 
 type
   TMainForm = class(TForm)
@@ -162,6 +162,9 @@ type
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
     DataSearch: TAction;
+    DropTable: TAction;
+    ImportSQL: TAction;
+    ImportSQL1: TMenuItem;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
     procedure connect(Sender: TObject);
@@ -172,7 +175,6 @@ type
     procedure ButtonCreateDatabaseClick(Sender: TObject);
     procedure ButtonCreateTableClick(Sender: TObject);
     procedure ButtonDropDatabaseClick(Sender: TObject);
-    procedure ButtonDropTableClick(Sender: TObject);
     procedure ButtonAdvancedPropertiesClick(Sender: TObject);
     procedure ResetWindowOptions1Click(Sender: TObject);
     procedure ButtonImportTextfileClick(Sender: TObject);
@@ -227,6 +229,8 @@ type
     procedure debug( msg : String = '' );
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
+    procedure DropTableExecute(Sender: TObject);
+    procedure ImportSQLExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -568,14 +572,6 @@ begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
     if ActualDatabase <> '' then
       DBLoeschen(self);
-end;
-
-procedure TMainForm.ButtonDropTableClick(Sender: TObject);
-begin
-  // delete table
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-    if ActualTable <> '' then
-      TabelleLoeschen(self);
 end;
 
 procedure TMainForm.ButtonAdvancedPropertiesClick(Sender: TObject);
@@ -1227,6 +1223,82 @@ begin
   begin
     SetFocus;
     SelectAll;
+  end;
+end;
+
+procedure TMainForm.DropTableExecute(Sender: TObject);
+var
+  i,j : Integer;
+  tn, tndb : TTreeNode;
+  t : TStringList;
+begin
+  // delete table
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
+    // Drop Table(s)
+    t := TStringlist.Create;
+
+    if (Sender as TComponent).Name = 'PopupMenuDropTable' then begin
+      // delete-command was sended by dbtree-popupmenu:
+      t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
+    end
+    else with ListTables do begin
+      // delete-command was sended by ListTables-popupmenu:
+      for i:=0 to Items.count-1 do
+        if Items[i].Selected then
+          t.add(mask(Items[i].Caption));
+      if t.count = 0 then
+        exit;
+    end;
+
+    if MessageDlg('Drop ' + inttostr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+      exit;
+
+    Screen.Cursor := crSQLWait;
+    ExecQuery( 'DROP TABLE ' + implodestr(', ', t) );
+
+    if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
+    else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
+    else exit;
+
+    for i:=0 to t.count-1 do begin
+      // delete it in dbtree too...
+      tn := tndb.getFirstChild;
+      for j:=0 to tndb.Count -1 do begin
+        if t[i] = tn.Text then begin
+          tn.Delete;
+          break;
+        end;
+        tn := tndb.GetNextChild(tn);
+      end;
+    end;
+
+    ShowDBProperties(self);
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+procedure TMainForm.ImportSQLExecute(Sender: TObject);
+var
+  zp : TZSQLProcessor;
+begin
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
+    // Load it ...
+    if not OpenDialog1.Execute then
+    	exit;
+    Screen.Cursor := crHourGlass;
+    zp := TZSQLProcessor.Create(self);
+    zp.Connection := ZConn;
+    zp.CleanupStatements := true;
+    zp.Script.LoadFromFile( OpenDialog1.FileName );
+    try
+      // Execute it ...
+      zp.Execute;
+    finally
+      zp.Free;
+      Screen.Cursor := crDefault;
+    end;
   end;
 end;
 
