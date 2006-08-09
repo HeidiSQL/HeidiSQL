@@ -193,7 +193,7 @@ type
     procedure CopyTableExecute(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar;
       Panel: TStatusPanel; const Rect: TRect);
-    procedure showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
+    procedure showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=42);
     procedure ButtonOKClick(Sender: TObject);
     procedure CheckBoxLimitClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
@@ -253,7 +253,7 @@ var
   highestcon : Integer;                       // Remember last connection
   appstarted : Boolean = false;               // see connections.pas
   StatusText : String = 'Initializing...';
-  StatusIconIndex : Integer = 51;
+  StatusIconIndex : Integer = 43;
   loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
   appversion : String = '3.0 RC3 $Rev$';
 
@@ -280,7 +280,7 @@ begin
   connform.showmodal;
 end;
 
-procedure TMainForm.showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
+procedure TMainForm.showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=42);
 begin
   // show Message in statusbar
   if panel = 2 then begin
@@ -1165,7 +1165,7 @@ begin
     exit;
   end;
   Screen.Cursor := crHourGlass;
-  showstatus('Saving contents to file...', 2, 51);
+  showstatus('Saving contents to file...', 2, 43);
   GetTempPath(MAX_PATH, buffer);
   if g.SelectedField.IsBlob and (pos('JFIF', copy(g.SelectedField.AsString, 0, 20)) <> 0) then
     extension := 'jpg'

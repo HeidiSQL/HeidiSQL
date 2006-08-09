@@ -827,7 +827,7 @@ object MainForm: TMainForm
     Left = 8
     Top = 88
     Bitmap = {
-      494C010155005900040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010155005900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007001000001002000000000000070
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -3867,7 +3867,8 @@ object MainForm: TMainForm
       F6CFFE008000FFFFF6B7FE000000FFFFF6B7FE000000FFFFF8B780000000FFF7
       FE8F80000001C1F7FE3F80000003C3FBFF7F80000003C7FBFE3F80010003CBFB
       FEBF80030003DCF7FC9F80070003FF0FFDDF807F0003FFFFFDDF80FF8007FFFF
-      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF}
+      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
   end
   object Timer1: TTimer
     Enabled = False
@@ -3900,7 +3901,7 @@ object MainForm: TMainForm
     end
     object MenuSetFilter: TMenuItem
       Caption = 'Set Filter'
-      ImageIndex = 13
+      ImageIndex = 10
       Visible = False
       OnClick = MenuSetFilterClick
     end
@@ -3915,12 +3916,12 @@ object MainForm: TMainForm
     end
     object menuload: TMenuItem
       Caption = 'Load from File...'
-      ImageIndex = 7
+      ImageIndex = 6
       OnClick = ButtonLoadSQLFile
     end
     object menusave: TMenuItem
       Caption = 'Save to file...'
-      ImageIndex = 8
+      ImageIndex = 7
       OnClick = ButtonSaveSQLClick
     end
     object menuclear: TMenuItem
@@ -3930,7 +3931,7 @@ object MainForm: TMainForm
     end
     object MenuFind: TMenuItem
       Caption = 'Find...'
-      ImageIndex = 61
+      ImageIndex = 50
       ShortCut = 16454
       OnClick = MenuFindClick
     end

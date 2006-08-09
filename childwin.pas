@@ -446,7 +446,7 @@ var
 begin
   // initialization: establish connection and read some vars from registry
   Screen.Cursor := crHourGlass;
-  mainform.Showstatus('Creating window...', 2, 51);
+  mainform.Showstatus('Creating window...', 2, 43);
 
   // temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
@@ -686,7 +686,7 @@ begin
   tnodehost.SelectedIndex := 41;
 
   Screen.Cursor := crSQLWait;
-  mainform.Showstatus('Reading Databases...', 2, 51);
+  mainform.Showstatus('Reading Databases...', 2, 43);
   if OnlyDBs.Count = 0 then
   begin
     OnlyDBs2 := TStringList.Create;
@@ -1654,7 +1654,7 @@ begin
     exit;
 
   TRY
-    showstatus('Initializing SQL...', 2, 51);
+    showstatus('Initializing SQL...', 2, 43);
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
 
@@ -1680,7 +1680,7 @@ begin
     ProgressBarQuery.Position := 0;
     ProgressBarQuery.show;
 
-    showstatus('Executing SQL...', 2, 51);
+    showstatus('Executing SQL...', 2, 43);
     for i:=0 to SQL.Count-1 do begin
       ProgressBarQuery.Stepit;
       Application.ProcessMessages;
@@ -2050,7 +2050,7 @@ end;
 procedure TMDIChild.Timer3Timer(Sender: TObject);
 begin
   try
-    showstatus('Pinging host...', 2, 51);
+    showstatus('Pinging host...', 2, 43);
     ExecQuery( SQL_PING );
     showstatus('Ready', 2);
   except
