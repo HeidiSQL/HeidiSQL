@@ -91,7 +91,7 @@
 {$DEFINE ENGLISH}
 
 // Prevents loading default libmysql.dll
-{$DEFINE MYSQL_STRICT_DLL_LOADING}
+{ disabled: $DEFINE MYSQL_STRICT_DLL_LOADING}
 
 // Prefer loading default libmysql.dll
 {$DEFINE MYSQL_LOAD_STRICT_LAST}

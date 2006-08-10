@@ -31,15 +31,17 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 Name: "quicklaunchicon"; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4; Flags: unchecked
 Name: "associatesqlfiles"; Description: "Associate .&SQL-Files with HeidiSQL"; GroupDescription: "Options:";
 
+[InstallDelete]
+Type: files; Name: "{app}\libmysql40.dll"
+Type: files; Name: "{app}\libmysql41.dll"
+
 [Files]
 Source: "heidisql.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "function.txt"; DestDir: "{app}"; Flags: onlyifdoesntexist
-Source: "libmySQL.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "libmysql40.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "libmysql41.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "heidisql.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 
 [INI]
