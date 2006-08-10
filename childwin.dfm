@@ -1,9 +1,9 @@
 object MDIChild: TMDIChild
-  Left = 244
-  Top = 109
+  Left = 652
+  Top = 95
+  Width = 685
+  Height = 454
   Caption = 'MySQL-Host'
-  ClientHeight = 420
-  ClientWidth = 677
   Color = clBtnFace
   Constraints.MinHeight = 200
   Constraints.MinWidth = 300
@@ -31,7 +31,6 @@ object MDIChild: TMDIChild
     Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = Splitter2Moved
-    ExplicitTop = 267
   end
   object Panel1: TPanel
     Left = 0
@@ -50,7 +49,6 @@ object MDIChild: TMDIChild
       Cursor = crSizeWE
       Beveled = True
       ResizeStyle = rsUpdate
-      ExplicitHeight = 267
     end
     object DBtree: TTreeView
       Left = 0
@@ -85,7 +83,7 @@ object MDIChild: TMDIChild
         Top = 0
         Width = 504
         Height = 274
-        ActivePage = SheetQuery
+        ActivePage = SheetDatabase
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -97,15 +95,12 @@ object MDIChild: TMDIChild
         MultiLine = True
         ParentFont = False
         TabHeight = 22
+        TabIndex = 1
         TabOrder = 0
         OnChange = pcChange
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControl2: TPageControl
             Left = 0
             Top = 17
@@ -114,14 +109,11 @@ object MDIChild: TMDIChild
             ActivePage = TabSheet6
             Align = alClient
             HotTrack = True
+            TabIndex = 0
             TabOrder = 0
             OnChange = PageControl2Change
             object TabSheet6: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -151,10 +143,6 @@ object MDIChild: TMDIChild
             object TabSheet7: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -333,21 +321,22 @@ object MDIChild: TMDIChild
           end
           object ToolBar1: TToolBar
             Left = 3
-            Top = 23
-            Width = 23
-            Height = 146
+            Top = 20
+            Width = 26
+            Height = 157
             Align = alNone
-            ButtonHeight = 23
             Caption = 'ToolBar1'
             Color = clBtnFace
             EdgeInner = esNone
             EdgeOuter = esNone
+            Flat = True
             Images = MainForm.ImageList1
             ParentColor = False
             ParentShowHint = False
             ShowHint = True
             TabOrder = 2
             Transparent = True
+            Wrapable = False
             object ToolButton1: TToolButton
               Left = 0
               Top = 0
@@ -360,7 +349,7 @@ object MDIChild: TMDIChild
             end
             object ToolButton2: TToolButton
               Left = 0
-              Top = 23
+              Top = 22
               Hint = 'Show Table-Properties'
               Caption = 'Show Table-Properties'
               Enabled = False
@@ -368,9 +357,19 @@ object MDIChild: TMDIChild
               Wrap = True
               OnClick = ShowTableProperties
             end
+            object ToolButton3: TToolButton
+              Left = 0
+              Top = 44
+              Hint = 'Insert Record...|Insert new Record into Table...'
+              Caption = 'Insert Record'
+              Enabled = False
+              ImageIndex = 32
+              Wrap = True
+              OnClick = InsertRecord
+            end
             object ToolButton13: TToolButton
               Left = 0
-              Top = 46
+              Top = 66
               Hint = 'Empty Table ...'
               Caption = 'ToolButton13'
               ImageIndex = 31
@@ -379,39 +378,14 @@ object MDIChild: TMDIChild
             end
             object MenuTabelleLoeschen: TToolButton
               Left = 0
-              Top = 69
+              Top = 88
               Action = MainForm.DropTable
               Wrap = True
             end
             object ToolButton14: TToolButton
               Left = 0
-              Top = 92
+              Top = 110
               Action = MainForm.CopyTable
-              Wrap = True
-            end
-          end
-          object ToolBar5: TToolBar
-            Left = 3
-            Top = 153
-            Width = 23
-            Height = 29
-            Align = alNone
-            Caption = 'ToolBar5'
-            EdgeInner = esNone
-            EdgeOuter = esNone
-            Images = MainForm.ImageList1
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 3
-            Transparent = True
-            object ToolButton3: TToolButton
-              Left = 0
-              Top = 0
-              Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'Insert Record'
-              Enabled = False
-              ImageIndex = 32
-              OnClick = InsertRecord
             end
           end
         end
@@ -444,12 +418,13 @@ object MDIChild: TMDIChild
             Left = 3
             Top = 20
             Width = 26
-            Height = 125
+            Height = 141
             Align = alNone
             ButtonHeight = 23
             Caption = 'ToolBar2'
             EdgeInner = esNone
             EdgeOuter = esNone
+            Flat = True
             Images = MainForm.ImageList1
             ParentShowHint = False
             ShowHint = True
@@ -491,6 +466,15 @@ object MDIChild: TMDIChild
               ImageIndex = 33
               Wrap = True
               OnClick = DropField
+            end
+            object ButtonInsert: TToolButton
+              Left = 0
+              Top = 92
+              Hint = 'Insert Record...|Insert new Record into Table...'
+              Caption = 'ButtonInsert'
+              ImageIndex = 32
+              Wrap = True
+              OnClick = InsertRecord
             end
           end
           object Panel9: TPanel
@@ -545,32 +529,6 @@ object MDIChild: TMDIChild
               ViewStyle = vsReport
               OnChange = ListColumnsChange
               OnDblClick = UpdateField
-            end
-          end
-          object ToolBar6: TToolBar
-            Left = 2
-            Top = 127
-            Width = 23
-            Height = 39
-            Align = alNone
-            ButtonHeight = 23
-            Caption = 'ToolBar2'
-            EdgeInner = esNone
-            EdgeOuter = esNone
-            Images = MainForm.ImageList1
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 3
-            Transparent = True
-            Wrapable = False
-            object ButtonInsert: TToolButton
-              Left = 0
-              Top = 0
-              Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'ButtonInsert'
-              ImageIndex = 32
-              Wrap = True
-              OnClick = InsertRecord
             end
           end
         end
@@ -695,7 +653,6 @@ object MDIChild: TMDIChild
             Width = 496
             Height = 13
             Align = alTop
-            ExplicitWidth = 3
           end
           object Panel6: TPanel
             Left = 0
@@ -736,8 +693,10 @@ object MDIChild: TMDIChild
                 Caption = 'Query'
                 Color = clBtnFace
                 DragKind = dkDock
+                EdgeBorders = []
                 EdgeInner = esNone
                 EdgeOuter = esNone
+                Flat = True
                 Images = MainForm.ImageList1
                 ParentColor = False
                 ParentShowHint = False
@@ -800,9 +759,9 @@ object MDIChild: TMDIChild
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 205
+              Left = 201
               Top = 1
-              Width = 112
+              Width = 116
               Height = 27
               Align = alRight
               Alignment = taRightJustify
@@ -1221,6 +1180,8 @@ object MDIChild: TMDIChild
             Width = 496
             Height = 17
             Align = alTop
+            Min = 0
+            Max = 100
             Step = 1
             TabOrder = 3
             Visible = False
@@ -1239,14 +1200,11 @@ object MDIChild: TMDIChild
     HotTrack = True
     Images = MainForm.ImageList1
     TabHeight = 20
+    TabIndex = 1
     TabOrder = 1
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemo2: TSynMemo
         Left = 0
         Top = 0
@@ -1602,6 +1560,7 @@ object MDIChild: TMDIChild
         Caption = 'ToolBar1'
         EdgeInner = esNone
         EdgeOuter = esNone
+        Flat = True
         Images = MainForm.ImageList1
         ParentShowHint = False
         ShowHint = True
@@ -1639,11 +1598,8 @@ object MDIChild: TMDIChild
         object ToolButton4: TToolButton
           Left = 0
           Top = 66
-          Hint = 'Copy data as XML-data'
-          Caption = 'Copy as XML-data'
-          ImageIndex = 48
+          Action = MainForm.HTMLview
           Wrap = True
-          OnClick = ToolButton4Click
         end
         object ToolButton5: TToolButton
           Left = 0
@@ -1661,6 +1617,7 @@ object MDIChild: TMDIChild
         Height = 112
         ActivePage = TabSheet3
         Align = alClient
+        TabIndex = 0
         TabOrder = 1
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
@@ -1686,10 +1643,6 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1701,7 +1654,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 40
+              Height = 60
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -2076,7 +2029,7 @@ object MDIChild: TMDIChild
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxWhereFiltersChange
         end
@@ -2090,6 +2043,7 @@ object MDIChild: TMDIChild
           Caption = 'ToolBar1'
           EdgeInner = esNone
           EdgeOuter = esNone
+          Flat = True
           Images = MainForm.ImageList1
           ParentShowHint = False
           ShowHint = True
@@ -2157,12 +2111,13 @@ object MDIChild: TMDIChild
     end
   end
   object PopupMenu1: TPopupMenu
+    Images = MainForm.ImageList1
     OnPopup = PopupMenu1Popup
     Left = 8
     Top = 48
     object NewDatabase1: TMenuItem
       Caption = 'Create Database...'
-      ImageIndex = 7
+      ImageIndex = 73
       OnClick = CreateDatabase
     end
     object N17: TMenuItem
@@ -2170,7 +2125,7 @@ object MDIChild: TMDIChild
     end
     object PopupmenuDropDatabase: TMenuItem
       Caption = 'Drop Database...'
-      ImageIndex = 5
+      ImageIndex = 22
       OnClick = DBLoeschen
     end
     object PopupMenuDropTable: TMenuItem
@@ -2184,19 +2139,21 @@ object MDIChild: TMDIChild
     end
     object Drop1: TMenuItem
       Caption = 'Refresh'
+      ImageIndex = 18
       ShortCut = 116
       OnClick = ReadDatabasesAndTables
     end
   end
   object pmenu2: TPopupMenu
     AutoPopup = False
+    Images = MainForm.ImageList1
     Left = 72
     Top = 48
     object menuproperties: TMenuItem
       Caption = 'Properties'
       Default = True
       Enabled = False
-      ImageIndex = 10
+      ImageIndex = 9
       OnClick = ShowTableProperties
     end
     object MenuAdvancedProperties: TMenuItem
@@ -2207,11 +2164,13 @@ object MDIChild: TMDIChild
     object menuviewdata: TMenuItem
       Caption = 'View Data'
       Enabled = False
+      ImageIndex = 8
       OnClick = TabelleAnzeigen
     end
     object menuinsert: TMenuItem
       Caption = 'Insert Record'
       Enabled = False
+      ImageIndex = 32
       ShortCut = 45
       OnClick = InsertRecord
     end
@@ -2223,14 +2182,13 @@ object MDIChild: TMDIChild
     end
     object Table1: TMenuItem
       Caption = 'Commands'
-      ImageIndex = 63
       object menudroptable: TMenuItem
         Action = MainForm.DropTable
       end
       object menuemptytable: TMenuItem
         Caption = 'Empty ...'
         Enabled = False
-        ImageIndex = 38
+        ImageIndex = 31
         ShortCut = 8238
         OnClick = TabelleLeeren
       end
@@ -2327,7 +2285,7 @@ object MDIChild: TMDIChild
     end
     object menucreatetable: TMenuItem
       Caption = 'Create new Table...'
-      ImageIndex = 25
+      ImageIndex = 72
       OnClick = CreateTable
     end
     object Exporttables1: TMenuItem
@@ -2342,6 +2300,7 @@ object MDIChild: TMDIChild
     object menurefresh: TMenuItem
       Tag = 28
       Caption = 'Refresh'
+      ImageIndex = 18
       ShortCut = 116
       OnClick = ShowDBProperties
     end
@@ -2353,13 +2312,14 @@ object MDIChild: TMDIChild
     end
   end
   object PopupMenu2: TPopupMenu
+    Images = MainForm.ImageList1
     OnPopup = PopupMenu2Popup
     Left = 41
     Top = 48
     object Kill1: TMenuItem
       Caption = 'Kill Process...'
       Enabled = False
-      ImageIndex = 5
+      ImageIndex = 83
       ShortCut = 46
       OnClick = KillProcess
     end
@@ -2390,7 +2350,7 @@ object MDIChild: TMDIChild
     object Refresh1: TMenuItem
       Tag = 28
       Caption = 'Refresh'
-      ImageIndex = 23
+      ImageIndex = 18
       ShortCut = 116
       OnClick = ShowVariablesAndProcesses
     end
@@ -2422,25 +2382,26 @@ object MDIChild: TMDIChild
     Top = 157
   end
   object PopupMenu3: TPopupMenu
+    Images = MainForm.ImageList1
     Left = 104
     Top = 48
     object MenuEditField: TMenuItem
       Caption = 'Properties'
       Default = True
-      ImageIndex = 1
+      ImageIndex = 9
       ShortCut = 13
       OnClick = UpdateField
     end
     object MenuAddField: TMenuItem
       Caption = 'Add Field or Index...'
-      ImageIndex = 15
+      ImageIndex = 34
       ShortCut = 16449
       OnClick = MenuAddFieldClick
     end
     object DropField1: TMenuItem
       Caption = 'Drop Field...'
       Hint = 'Delete Field from Table'
-      ImageIndex = 3
+      ImageIndex = 33
       ShortCut = 46
       OnClick = DropField
     end
@@ -2449,7 +2410,7 @@ object MDIChild: TMDIChild
     end
     object Insertrecord2: TMenuItem
       Caption = 'Insert record...'
-      ImageIndex = 2
+      ImageIndex = 32
       ShortCut = 45
       OnClick = InsertRecord
     end
@@ -2463,11 +2424,13 @@ object MDIChild: TMDIChild
       Tag = 28
       Caption = 'Refresh'
       Hint = 'Refresh|Refresh Field-List'
+      ImageIndex = 18
       ShortCut = 116
       OnClick = ShowTableProperties
     end
   end
   object PopupMenuData: TPopupMenu
+    Images = MainForm.ImageList1
     OnPopup = PopupMenuDataPopup
     Left = 8
     Top = 80
@@ -2490,7 +2453,7 @@ object MDIChild: TMDIChild
     end
     object Delete1: TMenuItem
       Caption = 'Delete record(s)'
-      ImageIndex = 28
+      ImageIndex = 23
       ShortCut = 16430
       OnClick = Delete1Click
     end
@@ -2643,6 +2606,7 @@ object MDIChild: TMDIChild
     object Refresh3: TMenuItem
       Tag = 28
       Caption = 'Refresh'
+      ImageIndex = 18
       ShortCut = 116
       OnClick = viewdata
     end
@@ -2654,6 +2618,7 @@ object MDIChild: TMDIChild
     Top = 157
   end
   object Result: TPopupMenu
+    Images = MainForm.ImageList1
     OnPopup = ResultPopup
     Left = 40
     Top = 80
@@ -2698,6 +2663,7 @@ object MDIChild: TMDIChild
     Top = 157
   end
   object PopupMenu4: TPopupMenu
+    Images = MainForm.ImageList1
     Left = 72
     Top = 80
     object Copy1: TMenuItem
@@ -2723,7 +2689,7 @@ object MDIChild: TMDIChild
     end
     object Saveastextfile1: TMenuItem
       Caption = 'Save as textfile...'
-      ImageIndex = 8
+      ImageIndex = 7
       OnClick = Saveastextfile1Click
     end
   end
@@ -2780,7 +2746,6 @@ object MDIChild: TMDIChild
   object ZQuery1: TZQuery
     Connection = ZConn
     AutoCalcFields = False
-    AfterOpen = ZQuery2AfterOpen
     BeforeClose = ZQuery2BeforeClose
     OnDeleteError = ZQuery1EditError
     OnEditError = ZQuery1EditError
@@ -2793,8 +2758,9 @@ object MDIChild: TMDIChild
   object ZQuery2: TZQuery
     Connection = ZConn
     AutoCalcFields = False
-    AfterOpen = ZQuery2AfterOpen
+    BeforeOpen = ZQueryBeforeSendingSQL
     BeforeClose = ZQuery2BeforeClose
+    BeforePost = ZQueryBeforeSendingSQL
     ParamCheck = False
     Params = <>
     Options = []
@@ -2820,6 +2786,7 @@ object MDIChild: TMDIChild
   object PopupMenuTablelistColumns: TPopupMenu
     AutoHotkeys = maManual
     AutoLineReduction = maManual
+    Images = MainForm.ImageList1
     Left = 104
     Top = 80
     object DefaultColumnLayout1: TMenuItem

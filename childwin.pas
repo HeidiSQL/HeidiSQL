@@ -251,8 +251,6 @@ type
     PopupMenuTablelistColumns: TPopupMenu;
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
-    ToolBar5: TToolBar;
-    ToolBar6: TToolBar;
     procedure PerformConnect;
     procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -268,7 +266,6 @@ type
     procedure TabelleLeeren(Sender: TObject);
     procedure DBLoeschen(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
     procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure ListProcessesChange(Sender: TObject; Item: TListItem;
@@ -326,7 +323,6 @@ type
     procedure MenuChangeTypeClick(Sender: TObject);
     procedure MenuChangeTypeOtherClick(Sender: TObject);
     procedure InsertRecord(Sender: TObject);
-    procedure ZQuery2AfterOpen(DataSet: TDataSet);
     procedure selectall1Click(Sender: TObject);
     procedure ResultPopup(Sender: TObject);
     procedure DBGrid1ColumnMoved(Sender: TObject; FromIndex,
@@ -395,6 +391,7 @@ type
       Shift: TShiftState);
     function mask(str: String) : String;
     procedure CheckConnection();
+    procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
 
     private
       { Private declarations }
@@ -446,6 +443,11 @@ procedure TMDIChild.PerformConnect;
 begin
   try
     ZConn.Connect;
+    // On Re-Connection, try to restore lost properties
+    if ZConn.Database <> '' then
+    begin
+      ExecQuery( 'USE ' + mask(ZConn.Database) );
+    end;
   except
     on E: Exception do
     begin
@@ -463,7 +465,7 @@ var
 begin
   // initialization: establish connection and read some vars from registry
   Screen.Cursor := crHourGlass;
-  mainform.Showstatus('Creating window...', 2, 43);
+  MainForm.Showstatus('Creating window...', 2, true);
 
   // temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
@@ -482,6 +484,7 @@ begin
 
   ReadWindowOptions;
 
+  MainForm.Showstatus('Connecting to '+connform.EditHost.Text+'...', 2, true);
   ZConn.Hostname := connform.EditHost.Text;
   ZConn.User := connform.EditBenutzer.Text;
   ZConn.Password := connform.EditPasswort.Text;
@@ -652,13 +655,6 @@ begin
 end;
 
 
-procedure TMDIChild.showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=50);
-begin
-  if mainform.ActiveMDIChild <> self then
-    exit;
-  mainform.showstatus(msg, panel, Icon);
-end;
-
 
 procedure TMDIChild.LogSQL(msg: string = ''; comment: Boolean = true);
 begin
@@ -698,7 +694,7 @@ begin
   tnodehost.SelectedIndex := 41;
 
   Screen.Cursor := crSQLWait;
-  mainform.Showstatus('Reading Databases...', 2, 43);
+  mainform.Showstatus('Reading Databases...', 2, true);
   if OnlyDBs.Count = 0 then
   begin
     OnlyDBs2 := TStringList.Create;
@@ -711,6 +707,7 @@ begin
     zconn.Database := ZQuery3.FieldByName('Database').AsString;
   end else
     OnlyDBs2 := OnlyDBs;
+  SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
   if OnlyDBs2.Count > 50 then with SelectFromManyDatabases do begin
     CheckListBoxDBs.Items.Clear;
     CheckListBoxDBs.Items := OnlyDBs2;
@@ -743,7 +740,7 @@ begin
     end;
   end;
 
-  showstatus(inttostr(OnlyDBs2.count) + ' Databases');
+  mainform.showstatus(inttostr(OnlyDBs2.count) + ' Databases');
   tnodehost.Expand(false);
   DBTree.OnChange := DBtreeChange;
   if tmpSelected <> nil then
@@ -751,7 +748,7 @@ begin
   else
     DBTree.Selected := tnodehost;
   DBtreeChange(self, tnodehost);
-  mainform.Showstatus('Ready', 2);
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
 
@@ -781,7 +778,7 @@ begin
       if not DBTree.Dragging then
         PageControl1.ActivePage := SheetDatabase;
       strdb := Node.Text;
-      showstatus(strdb +': ' + inttostr(Node.count) +' table(s)');
+      mainform.showstatus(strdb +': ' + inttostr(Node.count) +' table(s)');
       if ActualDatabase <> strdb then
       begin
         ActualDatabase := strdb;
@@ -811,7 +808,7 @@ begin
         ActualTable := strtable;
         ShowTableProperties(self);
       end;
-      showstatus(strdb + ': '+strtable +': ' + inttostr(ListColumns.Items.count) +' field(s)');
+      MainForm.showstatus(strdb + ': '+strtable +': ' + inttostr(ListColumns.Items.count) +' field(s)');
 //      if not dataselected then pcChange(self);
       Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
     end;
@@ -947,6 +944,7 @@ begin
     end;
     PageControl1.ActivePage := SheetData;
 
+		MainForm.ShowStatus( 'Retrieving data...', 2, true );
     ZConn.Database := ActualDatabase;
     ZQuery2.Close;
     ZQuery2.SQL.Clear;
@@ -966,10 +964,12 @@ begin
         MessageDlg(E.Message , mtError, [mbOK], 0);
         ZQuery2.Active := false;
         viewingdata := false;
+    		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
         Screen.Cursor := crDefault;
         exit;
       end;
     end;
+ 		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
 
     for i:=0 to ListColumns.Items.Count-1 do
     begin
@@ -1085,6 +1085,7 @@ var
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
+  MainForm.ShowStatus( 'Reading from database ' + ActualDatabase + '...', 2, true );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
 
   ZConn.Database := ActualDatabase;
@@ -1173,6 +1174,7 @@ begin
       end;
 
       SynSQLSyn1.TableNames.Clear;
+      SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
 
       for i := 1 to ZQuery3.RecordCount do
       begin
@@ -1257,6 +1259,7 @@ begin
   end;
 
   Panel2.Caption := 'Database ' + ActualDatabase + ': ' + inttostr(ListTables.Items.Count) + ' table(s)';
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
 
@@ -1273,6 +1276,8 @@ begin
   // Table-Properties
 
   Screen.Cursor := crHourGlass;
+  MainForm.ShowStatus( 'Reading table properties...', 2, true );
+
   if (PageControl1.ActivePage <> SheetData) and (not DBTree.Dragging) then
     PageControl1.ActivePage := SheetTable;
   Panel3.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
@@ -1406,6 +1411,7 @@ begin
     ZQuery3.Next;
   end;
 
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
 
@@ -1652,12 +1658,13 @@ end;
 
 procedure TMDIChild.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
 var
-  SQL              : TStringList;
-  i, rowsaffected  : Integer;
+  SQL                     : TStringList;
+  i, rowsaffected         : Integer;
   SQLstart, SQLend, SQLscriptstart,
-  SQLscriptend     : Integer;
-  SQLTime          : Real;
+  SQLscriptend            : Integer;
+  SQLTime                 : Real;
   fieldcount, recordcount : Integer;
+  sql_keyword             : String;
 begin
   // Execute user-defined SQL
 //  if SynMemo3.Focused then
@@ -1672,7 +1679,7 @@ begin
   end;
 
   TRY
-    showstatus('Initializing SQL...', 2, 43);
+    MainForm.showstatus('Initializing SQL...', 2, true);
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
 
@@ -1698,7 +1705,7 @@ begin
     ProgressBarQuery.Position := 0;
     ProgressBarQuery.show;
 
-    showstatus('Executing SQL...', 2, 43);
+    MainForm.showstatus('Executing SQL...', 2, true);
     for i:=0 to SQL.Count-1 do begin
       ProgressBarQuery.Stepit;
       Application.ProcessMessages;
@@ -1718,11 +1725,19 @@ begin
       SQLstart := GetTickCount;
 
       try
-        if (StrCmpBegin('select', lowercase(SQL[i])) or
-           StrCmpBegin('show', lowercase(SQL[i])) or
-           StrCmpBegin('desc', lowercase(SQL[i])) or
-           StrCmpBegin('explain', lowercase(SQL[i])) or
-           StrCmpBegin('describe', lowercase(SQL[i]))) then
+        sql_keyword := lowercase( copy( SQL[i], 0, 20 ) );
+        if (
+          StrCmpBegin( 'analyze', sql_keyword ) or
+          StrCmpBegin( 'check', sql_keyword ) or
+          StrCmpBegin( 'desc', sql_keyword ) or
+          StrCmpBegin( 'describe', sql_keyword ) or
+          StrCmpBegin( 'explain', sql_keyword ) or
+          StrCmpBegin( 'help', sql_keyword ) or
+          StrCmpBegin( 'optimize', sql_keyword ) or
+          StrCmpBegin( 'repair', sql_keyword ) or
+        	StrCmpBegin( 'select', sql_keyword ) or
+          StrCmpBegin( 'show', sql_keyword )
+          ) then
         begin
           ZQuery1.Open;
           fieldcount := ZQuery1.Fieldcount;
@@ -1782,7 +1797,7 @@ begin
         if DBGrid2.Columns[i].Width > Mainform.DefaultColWidth then
           DBGrid2.Columns[i].Width := Mainform.DefaultColWidth;
     Screen.Cursor := crdefault;
-    showstatus('Ready', 2);
+	  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   END;
 end;
 
@@ -1953,7 +1968,7 @@ begin
     Copy2XML.Enabled := false;
     ExportData.Enabled := false;
   end;
-  showstatus('', 1); // empty connected_time
+  MainForm.showstatus('', 1); // empty connected_time
 
   ZSQLMonitor1.Active := false;
 end;
@@ -2069,11 +2084,11 @@ end;
 procedure TMDIChild.Timer3Timer(Sender: TObject);
 begin
   try
-    showstatus('Pinging host...', 2, 43);
+    MainForm.showstatus('Pinging host...', 2, true);
     ExecQuery( SQL_PING );
-    showstatus('Ready', 2);
+    MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   except
-    showstatus('Connection to Host terminated abnormally!');
+    MainForm.showstatus('Connection to Host terminated abnormally!');
     Timer3.Enabled := false;
   end;
 end;
@@ -2081,17 +2096,17 @@ end;
 
 procedure TMDIChild.Timer4Timer(Sender: TObject);
 var
-  stunden, minuten, sekunden : Integer;
+  h, m, s : Integer;
 begin
   // calculate and display connection-time
-  sekunden := time_connected mod (60*60*24);
-  stunden := sekunden div (60*60);
-  sekunden := sekunden mod (60*60);
-  minuten  := sekunden div 60;
-  sekunden := sekunden mod 60;
+  s := time_connected mod (60*60*24);
+  h := s div (60*60);
+  s := s mod (60*60);
+  m := s div 60;
+  s := s mod 60;
 
   inc(time_connected);
-  showstatus(format('Connected: %.2d:%.2d:%.2d', [stunden,minuten,sekunden]), 1);
+  MainForm.showstatus(format('Connected: %.2d:%.2d:%.2d', [h,m,s]), 1);
 end;
 
 
@@ -2245,7 +2260,7 @@ begin
   timer5.Enabled := false;
   timer4.Enabled := false;
   mainform.Showstatus('', 1);
-  mainform.Showstatus('Ready', 2);
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   close;
 end;
 
@@ -2680,10 +2695,6 @@ begin
   ZQuery2.Insert;
 end;
 
-procedure TMDIChild.ZQuery2AfterOpen(DataSet: TDataSet);
-begin
-  mainform.Showstatus('Ready', 2);
-end;
 
 // select all tables
 procedure TMDIChild.selectall1Click(Sender: TObject);
@@ -3066,7 +3077,7 @@ begin
   if EDBImage1.Picture.Width = 0 then
     exit;
   EDBImage1.Width := MulDiv(EDBImage1.Height, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
-  showstatus('Image: ' + inttostr( EDBImage1.Picture.width)
+  MainForm.showstatus('Image: ' + inttostr( EDBImage1.Picture.width)
     + ' x ' + inttostr( EDBImage1.Picture.Height ) + ' pixel, '
     + 'zoomed to ' + IntToStr(round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'
     );
@@ -3268,12 +3279,31 @@ begin
 end;
 
 function TMDIChild.mask(str: String) : String;
+var
+  i, o : byte;
+  hasbadchar : Boolean;
 begin
   if mysql_version >= 32300 then
   begin
-    // TODO: For better readability, it would be neat if we only escaped when necessary.
-    result := StringReplace(str, '`', '``', [rfReplaceAll]);
-    result := '`' + result + '`';
+    // only mask if needed
+    for i:=1 to length(str) do
+    begin
+      o := ord( str[i] );
+      hasbadchar := not (
+        ((o > 47) and (o < 48) )
+        or ((o > 64) and (o < 91) )
+        or ((o > 96) and (o < 123) )
+        or (o = 95));
+      if hasbadchar then
+        break;
+    end;
+    if hasbadchar then
+    begin
+      result := StringReplace(str, '`', '``', [rfReplaceAll]);
+      result := '`' + result + '`';
+    end
+    else
+      result := str;
   end
   else
     result := str;
@@ -3296,6 +3326,15 @@ begin
   Result := nil;
   if PageControl1.ActivePage = SheetData then Result := DBGrid1;
   if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
+end;
+
+procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
+begin
+  try
+    CheckConnection;
+  except
+    exit
+  end;
 end;
 
 end.

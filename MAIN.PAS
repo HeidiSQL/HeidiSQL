@@ -193,7 +193,7 @@ type
     procedure CopyTableExecute(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar;
       Panel: TStatusPanel; const Rect: TRect);
-    procedure showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=42);
+    procedure showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
     procedure ButtonOKClick(Sender: TObject);
     procedure CheckBoxLimitClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
@@ -260,6 +260,7 @@ var
 const
   appname = 'HeidiSQL';
   regpath = 'Software\' + appname;
+  STATUS_MSG_READY = 'Ready.';
 
 type TMyKey = record
   Name    : String;
@@ -280,12 +281,15 @@ begin
   connform.showmodal;
 end;
 
-procedure TMainForm.showstatus(msg: string='';  panel : Integer=0;  Icon: Integer=42);
+procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
 begin
   // show Message in statusbar
   if panel = 2 then begin
     StatusText := msg;
-    StatusIconIndex := Icon;
+    if busy then
+      StatusIconIndex := 43
+    else
+      StatusIconIndex := 42;
   end
   else
     StatusBar.Panels[panel].Text := msg;
@@ -643,7 +647,7 @@ end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 begin
-  StatusBar.Panels[0].Width := width - StatusBar.Panels[1].Width - StatusBar.Panels[2].Width;
+  StatusBar.Panels[0].Width := (width - StatusBar.Panels[1].Width) - StatusBar.Panels[2].Width;
 end;
 
 procedure TMainForm.UserManagerExecute(Sender: TObject);
@@ -1165,7 +1169,7 @@ begin
     exit;
   end;
   Screen.Cursor := crHourGlass;
-  showstatus('Saving contents to file...', 2, 43);
+  showstatus('Saving contents to file...', 2, true);
   GetTempPath(MAX_PATH, buffer);
   if g.SelectedField.IsBlob and (pos('JFIF', copy(g.SelectedField.AsString, 0, 20)) <> 0) then
     extension := 'jpg'
@@ -1180,7 +1184,7 @@ begin
   Rewrite(f);
   Write(f, g.SelectedField.AsString);
   CloseFile(f);
-  showstatus('Ready', 2);
+  ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
   ShellExecute(0, 'open', pchar(filename), nil, nil, SW_SHOWNORMAL);
 end;

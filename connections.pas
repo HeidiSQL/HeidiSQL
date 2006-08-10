@@ -84,7 +84,7 @@ end;
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
 begin
   ButtonConnect.Enabled := false;
-  mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, 51);
+  mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, true);
   with TRegistry.Create do
   begin
     if OpenKey(regpath, true) then
@@ -161,7 +161,7 @@ begin
       Timer1.Enabled := true;
     end;
   end;
-  mainform.showstatus('Ready', 2);
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
 end;
 
 
