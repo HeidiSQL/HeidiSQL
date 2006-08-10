@@ -253,6 +253,7 @@ type
     N20: TMenuItem;
     ToolBar5: TToolBar;
     ToolBar6: TToolBar;
+    procedure PerformConnect;
     procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
@@ -393,7 +394,7 @@ type
     procedure DBMemo1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     function mask(str: String) : String;
-    function checkConnection(): boolean;
+    procedure CheckConnection();
 
     private
       { Private declarations }
@@ -441,6 +442,21 @@ const
 
 
 
+procedure TMDIChild.PerformConnect;
+begin
+  try
+    ZConn.Connect;
+  except
+    on E: Exception do
+    begin
+      LogSQL(E.Message, true);
+      Screen.Cursor := crDefault;
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      raise;
+    end;
+  end;
+end;
+
 procedure TMDIChild.FormCreate(Sender: TObject);
 var
   AutoReconnect    : Boolean;
@@ -481,15 +497,10 @@ begin
   //  ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
 
   try
-    ZConn.Connect;
+    PerformConnect;
   except
-    on E: Exception do
-    begin
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
-      Screen.Cursor := crDefault;
-      timer5.Enabled := true;
-      Exit;
-    end;
+    timer5.Enabled := true;
+    Exit;
   end;
 
   Description := connform.ComboBoxDescription.Text;
@@ -951,8 +962,8 @@ begin
     except
       on E:Exception do
       begin
+        LogSQL( E.Message, true );
         MessageDlg(E.Message , mtError, [mbOK], 0);
-        LogSQL( E.Message );
         ZQuery2.Active := false;
         viewingdata := false;
         Screen.Cursor := crDefault;
@@ -1654,8 +1665,12 @@ begin
   if length(trim(SynMemo1.Text)) = 0 then
     exit;
 
-  CheckConnection;
-  
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
+
   TRY
     showstatus('Initializing SQL...', 2, 43);
     Mainform.ExecuteQuery.Enabled := false;
@@ -1724,6 +1739,7 @@ begin
         begin
           if ToolButtonStopOnErrors.Down or (i=SQL.Count-1) then begin
             Screen.Cursor := crdefault;
+            LogSQL(E.Message, true);
             MessageDLG(E.Message, mtError, [mbOK], 0);
             ProgressBarQuery.hide;
             Mainform.ExecuteQuery.Enabled := true;
@@ -3263,14 +3279,15 @@ begin
     result := str;
 end;
 
-function TMDIChild.checkConnection(): boolean;
+procedure TMDIChild.CheckConnection;
+var
+  status: boolean;
 begin
-  result := ZConn.Ping;
-  if not result then begin
+  status := ZConn.Ping;
+  if not status then begin
     LogSQL('Connection failure detected. Tryíng to reconnect.', true);
     ZConn.Disconnect;
-    ZConn.Connect;
-    result := ZConn.Ping;
+    PerformConnect;
   end;
 end;
 
@@ -3282,6 +3299,4 @@ begin
 end;
 
 end.
-
-
 
