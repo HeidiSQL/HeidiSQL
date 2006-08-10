@@ -393,6 +393,7 @@ type
     procedure DBMemo1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     function mask(str: String) : String;
+    function checkConnection(): boolean;
 
     private
       { Private declarations }
@@ -3258,6 +3259,17 @@ begin
   end
   else
     result := str;
+end;
+
+function TMDIChild.checkConnection(): boolean;
+begin
+  result := ZConn.Ping;
+  if not result then begin
+    LogSQL('Connection failure detected. Tryíng to reconnect.', true);
+    ZConn.Disconnect;
+    ZConn.Connect;
+    result := ZConn.Ping;
+  end;
 end;
 
 function TMDIChild.GetActiveGrid: TSMDBGrid;
