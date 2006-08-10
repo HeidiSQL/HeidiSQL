@@ -1654,6 +1654,8 @@ begin
   if length(trim(SynMemo1.Text)) = 0 then
     exit;
 
+  CheckConnection;
+  
   TRY
     showstatus('Initializing SQL...', 2, 43);
     Mainform.ExecuteQuery.Enabled := false;
