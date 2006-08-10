@@ -101,6 +101,7 @@ type
 
     procedure Open; override;
     procedure Close; override;
+    function Ping: Boolean; override;
 
     procedure SetCatalog(Catalog: string); override;
     function GetCatalog: string; override;
@@ -498,6 +499,16 @@ begin
     DriverManager.LogMessage(lcDisconnect, FPlainDriver.GetProtocol, LogMessage);
   end;
   inherited Close;
+end;
+
+{**
+  Returns true if a network ping to the database server succeeds.
+  @return true if a network ping to the database server succeeds
+}
+function TZMySQLConnection.Ping: Boolean;
+begin
+  if Closed then Result := false
+  else Result := FPlainDriver.Ping(FHandle) = 0;
 end;
 
 {**

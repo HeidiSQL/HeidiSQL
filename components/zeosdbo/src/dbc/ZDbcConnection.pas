@@ -150,6 +150,7 @@ type
     procedure Open; virtual;
     procedure Close; virtual;
     function IsClosed: Boolean; virtual;
+    function Ping: Boolean; virtual;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;
@@ -710,6 +711,15 @@ end;
 function TZAbstractConnection.IsClosed: Boolean;
 begin
   Result := FClosed;
+end;
+
+{**
+  Returns true if a network ping to the database server succeeds.
+  @return true if a network ping to the database server succeeds
+}
+function TZAbstractConnection.Ping: Boolean;
+begin
+  raise Exception.Create('Ping() is unsupported by this particular DB driver.');
 end;
 
 {**

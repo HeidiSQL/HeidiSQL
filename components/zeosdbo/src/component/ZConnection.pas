@@ -146,6 +146,7 @@ type
 
     procedure Connect; virtual;
     procedure Disconnect; virtual;
+    function Ping: Boolean;
 
     procedure StartTransaction; virtual;
     procedure Commit; virtual;
@@ -301,6 +302,11 @@ begin
       else Disconnect;
     end;
   end;
+end;
+
+function TZConnection.Ping: Boolean;
+begin
+  Result := (FConnection <> nil) and FConnection.Ping;
 end;
 
 {**
