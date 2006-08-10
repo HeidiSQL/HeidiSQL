@@ -64,10 +64,10 @@
 {$DEFINE ENABLE_MYSQL}
 
 // Enables PostgreSQL support in TZConnection/TZDataset
-{$DEFINE ENABLE_POSTGRESQL}
+{ not used: $DEFINE ENABLE_POSTGRESQL}
 
 // Enables Sybase/MSSQL support in TZConnection/TZDataset
-{$DEFINE ENABLE_DBLIB}
+{ not used: $DEFINE ENABLE_DBLIB}
 
 // Enables ADO support in TZConnection/TZDataset
 {$IFNDEF FPC}
@@ -75,16 +75,16 @@
 {$ENDIF}
 
 // Enables Interbase/Firebird support in TZConnection/TZDataset
-{$DEFINE ENABLE_INTERBASE}
+{ not used: $DEFINE ENABLE_INTERBASE}
 
 // Enables SQLite support in TZConnection/TZDataset
-{$DEFINE ENABLE_SQLITE}
+{ not used: $DEFINE ENABLE_SQLITE}
 
 // Enables Oracle support in TZConnection/TZDataset
-{$DEFINE ENABLE_ORACLE}
+{ not used: $DEFINE ENABLE_ORACLE}
 
 // Enables ASA support in TZConnection/TZDataset
-{$DEFINE ENABLE_ASA}
+{ not used: $DEFINE ENABLE_ASA}
 
 // Supported language. Now available languages:
 // ENGLISH, GERMAN, PORTUGUESE, DUTCH, SPANISH
