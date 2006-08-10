@@ -93,6 +93,9 @@
 // Prevents loading default libmysql.dll
 {$DEFINE MYSQL_STRICT_DLL_LOADING}
 
+// Prefer loading default libmysql.dll
+{$DEFINE MYSQL_LOAD_STRICT_LAST}
+
 // Prevents loading default libpq.dll
 {$DEFINE POSTGRESQL_STRICT_DLL_LOADING}
 
