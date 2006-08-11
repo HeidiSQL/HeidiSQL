@@ -83,7 +83,7 @@ object MDIChild: TMDIChild
         Top = 0
         Width = 504
         Height = 274
-        ActivePage = SheetDatabase
+        ActivePage = SheetQuery
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -323,7 +323,7 @@ object MDIChild: TMDIChild
             Left = 3
             Top = 20
             Width = 26
-            Height = 157
+            Height = 146
             Align = alNone
             Caption = 'ToolBar1'
             Color = clBtnFace
@@ -336,7 +336,6 @@ object MDIChild: TMDIChild
             ShowHint = True
             TabOrder = 2
             Transparent = True
-            Wrapable = False
             object ToolButton1: TToolButton
               Left = 0
               Top = 0
@@ -357,19 +356,9 @@ object MDIChild: TMDIChild
               Wrap = True
               OnClick = ShowTableProperties
             end
-            object ToolButton3: TToolButton
-              Left = 0
-              Top = 44
-              Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'Insert Record'
-              Enabled = False
-              ImageIndex = 32
-              Wrap = True
-              OnClick = InsertRecord
-            end
             object ToolButton13: TToolButton
               Left = 0
-              Top = 66
+              Top = 46
               Hint = 'Empty Table ...'
               Caption = 'ToolButton13'
               ImageIndex = 31
@@ -378,14 +367,39 @@ object MDIChild: TMDIChild
             end
             object MenuTabelleLoeschen: TToolButton
               Left = 0
-              Top = 88
+              Top = 69
               Action = MainForm.DropTable
               Wrap = True
             end
             object ToolButton14: TToolButton
               Left = 0
-              Top = 110
+              Top = 92
               Action = MainForm.CopyTable
+              Wrap = True
+            end
+          end
+          object ToolBar5: TToolBar
+            Left = 3
+            Top = 153
+            Width = 23
+            Height = 29
+            Align = alNone
+            Caption = 'ToolBar5'
+            EdgeInner = esNone
+            EdgeOuter = esNone
+            Images = MainForm.ImageList1
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            Transparent = True
+            object ToolButton3: TToolButton
+              Left = 0
+              Top = 0
+              Hint = 'Insert Record...|Insert new Record into Table...'
+              Caption = 'Insert Record'
+              Enabled = False
+              ImageIndex = 32
+              OnClick = InsertRecord
             end
           end
         end
@@ -418,7 +432,7 @@ object MDIChild: TMDIChild
             Left = 3
             Top = 20
             Width = 26
-            Height = 141
+            Height = 125
             Align = alNone
             ButtonHeight = 23
             Caption = 'ToolBar2'
@@ -466,15 +480,6 @@ object MDIChild: TMDIChild
               ImageIndex = 33
               Wrap = True
               OnClick = DropField
-            end
-            object ButtonInsert: TToolButton
-              Left = 0
-              Top = 92
-              Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'ButtonInsert'
-              ImageIndex = 32
-              Wrap = True
-              OnClick = InsertRecord
             end
           end
           object Panel9: TPanel
@@ -529,6 +534,32 @@ object MDIChild: TMDIChild
               ViewStyle = vsReport
               OnChange = ListColumnsChange
               OnDblClick = UpdateField
+            end
+          end
+          object ToolBar6: TToolBar
+            Left = 2
+            Top = 127
+            Width = 23
+            Height = 39
+            Align = alNone
+            ButtonHeight = 23
+            Caption = 'ToolBar2'
+            EdgeInner = esNone
+            EdgeOuter = esNone
+            Images = MainForm.ImageList1
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 3
+            Transparent = True
+            Wrapable = False
+            object ButtonInsert: TToolButton
+              Left = 0
+              Top = 0
+              Hint = 'Insert Record...|Insert new Record into Table...'
+              Caption = 'ButtonInsert'
+              ImageIndex = 32
+              Wrap = True
+              OnClick = InsertRecord
             end
           end
         end
