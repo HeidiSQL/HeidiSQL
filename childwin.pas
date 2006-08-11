@@ -261,6 +261,7 @@ type
     procedure ShowTableProperties(Sender: TObject);
     procedure ListTablesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
+    procedure ValidateTableSheet;
     procedure TabelleAnzeigen(Sender: TObject);
     procedure TabelleLeeren(Sender: TObject);
     procedure DBLoeschen(Sender: TObject);
@@ -786,6 +787,7 @@ begin
         ActualDatabase := strdb;
         ActualTable := '';
         ToolButton9.Enabled := False;
+        ListTables.Selected := nil;
         ListColumns.Items.Clear;
         Panel3.Caption := 'Table-Properties';
         ShowDBProperties(self);
@@ -805,21 +807,16 @@ begin
         ActualDatabase := strdb;
         ShowDBProperties(self);
       end;
-      if (ActualTable <> strtable) or (ActualDatabase <> strdb) then
-      begin
-        ActualTable := strtable;
-        ShowTableProperties(self);
-      end;
+      ActualTable := strtable;
+      ShowTableProperties(self);
       MainForm.showstatus(strdb + ': '+strtable +': ' + inttostr(ListColumns.Items.count) +' field(s)');
 //      if not dataselected then pcChange(self);
       Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
     end;
   end;
 
-  MainForm.ButtonDropDatabase.Enabled := ActualDatabase <> '';
-  MainForm.DropTable.Enabled := ActualTable <> '';
-  MainForm.ButtonCreateTable.Enabled := ActualDatabase <> '';
   pcChange(self);
+  ValidateTableSheet;
 
   Screen.Cursor := crDefault;
 end;
@@ -1415,6 +1412,16 @@ end;
 
 procedure TMDIChild.ListTablesChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
+var
+  i: integer;
+begin
+  for i := 0 to ListTables.Items.Count - 1 do
+    ListTables.Items[i].ImageIndex := 39;
+  if (ListTables.Selected <> nil) then ListTables.Selected.ImageIndex := 40;
+  ValidateTableSheet;
+end;
+
+procedure TMDIChild.ValidateTableSheet;
 var someselected : Boolean;
 begin
   someselected := (ListTables.Selected <> nil);
@@ -1448,6 +1455,10 @@ begin
   MenuCheck.Enabled := someselected;
   MenuAnalyze.Enabled := someselected;
   MenuRepair.Enabled := someselected;
+
+  MainForm.ButtonDropDatabase.Enabled := ActualDatabase <> '';
+  MainForm.DropTable.Enabled := ActualTable <> '';
+  MainForm.ButtonCreateTable.Enabled := ActualDatabase <> '';
 end;
 
 

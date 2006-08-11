@@ -361,6 +361,7 @@ object MDIChild: TMDIChild
               Top = 46
               Hint = 'Empty Table ...'
               Caption = 'ToolButton13'
+              Enabled = False
               ImageIndex = 31
               Wrap = True
               OnClick = TabelleLeeren
