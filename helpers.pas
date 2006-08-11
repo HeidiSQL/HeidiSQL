@@ -1070,7 +1070,7 @@ begin
   for i:=1 to length(Text) do
   begin
     b := Ord(Text[i]);
-    if ((b < 32) or ((b > 126) and (b < 160))) then
+    if b in [1..31, 127..159] then
     begin
       result := true;
       exit;

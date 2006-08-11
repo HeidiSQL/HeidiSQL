@@ -2944,7 +2944,7 @@ begin
     background := clInfoBK;
     afont.Color := clInfoText;
   end;
-  if field.IsNull then background := clBtnFace; // mainform.DataNullBackground;
+  if field.IsNull then background := mainform.DataNullBackground;
 end;
 
 procedure TMDIChild.DBGridEnter(Sender: TObject);
@@ -3289,14 +3289,11 @@ begin
     for i:=1 to length(str) do
     begin
       o := ord( str[i] );
-      hasbadchar := not (
-        ((o > 47) and (o < 58) )          // digits
-        or ((o > 64) and (o < 91) )       // upper chars
-        or ((o > 96) and (o < 123) )      // lower chars
-        or (o = 95)                       // _
-        );
+      // digits, upper chars, lower chars and _ are allowed
+      hasbadchar := not (o in [48..57, 65..90, 97..122, 95]);
       // see bug 1500753
-      if (i = 1) and (o > 47) and (o < 58) then hasbadchar := true;
+      if (i = 1) then
+        hasbadchar := o in [48..57];
       if hasbadchar then
         break;
     end;
