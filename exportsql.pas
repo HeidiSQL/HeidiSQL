@@ -11,7 +11,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, CheckLst, Buttons, comctrls, Registry, ToolWin, DB;
+  StdCtrls, ExtCtrls, CheckLst, Buttons, comctrls, Registry, ToolWin, DB,
+  SynEdit, SynMemo;
 
 type
   TExportSQLForm = class(TForm)
@@ -46,9 +47,9 @@ type
     cbxTables: TCheckBox;
     comboTables: TComboBox;
     groupExampleSql: TGroupBox;
-    memoExampleSql: TMemo;
     comboDatabase: TComboBox;
     comboData: TComboBox;
+    SynMemoExampleSQL: TSynMemo;
     procedure cbxExtendedInsertClick(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
     procedure comboTablesChange(Sender: TObject);
@@ -118,6 +119,9 @@ begin
   barProgress.Position := 0;
   lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
+  SynMemoExampleSQL.Highlighter := TMDIChild(MainForm.ActiveMDIChild).SynSQLSyn1;
+  SynMemoExampleSQL.Font := TMDIChild(MainForm.ActiveMDIChild).SynMemo1.Font;
+  
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do
@@ -862,7 +866,7 @@ begin
     else add(STR_END_INSERT_REG);
   end;
   s := TrimRight(s);
-  memoExampleSql.Text := s;
+  SynMemoExampleSql.Text := s;
 end;
 
 procedure TExportSQLForm.validateControls(Sender: TObject);
