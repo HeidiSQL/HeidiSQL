@@ -97,7 +97,6 @@ type
     N10: TMenuItem;
     MenuRenameTable: TMenuItem;
     MenuViewBlob: TMenuItem;
-    Timer3: TTimer;
     Timer4: TTimer;
     N12: TMenuItem;
     MenuTableComment: TMenuItem;
@@ -290,7 +289,6 @@ type
       var S: String);
     procedure MenuRenameTableClick(Sender: TObject);
     procedure MenuViewBlobClick(Sender: TObject);
-    procedure Timer3Timer(Sender: TObject);
     procedure Timer4Timer(Sender: TObject);
     procedure Clear1Click(Sender: TObject);
     procedure MenuTableCommentClick(Sender: TObject);
@@ -374,8 +372,6 @@ type
     procedure Splitter2Moved(Sender: TObject);
     procedure DataSourceDataChange(Sender: TObject; Field: TField);
     procedure DBGridColEnter(Sender: TObject);
-    procedure ZSQLMonitor1Trace(Sender: TObject; Event: TZLoggingEvent;
-      var LogTrace: Boolean);
     procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
       var Action: TDataAction);
     procedure FormResize(Sender: TObject);
@@ -391,7 +387,10 @@ type
       Shift: TShiftState);
     function mask(str: String) : String;
     procedure CheckConnection();
-    procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
+    procedure ZQueryBeforePost(DataSet: TDataSet);
+    procedure ZQuery2BeforeOpen(DataSet: TDataSet);
+    procedure ZQuery2PostError(DataSet: TDataSet; E: EDatabaseError;
+      var Action: TDataAction);
 
     private
       { Private declarations }
@@ -432,7 +431,6 @@ uses
 
 const
 	CRLF = #13#10;
-  SQL_PING = 'SELECT 1';
 
 
 {$R *.DFM}
@@ -446,7 +444,7 @@ begin
     // On Re-Connection, try to restore lost properties
     if ZConn.Database <> '' then
     begin
-      ExecQuery( 'USE ' + mask(ZConn.Database) );
+      ExecUseQuery( ZConn.Database );
     end;
   except
     on E: Exception do
@@ -502,6 +500,7 @@ begin
   try
     PerformConnect;
   except
+    MainForm.Showstatus( STATUS_MSG_READY, 2);
     timer5.Enabled := true;
     Exit;
   end;
@@ -707,6 +706,8 @@ begin
     zconn.Database := ZQuery3.FieldByName('Database').AsString;
   end else
     OnlyDBs2 := OnlyDBs;
+  // Let synedit know all tablenames so that they can be highlighted
+  SynSQLSyn1.TableNames.Clear;
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
   if OnlyDBs2.Count > 50 then with SelectFromManyDatabases do begin
     CheckListBoxDBs.Items.Clear;
@@ -730,6 +731,7 @@ begin
       tchild.SelectedIndex := 40;
       if (ActualTable = ZQuery3.Fields[0].AsString) and (tmpSelected.Text = OnlyDBs2[i]) then
         tmpSelected := tchild;
+      SynSQLSyn1.TableNames.Add( ZQuery3.Fields[0].AsString );
       ZQuery3.Next;
     end;
   except
@@ -1173,17 +1175,12 @@ begin
         column.Autosize := true;
       end;
 
-      SynSQLSyn1.TableNames.Clear;
-      SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
-
       for i := 1 to ZQuery3.RecordCount do
       begin
         n := ListTables.Items.Add;
         n.ImageIndex := 39;
         // Table
         n.Caption := ZQuery3.FieldByName('Name').AsString;
-        // Let synedit know all tablenames so that they can be highlighted
-        SynSQLSyn1.TableNames.Add( ZQuery3.FieldByName('Name').AsString );
         if PopupMenuTablelistColumns.Items[0].Checked then
         begin // Default columns
           // Records
@@ -1980,10 +1977,9 @@ procedure TMDIChild.FormShow(Sender: TObject);
 begin
   // initialize some values and components:
   timer2.Enabled := true;
-  timer3.Enabled := true;
   timer4.Enabled := true;
 
-  { TODO : nur bei autoconnected file laden }
+  { TODO : only load file when autoconnected ?? }
   if (paramstr(1) <> '') and Main.loadsqlfile then
   try
     // load sql-file from paramstr
@@ -2078,19 +2074,6 @@ end;
 procedure TMDIChild.MenuViewBlobClick(Sender: TObject);
 begin
   PageControl3.ActivePageIndex := 1;
-end;
-
-
-procedure TMDIChild.Timer3Timer(Sender: TObject);
-begin
-  try
-    MainForm.showstatus('Pinging host...', 2, true);
-    ExecQuery( SQL_PING );
-    MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-  except
-    MainForm.showstatus('Connection to Host terminated abnormally!');
-    Timer3.Enabled := false;
-  end;
 end;
 
 
@@ -2952,7 +2935,7 @@ begin
     background := clInfoBK;
     afont.Color := clInfoText;
   end;
-  if field.IsNull then background := mainform.DataNullBackground;
+  if field.IsNull then background := clBtnFace; // mainform.DataNullBackground;
 end;
 
 procedure TMDIChild.DBGridEnter(Sender: TObject);
@@ -3023,6 +3006,11 @@ end;
 // Execute a query without returning a resultset
 procedure TMDIChild.ExecQuery( SQLQuery: String );
 begin
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
   With TZReadOnlyQuery.Create( self ) do
   begin
     Connection := ZConn;
@@ -3036,6 +3024,11 @@ end;
 // Execute a query and return data from a single cell
 function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
 begin
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
   With TZReadOnlyQuery.Create( self ) do
   begin
     Connection := ZConn;
@@ -3055,6 +3048,11 @@ end;
 // Executes a query with an existing ZQuery-object
 procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
 begin
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
   ZQuery.SQL.Text := SQLQuery;
   ZQuery.Open;
   ZQuery.DisableControls;
@@ -3156,14 +3154,6 @@ begin
   if (DBMemo1.ReadOnly or (Length(DBMemo1.DataField) = 0)) then DBMemo1.Color := clInactiveCaptionText
   else DBMemo1.Color := clWindow;
   PageControl4Change(self);
-end;
-
-
-procedure TMDIChild.ZSQLMonitor1Trace(Sender: TObject;
-  Event: TZLoggingEvent; var LogTrace: Boolean);
-begin
-  if Trim( Event.Message ) = SQL_PING then
-    LogTrace := false;
 end;
 
 
@@ -3286,14 +3276,16 @@ begin
   if mysql_version >= 32300 then
   begin
     // only mask if needed
+    hasbadchar := false;
     for i:=1 to length(str) do
     begin
       o := ord( str[i] );
       hasbadchar := not (
-        ((o > 47) and (o < 48) )
-        or ((o > 64) and (o < 91) )
-        or ((o > 96) and (o < 123) )
-        or (o = 95));
+        ((o > 47) and (o < 58) )          // digits
+        or ((o > 64) and (o < 91) )       // upper chars
+        or ((o > 96) and (o < 123) )      // lower chars
+        or (o = 95)                       // _
+        );
       if hasbadchar then
         break;
     end;
@@ -3315,7 +3307,7 @@ var
 begin
   status := ZConn.Ping;
   if not status then begin
-    LogSQL('Connection failure detected. Tryíng to reconnect.', true);
+    LogSQL('Connection failure detected. Trying to reconnect.', true);
     ZConn.Disconnect;
     PerformConnect;
   end;
@@ -3328,13 +3320,30 @@ begin
   if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
 end;
 
-procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
+procedure TMDIChild.ZQueryBeforePost(DataSet: TDataSet);
 begin
+  LogSQL('BeforePost');
   try
     CheckConnection;
   except
-    exit
+    exit;
   end;
+end;
+
+procedure TMDIChild.ZQuery2BeforeOpen(DataSet: TDataSet);
+begin
+  LogSQL('BeforeOpen');
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
+end;
+
+procedure TMDIChild.ZQuery2PostError(DataSet: TDataSet; E: EDatabaseError;
+  var Action: TDataAction);
+begin
+  LogSQL('OnPostError!');
 end;
 
 end.

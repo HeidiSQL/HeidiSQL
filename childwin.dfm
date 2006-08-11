@@ -2649,13 +2649,6 @@ object MDIChild: TMDIChild
       Action = MainForm.ExportData
     end
   end
-  object Timer3: TTimer
-    Enabled = False
-    Interval = 30000
-    OnTimer = Timer3Timer
-    Left = 71
-    Top = 157
-  end
   object Timer4: TTimer
     Enabled = False
     OnTimer = Timer4Timer
@@ -2758,9 +2751,10 @@ object MDIChild: TMDIChild
   object ZQuery2: TZQuery
     Connection = ZConn
     AutoCalcFields = False
-    BeforeOpen = ZQueryBeforeSendingSQL
+    BeforeOpen = ZQuery2BeforeOpen
     BeforeClose = ZQuery2BeforeClose
-    BeforePost = ZQueryBeforeSendingSQL
+    BeforePost = ZQueryBeforePost
+    OnPostError = ZQuery2PostError
     ParamCheck = False
     Params = <>
     Options = []
@@ -2778,7 +2772,6 @@ object MDIChild: TMDIChild
   object ZSQLMonitor1: TZSQLMonitor
     Active = True
     MaxTraceCount = 100
-    OnTrace = ZSQLMonitor1Trace
     OnLogTrace = ZSQLMonitor1LogTrace
     Left = 224
     Top = 120
