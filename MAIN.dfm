@@ -47,6 +47,7 @@ object MainForm: TMainForm
     AutoSize = True
     BevelKind = bkNone
     Color = clBtnFace
+    ParentBackground = False
     ParentColor = False
     ParentShowHint = False
     ShowHint = True
