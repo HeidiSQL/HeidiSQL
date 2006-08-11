@@ -3295,6 +3295,8 @@ begin
         or ((o > 96) and (o < 123) )      // lower chars
         or (o = 95)                       // _
         );
+      // see bug 1500753
+      if (i = 1) and (o > 47) and (o < 58) then hasbadchar := true;
       if hasbadchar then
         break;
     end;

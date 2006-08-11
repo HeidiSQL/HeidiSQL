@@ -2786,7 +2786,6 @@ object MDIChild: TMDIChild
     BeforeOpen = ZQuery2BeforeOpen
     BeforeClose = ZQuery2BeforeClose
     BeforePost = ZQueryBeforePost
-    OnPostError = ZQuery2PostError
     ParamCheck = False
     Params = <>
     Options = []
