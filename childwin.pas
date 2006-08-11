@@ -390,8 +390,6 @@ type
     procedure CheckConnection();
     procedure ZQueryBeforePost(DataSet: TDataSet);
     procedure ZQuery2BeforeOpen(DataSet: TDataSet);
-    procedure ZQuery2PostError(DataSet: TDataSet; E: EDatabaseError;
-      var Action: TDataAction);
 
     private
       { Private declarations }
@@ -3319,7 +3317,7 @@ begin
   status := ZConn.Ping;
   if not status then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
-    ZConn.Disconnect;
+    ZConn.Reconnect;
     PerformConnect;
   end;
 end;
@@ -3333,7 +3331,6 @@ end;
 
 procedure TMDIChild.ZQueryBeforePost(DataSet: TDataSet);
 begin
-  LogSQL('BeforePost');
   try
     CheckConnection;
   except
@@ -3343,18 +3340,11 @@ end;
 
 procedure TMDIChild.ZQuery2BeforeOpen(DataSet: TDataSet);
 begin
-  LogSQL('BeforeOpen');
   try
     CheckConnection;
   except
     exit;
   end;
-end;
-
-procedure TMDIChild.ZQuery2PostError(DataSet: TDataSet; E: EDatabaseError;
-  var Action: TDataAction);
-begin
-  LogSQL('OnPostError!');
 end;
 
 end.
