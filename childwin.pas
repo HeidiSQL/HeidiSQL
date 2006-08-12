@@ -17,7 +17,8 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   DBCtrls, helpers,
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
-  ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging;
+  ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
+  SynCompletionProposal;
 
 
 type
@@ -250,6 +251,7 @@ type
     PopupMenuTablelistColumns: TPopupMenu;
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
+    SynCompletionProposal1: TSynCompletionProposal;
     procedure PerformConnect;
     procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -388,8 +390,12 @@ type
       Shift: TShiftState);
     function mask(str: String) : String;
     procedure CheckConnection();
-    procedure ZQueryBeforePost(DataSet: TDataSet);
-    procedure ZQuery2BeforeOpen(DataSet: TDataSet);
+    procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
+    procedure SynCompletionProposal1Execute(Kind: SynCompletionType;
+      Sender: TObject; var AString: String; var x, y: Integer;
+      var CanExecute: Boolean);
+    procedure SynCompletionProposal1CodeCompletion(var Value: String;
+      Shift: TShiftState; Index: Integer; EndToken: Char);
 
     private
       { Private declarations }
@@ -785,7 +791,7 @@ begin
         ActualDatabase := strdb;
         ActualTable := '';
         ToolButton9.Enabled := False;
-        ListTables.Selected := nil;
+        ListTables.Selected := nil; // probably buggy: if switched to nil, View-button on data-tabsheet doesn't work
         ListColumns.Items.Clear;
         Panel3.Caption := 'Table-Properties';
         ShowDBProperties(self);
@@ -1039,7 +1045,6 @@ procedure TMDIChild.pcChange(Sender: TObject);
 var DataOrQueryTab : Boolean;
 begin
   // PageControl changes
-  //  showmessage('pcchange!!!');
   Mainform.ExecuteQuery.Enabled := PageControl1.ActivePage = SheetQuery;
   Mainform.ExecuteSelection.Enabled := PageControl1.ActivePage = SheetQuery;
   Mainform.ExecuteLine.Enabled := PageControl1.ActivePage = SheetQuery;
@@ -1933,7 +1938,7 @@ begin
       end;
       mainform.ToolBarData.visible := (PageControl1.ActivePage = SheetData);
       mainform.DBNavigator1.DataSource := DataSource1;
-      DBtreeChange( self, DBTree.Selected );
+      //DBtreeChange( self, DBTree.Selected );
     end;
   end;
   timer4.OnTimer(self);
@@ -2098,7 +2103,9 @@ begin
   s := s mod 60;
 
   inc(time_connected);
-  MainForm.showstatus(format('Connected: %.2d:%.2d:%.2d', [h,m,s]), 1);
+
+  if Mainform.ActiveMDIChild = self then
+    MainForm.showstatus(format('Connected: %.2d:%.2d:%.2d', [h,m,s]), 1);
 end;
 
 
@@ -3328,7 +3335,7 @@ begin
   if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
 end;
 
-procedure TMDIChild.ZQueryBeforePost(DataSet: TDataSet);
+procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
 begin
   try
     CheckConnection;
@@ -3337,13 +3344,45 @@ begin
   end;
 end;
 
-procedure TMDIChild.ZQuery2BeforeOpen(DataSet: TDataSet);
+
+{ Proposal-Combobox popup }
+procedure TMDIChild.SynCompletionProposal1Execute(Kind: SynCompletionType;
+  Sender: TObject; var AString: String; var x, y: Integer;
+  var CanExecute: Boolean);
+var
+  i : Integer;
 begin
-  try
-    CheckConnection;
-  except
-    exit;
+
+  logsql(AString + ':' + inttostr(synmemo1.CaretX));
+  if length(AString) = 0 then
+  begin
+
   end;
+
+  with SynCompletionProposal1 do
+  begin
+  	InsertList.Clear;
+  	ItemList.Clear;
+  	InsertList.AddStrings( OnlyDBs2 );
+  	ItemList.AddStrings( OnlyDBs2 );
+  	for i:=0 to ItemList.count-1 do
+      ItemList[i] := ItemList[i];
+    if ActualDatabase <> '' then
+    begin
+      for i:=0 to ListTables.Items.Count-1 do
+      begin
+        InsertList.Add(ListTables.Items[i].Caption);
+        ItemList.Add( ListTables.Items[i].Caption );
+      end
+    end;
+  end;
+end;
+
+{ Proposal about to insert a string into synmemo }
+procedure TMDIChild.SynCompletionProposal1CodeCompletion(var Value: String;
+  Shift: TShiftState; Index: Integer; EndToken: Char);
+begin
+  value := mask( value );
 end;
 
 end.

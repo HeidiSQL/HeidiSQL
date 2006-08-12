@@ -1,6 +1,6 @@
 object MDIChild: TMDIChild
-  Left = 652
-  Top = 95
+  Left = 646
+  Top = 110
   Width = 685
   Height = 454
   Caption = 'MySQL-Host'
@@ -95,7 +95,7 @@ object MDIChild: TMDIChild
         MultiLine = True
         ParentFont = False
         TabHeight = 22
-        TabIndex = 1
+        TabIndex = 4
         TabOrder = 0
         OnChange = pcChange
         object SheetHost: TTabSheet
@@ -358,7 +358,7 @@ object MDIChild: TMDIChild
             end
             object ToolButton13: TToolButton
               Left = 0
-              Top = 46
+              Top = 44
               Hint = 'Empty Table ...'
               Caption = 'ToolButton13'
               Enabled = False
@@ -368,13 +368,13 @@ object MDIChild: TMDIChild
             end
             object MenuTabelleLoeschen: TToolButton
               Left = 0
-              Top = 69
+              Top = 66
               Action = MainForm.DropTable
               Wrap = True
             end
             object ToolButton14: TToolButton
               Left = 0
-              Top = 92
+              Top = 88
               Action = MainForm.CopyTable
               Wrap = True
             end
@@ -395,7 +395,7 @@ object MDIChild: TMDIChild
             Transparent = True
             object ToolButton3: TToolButton
               Left = 0
-              Top = 0
+              Top = 2
               Hint = 'Insert Record...|Insert new Record into Table...'
               Caption = 'Insert Record'
               Enabled = False
@@ -555,7 +555,7 @@ object MDIChild: TMDIChild
             Wrapable = False
             object ButtonInsert: TToolButton
               Left = 0
-              Top = 0
+              Top = 2
               Hint = 'Insert Record...|Insert new Record into Table...'
               Caption = 'ButtonInsert'
               ImageIndex = 32
@@ -2783,9 +2783,9 @@ object MDIChild: TMDIChild
   object ZQuery2: TZQuery
     Connection = ZConn
     AutoCalcFields = False
-    BeforeOpen = ZQuery2BeforeOpen
+    BeforeOpen = ZQueryBeforeSendingSQL
     BeforeClose = ZQuery2BeforeClose
-    BeforePost = ZQueryBeforePost
+    BeforePost = ZQueryBeforeSendingSQL
     ParamCheck = False
     Params = <>
     Options = []
@@ -2822,5 +2822,36 @@ object MDIChild: TMDIChild
     object N20: TMenuItem
       Caption = '-'
     end
+  end
+  object SynCompletionProposal1: TSynCompletionProposal
+    DefaultType = ctCode
+    Options = [scoUseInsertList, scoUseBuiltInTimer, scoEndCharCompletion]
+    OnExecute = SynCompletionProposal1Execute
+    Position = 0
+    NbLinesInWindow = 8
+    ClSelect = clHighlight
+    ClSelectedText = clHighlightText
+    ClBackground = clWindow
+    Width = 262
+    BiggestWord = 'CONSTRUCTOR'
+    EndOfTokenChr = '()[]. '
+    TriggerChars = '.'
+    ClTitleBackground = clBtnFace
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clBtnText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = [fsBold]
+    ShortCut = 16416
+    Editor = SynMemo1
+    TimerInterval = 500
+    OnCodeCompletion = SynCompletionProposal1CodeCompletion
+    Left = 104
+    Top = 120
   end
 end
