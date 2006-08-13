@@ -25,32 +25,34 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterSDD.pas,v 1.9 2002/04/08 17:13:45 plpolak Exp $
+$Id: SynHighlighterSDD.pas,v 1.14 2005/01/28 16:53:25 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNHIGHLIGHTERSDD}
 unit SynHighlighterSDD;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils,
-  Classes,
 {$IFDEF SYN_CLX}
-  QControls,
   QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
 {$ELSE}
   Windows,
-  Controls,
   Graphics,
-{$ENDIF}
   SynEditTypes,
-  SynEditHighlighter;
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (
@@ -165,7 +167,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -529,7 +535,7 @@ procedure TSynSDDSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -670,7 +676,6 @@ begin
   Result := TSynValidStringChars;
 end; { GetIdentChars }
 
-
 class function TSynSDDSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangSDD;
@@ -710,4 +715,3 @@ initialization
   RegisterPlaceableHighlighter(TSynSDDSyn);
 {$ENDIF}
 end.
-

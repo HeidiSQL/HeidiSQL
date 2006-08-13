@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterVBScript.pas,v 1.10 2001/12/12 19:41:36 harmeister Exp $
+$Id: SynHighlighterVBScript.pas,v 1.15 2005/01/28 16:53:26 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,20 +42,28 @@ Known Issues:
 The SynHighlighterVBScript unit provides SynEdit with a VisualBasic Script (.vbs) highlighter.
 Thanks to Primoz Gabrijelcic and Martin Waldenburg.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERVBSCRIPT}
 unit SynHighlighterVBScript;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditHighlighter, SynEditTypes;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditHighlighter,
+  QSynEditTypes,
+{$ELSE}
+  Graphics,
+  Registry,
+  SynEditHighlighter,
+  SynEditTypes,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -115,12 +123,12 @@ type
     function Func53: TtkTokenKind;
     function Func54: TtkTokenKind;
     function Func55: TtkTokenKind;
-    function Func56: TtkTokenKind;                                              //LVK 2000-08-11
+    function Func56: TtkTokenKind;
     function Func57: TtkTokenKind;
     function Func58: TtkTokenKind;
     function Func59: TtkTokenKind;
     function Func60: TtkTokenKind;
-    function Func62: TtkTokenKind;                                              //LVK 2000-08-11
+    function Func62: TtkTokenKind;
     function Func63: TtkTokenKind;
     function Func64: TtkTokenKind;
     function Func66: TtkTokenKind;
@@ -165,9 +173,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -199,7 +207,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -261,12 +273,12 @@ begin
   fIdentFuncTable[53] := Func53;
   fIdentFuncTable[54] := Func54;
   fIdentFuncTable[55] := Func55;
-  fIdentFuncTable[56] := Func56;                                                //LVK 2000-08-11
+  fIdentFuncTable[56] := Func56;
   fIdentFuncTable[57] := Func57;
   fIdentFuncTable[58] := Func58;
   fIdentFuncTable[59] := Func59;
   fIdentFuncTable[60] := Func60;
-  fIdentFuncTable[62] := Func62;                                                //LVK 2000-08-11
+  fIdentFuncTable[62] := Func62;
   fIdentFuncTable[63] := Func63;
   fIdentFuncTable[64] := Func64;
   fIdentFuncTable[66] := Func66;
@@ -498,14 +510,12 @@ begin
     Result := tkIdentifier;
 end;
 
-{begin}                                                                         //LVK 2000-08-11
 function TSynVBScriptSyn.Func56: TtkTokenKind;
 begin
   if KeyComp('ByRef') then Result := tkKey else
     if KeyComp('ElseIf') then Result := tkKey else
       if KeyComp('LSet') then Result := tkKey else Result := tkIdentifier;
 end;
-{end}                                                                           //LVK 2000-08-11
 
 function TSynVBScriptSyn.Func57: TtkTokenKind;
 begin
@@ -777,7 +787,7 @@ begin
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
-  fDefaultFilter      := SYNS_FilterVBScript;
+  fDefaultFilter := SYNS_FilterVBScript;
   InitIdent;
   MakeMethodTables;
 end;
@@ -886,7 +896,7 @@ procedure TSynVBScriptSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -962,8 +972,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynVBScriptSyn.GetLanguageName: string;
+function TSynVBScriptSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterVBScript;
+end;
+
+class function TSynVBScriptSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangVBSScript;
 end;
@@ -980,12 +994,9 @@ begin
             'end function';
 end;
 
-
 initialization
   MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynVBScriptSyn);
 {$ENDIF}
 end.
-
-

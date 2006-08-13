@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynExportRTF.pas,v 1.6 2001/11/09 07:48:57 plpolak Exp $
+$Id: SynExportRTF.pas,v 1.10 2004/07/27 14:24:02 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -37,20 +37,23 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNEXPORTRTF}
 unit SynExportRTF;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  Classes,
   {$IFDEF SYN_CLX}
   Qt, QGraphics,
+  QSynEditExport,
   {$ELSE}
   Windows, Graphics, RichEdit,
+  SynEditExport,
   {$ENDIF}
-  SynEditExport;
+  Classes;
 
 type
   TSynExporterRTF = class(TSynCustomExporter)
@@ -90,7 +93,13 @@ type
 implementation
 
 uses
-  SysUtils, SynEditStrConst;
+{$IFDEF SYN_CLX}
+  QSynEditStrConst,
+  QSynEditMiscProcs,
+{$ELSE}
+  SynEditStrConst,
+{$ENDIF}
+  SysUtils;
 
 { TSynExporterRTF }
 
@@ -129,10 +138,8 @@ var
 begin
   Col := ColorToRGB(AColor);
   {*****************}
-{$IFNDEF SYN_CLX}
   Result := Format('\red%d\green%d\blue%d;', [GetRValue(Col), GetGValue(Col),
     GetBValue(Col)]);
-{$ENDIF}
 end;
 
 procedure TSynExporterRTF.FormatAfterLastAttribute;
@@ -218,15 +225,11 @@ var
   i: integer;
 
   function GetFontTable: string;
-{$IFDEF SYN_MBCSSUPPORT}
-  var
-    IsSpace: boolean;
-{$ENDIF}
   begin
 {$IFDEF SYN_MBCSSUPPORT}
     if ByteType(Font.Name, 1) <> mbSingleByte then begin
       Result := '{\fonttbl{\f0\fnil\fcharset134 ' +
-        ReplaceReservedChars(Font.Name, IsSpace)
+        ReplaceReservedChars(Font.Name)
     end else
 {$ENDIF}
       Result := '{\fonttbl{\f0\fmodern ' + Font.Name;
@@ -253,8 +256,7 @@ end;
 {$IFDEF SYN_MBCSSUPPORT}
 function TSynExporterRTF.ReplaceMBCS(Char1, Char2: char): string;
 begin
-//  Result := Format('\''%x\''%x ', [Char1, Char2]);
-  Result := Format('\''%x\''%x', [integer(Char1), integer(Char2)]);             //sqh 2001-01-04
+  Result := Format('\''%x\''%x', [integer(Char1), integer(Char2)]);
 end;
 {$ENDIF}
 

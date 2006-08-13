@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCpp.pas,v 1.15 2002/01/10 15:23:13 drbrno Exp $
+$Id: SynHighlighterCpp.pas,v 1.24 2005/01/28 16:53:21 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,30 +42,32 @@ Known Issues:
 The SynHighlighterCpp unit provides SynEdit with a C++ syntax highlighter.
 Thanks to Martin Waldenburg.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERCPP}
 unit SynHighlighterCpp;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils,
-  Classes,
 {$IFDEF SYN_CLX}
-  QControls,
   QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
 {$ELSE}
-  Windows,
-  Controls,
   Graphics,
-{$ENDIF}
   SynEditTypes,
-  SynEditHighlighter;
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkAsm, tkComment, tkDirective, tkIdentifier, tkKey, tkNull,
     tkNumber, tkSpace, tkString, tkSymbol, tkUnknown,
-    tkChar, tkFloat, tkHex, tkOctal); // dj
+    tkChar, tkFloat, tkHex, tkOctal);
 
   TxtkTokenKind = (
     xtkAdd, xtkAddAssign, xtkAnd, xtkAndAssign, xtkArrow, xtkAssign,
@@ -81,7 +83,7 @@ type
 
   TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
     rsAsmBlock, rsDirective, rsDirectiveComment, rsString34, rsString39,
-    rsMultiLineString, rsMultiLineDirective); //dj
+    rsMultiLineString, rsMultiLineDirective);
 
   TProcTableProc = procedure of object;
 
@@ -154,6 +156,7 @@ type
     function Func86: TtkTokenKind;
     function Func88: TtkTokenKind;
     function Func89: TtkTokenKind;
+    function Func90: TtkTokenKind;
     function Func92: TtkTokenKind;
     function Func97: TtkTokenKind;
     function Func98: TtkTokenKind;
@@ -182,7 +185,7 @@ type
     procedure ColonProc;
     procedure CommaProc;
     procedure DirectiveProc;
-    procedure DirectiveEndProc; //dj
+    procedure DirectiveEndProc;
     procedure EqualProc;
     procedure GreaterProc;
     procedure IdentProc;
@@ -218,11 +221,10 @@ type
     function GetIdentChars: TSynIdentChars; override;
     function GetExtTokenID: TxtkTokenKind;
     function GetSampleSource: string; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetCapabilities: TSynHighlighterCapabilities; override;
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetCapabilities: TSynHighlighterCapabilities; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -273,7 +275,12 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
+  Windows,
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -346,6 +353,7 @@ begin
   fIdentFuncTable[86] := Func86;
   fIdentFuncTable[88] := Func88;
   fIdentFuncTable[89] := Func89;
+  fIdentFuncTable[90] := Func90;
   fIdentFuncTable[92] := Func92;
   fIdentFuncTable[97] := Func97;
   fIdentFuncTable[98] := Func98;
@@ -614,6 +622,11 @@ begin
   if KeyComp('throw') then Result := tkKey else Result := tkIdentifier;
 end;
 
+function TSynCppSyn.Func90: TtkTokenKind;
+begin
+  if KeyComp('interface') then Result := tkKey else Result := tkIdentifier;
+end;
+
 function TSynCppSyn.Func92: TtkTokenKind;
 begin
   if KeyComp('extern') then Result := tkKey else Result := tkIdentifier;
@@ -853,7 +866,7 @@ begin
             fRange := rsAsmBlock
           else if (fRange = rsDirectiveComment) and
             not (fLine[Run] in [#0, #13, #10]) then
-              fRange := rsMultiLineDirective //dj
+              fRange := rsMultiLineDirective
           else
             fRange := rsUnKnown;
           break;
@@ -892,7 +905,7 @@ begin
   fTokenID := tkChar;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [#39, '\'] then                                      //ek 2000-04-26
+      if fLine[Run + 1] in [#39, '\'] then
         inc(Run);
     end;
     inc(Run);
@@ -958,7 +971,7 @@ begin
   FExtTokenID := xtkComma;
 end;
 
-procedure TSynCppSyn.DirectiveProc; // dj, rewritten to support multiline directives properly
+procedure TSynCppSyn.DirectiveProc;
 begin
   if Trim(fLine)[1] <> '#' then // '#' is not first char on the line, treat it as an invalid char
   begin
@@ -972,7 +985,7 @@ begin
     begin
       if fLine[Run + 1] = '/' then // is end of directive as well
       begin
-        fRange := rsUnknown;                                              //ek 2000-04-25
+        fRange := rsUnknown;
         Exit;
       end
       else
@@ -992,7 +1005,7 @@ begin
   until fLine[Run] in [#0, #10, #13];
 end;
 
-procedure TSynCppSyn.DirectiveEndProc; // dj, added to support multiline directives properly
+procedure TSynCppSyn.DirectiveEndProc;
 begin
   fTokenID := tkDirective;
   case FLine[Run] of
@@ -1021,7 +1034,7 @@ begin
           case fLine[Run + 1] of
             '/': // is end of directive as well
               begin
-                fRange := rsUnknown;                                              //ek 2000-04-25
+                fRange := rsUnknown;
                 Exit;
               end;
             '*': // might be embedded only
@@ -1261,7 +1274,6 @@ begin
             for i := idx1 to Pred(Run) do
               if FLine[i] in ['e', 'E'] then // too many exponents
               begin
-                //Run := i;
                 fTokenID := tkUnknown;
                 Exit;
               end;
@@ -1291,7 +1303,7 @@ begin
         end;
       'l', 'L':
         begin
-          for i := idx1 to Pred(Run) do
+          for i := idx1 to Run - 2 do
             if FLine[i] in ['l', 'L'] then // declaration syntax error
             begin
               fTokenID := tkUnknown;
@@ -1446,7 +1458,7 @@ begin
               begin
                 inc(Run, 2);
                 if fRange = rsDirectiveComment then
-                  fRange := rsMultiLineDirective //dj
+                  fRange := rsMultiLineDirective
                 else if fRange = rsAnsiCAsm then
                   fRange := rsAsm
                 else
@@ -1617,8 +1629,8 @@ end;
 procedure TSynCppSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then // if FLine[Run] is the leadbyte of MBCS char,then jump 2 chars.
-    Inc(Run,2)
+  if FLine[Run] in LeadBytes then
+    Inc(Run, 2)
   else
 {$ENDIF}
   Inc(Run);
@@ -1632,8 +1644,8 @@ begin
   case fRange of
     rsAnsiC, rsAnsiCAsm,
     rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
-    rsMultiLineDirective: DirectiveEndProc; // dj
-    rsMultilineString: StringEndProc;                                           //ek 2001-08-02
+    rsMultiLineDirective: DirectiveEndProc;
+    rsMultilineString: StringEndProc;
   else
     begin
       fRange := rsUnknown;
@@ -1719,7 +1731,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynCppSyn.ReSetRange;
+procedure TSynCppSyn.ResetRange;
 begin
   fRange:= rsUnknown;
 end;
@@ -1906,14 +1918,17 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynCppSyn.GetLanguageName: string;
+function TSynCppSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterCPP;
+end;
+
+class function TSynCppSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangCPP;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynCppSyn.GetCapabilities: TSynHighlighterCapabilities;
+class function TSynCppSyn.GetCapabilities: TSynHighlighterCapabilities;
 begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
@@ -1946,8 +1961,7 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynCppSyn);
 {$ENDIF}
 end.
-

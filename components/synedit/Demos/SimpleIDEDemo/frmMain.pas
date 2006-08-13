@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: frmMain.pas,v 1.3 2000/11/22 08:37:05 mghie Exp $
+$Id: frmMain.pas,v 1.7 2004/04/24 17:04:54 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -43,7 +43,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ActnList, ImgList, ComCtrls, ToolWin, SynEdit, SynEditHighlighter,
-  SynHighlighterPas, uSimpleIDEDebugger, Menus;
+  SynHighlighterPas, uSimpleIDEDebugger, Menus, SynEditTypes;
 
 type
   TSimpleIDEMainForm = class(TForm)
@@ -82,8 +82,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure SynEditorGutterClick(Sender: TObject; X, Y, Line: Integer;
-      mark: TSynEditMark);
     procedure SynEditorSpecialLineColors(Sender: TObject; Line: Integer;
       var Special: Boolean; var FG, BG: TColor);
     procedure actDebugRunExecute(Sender: TObject);
@@ -100,6 +98,8 @@ type
     procedure actToggleBreakpointUpdate(Sender: TObject);
     procedure actClearAllBreakpointsExecute(Sender: TObject);
     procedure actClearAllBreakpointsUpdate(Sender: TObject);
+    procedure SynEditorGutterClick(Sender: TObject; Button: TMouseButton;
+      X, Y, Line: Integer; Mark: TSynEditMark);
   private
     fCurrentLine: integer;
     fDebugger: TSampleDebugger;
@@ -126,7 +126,7 @@ type
   TDebugSupportPlugin = class(TSynEditPlugin)
   protected
     fForm: TSimpleIDEMainForm;
-    procedure AfterPaint(ACanvas: TCanvas; AClip: TRect;
+    procedure AfterPaint(ACanvas: TCanvas; const AClip: TRect;
       FirstLine, LastLine: integer); override;
     procedure LinesInserted(FirstLine, Count: integer); override;
     procedure LinesDeleted(FirstLine, Count: integer); override;
@@ -140,7 +140,7 @@ begin
   fForm := AForm;
 end;
 
-procedure TDebugSupportPlugin.AfterPaint(ACanvas: TCanvas; AClip: TRect;
+procedure TDebugSupportPlugin.AfterPaint(ACanvas: TCanvas; const AClip: TRect;
   FirstLine, LastLine: integer);
 begin
   fForm.PaintGutterGlyphs(ACanvas, AClip, FirstLine, LastLine);
@@ -200,13 +200,6 @@ begin
   end;
 end;
 
-procedure TSimpleIDEMainForm.SynEditorGutterClick(Sender: TObject; X, Y,
-  Line: Integer; mark: TSynEditMark);
-begin
-  if fDebugger <> nil then
-    fDebugger.ToggleBreakpoint(Line);
-end;
-
 procedure TSimpleIDEMainForm.SynEditorSpecialLineColors(Sender: TObject;
   Line: Integer; var Special: Boolean; var FG, BG: TColor);
 var
@@ -233,7 +226,10 @@ procedure TSimpleIDEMainForm.DebuggerBreakpointChange(Sender: TObject;
   ALine: integer);
 begin
   if (ALine >= 1) and (ALine <= SynEditor.Lines.Count) then
-    SynEditor.InvalidateLine(ALine)
+  begin
+    SynEditor.InvalidateGutterLine(ALine);
+    SynEditor.InvalidateLine(ALine);
+  end
   else
     SynEditor.Invalidate;
 end;
@@ -273,12 +269,16 @@ var
   LI: TDebuggerLineInfos;
   ImgIndex: integer;
 begin
-  if fDebugger <> nil then begin
+  if fDebugger <> nil then
+  begin
+    FirstLine := SynEditor.RowToLine(FirstLine);
+    LastLine := SynEditor.RowToLine(LastLine);
     X := 14;
     LH := SynEditor.LineHeight;
-    Y := (LH - imglGutterGlyphs.Height) div 2
-      + LH * (FirstLine - SynEditor.TopLine);
-    while FirstLine <= LastLine do begin
+    while FirstLine <= LastLine do
+    begin
+      Y := (LH - imglGutterGlyphs.Height) div 2
+           + LH * (SynEditor.LineToRow(FirstLine) - SynEditor.TopLine);
       LI := fDebugger.GetLineInfos(FirstLine);
       if dlCurrentLine in LI then begin
         if dlBreakpointLine in LI then
@@ -299,18 +299,20 @@ begin
       if ImgIndex >= 0 then
         imglGutterGlyphs.Draw(ACanvas, X, Y, ImgIndex);
       Inc(FirstLine);
-      Inc(Y, LH);
     end;
   end;
 end;
 
 procedure TSimpleIDEMainForm.SetCurrentLine(ALine: integer);
 begin
-  if fCurrentLine <> ALine then begin
+  if fCurrentLine <> ALine then
+  begin
+    SynEditor.InvalidateGutterLine(fCurrentLine);
     SynEditor.InvalidateLine(fCurrentLine);
     fCurrentLine := ALine;
     if (fCurrentLine > 0) and (SynEditor.CaretY <> fCurrentLine) then
-      SynEditor.CaretXY := Point(1, fCurrentLine);
+      SynEditor.CaretXY := BufferCoord(1, fCurrentLine);
+    SynEditor.InvalidateGutterLine(fCurrentLine);
     SynEditor.InvalidateLine(fCurrentLine);
   end;
 end;
@@ -386,6 +388,13 @@ procedure TSimpleIDEMainForm.actClearAllBreakpointsUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := (fDebugger <> nil)
     and fDebugger.HasBreakpoints;
+end;
+
+procedure TSimpleIDEMainForm.SynEditorGutterClick(Sender: TObject;
+  Button: TMouseButton; X, Y, Line: Integer; Mark: TSynEditMark);
+begin
+  if fDebugger <> nil then
+    fDebugger.ToggleBreakpoint(SynEditor.RowToLine(Line));
 end;
 
 end.

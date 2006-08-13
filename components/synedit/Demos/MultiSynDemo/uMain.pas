@@ -34,7 +34,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: uMain.pas,v 1.1 2001/03/31 20:34:07 mghie Exp $
+$Id: uMain.pas,v 1.3 2004/01/22 03:37:47 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -98,8 +98,6 @@ implementation
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
-{ Initialize the controls }
-  SynEdit1.ClearAll;
 { The D4Demo uses this...
   OpenDialog1.Filter := GetHighlightersFilter(fHighlighters) +
     'All files|*.*|';
@@ -120,7 +118,7 @@ end;
 
 procedure TfrmMain.New1Click(Sender: TObject);
 begin
-  SynEdit1.ClearAll;
+  SynEdit1.Clear;
 end;
 
 procedure TfrmMain.Open1Click(Sender: TObject);
@@ -177,3 +175,25 @@ end;
 
 end.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                    

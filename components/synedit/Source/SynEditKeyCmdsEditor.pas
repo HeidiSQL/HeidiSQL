@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmdsEditor.pas,v 1.6 2002/02/04 15:20:43 harmeister Exp $
+$Id: SynEditKeyCmdsEditor.pas,v 1.11 2004/11/25 14:06:27 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -35,19 +35,15 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNEDITKEYCMDSEDITOR}
 unit SynEditKeyCmdsEditor;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils,
-  Classes,
-{$IFNDEF SYN_KYLIX}
-  Windows,
-  Messages,
-{$ENDIF}
 {$IFDEF SYN_CLX}
   Qt,
   QGraphics,
@@ -58,8 +54,11 @@ uses
   QMenus,
   QStdCtrls,
   QExtCtrls,
-  QButtons, 
+  QButtons,
+  QSynEditKeyCmds,
 {$ELSE}
+  Windows,
+  Messages,
   Graphics,
   Controls,
   Forms,
@@ -69,21 +68,23 @@ uses
   StdCtrls,
   Buttons,
   ExtCtrls,
+  SynEditKeyCmds,
 {$ENDIF}
-  SynEditKeyCmds;
+  SysUtils,
+  Classes;
 
 type
   TSynEditKeystrokesEditorForm = class(TForm)
     pnlBottom: TPanel;
     lnlInfo: TLabel;
     lnlInfo2: TLabel;
-    btnAdd: TSpeedButton;
-    btnEdit: TSpeedButton;
-    btnDelete: TSpeedButton;
-    btnClear: TSpeedButton;
-    btnReset: TSpeedButton;
-    btnOK: TSpeedButton;
-    btnCancel: TSpeedButton;
+    btnAdd: TButton;
+    btnEdit: TButton;
+    btnDelete: TButton;
+    btnClear: TButton;
+    btnReset: TButton;
+    btnOK: TButton;
+    btnCancel: TButton;
     pnlCommands: TPanel;
     KeyCmdList: TListView;
     procedure FormResize(Sender: TObject);
@@ -102,7 +103,7 @@ type
     procedure SetKeystrokes(const Value: TSynEditKeyStrokes);
     procedure UpdateKeystrokesList;
     {**************}
-    {$IFNDEF SYN_KYLIX}
+    {$IFNDEF SYN_CLX}
     procedure WMGetMinMaxInfo(var Msg: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
     {$ENDIF}
@@ -119,7 +120,13 @@ implementation
 {$R *.dfm}
 
 uses
-  SynEditKeyCmdEditor, SynEditStrConst;
+{$IFDEF SYN_CLX}
+  QSynEditKeyCmdEditor,
+  QSynEditStrConst;
+{$ELSE}
+  SynEditKeyCmdEditor,
+  SynEditStrConst;
+{$ENDIF}
 
 { TSynEditKeystrokesEditorForm }
 
@@ -183,26 +190,29 @@ begin
 end;
 
 procedure TSynEditKeystrokesEditorForm.FormResize(Sender: TObject);
-var
-  x: integer;
 begin
-  for x := 0 to ControlCount-1 do
-    if Controls[x] is TButton then
-    begin
-      Controls[x].Left := ClientWidth - Controls[x].Width - 7;
-      if Controls[x] = btnOK then
-        Controls[x].Top := ClientHeight - (Controls[x].Height * 2) - 10;
-      if Controls[x] = btnCancel then
-        Controls[x].Top := ClientHeight - Controls[x].Height - 3;
-    end else if Controls[x] is TListView then
-    begin
-      Controls[x].Width := ClientWidth - 96;
-      Controls[x].Height := ClientHeight - 8;
-    end;
+  pnlBottom.Width := pnlBottom.Left + ClientWidth - 25;
+  pnlBottom.Height := ClientHeight - 11;
+  pnlCommands.Width := ClientWidth - 136;
+  pnlCommands.Height := ClientHeight - 75;
+
+  btnAdd.Left := pnlCommands.Left + pnlCommands.Width + 14;
+  btnEdit.Left := pnlCommands.Left + pnlCommands.Width + 14;
+  btnDelete.Left := pnlCommands.Left + pnlCommands.Width + 14;
+  btnClear.Left := pnlCommands.Left + pnlCommands.Width + 14;
+  btnReset.Left := pnlCommands.Left + pnlCommands.Width + 14;
+
+  btnOK.Left := pnlCommands.Left + pnlCommands.Width + 14;
+  btnOK.Top := pnlCommands.Top + pnlCommands.Height - 19;
+  btnCancel.Left := pnlCommands.Left + pnlCommands.Width + 14;
+  btnCancel.Top := pnlCommands.Top + pnlCommands.Height + 13;
+
+  lnlInfo.Top := pnlCommands.Top + pnlCommands.Height + 11;
+  lnlInfo2.Top := pnlCommands.Top + pnlCommands.Height + 27;
 end;
 
 {***************}
-{$IFNDEF SYN_KYLIX}
+{$IFNDEF SYN_CLX}
 procedure TSynEditKeystrokesEditorForm.WMGetMinMaxInfo(var Msg: TWMGetMinMaxInfo);
 begin
   inherited;
@@ -375,16 +385,14 @@ begin
   SelItem := KeyCmdList.Selected;
   if SelItem = NIL then
   begin
-    {$IFDEF SYN_KYLIX}
+    {$IFDEF SYN_CLX}
     QControls.Beep;
     {$ELSE}
     MessageBeep(1);
     {$ENDIF}
     exit;
   end;
-
   AForm := TSynEditKeystrokeEditorForm.Create(Self);
-
   with AForm do
     try
       ExtendedString := self.ExtendedString;
@@ -397,7 +405,11 @@ begin
         try
           with SelItem do
           begin
-            Caption := EditorCommandToCodeString(FKeystrokes[Index].Command);
+
+            if FExtended then
+              Caption := ConvertCodeStringToExtended(EditorCommandToCodeString(FKeystrokes[Index].Command))
+            else Caption := EditorCommandToCodeString(FKeystrokes[Index].Command);
+
             if FKeystrokes[Index].ShortCut = 0 then
               SubItems[0] := SYNS_ShortcutNone
             else
@@ -432,7 +444,7 @@ begin
   SelItem := KeyCmdList.Selected;
   if SelItem = NIL then
   begin
-    {$IFDEF SYN_KYLIX}
+    {$IFDEF SYN_CLX}
     QControls.Beep;
     {$ELSE}
     MessageBeep(1);
@@ -458,7 +470,7 @@ end;
 procedure TSynEditKeystrokesEditorForm.FormCreate(Sender: TObject);
 begin
   {$IFDEF SYN_COMPILER_3_UP}
-  KeyCmdList.RowSelect := TRUE;
+  KeyCmdList.RowSelect := True;
   {$ENDIF}
 end;
 

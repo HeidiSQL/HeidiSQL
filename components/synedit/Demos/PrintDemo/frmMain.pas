@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: frmMain.pas,v 1.2 2000/11/22 08:37:05 mghie Exp $
+$Id: frmMain.pas,v 1.3 2003/05/30 05:32:27 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,7 +42,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, SynEditHighlighter, SynHighlighterPas, SynEditPrint_Old, Buttons;
+  StdCtrls, SynEditHighlighter, SynHighlighterPas, SynEditPrint, Buttons;
 
 type
   TPrintDemoForm = class(TForm)
@@ -57,7 +57,7 @@ type
     Label3: TLabel;
     dlgFilePrint: TPrintDialog;
     btnPrint: TButton;
-    btnHeaderFooterFont: TButton;
+    btnHeaderFont: TButton;
     cbUseHighlighter: TCheckBox;
     dlgSelectFont: TFontDialog;
     cbPrintBlackAndWhite: TCheckBox;
@@ -67,13 +67,15 @@ type
     eTitle: TEdit;
     Label5: TLabel;
     ePrintDateTime: TEdit;
+    btnFooterFont: TButton;
     procedure SpeedButton1Click(Sender: TObject);
     procedure eFileNameChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btnHeaderFooterFontClick(Sender: TObject);
+    procedure btnHeaderFontClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
+    procedure btnFooterFontClick(Sender: TObject);
   private
-    fPrintOut: TSynPrintout;
+    fPrintOut: TSynEditPrint;
   end;
 
 var
@@ -97,14 +99,14 @@ end;
 
 procedure TPrintDemoForm.FormCreate(Sender: TObject);
 begin
-  fPrintOut := TSynPrintout.Create;
+  fPrintOut := TSynEditPrint.Create( Self );
 end;
 
-procedure TPrintDemoForm.btnHeaderFooterFontClick(Sender: TObject);
+procedure TPrintDemoForm.btnHeaderFontClick(Sender: TObject);
 begin
-  dlgSelectFont.Font.Assign(fPrintOut.HeaderFooterFont);
+  dlgSelectFont.Font.Assign(fPrintOut.Header.DefaultFont);
   if dlgSelectFont.Execute then
-    fPrintOut.HeaderFooterFont.Assign(dlgSelectFont.Font);
+    fPrintOut.Header.DefaultFont.Assign(dlgSelectFont.Font);
 end;
 
 procedure TPrintDemoForm.btnPrintClick(Sender: TObject);
@@ -113,18 +115,16 @@ begin
   fPrintOut.Title := eTitle.Text;
   fPrintOut.Lines.LoadFromFile(eFileName.Text);
   if ePrintDateTime.Text <> '' then
-    fPrintOut.PrintDate := StrToDateTime(ePrintDateTime.Text);
-  fPrintOut.FooterLines.Assign(memoFooter.Lines);
-  fPrintOut.HeaderLines.Assign(memoHeader.Lines);
-  fPrintOut.IgnoreHighlighterColors := cbPrintBlackAndWhite.Checked;
+    fPrintOut.Header.Add( ePrintDateTime.Text, nil, taRightJustify, 1 );
+  fPrintOut.Footer.Add( memoFooter.Lines.Text, nil, taCenter, 1 );
+  fPrintOut.Header.Add( memoHeader.Lines.Text, nil, taCenter, 1 );
+  fPrintOut.Colors := not cbPrintBlackAndWhite.Checked;
   if cbUseHighlighter.Checked then
     fPrintOut.Highlighter := SynPasSyn1
   else
     fPrintOut.Highlighter := nil;
-  fPrintOut.PrintLineNumbers := cbPrintLineNumbers.Checked;
-  fPrintOut.WrapLongLines := cbWordWrap.Checked;
-  fPrintOut.PrintRangeStart := Point(-1, -1);
-  fPrintOut.PrintRangeEnd := Point(-1, -1);
+  fPrintOut.LineNumbers := cbPrintLineNumbers.Checked;
+  fPrintOut.Wrap := cbWordWrap.Checked;
   // show print setup dialog and print
   with dlgFilePrint do begin
     MinPage := 1;
@@ -139,6 +139,13 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TPrintDemoForm.btnFooterFontClick(Sender: TObject);
+begin
+  dlgSelectFont.Font.Assign(fPrintOut.Footer.DefaultFont);
+  if dlgSelectFont.Execute then
+    fPrintOut.Footer.DefaultFont.Assign(dlgSelectFont.Font);
 end;
 
 end.

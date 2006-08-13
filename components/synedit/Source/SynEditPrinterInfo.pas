@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrinterInfo.pas,v 1.3 2001/11/09 07:48:57 plpolak Exp $
+$Id: SynEditPrinterInfo.pas,v 1.5 2005/10/18 01:26:51 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -40,7 +40,9 @@ CONTENTS:
   Class retrieving info about selected printer and paper size.
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNEDITPRINTERINFO}
 unit SynEditPrinterInfo;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -242,6 +244,7 @@ end;
 procedure TSynEditPrinterInfo.UpdatePrinter;
 begin
   FIsUpdated := True;
+  Printer.Refresh;
   if Printer.Printers.Count <= 0 then
   begin
     FillDefault;

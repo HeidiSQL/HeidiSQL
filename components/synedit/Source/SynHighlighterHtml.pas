@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHtml.pas,v 1.10 2002/01/06 05:27:32 drbrno Exp $
+$Id: SynHighlighterHtml.pas,v 1.25 2005/01/28 16:53:23 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,25 +41,32 @@ Known Issues:
 @lastmod(2000-06-23)
 The SynHighlighterHTML unit provides SynEdit with an HTML highlighter.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERHTML}
 unit SynHighlighterHtml;
+{$ENDIF}
 
 interface
 
 {$I SynEdit.inc}
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 const
   MAX_ESCAPEAMPS = 249;
 
-  EscapeAmps: array[0..MAX_ESCAPEAMPS - 1] of PChar = (                         //ek 2001-11-06
+  EscapeAmps: array[0..MAX_ESCAPEAMPS - 1] of PChar = (
     ('&Alpha;'),         { ?        }  { greek capital alpha }
     ('&Beta;'),          { ?        }  { greek capital beta }
     ('&Gamma;'),         { G        }  { greek capital gamma }
@@ -313,11 +320,11 @@ const
 
 
 type
-  TtkTokenKind = (tkAmpersand, tkASP, tkComment, tkIdentifier, tkKey, tkNull,
-    tkSpace, tkString, tkSymbol, tkText, tkUndefKey, tkValue);
+  TtkTokenKind = (tkAmpersand, tkComment, tkIdentifier, tkKey, tkNull,
+    tkSpace, tkSymbol, tkText, tkUndefKey, tkValue);
 
-  TRangeState = (rsAmpersand, rsASP, rsComment, rsKey, rsParam, rsText,
-    rsUnKnown, rsValue);
+  TRangeState = (rsAmpersand, rsComment, rsKey, rsParam, rsText,
+    rsUnKnown, rsValue, rsQuoteValue, rsDoubleQuoteValue);
 
   TProcTableProc = procedure of object;
   TIdentFuncTableFunc = function: TtkTokenKind of object;
@@ -332,11 +339,10 @@ type
     Temp: PChar;
     fStringLen: Integer;
     fToIdent: PChar;
-    fIdentFuncTable: array[0..243] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..250] of TIdentFuncTableFunc;
     fTokenPos: Integer;
     fTokenID: TtkTokenKind;
     fAndAttri: TSynHighlighterAttributes;
-    fASPAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
@@ -422,6 +428,7 @@ type
     function Func121: TtkTokenKind;
     function Func123: TtkTokenKind;
     function Func124: TtkTokenKind;
+    function Func128: TtkTokenKind;
     function Func130: TtkTokenKind;
     function Func131: TtkTokenKind;
     function Func132: TtkTokenKind;
@@ -484,11 +491,11 @@ type
     function Func229: TtkTokenKind;
     function Func236: TtkTokenKind;
     function Func243: TtkTokenKind;
+    function Func250: TtkTokenKind;
     function AltFunc: TtkTokenKind;
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure InitIdent;
     procedure MakeMethodTables;
-    procedure ASPProc;
     procedure TextProc;
     procedure CommentProc;
     procedure BraceCloseProc;
@@ -504,9 +511,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource : String; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -521,11 +528,10 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ReSetRange; override;
+    procedure ResetRange; override;
     property IdentChars;
   published
     property AndAttri: TSynHighlighterAttributes read fAndAttri write fAndAttri;
-    property ASPAttri: TSynHighlighterAttributes read fASPAttri write fASPAttri;
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
@@ -546,7 +552,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   mHashTable: array[#0..#255] of Integer;
@@ -572,7 +582,7 @@ procedure TSynHTMLSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := 0 to 243 do
+  for i := 0 to 250 do
     case i of
       1:   fIdentFuncTable[i] := Func1;
       2:   fIdentFuncTable[i] := Func2;
@@ -647,6 +657,7 @@ begin
       121: fIdentFuncTable[i] := Func121;
       123: fIdentFuncTable[i] := Func123;
       124: fIdentFuncTable[i] := Func124;
+      128: fIdentFuncTable[i] := Func128;
       130: fIdentFuncTable[i] := Func130;
       131: fIdentFuncTable[i] := Func131;
       132: fIdentFuncTable[i] := Func132;
@@ -709,6 +720,7 @@ begin
       229: fIdentFuncTable[i] := Func229;
       236: fIdentFuncTable[i] := Func236;
       243: fIdentFuncTable[i] := Func243;
+      250: fIdentFuncTable[i] := Func250;
       else fIdentFuncTable[i] := AltFunc;
     end;
 end;
@@ -874,7 +886,7 @@ end;
 
 function TSynHTMLSyn.Func21: TtkTokenKind;
 begin
-  if KeyComp('DEL') Or KeyComp('LI') Or KeyComp('U') then begin
+  if KeyComp('DEL') Or KeyComp('LI') Or KeyComp('U') Or KeyComp('BDO') then begin
     Result := tkKey;
   end else begin
     Result := tkUndefKey;
@@ -1403,6 +1415,15 @@ begin
   end;
 end;
 
+function TSynHTMLSyn.Func128: TtkTokenKind;
+begin
+  if KeyComp('OPTGROUP') then begin
+    Result := tkKey;
+  end else begin
+    Result := tkUndefKey;
+  end;
+end;
+
 function TSynHTMLSyn.Func130: TtkTokenKind;
 begin
   if KeyComp('/DD') then begin
@@ -1504,7 +1525,7 @@ end;
 
 function TSynHTMLSyn.Func143: TtkTokenKind;
 begin
-  if KeyComp('/DEL') Or KeyComp('/LI') Or KeyComp('/U') then begin
+  if KeyComp('/DEL') Or KeyComp('/LI') Or KeyComp('/U') Or KeyComp('/BDO') then begin
     Result := tkKey;
   end else begin
     Result := tkUndefKey;
@@ -1961,6 +1982,15 @@ begin
   end;
 end;
 
+function TSynHTMLSyn.Func250: TtkTokenKind;
+begin
+  if KeyComp('/OPTGROUP') then begin
+    Result := tkKey;
+  end else begin
+    Result := tkUndefKey;
+  end;
+end;
+
 function TSynHTMLSyn.AltFunc: TtkTokenKind;
 begin
   Result := tkUndefKey;
@@ -1992,7 +2022,7 @@ begin
       begin
         fProcTable[i] := AmpersandProc;
       end;
-    '"':
+    '"', #39:
       begin
         fProcTable[i] := StringProc;
       end;
@@ -2009,19 +2039,14 @@ begin
         fProcTable[i] := EqualProc;
       end;
     else
-      fProcTable[i] := IdentProc;
-    end;
+    fProcTable[i] := IdentProc;
+  end;
   end;
 end;
 
 constructor TSynHTMLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-
-  fASPAttri := TSynHighlighterAttributes.Create(SYNS_AttrASP);
-  fASPAttri.Foreground := clBlack;
-  fASPAttri.Background := clYellow;
-  AddAttribute(fASPAttri);
 
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
   AddAttribute(fCommentAttri);
@@ -2064,7 +2089,7 @@ begin
   MakeMethodTables;
   fRange := rsText;
   fDefaultFilter := SYNS_FilterHTML;
-  fAndCode:=-1;                                                                //ek 2001-11-06
+  fAndCode := -1;
 end;
 
 procedure TSynHTMLSyn.SetLine(NewValue: string; LineNumber:Integer);
@@ -2073,25 +2098,6 @@ begin
   Run := 0;
   fLineNumber := LineNumber;
   Next;
-end;
-
-procedure TSynHTMLSyn.ASPProc;
-begin
-  fTokenID := tkASP;
-  if (fLine[Run] In [#0, #10, #13]) then begin
-    fProcTable[fLine[Run]];
-    Exit;
-  end;
-
-  while not (fLine[Run] in [#0, #10, #13]) do begin
-    if (fLine[Run] = '>') and (fLine[Run - 1] = '%')
-    then begin
-      fRange := rsText;
-      Inc(Run);
-      break;
-    end;
-    Inc(Run);
-  end;
 end;
 
 procedure TSynHTMLSyn.BraceCloseProc;
@@ -2130,18 +2136,9 @@ begin
     fTokenID := tkComment;
     Inc(Run, 3);
   end else begin
-
-    if fLine[Run]= '%' then begin
-      fRange := rsASP;
-      fTokenID := tkASP;
-      Inc(Run);
-    end else begin
-      fRange := rsKey;
-      fTokenID := tkSymbol;
-    end;
-
+    fRange := rsKey;
+    fTokenID := tkSymbol;
   end;
-
 end;
 
 procedure TSynHTMLSyn.CRProc;
@@ -2164,7 +2161,7 @@ var
 begin
   fToIdent := MayBe;
   hashKey := KeyHash(MayBe);
-  if (hashKey < 244) then begin
+  if (hashKey < 251) then begin
     Result := fIdentFuncTable[hashKey];
   end else begin
     Result := tkIdentifier;
@@ -2225,9 +2222,16 @@ begin
       if (fLine[Run+1]='#') then begin
         fAndCode:=-1;
         i:=Run;
-        inc(Run,2);
-        while (fLine[Run] in ['0'..'9']) do
+        inc(Run, 2);
+        if fLine[Run] in ['X', 'x'] then
+        begin
           inc(Run);
+          while (fLine[Run] in ['0'..'9', 'A'..'F', 'a'..'f']) do
+            inc(Run);
+        end
+        else
+          while (fLine[Run] in ['0'..'9']) do
+            inc(Run);
         if (fLine[Run]=';') then begin
           inc(Run);
           Run:=i;
@@ -2236,7 +2240,7 @@ begin
         BREAK;
       end else begin
       For i:=Low(EscapeAmps) To High(EscapeAmps) do begin
-        if (StrLIComp((fLine + Run), PChar(EscapeAmps[i]), StrLen(EscapeAmps[i])) = 0) then begin
+        if (StrLComp((fLine + Run), PChar(EscapeAmps[i]), StrLen(EscapeAmps[i])) = 0) then begin
           fAndCode := i;
           fRange := rsAmpersand;
           Exit;
@@ -2254,6 +2258,19 @@ end;
 
 procedure TSynHTMLSyn.AmpersandProc;
 begin
+  if fRange <> rsAmpersand then
+  begin
+    if fRange = rsKey then
+    begin
+      Inc( Run );
+      fRange := rsText;
+      fTokenID := tkText;
+    end
+    else
+      IdentProc;
+    Exit;
+  end;
+  
   case fAndCode of
   Low(EscapeAmps)..High(EscapeAmps):
     begin
@@ -2263,9 +2280,16 @@ begin
     else begin
       if (fLine[Run+1]='#') then begin
         fAndCode:=-1;
-        inc(Run,2);
-        while (fLine[Run] in ['0'..'9']) do
+        inc(Run, 2);
+        if fLine[Run] in ['X', 'x'] then
+        begin
           inc(Run);
+          while (fLine[Run] in ['0'..'9', 'A'..'F', 'a'..'f']) do
+            inc(Run);
+        end
+        else
+          while (fLine[Run] in ['0'..'9']) do
+            inc(Run);
         if (fLine[Run]=';') then begin
           inc(Run);
           fTokenID := tkAmpersand;
@@ -2289,36 +2313,63 @@ begin
 end;
 
 procedure TSynHTMLSyn.StringProc;
+var
+  iOpenChar: Char;
 begin
-  if (fRange = rsValue) then begin
-    fRange := rsParam;
-    fTokenID := tkValue;
-  end else begin
-    fTokenID := tkString;
+  case fRange of
+    rsQuoteValue: begin
+      iOpenChar := #39;
+      fTokenID := tkValue;
+    end;
+    rsDoubleQuoteValue: begin
+      iOpenChar := '"';
+      fTokenID := tkValue;
+    end;
+    else begin
+      iOpenChar := fLine[Run];
+      if fRange = rsValue then begin
+        if iOpenChar = '"' then
+          fRange := rsDoubleQuoteValue
+        else
+          fRange := rsQuoteValue;
+        fTokenID := tkValue;
+      end else
+      begin
+        IdentProc;
+        Exit;
+      end;
+      Inc( Run ); { jumps over the opening char }
+    end;
   end;
-  Inc(Run);  // first '"'
-  while not (fLine[Run] in [#0, #10, #13, '"']) do Inc(Run);
-  if fLine[Run] = '"' then Inc(Run);  // last '"'
+
+  while not( fLine[ Run ] in [#0, #10, #13] ) do begin
+    if fLine[ Run ] = iOpenChar then begin
+      Inc( Run );  { jumps over the closing char }
+      if fRange in [rsDoubleQuoteValue, rsQuoteValue] then
+        fRange := rsParam
+      else
+        fRange := rsText;
+      break;
+    end;
+    Inc( Run );
+  end;
 end;
 
 procedure TSynHTMLSyn.Next;
 begin
   fTokenPos := Run;
   case fRange of
-  rsText:
-    begin
+    rsText:
       TextProc;
-    end;
-  rsComment:
-    begin
+    rsComment:
       CommentProc;
-    end;
-  rsASP:
-    begin
-      ASPProc;
-    end;
-  else
-    fProcTable[fLine[Run]];
+    rsQuoteValue, rsDoubleQuoteValue:
+      if fLine[ Run ] in [#0, #10, #13] then
+        fProcTable[ fLine[Run] ]
+      else
+        StringProc;
+    else
+      fProcTable[fLine[Run]];
   end;
 end;
 
@@ -2357,12 +2408,10 @@ function TSynHTMLSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case fTokenID of
     tkAmpersand: Result := fAndAttri;
-    tkASP: Result := fASPAttri;
     tkComment: Result := fCommentAttri;
     tkIdentifier: Result := fIdentifierAttri;
     tkKey: Result := fKeyAttri;
     tkSpace: Result := fSpaceAttri;
-    tkString: Result := fValueAttri;
     tkSymbol: Result := fSymbolAttri;
     tkText: Result := fTextAttri;
     tkUndefKey: Result := fUndefKeyAttri;
@@ -2391,7 +2440,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynHTMLSyn.ReSetRange;
+procedure TSynHTMLSyn.ResetRange;
 begin
   fRange:= rsText;
 end;
@@ -2401,8 +2450,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynHTMLSyn.GetLanguageName: string;
+function TSynHTMLSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterHTML;
+end;
+
+class function TSynHTMLSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangHTML;
 end;
@@ -2413,16 +2466,18 @@ begin
             #13#10 +
             '<html>'#13#10 +
             '<body bgcolor="red">'#13#10 +
-            ' <% out.println("Hello World"); %>'#13#10 +
-            ' <invalid>Sample HTML code &copy; 2001</invalid>'#13#10 +
+            '  <form name="frmLogin" action="doSomething.asp">'#13#10 +
+            '    <input name="user" value=''any'#13#10 +
+            '      value''>'#13#10 +
+            '  </form>'#13#10 +
+            '  <invalid>Sample HTML code &copy; 2001</invalid>'#13#10 +
             '</body>'#13#10 +
             '</html>';
 end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynHTMLSyn);
 {$ENDIF}
 end.
-

@@ -27,14 +27,16 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGWS.pas,v 1.5 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterGWS.pas,v 1.14 2005/01/28 16:53:22 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNHIGHLIGHTERGWS}
 unit SynHighlighterGWS;
+{$ENDIF}
 
 { This unit provides a syntax highlighter for GW-TEL Scripts }
 
@@ -43,13 +45,17 @@ unit SynHighlighterGWS;
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  QControls, QGraphics,
-  {$ELSE}
-  Controls, Graphics,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 Type
   TtkTokenKind = (
@@ -79,7 +85,7 @@ Type
 
   TProcTableProc = procedure of Object;
 
-  PIdentFuncTableFunc = ^TIdentFuncTableFunc;                                   //mh 1999-12-06
+  PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function: TtkTokenKind of Object;
 
   TSynGWScriptSyn = class(TSynCustomHighlighter)
@@ -161,14 +167,12 @@ Type
     protected
       function GetIdentChars: TSynIdentChars; override;
       function GetExtTokenID: TxtkTokenKind;
+      function IsFilterStored: Boolean; override;
 
     public
       constructor Create(AOwner: TComponent); override;
 
-      {$IFNDEF SYN_CPPB_1} class {$ENDIF}   
-      function GetLanguageName: string; override;
-      {$IFNDEF SYN_CPPB_1} class {$ENDIF}
-      function GetCapabilities: TSynHighlighterCapabilities; override;
+      class function GetLanguageName: string; override;
       function GetDefaultAttribute (Index: integer): TSynHighlighterAttributes; override;
 
       function GetEol: Boolean; override;
@@ -181,8 +185,7 @@ Type
       function GetTokenPos: Integer; override;
       procedure Next; override;
       procedure SetRange(Value: Pointer); override;
-      procedure ReSetRange; override;
-      function UseUserSettings(settingIndex: integer): boolean; override;
+      procedure ResetRange; override;
 
       property ExtTokenID: TxtkTokenKind read GetExtTokenID;
 
@@ -200,7 +203,11 @@ Type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -230,7 +237,6 @@ end;
 procedure TSynGWScriptSyn.InitIdent;
 var
   I: Integer;
-{begin}                                                                         //mh 1999-12-06
   pF: PIdentFuncTableFunc;
 begin
   pF := PIdentFuncTableFunc(@fIdentFuncTable);
@@ -249,7 +255,6 @@ begin
   fIdentFuncTable[68] := Func68;
   fIdentFuncTable[93] := Func93;
   fIdentFuncTable[102] := Func102;
-{end}                                                                           //mh 1999-12-06
 end;
 
 function TSynGWScriptSyn.KeyHash(ToHash: PChar): Integer;
@@ -477,7 +482,7 @@ end;
 
 procedure TSynGWScriptSyn.AndSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {and assign}
       begin
@@ -541,7 +546,7 @@ end;
 
 procedure TSynGWScriptSyn.ColonProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   Case FLine[Run + 1] of
     ':':                               {scope resolution operator}
       begin
@@ -565,7 +570,7 @@ end;
 
 procedure TSynGWScriptSyn.EqualProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {logical equal}
       begin
@@ -582,7 +587,7 @@ end;
 
 procedure TSynGWScriptSyn.GreaterProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   Case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
@@ -632,7 +637,7 @@ end;
 
 procedure TSynGWScriptSyn.LowerProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {less than or equal to}
       begin
@@ -662,7 +667,7 @@ end;
 
 procedure TSynGWScriptSyn.MinusProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {subtract assign}
       begin
@@ -689,7 +694,7 @@ end;
 
 procedure TSynGWScriptSyn.ModSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {mod assign}
       begin
@@ -706,7 +711,7 @@ end;
 
 procedure TSynGWScriptSyn.NotSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {not equal}
       begin
@@ -743,7 +748,7 @@ end;
 
 procedure TSynGWScriptSyn.OrSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {or assign}
       begin
@@ -765,7 +770,7 @@ end;
 
 procedure TSynGWScriptSyn.PlusProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {add assign}
       begin
@@ -787,7 +792,7 @@ end;
 
 procedure TSynGWScriptSyn.PointProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   if (FLine[Run + 1] = '.') and (FLine[Run + 2] = '.') then
     begin                              {ellipse}
       inc(Run, 3);
@@ -888,7 +893,7 @@ end;
 
 procedure TSynGWScriptSyn.StarProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {multiply assign}
       begin
@@ -912,8 +917,8 @@ begin
       #0, #10, #13: break;
       #92:                             {backslash}
         case FLine[Run + 1] of
-          #10: inc(Run);               {line continuation character}
           #34: inc(Run);               {escaped quote doesn't count}
+          #92: inc(Run);               {escaped backslash doesn't count}
         end;
     end;
     inc(Run);
@@ -930,7 +935,7 @@ end;
 
 procedure TSynGWScriptSyn.XOrSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   Case FLine[Run + 1] of
   	'=':                               {xor assign}
       begin
@@ -949,7 +954,7 @@ procedure TSynGWScriptSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -1022,7 +1027,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynGWScriptSyn.ReSetRange;
+procedure TSynGWScriptSyn.ResetRange;
 begin
   fRange:= rsUnknown;
 end;
@@ -1032,85 +1037,19 @@ begin
   fRange := TRangeState(Value);
 end;
 
-function TSynGWScriptSyn.UseUserSettings(settingIndex: integer): boolean;
-
-  function ReadGWSSettings (settingIndex: integer) : boolean;
-    var
-      tmpStringAttri    : TSynHighlighterAttributes;
-      tmpNumberAttri    : TSynHighlighterAttributes;
-      tmpKeyAttri       : TSynHighlighterAttributes;
-      tmpSymbolAttri    : TSynHighlighterAttributes;
-      tmpAsmAttri       : TSynHighlighterAttributes;
-      tmpCommentAttri   : TSynHighlighterAttributes;
-      tmpIdentifierAttri: TSynHighlighterAttributes;
-      tmpInvalidAttri   : TSynHighlighterAttributes;
-      tmpSpaceAttri     : TSynHighlighterAttributes;
-      tmpDirecAttri     : TSynHighlighterAttributes;
-      s                 : TStringList;
-    begin
-      s := TStringList.Create;
-      try
-          Result := true;
-          tmpStringAttri    := TSynHighlighterAttributes.Create('');
-          tmpNumberAttri    := TSynHighlighterAttributes.Create('');
-          tmpKeyAttri       := TSynHighlighterAttributes.Create('');
-          tmpSymbolAttri    := TSynHighlighterAttributes.Create('');
-          tmpAsmAttri       := TSynHighlighterAttributes.Create('');
-          tmpCommentAttri   := TSynHighlighterAttributes.Create('');
-          tmpIdentifierAttri:= TSynHighlighterAttributes.Create('');
-          tmpInvalidAttri   := TSynHighlighterAttributes.Create('');
-          tmpSpaceAttri     := TSynHighlighterAttributes.Create('');
-          tmpDirecAttri     := TSynHighlighterAttributes.Create('');
-          tmpStringAttri    .Assign(fStringAttri);
-          tmpNumberAttri    .Assign(fNumberAttri);
-          tmpKeyAttri       .Assign(fKeyAttri);
-          tmpSymbolAttri    .Assign(fSymbolAttri);
-          tmpCommentAttri   .Assign(fCommentAttri);
-          tmpIdentifierAttri.Assign(fIdentifierAttri);
-          tmpInvalidAttri   .Assign(fInvalidAttri);
-          tmpSpaceAttri     .Assign(fSpaceAttri);
-          fStringAttri    .Assign(tmpStringAttri);
-          fNumberAttri    .Assign(tmpNumberAttri);
-          fKeyAttri       .Assign(tmpKeyAttri);
-          fSymbolAttri    .Assign(tmpSymbolAttri);
-          fCommentAttri   .Assign(tmpCommentAttri);
-          fIdentifierAttri.Assign(tmpIdentifierAttri);
-          fInvalidAttri   .Assign(tmpInvalidAttri);
-          fSpaceAttri     .Assign(tmpSpaceAttri);
-          tmpStringAttri    .Free;
-          tmpNumberAttri    .Free;
-          tmpKeyAttri       .Free;
-          tmpSymbolAttri    .Free;
-          tmpAsmAttri       .Free;
-          tmpCommentAttri   .Free;
-          tmpIdentifierAttri.Free;
-          tmpInvalidAttri   .Free;
-          tmpSpaceAttri     .Free;
-          tmpDirecAttri     .Free;
-        finally
-          s.Free;
-        end;
-      end;
-
-  begin
-    Result := ReadGWSSettings (settingIndex);
-  end;
-
 function TSynGWScriptSyn.GetIdentChars: TSynIdentChars;
 begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynGWScriptSyn.GetLanguageName: string;
+function TSynGWScriptSyn.IsFilterStored: Boolean;
 begin
-  Result := SYNS_LangGWS;
+  Result := fDefaultFilter <> SYNS_FilterGWS;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynGWScriptSyn.GetCapabilities: TSynHighlighterCapabilities;
+class function TSynGWScriptSyn.GetLanguageName: string;
 begin
-  Result := inherited GetCapabilities + [hcUserSettings];
+  Result := SYNS_LangGWS;
 end;
 
 function TSynGWScriptSyn.GetDefaultAttribute (Index: integer): TSynHighlighterAttributes;
@@ -1133,4 +1072,3 @@ initialization
   RegisterPlaceableHighlighter (TSynGWScriptSyn);
 {$ENDIF}
 end.
-

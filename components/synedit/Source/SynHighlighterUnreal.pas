@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterUnreal.pas,v 1.7 2002/05/09 19:50:35 harmeister Exp $
+$Id: SynHighlighterUnreal.pas,v 1.18 2005/01/28 16:53:25 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -40,38 +40,44 @@ Known Issues:
 @lastmod(2001-06-29)
 }
 
+{$IFNDEF QSYNHIGHLIGHTERUNREAL}
 unit SynHighlighterUnreal;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils,
-  Classes,
 {$IFDEF SYN_CLX}
-  QControls,
   QGraphics,
+  QSynEditHighlighter,
+  QSynEditTypes,
 {$ELSE}
-  Windows,
-  Messages,
-  Controls,
   Graphics,
   Registry,
-{$ENDIF}
+  Windows, // registry constants
+  SynEditHighlighter,
   SynEditTypes,
-  SynEditHighlighter;
-  
+{$ENDIF}
+  SysUtils,
+  Classes;
+
+const
+  MAXIDENTTABLE = 238;
+
 type
   TtkTokenKind = (
     tkComment,
     tkDirective,
     tkIdentifier,
     tkKey,
+    tkKey2,
     tkNull,
     tkNumber,
     tkSpace,
     tkString,
+    tkString2,
     tkSymbol,
     tkUnknown);
 
@@ -87,11 +93,11 @@ type
     xtkSquareOpen, xtkStar, xtkSubtract, xtkSubtractAssign, xtkXor,
     xtkXorAssign);
 
-  TRangeState = (rsANil, rsAnsiC, rsDirective, rsDirectiveComment, rsUnKnown);                  
+  TRangeState = (rsANil, rsAnsiC, rsDirective, rsDirectiveComment, rsUnKnown);
 
   TProcTableProc = procedure of Object;
 
-  PIdentFuncTableFunc = ^TIdentFuncTableFunc;                                   //mh 1999-12-06
+  PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function: TtkTokenKind of Object;
 
   TSynUnrealSyn = class(TSynCustomHighlighter)
@@ -108,15 +114,17 @@ type
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
     fLineNumber: Integer;
-    fIdentFuncTable: array[0..210] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..MAXIDENTTABLE] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
     fDirecAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fInvalidAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
+    fKey2Attri: TSynHighlighterAttributes;
     fNumberAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
+    fString2Attri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
 
     function KeyHash(ToHash: PChar): Integer;
@@ -124,6 +132,7 @@ type
     function Func15: TtkTokenKind;
     function Func17: TtkTokenKind;
     function Func19: TtkTokenKind;
+    function Func20: TtkTokenKind;
     function Func28: TtkTokenKind;
     function Func33: TtkTokenKind;
     function Func35: TtkTokenKind;
@@ -145,22 +154,33 @@ type
     function Func55: TtkTokenKind;
     function Func56: TtkTokenKind;
     function Func57: TtkTokenKind;
+    function Func59: TtkTokenKind;
+    function Func62: TtkTokenKind;
     function Func63: TtkTokenKind;
     function Func64: TtkTokenKind;
     function Func65: TtkTokenKind;
     function Func66: TtkTokenKind;
     function Func69: TtkTokenKind;
+    function Func70: TtkTokenKind;
     function Func71: TtkTokenKind;
     function Func72: TtkTokenKind;
     function Func73: TtkTokenKind;
     function Func74: TtkTokenKind;
+    function Func76: TtkTokenKind;
+    function Func78: TtkTokenKind;
     function Func79: TtkTokenKind;
+    function Func80: TtkTokenKind;
+    function Func81: TtkTokenKind;
     function Func82: TtkTokenKind;
     function Func83: TtkTokenKind;
     function Func84: TtkTokenKind;
+    function Func85: TtkTokenKind;
     function Func87: TtkTokenKind;
+    function Func89: TtkTokenKind;
     function Func91: TtkTokenKind;
+    function Func92: TtkTokenKind;
     function Func96: TtkTokenKind;
+    function Func97: TtkTokenKind;
     function Func98: TtkTokenKind;
     function Func99: TtkTokenKind;
     function Func100: TtkTokenKind;
@@ -171,18 +191,33 @@ type
     function Func106: TtkTokenKind;
     function Func107: TtkTokenKind;
     function Func108: TtkTokenKind;
-    function Func109: TtkTokenKind;    
+    function Func109: TtkTokenKind;
     function Func113: TtkTokenKind;
     function Func115: TtkTokenKind;
     function Func120: TtkTokenKind;
     function Func122: TtkTokenKind;
+    function Func126: TtkTokenKind;
     function Func127: TtkTokenKind;
+    function Func128: TtkTokenKind;
+    function Func135: TtkTokenKind;
+    function Func136: TtkTokenKind;
+    function Func143: TtkTokenKind;
+    function Func144: TtkTokenKind;
+    function Func146: TtkTokenKind;
     function Func147: TtkTokenKind;
+    function Func148: TtkTokenKind;
     function Func156: TtkTokenKind;
+    function Func167: TtkTokenKind;
+    function Func172: TtkTokenKind;
     function Func174: TtkTokenKind;
     function Func178: TtkTokenKind;
+    function Func185: TtkTokenKind;
+    function Func190: TtkTokenKind;
+    function Func192: TtkTokenKind;
     function Func193: TtkTokenKind;
     function Func210: TtkTokenKind;
+    function Func218: TtkTokenKind;
+    function Func238: TtkTokenKind;
 
     procedure AnsiCProc;
     procedure AndSymbolProc;
@@ -230,11 +265,11 @@ type
     function IsFilterStored: Boolean; override;
     function GetSampleSource: string; override;
   public
-    class function GetCapabilities: TSynHighlighterCapabilities; override;             //gp 2000-01-20
-    class function GetLanguageName: string; override;                           //gp 2000-01-20
+    class function GetCapabilities: TSynHighlighterCapabilities; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;       //mh 2000-01-17
+    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
@@ -246,16 +281,9 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ReSetRange; override;
+    procedure ResetRange; override;
     function UseUserSettings(settingIndex: integer): boolean; override;
     procedure EnumUserSettings(settings: TStrings); override;
-(*                                                                              //mh 2000-01-23
-    property IdentChars;
-    property LanguageName;
-    property AttrCount;
-    property Attribute;
-    property Capability;
-*)
     property ExtTokenID: TxtkTokenKind read GetExtTokenID;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -267,12 +295,15 @@ type
     property InvalidAttri: TSynHighlighterAttributes read fInvalidAttri
       write fInvalidAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property Key2Attri: TSynHighlighterAttributes read fKey2Attri write fKey2Attri;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
       write fSpaceAttri;
     property StringAttri: TSynHighlighterAttributes read fStringAttri
       write fStringAttri;
+    property SingleStringAttri: TSynHighlighterAttributes read fString2Attri
+      write fString2Attri;
     property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
       write fSymbolAttri;
   end;
@@ -280,7 +311,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -310,7 +345,6 @@ end;
 procedure TSynUnrealSyn.InitIdent;
 var
   I: Integer;
-{begin}                                                                         //mh 1999-12-06
   pF: PIdentFuncTableFunc;
 begin
   pF := PIdentFuncTableFunc(@fIdentFuncTable);
@@ -321,6 +355,7 @@ begin
   fIdentFuncTable[15] := Func15;
   fIdentFuncTable[17] := Func17;
   fIdentFuncTable[19] := Func19;
+  fIdentFuncTable[20] := Func20;
   fIdentFuncTable[28] := Func28;
   fIdentFuncTable[33] := Func33;
   fIdentFuncTable[35] := Func35;
@@ -342,22 +377,33 @@ begin
   fIdentFuncTable[55] := Func55;
   fIdentFuncTable[56] := Func56;
   fIdentFuncTable[57] := Func57;
+  fIdentFuncTable[59] := Func59;
+  fIdentFuncTable[62] := Func62;
   fIdentFuncTable[63] := Func63;
   fIdentFuncTable[64] := Func64;
   fIdentFuncTable[65] := Func65;
   fIdentFuncTable[66] := Func66;
   fIdentFuncTable[69] := Func69;
+  fIdentFuncTable[70] := Func70;
   fIdentFuncTable[71] := Func71;
   fIdentFuncTable[72] := Func72;
   fIdentFuncTable[73] := Func73;
   fIdentFuncTable[74] := Func74;
+  fIdentFuncTable[76] := Func76;
+  fIdentFuncTable[78] := Func78;
   fIdentFuncTable[79] := Func79;
+  fIdentFuncTable[80] := Func80;
+  fIdentFuncTable[81] := Func81;
   fIdentFuncTable[82] := Func82;
   fIdentFuncTable[83] := Func83;
   fIdentFuncTable[84] := Func84;
+  fIdentFuncTable[85] := Func85;
   fIdentFuncTable[87] := Func87;
+  fIdentFuncTable[89] := Func89;
   fIdentFuncTable[91] := Func91;
+  fIdentFuncTable[92] := Func92;
   fIdentFuncTable[96] := Func96;
+  fIdentFuncTable[97] := Func97;
   fIdentFuncTable[98] := Func98;
   fIdentFuncTable[99] := Func99;
   fIdentFuncTable[100] := Func100;
@@ -373,13 +419,28 @@ begin
   fIdentFuncTable[115] := Func115;
   fIdentFuncTable[120] := Func120;
   fIdentFuncTable[122] := Func122;
+  fIdentFuncTable[126] := Func126;
   fIdentFuncTable[127] := Func127;
+  fIdentFuncTable[128] := Func128;
+  fIdentFuncTable[135] := Func135;
+  fIdentFuncTable[136] := Func136;
+  fIdentFuncTable[143] := Func143;
+  fIdentFuncTable[144] := Func144;
+  fIdentFuncTable[146] := Func146;
   fIdentFuncTable[147] := Func147;
+  fIdentFuncTable[148] := Func148;
   fIdentFuncTable[156] := Func156;
+  fIdentFuncTable[167] := Func167;
+  fIdentFuncTable[172] := Func172;
   fIdentFuncTable[174] := Func174;
   fIdentFuncTable[178] := Func178;
+  fIdentFuncTable[185] := Func185;
+  fIdentFuncTable[190] := Func190;
+  fIdentFuncTable[192] := Func192;
   fIdentFuncTable[193] := Func193;
   fIdentFuncTable[210] := Func210;
+  fIdentFuncTable[218] := Func218;
+  fIdentFuncTable[238] := Func238;
 end;
 
 function TSynUnrealSyn.KeyHash(ToHash: PChar): Integer;
@@ -430,6 +491,11 @@ begin
   if KeyComp('DO') then Result := tkKey else Result := tkIdentifier;
 end;
 
+function TSynUnrealSyn.Func20: TtkTokenKind;
+begin
+  if KeyComp('CACHE') then Result := tkKey else Result := tkIdentifier;
+end;
+
 function TSynUnrealSyn.Func28: TtkTokenKind;
 begin
   if KeyComp('CASE') then Result := tkKey else Result := tkIdentifier;
@@ -454,7 +520,8 @@ end;
 function TSynUnrealSyn.Func39: TtkTokenKind;
 begin
   if KeyComp('DOT') then Result := tkSymbol else
-    if KeyComp('FOR') then Result := tkKey else Result := tkIdentifier;
+    if KeyComp('FOR') then Result := tkKey else
+      if KeyComp('RNG') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func40: TtkTokenKind;
@@ -471,9 +538,10 @@ end;
 
 function TSynUnrealSyn.Func42: TtkTokenKind;
 begin
-  if KeyComp('FINAL') then Result := tkKey else
+  if KeyComp('FINAL') then Result := tkKey2 else
     if KeyComp('FOR') then Result := tkKey else
-      if KeyComp('SELF') then Result := tkKey else Result := tkIdentifier;
+      if KeyComp('SELF') then Result := tkKey else
+      if KeyComp('NEW') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func43: TtkTokenKind;
@@ -514,7 +582,8 @@ end;
 
 function TSynUnrealSyn.Func50: TtkTokenKind;
 begin
-  if KeyComp('VOID') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('VOID') then Result := tkKey else
+    if KeyComp('VECT') then Result := tkKey else Result := tkIdentifier; 
 end;
 
 function TSynUnrealSyn.Func51: TtkTokenKind;
@@ -524,12 +593,14 @@ end;
 
 function TSynUnrealSyn.Func52: TtkTokenKind;
 begin
-  if KeyComp('BYTE') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('BYTE') then Result := tkKey else
+    if KeyComp('INIT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func53: TtkTokenKind;
 begin
-  if KeyComp('ENUM') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('ENUM') then Result := tkKey else
+    if KeyComp('ROT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func54: TtkTokenKind;
@@ -547,26 +618,37 @@ end;
 function TSynUnrealSyn.Func56: TtkTokenKind;
 begin
   if KeyComp('FOREACH') then Result := tkKey else
-    if KeyComp('OUT') then Result := tkKey else
-      if KeyComp('THIS') then Result := tkKey else Result := tkIdentifier;
-end;
+    if KeyComp('OUT') then Result := tkKey else Result := tkIdentifier;
+end;                                                                                  
 
 function TSynUnrealSyn.Func57: TtkTokenKind;
 begin
   if KeyComp('AUTO') then Result := tkKey else
     if KeyComp('GOTO') then Result := tkKey else
-      if KeyComp('WHILE') then Result := tkKey else Result := tkIdentifier;
+      if KeyComp('WHILE') then Result := tkKey else
+        if KeyComp('PLACEABLE') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func59: TtkTokenKind;
+begin
+  if KeyComp('DELEGATE') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func62: TtkTokenKind;
+begin
+  if KeyComp('EDFINDABLE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func63: TtkTokenKind;
 begin
-  if KeyComp('COLOR') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('COLOR') then Result := tkKey else
+    if KeyComp('ARRAY') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func64: TtkTokenKind;
 begin
   if KeyComp('TRUE') then Result := tkKey else
-    if KeyComp('RELIABLE') then Result := tkKey else Result := tkIdentifier;
+    if KeyComp('RELIABLE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func65: TtkTokenKind;
@@ -576,7 +658,8 @@ end;
 
 function TSynUnrealSyn.Func66: TtkTokenKind;
 begin
-  if KeyComp('EVENT') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('EVENT') then Result := tkKey else
+    if KeyComp('LENGTH') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func69: TtkTokenKind;
@@ -584,16 +667,21 @@ begin
   if KeyComp('DEFAULT') then Result := tkKey else Result := tkIdentifier;
 end;
 
+function TSynUnrealSyn.Func70: TtkTokenKind;
+begin
+  if KeyComp('STOP') then Result := tkKey else Result := tkIdentifier;
+end;
+
 function TSynUnrealSyn.Func71: TtkTokenKind;
 begin
-  if KeyComp('CONST') then Result := tkKey else
-    if KeyComp('NATIVE') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('CONST') then Result := tkKey2 else
+    if KeyComp('NATIVE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func72: TtkTokenKind;
 begin
-  if KeyComp('LATENT') then Result := tkKey else
-    if KeyComp('STATIC') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('LATENT') then Result := tkKey2 else
+    if KeyComp('STATIC') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func73: TtkTokenKind;
@@ -608,57 +696,107 @@ begin
       if KeyComp('COORDS') then Result := tkKey else Result := tkIdentifier;
 end;
 
+function TSynUnrealSyn.Func76: TtkTokenKind;
+begin
+  if KeyComp('UNTIL') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func78: TtkTokenKind;
+begin
+  if KeyComp('TRAVEL') then Result := tkKey else
+    if KeyComp('REMOVE') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
 function TSynUnrealSyn.Func79: TtkTokenKind;
 begin
-  if KeyComp('SUPER') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('SUPER') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func80: TtkTokenKind;
+begin
+  if KeyComp('INPUT') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func81: TtkTokenKind;
+begin
+  if KeyComp('DEPRECATED') then Result := tkKey2 else
+    if KeyComp('ALWAYS') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func82: TtkTokenKind;
 begin
-  if KeyComp('SWITCH') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('SWITCH') then Result := tkKey else
+    if KeyComp('ASSERT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func83: TtkTokenKind;
 begin
   if KeyComp('EXPANDS') then Result := tkKey else
-    if KeyComp('VECTOR') then Result := tkKey else Result := tkIdentifier;
+    if KeyComp('VECTOR') then Result := tkKey else
+      if KeyComp('WITHIN') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func84: TtkTokenKind;
 begin
-  if KeyComp('ABSTRACT') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('ABSTRACT') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func85: TtkTokenKind;
+begin
+  if KeyComp('INSERT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func87: TtkTokenKind;
 begin
-  if KeyComp('LOCALIZED') then Result := tkKey else
-    if KeyComp('STRING') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('LOCALIZED') then Result := tkKey2 else
+    if KeyComp('STRING') then Result := tkKey else
+      if KeyComp('IGNORES') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func89: TtkTokenKind;
+begin
+  if KeyComp('INSTANCED') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func91: TtkTokenKind;
 begin
   if KeyComp('EXTENDS') then Result := tkKey else
-    if KeyComp('PRIVATE') then Result := tkKey else Result := tkIdentifier;
+    if KeyComp('PRIVATE') then Result := tkKey2 else
+      if KeyComp('SAFEREPLACE') then Result := tkKey2 else
+        if KeyComp('IMPORT') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func92: TtkTokenKind;
+begin
+  if KeyComp('BUTTON') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func96: TtkTokenKind;
 begin
-  if KeyComp('RETURN') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('RETURN') then Result := tkKey else
+    if KeyComp('DEPENDSON') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func97: TtkTokenKind;
+begin
+  if KeyComp('POINTER') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func98: TtkTokenKind;
 begin
-  if KeyComp('EXPLICIT') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('EXPLICIT') then Result := tkKey else
+    if KeyComp('EXPORT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func99: TtkTokenKind;
 begin
-  if KeyComp('UNRELIABLE') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('UNRELIABLE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func100: TtkTokenKind;
 begin
-  if KeyComp('HIDEPARENT') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('HIDEPARENT') then Result := tkKey else
+    if KeyComp('AUTOMATED') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func101: TtkTokenKind;
@@ -666,7 +804,8 @@ begin
   if KeyComp('CONTINUE') then Result := tkKey else
     if KeyComp('REGISTER') then Result := tkKey else
       if KeyComp('STRUCT') then Result := tkKey else
-        if KeyComp('SINGULAR') then Result := tkKey else Result := tkIdentifier;
+        if KeyComp('SINGULAR') then Result := tkKey2 else
+          if KeyComp('EDITINLINE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func102: TtkTokenKind;
@@ -677,18 +816,22 @@ end;
 
 function TSynUnrealSyn.Func103: TtkTokenKind;
 begin
-  if KeyComp('GLOBALCONFIG') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('GLOBALCONFIG') then Result := tkKey else
+    if KeyComp('CACHEEXEMPT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func104: TtkTokenKind;
 begin
-  if KeyComp('SIMULATED') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('SIMULATED') then Result := tkKey2 else
+    if KeyComp('CPPTEXT') then Result := tkKey else Result := tkIdentifier;
+
 end;
 
 function TSynUnrealSyn.Func106: TtkTokenKind;
 begin
   if KeyComp('ITERATOR') then Result := tkKey else
-    if KeyComp('PROTECTED') then Result := tkKey else Result := tkIdentifier;
+    if KeyComp('PROTECTED') then Result := tkKey2 else
+      if KeyComp('NOTPLACEABLE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func107: TtkTokenKind;
@@ -698,38 +841,75 @@ end;
 
 function TSynUnrealSyn.Func108: TtkTokenKind;
 begin
-  if KeyComp('OPERATOR') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('OPERATOR') then Result := tkKey else
+    if KeyComp('INVARIANT') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func109: TtkTokenKind;
 begin
-  if KeyComp('EDITCONST') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('EDITCONST') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func113: TtkTokenKind;
 begin
-  if KeyComp('TEXTURE') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('TEXTURE') then Result := tkKey else
+    if KeyComp('PARSECONFIG') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func115: TtkTokenKind;
 begin
-  if KeyComp('INTRINSIC') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('INTRINSIC') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func120: TtkTokenKind;
 begin
-  if KeyComp('TRANSIENT') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('TRANSIENT') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func122: TtkTokenKind;
 begin
-  if KeyComp('REPLICATION') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('REPLICATION') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func126: TtkTokenKind;
+begin
+  if KeyComp('ENUMCOUNT') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func127: TtkTokenKind;
 begin
-  if KeyComp('NOEXPORT') then Result := tkKey else
+  if KeyComp('NOEXPORT') then Result := tkKey2 else
     if KeyComp('BOUNDINGBOX') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func128: TtkTokenKind;
+begin
+  if KeyComp('HIDECATEGORIES') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func135: TtkTokenKind;
+begin
+  if KeyComp('HIDEDROPDOWN') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func136: TtkTokenKind;
+begin
+  if KeyComp('ARRAYCOUNT') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func143: TtkTokenKind;
+begin
+  if KeyComp('EDITINLINENEW') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func144: TtkTokenKind;
+begin
+  if KeyComp('NOUSERCREATE') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func146: TtkTokenKind;
+begin
+  if KeyComp('EDITINLINEUSE') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func147: TtkTokenKind;
@@ -737,9 +917,24 @@ begin
   if KeyComp('PREOPERATOR') then Result := tkKey else Result := tkIdentifier;
 end;
 
+function TSynUnrealSyn.Func148: TtkTokenKind;
+begin
+  if KeyComp('PEROBJECTCONFIG') then Result := tkKey else Result := tkIdentifier;
+end;
+
 function TSynUnrealSyn.Func156: TtkTokenKind;
 begin
   if KeyComp('SCRIPTCONST') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func167: TtkTokenKind;
+begin
+  if KeyComp('SHOWCATEGORIES') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func172: TtkTokenKind;
+begin
+  if KeyComp('EDITCONSTARRAY') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func174: TtkTokenKind;
@@ -752,14 +947,40 @@ begin
   if KeyComp('POSTOPERATOR') then Result := tkKey else Result := tkIdentifier;
 end;
 
+function TSynUnrealSyn.Func185: TtkTokenKind;
+begin
+  if KeyComp('COLLAPSECATEGORIES') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func190: TtkTokenKind;
+begin
+  if KeyComp('EDITINLINENOTIFY') then Result := tkKey2 else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func192: TtkTokenKind;
+begin
+  if KeyComp('DONTCOLLAPSECATEGORIES') then Result := tkKey else
+    if KeyComp('NOTEDITINLINENEW') then Result := tkKey else Result := tkIdentifier;
+end;
+
 function TSynUnrealSyn.Func193: TtkTokenKind;
 begin
-  if KeyComp('NATIVEREPLICATION') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('NATIVEREPLICATION') then Result := tkKey2 else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.Func210: TtkTokenKind;
 begin
   if KeyComp('DEFAULTPROPERTIES') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func218: TtkTokenKind;
+begin
+  if KeyComp('EXPORTSTRUCTS') then Result := tkKey else Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.Func238: TtkTokenKind;
+begin
+  if KeyComp('DONTCOLLAPSECATEGORIES') then Result := tkKey else Result := tkIdentifier;
 end;
 
 function TSynUnrealSyn.AltFunc: TtkTokenKind;
@@ -772,7 +993,7 @@ var HashKey: Integer;
 begin
   fToIdent := MayBe;
   HashKey := KeyHash(MayBe);
-  if HashKey < 211 then Result := fIdentFuncTable[HashKey] else Result := tkIdentifier;
+  if HashKey < MAXIDENTTABLE + 1 then Result := fIdentFuncTable[HashKey] else Result := tkIdentifier;
 end;
 
 procedure TSynUnrealSyn.MakeMethodTables;
@@ -821,7 +1042,6 @@ end;
 
 constructor TSynUnrealSyn.Create(AOwner: TComponent);
 begin
-{begin}                                                                         //mh 2000-01-14
   inherited Create(AOwner);
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
   fCommentAttri.Style:= [fsItalic];
@@ -833,6 +1053,9 @@ begin
   fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
   fKeyAttri.Style:= [fsBold];
   AddAttribute(fKeyAttri);
+  fKey2Attri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord);
+  fKey2Attri.Style:= [fsBold];
+  AddAttribute(fKey2Attri);
   fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
   AddAttribute(fNumberAttri);
   fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
@@ -840,11 +1063,12 @@ begin
   AddAttribute(fSpaceAttri);
   fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
   AddAttribute(fStringAttri);
+  fString2Attri := TSynHighlighterAttributes.Create(SYNS_AttrSingleString);
+  AddAttribute(fString2Attri);
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
   AddAttribute(fSymbolAttri);
   fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective);
   AddAttribute(fDirecAttri);
-{end}                                                                           //mh 2000-01-14
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
   MakeMethodTables;
@@ -902,24 +1126,21 @@ end;
 
 procedure TSynUnrealSyn.AndSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {and assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkAndAssign;
       end;
     '&':                               {logical and}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkLogAnd;
       end;
   else                                 {and}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkAnd;
     end;
   end;
@@ -927,7 +1148,7 @@ end;
 
 procedure TSynUnrealSyn.AsciiCharProc;
 begin
-  fTokenID := tkString;
+  fTokenID := tkString2;
   repeat
     case FLine[Run] of
       #0, #10, #13: break;
@@ -957,32 +1178,22 @@ end;
 procedure TSynUnrealSyn.CRProc;
 begin
   fTokenID := tkSpace;
-{begin}                                                                         //mh 1999-12-06
-(*
-  Case FLine[Run + 1] of
-    #10: inc(Run, 2);
-  else inc(Run);
-  end;
-*)
   Inc(Run);
   if fLine[Run + 1] = #10 then Inc(Run);
-{end}                                                                           //mh 1999-12-06
 end;
 
 procedure TSynUnrealSyn.ColonProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   Case FLine[Run + 1] of
     ':':                               {scope resolution operator}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkScopeResolution;
       end;
   else                                 {colon}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkColon;
     end;
   end;
@@ -997,17 +1208,8 @@ end;
 
 procedure TSynUnrealSyn.DirectiveProc;
 begin
-{begin}                                                                         //mh 1999-12-05
-(*
-  repeat
-    case FLine[Run] of
-      #0, #10, #13: break;
-    end;
-    inc(Run);
-  until FLine[Run] = #0;
-*)
   if fLine[Run] in [#0, #10, #13] then begin
-    if (Run <= 0) or (fLine[Run - 1] <> '\') then
+    if (Run <= 0) then
       fRange := rsUnknown;
     fProcTable[fLine[Run]];
   end else begin
@@ -1024,14 +1226,6 @@ begin
             end else
               Inc(Run);
           end;
-        '\': // directive continued on next line?
-          begin
-            Inc(Run);
-            if fLine[Run] in [#0, #10, #13] then begin
-              fRange := rsDirective;
-              break;
-            end;
-          end;
         #0, #10, #13:
           begin
             fRange := rsUnknown;
@@ -1040,23 +1234,20 @@ begin
         else Inc(Run);
       end;
   end;
-{end}                                                                           //mh 1999-12-05
 end;
 
 procedure TSynUnrealSyn.EqualProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {logical equal}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkLogEqual;
       end;
   else                                 {assign}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkAssign;
     end;
   end;
@@ -1064,12 +1255,11 @@ end;
 
 procedure TSynUnrealSyn.GreaterProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   Case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkGreaterThanEqual;
       end;
     '>':
@@ -1084,12 +1274,10 @@ begin
           inc(Run, 2);
           FExtTokenID := xtkShiftRight;
         end;
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
       end;
   else                                 {greater than}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkGreaterThan;
     end;
   end;
@@ -1117,12 +1305,11 @@ end;
 
 procedure TSynUnrealSyn.LowerProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {less than or equal to}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkLessThanEqual;
       end;
     '<':
@@ -1137,12 +1324,10 @@ begin
           inc(Run, 2);
           FExtTokenID := xtkShiftLeft;
         end;
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
       end;
   else                                 {less than}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkLessThan;
     end;
   end;
@@ -1150,30 +1335,26 @@ end;
 
 procedure TSynUnrealSyn.MinusProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {subtract assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkSubtractAssign;
       end;
     '-':                               {decrement}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkDecrement;
       end;
     '>':                               {arrow}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkArrow;
       end;
   else                                 {subtract}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkSubtract;
     end;
   end;
@@ -1181,18 +1362,16 @@ end;
 
 procedure TSynUnrealSyn.ModSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {mod assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkModAssign;
       end;
   else                                 {mod}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkMod;
     end;
   end;
@@ -1200,18 +1379,16 @@ end;
 
 procedure TSynUnrealSyn.NotSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {not equal}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkNotEqual;
       end;
   else                                 {not}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkLogComplement;
     end;
   end;
@@ -1239,24 +1416,21 @@ end;
 
 procedure TSynUnrealSyn.OrSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {or assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkIncOrAssign;
       end;
     '|':                               {logical or}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkLogOr;
       end;
   else                                 {or}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkIncOr;
     end;
   end;
@@ -1264,24 +1438,21 @@ end;
 
 procedure TSynUnrealSyn.PlusProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {add assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkAddAssign;
       end;
     '+':                               {increment}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkIncrement;
       end;
   else                                 {add}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkAdd;
     end;
   end;
@@ -1289,17 +1460,15 @@ end;
 
 procedure TSynUnrealSyn.PointProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   if (FLine[Run + 1] = '.') and (FLine[Run + 2] = '.') then
     begin                              {ellipse}
       inc(Run, 3);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkEllipse;
     end
   else                                 {point}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkPoint;
     end;
 end;
@@ -1334,18 +1503,7 @@ begin
       begin
         fTokenID := tkComment;
         inc(Run, 2);
-{begin}                                                                         //mh 1999-12-05
-(*
-        while FLine[Run] <> #0 do
-        begin
-          case FLine[Run] of
-            #10, #13: break;
-          end;
-          inc(Run);
-        end;
-*)
        while not (fLine[Run] in [#0, #10, #13]) do Inc(Run);
-{end}                                                                           //mh 1999-12-05
       end;
     '*':                               {c style comments}
       begin
@@ -1359,24 +1517,18 @@ begin
               if fLine[Run + 1] = '/' then
               begin
                 inc(Run, 2);
-{begin}                                                                         //mh 1999-12-05
                 if fRange = rsDirectiveComment then
                   fRange := rsDirective
                 else
-{end}                                                                           //mh 1999-12-05
                   fRange := rsUnKnown;
                 break;
               end else inc(Run);
-{begin}                                                                         //mh 1999-12-05
-//            #10: break;
-//            #13: break;
             #10, #13:
               begin
                 if fRange = rsDirectiveComment then
                   fRange := rsAnsiC;
                 break;
               end;
-{end}                                                                           //mh 1999-12-05
           else inc(Run);
           end;
       end;
@@ -1420,18 +1572,16 @@ end;
 
 procedure TSynUnrealSyn.StarProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   case FLine[Run + 1] of
     '=':                               {multiply assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkMultiplyAssign;
       end;
   else                                 {star}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkStar;
     end;
   end;
@@ -1444,11 +1594,12 @@ begin
   repeat
     case FLine[Run] of
       #0, #10, #13: break;
-(*      #92:                             {backslash}
+      #92:                             {backslash}
         case FLine[Run + 1] of
           #10: inc(Run);               {line continuation character}
           #34: inc(Run);               {escaped quote doesn't count}
-        end; *)
+          #92: inc(Run);
+        end;
     end;
     inc(Run);
   until FLine[Run] = #34;
@@ -1457,16 +1608,8 @@ end;
 
 procedure TSynUnrealSyn.DollarSignProc;
 begin
-  fTokenID := tkString;
+  fTokenID := tkSymbol;
   inc(run);
-//  while not(FLine[Run] in ['0'..'9','a'..'z','A'..'Z', '''','"', #0, #13, #13, #34]) do inc(Run);
-//
-//  repeat
-//    inc(Run);
-//  until FLine[Run] in [')', '(', '''', '"', #0, #10, #13, #34, ' ', ';','$'];
-//  dec(Run);
-//  if FLine[Run] in [] then dec(run);
-//  if FLine[Run] <> #0 then inc(Run);
 end;
 
 
@@ -1479,18 +1622,16 @@ end;
 
 procedure TSynUnrealSyn.XOrSymbolProc;
 begin
-  fTokenID := tkSymbol;                                                         //mh 1999-12-06
+  fTokenID := tkSymbol;
   Case FLine[Run + 1] of
   	'=':                               {xor assign}
       begin
         inc(Run, 2);
-//        fTokenID := tkSymbol;                                                 //mh 1999-12-06
         FExtTokenID := xtkXorAssign;
       end;
   else                                 {xor}
     begin
       inc(Run);
-//      fTokenID := tkSymbol;                                                   //mh 1999-12-06
       FExtTokenID := xtkXor;
     end;
   end;
@@ -1498,6 +1639,11 @@ end;
 
 procedure TSynUnrealSyn.UnknownProc;
 begin
+{$IFDEF SYN_MBCSSUPPORT}
+  if FLine[Run] in LeadBytes then
+    Inc(Run, 2)
+  else
+{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -1505,11 +1651,9 @@ end;
 procedure TSynUnrealSyn.Next;
 begin
   fTokenPos := Run;
-{begin}                                                                         //mh 1999-12-05
   case fRange of
     rsAnsiC, rsDirectiveComment: AnsiCProc;
     rsDirective: DirectiveProc;
-{end}                                                                           //mh 1999-12-05
   else
     begin
       fRange := rsUnknown;
@@ -1518,7 +1662,6 @@ begin
   end;
 end;
 
-{begin}                                                                         //mh 2000-01-17
 function TSynUnrealSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
 begin
   case Index of
@@ -1532,7 +1675,6 @@ begin
     Result := nil;
   end;
 end;
-{end}                                                                           //mh 2000-01-17
 
 function TSynUnrealSyn.GetEol: Boolean;
 begin
@@ -1576,9 +1718,11 @@ begin
     tkDirective: Result := fDirecAttri;
     tkIdentifier: Result := fIdentifierAttri;
     tkKey: Result := fKeyAttri;
+    tkKey2: Result := fKey2Attri;
     tkNumber: Result := fNumberAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
+    tkString2: Result := fString2Attri;
     tkSymbol: Result := fSymbolAttri;
     tkUnknown: Result := fInvalidAttri;
     else Result := nil;
@@ -1595,7 +1739,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynUnrealSyn.ReSetRange;
+procedure TSynUnrealSyn.ResetRange;
 begin
   fRange:= rsUnknown;
 end;
@@ -1713,8 +1857,10 @@ function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
                   ReadCPPBSetting(s[settingIndex],fDirecAttri,'Preprocessor');
         if not Result then begin
           fStringAttri    .Assign(tmpStringAttri);
+          fString2Attri   .Assign(tmpStringAttri);
           fNumberAttri    .Assign(tmpNumberAttri);
           fKeyAttri       .Assign(tmpKeyAttri);
+          fKey2Attri      .Assign(tmpKeyAttri);
           fSymbolAttri    .Assign(tmpSymbolAttri);
           fCommentAttri   .Assign(tmpCommentAttri);
           fIdentifierAttri.Assign(tmpIdentifierAttri);
@@ -1754,7 +1900,7 @@ begin
   Result := SYNS_LangUnreal;
 end;
 
-class function TSynUnrealSyn.GetCapabilities: TSynHighlighterCapabilities;                //gp 2000-01-20
+class function TSynUnrealSyn.GetCapabilities: TSynHighlighterCapabilities;
 begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
@@ -1762,23 +1908,28 @@ end;
 function TSynUnrealSyn.GetSampleSource: string;
 begin
   Result := '//----Comment-----------------------------------------------------------'#13#10+
-            'class TestObject expands Object;'#13#10+
+            'class TestObject expands Object native;'#13#10+
             #13#10+
             '#exec MESH    IMPORT     MESH=Something ANIVFILE=MODELS\Something.3D DATAFILE=MODELS\Something.3D X=0 Y=0 Z=0 MLOD=0'#13#10+
             #13#10+
             'var() Sound HitSound;'#13#10+
-            #13#10+
             'function Cast()'#13#10+
             '{'#13#10+
             '  Super.Cast();'#13#10+
             '  CastTime = 50;'#13#10+
             '  GatherEffect = Spawn( class''SomethingCorona'',,, GetStartLoc(), Pawn(Owner).ViewRotation );'#13#10+
             '  GatherEffect.SetFollowPawn( Pawn(Owner) );'#13#10+
+            '}'#13#10+
+            #13#10+
+            'defaultproperties'#13#10+
+            '{'#13#10+
+            '  PickupMessage="You have picked up a thing."'#13#10+
             '}';
 end;
 
 initialization
   MakeIdentTable;
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynUnrealSyn);
+{$ENDIF}
 end.
-

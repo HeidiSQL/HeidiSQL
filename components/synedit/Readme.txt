@@ -1,4 +1,4 @@
-This is the first public version 1.0 of the SynEdit project.
+This is version 2.0.3 of the SynEdit project.
 
 SynEdit has been started as an attempt to continue the no longer maintained
 sources of the mwEdit project.  The last public version 0.92a of mwEdit can be
@@ -17,11 +17,19 @@ course all the other developers of the mwEdit project.
 The primary purpose of SynEdit is to be a syntax highlighting editor for
 programming languages. There are already more than 30 highlighter components for
 different languages, and writing a highlighter is not very difficult.
-You should however keep some things in mind when using the SynEdit components:
-- There is no word-wrap in the editor, and most probably there will never be
-  (it does not go well with the column selection mode, and it is not very common
-  with programmers editors anyway).
-- Support for real tabs is under construction.
+
+You should however keep in mind that the SynEdit components you have just 
+downloaded have the following shortcommings:
+- Support for real tabs has some bugs, mainly involving undo and redo.
+- No dynamic/programmable highlighter). For information on these, please
+  check the SynEdit webpage:
+	http://synedit.sourceforge.net/3rdparty.php 
+- No Unicode support. There's a version of SynEdit with Unicode support in
+  the CVS repository and it will soon become the official SynEdit package.
+  In the meantime you can download it from here: 
+  http://mh-nexus.de/unisynedit.htm
+- No CodeFolding/CodeWrapping support. Please refer to the Mistyx project:
+  http://mystix.sourceforge.net/
 
 To get started check out the different examples. If you have questions, please
 subscribe to the SynEdit user list and ask there, if you want to hack SynEdit
@@ -36,11 +44,11 @@ For the available information check out the SynEdit website
 
 and the SynEdit project page at SourceForge
 
-  http://sourceforge.net/project/?group_id=3221
+  http://sourceforge.net/projects/synedit
 
 where you will find the necessary links.
 
 --
 Michael Hieke
 
-$Id: Readme.txt,v 1.3 2000/10/13 18:33:14 mghie Exp $
+$Id: Readme.txt,v 1.5 2006/01/25 15:54:36 etrusco Exp $

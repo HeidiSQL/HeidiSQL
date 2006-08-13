@@ -23,7 +23,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterM3.pas,v 1.7 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterM3.pas,v 1.12 2005/01/28 16:53:24 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -38,20 +38,29 @@ Known Issues:
 The SynHighlighterM3 unit provides SynEdit with a Modula-3 (.m3) highlighter.
 }
 
+{$IFNDEF QSYNHIGHLIGHTERM3}
 unit SynHighlighterM3;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter, SynHighlighterHashEntries;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+  QSynHighlighterHashEntries,
+{$ELSE}
+  Graphics,
+  Registry,
+  SynEditTypes,
+  SynEditHighlighter,
+  SynHighlighterHashEntries,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkPragma,
@@ -111,9 +120,9 @@ type
     procedure SymUnknownProc;
   protected
     function GetIdentChars: TSynIdentChars; override;
+    function IsFilterStored: Boolean; override;
   public
-     {$IFNDEF SYN_CPPB_1} class {$ENDIF}
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
 {$IFDEF SYN_DEVELOPMENT_CHECKS}
   public
     property _Keywords: TSynHashEntryList read fKeywords;
@@ -159,7 +168,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -239,7 +252,7 @@ begin
   pKey2 := pointer(aKey);
   for i := 1 to fStringLen do
   begin
-    if pKey1^ <> pKey2^ then begin                                              //mp 2000-12-17
+    if pKey1^ <> pKey2^ then begin
       Result := FALSE;
       exit;
     end;
@@ -570,7 +583,12 @@ end;
 
 procedure TSynM3Syn.SymUnknownProc;
 begin
-  Inc(Run);
+{$IFDEF SYN_MBCSSUPPORT}
+  if FLine[Run] in LeadBytes then
+    Inc(Run, 2)
+  else
+{$ENDIF}
+  inc(Run);
   fTokenID := tkUnknown;
 end;
 
@@ -610,8 +628,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynM3Syn.GetLanguageName: string;
+function TSynM3Syn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterModula3;
+end;
+
+class function TSynM3Syn.GetLanguageName: string;
 begin
   Result := SYNS_LangModula3;
 end;
@@ -687,4 +709,3 @@ initialization
   RegisterPlaceableHighlighter(TSynM3Syn);
 {$ENDIF}
 end.
-

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynDBEdit.pas,v 1.4 2002/04/12 15:47:40 harmeister Exp $
+$Id: SynDBEdit.pas,v 1.11 2004/03/28 18:37:27 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -35,37 +35,41 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNDBEDIT}
 unit SynDBEdit;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils,
-  Classes,
-  DB,
+{$IFNDEF SYN_COMPILER_3_UP}
+  DbTables,
+{$ENDIF}
 {$IFDEF SYN_CLX}
+  Qt,
   QControls,
   QDBCtrls,
+  QSynEdit,
+  QSynEditKeyCmds,
 {$ELSE}
   Windows,
   Messages,
   Controls,
   DbCtrls,
-{$ENDIF}
-{$IFNDEF SYN_COMPILER_3_UP}
-  DbTables,
-{$ENDIF}
   SynEdit,
-  SynEditKeyCmds;
+  SynEditKeyCmds,
+{$ENDIF}
+  SysUtils,
+  Classes,
+  DB;
 
 type
   TCustomDBSynEdit = class(TCustomSynEdit)
   private
     FDataLink: TFieldDataLink;
-    FFocused: boolean;
-    FOldOnChange : TNotifyEvent;
+    fEditing: boolean;
     FBeginEdit: boolean;
     FLoadData: TNotifyEvent;
     procedure DataChange(Sender: TObject);
@@ -75,7 +79,7 @@ type
     function GetField: TField;
     procedure SetDataField(const Value: string);
     procedure SetDataSource(Value: TDataSource);
-    procedure SetFocused(Value: Boolean);
+    procedure SetEditing(Value: Boolean);
     procedure UpdateData(Sender: TObject);
   private
     {*****************}
@@ -90,7 +94,7 @@ type
   protected
     function GetReadOnly: boolean; override;
     procedure Loaded; override;
-    procedure NewOnChange(Sender: TObject);
+    procedure DoChange; override;
     procedure SetReadOnly(Value: boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -101,6 +105,9 @@ type
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
+  {$IFDEF SYN_CLX}
+    function EventFilter(Sender: QObjectH; Event: QEventH): Boolean; override;
+  {$ENDIF}
   protected
     property DataField: string read GetDataField write SetDataField;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
@@ -178,7 +185,7 @@ type
     property InsertCaret;
     property InsertMode;
     property Keystrokes;
-    property MaxLeftChar;
+    property MaxScrollWidth;
     property MaxUndo;
     property Options;
     property OverwriteCaret;
@@ -186,6 +193,7 @@ type
     property RightEdge;
     property RightEdgeColor;
     property ScrollBars;
+    property SearchEngine;
     property SelectedColor;
     property SelectionMode;
     property TabWidth;
@@ -195,6 +203,8 @@ type
     property OnCommandProcessed;
     property OnDropFiles;
     property OnGutterClick;
+    property OnGutterGetText;
+    property OnGutterPaint;
     property OnPaint;
     property OnPlaceBookmark;
     property OnProcessCommand;
@@ -203,7 +213,6 @@ type
     property OnSpecialLineColors;
     property OnStatusChange;
     property OnPaintTransient;
-    property OnSearchEngineOverride;
   end;
 
 implementation
@@ -229,7 +238,7 @@ end;
 {$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMEnter(var Msg: TCMEnter);
 begin
-  SetFocused(True);
+  SetEditing(True);
   inherited;
 end;
 {$ENDIF}
@@ -244,7 +253,7 @@ begin
     SetFocus;
     raise;
   end;
-  SetFocused(False);
+  SetEditing(False);
   inherited;
 end;
 {$ENDIF}
@@ -336,8 +345,6 @@ begin
   inherited Loaded;
   if csDesigning in ComponentState then
     DataChange(Self);
-  FOldOnChange := OnChange;
-  OnChange := NewOnChange;
 end;
 
 procedure TCustomDBSynEdit.LoadMemo;
@@ -371,11 +378,10 @@ begin
   EditingChange(Self);
 end;
 
-procedure TCustomDBSynEdit.NewOnChange(Sender: TObject);
+procedure TCustomDBSynEdit.DoChange;
 begin
   FDataLink.Modified;
-  if assigned(FOldOnChange) then
-    FOldOnChange(Sender);
+  inherited;
 end;
 
 procedure TCustomDBSynEdit.Notification(AComponent: TComponent;
@@ -400,10 +406,10 @@ begin
     Value.FreeNotification(Self);
 end;
 
-procedure TCustomDBSynEdit.SetFocused(Value: Boolean);
+procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
-  if FFocused <> Value then begin
-    FFocused := Value;
+  if fEditing <> Value then begin
+    fEditing := Value;
 {$IFDEF SYN_COMPILER_3_UP}
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
 {$ENDIF}
@@ -420,18 +426,32 @@ procedure TCustomDBSynEdit.UpdateData(Sender: TObject);
 {$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
+{$ENDIF}
 begin
+{$IFDEF SYN_COMPILER_3_UP}
   if FDataLink.Field.IsBlob then
   begin
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmWrite);
     Lines.SaveToStream(BlobStream);
     BlobStream.Free;
   end else
-{$ELSE}
-begin
 {$ENDIF}
     FDataLink.Field.AsString := Text;
 end;
+
+{$IFDEF SYN_CLX}
+function TCustomDBSynEdit.EventFilter(Sender: QObjectH;
+  Event: QEventH): Boolean;
+begin
+  Result := inherited EventFilter( Sender, Event );
+  case QEvent_type(Event) of
+    QEventType_FocusIn:
+      SetEditing( True );
+    QEventType_FocusOut:
+      SetEditing( False );
+  end;
+end;
+{$ENDIF}
 
 end.
 

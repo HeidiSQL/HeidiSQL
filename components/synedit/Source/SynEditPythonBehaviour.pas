@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPythonBehaviour.pas,v 1.3 2001/11/09 07:48:57 plpolak Exp $
+$Id: SynEditPythonBehaviour.pas,v 1.5 2003/04/30 12:59:50 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,42 +41,39 @@ The  SynEditPythonBehaviour unit provides a simple component implements editing 
 to a python source file. Python has a unusual way to mark blocks (like begin/end in pascal) : it
 uses indentation. So the rule is after a ":" and a line break, we have to indent once.
 }
+{$IFNDEF QSYNEDITPYTHONBEHAVIOUR}
 unit SynEditPythonBehaviour;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
   {$IFDEF SYN_CLX}
   Qt, QGraphics, QControls, QForms, QDialogs,
+  QSynEdit,
+  QSynEditKeyCmds,
   {$ELSE}
   Windows, Messages, Graphics, Controls, Forms, Dialogs,
+  SynEdit,
+  SynEditKeyCmds,
   {$ENDIF}
-  SynEdit, SynEditKeyCmds;
-
-const
-  ecPythonIndent = ecUserFirst + 1974;
+  SysUtils,
+  Classes;
 
 type
   TSynEditPythonBehaviour = class(TComponent)
   private
     FEditor: TSynEdit;
-    FFormerKeyPress: TKeyPressEvent;
-    FFormProcessUserCommand: TProcessCommandEvent;
     fIndent: integer;
   protected
     procedure SetEditor(Value: TSynEdit); virtual;
-    procedure doKeyPress(Sender: TObject; var Key: Char); virtual;
-    procedure doProcessUserCommand(Sender: TObject;
-      var Command: TSynEditorCommand; var AChar: Char; Data: Pointer); virtual;
+    procedure doProcessUserCommand(Sender: TObject; AfterProcessing: boolean;
+      var Handled: boolean; var Command: TSynEditorCommand;
+      var AChar: Char; Data: Pointer; HandlerData: pointer); virtual;
   public
-    procedure Loaded; override;
-    procedure AttachFormerEvents;
     constructor Create(aOwner: TComponent); override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation);
-      override;
   published
     property Editor: TSynEdit read FEditor write SetEditor;
     property Indent: integer read fIndent write fIndent default 4;
@@ -85,92 +82,56 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 procedure TSynEditPythonBehaviour.SetEditor(Value: TSynEdit);
 begin
   if FEditor <> Value then begin
-    // First restore the former event handlers, if any
-    if not (csDesigning in ComponentState) and not (csLoading in ComponentState)
-      and assigned(FEditor)
-    then begin
-      if assigned(FFormerKeyPress) then begin
-        FEditor.OnKeypress := FFormerKeyPress;
-        FFormerKeyPress := nil;
-      end;
-      if assigned(FFormProcessUserCommand) then begin
-        FEditor.OnProcessUserCommand := FFormProcessUserCommand;
-        FFormProcessUserCommand := nil;
-      end;
-    end;
+    if (Editor <> nil) and not (csDesigning in ComponentState) then
+      Editor.UnregisterCommandHandler( doProcessUserCommand );
     // Set the new editor
     FEditor := Value;
-    // Attach the new event handlers
-    if ComponentState * [csDesigning, csLoading] = [] then
-      AttachFormerEvents;
+    if (Editor <> nil) and not (csDesigning in ComponentState) then
+      Editor.RegisterCommandHandler( doProcessUserCommand, nil );
   end;
-end; // SetEditor
-
-procedure TSynEditPythonBehaviour.doKeyPress(Sender: TObject; var Key: Char);
-var
-  i: integer;
-  lLine: string;
-begin
-  if assigned(FFormerKeyPress) then FFormerKeyPress(Sender, Key);
-
-  if assigned(FEditor) and (Key = #13) then begin
-    lLine := Trim(FEditor.Lines[FEditor.CaretY - 2]);
-    if Copy(lLine, Length(lLine), 1) = ':' then begin
-      for i := 1 to fIndent do
-        FEditor.CommandProcessor(ecPythonIndent, #0, nil);
-    end;
-  end;
-
-end;
+end; 
 
 procedure TSynEditPythonBehaviour.doProcessUserCommand(Sender: TObject;
-  var Command: TSynEditorCommand; var AChar: Char; Data: Pointer);
+  AfterProcessing: boolean; var Handled: boolean;
+  var Command: TSynEditorCommand; var AChar: Char; Data: Pointer;
+  HandlerData: pointer);
+var
+  iEditor: TCustomSynEdit;
+  iPrevLine: string;
+  cSpace: integer;
 begin
-  if assigned(FFormProcessUserCommand) then
-    FFormProcessUserCommand(Self, Command, aChar, Data);
-
-  if Command = ecPythonIndent then begin
-    Command := ecChar;
-    aChar := ' ';
-  end;
-end;
-
-procedure TSynEditPythonBehaviour.Loaded;
-begin
-  inherited Loaded;
-  if not (csDesigning in ComponentState) then begin
-    AttachFormerEvents;
-  end;
-end;
-
-procedure TSynEditPythonBehaviour.AttachFormerEvents;
-begin
-  if assigned(FEditor) then begin
-    FFormerKeyPress := FEditor.OnKeyPress;
-    FFormProcessUserCommand := FEditor.OnProcessUserCommand;
-    FEditor.OnKeyPress := doKeyPress;
-    FEditor.OnProcessUserCommand := doProcessUserCommand;
+  if (Command = ecLineBreak) and AfterProcessing then
+  begin
+    iEditor := Sender as TCustomSynEdit;
+    { CaretY should never be lesser than 2 right after ecLineBreak, so there's
+    no need for a check }
+    iPrevLine := TrimRight( iEditor.Lines[ iEditor.CaretY -2 ] );
+    if (iPrevLine <> '') and (iPrevLine[ Length(iPrevLine) ] = ':') then
+    begin
+      iEditor.UndoList.BeginBlock;
+      try
+        for cSpace := 1 to Indent do
+          iEditor.ExecuteCommand( ecChar, #32, nil );
+      finally
+        iEditor.UndoList.EndBlock;
+      end;
+    end;
   end;
 end;
 
 constructor TSynEditPythonBehaviour.Create(aOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFormerKeyPress := nil;
-  FFormProcessUserCommand := nil;
   fIndent := 4;
-end;
-
-procedure TSynEditPythonBehaviour.Notification(AComponent: TComponent;
-  Operation: TOperation);
-begin
-  if (Operation = opRemove) and (aComponent = FEditor) then
-    FEditor := nil;
 end;
 
 end.

@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterXML.pas,v 1.6 2001/11/12 07:29:08 plpolak Exp $
+$Id: SynHighlighterXML.pas,v 1.11 2004/07/15 10:49:34 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -40,7 +40,6 @@ Known Issues:
 - Support for "Combining Chars and Extender Chars" in names are lacking
 - The internal DTD is not parsed (and not handled correctly)
 -------------------------------------------------------------------------------}
-
 {
 @abstract(Provides an XML highlighter for SynEdit)
 @author(Jeff Rafter-- Phil 4:13, based on SynHighlighterHTML by Hideo Koiso)
@@ -49,20 +48,26 @@ Known Issues:
 The SynHighlighterXML unit provides SynEdit with an XML highlighter.
 }
 
+{$IFNDEF QSYNHIGHLIGHTERXML}
 unit SynHighlighterXML;
+{$ENDIF}
 
 interface
 
 {$I SynEdit.inc}
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
+{$IFDEF SYN_CLX}
   Qt, QControls, QGraphics,
-  {$ELSE}
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkAposAttrValue, tkAposEntityRef, tkAttribute, tkCDATA,
@@ -85,7 +90,7 @@ type
     rsnsAposAttrValue, rsnsAPosEntityRef, rsnsEqual, rsnsQuoteAttrValue,
     rsnsQuoteEntityRef,
     //These are unused at the moment
-    rsDocType, rsDocTypeSquareBraces                                           //ek 2001-11-11
+    rsDocType, rsDocTypeSquareBraces
     {rsDocTypeAposAttrValue, rsDocTypeAposEntityRef, rsDocTypeAttribute,
      rsDocTypeElement, rsDocTypeEqual, rsDocTypeQuoteAttrValue,
      rsDocTypeQuoteEntityRef}
@@ -141,9 +146,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource : String; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -158,7 +163,7 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ReSetRange; override;
+    procedure ResetRange; override;
     property IdentChars;
   published
     property ElementAttri: TSynHighlighterAttributes read fElementAttri
@@ -194,7 +199,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 const
   NameChars : set of char = ['0'..'9', 'a'..'z', 'A'..'Z', '_', '.', ':', '-'];
@@ -439,7 +448,7 @@ begin
   end;
 end;
 
-procedure TSynXMLSyn.DocTypeProc;                                              //ek 2001-11-11
+procedure TSynXMLSyn.DocTypeProc;
 begin
   fTokenID := tkDocType;
 
@@ -521,7 +530,12 @@ end;
 procedure TSynXMLSyn.ElementProc;
 begin
   if fLine[Run] = '/' then Inc(Run);
+{$IFDEF SYN_MBCSSUPPORT}
+  while (fLine[Run] in NameChars) or (StrByteType(fLine, Run) <> mbSingleByte) do
+    Inc(Run);
+{$ELSE}
   while (fLine[Run] in NameChars) do Inc(Run);
+{$ENDIF}
   fRange := rsAttribute;
   fTokenID := tkElement;
 end;
@@ -537,7 +551,12 @@ begin
     Exit;
   end;
   //Read the name
+{$IFDEF SYN_MBCSSUPPORT}
+  while (fLine[Run] in NameChars) or (StrByteType(fLine, Run) <> mbSingleByte) do
+    Inc(Run);
+{$ELSE}
   while (fLine[Run] in NameChars) do Inc(Run);
+{$ENDIF}
   //Check if this is an xmlns: attribute
   if (Pos('xmlns', GetToken) > 0) then begin
     fTokenID := tknsAttribute;
@@ -745,7 +764,7 @@ begin
     begin
       ProcessingInstructionProc;
     end;
-  rsDocType, rsDocTypeSquareBraces:                                            //ek 2001-11-11
+  rsDocType, rsDocTypeSquareBraces:
     begin
       DocTypeProc;
     end;
@@ -852,7 +871,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynXMLSyn.ReSetRange;
+procedure TSynXMLSyn.ResetRange;
 begin
   fRange:= rsText;
 end;
@@ -862,8 +881,12 @@ begin
   Result := ['0'..'9', 'a'..'z', 'A'..'Z', '_', '.', '-'] + TSynSpecialChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynXMLSyn.GetLanguageName: string;
+function TSynXMLSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterXML;
+end;
+
+class function TSynXMLSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangXML;
 end;
@@ -879,13 +902,8 @@ begin
            '</root>';
 end;
 
+{$IFNDEF SYN_CPPB_1}
 initialization
-
-  {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynXMLSyn);
-  {$ENDIF}
-
+{$ENDIF}
 end.
-
-
-

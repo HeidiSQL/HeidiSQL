@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPlugins.pas,v 1.7 2002/01/12 15:59:02 drbrno Exp $
+$Id: SynEditPlugins.pas,v 1.8 2003/04/30 12:59:47 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -34,24 +34,28 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNEDITPLUGINS}
 unit SynEditPlugins;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  Classes,
 {$IFDEF SYN_CLX}
   Qt,
   Types,
   QMenus,
+  QSynEdit,
+  QSynEditKeyCmds,
 {$ELSE}
   Windows,
   Menus,
-{$ENDIF}
   SynEdit,
-  SynEditKeyCmds;
+  SynEditKeyCmds,
+{$ENDIF}
+  Classes;
 
 type
   TAbstractSynPlugin = class(TComponent)
@@ -145,15 +149,18 @@ procedure ReleasePluginCommand(aCmd: TSynEditorCommand);
 implementation
 
 uses
-  SynEditTypes,
-  SysUtils,
 {$IFDEF SYN_CLX}
   QForms,
+  QSynEditTypes,
+  QSynEditMiscProcs,
+  QSynEditStrConst,
 {$ELSE}
   Forms,
-{$ENDIF}
+  SynEditTypes,
+  SynEditMiscProcs,
   SynEditStrConst,
-  SynEditMiscProcs;
+{$ENDIF}
+  SysUtils;
 
 const
   ecPluginBase = 64000;

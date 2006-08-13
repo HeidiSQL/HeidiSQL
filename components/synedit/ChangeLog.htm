@@ -10,6 +10,7 @@
 
 <blockquote>
   Andre Mens,
+  Andrey Ustinov,
   Andy Colson,
   Anthony Steele,
   Arentjan Banck,
@@ -31,6 +32,8 @@
   Jordan Russell,
   Lasse Vagsather Karlsen,
   Lorant Toth,
+  Maël Hörz,
+  Marko Njezic,
   Martin Pley,
   Mattias Gaertner,
   Michael Beck,
@@ -42,6 +45,7 @@
   Roman Silin,
   Satya,
   Sheng Quanhu,
+  S&ouml;ren Spr&ouml;&beta;ig,
   Stefan van As,
   Steve Sutherland,
   Sven Blankenberg,
@@ -238,8 +242,8 @@
         Jordan Russell (jrx): 
 
         <ul>
-          <li>Updated for the most recent version IS 2.0.7 + some
-          fixes.</li>
+          <li>Now highlights keywords from the more recent versions of Inno Setup, up to 2.0.18.</li>
+          <li>Fixed highlighting of quotes inside quoted strings, constants inside constants, and comments with spaces before them.</li>
         </ul>
       </li>
 
@@ -354,6 +358,30 @@
   </li>
 
   <li>
+    <b>SynHighlighterPHP.pas:</b> 
+
+    <ul>
+      <li>
+        Eden Kirin: 
+
+        <ul>
+          <li>Fixed incorrect highlighting of "\\" (with the quotes).</li>
+        </ul>
+      </li>
+    </ul>
+
+    <ul>
+      <li>
+        Jordan Russell: 
+
+        <ul>
+          <li>Fixed incorrect highlighting of \' inside a single-quoted string.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
     <b>SynExportRTF.pas:</b> 
 
     <ul>
@@ -377,6 +405,20 @@
         <ul>
           <li>Highlighter for Semanta database data dictionary
           files..</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterSQL.pas:</b> 
+
+    <ul>
+      <li>
+        Various SynEdit developers: 
+
+        <ul>
+          <li>Many new keywords and fixes.</li>
         </ul>
       </li>
     </ul>
@@ -456,7 +498,7 @@
 
     <ul>
       <li>
-        Various SynEdit developers (Dean Harmon, Fl&aacute;vio Etrusco, Gerald Nunn, Peiter Polak, Jordan Russel, sblbg) 
+        Various SynEdit developers (Dean Harmon, Fl&aacute;vio Etrusco, Gerald Nunn, Peiter Polak, Jordan Russell, sblbg): 
         <ul>
           <li>Full tab support</li>
 		  <li>Caret positioning tweaks</li>
@@ -504,6 +546,8 @@
           MBCS-aware.</li>
 
           <li>Fixed hint window bug with Delphi 3.</li>
+
+          <li>Middle button clicks no longer move the caret.</li>
         </ul>
       </li>
     </ul>
@@ -1592,8 +1636,9 @@
 <hr>
 
 <p><tt>
-$Id: ChangeLog.htm,v 1.1 2002/06/11 18:22:13 harmeister Exp $
+$Id: ChangeLog.htm,v 1.6 2004/09/29 08:20:13 etrusco Exp $
 </tt></p>
 
 </body>
 </html>
+

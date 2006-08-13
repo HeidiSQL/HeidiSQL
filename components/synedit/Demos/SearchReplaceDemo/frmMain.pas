@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: frmMain.pas,v 1.2 2000/11/22 08:37:05 mghie Exp $
+$Id: frmMain.pas,v 1.5 2004/04/24 17:04:54 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,7 +42,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, ToolWin, SynEdit, ImgList, ActnList;
+  ComCtrls, ToolWin, SynEdit, ImgList, ActnList, SynEditRegexSearch,
+  SynEditMiscClasses, SynEditSearch;
 
 type
   TSearchReplaceDemoForm = class(TForm)
@@ -64,6 +65,8 @@ type
     actSearchPrev: TAction;
     actSearchReplace: TAction;
     Statusbar: TStatusBar;
+    SynEditSearch: TSynEditSearch;
+    SynEditRegexSearch: TSynEditRegexSearch;
     procedure actFileOpenExecute(Sender: TObject);
     procedure actSearchExecute(Sender: TObject);
     procedure actSearchNextExecute(Sender: TObject);
@@ -88,7 +91,7 @@ implementation
 {$R *.DFM}
 
 uses
-  dlgSearchText, dlgReplaceText, dlgConfirmReplace;
+  dlgSearchText, dlgReplaceText, dlgConfirmReplace, SynEditTypes, SynEditMiscProcs;
 
   // options - to be saved to the registry
 var
@@ -98,6 +101,7 @@ var
   gbSearchSelectionOnly: boolean;
   gbSearchTextAtCaret: boolean;
   gbSearchWholeWords: boolean;
+  gbSearchRegex: boolean;
 
   gsSearchText: string;
   gsSearchTextHistory: string;
@@ -106,7 +110,7 @@ var
 
 resourcestring
   STextNotFound = 'Text not found';
-  
+
 { TSearchReplaceDemoForm }
 
 procedure TSearchReplaceDemoForm.DoSearchReplaceText(AReplace: boolean;
@@ -129,6 +133,10 @@ begin
     Include(Options, ssoSelectedOnly);
   if gbSearchWholeWords then
     Include(Options, ssoWholeWord);
+  if gbSearchRegex then
+    SynEditor.SearchEngine := SynEditRegexSearch
+  else
+    SynEditor.SearchEngine := SynEditSearch;
   if SynEditor.SearchReplace(gsSearchText, gsReplaceText, Options) = 0 then
   begin
     MessageBeep(MB_ICONASTERISK);
@@ -163,7 +171,7 @@ begin
     SearchText := gsSearchText;
     if gbSearchTextAtCaret then begin
       // if something is selected search for that text
-      if SynEditor.SelAvail and (SynEditor.BlockBegin.Y = SynEditor.BlockEnd.Y)
+      if SynEditor.SelAvail and (SynEditor.BlockBegin.Line = SynEditor.BlockEnd.Line)
       then
         SearchText := SynEditor.SelText
       else
@@ -181,6 +189,7 @@ begin
       gbSearchFromCaret := SearchFromCursor;
       gbSearchSelectionOnly := SearchInSelectionOnly;
       gbSearchWholeWords := SearchWholeWords;
+      gbSearchRegex := SearchRegularExpression;
       gsSearchText := SearchText;
       gsSearchTextHistory := SearchTextHistory;
       if AReplace then with dlg as TTextReplaceDialog do begin
@@ -249,8 +258,10 @@ begin
   if ASearch = AReplace then
     Action := raSkip
   else begin
-    APos := Point(Column, Line);
-    APos := SynEditor.ClientToScreen(SynEditor.RowColumnToPixels(APos));
+    APos := SynEditor.ClientToScreen(
+      SynEditor.RowColumnToPixels(
+      SynEditor.BufferToDisplayPos(
+        BufferCoord(Column, Line) ) ) );
     EditRect := ClientRect;
     EditRect.TopLeft := ClientToScreen(EditRect.TopLeft);
     EditRect.BottomRight := ClientToScreen(EditRect.BottomRight);

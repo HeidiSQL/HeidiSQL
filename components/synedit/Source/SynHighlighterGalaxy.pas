@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGalaxy.pas,v 1.7 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterGalaxy.pas,v 1.13 2005/01/28 16:53:22 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -43,20 +43,25 @@ The SynHighlighterGalaxy unit provides SynEdit with a Galaxy highlighter.
 Galaxy is a PBEM game for 10 to 500+ players, to see it wokring goto: http://members.tripod.com/~erisande/kooij.html .
 The keywords in the string list KeyWords have to be in UPPERCASE and sorted.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERGALAXY}
 unit SynHighlighterGalaxy;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditHighlighter,
+{$ELSE}
+  Windows,
+  Graphics,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils, Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkSpace, tkMessage,
@@ -94,9 +99,10 @@ type
     procedure MakeMethodTables;
     procedure MessageStyleProc;
     procedure SetKeyWords(const Value: TStrings);
+  protected
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -110,10 +116,10 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function GetTokenPos: Integer; override;
-    function IsKeyword(const AKeyword: string): boolean; override;              //mh 2000-11-08
+    function IsKeyword(const AKeyword: string): boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ReSetRange; override;
+    procedure ResetRange; override;
     {$IFNDEF SYN_CLX}
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
@@ -134,7 +140,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -158,7 +168,7 @@ begin
   end;
 end;
 
-function TSynGalaxySyn.IsKeyword(const AKeyword: string): boolean;              //mh 2000-11-08
+function TSynGalaxySyn.IsKeyword(const AKeyword: string): boolean;
 var
   First, Last, I, Compare: Integer;
   Token: String;
@@ -334,7 +344,7 @@ procedure TSynGalaxySyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -350,12 +360,11 @@ begin
     fProcTable[fLine[Run]];
 end;
 
-{begin}
 function TSynGalaxySyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
 begin
   case Index of
     SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;                            //mh 2000-11-08
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
     SYN_ATTR_KEYWORD: Result := fKeyAttri;
     SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
     SYN_ATTR_SYMBOL: Result := fSymbolAttri;
@@ -363,7 +372,6 @@ begin
     Result := nil;
   end;
 end;
-{end}
 
 function TSynGalaxySyn.GetEol: Boolean;
 begin
@@ -437,8 +445,12 @@ begin
   DefHighLightChange(nil);
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynGalaxySyn.GetLanguageName: string;
+function TSynGalaxySyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterGalaxy;
+end;
+
+class function TSynGalaxySyn.GetLanguageName: string;
 begin
   Result := SYNS_LangGalaxy;
 end;
@@ -482,4 +494,3 @@ initialization
   RegisterPlaceableHighlighter(TSynGalaxySyn);
 {$ENDIF}
 end.
-

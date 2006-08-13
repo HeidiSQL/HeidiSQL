@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterManager.pas,v 1.5 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterManager.pas,v 1.7 2004/07/09 13:03:55 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,7 +42,10 @@ Known Issues:
 @lastmod(2000-04-14)
 Provides a component to manage many highlighters in a single project.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERMANAGER}
 unit SynHighlighterManager;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -85,34 +88,33 @@ type
   published
   end;
 
-procedure Register;
-
 implementation
 
 uses
-  SysUtils,
+{$IFDEF SYN_COMPILER_6_UP}
+  DesignIntf,
+{$ELSE}
+  DsgnIntf,
+{$ENDIF}
 {$IFDEF SYN_CLX}
   Qt,
   QForms,
   QControls,
   QStdCtrls,
   QCheckLst,
-  DesignIntf,
   Types,
+  QSynEditHighlighter,
+  QSynEditStrConst,
 {$ELSE}
-{$IFDEF SYN_COMPILER_6_UP}
-  DesignIntf,
-{$ELSE}
-  DsgnIntf,
-{$ENDIF}
   Windows,
   Forms,
   Controls,
   StdCtrls,
   CheckLst,
-{$ENDIF}
+  SynEditHighlighter,
   SynEditStrConst,
-  SynEditHighlighter;
+{$ENDIF}
+  SysUtils;
 
 type
   TSynHighlighterForm = class(TForm)
@@ -138,11 +140,6 @@ type
   {$ELSE}
     TDesignerClass = TFormDesigner;
   {$ENDIF}
-
-procedure Register;
-begin
-  RegisterComponents(SYNS_ComponentsPage, [TSynHighlighterManager]);
-end;
 
 { TSynHighlighterManager }
 
@@ -475,4 +472,3 @@ begin
 end;
 
 end.
-

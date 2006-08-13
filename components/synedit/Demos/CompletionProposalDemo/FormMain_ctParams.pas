@@ -14,7 +14,7 @@ type
     scpParams: TSynCompletionProposal;
     FontDialog1: TFontDialog;
     procedure scpParamsExecute(Kind: SynCompletionType; Sender: TObject;
-      var AString: String; x, y: Integer; var CanExecute: Boolean);
+      var AString: String; var x, y: Integer; var CanExecute: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -36,7 +36,7 @@ uses SynEditTypes;
 {$R *.DFM}
 
 procedure TForm1.scpParamsExecute(Kind: SynCompletionType; Sender: TObject;
-  var AString: String; x, y: Integer; var CanExecute: Boolean);
+  var AString: String; var x, y: Integer; var CanExecute: Boolean);
 var locline, lookup: String;
     TmpX, savepos, StartX,
     ParenCounter,
@@ -114,23 +114,19 @@ begin
   if CanExecute then
   begin
     TSynCompletionProposal(Sender).Form.CurrentIndex := TmpLocation;
-    if Lookup <> TSynCompletionProposal(Sender).PreviousWord then
+    if Lookup <> TSynCompletionProposal(Sender).PreviousToken then
     begin
       TSynCompletionProposal(Sender).ItemList.Clear;
 
       if Lookup = 'TESTFUNCTION' then
       begin
-        TSynCompletionProposal(Sender).ItemList.Add('FirstParam integer');
-        TSynCompletionProposal(Sender).ItemList.Add('SecondParam integer');
-        TSynCompletionProposal(Sender).ItemList.Add('ThirdParam string');
+        TSynCompletionProposal(Sender).ItemList.Add('"FirstParam: integer", "SecondParam: integer", "ThirdParam: string"');
       end else if Lookup = 'MIN' then
       begin
-        TSynCompletionProposal(Sender).ItemList.Add('A integer');
-        TSynCompletionProposal(Sender).ItemList.Add('B integer');
+        TSynCompletionProposal(Sender).ItemList.Add('"A: integer", "B: integer"');
       end else if Lookup = 'MAX' then
       begin
-        TSynCompletionProposal(Sender).ItemList.Add('A integer');
-        TSynCompletionProposal(Sender).ItemList.Add('B integer');
+        TSynCompletionProposal(Sender).ItemList.Add('"A: integer", "B: integer"');
       end;
     end;
   end else TSynCompletionProposal(Sender).ItemList.Clear;

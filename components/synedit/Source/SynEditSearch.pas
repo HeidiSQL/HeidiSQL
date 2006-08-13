@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditSearch.pas,v 1.7 2002/04/12 12:52:27 harmeister Exp $
+$Id: SynEditSearch.pas,v 1.12 2003/08/31 11:22:54 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -35,25 +35,31 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNEDITSEARCH}
 unit SynEditSearch;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditTypes,
+  QSynEditMiscClasses,
+{$ELSE}
+  SynEditTypes,
+  SynEditMiscClasses,
+{$ENDIF}
   Classes;
 
-procedure MakeCompTable(Sensitive: boolean);
-procedure MakeDelimiterTable;
-
 type
-  TSynEditSearch = class;
-
-  TSynEditSearchOverride = procedure(var ASynEditSearch: TSynEditSearch) of object;
-
-  TSynEditSearch = class(TObject)
+  TSynEditSearch = class(TSynEditSearchCustom)
   private
+    CompTableSensitive: boolean;
+    CompTable: array[#0..#255] of Byte;
+    DelimTable: array[#0..#255] of boolean;
+    //
     Run: PChar;
     Origin: PChar;
     TheEnd: PChar;
@@ -68,25 +74,29 @@ type
     fResults: TList;
     fShiftInitialized: boolean;
     function GetFinished: Boolean;
-    function GetResult(Index: integer): integer;
-    function GetResultCount: integer;
     procedure InitShiftTable;
-    procedure SetPattern(const Value: string);
     procedure SetSensitive(const Value: Boolean);
+    procedure MakeCompTable(Sensitive: Boolean);
+    procedure MakeDelimiterTable;
   protected
-    function TestWholeWord: boolean; virtual;
+    function TestWholeWord: boolean;
+    procedure SetPattern(const Value: string); override;
+    function GetPattern: string; override;
+    function GetLength(aIndex: integer): integer; override;
+    function GetResult(Index: integer): integer; override;
+    function GetResultCount: integer; override;
+    procedure SetOptions(const Value: TSynSearchOptions); override;
   public
-    constructor Create;
+    constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
-    function FindAll(const NewText: string): integer;
+    function FindAll(const NewText: string): integer; override;
+    function Replace(const aOccurrence, aReplacement: string): string; override;
     function FindFirst(const NewText: string): Integer;
     procedure FixResults(First, Delta: integer);
     function Next: Integer;
     property Count: Integer read fCount write fCount;
     property Finished: Boolean read GetFinished;
-    property Pattern: string read Pat write SetPattern;
-    property Results[Index: integer]: integer read GetResult;
-    property ResultCount: integer read GetResultCount;
+    property Pattern read Pat;
     property Sensitive: Boolean read fSensitive write SetSensitive;
     property Whole: Boolean read fWhole write fWhole;
   end;
@@ -95,25 +105,22 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  kTextDrawer,
   Types,
 {$ELSE}
   Windows,
 {$ENDIF}
   SysUtils;
-  
-var
-  CompTableSensitive: boolean;
-  CompTable: array[#0..#255] of Byte;
-  DelimTable: array[#0..#255] of boolean;
 
-constructor TSynEditSearch.Create;
+constructor TSynEditSearch.Create(aOwner: TComponent);
 begin
-  inherited Create;
+  inherited;
   fResults := TList.Create;
+  CompTableSensitive := True; // force the table initialization
+  MakeCompTable(False);
+  MakeDelimiterTable;
 end;
 
-procedure MakeCompTable(Sensitive: Boolean);
+procedure TSynEditSearch.MakeCompTable(Sensitive: Boolean);
 var
   I: Char;
 begin
@@ -131,7 +138,7 @@ begin
   end;
 end;
 
-procedure MakeDelimiterTable;
+procedure TSynEditSearch.MakeDelimiterTable;
 var
   c: char;
 begin
@@ -280,6 +287,11 @@ begin
   Result := fResults.Count;
 end;
 
+function TSynEditSearch.Replace(const aOccurrence, aReplacement: string): string;
+begin
+  Result := aReplacement;
+end;                     
+
 function TSynEditSearch.FindFirst(const NewText: string): Integer;
 begin
   if not fShiftInitialized then
@@ -295,9 +307,21 @@ begin
   end;
 end;
 
-initialization
-  CompTableSensitive := True; // force the table initialization
-  MakeCompTable(False);
-  MakeDelimiterTable;
+function TSynEditSearch.GetLength(aIndex: integer): integer;
+begin
+  Result := PatLen;  
+end;
+
+function TSynEditSearch.GetPattern: string;
+begin
+  Result := Pat; 
+end;
+
+procedure TSynEditSearch.SetOptions(const Value: TSynSearchOptions);
+begin
+  Sensitive := ssoMatchCase in Value;
+  Whole := ssoWholeWord in Value;
+end;
+
 end.
 

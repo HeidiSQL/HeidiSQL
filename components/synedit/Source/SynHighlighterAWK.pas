@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterAWK.pas,v 1.6 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterAWK.pas,v 1.10 2004/07/13 00:00:29 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,20 +41,27 @@ Known Issues:
 @lastmod(June 19, 2000)
 The SynHighlighterAWK unit provides SynEdit with a AWK Script (.awk) highlighter.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERAWK}
 unit SynHighlighterAWK;
+{$ENDIF}
 
 interface
 
 {$I SynEdit.inc}
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages,  Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditHighlighter, SynEditTypes;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkInterFunc, tkKey, tkNull,
@@ -102,9 +109,9 @@ type
     procedure BraceProc;
   protected
     function GetIdentChars: TSynIdentChars; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -141,7 +148,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 procedure TSynAWKSyn.MakeSyntaxList;
 begin
@@ -583,15 +594,18 @@ begin
   Result := ['0'..'9', 'a'..'z', 'A'..'Z'] + TSynSpecialChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynAWKSyn.GetLanguageName: string;
+function TSynAWKSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterAWK;
+end;
+
+class function TSynAWKSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangAWK;
 end;
 
+{$IFNDEF SYN_CPPB_1}
 initialization
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynAWKSyn);
 {$ENDIF}
 end.
-

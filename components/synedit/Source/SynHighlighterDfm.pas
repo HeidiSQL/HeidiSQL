@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterDfm.pas,v 1.10 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterDfm.pas,v 1.17 2005/01/28 16:53:22 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,20 +42,27 @@ Known Issues:
 The SynHighlighterDfm unit provides SynEdit with a Delphi Form Source (.dfm) highlighter.
 The highlighter formats form source code similar to when forms are viewed as text in the Delphi editor.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERDFM}
 unit SynHighlighterDfm;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -103,9 +110,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -134,6 +141,8 @@ type
       write fSpaceAttri;
     property StringAttri: TSynHighlighterAttributes read fStringAttri
       write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
+      write fSymbolAttri;
   end;
 
 function LoadDFMFile2Strings(const AFile: string; AStrings: TStrings;
@@ -143,7 +152,11 @@ function SaveStrings2DFMFile(AStrings: TStrings; const AFile: string): integer;
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 { A couple of useful Delphi Form functions }
 
@@ -164,7 +177,7 @@ begin
       Dest := TMemoryStream.Create;
       try
 {$IFDEF SYN_COMPILER_5_UP}
-        origFormat := sofUnknown;                                               //riceball 2000-11-17
+        origFormat := sofUnknown;
         ObjectResourceToText(Src, Dest, origFormat);
         WasText := origFormat = sofText;
 {$ELSE}
@@ -400,6 +413,17 @@ begin
     fTokenID := tkKey;
     Inc(Run, 9);
   end
+  else if (fLine[Run + 1] in ['n', 'N']) and
+          (fLine[Run + 2] in ['l', 'L']) and
+          (fLine[Run + 3] in ['i', 'I']) and
+          (fLine[Run + 4] in ['n', 'N']) and
+          (fLine[Run + 5] in ['e', 'E']) and
+          not (fLine[Run + 6] in ['_', '0'..'9', 'a'..'z', 'A'..'Z'])
+  then
+  begin
+    fTokenID := tkKey;
+    Inc(Run, 6);
+  end
   else
     AltProc;
 end;
@@ -434,7 +458,7 @@ procedure TSynDfmSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -528,8 +552,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynDfmSyn.GetLanguageName: string;
+function TSynDfmSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterDFM;
+end;
+
+class function TSynDfmSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangDfm;
 end;
@@ -544,7 +572,7 @@ begin
             'end';
 end; { GetSampleSource }
 
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
 initialization
   RegisterPlaceableHighlighter(TSynDfmSyn);
 {$ENDIF}

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterFortran.pas,v 1.10 2002/04/07 20:11:31 jrx Exp $
+$Id: SynHighlighterFortran.pas,v 1.16 2005/01/28 16:53:22 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,20 +42,27 @@ Known Issues:
 The SynHighlighterFortran unit provides SynEdit with a Fortran syntax highlighter.
 Thanks to Martin Waldenburg.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERFORTRAN}
 unit SynHighlighterFortran;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -155,12 +162,12 @@ type
     procedure InitIdent;
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
-    procedure CommentProc;                                                      //DDH 10/16/01 from Eden Kirin
+    procedure CommentProc;
   protected
     function GetIdentChars: TSynIdentChars; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -192,7 +199,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -676,7 +687,7 @@ end;
 
 procedure TSynFortranSyn.IdentProc;
 begin
-  if (FLine[Run] = 'C') and (Run = 0) then
+  if (FLine[Run] in ['C', 'c']) and (Run = 0) then
   begin   //Fortran comments
     inc(Run, 1);
     CommentProc;
@@ -761,8 +772,8 @@ end;
 
 procedure TSynFortranSyn.PointProc;
 begin
-  if (((UpCase(FLine[Run + 1]) = 'G') and (UpCase(FLine[Run + 2]) in ['E','T'])) {.ge. .gt.}     //DDH Addition from Eden Kirin
-       or ((UpCase(FLine[Run + 1]) = 'L') and (UpCase(FLine[Run + 2]) in ['E','T'])) {.le. .lt.} //DDH Addition from Eden Kirin
+  if (((UpCase(FLine[Run + 1]) = 'G') and (UpCase(FLine[Run + 2]) in ['E','T'])) {.ge. .gt.}
+       or ((UpCase(FLine[Run + 1]) = 'L') and (UpCase(FLine[Run + 2]) in ['E','T'])) {.le. .lt.}
        or ((UpCase(FLine[Run + 1]) = 'N') and (UpCase(FLine[Run + 2]) = 'E')) {.ne.}
        or ((UpCase(FLine[Run + 1]) = 'E') and (UpCase(FLine[Run + 2]) = 'Q')) {.eq.}
        or ((UpCase(FLine[Run + 1]) = 'O') and (UpCase(FLine[Run + 2]) = 'R'))){.or.}
@@ -829,8 +840,8 @@ end;
 procedure TSynFortranSyn.SlashProc;
 begin
   {division}
-   inc(Run);
-   fTokenID := tkSymbol;
+  inc(Run);
+  fTokenID := tkSymbol;
 end;
 
 procedure TSynFortranSyn.SpaceProc;
@@ -840,7 +851,7 @@ begin
   while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
 end;
 
-procedure TSynFortranSyn.StarProc; // <- changed function
+procedure TSynFortranSyn.StarProc;
 begin
   if (Run = 0) then begin   //Fortran comments
     inc(Run);
@@ -884,7 +895,7 @@ procedure TSynFortranSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -959,15 +970,19 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynFortranSyn.GetLanguageName: string;
+function TSynFortranSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterFortran;
+end;
+
+class function TSynFortranSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangFortran;
 end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynFortranSyn);
 {$ENDIF}
 end.

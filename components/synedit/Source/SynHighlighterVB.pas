@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterVB.pas,v 1.10 2002/04/07 20:11:31 jrx Exp $
+$Id: SynHighlighterVB.pas,v 1.15 2005/01/28 16:53:25 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,20 +41,27 @@ Known Issues:
 @lastmod(2000-06-23)
 The SynHighlighterVB unit provides SynEdit with a Visual Basic (.bas) highlighter.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERVB}
 unit SynHighlighterVB;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
+{$IFDEF SYN_CLX}
   Qt, QControls, QGraphics,
-  {$ELSE}
+  QSynEditHighlighter,
+  QSynEditTypes,
+{$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditHighlighter, SynEditTypes;
+  SynEditHighlighter,
+  SynEditTypes,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -194,9 +201,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: String; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -228,7 +235,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1143,7 +1154,7 @@ procedure TSynVBSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -1219,8 +1230,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynVBSyn.GetLanguageName: string;
+function TSynVBSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterVisualBASIC;
+end;
+
+class function TSynVBSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangVisualBASIC;
 end;
@@ -1247,8 +1262,7 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynVBSyn);
 {$ENDIF}
 end.
-

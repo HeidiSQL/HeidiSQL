@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterPython.pas, released 2000-06-23.
 The Original Code is based on the odPySyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Olivier Deckmyn.
+Portions created by M.Utku Karatas and Dennis Chuah.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPython.pas,v 1.8 2002/04/09 09:58:51 plpolak Exp $
+$Id: SynHighlighterPython.pas,v 1.19 2005/01/28 16:53:24 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -38,106 +39,112 @@ Known Issues:
 @abstract(A Python language highlighter for SynEdit)
 @author(Olivier Deckmyn, converted to SynEdit by David Muir <dhmn@dmsoftware.co.uk>)
 @created(unknown, converted to SynEdit on 2000-06-23)
-@lastmod(2000-06-23)
+@lastmod(2003-02-13)
 The SynHighlighterPython implements a highlighter for Python for the SynEdit projects.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERPYTHON}
 unit SynHighlighterPython;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditHighlighter, SynEditTypes;
+{$IFDEF SYN_COMPILER_6_UP}
+  IniFiles, //THashedStringList
+{$ENDIF}
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditHighlighter,
+  QSynEditTypes,
+{$ELSE}
+  Graphics,
+  SynEditHighlighter,
+  SynEditTypes,
+{$ENDIF}
+  SysUtils,
+  Classes;
+
+const
+  ALPHA_CHARS = ['_', 'a'..'z', 'A'..'Z'];
+  IDENTIFIER_CHARS = ['0'..'9'] + ALPHA_CHARS;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
-    tkString, tkSymbol, tkUnknown);
+    tkString, tkSymbol, tkNonKeyword, tkTrippleQuotedString,
+    tkSystemDefined, tkHex, tkOct, tkFloat, tkUnknown);
 
-  TRangeState = (rsANil, rsComment, rsUnKnown, rsMultilineString, rsMultilineString2);
+  TRangeState = (rsANil, rsComment, rsUnKnown, rsMultilineString, rsMultilineString2,
+                 rsMultilineString3 //this is to indicate if a string is made multiline by backslash char at line end (as in C++ highlighter)
+                );
 
   TProcTableProc = procedure of object;
-  
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
 
 type
   TSynPythonSyn = class(TSynCustomHighLighter)
   private
+    fStringStarter: char;  // used only for rsMultilineString3 stuff
     fRange: TRangeState;
     fLine: PChar;
     fLineNumber: Integer;
     fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: Integer;
     fToIdent: PChar;
     fTokenPos: Integer;
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..101] of TIdentFuncTableFunc;
+    FKeywords: TStringList;
+
     fStringAttri: TSynHighlighterAttributes;
+    fDocStringAttri: TSynHighlighterAttributes;
     fNumberAttri: TSynHighlighterAttributes;
+    fHexAttri: TSynHighlighterAttributes;
+    fOctalAttri: TSynHighlighterAttributes;
+    fFloatAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
+    fNonKeyAttri: TSynHighlighterAttributes;
+    fSystemAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: string): Boolean;
-    function Func15: TtkTokenKind;
-    function Func21: TtkTokenKind;
-    function Func23: TtkTokenKind;
-    function Func31: TtkTokenKind;
-    function Func32: TtkTokenKind;
-    function Func33: TtkTokenKind;
-    function Func37: TtkTokenKind;
-    function Func39: TtkTokenKind;
-    function Func41: TtkTokenKind;
-    function Func45: TtkTokenKind;
-    function Func49: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func54: TtkTokenKind;
-    function Func55: TtkTokenKind;
-    function Func57: TtkTokenKind;
-    function Func63: TtkTokenKind;
-    function Func73: TtkTokenKind;
-    function Func77: TtkTokenKind;
-    function Func79: TtkTokenKind;
-    function Func91: TtkTokenKind;
-    function Func96: TtkTokenKind;
-    function Func101: TtkTokenKind;
+    fErrorAttri: TSynHighlighterAttributes;
+
     procedure SymbolProc;
     procedure CRProc;
     procedure CommentProc;
     procedure GreaterProc;
     procedure IdentProc;
-    procedure IntegerProc;
     procedure LFProc;
     procedure LowerProc;
     procedure NullProc;
     procedure NumberProc;
-    procedure PointProc;
     procedure SpaceProc;
+    procedure PreStringProc;
+    procedure UnicodeStringProc;
     procedure StringProc;
     procedure String2Proc;
     procedure StringEndProc(EndChar:char);
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
+
   protected
+    Run: LongInt;
+    fStringLen: Integer;
+
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
+    function IsFilterStored: Boolean; override;
+    function IdentKind(MayBe: PChar): TtkTokenKind; virtual;
+    function GetKeywordIdentifiers: TStringList; virtual;
+    property Keywords: TStringlist read FKeywords;
+    property TokenID: TtkTokenKind read FTokenID;
+
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
@@ -158,329 +165,234 @@ type
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
     write fIdentifierAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property NonKeyAttri: TSynHighlighterAttributes read fNonKeyAttri
+      write fNonKeyAttri;
+    property SystemAttri: TSynHighlighterAttributes read fSystemAttri
+      write fSystemAttri;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
     write fNumberAttri;
+    property HexAttri: TSynHighlighterAttributes read fHexAttri
+      write fHexAttri;
+    property OctalAttri: TSynHighlighterAttributes read fOctalAttri
+      write fOctalAttri;
+    property FloatAttri: TSynHighlighterAttributes read fFloatAttri
+      write fFloatAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
     write fSpaceAttri;
     property StringAttri: TSynHighlighterAttributes read fStringAttri
     write fStringAttri;
+    property DocStringAttri: TSynHighlighterAttributes read fDocStringAttri
+      write fDocStringAttri;
     property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
     write fSymbolAttri;
+    property ErrorAttri: TSynHighlighterAttributes read fErrorAttri
+      write fErrorAttri;
   end;
 
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
+  GlobalKeywords: TStringList;
 
-procedure MakeIdentTable;
+function TSynPythonSyn.GetKeywordIdentifiers: TStringList;
+const
+  // No need to localise keywords!
+
+  // List of keywords
+  KEYWORDCOUNT = 29;
+  KEYWORDS: array [1..KEYWORDCOUNT] of string =
+    (
+    'and',
+    'assert',
+    'break',
+    'class',
+    'continue',
+    'def',
+    'del',
+    'elif',
+    'else',
+    'except',
+    'exec',
+    'finally',
+    'for',
+    'from',
+    'global',
+    'if',
+    'import',
+    'in',
+    'is',
+    'lambda',
+    'not',
+    'or',
+    'pass',
+    'print',
+    'raise',
+    'return',
+    'try',
+    'while',
+    'yield'
+    );
+
+  // List of non-keyword identifiers
+  NONKEYWORDCOUNT = 66;
+  NONKEYWORDS: array [1..NONKEYWORDCOUNT] of string =
+    (
+    '__future__',
+    '__import__',
+    'abs',
+    'apply',
+    'as',
+    'buffer',
+    'callable',
+    'chr',
+    'cmp',
+    'coerce',
+    'compile',
+    'complex',
+    'delattr',
+    'dict',
+    'dir',
+    'divmod',
+    'eval',
+    'execfile',
+    'False',
+    'file',
+    'filter',
+    'float',
+    'getattr',
+    'globals',
+    'hasattr',
+    'hash',
+    'help',
+    'hex',
+    'id',
+    'input',
+    'int',
+    'intern',
+    'isinstance',
+    'issubclass',
+    'iter',
+    'len',
+    'list',
+    'locals',
+    'long',
+    'None',
+    'NotImplemented',
+    'map',
+    'max',
+    'min',
+    'oct',
+    'open',
+    'ord',
+    'pow',
+    'range',
+    'raw_input',
+    'reduce',
+    'reload',
+    'repr',
+    'round',
+    'self',
+    'setattr',
+    'slice',
+    'str',
+    'True',
+    'tuple',
+    'type',
+    'unichr',
+    'unicode',
+    'vars',
+    'xrange',
+    'zip'
+    );
 var
-  I, J: Char;
+  f: Integer;
 begin
-  for I := #0 to #255 do begin
-    case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else
-      Identifiers[I] := False;
-    end;
-    J := UpCase(I);
-    case I in ['_', 'A'..'Z', 'a'..'z'] of
-      True:
-        mHashTable[I] := Ord(J) - 64
-    else
-      mHashTable[I] := 0;
-    end;
-  end;
-end;
+  if not Assigned (GlobalKeywords) then begin
+    // Create the string list of keywords - only once
+    GlobalKeywords := TStringList.Create;
 
-procedure TSynPythonSyn.InitIdent;
-var
-  I: Integer;
-begin
-  for I := 0 to 101 do
-    case I of
-      15: fIdentFuncTable[I] := Func15;
-      21: fIdentFuncTable[I] := Func21;
-      23: fIdentFuncTable[I] := Func23;
-      31: fIdentFuncTable[I] := Func31;
-      32: fIdentFuncTable[I] := Func32;
-      33: fIdentFuncTable[I] := Func33;
-      37: fIdentFuncTable[I] := Func37;
-      39: fIdentFuncTable[I] := Func39;
-      41: fIdentFuncTable[I] := Func41;
-      45: fIdentFuncTable[I] := Func45;
-      49: fIdentFuncTable[I] := Func49;
-      52: fIdentFuncTable[I] := Func52;
-      54: fIdentFuncTable[I] := Func54;
-      55: fIdentFuncTable[I] := Func55;
-      57: fIdentFuncTable[I] := Func57;
-      63: fIdentFuncTable[I] := Func63;
-      73: fIdentFuncTable[I] := Func73;
-      77: fIdentFuncTable[I] := Func77;
-      79: fIdentFuncTable[I] := Func79;
-      91: fIdentFuncTable[I] := Func91;
-      96: fIdentFuncTable[I] := Func96;
-      101: fIdentFuncTable[I] := Func101;
-    else
-      fIdentFuncTable[I] := AltFunc;
-    end;
-end;
-
-function TSynPythonSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end; { KeyHash }
-
-function TSynPythonSyn.KeyComp(const aKey: string): Boolean;
-var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then begin
-    Result := True;
-    for i := 1 to fStringLen do begin
-      if mHashTable[Temp^] <> mHashTable[aKey[i]] then begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end
-  else
-    Result := False;
-end; { KeyComp }
-
-function TSynPythonSyn.Func15: TtkTokenKind;
-begin
-  if KeyComp('Def') then
-    Result := tkKey
-  else if KeyComp('If') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func21: TtkTokenKind;
-begin
-  if KeyComp('Del') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func23: TtkTokenKind;
-begin
-  if KeyComp('In') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func31: TtkTokenKind;
-begin
-  if KeyComp('Len') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func32: TtkTokenKind;
-begin
-  if KeyComp('Elif') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func33: TtkTokenKind;
-begin
-  if KeyComp('Lambda') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func37: TtkTokenKind;
-begin
-  if KeyComp('Break') then
-    Result := tkKey
-  else if KeyComp('Exec') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func39: TtkTokenKind;
-begin
-  if KeyComp('For') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func41: TtkTokenKind;
-begin
-  if KeyComp('Else') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('Range') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func49: TtkTokenKind;
-begin
-  if KeyComp('Global') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('Raise') then
-    Result := tkKey
-  else if KeyComp('From') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func54: TtkTokenKind;
-begin
-  if KeyComp('Class') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func55: TtkTokenKind;
-begin
-  if KeyComp('Pass') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func57: TtkTokenKind;
-begin
-  if KeyComp('While') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func63: TtkTokenKind;
-begin
-  if KeyComp('Try') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func73: TtkTokenKind;
-begin
-  if KeyComp('Except') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func77: TtkTokenKind;
-begin
-  if KeyComp('Print') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func79: TtkTokenKind;
-begin
-  if KeyComp('Finally') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func91: TtkTokenKind;
-begin
-  if KeyComp('Import') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func96: TtkTokenKind;
-begin
-  if KeyComp('Return') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.Func101: TtkTokenKind;
-begin
-  if KeyComp('Continue') then
-    Result := tkKey
-  else
-    Result := tkIdentifier;
-end;
-
-function TSynPythonSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier;
+    for f := 1 to KEYWORDCOUNT do
+      GlobalKeywords.AddObject (KEYWORDS[f], Pointer (Ord(tkKey)));
+    for f := 1 to NONKEYWORDCOUNT do
+      GlobalKeywords.AddObject (NONKEYWORDS[f], Pointer (Ord(tkNonKeyword)));
+  end; // if
+  Result := GlobalKeywords;
 end;
 
 function TSynPythonSyn.IdentKind(MayBe: PChar): TtkTokenKind;
 var
-  HashKey: Integer;
+  index: Integer;
+  temp: PChar;
+  s: string;
+
 begin
+  // Extract the identifier out - it is assumed to terminate in a
+  //   non-alphanumeric character
   fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < 102 then
-    Result := fIdentFuncTable[HashKey]
+  temp := MayBe;
+  while temp^ in IDENTIFIER_CHARS do
+    Inc (temp);
+  fStringLen := temp - fToIdent;
+
+  // Check to see if it is a keyword
+  SetString (s, fToIdent, fStringLen);
+  {$IFDEF SYN_COMPILER_6_UP}
+  index := FKeywords.IndexOf (s);
+  {$ELSE}
+  if FKeywords.Find (s, index) then begin
+    // TStringList is not case sensitive!
+    if s <> FKeywords[index] then
+      index := -1;
+  end else begin
+    index := -1;
+  end; // if
+  {$ENDIF}
+
+  if index <> -1 then
+    Result := TtkTokenKind (FKeywords.Objects[index])
+
+  // Check if it is a system identifier (__*__)
+  else if (fStringLen >= 5) and
+     (MayBe[0] = '_') and (MayBe[1] = '_') and (MayBe[2] <> '_') and
+     (MayBe[fStringLen-1] = '_') and (MayBe[fStringLen-2] = '_') and
+     (MayBe[fStringLen-3] <> '_') then
+    Result := tkSystemDefined
+
+  // Else, hey, it is an ordinary run-of-the-mill identifier!
   else
     Result := tkIdentifier;
 end;
-
+  
 procedure TSynPythonSyn.MakeMethodTables;
 var
   I: Char;
 begin
   for I := #0 to #255 do
     case I of
-      '@','&', '}', '{', ':', ',', ']', '[', '*',
-      '^', ')', '(', ';', '/', '=', '-', '+':
+      '&', '}', '{', ':', ',', ']', '[', '*', '`',
+      '^', ')', '(', ';', '/', '=', '-', '+', '!', '\',
+      '%', '|', '~' :
         fProcTable[I] := SymbolProc;
       #13: fProcTable[I] := CRProc;
       '#': fProcTable[I] := CommentProc;
       '>': fProcTable[I] := GreaterProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      '$': fProcTable[I] := IntegerProc;
+      'A'..'Q', 'S', 'T', 'V'..'Z', 'a'..'q', 's', 't', 'v'..'z', '_': fProcTable[I] := IdentProc;
       #10: fProcTable[I] := LFProc;
       '<': fProcTable[I] := LowerProc;
       #0: fProcTable[I] := NullProc;
-      '0'..'9': fProcTable[I] := NumberProc;
-      '.': fProcTable[I] := PointProc;
+      '.', '0'..'9': fProcTable[I] := NumberProc;
       #1..#9, #11, #12, #14..#32:
         fProcTable[I] := SpaceProc;
-      #39: fProcTable[I] := StringProc;
+      'r', 'R': fProcTable[I] := PreStringProc;
+      'u', 'U': fProcTable[I] := UnicodeStringProc;
+      '''': fProcTable[I] := StringProc;
       '"': fProcTable[I] := String2Proc;
     else
       fProcTable[I] := UnknownProc;
@@ -490,9 +402,22 @@ end;
 constructor TSynPythonSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  
+  {$IFDEF SYN_COMPILER_6_UP}
+  FKeywords := THashedStringList.Create;
+  FKeywords.CaseSensitive := True;
+  {$ELSE}
+  // Older compilers do not ave hashed string list - so use less efficient
+  //   TStringList instead - but keep it sorted
+  FKeywords := TStringList.Create;
+  FKeywords.Sorted := True; 
+  {$ENDIF}
+  FKeywords.Duplicates := dupError;
+  FKeywords.Assign (GetKeywordIdentifiers);
+
   fRange := rsUnknown;
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
-  fCommentAttri.Foreground := clTeal;
+  fCommentAttri.Foreground := clGray;
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
   fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
@@ -500,21 +425,49 @@ begin
   fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
+  fNonKeyAttri := TSynHighlighterAttributes.Create (SYNS_AttrNonReservedKeyword);
+  fNonKeyAttri.Foreground := clNavy;
+  fNonKeyAttri.Style := [fsBold];
+  AddAttribute (fNonKeyAttri);
+  fSystemAttri := TSynHighlighterAttributes.Create (SYNS_AttrSystem);
+  fSystemAttri.Style := [fsBold];
+  AddAttribute (fSystemAttri);
   fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
   fNumberAttri.Foreground := clBlue;
   AddAttribute(fNumberAttri);
+  fHexAttri := TSynHighlighterAttributes.Create(SYNS_AttrHexadecimal);
+  fHexAttri.Foreground := clBlue;
+  AddAttribute(fHexAttri);
+  fOctalAttri := TSynHighlighterAttributes.Create(SYNS_AttrOctal);
+  fOctalAttri.Foreground := clBlue;
+  AddAttribute(fOctalAttri);
+  fFloatAttri := TSynHighlighterAttributes.Create(SYNS_AttrFloat);
+  fFloatAttri.Foreground := clBlue;
+  AddAttribute(fFloatAttri);
   fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
   AddAttribute(fSpaceAttri);
   fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
   fStringAttri.Foreground := clBlue;
   AddAttribute(fStringAttri);
+  fDocStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrDocumentation);
+  fDocStringAttri.Foreground := clTeal;
+  AddAttribute(fDocStringAttri);
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
   AddAttribute(fSymbolAttri);
+  fErrorAttri := TSynHighlighterAttributes.Create(SYNS_AttrSyntaxError);
+  fErrorAttri.Foreground := clRed;
+  AddAttribute(fErrorAttri);
   SetAttributesOnChange(DefHighlightChange);
-  InitIdent;
   MakeMethodTables;
   fDefaultFilter := SYNS_FilterPython;
 end; { Create }
+
+destructor TSynPythonSyn.Destroy;
+begin
+  FKeywords.Free;
+  
+  inherited;
+end;
 
 procedure TSynPythonSyn.SetLine(NewValue: string; LineNumber: Integer);
 begin
@@ -566,16 +519,6 @@ procedure TSynPythonSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do
-    inc(Run);
-end;
-
-procedure TSynPythonSyn.IntegerProc;
-begin
-  inc(Run);
-  fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'9', 'A'..'F', 'a'..'f'] do
-    inc(Run);
 end;
 
 procedure TSynPythonSyn.LFProc;
@@ -608,34 +551,305 @@ begin
 end;
 
 procedure TSynPythonSyn.NumberProc;
-begin
-  inc(Run);
-  fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'9', '.', 'e', 'E'] do begin
-    case FLine[Run] of
-      '.':
-        if FLine[Run + 1] = '.' then break;
-    end;
-    inc(Run);
-  end;
-end;
+const
+  INTCHARS = ['0' .. '9'];
+  HEXCHARS = ['a' .. 'f', 'A' .. 'F'] + INTCHARS;
+  OCTCHARS = ['0' .. '7'];
+  HEXINDICATOR = ['x', 'X'];
+  LONGINDICATOR = ['l', 'L'];
+  IMAGINARYINDICATOR = ['j', 'J'];
+  EXPONENTINDICATOR = ['e', 'E'];
+  EXPONENTSIGN = ['+', '-'];
+  DOT = '.';
+  ZERO = '0';
 
-procedure TSynPythonSyn.PointProc;
-begin
-  case FLine[Run + 1] of
-    '.': begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
-      end;
-    ')': begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
-      end;
-  else begin
-      inc(Run);
-      fTokenID := tkSymbol;
+type
+  TNumberState =
+    (
+    nsStart,
+    nsDotFound,
+    nsFloatNeeded,
+    nsHex,
+    nsOct,
+    nsExpFound
+    );
+
+var
+  temp: Char;
+  State: TNumberState;
+
+  function CheckSpecialCases: Boolean;
+  begin
+    case temp of
+      // Look for dot (.)
+      DOT: begin
+        // .45
+        if FLine[Run] in INTCHARS then begin
+          Inc (Run);
+          fTokenID := tkFloat;
+          State := nsDotFound;
+
+        // Non-number dot
+        end else begin
+          // Ellipsis
+          if (FLine[Run] = DOT) and (FLine[Run+1] = DOT) then
+            Inc (Run, 2);
+          fTokenID := tkSymbol;
+          Result := False;
+          Exit;
+        end; // if
+      end; // DOT
+
+      // Look for zero (0)
+      ZERO: begin
+        temp := FLine[Run];
+        // 0x123ABC
+        if temp in HEXINDICATOR then begin
+          Inc (Run);
+          fTokenID := tkHex;
+          State := nsHex;
+        // 0.45
+        end else if temp = DOT then begin
+          Inc (Run);
+          State := nsDotFound;
+          fTokenID := tkFloat;
+        end else if temp in INTCHARS then begin
+          Inc (Run);
+          // 0123 or 0123.45
+          if temp in OCTCHARS then begin
+            fTokenID := tkOct;
+            State := nsOct;
+          // 0899.45
+          end else begin
+            fTokenID := tkFloat;
+            State := nsFloatNeeded;
+          end; // if
+        end; // if
+      end; // ZERO
+    end; // case
+
+    Result := True;
+  end; // CheckSpecialCases
+
+  function HandleBadNumber: Boolean;
+  begin
+    Result := False;
+    fTokenID := tkUnknown;
+    // Ignore all tokens till end of "number"
+    while FLine[Run] in (IDENTIFIER_CHARS + ['.']) do
+      Inc (Run);
+  end; // HandleBadNumber
+
+  function HandleExponent: Boolean;
+  begin
+    State := nsExpFound;
+    fTokenID := tkFloat;
+    // Skip e[+/-]
+    if FLine[Run+1] in EXPONENTSIGN then
+      Inc (Run);
+    // Invalid token : 1.0e
+    if not (FLine[Run+1] in INTCHARS) then begin
+      Inc (Run);
+      Result := HandleBadNumber;
+      Exit;
+    end; // if
+
+    Result := True;
+  end; // HandleExponent
+
+  function HandleDot: Boolean;
+  begin
+    // Check for ellipsis
+    Result := (FLine[Run+1] <> DOT) or (FLine[Run+2] <> DOT);
+    if Result then begin
+      State := nsDotFound;
+      fTokenID := tkFloat;
+    end; // if
+  end; // HandleDot
+
+  function CheckStart: Boolean;
+  begin
+    // 1234
+    if temp in INTCHARS then begin
+      Result := True;
+    //123e4
+    end else if temp in EXPONENTINDICATOR then begin
+      Result := HandleExponent;
+    // 123.45j
+    end else if temp in IMAGINARYINDICATOR then begin
+      Inc (Run);
+      fTokenID := tkFloat;
+      Result := False;
+    // 123.45
+    end else if temp = DOT then begin
+      Result := HandleDot;
+    // Error!
+    end else if temp in IDENTIFIER_CHARS then begin
+      Result := HandleBadNumber;
+    // End of number
+    end else begin
+      Result := False;
+    end; // if
+  end; // CheckStart
+
+  function CheckDotFound: Boolean;
+  begin
+    // 1.0e4
+    if temp in EXPONENTINDICATOR then begin
+      Result := HandleExponent;
+    // 123.45
+    end else if temp in INTCHARS then begin
+      Result := True;
+    // 123.45j
+    end else if temp in IMAGINARYINDICATOR then begin
+      Inc (Run);
+      Result := False;
+    // 123.45.45: Error!
+    end else if temp = DOT then begin
+      Result := False;
+      if HandleDot then
+        HandleBadNumber;
+    // Error!
+    end else if temp in IDENTIFIER_CHARS then begin
+      Result := HandleBadNumber;
+    // End of number
+    end else begin
+      Result := False;
+    end; // if
+  end; // CheckDotFound
+
+  function CheckFloatNeeded: Boolean;
+  begin
+    // 091.0e4
+    if temp in EXPONENTINDICATOR then begin
+      Result := HandleExponent;
+    // 0912345
+    end else if temp in INTCHARS then begin
+      Result := True;
+    // 09123.45
+    end else if temp = DOT then begin
+      Result := HandleDot or HandleBadNumber; // Bad octal
+    // 09123.45j
+    end else if temp in IMAGINARYINDICATOR then begin
+      Inc (Run);
+      Result := False;
+    // End of number (error: Bad oct number) 0912345
+    end else begin
+      Result := HandleBadNumber;
     end;
-  end;
+  end; // CheckFloatNeeded
+
+  function CheckHex: Boolean;
+  begin
+    // 0x123ABC
+    if temp in HEXCHARS then begin
+      Result := True;
+    // 0x123ABCL
+    end else if temp in LONGINDICATOR then begin
+      Inc (Run);
+      Result := False;
+    // 0x123.45: Error!
+    end else if temp = DOT then begin
+      Result := False;
+      if HandleDot then
+        HandleBadNumber;
+    // Error!
+    end else if temp in IDENTIFIER_CHARS then begin
+      Result := HandleBadNumber;
+    // End of number
+    end else begin
+      Result := False;
+    end; // if
+  end; // CheckHex
+
+  function CheckOct: Boolean;
+  begin
+    // 012345
+    if temp in INTCHARS then begin
+      if not (temp in OCTCHARS) then begin
+        State := nsFloatNeeded;
+        fTokenID := tkFloat;
+      end; // if
+      Result := True;
+    // 012345L
+    end else if temp in LONGINDICATOR then begin
+      Inc (Run);
+      Result := False;
+    // 0123e4
+    end else if temp in EXPONENTINDICATOR then begin
+      Result := HandleExponent;
+    // 0123j
+    end else if temp in IMAGINARYINDICATOR then begin
+      Inc (Run);
+      fTokenID := tkFloat;
+      Result := False;
+    // 0123.45
+    end else if temp = DOT then begin
+      Result := HandleDot;
+    // Error!
+    end else if temp in IDENTIFIER_CHARS then begin
+      Result := HandleBadNumber;
+    // End of number
+    end else begin
+      Result := False;
+    end; // if
+  end; // CheckOct
+
+  function CheckExpFound: Boolean;
+  begin
+    // 1e+123
+    if temp in INTCHARS then begin
+      Result := True;
+    // 1e+123j
+    end else if temp in IMAGINARYINDICATOR then begin
+      Inc (Run);
+      Result := False;
+    // 1e4.5: Error!
+    end else if temp = DOT then begin
+      Result := False;
+      if HandleDot then
+        HandleBadNumber;
+    // Error!
+    end else if temp in IDENTIFIER_CHARS then begin
+      Result := HandleBadNumber;
+    // End of number
+    end else begin
+      Result := False;
+    end; // if
+  end; // CheckExpFound
+
+begin
+  State := nsStart;
+  fTokenID := tkNumber;
+
+  temp := FLine[Run];
+  Inc (Run);
+
+  // Special cases
+  if not CheckSpecialCases then
+    Exit;
+
+  // Use a state machine to parse numbers
+  while True do begin
+    temp := FLine[Run];
+
+    case State of
+      nsStart:
+        if not CheckStart then Exit;
+      nsDotFound:
+        if not CheckDotFound then Exit;
+      nsFloatNeeded:
+        if not CheckFloatNeeded then Exit;
+      nsHex:
+        if not CheckHex then Exit;
+      nsOct:
+        if not CheckOct then Exit;
+      nsExpFound:
+        if not CheckExpFound then Exit;
+    end; // case
+
+    Inc (Run);
+  end; // while
 end;
 
 procedure TSynPythonSyn.SpaceProc;
@@ -647,14 +861,34 @@ begin
 end;
 
 procedure TSynPythonSyn.String2Proc;
+var fBackslashCount:integer;
 begin
   fTokenID := tkString;
   if (FLine[Run + 1] = '"') and (FLine[Run + 2] = '"') then begin
+    fTokenID := tkTrippleQuotedString;
     inc(Run, 3);
 
     fRange:=rsMultilineString2;
     while fLine[Run] <> #0 do begin
       case fLine[Run] of
+
+        '\':begin
+               { If we're looking at a backslash, and the following character is an
+               end quote, and it's preceeded by an odd number of backslashes, then
+               it shouldn't mark the end of the string.  If it's preceeded by an
+               even number, then it should. !!!THIS RULE DOESNT APPLY IN RAW STRINGS}
+               if FLine[Run + 1] = '"' then
+                 begin
+                   fBackslashCount := 1;
+
+                   while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = '\')) do
+                     fBackslashCount := fBackslashCount + 1;
+
+                   if (fBackslashCount mod 2 = 1) then inc(Run)
+               end;
+               inc(Run);
+            end;// '\':
+
         '"':
           if (fLine[Run + 1] = '"') and (fLine[Run + 2] = '"') then begin
             fRange := rsUnKnown;
@@ -662,30 +896,103 @@ begin
             EXIT;
           end else
             inc(Run);
-        #10: EXIT;
-        #13: EXIT;
+        #10:EXIT;
+        #13:EXIT;
         else
           inc(Run);
       end;
     end;
-  end;
-
+  end
+      else //if short string
   repeat
-    if (FLine[Run] in [#0, #10, #13]) then BREAK;
-    inc(Run);
-  until FLine[Run] = '"';
+    case FLine[Run] of
+      #0, #10, #13 : begin
+        if FLine[Run-1] = '\' then begin
+          fStringStarter := '"';
+          fRange := rsMultilineString3;
+        end;
+        BREAK;
+        end;
+      {The same backslash stuff above...}
+      '\':begin
+             if FLine[Run + 1] = '"' then
+               begin
+                 fBackslashCount := 1;
+
+                 while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = '\')) do
+                   fBackslashCount := fBackslashCount + 1;
+
+                 if (fBackslashCount mod 2 = 1) then inc(Run)
+             end;
+             inc(Run);
+          end;// '\':
+
+      else inc(Run);
+    end; //case
+  until (FLine[Run] = '"');
   if FLine[Run] <> #0 then inc(Run);
 end;
 
+procedure TSynPythonSyn.PreStringProc;
+var
+  temp: Char;
+
+begin
+  // Handle python raw strings
+  // r""
+  temp := FLine[Run + 1];
+  if temp = '''' then begin
+    Inc (Run);
+    StringProc;
+  end else if temp = '"' then begin
+    Inc (Run);
+    String2Proc;
+  end else begin
+    // If not followed by quote char, must be ident
+    IdentProc;
+  end; // if
+end;
+
+procedure TSynPythonSyn.UnicodeStringProc;
+begin
+  // Handle python raw and unicode strings
+  // Valid syntax: u"", or ur""
+  if (FLine[Run + 1] in ['r', 'R']) and (FLine[Run + 2] in ['''', '"']) then
+    // for ur, Remove the "u" and...
+    Inc (Run);
+  // delegate to raw strings
+  PreStringProc;
+end;
+
 procedure TSynPythonSyn.StringProc;
+var fBackslashCount:integer;
 begin
   fTokenID := tkString;
   if (FLine[Run + 1] = #39) and (FLine[Run + 2] = #39) then begin
+    fTokenID := tkTrippleQuotedString;
     inc(Run, 3);
 
     fRange:=rsMultilineString;
     while fLine[Run] <> #0 do begin
       case fLine[Run] of
+
+        '\': begin
+             { If we're looking at a backslash, and the following character is an
+             end quote, and it's preceeded by an odd number of backslashes, then
+             it shouldn't mark the end of the string.  If it's preceeded by an
+             even number, then it should. !!!THIS RULE DOESNT APPLY IN RAW STRINGS}
+              if FLine[Run + 1] = #39 then
+                begin
+                  fBackslashCount := 1;
+
+                  while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = '\')) do
+                    fBackslashCount := fBackslashCount + 1;
+
+                  if (fBackslashCount mod 2 = 1) then inc(Run)
+              end;
+              inc(Run);
+            end;// '\':
+
         #39:
           if (fLine[Run + 1] = #39) and (fLine[Run + 2] = #39) then begin
             fRange := rsUnKnown;
@@ -699,20 +1006,47 @@ begin
           inc(Run);
       end;
     end;
-  end;
-
+  end
+      else //if short string
   repeat
-    if (FLine[Run] in [#0, #10, #13]) then BREAK;
-    inc(Run);
-  until FLine[Run] = #39;
+    case FLine[Run] of
+      #0, #10, #13 : begin
+        if FLine[Run-1] = '\' then begin
+          fStringStarter := #39;
+          fRange := rsMultilineString3;
+        end;
+        BREAK;
+        end;
+
+      {The same backslash stuff above...}
+      '\':begin
+             if FLine[Run + 1] = #39 then
+               begin
+                 fBackslashCount := 1;
+
+                 while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = '\')) do
+                   fBackslashCount := fBackslashCount + 1;
+
+                 if (fBackslashCount mod 2 = 1) then inc(Run)
+             end;
+             inc(Run);
+          end;// '\':
+
+      else inc(Run);
+    end; //case
+  until (FLine[Run] = #39);
   if FLine[Run] <> #0 then inc(Run);
 end;
 
 procedure TSynPythonSyn.StringEndProc(EndChar:char);
+var fBackslashCount:integer;
 begin
-  fTokenID := tkString;
+  if fRange = rsMultilineString3 then
+    fTokenID := tkString
+  else
+    fTokenID := tkTrippleQuotedString;
 
-    case FLine[Run] of
+  case FLine[Run] of
     #0:
       begin
         NullProc;
@@ -730,19 +1064,61 @@ begin
       end;
   end;
 
+  if fRange = rsMultilineString3 then begin
+    repeat
+      if FLine[Run]=fStringStarter then begin
+        inc(Run);
+        fRange:=rsUnknown;
+        EXIT;
+      end else if FLine[Run]='\' then ;  {The same backslash stuff above...}
+          begin
+             if FLine[Run + 1] = fStringStarter then
+               begin
+                 fBackslashCount := 1;
+
+                 while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = '\')) do
+                   fBackslashCount := fBackslashCount + 1;
+
+                 if (fBackslashCount mod 2 = 1) then inc(Run);
+             end;
+           end;// if FLine[Run]...
+
+      inc(Run);
+    until (FLine[Run] in [#0, #10, #13]);
+    if FLine[Run-1]<>'\' then begin
+      fRange:=rsUnknown;
+      EXIT;
+    end;
+  end else
   repeat
+    if FLine[Run] = '\' then
+    begin
+       if FLine[Run + 1] = EndChar then
+         begin
+           fBackslashCount := 1;
+
+           while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = '\')) do
+             fBackslashCount := fBackslashCount + 1;
+
+           if (fBackslashCount mod 2 = 1) then inc(Run, 2);
+       end;
+     end;// if FLine[Run]...
     if (FLine[Run]=EndChar) and (FLine[Run+1]=EndChar) and (FLine[Run+2]=EndChar) then begin
       inc(Run,3);
       fRange:=rsUnknown;
       EXIT;
     end;
-
     inc(Run);
   until (FLine[Run] in [#0, #10, #13]);
 end;
 
 procedure TSynPythonSyn.UnknownProc;
 begin
+{$IFDEF SYN_MBCSSUPPORT}
+  if FLine[Run] in LeadBytes then
+    Inc(Run, 2)
+  else
+{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -756,9 +1132,11 @@ begin
       StringEndProc(#39);
     rsMultilineString2:
       StringEndProc('"');
+    rsMultilineString3:
+      StringEndProc(fStringStarter);
     else
-  fProcTable[fLine[Run]];
-end;
+      fProcTable[fLine[Run]];
+  end;
 end;
 
 function TSynPythonSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -802,11 +1180,17 @@ begin
     tkComment: Result := fCommentAttri;
     tkIdentifier: Result := fIdentifierAttri;
     tkKey: Result := fKeyAttri;
+    tkNonKeyword: Result := fNonKeyAttri;
+    tkSystemDefined: Result := fSystemAttri;
     tkNumber: Result := fNumberAttri;
+    tkHex: Result := fHexAttri;
+    tkOct: Result := fOctalAttri;
+    tkFloat: Result := fFloatAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
+    tkTrippleQuotedString: Result := fDocStringAttri;
     tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fSymbolAttri;
+    tkUnknown: Result := fErrorAttri;
   else
     Result := nil;
   end;
@@ -837,8 +1221,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynPythonSyn.GetLanguageName: string;
+function TSynPythonSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterPython;
+end;
+
+class function TSynPythonSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangPython;
 end;
@@ -848,16 +1236,16 @@ begin
   Result :=
     '#!/usr/local/bin/python'#13#10 +
     'import string, sys'#13#10 +
-    '# If no arguments were given, print a helpful message'#13#10 +
+    '""" If no arguments were given, print a helpful message """'#13#10 +
     'if len(sys.argv)==1:'#13#10 +
     '    print ''Usage: celsius temp1 temp2 ...'''#13#10 +
     '    sys.exit(0)';
 end;
 
 initialization
-  MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynPythonSyn);
 {$ENDIF}
+finalization
+  GlobalKeywords.Free;
 end.
-

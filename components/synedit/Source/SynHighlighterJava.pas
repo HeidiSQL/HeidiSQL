@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterJava.pas,v 1.14 2002/03/04 09:09:38 plpolak Exp $
+$Id: SynHighlighterJava.pas,v 1.19 2005/01/28 16:53:24 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,20 +41,26 @@ Known Issues:
 @lastmod(2000-06-23)
 The SynHighlighterJava unit provides SynEdit with a Java source (.java) highlighter.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERJAVA}
 unit SynHighlighterJava;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils, Classes;
 
 type
   TtkTokenKind = (tkComment, tkDocument, tkIdentifier, tkInvalid, tkKey,
@@ -193,9 +199,9 @@ type
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
     function GetExtTokenID: TxtkTokenKind;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;    
@@ -235,7 +241,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -802,8 +812,8 @@ end;
 procedure TSynJavaSyn.CommaProc;
 begin
   inc(Run);
-  fTokenID := tkSymbol; //tkInvalid;                                            //DDH Addition from Eden Kirin
-  fExtTokenID := xtkComma;                                                      //GBN 13/12/2001
+  fTokenID := tkSymbol;
+  fExtTokenID := xtkComma;
 end;
 
 procedure TSynJavaSyn.EqualProc;
@@ -1138,7 +1148,7 @@ begin
           fTokenID := tkComment;
         end;
 
-        inc(Run,2);
+        inc(Run, 2);
         while fLine[Run] <> #0 do
           case fLine[Run] of
             '*':
@@ -1235,7 +1245,7 @@ procedure TSynJavaSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -1279,7 +1289,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-procedure TSynJavaSyn.ReSetRange;
+procedure TSynJavaSyn.ResetRange;
 begin
   fRange := rsUnknown;
 end;
@@ -1339,8 +1349,12 @@ begin
   Result := ['_', '$', '0'..'9', 'a'..'z', 'A'..'Z'] + TSynSpecialChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynJavaSyn.GetLanguageName: string;
+function TSynJavaSyn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterJava;
+end;
+
+class function TSynJavaSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangJava;
 end;
@@ -1362,8 +1376,7 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynJavaSyn);
 {$ENDIF}
 end.
-

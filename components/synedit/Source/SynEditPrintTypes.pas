@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintTypes.pas,v 1.1.1.1 2000/07/08 15:54:06 mghie Exp $
+$Id: SynEditPrintTypes.pas,v 1.5 2004/10/09 12:54:58 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,7 +42,9 @@ CONTENTS:
 -------------------------------------------------------------------------------}
 
 
+{$IFNDEF QSYNEDITPRINTTYPES}
 unit SynEditPrintTypes;
+{$ENDIF}
 
 interface
 
@@ -81,129 +83,134 @@ type
 
 function IntToRoman(Value: Integer): string;
 
-function WrapText(const Line: string; BreakChars: TSysCharSet;
+function WrapTextEx(const Line: string; BreakChars: TSysCharSet;
   MaxCol: Integer; AList: TList): Boolean;
 
 implementation
 
-function WrapText(const Line: string; BreakChars: TSysCharSet;
-  MaxCol: Integer; AList: TList): Boolean;
 //Returns wrapping positions in AList.
+function WrapTextEx(const Line: string; BreakChars: TSysCharSet;
+  MaxCol: Integer; AList: TList): Boolean;
 var
   WrapPos: TWrapPos;
-  Pos, DPos: Integer;
+  Pos, PreviousPos: Integer;
   Found: Boolean;
-  OrgCount: Integer;
-  i: Integer;
 begin
-  Result := True;
-  if Length(Line) <= MaxCol then Exit;
+  if Length(Line) <= MaxCol then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  Result := False;
   Pos := 1;
-  DPos := 0;
-  Found := False;
+  PreviousPos := 0;
   WrapPos := TWrapPos.Create;
-  OrgCount := AList.Count;
-  while Pos <= Length(Line) do begin
-    if Line[Pos] in BreakChars then begin //We found a possible break
+  while Pos <= Length(Line) do
+  begin
+    Found := (Pos - PreviousPos > MaxCol) and (WrapPos.Index <> 0);
+    if not Found and (Line[Pos] in BreakChars) then // We found a possible break
       WrapPos.Index := Pos;
-      Found := True;
-    end;
-      {If MaxCol or last character is reached then the wrapping position is
-       saved - or if no position is found, the procedure failed}
-    if (Pos - DPos = MaxCol) or (Pos = Length(Line)) then begin
-      if Found then begin
-        Found := False;
-        AList.Add(WrapPos);
-        DPos := WrapPos.Index;
-              //If no more wraps needed and not end of line then a new wrap is created
-        if ((Length(Line) - DPos) > MaxCol) and (Pos < Length(Line)) then
-          WrapPos := TWrapPos.Create
-        else
-          Break;
-      end
-      else begin
-        Result := False;
-        WrapPos.Free;
-              //Clear added...
-        for i := Alist.Count - 1 downto OrgCount do begin
-          TWrapPos(AList[i]).Free;
-          AList.Delete(i);
-        end;
-        Exit;
-      end;
+
+    if Found then
+    begin
+      Result := True;
+      AList.Add(WrapPos);
+      PreviousPos := WrapPos.Index;
+
+      // If more wraps needed and not end of line then a new wrap is created
+      if ((Length(Line) - PreviousPos) > MaxCol) and (Pos < Length(Line)) then
+        WrapPos := TWrapPos.Create
+      else
+        Break;
     end;
     Pos := Pos + 1;
   end;
+
+  if (AList.Count = 0) or (AList.Last <> WrapPos) then
+    WrapPos.Free;
 end;
 
+//Integer to Roman - copied from SWAG
 function IntToRoman(Value: Integer): string;
-//Integer to Roman - copied on SWAG
 begin
   Result := '';
   while Value >= 1000 do begin
     Result := Result + 'M';
     Value := Value - 1000;
-  end; { while }
+  end;
 
-  if Value >= 900 then begin
+  if Value >= 900 then
+  begin
     Result := Result + 'CM';
     Value := Value - 900;
-  end; { if }
+  end;
 
-  while Value >= 500 do begin
+  while Value >= 500 do
+  begin
     Result := Result + 'D';
     Value := Value - 500;
-  end; { while }
+  end;
 
-  if Value >= 400 then begin
+  if Value >= 400 then
+  begin
     Result := Result + 'CD';
     Value := Value - 400;
-  end; { if }
+  end;
 
-  while Value >= 100 do begin
+  while Value >= 100 do
+  begin
     Result := Result + 'C';
     Value := Value - 100;
-  end; { while }
+  end;
 
-  if Value >= 90 then begin
+  if Value >= 90 then
+  begin
     Result := Result + 'XC';
     Value := Value - 90;
-  end; { if }
+  end;
 
-  while Value >= 50 do begin
+  while Value >= 50 do
+  begin
     Result := Result + 'L';
     Value := Value - 50;
-  end; { while }
+  end;
 
-  if Value >= 40 then begin
+  if Value >= 40 then
+  begin
     Result := Result + 'XL';
     Value := Value - 40;
-  end; { while }
+  end;
 
-  while Value >= 10 do begin
+  while Value >= 10 do
+  begin
     Result := Result + 'X';
     Value := Value - 10;
-  end; { while }
+  end;
 
-  if Value >= 9 then begin
+  if Value >= 9 then
+  begin
     Result := Result + 'IX';
     Value := Value - 9;
-  end; { if }
+  end;
 
-  while Value >= 5 do begin
+  while Value >= 5 do
+  begin
     Result := Result + 'V';
     Value := Value - 5;
-  end; { while }
+  end;
 
-  if Value >= 4 then begin
+  if Value >= 4 then
+  begin
     Result := Result + 'IV';
     Value := Value - 4;
-  end; { if }
+  end;
 
-  while Value > 0 do begin
+  while Value > 0 do
+  begin
     Result := Result + 'I';
     DEC(Value);
-  end; { while }
+  end;
 end;
 
 end.

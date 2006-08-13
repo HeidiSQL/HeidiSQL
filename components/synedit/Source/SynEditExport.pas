@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditExport.pas,v 1.7 2002/04/08 08:38:14 plpolak Exp $
+$Id: SynEditExport.pas,v 1.17 2004/07/27 14:24:02 markonjezic Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -40,30 +40,34 @@ Known Issues:
 { Base class for exporting a programming language source file or part of it to
   a formatted output like HTML or RTF and copying this to the Windows clipboard
   or saving it to a file. }
+{$IFNDEF QSYNEDITEXPORT}
 unit SynEditExport;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  Classes,
-  SysUtils,
-  SynEditHighlighter,
 {$IFDEF SYN_KYLIX}
-  Libc,  //js 07-04-2002 "," was missing here 
+  Libc,
 {$ENDIF}
 {$IFDEF SYN_CLX}
   Qt,
   QGraphics,
   Types,
-  QClipbrd
+  QClipbrd,
+  QSynEditHighlighter,
+  QSynEditTypes,
 {$ELSE}
   Windows,
   Graphics,
-  Clipbrd
+  Clipbrd,
+  SynEditHighlighter,
+  SynEditTypes,
 {$ENDIF}
-  ;
+  Classes,
+  SysUtils;
 
 type
   PSynReplaceCharsArray = ^TSynReplaceCharsArray;
@@ -86,6 +90,7 @@ type
     procedure SetFont(Value: TFont);
     procedure SetHighlighter(Value: TSynCustomHighlighter);
     procedure SetTitle(const Value: string);
+    procedure SetUseBackground(const Value: boolean);
   protected
     fBackgroundColor: TColor;
     fClipboardFormat: UINT;
@@ -121,13 +126,11 @@ type
     { Has to be overridden in descendant classes to add the closing format
       strings to the output buffer after the last token has been written. }
     procedure FormatAfterLastAttribute; virtual; abstract;
-{begin}                                                                         //mh 2000-10-10
     { Has to be overridden in descendant classes to add the opening format
       strings to the output buffer when the first token is about to be written. }
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
       ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
       virtual; abstract;
-{end}                                                                           //mh 2000-10-10
     { Has to be overridden in descendant classes to add the formatted text of
       the actual token text to the output buffer. }
     procedure FormatToken(Token: string); virtual;
@@ -158,12 +161,11 @@ type
 {$ENDIF}
     { Returns a string that has all the invalid chars of the output format
       replaced with the entries in the replacement array. }
-    function ReplaceReservedChars(AToken: string; var IsSpace: boolean): string;
+    function ReplaceReservedChars(AToken: string): string;
     { Sets the token attribute of the next token to determine the changes
       of colors and font styles so the properties of the next token can be
       added to the output buffer. }
-    procedure SetTokenAttribute(IsSpace: boolean;
-      Attri: TSynHighlighterAttributes); virtual;
+    procedure SetTokenAttribute(Attri: TSynHighlighterAttributes); virtual;
   public
     { Creates an instance of the exporter. }
     constructor Create(AOwner: TComponent); override;
@@ -178,7 +180,7 @@ type
     { Exports everything in the strings parameter to the output buffer. }
     procedure ExportAll(ALines: TStrings);
     { Exports the given range of the strings parameter to the output buffer. }
-    procedure ExportRange(ALines: TStrings; Start, Stop: TPoint);
+    procedure ExportRange(ALines: TStrings; Start, Stop: TBufferCoord);
     { Saves the contents of the output buffer to a file. }
     procedure SaveToFile(const AFileName: string);
     { Saves the contents of the output buffer to a stream. }
@@ -202,13 +204,22 @@ type
     { The title to embedd into the output header. }
     property Title: string read fTitle write SetTitle;
     { Use the token attribute background for the exporting. }
-    property UseBackground: boolean read fUseBackground write fUseBackground;
+    property UseBackground: boolean read fUseBackground write SetUseBackground;
   end;
 
 implementation
 
 uses
-  SynEditMiscProcs, SynEditStrConst;
+{$IFDEF SYN_COMPILER_4_UP}
+  Math,
+{$ENDIF}
+{$IFDEF SYN_CLX}
+  QSynEditMiscProcs,
+  QSynEditStrConst;
+{$ELSE}
+  SynEditMiscProcs,
+  SynEditStrConst;
+{$ENDIF}
 
 { TSynCustomExporter }
 
@@ -260,7 +271,7 @@ begin
   else begin
     fFont.Name := 'Courier New';
     fFont.Size := 10;
-    fFont.Color := clBlack;
+    fFont.Color := clWindowText;
     fFont.Style := [];
   end;
 end;
@@ -288,10 +299,12 @@ begin
 end;
 
 procedure TSynCustomExporter.CopyToClipboardFormat(AFormat: UINT);
+{$IFNDEF SYN_CLX}
 var
   hData: THandle;
   hDataSize: UINT;
   PtrData: PChar;
+{$ENDIF}
 begin
 {$IFNDEF SYN_CLX}
   hDataSize := GetBufferSize + 1;
@@ -312,34 +325,33 @@ begin
     GlobalFree(hData);
     OutOfMemoryError;
   end;
-  {$ENDIF}
+{$ENDIF}
 end;
 
 procedure TSynCustomExporter.ExportAll(ALines: TStrings);
 begin
-  ExportRange(ALines, Point(1, 1), Point(MaxInt, MaxInt));
+  ExportRange(ALines, BufferCoord(1, 1), BufferCoord(MaxInt, MaxInt));
 end;
 
-procedure TSynCustomExporter.ExportRange(ALines: TStrings; Start, Stop: TPoint);
+procedure TSynCustomExporter.ExportRange(ALines: TStrings; Start, Stop: TBufferCoord);
 var
   i: integer;
   Line, Token: string;
-  IsSpace: boolean;
   Attri: TSynHighlighterAttributes;
 begin
   // abort if not all necessary conditions are met
   if not Assigned(ALines) or not Assigned(Highlighter) or (ALines.Count = 0)
-    or (Start.Y > ALines.Count) or (Start.Y > Stop.Y)
+    or (Start.Line > ALines.Count) or (Start.Line > Stop.Line)
   then
   {$IFDEF SYN_CLX}
     exit;
   {$ELSE}
     Abort;
   {$ENDIF}
-  Stop.Y := Max(1, Min(Stop.Y, ALines.Count));
-  Stop.X := Max(1, Min(Stop.X, Length(ALines[Stop.Y - 1]) + 1));
-  Start.X := Max(1, Min(Start.X, Length(ALines[Start.Y - 1]) + 1));
-  if (Start.Y = Stop.Y) and (Start.X >= Stop.X) then
+  Stop.Line := Max(1, Min(Stop.Line, ALines.Count));
+  Stop.Char := Max(1, Min(Stop.Char, Length(ALines[Stop.Line - 1]) + 1));
+  Start.Char := Max(1, Min(Start.Char, Length(ALines[Start.Line - 1]) + 1));
+  if (Start.Line = Stop.Line) and (Start.Char >= Stop.Char) then
   {$IFDEF SYN_CLX}
     exit;
   {$ELSE}
@@ -348,23 +360,24 @@ begin
   // initialization
   fBuffer.Position := 0;
   // Size is ReadOnly in Delphi 2
-  fBuffer.SetSize(Max($1000, (Stop.Y - Start.Y) * 128));
+  fBuffer.SetSize(Max($1000, (Stop.Line - Start.Line) * 128));
   Highlighter.ResetRange;
   // export all the lines into fBuffer
   fFirstAttribute := TRUE;
-  for i := Start.Y to Stop.Y do begin
+  for i := Start.Line to Stop.Line do
+  begin
     Line := ALines[i - 1];
     // order is important, since Start.Y might be equal to Stop.Y
-    if i = Stop.Y then
-      Delete(Line, Stop.X, MaxInt);
-    if (i = Start.Y) and (Start.X > 1) then
-      Delete(Line, 1, Start.X - 1);
+    if i = Stop.Line then
+      Delete(Line, Stop.Char, MaxInt);
+    if (i = Start.Line) and (Start.Char > 1) then
+      Delete(Line, 1, Start.Char - 1);
     // export the line
     Highlighter.SetLine(Line, i);
     while not Highlighter.GetEOL do begin
       Attri := Highlighter.GetTokenAttribute;
-      Token := ReplaceReservedChars(Highlighter.GetToken, IsSpace);
-      SetTokenAttribute(IsSpace, Attri);
+      Token := ReplaceReservedChars(Highlighter.GetToken);
+      SetTokenAttribute(Attri);
       FormatToken(Token);
       Highlighter.Next;
     end;
@@ -431,14 +444,12 @@ begin
 end;
 {$ENDIF}
 
-function TSynCustomExporter.ReplaceReservedChars(AToken: string;
-  var IsSpace: boolean): string;
+function TSynCustomExporter.ReplaceReservedChars(AToken: string): string;
 var
   I, ISrc, IDest, SrcLen, DestLen: integer;
   Replace: string;
-  c: char;                                                                      //mh 2000-10-10
+  c: char;
 begin
-  IsSpace := TRUE;
   if AToken <> '' then begin
     SrcLen := Length(AToken);
     ISrc := 1;
@@ -447,13 +458,11 @@ begin
     SetLength(Result, DestLen);
     while ISrc <= SrcLen do begin
       c := AToken[ISrc];
-      IsSpace := IsSpace and (c = ' ');
       if fReplaceReserved[c] <> nil then begin
         Replace := StrPas(fReplaceReserved[c]);
         Inc(ISrc);
 {$IFDEF SYN_MBCSSUPPORT}
-//      end else if ByteType(AToken, ISrc) <> mbSingleByte then begin
-      end else if (AToken[ISrc] in LeadBytes) and (AToken[ISrc + 1] <> #0) then //mh 2000-10-10
+      end else if (AToken[ISrc] in LeadBytes) and (AToken[ISrc + 1] <> #0) then
       begin
         Replace := ReplaceMBCS(AToken[ISrc], AToken[ISrc + 1]);
         Inc(ISrc, 2);
@@ -510,10 +519,12 @@ end;
 procedure TSynCustomExporter.SetHighlighter(Value: TSynCustomHighlighter);
 begin
   if fHighlighter <> Value then begin
-    fHighlighter := Value;
     if fHighlighter <> nil then
       fHighlighter.FreeNotification(Self);
+    fHighlighter := Value;
     Clear;
+    if Assigned(fHighlighter) and Assigned(fHighlighter.WhitespaceAttribute) and fUseBackground then
+      fBackgroundColor := fHighlighter.WhitespaceAttribute.Background;
   end;
 end;
 
@@ -527,8 +538,7 @@ begin
   end;
 end;
 
-procedure TSynCustomExporter.SetTokenAttribute(IsSpace: boolean;
-  Attri: TSynHighlighterAttributes);
+procedure TSynCustomExporter.SetTokenAttribute(Attri: TSynHighlighterAttributes);
 var
   ChangedBG: boolean;
   ChangedFG: boolean;
@@ -537,9 +547,9 @@ var
   function ValidatedColor(AColor, ADefColor: TColor): TColor;
   begin
     if AColor = clNone then
-      Result := ADefColor
+      Result := ColorToRGB(ADefColor)
     else
-      Result := AColor;
+      Result := ColorToRGB(AColor);
   end;
 
 begin
@@ -548,39 +558,31 @@ begin
     fLastBG := ValidatedColor(Attri.Background, fBackgroundColor);
     fLastFG := ValidatedColor(Attri.Foreground, fFont.Color);
     fLastStyle := Attri.Style;
-{begin}                                                                         //mh 2000-10-10
     FormatBeforeFirstAttribute(UseBackground and (fLastBG <> fBackgroundColor),
       fLastFG <> fFont.Color, Attri.Style);
-(*
-    FormatAttributeInit(UseBackground and (fLastBG <> fBackgroundColor),
-      fLastFG <> fFont.Color, Attri.Style);
-*)
-{end}                                                                           //mh 2000-10-10
   end else begin
     ChangedBG := UseBackground and
       (fLastBG <> ValidatedColor(Attri.Background, fBackgroundColor));
-    ChangedFG := not IsSpace and
-      (fLastFG <> ValidatedColor(Attri.Foreground, fFont.Color));
+    ChangedFG := (fLastFG <> ValidatedColor(Attri.Foreground, fFont.Color));
     // which font style bits are to reset?
-    if not IsSpace then
-      ChangedStyles := fLastStyle - Attri.Style
-    else
-      ChangedStyles := [];
+    ChangedStyles := fLastStyle - Attri.Style;
     if ChangedBG or ChangedFG or (fLastStyle <> Attri.Style) then begin
       FormatAttributeDone(ChangedBG, ChangedFG, ChangedStyles);
       // which font style bits are to set?
-      if not IsSpace then
-        ChangedStyles := Attri.Style - fLastStyle
-      else
-        ChangedStyles := [];
+      ChangedStyles := Attri.Style - fLastStyle;
       fLastBG := ValidatedColor(Attri.Background, fBackgroundColor);
-      if not IsSpace then begin
-        fLastFG := ValidatedColor(Attri.Foreground, fFont.Color);
-        fLastStyle := Attri.Style;
-      end;
+      fLastFG := ValidatedColor(Attri.Foreground, fFont.Color);
+      fLastStyle := Attri.Style;
       FormatAttributeInit(ChangedBG, ChangedFG, ChangedStyles);
     end;
   end;
+end;
+
+procedure TSynCustomExporter.SetUseBackground(const Value: boolean);
+begin
+  fUseBackground := Value;
+  if Assigned(fHighlighter) and Assigned(fHighlighter.WhitespaceAttribute) and fUseBackground then
+    fBackgroundColor := fHighlighter.WhitespaceAttribute.Background;
 end;
 
 end.

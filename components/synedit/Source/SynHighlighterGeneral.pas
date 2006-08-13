@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGeneral.pas,v 1.7 2001/11/09 07:46:17 plpolak Exp $
+$Id: SynHighlighterGeneral.pas,v 1.16 2005/01/28 16:53:22 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,27 +42,36 @@ Known Issues:
 @lastmod(2000-06-23)
 The SynHighlighterGeneral unit provides a customizable highlighter for SynEdit.
 }
+
+{$IFNDEF QSYNHIGHLIGHTERGENERAL}
 unit SynHighlighterGeneral;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditTypes, SynEditHighlighter;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
+{$ELSE}
+  Windows,
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber,
     tkPreprocessor, tkSpace, tkString, tkSymbol, tkUnknown);
 
-  TCommentStyle = (csAnsiStyle, csPasStyle, csCStyle, csAsmStyle, csBasStyle);
-  CommentStyles = set of TCommentStyle;
+  TCommentStyle = (csAnsiStyle, csPasStyle, csCStyle, csAsmStyle, csBasStyle,
+    csCPPStyle);
+  TCommentStyles = set of TCommentStyle;
 
   TRangeState = (rsANil, rsAnsi, rsPasStyle, rsCStyle, rsUnKnown);
 
@@ -89,7 +98,7 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fKeyWords: TStrings;
-    fComments: CommentStyles;
+    fComments: TCommentStyles;
     fStringDelimCh: char;
     fIdentChars: TSynIdentChars;
     fDetectPreprocessor: boolean;
@@ -112,7 +121,7 @@ type
     procedure PasStyleProc;
     procedure CStyleProc;
     procedure SetKeyWords(const Value: TStrings);
-    procedure SetComments(Value: CommentStyles);
+    procedure SetComments(Value: TCommentStyles);
     function GetStringDelim: TStringDelim;
     procedure SetStringDelim(const Value: TStringDelim);
     function GetIdentifierChars: string;
@@ -121,8 +130,7 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                 
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -135,7 +143,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function GetTokenPos: Integer; override;
-    function IsKeyword(const AKeyword: string): boolean; override;              //mh 2000-11-08
+    function IsKeyword(const AKeyword: string): boolean; override;
     procedure Next; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -147,7 +155,7 @@ type
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
-    property Comments: CommentStyles read fComments write SetComments;
+    property Comments: TCommentStyles read fComments write SetComments;
     property DetectPreprocessor: boolean read fDetectPreprocessor
       write SetDetectPreprocessor;
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
@@ -173,7 +181,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -197,7 +209,7 @@ begin
   end;
 end;
 
-function TSynGeneralSyn.IsKeyword(const AKeyword: string): boolean;             //mh 2000-11-08
+function TSynGeneralSyn.IsKeyword(const AKeyword: string): boolean;
 var
   First, Last, I, Compare: Integer;
   Token: String;
@@ -495,18 +507,24 @@ end;
 
 procedure TSynGeneralSyn.SlashProc;
 begin
-  case FLine[Run + 1] of
+  Inc(Run);
+  case FLine[Run] of
     '/':
       begin
-        inc(Run, 2);
-        fTokenID := tkComment;
-        while FLine[Run] <> #0 do
+        if csCPPStyle in fComments then
         begin
-          case FLine[Run] of
-            #10, #13: break;
+          fTokenID := tkComment;
+          Inc(Run);
+          while FLine[Run] <> #0 do
+          begin
+            case FLine[Run] of
+              #10, #13: break;
+            end;
+            inc(Run);
           end;
-          inc(Run);
-        end;
+        end
+        else
+          fTokenId := tkSymbol;
       end;
     '*':
       begin
@@ -514,7 +532,7 @@ begin
         begin
           fTokenID := tkComment;
           fRange := rsCStyle;
-          inc(Run);
+          Inc(Run);
           while fLine[Run] <> #0 do
             case fLine[Run] of
               '*':
@@ -524,22 +542,17 @@ begin
                   inc(Run, 2);
                   break;
                 end else inc(Run);
-              #10: break;
-              #13: break;
-            else inc(Run);
+              #10, #13:
+                break;
+              else
+                Inc(Run);
             end;
         end
         else
-          begin
-            inc(Run);    
-            fTokenId := tkSymbol;
-          end;
+          fTokenId := tkSymbol;
       end;
-  else
-    begin
-      inc(Run);
+    else
       fTokenID := tkSymbol;
-    end;
   end;
 end;
 
@@ -566,8 +579,13 @@ end;
 
 procedure TSynGeneralSyn.UnknownProc;
 begin
+{$IFDEF SYN_MBCSSUPPORT}
+  if FLine[Run] in LeadBytes then
+    Inc(Run, 2)
+  else
+{$ENDIF}
   inc(Run);
-  fTokenID := tkUnKnown;
+  fTokenID := tkUnknown;
 end;
 
 procedure TSynGeneralSyn.Next;
@@ -646,7 +664,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynGeneralSyn.ReSetRange;
+procedure TSynGeneralSyn.ResetRange;
 begin
   fRange := rsUnknown;
 end;
@@ -671,14 +689,16 @@ begin
   DefHighLightChange(nil);
 end;
 
-procedure TSynGeneralSyn.SetComments(Value: CommentStyles);
+procedure TSynGeneralSyn.SetComments(Value: TCommentStyles);
 begin
-  fComments := Value;
-  DefHighLightChange(nil);
+  if fComments <> Value then
+  begin
+    fComments := Value;
+    DefHighLightChange(Self);
+  end;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}
-function TSynGeneralSyn.GetLanguageName: string;
+class function TSynGeneralSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangGeneral;
 end;
@@ -757,6 +777,7 @@ begin
   for i := 1 to Length(Value) do begin
     fIdentChars := fIdentChars + [Value[i]];
   end; //for
+  WordBreakChars := WordBreakChars - fIdentChars;
 end;
 
 function TSynGeneralSyn.GetIdentChars: TSynIdentChars;
@@ -778,4 +799,3 @@ initialization
   RegisterPlaceableHighlighter(TSynGeneralSyn);
 {$ENDIF}
 end.
-

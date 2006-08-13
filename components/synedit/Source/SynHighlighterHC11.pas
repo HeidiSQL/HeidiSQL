@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHC11.pas,v 1.8 2002/04/09 09:58:51 plpolak Exp $
+$Id: SynHighlighterHC11.pas,v 1.14 2005/01/28 16:53:22 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -44,20 +44,26 @@ The highlighter supports all 68HC11 op codes.
 Thanks to Martin Waldenburg, David Muir, Hideo Koiso and Nick Hoddinott.
 }
 
+{$IFNDEF QSYNHIGHLIGHTERHC11}
 unit SynHighlighterHC11;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils, Classes,
-  {$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  {$ELSE}
-  Windows, Messages, Controls, Graphics, Registry,
-  {$ENDIF}
-  SynEditHighlighter, SynEditTypes;
+{$IFDEF SYN_CLX}
+  QGraphics,
+  QSynEditHighlighter,
+  QSynEditTypes,
+{$ELSE}
+  Graphics,
+  SynEditHighlighter,
+  SynEditTypes,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 const
   KeyWordCount = 149;
@@ -128,9 +134,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
+    function IsFilterStored: Boolean; override;
   public
-    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
-    function GetLanguageName: string; override;
+    class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -166,7 +172,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -188,12 +198,12 @@ const
     'RORB', 'ROR_', 'RTI', 'RTS', 'SBA', 'SBCA_', 'SBCB_', 'SEC', 'SEI', 'SEV',
     'STAA_', 'STAB_', 'STD_', 'STOP', 'STS_', 'STX_', 'STY_', 'SUBA_', 'SUBB_',
     'SUBD_', 'SWI', 'TAB', 'TAP', 'TBA', 'TEST', 'TPA', 'TSTA', 'TSTB', 'TST_',
-    'TSX', 'TSY', 'TXS', 'TYS', 'WAI', 'XGDX', 'XGDY', // Ende Befehle
-    'FCC_','FCB_','BSZ_','FDB_' // Codeerzeugende Direktiven
+    'TSX', 'TSY', 'TXS', 'TYS', 'WAI', 'XGDX', 'XGDY', // end commands
+    'FCC_','FCB_','BSZ_','FDB_' // codegenerating directives
     );
 
   Directives: array[1..DirectiveCount] of string = (
-    'EQU_', 'OPT_', 'PAGE', 'ORG_', 'RMB_', 'END'  // Direktiven
+    'EQU_', 'OPT_', 'PAGE', 'ORG_', 'RMB_', 'END'  // directives
     );
 procedure MakeIdentTable;
 var
@@ -260,7 +270,6 @@ begin
   Result := #0;
   while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
   begin
-//    inc (Result, ord(ToHash^));
     Result := char(byte(Result) + byte(ToHash^));
     inc(ToHash);
   end;
@@ -495,7 +504,7 @@ procedure TSynHC11Syn.SymUnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -571,8 +580,12 @@ begin
   Result := TSynValidStringChars;
 end;
 
-{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
-function TSynHC11Syn.GetLanguageName: string;
+function TSynHC11Syn.IsFilterStored: Boolean;
+begin
+  Result := fDefaultFilter <> SYNS_FilterAsm68HC11;
+end;
+
+class function TSynHC11Syn.GetLanguageName: string;
 begin
   Result := SYNS_Lang68HC11;
 end;
@@ -594,8 +607,7 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynHC11Syn);
 {$ENDIF}
 end.
-

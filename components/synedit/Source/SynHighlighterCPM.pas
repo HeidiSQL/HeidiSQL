@@ -25,31 +25,33 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCPM.pas,v 1.14 2002/04/22 15:12:45 plpolak Exp $
+$Id: SynHighlighterCPM.pas,v 1.17 2005/01/28 16:53:21 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
+
+{$IFNDEF QSYNHIGHLIGHTERCPM}
 unit SynHighlighterCPM;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-  SysUtils,
-  Classes,
 {$IFDEF SYN_CLX}
-  QControls,
   QGraphics,
+  QSynEditTypes,
+  QSynEditHighlighter,
 {$ELSE}
-  Windows,
-  Controls,
   Graphics,
-{$ENDIF}
   SynEditTypes,
-  SynEditHighlighter;
+  SynEditHighlighter,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 const
   MaxKey = 291;
@@ -259,7 +261,11 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynEditStrConst;
+{$ELSE}
   SynEditStrConst;
+{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1178,7 +1184,7 @@ procedure TSynCPMSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run,2)
+    Inc(Run, 2)
   else
 {$ENDIF}
   inc(Run);
@@ -1415,4 +1421,3 @@ initialization
   RegisterPlaceableHighlighter(TSynCPMSyn);
 {$ENDIF}
 end.
-
