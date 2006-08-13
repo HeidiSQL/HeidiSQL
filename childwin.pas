@@ -252,6 +252,11 @@ type
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
+    procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
+      var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
+    procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
+      Sender: TObject; var CurrentInput: string; var x, y: Integer;
+      var CanExecute: Boolean);
     procedure PerformConnect;
     procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -391,11 +396,6 @@ type
     function mask(str: String) : String;
     procedure CheckConnection();
     procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
-    procedure SynCompletionProposal1Execute(Kind: SynCompletionType;
-      Sender: TObject; var AString: String; var x, y: Integer;
-      var CanExecute: Boolean);
-    procedure SynCompletionProposal1CodeCompletion(var Value: String;
-      Shift: TShiftState; Index: Integer; EndToken: Char);
 
     private
       { Private declarations }
@@ -1860,6 +1860,47 @@ begin
   end;
 end;
 
+
+{ Proposal about to insert a string into synmemo }
+procedure TMDIChild.SynCompletionProposal1CodeCompletion(Sender: TObject;
+  var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
+begin
+  Value := mask( Value );
+end;
+
+
+{ Proposal-Combobox popup }
+procedure TMDIChild.SynCompletionProposal1Execute(Kind: TSynCompletionType;
+  Sender: TObject; var CurrentInput: string; var x, y: Integer;
+  var CanExecute: Boolean);
+var
+  i : Integer;
+begin
+
+  logsql(CurrentInput + ':' + inttostr(synmemo1.CaretX));
+  if length(CurrentInput) = 0 then
+  begin
+
+  end;
+
+  with SynCompletionProposal1 do
+  begin
+  	InsertList.Clear;
+  	ItemList.Clear;
+  	InsertList.AddStrings( OnlyDBs2 );
+  	ItemList.AddStrings( OnlyDBs2 );
+  	for i:=0 to ItemList.count-1 do
+      ItemList[i] := ItemList[i];
+    if ActualDatabase <> '' then
+    begin
+      for i:=0 to ListTables.Items.Count-1 do
+      begin
+        InsertList.Add(ListTables.Items[i].Caption);
+        ItemList.Add( ListTables.Items[i].Caption );
+      end
+    end;
+  end;
+end;
 
 procedure TMDIChild.SynMemo1Change(Sender: TObject);
 var somechars : Boolean;
@@ -3342,47 +3383,6 @@ begin
   except
     exit;
   end;
-end;
-
-
-{ Proposal-Combobox popup }
-procedure TMDIChild.SynCompletionProposal1Execute(Kind: SynCompletionType;
-  Sender: TObject; var AString: String; var x, y: Integer;
-  var CanExecute: Boolean);
-var
-  i : Integer;
-begin
-
-  logsql(AString + ':' + inttostr(synmemo1.CaretX));
-  if length(AString) = 0 then
-  begin
-
-  end;
-
-  with SynCompletionProposal1 do
-  begin
-  	InsertList.Clear;
-  	ItemList.Clear;
-  	InsertList.AddStrings( OnlyDBs2 );
-  	ItemList.AddStrings( OnlyDBs2 );
-  	for i:=0 to ItemList.count-1 do
-      ItemList[i] := ItemList[i];
-    if ActualDatabase <> '' then
-    begin
-      for i:=0 to ListTables.Items.Count-1 do
-      begin
-        InsertList.Add(ListTables.Items[i].Caption);
-        ItemList.Add( ListTables.Items[i].Caption );
-      end
-    end;
-  end;
-end;
-
-{ Proposal about to insert a string into synmemo }
-procedure TMDIChild.SynCompletionProposal1CodeCompletion(var Value: String;
-  Shift: TShiftState; Index: Integer; EndToken: Char);
-begin
-  value := mask( value );
 end;
 
 end.

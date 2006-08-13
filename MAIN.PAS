@@ -14,7 +14,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, smdbgrid, ZDataSet, ZSqlProcessor;
+  SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor;
 
 type
   TMainForm = class(TForm)

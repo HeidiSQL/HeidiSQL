@@ -35,7 +35,6 @@ object MainForm: TMainForm
         Style = psOwnerDraw
         Width = 280
       end>
-    SimplePanel = False
     OnDrawPanel = StatusBarDrawPanel
   end
   object ControlBar1: TControlBar

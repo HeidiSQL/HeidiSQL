@@ -1,4 +1,4 @@
-package SynEdit_D10;
+package SynEdit_D7_CLX;
 
 {$R *.res}
 {$R '..\..\Source\SynEditReg.dcr'}
@@ -23,17 +23,17 @@ package SynEdit_D10;
 {$WRITEABLECONST ON}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'SynEdit component suite'}
-{$DESIGNONLY}
+{$DESCRIPTION 'SynEdit CLX component suite'}
 {$IMPLICITBUILD OFF}
+{$DEFINE SYN_CLX}
 
 requires
-  designide,
-  SynEdit_R2006;
+  visualclx,
+  visualdbclx,
+  designide;
 
 contains
-  SynEditReg in '..\..\Source\SynEditReg.pas',
-  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas',
-  SynHighlighterManager in '..\..\Source\SynHighlighterManager.pas';
+  QSynEditReg in '..\..\Source\QSynEditReg.pas',
+  QSynEditPropertyReg in '..\..\Source\QSynEditPropertyReg.pas';
 
 end.

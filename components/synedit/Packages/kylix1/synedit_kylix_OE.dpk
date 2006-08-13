@@ -1,4 +1,4 @@
-package synedit_kylix;
+package synedit_kylix_OE;
 
 {$R *.res}
 {$R '../../Source/SynEditReg.dcr'}
@@ -23,22 +23,21 @@ package synedit_kylix;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'SynEdit package for Kylix'}
+{$DESCRIPTION 'SynEdit package for Kylix OE'}
 {$IMPLICITBUILD OFF}
+{$DEFINE SYN_DELPHI_PE}
 
 requires
   rtl,
   visualclx,
-  visualdbclx,
-  dataclx,
-  designide;
+  designide,
+  vcl;
 
 contains
   kTextDrawer in '../../Source/kTextDrawer.pas',
   QSynAutoCorrect in '../../Source/QSynAutoCorrect.pas',
   QSynAutoCorrectEditor in '../../Source/QSynAutoCorrectEditor.pas',
   QSynCompletionProposal in '../../Source/QSynCompletionProposal.pas',
-  QSynDBEdit in '../../Source/QSynDBEdit.pas',
   QSynEdit in '../../Source/QSynEdit.pas',
   QSynEditAutoComplete in '../../Source/QSynEditAutoComplete.pas',
   QSynEditExport in '../../Source/QSynEditExport.pas',

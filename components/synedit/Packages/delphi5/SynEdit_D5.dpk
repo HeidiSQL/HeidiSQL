@@ -27,12 +27,11 @@ package SynEdit_D5;
 {$IMPLICITBUILD OFF}
 
 requires
-  vcl50,
-  Vclx50,
-  Vcldb50;
+  SynEdit_R5;
 
 contains
   SynEditReg in '..\..\Source\SynEditReg.pas',
-  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas';
+  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas',
+  SynHighlighterManager in '..\..\Source\SynHighlighterManager.pas';
 
 end.

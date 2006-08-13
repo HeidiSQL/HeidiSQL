@@ -28,9 +28,8 @@ package SynEdit_D6_PE;
 {$DEFINE SYN_DELPHI_PE}
 
 requires
-  vcl,
-  vclx,
-  designide;
+  designide,
+  SynEdit_R6_PE;
 
 contains
   SynEditReg in '..\..\Source\SynEditReg.pas',
