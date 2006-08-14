@@ -245,6 +245,7 @@ type
     DataAlwaysEditMode         : Boolean;
     DataNullBackground         : TColor;
     debugfile                  : TextFile;
+    sqlfunctionlist            : TStringList;
 
 end;
 
@@ -477,8 +478,11 @@ begin
       pipeposition := pos('|', functionname);
       if pipeposition > 0 then // read hint
       begin
+        if sqlfunctionlist = nil then
+          sqlfunctionlist := TStringList.Create;
+        sqlfunctionlist.Add( trim(functionname) );
         functionhint := copy(functionname, 0, pipeposition-1) + ' - ' + copy(functionname, pipeposition+1, length(functionname)-1);
-        functionname := copy(functionname, 0, pos('(', functionname)-1)
+        functionname := copy(functionname, 0, pos('(', functionname)-1);
       end else
         functionhint := '';
       if (functionname[1] <> '#') and (length(trim(functionname)) > 0) then

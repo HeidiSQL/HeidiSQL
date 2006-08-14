@@ -1869,38 +1869,87 @@ begin
 end;
 
 
-{ Proposal-Combobox popup }
+{ Proposal-Combobox pops up }
 procedure TMDIChild.SynCompletionProposal1Execute(Kind: TSynCompletionType;
   Sender: TObject; var CurrentInput: string; var x, y: Integer;
   var CanExecute: Boolean);
 var
-  i : Integer;
-begin
+  i,j : Integer;
+  functionname : String;
+  functiondecl : String;
+  tn, child : TTreeNode;
 
-  logsql(CurrentInput + ':' + inttostr(synmemo1.CaretX));
+  procedure addTable( name: String );
+  begin
+    SynCompletionProposal1.InsertList.Add( name );
+    SynCompletionProposal1.ItemList.Add( '\image{40}\hspace{2}\color{clNavy}table\color{clWindowText}\column{}' + name );
+  end;
+
+begin
+  SynCompletionProposal1.InsertList.Clear;
+  SynCompletionProposal1.ItemList.Clear;
+
   if length(CurrentInput) = 0 then
   begin
+    if OnlyDBs2.IndexOf( SynCompletionProposal1.PreviousToken ) > -1 then
+    begin
+      // Only display tables from specified db
+      Screen.Cursor := crHourGlass;
+      for i:=0 to DBTree.Items.Count-1 do
+      begin
+        tn := DBTree.Items[i];
+        if tn.Text = SynCompletionProposal1.PreviousToken then
+        begin
+          child := tn.getFirstChild;
+          for j:=0 to tn.Count-1 do
+          begin
+            addTable(child.Text);
+            child := tn.getNextChild(child);
+          end;
+        end;
+      end;
+      Screen.Cursor := crDefault;
 
+    end;
   end;
 
   with SynCompletionProposal1 do
   begin
-  	InsertList.Clear;
-  	ItemList.Clear;
-  	InsertList.AddStrings( OnlyDBs2 );
-  	ItemList.AddStrings( OnlyDBs2 );
-  	for i:=0 to ItemList.count-1 do
-      ItemList[i] := ItemList[i];
-    if ActualDatabase <> '' then
+
+    if SynCompletionProposal1.ItemList.count = 0 then
     begin
-      for i:=0 to ListTables.Items.Count-1 do
+      // Add databases to proposal list
+      InsertList.AddStrings( OnlyDBs2 );
+      ItemList.AddStrings( OnlyDBs2 );
+      for i:=0 to ItemList.count-1 do
+        ItemList[i] := '\image{38}\hspace{2}\color{clMaroon}database\color{clWindowText}\column{}' + ItemList[i];
+
+      if ActualDatabase <> '' then
       begin
-        InsertList.Add(ListTables.Items[i].Caption);
-        ItemList.Add( ListTables.Items[i].Caption );
-      end
+        // Add tables to proposal list
+        for i:=0 to ListTables.Items.Count-1 do
+        begin
+          addTable( ListTables.Items[i].Caption );
+        end;
+        if length(CurrentInput) = 0 then // assume that we have already a dbname in memo
+          Position := OnlyDBs2.Count;
+      end;
+    end;
+
+    // Add functions to proposal list
+    for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
+    begin
+      functionname := copy(MainForm.sqlfunctionlist[i], 0, pos('(', MainForm.sqlfunctionlist[i])-1);
+      if pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
+        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
+      else
+        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
+      InsertList.Add( functionname );
+      ItemList.Add( '\image{86}\hspace{2}\color{clBlue}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
     end;
   end;
 end;
+
 
 procedure TMDIChild.SynMemo1Change(Sender: TObject);
 var somechars : Boolean;
@@ -3328,7 +3377,7 @@ end;
 function TMDIChild.mask(str: String) : String;
 var
   i, o : byte;
-  hasbadchar : Boolean;
+  hasbadchar, iskeyword : Boolean;
 begin
   if mysql_version >= 32300 then
   begin
@@ -3345,6 +3394,35 @@ begin
       if hasbadchar then
         break;
     end;
+
+    {
+    http://dev.mysql.com/doc/refman/4.1/en/reserved-words.html
+    iskeyword := ( UpperCase(str) in ['ADD','ALL','ALTER','ANALYZE','AND','AS','ASC','BEFORE','BETWEEN','BIGINT','BINARY',
+        'BLOB','BOTH','BY','CASCADE','CASE','CHANGE','CHAR','CHARACTER','CHECK','COLLATE',
+        'COLUMN','COLUMNS','CONSTRAINT','CONVERT','CREATE','CROSS','CURRENT_DATE',
+        'CURRENT_TIME','CURRENT_TIMESTAMP','CURRENT_USER','DATABASE','DATABASES',
+        'DAY_HOUR','DAY_MICROSECOND','DAY_MINUTE','DAY_SECOND','DEC','DECIMAL',
+        'DEFAULT','DELAYED','DELETE','DESC','DESCRIBE','DISTINCT','DISTINCTROW','DIV',
+        'DOUBLE','DROP','DUAL','ELSE','ENCLOSED','ESCAPED','EXISTS','EXPLAIN','FALSE',
+        'FIELDS','FLOAT','FLOAT4','FLOAT8','FOR','FORCE','FOREIGN','FROM','FULLTEXT',
+        'GRANT','GROUP','HAVING','HIGH_PRIORITY','HOUR_MICROSECOND','HOUR_MINUTE',
+        'HOUR_SECOND','IF','IGNORE','IN','INDEX','INFILE','INNER','INSERT','INT','INT1',
+        'INT2','INT3','INT4','INT8','INTEGER','INTERVAL','INTO','IS','JOIN','KEY','KEYS'
+        ,'KILL','LEADING','LEFT','LIKE','LIMIT','LINES','LOAD','LOCALTIME','LOCALTIMESTAMP',
+        'LOCK','LONG','LONGBLOB','LONGTEXT','LOW_PRIORITY','MATCH','MEDIUMBLOB',
+        'MEDIUMINT','MEDIUMTEXT','MIDDLEINT','MINUTE_MICROSECOND','MINUTE_SECOND','MOD',
+        'NATURAL','NOT','NO_WRITE_TO_BINLOG','NULL','NUMERIC','ON','OPTIMIZE','OPTION',
+        'OPTIONALLY','OR','ORDER','OUTER','OUTFILE','PRECISION','PRIMARY','PRIVILEGES',
+        'PROCEDURE','PURGE','RAID0','READ','REAL','REFERENCES','REGEXP','RENAME',
+        'REPLACE','REQUIRE','RESTRICT','REVOKE','RIGHT','RLIKE','SECOND_MICROSECOND',
+        'SELECT','SEPARATOR','SET','SHOW','SMALLINT','SONAME','SPATIAL','SQL_BIG_RESULT',
+        'SQL_CALC_FOUND_ROWS','SQL_SMALL_RESULT','SSL','STARTING','STRAIGHT_JOIN','TABLE',
+        'TABLES','TERMINATED','THEN','TINYBLOB','TINYINT','TINYTEXT','TO','TRAILING',
+        'TRUE','UNION','UNIQUE','UNLOCK','UNSIGNED','UPDATE','USAGE','USE','USING',
+        'UTC_DATE','UTC_TIME','UTC_TIMESTAMP','VALUES','VARBINARY','VARCHAR','VARCHARACTER',
+        'VARYING','WHEN','WHERE','WITH','WRITE','X509','XOR','YEAR_MONTH','ZEROFILL'] );
+    }
+
     if hasbadchar then
     begin
       result := StringReplace(str, '`', '``', [rfReplaceAll]);
@@ -3356,6 +3434,10 @@ begin
   else
     result := str;
 end;
+
+
+
+
 
 procedure TMDIChild.CheckConnection;
 var

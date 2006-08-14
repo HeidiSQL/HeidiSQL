@@ -327,7 +327,6 @@ object MDIChild: TMDIChild
             Color = clBtnFace
             EdgeInner = esNone
             EdgeOuter = esNone
-            Flat = True
             Images = MainForm.ImageList1
             ParentColor = False
             ParentShowHint = False
@@ -437,7 +436,6 @@ object MDIChild: TMDIChild
             Caption = 'ToolBar2'
             EdgeInner = esNone
             EdgeOuter = esNone
-            Flat = True
             Images = MainForm.ImageList1
             ParentShowHint = False
             ShowHint = True
@@ -726,7 +724,6 @@ object MDIChild: TMDIChild
                 DragKind = dkDock
                 EdgeInner = esNone
                 EdgeOuter = esNone
-                Flat = True
                 Images = MainForm.ImageList1
                 ParentColor = False
                 ParentShowHint = False
@@ -1083,7 +1080,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 52
+              Height = 32
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -1174,7 +1171,6 @@ object MDIChild: TMDIChild
           Caption = 'ToolBar1'
           EdgeInner = esNone
           EdgeOuter = esNone
-          Flat = True
           Images = MainForm.ImageList1
           ParentShowHint = False
           ShowHint = True
@@ -1923,7 +1919,7 @@ object MDIChild: TMDIChild
     end
   end
   object SynCompletionProposal1: TSynCompletionProposal
-    Options = [scoUseInsertList, scoUseBuiltInTimer, scoEndCharCompletion]
+    Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     Width = 262
     EndOfTokenChr = '()[]. '
     TriggerChars = '.'
@@ -1937,7 +1933,17 @@ object MDIChild: TMDIChild
     TitleFont.Height = -11
     TitleFont.Name = 'Tahoma'
     TitleFont.Style = [fsBold]
-    Columns = <>
+    Columns = <
+      item
+        BiggestWord = 'databasemore'
+      end
+      item
+        BiggestWord = 'IHAVENOCLUEWHICHLENGTH'
+        DefaultFontStyle = [fsBold]
+      end>
+    ItemHeight = 18
+    Images = MainForm.ImageList1
+    Margin = 1
     OnExecute = SynCompletionProposal1Execute
     ShortCut = 16416
     Editor = SynMemo1
