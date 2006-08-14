@@ -791,7 +791,19 @@ begin
         ActualDatabase := strdb;
         ActualTable := '';
         ToolButton9.Enabled := False;
-        ListTables.Selected := nil; // probably buggy: if switched to nil, View-button on data-tabsheet doesn't work
+        // probably buggy: if switched to nil, View-button on data-tabsheet doesn't work
+        //
+        //  First, there's no View button on the Data sheet.
+        //  ---
+        //  Second, the view button *shouldn't* work on the Database sheet, it should be disabled.
+        //  That's because a fresh database has just been selected, so the table selection is cleared.  (this btw also fixes some very odd UI behaviour, see r145).
+        //  ---
+        //  The view button should always work on the Table sheet, but:
+        //  The table sheet itself should be disabled when we've just chosen a new database, because no relevant table has been selected.
+        //  ---
+        //  I realize that the table selection (tree view) and the Data tab doesn't always synchronize correctly,
+        //  or refresh correctly, or both, so it's buggy, but I'm quite sure it's not here the bug is...
+        ListTables.Selected := nil;
         ListColumns.Items.Clear;
         Panel3.Caption := 'Table-Properties';
         ShowDBProperties(self);
