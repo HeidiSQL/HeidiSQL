@@ -1,3 +1,5 @@
+{$I ../../compilerdetection/Compilers.inc}
+
 (******************************************************************************)
 (* SynEdit Include File.  This file was adapted from Brad Stowers' DFS.INC    *)
 (* file and used with permission.  This will help reduce headaches when new   *)
