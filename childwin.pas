@@ -803,6 +803,11 @@ begin
         //  ---
         //  I realize that the table selection (tree view) and the Data tab doesn't always synchronize correctly,
         //  or refresh correctly, or both, so it's buggy, but I'm quite sure it's not here the bug is...
+        //  ---
+        //  Anse: found the line ActualTable := '' in ValidateTableSheet - THIS is most probably the
+        //  bug we searched.
+        //
+        //  BTW: thx David, found this discussion quite helpful :)
         ListTables.Selected := nil;
         ListColumns.Items.Clear;
         Panel3.Caption := 'Table-Properties';
@@ -1461,9 +1466,9 @@ begin
   Mainform.CopyTable.Enabled := someselected;
   MenuTabelleLoeschen.Enabled := someselected;
   if someselected then
-    ActualTable := ListTables.Selected.Caption
-  else
-    ActualTable := '';
+    ActualTable := ListTables.Selected.Caption;
+//  else
+//    ActualTable := '';
   MainForm.DropTable.Enabled := someselected;
   MenuTableComment.Enabled := someselected;
   MenuOptimize.Enabled := someselected;
@@ -1877,7 +1882,9 @@ end;
 procedure TMDIChild.SynCompletionProposal1CodeCompletion(Sender: TObject;
   var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
 begin
-  Value := mask( Value );
+  // don't mask function-names
+  if not StrCmpBegin( '\image{86}', SynCompletionProposal1.ItemList[Index] )
+    then Value := mask( Value );
 end;
 
 
@@ -1894,7 +1901,7 @@ var
   procedure addTable( name: String );
   begin
     SynCompletionProposal1.InsertList.Add( name );
-    SynCompletionProposal1.ItemList.Add( '\image{40}\hspace{2}\color{clNavy}table\color{clWindowText}\column{}' + name );
+    SynCompletionProposal1.ItemList.Add( '\image{40}\hspace{2}\color{clBlue}table\color{clWindowText}\column{}' + name );
   end;
 
 begin
@@ -1956,8 +1963,8 @@ begin
         functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
       else
         functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
-      InsertList.Add( functionname );
-      ItemList.Add( '\image{86}\hspace{2}\color{clBlue}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
+      InsertList.Add( functionname + functiondecl );
+      ItemList.Add( '\image{86}\hspace{2}\color{clTeal}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
     end;
   end;
 end;
@@ -3388,8 +3395,9 @@ end;
 
 function TMDIChild.mask(str: String) : String;
 var
-  i, o : byte;
-  hasbadchar, iskeyword : Boolean;
+  i, o                    : byte;
+  hasbadchar, iskeyword   : Boolean;
+  keywords                : String;
 begin
   if mysql_version >= 32300 then
   begin
@@ -3407,35 +3415,40 @@ begin
         break;
     end;
 
-    {
-    http://dev.mysql.com/doc/refman/4.1/en/reserved-words.html
-    iskeyword := ( UpperCase(str) in ['ADD','ALL','ALTER','ANALYZE','AND','AS','ASC','BEFORE','BETWEEN','BIGINT','BINARY',
-        'BLOB','BOTH','BY','CASCADE','CASE','CHANGE','CHAR','CHARACTER','CHECK','COLLATE',
-        'COLUMN','COLUMNS','CONSTRAINT','CONVERT','CREATE','CROSS','CURRENT_DATE',
-        'CURRENT_TIME','CURRENT_TIMESTAMP','CURRENT_USER','DATABASE','DATABASES',
-        'DAY_HOUR','DAY_MICROSECOND','DAY_MINUTE','DAY_SECOND','DEC','DECIMAL',
-        'DEFAULT','DELAYED','DELETE','DESC','DESCRIBE','DISTINCT','DISTINCTROW','DIV',
-        'DOUBLE','DROP','DUAL','ELSE','ENCLOSED','ESCAPED','EXISTS','EXPLAIN','FALSE',
-        'FIELDS','FLOAT','FLOAT4','FLOAT8','FOR','FORCE','FOREIGN','FROM','FULLTEXT',
-        'GRANT','GROUP','HAVING','HIGH_PRIORITY','HOUR_MICROSECOND','HOUR_MINUTE',
-        'HOUR_SECOND','IF','IGNORE','IN','INDEX','INFILE','INNER','INSERT','INT','INT1',
-        'INT2','INT3','INT4','INT8','INTEGER','INTERVAL','INTO','IS','JOIN','KEY','KEYS'
-        ,'KILL','LEADING','LEFT','LIKE','LIMIT','LINES','LOAD','LOCALTIME','LOCALTIMESTAMP',
-        'LOCK','LONG','LONGBLOB','LONGTEXT','LOW_PRIORITY','MATCH','MEDIUMBLOB',
-        'MEDIUMINT','MEDIUMTEXT','MIDDLEINT','MINUTE_MICROSECOND','MINUTE_SECOND','MOD',
-        'NATURAL','NOT','NO_WRITE_TO_BINLOG','NULL','NUMERIC','ON','OPTIMIZE','OPTION',
-        'OPTIONALLY','OR','ORDER','OUTER','OUTFILE','PRECISION','PRIMARY','PRIVILEGES',
-        'PROCEDURE','PURGE','RAID0','READ','REAL','REFERENCES','REGEXP','RENAME',
-        'REPLACE','REQUIRE','RESTRICT','REVOKE','RIGHT','RLIKE','SECOND_MICROSECOND',
-        'SELECT','SEPARATOR','SET','SHOW','SMALLINT','SONAME','SPATIAL','SQL_BIG_RESULT',
-        'SQL_CALC_FOUND_ROWS','SQL_SMALL_RESULT','SSL','STARTING','STRAIGHT_JOIN','TABLE',
-        'TABLES','TERMINATED','THEN','TINYBLOB','TINYINT','TINYTEXT','TO','TRAILING',
-        'TRUE','UNION','UNIQUE','UNLOCK','UNSIGNED','UPDATE','USAGE','USE','USING',
-        'UTC_DATE','UTC_TIME','UTC_TIMESTAMP','VALUES','VARBINARY','VARCHAR','VARCHARACTER',
-        'VARYING','WHEN','WHERE','WITH','WRITE','X509','XOR','YEAR_MONTH','ZEROFILL'] );
-    }
+    // found a list with keywords:
+    // http://dev.mysql.com/doc/refman/5.1/en/reserved-words.html
+    keywords := ' ADD ALL ALTER ANALYZE AND AS ASC BEFORE BETWEEN BIGINT BINARY '+
+      'BLOB BOTH BY CASCADE CASE CHANGE CHAR CHARACTER CHECK COLLATE '+
+      'COLUMN COLUMNS CONSTRAINT CONVERT CREATE CROSS CURRENT_DATE '+
+      'CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER DATABASE DATABASES '+
+      'DAY_HOUR DAY_MICROSECOND DAY_MINUTE DAY_SECOND DEC DECIMAL '+
+      'DEFAULT DELAYED DELETE DESC DESCRIBE DISTINCT DISTINCTROW DIV '+
+      'DOUBLE DROP DUAL ELSE ENCLOSED ESCAPED EXISTS EXPLAIN FALSE '+
+      'FIELDS FLOAT FLOAT4 FLOAT8 FOR FORCE FOREIGN FROM FULLTEXT '+
+      'GRANT GROUP HAVING HIGH_PRIORITY HOUR_MICROSECOND HOUR_MINUTE '+
+      'HOUR_SECOND IF IGNORE IN INDEX INFILE INNER INSERT INT INT1 '+
+      'INT2 INT3 INT4 INT8 INTEGER INTERVAL INTO IS JOIN KEY KEYS '+
+      'KILL LEADING LEFT LIKE LIMIT LINES LOAD LOCALTIME LOCALTIMESTAMP '+
+      'LOCK LONG LONGBLOB LONGTEXT LOW_PRIORITY MATCH MEDIUMBLOB '+
+      'MEDIUMINT MEDIUMTEXT MIDDLEINT MINUTE_MICROSECOND MINUTE_SECOND MOD '+
+      'NATURAL NOT NO_WRITE_TO_BINLOG NULL NUMERIC ON OPTIMIZE OPTION '+
+      'OPTIONALLY OR ORDER OUTER OUTFILE PRECISION PRIMARY PRIVILEGES '+
+      'PROCEDURE PURGE RAID0 READ REAL REFERENCES REGEXP RENAME '+
+      'REPLACE REQUIRE RESTRICT REVOKE RIGHT RLIKE SECOND_MICROSECOND '+
+      'SELECT SEPARATOR SET SHOW SMALLINT SONAME SPATIAL SQL_BIG_RESULT '+
+      'SQL_CALC_FOUND_ROWS SQL_SMALL_RESULT SSL STARTING STRAIGHT_JOIN TABLE '+
+      'TABLES TERMINATED THEN TINYBLOB TINYINT TINYTEXT TO TRAILING '+
+      'TRUE UNION UNIQUE UNLOCK UNSIGNED UPDATE USAGE USE USING '+
+      'UTC_DATE UTC_TIME UTC_TIMESTAMP VALUES VARBINARY VARCHAR VARCHARACTER '+
+      'VARYING WHEN WHERE WITH WRITE X509 XOR YEAR_MONTH ZEROFILL '+
+      'ASENSITIVE CALL CONDITION CONNECTION CONTINUE CURSOR DECLARE '+
+      'DETERMINISTIC EACH ELSEIF EXIT FETCH GOTO INOUT INSENSITIVE ITERATE '+
+      'LABEL LEAVE LOOP MODIFIES OUT READS RELEASE REPEAT RETURN SCHEMA SCHEMAS '+
+      'SENSITIVE SPECIFIC SQL SQLEXCEPTION SQLSTATE SQLWARNING TRIGGER UNDO UPGRADE '+
+      'WHILE ACCESSIBLE LINEAR RANGE READ_ONLY READ_WRITE ';
+    iskeyword := ( pos( ' '+UpperCase(str)+' ', keywords ) > 0 );
 
-    if hasbadchar then
+    if hasbadchar or iskeyword then
     begin
       result := StringReplace(str, '`', '``', [rfReplaceAll]);
       result := '`' + result + '`';

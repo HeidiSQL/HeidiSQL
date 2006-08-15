@@ -819,6 +819,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Drop Table ...'
       ImageIndex = 84
+      ShortCut = 46
       OnExecute = DropTableExecute
     end
   end
