@@ -123,10 +123,10 @@
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">..\..\components\edbimage\build;..\..\components\smdbgrid\build;..\..\components\synedit\build;..\..\components\zeosdbo\build;..\..\components\heidisql\build;..\..\components\compilerdetection</Directories>
+			<Directories Name="SearchPath">..\..\components\edbimage\build;..\..\components\smdbgrid\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\heidisql\build;..\..\components\compilerdetection</Directories>
 			<Directories Name="Packages">Vcl50;Vclx50;VclSmp50;Vcldb50;vclado50;ibevnt50;Vclbde50;vcldbx50;Qrpt50;TeeUI50;TeeDB50;Tee50;Dss50;TeeQR50;VCLIB50;Vclmid50;vclie50;Inetdb50;Inet50;NMFast50;webmid50;dclocx50;dclaxserver50;vcl;rtl;dbrtl;vcldb;bdertl;ZUtils6;ZCommon6</Directories>
 			<Directories Name="Conditionals"></Directories>
-			<Directories Name="DebugSourceDirs">..\..\components\zeosdbo\src\component\;..\..\components\zeosdbo\src\core\;..\..\components\zeosdbo\src\dbc\;..\..\components\zeosdbo\src\parsesql\;..\..\components\zeosdbo\src\plain\</Directories>
+			<Directories Name="DebugSourceDirs">..\..;..\..\components\compilerdetection;..\..\components\edbimage;..\..\components\heidisql\source;..\..\components\smdbgrid;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Directories>
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>
 		<Parameters>

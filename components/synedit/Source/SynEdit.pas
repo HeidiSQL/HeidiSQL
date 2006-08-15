@@ -1039,11 +1039,7 @@ type
 
 implementation
 
-{ Commented out and added to project as source file instead
-  to fix HeidiSQL.dpr ".res file not found" compile error with Delphi 10. }
-{$ifndef COMPILER_10_UP}
 {$R SynEdit.res}
-{$endif}
 
 uses
 {$IFDEF SYN_CLX}

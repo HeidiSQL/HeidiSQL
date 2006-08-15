@@ -27,7 +27,6 @@ uses
   helpers in '..\..\helpers.pas';
 
 {$R *.RES}
-{$R '..\..\components\synedit\resources\SynEdit.res'}
 
 begin
 //  AboutBox := TAboutBox.Create(Application);
