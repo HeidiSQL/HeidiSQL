@@ -208,14 +208,26 @@
 
 	<h3>How can I clean my build environment?</h3>
 	<p>
-		If you think you might have done something wrong during building, or if the HeidiSQL
-		build process has changed, you might want to clean your build environment.
+		If the HeidiSQL build process has changed, or you think you might have done something
+		wrong during building, you might want to clean your build environment.
 		You can do like this:
 		<ul>
-			<li>Close all Delphi windows.</li>
+			<li>Close all Delphi <strong>projects</strong>, but leave a Delphi <strong>window</strong> open (or open a new one).</li>
+			<li>Choose Project --> Default Options --> Delphi for Win32</li>
+			<li>Choose "Packages".  Highlight the following packages one by one and click the "Remove" button after highlighting each one:
+				<ul>
+					<li>EDBImage</li>
+					<li>HeidiSQL helper components</li>
+					<li>SMDBGrid</li>
+					<li>SynEdit component suite</li>
+					<li>Zeos Database Components</li>
+				</ul>
 			<li>Nuke all files in your package output directory, eg. "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
 			<li>Nuke all files from all HeidiSQL "build" directories, for example by performing a fresh checkout.</li>
 		</ul>
+	</p>
+	<p>
+		Now you can restart your <a href='#gettingstarted'>build process</a>.
 	</p>
 
 
