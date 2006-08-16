@@ -1,10 +1,10 @@
 object ExportSQLForm: TExportSQLForm
-  Left = 422
-  Top = 230
-  Width = 580
-  Height = 430
+  Left = 0
+  Top = 0
   BorderWidth = 5
   Caption = 'Export Tables...'
+  ClientHeight = 386
+  ClientWidth = 601
   Color = clBtnFace
   Constraints.MinHeight = 430
   Constraints.MinWidth = 580
@@ -14,10 +14,11 @@ object ExportSQLForm: TExportSQLForm
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poMainFormCenter
   OnClose = FormClose
   OnShow = FormShow
   DesignSize = (
-    562
+    601
     386)
   PixelsPerInch = 96
   TextHeight = 13
@@ -30,7 +31,7 @@ object ExportSQLForm: TExportSQLForm
     Caption = 'lblProgress'
   end
   object btnExport: TButton
-    Left = 397
+    Left = 436
     Top = 357
     Width = 75
     Height = 25
@@ -39,9 +40,10 @@ object ExportSQLForm: TExportSQLForm
     Default = True
     TabOrder = 0
     OnClick = btnExportClick
+    ExplicitLeft = 397
   end
   object btnCancel: TButton
-    Left = 479
+    Left = 518
     Top = 357
     Width = 75
     Height = 25
@@ -50,20 +52,22 @@ object ExportSQLForm: TExportSQLForm
     Caption = 'Cancel'
     TabOrder = 1
     OnClick = btnCancelClick
+    ExplicitLeft = 479
   end
   object groupOutput: TGroupBox
     Left = 256
     Top = 0
-    Width = 299
+    Width = 338
     Height = 169
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Output'
     TabOrder = 2
+    ExplicitWidth = 299
     DesignSize = (
-      299
+      338
       169)
     object btnFileBrowse: TBitBtn
-      Left = 261
+      Left = 300
       Top = 43
       Width = 22
       Height = 22
@@ -79,15 +83,17 @@ object ExportSQLForm: TExportSQLForm
         307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
         777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
         7700777777777077707077777777770007777777777777777777}
+      ExplicitLeft = 261
     end
     object editFileName: TEdit
       Left = 32
       Top = 42
-      Width = 227
+      Width = 266
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
       OnDblClick = btnFileBrowseClick
+      ExplicitWidth = 227
     end
     object radioOtherDatabase: TRadioButton
       Left = 16
@@ -112,7 +118,7 @@ object ExportSQLForm: TExportSQLForm
     object comboOtherDatabase: TComboBox
       Left = 32
       Top = 87
-      Width = 251
+      Width = 290
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -120,6 +126,7 @@ object ExportSQLForm: TExportSQLForm
       Enabled = False
       ItemHeight = 13
       TabOrder = 4
+      ExplicitWidth = 251
     end
     object radioOtherHost: TRadioButton
       Left = 16
@@ -133,7 +140,7 @@ object ExportSQLForm: TExportSQLForm
     object comboOtherHost: TComboBox
       Left = 32
       Top = 131
-      Width = 251
+      Width = 290
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -141,19 +148,20 @@ object ExportSQLForm: TExportSQLForm
       Enabled = False
       ItemHeight = 13
       TabOrder = 6
+      ExplicitWidth = 251
     end
   end
   object barProgress: TProgressBar
     Left = 4
     Top = 325
-    Width = 551
+    Width = 590
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
-    Min = 0
     Max = 0
     Smooth = True
     Step = 1
     TabOrder = 3
+    ExplicitWidth = 551
   end
   object pageControl1: TPageControl
     Left = 4
@@ -162,7 +170,6 @@ object ExportSQLForm: TExportSQLForm
     Height = 303
     ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akBottom]
-    TabIndex = 0
     TabOrder = 4
     object TabSheet1: TTabSheet
       Caption = 'Selection'
@@ -207,7 +214,6 @@ object ExportSQLForm: TExportSQLForm
         Caption = 'toolbarSelectTools'
         EdgeInner = esNone
         EdgeOuter = esNone
-        Flat = True
         Images = MainForm.ImageList1
         ParentShowHint = False
         ShowHint = True
@@ -368,17 +374,17 @@ object ExportSQLForm: TExportSQLForm
   object groupExampleSql: TGroupBox
     Left = 256
     Top = 175
-    Width = 299
+    Width = 338
     Height = 128
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Example SQL'
     TabOrder = 5
+    ExplicitWidth = 299
     object SynMemoExampleSQL: TSynMemo
       Left = 2
       Top = 15
-      Width = 295
+      Width = 334
       Height = 111
-      Cursor = crIBeam
       Align = alClient
       Color = clBtnFace
       Font.Charset = DEFAULT_CHARSET
@@ -386,8 +392,6 @@ object ExportSQLForm: TExportSQLForm
       Font.Height = -13
       Font.Name = 'Courier New'
       Font.Style = []
-      ParentColor = False
-      ParentFont = False
       TabOrder = 0
       BorderStyle = bsNone
       Gutter.Font.Charset = DEFAULT_CHARSET
@@ -396,337 +400,19 @@ object ExportSQLForm: TExportSQLForm
       Gutter.Font.Name = 'Terminal'
       Gutter.Font.Style = []
       Gutter.Visible = False
-      Keystrokes = <
+      Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
+      ReadOnly = True
+      ExplicitWidth = 295
+      RemovedKeystrokes = <
         item
-          Command = ecUp
-          ShortCut = 38
-        end
-        item
-          Command = ecSelUp
-          ShortCut = 8230
-        end
-        item
-          Command = ecScrollUp
-          ShortCut = 16422
-        end
-        item
-          Command = ecDown
-          ShortCut = 40
-        end
-        item
-          Command = ecSelDown
-          ShortCut = 8232
-        end
-        item
-          Command = ecScrollDown
-          ShortCut = 16424
-        end
-        item
-          Command = ecLeft
-          ShortCut = 37
-        end
-        item
-          Command = ecSelLeft
-          ShortCut = 8229
-        end
-        item
-          Command = ecWordLeft
-          ShortCut = 16421
-        end
-        item
-          Command = ecSelWordLeft
-          ShortCut = 24613
-        end
-        item
-          Command = ecRight
-          ShortCut = 39
-        end
-        item
-          Command = ecSelRight
-          ShortCut = 8231
-        end
-        item
-          Command = ecWordRight
-          ShortCut = 16423
-        end
-        item
-          Command = ecSelWordRight
-          ShortCut = 24615
-        end
-        item
-          Command = ecPageDown
-          ShortCut = 34
-        end
-        item
-          Command = ecSelPageDown
-          ShortCut = 8226
-        end
-        item
-          Command = ecPageBottom
-          ShortCut = 16418
-        end
-        item
-          Command = ecSelPageBottom
-          ShortCut = 24610
-        end
-        item
-          Command = ecPageUp
-          ShortCut = 33
-        end
-        item
-          Command = ecSelPageUp
-          ShortCut = 8225
-        end
-        item
-          Command = ecPageTop
-          ShortCut = 16417
-        end
-        item
-          Command = ecSelPageTop
-          ShortCut = 24609
-        end
-        item
-          Command = ecLineStart
-          ShortCut = 36
-        end
-        item
-          Command = ecSelLineStart
-          ShortCut = 8228
-        end
-        item
-          Command = ecEditorTop
-          ShortCut = 16420
-        end
-        item
-          Command = ecSelEditorTop
-          ShortCut = 24612
-        end
-        item
-          Command = ecLineEnd
-          ShortCut = 35
-        end
-        item
-          Command = ecSelLineEnd
-          ShortCut = 8227
-        end
-        item
-          Command = ecEditorBottom
-          ShortCut = 16419
-        end
-        item
-          Command = ecSelEditorBottom
-          ShortCut = 24611
-        end
-        item
-          Command = ecToggleMode
-          ShortCut = 45
-        end
-        item
-          Command = ecCopy
-          ShortCut = 16429
-        end
-        item
-          Command = ecCut
-          ShortCut = 8238
-        end
-        item
-          Command = ecPaste
-          ShortCut = 8237
-        end
-        item
-          Command = ecDeleteChar
-          ShortCut = 46
-        end
-        item
-          Command = ecDeleteLastChar
-          ShortCut = 8
-        end
-        item
-          Command = ecDeleteLastChar
-          ShortCut = 8200
-        end
-        item
-          Command = ecDeleteLastWord
-          ShortCut = 16392
-        end
-        item
-          Command = ecUndo
-          ShortCut = 32776
-        end
-        item
-          Command = ecRedo
-          ShortCut = 40968
-        end
-        item
-          Command = ecLineBreak
-          ShortCut = 13
-        end
-        item
-          Command = ecLineBreak
-          ShortCut = 8205
-        end
-        item
-          Command = ecTab
-          ShortCut = 9
-        end
-        item
-          Command = ecShiftTab
-          ShortCut = 8201
-        end
+          Command = ecContextHelp
+          ShortCut = 112
+        end>
+      AddedKeystrokes = <
         item
           Command = ecContextHelp
           ShortCut = 16496
-        end
-        item
-          Command = ecSelectAll
-          ShortCut = 16449
-        end
-        item
-          Command = ecCopy
-          ShortCut = 16451
-        end
-        item
-          Command = ecPaste
-          ShortCut = 16470
-        end
-        item
-          Command = ecCut
-          ShortCut = 16472
-        end
-        item
-          Command = ecBlockIndent
-          ShortCut = 24649
-        end
-        item
-          Command = ecBlockUnindent
-          ShortCut = 24661
-        end
-        item
-          Command = ecLineBreak
-          ShortCut = 16461
-        end
-        item
-          Command = ecInsertLine
-          ShortCut = 16462
-        end
-        item
-          Command = ecDeleteWord
-          ShortCut = 16468
-        end
-        item
-          Command = ecDeleteLine
-          ShortCut = 16473
-        end
-        item
-          Command = ecDeleteEOL
-          ShortCut = 24665
-        end
-        item
-          Command = ecUndo
-          ShortCut = 16474
-        end
-        item
-          Command = ecRedo
-          ShortCut = 24666
-        end
-        item
-          Command = ecGotoMarker0
-          ShortCut = 16432
-        end
-        item
-          Command = ecGotoMarker1
-          ShortCut = 16433
-        end
-        item
-          Command = ecGotoMarker2
-          ShortCut = 16434
-        end
-        item
-          Command = ecGotoMarker3
-          ShortCut = 16435
-        end
-        item
-          Command = ecGotoMarker4
-          ShortCut = 16436
-        end
-        item
-          Command = ecGotoMarker5
-          ShortCut = 16437
-        end
-        item
-          Command = ecGotoMarker6
-          ShortCut = 16438
-        end
-        item
-          Command = ecGotoMarker7
-          ShortCut = 16439
-        end
-        item
-          Command = ecGotoMarker8
-          ShortCut = 16440
-        end
-        item
-          Command = ecGotoMarker9
-          ShortCut = 16441
-        end
-        item
-          Command = ecSetMarker0
-          ShortCut = 24624
-        end
-        item
-          Command = ecSetMarker1
-          ShortCut = 24625
-        end
-        item
-          Command = ecSetMarker2
-          ShortCut = 24626
-        end
-        item
-          Command = ecSetMarker3
-          ShortCut = 24627
-        end
-        item
-          Command = ecSetMarker4
-          ShortCut = 24628
-        end
-        item
-          Command = ecSetMarker5
-          ShortCut = 24629
-        end
-        item
-          Command = ecSetMarker6
-          ShortCut = 24630
-        end
-        item
-          Command = ecSetMarker7
-          ShortCut = 24631
-        end
-        item
-          Command = ecSetMarker8
-          ShortCut = 24632
-        end
-        item
-          Command = ecSetMarker9
-          ShortCut = 24633
-        end
-        item
-          Command = ecNormalSelect
-          ShortCut = 24654
-        end
-        item
-          Command = ecColumnSelect
-          ShortCut = 24643
-        end
-        item
-          Command = ecLineSelect
-          ShortCut = 24652
-        end
-        item
-          Command = ecMatchBracket
-          ShortCut = 24642
         end>
-      Options = [eoAutoIndent, eoNoCaret, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
-      ReadOnly = True
     end
   end
   object dialogSave: TSaveDialog

@@ -103,6 +103,10 @@ const
   DATA_INSERT          = 1;
   DATA_INSERT_IGNORE   = 2;
   DATA_REPLACE_INTO    = 3;
+  // Order of radiobutton group "Output"
+  OUTPUT_FILE       = 1;
+  OUTPUT_DB         = 2;
+  OUTPUT_HOST       = 3;
 
 
 procedure TExportSQLForm.btnCancelClick(Sender: TObject);
@@ -113,7 +117,7 @@ end;
 procedure TExportSQLForm.FormShow(Sender: TObject);
 var
   tn : TTreeNode;
-  i,j : Integer;
+  i,j, OutputTo, idxHost : Integer;
   dbtree_db : String;
 begin
   barProgress.Position := 0;
@@ -159,6 +163,34 @@ begin
   end;
   comboSelectDatabaseChange(self);
 
+  // Another Host / DB
+  comboOtherHost.Items.Clear;
+  idxHost := -1;
+  for i:=0 to MainForm.MDIChildCount-1 do
+  begin
+    if MainForm.MDIChildren[i] <> MainForm.ActiveMDIChild then
+      with TMDIChild(MainForm.MDIChildren[i]) do
+      begin
+        for j:=0 to tnodehost.Count-1 do
+        begin
+          self.comboOtherHost.Items.Add(ZConn.HostName + ':' + tnodehost.Item[j].text);
+          if (ActualDatabase = tnodehost.Item[j].text) and (idxHost=-1) then
+            idxHost := self.comboOtherHost.Items.Count-1;
+        end;
+      end;
+  end;
+
+  // select the ActualDatabase from the first window
+  // or - if no ActualDatabase set - set at least the first item in the combo
+  if comboOtherHost.Items.Count > 0 then
+  begin
+    if idxHost = -1 then
+      comboOtherHost.ItemIndex := 0
+    else
+      comboOtherHost.ItemIndex := idxHost;
+  end;
+
+  // Read options
   with TRegistry.Create do
     if OpenKey(regpath, true) then begin
     // WithUseDB, UseBackticks, CompleteInserts: deprecated (hardcoded true now)
@@ -173,25 +205,23 @@ begin
     if Valueexists('ExtendedInsert') then cbxExtendedInsert.Checked := ReadBool('ExtendedInsert');
     if Valueexists('Compatibility') then comboTargetCompat.ItemIndex := ReadInteger('Compatibility');
     if Valueexists('exportfilename') then editFileName.Text := ReadString('exportfilename');
-  end;
-
-  // Another Host / DB
-  comboOtherHost.Items.Clear;
-  for i:=0 to MainForm.MDIChildCount-1 do
-  begin
-    if MainForm.MDIChildren[i] <> MainForm.ActiveMDIChild then
-      with TMDIChild(MainForm.MDIChildren[i]) do
-      begin
-        for j:=0 to tnodehost.Count-1 do
-          self.comboOtherHost.Items.Add(ZConn.HostName + ':' + tnodehost.Item[j].text);
+    if Valueexists('ExportSQL_OutputTo') then
+    begin
+      OutputTo := ReadInteger('ExportSQL_OutputTo');
+      if (comboOtherHost.Items.Count = 0) and (OutputTo = OUTPUT_HOST) then
+        OutputTo := OUTPUT_FILE;
+      case OutputTo of
+        OUTPUT_FILE : radioFile.checked := true;
+        OUTPUT_DB   : radioOtherDatabase.checked := true;
+        OUTPUT_HOST : radioOtherHost.checked := true;
       end;
+    end;
+    if ValueExists('ExportSQL_WindowWidth') then Width := ReadInteger('ExportSQL_WindowWidth');
+    if ValueExists('ExportSQL_WindowHeight') then Height := ReadInteger('ExportSQL_WindowHeight');
   end;
-  if comboOtherHost.Items.Count > 0 then
-    comboOtherHost.ItemIndex := 0;
 
   if EditFileName.Text = '' then
     EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
-  radioFile.OnClick(self);
 
   validateControls(Sender);
   generateExampleSQL;
@@ -958,6 +988,8 @@ end;
 
 procedure TExportSQLForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
+var
+  OutputTo : Byte;
 begin
   with TRegistry.Create do
   begin
@@ -972,7 +1004,16 @@ begin
     WriteInteger('CreateDataHow',     comboData.ItemIndex);
     WriteBool('ExtendedInsert',       cbxExtendedInsert.Checked);
     WriteInteger('Compatibility',     comboTargetCompat.ItemIndex);
-    WriteString('exportfilename',   EditFileName.Text);
+    WriteString('exportfilename',     EditFileName.Text);
+    if radioFile.Checked then
+      OutputTo := OUTPUT_FILE
+    else if radioOtherDatabase.checked then
+      OutputTo := OUTPUT_DB
+    else if radioOtherHost.checked then
+      OutputTo := OUTPUT_HOST;
+    WriteInteger('ExportSQL_OutputTo',     OutputTo );
+    WriteInteger('ExportSQL_WindowWidth',  Width );
+    WriteInteger('ExportSQL_WindowHeight', Height );
     CloseKey();
   end;
 end;
