@@ -112,7 +112,6 @@ type
     MenuCheck: TMenuItem;
     MenuAnalyze: TMenuItem;
     MenuRepair: TMenuItem;
-    N16: TMenuItem;
     More1: TMenuItem;
     Timer5: TTimer;
     PopupMenuDropTable: TMenuItem;
@@ -252,6 +251,7 @@ type
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
+    procedure pmenu2Popup(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
       var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
@@ -462,9 +462,36 @@ begin
   end;
 end;
 
+
+// Check the tabletype of the selected table in the Popupmenu of ListTables
+procedure TMDIChild.pmenu2Popup(Sender: TObject);
+var
+  i               : byte;
+  SelectedEngine  : String;
+  menuitem        : TMenuItem;
+begin
+  if ListTables.SelCount <> 1 then
+    exit;
+  for i:=0 to ListTables.Columns.count-1 do
+  begin
+    if ListTables.Columns[i].Caption = 'Engine' then
+    begin
+      SelectedEngine := ListTables.Selected.SubItems[i-1];
+      break;
+    end;
+  end;
+  for i:=0 to MenuChangeType.count-1 do
+  begin
+    MenuChangeType.Items[i].Checked := MenuChangeType.Items[i].Caption = SelectedEngine;
+  end;
+end;
+
+
 procedure TMDIChild.FormCreate(Sender: TObject);
 var
   AutoReconnect    : Boolean;
+  menuitem         : TMenuItem;
+  i                : Byte;
 begin
   // initialization: establish connection and read some vars from registry
   Screen.Cursor := crHourGlass;
@@ -522,16 +549,39 @@ begin
 
   // re-enable AutoReconnect in Registry!
   if AutoReconnect then
-  with TRegistry.Create do begin
+  with TRegistry.Create do
+  begin
     openkey(regpath, true);
     WriteBool('AutoReconnect', true);
     closekey();
   end;
 
+  // set some defaults
   ActualDatabase := '';
   ActualTable := '';
   Screen.Cursor := crDefault;
 
+  // read engine-types for popupmenu in database tab
+  if mysql_version >= 40102 then
+  begin
+    for i := MenuChangeType.Count-1 downto 0 do
+      MenuChangeType.Delete(i);
+    GetResults( 'SHOW ENGINES', ZQuery3 );
+    for i := 0 to ZQuery3.RecordCount  -1 do
+    begin
+      menuitem := TMenuItem.Create(self);
+      menuitem.Caption := ZQuery3.FieldByName('Engine').AsString ;
+      menuitem.Hint := ZQuery3.FieldByName('Comment').AsString ;
+      if Uppercase(ZQuery3.FieldByName('Support').AsString) = 'NO' then
+      begin
+        menuitem.Enabled := false;
+        menuitem.Hint := menuitem.Hint + ' (Not supported on this server)';
+      end;
+      menuitem.OnClick := MenuChangeTypeClick;
+      MenuChangeType.Add(menuitem);
+      ZQuery3.Next;
+    end;
+  end;
 end;
 
 
@@ -711,6 +761,7 @@ begin
     zconn.Database := ZQuery3.FieldByName('Database').AsString;
   end else
     OnlyDBs2 := OnlyDBs;
+  OnlyDBs2.sort;
   // Let synedit know all tablenames so that they can be highlighted
   SynSQLSyn1.TableNames.Clear;
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
@@ -1544,12 +1595,27 @@ begin
     3 : tndb_ := DBTree.Selected.Parent.Parent;
   end;
 
-  if MessageDlg('Drop Database '+tndb_.Text+'?' + crlf + crlf + 'WARNING: You will lose all tables in database '+tndb_.Text+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+  if MessageDlg('Drop Database "'+tndb_.Text+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+tndb_.Text+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     abort;
 
   Screen.Cursor := crSQLWait;
   try
     ExecQuery( 'DROP DATABASE ' + mask(tndb_.Text) );
+    if OnlyDBs.Count > 0 then
+    begin
+      if OnlyDBs.IndexOf(tndb_.Text) > -1 then
+      begin
+        OnlyDBs.Delete( OnlyDBs.IndexOf(tndb_.Text) );
+        with TRegistry.Create do
+        begin
+          if OpenKey(regpath + '\Servers\' + Description, false) then
+          begin
+            WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
+            CloseKey;
+          end;
+        end;
+      end;
+    end;
     tndb_.Delete;
   except
     MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
@@ -2135,12 +2201,24 @@ procedure TMDIChild.CreateDatabase(Sender: TObject);
 var dbname : String;
 begin
   // Create new Database:
-  if InputQuery('Create new Database...', 'Database Name:', dbname) then begin
+  if InputQuery('Create new Database...', 'Database Name:', dbname) then
+  begin
     Screen.Cursor := crSQLWait;
-    ZQuery3.SQL.Clear();
-    ZQuery3.SQL.Add('CREATE DATABASE ' + dbname);
     Try
-      ZQuery3.ExecSQL;
+      ExecQuery( 'CREATE DATABASE ' + mask( dbname ) );
+      // Add DB to OnlyDBs-regkey if this is not empty
+      if OnlyDBs.Count > 0 then
+      begin
+        OnlyDBs.Add( dbname );
+        with TRegistry.Create do
+        begin
+          if OpenKey(regpath + '\Servers\' + Description, false) then
+          begin
+            WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
+            CloseKey;
+          end;
+        end;
+      end;
       ActualDatabase := dbname;
       ReadDatabasesAndTables(self);
     except
@@ -2776,10 +2854,13 @@ end;
 procedure TMDIChild.MenuChangeTypeClick(Sender: TObject);
 var
   i : Integer;
+  tabletype : String;
 begin
+  tabletype := (Sender as TMenuItem).Caption;
+  tabletype := StringReplace( tabletype, '&', '', [rfReplaceAll] ); // Remove Auto-Hotkey
   for i:=0 to ListTables.Items.Count - 1 do
     if ListTables.Items[i].Selected then
-      ExecQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + (Sender as TMenuItem).Hint);
+      ExecQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + tabletype);
   ShowDBProperties(self);
 end;
 

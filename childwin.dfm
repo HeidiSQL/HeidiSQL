@@ -1080,7 +1080,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 32
+              Height = 28
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -1272,8 +1272,10 @@ object MDIChild: TMDIChild
     end
   end
   object pmenu2: TPopupMenu
+    AutoHotkeys = maManual
     AutoPopup = False
     Images = MainForm.ImageList1
+    OnPopup = pmenu2Popup
     Left = 72
     Top = 48
     object menuproperties: TMenuItem
@@ -1307,33 +1309,30 @@ object MDIChild: TMDIChild
     object N2: TMenuItem
       Caption = '-'
     end
+    object menudroptable: TMenuItem
+      Action = MainForm.DropTable
+    end
+    object menuemptytable: TMenuItem
+      Caption = 'Empty ...'
+      Enabled = False
+      ImageIndex = 31
+      ShortCut = 8238
+      OnClick = TabelleLeeren
+    end
+    object MenuRenameTable: TMenuItem
+      Caption = 'Rename'
+      Enabled = False
+      ShortCut = 113
+      OnClick = MenuRenameTableClick
+    end
+    object MenuTableComment: TMenuItem
+      Caption = 'Edit Comment'
+      Enabled = False
+      ShortCut = 114
+      OnClick = MenuTableCommentClick
+    end
     object Table1: TMenuItem
-      Caption = 'Commands'
-      object menudroptable: TMenuItem
-        Action = MainForm.DropTable
-      end
-      object menuemptytable: TMenuItem
-        Caption = 'Empty ...'
-        Enabled = False
-        ImageIndex = 31
-        ShortCut = 8238
-        OnClick = TabelleLeeren
-      end
-      object MenuRenameTable: TMenuItem
-        Caption = 'Rename'
-        Enabled = False
-        ShortCut = 113
-        OnClick = MenuRenameTableClick
-      end
-      object MenuTableComment: TMenuItem
-        Caption = 'Edit Comment'
-        Enabled = False
-        ShortCut = 114
-        OnClick = MenuTableCommentClick
-      end
-      object N16: TMenuItem
-        Caption = '-'
-      end
+      Caption = 'Maintenance'
       object MenuOptimize: TMenuItem
         Caption = 'OPTIMIZE'
         Enabled = False
@@ -1355,7 +1354,7 @@ object MDIChild: TMDIChild
         OnClick = MenuRepairClick
       end
       object More1: TMenuItem
-        Caption = 'More Diagnostics...'
+        Caption = 'More Maintenance...'
         OnClick = More1Click
       end
     end
@@ -1369,37 +1368,30 @@ object MDIChild: TMDIChild
       Caption = 'Change Type'
       object MenuChangeType1: TMenuItem
         Caption = 'ISAM'
-        Hint = 'ISAM'
         OnClick = MenuChangeTypeClick
       end
       object MenuChangeType2: TMenuItem
         Caption = 'MyISAM'
-        Hint = 'MyISAM'
         OnClick = MenuChangeTypeClick
       end
       object MenuChangeType3: TMenuItem
         Caption = 'HEAP'
-        Hint = 'HEAP'
         OnClick = MenuChangeTypeClick
       end
       object MenuChangeType4: TMenuItem
         Caption = 'MERGE'
-        Hint = 'MERGE'
         OnClick = MenuChangeTypeClick
       end
       object MenuChangeType5: TMenuItem
         Caption = 'InnoDB'
-        Hint = 'InnoDB'
         OnClick = MenuChangeTypeClick
       end
       object MenuChangeType6: TMenuItem
         Caption = 'BDB'
-        Hint = 'BDB'
         OnClick = MenuChangeTypeClick
       end
       object Gemini1: TMenuItem
         Caption = 'Gemini'
-        Hint = 'Gemini'
         OnClick = MenuChangeTypeClick
       end
       object N8: TMenuItem
