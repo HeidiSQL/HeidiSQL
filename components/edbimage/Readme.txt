@@ -47,20 +47,3 @@ Next release:
 Thanks to: Mohsen Rahmani, Mr. Hong, René Simon and Dayne for their help. 
 
 THIS IS FREEWARE - USE AT YOUR OWN RISK, ETC, ETC    
-
-
-»Install
-0- Before install, remove previous versions of EDBImage (and QREDBImage)
-   Choose Component | Install Packages..., select EDBimage and hit Remove.
-   (delete or rename: edbImage.*, qrEDBimage.* )
-
-1-Open VCLser40.dpk (Dephi4), VCLser50.dpk (Delphi5) or  VCLser60.dpk (Delphi6)
-Menu Project-Options in Directory/Conditionals tab 
-set OutputDirectory to C:\Windows\System (or your system directory)
-Compile it. DO NOT install, is a runtime package.
-
-2-Open DCLser40.dpk (Dephi4), DCLser50.dpk (Delphi5) or  DCLser60.dpk (Delphi6)
-Compile it, then Install It. This is the Designtime package.
-
-
-
