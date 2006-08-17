@@ -34,18 +34,18 @@ type
     SpinEditLogSQL: TSpinEdit;
     Label5: TLabel;
     Label6: TLabel;
-    Panel2: TPanel;
+    pnlKeywords: TPanel;
     ColorDialog1: TColorDialog;
     Label7: TLabel;
-    Panel3: TPanel;
+    pnlFunctions: TPanel;
     Label8: TLabel;
-    Panel4: TPanel;
+    pnlDatatypes: TPanel;
     Label9: TLabel;
-    Panel5: TPanel;
+    pnlNumeric: TPanel;
     Label10: TLabel;
-    Panel6: TPanel;
+    pnlString: TPanel;
     Label11: TLabel;
-    Panel7: TPanel;
+    pnlComments: TPanel;
     TabSheet5: TTabSheet;
     GroupBox1: TGroupBox;
     Label12: TLabel;
@@ -139,12 +139,12 @@ begin
     WriteString('FontName', ComboBoxFonts.Text);
     WriteInteger('FontSize', UpDownFontSize.Position);
     WriteInteger('logsqlnum', SpinEditLogSQL.Value);
-    WriteString('SQLColKeyAttri', colortostring(Panel2.Color));
-    WriteString('SQLColFunctionAttri', colortostring(Panel3.Color));
-    WriteString('SQLColDataTypeAttri', colortostring(Panel4.Color));
-    WriteString('SQLColNumberAttri', colortostring(Panel5.Color));
-    WriteString('SQLColStringAttri', colortostring(Panel6.Color));
-    WriteString('SQLColCommentAttri', colortostring(Panel7.Color));
+    WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
+    WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
+    WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
+    WriteString('SQLColNumberAttri', colortostring(pnlNumeric.Color));
+    WriteString('SQLColStringAttri', colortostring(pnlString.Color));
+    WriteString('SQLColCommentAttri', colortostring(pnlComments.Color));
     WriteString('CSVSeparator', Edit1.Text);
     WriteString('CSVEncloser', Edit2.Text);
     WriteString('CSVTerminator', Edit3.Text);
@@ -165,12 +165,12 @@ begin
     begin
       SynMemo1.Font := self.Panel1.Font;
       SynMemo2.Font := self.Panel1.Font;
-      SynSQLSyn1.KeyAttri.Foreground := self.Panel2.Color;
-      SynSQLSyn1.FunctionAttri.Foreground := self.Panel3.Color;
-      SynSQLSyn1.DataTypeAttri.Foreground := self.Panel4.Color;
-      SynSQLSyn1.NumberAttri.Foreground := self.Panel5.Color;
-      SynSQLSyn1.StringAttri.Foreground := self.Panel6.Color;
-      SynSQLSyn1.CommentAttri.Foreground := self.Panel7.Color;
+      SynSQLSyn1.KeyAttri.Foreground := self.pnlKeywords.Color;
+      SynSQLSyn1.FunctionAttri.Foreground := self.pnlFunctions.Color;
+      SynSQLSyn1.DataTypeAttri.Foreground := self.pnlDatatypes.Color;
+      SynSQLSyn1.NumberAttri.Foreground := self.pnlNumeric.Color;
+      SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
+      SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
       while SynMemo2.Lines.Count > SpinEditLogSQL.Value do
         SynMemo2.Lines.Delete(0);
       gridData.Font := self.Panel8.font;
@@ -202,15 +202,15 @@ end;
 
 procedure Toptionsform.FormShow(Sender: TObject);
 
-// ----------- Callback.Funktion für Fixed_Pitch -----------------//
+// ----------- Callback.Funktion for Fixed_Pitch -----------------//
 function EnumFixedProc(lpelf: PEnumLogFont;
                        lpntm: PNewTextMetric;
                        FontType: Integer;
-                       Data: LPARAM)  // hier steht das Strings-Objekt
-                       : Integer;     // 0 = Abbrechen
-                       stdcall;       // Wichtig bei allen API-Callbacks
+                       Data: LPARAM)  // Strings-Objekt
+                       : Integer;     // 0 = Cancel
+                       stdcall;       // Important for all API-Callbacks
 begin
-  Result := 1;  // nicht abbrechen
+  Result := 1;  // don't cancel
   if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
     (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
 end;
@@ -248,19 +248,19 @@ begin
 
     // Color-coding:
     if ValueExists('SQLColKeyAttri') then begin
-      Panel2.Color := StringToColor(readstring('SQLColKeyAttri'));
-      Panel3.Color := StringToColor(readstring('SQLColFunctionAttri'));
-      Panel4.Color := StringToColor(readstring('SQLColDataTypeAttri'));
-      Panel5.Color := StringToColor(readstring('SQLColNumberAttri'));
-      Panel6.Color := StringToColor(readstring('SQLColStringAttri'));
-      Panel7.Color := StringToColor(readstring('SQLColCommentAttri'));
+      pnlKeywords.Color := StringToColor(readstring('SQLColKeyAttri'));
+      pnlFunctions.Color := StringToColor(readstring('SQLColFunctionAttri'));
+      pnlDatatypes.Color := StringToColor(readstring('SQLColDataTypeAttri'));
+      pnlNumeric.Color := StringToColor(readstring('SQLColNumberAttri'));
+      pnlString.Color := StringToColor(readstring('SQLColStringAttri'));
+      pnlComments.Color := StringToColor(readstring('SQLColCommentAttri'));
     end else begin
-      Panel2.Color := clBlue;
-      Panel3.Color := clNavy;
-      Panel4.Color := clMaroon;
-      Panel5.Color := clPurple;
-      Panel6.Color := clGreen;
-      Panel7.Color := clGray;
+      pnlKeywords.Color := clBlue;
+      pnlFunctions.Color := clNavy;
+      pnlDatatypes.Color := clMaroon;
+      pnlNumeric.Color := clPurple;
+      pnlString.Color := clGreen;
+      pnlComments.Color := clGray;
     end;
 
     Edit1.Text := ',';

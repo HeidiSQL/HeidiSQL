@@ -28,7 +28,6 @@ object optionsform: Toptionsform
     ActivePage = TabSheet1
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabIndex = 0
     TabOrder = 3
     object TabSheet1: TTabSheet
       Caption = 'Miscellaneous'
@@ -89,7 +88,6 @@ object optionsform: Toptionsform
         Height = 233
         ActivePage = TabSheet3
         Align = alClient
-        TabIndex = 0
         TabOrder = 0
         object TabSheet3: TTabSheet
           Caption = 'Font'
@@ -136,7 +134,7 @@ object optionsform: Toptionsform
             Width = 193
             Height = 21
             Style = csDropDownList
-            ItemHeight = 0
+            ItemHeight = 13
             TabOrder = 1
             OnChange = FontsChange
           end
@@ -155,10 +153,8 @@ object optionsform: Toptionsform
             Width = 16
             Height = 21
             Associate = EditFontSize
-            Min = 0
             Position = 9
             TabOrder = 3
-            Wrap = False
           end
         end
         object TabSheet4: TTabSheet
@@ -206,63 +202,69 @@ object optionsform: Toptionsform
             Height = 13
             Caption = 'Comments:'
           end
-          object Panel2: TPanel
+          object pnlKeywords: TPanel
             Left = 104
-            Top = 24
+            Top = 25
             Width = 25
             Height = 25
             Cursor = crHandPoint
             BevelOuter = bvLowered
+            ParentBackground = False
             TabOrder = 0
             OnClick = CallColorDialog
           end
-          object Panel3: TPanel
+          object pnlFunctions: TPanel
             Left = 104
             Top = 56
             Width = 25
             Height = 25
             Cursor = crHandPoint
             BevelOuter = bvLowered
+            ParentBackground = False
             TabOrder = 1
             OnClick = CallColorDialog
           end
-          object Panel4: TPanel
+          object pnlDatatypes: TPanel
             Left = 104
             Top = 88
             Width = 25
             Height = 25
             Cursor = crHandPoint
             BevelOuter = bvLowered
+            ParentBackground = False
             TabOrder = 2
             OnClick = CallColorDialog
           end
-          object Panel5: TPanel
+          object pnlNumeric: TPanel
             Left = 296
             Top = 24
             Width = 25
             Height = 25
             Cursor = crHandPoint
             BevelOuter = bvLowered
+            ParentBackground = False
             TabOrder = 3
             OnClick = CallColorDialog
           end
-          object Panel6: TPanel
+          object pnlString: TPanel
             Left = 296
             Top = 56
             Width = 25
             Height = 25
             Cursor = crHandPoint
             BevelOuter = bvLowered
+            ParentBackground = False
             TabOrder = 4
             OnClick = CallColorDialog
           end
-          object Panel7: TPanel
+          object pnlComments: TPanel
             Left = 296
             Top = 88
             Width = 25
             Height = 25
             Cursor = crHandPoint
             BevelOuter = bvLowered
+            ParentBackground = False
             TabOrder = 5
             OnClick = CallColorDialog
           end
@@ -354,7 +356,7 @@ object optionsform: Toptionsform
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 1
           OnChange = DataFontsChange
         end
@@ -373,10 +375,8 @@ object optionsform: Toptionsform
           Width = 16
           Height = 21
           Associate = Edit4
-          Min = 0
           Position = 8
           TabOrder = 3
-          Wrap = False
         end
       end
       object CheckBoxDataAlwaysEditMode: TCheckBox
@@ -427,11 +427,8 @@ object optionsform: Toptionsform
         Width = 16
         Height = 21
         Associate = EditLimit
-        Min = 0
         Max = 32767
-        Position = 0
         TabOrder = 5
-        Wrap = False
         OnChanging = UpDownLimitChanging
       end
       object SpinEditDefaultColWidth: TSpinEdit
@@ -453,8 +450,8 @@ object optionsform: Toptionsform
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
-        Width = 399
-        Height = 211
+        Width = 403
+        Height = 233
         Align = alClient
         Caption = 'CSV-Strings for copying/saving CSV-data'
         TabOrder = 0
@@ -574,7 +571,6 @@ object optionsform: Toptionsform
     OnClick = Apply
   end
   object ColorDialog1: TColorDialog
-    Ctl3D = True
     Options = [cdFullOpen, cdSolidColor]
     Left = 109
     Top = 229
