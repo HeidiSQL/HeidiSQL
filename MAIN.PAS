@@ -1224,30 +1224,30 @@ begin
   end;
 end;
 
+// Drop Table(s)
 procedure TMainForm.DropTableExecute(Sender: TObject);
 var
   i,j : Integer;
   tn, tndb : TTreeNode;
   t : TStringList;
 begin
-  // delete table
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    // Drop Table(s)
     t := TStringlist.Create;
 
-    if (Sender as TComponent).Name = 'PopupMenuDropTable' then begin
-      // delete-command was sended by dbtree-popupmenu:
+    if (Sender as TBasicAction).ActionComponent = PopupMenuDropTable then begin
+      // Invoked by tree menu popup.
       t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
-    end
-    else with ListTables do begin
-      // delete-command was sended by ListTables-popupmenu:
-      for i:=0 to Items.count-1 do
-        if Items[i].Selected then
-          t.add(mask(Items[i].Caption));
-      if t.count = 0 then
-        exit;
+    end else if PageControl1.ActivePage = SheetDatabase then with ListTables do begin
+      // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
+      for i:=0 to Items.count-1 do if Items[i].Selected then t.add(mask(Items[i].Caption));
+    end else begin
+      // Invoked from one of the various buttons, drop table selected in tree view.
+      t.add(mask(ActualDatabase) + '.' + mask(ActualTable));
     end;
+
+    // Fix actions temporarily enabled for popup menu.
+    ValidateDbActions;
 
     if MessageDlg('Drop ' + inttostr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
       exit;
@@ -1255,19 +1255,20 @@ begin
     Screen.Cursor := crSQLWait;
     ExecQuery( 'DROP TABLE ' + implodestr(', ', t) );
 
-    if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
-    else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
-    else exit;
+    if DBtree.Selected.Level in [1, 2] then begin
+      if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
+      else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent;
 
-    for i:=0 to t.count-1 do begin
-      // delete it in dbtree too...
-      tn := tndb.getFirstChild;
-      for j:=0 to tndb.Count -1 do begin
-        if t[i] = tn.Text then begin
-          tn.Delete;
-          break;
+      for i:=0 to t.count-1 do begin
+        // delete it in dbtree too...
+        tn := tndb.getFirstChild;
+        for j:=0 to tndb.Count -1 do begin
+          if t[i] = tn.Text then begin
+            tn.Delete;
+            break;
+          end;
+          tn := tndb.GetNextChild(tn);
         end;
-        tn := tndb.GetNextChild(tn);
       end;
     end;
 

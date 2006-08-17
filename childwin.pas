@@ -10,7 +10,7 @@ UNIT Childwin;
 INTERFACE
 
 uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
-  ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus, SortListView,
+  ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL,
   Registry, Spin, Clipbrd, Shellapi,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
@@ -18,7 +18,7 @@ uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
-  SynCompletionProposal;
+  SynCompletionProposal, HeidiComp;
 
 
 type
@@ -251,6 +251,7 @@ type
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
+    procedure btnDbPropertiesClick(Sender: TObject);
     procedure popupDbGridPopup(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
       var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
@@ -268,7 +269,10 @@ type
     procedure ShowTableProperties(Sender: TObject);
     procedure ListTablesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
-    procedure ValidateTableSheet;
+    procedure ValidateDbActions;
+    procedure SelectHost;
+    procedure SelectDatabase(db: string);
+    procedure SelectTable(db: string; table: string);
     procedure TabelleAnzeigen(Sender: TObject);
     procedure TabelleLeeren(Sender: TObject);
     procedure DBLoeschen(Sender: TObject);
@@ -810,85 +814,75 @@ begin
 end;
 
 
-
-procedure TMDIChild.DBtreeChange(Sender: TObject; Node: TTreeNode);
-var
-  strdb, strtable : String;
+procedure TMDIChild.SelectHost;
 begin
-  // react on dbtree-clicks
+  SheetDatabase.TabVisible := false;
+  SheetTable.TabVisible := false;
+  SheetData.TabVisible := false;
+  if
+   (not DBTree.Dragging) or
+   (PageControl1.ActivePage = SheetDatabase) or
+   (PageControl1.ActivePage = SheetTable) or
+   (PageControl1.ActivePage = SheetData) then
+  begin
+    PageControl1.ActivePage := SheetHost;
+  end;
+  Caption := Description;
+  ActualDatabase := '';
+  ActualTable := '';
+end;
+
+procedure TMDIChild.SelectDatabase(db: string);
+begin
+  SheetDatabase.TabVisible := true;
+  SheetTable.TabVisible := false;
+  SheetData.TabVisible := false;
+  if
+   (not DBTree.Dragging) or
+   (PageControl1.ActivePage = SheetTable) or
+   (PageControl1.ActivePage = SheetData) then
+  begin
+    PageControl1.ActivePage := SheetDatabase;
+  end;
+  ListTables.Items.Clear;
+  ListColumns.Items.Clear;
+  Panel3.Caption := 'Table-Properties';
+  Caption := Description + ' - /' + ActualDatabase;
+  ActualDatabase := db;
+  ShowDBProperties(self);
+  ActualTable := '';
+end;
+
+procedure TMDIChild.SelectTable(db: string; table: string);
+begin
+  if ActualDatabase <> db then SelectDatabase(db);
+  SheetDatabase.TabVisible := true;
+  SheetTable.TabVisible := true;
+  SheetData.TabVisible := true;
+  dataselected := false;
+  ActualTable := table;
+  ShowTableProperties(self);
+  Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
+end;
+
+// react on dbtree-clicks
+procedure TMDIChild.DBtreeChange(Sender: TObject; Node: TTreeNode);
+begin
   Screen.Cursor := crHourGlass;
+
   case Node.Level of
     0 : begin                                   // Root / Host chosen
-      if not DBTree.Dragging then
-        PageControl1.ActivePage := SheetHost;
-      SheetDatabase.TabVisible := false;
-      SheetTable.TabVisible := false;
-      SheetData.TabVisible := false;
-      ActualDatabase := '';
-      ActualTable := '';
-      Caption := Description;
+      SelectHost;
     end;
     1 : begin                                   // DB chosen
-      SheetDatabase.TabVisible := true;
-      SheetTable.TabVisible := false;
-      SheetData.TabVisible := false;
-      if not DBTree.Dragging then
-        PageControl1.ActivePage := SheetDatabase;
-      strdb := Node.Text;
-      mainform.showstatus(strdb +': ' + inttostr(Node.count) +' table(s)');
-      if ActualDatabase <> strdb then
-      begin
-        ActualDatabase := strdb;
-        ActualTable := '';
-        btnTableDropField.Enabled := False;
-        // probably buggy: if switched to nil, View-button on data-tabsheet doesn't work
-        //
-        //  First, there's no View button on the Data sheet.
-        //  ---
-        //  Second, the view button *shouldn't* work on the Database sheet, it should be disabled.
-        //  That's because a fresh database has just been selected, so the table selection is cleared.  (this btw also fixes some very odd UI behaviour, see r145).
-        //  ---
-        //  The view button should always work on the Table sheet, but:
-        //  The table sheet itself should be disabled when we've just chosen a new database, because no relevant table has been selected.
-        //  ---
-        //  I realize that the table selection (tree view) and the Data tab doesn't always synchronize correctly,
-        //  or refresh correctly, or both, so it's buggy, but I'm quite sure it's not here the bug is...
-        //  ---
-        //  Anse: found the line ActualTable := '' in ValidateTableSheet - THIS is most probably the
-        //  bug we searched.
-        //
-        //  BTW: thx David, found this discussion quite helpful :)
-        ListTables.Selected := nil;
-        ListColumns.Items.Clear;
-        Panel3.Caption := 'Table-Properties';
-        ShowDBProperties(self);
-      end;
-      Caption := Description + ' - /' + ActualDatabase;
+      SelectDatabase(Node.Text);
     end;
     2 : begin                                   // Table chosen
-      SheetDatabase.TabVisible := true;
-      SheetTable.TabVisible := true;
-      SheetData.TabVisible := true;
-      strdb := Node.Parent.Text;
-      strtable := Node.Text;
-      if (ActualDatabase <> strdb) or (ActualTable <> strtable) then
-        dataselected := false;
-      if ActualDatabase <> strdb then
-      begin
-        ActualDatabase := strdb;
-        ShowDBProperties(self);
-      end;
-      ActualTable := strtable;
-      ShowTableProperties(self);
-      MainForm.showstatus(strdb + ': '+strtable +': ' + inttostr(ListColumns.Items.count) +' field(s)');
-//      if not dataselected then pcChange(self);
-      Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
+      SelectTable(Node.Parent.Text, Node.Text);
     end;
   end;
 
   pcChange(self);
-  ValidateTableSheet;
-
   Screen.Cursor := crDefault;
 end;
 
@@ -1138,6 +1132,8 @@ begin
 
   Tabsheet2.TabVisible := DataOrQueryTab;
   Tabsheet8.TabVisible := (PageControl1.ActivePage = SheetData);
+
+  ValidateDbActions;
 end;
 
 
@@ -1299,6 +1295,7 @@ begin
         ZQuery3.Next;
       end;
     end;
+    mainform.showstatus(ActualDatabase + ': ' + inttostr(ZQuery3.RecordCount) +' table(s)');
   Finally
     ListTables.Columns.EndUpdate;
     ListTables.Items.EndUpdate;
@@ -1475,7 +1472,7 @@ begin
     ZQuery3.Next;
   end;
 
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+  MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + inttostr(ListColumns.Items.count) +' field(s)');
   Screen.Cursor := crDefault;
 end;
 
@@ -1488,46 +1485,47 @@ begin
   for i := 0 to ListTables.Items.Count - 1 do
     ListTables.Items[i].ImageIndex := 39;
   if (ListTables.Selected <> nil) then ListTables.Selected.ImageIndex := 40;
-  ValidateTableSheet;
+  ValidateDbActions;
 end;
 
-procedure TMDIChild.ValidateTableSheet;
-var someselected : Boolean;
+// Enable/disable various buttons and menu items.
+// Invoked when active sheet changes or highlighted database changes.
+procedure TMDIChild.ValidateDbActions;
+var
+  tableSelected : Boolean;
 begin
-  someselected := (ListTables.Selected <> nil);
-  // table selected
-  btnDbProperties.Enabled := someselected; // properties
-  menuproperties.Enabled := someselected;
-  btnDbInsertRecord.Enabled := someselected; //insert
-  menuinsert.Enabled := someselected;
-  btnDbViewData.Enabled := someselected; //view data
-  menuviewdata.Enabled := someselected;
-  btnDbEmptyTable.Enabled := someselected; // empty
-  menuemptytable.Enabled := someselected;
-  MenuAdvancedProperties.Enabled := someselected;
-  MenuRenameTable.Enabled := someselected;
-  MenuChangeType1.Enabled := someselected;
-  MenuChangeType2.Enabled := someselected;
-  MenuChangeType3.Enabled := someselected;
-  MenuChangeType4.Enabled := someselected;
-  MenuChangeType5.Enabled := someselected;
-  MenuChangeType6.Enabled := someselected;
-  MenuChangeTypeOther.Enabled := someselected;
-  Mainform.CopyTable.Enabled := someselected;
-  btnDbDropTable.Enabled := someselected;
-  if someselected then
-    ActualTable := ListTables.Selected.Caption;
-//  else
-//    ActualTable := '';
-  MainForm.DropTable.Enabled := someselected;
-  MenuTableComment.Enabled := someselected;
-  MenuOptimize.Enabled := someselected;
-  MenuCheck.Enabled := someselected;
-  MenuAnalyze.Enabled := someselected;
-  MenuRepair.Enabled := someselected;
+  // Make sure that main menu "drop table" affects table selected in tree view,
+  // not table (now invisibly) selected on the database grid.
+  if (PageControl1.ActivePage <> SheetDatabase) then ListTables.Selected := nil;
+
+  tableSelected := (ListTables.Selected <> nil);
+  btnDbProperties.Enabled := tableSelected;
+  menuproperties.Enabled := tableSelected;
+  btnDbInsertRecord.Enabled := tableSelected;
+  menuinsert.Enabled := tableSelected;
+  btnDbViewData.Enabled := tableSelected;
+  menuviewdata.Enabled := tableSelected;
+  btnDbEmptyTable.Enabled := tableSelected;
+  menuemptytable.Enabled := tableSelected;
+  MenuAdvancedProperties.Enabled := tableSelected;
+  MenuRenameTable.Enabled := tableSelected;
+  MenuChangeType1.Enabled := tableSelected;
+  MenuChangeType2.Enabled := tableSelected;
+  MenuChangeType3.Enabled := tableSelected;
+  MenuChangeType4.Enabled := tableSelected;
+  MenuChangeType5.Enabled := tableSelected;
+  MenuChangeType6.Enabled := tableSelected;
+  MenuChangeTypeOther.Enabled := tableSelected;
+  Mainform.CopyTable.Enabled := tableSelected;
+  btnDbDropTable.Enabled := tableSelected;
+  MenuTableComment.Enabled := tableSelected;
+  MenuOptimize.Enabled := tableSelected;
+  MenuCheck.Enabled := tableSelected;
+  MenuAnalyze.Enabled := tableSelected;
+  MenuRepair.Enabled := tableSelected;
 
   MainForm.ButtonDropDatabase.Enabled := ActualDatabase <> '';
-  MainForm.DropTable.Enabled := ActualTable <> '';
+  MainForm.DropTable.Enabled := tableSelected or ((PageControl1.ActivePage <> SheetDatabase) and (ActualTable <> ''));
   MainForm.ButtonCreateTable.Enabled := ActualDatabase <> '';
 end;
 
@@ -2431,10 +2429,7 @@ procedure TMDIChild.ListTablesDblClick(Sender: TObject);
 begin
   // table-doubleclick
   if ListTables.Selected <> nil then begin
-    SheetTable.TabVisible := ListTables.Selected <> nil;
-    SheetData.TabVisible := ListTables.Selected <> nil;
-    ActualTable := ListTables.Selected.Caption;
-    ShowTableProperties(self);
+    SelectTable(ActualDatabase, ListTables.Selected.Caption);
   end;
 end;
 
@@ -2591,6 +2586,14 @@ begin
     DBMemo1.Scrollbars := ssBoth;
 end;
 
+
+procedure TMDIChild.btnDbPropertiesClick(Sender: TObject);
+begin
+  if ListTables.Selected <> nil then
+  begin
+    SelectTable(ActualDatabase, ListTables.Selected.Caption);
+  end;
+end;
 
 procedure TMDIChild.PageControl4Change(Sender: TObject);
 begin
@@ -3025,8 +3028,6 @@ begin
     end;
   end;
 end;
-
-
 
 procedure TMDIChild.popupTreeViewPopup(Sender: TObject);
 begin

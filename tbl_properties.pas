@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, SortListView, ExtCtrls, ZDataset;
+  StdCtrls, ComCtrls, HeidiComp, ExtCtrls, ZDataset;
 
 type
   Ttbl_properties_form = class(TForm)

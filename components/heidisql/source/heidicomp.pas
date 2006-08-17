@@ -1,28 +1,24 @@
-unit SortListView;
+unit heidicomp;
+
 interface
+
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls;
 
 type
   TSortListView = class(TListView)
-  private
-
   protected
      procedure ColClick(Column: TListColumn); override;
-  public
-
-  published
-end;
+  end;
 
 procedure Register;
 
 implementation
 
-
 procedure Register;
 begin
-  RegisterComponents('Rentsch', [TSortListView]);
+  RegisterComponents('Heidi', [TSortListView]);
 end;
 
 function CustomSortProc(Item1, Item2: TListItem; ParamSort: integer): integer;
@@ -63,7 +59,11 @@ begin
 end;
 
 procedure tsortlistview.ColClick(Column: TListColumn);
-begin inherited colclick(column);
-      CustomSort(@CustomSortProc, column.index);
+begin
+  inherited colclick(column);
+  CustomSort(@CustomSortProc, column.index);
 end;
+
+
+
 end.
