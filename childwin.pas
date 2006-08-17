@@ -765,6 +765,19 @@ begin
   end else
     OnlyDBs2 := OnlyDBs;
   OnlyDBs2.sort;
+  // Prioritised position of system-databases
+  if OnlyDBs2.Count >= 2 then
+  begin
+    if (OnlyDBs2.IndexOf( DBNAME_MYSQL ) > -1) then
+    begin
+      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_MYSQL ), 0 );
+    end;
+    if (OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ) > -1) then
+    begin
+      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ), 1 );
+    end;
+  end;
+
   // Let synedit know all tablenames so that they can be highlighted
   SynSQLSyn1.TableNames.Clear;
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
@@ -1517,7 +1530,6 @@ begin
   MenuChangeType6.Enabled := tableSelected;
   MenuChangeTypeOther.Enabled := tableSelected;
   Mainform.CopyTable.Enabled := tableSelected;
-  btnDbDropTable.Enabled := tableSelected;
   MenuTableComment.Enabled := tableSelected;
   MenuOptimize.Enabled := tableSelected;
   MenuCheck.Enabled := tableSelected;
@@ -2090,7 +2102,8 @@ begin
       MenuCreateTable.Enabled := true;
       MenuCreateDatabase.Enabled := true;
       MenuDropDatabase.Enabled := true;
-      //DropTable.Enabled := true;
+      DropTable.Enabled := true;
+      ImportSQL.Enabled := true;
       MenuFlushHosts.Enabled := true;
       MenuFlushLogs.Enabled := true;
       FlushUserPrivileges1.Enabled := true;
@@ -2135,7 +2148,7 @@ begin
     MenuCreateTable.Enabled := false;
     MenuCreateDatabase.Enabled := false;
     MenuDropDatabase.Enabled := false;
-    //DropTable.Enabled := false;
+    DropTable.Enabled := false;
     MenuFlushHosts.Enabled := false;
     MenuFlushLogs.Enabled := false;
     FlushUserPrivileges1.Enabled := false;
@@ -2150,6 +2163,7 @@ begin
     CopyHTMLtable.Enabled := false;
     Copy2XML.Enabled := false;
     ExportData.Enabled := false;
+    ImportSQL.Enabled := false;
   end;
   MainForm.showstatus('', 1); // empty connected_time
 

@@ -262,6 +262,8 @@ const
   appname = 'HeidiSQL';
   regpath = 'Software\' + appname;
   STATUS_MSG_READY = 'Ready.';
+  DBNAME_INFORMATION_SCHEMA = 'information_schema';
+  DBNAME_MYSQL = 'mysql';
 
 type TMyKey = record
   Name    : String;
