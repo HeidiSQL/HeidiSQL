@@ -32,12 +32,12 @@ type
     SheetDatabase: TTabSheet;
     Splitter2: TSplitter;
     SheetQuery: TTabSheet;
-    PopupMenu1: TPopupMenu;
+    popupTreeView: TPopupMenu;
     Drop1: TMenuItem;
     Panel2: TPanel;
     SheetTable: TTabSheet;
     Panel3: TPanel;
-    pmenu2: TPopupMenu;
+    popupDbGrid: TPopupMenu;
     menuviewdata: TMenuItem;
     menuproperties: TMenuItem;
     menuinsert: TMenuItem;
@@ -49,7 +49,7 @@ type
     TabSheet7: TTabSheet;
     ListVariables: TSortListView;
     ListProcesses: TSortListView;
-    PopupMenu2: TPopupMenu;
+    popupHost: TPopupMenu;
     Kill1: TMenuItem;
     NewDatabase1: TMenuItem;
     ListTables: TSortListView;
@@ -58,38 +58,38 @@ type
     Panel5: TPanel;
     Panel6: TPanel;
     ToolBar1: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton3: TToolButton;
-    ToolButton13: TToolButton;
+    btnDbViewData: TToolButton;
+    btnDbProperties: TToolButton;
+    btnDbInsertRecord: TToolButton;
+    btnDbEmptyTable: TToolButton;
     ToolBar2: TToolBar;
     menurefresh: TMenuItem;
     N2: TMenuItem;
     Panel7: TPanel;
-    ToolButton9: TToolButton;
-    ToolButton10: TToolButton;
+    btnTableDropField: TToolButton;
+    btnTableViewData: TToolButton;
     SynSQLSyn1: TSynSQLSyn;
     SynMemo1: TSynMemo;
     Splitter3: TSplitter;
     menucreatetable: TMenuItem;
     OpenDialog1: TOpenDialog;
     Timer1: TTimer;
-    PopupMenu3: TPopupMenu;
+    popupTableGrid: TPopupMenu;
     Refresh2: TMenuItem;
     DropField1: TMenuItem;
     N3: TMenuItem;
     N5: TMenuItem;
     PopupmenuDropDatabase: TMenuItem;
-    ButtonInsert: TToolButton;
-    PopupMenuData: TPopupMenu;
+    btnTableInsertRecord: TToolButton;
+    popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
     Insertrecord2: TMenuItem;
-    ButtonAddField: TToolButton;
+    btnTableAddField: TToolButton;
     MenuAddField: TMenuItem;
-    ButtonEditField: TToolButton;
+    btnTableEditField: TToolButton;
     MenuEditField: TMenuItem;
     Timer2: TTimer;
-    Result: TPopupMenu;
+    popupResultGrid: TPopupMenu;
     Copyrecords1: TMenuItem;
     CopyasCSVData1: TMenuItem;
     N9: TMenuItem;
@@ -101,7 +101,7 @@ type
     Timer4: TTimer;
     N12: TMenuItem;
     MenuTableComment: TMenuItem;
-    PopupMenu4: TPopupMenu;
+    popupSqlLog: TPopupMenu;
     Clear2: TMenuItem;
     Copy1: TMenuItem;
     N13: TMenuItem;
@@ -123,9 +123,9 @@ type
     Copy3: TMenuItem;
     Paste2: TMenuItem;
     N4: TMenuItem;
-    DBGrid1: TSMDBGrid;
+    gridData: TSMDBGrid;
     DataSource1: TDataSource;
-    DBGrid2: TSMDBGrid;
+    gridQuery: TSMDBGrid;
     DataSource2: TDataSource;
     Copytableas1: TMenuItem;
     Filter1: TMenuItem;
@@ -140,7 +140,7 @@ type
     N7: TMenuItem;
     DropFilter1: TMenuItem;
     Table1: TMenuItem;
-    PopupMenu7: TPopupMenu;
+    popupFilterOpenFile: TPopupMenu;
     OpenDialog2: TOpenDialog;
     PrintList2: TMenuItem;
     PrintList3: TMenuItem;
@@ -160,16 +160,16 @@ type
     TabSheet8: TTabSheet;
     SynMemo2: TSynMemo;
     ToolBar3: TToolBar;
-    ToolButton6: TToolButton;
-    ToolButton7: TToolButton;
-    ToolButton8: TToolButton;
+    btnBlobWordWrap: TToolButton;
+    btnBlobLoad: TToolButton;
+    btnBlobSave: TToolButton;
     PageControl4: TPageControl;
     TabSheet3: TTabSheet;
     DBMemo1: TDBMemo;
     TabSheet4: TTabSheet;
     SynMemo3: TSynMemo;
-    ToolButton14: TToolButton;
-    MenuTabelleLoeschen: TToolButton;
+    btnDbCopyTable: TToolButton;
+    btnDbDropTable: TToolButton;
     N18: TMenuItem;
     MenuChangeType5: TMenuItem;
     MenuChangeType6: TMenuItem;
@@ -185,23 +185,23 @@ type
     QF6: TMenuItem;
     Panel8: TPanel;
     ToolBarQuery: TToolBar;
-    ButtonRunQuery: TToolButton;
-    ButtonRunSelection: TToolButton;
-    ButtonLoadSQL: TToolButton;
-    ButtonSaveSQL: TToolButton;
-    ToolButton15: TToolButton;
+    btnQueryRun: TToolButton;
+    btnQueryRunSelected: TToolButton;
+    btnQueryLoad: TToolButton;
+    btnQuerySave: TToolButton;
+    btnQueryFind: TToolButton;
     PanelCharsInQueryWindow: TPanel;
-    ToolButtonStopOnErrors: TToolButton;
+    btnQueryStopOnErrors: TToolButton;
     Panel10: TPanel;
     ComboBoxWhereFilters: TComboBox;
     ToolBar4: TToolBar;
-    ToolButton18: TToolButton;
-    ToolButton11: TToolButton;
-    ToolButton12: TToolButton;
-    ToolButton17: TToolButton;
-    ToolButton16: TToolButton;
-    BtnPreviousFilter: TToolButton;
-    BtnNextFilter: TToolButton;
+    btnFilterSet: TToolButton;
+    btnFilterLoad: TToolButton;
+    btnFilterSave: TToolButton;
+    btnFilterClear: TToolButton;
+    sepFilter1: TToolButton;
+    btnFilterPrevious: TToolButton;
+    btnFilterNext: TToolButton;
     QF8: TMenuItem;
     QF10: TMenuItem;
     QF11: TMenuItem;
@@ -214,7 +214,7 @@ type
     SaveDialogExportData: TSaveDialog;
     N11: TMenuItem;
     ProgressBarQuery: TProgressBar;
-    ToolButton19: TToolButton;
+    btnQueryReplace: TToolButton;
     Copy2: TMenuItem;
     Copy4: TMenuItem;
     N14: TMenuItem;
@@ -226,9 +226,9 @@ type
     DataDate: TMenuItem;
     DataYear: TMenuItem;
     ViewasHTML1: TMenuItem;
-    ToolButton4: TToolButton;
+    btnBlobViewAsHtml: TToolButton;
     HTMLview1: TMenuItem;
-    ToolButton5: TToolButton;
+    btnBlobCopy: TToolButton;
     ScrollBox1: TScrollBox;
     InsertfilesintoBLOBfields1: TMenuItem;
     InsertfilesintoBLOBfields2: TMenuItem;
@@ -247,11 +247,11 @@ type
     EditDataSearch: TEdit;
     ButtonDataSearch: TButton;
     Find1: TMenuItem;
-    PopupMenuTablelistColumns: TPopupMenu;
+    popupDbGridHeader: TPopupMenu;
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
-    procedure pmenu2Popup(Sender: TObject);
+    procedure popupDbGridPopup(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
       var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
@@ -311,17 +311,17 @@ type
     procedure MenuRepairClick(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure Timer5Timer(Sender: TObject);
-    procedure DBGrid1TitleClick(Column: TColumn);
+    procedure gridDataTitleClick(Column: TColumn);
     procedure Filter1Click(Sender: TObject);
     procedure MenuLimitClick(Sender: TObject);
     procedure Delete1Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
-    procedure ToolButton6Click(Sender: TObject);
+    procedure btnBlobWordWrapClick(Sender: TObject);
     procedure PageControl4Change(Sender: TObject);
-    procedure ToolButton8Click(Sender: TObject);
-    procedure ToolButton7Click(Sender: TObject);
-    procedure ToolButton11Click(Sender: TObject);
-    procedure ToolButton12Click(Sender: TObject);
+    procedure btnBlobSaveClick(Sender: TObject);
+    procedure btnBlobLoadClick(Sender: TObject);
+    procedure btnFilterLoadClick(Sender: TObject);
+    procedure btnFilterSaveClick(Sender: TObject);
     procedure setFilter(Sender: TObject);
     procedure ClearFilter(Sender: TObject);
     procedure LoadSQLWhereFile(Sender: TObject);
@@ -330,8 +330,8 @@ type
     procedure MenuChangeTypeOtherClick(Sender: TObject);
     procedure InsertRecord(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
-    procedure ResultPopup(Sender: TObject);
-    procedure DBGrid1ColumnMoved(Sender: TObject; FromIndex,
+    procedure popupResultGridPopup(Sender: TObject);
+    procedure gridDataColumnMoved(Sender: TObject; FromIndex,
       ToIndex: Integer);
     procedure Autoupdate1Click(Sender: TObject);
     procedure EnableAutoRefreshClick(Sender: TObject);
@@ -346,28 +346,28 @@ type
       Shift: TShiftState);
     procedure SynMemo1MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure PopupMenu2Popup(Sender: TObject);
+    procedure popupHostPopup(Sender: TObject);
     procedure ListTablesEditing(Sender: TObject; Item: TListItem;
       var AllowEdit: Boolean);
     procedure Saveastextfile1Click(Sender: TObject);
-    procedure PopupMenu1Popup(Sender: TObject);
-    procedure ToolButton15Click(Sender: TObject);
+    procedure popupTreeViewPopup(Sender: TObject);
+    procedure btnQueryFindClick(Sender: TObject);
     procedure LoadSQLClick(Sender: TObject);
-    procedure ButtonSaveSQLClick(Sender: TObject);
-    procedure ButtonLoadSQLClick(Sender: TObject);
-    procedure BtnPreviousFilterClick(Sender: TObject);
-    procedure BtnNextFilterClick(Sender: TObject);
+    procedure btnQuerySaveClick(Sender: TObject);
+    procedure btnQueryLoadClick(Sender: TObject);
+    procedure btnFilterPreviousClick(Sender: TObject);
+    procedure btnFilterNextClick(Sender: TObject);
     procedure ComboBoxWhereFiltersChange(Sender: TObject);
-    procedure ToolButtonStopOnErrorsClick(Sender: TObject);
+    procedure btnQueryStopOnErrorsClick(Sender: TObject);
     procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure DBGridGetCellParams(Sender: TObject; Field: TField;
       AFont: TFont; var Background: TColor; Highlight: Boolean);
     procedure DBGridEnter(Sender: TObject);
     procedure DBGridExit(Sender: TObject);
-    procedure PopupMenuDataPopup(Sender: TObject);
+    procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
-    procedure ToolButton5Click(Sender: TObject);
+    procedure btnBlobCopyClick(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQuery2BeforeClose(DataSet: TDataSet);
@@ -464,11 +464,10 @@ end;
 
 
 // Check the tabletype of the selected table in the Popupmenu of ListTables
-procedure TMDIChild.pmenu2Popup(Sender: TObject);
+procedure TMDIChild.popupDbGridPopup(Sender: TObject);
 var
   i               : byte;
   SelectedEngine  : String;
-  menuitem        : TMenuItem;
 begin
   if ListTables.SelCount <> 1 then
     exit;
@@ -637,11 +636,11 @@ begin
 
       // Data-Font:
       if (ValueExists('DataFontName')) and (ValueExists('DataFontSize')) then begin
-        DBGrid1.Font.Name := ReadString('DataFontName');
-        DBGrid2.Font.Name := ReadString('DataFontName');
+        gridData.Font.Name := ReadString('DataFontName');
+        gridQuery.Font.Name := ReadString('DataFontName');
         DBMemo1.Font.Name := ReadString('DataFontName');
-        DBGrid1.Font.Size := ReadInteger('DataFontSize');
-        DBGrid2.Font.Size := ReadInteger('DataFontSize');
+        gridData.Font.Size := ReadInteger('DataFontSize');
+        gridQuery.Font.Size := ReadInteger('DataFontSize');
         DBMemo1.Font.Size := ReadInteger('DataFontSize');
       end;
 
@@ -661,12 +660,12 @@ begin
 
       // SQL-Filter-Files-History
       i := 1;
-      PopUpMenu7.Items.Clear;
+      popupFilterOpenFile.Items.Clear;
       while ValueExists('SQLWhereFile'+inttostr(i)) do begin
         menuitem := Tmenuitem.Create(self);
-        menuitem.Caption := inttostr(PopUpMenu7.Items.count+1) + ' ' + ReadString('SQLWhereFile'+inttostr(i));
+        menuitem.Caption := inttostr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString('SQLWhereFile'+inttostr(i));
         menuitem.OnClick := LoadSQLWhereFile;
-        PopUpMenu7.Items.Add(menuitem);
+        popupFilterOpenFile.Items.Add(menuitem);
         inc(i);
       end;
 
@@ -841,7 +840,7 @@ begin
       begin
         ActualDatabase := strdb;
         ActualTable := '';
-        ToolButton9.Enabled := False;
+        btnTableDropField.Enabled := False;
         // probably buggy: if switched to nil, View-button on data-tabsheet doesn't work
         //
         //  First, there's no View button on the Data sheet.
@@ -931,7 +930,7 @@ begin
   if not dataselected then
   begin
     SynMemo3.Text := '';
-    DBGrid1.SortColumns.Clear;
+    gridData.SortColumns.Clear;
     // Read cached WHERE-clause and set filter
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if reg.ValueExists( reg_value ) then
@@ -958,7 +957,7 @@ begin
           logsql('Notice: A stored ORDER-BY clause could not be applied, because the column "' + columnname + '" does not exist!');
           continue;
         end;
-        with DBGrid1.SortColumns.Add do
+        with gridData.SortColumns.Add do
         begin
           Fieldname := columnname;
           if copy( orderclauses[i], length(orderclauses[i])-3, 4 ) = 'DESC' then
@@ -971,9 +970,9 @@ begin
   end;
 
   sorting := '';
-  for i:=0 to dbgrid1.SortColumns.Count-1 do
+  for i:=0 to gridData.SortColumns.Count-1 do
   begin
-    with dbgrid1.SortColumns[i] do
+    with gridData.SortColumns[i] do
     begin
       if SortType <> stNone then begin
         if sorting <> '' then
@@ -1005,13 +1004,13 @@ begin
     SheetData.TabVisible := true;
     if Mainform.DataAlwaysEditMode then
     begin
-      DBGrid1.Options := DBGrid1.Options + [dgAlwaysShowEditor];
-      DBGrid2.Options := DBGrid2.Options + [dgAlwaysShowEditor];
+      gridData.Options := gridData.Options + [dgAlwaysShowEditor];
+      gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
     end
     else
     begin
-      DBGrid1.Options := DBGrid1.Options - [dgAlwaysShowEditor];
-      DBGrid2.Options := DBGrid2.Options - [dgAlwaysShowEditor];
+      gridData.Options := gridData.Options - [dgAlwaysShowEditor];
+      gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
     end;
     PageControl1.ActivePage := SheetData;
 
@@ -1053,17 +1052,17 @@ begin
         begin
           DropDown[j] := trimc(DropDown[j], '''');
         end;
-        for j:=0 to DBGrid1.Columns.count-1 do
+        for j:=0 to gridData.Columns.count-1 do
         begin
-          if DBGrid1.Columns[j].FieldName = ListColumns.Items[i].Caption then
-            DBGrid1.Columns[j].PickList := DropDown;
+          if gridData.Columns[j].FieldName = ListColumns.Items[i].Caption then
+            gridData.Columns[j].PickList := DropDown;
         end;
       end;
 
       // make PK-columns = fsBold
-      for j:=0 to DBGrid1.Columns.count-1 do
+      for j:=0 to gridData.Columns.count-1 do
       begin
-        if (DBGrid1.Columns[j].FieldName = ListColumns.Items[i].Caption) and
+        if (gridData.Columns[j].FieldName = ListColumns.Items[i].Caption) and
           (ListColumns.Items[i].ImageIndex = 26) then
         begin
           PrimaryKeyColumns.Add( ListColumns.Items[i].Caption );
@@ -1072,7 +1071,7 @@ begin
 
     end;
 
-    for j:=0 to DBGrid1.Columns.count-1 do
+    for j:=0 to gridData.Columns.count-1 do
     begin
       // for letting NULLs being inserted into "NOT NULL" fields
       // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
@@ -1080,18 +1079,18 @@ begin
       ZQuery2.Fields[j].Required := false;
 
       // set column-width
-      if (Mainform.DefaultColWidth <> 0) and (DBGrid1.Columns[j].Width > Mainform.DefaultColWidth) then
+      if (Mainform.DefaultColWidth <> 0) and (gridData.Columns[j].Width > Mainform.DefaultColWidth) then
       begin
-        DBGrid1.Columns[j].Width := Mainform.DefaultColWidth;
+        gridData.Columns[j].Width := Mainform.DefaultColWidth;
       end;
 
       // make PK-columns = fsBold
       for i:=0 to PrimaryKeyColumns.Count-1 do
       begin
-        if (PrimaryKeyColumns[i] = DBGrid1.Columns[j].Fieldname) then
+        if (PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname) then
         begin
-          DBGrid1.Columns[j].Font.Style := DBGrid1.Columns[j].Font.Style + [fsBold];
-          DBGrid1.Columns[j].Color := $02EEEEEE;
+          gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
+          gridData.Columns[j].Color := $02EEEEEE;
         end;
       end;
     end;
@@ -1167,14 +1166,14 @@ begin
       // get quick results with versions 3.23.xx and newer
       GetResults( 'SHOW TABLE STATUS', ZQuery3 );
 
-      // Generate items for PopupMenuTablelistColumns
-      for i:=PopupMenuTablelistColumns.Items.Count-1 downto 2 do
-        PopupMenuTablelistColumns.Items.Delete( i );
+      // Generate items for popupDbGridHeader
+      for i:=popupDbGridHeader.Items.Count-1 downto 2 do
+        popupDbGridHeader.Items.Delete( i );
       with TRegistry.Create do
       begin
         openkey( regpath + '\Servers\' + description, true );
         if ValueExists( 'TablelistDefaultColumns' ) then
-          PopupMenuTablelistColumns.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
+          popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
         if ValueExists( 'TablelistColumns' ) then
           TablelistColumns := Explode( ',', ReadString( 'TablelistColumns' ) )
         else
@@ -1196,7 +1195,7 @@ begin
         begin
           menuitem.Checked := TablelistColumns.IndexOf( menuitem.Caption ) > -1;
         end;
-        PopupMenuTablelistColumns.Items.Add( menuitem );
+        popupDbGridHeader.Items.Add( menuitem );
       end;
 
       ListTables.Items.BeginUpdate;
@@ -1206,7 +1205,7 @@ begin
       column := ListTables.Columns.Add;
       column.Caption := 'Table';
       column.Width := -1;
-      if PopupMenuTablelistColumns.Items[0].Checked then
+      if popupDbGridHeader.Items[0].Checked then
       begin // Default columns - initialize column headers
         column := ListTables.Columns.Add;
         column.Caption := 'Records';
@@ -1249,7 +1248,7 @@ begin
         n.ImageIndex := 39;
         // Table
         n.Caption := ZQuery3.FieldByName('Name').AsString;
-        if PopupMenuTablelistColumns.Items[0].Checked then
+        if popupDbGridHeader.Items[0].Checked then
         begin // Default columns
           // Records
           n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
@@ -1497,13 +1496,13 @@ var someselected : Boolean;
 begin
   someselected := (ListTables.Selected <> nil);
   // table selected
-  Toolbutton2.Enabled := someselected; // properties
+  btnDbProperties.Enabled := someselected; // properties
   menuproperties.Enabled := someselected;
-  Toolbutton3.Enabled := someselected; //insert
+  btnDbInsertRecord.Enabled := someselected; //insert
   menuinsert.Enabled := someselected;
-  Toolbutton1.Enabled := someselected; //view data
+  btnDbViewData.Enabled := someselected; //view data
   menuviewdata.Enabled := someselected;
-  Toolbutton13.Enabled := someselected; // empty
+  btnDbEmptyTable.Enabled := someselected; // empty
   menuemptytable.Enabled := someselected;
   MenuAdvancedProperties.Enabled := someselected;
   MenuRenameTable.Enabled := someselected;
@@ -1515,7 +1514,7 @@ begin
   MenuChangeType6.Enabled := someselected;
   MenuChangeTypeOther.Enabled := someselected;
   Mainform.CopyTable.Enabled := someselected;
-  MenuTabelleLoeschen.Enabled := someselected;
+  btnDbDropTable.Enabled := someselected;
   if someselected then
     ActualTable := ListTables.Selected.Caption;
 //  else
@@ -1846,7 +1845,7 @@ begin
       except
         on E:Exception do
         begin
-          if ToolButtonStopOnErrors.Down or (i=SQL.Count-1) then begin
+          if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
             Screen.Cursor := crdefault;
             LogSQL(E.Message, true);
             MessageDLG(E.Message, mtError, [mbOK], 0);
@@ -1887,9 +1886,9 @@ begin
     ZQuery1.EnableControls;
     // resize all columns, if they are more wide than Mainform.DefaultColWidth
     if Mainform.DefaultColWidth <> 0 then
-      for i:=0 to DBGrid2.Columns.count-1 do
-        if DBGrid2.Columns[i].Width > Mainform.DefaultColWidth then
-          DBGrid2.Columns[i].Width := Mainform.DefaultColWidth;
+      for i:=0 to gridQuery.Columns.count-1 do
+        if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
+          gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
     Screen.Cursor := crdefault;
 	  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   END;
@@ -1905,15 +1904,15 @@ begin
 
   if ListColumns.Selected <> nil then
   with ListColumns.Selected do begin
-    Toolbutton9.Enabled := True;
+    btnTableDropField.Enabled := True;
     DropField1.Enabled := True; //drop field
     MenuEditField.Enabled := true;
-    ButtonEditField.enabled := true;
+    btnTableEditField.enabled := true;
   end else begin
-    Toolbutton9.Enabled := False;
+    btnTableDropField.Enabled := False;
     DropField1.Enabled := false; //drop field
     MenuEditField.Enabled := false;
-    ButtonEditField.enabled := false;
+    btnTableEditField.enabled := false;
   end;
 
 end;
@@ -2045,7 +2044,7 @@ begin
   Mainform.ExecuteQuery.Enabled := somechars;
   Mainform.ExecuteSelection.Enabled := length(SynMemo1.SelText) > 0;
   Mainform.ExecuteLine.Enabled := SynMemo1.LineText <> '';
-  ButtonSaveSQL.Enabled := somechars;
+  btnQuerySave.Enabled := somechars;
 end;
 
 
@@ -2451,7 +2450,7 @@ begin
 end;
 
 
-procedure TMDIChild.DBGrid1TitleClick(Column: TColumn);
+procedure TMDIChild.gridDataTitleClick(Column: TColumn);
 var
   Grid : TSMDBGrid;
   i  : Integer;
@@ -2513,12 +2512,12 @@ end;
 procedure TMDIChild.Delete1Click(Sender: TObject);
 begin
   // Delete record(s)
-  if DBGrid1.SelectedRows.Count = 0 then begin
+  if gridData.SelectedRows.Count = 0 then begin
     if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
       ZQuery2.Delete
   end else
-  if MessageDLG('Delete '+inttostr(DBGrid1.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-    DBGrid1.SelectedRows.Delete;
+  if MessageDLG('Delete '+inttostr(gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+    gridData.SelectedRows.Delete;
 end;
 
 
@@ -2527,7 +2526,7 @@ var
   filter,value,menuitem : String;
 begin
   // Set filter for "where..."-clause
-  value := escape_string(DBGrid1.SelectedField.AsString);
+  value := escape_string(gridData.SelectedField.AsString);
   menuitem := (Sender as TMenuItem).Name;
   if menuitem = 'QF1' then
     filter := '=' + ' ''' + value + ''''
@@ -2544,49 +2543,49 @@ begin
   else if menuitem = 'QF7' then
     filter := 'LIKE' + ' ''%' + value + '%'''
   else if menuitem = 'QF8' then begin
-    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' = ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' = ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '= ''' + filter + '''';
   end
   else if menuitem = 'QF9' then begin
-    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' != ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' != ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '!= ''' + filter + '''';
   end
   else if menuitem = 'QF10' then begin
-    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' > ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' > ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '> ''' + filter + '''';
   end
   else if menuitem = 'QF11' then begin
-    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' < ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' < ', 'Value');
     if filter = 'Value' then
       abort;
     filter := '< ''' + filter + '''';
   end
   else if menuitem = 'QF12' then begin
-    filter := InputBox('Specify filter-value...', mask(DBGrid1.SelectedField.FieldName)+' like ', 'Value');
+    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' like ', 'Value');
     if filter = 'Value' then
       abort;
     filter := 'LIKE ''' + filter + '''';
   end;
 
-  SynMemo3.Text := DBGrid1.SelectedField.FieldName + ' ' + filter;
+  SynMemo3.Text := gridData.SelectedField.FieldName + ' ' + filter;
   PageControl3.ActivePageIndex := 2;
   SynMemo3.SetFocus;
   SetFilter(self);
 end;
 
 
-procedure TMDIChild.ToolButton6Click(Sender: TObject);
+procedure TMDIChild.btnBlobWordWrapClick(Sender: TObject);
 begin
   // linebreaks
   WordWrap := not WordWrap;
-  ToolButton6.Down := WordWrap;
-  if Toolbutton6.Down then
+  btnBlobWordWrap.Down := WordWrap;
+  if btnBlobWordWrap.Down then
     DBMemo1.Scrollbars := ssVertical
   else
     DBMemo1.Scrollbars := ssBoth;
@@ -2595,18 +2594,18 @@ end;
 
 procedure TMDIChild.PageControl4Change(Sender: TObject);
 begin
-  ToolButton5.Enabled := true;
-  ToolButton7.Enabled := not DBMemo1.ReadOnly;
-  ToolButton8.Enabled := true;
+  btnBlobCopy.Enabled := true;
+  btnBlobLoad.Enabled := not DBMemo1.ReadOnly;
+  btnBlobSave.Enabled := true;
   if PageControl4.ActivePage = Tabsheet3 then
   begin
     // MEMO tab activated.
-    ToolButton6.Enabled := true;
+    btnBlobWordWrap.Enabled := true;
   end;
   if PageControl4.ActivePage = Tabsheet4 then
   begin
     // Image tab activated.
-    ToolButton6.Enabled := false;
+    btnBlobWordWrap.Enabled := false;
   end
 end;
 
@@ -2620,7 +2619,7 @@ begin
   //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
 end;
 
-procedure TMDIChild.ToolButton8Click(Sender: TObject);
+procedure TMDIChild.btnBlobSaveClick(Sender: TObject);
 var
   bf: Textfile;
   grid: TSMDBGrid;
@@ -2667,7 +2666,7 @@ begin
   end;
 end;
 
-procedure TMDIChild.ToolButton7Click(Sender: TObject);
+procedure TMDIChild.btnBlobLoadClick(Sender: TObject);
 begin
   // Open BLOB-File
   if not (DataSource1.State in [dsEdit, dsInsert]) then
@@ -2693,7 +2692,7 @@ begin
 end;
 
 
-procedure TMDIChild.ToolButton11Click(Sender: TObject);
+procedure TMDIChild.btnFilterLoadClick(Sender: TObject);
 var
   menuitem : Tmenuitem;
   m,i : Integer;
@@ -2714,8 +2713,8 @@ begin
 
       // don't get one filename more than one time
       dontadd := false;
-      for m:=0 to PopUpMenu7.Items.Count-1 do begin
-        _filename := PopUpMenu7.Items[m].Caption;
+      for m:=0 to popupFilterOpenFile.Items.Count-1 do begin
+        _filename := popupFilterOpenFile.Items[m].Caption;
         i := 0;
         while _filename[i] <> ' ' do
           inc(i);
@@ -2739,12 +2738,12 @@ begin
           WriteString('SQLWhereFile1', FileName);
 
           i := 1;
-          PopUpMenu1.Items.Clear;
+          popupTreeView.Items.Clear;
           while ValueExists('SQLWhereFile'+inttostr(i)) do begin
             menuitem := Tmenuitem.Create(self);
-            menuitem.Caption := inttostr(PopUpMenu7.Items.count+1) + ' ' + ReadString('SQLWhereFile'+inttostr(i));
+            menuitem.Caption := inttostr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString('SQLWhereFile'+inttostr(i));
             menuitem.OnClick := LoadSQLWhereFile;
-            PopUpMenu7.Items.Add(menuitem);
+            popupFilterOpenFile.Items.Add(menuitem);
             inc(i);
           end;
         end;
@@ -2754,7 +2753,7 @@ begin
   end;
 end;
 
-procedure TMDIChild.ToolButton12Click(Sender: TObject);
+procedure TMDIChild.btnFilterSaveClick(Sender: TObject);
 begin
   // save where-filter
   With TSaveDialog.Create(self) do begin
@@ -2798,8 +2797,8 @@ begin
   if where <> '' then begin
     if WhereFilters = nil then begin // Create filters-list
       WhereFilters := TStringList.Create;
-      BtnPreviousFilter.Enabled := true;
-      BtnNextFilter.Enabled := true;
+      btnFilterPrevious.Enabled := true;
+      btnFilterNext.Enabled := true;
     end;
     if WhereFilters.IndexOf(where) > -1 then // Filter was previously used:
       WhereFiltersIndex := WhereFilters.IndexOf(where)
@@ -2893,13 +2892,13 @@ begin
     ListTables.Items[i].Selected := true;
 end;
 
-procedure TMDIChild.ResultPopup(Sender: TObject);
+procedure TMDIChild.popupResultGridPopup(Sender: TObject);
 begin
   // data available?
   // MainForm.Save2CSV.enabled :=
 end;
 
-procedure TMDIChild.DBGrid1ColumnMoved(Sender: TObject; FromIndex,
+procedure TMDIChild.gridDataColumnMoved(Sender: TObject; FromIndex,
   ToIndex: Integer);
 begin
   // prevent OnTitleClick from being executed:
@@ -2998,7 +2997,7 @@ begin
   SynMemo1.OnChange(Self);
 end;
 
-procedure TMDIChild.PopupMenu2Popup(Sender: TObject);
+procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
   MenuAutoupdate.Enabled := PageControl2.ActivePageIndex=1;
 end;
@@ -3029,7 +3028,7 @@ end;
 
 
 
-procedure TMDIChild.PopupMenu1Popup(Sender: TObject);
+procedure TMDIChild.popupTreeViewPopup(Sender: TObject);
 begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
@@ -3037,7 +3036,7 @@ begin
   DBRightClickSelectedItem := DBtree.Selected;
 end;
 
-procedure TMDIChild.ToolButton15Click(Sender: TObject);
+procedure TMDIChild.btnQueryFindClick(Sender: TObject);
 begin
   mainform.FindDialog1.execute;
 end;
@@ -3071,17 +3070,17 @@ begin
   SynMemo1Change(self);
 end;
 
-procedure TMDIChild.ButtonSaveSQLClick(Sender: TObject);
+procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
 begin
   mainform.ButtonSaveSQLClick(self);
 end;
 
-procedure TMDIChild.ButtonLoadSQLClick(Sender: TObject);
+procedure TMDIChild.btnQueryLoadClick(Sender: TObject);
 begin
   Mainform.ButtonLoadSQLFile(self);
 end;
 
-procedure TMDIChild.BtnPreviousFilterClick(Sender: TObject);
+procedure TMDIChild.btnFilterPreviousClick(Sender: TObject);
 begin
   // Go to previous filter
   if WhereFiltersIndex > 0 then begin
@@ -3091,7 +3090,7 @@ begin
   end;
 end;
 
-procedure TMDIChild.BtnNextFilterClick(Sender: TObject);
+procedure TMDIChild.btnFilterNextClick(Sender: TObject);
 begin
   // Go to next filter
   if WhereFiltersIndex < WhereFilters.count-1 then begin
@@ -3107,10 +3106,10 @@ begin
   SynMemo3.Text := ComboBoxWhereFilters.Items[ComboBoxWhereFilters.ItemIndex];
 end;
 
-procedure TMDIChild.ToolButtonStopOnErrorsClick(Sender: TObject);
+procedure TMDIChild.btnQueryStopOnErrorsClick(Sender: TObject);
 begin
   StopOnErrors := not StopOnErrors;
-  ToolButtonStopOnerrors.Down := StopOnErrors;
+  btnQueryStopOnErrors.Down := StopOnErrors;
 end;
 
 procedure TMDIChild.DBGridDblClick(Sender: TObject);
@@ -3154,10 +3153,10 @@ begin
   Mainform.ManualCopy.Enabled := false;
 end;
 
-procedure TMDIChild.PopupMenuDataPopup(Sender: TObject);
+procedure TMDIChild.popupDataGridPopup(Sender: TObject);
 var y,m,d,h,i,s,ms : Word;
 begin
-  DataInsertDateTime.Enabled := DBGrid1.SelectedField.DataType in [ftString, ftDatetime, ftDate, ftTime];
+  DataInsertDateTime.Enabled := gridData.SelectedField.DataType in [ftString, ftDatetime, ftDate, ftTime];
   if not DataInsertDateTime.Enabled then exit;
   decodedate(now, y, m, d);
   decodetime(now, h, i, s, ms);
@@ -3175,10 +3174,10 @@ begin
   d := (sender as TMenuItem).Caption;
   delete(d, pos('&', d), 1);
   DataSource1.Edit;
-  DBgrid1.SelectedField.AsString := d;
+  gridData.SelectedField.AsString := d;
 end;
 
-procedure TMDIChild.ToolButton5Click(Sender: TObject);
+procedure TMDIChild.btnBlobCopyClick(Sender: TObject);
 begin
   if dbmemo1.DataField = '' then exit;
   SaveBlob;
@@ -3192,7 +3191,7 @@ procedure TMDIChild.setNULL1Click(Sender: TObject);
 begin
   if not (DataSource1.State in [dsEdit, dsInsert]) then
     DataSource1.Edit;
-  DBgrid1.SelectedField.Clear;
+  gridData.SelectedField.Clear;
 end;
 
 
@@ -3388,11 +3387,11 @@ begin
   if not ZQuery2.Active then
     exit;
   where := '';
-  if EditDataSearch.text <> '' then for i:=0 to DBGrid1.FieldCount-1 do
+  if EditDataSearch.text <> '' then for i:=0 to gridData.FieldCount-1 do
   begin
     if where <> '' then
       where := where + CRLF + ' OR ';
-    where := where + DBGrid1.Fields[i].FieldName + ' LIKE ''%' + EditDataSearch.text + '%''';
+    where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + EditDataSearch.text + '%''';
   end;
   SynMemo3.Text := where;
 
@@ -3449,20 +3448,20 @@ begin
 end;
 
 
-// Rightclick on tablelist-columns
+// Rightclick on header of table grid
 procedure TMDIChild.ListTablesColumnRightClick(Sender: TObject;
   Column: TListColumn; Point: TPoint);
 begin
-  PopupMenuTablelistColumns.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
+  popupDbGridHeader.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
 end;
 
 
-// Rightclick in tablelist-area, not on columns!
+// Rightclick on database grid
 procedure TMDIChild.ListTablesMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if button = mbright then
-    pmenu2.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
+    popupDbGrid.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
 end;
 
 
@@ -3560,8 +3559,8 @@ end;
 function TMDIChild.GetActiveGrid: TSMDBGrid;
 begin
   Result := nil;
-  if PageControl1.ActivePage = SheetData then Result := DBGrid1;
-  if PageControl1.ActivePage = SheetQuery then Result := DBGrid2;
+  if PageControl1.ActivePage = SheetData then Result := gridData;
+  if PageControl1.ActivePage = SheetQuery then Result := gridQuery;
 end;
 
 procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);

@@ -173,10 +173,10 @@ begin
       SynSQLSyn1.CommentAttri.Foreground := self.Panel7.Color;
       while SynMemo2.Lines.Count > SpinEditLogSQL.Value do
         SynMemo2.Lines.Delete(0);
-      DBGrid1.Font := self.Panel8.font;
-      DBGrid2.Font := self.Panel8.font;
+      gridData.Font := self.Panel8.font;
+      gridQuery.Font := self.Panel8.font;
       DBMemo1.Font := self.Panel8.font;
-      DBGrid1.Refresh;
+      gridData.Refresh;
 //      DBMemo1.Font.Charset := tfontcharset(177);
     end;
   end;

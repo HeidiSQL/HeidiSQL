@@ -1006,7 +1006,7 @@ end;
 
 procedure TMainForm.MenuFindClick(Sender: TObject);
 begin
-  TMDIChild(ActiveMDIChild).ToolButton15Click(sender);
+  TMDIChild(ActiveMDIChild).btnQueryFindClick(sender);
 end;
 
 procedure TMainForm.ExecuteLineExecute(Sender: TObject);
@@ -1139,13 +1139,8 @@ end;
 procedure TMainForm.ManualCopyExecute(Sender: TObject);
 var g : TSMDBGrid;
 begin
-  with TMDIChild(Mainform.ActiveMDIChild) do begin
-    case PageControl1.ActivePageIndex of
-    3: g := DBGrid1;
-    4: g := DBGrid2;
-    else begin messagebeep(MB_ICONASTERISK); exit; end;
-    end;
-  end;
+  g := TMDIChild(Mainform.ActiveMDIChild).ActiveGrid;
+  if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   if g.datasource.State <> dsInactive then
     clipboard.AsText := g.SelectedField.AsString
   else
@@ -1161,13 +1156,8 @@ var
   f              : Textfile;
   buffer         : array[0..MAX_PATH] of char;
 begin
-  with TMDIChild(Mainform.ActiveMDIChild) do begin
-    case PageControl1.ActivePageIndex of
-    3: g := DBGrid1;
-    4: g := DBGrid2;
-    else begin messagebeep(MB_ICONASTERISK); exit; end;
-    end;
-  end;
+  g := TMDIChild(Mainform.ActiveMDIChild).ActiveGrid;
+  if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   if g.datasource.State = dsInactive then begin
     messagebeep(MB_ICONASTERISK);
     exit;

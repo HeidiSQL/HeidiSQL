@@ -62,7 +62,7 @@ object MDIChild: TMDIChild
       HotTrack = True
       Images = MainForm.ImageList1
       Indent = 19
-      PopupMenu = PopupMenu1
+      PopupMenu = popupTreeView
       ReadOnly = True
       RightClickSelect = True
       RowSelect = True
@@ -133,7 +133,7 @@ object MDIChild: TMDIChild
                 GridLines = True
                 ReadOnly = True
                 RowSelect = True
-                PopupMenu = PopupMenu2
+                PopupMenu = popupHost
                 TabOrder = 0
                 ViewStyle = vsReport
               end
@@ -194,7 +194,7 @@ object MDIChild: TMDIChild
                 GridLines = True
                 ReadOnly = True
                 RowSelect = True
-                PopupMenu = PopupMenu2
+                PopupMenu = popupHost
                 SmallImages = MainForm.ImageList1
                 TabOrder = 0
                 ViewStyle = vsReport
@@ -305,7 +305,7 @@ object MDIChild: TMDIChild
             MultiSelect = True
             RowSelect = True
             ParentShowHint = False
-            PopupMenu = pmenu2
+            PopupMenu = popupDbGrid
             ShowHint = False
             SmallImages = MainForm.ImageList1
             TabOrder = 1
@@ -333,7 +333,7 @@ object MDIChild: TMDIChild
             ShowHint = True
             TabOrder = 2
             Transparent = True
-            object ToolButton1: TToolButton
+            object btnDbViewData: TToolButton
               Left = 0
               Top = 0
               Hint = 'View Data'
@@ -343,7 +343,7 @@ object MDIChild: TMDIChild
               Wrap = True
               OnClick = viewdata
             end
-            object ToolButton2: TToolButton
+            object btnDbProperties: TToolButton
               Left = 0
               Top = 22
               Hint = 'Show Table-Properties'
@@ -353,23 +353,23 @@ object MDIChild: TMDIChild
               Wrap = True
               OnClick = ShowTableProperties
             end
-            object ToolButton13: TToolButton
+            object btnDbEmptyTable: TToolButton
               Left = 0
               Top = 44
               Hint = 'Empty Table ...'
-              Caption = 'ToolButton13'
+              Caption = 'btnDbEmptyTable'
               Enabled = False
               ImageIndex = 31
               Wrap = True
               OnClick = TabelleLeeren
             end
-            object MenuTabelleLoeschen: TToolButton
+            object btnDbDropTable: TToolButton
               Left = 0
               Top = 66
               Action = MainForm.DropTable
               Wrap = True
             end
-            object ToolButton14: TToolButton
+            object btnDbCopyTable: TToolButton
               Left = 0
               Top = 88
               Action = MainForm.CopyTable
@@ -390,7 +390,7 @@ object MDIChild: TMDIChild
             ShowHint = True
             TabOrder = 3
             Transparent = True
-            object ToolButton3: TToolButton
+            object btnDbInsertRecord: TToolButton
               Left = 0
               Top = 0
               Hint = 'Insert Record...|Insert new Record into Table...'
@@ -442,38 +442,38 @@ object MDIChild: TMDIChild
             TabOrder = 1
             Transparent = True
             Wrapable = False
-            object ToolButton10: TToolButton
+            object btnTableViewData: TToolButton
               Left = 0
               Top = 0
               Hint = 'View Data'
-              Caption = 'ToolButton10'
+              Caption = 'btnTableViewData'
               ImageIndex = 8
               Wrap = True
               OnClick = viewdata
             end
-            object ButtonEditField: TToolButton
+            object btnTableEditField: TToolButton
               Left = 0
               Top = 23
               Hint = 'Edit Field / Index...'
-              Caption = 'ButtonEditField'
+              Caption = 'btnTableEditField'
               ImageIndex = 9
               Wrap = True
               OnClick = UpdateField
             end
-            object ButtonAddField: TToolButton
+            object btnTableAddField: TToolButton
               Left = 0
               Top = 46
               Hint = 'Add Field / Index...'
-              Caption = 'ButtonAddField'
+              Caption = 'btnTableAddField'
               ImageIndex = 34
               Wrap = True
               OnClick = UpdateField
             end
-            object ToolButton9: TToolButton
+            object btnTableDropField: TToolButton
               Left = 0
               Top = 69
               Hint = 'Drop Field ...'
-              Caption = 'ToolButton9'
+              Caption = 'btnTableDropField'
               ImageIndex = 33
               Wrap = True
               OnClick = DropField
@@ -525,7 +525,7 @@ object MDIChild: TMDIChild
               GridLines = True
               ReadOnly = True
               RowSelect = True
-              PopupMenu = PopupMenu3
+              PopupMenu = popupTableGrid
               SmallImages = MainForm.ImageList1
               TabOrder = 0
               ViewStyle = vsReport
@@ -549,11 +549,11 @@ object MDIChild: TMDIChild
             TabOrder = 3
             Transparent = True
             Wrapable = False
-            object ButtonInsert: TToolButton
+            object btnTableInsertRecord: TToolButton
               Left = 0
               Top = 0
               Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'ButtonInsert'
+              Caption = 'btnTableInsertRecord'
               ImageIndex = 32
               Wrap = True
               OnClick = InsertRecord
@@ -617,7 +617,7 @@ object MDIChild: TMDIChild
               OnClick = ButtonDataSearchClick
             end
           end
-          object DBGrid1: TSMDBGrid
+          object gridData: TSMDBGrid
             Left = 0
             Top = 23
             Width = 496
@@ -631,7 +631,7 @@ object MDIChild: TMDIChild
             Font.Style = []
             Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgMultiSelect]
             ParentFont = False
-            PopupMenu = PopupMenuData
+            PopupMenu = popupDataGrid
             TabOrder = 1
             TitleFont.Charset = DEFAULT_CHARSET
             TitleFont.Color = clWindowText
@@ -639,11 +639,11 @@ object MDIChild: TMDIChild
             TitleFont.Name = 'MS Sans Serif'
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
-            OnColumnMoved = DBGrid1ColumnMoved
+            OnColumnMoved = gridDataColumnMoved
             OnDblClick = DBGridDblClick
             OnEnter = DBGridEnter
             OnExit = DBGridExit
-            OnTitleClick = DBGrid1TitleClick
+            OnTitleClick = gridDataTitleClick
             ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
             RegistryKey = 'Software\MikeSoft'
@@ -731,17 +731,17 @@ object MDIChild: TMDIChild
                 TabOrder = 0
                 Transparent = True
                 Wrapable = False
-                object ButtonRunQuery: TToolButton
+                object btnQueryRun: TToolButton
                   Left = 0
                   Top = 0
                   Action = MainForm.ExecuteQuery
                 end
-                object ButtonRunSelection: TToolButton
+                object btnQueryRunSelected: TToolButton
                   Left = 23
                   Top = 0
                   Action = MainForm.ExecuteSelection
                 end
-                object ButtonLoadSQL: TToolButton
+                object btnQueryLoad: TToolButton
                   Left = 46
                   Top = 0
                   Hint = 'Load SQL from Textfile'
@@ -749,39 +749,39 @@ object MDIChild: TMDIChild
                   DropdownMenu = MainForm.PopupMenu6
                   ImageIndex = 6
                   Style = tbsDropDown
-                  OnClick = ButtonLoadSQLClick
+                  OnClick = btnQueryLoadClick
                 end
-                object ButtonSaveSQL: TToolButton
+                object btnQuerySave: TToolButton
                   Left = 82
                   Top = 0
                   Hint = 'Save SQL to Textfile'
                   Caption = 'Save SQL...'
                   Enabled = False
                   ImageIndex = 7
-                  OnClick = ButtonSaveSQLClick
+                  OnClick = btnQuerySaveClick
                 end
-                object ToolButton15: TToolButton
+                object btnQueryFind: TToolButton
                   Left = 105
                   Top = 0
                   Hint = 'Find Text...'
                   Caption = 'Find...'
                   ImageIndex = 50
-                  OnClick = ToolButton15Click
+                  OnClick = btnQueryFindClick
                 end
-                object ToolButton19: TToolButton
+                object btnQueryReplace: TToolButton
                   Left = 128
                   Top = 0
                   Action = MainForm.SearchReplace
                 end
-                object ToolButtonStopOnErrors: TToolButton
+                object btnQueryStopOnErrors: TToolButton
                   Left = 151
                   Top = 0
                   Hint = 'Stop on MySQL-errors in batch-mode'
-                  Caption = 'ToolButtonStopOnErrors'
+                  Caption = 'btnQueryStopOnErrors'
                   Down = True
                   ImageIndex = 47
                   Style = tbsCheck
-                  OnClick = ToolButtonStopOnErrorsClick
+                  OnClick = btnQueryStopOnErrorsClick
                 end
               end
             end
@@ -867,7 +867,7 @@ object MDIChild: TMDIChild
               AddedKeystrokes = <>
             end
           end
-          object DBGrid2: TSMDBGrid
+          object gridQuery: TSMDBGrid
             Left = 0
             Top = 159
             Width = 496
@@ -881,7 +881,7 @@ object MDIChild: TMDIChild
             Font.Style = []
             Options = [dgEditing, dgAlwaysShowEditor, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgMultiSelect]
             ParentFont = False
-            PopupMenu = Result
+            PopupMenu = popupResultGrid
             TabOrder = 2
             TitleFont.Charset = DEFAULT_CHARSET
             TitleFont.Color = clWindowText
@@ -942,7 +942,7 @@ object MDIChild: TMDIChild
         Font.Height = -12
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = PopupMenu4
+        PopupMenu = popupSqlLog
         TabOrder = 0
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
@@ -994,7 +994,7 @@ object MDIChild: TMDIChild
         TabOrder = 0
         Transparent = True
         Wrapable = False
-        object ToolButton6: TToolButton
+        object btnBlobWordWrap: TToolButton
           Left = 0
           Top = 0
           Hint = 'Wordwrap'
@@ -1002,39 +1002,39 @@ object MDIChild: TMDIChild
           ImageIndex = 54
           Wrap = True
           Style = tbsCheck
-          OnClick = ToolButton6Click
+          OnClick = btnBlobWordWrapClick
         end
-        object ToolButton7: TToolButton
+        object btnBlobLoad: TToolButton
           Left = 0
           Top = 22
           Hint = 'Open|Open file'
           Caption = 'ToolButton4'
           ImageIndex = 6
           Wrap = True
-          OnClick = ToolButton7Click
+          OnClick = btnBlobLoadClick
         end
-        object ToolButton8: TToolButton
+        object btnBlobSave: TToolButton
           Left = 0
           Top = 44
           Hint = 'Save|Save to File'
           Caption = 'ToolButton5'
           ImageIndex = 7
           Wrap = True
-          OnClick = ToolButton8Click
+          OnClick = btnBlobSaveClick
         end
-        object ToolButton4: TToolButton
+        object btnBlobViewAsHtml: TToolButton
           Left = 0
           Top = 66
           Action = MainForm.HTMLview
           Wrap = True
         end
-        object ToolButton5: TToolButton
+        object btnBlobCopy: TToolButton
           Left = 0
           Top = 88
           Hint = 'Copy to clipboard'
-          Caption = 'ToolButton5'
+          Caption = 'btnBlobCopy'
           ImageIndex = 1
-          OnClick = ToolButton5Click
+          OnClick = btnBlobCopyClick
         end
       end
       object PageControl4: TPageControl
@@ -1177,7 +1177,7 @@ object MDIChild: TMDIChild
           TabOrder = 1
           Transparent = True
           Wrapable = False
-          object ToolButton18: TToolButton
+          object btnFilterSet: TToolButton
             Left = 0
             Top = 0
             Hint = 'Set Filter'
@@ -1185,23 +1185,23 @@ object MDIChild: TMDIChild
             ImageIndex = 10
             OnClick = setFilter
           end
-          object ToolButton11: TToolButton
+          object btnFilterLoad: TToolButton
             Left = 23
             Top = 0
             Hint = 'Open File'
-            DropdownMenu = PopupMenu7
+            DropdownMenu = popupFilterOpenFile
             ImageIndex = 6
             Style = tbsDropDown
-            OnClick = ToolButton11Click
+            OnClick = btnFilterLoadClick
           end
-          object ToolButton12: TToolButton
+          object btnFilterSave: TToolButton
             Left = 59
             Top = 0
             Hint = 'Save|Save to File'
             ImageIndex = 7
-            OnClick = ToolButton12Click
+            OnClick = btnFilterSaveClick
           end
-          object ToolButton17: TToolButton
+          object btnFilterClear: TToolButton
             Left = 82
             Top = 0
             Hint = 'Clear Filter'
@@ -1209,37 +1209,37 @@ object MDIChild: TMDIChild
             ImageIndex = 70
             OnClick = ClearFilter
           end
-          object ToolButton16: TToolButton
+          object sepFilter1: TToolButton
             Left = 105
             Top = 0
             Width = 8
-            Caption = 'ToolButton16'
+            Caption = 'sepFilter1'
             ImageIndex = 9
             Style = tbsSeparator
           end
-          object BtnPreviousFilter: TToolButton
+          object btnFilterPrevious: TToolButton
             Left = 113
             Top = 0
             Hint = 'Previous filter'
             Enabled = False
             ImageIndex = 77
-            OnClick = BtnPreviousFilterClick
+            OnClick = btnFilterPreviousClick
           end
-          object BtnNextFilter: TToolButton
+          object btnFilterNext: TToolButton
             Left = 136
             Top = 0
             Hint = 'Next filter'
             Enabled = False
             ImageIndex = 78
-            OnClick = BtnNextFilterClick
+            OnClick = btnFilterNextClick
           end
         end
       end
     end
   end
-  object PopupMenu1: TPopupMenu
+  object popupTreeView: TPopupMenu
     Images = MainForm.ImageList1
-    OnPopup = PopupMenu1Popup
+    OnPopup = popupTreeViewPopup
     Left = 8
     Top = 48
     object NewDatabase1: TMenuItem
@@ -1271,11 +1271,11 @@ object MDIChild: TMDIChild
       OnClick = ReadDatabasesAndTables
     end
   end
-  object pmenu2: TPopupMenu
+  object popupDbGrid: TPopupMenu
     AutoHotkeys = maManual
     AutoPopup = False
     Images = MainForm.ImageList1
-    OnPopup = pmenu2Popup
+    OnPopup = popupDbGridPopup
     Left = 72
     Top = 48
     object menuproperties: TMenuItem
@@ -1430,9 +1430,9 @@ object MDIChild: TMDIChild
       OnClick = selectall1Click
     end
   end
-  object PopupMenu2: TPopupMenu
+  object popupHost: TPopupMenu
     Images = MainForm.ImageList1
-    OnPopup = PopupMenu2Popup
+    OnPopup = popupHostPopup
     Left = 41
     Top = 48
     object Kill1: TMenuItem
@@ -1500,7 +1500,7 @@ object MDIChild: TMDIChild
     Left = 7
     Top = 157
   end
-  object PopupMenu3: TPopupMenu
+  object popupTableGrid: TPopupMenu
     Images = MainForm.ImageList1
     Left = 104
     Top = 48
@@ -1548,9 +1548,9 @@ object MDIChild: TMDIChild
       OnClick = ShowTableProperties
     end
   end
-  object PopupMenuData: TPopupMenu
+  object popupDataGrid: TPopupMenu
     Images = MainForm.ImageList1
-    OnPopup = PopupMenuDataPopup
+    OnPopup = popupDataGridPopup
     Left = 8
     Top = 80
     object Copy3: TMenuItem
@@ -1736,9 +1736,9 @@ object MDIChild: TMDIChild
     Left = 39
     Top = 157
   end
-  object Result: TPopupMenu
+  object popupResultGrid: TPopupMenu
     Images = MainForm.ImageList1
-    OnPopup = ResultPopup
+    OnPopup = popupResultGridPopup
     Left = 40
     Top = 80
     object Copy4: TMenuItem
@@ -1774,7 +1774,7 @@ object MDIChild: TMDIChild
     Left = 103
     Top = 157
   end
-  object PopupMenu4: TPopupMenu
+  object popupSqlLog: TPopupMenu
     Images = MainForm.ImageList1
     Left = 72
     Top = 80
@@ -1824,7 +1824,7 @@ object MDIChild: TMDIChild
     Left = 288
     Top = 120
   end
-  object PopupMenu7: TPopupMenu
+  object popupFilterOpenFile: TPopupMenu
     Left = 272
     Top = 278
   end
@@ -1894,7 +1894,7 @@ object MDIChild: TMDIChild
     Left = 224
     Top = 120
   end
-  object PopupMenuTablelistColumns: TPopupMenu
+  object popupDbGridHeader: TPopupMenu
     AutoHotkeys = maManual
     AutoLineReduction = maManual
     Images = MainForm.ImageList1
