@@ -334,7 +334,7 @@ implementation
 uses RXUtils {ex VCLUtils from RX-Lib}, TypInfo, Registry, DBTables
      {$IFDEF VER140} , Variants {$ENDIF};
 
-{$R *.RES}
+{$R smdbgrid.RES}
 var
   FCheckWidth, FCheckHeight: Integer;
 

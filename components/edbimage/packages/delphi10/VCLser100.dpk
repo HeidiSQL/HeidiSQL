@@ -1,6 +1,5 @@
 package VCLser100;
 
-{$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -33,6 +32,6 @@ requires
   bdertl;
 
 contains
-  EDBImage in '..\..\EDBImage.pas';
+  EDBImage in '..\..\source\EDBImage.pas';
 
 end.
