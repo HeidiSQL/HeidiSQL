@@ -804,6 +804,7 @@ object MainForm: TMainForm
     end
     object ImportSQL: TAction
       Caption = 'Import SQL-file ...'
+      Enabled = False
       Hint = 'Load and import SQL-file ...'
       ImageIndex = 85
       OnExecute = ImportSQLExecute
