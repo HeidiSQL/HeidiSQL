@@ -739,6 +739,8 @@ procedure TMDIChild.ReadDatabasesAndTables(Sender: TObject);
 var
   tnode, tchild, tmpSelected: TTreeNode;
   i, j : Integer;
+  specialDbs: TStringList;
+  dbName : string;
 begin
   // Fill DBTree
   Screen.Cursor := crHourGlass;
@@ -755,33 +757,25 @@ begin
   if OnlyDBs.Count = 0 then
   begin
     OnlyDBs2 := TStringList.Create;
+    specialDbs := TStringList.Create;
     GetResults( 'SHOW DATABASES', ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
-      OnlyDBs2.Add(ZQuery3.FieldByName('Database').AsString);
+      dbName := ZQuery3.FieldByName('Database').AsString;
+      if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert(0, dbName)
+      else if dbName = DBNAME_MYSQL then specialDbs.Add(dbName)
+      else OnlyDBs2.Add(dbName);
       ZQuery3.Next;
     end;
-    zconn.Database := ZQuery3.FieldByName('Database').AsString;
-  end else
-    OnlyDBs2 := OnlyDBs;
-  OnlyDBs2.sort;
-  // Prioritised position of system-databases
-  if OnlyDBs2.Count >= 2 then
-  begin
-    if (OnlyDBs2.IndexOf( DBNAME_MYSQL ) > -1) then
-    begin
-      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_MYSQL ), 1 );
-    end;
-    if (OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ) > -1) then
-    begin
-      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ), 0 );
-    end;
-  end;
+    OnlyDBs2.sort;
+    // Prioritised position of system-databases
+    for i := specialDbs.Count -1 downto 0 do OnlyDBs2.Insert(0, specialDbs[i]);
+  end else OnlyDBs2 := OnlyDBs;
 
   // Let synedit know all tablenames so that they can be highlighted
   SynSQLSyn1.TableNames.Clear;
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
-  if OnlyDBs2.Count > 50 then with SelectFromManyDatabases do begin
+  if (OnlyDBs.Count = 0) and (OnlyDBs2.Count > 50) then with SelectFromManyDatabases do begin
     CheckListBoxDBs.Items.Clear;
     CheckListBoxDBs.Items := OnlyDBs2;
     ShowModal;
