@@ -770,11 +770,11 @@ begin
   begin
     if (OnlyDBs2.IndexOf( DBNAME_MYSQL ) > -1) then
     begin
-      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_MYSQL ), 0 );
+      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_MYSQL ), 1 );
     end;
     if (OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ) > -1) then
     begin
-      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ), 1 );
+      OnlyDBs2.Exchange( OnlyDBs2.IndexOf( DBNAME_INFORMATION_SCHEMA ), 0 );
     end;
   end;
 
