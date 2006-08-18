@@ -763,7 +763,7 @@ begin
     begin
       dbName := ZQuery3.FieldByName('Database').AsString;
       if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert(0, dbName)
-      else if dbName = DBNAME_MYSQL then specialDbs.Add(dbName)
+      //else if dbName = DBNAME_MYSQL then specialDbs.Add(dbName)
       else OnlyDBs2.Add(dbName);
       ZQuery3.Next;
     end;
