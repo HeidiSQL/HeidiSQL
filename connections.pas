@@ -42,6 +42,8 @@ type
     Label9: TLabel;
     Timer1: TTimer;
     ButtonEditDesc: TSpeedButton;
+    ButtonSort: TButton;
+    procedure ButtonSortClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -270,6 +272,7 @@ begin
   end;
   ButtonSave.Enabled := false;
   ButtonEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
+  ButtonSort.Enabled := EditOnlyDBs.Text <> '';
   Screen.Cursor := crDefault;
 end;
 
@@ -302,6 +305,7 @@ end;
 
 procedure Tconnform.Modified(Sender: TObject);
 begin
+  ButtonSort.Enabled := EditOnlyDBs.Text <> '';
   ButtonSave.Enabled := true;
 end;
 
@@ -320,12 +324,12 @@ var
 begin
   olddesc := ComboBoxDescription.Text;
   newdesc := olddesc;
-  if not InputQuery('Edit Description', 'Edit Description:', newdesc) then
+  if not InputQuery('Rename description', 'Rename description:', newdesc) then
     exit;
   if newdesc = olddesc then
     exit;
   if ComboBoxDescription.Items.IndexOf(newdesc) > -1 then begin
-    MessageDLG('Description already exists!', mtError, [mbCancel], 0);
+    MessageDLG('Description "'+newdesc+'" already exists!', mtError, [mbCancel], 0);
     exit;
   end;
 
@@ -341,6 +345,21 @@ begin
     end;
   end;
 
+end;
+
+
+// Sort Databases
+procedure Tconnform.ButtonSortClick(Sender: TObject);
+var
+  dbs : TStringList;
+begin
+  if EditOnlyDBs.Text = '' then
+    exit;
+  Screen.Cursor := crHourglass;
+  dbs := Explode( ';', EditOnlyDBs.Text );
+  dbs.Sort;
+  EditOnlyDBs.Text := ImplodeStr( ';', dbs );
+  Screen.Cursor := crDefault;
 end;
 
 

@@ -55,7 +55,7 @@ object connform: Tconnform
   end
   object Label5: TLabel
     Tag = 10
-    Left = 312
+    Left = 295
     Top = 187
     Width = 41
     Height = 13
@@ -81,7 +81,7 @@ object connform: Tconnform
   end
   object Label7: TLabel
     Tag = 11
-    Left = 416
+    Left = 399
     Top = 187
     Width = 40
     Height = 13
@@ -106,12 +106,12 @@ object connform: Tconnform
     Caption = 'separated by semicolon (;)'
   end
   object ButtonEditDesc: TSpeedButton
-    Left = 434
+    Left = 399
     Top = 64
-    Width = 23
+    Width = 58
     Height = 21
     Hint = 'Edit description ...'
-    Caption = '...'
+    Caption = 'Rename'
     Enabled = False
     OnClick = ButtonEditDescClick
   end
@@ -149,9 +149,9 @@ object connform: Tconnform
     OnChange = Modified
   end
   object EditTimeout: TEdit
-    Left = 360
-    Top = 184
-    Width = 49
+    Left = 342
+    Top = 183
+    Width = 51
     Height = 21
     TabOrder = 5
     OnChange = Modified
@@ -1175,7 +1175,7 @@ object connform: Tconnform
   object ComboBoxDescription: TComboBox
     Left = 240
     Top = 64
-    Width = 193
+    Width = 153
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
@@ -1274,10 +1274,20 @@ object connform: Tconnform
   object EditOnlyDBs: TEdit
     Left = 240
     Top = 232
-    Width = 217
+    Width = 153
     Height = 21
     TabOrder = 7
     OnChange = Modified
+  end
+  object ButtonSort: TButton
+    Left = 399
+    Top = 232
+    Width = 58
+    Height = 21
+    Caption = 'Sort'
+    Enabled = False
+    TabOrder = 14
+    OnClick = ButtonSortClick
   end
   object Timer1: TTimer
     Enabled = False
