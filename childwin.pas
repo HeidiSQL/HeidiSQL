@@ -69,7 +69,7 @@ type
     btnTableDropField: TToolButton;
     btnTableViewData: TToolButton;
     SynSQLSyn1: TSynSQLSyn;
-    SynMemo1: TSynMemo;
+    SynMemoQuery: TSynMemo;
     Splitter3: TSplitter;
     menucreatetable: TMenuItem;
     OpenDialog1: TOpenDialog;
@@ -158,7 +158,7 @@ type
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     TabSheet8: TTabSheet;
-    SynMemo2: TSynMemo;
+    SynMemoSQLLog: TSynMemo;
     ToolBar3: TToolBar;
     btnBlobWordWrap: TToolButton;
     btnBlobLoad: TToolButton;
@@ -167,7 +167,7 @@ type
     TabSheet3: TTabSheet;
     DBMemo1: TDBMemo;
     TabSheet4: TTabSheet;
-    SynMemo3: TSynMemo;
+    SynMemoFilter: TSynMemo;
     btnDbCopyTable: TToolButton;
     btnDbDropTable: TToolButton;
     N18: TMenuItem;
@@ -288,7 +288,7 @@ type
     procedure ListColumnsChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure DropField(Sender: TObject);
-    procedure SynMemo1Change(Sender: TObject);
+    procedure SynMemoQueryChange(Sender: TObject);
     procedure CreateTable(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -341,14 +341,14 @@ type
     procedure EnableAutoRefreshClick(Sender: TObject);
     procedure ShowProcessList(sender: TObject);
     procedure DisableAutoRefreshClick(Sender: TObject);
-    procedure SynMemo1DragOver(Sender, Source: TObject; X, Y: Integer;
+    procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
-    procedure SynMemo1DragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure SynMemo1DropFiles(Sender: TObject; X, Y: Integer;
+    procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
       AFiles: TStrings);
-    procedure SynMemo1KeyUp(Sender: TObject; var Key: Word;
+    procedure SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure SynMemo1MouseUp(Sender: TObject; Button: TMouseButton;
+    procedure SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure popupHostPopup(Sender: TObject);
     procedure ListTablesEditing(Sender: TObject; Item: TListItem;
@@ -379,6 +379,7 @@ type
     procedure ExecUseQuery( DbName: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
     procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
+    function GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
     procedure Splitter2Moved(Sender: TObject);
@@ -632,10 +633,10 @@ begin
 
       // SQL-Font:
       if (ValueExists('FontName')) and (ValueExists('FontSize')) then begin
-        SynMemo1.Font.Name := ReadString('FontName');
-        SynMemo2.Font.Name := ReadString('FontName');
-        SynMemo1.Font.Size := ReadInteger('FontSize');
-        SynMemo2.Font.Size := ReadInteger('FontSize');
+        SynMemoQuery.Font.Name := ReadString('FontName');
+        SynMemoSQLLog.Font.Name := ReadString('FontName');
+        SynMemoQuery.Font.Size := ReadInteger('FontSize');
+        SynMemoSQLLog.Font.Size := ReadInteger('FontSize');
       end;
 
       // Data-Font:
@@ -716,9 +717,9 @@ end;
 procedure TMDIChild.LogSQL(msg: string = ''; comment: Boolean = true);
 begin
   // add a sql-command or info-line to history-memo
-  while SynMemo2.Lines.Count > mainform.logsqlnum do
+  while SynMemoSQLLog.Lines.Count > mainform.logsqlnum do
   begin
-    SynMemo2.Lines.Delete(0);
+    SynMemoSQLLog.Lines.Delete(0);
   end;
   msg := Copy(msg, 0, 2000);
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
@@ -727,11 +728,11 @@ begin
   msg := StringReplace( msg, '  ', ' ', [rfReplaceAll] );
   if comment then
     msg := '/* ' + msg + ' */';
-  SynMemo2.Lines.Add(msg);
-  SynMemo2.SetBookMark(0,0,SynMemo2.Lines.Count);
-  SynMemo2.GotoBookMark(0);
-  SynMemo2.ClearBookMark(0);
-  SynMemo2.Repaint;
+  SynMemoSQLLog.Lines.Add(msg);
+  SynMemoSQLLog.SetBookMark(0,0,SynMemoSQLLog.Lines.Count);
+  SynMemoSQLLog.GotoBookMark(0);
+  SynMemoSQLLog.ClearBookMark(0);
+  SynMemoSQLLog.Repaint;
 end;
 
 
@@ -930,12 +931,12 @@ begin
 
   if not dataselected then
   begin
-    SynMemo3.Text := '';
+    SynMemoFilter.Text := '';
     gridData.SortColumns.Clear;
     // Read cached WHERE-clause and set filter
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if reg.ValueExists( reg_value ) then
-      SynMemo3.Text := reg.ReadString( reg_value );
+      SynMemoFilter.Text := reg.ReadString( reg_value );
     // Read cached ORDER-clause and set Grid.Sortcolumns
     reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
     if reg.ValueExists( reg_value ) then
@@ -1020,8 +1021,8 @@ begin
     ZQuery2.Close;
     ZQuery2.SQL.Clear;
     ZQuery2.SQL.Add( 'SELECT * FROM ' + mask(ActualTable) );
-    if trim(self.SynMemo3.Text) <> '' then
-      ZQuery2.SQL.Add( 'WHERE ' + trim(self.SynMemo3.Text) );
+    if trim(self.SynMemoFilter.Text) <> '' then
+      ZQuery2.SQL.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
     if sorting <> '' then
       ZQuery2.SQL.Add( sorting );
     if mainform.CheckBoxLimit.Checked then
@@ -1766,7 +1767,7 @@ begin
   // Execute user-defined SQL
 //  if SynMemo3.Focused then
 //    exit;
-  if length(trim(SynMemo1.Text)) = 0 then
+  if length(trim(SynMemoQuery.Text)) = 0 then
     exit;
 
   try
@@ -1786,11 +1787,11 @@ begin
     ZQuery1.DisableControls;
 
     if CurrentLine then
-      SQL := parseSQL(SynMemo1.LineText)         // Run current line
+      SQL := parseSQL(SynMemoQuery.LineText)         // Run current line
     else begin
       if Selection then
-        SQL := parsesql(SynMemo1.SelText) else   // Run selection
-        SQL := parsesql(SynMemo1.Text);          // Run all
+        SQL := parsesql(SynMemoQuery.SelText) else   // Run selection
+        SQL := parsesql(SynMemoQuery.Text);          // Run all
     end;
     if SQL.Count > 1 then
       SQLscriptstart := GetTickCount
@@ -1876,7 +1877,7 @@ begin
     Mainform.ExecuteQuery.Enabled := true;
     Mainform.ExecuteSelection.Enabled := true;
     // count chars:
-    SynMemo1.OnChange(self);
+    SynMemoQuery.OnChange(self);
 
     if SQL.Count > 1 then begin
       SQLscriptend := GetTickCount;
@@ -2039,15 +2040,15 @@ begin
 end;
 
 
-procedure TMDIChild.SynMemo1Change(Sender: TObject);
+procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
   PanelCharsInQueryWindow.Caption :=
-    Format('%g', [length(SynMemo1.Text) + 0.0]) + ' Characters';
-  somechars := length(SynMemo1.Text) > 0;
+    Format('%g', [length(SynMemoQuery.Text) + 0.0]) + ' Characters';
+  somechars := length(SynMemoQuery.Text) > 0;
   Mainform.ExecuteQuery.Enabled := somechars;
-  Mainform.ExecuteSelection.Enabled := length(SynMemo1.SelText) > 0;
-  Mainform.ExecuteLine.Enabled := SynMemo1.LineText <> '';
+  Mainform.ExecuteSelection.Enabled := length(SynMemoQuery.SelText) > 0;
+  Mainform.ExecuteLine.Enabled := SynMemoQuery.LineText <> '';
   btnQuerySave.Enabled := somechars;
 end;
 
@@ -2097,7 +2098,7 @@ begin
       MenuCreateDatabase.Enabled := true;
       MenuDropDatabase.Enabled := true;
       DropTable.Enabled := true;
-      ImportSQL.Enabled := true;
+      LoadSQL.Enabled := true;
       MenuFlushHosts.Enabled := true;
       MenuFlushLogs.Enabled := true;
       FlushUserPrivileges1.Enabled := true;
@@ -2157,7 +2158,7 @@ begin
     CopyHTMLtable.Enabled := false;
     Copy2XML.Enabled := false;
     ExportData.Enabled := false;
-    ImportSQL.Enabled := false;
+    LoadSQL.Enabled := false;
   end;
   MainForm.showstatus('', 1); // empty connected_time
 
@@ -2177,7 +2178,7 @@ begin
   if (paramstr(1) <> '') and Main.loadsqlfile then
   try
     // load sql-file from paramstr
-    SynMemo1.Lines.LoadFromFile(paramstr(1));
+    SynMemoQuery.Lines.LoadFromFile(paramstr(1));
     Main.loadsqlfile := false;
   except
     MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
@@ -2304,10 +2305,10 @@ end;
 procedure TMDIChild.Clear1Click(Sender: TObject);
 begin
   // clear
-  if SynMemo3.Focused then
-    SynMemo3.Lines.Clear
+  if SynMemoFilter.Focused then
+    SynMemoFilter.Lines.Clear
   else
-    synmemo1.Lines.Clear;
+    SynMemoQuery.Lines.Clear;
 end;
 
 
@@ -2322,7 +2323,7 @@ procedure TMDIChild.Clear2Click(Sender: TObject);
 begin
   // clear history-memo
   Screen.Cursor := crHourglass;
-  SynMemo2.Lines.Clear;
+  SynMemoSQLLog.Lines.Clear;
   Screen.Cursor := crDefault;
 end;
 
@@ -2330,7 +2331,7 @@ end;
 procedure TMDIChild.EditQuery1Click(Sender: TObject);
 begin
   // take query from history to query-tab
-  SynMemo1.Text := SynMemo2.SelText;
+  SynMemoQuery.Text := SynMemoSQLLog.SelText;
   PageControl1.ActivePage := SheetQuery;
   pcChange(self);
 end;
@@ -2339,7 +2340,7 @@ end;
 procedure TMDIChild.Markall3Click(Sender: TObject);
 begin
   // select all in history
-  SynMemo2.SelectAll;
+  SynMemoSQLLog.SelectAll;
 end;
 
 
@@ -2497,7 +2498,7 @@ procedure TMDIChild.Filter1Click(Sender: TObject);
 begin
   // Set WHERE-Filter
   PageControl3.ActivePageIndex := 2;
-  SynMemo3.SetFocus;
+  SynMemoFilter.SetFocus;
 end;
 
 
@@ -2576,9 +2577,9 @@ begin
     filter := 'LIKE ''' + filter + '''';
   end;
 
-  SynMemo3.Text := gridData.SelectedField.FieldName + ' ' + filter;
+  SynMemoFilter.Text := gridData.SelectedField.FieldName + ' ' + filter;
   PageControl3.ActivePageIndex := 2;
-  SynMemo3.SetFocus;
+  SynMemoFilter.SetFocus;
   SetFilter(self);
 end;
 
@@ -2716,7 +2717,7 @@ begin
     if Execute and (Filename <> '') then begin
       Screen.Cursor := crHourGlass;
       try
-        SynMemo3.Lines.LoadFromFile(FileName);
+        SynMemoFilter.Lines.LoadFromFile(FileName);
       except
         MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
       end;
@@ -2774,7 +2775,7 @@ begin
     DefaultExt := 'txt';
     if Execute and (Filename <> '') then
       try
-        SynMemo3.Lines.SaveToFile(FileName);
+        SynMemoFilter.Lines.SaveToFile(FileName);
       except
         MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
       end;
@@ -2788,7 +2789,7 @@ var
   reg_value : String;
 begin
   // set filter for data-tab
-  where := trim(self.SynMemo3.Text);
+  where := trim(self.SynMemoFilter.Text);
 
   // Store whereclause in Registry
   reg := TRegistry.Create;
@@ -2827,7 +2828,7 @@ end;
 
 procedure TMDIChild.ClearFilter(Sender: TObject);
 begin
-  SynMemo3.Lines.Clear;
+  SynMemoFilter.Lines.Clear;
   SetFilter(self);
 end;
 
@@ -2847,7 +2848,7 @@ begin
   filename := stringreplace(filename, '&', '', [rfReplaceAll]);
 
   try
-    SynMemo3.Lines.LoadFromFile(filename);
+    SynMemoFilter.Lines.LoadFromFile(filename);
   except
     MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
   end;
@@ -2857,7 +2858,7 @@ end;
 procedure TMDIChild.DropFilter1Click(Sender: TObject);
 begin
   // Drop Filter
-  SynMemo3.Lines.Clear;
+  SynMemoFilter.Lines.Clear;
   viewdata(self);
 end;
 
@@ -2954,31 +2955,31 @@ end;
 
 
 
-procedure TMDIChild.SynMemo1DragOver(Sender, Source: TObject; X,
+procedure TMDIChild.SynMemoQueryDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 begin
   // dragging an object over the query-memo
   if (Source as TControl).Parent = DBTree then
     accept := true;
   // set x-position of cursor
-  SynMemo1.CaretX := (x - SynMemo1.Gutter.Width) div SynMemo1.CharWidth - 1 + SynMemo1.LeftChar;
+  SynMemoQuery.CaretX := (x - SynMemoQuery.Gutter.Width) div SynMemoQuery.CharWidth - 1 + SynMemoQuery.LeftChar;
   // set y-position of cursor
-  SynMemo1.CaretY := y div SynMemo1.LineHeight + SynMemo1.TopLine;
-  if not SynMemo1.Focused then
-    SynMemo1.SetFocus;
+  SynMemoQuery.CaretY := y div SynMemoQuery.LineHeight + SynMemoQuery.TopLine;
+  if not SynMemoQuery.Focused then
+    SynMemoQuery.SetFocus;
 end;
 
 
-procedure TMDIChild.SynMemo1DragDrop(Sender, Source: TObject; X,
+procedure TMDIChild.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 begin
   // dropping a TTreeNode into the query-memo
-  SynMemo1.SelText := DBTree.Selected.Text;
+  SynMemoQuery.SelText := DBTree.Selected.Text;
 end;
 
 
 
-procedure TMDIChild.SynMemo1DropFiles(Sender: TObject; X, Y: Integer;
+procedure TMDIChild.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
   AFiles: TStrings);
 var
   i        : Integer;
@@ -2990,22 +2991,22 @@ begin
   for i:=0 to AFiles.Count-1 do begin
     if fileExists(AFiles[i]) then begin
       s.LoadFromFile(AFiles[i]);
-      SynMemo1.Lines.AddStrings(s);
+      SynMemoQuery.Lines.AddStrings(s);
     end;
   end;
-  SynMemo1.OnChange(self);
+  SynMemoQuery.OnChange(self);
 end;
 
-procedure TMDIChild.SynMemo1KeyUp(Sender: TObject; var Key: Word;
+procedure TMDIChild.SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  SynMemo1.OnChange(self);
+  SynMemoQuery.OnChange(self);
 end;
 
-procedure TMDIChild.SynMemo1MouseUp(Sender: TObject; Button: TMouseButton;
+procedure TMDIChild.SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  SynMemo1.OnChange(Self);
+  SynMemoQuery.OnChange(Self);
 end;
 
 procedure TMDIChild.popupHostPopup(Sender: TObject);
@@ -3031,7 +3032,7 @@ begin
     Options := [ofOverwritePrompt,ofHideReadOnly,ofEnableSizing];
     if Execute then begin
       Screen.Cursor := crHourglass;
-      SynMemo2.Lines.SaveToFile(Filename);
+      SynMemoSQLLog.Lines.SaveToFile(Filename);
       Screen.Cursor := crdefault;
     end;
   end;
@@ -3071,12 +3072,12 @@ begin
   filename := stringreplace(filename, '&', '', [rfReplaceAll]);
 
   try
-    SynMemo1.Lines.LoadFromFile(filename);
+    SynMemoQuery.Lines.LoadFromFile(filename);
   except
     MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
   end;
   Screen.Cursor := crDefault;
-  SynMemo1Change(self);
+  SynMemoQueryChange(self);
 end;
 
 procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
@@ -3095,7 +3096,7 @@ begin
   if WhereFiltersIndex > 0 then begin
     dec(WhereFiltersIndex);
     ComboBoxWhereFilters.ItemIndex := WhereFiltersIndex;
-    SynMemo3.Text := WhereFilters[WhereFiltersIndex];
+    SynMemoFilter.Text := WhereFilters[WhereFiltersIndex];
   end;
 end;
 
@@ -3105,14 +3106,14 @@ begin
   if WhereFiltersIndex < WhereFilters.count-1 then begin
     inc(WhereFiltersIndex);
     ComboBoxWhereFilters.ItemIndex := WhereFiltersIndex;
-    SynMemo3.Text := WhereFilters[WhereFiltersIndex];
+    SynMemoFilter.Text := WhereFilters[WhereFiltersIndex];
   end;
 end;
 
 procedure TMDIChild.ComboBoxWhereFiltersChange(Sender: TObject);
 begin
   WhereFiltersIndex := ComboBoxWhereFilters.ItemIndex;
-  SynMemo3.Text := ComboBoxWhereFilters.Items[ComboBoxWhereFilters.ItemIndex];
+  SynMemoFilter.Text := ComboBoxWhereFilters.Items[ComboBoxWhereFilters.ItemIndex];
 end;
 
 procedure TMDIChild.btnQueryStopOnErrorsClick(Sender: TObject);
@@ -3274,6 +3275,37 @@ begin
 end;
 
 
+// Execute a query and return column as Stringlist
+function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
+var
+  i: Integer;
+begin
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
+  Result := TStringList.create();
+  With TZReadOnlyQuery.Create( self ) do
+  begin
+    Connection := ZConn;
+    SQL.Text := SQLQuery;
+    Open;
+    try
+      First;
+      for i := 0 to RecordCount - 1 do
+      begin
+        Result.Add( Fields[x].AsString );
+        Next;
+      end;
+      Close;
+    finally
+      Free;
+    end;
+  end;
+end;
+
+
 // Monitor SQL
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
@@ -3402,7 +3434,7 @@ begin
       where := where + CRLF + ' OR ';
     where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + EditDataSearch.text + '%''';
   end;
-  SynMemo3.Text := where;
+  SynMemoFilter.Text := where;
 
   SetFilter(self);
 end;

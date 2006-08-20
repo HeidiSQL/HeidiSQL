@@ -124,7 +124,7 @@ begin
   lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
   SynMemoExampleSQL.Highlighter := TMDIChild(MainForm.ActiveMDIChild).SynSQLSyn1;
-  SynMemoExampleSQL.Font := TMDIChild(MainForm.ActiveMDIChild).SynMemo1.Font;
+  SynMemoExampleSQL.Font := TMDIChild(MainForm.ActiveMDIChild).SynMemoQuery.Font;
   
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;

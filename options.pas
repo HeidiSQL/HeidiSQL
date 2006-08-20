@@ -163,16 +163,16 @@ begin
     for i:= 0 to Mainform.MDIChildCount -1 do
     with TMDIChild(Mainform.MDIChildren[i]) do
     begin
-      SynMemo1.Font := self.Panel1.Font;
-      SynMemo2.Font := self.Panel1.Font;
+      SynMemoQuery.Font := self.Panel1.Font;
+      SynMemoSQLLog.Font := self.Panel1.Font;
       SynSQLSyn1.KeyAttri.Foreground := self.pnlKeywords.Color;
       SynSQLSyn1.FunctionAttri.Foreground := self.pnlFunctions.Color;
       SynSQLSyn1.DataTypeAttri.Foreground := self.pnlDatatypes.Color;
       SynSQLSyn1.NumberAttri.Foreground := self.pnlNumeric.Color;
       SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
       SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
-      while SynMemo2.Lines.Count > SpinEditLogSQL.Value do
-        SynMemo2.Lines.Delete(0);
+      while SynMemoSQLLog.Lines.Count > SpinEditLogSQL.Value do
+        SynMemoSQLLog.Lines.Delete(0);
       gridData.Font := self.Panel8.font;
       gridQuery.Font := self.Panel8.font;
       DBMemo1.Font := self.Panel8.font;

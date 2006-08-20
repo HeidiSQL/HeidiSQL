@@ -814,7 +814,7 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             Constraints.MinHeight = 10
             TabOrder = 1
-            object SynMemo1: TSynMemo
+            object SynMemoQuery: TSynMemo
               Left = 0
               Top = 0
               Width = 496
@@ -827,10 +827,10 @@ object MDIChild: TMDIChild
               Font.Style = []
               PopupMenu = MainForm.SQLFunctions
               TabOrder = 0
-              OnDragDrop = SynMemo1DragDrop
-              OnDragOver = SynMemo1DragOver
-              OnKeyUp = SynMemo1KeyUp
-              OnMouseUp = SynMemo1MouseUp
+              OnDragDrop = SynMemoQueryDragDrop
+              OnDragOver = SynMemoQueryDragOver
+              OnKeyUp = SynMemoQueryKeyUp
+              OnMouseUp = SynMemoQueryMouseUp
               Gutter.AutoSize = True
               Gutter.Font.Charset = DEFAULT_CHARSET
               Gutter.Font.Color = clWindowText
@@ -845,8 +845,8 @@ object MDIChild: TMDIChild
               RightEdge = 40
               TabWidth = 2
               WantTabs = True
-              OnChange = SynMemo1Change
-              OnDropFiles = SynMemo1DropFiles
+              OnChange = SynMemoQueryChange
+              OnDropFiles = SynMemoQueryDropFiles
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteLastChar
@@ -922,7 +922,7 @@ object MDIChild: TMDIChild
     Top = 278
     Width = 677
     Height = 142
-    ActivePage = TabSheet2
+    ActivePage = TabSheet8
     Align = alBottom
     HotTrack = True
     Images = MainForm.ImageList1
@@ -931,7 +931,7 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      object SynMemo2: TSynMemo
+      object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
         Width = 669
@@ -1080,7 +1080,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 28
+              Height = 20
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -1095,7 +1095,7 @@ object MDIChild: TMDIChild
     object TabSheet8: TTabSheet
       Caption = 'Filter'
       ImageIndex = 81
-      object SynMemo3: TSynMemo
+      object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
         Width = 669
@@ -1938,7 +1938,7 @@ object MDIChild: TMDIChild
     Margin = 1
     OnExecute = SynCompletionProposal1Execute
     ShortCut = 16416
-    Editor = SynMemo1
+    Editor = SynMemoQuery
     TimerInterval = 500
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
     Left = 104

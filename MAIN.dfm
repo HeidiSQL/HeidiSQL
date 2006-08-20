@@ -346,7 +346,7 @@ object MainForm: TMainForm
   end
   object MainMenu1: TMainMenu
     Images = ImageList1
-    Left = 104
+    Left = 8
     Top = 88
     object File1: TMenuItem
       Tag = 17
@@ -526,7 +526,7 @@ object MainForm: TMainForm
         Caption = 'Export tables...'
       end
       object ImportSQL1: TMenuItem
-        Action = ImportSQL
+        Action = LoadSQL
       end
       object N11: TMenuItem
         Caption = '-'
@@ -605,8 +605,8 @@ object MainForm: TMainForm
   end
   object ActionList1: TActionList
     Images = ImageList1
-    Left = 136
-    Top = 88
+    Left = 72
+    Top = 120
     object FileNew1: TAction
       Category = 'File'
       Caption = '&Connection'
@@ -802,12 +802,12 @@ object MainForm: TMainForm
       ImageIndex = 19
       OnExecute = ExportTablesExecute
     end
-    object ImportSQL: TAction
-      Caption = 'Import SQL-file ...'
+    object LoadSQL: TAction
+      Caption = 'Load SQL-file ...'
       Enabled = False
-      Hint = 'Load and import SQL-file ...'
+      Hint = 'Load SQL-file ...'
       ImageIndex = 85
-      OnExecute = ImportSQLExecute
+      OnExecute = LoadSQLExecute
     end
     object DataSearch: TAction
       Caption = 'Find...'
@@ -825,7 +825,7 @@ object MainForm: TMainForm
   end
   object ImageList1: TImageList
     Left = 8
-    Top = 88
+    Top = 120
     Bitmap = {
       494C010157005900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007001000001002000000000000070
@@ -3874,20 +3874,20 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 1
     OnTimer = Timer1Timer
-    Left = 72
-    Top = 88
+    Left = 40
+    Top = 120
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 168
-    Top = 88
+    Left = 8
+    Top = 56
   end
   object SQLFunctions: TPopupMenu
     Images = ImageList1
     OnPopup = SQLFunctionsPopup
-    Left = 200
+    Left = 40
     Top = 88
     object MenuRun: TMenuItem
       Action = ExecuteQuery
@@ -3942,42 +3942,42 @@ object MainForm: TMainForm
       Caption = '-'
     end
   end
-  object OpenDialog1: TOpenDialog
+  object OpenDialogSQLfile: TOpenDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
-    Left = 232
-    Top = 88
+    Left = 72
+    Top = 56
   end
   object PopupMenu6: TPopupMenu
-    Left = 264
+    Left = 72
     Top = 88
   end
   object FindDialog1: TFindDialog
     Options = [frDown, frHideWholeWord, frHideUpDown, frMatchCase, frDisableMatchCase]
     OnFind = FindDialog1Find
-    Left = 296
-    Top = 88
+    Left = 136
+    Top = 56
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Export MySQL-Front settings...'
-    Left = 8
+    Left = 40
     Top = 56
   end
   object OpenDialog2: TOpenDialog
     DefaultExt = 'reg'
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
     Title = 'Import MySQL-Front settings...'
-    Left = 40
+    Left = 104
     Top = 56
   end
   object ReplaceDialog1: TReplaceDialog
     Options = [frDown, frFindNext, frHideMatchCase, frHideWholeWord]
     OnFind = ReplaceDialog1Find
     OnReplace = ReplaceDialog1Replace
-    Left = 328
-    Top = 88
+    Left = 168
+    Top = 56
   end
 end

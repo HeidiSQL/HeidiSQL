@@ -128,7 +128,7 @@ type
     MenuRunSelection: TMenuItem;
     N10: TMenuItem;
     menuclear: TMenuItem;
-    OpenDialog1: TOpenDialog;
+    OpenDialogSQLfile: TOpenDialog;
     PopupMenu6: TPopupMenu;
     EditUndo1: TEditUndo;
     ToolButton14: TToolButton;
@@ -163,7 +163,7 @@ type
     ExportTables: TAction;
     DataSearch: TAction;
     DropTable: TAction;
-    ImportSQL: TAction;
+    LoadSQL: TAction;
     ImportSQL1: TMenuItem;
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
@@ -230,7 +230,7 @@ type
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
     procedure DropTableExecute(Sender: TObject);
-    procedure ImportSQLExecute(Sender: TObject);
+    procedure LoadSQLExecute(Sender: TObject);
 
   private
     { Private declarations }
@@ -528,10 +528,10 @@ var
   sm : TSynMemo;
 begin
   // insert function from function.txt
-  if TMDIChild(Mainform.ActiveMDIChild).SynMemo3.Focused then
-    sm := TMDIChild(Mainform.ActiveMDIChild).SynMemo3
+  if TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter.Focused then
+    sm := TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter
   else
-    sm := TMDIChild(Mainform.ActiveMDIChild).SynMemo1;
+    sm := TMDIChild(Mainform.ActiveMDIChild).SynMemoQuery;
   f := TMenuItem(Sender).Hint;
   f := stringreplace(f, '&', '', [rfReplaceAll]);
   f := copy(f, 0, pos(')', f));
@@ -540,8 +540,8 @@ begin
   t2 := copy(sm.Text, sm.SelStart, Length(sm.Text) - sm.SelStart);
   sm.Text := t1 + f + t2;
   sm.SelStart := oldSelStart + length(f);
-  if not TMDIChild(Mainform.ActiveMDIChild).SynMemo3.Focused then
-    TMDIChild(Mainform.ActiveMDIChild).SynMemo1Change(self);
+  if not TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter.Focused then
+    TMDIChild(Mainform.ActiveMDIChild).SynMemoQueryChange(self);
 end;
 
 
@@ -819,14 +819,22 @@ begin
 end;
 
 procedure TMainForm.menuclearClick(Sender: TObject);
+var
+  memo : TSynMemo;
 begin
   // Clear SynMemo
-  with TMDIChild(Mainform.ActiveMDIChild) do begin
-    if SynMemo3.Focused then
-      SynMemo3.Lines.Clear
+  with TMDIChild(Mainform.ActiveMDIChild) do
+  begin
+    if SynMemoFilter.Focused then
+      memo := SynMemoFilter
     else
-      SynMemo1.Lines.Clear;
+      memo := SynMemoQuery;
   end;
+  // Make sure to add this step to SynMemo's undo history
+  memo.SelectAll;
+  memo.SelText := '';
+  memo.SelStart := 0;
+  memo.SelEnd := 0;
 end;
 
 
@@ -838,7 +846,7 @@ begin
     Screen.Cursor := crHourGlass;
     AssignFile(f, SaveDialog1.FileName);
     Rewrite(f);
-    Write(f, TMDIChild(Mainform.ActiveMDIChild).SynMemo1.Text);
+    Write(f, TMDIChild(Mainform.ActiveMDIChild).SynMemoQuery.Text);
     CloseFile(f);
     Screen.Cursor := crDefault;
   end;
@@ -848,18 +856,38 @@ procedure TMainForm.ButtonLoadSQLFile(Sender: TObject);
 var
   menuitem        : Tmenuitem;
   m,i             : Integer;
-  filename        : String;
+  filename, tmpstr, filecontent      : String;
   dontadd         : Boolean;
+  f               : TextFile;
 begin
   // Load file
-  if OpenDialog1.Execute then
+  if OpenDialogSQLfile.Execute then
   begin
     Screen.Cursor := crHourGlass;
-    TMDIChild(ActiveMDIChild).SynMemo1.Lines.LoadFromFile(OpenDialog1.FileName);
+    with TMDIChild(ActiveMDIChild) do
+    begin
+      // Load file and add that to the undo-history of SynEdit.
+      // Normally we would do a simple SynMemo.Lines.LoadFromFile but
+      // this would prevent SynEdit from adding this step to the undo-history
+      // so we have to do it by replacing the SelText property
+      SynMemoQuery.BeginUpdate;
+      AssignFile( f, OpenDialogSQLfile.FileName );
+      Reset( f );
+      SynMemoQuery.SelectAll;
+      while not eof( f ) do
+      begin
+        Readln( f, tmpstr );
+        filecontent := filecontent + tmpstr + CRLF;
+      end;
+      SynMemoQuery.SelText := filecontent;
+      SynMemoQuery.SelStart := 0;
+      SynMemoQuery.SelEnd := 0;
+      SynMemoQuery.EndUpdate;
+      SynMemoQueryChange(self);
+    end;
     Screen.Cursor := crDefault;
-    TMDIChild(ActiveMDIChild).SynMemo1Change(self);
 
-    // don't get one filename more than one time
+    // Add filename to popupmenu, avoiding duplicates
     dontadd := false;
     for m:=0 to PopUpMenu6.Items.Count-1 do begin
       filename := PopUpMenu6.Items[m].Caption;
@@ -868,12 +896,14 @@ begin
         inc(i);
       filename := copy(filename, i+1, length(filename));
       filename := stringreplace(filename, '&', '', [rfReplaceAll]);
-      if filename = OpenDialog1.FileName then
+      if filename = OpenDialogSQLfile.FileName then
         dontadd := true;
     end;
 
-    if not dontadd then begin
-      with TRegistry.Create do begin
+    if not dontadd then
+    begin
+      with TRegistry.Create do
+      begin
         openkey(regpath, true);
         for i:=1 to 20 do
         begin
@@ -885,7 +915,7 @@ begin
           WriteString('SQLFile'+inttostr(i), ReadString('SQLFile'+inttostr(i-1)));
           dec(i);
         end;
-        WriteString('SQLFile1', OpenDialog1.FileName);
+        WriteString('SQLFile1', OpenDialogSQLfile.FileName);
 
         i := 1;
         PopUpMenu6.Items.Clear;
@@ -908,7 +938,7 @@ end;
 procedure TMainForm.SQLFunctionsPopup(Sender: TObject);
 begin
 
-  if TMDIChild(ActiveMDIChild).SynMemo3.focused then begin // set Filter with F9
+  if TMDIChild(ActiveMDIChild).SynMemoFilter.focused then begin // set Filter with F9
     MenuRun.ShortCut := TextToShortCut('');
     MenuSetFilter.ShortCut := TextToShortCut('F9');
     MenuSetFilter.Visible := true;
@@ -967,7 +997,7 @@ end;
 procedure TMainForm.FindDialog1Find(Sender: TObject);
 var foundat: Longint;
 begin
-  with TMDIChild(ActiveMDIChild).SynMemo1 do begin
+  with TMDIChild(ActiveMDIChild).SynMemoQuery do begin
     FoundAt := pos(FindDialog1.FindText, copy(Text, SelEnd, Length(Text)));
     if FoundAt > 0 then begin
       SetFocus;
@@ -1104,7 +1134,7 @@ var
   SelPos: Integer;
   m : TSynMemo;
 begin
-  m := TMDIChild(Mainform.ActiveMDIChild).synmemo1;
+  m := TMDIChild(Mainform.ActiveMDIChild).SynMemoQuery;
   with TReplaceDialog(Sender) do begin
     if not (frReplaceAll in options) then begin
       { Perform a global case-sensitive search for FindText in Memo1 }
@@ -1279,28 +1309,15 @@ begin
   end;
 end;
 
-procedure TMainForm.ImportSQLExecute(Sender: TObject);
-var
-  zp : TZSQLProcessor;
+
+// Load SQL-file, make sure that SheetQuery is activated
+procedure TMainForm.LoadSQLExecute(Sender: TObject);
 begin
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  with TMDIChild(ActiveMDIChild) do
   begin
-    // Load it ...
-    if not OpenDialog1.Execute then
-    	exit;
-    Screen.Cursor := crHourGlass;
-    zp := TZSQLProcessor.Create(self);
-    zp.Connection := ZConn;
-    zp.CleanupStatements := true;
-    zp.Script.LoadFromFile( OpenDialog1.FileName );
-    try
-      // Execute it ...
-      zp.Execute;
-    finally
-      zp.Free;
-      Screen.Cursor := crDefault;
-    end;
+    PageControl1.ActivePage := SheetQuery;
   end;
+  ButtonLoadSQLFile( sender );
 end;
 
 end.
