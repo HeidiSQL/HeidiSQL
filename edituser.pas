@@ -86,7 +86,7 @@ begin
   UserManagerForm.ZQueryTables.Close;
   UserManagerForm.ZQueryColumns.Close;
   UserManagerForm.ZQueryUsers.Close;
-  UserManagerForm.ZQueryF.Close;
+  UserManagerForm.ZQueryColumnNames.Close;
   UserManagerForm.TreeViewUsers.Items.Clear;
   UserManagerForm.PageControl1.OnChange(self);
 

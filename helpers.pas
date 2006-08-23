@@ -54,6 +54,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function escapeAuto(Text: string): string;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
+  function bool2str( boolval : Boolean ) : String;
 
 
 implementation
@@ -1134,6 +1135,16 @@ begin
   txt := StringReplace(txt, #10, #13#10, [rfReplaceAll]);
   result := txt;
 end;
+
+
+function bool2str( boolval : Boolean ) : String;
+begin
+  if boolval then
+    result := 'Y'
+  else
+    result := 'N';
+end;
+
 
 end.
 
