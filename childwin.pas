@@ -3236,30 +3236,6 @@ begin
 end;
 
 
-// Execute a query and return data from a single cell
-function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
-begin
-  try
-    CheckConnection;
-  except
-    exit;
-  end;
-  With TZReadOnlyQuery.Create( self ) do
-  begin
-    Connection := ZConn;
-    SQL.Text := SQLQuery;
-    Open;
-    try
-      First;
-      Result := Fields[x].AsString;
-      Close;
-    finally
-      Free;
-    end;
-  end;
-end;
-
-
 // Executes a query with an existing ZQuery-object
 procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
 begin
@@ -3275,34 +3251,28 @@ begin
 end;
 
 
-// Execute a query and return column as Stringlist
+// Execute a query and return string from column x
+function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
+begin
+  GetResults( SQLQuery, ZQuery3 );
+  Result := ZQuery3.Fields[x].AsString;
+  ZQuery3.Close;
+end;
+
+
+// Execute a query and return column x as Stringlist
 function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
 var
   i: Integer;
 begin
-  try
-    CheckConnection;
-  except
-    exit;
-  end;
+  GetResults( SQLQuery, ZQuery3 );
   Result := TStringList.create();
-  With TZReadOnlyQuery.Create( self ) do
+  for i := 0 to ZQuery3.RecordCount - 1 do
   begin
-    Connection := ZConn;
-    SQL.Text := SQLQuery;
-    Open;
-    try
-      First;
-      for i := 0 to RecordCount - 1 do
-      begin
-        Result.Add( Fields[x].AsString );
-        Next;
-      end;
-      Close;
-    finally
-      Free;
-    end;
+    Result.Add( ZQuery3.Fields[x].AsString );
+    ZQuery3.Next;
   end;
+  ZQuery3.Close;
 end;
 
 
