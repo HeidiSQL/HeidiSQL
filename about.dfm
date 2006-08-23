@@ -619,7 +619,7 @@ object AboutBox: TAboutBox
     OnClick = Button1Click
   end
   object Panel2: TPanel
-    Left = 0
+    Left = 1
     Top = 0
     Width = 411
     Height = 313
@@ -665,10 +665,10 @@ object AboutBox: TAboutBox
     end
     object Label1: TLabel
       Left = 10
-      Top = 94
-      Width = 70
+      Top = 102
+      Width = 162
       Height = 13
-      Caption = 'Ansgar Becker'
+      Caption = 'Ansgar Becker and David Dindorp'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Height = -11
@@ -679,7 +679,7 @@ object AboutBox: TAboutBox
     end
     object LabelWebpage: TLabel
       Left = 10
-      Top = 124
+      Top = 121
       Width = 121
       Height = 13
       Cursor = crHandPoint
@@ -695,19 +695,12 @@ object AboutBox: TAboutBox
       OnClick = OpenURL
       OnMouseMove = MouseOver
     end
-    object Label3: TLabel
-      Left = 10
-      Top = 108
-      Width = 153
-      Height = 13
-      Caption = '48485 Neuenkirchen / Germany'
-    end
     object Label6: TLabel
       Left = 10
-      Top = 78
-      Width = 34
+      Top = 86
+      Width = 39
       Height = 13
-      Caption = 'Author:'
+      Caption = 'Authors:'
     end
     object Label2: TLabel
       Left = 8
@@ -717,8 +710,8 @@ object AboutBox: TAboutBox
       Caption = 'Thanks go to:'
     end
     object Memo1: TMemo
-      Left = 8
-      Top = 168
+      Left = 10
+      Top = 171
       Width = 393
       Height = 133
       Anchors = [akLeft, akTop, akRight, akBottom]
@@ -730,9 +723,6 @@ object AboutBox: TAboutBox
           'com/'
         'Inno Setup - http://www.jrsoftware.org/'
         'Sebasti'#225'n Mayor'#225' for EDBImage'
-        
-          'Mike Lischke for Freeware ThemeManager - http://www.soft-gems.ne' +
-          't/'
         'dAniel hAhler for the name "HeidiSQL" - http://daniel.hahler.de/'
         'MySQL for great database software')
       ReadOnly = True

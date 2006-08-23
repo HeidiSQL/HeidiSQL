@@ -23,7 +23,6 @@ type
     LabelCompiled: TLabel;
     Label1: TLabel;
     LabelWebpage: TLabel;
-    Label3: TLabel;
     Label6: TLabel;
     Button2: TButton;
     Button3: TButton;
