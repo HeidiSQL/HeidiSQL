@@ -523,8 +523,7 @@ end;
 
 procedure TMainForm.insertFunction(sender: TObject);
 var
-  t1,t2,f : String;
-  oldSelStart : Integer;
+  f : String;
   sm : TSynMemo;
 begin
   // insert function from function.txt
@@ -535,11 +534,7 @@ begin
   f := TMenuItem(Sender).Hint;
   f := stringreplace(f, '&', '', [rfReplaceAll]);
   f := copy(f, 0, pos(')', f));
-  oldSelStart := sm.SelStart;
-  t1 := copy(sm.Text, 0, sm.SelStart-1);
-  t2 := copy(sm.Text, sm.SelStart, Length(sm.Text) - sm.SelStart);
-  sm.Text := t1 + f + t2;
-  sm.SelStart := oldSelStart + length(f);
+  sm.SelText := f;
   if not TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter.Focused then
     TMDIChild(Mainform.ActiveMDIChild).SynMemoQueryChange(self);
 end;
