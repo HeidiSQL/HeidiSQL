@@ -1080,7 +1080,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 12
+              Height = 8
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -1932,6 +1932,7 @@ object MDIChild: TMDIChild
     ShortCut = 16416
     Editor = SynMemoQuery
     TimerInterval = 500
+    OnAfterCodeCompletion = SynCompletionProposal1AfterCodeCompletion
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
     Left = 104
     Top = 120

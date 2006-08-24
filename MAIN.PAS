@@ -534,7 +534,9 @@ begin
   f := TMenuItem(Sender).Hint;
   f := stringreplace(f, '&', '', [rfReplaceAll]);
   f := copy(f, 0, pos(')', f));
+  sm.UndoList.AddGroupBreak;
   sm.SelText := f;
+  sm.UndoList.AddGroupBreak;
   if not TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter.Focused then
     TMDIChild(Mainform.ActiveMDIChild).SynMemoQueryChange(self);
 end;

@@ -249,6 +249,8 @@ type
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
+    procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
+      const Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure btnDbPropertiesClick(Sender: TObject);
     procedure popupDbGridPopup(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
@@ -1952,6 +1954,14 @@ begin
   // don't mask function-names
   if not StrCmpBegin( '\image{86}', SynCompletionProposal1.ItemList[Index] )
     then Value := mask( Value );
+  SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+end;
+
+
+procedure TMDIChild.SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
+  const Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
+begin
+  SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
 end;
 
 
@@ -2977,7 +2987,9 @@ procedure TMDIChild.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 begin
   // dropping a TTreeNode into the query-memo
+  SynMemoQuery.UndoList.AddGroupBreak;
   SynMemoQuery.SelText := DBTree.Selected.Text;
+  SynMemoQuery.UndoList.AddGroupBreak;
 end;
 
 
