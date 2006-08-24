@@ -535,7 +535,6 @@ begin
   try
     PerformConnect;
   except
-    MainForm.Showstatus( STATUS_MSG_READY, 2);
     timer5.Enabled := true;
     Exit;
   end;
@@ -2076,6 +2075,8 @@ end;
 
 
 procedure TMDIChild.FormActivate(Sender: TObject);
+var
+  i : Byte;
 begin
   if ZConn.Connected then
   begin
@@ -2120,7 +2121,14 @@ begin
     end;
   end;
   TimerConnected.OnTimer(self);
-  ZSQLMonitor1.Active := true;
+  // Activate the ZConnection of THIS MDIchild and deactivate it on all other mdichildren
+  // if we do this in Form.Deactivation we get a AV on a connection failure.
+  // Workaround for Bug #1530397
+  for i := 0 to Mainform.MDIChildCount - 1 do
+  begin
+    TMDIChild(Mainform.MDIChildren[i]).ZSQLMonitor1.Active := (Mainform.MDIChildren[i] = self);
+  end;
+
 end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
@@ -2159,8 +2167,6 @@ begin
     LoadSQL.Enabled := false;
   end;
   MainForm.showstatus('', 1); // empty connected_time
-
-  ZSQLMonitor1.Active := false;
 end;
 
 
@@ -2445,7 +2451,7 @@ procedure TMDIChild.Timer5Timer(Sender: TObject);
 begin
   // can't connect -> close MDI-Child
   timer5.Enabled := false;
-  mainform.Showstatus('', 1);
+  Mainform.Showstatus('', 1);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   close;
 end;
