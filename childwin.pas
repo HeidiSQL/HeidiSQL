@@ -98,7 +98,7 @@ type
     N10: TMenuItem;
     MenuRenameTable: TMenuItem;
     MenuViewBlob: TMenuItem;
-    Timer4: TTimer;
+    TimerConnected: TTimer;
     N12: TMenuItem;
     MenuTableComment: TMenuItem;
     popupSqlLog: TPopupMenu;
@@ -299,7 +299,7 @@ type
       var S: String);
     procedure MenuRenameTableClick(Sender: TObject);
     procedure MenuViewBlobClick(Sender: TObject);
-    procedure Timer4Timer(Sender: TObject);
+    procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear1Click(Sender: TObject);
     procedure MenuTableCommentClick(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
@@ -449,6 +449,7 @@ procedure TMDIChild.PerformConnect;
 begin
   try
     ZConn.Connect;
+    TimerConnected.Enabled := true;
     // On Re-Connection, try to restore lost properties
     if ZConn.Database <> '' then
     begin
@@ -2118,7 +2119,7 @@ begin
       //DBtreeChange( self, DBTree.Selected );
     end;
   end;
-  timer4.OnTimer(self);
+  TimerConnected.OnTimer(self);
   ZSQLMonitor1.Active := true;
 end;
 
@@ -2169,7 +2170,6 @@ procedure TMDIChild.FormShow(Sender: TObject);
 begin
   // initialize some values and components:
   timer2.Enabled := true;
-  timer4.Enabled := true;
 
   { TODO : only load file when autoconnected ?? }
   if (paramstr(1) <> '') and Main.loadsqlfile then
@@ -2281,21 +2281,22 @@ begin
 end;
 
 
-procedure TMDIChild.Timer4Timer(Sender: TObject);
+procedure TMDIChild.TimerConnectedTimer(Sender: TObject);
 var
-  h, m, s : Integer;
+  hours, minutes, seconds : Integer;
 begin
-  // calculate and display connection-time
-  s := time_connected mod (60*60*24);
-  h := s div (60*60);
-  s := s mod (60*60);
-  m := s div 60;
-  s := s mod 60;
-
   inc(time_connected);
 
   if Mainform.ActiveMDIChild = self then
-    MainForm.showstatus(format('Connected: %.2d:%.2d:%.2d', [h,m,s]), 1);
+  begin
+    // calculate and display connection-time
+    seconds := time_connected mod (60*60*24);
+    hours := seconds div (60*60);
+    seconds := seconds mod (60*60);
+    minutes := seconds div 60;
+    seconds := seconds mod 60;
+    MainForm.showstatus( format('Connected: %.2d:%.2d:%.2d', [hours, minutes, seconds]), 1 );
+  end;
 end;
 
 
@@ -2444,7 +2445,6 @@ procedure TMDIChild.Timer5Timer(Sender: TObject);
 begin
   // can't connect -> close MDI-Child
   timer5.Enabled := false;
-  timer4.Enabled := false;
   mainform.Showstatus('', 1);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   close;
@@ -3278,6 +3278,12 @@ procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
   LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
+  if Event.Category = lcDisconnect then
+  begin
+    time_connected := 0;
+    TimerConnected.Enabled := false;
+    Mainform.ShowStatus( 'Disconnected since ' + TimeToStr(Time), 2, true );
+  end;
 end;
 
 

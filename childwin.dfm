@@ -1080,7 +1080,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 16
+              Height = 12
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -1760,9 +1760,9 @@ object MDIChild: TMDIChild
       Action = MainForm.ExportData
     end
   end
-  object Timer4: TTimer
+  object TimerConnected: TTimer
     Enabled = False
-    OnTimer = Timer4Timer
+    OnTimer = TimerConnectedTimer
     Left = 103
     Top = 157
   end
