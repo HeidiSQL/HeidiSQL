@@ -172,7 +172,6 @@ type
     btnDbDropTable: TToolButton;
     N18: TMenuItem;
     MenuChangeType5: TMenuItem;
-    MenuChangeType6: TMenuItem;
     selectall1: TMenuItem;
     MenuAutoupdate: TMenuItem;
     TimerProcesslist: TTimer;
@@ -234,7 +233,6 @@ type
     InsertfilesintoBLOBfields2: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
-    Gemini1: TMenuItem;
     setNULL1: TMenuItem;
     ZConn: TZConnection;
     ZQuery1: TZQuery;
@@ -1150,7 +1148,7 @@ procedure TMDIChild.ShowDBProperties(Sender: TObject);
 var
   n               : TListItem;
   i,j,k,t,u       : Integer;
-  bytes           : Int64;
+  bytes           : Extended;
   tndb            : TTreenode;
   menuitem        : TMenuItem;
   TablelistColumns: TStringList;
@@ -1254,11 +1252,11 @@ begin
         n.Caption := ZQuery3.FieldByName('Name').AsString;
         if popupDbGridHeader.Items[0].Checked then
         begin // Default columns
-          // Records
-          n.SubItems.Add( ZQuery3.FieldByName('Rows').AsString );
+          // Records                                    
+          n.SubItems.Add( format('%10.0n', [ZQuery3.FieldByName('Rows').AsFloat] ) );
           // Size: Data_length + Index_length
-          bytes := StrToInt64(ZQuery3.FieldByName('Data_length').AsString) + StrToInt64(ZQuery3.FieldByName('Index_length').AsString);
-          n.SubItems.Add(format('%d KB', [bytes div 1024 + 1]));
+          bytes := ZQuery3.FieldByName('Data_length').AsFloat + ZQuery3.FieldByName('Index_length').AsFloat;
+          n.SubItems.Add(format('%10.0n KB', [bytes / 1024 + 1]));
           // Created:
           n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
           // Updated:
@@ -1522,7 +1520,6 @@ begin
   MenuChangeType3.Enabled := tableSelected;
   MenuChangeType4.Enabled := tableSelected;
   MenuChangeType5.Enabled := tableSelected;
-  MenuChangeType6.Enabled := tableSelected;
   MenuChangeTypeOther.Enabled := tableSelected;
   Mainform.CopyTable.Enabled := tableSelected;
   MenuTableComment.Enabled := tableSelected;
