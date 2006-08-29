@@ -249,6 +249,11 @@ type
     DefaultColumnLayout1: TMenuItem;
     N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
+    popupQueryLoad: TPopupMenu;
+    OpenDialogSQLFile: TOpenDialog;
+    SaveDialogSQLFile: TSaveDialog;
+    btnQuerySaveSnippet: TToolButton;
+    procedure btnQuerySaveSnippetClick(Sender: TObject);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure btnDbPropertiesClick(Sender: TObject);
@@ -356,7 +361,6 @@ type
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
     procedure btnQueryFindClick(Sender: TObject);
-    procedure LoadSQLClick(Sender: TObject);
     procedure btnQuerySaveClick(Sender: TObject);
     procedure btnQueryLoadClick(Sender: TObject);
     procedure btnFilterPreviousClick(Sender: TObject);
@@ -401,6 +405,10 @@ type
     function mask(str: String) : String;
     procedure CheckConnection();
     procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
+    procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
+    procedure popupQueryLoadClick( sender: TObject );
+    procedure FillPopupQueryLoad;
+
 
     private
       { Private declarations }
@@ -662,6 +670,9 @@ begin
         SynSQLSyn1.StringAttri.Foreground := StringToColor(ReadString('SQLColStringAttri'));
       if ValueExists('SQLColCommentAttri') then
         SynSQLSyn1.CommentAttri.Foreground := StringToColor(ReadString('SQLColCommentAttri'));
+
+      // SQLFiles-History
+      FillPopupQueryLoad;
 
       // SQL-Filter-Files-History
       i := 1;
@@ -2043,6 +2054,13 @@ begin
       InsertList.Add( functionname + functiondecl );
       ItemList.Add( '\image{86}\hspace{2}\color{clTeal}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
     end;
+
+    //TODO : add keywords!
+    //InsertList.Add( 'SELECT' );
+    //ItemList.Add( '\image{87}\hspace{2}\color{clOlive}keyword\color{clWindowText}\column{}SELECT' );
+    //InsertList.Add( 'UPDATE' );
+    //ItemList.Add( '\image{87}\hspace{2}\color{clOlive}keyword\color{clWindowText}\column{}UPDATE' );
+    
   end;
 end;
 
@@ -2051,12 +2069,13 @@ procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
   PanelCharsInQueryWindow.Caption :=
-    Format('%g', [length(SynMemoQuery.Text) + 0.0]) + ' Characters';
+    Format('%10.0n', [length(SynMemoQuery.Text) + 0.0]) + ' Characters';
   somechars := length(SynMemoQuery.Text) > 0;
   Mainform.ExecuteQuery.Enabled := somechars;
   Mainform.ExecuteSelection.Enabled := length(SynMemoQuery.SelText) > 0;
   Mainform.ExecuteLine.Enabled := SynMemoQuery.LineText <> '';
   btnQuerySave.Enabled := somechars;
+  btnQuerySaveSnippet.Enabled := somechars;
 end;
 
 
@@ -2265,15 +2284,17 @@ end;
 
 procedure TMDIChild.ListTablesEdited(Sender: TObject; Item: TListItem;
   var S: String);
-var i : Integer;
+var
+  i : Integer;
 begin
-  // edit table-name
-  menudroptable.ShortCut := TextToShortCut('Del');
-
+  // rename table
   ExecQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S) );
+  i := SynSQLSyn1.TableNames.IndexOf( Item.Caption );
+  if i > -1 then
+    SynSQLSyn1.TableNames[i] := S;
   ActualTable := S;
   ShowDBProperties(self);
-  // Re-Select Entry
+  // re-select same item
   for i:=0 to ListTables.Items.Count-1 do
     if ListTables.Items[i].Caption = S then
       break;
@@ -2633,6 +2654,7 @@ begin
     btnBlobWordWrap.Enabled := false;
   end
 end;
+
 
 // Force a save of the user-edited contents of the BLOB editor.
 procedure TMDIChild.SaveBlob;
@@ -2998,18 +3020,16 @@ procedure TMDIChild.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
   AFiles: TStrings);
 var
   i        : Integer;
-  s        : TStringList;
 begin
   // one or more files from explorer or somewhere else was
   // dropped onto the query-memo - let's load their contents:
-  s := TStringList.Create;
-  for i:=0 to AFiles.Count-1 do begin
-    if fileExists(AFiles[i]) then begin
-      s.LoadFromFile(AFiles[i]);
-      SynMemoQuery.Lines.AddStrings(s);
+  for i:=0 to AFiles.Count-1 do
+  begin
+    if fileExists(AFiles[i]) then
+    begin
+      QueryLoad( AFiles[i], false );
     end;
   end;
-  SynMemoQuery.OnChange(self);
 end;
 
 procedure TMDIChild.SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
@@ -3066,44 +3086,219 @@ begin
   mainform.FindDialog1.execute;
 end;
 
+
+procedure TMDIChild.btnQuerySaveSnippetClick(Sender: TObject);
+var
+  snippetname : String;
+  sfile       : Textfile;
+begin
+  // Save snippet
+  if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
+  begin
+    Screen.Cursor := crHourglass;
+    if copy( snippetname, length(snippetname)-4, 4 ) <> '.sql' then
+      snippetname := snippetname + '.sql';
+    // TODO: cleanup snippetname from special characters
+    AssignFile( sfile, DIRNAME_SNIPPETS + snippetname );
+    Rewrite( sfile );
+    Write( sfile, SynMemoQuery.Text );
+    CloseFile( sfile );
+    FillPopupQueryLoad;
+    Screen.Cursor := crDefault;
+  end;
+
+end;
+
 procedure TMDIChild.ToolButton4Click(Sender: TObject);
 begin
   SaveBlob;
   mainform.HTMLviewExecute(Sender);
 end;
 
-procedure TMDIChild.LoadSQLClick(Sender: TObject);
+procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
+var
+  f : TextFile;
+begin
+  // Save SQL
+  if SaveDialogSQLFile.Execute then
+  begin
+    Screen.Cursor := crHourGlass;
+    AssignFile(f, SaveDialogSQLFile.FileName);
+    Rewrite(f);
+    Write(f, SynMemoQuery.Text);
+    CloseFile(f);
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMDIChild.popupQueryLoadClick( sender: TObject );
 var
   filename : String;
-  i : Integer;
+  p        : Integer;
 begin
-  // Load SQL File
-  Screen.Cursor := crHourGlass;
-  filename := (sender as TMenuItem).Caption;
-  i := 0;
-  while filename[i] <> ' ' do
-    inc(i);
-  filename := copy(filename, i+1, length(filename));
-  filename := stringreplace(filename, '&', '', [rfReplaceAll]);
-
-  try
-    SynMemoQuery.Lines.LoadFromFile(filename);
-  except
-    MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
+  // Click on the popupQueryLoad
+  filename := (Sender as TMenuItem).Caption;
+  if pos( '\', filename ) = 0 then
+  begin // assuming we load a snippet
+    filename := DIRNAME_SNIPPETS + filename;
+  end
+  else
+  begin // assuming we load a file from the recent-list
+    p := pos( ' ', filename ) + 1;
+    filename := copy(filename, p, length(filename));
   end;
-  Screen.Cursor := crDefault;
-  SynMemoQueryChange(self);
+  filename := stringreplace(filename, '&', '', [rfReplaceAll]);
+  QueryLoad( filename );
 end;
 
-procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
-begin
-  mainform.ButtonSaveSQLClick(self);
-end;
 
 procedure TMDIChild.btnQueryLoadClick(Sender: TObject);
 begin
-  Mainform.ButtonLoadSQLFile(self);
+  // Click on the btnQueryLoad
+  if OpenDialogSQLfile.Execute then
+  begin
+    QueryLoad( OpenDialogSQLfile.FileName );
+  end;
 end;
+
+
+procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true );
+
+  procedure AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true );
+  var
+    i                     : Integer;
+    Values, newfilelist   : TStringList;
+    reg                   : TRegistry;
+    savedfilename         : String;
+  begin
+    // Add or remove filename to/from history, avoiding duplicates
+
+    reg := TRegistry.Create;
+    reg.openkey(regpath, true);
+    newfilelist := TStringList.create;
+    Values := TStringList.create;
+    reg.GetValueNames( Values );
+
+    // Add new filename
+    if AddIt and ( pos( DIRNAME_SNIPPETS, filename ) = 0 ) then
+    begin
+      newfilelist.Add( filename );
+    end;
+
+    // Add all other filenames
+    for i:=0 to Values.Count-1 do
+    begin
+      if pos( 'SQLFile', Values[i] ) <> 1 then
+        continue;
+      savedfilename := reg.ReadString( Values[i] );
+      if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
+        newfilelist.add( savedfilename );
+      reg.DeleteValue( Values[i] );
+    end;
+
+    // Save new list
+    for i := 0 to newfilelist.Count-1 do
+    begin
+      if i >= 20 then
+        break;
+      reg.WriteString( 'SQLFile'+inttostr(i), newfilelist[i] );
+    end;
+
+    reg.Free;
+  end;
+
+
+var
+  tmpstr, filecontent      : String;
+  f                        : TextFile;
+begin
+  // Load file and add that to the undo-history of SynEdit.
+  // Normally we would do a simple SynMemo.Lines.LoadFromFile but
+  // this would prevent SynEdit from adding this step to the undo-history
+  // so we have to do it by replacing the SelText property
+  Screen.Cursor := crHourGlass;
+  try
+    AssignFile( f, filename );
+    Reset( f );
+    while not eof( f ) do
+    begin
+      Readln( f, tmpstr );
+      filecontent := filecontent + tmpstr + CRLF;
+    end;
+  except
+    on E: Exception do
+    begin
+      MessageDLG( 'Error while reading file ' + filename + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
+      AddOrRemoveFromQueryLoadHistory( filename, false );
+      FillPopupQueryLoad;
+      Screen.Cursor := crDefault;
+      exit;
+    end;
+  end;
+  CloseFile( f );
+
+  SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+  SynMemoQuery.BeginUpdate;
+  if ReplaceContent then
+  begin
+    SynMemoQuery.SelectAll;
+  end;
+  SynMemoQuery.SelText := filecontent;
+  SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
+  SynMemoQuery.EndUpdate;
+  SynMemoQueryChange( self );
+
+  AddOrRemoveFromQueryLoadHistory( filename, true );
+  FillPopupQueryLoad;
+
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TMDIChild.FillPopupQueryLoad;
+var
+  i          : Integer;
+  menuitem   : TMenuItem;
+  snippets   : TStringList;
+begin
+  // Fill the popupQueryLoad menu
+
+  popupQueryLoad.Items.Clear;
+
+  // Snippets
+  snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql' );
+  for i := 0 to snippets.Count - 1 do
+  begin
+    menuitem := TMenuItem.Create( popupQueryLoad );
+    menuitem.Caption := snippets[i];
+    menuitem.OnClick := popupQueryLoadClick;
+    popupQueryLoad.Items.Add(menuitem);
+  end;
+
+  // Separator
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := '-';
+  popupQueryLoad.Items.Add(menuitem);
+
+  // Recent files
+  i := 0;
+  with TRegistry.Create do
+  begin
+    openkey(regpath, true);
+    while ValueExists('SQLFile'+inttostr(i)) do
+    begin
+      menuitem := TMenuItem.Create( popupQueryLoad );
+      menuitem.Caption := inttostr(popupQueryLoad.Items.count+1) + ' ' + ReadString('SQLFile'+inttostr(i));
+      menuitem.OnClick := popupQueryLoadClick;
+      popupQueryLoad.Items.Add(menuitem);
+      inc(i);
+    end;
+    Free;
+  end;
+end;
+
+
 
 procedure TMDIChild.btnFilterPreviousClick(Sender: TObject);
 begin
@@ -3521,15 +3716,14 @@ begin
       // digits, upper chars, lower chars and _ are allowed
       hasbadchar := not (o in [48..57, 65..90, 97..122, 95]);
       // see bug 1500753
-      if (i = 1) then
+      if (i = 1) and not hasbadchar then
         hasbadchar := o in [48..57];
       if hasbadchar then
         break;
     end;
 
-    // found a list with keywords:
     // http://dev.mysql.com/doc/refman/5.1/en/reserved-words.html
-    keywords := ' ADD ALL ALTER ANALYZE AND AS ASC BEFORE BETWEEN BIGINT BINARY '+
+    keywords :=  ' ADD ALL ALTER ANALYZE AND AS ASC BEFORE BETWEEN BIGINT BINARY '+
       'BLOB BOTH BY CASCADE CASE CHANGE CHAR CHARACTER CHECK COLLATE '+
       'COLUMN COLUMNS CONSTRAINT CONVERT CREATE CROSS CURRENT_DATE '+
       'CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER DATABASE DATABASES '+
@@ -3574,8 +3768,6 @@ end;
 
 
 
-
-
 procedure TMDIChild.CheckConnection;
 var
   status: boolean;
@@ -3588,12 +3780,16 @@ begin
   end;
 end;
 
+
+
 function TMDIChild.GetActiveGrid: TSMDBGrid;
 begin
   Result := nil;
   if PageControl1.ActivePage = SheetData then Result := gridData;
   if PageControl1.ActivePage = SheetQuery then Result := gridQuery;
 end;
+
+
 
 procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
 begin
@@ -3603,6 +3799,8 @@ begin
     exit;
   end;
 end;
+
+
 
 end.
 

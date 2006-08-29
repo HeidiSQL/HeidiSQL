@@ -10,7 +10,8 @@ unit helpers;
 interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
-  forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset;
+  forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
+  shlobj, ActiveX;
 
   function trimc(s: String; c: Char) : String;
   // TODO: Look at each caller to see if escaping is necessary.
@@ -55,7 +56,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
-
+  function GetShellFolder(CSIDL: integer): string;
+  function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
 
 implementation
 
@@ -1145,6 +1147,55 @@ begin
     result := 'N';
 end;
 
+
+function GetShellFolder(CSIDL: integer): string;
+var
+  pidl                   : PItemIdList;
+  FolderPath             : string;
+  SystemFolder           : Integer;
+  Malloc                 : IMalloc;
+begin
+  Malloc := nil;
+  FolderPath := '';
+  SHGetMalloc(Malloc);
+  if Malloc = nil then
+  begin
+    Result := FolderPath;
+    Exit;
+  end;
+  try
+    SystemFolder := CSIDL;
+    if SUCCEEDED(SHGetSpecialFolderLocation(0, SystemFolder, pidl)) then
+    begin
+      SetLength(FolderPath, max_path);
+      if SHGetPathFromIDList(pidl, PChar(FolderPath)) then
+      begin
+        SetLength(FolderPath, length(PChar(FolderPath)));
+      end;
+    end;
+    Result := FolderPath;
+  finally
+    Malloc.Free(pidl);
+  end;
+end;
+
+
+function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
+var
+  sr : TSearchRec;
+begin
+  result := TStringList.Create;
+  if dir[length(dir)] <> '\' then
+    dir := dir + '\';
+  if FindFirst( dir + pattern, $3F, sr ) = 0 then
+  begin
+    repeat
+      if (sr.Attr and faAnyFile) > 0 then
+        result.Add( sr.Name );
+    until FindNext( sr ) <> 0;
+    // FindClose( sr );
+  end;
+end;
 
 end.
 

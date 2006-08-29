@@ -122,14 +122,11 @@ type
     ButtonOK: TButton;
     UpDownLimitStart: TUpDown;
     UpDownLimitEnd: TUpDown;
-    SaveDialog1: TSaveDialog;
     SQLFunctions: TPopupMenu;
     MenuRun: TMenuItem;
     MenuRunSelection: TMenuItem;
     N10: TMenuItem;
     menuclear: TMenuItem;
-    OpenDialogSQLfile: TOpenDialog;
-    PopupMenu6: TPopupMenu;
     EditUndo1: TEditUndo;
     ToolButton14: TToolButton;
     ExecuteQuery: TAction;
@@ -198,8 +195,6 @@ type
     procedure CheckBoxLimitClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
     procedure LimitPanelExit(Sender: TObject);
-    procedure ButtonSaveSQLClick(Sender: TObject);
-    procedure ButtonLoadSQLFile(Sender: TObject);
     procedure insertFunction(sender: TObject);
     procedure menuclearClick(Sender: TObject);
     procedure SQLFunctionsPopup(Sender: TObject);
@@ -209,7 +204,6 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure ExportSettings1Click(Sender: TObject);
     procedure Importsettings1Click(Sender: TObject);
-    procedure LoadSQLFile(sender: TObject);
     procedure ExecuteQueryExecute(Sender: TObject);
     procedure ExecuteSelectionExecute(Sender: TObject);
     procedure MenuFindClick(Sender: TObject);
@@ -257,6 +251,7 @@ var
   StatusIconIndex : Integer = 43;
   loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
   appversion : String = '3.0 RC3 $Rev$';
+  DIRNAME_SNIPPETS : String;
 
 const
   appname = 'HeidiSQL';
@@ -274,8 +269,8 @@ end;
 implementation
 
 uses ChildWin, About, connections, exportsql, tbl_properties, loaddata,
-  usermanager, options, optimizetables, helpers,
-  printlist, copytable, insertfiles;
+  usermanager, options, optimizetables,
+  printlist, copytable, insertfiles, helpers;
 
 {$R *.DFM}
 
@@ -435,17 +430,6 @@ begin
       if valueExists('ToolBarDataTop') then
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
 
-      // SQLFiles-History
-      i := 1;
-      PopUpMenu6.Items.Clear;
-      while ValueExists('SQLFile'+inttostr(i)) do begin
-        mi := Tmenuitem.Create(self);
-        mi.Caption := inttostr(PopUpMenu6.Items.count+1) + ' ' + ReadString('SQLFile'+inttostr(i));
-        mi.OnClick := LoadSQLFile;
-        PopUpMenu6.Items.Add(mi);
-        inc(i);
-      end;
-
       // Limit-options
       if valueExists('DataLimit') then
         CheckBoxLimit.Checked := ReadBool('DataLimit');
@@ -513,12 +497,10 @@ begin
   appversion := StringReplace( appversion, '$', '', [] );
   appversion := Trim( appversion );
 
-  timer1.Enabled := true;
-end;
+  // Folder which contains snippet-files
+  DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + appname + '\Snippets\'; // CSIDL_COMMON_APPDATA
 
-procedure TMainform.LoadSQLFile(sender: TObject);
-begin
-  TMDIChild(Mainform.ActiveMDIChild).LoadSQLClick(sender);
+  timer1.Enabled := true;
 end;
 
 procedure TMainForm.insertFunction(sender: TObject);
@@ -833,103 +815,6 @@ begin
   memo.SelStart := 0;
   memo.SelEnd := 0;
 end;
-
-
-procedure TMainForm.ButtonSaveSQLClick(Sender: TObject);
-var f : TextFile;
-begin
-  // Save SQL
-  if SaveDialog1.Execute then begin
-    Screen.Cursor := crHourGlass;
-    AssignFile(f, SaveDialog1.FileName);
-    Rewrite(f);
-    Write(f, TMDIChild(Mainform.ActiveMDIChild).SynMemoQuery.Text);
-    CloseFile(f);
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-procedure TMainForm.ButtonLoadSQLFile(Sender: TObject);
-var
-  menuitem        : Tmenuitem;
-  m,i             : Integer;
-  filename, tmpstr, filecontent      : String;
-  dontadd         : Boolean;
-  f               : TextFile;
-begin
-  // Load file
-  if OpenDialogSQLfile.Execute then
-  begin
-    Screen.Cursor := crHourGlass;
-    with TMDIChild(ActiveMDIChild) do
-    begin
-      // Load file and add that to the undo-history of SynEdit.
-      // Normally we would do a simple SynMemo.Lines.LoadFromFile but
-      // this would prevent SynEdit from adding this step to the undo-history
-      // so we have to do it by replacing the SelText property
-      SynMemoQuery.BeginUpdate;
-      AssignFile( f, OpenDialogSQLfile.FileName );
-      Reset( f );
-      SynMemoQuery.SelectAll;
-      while not eof( f ) do
-      begin
-        Readln( f, tmpstr );
-        filecontent := filecontent + tmpstr + CRLF;
-      end;
-      SynMemoQuery.SelText := filecontent;
-      SynMemoQuery.SelStart := 0;
-      SynMemoQuery.SelEnd := 0;
-      SynMemoQuery.EndUpdate;
-      SynMemoQueryChange(self);
-    end;
-    Screen.Cursor := crDefault;
-
-    // Add filename to popupmenu, avoiding duplicates
-    dontadd := false;
-    for m:=0 to PopUpMenu6.Items.Count-1 do begin
-      filename := PopUpMenu6.Items[m].Caption;
-      i := 0;
-      while filename[i] <> ' ' do
-        inc(i);
-      filename := copy(filename, i+1, length(filename));
-      filename := stringreplace(filename, '&', '', [rfReplaceAll]);
-      if filename = OpenDialogSQLfile.FileName then
-        dontadd := true;
-    end;
-
-    if not dontadd then
-    begin
-      with TRegistry.Create do
-      begin
-        openkey(regpath, true);
-        for i:=1 to 20 do
-        begin
-          if not ValueExists('SQLFile'+inttostr(i)) then
-            break;
-        end;
-        while i > 1 do
-        begin
-          WriteString('SQLFile'+inttostr(i), ReadString('SQLFile'+inttostr(i-1)));
-          dec(i);
-        end;
-        WriteString('SQLFile1', OpenDialogSQLfile.FileName);
-
-        i := 1;
-        PopUpMenu6.Items.Clear;
-        while ValueExists('SQLFile'+inttostr(i)) do
-        begin
-          menuitem := Tmenuitem.Create(self);
-          menuitem.Caption := inttostr(PopUpMenu6.Items.count+1) + ' ' + ReadString('SQLFile'+inttostr(i));
-          menuitem.OnClick := LoadSQLFile;
-          PopUpMenu6.Items.Add(menuitem);
-          inc(i);
-        end;
-      end;
-    end;
-
-  end;
-end;
-
 
 
 procedure TMainForm.SQLFunctionsPopup(Sender: TObject);
@@ -1284,20 +1169,30 @@ begin
     Screen.Cursor := crSQLWait;
     ExecQuery( 'DROP TABLE ' + implodestr(', ', t) );
 
-    if DBtree.Selected.Level in [1, 2] then begin
-      if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
-      else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent;
+    if DBtree.Selected.Level in [1, 2] then
+    begin
+      if DBTree.Selected.Level = 1 then
+        tndb := DBTree.Selected
+      else if DBTree.Selected.Level = 2 then
+        tndb := DBTree.Selected.Parent;
 
-      for i:=0 to t.count-1 do begin
-        // delete it in dbtree too...
+      for i:=0 to t.count-1 do
+      begin
+        // delete table in dbtree
         tn := tndb.getFirstChild;
-        for j:=0 to tndb.Count -1 do begin
-          if t[i] = tn.Text then begin
+        for j:=0 to tndb.Count -1 do
+        begin
+          if t[i] = tn.Text then
+          begin
             tn.Delete;
             break;
           end;
           tn := tndb.GetNextChild(tn);
         end;
+        // delete in SynEditHighlighter's tablenames
+        j := SynSQLSyn1.TableNames.IndexOf( t[i] );
+        if j > -1 then
+          SynSQLSyn1.TableNames.Delete( j );
       end;
     end;
 
@@ -1313,8 +1208,8 @@ begin
   with TMDIChild(ActiveMDIChild) do
   begin
     PageControl1.ActivePage := SheetQuery;
+    btnQueryLoadClick( sender );
   end;
-  ButtonLoadSQLFile( sender );
 end;
 
 end.

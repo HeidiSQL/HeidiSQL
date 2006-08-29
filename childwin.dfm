@@ -100,6 +100,10 @@ object MDIChild: TMDIChild
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object PageControl2: TPageControl
             Left = 0
             Top = 17
@@ -112,6 +116,10 @@ object MDIChild: TMDIChild
             OnChange = PageControl2Change
             object TabSheet6: TTabSheet
               Caption = 'Variables'
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -141,6 +149,10 @@ object MDIChild: TMDIChild
             object TabSheet7: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -702,9 +714,9 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
             object Panel8: TPanel
-              Left = 317
+              Left = 288
               Top = 1
-              Width = 178
+              Width = 207
               Height = 27
               Align = alRight
               BevelOuter = bvNone
@@ -714,10 +726,9 @@ object MDIChild: TMDIChild
               object ToolBarQuery: TToolBar
                 Left = 1
                 Top = 1
-                Width = 176
+                Width = 205
                 Height = 25
                 Align = alClient
-                AutoSize = True
                 ButtonHeight = 25
                 Caption = 'Query'
                 Color = clBtnFace
@@ -746,7 +757,7 @@ object MDIChild: TMDIChild
                   Top = 0
                   Hint = 'Load SQL from Textfile'
                   Caption = 'Load SQL...'
-                  DropdownMenu = MainForm.PopupMenu6
+                  DropdownMenu = popupQueryLoad
                   ImageIndex = 6
                   Style = tbsDropDown
                   OnClick = btnQueryLoadClick
@@ -760,8 +771,15 @@ object MDIChild: TMDIChild
                   ImageIndex = 7
                   OnClick = btnQuerySaveClick
                 end
-                object btnQueryFind: TToolButton
+                object btnQuerySaveSnippet: TToolButton
                   Left = 105
+                  Top = 0
+                  Caption = 'btnQuerySaveSnippet'
+                  ImageIndex = 88
+                  OnClick = btnQuerySaveSnippetClick
+                end
+                object btnQueryFind: TToolButton
+                  Left = 128
                   Top = 0
                   Hint = 'Find Text...'
                   Caption = 'Find...'
@@ -769,12 +787,12 @@ object MDIChild: TMDIChild
                   OnClick = btnQueryFindClick
                 end
                 object btnQueryReplace: TToolButton
-                  Left = 128
+                  Left = 151
                   Top = 0
                   Action = MainForm.SearchReplace
                 end
                 object btnQueryStopOnErrors: TToolButton
-                  Left = 151
+                  Left = 174
                   Top = 0
                   Hint = 'Stop on MySQL-errors in batch-mode'
                   Caption = 'btnQueryStopOnErrors'
@@ -786,7 +804,7 @@ object MDIChild: TMDIChild
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 201
+              Left = 172
               Top = 1
               Width = 116
               Height = 27
@@ -847,6 +865,8 @@ object MDIChild: TMDIChild
               WantTabs = True
               OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
+              ExplicitLeft = -2
+              ExplicitTop = -2
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteLastChar
@@ -931,6 +951,10 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -978,6 +1002,10 @@ object MDIChild: TMDIChild
     object TabSheet2: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1048,6 +1076,10 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1069,6 +1101,10 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1080,7 +1116,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 1
-              Height = 8
+              Height = 0
               Align = alCustom
               Anchors = [akTop, akBottom]
               BorderStyle = bsNone
@@ -1478,8 +1514,8 @@ object MDIChild: TMDIChild
     TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
-    Left = 39
-    Top = 120
+    Left = 79
+    Top = 216
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'sql'
@@ -1543,8 +1579,8 @@ object MDIChild: TMDIChild
   object popupDataGrid: TPopupMenu
     Images = MainForm.ImageList1
     OnPopup = popupDataGridPopup
-    Left = 8
-    Top = 80
+    Left = 136
+    Top = 48
     object Copy3: TMenuItem
       Action = MainForm.EditCopy1
     end
@@ -1731,7 +1767,7 @@ object MDIChild: TMDIChild
   object popupResultGrid: TPopupMenu
     Images = MainForm.ImageList1
     OnPopup = popupResultGridPopup
-    Left = 40
+    Left = 8
     Top = 80
     object Copy4: TMenuItem
       Action = MainForm.EditCopy1
@@ -1768,7 +1804,7 @@ object MDIChild: TMDIChild
   end
   object popupSqlLog: TPopupMenu
     Images = MainForm.ImageList1
-    Left = 72
+    Left = 40
     Top = 80
     object Copy1: TMenuItem
       Action = MainForm.EditCopy1
@@ -1890,7 +1926,7 @@ object MDIChild: TMDIChild
     AutoHotkeys = maManual
     AutoLineReduction = maManual
     Images = MainForm.ImageList1
-    Left = 104
+    Left = 72
     Top = 80
     object DefaultColumnLayout1: TMenuItem
       Tag = 1
@@ -1934,6 +1970,23 @@ object MDIChild: TMDIChild
     TimerInterval = 500
     OnAfterCodeCompletion = SynCompletionProposal1AfterCodeCompletion
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
+    Left = 112
+    Top = 216
+  end
+  object popupQueryLoad: TPopupMenu
+    Left = 104
+    Top = 80
+  end
+  object OpenDialogSQLFile: TOpenDialog
+    DefaultExt = 'sql'
+    Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
+    Left = 40
+    Top = 120
+  end
+  object SaveDialogSQLFile: TSaveDialog
+    DefaultExt = 'sql'
+    Filter = 'SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 104
     Top = 120
   end
