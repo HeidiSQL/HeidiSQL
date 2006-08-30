@@ -21,12 +21,11 @@ type
     RadioButton2: TRadioButton;
     CheckListBoxFields: TCheckListBox;
     CheckBoxWithAllFields: TCheckBox;
-    ButtonOK: TBitBtn;
     ButtonCancel: TButton;
-    Label2: TLabel;
     CheckBoxWithIndexes: TCheckBox;
     Label3: TLabel;
     ComboSelectDatabase: TComboBox;
+    ButtonOK: TButton;
     procedure RadioButton1Click(Sender: TObject);
     procedure RadioButton2Click(Sender: TObject);
     procedure CheckBoxWithAllFieldsClick(Sender: TObject);
@@ -160,6 +159,7 @@ begin
         setlength(keylist, length(keylist)+1);
         which := high(keylist);
         keylist[which].Columns := TStringList.Create;
+        keylist[which].SubParts := TStringList.Create;
         with keylist[which] do // set properties for new key
         begin
           if TMDIChild(Mainform.ActiveMDIChild).mysql_version < 40002 then
@@ -177,7 +177,9 @@ begin
             _type := 'UNIQUE';
         end;
       end;
-      keylist[which].Columns.add(zq.Fields[4].AsString); // add column(s)
+      // add column
+      keylist[which].Columns.add( zq.FieldByName('Column_Name').AsString );
+      keylist[which].SubParts.add( zq.FieldByName('Sub_part').AsString );
       zq.Next;
     end;
     for k:=0 to high(keylist) do
@@ -188,7 +190,15 @@ begin
         keystr := keystr + '  PRIMARY KEY ('
       else
         keystr := keystr + '  ' + keylist[k]._type + ' KEY ' + keylist[k].Name + ' (';
-      keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
+      for i := 0 to keylist[k].Columns.count - 1 do
+      begin
+        if i > 0 then
+          keystr := keystr + ', ';
+        keystr := keystr + keylist[k].Columns[i];
+        if keylist[k].SubParts[i] <> '' then
+          keystr := keystr + '(' + keylist[k].SubParts[i] + ')';
+      end;
+      keystr := keystr + ')';
     end;
     if keystr<> '' then
       strquery := strquery + '(' + keystr + ')'

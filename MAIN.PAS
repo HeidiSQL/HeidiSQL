@@ -261,9 +261,10 @@ const
   DBNAME_MYSQL = 'mysql';
 
 type TMyKey = record
-  Name    : String;
-  _type   : String;
-  Columns : TStringList;
+  Name     : String;
+  _type    : String;
+  Columns  : TStringList;
+  SubParts : TStringList;
 end;
 
 implementation
