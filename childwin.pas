@@ -1356,7 +1356,6 @@ begin
   // Table-Properties
 
   Screen.Cursor := crHourGlass;
-  MainForm.ShowStatus( 'Reading table properties...', 2, true );
 
   if (PageControl1.ActivePage <> SheetData) and (not DBTree.Dragging) then
     PageControl1.ActivePage := SheetTable;
@@ -1386,6 +1385,7 @@ begin
     // ListTables.Items[i].Selected := (ActualTable = ListTables.Items[i].Caption); // ListTablesOnChange will be called by this line
   end;
 
+  MainForm.ShowStatus( 'Reading table properties...', 2, true );
   ListColumns.Items.BeginUpdate;
   ListColumns.Items.Clear;
   Try
@@ -1491,6 +1491,7 @@ begin
     ZQuery3.Next;
   end;
 
+  MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
   MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + inttostr(ListColumns.Items.count) +' field(s)');
   Screen.Cursor := crDefault;
 end;
@@ -3095,11 +3096,17 @@ begin
   // Save snippet
   if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
   begin
-    Screen.Cursor := crHourglass;
     if copy( snippetname, length(snippetname)-4, 4 ) <> '.sql' then
       snippetname := snippetname + '.sql';
-    // TODO: cleanup snippetname from special characters
-    AssignFile( sfile, DIRNAME_SNIPPETS + snippetname );
+    // cleanup snippetname from special characters
+    snippetname := DIRNAME_SNIPPETS + goodfilename(snippetname);
+    if FileExists( snippetname ) then
+    begin
+      if MessageDlg( 'Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel], 0 ) <> mrOK then
+        exit;
+    end;
+    Screen.Cursor := crHourglass;
+    AssignFile( sfile, snippetname );
     Rewrite( sfile );
     Write( sfile, SynMemoQuery.Text );
     CloseFile( sfile );
@@ -3181,7 +3188,7 @@ procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true 
     reg.GetValueNames( Values );
 
     // Add new filename
-    if AddIt and ( pos( DIRNAME_SNIPPETS, filename ) = 0 ) then
+    if AddIt then
     begin
       newfilelist.Add( filename );
     end;
@@ -3249,7 +3256,8 @@ begin
   SynMemoQuery.EndUpdate;
   SynMemoQueryChange( self );
 
-  AddOrRemoveFromQueryLoadHistory( filename, true );
+  if pos( DIRNAME_SNIPPETS, filename ) = 0 then
+    AddOrRemoveFromQueryLoadHistory( filename, true );
   FillPopupQueryLoad;
 
   Screen.Cursor := crDefault;
@@ -3258,9 +3266,9 @@ end;
 
 procedure TMDIChild.FillPopupQueryLoad;
 var
-  i          : Integer;
-  menuitem   : TMenuItem;
-  snippets   : TStringList;
+  i, j                       : Integer;
+  menuitem, snippetsfolder   : TMenuItem;
+  snippets                   : TStringList;
 begin
   // Fill the popupQueryLoad menu
 
@@ -3268,12 +3276,15 @@ begin
 
   // Snippets
   snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql' );
+  snippetsfolder := TMenuItem.Create( popupQueryLoad );
+  snippetsfolder.Caption := 'Snippets';
+  popupQueryLoad.Items.Add(snippetsfolder);
   for i := 0 to snippets.Count - 1 do
   begin
-    menuitem := TMenuItem.Create( popupQueryLoad );
+    menuitem := TMenuItem.Create( snippetsfolder );
     menuitem.Caption := snippets[i];
     menuitem.OnClick := popupQueryLoadClick;
-    popupQueryLoad.Items.Add(menuitem);
+    snippetsfolder.Add(menuitem);
   end;
 
   // Separator
@@ -3282,17 +3293,18 @@ begin
   popupQueryLoad.Items.Add(menuitem);
 
   // Recent files
-  i := 0;
   with TRegistry.Create do
   begin
     openkey(regpath, true);
-    while ValueExists('SQLFile'+inttostr(i)) do
+    for i:=0 to 19 do
     begin
+      if not ValueExists('SQLFile'+inttostr(i)) then
+        continue;
+      inc(j);
       menuitem := TMenuItem.Create( popupQueryLoad );
-      menuitem.Caption := inttostr(popupQueryLoad.Items.count+1) + ' ' + ReadString('SQLFile'+inttostr(i));
+      menuitem.Caption := inttostr(j) + ' ' + ReadString('SQLFile'+inttostr(i));
       menuitem.OnClick := popupQueryLoadClick;
       popupQueryLoad.Items.Add(menuitem);
-      inc(i);
     end;
     Free;
   end;

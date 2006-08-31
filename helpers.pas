@@ -58,6 +58,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function bool2str( boolval : Boolean ) : String;
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
+  function goodfilename( str: String ): String;
 
 implementation
 
@@ -1196,6 +1197,17 @@ begin
     // FindClose( sr );
   end;
 end;
+
+
+function goodfilename( str: String ): String;
+var
+  c : Char;
+begin
+  result := str;
+  for c in ['\', '/', ':', '*', '?', '"', '<', '>', '|'] do
+    result := StringReplace( result, c, '_', [rfReplaceAll] );
+end;
+
 
 end.
 
