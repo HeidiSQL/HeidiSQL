@@ -5,8 +5,8 @@
 
 [Setup]
 AppName=HeidiSQL
-AppVerName=HeidiSQL 3.0 RC3
-AppVersion=3.0 RC3
+AppVerName=HeidiSQL 3.0
+AppVersion=3.0
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
 AppSupportURL=http://forum.heidisql.com/
@@ -20,7 +20,7 @@ WizardImageFile=.\..\res\installer-logo.bmp
 WizardImageBackColor=$ffffff
 WizardSmallImageFile=.\..\res\installer-small-logo.bmp
 OutputDir=.
-OutputBaseFilename=HeidiSQL_3.0RC3_Setup
+OutputBaseFilename=HeidiSQL_3.0_Setup
 UninstallDisplayIcon={app}\heidisql.exe
 SetupIconFile=.\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
@@ -43,6 +43,7 @@ Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "function.txt"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "heidisql.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Snippets\*.sql"; DestDir: "{commonappdata}\HeidiSQL\Snippets";
 
 [INI]
 Filename: "{app}\heidisql.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.heidisql.com/"
