@@ -420,6 +420,7 @@ type
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
+      MYSQL_KEYWORDS             : TStringList;
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
@@ -556,6 +557,45 @@ begin
   // Versions and Statistics
   LogSQL( 'Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port) );
 
+  // Keywords copied from SynHighligherSQL
+  MYSQL_KEYWORDS := TStringList.Create;
+  MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,ANALYZE,AND,ANY,AS,' +
+    'ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BACKUP,BEFORE,BEGIN,BENCHMARK,BETWEEN,BINLOG,BIT,' +
+    'BOOL,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CHANGE,CHARACTER,CHARSET,CHECK,' +
+    'CHECKSUM,CLIENT,COLLATE,COLLATION,COLUMN,COLUMNS,COMMENT,COMMIT,' +
+    'COMMITTED,COMPLETION,CONCURRENT,CONNECTION,CONSISTENT,CONSTRAINT,' +
+    'CONVERT,CONTAINS,CONTENTS,CREATE,CROSS,DATA,DATABASE,DATABASES,' +
+    'DEALLOCATE,DEC,DEFAULT,DEFINER,DELAYED,DELAY_KEY_WRITE,DELETE,DESC,' +
+    'DETERMINISTIC,DIRECTORY,DISABLE,DISCARD,DESCRIBE,DISTINCT,DISTINCTROW,' +
+    'DIV,DROP,DUAL,DUMPFILE,DUPLICATE,EACH,ELSE,ENABLE,ENCLOSED,END,ENDS,' +
+    'ENGINE,ENGINES,ESCAPE,ESCAPED,ERRORS,EVENT,EVENTS,EVERY,EXECUTE,EXISTS,' +
+    'EXPANSION,EXPLAIN,FALSE,FIELDS,FILE,FIRST,FLUSH,FOR,FORCE,FOREIGN,FROM,' +
+    'FULL,FULLTEXT,FUNCTION,FUNCTIONS,GLOBAL,GRANT,GRANTS,GROUP,HAVING,HELP,' +
+    'HIGH_PRIORITY,HOSTS,IDENTIFIED,IGNORE,INDEX,INFILE,INNER,INSERT,' +
+    'INSERT_METHOD,INSTALL,INT1,INT2,INT3,INT4,INT8,INTO,IO_THREAD,IS,' +
+    'ISOLATION,INVOKER,JOIN,KEY,KEYS,KILL,LAST,LEADING,LEAVES,LEVEL,LESS,' +
+    'LIKE,LIMIT,LINEAR,LINES,LIST,LOAD,LOCAL,LOCK,LOGS,LONG,LOW_PRIORITY,' +
+    'MASTER,MASTER_HOST,MASTER_LOG_FILE,MASTER_LOG_POS,MASTER_CONNECT_RETRY,' +
+    'MASTER_PASSWORD,MASTER_PORT,MASTER_SSL,MASTER_SSL_CA,MASTER_SSL_CAPATH,' +
+    'MASTER_SSL_CERT,MASTER_SSL_CIPHER,MASTER_SSL_KEY,MASTER_USER,MATCH,' +
+    'MAX_ROWS,MAXVALUE,MIDDLEINT,MIN_ROWS,MOD,MODE,MODIFY,MODIFIES,NAMES,' +
+    'NATURAL,NEW,NO,NODEGROUP,NOT,NULL,OJ,OFFSET,OLD,ON,OPTIMIZE,OPTION,' +
+    'OPTIONALLY,OPEN,OR,ORDER,OUTER,OUTFILE,PACK_KEYS,PARTIAL,PARTITION,' +
+    'PARTITIONS,PLUGIN,PLUGINS,PREPARE,PRESERVE,PRIMARY,PRIVILEGES,PROCEDURE,' +
+    'PROCESS,PROCESSLIST,QUERY,RAID_CHUNKS,RAID_CHUNKSIZE,RAID_TYPE,RANGE,' +
+    'READ,REBUILD,REFERENCES,REGEXP,RELAY_LOG_FILE,RELAY_LOG_POS,RELOAD,' +
+    'RENAME,REORGANIZE,REPAIR,REPEATABLE,REPLACE,REPLICATION,RESTRICT,RESET,' +
+    'RESTORE,RETURN,RETURNS,REVOKE,RLIKE,ROLLBACK,ROLLUP,ROUTINE,ROW,' +
+    'ROW_FORMAT,ROWS,SAVEPOINT,SCHEDULE,SCHEMA,SCHEMAS,SECURITY,SELECT,' +
+    'SERIALIZABLE,SESSION,SET,SHARE,SHOW,SHUTDOWN,SIMPLE,SLAVE,SNAPSHOT,' +
+    'SONAME,SQL,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_CACHE,' +
+    'SQL_CALC_FOUND_ROWS,SQL_NO_CACHE,SQL_SMALL_RESULT,SQL_THREAD,START,' +
+    'STARTING,STARTS,STATUS,STOP,STORAGE,STRAIGHT_JOIN,SUBPARTITION,' +
+    'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
+    'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
+    'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
+    'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
+
   ShowVariablesAndProcesses(self);
   ReadDatabasesAndTables(self);
 
@@ -594,6 +634,7 @@ begin
       ZQuery3.Next;
     end;
   end;
+
 end;
 
 
@@ -1180,6 +1221,7 @@ begin
     begin
       // get quick results with versions 3.23.xx and newer
       GetResults( 'SHOW TABLE STATUS', ZQuery3 );
+      MainForm.ShowStatus( 'Displaying tables from ' + ActualDatabase + '...', 2, true );
 
       // Generate items for popupDbGridHeader
       for i:=popupDbGridHeader.Items.Count-1 downto 2 do
@@ -1265,7 +1307,7 @@ begin
         n.Caption := ZQuery3.FieldByName('Name').AsString;
         if popupDbGridHeader.Items[0].Checked then
         begin // Default columns
-          // Records                                    
+          // Records
           n.SubItems.Add( format('%10.0n', [ZQuery3.FieldByName('Rows').AsFloat] ) );
           // Size: Data_length + Index_length
           bytes := ZQuery3.FieldByName('Data_length').AsFloat + ZQuery3.FieldByName('Index_length').AsFloat;
@@ -1963,9 +2005,6 @@ end;
 procedure TMDIChild.SynCompletionProposal1CodeCompletion(Sender: TObject;
   var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
 begin
-  // don't mask function-names
-  if not StrCmpBegin( '\image{86}', SynCompletionProposal1.ItemList[Index] )
-    then Value := mask( Value );
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
 end;
 
@@ -1990,7 +2029,7 @@ var
   procedure addTable( name: String );
   begin
     SynCompletionProposal1.InsertList.Add( name );
-    SynCompletionProposal1.ItemList.Add( '\image{40}\hspace{2}\color{clBlue}table\color{clWindowText}\column{}' + name );
+    SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}table\color{clWindowText}\column{}' + name );
   end;
 
 begin
@@ -2021,48 +2060,44 @@ begin
     end;
   end;
 
-  with SynCompletionProposal1 do
+  if SynCompletionProposal1.ItemList.count = 0 then
   begin
+    // Add databases to proposal list
+    SynCompletionProposal1.InsertList.AddStrings( OnlyDBs2 );
+    SynCompletionProposal1.ItemList.AddStrings( OnlyDBs2 );
+    for i:=0 to SynCompletionProposal1.ItemList.count-1 do
+      SynCompletionProposal1.ItemList[i] := '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}database\color{clWindowText}\column{}' + SynCompletionProposal1.ItemList[i];
 
-    if SynCompletionProposal1.ItemList.count = 0 then
+    if ActualDatabase <> '' then
     begin
-      // Add databases to proposal list
-      InsertList.AddStrings( OnlyDBs2 );
-      ItemList.AddStrings( OnlyDBs2 );
-      for i:=0 to ItemList.count-1 do
-        ItemList[i] := '\image{38}\hspace{2}\color{clMaroon}database\color{clWindowText}\column{}' + ItemList[i];
-
-      if ActualDatabase <> '' then
+      // Add tables to proposal list
+      for i:=0 to ListTables.Items.Count-1 do
       begin
-        // Add tables to proposal list
-        for i:=0 to ListTables.Items.Count-1 do
-        begin
-          addTable( ListTables.Items[i].Caption );
-        end;
-        if length(CurrentInput) = 0 then // assume that we have already a dbname in memo
-          Position := OnlyDBs2.Count;
+        addTable( ListTables.Items[i].Caption );
       end;
+      if length(CurrentInput) = 0 then // assume that we have already a dbname in memo
+        SynCompletionProposal1.Position := OnlyDBs2.Count;
     end;
-
-    // Add functions to proposal list
-    for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
-    begin
-      functionname := copy(MainForm.sqlfunctionlist[i], 0, pos('(', MainForm.sqlfunctionlist[i])-1);
-      if pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
-        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
-      else
-        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
-      InsertList.Add( functionname + functiondecl );
-      ItemList.Add( '\image{86}\hspace{2}\color{clTeal}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
-    end;
-
-    //TODO : add keywords!
-    //InsertList.Add( 'SELECT' );
-    //ItemList.Add( '\image{87}\hspace{2}\color{clOlive}keyword\color{clWindowText}\column{}SELECT' );
-    //InsertList.Add( 'UPDATE' );
-    //ItemList.Add( '\image{87}\hspace{2}\color{clOlive}keyword\color{clWindowText}\column{}UPDATE' );
-    
   end;
+
+  // Add functions to proposal list
+  for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
+  begin
+    functionname := copy(MainForm.sqlfunctionlist[i], 0, pos('(', MainForm.sqlfunctionlist[i])-1);
+    if pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
+      functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
+    else
+      functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
+    SynCompletionProposal1.InsertList.Add( functionname + functiondecl );
+    SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
+  end;
+
+  for i := 0 to MYSQL_KEYWORDS.Count - 1 do
+  begin
+    SynCompletionProposal1.InsertList.Add( MYSQL_KEYWORDS[i] );
+    SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.KeyAttri.Foreground)+'}keyword\color{clWindowText}\column{}'+MYSQL_KEYWORDS[i] );
+  end;
+
 end;
 
 
@@ -3716,7 +3751,6 @@ function TMDIChild.mask(str: String) : String;
 var
   i, o                    : byte;
   hasbadchar, iskeyword   : Boolean;
-  keywords                : String;
 begin
   if mysql_version >= 32300 then
   begin
@@ -3734,37 +3768,7 @@ begin
         break;
     end;
 
-    // http://dev.mysql.com/doc/refman/5.1/en/reserved-words.html
-    keywords :=  ' ADD ALL ALTER ANALYZE AND AS ASC BEFORE BETWEEN BIGINT BINARY '+
-      'BLOB BOTH BY CASCADE CASE CHANGE CHAR CHARACTER CHECK COLLATE '+
-      'COLUMN COLUMNS CONSTRAINT CONVERT CREATE CROSS CURRENT_DATE '+
-      'CURRENT_TIME CURRENT_TIMESTAMP CURRENT_USER DATABASE DATABASES '+
-      'DAY_HOUR DAY_MICROSECOND DAY_MINUTE DAY_SECOND DEC DECIMAL '+
-      'DEFAULT DELAYED DELETE DESC DESCRIBE DISTINCT DISTINCTROW DIV '+
-      'DOUBLE DROP DUAL ELSE ENCLOSED ESCAPED EXISTS EXPLAIN FALSE '+
-      'FIELDS FLOAT FLOAT4 FLOAT8 FOR FORCE FOREIGN FROM FULLTEXT '+
-      'GRANT GROUP HAVING HIGH_PRIORITY HOUR_MICROSECOND HOUR_MINUTE '+
-      'HOUR_SECOND IF IGNORE IN INDEX INFILE INNER INSERT INT INT1 '+
-      'INT2 INT3 INT4 INT8 INTEGER INTERVAL INTO IS JOIN KEY KEYS '+
-      'KILL LEADING LEFT LIKE LIMIT LINES LOAD LOCALTIME LOCALTIMESTAMP '+
-      'LOCK LONG LONGBLOB LONGTEXT LOW_PRIORITY MATCH MEDIUMBLOB '+
-      'MEDIUMINT MEDIUMTEXT MIDDLEINT MINUTE_MICROSECOND MINUTE_SECOND MOD '+
-      'NATURAL NOT NO_WRITE_TO_BINLOG NULL NUMERIC ON OPTIMIZE OPTION '+
-      'OPTIONALLY OR ORDER OUTER OUTFILE PRECISION PRIMARY PRIVILEGES '+
-      'PROCEDURE PURGE RAID0 READ REAL REFERENCES REGEXP RENAME '+
-      'REPLACE REQUIRE RESTRICT REVOKE RIGHT RLIKE SECOND_MICROSECOND '+
-      'SELECT SEPARATOR SET SHOW SMALLINT SONAME SPATIAL SQL_BIG_RESULT '+
-      'SQL_CALC_FOUND_ROWS SQL_SMALL_RESULT SSL STARTING STRAIGHT_JOIN TABLE '+
-      'TABLES TERMINATED THEN TINYBLOB TINYINT TINYTEXT TO TRAILING '+
-      'TRUE UNION UNIQUE UNLOCK UNSIGNED UPDATE USAGE USE USING '+
-      'UTC_DATE UTC_TIME UTC_TIMESTAMP VALUES VARBINARY VARCHAR VARCHARACTER '+
-      'VARYING WHEN WHERE WITH WRITE X509 XOR YEAR_MONTH ZEROFILL '+
-      'ASENSITIVE CALL CONDITION CONNECTION CONTINUE CURSOR DECLARE '+
-      'DETERMINISTIC EACH ELSEIF EXIT FETCH GOTO INOUT INSENSITIVE ITERATE '+
-      'LABEL LEAVE LOOP MODIFIES OUT READS RELEASE REPEAT RETURN SCHEMA SCHEMAS '+
-      'SENSITIVE SPECIFIC SQL SQLEXCEPTION SQLSTATE SQLWARNING TRIGGER UNDO UPGRADE '+
-      'WHILE ACCESSIBLE LINEAR RANGE READ_ONLY READ_WRITE ';
-    iskeyword := ( pos( ' '+UpperCase(str)+' ', keywords ) > 0 );
+    iskeyword := ( MYSQL_KEYWORDS.IndexOf( str ) > -1 );
 
     if hasbadchar or iskeyword then
     begin
