@@ -382,7 +382,7 @@ type
     procedure ExecQuery( SQLQuery: String );
     procedure ExecUseQuery( DbName: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
-    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
+    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
     function GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
@@ -711,6 +711,8 @@ begin
         SynSQLSyn1.StringAttri.Foreground := StringToColor(ReadString('SQLColStringAttri'));
       if ValueExists('SQLColCommentAttri') then
         SynSQLSyn1.CommentAttri.Foreground := StringToColor(ReadString('SQLColCommentAttri'));
+      if ValueExists('SQLColTablenameAttri') then
+        SynSQLSyn1.TablenameAttri.Foreground := StringToColor(ReadString('SQLColTablenameAttri'));
 
       // SQLFiles-History
       FillPopupQueryLoad;
@@ -1431,7 +1433,7 @@ begin
   ListColumns.Items.BeginUpdate;
   ListColumns.Items.Clear;
   Try
-    GetResults( 'SHOW FIELDS FROM ' + mask(ActualTable), ZQuery3 );
+    GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable), ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
       n := ListColumns.Items.Add;
@@ -2021,10 +2023,13 @@ procedure TMDIChild.SynCompletionProposal1Execute(Kind: TSynCompletionType;
   Sender: TObject; var CurrentInput: string; var x, y: Integer;
   var CanExecute: Boolean);
 var
-  i,j : Integer;
-  functionname : String;
-  functiondecl : String;
-  tn, child : TTreeNode;
+  i,j,c,t          : Integer;
+  functionname     : String;
+  functiondecl     : String;
+  tn, child        : TTreeNode;
+  sql, tmpsql, kw  : String;
+  keywords, tables : TStringList;
+  tablename        : String;
 
   procedure addTable( name: String );
   begin
@@ -2032,11 +2037,114 @@ var
     SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}table\color{clWindowText}\column{}' + name );
   end;
 
+  procedure addColumns( tablename: String );
+  var
+    dbname : String;
+    i : Integer;
+  begin
+    dbname := ActualDatabase;
+    if pos( '.', tablename ) > -1 then
+    begin
+      dbname := copy( tablename, 0, pos( '.', tablename )-1 );
+      tablename := copy( tablename, pos( '.', tablename )+1, length(tablename) );
+    end;
+    tablename := mask( tablename );
+    if dbname <> '' then
+      tablename := mask( dbname ) + '.' + tablename;
+    getResults( 'SHOW COLUMNS FROM '+tablename, ZQuery3, true );
+    if not ZQuery3.Active then
+      exit;
+    for i:=0 to ZQuery3.RecordCount-1 do
+    begin
+      SynCompletionProposal1.InsertList.Add( ZQuery3.FieldByName( 'Field' ).AsString );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ZQuery3.FieldByName( 'Field' ).AsString + '\style{-B} ' + ZQuery3.FieldByName( 'Type' ).AsString );
+      ZQuery3.Next;
+    end;
+  end;
+
 begin
   SynCompletionProposal1.InsertList.Clear;
   SynCompletionProposal1.ItemList.Clear;
 
-  if length(CurrentInput) = 0 then
+  // Get column-names into the proposal (Daniel's Top1-wish...)
+  // when we write sql like "SELECT t.|col FROM table [AS] t"
+  // This is at no means a perfect solution which catches all kind of
+  // SQL statements. But for simple SQL it should work fine.
+
+  // 1. find the currently edited sql-statement around the cursor position in synmemo
+  j := Length(SynCompletionProposal1.Editor.Text);
+  c := 1024;
+  for i := SynCompletionProposal1.Editor.SelStart+1024 downto SynCompletionProposal1.Editor.SelStart-1024 do
+  begin
+    if i > j then
+      continue;
+    if i < 1 then
+    begin
+      c := SynCompletionProposal1.Editor.SelStart;
+      break;
+    end;
+    sql := SynCompletionProposal1.Editor.Text[i] + sql;
+  end;
+  sql := StringReplace( sql, CRLF, ' ', [rfReplaceall] );
+  sql := StringReplace( sql, #10, ' ', [rfReplaceall] );
+  sql := StringReplace( sql, #13, ' ', [rfReplaceall] );
+  // 2. find the position of tablenames after the cursor-position (c)
+  keywords := TStringList.Create;
+  keywords.CommaText := 'FROM,INTO,UPDATE';
+  t := -1;
+  for i := c to Length(sql) do // forward from cursor-position
+  begin
+    kw := copy( sql, i, pos( ' ', copy( sql, i, Length(sql) ) )-1 );
+    if keywords.IndexOf( kw ) > -1 then
+    begin
+      t := i + Length( kw );
+      break;
+    end;
+  end;
+  if t = -1 then
+  begin
+    for i := c downto 0 do  // and backwards from cursor-position
+    begin
+      kw := copy( sql, i, pos( ' ', copy( sql, i, Length(sql) ) )-1 );
+      if keywords.IndexOf( kw ) > -1 then
+      begin
+        t := i + Length( kw );
+        break;
+      end;
+    end;
+  end;
+  // 3. find tablenames and aliases, compare them with previous token
+  tablename := '';
+  if t>-1 then
+  begin
+    tables := TStringList.Create;
+    tables.CommaText := StringReplace( copy( sql, t, length(sql)), ' ', ',', [rfReplaceall] );
+    for i := 0 to tables.Count - 1 do
+    begin
+      if (UpperCase(tables[i]) = 'AS') and (i > 0) and (i<tables.Count-1) then
+      begin
+        if (SynCompletionProposal1.PreviousToken = tables[i-1]) or
+          (SynCompletionProposal1.PreviousToken = tables[i+1]) then
+        begin
+          tablename := tables[i-1]; // Got it!
+          break;
+        end;
+      end;
+    end;
+  end;
+  if (tablename <> '') then
+  begin
+    // add columns to proposal
+    addColumns( tablename );
+  end
+  else if SynCompletionProposal1.PreviousToken <> '' then
+  begin
+    // assuming that previoustoken itself is a table
+    addColumns( SynCompletionProposal1.PreviousToken );
+  end;
+
+
+  if length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
     if OnlyDBs2.IndexOf( SynCompletionProposal1.PreviousToken ) > -1 then
     begin
@@ -2056,13 +2164,12 @@ begin
         end;
       end;
       Screen.Cursor := crDefault;
-
     end;
   end;
 
-  if SynCompletionProposal1.ItemList.count = 0 then
+  if (SynCompletionProposal1.ItemList.count = 0) and (length(CurrentInput)>0) then
   begin
-    // Add databases to proposal list
+    // Add databases
     SynCompletionProposal1.InsertList.AddStrings( OnlyDBs2 );
     SynCompletionProposal1.ItemList.AddStrings( OnlyDBs2 );
     for i:=0 to SynCompletionProposal1.ItemList.count-1 do
@@ -2070,7 +2177,7 @@ begin
 
     if ActualDatabase <> '' then
     begin
-      // Add tables to proposal list
+      // Add tables
       for i:=0 to ListTables.Items.Count-1 do
       begin
         addTable( ListTables.Items[i].Caption );
@@ -2078,24 +2185,26 @@ begin
       if length(CurrentInput) = 0 then // assume that we have already a dbname in memo
         SynCompletionProposal1.Position := OnlyDBs2.Count;
     end;
-  end;
 
-  // Add functions to proposal list
-  for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
-  begin
-    functionname := copy(MainForm.sqlfunctionlist[i], 0, pos('(', MainForm.sqlfunctionlist[i])-1);
-    if pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
-      functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
-    else
-      functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
-    SynCompletionProposal1.InsertList.Add( functionname + functiondecl );
-    SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
-  end;
+    // Add functions
+    for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
+    begin
+      functionname := copy(MainForm.sqlfunctionlist[i], 0, pos('(', MainForm.sqlfunctionlist[i])-1);
+      if pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
+        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
+      else
+        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
+      SynCompletionProposal1.InsertList.Add( functionname + functiondecl );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
+    end;
 
-  for i := 0 to MYSQL_KEYWORDS.Count - 1 do
-  begin
-    SynCompletionProposal1.InsertList.Add( MYSQL_KEYWORDS[i] );
-    SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.KeyAttri.Foreground)+'}keyword\color{clWindowText}\column{}'+MYSQL_KEYWORDS[i] );
+    // Add keywords
+    for i := 0 to MYSQL_KEYWORDS.Count - 1 do
+    begin
+      SynCompletionProposal1.InsertList.Add( MYSQL_KEYWORDS[i] );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.KeyAttri.Foreground)+'}keyword\color{clWindowText}\column{}'+MYSQL_KEYWORDS[i] );
+    end;
+
   end;
 
 end;
@@ -3494,7 +3603,7 @@ end;
 
 
 // Executes a query with an existing ZQuery-object
-procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery );
+procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
 begin
   try
     CheckConnection;
@@ -3502,7 +3611,17 @@ begin
     exit;
   end;
   ZQuery.SQL.Text := SQLQuery;
-  ZQuery.Open;
+  try
+    ZQuery.Open;
+  except
+    on E:Exception do
+    begin
+      if not QuietOnError then
+        MessageDlg( E.Message, mtError, [mbOK], 0 );
+      LogSQL( E.Message );
+      exit;
+    end;
+  end;
   ZQuery.DisableControls;
   ZQuery.First;
 end;
