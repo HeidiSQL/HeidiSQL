@@ -202,6 +202,13 @@ object optionsform: Toptionsform
             Height = 13
             Caption = 'Comments:'
           end
+          object Label28: TLabel
+            Left = 16
+            Top = 127
+            Width = 66
+            Height = 13
+            Caption = 'Table-Names:'
+          end
           object pnlKeywords: TPanel
             Left = 104
             Top = 25
@@ -226,7 +233,7 @@ object optionsform: Toptionsform
           end
           object pnlDatatypes: TPanel
             Left = 104
-            Top = 88
+            Top = 87
             Width = 25
             Height = 25
             Cursor = crHandPoint
@@ -266,6 +273,17 @@ object optionsform: Toptionsform
             BevelOuter = bvLowered
             ParentBackground = False
             TabOrder = 5
+            OnClick = CallColorDialog
+          end
+          object pnlTablenames: TPanel
+            Left = 104
+            Top = 121
+            Width = 25
+            Height = 25
+            Cursor = crHandPoint
+            BevelOuter = bvLowered
+            ParentBackground = False
+            TabOrder = 6
             OnClick = CallColorDialog
           end
         end
@@ -398,6 +416,7 @@ object optionsform: Toptionsform
         Cursor = crHandPoint
         BevelOuter = bvLowered
         Color = clAqua
+        ParentBackground = False
         TabOrder = 2
         OnClick = CallColorDialog
       end

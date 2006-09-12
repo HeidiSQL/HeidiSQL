@@ -82,6 +82,8 @@ type
     Label19: TLabel;
     SpinEditDefaultColWidth: TSpinEdit;
     Label20: TLabel;
+    Label28: TLabel;
+    pnlTablenames: TPanel;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -145,6 +147,7 @@ begin
     WriteString('SQLColNumberAttri', colortostring(pnlNumeric.Color));
     WriteString('SQLColStringAttri', colortostring(pnlString.Color));
     WriteString('SQLColCommentAttri', colortostring(pnlComments.Color));
+    WriteString('SQLColTablenameAttri', colortostring(pnlTablenames.Color));
     WriteString('CSVSeparator', Edit1.Text);
     WriteString('CSVEncloser', Edit2.Text);
     WriteString('CSVTerminator', Edit3.Text);
@@ -171,6 +174,7 @@ begin
       SynSQLSyn1.NumberAttri.Foreground := self.pnlNumeric.Color;
       SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
       SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
+      SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
       while SynMemoSQLLog.Lines.Count > SpinEditLogSQL.Value do
         SynMemoSQLLog.Lines.Delete(0);
       gridData.Font := self.Panel8.font;
@@ -247,21 +251,35 @@ begin
       SpinEditDefaultColWidth.Value := ReadInteger('DefaultColWidth');
 
     // Color-coding:
-    if ValueExists('SQLColKeyAttri') then begin
-      pnlKeywords.Color := StringToColor(readstring('SQLColKeyAttri'));
-      pnlFunctions.Color := StringToColor(readstring('SQLColFunctionAttri'));
-      pnlDatatypes.Color := StringToColor(readstring('SQLColDataTypeAttri'));
-      pnlNumeric.Color := StringToColor(readstring('SQLColNumberAttri'));
-      pnlString.Color := StringToColor(readstring('SQLColStringAttri'));
-      pnlComments.Color := StringToColor(readstring('SQLColCommentAttri'));
-    end else begin
+    if ValueExists('SQLColKeyAttri') then
+      pnlKeywords.Color := StringToColor(readstring('SQLColKeyAttri'))
+    else
       pnlKeywords.Color := clBlue;
+    if ValueExists('SQLColFunctionAttri') then
+      pnlFunctions.Color := StringToColor(readstring('SQLColFunctionAttri'))
+    else
       pnlFunctions.Color := clNavy;
+    if ValueExists('SQLColDataTypeAttri') then
+      pnlDatatypes.Color := StringToColor(readstring('SQLColDataTypeAttri'))
+    else
       pnlDatatypes.Color := clMaroon;
+    if ValueExists('SQLColNumberAttri') then
+      pnlNumeric.Color := StringToColor(readstring('SQLColNumberAttri'))
+    else
       pnlNumeric.Color := clPurple;
+    if ValueExists('SQLColStringAttri') then
+      pnlString.Color := StringToColor(readstring('SQLColStringAttri'))
+    else
       pnlString.Color := clGreen;
+    if ValueExists('SQLColCommentAttri') then
+      pnlComments.Color := StringToColor(readstring('SQLColCommentAttri'))
+    else
       pnlComments.Color := clGray;
-    end;
+    if ValueExists('SQLColTablenameAttri') then
+      pnlTablenames.Color := StringToColor(readstring('SQLColTablenameAttri'))
+    else
+      pnlTablenames.Color := clFuchsia;
+
 
     Edit1.Text := ',';
     Edit2.Text := '';
