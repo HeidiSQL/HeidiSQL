@@ -474,7 +474,7 @@ begin
         if exporttables then
         begin
           if mysql_version < 32320 then begin
-            GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
+            GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
             fieldcount := ZQuery3.FieldCount;
           end else begin
             GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
@@ -711,7 +711,7 @@ begin
                 value := 'NULL'
               else
               case ZQuery3.Fields[k].DataType of
-                ftInteger, ftSmallint, ftWord, ftFloat:
+                ftInteger, ftSmallint, ftWord:
                   value := ZQuery3.Fields[k].AsString;
                 else
                   value := escapeAuto( ZQuery3.Fields[k].AsString );
