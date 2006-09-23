@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 168
+  ClientHeight = 188
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 149
+    Top = 169
     Width = 632
     Height = 19
     AutoHint = True
@@ -36,6 +36,7 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
+    ExplicitTop = 149
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -770,13 +771,6 @@ object MainForm: TMainForm
       ShortCut = 24696
       OnExecute = ExecuteLineExecute
     end
-    object SearchReplace: TAction
-      Caption = 'Replace ...'
-      Hint = 'Search and replace...'
-      ImageIndex = 51
-      ShortCut = 16466
-      OnExecute = SearchReplaceExecute
-    end
     object ManualCopy: TAction
       Caption = 'Copy field-contents'
       Hint = 'Copy field-contents|Copy field-contents to Clipboard'
@@ -827,7 +821,7 @@ object MainForm: TMainForm
     Left = 8
     Top = 120
     Bitmap = {
-      494C010159005E00040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010159005E00040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000008001000001002000000000000080
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -3999,7 +3993,8 @@ object MainForm: TMainForm
       F6CFFE008000FFFFF6B7FE000000FFFFF6B7FE000000FFFFF8B780000000FFF7
       FE8F80000001C1F7FE3F80000003C3FBFF7F80000003C7FBFE3F80010003CBFB
       FEBF80030003DCF7FC9F80070003FF0FFDDF807F0003FFFFFDDF80FF8007FFFF
-      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF}
+      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
   end
   object Timer1: TTimer
     Enabled = False
@@ -4019,7 +4014,7 @@ object MainForm: TMainForm
     object MenuRunSelection: TMenuItem
       Action = ExecuteSelection
     end
-    object ExecuteLine1: TMenuItem
+    object MenuRunLine: TMenuItem
       Action = ExecuteLine
       Enabled = False
     end
@@ -4057,18 +4052,16 @@ object MainForm: TMainForm
       ShortCut = 16454
       OnClick = MenuFindClick
     end
-    object Searchandreplace1: TMenuItem
-      Action = SearchReplace
+    object MenuReplace: TMenuItem
+      Caption = 'Replace ...'
+      Hint = 'Search and replace...'
+      ImageIndex = 51
+      ShortCut = 16466
+      OnClick = MenuReplaceClick
     end
     object N12: TMenuItem
       Caption = '-'
     end
-  end
-  object FindDialog1: TFindDialog
-    Options = [frDown, frHideWholeWord, frHideUpDown, frMatchCase, frDisableMatchCase]
-    OnFind = FindDialog1Find
-    Left = 72
-    Top = 56
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -4083,13 +4076,6 @@ object MainForm: TMainForm
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
     Title = 'Import MySQL-Front settings...'
     Left = 40
-    Top = 56
-  end
-  object ReplaceDialog1: TReplaceDialog
-    Options = [frDown, frFindNext, frHideMatchCase, frHideWholeWord]
-    OnFind = ReplaceDialog1Find
-    OnReplace = ReplaceDialog1Replace
-    Left = 104
     Top = 56
   end
 end

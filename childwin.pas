@@ -11,14 +11,14 @@ INTERFACE
 
 uses Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
-  SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL,
-  Registry, Spin, Clipbrd, Shellapi,
+  SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL, SynEditSearch,
+  SynEditTypes, Registry, Spin, Clipbrd, Shellapi,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
   DBCtrls, helpers,
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
-  SynCompletionProposal, HeidiComp;
+  SynCompletionProposal, HeidiComp, SynEditMiscClasses;
 
 
 type
@@ -253,6 +253,13 @@ type
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
     btnQuerySaveSnippet: TToolButton;
+    FindDialogQuery: TFindDialog;
+    SynEditSearch1: TSynEditSearch;
+    ReplaceDialogQuery: TReplaceDialog;
+    procedure btnQueryReplaceClick(Sender: TObject);
+    procedure ReplaceDialogQueryReplace(Sender: TObject);
+    procedure ReplaceDialogQueryFind(Sender: TObject);
+    procedure FindDialogQueryFind(Sender: TObject);
     procedure btnQuerySaveSnippetClick(Sender: TObject);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
@@ -2682,6 +2689,91 @@ end;
 
 
 
+// open Find-Dialog
+procedure TMDIChild.btnQueryFindClick(Sender: TObject);
+begin
+  FindDialogQuery.execute;
+  // if something is selected search for that text
+  if SynMemoQuery.SelAvail and (SynMemoQuery.BlockBegin.Line = SynMemoQuery.BlockEnd.Line)
+  then
+    FindDialogQuery.FindText := SynMemoQuery.SelText
+  else
+    FindDialogQuery.FindText := SynMemoQuery.GetWordAtRowCol(SynMemoQuery.CaretXY);
+end;
+
+// open Replace-Dialog
+procedure TMDIChild.btnQueryReplaceClick(Sender: TObject);
+begin
+  ReplaceDialogQuery.execute;
+  // if something is selected search for that text
+  if SynMemoQuery.SelAvail and (SynMemoQuery.BlockBegin.Line = SynMemoQuery.BlockEnd.Line)
+  then
+    ReplaceDialogQuery.FindText := SynMemoQuery.SelText
+  else
+    ReplaceDialogQuery.FindText := SynMemoQuery.GetWordAtRowCol(SynMemoQuery.CaretXY);
+end;
+
+// Search-Dialog is searching...
+procedure TMDIChild.FindDialogQueryFind(Sender: TObject);
+var
+  Options: TSynSearchOptions;
+  Search: string;
+begin
+  Search := FindDialogQuery.FindText;
+  Options := [];
+  if Sender is TReplaceDialog then
+    Include(Options, ssoEntireScope);
+  if not (frDown in FindDialogQuery.Options) then
+    Include(Options, ssoBackwards);
+  if frMatchCase in FindDialogQuery.Options then
+    Include(Options, ssoMatchCase);
+  if frWholeWord in FindDialogQuery.Options then
+    Include(Options, ssoWholeWord);
+  if SynMemoQuery.SearchReplace(Search, '', Options) = 0 then
+  begin
+    MessageBeep(MB_ICONASTERISK);
+    Mainform.ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
+  end;
+end;
+
+{ Find Text for replace-dialog }
+procedure TMDIChild.ReplaceDialogQueryFind(Sender: TObject);
+begin
+  FindDialogQuery.FindText := ReplaceDialogQuery.FindText;
+  FindDialogQueryFind( ReplaceDialogQuery );
+end;
+
+{ Replace Text with replace-dialog }
+procedure TMDIChild.ReplaceDialogQueryReplace(Sender: TObject);
+var
+  Options: TSynSearchOptions;
+  Search: string;
+begin
+  Search := ReplaceDialogQuery.FindText;
+  Options := [ssoEntireScope];  // Do replaces always on entire scope, because the standard-dialog lacks of a down/up-option
+  if frReplaceAll in ReplaceDialogQuery.Options then
+    Include( Options, ssoReplaceAll );
+  if not (frDown in ReplaceDialogQuery.Options) then
+    Include(Options, ssoBackwards);
+  if frMatchCase in ReplaceDialogQuery.Options then
+    Include(Options, ssoMatchCase);
+  if frWholeWord in ReplaceDialogQuery.Options then
+    Include(Options, ssoWholeWord);
+  if frReplace in ReplaceDialogQuery.Options then // Replace instead of ReplaceAll is pressed
+    Include(Options, ssoReplace)
+  else
+    Include(Options, ssoReplaceAll);
+  if SynMemoQuery.SearchReplace( Search, ReplaceDialogQuery.ReplaceText, Options) = 0 then
+  begin
+    MessageBeep(MB_ICONASTERISK);
+    Mainform.ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
+    if ssoBackwards in Options then
+      SynMemoQuery.BlockEnd := SynMemoQuery.BlockBegin
+    else
+      SynMemoQuery.BlockBegin := SynMemoQuery.BlockEnd;
+    SynMemoQuery.CaretXY := SynMemoQuery.BlockBegin;
+  end;
+end;
 
 procedure TMDIChild.MenuLimitClick(Sender: TObject);
 begin
@@ -3224,11 +3316,6 @@ begin
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
   MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
   DBRightClickSelectedItem := DBtree.Selected;
-end;
-
-procedure TMDIChild.btnQueryFindClick(Sender: TObject);
-begin
-  mainform.FindDialog1.execute;
 end;
 
 

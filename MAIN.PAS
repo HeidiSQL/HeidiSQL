@@ -138,7 +138,6 @@ type
     menuload: TMenuItem;
     menusave: TMenuItem;
     MenuFind: TMenuItem;
-    FindDialog1: TFindDialog;
     SaveDialog2: TSaveDialog;
     ExportSettings1: TMenuItem;
     Importsettings1: TMenuItem;
@@ -148,12 +147,10 @@ type
     ExportData: TAction;
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
-    SearchReplace: TAction;
-    ReplaceDialog1: TReplaceDialog;
-    Searchandreplace1: TMenuItem;
+    MenuReplace: TMenuItem;
     ManualCopy: TAction;
     ExecuteLine: TAction;
-    ExecuteLine1: TMenuItem;
+    MenuRunLine: TMenuItem;
     HTMLview: TAction;
     InsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
@@ -162,6 +159,7 @@ type
     DropTable: TAction;
     LoadSQL: TAction;
     ImportSQL1: TMenuItem;
+    procedure MenuReplaceClick(Sender: TObject);
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
     procedure connect(Sender: TObject);
@@ -201,7 +199,6 @@ type
     procedure MenuSetFilterClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     function mask(str: String) : String;
-    procedure FindDialog1Find(Sender: TObject);
     procedure ExportSettings1Click(Sender: TObject);
     procedure Importsettings1Click(Sender: TObject);
     procedure ExecuteQueryExecute(Sender: TObject);
@@ -212,9 +209,6 @@ type
     procedure DBNavigator1BeforeAction(Sender: TObject;
       Button: TNavigateBtn);
     procedure ExportDataExecute(Sender: TObject);
-    procedure SearchReplaceExecute(Sender: TObject);
-    procedure ReplaceDialog1Replace(Sender: TObject);
-    procedure ReplaceDialog1Find(Sender: TObject);
     procedure ImportWizardExecute(Sender: TObject);
     procedure ManualCopyExecute(Sender: TObject);
     procedure ExecuteLineExecute(Sender: TObject);
@@ -732,6 +726,7 @@ begin
 
 end;
 
+
 procedure TMainForm.PrintListExecute(Sender: TObject);
 var
   page : TTabSheet;
@@ -820,32 +815,36 @@ end;
 
 procedure TMainForm.SQLFunctionsPopup(Sender: TObject);
 begin
-
-  if TMDIChild(ActiveMDIChild).SynMemoFilter.focused then begin // set Filter with F9
+  // Depending which SynMemo is focused, (de-)activate some menuitems
+  // The popupmenu SQLFunctions is used in both Filter- and Query-Memo
+  if TMDIChild(ActiveMDIChild).SynMemoFilter.focused then
+  begin
     MenuRun.ShortCut := TextToShortCut('');
-    MenuSetFilter.ShortCut := TextToShortCut('F9');
+    MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
     MenuSetFilter.Visible := true;
     MenuRun.Visible := false;
     MenuRunSelection.Visible := false;
+    MenuRunLine.Visible := false;
     MenuCopy.Visible := false;
     MenuPaste.Visible := false;
     MenuLoad.Visible := false;
     MenuSave.Visible := false;
     MenuFind.Visible := false;
-    searchreplace.Visible := false;
+    MenuReplace.Visible := false;
   end
-  else begin // Exec SQL with F9
-    MenuRun.ShortCut := TextToShortCut('F9');
+  else begin
+    MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
     MenuSetFilter.ShortCut := TextToShortCut('');
     MenuSetFilter.Visible := false;
     MenuRun.Visible := true;
     MenuRunSelection.Visible := true;
+    MenuRunLine.Visible := true;
     MenuCopy.Visible := true;
     MenuPaste.Visible := true;
     MenuLoad.Visible := true;
     MenuSave.Visible := true;
     MenuFind.Visible := true;
-    searchreplace.Visible := true;
+    MenuReplace.Visible := true;
   end;
 
 end;
@@ -876,20 +875,6 @@ begin
   result := TMDIChild(ActiveMDIChild).mask(str);
 end;
 
-
-procedure TMainForm.FindDialog1Find(Sender: TObject);
-var foundat: Longint;
-begin
-  with TMDIChild(ActiveMDIChild).SynMemoQuery do begin
-    FoundAt := pos(FindDialog1.FindText, copy(Text, SelEnd, Length(Text)));
-    if FoundAt > 0 then begin
-      SetFocus;
-      SelStart := FoundAt + SelEnd -1;
-      SelEnd := SelStart + Length(FindDialog1.FindText);
-    end else
-      messagebeep(0);
-  end;
-end;
 
 procedure TMainForm.ExportSettings1Click(Sender: TObject);
 begin
@@ -922,6 +907,11 @@ end;
 procedure TMainForm.MenuFindClick(Sender: TObject);
 begin
   TMDIChild(ActiveMDIChild).btnQueryFindClick(sender);
+end;
+
+procedure TMainForm.MenuReplaceClick(Sender: TObject);
+begin
+  TMDIChild(ActiveMDIChild).btnQueryReplaceClick(sender);
 end;
 
 procedure TMainForm.ExecuteLineExecute(Sender: TObject);
@@ -1005,46 +995,9 @@ begin
   end;
 end;
 
-procedure TMainForm.SearchReplaceExecute(Sender: TObject);
-begin
-  ReplaceDialog1.Execute;
-end;
 
 
 { Replace Text with replace-dialog }
-procedure TMainForm.ReplaceDialog1Replace(Sender: TObject);
-var
-  SelPos: Integer;
-  m : TSynMemo;
-begin
-  m := TMDIChild(Mainform.ActiveMDIChild).SynMemoQuery;
-  with TReplaceDialog(Sender) do begin
-    if not (frReplaceAll in options) then begin
-      { Perform a global case-sensitive search for FindText in Memo1 }
-      SelPos := Pos(FindText, m.Lines.Text);
-      if SelPos > 0 then
-      begin
-        m.SetFocus;
-        m.SelStart := SelPos;
-        m.SelEnd := m.SelStart + Length(FindText);
-        { Replace selected text with ReplaceText }
-        m.SelText := ReplaceText;
-      end
-      else
-        messagebeep(0);
-    end
-    else
-      m.SearchReplace(FindText, ReplaceText, [ssoReplaceAll, ssoEntireScope]);
-  end;
-end;
-
-{ Find Text with replace-dialog }
-procedure TMainForm.ReplaceDialog1Find(Sender: TObject);
-begin
-  FindDialog1.FindText := ReplaceDialog1.FindText;
-  FindDialog1Find (ReplaceDialog1);
-end;
-
 procedure TMainForm.ImportWizardExecute(Sender: TObject);
 begin
 end;

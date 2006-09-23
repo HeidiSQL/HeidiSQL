@@ -778,7 +778,10 @@ object MDIChild: TMDIChild
                 object btnQueryReplace: TToolButton
                   Left = 151
                   Top = 0
-                  Action = MainForm.SearchReplace
+                  Hint = 'Search and replace...'
+                  Caption = 'Replace ...'
+                  ImageIndex = 51
+                  OnClick = btnQueryReplaceClick
                 end
                 object btnQueryStopOnErrors: TToolButton
                   Left = 174
@@ -850,6 +853,7 @@ object MDIChild: TMDIChild
               Highlighter = SynSQLSyn1
               Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint]
               RightEdge = 40
+              SearchEngine = SynEditSearch1
               TabWidth = 2
               WantTabs = True
               OnChange = SynMemoQueryChange
@@ -1485,8 +1489,8 @@ object MDIChild: TMDIChild
     TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
-    Left = 79
-    Top = 216
+    Left = 7
+    Top = 192
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'sql'
@@ -1938,8 +1942,8 @@ object MDIChild: TMDIChild
     TimerInterval = 500
     OnAfterCodeCompletion = SynCompletionProposal1AfterCodeCompletion
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
-    Left = 112
-    Top = 216
+    Left = 40
+    Top = 192
   end
   object popupQueryLoad: TPopupMenu
     Left = 104
@@ -1957,5 +1961,20 @@ object MDIChild: TMDIChild
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 104
     Top = 120
+  end
+  object FindDialogQuery: TFindDialog
+    OnFind = FindDialogQueryFind
+    Left = 8
+    Top = 224
+  end
+  object SynEditSearch1: TSynEditSearch
+    Left = 72
+    Top = 192
+  end
+  object ReplaceDialogQuery: TReplaceDialog
+    OnFind = ReplaceDialogQueryFind
+    OnReplace = ReplaceDialogQueryReplace
+    Left = 40
+    Top = 224
   end
 end
