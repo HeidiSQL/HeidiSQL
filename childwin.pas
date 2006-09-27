@@ -968,8 +968,9 @@ var
   reg                      : TRegistry;
   reg_value                : String;
   orderclauses             : TStringList;
-  columnname                : String;
-  columnexists              : Boolean;
+  columnname               : String;
+  columnexists             : Boolean;
+  found_rows               : Int64;
 begin
   // view table-data with zeos
   if viewingdata then
@@ -1084,7 +1085,7 @@ begin
     ZQuery2.Close;
     ZQuery2.SQL.Clear;
     ZQuery2.SQL.Add( 'SELECT' );
-    if mysql_version > 40000 then
+    if mysql_version >= 40000 then
       ZQuery2.SQL.Add( 'SQL_CALC_FOUND_ROWS' );
     ZQuery2.SQL.Add( '* FROM ' + mask(ActualTable) );
     if trim(self.SynMemoFilter.Text) <> '' then
@@ -1164,9 +1165,15 @@ begin
     end;
 
     Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rowcount) + ' records total';
-    if (mysql_version > 40000) and (trim(self.SynMemoFilter.Text) <> '') then
-      Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(GetVar('SELECT FOUND_ROWS()')) + ' matching to filter';
-    if (mainform.CheckBoxLimit.Checked) then
+    if mysql_version >= 40000 then
+      found_rows := StrToInt64Def(GetVar('SELECT FOUND_ROWS()'), 0)
+    else
+      found_rows := rowcount;
+    if (found_rows <> rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
+      Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(found_rows) + ' matching to filter';
+    if (mysql_version >= 40000) and (found_rows = rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
+      Panel5.Caption := Panel5.Caption + ', filter matches all records';
+    if mainform.CheckBoxLimit.Checked and ( found_rows > mainform.UpDownLimitEnd.position ) then
       Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(ZQuery2.RecordCount);
 
     dataselected := true;

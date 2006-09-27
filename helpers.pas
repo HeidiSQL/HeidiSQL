@@ -62,6 +62,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function FormatNumber( str: String ): String; Overload;
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
+  procedure setLocales;
 
 implementation
 
@@ -70,6 +71,7 @@ const
 
 var
   dbgCounter: Integer = 0;
+  DecimalSeparatorSystemdefault: Char;
 
 
 
@@ -1228,6 +1230,17 @@ end;
 function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
 begin
   result := trim( format( '%10.'+IntToStr(decimals)+'n', [flt] ) );
+end;
+
+procedure setLocales;
+begin
+  DateSeparator := '-';
+  TimeSeparator := ':';
+  ShortDateFormat := 'yyyy/mm/dd';
+  LongTimeFormat := 'hh:nn:ss';
+  if DecimalSeparatorSystemdefault = '' then
+    DecimalSeparatorSystemdefault := DecimalSeparator;
+  DecimalSeparator := DecimalSeparatorSystemdefault;
 end;
 
 

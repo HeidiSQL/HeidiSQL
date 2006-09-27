@@ -258,7 +258,10 @@ begin
         child := tn.getFirstChild;
         for j:=0 to tn.Count-1 do
         begin
-          checkListTables.Items.Add(child.Text);
+           // Sometimes a column-name of the last table gets into the table-list.
+           // Seems like a bug in getNextChild
+           if child.Level = 2 then
+            checkListTables.Items.Add(child.Text);
           child := tn.getNextChild(child);
         end;
       end;
@@ -618,6 +621,8 @@ begin
         // export data
         if exportdata then
         begin
+          // Set to mysql-readable char:
+          DecimalSeparator := '.';
           feldnamen := ' (';
           GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
           for k:=1 to ZQuery3.RecordCount do
@@ -759,6 +764,9 @@ begin
             donext := true;
             insertquery := '';
           end;
+          // Set back to local setting:
+          setLocales;
+
           if ZQuery3.RecordCount > 0 then
           begin
             if tofile then

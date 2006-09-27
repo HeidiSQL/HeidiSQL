@@ -373,10 +373,7 @@ var
   i, pipeposition : Integer;
 begin
   caption := appname;
-  DateSeparator := '-';
-  TimeSeparator := ':';
-  ShortDateFormat := 'yyyy/mm/dd';
-  LongTimeFormat := 'hh:nn:ss';
+  setLocales;
 
   with TRegistry.Create do
   begin
