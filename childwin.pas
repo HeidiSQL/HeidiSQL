@@ -93,7 +93,7 @@ type
     Copyrecords1: TMenuItem;
     CopyasCSVData1: TMenuItem;
     N9: TMenuItem;
-    Label4: TLabel;
+    LabelResultinfo: TLabel;
     MenuAdvancedProperties: TMenuItem;
     N10: TMenuItem;
     MenuRenameTable: TMenuItem;
@@ -560,6 +560,8 @@ begin
   Description := connform.ComboBoxDescription.Text;
   Caption := Description;
   OnlyDBs := explode(';', connform.EditOnlyDBs.Text);
+  if connform.CheckBoxSorted.Checked then
+    OnlyDBs.Sort;
 
   // Versions and Statistics
   LogSQL( 'Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port) );
@@ -1081,7 +1083,10 @@ begin
     ZConn.Database := ActualDatabase;
     ZQuery2.Close;
     ZQuery2.SQL.Clear;
-    ZQuery2.SQL.Add( 'SELECT * FROM ' + mask(ActualTable) );
+    ZQuery2.SQL.Add( 'SELECT' );
+    if mysql_version > 40000 then
+      ZQuery2.SQL.Add( 'SQL_CALC_FOUND_ROWS' );
+    ZQuery2.SQL.Add( '* FROM ' + mask(ActualTable) );
     if trim(self.SynMemoFilter.Text) <> '' then
       ZQuery2.SQL.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
     if sorting <> '' then
@@ -1138,7 +1143,7 @@ begin
     begin
       // for letting NULLs being inserted into "NOT NULL" fields
       // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
-      // so the Required-check on client-side is not needed at any time 
+      // so the Required-check on client-side is not needed at any time
       ZQuery2.Fields[j].Required := false;
 
       // set column-width
@@ -1158,9 +1163,11 @@ begin
       end;
     end;
 
-    Panel5.Caption := ActualDatabase + ' / ' + ActualTable + ': ' +
-      IntToStr(rowcount) + ' Records (' +
-      IntToStr(ZQuery2.RecordCount) + ' selected)';
+    Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rowcount) + ' records total';
+    if (mysql_version > 40000) and (trim(self.SynMemoFilter.Text) <> '') then
+      Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(GetVar('SELECT FOUND_ROWS()')) + ' matching to filter';
+    if (mainform.CheckBoxLimit.Checked) then
+      Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(ZQuery2.RecordCount);
 
     dataselected := true;
     pcChange(self);
@@ -1317,10 +1324,10 @@ begin
         if popupDbGridHeader.Items[0].Checked then
         begin // Default columns
           // Records
-          n.SubItems.Add( format('%10.0n', [ZQuery3.FieldByName('Rows').AsFloat] ) );
+          n.SubItems.Add( FormatNumber( ZQuery3.FieldByName('Rows').AsFloat ) );
           // Size: Data_length + Index_length
           bytes := ZQuery3.FieldByName('Data_length').AsFloat + ZQuery3.FieldByName('Index_length').AsFloat;
-          n.SubItems.Add(format('%10.0n KB', [bytes / 1024 + 1]));
+          n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
           // Created:
           n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
           // Updated:
@@ -1341,9 +1348,16 @@ begin
           begin
             if TablelistColumns[j] = ZQuery3.Fields[k].FieldName then
             begin
-              n.SubItems.Add( ZQuery3.Fields[k].AsString );
-              if IntToStr(StrToIntDef(ZQuery3.Fields[k].AsString,-1)) =  ZQuery3.Fields[k].AsString then
-                ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify
+              if ZQuery3.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
+              begin
+                // Number
+                // TODO: doesn't match any column 
+                ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify;
+                n.SubItems.Add( FormatNumber( ZQuery3.Fields[k].AsFloat ) );
+              end
+              else
+                // String
+                n.SubItems.Add( ZQuery3.Fields[k].AsString );
             end;
           end;
         end;
@@ -1822,7 +1836,7 @@ var
   i, rowsaffected         : Integer;
   SQLstart, SQLend, SQLscriptstart,
   SQLscriptend            : Integer;
-  SQLTime                 : Real;
+  SQLTime                 : Double;
   fieldcount, recordcount : Integer;
   sql_keyword             : String;
 begin
@@ -1858,7 +1872,7 @@ begin
     if SQL.Count > 1 then
       SQLscriptstart := GetTickCount
     else
-      Label4.Caption := '';
+      LabelResultinfo.Caption := '';
 
     rowsaffected := 0;
     ProgressBarQuery.Max := SQL.Count;
@@ -1866,13 +1880,14 @@ begin
     ProgressBarQuery.show;
 
     MainForm.showstatus('Executing SQL...', 2, true);
-    for i:=0 to SQL.Count-1 do begin
+    for i:=0 to SQL.Count-1 do
+    begin
       ProgressBarQuery.Stepit;
       Application.ProcessMessages;
       if sql[i] = '' then
         continue;
       // open last query with data-aware:
-      Label4.Caption := '';
+      LabelResultinfo.Caption := '';
       ZQuery1.Close;
       ZQuery1.SQL.Clear;
       ZQuery1.SQL.Add(SQL[i]);
@@ -1928,11 +1943,11 @@ begin
       SQLend := GetTickCount;
       SQLTime := (SQLend - SQLstart) / 1000;
 
-      Label4.Caption :=
-        IntToStr(rowsaffected) + ' row(s) affected. ' +
-        inttostr(fieldcount) + ' field(s), ' +
-        inttostr(recordcount) + ' record(s) in last resultset. ' +
-        'Time: '+floattostrf(SQLTime, ffFixed, 18, 2)+' sec.';
+      LabelResultinfo.Caption :=
+        FormatNumber( rowsaffected ) + ' row(s) affected ' +
+        FormatNumber( fieldcount ) + ' field(s), ' +
+        FormatNumber( recordcount ) + ' record(s) in last resultset. ' +
+        'Time: '+FormatNumber( SQLTime, 3)+' sec.';
 
     end;
     ProgressBarQuery.hide;
@@ -1944,7 +1959,7 @@ begin
     if SQL.Count > 1 then begin
       SQLscriptend := GetTickCount;
       SQLTime := (SQLscriptend - SQLscriptstart) / 1000;
-      Label4.Caption := Label4.Caption + ' Script-Time: ' + floattostrf(SQLTime, ffFixed, 18, 2)+' sec.';
+      LabelResultinfo.Caption := LabelResultinfo.Caption + ' Script-Time: ' + FormatNumber(SQLTime, 3)+' sec.';
     end;
 
 
@@ -2220,8 +2235,7 @@ end;
 procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
-  PanelCharsInQueryWindow.Caption :=
-    Format('%10.0n', [length(SynMemoQuery.Text) + 0.0]) + ' Characters';
+  PanelCharsInQueryWindow.Caption := FormatNumber( length(SynMemoQuery.Text) ) + ' Characters';
   somechars := length(SynMemoQuery.Text) > 0;
   Mainform.ExecuteQuery.Enabled := somechars;
   Mainform.ExecuteSelection.Enabled := length(SynMemoQuery.SelText) > 0;

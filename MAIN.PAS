@@ -377,7 +377,6 @@ begin
   TimeSeparator := ':';
   ShortDateFormat := 'yyyy/mm/dd';
   LongTimeFormat := 'hh:nn:ss';
-  DecimalSeparator := '.';
 
   with TRegistry.Create do
   begin

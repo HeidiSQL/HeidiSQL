@@ -675,7 +675,7 @@ object MDIChild: TMDIChild
             Beveled = True
             ResizeStyle = rsUpdate
           end
-          object Label4: TLabel
+          object LabelResultinfo: TLabel
             Left = 0
             Top = 146
             Width = 496
@@ -1090,14 +1090,14 @@ object MDIChild: TMDIChild
             object EDBImage1: TEDBImage
               Left = 0
               Top = 0
-              Width = 1
-              Height = 0
-              Align = alCustom
-              Anchors = [akTop, akBottom]
+              Width = 89
+              Height = 80
+              Align = alLeft
               BorderStyle = bsNone
               Color = clBtnFace
               Stretch = True
               TabOrder = 0
+              ExplicitHeight = 49
             end
           end
         end

@@ -59,6 +59,9 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
   function goodfilename( str: String ): String;
+  function FormatNumber( str: String ): String; Overload;
+  function FormatNumber( int: Int64 ): String; Overload;
+  function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
 
 implementation
 
@@ -1206,6 +1209,25 @@ begin
   result := str;
   for c in ['\', '/', ':', '*', '?', '"', '<', '>', '|'] do
     result := StringReplace( result, c, '_', [rfReplaceAll] );
+end;
+
+
+// Return a formatted number from a string
+function FormatNumber( str: String ): String; Overload;
+begin
+  result := FormatNumber( StrToFloat( str ) );
+end;
+
+// Return a formatted number from an integer
+function FormatNumber( int: Int64 ): String; Overload;
+begin
+  result := FormatNumber( int, 0 );
+end;
+
+// Return a formatted number from a float
+function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
+begin
+  result := trim( format( '%10.'+IntToStr(decimals)+'n', [flt] ) );
 end;
 
 
