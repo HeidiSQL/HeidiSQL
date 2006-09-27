@@ -2,11 +2,14 @@ object connform: Tconnform
   Tag = 1
   Left = 288
   Top = 129
-  BorderStyle = bsDialog
+  BorderIcons = [biSystemMenu]
   Caption = 'Connection to MySQL-Host...'
   ClientHeight = 326
-  ClientWidth = 487
+  ClientWidth = 462
   Color = clBtnFace
+  Constraints.MaxHeight = 360
+  Constraints.MinHeight = 360
+  Constraints.MinWidth = 470
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -15,11 +18,14 @@ object connform: Tconnform
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnShow = FormShow
+  DesignSize = (
+    462
+    326)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Tag = 6
-    Left = 160
+    Left = 152
     Top = 115
     Width = 72
     Height = 13
@@ -28,7 +34,7 @@ object connform: Tconnform
   end
   object Label2: TLabel
     Tag = 7
-    Left = 160
+    Left = 152
     Top = 139
     Width = 25
     Height = 13
@@ -37,7 +43,7 @@ object connform: Tconnform
   end
   object Label3: TLabel
     Tag = 8
-    Left = 160
+    Left = 152
     Top = 163
     Width = 49
     Height = 13
@@ -46,7 +52,7 @@ object connform: Tconnform
   end
   object Label4: TLabel
     Tag = 9
-    Left = 160
+    Left = 152
     Top = 187
     Width = 22
     Height = 13
@@ -55,7 +61,7 @@ object connform: Tconnform
   end
   object Label5: TLabel
     Tag = 10
-    Left = 295
+    Left = 287
     Top = 187
     Width = 41
     Height = 13
@@ -64,7 +70,7 @@ object connform: Tconnform
   end
   object Label6: TLabel
     Tag = 5
-    Left = 160
+    Left = 152
     Top = 67
     Width = 56
     Height = 13
@@ -74,74 +80,78 @@ object connform: Tconnform
   object Bevel1: TBevel
     Left = 0
     Top = 285
-    Width = 487
+    Width = 462
     Height = 41
     Align = alBottom
     Shape = bsTopLine
+    ExplicitLeft = -16
+    ExplicitWidth = 473
   end
   object Label7: TLabel
     Tag = 11
-    Left = 399
+    Left = 391
     Top = 187
-    Width = 40
+    Width = 63
     Height = 13
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
+    ExplicitWidth = 60
   end
   object Label8: TLabel
     Tag = 13
-    Left = 160
-    Top = 235
-    Width = 60
-    Height = 13
-    Caption = 'Data&base(s):'
+    Left = 152
+    Top = 234
+    Width = 72
+    Height = 45
+    Caption = 'Data&base(s): (separated by semicolon)'
     FocusControl = EditOnlyDBs
     WordWrap = True
   end
-  object Label9: TLabel
-    Tag = 14
-    Left = 240
-    Top = 256
-    Width = 123
-    Height = 13
-    Caption = 'separated by semicolon (;)'
-  end
   object ButtonEditDesc: TSpeedButton
-    Left = 399
+    Left = 394
     Top = 64
     Width = 58
     Height = 21
     Hint = 'Edit description ...'
+    Anchors = [akTop, akRight]
     Caption = 'Rename'
     Enabled = False
     OnClick = ButtonEditDescClick
+    ExplicitLeft = 391
   end
   object EditHost: TEdit
-    Left = 240
+    Left = 232
     Top = 112
-    Width = 217
+    Width = 220
     Height = 21
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
     OnChange = Modified
+    ExplicitWidth = 217
   end
   object EditBenutzer: TEdit
-    Left = 240
+    Left = 232
     Top = 136
-    Width = 217
+    Width = 220
     Height = 21
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
     OnChange = Modified
+    ExplicitWidth = 217
   end
   object EditPasswort: TEdit
-    Left = 240
+    Left = 232
     Top = 160
-    Width = 217
+    Width = 220
     Height = 21
+    Anchors = [akLeft, akTop, akRight]
     PasswordChar = '*'
     TabOrder = 3
     OnChange = Modified
+    ExplicitWidth = 217
   end
   object EditPort: TEdit
-    Left = 240
+    Left = 232
     Top = 184
     Width = 49
     Height = 21
@@ -149,7 +159,7 @@ object connform: Tconnform
     OnChange = Modified
   end
   object EditTimeout: TEdit
-    Left = 342
+    Left = 334
     Top = 183
     Width = 51
     Height = 21
@@ -1173,18 +1183,20 @@ object connform: Tconnform
     end
   end
   object ComboBoxDescription: TComboBox
-    Left = 240
+    Left = 232
     Top = 64
-    Width = 153
+    Width = 156
     Height = 21
     Style = csDropDownList
+    Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
     TabOrder = 0
     OnClick = ComboBoxDescriptionClick
+    ExplicitWidth = 153
   end
   object ButtonSave: TBitBtn
     Tag = 3
-    Left = 264
+    Left = 258
     Top = 16
     Width = 89
     Height = 25
@@ -1203,7 +1215,7 @@ object connform: Tconnform
   end
   object ButtonNew: TBitBtn
     Tag = 2
-    Left = 160
+    Left = 152
     Top = 16
     Width = 89
     Height = 25
@@ -1222,7 +1234,7 @@ object connform: Tconnform
   end
   object ButtonDelete: TBitBtn
     Tag = 4
-    Left = 368
+    Left = 363
     Top = 16
     Width = 89
     Height = 25
@@ -1241,53 +1253,62 @@ object connform: Tconnform
   end
   object ButtonCancel: TButton
     Tag = 16
-    Left = 376
-    Top = 296
+    Left = 370
+    Top = 293
     Width = 83
     Height = 25
+    Anchors = [akTop, akRight]
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 10
     OnClick = ButtonCancelClick
+    ExplicitLeft = 367
   end
   object ButtonConnect: TButton
     Tag = 15
-    Left = 280
-    Top = 296
+    Left = 274
+    Top = 293
     Width = 83
     Height = 25
+    Anchors = [akTop, akRight]
     Caption = 'Connect!'
     Default = True
     TabOrder = 9
     OnClick = ButtonConnectClick
+    ExplicitLeft = 271
   end
   object CheckBoxCompressed: TCheckBox
     Tag = 12
-    Left = 240
+    Left = 232
     Top = 210
-    Width = 209
+    Width = 212
     Height = 17
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'Use &compressed client/server protocol'
     TabOrder = 6
     OnClick = Modified
+    ExplicitWidth = 209
   end
   object EditOnlyDBs: TEdit
-    Left = 240
-    Top = 232
-    Width = 153
+    Left = 232
+    Top = 233
+    Width = 220
     Height = 21
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 7
     OnChange = Modified
+    ExplicitWidth = 217
   end
-  object ButtonSort: TButton
-    Left = 399
-    Top = 232
-    Width = 58
-    Height = 21
-    Caption = 'Sort'
-    Enabled = False
+  object CheckBoxSorted: TCheckBox
+    Left = 232
+    Top = 258
+    Width = 222
+    Height = 17
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'Sort databases alphabetically'
     TabOrder = 14
-    OnClick = ButtonSortClick
+    OnClick = Modified
+    ExplicitWidth = 219
   end
   object Timer1: TTimer
     Enabled = False

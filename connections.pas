@@ -39,11 +39,9 @@ type
     Label7: TLabel;
     Label8: TLabel;
     EditOnlyDBs: TEdit;
-    Label9: TLabel;
     Timer1: TTimer;
     ButtonEditDesc: TSpeedButton;
-    ButtonSort: TButton;
-    procedure ButtonSortClick(Sender: TObject);
+    CheckBoxSorted: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -149,7 +147,7 @@ begin
     EditTimeout.Text := '';
     EditOnlyDBs.Text := '';
     CheckBoxCompressed.Checked := false;
-
+    CheckBoxSorted.Checked := true;
     EnableDisable(false);
   end;
   Screen.Cursor := crDefault;
@@ -182,6 +180,7 @@ begin
       WriteString('Timeout', EditTimeout.Text);
       WriteBool('Compressed', CheckBoxCompressed.Checked);
       WriteString('OnlyDBs', EditOnlyDBs.Text);
+      WriteBool('OnlyDBsSorted', CheckBoxSorted.Checked);
       CloseKey;
     end;
   end;
@@ -226,6 +225,7 @@ begin
       WriteString('Timeout', inttostr(30));
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
+      WriteBool('OnlyDBsSorted', true);
       CloseKey;
     end;
   end;
@@ -267,12 +267,15 @@ begin
       EditTimeout.Text := ReadString('Timeout');
       CheckBoxCompressed.Checked := ReadBool('Compressed');
       EditOnlyDBs.Text := ReadString('OnlyDBs');
+      if ValueExists('OnlyDBsSorted') then
+        CheckBoxSorted.Checked := ReadBool('OnlyDBsSorted')
+      else
+        CheckBoxSorted.Checked := false; // for existing connections from older HS-versions always off
       CloseKey;
     end;
   end;
   ButtonSave.Enabled := false;
   ButtonEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
-  ButtonSort.Enabled := EditOnlyDBs.Text <> '';
   Screen.Cursor := crDefault;
 end;
 
@@ -291,6 +294,7 @@ begin
   EditTimeout.Enabled := Enable;
   EditOnlyDBs.Enabled := Enable;
   CheckBoxCompressed.Enabled := Enable;
+  CheckBoxSorted.Enabled := Enable;
   Label1.Enabled := Enable;
   Label2.Enabled := Enable;
   Label3.Enabled := Enable;
@@ -299,14 +303,13 @@ begin
   Label6.Enabled := Enable;
   Label7.Enabled := Enable;
   Label8.Enabled := Enable;
-  Label9.Enabled := Enable;
 end;
 
 
 procedure Tconnform.Modified(Sender: TObject);
 begin
-  ButtonSort.Enabled := EditOnlyDBs.Text <> '';
   ButtonSave.Enabled := true;
+  CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
 end;
 
 procedure Tconnform.Timer1Timer(Sender: TObject);
@@ -345,21 +348,6 @@ begin
     end;
   end;
 
-end;
-
-
-// Sort Databases
-procedure Tconnform.ButtonSortClick(Sender: TObject);
-var
-  dbs : TStringList;
-begin
-  if EditOnlyDBs.Text = '' then
-    exit;
-  Screen.Cursor := crHourglass;
-  dbs := Explode( ';', EditOnlyDBs.Text );
-  dbs.Sort;
-  EditOnlyDBs.Text := ImplodeStr( ';', dbs );
-  Screen.Cursor := crDefault;
 end;
 
 
