@@ -986,8 +986,8 @@ begin
         TableNamePattern := TableNameList.Strings[I];
 
         with GetConnection.CreateStatement.ExecuteQuery(
-          Format('SHOW COLUMNS FROM %s LIKE ''%s''',
-          [GetIdentifierConvertor.Quote(TableNamePattern),
+          Format('SHOW COLUMNS FROM `%s` LIKE ''%s''',
+          [TableNamePattern,
           ColumnNamePattern])) do
         begin
           while Next do
