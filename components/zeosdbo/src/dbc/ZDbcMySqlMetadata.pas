@@ -1426,8 +1426,8 @@ begin
     end;
 
     with GetConnection.CreateStatement.ExecuteQuery(
-      Format('SHOW KEYS FROM %s',
-      [GetIdentifierConvertor.Quote(Table)])) do
+      Format('SHOW KEYS FROM `%s`',
+      [Table])) do
     begin
       while Next do
       begin

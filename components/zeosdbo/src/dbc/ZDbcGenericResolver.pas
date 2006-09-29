@@ -659,7 +659,7 @@ begin
     Temp := Temp + IdentifierConvertor.Quote(Current.ColumnName) + '=?';
   end;
 
-  Result := Format('UPDATE %s SET %s', [TableName, Temp]);
+  Result := Format('UPDATE `%s` SET %s', [TableName, Temp]);
   DefineWhereKeyColumns(Columns);
   Result := Result + FormWhereClause(Columns, OldRowAccessor);
 end;
