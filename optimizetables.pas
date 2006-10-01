@@ -254,8 +254,13 @@ end;
 
 procedure Toptimize.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-    if ActualDatabase <> '' then ExecUseQuery( ActualDatabase );
+  // catch exception to be sure window can close
+  try
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do
+      if ActualDatabase <> '' then ExecUseQuery( ActualDatabase );
+  except
+  end;
+
 end;
 
 procedure Toptimize.TablesCheckListBoxClickCheck(Sender: TObject);

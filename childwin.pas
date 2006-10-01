@@ -1340,12 +1340,14 @@ begin
           // Updated:
           n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) );
           // Type
-          Try // Until 4.x
-            n.SubItems.Add( ZQuery3.FieldByName('Type').AsString );
-          Except // Since 5.x
-            on EDatabaseError do
-              n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString );
-          End;
+
+          if ZQuery3.FindField('Type')<>nil then
+            n.SubItems.Add( ZQuery3.FieldByName('Type').AsString )
+          else if ZQuery3.FindField('Engine')<>nil then
+            n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString )
+          else
+            n.SubItems.Add('');
+
           // Comment
           n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
         end;
