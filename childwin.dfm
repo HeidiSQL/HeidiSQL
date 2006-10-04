@@ -100,10 +100,6 @@ object MDIChild: TMDIChild
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControl2: TPageControl
             Left = 0
             Top = 17
@@ -116,10 +112,6 @@ object MDIChild: TMDIChild
             OnChange = PageControl2Change
             object TabSheet6: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -149,10 +141,6 @@ object MDIChild: TMDIChild
             object TabSheet7: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -954,10 +942,6 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1005,10 +989,6 @@ object MDIChild: TMDIChild
     object TabSheet2: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1079,10 +1059,6 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1104,10 +1080,6 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1125,7 +1097,6 @@ object MDIChild: TMDIChild
               Color = clBtnFace
               Stretch = True
               TabOrder = 0
-              ExplicitHeight = 49
             end
           end
         end
@@ -1196,7 +1167,7 @@ object MDIChild: TMDIChild
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxWhereFiltersChange
         end
@@ -1846,14 +1817,14 @@ object MDIChild: TMDIChild
   object DataSource1: TDataSource
     DataSet = ZQuery2
     OnDataChange = DataSourceDataChange
-    Left = 288
-    Top = 88
+    Left = 304
+    Top = 64
   end
   object DataSource2: TDataSource
     DataSet = ZQuery1
     OnDataChange = DataSourceDataChange
-    Left = 288
-    Top = 120
+    Left = 304
+    Top = 96
   end
   object popupFilterOpenFile: TPopupMenu
     Left = 272
@@ -1867,8 +1838,8 @@ object MDIChild: TMDIChild
     Enabled = False
     Interval = 5000
     OnTimer = ShowProcessList
-    Left = 409
-    Top = 97
+    Left = 72
+    Top = 157
   end
   object SaveDialogExportData: TSaveDialog
     DefaultExt = 'csv'
@@ -1884,7 +1855,7 @@ object MDIChild: TMDIChild
     Protocol = 'mysql'
     SQLHourGlass = True
     Left = 224
-    Top = 88
+    Top = 64
   end
   object ZQuery1: TZQuery
     Connection = ZConn
@@ -1894,33 +1865,37 @@ object MDIChild: TMDIChild
     OnPostError = ZQuery1EditError
     ParamCheck = False
     Params = <>
-    Left = 256
-    Top = 120
+    UpdateMode = umUpdateAll
+    Left = 272
+    Top = 96
   end
   object ZQuery2: TZQuery
     Connection = ZConn
     BeforeOpen = ZQueryBeforeSendingSQL
     BeforeClose = ZQuery2BeforeClose
     BeforePost = ZQueryBeforeSendingSQL
+    AfterPost = ZQuery2AfterPost
+    AfterDelete = ZQuery2AfterPost
     ParamCheck = False
     Params = <>
-    Left = 256
-    Top = 88
+    UpdateMode = umUpdateAll
+    Left = 272
+    Top = 64
   end
   object ZQuery3: TZReadOnlyQuery
     Connection = ZConn
     AutoCalcFields = False
     ParamCheck = False
     Params = <>
-    Left = 256
-    Top = 152
+    Left = 272
+    Top = 128
   end
   object ZSQLMonitor1: TZSQLMonitor
     Active = True
     MaxTraceCount = 100
     OnLogTrace = ZSQLMonitor1LogTrace
     Left = 224
-    Top = 120
+    Top = 96
   end
   object popupDbGridHeader: TPopupMenu
     AutoHotkeys = maManual

@@ -256,6 +256,7 @@ type
     FindDialogQuery: TFindDialog;
     SynEditSearch1: TSynEditSearch;
     ReplaceDialogQuery: TReplaceDialog;
+    procedure ZQuery2AfterPost(DataSet: TDataSet);
     procedure btnQueryReplaceClick(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
     procedure ReplaceDialogQueryFind(Sender: TObject);
@@ -3681,6 +3682,26 @@ begin
 end;
 
 
+procedure TMDIChild.ZQuery2AfterPost(DataSet: TDataSet);
+var
+  affected_rows_str, msg  : String;
+  affected_rows_int       : Int64;
+begin
+  affected_rows_int := ZConn.GetAffectedRowsFromLastPost;
+  affected_rows_str := FormatNumber( affected_rows_int );
+  LogSQL( 'Affected rows by last post: ' + affected_rows_str ); // Always dump this info to the log, as it can be very usefull
+  if affected_rows_int > 1 then
+  begin
+    ZQuery2.Refresh; // Refresh grid to show the user which values the other records got
+    msg := 'Warning: the last query updated ' + affected_rows_str + ' rows where it should have been only 1!'
+      + CRLF + CRLF
+      + 'This is mostly caused by a bad table structure without primary keys.';
+    LogSQL( msg );
+    MessageDlg( msg, mtWarning, [mbOK], 0);
+  end;
+
+end;
+
 procedure TMDIChild.ZQuery2BeforeClose(DataSet: TDataSet);
 begin
   // unassign data-aware controls
@@ -3768,10 +3789,10 @@ procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
 begin
   LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
   if Event.Category = lcDisconnect then
-  begin
-    time_connected := 0;
-    TimerConnected.Enabled := false;
-    Mainform.ShowStatus( 'Disconnected since ' + TimeToStr(Time), 2, true );
+  try
+    CheckConnection;
+  except
+    exit;
   end;
 end;
 
