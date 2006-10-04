@@ -20,13 +20,21 @@
 		img {
 			border: none;
 		}
+		table {
+			margin-left: 5em;
+			border-collapse: collapse;
+		}
+		td, th {
+			text-align: left;
+			border: 1px solid gray;
+			padding: 0.3em;
+		}
 		td {
 			font-style: italic;
-			padding-left: 15pt;
 		}
 		hr {
-			margin-top: 15pt;
-			margin-bottom: 15pt;
+			margin-top: 1em;
+			margin-bottom: 1em;
 		}
 	</style>
 </head>
@@ -138,50 +146,58 @@
 		by right-clicking the project in the "Project Manager" in Delphi and choosing "Install".
 	</p>
 
+	<h3>For all Delphi versions up to 9 (Borland Developer Studio 2005):</h3>
 	<p>
 		Open these projects in Delphi and perform the action listed:
-		<table>
-			<tr>
-				<th>Relative path</th>
-				<th>Action</th>
-			</tr>
-			<tr>
-				<td>components/edbimage/packages/delphi10/EDBImage.bdsgroup</td>
-				<td>Build All + Install "DCLSer100"</td>
-			</tr>
-			<tr>
-				<td>components/heidisql/packages/delphi10/HeidiComponents.bdsproj</td>
-				<td>Build All + Install "HeidiComponents"</td>
-			</tr>
-			<tr>
-				<td>components/smdbgrid/packages/delphi10/SMDBGridComponents.bdsproj</td>
-				<td>Build All + Install "SMDBGridComponents"</td>
-			</tr>
-			<tr>
-				<td>components/synedit/packages/delphi10/SynEdit.bdsgroup</td>
-				<td>Build All + Install "SynEdit_D10"</td>
-			</tr>
-			<tr>
-				<td>components/zeosdbo/packages/delphi10/ZeosDbo.bdsgroup</td>
-				<td>Build All + Install "ZComponent"</td>
-			</tr>
-		</table>
 	</p>
+	<table>
+		<tr>
+			<th>Relative path</th>
+			<th>Action</th>
+		</tr>
+		<tr>
+			<td>components/edbimage/packages/delphi10/EDBImage.bdsgroup</td>
+			<td>Build All + Install "DCLSer100"</td>
+		</tr>
+		<tr>
+			<td>components/heidisql/packages/delphi10/HeidiComponents.bdsproj</td>
+			<td>Build All + Install "HeidiComponents"</td>
+		</tr>
+		<tr>
+			<td>components/smdbgrid/packages/delphi10/SMDBGridComponents.bdsproj</td>
+			<td>Build All + Install "SMDBGridComponents"</td>
+		</tr>
+		<tr>
+			<td>components/synedit/packages/delphi10/SynEdit.bdsgroup</td>
+			<td>Build All + Install "SynEdit_D10"</td>
+		</tr>
+		<tr>
+			<td>components/zeosdbo/packages/delphi10/ZeosDbo.bdsgroup</td>
+			<td>Build All + Install "ZComponent"</td>
+		</tr>
+	</table>
 
 	<p>
 		Once you're done, you are ready to compile HeidiSQL itself:
-		<table>
-			<tr>
-				<th>Relative path</th>
-				<th>Action</th>
-			</tr>
-			<tr>
-				<td>packages/delphi10/heidisql.bdsproj</td>
-				<td>Build All</td>
-			</tr>
-		</table>
+	</p>
+	<table>
+		<tr>
+			<th>Relative path</th>
+			<th>Action</th>
+		</tr>
+		<tr>
+			<td>packages/delphi10/heidisql.bdsproj</td>
+			<td>Build All</td>
+		</tr>
+	</table>
+
+	<h3>For Delphi 10 (Borland Developer Studio 2006)</h3>
+	<p>
+		Open the project-group <em>packages/delphi10/heidisql.bdsgroup</em> in Delphi and perform a
+		<strong>Build All From Here</strong> on the top project. That's it!
 	</p>
 
+	<h3>For all Delphi versions</h3>
 	<p>
 		You should end up with a "heidisql.exe" binary in the "out" folder.
 	</p>
