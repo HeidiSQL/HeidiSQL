@@ -625,7 +625,7 @@ begin
     Temp2 := Temp2 + '?';
   end;
 
-  Result := Format('INSERT INTO %s (%s) VALUES (%s)', [TableName, Temp1, Temp2]);
+  Result := Format('INSERT INTO `%s` (%s) VALUES (%s)', [TableName, Temp1, Temp2]);
 end;
 
 {**
@@ -675,7 +675,7 @@ var
   TableName: string;
 begin
   TableName := DefineTableName;
-  Result := Format('DELETE FROM %s', [TableName]);
+  Result := Format('DELETE FROM `%s`', [TableName]);
   DefineWhereKeyColumns(Columns);
   Result := Result + FormWhereClause(Columns, OldRowAccessor);
 end;
