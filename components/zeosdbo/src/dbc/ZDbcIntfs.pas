@@ -213,6 +213,7 @@ type
     procedure Close;
     function IsClosed: Boolean;
     function Ping: Boolean;
+    function GetAffectedRowsFromLastPost: Int64;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;

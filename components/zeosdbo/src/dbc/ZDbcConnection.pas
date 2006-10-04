@@ -151,6 +151,7 @@ type
     procedure Close; virtual;
     function IsClosed: Boolean; virtual;
     function Ping: Boolean; virtual;
+    function GetAffectedRowsFromLastPost: Int64; virtual;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;
@@ -720,6 +721,15 @@ end;
 function TZAbstractConnection.Ping: Boolean;
 begin
   raise Exception.Create('Ping() is unsupported by this particular DB driver.');
+end;
+
+{**
+  Gets the count of rows which were affected by the last INSERT, DELETE or UPDATE
+  @return Int64
+}
+function TZAbstractConnection.GetAffectedRowsFromLastPost: Int64;
+begin
+  raise Exception.Create('GetAffectedRowsFromLastPost() is unsupported by this particular DB driver.');
 end;
 
 {**

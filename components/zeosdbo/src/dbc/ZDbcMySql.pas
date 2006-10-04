@@ -102,6 +102,7 @@ type
     procedure Open; override;
     procedure Close; override;
     function Ping: Boolean; override;
+    function GetAffectedRowsFromLastPost: Int64; override;
 
     procedure SetCatalog(Catalog: string); override;
     function GetCatalog: string; override;
@@ -509,6 +510,15 @@ function TZMySQLConnection.Ping: Boolean;
 begin
   if Closed then Result := false
   else Result := FPlainDriver.Ping(FHandle) = 0;
+end;
+
+{**
+  Gets the count of rows which were affected by the last INSERT, DELETE or UPDATE
+  @return Int64
+}
+function TZMySQLConnection.GetAffectedRowsFromLastPost: Int64;
+begin
+  Result := FPlainDriver.GetAffectedRows(FHandle);
 end;
 
 {**

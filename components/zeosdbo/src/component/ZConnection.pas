@@ -152,6 +152,7 @@ type
     procedure Disconnect; virtual;
     procedure Reconnect;
     function Ping: Boolean;
+    function GetAffectedRowsFromLastPost: Int64;
 
     procedure StartTransaction; virtual;
     procedure Commit; virtual;
@@ -317,6 +318,12 @@ function TZConnection.Ping: Boolean;
 begin
   Result := (FConnection <> nil) and FConnection.Ping;
 end;
+
+function TZConnection.GetAffectedRowsFromLastPost: Int64;
+begin
+  Result := FConnection.GetAffectedRowsFromLastPost;
+end;
+
 
 {**
   Sets a new connection properties.
