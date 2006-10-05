@@ -3689,17 +3689,19 @@ var
 begin
   affected_rows_int := ZConn.GetAffectedRowsFromLastPost;
   affected_rows_str := FormatNumber( affected_rows_int );
-  LogSQL( 'Affected rows by last post: ' + affected_rows_str ); // Always dump this info to the log, as it can be very usefull
+  if affected_rows_int = 0 then LogSQL( 'Affected rows: ' + affected_rows_str );
   if affected_rows_int > 1 then
   begin
-    ZQuery2.Refresh; // Refresh grid to show the user which values the other records got
-    msg := 'Warning: the last query updated ' + affected_rows_str + ' rows where it should have been only 1!'
+    LogSQL( 'Affected rows: ' + affected_rows_str );
+    // Refresh grid to show the user which values the other records got
+    ZQuery2.Refresh;
+    msg := 'Error: Consistency problem detected.' + CRLF + CRLF
+      + 'The last query affected ' + affected_rows_str + ' rows, when it should have touched only 1 row!'
       + CRLF + CRLF
-      + 'This is mostly caused by a bad table structure without primary keys.';
+      + 'This is most likely caused by not having a primary key in the table''s definition.';
     LogSQL( msg );
     MessageDlg( msg, mtWarning, [mbOK], 0);
   end;
-
 end;
 
 procedure TMDIChild.ZQuery2BeforeClose(DataSet: TDataSet);
@@ -3966,7 +3968,7 @@ begin
     free;
   except
     free;
-    MessageDlg( 'Error when writing to registry.', mtError, [mbOK], 0 );
+    MessageDlg( 'Error while writing to registry.', mtError, [mbOK], 0 );
     exit;
   end;
   menuitem.Checked := not menuitem.Checked;
