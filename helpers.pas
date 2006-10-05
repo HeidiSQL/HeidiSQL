@@ -50,7 +50,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function MakeInt( Str: String ) : Integer;
   function esc(Text: string): string;
   function escLike(Text: string): string;
-  function hasNonLatin1Chars(Text: string): boolean;
+  function hasIrregularChars(Text: string): boolean;
+  function hasIrregularNewlines(Text: string): boolean;
   function escOtherChars(Text: string): string;
   function escapeAuto(Text: string): string;
   procedure debug(txt: String);
@@ -1063,14 +1064,13 @@ begin
   Result := StringReplace(Text, '"', '\"', [rfReplaceAll]);
   {NUL} Result := StringReplace(Text, #0, '\0', [rfReplaceAll]);
   {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
-  {TAB} Result := StringReplace(Result, #9, '\b', [rfReplaceAll]);
+  {TAB} Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
   {CR}  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
-  {LF}  Result := StringReplace(Result, #10, '\r', [rfReplaceAll]);
+  {LF}  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
   {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
 end;
 
-// Test for non-Latin1 characters.
-function hasNonLatin1Chars(Text: string): boolean;
+function hasIrregularChars(Text: string): boolean;
 var
   i: integer;
   b: byte;
@@ -1079,12 +1079,48 @@ begin
   for i:=1 to length(Text) do
   begin
     b := Ord(Text[i]);
-    if b in [0..31, 127..159] then
+    // Latin1 characters is everything except 0..31 and 127..159.
+    // 9..13 is HTAB, LF, VTAB, FF, CR.  We only allow 9, 10 and 13,
+    // because those are the ones that we can escape in escOtherChars().
+    if b in [0..8, 11..12, 14..31, 127..159] then
     begin
       result := true;
       exit;
     end;
   end;
+end;
+
+// The MEMO editor changes all single CRs or LFs to Windows CRLF
+// behind the user's back, so it's not useful for editing fields
+// where these kinds of line endings occur.  At least not without
+// asking the user if it's ok to auto convert to windows format first.
+// For now, we just disallow editing so no-one gets surprised.
+function hasIrregularNewlines(Text: string): boolean;
+var
+  i: integer;
+  b, b2: byte;
+begin
+  result := false;
+  if length(Text) = 0 then exit;
+  result := true;
+  i := 1;
+  repeat
+    b := Ord(Text[i]);
+    if b = 13 then
+    begin
+      b2 := Ord(Text[i+1]);
+      if b2 = 10 then i := i + 1
+      else exit;
+    end
+    else if b = 10 then exit;
+    i := i + 1;
+  until i >= length(Text);
+  if i = length(Text) then
+  begin
+    b := Ord(Text[length(Text)]);
+    if b in [10, 13] then exit;
+  end;
+  result := false;
 end;
 
 // Escape everything within a single CHAR() call.
@@ -1116,7 +1152,7 @@ end;
 // Escapes as necessary.
 function escapeAuto(Text: string): string;
 begin
-  if hasNonLatin1Chars(Text) then
+  if hasIrregularChars(Text) then
   begin
     Result := escAllCharacters(Text);
   end

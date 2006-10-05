@@ -3858,9 +3858,11 @@ begin
     DBMemo1.DataField := grid.SelectedField.FieldName;
     EDBImage1.DataField := grid.SelectedField.FieldName;
 
-    // Disable text editor if there's binary data in the field,
-    // since the text editor may silently corrupt it if used.
-    DBMemo1.ReadOnly := hasNonLatin1Chars( DBMemo1.Field.AsString );
+    // Disable text editor if there's binary data or odd newlines in the field,
+    // since the text editor may/will silently corrupt it if used.
+    DBMemo1.ReadOnly :=
+      hasIrregularChars(DBMemo1.Field.AsString) or
+      hasIrregularNewlines(DBMemo1.Field.AsString);
 
     PageControl3.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
