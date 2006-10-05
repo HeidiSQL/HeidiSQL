@@ -858,6 +858,8 @@ object MDIChild: TMDIChild
               WantTabs = True
               OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
+              ExplicitLeft = 2
+              ExplicitTop = -2
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteLastChar

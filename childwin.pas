@@ -432,6 +432,7 @@ type
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
+      function CanAcessMysql: Boolean;
 
     public
       { Public declarations }
@@ -2334,6 +2335,11 @@ begin
     TMDIChild(Mainform.MDIChildren[i]).ZSQLMonitor1.Active := (Mainform.MDIChildren[i] = self);
   end;
 
+  mainform.MenuUserManager.Enabled := CanAcessMysql;
+  if mainform.MenuUserManager.Enabled then
+    mainform.MenuUserManager.Hint := ''
+  else
+    mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
 end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
@@ -4037,6 +4043,28 @@ begin
 end;
 
 
+
+function TMDIChild.CanAcessMysql: Boolean;
+var
+  ZQueryDatabases: TZReadOnlyQuery;
+  i: Integer;
+  dbName: string;
+begin
+  Result := False;
+  ZQueryDatabases := TZReadOnlyQuery.Create(Self);
+  ZQueryDatabases.Connection := ZConn;
+  GetResults( 'SHOW DATABASES', ZQueryDatabases );
+  while not ZQueryDatabases.Eof do
+  begin
+    dbName := ZQueryDatabases.FieldByName('Database').AsString;
+    if dbName = 'mysql' then
+    begin
+      Result := True;
+      break;
+    end;
+    ZQueryDatabases.Next;
+  end;
+end;
 
 procedure TMDIChild.CheckConnection;
 var
