@@ -646,6 +646,10 @@ begin
     end;
   end;
 
+  mainform.MenuUserManager.Enabled := CanAcessMysql;
+  if not mainform.MenuUserManager.Enabled then
+    mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
+  // Otherwise leave the default hint
 end;
 
 
@@ -849,8 +853,10 @@ begin
 
   // List Databases and Tables-Names
   for i:=0 to OnlyDBs2.Count-1 do
-  try
-    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3 );
+  begin
+    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true );
+    if not ZQuery3.Active then
+      continue;
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 37;
     tnode.SelectedIndex := 38;
@@ -865,12 +871,6 @@ begin
         tmpSelected := tchild;
       SynSQLSyn1.TableNames.Add( ZQuery3.Fields[0].AsString );
       ZQuery3.Next;
-    end;
-  except
-    on E : Exception do
-    begin
-      LogSQL( 'Could not open database ''' + OnlyDBs2[i] + ''' - ignoring: ' + e.Message );
-      continue;
     end;
   end;
 
@@ -2334,12 +2334,6 @@ begin
   begin
     TMDIChild(Mainform.MDIChildren[i]).ZSQLMonitor1.Active := (Mainform.MDIChildren[i] = self);
   end;
-
-  mainform.MenuUserManager.Enabled := CanAcessMysql;
-  if mainform.MenuUserManager.Enabled then
-    mainform.MenuUserManager.Hint := ''
-  else
-    mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
 end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
@@ -4057,7 +4051,7 @@ begin
   while not ZQueryDatabases.Eof do
   begin
     dbName := ZQueryDatabases.FieldByName('Database').AsString;
-    if dbName = 'mysql' then
+    if dbName = DBNAME_MYSQL then
     begin
       Result := True;
       break;
