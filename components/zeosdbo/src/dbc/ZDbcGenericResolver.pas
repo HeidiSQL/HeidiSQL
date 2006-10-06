@@ -431,11 +431,8 @@ begin
   { Takes a a key all non-blob fields. }
   for I := 1 to Metadata.GetColumnCount do
   begin
-    if CheckKeyColumn(I) then
-    begin
-      WhereColumns.Add(TZResolverParameter.Create(I,
-        Metadata.GetColumnName(I), Metadata.GetColumnType(I), False, ''));
-    end;
+    WhereColumns.Add(TZResolverParameter.Create(I,
+      Metadata.GetColumnName(I), Metadata.GetColumnType(I), False, ''));
   end;
 
   { Copy defined parameters to target columns }
