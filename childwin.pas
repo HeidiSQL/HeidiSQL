@@ -429,6 +429,7 @@ type
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
       MYSQL_KEYWORDS             : TStringList;
+      CanAcessMysqlFlag          : Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
@@ -646,10 +647,7 @@ begin
     end;
   end;
 
-  mainform.MenuUserManager.Enabled := CanAcessMysql;
-  if not mainform.MenuUserManager.Enabled then
-    mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
-  // Otherwise leave the default hint
+  CanAcessMysqlFlag := CanAcessMysql;
 end;
 
 
@@ -2334,6 +2332,11 @@ begin
   begin
     TMDIChild(Mainform.MDIChildren[i]).ZSQLMonitor1.Active := (Mainform.MDIChildren[i] = self);
   end;
+
+  mainform.MenuUserManager.Enabled := CanAcessMysqlFlag;
+  if not CanAcessMysqlFlag then
+    mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
+  // Otherwise leave the default hint
 end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
