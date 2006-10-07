@@ -3922,7 +3922,7 @@ begin
   begin
     if where <> '' then
       where := where + CRLF + ' OR ';
-    where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + EditDataSearch.text + '%''';
+    where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + escLike( EditDataSearch.text ) + '%''';
   end;
   SynMemoFilter.Text := where;
 
