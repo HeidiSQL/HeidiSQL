@@ -3976,7 +3976,6 @@ end;
 function TMDIChild.CanAcessMysql: Boolean;
 var
   ZQueryDatabases: TZReadOnlyQuery;
-  i: Integer;
   dbName: string;
 begin
   Result := False;

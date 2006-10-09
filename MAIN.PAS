@@ -214,14 +214,11 @@ type
     procedure ExecuteLineExecute(Sender: TObject);
     procedure HTMLviewExecute(Sender: TObject);
     procedure InsertFilesExecute(Sender: TObject);
-    procedure debug( msg : String = '' );
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
     procedure DropTableExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
 
-  private
-    { Private declarations }
   public
     logsqlnum                  : Integer;
     CSVSeparator, CSVEncloser,
@@ -232,9 +229,7 @@ type
     LanguageOffset             : Integer;
     DataAlwaysEditMode         : Boolean;
     DataNullBackground         : TColor;
-    debugfile                  : TextFile;
     sqlfunctionlist            : TStringList;
-
 end;
 
 var
@@ -263,9 +258,20 @@ end;
 
 implementation
 
-uses ChildWin, About, connections, exportsql, tbl_properties, loaddata,
-  usermanager, options, optimizetables,
-  printlist, copytable, insertfiles, helpers;
+uses
+  ChildWin,
+  About,
+  connections,
+  exportsql,
+  tbl_properties,
+  loaddata,
+  usermanager,
+  options,
+  optimizetables,
+  printlist,
+  copytable,
+  insertfiles,
+  Helpers;
 
 {$R *.DFM}
 
@@ -1051,27 +1057,6 @@ procedure TMainForm.InsertFilesExecute(Sender: TObject);
 begin
   FrmInsertFiles.showmodal;
 end;
-
-procedure TMainForm.debug( msg : String = '' );
-var
-  debugfilename : String;
-begin
-  debugfilename := ExtractFilePath(paramstr(0)) + 'debug.txt';
-  if fileexists(debugfilename) then
-  begin
-    try
-      // MessageDlg(msg, mtInformation, [mbok], 0);
-      AssignFile(debugfile, debugfilename);
-      Append(debugfile);
-      //Reset(debugfile);
-      Writeln( debugfile, datetimetostr(date()) + ' ' + timetostr(time()) + ': ' + msg );
-      closefile( debugfile );
-    except
-      raise exception.Create( 'Problem with debug-file: ' + debugfilename );
-    end;
-  end;
-end;
-
 
 procedure TMainForm.ExportTablesExecute(Sender: TObject);
 begin
