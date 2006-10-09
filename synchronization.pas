@@ -1,6 +1,8 @@
 unit synchronization;
 
 (*
+ Inter-Process Synchronization.
+
  Current limitations:
   * Hard limit on number of windows.
   * Reuses various Delphi exceptions instead of defining own.
@@ -19,16 +21,19 @@ const
    below so the two incompatible versions of your app can coxist
    peacefully.
   *)
-  compatibilityLevel = 'v1';
+  compatibilityLevel = 'v2';
   maxWindows = 99;
 
 type
-  TWindowData = record
+  TWindowData = packed record
     appHandle: THandle;
-    connectionUid: integer;
-    ready: boolean;
+    (*connectionUid: integer;*)
+    name: ShortString;
+    namePostFix: integer;
+    (*ready: boolean;*)
+    connected: boolean;
   end;
-  TWindowDataArray = array of TWindowData;
+  TWindowDataArray = packed array of TWindowData;
 
 (*
  Run this procedure at application startup.
@@ -47,13 +52,31 @@ procedure DeInitializeSync;
  Run this procedure when (dis-)connecting.
  Set uid to a connection profile's uid,
  or 0 if it's a custom connection or disconnection.
+
+ Commented out:
+ We currently do not have any uniqueness handling nor versioning of connection profiles.
 *)
-procedure SetConnectionUid(uid: integer);
+(*procedure SetConnectionUid(uid: integer);*)
 
 (*
  Run this procedure when starting and ending database queries.
+
+ Commented out:
+ I'm not sure we want 1 connection per window.
+ Perhaps we want multiple tabs, each with their own connection,
+ in which case a per-window flag is useless.
 *)
-procedure SetWindowReady(ready: boolean);
+(*procedure SetWindowReady(ready: boolean);*)
+
+(*
+ Run this procedure when opening/closing connection to a host.
+*)
+procedure SetWindowConnected(connected: boolean);
+
+(*
+ Run this procedure when opening/closing connection.
+*)
+procedure SetWindowName(name: string);
 
 (*
  Run this procedure to get a list of application windows.
@@ -147,8 +170,11 @@ begin
     for i := 0 to maxWindows do begin
       if sharedData^.windows[i].appHandle = 0 then begin
         sharedData^.windows[i].appHandle := myWindow;
-        sharedData^.windows[i].connectionUid := 0;
-        sharedData^.windows[i].ready := true;
+        (*sharedData^.windows[i].connectionUid := 0;*)
+        (*sharedData^.windows[i].ready := true;*)
+        sharedData^.windows[i].name := '';
+        sharedData^.windows[i].namePostFix := 0;
+        sharedData^.windows[i].connected := false;
         mySlot := i;
         break;
       end;
@@ -180,6 +206,30 @@ begin
 end;
 
 
+function FindWindowsWithName(searchName: string; excludeSlot: integer; addPostFix: boolean; clearPostFix: boolean): integer;
+var
+  max: integer;
+  i: integer;
+begin
+  // Find out if other windows has the same name.
+  max := 0;
+  for i := 0 to maxWindows do begin
+    if i <> excludeSlot then with sharedData^.windows[i] do begin
+      if appHandle <> 0 then begin
+        if name = searchName then begin
+          if addPostFix or clearPostFix then begin
+            if addPostFix and (namePostFix = 0) then namePostFix := 1;
+            if clearPostFix then namePostFix := 0;
+          end else if max = 0 then max := max + 1;
+          if namePostFix > max then max := namePostFix;
+        end;
+      end;
+    end;
+  end;
+  result := max;
+end;
+
+
 procedure DeInitializeSync;
 var
   mutex: THandle;
@@ -188,6 +238,11 @@ begin
   try
     // Take ownership of lock.
     GrabLock(mutex);
+
+    // Clear uniqueness postfix if only one window with this name is left.
+    if FindWindowsWithName(sharedData^.windows[mySlot].name, mySlot, false, false) = 1 then begin
+      FindWindowsWithName(sharedData^.windows[mySlot].name, -1, false, true);
+    end;
 
     // Remove ourselves from our slot.
     if mySlot > -1 then begin
@@ -218,6 +273,7 @@ begin
 end;
 
 
+(*
 procedure SetConnectionUid(uid: integer);
 var
   mutex: THandle;
@@ -237,8 +293,10 @@ begin
     LeaveCriticalSection(myInternalLock);
   end;
 end;
+*)
 
 
+(*
 procedure SetWindowReady(ready: boolean);
 var
   mutex: THandle;
@@ -250,6 +308,55 @@ begin
 
     // Set UID value.
     sharedData^.windows[mySlot].ready := ready;
+
+    // Release lock.
+    ReleaseMutex(mutex);
+
+  finally
+    LeaveCriticalSection(myInternalLock);
+  end;
+end;
+*)
+
+
+procedure SetWindowConnected(connected: boolean);
+var
+  mutex: THandle;
+begin
+  EnterCriticalSection(myInternalLock);
+    try
+    // Take ownership of lock.
+    GrabLock(mutex);
+
+    // Set UID value.
+    sharedData^.windows[mySlot].connected := connected;
+
+    // Release lock.
+    ReleaseMutex(mutex);
+
+  finally
+    LeaveCriticalSection(myInternalLock);
+  end;
+end;
+
+
+procedure SetWindowName(name: string);
+var
+  mutex: THandle;
+  count: integer;
+begin
+  EnterCriticalSection(myInternalLock);
+  try
+    // Take ownership of lock.
+    GrabLock(mutex);
+
+    // Find out if other windows has the same name, in which case set namePostFix > 0.
+    count := FindWindowsWithName(name, mySlot, true, false);
+    if count > 0 then count := count + 1;
+    sharedData^.windows[mySlot].namePostFix := count;
+
+    // Set name by copying string value into array.
+    sharedData^.windows[mySlot].name := name;
 
     // Release lock.
     ReleaseMutex(mutex);
@@ -327,6 +434,8 @@ begin
         if appHandle <> 0 then begin
           count := count + 1;
           if not IsWindow(appHandle) then begin
+            // Clear uniqueness postfix if only one window with this name is left.
+            if FindWindowsWithName(name, i, false, false) = 0 then FindWindowsWithName(name, -1, false, true);
             appHandle := 0;
           end;
         end;
