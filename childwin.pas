@@ -10,6 +10,7 @@ UNIT Childwin;
 INTERFACE
 
 uses
+  Synchronization,
   Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL, SynEditSearch,
@@ -417,6 +418,8 @@ type
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
+    function GetDBNames: TStringList;
+    function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
 
 
     private
@@ -464,6 +467,16 @@ const
 
 {$R *.DFM}
 
+
+function TMDIChild.CreateOrGetRemoteQueryTab(sender: THandle): THandle;
+begin
+  // Should create a tab for commands from another window,
+  // or return a handle to an existing tab if one already exists for that window.
+  //
+  // TODO: Implement this when multiple tabs are implemented.
+  //       Return a tab's handle instead of the childwin's handle.
+  result := Self.Handle;
+end;
 
 
 procedure TMDIChild.PerformConnect;
@@ -516,6 +529,7 @@ var
   AutoReconnect    : Boolean;
   menuitem         : TMenuItem;
   i                : Byte;
+  winName          : string;
 begin
   // initialization: establish connection and read some vars from registry
   Screen.Cursor := crHourGlass;
@@ -607,8 +621,12 @@ begin
       ZQuery3.Next;
     end;
   end;
-
   CanAcessMysqlFlag := CanAcessMysql;
+  SetWindowConnected(true);
+  i := SetWindowName(Description);
+  winName := Description;
+  if i <> 0 then winName := winName + Format(' (%d)', [i]);
+  Application.Title := winName + ' - ' + main.appname;
 end;
 
 
@@ -712,6 +730,9 @@ procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ws : String;
 begin
+  SetWindowConnected(false);
+  SetWindowName(main.discname);
+  Application.Title := main.appname;
   // closing connection and saving some vars into registry
   if windowstate = wsNormal then
     ws := 'Normal' else
@@ -738,6 +759,9 @@ begin
   mainform.ToolBarData.visible := false;
   FormDeactivate(sender);
   Action := caFree;
+  SetWindowConnected(false);
+  SetWindowName(main.discname);
+  Application.Title := main.appname;
 end;
 
 
@@ -1532,6 +1556,19 @@ begin
 end;
 
 
+function TMDIChild.GetDBNames: TStringList;
+var
+  i: integer;
+  sl: TStringList;
+begin
+  sl := TStringList.Create;
+  for i := 0 to DBTree.Items.Count - 1 do with DBTree.Items[i] do begin
+    if Level = 1 then sl.Add(Text);
+  end;
+  result := sl;
+end;
+
+
 procedure TMDIChild.ListTablesChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 var
@@ -2245,7 +2282,6 @@ var
 begin
   if ZConn.Connected then
   begin
-    Application.Title := Description + ' - ' + main.appname;
     with MainForm do
     begin
       ButtonRefresh.Enabled := true;
@@ -2302,7 +2338,6 @@ end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
 begin
-  Application.Title := main.appname;
   with MainForm do
   begin
     ButtonRefresh.Enabled := false;

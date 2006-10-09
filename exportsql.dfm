@@ -6,7 +6,7 @@ object ExportSQLForm: TExportSQLForm
   ClientHeight = 386
   ClientWidth = 601
   Color = clBtnFace
-  Constraints.MinHeight = 430
+  Constraints.MinHeight = 423
   Constraints.MinWidth = 580
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -40,7 +40,6 @@ object ExportSQLForm: TExportSQLForm
     Default = True
     TabOrder = 0
     OnClick = btnExportClick
-    ExplicitLeft = 397
   end
   object btnCancel: TButton
     Left = 518
@@ -52,7 +51,6 @@ object ExportSQLForm: TExportSQLForm
     Caption = 'Cancel'
     TabOrder = 1
     OnClick = btnCancelClick
-    ExplicitLeft = 479
   end
   object groupOutput: TGroupBox
     Left = 256
@@ -62,7 +60,6 @@ object ExportSQLForm: TExportSQLForm
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Output'
     TabOrder = 2
-    ExplicitWidth = 299
     DesignSize = (
       338
       169)
@@ -83,7 +80,6 @@ object ExportSQLForm: TExportSQLForm
         307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
         777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
         7700777777777077707077777777770007777777777777777777}
-      ExplicitLeft = 261
     end
     object editFileName: TEdit
       Left = 32
@@ -93,14 +89,13 @@ object ExportSQLForm: TExportSQLForm
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
       OnDblClick = btnFileBrowseClick
-      ExplicitWidth = 227
     end
     object radioOtherDatabase: TRadioButton
       Left = 16
       Top = 69
       Width = 113
       Height = 17
-      Caption = 'Another Database:'
+      Caption = 'Another database:'
       TabOrder = 2
       OnClick = radioOtherDatabaseClick
     end
@@ -124,29 +119,41 @@ object ExportSQLForm: TExportSQLForm
       Anchors = [akLeft, akTop, akRight]
       Color = clBtnFace
       Enabled = False
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 4
     end
     object radioOtherHost: TRadioButton
       Left = 16
       Top = 116
-      Width = 113
+      Width = 161
       Height = 17
-      Caption = 'Another Host / DB:'
+      Caption = 'Another host and database'
       TabOrder = 5
       OnClick = radioOtherHostClick
     end
     object comboOtherHost: TComboBox
       Left = 32
       Top = 131
-      Width = 290
+      Width = 137
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       Color = clBtnFace
       Enabled = False
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 6
+      OnClick = comboOtherHostClick
+    end
+    object comboOtherHostDatabase: TComboBox
+      Left = 175
+      Top = 131
+      Width = 145
+      Height = 21
+      Style = csDropDownList
+      Color = clBtnFace
+      Enabled = False
+      ItemHeight = 13
+      TabOrder = 7
     end
   end
   object barProgress: TProgressBar
@@ -159,7 +166,6 @@ object ExportSQLForm: TExportSQLForm
     Smooth = True
     Step = 1
     TabOrder = 3
-    ExplicitWidth = 551
   end
   object pageControl1: TPageControl
     Left = 4
@@ -171,10 +177,6 @@ object ExportSQLForm: TExportSQLForm
     TabOrder = 4
     object TabSheet1: TTabSheet
       Caption = 'Selection'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         230
         275)
@@ -201,7 +203,7 @@ object ExportSQLForm: TExportSQLForm
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 1
         OnChange = comboSelectDatabaseChange
       end
@@ -242,10 +244,6 @@ object ExportSQLForm: TExportSQLForm
     object TabSheet2: TTabSheet
       Caption = 'Options'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         230
         275)
@@ -385,7 +383,6 @@ object ExportSQLForm: TExportSQLForm
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Example SQL'
     TabOrder = 5
-    ExplicitWidth = 299
     object SynMemoExampleSQL: TSynMemo
       Left = 2
       Top = 15
@@ -408,7 +405,6 @@ object ExportSQLForm: TExportSQLForm
       Gutter.Visible = False
       Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
       ReadOnly = True
-      ExplicitWidth = 295
       RemovedKeystrokes = <
         item
           Command = ecContextHelp

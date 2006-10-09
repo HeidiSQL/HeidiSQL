@@ -10,9 +10,24 @@ unit exportsql;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, CheckLst, Buttons, comctrls, Registry, ToolWin, DB,
-  SynEdit, SynMemo;
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls,
+  CheckLst,
+  Buttons,
+  comctrls,
+  Registry,
+  ToolWin,
+  DB,
+  SynEdit,
+  SynMemo;
 
 type
   TExportSQLForm = class(TForm)
@@ -50,6 +65,8 @@ type
     comboDatabase: TComboBox;
     comboData: TComboBox;
     SynMemoExampleSQL: TSynMemo;
+    comboOtherHostDatabase: TComboBox;
+    procedure comboOtherHostClick(Sender: TObject);
     procedure cbxExtendedInsertClick(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
     procedure comboTablesChange(Sender: TObject);
@@ -66,6 +83,7 @@ type
     procedure radioFileClick(Sender: TObject);
     procedure fillcombo_anotherdb(Sender: TObject);
     procedure generateExampleSQL;
+    procedure validateRadioControls(Sender: TObject);
     procedure validateControls(Sender: TObject);
     procedure cbxStructureClick(Sender: TObject);
     procedure radioOtherHostClick(Sender: TObject);
@@ -85,7 +103,12 @@ const
 
 implementation
 
-uses Main, Childwin, helpers;
+uses
+  Main,
+  Childwin,
+  Helpers,
+  Synchronization,
+  Communication;
 
 {$R *.DFM}
 
@@ -108,6 +131,8 @@ const
   OUTPUT_DB         = 2;
   OUTPUT_HOST       = 3;
 
+var
+  appHandles: array of THandle;
 
 procedure TExportSQLForm.btnCancelClick(Sender: TObject);
 begin
@@ -117,7 +142,7 @@ end;
 procedure TExportSQLForm.FormShow(Sender: TObject);
 var
   tn : TTreeNode;
-  i,j, OutputTo, idxHost : Integer;
+  i, OutputTo : Integer;
   dbtree_db : String;
 begin
   barProgress.Position := 0;
@@ -163,33 +188,6 @@ begin
   end;
   comboSelectDatabaseChange(self);
 
-  // Another Host / DB
-  comboOtherHost.Items.Clear;
-  idxHost := -1;
-  for i:=0 to MainForm.MDIChildCount-1 do
-  begin
-    if MainForm.MDIChildren[i] <> MainForm.ActiveMDIChild then
-      with TMDIChild(MainForm.MDIChildren[i]) do
-      begin
-        for j:=0 to tnodehost.Count-1 do
-        begin
-          self.comboOtherHost.Items.Add(ZConn.HostName + ':' + tnodehost.Item[j].text);
-          if (ActualDatabase = tnodehost.Item[j].text) and (idxHost=-1) then
-            idxHost := self.comboOtherHost.Items.Count-1;
-        end;
-      end;
-  end;
-
-  // select the ActualDatabase from the first window
-  // or - if no ActualDatabase set - set at least the first item in the combo
-  if comboOtherHost.Items.Count > 0 then
-  begin
-    if idxHost = -1 then
-      comboOtherHost.ItemIndex := 0
-    else
-      comboOtherHost.ItemIndex := idxHost;
-  end;
-
   // Read options
   with TRegistry.Create do
     if OpenKey(regpath, true) then begin
@@ -208,12 +206,13 @@ begin
     if Valueexists('ExportSQL_OutputTo') then
     begin
       OutputTo := ReadInteger('ExportSQL_OutputTo');
-      if (comboOtherHost.Items.Count = 0) and (OutputTo = OUTPUT_HOST) then
-        OutputTo := OUTPUT_FILE;
       case OutputTo of
         OUTPUT_FILE : radioFile.checked := true;
         OUTPUT_DB   : radioOtherDatabase.checked := true;
-        OUTPUT_HOST : radioOtherHost.checked := true;
+        OUTPUT_HOST : begin
+          radioOtherHost.checked := true;
+          radioOtherHostClick(self);
+        end;
       end;
     end;
     if ValueExists('ExportSQL_WindowWidth') then Width := ReadInteger('ExportSQL_WindowWidth');
@@ -238,6 +237,18 @@ procedure TExportSQLForm.comboDataChange(Sender: TObject);
 begin
   validateControls(Sender);
   generateExampleSQL;
+end;
+
+procedure TExportSQLForm.comboOtherHostClick(Sender: TObject);
+var
+  otherDatabases: TStringList;
+  j: integer;
+begin
+  otherDatabases := RemoteGetDatabases(Self.Handle, appHandles[comboOtherHost.ItemIndex]);
+  comboOtherHostDatabase.Clear;
+  for j:=0 to otherDatabases.Count - 1 do begin
+    comboOtherHostDatabase.Items.Add(otherDatabases[j]);
+  end;
 end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
@@ -336,8 +347,7 @@ var
   which                     : Integer;
   tofile,todb,tohost        : boolean;
   tcount,tablecounter       : Integer;
-  HostDb                    : TStringList;
-  win2export                : TMDIChild;
+  win2export                : THandle;
   StrProgress               : String;
   value                     : String;
   Escaped,fullvalue         : PChar;
@@ -380,13 +390,8 @@ begin
   if todb then DB2export := comboOtherDatabase.Text;
 
   if tohost then begin
-    HostDb := explode(':', comboOtherHost.Items[comboOtherHost.ItemIndex]);
-    DB2export := HostDb[1];
-    for m:=0 to mainform.MDIChildCount-1 do begin
-      if (TMDIChild(mainform.MDIChildren[m]) <> TMDIChild(mainform.ActiveMDIChild)) and
-        (TMDIChild(mainform.MDIChildren[m]).ZConn.HostName = HostDb[0]) then
-        win2export := TMDIChild(mainform.MDIChildren[m]);
-    end;
+    win2export := appHandles[comboOtherHost.ItemIndex];
+    DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
   end;
 
   TRY
@@ -608,11 +613,11 @@ begin
           else if tohost then begin
             if mysql_version >= 32320 then
             begin
-              win2export.ExecUseQuery( DB2Export );
+              RemoteExecUseQuery(win2export, mysql_version, DB2Export);
             end;
             if comboTables.ItemIndex = TAB_DROP_CREATE then
-              win2export.ExecQuery(dropquery);
-            win2export.ExecQuery(createquery);
+              RemoteExecQuery(win2export, dropquery);
+              RemoteExecQuery(win2export, createquery);
           end;
 
           barProgress.StepIt;
@@ -655,9 +660,9 @@ begin
             begin
               ExecQuery('TRUNCATE TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]);
             end
-            else if tohost then with win2export do
+            else if tohost then
             begin
-              ExecQuery('TRUNCATE TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]);
+              RemoteExecQuery(win2export, 'TRUNCATE TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]);
             end;
           end;
 
@@ -674,11 +679,11 @@ begin
                 ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
               ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
             end
-            else if tohost then with win2export do
+            else if tohost then
             begin
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
-              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
+                RemoteExecQuery(win2export, 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS');
+              RemoteExecQuery(win2export, 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE');
             end;
           end;
 
@@ -758,7 +763,7 @@ begin
             else if todb then
               ExecQuery(insertquery)
             else if tohost then
-              win2export.ExecQuery(insertquery);
+              RemoteExecQuery(win2export, insertquery);
             if donext then
               ZQuery3.Next;
             donext := true;
@@ -780,11 +785,11 @@ begin
               if mysql_version > 40000 then
                 ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS' );
             end
-            else if tohost then with win2export do
+            else if tohost then
             begin
-              ExecQuery( 'UNLOCK TABLES' );
+              RemoteExecQuery(win2export, 'UNLOCK TABLES');
               if mysql_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS' );
+                RemoteExecQuery(win2export, 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS');
             end;
           end;
           ZQuery3.Close;
@@ -812,34 +817,17 @@ begin
     radioFile.OnClick(self);
     abort;
   end;
-  radioFile.Checked := false;
-  radioOtherHost.Checked := false;
-  radioOtherDatabase.Checked := true;
-  EditFileName.Enabled := false;
-  EditFileName.Color := clBtnFace;
-  btnFileBrowse.Enabled := false;
-  comboOtherDatabase.Enabled := true;
-  comboOtherDatabase.Color := clWindow;
-  comboOtherHost.Enabled := false;
-  comboOtherHost.Color := clBtnFace;
-  comboOtherDatabase.SetFocus;
+  validateRadioControls(Sender);
+  validateControls(Sender);
+  generateExampleSql;
 end;
 
 procedure TExportSQLForm.radioFileClick(Sender: TObject);
 begin
-  radioFile.Checked := true;
-  radioOtherDatabase.Checked := false;
-  radioOtherHost.Checked := false;
-  EditFileName.Enabled := true;
-  EditFileName.Color := clWindow;
-  btnFileBrowse.Enabled := true;
-  comboOtherDatabase.Enabled := false;
-  comboOtherDatabase.Color := clBtnFace;
-  comboOtherHost.Enabled := false;
-  comboOtherHost.Color := clBtnFace;
-  editFileName.SetFocus;
+  validateRadioControls(Sender);
+  validateControls(Sender);
+  generateExampleSQL;
 end;
-
 
 procedure TExportSQLForm.fillcombo_anotherdb(Sender: TObject);
 begin
@@ -875,8 +863,8 @@ begin
 end;
 begin
   s := '';
-  if cbxStructure.Checked then begin
-    if cbxDatabase.Checked then begin
+  if cbxStructure.Enabled and cbxStructure.Checked then begin
+    if cbxDatabase.Enabled and cbxDatabase.Checked then begin
       case comboDatabase.ItemIndex of
         DB_DROP_CREATE:        add(STR_DROP_DB, STR_CREATE_DB);
         DB_CREATE:             add(STR_CREATE_DB);
@@ -884,7 +872,7 @@ begin
       end;
       add(#13#10);
     end;
-    if cbxTables.Checked then begin
+    if cbxTables.Enabled and cbxTables.Checked then begin
       case comboTables.ItemIndex of
         TAB_DROP_CREATE:       add(STR_DROP_TABLE, STR_CREATE_TABLE);
         TAB_CREATE:            add(STR_CREATE_TABLE);
@@ -893,7 +881,7 @@ begin
       add(#13#10);
     end;
   end;
-  if cbxData.Checked then begin
+  if cbxData.Enabled and cbxData.Checked then begin
     case comboData.ItemIndex of
       DATA_TRUNCATE_INSERT:  add(STR_TRUNCATE_TABLE, STR_INSERT);
       DATA_INSERT:           add(STR_INSERT);
@@ -907,10 +895,50 @@ begin
   SynMemoExampleSql.Text := s;
 end;
 
+procedure TExportSQLForm.validateRadioControls(Sender: TObject);
+begin
+  radioFile.Checked := Sender = radioFile;
+  radioOtherDatabase.Checked := Sender = radioOtherDatabase;
+  radioOtherHost.Checked := Sender = radioOtherHost;
+
+  if radioFile.Checked then begin
+    EditFileName.Enabled := true;
+    EditFileName.Color := clWindow;
+    btnFileBrowse.Enabled := true;
+    EditFileName.SetFocus;
+  end else begin
+    EditFileName.Enabled := false;
+    EditFileName.Color := clBtnFace;
+    btnFileBrowse.Enabled := false;
+  end;
+
+  if radioOtherDatabase.Checked then begin
+    comboOtherDatabase.Enabled := true;
+    comboOtherDatabase.Color := clWindow;
+    comboOtherDatabase.SetFocus;
+  end else begin
+    comboOtherDatabase.Enabled := false;
+    comboOtherDatabase.Color := clBtnFace;
+  end;
+
+  if radioOtherHost.Checked then begin
+    comboOtherHost.Enabled := true;
+    comboOtherHost.Color := clWindow;
+    comboOtherHostDatabase.Enabled := true;
+    comboOtherHostDatabase.Color := clWindow;
+    comboOtherHost.SetFocus;
+  end else begin
+    comboOtherHost.Enabled := false;
+    comboOtherHost.Color := clBtnFace;
+    comboOtherHostDatabase.Enabled := false;
+    comboOtherHostDatabase.Color := clBtnFace;
+  end;
+end;
+
 procedure TExportSQLForm.validateControls(Sender: TObject);
 begin
-  cbxDatabase.Enabled := cbxStructure.Checked;
-  comboDatabase.Enabled := cbxStructure.Checked and cbxDatabase.Checked;
+  cbxDatabase.Enabled := cbxStructure.Checked and radioFile.Checked;
+  comboDatabase.Enabled := cbxStructure.Checked and radioFile.Checked and cbxDatabase.Checked;
 
   cbxTables.Enabled := cbxStructure.Checked;
   comboTables.Enabled := cbxStructure.Checked and cbxTables.Checked;
@@ -974,23 +1002,48 @@ end;
 
 
 procedure TExportSQLForm.radioOtherHostClick(Sender: TObject);
+var
+  list: TWindowDataArray;
+  i, k: integer;
 begin
+  // Check if all the heidisql windows are still alive.
+  CheckForCrashedWindows;
+
+  // Fetch list of heidisql windows.
+  list := GetWindowList;
+
+  // Fill list of hosts.
+  comboOtherHost.Items.Clear;
+  SetLength(appHandles, High(list));
+  k := 0;
+  for i := 0 to High(list) do with list[i] do begin
+    // Do not include current window.
+    if appHandle <> MainForm.Handle then begin
+      // Do not include non-connected windows.
+      if connected then begin
+        if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
+        comboOtherHost.Items.Add(name);
+        appHandles[k] := appHandle;
+        k := k + 1;
+      end;
+    end;
+  end;
+
+  // Abort if no other windows.
   if comboOtherHost.Items.Count = 0 then begin
     MessageDLG('You need at least two open connection-windows to enable this option.', mtError, [mbOK], 0);
-    radioFile.OnClick(self);
+    radioFile.OnClick(radioFile);
     abort;
   end;
-  radioFile.Checked := false;
-  radioOtherDatabase.Checked := false;
-  radioOtherHost.Checked := true;
-  EditFileName.Enabled := false;
-  EditFileName.Color := clBtnFace;
-  btnFileBrowse.Enabled := false;
-  comboOtherDatabase.Enabled := false;
-  comboOtherDatabase.Color := clBtnFace;
-  comboOtherHost.Enabled := true;
-  comboOtherHost.Color := clWindow;
-  comboOtherHost.SetFocus;
+
+  // Select first host and first database.
+  comboOtherHost.ItemIndex := 0;
+  comboOtherHost.OnClick(comboOtherHost);
+  comboOtherHostDatabase.ItemIndex := 0;
+
+  validateRadioControls(Sender);
+  validateControls(Sender);
+  generateExampleSql;
 end;
 
 

@@ -11,6 +11,7 @@ unit Main;
 interface
 
 uses
+  Synchronization,
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
@@ -22,18 +23,13 @@ type
     File1: TMenuItem;
     FileNewItem: TMenuItem;
     FileCloseItem: TMenuItem;
-    Window1: TMenuItem;
     Help1: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
-    WindowCascadeItem: TMenuItem;
-    WindowTileItem: TMenuItem;
-    WindowArrangeItem: TMenuItem;
     HelpAboutItem: TMenuItem;
     Edit1: TMenuItem;
     CopyItem: TMenuItem;
     PasteItem: TMenuItem;
-    WindowMinimizeItem: TMenuItem;
     StatusBar: TStatusBar;
     ActionList1: TActionList;
     EditCopy1: TEditCopy;
@@ -46,7 +42,6 @@ type
     WindowMinimizeAll1: TWindowMinimizeAll;
     FileClose1: TWindowClose;
     WindowTileVertical1: TWindowTileVertical;
-    WindowTileItem2: TMenuItem;
     ImageList1: TImageList;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
@@ -75,7 +70,6 @@ type
     MenuPreferences: TMenuItem;
     N7: TMenuItem;
     Readme1: TMenuItem;
-    N8: TMenuItem;
     UserManager: TAction;
     ShowAboutBox: TAction;
     Diagnostics: TAction;
@@ -98,9 +92,6 @@ type
     ToolButton6: TToolButton;
     ToolButton12: TToolButton;
     ToolButton7: TToolButton;
-    ToolButton8: TToolButton;
-    ToolButton10: TToolButton;
-    ToolButton11: TToolButton;
     ButtonCreateDatabase: TToolButton;
     ButtonCreateTable: TToolButton;
     ButtonDropDatabase: TToolButton;
@@ -112,7 +103,6 @@ type
     ButtonImportTextfile: TToolButton;
     ButtonExport: TToolButton;
     ButtonUserManager: TToolButton;
-    ToolButton15: TToolButton;
     ToolBarData: TToolBar;
     DBNavigator1: TDBNavigator;
     PanelLimit: TPanel;
@@ -159,6 +149,13 @@ type
     DropTable: TAction;
     LoadSQL: TAction;
     ImportSQL1: TMenuItem;
+    menuConnections: TPopupMenu;
+    miNewConnection: TMenuItem;
+    menuWindow: TMenuItem;
+    miFake: TMenuItem;
+    procedure menuWindowClick(Sender: TObject);
+    procedure focusWindow(Sender: TObject);
+    procedure menuConnectionsPopup(Sender: TObject);
     procedure MenuReplaceClick(Sender: TObject);
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
@@ -218,7 +215,7 @@ type
     procedure DataSearchExecute(Sender: TObject);
     procedure DropTableExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
-
+    procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
   public
     logsqlnum                  : Integer;
     CSVSeparator, CSVEncloser,
@@ -244,10 +241,14 @@ var
 
 const
   appname = 'HeidiSQL';
+  discname = 'not connected';
   regpath = 'Software\' + appname;
   STATUS_MSG_READY = 'Ready.';
   DBNAME_INFORMATION_SCHEMA = 'information_schema';
   DBNAME_MYSQL = 'mysql';
+  // TODO: We're abusing database icons to represent server connections here.
+  ICON_MYSELF = 38;
+  ICON_OTHER = 37;
 
 type TMyKey = record
   Name     : String;
@@ -271,13 +272,69 @@ uses
   printlist,
   copytable,
   insertfiles,
-  Helpers;
+  Helpers,
+  Communication,
+  Threading;
 
 {$R *.DFM}
 
 procedure TMainForm.ShowConnections(Sender: TObject);
 begin
-  connform.showmodal;
+  if ActiveMDIChild = nil then connform.showmodal
+  else begin
+    debug('perf: new connection clicked.');
+    ShellExecute(Handle, nil, 'heidisql.exe', nil, PChar(ExtractFilePath(paramstr(0))), 0);
+  end;
+end;
+
+procedure TMainForm.HandleWMCopyData(var msg: TWMCopyData);
+var
+  sl: TStringlist;
+  err: integer;
+  query: string;
+  //tab: THandle;
+  req: THandle;
+begin
+  err := ERR_UNSPECIFIED;
+  case msg.CopyDataStruct^.dwData of
+    CMD_EXECUTEQUERY: begin
+      try
+        query := GetQueryFromMsg(msg);
+        if ActiveMDIChild <> nil then begin
+          // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(msg.From);
+          // TQueryTab(tab).AddText(query);
+          // tab.OnQueryComplete := NotifyComplete(tab);
+          // tab.ExecQueryAsync(query);
+          TMDIChild(ActiveMDIChild).ExecQuery(query);
+          // WaitForCompletion(tab);
+          err := ERR_NOERROR;
+        end;
+      finally
+        ReleaseRemoteCaller(err);
+      end;
+    end;
+    CMD_GETDBLIST: begin
+      try
+        if ActiveMDIChild <> nil then begin
+          sl := TMDIChild(ActiveMDIChild).GetDBNames;
+          try
+            err := ERR_NOERROR;
+            ReleaseRemoteCaller(err);
+            req := GetRequestorFromMsg(msg);
+            SendDbListToRemote(msg.From, req, sl);
+          finally
+            sl.free;
+          end;
+        end;
+      finally
+        if err <> ERR_NOERROR then ReleaseRemoteCaller(err);
+      end;
+    end;
+    RES_DBLIST: begin
+      ReleaseRemoteCaller(ERR_NOERROR);
+      FinishRemoteGetDbCommand(msg);
+    end;
+  end;
 end;
 
 procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
@@ -638,6 +695,41 @@ begin
   usermanagerform.showmodal;
 end;
 
+procedure TMainForm.menuWindowClick(Sender: TObject);
+var
+  i: integer;
+  list: TWindowDataArray;
+  item: TMenuItem;
+begin
+  // Delete dynamically added connection menu items.
+  // NOTE: The menu doesn't like having 0 items, so we keep one which we delete later.
+  for i := menuWindow.Count - 1 downto 1 do menuWindow.Delete(i);
+
+  // Check if all the heidisql windows are still alive.
+  CheckForCrashedWindows;
+
+  // Fetch the list of windows.
+  list := GetWindowList;
+
+  // TODO: Load "all" array with all connections
+
+  // Re-create dynamic menu items.
+  for i := 0 to High(list) do with list[i] do begin
+    // TODO: Remove connection with this UID from "all" array
+    item := TMenuItem.Create(self);
+    if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
+    item.Caption := name;
+    if appHandle = Handle then item.ImageIndex := ICON_MYSELF
+    else item.ImageIndex := ICON_OTHER;
+    item.Tag := appHandle;
+    item.OnClick := focusWindow;
+    menuWindow.Add(item);
+  end;
+  // NOTE: The menu breaks if it has 0 items at any point.  Therefore we delete item 0 as the last thing.
+  //       Perhaps later the Window menu will contain more items, for now it's initially filled with a fake menu item.
+  menuWindow.Delete(0);
+end;
+
 procedure TMainForm.ShowAboutBoxExecute(Sender: TObject);
 begin
   // Info-Box
@@ -814,6 +906,57 @@ begin
   memo.SelEnd := 0;
 end;
 
+
+procedure TMainForm.focusWindow(Sender: TObject);
+begin
+  ActivateWindow((Sender as TMenuItem).Tag);
+end;
+
+
+procedure TMainForm.menuConnectionsPopup(Sender: TObject);
+var
+  i: integer;
+  s: string;
+  keep: boolean;
+  list: TWindowDataArray;
+  item: TMenuItem;
+begin
+  // Delete dynamically added connection menu items.
+  for i := menuConnections.Items.Count - 1 downto 0 do begin
+    s := menuConnections.Items[i].Name;
+    SetLength(s, 2);
+    keep := false;
+    if s = 'mi' then keep := true;
+    if s = 'se' then keep := true;
+    if not keep then menuConnections.Items.Delete(i);
+  end;
+
+  // Check if all the heidisql windows are still alive.
+  CheckForCrashedWindows;
+
+  // Fetch list of heidisql windows.
+  list := GetWindowList;
+
+  // Add separator before 'open heidisql windows' section.
+  item := TMenuItem.Create(self);
+  item.Caption := '-';
+  menuConnections.Items.Add(item);
+
+  // TODO: Load "all" array with all connections
+
+  // Re-create dynamic menu items.
+  for i := 0 to High(list) do with list[i] do begin
+    // TODO: Remove connection with this UID from "all" array
+    item := TMenuItem.Create(self);
+    if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
+    item.Caption := name;
+    if appHandle = Handle then item.ImageIndex := ICON_MYSELF
+    else item.ImageIndex := ICON_OTHER;
+    item.Tag := appHandle;
+    item.OnClick := focusWindow;
+    menuConnections.Items.Add(item);
+  end;
+end;
 
 procedure TMainForm.SQLFunctionsPopup(Sender: TObject);
 begin

@@ -4,6 +4,8 @@ program heidisql;
 
 uses
   Forms,
+  SysUtils,
+  Dialogs,
   MAIN in '..\..\MAIN.PAS' {MainForm},
   childwin in '..\..\childwin.pas' {MDIChild},
   about in '..\..\about.pas' {AboutBox},
@@ -24,35 +26,48 @@ uses
   mysqlerror in '..\..\mysqlerror.pas' {FormError},
   insertfiles in '..\..\insertfiles.pas' {frmInsertFiles},
   insertfiles_progress in '..\..\insertfiles_progress.pas' {frmInsertFilesProgress},
-  helpers in '..\..\helpers.pas';
+  helpers in '..\..\helpers.pas',
+  synchronization in '..\..\synchronization.pas',
+  communication in '..\..\communication.pas',
+  threading in '..\..\threading.pas';
 
 {$R *.RES}
 
 begin
-//  AboutBox := TAboutBox.Create(Application);
-//  AboutBox.show;
-//  AboutBox.Update;
-
+  debug('perf: All modules loaded.');
   Application.Initialize;
-  Application.Title := 'HeidiSQL';
-  Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TAboutBox, AboutBox);
-  Application.CreateForm(Tconnform, connform);
-  Application.CreateForm(TCreateTableForm, CreateTableForm);
-  Application.CreateForm(TFieldEditForm, FieldEditForm);
-  Application.CreateForm(TExportSQLForm, ExportSQLForm);
-  Application.CreateForm(Ttbl_properties_form, tbl_properties_form);
-  Application.CreateForm(Ttablecomment, tablecomment);
-  Application.CreateForm(Tloaddataform, loaddataform);
-  Application.CreateForm(TUserManagerForm, UserManagerForm);
-  Application.CreateForm(Toptionsform, optionsform);
-  Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases);
-  Application.CreateForm(Toptimize, optimize);
-  Application.CreateForm(TprintlistForm, printlistForm);
-  Application.CreateForm(TCopyTableForm, CopyTableForm);
-  Application.CreateForm(TFormEditUser, FormEditUser);
-  Application.CreateForm(TFormError, FormError);
-  Application.CreateForm(TfrmInsertFiles, frmInsertFiles);
-  Application.CreateForm(TfrmInsertFilesProgress, frmInsertFilesProgress);
-  Application.Run;
+  Application.Title := main.appname;
+  Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
+  Application.CreateForm(TAboutBox, AboutBox); debug('perf: AboutBox created.');
+  Application.CreateForm(Tconnform, connform); debug('perf: conn created.');
+  Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
+  Application.CreateForm(TFieldEditForm, FieldEditForm); debug('perf: FieldEdit created.');
+  Application.CreateForm(TExportSQLForm, ExportSQLForm); debug('perf: ExportSQL created.');
+  Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
+  Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');
+  Application.CreateForm(Tloaddataform, loaddataform); debug('perf: loaddata created.');
+  Application.CreateForm(TUserManagerForm, UserManagerForm); debug('perf: UserManager created.');
+  Application.CreateForm(Toptionsform, optionsform); debug('perf: options created.');
+  Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases); debug('perf: SelectFromManyDatabases created.');
+  Application.CreateForm(Toptimize, optimize); debug('perf: optimize created.');
+  Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
+  Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
+  Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
+  Application.CreateForm(TFormError, FormError); debug('perf: Error created.');
+  Application.CreateForm(TfrmInsertFiles, frmInsertFiles); debug('perf: InsertFiles created.');
+  Application.CreateForm(TfrmInsertFilesProgress, frmInsertFilesProgress); debug('perf: InsertFilesProgress created.');
+  try
+    try
+      InitializeSync(MainForm.Handle);
+      SetWindowName(main.discname);
+      debug('perf: Running.');
+      Application.Run;
+    finally
+      DeInitializeSync;
+    end;
+  except
+    on e: Exception do begin
+      ShowMessage(e.ClassName + ': ' + e.Message);
+    end;
+  end;
  end.
