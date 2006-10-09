@@ -64,6 +64,12 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
+  function maskSql(mysql_version: integer; str: String) : String;
+  procedure ActivateWindow(Window : HWnd);
+
+var
+  MYSQL_KEYWORDS             : TStringList;
+
 
 implementation
 
@@ -1278,6 +1284,104 @@ begin
     DecimalSeparatorSystemdefault := DecimalSeparator;
   DecimalSeparator := DecimalSeparatorSystemdefault;
 end;
+
+function maskSql(mysql_version: integer; str: String) : String;
+var
+  i, o                    : byte;
+  hasbadchar, iskeyword   : Boolean;
+begin
+  if mysql_version >= 32300 then
+  begin
+    // only mask if needed
+    hasbadchar := false;
+    for i:=1 to length(str) do
+    begin
+      o := ord( str[i] );
+      // digits, upper chars, lower chars and _ are allowed
+      hasbadchar := not (o in [48..57, 65..90, 97..122, 95]);
+      // see bug 1500753
+      if (i = 1) and not hasbadchar then
+        hasbadchar := o in [48..57];
+      if hasbadchar then
+        break;
+    end;
+
+    iskeyword := ( MYSQL_KEYWORDS.IndexOf( str ) > -1 );
+
+    if hasbadchar or iskeyword then
+    begin
+      result := StringReplace(str, '`', '``', [rfReplaceAll]);
+      result := '`' + result + '`';
+    end
+    else
+      result := str;
+  end
+  else
+    result := str;
+end;
+
+
+// Copyright: This function was nicked from usenet:
+// Delphi & focus control by Tony Tanzillo in autodesk.autocad.customization.vba.
+procedure ActivateWindow(Window : HWnd);
+var
+  state : TWindowPlacement;
+begin
+  If not IsWindow(Window) then exit;
+  If IsIconic(Window) then
+  begin
+    State.length := SizeOf(TWindowPlacement);
+    GetWindowPlacement(Window, PWindowPlacement(@State));
+    if (State.flags and 2) = 2 then
+      ShowWindow(Window, SW_SHOWMAXIMIZED)
+    else
+      ShowWindow(Window, SW_RESTORE);
+  end;
+  BringWindowToTop(Window);
+  SetForegroundWindow(Window);
+end;
+
+
+initialization
+
+  // Keywords copied from SynHighligherSQL
+  MYSQL_KEYWORDS := TStringList.Create;
+  MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,ANALYZE,AND,ANY,AS,' +
+    'ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BACKUP,BEFORE,BEGIN,BENCHMARK,BETWEEN,BINLOG,BIT,' +
+    'BOOL,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CHANGE,CHARACTER,CHARSET,CHECK,' +
+    'CHECKSUM,CLIENT,COLLATE,COLLATION,COLUMN,COLUMNS,COMMENT,COMMIT,' +
+    'COMMITTED,COMPLETION,CONCURRENT,CONNECTION,CONSISTENT,CONSTRAINT,' +
+    'CONVERT,CONTAINS,CONTENTS,CREATE,CROSS,DATA,DATABASE,DATABASES,' +
+    'DEALLOCATE,DEC,DEFAULT,DEFINER,DELAYED,DELAY_KEY_WRITE,DELETE,DESC,' +
+    'DETERMINISTIC,DIRECTORY,DISABLE,DISCARD,DESCRIBE,DISTINCT,DISTINCTROW,' +
+    'DIV,DROP,DUAL,DUMPFILE,DUPLICATE,EACH,ELSE,ENABLE,ENCLOSED,END,ENDS,' +
+    'ENGINE,ENGINES,ESCAPE,ESCAPED,ERRORS,EVENT,EVENTS,EVERY,EXECUTE,EXISTS,' +
+    'EXPANSION,EXPLAIN,FALSE,FIELDS,FILE,FIRST,FLUSH,FOR,FORCE,FOREIGN,FROM,' +
+    'FULL,FULLTEXT,FUNCTION,FUNCTIONS,GLOBAL,GRANT,GRANTS,GROUP,HAVING,HELP,' +
+    'HIGH_PRIORITY,HOSTS,IDENTIFIED,IGNORE,INDEX,INFILE,INNER,INSERT,' +
+    'INSERT_METHOD,INSTALL,INT1,INT2,INT3,INT4,INT8,INTO,IO_THREAD,IS,' +
+    'ISOLATION,INVOKER,JOIN,KEY,KEYS,KILL,LAST,LEADING,LEAVES,LEVEL,LESS,' +
+    'LIKE,LIMIT,LINEAR,LINES,LIST,LOAD,LOCAL,LOCK,LOGS,LONG,LOW_PRIORITY,' +
+    'MASTER,MASTER_HOST,MASTER_LOG_FILE,MASTER_LOG_POS,MASTER_CONNECT_RETRY,' +
+    'MASTER_PASSWORD,MASTER_PORT,MASTER_SSL,MASTER_SSL_CA,MASTER_SSL_CAPATH,' +
+    'MASTER_SSL_CERT,MASTER_SSL_CIPHER,MASTER_SSL_KEY,MASTER_USER,MATCH,' +
+    'MAX_ROWS,MAXVALUE,MIDDLEINT,MIN_ROWS,MOD,MODE,MODIFY,MODIFIES,NAMES,' +
+    'NATURAL,NEW,NO,NODEGROUP,NOT,NULL,OJ,OFFSET,OLD,ON,OPTIMIZE,OPTION,' +
+    'OPTIONALLY,OPEN,OR,ORDER,OUTER,OUTFILE,PACK_KEYS,PARTIAL,PARTITION,' +
+    'PARTITIONS,PLUGIN,PLUGINS,PREPARE,PRESERVE,PRIMARY,PRIVILEGES,PROCEDURE,' +
+    'PROCESS,PROCESSLIST,QUERY,RAID_CHUNKS,RAID_CHUNKSIZE,RAID_TYPE,RANGE,' +
+    'READ,REBUILD,REFERENCES,REGEXP,RELAY_LOG_FILE,RELAY_LOG_POS,RELOAD,' +
+    'RENAME,REORGANIZE,REPAIR,REPEATABLE,REPLACE,REPLICATION,RESTRICT,RESET,' +
+    'RESTORE,RETURN,RETURNS,REVOKE,RLIKE,ROLLBACK,ROLLUP,ROUTINE,ROW,' +
+    'ROW_FORMAT,ROWS,SAVEPOINT,SCHEDULE,SCHEMA,SCHEMAS,SECURITY,SELECT,' +
+    'SERIALIZABLE,SESSION,SET,SHARE,SHOW,SHUTDOWN,SIMPLE,SLAVE,SNAPSHOT,' +
+    'SONAME,SQL,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_CACHE,' +
+    'SQL_CALC_FOUND_ROWS,SQL_NO_CACHE,SQL_SMALL_RESULT,SQL_THREAD,START,' +
+    'STARTING,STARTS,STATUS,STOP,STORAGE,STRAIGHT_JOIN,SUBPARTITION,' +
+    'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
+    'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
+    'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
+    'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
 
 
 end.
