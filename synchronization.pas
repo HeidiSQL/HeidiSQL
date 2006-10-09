@@ -76,7 +76,7 @@ procedure SetWindowConnected(connected: boolean);
 (*
  Run this procedure when opening/closing connection.
 *)
-procedure SetWindowName(name: string);
+function SetWindowName(name: string): integer;
 
 (*
  Run this procedure to get a list of application windows.
@@ -340,7 +340,7 @@ begin
 end;
 
 
-procedure SetWindowName(name: string);
+function SetWindowName(name: string): integer;
 var
   mutex: THandle;
   count: integer;
@@ -354,6 +354,7 @@ begin
     count := FindWindowsWithName(name, mySlot, true, false);
     if count > 0 then count := count + 1;
     sharedData^.windows[mySlot].namePostFix := count;
+    result := count;
 
     // Set name by copying string value into array.
     sharedData^.windows[mySlot].name := name;
