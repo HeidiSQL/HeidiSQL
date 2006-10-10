@@ -83,7 +83,7 @@ object MDIChild: TMDIChild
         Top = 0
         Width = 504
         Height = 274
-        ActivePage = SheetQuery
+        ActivePage = SheetTable
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -430,7 +430,7 @@ object MDIChild: TMDIChild
             Left = 3
             Top = 20
             Width = 26
-            Height = 125
+            Height = 146
             Align = alNone
             ButtonHeight = 23
             Caption = 'ToolBar2'
@@ -477,6 +477,14 @@ object MDIChild: TMDIChild
               ImageIndex = 33
               Wrap = True
               OnClick = DropField
+            end
+            object btnTableManageIndexes: TToolButton
+              Left = 0
+              Top = 92
+              Hint = 'Manages indexes'
+              Caption = 'btnTableManageIndexes'
+              ImageIndex = 76
+              OnClick = ManageIndexes1Click
             end
           end
           object Panel9: TPanel
@@ -535,7 +543,7 @@ object MDIChild: TMDIChild
           end
           object ToolBar6: TToolBar
             Left = 2
-            Top = 127
+            Top = 143
             Width = 23
             Height = 39
             Align = alNone
@@ -858,8 +866,6 @@ object MDIChild: TMDIChild
               WantTabs = True
               OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
-              ExplicitLeft = 2
-              ExplicitTop = -2
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteLastChar
@@ -1516,7 +1522,7 @@ object MDIChild: TMDIChild
       OnClick = UpdateField
     end
     object MenuAddField: TMenuItem
-      Caption = 'Add Field or Index...'
+      Caption = 'Add Field...'
       ImageIndex = 34
       ShortCut = 16449
       OnClick = MenuAddFieldClick
@@ -1527,6 +1533,13 @@ object MDIChild: TMDIChild
       ImageIndex = 33
       ShortCut = 46
       OnClick = DropField
+    end
+    object N16: TMenuItem
+      Caption = '-'
+    end
+    object ManageIndexes1: TMenuItem
+      Caption = '&Manage Indexes...'
+      OnClick = ManageIndexes1Click
     end
     object N3: TMenuItem
       Caption = '-'

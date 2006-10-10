@@ -41,7 +41,7 @@ begin
   Application.CreateForm(TAboutBox, AboutBox); debug('perf: AboutBox created.');
   Application.CreateForm(Tconnform, connform); debug('perf: conn created.');
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
-  Application.CreateForm(TFieldEditForm, FieldEditForm); debug('perf: FieldEdit created.');
+  //Application.CreateForm(TFieldEditForm, FieldEditForm); debug('perf: FieldEdit created.');
   Application.CreateForm(TExportSQLForm, ExportSQLForm); debug('perf: ExportSQL created.');
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
   Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');

@@ -258,6 +258,10 @@ type
     FindDialogQuery: TFindDialog;
     SynEditSearch1: TSynEditSearch;
     ReplaceDialogQuery: TReplaceDialog;
+    N16: TMenuItem;
+    ManageIndexes1: TMenuItem;
+    btnTableManageIndexes: TToolButton;
+    procedure ManageIndexes1Click(Sender: TObject);
     procedure ZQuery2AfterPost(DataSet: TDataSet);
     procedure btnQueryReplaceClick(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
@@ -1322,10 +1326,14 @@ begin
           n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
           // Created:
           n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) );
-          // Updated:
-          n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) );
-          // Type
 
+          // Updated:
+          if not ZQuery3.FieldByName('Update_time').IsNull then
+            n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) )
+          else
+            n.SubItems.Add('N/A');
+            
+          // Type
           if ZQuery3.FindField('Type')<>nil then
             n.SubItems.Add( ZQuery3.FieldByName('Type').AsString )
           else if ZQuery3.FindField('Engine')<>nil then
@@ -1991,18 +1999,22 @@ procedure TMDIChild.ListColumnsChange(Sender: TObject; Item: TListItem;
 begin
   // Feldeigenschaften anzeigen
 
+  // some field selected ?
   if ListColumns.Selected <> nil then
-  with ListColumns.Selected do begin
-    btnTableDropField.Enabled := True;
-    DropField1.Enabled := True; //drop field
-    MenuEditField.Enabled := true;
-    btnTableEditField.enabled := true;
-  end else begin
-    btnTableDropField.Enabled := False;
-    DropField1.Enabled := false; //drop field
-    MenuEditField.Enabled := false;
-    btnTableEditField.enabled := false;
-  end;
+    with ListColumns.Selected do
+      begin
+        btnTableDropField.Enabled := True;
+        DropField1.Enabled := True; //drop field
+        MenuEditField.Enabled := true;
+        btnTableEditField.enabled := true;
+      end
+  else
+    begin
+      btnTableDropField.Enabled := False;
+      DropField1.Enabled := false; //drop field
+      MenuEditField.Enabled := false;
+      btnTableEditField.enabled := false;
+    end;
 
 end;
 
@@ -2397,16 +2409,28 @@ end;
 
 { Edit field }
 procedure TMDIChild.UpdateField(Sender: TObject);
+var
+  fn : String;
+  fem : TFieldEditorMode;
 begin
-  FieldEditForm.UpdateField := ListColumns.Selected <> nil;
-  FieldEditForm.showmodal;
+  fn := '';
+  fem := femFieldAdd;
+
+  if ListColumns.Selected<>nil then
+    fn := ListColumns.Selected.Caption;
+
+  if fn<>'' then
+    fem := femFieldUpdate;
+
+  FieldEditorWindow (Self,fem,fn);
+  //FieldEditForm.UpdateField := ListColumns.Selected <> nil;
+  //FieldEditForm.showmodal;
 end;
 
 { Add new field }
 procedure TMDIChild.MenuAddFieldClick(Sender: TObject);
 begin
-  FieldEditForm.UpdateField := false;
-  FieldEditForm.showmodal;
+  FieldEditorWindow (Self,femFieldAdd);
 end;
 
 
@@ -2546,6 +2570,11 @@ begin
   pcChange(self);
 end;
 
+
+procedure TMDIChild.ManageIndexes1Click(Sender: TObject);
+begin
+  FieldEditorWindow (Self,femIndexEditor);
+end;
 
 procedure TMDIChild.Markall3Click(Sender: TObject);
 begin

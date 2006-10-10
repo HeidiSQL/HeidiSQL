@@ -18,19 +18,18 @@ object FieldEditForm: TFieldEditForm
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object PageControl1: TPageControl
+  object pc: TPageControl
     Left = 0
     Top = 0
     Width = 297
     Height = 289
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Align = alTop
     Images = MainForm.ImageList1
-    TabIndex = 0
     TabOrder = 0
-    OnChange = PageControl1Change
+    OnChange = pcChange
     object TabSheet1: TTabSheet
-      Caption = 'Fields'
+      Caption = 'Field'
       ImageIndex = 62
       object Label1: TLabel
         Left = 16
