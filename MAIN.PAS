@@ -12,6 +12,7 @@ interface
 
 uses
   Synchronization,
+  Communication,
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
@@ -215,6 +216,11 @@ type
     procedure DataSearchExecute(Sender: TObject);
     procedure DropTableExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
+    procedure EnsureConnected;
+    function GetDBNames: TStringList;
+    procedure ExecuteRemoteQuery(sender: THandle; query: string);
+    procedure HandleWMGetDbList(var msg: TMessage); message WM_GETDBLIST;
+    procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
   public
     logsqlnum                  : Integer;
@@ -273,7 +279,6 @@ uses
   copytable,
   insertfiles,
   Helpers,
-  Communication,
   Threading;
 
 {$R *.DFM}
@@ -287,54 +292,41 @@ begin
   end;
 end;
 
-procedure TMainForm.HandleWMCopyData(var msg: TWMCopyData);
-var
-  sl: TStringlist;
-  err: integer;
-  query: string;
-  //tab: THandle;
-  req: THandle;
+procedure TMainForm.HandleWMComplete(var msg: TMessage);
 begin
-  err := ERR_UNSPECIFIED;
-  case msg.CopyDataStruct^.dwData of
-    CMD_EXECUTEQUERY: begin
-      try
-        query := GetQueryFromMsg(msg);
-        if ActiveMDIChild <> nil then begin
-          // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(msg.From);
-          // TQueryTab(tab).AddText(query);
-          // tab.OnQueryComplete := NotifyComplete(tab);
-          // tab.ExecQueryAsync(query);
-          TMDIChild(ActiveMDIChild).ExecQuery(query);
-          // WaitForCompletion(tab);
-          err := ERR_NOERROR;
-        end;
-      finally
-        ReleaseRemoteCaller(err);
-      end;
-    end;
-    CMD_GETDBLIST: begin
-      try
-        if ActiveMDIChild <> nil then begin
-          sl := TMDIChild(ActiveMDIChild).GetDBNames;
-          try
-            err := ERR_NOERROR;
-            ReleaseRemoteCaller(err);
-            req := GetRequestorFromMsg(msg);
-            SendDbListToRemote(msg.From, req, sl);
-          finally
-            sl.free;
-          end;
-        end;
-      finally
-        if err <> ERR_NOERROR then ReleaseRemoteCaller(err);
-      end;
-    end;
-    RES_DBLIST: begin
-      ReleaseRemoteCaller(ERR_NOERROR);
-      FinishRemoteGetDbCommand(msg);
-    end;
-  end;
+  HandleWMCompleteMessage(msg);
+end;
+
+procedure TMainForm.HandleWMGetDbList(var msg: TMessage);
+begin
+  HandleWMGetDbListMessage(msg);
+end;
+
+procedure TMainForm.HandleWMCopyData(var msg: TWMCopyData);
+begin
+  HandleWMCopyDataMessage(msg);
+end;
+
+procedure TMainForm.EnsureConnected;
+begin
+  if ActiveMDIChild = nil then raise Exception.Create('Not connected.');
+end;
+
+function TMainForm.GetDBNames: TStringList;
+begin
+  EnsureConnected;
+  result := TMDIChild(ActiveMDIChild).GetDBNames;
+end;
+
+procedure TMainForm.ExecuteRemoteQuery(sender: THandle; query: string);
+//var
+  //tab: THandle;
+begin
+  EnsureConnected;
+  // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
+  // TQueryTab(tab).AddText(query);
+  // tab.ExecQuery(query);
+  TMDIChild(ActiveMDIChild).ExecQuery(query);
 end;
 
 procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);

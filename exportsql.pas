@@ -10,6 +10,7 @@ unit exportsql;
 interface
 
 uses
+  Threading,
   Windows,
   Messages,
   SysUtils,
@@ -66,7 +67,7 @@ type
     comboData: TComboBox;
     SynMemoExampleSQL: TSynMemo;
     comboOtherHostDatabase: TComboBox;
-    procedure comboOtherHostClick(Sender: TObject);
+    procedure comboOtherHostSelect(Sender: TObject);
     procedure cbxExtendedInsertClick(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
     procedure comboTablesChange(Sender: TObject);
@@ -90,6 +91,7 @@ type
     procedure cbxDataClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
+    procedure GetRemoteDatabasesCompleted(res: TNotifyStructure);
     { Private declarations }
   public
     { Public declarations }
@@ -133,6 +135,7 @@ const
 
 var
   appHandles: array of THandle;
+  cancelDialog: TForm = nil;
 
 procedure TExportSQLForm.btnCancelClick(Sender: TObject);
 begin
@@ -207,12 +210,9 @@ begin
     begin
       OutputTo := ReadInteger('ExportSQL_OutputTo');
       case OutputTo of
-        OUTPUT_FILE : radioFile.checked := true;
-        OUTPUT_DB   : radioOtherDatabase.checked := true;
-        OUTPUT_HOST : begin
-          radioOtherHost.checked := true;
-          radioOtherHostClick(self);
-        end;
+        OUTPUT_FILE : radioFile.Checked := true;
+        OUTPUT_DB   : radioOtherDatabase.Checked := true;
+        OUTPUT_HOST : radioOtherHost.Checked := true;
       end;
     end;
     if ValueExists('ExportSQL_WindowWidth') then Width := ReadInteger('ExportSQL_WindowWidth');
@@ -239,16 +239,45 @@ begin
   generateExampleSQL;
 end;
 
-procedure TExportSQLForm.comboOtherHostClick(Sender: TObject);
+procedure TExportSQLForm.GetRemoteDatabasesCompleted(res: TNotifyStructure);
 var
-  otherDatabases: TStringList;
   j: integer;
+  list: TStringList;
+  error: Exception;
 begin
-  otherDatabases := RemoteGetDatabases(Self.Handle, appHandles[comboOtherHost.ItemIndex]);
-  comboOtherHostDatabase.Clear;
-  for j:=0 to otherDatabases.Count - 1 do begin
-    comboOtherHostDatabase.Items.Add(otherDatabases[j]);
+  error := res.GetException;
+  list := TStringList(res.GetResult);
+  // Hide the cancel dialog if it's still showing.
+  if cancelDialog.Visible then cancelDialog.Close;
+  if error <> nil then begin
+    // Error occurred while fetching remote list,
+    // just switch back to the 'output to file' choice.
+    radioFile.Checked := true;
+    error.Free;
+  end else begin
+    // Fetching list was successful.
+    comboOtherHostDatabase.Clear;
+    for j:=0 to list.Count - 1 do begin
+      comboOtherHostDatabase.Items.Add(list[j]);
+    end;
+    list.Free;
   end;
+  res.Free;
+end;
+
+procedure TExportSQLForm.comboOtherHostSelect(Sender: TObject);
+var
+  requestId: Cardinal;
+begin
+  cancelDialog := CreateMessageDialog('Fetching remote list of databases...', mtCustom, [mbCancel]);
+  requestId := RemoteGetDatabases(Self.GetRemoteDatabasesCompleted, INFINITE, appHandles[comboOtherHost.ItemIndex]);
+  // The callback method shouldn't be activated before messages has been processed,
+  // so we can safely touch the cancelDialog here.
+  cancelDialog.ShowModal;
+  // We just cancel in any case.
+  // If the query was completed before the cancel dialog closed,
+  // the notification code won't accept the cancel, so it's OK. 
+  NotifyInterrupted(requestId, Exception.Create('User cancelled.'));
 end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
@@ -897,10 +926,6 @@ end;
 
 procedure TExportSQLForm.validateRadioControls(Sender: TObject);
 begin
-  radioFile.Checked := Sender = radioFile;
-  radioOtherDatabase.Checked := Sender = radioOtherDatabase;
-  radioOtherHost.Checked := Sender = radioOtherHost;
-
   if radioFile.Checked then begin
     EditFileName.Enabled := true;
     EditFileName.Color := clWindow;
@@ -1038,7 +1063,7 @@ begin
 
   // Select first host and first database.
   comboOtherHost.ItemIndex := 0;
-  comboOtherHost.OnClick(comboOtherHost);
+  comboOtherHost.OnSelect(comboOtherHost);
   comboOtherHostDatabase.ItemIndex := 0;
 
   validateRadioControls(Sender);

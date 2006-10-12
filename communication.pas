@@ -2,6 +2,12 @@ unit communication;
 
 (*
  Functions for Inter-Process Communication.
+
+ Note about WM_COPYDATA:
+ This message must be sent synchronously with SendMessage,
+ cannot be sent asynchronously using PostMessage.  I think
+ the reason is related to the idea behind WM_COPYDATA causing
+ Windows to do a context switch to the receiving application..
 *)
 
 
@@ -14,9 +20,13 @@ uses
   Messages;
 
 const
+  // Our custom message types.
+  WM_COMPLETED        = WM_APP + 1;
+  WM_GETDBLIST        = WM_APP + 2;
+  // Our message subtypes for WM_COPYDATA messages.
   CMD_EXECUTEQUERY    = 1;
-  CMD_GETDBLIST       = 2;
   RES_DBLIST          = 257;
+  // Our SendMessage return codes.
   ERR_NOERROR         = 0;
   ERR_UNSPECIFIED     = 1;
 
@@ -33,9 +43,8 @@ procedure RemoteExecUseQuery(window: THandle; mysqlVersion: integer; dbName: str
 
 (*
  Get a list of databases from another window.
- Requestor identifies the local HeidiSQL window which wants the data.
 *)
-function RemoteGetDatabases(requestor: THandle; window: THandle): TStringList;
+function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; window: THandle): Cardinal;
 
 (*
  Fill in resulting data and return waiting thread to caller.
@@ -51,7 +60,7 @@ procedure ReleaseRemoteCaller(errCode: integer);
 (*
  Send a database list to a window.
 *)
-procedure SendDbListToRemote(window: THandle; requestor: THandle; sl: TStringList);
+procedure SendDbListToRemote(window: THandle; request: Cardinal; sl: TStringList);
 
 (*
  Extract a SQL query from a WM_COPYDATA message.
@@ -61,7 +70,22 @@ function GetQueryFromMsg(msg: TWMCopyData): string;
 (*
  Extract a THandle from a WM_COPYDATA message.
 *)
-function GetRequestorFromMsg(msg: TWMCopyData): THandle;
+function GetRequestIdFromMsg(msg: TWMCopyData): Cardinal;
+
+(*
+ Helper which will handle WM_COMPLETED messages received.
+*)
+procedure HandleWMCompleteMessage(var msg: TMessage);
+
+(*
+ Helper which will handle WM_GETDBLIST messages received.
+*)
+procedure HandleWMGetDbListMessage(var msg: TMessage);
+
+(*
+ Helper which will handle WM_COPYDATA messages received.
+*)
+procedure HandleWMCopyDataMessage(var msg: TWMCopyData);
 
 
 implementation
@@ -77,36 +101,17 @@ type
     cbData: LongWord; // the size, in bytes, of the data pointed to by the lpData member.
     lpData: Pointer;  // points to data to be passed to the receiving application. This member can be nil.
   end;
-  TResult = class
-    private
-      req: THandle;
-      res: TObject;
-    public
-      property GetRequestor: THandle read req;
-      property GetResult: TObject read res;
-      constructor Create(const Requestor: THandle; const Result: TObject);
-  end;
-
-var
-  results: TList;
 
 
-constructor TResult.Create(const Requestor: THandle; const Result: TObject);
-begin
-  self.req := Requestor;
-  self.res := Result;
-end;
-
-
-procedure SendStringListToRemote(window: THandle; requestor: THandle; resType: integer; sl: TStringList);
+procedure SendStringListToRemote(window: THandle; request: Cardinal; resType: integer; sl: TStringList);
 var
   data: TCopyDataStruct;
   ms: TMemoryStream;
 begin
   ms := TMemoryStream.Create;
   try
-    debug(Format('ipc: Sending string list to window %d, requestor %d', [window, requestor]));
-    ms.Write(requestor, sizeof(THandle));
+    debug(Format('ipc: Sending string list to window %d, request id %d', [window, request]));
+    ms.Write(request, sizeof(THandle));
     sl.SaveToStream(ms);
     data.dwData := resType;
     data.cbData := ms.Size;
@@ -124,7 +129,7 @@ begin
 end;
 
 
-function GetRequestorFromMsg(msg: TWMCopyData): THandle;
+function GetRequestIdFromMsg(msg: TWMCopyData): Cardinal;
 var
   req: THandle;
   ms: TMemoryStream;
@@ -135,7 +140,6 @@ begin
       ms.Write(lpData^, cbData);
       ms.Position := 0;
       ms.Read(req, sizeof(THandle));
-      debug(Format('ipc: Received query from window %d, requestor %d', [msg.From, req]));
       result := req;
     end;
   finally
@@ -144,10 +148,9 @@ begin
 end;
 
 
-function GetDbListFromMsg(msg: TWMCopyData): TResult;
+function GetDbListFromMsg(msg: TWMCopyData): TStringList;
 var
   sl: TStringList;
-  req: THandle;
   ms: TMemoryStream;
 begin
   sl := TStringlist.Create;
@@ -155,10 +158,9 @@ begin
   try
     with msg.CopyDataStruct^ do begin
       ms.Write(lpData^, cbData);
-      ms.Position := 0;
-      ms.Read(req, sizeof(THandle));
+      ms.Position := sizeof(THandle);
       sl.LoadFromStream(ms);
-      result := TResult.Create(req, sl);
+      result := sl;
     end;
   finally
     ms.free;
@@ -172,7 +174,6 @@ var
   err: integer;
 begin
   data.dwData := CMD_EXECUTEQUERY;
-  // +1 since we need to send the terminating #0 as well
   data.cbData := Length(query) + 1;
   data.lpData := PChar(query);
   SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
@@ -186,32 +187,19 @@ begin
 end;
 
 
-function RemoteGetDatabases(requestor: THandle; window: THandle): TStringList;
+function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; window: THandle): Cardinal;
 var
   data: TCopyDataStruct;
   err: integer;
-  i: integer;
   ms: TMemoryStream;
+  req: Cardinal;
 begin
   ms := TMemoryStream.Create;
   try
-    ms.Write(requestor, sizeof(THandle));
-    data.cbData := ms.Size;
-    data.lpData := ms.Memory;
-    data.dwData := CMD_GETDBLIST;
-    err := SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
-    if err <> 0 then begin
-      raise Exception.CreateFmt('Remote returned error %d when asked for list of databases.', [err]);
-    end else begin
-      debug(Format('ipc: Requestor %d waiting for completion of remote get db list.', [requestor]));
-      WaitForCompletion(requestor);
-      for i := 0 to Results.Count - 1 do begin
-        if TResult(results[i]).GetRequestor = requestor then begin
-          result := TStringList(TResult(results[i]).GetResult);
-          results.Delete(i);
-        end;
-      end;
-    end;
+    req := SetCompletionHandler(handler, timeout);
+    result := req;
+    PostMessage(window, WM_GETDBLIST, MainForm.Handle, req);
+    debug(Format('ipc: Remote db call started for request id %d.', [req]));
   finally
     ms.free;
   end;
@@ -220,12 +208,13 @@ end;
 
 procedure FinishRemoteGetDbCommand(msg: TWMCopyData);
 var
-  res: TResult;
+  res: TStringList;
+  req: THandle;
 begin
   res := GetDbListFromMsg(msg);
-  results.Add(res);
-  debug(Format('ipc: Remote db call finished, releasing requestor %d.', [res.GetRequestor]));
-  NotifyComplete(res.GetRequestor);
+  req := GetRequestIdFromMsg(msg);
+  debug(Format('ipc: Remote db call finished for request id %d.', [req]));
+  NotifyComplete(req, res);
 end;
 
 
@@ -236,15 +225,77 @@ begin
 end;
 
 
-procedure SendDbListToRemote(window: THandle; requestor: THandle; sl: TStringList);
+procedure SendDbListToRemote(window: THandle; request: Cardinal; sl: TStringList);
 begin
-  SendStringListToRemote(window, requestor, RES_DBLIST, sl);
+  SendStringListToRemote(window, request, RES_DBLIST, sl);
 end;
 
 
+procedure HandleWMCompleteMessage(var msg: TMessage);
+var
+  req: Cardinal;
+  res: TNotifyStructure;
+  callback: TCompletionHandler;
+begin
+  debug('ipc: Handling WM_COMPLETED.');
+  try
+    // Extract results.
+    req := msg.LParam;
+    res := ExtractResults(req);
+    // Call completion handler.
+    callback := res.GetHandler;
+    callback(res);
+  finally
+    ReleaseRemoteCaller(ERR_NOERROR);
+  end;
+end;
 
-initialization
-  results := TList.Create;
+procedure HandleWMGetDbListMessage(var msg: TMessage);
+var
+  sl: TStringlist;
+  req: Cardinal;
+  from: THandle;
+begin
+  debug('ipc: Handling WM_GETDBLIST.');
+  try
+    sl := MainForm.GetDBNames;
+    try
+      req := msg.LParam;
+      from := msg.WParam;
+      SendDbListToRemote(from, req, sl);
+    finally
+      sl.free;
+    end;
+  finally
+    ReleaseRemoteCaller(ERR_NOERROR);
+  end;
+end;
+
+procedure HandleWMCopyDataMessage(var msg: TWMCopyData);
+var
+  err: integer;
+  query: string;
+  //tab: THandle;
+begin
+  debug('ipc: Handling WM_COPYDATA.');
+  err := ERR_UNSPECIFIED;
+  case msg.CopyDataStruct^.dwData of
+    CMD_EXECUTEQUERY: begin
+      try
+        query := GetQueryFromMsg(msg);
+        MainForm.ExecuteRemoteQuery(msg.From, query);
+        err := ERR_NOERROR;
+      finally
+        ReleaseRemoteCaller(err);
+      end;
+    end;
+    RES_DBLIST: begin
+      ReleaseRemoteCaller(ERR_NOERROR);
+      FinishRemoteGetDbCommand(msg);
+    end;
+  end;
+end;
+
 
 end.
 

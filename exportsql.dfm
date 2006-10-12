@@ -142,7 +142,7 @@ object ExportSQLForm: TExportSQLForm
       Enabled = False
       ItemHeight = 13
       TabOrder = 6
-      OnClick = comboOtherHostClick
+      OnSelect = comboOtherHostSelect
     end
     object comboOtherHostDatabase: TComboBox
       Left = 175
