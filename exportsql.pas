@@ -270,7 +270,7 @@ var
   requestId: Cardinal;
 begin
   cancelDialog := CreateMessageDialog('Fetching remote list of databases...', mtCustom, [mbCancel]);
-  requestId := RemoteGetDatabases(Self.GetRemoteDatabasesCompleted, INFINITE, appHandles[comboOtherHost.ItemIndex]);
+  requestId := RemoteGetDatabases(Self.GetRemoteDatabasesCompleted, INFINITE_TIMEOUT, appHandles[comboOtherHost.ItemIndex]);
   // The callback method shouldn't be activated before messages has been processed,
   // so we can safely touch the cancelDialog here.
   cancelDialog.ShowModal;
@@ -515,6 +515,7 @@ begin
             fieldcount := ZQuery3.FieldCount;
           end else begin
             GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
+            fieldcount := -1;
           end;
           createquery := '';
           dropquery := '';
@@ -1091,9 +1092,8 @@ begin
     WriteBool('ExtendedInsert',       cbxExtendedInsert.Checked);
     WriteInteger('Compatibility',     comboTargetCompat.ItemIndex);
     WriteString('exportfilename',     EditFileName.Text);
-    if radioFile.Checked then
-      OutputTo := OUTPUT_FILE
-    else if radioOtherDatabase.checked then
+    OutputTo := OUTPUT_FILE;
+    if radioOtherDatabase.checked then
       OutputTo := OUTPUT_DB
     else if radioOtherHost.checked then
       OutputTo := OUTPUT_HOST;

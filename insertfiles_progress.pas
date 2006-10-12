@@ -54,7 +54,6 @@ end;
 
 var
   i,j: Integer;
-  Size: DWORD;
   value, filename : String;
   y,m,d,h,mi,s,ms : Word;
   FileStream : TFileStream;
@@ -79,8 +78,8 @@ begin
         ZQuery3.SQL.Clear;
         ZQuery3.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
           ' (' + mainform.mask(ComboBoxColumns.Text) );
-        self.Label6.caption := 'Inserting data ...';
-        Application.ProcessMessages;
+        Label6.caption := 'Inserting data ...';
+        Label6.Repaint;
         for j:=0 to length(cols)-1 do
         begin
           if cols[j].Name = ComboBoxColumns.Text then
@@ -96,7 +95,7 @@ begin
           Value := cols[j].Value;
           if pos('%', Value) > 0 then
           begin
-            Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
+            //Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
             Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
             Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
             DecodeDate(FileDateToDateTime(FileAge(filename)), y, m, d);
@@ -111,21 +110,23 @@ begin
         end;
         ZQuery3.SQL.Add( ')' );
         try
-          self.Label6.caption := 'Reading file ...';
-          Application.ProcessMessages;
+          Label6.caption := 'Reading file ...';
+          Label6.Repaint;
           FileStream := TFileStream.Create( filename, fmShareDenyWrite );
-          ZQuery3.Params.Clear;
-          ZQuery3.Params.CreateParam( ftBlob, 'STREAM', ptInput );
-          ZQuery3.ParamByName('STREAM').LoadfromStream( FileStream, ftBlob );
+          try
+            ZQuery3.Params.Clear;
+            ZQuery3.Params.CreateParam( ftBlob, 'STREAM', ptInput );
+            ZQuery3.ParamByName('STREAM').LoadfromStream( FileStream, ftBlob );
+          finally
+            FileStream.Free;
+          end;
         except
-          FileStream.Free;
           MessageDlg( 'Error reading file:'#13#10+filename, mtError, [mbOK], 0 );
           break;
         end;
         ZQuery3.ExecSQL;
-        self.Label6.caption := 'Freeing memory ...';
-        Application.ProcessMessages;
-        FileStream.Free;
+        Label6.caption := 'Freeing memory ...';
+        Label6.Repaint;
       end;
       ProgressBar1.StepIt;
       Application.ProcessMessages;

@@ -31,6 +31,10 @@ object FieldEditForm: TFieldEditForm
     object TabSheet1: TTabSheet
       Caption = 'Field'
       ImageIndex = 62
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 16
         Top = 40
@@ -382,6 +386,10 @@ object FieldEditForm: TFieldEditForm
     object TabSheet3: TTabSheet
       Caption = 'Foreign Keys'
       ImageIndex = -1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label9: TLabel
         Left = 104
         Top = 104

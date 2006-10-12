@@ -491,61 +491,73 @@ var
   header                    : String;
   cursorpos                 : Integer;
 begin
+  FStream := nil;
+  if filename <> '' then try
+    FStream := TFileStream.Create(FileName, fmCreate)
+  except
+    messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
+    dataset2html := false;
+    exit;
+  end;
   try
-    if filename <> '' then
-      FStream := TFileStream.Create(FileName, fmCreate)
-    else
-      clipboard.astext := '';
-    buffer := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + crlf + crlf +
-      '<html>' + crlf +
-      '<head>' + crlf +
-      '  <title>' + htmltitle + '</title>' + crlf +
-      '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
-      '  <style type="text/css"><!--' + crlf +
-      '    .header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
-      '    th {vertical-align: top;}' + crlf +
-      '    td {vertical-align: top;}' + crlf +
-      '  --></style>' + crlf +
-      '</head>' + crlf + crlf +
-      '<body>' + crlf + crlf +
-      '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
-      '<table border="1">' + crlf +
-      '  <tr class="header">' + crlf;
-    for j:=0 to ds.FieldCount-1 do
-      buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
-    buffer := buffer + '  </tr>' + crlf;
-    if filename <> '' then
-      FStream.Write(pchar(buffer)^, length(buffer))
-    else
-      cbuffer := buffer;
-
-    cursorpos := ds.RecNo;
-    ds.DisableControls;
-    ds.First;
-    for I := 0 to ds.RecordCount-1 do
-    begin
-      Buffer := '  <tr>' + crlf;
-      // collect data:
+    try
+      if FStream = nil then clipboard.astext := '';
+      buffer := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + crlf + crlf +
+        '<html>' + crlf +
+        '<head>' + crlf +
+        '  <title>' + htmltitle + '</title>' + crlf +
+        '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
+        '  <style type="text/css"><!--' + crlf +
+        '    .header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
+        '    th {vertical-align: top;}' + crlf +
+        '    td {vertical-align: top;}' + crlf +
+        '  --></style>' + crlf +
+        '</head>' + crlf + crlf +
+        '<body>' + crlf + crlf +
+        '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
+        '<table border="1">' + crlf +
+        '  <tr class="header">' + crlf;
       for j:=0 to ds.FieldCount-1 do
+        buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
+      buffer := buffer + '  </tr>' + crlf;
+
+      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+      else cbuffer := buffer;
+
+      cursorpos := ds.RecNo;
+      ds.DisableControls;
+      ds.First;
+      for I := 0 to ds.RecordCount-1 do
       begin
-        data := ds.Fields[j].AsString;
-        if (filename <> '') and ds.Fields[j].IsBlob then
+        Buffer := '  <tr>' + crlf;
+        // collect data:
+        for j:=0 to ds.FieldCount-1 do
         begin
-          header := copy(data, 0, 20);
-          extension := '';
-          if pos('JFIF', header) <> 0 then
-            extension := 'jpg'
-          else if StrCmpBegin('GIF', header) then
-            extension := 'gif'
-          else if StrCmpBegin('BM', header) then
-            extension := 'bmp';
-          if extension <> '' then begin
-            blobfilename := 'rec'+inttostr(i)+'fld'+inttostr(j)+'.'+extension;
-            AssignFile(bf, blobfilename);
-            Rewrite(bf);
-            Write(bf, data);
-            CloseFile(bf);
-            data := '<a href="'+blobfilename+'"><img border="0" src="'+blobfilename+'" alt="'+blobfilename+' ('+floattostr(length(data) div 1024)+' KB)" width="100" /></a>';
+          data := ds.Fields[j].AsString;
+          if (filename <> '') and ds.Fields[j].IsBlob then
+          begin
+            header := copy(data, 0, 20);
+            extension := '';
+            if pos('JFIF', header) <> 0 then
+              extension := 'jpg'
+            else if StrCmpBegin('GIF', header) then
+              extension := 'gif'
+            else if StrCmpBegin('BM', header) then
+              extension := 'bmp';
+            if extension <> '' then begin
+              blobfilename := 'rec'+inttostr(i)+'fld'+inttostr(j)+'.'+extension;
+              AssignFile(bf, blobfilename);
+              Rewrite(bf);
+              Write(bf, data);
+              CloseFile(bf);
+              data := '<a href="'+blobfilename+'"><img border="0" src="'+blobfilename+'" alt="'+blobfilename+' ('+floattostr(length(data) div 1024)+' KB)" width="100" /></a>';
+            end
+            else
+            begin
+              if ConvertHTMLEntities then data := htmlentities(data);
+              data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
+              data := data + '&nbsp;';
+            end;
           end
           else
           begin
@@ -554,50 +566,37 @@ begin
             data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
             data := data + '&nbsp;';
           end;
-        end
-        else
-        begin
-          if ConvertHTMLEntities then
-            data := htmlentities(data);
-          data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
-          data := data + '&nbsp;';
+          Buffer := Buffer + '    <td>' + data + '</td>' + crlf;
         end;
-        Buffer := Buffer + '    <td>' + data + '</td>' + crlf;
+        buffer := buffer + '  </tr>' + crlf;
+        // write buffer:
+        if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+        else cbuffer := cbuffer + buffer;
+        ds.Next;
       end;
-      buffer := buffer + '  </tr>' + crlf;
-      // write buffer:
-      if filename <> '' then
-        FStream.Write(pchar(buffer)^, length(buffer))
-      else
+      ds.RecNo := cursorpos;
+      ds.EnableControls;
+      // footer:
+      buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
+        '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
+        ' by <a href="http://www.heidisql.com/">' + Generator + '</a></em></p>' + crlf + crlf +
+        '</body></html>';
+      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+      else begin
         cbuffer := cbuffer + buffer;
-      ds.Next;
+        clipboard.astext := cbuffer;
+      end;
+    except
+      on e: Exception do begin
+        MessageDlg(e.Message, mtError, [mbOK], 0);
+        result := false;
+       exit;
+      end;
     end;
-    ds.RecNo := cursorpos;
-    ds.EnableControls;
-    // footer:
-    buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
-      '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
-      ' by <a href="http://www.heidisql.com/">' + Generator + '</a></em></p>' + crlf + crlf +
-      '</body></html>';
-    if filename <> '' then
-      FStream.Write(pchar(buffer)^, length(buffer))
-    else
-    begin
-      cbuffer := cbuffer + buffer;
-      clipboard.astext := cbuffer;
-    end;
-
-  except
+  finally
+    if FStream <> nil then FStream.Free;
     Screen.Cursor := crDefault;
-    if filename <> '' then
-    begin
-      messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-      FStream.Free;
-    end else
-      messagedlg('Error while copying data to Clipboard.', mterror, [mbOK], 0)
   end;
-  if filename <> '' then
-    FStream.Free;
   // open file:
   if filename <> '' then
     shellexecute(0, 'open', pchar(filename), Nil, NIL, 5);
@@ -618,63 +617,64 @@ begin
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
 
+  FStream := nil;
+  if filename <> '' then
   try
-    Buffer := '';
-    if filename <> '' then
-      FStream := TFileStream.Create(FileName, fmCreate)
-    else
-      clipboard.astext := '';
+    FStream := TFileStream.Create(FileName, fmCreate)
+  except
+    messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
+    result := false;
+    exit;
+  end;
 
-    // collect fields:
-    for j:=0 to ds.FieldCount-1 do begin
-      if j > 0 then
-        Buffer := Buffer + Separator;
-      Buffer := Buffer + Encloser + ds.Fields[J].FieldName + Encloser;
-    end;
-    // write buffer:
-    if filename <> '' then
-      FStream.Write(pchar(buffer)^, length(buffer))
-    else
-      cbuffer := cbuffer + buffer;
-
-    // collect data:
-    cursorpos := ds.RecNo;
-    ds.DisableControls;
-    ds.First;
-    for i:=0 to ds.RecordCount-1 do
-    begin
+  try
+    try
       Buffer := '';
-      Buffer := Buffer + Terminator;
-      for j:=0 to ds.FieldCount-1 do
-      begin
-        if j>0 then
+      if FStream = nil then clipboard.astext := '';
+
+      // collect fields:
+      for j:=0 to ds.FieldCount-1 do begin
+        if j > 0 then
           Buffer := Buffer + Separator;
-        Buffer := Buffer + Encloser + ds.Fields[j].AsString + Encloser;
+        Buffer := Buffer + Encloser + ds.Fields[J].FieldName + Encloser;
       end;
       // write buffer:
-      if filename <> '' then
-        FStream.Write(pchar(buffer)^, length(buffer))
-      else
-        cbuffer := cbuffer + buffer;
-      ds.Next;
-    end;
-    ds.RecNo := cursorpos;
-    ds.EnableControls;
-    if filename = '' then
-      clipboard.astext := cbuffer;
-  except
-    Screen.Cursor := crDefault;
-    if filename <> '' then
-    begin
-      messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-      FStream.Free;
-    end
-    else
-      messagedlg('Error while copying data to Clipboard.', mterror, [mbOK], 0)
-  end;
-  if filename <> '' then
-    FStream.Free;
+      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+      else cbuffer := cbuffer + buffer;
 
+      // collect data:
+      cursorpos := ds.RecNo;
+      ds.DisableControls;
+      ds.First;
+      for i:=0 to ds.RecordCount-1 do
+      begin
+        Buffer := '';
+        Buffer := Buffer + Terminator;
+        for j:=0 to ds.FieldCount-1 do
+        begin
+          if j>0 then
+            Buffer := Buffer + Separator;
+          Buffer := Buffer + Encloser + ds.Fields[j].AsString + Encloser;
+        end;
+        // write buffer:
+        if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+        else cbuffer := cbuffer + buffer;
+        ds.Next;
+      end;
+      ds.RecNo := cursorpos;
+      ds.EnableControls;
+      if FStream = nil then clipboard.astext := cbuffer;
+    except
+      on e: Exception do begin
+        MessageDlg(e.Message, mtError, [mbOK], 0);
+        result := false;
+       exit;
+      end;
+    end;
+  finally
+    if FStream <> nil then FStream.Free;
+    Screen.Cursor := crDefault;
+  end;
   result := true;
 end;
 
@@ -689,61 +689,63 @@ var
   FStream                   : TFileStream;
   cursorpos                 : Integer;
 begin
-  try
-    if filename <> '' then
-      FStream := TFileStream.Create(FileName, fmCreate)
-    else
-      clipboard.astext := '';
-    buffer := '<?xml version="1.0"?>' + crlf + crlf +
-           '<'+title+'>' + crlf;
-    if filename <> '' then
-      FStream.Write(pchar(buffer)^, length(buffer))
-    else
-      cbuffer := buffer;
-
-    cursorpos := ds.RecNo;
-    ds.DisableControls;
-    ds.First;
-    for i:=0 to ds.RecordCount-1 do
-    begin
-      Buffer := #9'<row>' + crlf;
-      // collect data:
-      for j:=0 to ds.FieldCount-1 do
-      begin
-        data := ds.Fields[j].AsString;
-        data := htmlentities(data);
-        Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
-      end;
-      buffer := buffer + #9'</row>' + crlf;
-      // write buffer:
-      if filename <> '' then
-        FStream.Write(pchar(buffer)^, length(buffer))
-      else
-        cbuffer := cbuffer + buffer;
-      ds.Next;
-    end;
-    ds.RecNo := cursorpos;
-    ds.EnableControls;
-    // footer:
-    buffer := '</'+title+'>' + crlf;
-    if filename <> '' then
-      FStream.Write(pchar(buffer)^, length(buffer))
-    else begin
-      cbuffer := cbuffer + buffer;
-      clipboard.astext := cbuffer;
-    end;
-
-  except
-    Screen.Cursor := crDefault;
-    if filename <> '' then
-    begin
-      messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-      FStream.Free;
-    end else
-      messagedlg('Error while copying data to Clipboard.', mterror, [mbOK], 0)
-  end;
+  FStream := nil;
   if filename <> '' then
-    FStream.Free;
+  try
+    FStream := TFileStream.Create(FileName, fmCreate)
+  except
+    messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
+    result := false;
+    exit;
+  end;
+
+  try
+    try
+      if FStream = nil then clipboard.astext := '';
+      buffer := '<?xml version="1.0"?>' + crlf + crlf +
+        '<'+title+'>' + crlf;
+      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+      else cbuffer := buffer;
+
+      cursorpos := ds.RecNo;
+      ds.DisableControls;
+      ds.First;
+      for i:=0 to ds.RecordCount-1 do
+      begin
+        Buffer := #9'<row>' + crlf;
+        // collect data:
+        for j:=0 to ds.FieldCount-1 do
+        begin
+          data := ds.Fields[j].AsString;
+          data := htmlentities(data);
+          Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
+        end;
+        buffer := buffer + #9'</row>' + crlf;
+        // write buffer:
+        if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+        else cbuffer := cbuffer + buffer;
+        ds.Next;
+      end;
+      ds.RecNo := cursorpos;
+      ds.EnableControls;
+      // footer:
+      buffer := '</'+title+'>' + crlf;
+      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
+      else begin
+        cbuffer := cbuffer + buffer;
+        clipboard.astext := cbuffer;
+      end;
+    except
+      on e: Exception do begin
+        MessageDlg(e.Message, mtError, [mbOK], 0);
+        result := false;
+       exit;
+      end;
+    end;
+  finally
+    if FStream <> nil then FStream.Free;
+    Screen.Cursor := crDefault;
+  end;
   result := true;
 end;
 
@@ -821,8 +823,8 @@ var
   end;
   stream : TFileStream;
 begin
+  Stream := TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
   try
-    Stream := TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
     i64.LoDWord := GetFileSize(Stream.Handle, @i64.HiDWord);
   finally
     Stream.Free;

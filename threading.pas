@@ -28,11 +28,13 @@ type
       constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler);
   end;
 
-
 function SetCompletionHandler(handler: TCompletionHandler; timeout: integer): Cardinal;
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
 function ExtractResults(RequestId: Cardinal): TNotifyStructure;
+
+const
+  INFINITE_TIMEOUT = $7fffffff;
 
 implementation
 
@@ -43,6 +45,7 @@ uses
   Helpers,
   Forms,
   Classes;
+
 
 var
   working: TThreadList;
@@ -76,13 +79,14 @@ var
   txt: string;
   RequestId: Cardinal;
 begin
-  debug(Format('thr: Setting completion handler for request %d.', [RequestId]));
+  debug('thr: Setting completion handler.');
   lockedList := working.LockList;
   try
     // Make a unique request id.
     repeat
-      RequestId := Random($ffffffff);
+      RequestId := Random($7fffffff);
     until IndexOf(lockedList, RequestId) = -1;
+    debug(Format('thr: Assigned request id %d.', [RequestId]));
     result := RequestId;
     // Raise an exception if a handler already exists.
     if IndexOf(lockedList, RequestId) > -1 then begin
@@ -94,7 +98,7 @@ begin
     ns := TNotifyStructure.Create(RequestId, handler);
     lockedList.Add(ns);
     // Optionally start timer.
-    if timeout <> INFINITE then begin
+    if timeout <> INFINITE_TIMEOUT then begin
       // todo: create a timer that activates NotifyInterupted on timeout.
     end;
   finally
@@ -151,6 +155,7 @@ var
   idx: integer;
   txt: string;
 begin
+  result := nil;
   lockedList := working.LockList;
   try
     idx := IndexOf(lockedList, RequestId);

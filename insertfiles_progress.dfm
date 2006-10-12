@@ -63,8 +63,6 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Top = 72
     Width = 385
     Height = 17
-    Min = 0
-    Max = 100
     Step = 1
     TabOrder = 0
   end

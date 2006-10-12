@@ -1111,6 +1111,8 @@ begin
     case PageControl1.ActivePageIndex of
       3 : begin query := ZQuery2; titel := ActualTable; end;
       4 : begin query := ZQuery1; titel := 'SQL-query'; end;
+      else
+        raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
     end;
 
     with SaveDialogExportData do begin
@@ -1241,6 +1243,7 @@ begin
 
     if DBtree.Selected.Level in [1, 2] then
     begin
+      tndb := nil;
       if DBTree.Selected.Level = 1 then
         tndb := DBTree.Selected
       else if DBTree.Selected.Level = 2 then

@@ -839,6 +839,7 @@ begin
   end;
 
   // List Databases and Tables-Names
+  tmpSelected := nil;
   for i:=0 to OnlyDBs2.Count-1 do
   begin
     GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true );
@@ -847,14 +848,15 @@ begin
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 37;
     tnode.SelectedIndex := 38;
-    if ActualDatabase = OnlyDBs2[i] then
-      tmpSelected := tnode;
-    for j:=1 to ZQuery3.RecordCount do
-    begin
+    if ActualDatabase = OnlyDBs2[i] then tmpSelected := tnode;
+      for j:=1 to ZQuery3.RecordCount do begin
       tchild := DBtree.Items.AddChild( tnode, ZQuery3.Fields[0].AsString );
       tchild.ImageIndex := 39;
       tchild.SelectedIndex := 40;
-      if (ActualTable = ZQuery3.Fields[0].AsString) and (tmpSelected.Text = OnlyDBs2[i]) then
+      if
+        (ActualTable = ZQuery3.Fields[0].AsString) and
+        (tmpSelected <> nil) and
+        (tmpSelected.Text = OnlyDBs2[i]) then
         tmpSelected := tchild;
       SynSQLSyn1.TableNames.Add( ZQuery3.Fields[0].AsString );
       ZQuery3.Next;
@@ -1681,14 +1683,18 @@ procedure TMDIChild.DBLoeschen(Sender: TObject);
 var
   tndb_ : TTreeNode;
 begin
-  // Drop DB?
-  if (Sender as TComponent).Name = 'PopupmenuDropDatabase' then // drop cmd from popupmenu
+  // Drop DB.
+  tndb_ := nil;
+  if (Sender as TComponent).Name = 'PopupmenuDropDatabase' then
+    // drop cmd from popupmenu
     tndb_ := DBRightClickSelectedItem
   else case DBTree.Selected.Level of  // drop cmd from toolbar
     1 : tndb_ := DBTree.Selected;
     2 : tndb_ := DBTree.Selected.Parent;
     3 : tndb_ := DBTree.Selected.Parent.Parent;
   end;
+
+  if tndb_ = nil then raise Exception.Create('Internal error: Cannot drop NIL database.');
 
   if MessageDlg('Drop Database "'+tndb_.Text+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+tndb_.Text+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     abort;
@@ -1856,10 +1862,19 @@ var
   sql_keyword             : String;
 begin
   // Execute user-defined SQL
-//  if SynMemo3.Focused then
-//    exit;
   if length(trim(SynMemoQuery.Text)) = 0 then
     exit;
+
+  if CurrentLine then
+    SQL := parseSQL(SynMemoQuery.LineText)         // Run current line
+  else begin
+    if Selection then
+      SQL := parsesql(SynMemoQuery.SelText) else   // Run selection
+      SQL := parsesql(SynMemoQuery.Text);          // Run all
+  end;
+  if SQL.Count > 1 then
+    SQLscriptstart := GetTickCount
+  else exit;
 
   try
     CheckConnection;
@@ -1877,19 +1892,9 @@ begin
     ZQuery1.Active := false;
     ZQuery1.DisableControls;
 
-    if CurrentLine then
-      SQL := parseSQL(SynMemoQuery.LineText)         // Run current line
-    else begin
-      if Selection then
-        SQL := parsesql(SynMemoQuery.SelText) else   // Run selection
-        SQL := parsesql(SynMemoQuery.Text);          // Run all
-    end;
-    if SQL.Count > 1 then
-      SQLscriptstart := GetTickCount
-    else
-      LabelResultinfo.Caption := '';
-
     rowsaffected := 0;
+    fieldcount := 0;
+    recordcount := 0;
     ProgressBarQuery.Max := SQL.Count;
     ProgressBarQuery.Position := 0;
     ProgressBarQuery.show;
@@ -3579,6 +3584,7 @@ begin
   with TRegistry.Create do
   begin
     openkey(regpath, true);
+    j := 0;
     for i:=0 to 19 do
     begin
       if not ValueExists('SQLFile'+inttostr(i)) then

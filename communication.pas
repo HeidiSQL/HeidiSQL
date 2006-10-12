@@ -176,7 +176,7 @@ begin
   data.dwData := CMD_EXECUTEQUERY;
   data.cbData := Length(query) + 1;
   data.lpData := PChar(query);
-  SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
+  err := SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
   if err <> 0 then Exception.CreateFmt('Remote returned error %d when asked to execute query', [err]);
 end;
 
@@ -189,8 +189,6 @@ end;
 
 function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; window: THandle): Cardinal;
 var
-  data: TCopyDataStruct;
-  err: integer;
   ms: TMemoryStream;
   req: Cardinal;
 begin

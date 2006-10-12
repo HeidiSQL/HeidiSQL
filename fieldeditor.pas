@@ -812,7 +812,9 @@ begin
     if ListBox2.ItemIndex > 0 then
       sel := ListBox2.ItemIndex-1
     else if ListBox2.Items.Count > 1 then
-      sel := 0;
+      sel := 0
+    else
+      raise Exception.Create('Unexpected sel value in AddField.');
     ListBox2.Items.Delete(ListBox2.ItemIndex);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
     ListBox2.ItemIndex := sel;
@@ -841,7 +843,9 @@ begin
     if ListBox1.ItemIndex > 0 then
       sel := ListBox1.ItemIndex-1
     else if ListBox1.Items.Count > 1 then
-      sel := 0;
+      sel := 0
+    else
+      raise Exception.Create('Unexpected sel value in RemoveField.');
     ListBox2.Items.Add(ListBox1.Items[ListBox1.ItemIndex]);
     ListBox1.Items.Delete(ListBox1.ItemIndex);
     ListBox1.ItemIndex := sel;

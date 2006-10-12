@@ -251,6 +251,7 @@ var
   i, lastdel : Integer;
 begin
   Screen.Cursor := crHourglass;
+  lastdel := -1;
   ListViewFiles.Items.BeginUpdate;
   for i:=ListViewFiles.Items.Count-1 downto 0 do
     if ListViewFiles.Items[i].Selected then begin
