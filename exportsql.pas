@@ -249,18 +249,18 @@ begin
   list := TStringList(res.GetResult);
   // Hide the cancel dialog if it's still showing.
   if cancelDialog.Visible then cancelDialog.Close;
-  if error <> nil then begin
-    // Error occurred while fetching remote list,
-    // just switch back to the 'output to file' choice.
-    radioFile.Checked := true;
-    error.Free;
-  end else begin
+  if list <> nil then begin
     // Fetching list was successful.
     comboOtherHostDatabase.Clear;
     for j:=0 to list.Count - 1 do begin
       comboOtherHostDatabase.Items.Add(list[j]);
     end;
     list.Free;
+  end else begin
+    // Error occurred while fetching remote list,
+    // just switch back to the 'output to file' choice.
+    radioFile.Checked := true;
+    error.Free;
   end;
   res.Free;
 end;
