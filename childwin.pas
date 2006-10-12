@@ -90,7 +90,6 @@ type
     MenuAddField: TMenuItem;
     btnTableEditField: TToolButton;
     MenuEditField: TMenuItem;
-    Timer2: TTimer;
     popupResultGrid: TPopupMenu;
     Copyrecords1: TMenuItem;
     CopyasCSVData1: TMenuItem;
@@ -314,7 +313,6 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure UpdateField(Sender: TObject);
-    procedure Timer2Timer(Sender: TObject);
     procedure MenuAdvancedPropertiesClick(Sender: TObject);
     procedure ListTablesEdited(Sender: TObject; Item: TListItem;
       var S: String);
@@ -2395,9 +2393,6 @@ end;
 // Primary key abfragen - delete from .. where
 procedure TMDIChild.FormShow(Sender: TObject);
 begin
-  // initialize some values and components:
-  timer2.Enabled := true;
-
   { TODO : only load file when autoconnected ?? }
   if (paramstr(1) <> '') and Main.loadsqlfile then
   try
@@ -2468,15 +2463,6 @@ begin
     end;
     Screen.Cursor := crDefault;
   end;
-end;
-
-
-procedure TMDIChild.Timer2Timer(Sender: TObject);
-begin
-  // show mdi-form (krücke...)
-  show;
-  Application.ProcessMessages;
-  Timer2.Enabled := false;
 end;
 
 

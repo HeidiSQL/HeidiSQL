@@ -1775,12 +1775,6 @@ object MDIChild: TMDIChild
       OnClick = viewdata
     end
   end
-  object Timer2: TTimer
-    Interval = 1
-    OnTimer = Timer2Timer
-    Left = 39
-    Top = 157
-  end
   object popupResultGrid: TPopupMenu
     Images = MainForm.ImageList1
     OnPopup = popupResultGridPopup
@@ -1854,7 +1848,7 @@ object MDIChild: TMDIChild
     Enabled = False
     Interval = 10
     OnTimer = Timer5Timer
-    Left = 135
+    Left = 39
     Top = 157
   end
   object DataSource1: TDataSource
