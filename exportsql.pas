@@ -386,6 +386,7 @@ var
   donext                    : Boolean;
   PBuffer                   : PChar;
   sql                       : String;
+  target_version            : Integer;
 begin
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -403,6 +404,10 @@ begin
 
   // open output file if needed.
   if tofile then begin
+    case comboTargetCompat.ItemIndex of
+      0: target_version := 32300;
+      1: target_version := 51000;
+    end;
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
     except
@@ -416,9 +421,17 @@ begin
   end;
 
   // which db is destination?
-  if todb then DB2export := comboOtherDatabase.Text;
+  if todb then begin
+    target_version := TMDIChild(Mainform.ActiveMDIChild).mysql_version;
+    DB2export := comboOtherDatabase.Text;
+  end;
 
   if tohost then begin
+    // TODO: Disable the combo and fetch remote version.
+    case comboTargetCompat.ItemIndex of
+      0: target_version := 32300;
+      1: target_version := 51000;
+    end;
     win2export := appHandles[comboOtherHost.ItemIndex];
     DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
   end;
@@ -510,6 +523,21 @@ begin
 
         if exporttables then
         begin
+          dropquery := '';
+          if comboTables.ItemIndex = TAB_DROP_CREATE then begin
+            if tofile then
+              dropquery := 'DROP TABLE IF EXISTS ' + mask(checkListTables.Items[i])
+            else
+              dropquery := 'DROP TABLE IF EXISTS ' + mask(DB2Export) + '.' + mask(checkListTables.Items[i]);
+          end;
+
+          createquery := '';
+          if tofile then begin
+            createquery := '#' + crlf;
+            createquery := createquery + '# Table structure for table ''' + checkListTables.Items[i] + '''' + crlf;
+            createquery := createquery + '#' + crlf + crlf;
+          end;
+          
           if mysql_version < 32320 then begin
             GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
             fieldcount := ZQuery3.FieldCount;
@@ -517,30 +545,14 @@ begin
             GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
             fieldcount := -1;
           end;
-          createquery := '';
-          dropquery := '';
-          if tofile then begin
-            createquery := '#' + crlf;
-            createquery := createquery + '# Table structure for table ''' + checkListTables.Items[i] + '''' + crlf;
-            createquery := createquery + '#' + crlf + crlf;
-          end;
-
-          if comboTables.ItemIndex = TAB_DROP_CREATE then begin
-            if tofile then
-              createquery := createquery + 'DROP TABLE IF EXISTS ' + mask(checkListTables.Items[i]) + ';' + crlf
-            else
-              dropquery := createquery + 'DROP TABLE IF EXISTS ' + mask(DB2Export) + '.' + mask(checkListTables.Items[i]) + '' + crlf;
-          end;
-
           if mysql_version >= 32320 then
           begin
             sql := ZQuery3.Fields[1].AsString;
-            sql := fixNewlines(sql) + ';';
+            sql := fixNewlines(sql);
             if comboTargetCompat.ItemIndex = 1 then begin
               sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
             end;
           end;
-
           if mysql_version < 32320 then begin
             if tofile then
               sql := 'CREATE TABLE IF NOT EXISTS ' + mask(checkListTables.Items[i]) + ' (' + crlf
@@ -606,7 +618,7 @@ begin
                 keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + mask(keylist[k].Name) + ' (';
               keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
             end;
-            sql := sql + keystr + crlf + ');';
+            sql := sql + keystr + crlf + ')';
           end; // mysql_version < 32320
 
           if comboTables.ItemIndex = TAB_CREATE_IGNORE then
@@ -618,36 +630,29 @@ begin
 
           // Output CREATE TABLE to file
           if tofile then begin
-            createquery := createquery + crlf;
+            createquery := createquery + ';' + crlf;
+            if dropquery <> '' then dropquery := dropquery + ';' + crlf;
             wfs(f);
             wfs(f);
+            if dropquery <> '' then wfs(f, dropquery);
             wfs(f, createquery);
           end
 
           // Run CREATE TABLE on another Database
           else if todb then begin
-            if mysql_version >= 32320 then
-            begin
-              ExecUseQuery( DB2Export );
-            end;
+            ExecUseQuery( DB2Export );
             if comboTables.ItemIndex = TAB_DROP_CREATE then
               ExecQuery( dropquery );
             ExecQuery( createquery );
-            if mysql_version >= 32320 then
-            begin
-              ExecUseQuery( comboSelectDatabase.Text );
-            end;
+            ExecUseQuery( comboSelectDatabase.Text );
           end
 
           // Run CREATE TABLE on another host
           else if tohost then begin
-            if mysql_version >= 32320 then
-            begin
-              RemoteExecUseQuery(win2export, mysql_version, DB2Export);
-            end;
+            RemoteExecUseQuery(win2export, mysql_version, DB2Export);
             if comboTables.ItemIndex = TAB_DROP_CREATE then
               RemoteExecQuery(win2export, dropquery);
-              RemoteExecQuery(win2export, createquery);
+            RemoteExecQuery(win2export, createquery);
           end;
 
           barProgress.StepIt;
@@ -705,13 +710,13 @@ begin
             end
             else if todb then
             begin
-              if mysql_version > 40000 then
+              if target_version > 40000 then
                 ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
               ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
             end
             else if tohost then
             begin
-              if mysql_version > 40000 then
+              if target_version > 40000 then
                 RemoteExecQuery(win2export, 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS');
               RemoteExecQuery(win2export, 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE');
             end;
@@ -812,13 +817,13 @@ begin
             else if todb then
             begin
               ExecQuery( 'UNLOCK TABLES' );
-              if mysql_version > 40000 then
+              if target_version > 40000 then
                 ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS' );
             end
             else if tohost then
             begin
               RemoteExecQuery(win2export, 'UNLOCK TABLES');
-              if mysql_version > 40000 then
+              if target_version > 40000 then
                 RemoteExecQuery(win2export, 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' ENABLE KEYS');
             end;
           end;
