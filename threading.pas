@@ -76,11 +76,14 @@ var
   txt: string;
   RequestId: Cardinal;
 begin
-  RequestId := Random($ffffffff);
-  result := RequestId;
   debug(Format('thr: Setting completion handler for request %d.', [RequestId]));
   lockedList := working.LockList;
   try
+    // Make a unique request id.
+    repeat
+      RequestId := Random($ffffffff);
+    until IndexOf(lockedList, RequestId) = -1;
+    result := RequestId;
     // Raise an exception if a handler already exists.
     if IndexOf(lockedList, RequestId) > -1 then begin
       txt := Format('Internal error: Request %d is already in a waiting state?', [RequestId]);
