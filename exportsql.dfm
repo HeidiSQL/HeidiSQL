@@ -69,7 +69,7 @@ object ExportSQLForm: TExportSQLForm
       Width = 22
       Height = 22
       Anchors = [akTop, akRight]
-      TabOrder = 0
+      TabOrder = 2
       OnClick = btnFileBrowseClick
       Glyph.Data = {
         F6000000424DF600000000000000760000002800000010000000100000000100
@@ -96,7 +96,7 @@ object ExportSQLForm: TExportSQLForm
       Width = 113
       Height = 17
       Caption = 'Another database:'
-      TabOrder = 2
+      TabOrder = 3
       OnClick = radioOtherDatabaseClick
     end
     object radioFile: TRadioButton
@@ -106,7 +106,7 @@ object ExportSQLForm: TExportSQLForm
       Height = 17
       Caption = 'File:'
       Checked = True
-      TabOrder = 3
+      TabOrder = 0
       TabStop = True
       OnClick = radioFileClick
     end
@@ -194,7 +194,7 @@ object ExportSQLForm: TExportSQLForm
         Height = 213
         Anchors = [akLeft, akTop, akRight, akBottom]
         ItemHeight = 13
-        TabOrder = 0
+        TabOrder = 1
       end
       object comboSelectDatabase: TComboBox
         Left = 8
@@ -204,7 +204,7 @@ object ExportSQLForm: TExportSQLForm
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 13
-        TabOrder = 1
+        TabOrder = 0
         OnChange = comboSelectDatabaseChange
       end
       object toolbarSelectTools: TToolBar
