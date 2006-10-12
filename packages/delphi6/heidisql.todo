@@ -1,9 +1,0 @@
-{TODO 2 : Ändern der Tabellen-Typen, auch bei Create table!}{DONE 2 : Test unter ME!! kernel32.dll-Fehler bei ende!!}{TODO 1 : Tabellen zwischen DBs verschieben..}{DONE 1 : Felder hoch und runter schieben}{DONE 1 : Renaming tables -> delete in dbtree}{DONE 1 : Data: Save as > Text, CSV, HTML-Table
-html-> filename und titel unterscheiden je nach tabsheet}{DONE 1 : Data: Copy as > Text, CSV, HTML-Table}{DONE 1 : Save CSV-Data mit "enclosed by.."}{DONE : Index-Editor}{DONE : Create DB fix}{DONE : Insert}{DONE : Neue Tabelle erstellen}{DONE : Feld hinzufügen}{TODO : Gucken, ob Internetverbindung besteht}{DONE : Feldeigenschaften anzeigen und ändern}{DONE : Fails abfangen}
-
-
-
-
-
-
- 
