@@ -130,7 +130,7 @@ begin
         Label6.Repaint;
       end;
       ProgressBar1.StepIt;
-      Application.ProcessMessages;
+      ProgressBar1.Repaint;
     end;
   end;
 
