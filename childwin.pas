@@ -2346,8 +2346,12 @@ begin
   end;
 
   mainform.MenuUserManager.Enabled := CanAcessMysqlFlag;
+  mainform.ButtonUserManager.Enabled := CanAcessMysqlFlag;
   if not CanAcessMysqlFlag then
+  begin
     mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
+    mainform.ButtonUserManager.Hint := 'you have no access to the privilege-tables';
+  end;
   // Otherwise leave the default hint
 end;
 
