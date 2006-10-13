@@ -68,10 +68,11 @@ begin
     for i:=0 to ListViewFiles.Items.Count-1 do
     begin
       if self.canceled then break;
-      self.Label4.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
+      Label4.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
+      Label4.Repaint;
       filename := ListViewFiles.Items[i].Caption;
-      self.Label5.Caption := mince(filename, 30) + ' ('+ListViewFiles.Items[i].SubItems[0]+' KB)';
-      Application.ProcessMessages;
+      Label5.Caption := mince(filename, 30) + ' ('+ListViewFiles.Items[i].SubItems[0]+' KB)';
+      Label5.Repaint;
       with TMDIChild(Mainform.ActiveMDIChild) do
       begin
         ZQuery3.ParamCheck := true;

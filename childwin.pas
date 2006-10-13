@@ -1901,7 +1901,7 @@ begin
     for i:=0 to SQL.Count-1 do
     begin
       ProgressBarQuery.Stepit;
-      Application.ProcessMessages;
+      ProgressBarQuery.Repaint;
       if sql[i] = '' then
         continue;
       // open last query with data-aware:

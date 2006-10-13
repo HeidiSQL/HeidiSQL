@@ -732,7 +732,7 @@ begin
             inc(j);
             lblProgress.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
             if ZQuery3.RecNo mod 100 = 0 then
-              Application.ProcessMessages;
+              lblProgress.Repaint;
             if insertquery = '' then
             begin
               case comboData.ItemIndex of

@@ -48,7 +48,7 @@ function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; wind
 
 (*
  Fill in resulting data and return waiting thread to caller.
- Call from ProcessMessages() when a DB list message has been received.
+ Call from message handler when a DB list message has been received.
 *)
 procedure FinishRemoteGetDbCommand(msg: TWMCopyData);
 
