@@ -1079,11 +1079,10 @@ end;
 // Escape text string for comparison.
 function escLike(Text: string): string;
 begin
-  Result := StringReplace(Text, #39, #39#39, [rfReplaceAll]);
-  Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
+  Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+  Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
   Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
   Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
-  Result := #39 + Result + #39;
 end;
 
 // Escape characters which MySQL doesn't strictly care about, but which might confuse editors etc.
