@@ -1859,20 +1859,24 @@ var
   fieldcount, recordcount : Integer;
   sql_keyword             : String;
 begin
-  // Execute user-defined SQL
-  if length(trim(SynMemoQuery.Text)) = 0 then
-    exit;
-
-  if CurrentLine then
-    SQL := parseSQL(SynMemoQuery.LineText)         // Run current line
-  else begin
-    if Selection then
-      SQL := parsesql(SynMemoQuery.SelText) else   // Run selection
-      SQL := parsesql(SynMemoQuery.Text);          // Run all
+  if CurrentLine then begin
+    // Run current line
+    SQL := parseSQL(SynMemoQuery.LineText);
+  end else if Selection then begin
+    // Run selection
+    SQL := parsesql(SynMemoQuery.SelText);
+  end else begin
+    // Run all
+    SQL := parsesql(SynMemoQuery.Text);
   end;
-  if SQL.Count > 1 then
-    SQLscriptstart := GetTickCount
-  else exit;
+
+  if SQL.Count = 0 then begin
+    LabelResultinfo.Caption := '(nothing to do)';
+    exit;
+  end;
+  
+  SQLscriptstart := GetTickCount;
+  LabelResultinfo.Caption := '';
 
   try
     CheckConnection;
@@ -1962,11 +1966,13 @@ begin
       SQLTime := (SQLend - SQLstart) / 1000;
 
       LabelResultinfo.Caption :=
-        FormatNumber( rowsaffected ) + ' row(s) affected ' +
-        FormatNumber( fieldcount ) + ' field(s), ' +
-        FormatNumber( recordcount ) + ' record(s) in last resultset. ' +
-        'Time: '+FormatNumber( SQLTime, 3)+' sec.';
-
+        FormatNumber( rowsaffected ) + ' row(s) affected, ' +
+        FormatNumber( fieldcount ) + ' field(s) / ' +
+        FormatNumber( recordcount ) + ' record(s) in last result set.';
+      if SQL.Count = 1 then begin
+        LabelResultinfo.Caption := LabelResultinfo.Caption +
+          ' Query time: '+FormatNumber( SQLTime, 3)+' sec.';
+      end;
     end;
     ProgressBarQuery.hide;
     Mainform.ExecuteQuery.Enabled := true;
@@ -1977,7 +1983,7 @@ begin
     if SQL.Count > 1 then begin
       SQLscriptend := GetTickCount;
       SQLTime := (SQLscriptend - SQLscriptstart) / 1000;
-      LabelResultinfo.Caption := LabelResultinfo.Caption + ' Script-Time: ' + FormatNumber(SQLTime, 3)+' sec.';
+      LabelResultinfo.Caption := LabelResultinfo.Caption + ' Batch time: ' + FormatNumber(SQLTime, 3)+' sec.';
     end;
 
 

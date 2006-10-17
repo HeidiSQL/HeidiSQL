@@ -224,13 +224,19 @@ begin
 end;
 
 
+procedure addResult(list: TStringList; s: string);
+begin
+  s := trim(s);
+  if length(s) > 0 then list.Add(s);
+end;
+
 // tokenize sql-script and return a TStringList with sql-statements
 function parsesql(sql: String) : TStringList;
 var
   i, start                          : Integer;
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
-  skip, inbigcomment                : Boolean;
+  inbigcomment                      : Boolean;
   encloser, secchar, thdchar        : Char;
 begin
   result := TStringList.Create;
@@ -242,37 +248,38 @@ begin
   inbigcomment := false;
   inconditional := false;
   condterminated := false;
-  skip := false;
   encloser := ' ';
 
-  for i:=1 to length(sql) do begin
-    if skip then begin
-      // workaround for inability to modify for loop variable..
-      skip := false;
-      continue;
-    end;
+  i := 0;
+  while i < length(sql) do begin
+    i := i + 1;
 
     secchar := ' ';
     thdchar := ' ';
     if i < length(sql) then secchar := sql[i + 1];
     if i + 1 < length(sql) then thdchar := sql[i + 2];
 
-    if ((sql[i] = '#') or (sql[i] + secchar = '--')) and (not instring) and (not inbigcomment) then begin
+    if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
       incomment := true;
+    end;
+    if (sql[i] + secchar = '--') and (not instring) and (not inbigcomment) then begin
+      incomment := true;
+      sql[i] := ' ';
+      i := i + 1;
     end;
     if (sql[i] + secchar = '/*') and (not (thdchar = '!')) and (not instring) and (not incomment) then begin
       inbigcomment := true;
       incomment := true;
-      sql[i + 1] := ' ';
-      skip := true;
+      sql[i] := ' ';
+      i := i + 1;
     end;
     if (sql[i] in [#13, #10]) and incomment and (not inbigcomment) then incomment := false;
     if (sql[i] + secchar = '*/') and inbigcomment then begin
       inbigcomment := false;
       incomment := false;
-      skip := true;
       sql[i] := ' ';
-      sql[i + 1] := ' ';
+      i := i + 1;
+      sql[i] := ' ';
       continue;
     end;
     if incomment or inbigcomment then begin
@@ -283,49 +290,62 @@ begin
     if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) then begin
       if instring and (sql[i] = encloser) then begin
         if secchar = encloser then
-          skip := true                          // encoded encloser-char
+          i := i + 1                            // encoded encloser-char
         else
           instring := not instring              // string closed
       end
-      else if (not instring) then begin         // string is following
+      else if not instring then begin           // string is following
         instring := true;
         encloser := sql[i];                     // remember enclosing-character
       end;
+      continue;
     end;
 
     if (not instring) and (not incomment) and (sql[i] + secchar + thdchar = '/*!') then begin
       inconditional := true;
       condterminated := false;
+      i := i + 2;
+      continue;
     end;
 
     if (not instring) and (not incomment) and (sql[i] + secchar = '*/') and inconditional then begin
+    // note:
+    // we do not trim the start of the SQL inside conditional
+    // comments like we do on non-commented sql.
       inconditional := false;
       if condterminated then begin
-        result.Add(trim(copy(sql, start, i-start+2)));
+        addResult(result, trim(copy(sql, start, i-start)) + '*/');
         start := i+2;
-        skip := true;
         condterminated := false;
       end;
+      // note:
+      // the trail of the SQL inside the conditional comment will
+      // not get trimmed, as we otherwise do (above) in cases where
+      // the semicolon is contained within the conditional comment.
+      i := i + 1;
+      continue;
     end;
 
     if (sql[i] = '\') or backslash then
       backslash := not backslash;
 
-    if (sql[i] = ';') and (not instring) then
-    begin
+    if (sql[i] = ';') and (not instring) then begin
       if inconditional then
       begin
+        // note:
+        // this logic is wrong, it only supports 1 statement
+        // inside each /*!nnnnn blah */ conditional comment.
         condterminated := true;
         sql[i] := ' ';
       end else begin
-        result.Add(trim(copy(sql, start, i-start)));
+        addResult(result, copy(sql, start, i-start));
         start := i+1;
       end;
     end;
   end;
 
   if start < i then
-    result.Add(trim(copy(sql, start, i-start)));
+    addResult(result, copy(sql, start, i-start+1));
 end;
 
 
