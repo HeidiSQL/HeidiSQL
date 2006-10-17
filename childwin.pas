@@ -155,7 +155,7 @@ type
     MenuChangeType1: TMenuItem;
     MenuChangeType4: TMenuItem;
     MenuCopyTable: TMenuItem;
-    PageControl3: TPageControl;
+    PageControlBottom: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     TabSheet8: TTabSheet;
@@ -668,7 +668,7 @@ begin
       if valueExists('dbtreewidth') then
         dbtree.Width := ReadInteger('dbtreewidth');
       if valueExists('sqloutheight') then
-        PageControl3.Height := ReadInteger('sqloutheight');
+        PageControlBottom.Height := ReadInteger('sqloutheight');
       if valueExists('DefaultColWidth') then
         Mainform.DefaultColWidth := ReadInteger('DefaultColWidth')
       else
@@ -755,7 +755,7 @@ begin
 
       WriteInteger('querymemoheight', panel7.Height);
       WriteInteger('dbtreewidth', dbtree.width);
-      WriteInteger('sqloutheight', PageControl3.Height);
+      WriteInteger('sqloutheight', PageControlBottom.Height);
     end;
   end;
   mainform.ToolBarData.visible := false;
@@ -960,6 +960,7 @@ var
   columnname               : String;
   columnexists             : Boolean;
   found_rows               : Int64;
+  select_base              : String;
 begin
   // view table-data with zeos
   if viewingdata then
@@ -1073,10 +1074,11 @@ begin
     ZConn.Database := ActualDatabase;
     ZQuery2.Close;
     ZQuery2.SQL.Clear;
-    ZQuery2.SQL.Add( 'SELECT' );
+    select_base := 'SELECT ';
     if mysql_version >= 40000 then
-      ZQuery2.SQL.Add( 'SQL_CALC_FOUND_ROWS' );
-    ZQuery2.SQL.Add( '* FROM ' + mask(ActualTable) );
+      select_base := select_base + ' SQL_CALC_FOUND_ROWS';
+    select_base := select_base + ' * FROM ' + mask(ActualTable);
+    ZQuery2.SQL.Add( select_base );
     if trim(self.SynMemoFilter.Text) <> '' then
       ZQuery2.SQL.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
     if sorting <> '' then
@@ -1089,12 +1091,27 @@ begin
       on E:Exception do
       begin
         LogSQL( E.Message, true );
-        MessageDlg(E.Message , mtError, [mbOK], 0);
-        ZQuery2.Active := false;
-        viewingdata := false;
-    		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-        Screen.Cursor := crDefault;
-        exit;
+        MessageDlg(E.Message + CRLF + CRLF + 'Probably you have defined an incorrect WHERE-clause.', mtError, [mbOK], 0);
+        // retry query without filter and sorting, should fix bug #1578471
+        ZQuery2.SQL.Text := select_base;
+        if mainform.CheckBoxLimit.Checked then
+          ZQuery2.SQL.Add('LIMIT ' + intToStr(mainform.UpDownLimitStart.Position) + ', ' + intToStr(mainform.UpDownLimitEnd.position) );
+        try
+          ZQuery2.Open;
+          // Make sure the user sees the applied filter in the case the filter is faulty
+          PageControlBottom.ActivePage := Tabsheet8;
+        except
+          on E:Exception do
+          begin
+            LogSQL( E.Message, true );
+            MessageDlg(E.Message , mtError, [mbOK], 0);
+            ZQuery2.Active := false;
+            viewingdata := false;
+            MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+            Screen.Cursor := crDefault;
+            exit;
+          end;
+        end;
       end;
     end;
  		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
@@ -2514,7 +2531,7 @@ end;
 
 procedure TMDIChild.MenuViewBlobClick(Sender: TObject);
 begin
-  PageControl3.ActivePageIndex := 1;
+  PageControlBottom.ActivePageIndex := 1;
 end;
 
 
@@ -2736,7 +2753,7 @@ end;
 procedure TMDIChild.Filter1Click(Sender: TObject);
 begin
   // Set WHERE-Filter
-  PageControl3.ActivePageIndex := 2;
+  PageControlBottom.ActivePageIndex := 2;
   SynMemoFilter.SetFocus;
 end;
 
@@ -2902,7 +2919,7 @@ begin
   end;
 
   SynMemoFilter.Text := gridData.SelectedField.FieldName + ' ' + filter;
-  PageControl3.ActivePageIndex := 2;
+  PageControlBottom.ActivePageIndex := 2;
   SynMemoFilter.SetFocus;
   SetFilter(self);
 end;
@@ -3634,7 +3651,7 @@ begin
   // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
 //  showmessage((sender as TControl).classname);
   if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControl4.ActivePageIndex = 0) then begin
-    PageControl3.ActivePageIndex := 1;
+    PageControlBottom.ActivePageIndex := 1;
     DBMemo1.SetFocus;
   end;
 end;
@@ -3896,7 +3913,7 @@ begin
       hasIrregularChars(DBMemo1.Field.AsString) or
       hasIrregularNewlines(DBMemo1.Field.AsString);
 
-    PageControl3.ActivePageIndex := 1;
+    PageControlBottom.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
     if EDBImage1.Picture.Height > 0 then
     begin
