@@ -1455,7 +1455,7 @@ begin
   CheckColumnConvertion(ColumnIndex, stBinaryStream);
 {$ENDIF}
   TempBlob := GetBlobObject(FBuffer, ColumnIndex);
-  if (TempBlob <> nil) and not TempBlob.IsEmpty then
+  if (TempBlob <> nil) then
     Result := TempBlob.GetStream
   else Result := nil;
   IsNull := Result = nil;
