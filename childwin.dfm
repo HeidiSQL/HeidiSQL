@@ -948,7 +948,7 @@ object MDIChild: TMDIChild
       end
     end
   end
-  object PageControl3: TPageControl
+  object PageControlBottom: TPageControl
     Left = 0
     Top = 278
     Width = 677
