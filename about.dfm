@@ -31,6 +31,7 @@ object AboutBox: TAboutBox
     BevelInner = bvRaised
     BevelOuter = bvLowered
     Color = clWhite
+    ParentBackground = False
     TabOrder = 0
     object Image1: TImage
       Left = 11
@@ -1161,7 +1162,6 @@ object AboutBox: TAboutBox
     Default = True
     TabOrder = 1
     OnClick = Button1Click
-    ExplicitTop = 288
   end
   object Panel2: TPanel
     Left = 1
@@ -1173,7 +1173,6 @@ object AboutBox: TAboutBox
     BevelOuter = bvLowered
     TabOrder = 2
     OnMouseMove = MouseOver
-    ExplicitHeight = 313
     DesignSize = (
       411
       343)
@@ -1277,7 +1276,6 @@ object AboutBox: TAboutBox
       ReadOnly = True
       ScrollBars = ssVertical
       TabOrder = 0
-      ExplicitHeight = 133
     end
   end
   object Button2: TButton
@@ -1290,7 +1288,6 @@ object AboutBox: TAboutBox
     Caption = 'Donation...'
     TabOrder = 3
     OnClick = OpenURL
-    ExplicitTop = 250
   end
   object Button3: TButton
     Left = 418
@@ -1302,6 +1299,5 @@ object AboutBox: TAboutBox
     Caption = 'Board'
     TabOrder = 4
     OnClick = OpenURL
-    ExplicitTop = 216
   end
 end

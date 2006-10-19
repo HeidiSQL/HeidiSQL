@@ -418,8 +418,10 @@ type
     procedure CheckConnection();
     procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
+    procedure AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
+    procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     function GetDBNames: TStringList;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
 
@@ -3471,51 +3473,53 @@ begin
 end;
 
 
-procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true );
+procedure TMDIChild.AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+var
+  i                     : Integer;
+  Values, newfilelist   : TStringList;
+  reg                   : TRegistry;
+  savedfilename         : String;
+begin
+  // Add or remove filename to/from history, avoiding duplicates
 
-  procedure AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true );
-  var
-    i                     : Integer;
-    Values, newfilelist   : TStringList;
-    reg                   : TRegistry;
-    savedfilename         : String;
+  reg := TRegistry.Create;
+  reg.openkey(regpath, true);
+  newfilelist := TStringList.create;
+  Values := TStringList.create;
+  reg.GetValueNames( Values );
+
+  // Add new filename
+  if AddIt then
   begin
-    // Add or remove filename to/from history, avoiding duplicates
-
-    reg := TRegistry.Create;
-    reg.openkey(regpath, true);
-    newfilelist := TStringList.create;
-    Values := TStringList.create;
-    reg.GetValueNames( Values );
-
-    // Add new filename
-    if AddIt then
-    begin
-      newfilelist.Add( filename );
-    end;
-
-    // Add all other filenames
-    for i:=0 to Values.Count-1 do
-    begin
-      if pos( 'SQLFile', Values[i] ) <> 1 then
-        continue;
-      savedfilename := reg.ReadString( Values[i] );
-      if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
-        newfilelist.add( savedfilename );
-      reg.DeleteValue( Values[i] );
-    end;
-
-    // Save new list
-    for i := 0 to newfilelist.Count-1 do
-    begin
-      if i >= 20 then
-        break;
-      reg.WriteString( 'SQLFile'+inttostr(i), newfilelist[i] );
-    end;
-
-    reg.Free;
+    newfilelist.Add( filename );
   end;
 
+  // Add all other filenames
+  for i:=0 to Values.Count-1 do
+  begin
+    if pos( 'SQLFile', Values[i] ) <> 1 then
+      continue;
+    savedfilename := reg.ReadString( Values[i] );
+    reg.DeleteValue( Values[i] );
+    if CheckIfFileExists and (not FileExists( savedfilename )) then
+      continue;
+    if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
+      newfilelist.add( savedfilename );
+  end;
+
+  // Save new list
+  for i := 0 to newfilelist.Count-1 do
+  begin
+    if i >= 20 then
+      break;
+    reg.WriteString( 'SQLFile'+inttostr(i), newfilelist[i] );
+  end;
+
+  reg.Free;
+end;
+
+
+procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true );
 
 var
   tmpstr, filecontent      : String;
@@ -3570,6 +3574,7 @@ var
   i, j                       : Integer;
   menuitem, snippetsfolder   : TMenuItem;
   snippets                   : TStringList;
+  sqlFilename                : String;
 begin
   // Fill the popupQueryLoad menu
 
@@ -3602,14 +3607,31 @@ begin
     begin
       if not ValueExists('SQLFile'+inttostr(i)) then
         continue;
+      sqlFilename := ReadString( 'SQLFile'+inttostr(i) );
       inc(j);
       menuitem := TMenuItem.Create( popupQueryLoad );
-      menuitem.Caption := inttostr(j) + ' ' + ReadString('SQLFile'+inttostr(i));
+      menuitem.Caption := inttostr(j) + ' ' + sqlFilename;
       menuitem.OnClick := popupQueryLoadClick;
       popupQueryLoad.Items.Add(menuitem);
     end;
     Free;
   end;
+
+  // Separator + "Remove absent files"
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := '-';
+  popupQueryLoad.Items.Add(menuitem);
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := 'Remove absent files';
+  menuitem.OnClick := PopupQueryLoadRemoveAbsentFiles;
+  popupQueryLoad.Items.Add(menuitem);
+
+end;
+
+procedure TMDIChild.PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+begin
+  AddOrRemoveFromQueryLoadHistory( '', false, true );
+  FillPopupQueryLoad;
 end;
 
 
