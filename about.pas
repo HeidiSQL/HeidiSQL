@@ -41,8 +41,10 @@ type
     { Public declarations }
   end;
 
-var
-  AboutBox: TAboutBox;
+  procedure AboutWindow (AOwner : TComponent);
+
+//var
+  //AboutBox: TAboutBox;
 
 implementation
 
@@ -50,6 +52,14 @@ uses main;
 {$R *.DFM}
 
 
+procedure AboutWindow (AOwner : TComponent);
+var
+  f : TAboutBox;
+begin
+  f := TAboutBox.Create(AOwner);
+  f.ShowModal; // don't care about result
+  FreeAndNil (f);
+end;
 
 procedure TAboutBox.OKButtonClick(Sender: TObject);
 begin

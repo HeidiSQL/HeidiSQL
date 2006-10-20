@@ -683,8 +683,7 @@ end;
 
 procedure TMainForm.UserManagerExecute(Sender: TObject);
 begin
-  // Usermanager
-  usermanagerform.showmodal;
+  UserManagerWindow (Self);
 end;
 
 procedure TMainForm.menuWindowClick(Sender: TObject);
@@ -725,7 +724,7 @@ end;
 procedure TMainForm.ShowAboutBoxExecute(Sender: TObject);
 begin
   // Info-Box
-  AboutBox.showmodal;
+  AboutWindow (Self);
 end;
 
 procedure TMainForm.DiagnosticsExecute(Sender: TObject);

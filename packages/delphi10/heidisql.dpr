@@ -30,6 +30,8 @@ uses
   synchronization in '..\..\synchronization.pas',
   communication in '..\..\communication.pas',
   threading in '..\..\threading.pas';
+  //UserMgr in '..\..\UserMgr.pas',
+  //MysqlConn in '..\..\MysqlConn.pas';
 
 {$R *.RES}
 
@@ -38,7 +40,7 @@ begin
   Application.Initialize;
   Application.Title := main.appname;
   Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
-  Application.CreateForm(TAboutBox, AboutBox); debug('perf: AboutBox created.');
+  //Application.CreateForm(TAboutBox, AboutBox); debug('perf: AboutBox created.');
   Application.CreateForm(Tconnform, connform); debug('perf: conn created.');
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
   //Application.CreateForm(TFieldEditForm, FieldEditForm); debug('perf: FieldEdit created.');
@@ -46,7 +48,7 @@ begin
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
   Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');
   Application.CreateForm(Tloaddataform, loaddataform); debug('perf: loaddata created.');
-  Application.CreateForm(TUserManagerForm, UserManagerForm); debug('perf: UserManager created.');
+  //Application.CreateForm(TUserManagerForm, UserManagerForm); debug('perf: UserManager created.');
   Application.CreateForm(Toptionsform, optionsform); debug('perf: options created.');
   Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases); debug('perf: SelectFromManyDatabases created.');
   Application.CreateForm(Toptimize, optimize); debug('perf: optimize created.');

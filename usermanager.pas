@@ -98,6 +98,8 @@ type
     ZQueryColumnNames : TZReadOnlyQuery;
   end;
 
+  function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+
 var
   UserManagerForm: TUserManagerForm;
 
@@ -120,6 +122,21 @@ const
 
 {$R *.DFM}
 
+function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+var
+  f : TUserManagerForm;
+begin
+  f := TUserManagerForm.Create(AOwner);
+
+  // use this dirty trick to overcome limitations
+  UsermanagerForm := f;
+
+  // set flags ...
+  Result := (f.ShowModal = mrOK);
+  FreeAndNil (f);
+
+  UsermanagerForm := nil; // uhhh 
+end;
 
 procedure TUserManagerForm.ButtonCloseClick(Sender: TObject);
 begin
