@@ -436,7 +436,8 @@ type
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
-      CanAcessMysqlFlag          : Boolean;      // used to flag if the current account can access mysql database
+      CanAcessMysqlFlag          : Boolean;
+    function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
@@ -3807,6 +3808,9 @@ end;
 // Executes a query with an existing ZQuery-object
 procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
 begin
+  // todo: convert it to a function to get info on result
+  // todo: move to separate unit
+
   try
     CheckConnection;
   except
@@ -4079,24 +4083,33 @@ end;
 
 
 function TMDIChild.CanAcessMysql: Boolean;
+begin
+  Result := HasAccessToDB (DBNAME_MYSQL);
+end;
+
+function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;
 var
-  ZQueryDatabases: TZReadOnlyQuery;
+  ds: TZReadOnlyQuery;
   dbName: string;
 begin
   Result := False;
-  ZQueryDatabases := TZReadOnlyQuery.Create(Self);
-  ZQueryDatabases.Connection := ZConn;
-  GetResults( 'SHOW DATABASES', ZQueryDatabases );
-  while not ZQueryDatabases.Eof do
-  begin
-    dbName := ZQueryDatabases.FieldByName('Database').AsString;
-    if dbName = DBNAME_MYSQL then
+
+  ds := TZReadOnlyQuery.Create(Self);
+  ds.Connection := ZConn;
+  GetResults( 'SHOW DATABASES', ds );
+  
+  while not ds.Eof do
     begin
-      Result := True;
-      break;
+      dbName := ds.FieldByName('Database').AsString;
+      if LowerCase(dbName) = LowerCase(ADBName) then
+        begin
+          Result := True;
+          Break;
+        end;
+      ds.Next;
     end;
-    ZQueryDatabases.Next;
-  end;
+    
+  FreeAndNil (ds);
 end;
 
 procedure TMDIChild.CheckConnection;
