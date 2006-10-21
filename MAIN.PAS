@@ -668,7 +668,7 @@ end;
 procedure TMainForm.MenuPreferencesClick(Sender: TObject);
 begin
   // Preferences
-  optionsform.showmodal;
+  OptionsWindow (Self);
 end;
 
 procedure TMainForm.Readme1Click(Sender: TObject);

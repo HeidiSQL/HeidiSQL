@@ -25,8 +25,8 @@ type
     errornr  : Integer;
   end;
 
-var
-  FormError: TFormError;
+//var
+  //FormError: TFormError;
 
 implementation
 

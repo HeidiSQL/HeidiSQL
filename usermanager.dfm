@@ -24,7 +24,7 @@ object UserManagerForm: TUserManagerForm
     Top = 0
     Width = 533
     Height = 343
-    ActivePage = TabSheetEditUsers
+    ActivePage = TabSheetAddUser
     Align = alClient
     TabHeight = 22
     TabOrder = 0

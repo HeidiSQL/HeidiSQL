@@ -40,18 +40,20 @@ begin
   Application.Initialize;
   Application.Title := main.appname;
   Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
+
+
   Application.CreateForm(Tconnform, connform); debug('perf: conn created.');
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
   Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');
   Application.CreateForm(Tloaddataform, loaddataform); debug('perf: loaddata created.');
-  Application.CreateForm(Toptionsform, optionsform); debug('perf: options created.');
-  Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases); debug('perf: SelectFromManyDatabases created.');
   Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
   Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
   Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
-  Application.CreateForm(TFormError, FormError); debug('perf: Error created.');
-  Application.CreateForm(TfrmInsertFilesProgress, frmInsertFilesProgress); debug('perf: InsertFilesProgress created.');
+  // never used:
+  //Application.CreateForm(TFormError, FormError); debug('perf: Error created.');
+
+
   try
     try
       InitializeSync(MainForm.Handle);

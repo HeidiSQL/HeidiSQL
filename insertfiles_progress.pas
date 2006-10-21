@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Db,insertfiles;
+  StdCtrls, ComCtrls, ExtCtrls, Db;
 
 type
   TfrmInsertFilesProgress = class(TForm)
@@ -17,23 +17,24 @@ type
     Label5: TLabel;
     Label6: TLabel;
     Timer1: TTimer;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure ProcessFiles(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    FInsertFilesForm : TfrmInsertFiles;
+    FInsertFilesForm : Pointer;
     canceled : Boolean;
   public
-    property InsertFilesForm : TfrmInsertFiles read FInsertFilesForm write FInsertFilesForm;
+    property InsertFilesForm : Pointer read FInsertFilesForm write FInsertFilesForm;
   end;
 
-var
-  frmInsertFilesProgress: TfrmInsertFilesProgress;
+//var
+  //frmInsertFilesProgress: TfrmInsertFilesProgress;
 
 
 implementation
 
-uses main, childwin, helpers;
+uses main, childwin, helpers,insertfiles;
 
 
 {$R *.DFM}
@@ -60,11 +61,12 @@ var
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
-  ProgressBar1.Max := FInsertFilesForm.ListViewFiles.Items.Count;
+  ProgressBar1.Max := TfrmInsertFiles(FInsertFilesForm).ListViewFiles.Items.Count;
 
   TRY
 
-  with FInsertFilesForm do begin
+  with TfrmInsertFiles(FInsertFilesForm) do
+    begin
     for i:=0 to ListViewFiles.Items.Count-1 do
     begin
       if self.canceled then break;
@@ -137,8 +139,14 @@ begin
   FINALLY
     TMDIChild(Mainform.ActiveMDIChild).ZQuery3.ParamCheck := false;
     screen.Cursor := crDefault;
-    close;
+    Close();
   END;
+end;
+
+procedure TfrmInsertFilesProgress.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 procedure TfrmInsertFilesProgress.FormShow(Sender: TObject);

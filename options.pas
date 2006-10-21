@@ -101,8 +101,11 @@ type
     { Public declarations }
   end;
 
+  function OptionsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+
 var
-  optionsform: Toptionsform;
+  //optionsform: Toptionsform;
+
   fontname : String = 'Courier New';
   fontsize : Integer = 9;
   datafontname : String = 'MS SANS SERIF';
@@ -115,10 +118,20 @@ uses childwin, main;
 {$R *.DFM}
 
 
+function OptionsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+var
+  f : Toptionsform;
+begin
+  f := Toptionsform.Create(AOwner);
+  Result := (f.ShowModal=mrOK); 
+  FreeAndNil (f);
+end;
+
+
 procedure Toptionsform.ButtonCancelClick(Sender: TObject);
 begin
   // Cancel
-  close;
+  ModalResult := mrCancel;
 end;
 
 procedure Toptionsform.Modified(Sender: TObject);
@@ -340,7 +353,7 @@ end;
 procedure Toptionsform.ButtonOKClick(Sender: TObject);
 begin
   Apply(self);
-  Close;
+  ModalResult := mrOK;
 end;
 
 procedure Toptionsform.FontsChange(Sender: TObject);

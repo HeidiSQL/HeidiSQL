@@ -833,11 +833,9 @@ begin
   // Let synedit know all tablenames so that they can be highlighted
   SynSQLSyn1.TableNames.Clear;
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
-  if (OnlyDBs.Count = 0) and (OnlyDBs2.Count > 50) then with SelectFromManyDatabases do begin
-    CheckListBoxDBs.Items.Clear;
-    CheckListBoxDBs.Items := OnlyDBs2;
-    ShowModal;
-  end;
+
+  if (OnlyDBs.Count = 0) and (OnlyDBs2.Count > 50) then
+    SelectFromManyDatabasesWindow (Self,OnlyDBs2);
 
   // List Databases and Tables-Names
   tmpSelected := nil;

@@ -26,13 +26,16 @@ type
     procedure FormShow(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
-    { Private declarations }
+    FDbList : TStringList;
+    procedure SetDbList(const Value: TStringList);
   public
-    { Public declarations }
+    property DbList : TStringList read FDbList write SetDbList;
   end;
 
-var
-  SelectFromManyDatabases: TSelectFromManyDatabases;
+  function SelectFromManyDatabasesWindow (AOwner : TComponent; ADbList : TStringList; Flags : String = '') : Boolean;
+
+//var
+  //SelectFromManyDatabases: TSelectFromManyDatabases;
 
 implementation
 
@@ -41,6 +44,15 @@ uses main, childwin, connections;
 {$R *.DFM}
 
 
+function SelectFromManyDatabasesWindow (AOwner : TComponent; ADbList : TStringList; Flags : String = '') : Boolean;
+var
+  f : TSelectFromManyDatabases;
+begin
+  f := TSelectFromManyDatabases.Create(AOwner);
+  f.DbList := ADbList;
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil (f);
+end;
 
 
 procedure TSelectFromManyDatabases.Button1Click(Sender: TObject);
@@ -62,12 +74,13 @@ begin
   if someselected then
     with TMDIChild(Application.Mainform.ActiveMDIChild) do
     begin
-      OnlyDBs2.clear;
+      //OnlyDBs2.clear;
+      FDbList.Clear;
       with CheckListBoxDBs do
       for i:=0 to Items.Count -1 do
       begin
         if Checked[i] then
-          OnlyDBs2.Add(Items[i]);
+          FDbList.Add(Items[i]);
       end;
     end;
 
@@ -105,6 +118,16 @@ procedure TSelectFromManyDatabases.FormShow(Sender: TObject);
 begin
   Button1.Caption := 'Show all';
   Button2.Enabled := false;
+end;
+
+procedure TSelectFromManyDatabases.SetDbList(const Value: TStringList);
+begin
+  FDbList := Value;
+
+  //CheckListBoxDBs.Items.Clear;
+
+  if Value<>nil then
+    CheckListBoxDBs.Items := Value;
 end;
 
 procedure TSelectFromManyDatabases.Button2Click(Sender: TObject);

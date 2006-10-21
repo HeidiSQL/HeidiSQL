@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math;
+  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math, insertfiles_progress;
 
 type TCol = record
   Name   : String;   // for displaying in lists
@@ -61,7 +61,8 @@ type
       Change: TItemChange);
 
   private
-    { Private declarations }
+    FProgressForm : TfrmInsertFilesProgress;
+
   public
     { Public declarations }
     cols : Array of TCol;
@@ -75,7 +76,7 @@ type
 
 implementation
 
-uses main, childwin, insertfiles_progress, helpers;
+uses main, childwin, helpers;
 
 {$R *.DFM}
 
@@ -369,8 +370,9 @@ end;
 { ok, let's rock! }
 procedure TfrmInsertFiles.ButtonInsertClick(Sender: TObject);
 begin
-  frmInsertFilesProgress.InsertFilesForm := Self;
-  frmInsertFilesProgress.ShowModal;
+  FProgressForm := TfrmInsertFilesProgress.Create(Self); 
+  FProgressForm.InsertFilesForm := Self;
+  FProgressForm.ShowModal;
 end;
 
 { Execute selected file }
