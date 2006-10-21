@@ -68,9 +68,10 @@ type
     procedure AcceptFiles( var msg : TMessage ); message WM_DROPFILES;
   end;
 
+  function InsertFilesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
-var
-  frmInsertFiles: TfrmInsertFiles;
+//var
+  //frmInsertFiles: TfrmInsertFiles;
 
 implementation
 
@@ -78,6 +79,16 @@ uses main, childwin, insertfiles_progress, helpers;
 
 {$R *.DFM}
 
+
+function InsertFilesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+var
+  f : TfrmInsertFiles;
+begin
+  f := TfrmInsertFiles.Create(AOwner);
+  // todo: pass flags
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil (f);
+end;
 
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
@@ -358,6 +369,7 @@ end;
 { ok, let's rock! }
 procedure TfrmInsertFiles.ButtonInsertClick(Sender: TObject);
 begin
+  frmInsertFilesProgress.InsertFilesForm := Self;
   frmInsertFilesProgress.ShowModal;
 end;
 

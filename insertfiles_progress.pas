@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Db;
+  StdCtrls, ComCtrls, ExtCtrls, Db,insertfiles;
 
 type
   TfrmInsertFilesProgress = class(TForm)
@@ -21,10 +21,10 @@ type
     procedure ProcessFiles(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    { Private declarations }
+    FInsertFilesForm : TfrmInsertFiles;
     canceled : Boolean;
   public
-    { Public declarations }
+    property InsertFilesForm : TfrmInsertFiles read FInsertFilesForm write FInsertFilesForm;
   end;
 
 var
@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses insertfiles, main, childwin, helpers;
+uses main, childwin, helpers;
 
 
 {$R *.DFM}
@@ -46,11 +46,11 @@ end;
 
 procedure TfrmInsertFilesProgress.ProcessFiles(Sender: TObject);
 
-procedure die(msg : String);
-begin
-  Screen.Cursor := crDefault;
-  raise exception.Create(msg);
-end;
+  procedure die(msg : String);
+  begin
+    Screen.Cursor := crDefault;
+    raise exception.Create(msg);
+  end;
 
 var
   i,j: Integer;
@@ -60,11 +60,11 @@ var
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
-  ProgressBar1.Max := frmInsertFiles.ListViewFiles.Items.Count;
+  ProgressBar1.Max := FInsertFilesForm.ListViewFiles.Items.Count;
 
   TRY
 
-  with frmInsertFiles do begin
+  with FInsertFilesForm do begin
     for i:=0 to ListViewFiles.Items.Count-1 do
     begin
       if self.canceled then break;

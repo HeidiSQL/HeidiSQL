@@ -97,8 +97,10 @@ type
     { Public declarations }
   end;
 
-var
-  ExportSQLForm: TExportSQLForm;
+  function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+
+//var
+  //ExportSQLForm: TExportSQLForm;
 
 const
 	CRLF = #13#10;
@@ -136,6 +138,16 @@ const
 var
   appHandles: array of THandle;
   cancelDialog: TForm = nil;
+
+function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+var
+  f : TExportSQLForm;
+begin
+  f := TExportSQLForm.Create(AOwner);
+  // todo: pass params if needed
+  Result := (f.ShowModal = mrOK);
+  FreeAndNil (f);
+end;
 
 procedure TExportSQLForm.btnCancelClick(Sender: TObject);
 begin

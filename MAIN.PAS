@@ -285,7 +285,8 @@ uses
 
 procedure TMainForm.ShowConnections(Sender: TObject);
 begin
-  if ActiveMDIChild = nil then connform.showmodal
+  if ActiveMDIChild = nil then
+    connform.showmodal
   else begin
     debug('perf: new connection clicked.');
     ShellExecute(Handle, nil, 'heidisql.exe', nil, PChar(ExtractFilePath(paramstr(0))), 0);
@@ -730,7 +731,7 @@ end;
 procedure TMainForm.DiagnosticsExecute(Sender: TObject);
 begin
   // optimize / repair... tables
-  optimize.showmodal;
+  TableDiagnosticsWindow (Self);
 end;
 
 
@@ -1191,13 +1192,13 @@ end;
 
 procedure TMainForm.InsertFilesExecute(Sender: TObject);
 begin
-  FrmInsertFiles.showmodal;
+  InsertFilesWindow(Self);
 end;
 
 procedure TMainForm.ExportTablesExecute(Sender: TObject);
 begin
   // Export SQL
-  exportsqlform.showmodal;
+  ExportTablesWindow (Self);
 end;
 
 procedure TMainForm.DataSearchExecute(Sender: TObject);

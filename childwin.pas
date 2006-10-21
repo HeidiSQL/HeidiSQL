@@ -2606,7 +2606,7 @@ end;
 
 procedure TMDIChild.More1Click(Sender: TObject);
 begin
-  optimize.showmodal;
+  TableDiagnosticsWindow(Self);
 end;
 
 

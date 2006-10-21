@@ -47,12 +47,24 @@ type
     { Public declarations }
   end;
 
-var
-  optimize: Toptimize;
+  function TableDiagnosticsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+
+//var
+  //optimize: Toptimize;
 
 implementation
 uses childwin, helpers, main;
 {$R *.DFM}
+
+function TableDiagnosticsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
+var
+  f : Toptimize;
+begin
+  f := Toptimize.Create(AOwner);
+  f.ShowModal;
+  Result := True;
+  FreeAndNil (f);
+end;
 
 procedure Toptimize.Button3Click(Sender: TObject);
 begin
