@@ -79,7 +79,7 @@ type
     CopyContentsasHTMLTable1: TMenuItem;
     CopyHTMLtable: TAction;
     Copy2CSV: TAction;
-    menuOnTheWeb: TMenuItem;
+    menuWebsite: TMenuItem;
     N9: TMenuItem;
     N11: TMenuItem;
     PrintList: TAction;
@@ -133,7 +133,7 @@ type
     ExportSettings1: TMenuItem;
     Importsettings1: TMenuItem;
     OpenDialog2: TOpenDialog;
-    menuForum: TMenuItem;
+    menuSupportForum: TMenuItem;
     Copy2XML: TAction;
     ExportData: TAction;
     Exportdata1: TMenuItem;
@@ -154,6 +154,9 @@ type
     miNewConnection: TMenuItem;
     menuWindow: TMenuItem;
     miFake: TMenuItem;
+    menuBugtracker: TMenuItem;
+    menuFeaturetracker: TMenuItem;
+    menuChangelog: TMenuItem;
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
@@ -252,9 +255,11 @@ const
   STATUS_MSG_READY = 'Ready.';
   DBNAME_INFORMATION_SCHEMA = 'information_schema';
   DBNAME_MYSQL = 'mysql';
-  // TODO: We're abusing database icons to represent server connections here.
-  ICON_MYSELF = 38;
-  ICON_OTHER = 37;
+  // TODO: Wait for Sven's better icons to represent server connections here.
+  ICON_MYSELF_CONNECTED = 89;
+  ICON_MYSELF_DISCONNECTED = 90;
+  ICON_OTHER_CONNECTED = 91;
+  ICON_OTHER_DISCONNECTED = 92;
 
 type TMyKey = record
   Name     : String;
@@ -711,8 +716,10 @@ begin
     item := TMenuItem.Create(self);
     if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
     item.Caption := name;
-    if appHandle = Handle then item.ImageIndex := ICON_MYSELF
-    else item.ImageIndex := ICON_OTHER;
+    if (appHandle = Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
+    else if (appHandle = Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
+    else if (appHandle <> Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
+    else if (appHandle <> Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
     item.Tag := appHandle;
     item.OnClick := focusWindow;
     menuWindow.Add(item);
@@ -942,8 +949,10 @@ begin
     item := TMenuItem.Create(self);
     if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
     item.Caption := name;
-    if appHandle = Handle then item.ImageIndex := ICON_MYSELF
-    else item.ImageIndex := ICON_OTHER;
+    if (appHandle = Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
+    else if (appHandle = Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
+    else if (appHandle <> Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
+    else if (appHandle <> Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
     item.Tag := appHandle;
     item.OnClick := focusWindow;
     menuConnections.Items.Add(item);
