@@ -1092,25 +1092,35 @@ begin
       on E:Exception do
       begin
         LogSQL( E.Message, true );
-        MessageDlg(E.Message + CRLF + CRLF + 'Probably you have defined an incorrect WHERE-clause.', mtError, [mbOK], 0);
-        // retry query without filter and sorting, should fix bug #1578471
-        ZQuery2.SQL.Text := select_base;
-        if mainform.CheckBoxLimit.Checked then
-          ZQuery2.SQL.Add('LIMIT ' + intToStr(mainform.UpDownLimitStart.Position) + ', ' + intToStr(mainform.UpDownLimitEnd.position) );
-        try
-          ZQuery2.Open;
-          // Make sure the user sees the applied filter in the case the filter is faulty
-          PageControlBottom.ActivePage := Tabsheet8;
-        except
-          on E:Exception do
-          begin
-            LogSQL( E.Message, true );
-            MessageDlg(E.Message , mtError, [mbOK], 0);
-            ZQuery2.Active := false;
-            viewingdata := false;
-            MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-            Screen.Cursor := crDefault;
-            exit;
+        if trim(self.SynMemoFilter.Text) = '' then
+        begin
+          MessageDlg( E.Message, mtError, [mbOK], 0 );
+        end
+        else
+        begin
+          MessageDlg( E.Message + CRLF + CRLF + 'Probably you have defined an incorrect WHERE-clause.', mtError, [mbOK], 0 );
+          // retry query without filter and sorting, should fix bug #1578471
+          // TODO: this is crap, if the error has nothing to do with the filter
+          //       in this case the filter is deleted and the query will fail again,
+          //       which will annoy the user.
+          ZQuery2.SQL.Text := select_base;
+          if mainform.CheckBoxLimit.Checked then
+            ZQuery2.SQL.Add('LIMIT ' + intToStr(mainform.UpDownLimitStart.Position) + ', ' + intToStr(mainform.UpDownLimitEnd.position) );
+          try
+            ZQuery2.Open;
+            // Make sure the user sees the applied filter in the case the filter is faulty
+            PageControlBottom.ActivePage := Tabsheet8;
+          except
+            on E:Exception do
+            begin
+              LogSQL( E.Message, true );
+              MessageDlg(E.Message , mtError, [mbOK], 0);
+              ZQuery2.Active := false;
+              viewingdata := false;
+              MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+              Screen.Cursor := crDefault;
+              exit;
+            end;
           end;
         end;
       end;
