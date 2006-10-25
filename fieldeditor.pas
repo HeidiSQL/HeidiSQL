@@ -103,6 +103,13 @@ const
   tempfieldname = 'temp_fieldname';
   crlf          = #13#10;
 
+  // field flags
+  FF_HAS_LENGTH_PROP = 1;
+  // FF_xxx = 2
+  // FF_yyy = 4
+  // FF_zzz = 8
+  // ....
+
 type
   TMysqlIndex = record
     Name : String[64];
@@ -114,38 +121,40 @@ type
   end;
 
   type TMysqlDataTypeRecord = record
+    Index : Integer;
     Name : String[15];
-    ItemIndex : Integer;
+    Flags : Integer; // bitset : (bit 0 = NeedsLength, bit 1 = ....
+    DefLength : Integer; // Can we auto-determine this from server ??
   end;
 
 var
   MySqlDataTypeArray : array [0..24] of TMysqlDataTypeRecord =
   (
-    (Name: 'TINYINT'; ItemIndex: 0),
-    (Name: 'SMALLINT'; ItemIndex: 1),
-    (Name: 'MEDIUMINT'; ItemIndex: 2),
-    (Name: 'INT'; ItemIndex: 3),
-    (Name: 'BIGINT'; ItemIndex: 4),
-    (Name: 'FLOAT'; ItemIndex: 5),
-    (Name: 'DOUBLE'; ItemIndex: 6),
-    (Name: 'DECIMAL'; ItemIndex: 7),
-    (Name: 'DATE'; ItemIndex: 8),
-    (Name: 'DATETIME'; ItemIndex: 9),
-    (Name: 'TIMESTAMP'; ItemIndex: 10),
-    (Name: 'TIME'; ItemIndex: 11),
-    (Name: 'YEAR'; ItemIndex: 12),
-    (Name: 'CHAR'; ItemIndex: 13),
-    (Name: 'VARCHAR'; ItemIndex: 14),
-    (Name: 'TINYBLOB'; ItemIndex: 15),
-    (Name: 'TINYTEXT'; ItemIndex: 16),
-    (Name: 'TEXT'; ItemIndex: 17),
-    (Name: 'BLOB'; ItemIndex: 18),
-    (Name: 'MEDIUMBLOB'; ItemIndex: 19),
-    (Name: 'MEDIUMTEXT'; ItemIndex: 20),
-    (Name: 'LONGBLOB'; ItemIndex: 21),
-    (Name: 'LONGTEXT'; ItemIndex: 22),
-    (Name: 'ENUM'; ItemIndex: 23),
-    (Name: 'SET'; ItemIndex: 24)
+    (Index: 0; Name: 'TINYINT'),
+    (Index: 1; Name: 'SMALLINT'),
+    (Index: 2; Name: 'MEDIUMINT'),
+    (Index: 3; Name: 'INT'),
+    (Index: 4; Name: 'BIGINT'),
+    (Index: 5; Name: 'FLOAT'),
+    (Index: 6; Name: 'DOUBLE'),
+    (Index: 7; Name: 'DECIMAL'),
+    (Index: 8; Name: 'DATE'),
+    (Index: 9; Name: 'DATETIME'),
+    (Index: 10; Name: 'TIMESTAMP'),
+    (Index: 11; Name: 'TIME'),
+    (Index: 12; Name: 'YEAR'),
+    (Index: 13; Name: 'CHAR'),
+    (Index: 14; Name: 'VARCHAR'; Flags: FF_HAS_LENGTH_PROP; DefLength: 50),
+    (Index: 15; Name: 'TINYBLOB'),
+    (Index: 16; Name: 'TINYTEXT'),
+    (Index: 17; Name: 'TEXT'),
+    (Index: 18; Name: 'BLOB'),
+    (Index: 19; Name: 'MEDIUMBLOB'),
+    (Index: 20; Name: 'MEDIUMTEXT'),
+    (Index: 21; Name: 'LONGBLOB'),
+    (Index: 22; Name: 'LONGTEXT'),
+    (Index: 23; Name: 'ENUM'),
+    (Index: 24; Name: 'SET')
   );
 
 implementation
@@ -240,12 +249,18 @@ begin
             if Pos ('(',strtype) > 0 then
               strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
 
-            // select type in listbox
+            // field field type structure
             for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
               begin
                 if (strtype=MySqlDataTypeArray[i].Name) then
                   begin
-                    ComboBoxType.ItemIndex := MySqlDataTypeArray[i].ItemIndex;
+                    if (MySqlDataTypeArray[i].Flags And FF_HAS_LENGTH_PROP) = FF_HAS_LENGTH_PROP then
+                      begin
+                        // enable / disable length field
+                        // get default length ..
+                      end;
+
+                    ComboBoxType.ItemIndex := MySqlDataTypeArray[i].Index;
                     Break;
                   end;
               end;
