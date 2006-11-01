@@ -403,7 +403,7 @@ procedure TFieldEditForm.ComboBoxTypeChange(Sender: TObject);
 begin
   // Attributes
 
-  // Binary geht nur bei char und varchar
+  // "binary" is only valid for char's and varchar's
   if ComboBoxType.ItemIndex in [13,14] then
     CheckBoxBinary.Enabled := true
   else begin
@@ -411,7 +411,7 @@ begin
     CheckBoxBinary.Enabled := false;
   end;
 
-  // Unsigned geht nur bei numerischen Feldern, (nicht bei float-feldern!)
+  // "unsigned" is only valid for numerical columns (not for float's!)
   if ComboBoxType.ItemIndex in [0,1,2,3,4] then
     CheckBoxUnsigned.Enabled := true
   else begin
@@ -419,7 +419,7 @@ begin
     CheckBoxUnsigned.Enabled := false;
   end;
 
-  // Zerofill geht bei numerischen und float-feldern
+  // "zerofill" is only valid for numerical and float-columns
   if ComboBoxType.ItemIndex in [0,1,2,3,4,5,6,7] then
     CheckBoxZerofill.Enabled := true
   else begin
@@ -427,14 +427,14 @@ begin
     CheckBoxZerofill.Enabled := false;
   end;
 
-  // Length/Set geht nicht bei date/time/memo/blob-feldern
+  // Length/Set NOT valid for date/time/memo/blob-columns
   if ComboBoxType.ItemIndex in [8,9,11,15..22] then
     EditLength.Enabled := false
   else begin
     EditLength.Enabled := true;
   end;
 
-  // Default geht nicht bei memo/blob-feldern
+  // "default" NOT valid for memo/blob-columns
   if ComboBoxType.ItemIndex in [15..22] then
     EditDefault.Enabled := false
   else begin
@@ -474,7 +474,7 @@ begin
 
   Screen.Cursor := crSQLWait;
 
-  strAttributes := ''; // gar keines von den 3 Attributen Binary, Unsigned, Zerofill
+  strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
   strNotNull := '';
   strDefault := '';
   strAutoIncrement := '';
@@ -744,8 +744,7 @@ var
   query1, query : String;
 begin
   // update keys!
-  // fuer jeden TempKey (siehe OnFormShow) gucken, ob dieser geändert oder sogar
-  // gelöscht wurde in klist
+  // for each TempKey (see OnFormShow) check if it was changed or even deleted in klist
   query1 := 'ALTER TABLE ' + mainform.mask(TMDIChild(Application.Mainform.ActiveMDIChild).ActualTable);
   for i:=0 to TempKeys.Count-1 do begin
 
@@ -892,7 +891,7 @@ end;
 procedure TFieldEditForm.ComboBoxKeysOnDrawItem(Control: TWinControl; Index: Integer; Rect: TRect;
   State: TOwnerDrawState);
 begin
-  // colors!!
+  // TODO: colors!!
 end;
 
 

@@ -104,8 +104,6 @@ type
   function OptionsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
 var
-  //optionsform: Toptionsform;
-
   fontname : String = 'Courier New';
   fontsize : Integer = 9;
   datafontname : String = 'MS SANS SERIF';
@@ -320,10 +318,10 @@ begin
   CheckBoxAutoReconnect.Checked := AutoReconnect;
 
   // SQL-Appearance:
-  EnumFontFamilies(Canvas.Handle,  // HDC des Device-Context.
-                   nil,            // Name der Font-Family (PChar)
-                   @EnumFixedProc, // Addresse der Callback-Funktion
-                   LPARAM(Pointer(ComboBoxFonts.Items))); // Benutzerdef. Daten
+  EnumFontFamilies(Canvas.Handle,  // HDC of Device-Context.
+                   nil,            // Name of Font-Family (PChar)
+                   @EnumFixedProc, // Address of Callback-Function
+                   LPARAM(Pointer(ComboBoxFonts.Items))); // customized data
 
   ComboBoxFonts.ItemIndex := ComboBoxFonts.Items.IndexOf(fontname);
   UpDownFontSize.Position := fontsize;

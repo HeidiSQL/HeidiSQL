@@ -378,26 +378,6 @@ end;
 
 
 
-// addslashes...
-{function escape_string(str: String) : String;
-var
-  i : Integer;
-  escaped : Array of char;
-begin
-  result := '';
-  i := 1;
-  while(i < length(str)+1) do begin
-    case ord(str[i]) of
-      13: result := result + '\r';
-      10: result := result + '\n';
-      9:  result := result + '\t';
-      92, 34, 39: result := result + '\' + str[i]; //  \ " '
-      else result := result + str[i];
-    end;
-    inc(i);
-  end;
-end;
-}
 
 // addslashes with String...
 function escape_string(Value: String; StrLen: Integer=-1) : String;
@@ -492,9 +472,9 @@ end;
 // convert html-chars to their entities
 function htmlentities(str: String) : String;
 begin
-  result := stringreplace(str, '<', '&lt;', [rfReplaceAll]);
+  result := stringreplace(str, '&', '&amp;', [rfReplaceAll]);
+  result := stringreplace(result, '<', '&lt;', [rfReplaceAll]);
   result := stringreplace(result, '>', '&gt;', [rfReplaceAll]);
-  result := stringreplace(result, '&', '&amp;', [rfReplaceAll]);
 end;
 
 
@@ -804,7 +784,7 @@ function StrCmpBegin(Str1, Str2: string): Boolean;
 begin
   if ((Str1 = '') or (Str2 = '')) and (Str1 <> Str2) then
     Result := False
-  else
+  else                                    
     Result := (StrLComp(PChar(Str1), PChar(Str2),
       Min(Length(Str1), Length(Str2))) = 0);
 end;
@@ -857,11 +837,9 @@ end;
 
 
 
-{=========================================================}
 Function Mince(PathToMince: String; InSpace: Integer): String;
-{=========================================================}
-// "C:\Program Files\Delphi\DDrop\TargetDemo\main.pas"
-// "C:\Program Files\..\main.pas"
+// Change "C:\Program Files\Delphi\DDrop\TargetDemo\main.pas"
+// to:    "C:\Program Files\..\main.pas"
 Var
   sl: TStringList;
   sHelp, sFile: String;

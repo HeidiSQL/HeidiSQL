@@ -23,7 +23,6 @@ uses
   printlist in '..\..\printlist.pas' {printlistForm},
   copytable in '..\..\copytable.pas' {CopyTableForm},
   edituser in '..\..\edituser.pas' {FormEditUser},
-  mysqlerror in '..\..\mysqlerror.pas' {FormError},
   insertfiles in '..\..\insertfiles.pas' {frmInsertFiles},
   insertfiles_progress in '..\..\insertfiles_progress.pas' {frmInsertFilesProgress},
   helpers in '..\..\helpers.pas',

@@ -16,7 +16,8 @@ uses
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor;
+  SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
+  HeidiComp;
 
 type
   TMainForm = class(TForm)
@@ -183,8 +184,6 @@ type
     procedure DiagnosticsExecute(Sender: TObject);
     procedure CopyHTMLtableExecute(Sender: TObject);
     procedure Copy2CSVExecute(Sender: TObject);
-    procedure Save2CSVExecute(Sender: TObject);
-    procedure SaveHTMLTableExecute(Sender: TObject);
     procedure PrintListExecute(Sender: TObject);
     procedure CopyTableExecute(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar;
@@ -754,30 +753,6 @@ begin
 end;
 
 
-procedure TMainForm.Save2CSVExecute(Sender: TObject);
-begin
-  // Save data in actual dataset as CSV
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  with TSaveDialog.Create(self) do begin
-//    Separator := CSVSeparator;
-//    Encloser := CSVEncloser;
-//    Terminator := CSVTerminator;
-    Filter := 'CSV-Files (*.csv)|*.csv|Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
-    DefaultExt := 'csv';
-    if PageControl1.ActivePage = SheetData then
-      FileName := ActualTable
-    else
-      FileName := sstr(ZQuery1.Sql[0], 20);
-    Options := [ofOverwritePrompt,ofEnableSizing];
-
-    if Execute and (FileName <> '') then begin
-      if PageControl1.ActivePage = SheetData then
-        dataset2csv(ZQuery2, CSVSeparator, CSVEncloser, CSVTerminator, Filename)
-      else if PageControl1.ActivePage = SheetQuery then
-        dataset2csv(ZQuery1, CSVSeparator, CSVEncloser, CSVTerminator, Filename);
-    end;
-  end;
-end;
 
 
 procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
@@ -789,34 +764,6 @@ begin
     else if PageControl1.ActivePage = SheetQuery then
       dataset2html(ZQuery1, ZQuery1.Sql[0], '', ConvertHTMLEntities, appname + ' ' + appversion);
   end;
-end;
-
-
-procedure TMainForm.SaveHTMLTableExecute(Sender: TObject);
-begin
-  // Save data in actual dataset as HTML
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-
-    with TSaveDialog.Create(self) do begin
-      Filter := 'Hypertext-Files (*.html, *.htm)|*.html;*.htm|All files (*.*)|*.*';
-      DefaultExt := 'html';
-      if PageControl1.ActivePage = SheetData then
-        FileName := ActualTable
-      else
-        FileName := sstr(ZQuery1.Sql[0], 20);
-      Options := [ofOverwritePrompt,ofEnableSizing];
-
-      if Execute and (FileName <> '') then
-      begin
-        if PageControl1.ActivePage = SheetData then
-          dataset2html(ZQuery2, ZConn.HostName + ' / ' + ActualDatabase + ' / ' + ActualTable, FileName, ConvertHTMLEntities, appname+' '+appversion)
-        else
-          dataset2html(ZQuery1, ZQuery1.Sql[0], FileName, ConvertHTMLEntities, appname+' '+appversion);
-      end;
-    end;
-
-  end;
-
 end;
 
 
@@ -1113,28 +1060,46 @@ end;
 procedure TMainForm.ExportDataExecute(Sender: TObject);
 var
   query : TZQuery;
-  titel : String;
 begin
-  // Save data in actual dataset as CSV, HTML or XML
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+  // Save data in current dataset as CSV, HTML or XML
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
     case PageControl1.ActivePageIndex of
-      3 : begin query := ZQuery2; titel := ActualTable; end;
-      4 : begin query := ZQuery1; titel := 'SQL-query'; end;
+      3 : begin query := ZQuery2; SaveDialogExportData.Filename := ActualTable; end;
+      4 : begin query := ZQuery1; SaveDialogExportData.Filename := 'SQL-query'; end;
       else
         raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
     end;
 
-    with SaveDialogExportData do begin
-      Title := 'Export result-set from '+titel+'...';
-      FileName := titel;
+    with SaveDialogExportData do
+    begin
+      Title := 'Export result-set from '+Filename+'...';
+      FieldSep := CSVSeparator;
+      LineSep := CSVTerminator;
+      FieldEncl := CSVEncloser;
+      ConvertHTMLSpecialChars := ConvertHTMLEntities;
+
 
       if Execute and (FileName <> '') then
       begin
         Screen.Cursor := crHourGlass;
         case FilterIndex of
-          1 : dataset2csv(query, CSVSeparator, CSVEncloser, CSVTerminator, Filename);
-          2 : dataset2html(query, titel, FileName, ConvertHTMLEntities, appname+' '+appversion);
-          3 : dataset2xml(query, titel, FileName);
+          1 : dataset2csv(query, FieldSep, FieldEncl, LineSep, Filename);
+          2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, appname+' '+appversion);
+          3 : dataset2xml(query, FileName, FileName);
+        end;
+        CSVSeparator := FieldSep;
+        CSVTerminator := LineSep;
+        CSVEncloser := FieldEncl;
+        ConvertHTMLEntities := ConvertHTMLSpecialChars;
+        with TRegistry.Create do
+        begin
+          openkey(regpath, true);
+          WriteBool('ConvertHTMLEntities', ConvertHTMLSpecialChars);
+          WriteString('CSVSeparator', FieldSep);
+          WriteString('CSVEncloser', FieldEncl);
+          WriteString('CSVTerminator', LineSep);
+          closekey();
         end;
         Screen.Cursor := crDefault;
       end;

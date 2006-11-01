@@ -71,8 +71,6 @@ type
 
   function InsertFilesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
-//var
-  //frmInsertFiles: TfrmInsertFiles;
 
 implementation
 

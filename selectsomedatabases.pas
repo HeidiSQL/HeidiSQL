@@ -34,8 +34,6 @@ type
 
   function SelectFromManyDatabasesWindow (AOwner : TComponent; ADbList : TStringList; Flags : String = '') : Boolean;
 
-//var
-  //SelectFromManyDatabases: TSelectFromManyDatabases;
 
 implementation
 

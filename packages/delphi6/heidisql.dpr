@@ -21,7 +21,6 @@ uses
   printlist in '..\..\printlist.pas' {printlistForm},
   copytable in '..\..\copytable.pas' {CopyTableForm},
   edituser in '..\..\edituser.pas' {FormEditUser},
-  mysqlerror in '..\..\mysqlerror.pas' {FormError},
   insertfiles in '..\..\insertfiles.pas' {frmInsertFiles},
   insertfiles_progress in '..\..\insertfiles_progress.pas' {frmInsertFilesProgress};
 
@@ -35,23 +34,15 @@ begin
   Application.Initialize;
   Application.Title := 'HeidiSQL';
   Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TAboutBox, AboutBox);
   Application.CreateForm(Tconnform, connform);
   Application.CreateForm(TCreateTableForm, CreateTableForm);
   Application.CreateForm(TFieldEditForm, FieldEditForm);
-  Application.CreateForm(TExportSQLForm, ExportSQLForm);
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form);
   Application.CreateForm(Ttablecomment, tablecomment);
   Application.CreateForm(Tloaddataform, loaddataform);
   Application.CreateForm(TUserManagerForm, UserManagerForm);
-  Application.CreateForm(Toptionsform, optionsform);
-  Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases);
-  Application.CreateForm(Toptimize, optimize);
   Application.CreateForm(TprintlistForm, printlistForm);
   Application.CreateForm(TCopyTableForm, CopyTableForm);
   Application.CreateForm(TFormEditUser, FormEditUser);
-  Application.CreateForm(TFormError, FormError);
-  Application.CreateForm(TfrmInsertFiles, frmInsertFiles);
-  Application.CreateForm(TfrmInsertFilesProgress, frmInsertFilesProgress);
   Application.Run;
  end.

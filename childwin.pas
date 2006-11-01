@@ -211,7 +211,7 @@ type
     CopyasXMLdata2: TMenuItem;
     Exportdata1: TMenuItem;
     Exportdata2: TMenuItem;
-    SaveDialogExportData: TSaveDialog;
+    SaveDialogExportData: TExportSaveDialog;
     N11: TMenuItem;
     ProgressBarQuery: TProgressBar;
     btnQueryReplace: TToolButton;
@@ -461,8 +461,7 @@ IMPLEMENTATION
 
 uses
   connections, Main, createtable, fieldeditor, tbl_properties,
-  tblcomment, selectsomedatabases, optimizetables, copytable,
-  mysqlerror;
+  tblcomment, selectsomedatabases, optimizetables, copytable;
 
 
 
@@ -1085,7 +1084,7 @@ begin
     if sorting <> '' then
       ZQuery2.SQL.Add( sorting );
     if mainform.CheckBoxLimit.Checked then
-      ZQuery2.SQL.Add('LIMIT ' + intToStr(mainform.UpDownLimitStart.Position) + ', ' + intToStr(mainform.UpDownLimitEnd.position) );
+      ZQuery2.SQL.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
     try
       ZQuery2.Open;
     except
@@ -1105,7 +1104,7 @@ begin
           //       which will annoy the user.
           ZQuery2.SQL.Text := select_base;
           if mainform.CheckBoxLimit.Checked then
-            ZQuery2.SQL.Add('LIMIT ' + intToStr(mainform.UpDownLimitStart.Position) + ', ' + intToStr(mainform.UpDownLimitEnd.position) );
+            ZQuery2.SQL.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
           try
             ZQuery2.Open;
             // Make sure the user sees the applied filter in the case the filter is faulty
@@ -1759,7 +1758,7 @@ var
   n : TListItem;
   versions : TStringList;
 begin
-// Variables und Process-List aktualisieren
+// Refresh variables and process-list
   Screen.Cursor := crSQLWait;
 
   ListVariables.Items.BeginUpdate;
@@ -2034,24 +2033,23 @@ end;
 procedure TMDIChild.ListColumnsChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
-  // Feldeigenschaften anzeigen
+  // Clicked somewhere in the field-list of the "Table"-tabsheet
 
-  // some field selected ?
-  if ListColumns.Selected <> nil then
-    with ListColumns.Selected do
-      begin
-        btnTableDropField.Enabled := True;
-        DropField1.Enabled := True; //drop field
-        MenuEditField.Enabled := true;
-        btnTableEditField.enabled := true;
-      end
+  // some columns selected ?
+  if ListColumns.Selected <> nil then with ListColumns.Selected do
+  begin
+    btnTableDropField.Enabled := True;
+    DropField1.Enabled := True;
+    MenuEditField.Enabled := true;
+    btnTableEditField.enabled := true;
+  end
   else
-    begin
-      btnTableDropField.Enabled := False;
-      DropField1.Enabled := false; //drop field
-      MenuEditField.Enabled := false;
-      btnTableEditField.enabled := false;
-    end;
+  begin
+    btnTableDropField.Enabled := False;
+    DropField1.Enabled := false;
+    MenuEditField.Enabled := false;
+    btnTableEditField.enabled := false;
+  end;
 
 end;
 
@@ -2059,7 +2057,7 @@ procedure TMDIChild.DropField(Sender: TObject);
 var
   tn : TTreeNode;
 begin
-  // Feld löschen
+  // Drop Column
   if ListColumns.Items.Count = 1 then
   begin
     if MessageDlg('Can''t drop the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
@@ -2427,8 +2425,6 @@ begin
 end;
 
 
-
-// Primary key abfragen - delete from .. where
 procedure TMDIChild.FormShow(Sender: TObject);
 begin
   { TODO : only load file when autoconnected ?? }
@@ -2444,6 +2440,7 @@ begin
   ZQuery3.DisableControls;
   FormResize( self );
 end;
+
 
 { Edit field }
 procedure TMDIChild.UpdateField(Sender: TObject);
@@ -2461,9 +2458,8 @@ begin
     fem := femFieldUpdate;
 
   FieldEditorWindow (Self,fem,fn);
-  //FieldEditForm.UpdateField := ListColumns.Selected <> nil;
-  //FieldEditForm.showmodal;
 end;
+
 
 { Add new field }
 procedure TMDIChild.MenuAddFieldClick(Sender: TObject);
@@ -2983,6 +2979,7 @@ begin
   DBMemo1.DataSource.DataSet.Post;
   //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
 end;
+
 
 procedure TMDIChild.btnBlobSaveClick(Sender: TObject);
 var
@@ -3680,7 +3677,6 @@ end;
 procedure TMDIChild.DBGridDblClick(Sender: TObject);
 begin
   // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
-//  showmessage((sender as TControl).classname);
   if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControl4.ActivePageIndex = 0) then begin
     PageControlBottom.ActivePageIndex := 1;
     DBMemo1.SetFocus;
@@ -3689,13 +3685,24 @@ end;
 
 procedure TMDIChild.SaveDialogExportDataTypeChange(Sender: TObject);
 begin
+  // Set default file-extension of saved file and options on the dialog to show
   with SaveDialogExportData do begin
     Case FilterIndex of
-      1 : DefaultExt := 'csv';
-      2 : DefaultExt := 'html';
-      3 : DefaultExt := 'xml';
+      1 : begin
+        DefaultExt := 'csv';
+        VisibleOptions := voCSV;
+      end;
+      2 : begin
+        DefaultExt := 'html';
+        VisibleOptions := voHTML;
+      end;
+      3 : begin
+        DefaultExt := 'xml';
+        VisibleOptions := voHTML;
+      end;
     end;
   end;
+
 end;
 
 procedure TMDIChild.DBGridGetCellParams(Sender: TObject; Field: TField;
@@ -4116,7 +4123,7 @@ begin
         end;
       ds.Next;
     end;
-    
+
   FreeAndNil (ds);
 end;
 

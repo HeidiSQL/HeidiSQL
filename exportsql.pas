@@ -99,8 +99,6 @@ type
 
   function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
-//var
-  //ExportSQLForm: TExportSQLForm;
 
 const
 	CRLF = #13#10;

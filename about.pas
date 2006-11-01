@@ -43,8 +43,6 @@ type
 
   procedure AboutWindow (AOwner : TComponent);
 
-//var
-  //AboutBox: TAboutBox;
 
 implementation
 

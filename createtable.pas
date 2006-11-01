@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, Buttons, ComCtrls, SortListView, ImgList, ToolWin,
+  StdCtrls, ExtCtrls, Buttons, ComCtrls, ImgList, ToolWin,
   Menus;
 
 type
@@ -124,7 +124,7 @@ var
 begin
   with MainForm.ActiveMDIChild do
   begin
-    // Query vorbereiten:
+    // Prepare Query:
     ctquery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
 
     // Fields
@@ -180,7 +180,7 @@ begin
     if instr <> '' then
       ctquery := ctquery + ', INDEX(' + instr + ')';
 
-    // Abschluss-Klammer:
+    // End:
     ctquery := ctquery + ') ';
 
     // Comment:
@@ -196,8 +196,6 @@ begin
       ExecQuery( ctquery );
       ShowDBProperties(self);
       ActualTable := EditTablename.Text;
-//      DBTree.Selected := ti;
-//      ShowTableProperties(self);
     end;
   end;
   close;
@@ -262,7 +260,7 @@ end;
 
 procedure TCreateTableForm.checktypes(Sender: TObject);
 begin
-  // Binary geht nur bei char und varchar
+  // "binary" is only valid for char's and varchar's
   if ComboBoxType.ItemIndex in [13,14] then
     CheckBoxBinary.Enabled := true
   else begin
@@ -270,7 +268,7 @@ begin
     CheckBoxBinary.Enabled := false;
   end;
 
-  // Unsigned geht nur bei numerischen Feldern, (nicht bei float-feldern!)
+  // "unsigned" is only valid for numerical columns (not for float's!)
   if ComboBoxType.ItemIndex in [0,1,2,3,4] then
     CheckBoxUnsigned.Enabled := true
   else begin
@@ -278,7 +276,7 @@ begin
     CheckBoxUnsigned.Enabled := false;
   end;
 
-  // Zerofill geht bei numerischen und float-feldern
+  // "zerofill" is only valid for numerical and float-columns
   if ComboBoxType.ItemIndex in [0,1,2,3,4,5,6,7] then
     CheckBoxZerofill.Enabled := true
   else begin
@@ -290,7 +288,7 @@ end;
 
 procedure TCreateTableForm.ComboBoxTypeChange(Sender: TObject);
 begin
-  // Typ
+  // Type
   fields[index].Typ := ComboBoxType.ItemIndex;
   checktypes(self);
 end;
@@ -379,7 +377,7 @@ begin
   refreshfields(self);
   EditFieldnameChange(self);
   feldListe.ItemIndex := index;
-  // ButtonCreate enablen
+  // ButtonCreate enable!
   ButtonCreate.Enabled := length(fields)>0;
 end;
 

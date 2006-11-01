@@ -35,7 +35,6 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
-    ExplicitTop = 227
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -271,7 +270,7 @@ object MainForm: TMainForm
           OnExit = LimitPanelExit
         end
         object EditLimitEnd: TEdit
-          Left = 144
+          Left = 146
           Top = 0
           Width = 57
           Height = 21
@@ -289,12 +288,13 @@ object MainForm: TMainForm
           Associate = EditLimitStart
           Max = 32767
           TabOrder = 3
+          Thousands = False
           Wrap = True
           OnEnter = LimitPanelEnter
           OnExit = LimitPanelExit
         end
         object UpDownLimitEnd: TUpDown
-          Left = 201
+          Left = 203
           Top = 0
           Width = 17
           Height = 21
@@ -302,6 +302,7 @@ object MainForm: TMainForm
           Max = 32767
           Position = 50
           TabOrder = 4
+          Thousands = False
           Wrap = True
           OnEnter = LimitPanelEnter
           OnExit = LimitPanelExit
@@ -610,6 +611,7 @@ object MainForm: TMainForm
       Tag = 58
       Category = 'Edit'
       Caption = '&Paste'
+      Enabled = False
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 2
       ShortCut = 16470
@@ -714,6 +716,7 @@ object MainForm: TMainForm
     object EditUndo1: TEditUndo
       Category = 'Edit'
       Caption = '&Undo'
+      Enabled = False
       ImageIndex = 3
       ShortCut = 32776
     end

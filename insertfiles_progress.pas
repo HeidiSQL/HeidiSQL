@@ -28,9 +28,6 @@ type
     property InsertFilesForm : Pointer read FInsertFilesForm write FInsertFilesForm;
   end;
 
-//var
-  //frmInsertFilesProgress: TfrmInsertFilesProgress;
-
 
 implementation
 

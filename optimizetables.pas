@@ -49,8 +49,6 @@ type
 
   function TableDiagnosticsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
-//var
-  //optimize: Toptimize;
 
 implementation
 uses childwin, helpers, main;
