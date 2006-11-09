@@ -14,24 +14,24 @@ uses Windows, Menus, Classes, Graphics, Forms, Controls, StdCtrls,
 
 type
   TAboutBox = class(TForm)
-    Panel1: TPanel;
-    Image1: TImage;
-    Button1: TButton;
-    Panel2: TPanel;
+    PanelLogos: TPanel;
+    ImageMysql: TImage;
+    ButtonClose: TButton;
+    PanelMain: TPanel;
     ProductName: TLabel;
     LabelVersion: TLabel;
     LabelCompiled: TLabel;
-    Label1: TLabel;
     LabelWebpage: TLabel;
-    Label6: TLabel;
-    Button2: TButton;
-    Button3: TButton;
-    Image2: TImage;
-    Memo1: TMemo;
-    Label2: TLabel;
+    LabelAuthors: TLabel;
+    ButtonDonate: TButton;
+    ButtonBoard: TButton;
+    ImageHeidisql: TImage;
+    MemoThanks: TMemo;
+    LabelThanks: TLabel;
+    MemoAuthors: TMemo;
     procedure OKButtonClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure ButtonCloseClick(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -74,7 +74,7 @@ end;
 
 
 
-procedure TAboutBox.Button1Click(Sender: TObject);
+procedure TAboutBox.ButtonCloseClick(Sender: TObject);
 begin
   close;
 end;

@@ -1,109 +1,82 @@
-
-           ========================================
-             Information-File for HeidiSQL
-           ========================================
-
-
---------------------------------------
- General:
---------------------------------------
-HeidiSQL is an easy-to-use-interface for web-workers dealing with
-MySQL-Databases. It only requires libmySQL.dll from the MySQL-Server as
-"API" (included in this package - newest version available at
-http://www.mysql.com/).
+========================================
+ Information-File for HeidiSQL
+========================================
 
 
+----------------------------------------
+ ** General Information:
+----------------------------------------
+HeidiSQL is an easy-to-use interface and a "working-horse" for web-developers
+using the popular MySQL-Database. It allows you to manage and browse your
+databases and tables from an intuitive Windows® interface. 
 
---------------------------------------
- (Easy) Installation:
---------------------------------------
-Just doubleclick the setup-file and follow the instructions.
-
-
-
---------------------------------------
- Changelog:
---------------------------------------
-http://www.heidisql.com/changes.php
-
-
-
---------------------------------------
- With HeidiSQL you can...
---------------------------------------
-- create/drop databases 
-- create/drop tables 
-- edit/add/delete fields 
-- edit/insert/delete records 
-- edit BLOBs with Bitmap/GIF/JPEG-Support 
-- a list of server-variables 
-- view and kill other user-processes 
-- execute (large) SQL-scripts 
-- view advanced table-properties, such as Type, Comment, Key_Length
-  and so on 
-- export table-structure and data into SQL-scripts or other databases 
-- replicate databases between two hosts ("Export tables...")
-- save data to CSV-Files (ideal for working with MS-Excel) or
-  HTML-tables 
-- copy CSV-data/HTML-Tables to clipboard 
-- copy tables to new table-names
-- change table-types to ISAM, MYISAM, MERGE, HEAP, InnoDB, BDB or
-  userdefined types
-- manage users
-- flush Host/Logs/Privileges/Tables 
-- write SQL-queries with syntax-highlighting 
-- do table-diagnostics (check, optimize, repair, analyze)
-- insert files into BLOBs in batch-mode
-- and a lot more... 
+With HeidiSQL you will also be able to 
+- generate nice SQL-exports 
+- synchronize tables between two databases 
+- manage user-privileges 
+- import text-files 
+- export table-data as CSV, HTML and XML 
+- browse and edit table-data using a comfortable grid 
+- batch-insert ascii or binary files into tables 
+- write queries with syntax-highlighting
+- monitor and kill client-processes 
+- and much more :)
 
 
+----------------------------------------
+ ** Links for more information:
+----------------------------------------
+Website:            http://www.heidisql.com/
+Support-Forum:      http://forum.heidisql.com/
+Bugtracker:         http://bugs.heidisql.com/
+Featuretracker:     http://rfe.heidisql.com/
+Changelog:          http://changes.heidisql.com/
+Developer-Readme:   http://svn.heidisql.com/readme.html
+This file:          http://svn.heidisql.com/out/readme.txt
 
 
---------------------------------------
- Requirements:
---------------------------------------
+----------------------------------------
+ ** Requirements:
+----------------------------------------
 - libmysql.dll (Client-library for MySQL-Server) 
 - msvcrt.dll (Microsoft (R) C Runtime Library) 
 - TCP/IP-Protocol 
 
 
---------------------------------------
- Troubleshooting:
---------------------------------------
-You can post in the Support-Forum:
- http://www.heidisql.de/forum/
-
-
-Please do *not* send me e-mails with technical questions. I get so many
-mails each day, I cannot reply to them all. Instead you should at first
-have a look at the forum (URL above).
-
-
-
---------------------------------------
- Donation:
---------------------------------------
-HeidiSQL is OpenSource.
+----------------------------------------
+ ** License:
+----------------------------------------
+HeidiSQL is OpenSource and released under GPL (GNU GENERAL PUBLIC LICENSE).
 
 Maybe it saved you a lot of time and therefore you like it. In this case
 you may make a donation. For this purpose point your web-browser
 to the following URL:
-http://www.heidisql.de/donate.php
+http://www.heidisql.com/donate.php
 
 
+----------------------------------------
+ ** The authors:
+----------------------------------------
+- Ansgar Becker (project lead and development)
+- David Dindorp (development)
+- Martijn Nijenhof (development)
+- Tony Peng (development)
+- Sven Lorenz (graphics)
+
+The teams is spread over 4 different countries:
+Germany, Danmark, Netherlands and ShangHai.
 
 
---------------------------------------
- The Author:
---------------------------------------
- Ansgar Becker
- 48485 Neuenkirchen / Germany
-
-
---------------------------------------
- Project-Homepage
---------------------------------------
-http://www.heidisql.com/
+----------------------------------------
+ ** Very special thanks go to:
+----------------------------------------
+- ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/
+- SynEdit under LGPL - http://synedit.sourceforge.net
+- Scalabium Software for Freeware SMDBGrid - http://www.scalabium.com/
+- Inno Setup - http://www.jrsoftware.org/
+- Sebastián Mayorá for EDBImage
+- dAniel hAhler for the name "HeidiSQL" - http://daniel.hahler.de/
+- MySQL for great database software
 
 
 EOF

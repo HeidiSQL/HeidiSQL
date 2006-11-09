@@ -4,8 +4,8 @@ object AboutBox: TAboutBox
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'About'
-  ClientHeight = 343
-  ClientWidth = 548
+  ClientHeight = 349
+  ClientWidth = 531
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack
@@ -18,12 +18,12 @@ object AboutBox: TAboutBox
   OnMouseMove = MouseOver
   OnShow = FormShow
   DesignSize = (
-    548
-    343)
+    531
+    349)
   PixelsPerInch = 96
   TextHeight = 13
-  object Panel1: TPanel
-    Left = 418
+  object PanelLogos: TPanel
+    Left = 401
     Top = 0
     Width = 129
     Height = 240
@@ -33,7 +33,7 @@ object AboutBox: TAboutBox
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
-    object Image1: TImage
+    object ImageMysql: TImage
       Left = 11
       Top = 137
       Width = 110
@@ -199,7 +199,7 @@ object AboutBox: TAboutBox
       ShowHint = False
       OnClick = OpenURL
     end
-    object Image2: TImage
+    object ImageHeidisql: TImage
       Left = 14
       Top = 14
       Width = 100
@@ -1151,9 +1151,9 @@ object AboutBox: TAboutBox
       OnClick = OpenURL
     end
   end
-  object Button1: TButton
-    Left = 418
-    Top = 318
+  object ButtonClose: TButton
+    Left = 401
+    Top = 324
     Width = 129
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1161,21 +1161,21 @@ object AboutBox: TAboutBox
     Caption = 'Close'
     Default = True
     TabOrder = 1
-    OnClick = Button1Click
+    OnClick = ButtonCloseClick
   end
-  object Panel2: TPanel
+  object PanelMain: TPanel
     Left = 1
     Top = 0
-    Width = 411
-    Height = 343
+    Width = 394
+    Height = 349
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 2
     OnMouseMove = MouseOver
     DesignSize = (
-      411
-      343)
+      394
+      349)
     object ProductName: TLabel
       Left = 10
       Top = 10
@@ -1193,7 +1193,7 @@ object AboutBox: TAboutBox
     end
     object LabelVersion: TLabel
       Left = 10
-      Top = 42
+      Top = 41
       Width = 61
       Height = 13
       Caption = 'LabelVersion'
@@ -1208,23 +1208,9 @@ object AboutBox: TAboutBox
       Caption = 'LabelCompiled'
       Transparent = True
     end
-    object Label1: TLabel
-      Left = 10
-      Top = 102
-      Width = 162
-      Height = 13
-      Caption = 'Ansgar Becker and David Dindorp'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      ParentFont = False
-      Transparent = True
-    end
     object LabelWebpage: TLabel
       Left = 10
-      Top = 121
+      Top = 76
       Width = 121
       Height = 13
       Cursor = crHandPoint
@@ -1240,25 +1226,25 @@ object AboutBox: TAboutBox
       OnClick = OpenURL
       OnMouseMove = MouseOver
     end
-    object Label6: TLabel
+    object LabelAuthors: TLabel
       Left = 10
-      Top = 86
+      Top = 101
       Width = 39
       Height = 13
       Caption = 'Authors:'
     end
-    object Label2: TLabel
-      Left = 8
-      Top = 152
+    object LabelThanks: TLabel
+      Left = 10
+      Top = 213
       Width = 66
       Height = 13
       Caption = 'Thanks go to:'
     end
-    object Memo1: TMemo
+    object MemoThanks: TMemo
       Left = 10
-      Top = 171
-      Width = 393
-      Height = 163
+      Top = 232
+      Width = 376
+      Height = 106
       Anchors = [akLeft, akTop, akRight, akBottom]
       Lines.Strings = (
         'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
@@ -1267,31 +1253,41 @@ object AboutBox: TAboutBox
           'Scalabium Software for Freeware SMDBGrid - http://www.scalabium.' +
           'com/'
         'Inno Setup - http://www.jrsoftware.org/'
-        
-          'Sven Lorenz for design of logos and other graphics - http://www.' +
-          'vnvsven.de/'
         'Sebasti'#225'n Mayor'#225' for EDBImage'
         'dAniel hAhler for the name "HeidiSQL" - http://daniel.hahler.de/'
         'MySQL for great database software')
       ReadOnly = True
-      ScrollBars = ssVertical
       TabOrder = 0
     end
+    object MemoAuthors: TMemo
+      Left = 10
+      Top = 120
+      Width = 376
+      Height = 80
+      Anchors = [akLeft, akTop, akRight]
+      Lines.Strings = (
+        '- Ansgar Becker (project lead and development)'
+        '- David Dindorp (development)'
+        '- Martijn Nijenhof (development)'
+        '- Tony Peng (development)'
+        '- Sven Lorenz (graphics)')
+      TabOrder = 1
+    end
   end
-  object Button2: TButton
-    Left = 418
-    Top = 280
+  object ButtonDonate: TButton
+    Left = 401
+    Top = 288
     Width = 129
     Height = 25
     Hint = 'http://www.heidisql.com/donate.php'
     Anchors = [akRight, akBottom]
-    Caption = 'Donation...'
+    Caption = 'Donate'
     TabOrder = 3
     OnClick = OpenURL
   end
-  object Button3: TButton
-    Left = 418
-    Top = 246
+  object ButtonBoard: TButton
+    Left = 401
+    Top = 252
     Width = 129
     Height = 25
     Hint = 'http://www.heidisql.com/forum/'
