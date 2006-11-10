@@ -3774,13 +3774,23 @@ var
 begin
   affected_rows_int := ZConn.GetAffectedRowsFromLastPost;
   affected_rows_str := FormatNumber( affected_rows_int );
-  if affected_rows_int = 0 then LogSQL( 'Affected rows: ' + affected_rows_str );
+  if affected_rows_int = 0 then
+  begin
+    LogSQL( 'Affected rows: ' + affected_rows_str );
+    // Refresh grid to show the user that no change has been applied
+    ZQuery2.Refresh;
+    msg := 'Warning: No row was affected by the last update.' + CRLF + CRLF
+      + 'This is most likely caused by entering data which the MySQL-server has converted silently.' + CRLF
+      + 'For example when you enter a date like "0000-01-01" (applies only to newer MySQL-versions).';
+    LogSQL( msg );
+    MessageDlg( msg, mtWarning, [mbOK], 0);
+  end;
   if affected_rows_int > 1 then
   begin
     LogSQL( 'Affected rows: ' + affected_rows_str );
     // Refresh grid to show the user which values the other records got
     ZQuery2.Refresh;
-    msg := 'Error: Consistency problem detected.' + CRLF + CRLF
+    msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
       + 'The last query affected ' + affected_rows_str + ' rows, when it should have touched only 1 row!'
       + CRLF + CRLF
       + 'This is most likely caused by not having a primary key in the table''s definition.';
