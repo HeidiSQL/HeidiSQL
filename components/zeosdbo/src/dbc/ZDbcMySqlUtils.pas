@@ -243,13 +243,13 @@ begin
   else if TypeName = 'BINARY' then
     Result := stBytes
   else if TypeName = 'DATE' then
-    Result := stDate
+    Result := stString
   else if TypeName = 'TIME' then
-    Result := stTime
+    Result := stString
   else if TypeName = 'TIMESTAMP' then
-    Result := stTimestamp
+    Result := stString
   else if TypeName = 'DATETIME' then
-    Result := stTimestamp
+    Result := stString
   else if TypeName = 'TINYBLOB' then
     Result := stBinaryStream
   else if TypeName = 'BLOB' then
