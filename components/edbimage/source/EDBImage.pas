@@ -1,5 +1,5 @@
 unit EDBImage;
-{$I ../compilerdetection/compilers.inc}
+{$I compilers.inc}
 {
  TEDBImage 1.4 (Enhaced TDBImage):
   by Sebastián Mayorá - Argentina - DelphiHelper@yahoo.com.ar

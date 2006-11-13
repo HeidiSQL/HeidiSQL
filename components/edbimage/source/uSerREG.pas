@@ -3,7 +3,7 @@ unit uSerREG;
 interface
 
 {$R CompsSer.dcr}
-{$I ../compilerdetection/compilers.inc}
+{$I compilers.inc}
 procedure Register;
 
 implementation
