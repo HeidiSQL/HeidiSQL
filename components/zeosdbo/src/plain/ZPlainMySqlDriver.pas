@@ -1720,7 +1720,16 @@ end;
 function TZMySQL41PlainDriver.StoreResult(
   Handle: PZMySQLConnect): PZMySQLResult;
 begin
-  Result := ZPlainMySql41.mysql_store_result(Handle);
+  Result := nil;
+  // Try and locate a result which has rows.
+  repeat
+    if Result <> nil then ZPlainMySql41.mysql_free_result(Result);
+    Result := ZPlainMySql41.mysql_store_result(Handle);
+  until (GetRowCount(Result) > 0) or (ZPlainMySql41.mysql_next_result(Handle) <> 0);
+  while ZPlainMySql41.mysql_next_result(Handle) = 0 do begin
+    // Discard remaining results (empty the driver).
+    ZPlainMySql41.mysql_free_result(ZPlainMySql41.mysql_store_result(Handle));
+  end;
 end;
 
 function TZMySQL41PlainDriver.UseResult(Handle: PZMySQLConnect): PZMySQLResult;

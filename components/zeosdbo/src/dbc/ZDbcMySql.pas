@@ -124,6 +124,11 @@ uses
   ZMessages, ZSysUtils, ZDbcUtils, ZDbcMySqlStatement, ZMySqlToken,
   ZDbcMySqlUtils, ZDbcMySqlMetadata, ZMySqlAnalyser;
 
+const
+  {* Hack: copy/paste from ZPlainMySql41. *}
+  _CLIENT_MULTI_STATEMENTS = 65536; { Enable/disable multi-stmt support }
+  _CLIENT_MULTI_RESULTS   = 131072; { Enable/disable multi-results }
+
 { TZMySQLDriver }
 
 {**
@@ -328,7 +333,7 @@ begin
     if StrToBoolEx(Info.Values['dbless']) then
     begin
       if FPlainDriver.RealConnect(FHandle, PChar(HostName), PChar(User),
-        PChar(Password), nil, Port, nil, 0) = nil then
+        PChar(Password), nil, Port, nil, _CLIENT_MULTI_RESULTS) = nil then
       begin
         CheckMySQLError(FPlainDriver, FHandle, lcConnect, LogMessage);
         DriverManager.LogError(lcConnect, FPlainDriver.GetProtocol, LogMessage,
@@ -651,4 +656,5 @@ finalization
     DriverManager.DeregisterDriver(MySQLDriver);
   MySQLDriver := nil;
 end.
+
 

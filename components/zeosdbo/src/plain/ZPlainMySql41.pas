@@ -681,6 +681,9 @@ type
   Tmysql_store_result = function(Handle: PMYSQL): PMYSQL_RES;
     {$IFNDEF UNIX} stdcall {$ELSE} cdecl {$ENDIF};
 
+  Tmysql_next_result = function(Handle: PMYSQL): Integer;
+    {$IFNDEF UNIX} stdcall {$ELSE} cdecl {$ENDIF};
+
   Tmysql_use_result = function(Handle: PMYSQL): PMYSQL_RES;
     {$IFNDEF UNIX} stdcall {$ELSE} cdecl {$ENDIF};
 
@@ -902,6 +905,7 @@ var
   mysql_fetch_lengths:  Tmysql_fetch_lengths;
   mysql_fetch_field:    Tmysql_fetch_field;
   mysql_store_result:   Tmysql_store_result;
+  mysql_next_result:    Tmysql_next_result;
   mysql_use_result:     Tmysql_use_result;
   mysql_free_result:    Tmysql_free_result;
 
@@ -1007,6 +1011,7 @@ begin
   @mysql_send_query      := GetAddress('mysql_send_query');
   @mysql_real_query      := GetAddress('mysql_real_query');
   @mysql_store_result    := GetAddress('mysql_store_result');
+  @mysql_next_result     := GetAddress('mysql_next_result');
   @mysql_use_result      := GetAddress('mysql_use_result');
   @mysql_master_query    := GetAddress('mysql_master_query');
   @mysql_master_send_query := GetAddress('mysql_master_send_query');

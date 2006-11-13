@@ -1960,7 +1960,8 @@ begin
           StrCmpBegin( 'optimize', sql_keyword ) or
           StrCmpBegin( 'repair', sql_keyword ) or
         	StrCmpBegin( 'select', sql_keyword ) or
-          StrCmpBegin( 'show', sql_keyword )
+          StrCmpBegin( 'show', sql_keyword ) or
+          StrCmpBegin( 'call', sql_keyword )
           ) then
         begin
           ZQuery1.Open;
