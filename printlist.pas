@@ -58,9 +58,10 @@ begin
   // which ListView to print?
   with TMDIChild(Mainform.activeMDIChild) do begin
     case PageControl1.ActivePageIndex of
-    0 : case PageControl2.ActivePageIndex of
+    0 : case PageControlHost.ActivePageIndex of
       0 : begin list := ListVariables; title := 'Server-Variables for ' + ZConn.HostName; end;
       1 : begin list := ListProcesses; title := 'Processlist for ' + ZConn.HostName; end;
+      2 : begin list := ListCommandStats; title := 'Command-statistics for ' + ZConn.HostName; end;
       end;
     1 : begin list := ListTables; title := 'Tables-List for Database ' + ActualDatabase; end;
     2 : begin list := ListColumns; title := 'Field-List for ' + ActualDatabase + '/' + ActualTable; end;

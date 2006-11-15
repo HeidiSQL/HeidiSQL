@@ -100,26 +100,18 @@ object MDIChild: TMDIChild
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
-          object PageControl2: TPageControl
+          object PageControlHost: TPageControl
             Left = 0
             Top = 17
             Width = 496
             Height = 225
-            ActivePage = TabSheet6
+            ActivePage = tabVariables
             Align = alClient
             HotTrack = True
             TabOrder = 0
-            OnChange = PageControl2Change
-            object TabSheet6: TTabSheet
+            OnChange = PageControlHostChange
+            object tabVariables: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -146,7 +138,7 @@ object MDIChild: TMDIChild
                 ViewStyle = vsReport
               end
             end
-            object TabSheet7: TTabSheet
+            object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
               ExplicitLeft = 0
@@ -211,6 +203,49 @@ object MDIChild: TMDIChild
                 TabOrder = 0
                 ViewStyle = vsReport
                 OnChange = ListProcessesChange
+              end
+            end
+            object tabCommandStats: TTabSheet
+              Caption = 'Command-Statistics'
+              ImageIndex = 2
+              object ListCommandStats: TSortListView
+                Left = 0
+                Top = 0
+                Width = 488
+                Height = 197
+                Align = alClient
+                Columns = <
+                  item
+                    Caption = 'Command-type'
+                    Width = 120
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Caption = 'Total frequency'
+                    Width = 100
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Caption = 'Average per hour'
+                    Width = 100
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Caption = 'Average per second'
+                    Width = 100
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Caption = 'Percentage'
+                    Width = 67
+                  end>
+                GridLines = True
+                ReadOnly = True
+                RowSelect = True
+                PopupMenu = popupHost
+                SortType = stBoth
+                TabOrder = 0
+                ViewStyle = vsReport
               end
             end
           end
@@ -953,7 +988,7 @@ object MDIChild: TMDIChild
     Top = 278
     Width = 677
     Height = 142
-    ActivePage = TabSheet1
+    ActivePage = TabSheet8
     Align = alBottom
     HotTrack = True
     Images = MainForm.ImageList1
@@ -962,10 +997,6 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1013,10 +1044,6 @@ object MDIChild: TMDIChild
     object TabSheet2: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1087,10 +1114,6 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1112,10 +1135,6 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1855,13 +1874,13 @@ object MDIChild: TMDIChild
     DataSet = ZQuery2
     OnDataChange = DataSourceDataChange
     Left = 304
-    Top = 64
+    Top = 136
   end
   object DataSource2: TDataSource
     DataSet = ZQuery1
     OnDataChange = DataSourceDataChange
     Left = 304
-    Top = 96
+    Top = 168
   end
   object popupFilterOpenFile: TPopupMenu
     Left = 272
@@ -1894,7 +1913,7 @@ object MDIChild: TMDIChild
     Protocol = 'mysql'
     SQLHourGlass = True
     Left = 224
-    Top = 64
+    Top = 136
   end
   object ZQuery1: TZQuery
     Connection = ZConn
@@ -1906,7 +1925,7 @@ object MDIChild: TMDIChild
     Params = <>
     UpdateMode = umUpdateAll
     Left = 272
-    Top = 96
+    Top = 168
   end
   object ZQuery2: TZQuery
     Connection = ZConn
@@ -1917,9 +1936,8 @@ object MDIChild: TMDIChild
     AfterDelete = ZQuery2AfterPost
     ParamCheck = False
     Params = <>
-    UpdateMode = umUpdateAll
     Left = 272
-    Top = 64
+    Top = 136
   end
   object ZQuery3: TZReadOnlyQuery
     Connection = ZConn
@@ -1927,14 +1945,14 @@ object MDIChild: TMDIChild
     ParamCheck = False
     Params = <>
     Left = 272
-    Top = 128
+    Top = 200
   end
   object ZSQLMonitor1: TZSQLMonitor
     Active = True
     MaxTraceCount = 100
     OnLogTrace = ZSQLMonitor1LogTrace
     Left = 224
-    Top = 96
+    Top = 168
   end
   object popupDbGridHeader: TPopupMenu
     AutoHotkeys = maManual

@@ -46,9 +46,9 @@ type
     menudroptable: TMenuItem;
     menuemptytable: TMenuItem;
     SheetHost: TTabSheet;
-    PageControl2: TPageControl;
-    TabSheet6: TTabSheet;
-    TabSheet7: TTabSheet;
+    PageControlHost: TPageControl;
+    tabVariables: TTabSheet;
+    tabProcessList: TTabSheet;
     ListVariables: TSortListView;
     ListProcesses: TSortListView;
     popupHost: TPopupMenu;
@@ -260,6 +260,8 @@ type
     N16: TMenuItem;
     ManageIndexes1: TMenuItem;
     btnTableManageIndexes: TToolButton;
+    tabCommandStats: TTabSheet;
+    ListCommandStats: TSortListView;
     procedure ManageIndexes1Click(Sender: TObject);
     procedure ZQuery2AfterPost(DataSet: TDataSet);
     procedure btnQueryReplaceClick(Sender: TObject);
@@ -301,7 +303,7 @@ type
       Change: TItemChange);
     procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
-    procedure PageControl2Change(Sender: TObject);
+    procedure PageControlHostChange(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false; CurrentLine: Boolean=false);
     procedure ListColumnsChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
@@ -437,11 +439,12 @@ type
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
       CanAcessMysqlFlag          : Boolean;
-    function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
+      function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
       function CanAcessMysql: Boolean;
+
 
     public
       { Public declarations }
@@ -1752,11 +1755,37 @@ end;
 
 
 procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
+
+  procedure addLVitem( caption: String; Value: String; TotalValue: Int64 );
+  var
+    n : TListItem;
+    commandFreq : Int64;
+    tmpval : Double;
+  begin
+    n := ListCommandStats.Items.Add;
+    caption := copy( caption, 5, length(caption) );
+    caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
+    n.Caption := caption;
+    // Total Frequency
+    commandFreq := StrToInt64( Value );
+    n.Subitems.Add( FormatNumber( commandFreq ) );
+    // Average per hour
+    tmpval := commandFreq / ( uptime / 60 );
+    n.Subitems.Add( FormatNumber( tmpval, 1 ) );
+    // Average per second
+    tmpval := commandFreq / uptime;
+    n.Subitems.Add( FormatNumber( tmpval, 1 ) );
+    // Percentage
+    tmpval := 100 / TotalValue * commandFreq;
+    n.Subitems.Add( FormatNumber( tmpval, 1 ) + ' %' );
+  end;
+
 var
   v : String[10];
   i : Integer;
   n : TListItem;
   versions : TStringList;
+  questions : Int64;
 begin
 // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
@@ -1780,9 +1809,9 @@ begin
     ZQuery3.Next;
   end;
 
-  uptime := 0;
-
   // STATUS
+  uptime := 1; // avoids division by zero :)
+  questions := 1;
   GetResults( 'SHOW STATUS', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
@@ -1790,15 +1819,34 @@ begin
     n.Caption := ZQuery3.Fields[0].AsString;
     n.Subitems.Add( ZQuery3.Fields[1].AsString );
     if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
-      uptime := strToIntDef(ZQuery3.Fields[1].AsString, 0);
+      uptime := MakeInt(ZQuery3.Fields[1].AsString);
+    if lowercase( ZQuery3.Fields[0].AsString ) = 'questions' then
+      questions := MakeInt(ZQuery3.Fields[1].AsString);
     ZQuery3.Next;
   end;
+
+  // Command-Statistics
+  ListCommandStats.Items.BeginUpdate;
+  ListCommandStats.Items.Clear;
+  addLVitem( '    All commands', IntToStr(questions), questions );
+  ZQuery3.First;
+  for i:=1 to ZQuery3.RecordCount do
+  begin
+    if LowerCase( copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) = 'com_' then
+    begin
+      addLVitem( ZQuery3.Fields[0].AsString, ZQuery3.Fields[1].AsString, questions );
+    end;
+    ZQuery3.Next;
+  end;
+  ListCommandStats.Items.EndUpdate;
+  // Sort 2nd column
+  ListCommandStats.ColClick( ListCommandStats.Columns[1] );
 
   Timer1Timer(self);
   Timer1.OnTimer := Timer1Timer;
 
   ListVariables.Items.EndUpdate;
-  TabSheet6.Caption := 'Variables (' + inttostr(ListVariables.Items.Count) + ')';
+  tabVariables.Caption := 'Variables (' + inttostr(ListVariables.Items.Count) + ')';
   Screen.Cursor := crDefault;
 
   ShowProcesslist(self); // look at next procedure
@@ -1835,7 +1883,7 @@ begin
     end;
     ZQuery3.Close;
     ListProcesses.Items.EndUpdate;
-    TabSheet7.Caption := 'Process-List (' + inttostr(ListProcesses.Items.Count) + ')';
+    tabProcessList.Caption := 'Process-List (' + inttostr(ListProcesses.Items.Count) + ')';
   except
     LogSQL( 'Error on loading process-list!' );
   end;
@@ -1847,7 +1895,7 @@ end;
 procedure TMDIChild.ListProcessesChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
 begin
-  Kill1.Enabled := (ListProcesses.Selected <> nil) and (PageControl2.ActivePage = TabSheet7);
+  Kill1.Enabled := (ListProcesses.Selected <> nil) and (PageControlHost.ActivePage = tabProcessList);
 end;
 
 
@@ -1869,7 +1917,7 @@ begin
 end;
 
 
-procedure TMDIChild.PageControl2Change(Sender: TObject);
+procedure TMDIChild.PageControlHostChange(Sender: TObject);
 begin
   ListProcessesChange(self, nil, TItemChange(self));
 end;
@@ -2053,6 +2101,7 @@ begin
   end;
 
 end;
+
 
 procedure TMDIChild.DropField(Sender: TObject);
 var
@@ -3362,7 +3411,7 @@ end;
 
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
-  MenuAutoupdate.Enabled := PageControl2.ActivePageIndex=1;
+  MenuAutoupdate.Enabled := PageControlHost.ActivePageIndex=1;
 end;
 
 procedure TMDIChild.ListTablesEditing(Sender: TObject; Item: TListItem;
