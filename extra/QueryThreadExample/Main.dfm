@@ -3,8 +3,8 @@ object Form1: TForm1
   Top = 0
   Anchors = [akLeft, akTop, akBottom]
   Caption = 'Threaded Mysql Query Example'
-  ClientHeight = 346
-  ClientWidth = 451
+  ClientHeight = 433
+  ClientWidth = 450
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,16 +15,28 @@ object Form1: TForm1
   Position = poScreenCenter
   PixelsPerInch = 96
   TextHeight = 13
+  object Splitter1: TSplitter
+    Left = 0
+    Top = 308
+    Width = 450
+    Height = 4
+    Cursor = crVSplit
+    Align = alBottom
+    ResizeStyle = rsUpdate
+    ExplicitTop = 133
+    ExplicitWidth = 464
+  end
   object Panel2: TPanel
     Left = 0
     Top = 0
-    Width = 451
+    Width = 450
     Height = 152
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitWidth = 451
     DesignSize = (
-      451
+      450
       152)
     object Label1: TLabel
       Left = 8
@@ -94,9 +106,9 @@ object Form1: TForm1
     object Label7: TLabel
       Left = 8
       Top = 138
-      Width = 81
+      Width = 46
       Height = 13
-      Caption = 'Active thread list'
+      Caption = 'Query list'
       Color = clBtnFace
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clNavy
@@ -107,7 +119,7 @@ object Form1: TForm1
       ParentFont = False
     end
     object Button1: TButton
-      Left = 367
+      Left = 366
       Top = 100
       Width = 76
       Height = 25
@@ -115,14 +127,16 @@ object Form1: TForm1
       Caption = 'Exec Async'
       TabOrder = 0
       OnClick = Button1Click
+      ExplicitLeft = 367
     end
     object Edit1: TEdit
       Left = 8
       Top = 102
-      Width = 353
+      Width = 352
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
+      ExplicitWidth = 353
     end
     object edHost: TEdit
       Left = 8
@@ -164,12 +178,14 @@ object Form1: TForm1
   end
   object Panel3: TPanel
     Left = 0
-    Top = 312
-    Width = 451
+    Top = 399
+    Width = 450
     Height = 34
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitTop = 312
+    ExplicitWidth = 451
     object bnKillThread: TButton
       Left = 9
       Top = 4
@@ -186,28 +202,35 @@ object Form1: TForm1
       TabOrder = 0
       OnClick = bnKillThreadClick
     end
+    object Button2: TButton
+      Left = 90
+      Top = 4
+      Width = 75
+      Height = 25
+      Caption = 'Free Result'
+      Enabled = False
+      TabOrder = 1
+    end
   end
   object Panel1: TPanel
     Left = 0
     Top = 152
-    Width = 451
-    Height = 160
+    Width = 450
+    Height = 156
     Align = alClient
     BevelOuter = bvNone
     Caption = 'Panel1'
     TabOrder = 2
-    ExplicitLeft = 104
-    ExplicitTop = 176
-    ExplicitWidth = 129
-    ExplicitHeight = 65
+    ExplicitWidth = 451
+    ExplicitHeight = 160
     DesignSize = (
-      451
-      160)
+      450
+      156)
     object Panel4: TPanel
       Left = 7
       Top = 5
-      Width = 438
-      Height = 146
+      Width = 437
+      Height = 147
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelInner = bvRaised
       BevelOuter = bvLowered
@@ -215,8 +238,8 @@ object Form1: TForm1
       object lvResult: TListView
         Left = 2
         Top = 2
-        Width = 434
-        Height = 142
+        Width = 433
+        Height = 143
         Align = alClient
         BorderStyle = bsNone
         Columns = <
@@ -230,19 +253,59 @@ object Form1: TForm1
           end
           item
             Caption = 'Statement'
-            Width = 211
+            Width = 178
           end
           item
             Caption = 'Result'
+            Width = 87
           end>
         ReadOnly = True
         RowSelect = True
         TabOrder = 0
         ViewStyle = vsReport
         OnSelectItem = lvResultSelectItem
-        ExplicitWidth = 429
-        ExplicitHeight = 151
+        ExplicitWidth = 434
+        ExplicitHeight = 142
       end
     end
+  end
+  object Panel5: TPanel
+    Left = 0
+    Top = 312
+    Width = 450
+    Height = 87
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 3
+    ExplicitTop = 318
+    ExplicitWidth = 464
+    DesignSize = (
+      450
+      87)
+    object pnResultset: TPanel
+      Left = 8
+      Top = 2
+      Width = 434
+      Height = 79
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      TabOrder = 0
+      object DBGrid1: TDBGrid
+        Left = 1
+        Top = 1
+        Width = 432
+        Height = 77
+        Align = alClient
+        DataSource = DataSource1
+        TabOrder = 0
+        TitleFont.Charset = DEFAULT_CHARSET
+        TitleFont.Color = clWindowText
+        TitleFont.Height = -11
+        TitleFont.Name = 'Tahoma'
+        TitleFont.Style = []
+      end
+    end
+  end
+  object DataSource1: TDataSource
+    Left = 216
   end
 end

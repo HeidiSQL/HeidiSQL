@@ -16,6 +16,7 @@ type
     Port : Integer;
     Form : TForm;
   end;
+  PConnParams = ^TConnParams;
 
   TThreadResult = record
     ThreadID : Integer;
@@ -31,21 +32,25 @@ type
       FMysqlConnectionID : Integer;
       FMysqlConn : TZConnection;
       FConnParams : TConnParams;
+      FOwner : TObject; // TMysqlQuery object
       FSql : String;
       FForm : TForm;
-      FValue : Integer;
+      FResult : Integer; // result code
       FComment : String;
+      procedure ReportInit; // result text
       procedure ReportStart;
       procedure ReportFinish;
-      procedure ReportKill;      
+      procedure ReportKill;
     protected
       procedure Execute; override;
+      procedure SetState (AResult : Integer; AComment : String);
+      function AssembleResult () : TThreadResult;
       function RunDataQuery (ASql : String; var ADataset : TDataset) : Boolean;
       function RunUpdateQuery (ASql : String) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
       function GetExpectResultSet (ASql : String) : Boolean;
     public
-      constructor Create (APrm : TConnParams; ASql : String);
+      constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String);
       destructor Destroy; override;
   end;
 
@@ -58,45 +63,47 @@ var
 
 implementation
 
-uses SysUtils, Main, Dialogs;
+uses
+  MysqlQuery, SysUtils, Main, Dialogs, Messages;
 
-{ Important: Methods and properties of objects in visual components can only be
-  used in a method called using Synchronize, for example,
+function TMysqlQueryThread.AssembleResult: TThreadResult;
+begin
+  ZeroMemory (@Result,SizeOf(Result));
 
-      Synchronize(UpdateCaption);
+  Result.ThreadID := ThreadID;
+  Result.ConnectionID := FMysqlConnectionID;
+  Result.Action := 1;
+  Result.Sql := FSql;
+  Result.Result := FResult;
+  Result.Comment := FComment;
+end;
 
-  and UpdateCaption could look like,
-
-    procedure TMysqlQueryThread.UpdateCaption;
-    begin
-      Form1.Caption := 'Updated in a thread';
-    end; }
-
-{ TMysqlQueryThread }
-
-constructor TMysqlQueryThread.Create(APrm : TConnParams; ASql : String);
+constructor TMysqlQueryThread.Create(AOwner : TObject; APrm : TConnParams; ASql : String);
+var
+  mc : TZConnection;
 begin
   Inherited Create(True);
 
+  FOwner := AOwner;
   FConnParams := APrm;
-  FValue := 0;
+  mc := TMysqlQuery(FOwner).MysqlConnection;
+  FMysqlConn := mc;
+  FResult := 0;
   FSql := ASql;
-  FMysqlConn := TZConnection.Create (nil);
-  FMysqlConn.HostName := APrm.Host;
-  FMysqlConn.Database := APrm.Database;
-  FMysqlConn.User := APrm.User;
-  FMysqlConn.Password := APrm.Pass;
-  FMysqlConn.Protocol := APrm.Protocol;
-  FMysqlConn.Port := APrm.Port;
+
+  mc.HostName := APrm.Host;
+  mc.Database := APrm.Database;
+  mc.User := APrm.User;
+  mc.Password := APrm.Pass;
+  mc.Protocol := APrm.Protocol;
+  mc.Port := APrm.Port;
 
   FreeOnTerminate := True;
-  Resume;
 
 end;
 
 destructor TMysqlQueryThread.Destroy;
 begin
-  FreeAndNil (FMysqlConn);
   inherited;
 end;
 
@@ -108,12 +115,14 @@ procedure TMysqlQueryThread.Execute;
 var
   q : TZQuery;
   r : Boolean;
+  h : THandle;
 begin
+  Synchronize(ReportInit);
 
   try
     FMysqlConn.Connect();
   except
-    FComment := 'Connect error';
+    SetState (MQR_CONNECT_FAIL,'Connect error');
   end;
 
   r := False;
@@ -133,24 +142,27 @@ begin
             begin
               if q.State=dsBrowse then
                 begin
-                  if q.Fields.Count > 0 then
-                    FValue := q.RecordCount;
+                  //if q.Fields.Count > 0 then
+                    //FValue := q.RecordCount;
                 end;
             end;
 
-          FreeAndNil (q);
+          TMysqlQuery(FOwner).SetMysqlDataset(q);
+          //FreeAndNil (q);
         end
       else
         r := RunUpdateQuery (FSql);
 
       if r then
-        begin
-          FComment := 'Query OK';
-        end;
+        SetState (MQR_SUCCESS,'SUCCESS')
+      else
+        SetState (MQR_QUERY_FAIL,'ERROR');
 
     end;
 
-  FMysqlConn.Disconnect();
+  h := OpenEvent (EVENT_ALL_ACCESS,False,PChar(TMysqlQuery(FOwner).EventName));
+  if h<>0 then
+    SetEvent (h);
 
   Synchronize(ReportFinish);
   Sleep (5000);
@@ -199,49 +211,40 @@ procedure TMysqlQueryThread.ReportStart();
 var
   qr : TThreadResult;
 begin
-  ZeroMemory (@qr,SizeOf(qr));
+  qr := AssembleResult();
 
-  qr.ThreadID := ThreadID;
-  qr.ConnectionID := FMysqlConnectionID;
-  qr.Action := 1;
-  qr.Sql := FSql;
-  qr.Result := FValue;
-  qr.Comment := 'Executing';
-
-  TForm1(FConnParams.Form).UpdateThreadStatus(qr);
+  if FOwner <> nil then
+    TMysqlQuery (FOwner).PostNotification(qr,MQE_STARTED);
 end;
 
 procedure TMysqlQueryThread.ReportFinish();
 var
   qr : TThreadResult;
 begin
-  ZeroMemory (@qr,SizeOf(qr));
+  qr := AssembleResult();
 
-  qr.ThreadID := ThreadID;
-  qr.ConnectionID := FMysqlConnectionID;
-  qr.Action := 2;
-  qr.Sql := FSql;
-  qr.Result := FValue;
-  qr.Comment := FComment;
-
-  TForm1(FConnParams.Form).UpdateThreadStatus(qr);
+  if FOwner <> nil then
+    TMysqlQuery (FOwner).PostNotification(qr,MQE_FINISHED);
 end;
 
+procedure TMysqlQueryThread.ReportInit();
+var
+  qr : TThreadResult;
+begin
+  qr := AssembleResult();
+
+  if FOwner <> nil then
+    TMysqlQuery (FOwner).PostNotification(qr,MQE_INITED);
+end;
 
 procedure TMysqlQueryThread.ReportKill;
 var
   qr : TThreadResult;
 begin
-  ZeroMemory (@qr,SizeOf(qr));
+  qr := AssembleResult();
 
-  qr.ThreadID := ThreadID;
-  qr.ConnectionID := FMysqlConnectionID;
-  qr.Action := 3;
-  qr.Sql := FSql;
-  qr.Result := FValue;
-  qr.Comment := 'Killed';
-
-  TForm1(FConnParams.Form).UpdateThreadStatus(qr);
+  //if FOwner <> nil then
+    //TMysqlQuery (FOwner).PostNotification(qr,MQE_KILLED);
 end;
 
 function TMysqlQueryThread.RunDataQuery(ASql: String;
@@ -256,13 +259,10 @@ begin
 
   try
     q.Active := True;
-
     ADataset := q;
-
     Result := True;
   except
     // EZSQLException
-    FComment := 'Query error';
   end;
 end;
 
@@ -279,10 +279,15 @@ begin
     q.ExecSQL();
     Result := True;
   except
-    FComment := 'Query error';
   end;
 
   FreeAndNil (q);
+end;
+
+procedure TMysqlQueryThread.SetState(AResult: Integer; AComment: String);
+begin
+  FResult := AResult;
+  FComment := AComment;
 end;
 
 end.
