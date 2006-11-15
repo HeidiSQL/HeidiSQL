@@ -62,8 +62,9 @@ http://www.heidisql.com/donate.php
 - Martijn Nijenhof (development)
 - Tony Peng (development)
 - Sven Lorenz (graphics)
+- Mikkel M. Gerhardt-Pedersen (additional bugfixes)
 
-The teams is spread over 4 different countries:
+The team is spread over 4 different countries:
 Germany, Danmark, Netherlands and ShangHai.
 
 

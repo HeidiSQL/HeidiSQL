@@ -4,7 +4,7 @@ object AboutBox: TAboutBox
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'About'
-  ClientHeight = 349
+  ClientHeight = 366
   ClientWidth = 531
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,15 +19,15 @@ object AboutBox: TAboutBox
   OnShow = FormShow
   DesignSize = (
     531
-    349)
+    366)
   PixelsPerInch = 96
   TextHeight = 13
   object PanelLogos: TPanel
     Left = 401
     Top = 0
     Width = 129
-    Height = 240
-    Anchors = [akTop, akRight]
+    Height = 263
+    Anchors = [akTop, akRight, akBottom]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     Color = clWhite
@@ -1153,7 +1153,7 @@ object AboutBox: TAboutBox
   end
   object ButtonClose: TButton
     Left = 401
-    Top = 324
+    Top = 341
     Width = 129
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1162,20 +1162,22 @@ object AboutBox: TAboutBox
     Default = True
     TabOrder = 1
     OnClick = ButtonCloseClick
+    ExplicitTop = 324
   end
   object PanelMain: TPanel
     Left = 1
     Top = 0
     Width = 394
-    Height = 349
+    Height = 366
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 2
     OnMouseMove = MouseOver
+    ExplicitHeight = 349
     DesignSize = (
       394
-      349)
+      366)
     object ProductName: TLabel
       Left = 10
       Top = 10
@@ -1235,16 +1237,16 @@ object AboutBox: TAboutBox
     end
     object LabelThanks: TLabel
       Left = 10
-      Top = 213
+      Top = 229
       Width = 66
       Height = 13
       Caption = 'Thanks go to:'
     end
     object MemoThanks: TMemo
       Left = 10
-      Top = 232
+      Top = 248
       Width = 376
-      Height = 106
+      Height = 107
       Anchors = [akLeft, akTop, akRight, akBottom]
       Lines.Strings = (
         'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
@@ -1263,20 +1265,21 @@ object AboutBox: TAboutBox
       Left = 10
       Top = 120
       Width = 376
-      Height = 80
+      Height = 97
       Anchors = [akLeft, akTop, akRight]
       Lines.Strings = (
         '- Ansgar Becker (project lead and development)'
         '- David Dindorp (development)'
         '- Martijn Nijenhof (development)'
         '- Tony Peng (development)'
-        '- Sven Lorenz (graphics)')
+        '- Sven Lorenz (graphics)'
+        '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)')
       TabOrder = 1
     end
   end
   object ButtonDonate: TButton
     Left = 401
-    Top = 288
+    Top = 305
     Width = 129
     Height = 25
     Hint = 'http://www.heidisql.com/donate.php'
@@ -1284,16 +1287,18 @@ object AboutBox: TAboutBox
     Caption = 'Donate'
     TabOrder = 3
     OnClick = OpenURL
+    ExplicitTop = 288
   end
   object ButtonBoard: TButton
     Left = 401
-    Top = 252
+    Top = 269
     Width = 129
     Height = 25
     Hint = 'http://www.heidisql.com/forum/'
     Anchors = [akRight, akBottom]
-    Caption = 'Board'
+    Caption = 'Support-Forum'
     TabOrder = 4
     OnClick = OpenURL
+    ExplicitTop = 252
   end
 end
