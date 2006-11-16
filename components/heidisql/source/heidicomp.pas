@@ -9,8 +9,8 @@ uses
 
 type
   TSortListView = class(TListView)
-  protected
-     procedure ColClick(Column: TListColumn); override;
+  published
+    procedure ColClick(Column: TListColumn); override;
   end;
 
 
@@ -80,39 +80,85 @@ begin
 end;
 
 
-function CustomSortProc(Item1, Item2: TListItem; ParamSort: integer): integer;
+function CustomSortProc(Item1, Item2: TListItem; Column: integer): integer;
 stdcall;
+  // Copied from helpers.pas
+  // didn't want to add helpers.pas to uses-clause, as we should keep this file without dependencies
+  function MakeInt( Str: String ) : Integer;
+  var
+    i : Integer;
+    StrWithInts : String;
+  begin
+    StrWithInts := '';
+    for i:=1 to Length(str) do
+    begin
+      if StrToIntDef( str[i], -1 ) <> -1 then
+      begin
+        StrWithInts := StrWithInts + str[i];
+      end;
+    end;
+    result := StrToIntDef( StrWithInts, 0 );
+  end;
+
 var
-  i,j,codea,codeb : Integer;
+  str1, str2 : String;
+  int1, int2 : Int64;
+  i : Integer;
+  ValAIsBigger, ValBIsBigger : Shortint;
+const
+  isdesc = 1;
+  isasc = -1;
 begin
   result:=0;
 
-  if paramsort = 0 then
-    if item1.caption <= item2.caption then
-      result:=-1
-    else
-      result:=1;
-
-  if paramsort > 0 then
+  for i := 0 to Item1.Subitems.Count do
   begin
-    if (item1.subitems.count > paramsort-1) and (item2.subitems.count > paramsort-1) then
-    begin
-      val(item1.subitems[ParamSort-1], i, codea);
-      val(item2.subitems[ParamSort-1], j, codeb);
-      if (codea = 0) and (codeb = 0) then
-      begin
-        if i < j then
-          result:=1
-        else
-          result:=-1;
-      end else
-      begin
-        if item1.subitems[ParamSort-1] <= item2.subitems[ParamSort-1] then
-          result:=-1
-        else
-          result:=1;
-      end;
-    end;
+    if i <> Column then
+      Item1.ListView.Column[i].Tag := isdesc;
+  end;
+
+  if Column = 0 then
+  begin
+    str1 := Item1.Caption;
+    str2 := Item2.Caption;
+  end
+  else
+  begin // Take care of lines with less than needed subitems
+    if Item1.SubItems.Count >= Column then
+      str1 := Item1.SubItems[Column-1]
+    else
+      str1 := '';
+    if Item2.SubItems.Count >= Column then
+      str2 := Item2.SubItems[Column-1]
+    else
+      str2 := '';
+  end;
+
+  // prepare result-values for comparision, taking the current sort-direction into account
+  ValAIsBigger := -1 * Item1.ListView.Column[Column].Tag;
+  ValBIsBigger := 1 * Item1.ListView.Column[Column].Tag;
+
+  if Item1.ListView.Column[Column].Alignment = taRightJustify then
+  begin
+    // Assuming we have numeric values because of a right alignment
+    int1 := MakeInt( str1 );
+    int2 := MakeInt( str2 );
+    if int1 > int2 then
+      result := ValAIsBigger
+    else if int1 = int2 then
+      result := 0
+    else if int1 < int2 then
+      result := ValBIsBigger;
+  end
+  else
+  begin
+    // Compare Strings
+    if str1 > str2 then
+      result := ValAIsBigger
+    else if str1 = str2 then
+      result := 0
+    else if str1 < str2 then
+      result := ValBIsBigger;
   end;
 
 end;
@@ -123,8 +169,12 @@ end;
 
 procedure tsortlistview.ColClick(Column: TListColumn);
 begin
-  inherited colclick(column);
-  CustomSort(@CustomSortProc, column.index);
+  if Column.Tag = 1 then
+    Column.Tag := -1
+  else
+    Column.Tag := 1;
+  inherited colclick(Column);
+  CustomSort(@CustomSortProc, Column.index);
 end;
 
 
