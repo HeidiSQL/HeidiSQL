@@ -1415,6 +1415,9 @@ begin
   Finally
     ListTables.Columns.EndUpdate;
     ListTables.Items.EndUpdate;
+    // Remove existing column-sort-images
+    // (TODO: auomatically invoke this method in TSortListView itself)
+    ListTables.ClearSortColumnImages;
     Screen.Cursor := crDefault;
   End;
   Screen.Cursor := crHourglass;
@@ -1518,6 +1521,9 @@ begin
     end;
   finally
     ListColumns.Items.EndUpdate;
+    // Remove existing column-sort-images
+    // (TODO: auomatically invoke this method in TSortListView itself)
+    ListColumns.ClearSortColumnImages;
     Screen.Cursor := crDefault;
   end;
 
@@ -1763,6 +1769,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     tmpval : Double;
   begin
     n := ListCommandStats.Items.Add;
+    n.ImageIndex := 86;
     caption := copy( caption, 5, length(caption) );
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
     n.Caption := caption;
@@ -1770,7 +1777,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     commandFreq := StrToInt64( Value );
     n.Subitems.Add( FormatNumber( commandFreq ) );
     // Average per hour
-    tmpval := commandFreq / ( uptime / 60 );
+    tmpval := commandFreq / ( uptime / 60 / 60 );
     n.Subitems.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
     tmpval := commandFreq / uptime;
@@ -1804,6 +1811,7 @@ begin
   for i:=1 to ZQuery3.RecordCount do
   begin
     n := ListVariables.Items.Add;
+    n.ImageIndex := 87;
     n.Caption := ZQuery3.Fields[0].AsString;
     n.Subitems.Add( ZQuery3.Fields[1].AsString );
     ZQuery3.Next;
@@ -1816,6 +1824,7 @@ begin
   for i:=1 to ZQuery3.RecordCount do
   begin
     n := ListVariables.Items.Add;
+    n.ImageIndex := 87;
     n.Caption := ZQuery3.Fields[0].AsString;
     n.Subitems.Add( ZQuery3.Fields[1].AsString );
     if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
@@ -1824,6 +1833,9 @@ begin
       questions := MakeInt(ZQuery3.Fields[1].AsString);
     ZQuery3.Next;
   end;
+  // Remove existing column-sort-images
+  // (TODO: auomatically invoke this method in TSortListView itself)
+  ListVariables.ClearSortColumnImages;
 
   // Command-Statistics
   ListCommandStats.Items.BeginUpdate;
@@ -1839,7 +1851,8 @@ begin
     ZQuery3.Next;
   end;
   ListCommandStats.Items.EndUpdate;
-  // Sort 2nd column
+  // Sort 2nd column descending
+  ListCommandStats.ColClick( ListCommandStats.Columns[1] );
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
 
   Timer1Timer(self);
@@ -1883,6 +1896,9 @@ begin
     end;
     ZQuery3.Close;
     ListProcesses.Items.EndUpdate;
+    // Remove existing column-sort-images
+    // (TODO: auomatically invoke this method in TSortListView itself)
+    ListProcesses.ClearSortColumnImages;
     tabProcessList.Caption := 'Process-List (' + inttostr(ListProcesses.Items.Count) + ')';
   except
     LogSQL( 'Error on loading process-list!' );

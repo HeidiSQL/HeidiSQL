@@ -100,6 +100,10 @@ object MDIChild: TMDIChild
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -112,6 +116,10 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -122,20 +130,21 @@ object MDIChild: TMDIChild
                 Columns = <
                   item
                     Caption = 'Variable'
-                    Tag = 63
                     Width = 130
                   end
                   item
                     Caption = 'Value'
-                    Tag = 64
                     Width = 354
                   end>
                 GridLines = True
                 ReadOnly = True
                 RowSelect = True
                 PopupMenu = popupHost
+                SmallImages = MainForm.ImageList1
                 TabOrder = 0
                 ViewStyle = vsReport
+                ImageIndexSortAsc = 95
+                ImageIndexSortDesc = 94
               end
             end
             object tabProcessList: TTabSheet
@@ -155,44 +164,37 @@ object MDIChild: TMDIChild
                 Columns = <
                   item
                     Caption = 'id'
-                    Tag = 65
                     Width = -1
                     WidthType = (
                       -1)
                   end
                   item
                     Caption = 'User'
-                    Tag = 66
                     Width = 80
                   end
                   item
                     Caption = 'Host'
-                    Tag = 67
+                    Tag = -1
                     Width = 80
                   end
                   item
                     Caption = 'DB'
-                    Tag = 68
                     Width = -1
                     WidthType = (
                       -1)
                   end
                   item
                     Caption = 'Command'
-                    Tag = 69
                     Width = 80
                   end
                   item
                     Caption = 'Time'
-                    Tag = 70
                   end
                   item
                     Caption = 'State'
-                    Tag = 71
                   end
                   item
                     Caption = 'Info'
-                    Tag = 72
                     Width = 126
                   end>
                 GridLines = True
@@ -203,11 +205,17 @@ object MDIChild: TMDIChild
                 TabOrder = 0
                 ViewStyle = vsReport
                 OnChange = ListProcessesChange
+                ImageIndexSortAsc = 95
+                ImageIndexSortDesc = 94
               end
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListCommandStats: TSortListView
                 Left = 0
                 Top = 0
@@ -243,9 +251,12 @@ object MDIChild: TMDIChild
                 ReadOnly = True
                 RowSelect = True
                 PopupMenu = popupHost
+                SmallImages = MainForm.ImageList1
                 SortType = stBoth
                 TabOrder = 0
                 ViewStyle = vsReport
+                ImageIndexSortAsc = 95
+                ImageIndexSortDesc = 94
               end
             end
           end
@@ -304,7 +315,6 @@ object MDIChild: TMDIChild
             Columns = <
               item
                 Caption = 'Table'
-                Tag = 73
                 Width = -1
                 WidthType = (
                   -1)
@@ -312,20 +322,17 @@ object MDIChild: TMDIChild
               item
                 Alignment = taRightJustify
                 Caption = 'Records'
-                Tag = 74
                 Width = 80
               end
               item
                 Alignment = taRightJustify
                 Caption = 'Size'
-                Tag = 75
                 Width = -1
                 WidthType = (
                   -1)
               end
               item
                 Caption = 'Created'
-                Tag = 76
                 Width = -1
                 WidthType = (
                   -1)
@@ -338,14 +345,12 @@ object MDIChild: TMDIChild
               end
               item
                 Caption = 'Type'
-                Tag = 77
                 Width = -1
                 WidthType = (
                   -1)
               end
               item
                 Caption = 'Comment'
-                Tag = 78
                 Width = 328
               end>
             GridLines = True
@@ -363,6 +368,8 @@ object MDIChild: TMDIChild
             OnEdited = ListTablesEdited
             OnEditing = ListTablesEditing
             OnMouseDown = ListTablesMouseDown
+            ImageIndexSortAsc = 95
+            ImageIndexSortDesc = 94
           end
           object ToolBar1: TToolBar
             Left = 3
@@ -552,29 +559,24 @@ object MDIChild: TMDIChild
               Columns = <
                 item
                   Caption = 'Name'
-                  Tag = 79
                   Width = -1
                   WidthType = (
                     -1)
                 end
                 item
                   Caption = 'Type'
-                  Tag = 80
                   Width = 100
                 end
                 item
                   Caption = 'Null'
-                  Tag = 81
                   Width = 40
                 end
                 item
                   Caption = 'Default'
-                  Tag = 80
                   Width = 115
                 end
                 item
                   Caption = 'Extra'
-                  Tag = 83
                   Width = 200
                 end>
               GridLines = True
@@ -586,6 +588,8 @@ object MDIChild: TMDIChild
               ViewStyle = vsReport
               OnChange = ListColumnsChange
               OnDblClick = UpdateField
+              ImageIndexSortAsc = 95
+              ImageIndexSortDesc = 94
             end
           end
           object ToolBar6: TToolBar
@@ -997,6 +1001,10 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1044,6 +1052,10 @@ object MDIChild: TMDIChild
     object TabSheet2: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1114,6 +1126,10 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1135,6 +1151,10 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0

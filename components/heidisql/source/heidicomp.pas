@@ -4,13 +4,24 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, Dialogs, SysUtils,
-  ComCtrls, CommCtrl, StdCtrls, ExtCtrls;
+  ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics;
 
 
 type
   TSortListView = class(TListView)
+	private
+    FImageIndexSortDesc,
+    FImageIndexSortAsc : Integer;
+
+  protected
+    procedure SetImageIndexSortAsc( NewValue: Integer );
+    procedure SetImageIndexSortDesc( NewValue: Integer );
+
   published
     procedure ColClick(Column: TListColumn); override;
+    procedure ClearSortColumnImages;
+    property ImageIndexSortAsc: Integer read FImageIndexSortAsc write SetImageIndexSortAsc default -1;
+    property ImageIndexSortDesc: Integer read FImageIndexSortDesc write SetImageIndexSortDesc default -1;
   end;
 
 
@@ -83,7 +94,8 @@ end;
 function CustomSortProc(Item1, Item2: TListItem; Column: integer): integer;
 stdcall;
   // Copied from helpers.pas
-  // didn't want to add helpers.pas to uses-clause, as we should keep this file without dependencies
+  // didn't want to add helpers.pas to uses-clause, as we
+	// should keep this file without dependencies
   function MakeInt( Str: String ) : Integer;
   var
     i : Integer;
@@ -103,19 +115,9 @@ stdcall;
 var
   str1, str2 : String;
   int1, int2 : Int64;
-  i : Integer;
   ValAIsBigger, ValBIsBigger : Shortint;
-const
-  isdesc = 1;
-  isasc = -1;
 begin
   result:=0;
-
-  for i := 0 to Item1.Subitems.Count do
-  begin
-    if i <> Column then
-      Item1.ListView.Column[i].Tag := isdesc;
-  end;
 
   if Column = 0 then
   begin
@@ -138,9 +140,9 @@ begin
   ValAIsBigger := -1 * Item1.ListView.Column[Column].Tag;
   ValBIsBigger := 1 * Item1.ListView.Column[Column].Tag;
 
-  if Item1.ListView.Column[Column].Alignment = taRightJustify then
+  if StrToIntDef( copy(str1,0,1), -1 ) <> -1 then
   begin
-    // Assuming we have numeric values because of a right alignment
+    // Assuming we have numeric values
     int1 := MakeInt( str1 );
     int2 := MakeInt( str2 );
     if int1 > int2 then
@@ -167,14 +169,67 @@ end;
 // ***************************************************************
 // TSortListView
 
-procedure tsortlistview.ColClick(Column: TListColumn);
+
+procedure TSortListView.ColClick(Column: TListColumn);
+var
+  i : Integer;
+const
+  isDesc = -1;
+  isAsc = 1;
 begin
-  if Column.Tag = 1 then
-    Column.Tag := -1
+  // Remove all icons from columnheaders
+  ClearSortColumnImages;
+  // Clear Sort-Tags
+  for i := 0 to Columns.Count-1 do
+  begin
+    if Columns[i] <> Column then
+      Columns[i].Tag := 0;
+  end;
+  // Reverse or initiate sort-direction
+  if Column.Tag in [0, isAsc] then
+    Column.Tag := isDesc
   else
-    Column.Tag := 1;
+    Column.Tag := isAsc;
+  // Assign icon-index if valid
+  if (SmallImages <> nil) and (SmallImages.Count > ImageIndexSortAsc) and (SmallImages.Count > ImageIndexSortDesc) then
+  begin
+    if Column.Tag = isAsc then
+      Column.ImageIndex := ImageIndexSortAsc
+    else
+      Column.ImageIndex := ImageIndexSortDesc;
+  end;
   inherited colclick(Column);
+  // Run sort-procedure
   CustomSort(@CustomSortProc, Column.index);
+end;
+
+
+procedure TSortListView.SetImageIndexSortAsc( NewValue: Integer );
+begin
+  if NewValue <> ImageIndexSortAsc then
+  begin
+    FImageIndexSortAsc := NewValue;
+  end;
+end;
+
+
+procedure TSortListView.SetImageIndexSortDesc( NewValue: Integer );
+begin
+  if NewValue <> ImageIndexSortDesc then
+  begin
+    FImageIndexSortDesc := NewValue;
+  end;
+end;
+
+
+procedure TSortListView.ClearSortColumnImages;
+var
+  i : Integer;
+begin
+  for i := 0 to Columns.Count-1 do
+  begin
+    Columns[i].ImageIndex := -1;
+  end;
 end;
 
 
