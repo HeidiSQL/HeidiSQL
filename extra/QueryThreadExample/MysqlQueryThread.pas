@@ -14,7 +14,7 @@ type
     User,
     Pass : String;
     Port : Integer;
-    Form : TForm;
+    WndHandle : THandle;
   end;
   PConnParams = ^TConnParams;
 
@@ -35,22 +35,26 @@ type
       FOwner : TObject; // TMysqlQuery object
       FSql : String;
       FForm : TForm;
-      FResult : Integer; // result code
+      FResult : Integer;
       FComment : String;
-      procedure ReportInit; // result text
+      FSyncMode : Integer;
+      procedure ReportInit;
       procedure ReportStart;
-      procedure ReportFinish;
-      procedure ReportKill;
+      procedure ReportFinished;
+      procedure ReportFreed;
     protected
       procedure Execute; override;
       procedure SetState (AResult : Integer; AComment : String);
+      procedure NotifyStatus (AEvent : Integer);
+      procedure NotifyStatusViaEventProc (AEvent : Integer);
+      procedure NotifyStatusViaWinMessage (AEvent : Integer);
       function AssembleResult () : TThreadResult;
       function RunDataQuery (ASql : String; var ADataset : TDataset) : Boolean;
       function RunUpdateQuery (ASql : String) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
       function GetExpectResultSet (ASql : String) : Boolean;
     public
-      constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String);
+      constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
       destructor Destroy; override;
   end;
 
@@ -78,7 +82,7 @@ begin
   Result.Comment := FComment;
 end;
 
-constructor TMysqlQueryThread.Create(AOwner : TObject; APrm : TConnParams; ASql : String);
+constructor TMysqlQueryThread.Create(AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
 var
   mc : TZConnection;
 begin
@@ -86,6 +90,7 @@ begin
 
   FOwner := AOwner;
   FConnParams := APrm;
+  FSyncMode := ASyncMode;
   mc := TMysqlQuery(FOwner).MysqlConnection;
   FMysqlConn := mc;
   FResult := 0;
@@ -111,13 +116,52 @@ end;
 
 
 
+procedure TMysqlQueryThread.NotifyStatus(AEvent: Integer);
+var
+  h : THandle;
+begin
+
+  // trigger query finished event
+  if (FSyncMode=MQM_SYNC) and (AEvent=MQE_FREED) then
+    begin
+      h := OpenEvent (EVENT_ALL_ACCESS,False,PChar(TMysqlQuery(FOwner).EventName));
+
+      if h<>0 then
+        SetEvent (h);
+    end;
+
+  case TMysqlQuery(FOwner).NotificationMode of
+    MQN_EVENTPROC:  NotifyStatusViaEventProc(AEvent);
+    MQN_WINMESSAGE: NotifyStatusViaWinMessage(AEvent);
+  end;
+
+end;
+
+procedure TMysqlQueryThread.NotifyStatusViaEventProc(AEvent: Integer);
+begin
+  if FSyncMode=MQM_ASYNC then
+    begin
+      case AEvent of
+        MQE_INITED:     Synchronize(ReportInit);
+        MQE_STARTED:    Synchronize(ReportStart);
+        MQE_FINISHED:   Synchronize(ReportFinished);
+        MQE_FREED:      Synchronize(ReportFreed);
+      end;
+
+    end;
+end;
+
+procedure TMysqlQueryThread.NotifyStatusViaWinMessage(AEvent: Integer);
+begin
+  PostMessage(FConnParams.WndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
+end;
+
 procedure TMysqlQueryThread.Execute;
 var
   q : TZQuery;
   r : Boolean;
-  h : THandle;
 begin
-  Synchronize(ReportInit);
+  NotifyStatus(MQE_INITED);
 
   try
     FMysqlConn.Connect();
@@ -132,7 +176,7 @@ begin
     begin
       FMysqlConnectionID := QuerySingleCellAsInteger('SELECT CONNECTION_ID()');
 
-      Synchronize(ReportStart);
+      NotifyStatus (MQE_STARTED);
 
       if GetExpectResultSet(FSql) then
         begin
@@ -142,13 +186,11 @@ begin
             begin
               if q.State=dsBrowse then
                 begin
-                  //if q.Fields.Count > 0 then
-                    //FValue := q.RecordCount;
+
                 end;
             end;
 
           TMysqlQuery(FOwner).SetMysqlDataset(q);
-          //FreeAndNil (q);
         end
       else
         r := RunUpdateQuery (FSql);
@@ -160,13 +202,9 @@ begin
 
     end;
 
-  h := OpenEvent (EVENT_ALL_ACCESS,False,PChar(TMysqlQuery(FOwner).EventName));
-  if h<>0 then
-    SetEvent (h);
-
-  Synchronize(ReportFinish);
-  Sleep (5000);
-  Synchronize(ReportKill);
+  NotifyStatus (MQE_FINISHED);    
+  Sleep (500);
+  NotifyStatus (MQE_FREED);
 end;
 
 function TMysqlQueryThread.GetExpectResultSet(ASql: String): Boolean;
@@ -217,7 +255,7 @@ begin
     TMysqlQuery (FOwner).PostNotification(qr,MQE_STARTED);
 end;
 
-procedure TMysqlQueryThread.ReportFinish();
+procedure TMysqlQueryThread.ReportFinished();
 var
   qr : TThreadResult;
 begin
@@ -237,14 +275,14 @@ begin
     TMysqlQuery (FOwner).PostNotification(qr,MQE_INITED);
 end;
 
-procedure TMysqlQueryThread.ReportKill;
+procedure TMysqlQueryThread.ReportFreed;
 var
   qr : TThreadResult;
 begin
   qr := AssembleResult();
 
-  //if FOwner <> nil then
-    //TMysqlQuery (FOwner).PostNotification(qr,MQE_KILLED);
+  if FOwner <> nil then
+    TMysqlQuery (FOwner).PostNotification(qr,MQE_FREED);
 end;
 
 function TMysqlQueryThread.RunDataQuery(ASql: String;

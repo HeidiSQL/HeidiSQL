@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 0
-  Top = 0
+  Left = 293
+  Top = 115
   Anchors = [akLeft, akTop, akBottom]
   Caption = 'Threaded Mysql Query Example'
   ClientHeight = 433
@@ -12,7 +12,7 @@ object Form1: TForm1
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poScreenCenter
+  Position = poDesigned
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
@@ -34,7 +34,6 @@ object Form1: TForm1
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 451
     DesignSize = (
       450
       152)
@@ -119,31 +118,29 @@ object Form1: TForm1
       ParentFont = False
     end
     object Button1: TButton
-      Left = 366
+      Left = 286
       Top = 100
       Width = 76
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Exec Async'
-      TabOrder = 0
+      TabOrder = 6
       OnClick = Button1Click
-      ExplicitLeft = 367
     end
     object Edit1: TEdit
       Left = 8
       Top = 102
-      Width = 352
+      Width = 272
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      TabOrder = 1
-      ExplicitWidth = 353
+      TabOrder = 5
     end
     object edHost: TEdit
       Left = 8
       Top = 48
       Width = 130
       Height = 21
-      TabOrder = 2
+      TabOrder = 0
       Text = 'localhost'
     end
     object edPort: TEdit
@@ -151,7 +148,7 @@ object Form1: TForm1
       Top = 48
       Width = 41
       Height = 21
-      TabOrder = 3
+      TabOrder = 1
       Text = '3306'
     end
     object edUser: TEdit
@@ -159,21 +156,31 @@ object Form1: TForm1
       Top = 48
       Width = 66
       Height = 21
-      TabOrder = 4
+      TabOrder = 2
     end
     object edPass: TEdit
       Left = 280
       Top = 48
       Width = 66
       Height = 21
-      TabOrder = 5
+      TabOrder = 3
     end
     object edDatabase: TEdit
       Left = 370
       Top = 48
       Width = 73
       Height = 21
-      TabOrder = 6
+      TabOrder = 4
+    end
+    object Button3: TButton
+      Left = 368
+      Top = 100
+      Width = 76
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Exec Blocking'
+      TabOrder = 7
+      OnClick = Button3Click
     end
   end
   object Panel3: TPanel
@@ -184,8 +191,6 @@ object Form1: TForm1
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitTop = 312
-    ExplicitWidth = 451
     object bnKillThread: TButton
       Left = 9
       Top = 4
@@ -221,8 +226,6 @@ object Form1: TForm1
     BevelOuter = bvNone
     Caption = 'Panel1'
     TabOrder = 2
-    ExplicitWidth = 451
-    ExplicitHeight = 160
     DesignSize = (
       450
       156)
@@ -248,24 +251,26 @@ object Form1: TForm1
             Width = 65
           end
           item
-            Caption = 'ConnectionID'
-            Width = 82
+            Caption = 'ConnID'
+            Width = 54
           end
           item
+            Caption = 'Event'
+            Width = 65
+          end
+          item
+            AutoSize = True
             Caption = 'Statement'
-            Width = 178
           end
           item
             Caption = 'Result'
-            Width = 87
+            Width = 91
           end>
         ReadOnly = True
         RowSelect = True
         TabOrder = 0
         ViewStyle = vsReport
         OnSelectItem = lvResultSelectItem
-        ExplicitWidth = 434
-        ExplicitHeight = 142
       end
     end
   end
@@ -277,8 +282,6 @@ object Form1: TForm1
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
-    ExplicitTop = 318
-    ExplicitWidth = 464
     DesignSize = (
       450
       87)

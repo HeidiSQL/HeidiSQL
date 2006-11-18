@@ -2,7 +2,7 @@ unit MysqlQuery;
 
 interface
 
-uses Windows, Classes, Db, ZConnection, ZDataSet, MysqlQueryThread;
+uses Windows, Messages, Classes, Db, ZConnection, ZDataSet, MysqlQueryThread;
 
 const
 
@@ -10,9 +10,13 @@ const
   MQM_SYNC = 0;
   MQM_ASYNC = 1;
 
+  // notification mode
+  MQN_EVENTPROC = 0;
+  MQN_WINMESSAGE = 1;
+
   // query result
-  MQR_SUCCESS = 0; // done successfully
-  MQR_EXECUTING = 1; // async busy
+  MQR_NOTHING = 0; // no result yet
+  MQR_SUCCESS = 1; // success
   MQR_CONNECT_FAIL = 2; // done with error
   MQR_QUERY_FAIL = 3; // done with error
 
@@ -21,6 +25,9 @@ const
   MQE_STARTED = 1; // query started
   MQE_FINISHED = 2; // query finished
   MQE_FREED = 3; // object removed from memory
+
+  // notification messages  
+  WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
 
 type
   TMysqlQuery = class;
@@ -34,11 +41,13 @@ type
       FMysqlConnection : TZConnection;
       FMysqlDataset : TDataset;
       FThreadID : Integer;
+      FSyncMode : Integer;
       FQueryThread : TMysqlQueryThread;
       FEventName : String;
       FSql : String;
       FOnNotify : TMysqlQueryNotificationEvent;
-    function GetConnectionID: Integer;
+      function GetNotificationMode: Integer;
+      function GetConnectionID: Integer;
       function GetComment: String;
       function GetResult: Integer;
       function GetHasresultSet: Boolean;
@@ -59,12 +68,32 @@ type
       property ThreadID : Integer read FThreadID;
       property Sql : String read FSql;
       property EventName : String read FEventName;
+      property NotificationMode : Integer read GetNotificationMode;
       property OnNotify : TMysqlQueryNotificationEvent read FOnNotify write FOnNotify;
   end;
 
+  function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent = nil) : TMysqlQuery;
+  function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams) : TMysqlQuery;
+
 implementation
 
-uses SysUtils;
+uses SysUtils, Dialogs;
+
+
+function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent) : TMysqlQuery;
+begin
+  Result := TMysqlQuery.Create(nil,@AConnParams);
+  Result.OnNotify := ANotifyProc;
+  Result.Query(ASql,MQM_ASYNC);
+end;
+
+function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams) : TMysqlQuery;
+begin
+  Result := TMysqlQuery.Create(nil,@AConnParams);
+  Result.Query(ASql,MQM_SYNC);
+end;
+
+
 
 { TMysqlQuery }
 
@@ -73,13 +102,14 @@ begin
   FConnParams := AParams^;
   ZeroMemory (@FQueryResult,SizeOf(FQueryResult));
   FSql := '';
-  
+
   FMysqlConnection := TZConnection.Create(nil);
   FMysqlDataset := nil;
 end;
 
 destructor TMysqlQuery.Destroy;
 begin
+  //FreeAndNil (FMysqlDataset);
   FreeAndNil (FMysqlConnection);
   inherited;
 end;
@@ -99,6 +129,14 @@ begin
   Result := FMysqlDataset <> nil;
 end;
 
+function TMysqlQuery.GetNotificationMode: Integer;
+begin
+  if Assigned(FOnNotify) then
+    Result := MQN_EVENTPROC
+  else
+    Result := MQN_WINMESSAGE;
+end;
+
 function TMysqlQuery.GetResult: Integer;
 begin
   Result := FQueryResult.Result;
@@ -108,9 +146,10 @@ procedure TMysqlQuery.PostNotification(AQueryResult: TThreadResult; AEvent : Int
 begin
   FQueryResult := AQueryResult;
 
-  if AEvent in [MQE_INITED,MQE_STARTED,MQE_FINISHED] then  
-    if Assigned(FOnNotify) then
-      FOnNotify(Self,AEvent);
+  if FSyncMode=MQM_ASYNC then
+    if AEvent in [MQE_INITED,MQE_STARTED,MQE_FINISHED,MQE_FREED] then  
+      if Assigned(FOnNotify) then
+        FOnNotify(Self,AEvent);
 end;
 
 function TMysqlQuery.Query(ASql: String; AMode: Integer): Integer;
@@ -119,16 +158,17 @@ var
 begin
 
   // create thread object
-  FQueryThread := TMysqlQueryThread.Create(Self,FConnParams,ASql);
+  FQueryThread := TMysqlQueryThread.Create(Self,FConnParams,ASql,AMode);
   FThreadID := FQueryThread.ThreadID;
   FEventName := 'HEIDISQL_'+IntToStr(FThreadID);
+  FSyncMode := AMode;
   FSql := ASql;
 
   case AMode of
     MQM_SYNC:
       begin
         // create mutex
-        //EventHandle := CreateEvent (nil,False,False,PChar(FEventName));
+        EventHandle := CreateEvent (nil,False,False,PChar(FEventName));
       end;
     MQM_ASYNC:;
   end;
@@ -139,8 +179,8 @@ begin
   case AMode of
     MQM_SYNC:
       begin        
-        //WaitForSingleObject (EventHandle, INFINITE);
-        //Windows.Beep (8000,50);
+        WaitForSingleObject (EventHandle, INFINITE);
+        CloseHandle (EventHandle);
         // read status
         // free thread
       end;
