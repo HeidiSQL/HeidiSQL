@@ -377,7 +377,7 @@ end;
 procedure TfrmInsertFiles.ListViewFilesDblClick(Sender: TObject);
 begin
   if ListViewFiles.Selected <> nil then
-    shellexecute(0, 'open', pchar(ListViewFiles.Selected.Caption), nil, nil, SW_SHOWNORMAL);
+    ShellExec( ListViewFiles.Selected.Caption );
 end;
 
 { for file-dropping into listview }

@@ -28,9 +28,8 @@ uses
   helpers in '..\..\helpers.pas',
   synchronization in '..\..\synchronization.pas',
   communication in '..\..\communication.pas',
-  threading in '..\..\threading.pas';
-  //UserMgr in '..\..\UserMgr.pas',
-  //MysqlConn in '..\..\MysqlConn.pas';
+  threading in '..\..\threading.pas',
+  sqlhelp in '..\..\sqlhelp.pas' {frmSQLhelp};
 
 {$R *.RES}
 
@@ -49,8 +48,6 @@ begin
   Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
   Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
   Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
-  // never used:
-  //Application.CreateForm(TFormError, FormError); debug('perf: Error created.');
 
 
   try

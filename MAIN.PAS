@@ -293,7 +293,7 @@ begin
     connform.showmodal
   else begin
     debug('perf: new connection clicked.');
-    ShellExecute(Handle, nil, 'heidisql.exe', nil, PChar(ExtractFilePath(paramstr(0))), 0);
+    ShellExec( 'heidisql.exe', ExtractFilePath(paramstr(0)) );
   end;
 end;
 
@@ -678,7 +678,7 @@ end;
 procedure TMainForm.Readme1Click(Sender: TObject);
 begin
   // show readme.txt
-  shellexecute(0, 'open', pchar('readme.txt'), Nil, pchar(ExtractFilePath(paramstr(0))), 5);
+  ShellExec( 'readme.txt', ExtractFilePath(paramstr(0)) );
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);
@@ -949,14 +949,12 @@ end;
 
 
 procedure TMainForm.OpenURL(Sender: TObject);
-var url :  Pchar;
 begin
   // open url (hint)
   if sender is TMenuItem then
-    url := pchar(TMenuItem(Sender).Hint)
+    ShellExec( TMenuItem(Sender).Hint )
   else
-    url := pchar(TControl(Sender).Hint);
-  shellexecute(0, 'open', url, Nil, Nil, sw_shownormal);
+    ShellExec( TControl(Sender).Hint );
 end;
 
 
@@ -1161,7 +1159,7 @@ begin
   CloseFile(f);
   ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
-  ShellExecute(0, 'open', pchar(filename), nil, nil, SW_SHOWNORMAL);
+  ShellExec( filename );
 end;
 
 procedure TMainForm.InsertFilesExecute(Sender: TObject);

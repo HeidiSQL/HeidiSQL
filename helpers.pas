@@ -66,6 +66,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure setLocales;
   function maskSql(mysql_version: integer; str: String) : String;
   procedure ActivateWindow(Window : HWnd);
+  procedure ShellExec( cmd: String; path: String = '' );
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -599,7 +600,7 @@ begin
   end;
   // open file:
   if filename <> '' then
-    shellexecute(0, 'open', pchar(filename), Nil, NIL, 5);
+    ShellExec( filename );
   result := true;
 end;
 
@@ -1340,6 +1341,18 @@ begin
   SetForegroundWindow(Window);
 end;
 
+
+procedure ShellExec( cmd: String; path: String = '' );
+var
+  ppath : PChar;
+begin
+  // open URLs or execute system command
+  if path <> '' then
+    ppath := pchar(path)
+  else
+    ppath := nil;
+  ShellExecute(0, 'open', pchar(cmd), Nil, ppath, SW_SHOWNORMAL);
+end;
 
 initialization
 

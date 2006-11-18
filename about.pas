@@ -46,7 +46,7 @@ type
 
 implementation
 
-uses main;
+uses main, helpers;
 {$R *.DFM}
 
 
@@ -66,10 +66,8 @@ end;
 
 
 procedure TAboutBox.OpenURL(Sender: TObject);
-var url :  Pchar;
 begin
-  url := pchar(TControl(Sender).Hint);
-  shellexecute(0, 'open', url, Nil, Nil, sw_shownormal);
+  ShellExec( TControl(Sender).Hint );
 end;
 
 

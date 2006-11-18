@@ -427,7 +427,6 @@ type
     function GetDBNames: TStringList;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
 
-
     private
       { Private declarations }
       strHostRunning             : String;
@@ -464,7 +463,7 @@ IMPLEMENTATION
 
 uses
   connections, Main, createtable, fieldeditor, tbl_properties,
-  tblcomment, selectsomedatabases, optimizetables, copytable;
+  tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp;
 
 
 
@@ -3417,6 +3416,8 @@ procedure TMDIChild.SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   SynMemoQuery.OnChange(self);
+  if Key = VK_F1 then
+    SQLHelpWindow( self, SynMemoQuery.WordAtCursor );
 end;
 
 procedure TMDIChild.SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
@@ -4234,8 +4235,6 @@ begin
     exit;
   end;
 end;
-
-
 
 end.
 
