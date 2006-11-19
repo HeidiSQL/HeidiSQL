@@ -2,8 +2,8 @@ object frmSQLhelp: TfrmSQLhelp
   Left = 0
   Top = 0
   Caption = 'Integrated SQL-help'
-  ClientHeight = 327
-  ClientWidth = 534
+  ClientHeight = 355
+  ClientWidth = 582
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,77 +11,68 @@ object frmSQLhelp: TfrmSQLhelp
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poOwnerFormCenter
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 121
+    Left = 153
     Top = 0
-    Height = 308
+    Width = 8
+    Height = 336
     Cursor = crSizeWE
     ResizeStyle = rsUpdate
-    ExplicitLeft = 208
-    ExplicitTop = 104
-    ExplicitHeight = 100
+    ExplicitLeft = 121
+    ExplicitHeight = 308
   end
   object pnlLeft: TPanel
     Left = 0
     Top = 0
-    Width = 121
-    Height = 308
+    Width = 153
+    Height = 336
     Align = alLeft
     BevelOuter = bvNone
     Padding.Left = 5
     Padding.Top = 5
-    Padding.Right = 5
     Padding.Bottom = 5
     TabOrder = 0
-    DesignSize = (
-      121
-      308)
-    object treevwTopics: TTreeView
+    ExplicitHeight = 360
+    object lblTopics: TLabel
       Left = 5
-      Top = 47
-      Width = 111
-      Height = 256
+      Top = 10
+      Width = 34
+      Height = 13
+      Caption = 'Topics:'
+    end
+    object treeTopics: TTreeView
+      Left = 5
+      Top = 29
+      Width = 148
+      Height = 302
       Align = alBottom
       Anchors = [akLeft, akTop, akRight, akBottom]
       Indent = 19
+      ReadOnly = True
       TabOrder = 0
-    end
-    object editSearch: TEdit
-      Left = 5
-      Top = 19
-      Width = 62
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      TabOrder = 1
-      Text = 'editSearch'
-      OnKeyDown = memosKeyDown
-    end
-    object btnSearch: TButton
-      Left = 71
-      Top = 19
-      Width = 44
-      Height = 21
-      Anchors = [akTop, akRight]
-      Caption = 'Search'
-      TabOrder = 2
+      OnChange = treeTopicsChange
+      OnExpanding = treeTopicsExpanding
+      ExplicitWidth = 111
+      ExplicitHeight = 274
     end
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 308
-    Width = 534
+    Top = 336
+    Width = 582
     Height = 19
     Panels = <>
+    ExplicitTop = 308
+    ExplicitWidth = 534
   end
   object pnlRight: TPanel
-    Left = 124
+    Left = 161
     Top = 0
-    Width = 410
-    Height = 308
+    Width = 421
+    Height = 336
     Align = alClient
     BevelOuter = bvNone
     Padding.Left = 5
@@ -89,91 +80,213 @@ object frmSQLhelp: TfrmSQLhelp
     Padding.Right = 5
     Padding.Bottom = 5
     TabOrder = 2
-    DesignSize = (
-      410
-      308)
-    object lblKeyword: TLabel
-      Left = 6
-      Top = 8
-      Width = 71
-      Height = 16
-      Caption = 'lblKeyword'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
-      ParentFont = False
+    ExplicitLeft = 124
+    ExplicitWidth = 410
+    ExplicitHeight = 308
+    object Splitter2: TSplitter
+      Left = 5
+      Top = 169
+      Width = 411
+      Height = 8
+      Cursor = crVSplit
+      Align = alTop
+      ResizeStyle = rsUpdate
+      ExplicitTop = 209
+      ExplicitWidth = 471
     end
-    object lblDescription: TLabel
-      Left = 6
-      Top = 27
-      Width = 57
-      Height = 13
-      Caption = 'Description:'
-    end
-    object lblExample: TLabel
-      Left = 6
-      Top = 172
-      Width = 44
-      Height = 13
-      Anchors = [akLeft, akBottom]
-      Caption = 'Example:'
-      ExplicitTop = 117
-    end
-    object memoDescription: TMemo
-      Left = 6
-      Top = 46
-      Width = 400
-      Height = 120
+    object pnlRightTop: TPanel
+      Left = 5
+      Top = 5
+      Width = 411
+      Height = 164
+      Align = alTop
       Anchors = [akLeft, akTop, akRight, akBottom]
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      Lines.Strings = (
-        'memoDescription')
-      ParentFont = False
-      ReadOnly = True
-      ScrollBars = ssBoth
+      BevelOuter = bvNone
       TabOrder = 0
-      OnKeyDown = memosKeyDown
+      object lblKeyword: TLabel
+        AlignWithMargins = True
+        Left = 0
+        Top = 5
+        Width = 411
+        Height = 16
+        Margins.Left = 0
+        Margins.Top = 5
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'lblKeyword'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        ExplicitLeft = -2
+        ExplicitWidth = 471
+      end
+      object lblDescription: TLabel
+        AlignWithMargins = True
+        Left = 0
+        Top = 26
+        Width = 411
+        Height = 13
+        Margins.Left = 0
+        Margins.Top = 5
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Description:'
+        ExplicitTop = 29
+        ExplicitWidth = 57
+      end
+      object memoDescription: TMemo
+        AlignWithMargins = True
+        Left = 0
+        Top = 44
+        Width = 411
+        Height = 120
+        Margins.Left = 0
+        Margins.Top = 5
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alClient
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        Lines.Strings = (
+          'memoDescription')
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssBoth
+        TabOrder = 0
+        OnKeyDown = memosKeyDown
+        ExplicitTop = 48
+        ExplicitWidth = 479
+        ExplicitHeight = 156
+      end
     end
-    object MemoExample: TMemo
-      Left = 6
-      Top = 191
-      Width = 400
-      Height = 75
-      Anchors = [akLeft, akRight, akBottom]
-      Lines.Strings = (
-        'MemoExample')
-      ReadOnly = True
-      ScrollBars = ssBoth
+    object pnlRightBottom: TPanel
+      Left = 5
+      Top = 177
+      Width = 411
+      Height = 154
+      Align = alClient
+      BevelOuter = bvNone
       TabOrder = 1
-      OnKeyDown = memosKeyDown
-    end
-    object ButtonClose: TButton
-      Left = 311
-      Top = 277
-      Width = 95
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Cancel = True
-      Caption = 'Close'
-      Default = True
-      TabOrder = 2
-      OnClick = ButtonCloseClick
-    end
-    object ButtonOnlinehelp: TButton
-      Left = 210
-      Top = 277
-      Width = 95
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = 'Search Online'
-      TabOrder = 3
-      OnClick = ButtonOnlinehelpClick
+      ExplicitLeft = 6
+      ExplicitTop = 197
+      ExplicitWidth = 432
+      ExplicitHeight = 138
+      DesignSize = (
+        411
+        154)
+      object lblExample: TLabel
+        AlignWithMargins = True
+        Left = 0
+        Top = 5
+        Width = 411
+        Height = 13
+        Margins.Left = 0
+        Margins.Top = 5
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Example:'
+        ExplicitLeft = 6
+        ExplicitTop = 21
+        ExplicitWidth = 44
+      end
+      object MemoExample: TMemo
+        AlignWithMargins = True
+        Left = 0
+        Top = 23
+        Width = 411
+        Height = 90
+        Margins.Left = 0
+        Margins.Top = 5
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alTop
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Lines.Strings = (
+          'MemoExample')
+        ReadOnly = True
+        ScrollBars = ssBoth
+        TabOrder = 0
+        OnKeyDown = memosKeyDown
+        ExplicitHeight = 74
+      end
+      object ButtonClose: TButton
+        Left = 309
+        Top = 128
+        Width = 102
+        Height = 25
+        Anchors = [akRight, akBottom]
+        Cancel = True
+        Caption = 'Close'
+        Default = True
+        TabOrder = 1
+        OnClick = ButtonCloseClick
+        ExplicitLeft = 330
+        ExplicitTop = 112
+      end
+      object ButtonSearchOnline: TBitBtn
+        Left = 200
+        Top = 128
+        Width = 103
+        Height = 25
+        Anchors = [akRight, akBottom]
+        Caption = 'Search Online'
+        TabOrder = 2
+        OnClick = ButtonOnlinehelpClick
+        Glyph.Data = {
+          36050000424D3605000000000000360400002800000010000000100000000100
+          0800000000000001000000000000000000000001000000010000299C000031B5
+          000052BD08004A7B10003194100042A510004AA510004AAD180039BD180042C6
+          1800845A2100736321006B8421005A9C21004AA5210052BD210052C62100B531
+          2900A5392900AD392900B5392900AD4229007352290094522900A55A2900AD5A
+          29007B6329008C63290094632900BD6B2900638C290042942900529C29005ACE
+          2900A5523100AD523100B55231009C5A3100B55A3100A563310073843100D68C
+          310063A5310084A5310010BD310063CE31006BCE31004AD6310052D63100AD52
+          3900BD5A3900C65A390094633900A5633900AD633900B56339008C6B3900BD6B
+          3900AD733900BD733900D6A53900DEA53900DEAD3900E7AD390063CE39006BCE
+          390031D639006BD63900C66B4200BD734200C6734200CE734200CE7B4200BD8C
+          4200D694420021D64200AD5A4A00AD6B4A00C66B4A00947B4A00C67B4A00C684
+          4A00CE844A009C8C4A00C68C4A00DEAD4A00EFC64A006BDE4A00AD5A5200B563
+          5200C67B5200C6845200D6945200C69C5200CEA55200E7BD520063DE5200B56B
+          5A009C735A00BD845A00B58C5A00CE8C5A00CE945A00CE9C5A00D6A55A0084AD
+          5A009CAD5A00D6AD5A00E7C65A00F7D65A0031DE5A00B5736300D6A563009CAD
+          6300DEAD6300D6B563007BBD6300E7C66300EFCE63005ADE6300B5736B00B57B
+          6B00AD846B00BD846B00BD8C6B008CA56B00B5A56B007BDE6B00B57B7300B584
+          7300BD847300BD947300ADA57300A5AD73008CBD730039E77300B5847B00BD94
+          7B0039E77B00B58C8400BD8C8400BD94840042EF8400BD9C8C00C6A58C00A5D6
+          8C00E7DE8C0042EF8C005AEF8C00BDA59C00C6ADA5008CF7A500C6ADAD00C6B5
+          AD00CEB5AD00CEB5B500CEBDB500DEC6B500CEBDBD00D6C6BD00D6C6C600DECE
+          CE00DED6CE00BDEFCE00DED6D600E7DEDE00EFE7DE00C6F7DE00F7EFE700D6FF
+          F700E7FFF700FF00FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00ABABABABABAB
+          ABABABABABABABABABABABABABA09562161B4C8095A0ABABABABABAB9C781303
+          06082B49518199ABABABAB9C59130A050F09092E3A447B9AABABAB6F13170001
+          102D2D2F35674688A0AB9613120E024041576A46455C6B4E96AB791315233060
+          7F7144333339363688AB1A1C26191818273B4844320D1E2558AB0B261D293C3E
+          3E3D4A52444B2C0431AB382218354D896D56555C50936E1F61AB7A000E4197A6
+          90765F685B8A87288BAB990C2177A7AAA5926C7065948E3496ABAB8D2042A3A9
+          9D7375705B854F8BA1ABABA5832A7484915D5E705A64819EABABABABA58F5369
+          867E5B665A7D9EABABABABABABAB9A8F7C637B8D99A4ABABABAB}
+        ExplicitLeft = 221
+        ExplicitTop = 112
+      end
     end
   end
 end

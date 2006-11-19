@@ -224,6 +224,8 @@ type
     procedure HandleWMGetDbList(var msg: TMessage); message WM_GETDBLIST;
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
+    function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer;
+    procedure SaveRegValue( valueName: String; value: Integer; key: String = '' );
   public
     logsqlnum                  : Integer;
     CSVSeparator, CSVEncloser,
@@ -1256,5 +1258,50 @@ begin
     btnQueryLoadClick( sender );
   end;
 end;
+
+
+function TMainForm.GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer;
+var
+  reg : TRegistry;
+  folder : String;
+begin
+  reg := TRegistry.Create;
+  folder := regpath;
+  if key <> '' then
+    folder := folder + '\' + key;
+  try
+    if reg.OpenKey(folder, false) then
+    begin
+      if reg.ValueExists( valueName ) then
+        result := reg.ReadInteger( valueName )
+      else
+        result := defaultValue;
+      reg.CloseKey;
+    end;
+  finally
+    reg.Free;
+  end;
+end;
+
+procedure TMainForm.SaveRegValue( valueName: String; value: Integer; key: String = '' );
+var
+  reg : TRegistry;
+  folder : String;
+begin
+  reg := TRegistry.Create;
+  folder := regpath;
+  if key <> '' then
+    folder := folder + '\' + key;
+  try
+    if reg.OpenKey(folder, false) then
+    begin
+      reg.WriteInteger( valueName, value );
+      reg.CloseKey;
+    end;
+  finally
+    reg.Free;
+  end;
+end;
+
 
 end.
