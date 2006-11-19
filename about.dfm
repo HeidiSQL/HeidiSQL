@@ -1162,7 +1162,6 @@ object AboutBox: TAboutBox
     Default = True
     TabOrder = 1
     OnClick = ButtonCloseClick
-    ExplicitTop = 324
   end
   object PanelMain: TPanel
     Left = 1
@@ -1174,7 +1173,6 @@ object AboutBox: TAboutBox
     BevelOuter = bvLowered
     TabOrder = 2
     OnMouseMove = MouseOver
-    ExplicitHeight = 349
     DesignSize = (
       394
       366)
@@ -1274,6 +1272,7 @@ object AboutBox: TAboutBox
         '- Tony Peng (development)'
         '- Sven Lorenz (graphics)'
         '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)')
+      ReadOnly = True
       TabOrder = 1
     end
   end
@@ -1287,7 +1286,6 @@ object AboutBox: TAboutBox
     Caption = 'Donate'
     TabOrder = 3
     OnClick = OpenURL
-    ExplicitTop = 288
   end
   object ButtonBoard: TButton
     Left = 401
@@ -1299,6 +1297,5 @@ object AboutBox: TAboutBox
     Caption = 'Support-Forum'
     TabOrder = 4
     OnClick = OpenURL
-    ExplicitTop = 252
   end
 end
