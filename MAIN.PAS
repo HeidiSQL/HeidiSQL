@@ -17,7 +17,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp;
+  HeidiComp, MysqlQueryThread;
 
 type
   TMainForm = class(TForm)
@@ -164,7 +164,7 @@ type
     procedure MenuReplaceClick(Sender: TObject);
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
-    procedure connect(Sender: TObject);
+    procedure connect(Sender: TObject; AConnParams : PConnParams);
     procedure FlushClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -356,12 +356,17 @@ begin
   Close;
 end;
 
-procedure TMainForm.connect(Sender: TObject);
+procedure TMainForm.connect(Sender: TObject; AConnParams : PConnParams);
+var
+  f : TMDIChild;
 begin
   // MDI-Child erzeugen und Verbindung aufbauen...
   Screen.Cursor := crSQLWait;
-  { create a new MDI child window }
-  TMDIChild.Create(Application);
+
+  f := TMDIChild.Create(Application);
+  f.FMysqlConnParams := AConnParams^;
+  f.Init();
+
   Screen.Cursor := crDefault;
 end;
 

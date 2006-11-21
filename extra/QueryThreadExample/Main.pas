@@ -64,7 +64,7 @@ var
   mq : TMysqlQuery;
 begin
   cp := AssembleConnParams();
-  mq := ExecMysqlStatementAsync(Edit1.Text,cp,HandleQueryNotification);
+  mq := ExecMysqlStatementAsync(Edit1.Text,cp,HandleQueryNotification,Handle);
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -73,7 +73,7 @@ var
   mq : TMysqlQuery;
 begin
   cp := AssembleConnParams();
-  mq := ExecMysqlStatementBlocking(Edit1.Text,cp);
+  mq := ExecMysqlStatementBlocking(Edit1.Text,cp,Handle);
 end;
 
 function TForm1.AddListItem(AMysqlQuery: Pointer; ACaption: String): TListItem;
@@ -96,7 +96,6 @@ begin
   Result.User := edUser.Text;
   Result.Pass := edPass.Text;
   Result.Port := StrToIntDef(edPort.Text,3306);
-  Result.WndHandle := Handle;
 end;
 
 procedure TForm1.bnKillThreadClick(Sender: TObject);

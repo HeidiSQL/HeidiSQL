@@ -63,7 +63,7 @@ var
   connform: Tconnform;
 
 implementation
- uses Main, helpers;
+ uses Main, helpers, MysqlQueryThread;
 
 const
 	CRLF = #13#10;
@@ -82,7 +82,35 @@ end;
 
 // Connect
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
+var
+  cp : TConnParams;
 begin
+
+  // fill structure
+  ZeroMemory (@cp,SizeOf(cp));
+
+  cp.Protocol := 'mysql';
+  cp.Host := EditHost.Text;
+  cp.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
+  cp.Database := '';
+  cp.User := EditBenutzer.Text;
+  cp.Pass := EditPasswort.Text;
+
+  // additional
+  if CheckBoxCompressed.Checked then
+    cp.PrpCompress := 'true'
+  else
+    cp.PrpCompress := 'false';
+
+  cp.PrpTimeout := EditTimeout.Text;
+  cp.PrpDbless := 'true';
+  cp.PrpClientLocalFiles := 'true';
+  cp.PrpClientInteractive := 'true';
+
+  cp.DatabaseList := EditOnlyDbs.Text;
+  cp.DatabaseListSort := CheckBoxSorted.Checked;
+  cp.Description := ComboBoxDescription.Text;
+
   ButtonConnect.Enabled := false;
   mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, true);
   with TRegistry.Create do
@@ -92,7 +120,7 @@ begin
     CloseKey;
   end;
   close;
-  MainForm.connect(sender);
+  MainForm.connect(sender,@cp);
 end;
 
 

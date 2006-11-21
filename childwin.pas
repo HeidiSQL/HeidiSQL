@@ -20,7 +20,7 @@ uses
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
-  SynCompletionProposal, HeidiComp, SynEditMiscClasses;
+  SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery, MysqlQueryThread;
 
 
 type
@@ -438,6 +438,8 @@ type
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
       CanAcessMysqlFlag          : Boolean;
+
+
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
@@ -454,6 +456,8 @@ type
       OnlyDBs2                   : TStringList;
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
+      FMysqlConnParams           : TConnParams;
+      procedure Init;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
   end;
 
@@ -462,7 +466,7 @@ type
 IMPLEMENTATION
 
 uses
-  connections, Main, createtable, fieldeditor, tbl_properties,
+  Main, createtable, fieldeditor, tbl_properties,
   tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp;
 
 
@@ -531,6 +535,11 @@ end;
 
 
 procedure TMDIChild.FormCreate(Sender: TObject);
+begin
+  //
+end;
+
+procedure TMDIChild.Init();
 var
   AutoReconnect    : Boolean;
   menuitem         : TMenuItem;
@@ -558,19 +567,19 @@ begin
 
   ReadWindowOptions;
 
-  MainForm.Showstatus('Connecting to '+connform.EditHost.Text+'...', 2, true);
-  ZConn.Hostname := connform.EditHost.Text;
-  ZConn.User := connform.EditBenutzer.Text;
-  ZConn.Password := connform.EditPasswort.Text;
-  ZConn.Port := strToIntDef(connform.EditPort.Text, MYSQL_PORT);
-  if connform.CheckBoxCompressed.Checked then
-    ZConn.Properties.Values['compress'] := 'true';
-  ZConn.Properties.Values['timeout'] := connform.EditTimeout.Text;
-  ZConn.Properties.Values['dbless'] := 'true';
-  ZConn.Properties.Values['CLIENT_LOCAL_FILES'] := 'true';
-  ZConn.Properties.Values['CLIENT_INTERACTIVE'] := 'true';
-  // ZConn.Properties.Values['USE_RESULT'] := 'true'; // doesn't work
+  MainForm.Showstatus('Connecting to '+FMysqlConnParams.Host+'...', 2, true);
 
+  ZConn.Hostname := FMysqlConnParams.Host;
+  ZConn.User := FMysqlConnParams.User;
+  ZConn.Password := FMysqlConnParams.Pass;
+  ZConn.Port := FMysqlConnParams.Port;
+
+  ZConn.Properties.Values['compress'] := FMysqlConnParams.PrpCompress;
+  ZConn.Properties.Values['timeout'] := FMysqlConnParams.PrpTimeout;
+  ZConn.Properties.Values['dbless'] := FMysqlConnParams.PrpDbless;
+  ZConn.Properties.Values['CLIENT_LOCAL_FILES'] := FMysqlConnParams.PrpClientLocalFiles;
+  ZConn.Properties.Values['CLIENT_INTERACTIVE'] := FMysqlConnParams.PrpClientInteractive;
+  // ZConn.Properties.Values['USE_RESULT'] := 'true'; // doesn't work
   //  ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
 
   try
@@ -580,10 +589,10 @@ begin
     Exit;
   end;
 
-  Description := connform.ComboBoxDescription.Text;
+  Description := FMysqlConnParams.Description;;
   Caption := Description;
-  OnlyDBs := explode(';', connform.EditOnlyDBs.Text);
-  if connform.CheckBoxSorted.Checked then
+  OnlyDBs := explode(';', FMysqlConnParams.DatabaseList);
+  if FMysqlConnParams.DatabaseListSort then
     OnlyDBs.Sort;
 
   // Versions and Statistics
@@ -1964,7 +1973,7 @@ begin
     LabelResultinfo.Caption := '(nothing to do)';
     exit;
   end;
-  
+
   SQLscriptstart := GetTickCount;
   LabelResultinfo.Caption := '';
 

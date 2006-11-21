@@ -14,7 +14,16 @@ type
     User,
     Pass : String;
     Port : Integer;
-    WndHandle : THandle;
+    PrpCompress,
+    PrpTimeout,
+    PrpDbless,
+    PrpClientLocalFiles,
+    PrpClientInteractive : String;
+
+    // todo: move these
+    DatabaseList : String;
+    DatabaseListSort : Boolean;
+    Description : String;
   end;
   PConnParams = ^TConnParams;
 
@@ -38,6 +47,7 @@ type
       FResult : Integer;
       FComment : String;
       FSyncMode : Integer;
+      FNotifyWndHandle : THandle;
       procedure ReportInit;
       procedure ReportStart;
       procedure ReportFinished;
@@ -45,6 +55,7 @@ type
     protected
       procedure Execute; override;
       procedure SetState (AResult : Integer; AComment : String);
+      procedure SetNotifyWndHandle (Value : THandle);
       procedure NotifyStatus (AEvent : Integer);
       procedure NotifyStatusViaEventProc (AEvent : Integer);
       procedure NotifyStatusViaWinMessage (AEvent : Integer);
@@ -56,6 +67,7 @@ type
     public
       constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
       destructor Destroy; override;
+      property NotifyWndHandle : THandle read FNotifyWndHandle write SetNotifyWndHandle;
   end;
 
 var
@@ -153,7 +165,7 @@ end;
 
 procedure TMysqlQueryThread.NotifyStatusViaWinMessage(AEvent: Integer);
 begin
-  PostMessage(FConnParams.WndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
+  PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
 procedure TMysqlQueryThread.Execute;
@@ -320,6 +332,11 @@ begin
   end;
 
   FreeAndNil (q);
+end;
+
+procedure TMysqlQueryThread.SetNotifyWndHandle(Value: THandle);
+begin
+  FNotifyWndHandle := Value;
 end;
 
 procedure TMysqlQueryThread.SetState(AResult: Integer; AComment: String);

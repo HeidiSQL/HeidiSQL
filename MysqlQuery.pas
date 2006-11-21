@@ -56,7 +56,7 @@ type
     public
       constructor Create (AOwner : TComponent; AParams : PConnParams);
       destructor Destroy (); override;
-      function Query (ASql : String; AMode : Integer = MQM_SYNC) : Integer;
+      function Query (ASql : String; AMode : Integer = MQM_SYNC; ANotifyWndHandle : THandle = 0) : Integer;
       procedure SetMysqlDataset(ADataset : TDataset);
       procedure PostNotification (AQueryResult : TThreadResult; AEvent : Integer);
       property Result : Integer read GetResult;
@@ -72,25 +72,25 @@ type
       property OnNotify : TMysqlQueryNotificationEvent read FOnNotify write FOnNotify;
   end;
 
-  function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent = nil) : TMysqlQuery;
-  function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams) : TMysqlQuery;
+  function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent = nil; AWndHandle : THandle = 0) : TMysqlQuery;
+  function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams; AWndHandle : THandle) : TMysqlQuery;
 
 implementation
 
 uses SysUtils, Dialogs;
 
 
-function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent) : TMysqlQuery;
+function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle) : TMysqlQuery;
 begin
   Result := TMysqlQuery.Create(nil,@AConnParams);
   Result.OnNotify := ANotifyProc;
-  Result.Query(ASql,MQM_ASYNC);
+  Result.Query(ASql,MQM_ASYNC,AWndHandle);
 end;
 
-function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams) : TMysqlQuery;
+function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams; AWndHandle : THandle) : TMysqlQuery;
 begin
   Result := TMysqlQuery.Create(nil,@AConnParams);
-  Result.Query(ASql,MQM_SYNC);
+  Result.Query(ASql,MQM_SYNC,AWndHandle);
 end;
 
 
@@ -152,13 +152,14 @@ begin
         FOnNotify(Self,AEvent);
 end;
 
-function TMysqlQuery.Query(ASql: String; AMode: Integer): Integer;
+function TMysqlQuery.Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle): Integer;
 var
   EventHandle : THandle;
 begin
 
   // create thread object
   FQueryThread := TMysqlQueryThread.Create(Self,FConnParams,ASql,AMode);
+  FQueryThread.NotifyWndHandle := ANotifyWndHandle;
   FThreadID := FQueryThread.ThreadID;
   FEventName := 'HEIDISQL_'+IntToStr(FThreadID);
   FSyncMode := AMode;

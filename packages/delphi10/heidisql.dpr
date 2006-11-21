@@ -30,7 +30,9 @@ uses
   communication in '..\..\communication.pas',
   threading in '..\..\threading.pas',
   sqlhelp in '..\..\sqlhelp.pas' {frmSQLhelp},
-  queryprogress in '..\..\queryprogress.pas' {frmQueryProgress};
+  queryprogress in '..\..\queryprogress.pas' {frmQueryProgress},
+  MysqlQuery in '..\..\MysqlQuery.pas',
+  MysqlQueryThread in '..\..\MysqlQueryThread.pas';
 
 {$R *.RES}
 
