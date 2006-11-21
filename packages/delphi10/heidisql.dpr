@@ -29,7 +29,8 @@ uses
   synchronization in '..\..\synchronization.pas',
   communication in '..\..\communication.pas',
   threading in '..\..\threading.pas',
-  sqlhelp in '..\..\sqlhelp.pas' {frmSQLhelp};
+  sqlhelp in '..\..\sqlhelp.pas' {frmSQLhelp},
+  queryprogress in '..\..\queryprogress.pas' {frmQueryProgress};
 
 {$R *.RES}
 
