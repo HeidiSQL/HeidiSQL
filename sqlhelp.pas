@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons, Registry,
-  childwin, main;
+  childwin;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -33,8 +33,10 @@ type
       Shift: TShiftState);
     procedure ButtonOnlinehelpClick(Sender: TObject);
     procedure ButtonCloseClick(Sender: TObject);
-    procedure ShowHelpItem;
+    function ShowHelpItem: Boolean;
     procedure fillTreeLevel( ParentNode: TTreeNode );
+    procedure findKeywordInTree;
+
   private
     { Private declarations }
     Keyword: String;
@@ -46,11 +48,15 @@ type
   function SQLHelpWindow (AOwner : TComponent; Keyword : String = '') : Boolean;
 
   const
-    defaultWindowCaption : String = 'Integrated SQL-help' ;
+    DEFAULT_WINDOW_CAPTION : String = 'Integrated SQL-help' ;
+    DUMMY_NODE_TEXT : String = 'Dummy node, should never be visible';
+    ICONINDEX_CATEGORY_CLOSED : Integer = 96;
+    ICONINDEX_CATEGORY_OPENED : Integer = 97;
+    ICONINDEX_HELPITEM        : Integer = 98;
 
 implementation
 
-uses ZDataset, helpers;
+uses ZDataset, helpers, main;
 
 {$R *.dfm}
 
@@ -59,31 +65,42 @@ function SQLHelpWindow (AOwner : TComponent; Keyword : String = '') : Boolean;
 var
   f : TfrmSQLHelp;
 begin
-  f := TfrmSQLHelp.Create(AOwner);
-  f.Keyword := Keyword;
-  f.m := TMDIChild(Application.Mainform.ActiveMDIChild);
-  f.Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', f.Top );
-  f.Left := Mainform.GetRegValue( 'SQLHelp_WindowLeft', f.Left );
-  f.Width := Mainform.GetRegValue( 'SQLHelp_WindowWidth', f.Width );
-  f.Height := Mainform.GetRegValue( 'SQLHelp_WindowHeight', f.Height );
-  f.pnlLeft.Width := Mainform.GetRegValue( 'SQLHelp_PnlLeftWidth', f.pnlLeft.Width );
-  f.pnlRightTop.Height := Mainform.GetRegValue( 'SQLHelp_PnlRightTopHeight', f.pnlRightTop.Height );
-  f.Caption := defaultWindowCaption;
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil (f);
+  if Mainform.SQLHelpWindow_Instance = nil then
+  begin
+    f := TfrmSQLHelp.Create(AOwner);
+    Mainform.SQLHelpWindow_Instance := f;
+    f.m := TMDIChild(Application.Mainform.ActiveMDIChild);
+    f.Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', f.Top );
+    f.Left := Mainform.GetRegValue( 'SQLHelp_WindowLeft', f.Left );
+    f.Width := Mainform.GetRegValue( 'SQLHelp_WindowWidth', f.Width );
+    f.Height := Mainform.GetRegValue( 'SQLHelp_WindowHeight', f.Height );
+    f.pnlLeft.Width := Mainform.GetRegValue( 'SQLHelp_PnlLeftWidth', f.pnlLeft.Width );
+    f.pnlRightTop.Height := Mainform.GetRegValue( 'SQLHelp_PnlRightTopHeight', f.pnlRightTop.Height );
+    f.Caption := DEFAULT_WINDOW_CAPTION;
+    // Gather help contents for treeview with SQL: HELP "CONTENTS"
+    f.fillTreeLevel( nil );
+    f.Keyword := Keyword;
+    f.Show;
+  end
+  else
+  begin
+    f := Mainform.SQLHelpWindow_Instance;
+    f.Keyword := Keyword;
+    f.Show;
+    f.FormShow( f );
+  end;
 end;
 
 
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
-  ShowHelpItem;
   MemoDescription.Font.Name := m.SynMemoQuery.Font.Name;
   MemoDescription.Font.Size := m.SynMemoQuery.Font.size;
   MemoExample.Font.Name := m.SynMemoQuery.Font.Name;
   MemoExample.Font.Size := m.SynMemoQuery.Font.size;
 
-  // Gather help contents for treeview with SQL: HELP "CONTENTS"
-  fillTreeLevel( nil );
+  if ShowHelpItem then
+    findKeywordInTree;
 end;
 
 
@@ -113,9 +130,16 @@ begin
       tnode := treeTopics.Items.AddChild( ParentNode, ds.FieldByName('name').AsString );
       if (ds.FindField('is_it_category') <> nil) and (ds.FieldByName('is_it_category').AsString = 'Y') then
       begin
+        tnode.ImageIndex := ICONINDEX_CATEGORY_CLOSED;
+        tnode.SelectedIndex := ICONINDEX_CATEGORY_OPENED;
         // Add a dummy item to show the plus-button so the user sees that there this
         // is a category. When the plus-button is clicked, fetch the content of the category
-        treeTopics.Items.AddChild( tnode, '' );
+        treeTopics.Items.AddChild( tnode, DUMMY_NODE_TEXT );
+      end
+      else
+      begin
+        tnode.ImageIndex := ICONINDEX_HELPITEM;
+        tnode.SelectedIndex := tnode.ImageIndex;
       end;
       ds.Next;
     end;
@@ -126,14 +150,61 @@ begin
 end;
 
 
-procedure TfrmSQLhelp.ShowHelpItem;
+procedure TfrmSQLhelp.findKeywordInTree;
+var
+  tnode : TTreeNode;
+  i : Integer;
+  tmp : Boolean;
+begin
+  // Show selected keyword in Tree
+  i := 0;
+  while i < treeTopics.Items.Count do
+  begin
+    tnode := treeTopics.Items[i];
+    inc(i);
+    if tnode.Text = Keyword then
+    begin
+      tnode.MakeVisible;
+      treeTopics.Selected := tnode;
+      break;
+    end;
+    treeTopicsExpanding( self, tnode, tmp );
+  end;
+  treeTopics.SetFocus;
+end;
+
+
+procedure TfrmSQLhelp.treeTopicsChange(Sender: TObject; Node: TTreeNode);
+begin
+  // Selection in treeTopics has changed
+  if Node.ImageIndex = ICONINDEX_HELPITEM then
+  begin
+    Keyword := Node.Text;
+    ShowHelpItem;
+  end;
+end;
+
+
+procedure TfrmSQLhelp.treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
+  var AllowExpansion: Boolean);
+begin
+  // Get topics from category
+  if (Node.getFirstChild <> nil) and (Node.getFirstChild.Text = DUMMY_NODE_TEXT) then
+  begin
+    fillTreeLevel( Node );
+  end;
+end;
+
+
+function TfrmSQLhelp.ShowHelpItem: Boolean;
 var
   ds : TZReadOnlyQuery;
 begin
   lblKeyword.Caption := Copy(Keyword, 0, 100);
   MemoDescription.Lines.Clear;
   MemoExample.Lines.Clear;
-  Caption := defaultWindowCaption;
+  Caption := DEFAULT_WINDOW_CAPTION;
+  result := false; // Keyword not found yet
 
   if Keyword <> '' then
   try
@@ -144,10 +215,12 @@ begin
     if ds.RecordCount = 1 then
     begin
       // We found exactly one matching help item
-      lblKeyword.Caption := fixNewlines(ds.FieldByName('name').AsString);
+      lblKeyword.Caption := ds.FieldByName('name').AsString;
+      Keyword := lblKeyword.Caption;
       Caption := Caption + ' - ' + lblKeyword.Caption;
       MemoDescription.Text := fixNewlines(ds.FieldByName('description').AsString);
       MemoExample.Text := fixNewlines(ds.FieldByName('example').AsString);
+      result := true;
     end;
   finally
     FreeAndNil( ds );
@@ -171,6 +244,8 @@ begin
 end;
 
 
+
+
 procedure TfrmSQLhelp.ButtonCloseClick(Sender: TObject);
 begin
   Mainform.SaveRegValue( 'SQLHelp_WindowLeft', Left );
@@ -181,7 +256,7 @@ begin
   Mainform.SaveRegValue( 'SQLHelp_PnlRightTopHeight', PnlRightTop.Height );
 
   // Close
-  ModalResult := mrCancel;
+  Close;
 end;
 
 
@@ -201,22 +276,5 @@ begin
 end;
 
 
-procedure TfrmSQLhelp.treeTopicsChange(Sender: TObject; Node: TTreeNode);
-begin
-  // Selection in treeTopics has changed
-  if not Node.HasChildren then
-  begin
-    Keyword := Node.Text;
-    ShowHelpItem;
-  end;
-end;
-
-
-procedure TfrmSQLhelp.treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
-  var AllowExpansion: Boolean);
-begin
-  // Get topics from category
-  fillTreeLevel( Node );
-end;
 
 end.

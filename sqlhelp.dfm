@@ -10,6 +10,7 @@ object frmSQLhelp: TfrmSQLhelp
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  FormStyle = fsStayOnTop
   OldCreateOrder = False
   OnShow = FormShow
   PixelsPerInch = 96
@@ -20,6 +21,7 @@ object frmSQLhelp: TfrmSQLhelp
     Width = 8
     Height = 336
     Cursor = crSizeWE
+    Beveled = True
     ResizeStyle = rsUpdate
     ExplicitLeft = 121
     ExplicitHeight = 308
@@ -35,7 +37,6 @@ object frmSQLhelp: TfrmSQLhelp
     Padding.Top = 5
     Padding.Bottom = 5
     TabOrder = 0
-    ExplicitHeight = 360
     object lblTopics: TLabel
       Left = 5
       Top = 10
@@ -50,13 +51,13 @@ object frmSQLhelp: TfrmSQLhelp
       Height = 302
       Align = alBottom
       Anchors = [akLeft, akTop, akRight, akBottom]
+      Images = MainForm.ImageList1
       Indent = 19
       ReadOnly = True
+      ShowLines = False
       TabOrder = 0
       OnChange = treeTopicsChange
       OnExpanding = treeTopicsExpanding
-      ExplicitWidth = 111
-      ExplicitHeight = 274
     end
   end
   object StatusBar1: TStatusBar
@@ -65,8 +66,6 @@ object frmSQLhelp: TfrmSQLhelp
     Width = 582
     Height = 19
     Panels = <>
-    ExplicitTop = 308
-    ExplicitWidth = 534
   end
   object pnlRight: TPanel
     Left = 161
@@ -80,16 +79,14 @@ object frmSQLhelp: TfrmSQLhelp
     Padding.Right = 5
     Padding.Bottom = 5
     TabOrder = 2
-    ExplicitLeft = 124
-    ExplicitWidth = 410
-    ExplicitHeight = 308
     object Splitter2: TSplitter
       Left = 5
       Top = 169
       Width = 411
       Height = 8
-      Cursor = crVSplit
+      Cursor = crSizeNS
       Align = alTop
+      Beveled = True
       ResizeStyle = rsUpdate
       ExplicitTop = 209
       ExplicitWidth = 471
@@ -121,8 +118,7 @@ object frmSQLhelp: TfrmSQLhelp
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
-        ExplicitLeft = -2
-        ExplicitWidth = 471
+        ExplicitWidth = 71
       end
       object lblDescription: TLabel
         AlignWithMargins = True
@@ -136,7 +132,6 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Description:'
-        ExplicitTop = 29
         ExplicitWidth = 57
       end
       object memoDescription: TMemo
@@ -162,9 +157,6 @@ object frmSQLhelp: TfrmSQLhelp
         ScrollBars = ssBoth
         TabOrder = 0
         OnKeyDown = memosKeyDown
-        ExplicitTop = 48
-        ExplicitWidth = 479
-        ExplicitHeight = 156
       end
     end
     object pnlRightBottom: TPanel
@@ -175,10 +167,6 @@ object frmSQLhelp: TfrmSQLhelp
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitLeft = 6
-      ExplicitTop = 197
-      ExplicitWidth = 432
-      ExplicitHeight = 138
       DesignSize = (
         411
         154)
@@ -194,8 +182,6 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Bottom = 0
         Align = alTop
         Caption = 'Example:'
-        ExplicitLeft = 6
-        ExplicitTop = 21
         ExplicitWidth = 44
       end
       object MemoExample: TMemo
@@ -216,7 +202,6 @@ object frmSQLhelp: TfrmSQLhelp
         ScrollBars = ssBoth
         TabOrder = 0
         OnKeyDown = memosKeyDown
-        ExplicitHeight = 74
       end
       object ButtonClose: TButton
         Left = 309
@@ -229,8 +214,6 @@ object frmSQLhelp: TfrmSQLhelp
         Default = True
         TabOrder = 1
         OnClick = ButtonCloseClick
-        ExplicitLeft = 330
-        ExplicitTop = 112
       end
       object ButtonSearchOnline: TBitBtn
         Left = 200
@@ -284,8 +267,6 @@ object frmSQLhelp: TfrmSQLhelp
           90765F685B8A87288BAB990C2177A7AAA5926C7065948E3496ABAB8D2042A3A9
           9D7375705B854F8BA1ABABA5832A7484915D5E705A64819EABABABABA58F5369
           867E5B665A7D9EABABABABABABAB9A8F7C637B8D99A4ABABABAB}
-        ExplicitLeft = 221
-        ExplicitTop = 112
       end
     end
   end

@@ -83,7 +83,7 @@ object MDIChild: TMDIChild
         Top = 0
         Width = 504
         Height = 274
-        ActivePage = SheetTable
+        ActivePage = SheetQuery
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -100,10 +100,6 @@ object MDIChild: TMDIChild
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -116,10 +112,6 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -150,10 +142,6 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -212,10 +200,6 @@ object MDIChild: TMDIChild
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListCommandStats: TSortListView
                 Left = 0
                 Top = 0
@@ -588,6 +572,7 @@ object MDIChild: TMDIChild
               ViewStyle = vsReport
               OnChange = ListColumnsChange
               OnDblClick = UpdateField
+              OnKeyUp = controlsKeyUp
               ImageIndexSortAsc = 95
               ImageIndexSortDesc = 94
             end
@@ -702,6 +687,7 @@ object MDIChild: TMDIChild
             OnDblClick = DBGridDblClick
             OnEnter = DBGridEnter
             OnExit = DBGridExit
+            OnKeyUp = controlsKeyUp
             OnTitleClick = gridDataTitleClick
             ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
@@ -761,9 +747,9 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
             object Panel8: TPanel
-              Left = 288
+              Left = 272
               Top = 1
-              Width = 207
+              Width = 223
               Height = 27
               Align = alRight
               BevelOuter = bvNone
@@ -773,7 +759,7 @@ object MDIChild: TMDIChild
               object ToolBarQuery: TToolBar
                 Left = 1
                 Top = 1
-                Width = 205
+                Width = 221
                 Height = 25
                 Align = alClient
                 ButtonHeight = 25
@@ -852,10 +838,17 @@ object MDIChild: TMDIChild
                   Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
+                object btnQuerySQLhelp: TToolButton
+                  Left = 197
+                  Top = 0
+                  Caption = 'SQL Help'
+                  ImageIndex = 96
+                  OnClick = CallSQLHelp
+                end
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 172
+              Left = 156
               Top = 1
               Width = 116
               Height = 27
@@ -1001,10 +994,6 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1018,6 +1007,7 @@ object MDIChild: TMDIChild
         Font.Style = []
         PopupMenu = popupSqlLog
         TabOrder = 0
+        OnKeyUp = controlsKeyUp
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
         Gutter.Font.Charset = DEFAULT_CHARSET
@@ -1052,10 +1042,6 @@ object MDIChild: TMDIChild
     object TabSheet2: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1126,10 +1112,6 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1151,10 +1133,6 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0

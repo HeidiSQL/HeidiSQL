@@ -17,7 +17,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp, MysqlQueryThread;
+  HeidiComp, sqlhelp, MysqlQueryThread;
 
 type
   TMainForm = class(TForm)
@@ -86,7 +86,7 @@ type
     PrintList: TAction;
     CopyTable: TAction;
     ControlBar1: TControlBar;
-    ToolBar2: TToolBar;
+    ToolBarStandard: TToolBar;
     ToolButton9: TToolButton;
     FileCloseItem2: TToolButton;
     ToolButton3: TToolButton;
@@ -158,6 +158,8 @@ type
     menuBugtracker: TMenuItem;
     menuFeaturetracker: TMenuItem;
     menuChangelog: TMenuItem;
+    btnSQLHelp: TToolButton;
+    procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
@@ -237,6 +239,7 @@ type
     DataAlwaysEditMode         : Boolean;
     DataNullBackground         : TColor;
     sqlfunctionlist            : TStringList;
+    SQLHelpWindow_Instance     : TfrmSQLhelp;
 end;
 
 var
@@ -408,9 +411,9 @@ begin
       WriteInteger('windowwidth', width);
       WriteInteger('windowheight', height);
       // Position of Toolbars
-      WriteInteger('ToolBar2Left', ToolBar2.Left);
+      WriteInteger('ToolBar2Left', ToolBarStandard.Left);
       WriteInteger('ToolBarDataLeft', ToolBarData.Left);
-      WriteInteger('ToolBar2Top', ToolBar2.Top);
+      WriteInteger('ToolBar2Top', ToolBarStandard.Top);
       WriteInteger('ToolBarDataTop', ToolBarData.Top);
       // Limit-options
       WriteBool('DataLimit', CheckBoxLimit.Checked);
@@ -480,11 +483,11 @@ begin
 
       // Position of Toolbars
       if valueExists('ToolBar2Left') then
-        ToolBar2.Left := ReadInteger('ToolBar2Left');
+        ToolBarStandard.Left := ReadInteger('ToolBar2Left');
       if valueExists('ToolBarDataLeft') then
         ToolBarData.Left := ReadInteger('ToolBarDataLeft');
       if valueExists('ToolBar2Top') then
-        ToolBar2.Top := ReadInteger('ToolBar2Top');
+        ToolBarStandard.Top := ReadInteger('ToolBar2Top');
       if valueExists('ToolBarDataTop') then
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
 
@@ -619,6 +622,12 @@ begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
     if ActualDatabase <> '' then
       DBLoeschen(self);
+end;
+
+procedure TMainForm.btnSQLHelpClick(Sender: TObject);
+begin
+  // SQL help
+  TMDIChild(Application.Mainform.ActiveMDIChild).CallSQLHelp( Sender );
 end;
 
 procedure TMainForm.ButtonAdvancedPropertiesClick(Sender: TObject);

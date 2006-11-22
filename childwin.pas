@@ -262,6 +262,9 @@ type
     btnTableManageIndexes: TToolButton;
     tabCommandStats: TTabSheet;
     ListCommandStats: TSortListView;
+    btnQuerySQLhelp: TToolButton;
+    procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure CallSQLHelp(Sender: TObject);
     procedure ManageIndexes1Click(Sender: TObject);
     procedure ZQuery2AfterPost(DataSet: TDataSet);
     procedure btnQueryReplaceClick(Sender: TObject);
@@ -2437,9 +2440,10 @@ begin
         Copy2XML.Enabled := true;
         ExportData.Enabled := true;
       end;
-      mainform.ToolBarData.visible := (PageControl1.ActivePage = SheetData);
-      mainform.DBNavigator1.DataSource := DataSource1;
+      ToolBarData.visible := (PageControl1.ActivePage = SheetData);
+      DBNavigator1.DataSource := DataSource1;
       //DBtreeChange( self, DBTree.Selected );
+      btnSQLHelp.Enabled := (mysql_version >= 40100);
     end;
   end;
   TimerConnected.OnTimer(self);
@@ -2494,6 +2498,7 @@ begin
     Copy2XML.Enabled := false;
     ExportData.Enabled := false;
     LoadSQL.Enabled := false;
+    btnSQLHelp.Enabled := false;
   end;
   MainForm.showstatus('', 1); // empty connected_time
 end;
@@ -3341,6 +3346,13 @@ begin
   abort;
 end;
 
+procedure TMDIChild.controlsKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_F1 then
+    CallSQLHelp( self );
+end;
+
 procedure TMDIChild.Autoupdate1Click(Sender: TObject);
 var
   seconds : String;
@@ -3425,8 +3437,7 @@ procedure TMDIChild.SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   SynMemoQuery.OnChange(self);
-  if Key = VK_F1 then
-    SQLHelpWindow( self, SynMemoQuery.WordAtCursor );
+  controlsKeyUp( Sender, Key, Shift );
 end;
 
 procedure TMDIChild.SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
@@ -3499,6 +3510,42 @@ begin
     Screen.Cursor := crDefault;
   end;
 
+end;
+
+procedure TMDIChild.CallSQLHelp(Sender: TObject);
+var
+  keyword : String;
+  i : Integer;
+begin
+  // Call SQL Help from various places
+  if mysql_version < 40100 then
+    exit;
+  
+  keyword := '';
+  // Query-Tab
+  if SynMemoQuery.Focused then
+    keyword := SynMemoQuery.WordAtCursor
+  // LogSQL-Tab
+  else if SynMemoSQLLog.Focused then
+    keyword := SynMemoQuery.WordAtCursor
+  // Data-Tab
+  else if (Pagecontrol1.ActivePage = SheetData)
+    and (-1 < gridData.Col)
+    and (gridData.Col <= ListColumns.Items.Count) then
+  begin
+    keyword := ListColumns.Items[gridData.Col-1].SubItems[0];
+  end
+  // Table-Tab
+  else if ListColumns.Focused and (ListColumns.Selected <> nil) then
+  begin
+    keyword := ListColumns.Selected.SubItems[0];
+  end;
+  // Clean existing paranthesis, fx: char(64)
+  if pos( '(', keyword ) > 0 then
+  begin
+    keyword := copy( keyword, 1, pos( '(', keyword )-1 );
+  end;
+  SQLHelpWindow( self, keyword );
 end;
 
 procedure TMDIChild.ToolButton4Click(Sender: TObject);
