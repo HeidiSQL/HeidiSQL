@@ -28,7 +28,7 @@ type
     Help1: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
-    HelpAboutItem: TMenuItem;
+    menuAbout: TMenuItem;
     Edit1: TMenuItem;
     CopyItem: TMenuItem;
     PasteItem: TMenuItem;
@@ -71,7 +71,7 @@ type
     MenuUserManager: TMenuItem;
     MenuPreferences: TMenuItem;
     N7: TMenuItem;
-    Readme1: TMenuItem;
+    menuReadme: TMenuItem;
     UserManager: TAction;
     ShowAboutBox: TAction;
     Diagnostics: TAction;
@@ -159,6 +159,8 @@ type
     menuFeaturetracker: TMenuItem;
     menuChangelog: TMenuItem;
     btnSQLHelp: TToolButton;
+    menuSQLHelp: TMenuItem;
+    N8: TMenuItem;
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
@@ -179,7 +181,7 @@ type
     procedure ButtonImportTextfileClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure MenuPreferencesClick(Sender: TObject);
-    procedure Readme1Click(Sender: TObject);
+    procedure menuReadmeClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure UserManagerExecute(Sender: TObject);
     procedure ShowAboutBoxExecute(Sender: TObject);
@@ -691,7 +693,7 @@ begin
   OptionsWindow (Self);
 end;
 
-procedure TMainForm.Readme1Click(Sender: TObject);
+procedure TMainForm.menuReadmeClick(Sender: TObject);
 begin
   // show readme.txt
   ShellExec( 'readme.txt', ExtractFilePath(paramstr(0)) );

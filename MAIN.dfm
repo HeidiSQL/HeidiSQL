@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 286
+  ClientHeight = 306
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 267
+    Top = 287
     Width = 632
     Height = 19
     AutoHint = True
@@ -35,6 +35,7 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
+    ExplicitTop = 267
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -542,6 +543,14 @@ object MainForm: TMainForm
       Tag = 22
       Caption = '&Help'
       Hint = 'Help topics'
+      object menuSQLHelp: TMenuItem
+        Caption = 'SQL Help'
+        ShortCut = 112
+        OnClick = btnSQLHelpClick
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
       object menuWebsite: TMenuItem
         Tag = 56
         Caption = 'HeidiSQL Website'
@@ -571,12 +580,12 @@ object MainForm: TMainForm
       object N9: TMenuItem
         Caption = '-'
       end
-      object Readme1: TMenuItem
+      object menuReadme: TMenuItem
         Tag = 55
         Caption = 'Readme'
-        OnClick = Readme1Click
+        OnClick = menuReadmeClick
       end
-      object HelpAboutItem: TMenuItem
+      object menuAbout: TMenuItem
         Action = ShowAboutBox
         Hint = 'About HeidiSQL'
       end
