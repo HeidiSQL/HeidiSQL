@@ -99,10 +99,13 @@ type TMysqlField = record
     NotNull : Boolean;
     AutoIncrement : Boolean;
   end;
+
 var
   CreateTableForm: TCreateTableForm;
   fields : array of TMysqlField;
 
+const
+  TBLTYPE_AUTOMATIC : String = '<Automatic>';
 
 implementation
 
@@ -113,7 +116,7 @@ uses Main, Childwin, helpers;
 
 procedure TCreateTableForm.ButtonCancelClick(Sender: TObject);
 begin
-  close;
+  ModalResult := mrCancel;
 end;
 
 
@@ -187,7 +190,7 @@ begin
     if EditDescription.Text <> '' then
       ctquery := ctquery + ' COMMENT = "' + EditDescription.Text + '"';
 
-    if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> '<Automatic>') then
+    if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
       ctquery := ctquery + ' TYPE = ' + ComboBoxTableType.Text;
 
     with TMDIChild(Application.Mainform.ActiveMDIChild) do
@@ -426,8 +429,10 @@ end;
 
 procedure TCreateTableForm.FormShow(Sender: TObject);
 var
-  i : Integer;
-  tn : TTreeNode;
+  i         : Integer;
+  tn        : TTreeNode;
+  mdichild  : TMDIChild;
+  menu      : TMenuItem;
 begin
   // FormShow!
 
@@ -451,8 +456,8 @@ begin
       DBComboBox.ItemIndex := 0;
   end;
 
-
-  if TMDIChild(Application.Mainform.ActiveMDIChild).mysql_version >= 32300 then
+  mdichild := TMDIChild(Application.Mainform.ActiveMDIChild);
+  if mdichild.mysql_version >= 32300 then
   begin
     EditDescription.Visible := true;
     Label3.Visible := true;
@@ -462,6 +467,22 @@ begin
     EditDescription.Visible := false;
     Label3.Visible := false;
   end;
+  // Add all table types detected at application start to ComboboxTableType
+  menu := mdichild.popupDbGrid.Items.Find('Change Type');
+  if menu <> nil then
+  begin
+    ComboboxTableType.Items.Clear;
+    ComboboxTableType.Items.Add( TBLTYPE_AUTOMATIC );
+    for i := 0 to menu.Count - 1 do
+    begin
+      if menu.Items[i].Caption = '-' then // End of list
+        break;
+      if not menu.Items[i].Enabled then  // Not supported engine
+        continue;
+      ComboboxTableType.Items.Add( menu.Items[i].Caption );
+    end;
+  end;
+    
   index := -1;
   setLength(fields, 0);
   feldListe.Items.Clear;

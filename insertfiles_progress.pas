@@ -13,9 +13,9 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Button1: TButton;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
+    lblNumber: TLabel;
+    lblFilename: TLabel;
+    lblOperation: TLabel;
     Timer1: TTimer;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
@@ -67,26 +67,26 @@ begin
     for i:=0 to ListViewFiles.Items.Count-1 do
     begin
       if self.canceled then break;
-      Label4.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
-      Label4.Repaint;
+      lblNumber.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
+      lblNumber.Repaint;
       filename := ListViewFiles.Items[i].Caption;
-      Label5.Caption := mince(filename, 30) + ' ('+ListViewFiles.Items[i].SubItems[0]+' KB)';
-      Label5.Repaint;
+      lblFilename.Caption := mince(filename, 30) + ' ('+FormatNumber(ListViewFiles.Items[i].SubItems[0])+' KB)';
+      lblFilename.Repaint;
       with TMDIChild(Mainform.ActiveMDIChild) do
       begin
         ZQuery3.ParamCheck := true;
         ZQuery3.SQL.Clear;
         ZQuery3.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
           ' (' + mainform.mask(ComboBoxColumns.Text) );
-        Label6.caption := 'Inserting data ...';
-        Label6.Repaint;
+        lblOperation.caption := 'Inserting data ...';
+        lblOperation.Repaint;
         for j:=0 to length(cols)-1 do
         begin
           if cols[j].Name = ComboBoxColumns.Text then
             continue;
           ZQuery3.SQL.Add( ', ' + mainform.mask(cols[j].Name) );
         end;
-        ZQuery3.SQL.Add( ') VALUES (:STREAM,' );
+        ZQuery3.SQL.Add( ') VALUES (:STREAM, ' );
 
         for j:=0 to length(cols)-1 do
         begin
@@ -106,12 +106,14 @@ begin
           end;
           if cols[j].Quote then
             Value := '"' + escape_string(Value) + '"';
-          ZQuery3.SQL.Add( Value );
+          ZQuery3.SQL.Add( Value + ', ' );
         end;
+        // Strip last komma + space + CR + LF
+        ZQuery3.SQL.Text := copy( ZQuery3.SQL.Text, 1, length(ZQuery3.SQL.Text)-4 ); 
         ZQuery3.SQL.Add( ')' );
         try
-          Label6.caption := 'Reading file ...';
-          Label6.Repaint;
+          lblOperation.caption := 'Reading file ...';
+          lblOperation.Repaint;
           FileStream := TFileStream.Create( filename, fmShareDenyWrite );
           try
             ZQuery3.Params.Clear;
@@ -125,8 +127,8 @@ begin
           break;
         end;
         ZQuery3.ExecSQL;
-        Label6.caption := 'Freeing memory ...';
-        Label6.Repaint;
+        lblOperation.caption := 'Freeing memory ...';
+        lblOperation.Repaint;
       end;
       ProgressBar1.StepIt;
       ProgressBar1.Repaint;
@@ -149,9 +151,9 @@ end;
 procedure TfrmInsertFilesProgress.FormShow(Sender: TObject);
 begin
   ProgressBar1.Position := 0;
-  Label4.Caption := '';
-  Label5.Caption := '';
-  Label6.Caption := '';
+  lblNumber.Caption := '';
+  lblFilename.Caption := '';
+  lblOperation.Caption := '';
   Canceled := false;
   Timer1.Enabled := true;
 end;

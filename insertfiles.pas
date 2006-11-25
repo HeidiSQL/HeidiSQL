@@ -96,20 +96,28 @@ var
   i : Integer;
 begin
   ComboBoxDBs.Items.Clear;
-  with TMDIChild(Mainform.ActiveMDIChild) do begin
+  with TMDIChild(Mainform.ActiveMDIChild) do
+  begin
     self.Caption := ZConn.HostName + ' - Insert files into table ...';
-    for i:=0 to DBTree.Items.Count-1 do begin
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
       tn := DBTree.Items[i];
       if tn.Level = 1 then
         ComboBoxDBs.Items.Add(tn.Text);
     end;
 
     for i:=0 to ComboBoxDBs.Items.Count-1 do
+    begin
       if ComboBoxDBs.Items[i] = ActualDatabase then
+      begin
         ComboBoxDBs.ItemIndex := i;
+      end;
+    end;
 
     if ComboBoxDBs.ItemIndex = -1 then
+    begin
       ComboBoxDBs.ItemIndex := 0;
+    end;
 
   end;
   ComboBoxDBsChange(self);
@@ -124,7 +132,8 @@ var
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  with TMDIChild(Mainform.ActiveMDIChild) do begin
+  with TMDIChild(Mainform.ActiveMDIChild) do
+  begin
     for i:=0 to DBTree.Items.Count-1 do
     begin
       tn := DBTree.Items[i];
@@ -140,7 +149,9 @@ begin
     end;
   end;
   if ComboBoxTables.Items.Count > 0 then
+  begin
     ComboBoxTables.ItemIndex := 0;
+  end;
   ComboBoxTablesChange(self);
 end;
 
@@ -191,7 +202,7 @@ end;
 { Cancel! }
 procedure TfrmInsertFiles.ButtonCancelClick(Sender: TObject);
 begin
-  close;
+  ModalResult := mrCancel;
 end;
 
 { buttons need to be checked for being enabled }
@@ -208,7 +219,8 @@ var
   Info    : TSHFileInfo;
 begin
   attrs := filegetattr(filename);
-  if attrs and faDirectory <> 0 then exit;
+  if attrs and faDirectory <> 0 then
+    exit;
   li := ListViewFiles.Items.Add;
   li.Caption := filename;
   filesize := ceil(_getfilesize(filename) / 1024);
@@ -222,7 +234,8 @@ procedure TfrmInsertFiles.ButtonAddFilesClick(Sender: TObject);
 var
   i : Integer;
 begin
-  if OpenDialog.Execute then begin
+  if OpenDialog.Execute then
+  begin
     Screen.Cursor := crHourglass;
     ListViewFiles.Items.BeginUpdate;
     try
@@ -246,10 +259,15 @@ begin
   ButtonRemoveFiles.Enabled := ListViewFiles.SelCount > 0;
   ButtonClearList.Enabled := ListViewFiles.Items.Count > 0;
   kbytes := 0;
-  with LabelFileCount do begin
+  with LabelFileCount do
+  begin
     for i:=0 to ListViewFiles.Items.Count-1 do
+    begin
       if ListViewFiles.Items[i].SubItems.Count > 0 then
+      begin
         kbytes := kbytes + strtointdef(ListViewFiles.Items[i].Subitems[0], 0);
+      end;
+    end;
     Caption := format('%u files, %.0n KB, %u files selected.', [ListViewFiles.Items.count, kbytes, ListViewFiles.selcount]);
   end;
   Modified;
@@ -264,15 +282,22 @@ begin
   lastdel := -1;
   ListViewFiles.Items.BeginUpdate;
   for i:=ListViewFiles.Items.Count-1 downto 0 do
-    if ListViewFiles.Items[i].Selected then begin
+  begin
+    if ListViewFiles.Items[i].Selected then
+    begin
       ListViewFiles.Items[i].Delete;
       lastdel := i;
     end;
+  end;
   ListViewFiles.Items.EndUpdate;
   if ListViewFiles.Items.count > lastdel then
-    ListViewFiles.Selected := ListViewFiles.Items[lastdel]
+  begin
+    ListViewFiles.Selected := ListViewFiles.Items[lastdel];
+  end
   else if ListViewFiles.Items.count > 0 then
+  begin
     ListViewFiles.Selected := ListViewFiles.Items[lastdel-1];
+  end;
   ListViewFiles.SetFocus;
   ListViewFilesClick(self); // count files and (de-)activate buttons
   Screen.Cursor := crDefault;
@@ -322,7 +347,8 @@ var i : Integer;
 begin
   ListBoxOtherFields.Items.BeginUpdate;
   ListBoxOtherFields.Items.Clear;
-  for i:=0 to length(cols)-1 do begin
+  for i:=0 to length(cols)-1 do
+  begin
     if ComboBoxColumns.Text <> cols[i].Name then
       ListBoxOtherFields.Items.Add(cols[i].Name);
   end;
@@ -349,7 +375,10 @@ begin
   CheckBoxQuote.Enabled := enable;
   if not enable then exit;
   for i:=0 to length(cols)-1 do
-    if ListBoxOtherFields.Items[ListBoxOtherFields.ItemIndex] = cols[i].Name then break;
+  begin
+    if ListBoxOtherFields.Items[ListBoxOtherFields.ItemIndex] = cols[i].Name then
+      break;
+  end;
   ComboBoxValue.Text := cols[i].Value;
   CheckBoxQuote.Checked := cols[i].Quote;
 end;

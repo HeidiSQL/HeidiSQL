@@ -38,26 +38,26 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Height = 13
     Caption = 'Nr.'
   end
-  object Label4: TLabel
+  object lblNumber: TLabel
     Left = 112
     Top = 16
-    Width = 32
+    Width = 47
     Height = 13
-    Caption = 'Label4'
+    Caption = 'lblNumber'
   end
-  object Label5: TLabel
+  object lblFilename: TLabel
     Left = 112
     Top = 32
-    Width = 32
+    Width = 52
     Height = 13
-    Caption = 'Label5'
+    Caption = 'lblFilename'
   end
-  object Label6: TLabel
+  object lblOperation: TLabel
     Left = 112
     Top = 48
-    Width = 32
+    Width = 56
     Height = 13
-    Caption = 'Label6'
+    Caption = 'lblOperation'
   end
   object ProgressBar1: TProgressBar
     Left = 16

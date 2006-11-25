@@ -254,7 +254,6 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             BorderWidth = 1
             Caption = 'Host'
-            Color = clWhite
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
@@ -280,7 +279,6 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             BorderWidth = 1
             Caption = 'Database'
-            Color = clWindow
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
@@ -455,7 +453,6 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             BorderWidth = 1
             Caption = 'Table-Properties'
-            Color = clWindow
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
@@ -617,7 +614,6 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             BorderWidth = 1
             Caption = 'Data'
-            Color = clWhite
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
@@ -643,6 +639,7 @@ object MDIChild: TMDIChild
               TabOrder = 0
               OnEnter = EditDataSearchEnter
               OnExit = EditDataSearchExit
+              OnKeyUp = controlsKeyUp
             end
             object ButtonDataSearch: TButton
               Left = 440
@@ -659,6 +656,21 @@ object MDIChild: TMDIChild
               ParentFont = False
               TabOrder = 1
               OnClick = ButtonDataSearchClick
+            end
+            object CheckBoxDataSearch: TCheckBox
+              Left = 264
+              Top = 2
+              Width = 49
+              Height = 17
+              Anchors = [akTop, akRight]
+              Caption = 'NOT'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clBlack
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              ParentFont = False
+              TabOrder = 2
             end
           end
           object gridData: TSMDBGrid
@@ -738,7 +750,6 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             BorderWidth = 1
             Caption = 'SQL-Query:'
-            Color = clWindow
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
@@ -747,19 +758,18 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
             object Panel8: TPanel
-              Left = 272
+              Left = 296
               Top = 1
-              Width = 223
+              Width = 199
               Height = 27
               Align = alRight
               BevelOuter = bvNone
               BorderWidth = 1
-              Color = clWindow
               TabOrder = 0
               object ToolBarQuery: TToolBar
                 Left = 1
                 Top = 1
-                Width = 221
+                Width = 197
                 Height = 25
                 Align = alClient
                 ButtonHeight = 25
@@ -838,17 +848,10 @@ object MDIChild: TMDIChild
                   Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
-                object btnQuerySQLhelp: TToolButton
-                  Left = 197
-                  Top = 0
-                  Caption = 'SQL Help'
-                  ImageIndex = 96
-                  OnClick = CallSQLHelp
-                end
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 156
+              Left = 180
               Top = 1
               Width = 116
               Height = 27
@@ -857,7 +860,6 @@ object MDIChild: TMDIChild
               BevelOuter = bvNone
               BorderWidth = 2
               Caption = '0 Characters'
-              Color = clWindow
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clBlack
               Font.Height = -11
@@ -985,7 +987,7 @@ object MDIChild: TMDIChild
     Top = 278
     Width = 677
     Height = 142
-    ActivePage = TabSheet8
+    ActivePage = TabSheet2
     Align = alBottom
     HotTrack = True
     Images = MainForm.ImageList1
@@ -1127,7 +1129,7 @@ object MDIChild: TMDIChild
             ParentFont = False
             ScrollBars = ssBoth
             TabOrder = 0
-            OnKeyDown = DBMemo1KeyDown
+            OnKeyUp = controlsKeyUp
           end
         end
         object TabSheet4: TTabSheet
@@ -1611,6 +1613,7 @@ object MDIChild: TMDIChild
     end
   end
   object popupDataGrid: TPopupMenu
+    AutoHotkeys = maManual
     Images = MainForm.ImageList1
     OnPopup = popupDataGridPopup
     Left = 136
@@ -1645,61 +1648,84 @@ object MDIChild: TMDIChild
       Caption = 'Quick Filter'
       object QF1: TMenuItem
         AutoHotkeys = maManual
-        Caption = 'Field = Value'
+        Caption = 'Column = Value'
         OnClick = QuickFilterClick
       end
       object QF2: TMenuItem
         AutoHotkeys = maManual
-        Caption = 'Field != Value'
+        Caption = 'Column != Value'
         OnClick = QuickFilterClick
       end
       object QF3: TMenuItem
         AutoHotkeys = maManual
-        Caption = 'Field > Value'
+        Caption = 'Column > Value'
         OnClick = QuickFilterClick
       end
       object QF4: TMenuItem
         AutoHotkeys = maManual
-        Caption = 'Field < Value'
+        Caption = 'Column < Value'
         OnClick = QuickFilterClick
       end
       object QF5: TMenuItem
-        Caption = 'Field like Value%'
+        Caption = 'Column LIKE Value%'
         OnClick = QuickFilterClick
       end
       object QF6: TMenuItem
-        Caption = 'Field like %Value'
+        Caption = 'Column LIKE %Value'
         OnClick = QuickFilterClick
       end
       object QF7: TMenuItem
-        Caption = 'Field like %Value%'
+        Caption = 'Column LIKE %Value%'
         OnClick = QuickFilterClick
       end
       object N11: TMenuItem
         Caption = '-'
       end
       object QF8: TMenuItem
-        Caption = 'Field = ?'
+        Caption = 'Column = ...'
         OnClick = QuickFilterClick
       end
       object QF9: TMenuItem
-        Caption = 'Field != ?'
+        Caption = 'Column != ...'
         OnClick = QuickFilterClick
       end
       object QF10: TMenuItem
-        Caption = 'Field > ?'
+        Caption = 'Column > ...'
         OnClick = QuickFilterClick
       end
       object QF11: TMenuItem
-        Caption = 'Field < ?'
+        Caption = 'Column < ...'
         OnClick = QuickFilterClick
       end
       object QF12: TMenuItem
-        Caption = 'Field like ?'
+        Caption = 'Column like ...'
         OnClick = QuickFilterClick
       end
       object N7: TMenuItem
         AutoHotkeys = maManual
+        Caption = '-'
+      end
+      object QF13: TMenuItem
+        Caption = 'Column = CLIPBOARD'
+        OnClick = QuickFilterClick
+      end
+      object QF14: TMenuItem
+        Caption = 'Column != CLIPBOARD'
+        OnClick = QuickFilterClick
+      end
+      object QF15: TMenuItem
+        Caption = 'Column > CLIPBOARD'
+        OnClick = QuickFilterClick
+      end
+      object QF16: TMenuItem
+        Caption = 'Column < CLIPBOARD'
+        OnClick = QuickFilterClick
+      end
+      object QF17: TMenuItem
+        Caption = 'Column LIKE %CLIPBOARD%'
+        OnClick = QuickFilterClick
+      end
+      object N21: TMenuItem
         Caption = '-'
       end
       object DropFilter1: TMenuItem

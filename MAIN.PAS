@@ -47,7 +47,6 @@ type
     ImageList1: TImageList;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
-    N2: TMenuItem;
     MenuCopyCSV: TMenuItem;
     N3: TMenuItem;
     MenuRefresh: TMenuItem;
@@ -161,6 +160,7 @@ type
     btnSQLHelp: TToolButton;
     menuSQLHelp: TMenuItem;
     N8: TMenuItem;
+    Import1: TMenuItem;
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);

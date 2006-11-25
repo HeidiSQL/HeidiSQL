@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 306
+  ClientHeight = 326
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 287
+    Top = 307
     Width = 632
     Height = 19
     AutoHint = True
@@ -35,7 +35,7 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
-    ExplicitTop = 267
+    ExplicitTop = 287
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -217,6 +217,7 @@ object MainForm: TMainForm
       object btnSQLHelp: TToolButton
         Left = 390
         Top = 0
+        Hint = 'SQL Help'
         Caption = 'btnSQLHelp'
         Enabled = False
         ImageIndex = 96
@@ -480,6 +481,7 @@ object MainForm: TMainForm
       end
       object OptimizeTables1: TMenuItem
         Action = Diagnostics
+        Caption = 'Maintenance'
       end
       object N7: TMenuItem
         Caption = '-'
@@ -490,9 +492,8 @@ object MainForm: TMainForm
         OnClick = MenuPreferencesClick
       end
     end
-    object ImExport1: TMenuItem
-      Tag = 20
-      Caption = 'Im-/Export'
+    object Import1: TMenuItem
+      Caption = 'Import'
       object MenuImportTextFile: TMenuItem
         Tag = 43
         Caption = 'Import CSV file...'
@@ -500,19 +501,19 @@ object MainForm: TMainForm
         ImageIndex = 24
         OnClick = ButtonImportTextfileClick
       end
+      object ImportSQL1: TMenuItem
+        Action = LoadSQL
+      end
       object InsertfilesintoBLOBfields1: TMenuItem
         Action = InsertFiles
       end
-      object N2: TMenuItem
-        Caption = '-'
-      end
+    end
+    object ImExport1: TMenuItem
+      Tag = 20
+      Caption = 'Export'
       object MenuExport: TMenuItem
         Tag = 45
         Action = ExportTables
-        Caption = 'Export tables...'
-      end
-      object ImportSQL1: TMenuItem
-        Action = LoadSQL
       end
       object N11: TMenuItem
         Caption = '-'
@@ -779,7 +780,7 @@ object MainForm: TMainForm
       OnExecute = InsertFilesExecute
     end
     object ExportTables: TAction
-      Caption = 'Export tables ...'
+      Caption = 'Export tables as SQL'
       Enabled = False
       ImageIndex = 19
       OnExecute = ExportTablesExecute

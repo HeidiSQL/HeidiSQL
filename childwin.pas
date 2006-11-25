@@ -262,7 +262,13 @@ type
     btnTableManageIndexes: TToolButton;
     tabCommandStats: TTabSheet;
     ListCommandStats: TSortListView;
-    btnQuerySQLhelp: TToolButton;
+    CheckBoxDataSearch: TCheckBox;
+    QF13: TMenuItem;
+    QF14: TMenuItem;
+    QF15: TMenuItem;
+    QF16: TMenuItem;
+    QF17: TMenuItem;
+    N21: TMenuItem;
     procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CallSQLHelp(Sender: TObject);
     procedure ManageIndexes1Click(Sender: TObject);
@@ -417,8 +423,6 @@ type
     procedure MenuTablelistColumnsClick(Sender: TObject);
     procedure ListTablesMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure DBMemo1KeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     function mask(str: String) : String;
     procedure CheckConnection();
     procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
@@ -1145,7 +1149,8 @@ begin
       Columns.Add( ListColumns.Items[i].Caption );
 
       // give all enum-fields a PickList with its Items
-      if StrCmpBegin('enum', ListColumns.Items[i].SubItems[0]) then begin
+      if StrCmpBegin('enum', ListColumns.Items[i].SubItems[0]) then
+      begin
         DropDown := explode(''',''', getklammervalues(ListColumns.Items[i].SubItems[0]));
         for j:=0 to DropDown.count-1 do
         begin
@@ -2954,57 +2959,75 @@ end;
 
 procedure TMDIChild.QuickFilterClick(Sender: TObject);
 var
-  filter,value,menuitem : String;
+  filter,value,column : String;
+  menuitem : TMenuItem;
 begin
   // Set filter for "where..."-clause
   value := escape_string(gridData.SelectedField.AsString);
-  menuitem := (Sender as TMenuItem).Name;
-  if menuitem = 'QF1' then
-    filter := '=' + ' ''' + value + ''''
-  else if menuitem = 'QF2' then
-    filter := '!=' + ' ''' + value + ''''
-  else if menuitem = 'QF3' then
-    filter := '>' + ' ''' + value + ''''
-  else if menuitem = 'QF4' then
-    filter := '<' + ' ''' + value + ''''
-  else if menuitem = 'QF5' then
-    filter := 'LIKE' + ' ''' + value + '%'''
-  else if menuitem = 'QF6' then
-    filter := 'LIKE' + ' ''%' + value + ''''
-  else if menuitem = 'QF7' then
-    filter := 'LIKE' + ' ''%' + value + '%'''
-  else if menuitem = 'QF8' then begin
-    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' = ', 'Value');
+  menuitem := (Sender as TMenuItem);
+  column := mask(gridData.SelectedField.FieldName);
+  if menuitem = QF1 then
+    filter := column + ' =' + ' ''' + value + ''''
+  else if menuitem = QF2 then
+    filter := column + ' !=' + ' ''' + value + ''''
+  else if menuitem = QF3 then
+    filter := column + ' >' + ' ''' + value + ''''
+  else if menuitem = QF4 then
+    filter := column + ' <' + ' ''' + value + ''''
+  else if menuitem = QF5 then
+    filter := column + ' LIKE' + ' ''' + value + '%'''
+  else if menuitem = QF6 then
+    filter := column + ' LIKE' + ' ''%' + value + ''''
+  else if menuitem = QF7 then
+    filter := column + ' LIKE' + ' ''%' + value + '%'''
+
+  else if menuitem = QF8 then
+  begin
+    filter := InputBox('Specify filter-value...', column+' = ', 'Value');
     if filter = 'Value' then
       abort;
-    filter := '= ''' + filter + '''';
+    filter := column + ' = ''' + filter + '''';
   end
-  else if menuitem = 'QF9' then begin
-    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' != ', 'Value');
+
+  else if menuitem = QF9 then
+  begin
+    filter := InputBox('Specify filter-value...', column+' != ', 'Value');
     if filter = 'Value' then
       abort;
-    filter := '!= ''' + filter + '''';
+    filter := column + ' != ''' + filter + '''';
   end
-  else if menuitem = 'QF10' then begin
-    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' > ', 'Value');
+
+  else if menuitem = QF10 then
+  begin
+    filter := InputBox('Specify filter-value...', column+' > ', 'Value');
     if filter = 'Value' then
       abort;
-    filter := '> ''' + filter + '''';
+    filter := column + ' > ''' + filter + '''';
   end
-  else if menuitem = 'QF11' then begin
-    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' < ', 'Value');
+
+  else if menuitem = QF11 then
+  begin
+    filter := InputBox('Specify filter-value...', column+' < ', 'Value');
     if filter = 'Value' then
       abort;
-    filter := '< ''' + filter + '''';
+    filter := column + ' < ''' + filter + '''';
   end
-  else if menuitem = 'QF12' then begin
-    filter := InputBox('Specify filter-value...', mask(gridData.SelectedField.FieldName)+' like ', 'Value');
+
+  else if menuitem = QF12 then
+  begin
+    filter := InputBox('Specify filter-value...', column+' LIKE ', 'Value');
     if filter = 'Value' then
       abort;
-    filter := 'LIKE ''' + filter + '''';
+    filter := column + ' LIKE ''%' + filter + '%''';
+  end
+
+  // Filters with text from clipboard
+  else if (menuitem = QF13) or (menuitem = QF14) or (menuitem = QF15) or (menuitem = QF16) or (menuitem = QF17) then
+  begin
+    filter := menuitem.Caption;
   end;
 
-  SynMemoFilter.Text := gridData.SelectedField.FieldName + ' ' + filter;
+  SynMemoFilter.Text := filter;
   PageControlBottom.ActivePageIndex := 2;
   SynMemoFilter.SetFocus;
   SetFilter(self);
@@ -3349,8 +3372,18 @@ end;
 procedure TMDIChild.controlsKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  // Check for F1-pressed
   if Key = VK_F1 then
-    CallSQLHelp( self );
+    CallSQLHelp( self )
+
+  // Simulate Ctrl+A-behaviour of common editors
+  else if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
+  begin
+    if Sender = DBMemo1 then
+      DBMemo1.SelectAll
+    else if Sender = EditDataSearch then
+      EditDataSearch.SelectAll;
+  end;
 end;
 
 procedure TMDIChild.Autoupdate1Click(Sender: TObject);
@@ -3849,17 +3882,68 @@ begin
 end;
 
 procedure TMDIChild.popupDataGridPopup(Sender: TObject);
-var y,m,d,h,i,s,ms : Word;
+var
+  y,m,d,h,i,s,ms : Word;
+  menu : TMenuItem;
+  cpText, selectedColumn, value : String;
+const
+  CLPBRD : String = 'CLIPBOARD';
 begin
+
   DataInsertDateTime.Enabled := gridData.SelectedField.DataType in [ftString, ftDatetime, ftDate, ftTime];
-  if not DataInsertDateTime.Enabled then exit;
-  decodedate(now, y, m, d);
-  decodetime(now, h, i, s, ms);
-  DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
-  DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
-  DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
-  DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
-  DataYear.Caption := Format('%.4d', [y]);
+  if DataInsertDateTime.Enabled then
+  begin
+    decodedate(now, y, m, d);
+    decodetime(now, h, i, s, ms);
+    DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
+    DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
+    DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
+    DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
+    DataYear.Caption := Format('%.4d', [y]);
+  end;
+
+  // Manipulate the Quick-filter menuitems
+  menu := popupDatagrid.Items.Find('Quick Filter');
+  selectedColumn := mask(gridData.SelectedField.FieldName);
+  // 1. block: include selected columnname and value from datagrid in caption
+  value := escLike(gridData.SelectedField.AsString);
+  value := escOtherChars(value);
+  value := sstr(value, 100);
+  QF1.Caption := selectedColumn + ' = "' + value + '"';
+  QF2.Caption := selectedColumn + ' != "' + value + '"';
+  QF3.Caption := selectedColumn + ' > "' + value + '"';
+  QF4.Caption := selectedColumn + ' < "' + value + '"';
+  QF5.Caption := selectedColumn + ' LIKE "' + value + '%"';
+  QF6.Caption := selectedColumn + ' LIKE "%' + value + '"';
+  QF7.Caption := selectedColumn + ' LIKE "%' + value + '%"';
+
+  // 2. block: include only selected columnname in caption
+  QF8.Caption := selectedColumn + ' = "..."';
+  QF9.Caption := selectedColumn + ' != "..."';
+  QF10.Caption := selectedColumn + ' > "..."';
+  QF11.Caption := selectedColumn + ' < "..."';
+  QF12.Caption := selectedColumn + ' LIKE "%...%"';
+
+  // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
+  cpText := Clipboard.AsText;
+  if Length(cpText) < 100 then
+  begin
+    cpText := escLike(cpText);
+    cpText := escOtherChars(cpText);
+    QF13.Enabled := true; QF13.Caption := selectedColumn + ' = "' + cpText + '"';
+    QF14.Enabled := true; QF14.Caption := selectedColumn + ' != "' + cpText + '"';
+    QF15.Enabled := true; QF15.Caption := selectedColumn + ' > "' + cpText + '"';
+    QF16.Enabled := true; QF16.Caption := selectedColumn + ' < "' + cpText + '"';
+    QF17.Enabled := true; QF17.Caption := selectedColumn + ' LIKE "%' + cpText + '%"';
+  end
+  else
+  begin
+    QF13.Enabled := false; QF13.Caption := selectedColumn + ' = ' + CLPBRD;
+    QF14.Enabled := false; QF14.Caption := selectedColumn + ' != ' + CLPBRD;
+    QF15.Enabled := false; QF15.Caption := selectedColumn + ' > ' + CLPBRD;
+    QF16.Enabled := false; QF16.Caption := selectedColumn + ' < ' + CLPBRD;
+    QF17.Enabled := false; QF17.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
+  end;
 end;
 
 procedure TMDIChild.InsertDate(Sender: TObject);
@@ -4133,15 +4217,21 @@ var
   i : Integer;
   where : String;
 begin
-  if not ZQuery2.Active then
+  if not gridData.DataSource.DataSet.Active then
     exit;
   where := '';
-  if EditDataSearch.text <> '' then for i:=0 to gridData.FieldCount-1 do
+  if EditDataSearch.text <> '' then
   begin
-    if where <> '' then
-      where := where + CRLF + ' OR ';
-    where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + escLike( EditDataSearch.text ) + '%''';
+    for i:=0 to gridData.FieldCount-1 do
+    begin
+      if where <> '' then
+        where := where + CRLF + ' OR ';
+      where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + escLike( EditDataSearch.text ) + '%''';
+    end;
+    if CheckBoxDataSearch.Checked then
+      where := 'NOT (' + where + ')';
   end;
+
   SynMemoFilter.Text := where;
 
   SetFilter(self);
@@ -4151,6 +4241,7 @@ end;
 procedure TMDIChild.EditDataSearchEnter(Sender: TObject);
 begin
   ButtonDataSearch.Default := true;
+  EditDataSearch.SelectAll;
 end;
 
 // Searchbox unfocused
@@ -4158,6 +4249,7 @@ procedure TMDIChild.EditDataSearchExit(Sender: TObject);
 begin
   ButtonDataSearch.Default := false;
 end;
+
 
 
 // Click on first menu-item in context-menu of tablelist-columns
@@ -4213,14 +4305,6 @@ begin
     popupDbGrid.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
 end;
 
-
-// Simulate Ctrl+A-behaviour of common editors
-procedure TMDIChild.DBMemo1KeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
-    DBMemo1.SelectAll;
-end;
 
 
 function TMDIChild.mask(str: String) : String;
@@ -4293,4 +4377,5 @@ begin
 end;
 
 end.
+
 
