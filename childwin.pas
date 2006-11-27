@@ -2449,6 +2449,7 @@ begin
       DBNavigator1.DataSource := DataSource1;
       //DBtreeChange( self, DBTree.Selected );
       btnSQLHelp.Enabled := (mysql_version >= 40100);
+      menuSQLHelp.Enabled := btnSQLHelp.Enabled;
     end;
   end;
   TimerConnected.OnTimer(self);
@@ -2504,6 +2505,7 @@ begin
     ExportData.Enabled := false;
     LoadSQL.Enabled := false;
     btnSQLHelp.Enabled := false;
+    menuSQLHelp.Enabled := false;
   end;
   MainForm.showstatus('', 1); // empty connected_time
 end;

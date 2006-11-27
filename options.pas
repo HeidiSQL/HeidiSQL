@@ -168,6 +168,7 @@ begin
     WriteString('DataFontName', Panel8.Font.Name);
     WriteInteger('DataFontSize', UpDownDataFontSize.Position);
     WriteString('DataNullBackground', ColorToString(Panel9.color));
+    WriteBool('DataAlwaysEditMode', CheckBoxDataAlwaysEditMode.Checked);
   end;
   ButtonApply.Enabled := false;
 
