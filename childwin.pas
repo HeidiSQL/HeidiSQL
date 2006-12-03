@@ -2,7 +2,6 @@ UNIT Childwin;
 
 
 // -------------------------------------
-// HeidiSQL
 // MDI-Child-Window
 // -------------------------------------
 
@@ -303,9 +302,9 @@ type
     procedure SelectHost;
     procedure SelectDatabase(db: string);
     procedure SelectTable(db: string; table: string);
-    procedure TabelleAnzeigen(Sender: TObject);
-    procedure TabelleLeeren(Sender: TObject);
-    procedure DBLoeschen(Sender: TObject);
+    procedure ShowTable(Sender: TObject);
+    procedure EmptyTable(Sender: TObject);
+    procedure DropDB(Sender: TObject);
     procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure ListProcessesChange(Sender: TObject; Item: TListItem;
@@ -1726,7 +1725,7 @@ begin
 end;
 
 
-procedure TMDIChild.TabelleAnzeigen(Sender: TObject);
+procedure TMDIChild.ShowTable(Sender: TObject);
 var
   i : Integer;
   tn, tndb : TTreeNode;
@@ -1750,7 +1749,7 @@ begin
 end;
 
 
-procedure TMDIChild.TabelleLeeren(Sender: TObject);
+procedure TMDIChild.EmptyTable(Sender: TObject);
 var
   t : TStringList;
   i : Integer;
@@ -1775,7 +1774,7 @@ begin
 end;
 
 
-procedure TMDIChild.DBLoeschen(Sender: TObject);
+procedure TMDIChild.DropDB(Sender: TObject);
 var
   tndb_ : TTreeNode;
 begin

@@ -99,6 +99,10 @@ object optionsform: Toptionsform
         TabOrder = 0
         object TabSheet3: TTabSheet
           Caption = 'Font'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object Label2: TLabel
             Left = 156
             Top = 60
@@ -142,7 +146,7 @@ object optionsform: Toptionsform
             Width = 193
             Height = 21
             Style = csDropDownList
-            ItemHeight = 13
+            ItemHeight = 0
             TabOrder = 1
             OnChange = FontsChange
           end
@@ -305,6 +309,10 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'Data-Appearance'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label27: TLabel
         Left = 8
         Top = 93
@@ -386,7 +394,7 @@ object optionsform: Toptionsform
           Width = 193
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 1
           OnChange = DataFontsChange
         end

@@ -2,7 +2,6 @@ unit connections;
 
 
 // -------------------------------------
-// HeidiSQL
 // Connections (start-window)
 // -------------------------------------
 

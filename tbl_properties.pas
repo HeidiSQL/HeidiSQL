@@ -2,7 +2,6 @@ unit tbl_properties;
 
 
 // -------------------------------------
-// HeidiSQL
 // Advanced table-properties
 // -------------------------------------
 

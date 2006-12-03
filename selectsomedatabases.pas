@@ -2,7 +2,6 @@ unit selectsomedatabases;
 
 
 // -------------------------------------
-// HeidiSQL
 // Select some or all databases to view
 // -------------------------------------
 

@@ -2,7 +2,6 @@ unit Main;
 
 
 // -------------------------------------
-// HeidiSQL
 // Main-window
 // -------------------------------------
 
@@ -300,7 +299,7 @@ begin
     connform.showmodal
   else begin
     debug('perf: new connection clicked.');
-    ShellExec( 'heidisql.exe', ExtractFilePath(paramstr(0)) );
+    ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
   end;
 end;
 
@@ -425,7 +424,8 @@ begin
     CloseKey;
   end;
   GetTempPath(MAX_PATH, buffer);
-  filename := buffer+'\heidisql-preview.';
+  filename := buffer;
+  filename := '\'+filename+appname+'-preview.';
   if FileExists(filename+'html') then
     deletefile(filename+'html');
   if FileExists(filename+'jpg') then
@@ -623,7 +623,7 @@ begin
   // drop db
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
     if ActualDatabase <> '' then
-      DBLoeschen(self);
+      DropDB(self);
 end;
 
 procedure TMainForm.btnSQLHelpClick(Sender: TObject);
@@ -1170,7 +1170,8 @@ begin
     extension := 'bmp'
   else
     extension := 'html';
-  filename := buffer+'\heidisql-preview.'+extension;
+  filename := buffer;
+  filename := filename+'\'+appname+'-preview.'+extension;
   AssignFile(f, filename);
   Rewrite(f);
   Write(f, g.SelectedField.AsString);

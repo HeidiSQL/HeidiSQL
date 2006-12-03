@@ -99,6 +99,10 @@ object MDIChild: TMDIChild
         object SheetHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -111,6 +115,10 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -141,6 +149,10 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -199,6 +211,10 @@ object MDIChild: TMDIChild
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListCommandStats: TSortListView
                 Left = 0
                 Top = 0
@@ -265,6 +281,10 @@ object MDIChild: TMDIChild
         object SheetDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 38
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             496
             242)
@@ -396,7 +416,7 @@ object MDIChild: TMDIChild
               Enabled = False
               ImageIndex = 31
               Wrap = True
-              OnClick = TabelleLeeren
+              OnClick = EmptyTable
             end
             object btnDbDropTable: TToolButton
               Left = 0
@@ -439,6 +459,10 @@ object MDIChild: TMDIChild
         object SheetTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 40
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             496
             242)
@@ -995,6 +1019,10 @@ object MDIChild: TMDIChild
     object TabSheet1: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1043,6 +1071,10 @@ object MDIChild: TMDIChild
     object TabSheet2: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1113,6 +1145,10 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1134,6 +1170,10 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1159,6 +1199,10 @@ object MDIChild: TMDIChild
     object TabSheet8: TTabSheet
       Caption = 'Filter'
       ImageIndex = 81
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
@@ -1221,7 +1265,7 @@ object MDIChild: TMDIChild
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxWhereFiltersChange
         end
@@ -1317,7 +1361,7 @@ object MDIChild: TMDIChild
     object PopupmenuDropDatabase: TMenuItem
       Caption = 'Drop Database...'
       ImageIndex = 22
-      OnClick = DBLoeschen
+      OnClick = DropDB
     end
     object PopupMenuDropTable: TMenuItem
       Action = MainForm.DropTable
@@ -1358,7 +1402,7 @@ object MDIChild: TMDIChild
       Caption = 'View Data'
       Enabled = False
       ImageIndex = 8
-      OnClick = TabelleAnzeigen
+      OnClick = ShowTable
     end
     object menuinsert: TMenuItem
       Caption = 'Insert Record'
@@ -1381,7 +1425,7 @@ object MDIChild: TMDIChild
       Enabled = False
       ImageIndex = 31
       ShortCut = 8238
-      OnClick = TabelleLeeren
+      OnClick = EmptyTable
     end
     object MenuRenameTable: TMenuItem
       Caption = 'Rename'
