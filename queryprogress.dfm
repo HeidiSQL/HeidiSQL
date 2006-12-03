@@ -13,16 +13,18 @@ object frmQueryProgress: TfrmQueryProgress
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
+  OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object lblStatusMsg: TLabel
     Left = 24
     Top = 16
     Width = 158
     Height = 13
     Caption = 'Waiting for query to complete ...'
   end
-  object Button1: TButton
+  object btnAbort: TButton
     Left = 72
     Top = 44
     Width = 73
@@ -30,6 +32,14 @@ object frmQueryProgress: TfrmQueryProgress
     Cancel = True
     Caption = 'Abort'
     Default = True
+    Enabled = False
     TabOrder = 0
+    OnClick = btnAbortClick
+  end
+  object timAntiFreeze: TTimer
+    Interval = 250
+    OnTimer = timAntiFreezeTimer
+    Left = 168
+    Top = 32
   end
 end

@@ -20,7 +20,8 @@ uses
   Grids, messages, smdbgrid, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
-  SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery, MysqlQueryThread;
+  SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery, MysqlQueryThread,
+  queryprogress, communication;
 
 
 type
@@ -305,7 +306,6 @@ type
     procedure TabelleAnzeigen(Sender: TObject);
     procedure TabelleLeeren(Sender: TObject);
     procedure DBLoeschen(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure ListProcessesChange(Sender: TObject; Item: TListItem;
@@ -445,13 +445,16 @@ type
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
       CanAcessMysqlFlag          : Boolean;
-
+      FDataTabQuery              : TMysqlQuery;
+      FCurDataset                : TDataSet;
+      FQueryRunning              : Boolean;
 
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
       function CanAcessMysql: Boolean;
+      procedure WaitForQueryCompletion();
 
 
     public
@@ -464,7 +467,10 @@ type
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
       FMysqlConnParams           : TConnParams;
+      FProgressForm              : TFrmQueryProgress;
       procedure Init;
+      procedure SetQueryRunningFlag(AValue : Boolean);
+      procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
   end;
 
@@ -473,8 +479,7 @@ type
 IMPLEMENTATION
 
 uses
-  Main, createtable, fieldeditor, tbl_properties,
-  tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp;
+  Main, createtable, fieldeditor, tbl_properties, tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp;
 
 
 
@@ -541,11 +546,6 @@ begin
 end;
 
 
-procedure TMDIChild.FormCreate(Sender: TObject);
-begin
-  //
-end;
-
 procedure TMDIChild.Init();
 var
   AutoReconnect    : Boolean;
@@ -576,6 +576,8 @@ begin
 
   MainForm.Showstatus('Connecting to '+FMysqlConnParams.Host+'...', 2, true);
 
+  FMysqlConnParams.MysqlConn := ZConn;
+
   ZConn.Hostname := FMysqlConnParams.Host;
   ZConn.User := FMysqlConnParams.User;
   ZConn.Password := FMysqlConnParams.Pass;
@@ -587,7 +589,7 @@ begin
   ZConn.Properties.Values['CLIENT_LOCAL_FILES'] := FMysqlConnParams.PrpClientLocalFiles;
   ZConn.Properties.Values['CLIENT_INTERACTIVE'] := FMysqlConnParams.PrpClientInteractive;
   // ZConn.Properties.Values['USE_RESULT'] := 'true'; // doesn't work
-  //  ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
+  // ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
 
   try
     PerformConnect;
@@ -979,11 +981,17 @@ var
   columnexists             : Boolean;
   found_rows               : Int64;
   select_base              : String;
+  mq : TMysqlQuery;
+  dataset : TDataSet;
+  conn_params : TConnParams;
+  sl_query : TStringList;
 begin
   // view table-data with zeos
   if viewingdata then
     abort;
   viewingdata := true;
+
+  sl_query := TStringList.Create();
 
   // rowcount:
   try
@@ -1089,22 +1097,42 @@ begin
     PageControl1.ActivePage := SheetData;
 
 		MainForm.ShowStatus( 'Retrieving data...', 2, true );
-    ZConn.Database := ActualDatabase;
-    ZQuery2.Close;
-    ZQuery2.SQL.Clear;
+
+    if FCurDataset<>nil then
+      FreeAndNil (FCurDataset);
+
     select_base := 'SELECT ';
     if mysql_version >= 40000 then
       select_base := select_base + ' SQL_CALC_FOUND_ROWS';
     select_base := select_base + ' * FROM ' + mask(ActualTable);
-    ZQuery2.SQL.Add( select_base );
+    sl_query.Add( select_base );
     if trim(self.SynMemoFilter.Text) <> '' then
-      ZQuery2.SQL.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
+      sl_query.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
     if sorting <> '' then
-      ZQuery2.SQL.Add( sorting );
+      sl_query.Add( sorting );
     if mainform.CheckBoxLimit.Checked then
-      ZQuery2.SQL.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
+      sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
     try
-      ZQuery2.Open;
+      FQueryRunning := True;
+
+      conn_params := FMysqlConnParams;
+      conn_params.Database := ActualDatabase;
+
+      // free previous resultset
+      try
+        DataSource1.DataSet.Free;
+        DataSource1.DataSet := nil;
+      except
+      end;
+
+      // start query (with wait dialog)
+      FProgressForm := TFrmQueryProgress.Create(Self);
+      mq := ExecMysqlStatementAsync(sl_query.Text,FMysqlConnParams,nil,FProgressForm.Handle);
+      WaitForQueryCompletion();
+
+      MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
+      DataSource1.DataSet := mq.MysqlDataset;
+      FCurDataset := mq.MysqlDataset
     except
       on E:Exception do
       begin
@@ -1120,11 +1148,15 @@ begin
           // TODO: this is crap, if the error has nothing to do with the filter
           //       in this case the filter is deleted and the query will fail again,
           //       which will annoy the user.
-          ZQuery2.SQL.Text := select_base;
+          sl_query.Text := select_base;
+
           if mainform.CheckBoxLimit.Checked then
-            ZQuery2.SQL.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
+            sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
           try
-            ZQuery2.Open;
+            FProgressForm := TFrmQueryProgress.Create(Self);
+            mq := ExecMysqlStatementAsync(sl_query.Text,conn_params,nil,FProgressForm.Handle);
+            WaitForQueryCompletion();
+
             // Make sure the user sees the applied filter in the case the filter is faulty
             PageControlBottom.ActivePage := Tabsheet8;
           except
@@ -1132,7 +1164,7 @@ begin
             begin
               LogSQL( E.Message, true );
               MessageDlg(E.Message , mtError, [mbOK], 0);
-              ZQuery2.Active := false;
+              //q.Active := false;
               viewingdata := false;
               MainForm.ShowStatus( STATUS_MSG_READY, 2 );
               Screen.Cursor := crDefault;
@@ -1142,6 +1174,9 @@ begin
         end;
       end;
     end;
+
+
+
  		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
 
     for i:=0 to ListColumns.Items.Count-1 do
@@ -1180,7 +1215,7 @@ begin
       // for letting NULLs being inserted into "NOT NULL" fields
       // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
       // so the Required-check on client-side is not needed at any time
-      ZQuery2.Fields[j].Required := false;
+      FCurDataset.Fields[j].Required := false;
 
       // set column-width
       if (Mainform.DefaultColWidth <> 0) and (gridData.Columns[j].Width > Mainform.DefaultColWidth) then
@@ -1209,16 +1244,27 @@ begin
     if (mysql_version >= 40000) and (found_rows = rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
       Panel5.Caption := Panel5.Caption + ', filter matches all records';
     if mainform.CheckBoxLimit.Checked and ( found_rows > mainform.UpDownLimitEnd.position ) then
-      Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(ZQuery2.RecordCount);
+      Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(FCurDataset.RecordCount);
 
     dataselected := true;
     pcChange(self);
   end;
+
   viewingdata := false;
   Screen.Cursor := crDefault;
+  FreeAndNil (sl_query);
 end;
 
 
+
+procedure TMDIChild.WaitForQueryCompletion;
+begin
+  while FQueryRunning do
+    begin
+      Sleep(1);
+      Application.ProcessMessages();
+    end;
+end;
 
 procedure TMDIChild.pcChange(Sender: TObject);
 var DataOrQueryTab : Boolean;
@@ -4018,17 +4064,29 @@ end;
 
 procedure TMDIChild.ExecUseQuery( DbName: String );
 begin
+  FMysqlConnParams.Database := DbName;
   ExecQuery('USE ' + mask(DbName));
 end;
 
 // Execute a query without returning a resultset
 procedure TMDIChild.ExecQuery( SQLQuery: String );
+var
+  mq : TMysqlQuery;
 begin
   try
     CheckConnection;
   except
     exit;
   end;
+
+  FProgressForm := TFrmQueryProgress.Create(Self);
+
+  FQueryRunning := True;
+  mq := ExecMysqlStatementAsync (SQLQuery,FMysqlConnParams,nil,FProgressForm.Handle);
+
+  WaitForQueryCompletion();
+
+  {
   With TZReadOnlyQuery.Create( self ) do
   begin
     Connection := ZConn;
@@ -4036,6 +4094,7 @@ begin
     ExecSQL;
     Free;
   end;
+  }
 end;
 
 
@@ -4106,6 +4165,11 @@ begin
 end;
 
 
+
+procedure TMDIChild.SetQueryRunningFlag (AValue : Boolean);
+begin
+  FQueryRunning := AValue;
+end;
 
 procedure TMDIChild.ResizeImageToFit;
 begin
@@ -4319,6 +4383,35 @@ end;
 function TMDIChild.CanAcessMysql: Boolean;
 begin
   Result := HasAccessToDB (DBNAME_MYSQL);
+end;
+
+procedure TMDIChild.HandleQueryNotification(ASender: TMysqlQuery;
+  AEvent: Integer);
+var
+  mq : TMysqlQuery;
+  f : TForm;
+begin
+  mq := ASender;
+
+  case AEvent of
+    MQE_INITED:
+      begin
+        FQueryRunning := True;
+      end;
+    MQE_STARTED:
+      begin
+        f := TfrmQueryProgress.Create(Self);
+        f.Show();
+        mq.FProgressForm := Pointer(f);
+
+      end;
+    MQE_FINISHED:
+      begin
+        FQueryRunning := False;
+        FreeAndNil (TForm(mq.FProgressForm));
+      end;
+    MQE_FREED:;
+  end;
 end;
 
 function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;

@@ -24,6 +24,7 @@ type
     DatabaseList : String;
     DatabaseListSort : Boolean;
     Description : String;
+    MysqlConn : TZConnection;
   end;
   PConnParams = ^TConnParams;
 
@@ -34,6 +35,12 @@ type
     Sql : String;
     Result : Integer;
     Comment : String;
+  end;
+
+  TMysqlConnectThread = class(TThread)
+    private
+    protected
+    public
   end;
 
   TMysqlQueryThread = class(TThread)
@@ -71,16 +78,24 @@ type
   end;
 
 var
-  TResultsetKeywords : array[0..1] of string[10] =
+  TResultsetKeywords : array[0..9] of string[10] =
   (
     'SELECT',
-    'SHOW'
+    'SHOW',
+    'ANALYZE',
+    'CHECK',
+    'DESC',
+    'DESCRIBE',
+    'EXPLAIN',
+    'OPTIMIZE',
+    'REPAIR',
+    'CALL'
   );
 
 implementation
 
 uses
-  MysqlQuery, SysUtils, Main, Dialogs, Messages;
+  MysqlQuery, SysUtils, Main, Dialogs, Messages, communication;
 
 function TMysqlQueryThread.AssembleResult: TThreadResult;
 begin
@@ -165,6 +180,7 @@ end;
 
 procedure TMysqlQueryThread.NotifyStatusViaWinMessage(AEvent: Integer);
 begin
+
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
@@ -176,7 +192,8 @@ begin
   NotifyStatus(MQE_INITED);
 
   try
-    FMysqlConn.Connect();
+    if not FMysqlConn.Connected then
+      FMysqlConn.Connect();
   except
     SetState (MQR_CONNECT_FAIL,'Connect error');
   end;

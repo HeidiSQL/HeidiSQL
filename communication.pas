@@ -30,6 +30,9 @@ const
   ERR_NOERROR         = 0;
   ERR_UNSPECIFIED     = 1;
 
+  // Sent by TMysqlQueryThread to notify status
+  WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
+
 (*
  Execute a query on a window.
 *)

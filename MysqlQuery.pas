@@ -26,9 +26,6 @@ const
   MQE_FINISHED = 2; // query finished
   MQE_FREED = 3; // object removed from memory
 
-  // notification messages  
-  WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
-
 type
   TMysqlQuery = class;
 
@@ -54,6 +51,7 @@ type
     protected
 
     public
+      FProgressForm : Pointer;
       constructor Create (AOwner : TComponent; AParams : PConnParams);
       destructor Destroy (); override;
       function Query (ASql : String; AMode : Integer = MQM_SYNC; ANotifyWndHandle : THandle = 0) : Integer;
@@ -103,7 +101,11 @@ begin
   ZeroMemory (@FQueryResult,SizeOf(FQueryResult));
   FSql := '';
 
-  FMysqlConnection := TZConnection.Create(nil);
+  if AParams.MysqlConn<>nil then
+    FMysqlConnection := AParams.MysqlConn
+  else
+    FMysqlConnection := TZConnection.Create(nil);
+
   FMysqlDataset := nil;
 end;
 

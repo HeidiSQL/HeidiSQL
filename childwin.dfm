@@ -14,7 +14,6 @@ object MDIChild: TMDIChild
   Visible = True
   OnActivate = FormActivate
   OnClose = FormClose
-  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnResize = FormResize
   OnShow = FormShow
