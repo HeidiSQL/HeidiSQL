@@ -394,7 +394,7 @@ var
   valuescount, recordcount  : Integer;
   donext                    : Boolean;
   PBuffer                   : PChar;
-  sql                       : String;
+  sql, current_characterset : String;
   target_version            : Integer;
 begin
   // export!
@@ -467,8 +467,12 @@ begin
         wfs(f, '# ' + appname + ' version:     ' + appversion );
         wfs(f, '# --------------------------------------------------------');
         wfs(f);
-        sql := '/*!40100 SET CHARACTER SET ' + GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 ) + ';*/';
-        wfs(f, sql);
+        current_characterset := GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
+        if current_characterset <> '' then
+        begin
+          sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
+          wfs(f, sql);
+        end;
         if cbxDatabase.Checked then
         begin
           wfs(f);
