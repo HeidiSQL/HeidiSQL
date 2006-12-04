@@ -48,11 +48,11 @@ type
   function SQLHelpWindow (AOwner : TComponent; Keyword : String = '') : Boolean;
 
   const
-    DEFAULT_WINDOW_CAPTION : String = 'Integrated SQL-help' ;
-    DUMMY_NODE_TEXT : String = 'Dummy node, should never be visible';
-    ICONINDEX_CATEGORY_CLOSED : Integer = 96;
-    ICONINDEX_CATEGORY_OPENED : Integer = 97;
-    ICONINDEX_HELPITEM        : Integer = 98;
+    DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
+    DUMMY_NODE_TEXT             : String = 'Dummy node, should never be visible';
+    ICONINDEX_CATEGORY_CLOSED   : Integer = 96;
+    ICONINDEX_CATEGORY_OPENED   : Integer = 97;
+    ICONINDEX_HELPITEM          : Integer = 98;
 
 implementation
 
@@ -175,13 +175,45 @@ end;
 
 
 procedure TfrmSQLhelp.treeTopicsChange(Sender: TObject; Node: TTreeNode);
+  procedure OpenFolderIcons( ANode: TTreeNode );
+  begin
+    if ANode = nil then
+      exit;
+    if ANode.ImageIndex = ICONINDEX_CATEGORY_CLOSED then
+    begin
+      ANode.ImageIndex := ICONINDEX_CATEGORY_OPENED;
+    end;
+    // Recursively update ANode's parent node
+    OpenFolderIcons( ANode.Parent );
+  end;
+
+var
+  i : Integer;
+  tNode : TTreeNode;
 begin
-  // Selection in treeTopics has changed
+  // Selected item in treeTopics has changed
+
+  // 1. Show corresponding help-text
   if Node.ImageIndex = ICONINDEX_HELPITEM then
   begin
     Keyword := Node.Text;
     ShowHelpItem;
   end;
+
+  // 2. Ensure the icons in the preceding tree-path of the selected item
+  // show opened folders on each level
+  i := 0;
+  while i < treeTopics.Items.Count do
+  begin
+    tNode := treeTopics.Items[i];
+    if tNode.ImageIndex = ICONINDEX_CATEGORY_OPENED then
+    begin
+      tNode.ImageIndex := ICONINDEX_CATEGORY_CLOSED;
+    end;
+    inc(i);
+  end;
+  OpenFolderIcons( Node );
+
 end;
 
 
@@ -217,7 +249,9 @@ begin
       // We found exactly one matching help item
       lblKeyword.Caption := ds.FieldByName('name').AsString;
       Keyword := lblKeyword.Caption;
-      Caption := Caption + ' - ' + lblKeyword.Caption;
+      if lblKeyword.Caption = '&' then
+        lblKeyword.Caption := '&&'; // Avoid displaying "_" as alt-hotkey
+      Caption := Caption + ' - ' + Keyword;
       MemoDescription.Text := fixNewlines(ds.FieldByName('description').AsString);
       MemoExample.Text := fixNewlines(ds.FieldByName('example').AsString);
       result := true;
@@ -271,6 +305,8 @@ end;
 procedure TfrmSQLhelp.memosKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+  // Esc pressed - close form.
+  // Seems that if we're in a memo, the ButtonClose.Cancel=True doesn't have an effect
   if Key = VK_ESCAPE then
     ButtonCloseClick(self);
 end;

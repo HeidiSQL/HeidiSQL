@@ -21,7 +21,6 @@ object frmSQLhelp: TfrmSQLhelp
     Width = 8
     Height = 336
     Cursor = crSizeWE
-    Beveled = True
     ResizeStyle = rsUpdate
     ExplicitLeft = 121
     ExplicitHeight = 308
@@ -33,22 +32,22 @@ object frmSQLhelp: TfrmSQLhelp
     Height = 336
     Align = alLeft
     BevelOuter = bvNone
-    Padding.Left = 5
-    Padding.Top = 5
-    Padding.Bottom = 5
     TabOrder = 0
     object lblTopics: TLabel
-      Left = 5
-      Top = 10
-      Width = 34
-      Height = 13
+      AlignWithMargins = True
+      Left = 3
+      Top = 7
+      Width = 147
+      Height = 14
+      Align = alBottom
       Caption = 'Topics:'
+      ExplicitTop = 4
     end
     object treeTopics: TTreeView
-      Left = 5
-      Top = 29
-      Width = 148
-      Height = 302
+      Left = 0
+      Top = 24
+      Width = 153
+      Height = 312
       Align = alBottom
       Anchors = [akLeft, akTop, akRight, akBottom]
       Images = MainForm.ImageList1
@@ -58,6 +57,9 @@ object frmSQLhelp: TfrmSQLhelp
       TabOrder = 0
       OnChange = treeTopicsChange
       OnExpanding = treeTopicsExpanding
+      ExplicitTop = 29
+      ExplicitWidth = 148
+      ExplicitHeight = 302
     end
   end
   object StatusBar1: TStatusBar
@@ -74,37 +76,40 @@ object frmSQLhelp: TfrmSQLhelp
     Height = 336
     Align = alClient
     BevelOuter = bvNone
-    Padding.Left = 5
-    Padding.Top = 5
-    Padding.Right = 5
-    Padding.Bottom = 5
+    Padding.Top = 3
+    Padding.Right = 3
+    Padding.Bottom = 3
     TabOrder = 2
     object Splitter2: TSplitter
-      Left = 5
-      Top = 169
-      Width = 411
+      Left = 0
+      Top = 171
+      Width = 418
       Height = 8
       Cursor = crSizeNS
       Align = alTop
-      Beveled = True
       ResizeStyle = rsUpdate
+      ExplicitLeft = 5
       ExplicitTop = 209
       ExplicitWidth = 471
     end
     object pnlRightTop: TPanel
-      Left = 5
-      Top = 5
-      Width = 411
-      Height = 164
+      Left = 0
+      Top = 3
+      Width = 418
+      Height = 168
       Align = alTop
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelOuter = bvNone
       TabOrder = 0
+      ExplicitLeft = 5
+      ExplicitTop = 5
+      ExplicitWidth = 411
+      ExplicitHeight = 164
       object lblKeyword: TLabel
         AlignWithMargins = True
         Left = 0
         Top = 5
-        Width = 411
+        Width = 418
         Height = 16
         Margins.Left = 0
         Margins.Top = 5
@@ -124,7 +129,7 @@ object frmSQLhelp: TfrmSQLhelp
         AlignWithMargins = True
         Left = 0
         Top = 26
-        Width = 411
+        Width = 418
         Height = 13
         Margins.Left = 0
         Margins.Top = 5
@@ -138,8 +143,8 @@ object frmSQLhelp: TfrmSQLhelp
         AlignWithMargins = True
         Left = 0
         Top = 44
-        Width = 411
-        Height = 120
+        Width = 418
+        Height = 124
         Margins.Left = 0
         Margins.Top = 5
         Margins.Right = 0
@@ -157,24 +162,30 @@ object frmSQLhelp: TfrmSQLhelp
         ScrollBars = ssBoth
         TabOrder = 0
         OnKeyDown = memosKeyDown
+        ExplicitLeft = -2
+        ExplicitWidth = 405
+        ExplicitHeight = 120
       end
     end
     object pnlRightBottom: TPanel
-      Left = 5
-      Top = 177
-      Width = 411
+      Left = 0
+      Top = 179
+      Width = 418
       Height = 154
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
+      ExplicitLeft = 5
+      ExplicitTop = 177
+      ExplicitWidth = 411
       DesignSize = (
-        411
+        418
         154)
       object lblExample: TLabel
         AlignWithMargins = True
         Left = 0
         Top = 5
-        Width = 411
+        Width = 418
         Height = 13
         Margins.Left = 0
         Margins.Top = 5
@@ -188,7 +199,7 @@ object frmSQLhelp: TfrmSQLhelp
         AlignWithMargins = True
         Left = 0
         Top = 23
-        Width = 411
+        Width = 418
         Height = 90
         Margins.Left = 0
         Margins.Top = 5
@@ -202,9 +213,10 @@ object frmSQLhelp: TfrmSQLhelp
         ScrollBars = ssBoth
         TabOrder = 0
         OnKeyDown = memosKeyDown
+        ExplicitWidth = 411
       end
       object ButtonClose: TButton
-        Left = 309
+        Left = 316
         Top = 128
         Width = 102
         Height = 25
@@ -214,9 +226,10 @@ object frmSQLhelp: TfrmSQLhelp
         Default = True
         TabOrder = 1
         OnClick = ButtonCloseClick
+        ExplicitLeft = 309
       end
       object ButtonSearchOnline: TBitBtn
-        Left = 200
+        Left = 207
         Top = 128
         Width = 103
         Height = 25
@@ -267,6 +280,7 @@ object frmSQLhelp: TfrmSQLhelp
           90765F685B8A87288BAB990C2177A7AAA5926C7065948E3496ABAB8D2042A3A9
           9D7375705B854F8BA1ABABA5832A7484915D5E705A64819EABABABABA58F5369
           867E5B665A7D9EABABABABABABAB9A8F7C637B8D99A4ABABABAB}
+        ExplicitLeft = 200
       end
     end
   end
