@@ -295,7 +295,7 @@ uses
 procedure TMainForm.ShowConnections(Sender: TObject);
 begin
   if ActiveMDIChild = nil then
-    connform.showmodal
+    ConnectionWindow(Self)
   else begin
     debug('perf: new connection clicked.');
     ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );

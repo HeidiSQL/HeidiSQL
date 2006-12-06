@@ -469,7 +469,7 @@ type
       FProgressForm              : TFrmQueryProgress;
       procedure Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
       procedure SetQueryRunningFlag(AValue : Boolean);
-      procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
+      //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
@@ -2996,7 +2996,6 @@ begin
   // Delete record(s)
   if gridData.SelectedRows.Count = 0 then begin
     if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-      //ZQuery2.Delete
       GetVisualDataSet().Delete(); // unsafe ...
   end else
   if MessageDLG('Delete '+inttostr(gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
@@ -3391,7 +3390,7 @@ end;
 procedure TMDIChild.InsertRecord(Sender: TObject);
 begin
   viewdata(self);
-  ZQuery2.Insert; // !!!
+  GetVisualDataset().Insert;
 end;
 
 
@@ -4084,16 +4083,6 @@ begin
   mq := ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
 
   WaitForQueryCompletion();
-
-  {
-  With TZReadOnlyQuery.Create( self ) do
-  begin
-    Connection := ZConn;
-    SQL.Text := SQLQuery;
-    ExecSQL;
-    Free;
-  end;
-  }
 end;
 
 
@@ -4389,39 +4378,9 @@ begin
 end;
 
 
-
 function TMDIChild.CanAcessMysql: Boolean;
 begin
   Result := HasAccessToDB (DBNAME_MYSQL);
-end;
-
-procedure TMDIChild.HandleQueryNotification(ASender: TMysqlQuery;
-  AEvent: Integer);
-var
-  mq : TMysqlQuery;
-  f : TForm;
-begin
-  mq := ASender;
-
-  case AEvent of
-    MQE_INITED:
-      begin
-        FQueryRunning := True;
-      end;
-    MQE_STARTED:
-      begin
-        f := TfrmQueryProgress.Create(Self);
-        f.Show();
-        mq.FProgressForm := Pointer(f);
-
-      end;
-    MQE_FINISHED:
-      begin
-        FQueryRunning := False;
-        FreeAndNil (TForm(mq.FProgressForm));
-      end;
-    MQE_FREED:;
-  end;
 end;
 
 function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;
@@ -4450,11 +4409,8 @@ begin
 end;
 
 procedure TMDIChild.CheckConnection;
-var
-  status: boolean;
 begin
-  status := FMysqlConn.Connection.Ping;
-  if not status then begin
+  if not FMysqlConn.IsAlive then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
     FMysqlConn.Connection.Reconnect;
     PerformConnect;

@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 326
+  ClientHeight = 345
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 307
+    Top = 326
     Width = 632
     Height = 19
     AutoHint = True
@@ -35,7 +35,6 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
-    ExplicitTop = 287
   end
   object ControlBar1: TControlBar
     Left = 0

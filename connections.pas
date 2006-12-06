@@ -41,6 +41,7 @@ type
     Timer1: TTimer;
     ButtonEditDesc: TSpeedButton;
     CheckBoxSorted: TCheckBox;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -58,6 +59,8 @@ type
     { Public declarations }
   end;
 
+  function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
+
 var
   connform: Tconnform;
 
@@ -69,7 +72,14 @@ const
 
 {$R *.DFM}
 
-
+function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
+var
+  f : Tconnform;
+begin
+  f := Tconnform.Create(AOwner);
+  Result := (f.ShowModal = mrOK);
+  FreeAndNil (f);
+end;
 
 
 // Cancel
@@ -152,6 +162,11 @@ end;
 
 
 // Read all connections from registry
+procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
 procedure Tconnform.FormShow(Sender: TObject);
 var
   i       : Integer;

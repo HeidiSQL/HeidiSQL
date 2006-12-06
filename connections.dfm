@@ -8,7 +8,7 @@ object connform: Tconnform
   ClientWidth = 462
   Color = clBtnFace
   Constraints.MaxHeight = 360
-  Constraints.MinHeight = 360
+  Constraints.MinHeight = 353
   Constraints.MinWidth = 470
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,6 +17,7 @@ object connform: Tconnform
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnClose = FormClose
   OnShow = FormShow
   DesignSize = (
     462
@@ -91,18 +92,17 @@ object connform: Tconnform
     Tag = 11
     Left = 391
     Top = 187
-    Width = 63
+    Width = 40
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
-    ExplicitWidth = 60
   end
   object Label8: TLabel
     Tag = 13
     Left = 152
     Top = 234
-    Width = 72
-    Height = 45
+    Width = 67
+    Height = 39
     Caption = 'Data&base(s): (separated by semicolon)'
     FocusControl = EditOnlyDBs
     WordWrap = True
@@ -127,7 +127,6 @@ object connform: Tconnform
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
     OnChange = Modified
-    ExplicitWidth = 217
   end
   object EditBenutzer: TEdit
     Left = 232
@@ -137,7 +136,6 @@ object connform: Tconnform
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
     OnChange = Modified
-    ExplicitWidth = 217
   end
   object EditPasswort: TEdit
     Left = 232
@@ -148,7 +146,6 @@ object connform: Tconnform
     PasswordChar = '*'
     TabOrder = 3
     OnChange = Modified
-    ExplicitWidth = 217
   end
   object EditPort: TEdit
     Left = 232
@@ -1192,7 +1189,6 @@ object connform: Tconnform
     ItemHeight = 13
     TabOrder = 0
     OnClick = ComboBoxDescriptionClick
-    ExplicitWidth = 153
   end
   object ButtonSave: TBitBtn
     Tag = 3
@@ -1262,7 +1258,6 @@ object connform: Tconnform
     Caption = 'Cancel'
     TabOrder = 10
     OnClick = ButtonCancelClick
-    ExplicitLeft = 367
   end
   object ButtonConnect: TButton
     Tag = 15
@@ -1275,7 +1270,6 @@ object connform: Tconnform
     Default = True
     TabOrder = 9
     OnClick = ButtonConnectClick
-    ExplicitLeft = 271
   end
   object CheckBoxCompressed: TCheckBox
     Tag = 12
@@ -1287,7 +1281,6 @@ object connform: Tconnform
     Caption = 'Use &compressed client/server protocol'
     TabOrder = 6
     OnClick = Modified
-    ExplicitWidth = 209
   end
   object EditOnlyDBs: TEdit
     Left = 232
@@ -1297,7 +1290,6 @@ object connform: Tconnform
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 7
     OnChange = Modified
-    ExplicitWidth = 217
   end
   object CheckBoxSorted: TCheckBox
     Left = 232
@@ -1308,7 +1300,6 @@ object connform: Tconnform
     Caption = 'Sort databases alphabetically'
     TabOrder = 14
     OnClick = Modified
-    ExplicitWidth = 219
   end
   object Timer1: TTimer
     Enabled = False

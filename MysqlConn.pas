@@ -17,6 +17,7 @@ type
       FConn : TZConnection;
       FMysqlConnParams : TMysqlConnParams;
       FLastError : String;
+    function GetIsAlive: Boolean;
     function GetIsConnected: Boolean;
       //FTimer : TTimer;
     protected
@@ -25,8 +26,10 @@ type
       constructor Create(AParams : PMysqlConnParams);
       destructor Destroy(); override;
       function Connect() : Integer;
+      function ExecQuery (ASql : String) : Boolean;
       property HasResultset : Boolean read GetHasResultset;
       property IsConnected : Boolean read GetIsConnected;
+      property IsAlive : Boolean read GetIsAlive;
       property Connection : TZConnection read FConn;
       property LastError : String read FLastError;
   end;
@@ -86,9 +89,22 @@ begin
   inherited;
 end;
 
+function TMysqlConn.ExecQuery(ASql: String): Boolean;
+begin
+
+end;
+
 function TMysqlConn.GetHasResultset: Boolean;
 begin
 
+end;
+
+function TMysqlConn.GetIsAlive: Boolean;
+begin
+  Result := False;
+
+  if IsConnected then
+    Result := FConn.Ping();
 end;
 
 function TMysqlConn.GetIsConnected: Boolean;
