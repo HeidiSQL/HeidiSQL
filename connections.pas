@@ -62,7 +62,7 @@ var
   connform: Tconnform;
 
 implementation
- uses Main, helpers, MysqlQueryThread;
+ uses Main, helpers, MysqlQueryThread, MysqlConn, ChildWin;
 
 const
 	CRLF = #13#10;
@@ -83,43 +83,70 @@ end;
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
 var
   cp : TConnParams;
+  mysqlconn : TMysqlConn;
+  f : TMDIChild;
 begin
+  Screen.Cursor := crSQLWait;
 
   // fill structure
   ZeroMemory (@cp,SizeOf(cp));
 
-  cp.Protocol := 'mysql';
-  cp.Host := EditHost.Text;
-  cp.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
-  cp.Database := '';
-  cp.User := EditBenutzer.Text;
-  cp.Pass := EditPasswort.Text;
+  with cp do
+    begin
+      MysqlParams.Protocol := 'mysql';
+      MysqlParams.Host := EditHost.Text;
+      MysqlParams.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
+      MysqlParams.Database := '';
+      MysqlParams.User := EditBenutzer.Text;
+      MysqlParams.Pass := EditPasswort.Text;
 
-  // additional
-  if CheckBoxCompressed.Checked then
-    cp.PrpCompress := 'true'
-  else
-    cp.PrpCompress := 'false';
+      // additional
+      if CheckBoxCompressed.Checked then
+        MysqlParams.PrpCompress := 'true'
+      else
+        MysqlParams.PrpCompress := 'false';
 
-  cp.PrpTimeout := EditTimeout.Text;
-  cp.PrpDbless := 'true';
-  cp.PrpClientLocalFiles := 'true';
-  cp.PrpClientInteractive := 'true';
+      MysqlParams.PrpTimeout := EditTimeout.Text;
+      MysqlParams.PrpDbless := 'true';
+      MysqlParams.PrpClientLocalFiles := 'true';
+      MysqlParams.PrpClientInteractive := 'true';
 
-  cp.DatabaseList := EditOnlyDbs.Text;
-  cp.DatabaseListSort := CheckBoxSorted.Checked;
-  cp.Description := ComboBoxDescription.Text;
+      DatabaseList := EditOnlyDbs.Text;
+      DatabaseListSort := CheckBoxSorted.Checked;
+      Description := ComboBoxDescription.Text;
+    end;
 
   ButtonConnect.Enabled := false;
   mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, true);
+  
   with TRegistry.Create do
   begin
     if OpenKey(regpath, true) then
       WriteString('lastcon', ComboBoxDescription.Text);
     CloseKey;
   end;
-  close;
-  MainForm.connect(sender,@cp);
+
+  mysqlconn := TMysqlConn.Create(@cp.MysqlParams);
+
+  // attempt to establish connection
+  case mysqlconn.Connect() of
+    MCR_SUCCESS:
+      begin
+        // create child window and pass it the conn params and the opened connection
+        f := TMDIChild.Create(Application);
+        f.Init(@cp,mysqlconn); // childwin responsible to free mysqlconn
+
+        Close();
+      end;
+  else
+    // attempt failed -- show error and keep window open
+    ShowMessage ('Could not establish connection! Details:'#13#10#13#10+mysqlconn.LastError);
+    ButtonConnect.Enabled := True;
+    FreeAndNil (mysqlconn);
+  end;
+
+  Screen.Cursor := crDefault;
+  
 end;
 
 

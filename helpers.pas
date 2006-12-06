@@ -31,9 +31,9 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
-  function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
-  function dataset2csv(ds: TZQuery; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
-  function dataset2xml(ds: TZQuery; title: String; filename: String = ''): Boolean;
+  function dataset2html(ds: TDataset; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+  function dataset2csv(ds: TDataset; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+  function dataset2xml(ds: TDataset; title: String; filename: String = ''): Boolean;
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -481,7 +481,7 @@ end;
 
 // convert a TZDataSet to HTML-Table.
 // if a filename is given, save HTML to disk, otherwise to clipboard
-function dataset2html(ds: TZQuery; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+function dataset2html(ds: TDataset; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer, data     : string;
@@ -606,13 +606,16 @@ end;
 
 // convert a TDataSet to CSV-Values.
 // if a filename is given, save CSV-data to disk, otherwise to clipboard
-function dataset2csv(ds: TZQuery; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+function dataset2csv(ds: TDataSet; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer           : string;
   FStream                   : TFileStream;
   cursorpos                 : Integer;
 begin
+  if ds=nil then
+    MessageDlg ('Invalid dataset!',mterror, [mbOK], 0);
+
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
@@ -682,7 +685,7 @@ end;
 
 // convert a TZDataSet to XML.
 // if a filename is given, save XML to disk, otherwise to clipboard
-function dataset2xml(ds: TZQuery; title: String; filename: String = ''): Boolean;
+function dataset2xml(ds: TDataset; title: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer, data     : string;

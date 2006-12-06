@@ -32,7 +32,8 @@ uses
   sqlhelp in '..\..\sqlhelp.pas' {frmSQLhelp},
   queryprogress in '..\..\queryprogress.pas' {frmQueryProgress},
   MysqlQuery in '..\..\MysqlQuery.pas',
-  MysqlQueryThread in '..\..\MysqlQueryThread.pas';
+  MysqlQueryThread in '..\..\MysqlQueryThread.pas',
+  MysqlConn in '..\..\MysqlConn.pas';
 
 {$R *.RES}
 

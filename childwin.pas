@@ -20,7 +20,7 @@ uses
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery, MysqlQueryThread,
-  queryprogress, communication;
+  queryprogress, communication, MysqlConn;
 
 
 type
@@ -434,7 +434,6 @@ type
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
 
     private
-      { Private declarations }
       strHostRunning             : String;
       uptime, time_connected     : Integer;
       OnlyDBs                    : TStringList;  // used on connecting
@@ -447,7 +446,9 @@ type
       FDataTabQuery              : TMysqlQuery;
       FCurDataset                : TDataSet;
       FQueryRunning              : Boolean;
-
+      FMysqlConn                 : TMysqlConn;
+      FConnParams                : TConnParams;
+      
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
@@ -457,7 +458,6 @@ type
 
 
     public
-      { Public declarations }
       ActualDatabase, ActualTable: string;
       dataselected, editing      : Boolean;
       mysql_version              : Integer;
@@ -465,12 +465,16 @@ type
       OnlyDBs2                   : TStringList;
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
-      FMysqlConnParams           : TConnParams;
+
       FProgressForm              : TFrmQueryProgress;
-      procedure Init;
+      procedure Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
       procedure SetQueryRunningFlag(AValue : Boolean);
       procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
+      function GetVisualDataset() : TDataSet;
+
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
+      property MysqlConn : TMysqlConn read FMysqlConn;
+      property ConnParams : TConnParams read FConnParams;
   end;
 
 
@@ -502,13 +506,13 @@ end;
 
 procedure TMDIChild.PerformConnect;
 begin
+
   try
-    ZConn.Connect;
     TimerConnected.Enabled := true;
     // On Re-Connection, try to restore lost properties
-    if ZConn.Database <> '' then
+    if FMysqlConn.Connection.Database <> '' then
     begin
-      ExecUseQuery( ZConn.Database );
+      ExecUseQuery( FMysqlConn.Connection.Database );
     end;
   except
     on E: Exception do
@@ -519,6 +523,7 @@ begin
       raise;
     end;
   end;
+
 end;
 
 
@@ -545,15 +550,25 @@ begin
 end;
 
 
-procedure TMDIChild.Init();
+procedure TMDIChild.Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
 var
   AutoReconnect    : Boolean;
   menuitem         : TMenuItem;
   i                : Byte;
   winName          : string;
 begin
+  FConnParams := AConnParams^;
+  FMysqlConn := AMysqlConn; // we're now responsible to free it
+
+  FConnParams.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zconn)
+  //FConnParams.MysqlConn := ZConn; // old
+
+  // replace default connections
+  ZQuery1.Connection := FConnParams.MysqlConn;
+  ZQuery2.Connection := FConnParams.MysqlConn;
+  ZQuery3.Connection := FConnParams.MysqlConn;
+
   // initialization: establish connection and read some vars from registry
-  Screen.Cursor := crHourGlass;
   MainForm.Showstatus('Creating window...', 2, true);
 
   // temporarily disable AutoReconnect in Registry
@@ -573,22 +588,7 @@ begin
 
   ReadWindowOptions;
 
-  MainForm.Showstatus('Connecting to '+FMysqlConnParams.Host+'...', 2, true);
-
-  FMysqlConnParams.MysqlConn := ZConn;
-
-  ZConn.Hostname := FMysqlConnParams.Host;
-  ZConn.User := FMysqlConnParams.User;
-  ZConn.Password := FMysqlConnParams.Pass;
-  ZConn.Port := FMysqlConnParams.Port;
-
-  ZConn.Properties.Values['compress'] := FMysqlConnParams.PrpCompress;
-  ZConn.Properties.Values['timeout'] := FMysqlConnParams.PrpTimeout;
-  ZConn.Properties.Values['dbless'] := FMysqlConnParams.PrpDbless;
-  ZConn.Properties.Values['CLIENT_LOCAL_FILES'] := FMysqlConnParams.PrpClientLocalFiles;
-  ZConn.Properties.Values['CLIENT_INTERACTIVE'] := FMysqlConnParams.PrpClientInteractive;
-  // ZConn.Properties.Values['USE_RESULT'] := 'true'; // doesn't work
-  // ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
+  MainForm.Showstatus('Connecting to '+FConnParams.MysqlParams.Host+'...', 2, true);
 
   try
     PerformConnect;
@@ -597,14 +597,14 @@ begin
     Exit;
   end;
 
-  Description := FMysqlConnParams.Description;;
+  Description := FConnParams.Description;;
   Caption := Description;
-  OnlyDBs := explode(';', FMysqlConnParams.DatabaseList);
-  if FMysqlConnParams.DatabaseListSort then
+  OnlyDBs := explode(';', FConnParams.DatabaseList);
+  if FConnParams.DatabaseListSort then
     OnlyDBs.Sort;
 
   // Versions and Statistics
-  LogSQL( 'Connection established with host "' + ZConn.hostname + '" on port ' + inttostr(ZConn.Port) );
+  LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname + '" on port ' + inttostr(FMysqlConn.Connection.Port) );
 
   ShowVariablesAndProcesses(self);
   ReadDatabasesAndTables(self);
@@ -621,7 +621,6 @@ begin
   // set some defaults
   ActualDatabase := '';
   ActualTable := '';
-  Screen.Cursor := crDefault;
 
   // read engine-types for popupmenu in database tab
   if mysql_version >= 40102 then
@@ -824,7 +823,7 @@ begin
   DBTree.OnChange := nil;
   DBTree.items.Clear;
 
-  tnodehost := DBtree.Items.Add(nil, ZConn.User + '@' + ZConn.Hostname);  // Host or Root
+  tnodehost := DBtree.Items.Add(nil, FConnParams.MysqlParams.User + '@' + FConnParams.MysqlParams.Host);  // Host or Root
   tnodehost.ImageIndex := 41;
   tnodehost.SelectedIndex := 41;
 
@@ -1114,8 +1113,8 @@ begin
     try
       FQueryRunning := True;
 
-      conn_params := FMysqlConnParams;
-      conn_params.Database := ActualDatabase;
+      conn_params := FConnParams;
+      conn_params.MysqlParams.Database := ActualDatabase;
 
       // free previous resultset
       try
@@ -1126,7 +1125,7 @@ begin
 
       // start query (with wait dialog)
       FProgressForm := TFrmQueryProgress.Create(Self);
-      mq := ExecMysqlStatementAsync(sl_query.Text,FMysqlConnParams,nil,FProgressForm.Handle);
+      mq := ExecMysqlStatementAsync(sl_query.Text,FConnParams,nil,FProgressForm.Handle);
       WaitForQueryCompletion();
 
       MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
@@ -1278,7 +1277,7 @@ begin
     if ActualDatabase <> '' then
       Panel6.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
-      Panel6.Caption := 'SQL-Query on Host ' + ZConn.HostName + ':';
+      Panel6.Caption := 'SQL-Query on Host ' + FConnParams.MysqlParams.Host + ':';
 
   // copy and save csv-buttons
   DataOrQueryTab := (PageControl1.ActivePage = SheetQuery) or (PageControl1.ActivePage = SheetData);
@@ -1316,7 +1315,7 @@ begin
   MainForm.ShowStatus( 'Reading from database ' + ActualDatabase + '...', 2, true );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
 
-  ZConn.Database := ActualDatabase;
+  FMysqlConn.Connection.Database := ActualDatabase;
   ExecUseQuery( ActualDatabase );
 
   Try
@@ -1865,7 +1864,7 @@ begin
   v := GetVar( 'SELECT VERSION()' );
   versions := explode( '.', v );
   mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
-  strHostRunning := ZConn.HostName + ' running MySQL-Version ' + v + ' / Uptime: ';
+  strHostRunning := FConnParams.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
 
   // VARIABLES
   GetResults( 'SHOW VARIABLES', ZQuery3 );
@@ -2042,7 +2041,7 @@ begin
     Mainform.ExecuteSelection.Enabled := false;
 
     if ActualDatabase <> '' then
-      zconn.Database := ActualDatabase;
+      FMysqlConn.Connection.Database := ActualDatabase;
     ZQuery1.Active := false;
     ZQuery1.DisableControls;
 
@@ -2454,7 +2453,7 @@ procedure TMDIChild.FormActivate(Sender: TObject);
 var
   i : Byte;
 begin
-  if ZConn.Connected then
+  if FMysqlConn.IsConnected then
   begin
     with MainForm do
     begin
@@ -2997,7 +2996,8 @@ begin
   // Delete record(s)
   if gridData.SelectedRows.Count = 0 then begin
     if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-      ZQuery2.Delete
+      //ZQuery2.Delete
+      GetVisualDataSet().Delete(); // unsafe ...
   end else
   if MessageDLG('Delete '+inttostr(gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
     gridData.SelectedRows.Delete;
@@ -3164,7 +3164,7 @@ begin
         0 : begin
             AssignFile(bf, filename);
             Rewrite(bf);
-            Write(bf, ZQuery2.FieldByName(DBMemo1.DataField).AsString);
+            Write(bf, GetVisualDataset().FieldByName(DBMemo1.DataField).AsString);
             CloseFile(bf);
           end;
         1 : EDBImage1.Picture.SaveToFile(filename);
@@ -3391,7 +3391,7 @@ end;
 procedure TMDIChild.InsertRecord(Sender: TObject);
 begin
   viewdata(self);
-  ZQuery2.Insert;
+  ZQuery2.Insert; // !!!
 end;
 
 
@@ -4008,7 +4008,7 @@ begin
   if dbmemo1.DataField = '' then exit;
   SaveBlob;
   case PageControl4.ActivePageIndex of
-    0 : clipboard.astext := ZQuery2.FieldByName(DBMemo1.DataField).AsString;
+    0 : clipboard.astext := GetVisualDataset().FieldByName(DBMemo1.DataField).AsString;
     1 : EDBImage1.CopyToClipboard;
   end;
 end;
@@ -4026,7 +4026,7 @@ var
   affected_rows_str, msg  : String;
   affected_rows_int       : Int64;
 begin
-  affected_rows_int := ZConn.GetAffectedRowsFromLastPost;
+  affected_rows_int := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
   affected_rows_str := FormatNumber( affected_rows_int );
   if affected_rows_int = 0 then
   begin
@@ -4063,7 +4063,7 @@ end;
 
 procedure TMDIChild.ExecUseQuery( DbName: String );
 begin
-  FMysqlConnParams.Database := DbName;
+  FConnParams.MysqlParams.Database := DbName;
   ExecQuery('USE ' + mask(DbName));
 end;
 
@@ -4081,7 +4081,7 @@ begin
   FProgressForm := TFrmQueryProgress.Create(Self);
 
   FQueryRunning := True;
-  mq := ExecMysqlStatementAsync (SQLQuery,FMysqlConnParams,nil,FProgressForm.Handle);
+  mq := ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
 
   WaitForQueryCompletion();
 
@@ -4133,6 +4133,17 @@ begin
   ZQuery3.Close;
 end;
 
+
+function TMDIChild.GetVisualDataset: TDataSet;
+begin
+
+  case PageControl1.ActivePageIndex of
+    3: Result := FCurDataset;
+    4: Result := ZQuery1;
+  else
+    Result := nil;
+  end;
+end;
 
 // Execute a query and return column x as Stringlist
 function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
@@ -4421,7 +4432,7 @@ begin
   Result := False;
 
   ds := TZReadOnlyQuery.Create(Self);
-  ds.Connection := ZConn;
+  ds.Connection := FMysqlConn.Connection;
   GetResults( 'SHOW DATABASES', ds );
   
   while not ds.Eof do
@@ -4442,10 +4453,10 @@ procedure TMDIChild.CheckConnection;
 var
   status: boolean;
 begin
-  status := ZConn.Ping;
+  status := FMysqlConn.Connection.Ping;
   if not status then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
-    ZConn.Reconnect;
+    FMysqlConn.Connection.Reconnect;
     PerformConnect;
   end;
 end;

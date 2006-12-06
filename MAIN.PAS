@@ -167,7 +167,6 @@ type
     procedure MenuReplaceClick(Sender: TObject);
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
-    procedure connect(Sender: TObject; AConnParams : PConnParams);
     procedure FlushClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -358,20 +357,6 @@ end;
 procedure TMainForm.FileExit1Execute(Sender: TObject);
 begin
   Close;
-end;
-
-procedure TMainForm.connect(Sender: TObject; AConnParams : PConnParams);
-var
-  f : TMDIChild;
-begin
-  // MDI-Child erzeugen und Verbindung aufbauen...
-  Screen.Cursor := crSQLWait;
-
-  f := TMDIChild.Create(Application);
-  f.FMysqlConnParams := AConnParams^;
-  f.Init();
-
-  Screen.Cursor := crDefault;
 end;
 
 procedure TMainForm.FlushClick(Sender: TObject);
@@ -764,7 +749,7 @@ begin
   // Copy data in actual dataset as CSV
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
     if PageControl1.ActivePage = SheetData then
-      dataset2csv(ZQuery2, CSVSeparator, CSVEncloser, CSVTerminator)
+      dataset2csv(GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator)
     else if PageControl1.ActivePage = SheetQuery then
       dataset2csv((ZQuery1 as TZQuery), CSVSeparator, CSVEncloser, CSVTerminator);
   end;
@@ -1075,14 +1060,15 @@ end;
 
 procedure TMainForm.ExportDataExecute(Sender: TObject);
 var
-  query : TZQuery;
+  query : TDataSet;
 begin
   // Save data in current dataset as CSV, HTML or XML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
+
     case PageControl1.ActivePageIndex of
-      3 : begin query := ZQuery2; SaveDialogExportData.Filename := ActualTable; end;
-      4 : begin query := ZQuery1; SaveDialogExportData.Filename := 'SQL-query'; end;
+      3 : begin query := GetVisualDataset(){ZQuery2}; SaveDialogExportData.Filename := ActualTable; end;
+      4 : begin query := GetVisualDataset() {ZQuery1}; SaveDialogExportData.Filename := 'SQL-query'; end;
       else
         raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
     end;

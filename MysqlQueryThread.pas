@@ -6,8 +6,8 @@ uses
   Windows, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls;
 
 type
-
-  TConnParams = record
+  // Mysql connection parameter structure
+  TMysqlConnParams = record
     Host,
     Database,
     Protocol,
@@ -19,8 +19,12 @@ type
     PrpDbless,
     PrpClientLocalFiles,
     PrpClientInteractive : String;
+  end;
+  PMysqlConnParams = ^TMysqlConnParams;
 
-    // todo: move these
+  // HeidiSQL internal param structure (as entered in connection form)
+  TConnParams = record
+    MysqlParams : TMysqlConnParams; // actual params sent to database server
     DatabaseList : String;
     DatabaseListSort : Boolean;
     Description : String;
@@ -123,12 +127,12 @@ begin
   FResult := 0;
   FSql := ASql;
 
-  mc.HostName := APrm.Host;
-  mc.Database := APrm.Database;
-  mc.User := APrm.User;
-  mc.Password := APrm.Pass;
-  mc.Protocol := APrm.Protocol;
-  mc.Port := APrm.Port;
+  mc.HostName := APrm.MysqlParams.Host;
+  mc.Database := APrm.MysqlParams.Database;
+  mc.User := APrm.MysqlParams.User;
+  mc.Password := APrm.MysqlParams.Pass;
+  mc.Protocol := APrm.MysqlParams.Protocol;
+  mc.Port := APrm.MysqlParams.Port;
 
   FreeOnTerminate := True;
 
