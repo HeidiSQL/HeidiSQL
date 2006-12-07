@@ -235,7 +235,6 @@ type
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
-    ZConn: TZConnection;
     ZQuery1: TZQuery;
     ZQuery3: TZReadOnlyQuery;
     ZSQLMonitor1: TZSQLMonitor;
@@ -561,7 +560,6 @@ begin
   FMysqlConn := AMysqlConn; // we're now responsible to free it
 
   FConnParams.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zconn)
-  //FConnParams.MysqlConn := ZConn; // old
 
   // replace default connections
   ZQuery1.Connection := FConnParams.MysqlConn;

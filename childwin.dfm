@@ -1938,14 +1938,7 @@ object MDIChild: TMDIChild
     Left = 72
     Top = 120
   end
-  object ZConn: TZConnection
-    Protocol = 'mysql'
-    SQLHourGlass = True
-    Left = 224
-    Top = 136
-  end
   object ZQuery1: TZQuery
-    Connection = ZConn
     BeforeOpen = ZQueryBeforeSendingSQL
     BeforeClose = ZQueryGridBeforeClose
     BeforePost = ZQueryBeforeSendingSQL
@@ -1961,7 +1954,6 @@ object MDIChild: TMDIChild
     Top = 168
   end
   object ZQuery3: TZReadOnlyQuery
-    Connection = ZConn
     AutoCalcFields = False
     ParamCheck = False
     Params = <>

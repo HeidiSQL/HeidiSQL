@@ -123,7 +123,7 @@ begin
   ds := TZReadOnlyQuery.Create(self);
   try
     Screen.Cursor := crHourglass;
-    ds.Connection := m.ZConn;
+    ds.Connection := m.ZQuery3.Connection;
     m.GetResults( 'HELP "'+topic+'"', ds );
     while not ds.Eof do
     begin
@@ -242,7 +242,7 @@ begin
   try
     Screen.Cursor := crHourglass;
     ds := TZReadOnlyQuery.Create(self);
-    ds.Connection := m.ZConn;
+    ds.Connection := m.ZQuery3.Connection;
     m.GetResults( 'HELP "'+lblKeyword.Caption+'"', ds );
     if ds.RecordCount = 1 then
     begin

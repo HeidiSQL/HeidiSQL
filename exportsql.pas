@@ -167,7 +167,7 @@ begin
   comboSelectDatabase.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    self.Caption := ZConn.HostName + ' - Export Tables...';
+    self.Caption := ZQuery3.Connection.HostName + ' - Export Tables...';
     for i:=0 to DBTree.Items.Count-1 do
     begin
       tn := DBTree.Items[i];
@@ -456,7 +456,7 @@ begin
       if tofile then
       begin
         wfs(f, '# --------------------------------------------------------');
-        wfs(f, '# Host:                 ' + ZConn.HostName );
+        wfs(f, '# Host:                 ' + ZQuery3.Connection.HostName );
         wfs(f, '# Database:             ' + comboSelectDatabase.Text );
         wfs(f, '# Server version:       ' + GetVar( 'SELECT VERSION()' ) );
         wfs(f, '# Server OS:            ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );

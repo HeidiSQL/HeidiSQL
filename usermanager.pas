@@ -181,7 +181,7 @@ begin
       tn1 := tntop.getNextChild(tn1);
 
     end;
-    EditUser.Text := ZConn.User;
+    EditUser.Text := ZQuery3.Connection.User;
 
   end;
   tnu1.Expand(false);
@@ -204,19 +204,19 @@ begin
   TMDIChild(Application.Mainform.ActiveMDIChild).ExecUseQuery( DBNAME_MYSQL );
 
   ZQueryDBs := TZReadOnlyQuery.Create(self);
-  ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+  ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryTables := TZReadOnlyQuery.Create(self);
-  ZQueryTables.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+  ZQueryTables.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryColumns := TZReadOnlyQuery.Create(self);
-  ZQueryColumns.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+  ZQueryColumns.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryUsers := TZReadOnlyQuery.Create(self);
-  ZQueryUsers.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+  ZQueryUsers.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryColumnNames := TZReadOnlyQuery.Create(self);
-  ZQueryColumnNames.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZConn;
+  ZQueryColumnNames.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   Screen.Cursor := crDefault;
 end;
@@ -245,10 +245,10 @@ begin
     else with TRegistry.Create do
     begin
       OpenKey(regpath + '\Servers\' + EditDescription.Text, true);
-      WriteString('Host', TMDIChild(Application.Mainform.ActiveMDIChild).ZConn.HostName);
+      WriteString('Host', TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection.HostName);
       WriteString('User', EditUser.Text);
       WriteString('Password', encrypt(EditPassword.Text));
-      WriteString('Port', IntToStr(TMDIChild(Application.Mainform.ActiveMDIChild).ZConn.Port));
+      WriteString('Port', IntToStr(TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection.Port));
       WriteString('Timeout', '30');
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
@@ -482,7 +482,7 @@ procedure TUserManagerForm.ShowPrivilegesControls(v, w, y: Boolean);
     tmpstr      : String;
   begin
     q := TZReadOnlyQuery.Create(self);
-    q.Connection := TMDIChild(Mainform.ActiveMDIChild).ZConn;
+    q.Connection := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection;
     TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable), q );
     result := TStringList.Create;
     for i := 0 to q.RecordCount-1 do
@@ -797,7 +797,7 @@ begin
         begin
           sql := 'INSERT INTO '+mainform.mask(PRIVTABLE_TABLES)+' (Host, Db, User, Table_name, Grantor, ';
           sql := sql + ImplodeStr( ', ', getColumnNamesOrValues( 'columns' ) );
-          sql := sql + ') VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+TMDIChild(Mainform.ActiveMDIChild).ZConn.User+''', ';
+          sql := sql + ') VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.User+''', ';
           sql := sql + '''' + ImplodeStr( ''', ''', getColumnNamesOrValues( 'values' ) ) + '''';
           sql := sql + ')';
           editcurrent := true;

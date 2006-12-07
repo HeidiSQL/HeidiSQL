@@ -58,9 +58,9 @@ begin
   with TMDIChild(Mainform.activeMDIChild) do begin
     case PageControlMain.ActivePageIndex of
     0 : case PageControlHost.ActivePageIndex of
-      0 : begin list := ListVariables; title := 'Server-Variables for ' + ZConn.HostName; end;
-      1 : begin list := ListProcesses; title := 'Processlist for ' + ZConn.HostName; end;
-      2 : begin list := ListCommandStats; title := 'Command-statistics for ' + ZConn.HostName; end;
+      0 : begin list := ListVariables; title := 'Server-Variables for ' + ZQuery3.Connection.HostName; end;
+      1 : begin list := ListProcesses; title := 'Processlist for ' + ZQuery3.Connection.HostName; end;
+      2 : begin list := ListCommandStats; title := 'Command-statistics for ' + ZQuery3.Connection.HostName; end;
       end;
     1 : begin list := ListTables; title := 'Tables-List for Database ' + ActualDatabase; end;
     2 : begin list := ListColumns; title := 'Field-List for ' + ActualDatabase + '/' + ActualTable; end;

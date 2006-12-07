@@ -366,7 +366,7 @@ begin
 
   if InFieldMode then
     begin
-      Caption := TMDIChild(Mainform.ActiveMDIChild).ZConn.Hostname + ' - Field Editor';
+      Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Field Editor';
       pc.Pages[0].TabVisible := True;
       pc.ActivePageIndex := 0;
       EditFieldName.SetFocus();
@@ -374,7 +374,7 @@ begin
 
   if InIndexMode then
     begin
-      Caption := TMDIChild(Mainform.ActiveMDIChild).ZConn.Hostname + ' - Index Editor';
+      Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Index Editor';
       pc.Pages[1].TabVisible := True;
       pc.ActivePageIndex := 1;
       ComboBoxKeys.SetFocus();

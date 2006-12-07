@@ -98,7 +98,7 @@ begin
   ComboBoxDBs.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    self.Caption := ZConn.HostName + ' - Insert files into table ...';
+    self.Caption := ZQuery3.Connection.HostName + ' - Insert files into table ...';
     for i:=0 to DBTree.Items.Count-1 do
     begin
       tn := DBTree.Items[i];
