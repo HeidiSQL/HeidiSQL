@@ -150,7 +150,7 @@ begin
       end;
   else
     // attempt failed -- show error and keep window open
-    ShowMessage ('Could not establish connection! Details:'#13#10#13#10+mysqlconn.LastError);
+    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+mysqlconn.LastError, mtError, [mbOK], 0);
     ButtonConnect.Enabled := True;
     FreeAndNil (mysqlconn);
   end;
