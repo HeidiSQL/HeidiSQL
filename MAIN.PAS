@@ -578,13 +578,13 @@ begin
   // Refresh
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    if PageControl1.ActivePage = SheetHost then
+    if PageControlMain.ActivePage = tabHost then
       ShowVariablesAndProcesses(self)
-    else if PageControl1.ActivePage = SheetDatabase then
+    else if PageControlMain.ActivePage = tabDatabase then
       ShowDBProperties(self)
-    else if PageControl1.ActivePage = SheetTable then
+    else if PageControlMain.ActivePage = tabTable then
       ShowTableProperties(self)
-    else if PageControl1.ActivePage = SheetData then
+    else if PageControlMain.ActivePage = tabData then
       viewdata(self)
     else
       ReadDatabasesAndTables(self);
@@ -748,9 +748,9 @@ procedure TMainForm.Copy2CSVExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as CSV
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-    if PageControl1.ActivePage = SheetData then
+    if PageControlMain.ActivePage = tabData then
       dataset2csv(GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator)
-    else if PageControl1.ActivePage = SheetQuery then
+    else if PageControlMain.ActivePage = tabQuery then
       dataset2csv((ZQuery1 as TZQuery), CSVSeparator, CSVEncloser, CSVTerminator);
   end;
 end;
@@ -762,10 +762,10 @@ procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-    if PageControl1.ActivePage = SheetData then
-      dataset2html(ZQuery2, ZConn.HostName + ': ' + ActualDatabase + '.' + ActualTable, '', ConvertHTMLEntities, appname + ' ' + appversion )
-    else if PageControl1.ActivePage = SheetQuery then
-      dataset2html(ZQuery1, ZQuery1.Sql[0], '', ConvertHTMLEntities, appname + ' ' + appversion);
+    if PageControlMain.ActivePage = tabData then
+      dataset2html(GetVisualDataset(), TZQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, appname + ' ' + appversion )
+    else if PageControlMain.ActivePage = tabQuery then
+      dataset2html(GetVisualDataset(), TZReadOnlyQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, appname + ' ' + appversion);
   end;
 end;
 
@@ -775,7 +775,7 @@ var
   page : TTabSheet;
 begin
   // print
-  page := TMDIChild(Mainform.ActiveMDIChild).PageControl1.ActivePage;
+  page := TMDIChild(Mainform.ActiveMDIChild).PageControlMain.ActivePage;
   if page.Name = 'SheetData' then
   begin
     // TODO: Print data
@@ -1021,17 +1021,17 @@ begin
     with TSaveDialog.Create(self) do begin
       Filter := 'XML-Files (*.xml)|*.xml|All files (*.*)|*.*';
       DefaultExt := 'xml';
-      if PageControl1.ActivePage = SheetData then
+      if PageControlMain.ActivePage = tabData then
         FileName := ActualTable
       else
         FileName := sstr(ZQuery1.Sql[0], 20);
       Options := [ofOverwritePrompt,ofEnableSizing];
 
       if Execute and (FileName <> '') then begin
-        if PageControl1.ActivePage = SheetData then
-          dataset2xml(ZQuery2, ActualTable, FileName)
+        if PageControlMain.ActivePage = tabData then
+          dataset2xml(GetVisualDataset(), ActualTable, FileName)
         else
-          dataset2xml(ZQuery1, 'SQL-query', FileName);
+          dataset2xml(GetVisualDataset(), 'SQL-query', FileName);
       end;
     end;
 
@@ -1042,10 +1042,10 @@ procedure TMainForm.Copy2XMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as XML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-    if PageControl1.ActivePage = SheetData then
-      dataset2xml(ZQuery2, ActualTable)
-    else if PageControl1.ActivePage = SheetQuery then
-      dataset2xml(ZQuery1, 'SQL-query');
+    if PageControlMain.ActivePage = tabData then
+      dataset2xml(GetVisualDataset(), ActualTable)
+    else if PageControlMain.ActivePage = tabQuery then
+      dataset2xml(GetVisualDataset(), 'SQL-query');
   end;
 end;
 
@@ -1066,7 +1066,7 @@ begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
 
-    case PageControl1.ActivePageIndex of
+    case PageControlMain.ActivePageIndex of
       3 : begin query := GetVisualDataset(){ZQuery2}; SaveDialogExportData.Filename := ActualTable; end;
       4 : begin query := GetVisualDataset() {ZQuery1}; SaveDialogExportData.Filename := 'SQL-query'; end;
       else
@@ -1201,7 +1201,7 @@ begin
     if (Sender as TBasicAction).ActionComponent = PopupMenuDropTable then begin
       // Invoked by tree menu popup.
       t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
-    end else if PageControl1.ActivePage = SheetDatabase then with ListTables do begin
+    end else if PageControlMain.ActivePage = tabDatabase then with ListTables do begin
       // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
       for i:=0 to Items.count-1 do if Items[i].Selected then t.add(mask(Items[i].Caption));
     end else begin
@@ -1257,7 +1257,7 @@ procedure TMainForm.LoadSQLExecute(Sender: TObject);
 begin
   with TMDIChild(ActiveMDIChild) do
   begin
-    PageControl1.ActivePage := SheetQuery;
+    PageControlMain.ActivePage := tabQuery;
     btnQueryLoadClick( sender );
   end;
 end;

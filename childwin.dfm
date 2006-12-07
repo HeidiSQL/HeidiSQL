@@ -77,12 +77,12 @@ object MDIChild: TMDIChild
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      object PageControl1: TPageControl
+      object PageControlMain: TPageControl
         Left = 0
         Top = 0
         Width = 504
         Height = 274
-        ActivePage = SheetQuery
+        ActivePage = tabHost
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -96,13 +96,9 @@ object MDIChild: TMDIChild
         TabHeight = 22
         TabOrder = 0
         OnChange = pcChange
-        object SheetHost: TTabSheet
+        object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -115,10 +111,6 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -149,10 +141,6 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -211,10 +199,6 @@ object MDIChild: TMDIChild
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListCommandStats: TSortListView
                 Left = 0
                 Top = 0
@@ -278,13 +262,9 @@ object MDIChild: TMDIChild
             TabOrder = 1
           end
         end
-        object SheetDatabase: TTabSheet
+        object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 38
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             496
             242)
@@ -456,13 +436,9 @@ object MDIChild: TMDIChild
             end
           end
         end
-        object SheetTable: TTabSheet
+        object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 40
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             496
             242)
@@ -624,7 +600,7 @@ object MDIChild: TMDIChild
             end
           end
         end
-        object SheetData: TTabSheet
+        object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 39
           object Panel5: TPanel
@@ -736,7 +712,7 @@ object MDIChild: TMDIChild
             Row = 1
           end
         end
-        object SheetQuery: TTabSheet
+        object tabQuery: TTabSheet
           Caption = 'Query'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -1010,19 +986,15 @@ object MDIChild: TMDIChild
     Top = 278
     Width = 677
     Height = 142
-    ActivePage = TabSheet2
+    ActivePage = tabSQLLog
     Align = alBottom
     HotTrack = True
     Images = MainForm.ImageList1
     TabHeight = 20
     TabOrder = 1
-    object TabSheet1: TTabSheet
+    object tabSQLLog: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1068,13 +1040,9 @@ object MDIChild: TMDIChild
         AddedKeystrokes = <>
       end
     end
-    object TabSheet2: TTabSheet
+    object tabBlobEditor: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1145,10 +1113,6 @@ object MDIChild: TMDIChild
         OnChange = PageControl4Change
         object TabSheet3: TTabSheet
           Caption = 'Text'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1170,10 +1134,6 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1196,13 +1156,9 @@ object MDIChild: TMDIChild
         end
       end
     end
-    object TabSheet8: TTabSheet
+    object tabFilter: TTabSheet
       Caption = 'Filter'
       ImageIndex = 81
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
@@ -1265,7 +1221,7 @@ object MDIChild: TMDIChild
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxWhereFiltersChange
         end
@@ -1689,6 +1645,7 @@ object MDIChild: TMDIChild
     end
     object QuickFilter1: TMenuItem
       Caption = 'Quick Filter'
+      ImageIndex = 81
       object QF1: TMenuItem
         AutoHotkeys = maManual
         Caption = 'Column = Value'
@@ -1750,22 +1707,27 @@ object MDIChild: TMDIChild
       end
       object QF13: TMenuItem
         Caption = 'Column = CLIPBOARD'
+        ImageIndex = 2
         OnClick = QuickFilterClick
       end
       object QF14: TMenuItem
         Caption = 'Column != CLIPBOARD'
+        ImageIndex = 2
         OnClick = QuickFilterClick
       end
       object QF15: TMenuItem
         Caption = 'Column > CLIPBOARD'
+        ImageIndex = 2
         OnClick = QuickFilterClick
       end
       object QF16: TMenuItem
         Caption = 'Column < CLIPBOARD'
+        ImageIndex = 2
         OnClick = QuickFilterClick
       end
       object QF17: TMenuItem
         Caption = 'Column LIKE %CLIPBOARD%'
+        ImageIndex = 2
         OnClick = QuickFilterClick
       end
       object N21: TMenuItem
@@ -1773,6 +1735,7 @@ object MDIChild: TMDIChild
       end
       object DropFilter1: TMenuItem
         Caption = 'Drop Filter'
+        ImageIndex = 70
         OnClick = DropFilter1Click
       end
     end
@@ -1938,7 +1901,6 @@ object MDIChild: TMDIChild
     Top = 157
   end
   object DataSource1: TDataSource
-    DataSet = ZQuery2
     OnDataChange = DataSourceDataChange
     Left = 304
     Top = 136
@@ -1984,7 +1946,11 @@ object MDIChild: TMDIChild
   end
   object ZQuery1: TZQuery
     Connection = ZConn
-    BeforeClose = ZQuery2BeforeClose
+    BeforeOpen = ZQueryBeforeSendingSQL
+    BeforeClose = ZQueryGridBeforeClose
+    BeforePost = ZQueryBeforeSendingSQL
+    AfterPost = ZQueryGridAfterPost
+    AfterDelete = ZQueryGridAfterPost
     OnDeleteError = ZQuery1EditError
     OnEditError = ZQuery1EditError
     OnPostError = ZQuery1EditError
@@ -1993,18 +1959,6 @@ object MDIChild: TMDIChild
     UpdateMode = umUpdateAll
     Left = 272
     Top = 168
-  end
-  object ZQuery2: TZQuery
-    Connection = ZConn
-    BeforeOpen = ZQueryBeforeSendingSQL
-    BeforeClose = ZQuery2BeforeClose
-    BeforePost = ZQueryBeforeSendingSQL
-    AfterPost = ZQuery2AfterPost
-    AfterDelete = ZQuery2AfterPost
-    ParamCheck = False
-    Params = <>
-    Left = 272
-    Top = 136
   end
   object ZQuery3: TZReadOnlyQuery
     Connection = ZConn

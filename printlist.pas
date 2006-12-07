@@ -56,7 +56,7 @@ begin
 
   // which ListView to print?
   with TMDIChild(Mainform.activeMDIChild) do begin
-    case PageControl1.ActivePageIndex of
+    case PageControlMain.ActivePageIndex of
     0 : case PageControlHost.ActivePageIndex of
       0 : begin list := ListVariables; title := 'Server-Variables for ' + ZConn.HostName; end;
       1 : begin list := ListProcesses; title := 'Processlist for ' + ZConn.HostName; end;

@@ -29,15 +29,15 @@ type
     DBtree: TTreeView;
     Splitter1: TSplitter;
     TableShow: TPanel;
-    PageControl1: TPageControl;
-    SheetData: TTabSheet;
-    SheetDatabase: TTabSheet;
+    PageControlMain: TPageControl;
+    tabData: TTabSheet;
+    tabDatabase: TTabSheet;
     Splitter2: TSplitter;
-    SheetQuery: TTabSheet;
+    tabQuery: TTabSheet;
     popupTreeView: TPopupMenu;
     Drop1: TMenuItem;
     Panel2: TPanel;
-    SheetTable: TTabSheet;
+    tabTable: TTabSheet;
     Panel3: TPanel;
     popupDbGrid: TPopupMenu;
     menuviewdata: TMenuItem;
@@ -45,7 +45,7 @@ type
     menuinsert: TMenuItem;
     menudroptable: TMenuItem;
     menuemptytable: TMenuItem;
-    SheetHost: TTabSheet;
+    tabHost: TTabSheet;
     PageControlHost: TPageControl;
     tabVariables: TTabSheet;
     tabProcessList: TTabSheet;
@@ -156,9 +156,9 @@ type
     MenuChangeType4: TMenuItem;
     MenuCopyTable: TMenuItem;
     PageControlBottom: TPageControl;
-    TabSheet1: TTabSheet;
-    TabSheet2: TTabSheet;
-    TabSheet8: TTabSheet;
+    tabSQLLog: TTabSheet;
+    tabBlobEditor: TTabSheet;
+    tabFilter: TTabSheet;
     SynMemoSQLLog: TSynMemo;
     ToolBar3: TToolBar;
     btnBlobWordWrap: TToolButton;
@@ -237,7 +237,6 @@ type
     setNULL1: TMenuItem;
     ZConn: TZConnection;
     ZQuery1: TZQuery;
-    ZQuery2: TZQuery;
     ZQuery3: TZReadOnlyQuery;
     ZSQLMonitor1: TZSQLMonitor;
     EDBImage1: TEDBImage;
@@ -272,7 +271,7 @@ type
     procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CallSQLHelp(Sender: TObject);
     procedure ManageIndexes1Click(Sender: TObject);
-    procedure ZQuery2AfterPost(DataSet: TDataSet);
+    procedure ZQueryGridAfterPost(DataSet: TDataSet);
     procedure btnQueryReplaceClick(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
     procedure ReplaceDialogQueryFind(Sender: TObject);
@@ -400,7 +399,7 @@ type
     procedure btnBlobCopyClick(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
-    procedure ZQuery2BeforeClose(DataSet: TDataSet);
+    procedure ZQueryGridBeforeClose(DataSet: TDataSet);
     procedure ExecQuery( SQLQuery: String );
     procedure ExecUseQuery( DbName: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
@@ -482,7 +481,8 @@ type
 IMPLEMENTATION
 
 uses
-  Main, createtable, fieldeditor, tbl_properties, tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp;
+  Main, createtable, fieldeditor, tbl_properties, tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp,
+  printlist;
 
 
 
@@ -565,7 +565,6 @@ begin
 
   // replace default connections
   ZQuery1.Connection := FConnParams.MysqlConn;
-  ZQuery2.Connection := FConnParams.MysqlConn;
   ZQuery3.Connection := FConnParams.MysqlConn;
 
   // initialization: establish connection and read some vars from registry
@@ -894,16 +893,16 @@ end;
 
 procedure TMDIChild.SelectHost;
 begin
-  SheetDatabase.TabVisible := false;
-  SheetTable.TabVisible := false;
-  SheetData.TabVisible := false;
+  tabDatabase.TabVisible := false;
+  tabTable.TabVisible := false;
+  tabData.TabVisible := false;
   if
    (not DBTree.Dragging) or
-   (PageControl1.ActivePage = SheetDatabase) or
-   (PageControl1.ActivePage = SheetTable) or
-   (PageControl1.ActivePage = SheetData) then
+   (PageControlMain.ActivePage = tabDatabase) or
+   (PageControlMain.ActivePage = tabTable) or
+   (PageControlMain.ActivePage = tabData) then
   begin
-    PageControl1.ActivePage := SheetHost;
+    PageControlMain.ActivePage := tabHost;
   end;
   Caption := Description;
   ActualDatabase := '';
@@ -912,15 +911,15 @@ end;
 
 procedure TMDIChild.SelectDatabase(db: string);
 begin
-  SheetDatabase.TabVisible := true;
-  SheetTable.TabVisible := false;
-  SheetData.TabVisible := false;
+  tabDatabase.TabVisible := true;
+  tabTable.TabVisible := false;
+  tabData.TabVisible := false;
   if
    (not DBTree.Dragging) or
-   (PageControl1.ActivePage = SheetTable) or
-   (PageControl1.ActivePage = SheetData) then
+   (PageControlMain.ActivePage = tabTable) or
+   (PageControlMain.ActivePage = tabData) then
   begin
-    PageControl1.ActivePage := SheetDatabase;
+    PageControlMain.ActivePage := tabDatabase;
   end;
   ListTables.Items.Clear;
   ListColumns.Items.Clear;
@@ -934,9 +933,9 @@ end;
 procedure TMDIChild.SelectTable(db: string; table: string);
 begin
   if ActualDatabase <> db then SelectDatabase(db);
-  SheetDatabase.TabVisible := true;
-  SheetTable.TabVisible := true;
-  SheetData.TabVisible := true;
+  tabDatabase.TabVisible := true;
+  tabTable.TabVisible := true;
+  tabData.TabVisible := true;
   dataselected := false;
   ActualTable := table;
   ShowTableProperties(self);
@@ -1014,7 +1013,13 @@ begin
     // Read cached WHERE-clause and set filter
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if reg.ValueExists( reg_value ) then
+    begin
       SynMemoFilter.Text := reg.ReadString( reg_value );
+      // Ensure the user can see its previous specified filter
+      // in case of an SQL-error, it's important that he can delete it
+      tabFilter.tabVisible := true;
+      PageControlBottom.ActivePage := tabFilter;
+    end;
     // Read cached ORDER-clause and set Grid.Sortcolumns
     reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
     if reg.ValueExists( reg_value ) then
@@ -1080,8 +1085,8 @@ begin
 
   if (ActualTable <> '') and (ActualDatabase <> '') then
   begin
-    SheetTable.TabVisible := true;
-    SheetData.TabVisible := true;
+    tabTable.TabVisible := true;
+    tabData.TabVisible := true;
     if Mainform.DataAlwaysEditMode then
     begin
       gridData.Options := gridData.Options + [dgAlwaysShowEditor];
@@ -1092,7 +1097,7 @@ begin
       gridData.Options := gridData.Options - [dgAlwaysShowEditor];
       gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
     end;
-    PageControl1.ActivePage := SheetData;
+    PageControlMain.ActivePage := tabData;
 
 		MainForm.ShowStatus( 'Retrieving data...', 2, true );
 
@@ -1130,46 +1135,28 @@ begin
 
       MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
       DataSource1.DataSet := mq.MysqlDataset;
-      FCurDataset := mq.MysqlDataset
+      FCurDataset := mq.MysqlDataset;
+
+      // Attach After- and Before-Events to the new dataset
+      with mq.MysqlDataset do
+      begin
+        AfterPost := ZQueryGridAfterPost;
+        AfterDelete := ZQueryGridAfterPost;
+        BeforeClose := ZQueryGridBeforeClose;
+        BeforeOpen := ZQueryBeforeSendingSQL;
+        BeforePost := ZQueryBeforeSendingSQL;
+      end;
+
     except
       on E:Exception do
       begin
+        // Most likely we have a wrong filter-clause when this happens
         LogSQL( E.Message, true );
-        if trim(self.SynMemoFilter.Text) = '' then
-        begin
-          MessageDlg( E.Message, mtError, [mbOK], 0 );
-        end
-        else
-        begin
-          MessageDlg( E.Message + CRLF + CRLF + 'Probably you have defined an incorrect WHERE-clause.', mtError, [mbOK], 0 );
-          // retry query without filter and sorting, should fix bug #1578471
-          // TODO: this is crap, if the error has nothing to do with the filter
-          //       in this case the filter is deleted and the query will fail again,
-          //       which will annoy the user.
-          sl_query.Text := select_base;
-
-          if mainform.CheckBoxLimit.Checked then
-            sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
-          try
-            FProgressForm := TFrmQueryProgress.Create(Self);
-            mq := ExecMysqlStatementAsync(sl_query.Text,conn_params,nil,FProgressForm.Handle);
-            WaitForQueryCompletion();
-
-            // Make sure the user sees the applied filter in the case the filter is faulty
-            PageControlBottom.ActivePage := Tabsheet8;
-          except
-            on E:Exception do
-            begin
-              LogSQL( E.Message, true );
-              MessageDlg(E.Message , mtError, [mbOK], 0);
-              //q.Active := false;
-              viewingdata := false;
-              MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-              Screen.Cursor := crDefault;
-              exit;
-            end;
-          end;
-        end;
+        MessageDlg( E.Message, mtError, [mbOK], 0 );
+        viewingdata := false;
+        MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+        Screen.Cursor := crDefault;
+        exit;
       end;
     end;
 
@@ -1268,19 +1255,22 @@ procedure TMDIChild.pcChange(Sender: TObject);
 var DataOrQueryTab : Boolean;
 begin
   // PageControl changes
-  Mainform.ExecuteQuery.Enabled := PageControl1.ActivePage = SheetQuery;
-  Mainform.ExecuteSelection.Enabled := PageControl1.ActivePage = SheetQuery;
-  Mainform.ExecuteLine.Enabled := PageControl1.ActivePage = SheetQuery;
-  if (PageControl1.ActivePage = SheetData) and (not dataselected) then
+  tabBlobEditor.tabVisible := DataOrQueryTab;
+  tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
+
+  Mainform.ExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
+  Mainform.ExecuteSelection.Enabled := PageControlMain.ActivePage = tabQuery;
+  Mainform.ExecuteLine.Enabled := PageControlMain.ActivePage = tabQuery;
+  if (PageControlMain.ActivePage = tabData) and (not dataselected) then
     viewdata(self);
-  if PageControl1.ActivePage = SheetQuery then
+  if PageControlMain.ActivePage = tabQuery then
     if ActualDatabase <> '' then
       Panel6.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
       Panel6.Caption := 'SQL-Query on Host ' + FConnParams.MysqlParams.Host + ':';
 
   // copy and save csv-buttons
-  DataOrQueryTab := (PageControl1.ActivePage = SheetQuery) or (PageControl1.ActivePage = SheetData);
+  DataOrQueryTab := (PageControlMain.ActivePage = tabQuery) or (PageControlMain.ActivePage = tabData);
   with mainform do begin
     Copy2CSV.Enabled := DataOrQueryTab;
     CopyHTMLtable.Enabled := DataOrQueryTab;
@@ -1289,11 +1279,8 @@ begin
     PrintList.Enabled := not DataOrQueryTab;
   end;
 
-  mainform.ToolBarData.Visible:= (PageControl1.ActivePage = SheetData);
+  mainform.ToolBarData.Visible:= (PageControlMain.ActivePage = tabData);
   mainform.DBNavigator1.DataSource := DataSource1;
-
-  Tabsheet2.TabVisible := DataOrQueryTab;
-  Tabsheet8.TabVisible := (PageControl1.ActivePage = SheetData);
 
   ValidateDbActions;
 end;
@@ -1517,8 +1504,8 @@ begin
 
   Screen.Cursor := crHourGlass;
 
-  if (PageControl1.ActivePage <> SheetData) and (not DBTree.Dragging) then
-    PageControl1.ActivePage := SheetTable;
+  if (PageControlMain.ActivePage <> tabData) and (not DBTree.Dragging) then
+    PageControlMain.ActivePage := tabTable;
   Panel3.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
 
   // set current node in DBTree to ActualTable:
@@ -1692,7 +1679,7 @@ var
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
-  if (PageControl1.ActivePage <> SheetDatabase) then ListTables.Selected := nil;
+  if (PageControlMain.ActivePage <> tabDatabase) then ListTables.Selected := nil;
 
   tableSelected := (ListTables.Selected <> nil);
   btnDbProperties.Enabled := tableSelected;
@@ -1719,7 +1706,7 @@ begin
   MenuRepair.Enabled := tableSelected;
 
   MainForm.ButtonDropDatabase.Enabled := ActualDatabase <> '';
-  MainForm.DropTable.Enabled := tableSelected or ((PageControl1.ActivePage <> SheetDatabase) and (ActualTable <> ''));
+  MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (ActualTable <> ''));
   MainForm.ButtonCreateTable.Enabled := ActualDatabase <> '';
 end;
 
@@ -1739,7 +1726,7 @@ begin
     if ListTables.Selected.Caption = tn.Text then
     begin
       DBTree.Selected := tn;
-      PageControl1.ActivePage := SheetData;
+      PageControlMain.ActivePage := tabData;
       viewdata(self);
       break;
     end;
@@ -2482,14 +2469,14 @@ begin
       Diagnostics.Enabled := true;
       InsertFiles.Enabled := true;
       PrintList.Enabled := true;
-      if (PageControl1.ActivePage = SheetData) or
-        (PageControl1.ActivePage = SheetQuery) then begin
+      if (PageControlMain.ActivePage = tabData) or
+        (PageControlMain.ActivePage = tabQuery) then begin
         Copy2CSV.Enabled := true;
         CopyHTMLtable.Enabled := true;
         Copy2XML.Enabled := true;
         ExportData.Enabled := true;
       end;
-      ToolBarData.visible := (PageControl1.ActivePage = SheetData);
+      ToolBarData.visible := (PageControlMain.ActivePage = tabData);
       DBNavigator1.DataSource := DataSource1;
       //DBtreeChange( self, DBTree.Selected );
       btnSQLHelp.Enabled := (mysql_version >= 40100);
@@ -2721,7 +2708,7 @@ procedure TMDIChild.EditQuery1Click(Sender: TObject);
 begin
   // take query from history to query-tab
   SynMemoQuery.Text := SynMemoSQLLog.SelText;
-  PageControl1.ActivePage := SheetQuery;
+  PageControlMain.ActivePage := tabQuery;
   pcChange(self);
 end;
 
@@ -3608,7 +3595,7 @@ begin
   else if SynMemoSQLLog.Focused then
     keyword := SynMemoQuery.WordAtCursor
   // Data-Tab
-  else if (Pagecontrol1.ActivePage = SheetData)
+  else if (PageControlMain.ActivePage = tabData)
     and (-1 < gridData.Col)
     and (gridData.Col <= ListColumns.Items.Count) then
   begin
@@ -4020,7 +4007,7 @@ begin
 end;
 
 
-procedure TMDIChild.ZQuery2AfterPost(DataSet: TDataSet);
+procedure TMDIChild.ZQueryGridAfterPost(DataSet: TDataSet);
 var
   affected_rows_str, msg  : String;
   affected_rows_int       : Int64;
@@ -4031,7 +4018,7 @@ begin
   begin
     LogSQL( 'Affected rows: ' + affected_rows_str );
     // Refresh grid to show the user that no change has been applied
-    ZQuery2.Refresh;
+    GetVisualDataset().Refresh;
     msg := 'Warning: No row was affected by the last update.' + CRLF + CRLF
       + 'This is most likely caused by entering data which the MySQL-server has converted silently.' + CRLF
       + 'For example when you enter a date like "0000-01-01" (applies only to newer MySQL-versions).';
@@ -4042,7 +4029,7 @@ begin
   begin
     LogSQL( 'Affected rows: ' + affected_rows_str );
     // Refresh grid to show the user which values the other records got
-    ZQuery2.Refresh;
+    GetVisualDataset().Refresh;
     msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
       + 'The last query affected ' + affected_rows_str + ' rows, when it should have touched only 1 row!'
       + CRLF + CRLF
@@ -4052,7 +4039,7 @@ begin
   end;
 end;
 
-procedure TMDIChild.ZQuery2BeforeClose(DataSet: TDataSet);
+procedure TMDIChild.ZQueryGridBeforeClose(DataSet: TDataSet);
 begin
   // unassign data-aware controls
   DBMemo1.DataField := '';
@@ -4126,7 +4113,7 @@ end;
 function TMDIChild.GetVisualDataset: TDataSet;
 begin
 
-  case PageControl1.ActivePageIndex of
+  case PageControlMain.ActivePageIndex of
     3: Result := FCurDataset;
     4: Result := ZQuery1;
   else
@@ -4269,10 +4256,10 @@ end;
 
 procedure TMDIChild.FormResize(Sender: TObject);
 begin
-  ListTables.Width := SheetDatabase.Width - Toolbar1.Width - Toolbar1.Left;
-  ListTables.Height := SheetDatabase.Height - Panel2.Height;
-  Panel9.Width := SheetTable.Width - Toolbar2.Width - Toolbar2.Left;
-  Panel9.Height := SheetTable.Height - Panel3.Height;
+  ListTables.Width := tabDatabase.Width - Toolbar1.Width - Toolbar1.Left;
+  ListTables.Height := tabDatabase.Height - Panel2.Height;
+  Panel9.Width := tabTable.Width - Toolbar2.Width - Toolbar2.Left;
+  Panel9.Height := tabTable.Height - Panel3.Height;
 end;
 
 
@@ -4422,8 +4409,8 @@ end;
 function TMDIChild.GetActiveGrid: TSMDBGrid;
 begin
   Result := nil;
-  if PageControl1.ActivePage = SheetData then Result := gridData;
-  if PageControl1.ActivePage = SheetQuery then Result := gridQuery;
+  if PageControlMain.ActivePage = tabData then Result := gridData;
+  if PageControlMain.ActivePage = tabQuery then Result := gridQuery;
 end;
 
 
