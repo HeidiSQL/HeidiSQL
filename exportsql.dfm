@@ -199,6 +199,7 @@ object ExportSQLForm: TExportSQLForm
         Anchors = [akLeft, akTop, akRight, akBottom]
         ItemHeight = 13
         TabOrder = 1
+        OnKeyDown = checkListTablesKeyDown
       end
       object comboSelectDatabase: TComboBox
         Left = 8

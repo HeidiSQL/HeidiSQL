@@ -89,6 +89,8 @@ type
     procedure radioOtherHostClick(Sender: TObject);
     procedure cbxDataClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure checkListTablesKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     procedure GetRemoteDatabasesCompleted(res: TNotifyStructure);
     { Private declarations }
@@ -1036,6 +1038,54 @@ procedure TExportSQLForm.cbxTablesClick(Sender: TObject);
 begin
   validateControls(Sender);
   generateExampleSQL;
+end;
+
+procedure TExportSQLForm.checkListTablesKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  i: Integer;
+begin
+  // if exist tables and is more than one, 'cause
+  // if exists only one, this action is not needed
+  // and CTRL Key is pressed
+  if ((checkListTables.Count > 1) and (ssCtrl in Shift)) then
+  begin
+    case (Key) of
+      VK_UP: // UP Key
+      begin
+        // find the selected, starting from the second table
+        for i := 1 to (checkListTables.Count - 1) do
+        begin
+          if (checkListTables.Selected[i]) then
+          begin
+            // move the selected to up
+            checkListTables.Items.Move(i, (i - 1));
+            // select it again
+            checkListTables.Selected[i] := True;
+            // stop the find
+            Break;
+          end;
+        end;
+      end;
+      VK_DOWN: // DOWN Key
+      begin
+        // find the selected, starting from the first table, but
+        // ignore the last
+        for i := 0 to (checkListTables.Count - 2) do
+        begin
+          if (checkListTables.Selected[i]) then
+          begin
+            // move the selected to down
+            checkListTables.Items.Move(i, (i + 1));
+            // select it again
+            checkListTables.Selected[i] := True;
+            // stop the find
+            Break;
+          end;
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure TExportSQLForm.cbxDatabaseClick(Sender: TObject);
