@@ -355,6 +355,7 @@ begin
   ButtonConnect.Enabled := Enable;
   ButtonSave.Enabled := Enable;
   ButtonDelete.Enabled := Enable;
+  ButtonEditDesc.Enabled := Enable;
 
   EditHost.Enabled := Enable;
   EditBenutzer.Enabled := Enable;
