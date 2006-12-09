@@ -1268,6 +1268,7 @@ var
   reg : TRegistry;
   folder : String;
 begin
+  result := defaultValue;
   reg := TRegistry.Create;
   folder := regpath;
   if key <> '' then
@@ -1276,9 +1277,7 @@ begin
     if reg.OpenKey(folder, false) then
     begin
       if reg.ValueExists( valueName ) then
-        result := reg.ReadInteger( valueName )
-      else
-        result := defaultValue;
+        result := reg.ReadInteger( valueName );
       reg.CloseKey;
     end;
   finally

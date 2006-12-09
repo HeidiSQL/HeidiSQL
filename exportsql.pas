@@ -451,6 +451,7 @@ begin
     with TMDIChild(Mainform.ActiveMDIChild) do
     begin
       ExecUseQuery( comboSelectDatabase.Text );
+      max_allowed_packet := 1024*1024;
       if cbxExtendedInsert.Checked then
       begin
         max_allowed_packet := StrToIntDef( GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );

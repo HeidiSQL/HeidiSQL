@@ -977,7 +977,6 @@ var
   found_rows               : Int64;
   select_base              : String;
   mq : TMysqlQuery;
-  dataset : TDataSet;
   conn_params : TConnParams;
   sl_query : TStringList;
 begin
@@ -1253,7 +1252,6 @@ procedure TMDIChild.pcChange(Sender: TObject);
 var DataOrQueryTab : Boolean;
 begin
   // PageControl changes
-  tabBlobEditor.tabVisible := DataOrQueryTab;
   tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
 
   Mainform.ExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
@@ -1275,10 +1273,10 @@ begin
     Copy2XML.Enabled := DataOrQueryTab;
     ExportData.Enabled := DataOrQueryTab;
     PrintList.Enabled := not DataOrQueryTab;
+    ToolBarData.Visible:= (PageControlMain.ActivePage = tabData);
+    DBNavigator1.DataSource := DataSource1;
   end;
-
-  mainform.ToolBarData.Visible:= (PageControlMain.ActivePage = tabData);
-  mainform.DBNavigator1.DataSource := DataSource1;
+  tabBlobEditor.tabVisible := DataOrQueryTab;
 
   ValidateDbActions;
 end;
@@ -3579,7 +3577,6 @@ end;
 procedure TMDIChild.CallSQLHelp(Sender: TObject);
 var
   keyword : String;
-  i : Integer;
 begin
   // Call SQL Help from various places
   if mysql_version < 40100 then
@@ -3915,7 +3912,6 @@ end;
 procedure TMDIChild.popupDataGridPopup(Sender: TObject);
 var
   y,m,d,h,i,s,ms : Word;
-  menu : TMenuItem;
   cpText, selectedColumn, value : String;
 const
   CLPBRD : String = 'CLIPBOARD';
@@ -3934,7 +3930,6 @@ begin
   end;
 
   // Manipulate the Quick-filter menuitems
-  menu := popupDatagrid.Items.Find('Quick Filter');
   selectedColumn := mask(gridData.SelectedField.FieldName);
   // 1. block: include selected columnname and value from datagrid in caption
   value := escLike(gridData.SelectedField.AsString);

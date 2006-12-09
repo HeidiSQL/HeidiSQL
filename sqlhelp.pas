@@ -45,7 +45,7 @@ type
     { Public declarations }
   end;
 
-  function SQLHelpWindow (AOwner : TComponent; Keyword : String = '') : Boolean;
+  procedure SQLHelpWindow (AOwner : TComponent; Keyword : String = '');
 
   const
     DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
@@ -61,7 +61,7 @@ uses ZDataset, helpers, main;
 {$R *.dfm}
 
 
-function SQLHelpWindow (AOwner : TComponent; Keyword : String = '') : Boolean;
+procedure SQLHelpWindow (AOwner : TComponent; Keyword : String = '');
 var
   f : TfrmSQLHelp;
 begin
