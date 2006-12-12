@@ -775,6 +775,11 @@ begin
               case ZQuery3.Fields[k].DataType of
                 ftInteger, ftSmallint, ftWord:
                   value := ZQuery3.Fields[k].AsString;
+                ftBoolean:
+                  if ZQuery3.Fields[k].AsBoolean then
+                    value := escapeAuto( 'Y' )
+                  else
+                    value := escapeAuto( 'N' );
                 else
                   value := escapeAuto( ZQuery3.Fields[k].AsString );
               end;
