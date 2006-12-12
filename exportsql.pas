@@ -404,8 +404,8 @@ begin
   Screen.Cursor := crHourGlass;
 
   // export what?
-  exportdb      := cbxDatabase.Checked;
-  exporttables  := cbxTables.Checked;
+  exportdb      := cbxStructure.Checked and cbxDatabase.Checked;
+  exporttables  := cbxStructure.Checked and cbxTables.Checked;
   exportdata    := cbxData.Checked;
 
   // to where?
@@ -521,7 +521,8 @@ begin
       tcount := 0;
       for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then inc(tcount);
       barProgress.Max := 0;
-      if exporttables then barProgress.Max := tcount;
+      if exporttables then
+        barProgress.Max := tcount;
       if exportdata then
         barProgress.Max := barProgress.Max + tcount;
 
