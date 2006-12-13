@@ -454,6 +454,9 @@ function TZAbstractDatabaseMetadata.GetResultSetFromCache(
 var
   TempKey: IZAnyValue;
 begin
+  // Disables retrieving cached results to fix
+  // bug #1571441 "Creating a new Field >> changes in this field are not saved."
+  exit;
   TempKey := TZAnyValue.CreateWithString(Key);
   Result := FCachedResultSets.Get(TempKey) as IZResultSet;
   if Result <> nil then
