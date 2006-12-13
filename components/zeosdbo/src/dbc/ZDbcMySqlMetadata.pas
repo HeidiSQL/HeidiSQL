@@ -1127,7 +1127,11 @@ begin
             begin
               DefaultValue := GetStringByName('Default');
               if (MySQLType in [stString, stUnicodeString]) then
-                DefaultValue := '''' + DefaultValue + ''''
+                // Since we changed date/time-related columntypes to be presented
+                // as strings, we need to move the CURRENT_TIMESTAMP-check to here.
+                // Also left the other line in order to minimize the changes in ZeosLib
+                if DefaultValue <> 'CURRENT_TIMESTAMP' then
+                  DefaultValue := '''' + DefaultValue + ''''
               else if (MySQLType in [stDate, stTime, stTimestamp]) then
               begin
                 if DefaultValue <> 'CURRENT_TIMESTAMP' then
