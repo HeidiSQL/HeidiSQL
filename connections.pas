@@ -41,6 +41,8 @@ type
     Timer1: TTimer;
     ButtonEditDesc: TSpeedButton;
     CheckBoxSorted: TCheckBox;
+    ButtonSaveAndConnect: TButton;
+    procedure ButtonSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
@@ -234,6 +236,12 @@ begin
 end;
 
 
+procedure Tconnform.ButtonSaveAndConnectClick(Sender: TObject);
+begin
+  ButtonSaveClick( Sender );
+  ButtonConnectClick( Sender );
+end;
+
 procedure Tconnform.ButtonSaveClick(Sender: TObject);
 begin
   // save connection!
@@ -344,6 +352,7 @@ begin
     end;
   end;
   ButtonSave.Enabled := false;
+  ButtonSaveAndConnect.Enabled := ButtonSave.Enabled;
   ButtonEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
   Screen.Cursor := crDefault;
 end;
@@ -354,6 +363,7 @@ begin
   ComboBoxDescription.Enabled := Enable;
   ButtonConnect.Enabled := Enable;
   ButtonSave.Enabled := Enable;
+  ButtonSaveAndConnect.Enabled := Enable;
   ButtonDelete.Enabled := Enable;
   ButtonEditDesc.Enabled := Enable;
 
@@ -379,6 +389,7 @@ end;
 procedure Tconnform.Modified(Sender: TObject);
 begin
   ButtonSave.Enabled := true;
+  ButtonSaveAndConnect.Enabled := true;
   CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
 end;
 
