@@ -54,7 +54,6 @@ type
       FConnParams : TConnParams;
       FOwner : TObject; // TMysqlQuery object
       FSql : String;
-      FForm : TForm;
       FResult : Integer;
       FComment : String;
       FSyncMode : Integer;
@@ -202,9 +201,6 @@ begin
     SetState (MQR_CONNECT_FAIL,'Connect error');
   end;
 
-  r := False;
-  q := nil;
-
   if FMysqlConn.Connected then
     begin
       FMysqlConnectionID := QuerySingleCellAsInteger('SELECT CONNECTION_ID()');
@@ -213,6 +209,7 @@ begin
 
       if GetExpectResultSet(FSql) then
         begin
+          q := nil;
           r := RunDataQuery (FSql,TDataSet(q));
 
           if r then

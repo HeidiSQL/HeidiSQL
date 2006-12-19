@@ -20,14 +20,10 @@ type
     function GetIsAlive: Boolean;
     function GetIsConnected: Boolean;
       //FTimer : TTimer;
-    protected
-      function GetHasResultset: Boolean;
     public
       constructor Create(AParams : PMysqlConnParams);
       destructor Destroy(); override;
       function Connect() : Integer;
-      function ExecQuery (ASql : String) : Boolean;
-      property HasResultset : Boolean read GetHasResultset;
       property IsConnected : Boolean read GetIsConnected;
       property IsAlive : Boolean read GetIsAlive;
       property Connection : TZConnection read FConn;
@@ -87,16 +83,6 @@ destructor TMysqlConn.Destroy;
 begin
   FreeAndNil (FConn);
   inherited;
-end;
-
-function TMysqlConn.ExecQuery(ASql: String): Boolean;
-begin
-
-end;
-
-function TMysqlConn.GetHasResultset: Boolean;
-begin
-
 end;
 
 function TMysqlConn.GetIsAlive: Boolean;

@@ -441,7 +441,6 @@ type
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
       CanAcessMysqlFlag          : Boolean;
-      FDataTabQuery              : TMysqlQuery;
       FCurDataset                : TDataSet;
       FQueryRunning              : Boolean;
       FMysqlConn                 : TMysqlConn;
@@ -4048,8 +4047,6 @@ end;
 
 // Execute a query without returning a resultset
 procedure TMDIChild.ExecQuery( SQLQuery: String );
-var
-  mq : TMysqlQuery;
 begin
   try
     CheckConnection;
@@ -4060,7 +4057,7 @@ begin
   FProgressForm := TFrmQueryProgress.Create(Self);
 
   FQueryRunning := True;
-  mq := ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
+  ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
 
   WaitForQueryCompletion();
 end;

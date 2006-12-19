@@ -54,7 +54,7 @@ type
       FProgressForm : Pointer;
       constructor Create (AOwner : TComponent; AParams : PConnParams);
       destructor Destroy (); override;
-      function Query (ASql : String; AMode : Integer = MQM_SYNC; ANotifyWndHandle : THandle = 0) : Integer;
+      procedure Query (ASql : String; AMode : Integer = MQM_SYNC; ANotifyWndHandle : THandle = 0);
       procedure SetMysqlDataset(ADataset : TDataset);
       procedure PostNotification (AQueryResult : TThreadResult; AEvent : Integer);
       property Result : Integer read GetResult;
@@ -154,7 +154,7 @@ begin
         FOnNotify(Self,AEvent);
 end;
 
-function TMysqlQuery.Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle): Integer;
+procedure TMysqlQuery.Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle);
 var
   EventHandle : THandle;
 begin
@@ -172,22 +172,16 @@ begin
       begin
         // create mutex
         EventHandle := CreateEvent (nil,False,False,PChar(FEventName));
-      end;
-    MQM_ASYNC:;
-  end;
-
-  // exec query
-  FQueryThread.Resume();
-
-  case AMode of
-    MQM_SYNC:
-      begin        
+        // exec query
+        FQueryThread.Resume();
         WaitForSingleObject (EventHandle, INFINITE);
         CloseHandle (EventHandle);
         // read status
         // free thread
       end;
-    MQM_ASYNC:;
+    MQM_ASYNC:
+        // exec query
+        FQueryThread.Resume();
   end;
 end;
 

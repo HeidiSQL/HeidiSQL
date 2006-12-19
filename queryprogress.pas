@@ -14,8 +14,9 @@ type
     procedure timAntiFreezeTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnAbortClick(Sender: TObject);
-  private
+  protected
     procedure CreateParams(var Params: TCreateParams); override;
+  private
     procedure HandleQueryNotificationMsg(var AMessage : TMessage); message WM_MYSQL_THREAD_NOTIFY;
   public
 
