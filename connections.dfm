@@ -3138,6 +3138,7 @@ object connform: Tconnform
     Top = 293
     Width = 89
     Height = 25
+    Anchors = [akTop, akRight]
     Caption = 'Save + Connect'
     TabOrder = 15
     OnClick = ButtonSaveAndConnectClick
