@@ -1329,15 +1329,15 @@ procedure ActivateWindow(Window : HWnd);
 var
   state : TWindowPlacement;
 begin
-  If not IsWindow(Window) then exit;
-  If IsIconic(Window) then
-  begin
-    State.length := SizeOf(TWindowPlacement);
-    GetWindowPlacement(Window, PWindowPlacement(@State));
-    if (State.flags and 2) = 2 then
+  if not IsWindow(Window) then exit;
+  if IsIconic(Window) then begin
+    state.length := SizeOf(TWindowPlacement);
+    GetWindowPlacement(Window, PWindowPlacement(@state));
+    if (state.flags and WPF_RESTORETOMAXIMIZED) = WPF_RESTORETOMAXIMIZED then begin
       ShowWindow(Window, SW_SHOWMAXIMIZED)
-    else
+    end else begin
       ShowWindow(Window, SW_RESTORE);
+    end;
   end;
   BringWindowToTop(Window);
   SetForegroundWindow(Window);
