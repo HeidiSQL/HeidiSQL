@@ -298,7 +298,7 @@ procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
   // Search online
   ShellExec( 'http://www.heidisql.com/sqlhelp.php?mysqlversion='+inttostr(m.mysql_version)+
-    '&hsversion='+urlencode(Main.appversion)+'&keyword='+urlencode(keyword) );
+    'keyword='+urlencode(keyword) );
 end;
 
 
