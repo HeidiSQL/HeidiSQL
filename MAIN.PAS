@@ -718,10 +718,10 @@ begin
     item := TMenuItem.Create(self);
     if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
     item.Caption := name;
-    if (appHandle = Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
-    else if (appHandle = Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
-    else if (appHandle <> Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
-    else if (appHandle <> Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
+    if (appHandle = Application.Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
+    else if (appHandle = Application.Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
+    else if (appHandle <> Application.Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
+    else if (appHandle <> Application.Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
     item.Tag := appHandle;
     item.OnClick := focusWindow;
     menuWindow.Add(item);
@@ -899,10 +899,10 @@ begin
     item := TMenuItem.Create(self);
     if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
     item.Caption := name;
-    if (appHandle = Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
-    else if (appHandle = Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
-    else if (appHandle <> Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
-    else if (appHandle <> Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
+    if (appHandle = Application.Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
+    else if (appHandle = Application.Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
+    else if (appHandle <> Application.Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
+    else if (appHandle <> Application.Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
     item.Tag := appHandle;
     item.OnClick := focusWindow;
     menuConnections.Items.Add(item);
