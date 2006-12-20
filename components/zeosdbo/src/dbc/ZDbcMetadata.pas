@@ -3064,14 +3064,11 @@ var
   QuoteDelim: string;
 begin
   Result := Value;
-  if IsCaseSensitive(Value) then
-  begin
-    QuoteDelim := Metadata.GetIdentifierQuoteString;
-    if Length(QuoteDelim) > 1 then
-      Result := QuoteDelim[1] + Result + QuoteDelim[2]
-    else if Length(QuoteDelim) = 1 then
-      Result := QuoteDelim[1] + Result + QuoteDelim[1];
-  end;
+  QuoteDelim := Metadata.GetIdentifierQuoteString;
+  if Length(QuoteDelim) > 1 then
+    Result := QuoteDelim[1] + Result + QuoteDelim[2]
+  else if Length(QuoteDelim) = 1 then
+    Result := QuoteDelim[1] + Result + QuoteDelim[1];
 end;
 
 const

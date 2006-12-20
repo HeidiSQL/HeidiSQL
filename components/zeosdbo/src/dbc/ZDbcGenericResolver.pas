@@ -622,7 +622,7 @@ begin
     Temp2 := Temp2 + '?';
   end;
 
-  Result := Format('INSERT INTO `%s` (%s) VALUES (%s)', [TableName, Temp1, Temp2]);
+  Result := Format('INSERT INTO %s (%s) VALUES (%s)', [TableName, Temp1, Temp2]);
 end;
 
 {**
@@ -656,7 +656,7 @@ begin
     Temp := Temp + IdentifierConvertor.Quote(Current.ColumnName) + '=?';
   end;
 
-  Result := Format('UPDATE `%s` SET %s', [TableName, Temp]);
+  Result := Format('UPDATE %s SET %s', [TableName, Temp]);
   DefineWhereKeyColumns(Columns);
   Result := Result + FormWhereClause(Columns, OldRowAccessor);
 end;
@@ -672,7 +672,7 @@ var
   TableName: string;
 begin
   TableName := DefineTableName;
-  Result := Format('DELETE FROM `%s`', [TableName]);
+  Result := Format('DELETE FROM %s', [TableName]);
   DefineWhereKeyColumns(Columns);
   Result := Result + FormWhereClause(Columns, OldRowAccessor);
 end;
