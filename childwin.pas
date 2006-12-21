@@ -1921,7 +1921,7 @@ begin
     ListProcesses.Items.Clear;
     ZQuery3.Close;
     ZQuery3.SQL.Clear;
-    ZQuery3.SQL.Add( 'SHOW PROCESSLIST' );
+    ZQuery3.SQL.Add( 'SHOW FULL PROCESSLIST' );
     ZQuery3.Open;
     ZQuery3.First;
     for i:=1 to ZQuery3.RecordCount do
