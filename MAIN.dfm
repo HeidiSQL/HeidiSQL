@@ -53,7 +53,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 413
+      Width = 421
       Height = 22
       Align = alNone
       AutoSize = True
@@ -213,8 +213,16 @@ object MainForm: TMainForm
         Action = ExportTables
         AutoSize = True
       end
-      object btnSQLHelp: TToolButton
+      object ToolButton1: TToolButton
         Left = 390
+        Top = 0
+        Width = 8
+        Caption = 'ToolButton1'
+        ImageIndex = 97
+        Style = tbsSeparator
+      end
+      object btnSQLHelp: TToolButton
+        Left = 398
         Top = 0
         Hint = 'SQL Help'
         Caption = 'btnSQLHelp'
@@ -224,7 +232,7 @@ object MainForm: TMainForm
       end
     end
     object ToolBarData: TToolBar
-      Left = 13
+      Left = 11
       Top = 28
       Width = 489
       Height = 22
@@ -623,6 +631,8 @@ object MainForm: TMainForm
       Hint = 'Copy|Copy to Clipboard'
       ImageIndex = 1
       ShortCut = 16451
+      SecondaryShortCuts.Strings = (
+        'Ctrl+Ins')
     end
     object EditPaste1: TEditPaste
       Tag = 58
@@ -631,34 +641,8 @@ object MainForm: TMainForm
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 2
       ShortCut = 16470
-    end
-    object WindowCascade1: TWindowCascade
-      Category = 'Window'
-      Caption = '&Cascade'
-      Hint = 'Cascade'
-      ImageIndex = 14
-    end
-    object WindowTileHorizontal1: TWindowTileHorizontal
-      Category = 'Window'
-      Caption = 'Tile &Horizontally'
-      Hint = 'Tile Horizontally'
-      ImageIndex = 12
-    end
-    object WindowTileVertical1: TWindowTileVertical
-      Category = 'Window'
-      Caption = 'Tile &Vertically'
-      Hint = 'Tile Vertically'
-      ImageIndex = 13
-    end
-    object WindowMinimizeAll1: TWindowMinimizeAll
-      Category = 'Window'
-      Caption = '&Minimize All'
-      Hint = 'Minimize All'
-    end
-    object WindowArrangeAll1: TWindowArrange
-      Category = 'Window'
-      Caption = '&Arrange All'
-      Hint = 'Arrange All'
+      SecondaryShortCuts.Strings = (
+        'Shift+Ins')
     end
     object UserManager: TAction
       Tag = 34
@@ -758,13 +742,6 @@ object MainForm: TMainForm
       ImageIndex = 45
       ShortCut = 24696
       OnExecute = ExecuteLineExecute
-    end
-    object ManualCopy: TAction
-      Caption = 'Copy field-contents'
-      Hint = 'Copy field-contents|Copy field-contents to Clipboard'
-      ImageIndex = 1
-      ShortCut = 16473
-      OnExecute = ManualCopyExecute
     end
     object HTMLview: TAction
       Caption = 'HTML-view'

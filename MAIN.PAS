@@ -37,12 +37,7 @@ type
     EditPaste1: TEditPaste;
     FileNew1: TAction;
     FileExit1: TAction;
-    WindowCascade1: TWindowCascade;
-    WindowTileHorizontal1: TWindowTileHorizontal;
-    WindowArrangeAll1: TWindowArrange;
-    WindowMinimizeAll1: TWindowMinimizeAll;
     FileClose1: TWindowClose;
-    WindowTileVertical1: TWindowTileVertical;
     ImageList1: TImageList;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
@@ -138,7 +133,6 @@ type
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
     MenuReplace: TMenuItem;
-    ManualCopy: TAction;
     ExecuteLine: TAction;
     MenuRunLine: TMenuItem;
     HTMLview: TAction;
@@ -160,6 +154,7 @@ type
     menuSQLHelp: TMenuItem;
     N8: TMenuItem;
     Import1: TMenuItem;
+    ToolButton1: TToolButton;
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
@@ -211,8 +206,6 @@ type
     procedure DBNavigator1BeforeAction(Sender: TObject;
       Button: TNavigateBtn);
     procedure ExportDataExecute(Sender: TObject);
-    procedure ImportWizardExecute(Sender: TObject);
-    procedure ManualCopyExecute(Sender: TObject);
     procedure ExecuteLineExecute(Sender: TObject);
     procedure HTMLviewExecute(Sender: TObject);
     procedure InsertFilesExecute(Sender: TObject);
@@ -1110,25 +1103,6 @@ begin
   end;
 end;
 
-
-
-{ Replace Text with replace-dialog }
-procedure TMainForm.ImportWizardExecute(Sender: TObject);
-begin
-end;
-
-
-// copy field-contents to clipboard
-procedure TMainForm.ManualCopyExecute(Sender: TObject);
-var g : TSMDBGrid;
-begin
-  g := TMDIChild(Mainform.ActiveMDIChild).ActiveGrid;
-  if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
-  if g.datasource.State <> dsInactive then
-    clipboard.AsText := g.SelectedField.AsString
-  else
-    messagebeep(MB_ICONASTERISK);
-end;
 
 
 // view HTML

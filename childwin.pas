@@ -215,10 +215,8 @@ type
     N11: TMenuItem;
     ProgressBarQuery: TProgressBar;
     btnQueryReplace: TToolButton;
-    Copy2: TMenuItem;
     Copy4: TMenuItem;
     N14: TMenuItem;
-    Copyfieldcontents1: TMenuItem;
     DataInsertDateTime: TMenuItem;
     DataTimestamp: TMenuItem;
     DataDateTime: TMenuItem;
@@ -267,6 +265,10 @@ type
     QF16: TMenuItem;
     QF17: TMenuItem;
     N21: TMenuItem;
+    procedure gridQueryMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure gridDataMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CallSQLHelp(Sender: TObject);
     procedure ManageIndexes1Click(Sender: TObject);
@@ -391,8 +393,6 @@ type
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure DBGridGetCellParams(Sender: TObject; Field: TField;
       AFont: TFont; var Background: TColor; Highlight: Boolean);
-    procedure DBGridEnter(Sender: TObject);
-    procedure DBGridExit(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure btnBlobCopyClick(Sender: TObject);
@@ -3397,6 +3397,23 @@ begin
   abort;
 end;
 
+procedure TMDIChild.gridDataMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  ed: TCustomEdit;
+begin
+  if Button = mbRight then begin
+    // Select text in in-place editor to make popup menu copy and paste work.
+    (Sender as TDBGrid).EditorMode := true;
+    ed := TCustomEdit(FindControl(GetFocus()));
+    ed.SelectAll;
+    // Popup menu manually, mucking about with the grid causes it to stop doing it by itself.
+    popupDataGrid.Popup(X + 178, Y + 142);
+  end else begin
+    inherited MouseDown(Button, Shift, X, Y);
+  end;
+end;
+
 procedure TMDIChild.controlsKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
@@ -3859,10 +3876,13 @@ end;
 
 procedure TMDIChild.DBGridDblClick(Sender: TObject);
 begin
-  // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
-  if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControl4.ActivePageIndex = 0) then begin
-    PageControlBottom.ActivePageIndex := 1;
-    DBMemo1.SetFocus;
+  // If grid is not empty...
+  if (Sender as TDBGrid).SelectedField <> nil then begin
+    // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
+    if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControl4.ActivePageIndex = 0) then begin
+      PageControlBottom.ActivePageIndex := 1;
+      DBMemo1.SetFocus;
+    end;
   end;
 end;
 
@@ -3896,16 +3916,6 @@ begin
     afont.Color := clInfoText;
   end;
   if field.IsNull then background := mainform.DataNullBackground;
-end;
-
-procedure TMDIChild.DBGridEnter(Sender: TObject);
-begin
-  Mainform.ManualCopy.Enabled := true;
-end;
-
-procedure TMDIChild.DBGridExit(Sender: TObject);
-begin
-  Mainform.ManualCopy.Enabled := false;
 end;
 
 procedure TMDIChild.popupDataGridPopup(Sender: TObject);
@@ -4236,6 +4246,23 @@ begin
   PageControl4Change(self);
 end;
 
+
+procedure TMDIChild.gridQueryMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  ed: TCustomEdit;
+begin
+  if Button = mbRight then begin
+    // Select text in in-place editor to make popup menu copy and paste work.
+    (Sender as TDBGrid).EditorMode := true;
+    ed := TCustomEdit(FindControl(GetFocus()));
+    ed.SelectAll;
+    // Popup menu manually, mucking about with the grid causes it to stop doing it by itself.
+    popupResultGrid.Popup(X + 178, Y + 248);
+  end else begin
+    inherited MouseDown(Button, Shift, X, Y);
+  end;
+end;
 
 procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
   var Action: TDataAction);

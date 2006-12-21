@@ -696,9 +696,8 @@ object MDIChild: TMDIChild
             OnColEnter = DBGridColEnter
             OnColumnMoved = gridDataColumnMoved
             OnDblClick = DBGridDblClick
-            OnEnter = DBGridEnter
-            OnExit = DBGridExit
             OnKeyUp = controlsKeyUp
+            OnMouseDown = gridDataMouseDown
             OnTitleClick = gridDataTitleClick
             ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
@@ -954,8 +953,7 @@ object MDIChild: TMDIChild
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
             OnDblClick = DBGridDblClick
-            OnEnter = DBGridEnter
-            OnExit = DBGridExit
+            OnMouseDown = gridQueryMouseDown
             ExOptions = [eoBooleanAsCheckBox, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
             RegistryKey = 'Software\MikeSoft'
@@ -1620,9 +1618,6 @@ object MDIChild: TMDIChild
     object Copy3: TMenuItem
       Action = MainForm.EditCopy1
     end
-    object Copy2: TMenuItem
-      Action = MainForm.ManualCopy
-    end
     object Paste2: TMenuItem
       Action = MainForm.EditPaste1
     end
@@ -1831,9 +1826,6 @@ object MDIChild: TMDIChild
     Top = 80
     object Copy4: TMenuItem
       Action = MainForm.EditCopy1
-    end
-    object Copyfieldcontents1: TMenuItem
-      Action = MainForm.ManualCopy
     end
     object HTMLview1: TMenuItem
       Action = MainForm.HTMLview
