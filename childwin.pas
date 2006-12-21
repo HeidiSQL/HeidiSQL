@@ -3342,7 +3342,7 @@ end;
 procedure TMDIChild.DropFilter1Click(Sender: TObject);
 begin
   // Drop Filter
-  SynMemoFilter.Lines.Clear;
+  ClearFilter(Self);
   viewdata(self);
 end;
 
