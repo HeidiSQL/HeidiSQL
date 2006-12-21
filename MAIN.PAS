@@ -149,7 +149,7 @@ type
     miFake: TMenuItem;
     menuBugtracker: TMenuItem;
     menuFeaturetracker: TMenuItem;
-    menuChangelog: TMenuItem;
+    menuDownload: TMenuItem;
     btnSQLHelp: TToolButton;
     menuSQLHelp: TMenuItem;
     N8: TMenuItem;

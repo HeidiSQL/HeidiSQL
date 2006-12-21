@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 346
+  ClientHeight = 366
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 327
+    Top = 347
     Width = 632
     Height = 19
     AutoHint = True
@@ -35,6 +35,7 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
+    ExplicitTop = 327
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -565,6 +566,11 @@ object MainForm: TMainForm
         Hint = 'http://www.heidisql.com/'
         OnClick = OpenURL
       end
+      object menuDownload: TMenuItem
+        Caption = 'Download-Page'
+        Hint = 'http://download.heidisql.com/'
+        OnClick = OpenURL
+      end
       object menuSupportForum: TMenuItem
         Caption = 'Support-Forum'
         Hint = 'http://www.heidisql.com/forum/'
@@ -578,11 +584,6 @@ object MainForm: TMainForm
       object menuFeaturetracker: TMenuItem
         Caption = 'Featuretracker'
         Hint = 'http://rfe.heidisql.com/'
-        OnClick = OpenURL
-      end
-      object menuChangelog: TMenuItem
-        Caption = 'Changelog'
-        Hint = 'http://changes.heidisql.com/'
         OnClick = OpenURL
       end
       object N9: TMenuItem
@@ -787,7 +788,7 @@ object MainForm: TMainForm
     Left = 8
     Top = 120
     Bitmap = {
-      494C010163006800040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010163006800040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000A0010000010020000000000000A0
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -4223,7 +4224,8 @@ object MainForm: TMainForm
       F6CFFE008000FFFFF6B7FE000000FFFFF6B7FE000000FFFFF8B780000000FFF7
       FE8F80000001C1F7FE3F80000003C3FBFF7F80000003C7FBFE3F80010003CBFB
       FEBF80030003DCF7FC9F80070003FF0FFDDF807F0003FFFFFDDF80FF8007FFFF
-      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF}
+      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
   end
   object Timer1: TTimer
     Enabled = False
