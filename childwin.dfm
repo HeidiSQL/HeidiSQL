@@ -212,7 +212,7 @@ object MDIChild: TMDIChild
                   end
                   item
                     Alignment = taRightJustify
-                    Caption = 'Total frequency'
+                    Caption = 'Total count'
                     Width = 100
                   end
                   item

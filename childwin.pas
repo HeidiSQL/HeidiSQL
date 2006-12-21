@@ -1836,11 +1836,8 @@ var
   versions : TStringList;
   questions : Int64;
 begin
-// Refresh variables and process-list
+  // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
-
-  ListVariables.Items.BeginUpdate;
-  ListVariables.Items.Clear;
 
   // VERSION
   v := GetVar( 'SELECT VERSION()' );
@@ -1848,7 +1845,11 @@ begin
   mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
   strHostRunning := FConnParams.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
 
+
   // VARIABLES
+  ListVariables.Items.BeginUpdate;
+  ListVariables.Items.Clear;
+
   GetResults( 'SHOW VARIABLES', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
@@ -1862,17 +1863,20 @@ begin
   // STATUS
   uptime := 1; // avoids division by zero :)
   questions := 1;
-  GetResults( 'SHOW STATUS', ZQuery3 );
+  GetResults( 'SHOW /*!50002 GLOBAL */ STATUS', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
-    n := ListVariables.Items.Add;
-    n.ImageIndex := 87;
-    n.Caption := ZQuery3.Fields[0].AsString;
-    n.Subitems.Add( ZQuery3.Fields[1].AsString );
-    if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
-      uptime := MakeInt(ZQuery3.Fields[1].AsString);
-    if lowercase( ZQuery3.Fields[0].AsString ) = 'questions' then
-      questions := MakeInt(ZQuery3.Fields[1].AsString);
+    if LowerCase( copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
+    begin
+      n := ListVariables.Items.Add;
+      n.ImageIndex := 87;
+      n.Caption := ZQuery3.Fields[0].AsString;
+      n.Subitems.Add( ZQuery3.Fields[1].AsString );
+      if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
+        uptime := MakeInt(ZQuery3.Fields[1].AsString);
+      if lowercase( ZQuery3.Fields[0].AsString ) = 'questions' then
+        questions := MakeInt(ZQuery3.Fields[1].AsString);
+    end;
     ZQuery3.Next;
   end;
   // Remove existing column-sort-images
