@@ -158,8 +158,7 @@ begin
   end;
 
   Screen.Cursor := crDefault;
-  ShowStatus( STATUS_MSG_READY, 2 );
-
+  
 end;
 
 
