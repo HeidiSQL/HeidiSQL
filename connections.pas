@@ -157,6 +157,7 @@ begin
     FreeAndNil (mysqlconn);
   end;
 
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
   
 end;
