@@ -377,7 +377,8 @@ begin
       Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Index Editor';
       pc.Pages[1].TabVisible := True;
       pc.ActivePageIndex := 1;
-      ComboBoxKeys.SetFocus();
+      if Length(klist) > 0 then
+        ComboBoxKeys.SetFocus();
     end;
 
 
