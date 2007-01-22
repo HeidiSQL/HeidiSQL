@@ -2481,6 +2481,8 @@ begin
       //DBtreeChange( self, DBTree.Selected );
       btnSQLHelp.Enabled := (mysql_version >= 40100);
       menuSQLHelp.Enabled := btnSQLHelp.Enabled;
+      menuLoad.OnClick := self.btnQueryLoadClick;
+      menuSave.OnClick := self.btnQuerySaveClick;
     end;
   end;
   TimerConnected.OnTimer(self);
@@ -2537,6 +2539,8 @@ begin
     LoadSQL.Enabled := false;
     btnSQLHelp.Enabled := false;
     menuSQLHelp.Enabled := false;
+    menuLoad.OnClick := nil;
+    menuSave.OnClick := nil;
   end;
   MainForm.showstatus('', 1); // empty connected_time
 end;
