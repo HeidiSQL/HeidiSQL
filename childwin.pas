@@ -4300,7 +4300,7 @@ begin
     begin
       if where <> '' then
         where := where + CRLF + ' OR ';
-      where := where + gridData.Fields[i].FieldName + ' LIKE ''%' + escLike( EditDataSearch.text ) + '%''';
+      where := where + mask(gridData.Fields[i].FieldName) + ' LIKE ''%' + escLike( EditDataSearch.text ) + '%''';
     end;
     if CheckBoxDataSearch.Checked then
       where := 'NOT (' + where + ')';
