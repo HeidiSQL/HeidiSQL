@@ -1323,6 +1323,23 @@ begin
 end;
 
 
+// Given a Delphi MainForm, acquire the handle of that form's Application.
+function GetApplication(MainForm: HWnd): HWnd;
+begin
+  result := GetWindowLong(MainForm, GWL_HWNDPARENT);
+end;
+
+
+// Given a Delphi MainForm, activate the application it belongs to.
+procedure ActivateMainForm(MainForm: HWnd);
+var
+  delphiApp: HWnd;
+begin
+  delphiApp := GetApplication(MainForm);
+  ActivateWindow(delphiApp);
+end;
+
+
 // Copyright: This function was nicked from usenet:
 // Delphi & focus control by Tony Tanzillo in autodesk.autocad.customization.vba.
 procedure ActivateWindow(Window : HWnd);

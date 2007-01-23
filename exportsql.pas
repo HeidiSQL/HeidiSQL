@@ -1119,7 +1119,7 @@ begin
   k := 0;
   for i := 0 to High(list) do with list[i] do begin
     // Do not include current window.
-    if appHandle <> Application.Handle then begin
+    if appHandle <> MainForm.Handle then begin
       // Do not include non-connected windows.
       if connected then begin
         if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);

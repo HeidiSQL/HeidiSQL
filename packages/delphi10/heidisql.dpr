@@ -54,7 +54,7 @@ begin
 
   try
     try
-      InitializeSync(Application.Handle);
+      InitializeSync(MainForm.Handle);
       SetWindowName(main.discname);
       debug('perf: Running.');
       Application.Run;

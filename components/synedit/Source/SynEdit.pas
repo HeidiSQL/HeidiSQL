@@ -5945,7 +5945,10 @@ begin
   then
     Msg.Msg := 0
   else
-    inherited;
+    if Msg.Msg = WM_MOUSEWHEEL then
+      exit
+    else
+      inherited;
 end;
 {$ENDIF}
 
