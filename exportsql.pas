@@ -473,7 +473,7 @@ begin
         current_characterset := GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
         if current_characterset <> '' then
         begin
-          sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
+          sql := '/*!40100 SET CHARACTER SET ' + current_characterset + '*/;';
           wfs(f, sql);
         end;
         if cbxDatabase.Checked then
@@ -722,7 +722,7 @@ begin
           begin
             if tofile then
             begin
-              wfs(f, '/*!40000 ALTER TABLE '+ mask(checkListTables.Items[i]) +' DISABLE KEYS;*/' );
+              wfs(f, '/*!40000 ALTER TABLE '+ mask(checkListTables.Items[i]) +' DISABLE KEYS*/;' );
               wfs(f, 'LOCK TABLES '+ mask(checkListTables.Items[i]) +' WRITE;' );
             end
             else if todb then
@@ -834,7 +834,7 @@ begin
             if tofile then
             begin
               wfs(f, 'UNLOCK TABLES;' );
-              wfs(f, '/*!40000 ALTER TABLE '+mask(checkListTables.Items[i])+' ENABLE KEYS;*/' );
+              wfs(f, '/*!40000 ALTER TABLE '+mask(checkListTables.Items[i])+' ENABLE KEYS*/;' );
             end
             else if todb then
             begin
