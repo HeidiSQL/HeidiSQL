@@ -1133,7 +1133,7 @@ begin
   // Abort if no other windows.
   if comboOtherHost.Items.Count = 0 then begin
     MessageDLG('You need at least two open connection-windows to enable this option.', mtError, [mbOK], 0);
-    radioFile.OnClick(radioFile);
+    radioFile.Checked := true;
     abort;
   end;
 
