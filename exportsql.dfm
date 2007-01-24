@@ -304,10 +304,11 @@ object ExportSQLForm: TExportSQLForm
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 13
-        ItemIndex = 0
+        ItemIndex = 1
         TabOrder = 3
         Text = 'MySQL 3.23 - 5.0'
         Items.Strings = (
+          'Standard ANSI SQL'
           'MySQL 3.23 - 5.0'
           'MySQL 5.1 and above')
       end

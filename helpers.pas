@@ -40,6 +40,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
   procedure wfs( var s: TFileStream; str: String = '');
+  procedure wsql( var s: TFileStream; mysqlSemicolonWorkaround: boolean = false; sql: String = '');
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
@@ -63,7 +64,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
-  function maskSql(mysql_version: integer; str: String) : String;
+  function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
   procedure ActivateWindow(Window : HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
 
@@ -807,6 +808,29 @@ begin
 end;
 
 
+// Write sql sentence to FileStream.
+//
+// Works around MySQL placement of semicolon in conditional
+// statements, which is not compatible with standard SQL (making
+// the whole point of conditional statements slightly moot?).
+// The broken format is unfortunately the only format that the
+// mysql cli will eat, according to one user...
+//
+// btnExportClick() could be rewritten to better handle this sort
+// of thing, but for now / with the current code, this is the easiest
+// way of accomplishing the desired effect.
+procedure wsql(
+  var s: TFileStream;
+  mysqlSemicolonWorkaround: boolean = false;
+  sql: String = ''
+);
+begin
+  if mysqlSemicolonWorkaround then begin
+    sql := StringReplace(sql, ';*/', '*/;', [rfReplaceAll]);
+  end;
+  wfs(s, sql);
+end;
+
 
 procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
 var
@@ -1287,12 +1311,17 @@ begin
   DecimalSeparator := DecimalSeparatorSystemdefault;
 end;
 
-function maskSql(mysql_version: integer; str: String) : String;
+function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
 var
   i, o                    : byte;
   hasbadchar, iskeyword   : Boolean;
 begin
-  if mysql_version >= 32300 then
+  if ansi then
+  begin
+    result := StringReplace(str, '"', '""', [rfReplaceAll]);
+    result := '"' + result + '"';
+  end
+  else if mysql_version >= 32300 then
   begin
     // only mask if needed
     hasbadchar := false;
