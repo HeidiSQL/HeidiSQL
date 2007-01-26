@@ -435,7 +435,8 @@ type
       strHostRunning             : String;
       uptime, time_connected     : Integer;
       OnlyDBs                    : TStringList;  // used on connecting
-      rowcount                   : Integer;      // rowcount of ActualTable
+      rowcount                   : Int64;        // rowcount of ActualTable
+      avgrowsize                 : Int64;
       viewingdata                : Boolean;
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
@@ -960,6 +961,17 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+const
+  // how much memory we're aiming to use for the
+  // data grid and it's automatic limit function
+  // this value should probably be user configurable
+  datagrid_load_initial: Integer = 5*1024*1024;
+  // how much overhead this application has per row
+  per_row_overhead: Integer = 1150;
+  // average row size guess for mysql server < 5.0
+  row_size_guess: Integer = 2048;
+  // round to nearest value when deciding limit
+  limit_rounding: Integer = 1000;
 
 procedure TMDIChild.viewdata(Sender: TObject);
 var
@@ -975,6 +987,7 @@ var
   columnexists             : Boolean;
   found_rows               : Int64;
   select_base              : String;
+  limit                    : Int64;
   mq : TMysqlQuery;
   conn_params : TConnParams;
   sl_query : TStringList;
@@ -986,11 +999,42 @@ begin
 
   sl_query := TStringList.Create();
 
-  // rowcount:
-  try
-    rowcount := StrToIntDef( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ), 0 );
-  except
-    rowcount := 0;
+  // fetch row count and average row size
+  rowcount := StrToInt(GetVar('SELECT COUNT(*) FROM ' + mask(ActualTable), 0));
+  if mysql_version > 50000 then begin
+    avgrowsize := StrToInt(GetVar(
+      'SELECT avg_row_length ' +
+      'FROM information_schema.tables ' +
+      'WHERE table_schema=' + esc(ActualDatabase) + ' ' +
+      'AND table_name=' + esc(ActualTable), 0)
+    ) + per_row_overhead;
+  end else begin
+    avgrowsize := row_size_guess + per_row_overhead;
+  end;
+
+  // limit number of rows automatically if first time this table is shown
+  if not dataselected then begin
+    // limit number of rows fetched if more than ~ 5 MB of data
+    if avgrowsize * rowcount > datagrid_load_initial then begin
+      limit := Trunc(datagrid_load_initial / avgrowsize);
+      limit := (Trunc(limit / limit_rounding) + 1) * limit_rounding;
+      debug(Format('data: %d rows of %d bytes each (average, including overhead), limiting data grid to %d rows', [rowcount, avgrowsize, limit]));
+      if limit >= rowcount then limit := -1;
+    end else begin
+      limit := -1;
+    end;
+    debug(Format('data: %d rows of %d bytes each (average, including overhead), limiting data grid to %d rows', [rowcount, avgrowsize, limit]));
+
+    // adjust limit in GUI
+    mainform.ToolBarData.Visible := true;
+    if limit = -1 then begin
+      mainform.CheckBoxLimit.Checked := false;
+    end else begin
+      mainform.CheckBoxLimit.Checked := true;
+      mainform.EditLimitStart.Text := '0';
+      mainform.EditLimitEnd.Text := IntToStr(limit);
+    end;
+    mainform.Repaint;
   end;
 
   // set db-aware-component's properties...
