@@ -1081,8 +1081,10 @@ begin
 
   if (ActualTable <> '') and (ActualDatabase <> '') then
   begin
+    // Ensure <Table> and <Data> are visible
     tabTable.TabVisible := true;
     tabData.TabVisible := true;
+    // Set the grid-cells to always-edit-mode if set in preferences
     if Mainform.DataAlwaysEditMode then
     begin
       gridData.Options := gridData.Options + [dgAlwaysShowEditor];
@@ -1093,6 +1095,7 @@ begin
       gridData.Options := gridData.Options - [dgAlwaysShowEditor];
       gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
     end;
+    // Switch to <Data>
     PageControlMain.ActivePage := tabData;
 
 		MainForm.ShowStatus( 'Retrieving data...', 2, true );
@@ -1100,15 +1103,20 @@ begin
     if FCurDataset<>nil then
       FreeAndNil (FCurDataset);
 
+    // Prepare SELECT statement
     select_base := 'SELECT ';
+    // Try to calc the rowcount regardless of a given LIMIT
     if mysql_version >= 40000 then
       select_base := select_base + ' SQL_CALC_FOUND_ROWS';
     select_base := select_base + ' * FROM ' + mask(ActualTable);
     sl_query.Add( select_base );
+    // Apply custom WHERE filter
     if trim(self.SynMemoFilter.Text) <> '' then
       sl_query.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
+    // Apply custom ORDER BY if detected in registry
     if sorting <> '' then
       sl_query.Add( sorting );
+    // Apply LIMIT
     if mainform.CheckBoxLimit.Checked then
       sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
     try
@@ -1216,15 +1224,31 @@ begin
     end;
 
     Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rowcount) + ' records total';
+
+    // TODO: FOUND_ROWS() gives us a correct number, but this number
+    // belongs in most cases to a different query than the previous SELECT,
+    // because Zeos does some automagically
+    //   SHOW TABLES LIKE '' and
+    //   SHOW COLUMNS LIKE '%'
+    // between the above SELECT and this SELECT FOUND_ROWS().
+    // This behaviour has been introduced with the fix of
+    // a faulty caching-mechanism in Zeos (rev 312).
+    // Maybe we should store the FOUND_ROWS in a new Zeos-property
+    // after detecting a "SELECT FOUND ROWS()..." query??
     if mysql_version >= 40000 then
-      found_rows := StrToInt64Def(GetVar('SELECT FOUND_ROWS()'), 0)
+    begin
+      found_rows := StrToInt64Def(GetVar('SELECT FOUND_ROWS()'), 0);
+    end
     else
+    begin
       found_rows := rowcount;
+    end;
+
     if (found_rows <> rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
       Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(found_rows) + ' matching to filter';
     if (mysql_version >= 40000) and (found_rows = rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
       Panel5.Caption := Panel5.Caption + ', filter matches all records';
-    if mainform.CheckBoxLimit.Checked and ( found_rows > mainform.UpDownLimitEnd.position ) then
+    if mainform.CheckBoxLimit.Checked and ( found_rows > StrToIntDef(mainform.EditLimitEnd.Text,0) ) then
       Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(FCurDataset.RecordCount);
 
     dataselected := true;
@@ -4223,6 +4247,7 @@ begin
 
   if grid.SelectedField.IsBlob then
   begin
+    // Connect the BLOB-components to this field
     DBMemo1.DataField := grid.SelectedField.FieldName;
     EDBImage1.DataField := grid.SelectedField.FieldName;
 
@@ -4232,8 +4257,12 @@ begin
       hasIrregularChars(DBMemo1.Field.AsString) or
       hasIrregularNewlines(DBMemo1.Field.AsString);
 
+    // Ensure visibility of the Blob-Editor
     PageControlBottom.ActivePageIndex := 1;
     MenuViewBlob.Enabled := true;
+
+    // Detect if we have picture-data in this BLOB and
+    // if yes, bring the viewer in the BLOB-editor to the front
     if EDBImage1.Picture.Height > 0 then
     begin
       PageControl4.ActivePageIndex := 1;
@@ -4243,15 +4272,27 @@ begin
       PageControl4.ActivePageIndex := 0;
     end;
     ResizeImageToFit;
+
   end
   else
   begin
+    // No BLOB selected, so disconnect the Blob-components
+    // from any field
     DBMemo1.DataField := '';
     EDBImage1.DataField := '';
     MenuViewBlob.Enabled := false;
   end;
-  if (DBMemo1.ReadOnly or (Length(DBMemo1.DataField) = 0)) then DBMemo1.Color := clInactiveCaptionText
-  else DBMemo1.Color := clWindow;
+
+  if (DBMemo1.ReadOnly or (Length(DBMemo1.DataField) = 0)) then
+  begin
+    // Indicate the ReadOnly-state of the BLOB to the user
+    DBMemo1.Color := clInactiveCaptionText;
+  end
+  else
+  begin
+    DBMemo1.Color := clWindow;
+  end;
+
   PageControl4Change(self);
 end;
 
