@@ -33,7 +33,7 @@ implementation
 
 uses main, childwin, helpers,insertfiles;
 
-
+{$I const.inc}
 {$R *.DFM}
 
 procedure TfrmInsertFilesProgress.Button1Click(Sender: TObject);
@@ -123,7 +123,7 @@ begin
             FileStream.Free;
           end;
         except
-          MessageDlg( 'Error reading file:'#13#10+filename, mtError, [mbOK], 0 );
+          MessageDlg( 'Error reading file:' + CRLF + filename, mtError, [mbOK], 0 );
           break;
         end;
         ZQuery3.ExecSQL;

@@ -69,8 +69,7 @@ var
 implementation
  uses Main, helpers, MysqlQueryThread, MysqlConn, ChildWin;
 
-const
-	CRLF = #13#10;
+{$I const.inc}
 
 {$R *.DFM}
 

@@ -1,6 +1,7 @@
 program heidisql;
 
 {%ToDo 'heidisql.todo'}
+{%File '..\..\const.inc'}
 
 uses
   Forms,

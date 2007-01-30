@@ -109,16 +109,7 @@ implementation
 uses
   main, childwin, helpers, edituser;
 
-
-const
-  crlf = #13#10;
-  // Names of the system tables which hold user-privileges
-  PRIVTABLE_USERS    = 'user';
-  PRIVTABLE_DB       = 'db';
-  PRIVTABLE_TABLES   = 'tables_priv';
-  PRIVTABLE_COLUMNS  = 'columns_priv';
-
-
+{$I const.inc}
 {$R *.DFM}
 
 function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
@@ -238,7 +229,7 @@ begin
     OpenKey(regpath + '\Servers\', false);
     if KeyExists(EditDescription.Text) then
     begin
-      MessageDlg('This Description (' + EditDescription.Text + ') is already used.' + crlf + 'Please specify another description!', mtError, [mbOK], 0);
+      MessageDlg('This Description (' + EditDescription.Text + ') is already used.' + CRLF + 'Please specify another description!', mtError, [mbOK], 0);
       EditDescription.SetFocus;
       exit;
     end

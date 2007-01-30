@@ -35,6 +35,7 @@ implementation
 
 uses usermanager, childwin;
 
+{$I const.inc}
 {$R *.DFM}
 
 procedure TFormEditUser.Button1Click(Sender: TObject);
@@ -67,7 +68,7 @@ begin
     // No password?
     Screen.Cursor := crDefault;
 
-    if MessageDlg('Set empty password?' + #13#10 + 'Press no to leave the old password.',
+    if MessageDlg('Set empty password?' + CRLF + 'Press no to leave the old password.',
       mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
       passwdset := '';
   end;

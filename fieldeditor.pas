@@ -100,7 +100,8 @@ var
 
 const
   tempfieldname = 'temp_fieldname';
-  crlf          = #13#10;
+  
+{$I const.inc}
 
   // field flags
   FF_HAS_LENGTH_PROP = 1;
@@ -458,12 +459,12 @@ begin
   // move field if position changed
   if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) then
     begin // Move field position
-      if MessageDLG('You are about to move a field''s position in the table-structure. While there is no handy one-query-method in MySQL to do that, this will be done in 4 steps:'+crlf+
-       ' 1. Adding a temporary field at the specified position'+crlf+
-       ' 2. Filling the temporary field with the same data as source field'+crlf+
-       ' 3. Dropping the source-field'+crlf+
-       ' 4. Renaming the temporary field to it''s original name.'+crlf+crlf+
-       'Be aware that this method can mess up existing indexes in your table or even can result in losing data! If you are not sure you should not use this function on indexed fields.'+crlf+crlf+
+      if MessageDLG('You are about to move a field''s position in the table-structure. While there is no handy one-query-method in MySQL to do that, this will be done in 4 steps:'+CRLF+
+       ' 1. Adding a temporary field at the specified position'+CRLF+
+       ' 2. Filling the temporary field with the same data as source field'+CRLF+
+       ' 3. Dropping the source-field'+CRLF+
+       ' 4. Renaming the temporary field to it''s original name.'+CRLF+CRLF+
+       'Be aware that this method can mess up existing indexes in your table or even can result in losing data! If you are not sure you should not use this function on indexed fields.'+CRLF+CRLF+
        'Continue?',
        mtConfirmation,
        [mbYes, mbCancel],
@@ -923,4 +924,5 @@ begin
 end;
 
 end.
+
 

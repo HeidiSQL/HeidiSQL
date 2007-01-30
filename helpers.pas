@@ -74,8 +74,7 @@ var
 
 implementation
 
-const
-	CRLF = #13#10;
+{$I const.inc}
 
 var
   dbgCounter: Integer = 0;
@@ -1206,9 +1205,9 @@ end;
 
 function fixNewlines(txt: string): string;
 begin
-  txt := StringReplace(txt, #13#10, #10, [rfReplaceAll]);
+  txt := StringReplace(txt, CRLF, #10, [rfReplaceAll]);
   txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
-  txt := StringReplace(txt, #10, #13#10, [rfReplaceAll]);
+  txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
 end;
 
@@ -1445,4 +1444,5 @@ initialization
 
 
 end.
+
 

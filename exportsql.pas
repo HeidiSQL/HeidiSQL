@@ -100,9 +100,7 @@ type
 
   function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
-
-const
-	CRLF = #13#10;
+{$I const.inc}
 
 implementation
 
@@ -918,18 +916,18 @@ end;
 
 procedure TExportSQLForm.generateExampleSQL;
 const
-  STR_DROP_DB              = 'DROP DATABASE <db>;'#13#10;
-  STR_CREATE_DB            = 'CREATE DATABASE <db>;'#13#10;
-  STR_CREATE_DB_IGNORE     = 'CREATE DATABASE IF NOT EXISTS <db>;'#13#10;
-  STR_DROP_TABLE           = 'DROP TABLE <table>;'#13#10;
-  STR_CREATE_TABLE         = 'CREATE TABLE <table> <definition>;'#13#10;
-  STR_CREATE_TABLE_IGNORE  = 'CREATE TABLE IF NOT EXISTS <table> <definition>;'#13#10;
-  STR_TRUNCATE_TABLE       = 'TRUNCATE TABLE <table>;'#13#10;
+  STR_DROP_DB              = 'DROP DATABASE <db>;' + CRLF;
+  STR_CREATE_DB            = 'CREATE DATABASE <db>;' + CRLF;
+  STR_CREATE_DB_IGNORE     = 'CREATE DATABASE IF NOT EXISTS <db>;' + CRLF;
+  STR_DROP_TABLE           = 'DROP TABLE <table>;' + CRLF;
+  STR_CREATE_TABLE         = 'CREATE TABLE <table> <definition>;' + CRLF;
+  STR_CREATE_TABLE_IGNORE  = 'CREATE TABLE IF NOT EXISTS <table> <definition>;' + CRLF;
+  STR_TRUNCATE_TABLE       = 'TRUNCATE TABLE <table>;' + CRLF;
   STR_INSERT               = 'INSERT INTO <table> (<columns>) <values>';
   STR_INSERT_IGNORE        = 'INSERT IGNORE INTO <table> (<columns>) <values>';
   STR_REPLACE_INTO         = 'REPLACE INTO <table> (<columns>) <values>';
-  STR_END_INSERT_REG       = ';'#13#10'(...)'#13#10;
-  STR_END_INSERT_EXT       = ', <values...>;'#13#10;
+  STR_END_INSERT_REG       = ';' + CRLF + '(...)' + CRLF;
+  STR_END_INSERT_EXT       = ', <values...>;' + CRLF;
 var
   s: string;
 procedure add(str: string); overload;
@@ -949,7 +947,7 @@ begin
         DB_CREATE:             add(STR_CREATE_DB);
         DB_CREATE_IGNORE:      add(STR_CREATE_DB_IGNORE);
       end;
-      add(#13#10);
+      add( CRLF );
     end;
     if cbxTables.Enabled and cbxTables.Checked then begin
       case comboTables.ItemIndex of
@@ -957,7 +955,7 @@ begin
         TAB_CREATE:            add(STR_CREATE_TABLE);
         TAB_CREATE_IGNORE:     add(STR_CREATE_TABLE_IGNORE);
       end;
-      add(#13#10);
+      add( CRLF );
     end;
   end;
   if cbxData.Enabled and cbxData.Checked then begin
@@ -1202,4 +1200,5 @@ begin
 end;
 
 end.
+
 

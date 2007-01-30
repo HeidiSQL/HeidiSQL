@@ -483,11 +483,7 @@ uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp,
   printlist;
 
-
-
-const
-	CRLF = #13#10;
-
+{$I const.inc}
 
 {$R *.DFM}
 
@@ -4536,5 +4532,6 @@ begin
 end;
 
 end.
+
 
 
