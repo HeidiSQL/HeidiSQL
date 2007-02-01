@@ -386,7 +386,7 @@ end;
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
 begin
   // Field Name EditChange
-  if (validName(EditFieldName.Text)) and (notinlist(EditFieldName.Text, ListboxColumns.Items)) then
+  if notinlist(EditFieldName.Text, ListboxColumns.Items) then
   begin
     buttonAdd.Enabled := true;
     buttonChange.Enabled := true;

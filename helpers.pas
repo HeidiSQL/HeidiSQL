@@ -13,16 +13,12 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   shlobj, ActiveX;
 
   function trimc(s: String; c: Char) : String;
-  // TODO: Look at each caller to see if escaping is necessary.
   function implode(seperator: String; a: array of string) :String;
   // TODO: Look at each caller to see if escaping is necessary.
   function implodestr(seperator: String; a: TStringList) :String;
-  // TODO: Look at each caller to see if escaping is necessary.
-  function implodestrs(seperator: String; a: TStrings) :String;
   function explode(separator, a: String) :TStringList;
   function strpos(haystack, needle: String; offset: Integer=0) : Integer;
-  function validname(name: String) : boolean;
-  function getklammervalues(str: String):String;
+  function getEnumValues(str: String):String;
   function parsesql(sql: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function notinlist(str: String; strlist: TStrings): Boolean;
@@ -44,9 +40,6 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
-  procedure RenameRegistryItem(AKey: HKEY; Old, New: String);
-  procedure CopyRegistryKey(Source, Dest: HKEY);
-  procedure DeleteRegistryKey(Key: HKEY);
   function MakeInt( Str: String ) : Integer;
   function esc(Text: string): string;
   function escLike(Text: string): string;
@@ -82,6 +75,13 @@ var
 
 
 
+{***
+  Trim off chars from string
+
+  @param string Input-string
+  @param char Which character to to use for trimming
+  @return string
+}
 function trimc(s: String; c: char) : String;
 var a,z: Integer;
 begin
@@ -111,7 +111,14 @@ end;
 
 
 
+{***
+  Convert an array to string using a separator-string
 
+  @todo Look at each caller to see if escaping is necessary.
+  @param string Separator
+  @param a array Containing strings
+  @return string
+}
 function implode(seperator: String; a: array of string) :String;
 var
   i : Integer;
@@ -128,6 +135,15 @@ begin
 end;
 
 
+
+{***
+  Convert a TStringList to a string using a separator-string
+
+  @todo Look at each caller to see if escaping is necessary.
+  @param string Separator
+  @param a TStringList Containing strings
+  @return string
+}
 function implodestr(seperator: String; a: TStringList) :String;
 var
   i : Integer;
@@ -143,23 +159,14 @@ begin
   result := text;
 end;
 
-function implodestrs(seperator: String; a: TStrings) :String;
-var
-  i : Integer;
-  text : String;
-begin
-  result := '';
-  for i:=0 to a.Count-1 do
-  begin
-    text := text + a[i];
-    if i < a.Count-1 then
-      text := text + seperator;
-  end;
-  result := text;
-end;
 
 
-// explode a string by separator into a TStringList
+{***
+  Explode a string by separator into a TStringList
+
+  @param string Separator
+  @return TStringList
+}
 function explode(separator, a: String) :TStringList;
 var
   i : Integer;
@@ -181,8 +188,14 @@ end;
 
 
 
-// return first position of needle in haystack (from char[offset])
-function strpos(haystack, needle: String; offset: Integer=0) : Integer;
+{***
+  Return first position of needle in haystack (from char[offset])
+
+  @param string Target
+  @param string Text to find
+  @return Integer
+}
+function strpos( haystack, needle: String; offset: Integer=0 ) : Integer;
 begin
   haystack := copy(haystack, offset, length(haystack));
   result := pos(needle, haystack);
@@ -192,28 +205,13 @@ end;
 
 
 
-// valid table/db-name?
-function validname(name: String) : boolean;
-var
-  i: Integer;
-begin
-  result := false;
-  if (length(name) > 0) and (length(name) < 65) then
-    result := true;
+{***
+  Get values from an enum- or set-typed column definition
 
-  for i:=1 to length(name) do
-  begin
-    if (name[i] in ['\','/',':','*','?','"','<','>','|','.']) then
-    begin
-      result := false;
-      break;
-    end;
-  end;
-
-end;
-
-
-function getklammervalues(str: String):String;
+  @param string Type definition, fx: enum('Y','N')
+  @return string Content of brackets
+}
+function getEnumValues(str: String):String;
 var
   p1,p2        : Integer;
 begin
@@ -224,13 +222,29 @@ begin
 end;
 
 
+
+{***
+  Add a non-empty value to a Stringlist
+
+  @param TStringList
+  @param string to add
+  @return void
+}
 procedure addResult(list: TStringList; s: string);
 begin
   s := trim(s);
-  if length(s) > 0 then list.Add(s);
+  if length(s) > 0 then
+    list.Add(s);
 end;
 
-// tokenize sql-script and return a TStringList with sql-statements
+
+
+{***
+  Tokenize sql-script and return a TStringList with sql-statements
+
+  @param string (possibly large) bunch of SQL-statements, separated by semicolon
+  @return TStringList Separated statements
+}
 function parsesql(sql: String) : TStringList;
 var
   i, start                          : Integer;
@@ -349,7 +363,14 @@ begin
 end;
 
 
-// shorten string to length len and append 3 dots
+
+{***
+  Shorten string to length len and append 3 dots
+
+  @param string String to shorten
+  @param integer Wished Length of string
+  @return string
+}
 function sstr(str: String; len: Integer) : String;
 begin
   if length(str) >= len then
@@ -361,7 +382,14 @@ begin
 end;
 
 
-// str in TStrings strlist?
+
+{***
+  Check existance of a string in a TStrings
+
+  @param string Searched text
+  @param TStrings List of Strings
+  @return boolean
+}
 function notinlist(str: String; strlist: TStrings): Boolean;
 var i: Integer;
 begin
@@ -378,8 +406,13 @@ end;
 
 
 
+{***
+  Escape String for use in SQL-strings
 
-// addslashes with String...
+  @param string Text to escape
+  @param integer Length of text (?)
+  @return string
+}
 function escape_string(Value: String; StrLen: Integer=-1) : String;
 var
   I, Add, Len: Integer;
@@ -414,13 +447,22 @@ end;
 
 
 
+{***
+  Check existance of a string in an Array
+
+  @param string Searched text
+  @param array List of Strings
+  @return boolean
+}
 function inarray(str: String; a: Array of String): Boolean;
 var i : Integer;
 begin
   result := false;
   i := 0;
-  while i < length(a) do begin
-    if a[i] = str then begin
+  while i < length(a) do
+  begin
+    if a[i] = str then
+    begin
       result := true;
       break;
     end;
@@ -429,7 +471,13 @@ begin
 end;
 
 
-// password-encryption
+
+{***
+  Password-encryption, used to store session-passwords in registry
+
+  @param string Text to encrypt
+  @return string Encrypted Text
+}
 function encrypt(str: String) : String;
 var
   i, salt, nr : integer;
@@ -451,7 +499,13 @@ begin
 end;
 
 
-// password-decryption
+
+{***
+  Password-decryption, used to restore session-passwords from registry
+
+  @param string Text to decrypt
+  @return string Decrypted Text
+}
 function decrypt(str: String) : String;
 var
   j, salt, nr : integer;
@@ -469,7 +523,13 @@ begin
 end;
 
 
-// convert html-chars to their entities
+
+{***
+  Convert HTML-characters to their corresponding entities
+
+  @param string Text used for search+replace
+  @return string Text with entities
+}
 function htmlentities(str: String) : String;
 begin
   result := stringreplace(str, '&', '&amp;', [rfReplaceAll]);
@@ -479,8 +539,17 @@ end;
 
 
 
-// convert a TZDataSet to HTML-Table.
-// if a filename is given, save HTML to disk, otherwise to clipboard
+{***
+  Converts a TDataSet to a HTML-Table.
+  If a filename is given, save HTML to disk, otherwise copy content to clipboard
+
+  @param TDataSet Object which holds data to export
+  @param string Text used in <title>
+  @param string Filename to use for saving. If not given, copy to clipboard.
+  @param boolean Use htmlentities() on cell-contents?
+  @param string Generator, used for meta-tag in HTML-head
+  @return boolean True on access, False in case of any error
+}
 function dataset2html(ds: TDataset; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
 var
   I, J                      : Integer;
@@ -604,8 +673,18 @@ begin
 end;
 
 
-// convert a TDataSet to CSV-Values.
-// if a filename is given, save CSV-data to disk, otherwise to clipboard
+
+{***
+  Converts a TDataSet to CSV-values.
+  If a filename is given, save CSV-data to disk, otherwise copy content to clipboard
+
+  @param TDataSet Object which holds data to export
+  @param string Field-separator
+  @param string Field-encloser
+  @param string Line-terminator
+  @param string Filename to use for saving. If not given, copy to clipboard.
+  @return boolean True on access, False in case of any error
+}
 function dataset2csv(ds: TDataSet; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
@@ -683,8 +762,15 @@ end;
 
 
 
-// convert a TZDataSet to XML.
-// if a filename is given, save XML to disk, otherwise to clipboard
+{***
+  Converts a TDataSet to XML.
+  If a filename is given, save XML to disk, otherwise copy content to clipboard
+
+  @param TDataSet Object which holds data to export
+  @param string Text used as root-element
+  @param string Filename to use for saving. If not given, copy to clipboard.
+  @return boolean True on access, False in case of any error
+}
 function dataset2xml(ds: TDataset; title: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
@@ -753,7 +839,13 @@ begin
 end;
 
 
-// return ASCII-Values from MySQL-Escape-Sequences
+
+{***
+  Return ASCII-Values from MySQL-Escape-Sequences
+
+  @param string Text to analyze
+  @return string Converted text
+}
 function esc2ascii(str: String): String;
 begin
   str := stringreplace(str, '\r', #13, [rfReplaceAll]);
@@ -763,7 +855,14 @@ begin
 end;
 
 
-// Get maximum value
+
+{***
+  Get higher value of two integers
+
+  @param integer Number 1 to compare
+  @param integer Number 2 to compare
+  @return integer Higher value
+}
 function Max(A, B: Integer): Integer; assembler;
 asm
   CMP EAX,EDX
@@ -772,7 +871,15 @@ asm
 @Exit:
 end;
 
-// Get minimum value
+
+
+{***
+  Get lower value of two integers
+
+  @param integer Number 1 to compare
+  @param integer Number 2 to compare
+  @return integer Lower value of both parameters
+}
 function Min(A, B: Integer): Integer; assembler;
 asm
   CMP EAX,EDX
@@ -782,24 +889,45 @@ asm
 end;
 
 
-// string compare from the begin
+
+{***
+  Left hand string-comparison
+
+  @param string Text 1 to compare
+  @param string Text 2 to compare
+  @return boolean Does the longer string of both contain the shorter string at the beginning?
+}
 function StrCmpBegin(Str1, Str2: string): Boolean;
 begin
   if ((Str1 = '') or (Str2 = '')) and (Str1 <> Str2) then
     Result := False
-  else                                    
+  else
     Result := (StrLComp(PChar(Str1), PChar(Str2),
       Min(Length(Str1), Length(Str2))) = 0);
 end;
 
 
+
+{***
+  Encode spaces (and more to come) in URLs
+
+  @param string URL to encode
+  @return string
+}
 function urlencode(url: String): String;
 begin
   result := stringreplace(url, ' ', '+', [rfReplaceAll]);
 end;
 
 
-// Write str to FileStream
+
+{***
+  Write text to existing FileStream
+
+  @param TFileStream
+  @param string Text to write
+  @return void
+}
 procedure wfs( var s: TFileStream; str: String = '');
 begin
   str := str + crlf;
@@ -807,17 +935,25 @@ begin
 end;
 
 
-// Write sql sentence to FileStream.
-//
-// Works around MySQL placement of semicolon in conditional
-// statements, which is not compatible with standard SQL (making
-// the whole point of conditional statements slightly moot?).
-// The broken format is unfortunately the only format that the
-// mysql cli will eat, according to one user...
-//
-// btnExportClick() could be rewritten to better handle this sort
-// of thing, but for now / with the current code, this is the easiest
-// way of accomplishing the desired effect.
+
+{***
+  Write SQL sentence to FileStream.
+
+  @note Works around MySQL placement of semicolon in conditional
+        statements, which is not compatible with standard SQL (making
+        the whole point of conditional statements slightly moot?).
+        The broken format is unfortunately the only format that the
+        mysql cli will eat, according to one user...
+
+        btnExportClick() could be rewritten to better handle this sort
+        of thing, but for now / with the current code, this is the easiest
+        way of accomplishing the desired effect.
+
+  @param TFileStream Existing FileStream
+  @param boolean Use MySQL owns syntax for semicolon-placement?
+  @param string SQL to write
+  @return void
+}
 procedure wsql(
   var s: TFileStream;
   mysqlSemicolonWorkaround: boolean = false;
@@ -831,6 +967,14 @@ begin
 end;
 
 
+
+{***
+  Check/Uncheck all items in a CheckListBox
+
+  @param TCheckListBox List with checkable items
+  @param boolean Check them?
+  @return void
+}
 procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
 var
   i : Integer;
@@ -841,6 +985,13 @@ begin
 end;
 
 
+
+{***
+  Get filesize of a given file
+
+  @param string Filename
+  @return int64 Size in bytes
+}
 function _GetFileSize(filename: String): Int64;
 var
   i64: record
@@ -863,9 +1014,15 @@ end;
 
 
 
-Function Mince(PathToMince: String; InSpace: Integer): String;
-// Change "C:\Program Files\Delphi\DDrop\TargetDemo\main.pas"
-// to:    "C:\Program Files\..\main.pas"
+{***
+  Change "C:\Program Files\Delphi\DDrop\TargetDemo\main.pas"
+  to:    "C:\Program Files\..\main.pas"
+
+  @param string File/Directory
+  @param integer Shorten name to this maximum amount of chars
+  @return string
+}
+function Mince(PathToMince: String; InSpace: Integer): String;
 Var
   sl: TStringList;
   sHelp, sFile: String;
@@ -914,148 +1071,13 @@ Begin
 End;
 
 
-procedure RenameRegistryItem(AKey: HKEY; Old, New: String);
 
-var OldKey,
-    NewKey  : HKEY;
-    Status  : Integer;
+{***
+  Convert a string-number to an integer-number
 
-begin
-  // Open Source key
-  Status:=RegOpenKey(AKey,PChar(Old),OldKey);
-  if Status = ERROR_SUCCESS then
-  begin
-    // Create Destination key
-    Status:=RegCreateKey(AKey,PChar(New),NewKey);
-    if Status = ERROR_SUCCESS then CopyRegistryKey(OldKey,NewKey);
-    RegCloseKey(OldKey);
-    RegCloseKey(NewKey);
-    // Delete last top-level key
-    RegDeleteKey(AKey,PChar(Old));
-  end;
-end;
-
-//--------------------------------------------------------------------------------
-
-procedure CopyRegistryKey(Source, Dest: HKEY);
-
-const DefValueSize  = 512;
-      DefBufferSize = 8192;
-
-var Status      : Integer;
-    Key         : Integer;
-    ValueSize,
-    BufferSize  : Cardinal;
-    KeyType     : Integer;
-    ValueName   : String;
-    Buffer      : Pointer;
-    NewTo,
-    NewFrom     : HKEY;
-
-begin
-  SetLength(ValueName,DefValueSize);
-  Buffer:=AllocMem(DefBufferSize);
-  try
-    Key:=0;
-    repeat
-      ValueSize:=DefValueSize;
-      BufferSize:=DefBufferSize;
-      //  enumerate data values at current key
-      Status:=RegEnumValue(Source,Key,PChar(ValueName),ValueSize,nil,@KeyType,Buffer,@BufferSize);
-      if Status = ERROR_SUCCESS then
-      begin
-        // move each value to new place
-        Status:=RegSetValueEx(Dest,PChar(ValueName),0,KeyType,Buffer,BufferSize);
-         // delete old value
-        RegDeleteValue(Source,PChar(ValueName));
-      end;
-    until Status <> ERROR_SUCCESS; // Loop until all values found
-
-    // start over, looking for keys now instead of values
-    Key:=0;
-    repeat
-      ValueSize:=DefValueSize;
-      BufferSize:=DefBufferSize;
-      Status:=RegEnumKeyEx(Source,Key,PChar(ValueName),ValueSize,nil,Buffer,@BufferSize,nil);
-      // was a valid key found?
-      if Status = ERROR_SUCCESS then
-      begin
-        // open the key if found
-        Status:=RegCreateKey(Dest,PChar(ValueName),NewTo);
-        if Status = ERROR_SUCCESS then
-        begin                                       //  Create new key of old name
-          Status:=RegCreateKey(Source,PChar(ValueName),NewFrom);
-          if Status = ERROR_SUCCESS then
-          begin
-            // if that worked, recurse back here
-            CopyRegistryKey(NewFrom,NewTo);
-            RegCloseKey(NewFrom);
-            RegDeleteKey(Source,PChar(ValueName));
-          end;
-          RegCloseKey(NewTo);
-        end;
-      end;
-    until Status <> ERROR_SUCCESS; // loop until key enum fails
-  finally
-    FreeMem(Buffer);
-  end;
-end;
-
-//--------------------------------------------------------------------------------
-
-procedure DeleteRegistryKey(Key: HKEY);
-
-const DefValueSize  = 512;
-      DefBufferSize = 8192;
-
-var Status     : Integer;
-    Index      : Integer;
-    ValueSize,
-    BufferSize : Cardinal;
-    KeyType    : Integer;
-    ValueName  : String;
-    Buffer     : Pointer;
-    SubKey     : HKEY;
-
-begin
-  SetLength(ValueName,DefValueSize);
-  Buffer:=AllocMem(DefBufferSize);
-  try
-    Index:=0;
-    repeat
-      ValueSize:=DefValueSize;
-      BufferSize:=DefBufferSize;
-      // enumerate data values at current key
-      Status:=RegEnumValue(Key,Index,PChar(ValueName),ValueSize,nil,@KeyType,Buffer,@BufferSize);
-      // delete old value
-      if Status = ERROR_SUCCESS then RegDeleteValue(Key,PChar(ValueName));
-    until Status <> ERROR_SUCCESS; // Loop until all values found
-
-    // start over, looking for keys now instead of values
-    Index:=0;
-    repeat
-      ValueSize:=DefValueSize;
-      BufferSize:=DefBufferSize;
-      Status:=RegEnumKeyEx(Key,Index,PChar(ValueName),ValueSize,nil,Buffer,@BufferSize,nil);
-      // was a valid key found?
-      if Status = ERROR_SUCCESS then
-      begin
-        // open the key if found
-        Status:=RegOpenKey(Key,PChar(ValueName),SubKey);
-        if Status = ERROR_SUCCESS then
-        begin
-          // if that worked, recurse back here
-          DeleteRegistryKey(SubKey);
-          RegCloseKey(SubKey);
-          RegDeleteKey(Key,PChar(ValueName));
-        end;
-      end;
-    until Status <> ERROR_SUCCESS; // loop until key enum fails
-  finally
-    FreeMem(Buffer);
-  end;
-end;
-
+  @param string String-number
+  @return integer
+}
 function MakeInt( Str: String ) : Integer;
 var
   i : Integer;
@@ -1072,7 +1094,14 @@ begin
   result := StrToIntDef( StrWithInts, 0 );
 end;
 
-// Escape text string.
+
+
+{***
+  Escape single quotes and backslashes in a text string
+
+  @param string Text to escape
+  @return string
+}
 function esc(Text: string): string;
 begin
   Result := StringReplace(Text, #39, #39#39, [rfReplaceAll]);
@@ -1080,7 +1109,14 @@ begin
   Result := #39 + Result + #39;
 end;
 
-// Escape text string for comparison.
+
+
+{***
+  Escape text string for comparison.
+
+  @param string Text to escape
+  @return string
+}
 function escLike(Text: string): string;
 begin
   Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
@@ -1089,7 +1125,14 @@ begin
   Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
 end;
 
-// Escape characters which MySQL doesn't strictly care about, but which might confuse editors etc.
+
+
+{***
+  Escape characters which MySQL doesn't strictly care about, but which might confuse editors etc.
+
+  @param string Text to escape
+  @return string
+}
 function escOtherChars(Text: string): string;
 begin
   Result := StringReplace(Text, '"', '\"', [rfReplaceAll]);
@@ -1101,6 +1144,14 @@ begin
   {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
 end;
 
+
+
+{***
+  Detect non-latin1 characters in a text (except 9, 10 and 13)
+
+  @param string Text to test
+  @return boolean Text has any latin1-characters?
+}
 function hasIrregularChars(Text: string): boolean;
 var
   i: integer;
@@ -1121,11 +1172,18 @@ begin
   end;
 end;
 
-// The MEMO editor changes all single CRs or LFs to Windows CRLF
-// behind the user's back, so it's not useful for editing fields
-// where these kinds of line endings occur.  At least not without
-// asking the user if it's ok to auto convert to windows format first.
-// For now, we just disallow editing so no-one gets surprised.
+
+
+{***
+  The MEMO editor changes all single CRs or LFs to Windows CRLF
+  behind the user's back, so it's not useful for editing fields
+  where these kinds of line endings occur.  At least not without
+  asking the user if it's ok to auto convert to windows format first.
+  For now, we just disallow editing so no-one gets surprised.
+
+  @param string Text to test
+  @return boolean Text has some non-windows linebreaks?
+}
 function hasIrregularNewlines(Text: string): boolean;
 var
   i: integer;
@@ -1154,8 +1212,20 @@ begin
   result := false;
 end;
 
-// Escape everything within a single CHAR() call.
-// Tried a more efficient implementation, but using more than a few CHAR() calls quickly blows mysqld's default stack, effectively limiting us to this approach.
+
+
+{***
+  Escape everything within a single CHAR() call.
+  Tried a more efficient implementation, but using more than a few CHAR()
+  calls quickly blows mysqld's default stack, effectively limiting us to
+  this approach.
+
+  @todo Instead of CHAR(127, 127), we could use x'7F7F' or 0x7F7F.
+        Find out when these notations were introduced and switch to
+        one of them (0x7F7F ?) if they work on all MySQL versions..
+  @param string Text to escape
+  @return string
+}
 function escAllCharacters(Text: string): string;
 const
   VALUES_PER_ROW: integer = 15;
@@ -1163,8 +1233,6 @@ var
   i: integer;
   s, tmp: string;
 begin
-  // Instead of CHAR(127, 127), we could use x'7F7F' or 0x7F7F.
-  // TODO: Find out when these notations were introduced and switch to one of them (0x7F7F ?) if they work on all MySQL versions..
   s := 'CHAR(' + CRLF;
   for i:=1 to length(Text) do
   begin
@@ -1180,7 +1248,14 @@ begin
   Result := s;
 end;
 
-// Escapes as necessary.
+
+
+{***
+  Escapes as necessary.
+
+  @param string Text to escape
+  @return string
+}
 function escapeAuto(Text: string): string;
 begin
   if hasIrregularChars(Text) then
@@ -1193,7 +1268,14 @@ begin
   end;
 end;
 
-// Use DebugView from SysInternals or Delphi's Event Log to view.
+
+
+{***
+  Use DebugView from SysInternals or Delphi's Event Log to view.
+
+  @param string Text to ouput
+  @return void
+}
 procedure debug(txt: String);
 begin
   if length(txt) = 0 then txt := '(debug: blank output?)';
@@ -1203,6 +1285,14 @@ begin
   OutputDebugString(PChar(txt));
 end;
 
+
+
+{***
+  Unify CR's and LF's to CRLF
+
+  @param string Text to fix
+  @return string
+}
 function fixNewlines(txt: string): string;
 begin
   txt := StringReplace(txt, CRLF, #10, [rfReplaceAll]);
@@ -1212,6 +1302,14 @@ begin
 end;
 
 
+
+{***
+  Convert a boolean True/False to a string Y/N
+
+  @see TUserManagerForm::getColumnNamesOrValues
+  @param boolean Value to convert
+  @return string
+}
 function bool2str( boolval : Boolean ) : String;
 begin
   if boolval then
@@ -1221,6 +1319,13 @@ begin
 end;
 
 
+
+{***
+  Get the path of a Windows(r)-shellfolder, specified by an integer or a constant
+
+  @param integer Number or constant
+  @return string Path
+}
 function GetShellFolder(CSIDL: integer): string;
 var
   pidl                   : PItemIdList;
@@ -1253,6 +1358,14 @@ begin
 end;
 
 
+
+{***
+  Return all files in a given directory into a TStringList
+
+  @param string Folderpath
+  @param string Filepattern to filter files, defaults to all files (*.*)
+  @return TStringList Filenames
+}
 function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
 var
   sr : TSearchRec;
@@ -1271,6 +1384,13 @@ begin
 end;
 
 
+
+{***
+  Remove special characters from a filename
+
+  @param string Filename
+  @return string
+}
 function goodfilename( str: String ): String;
 var
   c : Char;
@@ -1281,24 +1401,56 @@ begin
 end;
 
 
-// Return a formatted number from a string
+
+{***
+  Return a formatted number from a string
+  by first converting it to a float and then to the desired format
+
+  @param string Text containing a number
+  @return string
+}
 function FormatNumber( str: String ): String; Overload;
 begin
   result := FormatNumber( StrToFloat( str ) );
 end;
 
-// Return a formatted number from an integer
+
+
+{***
+  Return a formatted number from an integer
+
+  @param int64 Number to format
+  @return string
+}
 function FormatNumber( int: Int64 ): String; Overload;
 begin
   result := FormatNumber( int, 0 );
 end;
 
-// Return a formatted number from a float
+
+
+{***
+  Return a formatted number from a float
+  This function is called by two overloaded functions
+
+  @param double Number to format
+  @param integer Number of decimals
+  @return string
+}
 function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
 begin
   result := trim( format( '%10.'+IntToStr(decimals)+'n', [flt] ) );
 end;
 
+
+
+{***
+  Set global variables containing the standard local format for date and time
+  values. Standard means the MySQL-standard format, which is YYYY-MM-DD HH:MM:SS
+
+  @note Be aware that Delphi internally converts the slashes in ShortDateFormat
+        to the DateSeparator
+}
 procedure setLocales;
 begin
   DateSeparator := '-';
@@ -1310,6 +1462,17 @@ begin
   DecimalSeparator := DecimalSeparatorSystemdefault;
 end;
 
+
+
+{***
+  Quote identifiers either with double quotes to be ANSI-compatibile,
+  mysql-compatible backticks, or not at all for mysql below 3.23
+
+  @param integer MySQL version as compact number
+  @param string Identifier
+  @param boolean Quote it ANSI-compatible (but not MySQL-compatible)?
+  @return string (not) quoted identifier
+}
 function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
 var
   i, o                    : byte;
@@ -1351,14 +1514,25 @@ begin
 end;
 
 
-// Given a Delphi MainForm, acquire the handle of that form's Application.
+
+{***
+  Given a Delphi MainForm, acquire the handle of that form's Application.
+
+  @param HWnd The mainform's window handle
+  @return HWnd
+}
 function GetApplication(MainForm: HWnd): HWnd;
 begin
   result := GetWindowLong(MainForm, GWL_HWNDPARENT);
 end;
 
 
-// Given a Delphi MainForm, activate the application it belongs to.
+
+{***
+  Given a Delphi MainForm, activate the application it belongs to.
+
+  @param HWnd The mainform's window handle
+}
 procedure ActivateMainForm(MainForm: HWnd);
 var
   delphiApp: HWnd;
@@ -1368,8 +1542,14 @@ begin
 end;
 
 
-// Copyright: This function was nicked from usenet:
-// Delphi & focus control by Tony Tanzillo in autodesk.autocad.customization.vba.
+
+{***
+  Activate a specific form
+
+  @note Copyright: This function was nicked from usenet:
+        Delphi & focus control by Tony Tanzillo in autodesk.autocad.customization.vba.
+  @param HWnd Form to activate
+}
 procedure ActivateWindow(Window : HWnd);
 var
   state : TWindowPlacement;
@@ -1389,11 +1569,17 @@ begin
 end;
 
 
+
+{***
+  Open URL or execute system command
+
+  @param string Command or URL to execute
+  @param string Working directory, only usefull is first param is a system command
+}
 procedure ShellExec( cmd: String; path: String = '' );
 var
   ppath : PChar;
 begin
-  // open URLs or execute system command
   if path <> '' then
     ppath := pchar(path)
   else
@@ -1401,46 +1587,50 @@ begin
   ShellExecute(0, 'open', pchar(cmd), Nil, ppath, SW_SHOWNORMAL);
 end;
 
+
+
 initialization
 
-  // Keywords copied from SynHighligherSQL
-  MYSQL_KEYWORDS := TStringList.Create;
-  MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,ANALYZE,AND,ANY,AS,' +
-    'ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BACKUP,BEFORE,BEGIN,BENCHMARK,BETWEEN,BINLOG,BIT,' +
-    'BOOL,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CHANGE,CHARACTER,CHARSET,CHECK,' +
-    'CHECKSUM,CLIENT,COLLATE,COLLATION,COLUMN,COLUMNS,COMMENT,COMMIT,' +
-    'COMMITTED,COMPLETION,CONCURRENT,CONNECTION,CONSISTENT,CONSTRAINT,' +
-    'CONVERT,CONTAINS,CONTENTS,CREATE,CROSS,DATA,DATABASE,DATABASES,' +
-    'DEALLOCATE,DEC,DEFAULT,DEFINER,DELAYED,DELAY_KEY_WRITE,DELETE,DESC,' +
-    'DETERMINISTIC,DIRECTORY,DISABLE,DISCARD,DESCRIBE,DISTINCT,DISTINCTROW,' +
-    'DIV,DROP,DUAL,DUMPFILE,DUPLICATE,EACH,ELSE,ENABLE,ENCLOSED,END,ENDS,' +
-    'ENGINE,ENGINES,ESCAPE,ESCAPED,ERRORS,EVENT,EVENTS,EVERY,EXECUTE,EXISTS,' +
-    'EXPANSION,EXPLAIN,FALSE,FIELDS,FILE,FIRST,FLUSH,FOR,FORCE,FOREIGN,FROM,' +
-    'FULL,FULLTEXT,FUNCTION,FUNCTIONS,GLOBAL,GRANT,GRANTS,GROUP,HAVING,HELP,' +
-    'HIGH_PRIORITY,HOSTS,IDENTIFIED,IGNORE,INDEX,INFILE,INNER,INSERT,' +
-    'INSERT_METHOD,INSTALL,INT1,INT2,INT3,INT4,INT8,INTO,IO_THREAD,IS,' +
-    'ISOLATION,INVOKER,JOIN,KEY,KEYS,KILL,LAST,LEADING,LEAVES,LEVEL,LESS,' +
-    'LIKE,LIMIT,LINEAR,LINES,LIST,LOAD,LOCAL,LOCK,LOGS,LONG,LOW_PRIORITY,' +
-    'MASTER,MASTER_HOST,MASTER_LOG_FILE,MASTER_LOG_POS,MASTER_CONNECT_RETRY,' +
-    'MASTER_PASSWORD,MASTER_PORT,MASTER_SSL,MASTER_SSL_CA,MASTER_SSL_CAPATH,' +
-    'MASTER_SSL_CERT,MASTER_SSL_CIPHER,MASTER_SSL_KEY,MASTER_USER,MATCH,' +
-    'MAX_ROWS,MAXVALUE,MIDDLEINT,MIN_ROWS,MOD,MODE,MODIFY,MODIFIES,NAMES,' +
-    'NATURAL,NEW,NO,NODEGROUP,NOT,NULL,OJ,OFFSET,OLD,ON,OPTIMIZE,OPTION,' +
-    'OPTIONALLY,OPEN,OR,ORDER,OUTER,OUTFILE,PACK_KEYS,PARTIAL,PARTITION,' +
-    'PARTITIONS,PLUGIN,PLUGINS,PREPARE,PRESERVE,PRIMARY,PRIVILEGES,PROCEDURE,' +
-    'PROCESS,PROCESSLIST,QUERY,RAID_CHUNKS,RAID_CHUNKSIZE,RAID_TYPE,RANGE,' +
-    'READ,REBUILD,REFERENCES,REGEXP,RELAY_LOG_FILE,RELAY_LOG_POS,RELOAD,' +
-    'RENAME,REORGANIZE,REPAIR,REPEATABLE,REPLACE,REPLICATION,RESTRICT,RESET,' +
-    'RESTORE,RETURN,RETURNS,REVOKE,RLIKE,ROLLBACK,ROLLUP,ROUTINE,ROW,' +
-    'ROW_FORMAT,ROWS,SAVEPOINT,SCHEDULE,SCHEMA,SCHEMAS,SECURITY,SELECT,' +
-    'SERIALIZABLE,SESSION,SET,SHARE,SHOW,SHUTDOWN,SIMPLE,SLAVE,SNAPSHOT,' +
-    'SONAME,SQL,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_CACHE,' +
-    'SQL_CALC_FOUND_ROWS,SQL_NO_CACHE,SQL_SMALL_RESULT,SQL_THREAD,START,' +
-    'STARTING,STARTS,STATUS,STOP,STORAGE,STRAIGHT_JOIN,SUBPARTITION,' +
-    'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
-    'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
-    'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
-    'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
+
+
+// Keywords copied from SynHighligherSQL
+MYSQL_KEYWORDS := TStringList.Create;
+MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,ANALYZE,AND,ANY,AS,' +
+  'ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BACKUP,BEFORE,BEGIN,BENCHMARK,BETWEEN,BINLOG,BIT,' +
+  'BOOL,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CHANGE,CHARACTER,CHARSET,CHECK,' +
+  'CHECKSUM,CLIENT,COLLATE,COLLATION,COLUMN,COLUMNS,COMMENT,COMMIT,' +
+  'COMMITTED,COMPLETION,CONCURRENT,CONNECTION,CONSISTENT,CONSTRAINT,' +
+  'CONVERT,CONTAINS,CONTENTS,CREATE,CROSS,DATA,DATABASE,DATABASES,' +
+  'DEALLOCATE,DEC,DEFAULT,DEFINER,DELAYED,DELAY_KEY_WRITE,DELETE,DESC,' +
+  'DETERMINISTIC,DIRECTORY,DISABLE,DISCARD,DESCRIBE,DISTINCT,DISTINCTROW,' +
+  'DIV,DROP,DUAL,DUMPFILE,DUPLICATE,EACH,ELSE,ENABLE,ENCLOSED,END,ENDS,' +
+  'ENGINE,ENGINES,ESCAPE,ESCAPED,ERRORS,EVENT,EVENTS,EVERY,EXECUTE,EXISTS,' +
+  'EXPANSION,EXPLAIN,FALSE,FIELDS,FILE,FIRST,FLUSH,FOR,FORCE,FOREIGN,FROM,' +
+  'FULL,FULLTEXT,FUNCTION,FUNCTIONS,GLOBAL,GRANT,GRANTS,GROUP,HAVING,HELP,' +
+  'HIGH_PRIORITY,HOSTS,IDENTIFIED,IGNORE,INDEX,INFILE,INNER,INSERT,' +
+  'INSERT_METHOD,INSTALL,INT1,INT2,INT3,INT4,INT8,INTO,IO_THREAD,IS,' +
+  'ISOLATION,INVOKER,JOIN,KEY,KEYS,KILL,LAST,LEADING,LEAVES,LEVEL,LESS,' +
+  'LIKE,LIMIT,LINEAR,LINES,LIST,LOAD,LOCAL,LOCK,LOGS,LONG,LOW_PRIORITY,' +
+  'MASTER,MASTER_HOST,MASTER_LOG_FILE,MASTER_LOG_POS,MASTER_CONNECT_RETRY,' +
+  'MASTER_PASSWORD,MASTER_PORT,MASTER_SSL,MASTER_SSL_CA,MASTER_SSL_CAPATH,' +
+  'MASTER_SSL_CERT,MASTER_SSL_CIPHER,MASTER_SSL_KEY,MASTER_USER,MATCH,' +
+  'MAX_ROWS,MAXVALUE,MIDDLEINT,MIN_ROWS,MOD,MODE,MODIFY,MODIFIES,NAMES,' +
+  'NATURAL,NEW,NO,NODEGROUP,NOT,NULL,OJ,OFFSET,OLD,ON,OPTIMIZE,OPTION,' +
+  'OPTIONALLY,OPEN,OR,ORDER,OUTER,OUTFILE,PACK_KEYS,PARTIAL,PARTITION,' +
+  'PARTITIONS,PLUGIN,PLUGINS,PREPARE,PRESERVE,PRIMARY,PRIVILEGES,PROCEDURE,' +
+  'PROCESS,PROCESSLIST,QUERY,RAID_CHUNKS,RAID_CHUNKSIZE,RAID_TYPE,RANGE,' +
+  'READ,REBUILD,REFERENCES,REGEXP,RELAY_LOG_FILE,RELAY_LOG_POS,RELOAD,' +
+  'RENAME,REORGANIZE,REPAIR,REPEATABLE,REPLACE,REPLICATION,RESTRICT,RESET,' +
+  'RESTORE,RETURN,RETURNS,REVOKE,RLIKE,ROLLBACK,ROLLUP,ROUTINE,ROW,' +
+  'ROW_FORMAT,ROWS,SAVEPOINT,SCHEDULE,SCHEMA,SCHEMAS,SECURITY,SELECT,' +
+  'SERIALIZABLE,SESSION,SET,SHARE,SHOW,SHUTDOWN,SIMPLE,SLAVE,SNAPSHOT,' +
+  'SONAME,SQL,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_CACHE,' +
+  'SQL_CALC_FOUND_ROWS,SQL_NO_CACHE,SQL_SMALL_RESULT,SQL_THREAD,START,' +
+  'STARTING,STARTS,STATUS,STOP,STORAGE,STRAIGHT_JOIN,SUBPARTITION,' +
+  'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
+  'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
+  'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
+  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
 
 
 end.

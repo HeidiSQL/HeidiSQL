@@ -159,7 +159,7 @@ end;
 procedure Toptimize.Check(Sender: TObject);
 var
   i : Integer;
-  checkedtables : TStrings;
+  checkedtables : TStringList;
   querystr  : String;
 begin
   screen.Cursor := crSQLWait;
@@ -170,7 +170,7 @@ begin
       for i:=0 to Items.Count - 1 do
         if Checked[i] then
           checkedtables.Add(mainform.mask(Items[i]));
-    querystr := 'CHECK TABLE ' + implodestrs(',', checkedtables);
+    querystr := 'CHECK TABLE ' + implodestr(',', checkedtables);
     if CheckBoxQuickCheck.Checked then
       querystr := querystr + ' QUICK';
     ExecUseQuery( self.DBComboBox.Text );
@@ -183,7 +183,7 @@ end;
 procedure Toptimize.Analyze(Sender: TObject);
 var
   i : Integer;
-  checkedtables : TStrings;
+  checkedtables : TStringList;
   querystr  : String;
 begin
   screen.Cursor := crSQLWait;
@@ -194,7 +194,7 @@ begin
       for i:=0 to Items.Count - 1 do
         if Checked[i] then
           checkedtables.Add(mainform.mask(Items[i]));
-    querystr := 'ANALYZE TABLE ' + implodestrs(',', checkedtables);
+    querystr := 'ANALYZE TABLE ' + implodestr(',', checkedtables);
     ExecUseQuery( self.DBComboBox.Text );
     GetResults( querystr, ZQuery3 );
     showresult(self);
@@ -205,7 +205,7 @@ end;
 procedure Toptimize.Repair(Sender: TObject);
 var
   i : Integer;
-  checkedtables : TStrings;
+  checkedtables : TStringList;
   querystr  : String;
 begin
   screen.Cursor := crSQLWait;
@@ -216,7 +216,7 @@ begin
       for i:=0 to Items.Count - 1 do
         if Checked[i] then
           checkedtables.Add(mainform.mask(Items[i]));
-    querystr := 'REPAIR TABLE ' + implodestrs(',', checkedtables);
+    querystr := 'REPAIR TABLE ' + implodestr(',', checkedtables);
     if CheckBoxQuickRepair.Checked then
       querystr := querystr + ' QUICK';
     ExecUseQuery( self.DBComboBox.Text );

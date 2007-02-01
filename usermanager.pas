@@ -489,7 +489,7 @@ procedure TUserManagerForm.ShowPrivilegesControls(v, w, y: Boolean);
         // table + column are set(x,y,z)
         else if StrCmpBegin( 'set', q.FieldByName('Type').AsString ) then
         begin
-          tmpstr := getklammervalues(q.FieldByName('Type').AsString);
+          tmpstr := getEnumValues(q.FieldByName('Type').AsString);
           tmpstr := StringReplace( tmpstr, '''', '', [rfReplaceAll] );
           setlist := explode(',', tmpstr );
           for j:=0 to setlist.Count-1 do

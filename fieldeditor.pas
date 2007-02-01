@@ -241,7 +241,7 @@ begin
 
 
             EditFieldname.Text := Caption;
-            EditLength.Text := getklammervalues(Subitems[0]);
+            EditLength.Text := getEnumValues(Subitems[0]);
             EditDefault.Text := Subitems[2];
 
             // extract field type
