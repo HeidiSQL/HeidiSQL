@@ -1265,19 +1265,24 @@ begin
 
     Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rowcount) + ' records total';
 
-    // TODO: FOUND_ROWS() gives us a correct number, but this number
-    // belongs in most cases to a different query than the previous SELECT,
-    // because Zeos does some automagically
-    //   SHOW TABLES LIKE '' and
-    //   SHOW COLUMNS LIKE '%'
-    // between the above SELECT and this SELECT FOUND_ROWS().
-    // This behaviour has been introduced with the fix of
-    // a faulty caching-mechanism in Zeos (rev 312).
-    // Maybe we should store the FOUND_ROWS in a new Zeos-property
-    // after detecting a "SELECT FOUND ROWS()..." query??
+    {***
+      @note: FOUND_ROWS() gives us a correct number, but this number
+        belongs in most cases to a different query than the previous SELECT,
+        because Zeos does some automagically
+          SHOW TABLES LIKE '' and
+          SHOW COLUMNS LIKE '%'
+        between the above SELECT and a following "SELECT FOUND_ROWS()".
+        This problem has been introduced with the fix of
+        a faulty caching-mechanism in Zeos (rev 312).
+        and those queries seem to reset the FOUND_ROWS() since MySQL 5.0
+        The workaround is to store FOUND_ROWS() immediately after query-execution
+        in a variable, which we are selecting here.
+      @see TZMySQLResultSet:Create
+      @see TZMySQLResultSet:Open
+    }
     if mysql_version >= 40000 then
     begin
-      found_rows := StrToInt64Def(GetVar('SELECT FOUND_ROWS()'), 0);
+      found_rows := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
     end
     else
     begin

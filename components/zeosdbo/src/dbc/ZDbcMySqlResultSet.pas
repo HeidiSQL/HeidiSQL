@@ -63,6 +63,7 @@ type
     FRowHandle: PZMySQLRow;
     FPlainDriver: IZMySQLPlainDriver;
     FUseResult: Boolean;
+    FSQL : String;
   protected
     procedure Open; override;
   public
@@ -166,6 +167,7 @@ begin
   FPlainDriver := PlainDriver;
   ResultSetConcurrency := rcReadOnly;
   FUseResult := UseResult;
+  FSQL := SQL;
 
   Open;
 end;
@@ -202,6 +204,13 @@ begin
     if Assigned(FQueryHandle) then
       LastRowNo := FPlainDriver.GetRowCount(FQueryHandle)
     else LastRowNo := 0;
+  end;
+
+  // Store FOUND_ROWS() in variable so we can use that in HeidiSQL
+  // Note that this Zeos-internal query does NOT appear in any log!
+  if pos( 'SQL_CALC_FOUND_ROWS', FSQL ) > 0 then
+  begin
+    FPlainDriver.ExecQuery( FHandle, pchar('SET @found_rows = FOUND_ROWS()') );
   end;
 
   if not Assigned(FQueryHandle) then
