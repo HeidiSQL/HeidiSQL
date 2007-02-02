@@ -267,6 +267,7 @@ object CreateTableForm: TCreateTableForm
     Height = 21
     MaxLength = 64
     TabOrder = 0
+    OnChange = EditTablenameChange
   end
   object EditDescription: TEdit
     Left = 336

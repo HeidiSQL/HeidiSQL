@@ -2696,11 +2696,19 @@ begin
 end;
 
 
+{***
+  Rename table after checking the new name for invalid characters
+}
 procedure TMDIChild.ListTablesEdited(Sender: TObject; Item: TListItem;
   var S: String);
 var
   i : Integer;
 begin
+  if not isValidIdentifier( S, true ) then
+  begin
+    abort;
+  end;
+  
   // rename table
   ExecQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S) );
   i := SynSQLSyn1.TableNames.IndexOf( Item.Caption );

@@ -14,10 +14,10 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
 
   function trimc(s: String; c: Char) : String;
   function implode(seperator: String; a: array of string) :String;
-  // TODO: Look at each caller to see if escaping is necessary.
   function implodestr(seperator: String; a: TStringList) :String;
   function explode(separator, a: String) :TStringList;
   function strpos(haystack, needle: String; offset: Integer=0) : Integer;
+  function isValidIdentifier(name: String; createErrorDialog: Boolean = false) : boolean;
   function getEnumValues(str: String):String;
   function parsesql(sql: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
@@ -201,6 +201,84 @@ begin
   result := pos(needle, haystack);
   if result > 0 then
     result := result + offset-1;
+end;
+
+
+
+{***
+  Check for valid identifier (table-/db-/column-name) ?
+
+  @param string Identifier
+  @return boolean Name is valid?
+  @note rosenfield, 2007-02-01:
+    Those certain characters are standard filesystem wildcards * ?,
+    pipe redirection characters | < >, standard path separators / \,
+    Windows mount point identifiers :, DBMS security / container separator
+    characters . and so on.  In other words, characters that may or may
+    not be allowed by MySQL and the underlying filesystem, but which are
+    really, really, really stupid to use in a table name, since you'll
+    get into trouble once trying to use the table/db in a query or move it
+    to a different filesystem, or what not.
+  @note ansgarbecker, 2007-02-01:
+    Since mysql 5.1.6 those problematic characters are encoded in
+    a hexadecimal manner if they apply to a file (table) or folder (database)
+    But after testing that by renaming a table to a name with a dot
+    I still get an error, so we currently should be careful also on a 5.1.6+
+  @see http://dev.mysql.com/doc/refman/5.1/en/identifier-mapping.html
+}
+function isValidIdentifier(name: String; createErrorDialog: Boolean = false ) : boolean;
+var
+  i                                 : Integer;
+  invalidChars, invalidCharsShown   : String;
+  isToolong, hasInvalidChars        : Boolean;
+  msgStr                            : String;
+begin
+  result := false;
+  isToolong := false;
+  hasInvalidChars := false;
+
+  // Check length
+  if (length(name) > 0) and (length(name) < 65) then
+    result := true
+  else
+    isToolong := true;
+
+  // Check for invalid chars
+  invalidChars := '\/:*?"<>|.';
+  for i:=1 to length(name) do
+  begin
+    if (pos( name[i], invalidChars ) > 0 ) then
+    begin
+      result := false;
+      hasInvalidChars := true;
+      break;
+    end;
+  end;
+
+  // Pop up errordialog which explains what's wrong
+  if not result and createErrorDialog then
+  begin
+    if hasInvalidChars then
+    begin
+      // Add space between chars for better readability
+      invalidCharsShown := '';
+      for i:=1 to length(invalidChars) do
+      begin
+        invalidCharsShown := invalidCharsShown + invalidChars[i] + ' ';
+      end;
+      msgStr := 'The name "'+name+'" contains some invalid characters.'+
+        CRLF+CRLF + 'An identifier must not contain the following characters:'+CRLF+invalidCharsShown;
+    end
+    else if isToolong then
+    begin
+      msgStr := 'The name "'+name+'" has '+IntToStr(Length(name))
+        +' characters and exceeds the maximum length 64 characters.';
+    end;
+
+    MessageDlg( msgStr, mtError, [mbOK], 0 );
+  end;
+
+
 end;
 
 

@@ -50,6 +50,7 @@ type
     Label5: TLabel;
     Bevel2: TBevel;
     ListboxColumns: TListBox;
+    procedure EditTablenameChange(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonCreateClick(Sender: TObject);
     procedure ButtonDeleteClick(Sender: TObject);
@@ -301,6 +302,32 @@ begin
   fields[index].LengthSet := EditLengthSet.Text;
 end;
 
+
+{***
+  Check if tablename is valid and warn the user in case he's
+  doing some crappy character here
+}
+procedure TCreateTableForm.EditTablenameChange(Sender: TObject);
+var
+  isValid : Boolean;
+begin
+  isValid := isValidIdentifier( EditTablename.Text );
+  if not isValid then
+  begin
+    EditTablename.Font.Color := clRed;
+    EditTablename.Color := clYellow;
+  end
+  else
+  begin
+    EditTablename.Font.Color := clWindowText;
+    EditTablename.Color := clWindow;
+  end;
+  // Enable "OK"-Button if we have a valid name AND there
+  // is at least 1 column 
+  ButtonCreate.Enabled := isValid and (ListBoxColumns.Items.Count > 0);
+end;
+
+
 procedure TCreateTableForm.EditDefaultChange(Sender: TObject);
 begin
   // Default
@@ -379,14 +406,16 @@ begin
   refreshfields(self);
   EditFieldnameChange(self);
   ListboxColumns.ItemIndex := index;
-  // ButtonCreate enable!
-  ButtonCreate.Enabled := length(fields)>0;
+  // Call change-handler of Tablename-edit to check if
+  // the Create-Button should be enabled
+  EditTablenameChange(self);
 end;
 
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
 begin
   // Field Name EditChange
-  if notinlist(EditFieldName.Text, ListboxColumns.Items) then
+  if (isValidIdentifier(EditFieldName.Text))
+    and (notinlist(EditFieldName.Text, ListboxColumns.Items)) then
   begin
     buttonAdd.Enabled := true;
     buttonChange.Enabled := true;
