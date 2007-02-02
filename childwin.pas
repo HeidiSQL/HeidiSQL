@@ -2704,9 +2704,14 @@ procedure TMDIChild.ListTablesEdited(Sender: TObject; Item: TListItem;
 var
   i : Integer;
 begin
-  if not isValidIdentifier( S, true ) then
-  begin
-    abort;
+  try
+    ensureValidIdentifier( S );
+  except
+    On E : Exception do
+    begin
+      MessageDlg( E.Message, mtError, [mbOK], 0 );
+      abort;
+    end;
   end;
   
   // rename table

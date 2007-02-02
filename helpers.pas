@@ -17,7 +17,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function implodestr(seperator: String; a: TStringList) :String;
   function explode(separator, a: String) :TStringList;
   function strpos(haystack, needle: String; offset: Integer=0) : Integer;
-  function isValidIdentifier(name: String; createErrorDialog: Boolean = false) : boolean;
+  procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String):String;
   function parsesql(sql: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
@@ -226,21 +226,18 @@ end;
     I still get an error, so we currently should be careful also on a 5.1.6+
   @see http://dev.mysql.com/doc/refman/5.1/en/identifier-mapping.html
 }
-function isValidIdentifier(name: String; createErrorDialog: Boolean = false ) : boolean;
+procedure ensureValidIdentifier( name: String );
 var
-  i                                 : Integer;
-  invalidChars, invalidCharsShown   : String;
-  isToolong, hasInvalidChars        : Boolean;
-  msgStr                            : String;
+  i                                     : Integer;
+  invalidChars, invalidCharsShown       : String;
+  isToolong, hasInvalidChars   : Boolean;
+  msgStr                                : String;
 begin
-  result := false;
   isToolong := false;
   hasInvalidChars := false;
 
   // Check length
-  if (length(name) > 0) and (length(name) < 65) then
-    result := true
-  else
+  if (length(name) < 1) or (length(name) > 64) then
     isToolong := true;
 
   // Check for invalid chars
@@ -249,14 +246,13 @@ begin
   begin
     if (pos( name[i], invalidChars ) > 0 ) then
     begin
-      result := false;
       hasInvalidChars := true;
       break;
     end;
   end;
 
-  // Pop up errordialog which explains what's wrong
-  if not result and createErrorDialog then
+  // Raise exception which explains what's wrong
+  if isTooLong or hasInvalidChars then
   begin
     if hasInvalidChars then
     begin
@@ -266,16 +262,16 @@ begin
       begin
         invalidCharsShown := invalidCharsShown + invalidChars[i] + ' ';
       end;
-      msgStr := 'The name "'+name+'" contains some invalid characters.'+
+      msgStr := 'The name "%s" contains some invalid characters.'+
         CRLF+CRLF + 'An identifier must not contain the following characters:'+CRLF+invalidCharsShown;
     end
     else if isToolong then
     begin
-      msgStr := 'The name "'+name+'" has '+IntToStr(Length(name))
+      msgStr := 'The name "%s" has '+IntToStr(Length(name))
         +' characters and exceeds the maximum length 64 characters.';
     end;
 
-    MessageDlg( msgStr, mtError, [mbOK], 0 );
+    Raise Exception.CreateFmt(msgStr, [name]);
   end;
 
 

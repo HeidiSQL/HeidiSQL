@@ -308,23 +308,19 @@ end;
   doing some crappy character here
 }
 procedure TCreateTableForm.EditTablenameChange(Sender: TObject);
-var
-  isValid : Boolean;
 begin
-  isValid := isValidIdentifier( EditTablename.Text );
-  if not isValid then
-  begin
-    EditTablename.Font.Color := clRed;
-    EditTablename.Color := clYellow;
-  end
-  else
-  begin
+  ButtonCreate.Enabled := false;
+  try
+    ensureValidIdentifier( EditTablename.Text );
     EditTablename.Font.Color := clWindowText;
     EditTablename.Color := clWindow;
+    // Enable "OK"-Button if we have a valid name AND there
+    // is at least 1 column
+    ButtonCreate.Enabled := (ListBoxColumns.Items.Count > 0);
+  except
+    EditTablename.Font.Color := clRed;
+    EditTablename.Color := clYellow;
   end;
-  // Enable "OK"-Button if we have a valid name AND there
-  // is at least 1 column 
-  ButtonCreate.Enabled := isValid and (ListBoxColumns.Items.Count > 0);
 end;
 
 
@@ -412,16 +408,17 @@ begin
 end;
 
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
+var
+  colExists : Boolean;
 begin
   // Field Name EditChange
-  if (isValidIdentifier(EditFieldName.Text))
-    and (notinlist(EditFieldName.Text, ListboxColumns.Items)) then
-  begin
-    buttonAdd.Enabled := true;
-    buttonChange.Enabled := true;
-    ButtonAdd.Default := True;
-  end
-  else begin
+  colExists := notinlist(EditFieldName.Text, ListboxColumns.Items);
+  buttonAdd.Enabled := colExists;
+  buttonChange.Enabled := colExists;
+  ButtonAdd.Default := colExists;
+  try
+    ensureValidIdentifier(EditFieldName.Text);
+  except
     buttonAdd.Enabled := false;
     buttonChange.Enabled := false;
   end;
