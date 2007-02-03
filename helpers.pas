@@ -268,7 +268,7 @@ begin
     else if isToolong then
     begin
       msgStr := 'The name "%s" has '+IntToStr(Length(name))
-        +' characters and exceeds the maximum length 64 characters.';
+        +' characters and exceeds the maximum length of 64 characters.';
     end;
 
     Raise Exception.CreateFmt(msgStr, [name]);
