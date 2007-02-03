@@ -202,7 +202,7 @@ begin
 
   // Read options
   with TRegistry.Create do
-    if OpenKey(regpath, true) then begin
+    if OpenKey(REGPATH, true) then begin
     // WithUseDB, UseBackticks, CompleteInserts: deprecated (hardcoded true now)
     if Valueexists('ExportStructure') then cbxStructure.Checked := ReadBool('ExportStructure');
     if Valueexists('WithCreateDatabase') then cbxDatabase.Checked := ReadBool('WithCreateDatabase');
@@ -433,7 +433,7 @@ begin
       Screen.Cursor := crDefault;
       abort;
     end;
-    wsql(f, mswa, '# ' + main.appname + ' Dump ');
+    wsql(f, mswa, '# ' + APPNAME + ' Dump ');
     wsql(f, mswa, '#');
   end;
 
@@ -478,7 +478,7 @@ begin
         begin
           wsql(f, mswa, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
         end;
-        wsql(f, mswa, '# ' + appname + ' version:     ' + appversion );
+        wsql(f, mswa, '# ' + APPNAME + ' version:     ' + appversion );
         wsql(f, mswa, '# --------------------------------------------------------');
         wsql(f);
         current_characterset := GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
@@ -1175,7 +1175,7 @@ var
 begin
   with TRegistry.Create do
   begin
-    OpenKey(regpath, true);
+    OpenKey(REGPATH, true);
     // WithUseDB, UseBackticks, CompleteInserts, WithDropTable: deprecated (currently not automagically removed)
     WriteBool('ExportStructure',      cbxStructure.Checked);
     WriteBool('WithCreateDatabase',   cbxDatabase.Checked);

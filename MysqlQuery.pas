@@ -26,6 +26,8 @@ const
   MQE_FINISHED = 2; // query finished
   MQE_FREED = 3; // object removed from memory
 
+{$I const.inc}
+
 type
   TMysqlQuery = class;
 
@@ -73,17 +75,28 @@ type
   function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent = nil; AWndHandle : THandle = 0) : TMysqlQuery;
   function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams; AWndHandle : THandle) : TMysqlQuery;
 
+
 implementation
 
 uses SysUtils, Dialogs;
 
 
+{***
+  Executes a query asynchronously
+
+  @param string SQL-statement
+  @param TConnParams ??
+  @param TMysqlQueryNotificationEvent Notify procedure
+  @param THandle Window handle used for ?
+}
 function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle) : TMysqlQuery;
 begin
   Result := TMysqlQuery.Create(nil,@AConnParams);
   Result.OnNotify := ANotifyProc;
   Result.Query(ASql,MQM_ASYNC,AWndHandle);
 end;
+
+
 
 function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams; AWndHandle : THandle) : TMysqlQuery;
 begin
@@ -163,7 +176,7 @@ begin
   FQueryThread := TMysqlQueryThread.Create(Self,FConnParams,ASql,AMode);
   FQueryThread.NotifyWndHandle := ANotifyWndHandle;
   FThreadID := FQueryThread.ThreadID;
-  FEventName := 'HEIDISQL_'+IntToStr(FThreadID);
+  FEventName := APPNAME+'_'+IntToStr(FThreadID);
   FSyncMode := AMode;
   FSql := ASql;
 
@@ -180,8 +193,10 @@ begin
         // free thread
       end;
     MQM_ASYNC:
+      begin
         // exec query
         FQueryThread.Resume();
+      end;
   end;
 end;
 

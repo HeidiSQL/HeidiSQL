@@ -6,6 +6,7 @@ uses
   Windows, Classes, Controls, Forms, Dialogs, SysUtils,
   ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics;
 
+{$I ../../../const.inc}
 
 type
   TSortListView = class(TListView)
@@ -87,7 +88,7 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents('HeidiSQL', [TSortListView, TExportSaveDialog]);
+  RegisterComponents(APPNAME, [TSortListView, TExportSaveDialog]);
 end;
 
 

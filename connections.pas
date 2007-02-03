@@ -132,7 +132,7 @@ begin
   
   with TRegistry.Create do
   begin
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
       WriteString('lastcon', ComboBoxDescription.Text);
     CloseKey;
   end;
@@ -181,12 +181,12 @@ begin
   ComboBoxDescription.Text := '';
   with TRegistry.Create do
   begin
-    if OpenKey(regpath + '\Servers', true) then
+    if OpenKey(REGPATH + '\Servers', true) then
     begin
       GetKeyNames(ComboBoxDescription.Items);
       CloseKey;
     end;
-    OpenKey(regpath, true);
+    OpenKey(REGPATH, true);
     lastcon := ReadString('lastcon');
     if ValueExists('AutoReconnect') then
       AutoReconnect := ReadBool('AutoReconnect')
@@ -248,7 +248,7 @@ begin
   Screen.Cursor := crHourglass;
   with TRegistry.Create do
   begin
-    if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       WriteString('Host', EditHost.Text);
       WriteString('User', EditBenutzer.Text);
@@ -276,14 +276,14 @@ begin
   begin
     i := 0;
     description := 'New Connection';
-    while KeyExists(regpath + '\Servers\' + description) do
+    while KeyExists(REGPATH + '\Servers\' + description) do
     begin
       inc(i);
       description := 'New Connection' + ' (' + inttostr(i) + ')';
     end;
     if not InputQuery('New Connection...', 'Description:', description) then
       exit;
-    if KeyExists(regpath + '\Servers\' + description) then
+    if KeyExists(REGPATH + '\Servers\' + description) then
     begin
       MessageDlg('Entry "' + description + '" already exists!', mtError, [mbOK], 0);
       exit;
@@ -293,7 +293,7 @@ begin
     ComboBoxDescription.Items.Add(description);
     ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.Count - 1;
 
-    if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       WriteString('Host', LOCAL_HOST);
       WriteString('User', 'root');
@@ -321,7 +321,7 @@ begin
   begin
     with TRegistry.Create do
     begin
-      if not DeleteKey(regpath + '\Servers\' + ComboBoxDescription.Text) then
+      if not DeleteKey(REGPATH + '\Servers\' + ComboBoxDescription.Text) then
         MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
     end;
     FormShow(self);
@@ -335,7 +335,7 @@ begin
   Screen.Cursor := crHourglass;
   with TRegistry.Create do
   begin
-    if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       EditHost.Text := ReadString('Host');
       EditBenutzer.Text := ReadString('User');
@@ -420,7 +420,7 @@ begin
   with TRegistry.Create do begin
     idx := ComboBoxDescription.ItemIndex;
     try
-      MoveKey(regpath + '\Servers\' + olddesc, regpath + '\Servers\' + newdesc, true);
+      MoveKey(REGPATH + '\Servers\' + olddesc, REGPATH + '\Servers\' + newdesc, true);
       ComboBoxDescription.Items[ComboBoxDescription.ItemIndex] := newdesc;
       ComboBoxDescription.ItemIndex := idx;
       ComboBoxDescriptionClick(self);

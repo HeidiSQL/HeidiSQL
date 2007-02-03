@@ -41,7 +41,7 @@ uses
 begin
   debug('perf: All modules loaded.');
   Application.Initialize;
-  Application.Title := main.appname;
+  Application.Title := APPNAME;
   Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
 
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');

@@ -111,7 +111,7 @@ begin
   DBComboBoxChange(self);
   // filename
   with TRegistry.Create do
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
       EditFileName.Text := ReadString('loadfilename');
   if EditFileName.Text = '' then
     EditFileName.Text := ExtractFilePath(paramstr(0)) + 'import.csv';
@@ -219,7 +219,7 @@ var
 begin
 
   with TRegistry.Create do
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
       WriteString('loadfilename', EditFileName.Text);
 
   query := 'LOAD DATA ';

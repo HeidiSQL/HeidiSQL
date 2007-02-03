@@ -569,7 +569,7 @@ begin
   AutoReconnect := false;
   with TRegistry.Create do
   begin
-    openkey(regpath, true);
+    openkey(REGPATH, true);
     if Valueexists('Autoreconnect') then
     if ReadBool('AutoReconnect') then
     begin
@@ -606,7 +606,7 @@ begin
   if AutoReconnect then
   with TRegistry.Create do
   begin
-    openkey(regpath, true);
+    openkey(REGPATH, true);
     WriteBool('AutoReconnect', true);
     closekey();
   end;
@@ -641,7 +641,7 @@ begin
   i := SetWindowName(Description);
   winName := Description;
   if i <> 0 then winName := winName + Format(' (%d)', [i]);
-  Application.Title := winName + ' - ' + main.appname;
+  Application.Title := winName + ' - ' + APPNAME;
 end;
 
 
@@ -653,7 +653,7 @@ var
 begin
   with TRegistry.Create do
   begin
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
     begin
       ws := ReadString('childwinstate');
       if mainform.MDIChildCount > 1 then
@@ -747,7 +747,7 @@ var
 begin
   SetWindowConnected(false);
   SetWindowName(main.discname);
-  Application.Title := main.appname;
+  Application.Title := APPNAME;
   // closing connection and saving some vars into registry
   if windowstate = wsNormal then
     ws := 'Normal' else
@@ -758,7 +758,7 @@ begin
 
   with TRegistry.Create do
   begin
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
     begin
       WriteString('childwinstate', ws);
       WriteInteger('childwinleft', left);
@@ -776,7 +776,7 @@ begin
   Action := caFree;
   SetWindowConnected(false);
   SetWindowName(main.discname);
-  Application.Title := main.appname;
+  Application.Title := APPNAME;
 end;
 
 
@@ -1040,7 +1040,7 @@ begin
   EDBImage1.DataSource := DataSource1;
 
   reg := TRegistry.Create;
-  reg.openkey( regpath + '\Servers\' + description, true );
+  reg.openkey( REGPATH + '\Servers\' + description, true );
 
   if not dataselected then
   begin
@@ -1381,7 +1381,7 @@ begin
         popupDbGridHeader.Items.Delete( i );
       with TRegistry.Create do
       begin
-        openkey( regpath + '\Servers\' + description, true );
+        openkey( REGPATH + '\Servers\' + description, true );
         if ValueExists( 'TablelistDefaultColumns' ) then
           popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
         if ValueExists( 'TablelistColumns' ) then
@@ -1854,7 +1854,7 @@ begin
         OnlyDBs.Delete( OnlyDBs.IndexOf(tndb_.Text) );
         with TRegistry.Create do
         begin
-          if OpenKey(regpath + '\Servers\' + Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -2673,7 +2673,7 @@ begin
         OnlyDBs.Add( dbname );
         with TRegistry.Create do
         begin
-          if OpenKey(regpath + '\Servers\' + Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -3309,7 +3309,7 @@ begin
 
       if not dontadd then begin
         with TRegistry.Create do begin
-          openkey(regpath, true);
+          openkey(REGPATH, true);
           for i:=1 to 10 do begin
             if not ValueExists('SQLWhereFile'+inttostr(i)) then
               break;
@@ -3365,7 +3365,7 @@ begin
   // Store whereclause in Registry
   reg := TRegistry.Create;
   try
-    reg.openkey( regpath + '\Servers\' + description, false );
+    reg.openkey( REGPATH + '\Servers\' + description, false );
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if where <> '' then
       reg.WriteString( reg_value, where )
@@ -3780,7 +3780,7 @@ begin
   // Add or remove filename to/from history, avoiding duplicates
 
   reg := TRegistry.Create;
-  reg.openkey(regpath, true);
+  reg.openkey(REGPATH, true);
   newfilelist := TStringList.create;
   Values := TStringList.create;
   reg.GetValueNames( Values );
@@ -3898,7 +3898,7 @@ begin
   // Recent files
   with TRegistry.Create do
   begin
-    openkey(regpath, true);
+    openkey(REGPATH, true);
     j := 0;
     for i:=0 to 19 do
     begin
@@ -4438,7 +4438,7 @@ begin
   menuitem := (Sender as TMenuItem);
   with TRegistry.Create do
   try
-    openkey( regpath + '\Servers\' + description, true );
+    openkey( REGPATH + '\Servers\' + description, true );
     case menuitem.Tag of
       1 : // Toggle default-columns
         WriteBool( 'TablelistDefaultColumns', not menuitem.Checked );

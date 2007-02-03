@@ -1355,7 +1355,7 @@ begin
   if length(txt) = 0 then txt := '(debug: blank output?)';
   // Todo: not thread safe.
   dbgCounter := dbgCounter + 1;
-  txt := Format('heidisql: %d %s', [dbgCounter, txt]);
+  txt := Format(APPNAME+': %d %s', [dbgCounter, txt]);
   OutputDebugString(PChar(txt));
 end;
 

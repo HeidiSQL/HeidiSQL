@@ -143,7 +143,7 @@ begin
   // save settings:
   with TRegistry.Create do
   begin
-    openkey(regpath + '\Servers\' + connform.ComboBoxDescription.Text, true);
+    openkey(REGPATH + '\Servers\' + connform.ComboBoxDescription.Text, true);
     WriteString('OnlyDBs', odbs);
     closekey();
   end;

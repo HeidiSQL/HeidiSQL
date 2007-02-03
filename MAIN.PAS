@@ -246,17 +246,14 @@ var
   DIRNAME_SNIPPETS : String;
 
 const
-  appname = 'HeidiSQL';
   discname = 'not connected';
-  regpath = 'Software\' + appname;
-  STATUS_MSG_READY = 'Ready.';
-  DBNAME_INFORMATION_SCHEMA = 'information_schema';
-  DBNAME_MYSQL = 'mysql';
   // TODO: Wait for Sven's better icons to represent server connections here.
   ICON_MYSELF_CONNECTED = 89;
   ICON_MYSELF_DISCONNECTED = 90;
   ICON_OTHER_CONNECTED = 91;
   ICON_OTHER_DISCONNECTED = 92;
+
+{$I const.inc}
 
 type TMyKey = record
   Name     : String;
@@ -382,7 +379,7 @@ begin
 
   with TRegistry.Create do
   begin
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
     begin
       WriteString('windowstate', ws);
       WriteInteger('windowleft', left);
@@ -403,7 +400,7 @@ begin
   end;
   GetTempPath(MAX_PATH, buffer);
   filename := buffer;
-  filename := '\'+filename+appname+'-preview.';
+  filename := '\'+filename+APPNAME+'-preview.';
   if FileExists(filename+'html') then
     deletefile(filename+'html');
   if FileExists(filename+'jpg') then
@@ -422,12 +419,12 @@ var
   functionname, functionhint : String;
   i, pipeposition : Integer;
 begin
-  caption := appname;
+  caption := APPNAME;
   setLocales;
 
   with TRegistry.Create do
   begin
-    if OpenKey(regpath, true) then
+    if OpenKey(REGPATH, true) then
     begin
       ws := ReadString('windowstate');
       if ws = 'Minimized'
@@ -539,7 +536,7 @@ begin
   appversion := Trim( appversion );
 
   // Folder which contains snippet-files
-  DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + appname + '\Snippets\'; // CSIDL_COMMON_APPDATA
+  DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + APPNAME + '\Snippets\'; // CSIDL_COMMON_APPDATA
 
   timer1.Enabled := true;
 end;
@@ -633,7 +630,7 @@ begin
   with reg do
   begin
     Access := KEY_ALL_ACCESS;
-    if OpenKey(regpath, false) then
+    if OpenKey(REGPATH, false) then
     begin
       DeleteValue('childwinstate');
       DeleteValue('childwinleft');
@@ -756,9 +753,9 @@ begin
   // Copy data in actual dataset as HTML
   with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
     if PageControlMain.ActivePage = tabData then
-      dataset2html(GetVisualDataset(), TZQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, appname + ' ' + appversion )
+      dataset2html(GetVisualDataset(), TZQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion )
     else if PageControlMain.ActivePage = tabQuery then
-      dataset2html(GetVisualDataset(), TZReadOnlyQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, appname + ' ' + appversion);
+      dataset2html(GetVisualDataset(), TZReadOnlyQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion);
   end;
 end;
 
@@ -967,7 +964,7 @@ procedure TMainForm.ExportSettings1Click(Sender: TObject);
 begin
   // Export settings to .reg-file
   if SaveDialog2.Execute then begin
-    if winexec(pchar('regedit.exe /e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER\'+regpath), SW_SHOW) = ERROR_FILE_NOT_FOUND then
+    if winexec(pchar('regedit.exe /e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER\'+REGPATH), SW_SHOW) = ERROR_FILE_NOT_FOUND then
       MessageDlg('File not found: regedit.exe', mtError, [mbOK], 0);
   end;
 end;
@@ -1080,7 +1077,7 @@ begin
         Screen.Cursor := crHourGlass;
         case FilterIndex of
           1 : dataset2csv(query, FieldSep, FieldEncl, LineSep, Filename);
-          2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, appname+' '+appversion);
+          2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+appversion);
           3 : dataset2xml(query, FileName, FileName);
         end;
         CSVSeparator := FieldSep;
@@ -1089,7 +1086,7 @@ begin
         ConvertHTMLEntities := ConvertHTMLSpecialChars;
         with TRegistry.Create do
         begin
-          openkey(regpath, true);
+          openkey(REGPATH, true);
           WriteBool('ConvertHTMLEntities', ConvertHTMLSpecialChars);
           WriteString('CSVSeparator', FieldSep);
           WriteString('CSVEncloser', FieldEncl);
@@ -1131,7 +1128,7 @@ begin
   else
     extension := 'html';
   filename := buffer;
-  filename := filename+'\'+appname+'-preview.'+extension;
+  filename := filename+'\'+APPNAME+'-preview.'+extension;
   AssignFile(f, filename);
   Rewrite(f);
   Write(f, g.SelectedField.AsString);
@@ -1244,7 +1241,7 @@ var
 begin
   result := defaultValue;
   reg := TRegistry.Create;
-  folder := regpath;
+  folder := REGPATH;
   if key <> '' then
     folder := folder + '\' + key;
   try
@@ -1265,7 +1262,7 @@ var
   folder : String;
 begin
   reg := TRegistry.Create;
-  folder := regpath;
+  folder := REGPATH;
   if key <> '' then
     folder := folder + '\' + key;
   try

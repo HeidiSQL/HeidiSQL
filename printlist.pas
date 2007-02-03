@@ -132,7 +132,7 @@ begin
 
   lspace := 200;
   rspace := 100;
-  Printer.Title := main.appname + ': ' + Title;
+  Printer.Title := APPNAME + ': ' + Title;
   Printer.BeginDoc;
 
   with Printer.Canvas do begin
@@ -147,7 +147,7 @@ begin
 
     Font.Height := 40;
     Font.Style := [fsBold];
-    TextOut(lspace, -100, main.appname + ': ' + title);
+    TextOut(lspace, -100, APPNAME + ': ' + title);
     Font.Height := 30;
 
     // print columns

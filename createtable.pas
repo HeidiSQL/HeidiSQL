@@ -122,84 +122,82 @@ end;
 
 procedure TCreateTableForm.ButtonCreateClick(Sender: TObject);
 var
-  ctquery, pkstr, unstr, instr : String;
-  i       : Integer;
+  createQuery, primaryKey, uniqueKey, indexKey  : String;
+  i : Integer;
 begin
-  with MainForm.ActiveMDIChild do
+  // Prepare Query:
+  createQuery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
+
+  // Columns
+  for i := 0 to length(fields) - 1 do
   begin
-    // Prepare Query:
-    ctquery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
+    createQuery := createQuery + mainform.mask(fields[i].Name) + ' ' +
+      comboboxtype.items[fields[i].Typ];                              // Typ
+    if fields[i].LengthSet <> '' then
+      createQuery := createQuery  + ' (' + fields[i].LengthSet + ')';         // Length/Set
+    if fields[i].Binary then
+      createQuery := createQuery  + ' BINARY';                                // Binary
+    if fields[i].Unsigned then
+      createQuery := createQuery  + ' UNSIGNED';                              // Unsigned
+    if fields[i].Zerofill then
+      createQuery := createQuery  + ' ZEROFILL';                              // Zerofill
+    if fields[i].Default <> '' then
+      createQuery := createQuery  + ' DEFAULT ''' + fields[i].Default + '''';   // Default
+    if fields[i].NotNull then
+      createQuery := createQuery  + ' NOT NULL';                              // Not null
+    if fields[i].AutoIncrement then
+      createQuery := createQuery  + ' AUTO_INCREMENT';                         // AutoIncrement
 
-    // Fields
-    for i := 0 to length(fields) - 1 do
+    if i < length(fields)-1 then
+      createQuery := createQuery + ', '
+  end;
+
+  // Indexes:
+  primaryKey := '';
+  uniqueKey := '';
+  indexKey := '';
+  for i := 0 to length(fields) - 1 do
+  begin
+    if fields[i].Primary then
     begin
-      ctquery := ctquery + mainform.mask(fields[i].Name) + ' ' +
-        comboboxtype.items[fields[i].Typ];                              // Typ
-      if fields[i].LengthSet <> '' then
-        ctquery := ctquery  + ' (' + fields[i].LengthSet + ')';         // Length/Set
-      if fields[i].Binary then
-        ctquery := ctquery  + ' BINARY';                                // Binary
-      if fields[i].Unsigned then
-        ctquery := ctquery  + ' UNSIGNED';                              // Unsigned
-      if fields[i].Zerofill then
-        ctquery := ctquery  + ' ZEROFILL';                              // Zerofill
-      if fields[i].Default <> '' then
-        ctquery := ctquery  + ' DEFAULT ''' + fields[i].Default + '''';   // Default
-      if fields[i].NotNull then
-        ctquery := ctquery  + ' NOT NULL';                              // Not null
-      if fields[i].AutoIncrement then
-        ctquery := ctquery  + ' AUTO_INCREMENT';                         // AutoIncrement
-
-      if i < length(fields)-1 then
-        ctquery := ctquery + ', '
+      if primaryKey <> '' then primaryKey := primaryKey + ',';
+      primaryKey := primaryKey + mainform.mask(fields[i].Name);
     end;
-
-    // Indexes:
-    pkstr := '';
-    unstr := '';
-    instr := '';
-    for i := 0 to length(fields) - 1 do
+    if fields[i].Unique then
     begin
-      if fields[i].Primary then
-      begin
-        if pkstr <> '' then pkstr := pkstr + ',';
-        pkstr := pkstr + mainform.mask(fields[i].Name);
-      end;
-      if fields[i].Unique then
-      begin
-        if unstr <> '' then unstr := unstr + ',';
-        unstr := unstr + mainform.mask(fields[i].Name);
-      end;
-      if fields[i].Index then
-      begin
-        if instr <> '' then instr := instr + ',';
-        instr := instr + mainform.mask(fields[i].Name);
-      end;
+      if uniqueKey <> '' then uniqueKey := uniqueKey + ',';
+      uniqueKey := uniqueKey + mainform.mask(fields[i].Name);
     end;
-    if pkstr <> '' then
-      ctquery := ctquery + ', PRIMARY KEY(' + pkstr + ')';
-    if unstr <> '' then
-      ctquery := ctquery + ', UNIQUE(' + unstr + ')';
-    if instr <> '' then
-      ctquery := ctquery + ', INDEX(' + instr + ')';
-
-    // End:
-    ctquery := ctquery + ') ';
-
-    // Comment:
-    if EditDescription.Text <> '' then
-      ctquery := ctquery + ' COMMENT = "' + EditDescription.Text + '"';
-
-    if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
-      ctquery := ctquery + ' TYPE = ' + ComboBoxTableType.Text;
-
-    with TMDIChild(Application.Mainform.ActiveMDIChild) do
+    if fields[i].Index then
     begin
-      ExecUseQuery( DBComboBox.Text );
-      ExecQuery( ctquery );
-      ShowDBProperties(self);
-      ActualTable := EditTablename.Text;
+      if indexKey <> '' then indexKey := indexKey + ',';
+      indexKey := indexKey + mainform.mask(fields[i].Name);
     end;
+  end;
+  if primaryKey <> '' then
+    createQuery := createQuery + ', PRIMARY KEY(' + primaryKey + ')';
+  if uniqueKey <> '' then
+    createQuery := createQuery + ', UNIQUE(' + uniqueKey + ')';
+  if indexKey <> '' then
+    createQuery := createQuery + ', INDEX(' + indexKey + ')';
+
+  // End of columns + indexes:
+  createQuery := createQuery + ') ';
+
+  // Comment:
+  if EditDescription.Text <> '' then
+    createQuery := createQuery + ' COMMENT = "' + EditDescription.Text + '"';
+
+  if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
+    createQuery := createQuery + ' TYPE = ' + ComboBoxTableType.Text;
+
+  // Execute CREATE statement and reload tablesList  
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
+    ExecUseQuery( DBComboBox.Text );
+    ExecQuery( createQuery );
+    ShowDBProperties(self);
+    ActualTable := EditTablename.Text;
   end;
   close;
 end;

@@ -148,7 +148,7 @@ begin
   TreeViewUsers.Items.Clear;
   PageControl1.ActivePageIndex := 0;
   ShowPrivilegesControls(false, true, false);
-  CheckBoxCreateAccount.Caption := 'Create connection account for ' + appname;
+  CheckBoxCreateAccount.Caption := 'Create connection account for ' + APPNAME;
 
   tnu1 := DBUserTree.Items.Add(nil, 'Global Access');
   tnu1.ImageIndex := 41;
@@ -226,7 +226,7 @@ begin
   if CheckBoxCreateAccount.Checked then
   with TRegistry.Create do
   begin
-    OpenKey(regpath + '\Servers\', false);
+    OpenKey(REGPATH + '\Servers\', false);
     if KeyExists(EditDescription.Text) then
     begin
       MessageDlg('This Description (' + EditDescription.Text + ') is already used.' + CRLF + 'Please specify another description!', mtError, [mbOK], 0);
@@ -235,7 +235,7 @@ begin
     end
     else with TRegistry.Create do
     begin
-      OpenKey(regpath + '\Servers\' + EditDescription.Text, true);
+      OpenKey(REGPATH + '\Servers\' + EditDescription.Text, true);
       WriteString('Host', TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection.HostName);
       WriteString('User', EditUser.Text);
       WriteString('Password', encrypt(EditPassword.Text));

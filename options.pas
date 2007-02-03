@@ -145,7 +145,7 @@ begin
   Screen.Cursor := crHourGlass;
   with TRegistry.Create do
   begin
-    openkey(regpath, true);
+    openkey(REGPATH, true);
     WriteBool('AutoReconnect', CheckBoxAutoReconnect.Checked);
     WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
     WriteString('FontName', ComboBoxFonts.Text);
@@ -235,7 +235,7 @@ begin
   screen.Cursor := crHourGlass;
 
   with TRegistry.Create do begin
-    openkey(regpath, true);
+    openkey(REGPATH, true);
     if ValueExists('FontName') then
       fontname := ReadString('FontName');
     if ValueExists('FontSize') then
