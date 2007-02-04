@@ -4001,59 +4001,62 @@ var
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
-
-  DataInsertDateTime.Enabled := gridData.SelectedField.DataType in [ftString, ftDatetime, ftDate, ftTime];
-  if DataInsertDateTime.Enabled then
+  {DONE  -oFrancisco -cData-browsing:Bugfix: [1650528] Access violation with F5}
+  if (gridData.SelectedField <> nil) then
   begin
-    decodedate(now, y, m, d);
-    decodetime(now, h, i, s, ms);
-    DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
-    DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
-    DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
-    DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
-    DataYear.Caption := Format('%.4d', [y]);
-  end;
+    DataInsertDateTime.Enabled := gridData.SelectedField.DataType in [ftString, ftDatetime, ftDate, ftTime];
+    if DataInsertDateTime.Enabled then
+    begin
+      decodedate(now, y, m, d);
+      decodetime(now, h, i, s, ms);
+      DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
+      DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
+      DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
+      DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
+      DataYear.Caption := Format('%.4d', [y]);
+    end;
 
-  // Manipulate the Quick-filter menuitems
-  selectedColumn := mask(gridData.SelectedField.FieldName);
-  // 1. block: include selected columnname and value from datagrid in caption
-  value := escLike(gridData.SelectedField.AsString);
-  value := escOtherChars(value);
-  value := sstr(value, 100);
-  QF1.Caption := selectedColumn + ' = "' + value + '"';
-  QF2.Caption := selectedColumn + ' != "' + value + '"';
-  QF3.Caption := selectedColumn + ' > "' + value + '"';
-  QF4.Caption := selectedColumn + ' < "' + value + '"';
-  QF5.Caption := selectedColumn + ' LIKE "' + value + '%"';
-  QF6.Caption := selectedColumn + ' LIKE "%' + value + '"';
-  QF7.Caption := selectedColumn + ' LIKE "%' + value + '%"';
+    // Manipulate the Quick-filter menuitems
+    selectedColumn := mask(gridData.SelectedField.FieldName);
+    // 1. block: include selected columnname and value from datagrid in caption
+    value := escLike(gridData.SelectedField.AsString);
+    value := escOtherChars(value);
+    value := sstr(value, 100);
+    QF1.Caption := selectedColumn + ' = "' + value + '"';
+    QF2.Caption := selectedColumn + ' != "' + value + '"';
+    QF3.Caption := selectedColumn + ' > "' + value + '"';
+    QF4.Caption := selectedColumn + ' < "' + value + '"';
+    QF5.Caption := selectedColumn + ' LIKE "' + value + '%"';
+    QF6.Caption := selectedColumn + ' LIKE "%' + value + '"';
+    QF7.Caption := selectedColumn + ' LIKE "%' + value + '%"';
 
-  // 2. block: include only selected columnname in caption
-  QF8.Caption := selectedColumn + ' = "..."';
-  QF9.Caption := selectedColumn + ' != "..."';
-  QF10.Caption := selectedColumn + ' > "..."';
-  QF11.Caption := selectedColumn + ' < "..."';
-  QF12.Caption := selectedColumn + ' LIKE "%...%"';
+    // 2. block: include only selected columnname in caption
+    QF8.Caption := selectedColumn + ' = "..."';
+    QF9.Caption := selectedColumn + ' != "..."';
+    QF10.Caption := selectedColumn + ' > "..."';
+    QF11.Caption := selectedColumn + ' < "..."';
+    QF12.Caption := selectedColumn + ' LIKE "%...%"';
 
-  // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
-  cpText := Clipboard.AsText;
-  if Length(cpText) < 100 then
-  begin
-    cpText := escLike(cpText);
-    cpText := escOtherChars(cpText);
-    QF13.Enabled := true; QF13.Caption := selectedColumn + ' = "' + cpText + '"';
-    QF14.Enabled := true; QF14.Caption := selectedColumn + ' != "' + cpText + '"';
-    QF15.Enabled := true; QF15.Caption := selectedColumn + ' > "' + cpText + '"';
-    QF16.Enabled := true; QF16.Caption := selectedColumn + ' < "' + cpText + '"';
-    QF17.Enabled := true; QF17.Caption := selectedColumn + ' LIKE "%' + cpText + '%"';
-  end
-  else
-  begin
-    QF13.Enabled := false; QF13.Caption := selectedColumn + ' = ' + CLPBRD;
-    QF14.Enabled := false; QF14.Caption := selectedColumn + ' != ' + CLPBRD;
-    QF15.Enabled := false; QF15.Caption := selectedColumn + ' > ' + CLPBRD;
-    QF16.Enabled := false; QF16.Caption := selectedColumn + ' < ' + CLPBRD;
-    QF17.Enabled := false; QF17.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
+    // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
+    cpText := Clipboard.AsText;
+    if Length(cpText) < 100 then
+    begin
+      cpText := escLike(cpText);
+      cpText := escOtherChars(cpText);
+      QF13.Enabled := true; QF13.Caption := selectedColumn + ' = "' + cpText + '"';
+      QF14.Enabled := true; QF14.Caption := selectedColumn + ' != "' + cpText + '"';
+      QF15.Enabled := true; QF15.Caption := selectedColumn + ' > "' + cpText + '"';
+      QF16.Enabled := true; QF16.Caption := selectedColumn + ' < "' + cpText + '"';
+      QF17.Enabled := true; QF17.Caption := selectedColumn + ' LIKE "%' + cpText + '%"';
+    end
+    else
+    begin
+      QF13.Enabled := false; QF13.Caption := selectedColumn + ' = ' + CLPBRD;
+      QF14.Enabled := false; QF14.Caption := selectedColumn + ' != ' + CLPBRD;
+      QF15.Enabled := false; QF15.Caption := selectedColumn + ' > ' + CLPBRD;
+      QF16.Enabled := false; QF16.Caption := selectedColumn + ' < ' + CLPBRD;
+      QF17.Enabled := false; QF17.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
+    end;
   end;
 end;
 
@@ -4535,6 +4538,7 @@ begin
 end;
 
 end.
+
 
 
 
