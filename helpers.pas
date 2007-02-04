@@ -1736,7 +1736,6 @@ begin
       // Stop here because we found a non-alphabetic or non-numeric chars.
       // This applies to all different whitespaces, brackets, commas etc.
       result := copy( text, 1, i-1 );
-      debug(result);
       break;
     end;
   end;
