@@ -2063,7 +2063,6 @@ var
   SQLscriptend            : Integer;
   SQLTime                 : Double;
   fieldcount, recordcount : Integer;
-  sql_keyword             : String;
 begin
   if CurrentLine then begin
     // Run current line
@@ -2128,21 +2127,7 @@ begin
       SQLstart := GetTickCount;
 
       try
-        sql_keyword := lowercase( copy( SQL[i], 0, 20 ) );
-        if (
-          StrCmpBegin( 'analyze', sql_keyword ) or
-          StrCmpBegin( 'call', sql_keyword ) or
-          StrCmpBegin( 'check', sql_keyword ) or
-          StrCmpBegin( 'desc', sql_keyword ) or
-          StrCmpBegin( 'describe', sql_keyword ) or
-          StrCmpBegin( 'execute', sql_keyword ) or
-          StrCmpBegin( 'explain', sql_keyword ) or
-          StrCmpBegin( 'help', sql_keyword ) or
-          StrCmpBegin( 'optimize', sql_keyword ) or
-          StrCmpBegin( 'repair', sql_keyword ) or
-        	StrCmpBegin( 'select', sql_keyword ) or
-          StrCmpBegin( 'show', sql_keyword )
-          ) then
+        if ExpectResultSet( copy( SQL[i], 0, 20 ) ) then
         begin
           ZQuery1.Open;
           fieldcount := ZQuery1.Fieldcount;

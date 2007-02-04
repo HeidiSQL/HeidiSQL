@@ -73,32 +73,16 @@ type
       function RunDataQuery (ASql : String; var ADataset : TDataset) : Boolean;
       function RunUpdateQuery (ASql : String) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
-      function GetExpectResultSet (ASql : String) : Boolean;
     public
       constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
       destructor Destroy; override;
       property NotifyWndHandle : THandle read FNotifyWndHandle write SetNotifyWndHandle;
   end;
 
-var
-  TResultsetKeywords : array[0..9] of string[10] =
-  (
-    'SELECT',
-    'SHOW',
-    'ANALYZE',
-    'CHECK',
-    'DESC',
-    'DESCRIBE',
-    'EXPLAIN',
-    'OPTIMIZE',
-    'REPAIR',
-    'CALL'
-  );
-
 implementation
 
 uses
-  MysqlQuery, SysUtils, Main, Dialogs, Messages, communication;
+  MysqlQuery, SysUtils, Main, Dialogs, Messages, communication, helpers;
 
 function TMysqlQueryThread.AssembleResult: TThreadResult;
 begin
@@ -207,7 +191,7 @@ begin
 
       NotifyStatus (MQE_STARTED);
 
-      if GetExpectResultSet(FSql) then
+      if ExpectResultSet(FSql) then
         begin
           q := nil;
           r := RunDataQuery (FSql,TDataSet(q));
@@ -216,7 +200,7 @@ begin
             begin
               if q.State=dsBrowse then
                 begin
-
+                  // WTF?
                 end;
             end;
 
@@ -237,29 +221,6 @@ begin
   NotifyStatus (MQE_FREED);
 end;
 
-function TMysqlQueryThread.GetExpectResultSet(ASql: String): Boolean;
-var
-  p : Integer;
-  kw : String;
-  i : Integer;
-begin
-  Result := False;
-
-  if ASql<>'' then
-    begin
-      p := Pos (' ',ASql);
-      if p > 0 then
-        begin
-          kw := Copy (ASql,0,p-1);
-
-          for i := Low(TResultsetKeywords) to High(TResultsetKeywords) do
-            if UpperCase(kw) = TResultsetKeywords[i] then
-              Result := True;
-
-        end;
-
-    end;
-end;
 
 function TMysqlQueryThread.QuerySingleCellAsInteger(ASql: String): Integer;
 var
@@ -347,6 +308,8 @@ begin
     q.ExecSQL();
     Result := True;
   except
+    On E: Exception do
+      MessageDlg( 'SQL Error: '+ CRLF + E.Message, mtError, [mbOK], 0 );
   end;
 
   FreeAndNil (q);

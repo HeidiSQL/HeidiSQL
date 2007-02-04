@@ -60,6 +60,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
   procedure ActivateWindow(Window : HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
+  function ExpectResultSet(ASql: String): Boolean;
+  function getFirstWord( text: String ): String;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1546,6 +1548,7 @@ end;
   @param string Identifier
   @param boolean Quote it ANSI-compatible (but not MySQL-compatible)?
   @return string (not) quoted identifier
+  @see http://www.heidisql.com/forum/viewtopic.php?t=161
 }
 function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
 var
@@ -1661,6 +1664,83 @@ begin
   ShellExecute(0, 'open', pchar(cmd), Nil, ppath, SW_SHOWNORMAL);
 end;
 
+
+
+{***
+  Checks if the SQL will bring up any resultset.
+  Important to know for deciding on whether to do a
+  ZQuery.Open or ZQuery.ExecSQL
+
+  @param string (part of) SQL-query
+  @return boolean
+  @see TMDIChild:ExecSQLClick
+  @see TMysqlQueryThread:Execute
+}
+function ExpectResultSet(ASql: String): Boolean;
+const
+  RESULTSET_KEYWORDS : array[0..11] of string[10] =
+  (
+   'ANALYZE',
+   'CALL',
+   'CHECK',
+   'DESC',
+   'DESCRIBE',
+   'EXECUTE',
+   'EXPLAIN',
+   'HELP',
+   'OPTIMIZE',
+   'REPAIR',
+   'SELECT',
+   'SHOW'
+  );
+var
+  kw : String;
+  i : Integer;
+begin
+  Result := False;
+
+  // Find keyword and check existance in const-array of resultset-keywords
+  kw := UpperCase( getFirstWord( ASql ) );
+  for i := Low(RESULTSET_KEYWORDS) to High(RESULTSET_KEYWORDS) do
+  begin
+    if kw = RESULTSET_KEYWORDS[i] then
+    begin
+      Result := True;
+      break;
+    end;
+  end;
+
+end;
+
+
+
+{***
+  Returns first word of a given text
+  @param string Given text
+  @return string First word-boundary
+}
+function getFirstWord( text: String ): String;
+var
+  i : Integer;
+begin
+  result := '';
+  text := trim( text );
+  // Check chars if they are either alphabetic or numeric
+  // Starting with char nr. 2, because we expect the very first
+  // char to be meant to be some part of a word, even if THIS one
+  // not alphabetical or numerical.
+  for i := 2 to Length(text) - 1 do
+  begin
+    if not (text[i] in ['a'..'z', 'A'..'Z', '0'..'9', '_', '-']) then
+    begin
+      // Stop here because we found a non-alphabetic or non-numeric chars.
+      // This applies to all different whitespaces, brackets, commas etc.
+      result := copy( text, 1, i-1 );
+      debug(result);
+      break;
+    end;
+  end;
+end;
 
 
 initialization
