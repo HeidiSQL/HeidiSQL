@@ -206,11 +206,13 @@ begin
     else LastRowNo := 0;
   end;
 
-  // Store FOUND_ROWS() in variable so we can use that in HeidiSQL
-  // Note that this Zeos-internal query does NOT appear in any log!
+  {***
+    @note ansgarbecker:
+      Store FOUND_ROWS() in variable so we can use that in HeidiSQL's data tab
+  }
   if pos( 'SQL_CALC_FOUND_ROWS', FSQL ) > 0 then
   begin
-    FPlainDriver.ExecQuery( FHandle, pchar('SET @found_rows = FOUND_ROWS()') );
+    Statement.GetConnection.CreateStatement.Execute('SET @found_rows = FOUND_ROWS()');
   end;
 
   if not Assigned(FQueryHandle) then
