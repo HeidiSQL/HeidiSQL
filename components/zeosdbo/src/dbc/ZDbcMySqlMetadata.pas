@@ -986,8 +986,8 @@ begin
         TableNamePattern := TableNameList.Strings[I];
 
         with GetConnection.CreateStatement.ExecuteQuery(
-          Format('SHOW COLUMNS FROM `%s` LIKE ''%s''',
-          [TableNamePattern,
+          Format('SHOW COLUMNS FROM %s LIKE ''%s''',
+          [GetIdentifierConvertor.Quote(TableNamePattern),
           ColumnNamePattern])) do
         begin
           while Next do
@@ -1430,8 +1430,8 @@ begin
     end;
 
     with GetConnection.CreateStatement.ExecuteQuery(
-      Format('SHOW KEYS FROM `%s`',
-      [Table])) do
+      Format('SHOW KEYS FROM %s',
+      [GetIdentifierConvertor.Quote(Table)])) do
     begin
       while Next do
       begin
