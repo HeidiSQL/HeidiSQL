@@ -1,11 +1,11 @@
 object tbl_properties_form: Ttbl_properties_form
   Left = 611
   Top = 109
-  Width = 304
-  Height = 383
   BorderIcons = [biSystemMenu]
   BorderWidth = 5
   Caption = 'Table-Properties'
+  ClientHeight = 339
+  ClientWidth = 286
   Color = clBtnFace
   Constraints.MaxHeight = 550
   Constraints.MaxWidth = 450

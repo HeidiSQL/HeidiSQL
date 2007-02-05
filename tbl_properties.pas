@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, HeidiComp, ExtCtrls, ZDataset;
+  StdCtrls, ComCtrls, HeidiComp, ExtCtrls, ZDataset, SynMemo, Synedit;
 
 type
   Ttbl_properties_form = class(TForm)
@@ -39,10 +39,15 @@ var
 
 implementation
 
-uses Childwin, Main;
+uses Childwin, Main, helpers;
 
 {$R *.DFM}
 
+
+{***
+
+
+}
 procedure Ttbl_properties_form.FormShow(Sender: TObject);
 var
   i,t : Integer;
@@ -51,35 +56,40 @@ var
   datasize, indexsize : Integer;
   isSelected : Boolean;
   FieldList  : TStringList;
-  zq : TZReadOnlyQuery;
+  synmemo : TSynMemo;
+  childWindow : TMDIChild;
+  query : TZReadOnlyQuery;
 begin
-  ListTables := TMDIChild(Mainform.ActiveMDIChild).ListTables;
+  childWindow := TMDIChild(Mainform.ActiveMDIChild);
+  ListTables := childWindow.ListTables;
+  query := TZReadOnlyQuery.Create(self);
+  query.Connection := childWindow.ZQuery3.Connection;
+
   for i:=PageControl1.PageCount-1 downto 0 do
     PageControl1.Pages[i].Free;
 
   datasize := 0;
   indexsize := 0;
 
-  zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
-  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW TABLE STATUS', zq );
+  childWindow.GetResults( 'SHOW TABLE STATUS', query );
   FieldList := TStringList.Create;
-  for i:=0 to zq.FieldCount-1 do
+  for i:=0 to query.FieldCount-1 do
   begin
-    FieldList.add( zq.Fields[i].Fieldname );
+    FieldList.add( query.Fields[i].Fieldname );
   end;
 
-  for t:=0 to zq.RecordCount-1 do
+  for t:=0 to query.RecordCount-1 do
   begin
     isSelected := false;
     for i:=0 to ListTables.Items.Count-1 do
     begin
-      isSelected := (ListTables.Items[i].caption = zq.Fields[0].AsString) and ListTables.Items[i].Selected;
+      isSelected := (ListTables.Items[i].caption = query.Fields[0].AsString) and ListTables.Items[i].Selected;
       if isSelected then
         break;
     end;
     if not isSelected then
     begin
-      zq.Next;
+      query.Next;
       continue;
     end;
     ts := TTabSheet.Create(PageControl1);
@@ -88,11 +98,28 @@ begin
 
     list := TSortListView.Create(self);
     list.Parent := ts;
-    list.Align := alClient;
+    list.Align := alTop;
+    list.Height := 150;
     list.ViewStyle := vsReport;
     list.ReadOnly := true;
     list.GridLines := true;
     list.RowSelect := true;
+
+    synmemo := TSynMemo.Create(self);
+    synmemo.Parent := ts;
+    synmemo.Highlighter := TMDIChild(Mainform.ActiveMDIChild).SynSQLSyn1;
+    synmemo.Align := alClient;
+    synmemo.ReadOnly := true;
+    synmemo.options := synmemo.options - [eoScrollPastEol];
+    synmemo.Gutter.Visible := false;
+    synmemo.Margins.Top := 5;
+    synmemo.Margins.Left := 0;
+    synmemo.Margins.Right := 0;
+    synmemo.Margins.Bottom := 0;
+    synmemo.AlignWithMargins := true;
+    synmemo.Font.Name := childWindow.SynMemoQuery.Font.Name;
+    synmemo.Font.Size := childWindow.SynMemoQuery.Font.Size;
+    synmemo.Lines.Text := childWindow.GetVar( 'SHOW CREATE TABLE ' + childWindow.mask(ListTables.Items[t].Caption), 1 );
 
     with list.Columns.Add do
     begin
@@ -105,22 +132,22 @@ begin
       Width := -1;
     end;
 
-    inc( datasize, zq.FieldByName('Data_length').AsInteger );
-    inc(indexsize, zq.FieldByName('Index_length').AsInteger);
+    inc( datasize, query.FieldByName('Data_length').AsInteger );
+    inc(indexsize, query.FieldByName('Index_length').AsInteger);
     for i:=0 to FieldList.count-1 do
     begin
       with List.Items.add do
       begin
         Caption := FieldList[i];
-        SubItems.Add( zq.Fields[i].AsString);
+        SubItems.Add( query.Fields[i].AsString);
       end;
     end;
-    zq.Next;
+    query.Next;
   end;
 
-  Label3.Caption := IntToStr(datasize div 1024) + ' KB';
-  Label4.Caption := IntToStr(indexsize div 1024) + ' KB';
-  Label6.Caption := IntToStr(datasize div 1024 + indexsize div 1024) + ' KB';
+  Label3.Caption := FormatNumber(datasize div 1024) + ' KB';
+  Label4.Caption := FormatNumber(indexsize div 1024) + ' KB';
+  Label6.Caption := FormatNumber(datasize div 1024 + indexsize div 1024) + ' KB';
 
 end;
 
