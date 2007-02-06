@@ -22,7 +22,7 @@ object tbl_properties_form: Ttbl_properties_form
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Bevel1: TBevel
+  object Bevel: TBevel
     Left = 0
     Top = 230
     Width = 286
@@ -30,7 +30,7 @@ object tbl_properties_form: Ttbl_properties_form
     Align = alBottom
     Shape = bsSpacer
   end
-  object PageControl1: TPageControl
+  object PageControl: TPageControl
     Left = 0
     Top = 0
     Width = 286
@@ -39,7 +39,7 @@ object tbl_properties_form: Ttbl_properties_form
     HotTrack = True
     TabOrder = 0
   end
-  object Panel1: TPanel
+  object PanelSummary: TPanel
     Left = 0
     Top = 238
     Width = 286
@@ -47,37 +47,37 @@ object tbl_properties_form: Ttbl_properties_form
     Align = alBottom
     BevelOuter = bvLowered
     TabOrder = 1
-    object Label1: TLabel
+    object LabelSizeOfTableData: TLabel
       Left = 8
       Top = 8
       Width = 91
       Height = 13
       Caption = 'Size of Table-Data:'
     end
-    object Label2: TLabel
+    object LabelIndexes: TLabel
       Left = 8
       Top = 24
       Width = 75
       Height = 13
       Caption = 'Size of Indexes:'
     end
-    object Label3: TLabel
-      Left = 246
+    object LabelSizeOfTableDataValue: TLabel
+      Left = 144
       Top = 8
-      Width = 32
+      Width = 134
       Height = 13
       Alignment = taRightJustify
-      Caption = 'Label3'
+      Caption = 'LabelSizeOfTableDataValue'
     end
-    object Label4: TLabel
-      Left = 246
+    object LabelIndexesValue: TLabel
+      Left = 188
       Top = 24
-      Width = 32
+      Width = 90
       Height = 13
       Alignment = taRightJustify
-      Caption = 'Label4'
+      Caption = 'LabelIndexesValue'
     end
-    object Label5: TLabel
+    object LabelSum: TLabel
       Left = 8
       Top = 45
       Width = 29
@@ -90,13 +90,13 @@ object tbl_properties_form: Ttbl_properties_form
       Font.Style = [fsBold]
       ParentFont = False
     end
-    object Label6: TLabel
-      Left = 240
+    object LabelSumValue: TLabel
+      Left = 191
       Top = 45
-      Width = 39
+      Width = 88
       Height = 13
       Alignment = taRightJustify
-      Caption = 'Label6'
+      Caption = 'LabelSumValue'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -105,7 +105,7 @@ object tbl_properties_form: Ttbl_properties_form
       ParentFont = False
     end
   end
-  object Panel2: TPanel
+  object PanelControl: TPanel
     Left = 0
     Top = 303
     Width = 286
@@ -113,7 +113,7 @@ object tbl_properties_form: Ttbl_properties_form
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
-    object Button1: TButton
+    object btnClose: TButton
       Left = 96
       Top = 9
       Width = 89
@@ -122,7 +122,7 @@ object tbl_properties_form: Ttbl_properties_form
       Caption = 'Close'
       Default = True
       TabOrder = 0
-      OnClick = Button1Click
+      OnClick = btnCloseClick
     end
   end
 end
