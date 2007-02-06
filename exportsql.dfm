@@ -119,7 +119,7 @@ object ExportSQLForm: TExportSQLForm
       Anchors = [akLeft, akTop, akRight]
       Color = clBtnFace
       Enabled = False
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 4
     end
     object radioOtherHost: TRadioButton
@@ -140,7 +140,7 @@ object ExportSQLForm: TExportSQLForm
       Anchors = [akLeft, akTop, akRight]
       Color = clBtnFace
       Enabled = False
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 6
       OnSelect = comboOtherHostSelect
     end
@@ -152,7 +152,7 @@ object ExportSQLForm: TExportSQLForm
       Style = csDropDownList
       Color = clBtnFace
       Enabled = False
-      ItemHeight = 0
+      ItemHeight = 13
       TabOrder = 7
     end
   end
@@ -177,10 +177,6 @@ object ExportSQLForm: TExportSQLForm
     TabOrder = 4
     object TabSheet1: TTabSheet
       Caption = 'Selection'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         230
         275)
@@ -208,7 +204,7 @@ object ExportSQLForm: TExportSQLForm
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = comboSelectDatabaseChange
       end
@@ -249,10 +245,6 @@ object ExportSQLForm: TExportSQLForm
     object TabSheet2: TTabSheet
       Caption = 'Options'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         230
         275)
@@ -304,12 +296,13 @@ object ExportSQLForm: TExportSQLForm
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 13
-        ItemIndex = 1
+        ItemIndex = 2
         TabOrder = 3
-        Text = 'MySQL 3.23 - 5.0'
+        Text = 'MySQL 4.0 - 5.0'
         Items.Strings = (
           'Standard ANSI SQL'
-          'MySQL 3.23 - 5.0'
+          'MySQL 3.x'
+          'MySQL 4.0 - 5.0'
           'MySQL 5.1 and above')
       end
       object cbxDatabase: TCheckBox

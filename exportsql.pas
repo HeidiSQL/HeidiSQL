@@ -421,7 +421,8 @@ begin
     case comboTargetCompat.ItemIndex of
       0: target_version := -1;
       1: target_version := 32300;
-      2: target_version := 51000;
+      2: target_version := 40000;
+      3: target_version := 51000;
     end;
     mswa := target_version > -1;
     ansi := target_version = -1;
@@ -450,7 +451,8 @@ begin
     case comboTargetCompat.ItemIndex of
       0: target_version := -1;
       1: target_version := 32300;
-      2: target_version := 51000;
+      2: target_version := 40000;
+      3: target_version := 51000;
     end;
     mswa := target_version > -1;
     ansi := target_version = -1;
@@ -474,6 +476,7 @@ begin
         wsql(f, mswa, '# Database:             ' + comboSelectDatabase.Text );
         wsql(f, mswa, '# Server version:       ' + GetVar( 'SELECT VERSION()' ) );
         wsql(f, mswa, '# Server OS:            ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
+        wsql(f, mswa, '# Target-Compatibility: ' + comboTargetCompat.Text );
         if cbxExtendedInsert.Checked then
         begin
           wsql(f, mswa, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
@@ -586,7 +589,21 @@ begin
               while k <= j do k := k + 1 + Pos(' ', Copy(sql, k + 1, Length(sql)));
               Delete(sql, j, k - j);
             end;
-            if target_version >= 51000 then begin
+            {***
+              @note ansgarbecker
+                The ENGINE and TYPE options specify the storage engine for the table.
+                ENGINE was added in MySQL 4.0.18 (for 4.0) and 4.1.2 (for 4.1).
+                It is the preferred option name as of those versions, and TYPE has
+                become deprecated. TYPE is supported throughout the 4.x series, but
+                likely will be removed in the future.
+              @see http://dev.mysql.com/doc/refman/4.1/en/create-table.html
+            }
+            if target_version < 40000 then
+            begin
+              sql := stringreplace(sql, 'ENGINE=', 'TYPE=', [rfReplaceAll]);
+            end
+            else if target_version >= 51000 then
+            begin
               sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
             end;
           end;
