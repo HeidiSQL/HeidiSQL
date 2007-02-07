@@ -803,6 +803,7 @@ function TZMySQLDatabaseMetadata.GetTables(const Catalog: string;
 var
   Key: string;
   LCatalog, LTableNamePattern: string;
+  sql : String;
 begin
   Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
   Result := GetResultSetFromCache(Key);
@@ -813,9 +814,25 @@ begin
     GetCatalogAndNamePattern(Catalog, SchemaPattern, TableNamePattern,
       LCatalog, LTableNamePattern);
 
+    {***
+      @note ansgarbecker, 2007-02-07
+      Fix for HeidiSQL: Don't use catalog name if empty, which
+      is always the case. Except for those Zeos-internal queries
+      which partly use "information_schema" as catalog.
+    }
+    if Catalog <> '' then
+    begin
+      sql := Format('SHOW TABLES FROM %s LIKE ''%s''',
+        [GetIdentifierConvertor.Quote(Catalog), LTableNamePattern]);
+    end
+    else
+    begin
+      sql := Format('SHOW TABLES LIKE ''%s''',
+        [LTableNamePattern]);
+    end;
+
     with GetConnection.CreateStatement.ExecuteQuery(
-      Format('SHOW TABLES LIKE ''%s''',
-      [LTableNamePattern])) do
+      sql) do
     begin
       while Next do
       begin
@@ -834,10 +851,23 @@ begin
       try
         EnterSilentMySQLError;
         try
-          if GetConnection.CreateStatement.ExecuteQuery(
-            Format('SHOW COLUMNS FROM %s.%s',
-            [GetIdentifierConvertor.Quote(LCatalog),
-             GetIdentifierConvertor.Quote(LTableNamePattern)])).Next then
+          {***
+            @note ansgarbecker, 2007-02-07
+            Fix for HeidiSQL: Don't use catalog name if empty, which
+            is always the case. Except for those Zeos-internal queries
+            which partly use "information_schema" as catalog.
+          }
+          if LCatalog <> '' then
+          begin
+            sql := Format('SHOW COLUMNS FROM %s.%s',
+              [GetIdentifierConvertor.Quote(LCatalog), GetIdentifierConvertor.Quote(LTableNamePattern)]);
+          end
+          else
+          begin
+            sql := Format('SHOW COLUMNS FROM %s',
+              [GetIdentifierConvertor.Quote(LTableNamePattern)]);
+          end;
+          if GetConnection.CreateStatement.ExecuteQuery(sql).Next then
           begin
             Result.MoveToInsertRow;
             Result.UpdateString(1, LCatalog);
@@ -996,6 +1026,8 @@ var
   Key: string;
   TableNameList: TStrings;
   TableNameLength: Integer;
+
+  sql : String;
 begin
   Key := Format('get-columns:%s:%s:%s:%s',
     [Catalog, SchemaPattern, TableNamePattern, ColumnNamePattern]);
@@ -1027,10 +1059,27 @@ begin
         OrdPosition := 1;
         TempTableNamePattern := TableNameList.Strings[I];
 
-        with GetConnection.CreateStatement.ExecuteQuery(
-          Format('SHOW COLUMNS FROM %s LIKE ''%s''',
-          [GetIdentifierConvertor.Quote(TempTableNamePattern),
-          TempColumnNamePattern])) do
+        {***
+          @note ansgarbecker, 2007-02-07
+          Fix for HeidiSQL: Don't use catalog name if empty, which
+          is always the case. Except for those Zeos-internal queries
+          which partly use "information_schema" as catalog.
+        }
+        if TempCatalog <> '' then
+        begin
+          sql := Format('SHOW COLUMNS FROM %s.%s LIKE ''%s''',
+            [GetIdentifierConvertor.Quote(TempCatalog),
+            GetIdentifierConvertor.Quote(TempTableNamePattern),
+            TempColumnNamePattern]);
+        end
+        else
+        begin
+          sql := Format('SHOW COLUMNS FROM %s LIKE ''%s''',
+            [GetIdentifierConvertor.Quote(TempTableNamePattern),
+            TempColumnNamePattern]);
+        end;
+
+        with GetConnection.CreateStatement.ExecuteQuery(sql) do
         begin
           while Next do
           begin
@@ -1444,6 +1493,7 @@ var
   KeyType: string;
   Key: string;
   LCatalog: string;
+  sql : String;
 begin
   if Table = '' then
     raise Exception.Create(STableIsNotSpecified); //CHANGE IT!
@@ -1464,9 +1514,25 @@ begin
     else
       LCatalog := Catalog;
 
-    with GetConnection.CreateStatement.ExecuteQuery(
-      Format('SHOW KEYS FROM %s',
-      [GetIdentifierConvertor.Quote(Table)])) do
+    {***
+      @note ansgarbecker, 2007-02-07
+      Fix for HeidiSQL: Don't use catalog name if empty, which
+      is always the case. Except for those Zeos-internal queries
+      which partly use "information_schema" as catalog.
+    }
+    if LCatalog <> '' then
+    begin
+      sql := Format('SHOW KEYS FROM %s.%s',
+        [GetIdentifierConvertor.Quote(LCatalog),
+        GetIdentifierConvertor.Quote(Table)]);
+    end
+    else
+    begin
+      sql := Format('SHOW KEYS FROM %s',
+        [GetIdentifierConvertor.Quote(Table)]);
+    end;
+
+    with GetConnection.CreateStatement.ExecuteQuery(sql) do
     begin
       while Next do
       begin
