@@ -477,8 +477,8 @@ begin
    MySQLPingError := FPlainDriver.Ping(FHandle);
    Result := MySQLPingError;
    CheckMySQLError(FPlainDriver, FHandle, lcExecute,'PING MYSQL (FOS)');
-   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol,
-    'PING MYSQL (FOS) '+IntToStr(MySQLPingError));
+   //DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol,
+   // 'PING MYSQL (FOS) '+IntToStr(MySQLPingError));
 end;
 
 {**
