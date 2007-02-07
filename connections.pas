@@ -105,7 +105,7 @@ begin
   with cp do
     begin
       MysqlParams.Protocol := 'mysql';
-      MysqlParams.Host := EditHost.Text;
+      MysqlParams.Host := trim( EditHost.Text );
       MysqlParams.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
       MysqlParams.Database := '';
       MysqlParams.User := EditBenutzer.Text;
@@ -129,7 +129,8 @@ begin
 
   ButtonConnect.Enabled := false;
   mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, true);
-  
+
+  // Save last connection name to registry
   with TRegistry.Create do
   begin
     if OpenKey(REGPATH, true) then
