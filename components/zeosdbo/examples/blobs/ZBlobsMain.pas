@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {               Blobs Example Application                 }
 {                                                         }
-{    Copyright (c) 1999-2003 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{          Originally written by Sergey Seroukhov         }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZBlobsMain;
 
@@ -50,7 +66,8 @@ uses
   StdCtrls, ExtCtrls, DBCtrls, Grids, DBGrids,
 {$ENDIF}
   ZConnection, ZDataset,
-  ZDbcMySQL, ZDbcPostgreSQL, ZDbcInterbase6, ZDbcCache, ZSqlUpdate;
+  ZDbcMySQL, ZDbcPostgreSQL, ZDbcInterbase6, ZDbcCache, ZSqlUpdate, ZSqlMetadata,
+  ZDbcIntfs;
 
 type
   {** Defines the main form of the application. }
@@ -89,6 +106,8 @@ type
     edtBlobColumn: TEdit;
     btnLoadImage: TButton;
     dlgOpenFile: TOpenDialog;
+    cbxOidAsBlob: TCheckBox;
+    procedure cbxOidAsBlobClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
     procedure btnDisconnectClick(Sender: TObject);
@@ -101,8 +120,10 @@ type
   private
     FConnection: TZConnection;
     FDataset: TZQuery;
+    FMetadata: TZSqlMetadata;
   public
     property Connection: TZConnection read FConnection write FConnection;
+    property Metadata:TZSqlMetadata read FMetadata write FMetadata;
     property Dataset: TZQuery read FDataset write FDataset;
   end;
 
@@ -127,9 +148,8 @@ begin
 
   Dataset := TZQuery.Create(Self);
   Dataset.Connection := Connection;
-  Dataset.RequestLive := True;
-  Dataset.CachedUpdates := True;
-//  Dataset.IsUniDirectional := True;
+  Dataset.ReadOnly := False;
+  // Dataset.CachedUpdates := True;
 
   dsMain.Dataset := Dataset;
   PropertiesChange(Self);
@@ -140,6 +160,7 @@ end;
   @param Sender an event sender object reference.
 }
 procedure TfrmMain.PropertiesChange(Sender: TObject);
+Var iIndex: Integer;
 begin
   Connection.Protocol := cbxProtocol.Text;
   Connection.HostName := edtHostName.Text;
@@ -150,6 +171,14 @@ begin
   Dataset.SQL.Text := 'SELECT * FROM ' + edtTableName.Text;
   memText.DataField := edtMemoColumn.Text;
   imgBlob.DataField := edtBlobColumn.Text;
+
+  cbxOidAsBlob.Enabled := (pos('postgre', cbxProtocol.Text) <> 0);
+
+  if cbxOidAsBlob.Enabled then
+     cbxOidAsBlobClick(Sender)
+  else
+     Connection.Properties.Clear;
+
 end;
 
 {**
@@ -175,6 +204,7 @@ end;
   @param Sender an event sender object reference.
 }
 procedure TfrmMain.btnOpenClick(Sender: TObject);
+var sTyp: String;
 begin
   Dataset.Open;
 end;
@@ -194,8 +224,8 @@ end;
 }
 procedure TfrmMain.btnApplyUpdatesClick(Sender: TObject);
 begin
-  Dataset.ApplyUpdates;
-  Dataset.CommitUpdates;
+  Dataset.Post;
+  // Dataset.CommitUpdates;
 end;
 
 {**
@@ -204,7 +234,7 @@ end;
 }
 procedure TfrmMain.btnCancelUpdatesClick(Sender: TObject);
 begin
-  Dataset.CancelUpdates;
+  // Dataset.CancelUpdates;
 end;
 
 {**
@@ -216,26 +246,38 @@ var
   BlobStream: TStream;
   FileStream: TStream;
 begin
-  if Dataset.Active and dlgOpenFile.Execute then
-  begin
-    if Dataset.State <> dsEdit then
-      Dataset.Edit;
+  if Dataset.Active then begin
+    dlgOpenFile.Filter := 'Bitmap files (*.bmp)|*.BMP';
+    if dlgOpenFile.Execute then begin
+      begin
+        if Dataset.State <> dsEdit then
+          Dataset.Edit;
 
-    BlobStream := Dataset.CreateBlobStream(
-      Dataset.FieldByName(edtBlobColumn.Text), bmWrite);
-    try
-      FileStream := TFileStream.Create(dlgOpenFile.FileName, fmOpenRead);
-      try
-        BlobStream.CopyFrom(FileStream, FileStream.Size);
-      finally
-        FileStream.Free;
+        BlobStream := Dataset.CreateBlobStream(
+        Dataset.FieldByName(edtBlobColumn.Text), bmWrite);
+        try
+          FileStream := TFileStream.Create(dlgOpenFile.FileName, fmOpenRead);
+          try
+            BlobStream.CopyFrom(FileStream, FileStream.Size);
+          finally
+            FileStream.Free;
+          end;
+        finally
+          BlobStream.Free;
+        end;
+
+        Dataset.Post;
       end;
-    finally
-      BlobStream.Free;
     end;
+  end;  
+end;
 
-    Dataset.Post;
-  end;
+procedure TfrmMain.cbxOidAsBlobClick(Sender: TObject);
+begin
+  if cbxOidAsBlob.Checked then
+    Connection.Properties.Add('oidasblob=true')
+  else
+    Connection.Properties.Clear;
 end;
 
 end.

@@ -1,4 +1,5 @@
 package ZComponent;
+{$LIBSUFFIX '60'}
 
 {$R *.res}
 {$R '..\..\src\component\ZComponent.dcr'}
@@ -14,7 +15,6 @@ package ZComponent;
 {$OPENSTRINGS ON}
 {$OPTIMIZATION OFF}
 {$OVERFLOWCHECKS ON}
-{$RANGECHECKS ON}
 {$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES ON}
@@ -38,20 +38,20 @@ requires
 contains
   ZSqlUpdate in '..\..\src\component\ZSqlUpdate.pas',
   ZAbstractDataset in '..\..\src\component\ZAbstractDataset.pas',
+  ZAbstractRODataset in '..\..\src\component\ZAbstractRODataset.pas',
+  ZStreamBlob in '..\..\src\component\ZStreamBlob.pas',
   ZConnection in '..\..\src\component\ZConnection.pas',
   ZDataset in '..\..\src\component\ZDataset.pas',
   ZDatasetUtils in '..\..\src\component\ZDatasetUtils.pas',
-  ZAbstractRODataset in '..\..\src\component\ZAbstractRODataset.pas',
-  ZStreamBlob in '..\..\src\component\ZStreamBlob.pas',
   ZSqlStrings in '..\..\src\component\ZSqlStrings.pas',
   ZComponentReg in '..\..\src\component\ZComponentReg.pas',
   ZSqlProcessor in '..\..\src\component\ZSqlProcessor.pas',
   ZPropertyEditor in '..\..\src\component\ZPropertyEditor.pas',
-  ZStoredProcedure in '..\..\src\component\ZStoredProcedure.pas',
   ZSqlMonitor in '..\..\src\component\ZSqlMonitor.pas',
-  ZSqlMetadata in '..\..\src\component\ZSqlMetadata.pas',
+  ZStoredProcedure in '..\..\src\component\ZStoredProcedure.pas',
   ZAbstractTable in '..\..\src\component\ZAbstractTable.pas',
-  ZUpdateSqlEditor in '..\..\src\component\ZUpdateSqlEditor.pas' {ZUpdateSqlEditForm},
+  ZSqlMetadata in '..\..\src\component\ZSqlMetadata.pas',
+  ZUpdateSqlEditor in '..\..\src\component\ZUpdateSqlEditor.pas' {ZUpdateSQLEditForm},
   ZSequence in '..\..\src\component\ZSequence.pas';
 
 end.

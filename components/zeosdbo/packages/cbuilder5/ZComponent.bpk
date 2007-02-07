@@ -9,7 +9,8 @@
       build\ZDataset.obj build\ZDatasetUtils.obj build\ZPropertyEditor.obj 
       build\ZSqlMetadata.obj build\ZSqlMonitor.obj build\ZSqlProcessor.obj 
       build\ZSqlStrings.obj build\ZSqlUpdate.obj build\ZStoredProcedure.obj 
-      build\ZStreamBlob.obj build\ZComponent.obj build\ZSequence.obj"/>
+      build\ZStreamBlob.obj build\ZComponent.obj build\ZSequence.obj
+      build\ZUpdateSqlEditor.obj"/>
     <RESFILES value="ZComponent.res ZComponent.dcr"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -19,7 +20,7 @@
     <LIBRARIES value=""/>
     <SPARELIBS value="Vcl50.lib"/>
     <PACKAGES value="vcl50.bpi ZPlain.bpi ZDbc.bpi ZParseSql.bpi ZCore.bpi Vcldb50.bpi 
-      vclado50.bpi"/>
+      vclado50.bpi designide.bpi"/>
     <PATHCPP value=".;"/>
     <PATHPAS value=".;..\..\src\component"/>
     <PATHRC value=".;..\..\src\component"/>

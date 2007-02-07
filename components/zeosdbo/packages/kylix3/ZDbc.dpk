@@ -13,7 +13,6 @@ package ZDbc;
 {$OPENSTRINGS ON}
 {$OPTIMIZATION OFF}
 {$OVERFLOWCHECKS ON}
-{$RANGECHECKS ON}
 {$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES ON}
@@ -23,7 +22,6 @@ package ZDbc;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Zeos Low Level Database API'}
-{$RUNONLY ON}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -74,11 +72,11 @@ contains
   ZDbcSqLiteUtils in '../../src/dbc/ZDbcSqLiteUtils.pas',
   ZDbcSqLiteStatement in '../../src/dbc/ZDbcSqLiteStatement.pas',
   ZDbcSqLiteResultSet in '../../src/dbc/ZDbcSqLiteResultSet.pas',
-  ZDbcSqLiteMetadata in '../../src/dbc/ZDbcSqLiteMetadata.pas';
-  ZDbcASAUtils in '..\..\src\dbc\ZDbcASAUtils.pas',
-  ZDbcASAMetadata in '..\..\src\dbc\ZDbcASAMetadata.pas',
-  ZDbcASAResultSet in '..\..\src\dbc\ZDbcASAResultSet.pas',
-  ZDbcASAStatement in '..\..\src\dbc\ZDbcASAStatement.pas',
-  ZDbcASA in '..\..\src\dbc\ZDbcASA.pas';
+  ZDbcSqLiteMetadata in '../../src/dbc/ZDbcSqLiteMetadata.pas',
+  ZDbcASAMetadata in '../../src/dbc/ZDbcASAMetadata.pas',
+  ZDbcASAResultSet in '../../src/dbc/ZDbcASAResultSet.pas',
+  ZDbcASAStatement in '../../src/dbc/ZDbcASAStatement.pas',
+  ZDbcASA in '../../src/dbc/ZDbcASA.pas',
+  ZDbcASAUtils in '../../src/dbc/ZDbcASAUtils.pas';
 
 end.

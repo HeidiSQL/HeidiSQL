@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {               Simple Example Application                }
 {                                                         }
-{    Copyright (c) 1999-2003 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZSimpleMain;
 
@@ -42,8 +58,8 @@ interface
 uses
   Windows, Messages, SysUtils, {$IFDEF VER140} Variants, {$ENDIF} Classes, Graphics, Controls, Forms,
   Dialogs, Grids, DBGrids, DBCtrls, ExtCtrls, StdCtrls, ZConnection, ZDataset,
-  ZDbcCache, ZAbstractRODataset, ZDbcMySQL, ZDbcPostgreSQL, DB, ZSqlUpdate, 
-  ComCtrls, ZDbcInterbase6;
+  ZDbcCache, ZAbstractRODataset, ZDbcMySQL, ZDbcPostgreSQL, DB, ZSqlUpdate,
+  ComCtrls, ZDbcInterbase6, ZSqlMonitor, ZAbstractDataset, ZSequence;
 
 type
   {** Implements the main application form. }
@@ -85,6 +101,15 @@ type
     memInsert: TMemo;
     memUpdate: TMemo;
     memDelete: TMemo;
+    ZSQLMonitor: TZSQLMonitor;
+    ButtonRefresh: TButton;
+    ZQueryZ: TZQuery;
+    ZSequence: TZSequence;
+    procedure FormDestroy(Sender: TObject);
+    procedure ButtonRefreshClick(Sender: TObject);
+    procedure ZSQLMonitorTrace(Sender: TObject; Event: TZLoggingEvent;
+      var LogTrace: Boolean);
+    procedure ZSQLMonitorLogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure FormCreate(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
     procedure btnDisconnectClick(Sender: TObject);
@@ -125,19 +150,37 @@ begin
   Connection := TZConnection.Create(Self);
   Dataset := TZQuery.Create(Self);
   Dataset.Connection := FConnection;
-  Dataset.RequestLive := True;
-  Dataset.CachedUpdates := True;
+  ZSequence.Connection:=Connection;
+  ZSequence.SequenceName:='t1_id_seq';
+  DataSet.sequence:=ZSequence;
+  Dataset.SequenceField:='ID';
+
+ //  Dataset.RequestLive := True;
+//  Dataset.CachedUpdates := True;
 //  Dataset.IsUniDirectional := True;
 
-  Dataset.OnCalcFields := DataSetCalcFields;
-  Dataset.OnFilterRecord := DataSetFilterRecord;
+  dataset.SQL.Add('SELECT * FROM tsite');
+//  Dataset.OnCalcFields := DataSetCalcFields;
+//  Dataset.OnFilterRecord := DataSetFilterRecord;
 //  Dataset.Filtered := True;
   dsMain.Dataset := Dataset;
 
   UpdateSQL := TZUpdateSQL.Create(Self);
-  Dataset.UpdateObject := UpdateSQL;
+  UpdateSQL.DeleteSQL.Add('DELETE FROM T1 WHERE id=:OLD_ID');
+  UpdateSQL.ModifySQL.Add('UPDATE T1 SET ID=:ID, A=:A, B=:B WHERE id=:OLD_ID');
+  UpdateSQL.InsertSQL.Add('INSERT INTO T1 (id,a,b) VALUES (:ID,55, 66)');
+  UpdateSQL.RefreshSQL.Add('SELECT * FROM T1 WHERE ID=:OLD_ID');
+  UpdateSQL.Refresh_OLD_ID_SEQ:=true;
+
+  Dataset.UpdateObject:=UpdateSQL;
+
 
   PropertiesChange(Self);
+end;
+
+procedure TfrmMain.FormDestroy(Sender: TObject);
+begin
+ Connection.Free;
 end;
 
 {**
@@ -151,13 +194,22 @@ begin
   Connection.Database := edtDatabase.Text;
   Connection.User := edtUserName.Text;
   Connection.Password := edtPassword.Text;
-
-  Dataset.SQL := memQuery.Lines;
+//  Dataset.SQL := memQuery.Lines;
   Dataset.Fields.Clear;
 
-  UpdateSQL.InsertSQL := memInsert.Lines;
-  UpdateSQL.ModifySQL := memUpdate.Lines;
-  UpdateSQL.DeleteSQL := memDelete.Lines;
+//  UpdateSQL.InsertSQL := memInsert.Lines;
+//  UpdateSQL.ModifySQL := memUpdate.Lines;
+//  UpdateSQL.DeleteSQL := memDelete.Lines;
+end;
+
+procedure TfrmMain.ZSQLMonitorLogTrace(Sender: TObject; Event: TZLoggingEvent);
+begin
+ memLog.Lines.Add(Event.AsString);
+end;
+
+procedure TfrmMain.ZSQLMonitorTrace(Sender: TObject; Event: TZLoggingEvent;  var LogTrace: Boolean);
+begin
+// memLog.Lines.Add(Event.AsString);
 end;
 
 {**
@@ -167,6 +219,7 @@ end;
 procedure TfrmMain.btnConnectClick(Sender: TObject);
 begin
   Connection.Connect;
+  ShowMessage(inttostr(Connection.Port));
 end;
 
 {**
@@ -260,6 +313,11 @@ begin
   memLog.Lines.Append('');
 end;
 
+procedure TfrmMain.ButtonRefreshClick(Sender: TObject);
+begin
+ Dataset.Refresh;
+end;
+
 {**
   Fills a dataset calculated fields.
   @param Dataset a dataset sender object reference.
@@ -289,9 +347,11 @@ end;
 procedure TfrmMain.btnFilterClick(Sender: TObject);
 begin
 //  Dataset.Filtered := not Dataset.Filtered;
+{
   if Dataset.ShowRecordTypes = [utModified, utInserted, utUnmodified] then
     Dataset.ShowRecordTypes := [utModified, utDeleted]
   else Dataset.ShowRecordTypes := [utModified, utInserted, utUnmodified];
+}
 end;
 
 {**

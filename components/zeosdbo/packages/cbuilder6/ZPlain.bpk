@@ -11,15 +11,14 @@
       build\ZPlainInterbaseDriver.obj build\ZPlainLoader.obj 
       build\ZPlainMySql320.obj build\ZPlainMySql323.obj build\ZPlainMySql40.obj 
       build\ZPlainMySql41.obj build\ZPlainMySqlDriver.obj 
-      build\ZPlainPostgreSql73.obj build\ZPlainPostgreSql74.obj
-      build\ZPlainPostgreSql8x.obj build\ZPlainDb2.obj
+      build\ZPlainPostgreSql7.obj build\ZPlainPostgreSql8.obj build\ZPlainDb2.obj
       build\ZPlainDb2Driver.obj build\ZPlainFirebird10.obj 
-      build\ZPlainFirebird15.obj build\ZPlainAdo.obj
+      build\ZPlainFirebird15.obj build\ZPlainFirebird20.obj build\ZPlainAdo.obj
       build\ZPlainAdoDriver.obj build\ZPlainSqLiteDriver.obj 
       build\ZPlainOracle9i.obj build\ZPlainOracleDriver.obj
       build\ZPlainASADriver.obj build\ZPlainASA9.obj
       build\ZPlainASA8.obj build\ZPlainASA7.obj       
-      build\ZPlainSqLite28.obj"/>
+      build\ZPlainSqLite28.obj build\ZPlainSqLite3.obj"/>
     <RESFILES value="ZPlain.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -60,38 +59,6 @@
     <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
     <OTHERFILES value=""/>
   </LINKER>
-  <FILELIST>
-      <FILE FILENAME="ZPlain.cpp" FORMNAME="" UNITNAME="ZPlain" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="ZPlain.res" FORMNAME="" UNITNAME="ZPlain" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainPostgreSqlDriver.pas" FORMNAME="" UNITNAME="ZPlainPostgreSqlDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainDbLibDriver.pas" FORMNAME="" UNITNAME="ZPlainDbLibDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainDbLibMsSql7.pas" FORMNAME="" UNITNAME="ZPlainDbLibMsSql7" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainDbLibSybaseAse125.pas" FORMNAME="" UNITNAME="ZPlainDbLibSybaseAse125" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainDriver.pas" FORMNAME="" UNITNAME="ZPlainDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainInterbase5.pas" FORMNAME="" UNITNAME="ZPlainInterbase5" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainInterbase6.pas" FORMNAME="" UNITNAME="ZPlainInterbase6" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainInterbaseDriver.pas" FORMNAME="" UNITNAME="ZPlainInterbaseDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainLoader.pas" FORMNAME="" UNITNAME="ZPlainLoader" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainMySql320.pas" FORMNAME="" UNITNAME="ZPlainMySql320" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainMySql323.pas" FORMNAME="" UNITNAME="ZPlainMySql323" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainMySql40.pas" FORMNAME="" UNITNAME="ZPlainMySql40" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainMySql41.pas" FORMNAME="" UNITNAME="ZPlainMySql41" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainMySqlDriver.pas" FORMNAME="" UNITNAME="ZPlainMySqlDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainPostgreSql74.pas" FORMNAME="" UNITNAME="ZPlainPostgreSql73" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainPostgreSql81.pas" FORMNAME="" UNITNAME="ZPlainPostgreSql74" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainDb2.pas" FORMNAME="" UNITNAME="ZPlainDb2" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainDb2Driver.pas" FORMNAME="" UNITNAME="ZPlainDb2Driver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainFirebird10.pas" FORMNAME="" UNITNAME="ZPlainFirebird10" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainFirebird15.pas" FORMNAME="" UNITNAME="ZPlainFirebird15" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZCore.bpi" FORMNAME="" UNITNAME="ZCore" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainAdo.pas" FORMNAME="" UNITNAME="ZPlainAdo" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainAdoDriver.pas" FORMNAME="" UNITNAME="ZPlainAdoDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainSqLiteDriver.pas" FORMNAME="" UNITNAME="ZPlainSqLiteDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainOracle9i.pas" FORMNAME="" UNITNAME="ZPlainOracle9i" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainOracleDriver.pas" FORMNAME="" UNITNAME="ZPlainOracleDriver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\plain\ZPlainSqLite28.pas" FORMNAME="" UNITNAME="ZPlainSqLite28" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-  </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
 

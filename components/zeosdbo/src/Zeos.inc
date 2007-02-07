@@ -1,13 +1,61 @@
 {$I ../../../compilerdetection/compilers.inc}
 
-// Compilation directives for Lazarus and Delphi 5
-{$IFDEF COMPILER_5}
+
+// Compilation directives for Delphi4
+{$IFDEF VER120}
+{$DEFINE VER125BELOW}
+{$DEFINE VER130BELOW}
+{$DEFINE VER130KBELOW}
+{$DEFINE VER140BELOW}
+{$ENDIF}
+
+// Compilation directives for Delphi 5
+{$IFDEF VER130}
 {$DEFINE VER130BELOW}
 {$DEFINE VER140BELOW}
 {$ENDIF}
 
 {$IFDEF COMPILER_6_UP}
 {$DEFINE VER140BELOW}
+{$ENDIF}
+
+// Compilation directives for Delphi 7
+{$IFDEF VER150}
+  {$DEFINE VER150BELOW}
+{$ENDIF}
+
+// Compilation directives for Delphi 8
+{$IFDEF VER160}
+  {$DEFINE VER160BELOW}
+{$ENDIF}
+
+// Compilation directives for Delphi 9 (DELPHI 2005)
+{$IFDEF VER170}
+  {$DEFINE VER170BELOW}
+  {$DEFINE BDS}
+  {$DEFINE BDS3}
+  {$DEFINE BDS3_UP}
+  {$DEFINE COMPILER9}
+  {$DEFINE COMPILER9_UP}
+  {$DEFINE DELPHI9}
+  {$DEFINE DELPHI9_UP}
+{$ENDIF}
+
+// Compilation directives for BDS 2006 (Delphi 2006, BCB 2006)
+{$IFDEF VER180}
+  {$DEFINE VER180BELOW}
+  {$DEFINE BDS}
+  {$DEFINE BDS4}
+  {$DEFINE BDS4_UP}
+  {$DEFINE COMPILER10}
+  {$DEFINE COMPILER10_UP}
+  {$IFDEF BCB}
+    {$DEFINE BCB10}
+    {$DEFINE BCB10_UP}
+  {$ELSE}
+    {$DEFINE DELPHI10}
+    {$DEFINE DELPHI10_UP}
+  {$ENDIF}
 {$ENDIF}
 
 {$IFDEF FREEBSD}
@@ -26,16 +74,15 @@
 {$ENDIF}
 
 {$IFDEF BINARY_RELEASE}
-
 // Settings for Release mode
-{$C-}
-{$I-}
-{$R-}
-{$L-}
-{$Q-}
+{.$C-}
+{.$I-}
+{.$R-}
+{.$L-}
+{.$Q-}
 {$IFNDEF FPC}
-{$O+}
-{$W-}
+{.$O+}
+{.$W-}
 {$ENDIF}
 
 {$ELSE}
@@ -62,6 +109,9 @@
 
 // Enables MySQL support in TZConnection/TZDataset
 {$DEFINE ENABLE_MYSQL}
+// Enables Mysql 3.x and 4.0 support
+// These versions are deprecated and will not be supported in future versions of zeoslib.
+{.$DEFINE ENABLE_MYSQL_DEPRECATED}
 
 // Enables PostgreSQL support in TZConnection/TZDataset
 { not used: $DEFINE ENABLE_POSTGRESQL}
@@ -87,7 +137,7 @@
 { not used: $DEFINE ENABLE_ASA}
 
 // Supported language. Now available languages:
-// ENGLISH, GERMAN, PORTUGUESE, DUTCH, SPANISH
+// ENGLISH, GERMAN, PORTUGUESE, DUTCH, SPANISH, ROMANA, INDONESIAN
 {$DEFINE ENGLISH}
 
 // Prevents loading default libmysql.dll
@@ -96,10 +146,13 @@
 // Prefer loading default libmysql.dll
 {$DEFINE MYSQL_LOAD_STRICT_LAST}
 
+// Prevents loading default firebird.dll
+{$DEFINE FIREBIRD_STRICT_DLL_LOADING}
+
 // Prevents loading default libpq.dll
 {$DEFINE POSTGRESQL_STRICT_DLL_LOADING}
 
-//Allows to see SQL exceptions as strings 
+//Allows to see SQL exceptions as strings
 {$DEFINE INTERBASE_EXTENDED_MESSAGES}
 
 // Loads libcrypt.so before Firebird client library.
@@ -123,7 +176,9 @@
 
 // Turn on IProviderSupport interface
 {$IFNDEF FPC}
+{$IFNDEF VER125BELOW}
 {$DEFINE WITH_IPROVIDER}
+{$ENDIF}
 {$ENDIF}
 
 // Turn on multithreading
@@ -150,4 +205,9 @@
 
 // Compile test applications with a graphical user interface (GUI)
 // Comment this definition if you want to compile console test applications
-//{$DEFINE TESTGUI}
+{.$DEFINE TESTGUI}
+
+//PATCH TO DO NO METADATALOADING / UNTESTED HIGH RISK
+{.$DEFINE FOSNOMETA}
+
+

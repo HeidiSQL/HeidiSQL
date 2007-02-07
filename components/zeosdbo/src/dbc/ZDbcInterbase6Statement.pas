@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Merkuriev                  }
+{        Originally written by Sergey Merkuriev           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcInterbase6Statement;
 
@@ -43,7 +59,8 @@ interface
 
 uses Classes, SysUtils, ZDbcIntfs, ZDbcStatement, ZDbcInterbase6,
   ZPlainInterbase6, ZDbcInterbase6Utils, ZDbcInterbase6ResultSet,
-  ZPlainInterbaseDriver, ZCompatibility, ZDbcLogging, ZVariant, ZMessages;
+  ZPlainInterbaseDriver, ZPlainFirebirdInterbaseConstants,
+  ZCompatibility, ZDbcLogging, ZVariant, ZMessages;
 
 type
 
@@ -54,13 +71,13 @@ type
     FStatusVector: TARRAY_ISC_STATUS;
     FIBConnection: IZInterbase6Connection;
   protected
-    procedure CheckInterbase6Error(Sql: string = '');
+    procedure CheckInterbase6Error(const Sql: string = '');
   public
     constructor Create(Connection: IZConnection; Info: TStrings);
 
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. }
@@ -71,13 +88,13 @@ type
     FStatusVector: TARRAY_ISC_STATUS;
     FIBConnection: IZInterbase6Connection;
   protected
-    procedure CheckInterbase6Error(Sql: string = '');
+    procedure CheckInterbase6Error(const Sql: string = '');
   public
-    constructor Create(Connection: IZConnection; SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
 
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -91,16 +108,16 @@ type
     FStatusVector: TARRAY_ISC_STATUS;
     FIBConnection: IZInterbase6Connection;
   protected
-    procedure CheckInterbase6Error(Sql: string = '');
+    procedure CheckInterbase6Error(const Sql: string = '');
     procedure FetchOutParams(Value: IZResultSQLDA);
     function GetProcedureSql(SelectProc: boolean): string;
     procedure TrimInParameters;
   public
-    constructor Create(Connection: IZConnection; SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
 
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -117,7 +134,7 @@ uses ZDbcCachedResultSet, ZSysUtils, ZDbcUtils;
    Check interbase error status
    @param Sql the used sql tring
 }
-procedure TZInterbase6Statement.CheckInterbase6Error(Sql: string = '');
+procedure TZInterbase6Statement.CheckInterbase6Error(const Sql: string = '');
 begin
   ZDbcInterbase6Utils.CheckInterbase6Error(FIBConnection.GetPlainDriver,
     FStatusVector, lcExecute, SQL);
@@ -151,7 +168,7 @@ end;
     given query; never <code>null</code>
 }
 {$HINTS OFF}
-function TZInterbase6Statement.ExecuteQuery(SQL: string): IZResultSet;
+function TZInterbase6Statement.ExecuteQuery(const SQL: string): IZResultSet;
 var
   Cursor: string;
   SQLData: IZResultSQLDA;
@@ -219,7 +236,7 @@ end;
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
 {$HINTS OFF}
-function TZInterbase6Statement.ExecuteUpdate(SQL: string): Integer;
+function TZInterbase6Statement.ExecuteUpdate(const SQL: string): Integer;
 var
   StmtHandle: TISC_STMT_HANDLE;
   StatementType: TZIbSqlStatementType;
@@ -283,7 +300,7 @@ end;
   @see #getMoreResults
 }
 {$HINTS OFF}
-function TZInterbase6Statement.Execute(SQL: string): Boolean;
+function TZInterbase6Statement.Execute(const SQL: string): Boolean;
 var
   Cursor: string;
   SQLData: IZResultSQLDA;
@@ -364,7 +381,7 @@ end;
    Check interbase error status
    @param Sql the used sql tring
 }
-procedure TZInterbase6PreparedStatement.CheckInterbase6Error(Sql: string);
+procedure TZInterbase6PreparedStatement.CheckInterbase6Error(const Sql: string);
 begin
   ZDbcInterbase6Utils.CheckInterbase6Error(FIBConnection.GetPlainDriver,
     FStatusVector, lcExecute, SQL);
@@ -378,7 +395,7 @@ end;
   @param Info a statement parameters.
 }
 constructor TZInterbase6PreparedStatement.Create(Connection: IZConnection;
-  SQL: string; Info: TStrings);
+  const SQL: string; Info: TStrings);
 begin
   inherited Create(Connection, SQL, Info);
 
@@ -413,7 +430,7 @@ end;
   @see #getMoreResults
 }
 
-function TZInterbase6PreparedStatement.Execute(SQL: string): Boolean;
+function TZInterbase6PreparedStatement.Execute(const SQL: string): Boolean;
 begin
   Self.SQL := SQL;
   Result := ExecutePrepared;
@@ -503,7 +520,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZInterbase6PreparedStatement.ExecuteQuery(SQL: string): IZResultSet;
+function TZInterbase6PreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
 begin
   Self.SQL := SQL;
   Result := ExecuteQueryPrepared;
@@ -585,7 +602,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZInterbase6PreparedStatement.ExecuteUpdate(SQL: string): Integer;
+function TZInterbase6PreparedStatement.ExecuteUpdate(const SQL: string): Integer;
 begin
   Self.SQL := SQL;
   Result := ExecuteUpdatePrepared;
@@ -652,7 +669,7 @@ end;
    Check interbase error status
    @param Sql the used sql tring
 }
-procedure TZInterbase6CallableStatement.CheckInterbase6Error(Sql: string);
+procedure TZInterbase6CallableStatement.CheckInterbase6Error(const Sql: string);
 begin
   ZDbcInterbase6Utils.CheckInterbase6Error(FIBConnection.GetPlainDriver,
     FStatusVector, lcExecute, SQL);
@@ -666,7 +683,7 @@ end;
   @param Info a statement parameters.
 }
 constructor TZInterbase6CallableStatement.Create(Connection: IZConnection;
-  SQL: string; Info: TStrings);
+  const SQL: string; Info: TStrings);
 begin
   inherited Create(Connection, SQL, Info);
 
@@ -701,7 +718,7 @@ end;
   @see #getMoreResults
 }
 
-function TZInterbase6CallableStatement.Execute(SQL: string): Boolean;
+function TZInterbase6CallableStatement.Execute(const SQL: string): Boolean;
 begin
   Self.SQL := SQL;
   Result := ExecutePrepared;
@@ -738,7 +755,6 @@ begin
         SQL, StmtHandle, SQLData);
       PrepareParameters(GetPlainDriver, ProcSql, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
-
       GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle, @StmtHandle,
             GetDialect, FParamSQLData.GetData, SQLData.GetData);
       CheckInterbase6Error(SQL);
@@ -789,7 +805,7 @@ end;
     given query; never <code>null</code>
 }
 function TZInterbase6CallableStatement.ExecuteQuery(
-  SQL: string): IZResultSet;
+  const SQL: string): IZResultSet;
 begin
   Self.SQL := SQL;
   Result := ExecuteQueryPrepared;
@@ -872,7 +888,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZInterbase6CallableStatement.ExecuteUpdate(SQL: string): Integer;
+function TZInterbase6CallableStatement.ExecuteUpdate(const SQL: string): Integer;
 begin
   Self.SQL := SQL;
   Result := ExecuteUpdatePrepared;

@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Merkuriev                  }
+{        Originally written by Sergey Merkuriev           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcASAResultSet;
 
@@ -110,17 +126,17 @@ type
     procedure UpdateDouble(ColumnIndex: Integer; Value: Double); override;
     procedure UpdateBigDecimal(ColumnIndex: Integer; Value: Extended); override;
     procedure UpdatePChar(ColumnIndex: Integer; Value: PChar); override;
-    procedure UpdateString(ColumnIndex: Integer; Value: string); override;
-    procedure UpdateUnicodeString(ColumnIndex: Integer; Value: WideString);
+    procedure UpdateString(ColumnIndex: Integer; const Value: string); override;
+    procedure UpdateUnicodeString(ColumnIndex: Integer; const Value: WideString);
       override;
-    procedure UpdateBytes(ColumnIndex: Integer; Value: TByteDynArray); override;
+    procedure UpdateBytes(ColumnIndex: Integer; const Value: TByteDynArray); override;
     procedure UpdateDate(ColumnIndex: Integer; Value: TDateTime); override;
     procedure UpdateTime(ColumnIndex: Integer; Value: TDateTime); override;
     procedure UpdateTimestamp(ColumnIndex: Integer; Value: TDateTime); override;
     procedure UpdateAsciiStream(ColumnIndex: Integer; Value: TStream); override;
     procedure UpdateUnicodeStream(ColumnIndex: Integer; Value: TStream); override;
     procedure UpdateBinaryStream(ColumnIndex: Integer; Value: TStream); override;
-    procedure UpdateValue(ColumnIndex: Integer; Value: TZVariant); override;
+    procedure UpdateValue(ColumnIndex: Integer; const Value: TZVariant); override;
 
     procedure InsertRow; override;
     procedure UpdateRow; override;
@@ -647,7 +663,6 @@ begin
     raise EZSQLException.Create(SCanNotRetrieveResultSetData);
 
   ColumnsInfo.Clear;
-  {$RANGECHECKS OFF}
   for i := 0 to FSqlData.GetFieldCount - 1 do
   begin
     ColumnInfo := TZColumnInfo.Create;
@@ -774,19 +789,19 @@ begin
   FUpdateSqlData.UpdatePChar( ColumnIndex, Value);
 end;
 
-procedure TZASAResultSet.UpdateString(ColumnIndex: Integer; Value: string);
+procedure TZASAResultSet.UpdateString(ColumnIndex: Integer; const Value: string);
 begin
   PrepareUpdateSQLData;
   FUpdateSqlData.UpdateString( ColumnIndex, Value);
 end;
 
-procedure TZASAResultSet.UpdateUnicodeString(ColumnIndex: Integer; Value: WideString);
+procedure TZASAResultSet.UpdateUnicodeString(ColumnIndex: Integer; const Value: WideString);
 begin
   PrepareUpdateSQLData;
   FUpdateSqlData.UpdatePChar( ColumnIndex, PChar( Value));
 end;
 
-procedure TZASAResultSet.UpdateBytes(ColumnIndex: Integer; Value: TByteDynArray);
+procedure TZASAResultSet.UpdateBytes(ColumnIndex: Integer; const Value: TByteDynArray);
 begin
   PrepareUpdateSQLData;
   FUpdateSqlData.UpdateBytes( ColumnIndex, Value);
@@ -828,7 +843,7 @@ begin
   FUpdateSqlData.WriteBlob( ColumnIndex, Value);
 end;
 
-procedure TZASAResultSet.UpdateValue(ColumnIndex: Integer; Value: TZVariant);
+procedure TZASAResultSet.UpdateValue(ColumnIndex: Integer; const Value: TZVariant);
 begin
   PrepareUpdateSQLData;
   FUpdateSqlData.UpdateValue( ColumnIndex, EncodeVariant( Value));

@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {            Caching Classes and Interfaces               }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcCachedResultSet;
 
@@ -60,6 +76,10 @@ type
       RowAccessor: TZRowAccessor);
     procedure PostUpdates(Sender: IZCachedResultSet; UpdateType: TZRowUpdateType;
       OldRowAccessor, NewRowAccessor: TZRowAccessor);
+    {BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+    procedure UpdateAutoIncrementFields(Sender: IZCachedResultSet; UpdateType: TZRowUpdateType;
+      OldRowAccessor, NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver);
+    {END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
   end;
 
   {** Represents a cached result set. }
@@ -68,6 +88,14 @@ type
 
     function GetResolver: IZCachedResolver;
     procedure SetResolver(Resolver: IZCachedResolver);
+
+    {BEGIN PATCH [1214009] Calc Defaults in TZUpdateSQL and Added Methods to GET and SET the database Native Resolver
+      will help to implemented feature to Calculate default values in TZUpdateSQL
+      comment: add this properties to get the original Resolver
+      this will be useful whn using TZUpdateSQL //added by fduenas
+    }
+    function GetNativeResolver: IZCachedResolver;
+   {END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
 
     function IsCachedUpdates: Boolean;
     procedure SetCachedUpdates(Value: Boolean);
@@ -94,6 +122,9 @@ type
     FOldRowAccessor: TZRowAccessor;
     FNextRowIndex: Integer;
     FResolver: IZCachedResolver;
+    {BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+    FNativeResolver: IZCachedResolver;
+    {END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
   protected
     constructor CreateWithStatement(SQL: string; Statement: IZStatement);
 
@@ -125,6 +156,9 @@ type
       write FNewRowAccessor;
     property NextRowIndex: Integer read FNextRowIndex write FNextRowIndex;
     property Resolver: IZCachedResolver read FResolver write FResolver;
+    {BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+    property NativeResolver: IZCachedResolver read FNativeResolver;
+    {END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
   public
     constructor CreateWithColumns(ColumnsInfo: TObjectList; SQL: string);
     destructor Destroy; override;
@@ -177,9 +211,9 @@ type
     procedure UpdateDouble(ColumnIndex: Integer; Value: Double); override;
     procedure UpdateBigDecimal(ColumnIndex: Integer; Value: Extended); override;
     procedure UpdatePChar(ColumnIndex: Integer; Value: PChar); override;
-    procedure UpdateString(ColumnIndex: Integer; Value: string); override;
-    procedure UpdateUnicodeString(ColumnIndex: Integer; Value: widestring); override;
-    procedure UpdateBytes(ColumnIndex: Integer; Value: TByteDynArray); override;
+    procedure UpdateString(ColumnIndex: Integer; const Value: string); override;
+    procedure UpdateUnicodeString(ColumnIndex: Integer; const Value: WideString); override;
+    procedure UpdateBytes(ColumnIndex: Integer; const Value: TByteDynArray); override;
     procedure UpdateDate(ColumnIndex: Integer; Value: TDateTime); override;
     procedure UpdateTime(ColumnIndex: Integer; Value: TDateTime); override;
     procedure UpdateTimestamp(ColumnIndex: Integer; Value: TDateTime); override;
@@ -194,8 +228,8 @@ type
     procedure MoveToInsertRow; override;
     procedure MoveToCurrentRow; override;
 
-    function CompareRows(Row1, Row2: Integer; ColumnIndices: TIntegerDynArray;
-      ColumnDirs: TBooleanDynArray): Integer; override;
+    function CompareRows(Row1, Row2: Integer; const ColumnIndices: TIntegerDynArray;
+      const ColumnDirs: TBooleanDynArray): Integer; override;
 
     //---------------------------------------------------------------------
     // Cached Updates
@@ -203,7 +237,9 @@ type
 
     function GetResolver: IZCachedResolver;
     procedure SetResolver(Resolver: IZCachedResolver);
-
+    {BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+    function GetNativeResolver: IZCachedResolver;
+    {END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
     function IsCachedUpdates: Boolean;
     procedure SetCachedUpdates(Value: Boolean);
     function IsPendingUpdates: Boolean; virtual;
@@ -281,6 +317,9 @@ end;
 destructor TZAbstractCachedResultSet.Destroy;
 begin
   FResolver := nil;
+  {BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+  FNativeResolver := nil;
+  {END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
   inherited Destroy;
 end;
 
@@ -413,7 +452,21 @@ end;
 procedure TZAbstractCachedResultSet.SetResolver(Resolver: IZCachedResolver);
 begin
   FResolver := Resolver;
+{BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+  if FNativeResolver = nil then
+     FNativeResolver := Resolver;
+{END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
 end;
+{BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+{**
+  Gets a Native cached updates resolver object.
+  @return a Native cached updates resolver object.
+}
+function TZAbstractCachedResultSet.GetNativeResolver: IZCachedResolver;
+begin
+  Result := FNativeResolver;
+end;
+{END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
 
 {**
   Checks is the cached updates mode turned on.
@@ -1146,7 +1199,7 @@ end;
   @param x the new column value
 }
 procedure TZAbstractCachedResultSet.UpdateString(ColumnIndex: Integer;
-  Value: string);
+  const Value: string);
 begin
 {$IFNDEF DISABLE_CHECKING}
   CheckUpdatable;
@@ -1166,7 +1219,7 @@ end;
   @param x the new column value
 }
 procedure TZAbstractCachedResultSet.UpdateUnicodeString(ColumnIndex: Integer;
-  Value: Widestring);
+  const Value: WideString);
 begin
 {$IFNDEF DISABLE_CHECKING}
   CheckUpdatable;
@@ -1186,7 +1239,7 @@ end;
   @param x the new column value
 }
 procedure TZAbstractCachedResultSet.UpdateBytes(ColumnIndex: Integer;
-  Value: TByteDynArray);
+  const Value: TByteDynArray);
 begin
 {$IFNDEF DISABLE_CHECKING}
   CheckUpdatable;
@@ -1631,7 +1684,7 @@ end;
   @param ColumnDirs compare direction for each columns.
 }
 function TZAbstractCachedResultSet.CompareRows(Row1, Row2: Integer;
-  ColumnIndices: TIntegerDynArray; ColumnDirs: TBooleanDynArray): Integer;
+  const ColumnIndices: TIntegerDynArray; const ColumnDirs: TBooleanDynArray): Integer;
 var
   RowBuffer1, RowBuffer2: PZRowBuffer;
 begin
@@ -1658,6 +1711,9 @@ begin
   inherited Create(ResultSet.GetStatement, SQL, nil);
   FResultSet := ResultSet;
   FResolver := Resolver;
+  {BEGIN PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
+  FNativeResolver := Resolver;
+  {END PATCH [1214009] CalcDefaults in TZUpdateSQL and Added Methods to GET the DB NativeResolver}
   Open;
 end;
 

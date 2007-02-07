@@ -1,9 +1,9 @@
 object frmMain: TfrmMain
   Left = 205
   Top = 116
-  Width = 740
-  Height = 595
   Caption = 'ZeosDBO Simple Test'
+  ClientHeight = 771
+  ClientWidth = 894
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,36 +12,40 @@ object frmMain: TfrmMain
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object pnMain: TPanel
     Left = 0
     Top = 0
-    Width = 528
-    Height = 568
+    Width = 690
+    Height = 771
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object splMain: TSplitter
       Left = 0
       Top = 121
-      Width = 528
+      Width = 690
       Height = 8
       Cursor = crVSplit
       Align = alTop
+      ExplicitWidth = 528
     end
     object splLog: TSplitter
       Left = 0
-      Top = 446
-      Width = 528
+      Top = 649
+      Width = 690
       Height = 8
       Cursor = crVSplit
       Align = alBottom
+      ExplicitTop = 446
+      ExplicitWidth = 528
     end
     object navMain: TDBNavigator
       Left = 0
       Top = 129
-      Width = 528
+      Width = 690
       Height = 32
       DataSource = dsMain
       Align = alTop
@@ -50,8 +54,8 @@ object frmMain: TfrmMain
     object gdMain: TDBGrid
       Left = 0
       Top = 161
-      Width = 528
-      Height = 285
+      Width = 690
+      Height = 488
       Align = alClient
       DataSource = dsMain
       TabOrder = 1
@@ -63,8 +67,8 @@ object frmMain: TfrmMain
     end
     object memLog: TMemo
       Left = 0
-      Top = 454
-      Width = 528
+      Top = 657
+      Width = 690
       Height = 114
       Align = alBottom
       ReadOnly = True
@@ -73,24 +77,25 @@ object frmMain: TfrmMain
     object pcStatements: TPageControl
       Left = 0
       Top = 0
-      Width = 528
+      Width = 690
       Height = 121
       ActivePage = tshQuery
       Align = alTop
-      TabIndex = 0
       TabOrder = 3
       object tshQuery: TTabSheet
         Caption = ' &Query     '
         object memQuery: TMemo
           Left = 0
           Top = 0
-          Width = 520
+          Width = 682
           Height = 93
           Align = alClient
           Lines.Strings = (
-            'SELECT * FROM department')
+            'SELECT * FROM TSITE;')
           TabOrder = 0
           OnChange = PropertiesChange
+          ExplicitLeft = -2
+          ExplicitTop = -2
         end
       end
       object tshInsert: TTabSheet
@@ -99,14 +104,11 @@ object frmMain: TfrmMain
         object memInsert: TMemo
           Left = 0
           Top = 0
-          Width = 520
+          Width = 682
           Height = 93
           Align = alClient
           Lines.Strings = (
-            
-              'INSERT INTO department (id_dep, dep_name, dep_shname, dep_addres' +
-              's) VALUES (:ID_DEP, '
-            ':DEP_NAME, :DEP_SHNAME, :DEP_ADDRESS)')
+            '')
           TabOrder = 0
           OnChange = PropertiesChange
         end
@@ -117,14 +119,9 @@ object frmMain: TfrmMain
         object memUpdate: TMemo
           Left = 0
           Top = 0
-          Width = 520
+          Width = 682
           Height = 93
           Align = alClient
-          Lines.Strings = (
-            
-              'UPDATE department SET id_dep=:ID_DEP, dep_name=:DEP_NAME, dep_sh' +
-              'name=:DEP_SHNAME, '
-            'dep_address=:DEP_ADDRESS WHERE id_dep=:OLD_ID_DEP')
           TabOrder = 0
           OnChange = PropertiesChange
         end
@@ -135,11 +132,11 @@ object frmMain: TfrmMain
         object memDelete: TMemo
           Left = 0
           Top = 0
-          Width = 520
+          Width = 682
           Height = 93
           Align = alClient
           Lines.Strings = (
-            'DELETE FROM department WHERE id_dep=:OLD_ID_DEP')
+            '')
           TabOrder = 0
           OnChange = PropertiesChange
         end
@@ -147,10 +144,10 @@ object frmMain: TfrmMain
     end
   end
   object pnControl: TPanel
-    Left = 528
+    Left = 690
     Top = 0
     Width = 204
-    Height = 568
+    Height = 771
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
@@ -195,8 +192,9 @@ object frmMain: TfrmMain
       Width = 193
       Height = 21
       ItemHeight = 13
+      ItemIndex = 1
       TabOrder = 0
-      Text = 'mysql'
+      Text = 'postgresql'
       OnChange = PropertiesChange
       Items.Strings = (
         'mysql'
@@ -217,7 +215,7 @@ object frmMain: TfrmMain
       Width = 193
       Height = 21
       TabOrder = 1
-      Text = 'localhost'
+      Text = '10.0.0.10'
       OnChange = PropertiesChange
     end
     object edtDatabase: TEdit
@@ -226,7 +224,7 @@ object frmMain: TfrmMain
       Width = 193
       Height = 21
       TabOrder = 2
-      Text = 'zeoslib'
+      Text = 'firmtest'
       OnChange = PropertiesChange
     end
     object edtUserName: TEdit
@@ -235,7 +233,7 @@ object frmMain: TfrmMain
       Width = 193
       Height = 21
       TabOrder = 3
-      Text = 'root'
+      Text = 'firmos'
       OnChange = PropertiesChange
     end
     object edtPassword: TEdit
@@ -244,6 +242,7 @@ object frmMain: TfrmMain
       Width = 193
       Height = 21
       TabOrder = 4
+      Text = 'gimmehard'
       OnChange = PropertiesChange
     end
     object btnConnect: TButton
@@ -265,8 +264,8 @@ object frmMain: TfrmMain
       OnClick = btnDisconnectClick
     end
     object btnOpen: TButton
-      Left = 8
-      Top = 296
+      Left = 6
+      Top = 297
       Width = 193
       Height = 25
       Caption = '&Open'
@@ -336,9 +335,35 @@ object frmMain: TfrmMain
       TabOrder = 14
       OnClick = btnCancelUpdatesClick
     end
+    object ButtonRefresh: TButton
+      Left = 6
+      Top = 608
+      Width = 193
+      Height = 25
+      Caption = 'Refresh'
+      TabOrder = 15
+      OnClick = ButtonRefreshClick
+    end
   end
   object dsMain: TDataSource
     Left = 16
     Top = 64
+  end
+  object ZSQLMonitor: TZSQLMonitor
+    Active = True
+    MaxTraceCount = 100
+    OnTrace = ZSQLMonitorTrace
+    OnLogTrace = ZSQLMonitorLogTrace
+    Left = 176
+    Top = 296
+  end
+  object ZQueryZ: TZQuery
+    Params = <>
+    Left = 208
+    Top = 384
+  end
+  object ZSequence: TZSequence
+    Left = 344
+    Top = 352
   end
 end

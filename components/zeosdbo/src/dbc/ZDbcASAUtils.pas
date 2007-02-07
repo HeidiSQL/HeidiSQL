@@ -1,21 +1,17 @@
 {*********************************************************}
 {                                                         }
 {                 Zeos Database Objects                   }
-{           ASA Database Connectivity Classes           }
+{           ASA Database Connectivity Classes             }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{   Written by Sergey Seroukhov and Sergey Merkuriev      }
+{         Originally written by Sergey Seroukhov          }
+{                           and Sergey Merkuriev          }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +19,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcASAUtils;
 
@@ -151,7 +168,7 @@ type
     function GetFieldCount: Integer;
     function GetFieldName(const Index: Word): string;
     function GetFieldIndex(const Name: String): Word;
-    function GetFieldScale(const Index: Word): integer;
+    function GetFieldScale(const Index: Word): Integer;
     function GetFieldSqlType(const Index: Word): TZSQLType;
     function GetFieldLength(const Index: Word): Word;
 
@@ -244,7 +261,7 @@ function RandomString( Len: integer): string;
 
 implementation
 
-uses Variants, ZMessages, ZDbcCachedResultSet, Math;
+uses {$IFDEF FPC}Variants,{$ELSE}{$IFNDEF VER130BELOW}Variants,{$ENDIF}{$ENDIF} ZMessages, ZDbcCachedResultSet, Math;
 
 { TZASASQLDA }
 
@@ -479,6 +496,7 @@ begin
       if StrLIComp( @FSQLDA.sqlvar[ Result].sqlname.data, PChar(Name),
         Length(name)) = 0 then Exit;
   CreateException( Format( SFieldNotFound1, [name]));
+  Result := 0; // satisfy compiler
 end;
 
 {**
@@ -1004,12 +1022,10 @@ end;
 }
 procedure TZASASQLDA.UpdateValue(const Index: Word; Value: Variant);
 begin
-  case VarType( Value) of
+  case VarType(Value) of
     varEmpty,
     varNull       : UpdateNull( Index, True);
-    varWord,
     varSmallint   : UpdateShort( Index, Value);
-    varLongWord,
     varInteger    : UpdateInt( Index, Value);
     varSingle     : UpdateFloat( Index, Value);
     varDouble     : UpdateDouble( Index, Value);
@@ -1019,10 +1035,12 @@ begin
     varString,
     varOleStr     : UpdateString( Index, Value);
     varBoolean    : UpdateBoolean( Index, Value);
-    varShortInt,
     varByte       : UpdateByte( Index, Value);
 {$IFDEF COMPILER6_UP}
     varInt64      : UpdateLong( Index, Value);
+    varShortInt   : UpdateByte( Index, Value);
+    varLongWord   : UpdateInt( Index, Value);
+    varWord       : UpdateShort( Index, Value);
 {$ENDIF}
   else
     if VarArrayDimCount( Value) = 1 then
@@ -1439,7 +1457,11 @@ begin
       DT_LONGVARCHAR : ReadBlobToString( Index, Result);
       DT_TIMESTAMP_STRUCT : Result := DateToStr( GetTimestamp( Index));
       DT_TINYINT     : Result := IntToStr( PByte(sqldata)^);
+      {$IFDEF VER130BELOW}
+      DT_BIT         : Result := BoolToStr( ( PByte(sqldata)^ = 1));
+      {$ELSE}
       DT_BIT         : Result := BoolToStr( ( PByte(sqldata)^ = 1), True);
+      {$ENDIF}
       DT_BIGINT,
       DT_UNSBIGINT   : Result := IntToStr( PInt64(sqldata)^);
     else
@@ -1468,7 +1490,7 @@ begin
       DT_SMALLINT    : Result := PSmallint(sqldata)^;
       DT_UNSSMALLINT : Result := PWord(sqldata)^;
       DT_INT         : Result := PInteger(sqldata)^;
-      DT_UNSINT      : Result := PLongWord(sqldata)^;
+//      DT_UNSINT      : Result := PLongWord(sqldata)^;
       DT_FLOAT       : Result := Trunc( PSingle(sqldata)^);
       DT_DOUBLE      : Result := Trunc( PDouble(sqldata)^);
       DT_VARCHAR     : begin
@@ -1546,7 +1568,7 @@ begin
       DT_SMALLINT    : Result := PSmallint(sqldata)^;
       DT_UNSSMALLINT : Result := PWord(sqldata)^;
       DT_INT         : Result := PInteger(sqldata)^;
-      DT_UNSINT      : Result := PLongWord(sqldata)^;
+//      DT_UNSINT      : Result := PLongWord(sqldata)^;
       DT_FLOAT       : Result := PSingle(sqldata)^;
       DT_DOUBLE      : Result := PDouble(sqldata)^;
       DT_VARCHAR     : begin
@@ -1762,7 +1784,7 @@ begin
     DT_INT:
       Result := stInteger;
     DT_DECIMAL:
-      Result := stDouble; //BCD Felder mom. nicht unterstützt
+      Result := stDouble; //BCD Felder mom. nicht unterstÃ¼tzt
     DT_FLOAT:
       Result := stFloat;
     DT_DOUBLE:
@@ -1813,7 +1835,7 @@ begin
     DT_INT:
       Result := 'DT_INT';
     DT_DECIMAL:
-      Result := 'DT_DECIMAL'; //BCD Felder mom. nicht unterstützt
+      Result := 'DT_DECIMAL'; //BCD Felder mom. nicht unterstÃ¼tzt
     DT_FLOAT:
       Result := 'DT_FLOAT';
     DT_DOUBLE:

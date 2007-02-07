@@ -3,19 +3,15 @@
 {                 Zeos Database Objects                   }
 {           MySQL Database Connectivity Classes           }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{    Written by Sergey Seroukhov and Sergey Merkuriev     }
+{         Originally written by Sergey Seroukhov          }
+{                           and Sergey Merkuriev          }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +19,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcMySqlMetadata;
 
@@ -56,6 +73,8 @@ type
   private
     FDatabase: string;
   protected
+    procedure GetCatalogAndNamePattern(const Catalog, SchemaPattern,
+      NamePattern: string; out OutCatalog, OutNamePattern: string);
     procedure GetVersion(var MajorVersion, MinorVersion: integer);
   public
     constructor Create(Connection: TZAbstractConnection; Url: string; Info: TStrings);
@@ -115,33 +134,33 @@ type
     function SupportsDataDefinitionAndDataManipulationTransactions: Boolean; override;
     function SupportsDataManipulationTransactionsOnly: Boolean; override;
 
-    function GetTables(Catalog: string; SchemaPattern: string;
-      TableNamePattern: string; Types: TStringDynArray): IZResultSet; override;
+    function GetTables(const Catalog: string; const SchemaPattern: string;
+      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet; override;
     function GetCatalogs: IZResultSet; override;
     function GetTableTypes: IZResultSet; override;
-    function GetColumns(Catalog: string; SchemaPattern: string;
-      TableNamePattern: string; ColumnNamePattern: string): IZResultSet; override;
-    function GetColumnPrivileges(Catalog: string; Schema: string;
-      Table: string; ColumnNamePattern: string): IZResultSet; override;
+    function GetColumns(const Catalog: string; const SchemaPattern: string;
+      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet; override;
+    function GetColumnPrivileges(const Catalog: string; const Schema: string;
+      const Table: string; const ColumnNamePattern: string): IZResultSet; override;
 
-    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
-      TableNamePattern: string): IZResultSet; override;
-    function GetVersionColumns(Catalog: string; Schema: string;
-      Table: string): IZResultSet; override;
+    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
+      const TableNamePattern: string): IZResultSet; override;
+    function GetVersionColumns(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet; override;
 
-    function GetPrimaryKeys(Catalog: string; Schema: string;
-      Table: string): IZResultSet; override;
-    function GetImportedKeys(Catalog: string; Schema: string;
-      Table: string): IZResultSet; override;
-    function GetExportedKeys(Catalog: string; Schema: string;
-      Table: string): IZResultSet; override;
-    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
-      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
-      ForeignTable: string): IZResultSet; override;
+    function GetPrimaryKeys(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet; override;
+    function GetImportedKeys(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet; override;
+    function GetExportedKeys(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet; override;
+    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
+      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
+      const ForeignTable: string): IZResultSet; override;
 
     function GetTypeInfo: IZResultSet; override;
 
-    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
+    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet; override;
   end;
 
@@ -360,8 +379,13 @@ end;
   @return <code>true</code> if so; <code>false</code> otherwise
 }
 function TZMySQLDatabaseMetadata.SupportsOrderByUnrelated: Boolean;
+var
+  MajorVersion: Integer;
+  MinorVersion: Integer;
 begin
-  Result := False;
+  GetVersion(MajorVersion, MinorVersion);
+  // changed from False by mdaems. After testing with lower versions, please correct.
+  Result := MajorVersion >= 5;
 end;
 
 {**
@@ -713,8 +737,7 @@ end;
   supported?
   @return <code>true</code> if so; <code>false</code> otherwise
 }
-function TZMySQLDatabaseMetadata.SupportsDataManipulationTransactionsOnly:
-  Boolean;
+function TZMySQLDatabaseMetadata.SupportsDataManipulationTransactionsOnly: Boolean;
 begin
   case GetConnection.GetTransactionIsolation of
     tiReadUncommitted: Result := True;
@@ -723,6 +746,25 @@ begin
     tiSerializable: Result := True;
     else Result := False;
   end;
+end;
+
+procedure TZMySQLDatabaseMetadata.GetCatalogAndNamePattern(const Catalog,
+  SchemaPattern, NamePattern: string; out OutCatalog, OutNamePattern: string);
+begin
+  if Catalog = '' then
+  begin
+    if SchemaPattern <> '' then
+      OutCatalog := SchemaPattern
+    else
+      OutCatalog := FDatabase;
+  end
+  else
+    OutCatalog := Catalog;
+
+  if NamePattern = '' then
+    OutNamePattern := '%'
+  else
+    OutNamePattern := NamePattern;
 end;
 
 {**
@@ -755,43 +797,30 @@ end;
   @return <code>ResultSet</code> - each row is a table description
   @see #getSearchStringEscape
 }
-function TZMySQLDatabaseMetadata.GetTables(Catalog: string;
-  SchemaPattern: string; TableNamePattern: string;
-  Types: TStringDynArray): IZResultSet;
+function TZMySQLDatabaseMetadata.GetTables(const Catalog: string;
+  const SchemaPattern: string; const TableNamePattern: string;
+  const Types: TStringDynArray): IZResultSet;
 var
-  I: Integer;
   Key: string;
+  LCatalog, LTableNamePattern: string;
 begin
-  Key := '';
-  for I := Low(Types) to High(Types) do
-    Key := Key + ':' + Types[I];
-
-  Key := Format('get-tables:%s:%s:%s%s',
-    [Catalog, SchemaPattern, TableNamePattern, Key]);
-
+  Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
     Result := ConstructVirtualResultSet(TableColumnsDynArray);
 
-    if Catalog = '' then
-    begin
-      if SchemaPattern <> '' then
-        Catalog := SchemaPattern
-      else Catalog := FDatabase;
-    end;
-
-    if TableNamePattern = '' then
-      TableNamePattern := '%';
+    GetCatalogAndNamePattern(Catalog, SchemaPattern, TableNamePattern,
+      LCatalog, LTableNamePattern);
 
     with GetConnection.CreateStatement.ExecuteQuery(
       Format('SHOW TABLES LIKE ''%s''',
-      [TableNamePattern])) do
+      [LTableNamePattern])) do
     begin
       while Next do
       begin
         Result.MoveToInsertRow;
-        Result.UpdateString(1, Catalog);
+        Result.UpdateString(1, LCatalog);
         Result.UpdateString(3, GetString(1));
         Result.UpdateString(4, 'TABLE');
         Result.InsertRow;
@@ -799,6 +828,31 @@ begin
       Close;
     end;
 
+    // If a table was specified but not found, check if it could be a temporary table
+    if not Result.First and (LTableNamePattern <> '%') then
+    begin
+      try
+        EnterSilentMySQLError;
+        try
+          if GetConnection.CreateStatement.ExecuteQuery(
+            Format('SHOW COLUMNS FROM %s.%s',
+            [GetIdentifierConvertor.Quote(LCatalog),
+             GetIdentifierConvertor.Quote(LTableNamePattern)])).Next then
+          begin
+            Result.MoveToInsertRow;
+            Result.UpdateString(1, LCatalog);
+            Result.UpdateString(3, LTableNamePattern);
+            Result.UpdateString(4, 'TABLE');
+            Result.InsertRow;
+          end;
+        finally
+          LeaveSilentMySQLError;
+        end;
+      except
+        on EZMySQLSilentException do ;
+        on EZSQLException do ;
+      end;
+    end;
     AddResultSetToCache(Key, Result);
   end;
 end;
@@ -816,11 +870,9 @@ end;
   catalog name
 }
 function TZMySQLDatabaseMetadata.GetCatalogs: IZResultSet;
-var
-  Key: string;
+const
+  Key = 'get-catalogs';
 begin
-  Key := 'get-catalogs';
-
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
@@ -856,11 +908,9 @@ end;
   table type
 }
 function TZMySQLDatabaseMetadata.GetTableTypes: IZResultSet;
-var
-  Key: string;
+const
+  Key = 'get-catalogs';
 begin
-  Key := 'get-catalogs';
-
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
@@ -925,14 +975,15 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @see #getSearchStringEscape
 }
-function TZMySQLDatabaseMetadata.GetColumns(Catalog: string;
-  SchemaPattern: string; TableNamePattern: string;
-  ColumnNamePattern: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetColumns(const Catalog: string;
+  const SchemaPattern: string; const TableNamePattern: string;
+  const ColumnNamePattern: string): IZResultSet;
 var
   I, J: Integer;
   MySQLType: TZSQLType;
+  TempCatalog, TempColumnNamePattern, TempTableNamePattern: string;
 
-  TempCatalog: string;
+  { TODO : TempStr is not set to a value in the whole method. => Length(TempStr) = 0 }
   TempStr: string;
   TempPos: Integer;
 
@@ -944,7 +995,6 @@ var
 
   Key: string;
   TableNameList: TStrings;
-  TableName: string;
   TableNameLength: Integer;
 begin
   Key := Format('get-columns:%s:%s:%s:%s',
@@ -955,27 +1005,19 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColColumnsDynArray);
 
-    if Catalog <> '' then
-      TempCatalog := Catalog
-    else if SchemaPattern <> '' then
-      TempCatalog := SchemaPattern
-    else TempCatalog := FDatabase;
-
-    if ColumnNamePattern = '' then
-      ColumnNamePattern := '%';
+    GetCatalogAndNamePattern(Catalog, SchemaPattern, ColumnNamePattern,
+      TempCatalog, TempColumnNamePattern);
 
     TableNameLength := 0;
     TableNameList := TStringList.Create;
     TypeInfoList := TStringList.Create;
-
     try
       with GetTables(Catalog, SchemaPattern, TableNamePattern, nil) do
       begin
         while Next do
         begin
-          TableName := GetStringByName('TABLE_NAME');
-          TableNameList.Add(TableName);
-          TableNameLength := Max(TableNameLength, Length(TableName));
+          TableNameList.Add(GetStringByName('TABLE_NAME'));
+          TableNameLength := Max(TableNameLength, Length(TableNameList[TableNameList.Count - 1]));
         end;
         Close;
       end;
@@ -983,23 +1025,24 @@ begin
       for I := 0 to TableNameList.Count - 1 do
       begin
         OrdPosition := 1;
-        TableNamePattern := TableNameList.Strings[I];
+        TempTableNamePattern := TableNameList.Strings[I];
 
         with GetConnection.CreateStatement.ExecuteQuery(
           Format('SHOW COLUMNS FROM %s LIKE ''%s''',
-          [GetIdentifierConvertor.Quote(TableNamePattern),
-          ColumnNamePattern])) do
+          [GetIdentifierConvertor.Quote(TempTableNamePattern),
+          TempColumnNamePattern])) do
         begin
           while Next do
           begin
             {initialise some variables}
             ColumnSize := 0;
             TypeInfoFirst := '';
+            TypeInfoSecond := '';
 
             Result.MoveToInsertRow;
             Result.UpdateString(1, TempCatalog);
             Result.UpdateString(2, '');
-            Result.UpdateString(3, TableNamePattern);
+            Result.UpdateString(3, TempTableNamePattern);
             Result.UpdateString(4, GetStringByName('Field'));
 
             TypeInfo := GetStringByName('Type');
@@ -1203,11 +1246,12 @@ end;
   @return <code>ResultSet</code> - each row is a column privilege description
   @see #getSearchStringEscape
 }
-function TZMySQLDatabaseMetadata.GetColumnPrivileges(Catalog: string;
-  Schema: string; Table: string; ColumnNamePattern: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetColumnPrivileges(const Catalog: string;
+  const Schema: string; const Table: string; const ColumnNamePattern: string): IZResultSet;
 var
   I: Integer;
   Key: string;
+  LCatalog, LColumnNamePattern: string;
   Host, Database, Grantor, User, FullUser: string;
   AllPrivileges, ColumnName, Privilege: string;
   PrivilegesList: TStrings;
@@ -1220,15 +1264,8 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColPrivColumnsDynArray);
 
-    if Catalog = '' then
-    begin
-      if Schema <> '' then
-        Catalog := Schema
-      else Catalog := FDatabase;
-    end;
-
-    if ColumnNamePattern = '' then
-      ColumnNamePattern := '%';
+    GetCatalogAndNamePattern(Catalog, Schema, ColumnNamePattern,
+      LCatalog, LColumnNamePattern);
 
     PrivilegesList := TStringList.Create;
     try
@@ -1238,7 +1275,7 @@ begin
           + ' mysql.tables_priv t WHERE c.host=t.host AND c.db=t.db'
           + ' AND c.table_name=t.table_name AND c.db=''%s'''
           + ' AND c.table_name=''%s'' AND c.column_name LIKE ''%s''',
-          [Catalog, Table, ColumnNamePattern])) do
+          [LCatalog, Table, LColumnNamePattern])) do
       begin
         while Next do
         begin
@@ -1259,7 +1296,7 @@ begin
           begin
             Result.MoveToInsertRow;
             Privilege := Trim(PrivilegesList.Strings[I]);
-            Result.UpdateString(1, Catalog);
+            Result.UpdateString(1, LCatalog);
             Result.UpdateNull(2);
             Result.UpdateString(3, Table);
             Result.UpdateString(4, ColumnName);
@@ -1312,11 +1349,12 @@ end;
   @return <code>ResultSet</code> - each row is a table privilege description
   @see #getSearchStringEscape
 }
-function TZMySQLDatabaseMetadata.GetTablePrivileges(Catalog: string;
-  SchemaPattern: string; TableNamePattern: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetTablePrivileges(const Catalog: string;
+  const SchemaPattern: string; const TableNamePattern: string): IZResultSet;
 var
   I: Integer;
   Key: string;
+  LCatalog, LTableNamePattern: string;
   Host, Database, Table, Grantor, User, FullUser: string;
   AllPrivileges, Privilege: string;
   PrivilegesList: TStrings;
@@ -1329,22 +1367,15 @@ begin
   begin
     Result := ConstructVirtualResultSet(TablePrivColumnsDynArray);
 
-    if Catalog = '' then
-    begin
-      if SchemaPattern <> '' then
-        Catalog := SchemaPattern
-      else Catalog := FDatabase;
-    end;
-
-    if TableNamePattern = '' then
-      TableNamePattern := '%';
+    GetCatalogAndNamePattern(Catalog, SchemaPattern, TableNamePattern,
+      LCatalog, LTableNamePattern);
 
     PrivilegesList := TStringList.Create;
     try
       with GetConnection.CreateStatement.ExecuteQuery(
         Format('SELECT host,db,table_name,grantor,user,table_priv'
         + ' from mysql.tables_priv WHERE db=''%s'' AND table_name LIKE ''%s''',
-        [Catalog, TableNamePattern])) do
+        [LCatalog, LTableNamePattern])) do
       begin
         while Next do
         begin
@@ -1407,11 +1438,12 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @exception SQLException if a database access error occurs
 }
-function TZMySQLDatabaseMetadata.GetPrimaryKeys(Catalog: string;
-  Schema: string; Table: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetPrimaryKeys(const Catalog: string;
+  const Schema: string; const Table: string): IZResultSet;
 var
   KeyType: string;
   Key: string;
+  LCatalog: string;
 begin
   if Table = '' then
     raise Exception.Create(STableIsNotSpecified); //CHANGE IT!
@@ -1425,9 +1457,12 @@ begin
     if Catalog = '' then
     begin
       if Schema <> '' then
-        Catalog := Schema
-      else Catalog := FDatabase;
-    end;
+        LCatalog := Schema
+      else
+        LCatalog := FDatabase;
+    end
+    else
+      LCatalog := Catalog;
 
     with GetConnection.CreateStatement.ExecuteQuery(
       Format('SHOW KEYS FROM %s',
@@ -1440,7 +1475,7 @@ begin
         if KeyType = 'PRI' then
         begin
           Result.MoveToInsertRow;
-          Result.UpdateString(1, Catalog);
+          Result.UpdateString(1, LCatalog);
           Result.UpdateString(2, '');
           Result.UpdateString(3, Table);
           Result.UpdateString(4, GetStringByName('Column_name'));
@@ -1523,12 +1558,13 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @see #getExportedKeys
 }
-function TZMySQLDatabaseMetadata.GetImportedKeys(Catalog: string;
-  Schema: string; Table: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetImportedKeys(const Catalog: string;
+  const Schema: string; const Table: string): IZResultSet;
 var
   I: Integer;
   Key: string;
   KeySeq: Integer;
+  LCatalog: string;
   TableType, Comment, Keys: string;
   CommentList, KeyList: TStrings;
 begin
@@ -1544,16 +1580,19 @@ begin
     if Catalog = '' then
     begin
       if Schema <> '' then
-        Catalog := Schema
-      else Catalog := FDatabase;
-    end;
+        LCatalog := Schema
+      else
+        LCatalog := FDatabase;
+    end
+    else
+      LCatalog := Catalog;
 
     KeyList := TStringList.Create;
     CommentList := TStringList.Create;
     try
       with GetConnection.CreateStatement.ExecuteQuery(
         Format('SHOW TABLE STATUS FROM %s LIKE ''%s''',
-        [GetIdentifierConvertor.Quote(Catalog), Table])) do
+        [GetIdentifierConvertor.Quote(LCatalog), Table])) do
       begin
         while Next do
         begin
@@ -1574,7 +1613,7 @@ begin
                   Result.MoveToInsertRow;
                   PutSplitString(KeyList, Keys, '() /');
 
-                  Result.UpdateString(5, Catalog);
+                  Result.UpdateString(5, LCatalog);
                   Result.UpdateNull(6);// FKTABLE_SCHEM
                   Result.UpdateString(7, Table); // FKTABLE_NAME
                   Result.UpdateString(8, KeyList.Strings[0]); // FKCOLUMN_NAME
@@ -1674,12 +1713,13 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZMySQLDatabaseMetadata.GetExportedKeys(Catalog: string;
-  Schema: string; Table: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetExportedKeys(const Catalog: string;
+  const Schema: string; const Table: string): IZResultSet;
 var
   I: Integer;
   Key: string;
   KeySeq: Integer;
+  LCatalog: string;
   TableType, Comment, Keys: string;
   CommentList, KeyList: TStrings;
 begin
@@ -1695,16 +1735,19 @@ begin
     if Catalog = '' then
     begin
       if Schema <> '' then
-        Catalog := Schema
-      else Catalog := FDatabase;
-    end;
+        LCatalog := Schema
+      else
+        LCatalog := FDatabase;
+    end
+    else
+      LCatalog := Catalog;
 
     KeyList := TStringList.Create;
     CommentList := TStringList.Create;
     try
       with GetConnection.CreateStatement.ExecuteQuery(
         Format('SHOW TABLE STATUS FROM %s',
-        [GetIdentifierConvertor.Quote(Catalog)])) do
+        [GetIdentifierConvertor.Quote(LCatalog)])) do
       begin
         while Next do
         begin
@@ -1724,7 +1767,7 @@ begin
                   Result.MoveToInsertRow;
                   PutSplitString(KeyList, Keys, '() /');
 
-                  Result.UpdateString(5, Catalog);
+                  Result.UpdateString(5, LCatalog);
                   Result.UpdateNull(6);// FKTABLE_SCHEM
                   Result.UpdateString(7, GetStringByName('Name')); // FKTABLE_NAME
                   Result.UpdateString(8, KeyList.Strings[0]); // PKTABLE_CAT
@@ -1832,13 +1875,14 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZMySQLDatabaseMetadata.GetCrossReference(PrimaryCatalog: string;
-  PrimarySchema: string; PrimaryTable: string; ForeignCatalog: string;
-  ForeignSchema: string; ForeignTable: string): IZResultSet;
+function TZMySQLDatabaseMetadata.GetCrossReference(const PrimaryCatalog: string;
+  const PrimarySchema: string; const PrimaryTable: string; const ForeignCatalog: string;
+  const ForeignSchema: string; const ForeignTable: string): IZResultSet;
 var
   I: Integer;
   Key: string;
   KeySeq: Integer;
+  LForeignCatalog: string;
   TableType, Comment, Keys: string;
   CommentList, KeyList: TStrings;
 begin
@@ -1854,14 +1898,16 @@ begin
     Result := ConstructVirtualResultSet(CrossRefColumnsDynArray);
 
     if ForeignCatalog = '' then
-      ForeignCatalog := FDatabase;
+      LForeignCatalog := FDatabase
+    else
+      LForeignCatalog := ForeignCatalog;
 
     KeyList := TStringList.Create;
     CommentList := TStringList.Create;
     try
       with GetConnection.CreateStatement.ExecuteQuery(
         Format('SHOW TABLE STATUS FROM %s',
-        [GetIdentifierConvertor.Quote(ForeignCatalog)])) do
+        [GetIdentifierConvertor.Quote(LForeignCatalog)])) do
       begin
         while Next do
         begin
@@ -1881,7 +1927,7 @@ begin
                   Result.MoveToInsertRow;
                   PutSplitString(KeyList, Keys, '() /');
 
-                  Result.UpdateString(5, ForeignCatalog);
+                  Result.UpdateString(5, LForeignCatalog);
                   if ForeignSchema = '' then
                     Result.UpdateNull(6) // FKTABLE_SCHEM
                   else Result.UpdateString(6, ForeignSchema);
@@ -1991,12 +2037,11 @@ const
     1, -1, 4, 16, 16777215, 16777215, MAXBUF, 65535, 255, 255, 255,
     16777215, 16777215, 2147483647, 65535, 255, 255, 255, 17, 17, 10, 10,
     7, 4, 17, 10, 10, 65535, 64, -1, -1, -1, -1);
+
+  Key = 'get-type-info';
 var
   I: Integer;
-  Key: string;
 begin
-  Key := 'get-type-info';
-
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
@@ -2094,11 +2139,12 @@ end;
       accurate
   @return <code>ResultSet</code> - each row is an index column description
 }
-function TZMySQLDatabaseMetadata.GetIndexInfo(Catalog: string;
-  Schema: string; Table: string; Unique: Boolean;
+function TZMySQLDatabaseMetadata.GetIndexInfo(const Catalog: string;
+  const Schema: string; const Table: string; Unique: Boolean;
   Approximate: Boolean): IZResultSet;
 var
   Key: string;
+  LCatalog: string;
 begin
   if Table = '' then
     raise Exception.Create(STableIsNotSpecified); //CHANGE IT!
@@ -2113,19 +2159,22 @@ begin
     if Catalog = '' then
     begin
       if Schema <> '' then
-        Catalog := Schema
-      else Catalog := FDatabase;
-    end;
+        LCatalog := Schema
+      else
+        LCatalog := FDatabase;
+    end
+    else
+      LCatalog := Catalog;
 
     with GetConnection.CreateStatement.ExecuteQuery(
       Format('SHOW INDEX FROM %s.%s',
-      [GetIdentifierConvertor.Quote(Catalog),
+      [GetIdentifierConvertor.Quote(LCatalog),
       GetIdentifierConvertor.Quote(Table)])) do
     begin
       while Next do
       begin
         Result.MoveToInsertRow;
-        Result.UpdateString(1, Catalog);
+        Result.UpdateString(1, LCatalog);
         Result.UpdateNull(2);
         Result.UpdateString(3, GetStringByName('Table'));
         if GetIntByName('Non_unique') = 0 then
@@ -2205,7 +2254,7 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @exception SQLException if a database access error occurs
 }
-function TZMySQLDatabaseMetadata.GetVersionColumns(Catalog, Schema,
+function TZMySQLDatabaseMetadata.GetVersionColumns(const Catalog, Schema,
   Table: string): IZResultSet;
 var
   Key: string;

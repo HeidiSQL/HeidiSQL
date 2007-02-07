@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {        Dataset utility functions and classes            }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDatasetUtils;
 
@@ -77,7 +93,7 @@ function ConvertFieldsToColumnInfo(Fields: TFields): TObjectList;
   @param RowAccessor a destination row accessor.
 }
 procedure FetchFromResultSet(ResultSet: IZResultSet;
-  FieldsLookupTable: TIntegerDynArray; Fields: TFields;
+  const FieldsLookupTable: TIntegerDynArray; Fields: TFields;
   RowAccessor: TZRowAccessor);
 
 {**
@@ -88,7 +104,7 @@ procedure FetchFromResultSet(ResultSet: IZResultSet;
   @param RowAccessor a destination row accessor.
 }
 procedure PostToResultSet(ResultSet: IZResultSet;
-  FieldsLookupTable: TIntegerDynArray; Fields: TFields;
+  const FieldsLookupTable: TIntegerDynArray; Fields: TFields;
   RowAccessor: TZRowAccessor);
 
 {**
@@ -97,7 +113,7 @@ procedure PostToResultSet(ResultSet: IZResultSet;
   @param FieldNames a list of field names.
   @param OnlyDataFields <code>True</code> if only data fields selected.
 }
-function DefineFields(DataSet: TDataset; FieldNames: string;
+function DefineFields(DataSet: TDataset; const FieldNames: string;
   var OnlyDataFields: Boolean): TObjectDynArray;
 
 {**
@@ -116,7 +132,7 @@ function DefineFilterFields(DataSet: TDataset;
   @param ResultValues a container for result values.
   @return an array with field values.
 }
-procedure RetrieveDataFieldsFromResultSet(FieldRefs: TObjectDynArray;
+procedure RetrieveDataFieldsFromResultSet(const FieldRefs: TObjectDynArray;
   ResultSet: IZResultSet; var ResultValues: TZVariantDynArray);
 
 {**
@@ -127,8 +143,8 @@ procedure RetrieveDataFieldsFromResultSet(FieldRefs: TObjectDynArray;
   @param ResultValues a container for result values.
   @return an array with field values.
 }
-procedure RetrieveDataFieldsFromRowAccessor(FieldRefs: TObjectDynArray;
-  FieldIndices: TIntegerDynArray; RowAccessor: TZRowAccessor;
+procedure RetrieveDataFieldsFromRowAccessor(const FieldRefs: TObjectDynArray;
+  const FieldIndices: TIntegerDynArray; RowAccessor: TZRowAccessor;
   var ResultValues: TZVariantDynArray);
 
 {**
@@ -137,7 +153,7 @@ procedure RetrieveDataFieldsFromRowAccessor(FieldRefs: TObjectDynArray;
   @param ResultSet an initial result set object.
   @param Variables a list of variables.
 }
-procedure CopyDataFieldsToVars(Fields: TObjectDynArray;
+procedure CopyDataFieldsToVars(const Fields: TObjectDynArray;
   ResultSet: IZResultSet; Variables: IZVariablesList);
 
 {**
@@ -148,7 +164,7 @@ procedure CopyDataFieldsToVars(Fields: TObjectDynArray;
   @param PartialKey <code>True</code> if values should be started with the keys.
   @param CaseInsensitive <code>True</code> if keys are case insensitive.
 }
-procedure PrepareValuesForComparison(FieldRefs: TObjectDynArray;
+procedure PrepareValuesForComparison(const FieldRefs: TObjectDynArray;
   var DecodedKeyValues: TZVariantDynArray; ResultSet: IZResultSet;
   PartialKey: Boolean; CaseInsensitive: Boolean);
 
@@ -172,8 +188,8 @@ function CompareDataFields(const KeyValues, RowValues: TZVariantDynArray;
   @param CaseInsensitive <code>True</code> if keys are case insensitive.
   @return <code> if values are equal.
 }
-function CompareFieldsFromResultSet(FieldRefs: TObjectDynArray;
-  KeyValues: TZVariantDynArray; ResultSet: IZResultSet; PartialKey: Boolean;
+function CompareFieldsFromResultSet(const FieldRefs: TObjectDynArray;
+  const KeyValues: TZVariantDynArray; ResultSet: IZResultSet; PartialKey: Boolean;
   CaseInsensitive: Boolean): Boolean;
 
 {**
@@ -218,7 +234,7 @@ function CompareKeyFields(Field1: TField; ResultSet: IZResultSet;
   @param OnlyDataFields <code>True</code> if only data fields selected.
 }
 procedure DefineSortedFields(DataSet: TDataset;
-  SortedFields: string; var FieldRefs: TObjectDynArray;
+  const SortedFields: string; var FieldRefs: TObjectDynArray;
   var FieldDirs: TBooleanDynArray; var OnlyDataFields: Boolean);
 
 {**
@@ -235,7 +251,7 @@ function CreateFieldsLookupTable(Fields: TFields): TIntegerDynArray;
   @param Field a TDataset field object.
   @returns an original fields index or -1 otherwise.
 }
-function DefineFieldIndex(FieldsLookupTable: TIntegerDynArray;
+function DefineFieldIndex(const FieldsLookupTable: TIntegerDynArray;
   Field: TField): Integer;
 
 {**
@@ -244,8 +260,8 @@ function DefineFieldIndex(FieldsLookupTable: TIntegerDynArray;
   @param FieldRefs a TDataset field object references.
   @returns an array with original fields indices.
 }
-function DefineFieldIndices(FieldsLookupTable: TIntegerDynArray;
-  FieldRefs: TObjectDynArray): TIntegerDynArray;
+function DefineFieldIndices(const FieldsLookupTable: TIntegerDynArray;
+  const FieldRefs: TObjectDynArray): TIntegerDynArray;
 
 {**
   Splits up a qualified object name into pieces. Catalog, schema
@@ -383,7 +399,7 @@ end;
   @param RowAccessor a destination row accessor.
 }
 procedure FetchFromResultSet(ResultSet: IZResultSet;
-  FieldsLookupTable: TIntegerDynArray; Fields: TFields;
+  const FieldsLookupTable: TIntegerDynArray; Fields: TFields;
   RowAccessor: TZRowAccessor);
 var
   I, FieldIndex: Integer;
@@ -446,7 +462,7 @@ end;
   @param RowAccessor a destination row accessor.
 }
 procedure PostToResultSet(ResultSet: IZResultSet;
-  FieldsLookupTable: TIntegerDynArray; Fields: TFields;
+  const FieldsLookupTable: TIntegerDynArray; Fields: TFields;
   RowAccessor: TZRowAccessor);
 var
   I, FieldIndex: Integer;
@@ -531,7 +547,7 @@ end;
   @param FieldNames a list of field names.
   @param OnlyDataFields <code>True</code> if only data fields selected.
 }
-function DefineFields(DataSet: TDataset; FieldNames: string;
+function DefineFields(DataSet: TDataset; const FieldNames: string;
   var OnlyDataFields: Boolean): TObjectDynArray;
 var
   I: Integer;
@@ -618,7 +634,7 @@ end;
   @param ResultValues a container for result values.
   @return an array with field values.
 }
-procedure RetrieveDataFieldsFromResultSet(FieldRefs: TObjectDynArray;
+procedure RetrieveDataFieldsFromResultSet(const FieldRefs: TObjectDynArray;
   ResultSet: IZResultSet; var ResultValues: TZVariantDynArray);
 var
   I, ColumnIndex: Integer;
@@ -668,8 +684,8 @@ end;
   @param ResultValues a container for result values.
   @return an array with field values.
 }
-procedure RetrieveDataFieldsFromRowAccessor(FieldRefs: TObjectDynArray;
-  FieldIndices: TIntegerDynArray; RowAccessor: TZRowAccessor;
+procedure RetrieveDataFieldsFromRowAccessor(const FieldRefs: TObjectDynArray;
+  const FieldIndices: TIntegerDynArray; RowAccessor: TZRowAccessor;
   var ResultValues: TZVariantDynArray);
 var
   I: Integer;
@@ -719,7 +735,7 @@ end;
   @param ResultSet an initial result set object.
   @param Variables a list of variables.
 }
-procedure CopyDataFieldsToVars(Fields: TObjectDynArray;
+procedure CopyDataFieldsToVars(const Fields: TObjectDynArray;
   ResultSet: IZResultSet; Variables: IZVariablesList);
 var
   I, ColumnIndex: Integer;
@@ -817,7 +833,7 @@ end;
   @param PartialKey <code>True</code> if values should be started with the keys.
   @param CaseInsensitive <code>True</code> if keys are case insensitive.
 }
-procedure PrepareValuesForComparison(FieldRefs: TObjectDynArray;
+procedure PrepareValuesForComparison(const FieldRefs: TObjectDynArray;
   var DecodedKeyValues: TZVariantDynArray; ResultSet: IZResultSet;
   PartialKey: Boolean; CaseInsensitive: Boolean);
 var
@@ -939,8 +955,8 @@ end;
   @param CaseInsensitive <code>True</code> if keys are case insensitive.
   @return <code> if values are equal.
 }
-function CompareFieldsFromResultSet(FieldRefs: TObjectDynArray;
-  KeyValues: TZVariantDynArray; ResultSet: IZResultSet; PartialKey: Boolean;
+function CompareFieldsFromResultSet(const FieldRefs: TObjectDynArray;
+  const KeyValues: TZVariantDynArray; ResultSet: IZResultSet; PartialKey: Boolean;
   CaseInsensitive: Boolean): Boolean;
 var
   I: Integer;
@@ -987,17 +1003,24 @@ begin
             Result := KeyValues[I].VBoolean =
               ResultSet.GetBoolean(ColumnIndex);
           end;
-        stInteger:
+        stByte,
+        stShort,
+        stInteger,
+        stLong:
           begin
             Result := KeyValues[I].VInteger =
               ResultSet.GetLong(ColumnIndex);
           end;
-        stFloat:
+        stFloat,
+        stDouble,
+        stBigDecimal:
           begin
             Result := Abs(KeyValues[I].VFloat -
               ResultSet.GetBigDecimal(ColumnIndex)) < FLOAT_COMPARE_PRECISION;
           end;
-        stDate:
+        stDate,
+        stTime,
+        stTimestamp:
           begin
             Result := KeyValues[I].VDateTime =
               ResultSet.GetTimestamp(ColumnIndex);
@@ -1093,6 +1116,7 @@ end;
   @return a data which contains a value.
 }
 function NativeToDateTime(DataType: TFieldType; Buffer: Pointer): TDateTime;
+{$IFNDEF FPC}
 var
   TimeStamp: TTimeStamp;
 begin
@@ -1116,6 +1140,10 @@ begin
     end;
   end;
   Result := TimeStampToDateTime(TimeStamp);
+{$ELSE}
+begin
+  Result := TDateTime(Buffer^);
+{$ENDIF}
 end;
 
 {**
@@ -1181,7 +1209,7 @@ end;
   @param OnlyDataFields <code>True</code> if only data fields selected.
 }
 procedure DefineSortedFields(DataSet: TDataset;
-  SortedFields: string; var FieldRefs: TObjectDynArray;
+  const SortedFields: string; var FieldRefs: TObjectDynArray;
   var FieldDirs: TBooleanDynArray; var OnlyDataFields: Boolean);
 var
   I: Integer;
@@ -1261,7 +1289,7 @@ end;
   @param Field a TDataset field object.
   @returns an original fields index or -1 otherwise.
 }
-function DefineFieldIndex(FieldsLookupTable: TIntegerDynArray;
+function DefineFieldIndex(const FieldsLookupTable: TIntegerDynArray;
   Field: TField): Integer;
 var
   I: Integer;
@@ -1283,8 +1311,8 @@ end;
   @param FieldRefs a TDataset field object references.
   @returns an array with original fields indices.
 }
-function DefineFieldIndices(FieldsLookupTable: TIntegerDynArray;
-  FieldRefs: TObjectDynArray): TIntegerDynArray;
+function DefineFieldIndices(const FieldsLookupTable: TIntegerDynArray;
+  const FieldRefs: TObjectDynArray): TIntegerDynArray;
 var
   I: Integer;
 begin

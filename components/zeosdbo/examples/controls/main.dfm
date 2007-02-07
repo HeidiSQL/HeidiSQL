@@ -107,17 +107,7 @@ object MainForm: TMainForm
       TabOrder = 0
       Text = 'mysql-3.23'
       Items.Strings = (
-        'mysql-3.20'
-        'mysql-3.23'
-        'mysql-4'
-        'prostgresql'
-        'prostgresql-7.2'
-        'interbase-5'
-        'interbase-6'
-        'firebird-1.0'
-        'firebird-1.5'
-        'mssql'
-        'sybase')
+        '')
     end
     object ZPassword: TEdit
       Left = 432
@@ -151,7 +141,6 @@ object MainForm: TMainForm
     Height = 400
     ActivePage = TabSheet2
     Align = alClient
-    TabIndex = 0
     TabOrder = 1
     object TabSheet2: TTabSheet
       Caption = 'Simple'
@@ -425,28 +414,18 @@ object MainForm: TMainForm
   end
   object ZConnection: TZConnection
     Protocol = 'mysql'
-    Port = 0
     Database = 'zeoslib'
     User = 'root'
     AutoCommit = False
     ReadOnly = True
-    TransactIsolationLevel = tiNone
-    Connected = False
     Left = 30
     Top = 120
   end
   object ZPeople: TZQuery
     Connection = ZConnection
-    RequestLive = True
-    CachedUpdates = False
     SQL.Strings = (
       'select * from people')
-    ParamCheck = True
     Params = <>
-    ShowRecordTypes = [utModified, utInserted, utUnmodified]
-    UpdateMode = umUpdateChanged
-    WhereMode = wmWhereKeyOnly
-    Options = [doCalcDefaults]
     Left = 477
     Top = 87
     object ZPeoplep_id: TSmallintField
@@ -504,9 +483,7 @@ object MainForm: TMainForm
     Connection = ZConnection
     SQL.Strings = (
       'select * from department')
-    ParamCheck = True
     Params = <>
-    Options = [doCalcDefaults]
     Left = 477
     Top = 141
   end
@@ -517,16 +494,9 @@ object MainForm: TMainForm
   end
   object ZCargo: TZQuery
     Connection = ZConnection
-    RequestLive = True
-    CachedUpdates = False
     SQL.Strings = (
       'select * from cargo')
-    ParamCheck = True
     Params = <>
-    ShowRecordTypes = [utModified, utInserted, utUnmodified]
-    UpdateMode = umUpdateChanged
-    WhereMode = wmWhereKeyOnly
-    Options = [doCalcDefaults]
     Left = 66
     Top = 153
   end
@@ -538,10 +508,6 @@ object MainForm: TMainForm
   object ZSQLMetadata: TZSQLMetadata
     Connection = ZConnection
     MetadataType = mdProcedures
-    Scope = 0
-    Nullable = False
-    Unique = False
-    Approximate = False
     Left = 66
     Top = 120
   end

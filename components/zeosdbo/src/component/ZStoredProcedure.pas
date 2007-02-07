@@ -3,19 +3,15 @@
 {                 Zeos Database Objects                   }
 {              Abstract StoredProc component              }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{    Written by Sergey Seroukhov & Janos Fegyverneki      }
+{        Originally written by Sergey Seroukhov           }
+{                            & Janos Fegyverneki          }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +19,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZStoredProcedure;
 
@@ -45,8 +62,8 @@ uses
 {$IFNDEF VER130BELOW}
   Types,
 {$ENDIF}
-  SysUtils, DB, Classes, ZConnection, ZDbcIntfs, ZAbstractDataset,
-  ZCompatibility;
+  SysUtils, DB, Classes, ZConnection, ZDbcIntfs,
+  ZAbstractDataset, ZCompatibility;
 
 type
 
@@ -62,7 +79,7 @@ type
 {    property CallableResultSet: IZCallableStatement read FCallableStatement
       write FCallableStatement;}
 
-    function CreateStatement(SQL: string; Properties: TStrings):
+    function CreateStatement(const SQL: string; Properties: TStrings):
       IZPreparedStatement; override;
     procedure SetStatementParams(Statement: IZPreparedStatement;
       ParamNames: TStringDynArray; Params: TParams;
@@ -93,7 +110,8 @@ type
 
 implementation
 
-uses ZDatasetUtils;
+uses
+  ZAbstractRODataset, ZMessages, ZDatasetUtils;
 
 { TZStoredProc }
 
@@ -103,7 +121,7 @@ uses ZDatasetUtils;
   @param Properties a statement specific properties.
   @returns a created DBC statement.
 }
-function TZStoredProc.CreateStatement(SQL: string; Properties: TStrings):
+function TZStoredProc.CreateStatement(const SQL: string; Properties: TStrings):
   IZPreparedStatement;
 var
   I: Integer;
@@ -143,7 +161,7 @@ begin
      Continue;
 
     if Param.IsNull then
-      Statement.SetNull(I, ConvertDatasetToDbcType(Param.DataType))
+      Statement.SetNull(I+1, ConvertDatasetToDbcType(Param.DataType))
     else begin
       case Param.DataType of
         ftBoolean:
@@ -156,7 +174,7 @@ begin
           Statement.SetDouble(I+1, Param.AsFloat);
         ftLargeInt:
           Statement.SetLong(I+1, StrToInt64(Param.AsString));
-        ftString:
+        ftString , ftFixedChar:
           Statement.SetString(I+1, Param.AsString);
         ftBytes:
           Statement.SetString(I+1, Param.AsString);
@@ -164,7 +182,7 @@ begin
           Statement.SetDate(I+1, Param.AsDate);
         ftTime:
           Statement.SetTime(I+1, Param.AsTime);
-        ftDateTime, ftTimestamp:
+        ftDateTime{$IFNDEF VER130}, ftTimestamp{$ENDIF}:
           Statement.SetTimestamp(I+1, Param.AsDateTime);
         ftMemo:
           begin
@@ -184,6 +202,8 @@ begin
               Stream.Free;
             end;
           end;
+        else
+          raise EZDatabaseError.Create(SUnKnownParamDataType);
       end;
     end;
   end;
@@ -241,7 +261,7 @@ begin
         ftDateTime:
           Param.AsDateTime := FCallableStatement.GetTimestamp(I + 1);
         else
-          Param.AsString := FCallableStatement.GetString(I + 1);
+           raise EZDatabaseError.Create(SUnKnownParamDataType);
       end;
   end;
 end;

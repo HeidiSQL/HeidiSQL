@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {           SQLite Database Connectivity Classes          }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcSqLiteStatement;
 
@@ -53,16 +69,16 @@ type
     FHandle: Psqlite;
     FPlainDriver: IZSQLitePlainDriver;
 
-    function CreateResultSet(SQL: string; StmtHandle: Psqlite_vm;
+    function CreateResultSet(const SQL: string; StmtHandle: Psqlite_vm;
       ColumnCount: Integer; ColumnNames: PPChar;
       ColumnValues: PPChar): IZResultSet;
   public
     constructor Create(PlainDriver: IZSQLitePlainDriver;
       Connection: IZConnection; Info: TStrings; Handle: Psqlite);
 
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. }
@@ -72,11 +88,11 @@ type
     FPlainDriver: IZSQLitePlainDriver;
   protected
     function CreateExecStatement: IZStatement; override;
-    function GetEscapeString(Value: string): string;
+    function GetEscapeString(const Value: string): string;
     function PrepareSQLParam(ParamIndex: Integer): string; override;
   public
     constructor Create(PlainDriver: IZSQLitePlainDriver;
-      Connection: IZConnection; SQL: string; Info: TStrings;
+      Connection: IZConnection; const SQL: string; Info: TStrings;
       Handle: Psqlite);
   end;
 
@@ -108,7 +124,7 @@ end;
   Creates a result set based on the current settings.
   @return a created result set object.
 }
-function TZSQLiteStatement.CreateResultSet(SQL: string; StmtHandle: Psqlite_vm;
+function TZSQLiteStatement.CreateResultSet(const SQL: string; StmtHandle: Psqlite_vm;
   ColumnCount: Integer; ColumnNames: PPChar; ColumnValues: PPChar): IZResultSet;
 var
   CachedResolver: TZSQLiteCachedResolver;
@@ -141,7 +157,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZSQLiteStatement.ExecuteQuery(SQL: string): IZResultSet;
+function TZSQLiteStatement.ExecuteQuery(const SQL: string): IZResultSet;
 var
   ErrorCode: Integer;
   ErrorMessage: PChar;
@@ -151,7 +167,7 @@ var
   ColumnValues: PPChar;
   ColumnNames: PPChar;
 begin
-  ErrorCode := FPlainDriver.Compile(FHandle, PChar(SQL), SQLTail,
+  ErrorCode := FPlainDriver.Compile(FHandle, PChar(SQL), Length(SQL), SQLTail,
     StmtHandle, ErrorMessage);
   CheckSQLiteError(FPlainDriver, ErrorCode, ErrorMessage, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
@@ -180,7 +196,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZSQLiteStatement.ExecuteUpdate(SQL: string): Integer;
+function TZSQLiteStatement.ExecuteUpdate(const SQL: string): Integer;
 var
   ErrorCode: Integer;
   ErrorMessage: PChar;
@@ -213,7 +229,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZSQLiteStatement.Execute(SQL: string): Boolean;
+function TZSQLiteStatement.Execute(const SQL: string): Boolean;
 var
   ErrorCode: Integer;
   ErrorMessage: PChar;
@@ -223,7 +239,7 @@ var
   ColumnValues: PPChar;
   ColumnNames: PPChar;
 begin
-  ErrorCode := FPlainDriver.Compile(FHandle, PChar(SQL), SQLTail,
+  ErrorCode := FPlainDriver.Compile(FHandle, PChar(SQL), Length(SQL), SQLTail,
     StmtHandle, ErrorMessage);
   CheckSQLiteError(FPlainDriver, ErrorCode, ErrorMessage, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
@@ -265,7 +281,7 @@ end;
   @param Handle a connection handle pointer.
 }
 constructor TZSQLitePreparedStatement.Create(PlainDriver: IZSQLitePlainDriver;
-  Connection: IZConnection; SQL: string; Info: TStrings; Handle: Psqlite);
+  Connection: IZConnection; const SQL: string; Info: TStrings; Handle: Psqlite);
 begin
   inherited Create(Connection, SQL, Info);
   FHandle := Handle;
@@ -288,7 +304,7 @@ end;
   @param Value a regular string.
   @return a string in SQLite escape format.
 }
-function TZSQLitePreparedStatement.GetEscapeString(Value: string): string;
+function TZSQLitePreparedStatement.GetEscapeString(const Value: string): string;
 begin
   Result := AnsiQuotedStr(Value, '''');
 end;

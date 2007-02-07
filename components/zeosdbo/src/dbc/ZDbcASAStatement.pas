@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Merkuriev                  }
+{        Originally written by Sergey Merkuriev           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcASAStatement;
 
@@ -64,9 +80,9 @@ type
     function GetWarnings: EZSQLWarning; override;
     procedure ClearWarnings; override;
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. }
@@ -80,7 +96,7 @@ type
     FMoreResults: Boolean;
     FPrepared: Boolean;
   public
-    constructor Create(Connection: IZConnection; SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
     destructor Destroy; override;
 
     procedure Close; override;
@@ -88,9 +104,9 @@ type
     function GetWarnings: EZSQLWarning; override;
     procedure ClearWarnings; override;
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -111,7 +127,7 @@ type
     function GetProcedureSQL: String;
     procedure TrimInParameters;
   public
-    constructor Create(Connection: IZConnection; SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
     destructor Destroy; override;
 
     procedure Close; override;
@@ -119,9 +135,9 @@ type
     function GetWarnings: EZSQLWarning; override;
     procedure ClearWarnings; override;
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(SQL: string): IZResultSet; override;
-    function ExecuteUpdate(SQL: string): Integer; override;
-    function Execute(SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: string): IZResultSet; override;
+    function ExecuteUpdate(const SQL: string): Integer; override;
+    function Execute(const SQL: string): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -226,7 +242,7 @@ end;
     given query; never <code>null</code>
 }
 {$HINTS OFF}
-function TZASAStatement.ExecuteQuery(SQL: string): IZResultSet;
+function TZASAStatement.ExecuteQuery(const SQL: string): IZResultSet;
 var
   Cursor: string;
   CursorOptions: SmallInt;
@@ -301,7 +317,7 @@ end;
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
 {$HINTS OFF}
-function TZASAStatement.ExecuteUpdate(SQL: string): Integer;
+function TZASAStatement.ExecuteUpdate(const SQL: string): Integer;
 begin
   Close;
   Result := -1;
@@ -343,7 +359,7 @@ end;
   @see #getUpdateCount
   @see #getMoreResults
 }
-function TZASAStatement.Execute(SQL: string): Boolean;
+function TZASAStatement.Execute(const SQL: string): Boolean;
 begin
   try
     LastResultSet := ExecuteQuery( SQL);
@@ -364,7 +380,7 @@ end;
   @param Info a statement parameters.
 }
 constructor TZASAPreparedStatement.Create(Connection: IZConnection;
-  SQL: string; Info: TStrings);
+  const SQL: string; Info: TStrings);
 begin
   inherited Create(Connection, SQL, Info);
 
@@ -466,7 +482,7 @@ end;
   @see #getMoreResults
 }
 
-function TZASAPreparedStatement.Execute(SQL: string): Boolean;
+function TZASAPreparedStatement.Execute(const SQL: string): Boolean;
 begin
   if Self.SQL <> SQL then
   begin
@@ -504,7 +520,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZASAPreparedStatement.ExecuteQuery(SQL: string): IZResultSet;
+function TZASAPreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
 begin
   if Self.SQL <> SQL then
   begin
@@ -578,7 +594,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZASAPreparedStatement.ExecuteUpdate(SQL: string): Integer;
+function TZASAPreparedStatement.ExecuteUpdate(const SQL: string): Integer;
 begin
   if Self.SQL <> SQL then
   begin
@@ -633,7 +649,7 @@ end;
   @param Info a statement parameters.
 }
 constructor TZASACallableStatement.Create(Connection: IZConnection;
-  SQL: string; Info: TStrings);
+  const SQL: string; Info: TStrings);
 begin
   inherited Create(Connection, SQL, Info);
 
@@ -733,7 +749,7 @@ end;
   @see #getMoreResults
 }
 
-function TZASACallableStatement.Execute(SQL: string): Boolean;
+function TZASACallableStatement.Execute(const SQL: string): Boolean;
 var
   ProcSQL: string;
 begin
@@ -781,7 +797,7 @@ end;
     given query; never <code>null</code>
 }
 function TZASACallableStatement.ExecuteQuery(
-  SQL: string): IZResultSet;
+  const SQL: string): IZResultSet;
 var
   ProcSQL: string;
 begin
@@ -863,7 +879,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZASACallableStatement.ExecuteUpdate(SQL: string): Integer;
+function TZASACallableStatement.ExecuteUpdate(const SQL: string): Integer;
 var
   ProcSQL: string;
 begin
@@ -894,7 +910,7 @@ begin
   if not FPrepared then
     Result := ExecuteUpdate( SQL)
   else begin
-    Result := -1;
+//    Result := -1;
     with FASAConnection do
     begin
 

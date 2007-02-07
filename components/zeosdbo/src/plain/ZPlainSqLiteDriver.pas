@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {             Native Plain Drivers for SQLite             }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{         Originally written by Sergey Seroukhov          }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZPlainSqLiteDriver;
 
@@ -41,7 +57,8 @@ interface
 
 {$I ZPlain.inc}
 
-uses ZClasses, ZCompatibility, ZPlainDriver, ZPlainSqLite28;
+uses ZClasses, ZCompatibility, ZPlainDriver, ZPlainSqLite28, ZPlainSqLite3,
+     SysUtils;
 
 const
   MASTER_NAME      = 'sqlite_master';
@@ -184,8 +201,8 @@ type
     function Trace(db: Psqlite; callback: Tsqlite_trace_callback;
       ptr: Pointer): Pointer;
 
-    function Compile(db: Psqlite; const zSql: PChar; var pzTail: PChar;
-      var ppVm: Psqlite_vm; var pzErrmsg: PChar): Integer;
+    function Compile(db: Psqlite; const zSql: PChar;nBytes: Integer;
+      var pzTail: PChar; var ppVm: Psqlite_vm; var pzErrmsg: PChar): Integer;
     function Step(pVm: Psqlite_vm; var pN: Integer; var pazValue: PPChar;
       var pazColName: PPChar): Integer;
     function Finalize(vm: Psqlite_vm; var pzErrMsg: PChar): Integer;
@@ -259,8 +276,85 @@ type
     function Trace(db: Psqlite; callback: Tsqlite_trace_callback;
       ptr: Pointer): Pointer;
 
-    function Compile(db: Psqlite; const zSql: PChar; var pzTail: PChar;
+    function Compile(db: Psqlite; const zSql: PChar;
+      nBytes: Integer;var pzTail: PChar;
       var ppVm: Psqlite_vm; var pzErrmsg: PChar): Integer;
+    function Step(pVm: Psqlite_vm; var pN: Integer; var pazValue: PPChar;
+      var pazColName: PPChar): Integer;
+    function Finalize(vm: Psqlite_vm; var pzErrMsg: PChar): Integer;
+    function Reset(vm: Psqlite_vm; var pzErrMsg: PChar): Integer;
+    function Bind(vm: Psqlite_vm; idx: Integer; const value: PChar;
+      len: Integer; copy: Integer): Integer;
+
+    procedure ProgressHandler(db: Psqlite; p1: Integer;
+      callback: Tsqlite_simple_callback; ptr: Pointer);
+    function CommitHook(db: Psqlite; callback: Tsqlite_simple_callback;
+      ptr: Pointer): Pointer;
+
+    function OpenEncrypted(const zFilename: PChar; const pKey: PChar;
+      nKey: Integer; var pErrcode: Integer; var pzErrmsg: PChar): Psqlite;
+    function ReKey(db: Psqlite; const pKey: Pointer; nKey: Integer): Integer;
+  end;
+
+  {** Implements a driver for SQLite 3 }
+  TZSQLite3PlainDriver = class (TZAbstractObject, IZPlainDriver,
+    IZSQLitePlainDriver)
+  public
+    constructor Create;
+
+    function GetProtocol: string;
+    function GetDescription: string;
+    procedure Initialize;
+
+    function Open(const filename: PChar; mode: Integer;
+      var errmsg: PChar): Psqlite;
+    procedure Close(db: Psqlite);
+    function Execute(db: Psqlite; const sql: PChar;
+      sqlite_callback: Tsqlite_callback; arg: Pointer;
+      var errmsg: PChar): Integer;
+    function LastInsertRowId(db: Psqlite): Integer;
+    function Changes(db: Psqlite): Integer;
+    function LastStatementChanges(db: Psqlite): Integer;
+    function ErrorString(code: Integer): PChar;
+    procedure Interrupt(db: Psqlite);
+    function Complete(const sql: PChar): Integer;
+
+    procedure BusyHandler(db: Psqlite; callback: Tsqlite_busy_callback;
+      ptr: Pointer);
+    procedure BusyTimeout(db: Psqlite; ms: Integer);
+
+    function GetTable(db: Psqlite; const sql: PChar; var resultp: PPChar;
+      var nrow: Integer; var ncolumn: Integer; var errmsg: PChar): Integer;
+    procedure FreeTable(var result: PChar);
+    procedure FreeMem(ptr: Pointer);
+    function LibVersion: PChar;
+    function LibEncoding: PChar;
+
+    function CreateFunction(db: Psqlite; const zName: PChar;
+      nArg: Integer; callback: Tsqlite_function_callback;
+      pUserData: Pointer): Integer;
+    function CreateAggregate(db: Psqlite; const zName: PChar;
+      nArg: Integer; callback: Tsqlite_function_callback;
+      finalize: Tsqlite_finalize_callback; pUserData: Pointer): Integer;
+    function FunctionType(db: Psqlite; const zName: PChar;
+      datatype: Integer): Integer;
+    function SetResultString(func: Psqlite_func; const arg: PChar;
+      len: Integer): PChar;
+    procedure SetResultInt(func: Psqlite_func; arg: Integer);
+    procedure SetResultDouble(func: Psqlite_func; arg: Double);
+    procedure SetResultError(func: Psqlite_func; const arg: PChar; len: Integer);
+    function UserData(func: Psqlite_func): Pointer;
+    function AggregateContext(func: Psqlite_func; nBytes: Integer): Pointer;
+    function AggregateCount(func: Psqlite_func): Integer;
+
+    function SetAuthorizer(db: Psqlite; callback: Tsqlite_auth_callback;
+      pUserData: Pointer): Integer;
+    function Trace(db: Psqlite; callback: Tsqlite_trace_callback;
+      ptr: Pointer): Pointer;
+
+    function Compile(db: Psqlite; const zSql: PChar;
+      nBytes: Integer;var pzTail: PChar; var ppVm: Psqlite_vm;
+      var pzErrmsg: PChar): Integer;
     function Step(pVm: Psqlite_vm; var pN: Integer; var pazValue: PPChar;
       var pazColName: PPChar): Integer;
     function Finalize(vm: Psqlite_vm; var pzErrMsg: PChar): Integer;
@@ -341,7 +435,8 @@ begin
 end;
 
 function TZSQLite28PlainDriver.Compile(db: Psqlite; const zSql: PChar;
-  var pzTail: PChar; var ppVm: Psqlite_vm; var pzErrmsg: PChar): Integer;
+      nBytes: Integer;var pzTail: PChar;
+      var ppVm: Psqlite_vm; var pzErrmsg: PChar): Integer;
 begin
   Result := ZPlainSqLite28.sqlite_compile(db, zSql, pzTail, ppVm, pzErrmsg);
 end;
@@ -515,6 +610,318 @@ end;
 procedure TZSQLite28PlainDriver.Close(db: Psqlite);
 begin
   ZPlainSqLite28.sqlite_close(db);
+end;
+
+{ TZSQLite3PlainDriver }
+
+constructor TZSQLite3PlainDriver.Create;
+begin
+end;
+
+function TZSQLite3PlainDriver.GetProtocol: string;
+begin
+  Result := 'sqlite-3';
+end;
+
+function TZSQLite3PlainDriver.GetDescription: string;
+begin
+  Result := 'Native Plain Driver for SQLite 3';
+end;
+
+procedure TZSQLite3PlainDriver.Initialize;
+begin
+  ZPlainSQLite3.LibraryLoader.LoadIfNeeded;
+end;
+
+function TZSQLite3PlainDriver.AggregateContext(func: Psqlite_func;
+  nBytes: Integer): Pointer;
+begin
+  Result := ZPlainSqLite3.sqlite_aggregate_context(func, nBytes);
+end;
+
+function TZSQLite3PlainDriver.AggregateCount(func: Psqlite_func): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_aggregate_count(func);
+end;
+
+function TZSQLite3PlainDriver.Bind(vm: Psqlite_vm; idx: Integer;
+  const value: PChar; len, copy: Integer): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_bind(vm, idx, value, len, copy);
+end;
+
+procedure TZSQLite3PlainDriver.BusyHandler(db: Psqlite;
+  callback: Tsqlite_busy_callback; ptr: Pointer);
+begin
+  ZPlainSqLite3.sqlite_busy_handler(db, callback, ptr);
+end;
+
+procedure TZSQLite3PlainDriver.BusyTimeout(db: Psqlite; ms: Integer);
+begin
+  ZPlainSqLite3.sqlite_busy_timeout(db, ms);
+end;
+
+function TZSQLite3PlainDriver.Changes(db: Psqlite): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_changes(db);
+end;
+
+function TZSQLite3PlainDriver.CommitHook(db: Psqlite;
+  callback: Tsqlite_simple_callback; ptr: Pointer): Pointer;
+begin
+  Result := ZPlainSqLite3.sqlite_commit_hook(db, callback, ptr);
+end;
+
+function TZSQLite3PlainDriver.Compile(db: Psqlite; const zSql: PChar;
+  nBytes: Integer;var pzTail: PChar;
+  var ppVm: Psqlite_vm; var pzErrmsg: PChar): Integer;
+
+begin
+  Result := ZPlainSqLite3.sqlite_compile(db, zSql, -1, ppVm, nil);
+  pzErrmsg := nil;
+end;
+
+function TZSQLite3PlainDriver.Complete(const sql: PChar): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_complete(sql);
+end;
+
+function TZSQLite3PlainDriver.CreateAggregate(db: Psqlite;
+  const zName: PChar; nArg: Integer; callback: Tsqlite_function_callback;
+  finalize: Tsqlite_finalize_callback; pUserData: Pointer): Integer;
+begin
+  Result := SQLITE_MISUSE;
+end;
+
+function TZSQLite3PlainDriver.CreateFunction(db: Psqlite;
+  const zName: PChar; nArg: Integer; callback: Tsqlite_function_callback;
+  pUserData: Pointer): Integer;
+begin
+  Result := SQLITE_MISUSE;
+end;
+
+function TZSQLite3PlainDriver.ErrorString(code: Integer): PChar;
+begin
+  Case code of
+    SQLITE_OK:         Result := 'not an error';
+    SQLITE_ERROR:      Result := 'SQL logic error or missing database';
+    SQLITE_INTERNAL:   Result := 'internal SQLite implementation flaw';
+    SQLITE_PERM:       Result := 'access permission denied';
+    SQLITE_ABORT:      Result := 'callback requested query abort';
+    SQLITE_BUSY:       Result := 'database is locked';
+    SQLITE_LOCKED:     Result := 'database table is locked';
+    SQLITE_NOMEM:      Result := 'out of memory';
+    SQLITE_READONLY:   Result := 'attempt to write a readonly database';
+    _SQLITE_INTERRUPT:  Result := 'interrupted';
+    SQLITE_IOERR:      Result := 'disk I/O error';
+    SQLITE_CORRUPT:    Result := 'database disk image is malformed';
+    SQLITE_NOTFOUND:   Result := 'table or record not found';
+    SQLITE_FULL:       Result := 'database is full';
+    SQLITE_CANTOPEN:   Result := 'unable to open database file';
+    SQLITE_PROTOCOL:   Result := 'database locking protocol failure';
+    SQLITE_EMPTY:      Result := 'table contains no data';
+    SQLITE_SCHEMA:     Result := 'database schema has changed';
+    SQLITE_TOOBIG:     Result := 'too much data for one table row';
+    SQLITE_CONSTRAINT: Result := 'constraint failed';
+    SQLITE_MISMATCH:   Result := 'datatype mismatch';
+    SQLITE_MISUSE:     Result := 'library routine called out of sequence';
+    SQLITE_NOLFS:      Result := 'kernel lacks large file support';
+    SQLITE_AUTH:       Result := 'authorization denied';
+    SQLITE_FORMAT:     Result := 'auxiliary database format error';
+    SQLITE_RANGE:      Result := 'bind index out of range';
+    SQLITE_NOTADB:     Result := 'file is encrypted or is not a database';
+    else                    Result := 'unknown error';
+  end;
+end;
+
+function TZSQLite3PlainDriver.Execute(db: Psqlite; const sql: PChar;
+  sqlite_callback: Tsqlite_callback; arg: Pointer;
+  var errmsg: PChar): Integer;
+begin
+  errmsg:= nil;
+  Result := ZPlainSqLite3.sqlite_exec(db, sql, sqlite_callback, arg, errmsg);
+end;
+
+function TZSQLite3PlainDriver.Finalize(vm: Psqlite_vm;
+  var pzErrMsg: PChar): Integer;
+begin
+  Result:= ZPlainSqLite3.sqlite_finalize(vm); pzErrMsg:=nil;
+end;
+
+procedure TZSQLite3PlainDriver.FreeMem(ptr: Pointer);
+begin
+  ZPlainSqLite3.sqlite_freemem(ptr);
+end;
+
+procedure TZSQLite3PlainDriver.FreeTable(var result: PChar);
+begin
+  ZPlainSqLite3.sqlite_free_table(result);
+end;
+
+function TZSQLite3PlainDriver.FunctionType(db: Psqlite;
+  const zName: PChar; datatype: Integer): Integer;
+begin
+  Result := SQLITE_MISUSE;
+end;
+
+function TZSQLite3PlainDriver.GetTable(db: Psqlite; const sql: PChar;
+  var resultp: PPChar; var nrow, ncolumn: Integer;
+  var errmsg: PChar): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_get_table(db, sql, resultp, nrow, ncolumn,
+    errmsg);
+end;
+
+procedure TZSQLite3PlainDriver.Interrupt(db: Psqlite);
+begin
+  ZPlainSqLite3.sqlite_interrupt(db);
+end;
+
+function TZSQLite3PlainDriver.LastInsertRowId(db: Psqlite): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_last_insert_rowid(db);
+end;
+
+function TZSQLite3PlainDriver.LastStatementChanges(db: Psqlite): Integer;
+begin
+  Result := SQLITE_MISUSE;
+end;
+
+function TZSQLite3PlainDriver.LibEncoding: PChar;
+begin
+  Result := nil;
+end;
+
+function TZSQLite3PlainDriver.LibVersion: PChar;
+begin
+  Result := ZPlainSqLite3.sqlite_libversion;
+end;
+
+function TZSQLite3PlainDriver.Open(const filename: PChar; mode: Integer;
+  var errmsg: PChar): Psqlite;
+var
+  Result0: Psqlite;
+begin
+  Result0:= nil;
+  ZPlainSqLite3.sqlite_open(filename, Result0);
+  Result := Result0;
+end;
+
+function TZSQLite3PlainDriver.OpenEncrypted(const zFilename, pKey: PChar;
+  nKey: Integer; var pErrcode: Integer; var pzErrmsg: PChar): Psqlite;
+begin
+  pErrcode := SQLITE_MISUSE;
+  pzErrmsg := 'function is not used in the current version of the library';
+  Result:= nil;
+end;
+
+procedure TZSQLite3PlainDriver.ProgressHandler(db: Psqlite; p1: Integer;
+  callback: Tsqlite_simple_callback; ptr: Pointer);
+begin
+  ZPlainSqLite3.sqlite_progress_handler(db, p1, callback, ptr);
+end;
+
+function TZSQLite3PlainDriver.ReKey(db: Psqlite; const pKey: Pointer;
+  nKey: Integer): Integer;
+begin
+  Result := SQLITE_MISUSE;
+end;
+
+function TZSQLite3PlainDriver.Reset(vm: Psqlite_vm;
+  var pzErrMsg: PChar): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_reset(vm);
+  pzErrMsg := nil;
+end;
+
+function TZSQLite3PlainDriver.SetAuthorizer(db: Psqlite;
+  callback: Tsqlite_auth_callback; pUserData: Pointer): Integer;
+begin
+  Result := ZPlainSqLite3.sqlite_set_authorizer(db, callback, pUserData);
+end;
+
+procedure TZSQLite3PlainDriver.SetResultDouble(func: Psqlite_func;
+  arg: Double);
+begin
+  ZPlainSqLite3.sqlite_set_result_double(func, arg);
+end;
+
+procedure TZSQLite3PlainDriver.SetResultError(func: Psqlite_func;
+  const arg: PChar; len: Integer);
+begin
+  ZPlainSqLite3.sqlite_set_result_error(func, arg, len);
+end;
+
+procedure TZSQLite3PlainDriver.SetResultInt(func: Psqlite_func;
+  arg: Integer);
+begin
+  ZPlainSqLite3.sqlite_set_result_int(func, arg);
+end;
+
+function TZSQLite3PlainDriver.SetResultString(func: Psqlite_func;
+  const arg: PChar; len: Integer): PChar;
+begin
+  Result := ZPlainSqLite3.sqlite_set_result_string(func, arg, len, nil);
+end;
+
+function TZSQLite3PlainDriver.Step(pVm: Psqlite_vm; var pN: Integer;
+  var pazValue, pazColName: PPChar): Integer;
+var i: Integer;
+    val,cname,ctype: PChar;
+    pazValue0, pazColName0, pazColType: PPChar;
+begin
+  pazValue0 := nil; // satisfy compiler
+  Result := ZPlainSqLite3.sqlite_step(pVm);
+  if (Result=SQLITE_ROW) or (Result=SQLITE_DONE) then begin
+    pN:= ZPlainSqLite3.sqlite_column_count(pVm);
+    if  Result=SQLITE_ROW then begin
+      pazValue:= AllocMem(SizeOf(PPChar)*pN+1);
+      pazValue0:= pazValue;
+    end;
+    pazColName:= AllocMem(SizeOf(PPChar)*pN*2+1);
+    pazColName0:= pazColName;
+    pazColType:= pazColName;
+
+    Inc(pazColType, pN);
+//    for i:=1 to pN do
+//      inc(pazColType);
+    for i:=0 to pN-1 do begin
+      if Result = SQLITE_ROW then
+      begin
+        val  := ZPlainSqLite3.sqlite_column_bytes(pVm, i);
+        cname:= ZPlainSqLite3.sqlite_column_name(pVm, i);
+        ctype:= ZPlainSqLite3.sqlite_column_decltype(pVm, i);
+        pazValue0^  := val; inc(pazValue0);
+      end
+      else
+      begin
+        cname:= ZPlainSqLite3.sqlite_column_name(pVm, i);
+        ctype:= ZPlainSqLite3.sqlite_column_decltype(pVm, i);
+      end;
+      pazColName0^:= cname;
+      pazColType^ := ctype;
+      inc(pazColName0);inc(pazColType);
+    end;
+    if  Result=SQLITE_ROW then pazValue0^:= nil;
+    pazColType^:= nil;
+    if Result=SQLITE_DONE then pazValue:= nil;
+  end;
+end;
+
+function TZSQLite3PlainDriver.Trace(db: Psqlite;
+  callback: Tsqlite_trace_callback; ptr: Pointer): Pointer;
+begin
+  Result := ZPlainSqLite3.sqlite_trace(db, callback, ptr);
+end;
+
+function TZSQLite3PlainDriver.UserData(func: Psqlite_func): Pointer;
+begin
+  Result := ZPlainSqLite3.sqlite_user_data(func);
+end;
+
+procedure TZSQLite3PlainDriver.Close(db: Psqlite);
+begin
+  ZPlainSqLite3.sqlite_close(db);
 end;
 
 end.

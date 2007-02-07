@@ -1,9 +1,9 @@
 object frmDBCDemo: TfrmDBCDemo
   Left = 380
   Top = 201
-  Width = 728
-  Height = 656
   Caption = 'DBC demo'
+  ClientHeight = 622
+  ClientWidth = 720
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

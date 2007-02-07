@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {         PostgreSQL Database Connectivity Classes        }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcPostgreSql;
 
@@ -50,17 +66,58 @@ uses
 
 type
 
+TZPgCharactersetType = (
+	csSQL_ASCII,	{ SQL/ASCII }
+	csEUC_JP,	{ EUC for Japanese }
+	csEUC_CN,	{ EUC for Chinese }
+	csEUC_KR,	{ EUC for Korean }
+	csEUC_TW,	{ EUC for Taiwan }
+	csJOHAB,
+	csUTF8,		{ Unicode UTF-8 }
+	csMULE_INTERNAL,	{ Mule internal code }
+	csLATIN1,	{ ISO-8859 Latin 1 }
+	csLATIN2,	{ ISO-8859 Latin 2 }
+	csLATIN3,	{ ISO-8859 Latin 3 }
+	csLATIN4,	{ ISO-8859 Latin 4 }
+	csLATIN5,	{ ISO-8859 Latin 5 }
+	csLATIN6,	{ ISO-8859 Latin 6 }
+	csLATIN7,	{ ISO-8859 Latin 7 }
+	csLATIN8,	{ ISO-8859 Latin 8 }
+	csLATIN9,	{ ISO-8859 Latin 9 }
+	csLATIN10,	{ ISO-8859 Latin 10 }
+	csWIN1256,	{ Arabic Windows }
+	csWIN1258,	{ Vietnamese Windows }
+	csWIN874,	{ Thai Windows }
+	csKOI8R,	{ KOI8-R/U }
+	csWIN1251,	{ windows-1251 }
+	csWIN866,	{ Alternativny Variant (MS-DOS CP866) }
+	csISO_8859_5,	{ ISO-8859-5 }
+	csISO_8859_6,	{ ISO-8859-6 }
+	csISO_8859_7,	{ ISO-8859-7 }
+	csISO_8859_8,	{ ISO-8859-8 }
+	csSJIS,		{ Shift JIS }
+	csBIG5,		{ Big5 }
+	csGBK,		{ GBK }
+	csUHC,		{ UHC }
+	csWIN1250,	{ windows-1250 }
+	csGB18030,	{ GB18030 }
+	csUNICODE_PODBC,{ UNICODE ( < Ver8.1). Can't call it UNICODE as that's already used }
+	csTCVN,		{ TCVN ( < Ver8.1) }
+	csALT,		{ ALT ( < Var8.1) }
+	csWIN,		{ WIN ( < Ver8.1) }
+	csOTHER
+);
+
   {** Implements PostgreSQL Database Driver. }
   TZPostgreSQLDriver = class(TZAbstractDriver)
   private
-    FPostgreSQL73PlainDriver: IZPostgreSQLPlainDriver;
-    FPostgreSQL74PlainDriver: IZPostgreSQLPlainDriver;
-    FPostgreSQL8xPlainDriver: IZPostgreSQLPlainDriver;
+    FPostgreSQL7PlainDriver: IZPostgreSQLPlainDriver;
+    FPostgreSQL8PlainDriver: IZPostgreSQLPlainDriver;
   protected
-    function GetPlainDriver(Url: string): IZPostgreSQLPlainDriver;
+    function GetPlainDriver(const Url: string): IZPostgreSQLPlainDriver;
   public
     constructor Create;
-    function Connect(Url: string; Info: TStrings): IZConnection; override;
+    function Connect(const Url: string; Info: TStrings): IZConnection; override;
 
     function GetSupportedProtocols: TStringDynArray; override;
     function GetMajorVersion: Integer; override;
@@ -81,6 +138,7 @@ type
     function GetConnectionHandle: PZPostgreSQLConnect;
     function GetServerMajorVersion: Integer;
     function GetServerMinorVersion: Integer;
+    function GetCharactersetCode: TZPgCharactersetType;
   end;
 
   {** Implements PostgreSQL Database Connection. }
@@ -92,6 +150,7 @@ type
     FPlainDriver: IZPostgreSQLPlainDriver;
     FOidAsBlob: Boolean;
     FClientCodePage: string;
+    FCharactersetCode: TZPgCharactersetType;
     FServerMajorVersion: Integer;
     FServerMinorVersion: Integer;
   protected
@@ -99,20 +158,23 @@ type
     procedure StartTransactionSupport;
     procedure LoadServerVersion;
   public
-    constructor Create(Driver: IZDriver; Url: string;
-      PlainDriver: IZPostgreSQLPlainDriver; HostName: string; Port: Integer;
-      Database: string; User: string; Password: string; Info: TStrings);
+    constructor Create(Driver: IZDriver; const Url: string;
+      PlainDriver: IZPostgreSQLPlainDriver; const HostName: string; Port: Integer;
+      const Database: string; const User: string; const Password: string; Info: TStrings);
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: string; Info: TStrings):
       IZPreparedStatement; override;
 
-    function CreateSequence(Sequence: string; BlockSize: Integer):
-      IZSequence; override;
+    function CreateSequence(const Sequence: string; BlockSize: Integer): IZSequence; override;
 
     procedure Commit; override;
     procedure Rollback; override;
+    //2Phase Commit Support initially for PostgresSQL (firmos) 21022006
+    procedure PrepareTransaction(const transactionid: string);override;
+    procedure CommitPrepared(const transactionid:string);override;
+    procedure RollbackPrepared(const transactionid:string);override;
 
     procedure Open; override;
     procedure Close; override;
@@ -127,13 +189,17 @@ type
 
     function GetServerMajorVersion: Integer;
     function GetServerMinorVersion: Integer;
+
+    function GetCharactersetCode: TZPgCharactersetType;
   end;
 
-  {** Implements a Interbase 6 sequence. }
+  {** Implements a Postgres sequence. }
   TZPostgreSQLSequence = class(TZAbstractSequence)
   public
     function GetCurrentValue: Int64; override;
     function GetNextValue: Int64; override;
+    function  GetCurrentValueSQL:String;override;
+    function  GetNextValueSQL:String;override;
   end;
 
 
@@ -155,9 +221,8 @@ uses
 }
 constructor TZPostgreSQLDriver.Create;
 begin
-  FPostgreSQL73PlainDriver := TZPostgreSQL73PlainDriver.Create;
-  FPostgreSQL74PlainDriver := TZPostgreSQL74PlainDriver.Create;
-  FPostgreSQL8xPlainDriver := TZPostgreSQL8xPlainDriver.Create;
+  FPostgreSQL7PlainDriver := TZPostgreSQL7PlainDriver.Create;
+  FPostgreSQL8PlainDriver := TZPostgreSQL8PlainDriver.Create;
 end;
 
 {**
@@ -183,7 +248,7 @@ end;
   @return a <code>Connection</code> object that represents a
     connection to the URL
 }
-function TZPostgreSQLDriver.Connect(Url: string; Info: TStrings): IZConnection;
+function TZPostgreSQLDriver.Connect(const Url: string; Info: TStrings): IZConnection;
 var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
@@ -244,15 +309,14 @@ end;
 
 {**
   Get a name of the supported subprotocol.
-  For example: postgresql74 or postgresql8x
+  For example: postgresql74 or postgresql81
 }
 function TZPostgreSQLDriver.GetSupportedProtocols: TStringDynArray;
 begin
-  SetLength(Result, 4);
+  SetLength(Result, 3);
   Result[0] := 'postgresql';
-  Result[1] := FPostgreSQL73PlainDriver.GetProtocol;
-  Result[2] := FPostgreSQL74PlainDriver.GetProtocol;
-  Result[3] := FPostgreSQL8xPlainDriver.GetProtocol;
+  Result[1] := FPostgreSQL7PlainDriver.GetProtocol;
+  Result[2] := FPostgreSQL8PlainDriver.GetProtocol;
 end;
 
 {**
@@ -260,19 +324,18 @@ end;
   @param Url a database connection URL.
   @return a selected protocol.
 }
-function TZPostgreSQLDriver.GetPlainDriver(Url: string): IZPostgreSQLPlainDriver;
+function TZPostgreSQLDriver.GetPlainDriver(const Url: string): IZPostgreSQLPlainDriver;
 var
   Protocol: string;
 begin
   Protocol := ResolveConnectionProtocol(Url, GetSupportedProtocols);
 
-  if Protocol = FPostgreSQL73PlainDriver.GetProtocol then
-    Result := FPostgreSQL73PlainDriver
-  else if Protocol = FPostgreSQL74PlainDriver.GetProtocol then
-    Result := FPostgreSQL74PlainDriver
-  else if Protocol = FPostgreSQL8xPlainDriver.GetProtocol then
-    Result := FPostgreSQL8xPlainDriver
-  else Result := FPostgreSQL8xPlainDriver;
+  if Protocol = FPostgreSQL7PlainDriver.GetProtocol then
+    Result := FPostgreSQL7PlainDriver
+  else if Protocol = FPostgreSQL8PlainDriver.GetProtocol then
+    Result := FPostgreSQL8PlainDriver
+  else
+    Result := FPostgreSQL8PlainDriver;
   Result.Initialize;
 end;
 
@@ -289,9 +352,9 @@ end;
   @param Password a user password.
   @param Info a string list with extra connection parameters.
 }
-constructor TZPostgreSQLConnection.Create(Driver: IZDriver; Url: string;
-  PlainDriver: IZPostgreSQLPlainDriver; HostName: string; Port: Integer;
-  Database, User, Password: string; Info: TStrings);
+constructor TZPostgreSQLConnection.Create(Driver: IZDriver; const Url: string;
+  PlainDriver: IZPostgreSQLPlainDriver; const HostName: string; Port: Integer;
+  const Database, User, Password: string; Info: TStrings);
 begin
   inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
     TZPostgreSQLDatabaseMetadata.Create(Self, Url, Info));
@@ -312,6 +375,8 @@ begin
     FOidAsBlob := StrToBoolEx(Info.Values['oidasblob'])
   else FOidAsBlob := False;
   FClientCodePage := Trim(Info.Values['codepage']);
+  FCharactersetCode := pg_CS_code(FClientCodePage);
+  DriverManager.LogError(lcOther,'','Create',Integer(FCharactersetCode),'');
 end;
 
 {**
@@ -372,8 +437,8 @@ begin
     begin
       SQL := 'BEGIN';
       QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+      CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
       FPlainDriver.Clear(QueryHandle);
-      CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
       DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
     end;
 
@@ -381,16 +446,16 @@ begin
     begin
       SQL := 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED';
       QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+      CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
       FPlainDriver.Clear(QueryHandle);
-      CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
       DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
     end
     else if TransactIsolationLevel = tiSerializable then
     begin
       SQL := 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE';
       QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+      CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
       FPlainDriver.Clear(QueryHandle);
-      CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
       DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
     end
     else
@@ -414,17 +479,17 @@ begin
   { Connect to PostgreSQL database. }
   FHandle := FPlainDriver.ConnectDatabase(PChar(BuildConnectStr));
   if FPlainDriver.GetStatus(FHandle) = CONNECTION_BAD then
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcConnect, LogMessage)
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcConnect, LogMessage,nil)
   else
     DriverManager.LogMessage(lcConnect, FPlainDriver.GetProtocol, LogMessage);
 
   { Sets a client codepage. }
   if FClientCodePage <> '' then
   begin
-    SQL := PChar(Format('SET CLIENT_ENCODING = ''%s''', [FClientCodePage]));
+    SQL := PChar(Format('SET CLIENT_ENCODING TO ''%s''', [FClientCodePage]));
     QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
     FPlainDriver.Clear(QueryHandle);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
   end;
 
@@ -434,6 +499,23 @@ begin
 //  PQsetNoticeProcessor(FHandle, NoticeProc, Self);
 
   inherited Open;
+end;
+
+procedure TZPostgreSQLConnection.PrepareTransaction(const transactionid: string);
+var  QueryHandle: PZPostgreSQLResult;
+     SQL: PChar;
+     Temp: string;
+begin
+  if (TransactIsolationLevel <> tiNone) and not Closed then
+  begin
+    Temp:='PREPARE TRANSACTION '''+copy(transactionid,1,200)+'''';
+    SQL := PChar(Temp);
+    QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
+    FPlainDriver.Clear(QueryHandle);
+    DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
+    StartTransactionSupport;
+  end;
 end;
 
 {**
@@ -486,7 +568,7 @@ end;
     pre-compiled statement
 }
 function TZPostgreSQLConnection.CreatePreparedStatement(
-  SQL: string; Info: TStrings): IZPreparedStatement;
+  const SQL: string; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
   Result := TZPostgreSQLPreparedStatement.Create(FPlainDriver,
@@ -509,10 +591,27 @@ begin
   begin
     SQL := 'COMMIT';
     QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
     FPlainDriver.Clear(QueryHandle);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
+    StartTransactionSupport;
+  end;
+end;
+
+procedure TZPostgreSQLConnection.CommitPrepared(const transactionid: string);
+var  QueryHandle: PZPostgreSQLResult;
+     SQL: PChar;
+     Temp: string;
+begin
+  if (TransactIsolationLevel = tiNone) and not Closed then
+  begin
+    Temp:='COMMIT PREPARED '''+copy(transactionid,1,200)+'''';
+    SQL := PChar(Temp);
+    QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
+    FPlainDriver.Clear(QueryHandle);
+    DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
     StartTransactionSupport;
   end;
 end;
@@ -533,10 +632,27 @@ begin
   begin
     SQL := 'ROLLBACK';
     QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
     FPlainDriver.Clear(QueryHandle);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
+    StartTransactionSupport;
+  end;
+end;
+
+procedure TZPostgreSQLConnection.RollbackPrepared(const transactionid: string);
+var  QueryHandle: PZPostgreSQLResult;
+     SQL: PChar;
+     Temp: string;
+begin
+  if (TransactIsolationLevel = tiNone) and not Closed then
+  begin
+    Temp:='ROLLBACK PREPARED '''+copy(transactionid,1,200)+'''';
+    SQL := PChar(Temp);
+    QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
+    FPlainDriver.Clear(QueryHandle);
+    DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
     StartTransactionSupport;
   end;
 end;
@@ -581,8 +697,8 @@ begin
   begin
     SQL := 'END';
     QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
     FPlainDriver.Clear(QueryHandle);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcExecute, SQL);
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
   end;
 
@@ -617,21 +733,32 @@ end;
 }
 function TZPostgreSQLConnection.GetTypeNameByOid(Id: Oid): string;
 var
-  I: Integer;
+  I, Index: Integer;
   QueryHandle: PZPostgreSQLResult;
   SQL: PChar;
-  TypeCode: Integer;
+  TypeCode, BaseTypeCode: Integer;
   TypeName: string;
+  LastVersion: boolean;
 begin
   if Closed then Open;
+
+  if (GetServerMajorVersion < 7 ) or
+    ((GetServerMajorVersion = 7) and (GetServerMinorVersion < 3)) then
+    LastVersion := True
+  else
+    LastVersion := False;
 
   { Fill the list with existed types }
   if not Assigned(FTypeList) then
   begin
-    SQL := 'SELECT oid, typname FROM pg_type WHERE oid < 10000';
+    if LastVersion then
+      SQL := 'SELECT oid, typname FROM pg_type WHERE oid<10000'
+    else
+      SQL := 'SELECT oid, typname, typbasetype FROM pg_type'
+        + ' WHERE oid<10000 OR typbasetype<>0 ORDER BY oid';
 
     QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
-    CheckPostgreSQLError(Self, FPlainDriver, FHandle, lcExecute, SQL);
+    CheckPostgreSQLError(Self, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
     FTypeList := TStringList.Create;
@@ -641,6 +768,19 @@ begin
         FPlainDriver.GetValue(QueryHandle, I, 0)), 0);
       TypeName := StrPas(FPlainDriver.GetValue(QueryHandle, I, 1));
 
+      if LastVersion then
+        BaseTypeCode := 0
+      else
+        BaseTypeCode := StrToIntDef(StrPas(
+          FPlainDriver.GetValue(QueryHandle, I, 2)), 0);
+
+      if BaseTypeCode <> 0 then
+      begin
+        Index := FTypeList.IndexOfObject(TObject(BaseTypeCode));
+        if Index >= 0 then
+          TypeName := FTypeList[Index]
+        else TypeName := '';
+      end;
       FTypeList.AddObject(TypeName, TObject(TypeCode));
     end;
     FPlainDriver.Clear(QueryHandle);
@@ -651,7 +791,6 @@ begin
     Result := FTypeList[I]
   else Result := '';
 end;
-
 {**
   Gets a server major version.
   @return a server major version number.
@@ -688,7 +827,7 @@ begin
 
   SQL := 'SELECT version()';
   QueryHandle := FPlainDriver.ExecuteQuery(FHandle, SQL);
-  CheckPostgreSQLError(Self, FPlainDriver, FHandle, lcExecute, SQL);
+  CheckPostgreSQLError(Self, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
   Temp := FPlainDriver.GetValue(QueryHandle, 0, 0);
@@ -719,13 +858,20 @@ end;
   @param BlockSize a number of unique keys requested in one trip to SQL server.
   @returns a created sequence object.
 }
-function TZPostgreSQLConnection.CreateSequence(Sequence: string;
+function TZPostgreSQLConnection.CreateSequence(const Sequence: string;
   BlockSize: Integer): IZSequence;
 begin
   Result := TZPostgreSQLSequence.Create(Self, Sequence, BlockSize);
 end;
 
-{ TZInterbase6Sequence }
+{**
+  Get characterset in terms of enumerated number.
+  @return characterset in terms of enumerated number.
+}
+function TZPostgreSQLConnection.GetCharactersetCode: TZPgCharactersetType;
+begin
+  Result := FCharactersetCode;
+end;
 
 {**
   Gets the current unique key generated by this sequence.
@@ -751,6 +897,11 @@ end;
   Gets the next unique key generated by this sequence.
   @param the next generated unique key.
 }
+function TZPostgreSQLSequence.GetCurrentValueSQL: String;
+begin
+  result:=Format(' CURRVAL(''%s'') ', [Name]);
+end;
+
 function TZPostgreSQLSequence.GetNextValue: Int64;
 var
   Statement: IZStatement;
@@ -765,6 +916,11 @@ begin
     Result := inherited GetNextValue;
   ResultSet.Close;
   Statement.Close;
+end;
+
+function TZPostgreSQLSequence.GetNextValueSQL: String;
+begin
+ result:=Format(' NEXTVAL(''%s'') ', [Name]);
 end;
 
 initialization

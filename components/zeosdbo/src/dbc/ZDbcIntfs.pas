@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {           Database Connectivity Interfaces              }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcIntfs;
 
@@ -60,11 +76,15 @@ type
   EZSQLThrowable = class(Exception)
   private
     FErrorCode: Integer;
+    FStatusCode: String;
   public
     constructor Create(const Msg: string);
     constructor CreateWithCode(const ErrorCode: Integer; const Msg: string);
+    constructor CreateWithStatus(const StatusCode: String; const Msg: string);
+    constructor CreateClone(const E:EZSQLThrowable);
 
     property ErrorCode: Integer read FErrorCode;
+    property StatusCode: string read FStatuscode; // The "String" Errocode // FirmOS
   end;
 
   {** Generic SQL exception. }
@@ -145,12 +165,12 @@ type
   IZDriverManager = interface(IZInterface)
     ['{8874B9AA-068A-4C0C-AE75-9DB1EA9E3720}']
 
-    function GetConnection(Url: string): IZConnection;
-    function GetConnectionWithParams(Url: string; Info: TStrings): IZConnection;
-    function GetConnectionWithLogin(Url: string; User: string;
-      Password: string): IZConnection;
+    function GetConnection(const Url: string): IZConnection;
+    function GetConnectionWithParams(const Url: string; Info: TStrings): IZConnection;
+    function GetConnectionWithLogin(const Url: string; const User: string;
+      const Password: string): IZConnection;
 
-    function GetDriver(Url: string): IZDriver;
+    function GetDriver(const Url: string): IZDriver;
     procedure RegisterDriver(Driver: IZDriver);
     procedure DeregisterDriver(Driver: IZDriver);
 
@@ -162,10 +182,10 @@ type
     procedure AddLoggingListener(Listener: IZLoggingListener);
     procedure RemoveLoggingListener(Listener: IZLoggingListener);
 
-    procedure LogMessage(Category: TZLoggingCategory; Protocol: string;
-      Msg: string);
-    procedure LogError(Category: TZLoggingCategory; Protocol: string;
-      Msg: string; ErrorCode: Integer; Error: string);
+    procedure LogMessage(Category: TZLoggingCategory; const Protocol: string;
+      const Msg: string);
+    procedure LogError(Category: TZLoggingCategory; const Protocol: string;
+      const Msg: string; ErrorCode: Integer; const Error: string);
   end;
 
   {** Database Driver interface. }
@@ -173,13 +193,13 @@ type
     ['{2157710E-FBD8-417C-8541-753B585332E2}']
 
     function GetSupportedProtocols: TStringDynArray;
-    function Connect(Url: string; Info: TStrings): IZConnection;
-    function AcceptsURL(Url: string): Boolean;
+    function Connect(const Url: string; Info: TStrings): IZConnection;
+    function AcceptsURL(const Url: string): Boolean;
 
-    function GetPropertyInfo(Url: string; Info: TStrings): TStrings;
+    function GetPropertyInfo(const Url: string; Info: TStrings): TStrings;
     function GetMajorVersion: Integer;
     function GetMinorVersion: Integer;
-
+    function GetSubVersion: Integer;
     function GetTokenizer: IZTokenizer;
     function GetStatementAnalyser: IZStatementAnalyser;
   end;
@@ -189,25 +209,36 @@ type
     ['{8EEBBD1A-56D1-4EC0-B3BD-42B60591457F}']
 
     function CreateStatement: IZStatement;
-    function PrepareStatement(SQL: string): IZPreparedStatement;
-    function PrepareCall(SQL: string): IZCallableStatement;
+    function PrepareStatement(const SQL: string): IZPreparedStatement;
+    function PrepareCall(const SQL: string): IZCallableStatement;
 
     function CreateStatementWithParams(Info: TStrings): IZStatement;
-    function PrepareStatementWithParams(SQL: string; Info: TStrings):
+    function PrepareStatementWithParams(const SQL: string; Info: TStrings):
       IZPreparedStatement;
-    function PrepareCallWithParams(SQL: string; Info: TStrings):
+    function PrepareCallWithParams(const SQL: string; Info: TStrings):
       IZCallableStatement;
 
-    function CreateNotification(Event: string): IZNotification;
-    function CreateSequence(Sequence: string; BlockSize: Integer): IZSequence;
+    function CreateNotification(const Event: string): IZNotification;
+    function CreateSequence(const Sequence: string; BlockSize: Integer): IZSequence;
 
-    function NativeSQL(SQL: string): string;
+    function NativeSQL(const SQL: string): string;
 
     procedure SetAutoCommit(Value: Boolean);
     function GetAutoCommit: Boolean;
 
     procedure Commit;
     procedure Rollback;
+
+    //2Phase Commit Support initially for PostgresSQL (firmos) 21022006
+    procedure PrepareTransaction(const transactionid: string);
+    procedure CommitPrepared(const transactionid: string);
+    procedure RollbackPrepared(const transactionid: string);
+
+
+    //Ping Server Support (firmos) 27032006
+
+    function PingServer: Integer;
+
 
     procedure Open;
     procedure Close;
@@ -218,11 +249,13 @@ type
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;
     function GetParameters: TStrings;
+    function GetClientVersion: Integer;
+    function GetHostVersion: Integer;
 
     procedure SetReadOnly(Value: Boolean);
     function IsReadOnly: Boolean;
 
-    procedure SetCatalog(Value: string);
+    procedure SetCatalog(const Value: string);
     function GetCatalog: string;
 
     procedure SetTransactionIsolation(Value: TZTransactIsolationLevel);
@@ -360,66 +393,67 @@ type
     function DataDefinitionCausesTransactionCommit: Boolean;
     function DataDefinitionIgnoredInTransactions: Boolean;
 
-    function GetProcedures(Catalog: string; SchemaPattern: string;
-      ProcedureNamePattern: string): IZResultSet;
-    function GetProcedureColumns(Catalog: string; SchemaPattern: string;
-      ProcedureNamePattern: string; ColumnNamePattern: string): IZResultSet;
+    function GetProcedures(const Catalog: string; const SchemaPattern: string;
+      const ProcedureNamePattern: string): IZResultSet;
+    function GetProcedureColumns(const Catalog: string; const SchemaPattern: string;
+      const ProcedureNamePattern: string; const ColumnNamePattern: string): IZResultSet;
 
-    function GetTables(Catalog: string; SchemaPattern: string;
-      TableNamePattern: string; Types: TStringDynArray): IZResultSet;
+    function GetTables(const Catalog: string; const SchemaPattern: string;
+      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet;
     function GetSchemas: IZResultSet;
     function GetCatalogs: IZResultSet;
     function GetTableTypes: IZResultSet;
-    function GetColumns(Catalog: string; SchemaPattern: string;
-      TableNamePattern: string; ColumnNamePattern: string): IZResultSet;
-    function GetColumnPrivileges(Catalog: string; Schema: string;
-      Table: string; ColumnNamePattern: string): IZResultSet;
+    function GetColumns(const Catalog: string; const SchemaPattern: string;
+      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet;
+    function GetColumnPrivileges(const Catalog: string; const Schema: string;
+      const Table: string; const ColumnNamePattern: string): IZResultSet;
 
-    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
-      TableNamePattern: string): IZResultSet;
-    function GetBestRowIdentifier(Catalog: string; Schema: string;
-      Table: string; Scope: Integer; Nullable: Boolean): IZResultSet;
-    function GetVersionColumns(Catalog: string; Schema: string;
-      Table: string): IZResultSet;
+    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
+      const TableNamePattern: string): IZResultSet;
+    function GetBestRowIdentifier(const Catalog: string; const Schema: string;
+      const Table: string; Scope: Integer; Nullable: Boolean): IZResultSet;
+    function GetVersionColumns(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet;
 
-    function GetPrimaryKeys(Catalog: string; Schema: string;
-      Table: string): IZResultSet;
-    function GetImportedKeys(Catalog: string; Schema: string;
-      Table: string): IZResultSet;
-    function GetExportedKeys(Catalog: string; Schema: string;
-      Table: string): IZResultSet;
-    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
-      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
-      ForeignTable: string): IZResultSet;
+    function GetPrimaryKeys(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet;
+    function GetImportedKeys(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet;
+    function GetExportedKeys(const Catalog: string; const Schema: string;
+      const Table: string): IZResultSet;
+    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
+      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
+      const ForeignTable: string): IZResultSet;
 
     function GetTypeInfo: IZResultSet;
 
-    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
+    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet;
 
-    function GetSequences(Catalog: string; SchemaPattern: string;
-      SequenceNamePattern: string): IZResultSet;
+    function GetSequences(const Catalog: string; const SchemaPattern: string;
+      const SequenceNamePattern: string): IZResultSet;
 
     function SupportsResultSetType(_Type: TZResultSetType): Boolean;
     function SupportsResultSetConcurrency(_Type: TZResultSetType;
       Concurrency: TZResultSetConcurrency): Boolean;
     function SupportsBatchUpdates: Boolean;
 
-    function GetUDTs(Catalog: string; SchemaPattern: string;
-      TypeNamePattern: string; Types: TIntegerDynArray): IZResultSet;
+    function GetUDTs(const Catalog: string; const SchemaPattern: string;
+      const TypeNamePattern: string; const Types: TIntegerDynArray): IZResultSet;
 
     function GetConnection: IZConnection;
     function GetIdentifierConvertor: IZIdentifierConvertor;
 
-    procedure ClearCache;
+    procedure ClearCache;overload;
+		procedure ClearCache(const Key: string);overload;
   end;
 
   {** Generic SQL statement interface. }
   IZStatement = interface(IZInterface)
     ['{22CEFA7E-6A6D-48EC-BB9B-EE66056E90F1}']
 
-    function ExecuteQuery(SQL: string): IZResultSet;
-    function ExecuteUpdate(SQL: string): Integer;
+    function ExecuteQuery(const SQL: string): IZResultSet;
+    function ExecuteUpdate(const SQL: string): Integer;
     procedure Close;
 
     function GetMaxFieldSize: Integer;
@@ -430,9 +464,9 @@ type
     function GetQueryTimeout: Integer;
     procedure SetQueryTimeout(Value: Integer);
     procedure Cancel;
-    procedure SetCursorName(Value: string);
+    procedure SetCursorName(const Value: string);
 
-    function Execute(SQL: string): Boolean;
+    function Execute(const SQL: string): Boolean;
     function GetResultSet: IZResultSet;
     function GetUpdateCount: Integer;
     function GetMoreResults: Boolean;
@@ -452,7 +486,7 @@ type
     procedure SetLocateUpdates(Value: TZLocateUpdatesMode);
     function GetLocateUpdates: TZLocateUpdatesMode;
 
-    procedure AddBatch(SQL: string);
+    procedure AddBatch(const SQL: string);
     procedure ClearBatch;
     function ExecuteBatch: TIntegerDynArray;
 
@@ -471,7 +505,7 @@ type
     function ExecuteUpdatePrepared: Integer;
     function ExecutePrepared: Boolean;
 
-    procedure SetDefaultValue(ParameterIndex: Integer; Value: string);
+    procedure SetDefaultValue(ParameterIndex: Integer; const Value: string);
 
     procedure SetNull(ParameterIndex: Integer; SQLType: TZSQLType);
     procedure SetBoolean(ParameterIndex: Integer; Value: Boolean);
@@ -483,9 +517,9 @@ type
     procedure SetDouble(ParameterIndex: Integer; Value: Double);
     procedure SetBigDecimal(ParameterIndex: Integer; Value: Extended);
     procedure SetPChar(ParameterIndex: Integer; Value: PChar);
-    procedure SetString(ParameterIndex: Integer; Value: string);
-    procedure SetUnicodeString(ParameterIndex: Integer; Value: WideString);
-    procedure SetBytes(ParameterIndex: Integer; Value: TByteDynArray);
+    procedure SetString(ParameterIndex: Integer; const Value: string);
+    procedure SetUnicodeString(ParameterIndex: Integer; const Value: WideString);
+    procedure SetBytes(ParameterIndex: Integer; const Value: TByteDynArray);
     procedure SetDate(ParameterIndex: Integer; Value: TDateTime);
     procedure SetTime(ParameterIndex: Integer; Value: TDateTime);
     procedure SetTimestamp(ParameterIndex: Integer; Value: TDateTime);
@@ -494,7 +528,7 @@ type
     procedure SetBinaryStream(ParameterIndex: Integer; Value: TStream);
     procedure SetBlob(ParameterIndex: Integer; SQLType: TZSQLType;
       Value: IZBlob);
-    procedure SetValue(ParameterIndex: Integer; Value: TZVariant);
+    procedure SetValue(ParameterIndex: Integer; const Value: TZVariant);
 
     procedure ClearParameters;
 
@@ -566,27 +600,27 @@ type
     // Methods for accessing results by column name
     //======================================================================
 
-    function IsNullByName(ColumnName: string): Boolean;
-    function GetPCharByName(ColumnName: string): PChar;
-    function GetStringByName(ColumnName: string): string;
-    function GetUnicodeStringByName(ColumnName: string): WideString;
-    function GetBooleanByName(ColumnName: string): Boolean;
-    function GetByteByName(ColumnName: string): ShortInt;
-    function GetShortByName(ColumnName: string): SmallInt;
-    function GetIntByName(ColumnName: string): Integer;
-    function GetLongByName(ColumnName: string): Int64;
-    function GetFloatByName(ColumnName: string): Single;
-    function GetDoubleByName(ColumnName: string): Double;
-    function GetBigDecimalByName(ColumnName: string): Extended;
-    function GetBytesByName(ColumnName: string): TByteDynArray;
-    function GetDateByName(ColumnName: string): TDateTime;
-    function GetTimeByName(ColumnName: string): TDateTime;
-    function GetTimestampByName(ColumnName: string): TDateTime;
-    function GetAsciiStreamByName(ColumnName: string): TStream;
-    function GetUnicodeStreamByName(ColumnName: string): TStream;
-    function GetBinaryStreamByName(ColumnName: string): TStream;
-    function GetBlobByName(ColumnName: string): IZBlob;
-    function GetValueByName(ColumnName: string): TZVariant;
+    function IsNullByName(const ColumnName: string): Boolean;
+    function GetPCharByName(const ColumnName: string): PChar;
+    function GetStringByName(const ColumnName: string): string;
+    function GetUnicodeStringByName(const ColumnName: string): WideString;
+    function GetBooleanByName(const ColumnName: string): Boolean;
+    function GetByteByName(const ColumnName: string): ShortInt;
+    function GetShortByName(const ColumnName: string): SmallInt;
+    function GetIntByName(const ColumnName: string): Integer;
+    function GetLongByName(const ColumnName: string): Int64;
+    function GetFloatByName(const ColumnName: string): Single;
+    function GetDoubleByName(const ColumnName: string): Double;
+    function GetBigDecimalByName(const ColumnName: string): Extended;
+    function GetBytesByName(const ColumnName: string): TByteDynArray;
+    function GetDateByName(const ColumnName: string): TDateTime;
+    function GetTimeByName(const ColumnName: string): TDateTime;
+    function GetTimestampByName(const ColumnName: string): TDateTime;
+    function GetAsciiStreamByName(const ColumnName: string): TStream;
+    function GetUnicodeStreamByName(const ColumnName: string): TStream;
+    function GetBinaryStreamByName(const ColumnName: string): TStream;
+    function GetBlobByName(const ColumnName: string): IZBlob;
+    function GetValueByName(const ColumnName: string): TZVariant;
 
     //=====================================================================
     // Advanced features:
@@ -597,7 +631,7 @@ type
 
     function GetCursorName: string;
     function GetMetadata: IZResultSetMetadata;
-    function FindColumn(ColumnName: string): Integer;
+    function FindColumn(const ColumnName: string): Integer;
     
     //---------------------------------------------------------------------
     // Traversal/Positioning
@@ -650,41 +684,41 @@ type
     procedure UpdateDouble(ColumnIndex: Integer; Value: Double);
     procedure UpdateBigDecimal(ColumnIndex: Integer; Value: Extended);
     procedure UpdatePChar(ColumnIndex: Integer; Value: PChar);
-    procedure UpdateString(ColumnIndex: Integer; Value: string);
-    procedure UpdateUnicodeString(ColumnIndex: Integer; Value: WideString);
-    procedure UpdateBytes(ColumnIndex: Integer; Value: TByteDynArray);
+    procedure UpdateString(ColumnIndex: Integer; const Value: string);
+    procedure UpdateUnicodeString(ColumnIndex: Integer; const Value: WideString);
+    procedure UpdateBytes(ColumnIndex: Integer; const Value: TByteDynArray);
     procedure UpdateDate(ColumnIndex: Integer; Value: TDateTime);
     procedure UpdateTime(ColumnIndex: Integer; Value: TDateTime);
     procedure UpdateTimestamp(ColumnIndex: Integer; Value: TDateTime);
     procedure UpdateAsciiStream(ColumnIndex: Integer; Value: TStream);
     procedure UpdateUnicodeStream(ColumnIndex: Integer; Value: TStream);
     procedure UpdateBinaryStream(ColumnIndex: Integer; Value: TStream);
-    procedure UpdateValue(ColumnIndex: Integer; Value: TZVariant);
+    procedure UpdateValue(ColumnIndex: Integer; const Value: TZVariant);
 
     //======================================================================
     // Methods for accessing results by column name
     //======================================================================
 
-    procedure UpdateNullByName(ColumnName: string);
-    procedure UpdateBooleanByName(ColumnName: string; Value: Boolean);
-    procedure UpdateByteByName(ColumnName: string; Value: ShortInt);
-    procedure UpdateShortByName(ColumnName: string; Value: SmallInt);
-    procedure UpdateIntByName(ColumnName: string; Value: Integer);
-    procedure UpdateLongByName(ColumnName: string; Value: Int64);
-    procedure UpdateFloatByName(ColumnName: string; Value: Single);
-    procedure UpdateDoubleByName(ColumnName: string; Value: Double);
-    procedure UpdateBigDecimalByName(ColumnName: string; Value: Extended);
-    procedure UpdatePCharByName(ColumnName: string; Value: PChar);
-    procedure UpdateStringByName(ColumnName: string; Value: string);
-    procedure UpdateUnicodeStringByName(ColumnName: string; Value: WideString);
-    procedure UpdateBytesByName(ColumnName: string; Value: TByteDynArray);
-    procedure UpdateDateByName(ColumnName: string; Value: TDateTime);
-    procedure UpdateTimeByName(ColumnName: string; Value: TDateTime);
-    procedure UpdateTimestampByName(ColumnName: string; Value: TDateTime);
-    procedure UpdateAsciiStreamByName(ColumnName: string; Value: TStream);
-    procedure UpdateUnicodeStreamByName(ColumnName: string; Value: TStream);
-    procedure UpdateBinaryStreamByName(ColumnName: string; Value: TStream);
-    procedure UpdateValueByName(ColumnName: string; Value: TZVariant);
+    procedure UpdateNullByName(const ColumnName: string);
+    procedure UpdateBooleanByName(const ColumnName: string; Value: Boolean);
+    procedure UpdateByteByName(const ColumnName: string; Value: ShortInt);
+    procedure UpdateShortByName(const ColumnName: string; Value: SmallInt);
+    procedure UpdateIntByName(const ColumnName: string; Value: Integer);
+    procedure UpdateLongByName(const ColumnName: string; Value: Int64);
+    procedure UpdateFloatByName(const ColumnName: string; Value: Single);
+    procedure UpdateDoubleByName(const ColumnName: string; Value: Double);
+    procedure UpdateBigDecimalByName(const ColumnName: string; Value: Extended);
+    procedure UpdatePCharByName(const ColumnName: string; Value: PChar);
+    procedure UpdateStringByName(const ColumnName: string; const Value: string);
+    procedure UpdateUnicodeStringByName(const ColumnName: string; const Value: WideString);
+    procedure UpdateBytesByName(const ColumnName: string; const Value: TByteDynArray);
+    procedure UpdateDateByName(const ColumnName: string; Value: TDateTime);
+    procedure UpdateTimeByName(const ColumnName: string; Value: TDateTime);
+    procedure UpdateTimestampByName(const ColumnName: string; Value: TDateTime);
+    procedure UpdateAsciiStreamByName(const ColumnName: string; Value: TStream);
+    procedure UpdateUnicodeStreamByName(const ColumnName: string; Value: TStream);
+    procedure UpdateBinaryStreamByName(const ColumnName: string; Value: TStream);
+    procedure UpdateValueByName(const ColumnName: string; const Value: TZVariant);
 
     procedure InsertRow;
     procedure UpdateRow;
@@ -699,8 +733,8 @@ type
 //    function Compare(Row: Integer; CaseInsensitive, PartialKey: Boolean):
 //      Boolean;
 
-    function CompareRows(Row1, Row2: Integer; ColumnIndices: TIntegerDynArray;
-      ColumnDirs: TBooleanDynArray): Integer;
+    function CompareRows(Row1, Row2: Integer; const ColumnIndices: TIntegerDynArray;
+      const ColumnDirs: TBooleanDynArray): Integer;
 
     function GetStatement: IZStatement;
   end;
@@ -742,11 +776,11 @@ type
     function Length: LongInt;
 
     function GetString: string;
-    procedure SetString(Value: string);
+    procedure SetString(const Value: string);
     function GetUnicodeString: WideString;
-    procedure SetUnicodeString(Value: WideString);
+    procedure SetUnicodeString(const Value: WideString);
     function GetBytes: TByteDynArray;
-    procedure SetBytes(Value: TByteDynArray);
+    procedure SetBytes(const Value: TByteDynArray);
     function GetStream: TStream;
     procedure SetStream(Value: TStream);
 
@@ -770,15 +804,15 @@ type
   {** Database sequence generator interface. }
   IZSequence = interface(IZInterface)
     ['{A9A54FE5-0DBE-492F-8DA6-04AC5FCE779C}']
-
-    function GetName: string;
-    function GetBlockSize: Integer;
+    function  GetName: string;
+    function  GetBlockSize: Integer;
     procedure SetName(const Value: string);
     procedure SetBlockSize(const Value: Integer);
-    function GetCurrentValue: Int64;
-    function GetNextValue: Int64;
-
-    function GetConnection: IZConnection;
+    function  GetCurrentValue: Int64;
+    function  GetNextValue: Int64;
+    function  GetCurrentValueSQL: string;
+    function  GetNextValueSQL: string;
+    function  GetConnection: IZConnection;
   end;
 
 var
@@ -800,12 +834,12 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function GetConnection(Url: string): IZConnection;
-    function GetConnectionWithParams(Url: string; Info: TStrings): IZConnection;
-    function GetConnectionWithLogin(Url: string; User: string;
-      Password: string): IZConnection;
+    function GetConnection(const Url: string): IZConnection;
+    function GetConnectionWithParams(const Url: string; Info: TStrings): IZConnection;
+    function GetConnectionWithLogin(const Url: string; const User: string;
+      const Password: string): IZConnection;
 
-    function GetDriver(Url: string): IZDriver;
+    function GetDriver(const Url: string): IZDriver;
     procedure RegisterDriver(Driver: IZDriver);
     procedure DeregisterDriver(Driver: IZDriver);
 
@@ -817,10 +851,10 @@ type
     procedure AddLoggingListener(Listener: IZLoggingListener);
     procedure RemoveLoggingListener(Listener: IZLoggingListener);
 
-    procedure LogMessage(Category: TZLoggingCategory; Protocol: string;
-      Msg: string);
-    procedure LogError(Category: TZLoggingCategory; Protocol: string;
-      Msg: string; ErrorCode: Integer; Error: string);
+    procedure LogMessage(Category: TZLoggingCategory; const Protocol: string;
+      const Msg: string);
+    procedure LogError(Category: TZLoggingCategory; const Protocol: string;
+      const Msg: string; ErrorCode: Integer; const Error: string);
   end;
 
   {** Stores information about registered drivers *}
@@ -904,7 +938,7 @@ end;
   @param Url a database connection url.
   @return a found driver or <code>null</code> otherwise.
 }
-function TZDriverManager.GetDriver(Url: string): IZDriver;
+function TZDriverManager.GetDriver(const Url: string): IZDriver;
 var
   I: Integer;
   Current: IZDriver;
@@ -927,7 +961,7 @@ end;
   @param Info an extra connection parameters.
   @return an opened connection.
 }
-function TZDriverManager.GetConnectionWithParams(Url: string; Info: TStrings):
+function TZDriverManager.GetConnectionWithParams(const Url: string; Info: TStrings):
   IZConnection;
 var
   Driver: IZDriver;
@@ -945,8 +979,8 @@ end;
   @param Password a user's password.
   @return an opened connection.
 }
-function TZDriverManager.GetConnectionWithLogin(Url: string; User: string;
-  Password: string): IZConnection;
+function TZDriverManager.GetConnectionWithLogin(const Url: string; const User: string;
+  const Password: string): IZConnection;
 var
   Info: TStrings;
 begin
@@ -965,7 +999,7 @@ end;
   @param Url a database connection Url.
   @return an opened connection.
 }
-function TZDriverManager.GetConnection(Url: string): IZConnection;
+function TZDriverManager.GetConnection(const Url: string): IZConnection;
 begin
   Result := GetConnectionWithParams(Url, nil);
 end;
@@ -997,7 +1031,7 @@ end;
   @param Error an error message.
 }
 procedure TZDriverManager.LogError(Category: TZLoggingCategory;
-  Protocol: string; Msg: string; ErrorCode: Integer; Error: string);
+  const Protocol: string; const Msg: string; ErrorCode: Integer; const Error: string);
 var
   I: Integer;
   Listener: IZLoggingListener;
@@ -1026,7 +1060,7 @@ end;
   @param Msg a description message.
 }
 procedure TZDriverManager.LogMessage(Category: TZLoggingCategory;
-  Protocol: string; Msg: string);
+  const Protocol: string; const Msg: string);
 begin
   if FLoggingListeners.Count = 0 then Exit;
   LogError(Category, Protocol, Msg, 0, '');
@@ -1038,6 +1072,13 @@ end;
   Creates an exception with message string.
   @param Msg a error description.
 }
+constructor EZSQLThrowable.CreateClone(const E: EZSQLThrowable);
+begin
+  inherited Create(E.Message);
+  FErrorCode:=E.ErrorCode;
+  FStatusCode:=E.Statuscode;
+end;
+
 constructor EZSQLThrowable.Create(const Msg: string);
 begin
   inherited Create(Msg);
@@ -1054,6 +1095,12 @@ constructor EZSQLThrowable.CreateWithCode(const ErrorCode: Integer;
 begin
   inherited Create(Msg);
   FErrorCode := ErrorCode;
+end;
+
+constructor EZSQLThrowable.CreateWithStatus(const StatusCode, Msg: string);
+begin
+  inherited Create(Msg);
+  FStatusCode := StatusCode;
 end;
 
 initialization

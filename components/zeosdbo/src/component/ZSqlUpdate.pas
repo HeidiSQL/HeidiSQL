@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {             Unidatabase UpdateSQL component             }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZSqlUpdate;
 
@@ -45,6 +61,15 @@ uses
   SysUtils, Classes, DB, ZDbcIntfs, ZDbcCachedResultSet, ZDbcCache, ZSqlStrings;
 
 type
+  {ADDED BY fduenas}
+  TZBeforeSQLStatementEvent = procedure(const Sender: TObject;
+    StatementIndex: Integer; out Execute: Boolean ) of object;
+
+  TZAfterSQLStatementEvent = procedure(const Sender: TObject;
+    StatementIndex: Integer) of object;
+
+  TZAfterInsertSQLStatementEvent = procedure(const Sender: TObject;
+    StatementIndex: Integer; out UpdateAutoIncFields: Boolean ) of object;
 
   {**
     Implements an object which manages SQL DML statements to update TDatasets.
@@ -52,9 +77,14 @@ type
   TZUpdateSQL = class(TComponent, IZCachedResolver)
   private
     FDataSet: TDataSet;
+
     FDeleteSQL: TZSQLStrings;
     FInsertSQL: TZSQLStrings;
     FModifySQL: TZSQLStrings;
+    //FOSPATCH
+    FRefreshSQL: TZSQLStrings;
+    //FOSPATCH
+
     FParamCheck: Boolean;
     FParams: TParams;
     FMultiStatements: Boolean;
@@ -64,7 +94,16 @@ type
     FAfterDeleteSQL: TNotifyEvent;
     FAfterInsertSQL: TNotifyEvent;
     FAfterModifySQL: TNotifyEvent;
+    FUseSequenceFieldForRefreshSQL: Boolean;
+    {New Statement Events added by Fduenas}
+    FBeforeDeleteSQLStatement: TZBeforeSQLStatementEvent;
+    FAfterDeleteSQLStatement: TZAfterSQLStatementEvent;
+    FBeforeInsertSQLStatement: TZBeforeSQLStatementEvent;
+    FAfterInsertSQLStatement: TZAfterInsertSQLStatementEvent;
+    FBeforeModifySQLStatement: TZBeforeSQLStatementEvent;
+    FAfterModifySQLStatement: TZAfterSQLStatementEvent;
 
+    procedure SetUseSequenceFieldForRefreshSQL(const Value: Boolean);
     procedure SetDataset(Value: TDataset);
     function GetSQL(UpdateKind: TUpdateKind): TStrings;
     procedure SetSQL(UpdateKind: TUpdateKind; Value: TStrings);
@@ -80,6 +119,11 @@ type
     function GetModifySQL: TStrings;
     procedure SetModifySQL(Value: TStrings);
 
+    //FOSPATCH
+    function GetRefreshSQL: TStrings;
+    procedure SetRefreshSQL(Value: TStrings);
+    //FOSPATCH
+
     procedure ReadParamData(Reader: TReader);
     procedure WriteParamData(Writer: TWriter);
 
@@ -89,7 +133,10 @@ type
       RowAccessor: TZRowAccessor);
     procedure PostUpdates(Sender: IZCachedResultSet; UpdateType: TZRowUpdateType;
       OldRowAccessor, NewRowAccessor: TZRowAccessor);
-
+    {BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+    procedure UpdateAutoIncrementFields(Sender: IZCachedResultSet; UpdateType: TZRowUpdateType;
+      OldRowAccessor, NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver);
+    {END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
     procedure Rebuild(SQLStrings: TZSQLStrings);
     procedure RebuildAll;
     procedure FillStatement(ResultSet: IZCachedResultSet;
@@ -102,7 +149,20 @@ type
     procedure DoBeforeModifySQL;
     procedure DoAfterDeleteSQL;
     procedure DoAfterInsertSQL;
-    procedure DoAfterModifySQL; 
+    procedure DoAfterModifySQL;
+
+    procedure DoBeforeDeleteSQLStatement(const Sender: TObject;
+      StatementIndex: Integer; out Execute: Boolean);
+    procedure DoBeforeInsertSQLStatement(const Sender: TObject;
+      StatementIndex: Integer; out Execute: Boolean);
+    procedure DoBeforeModifySQLStatement(const Sender: TObject;
+      StatementIndex: Integer; out Execute: Boolean);
+    procedure DoAfterDeleteSQLStatement(const Sender: TObject;
+      StatementIndex: Integer);
+    procedure DoAfterInsertSQLStatement(const Sender: TObject;
+      StatementIndex: Integer; out UpdateAutoIncFields: Boolean) ;
+    procedure DoAfterModifySQLStatement(const Sender: TObject;
+      StatementIndex: Integer);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -115,12 +175,15 @@ type
     property DeleteSQL: TStrings read GetDeleteSQL write SetDeleteSQL;
     property InsertSQL: TStrings read GetInsertSQL write SetInsertSQL;
     property ModifySQL: TStrings read GetModifySQL write SetModifySQL;
+    //FOSPATCH
+    property RefreshSQL: TStrings read GetRefreshSQL write SetRefreshSQL;
+    //FOSPATCH
+    property UseSequenceFieldForRefreshSQL:Boolean read FUseSequenceFieldForRefreshSQL write SetUseSequenceFieldForRefreshSQL;
+
 
     property Params: TParams read FParams write SetParamsList stored False;
-    property ParamCheck: Boolean read FParamCheck
-      write SetParamCheck default True;
-    property MultiStatements: Boolean read FMultiStatements
-      write SetMultiStatements default True;
+    property ParamCheck: Boolean read FParamCheck write SetParamCheck default True;
+    property MultiStatements: Boolean read FMultiStatements write SetMultiStatements default True;
 
     property BeforeDeleteSQL: TNotifyEvent
       read FBeforeDeleteSQL write FBeforeDeleteSQL;
@@ -128,19 +191,32 @@ type
       read FBeforeInsertSQL write FBeforeInsertSQL;
     property BeforeModifySQL: TNotifyEvent
       read FBeforeModifySQL write FBeforeModifySQL;
-
     property AfterDeleteSQL: TNotifyEvent
       read FAfterDeleteSQL write FAfterDeleteSQL;
     property AfterInsertSQL: TNotifyEvent
       read FAfterInsertSQL write FAfterInsertSQL;
     property AfterModifySQL: TNotifyEvent
       read FAfterModifySQL write FAfterModifySQL;
+
+    {New Events Fired by executed Statement}
+    property BeforeDeleteSQLStatement: TZBeforeSQLStatementEvent
+      read FBeforeDeleteSQLStatement write FBeforeDeleteSQLStatement;
+    property BeforeInsertSQLStatement: TZBeforeSQLStatementEvent
+      read FBeforeInsertSQLStatement write FBeforeInsertSQLStatement;
+    property BeforeModifySQLStatement: TZBeforeSQLStatementEvent
+      read FBeforeModifySQLStatement write FBeforeModifySQLStatement;
+    property AfterDeleteSQLStatement: TZAfterSQLStatementEvent
+      read FAfterDeleteSQLStatement write FAfterDeleteSQLStatement;
+    property AfterInsertSQLStatement: TZAfterInsertSQLStatementEvent
+      read FAfterInsertSQLStatement write FAfterInsertSQLStatement;
+    property AfterModifySQLStatement: TZAfterSQLStatementEvent
+      read FAfterModifySQLStatement write FAfterModifySQLStatement;
   end;
 
 implementation
 
-uses ZTokenizer, ZGenericSqlToken, ZDatasetUtils, ZAbstractRODataset,
-  ZSysUtils, ZDbcUtils;
+uses ZTokenizer, ZGenericSqlToken, ZDatasetUtils, ZAbstractRODataset,ZAbstractDataset,
+  ZSysUtils, ZDbcUtils,ZMessages;
 
 { TZUpdateSQL }
 
@@ -158,6 +234,12 @@ begin
   FInsertSQL.OnChange := UpdateParams;
   FModifySQL := TZSQLStrings.Create;
   FModifySQL.OnChange := UpdateParams;
+
+//FOSPATCH
+  FRefreshSQL := TZSQLStrings.Create;
+  FRefreshSQL.OnChange:= UpdateParams;
+//FOSPATCH
+
   FParams := TParams.Create(Self);
   FParamCheck := True;
   FMultiStatements := True;
@@ -172,7 +254,8 @@ begin
   FDeleteSQL.Free;
   FInsertSQL.Free;
   FModifySQL.Free;
-
+  FRefreshSQL.Free;
+  
   inherited Destroy;
 end;
 
@@ -224,6 +307,11 @@ begin
   Result := FParams.Count;
 end;
 
+function TZUpdateSQL.GetRefreshSQL: TStrings;
+begin
+  Result := FRefreshSQL;
+end;
+
 {**
   Sets parameters checking flag.
   @param Value a new parameters checking flag.
@@ -263,6 +351,16 @@ end;
 procedure TZUpdateSQL.SetParamsList(Value: TParams);
 begin
   FParams.AssignValues(Value);
+end;
+
+procedure TZUpdateSQL.SetRefreshSQL(Value: TStrings);
+begin
+  FRefreshSQL.Assign(Value);
+end;
+
+procedure TZUpdateSQL.SetUseSequenceFieldForRefreshSQL(const Value: Boolean);
+begin
+  FUseSequenceFieldForRefreshSQL := Value;
 end;
 
 {**
@@ -394,6 +492,9 @@ begin
     Rebuild(FModifySQL);
     Rebuild(FInsertSQL);
     Rebuild(FDeleteSQL);
+//FOSPATCH
+    Rebuild(FRefreshSQL);
+//FOSPATCH
     FParams.AssignValues(OldParams);
   finally
     OldParams.Free;
@@ -416,27 +517,26 @@ var
   ParamValue: TParam;
   ParamName: string;
   OldParam: Boolean;
+//  SeqParam: Boolean;
   WasNull: Boolean;
   RowAccessor: TZRowAccessor;
   Stream: TStream;
   TempBlob: IZBlob;
 begin
-  for I := 0 to Config.ParamCount - 1 do
-  begin
+  for I := 0 to Config.ParamCount - 1 do begin
     ParamValue := Params.FindParam(Config.ParamNames[I]);
     ParamName := Config.ParamNames[I];
-    OldParam := False;
-    if StrLIComp(PChar(ParamName), 'NEW_', 4) = 0 then
+    OldParam := False;{Seqparam:=False;}
+    if StrLIComp(PChar(ParamName), 'NEW_', 4) = 0 then begin
       ParamName := Copy(ParamName, 5, Length(ParamName) - 4)
-    else if StrLIComp(PChar(ParamName), 'OLD_', 4) = 0 then
-    begin
+    end else
+    if StrLIComp(PChar(ParamName), 'OLD_', 4) = 0 then begin
       ParamName := Copy(ParamName, 5, Length(ParamName) - 4);
       OldParam := True;
     end;
 
     ColumnIndex := ResultSet.FindColumn(ParamName);
-    if ColumnIndex > 0 then
-    begin
+    if ColumnIndex > 0 then begin
       if OldParam then
         RowAccessor := OldRowAccessor
       else RowAccessor := NewRowAccessor;
@@ -506,9 +606,7 @@ begin
         Statement.SetNull(I + 1,
           ResultSet.GetMetadata.GetColumnType(ColumnIndex))
       end;
-    end
-    else
-    begin
+    end else begin
       if ParamValue.IsNull then
         Statement.SetNull(I + 1, ConvertDatasetToDbcType(ParamValue.DataType))
       else begin
@@ -565,6 +663,9 @@ end;
 procedure TZUpdateSQL.CalculateDefaults(Sender: IZCachedResultSet;
   RowAccessor: TZRowAccessor);
 begin
+ {BEGIN PATCH [1214009] TZUpdateSQL - implemented feature to Calculate default values}
+ Sender.GetNativeResolver.CalculateDefaults(Sender, RowAccessor);
+ {END PATCH [1214009] TZUpdateSQL - implemented feature to Calculate default values}
 end;
 
 {**
@@ -575,11 +676,61 @@ end;
   @param NewRowAccessor an accessor object to new column values.
 }
 procedure TZUpdateSQL.PostUpdates(Sender: IZCachedResultSet;
-  UpdateType: TZRowUpdateType; OldRowAccessor, NewRowAccessor: TZRowAccessor);
-var
-  I: Integer;
-  Statement: IZPreparedStatement;
-  Config: TZSQLStrings;
+ UpdateType: TZRowUpdateType; OldRowAccessor, NewRowAccessor: TZRowAccessor);
+var I: Integer;
+    Statement: IZPreparedStatement;
+    Config: TZSQLStrings;
+    CalcDefaultValues,
+    ExecuteStatement,
+    UpdateAutoIncFields: Boolean;
+
+    RefreshResultSet: IZResultSet;
+    RefreshRowAccessor: TZRowAccessor;
+    RefreshColumnIndex:integer;
+    RefreshColumnName:String;
+    Refresh_OldSQL:String;
+    RefreshColumnType:TZSQLType;
+
+  procedure Apply_RefreshResultSet;
+  var
+    I: Integer;
+  begin
+    if Assigned(RefreshResultSet) then begin
+      if not RefreshResultSet.First then begin
+        raise EZDatabaseError.Create(SUpdateSQLNoResult);
+      end;
+      for I := 1 to RefreshResultSet.GetMetadata.GetColumnCount do begin
+        RefreshColumnName:=RefreshResultSet.GetMetadata.GetColumnName(I); // What Column from Resultset should be updated
+        RefreshColumnIndex := Sender.FindColumn(RefreshColumnName); // Is the Column available in the select ?
+        if RefreshColumnIndex=0 then begin
+          continue; // Column not found in Select from Dataset
+        end;
+        if RefreshResultSet.IsNull(I) then begin
+          RefreshRowAccessor.SetNull(I);
+        end else begin
+          RefreshColumnType  := RefreshResultSet.GetMetadata.GetColumnType(RefreshColumnIndex); // Type of Column ?
+          case RefreshColumnType of
+            stBoolean: RefreshRowAccessor.SetBoolean(RefreshColumnIndex, RefreshResultSet.GetBoolean(I));
+            stByte: RefreshRowAccessor.SetByte(RefreshColumnIndex, RefreshResultSet.GetByte(I));
+            stShort: RefreshRowAccessor.SetShort(RefreshColumnIndex, RefreshResultSet.GetShort(I));
+            stInteger: RefreshRowAccessor.SetInt(RefreshColumnIndex, RefreshResultSet.GetInt(I));
+            stLong: RefreshRowAccessor.SetLong(RefreshColumnIndex, RefreshResultSet.GetLong(I));
+            stFloat: RefreshRowAccessor.SetFloat(RefreshColumnIndex, RefreshResultSet.GetFloat(I));
+            stDouble: RefreshRowAccessor.SetDouble(RefreshColumnIndex, RefreshResultSet.GetDouble(I));
+            stBigDecimal: RefreshRowAccessor.SetBigDecimal(RefreshColumnIndex, RefreshResultSet.GetBigDecimal(I));
+            stString: RefreshRowAccessor.SetPChar(RefreshColumnIndex, RefreshResultSet.GetPChar(I));
+            stUnicodeString: RefreshRowAccessor.SetUnicodeString(RefreshColumnIndex, RefreshResultSet.GetUnicodeString(I));
+            stBytes: RefreshRowAccessor.SetBytes(RefreshColumnIndex, RefreshResultSet.GetBytes(I));
+            stDate: RefreshRowAccessor.SetDate(RefreshColumnIndex, RefreshResultSet.GetDate(I));
+            stTime: RefreshRowAccessor.SetTime(RefreshColumnIndex, RefreshResultSet.GetTime(I));
+            stTimestamp: RefreshRowAccessor.SetTimestamp(RefreshColumnIndex, RefreshResultSet.GetTimestamp(I));
+            stAsciiStream, stUnicodeStream, stBinaryStream:RefreshRowAccessor.SetBlob(RefreshColumnIndex, RefreshResultSet.GetBlob(I));
+          end;
+        end;
+      end;
+    end;
+  end;
+
 begin
   if (UpdateType = utDeleted)
     and (OldRowAccessor.RowBuffer.UpdateType = utInserted) then
@@ -607,6 +758,8 @@ begin
 
   if Dataset is TZAbstractRODataset then
     (Dataset as TZAbstractRODataset).Connection.ShowSqlHourGlass;
+  CalcDefaultValues :=
+    ZSysUtils.StrToBoolEx(DefineStatementParameter(Sender.GetStatement,'defaults','true'));
   try
     for I := 0 to Config.StatementCount - 1 do
     begin
@@ -614,8 +767,75 @@ begin
         PrepareStatement(Config.Statements[I].SQL);
       FillStatement(Sender, Statement, Config.Statements[I],
         OldRowAccessor, NewRowAccessor);
-      Statement.ExecutePrepared;
+      {BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+      {Update AutoInc Field Tasks will be only executed if the UpdateAutoIncFields
+       in the AfterInsertSQLStatement event returns true
+      }
+      ExecuteStatement := true;
+      UpdateAutoIncFields := false;
+      case UpdateType of
+           utDeleted:
+             DoBeforeDeleteSQLStatement(Self, I, ExecuteStatement);
+           utInserted:
+             DoBeforeInsertSQLStatement(Self, I, ExecuteStatement);
+           utModified:
+             DoBeforeModifySQLStatement(Self, I, ExecuteStatement);
+      end;
+      if ExecuteStatement then
+      begin
+       Statement.ExecutePrepared;
+
+       case UpdateType of
+            utDeleted:
+              DoAfterDeleteSQLStatement(Self, I);
+            utInserted:
+              begin
+               DoAfterInsertSQLStatement(Self, I, UpdateAutoIncFields);
+               if CalcDefaultValues and UpdateAutoIncFields then
+                  UpdateAutoIncrementFields(Sender, UpdateType,
+                                            OldRowAccessor, NewRowAccessor, Self);
+              end;
+            utModified:
+              DoAfterModifySQLStatement(Self,I);
+       end;
+      end;
+      {END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
     end;
+
+    RefreshRowAccessor := NewRowAccessor;
+    case UpdateType of
+      utInserted,utModified: begin
+       if FRefreshSql.Text<>'' then begin
+        Refresh_OldSQL:=FRefreshSql.Text;
+        try
+         Config:=FRefreshSQL;
+         if UpdateType=utInserted then begin
+          if Dataset is TZAbstractDataset then begin
+           if FUseSequenceFieldForRefreshSQL then begin
+            if assigned(TZAbstractDataset(DataSet).Sequence) and (TZAbstractDataset(DataSet).SequenceField<>'') then begin
+             Config.Text :=
+               StringReplace(UpperCase(Config.Text),
+                 ':OLD_'+UpperCase(TZAbstractDataset(DataSet).SequenceField),
+                 TZAbstractDataset(DataSet).Sequence.GetCurrentValueSQL,[rfReplaceAll]);
+            end;
+           end;
+          end;
+         end;
+         if CONFIG.StatementCount=1 then
+         begin
+          Statement := Sender.GetStatement.GetConnection.PrepareStatement(Config.Statements[0].SQL);
+            FillStatement(Sender, Statement, Config.Statements[0],OldRowAccessor, NewRowAccessor);
+          RefreshResultSet:=Statement.ExecuteQueryPrepared;
+          Apply_RefreshResultSet;
+         end;
+       finally
+        FRefreshSQL.Text:=Refresh_OldSQL;
+       end;
+      end;
+    end;
+  end;
+//FOSPATCH
+
   finally
     if Dataset is TZAbstractRODataset then
       (Dataset as TZAbstractRODataset).Connection.HideSQLHourGlass;
@@ -631,10 +851,10 @@ begin
   end;
 end;
 
-{**                                      
+{**
   Fires an event before delete Statement
-}                                        
-procedure TZUpdateSQL.DoBeforeDeleteSQL; 
+}
+procedure TZUpdateSQL.DoBeforeDeleteSQL;
 begin
   if Assigned(FBeforeDeleteSQL) then
     FBeforeDeleteSQL(Self);
@@ -683,6 +903,62 @@ procedure TZUpdateSQL.DoAfterModifySQL;
 begin
   if Assigned(FAfterModifySQL) then
     FAfterModifySQL(Self);
+end;
+
+{BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+procedure TZUpdateSQL.UpdateAutoIncrementFields(Sender: IZCachedResultSet;
+  UpdateType: TZRowUpdateType; OldRowAccessor,
+  NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver);
+begin
+ with Sender.GetNativeResolver do
+ begin
+  UpdateAutoIncrementFields(Sender, UpdateType,
+   OldRowAccessor, NewRowAccessor, Resolver);
+ end;
+end;
+{END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+
+{NEW Methods for Events to validate at Statement level }
+procedure TZUpdateSQL.DoAfterDeleteSQLStatement(const Sender: TObject;
+  StatementIndex: Integer);
+begin
+ if Assigned(FAfterDeleteSQLStatement) then
+    FAfterDeleteSQLStatement(Self, StatementIndex);
+end;
+
+procedure TZUpdateSQL.DoAfterInsertSQLStatement(const Sender: TObject;
+  StatementIndex: Integer; out UpdateAutoIncFields: Boolean);
+begin
+ if Assigned(FAfterInsertSQLStatement) then
+    FAfterInsertSQLStatement(Self, StatementIndex, UpdateAutoIncFields);
+end;
+
+procedure TZUpdateSQL.DoAfterModifySQLStatement(const Sender: TObject;
+  StatementIndex: Integer);
+begin
+ if Assigned(FAfterModifySQLStatement) then
+    FAfterModifySQLStatement(Self, StatementIndex);
+end;
+
+procedure TZUpdateSQL.DoBeforeDeleteSQLStatement(const Sender: TObject;
+  StatementIndex: Integer; out Execute: Boolean);
+begin
+ if Assigned(FBeforeDeleteSQLStatement) then
+    FBeforeDeleteSQLStatement(Self, StatementIndex, Execute);
+end;
+
+procedure TZUpdateSQL.DoBeforeInsertSQLStatement(const Sender: TObject;
+  StatementIndex: Integer; out Execute: Boolean);
+begin
+ if Assigned(FBeforeInsertSQLStatement) then
+    FBeforeInsertSQLStatement(Self, StatementIndex, Execute);
+end;
+
+procedure TZUpdateSQL.DoBeforeModifySQLStatement(const Sender: TObject;
+  StatementIndex: Integer; out Execute: Boolean);
+begin
+ if Assigned(FBeforeModifySQLStatement) then
+    FBeforeModifySQLStatement(Self, StatementIndex, Execute);
 end;
 
 end.

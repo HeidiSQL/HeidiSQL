@@ -3,6 +3,9 @@ unit main;
 interface
 
 uses
+{$IFNDEF VER130BELOW}
+  Types,
+{$ENDIF}
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, DB, ZAbstractRODataset, ZAbstractDataset, ZDataset, ZConnection,
   StdCtrls, ExtCtrls, Buttons, ComCtrls, Grids, DBGrids, Mask, DBCtrls,
@@ -105,7 +108,7 @@ var
 begin
   ODialog := TOpenDialog.Create(self);
   try
-    ODialog.Filter := 'Interbase Database|*.gdb';
+    ODialog.Filter := 'Firebird Database|*.fdb|Interbase Database|*.gdb';
     if ODialog.Execute then
     begin
       ZDatabase.Text := ODialog.FileName;

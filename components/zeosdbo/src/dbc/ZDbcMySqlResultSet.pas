@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {           MySQL Database Connectivity Classes           }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcMySqlResultSet;
 
@@ -43,7 +59,7 @@ interface
 
 uses
   Classes, SysUtils, ZClasses, ZSysUtils, ZCollections, ZDbcIntfs,
-  ZDbcResultSet, ZDbcResultSetMetadata, ZPlainMySqlDriver,
+  Contnrs, ZDbcResultSet, ZDbcResultSetMetadata, ZPlainMySqlDriver,
   ZCompatibility, ZDbcCache, ZDbcCachedResultSet, ZDbcGenericResolver;
 
 type
@@ -109,12 +125,20 @@ type
 
     procedure PostUpdates(Sender: IZCachedResultSet; UpdateType: TZRowUpdateType;
       OldRowAccessor, NewRowAccessor: TZRowAccessor); override;
+
+    // --> ms, 31/10/2005
+    function FormCalculateStatement(Columns: TObjectList): string; override;
+    // <-- ms
+    {BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+    procedure UpdateAutoIncrementFields(Sender: IZCachedResultSet; UpdateType: TZRowUpdateType;
+      OldRowAccessor, NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver); override;
+    {END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
   end;
 
 implementation
 
 uses
-  Math, ZMessages, ZDbcMySqlUtils, ZDbcUtils, ZMatchPattern, ZDbcMySqlMetadata;
+  Math, ZMessages, ZDbcMySqlUtils, ZDbcUtils, ZMatchPattern, ZDbcMySqlMetadata, ZDbcMysql;
 
 { TZMySQLResultSetMetadata }
 
@@ -870,12 +894,21 @@ end;
 }
 procedure TZMySQLCachedResolver.PostUpdates(Sender: IZCachedResultSet;
   UpdateType: TZRowUpdateType; OldRowAccessor, NewRowAccessor: TZRowAccessor);
+{BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL}
+{
 var
   Statement: IZStatement;
   ResultSet: IZResultSet;
+}
+{END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
 begin
   inherited PostUpdates(Sender, UpdateType, OldRowAccessor, NewRowAccessor);
-
+  {BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+  if (UpdateType = utInserted) then
+  begin
+   UpdateAutoIncrementFields(Sender, UpdateType, OldRowAccessor, NewRowAccessor, Self);
+  end;
+  { commented, below code moved to 'CalculateDefaultsAfterUpdates' methods
   if (UpdateType = utInserted) and (FAutoColumnIndex > 0)
     and OldRowAccessor.IsNull(FAutoColumnIndex) then
   begin
@@ -889,6 +922,71 @@ begin
       Statement.Close;
     end;
   end;
+  }
+  {END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
 end;
+
+{BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+{**
+ Do Tasks after Post updates to database.
+  @param Sender a cached result set object.
+  @param UpdateType a type of updates.
+  @param OldRowAccessor an accessor object to old column values.
+  @param NewRowAccessor an accessor object to new column values.
+}
+procedure TZMySQLCachedResolver.UpdateAutoIncrementFields(
+  Sender: IZCachedResultSet; UpdateType: TZRowUpdateType; OldRowAccessor,
+  NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver);
+var
+  Statement: IZStatement;
+  ResultSet: IZResultSet;
+  Plaindriver : IZMysqlPlainDriver;
+begin
+  inherited UpdateAutoIncrementFields(Sender, UpdateType, OldRowAccessor, NewRowAccessor, Resolver);
+  if not ((FAutoColumnIndex > 0) and
+          OldRowAccessor.IsNull(FAutoColumnIndex)) then
+     exit;
+  Plaindriver := (Connection as IZMysqlConnection).GetPlainDriver;
+  NewRowAccessor.SetLong(FAutoColumnIndex, PlainDriver.GetLastInsertID(FHandle));
+{  Statement := Connection.CreateStatement;
+  ResultSet := Statement.ExecuteQuery('SELECT LAST_INSERT_ID()');
+  try
+    if ResultSet.Next then
+      NewRowAccessor.SetLong(FAutoColumnIndex, ResultSet.GetLong(1));
+  finally
+    ResultSet.Close;
+    Statement.Close;
+  end;
+}
+end;
+{END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
+
+// --> ms, 31/10/2005
+{**
+  Forms a where clause for SELECT statements to calculate default values.
+  @param Columns a collection of key columns.
+  @param OldRowAccessor an accessor object to old column values.
+}
+function TZMySQLCachedResolver.FormCalculateStatement(
+  Columns: TObjectList): string;
+var
+  I: Integer;
+  Current: TZResolverParameter;
+begin
+  Result := '';
+  if Columns.Count = 0 then Exit;
+
+  for I := 0 to Columns.Count - 1 do
+  begin
+    Current := TZResolverParameter(Columns[I]);
+    if Result <> '' then
+      Result := Result + ',';
+    if Current.DefaultValue <> '' then
+      Result := Result + Current.DefaultValue
+    else Result := Result + 'NULL';
+  end;
+  Result := 'SELECT ' + Result;
+end;
+// <-- ms
 
 end.

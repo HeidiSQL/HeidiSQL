@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {        String tokenizing classes and interfaces         }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{         Originally written by Sergey Seroukhov          }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZTokenizer;
 
@@ -51,7 +67,7 @@ type
     such as "number", "symbol" or "word".
   }
   TZTokenType = (ttUnknown, ttEOF, ttFloat, ttInteger, ttHexDecimal,
-    ttNumber, ttSymbol, ttQuoted, ttWord, ttKeyword, ttWhitespace,
+    ttNumber, ttSymbol, ttQuoted, ttQuotedIdentifier, ttWord, ttKeyword, ttWhitespace,
     ttComment, ttSpecial);
 
   {**
@@ -123,8 +139,8 @@ type
     function NextToken(Stream: TStream; FirstChar: Char;
       Tokenizer: TZTokenizer): TZToken; override;
 
-    function EncodeString(Value: string; QuoteChar: Char): string; virtual;
-    function DecodeString(Value: string; QuoteChar: Char): string; virtual;
+    function EncodeString(const Value: string; QuoteChar: Char): string; virtual;
+    function DecodeString(const Value: string; QuoteChar: Char): string; virtual;
   end;
 
   {**
@@ -160,7 +176,7 @@ type
   end;
 
   {*Fix for C++ Builder hpp generation bug - #817612 *}
-  (*$HPPEMIT 'namespace Ztokenizer {class DELPHICLASS TZSymbolNode;}' *) 
+  (*$HPPEMIT 'namespace Ztokenizer {class DELPHICLASS TZSymbolNode;}' *)
   // Forward declaration
   TZSymbolNode = class;
   TZSymbolNodeArray = array of TZSymbolNode;
@@ -209,11 +225,11 @@ type
     FValid: Boolean;
     FParent: TZSymbolNode;
   protected
-    procedure AddDescendantLine(Value: string);
+    procedure AddDescendantLine(const Value: string);
     function DeepestRead(Stream: TStream): TZSymbolNode;
     function EnsureChildWithChar(Value: Char): TZSymbolNode;
     function FindChildWithChar(Value: Char): TZSymbolNode; virtual;
-    function FindDescendant(Value: string): TZSymbolNode;
+    function FindDescendant(const Value: string): TZSymbolNode;
     function UnreadToValid(Stream: TStream): TZSymbolNode;
 
     property Children: TZSymbolNodeArray read FChildren write FChildren;
@@ -238,7 +254,7 @@ type
   public
     constructor Create;
 
-    procedure Add(Value: string);
+    procedure Add(const Value: string);
     function Ancestry: string; override;
     function NextSymbol(Stream: TStream; FirstChar: Char): string;
   end;
@@ -278,7 +294,7 @@ type
 
     function NextToken(Stream: TStream; FirstChar: Char;
       Tokenizer: TZTokenizer): TZToken; override;
-    procedure Add(Value: string); virtual;
+    procedure Add(const Value: string); virtual;
   end;
 
   {**
@@ -377,12 +393,12 @@ type
   IZTokenizer = interface (IZInterface)
     ['{C7CF190B-C45B-4AB4-A406-5999643DF6A0}']
 
-    function TokenizeBufferToList(Buffer: string; Options: TZTokenOptions):
+    function TokenizeBufferToList(const Buffer: string; Options: TZTokenOptions):
       TStrings;
     function TokenizeStreamToList(Stream: TStream; Options: TZTokenOptions):
       TStrings;
 
-    function TokenizeBuffer(Buffer: string; Options: TZTokenOptions):
+    function TokenizeBuffer(const Buffer: string; Options: TZTokenOptions):
       TZTokenDynArray;
     function TokenizeStream(Stream: TStream; Options: TZTokenOptions):
       TZTokenDynArray;
@@ -409,12 +425,12 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TokenizeBufferToList(Buffer: string; Options: TZTokenOptions):
+    function TokenizeBufferToList(const Buffer: string; Options: TZTokenOptions):
       TStrings;
     function TokenizeStreamToList(Stream: TStream; Options: TZTokenOptions):
       TStrings;
 
-    function TokenizeBuffer(Buffer: string; Options: TZTokenOptions):
+    function TokenizeBuffer(const Buffer: string; Options: TZTokenOptions):
       TZTokenDynArray;
     function TokenizeStream(Stream: TStream; Options: TZTokenOptions):
       TZTokenDynArray;
@@ -562,7 +578,7 @@ end;
   @param QuoteChar a string quote character.
   @returns an encoded string.
 }
-function TZQuoteState.EncodeString(Value: string; QuoteChar: Char): string;
+function TZQuoteState.EncodeString(const Value: string; QuoteChar: Char): string;
 begin
   Result := QuoteChar + Value + QuoteChar;
 end;
@@ -573,7 +589,7 @@ end;
   @param QuoteChar a string quote character.
   @returns an decoded string.
 }
-function TZQuoteState.DecodeString(Value: string; QuoteChar: Char): string;
+function TZQuoteState.DecodeString(const Value: string; QuoteChar: Char): string;
 begin
   if (Length(Value) >= 2) and (Value[1] = QuoteChar)
     and (Value[Length(Value)] = Value[1]) then
@@ -752,7 +768,7 @@ end;
 {**
   Add a line of descendants that represent the characters in the given string.
 }
-procedure TZSymbolNode.AddDescendantLine(Value: string);
+procedure TZSymbolNode.AddDescendantLine(const Value: string);
 var
   Node: TZSymbolNode;
 begin
@@ -838,7 +854,7 @@ end;
 {**
   Find a descendant which is down the path the given string indicates.
 }
-function TZSymbolNode.FindDescendant(Value: string): TZSymbolNode;
+function TZSymbolNode.FindDescendant(const Value: string): TZSymbolNode;
 var
   TempChar: Char;
 begin
@@ -887,7 +903,7 @@ end;
   Add the given string as a symbol.
   @param   String   the character sequence to add
 }
-procedure TZSymbolRootNode.Add(Value: string);
+procedure TZSymbolRootNode.Add(const Value: string);
 var
   TempChar: Char;
   Node: TZSymbolNode;
@@ -960,7 +976,7 @@ end;
   Add a multi-character symbol.
   @param Value the symbol to add, such as "=:="
 }
-procedure TZSymbolState.Add(Value: string);
+procedure TZSymbolState.Add(const Value: string);
 begin
   FSymbols.Add(Value);
 end;
@@ -1181,7 +1197,7 @@ end;
   @param Options a set of tokenizer options.
   @returns a dynamic array of tokens
 }
-function TZTokenizer.TokenizeBuffer(Buffer: string;
+function TZTokenizer.TokenizeBuffer(const Buffer: string;
   Options: TZTokenOptions): TZTokenDynArray;
 var
   Stream: TStream;
@@ -1201,7 +1217,7 @@ end;
   @returns a string list where Items are tokens and
     Objects are token types.
 }
-function TZTokenizer.TokenizeBufferToList(Buffer: string;
+function TZTokenizer.TokenizeBufferToList(const Buffer: string;
   Options: TZTokenOptions): TStrings;
 var
   Stream: TStream;

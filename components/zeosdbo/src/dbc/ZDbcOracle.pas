@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {           Oracle Database Connectivity Classes          }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZDbcOracle;
 
@@ -55,10 +71,10 @@ type
   private
     FOracle9iPlainDriver: IZOraclePlainDriver;
   protected
-    function GetPlainDriver(Url: string): IZOraclePlainDriver;
+    function GetPlainDriver(const Url: string): IZOraclePlainDriver;
   public
     constructor Create;
-    function Connect(Url: string; Info: TStrings): IZConnection; override;
+    function Connect(const Url: string; Info: TStrings): IZConnection; override;
 
     function GetSupportedProtocols: TStringDynArray; override;
     function GetMajorVersion: Integer; override;
@@ -98,13 +114,13 @@ type
     procedure StartTransactionSupport;
 
   public
-    constructor Create(Driver: IZDriver; Url: string;
-      PlainDriver: IZOraclePlainDriver; HostName: string; Port: Integer;
-      Database: string; User: string; Password: string; Info: TStrings);
+    constructor Create(Driver: IZDriver; const Url: string;
+      PlainDriver: IZOraclePlainDriver; const HostName: string; Port: Integer;
+      const Database: string; const User: string; const Password: string; Info: TStrings);
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: string; Info: TStrings):
       IZPreparedStatement; override;
 
     procedure Commit; override;
@@ -113,10 +129,11 @@ type
     procedure Open; override;
     procedure Close; override;
 
-    procedure SetCatalog(Catalog: string); override;
+    procedure SetCatalog(const Catalog: string); override;
     function GetCatalog: string; override;
 
     procedure SetTransactionIsolation(Level: TZTransactIsolationLevel); override;
+    function CreateSequence(const Sequence: string; BlockSize: Integer): IZSequence; override;
 
     function GetPlainDriver: IZOraclePlainDriver;
     function GetConnectionHandle: POCIEnv;
@@ -176,7 +193,7 @@ end;
   @return a <code>Connection</code> object that represents a
     connection to the URL
 }
-function TZOracleDriver.Connect(Url: string; Info: TStrings): IZConnection;
+function TZOracleDriver.Connect(const Url: string; Info: TStrings): IZConnection;
 var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
@@ -251,7 +268,7 @@ end;
   @param Url a database connection URL.
   @return a selected protocol.
 }
-function TZOracleDriver.GetPlainDriver(Url: string): IZOraclePlainDriver;
+function TZOracleDriver.GetPlainDriver(const Url: string): IZOraclePlainDriver;
 var
   Protocol: string;
 begin
@@ -275,9 +292,9 @@ end;
   @param Password a user password.
   @param Info a string list with extra connection parameters.
 }
-constructor TZOracleConnection.Create(Driver: IZDriver; Url: string;
-  PlainDriver: IZOraclePlainDriver; HostName: string; Port: Integer;
-  Database, User, Password: string; Info: TStrings);
+constructor TZOracleConnection.Create(Driver: IZDriver; const Url: string;
+  PlainDriver: IZOraclePlainDriver; const HostName: string; Port: Integer;
+  const Database, User, Password: string; Info: TStrings);
 begin
   inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
     TZOracleDatabaseMetadata.Create(Self, Url, Info));
@@ -409,8 +426,13 @@ begin
   end
   else if TransactIsolationLevel = tiReadCommitted then
   begin
-    SQL := 'SET TRANSACTION ISOLATION LEVEL READONLY';
-    Isolation := OCI_TRANS_READONLY;
+// Behaviour changed by mdaems 31/05/2006 : Read Committed is the default
+// isolation level used by oracle. This property should not be abused to add
+// the non-standard isolation level 'read only' thats invented by oracle.
+//    SQL := 'SET TRANSACTION ISOLATION LEVEL READONLY';
+//    Isolation := OCI_TRANS_READONLY;
+    SQL := 'SET TRANSACTION ISOLATION LEVEL DEFAULT';
+    Isolation := OCI_DEFAULT;
   end
   else if TransactIsolationLevel = tiRepeatableRead then
   begin
@@ -485,7 +507,7 @@ end;
   @return a new PreparedStatement object containing the
     pre-compiled statement
 }
-function TZOracleConnection.CreatePreparedStatement(SQL: string;
+function TZOracleConnection.CreatePreparedStatement(const SQL: string;
   Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
@@ -606,7 +628,7 @@ end;
   Sets a new selected catalog name.
   @param Catalog a selected catalog name.
 }
-procedure TZOracleConnection.SetCatalog(Catalog: string);
+procedure TZOracleConnection.SetCatalog(const Catalog: string);
 begin
   FCatalog := Catalog;
 end;
@@ -640,6 +662,16 @@ begin
   end;
 end;
 
+{**
+  Creates a sequence generator object.
+  @param Sequence a name of the sequence generator.
+  @param BlockSize a number of unique keys requested in one trip to SQL server.
+  @returns a created sequence object.
+}
+function TZOracleConnection.CreateSequence(const Sequence: string; BlockSize: Integer): IZSequence; 
+begin
+  Result := TZOracleSequence.Create(Self, Sequence, BlockSize);
+end;
 {**
   Gets a Oracle plain driver interface.
   @return a Oracle plain driver interface.

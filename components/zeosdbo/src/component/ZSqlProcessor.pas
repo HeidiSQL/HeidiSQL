@@ -3,19 +3,14 @@
 {                 Zeos Database Objects                   }
 {             Unidatabase SQLProcessor component          }
 {                                                         }
-{    Copyright (c) 1999-2004 Zeos Development Group       }
-{            Written by Sergey Seroukhov                  }
+{        Originally written by Sergey Seroukhov           }
 {                                                         }
 {*********************************************************}
 
-{*********************************************************}
-{ License Agreement:                                      }
+{@********************************************************}
+{    Copyright (c) 1999-2006 Zeos Development Group       }
 {                                                         }
-{ This library is free software; you can redistribute     }
-{ it and/or modify it under the terms of the GNU Lesser   }
-{ General Public License as published by the Free         }
-{ Software Foundation; either version 2.1 of the License, }
-{ or (at your option) any later version.                  }
+{ License Agreement:                                      }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -23,17 +18,38 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ You should have received a copy of the GNU Lesser       }
-{ General Public License along with this library; if not, }
-{ write to the Free Software Foundation, Inc.,            }
-{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
+{ The source code of the ZEOS Libraries and packages are  }
+{ distributed under the Library GNU General Public        }
+{ License (see the file COPYING / COPYING.ZEOS)           }
+{ with the following  modification:                       }
+{ As a special exception, the copyright holders of this   }
+{ library give you permission to link this library with   }
+{ independent modules to produce an executable,           }
+{ regardless of the license terms of these independent    }
+{ modules, and to copy and distribute the resulting       }
+{ executable under terms of your choice, provided that    }
+{ you also meet, for each linked independent module,      }
+{ the terms and conditions of the license of that module. }
+{ An independent module is a module which is not derived  }
+{ from or based on this library. If you modify this       }
+{ library, you may extend this exception to your version  }
+{ of the library, but you are not obligated to do so.     }
+{ If you do not wish to do so, delete this exception      }
+{ statement from your version.                            }
+{                                                         }
 {                                                         }
 { The project web site is located on:                     }
+{   http://zeos.firmos.at  (FORUM)                        }
+{   http://zeosbugs.firmos.at (BUGTRACKER)                }
+{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
+{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
+{                                                         }
+{                                                         }
 {                                 Zeos Development Group. }
-{*********************************************************}
+{********************************************************@}
 
 unit ZSqlProcessor;
 
@@ -42,7 +58,7 @@ interface
 {$I ZComponent.inc}
 
 uses ZCompatibility, Classes, SysUtils, DB, ZDbcIntfs, ZConnection, ZTokenizer,
-  ZScriptParser, ZSqlStrings, Types;
+  ZScriptParser, ZSqlStrings{$IFNDEF VER130BELOW}, Types{$ENDIF};
 
 type
 
@@ -83,9 +99,9 @@ type
     function GetDelimiterType: TZDelimiterType;
     procedure SetDelimiterType(Value: TZDelimiterType);
     function GetDelimiter: string;
-    procedure SetDelimiter(Value: string);
-    function GetCleanupStatements: boolean;
-    procedure SetCleanupStatements(const Value: boolean);
+    procedure SetDelimiter(const Value: string);
+    function GetCleanupStatements: Boolean;
+    procedure SetCleanupStatements(const Value: Boolean);
 
     function GetParamCheck: Boolean;
     procedure SetParamCheck(Value: Boolean);
@@ -97,16 +113,16 @@ type
     procedure DoBeforeExecute(StatementIndex: Integer);
     procedure DoAfterExecute(StatementIndex: Integer);
 
-    function CreateStatement(SQL: string; Properties: TStrings):
+    function CreateStatement(const SQL: string; Properties: TStrings):
       IZPreparedStatement; virtual;
     procedure SetStatementParams(Statement: IZPreparedStatement;
-      ParamNames: TStringDynArray; Params: TParams); virtual;
+      const ParamNames: TStringDynArray; Params: TParams); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure LoadFromStream(Stream: TStream);
-    procedure LoadFromFile(FileName: string);
+    procedure LoadFromFile(const FileName: string);
 
     procedure Execute;
     procedure Parse;
@@ -125,7 +141,7 @@ type
     property DelimiterType: TZDelimiterType read GetDelimiterType
       write SetDelimiterType default dtDefault;
     property Delimiter: string read GetDelimiter write SetDelimiter;
-    property CleanupStatements: boolean read GetCleanupStatements
+    property CleanupStatements: Boolean read GetCleanupStatements
       write SetCleanupStatements default False; 
     property OnError: TZProcessorErrorEvent read FOnError write FOnError;
     property AfterExecute: TZProcessorNotifyEvent read FAfterExecute write FAfterExecute;
@@ -235,7 +251,7 @@ end;
   Sets a new Processor delimiter.
   @param Value a new Processor delimiter.
 }
-procedure TZSQLProcessor.SetDelimiter(Value: string);
+procedure TZSQLProcessor.SetDelimiter(const Value: string);
 begin
   if FScriptParser.Delimiter <> Value then
   begin
@@ -320,7 +336,7 @@ end;
   Loads a SQL Processor from the local file.
   @param FileName a name of the file.
 }
-procedure TZSQLProcessor.LoadFromFile(FileName: string);
+procedure TZSQLProcessor.LoadFromFile(const FileName: string);
 begin
   FScript.LoadFromFile(FileName);
 end;
@@ -402,7 +418,9 @@ procedure TZSQLProcessor.Parse;
 begin
   CheckConnected;
   FScriptParser.Tokenizer := Connection.DbcDriver.GetTokenizer;
-  FScriptParser.Clear;
+// mdaems 20060429 : Clear would reset the delimiter of the scriptparser
+//  FScriptParser.Clear;
+  FScriptParser.ClearUncompleted;
   FScriptParser.ParseText(FScript.Text);
 end;
 
@@ -412,7 +430,7 @@ end;
   @param Properties a statement specific properties.
   @returns a created DBC statement.
 }
-function TZSQLProcessor.CreateStatement(SQL: string;
+function TZSQLProcessor.CreateStatement(const SQL: string;
   Properties: TStrings): IZPreparedStatement;
 var
   Temp: TStrings;
@@ -435,7 +453,7 @@ end;
   @param Params a collection of SQL parameters.
 }
 procedure TZSQLProcessor.SetStatementParams(Statement: IZPreparedStatement;
-  ParamNames: TStringDynArray; Params: TParams);
+  const ParamNames: TStringDynArray; Params: TParams);
 var
   I: Integer;
   TempParam, Param: TParam;
@@ -474,7 +492,7 @@ begin
             Statement.SetDate(I + 1, Param.AsDate);
           ftTime:
             Statement.SetTime(I + 1, Param.AsTime);
-          ftDateTime, ftTimestamp:
+          ftDateTime{$IFNDEF VER130}, ftTimestamp{$ENDIF}:
             Statement.SetTimestamp(I + 1, Param.AsDateTime);
           ftMemo:
             begin
@@ -552,12 +570,12 @@ begin
   UpdateSQLStrings(Self);
 end;
 
-function TZSQLProcessor.GetCleanupStatements: boolean;
+function TZSQLProcessor.GetCleanupStatements: Boolean;
 begin
   Result := FScriptParser.CleanupStatements;
 end;
 
-procedure TZSQLProcessor.SetCleanupStatements(const Value: boolean);
+procedure TZSQLProcessor.SetCleanupStatements(const Value: Boolean);
 begin
   if FScriptParser.CleanupStatements <> Value then
   begin
