@@ -16,11 +16,11 @@ uses
   SynEditTypes, Registry, Spin, Clipbrd, Shellapi,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
   DBCtrls, helpers,
-  Grids, messages, smdbgrid, Mask, ZDataset,
+  Grids, messages, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery, MysqlQueryThread,
-  queryprogress, communication, MysqlConn;
+  queryprogress, communication, MysqlConn, smdbgrid;
 
 
 type
