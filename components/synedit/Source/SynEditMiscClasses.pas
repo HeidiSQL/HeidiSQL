@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditMiscClasses.pas,v 1.39 2005/10/15 05:13:55 etrusco Exp $
+$Id: SynEditMiscClasses.pas,v 1.40 2007/01/25 08:32:24 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -385,6 +385,60 @@ type
   TBetterRegistry = TRegistry;
   {$ENDIF}
 {$ENDIF}
+
+  TSynEditMark = class
+  protected
+    fOnChange: TNotifyEvent;
+    fLine, fChar, fImage: Integer;
+    fVisible: boolean;
+    fInternalImage: boolean;
+    fBookmarkNum: integer;
+    procedure SetChar(const Value: Integer); virtual;
+    procedure SetImage(const Value: Integer); virtual;
+    procedure SetLine(const Value: Integer); virtual;
+    procedure SetVisible(const Value: boolean);
+    procedure SetInternalImage(const Value: boolean);
+    function GetIsBookmark: boolean;
+  public
+    constructor Create();
+    property Line: integer read fLine write SetLine;
+    property Char: integer read fChar write SetChar;
+    property ImageIndex: integer read fImage write SetImage;
+    property BookmarkNumber: integer read fBookmarkNum write fBookmarkNum;
+    property Visible: boolean read fVisible write SetVisible;
+    property InternalImage: boolean read fInternalImage write SetInternalImage;
+    property IsBookmark: boolean read GetIsBookmark;
+    property OnChange: TNotifyEvent read fOnChange write fOnChange;
+  end;
+
+  TSynEditLineMarks = array[0..16] of TSynEditMark;
+
+  { A list of mark objects. Each object cause a litle picture to be drawn in the
+    gutter. }
+
+  { TSynEditMarkList }
+
+  TSynEditMarkList = class(TObject)
+  private
+    fItems: TList;
+    fOnChange: TNotifyEvent;
+    procedure DoChange;
+    function GetItem(Index: Integer): TSynEditMark;
+    function GetCount: Integer;
+    procedure InternalDelete(Index: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Add(Item: TSynEditMark): Integer;
+    function Remove(Item: TSynEditMark): Integer;
+    procedure ClearLine(line: integer);
+    procedure Clear;
+    procedure GetMarksForLine(line: integer; out Marks: TSynEditLineMarks);
+  public
+    property Items[Index: Integer]: TSynEditMark read GetItem; default;
+    property Count: Integer read GetCount;
+    property OnChange: TNotifyEvent read fOnChange write fOnChange;
+  end;
 
 implementation
 
@@ -1523,6 +1577,159 @@ end; { TBetterRegistry.OpenKeyReadOnly }
   {$ENDIF SYN_COMPILER_4_UP}
 {$ENDIF SYN_CLX}
 
+{ TSynEditMark }
+
+function TSynEditMark.GetIsBookmark: boolean;
 begin
-  InternalResources := nil;
+  Result := (fBookmarkNum >= 0);
+end;
+
+procedure TSynEditMark.SetChar(const Value: Integer);
+begin
+  FChar := Value;
+end;
+
+procedure TSynEditMark.SetImage(const Value: Integer);
+begin
+  FImage := Value;
+  if fVisible and Assigned(fOnChange) then
+    fOnChange(Self);
+//    fEdit.InvalidateGutterLines(fLine, fLine);
+end;
+
+procedure TSynEditMark.SetInternalImage(const Value: boolean);
+begin
+  fInternalImage := Value;
+  if fVisible and Assigned(fOnChange) then
+    fOnChange(Self);
+end;
+
+procedure TSynEditMark.SetLine(const Value: Integer);
+begin
+  if (fLine <> Value) and fVisible and Assigned(fOnChange) then
+  begin
+    if fLine > 0 then
+      fOnChange(Self);
+    fLine := Value;
+    if fLine > 0 then
+      fOnChange(Self);
+  end
+  else
+    fLine := Value;
+end;
+
+procedure TSynEditMark.SetVisible(const Value: boolean);
+begin
+  if fVisible <> Value then
+  begin
+    fVisible := Value;
+    if Assigned(fOnChange) then
+      fOnChange(Self);
+  end;
+end;
+
+constructor TSynEditMark.Create;
+begin
+  inherited Create;
+  fBookmarkNum := -1;
+end;
+
+{ TSynEditMarkList }
+
+function TSynEditMarkList.Add(Item: TSynEditMark): Integer;
+begin
+  Result := fItems.Add(Item);
+  DoChange;
+end;
+
+procedure TSynEditMarkList.ClearLine(Line: integer);
+var
+  i: integer;
+  v_Changed: Boolean;
+begin
+  v_Changed := False;
+  for i := fItems.Count -1 downto 0 do
+    if not Items[i].IsBookmark and (Items[i].Line = Line) then
+    begin
+      InternalDelete(i);
+      v_Changed := True;
+    end;
+  if v_Changed then
+    DoChange;
+end;
+
+constructor TSynEditMarkList.Create;
+begin
+  inherited Create;
+  fItems := TList.Create;
+end;
+
+destructor TSynEditMarkList.Destroy;
+begin
+  Clear;
+  fItems.Free;
+  inherited Destroy;
+end;
+
+procedure TSynEditMarkList.InternalDelete(Index: Integer);
+begin
+  TObject(fItems[Index]).Free;
+  fItems.Delete(Index);
+end;
+
+procedure TSynEditMarkList.DoChange;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+function TSynEditMarkList.GetItem(Index: Integer): TSynEditMark;
+begin
+  result := TSynEditMark(fItems[Index]);
+end;
+
+procedure TSynEditMarkList.GetMarksForLine(line: integer;
+  out marks: TSynEditLineMarks);
+//Returns up to maxMarks book/gutter marks for a chosen line.
+var
+  v_MarkCount: integer;
+  i: integer;
+begin
+  FillChar(marks, SizeOf(marks), 0);
+  v_MarkCount := 0;
+  for i := 0 to fItems.Count - 1 do
+  begin
+    if Items[i].Line = line then
+    begin
+      marks[v_MarkCount] := Items[i];
+      Inc(v_MarkCount);
+      if v_MarkCount = Length(marks) then
+        break;
+    end;
+  end;
+end;
+
+function TSynEditMarkList.GetCount: Integer;
+begin
+  Result := fItems.Count;
+end;
+
+procedure TSynEditMarkList.Clear;
+begin
+  while fItems.Count <> 0 do
+  begin
+    InternalDelete(0);
+  end;
+  DoChange;
+end;
+
+function TSynEditMarkList.Remove(Item: TSynEditMark): Integer;
+begin
+  Result := fItems.IndexOf(Item);
+  InternalDelete(Result);
+  DoChange;
+end;
+
+begin
+  InternalResources.Free;
 end.

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterJava.pas,v 1.19 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterJava.pas,v 1.21 2007/01/24 02:44:06 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -1136,7 +1136,7 @@ begin
       end;
     '*':
       begin
-        if fLine[Run+2] = '*' then     {documentation comment}
+        if (fLine[Run+2] = '*') and (fLine[Run+3] <> '/') then     {documentation comment}
         begin
           fRange := rsDocument;
           fTokenID := tkDocument;

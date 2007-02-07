@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintHeaderFooter.pas,v 1.10 2003/07/09 06:48:02 etrusco Exp $
+$Id: SynEditPrintHeaderFooter.pas,v 1.12 2007/01/24 02:44:27 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -600,7 +600,7 @@ var
   i: Integer;
 begin
   for i := 0 to FItems.Count - 1 do begin
-    if THeaderFooterItem(FItems[Index]).FIndex = Index then begin
+    if THeaderFooterItem(FItems[i]).FIndex = Index then begin
       FItems.Delete(i);
       Break;
     end;
@@ -689,6 +689,8 @@ function CompareItems(Item1, Item2: Pointer): Integer;
 //Used to sort header/footer items
 begin
   Result := THeaderFooterItem(Item1).LineNumber - THeaderFooterItem(Item2).LineNumber;
+  if Result = 0 then
+    Result := Integer(Item1) - Integer(Item2);
 end;
 
 procedure THeaderFooter.SetPixPrInch(Value: Integer);

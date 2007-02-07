@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmds.pas,v 1.24 2005/10/15 00:57:18 etrusco Exp $
+$Id: SynEditKeyCmds.pas,v 1.26 2007/01/23 07:19:38 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -551,8 +551,8 @@ begin
   if Value <> 0 then
   begin
     // Check for duplicate shortcut in the collection and disallow if there is.
-    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Value, Key2);
-    if (Dup <> -1) and (Dup <> Self.Index) then
+    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Value, ShortCut2);
+    if (Dup <> -1) and (Collection.Items[Dup] <> Self) then
       begin
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
       end;
@@ -593,8 +593,8 @@ begin
   if Value <> 0 then
   begin
     // Check for duplicate shortcut in the collection and disallow if there is.
-    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Key, Value);
-    if (Dup <> -1) and (Dup <> Self.Index) then
+    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(ShortCut, Value);
+    if (Dup <> -1) and (Collection.Items[Dup] <> Self) then
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
   end;
 

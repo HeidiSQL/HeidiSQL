@@ -78,6 +78,7 @@
 
 {$IFDEF WIN32}           {$DEFINE SYN_WIN32}           {$ENDIF}
 {$IFDEF LINUX}           {$DEFINE SYN_KYLIX}           {$ENDIF}
+{$IFDEF LINUX}           {$DEFINE SYN_LINUX}           {$ENDIF}
 
 {$IFDEF COMPILER_2}      {$DEFINE SYN_COMPILER_2}      {$ENDIF}
 {$IFDEF COMPILER_2_UP}   {$DEFINE SYN_COMPILER_2_UP}   {$ENDIF}

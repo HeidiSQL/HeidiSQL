@@ -24,7 +24,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditWordWrap.pas,v 1.9 2004/10/10 03:45:19 etrusco Exp $
+$Id: SynEditWordWrap.pas,v 1.11 2007/01/24 00:17:33 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -34,7 +34,7 @@ Known Issues:
 //todo: Use a single implementation of ReWrapLines that takes starting line and number of lines to rewrap
 //todo: Tweak code to try finding better wrapping points. Some support by the highlighters will be needed, probably.
 //todo: Document the code
-//todo: The length of the last Row of a Line could be calculated from the Line length instead of being stored.
+//todo: The length of the last Row of a Line could be calculated from the Line length instead of being stored. This would be only useful when most of the lines aren't wrapped.
 
 {$IFNDEF QSYNEDITWORDWRAP}
 unit SynEditWordWrap;
@@ -56,6 +56,10 @@ uses
 {$ENDIF}
   SysUtils,
   Classes;
+
+var
+  // Accumulate/hide whitespace at EOL (at end of wrapped rows, actually)
+  OldWhitespaceBehaviour: Boolean = False;
 
 type
   TLineIndex = 0..MaxListSize;
@@ -178,7 +182,7 @@ constructor TSynWordWrapPlugin.Create(aOwner: TCustomSynEdit);
 begin
   inherited Create; // just to work as reminder in case I revert it to a TComponent... 
   if aOwner = nil then
-    raise Exception.Create( 'TSynWordWrapPlugin must be owned by TCustomSynEdit' );
+    raise Exception.Create( 'Owner of TSynWordWrapPlugin must be a TCustomSynEdit' );
   fEditor := aOwner;
   Reset;
 end;
@@ -425,7 +429,7 @@ begin
     while vRowEnd < vLineEnd do
     begin
       //
-      if vRowEnd^ in [#32, #9] then
+      if OldWhitespaceBehaviour and (vRowEnd^ in [#32, #9]) then
       begin
         repeat
           Inc(vRowEnd);
@@ -433,19 +437,19 @@ begin
       end
       else begin
         vRowMinEnd := vRowBegin + fMinRowLength;
-        vRunner := vRowEnd - 1;
+        vRunner := vRowEnd;
         while vRunner > vRowMinEnd do
         begin
           if vRunner^ in fBreakChars then
           begin
-            vRowEnd := vRunner + 1;
+            vRowEnd := vRunner;
             break;
           end;
           Dec(vRunner);
         end;
       end;
       // Check TRowLength overflow
-      if vRowEnd - vRowBegin > High(TRowLength) then
+      if OldWhitespaceBehaviour and (vRowEnd - vRowBegin > High(TRowLength)) then
       begin
         vRowEnd := vRowBegin + High(TRowLength);
         vRowMinEnd := vRowEnd - (High(TRowLength) mod Editor.TabWidth);
@@ -462,7 +466,7 @@ begin
       Inc(vLineRowCount);
       vRowBegin := vRowEnd;
       Inc(vRowEnd, fMaxRowLength);
-    end;
+    end; //endwhile vRowEnd < vLineEnd
     if (vLineEnd > vRowBegin) or (Length(vLine) = 0) then
     begin
       vTempRowLengths[vLineRowCount] := vLineEnd - vRowBegin;
@@ -537,7 +541,7 @@ begin
     while vRowEnd < vLineEnd do
     begin
       //
-      if vRowEnd^ in [#32, #9] then
+      if OldWhitespaceBehaviour and (vRowEnd^ in [#32, #9]) then
       begin
         repeat
           Inc(vRowEnd);
@@ -545,19 +549,19 @@ begin
       end
       else begin
         vRowMinEnd := vRowBegin + fMinRowLength;
-        vRunner := vRowEnd - 1;
+        vRunner := vRowEnd;
         while vRunner > vRowMinEnd do
         begin
           if vRunner^ in fBreakChars then
           begin
-            vRowEnd := vRunner + 1;
+            vRowEnd := vRunner;
             break;
           end;
           Dec(vRunner);
         end;
       end;
       //
-      if vRowEnd - vRowBegin > High(TRowLength) then
+      if OldWhitespaceBehaviour and (vRowEnd - vRowBegin > High(TRowLength)) then
       begin
         vRowEnd := vRowBegin + High(TRowLength);
         vRowMinEnd := vRowEnd - (High(TRowLength) mod Editor.TabWidth);
