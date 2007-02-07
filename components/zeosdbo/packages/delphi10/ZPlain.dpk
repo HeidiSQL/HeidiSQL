@@ -1,5 +1,4 @@
 package ZPlain;
-
 {$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -23,12 +22,14 @@ package ZPlain;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Zeos Plain Database API'}
+{$LIBSUFFIX '100'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
   ZCore,
-  rtl;
+  rtl,
+  vcl;
 
 contains
   ZPlainPostgreSqlDriver in '..\..\src\plain\ZPlainPostgreSqlDriver.pas',

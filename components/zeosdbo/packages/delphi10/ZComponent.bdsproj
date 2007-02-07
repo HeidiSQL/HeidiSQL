@@ -5,7 +5,7 @@
 			<Option Name="Personality">Delphi.Personality</Option>
 			<Option Name="ProjectType">VCLApplication</Option>
 			<Option Name="Version">1.0</Option>
-			<Option Name="GUID">{862264E0-6C89-4F8F-B955-62677D0B6454}</Option>
+			<Option Name="GUID">{56683877-8427-4FCD-AA5B-82AFEF0C229E}</Option>
 		</Option>
 	</PersonalityInfo>
 	<Delphi.Personality>
@@ -33,7 +33,7 @@
 			<Compiler Name="O">1</Compiler>
 			<Compiler Name="P">1</Compiler>
 			<Compiler Name="Q">1</Compiler>
-			<Compiler Name="R">1</Compiler>
+			<Compiler Name="R">0</Compiler>
 			<Compiler Name="S">0</Compiler>
 			<Compiler Name="T">0</Compiler>
 			<Compiler Name="U">0</Compiler>
@@ -88,7 +88,6 @@
 			<Compiler Name="ForLoopVarUndef">True</Compiler>
 			<Compiler Name="UnitNameMismatch">True</Compiler>
 			<Compiler Name="NoCFGFileFound">True</Compiler>
-			<Compiler Name="MessageDirective">True</Compiler>
 			<Compiler Name="ImplicitVariants">True</Compiler>
 			<Compiler Name="UnicodeToLocale">True</Compiler>
 			<Compiler Name="LocaleToUnicode">True</Compiler>
@@ -103,11 +102,13 @@
 			<Compiler Name="DuplicatesIgnored">True</Compiler>
 			<Compiler Name="UnitInitSeq">True</Compiler>
 			<Compiler Name="LocalPInvoke">True</Compiler>
+			<Compiler Name="MessageDirective">True</Compiler>
 			<Compiler Name="CodePage"></Compiler>
 		</Compiler>
 		<Linker>
 			<Linker Name="MapFile">0</Linker>
 			<Linker Name="OutputObjs">0</Linker>
+			<Linker Name="GenerateHpps">False</Linker>
 			<Linker Name="ConsoleApp">1</Linker>
 			<Linker Name="DebugInfo">False</Linker>
 			<Linker Name="RemoteSymbols">False</Linker>
@@ -116,13 +117,12 @@
 			<Linker Name="MaxStackSize">1048576</Linker>
 			<Linker Name="ImageBase">4194304</Linker>
 			<Linker Name="ExeDescription">Zeos Database Components</Linker>
-			<Linker Name="GenerateHpps">False</Linker>
 		</Linker>
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
-			<Directories Name="PackageDLLOutputDir"></Directories>
-			<Directories Name="PackageDCPOutputDir"></Directories>
+			<Directories Name="PackageDLLOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
+			<Directories Name="PackageDCPOutputDir">build</Directories>
 			<Directories Name="SearchPath">.\..\..\..\compilerdetection</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
@@ -135,15 +135,15 @@
 			<Parameters Name="Launcher"></Parameters>
 			<Parameters Name="UseLauncher">False</Parameters>
 			<Parameters Name="DebugCWD"></Parameters>
-			<Parameters Name="RemoteHost"></Parameters>
-			<Parameters Name="RemotePath"></Parameters>
-			<Parameters Name="RemoteLauncher"></Parameters>
-			<Parameters Name="RemoteCWD"></Parameters>
-			<Parameters Name="RemoteDebug">False</Parameters>
 			<Parameters Name="Debug Symbols Search Path"></Parameters>
 			<Parameters Name="LoadAllSymbols">True</Parameters>
 			<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
 		</Parameters>
+		<Language>
+			<Language Name="ActiveLang"></Language>
+			<Language Name="ProjectLang">$00000000</Language>
+			<Language Name="RootDir"></Language>
+		</Language>
 		<VersionInfo>
 			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
 			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
@@ -160,20 +160,16 @@
 			<VersionInfo Name="CodePage">1252</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
-			<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName"></VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription"></VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName"></VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
 			<VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName"></VersionInfoKeys>
+			<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+			<VersionInfoKeys Name="Comments"></VersionInfoKeys>
 		</VersionInfoKeys>
-		<Language>
-			<Language Name="ActiveLang"></Language>
-			<Language Name="ProjectLang">$00000000</Language>
-			<Language Name="RootDir"></Language>
-		</Language>
 	</Delphi.Personality>
 </BorlandProject>

@@ -5,12 +5,12 @@
 			<Option Name="Personality">Delphi.Personality</Option>
 			<Option Name="ProjectType">VCLApplication</Option>
 			<Option Name="Version">1.0</Option>
-			<Option Name="GUID">{96C630DE-C42D-41C0-A522-6C441CC9F053}</Option>
+			<Option Name="GUID">{4544454C-BEE3-4080-AB7A-41B5EEA35B03}</Option>
 		</Option>
 	</PersonalityInfo>
 	<Delphi.Personality>
 		<Source>
-			<Source Name="MainSource">ZDbc.dpk</Source>
+			<Source Name="MainSource">ZComponentDesign.dpk</Source>
 		</Source>
 		<FileVersion>
 			<FileVersion Name="Version">7.0</FileVersion>
@@ -116,14 +116,14 @@
 			<Linker Name="MinStackSize">16384</Linker>
 			<Linker Name="MaxStackSize">1048576</Linker>
 			<Linker Name="ImageBase">4194304</Linker>
-			<Linker Name="ExeDescription">Zeos Low Level Database API</Linker>
+			<Linker Name="ExeDescription">Zeos Database Components</Linker>
 		</Linker>
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
-			<Directories Name="UnitOutputDir">..\..\build</Directories>
+			<Directories Name="UnitOutputDir">build</Directories>
 			<Directories Name="PackageDLLOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
-			<Directories Name="PackageDCPOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
-			<Directories Name="SearchPath">.\..\..\..\compilerdetection</Directories>
+			<Directories Name="PackageDCPOutputDir">build</Directories>
+			<Directories Name="SearchPath">build</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
@@ -156,7 +156,7 @@
 			<VersionInfo Name="Special">False</VersionInfo>
 			<VersionInfo Name="Private">False</VersionInfo>
 			<VersionInfo Name="DLL">False</VersionInfo>
-			<VersionInfo Name="Locale">1031</VersionInfo>
+			<VersionInfo Name="Locale">1033</VersionInfo>
 			<VersionInfo Name="CodePage">1252</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
