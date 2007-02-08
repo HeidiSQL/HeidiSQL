@@ -20,13 +20,14 @@
       <Projects Name="SMDBGridComponents.bpl">..\..\components\smdbgrid\packages\delphi10\SMDBGridComponents.bdsproj</Projects>
       <Projects Name="SynEdit_R2006.bpl">..\..\components\synedit\Packages\delphi10\SynEdit_R2006.bdsproj</Projects>
       <Projects Name="SynEdit_D10.bpl">..\..\components\synedit\Packages\delphi10\SynEdit_D10.bdsproj</Projects>
-      <Projects Name="ZCore.bpl">..\..\components\zeosdbo\packages\delphi10\ZCore.bdsproj</Projects>
-      <Projects Name="ZParseSql.bpl">..\..\components\zeosdbo\packages\delphi10\ZParseSql.bdsproj</Projects>
-      <Projects Name="ZPlain.bpl">..\..\components\zeosdbo\packages\delphi10\ZPlain.bdsproj</Projects>
-      <Projects Name="ZDbc.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
-      <Projects Name="ZComponent.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
-      <Projects Name="heidisql.exe">heidisql.bdsproj</Projects>
-      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore.bpl ZParseSql.bpl ZPlain.bpl ZDbc.bpl ZComponent.bpl heidisql.exe</Projects>
+      <Projects Name="ZCore100.bpl">..\..\components\zeosdbo\packages\delphi10\ZCore.bdsproj</Projects>
+      <Projects Name="ZPlain100.bpl">..\..\components\zeosdbo\packages\delphi10\ZPlain.bdsproj</Projects>
+      <Projects Name="ZParseSql100.bpl">..\..\components\zeosdbo\packages\delphi10\ZParseSql.bdsproj</Projects>
+      <Projects Name="ZDbc100.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
+      <Projects Name="ZComponent100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
+      <Projects Name="ZComponentDesign70.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponentDesign.bdsproj</Projects>
+      <Projects Name="HeidiSQL">heidisql.bdsproj</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign70.bpl HeidiSQL</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
