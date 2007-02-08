@@ -1256,6 +1256,14 @@ begin
   end;
 end;
 
+
+
+{***
+  Saves a number-value into the predefined folder REGPATH
+  @param string Name for the value
+  @param integer Value-number
+  @param string Subkey of REGPATH where to store the value
+}
 procedure TMainForm.SaveRegValue( valueName: String; value: Integer; key: String = '' );
 var
   reg : TRegistry;
@@ -1275,6 +1283,8 @@ begin
     reg.Free;
   end;
 end;
+
+
 
 
 end.
