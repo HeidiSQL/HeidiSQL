@@ -40,13 +40,15 @@
 </head>
 
 <body>
-	<a href="http://www.heidisql.com/">
+
+	<a href="http://www.heidisql.com/" title="Go to project-homepage">
 		<img src="http://www.heidisql.com/images/heidisql_logo.png" alt="HeidiSQL Logo" />
 	</a>
 
 	<h1>HeidiSQL - information file for developers</h1>
 
 	<hr />
+
 
 	<h2>Table of content</h2>
 	<ol>
@@ -61,6 +63,7 @@
 	</ol>
 
 	<hr />
+
 
 	<h2 id="requirements">Prerequisites</h2>
 	<p>
@@ -77,6 +80,7 @@
 	</p>
 
 	<hr />
+
 
 	<h2 id="compiler">What is Borland Developer Studio?</h2>
 	<p>
@@ -102,6 +106,7 @@
 
 	<hr />
 
+
 	<h2 id="compilerversion">Which version of Delphi do I need?</h2>
 	<p>
 		HeidiSQL actually builds with at least Delphi 6 and upwards, but there's only a complete set of project
@@ -111,6 +116,7 @@
 	</p>
 
 	<hr />
+
 
 	<h2 id="downloading">Downloading the source code</h2>
 	<p>
@@ -125,10 +131,13 @@
 	</p>
 	<p>
 		Alternatively, download a source tarball from the file area:<br />
-		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>HeidiSQL file area on SourceForge</a>
+		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>
+			HeidiSQL file area on SourceForge
+		</a>
 	</p>
 
 	<hr />
+
 
 	<h2 id="gettingstarted">Getting started</h2>
 	<p>
@@ -173,7 +182,7 @@
 		</tr>
 		<tr>
 			<td>components/zeosdbo/packages/delphi10/ZeosDbo.bdsgroup</td>
-			<td>Build All + Install "ZComponent"</td>
+			<td>Build All + Install "ZComponentDesign100.bpl"</td>
 		</tr>
 	</table>
 
@@ -200,6 +209,7 @@
 
 	<hr />
 
+
 	<h2 id="furtherdevelopment">Further development</h2>
 	<p>
 		Once you've performed the initial steps, Delphi will take care of automatically re-installing
@@ -211,17 +221,21 @@
 		which includes both HeidiSQL and all of it's dependencies.
 	</p>
 	<p>
-		Using this project group, you have all of the HeidiSQL source code conveniently located at your finger tips!
+		Using this project group, you have all of the HeidiSQL source code
+		conveniently located at your finger tips!
 	</p>
 	<p>
-		You can rebuild and re-install everything by performing a <strong>Build All</strong> on the big project group.
+		You can rebuild and re-install everything by performing a <strong>Build All</strong>
+		on the big project group.
 	</p>
 	<p>
 		Note: Using the big project group can drain resources.
-		If your hardware is not in the big league, you might want to use the individual projects instead.
+		If your hardware is not in the big league, you might want to use the
+		individual projects instead.
 	</p>
 
 	<hr />
+
 
 	<h2 id="troubleshooting">Troubleshooting</h2>
 
@@ -244,10 +258,13 @@
 	</p>
 	<p>
 		First, make sure that you choose "Cancel" in this dialog!
-		If you do not, BDS will make devastating changes to the source, and you'll need to revert those actions (fx. with SVN) before things are going to work again.
+		If you do not, BDS will make devastating changes to the source,
+		and you'll need to revert those actions (fx. with SVN) before things
+		are going to work again.
 	</p>
 	<p>
-		Go back to <a href="#gettingstarted">Getting started</a>, and remember to Install the components where it says so ;-).
+		Go back to <a href="#gettingstarted">Getting started</a>, and remember to
+		Install the components where it says so ;-).
 	</p>
 
 	<h3 id="cleaning">How can I clean my build environment?</h3>
@@ -256,9 +273,11 @@
 		wrong during building, you might want to clean your build environment.
 		You can do like this:
 		<ul>
-			<li>Close all Delphi <strong>projects</strong>, but leave a Delphi <strong>window</strong> open (or open a new one).</li>
+			<li>Close all Delphi <strong>projects</strong>, but leave a Delphi
+				<strong>window</strong> open (or open a new one).</li>
 			<li>Choose Project --> Default Options --> Delphi for Win32</li>
-			<li>Choose "Packages".  Highlight the following packages one by one and click the "Remove" button after highlighting each one:
+			<li>Choose "Packages".  Highlight the following packages one by one and
+				click the "Remove" button after highlighting each one:
 				<ul>
 					<li>EDBImage</li>
 					<li>HeidiSQL helper components</li>
@@ -266,16 +285,18 @@
 					<li>SynEdit component suite</li>
 					<li>Zeos Database Components</li>
 				</ul>
-			<li>Nuke all files in your package output directory, eg. "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
-			<li>Nuke all files from all HeidiSQL "build" directories, for example by performing a fresh checkout.</li>
+			<li>Nuke all files in your package output directory, eg.
+				"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
+			<li>Nuke all files from all HeidiSQL "build" directories, for
+				example by performing a fresh checkout.</li>
 		</ul>
 	</p>
 	<p>
 		Now you can restart your <a href='#gettingstarted'>build process</a>.
 	</p>
 
-
 	<hr />
+
 
 	<h2 id="notes">Notes</h2>
 
@@ -327,7 +348,8 @@
 
 	<h3>What should I do before editing this readme?</h3>
 	<p>
-		You need to put yourself in the shoes of a newbie, and make <strong>sure</strong> that the method you're proposing actually works.
+		You need to put yourself in the shoes of a newbie, and make
+		<strong>sure</strong> that the method you're proposing actually works.
 	</p>
 	<ul>
 		<li>
@@ -343,11 +365,14 @@
 
 	<hr />
 
+
 	<p>
 		Revision of this file: <em>$Rev$</em><br />
 		Last changed: <em>$Date$</em><br />
 		Last author: <em>$Author$</em>
 	</p>
+
+	
 </body>
 
 </html>
