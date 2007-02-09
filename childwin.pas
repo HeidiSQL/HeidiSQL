@@ -788,7 +788,11 @@ begin
   begin
     SynMemoSQLLog.Lines.Delete(0);
   end;
-  msg := Copy(msg, 0, 2000);
+  // Shorten very long messages
+  if Length( msg ) > 2000 then
+  begin
+    msg := Copy( msg, 0, 2000 );
+  end;
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #13, ' ', [rfReplaceAll] );
