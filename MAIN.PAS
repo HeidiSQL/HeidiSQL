@@ -232,7 +232,6 @@ type
     DataAlwaysEditMode         : Boolean;
     DataNullBackground         : TColor;
     sqlfunctionlist            : TStringList;
-    SQLHelpWindow_Instance     : TfrmSQLhelp;
 end;
 
 var

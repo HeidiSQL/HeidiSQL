@@ -51,6 +51,7 @@ begin
   Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
   Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
   Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
+  Application.CreateForm(TfrmSQLhelp, frmSQLhelp); debug('perf: frmSQLhelp created.');
 
 
   try

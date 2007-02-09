@@ -39,13 +39,11 @@ type
 
   private
     { Private declarations }
-    Keyword: String;
     m : TMDIChild;
   public
     { Public declarations }
+    Keyword: String;
   end;
-
-  procedure SQLHelpWindow (AOwner : TComponent; Keyword : String = '');
 
   const
     DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
@@ -54,6 +52,9 @@ type
     ICONINDEX_CATEGORY_OPENED   : Integer = 97;
     ICONINDEX_HELPITEM          : Integer = 98;
 
+var
+  frmSQLhelp : TfrmSQLhelp;
+
 implementation
 
 uses ZDataset, helpers, main;
@@ -61,43 +62,30 @@ uses ZDataset, helpers, main;
 {$R *.dfm}
 
 
-procedure SQLHelpWindow (AOwner : TComponent; Keyword : String = '');
-var
-  f : TfrmSQLHelp;
-begin
-  if Mainform.SQLHelpWindow_Instance = nil then
-  begin
-    f := TfrmSQLHelp.Create(AOwner);
-    Mainform.SQLHelpWindow_Instance := f;
-    f.m := TMDIChild(Application.Mainform.ActiveMDIChild);
-    f.Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', f.Top );
-    f.Left := Mainform.GetRegValue( 'SQLHelp_WindowLeft', f.Left );
-    f.Width := Mainform.GetRegValue( 'SQLHelp_WindowWidth', f.Width );
-    f.Height := Mainform.GetRegValue( 'SQLHelp_WindowHeight', f.Height );
-    f.pnlLeft.Width := Mainform.GetRegValue( 'SQLHelp_PnlLeftWidth', f.pnlLeft.Width );
-    f.pnlRightTop.Height := Mainform.GetRegValue( 'SQLHelp_PnlRightTopHeight', f.pnlRightTop.Height );
-    f.Caption := DEFAULT_WINDOW_CAPTION;
-    // Gather help contents for treeview with SQL: HELP "CONTENTS"
-    f.fillTreeLevel( nil );
-    f.Keyword := Keyword;
-    f.Show;
-  end
-  else
-  begin
-    f := Mainform.SQLHelpWindow_Instance;
-    f.Keyword := Keyword;
-    f.Show;
-    f.FormShow( f );
-  end;
-end;
 
-
+{***
+  Startup
+}
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
+  m := TMDIChild(Application.Mainform.ActiveMDIChild);
+
+  // Set window-layout
+  Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', Top );
+  Left := Mainform.GetRegValue( 'SQLHelp_WindowLeft', Left );
+  Width := Mainform.GetRegValue( 'SQLHelp_WindowWidth', Width );
+  Height := Mainform.GetRegValue( 'SQLHelp_WindowHeight', Height );
+  pnlLeft.Width := Mainform.GetRegValue( 'SQLHelp_PnlLeftWidth', pnlLeft.Width );
+  pnlRightTop.Height := Mainform.GetRegValue( 'SQLHelp_PnlRightTopHeight', pnlRightTop.Height );
+  Caption := DEFAULT_WINDOW_CAPTION;
+
   MemoDescription.Font.Name := m.SynMemoQuery.Font.Name;
   MemoDescription.Font.Size := m.SynMemoQuery.Font.size;
   MemoExample.Font.Name := m.SynMemoQuery.Font.Name;
   MemoExample.Font.Size := m.SynMemoQuery.Font.size;
+
+  // Gather help contents for treeview with SQL: HELP "CONTENTS"
+  fillTreeLevel( nil );
 
   if ShowHelpItem then
     findKeywordInTree;

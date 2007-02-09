@@ -3701,7 +3701,10 @@ begin
   begin
     keyword := copy( keyword, 1, pos( '(', keyword )-1 );
   end;
-  SQLHelpWindow( self, keyword );
+
+  // Set help-keyword and show window
+  frmSQLhelp.keyword := keyword;
+  frmSQLhelp.Show;
 end;
 
 procedure TMDIChild.ToolButton4Click(Sender: TObject);
