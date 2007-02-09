@@ -239,7 +239,25 @@
 
 	<h2 id="troubleshooting">Troubleshooting</h2>
 
-	<h3>"Unable to install component" error message</h3>
+	<h3>"Error Reading Form" / "Class Not Found" error messages</h3>
+	<p>
+		You might have forgotten to Install some of the components.
+	</p>
+	<p>
+		First, make sure that you choose "Cancel" in this dialog!
+		If you do not, BDS will make devastating changes to the source,
+		and you'll need to revert those actions (fx. with SVN) before things
+		are going to work again.
+	</p>
+	<p>
+		Go back to <a href="#gettingstarted">Getting started</a>, and remember to
+		Install the components where it says so ;-).
+	</p>
+	<p>
+		If you still have problems, you can also opt to <a href='#cleaning'>start over</a>.
+	</p>
+
+	<h3 id="troubleshooting_1">"Unable to install component" error message</h3>
 	<p>
 		Remove the (already installed) component by going to Project --> Options --> Packages,
 		selecting the relevant component and clicking 'Remove'.
@@ -252,22 +270,16 @@
 		it the next time you compile the package containing the component.
 	</p>
 
-	<h3>"Error Reading Form" / "Class Not Found" error messages</h3>
-	<p>
-		You've forgotten to Install some of the components.
-	</p>
-	<p>
-		First, make sure that you choose "Cancel" in this dialog!
-		If you do not, BDS will make devastating changes to the source,
-		and you'll need to revert those actions (fx. with SVN) before things
-		are going to work again.
-	</p>
-	<p>
-		Go back to <a href="#gettingstarted">Getting started</a>, and remember to
-		Install the components where it says so ;-).
-	</p>
+	<h3>Component installation seemed to work, but components are still missing</h3>
+		<p>
+			Nuke all files in your package output directory, eg.
+			"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".
+		</p>
+		<p>
+			Then repeat the <a href='#troubleshooting_1'>above step</a>.
+		</p>
 
-	<h3 id="cleaning">How can I clean my build environment?</h3>
+	<h3 id="cleaning">How can I completely clean my build environment?</h3>
 	<p>
 		If the HeidiSQL build process has changed, or you think you might have done something
 		wrong during building, you might want to clean your build environment.
