@@ -104,6 +104,13 @@ begin
 end;
 
 
+
+{***
+  Fills exactly one level of the folder-tree
+  Call with NIL to generate the root folders,
+  then call recursively to iterate through all folders and fill them
+  @param TTreeNode Parent node to fill (or NIL)
+}
 procedure TfrmSQLhelp.fillTreeLevel( ParentNode: TTreeNode );
 var
   tnode   : TTreeNode;
@@ -150,13 +157,16 @@ begin
 end;
 
 
+
+{***
+  Show selected keyword in Tree
+}
 procedure TfrmSQLhelp.findKeywordInTree;
 var
   tnode : TTreeNode;
   i : Integer;
   tmp : Boolean;
 begin
-  // Show selected keyword in Tree
   i := 0;
   while i < treeTopics.Items.Count do
   begin
@@ -174,6 +184,10 @@ begin
 end;
 
 
+
+{***
+  Selected item in treeTopics has changed
+}
 procedure TfrmSQLhelp.treeTopicsChange(Sender: TObject; Node: TTreeNode);
   procedure OpenFolderIcons( ANode: TTreeNode );
   begin
@@ -191,8 +205,6 @@ var
   i : Integer;
   tNode : TTreeNode;
 begin
-  // Selected item in treeTopics has changed
-
   // 1. Show corresponding help-text
   if Node.ImageIndex = ICONINDEX_HELPITEM then
   begin
@@ -217,10 +229,13 @@ begin
 end;
 
 
+
+{***
+  Get topics from category
+}
 procedure TfrmSQLhelp.treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
   var AllowExpansion: Boolean);
 begin
-  // Get topics from category
   if (Node.getFirstChild <> nil) and (Node.getFirstChild.Text = DUMMY_NODE_TEXT) then
   begin
     fillTreeLevel( Node );
@@ -228,6 +243,11 @@ begin
 end;
 
 
+
+{***
+  Fetch and show text of help-item in synmemo's
+  @return boolean Was the keyword found? 
+}
 function TfrmSQLhelp.ShowHelpItem: Boolean;
 var
   ds : TZReadOnlyQuery;
@@ -279,7 +299,9 @@ end;
 
 
 
-
+{***
+  Save layout and close window 
+}
 procedure TfrmSQLhelp.ButtonCloseClick(Sender: TObject);
 begin
   Mainform.SaveRegValue( 'SQLHelp_WindowLeft', Left );
@@ -289,24 +311,30 @@ begin
   Mainform.SaveRegValue( 'SQLHelp_PnlLeftWidth', pnlLeft.Width );
   Mainform.SaveRegValue( 'SQLHelp_PnlRightTopHeight', PnlRightTop.Height );
 
-  // Close
   Close;
 end;
 
 
+
+{***
+  Link/redirect to mysql.com for further help
+  @see http://www.heidisql.com/sqlhelp.php
+}
 procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
-  // Search online
   ShellExec( 'http://www.heidisql.com/sqlhelp.php?mysqlversion='+inttostr(m.mysql_version)+
     '&keyword='+urlencode(keyword) );
 end;
 
 
+
+{***
+  Esc pressed - close form.
+  Seems that if we're in a memo, the ButtonClose.Cancel=True doesn't have an effect
+}
 procedure TfrmSQLhelp.memosKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  // Esc pressed - close form.
-  // Seems that if we're in a memo, the ButtonClose.Cancel=True doesn't have an effect
   if Key = VK_ESCAPE then
     ButtonCloseClick(self);
 end;
