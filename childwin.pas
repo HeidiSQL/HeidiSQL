@@ -1888,12 +1888,15 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     commandFreq := StrToInt64( Value );
     n.Subitems.Add( FormatNumber( commandFreq ) );
     // Average per hour
+    uptime := max(uptime, 1);
     tmpval := commandFreq / ( uptime / 60 / 60 );
     n.Subitems.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
     tmpval := commandFreq / uptime;
     n.Subitems.Add( FormatNumber( tmpval, 1 ) );
     // Percentage
+    commandFreq := max(commandFreq, 1);
+    TotalValue := max(TotalValue, 1);
     tmpval := 100 / TotalValue * commandFreq;
     n.Subitems.Add( FormatNumber( tmpval, 1 ) + ' %' );
   end;
@@ -4230,23 +4233,23 @@ begin
 end;
 
 
-
 procedure TMDIChild.SetQueryRunningFlag (AValue : Boolean);
 begin
   FQueryRunning := AValue;
 end;
 
+
+// Resize image to fit
 procedure TMDIChild.ResizeImageToFit;
 begin
-  // Resize image to fit
-  if EDBImage1.Picture.Width = 0 then
-    exit;
+  if EDBImage1.Picture.Width < 1 then exit;
   EDBImage1.Width := MulDiv(EDBImage1.Height, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
+  if EDBImage1.Picture.Height < 1 then exit;
+  if EDBImage1.Height < 1 then exit;
   MainForm.showstatus('Image: ' + inttostr( EDBImage1.Picture.width)
     + ' x ' + inttostr( EDBImage1.Picture.Height ) + ' pixel, '
     + 'zoomed to ' + IntToStr(round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'
-    );
-
+  );
 end;
 
 
