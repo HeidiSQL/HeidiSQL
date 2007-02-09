@@ -554,6 +554,7 @@ object MainForm: TMainForm
       Hint = 'Help topics'
       object menuSQLHelp: TMenuItem
         Caption = 'SQL Help'
+        Enabled = False
         ShortCut = 112
         OnClick = btnSQLHelpClick
       end
