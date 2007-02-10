@@ -34,7 +34,8 @@ uses
   queryprogress in '..\..\queryprogress.pas' {frmQueryProgress},
   MysqlQuery in '..\..\MysqlQuery.pas',
   MysqlQueryThread in '..\..\MysqlQueryThread.pas',
-  MysqlConn in '..\..\MysqlConn.pas';
+  MysqlConn in '..\..\MysqlConn.pas',
+  mysql in '..\..\mysql.pas';
 
 {$R *.RES}
 
