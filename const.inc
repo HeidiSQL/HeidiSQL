@@ -15,6 +15,7 @@ const
   MYSQL_PORT                = 3306;
 
   // Related field things
+  TBLTYPE_AUTOMATIC: String = '<Automatic>';
   TEMPFIELDNAME             = 'temp_fieldname';
 
   // General things

@@ -28,6 +28,22 @@ type
     DefLength: Integer; // Can we auto-determine this from server ??
   end;
 
+  // MySQL Field structure
+  TMysqlField = record
+    Name:          String[64];
+    Typ:           Byte;
+    LengthSet:     String;
+    Default:       String;
+    Primary:       Boolean;
+    Index:         Boolean;
+    Unique:        Boolean;
+    Binary:        Boolean;
+    Unsigned:      Boolean;
+    Zerofill:      Boolean;
+    NotNull:       Boolean;
+    AutoIncrement: Boolean;
+  end;
+
 const
   // field flags
   FF_HAS_LENGTH_PROP = 1;

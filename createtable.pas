@@ -85,31 +85,18 @@ type
     { Public declarations }
   end;
 
-type TMysqlField = record
-    Name : String[64];
-    Typ : Byte;
-    LengthSet : String;
-    Default : String;
-    Primary : Boolean;
-    Index : Boolean;
-    Unique : Boolean;
-    Binary : Boolean;
-    Unsigned : Boolean;
-    Zerofill : Boolean;
-    NotNull : Boolean;
-    AutoIncrement : Boolean;
-  end;
-
 var
   CreateTableForm: TCreateTableForm;
-  fields : array of TMysqlField;
 
-const
-  TBLTYPE_AUTOMATIC : String = '<Automatic>';
+{$I const.inc}
 
 implementation
 
-uses Main, Childwin, helpers;
+uses
+  Main, Childwin, helpers, mysql;
+
+var
+  fields : array of TMysqlField;
 
 {$R *.DFM}
 
