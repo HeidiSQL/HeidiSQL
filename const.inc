@@ -14,6 +14,9 @@ const
   LOCAL_HOST                = '127.0.0.1';
   MYSQL_PORT                = 3306;
 
+  // Related field things
+  TEMPFIELDNAME             = 'temp_fieldname';
+
   // General things
   APPNAME          = 'HeidiSQL';
   REGPATH          = 'Software\' + APPNAME;

@@ -98,70 +98,16 @@ type
 var
   FieldEditForm: TFieldEditForm;
 
-const
-  tempfieldname = 'temp_fieldname';
-  
 {$I const.inc}
-
-  // field flags
-  FF_HAS_LENGTH_PROP = 1;
-  // FF_xxx = 2
-  // FF_yyy = 4
-  // FF_zzz = 8
-  // ....
-
-type
-  TMysqlIndex = record
-    Name : String[64];
-    Columns : TStringList;
-    Unique : Boolean;
-    Fulltext : Boolean;
-    Modified : Boolean;
-    Ready : Boolean;
-  end;
-
-  type TMysqlDataTypeRecord = record
-    Index : Integer;
-    Name : String[15];
-    Flags : Integer; // bitset : (bit 0 = NeedsLength, bit 1 = ....
-    DefLength : Integer; // Can we auto-determine this from server ??
-  end;
-
-var
-  MySqlDataTypeArray : array [0..24] of TMysqlDataTypeRecord =
-  (
-    (Index: 0; Name: 'TINYINT'),
-    (Index: 1; Name: 'SMALLINT'),
-    (Index: 2; Name: 'MEDIUMINT'),
-    (Index: 3; Name: 'INT'),
-    (Index: 4; Name: 'BIGINT'),
-    (Index: 5; Name: 'FLOAT'),
-    (Index: 6; Name: 'DOUBLE'),
-    (Index: 7; Name: 'DECIMAL'),
-    (Index: 8; Name: 'DATE'),
-    (Index: 9; Name: 'DATETIME'),
-    (Index: 10; Name: 'TIMESTAMP'),
-    (Index: 11; Name: 'TIME'),
-    (Index: 12; Name: 'YEAR'),
-    (Index: 13; Name: 'CHAR'),
-    (Index: 14; Name: 'VARCHAR'; Flags: FF_HAS_LENGTH_PROP; DefLength: 50),
-    (Index: 15; Name: 'TINYBLOB'),
-    (Index: 16; Name: 'TINYTEXT'),
-    (Index: 17; Name: 'TEXT'),
-    (Index: 18; Name: 'BLOB'),
-    (Index: 19; Name: 'MEDIUMBLOB'),
-    (Index: 20; Name: 'MEDIUMTEXT'),
-    (Index: 21; Name: 'LONGBLOB'),
-    (Index: 22; Name: 'LONGTEXT'),
-    (Index: 23; Name: 'ENUM'),
-    (Index: 24; Name: 'SET')
-  );
 
 implementation
 
-uses helpers, childwin, Main;
+uses
+  helpers, childwin, Main, mysql;
 
-var klist : Array of TMysqlIndex;
+var
+  klist : Array of TMysqlIndex;
+  
 {$R *.DFM}
 
 function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '') : Boolean;
@@ -542,14 +488,14 @@ begin
           if ComboBoxPosition.ItemIndex > -1 then  // Move field position
             begin
               ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
-              ' ADD ' + mainform.mask(tempfieldname) + ' ' +          // new name
+              ' ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +          // new name
               fielddef +
               strPosition                                             // Position
               );
-              ExecQuery('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(tempfieldname)+'='+mainform.mask(EditFieldName.Text));
+              ExecQuery('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
               ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
               ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' CHANGE '+
-                mainform.mask(tempfieldname)+' '+mainform.mask(EditFieldName.Text) + ' ' +
+                mainform.mask(TEMPFIELDNAME)+' '+mainform.mask(EditFieldName.Text) + ' ' +
                 fielddef
               );
             end;  
