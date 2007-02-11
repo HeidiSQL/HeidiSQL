@@ -40,7 +40,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
-  function MakeInt( Str: String ) : Integer;
+  function MakeInt( Str: String ) : Int64;
   function esc(Text: string): string;
   function escLike(Text: string): string;
   function hasIrregularChars(Text: string): boolean;
@@ -1152,9 +1152,9 @@ End;
   Convert a string-number to an integer-number
 
   @param string String-number
-  @return integer
+  @return int64
 }
-function MakeInt( Str: String ) : Integer;
+function MakeInt( Str: String ) : Int64;
 var
   i : Integer;
   StrWithInts : String;
@@ -1167,7 +1167,7 @@ begin
       StrWithInts := StrWithInts + str[i];
     end;
   end;
-  result := StrToIntDef( StrWithInts, 0 );
+  result := StrToInt64Def( StrWithInts, 0 );
 end;
 
 

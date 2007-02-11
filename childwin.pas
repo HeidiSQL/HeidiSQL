@@ -1877,10 +1877,9 @@ end;
 
 procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
 
-  procedure addLVitem( caption: String; Value: String; TotalValue: Int64 );
+  procedure addLVitem( caption: String; commandCount: Int64; totalCount: Int64 );
   var
     n : TListItem;
-    commandFreq : Int64;
     tmpval : Double;
   begin
     n := ListCommandStats.Items.Add;
@@ -1889,19 +1888,20 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
     n.Caption := caption;
     // Total Frequency
-    commandFreq := StrToInt64( Value );
-    n.Subitems.Add( FormatNumber( commandFreq ) );
+    n.Subitems.Add( FormatNumber( commandCount ) );
     // Average per hour
     uptime := max(uptime, 1);
-    tmpval := commandFreq / ( uptime / 60 / 60 );
+    tmpval := commandCount / ( uptime / 60 / 60 );
     n.Subitems.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
-    tmpval := commandFreq / uptime;
+    tmpval := commandCount / uptime;
     n.Subitems.Add( FormatNumber( tmpval, 1 ) );
-    // Percentage
-    commandFreq := max(commandFreq, 1);
-    TotalValue := max(TotalValue, 1);
-    tmpval := 100 / TotalValue * commandFreq;
+    // Percentage. Take care of division by zero errors and Int64's
+    if commandCount < 1 then
+      commandCount := 1;
+    if totalCount < 1 then
+      totalCount := totalCount;
+    tmpval := 100 / totalCount * commandCount;
     n.Subitems.Add( FormatNumber( tmpval, 1 ) + ' %' );
   end;
 
@@ -1962,13 +1962,13 @@ begin
   // Command-Statistics
   ListCommandStats.Items.BeginUpdate;
   ListCommandStats.Items.Clear;
-  addLVitem( '    All commands', IntToStr(questions), questions );
+  addLVitem( '    All commands', questions, questions );
   ZQuery3.First;
   for i:=1 to ZQuery3.RecordCount do
   begin
     if LowerCase( copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) = 'com_' then
     begin
-      addLVitem( ZQuery3.Fields[0].AsString, ZQuery3.Fields[1].AsString, questions );
+      addLVitem( ZQuery3.Fields[0].AsString, MakeInt(ZQuery3.Fields[1].AsString), questions );
     end;
     ZQuery3.Next;
   end;

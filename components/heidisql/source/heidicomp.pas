@@ -94,10 +94,17 @@ end;
 
 function CustomSortProc(Item1, Item2: TListItem; Column: integer): integer;
 stdcall;
-  // Copied from helpers.pas
-  // didn't want to add helpers.pas to uses-clause, as we
-	// should keep this file without dependencies
-  function MakeInt( Str: String ) : Integer;
+  {***
+    Convert a string-number to an integer-number
+    @note
+      Copied from helpers.pas
+      didn't want to add helpers.pas to uses-clause, as we
+      should keep this file without dependencies
+
+    @param string String-number
+    @return int64
+  }
+  function MakeInt( Str: String ) : Int64;
   var
     i : Integer;
     StrWithInts : String;
@@ -110,7 +117,7 @@ stdcall;
         StrWithInts := StrWithInts + str[i];
       end;
     end;
-    result := StrToIntDef( StrWithInts, 0 );
+    result := StrToInt64Def( StrWithInts, 0 );
   end;
 
 var
