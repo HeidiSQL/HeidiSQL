@@ -386,7 +386,6 @@ begin
     Checked := ConvertHTMLSpecialChars;
     Tag := Byte(voHTML);
     Visible := (Tag = Integer(FVisibleOptions));
-    inc(xpos, Width+spacing);
   end;
 
 end;
