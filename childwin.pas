@@ -1902,7 +1902,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     if commandCount < 1 then
       commandCount := 1;
     if totalCount < 1 then
-      totalCount := totalCount;
+      totalCount := 1;
     tmpval := 100 / totalCount * commandCount;
     n.Subitems.Add( FormatNumber( tmpval, 1 ) + ' %' );
   end;
