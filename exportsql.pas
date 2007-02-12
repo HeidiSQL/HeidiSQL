@@ -1022,6 +1022,9 @@ begin
     comboOtherHostDatabase.Enabled := false;
     comboOtherHostDatabase.Color := clBtnFace;
   end;
+
+  // Disable target selection if exporting to known session.
+  comboTargetCompat.Enabled := radioFile.Checked;
 end;
 
 procedure TExportSQLForm.validateControls(Sender: TObject);
