@@ -137,7 +137,6 @@ object ExportSQLForm: TExportSQLForm
       Width = 137
       Height = 21
       Style = csDropDownList
-      Anchors = [akLeft, akTop, akRight]
       Color = clBtnFace
       Enabled = False
       ItemHeight = 13
@@ -150,6 +149,7 @@ object ExportSQLForm: TExportSQLForm
       Width = 145
       Height = 21
       Style = csDropDownList
+      Anchors = [akLeft, akTop, akRight]
       Color = clBtnFace
       Enabled = False
       ItemHeight = 13
