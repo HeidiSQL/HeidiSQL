@@ -475,6 +475,8 @@ type
       property ConnParams : TConnParams read FConnParams;
   end;
 
+const
+  sqllog_char_limit = 2000;
 
 // --------------------------------------------------------------------------------------
 IMPLEMENTATION
@@ -782,7 +784,6 @@ begin
 end;
 
 
-
 procedure TMDIChild.LogSQL(msg: string = ''; comment: Boolean = true);
 begin
   // add a sql-command or info-line to history-memo
@@ -791,9 +792,14 @@ begin
     SynMemoSQLLog.Lines.Delete(0);
   end;
   // Shorten very long messages
-  if Length( msg ) > 2000 then
+  if Length( msg ) > sqllog_char_limit then
   begin
-    msg := Copy( msg, 0, 2000 );
+    msg :=
+      '/* Very large SQL query, showing first ' +
+      IntToStr(sqllog_char_limit) +
+      ' characters: */ ' +
+      Copy(msg, 0, sqllog_char_limit) +
+      ' ...';
   end;
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );
