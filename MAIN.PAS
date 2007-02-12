@@ -216,6 +216,7 @@ type
     procedure EnsureConnected;
     function GetDBNames: TStringList;
     procedure ExecuteRemoteQuery(sender: THandle; query: string);
+    procedure HandleWMGetDbmsVersion(var msg: TMessage); message WM_GETDBMSVERSION;
     procedure HandleWMGetDbList(var msg: TMessage); message WM_GETDBLIST;
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
@@ -294,6 +295,11 @@ end;
 procedure TMainForm.HandleWMComplete(var msg: TMessage);
 begin
   HandleWMCompleteMessage(msg);
+end;
+
+procedure TMainForm.HandleWMGetDbmsVersion(var msg: TMessage);
+begin
+  HandleWMGetDbmsVersionMessage(msg);
 end;
 
 procedure TMainForm.HandleWMGetDbList(var msg: TMessage);

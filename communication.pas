@@ -23,12 +23,14 @@ const
   // Our custom message types.
   WM_COMPLETED        = WM_APP + 1;
   WM_GETDBLIST        = WM_APP + 2;
+  WM_GETDBMSVERSION   = WM_APP + 3;
   // Our message subtypes for WM_COPYDATA messages.
   CMD_EXECUTEQUERY    = 1;
   RES_DBLIST          = 257;
   // Our SendMessage return codes.
   ERR_NOERROR         = 0;
   ERR_UNSPECIFIED     = 1;
+  ERROR_NOT_CONNECTED = 0;
 
   // Sent by TMysqlQueryThread to notify status
   WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
@@ -43,6 +45,11 @@ procedure RemoteExecQuery(window: THandle; query: string);
  given the version of the mysql server that window is connected to.
 *)
 procedure RemoteExecUseQuery(window: THandle; mysqlVersion: integer; dbName: string);
+
+(*
+ Gets the MySQL version from another window.
+*)
+function RemoteGetVersion(window: THandle): integer;
 
 (*
  Get a list of databases from another window.
@@ -81,6 +88,11 @@ function GetRequestIdFromMsg(msg: TWMCopyData): Cardinal;
 procedure HandleWMCompleteMessage(var msg: TMessage);
 
 (*
+ Helper which will handle WM_GETDBMSVERSION messages received.
+*)
+procedure HandleWMGetDbmsVersionMessage(var msg: TMessage);
+
+(*
  Helper which will handle WM_GETDBLIST messages received.
 *)
 procedure HandleWMGetDbListMessage(var msg: TMessage);
@@ -95,6 +107,7 @@ implementation
 
 uses
   main,
+  childwin,
   Helpers,
   SysUtils;
 
@@ -190,6 +203,17 @@ begin
 end;
 
 
+function RemoteGetVersion(window: THandle): integer;
+var
+  err: integer;
+begin
+  err := SendMessage(window, WM_GETDBMSVERSION, MainForm.Handle, 0);
+  if err = ERROR_NOT_CONNECTED then Exception.Create('Remote is not connected to a server');
+  // Result piggy-backed on error code.  Lazy.
+  result := err;
+end;
+
+
 function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; window: THandle): Cardinal;
 var
   ms: TMemoryStream;
@@ -250,6 +274,24 @@ begin
     ReleaseRemoteCaller(ERR_NOERROR);
   end;
 end;
+
+
+procedure HandleWMGetDbmsVersionMessage(var msg: TMessage);
+var
+  cwin: TMDIChild;
+  err: integer;
+begin
+  debug('ipc: Handling WM_GETDBMSVERSION.');
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
+  err := ERROR_NOT_CONNECTED;
+  // Assumes mysql_version is set the instant the
+  // ActiveMDIChild variable is set, or is at the
+  // least initialized to ERROR_NOT_CONNECTED...
+  if cwin <> nil then err := cwin.mysql_version;
+  // Piggy-back result on error code.  Lazy.
+  ReleaseRemoteCaller(err);
+end;
+
 
 procedure HandleWMGetDbListMessage(var msg: TMessage);
 var

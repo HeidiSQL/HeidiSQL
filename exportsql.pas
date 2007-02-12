@@ -135,6 +135,7 @@ const
 var
   appHandles: array of THandle;
   cancelDialog: TForm = nil;
+  remote_version: integer;
 
 function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 var
@@ -287,6 +288,10 @@ begin
   // If the query was completed before the cancel dialog closed,
   // the notification code won't accept the cancel, so it's OK. 
   NotifyInterrupted(requestId, Exception.Create('User cancelled.'));
+  // Fetch remote db version.
+  // TODO: Change to asynchronous call, this method is problematic
+  //       because it could block on errors (etc) in the other window.
+  remote_version := RemoteGetVersion(appHandles[comboOtherHost.ItemIndex]);
 end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
@@ -447,13 +452,7 @@ begin
   end;
 
   if tohost then begin
-    // TODO: Disable the combo and fetch remote version.
-    case comboTargetCompat.ItemIndex of
-      0: target_version := -1;
-      1: target_version := 32300;
-      2: target_version := 40000;
-      3: target_version := 51000;
-    end;
+    target_version := remote_version;
     mswa := target_version > -1;
     ansi := target_version = -1;
     win2export := appHandles[comboOtherHost.ItemIndex];
