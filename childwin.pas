@@ -735,6 +735,8 @@ begin
         inc(i);
       end;
 
+      // Synchronize internal variables with defaults from DFM.
+      StopOnErrors := btnQueryStopOnErrors.Down;
     end;
     CloseKey;
   end;
