@@ -430,13 +430,13 @@ type
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     function GetDBNames: TStringList;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
+    function GetCalculatedLimit( Table: String ): Int64;
 
     private
       strHostRunning             : String;
       uptime, time_connected     : Integer;
       OnlyDBs                    : TStringList;  // used on connecting
       rowcount                   : Int64;        // rowcount of ActualTable
-      avgrowsize                 : Int64;
       viewingdata                : Boolean;
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
@@ -446,7 +446,7 @@ type
       FQueryRunning              : Boolean;
       FMysqlConn                 : TMysqlConn;
       FConnParams                : TConnParams;
-      
+
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
@@ -969,17 +969,6 @@ begin
   Screen.Cursor := crDefault;
 end;
 
-const
-  // how much memory we're aiming to use for the
-  // data grid and it's automatic limit function
-  // this value should probably be user configurable
-  datagrid_load_initial: Integer = 5*1024*1024;
-  // how much overhead this application has per row
-  per_row_overhead: Integer = 1150;
-  // average row size guess for mysql server < 5.0
-  row_size_guess: Integer = 2048;
-  // round to nearest value when deciding limit
-  limit_rounding: Integer = 1000;
 
 procedure TMDIChild.viewdata(Sender: TObject);
 var
@@ -1007,31 +996,14 @@ begin
 
   sl_query := TStringList.Create();
 
-  // fetch row count and average row size
-  rowcount := StrToInt(GetVar('SELECT COUNT(*) FROM ' + mask(ActualTable), 0));
-  if mysql_version > 50000 then begin
-    avgrowsize := StrToInt(GetVar(
-      'SELECT avg_row_length ' +
-      'FROM information_schema.tables ' +
-      'WHERE table_schema=' + esc(ActualDatabase) + ' ' +
-      'AND table_name=' + esc(ActualTable), 0)
-    ) + per_row_overhead;
-  end else begin
-    avgrowsize := row_size_guess + per_row_overhead;
-  end;
+  // Get rowcount
+  rowcount := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ) );
 
   // limit number of rows automatically if first time this table is shown
-  if not dataselected then begin
+  if not dataselected then
+  begin
     // limit number of rows fetched if more than ~ 5 MB of data
-    if avgrowsize * rowcount > datagrid_load_initial then begin
-      limit := Trunc(datagrid_load_initial / avgrowsize);
-      limit := (Trunc(limit / limit_rounding) + 1) * limit_rounding;
-      debug(Format('data: %d rows of %d bytes each (average, including overhead), limiting data grid to %d rows', [rowcount, avgrowsize, limit]));
-      if limit >= rowcount then limit := -1;
-    end else begin
-      limit := -1;
-    end;
-    debug(Format('data: %d rows of %d bytes each (average, including overhead), limiting data grid to %d rows', [rowcount, avgrowsize, limit]));
+    limit := GetCalculatedLimit( ActualTable );
 
     // adjust limit in GUI
     mainform.ToolBarData.Visible := true;
@@ -4554,6 +4526,42 @@ begin
     exit;
   end;
 end;
+
+
+{***
+  Detect average row size and limit the number of rows fetched at
+  once if more than ~ 5 MB of data
+}
+function TMDIChild.GetCalculatedLimit( Table: String ): Int64;
+var
+  AvgRowSize, RecordCount : Int64;
+const
+  // how much memory we're aiming to use for the
+  // data grid and it's automatic limit function
+  // this value should probably be user configurable
+  LOAD_SIZE: Integer = 5*1024*1024;
+  // how much overhead this application has per row
+  ROW_SIZE_OVERHEAD : Integer = 1150;
+  // average row size guess for mysql server < 5.0
+  ROW_SIZE_GUESS: Integer = 2048;
+  // round to nearest value when deciding limit
+  ROUNDING: Integer = 1000;
+begin
+  result := -1;
+  GetResults( 'SHOW TABLE STATUS LIKE ' + esc(Table), ZQuery3 );
+  AvgRowSize := MakeInt( ZQuery3.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
+  RecordCount := MakeInt( ZQuery3.FieldByName( 'Rows' ).AsString );
+  if AvgRowSize * RecordCount > LOAD_SIZE then
+  begin
+    result := Trunc( LOAD_SIZE / AvgRowSize );
+    result := (Trunc(result / ROUNDING) + 1) * ROUNDING;
+    if result >= RecordCount then
+      result := -1;
+  end;
+  debug( 'GetCalculatedLimit: ' + formatnumber(result) );
+end;
+
+
 
 end.
 

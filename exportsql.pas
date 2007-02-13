@@ -384,7 +384,7 @@ var
   exportdb,exporttables     : boolean;
   exportdata                : boolean;
   dropquery,createquery,insertquery,
-  feldnamen                 : String;
+  columnnames               : String;
   keylist                   : Array of TMyKey;
   keystr,DB2export          : String;
   which                     : Integer;
@@ -396,13 +396,16 @@ var
   Escaped,fullvalue         : PChar;
   max_allowed_packet        : Integer;
   thesevalues               : String;
-  valuescount, recordcount  : Integer;
+  valuescount, limit        : Integer;
   donext                    : Boolean;
   PBuffer                   : PChar;
   sql, current_characterset : String;
-  target_version            : Integer;
+  target_version, loopnumber: Integer;
   mswa                      : Boolean;
   ansi                      : Boolean;
+  RecordCount_all, RecordCount_one, RecordNo_all,
+  offset                    : Int64;
+  sql_select                : String;
 begin
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -711,23 +714,24 @@ begin
           barProgress.StepIt;
         end;
 
-        // export data
+        {***
+          Export data
+        }
         if exportdata then
         begin
           // Set to mysql-readable char:
           DecimalSeparator := '.';
-          feldnamen := ' (';
+          columnnames := ' (';
           GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
           for k:=1 to ZQuery3.RecordCount do
           begin
             if k>1 then
-              feldnamen := feldnamen + ', ';
-            feldnamen := feldnamen + maskSql(target_version, ZQuery3.Fields[0].AsString, ansi);
+              columnnames := columnnames + ', ';
+            columnnames := columnnames + maskSql(target_version, ZQuery3.Fields[0].AsString, ansi);
             ZQuery3.Next;
           end;
-          feldnamen := feldnamen+')';
+          columnnames := columnnames+')';
 
-          GetResults( 'SELECT * FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
           if tofile then
           begin
             wsql(f);
@@ -775,97 +779,133 @@ begin
             end;
           end;
 
-          insertquery := '';
-          valuescount := 0;
-          j := 0;
-          donext := true;
-          recordcount := ZQuery3.RecordCount;
-          while not ZQuery3.Eof do
-          begin
-            inc(j);
-            lblProgress.caption := StrProgress + ' (Record ' + inttostr(j) + ')';
-            if ZQuery3.RecNo mod 100 = 0 then
-              lblProgress.Repaint;
-            if insertquery = '' then
-            begin
-              case comboData.ItemIndex of
-                DATA_TRUNCATE_INSERT: insertquery := 'INSERT INTO ';
-                DATA_INSERT: insertquery := 'INSERT INTO ';
-                DATA_INSERT_IGNORE: insertquery := 'INSERT IGNORE INTO ';
-                DATA_REPLACE_INTO: insertquery := 'REPLACE INTO ';
-              end;
-              if tofile then
-                insertquery := insertquery + maskSql(target_version, checkListTables.Items[i], ansi)
-              else
-                insertquery := insertquery + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi);
-              insertquery := insertquery + feldnamen;
-              insertquery := insertquery + ' VALUES ';
-            end;
-            thesevalues := '(';
 
-            for k := 0 to ZQuery3.fieldcount-1 do
+          {***
+            Detect average row size and limit the number of rows fetched at
+            once if more than ~ 5 MB of data
+          }
+          RecordCount_all := MakeInt( GetVar( 'SELECT COUNT(*) FROM ' + mask(checkListTables.Items[i]) ) );
+          limit := GetCalculatedLimit( checkListTables.Items[i] );
+          offset := 0;
+          loopnumber := 0;
+          RecordNo_all := 0;
+
+          // Loop as long as (offset+limit) have not reached (recordcount)
+          while true do
+          begin
+            inc( loopnumber );
+            debug('loopnumber: '+formatnumber(loopnumber));
+
+            // Check if end of data has been reached
+            if ( (offset) >= RecordCount_all) or ( (limit = -1) and (loopnumber > 1) ) then
             begin
-              if ZQuery3.Fields[k].IsNull then
-                value := 'NULL'
-              else
-              case ZQuery3.Fields[k].DataType of
-                ftInteger, ftSmallint, ftWord:
-                  value := ZQuery3.Fields[k].AsString;
-                ftBoolean:
-                  if ZQuery3.Fields[k].AsBoolean then
-                    value := escapeAuto( 'Y' )
-                  else
-                    value := escapeAuto( 'N' );
-                else
-                  value := escapeAuto( ZQuery3.Fields[k].AsString );
-              end;
-              thesevalues := thesevalues + value;
-              if k < ZQuery3.Fieldcount-1 then
-                thesevalues := thesevalues + ',';
+              break;
             end;
-            thesevalues := thesevalues + ')';
-            if cbxExtendedInsert.Checked then
+
+            sql_select := 'SELECT * FROM ' + mainform.mask(checkListTables.Items[i]);
+            if limit > -1 then
             begin
-              if (valuescount > 1)
-                and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
-                then
+              sql_select := sql_select + ' LIMIT ' + IntToStr( offset ) + ', ' + IntToStr( limit );
+              offset := offset + limit;
+            end;
+
+            // Execute SELECT
+            GetResults( sql_select, ZQuery3 );
+
+            insertquery := '';
+            valuescount := 0;
+            j := 0;
+            donext := true;
+            RecordCount_one := ZQuery3.RecordCount;
+            while not ZQuery3.Eof do
+            begin
+              inc(j);
+              inc(RecordNo_all);
+              lblProgress.caption := StrProgress + ' (Record ' + FormatNumber(RecordNo_all) + ')';
+              if j mod 100 = 0 then
+                lblProgress.Repaint;
+              if insertquery = '' then
               begin
-                // Rewind one record and throw thesevalues away
-                donext := false;
-                dec(j);
-                delete( insertquery, length(insertquery)-3, 4 );
+                case comboData.ItemIndex of
+                  DATA_TRUNCATE_INSERT: insertquery := 'INSERT INTO ';
+                  DATA_INSERT: insertquery := 'INSERT INTO ';
+                  DATA_INSERT_IGNORE: insertquery := 'INSERT IGNORE INTO ';
+                  DATA_REPLACE_INTO: insertquery := 'REPLACE INTO ';
+                end;
+                if tofile then
+                  insertquery := insertquery + maskSql(target_version, checkListTables.Items[i], ansi)
+                else
+                  insertquery := insertquery + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi);
+                insertquery := insertquery + columnnames;
+                insertquery := insertquery + ' VALUES ';
+              end;
+              thesevalues := '(';
+
+              for k := 0 to ZQuery3.fieldcount-1 do
+              begin
+                if ZQuery3.Fields[k].IsNull then
+                  value := 'NULL'
+                else
+                case ZQuery3.Fields[k].DataType of
+                  ftInteger, ftSmallint, ftWord:
+                    value := ZQuery3.Fields[k].AsString;
+                  ftBoolean:
+                    if ZQuery3.Fields[k].AsBoolean then
+                      value := escapeAuto( 'Y' )
+                    else
+                      value := escapeAuto( 'N' );
+                  else
+                    value := escapeAuto( ZQuery3.Fields[k].AsString );
+                end;
+                thesevalues := thesevalues + value;
+                if k < ZQuery3.Fieldcount-1 then
+                  thesevalues := thesevalues + ',';
+              end;
+              thesevalues := thesevalues + ')';
+              if cbxExtendedInsert.Checked then
+              begin
+                if (valuescount > 1)
+                  and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
+                  then
+                begin
+                  // Rewind one record and throw thesevalues away
+                  donext := false;
+                  dec(j);
+                  delete( insertquery, length(insertquery)-3, 4 );
+                end
+                else if j = RecordCount_one then
+                begin
+                  insertquery := insertquery + thesevalues;
+                end
+                else
+                begin
+                  inc(valuescount);
+                  insertquery := insertquery + thesevalues + ',' + crlf + #9;
+                  ZQuery3.Next;
+                  continue;
+                end;
               end
-              else if j = RecordCount then
+              else
               begin
                 insertquery := insertquery + thesevalues;
-              end
-              else
-              begin
-                inc(valuescount);
-                insertquery := insertquery + thesevalues + ',' + crlf + #9;
-                ZQuery3.Next;
-                continue;
               end;
-            end
-            else
-            begin
-              insertquery := insertquery + thesevalues;
+              if tofile then
+                wsql(f, mswa, insertquery + ';')
+              else if todb then
+                ExecQuery(insertquery)
+              else if tohost then
+                RemoteExecQuery(win2export, insertquery);
+              if donext then
+                ZQuery3.Next;
+              donext := true;
+              insertquery := '';
             end;
-            if tofile then
-              wsql(f, mswa, insertquery + ';')
-            else if todb then
-              ExecQuery(insertquery)
-            else if tohost then
-              RemoteExecQuery(win2export, insertquery);
-            if donext then
-              ZQuery3.Next;
-            donext := true;
-            insertquery := '';
+            ZQuery3.Close;
           end;
           // Set back to local setting:
           setLocales;
 
-          if ZQuery3.RecordCount > 0 then
+          if RecordCount_all > 0 then
           begin
             if tofile then
             begin
@@ -885,7 +925,6 @@ begin
                 RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
             end;
           end;
-          ZQuery3.Close;
           barProgress.StepIt;
         end;
       end;

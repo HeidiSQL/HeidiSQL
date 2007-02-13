@@ -1551,43 +1551,23 @@ end;
   @see http://www.heidisql.com/forum/viewtopic.php?t=161
 }
 function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
-var
-  i, o                    : byte;
-  hasbadchar, iskeyword   : Boolean;
 begin
+  // Quote ANSI-compatible
   if ansi then
   begin
     result := StringReplace(str, '"', '""', [rfReplaceAll]);
     result := '"' + result + '"';
   end
+  // Quote MySQL-compatible
   else if mysql_version >= 32300 then
   begin
-    // only mask if needed
-    hasbadchar := false;
-    for i:=1 to length(str) do
-    begin
-      o := ord( str[i] );
-      // digits, upper chars, lower chars and _ are allowed
-      hasbadchar := not (o in [48..57, 65..90, 97..122, 95]);
-      // see bug 1500753
-      if (i = 1) and not hasbadchar then
-        hasbadchar := o in [48..57];
-      if hasbadchar then
-        break;
-    end;
-
-    iskeyword := ( MYSQL_KEYWORDS.IndexOf( str ) > -1 );
-
-    if hasbadchar or iskeyword then
-    begin
-      result := StringReplace(str, '`', '``', [rfReplaceAll]);
-      result := '`' + result + '`';
-    end
-    else
-      result := str;
+    result := StringReplace(str, '`', '``', [rfReplaceAll]);
+    result := '`' + result + '`';
   end
   else
+  begin
     result := str;
+  end;
 end;
 
 
