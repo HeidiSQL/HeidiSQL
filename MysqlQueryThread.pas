@@ -87,7 +87,11 @@ type
 implementation
 
 uses
-  MysqlQuery, SysUtils, Main, Dialogs, helpers;
+  MysqlQuery, SysUtils, Main, Dialogs, helpers
+{$IFNDEF EXAMPLE_APP}
+,communication
+{$ENDIF}
+  ;
 
 function TMysqlQueryThread.AssembleResult: TThreadResult;
 begin
