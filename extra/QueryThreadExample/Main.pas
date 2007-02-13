@@ -90,12 +90,13 @@ end;
 
 function TForm1.AssembleConnParams: TConnParams;
 begin
-  Result.Host := edHost.Text;
-  Result.Database := edDatabase.Text;
-  Result.Protocol := 'mysql';
-  Result.User := edUser.Text;
-  Result.Pass := edPass.Text;
-  Result.Port := StrToIntDef(edPort.Text,3306);
+  ZeroMemory(@Result,SizeOf(Result));
+  Result.MysqlParams.Host := edHost.Text;
+  Result.MysqlParams.Database := edDatabase.Text;
+  Result.MysqlParams.Protocol := 'mysql';
+  Result.MysqlParams.User := edUser.Text;
+  Result.MysqlParams.Pass := edPass.Text;
+  Result.MysqlParams.Port := StrToIntDef(edPort.Text,3306);
 end;
 
 procedure TForm1.bnKillThreadClick(Sender: TObject);
@@ -141,7 +142,6 @@ var
   li : TListItem;
   idx : Integer;
 begin
-  li := nil;
   idx := FindListItemByMysqlQueryObject (ASender);
 
   if (idx<>-1) or (AEvent=MQE_INITED) then

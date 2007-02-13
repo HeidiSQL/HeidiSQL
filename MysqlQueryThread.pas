@@ -3,7 +3,12 @@ unit MysqlQueryThread;
 interface
 
 uses
-  Windows, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls;
+  Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls;
+
+{$IFDEF EXAMPLE_APP}
+const
+  WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
+{$ENDIF}
 
 type
   // Mysql connection parameter structure
@@ -82,7 +87,7 @@ type
 implementation
 
 uses
-  MysqlQuery, SysUtils, Main, Dialogs, Messages, communication, helpers;
+  MysqlQuery, SysUtils, Main, Dialogs, helpers;
 
 function TMysqlQueryThread.AssembleResult: TThreadResult;
 begin
@@ -217,7 +222,6 @@ begin
     end;
 
   NotifyStatus (MQE_FINISHED);    
-  Sleep (500);
   NotifyStatus (MQE_FREED);
 end;
 
