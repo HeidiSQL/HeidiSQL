@@ -27,7 +27,8 @@ uses
   ToolWin,
   DB,
   SynEdit,
-  SynMemo;
+  SynMemo,
+  ZDataSet;
 
 type
   TExportSQLForm = class(TForm)
@@ -406,6 +407,8 @@ var
   RecordCount_all, RecordCount_one, RecordNo_all,
   offset                    : Int64;
   sql_select                : String;
+  cwin                      : TMDIChild;
+  query                     : TZReadOnlyQuery;
 begin
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -462,476 +465,482 @@ begin
     DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
   end;
 
-  TRY
-    with TMDIChild(Mainform.ActiveMDIChild) do
+  try
+    cwin := TMDIChild(Mainform.ActiveMDIChild);
+    query := TZReadOnlyQuery.Create(self);
+    query.Connection := cwin.ZQuery3.Connection;
+    cwin.ExecUseQuery( comboSelectDatabase.Text );
+    {***
+      @todo
+      For "export to file" set max_allowed_packet to the standard-mysql-value to be safe on most servers
+      For "export to another db" set max_allowed_packet to the value set on current host
+      For "export to other host" set max_allowed_packet to the value set on remote host
+    }
+    max_allowed_packet := 1024*1024;
+    if cbxExtendedInsert.Checked then
     begin
-      ExecUseQuery( comboSelectDatabase.Text );
-      max_allowed_packet := 1024*1024;
+      max_allowed_packet := StrToIntDef( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
+    end;
+    if tofile then
+    begin
+      wsql(f, mswa, '# --------------------------------------------------------');
+      wsql(f, mswa, '# Host:                 ' + query.Connection.HostName );
+      wsql(f, mswa, '# Database:             ' + comboSelectDatabase.Text );
+      wsql(f, mswa, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
+      wsql(f, mswa, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
+      wsql(f, mswa, '# Target-Compatibility: ' + comboTargetCompat.Text );
       if cbxExtendedInsert.Checked then
       begin
-        max_allowed_packet := StrToIntDef( GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
+        wsql(f, mswa, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
       end;
-      if tofile then
+      wsql(f, mswa, '# ' + APPNAME + ' version:     ' + appversion );
+      wsql(f, mswa, '# --------------------------------------------------------');
+      wsql(f);
+      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
+      if current_characterset <> '' then
       begin
-        wsql(f, mswa, '# --------------------------------------------------------');
-        wsql(f, mswa, '# Host:                 ' + ZQuery3.Connection.HostName );
-        wsql(f, mswa, '# Database:             ' + comboSelectDatabase.Text );
-        wsql(f, mswa, '# Server version:       ' + GetVar( 'SELECT VERSION()' ) );
-        wsql(f, mswa, '# Server OS:            ' + GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
-        wsql(f, mswa, '# Target-Compatibility: ' + comboTargetCompat.Text );
-        if cbxExtendedInsert.Checked then
-        begin
-          wsql(f, mswa, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
-        end;
-        wsql(f, mswa, '# ' + APPNAME + ' version:     ' + appversion );
-        wsql(f, mswa, '# --------------------------------------------------------');
+        sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
+        wsql(f, mswa, sql);
+      end;
+      if cbxDatabase.Checked then
+      begin
         wsql(f);
-        current_characterset := GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
-        if current_characterset <> '' then
+        wsql(f);
+        wsql(f, mswa, '#');
+        wsql(f, mswa, '# Database structure for database ''' + comboSelectDatabase.Text + '''');
+        wsql(f, mswa, '#');
+        wsql(f);
+        if comboDatabase.ItemIndex = DB_DROP_CREATE then
         begin
-          sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
+          sql := 'DROP DATABASE IF EXISTS ' + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
           wsql(f, mswa, sql);
         end;
-        if cbxDatabase.Checked then
+        if cwin.mysql_version < 50002 then
         begin
-          wsql(f);
-          wsql(f);
-          wsql(f, mswa, '#');
-          wsql(f, mswa, '# Database structure for database ''' + comboSelectDatabase.Text + '''');
-          wsql(f, mswa, '#');
-          wsql(f);
-          if comboDatabase.ItemIndex = DB_DROP_CREATE then
+          sql := 'CREATE DATABASE ';
+          if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
           begin
-            sql := 'DROP DATABASE IF EXISTS ' + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
-            wsql(f, mswa, sql);
+            sql := sql + '/*!32312 IF NOT EXISTS*/ ';
           end;
-          if mysql_version < 50002 then
+          sql := sql + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
+        end
+        else
+        begin
+          sql := cwin.GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(comboSelectDatabase.Text), 1 );
+          sql := fixNewlines(sql) + ';';
+          if ansi then sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
+          if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
           begin
-            sql := 'CREATE DATABASE ';
-            if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
-            begin
-              sql := sql + '/*!32312 IF NOT EXISTS*/ ';
-            end;
-            sql := sql + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
-          end
-          else
-          begin
-            sql := GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(comboSelectDatabase.Text), 1 );
-            sql := fixNewlines(sql) + ';';
-            if ansi then sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
-            if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
-            begin
-              Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('DATABASE', sql) + 9);
-            end;
-          end;
-          wsql(f, mswa, sql);
-          if exporttables then
-          begin
-            wsql(f);
-            sql := 'USE ' + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
-            wsql(f, mswa, sql);
+            Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('DATABASE', sql) + 9);
           end;
         end;
-      end;
-
-      // How many tables?
-      tcount := 0;
-      for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then inc(tcount);
-      barProgress.Max := 0;
-      if exporttables then
-        barProgress.Max := tcount;
-      if exportdata then
-        barProgress.Max := barProgress.Max + tcount;
-
-      checkListTables.ItemIndex := -1;
-	    tablecounter := 0;
-
-      for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then
-      begin
-        inc(tablecounter);
-        if checkListTables.ItemIndex > -1 then
-          checkListTables.Checked[checkListTables.ItemIndex] := false;
-        checkListTables.ItemIndex := i;
-        StrProgress := 'Table ' + inttostr(tablecounter) + '/' + inttostr(tcount) + ': ' + checkListTables.Items[i];
-        lblProgress.caption := StrProgress;
-
+        wsql(f, mswa, sql);
         if exporttables then
         begin
-          dropquery := '';
-          if comboTables.ItemIndex = TAB_DROP_CREATE then begin
-            if tofile then
-              dropquery := 'DROP TABLE IF EXISTS ' + maskSql(target_version, checkListTables.Items[i], ansi)
-            else
-              dropquery := 'DROP TABLE IF EXISTS ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi);
-          end;
+          wsql(f);
+          sql := 'USE ' + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
+          wsql(f, mswa, sql);
+        end;
+      end;
+    end;
 
-          createquery := '';
-          if tofile then begin
-            createquery := '#' + crlf;
-            createquery := createquery + '# Table structure for table ''' + checkListTables.Items[i] + '''' + crlf;
-            createquery := createquery + '#' + crlf + crlf;
-          end;
-          
-          if mysql_version < 32320 then begin
-            GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
-            fieldcount := ZQuery3.FieldCount;
-          end else begin
-            GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
-            fieldcount := -1;
-          end;
-          if mysql_version >= 32320 then
-          begin
-            sql := ZQuery3.Fields[1].AsString;
-            sql := fixNewlines(sql);
-            if ansi then sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
-            if target_version = -1 then begin
-              j := max(pos('TYPE=', sql), pos('ENGINE=', sql));
-              // Delphi's Pos() lacks a start-at parameter.  Admittedly very ugly hack to achieve said effect.
-              k := 0;
-              while k <= j do k := k + 1 + Pos(' ', Copy(sql, k + 1, Length(sql)));
-              Delete(sql, j, k - j);
-            end;
-            {***
-              @note ansgarbecker
-                The ENGINE and TYPE options specify the storage engine for the table.
-                ENGINE was added in MySQL 4.0.18 (for 4.0) and 4.1.2 (for 4.1).
-                It is the preferred option name as of those versions, and TYPE has
-                become deprecated. TYPE is supported throughout the 4.x series, but
-                likely will be removed in the future.
-              @see http://dev.mysql.com/doc/refman/4.1/en/create-table.html
-            }
-            if target_version < 40000 then
-            begin
-              sql := stringreplace(sql, 'ENGINE=', 'TYPE=', [rfReplaceAll]);
-            end
-            else if target_version >= 51000 then
-            begin
-              sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
-            end;
-          end;
-          if mysql_version < 32320 then begin
-            if tofile then
-              sql := 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, checkListTables.Items[i], ansi) + ' (' + crlf
-            else
-              sql := sql + 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, DB2Export, ansi) + '.' + mask(checkListTables.Items[i]) + ' (' + crlf;
-            for j := 1 to fieldcount do
-            begin
-              sql := sql + '  ' + maskSql(target_version, ZQuery3.Fields[0].AsString, ansi) + ' ' + ZQuery3.Fields[1].AsString;
-              if ZQuery3.Fields[2].AsString <> 'YES' then
-                sql := sql + ' NOT NULL';
-              if ZQuery3.Fields[4].AsString <> '' then
-                sql := sql + ' DEFAULT ''' + ZQuery3.Fields[4].AsString + '''';
-              if ZQuery3.Fields[5].AsString <> '' then
-                sql := sql + ' ' + ZQuery3.Fields[5].AsString;
-              if j < fieldcount then
-                sql := sql + ',' + crlf;
-            end;
+    // How many tables?
+    tcount := 0;
+    for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then inc(tcount);
+    barProgress.Max := 0;
+    if exporttables then
+      barProgress.Max := tcount;
+    if exportdata then
+      barProgress.Max := barProgress.Max + tcount;
 
-            // Keys:
-            GetResults( 'SHOW KEYS FROM ' + mask(checkListTables.Items[i]), ZQuery3 );
-            setLength(keylist, 0);
-            keystr := '';
-            if ZQuery3.RecordCount > 0 then
-              keystr := ',';
+    checkListTables.ItemIndex := -1;
+    tablecounter := 0;
 
-            for j := 1 to ZQuery3.RecordCount do
-            begin
-              which := -1;
+    for i:=0 to checkListTables.Items.Count-1 do if checkListTables.checked[i] then
+    begin
+      inc(tablecounter);
+      if checkListTables.ItemIndex > -1 then
+        checkListTables.Checked[checkListTables.ItemIndex] := false;
+      checkListTables.ItemIndex := i;
+      StrProgress := 'Table ' + inttostr(tablecounter) + '/' + inttostr(tcount) + ': ' + checkListTables.Items[i];
+      lblProgress.caption := StrProgress;
 
-              for k:=0 to length(keylist)-1 do
-              begin
-                if keylist[k].Name = ZQuery3.Fields[2].AsString then // keyname exists!
-                  which := k;
-              end;
-              if which = -1 then
-              begin
-                setlength(keylist, length(keylist)+1);
-                which := high(keylist);
-                keylist[which].Columns := TStringList.Create;
-                with keylist[which] do // set properties for new key
-                begin
-                  Name := ZQuery3.Fields[2].AsString;
-                  if ZQuery3.Fields[2].AsString = 'PRIMARY' then
-                    _type := 'PRIMARY'
-                  else if ZQuery3.FieldCount >= 10 then if ZQuery3.Fields[9].AsString = 'FULLTEXT' then
-                    _type := 'FULLTEXT'
-                  else if ZQuery3.Fields[1].AsString = '1' then
-                    _type := ''
-                  else if ZQuery3.Fields[1].AsString = '0' then
-                    _type := 'UNIQUE';
-                end;
-              end;
-              keylist[which].Columns.add(maskSql(target_version, ZQuery3.Fields[4].AsString, ansi)); // add column(s)
-              ZQuery3.Next;
-            end;
-            for k:=0 to high(keylist) do
-            begin
-              if k > 0 then
-                keystr := keystr + ',';
-              if keylist[k].Name = 'PRIMARY' then
-                keystr := keystr + crlf + '  PRIMARY KEY ('
-              else
-                keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + maskSql(target_version, keylist[k].Name, ansi) + ' (';
-              keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
-            end;
-            sql := sql + keystr + crlf + ')';
-          end; // mysql_version < 32320
-
-          if comboTables.ItemIndex = TAB_CREATE_IGNORE then
-          begin
-            Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('TABLE', sql) + 6);
-          end;
-
-          createquery := createquery + sql;
-
-          // Output CREATE TABLE to file
-          if tofile then begin
-            createquery := createquery + ';' + crlf;
-            if dropquery <> '' then dropquery := dropquery + ';' + crlf;
-            wsql(f);
-            wsql(f);
-            if dropquery <> '' then wsql(f, mswa, dropquery);
-            wsql(f, mswa, createquery);
-          end
-
-          // Run CREATE TABLE on another Database
-          else if todb then begin
-            ExecUseQuery( DB2Export );
-            if comboTables.ItemIndex = TAB_DROP_CREATE then
-              ExecQuery( dropquery );
-            ExecQuery( createquery );
-            ExecUseQuery( comboSelectDatabase.Text );
-          end
-
-          // Run CREATE TABLE on another host
-          else if tohost then begin
-            RemoteExecUseQuery(win2export, mysql_version, DB2Export);
-            if comboTables.ItemIndex = TAB_DROP_CREATE then
-              RemoteExecQuery(win2export, dropquery);
-            RemoteExecQuery(win2export, createquery);
-          end;
-
-          barProgress.StepIt;
+      if exporttables then
+      begin
+        dropquery := '';
+        if comboTables.ItemIndex = TAB_DROP_CREATE then begin
+          if tofile then
+            dropquery := 'DROP TABLE IF EXISTS ' + maskSql(target_version, checkListTables.Items[i], ansi)
+          else
+            dropquery := 'DROP TABLE IF EXISTS ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi);
         end;
 
-        {***
-          Export data
-        }
-        if exportdata then
-        begin
-          // Set to mysql-readable char:
-          DecimalSeparator := '.';
-          columnnames := ' (';
-          GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), ZQuery3 );
-          for k:=1 to ZQuery3.RecordCount do
-          begin
-            if k>1 then
-              columnnames := columnnames + ', ';
-            columnnames := columnnames + maskSql(target_version, ZQuery3.Fields[0].AsString, ansi);
-            ZQuery3.Next;
-          end;
-          columnnames := columnnames+')';
+        createquery := '';
+        if tofile then begin
+          createquery := '#' + crlf;
+          createquery := createquery + '# Table structure for table ''' + checkListTables.Items[i] + '''' + crlf;
+          createquery := createquery + '#' + crlf + crlf;
+        end;
 
+        if cwin.mysql_version < 32320 then begin
+          cwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]), Query );
+          fieldcount := Query.FieldCount;
+        end else begin
+          cwin.GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), Query );
+          fieldcount := -1;
+        end;
+        if cwin.mysql_version >= 32320 then
+        begin
+          sql := Query.Fields[1].AsString;
+          sql := fixNewlines(sql);
+          if ansi then sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
+          if target_version = -1 then begin
+            j := max(pos('TYPE=', sql), pos('ENGINE=', sql));
+            // Delphi's Pos() lacks a start-at parameter.  Admittedly very ugly hack to achieve said effect.
+            k := 0;
+            while k <= j do k := k + 1 + Pos(' ', Copy(sql, k + 1, Length(sql)));
+            Delete(sql, j, k - j);
+          end;
+          {***
+            @note ansgarbecker
+              The ENGINE and TYPE options specify the storage engine for the table.
+              ENGINE was added in MySQL 4.0.18 (for 4.0) and 4.1.2 (for 4.1).
+              It is the preferred option name as of those versions, and TYPE has
+              become deprecated. TYPE is supported throughout the 4.x series, but
+              likely will be removed in the future.
+            @see http://dev.mysql.com/doc/refman/4.1/en/create-table.html
+          }
+          if target_version < 40000 then
+          begin
+            sql := stringreplace(sql, 'ENGINE=', 'TYPE=', [rfReplaceAll]);
+          end
+          else if target_version >= 51000 then
+          begin
+            sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
+          end;
+        end;
+        if cwin.mysql_version < 32320 then begin
+          if tofile then
+            sql := 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, checkListTables.Items[i], ansi) + ' (' + crlf
+          else
+            sql := sql + 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, DB2Export, ansi) + '.' + cwin.mask(checkListTables.Items[i]) + ' (' + crlf;
+          for j := 1 to fieldcount do
+          begin
+            sql := sql + '  ' + maskSql(target_version, Query.Fields[0].AsString, ansi) + ' ' + Query.Fields[1].AsString;
+            if Query.Fields[2].AsString <> 'YES' then
+              sql := sql + ' NOT NULL';
+            if Query.Fields[4].AsString <> '' then
+              sql := sql + ' DEFAULT ''' + Query.Fields[4].AsString + '''';
+            if Query.Fields[5].AsString <> '' then
+              sql := sql + ' ' + Query.Fields[5].AsString;
+            if j < fieldcount then
+              sql := sql + ',' + crlf;
+          end;
+
+          // Keys:
+          cwin.GetResults( 'SHOW KEYS FROM ' + cwin.mask(checkListTables.Items[i]), Query );
+          setLength(keylist, 0);
+          keystr := '';
+          if Query.RecordCount > 0 then
+            keystr := ',';
+
+          for j := 1 to Query.RecordCount do
+          begin
+            which := -1;
+
+            for k:=0 to length(keylist)-1 do
+            begin
+              if keylist[k].Name = Query.Fields[2].AsString then // keyname exists!
+                which := k;
+            end;
+            if which = -1 then
+            begin
+              setlength(keylist, length(keylist)+1);
+              which := high(keylist);
+              keylist[which].Columns := TStringList.Create;
+              with keylist[which] do // set properties for new key
+              begin
+                Name := Query.Fields[2].AsString;
+                if Query.Fields[2].AsString = 'PRIMARY' then
+                  _type := 'PRIMARY'
+                else if Query.FieldCount >= 10 then if Query.Fields[9].AsString = 'FULLTEXT' then
+                  _type := 'FULLTEXT'
+                else if Query.Fields[1].AsString = '1' then
+                  _type := ''
+                else if Query.Fields[1].AsString = '0' then
+                  _type := 'UNIQUE';
+              end;
+            end;
+            keylist[which].Columns.add(maskSql(target_version, Query.Fields[4].AsString, ansi)); // add column(s)
+            Query.Next;
+          end;
+          for k:=0 to high(keylist) do
+          begin
+            if k > 0 then
+              keystr := keystr + ',';
+            if keylist[k].Name = 'PRIMARY' then
+              keystr := keystr + crlf + '  PRIMARY KEY ('
+            else
+              keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + maskSql(target_version, keylist[k].Name, ansi) + ' (';
+            keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
+          end;
+          sql := sql + keystr + crlf + ')';
+        end; // mysql_version < 32320
+
+        if comboTables.ItemIndex = TAB_CREATE_IGNORE then
+        begin
+          Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('TABLE', sql) + 6);
+        end;
+
+        createquery := createquery + sql;
+
+        // Output CREATE TABLE to file
+        if tofile then begin
+          createquery := createquery + ';' + crlf;
+          if dropquery <> '' then dropquery := dropquery + ';' + crlf;
+          wsql(f);
+          wsql(f);
+          if dropquery <> '' then wsql(f, mswa, dropquery);
+          wsql(f, mswa, createquery);
+        end
+
+        // Run CREATE TABLE on another Database
+        else if todb then begin
+          cwin.ExecUseQuery( DB2Export );
+          if comboTables.ItemIndex = TAB_DROP_CREATE then
+            cwin.ExecQuery( dropquery );
+          cwin.ExecQuery( createquery );
+          cwin.ExecUseQuery( comboSelectDatabase.Text );
+        end
+
+        // Run CREATE TABLE on another host
+        else if tohost then begin
+          RemoteExecUseQuery(win2export, cwin.mysql_version, DB2Export);
+          if comboTables.ItemIndex = TAB_DROP_CREATE then
+            RemoteExecQuery(win2export, dropquery);
+          RemoteExecQuery(win2export, createquery);
+        end;
+
+        barProgress.StepIt;
+      end;
+
+      {***
+        Export data
+      }
+      if exportdata then
+      begin
+        // Set to mysql-readable char:
+        DecimalSeparator := '.';
+        columnnames := ' (';
+        cwin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), Query );
+        for k:=1 to Query.RecordCount do
+        begin
+          if k>1 then
+            columnnames := columnnames + ', ';
+          columnnames := columnnames + maskSql(target_version, Query.Fields[0].AsString, ansi);
+          Query.Next;
+        end;
+        columnnames := columnnames+')';
+
+        if tofile then
+        begin
+          wsql(f);
+          wsql(f);
+          wsql(f, mswa, '#');
+          wsql(f, mswa, '# Dumping data for table ''' + checkListTables.Items[i] + '''');
+          wsql(f, mswa, '#');
+          wsql(f);
+        end;
+
+        if comboData.ItemIndex = DATA_TRUNCATE_INSERT then
+        begin
           if tofile then
           begin
-            wsql(f);
-            wsql(f);
-            wsql(f, mswa, '#');
-            wsql(f, mswa, '# Dumping data for table ''' + checkListTables.Items[i] + '''');
-            wsql(f, mswa, '#');
-            wsql(f);
+            wsql(f, mswa, 'TRUNCATE TABLE ' + maskSql(target_version, checkListTables.Items[i], ansi) + ';');
+          end
+          else if todb then
+          begin
+            cwin.ExecQuery('TRUNCATE TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]);
+          end
+          else if tohost then
+          begin
+            RemoteExecQuery(win2export, 'TRUNCATE TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + checkListTables.Items[i]);
+          end;
+        end;
+
+        if Query.RecordCount > 0 then
+        begin
+          if tofile then
+          begin
+            wsql(f, mswa, '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i], ansi) +' DISABLE KEYS;*/' );
+            wsql(f, mswa, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i], ansi) +' WRITE;' );
+          end
+          else if todb then
+          begin
+            if target_version > 40000 then
+              cwin.ExecQuery( 'ALTER TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
+            cwin.ExecQuery( 'LOCK TABLES ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
+          end
+          else if tohost then
+          begin
+            if target_version > 40000 then
+              RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' DISABLE KEYS');
+            RemoteExecQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' WRITE');
+          end;
+        end;
+
+
+        {***
+          Detect average row size and limit the number of rows fetched at
+          once if more than ~ 5 MB of data
+        }
+        RecordCount_all := MakeInt( cwin.GetVar( 'SELECT COUNT(*) FROM ' + cwin.mask(checkListTables.Items[i]) ) );
+        limit := cwin.GetCalculatedLimit( checkListTables.Items[i] );
+        offset := 0;
+        loopnumber := 0;
+        RecordNo_all := 0;
+
+        // Loop as long as (offset+limit) have not reached (recordcount)
+        while true do
+        begin
+          inc( loopnumber );
+          debug('loopnumber: '+formatnumber(loopnumber));
+
+          // Check if end of data has been reached
+          if ( (offset) >= RecordCount_all) or ( (limit = -1) and (loopnumber > 1) ) then
+          begin
+            break;
           end;
 
-          if comboData.ItemIndex = DATA_TRUNCATE_INSERT then
+          sql_select := 'SELECT * FROM ' + mainform.mask(checkListTables.Items[i]);
+          if limit > -1 then
           begin
-            if tofile then
-            begin
-              wsql(f, mswa, 'TRUNCATE TABLE ' + maskSql(target_version, checkListTables.Items[i], ansi) + ';');
-            end
-            else if todb then
-            begin
-              ExecQuery('TRUNCATE TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]);
-            end
-            else if tohost then
-            begin
-              RemoteExecQuery(win2export, 'TRUNCATE TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + checkListTables.Items[i]);
-            end;
+            sql_select := sql_select + ' LIMIT ' + IntToStr( offset ) + ', ' + IntToStr( limit );
+            offset := offset + limit;
           end;
 
-          if ZQuery3.RecordCount > 0 then
+          // Execute SELECT
+          cwin.GetResults( sql_select, Query );
+
+          insertquery := '';
+          valuescount := 0;
+          j := 0;
+          donext := true;
+          RecordCount_one := Query.RecordCount;
+          while not Query.Eof do
           begin
-            if tofile then
+            inc(j);
+            inc(RecordNo_all);
+            lblProgress.caption := StrProgress + ' (Record ' + FormatNumber(RecordNo_all) + ')';
+            if j mod 100 = 0 then
+              lblProgress.Repaint;
+            if insertquery = '' then
             begin
-              wsql(f, mswa, '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i], ansi) +' DISABLE KEYS;*/' );
-              wsql(f, mswa, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i], ansi) +' WRITE;' );
-            end
-            else if todb then
-            begin
-              if target_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
-              ExecQuery( 'LOCK TABLES ' + mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
-            end
-            else if tohost then
-            begin
-              if target_version > 40000 then
-                RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' DISABLE KEYS');
-              RemoteExecQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' WRITE');
-            end;
-          end;
-
-
-          {***
-            Detect average row size and limit the number of rows fetched at
-            once if more than ~ 5 MB of data
-          }
-          RecordCount_all := MakeInt( GetVar( 'SELECT COUNT(*) FROM ' + mask(checkListTables.Items[i]) ) );
-          limit := GetCalculatedLimit( checkListTables.Items[i] );
-          offset := 0;
-          loopnumber := 0;
-          RecordNo_all := 0;
-
-          // Loop as long as (offset+limit) have not reached (recordcount)
-          while true do
-          begin
-            inc( loopnumber );
-            debug('loopnumber: '+formatnumber(loopnumber));
-
-            // Check if end of data has been reached
-            if ( (offset) >= RecordCount_all) or ( (limit = -1) and (loopnumber > 1) ) then
-            begin
-              break;
-            end;
-
-            sql_select := 'SELECT * FROM ' + mainform.mask(checkListTables.Items[i]);
-            if limit > -1 then
-            begin
-              sql_select := sql_select + ' LIMIT ' + IntToStr( offset ) + ', ' + IntToStr( limit );
-              offset := offset + limit;
-            end;
-
-            // Execute SELECT
-            GetResults( sql_select, ZQuery3 );
-
-            insertquery := '';
-            valuescount := 0;
-            j := 0;
-            donext := true;
-            RecordCount_one := ZQuery3.RecordCount;
-            while not ZQuery3.Eof do
-            begin
-              inc(j);
-              inc(RecordNo_all);
-              lblProgress.caption := StrProgress + ' (Record ' + FormatNumber(RecordNo_all) + ')';
-              if j mod 100 = 0 then
-                lblProgress.Repaint;
-              if insertquery = '' then
-              begin
-                case comboData.ItemIndex of
-                  DATA_TRUNCATE_INSERT: insertquery := 'INSERT INTO ';
-                  DATA_INSERT: insertquery := 'INSERT INTO ';
-                  DATA_INSERT_IGNORE: insertquery := 'INSERT IGNORE INTO ';
-                  DATA_REPLACE_INTO: insertquery := 'REPLACE INTO ';
-                end;
-                if tofile then
-                  insertquery := insertquery + maskSql(target_version, checkListTables.Items[i], ansi)
-                else
-                  insertquery := insertquery + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi);
-                insertquery := insertquery + columnnames;
-                insertquery := insertquery + ' VALUES ';
+              case comboData.ItemIndex of
+                DATA_TRUNCATE_INSERT: insertquery := 'INSERT INTO ';
+                DATA_INSERT: insertquery := 'INSERT INTO ';
+                DATA_INSERT_IGNORE: insertquery := 'INSERT IGNORE INTO ';
+                DATA_REPLACE_INTO: insertquery := 'REPLACE INTO ';
               end;
-              thesevalues := '(';
+              if tofile then
+                insertquery := insertquery + maskSql(target_version, checkListTables.Items[i], ansi)
+              else
+                insertquery := insertquery + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi);
+              insertquery := insertquery + columnnames;
+              insertquery := insertquery + ' VALUES ';
+            end;
+            thesevalues := '(';
 
-              for k := 0 to ZQuery3.fieldcount-1 do
-              begin
-                if ZQuery3.Fields[k].IsNull then
-                  value := 'NULL'
-                else
-                case ZQuery3.Fields[k].DataType of
-                  ftInteger, ftSmallint, ftWord:
-                    value := ZQuery3.Fields[k].AsString;
-                  ftBoolean:
-                    if ZQuery3.Fields[k].AsBoolean then
-                      value := escapeAuto( 'Y' )
-                    else
-                      value := escapeAuto( 'N' );
+            for k := 0 to Query.fieldcount-1 do
+            begin
+              if Query.Fields[k].IsNull then
+                value := 'NULL'
+              else
+              case Query.Fields[k].DataType of
+                ftInteger, ftSmallint, ftWord:
+                  value := Query.Fields[k].AsString;
+                ftBoolean:
+                  if Query.Fields[k].AsBoolean then
+                    value := escapeAuto( 'Y' )
                   else
-                    value := escapeAuto( ZQuery3.Fields[k].AsString );
-                end;
-                thesevalues := thesevalues + value;
-                if k < ZQuery3.Fieldcount-1 then
-                  thesevalues := thesevalues + ',';
-              end;
-              thesevalues := thesevalues + ')';
-              if cbxExtendedInsert.Checked then
-              begin
-                if (valuescount > 1)
-                  and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
-                  then
-                begin
-                  // Rewind one record and throw thesevalues away
-                  donext := false;
-                  dec(j);
-                  delete( insertquery, length(insertquery)-3, 4 );
-                end
-                else if j = RecordCount_one then
-                begin
-                  insertquery := insertquery + thesevalues;
-                end
+                    value := escapeAuto( 'N' );
                 else
-                begin
-                  inc(valuescount);
-                  insertquery := insertquery + thesevalues + ',' + crlf + #9;
-                  ZQuery3.Next;
-                  continue;
-                end;
+                  value := escapeAuto( Query.Fields[k].AsString );
+              end;
+              thesevalues := thesevalues + value;
+              if k < Query.Fieldcount-1 then
+                thesevalues := thesevalues + ',';
+            end;
+            thesevalues := thesevalues + ')';
+            if cbxExtendedInsert.Checked then
+            begin
+              if (valuescount > 1)
+                and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
+                then
+              begin
+                // Rewind one record and throw thesevalues away
+                donext := false;
+                dec(j);
+                delete( insertquery, length(insertquery)-3, 4 );
+              end
+              else if j = RecordCount_one then
+              begin
+                insertquery := insertquery + thesevalues;
               end
               else
               begin
-                insertquery := insertquery + thesevalues;
+                inc(valuescount);
+                insertquery := insertquery + thesevalues + ',' + crlf + #9;
+                Query.Next;
+                continue;
               end;
-              if tofile then
-                wsql(f, mswa, insertquery + ';')
-              else if todb then
-                ExecQuery(insertquery)
-              else if tohost then
-                RemoteExecQuery(win2export, insertquery);
-              if donext then
-                ZQuery3.Next;
-              donext := true;
-              insertquery := '';
+            end
+            else
+            begin
+              insertquery := insertquery + thesevalues;
             end;
-            ZQuery3.Close;
-          end;
-          // Set back to local setting:
-          setLocales;
-
-          if RecordCount_all > 0 then
-          begin
             if tofile then
-            begin
-              wsql(f, mswa, 'UNLOCK TABLES;' );
-              wsql(f, mswa, '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i], ansi)+' ENABLE KEYS;*/' );
-            end
+              wsql(f, mswa, insertquery + ';')
             else if todb then
-            begin
-              ExecQuery( 'UNLOCK TABLES' );
-              if target_version > 40000 then
-                ExecQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS' );
-            end
+              cwin.ExecQuery(insertquery)
             else if tohost then
-            begin
-              RemoteExecQuery(win2export, 'UNLOCK TABLES');
-              if target_version > 40000 then
-                RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
-            end;
+              RemoteExecQuery(win2export, insertquery);
+            if donext then
+              Query.Next;
+            donext := true;
+            insertquery := '';
           end;
-          barProgress.StepIt;
+          Query.Close;
         end;
+        // Set back to local setting:
+        setLocales;
+
+        if RecordCount_all > 0 then
+        begin
+          if tofile then
+          begin
+            wsql(f, mswa, 'UNLOCK TABLES;' );
+            wsql(f, mswa, '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i], ansi)+' ENABLE KEYS;*/' );
+          end
+          else if todb then
+          begin
+            cwin.ExecQuery( 'UNLOCK TABLES' );
+            if target_version > 40000 then
+              cwin.ExecQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS' );
+          end
+          else if tohost then
+          begin
+            RemoteExecQuery(win2export, 'UNLOCK TABLES');
+            if target_version > 40000 then
+              RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
+          end;
+        end;
+        barProgress.StepIt;
       end;
-      if ActualDatabase <> '' then
-      begin
-        ExecUseQuery( ActualDatabase );
-      end;
+    end;
+    if cwin.ActualDatabase <> '' then
+    begin
+      cwin.ExecUseQuery( cwin.ActualDatabase );
     end;
   FINALLY
     if tofile then
