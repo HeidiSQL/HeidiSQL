@@ -214,10 +214,8 @@ type
     procedure DropTableExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
-    function GetDBNames: TDataSet;
-    procedure ExecuteRemoteQuery(sender: THandle; query: string);
-    procedure HandleWMGetDbmsVersion(var msg: TMessage); message WM_GETDBMSVERSION;
-    procedure HandleWMGetDbList(var msg: TMessage); message WM_GETDBLIST;
+    function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
+    procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer;
@@ -297,16 +295,6 @@ begin
   HandleWMCompleteMessage(msg);
 end;
 
-procedure TMainForm.HandleWMGetDbmsVersion(var msg: TMessage);
-begin
-  HandleWMGetDbmsVersionMessage(msg);
-end;
-
-procedure TMainForm.HandleWMGetDbList(var msg: TMessage);
-begin
-  HandleWMGetDbListMessage(msg);
-end;
-
 procedure TMainForm.HandleWMCopyData(var msg: TWMCopyData);
 begin
   HandleWMCopyDataMessage(msg);
@@ -317,13 +305,7 @@ begin
   if ActiveMDIChild = nil then raise Exception.Create('Not connected.');
 end;
 
-function TMainForm.GetDBNames: TDataSet;
-begin
-  EnsureConnected;
-  result := TMDIChild(ActiveMDIChild).GetDBNames;
-end;
-
-procedure TMainForm.ExecuteRemoteQuery(sender: THandle; query: string);
+function TMainForm.ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
 //var
   //tab: THandle;
 begin
@@ -331,6 +313,12 @@ begin
   // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
   // TQueryTab(tab).AddText(query);
   // tab.ExecQuery(query);
+  result := TMDIChild(ActiveMDIChild).ExecuteQuery(query);
+end;
+
+procedure TMainForm.ExecuteRemoteNonQuery(sender: THandle; query: string);
+begin
+  EnsureConnected;
   TMDIChild(ActiveMDIChild).ExecQuery(query);
 end;
 

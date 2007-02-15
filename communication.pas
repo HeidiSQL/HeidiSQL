@@ -23,15 +23,15 @@ uses
 const
   // Our custom message types.
   WM_COMPLETED        = WM_APP + 1;
-  WM_GETDBLIST        = WM_APP + 2;
-  WM_GETDBMSVERSION   = WM_APP + 3;
   // Our message subtypes for WM_COPYDATA messages.
-  CMD_EXECUTEQUERY    = 1;
-  RES_DBLIST          = 257;
-  // Our SendMessage return codes.
+  CMD_EXECUTEQUERY_NORESULTS     = 1; { Slightly faster  - Fire-and-forget, no results }
+  CMD_EXECUTEQUERY_RESULTS       = 2; { Normal           - Wait for completion, fetch results }
+  RES_QUERYDATA                  = 257;
+  RES_EXCEPTION                  = 258;
+  RES_NONQUERY                   = 259;
+  // Our custom return codes.
   ERR_NOERROR         = 0;
   ERR_UNSPECIFIED     = 1;
-  ERROR_NOT_CONNECTED = 0;
 
   // Sent by TMysqlQueryThread to notify status
   WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
@@ -39,29 +39,29 @@ const
 (*
  Execute a query on a window.
 *)
-procedure RemoteExecQuery(window: THandle; query: string);
+procedure RemoteExecNonQuery(window: THandle; query: string);
 
 (*
  Execute a USE query on a window,
  given the version of the mysql server that window is connected to.
 *)
-procedure RemoteExecUseQuery(window: THandle; mysqlVersion: integer; dbName: string);
+procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string);
 
 (*
- Gets the MySQL version from another window.
+ Execute a query on another window, request results but don't wait for them.
 *)
-function RemoteGetVersion(window: THandle): integer;
+function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; waitControl: TObject = nil): Cardinal;
 
 (*
- Get a list of databases from another window.
+ Execute a query on another window, showing a wait dialog while processing.
 *)
-function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; window: THandle): Cardinal;
+procedure RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String);
 
 (*
  Fill in resulting data and return waiting thread to caller.
- Call from message handler when a DB list message has been received.
+ Call from message handler when a query has finished executing and results are ready.
 *)
-procedure FinishRemoteGetDbCommand(msg: TWMCopyData);
+procedure FinishRemoteExecution(msg: TWMCopyData);
 
 (*
  Slightly lame wrapper: Call to release a RemoteXXX SendMessage call on the "other side".
@@ -69,17 +69,12 @@ procedure FinishRemoteGetDbCommand(msg: TWMCopyData);
 procedure ReleaseRemoteCaller(errCode: integer);
 
 (*
- Send a database list to a window.
-*)
-procedure SendDbListToRemote(window: THandle; request: Cardinal; ds: TDataSet);
-
-(*
  Extract a SQL query from a WM_COPYDATA message.
 *)
 function GetQueryFromMsg(msg: TWMCopyData): string;
 
 (*
- Extract a THandle from a WM_COPYDATA message.
+ Extract a request id from a WM_COPYDATA message.
 *)
 function GetRequestIdFromMsg(msg: TWMCopyData): Cardinal;
 
@@ -87,16 +82,6 @@ function GetRequestIdFromMsg(msg: TWMCopyData): Cardinal;
  Helper which will handle WM_COMPLETED messages received.
 *)
 procedure HandleWMCompleteMessage(var msg: TMessage);
-
-(*
- Helper which will handle WM_GETDBMSVERSION messages received.
-*)
-procedure HandleWMGetDbmsVersionMessage(var msg: TMessage);
-
-(*
- Helper which will handle WM_GETDBLIST messages received.
-*)
-procedure HandleWMGetDbListMessage(var msg: TMessage);
 
 (*
  Helper which will handle WM_COPYDATA messages received.
@@ -107,11 +92,12 @@ procedure HandleWMCopyDataMessage(var msg: TWMCopyData);
 implementation
 
 uses
+  Forms,
+  Dialogs,
   AdoDb,
   AdoInt,
   ActiveX,
   main,
-  childwin,
   Helpers,
   SysUtils;
 
@@ -154,11 +140,13 @@ var
 begin
   ms := TMemoryStream.Create;
   try
-    ms.Write(request, sizeof(THandle));
-    adods := CopyDataSetToAdoDataSet(ds);
-    sa := TStreamAdapter.Create(ms);
-    olevar := adods.Recordset;
-    olevar.Save(sa as IStream, 0);
+    ms.Write(request, sizeof(Cardinal));
+    if resType <> RES_NONQUERY then begin
+      adods := CopyDataSetToAdoDataSet(ds);
+      sa := TStreamAdapter.Create(ms);
+      olevar := adods.Recordset;
+      olevar.Save(sa as IStream, 0);
+    end;
     debug(Format('ipc: Sending data set to window %d, request id %d, size %d', [window, request, ms.Size]));
     data.dwData := resType;
     data.cbData := ms.Size;
@@ -170,15 +158,63 @@ begin
 end;
 
 
+procedure SendErrorStringToRemote(window: THandle; request: Cardinal; resType: integer; error: string);
+var
+  data: TCopyDataStruct;
+  ms: TMemoryStream;
+  pcerr: PChar;
+begin
+  ms := TMemoryStream.Create;
+  try
+    ms.Write(request, sizeof(Cardinal));
+    pcerr := PChar(error);
+    ms.Write(pcerr^, StrLen(pcerr) + 1);
+    debug(Format('ipc: Sending error message to window %d, request id %d, size %d', [window, request, ms.Size]));
+    data.dwData := resType;
+    data.cbData := ms.Size;
+    data.lpData := ms.Memory;
+    SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
+  finally
+    ms.free;
+  end;
+end;
+
+
+function GetStringFromMsgInternal(msg: TWMCopyData): string;
+var
+  pcsql: PChar;
+  ms: TMemoryStream;
+begin
+  ms := TMemoryStream.Create;
+  try
+    with msg.CopyDataStruct^ do begin
+      ms.Write(lpData^, cbData);
+      ms.Position := sizeof(Cardinal);
+      pcsql := StrAlloc(ms.Size - sizeof(Cardinal));
+      ms.Read(pcsql^, ms.Size - sizeof(Cardinal));
+      result := pcsql;
+    end;
+  finally
+    ms.free;
+  end;
+end;
+
+
 function GetQueryFromMsg(msg: TWMCopyData): string;
 begin
-  result := PChar(msg.CopyDataStruct^.lpData);
+  result := GetStringFromMsgInternal(msg);
+end;
+
+
+function GetExceptionTextFromMsg(msg: TWMCopyData): string;
+begin
+  result := GetStringFromMsgInternal(msg);
 end;
 
 
 function GetRequestIdFromMsg(msg: TWMCopyData): Cardinal;
 var
-  req: THandle;
+  req: Cardinal;
   ms: TMemoryStream;
 begin
   ms := TMemoryStream.Create;
@@ -186,7 +222,7 @@ begin
     with msg.CopyDataStruct^ do begin
       ms.Write(lpData^, cbData);
       ms.Position := 0;
-      ms.Read(req, sizeof(THandle));
+      ms.Read(req, sizeof(Cardinal));
       result := req;
     end;
   finally
@@ -206,7 +242,7 @@ begin
   try
     with msg.CopyDataStruct^ do begin
       ms.Write(lpData^, cbData);
-      ms.Position := sizeof(THandle);
+      ms.Position := sizeof(Cardinal);
       sa := TStreamAdapter.Create(ms);
       olevar := CoRecordset.Create;
       olevar.Open(sa as IStream);
@@ -220,62 +256,98 @@ begin
 end;
 
 
-procedure RemoteExecQuery(window: THandle; query: string);
+procedure RemoteExecQueryInternal(method: DWORD; req: Cardinal; window: THandle; query: String);
 var
+  ms: TMemoryStream;
+  pcsql: PChar;
   data: TCopyDataStruct;
   err: integer;
 begin
-  data.dwData := CMD_EXECUTEQUERY;
-  data.cbData := Length(query) + 1;
-  data.lpData := PChar(query);
-  err := SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
-  if err <> 0 then Exception.CreateFmt('Remote returned error %d when asked to execute query', [err]);
-end;
-
-
-procedure RemoteExecUseQuery(window: THandle; mysqlVersion: integer; dbName: string);
-begin
-  RemoteExecQuery(window, 'USE ' + maskSql(mysqlVersion, dbName));
-end;
-
-
-function RemoteGetVersion(window: THandle): integer;
-var
-  err: integer;
-begin
-  err := SendMessage(window, WM_GETDBMSVERSION, MainForm.Handle, 0);
-  if err = ERROR_NOT_CONNECTED then Exception.Create('Remote is not connected to a server');
-  // Result piggy-backed on error code.  Lazy.
-  result := err;
-end;
-
-
-function RemoteGetDatabases(handler: TCompletionHandler; timeout: Cardinal; window: THandle): Cardinal;
-var
-  ms: TMemoryStream;
-  req: Cardinal;
-begin
   ms := TMemoryStream.Create;
   try
-    req := SetCompletionHandler(handler, timeout);
-    result := req;
-    PostMessage(window, WM_GETDBLIST, MainForm.Handle, req);
-    debug(Format('ipc: Remote db call started for request id %d.', [req]));
+    debug(Format('ipc: Remote query being requested, id %d.', [req]));
+    ms.Write(req, sizeof(Cardinal));
+    pcsql := PChar(query);
+    ms.Write(pcsql^, StrLen(pcsql) + 1);
+    data.dwData := method;
+    data.cbData := ms.Size;
+    data.lpData := ms.Memory;
+    err := SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
+    if err <> 0 then Exception.CreateFmt('Remote returned error %d when asked to execute query', [err]);
   finally
     ms.free;
   end;
 end;
 
 
-procedure FinishRemoteGetDbCommand(msg: TWMCopyData);
+procedure RemoteExecNonQuery(window: THandle; query: string);
+begin
+  RemoteExecQueryInternal(CMD_EXECUTEQUERY_NORESULTS, REQUEST_ID_INVALID, window, query);
+end;
+
+
+procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string);
+begin
+  RemoteExecNonQuery(window, 'USE ' + maskSql(mysqlVersion, dbName));
+end;
+
+
+function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; waitControl: TObject = nil): Cardinal;
+var
+  req: Cardinal;
+begin
+  req := SetCompletionHandler(handler, timeout, waitControl);
+  RemoteExecQueryInternal(CMD_EXECUTEQUERY_RESULTS, req, window, query);
+  result := req;
+end;
+
+
+procedure RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String);
+var
+  cancelDialog: TForm;
+  requestId: Cardinal;
+begin
+  if Length(info) = 0 then info := 'Waiting for remote session to execute query...';
+  cancelDialog := CreateMessageDialog(info, mtCustom, [mbCancel]);
+  requestId := RemoteExecQueryAsync(handler, timeout, window, query, cancelDialog);
+  // The callback method shouldn't be activated before messages has been processed,
+  // so we can safely touch the wait control (a cancel dialog) here.
+  cancelDialog.ShowModal;
+  // We just cancel in any case.
+  // If the query was completed before the cancel dialog closed,
+  // the notification code won't accept the cancel, so it's OK.
+  NotifyInterrupted(requestId, Exception.Create('User cancelled.'));
+end;
+
+
+procedure SwitchWaitControlInternal(waitControl: TObject);
+var
+  cancelDialog: TForm;
+begin
+  // Hide the cancel dialog if it's still showing.
+  cancelDialog := TForm(waitControl);
+  if (cancelDialog <> nil) and cancelDialog.Visible then cancelDialog.Close;
+end;
+
+
+procedure FinishRemoteExecution(msg: TWMCopyData);
 var
   res: TDataSet;
-  req: THandle;
+  req: Cardinal;
+  s: string;
 begin
-  res := GetDataSetFromMsg(msg);
   req := GetRequestIdFromMsg(msg);
-  debug(Format('ipc: Remote db call finished for request id %d.', [req]));
-  NotifyComplete(req, res);
+  debug(Format('ipc: Remote execute query call finished for request id %d.', [req]));
+  case msg.CopyDataStruct^.dwData of
+    RES_QUERYDATA: begin
+      res := GetDataSetFromMsg(msg);
+      NotifyComplete(req, res);
+    end;
+    RES_EXCEPTION: begin
+      s := GetExceptionTextFromMsg(msg);
+      NotifyInterrupted(req, Exception.Create(s));
+    end;
+  end;
 end;
 
 
@@ -286,9 +358,19 @@ begin
 end;
 
 
-procedure SendDbListToRemote(window: THandle; request: Cardinal; ds: TDataSet);
+procedure ReportFinishedQuery(method: DWORD; window: THandle; request: Cardinal; ds: TDataSet);
+var
+  resType: DWORD;
 begin
-  SendDataSetToRemote(window, request, RES_DBLIST, ds);
+  if method = CMD_EXECUTEQUERY_NORESULTS then resType := RES_NONQUERY
+  else resType := RES_QUERYDATA;
+  SendDataSetToRemote(window, request, resType, ds);
+end;
+
+
+procedure ReportFailedQuery(method: DWORD; window: THandle; request: Cardinal; error: string); overload;
+begin
+  SendErrorStringToRemote(window, request, RES_EXCEPTION, error);
 end;
 
 
@@ -303,6 +385,8 @@ begin
     // Extract results.
     req := msg.LParam;
     res := ExtractResults(req);
+    // Switch wait control to non-waiting state.
+    SwitchWaitControlInternal(res.GetWaitControl);
     // Call completion handler.
     callback := res.GetHandler;
     callback(res);
@@ -312,66 +396,46 @@ begin
 end;
 
 
-procedure HandleWMGetDbmsVersionMessage(var msg: TMessage);
-var
-  cwin: TMDIChild;
-  err: integer;
-begin
-  debug('ipc: Handling WM_GETDBMSVERSION.');
-  cwin := TMDIChild(Mainform.ActiveMDIChild);
-  err := ERROR_NOT_CONNECTED;
-  // Assumes mysql_version is set the instant the
-  // ActiveMDIChild variable is set, or is at the
-  // least initialized to ERROR_NOT_CONNECTED...
-  if cwin <> nil then err := cwin.mysql_version;
-  // Piggy-back result on error code.  Lazy.
-  ReleaseRemoteCaller(err);
-end;
-
-
-procedure HandleWMGetDbListMessage(var msg: TMessage);
-var
-  ds: TDataSet;
-  req: Cardinal;
-  from: THandle;
-begin
-  debug('ipc: Handling WM_GETDBLIST.');
-  try
-    ds := MainForm.GetDBNames;
-    try
-      req := msg.LParam;
-      from := msg.WParam;
-      SendDbListToRemote(from, req, ds);
-    finally
-      ds.free;
-    end;
-  finally
-    ReleaseRemoteCaller(ERR_NOERROR);
-  end;
-end;
-
 procedure HandleWMCopyDataMessage(var msg: TWMCopyData);
 var
-  err: integer;
+  method: DWORD;
   query: string;
+  remoteReqId: integer;
+  data: TDataSet;
   //tab: THandle;
 begin
   debug('ipc: Handling WM_COPYDATA.');
-  err := ERR_UNSPECIFIED;
-  case msg.CopyDataStruct^.dwData of
-    CMD_EXECUTEQUERY: begin
-      try
-        query := GetQueryFromMsg(msg);
-        MainForm.ExecuteRemoteQuery(msg.From, query);
-        err := ERR_NOERROR;
-      finally
-        ReleaseRemoteCaller(err);
+  method := msg.CopyDataStruct^.dwData;
+  if
+    (method = CMD_EXECUTEQUERY_NORESULTS) or
+    (method = CMD_EXECUTEQUERY_RESULTS)
+  then begin
+    try
+      remoteReqId := GetRequestIdFromMsg(msg);
+      query := GetQueryFromMsg(msg);
+    finally
+      ReleaseRemoteCaller(ERR_NOERROR);
+    end;
+    data := nil;
+    try
+      if method = CMD_EXECUTEQUERY_NORESULTS then begin
+        MainForm.ExecuteRemoteNonQuery(msg.From, query);
+      end else begin
+        data := MainForm.ExecuteRemoteQuery(msg.From, query);
+      end;
+    except
+      on e: Exception do begin
+        ReportFailedQuery(method, msg.From, remoteReqId, e.Message);
       end;
     end;
-    RES_DBLIST: begin
-      ReleaseRemoteCaller(ERR_NOERROR);
-      FinishRemoteGetDbCommand(msg);
-    end;
+    if data <> nil then ReportFinishedQuery(method, msg.From, remoteReqId, data);
+  end;
+  if
+    (method = RES_QUERYDATA) or
+    (method = RES_EXCEPTION)
+  then begin
+    ReleaseRemoteCaller(ERR_NOERROR);
+    FinishRemoteExecution(msg);
   end;
 end;
 

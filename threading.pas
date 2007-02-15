@@ -20,21 +20,24 @@ type
       res: TObject;
       ex: Exception;
       handler: TCompletionHandler;
+      ctl: TObject;
     public
       property GetRequestId: Cardinal read req;
       property GetResult: TObject read res write res;
       property GetException: Exception read ex write ex;
       property GetHandler: TCompletionHandler read handler;
-      constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler);
+      property GetWaitControl: TObject read ctl;
+      constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
   end;
 
-function SetCompletionHandler(handler: TCompletionHandler; timeout: integer): Cardinal;
+function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
 function ExtractResults(RequestId: Cardinal): TNotifyStructure;
 
 const
   INFINITE_TIMEOUT = $7fffffff;
+  REQUEST_ID_INVALID = 0;
 
 implementation
 
@@ -50,10 +53,11 @@ uses
 var
   working: TThreadList;
 
-constructor TNotifyStructure.Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler);
+constructor TNotifyStructure.Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
 begin
   self.req := RequestId;
   self.handler := CompletionHandler;
+  self.ctl := WaitControl;
   self.res := nil;
   self.ex := nil;
 end;
@@ -72,7 +76,7 @@ begin
   end;
 end;
 
-function SetCompletionHandler(handler: TCompletionHandler; timeout: integer): Cardinal;
+function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
 var
   lockedList: TList;
   ns: TNotifyStructure;
@@ -85,7 +89,7 @@ begin
     // Make a unique request id.
     repeat
       RequestId := Random($7fffffff);
-    until IndexOf(lockedList, RequestId) = -1;
+    until (RequestId <> REQUEST_ID_INVALID) and (IndexOf(lockedList, RequestId) = -1);
     debug(Format('thr: Assigned request id %d.', [RequestId]));
     result := RequestId;
     // Raise an exception if a handler already exists.
@@ -95,7 +99,7 @@ begin
       raise Exception.Create(txt);
     end;
     // Create + add notify structure.
-    ns := TNotifyStructure.Create(RequestId, handler);
+    ns := TNotifyStructure.Create(RequestId, handler, waitControl);
     lockedList.Add(ns);
     // Optionally start timer.
     if timeout <> INFINITE_TIMEOUT then begin

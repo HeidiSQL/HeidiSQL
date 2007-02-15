@@ -94,6 +94,7 @@ type
       Shift: TShiftState);
   private
     procedure GetRemoteDatabasesCompleted(res: TNotifyStructure);
+    procedure GetRemoteVersionCompleted(res: TNotifyStructure);
     { Private declarations }
   public
     { Public declarations }
@@ -258,8 +259,6 @@ var
 begin
   error := res.GetException;
   list := TDataSet(res.GetResult);
-  // Hide the cancel dialog if it's still showing.
-  if cancelDialog.Visible then cancelDialog.Close;
   if list <> nil then begin
     // Fetching list was successful.
     comboOtherHostDatabase.Clear;
@@ -277,23 +276,44 @@ begin
   res.Free;
 end;
 
-procedure TExportSQLForm.comboOtherHostSelect(Sender: TObject);
+procedure TExportSQLForm.GetRemoteVersionCompleted(res: TNotifyStructure);
 var
-  requestId: Cardinal;
+  versions : TStringList;
+  list: TDataSet;
+  error: Exception;
 begin
-  cancelDialog := CreateMessageDialog('Fetching remote list of databases...', mtCustom, [mbCancel]);
-  requestId := RemoteGetDatabases(Self.GetRemoteDatabasesCompleted, INFINITE_TIMEOUT, appHandles[comboOtherHost.ItemIndex]);
-  // The callback method shouldn't be activated before messages has been processed,
-  // so we can safely touch the cancelDialog here.
-  cancelDialog.ShowModal;
-  // We just cancel in any case.
-  // If the query was completed before the cancel dialog closed,
-  // the notification code won't accept the cancel, so it's OK. 
-  NotifyInterrupted(requestId, Exception.Create('User cancelled.'));
-  // Fetch remote db version.
-  // TODO: Change to asynchronous call, this method is problematic
-  //       because it could block on errors (etc) in the other window.
-  remote_version := RemoteGetVersion(appHandles[comboOtherHost.ItemIndex]);
+  error := res.GetException;
+  list := TDataSet(res.GetResult);
+  if list <> nil then begin
+    versions := explode('.', list.Fields[0].AsString);
+    remote_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
+    list.Free;
+  end else begin
+    radioFile.Checked := true;
+    error.Free;
+  end;
+  res.Free;
+end;
+
+procedure TExportSQLForm.comboOtherHostSelect(Sender: TObject);
+begin
+  // Get both databases and version right when the radio
+  // is clicked, so we can switch to the 'file' radio
+  // immediately when something goes wrong.
+  RemoteExecQuery(
+    Self.GetRemoteDatabasesCompleted,
+    INFINITE_TIMEOUT,
+    appHandles[comboOtherHost.ItemIndex],
+    'SHOW DATABASES',
+    'Fetching remote list of databases...'
+  );
+  RemoteExecQuery(
+    Self.GetRemoteVersionCompleted,
+    INFINITE_TIMEOUT,
+    appHandles[comboOtherHost.ItemIndex],
+    'SELECT VERSION()',
+    'Probing for remote version...'
+  );
 end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
@@ -718,10 +738,10 @@ begin
 
         // Run CREATE TABLE on another host
         else if tohost then begin
-          RemoteExecUseQuery(win2export, cwin.mysql_version, DB2Export);
+          RemoteExecUseNonQuery(win2export, cwin.mysql_version, DB2Export);
           if comboTables.ItemIndex = TAB_DROP_CREATE then
-            RemoteExecQuery(win2export, dropquery);
-          RemoteExecQuery(win2export, createquery);
+            RemoteExecNonQuery(win2export, dropquery);
+          RemoteExecNonQuery(win2export, createquery);
         end;
 
         barProgress.StepIt;
@@ -767,7 +787,7 @@ begin
           end
           else if tohost then
           begin
-            RemoteExecQuery(win2export, 'TRUNCATE TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + checkListTables.Items[i]);
+            RemoteExecNonQuery(win2export, 'TRUNCATE TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + checkListTables.Items[i]);
           end;
         end;
 
@@ -787,8 +807,8 @@ begin
           else if tohost then
           begin
             if target_version > 40000 then
-              RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' DISABLE KEYS');
-            RemoteExecQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' WRITE');
+              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' DISABLE KEYS');
+            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' WRITE');
           end;
         end;
 
@@ -907,7 +927,7 @@ begin
             else if todb then
               cwin.ExecQuery(insertquery)
             else if tohost then
-              RemoteExecQuery(win2export, insertquery);
+              RemoteExecNonQuery(win2export, insertquery);
             if donext then
               Query.Next;
             donext := true;
@@ -933,9 +953,9 @@ begin
           end
           else if tohost then
           begin
-            RemoteExecQuery(win2export, 'UNLOCK TABLES');
+            RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
             if target_version > 40000 then
-              RemoteExecQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
+              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
           end;
         end;
         barProgress.StepIt;
