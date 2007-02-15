@@ -214,7 +214,7 @@ type
     procedure DropTableExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
-    function GetDBNames: TStringList;
+    function GetDBNames: TDataSet;
     procedure ExecuteRemoteQuery(sender: THandle; query: string);
     procedure HandleWMGetDbmsVersion(var msg: TMessage); message WM_GETDBMSVERSION;
     procedure HandleWMGetDbList(var msg: TMessage); message WM_GETDBLIST;
@@ -317,7 +317,7 @@ begin
   if ActiveMDIChild = nil then raise Exception.Create('Not connected.');
 end;
 
-function TMainForm.GetDBNames: TStringList;
+function TMainForm.GetDBNames: TDataSet;
 begin
   EnsureConnected;
   result := TMDIChild(ActiveMDIChild).GetDBNames;

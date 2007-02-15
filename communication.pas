@@ -14,6 +14,7 @@ unit communication;
 interface
 
 uses
+  Db,
   Windows,
   Threading,
   Classes,
@@ -70,7 +71,7 @@ procedure ReleaseRemoteCaller(errCode: integer);
 (*
  Send a database list to a window.
 *)
-procedure SendDbListToRemote(window: THandle; request: Cardinal; sl: TStringList);
+procedure SendDbListToRemote(window: THandle; request: Cardinal; ds: TDataSet);
 
 (*
  Extract a SQL query from a WM_COPYDATA message.
@@ -106,6 +107,9 @@ procedure HandleWMCopyDataMessage(var msg: TWMCopyData);
 implementation
 
 uses
+  AdoDb,
+  AdoInt,
+  ActiveX,
   main,
   childwin,
   Helpers,
@@ -119,16 +123,43 @@ type
   end;
 
 
-procedure SendStringListToRemote(window: THandle; request: Cardinal; resType: integer; sl: TStringList);
+function CopyDataSetToAdoDataSet(src: TDataSet): TAdoDataSet;
 var
+  dst: TAdoDataSet;
+  i: Integer;
+begin
+  dst := TAdoDataSet.Create(nil);
+  dst.FieldDefs.Assign(src.FieldDefs);
+  dst.CreateDataSet;
+  src.First;
+  while not src.Eof do begin
+    dst.Append;
+    for i := 0 to dst.FieldCount - 1 do begin
+      dst.Fields[i].Assign(src.Fields[i]);
+    end;
+    dst.Post;
+    src.Next;
+  end;
+  result := dst;
+end;
+
+
+procedure SendDatasetToRemote(window: THandle; request: Cardinal; resType: integer; ds: TDataSet);
+var
+  adods: TAdoDataSet;
   data: TCopyDataStruct;
   ms: TMemoryStream;
+  sa: TStreamAdapter;
+  olevar: OleVariant;
 begin
   ms := TMemoryStream.Create;
   try
-    debug(Format('ipc: Sending string list to window %d, request id %d', [window, request]));
     ms.Write(request, sizeof(THandle));
-    sl.SaveToStream(ms);
+    adods := CopyDataSetToAdoDataSet(ds);
+    sa := TStreamAdapter.Create(ms);
+    olevar := adods.Recordset;
+    olevar.Save(sa as IStream, 0);
+    debug(Format('ipc: Sending data set to window %d, request id %d, size %d', [window, request, ms.Size]));
     data.dwData := resType;
     data.cbData := ms.Size;
     data.lpData := ms.Memory;
@@ -164,19 +195,24 @@ begin
 end;
 
 
-function GetDbListFromMsg(msg: TWMCopyData): TStringList;
+function GetDataSetFromMsg(msg: TWMCopyData): TDataSet;
 var
-  sl: TStringList;
+  adods: TAdoDataSet;
   ms: TMemoryStream;
+  sa: TStreamAdapter;
+  olevar: OleVariant;
 begin
-  sl := TStringlist.Create;
   ms := TMemoryStream.Create;
   try
     with msg.CopyDataStruct^ do begin
       ms.Write(lpData^, cbData);
       ms.Position := sizeof(THandle);
-      sl.LoadFromStream(ms);
-      result := sl;
+      sa := TStreamAdapter.Create(ms);
+      olevar := CoRecordset.Create;
+      olevar.Open(sa as IStream);
+      adods := TAdoDataSet.Create(nil);
+      adods.Recordset := IUnknown(olevar) as _Recordset;
+      result := adods;
     end;
   finally
     ms.free;
@@ -233,10 +269,10 @@ end;
 
 procedure FinishRemoteGetDbCommand(msg: TWMCopyData);
 var
-  res: TStringList;
+  res: TDataSet;
   req: THandle;
 begin
-  res := GetDbListFromMsg(msg);
+  res := GetDataSetFromMsg(msg);
   req := GetRequestIdFromMsg(msg);
   debug(Format('ipc: Remote db call finished for request id %d.', [req]));
   NotifyComplete(req, res);
@@ -250,9 +286,9 @@ begin
 end;
 
 
-procedure SendDbListToRemote(window: THandle; request: Cardinal; sl: TStringList);
+procedure SendDbListToRemote(window: THandle; request: Cardinal; ds: TDataSet);
 begin
-  SendStringListToRemote(window, request, RES_DBLIST, sl);
+  SendDataSetToRemote(window, request, RES_DBLIST, ds);
 end;
 
 
@@ -295,19 +331,19 @@ end;
 
 procedure HandleWMGetDbListMessage(var msg: TMessage);
 var
-  sl: TStringlist;
+  ds: TDataSet;
   req: Cardinal;
   from: THandle;
 begin
   debug('ipc: Handling WM_GETDBLIST.');
   try
-    sl := MainForm.GetDBNames;
+    ds := MainForm.GetDBNames;
     try
       req := msg.LParam;
       from := msg.WParam;
-      SendDbListToRemote(from, req, sl);
+      SendDbListToRemote(from, req, ds);
     finally
-      sl.free;
+      ds.free;
     end;
   finally
     ReleaseRemoteCaller(ERR_NOERROR);

@@ -428,7 +428,7 @@ type
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
-    function GetDBNames: TStringList;
+    function GetDBNames: TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     function GetCalculatedLimit( Table: String ): Int64;
 
@@ -1695,16 +1695,14 @@ begin
 end;
 
 
-function TMDIChild.GetDBNames: TStringList;
+function TMDIChild.GetDBNames: TDataSet;
 var
-  i: integer;
-  sl: TStringList;
+  ds: TZReadOnlyQuery;
 begin
-  sl := TStringList.Create;
-  for i := 0 to DBTree.Items.Count - 1 do with DBTree.Items[i] do begin
-    if Level = 1 then sl.Add(Text);
-  end;
-  result := sl;
+  ds := TZReadOnlyQuery.Create(nil);
+  ds.Connection := MysqlConn.Connection;
+  GetResults('SHOW DATABASES', ds);
+  result := ds;
 end;
 
 

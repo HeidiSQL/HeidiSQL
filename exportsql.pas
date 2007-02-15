@@ -253,18 +253,19 @@ end;
 procedure TExportSQLForm.GetRemoteDatabasesCompleted(res: TNotifyStructure);
 var
   j: integer;
-  list: TStringList;
+  list: TDataSet;
   error: Exception;
 begin
   error := res.GetException;
-  list := TStringList(res.GetResult);
+  list := TDataSet(res.GetResult);
   // Hide the cancel dialog if it's still showing.
   if cancelDialog.Visible then cancelDialog.Close;
   if list <> nil then begin
     // Fetching list was successful.
     comboOtherHostDatabase.Clear;
-    for j:=0 to list.Count - 1 do begin
-      comboOtherHostDatabase.Items.Add(list[j]);
+    for j:=0 to list.RecordCount - 1 do begin
+      comboOtherHostDatabase.Items.Add(list.FieldByName('Database').AsString);
+      list.Next;
     end;
     list.Free;
   end else begin
