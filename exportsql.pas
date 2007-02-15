@@ -428,6 +428,9 @@ begin
   todb := radioOtherDatabase.Checked;
   tohost := radioOtherHost.Checked;
 
+  // for easy use of methods in childwin
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
+
   // open output file if needed.
   if tofile then begin
     case comboTargetCompat.ItemIndex of
@@ -452,7 +455,7 @@ begin
 
   // which db is destination?
   if todb then begin
-    target_version := TMDIChild(Mainform.ActiveMDIChild).mysql_version;
+    target_version := cwin.mysql_version;
     mswa := true;
     ansi := false;
     DB2export := comboOtherDatabase.Text;
@@ -467,7 +470,6 @@ begin
   end;
 
   try
-    cwin := TMDIChild(Mainform.ActiveMDIChild);
     query := TZReadOnlyQuery.Create(self);
     query.Connection := cwin.ZQuery3.Connection;
     cwin.ExecUseQuery( comboSelectDatabase.Text );
