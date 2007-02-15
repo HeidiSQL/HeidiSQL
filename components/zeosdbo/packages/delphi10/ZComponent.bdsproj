@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<PersonalityInfo>
 		<Option>
@@ -122,7 +122,7 @@
 			<Directories Name="OutputDir"></Directories>
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
 			<Directories Name="PackageDLLOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
-			<Directories Name="PackageDCPOutputDir">..\..\build</Directories>
+			<Directories Name="PackageDCPOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
 			<Directories Name="SearchPath">.\..\..\..\compilerdetection</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
