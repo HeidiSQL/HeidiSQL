@@ -89,8 +89,11 @@ function TMysqlConn.GetIsAlive: Boolean;
 begin
   Result := False;
 
-  if IsConnected then
+  if IsConnected then try
     Result := FConn.Ping();
+  except
+    Result := False;
+  end;
 end;
 
 function TMysqlConn.GetIsConnected: Boolean;
