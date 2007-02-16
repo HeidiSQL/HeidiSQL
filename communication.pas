@@ -53,9 +53,16 @@ procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: 
 function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; waitControl: TObject = nil): Cardinal;
 
 (*
- Execute a query on another window, showing a wait dialog while processing.
+ Execute a query on another window, showing a wait dialog while processing
+ and calling a completion handler via messaging when done.
 *)
-procedure RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String);
+function RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String): Cardinal;
+
+(*
+ Execute a query on another window, showing a wait dialog while processing
+ and returning results or raising an exception when done.
+*)
+function RemoteExecQuerySimple(window: THandle; query: String; info: String): TDataSet;
 
 (*
  Fill in resulting data and return waiting thread to caller.
@@ -296,13 +303,13 @@ function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; wi
 var
   req: Cardinal;
 begin
-  req := SetCompletionHandler(handler, timeout, waitControl);
+  req := SetCompletionHandler(nil, timeout, waitControl);
   RemoteExecQueryInternal(CMD_EXECUTEQUERY_RESULTS, req, window, query);
   result := req;
 end;
 
 
-procedure RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String);
+function RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String): Cardinal;
 var
   cancelDialog: TForm;
   requestId: Cardinal;
@@ -317,6 +324,18 @@ begin
   // If the query was completed before the cancel dialog closed,
   // the notification code won't accept the cancel, so it's OK.
   NotifyInterrupted(requestId, Exception.Create('User cancelled.'));
+  result := RequestId;
+end;
+
+
+function RemoteExecQuerySimple(window: THandle; query: String; info: String): TDataSet;
+var
+  requestId: Cardinal;
+begin
+  // Call with no handler (= no completion message) and no timeout.
+  requestId := RemoteExecQuery(nil, INFINITE_TIMEOUT, window, query, info);
+  // Take care of results since there's no handler.
+  result := TDataSet(ExtractResultObject(requestId));
 end;
 
 
@@ -384,12 +403,23 @@ begin
   try
     // Extract results.
     req := msg.LParam;
-    res := ExtractResults(req);
+    res := ExtractResults(req, true);
     // Switch wait control to non-waiting state.
     SwitchWaitControlInternal(res.GetWaitControl);
-    // Call completion handler.
+    // Perform rest of completion via callback, if any.
     callback := res.GetHandler;
-    callback(res);
+    if @callback <> nil then begin
+      // Clear results.
+      ExtractResults(req);
+      // Perform callback.
+      callback(res);
+    end;
+    // Otherwise just assume that completion will be handled
+    // by some thread which were waiting for the wait control.
+    //
+    // In the future, we could explicitly sound an event for
+    // this purpose, in case it's not possible to wait on the
+    // wait control..
   finally
     ReleaseRemoteCaller(ERR_NOERROR);
   end;

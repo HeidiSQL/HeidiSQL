@@ -93,8 +93,6 @@ type
     procedure checkListTablesKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
   private
-    procedure GetRemoteDatabasesCompleted(res: TNotifyStructure);
-    procedure GetRemoteVersionCompleted(res: TNotifyStructure);
     { Private declarations }
   public
     { Public declarations }
@@ -251,69 +249,43 @@ begin
   generateExampleSQL;
 end;
 
-procedure TExportSQLForm.GetRemoteDatabasesCompleted(res: TNotifyStructure);
-var
-  j: integer;
-  list: TDataSet;
-  error: Exception;
-begin
-  error := res.GetException;
-  list := TDataSet(res.GetResult);
-  if list <> nil then begin
-    // Fetching list was successful.
-    comboOtherHostDatabase.Clear;
-    for j:=0 to list.RecordCount - 1 do begin
-      comboOtherHostDatabase.Items.Add(list.FieldByName('Database').AsString);
-      list.Next;
-    end;
-    list.Free;
-  end else begin
-    // Error occurred while fetching remote list,
-    // just switch back to the 'output to file' choice.
-    radioFile.Checked := true;
-    error.Free;
-  end;
-  res.Free;
-end;
-
-procedure TExportSQLForm.GetRemoteVersionCompleted(res: TNotifyStructure);
-var
-  versions : TStringList;
-  list: TDataSet;
-  error: Exception;
-begin
-  error := res.GetException;
-  list := TDataSet(res.GetResult);
-  if list <> nil then begin
-    versions := explode('.', list.Fields[0].AsString);
-    remote_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
-    list.Free;
-  end else begin
-    radioFile.Checked := true;
-    error.Free;
-  end;
-  res.Free;
-end;
-
 procedure TExportSQLForm.comboOtherHostSelect(Sender: TObject);
+var
+  data: TDataSet;
+  j: integer;
+  versions : TStringList;
 begin
   // Get both databases and version right when the radio
   // is clicked, so we can switch to the 'file' radio
   // immediately when something goes wrong.
-  RemoteExecQuery(
-    Self.GetRemoteDatabasesCompleted,
-    INFINITE_TIMEOUT,
-    appHandles[comboOtherHost.ItemIndex],
-    'SHOW DATABASES',
-    'Fetching remote list of databases...'
-  );
-  RemoteExecQuery(
-    Self.GetRemoteVersionCompleted,
-    INFINITE_TIMEOUT,
-    appHandles[comboOtherHost.ItemIndex],
-    'SELECT VERSION()',
-    'Probing for remote version...'
-  );
+  try
+    data := RemoteExecQuerySimple(
+      appHandles[comboOtherHost.ItemIndex],
+      'SHOW DATABASES',
+      'Fetching remote list of databases...'
+    );
+    comboOtherHostDatabase.Clear;
+    for j:=0 to data.RecordCount - 1 do begin
+      comboOtherHostDatabase.Items.Add(data.FieldByName('Database').AsString);
+      data.Next;
+    end;
+    data.Free;
+
+    data := RemoteExecQuerySimple(
+      appHandles[comboOtherHost.ItemIndex],
+      'SELECT VERSION()',
+      'Probing for remote version...'
+    );
+    versions := explode('.', data.Fields[0].AsString);
+    remote_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
+    data.Free;
+  except
+    on E: Exception do begin
+      ShowMessage(E.Message);
+      radioFile.Checked := true;
+      E.Free;
+    end;
+  end;
 end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);

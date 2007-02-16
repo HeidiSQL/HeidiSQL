@@ -33,7 +33,8 @@ type
 function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
-function ExtractResults(RequestId: Cardinal): TNotifyStructure;
+function ExtractResults(RequestId: Cardinal; PeekOnly: Boolean = false): TNotifyStructure;
+function ExtractResultObject(RequestId: Cardinal): TObject;
 
 const
   INFINITE_TIMEOUT = $7fffffff;
@@ -139,7 +140,7 @@ begin
     working.UnlockList;
   end;
   // Send a message to the active message loop indicating
-  // that the completion handler should be called.
+  // that processing has completed.
   PostMessage(MainForm.Handle, WM_COMPLETED, MainForm.Handle, item.GetRequestId);
 end;
 
@@ -153,7 +154,7 @@ begin
   InternalNotify(RequestId, nil, AnException);
 end;
 
-function ExtractResults(RequestId: Cardinal): TNotifyStructure;
+function ExtractResults(RequestId: Cardinal; PeekOnly: Boolean = false): TNotifyStructure;
 var
   lockedList: TList;
   idx: integer;
@@ -171,11 +172,32 @@ begin
     end;
     // Remove notify structure from list and return it to caller.
     result := TNotifyStructure(lockedList[idx]);
-    lockedList.Delete(idx);
+    if not PeekOnly then lockedList.Delete(idx);
   finally
     working.UnlockList;
   end;
 end;
+
+function ExtractResultObject(RequestId: Cardinal): TObject;
+var
+  res: TNotifyStructure;
+  ex: Exception;
+  o: TObject;
+begin
+  res := ExtractResults(RequestId);
+  o := res.GetResult;
+  ex := res.GetException;
+  res.Free;
+  if o <> nil then begin
+    result := o;
+    exit
+  end else if ex <> nil then begin
+    raise ex;
+  end else begin
+    raise Exception.Create('Internal error in caller: no results available yet.');
+  end;
+end;
+
 
 initialization
   working := TThreadList.Create;
