@@ -136,6 +136,7 @@ var
   appHandles: array of THandle;
   cancelDialog: TForm = nil;
   remote_version: integer;
+  remote_max_allowed_packet : Int64;
 
 function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 var
@@ -279,6 +280,16 @@ begin
     versions := explode('.', data.Fields[0].AsString);
     remote_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
     data.Free;
+
+    // Fetch the max_allowed_packet variable to be sure not to
+    // overload the server when the user has checked "Extended Insert"
+    data := RemoteExecQuerySimple(
+      appHandles[comboOtherHost.ItemIndex],
+      'SHOW VARIABLES LIKE "max_allowed_packet"',
+      'Checking for maximum allowed SQL-packet size on server '+comboOtherHost.Text+'...'
+    );
+    remote_max_allowed_packet := MakeInt( data.FieldByName('Value').AsString );
+    data.Free;
   except
     on E: Exception do begin
       ShowMessage(E.Message);
@@ -388,14 +399,13 @@ var
   StrProgress               : String;
   value                     : String;
   Escaped,fullvalue         : PChar;
-  max_allowed_packet        : Integer;
+  max_allowed_packet        : Int64;
   thesevalues               : String;
   valuescount, limit        : Integer;
   donext                    : Boolean;
   PBuffer                   : PChar;
   sql, current_characterset : String;
   target_version, loopnumber: Integer;
-  mswa                      : Boolean;
   ansi                      : Boolean;
   RecordCount_all, RecordCount_one, RecordNo_all,
   offset                    : Int64;
@@ -407,12 +417,11 @@ begin
   pageControl1.ActivePageIndex := 0;
   Screen.Cursor := crHourGlass;
   target_version := -1;
-  mswa := false;
   ansi := true;
 
   // export what?
-  exportdb      := cbxStructure.Checked and cbxDatabase.Checked;
-  exporttables  := cbxStructure.Checked and cbxTables.Checked;
+  exportdb      := cbxDatabase.Enabled and cbxDatabase.Checked;
+  exporttables  := cbxTables.Enabled and cbxTables.Checked;
   exportdata    := cbxData.Checked;
 
   // to where?
@@ -423,7 +432,16 @@ begin
   // for easy use of methods in childwin
   cwin := TMDIChild(Mainform.ActiveMDIChild);
 
-  // open output file if needed.
+  {***
+    @note ansgarbecker
+    For "export to file" set max_allowed_packet to the default-value
+      in mysql-server to be safe on most servers.
+    For "export to another db" set max_allowed_packet to the value set on current host
+    For "export to other host" set max_allowed_packet to the value set on remote host
+    @see http://dev.mysql.com/doc/refman/5.0/en/packet-too-large.html
+  }
+
+  // Export to .sql-file on disk
   if tofile then begin
     case comboTargetCompat.ItemIndex of
       0: target_version := -1;
@@ -431,8 +449,8 @@ begin
       2: target_version := 40000;
       3: target_version := 51000;
     end;
-    mswa := target_version > -1;
     ansi := target_version = -1;
+    max_allowed_packet := 1024*1024;
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
     except
@@ -441,75 +459,111 @@ begin
       Screen.Cursor := crDefault;
       abort;
     end;
-    wsql(f, mswa, '# ' + APPNAME + ' Dump ');
-    wsql(f, mswa, '#');
+    wfs(f, '# ' + APPNAME + ' Dump ');
+    wfs(f, '#');
+    DB2export := comboSelectDatabase.Text;
   end;
 
-  // which db is destination?
+  // Export to other database in the same window
   if todb then begin
     target_version := cwin.mysql_version;
-    mswa := true;
     ansi := false;
+    // Only query max_allowed_packet if we really need that value later
+    if cbxExtendedInsert.Checked then
+    begin
+      max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ) );
+    end;
     DB2export := comboOtherDatabase.Text;
   end;
 
+  // Export to other window/host
   if tohost then begin
     target_version := remote_version;
-    mswa := target_version > -1;
     ansi := target_version = -1;
+    max_allowed_packet := remote_max_allowed_packet;
     win2export := appHandles[comboOtherHost.ItemIndex];
-    DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
+    if cbxDatabase.Checked then
+    begin
+      // Use original DB-name from source-server
+      DB2export := comboSelectDatabase.Text;
+    end
+    else
+      // Use existing DB-name on target-server
+      DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
   end;
 
   try
+    // Create helper-dataset
     query := TZReadOnlyQuery.Create(self);
     query.Connection := cwin.ZQuery3.Connection;
+    // Be sure to read everything from the correct database
     cwin.ExecUseQuery( comboSelectDatabase.Text );
+
     {***
-      @todo
-      For "export to file" set max_allowed_packet to the standard-mysql-value to be safe on most servers
-      For "export to another db" set max_allowed_packet to the value set on current host
-      For "export to other host" set max_allowed_packet to the value set on remote host
+      Ouput useful header information only when exporting to file
     }
-    max_allowed_packet := 1024*1024;
-    if cbxExtendedInsert.Checked then
-    begin
-      max_allowed_packet := StrToIntDef( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ), 1024*1024 );
-    end;
     if tofile then
     begin
-      wsql(f, mswa, '# --------------------------------------------------------');
-      wsql(f, mswa, '# Host:                 ' + query.Connection.HostName );
-      wsql(f, mswa, '# Database:             ' + comboSelectDatabase.Text );
-      wsql(f, mswa, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
-      wsql(f, mswa, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
-      wsql(f, mswa, '# Target-Compatibility: ' + comboTargetCompat.Text );
+      wfs(f, '# --------------------------------------------------------');
+      wfs(f, '# Host:                 ' + query.Connection.HostName );
+      wfs(f, '# Database:             ' + DB2export );
+      wfs(f, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
+      wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
+      wfs(f, '# Target-Compatibility: ' + comboTargetCompat.Text );
       if cbxExtendedInsert.Checked then
       begin
-        wsql(f, mswa, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
+        wfs(f, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
       end;
-      wsql(f, mswa, '# ' + APPNAME + ' version:     ' + appversion );
-      wsql(f, mswa, '# --------------------------------------------------------');
-      wsql(f);
+      wfs(f, '# ' + APPNAME + ' version:     ' + appversion );
+      wfs(f, '# --------------------------------------------------------');
+      wfs(f);
+    end;
+
+    {***
+      Some actions which are only needed if we're not in OtherDatabase-mode:
+      Set character set, create and use database.
+    }
+    if tofile or tohost then
+    begin
+      {***
+        Set characterset to current one
+      }
       current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
       if current_characterset <> '' then
       begin
         sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
-        wsql(f, mswa, sql);
+        sql := fixSQL( sql, target_version );
+        if tofile then
+          wfs(f, sql)
+        else if tohost then
+          RemoteExecNonQuery(win2export, sql );
       end;
-      if cbxDatabase.Checked then
+      if exportdb then
       begin
-        wsql(f);
-        wsql(f);
-        wsql(f, mswa, '#');
-        wsql(f, mswa, '# Database structure for database ''' + comboSelectDatabase.Text + '''');
-        wsql(f, mswa, '#');
-        wsql(f);
+        {***
+          DROP statement for database
+        }
+        if tofile then
+        begin
+          wfs(f);
+          wfs(f);
+          wfs(f, '#');
+          wfs(f, '# Database structure for database ''' + DB2export + '''');
+          wfs(f, '#');
+          wfs(f);
+        end;
         if comboDatabase.ItemIndex = DB_DROP_CREATE then
         begin
-          sql := 'DROP DATABASE IF EXISTS ' + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
-          wsql(f, mswa, sql);
+          sql := 'DROP DATABASE IF EXISTS ' + maskSql(target_version, DB2export, ansi) + ';';
+          if tofile then
+            wfs(f, sql)
+          else if tohost then
+            RemoteExecNonQuery(win2export, sql );
         end;
+
+        {***
+          CREATE statement for database plus database-switching
+        }
         if cwin.mysql_version < 50002 then
         begin
           sql := 'CREATE DATABASE ';
@@ -517,11 +571,11 @@ begin
           begin
             sql := sql + '/*!32312 IF NOT EXISTS*/ ';
           end;
-          sql := sql + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
+          sql := sql + maskSql(target_version, DB2export, ansi) + ';';
         end
         else
         begin
-          sql := cwin.GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(comboSelectDatabase.Text), 1 );
+          sql := cwin.GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(DB2export), 1 );
           sql := fixNewlines(sql) + ';';
           if ansi then sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
           if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
@@ -529,12 +583,21 @@ begin
             Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('DATABASE', sql) + 9);
           end;
         end;
-        wsql(f, mswa, sql);
+        sql := fixSQL( sql, target_version);
+        if tofile then
+          wfs(f, sql )
+        else if tohost then
+          RemoteExecNonQuery(win2export, sql );
         if exporttables then
         begin
-          wsql(f);
-          sql := 'USE ' + maskSql(target_version, comboSelectDatabase.Text, ansi) + ';';
-          wsql(f, mswa, sql);
+          sql := 'USE ' + maskSql(target_version, DB2export, ansi) + ';';
+          if tofile then
+          begin
+            wfs(f);
+            wfs(f, sql);
+          end
+          else if tohost then
+            RemoteExecNonQuery(win2export, sql);
         end;
       end;
     end;
@@ -693,15 +756,15 @@ begin
         if tofile then begin
           createquery := createquery + ';' + crlf;
           if dropquery <> '' then dropquery := dropquery + ';' + crlf;
-          wsql(f);
-          wsql(f);
-          if dropquery <> '' then wsql(f, mswa, dropquery);
-          wsql(f, mswa, createquery);
+          wfs(f);
+          wfs(f);
+          if dropquery <> '' then wfs(f, dropquery);
+          wfs(f, createquery);
         end
 
         // Run CREATE TABLE on another Database
         else if todb then begin
-          cwin.ExecUseQuery( DB2Export );
+          cwin.ExecUseQuery( DB2export );
           if comboTables.ItemIndex = TAB_DROP_CREATE then
             cwin.ExecQuery( dropquery );
           cwin.ExecQuery( createquery );
@@ -739,19 +802,19 @@ begin
 
         if tofile then
         begin
-          wsql(f);
-          wsql(f);
-          wsql(f, mswa, '#');
-          wsql(f, mswa, '# Dumping data for table ''' + checkListTables.Items[i] + '''');
-          wsql(f, mswa, '#');
-          wsql(f);
+          wfs(f);
+          wfs(f);
+          wfs(f, '#');
+          wfs(f, '# Dumping data for table ''' + checkListTables.Items[i] + '''');
+          wfs(f, '#');
+          wfs(f);
         end;
 
         if comboData.ItemIndex = DATA_TRUNCATE_INSERT then
         begin
           if tofile then
           begin
-            wsql(f, mswa, 'TRUNCATE TABLE ' + maskSql(target_version, checkListTables.Items[i], ansi) + ';');
+            wfs(f, 'TRUNCATE TABLE ' + maskSql(target_version, checkListTables.Items[i], ansi) + ';');
           end
           else if todb then
           begin
@@ -763,34 +826,33 @@ begin
           end;
         end;
 
-        if Query.RecordCount > 0 then
-        begin
-          if tofile then
-          begin
-            wsql(f, mswa, '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i], ansi) +' DISABLE KEYS;*/' );
-            wsql(f, mswa, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i], ansi) +' WRITE;' );
-          end
-          else if todb then
-          begin
-            if target_version > 40000 then
-              cwin.ExecQuery( 'ALTER TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
-            cwin.ExecQuery( 'LOCK TABLES ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
-          end
-          else if tohost then
-          begin
-            if target_version > 40000 then
-              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' DISABLE KEYS');
-            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' WRITE');
-          end;
-        end;
-
-
         {***
           Detect average row size and limit the number of rows fetched at
           once if more than ~ 5 MB of data
+          Be sure to do this step before the table is locked!
         }
         RecordCount_all := MakeInt( cwin.GetVar( 'SELECT COUNT(*) FROM ' + cwin.mask(checkListTables.Items[i]) ) );
         limit := cwin.GetCalculatedLimit( checkListTables.Items[i] );
+
+        if tofile then
+        begin
+          wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i], ansi) +' DISABLE KEYS;*/', target_version) );
+          wfs(f, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i], ansi) +' WRITE;' );
+        end
+        else if todb then
+        begin
+          if target_version > 40000 then
+            cwin.ExecQuery( 'ALTER TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]+' DISABLE KEYS' );
+          cwin.ExecQuery( 'LOCK TABLES ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]+' WRITE' );
+        end
+        else if tohost then
+        begin
+          if target_version > 40000 then
+            RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' DISABLE KEYS');
+          RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' WRITE');
+        end;
+
+
         offset := 0;
         loopnumber := 0;
         RecordNo_all := 0;
@@ -807,7 +869,7 @@ begin
             break;
           end;
 
-          sql_select := 'SELECT * FROM ' + mainform.mask(checkListTables.Items[i]);
+          sql_select := 'SELECT * FROM ' + mainform.mask(comboSelectDatabase.Text) + '.' + mainform.mask(checkListTables.Items[i]);
           if limit > -1 then
           begin
             sql_select := sql_select + ' LIMIT ' + IntToStr( offset ) + ', ' + IntToStr( limit );
@@ -895,7 +957,7 @@ begin
               insertquery := insertquery + thesevalues;
             end;
             if tofile then
-              wsql(f, mswa, insertquery + ';')
+              wfs(f, insertquery + ';')
             else if todb then
               cwin.ExecQuery(insertquery)
             else if tohost then
@@ -910,25 +972,22 @@ begin
         // Set back to local setting:
         setLocales;
 
-        if RecordCount_all > 0 then
+        if tofile then
         begin
-          if tofile then
-          begin
-            wsql(f, mswa, 'UNLOCK TABLES;' );
-            wsql(f, mswa, '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i], ansi)+' ENABLE KEYS;*/' );
-          end
-          else if todb then
-          begin
-            cwin.ExecQuery( 'UNLOCK TABLES' );
-            if target_version > 40000 then
-              cwin.ExecQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS' );
-          end
-          else if tohost then
-          begin
-            RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
-            if target_version > 40000 then
-              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
-          end;
+          wfs(f, 'UNLOCK TABLES;' );
+          wfs(f, fixSQL( '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i], ansi)+' ENABLE KEYS;*/', target_version) );
+        end
+        else if todb then
+        begin
+          cwin.ExecQuery( 'UNLOCK TABLES' );
+          if target_version > 40000 then
+            cwin.ExecQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS' );
+        end
+        else if tohost then
+        begin
+          RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
+          if target_version > 40000 then
+            RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export, ansi) + '.' + maskSql(target_version, checkListTables.Items[i], ansi) + ' ENABLE KEYS');
         end;
         barProgress.StepIt;
       end;
@@ -1056,7 +1115,7 @@ begin
   if radioOtherHost.Checked then begin
     comboOtherHost.Enabled := true;
     comboOtherHost.Color := clWindow;
-    comboOtherHostDatabase.Enabled := true;
+    comboOtherHostDatabase.Enabled := not cbxDatabase.Checked;
     comboOtherHostDatabase.Color := clWindow;
     comboOtherHost.SetFocus;
   end else begin
@@ -1072,8 +1131,9 @@ end;
 
 procedure TExportSQLForm.validateControls(Sender: TObject);
 begin
-  cbxDatabase.Enabled := cbxStructure.Checked and radioFile.Checked;
-  comboDatabase.Enabled := cbxStructure.Checked and radioFile.Checked and cbxDatabase.Checked;
+  cbxDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioOtherHost.Checked );
+  comboDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioOtherHost.Checked ) and cbxDatabase.Checked;
+  comboOtherHostDatabase.Enabled := not cbxDatabase.Checked;
 
   cbxTables.Enabled := cbxStructure.Checked;
   comboTables.Enabled := cbxStructure.Checked and cbxTables.Checked;

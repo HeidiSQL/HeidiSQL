@@ -36,7 +36,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
   procedure wfs( var s: TFileStream; str: String = '');
-  procedure wsql( var s: TFileStream; mysqlSemicolonWorkaround: boolean = false; sql: String = '');
+  function fixSQL( sql: String; target_version: Integer = -1 ): String;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
@@ -1013,8 +1013,7 @@ end;
 
 
 {***
-  Write SQL sentence to FileStream.
-
+  Make SQL statement compatible with either ANSI SQL or MySQL
   @note Works around MySQL placement of semicolon in conditional
         statements, which is not compatible with standard SQL (making
         the whole point of conditional statements slightly moot?).
@@ -1024,24 +1023,18 @@ end;
         btnExportClick() could be rewritten to better handle this sort
         of thing, but for now / with the current code, this is the easiest
         way of accomplishing the desired effect.
-
-  @param TFileStream Existing FileStream
-  @param boolean Use MySQL owns syntax for semicolon-placement?
-  @param string SQL to write
-  @return void
+  @param string SQL statement
+  @param integer MySQL-version, -1 for ANSI SQL
+  @return string SQL
 }
-procedure wsql(
-  var s: TFileStream;
-  mysqlSemicolonWorkaround: boolean = false;
-  sql: String = ''
-);
+function fixSQL( sql: String; target_version: Integer=-1 ): String;
 begin
-  if mysqlSemicolonWorkaround then begin
-    sql := StringReplace(sql, ';*/', '*/;', [rfReplaceAll]);
+  result := sql;
+  if target_version > -1 then // For all MySQL-versions
+  begin
+    result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
   end;
-  wfs(s, sql);
 end;
-
 
 
 {***
