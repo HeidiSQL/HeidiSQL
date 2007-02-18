@@ -12,6 +12,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
   shlobj, ActiveX;
 
+{$I const.inc}
+
   function trimc(s: String; c: Char) : String;
   function implode(seperator: String; a: array of string) :String;
   function implodestr(seperator: String; a: TStringList) :String;
@@ -36,7 +38,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
   procedure wfs( var s: TFileStream; str: String = '');
-  function fixSQL( sql: String; target_version: Integer = -1 ): String;
+  function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
@@ -57,7 +59,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
-  function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
+  function maskSql(sql_version: integer; str: String) : String;
   procedure ActivateWindow(Window : HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
   function ExpectResultSet(ASql: String): Boolean;
@@ -69,7 +71,6 @@ var
 
 implementation
 
-{$I const.inc}
 
 var
   dbgCounter: Integer = 0;
@@ -1024,13 +1025,13 @@ end;
         of thing, but for now / with the current code, this is the easiest
         way of accomplishing the desired effect.
   @param string SQL statement
-  @param integer MySQL-version, -1 for ANSI SQL
+  @param integer MySQL-version or SQL_VERSION_ANSI
   @return string SQL
 }
-function fixSQL( sql: String; target_version: Integer=-1 ): String;
+function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
 begin
   result := sql;
-  if target_version > -1 then // For all MySQL-versions
+  if sql_version > SQL_VERSION_ANSI then // For all MySQL-versions
   begin
     result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
   end;
@@ -1539,20 +1540,19 @@ end;
 
   @param integer MySQL version as compact number
   @param string Identifier
-  @param boolean Quote it ANSI-compatible (but not MySQL-compatible)?
   @return string (not) quoted identifier
   @see http://www.heidisql.com/forum/viewtopic.php?t=161
 }
-function maskSql(mysql_version: integer; str: String; ansi: boolean = false) : String;
+function maskSql(sql_version: integer; str: String) : String;
 begin
-  // Quote ANSI-compatible
-  if ansi then
+  // Quote ANSI-compatible (but not MySQL-compatible)?
+  if sql_version = SQL_VERSION_ANSI then
   begin
     result := StringReplace(str, '"', '""', [rfReplaceAll]);
     result := '"' + result + '"';
   end
   // Quote MySQL-compatible
-  else if mysql_version >= 32300 then
+  else if sql_version >= 32300 then
   begin
     result := StringReplace(str, '`', '``', [rfReplaceAll]);
     result := '`' + result + '`';

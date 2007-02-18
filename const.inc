@@ -22,3 +22,6 @@ const
   APPNAME          = 'HeidiSQL';
   REGPATH          = 'Software\' + APPNAME;
   STATUS_MSG_READY = 'Ready.';
+
+  // Used by maskSQL and fixSQL:
+  SQL_VERSION_ANSI = -1;
