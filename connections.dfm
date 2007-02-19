@@ -3016,6 +3016,7 @@ object connform: Tconnform
     Top = 64
     Width = 156
     Height = 21
+    AutoCompleteDelay = 5000
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
