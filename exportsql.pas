@@ -931,10 +931,7 @@ begin
                 ftInteger, ftSmallint, ftWord:
                   value := Query.Fields[k].AsString;
                 ftBoolean:
-                  if Query.Fields[k].AsBoolean then
-                    value := escapeAuto( 'Y' )
-                  else
-                    value := escapeAuto( 'N' );
+                  value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
                 else
                   value := escapeAuto( Query.Fields[k].AsString );
               end;
