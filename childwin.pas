@@ -4124,6 +4124,8 @@ end;
 
 // Execute a query without returning a resultset
 procedure TMDIChild.ExecQuery( SQLQuery: String );
+var
+  MysqlQuery : TMysqlQuery;
 begin
   try
     CheckConnection;
@@ -4134,9 +4136,10 @@ begin
   FProgressForm := TFrmQueryProgress.Create(Self);
 
   FQueryRunning := True;
-  ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
-
+  MysqlQuery := ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
   WaitForQueryCompletion();
+  if MysqlQuery.Result=3 then
+    LogSql(MysqlQuery.Comment,True);
 end;
 
 

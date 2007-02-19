@@ -34,7 +34,7 @@ uses ChildWin;
 procedure TfrmQueryProgress.btnAbortClick(Sender: TObject);
 begin
   Close();
-  // todo: kill !!
+  // todo: implement connection killing !!
 end;
 
 procedure TfrmQueryProgress.CreateParams(var Params: TCreateParams);
@@ -49,7 +49,18 @@ begin
   Action := caFree;
 end;
 
+{***
+  Handles the TMysqlQueryThread notification messages.
+
+  @param TMessage Message structure containing
+                  * LParam: Event type
+                  * WParam: MysqlQuery object containing status + resultset
+}
+
 procedure TfrmQueryProgress.HandleQueryNotificationMsg(var AMessage: TMessage);
+var
+  MysqlQuery : TMysqlQuery;
+  ChildWin : TMDIChild;
 begin
   case AMessage.LParam of
     MQE_INITED:
@@ -62,12 +73,15 @@ begin
       end;
     MQE_FINISHED:
       begin
-        TMDIChild(Owner).SetQueryRunningFlag(False);
+        MysqlQuery := TMysqlQuery(AMessage.WParam);
+        ChildWin := TMDIChild(Owner);
+        ChildWin.SetQueryRunningFlag(False);
         Close();
       end;
     MQE_FREED:;
   end;
 end;
+
 
 procedure TfrmQueryProgress.timAntiFreezeTimer(Sender: TObject);
 begin

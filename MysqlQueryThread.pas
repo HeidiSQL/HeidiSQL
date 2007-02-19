@@ -3,7 +3,7 @@ unit MysqlQueryThread;
 interface
 
 uses
-  Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls;
+  Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls, SysUtils;
 
 {$IFDEF EXAMPLE_APP}
 const
@@ -11,6 +11,12 @@ const
 {$ENDIF}
 
 type
+  // Exception information
+  TExceptionData = record
+    Msg : String[200];
+    HelpContext : Integer;
+  end;
+
   // Mysql connection parameter structure
   TMysqlConnParams = record
     Host,
@@ -67,6 +73,7 @@ type
       procedure ReportStart;
       procedure ReportFinished;
       procedure ReportFreed;
+      function  GetExceptionData(AException : Exception) : TExceptionData;
     protected
       procedure Execute; override;
       procedure SetState (AResult : Integer; AComment : String);
@@ -75,8 +82,8 @@ type
       procedure NotifyStatusViaEventProc (AEvent : Integer);
       procedure NotifyStatusViaWinMessage (AEvent : Integer);
       function AssembleResult () : TThreadResult;
-      function RunDataQuery (ASql : String; var ADataset : TDataset) : Boolean;
-      function RunUpdateQuery (ASql : String) : Boolean;
+      function RunDataQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData) : Boolean;
+      function RunUpdateQuery (ASql : String; out AExceptionData : TExceptionData) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
     public
       constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
@@ -87,7 +94,7 @@ type
 implementation
 
 uses
-  MysqlQuery, SysUtils, Main, Dialogs, helpers
+  MysqlQuery, Main, Dialogs, helpers
 {$IFNDEF EXAMPLE_APP}
 ,communication
 {$ENDIF}
@@ -175,8 +182,11 @@ begin
 end;
 
 procedure TMysqlQueryThread.NotifyStatusViaWinMessage(AEvent: Integer);
+var
+  qr : TThreadResult;
 begin
-
+  qr := AssembleResult();
+  TMysqlQuery(FOwner).SetThreadResult(qr);
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
@@ -184,6 +194,7 @@ procedure TMysqlQueryThread.Execute;
 var
   q : TZQuery;
   r : Boolean;
+  e : TExceptionData;
 begin
   NotifyStatus(MQE_INITED);
 
@@ -191,7 +202,10 @@ begin
     if not FMysqlConn.Connected then
       FMysqlConn.Connect();
   except
-    SetState (MQR_CONNECT_FAIL,'Connect error');
+    on E: Exception do
+      begin
+        SetState (MQR_CONNECT_FAIL,Format('%s',[E.Message]));
+      end;
   end;
 
   if FMysqlConn.Connected then
@@ -203,7 +217,7 @@ begin
       if ExpectResultSet(FSql) then
         begin
           q := nil;
-          r := RunDataQuery (FSql,TDataSet(q));
+          r := RunDataQuery (FSql,TDataSet(q),e);
 
           if r then
             begin
@@ -216,12 +230,12 @@ begin
           TMysqlQuery(FOwner).SetMysqlDataset(q);
         end
       else
-        r := RunUpdateQuery (FSql);
+        r := RunUpdateQuery (FSql,e);
 
       if r then
         SetState (MQR_SUCCESS,'SUCCESS')
       else
-        SetState (MQR_QUERY_FAIL,'ERROR');
+        SetState (MQR_QUERY_FAIL,e.Msg);
 
     end;
 
@@ -230,13 +244,22 @@ begin
 end;
 
 
+function TMysqlQueryThread.GetExceptionData(
+  AException: Exception): TExceptionData;
+begin
+  ZeroMemory (@Result,SizeOf(Result));
+  Result.Msg := AException.Message;
+  Result.HelpContext := AException.HelpContext;
+end;
+
 function TMysqlQueryThread.QuerySingleCellAsInteger(ASql: String): Integer;
 var
   ds : TDataSet;
+  e : TExceptionData;
 begin
   Result := 0;
 
-  if RunDataQuery(ASql,ds) then
+  if RunDataQuery(ASql,ds,e) then
     begin
       if ds.Fields.Count > 0 then
         Result := ds.Fields[0].AsInteger;
@@ -285,7 +308,7 @@ begin
 end;
 
 function TMysqlQueryThread.RunDataQuery(ASql: String;
-  var ADataset: TDataset): Boolean;
+  var ADataset: TDataset; out AExceptionData : TExceptionData): Boolean;
 var
   q : TZQuery;
 begin
@@ -299,11 +322,15 @@ begin
     ADataset := q;
     Result := True;
   except
+    on E: Exception do
+      begin
+        AExceptionData := GetExceptionData(E);
+      end;
     // EZSQLException
   end;
 end;
 
-function TMysqlQueryThread.RunUpdateQuery(ASql: String): Boolean;
+function TMysqlQueryThread.RunUpdateQuery(ASql: String; out AExceptionData : TExceptionData): Boolean;
 var
   q : TZQuery;
 begin
@@ -317,7 +344,8 @@ begin
     Result := True;
   except
     On E: Exception do
-      MessageDlg( 'SQL Error: '+ CRLF + E.Message, mtError, [mbOK], 0 );
+      AExceptionData := GetExceptionData(E);
+      //MessageDlg( 'SQL Error: '+ CRLF + E.Message, mtError, [mbOK], 0 );
   end;
 
   FreeAndNil (q);

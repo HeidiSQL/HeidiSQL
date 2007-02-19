@@ -59,6 +59,7 @@ type
       procedure Query (ASql : String; AMode : Integer = MQM_SYNC; ANotifyWndHandle : THandle = 0);
       procedure SetMysqlDataset(ADataset : TDataset);
       procedure PostNotification (AQueryResult : TThreadResult; AEvent : Integer);
+      procedure SetThreadResult(AResult : TThreadResult);
       property Result : Integer read GetResult;
       property Comment : String read GetComment;
       property ConnectionID : Integer read GetConnectionID;
@@ -82,12 +83,19 @@ uses SysUtils, Dialogs;
 
 
 {***
-  Executes a query asynchronously
+  Wrapper function to simplify running a query in asynchronous mode
+  This function will end right after the thread is created.
+
+  If ANotifyProc<>nil then status notifications will be send using this eventproc;
+  * use the ASender param to inspect the result
+
+  Otherwise status notifications are sent by the WM_MYSQL_THREAD_NOTIFY message;
+  * use the WParam member of the AMessage parameter (a TMysqlQuery object)
 
   @param string SQL-statement
-  @param TConnParams ??
+  @param TConnParams Connection credentials structure
   @param TMysqlQueryNotificationEvent Notify procedure
-  @param THandle Window handle used for ?
+  @param THandle Window handle to post thread status messages to
 }
 function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle) : TMysqlQuery;
 begin
@@ -97,6 +105,16 @@ begin
 end;
 
 
+{***
+  Wrapper function to simplify running a query in blocking mode
+  Status notifications are sent by the WM_MYSQL_THREAD_NOTIFY message;
+  Use the WParam member of the AMessage parameter (a TMysqlQuery object)
+
+  @param string The single SQL-statement to be executed
+  @param TConnParams Connection credentials structure
+  @param THandle Window handle to post thread status messages to
+  @return TMysqlQuery Query object returned to resolve status info and the data
+}
 
 function ExecMysqlStatementBlocking(ASql : String; AConnParams : TConnParams; AWndHandle : THandle) : TMysqlQuery;
 begin
@@ -107,6 +125,16 @@ end;
 
 
 { TMysqlQuery }
+
+{***
+  Constructor
+
+  @param TComponent Owner
+  @param PConnParams Used to pass connection credentials. If the MysqlConn member
+          (a TZConnection object) <>nil, the query will be run on this connection.
+          Otherwise a new connection object is created with the credentials
+          in the MysqlParams member
+}
 
 constructor TMysqlQuery.Create(AOwner: TComponent; AParams: PConnParams);
 begin
@@ -122,6 +150,14 @@ begin
   FMysqlDataset := nil;
 end;
 
+
+{***
+  Destructor:
+    remove created objects from memory
+
+  @result
+}
+
 destructor TMysqlQuery.Destroy;
 begin
   //FreeAndNil (FMysqlDataset);
@@ -129,20 +165,57 @@ begin
   inherited;
 end;
 
+
+{***
+
+  @param
+  @param
+
+  @result
+}
+
 function TMysqlQuery.GetComment: String;
 begin
   Result := FQueryResult.Comment;  
 end;
+
+
+{***
+
+  @param
+  @param
+
+  @result
+}
 
 function TMysqlQuery.GetConnectionID: Integer;
 begin
   Result := FQueryResult.ConnectionID;
 end;
 
+
+{***
+
+  @param
+  @param
+
+  @result
+}
+
 function TMysqlQuery.GetHasresultSet: Boolean;
 begin
   Result := FMysqlDataset <> nil;
 end;
+
+
+
+{***
+
+  @param
+  @param
+
+  @result
+}
 
 function TMysqlQuery.GetNotificationMode: Integer;
 begin
@@ -152,20 +225,47 @@ begin
     Result := MQN_WINMESSAGE;
 end;
 
+
+{***
+
+  @param
+  @param
+
+  @result
+}
+
 function TMysqlQuery.GetResult: Integer;
 begin
   Result := FQueryResult.Result;
 end;
 
+
+{***
+
+  @param
+  @param
+
+  @result
+}
+
 procedure TMysqlQuery.PostNotification(AQueryResult: TThreadResult; AEvent : Integer);
 begin
-  FQueryResult := AQueryResult;
+  SetThreadResult(AQueryResult);
 
   if FSyncMode=MQM_ASYNC then
     if AEvent in [MQE_INITED,MQE_STARTED,MQE_FINISHED,MQE_FREED] then  
       if Assigned(FOnNotify) then
         FOnNotify(Self,AEvent);
 end;
+
+
+{***
+
+  @param
+  @param
+
+  @result
+}
 
 procedure TMysqlQuery.Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle);
 var
@@ -200,9 +300,23 @@ begin
   end;
 end;
 
+
+{***
+
+  @param
+  @param
+
+  @result
+}
+
 procedure TMysqlQuery.SetMysqlDataset(ADataset: TDataset);
 begin
   FMysqlDataset := ADataset;
+end;
+
+procedure TMysqlQuery.SetThreadResult(AResult: TThreadResult);
+begin
+  FQueryResult := AResult;
 end;
 
 end.
