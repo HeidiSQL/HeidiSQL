@@ -4007,16 +4007,14 @@ begin
     // Manipulate the Quick-filter menuitems
     selectedColumn := mask(gridData.SelectedField.FieldName);
     // 1. block: include selected columnname and value from datagrid in caption
-    value := escLike(gridData.SelectedField.AsString);
-    value := escOtherChars(value);
-    value := sstr(value, 100);
-    QF1.Caption := selectedColumn + ' = "' + value + '"';
-    QF2.Caption := selectedColumn + ' != "' + value + '"';
-    QF3.Caption := selectedColumn + ' > "' + value + '"';
-    QF4.Caption := selectedColumn + ' < "' + value + '"';
-    QF5.Caption := selectedColumn + ' LIKE "' + value + '%"';
-    QF6.Caption := selectedColumn + ' LIKE "%' + value + '"';
-    QF7.Caption := selectedColumn + ' LIKE "%' + value + '%"';
+    value := sstr(gridData.SelectedField.AsString, 100);
+    QF1.Caption := selectedColumn + ' = ' + esc( value );
+    QF2.Caption := selectedColumn + ' != ' + esc( value );
+    QF3.Caption := selectedColumn + ' > ' + esc( value );
+    QF4.Caption := selectedColumn + ' < ' + esc( value );
+    QF5.Caption := selectedColumn + ' LIKE ''' + esc( value, true ) + '%''';
+    QF6.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '''';
+    QF7.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '%''';
 
     // 2. block: include only selected columnname in caption
     QF8.Caption := selectedColumn + ' = "..."';
@@ -4029,13 +4027,11 @@ begin
     cpText := Clipboard.AsText;
     if Length(cpText) < 100 then
     begin
-      cpText := escLike(cpText);
-      cpText := escOtherChars(cpText);
-      QF13.Enabled := true; QF13.Caption := selectedColumn + ' = "' + cpText + '"';
-      QF14.Enabled := true; QF14.Caption := selectedColumn + ' != "' + cpText + '"';
-      QF15.Enabled := true; QF15.Caption := selectedColumn + ' > "' + cpText + '"';
-      QF16.Enabled := true; QF16.Caption := selectedColumn + ' < "' + cpText + '"';
-      QF17.Enabled := true; QF17.Caption := selectedColumn + ' LIKE "%' + cpText + '%"';
+      QF13.Enabled := true; QF13.Caption := selectedColumn + ' = ' + esc( cpText );
+      QF14.Enabled := true; QF14.Caption := selectedColumn + ' != ' + esc( cpText );
+      QF15.Enabled := true; QF15.Caption := selectedColumn + ' > ' + esc( cpText );
+      QF16.Enabled := true; QF16.Caption := selectedColumn + ' < ' + esc( cpText );
+      QF17.Enabled := true; QF17.Caption := selectedColumn + ' LIKE ''%' + esc( cpText, true ) + '%''';
     end
     else
     begin
@@ -4382,7 +4378,7 @@ begin
     begin
       if where <> '' then
         where := where + CRLF + ' OR ';
-      where := where + mask(gridData.Fields[i].FieldName) + ' LIKE ''%' + escLike( EditDataSearch.text ) + '%''';
+      where := where + mask(gridData.Fields[i].FieldName) + ' LIKE ''%' + esc( EditDataSearch.text, true ) + '%''';
     end;
     if CheckBoxDataSearch.Checked then
       where := 'NOT (' + where + ')';

@@ -43,11 +43,9 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
-  function esc(Text: string): string;
-  function escLike(Text: string): string;
+  function esc(Text: string; ProcessJokerChars: Boolean = false): string;
   function hasIrregularChars(Text: string): boolean;
   function hasIrregularNewlines(Text: string): boolean;
-  function escOtherChars(Text: string): string;
   function escapeAuto(Text: string): string;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
@@ -1167,51 +1165,49 @@ end;
 
 
 {***
-  Escape single quotes and backslashes in a text string
+  Escape all kinds of characters:
+  - single-backslashes which represent normal parts of the text and not escape-sequences
+  - characters which MySQL doesn't strictly care about, but which might confuse editors etc.
+  - single and double quotes in a text string
+  - joker-chars for LIKE-comparisons
+  Finally, surround the text by single quotes.
 
   @param string Text to escape
+  @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function esc(Text: string): string;
+function esc(Text: string; ProcessJokerChars: Boolean = false): string;
 begin
-  Result := StringReplace(Text, #39, #39#39, [rfReplaceAll]);
-  Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
-  Result := #39 + Result + #39;
-end;
-
-
-
-{***
-  Escape text string for comparison.
-
-  @param string Text to escape
-  @return string
-}
-function escLike(Text: string): string;
-begin
+  // Replace single-backslashes with double-backslashes BEFORE
+  // special characters get escaped using their escape-sequence
+  // Fixes issue #1648978 "exported sql has \\r\\n instead of \r\n for CRLFs"
   Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
-  Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
-  Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
-  Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
-end;
 
-
-
-{***
-  Escape characters which MySQL doesn't strictly care about, but which might confuse editors etc.
-
-  @param string Text to escape
-  @return string
-}
-function escOtherChars(Text: string): string;
-begin
-  Result := StringReplace(Text, '"', '\"', [rfReplaceAll]);
-  {NUL} Result := StringReplace(Text, #0, '\0', [rfReplaceAll]);
+  {NUL} Result := StringReplace(Result, #0, '\0', [rfReplaceAll]);
   {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
   {TAB} Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
   {CR}  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
   {LF}  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
   {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
+
+  {DQ}  Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+  {SQ}  Result := StringReplace(Result, #39, #39#39, [rfReplaceAll]);
+
+  if ProcessJokerChars then
+  begin
+    // Escape joker-chars which are used in a LIKE-clause
+    Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
+    Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
+  end
+  else
+  begin
+    // Add surrounding single quotes only for non-LIKE-values
+    // because in all cases we're using ProcessLIKEChars we
+    // need to add leading and/or trailing joker-chars by hand
+    // without being escaped
+    Result := #39 + Result + #39;
+  end;
+
 end;
 
 
@@ -1233,7 +1229,7 @@ begin
     b := Ord(Text[i]);
     // Latin1 characters is everything except 0..31 and 127..159.
     // 9..13 is HTAB, LF, VTAB, FF, CR.  We only allow 9, 10 and 13,
-    // because those are the ones that we can escape in escOtherChars().
+    // because those are the ones that we can escape in esc().
     if b in [0..8, 11..12, 14..31, 127..159] then
     begin
       result := true;
@@ -1334,7 +1330,7 @@ begin
   end
   else
   begin
-    Result := esc(escOtherChars(Text));
+    Result := esc(Text);
   end;
 end;
 
