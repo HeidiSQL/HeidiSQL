@@ -118,7 +118,8 @@ object FieldEditForm: TFieldEditForm
           'LONGBLOB'
           'LONGTEXT'
           'ENUM'
-          'SET')
+          'SET'
+          'BIT')
       end
       object EditFieldname: TEdit
         Left = 88
