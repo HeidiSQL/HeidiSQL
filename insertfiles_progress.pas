@@ -105,7 +105,7 @@ begin
             Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
           end;
           if cols[j].Quote then
-            Value := '"' + escape_string(Value) + '"';
+            Value := esc(Value);
           ZQuery3.SQL.Add( Value + ', ' );
         end;
         // Strip last komma + space + CR + LF

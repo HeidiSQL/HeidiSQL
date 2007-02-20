@@ -3052,23 +3052,23 @@ var
   menuitem : TMenuItem;
 begin
   // Set filter for "where..."-clause
-  value := escape_string(gridData.SelectedField.AsString);
+  value := gridData.SelectedField.AsString;
   menuitem := (Sender as TMenuItem);
   column := mask(gridData.SelectedField.FieldName);
   if menuitem = QF1 then
-    filter := column + ' =' + ' ''' + value + ''''
+    filter := column + ' =' + ' ' + esc( value )
   else if menuitem = QF2 then
-    filter := column + ' !=' + ' ''' + value + ''''
+    filter := column + ' !=' + ' ' + esc( value )
   else if menuitem = QF3 then
-    filter := column + ' >' + ' ''' + value + ''''
+    filter := column + ' >' + ' ' + esc( value )
   else if menuitem = QF4 then
-    filter := column + ' <' + ' ''' + value + ''''
+    filter := column + ' <' + ' ' + esc( value )
   else if menuitem = QF5 then
-    filter := column + ' LIKE' + ' ''' + value + '%'''
+    filter := column + ' LIKE' + ' ''' + esc( value, true ) + '%'''
   else if menuitem = QF6 then
-    filter := column + ' LIKE' + ' ''%' + value + ''''
+    filter := column + ' LIKE' + ' ''%' + esc( value, true ) + ''''
   else if menuitem = QF7 then
-    filter := column + ' LIKE' + ' ''%' + value + '%'''
+    filter := column + ' LIKE' + ' ''%' + esc( value, true ) + '%'''
 
   else if menuitem = QF8 then
   begin

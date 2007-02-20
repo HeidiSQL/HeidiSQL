@@ -436,7 +436,7 @@ begin
     strAttributes := strAttributes + ' ZEROFILL';
 
   if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
-    strDefault := ' DEFAULT "' + escape_string(EditDefault.Text) + '"';
+    strDefault := ' DEFAULT ' + esc(EditDefault.Text);
 
   if CheckBoxNotNull.Checked = True then
     strNotNull := ' NOT NULL';

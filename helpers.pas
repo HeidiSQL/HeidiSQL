@@ -24,7 +24,6 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function parsesql(sql: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function notinlist(str: String; strlist: TStrings): Boolean;
-  function escape_string(Value: String; StrLen: Integer=-1) : String;
   function inarray(str: String; a: Array of String): Boolean;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -476,47 +475,6 @@ begin
       result := false;
       break;
     end;
-  end;
-end;
-
-
-
-{***
-  Escape String for use in SQL-strings
-
-  @param string Text to escape
-  @param integer Length of text (?)
-  @return string
-}
-function escape_string(Value: String; StrLen: Integer=-1) : String;
-var
-  I, Add, Len: Integer;
-  Ptr: PChar;
-begin
-  Add := 0;
-  if StrLen = -1 then Len := Length(Value)
-  else Len := StrLen;
-  for I := 1 to Len do
-    if Value[I] in ['''', '"', '\', #26, #10, #13, #0] then
-      Inc(Add);
-  SetLength(Result, Len + Add);
-  Ptr := PChar(Result);
-  for I := 1 to Len do
-  begin
-    if Value[I] in ['''', '"', '\', #26, #10, #13, #0] then
-    begin
-      Ptr^ := '\';
-      Inc(Ptr);
-      case Value[I] of
-        #26: Ptr^ := 'Z';
-        #10: Ptr^ := 'n';
-        #13: Ptr^ := 'r';
-        #0: Ptr^ := '0';
-        else Ptr^ := Value[I];
-      end;
-    end else
-      Ptr^ := Value[I];
-    Inc(Ptr);
   end;
 end;
 

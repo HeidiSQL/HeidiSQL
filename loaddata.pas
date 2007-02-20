@@ -227,7 +227,7 @@ begin
   if checkbox1.Checked then
     query := query + 'LOW_PRIORITY ';
 
-  query := query + 'LOCAL INFILE ''' + escape_string(EditFileName.Text) + ''' ';
+  query := query + 'LOCAL INFILE ' + esc(EditFileName.Text) + ' ';
   if checkbox8.Checked then
     query := query + 'REPLACE '
   else if checkbox9.Checked then
