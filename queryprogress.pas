@@ -65,7 +65,7 @@ begin
   case AMessage.LParam of
     MQE_INITED:
       begin
-        TMDIChild(Owner).SetQueryRunningFlag(True);
+        TMDIChild(Owner).SetQueryRunningFlag(True); // Todo: check if this is still needed
       end;
     MQE_STARTED:
       begin

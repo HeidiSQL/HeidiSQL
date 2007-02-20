@@ -399,7 +399,7 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
-    procedure ExecQuery( SQLQuery: String );
+    function ExecQuery( SQLQuery: String ) : Boolean;
     procedure ExecUseQuery( DbName: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
     procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
@@ -4118,28 +4118,75 @@ begin
   ExecQuery('USE ' + mask(DbName));
 end;
 
-// Execute a query without returning a resultset
-procedure TMDIChild.ExecQuery( SQLQuery: String );
+
+{***
+  Execute a query without returning a resultset
+
+  @param String The single SQL-query to be executed on the server
+  @return Boolean Return True on success, False otherwise
+}
+function TMDIChild.ExecQuery( SQLQuery: String ) : Boolean;
 var
   MysqlQuery : TMysqlQuery;
 begin
+  Result := False;
+
+  // Check if the connection of the current window is still alive
+  // Otherwise reconnect
   try
     CheckConnection;
   except
     exit;
   end;
 
+  // Create instance of the progress form (but don't show it yet)
   FProgressForm := TFrmQueryProgress.Create(Self);
 
+
+  // Indicate a querythread is active (only one thread allow at this moment)
   FQueryRunning := True;
+
+
+  {
+    Launch a thread of execution that passes the query to the server
+
+    The progressform serves as receiver of the status
+    messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
+
+    * After the thread starts it notifies the progressform (MQE_INITED)
+      (which calls ShowModal on itself)
+    * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
+    * Set FQueryRunning to false
+  }
   MysqlQuery := ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
+
+
+  {
+    Repeatedly check if the query has finished by inspecting FQueryRunning
+    Allow repainting of user interface
+  }
   WaitForQueryCompletion();
-  if MysqlQuery.Result=3 then
+
+
+  // Inspect query result code and log / notify user on failure
+  if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     LogSql(MysqlQuery.Comment,True);
+
+
+  // Get thread result code and convert into function return value
+  Result := (MysqlQuery.Result = MQR_SUCCESS);
+
+  
+  // Cleanup the MysqlQuery object, we won't need it anymore
+  FreeAndNil (MysqlQuery);
+
 end;
 
+{***
+  Executes a query with an existing ZQuery-object
 
-// Executes a query with an existing ZQuery-object
+  @note This freezes the user interface
+}
 procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
 begin
   // todo: convert it to a function to get info on result
@@ -4167,7 +4214,11 @@ begin
 end;
 
 
-// Execute a query and return string from column x
+{***
+  Execute a query and return string from column x
+
+  @note This freezes the user interface
+}
 function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
 begin
   GetResults( SQLQuery, ZQuery3 );
@@ -4176,6 +4227,12 @@ begin
 end;
 
 
+{***
+  This returns the dataset object that is currently visible to the user,
+  depending on with tabsheet is active.
+
+  @return TDataset if data/query tab is active, nil otherwise.
+}
 function TMDIChild.GetVisualDataset: TDataSet;
 begin
 
@@ -4187,7 +4244,15 @@ begin
   end;
 end;
 
-// Execute a query and return column x as Stringlist
+
+{***
+  Execute a query and return column x as Stringlist
+
+  @param  String SQL query string
+  @param  Integer 0-based column index in the resultset to return
+  @return TStringList
+  @note   This freezes the user interface
+}
 function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
 var
   i: Integer;
@@ -4203,7 +4268,9 @@ begin
 end;
 
 
-// Monitor SQL
+{***
+  Event procedure handler for the ZSQLMonitor1 object
+}
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
@@ -4216,7 +4283,10 @@ begin
   end;
 end;
 
-
+{***
+  Property-set procedure for QueryRunningFlag
+  Allows it to be set from other windows
+}
 procedure TMDIChild.SetQueryRunningFlag (AValue : Boolean);
 begin
   FQueryRunning := AValue;

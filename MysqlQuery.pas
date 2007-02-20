@@ -6,25 +6,25 @@ uses Windows, Messages, Classes, Db, ZConnection, ZDataSet, MysqlQueryThread;
 
 const
 
-  // execution mode
+  // Query execution mode
   MQM_SYNC = 0;
   MQM_ASYNC = 1;
 
-  // notification mode
-  MQN_EVENTPROC = 0;
-  MQN_WINMESSAGE = 1;
+  // Query status notification mode
+  MQN_EVENTPROC = 0;  // via event procedure with Synchronize
+  MQN_WINMESSAGE = 1; // via window message WM_MYSQL_THREAD_NOTIFY
 
-  // query result
-  MQR_NOTHING = 0; // no result yet
-  MQR_SUCCESS = 1; // success
+  // Thread notification events
+  MQE_INITED = 0;       // initialized
+  MQE_STARTED = 1;      // query started
+  MQE_FINISHED = 2;     // query finished
+  MQE_FREED = 3;        // object removed from memory
+
+  // Query result codes
+  MQR_NOTHING = 0;      // no result yet
+  MQR_SUCCESS = 1;      // success
   MQR_CONNECT_FAIL = 2; // done with error
-  MQR_QUERY_FAIL = 3; // done with error
-
-  // notification events
-  MQE_INITED = 0; // initialized
-  MQE_STARTED = 1; // query started
-  MQE_FINISHED = 2; // query finished
-  MQE_FREED = 3; // object removed from memory
+  MQR_QUERY_FAIL = 3;   // done with error
 
 {$I const.inc}
 
@@ -38,6 +38,7 @@ type
       FConnParams : TConnParams;
       FQueryResult : TThreadResult;
       FMysqlConnection : TZConnection;
+      FMysqlConnectionIsOwned : Boolean;
       FMysqlDataset : TDataset;
       FThreadID : Integer;
       FSyncMode : Integer;
@@ -53,24 +54,24 @@ type
     protected
 
     public
-      FProgressForm : Pointer;
       constructor Create (AOwner : TComponent; AParams : PConnParams);
       destructor Destroy (); override;
       procedure Query (ASql : String; AMode : Integer = MQM_SYNC; ANotifyWndHandle : THandle = 0);
       procedure SetMysqlDataset(ADataset : TDataset);
       procedure PostNotification (AQueryResult : TThreadResult; AEvent : Integer);
       procedure SetThreadResult(AResult : TThreadResult);
-      property Result : Integer read GetResult;
-      property Comment : String read GetComment;
-      property ConnectionID : Integer read GetConnectionID;
+
+      property Result : Integer read GetResult;                 // Query result code
+      property Comment : String read GetComment;                // Textual information about the query result, includes error description
+      property ConnectionID : Integer read GetConnectionID;     // Mysql connection ID
       property MysqlConnection : TZConnection read FMysqlConnection;
-      property MysqlDataset : TDataset read FMysqlDataset;
-      property HasResultset : Boolean read GetHasresultSet;
-      property ThreadID : Integer read FThreadID;
-      property Sql : String read FSql;
-      property EventName : String read FEventName;
+      property MysqlDataset : TDataset read FMysqlDataset;      // Resultset
+      property HasResultset : Boolean read GetHasresultSet;     // Indicator of resultset availability
+      property ThreadID : Integer read FThreadID;               // Mysql query thread ID (on the clients os)
+      property Sql : String read FSql;                          // Query string
+      property EventName : String read FEventName;              // Operating system event name used for blocking mode
       property NotificationMode : Integer read GetNotificationMode;
-      property OnNotify : TMysqlQueryNotificationEvent read FOnNotify write FOnNotify;
+      property OnNotify : TMysqlQueryNotificationEvent read FOnNotify write FOnNotify; // Event procedure used in MQN_EVENTPROC notification mode
   end;
 
   function ExecMysqlStatementAsync(ASql : String; AConnParams : TConnParams; ANotifyProc : TMysqlQueryNotificationEvent = nil; AWndHandle : THandle = 0) : TMysqlQuery;
@@ -139,13 +140,18 @@ end;
 constructor TMysqlQuery.Create(AOwner: TComponent; AParams: PConnParams);
 begin
   FConnParams := AParams^;
+  FMysqlConnectionIsOwned := False;
+
   ZeroMemory (@FQueryResult,SizeOf(FQueryResult));
   FSql := '';
 
   if AParams.MysqlConn<>nil then
     FMysqlConnection := AParams.MysqlConn
   else
-    FMysqlConnection := TZConnection.Create(nil);
+    begin
+      FMysqlConnectionIsOwned := True;
+      FMysqlConnection := TZConnection.Create(nil);
+    end;
 
   FMysqlDataset := nil;
 end;
@@ -161,7 +167,11 @@ end;
 destructor TMysqlQuery.Destroy;
 begin
   //FreeAndNil (FMysqlDataset);
-  FreeAndNil (FMysqlConnection);
+
+  // Only free the connection object if we first created it
+  if FMysqlConnectionIsOwned then
+    FreeAndNil (FMysqlConnection);
+
   inherited;
 end;
 
