@@ -823,12 +823,12 @@ begin
     if Catalog <> '' then
     begin
       sql := Format('SHOW TABLES FROM %s LIKE ''%s''',
-        [GetIdentifierConvertor.Quote(Catalog), LTableNamePattern]);
+        [GetIdentifierConvertor.Quote(Catalog), EncodeCString(LTableNamePattern)]);
     end
     else
     begin
       sql := Format('SHOW TABLES LIKE ''%s''',
-        [LTableNamePattern]);
+        [EncodeCString(LTableNamePattern)]);
     end;
 
     with GetConnection.CreateStatement.ExecuteQuery(
@@ -1070,13 +1070,13 @@ begin
           sql := Format('SHOW COLUMNS FROM %s.%s LIKE ''%s''',
             [GetIdentifierConvertor.Quote(TempCatalog),
             GetIdentifierConvertor.Quote(TempTableNamePattern),
-            TempColumnNamePattern]);
+            EncodeCString(TempColumnNamePattern)]);
         end
         else
         begin
           sql := Format('SHOW COLUMNS FROM %s LIKE ''%s''',
             [GetIdentifierConvertor.Quote(TempTableNamePattern),
-            TempColumnNamePattern]);
+            EncodeCString(TempColumnNamePattern)]);
         end;
 
         with GetConnection.CreateStatement.ExecuteQuery(sql) do
@@ -1658,7 +1658,7 @@ begin
     try
       with GetConnection.CreateStatement.ExecuteQuery(
         Format('SHOW TABLE STATUS FROM %s LIKE ''%s''',
-        [GetIdentifierConvertor.Quote(LCatalog), Table])) do
+        [GetIdentifierConvertor.Quote(LCatalog), EncodeCString(Table)])) do
       begin
         while Next do
         begin
