@@ -209,31 +209,10 @@ begin
 
 
       // set attributes:
-      if pos('binary', strtype) <> 0 then
-      begin
-        CheckBoxBinary.Checked := true;
-        CheckBoxUnsigned.Checked := false;
-        CheckBoxZerofill.Checked := false;
-      end
-      else if pos('unsigned zerofill', strtype) <> 0 then
-      begin
-        CheckBoxBinary.Checked := false;
-        CheckBoxUnsigned.Checked := true;
-        CheckBoxZerofill.Checked := true;
-      end
-      else if pos('unsigned', strtype) <> 0 then
-      begin
-        CheckBoxBinary.Checked := false;
-        CheckBoxUnsigned.Checked := true;
-        CheckBoxZerofill.Checked := false;
-      end
-      else
-      begin
-        CheckBoxBinary.Checked := false;
-        CheckBoxUnsigned.Checked := false;
-        CheckBoxZerofill.Checked := false;
-      end;
-
+      strtype := LowerCase( selectedTableListItem.Subitems[0] );
+      CheckBoxBinary.Checked := pos('binary', strtype) > 0;
+      CheckBoxZerofill.Checked := pos('zerofill', strtype) > 0;
+      CheckBoxUnsigned.Checked := pos('unsigned', strtype) > 0;
       CheckBoxNotNull.Checked := lowercase(selectedTableListItem.Subitems[1]) <> 'yes';
       CheckBoxAutoIncrement.Checked := lowercase(selectedTableListItem.Subitems[3]) = 'auto_increment';
 
