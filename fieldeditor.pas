@@ -140,6 +140,7 @@ procedure TFieldEditForm.InitFieldEditor(Sender: TObject);
 var
   strtype  : String;
   i : Integer;
+  selectedTableListItem : TListItem;
 begin
   // ====================
   // Field-Editor:
@@ -154,12 +155,15 @@ begin
 
   // add fieldnames
   with TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns do
-    begin
-      for i:=0 to items.Count-1 do
-        ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(items[i].Caption));
-    end;
+  begin
+    for i:=0 to items.Count-1 do
+      ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(items[i].Caption));
+  end;
+
+  selectedTableListItem := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected;
 
   case FMode of
+
     femFieldAdd:
       begin
         //ShowMessageFmt ('Add field',[]);
@@ -170,11 +174,13 @@ begin
         EditDefault.Text := '';
         CheckBoxUnsigned.Checked := true;
 
-        if TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected <> nil then
-          ComboBoxPosition.ItemIndex := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected.Index+2
+        if selectedTableListItem <> nil then
+          ComboBoxPosition.ItemIndex := selectedTableListItem.Index+2
         else
           ComboBoxPosition.ItemIndex := 0;
       end;
+
+
     femFieldUpdate:
       begin
         //ShowMessageFmt ('Changing field: "%s"',[FFieldName]);
@@ -182,74 +188,66 @@ begin
         // request field properties
         // SHOW COLUMNS FROM `db`.`table` LIKE '%s';
 
-        with TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected do
+        EditFieldname.Text := Caption;
+        EditLength.Text := getEnumValues( selectedTableListItem.Subitems[0] );
+        EditDefault.Text := selectedTableListItem.Subitems[2];
+
+        // extract field type
+        strtype := UpperCase( selectedTableListItem.Subitems[0] );
+        if Pos ('(',strtype) > 0 then
+          strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
+
+        // field field type structure
+        for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
+        begin
+          if (strtype=MySqlDataTypeArray[i].Name) then
           begin
-
-
-            EditFieldname.Text := Caption;
-            EditLength.Text := getEnumValues(Subitems[0]);
-            EditDefault.Text := Subitems[2];
-
-            // extract field type
-            strtype := UpperCase(Subitems[0]);
-            if Pos ('(',strtype) > 0 then
-              strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
-
-            // field field type structure
-            for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
-              begin
-                if (strtype=MySqlDataTypeArray[i].Name) then
-                  begin
-                    if (MySqlDataTypeArray[i].Flags And FF_HAS_LENGTH_PROP) = FF_HAS_LENGTH_PROP then
-                      begin
-                        // enable / disable length field
-                        // get default length ..
-                      end;
-
-                    ComboBoxType.ItemIndex := MySqlDataTypeArray[i].Index;
-                    Break;
-                  end;
-              end;
-
-
-
-            // set attributes:
-            if pos('binary', strtype) <> 0 then
-              begin
-                CheckBoxBinary.Checked := true;
-                CheckBoxUnsigned.Checked := false;
-                CheckBoxZerofill.Checked := false;
-              end
-            else if pos('unsigned zerofill', strtype) <> 0 then
-              begin
-                CheckBoxBinary.Checked := false;
-                CheckBoxUnsigned.Checked := true;
-                CheckBoxZerofill.Checked := true;
-              end
-            else if pos('unsigned', strtype) <> 0 then
-              begin
-                CheckBoxBinary.Checked := false;
-                CheckBoxUnsigned.Checked := true;
-                CheckBoxZerofill.Checked := false;
-              end
-            else
-              begin
-                CheckBoxBinary.Checked := false;
-                CheckBoxUnsigned.Checked := false;
-                CheckBoxZerofill.Checked := false;
-              end;
-
-            if lowercase(Subitems[1]) = 'yes' then
-              CheckBoxNotNull.Checked := false
-            else
-              checkBoxNotNull.Checked := true;
-
-            if lowercase(Subitems[3]) = 'auto_increment' then
-              CheckBoxAutoIncrement.Checked := True
-            else
-              CheckBoxAutoIncrement.Checked := False;
-
+            if (MySqlDataTypeArray[i].Flags And FF_HAS_LENGTH_PROP) = FF_HAS_LENGTH_PROP then
+            begin
+              // enable / disable length field
+              // get default length ..
+            end;
+            ComboBoxType.ItemIndex := MySqlDataTypeArray[i].Index;
+            Break;
           end;
+        end;
+
+
+        // set attributes:
+        if pos('binary', strtype) <> 0 then
+        begin
+          CheckBoxBinary.Checked := true;
+          CheckBoxUnsigned.Checked := false;
+          CheckBoxZerofill.Checked := false;
+        end
+        else if pos('unsigned zerofill', strtype) <> 0 then
+        begin
+          CheckBoxBinary.Checked := false;
+          CheckBoxUnsigned.Checked := true;
+          CheckBoxZerofill.Checked := true;
+        end
+        else if pos('unsigned', strtype) <> 0 then
+        begin
+          CheckBoxBinary.Checked := false;
+          CheckBoxUnsigned.Checked := true;
+          CheckBoxZerofill.Checked := false;
+        end
+        else
+        begin
+          CheckBoxBinary.Checked := false;
+          CheckBoxUnsigned.Checked := false;
+          CheckBoxZerofill.Checked := false;
+        end;
+
+        if lowercase(selectedTableListItem.Subitems[1]) = 'yes' then
+          CheckBoxNotNull.Checked := false
+        else
+          checkBoxNotNull.Checked := true;
+
+        if lowercase(selectedTableListItem.Subitems[3]) = 'auto_increment' then
+          CheckBoxAutoIncrement.Checked := True
+        else
+          CheckBoxAutoIncrement.Checked := False;
       end;
     femIndexEditor: ;
   end;
