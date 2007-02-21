@@ -164,92 +164,85 @@ begin
 
   case FMode of
 
+    // "Field" tab in Add-mode
     femFieldAdd:
-      begin
-        //ShowMessageFmt ('Add field',[]);
+    begin
+      EditFieldName.Text := 'FieldName';
+      ComboBoxType.ItemIndex := 0;
+      EditLength.Text := '';
+      EditDefault.Text := '';
+      CheckBoxUnsigned.Checked := true;
 
-        EditFieldName.Text := 'FieldName';
-        ComboBoxType.ItemIndex := 0;
-        EditLength.Text := '';
-        EditDefault.Text := '';
-        CheckBoxUnsigned.Checked := true;
-
-        if selectedTableListItem <> nil then
-          ComboBoxPosition.ItemIndex := selectedTableListItem.Index+2
-        else
-          ComboBoxPosition.ItemIndex := 0;
-      end;
+      if selectedTableListItem <> nil then
+        ComboBoxPosition.ItemIndex := selectedTableListItem.Index+2
+      else
+        ComboBoxPosition.ItemIndex := 0;
+    end;
 
 
+    // "Field" tab in Update-mode
     femFieldUpdate:
+    begin
+      EditFieldname.Text := Caption;
+      EditLength.Text := getEnumValues( selectedTableListItem.Subitems[0] );
+      EditDefault.Text := selectedTableListItem.Subitems[2];
+
+      // extract field type
+      strtype := UpperCase( selectedTableListItem.Subitems[0] );
+      if Pos ('(',strtype) > 0 then
+        strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
+
+      // field field type structure
+      for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
       begin
-        //ShowMessageFmt ('Changing field: "%s"',[FFieldName]);
-
-        // request field properties
-        // SHOW COLUMNS FROM `db`.`table` LIKE '%s';
-
-        EditFieldname.Text := Caption;
-        EditLength.Text := getEnumValues( selectedTableListItem.Subitems[0] );
-        EditDefault.Text := selectedTableListItem.Subitems[2];
-
-        // extract field type
-        strtype := UpperCase( selectedTableListItem.Subitems[0] );
-        if Pos ('(',strtype) > 0 then
-          strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
-
-        // field field type structure
-        for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
+        if (strtype=MySqlDataTypeArray[i].Name) then
         begin
-          if (strtype=MySqlDataTypeArray[i].Name) then
+          if (MySqlDataTypeArray[i].Flags And FF_HAS_LENGTH_PROP) = FF_HAS_LENGTH_PROP then
           begin
-            if (MySqlDataTypeArray[i].Flags And FF_HAS_LENGTH_PROP) = FF_HAS_LENGTH_PROP then
-            begin
-              // enable / disable length field
-              // get default length ..
-            end;
-            ComboBoxType.ItemIndex := MySqlDataTypeArray[i].Index;
-            Break;
+            // enable / disable length field
+            // get default length ..
           end;
+          ComboBoxType.ItemIndex := MySqlDataTypeArray[i].Index;
+          Break;
         end;
-
-
-        // set attributes:
-        if pos('binary', strtype) <> 0 then
-        begin
-          CheckBoxBinary.Checked := true;
-          CheckBoxUnsigned.Checked := false;
-          CheckBoxZerofill.Checked := false;
-        end
-        else if pos('unsigned zerofill', strtype) <> 0 then
-        begin
-          CheckBoxBinary.Checked := false;
-          CheckBoxUnsigned.Checked := true;
-          CheckBoxZerofill.Checked := true;
-        end
-        else if pos('unsigned', strtype) <> 0 then
-        begin
-          CheckBoxBinary.Checked := false;
-          CheckBoxUnsigned.Checked := true;
-          CheckBoxZerofill.Checked := false;
-        end
-        else
-        begin
-          CheckBoxBinary.Checked := false;
-          CheckBoxUnsigned.Checked := false;
-          CheckBoxZerofill.Checked := false;
-        end;
-
-        if lowercase(selectedTableListItem.Subitems[1]) = 'yes' then
-          CheckBoxNotNull.Checked := false
-        else
-          checkBoxNotNull.Checked := true;
-
-        if lowercase(selectedTableListItem.Subitems[3]) = 'auto_increment' then
-          CheckBoxAutoIncrement.Checked := True
-        else
-          CheckBoxAutoIncrement.Checked := False;
       end;
+
+
+      // set attributes:
+      if pos('binary', strtype) <> 0 then
+      begin
+        CheckBoxBinary.Checked := true;
+        CheckBoxUnsigned.Checked := false;
+        CheckBoxZerofill.Checked := false;
+      end
+      else if pos('unsigned zerofill', strtype) <> 0 then
+      begin
+        CheckBoxBinary.Checked := false;
+        CheckBoxUnsigned.Checked := true;
+        CheckBoxZerofill.Checked := true;
+      end
+      else if pos('unsigned', strtype) <> 0 then
+      begin
+        CheckBoxBinary.Checked := false;
+        CheckBoxUnsigned.Checked := true;
+        CheckBoxZerofill.Checked := false;
+      end
+      else
+      begin
+        CheckBoxBinary.Checked := false;
+        CheckBoxUnsigned.Checked := false;
+        CheckBoxZerofill.Checked := false;
+      end;
+
+      CheckBoxNotNull.Checked := lowercase(selectedTableListItem.Subitems[1]) <> 'yes';
+      CheckBoxAutoIncrement.Checked := lowercase(selectedTableListItem.Subitems[3]) = 'auto_increment';
+
+    end;
+
+
+    // "Indexes" tab
     femIndexEditor: ;
+
   end;
 
 end;
