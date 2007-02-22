@@ -138,8 +138,6 @@ begin
 end;
 
 procedure Toptionsform.Apply(Sender: TObject);
-var
-  i : Integer;
 begin
   // Apply
   Screen.Cursor := crHourGlass;

@@ -2480,8 +2480,6 @@ end;
 
 
 procedure TMDIChild.FormActivate(Sender: TObject);
-var
-  i : Byte;
 begin
   if FMysqlConn.IsConnected then
   begin
