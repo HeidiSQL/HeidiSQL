@@ -100,7 +100,7 @@ begin
   if IsConnected then try
     Result := FConn.Ping();
   except
-    Result := False;
+    Result := True;
   end;
 end;
 
