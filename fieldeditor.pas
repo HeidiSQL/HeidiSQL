@@ -71,7 +71,6 @@ type
     procedure ShowKeys(index: Integer=0);
     procedure CheckBoxUniqueClick(Sender: TObject);
     procedure AddField(Sender: TObject);
-    procedure ComboBoxKeysOnDrawItem(Control: TWinControl; Index: Integer; Rect: TRect; State: TOwnerDrawState);
     procedure CheckBoxFulltextClick(Sender: TObject);
     procedure BitBtn3Click(Sender: TObject);
     procedure BitBtn4Click(Sender: TObject);
@@ -87,7 +86,7 @@ type
     function GetInFieldMode: Boolean;
     function GetInIndexMode: Boolean;
   public
-    //UpdateField  : Boolean;        // Update or Add a field? (is set in formshow)
+    { Public declarations }
     procedure Init (AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '');
     property InFieldMode : Boolean read GetInFieldMode;
     property InIndexMode : Boolean read GetInIndexMode;
@@ -110,6 +109,11 @@ var
   
 {$R *.DFM}
 
+
+
+{***
+  Create form
+}
 function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '') : Boolean;
 var
   f : TFieldEditForm;
@@ -122,6 +126,9 @@ end;
 
 
 
+{***
+  Init form, detect which button the user clicked (Field-Editor or Index-Editor)
+}
 procedure TFieldEditForm.Init(AMode: TFieldEditorMode; AFieldName,
   AFlags: String);
 begin
@@ -136,31 +143,32 @@ begin
     InitIndexEditor (nil);
 end;
 
+
+
+{***
+  Init Field-Editor
+}
 procedure TFieldEditForm.InitFieldEditor(Sender: TObject);
 var
-  strtype  : String;
-  i : Integer;
-  selectedTableListItem : TListItem;
+  strtype        : String;
+  i              : Integer;
+  ListColumns    : TListView;
 begin
-  // ====================
-  // Field-Editor:
-  // ====================
 
-  //
+  // Initiate "Position"-combobox
   ComboBoxPosition.Items.Clear;
   ComboBoxPosition.Items.Add('At End of Table');
   ComboBoxPosition.Items.Add('At Beginning of Table');
 
+	// Reference to childwin's column-ListView
+  ListColumns := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns;
+
   // get fieldlist
-
   // add fieldnames
-  with TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns do
+  for i:=0 to ListColumns.Items.Count-1 do
   begin
-    for i:=0 to items.Count-1 do
-      ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(items[i].Caption));
+    ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(ListColumns.Items[i].Caption));
   end;
-
-  selectedTableListItem := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns.Selected;
 
   case FMode of
 
@@ -173,8 +181,8 @@ begin
       EditDefault.Text := '';
       CheckBoxUnsigned.Checked := true;
 
-      if selectedTableListItem <> nil then
-        ComboBoxPosition.ItemIndex := selectedTableListItem.Index+2
+      if ListColumns.Selected <> nil then
+        ComboBoxPosition.ItemIndex := ListColumns.Selected.Index+2
       else
         ComboBoxPosition.ItemIndex := 0;
     end;
@@ -183,12 +191,12 @@ begin
     // "Field" tab in Update-mode
     femFieldUpdate:
     begin
-      EditFieldname.Text := Caption;
-      EditLength.Text := getEnumValues( selectedTableListItem.Subitems[0] );
-      EditDefault.Text := selectedTableListItem.Subitems[2];
+      EditFieldname.Text := ListColumns.Selected.Caption;
+      EditLength.Text := getEnumValues( ListColumns.Selected.Subitems[0] );
+      EditDefault.Text := ListColumns.Selected.Subitems[2];
 
       // extract field type
-      strtype := UpperCase( selectedTableListItem.Subitems[0] );
+      strtype := UpperCase( ListColumns.Selected.Subitems[0] );
       if Pos ('(',strtype) > 0 then
         strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
 
@@ -209,12 +217,12 @@ begin
 
 
       // set attributes:
-      strtype := LowerCase( selectedTableListItem.Subitems[0] );
+      strtype := LowerCase( ListColumns.Selected.Subitems[0] );
       CheckBoxBinary.Checked := pos('binary', strtype) > 0;
       CheckBoxZerofill.Checked := pos('zerofill', strtype) > 0;
       CheckBoxUnsigned.Checked := pos('unsigned', strtype) > 0;
-      CheckBoxNotNull.Checked := lowercase(selectedTableListItem.Subitems[1]) <> 'yes';
-      CheckBoxAutoIncrement.Checked := lowercase(selectedTableListItem.Subitems[3]) = 'auto_increment';
+      CheckBoxNotNull.Checked := lowercase(ListColumns.Selected.Subitems[1]) <> 'yes';
+      CheckBoxAutoIncrement.Checked := lowercase(ListColumns.Selected.Subitems[3]) = 'auto_increment';
 
     end;
 
@@ -227,13 +235,15 @@ begin
 end;
 
 
+
+{***
+  Init Index-Editor
+  @todo cleanup code, get rid of WITH statement
+}
 procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
 begin
-  // ====================
-  // Index-Editor:
-  // ====================
   ListBox1.Items.Clear;
   ListBox2.Items.Clear;
   setlength(klist, 0);
@@ -274,6 +284,10 @@ begin
 end;
 
 
+
+{***
+  FormShow
+}
 procedure TFieldEditForm.FormShow(Sender: TObject);
 var
   i : Integer;
@@ -298,24 +312,40 @@ begin
         ComboBoxKeys.SetFocus();
     end;
 
-
   ComboBoxTypeChange(self);
-  //pc.ActivePage := TabSheet1;
-
   pc.OnChange(self);
 end;
 
 
+
+{***
+  Detect if we're in AddField or UpdateField-mode
+  @return boolean
+}
 function TFieldEditForm.GetInFieldMode: Boolean;
 begin
   Result := FMode in [femFieldAdd,femFieldUpdate];
 end;
 
+
+
+{***
+  Detect if we're in Index-mode
+  @return boolean
+}
 function TFieldEditForm.GetInIndexMode: Boolean;
 begin
   Result := FMode in [femIndexEditor];
 end;
 
+
+
+{***
+  User selected a new datatype for the selected field.
+  Take care of limitations of different datatypes,
+  toggle clickability of certain checkboxes
+  @todo Use datatype-array instead of numerical ItemIndexes
+}
 procedure TFieldEditForm.ComboBoxTypeChange(Sender: TObject);
 begin
   // Attributes
@@ -360,6 +390,12 @@ begin
 
 end;
 
+
+
+{***
+  Add or update field
+  @todo code cleanup, get rid of WITH statement
+}
 procedure TFieldEditForm.AddUpdateField(Sender: TObject);
 var
   strNotNull,
@@ -478,12 +514,21 @@ begin
   close;
 end;
 
+
+
+{***
+  Cancel Form
+}
 procedure TFieldEditForm.ButtonCancelClick(Sender: TObject);
 begin
-  // cancel
   ModalResult := mrCancel;
 end;
 
+
+
+{***
+  User selected another tab in the main-pagecontrol
+}
 procedure TFieldEditForm.pcChange(Sender: TObject);
 begin
   case FMode of
@@ -497,6 +542,10 @@ begin
 end;
 
 
+
+{***
+  OK clicked - call correct save-procedure according to current mode
+}
 procedure TFieldEditForm.OKClick(Sender: TObject);
 begin
   // add/update what?
@@ -514,10 +563,15 @@ begin
     ModalResult := mrCancel;
 end;
 
+
+
+{***
+  User selected another index in the combobox
+  @todo code cleanup, get rid of WITH statement
+}
 procedure TFieldEditForm.ComboBoxKeysChange(Sender: TObject);
 var i : Integer;
 begin
-  // Change actual index!
   if ComboBoxKeys.ItemIndex > -1 then begin
     ListBox2.Items.Clear;
     with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
@@ -545,10 +599,13 @@ begin
 end;
 
 
+
+{***
+  Add new index, init that with default values
+}
 procedure TFieldEditForm.ButtonAddClick(Sender: TObject);
 var kname : String;
 begin
-  // Add Index!
   kname := 'NewIndex';
   if not InputQuery('New Index...', 'Index-Name:', kname) then
     exit;
@@ -566,10 +623,13 @@ begin
 end;
 
 
+
+{***
+  Delete existing index
+}
 procedure TFieldEditForm.ButtonDeleteClick(Sender: TObject);
 var i,j : Integer;
 begin
-  // Delete Index!
   i := ComboBoxKeys.ItemIndex;
   if i > -1 then
   if MessageDlg('Delete Index ''' + ComboBoxKeys.Text + ''' ?',
@@ -582,9 +642,13 @@ begin
   end;
 end;
 
+
+
+{***
+  Add primary key
+}
 procedure TFieldEditForm.ButtonAddPrimaryClick(Sender: TObject);
 begin
-  // Add primary key!
   setlength(klist, length(klist)+1);
   klist[length(klist)-1].Name := 'PRIMARY';
   klist[length(klist)-1].Columns := TStringList.Create;
@@ -596,11 +660,15 @@ begin
 end;
 
 
+
+{***
+  Show indexes in combobox
+  @param integer ItemIndex to select
+}
 procedure TFieldEditForm.ShowKeys(index: Integer=0);
 var
   i : Integer;
 begin
-  // Show indexes in combobox!
   ComboBoxKeys.Items.Clear;
   ButtonAddPrimary.Enabled := true;
   ButtonDelete.Enabled := false;
@@ -632,9 +700,12 @@ begin
 end;
 
 
+
+{***
+  Make index unique!
+}
 procedure TFieldEditForm.CheckBoxUniqueClick(Sender: TObject);
 begin
-  // make index unique!
   klist[ComboBoxKeys.ItemIndex].Unique := CheckBoxUnique.Checked;
   if CheckBoxUnique.Checked then begin
     klist[ComboBoxKeys.ItemIndex].Fulltext := false;
@@ -643,9 +714,13 @@ begin
   klist[ComboBoxKeys.ItemIndex].Modified := true;
 end;
 
+
+
+{***
+  Make index fulltext!
+}
 procedure TFieldEditForm.CheckBoxFulltextClick(Sender: TObject);
 begin
-  // make index fulltext!
   klist[ComboBoxKeys.ItemIndex].Fulltext := CheckBoxFulltext.Checked;
   if CheckBoxFulltext.Checked then begin
     klist[ComboBoxKeys.ItemIndex].Unique := false;
@@ -655,13 +730,17 @@ begin
 end;
 
 
+
+{***
+  update keys!
+  for each TempKey (see OnFormShow) check if it was changed or even deleted in klist
+  @todo code cleanup, get rid of WITH statement
+}
 procedure TFieldEditForm.UpdateKeys(Sender: TObject);
 var
   i,j, index : Integer;
   query1, query : String;
 begin
-  // update keys!
-  // for each TempKey (see OnFormShow) check if it was changed or even deleted in klist
   query1 := 'ALTER TABLE ' + mainform.mask(TMDIChild(Application.Mainform.ActiveMDIChild).ActualTable);
   for i:=0 to TempKeys.Count-1 do begin
 
@@ -733,10 +812,13 @@ begin
 end;
 
 
+
+{***
+  Add column to index
+}
 procedure TFieldEditForm.AddField(Sender: TObject);
 var sel : Integer;
 begin
-  // add column to index
   if ListBox2.ItemIndex > -1 then begin
     ListBox1.Items.Add(ListBox2.Items[ListBox2.ItemIndex]);
     klist[ComboBoxKeys.ItemIndex].Columns.Add(ListBox2.Items[ListBox2.ItemIndex]);
@@ -753,9 +835,13 @@ begin
   togglebuttons(self);
 end;
 
+
+
+{***
+  Add all columns to index
+}
 procedure TFieldEditForm.BitBtn3Click(Sender: TObject);
 begin
-  // add all columns to index
   ListBox1.Items.AddStrings(ListBox2.Items);
   klist[ComboBoxKeys.ItemIndex].Columns.AddStrings(ListBox2.Items);
   ListBox2.Items.Clear;
@@ -764,10 +850,13 @@ begin
 end;
 
 
+
+{***
+  Delete column from index
+}
 procedure TFieldEditForm.RemoveField(Sender: TObject);
 var sel : Integer;
 begin
-  // delete one column from index
   if ListBox1.ItemIndex > -1 then begin
     klist[ComboBoxKeys.ItemIndex].Columns.Delete(ListBox1.ItemIndex);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
@@ -785,9 +874,12 @@ begin
 end;
 
 
+
+{***
+  Delete all columns from index
+}
 procedure TFieldEditForm.BitBtn4Click(Sender: TObject);
 begin
-  // delete all columns from index
   klist[ComboBoxKeys.ItemIndex].Columns.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
   ListBox2.Items.AddStrings(ListBox1.Items);
@@ -796,6 +888,10 @@ begin
 end;
 
 
+
+{***
+  Toggle enabled-status of Add- and Delete-Column-From-Index-buttons
+}
 procedure TFieldEditForm.togglebuttons(Sender: TObject);
 begin
   BitBtn1.Enabled := (ListBox2.ItemIndex > -1);
@@ -805,15 +901,11 @@ begin
 end;
 
 
-procedure TFieldEditForm.ComboBoxKeysOnDrawItem(Control: TWinControl; Index: Integer; Rect: TRect;
-  State: TOwnerDrawState);
-begin
-  // TODO: colors!!
-end;
 
-
-
-
+{***
+  Add square-icon to index-names in combobox
+  @todo: use Delphi's built-in TComboBox with icon-support
+}
 procedure TFieldEditForm.ComboBoxKeysDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
 var
