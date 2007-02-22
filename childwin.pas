@@ -468,8 +468,9 @@ type
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      function  ExecUpdateQuery (ASQLQuery: String ) : Boolean;
-      function  ExecUseQuery (ADatabase : String) : Boolean;
+      function ExecUpdateQuery (ASQLQuery: String ) : Boolean;
+      function ExecSelectQuery (AQuery : String; out AMysqlQuery : TMysqlQuery) : Boolean; 
+      function ExecUseQuery (ADatabase : String) : Boolean;
 
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
@@ -593,7 +594,7 @@ begin
     Exit;
   end;
 
-  Description := FConnParams.Description;;
+  Description := FMysqlConn.Description;;
   Caption := Description;
   OnlyDBs := explode(';', FConnParams.DatabaseList);
   if FConnParams.DatabaseListSort then
@@ -2038,6 +2039,8 @@ procedure TMDIChild.PageControlHostChange(Sender: TObject);
 begin
   ListProcessesChange(self, nil, TItemChange(self));
 end;
+
+
 
 
 
@@ -4122,6 +4125,7 @@ end;
 
 {***
   Execute a query without returning a resultset
+  The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
   @return Boolean Return True on success, False otherwise
@@ -4146,6 +4150,48 @@ begin
   FreeAndNil (MysqlQuery);
 
 end;
+
+
+{***
+  Execute a query which may return a resultset. The caller is responsible for
+  freeing the MysqlQuery object and its Dataset member, only on returnvalue True.
+  The currently active connection is used
+
+  @param String The single SQL-query to be executed on the server
+  @param TMysqlQuery Containing the dataset and info data availability
+  @return Boolean Return True on success, False otherwise
+}
+function TMDIChild.ExecSelectQuery(AQuery: String;
+  out AMysqlQuery : TMysqlQuery): Boolean;
+var
+  MysqlQuery : TMysqlQuery;
+begin
+  Result := False;
+  AMysqlQuery := nil;
+
+  // Start query execution
+  MysqlQuery := RunThreadedQuery(AQuery);
+
+  // Inspect query result code and log / notify user on failure
+  if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+    LogSql(MysqlQuery.Comment,True);
+
+  if MysqlQuery.Result = MQR_SUCCESS then
+    begin
+      Result := MysqlQuery.HasResultset; // Report success
+      AMysqlQuery := MysqlQuery;
+    end
+  else
+    begin
+      FreeAndNil (MysqlQuery)
+    end
+end;
+
+
+
+
+
+
 
 {***
   Executes a query with an existing ZQuery-object
@@ -4271,7 +4317,10 @@ begin
   );
 end;
 
+{***
+  Run a query in a separate thread of execution on the current connection.
 
+}
 function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
 begin
   Result := nil;

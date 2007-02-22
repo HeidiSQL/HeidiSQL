@@ -169,7 +169,7 @@ begin
   comboSelectDatabase.Items.Clear;
   with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    self.Caption := ZQuery3.Connection.HostName + ' - Export Tables...';
+    self.Caption := MysqlConn.Description + ' - Export Tables...';
     for i:=0 to DBTree.Items.Count-1 do
     begin
       tn := DBTree.Items[i];
@@ -493,7 +493,7 @@ begin
   try
     // Create helper-dataset
     query := TZReadOnlyQuery.Create(self);
-    query.Connection := cwin.ZQuery3.Connection;
+    query.Connection := cwin.MysqlConn.Connection;
     // Be sure to read everything from the correct database
     cwin.ExecUseQuery( comboSelectDatabase.Text );
 

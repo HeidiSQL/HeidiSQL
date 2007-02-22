@@ -17,6 +17,7 @@ type
       FConn : TZConnection;
       FMysqlConnParams : TMysqlConnParams;
       FLastError : String;
+    function GetDescription: String;
     function GetIsAlive: Boolean;
     function GetIsConnected: Boolean;
       //FTimer : TTimer;
@@ -28,6 +29,7 @@ type
       property IsAlive : Boolean read GetIsAlive;
       property Connection : TZConnection read FConn;
       property LastError : String read FLastError;
+      property Description : String read GetDescription;
   end;
 
 implementation
@@ -83,6 +85,12 @@ destructor TMysqlConn.Destroy;
 begin
   FreeAndNil (FConn);
   inherited;
+end;
+
+function TMysqlConn.GetDescription: String;
+begin
+  with FMysqlConnParams do
+    Result := Format ('%s@%s:%d',[User,Host,Port]);
 end;
 
 function TMysqlConn.GetIsAlive: Boolean;
