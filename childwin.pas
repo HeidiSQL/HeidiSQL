@@ -4141,7 +4141,10 @@ begin
 
   // Inspect query result code and log / notify user on failure
   if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-    LogSql(MysqlQuery.Comment,True);
+  begin
+    MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
+    LogSql( MysqlQuery.Comment, True );
+  end;
 
   // Get thread result code and convert into function return value
   Result := (MysqlQuery.Result = MQR_SUCCESS);
@@ -4174,7 +4177,10 @@ begin
 
   // Inspect query result code and log / notify user on failure
   if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-    LogSql(MysqlQuery.Comment,True);
+  begin
+    MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
+    LogSql( MysqlQuery.Comment, True );
+  end;
 
   if MysqlQuery.Result = MQR_SUCCESS then
     begin
