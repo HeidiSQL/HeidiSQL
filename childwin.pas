@@ -444,6 +444,7 @@ type
       FQueryRunning              : Boolean;
       FMysqlConn                 : TMysqlConn;
       FConnParams                : TConnParams;
+      lastUsedDB                 : String;
 
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
@@ -555,6 +556,8 @@ var
   menuitem         : TMenuItem;
   i                : Byte;
   winName          : string;
+  j                : Integer;
+  treenode         : TTreeNode;
 begin
   FConnParams := AConnParams^;
   FMysqlConn := AMysqlConn; // we're now responsible to free it
@@ -646,6 +649,21 @@ begin
   winName := Description;
   if i <> 0 then winName := winName + Format(' (%d)', [i]);
   Application.Title := winName + ' - ' + APPNAME;
+
+  // Reselect last used database
+  if lastUsedDB <> '' then
+  begin
+    for j:=0 to DBTree.Items.Count-1 do
+    begin
+      treenode := DBTree.Items[j];
+      if (treenode.Level = 1) and (treenode.Text = lastUsedDB ) then
+      begin
+        DBTree.Selected := treenode;
+        break;
+      end;
+    end;
+  end;
+
 end;
 
 
@@ -741,6 +759,10 @@ begin
 
       // Synchronize internal variables with defaults from DFM.
       StopOnErrors := btnQueryStopOnErrors.Down;
+
+      // Set last used database, select it later in Init
+      lastUsedDB := ReadString( 'lastUsedDB' );
+
     end;
     CloseKey;
   end;
@@ -775,6 +797,8 @@ begin
       WriteInteger('querymemoheight', panel7.Height);
       WriteInteger('dbtreewidth', dbtree.width);
       WriteInteger('sqloutheight', PageControlBottom.Height);
+
+      WriteString('lastUsedDB', ActualDatabase);
     end;
   end;
   mainform.ToolBarData.visible := false;
