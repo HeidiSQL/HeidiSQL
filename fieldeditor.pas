@@ -439,7 +439,7 @@ begin
     begin
       if (FMode=femFieldAdd) then
         begin
-          ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
+          ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
             ' ADD ' + mainform.mask(EditFieldname.Text) + ' ' +     // new name
             fielddef +
             strPosition                                             // Position
@@ -447,7 +447,7 @@ begin
         end
       else if (FMode=femFieldUpdate) then
         begin
-          ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +                      // table
+          ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) +                      // table
             ' CHANGE ' + mainform.mask(ListColumns.Selected.Caption) + ' ' +     // old name
             mainform.mask(EditFieldName.Text) + ' ' +                          // new name
             fielddef
@@ -457,14 +457,14 @@ begin
 
           if ComboBoxPosition.ItemIndex > -1 then  // Move field position
             begin
-              ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
+              ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
               ' ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +          // new name
               fielddef +
               strPosition                                             // Position
               );
-              ExecQuery('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
-              ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
-              ExecQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' CHANGE '+
+              ExecUpdateQuery('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
+              ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+              ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' CHANGE '+
                 mainform.mask(TEMPFIELDNAME)+' '+mainform.mask(EditFieldName.Text) + ' ' +
                 fielddef
               );
@@ -692,7 +692,7 @@ begin
       else
         query := query1 + ' DROP INDEX '+ mainform.mask(klist[index].Name) +
           ', ADD INDEX '+klist[index].Name+' (' + implodestr(',', klist[index].Columns) + ')';
-      TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
       klist[index].Modified := false;
     end
 
@@ -702,7 +702,7 @@ begin
         query := query1 + ' DROP PRIMARY KEY'
       else
         query := query1 + ' DROP INDEX ' + mainform.mask(TempKeys[i]);
-      TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
     end;
 
     if index > -1 then
@@ -724,7 +724,7 @@ begin
       // INDEX:
       else
         query := query1 + ' ADD INDEX '+ mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')';
-      TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
     end;
   end;
 

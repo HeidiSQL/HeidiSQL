@@ -768,8 +768,8 @@ begin
         else if todb then begin
           cwin.ExecUseQuery( DB2export );
           if comboTables.ItemIndex = TAB_DROP_CREATE then
-            cwin.ExecQuery( dropquery );
-          cwin.ExecQuery( createquery );
+            cwin.ExecUpdateQuery( dropquery );
+          cwin.ExecUpdateQuery( createquery );
           cwin.ExecUseQuery( comboSelectDatabase.Text );
         end
 
@@ -820,7 +820,7 @@ begin
           end
           else if todb then
           begin
-            cwin.ExecQuery('TRUNCATE TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]);
+            cwin.ExecUpdateQuery('TRUNCATE TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]);
           end
           else if tohost then
           begin
@@ -845,7 +845,7 @@ begin
         begin
           cwin.ExecUseQuery(DB2Export);
           if target_version > 40000 then
-            cwin.ExecQuery( 'ALTER TABLE ' + cwin.mask(checkListTables.Items[i])+' DISABLE KEYS' );
+            cwin.ExecUpdateQuery( 'ALTER TABLE ' + cwin.mask(checkListTables.Items[i])+' DISABLE KEYS' );
           {***
             @note ansgarbecker, 2007-02-18:
             Normally we would have to apply a WRITE-LOCK to the target-table.
@@ -970,7 +970,7 @@ begin
             if tofile then
               wfs(f, insertquery + ';')
             else if todb then
-              cwin.ExecQuery(insertquery)
+              cwin.ExecUpdateQuery(insertquery)
             else if tohost then
               RemoteExecNonQuery(win2export, insertquery);
             if donext then
@@ -991,7 +991,7 @@ begin
         else if todb then
         begin
           if target_version > 40000 then
-            cwin.ExecQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS' );
+            cwin.ExecUpdateQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS' );
         end
         else if tohost then
         begin

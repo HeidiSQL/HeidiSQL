@@ -399,8 +399,6 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
-    function ExecQuery( SQLQuery: String ) : Boolean;
-    procedure ExecUseQuery( DbName: String );
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
     procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
     function GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
@@ -453,7 +451,7 @@ type
       function GetActiveGrid: TSMDBGrid;
       function CanAcessMysql: Boolean;
       procedure WaitForQueryCompletion();
-
+      function RunThreadedQuery(AQuery : String) : TMysqlQuery;
 
     public
       ActualDatabase, ActualTable: string;
@@ -469,6 +467,9 @@ type
       procedure SetQueryRunningFlag(AValue : Boolean);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
+
+      function  ExecUpdateQuery (ASQLQuery: String ) : Boolean;
+      function  ExecUseQuery (ADatabase : String) : Boolean;
 
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
@@ -1800,7 +1801,7 @@ begin
 
   Screen.Cursor := crSQLWait;
   for i:=0 to t.count-1 do
-    ExecQuery( 'DELETE FROM ' + mask(t[i]) );
+    ExecUpdateQuery( 'DELETE FROM ' + mask(t[i]) );
   ShowDBProperties(self);
   Screen.Cursor := crDefault;
 end;
@@ -1828,7 +1829,7 @@ begin
 
   Screen.Cursor := crSQLWait;
   try
-    ExecQuery( 'DROP DATABASE ' + mask(tndb_.Text) );
+    ExecUpdateQuery( 'DROP DATABASE ' + mask(tndb_.Text) );
     if OnlyDBs.Count > 0 then
     begin
       if OnlyDBs.IndexOf(tndb_.Text) > -1 then
@@ -2025,7 +2026,7 @@ begin
     TimerProcessList.Enabled := false; // prevent av (ListProcesses.selected...)
     if MessageDlg('Kill Process '+ListProcesses.Selected.Caption+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
-      ExecQuery( 'KILL '+ListProcesses.Selected.Caption );
+      ExecUpdateQuery( 'KILL '+ListProcesses.Selected.Caption );
       ShowVariablesAndProcesses(self);
     end;
     TimerProcessList.Enabled := t; // re-enable autorefresh timer
@@ -2215,7 +2216,7 @@ begin
     if MessageDlg('Can''t drop the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
       Screen.Cursor := crSQLWait;
-      ExecQuery( 'DROP TABLE '+mask(ActualTable) );
+      ExecUpdateQuery( 'DROP TABLE '+mask(ActualTable) );
       tn := DBTree.Selected;
       DBTree.Selected := DBTree.Selected.Parent;
       tn.Destroy;
@@ -2225,7 +2226,7 @@ begin
   end else
   if MessageDlg('Drop field ' + ListColumns.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
-    ExecQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(ListColumns.Selected.Caption) );
+    ExecUpdateQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(ListColumns.Selected.Caption) );
     ShowTableProperties(self);
   end;
 end;
@@ -2636,7 +2637,7 @@ begin
   begin
     Screen.Cursor := crSQLWait;
     Try
-      ExecQuery( 'CREATE DATABASE ' + mask( dbname ) );
+      ExecUpdateQuery( 'CREATE DATABASE ' + mask( dbname ) );
       // Add DB to OnlyDBs-regkey if this is not empty
       if OnlyDBs.Count > 0 then
       begin
@@ -2685,7 +2686,7 @@ begin
   end;
   
   // rename table
-  ExecQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S) );
+  ExecUpdateQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S) );
   i := SynSQLSyn1.TableNames.IndexOf( Item.Caption );
   if i > -1 then
     SynSQLSyn1.TableNames[i] := S;
@@ -2797,7 +2798,7 @@ begin
     for i:=0 to ListTables.Items.Count - 1 do
     begin
       if ListTables.Items[i].Selected then
-        ExecQuery( 'OPTIMIZE TABLE ' + mask(ListTables.Items[i].Caption) );
+        ExecUpdateQuery( 'OPTIMIZE TABLE ' + mask(ListTables.Items[i].Caption) );
     end;
   finally
     Screen.Cursor := crDefault;
@@ -2820,7 +2821,7 @@ begin
           tables := tables + ', ';
         tables := tables + mask(ListTables.Items[i].Caption);
       end;
-    ExecQuery( 'CHECK TABLE ' + tables + ' QUICK' );
+    ExecUpdateQuery( 'CHECK TABLE ' + tables + ' QUICK' );
   finally
     Screen.Cursor := crDefault;
   end;
@@ -2842,7 +2843,7 @@ begin
           tables := tables + ', ';
         tables := tables + mask(ListTables.Items[i].Caption);
       end;
-    ExecQuery( 'ANALYZE TABLE ' + tables );
+    ExecUpdateQuery( 'ANALYZE TABLE ' + tables );
   finally
     Screen.Cursor := crDefault;
   end;
@@ -2864,7 +2865,7 @@ begin
           tables := tables + ', ';
         tables := tables + mask(ListTables.Items[i].Caption);
       end;
-    ExecQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
+    ExecUpdateQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
   finally
     Screen.Cursor := crDefault;
   end;
@@ -3412,7 +3413,7 @@ begin
   tabletype := StringReplace( tabletype, '&', '', [rfReplaceAll] ); // Remove Auto-Hotkey
   for i:=0 to ListTables.Items.Count - 1 do
     if ListTables.Items[i].Selected then
-      ExecQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + tabletype);
+      ExecUpdateQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + tabletype);
   ShowDBProperties(self);
 end;
 
@@ -3425,7 +3426,7 @@ begin
   if inputquery('Change table-type...','New table-type:', strtype) then begin
     for i:=0 to ListTables.Items.Count - 1 do
       if ListTables.Items[i].Selected then
-        ExecQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + strtype );
+        ExecUpdateQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + strtype );
     ShowDBProperties(self);
   end;
 end;
@@ -4112,10 +4113,10 @@ begin
 end;
 
 
-procedure TMDIChild.ExecUseQuery( DbName: String );
+function TMDIChild.ExecUseQuery (ADatabase : String) : Boolean;
 begin
-  FConnParams.MysqlParams.Database := DbName;
-  ExecQuery('USE ' + mask(DbName));
+  FConnParams.MysqlParams.Database := ADatabase;
+  Result := ExecUpdateQuery('USE ' + mask(ADatabase));
 end;
 
 
@@ -4125,58 +4126,22 @@ end;
   @param String The single SQL-query to be executed on the server
   @return Boolean Return True on success, False otherwise
 }
-function TMDIChild.ExecQuery( SQLQuery: String ) : Boolean;
+function TMDIChild.ExecUpdateQuery(ASQLQuery: String ) : Boolean;
 var
   MysqlQuery : TMysqlQuery;
 begin
   Result := False;
 
-  // Check if the connection of the current window is still alive
-  // Otherwise reconnect
-  try
-    CheckConnection;
-  except
-    exit;
-  end;
-
-  // Create instance of the progress form (but don't show it yet)
-  FProgressForm := TFrmQueryProgress.Create(Self);
-
-
-  // Indicate a querythread is active (only one thread allow at this moment)
-  FQueryRunning := True;
-
-
-  {
-    Launch a thread of execution that passes the query to the server
-
-    The progressform serves as receiver of the status
-    messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
-
-    * After the thread starts it notifies the progressform (MQE_INITED)
-      (which calls ShowModal on itself)
-    * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
-    * Set FQueryRunning to false
-  }
-  MysqlQuery := ExecMysqlStatementAsync (SQLQuery,FConnParams,nil,FProgressForm.Handle);
-
-
-  {
-    Repeatedly check if the query has finished by inspecting FQueryRunning
-    Allow repainting of user interface
-  }
-  WaitForQueryCompletion();
-
+  // Start query execution
+  MysqlQuery := RunThreadedQuery(ASQLQuery);
 
   // Inspect query result code and log / notify user on failure
   if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     LogSql(MysqlQuery.Comment,True);
 
-
   // Get thread result code and convert into function return value
   Result := (MysqlQuery.Result = MQR_SUCCESS);
 
-  
   // Cleanup the MysqlQuery object, we won't need it anymore
   FreeAndNil (MysqlQuery);
 
@@ -4306,6 +4271,48 @@ begin
   );
 end;
 
+
+function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
+begin
+  Result := nil;
+
+  // Check if the connection of the current window is still alive
+  // Otherwise reconnect
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
+
+  // Create instance of the progress form (but don't show it yet)
+  FProgressForm := TFrmQueryProgress.Create(Self);
+
+
+  // Indicate a querythread is active (only one thread allow at this moment)
+  FQueryRunning := True;
+
+
+  {
+    Launch a thread of execution that passes the query to the server
+
+    The progressform serves as receiver of the status
+    messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
+
+    * After the thread starts it notifies the progressform (MQE_INITED)
+      (which calls ShowModal on itself)
+    * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
+    * Set FQueryRunning to false
+  }
+  Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
+
+
+  {
+    Repeatedly check if the query has finished by inspecting FQueryRunning
+    Allow repainting of user interface
+  }
+  WaitForQueryCompletion();
+
+end;
 
 procedure TMDIChild.Splitter2Moved(Sender: TObject);
 begin

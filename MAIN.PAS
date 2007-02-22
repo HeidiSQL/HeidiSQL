@@ -319,7 +319,7 @@ end;
 procedure TMainForm.ExecuteRemoteNonQuery(sender: THandle; query: string);
 begin
   EnsureConnected;
-  TMDIChild(ActiveMDIChild).ExecQuery(query);
+  TMDIChild(ActiveMDIChild).ExecUpdateQuery(query);
 end;
 
 procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
@@ -351,7 +351,7 @@ begin
   else if sender is TToolButton then
     flushwhat := 'PRIVILEGES';
   delete(flushwhat, pos('&', flushwhat), 1);
-  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery('FLUSH ' + flushwhat);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH ' + flushwhat);
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1178,7 +1178,7 @@ begin
       exit;
 
     Screen.Cursor := crSQLWait;
-    ExecQuery( 'DROP TABLE ' + implodestr(', ', t) );
+    ExecUpdateQuery( 'DROP TABLE ' + implodestr(', ', t) );
 
     if DBtree.Selected.Level in [1, 2] then
     begin

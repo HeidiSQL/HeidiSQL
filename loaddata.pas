@@ -264,7 +264,7 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
   close;
 end;
 

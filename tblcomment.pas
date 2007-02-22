@@ -49,7 +49,7 @@ begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
     screen.Cursor := crHourGlass;
-    ExecQuery('ALTER TABLE ' + mainform.mask(ComboBoxTableName.Text) + ' COMMENT = ' + esc(EditComment.Text));
+    ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ComboBoxTableName.Text) + ' COMMENT = ' + esc(EditComment.Text));
     ShowDBProperties(self);
   end;
   close;

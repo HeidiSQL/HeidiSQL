@@ -222,7 +222,7 @@ begin
   if RadioButton1.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
-  TMDIChild(Mainform.ActiveMDIChild).ExecQuery(strquery);
+  TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(strquery);
 
   // Find a auto_increment-column
   zq.SQL.Clear();
@@ -235,7 +235,7 @@ begin
       if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
       if zq.Fields[4].AsString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsString+'"' else default := '';
       ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(Edit1.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
-      TMDIChild(Mainform.ActiveMDIChild).ExecQuery(ai_q);
+      TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(ai_q);
     end;
     zq.Next;
   end;

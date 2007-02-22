@@ -150,7 +150,7 @@ begin
     for i:=0 to self.TablesCheckListBox.Items.Count - 1 do
     begin
       if TablesCheckListBox.Checked[i] then
-        ExecQuery('OPTIMIZE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
+        ExecUpdateQuery('OPTIMIZE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
     end;
   end;
   screen.Cursor := crDefault;

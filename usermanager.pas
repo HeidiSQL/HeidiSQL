@@ -280,8 +280,8 @@ begin
     grant := ' WITH GRANT OPTION';
 
   query := 'GRANT ' + priv + ' ON ' + access + ' TO ''' + EditUser.Text + '''@''' + fromhost + '''' + pass + grant;
-  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
-  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH PRIVILEGES');
   ShowMessage('User succesfully created.');
 end;
 
@@ -753,7 +753,7 @@ begin
         sql := 'UPDATE '+mainform.mask(PRIVTABLE_USERS)+' SET ';
         sql := sql + getUpdateClause;
         sql := sql + ' WHERE Host = ''' + Host + ''' AND User = ''' + User + '''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         GetResUsers;
       end;
 
@@ -773,7 +773,7 @@ begin
           sql := sql + ')';
           editcurrent := true;
         end;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         GetResDBs;
       end;
 
@@ -793,7 +793,7 @@ begin
           sql := sql + ')';
           editcurrent := true;
         end;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         GetResTables;
       end;
 
@@ -811,11 +811,11 @@ begin
           sql := sql + ')';
           editcurrent := true;
         end;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         GetResColumns;
       end;
   end;
-  TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
+  TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH PRIVILEGES');
   ButtonRevoke.Enabled := editcurrent;
   Screen.Cursor := crDefault;
 end;
@@ -850,43 +850,43 @@ begin
     0 : // delete user
       if MessageDLG('Delete User '''+User+''' and all its privileges?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_USERS)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_DB)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_TABLES)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_COLUMNS)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         TreeViewUsers.Selected.Delete;
         ZQueryDBs.Active := False;
         ZQueryTables.Active := False;
         ZQueryColumns.Active := False;
         GetResUsers;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH PRIVILEGES');
       end;
     1 : // delete db-privs
       begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_DB)+' WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Text+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         ShowPrivilegesControls(false, false, true);
         GetResDBs;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH PRIVILEGES');
       end;
     2 : // delete table-privs
       begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_TABLES)+' WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Text+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         ShowPrivilegesControls(false, false, true);
         GetResTables;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH PRIVILEGES');
       end;
     3 : // delete column-privs
       begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_COLUMNS)+' WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Parent.Text+''' AND Column_name='''+TreeViewUsers.Selected.Text+'''';
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(sql);
         ShowPrivilegesControls(false, false, true);
         GetResColumns;
-        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH PRIVILEGES');
       end;
   end;
   Screen.Cursor := crDefault;
