@@ -174,8 +174,7 @@ begin
   // window-specific preferences stored in childwindows
   if Mainform.MDIChildCount > 0 then
   begin
-    for i:= 0 to Mainform.MDIChildCount -1 do
-    with TMDIChild(Mainform.MDIChildren[i]) do
+    with TMDIChild(Mainform.MDIChildren[0]) do
     begin
       SynMemoQuery.Font := self.Panel1.Font;
       SynMemoSQLLog.Font := self.Panel1.Font;

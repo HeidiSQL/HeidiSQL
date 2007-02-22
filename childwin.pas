@@ -2529,13 +2529,6 @@ begin
     end;
   end;
   TimerConnected.OnTimer(self);
-  // Activate the ZConnection of THIS MDIchild and deactivate it on all other mdichildren
-  // if we do this in Form.Deactivation we get a AV on a connection failure.
-  // Workaround for Bug #1530397
-  for i := 0 to Mainform.MDIChildCount - 1 do
-  begin
-    TMDIChild(Mainform.MDIChildren[i]).ZSQLMonitor1.Active := (Mainform.MDIChildren[i] = self);
-  end;
 
   mainform.MenuUserManager.Enabled := CanAcessMysqlFlag;
   mainform.ButtonUserManager.Enabled := CanAcessMysqlFlag;
