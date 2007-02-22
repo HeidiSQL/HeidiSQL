@@ -59,7 +59,6 @@ end;
 
 procedure TfrmQueryProgress.HandleQueryNotificationMsg(var AMessage: TMessage);
 var
-  MysqlQuery : TMysqlQuery;
   ChildWin : TMDIChild;
 begin
   case AMessage.LParam of
@@ -73,7 +72,7 @@ begin
       end;
     MQE_FINISHED:
       begin
-        MysqlQuery := TMysqlQuery(AMessage.WParam);
+        TMysqlQuery(AMessage.WParam);
         ChildWin := TMDIChild(Owner);
         ChildWin.SetQueryRunningFlag(False);
         Close();
