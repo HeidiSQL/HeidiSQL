@@ -739,8 +739,6 @@ begin
 end;
 
 
-
-
 procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
