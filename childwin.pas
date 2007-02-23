@@ -760,6 +760,10 @@ begin
       // Synchronize internal variables with defaults from DFM.
       StopOnErrors := btnQueryStopOnErrors.Down;
 
+      // Open server-specific registry-folder.
+      // relative from already opened folder!
+      OpenKey( 'Servers\' + FConnParams.Description, true );
+
       // Set last used database, select it later in Init
       lastUsedDB := ReadString( 'lastUsedDB' );
 
@@ -798,6 +802,9 @@ begin
       WriteInteger('dbtreewidth', dbtree.width);
       WriteInteger('sqloutheight', PageControlBottom.Height);
 
+      // Open server-specific registry-folder.
+      // relative from already opened folder!
+      OpenKey( 'Servers\' + FConnParams.Description, true );
       WriteString('lastUsedDB', ActualDatabase);
     end;
   end;
