@@ -1050,7 +1050,7 @@ begin
   EDBImage1.DataSource := DataSource1;
 
   reg := TRegistry.Create;
-  reg.openkey( REGPATH + '\Servers\' + description, true );
+  reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
 
   if not dataselected then
   begin
@@ -1391,7 +1391,7 @@ begin
         popupDbGridHeader.Items.Delete( i );
       with TRegistry.Create do
       begin
-        openkey( REGPATH + '\Servers\' + description, true );
+        openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
         if ValueExists( 'TablelistDefaultColumns' ) then
           popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
         if ValueExists( 'TablelistColumns' ) then
@@ -1862,7 +1862,7 @@ begin
         OnlyDBs.Delete( OnlyDBs.IndexOf(tndb_.Text) );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + FConnParams.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -2662,7 +2662,7 @@ begin
         OnlyDBs.Add( dbname );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + FConnParams.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -3354,7 +3354,7 @@ begin
   // Store whereclause in Registry
   reg := TRegistry.Create;
   try
-    reg.openkey( REGPATH + '\Servers\' + description, false );
+    reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, false );
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if where <> '' then
       reg.WriteString( reg_value, where )
@@ -4560,7 +4560,7 @@ begin
   menuitem := (Sender as TMenuItem);
   with TRegistry.Create do
   try
-    openkey( REGPATH + '\Servers\' + description, true );
+    openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
     case menuitem.Tag of
       1 : // Toggle default-columns
         WriteBool( 'TablelistDefaultColumns', not menuitem.Checked );
