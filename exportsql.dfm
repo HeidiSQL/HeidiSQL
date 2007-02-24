@@ -15,7 +15,6 @@ object ExportSQLForm: TExportSQLForm
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
-  OnClose = FormClose
   OnShow = FormShow
   DesignSize = (
     601

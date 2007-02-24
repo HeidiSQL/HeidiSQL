@@ -89,9 +89,9 @@ type
     procedure cbxStructureClick(Sender: TObject);
     procedure radioOtherHostClick(Sender: TObject);
     procedure cbxDataClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure checkListTablesKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure SaveSettings;
   private
     { Private declarations }
   public
@@ -1012,6 +1012,7 @@ begin
     Screen.Cursor := crDefault;
   END;
 
+  SaveSettings;
   close;
 end;
 
@@ -1300,8 +1301,12 @@ begin
 end;
 
 
-procedure TExportSQLForm.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+
+{***
+  Save settings in registry, should be called just before closing
+  the form, but not when Cancel was pressed.
+}
+procedure TExportSQLForm.SaveSettings;
 var
   OutputTo : Byte;
 begin
