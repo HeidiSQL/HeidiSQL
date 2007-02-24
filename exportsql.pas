@@ -158,6 +158,7 @@ var
   tn : TTreeNode;
   i, OutputTo : Integer;
   dbtree_db : String;
+  list: TWindowDataArray;
 begin
   barProgress.Position := 0;
   lblProgress.Caption := '';
@@ -220,6 +221,26 @@ begin
     if Valueexists('ExportSQL_OutputTo') then
     begin
       OutputTo := ReadInteger('ExportSQL_OutputTo');
+
+      {***
+        @note ansgarbecker, 2007-02-24
+          If OutputTo is now OUTPUT_HOST and there are no other windows
+          to export to, reset OutputTo to OUTPUT_FILE to avoid the error-popup
+          "You need at least 2 windows...", which should not be fired in
+          FormShow rather than only when the user has really clicked that
+          radiobutton.
+          As a benefit, the OUTPUT_FILE won't be saved to registry here
+          so the OUTPUT_HOST is still enabled in registry and will be used
+          the next time if we have more than 1 window
+        @see bug #1666054
+      }
+      // Check if all the heidisql windows are still alive.
+      CheckForCrashedWindows;
+      // Fetch list of heidisql windows.
+      list := GetWindowList;
+      if Length(list) < 2 then
+        OutputTo := OUTPUT_FILE;
+
       case OutputTo of
         OUTPUT_FILE : radioFile.Checked := true;
         OUTPUT_DB   : radioOtherDatabase.Checked := true;
