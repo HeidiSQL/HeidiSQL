@@ -394,7 +394,7 @@ end;
 
 {***
   Add or update field
-  @todo code cleanup, get rid of WITH statement
+  @todo code cleanup
 }
 procedure TFieldEditForm.AddUpdateField(Sender: TObject);
 var
@@ -405,6 +405,8 @@ var
   strDefault,
   strPosition,
   fielddef : String;
+  QuerySucceeded : Boolean;
+  cwin : TMDIChild;
 begin
   // Apply Changes to field-definition
 
@@ -426,6 +428,9 @@ begin
     end;
 
   Screen.Cursor := crSQLWait;
+
+  // Used later to decide whether to close the field-editor:
+  QuerySucceeded := false;
 
   strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
   strNotNull := '';
@@ -470,48 +475,53 @@ begin
         strNotNull +                  // Not Null
         strAutoIncrement;             // Auto_increment
 
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
 
-  with TMDIChild(Mainform.ActiveMDIChild) do
+  if (FMode=femFieldAdd) then
     begin
-      if (FMode=femFieldAdd) then
+      QuerySucceeded := cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) +           // table
+        ' ADD ' + mainform.mask(EditFieldname.Text) + ' ' +     // new name
+        fielddef +
+        strPosition                                             // Position
+        )
+    end
+  else if (FMode=femFieldUpdate) then
+    begin
+      QuerySucceeded := cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) +                      // table
+        ' CHANGE ' + mainform.mask(cwin.ListColumns.Selected.Caption) + ' ' +     // old name
+        mainform.mask(EditFieldName.Text) + ' ' +                          // new name
+        fielddef
+        );
+
+      //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
+
+      if ComboBoxPosition.ItemIndex > -1 then  // Move field position
         begin
-          ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
-            ' ADD ' + mainform.mask(EditFieldname.Text) + ' ' +     // new name
-            fielddef +
-            strPosition                                             // Position
-            )
-        end
-      else if (FMode=femFieldUpdate) then
-        begin
-          ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) +                      // table
-            ' CHANGE ' + mainform.mask(ListColumns.Selected.Caption) + ' ' +     // old name
-            mainform.mask(EditFieldName.Text) + ' ' +                          // new name
+          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) +           // table
+          ' ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +          // new name
+          fielddef +
+          strPosition                                             // Position
+          );
+          cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
+          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' CHANGE '+
+            mainform.mask(TEMPFIELDNAME)+' '+mainform.mask(EditFieldName.Text) + ' ' +
             fielddef
-            );
-
-          //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
-
-          if ComboBoxPosition.ItemIndex > -1 then  // Move field position
-            begin
-              ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) +           // table
-              ' ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +          // new name
-              fielddef +
-              strPosition                                             // Position
-              );
-              ExecUpdateQuery('UPDATE ' + mainform.mask(ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
-              ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
-              ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ActualTable) + ' CHANGE '+
-                mainform.mask(TEMPFIELDNAME)+' '+mainform.mask(EditFieldName.Text) + ' ' +
-                fielddef
-              );
-            end;  
+          );
         end;
-
-      ShowTableProperties(self);
     end;
 
   Screen.Cursor := crDefault;
-  close;
+
+  {***
+    Only refresh columnslist and close fieldeditor if ALTER-statement was successful
+    @see issue #1662005
+  }
+  if QuerySucceeded then
+  begin
+    cwin.ShowTableProperties(self);
+    ModalResult := mrOK;
+  end;
 end;
 
 
@@ -552,7 +562,6 @@ begin
   if InFieldMode then
     begin
       AddUpdateField(self);
-      ModalResult := mrOK;
     end
   else if InIndexMode then
     begin
