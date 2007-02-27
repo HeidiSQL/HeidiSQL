@@ -127,6 +127,7 @@ type
     procedure Close; override;
     function Ping: Boolean; override;
     function GetAffectedRowsFromLastPost: Int64; override;
+    function GetThreadId: Cardinal; override;
 
     procedure SetCatalog(const Catalog: string); override;
     function GetCatalog: string; override;
@@ -615,6 +616,14 @@ end;
 function TZMySQLConnection.GetAffectedRowsFromLastPost: Int64;
 begin
   Result := FPlainDriver.GetAffectedRows(FHandle);
+end;
+
+{**
+  Returns the ID of the current session
+}
+function TZMySQLConnection.GetThreadId: Cardinal;
+begin
+  Result := FPlainDriver.GetThreadId(FHandle);
 end;
 
 {**

@@ -509,6 +509,7 @@ begin
 
   try
     TimerConnected.Enabled := true;
+    LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
     // On Re-Connection, try to restore lost properties
     if FMysqlConn.Connection.Database <> '' then
     begin
@@ -2051,7 +2052,7 @@ end;
 procedure TMDIChild.KillProcess(Sender: TObject);
 var t : boolean;
 begin
-  if ListProcesses.Selected.Caption = GetVar( 'SELECT CONNECTION_ID()' ) then
+  if ListProcesses.Selected.Caption = IntToStr( MySQLConn.Connection.GetThreadId ) then
     MessageDlg('Fatal: Better not kill my own Process...', mtError, [mbok], 0)
   else begin
     t := TimerProcessList.Enabled;

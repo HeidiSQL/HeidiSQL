@@ -175,6 +175,7 @@ type
     function IsClosed: Boolean; virtual;
     function Ping: Boolean; virtual;
     function GetAffectedRowsFromLastPost: Int64; virtual;
+    function GetThreadId: Cardinal; virtual;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;
@@ -791,6 +792,14 @@ end;
 function TZAbstractConnection.GetAffectedRowsFromLastPost: Int64;
 begin
   raise Exception.Create('GetAffectedRowsFromLastPost() is unsupported by this particular DB driver.');
+end;
+
+{**
+  Returns the ID of the current session
+}
+function TZAbstractConnection.GetThreadId: Cardinal;
+begin
+  raise Exception.Create('GetThreadId() is unsupported by this particular DB driver.');
 end;
 
 {**

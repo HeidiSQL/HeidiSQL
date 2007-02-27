@@ -182,6 +182,7 @@ type
     procedure Reconnect;
     function Ping: Boolean; virtual;
     function GetAffectedRowsFromLastPost: Int64;
+    function GetThreadId: Cardinal;
 
     procedure StartTransaction; virtual;
     procedure Commit; virtual;
@@ -353,6 +354,16 @@ function TZConnection.GetAffectedRowsFromLastPost: Int64;
 begin
   Result := FConnection.GetAffectedRowsFromLastPost;
 end;
+
+
+{**
+  Returns the ID of the current session
+}
+function TZConnection.GetThreadId: Cardinal;
+begin
+  Result := FConnection.GetThreadId;
+end;
+
 
 
 {**

@@ -245,6 +245,7 @@ type
     function IsClosed: Boolean;
     function Ping: Boolean;
     function GetAffectedRowsFromLastPost: Int64;
+    function GetThreadId: Cardinal;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;

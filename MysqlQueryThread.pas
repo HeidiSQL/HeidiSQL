@@ -45,7 +45,7 @@ type
 
   TThreadResult = record
     ThreadID : Integer;
-    ConnectionID : Integer;
+    ConnectionID : Cardinal;
     Action : Integer;
     Sql : String;
     Result : Integer;
@@ -60,7 +60,6 @@ type
 
   TMysqlQueryThread = class(TThread)
     private
-      FMysqlConnectionID : Integer;
       FMysqlConn : TZConnection;
       FConnParams : TConnParams;
       FOwner : TObject; // TMysqlQuery object
@@ -105,7 +104,7 @@ begin
   ZeroMemory (@Result,SizeOf(Result));
 
   Result.ThreadID := ThreadID;
-  Result.ConnectionID := FMysqlConnectionID;
+  Result.ConnectionID := FMysqlConn.GetThreadId;
   Result.Action := 1;
   Result.Sql := FSql;
   Result.Result := FResult;
@@ -210,8 +209,6 @@ begin
 
   if FMysqlConn.Connected then
     begin
-      FMysqlConnectionID := QuerySingleCellAsInteger('SELECT CONNECTION_ID()');
-
       NotifyStatus (MQE_STARTED);
 
       if ExpectResultSet(FSql) then
