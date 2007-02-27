@@ -508,6 +508,7 @@ procedure TMDIChild.PerformConnect;
 begin
 
   try
+    time_connected := 0;
     TimerConnected.Enabled := true;
     LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
     // On Re-Connection, try to restore lost properties
