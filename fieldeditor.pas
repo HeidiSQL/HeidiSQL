@@ -54,6 +54,8 @@ type
     BitBtn4: TBitBtn;
     TabSheet3: TTabSheet;
     Label9: TLabel;
+    btnDatatypeHelp: TSpeedButton;
+    procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
     procedure AddUpdateField(Sender: TObject);
@@ -946,6 +948,17 @@ begin
       TextOut(Rect.Left + 18, Rect.Top, c.Items[Index]);
     end;
 end;
+
+
+
+{***
+  Call SQL help for selected datatype
+}
+procedure TFieldEditForm.btnDatatypeHelpClick(Sender: TObject);
+begin
+  TMDIChild(Mainform.ActiveMDIChild).CallSQLHelpWithKeyword(ComboBoxType.Text);
+end;
+
 
 end.
 

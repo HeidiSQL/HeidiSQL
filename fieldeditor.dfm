@@ -70,6 +70,23 @@ object FieldEditForm: TFieldEditForm
         Height = 13
         Caption = 'Position:'
       end
+      object btnDatatypeHelp: TSpeedButton
+        Left = 252
+        Top = 61
+        Width = 21
+        Height = 21
+        Hint = 'Help on selected datatype'
+        Glyph.Data = {
+          F6000000424DF600000000000000760000002800000010000000100000000100
+          0400000000008000000000000000000000001000000010000000000000000000
+          80000080000000808000800000008000800080800000C0C0C000808080000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
+          FFFFFFFFFFFFFFFFFFFFFFFFFF44FFFFFFFFFFFFFF44FFFFFFFFFFFFFFFFFFFF
+          FFFFFFFFFF44FFFFFFFFFFFFFF44FFFFFFFFFFFFFF444FFFFFFFFFFFFFF444FF
+          FFFFFFFFFFFF444FFFFFFFF44FFFF44FFFFFFFF444FFF44FFFFFFFFF444444FF
+          FFFFFFFFF4444FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+        OnClick = btnDatatypeHelpClick
+      end
       object EditDefault: TEdit
         Left = 88
         Top = 109
@@ -87,7 +104,7 @@ object FieldEditForm: TFieldEditForm
       object ComboBoxType: TComboBox
         Left = 88
         Top = 61
-        Width = 185
+        Width = 158
         Height = 21
         Style = csDropDownList
         ItemHeight = 13

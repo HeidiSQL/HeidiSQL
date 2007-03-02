@@ -271,6 +271,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CallSQLHelp(Sender: TObject);
+    procedure CallSQLHelpWithKeyword(keyword: String);
     procedure ManageIndexes1Click(Sender: TObject);
     procedure ZQueryGridAfterPost(DataSet: TDataSet);
     procedure btnQueryReplaceClick(Sender: TObject);
@@ -3712,6 +3713,19 @@ begin
     keyword := copy( keyword, 1, pos( '(', keyword )-1 );
   end;
 
+  // Show the window
+  CallSQLHelpWithKeyword( keyword );
+end;
+
+
+
+{***
+  Show SQL Help window directly using a keyword
+  @param string SQL-keyword
+  @see FieldeditForm.btnDatatypeHelp
+}
+procedure TMDIChild.CallSQLHelpWithKeyword( keyword: String );
+begin
   // Set help-keyword and show window
   frmSQLhelp.keyword := keyword;
   frmSQLhelp.Show;
