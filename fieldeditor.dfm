@@ -93,33 +93,6 @@ object FieldEditForm: TFieldEditForm
         ItemHeight = 13
         TabOrder = 2
         OnChange = ComboBoxTypeChange
-        Items.Strings = (
-          'TINYINT'
-          'SMALLINT'
-          'MEDIUMINT'
-          'INT'
-          'BIGINT'
-          'FLOAT'
-          'DOUBLE'
-          'DECIMAL'
-          'DATE'
-          'DATETIME'
-          'TIMESTAMP'
-          'TIME'
-          'YEAR'
-          'CHAR'
-          'VARCHAR'
-          'TINYBLOB'
-          'TINYTEXT'
-          'TEXT'
-          'BLOB'
-          'MEDIUMBLOB'
-          'MEDIUMTEXT'
-          'LONGBLOB'
-          'LONGTEXT'
-          'ENUM'
-          'SET'
-          'BIT')
       end
       object EditFieldname: TEdit
         Left = 88

@@ -79,10 +79,11 @@ const
   tpLONGTEXT   = 22;
   tpENUM       = 23;
   tpSET        = 24;
+  tpBIT        = 25;
 
 var
   // MySQL Data Type List and Properties
-  MySqlDataTypeArray: array [0..24] of TMysqlDataTypeRecord =
+  MySqlDataTypeArray: array [0..25] of TMysqlDataTypeRecord =
   (
     (
       Index: tpTINYINT;
@@ -185,6 +186,10 @@ var
     (
       Index: tpSET;
       Name: 'SET'
+    ),
+    (
+      Index: tpBIT;
+      Name: 'BIT'
     )
   );
 

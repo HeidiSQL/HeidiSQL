@@ -170,6 +170,13 @@ begin
     ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(ListColumns.Items[i].Caption));
   end;
 
+  // re-fill datatypes-combobox
+  ComboBoxType.Items.Clear;
+  for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
+  begin
+    ComboBoxType.Items.Add( MySqlDataTypeArray[i].Name );
+  end;
+
   case FMode of
 
     // "Field" tab in Add-mode
