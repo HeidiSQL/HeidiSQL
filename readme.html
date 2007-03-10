@@ -36,6 +36,10 @@
 			margin-top: 1em;
 			margin-bottom: 1em;
 		}
+		cite {
+			display: block;
+			margin: 1em;
+		}
 	</style>
 </head>
 
@@ -307,6 +311,40 @@
 		Now you can restart your <a href='#gettingstarted'>build process</a>.
 	</p>
 
+
+	<h3>Compiler-error: "FOO.pas: E2225 Never-build package BAR must be recompiled"</h3>
+	<p>
+		If you get this error while building any component, nuke all files in the
+		"build"-folder of the package which causes the problem, then try to recompile.
+	</p>
+	<p>
+		At least for me that worked as I couldn't build the ZComponentDesign-package
+		and got this message:<br />
+		<cite>ZPropertyEditor.pas: E2225 Never-build package ZComponent must be recompiled</cite>
+	</p>
+
+
+	<h3>Compiler-error: "F1026 File not found: XYZ", although file is definitely existant</h3>
+	<p>
+		It seems that especially the file ZPlainMysql.inc in the package ZPLain
+		is affected by this phenomen. This is a bug in BDS which has been reported
+		in 2004, closed for version 10.0.2097.6343. 
+		See also <a href="http://qc.borland.com/wc/qcmain.aspx?d=9783">http://qc.borland.com/wc/qcmain.aspx?d=9783</a>:
+		<cite>
+			Charles Pope: (...) It looks like Error Insight is performing some kind
+			of file locking preventing the compiler from being able to access the
+			file. (...)
+		</cite>
+	</p>
+	<p>
+		Workaround:
+		<ol>
+			<li>Go to Tools &gt; Options &gt; Editor Options &gt; Code Insight</li>
+			<li>Uncheck at least "Error Insight"</li>
+			<li>Restart Borland Developer Studio</li>
+		</ol>  
+	</p>
+	
 	<hr />
 
 
