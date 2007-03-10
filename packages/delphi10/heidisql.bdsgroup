@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
   <PersonalityInfo>
     <Option>
@@ -25,9 +25,9 @@
       <Projects Name="ZParseSql100.bpl">..\..\components\zeosdbo\packages\delphi10\ZParseSql.bdsproj</Projects>
       <Projects Name="ZDbc100.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
       <Projects Name="ZComponent100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
-      <Projects Name="ZComponentDesign70.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponentDesign.bdsproj</Projects>
+      <Projects Name="ZComponentDesign100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponentDesign.bdsproj</Projects>
       <Projects Name="HeidiSQL">heidisql.bdsproj</Projects>
-      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign70.bpl HeidiSQL</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiSQL</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>

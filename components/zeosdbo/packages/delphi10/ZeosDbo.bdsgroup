@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<PersonalityInfo>
 		<Option>
@@ -14,8 +14,8 @@
       <Projects Name="ZParseSql100.bpl">ZParseSql.bdsproj</Projects>
       <Projects Name="ZDbc100.bpl">ZDbc.bdsproj</Projects>
       <Projects Name="ZComponent100.bpl">ZComponent.bdsproj</Projects>
-      <Projects Name="ZComponentDesign70.bpl">ZComponentDesign.bdsproj</Projects>
-      <Projects Name="Targets">ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign70.bpl</Projects>
+      <Projects Name="ZComponentDesign100.bpl">ZComponentDesign.bdsproj</Projects>
+      <Projects Name="Targets">ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
