@@ -435,7 +435,6 @@ type
       strHostRunning             : String;
       uptime, time_connected     : Integer;
       OnlyDBs                    : TStringList;  // used on connecting
-      rowcount                   : Int64;        // rowcount of ActualTable
       viewingdata                : Boolean;
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
@@ -454,6 +453,7 @@ type
       function CanAcessMysql: Boolean;
       procedure WaitForQueryCompletion();
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
+      procedure DisplayRowCountStats;
 
     public
       ActualDatabase, ActualTable: string;
@@ -1018,7 +1018,6 @@ var
   orderclauses             : TStringList;
   columnname               : String;
   columnexists             : Boolean;
-  found_rows               : Int64;
   select_base              : String;
   limit                    : Int64;
   mq : TMysqlQuery;
@@ -1031,9 +1030,6 @@ begin
   viewingdata := true;
 
   sl_query := TStringList.Create();
-
-  // Get rowcount
-  rowcount := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ) );
 
   // limit number of rows automatically if first time this table is shown
   if not dataselected then
@@ -1283,39 +1279,7 @@ begin
       end;
     end;
 
-    Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rowcount) + ' records total';
-
-    {***
-      @note: FOUND_ROWS() gives us a correct number, but this number
-        belongs in most cases to a different query than the previous SELECT,
-        because Zeos does some automagically
-          SHOW TABLES LIKE '' and
-          SHOW COLUMNS LIKE '%'
-        between the above SELECT and a following "SELECT FOUND_ROWS()".
-        This problem has been introduced with the fix of
-        a faulty caching-mechanism in Zeos (rev 312).
-        and those queries seem to reset the FOUND_ROWS() since MySQL 5.0
-        The workaround is to store FOUND_ROWS() immediately after query-execution
-        in a variable, which we are selecting here.
-      @see TZMySQLResultSet:Create
-      @see TZMySQLResultSet:Open
-    }
-    if mysql_version >= 40000 then
-    begin
-      found_rows := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
-    end
-    else
-    begin
-      found_rows := rowcount;
-    end;
-
-    if (found_rows <> rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
-      Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(found_rows) + ' matching to filter';
-    if (mysql_version >= 40000) and (found_rows = rowcount) and (trim(self.SynMemoFilter.Text) <> '') then
-      Panel5.Caption := Panel5.Caption + ', filter matches all records';
-    if mainform.CheckBoxLimit.Checked and ( found_rows > StrToIntDef(mainform.EditLimitEnd.Text,0) ) then
-      Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(FCurDataset.RecordCount);
-
+    DisplayRowCountStats;
     dataselected := true;
     pcChange(self);
   end;
@@ -1323,6 +1287,57 @@ begin
   viewingdata := false;
   Screen.Cursor := crDefault;
   FreeAndNil (sl_query);
+end;
+
+
+
+{***
+  Calculate + display total rowcount and found rows matching to filter
+  in data-tab
+}
+procedure TMDIChild.DisplayRowCountStats;
+var
+  rows_matching  : Int64; // rows matching to where-filter
+  rows_total     : Int64; // total rowcount
+begin
+  // Get rowcount
+  rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ) );
+
+  Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rows_total) + ' records total';
+
+  {***
+    @note: FOUND_ROWS() gives us a correct number, but this number
+      belongs in most cases to a different query than the previous SELECT,
+      because Zeos does some automagically
+        SHOW TABLES LIKE '' and
+        SHOW COLUMNS LIKE '%'
+      between the above SELECT and a following "SELECT FOUND_ROWS()".
+      This problem has been introduced with the fix of
+      a faulty caching-mechanism in Zeos (rev 312).
+      and those queries seem to reset the FOUND_ROWS() since MySQL 5.0
+      The workaround is to store FOUND_ROWS() immediately after query-execution
+      in a variable, which we are selecting here.
+    @see TZMySQLResultSet:Create
+    @see TZMySQLResultSet:Open
+  }
+  if mysql_version >= 40000 then
+  begin
+    rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
+  end
+  else
+  begin
+    rows_matching := rows_total;
+  end;
+
+  if (rows_matching <> rows_total)
+    and (trim(SynMemoFilter.Text) <> '')
+    and (FCurDataset.RecordCount = rows_matching) // Avoids displaying wrong numbers after INSERTs, DELETEs and UPDATEs
+    then
+    Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
+  if (mysql_version >= 40000) and (rows_matching = rows_total) and (trim(SynMemoFilter.Text) <> '') then
+    Panel5.Caption := Panel5.Caption + ', filter matches all records';
+  if mainform.CheckBoxLimit.Checked and ( rows_matching > StrToIntDef(mainform.EditLimitEnd.Text,0) ) then
+    Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(FCurDataset.RecordCount);
 end;
 
 
@@ -4119,6 +4134,9 @@ var
   affected_rows_str, msg  : String;
   affected_rows_int       : Int64;
 begin
+  // Display row count and filter-matchings above dbgrid
+  DisplayRowCountStats;
+
   affected_rows_int := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
   affected_rows_str := FormatNumber( affected_rows_int );
   if affected_rows_int = 0 then
