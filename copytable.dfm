@@ -49,9 +49,7 @@ object CopyTableForm: TCopyTableForm
     Width = 81
     Height = 17
     Caption = 'Structure'
-    Checked = True
     TabOrder = 3
-    TabStop = True
     OnClick = radioStructureClick
   end
   object radioStructureAndData: TRadioButton
@@ -60,7 +58,9 @@ object CopyTableForm: TCopyTableForm
     Width = 113
     Height = 17
     Caption = 'Structure and Data'
+    Checked = True
     TabOrder = 4
+    TabStop = True
     OnClick = radioStructureAndDataClick
   end
   object CheckListBoxFields: TCheckListBox
