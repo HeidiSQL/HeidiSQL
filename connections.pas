@@ -63,8 +63,6 @@ type
 
   function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
 
-var
-  connform: Tconnform;
 
 implementation
  uses Main, helpers, MysqlQueryThread, MysqlConn, ChildWin;
