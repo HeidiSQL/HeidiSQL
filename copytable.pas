@@ -42,6 +42,13 @@ type
 var
   CopyTableForm: TCopyTableForm;
 
+const
+  OPTION_STRUCTURE = 0;
+  OPTION_STRUCTURE_AND_DATA = 1;
+  OPTION_REGNAME_STRUC_DATA = 'CopyTable_Option_StructureData';
+  OPTION_REGNAME_WITH_INDEXES = 'CopyTable_Option_WithIndexes';
+  OPTION_REGNAME_WITH_ALL_FIELDS = 'CopyTable_Option_WithAllFields';
+
 implementation
 
 uses helpers, main, childwin;
@@ -75,6 +82,7 @@ procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   i : Integer;
   tn : TTreeNode;
+  struc_data : Byte;
 begin
   oldTableName := TMDIChild(Mainform.ActiveMDIChild).ListTables.Selected.Caption;
   editNewTablename.Text := oldTableName + '_copy';
@@ -121,6 +129,20 @@ begin
   for i:=0 to CheckListBoxFields.Items.Count-1 do
     CheckListBoxFields.checked[i] := true;
 
+  {***
+    restore last settings
+    @see feature #1647058
+  }
+  struc_data := mainform.GetRegValue( OPTION_REGNAME_STRUC_DATA, OPTION_STRUCTURE_AND_DATA );
+  case struc_data of
+    OPTION_STRUCTURE:
+      radioStructure.Checked := true;
+    OPTION_STRUCTURE_AND_DATA:
+      radioStructureAndData.Checked := true;
+  end;
+  CheckBoxWithIndexes.Checked := mainform.GetRegValue( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
+  CheckBoxWithAllFields.Checked := mainform.GetRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
+
 end;
 
 
@@ -133,8 +155,24 @@ var
   ai_q, notnull, default    : String;
   zq           : TZReadOnlyQuery;
   isFulltext   : Boolean;
+  struc_data   : Byte;
 begin
   // copy table!
+
+  // store settings
+  if radioStructure.Checked then
+  begin
+    struc_data := OPTION_STRUCTURE;
+  end;
+  if radioStructureAndData.Checked then
+  begin
+    struc_data := OPTION_STRUCTURE_AND_DATA;
+  end;
+  mainform.SaveRegValue( OPTION_REGNAME_STRUC_DATA, struc_data );
+  mainform.SaveRegValue( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
+  mainform.SaveRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
+
+
   strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
   zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
 
