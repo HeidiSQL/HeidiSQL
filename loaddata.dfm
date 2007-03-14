@@ -53,8 +53,8 @@ object loaddataform: Tloaddataform
     Caption = 'Lines:'
   end
   object Label5: TLabel
-    Left = 416
-    Top = 168
+    Left = 415
+    Top = 169
     Width = 25
     Height = 13
     Caption = 'Lines'
@@ -237,24 +237,13 @@ object loaddataform: Tloaddataform
     TabOrder = 15
     OnClick = CheckBox7Click
   end
-  object SpinEdit1: TSpinEdit
-    Left = 360
-    Top = 168
-    Width = 49
-    Height = 22
-    Enabled = False
-    MaxValue = 99999
-    MinValue = 1
-    TabOrder = 16
-    Value = 1
-  end
   object ColumnsCheckListBox: TCheckListBox
     Left = 16
     Top = 128
     Width = 121
     Height = 161
     ItemHeight = 13
-    TabOrder = 17
+    TabOrder = 16
   end
   object DBComboBox: TComboBox
     Left = 16
@@ -263,7 +252,7 @@ object loaddataform: Tloaddataform
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    TabOrder = 18
+    TabOrder = 17
     OnChange = DBComboBoxChange
   end
   object CheckBox8: TCheckBox
@@ -272,7 +261,7 @@ object loaddataform: Tloaddataform
     Width = 65
     Height = 17
     Caption = 'Replace'
-    TabOrder = 19
+    TabOrder = 18
     OnClick = CheckBox8Click
   end
   object CheckBox9: TCheckBox
@@ -281,7 +270,7 @@ object loaddataform: Tloaddataform
     Width = 57
     Height = 17
     Caption = 'Ignore'
-    TabOrder = 20
+    TabOrder = 19
     OnClick = CheckBox9Click
   end
   object BitBtn2: TBitBtn
@@ -306,7 +295,7 @@ object loaddataform: Tloaddataform
     Top = 202
     Width = 25
     Height = 25
-    TabOrder = 22
+    TabOrder = 20
     OnClick = BitBtn3Click
     Glyph.Data = {
       F6000000424DF600000000000000760000002800000010000000100000000100
@@ -317,6 +306,26 @@ object loaddataform: Tloaddataform
       AAAAAAAAAA010AAAAAAAAAAAA03210AAAAAAAAAA0543210AAAAAAAA076543210
       AAAAAA09876543210AAAA0000076500000AAAAAAA08760AAAAAAAAAAA00000AA
       AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
+  end
+  object editIgnoreLines: TEdit
+    Left = 360
+    Top = 167
+    Width = 33
+    Height = 21
+    Enabled = False
+    TabOrder = 22
+    Text = '1'
+  end
+  object updownIgnoreLines: TUpDown
+    Left = 391
+    Top = 168
+    Width = 18
+    Height = 21
+    Associate = editIgnoreLines
+    Enabled = False
+    Max = 32767
+    Position = 1
+    TabOrder = 23
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'csv'

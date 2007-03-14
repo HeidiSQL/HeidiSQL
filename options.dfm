@@ -43,7 +43,7 @@ object optionsform: Toptionsform
         Caption = 'Log last'
       end
       object Label5: TLabel
-        Left = 128
+        Left = 143
         Top = 85
         Width = 95
         Height = 13
@@ -58,17 +58,6 @@ object optionsform: Toptionsform
         TabOrder = 0
         OnClick = Modified
       end
-      object SpinEditLogSQL: TSpinEdit
-        Left = 64
-        Top = 80
-        Width = 57
-        Height = 22
-        MaxValue = 9999
-        MinValue = 1
-        TabOrder = 1
-        Value = 300
-        OnChange = Modified
-      end
       object CheckBoxConvertHTMLEntities: TCheckBox
         Left = 16
         Top = 48
@@ -77,8 +66,30 @@ object optionsform: Toptionsform
         Caption = 'Convert HTML-entities when copying/saving data (<, >)'
         Checked = True
         State = cbChecked
-        TabOrder = 2
+        TabOrder = 1
         OnClick = Modified
+      end
+      object updownLogSQLNum: TUpDown
+        Left = 121
+        Top = 82
+        Width = 17
+        Height = 21
+        Associate = editLogSQLNum
+        Min = 1
+        Max = 32767
+        Position = 1
+        TabOrder = 2
+        Wrap = True
+        OnChanging = anyUpDownLimitChanging
+      end
+      object editLogSQLNum: TEdit
+        Left = 68
+        Top = 82
+        Width = 53
+        Height = 21
+        TabOrder = 3
+        Text = '1'
+        OnChange = Modified
       end
     end
     object TabSheet2: TTabSheet
@@ -468,18 +479,28 @@ object optionsform: Toptionsform
         Associate = EditLimit
         Max = 32767
         TabOrder = 5
-        OnChanging = UpDownLimitChanging
+        OnChanging = anyUpDownLimitChanging
       end
-      object SpinEditDefaultColWidth: TSpinEdit
-        Left = 189
-        Top = 64
-        Width = 60
-        Height = 22
-        MaxValue = 999
-        MinValue = 0
+      object editDefaultColWidth: TEdit
+        Left = 188
+        Top = 65
+        Width = 42
+        Height = 21
         TabOrder = 6
-        Value = 100
+        Text = '1'
         OnChange = Modified
+      end
+      object updownDefaultColWidth: TUpDown
+        Left = 230
+        Top = 65
+        Width = 16
+        Height = 21
+        Associate = editDefaultColWidth
+        Min = 1
+        Max = 1000
+        Position = 1
+        TabOrder = 7
+        OnChanging = anyUpDownLimitChanging
       end
     end
     object TabSheet5: TTabSheet

@@ -35,7 +35,6 @@ type
     CheckBox6: TCheckBox;
     Edit5: TEdit;
     CheckBox7: TCheckBox;
-    SpinEdit1: TSpinEdit;
     Label5: TLabel;
     Label6: TLabel;
     ColumnsCheckListBox: TCheckListBox;
@@ -47,6 +46,8 @@ type
     Label8: TLabel;
     BitBtn2: TBitBtn;
     BitBtn3: TBitBtn;
+    editIgnoreLines: TEdit;
+    updownIgnoreLines: TUpDown;
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
@@ -206,7 +207,8 @@ end;
 
 procedure Tloaddataform.CheckBox7Click(Sender: TObject);
 begin
-  spinedit1.Enabled :=  (sender as TCheckBox).checked;
+  updownIgnoreLines.Enabled := (sender as TCheckBox).checked;
+  editIgnoreLines.Enabled := (sender as TCheckBox).checked;
   Label5.Enabled :=  (sender as TCheckBox).checked;
 end;
 
@@ -252,7 +254,7 @@ begin
   if checkbox6.Checked then
     query := query + 'LINES TERMINATED BY ''' + Edit5.Text + ''' ';
   if checkbox7.Checked then
-    query := query + 'IGNORE ' + inttostr(SpinEdit1.Value) + ' LINES ';
+    query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
   col := TStringList.Create;
   for i:=0 to ColumnsCheckListBox.Items.Count - 1 do

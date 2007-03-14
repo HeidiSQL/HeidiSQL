@@ -30,7 +30,6 @@ type
     Label3: TLabel;
     ComboBoxFonts: TComboBox;
     Label4: TLabel;
-    SpinEditLogSQL: TSpinEdit;
     Label5: TLabel;
     Label6: TLabel;
     pnlKeywords: TPanel;
@@ -79,10 +78,13 @@ type
     UpDownLimit: TUpDown;
     Label26: TLabel;
     Label19: TLabel;
-    SpinEditDefaultColWidth: TSpinEdit;
     Label20: TLabel;
     Label28: TLabel;
     pnlTablenames: TPanel;
+    updownLogSQLNum: TUpDown;
+    editLogSQLNum: TEdit;
+    editDefaultColWidth: TEdit;
+    updownDefaultColWidth: TUpDown;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -92,7 +94,7 @@ type
     procedure CallColorDialog(Sender: TObject);
     procedure DataFontsChange(Sender: TObject);
     procedure CheckBoxlimitClick(Sender: TObject);
-    procedure UpDownLimitChanging(Sender: TObject;
+    procedure anyUpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
   private
     { Private declarations }
@@ -148,7 +150,7 @@ begin
     WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
     WriteString('FontName', ComboBoxFonts.Text);
     WriteInteger('FontSize', UpDownFontSize.Position);
-    WriteInteger('logsqlnum', SpinEditLogSQL.Value);
+    WriteInteger('logsqlnum', updownLogSQLNum.Position);
     WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
     WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
     WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
@@ -159,7 +161,7 @@ begin
     WriteString('CSVSeparator', Edit1.Text);
     WriteString('CSVEncloser', Edit2.Text);
     WriteString('CSVTerminator', Edit3.Text);
-    WriteInteger('DefaultColWidth', SpinEditDefaultColWidth.Value);
+    WriteInteger('DefaultColWidth', updownDefaultColWidth.Position);
     WriteBool('DataLimit', CheckBoxLimit.Checked);
     WriteInteger('DataLimitEnd', UpDownLimit.Position);
     WriteString('DataFontName', Panel8.Font.Name);
@@ -183,7 +185,7 @@ begin
       SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
       SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
       SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
-      while SynMemoSQLLog.Lines.Count > SpinEditLogSQL.Value do
+      while SynMemoSQLLog.Lines.Count > updownLogSQLNum.Position do
         SynMemoSQLLog.Lines.Delete(0);
       gridData.Font := self.Panel8.font;
       gridQuery.Font := self.Panel8.font;
@@ -195,8 +197,8 @@ begin
 
   // general preferences stored in mainform
   with Mainform do begin
-    logsqlnum := self.SpinEditLogSQL.Value;
-    DefaultColWidth := SpinEditDefaultColWidth.value;
+    logsqlnum := self.updownLogSQLNum.Position;
+    DefaultColWidth := updownDefaultColWidth.Position;
     CSVSeparator := self.Edit1.text;
     CSVEncloser := self.Edit2.text;
     CSVTerminator := self.Edit3.text;
@@ -253,10 +255,10 @@ begin
       UpDownLimit.Position := ReadInteger('DataLimitEnd');
     CheckBoxLimit.OnClick(self);
     if ValueExists('logsqlnum') then
-      SpinEditLogSQL.Value := ReadInteger('logsqlnum');
+      updownLogSQLNum.Position := ReadInteger('logsqlnum');
     // Default Column-Width in DBGrids:
     if ValueExists('DefaultColWidth') then
-      SpinEditDefaultColWidth.Value := ReadInteger('DefaultColWidth');
+      updownDefaultColWidth.Position := ReadInteger('DefaultColWidth');
 
     // Color-coding:
     if ValueExists('SQLColKeyAttri') then
@@ -388,7 +390,7 @@ begin
   Modified(sender);
 end;
 
-procedure Toptionsform.UpDownLimitChanging(Sender: TObject;
+procedure Toptionsform.anyUpDownLimitChanging(Sender: TObject;
   var AllowChange: Boolean);
 begin
   modified(sender);
