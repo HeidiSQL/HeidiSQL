@@ -14,21 +14,21 @@ uses
 
 type
   TCopyTableForm = class(TForm)
-    Edit1: TEdit;
-    Label1: TLabel;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
+    editNewTablename: TEdit;
+    lblNewTablename: TLabel;
+    radioStructure: TRadioButton;
+    radioStructureAndData: TRadioButton;
     CheckListBoxFields: TCheckListBox;
     CheckBoxWithAllFields: TCheckBox;
     ButtonCancel: TButton;
     CheckBoxWithIndexes: TCheckBox;
-    Label3: TLabel;
+    lblTargetDB: TLabel;
     ComboSelectDatabase: TComboBox;
     ButtonOK: TButton;
-    procedure RadioButton1Click(Sender: TObject);
-    procedure RadioButton2Click(Sender: TObject);
+    procedure radioStructureClick(Sender: TObject);
+    procedure radioStructureAndDataClick(Sender: TObject);
     procedure CheckBoxWithAllFieldsClick(Sender: TObject);
-    procedure Edit1Change(Sender: TObject);
+    procedure editNewTablenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
@@ -48,14 +48,14 @@ uses helpers, main, childwin;
 
 {$R *.DFM}
 
-procedure TCopyTableForm.RadioButton1Click(Sender: TObject);
+procedure TCopyTableForm.radioStructureClick(Sender: TObject);
 begin
-  RadioButton2.Checked := not RadioButton1.Checked;
+  radioStructureAndData.Checked := not radioStructure.Checked;
 end;
 
-procedure TCopyTableForm.RadioButton2Click(Sender: TObject);
+procedure TCopyTableForm.radioStructureAndDataClick(Sender: TObject);
 begin
-  RadioButton1.Checked := not RadioButton2.Checked;
+  radioStructure.Checked := not radioStructureAndData.Checked;
 end;
 
 procedure TCopyTableForm.CheckBoxWithAllFieldsClick(Sender: TObject);
@@ -64,10 +64,10 @@ begin
 end;
 
 
-procedure TCopyTableForm.Edit1Change(Sender: TObject);
+procedure TCopyTableForm.editNewTablenameChange(Sender: TObject);
 begin
   // validate tablename
-  ButtonOK.Enabled := (Edit1.text <> '');
+  ButtonOK.Enabled := (editNewTablename.text <> '');
 end;
 
 
@@ -77,9 +77,9 @@ var
   tn : TTreeNode;
 begin
   oldTableName := TMDIChild(Mainform.ActiveMDIChild).ListTables.Selected.Caption;
-  Edit1.Text := oldTableName + '_copy';
-  Edit1.SetFocus;
-  Label1.Caption := 'Copy ''' + oldTableName + ''' to new Table:';
+  editNewTablename.Text := oldTableName + '_copy';
+  editNewTablename.SetFocus;
+  lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new Table:';
 
 	// Select TargetDatabase
   ComboSelectDatabase.Items.Clear;
@@ -135,7 +135,7 @@ var
   isFulltext   : Boolean;
 begin
   // copy table!
-  strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(Edit1.Text) + ' ';
+  strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
   zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
 
   // keys >
@@ -219,7 +219,7 @@ begin
   strquery := strquery + ' FROM ' + mainform.mask(oldTableName);
 
   // what?
-  if RadioButton1.Checked then
+  if radioStructure.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
   TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(strquery);
@@ -234,7 +234,7 @@ begin
     if zq.Fields[5].AsString = 'auto_increment' then begin
       if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
       if zq.Fields[4].AsString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsString+'"' else default := '';
-      ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(Edit1.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
+      ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
       TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(ai_q);
     end;
     zq.Next;
