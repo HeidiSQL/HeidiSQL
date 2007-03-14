@@ -14,16 +14,16 @@ uses
 
 type
   TSelectFromManyDatabases = class(TForm)
-    Label1: TLabel;
-    Button1: TButton;
-    Label2: TLabel;
+    lblSelectDB: TLabel;
+    btnShowAll: TButton;
+    lblWarning: TLabel;
     CheckListBoxDBs: TCheckListBox;
-    Image1: TImage;
-    Button2: TButton;
-    procedure Button1Click(Sender: TObject);
+    imgWarning: TImage;
+    btnSave: TButton;
+    procedure btnShowAllClick(Sender: TObject);
     procedure CheckListBoxDBsClickCheck(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
     FDbList : TStringList;
     procedure SetDbList(const Value: TStringList);
@@ -52,7 +52,7 @@ begin
 end;
 
 
-procedure TSelectFromManyDatabases.Button1Click(Sender: TObject);
+procedure TSelectFromManyDatabases.btnShowAllClick(Sender: TObject);
 var
   i : Integer;
   someselected : Boolean;
@@ -101,20 +101,20 @@ begin
   end;
   if someselected then
   begin
-    Button1.Caption := 'Show selected';
-    Button2.Enabled := true;
+    btnShowAll.Caption := 'Show selected';
+    btnSave.Enabled := true;
   end
   else
   begin
-    Button1.Caption := 'Show all';
-    Button2.Enabled := false;
+    btnShowAll.Caption := 'Show all';
+    btnSave.Enabled := false;
   end
 end;
 
 procedure TSelectFromManyDatabases.FormShow(Sender: TObject);
 begin
-  Button1.Caption := 'Show all';
-  Button2.Enabled := false;
+  btnShowAll.Caption := 'Show all';
+  btnSave.Enabled := false;
 end;
 
 procedure TSelectFromManyDatabases.SetDbList(const Value: TStringList);
@@ -127,7 +127,7 @@ begin
     CheckListBoxDBs.Items := Value;
 end;
 
-procedure TSelectFromManyDatabases.Button2Click(Sender: TObject);
+procedure TSelectFromManyDatabases.btnSaveClick(Sender: TObject);
 var
   i : Integer;
   odbs : String;
@@ -147,7 +147,7 @@ begin
     WriteString('OnlyDBs', odbs);
     closekey();
   end;
-  Button2.Enabled := false;
+  btnSave.Enabled := false;
   MessageDlg('Saved selected Databases to your local settings.', mtInformation, [mbOK], 0);
 end;
 

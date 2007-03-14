@@ -17,14 +17,14 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object lblSelectDB: TLabel
     Left = 8
     Top = 64
     Width = 87
     Height = 13
     Caption = 'Select Databases:'
   end
-  object Label2: TLabel
+  object lblWarning: TLabel
     Left = 48
     Top = 8
     Width = 235
@@ -34,7 +34,7 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
       'nutes to display them all (depending on your network-connection)'
     WordWrap = True
   end
-  object Image1: TImage
+  object imgWarning: TImage
     Left = 8
     Top = 8
     Width = 33
@@ -63,7 +63,7 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
       7777}
     Transparent = True
   end
-  object Button1: TButton
+  object btnShowAll: TButton
     Left = 216
     Top = 80
     Width = 105
@@ -71,7 +71,7 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
     Caption = 'Show all'
     Default = True
     TabOrder = 0
-    OnClick = Button1Click
+    OnClick = btnShowAllClick
   end
   object CheckListBoxDBs: TCheckListBox
     Left = 8
@@ -82,7 +82,7 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
     ItemHeight = 13
     TabOrder = 1
   end
-  object Button2: TButton
+  object btnSave: TButton
     Left = 216
     Top = 112
     Width = 105
@@ -90,6 +90,6 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
     Caption = 'Save'
     Enabled = False
     TabOrder = 2
-    OnClick = Button2Click
+    OnClick = btnSaveClick
   end
 end
