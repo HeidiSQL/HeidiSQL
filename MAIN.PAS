@@ -218,8 +218,6 @@ type
     procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
-    function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer;
-    procedure SaveRegValue( valueName: String; value: Integer; key: String = '' );
   public
     logsqlnum                  : Integer;
     CSVSeparator, CSVEncloser,
@@ -231,6 +229,10 @@ type
     DataAlwaysEditMode         : Boolean;
     DataNullBackground         : TColor;
     sqlfunctionlist            : TStringList;
+    function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
+    function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
+    procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
+    procedure SaveRegValue( valueName: String; value: Boolean; key: String = '' ); Overload;
 end;
 
 var
@@ -1250,6 +1252,36 @@ end;
 
 
 {***
+  Safely read a given valueName from the registry default-folder REGPATH 
+  @param string Name of the value
+  @param boolean Default-value to return if valueName was not found
+  @param string Subkey of REGPATH where to search for the value
+}
+function TMainForm.GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean;
+var
+  reg : TRegistry;
+  folder : String;
+begin
+  result := defaultValue;
+  reg := TRegistry.Create;
+  folder := REGPATH;
+  if key <> '' then
+    folder := folder + '\' + key;
+  try
+    if reg.OpenKey(folder, false) then
+    begin
+      if reg.ValueExists( valueName ) then
+        result := reg.ReadBool( valueName );
+      reg.CloseKey;
+    end;
+  finally
+    reg.Free;
+  end;
+end;
+
+
+
+{***
   Saves a number-value into the predefined folder REGPATH
   @param string Name for the value
   @param integer Value-number
@@ -1268,6 +1300,34 @@ begin
     if reg.OpenKey(folder, false) then
     begin
       reg.WriteInteger( valueName, value );
+      reg.CloseKey;
+    end;
+  finally
+    reg.Free;
+  end;
+end;
+
+
+
+{***
+  Saves a boolean-value into the predefined folder REGPATH
+  @param string Name for the value
+  @param boolean Value
+  @param string Subkey of REGPATH where to store the value
+}
+procedure TMainForm.SaveRegValue( valueName: String; value: Boolean; key: String = '' );
+var
+  reg : TRegistry;
+  folder : String;
+begin
+  reg := TRegistry.Create;
+  folder := REGPATH;
+  if key <> '' then
+    folder := folder + '\' + key;
+  try
+    if reg.OpenKey(folder, false) then
+    begin
+      reg.WriteBool( valueName, value );
       reg.CloseKey;
     end;
   finally
