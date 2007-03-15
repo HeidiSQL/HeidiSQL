@@ -68,6 +68,7 @@ object SelectFromManyDatabases: TSelectFromManyDatabases
     Top = 80
     Width = 105
     Height = 25
+    Cancel = True
     Caption = 'Show all'
     Default = True
     TabOrder = 0
