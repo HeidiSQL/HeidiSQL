@@ -34,16 +34,8 @@ type
   TExportSQLForm = class(TForm)
     btnExport: TButton;
     btnCancel: TButton;
-    groupOutput: TGroupBox;
     dialogSave: TSaveDialog;
-    btnFileBrowse: TBitBtn;
-    editFileName: TEdit;
-    radioOtherDatabase: TRadioButton;
-    radioFile: TRadioButton;
-    comboOtherDatabase: TComboBox;
     barProgress: TProgressBar;
-    radioOtherHost: TRadioButton;
-    comboOtherHost: TComboBox;
     lblProgress: TLabel;
     pageControl1: TPageControl;
     TabSheet1: TTabSheet;
@@ -54,19 +46,28 @@ type
     toolbarSelectTools: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
-    cbxStructure: TCheckBox;
-    cbxData: TCheckBox;
-    cbxExtendedInsert: TCheckBox;
+    groupOutput: TGroupBox;
+    btnFileBrowse: TBitBtn;
+    editFileName: TEdit;
+    radioOtherDatabase: TRadioButton;
+    radioFile: TRadioButton;
+    comboOtherDatabase: TComboBox;
+    radioOtherHost: TRadioButton;
+    comboOtherHost: TComboBox;
+    comboOtherHostDatabase: TComboBox;
+    groupExampleSql: TGroupBox;
+    SynMemoExampleSQL: TSynMemo;
+    groupOptions: TGroupBox;
     lblTargetCompat: TLabel;
-    comboTargetCompat: TComboBox;
+    cbxStructure: TCheckBox;
     cbxDatabase: TCheckBox;
+    comboDatabase: TComboBox;
     cbxTables: TCheckBox;
     comboTables: TComboBox;
-    groupExampleSql: TGroupBox;
-    comboDatabase: TComboBox;
+    cbxData: TCheckBox;
     comboData: TComboBox;
-    SynMemoExampleSQL: TSynMemo;
-    comboOtherHostDatabase: TComboBox;
+    comboTargetCompat: TComboBox;
+    cbxExtendedInsert: TCheckBox;
     procedure comboOtherHostSelect(Sender: TObject);
     procedure cbxExtendedInsertClick(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
@@ -1147,7 +1148,7 @@ begin
   if radioOtherHost.Checked then begin
     comboOtherHost.Enabled := true;
     comboOtherHost.Color := clWindow;
-    comboOtherHostDatabase.Enabled := not cbxDatabase.Checked;
+    comboOtherHostDatabase.Enabled := not (cbxStructure.Checked and cbxDatabase.Checked);
     comboOtherHostDatabase.Color := clWindow;
     comboOtherHost.SetFocus;
   end else begin
@@ -1315,6 +1316,9 @@ begin
   comboOtherHost.ItemIndex := 0;
   comboOtherHost.OnSelect(comboOtherHost);
   comboOtherHostDatabase.ItemIndex := 0;
+
+  // De-select database structure to enable database dropdown box.
+  cbxDatabase.Checked := false;
 
   validateRadioControls(Sender);
   validateControls(Sender);
