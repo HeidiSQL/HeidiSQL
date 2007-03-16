@@ -185,6 +185,7 @@ var
   qr : TThreadResult;
 begin
   qr := AssembleResult();
+  debug(Format('thr: Setting result and posting status %d via WM_MYSQL_THREAD_NOTIFY message', [AEvent]));
   TMysqlQuery(FOwner).SetThreadResult(qr);
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
@@ -195,6 +196,7 @@ var
   r : Boolean;
   e : TExceptionData;
 begin
+  debug(Format('thr: Thread %d running...', [ThreadID]));
   NotifyStatus(MQE_INITED);
 
   try
@@ -238,6 +240,7 @@ begin
 
   NotifyStatus (MQE_FINISHED);    
   NotifyStatus (MQE_FREED);
+  debug(Format('thr: Thread %d suspending.', [ThreadID]));
 end;
 
 

@@ -25,7 +25,9 @@ var
 
 implementation
 
-uses ChildWin; 
+uses
+  ChildWin,
+  helpers;
 
 {$R *.dfm}
 
@@ -59,9 +61,11 @@ procedure TfrmQueryProgress.HandleQueryNotificationMsg(var AMessage: TMessage);
 var
   ChildWin : TMDIChild;
 begin
+  debug(Format('thr: Progress form received WM_MYSQL_THREAD_NOTIFY message with status %d', [AMessage.LParam]));
   case AMessage.LParam of
     MQE_INITED:
       begin
+        debug('thr: Setting running flag to ''true''.');
         ChildWin := TMDIChild(Owner);
         ChildWin.SetQueryRunningFlag(True); // Todo: check if this is still needed
       end;
@@ -70,6 +74,7 @@ begin
       end;
     MQE_FINISHED:
       begin
+        debug('thr: Setting running flag to ''false'' and closing dialog.');
         //TMysqlQuery(AMessage.WParam);
         ChildWin := TMDIChild(Owner);
         ChildWin.SetQueryRunningFlag(False);

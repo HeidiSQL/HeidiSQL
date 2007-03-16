@@ -80,7 +80,10 @@ type
 
 implementation
 
-uses SysUtils, Dialogs;
+uses
+  SysUtils,
+  Dialogs,
+  helpers;
 
 
 {***
@@ -262,10 +265,15 @@ procedure TMysqlQuery.PostNotification(AQueryResult: TThreadResult; AEvent : Int
 begin
   SetThreadResult(AQueryResult);
 
-  if FSyncMode=MQM_ASYNC then
-    if AEvent in [MQE_INITED,MQE_STARTED,MQE_FINISHED,MQE_FREED] then  
-      if Assigned(FOnNotify) then
-        FOnNotify(Self,AEvent);
+  if
+    (FSyncMode = MQM_ASYNC) and
+    (AEvent in [MQE_INITED,MQE_STARTED,MQE_FINISHED,MQE_FREED]) and
+    Assigned(FOnNotify) then begin
+      debug(Format('thr: Calling notify function, event type %d occurred.', [AEvent]));
+      FOnNotify(Self, AEvent);
+    end else begin
+      debug(Format('thr: Not calling notify function, event type %d occurred.', [AEvent]));
+    end;
 end;
 
 
@@ -296,8 +304,11 @@ begin
         // create mutex
         EventHandle := CreateEvent (nil,False,False,PChar(FEventName));
         // exec query
+        debug(Format('thr: Starting query thread %d', [FQueryThread.ThreadID]));
         FQueryThread.Resume();
+        debug(Format('thr: Waiting for query thread %d', [FQueryThread.ThreadID]));
         WaitForSingleObject (EventHandle, INFINITE);
+        debug(Format('thr: Done waiting for query thread %d', [FQueryThread.ThreadID]));
         CloseHandle (EventHandle);
         // read status
         // free thread
@@ -305,6 +316,7 @@ begin
     MQM_ASYNC:
       begin
         // exec query
+        debug(Format('thr: Starting query thread %d', [FQueryThread.ThreadID]));
         FQueryThread.Resume();
       end;
   end;
