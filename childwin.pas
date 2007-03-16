@@ -4359,12 +4359,6 @@ procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
   LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
-  if Event.Category = lcDisconnect then
-  try
-    CheckConnection;
-  except
-    exit;
-  end;
 end;
 
 {***
