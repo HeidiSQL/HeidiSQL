@@ -43,6 +43,7 @@ var
   CopyTableForm: TCopyTableForm;
 
 const
+  OPTION_UNDEFINED = 255;
   OPTION_STRUCTURE = 0;
   OPTION_STRUCTURE_AND_DATA = 1;
   OPTION_REGNAME_STRUC_DATA = 'CopyTable_Option_StructureData';
@@ -160,18 +161,13 @@ begin
   // copy table!
 
   // store settings
-  if radioStructure.Checked then
-  begin
-    struc_data := OPTION_STRUCTURE;
-  end;
-  if radioStructureAndData.Checked then
-  begin
-    struc_data := OPTION_STRUCTURE_AND_DATA;
-  end;
+  struc_data := OPTION_UNDEFINED;
+  if radioStructure.Checked then struc_data := OPTION_STRUCTURE;
+  if radioStructureAndData.Checked then struc_data := OPTION_STRUCTURE_AND_DATA;
+
   mainform.SaveRegValue( OPTION_REGNAME_STRUC_DATA, struc_data );
   mainform.SaveRegValue( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
   mainform.SaveRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
-
 
   strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
   zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;

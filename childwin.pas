@@ -4204,8 +4204,6 @@ function TMDIChild.ExecUpdateQuery(ASQLQuery: String ) : Boolean;
 var
   MysqlQuery : TMysqlQuery;
 begin
-  Result := False;
-
   // Start query execution
   MysqlQuery := RunThreadedQuery(ASQLQuery);
 
