@@ -306,15 +306,11 @@ type
   TQuoteOptionsSet = set of TQuoteOptions;
 
 { ************** Plain API Function types definition ************* }
-{$DEFINE LOAD_MYSQL_API_FUNC}
-{$I ZPlainMysql.inc}
-{$UNDEF LOAD_MYSQL_API_FUNC}
+{$I ZPlainMysqlFunc.inc}
 
 { ************** Collection of Plain API Function types definition ************* }
 MYSQL320_API = record
-{$DEFINE MYSQL_API_VAR}
-{$I ZPlainMysql.inc}
-{$UNDEF MYSQL_API_VAR}
+{$I ZPlainMysqlVar.inc}
 END;
 
 type
@@ -343,9 +339,7 @@ begin
   Result := inherited Load;
 
 { ************** Load adresses of API Functions ************* }
-{$DEFINE LOAD_MYSQL_API_REC}
-{$I ZPlainMysql.inc}
-{$UNDEF LOAD_MYSQL_API_REC}
+{$I ZPlainMysqlRec.inc}
 end;
 
 {**
