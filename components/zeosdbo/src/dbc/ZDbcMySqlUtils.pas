@@ -189,7 +189,8 @@ begin
       begin
         if (UNSIGNED_FLAG and FieldFlags) = 0 then
           Result := stLong
-        else Result := stBigDecimal;
+        //else Result := stBigDecimal;
+        else Result := stString;
       end;
     FIELD_TYPE_FLOAT:
 //      Result := stFloat;
@@ -280,7 +281,12 @@ begin
     else Result := stInteger;
   end
   else if TypeName = 'BIGINT' then
-    Result := stLong
+  begin
+    // Zeos uses a floating point type for unsigned int64..
+    //if IsUnsigned then Result := stBigDecimal
+    if IsUnsigned then Result := stString
+    else Result := stLong;
+  end
   else if TypeName = 'INT24' then
     Result := stLong
   else if TypeName = 'REAL' then
