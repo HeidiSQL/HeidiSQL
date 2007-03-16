@@ -208,11 +208,14 @@ begin
     FIELD_TYPE_DOUBLE:
       Result := stDouble;
     FIELD_TYPE_DATE, FIELD_TYPE_NEWDATE:
-      Result := stDate;
+      //Result := stDate;
+      Result := stString;
     FIELD_TYPE_TIME:
-      Result := stTime;
+      //Result := stTime;
+      Result := stString;
     FIELD_TYPE_DATETIME, FIELD_TYPE_TIMESTAMP:
-      Result := stTimestamp;
+      //Result := stTimestamp;
+      Result := stString;
     FIELD_TYPE_TINY_BLOB, FIELD_TYPE_MEDIUM_BLOB,
     FIELD_TYPE_LONG_BLOB, FIELD_TYPE_BLOB:
       if (FieldFlags and BINARY_FLAG) = 0 then
