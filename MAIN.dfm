@@ -262,6 +262,7 @@ object MainForm: TMainForm
         Width = 225
         Height = 22
         BevelOuter = bvNone
+        ParentColor = True
         TabOrder = 1
         object CheckBoxLimit: TCheckBox
           Left = 7
