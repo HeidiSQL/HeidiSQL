@@ -136,7 +136,7 @@ begin
     CloseKey;
   end;
 
-  mysqlconn := TMysqlConn.Create(@cp.MysqlParams);
+  mysqlconn := TMysqlConn.Create(@cp);
 
   // attempt to establish connection
   case mysqlconn.Connect() of
