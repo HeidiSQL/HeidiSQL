@@ -70,7 +70,7 @@ begin
       end;
     MQE_FINISHED:
       begin
-        TMysqlQuery(AMessage.WParam);
+        //TMysqlQuery(AMessage.WParam);
         ChildWin := TMDIChild(Owner);
         ChildWin.SetQueryRunningFlag(False);
         Close();
