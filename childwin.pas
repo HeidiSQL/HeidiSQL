@@ -916,9 +916,9 @@ begin
       tchild.ImageIndex := 39;
       tchild.SelectedIndex := 40;
       if
-        (ActualTable = ZQuery3.Fields[0].AsString) and
         (tmpSelected <> nil) and
-        (tmpSelected.Text = OnlyDBs2[i]) then
+        (tmpSelected.Text = OnlyDBs2[i]) and
+        (ActualTable = ZQuery3.Fields[0].AsString) then
         tmpSelected := tchild;
       ZQuery3.Next;
     end;
