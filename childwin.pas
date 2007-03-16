@@ -920,6 +920,7 @@ begin
         (tmpSelected <> nil) and
         (tmpSelected.Text = OnlyDBs2[i]) then
         tmpSelected := tchild;
+      ZQuery3.Next;
     end;
   end;
 
