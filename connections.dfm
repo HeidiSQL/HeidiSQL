@@ -24,7 +24,7 @@ object connform: Tconnform
     326)
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
+  object lblHost: TLabel
     Tag = 6
     Left = 152
     Top = 115
@@ -33,25 +33,25 @@ object connform: Tconnform
     Caption = '&Hostname / IP:'
     FocusControl = EditHost
   end
-  object Label2: TLabel
+  object lblUsername: TLabel
     Tag = 7
     Left = 152
     Top = 139
     Width = 25
     Height = 13
     Caption = '&User:'
-    FocusControl = EditBenutzer
+    FocusControl = EditUsername
   end
-  object Label3: TLabel
+  object lblPassword: TLabel
     Tag = 8
     Left = 152
     Top = 163
     Width = 49
     Height = 13
     Caption = '&Password:'
-    FocusControl = EditPasswort
+    FocusControl = EditPassword
   end
-  object Label4: TLabel
+  object lblPort: TLabel
     Tag = 9
     Left = 152
     Top = 187
@@ -60,7 +60,7 @@ object connform: Tconnform
     Caption = 'P&ort:'
     FocusControl = EditPort
   end
-  object Label5: TLabel
+  object lblTimeout: TLabel
     Tag = 10
     Left = 287
     Top = 187
@@ -69,7 +69,7 @@ object connform: Tconnform
     Caption = '&Timeout:'
     FocusControl = EditTimeout
   end
-  object Label6: TLabel
+  object lblDescription: TLabel
     Tag = 5
     Left = 152
     Top = 67
@@ -88,7 +88,7 @@ object connform: Tconnform
     ExplicitLeft = -16
     ExplicitWidth = 473
   end
-  object Label7: TLabel
+  object lblSeconds: TLabel
     Tag = 11
     Left = 391
     Top = 187
@@ -97,7 +97,7 @@ object connform: Tconnform
     Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
   end
-  object Label8: TLabel
+  object lblOnlyDBs: TLabel
     Tag = 13
     Left = 152
     Top = 234
@@ -128,7 +128,7 @@ object connform: Tconnform
     TabOrder = 1
     OnChange = Modified
   end
-  object EditBenutzer: TEdit
+  object EditUsername: TEdit
     Left = 232
     Top = 136
     Width = 220
@@ -137,7 +137,7 @@ object connform: Tconnform
     TabOrder = 2
     OnChange = Modified
   end
-  object EditPasswort: TEdit
+  object EditPassword: TEdit
     Left = 232
     Top = 160
     Width = 220
@@ -163,14 +163,13 @@ object connform: Tconnform
     TabOrder = 5
     OnChange = Modified
   end
-  object Panel1: TPanel
+  object pnlScreen: TPanel
     Left = 16
     Top = 16
     Width = 119
     Height = 259
     AutoSize = True
     BevelOuter = bvLowered
-    Caption = 'Panel1'
     TabOrder = 8
     object Image1: TImage
       Left = 1
@@ -3144,10 +3143,10 @@ object connform: Tconnform
     TabOrder = 15
     OnClick = ButtonSaveAndConnectClick
   end
-  object Timer1: TTimer
+  object TimerCloseFormReminder: TTimer
     Enabled = False
     Interval = 1
-    OnTimer = Timer1Timer
+    OnTimer = TimerCloseFormReminderTimer
     Left = 24
     Top = 8
   end

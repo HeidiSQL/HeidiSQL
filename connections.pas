@@ -15,19 +15,19 @@ uses
 type
   Tconnform = class(TForm)
     EditHost: TEdit;
-    Label1: TLabel;
-    Label2: TLabel;
-    EditBenutzer: TEdit;
-    Label3: TLabel;
-    EditPasswort: TEdit;
-    Label4: TLabel;
+    lblHost: TLabel;
+    lblUsername: TLabel;
+    EditUsername: TEdit;
+    lblPassword: TLabel;
+    EditPassword: TEdit;
+    lblPort: TLabel;
     EditPort: TEdit;
-    Label5: TLabel;
+    lblTimeout: TLabel;
     EditTimeout: TEdit;
-    Panel1: TPanel;
+    pnlScreen: TPanel;
     ComboBoxDescription: TComboBox;
     Image1: TImage;
-    Label6: TLabel;
+    lblDescription: TLabel;
     ButtonSave: TBitBtn;
     ButtonNew: TBitBtn;
     ButtonDelete: TBitBtn;
@@ -35,10 +35,10 @@ type
     ButtonCancel: TButton;
     ButtonConnect: TButton;
     CheckBoxCompressed: TCheckBox;
-    Label7: TLabel;
-    Label8: TLabel;
+    lblSeconds: TLabel;
+    lblOnlyDBs: TLabel;
     EditOnlyDBs: TEdit;
-    Timer1: TTimer;
+    TimerCloseFormReminder: TTimer;
     ButtonEditDesc: TSpeedButton;
     CheckBoxSorted: TCheckBox;
     ButtonSaveAndConnect: TButton;
@@ -53,7 +53,7 @@ type
     procedure ComboBoxDescriptionClick(Sender: TObject);
     procedure EnableDisable(Enable: Boolean);
     procedure Modified(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
+    procedure TimerCloseFormReminderTimer(Sender: TObject);
     procedure ButtonEditDescClick(Sender: TObject);
   private
     { Private declarations }
@@ -106,8 +106,8 @@ begin
       MysqlParams.Host := trim( EditHost.Text );
       MysqlParams.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
       MysqlParams.Database := '';
-      MysqlParams.User := EditBenutzer.Text;
-      MysqlParams.Pass := EditPasswort.Text;
+      MysqlParams.User := EditUsername.Text;
+      MysqlParams.Pass := EditPassword.Text;
 
       // additional
       if CheckBoxCompressed.Checked then
@@ -211,8 +211,8 @@ begin
   end else
   begin
     EditHost.Text := '';
-    EditBenutzer.Text := '';
-    EditPasswort.Text := '';
+    EditUsername.Text := '';
+    EditPassword.Text := '';
     EditPort.Text := '';
     EditTimeout.Text := '';
     EditOnlyDBs.Text := '';
@@ -228,7 +228,7 @@ begin
     if AutoReconnect and (ComboBoxDescription.ItemIndex > -1) then
     begin
       ButtonConnectClick(self);
-      Timer1.Enabled := true;
+      TimerCloseFormReminder.Enabled := true;
     end;
   end;
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
@@ -250,8 +250,8 @@ begin
     if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       WriteString('Host', EditHost.Text);
-      WriteString('User', EditBenutzer.Text);
-      WriteString('Password', encrypt(EditPasswort.Text));
+      WriteString('User', EditUsername.Text);
+      WriteString('Password', encrypt(EditPassword.Text));
       WriteString('Port', EditPort.Text);
       WriteString('Timeout', EditTimeout.Text);
       WriteBool('Compressed', CheckBoxCompressed.Checked);
@@ -337,8 +337,8 @@ begin
     if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       EditHost.Text := ReadString('Host');
-      EditBenutzer.Text := ReadString('User');
-      EditPasswort.Text := decrypt(ReadString('Password'));
+      EditUsername.Text := ReadString('User');
+      EditPassword.Text := decrypt(ReadString('Password'));
       EditPort.Text := ReadString('Port');
       EditTimeout.Text := ReadString('Timeout');
       CheckBoxCompressed.Checked := ReadBool('Compressed');
@@ -367,21 +367,21 @@ begin
   ButtonEditDesc.Enabled := Enable;
 
   EditHost.Enabled := Enable;
-  EditBenutzer.Enabled := Enable;
-  EditPasswort.Enabled := Enable;
+  EditUsername.Enabled := Enable;
+  EditPassword.Enabled := Enable;
   EditPort.Enabled := Enable;
   EditTimeout.Enabled := Enable;
   EditOnlyDBs.Enabled := Enable;
   CheckBoxCompressed.Enabled := Enable;
   CheckBoxSorted.Enabled := Enable;
-  Label1.Enabled := Enable;
-  Label2.Enabled := Enable;
-  Label3.Enabled := Enable;
-  Label4.Enabled := Enable;
-  Label5.Enabled := Enable;
-  Label6.Enabled := Enable;
-  Label7.Enabled := Enable;
-  Label8.Enabled := Enable;
+  lblHost.Enabled := Enable;
+  lblUsername.Enabled := Enable;
+  lblPassword.Enabled := Enable;
+  lblPort.Enabled := Enable;
+  lblTimeout.Enabled := Enable;
+  lblDescription.Enabled := Enable;
+  lblSeconds.Enabled := Enable;
+  lblOnlyDBs.Enabled := Enable;
 end;
 
 
@@ -392,9 +392,9 @@ begin
   CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
 end;
 
-procedure Tconnform.Timer1Timer(Sender: TObject);
+procedure Tconnform.TimerCloseFormReminderTimer(Sender: TObject);
 begin
-  Timer1.Enabled := false;
+  TimerCloseFormReminder.Enabled := false;
   close;
 end;
 
