@@ -451,7 +451,7 @@ type
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
       function CanAcessMysql: Boolean;
-      procedure WaitForQueryCompletion();
+      procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats;
 
@@ -1204,8 +1204,9 @@ begin
 
       // start query (with wait dialog)
       FProgressForm := TFrmQueryProgress.Create(Self);
+      debug('viewdata(): Launching asynchronous query.');
       mq := ExecMysqlStatementAsync(sl_query.Text,FConnParams,nil,FProgressForm.Handle);
-      WaitForQueryCompletion();
+      WaitForQueryCompletion(FProgressForm);
 
       MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
       DataSource1.DataSet := mq.MysqlDataset;
@@ -1356,13 +1357,11 @@ end;
 
 
 
-procedure TMDIChild.WaitForQueryCompletion;
+procedure TMDIChild.WaitForQueryCompletion(WaitForm: TForm);
 begin
-  while FQueryRunning do
-    begin
-      Sleep(1);
-      Application.ProcessMessages();
-    end;
+  debug('Waiting for query to complete.');
+  WaitForm.ShowModal;
+  debug('Query complete.');
 end;
 
 procedure TMDIChild.pcChange(Sender: TObject);
@@ -4426,15 +4425,14 @@ begin
     * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
     * Set FQueryRunning to false
   }
+  debug('RunThreadedQuery(): Launching asynchronous query.');
   Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
-
 
   {
     Repeatedly check if the query has finished by inspecting FQueryRunning
     Allow repainting of user interface
   }
-  WaitForQueryCompletion();
-
+  WaitForQueryCompletion(FProgressForm);
 end;
 
 procedure TMDIChild.Splitter2Moved(Sender: TObject);

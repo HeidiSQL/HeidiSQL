@@ -10,8 +10,6 @@ type
   TfrmQueryProgress = class(TForm)
     btnAbort: TButton;
     lblStatusMsg: TLabel;
-    timAntiFreeze: TTimer;
-    procedure timAntiFreezeTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnAbortClick(Sender: TObject);
   protected
@@ -64,11 +62,11 @@ begin
   case AMessage.LParam of
     MQE_INITED:
       begin
-        TMDIChild(Owner).SetQueryRunningFlag(True); // Todo: check if this is still needed
+        ChildWin := TMDIChild(Owner);
+        ChildWin.SetQueryRunningFlag(True); // Todo: check if this is still needed
       end;
     MQE_STARTED:
       begin
-        ShowModal();
       end;
     MQE_FINISHED:
       begin
@@ -82,9 +80,5 @@ begin
 end;
 
 
-procedure TfrmQueryProgress.timAntiFreezeTimer(Sender: TObject);
-begin
-  Application.ProcessMessages();
-end;
 
 end.
