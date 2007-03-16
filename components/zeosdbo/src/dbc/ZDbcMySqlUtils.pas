@@ -217,6 +217,8 @@ begin
       if (FieldFlags and BINARY_FLAG) = 0 then
         Result := stAsciiStream
       else Result := stBinaryStream;
+    FIELD_TYPE_BIT:
+      Result := stBinaryStream;
     else
       Result := stString;
   end;
@@ -346,7 +348,9 @@ begin
     else Result := stString;
   end
   else if TypeName = 'SET' then
-    Result := stString;
+    Result := stString
+  else if TypeName = 'BIT' then
+    Result := stBinaryStream;
 end;
 
 {**

@@ -2093,14 +2093,14 @@ const
     'MEDIUMINT', 'SMALLINT', 'DOUBLE', 'FLOAT', 'REAL', 'ENUM', 'SET',
     'DATE', 'TIME', 'DATETIME', 'TIMESTAMP');
   TypeCodes: array[1..MaxTypeCount] of TZSQLType = (
-    stByte, stBoolean, stShort, stLong, stBinaryStream, stBinaryStream,
+    stBinaryStream, stBoolean, stShort, stLong, stBinaryStream, stBinaryStream,
     stBinaryStream, stBinaryStream, stBinaryStream, stBytes, stBytes,
     stString, stAsciiStream, stAsciiStream, stAsciiStream, stAsciiStream,
     stString, stString, stBigDecimal, stBigDecimal, stInteger, stInteger,
     stInteger, stShort, stDouble, stFloat, stFloat, stString, stString,
     stDate, stTime, stTimestamp, stTimestamp);
   TypePrecision: array[1..MaxTypeCount] of Integer = (
-    1, -1, 4, 16, 16777215, 16777215, MAXBUF, 65535, 255, 255, 255,
+    64, -1, 4, 16, 16777215, 16777215, MAXBUF, 65535, 255, 255, 255,
     16777215, 16777215, 2147483647, 65535, 255, 255, 255, 17, 17, 10, 10,
     7, 4, 17, 10, 10, 65535, 64, -1, -1, -1, -1);
 
