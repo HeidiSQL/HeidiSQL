@@ -125,7 +125,6 @@ type
 
     procedure Open; override;
     procedure Close; override;
-    function Ping: Boolean; override;
     function GetAffectedRowsFromLastPost: Int64; override;
     function GetThreadId: Cardinal; override;
 
@@ -473,10 +472,14 @@ end;
   @return 0 if succesfull or error code if any error occurs
 }
 function TZMySQLConnection.PingServer: Integer;
-var MySQLPingError: Integer;
+const
+   PING_ERROR_ZEOSCONNCLOSED = -1;
+var
+   Closing: boolean;
 begin
-   MySQLPingError := FPlainDriver.Ping(FHandle);
-   Result := MySQLPingError;
+   Closing := FHandle = nil;
+   if Closed or Closing then Result := PING_ERROR_ZEOSCONNCLOSED
+   else Result := FPlainDriver.Ping(FHandle);
    //CheckMySQLError(FPlainDriver, FHandle, lcExecute,'PING MYSQL (FOS)');
    //DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol,
    // 'PING MYSQL (FOS) '+IntToStr(MySQLPingError));
@@ -597,16 +600,6 @@ begin
     DriverManager.LogMessage(lcDisconnect, FPlainDriver.GetProtocol, LogMessage);
   end;
   inherited Close;
-end;
-
-{**
-  Returns true if a network ping to the database server succeeds.
-  @return true if a network ping to the database server succeeds
-}
-function TZMySQLConnection.Ping: Boolean;
-begin
-  if Closed then Result := false
-  else Result := FPlainDriver.Ping(FHandle) = 0;
 end;
 
 {**
