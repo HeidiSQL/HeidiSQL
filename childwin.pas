@@ -4458,12 +4458,7 @@ var
   ds: TDataSource;
 begin
   // Current highlighted row and/or column in grid has changed.
-
-  // (This probably only happens when something is clicked
-  //  in the DBGrid, but if we really wanted to be sure, we
-  //  could hook DBGrid.GridEnter and set a bool variable
-  //  to true (meaning "grid has focus, row change events
-  //  probably comes from grid"), and vice versa in GridExit..)
+  // This also happens when the grid looses focus.
 
   grid := ActiveGrid;
   ds := grid.DataSource;
@@ -4495,13 +4490,15 @@ begin
 
     // Detect if we have picture-data in this BLOB and
     // if yes, bring the viewer in the BLOB-editor to the front
-    if EDBImage1.Picture.Height > 0 then
-    begin
-      PageControl4.ActivePageIndex := 1;
-    end
-    else
-    begin
-      PageControl4.ActivePageIndex := 0;
+    if grid.Focused then begin
+      if EDBImage1.Picture.Height > 0 then
+      begin
+        PageControl4.ActivePageIndex := 1;
+      end
+      else
+      begin
+        PageControl4.ActivePageIndex := 0;
+      end;
     end;
     ResizeImageToFit;
 
