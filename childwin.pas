@@ -1364,10 +1364,12 @@ begin
   debug('Query complete.');
 end;
 
+{***
+  Occurs when active tab has changed.
+}
 procedure TMDIChild.pcChange(Sender: TObject);
 var DataOrQueryTab : Boolean;
 begin
-  // PageControl changes
   tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
 
   Mainform.ExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
@@ -1393,6 +1395,11 @@ begin
     DBNavigator1.DataSource := DataSource1;
   end;
   tabBlobEditor.tabVisible := DataOrQueryTab;
+
+  // Move focus to relevant controls in order for them to receive keyboard events.
+  if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
+  if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
+  if PageControlMain.ActivePage = tabData then gridData.SetFocus;
 
   ValidateDbActions;
 end;
