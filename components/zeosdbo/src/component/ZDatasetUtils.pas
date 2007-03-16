@@ -278,7 +278,8 @@ implementation
 
 uses
   ZMessages, ZCollections, ZDbcResultSet, ZGenericSqlToken,
-  ZDbcResultSetMetadata, ZAbstractRODataset;
+  ZDbcResultSetMetadata, ZAbstractRODataset,
+  ZDbcLogging;
 
 {**
   Converts DBC Field Type to TDataset Field Type.
@@ -314,8 +315,10 @@ begin
       Result := ftBlob;
     stUnicodeString, stUnicodeStream:
       Result := ftWideString;
-    else
+    else begin
       Result := ftUnknown;
+      DriverManager.LogError(lcOther, '', Format('Error: Unknown DBC field type ''%d'' encountered.', [Integer(Value)]), 0, SUnknownError);
+    end;
   end;
 end;
 
@@ -355,8 +358,10 @@ begin
       Result := stBinaryStream;
     ftWideString:
       Result := stUnicodeString;//!!!I do not know if it is a stUnicodeString or stUnicodeStream
-    else
+    else begin
+      DriverManager.LogError(lcOther, '', Format('Error: Unknown TDataset field type ''%d'' encountered.', [Integer(Value)]), 0, SUnknownError);
       Result := stUnknown;
+    end;
   end;
 end;
 
