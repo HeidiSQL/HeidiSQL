@@ -36,6 +36,16 @@ const
   // Sent by TMysqlQueryThread to notify status
   WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
 
+type
+  TNonQueryRunner = procedure(sendingApp: THandle; query: string) of object;
+  TQueryRunner = function(sendingApp: THandle; query: string): TDataSet of object;
+
+
+(*
+ Run this procedure at application startup.
+*)
+procedure InitializeComm(myWindow: THandle; nonQueryRunner: TNonQueryRunner; queryRunner: TQueryRunner);
+
 (*
  Execute a query on a window.
 *)
@@ -104,7 +114,6 @@ uses
   AdoDb,
   AdoInt,
   ActiveX,
-  main,
   Helpers,
   SysUtils;
 
@@ -114,6 +123,11 @@ type
     cbData: LongWord; // the size, in bytes, of the data pointed to by the lpData member.
     lpData: Pointer;  // points to data to be passed to the receiving application. This member can be nil.
   end;
+
+var
+  sender: THandle;
+  nqRunner: TNonQueryRunner;
+  qRunner: TQueryRunner;
 
 
 function CopyDataSetToAdoDataSet(src: TDataSet): TAdoDataSet;
@@ -158,7 +172,7 @@ begin
     data.dwData := resType;
     data.cbData := ms.Size;
     data.lpData := ms.Memory;
-    SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
+    SendMessage(window, WM_COPYDATA, sender, integer(@data));
   finally
     ms.free;
   end;
@@ -180,7 +194,7 @@ begin
     data.dwData := resType;
     data.cbData := ms.Size;
     data.lpData := ms.Memory;
-    SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
+    SendMessage(window, WM_COPYDATA, sender, integer(@data));
   finally
     ms.free;
   end;
@@ -279,7 +293,7 @@ begin
     data.dwData := method;
     data.cbData := ms.Size;
     data.lpData := ms.Memory;
-    err := SendMessage(window, WM_COPYDATA, MainForm.Handle, integer(@data));
+    err := SendMessage(window, WM_COPYDATA, sender, integer(@data));
     if err <> 0 then Exception.CreateFmt('Remote returned error %d when asked to execute query', [err]);
   finally
     ms.free;
@@ -449,9 +463,9 @@ begin
     data := nil;
     try
       if method = CMD_EXECUTEQUERY_NORESULTS then begin
-        MainForm.ExecuteRemoteNonQuery(msg.From, query);
+        nqRunner(msg.From, query);
       end else begin
-        data := MainForm.ExecuteRemoteQuery(msg.From, query);
+        data := qRunner(msg.From, query);
       end;
     except
       on e: Exception do begin
@@ -467,6 +481,14 @@ begin
     ReleaseRemoteCaller(ERR_NOERROR);
     FinishRemoteExecution(msg);
   end;
+end;
+
+
+procedure InitializeComm(myWindow: THandle; nonQueryRunner: TNonQueryRunner; queryRunner: TQueryRunner);
+begin
+  sender := myWindow;
+  nqRunner := nonQueryRunner;
+  qRunner := queryRunner;
 end;
 
 

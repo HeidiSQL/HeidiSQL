@@ -59,6 +59,12 @@ begin
     try
       InitializeSync(MainForm.Handle);
       SetWindowName(main.discname);
+      InitializeThreading(MainForm.Handle);
+      InitializeComm(
+        MainForm.Handle,
+        MainForm.ExecuteRemoteNonQuery,
+        MainForm.ExecuteRemoteQuery
+      );
       debug('perf: Running.');
       Application.Run;
     finally

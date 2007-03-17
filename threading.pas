@@ -30,6 +30,7 @@ type
       constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
   end;
 
+procedure InitializeThreading(myWindow: THandle);
 function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
@@ -43,16 +44,15 @@ const
 implementation
 
 uses
-  Main,
   Windows,
   Communication,
   Helpers,
   Forms,
   Classes;
 
-
 var
   working: TThreadList;
+  msgHandler: THandle;
 
 constructor TNotifyStructure.Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
 begin
@@ -134,7 +134,7 @@ begin
   end;
   // Send a message to the active message loop indicating
   // that processing has completed.
-  PostMessage(MainForm.Handle, WM_COMPLETED, MainForm.Handle, item.GetRequestId);
+  PostMessage(msgHandler, WM_COMPLETED, msgHandler, item.GetRequestId);
 end;
 
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject); overload;
@@ -189,6 +189,12 @@ begin
   end else begin
     raise Exception.Create('Internal error in caller: no results available yet.');
   end;
+end;
+
+
+procedure InitializeThreading(myWindow: THandle);
+begin
+  msgHandler := myWindow;
 end;
 
 
