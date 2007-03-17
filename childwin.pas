@@ -427,6 +427,7 @@ type
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+    procedure ExecuteNonQuery(SQLQuery: string);
     function ExecuteQuery(query: string): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     function GetCalculatedLimit( Table: String ): Int64;
@@ -471,7 +472,7 @@ type
       function GetVisualDataset() : TDataSet;
 
       function ExecUpdateQuery (ASQLQuery: String ) : Boolean;
-      function ExecSelectQuery (AQuery : String; out AMysqlQuery : TMysqlQuery) : Boolean; 
+      function ExecSelectQuery (AQuery : String; out AMysqlQuery : TMysqlQuery) : Boolean;
       function ExecUseQuery (ADatabase : String) : Boolean;
 
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
@@ -1766,14 +1767,47 @@ begin
 end;
 
 
+{***
+  Execute a query and return a resultset
+  The currently active connection is used
+
+  @param String The single SQL-query to be executed on the server
+}
 function TMDIChild.ExecuteQuery(query: string): TDataSet;
 var
   ds: TZReadOnlyQuery;
 begin
+  if FQueryRunning then raise Exception.Create('This connection is already running a query, sorry.');
   ds := TZReadOnlyQuery.Create(nil);
   ds.Connection := MysqlConn.Connection;
   GetResults(query, ds);
   result := ds;
+end;
+
+
+{***
+  Execute a query without returning a resultset
+  The currently active connection is used
+
+  @param String The single SQL-query to be executed on the server
+}
+procedure TMDIChild.ExecuteNonQuery(SQLQuery: string);
+begin
+  if FQueryRunning then raise Exception.Create('This connection is already running a query, sorry.');
+
+  try
+    CheckConnection;
+  except
+    exit;
+  end;
+
+  with TZReadOnlyQuery.Create(Self) do
+  begin
+    Connection := FMysqlConn.Connection;
+    SQL.Text := SQLQuery;
+    ExecSQL;
+    Free;
+  end;
 end;
 
 

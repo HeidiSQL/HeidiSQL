@@ -314,14 +314,19 @@ begin
   EnsureConnected;
   // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
   // TQueryTab(tab).AddText(query);
-  // tab.ExecQuery(query);
+  // tab.ExecOrQueueQuery(query);
   result := TMDIChild(ActiveMDIChild).ExecuteQuery(query);
 end;
 
 procedure TMainForm.ExecuteRemoteNonQuery(sender: THandle; query: string);
+//var
+  //tab: THandle;
 begin
   EnsureConnected;
-  TMDIChild(ActiveMDIChild).ExecUpdateQuery(query);
+  // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
+  // TQueryTab(tab).AddText(query);
+  // tab.ExecOrQueueQuery(query);
+  TMDIChild(ActiveMDIChild).ExecuteNonQuery(query);
 end;
 
 procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
