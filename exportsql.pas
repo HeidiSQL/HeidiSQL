@@ -1150,7 +1150,7 @@ begin
     comboOtherHost.Color := clWindow;
     comboOtherHostDatabase.Enabled := not (cbxStructure.Checked and cbxDatabase.Checked);
     comboOtherHostDatabase.Color := clWindow;
-    comboOtherHost.SetFocus;
+    if comboOtherHost.CanFocus then comboOtherHost.SetFocus;
   end else begin
     comboOtherHost.Enabled := false;
     comboOtherHost.Color := clBtnFace;
