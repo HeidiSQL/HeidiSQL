@@ -303,7 +303,7 @@ function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; wi
 var
   req: Cardinal;
 begin
-  req := SetCompletionHandler(nil, timeout, waitControl);
+  req := SetCompletionHandler(handler, timeout, waitControl);
   RemoteExecQueryInternal(CMD_EXECUTEQUERY_RESULTS, req, window, query);
   result := req;
 end;
