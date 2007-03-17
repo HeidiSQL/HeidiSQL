@@ -81,24 +81,17 @@ function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; wai
 var
   lockedList: TList;
   ns: TNotifyStructure;
-  txt: string;
   RequestId: Cardinal;
 begin
   debug('thr: Setting completion handler.');
   lockedList := working.LockList;
   try
-    // Make a unique request id.
+    // Make a unique request id (blocking until a slot is available if full - hopefully an unlikely event).
     repeat
       RequestId := Random($7fffffff);
     until (RequestId <> REQUEST_ID_INVALID) and (IndexOf(lockedList, RequestId) = -1);
     debug(Format('thr: Assigned request id %d.', [RequestId]));
     result := RequestId;
-    // Raise an exception if a handler already exists.
-    if IndexOf(lockedList, RequestId) > -1 then begin
-      txt := Format('Internal error: Request %d is already in a waiting state?', [RequestId]);
-      debug(txt);
-      raise Exception.Create(txt);
-    end;
     // Create + add notify structure.
     ns := TNotifyStructure.Create(RequestId, handler, waitControl);
     lockedList.Add(ns);
@@ -166,7 +159,7 @@ begin
     idx := IndexOf(lockedList, RequestId);
     // Raise an exception if we can't find notify structure.
     if idx = -1 then begin
-      txt := Format('Request %d does not exist, cannot extract results.', [RequestId]);
+      txt := Format('thr: Request %d does not exist, cannot extract results.', [RequestId]);
       debug(txt);
       raise Exception.Create(txt);
     end;
