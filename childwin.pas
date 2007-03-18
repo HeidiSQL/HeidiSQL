@@ -509,6 +509,8 @@ end;
 
 
 procedure TMDIChild.PerformConnect;
+var
+  charset: string;
 begin
 
   try
@@ -516,6 +518,13 @@ begin
     TimerConnected.Enabled := true;
     LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
     // On Re-Connection, try to restore lost properties
+    charset := ConvertWindowsCodepageToMysqlCharacterSet(GetACP);
+    if charset = '' then begin
+      LogSQL('Could not find a MySQL character set to match the current Windows ANSI codepage.', true);
+      LogSQL(Format('Use SHOW CHARACTER SET to see MySQL character sets; if you can find one that you are certain matches %d, please report it via http://rfe.heidisql.com/.', [GetACP]), true);
+    end else begin
+      ExecuteNonQuery('SET NAMES ' + charset);
+    end;
     if FMysqlConn.Connection.Database <> '' then
     begin
       ExecUseQuery( FMysqlConn.Connection.Database );

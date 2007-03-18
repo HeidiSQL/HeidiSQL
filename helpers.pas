@@ -62,6 +62,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure ShellExec( cmd: String; path: String = '' );
   function ExpectResultSet(ASql: String): Boolean;
   function getFirstWord( text: String ): String;
+  function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -69,6 +70,20 @@ var
 
 implementation
 
+type
+  CharacterSet = record
+    codepage: Cardinal;
+    charset: string;
+  end;
+
+const
+  charset_conv_table: array[0..4] of CharacterSet = (
+    (codepage: 1250; charset: 'cp1250'), // ANSI Central European; Central European (Windows)
+    (codepage: 1251; charset: 'cp1251'), // ANSI Cyrillic; Cyrillic (Windows)
+    (codepage: 1252; charset: 'latin1'), // ANSI Latin 1; Western European (Windows)
+    (codepage: 1256; charset: 'cp1256'), // ANSI Arabic; Arabic (Windows)
+    (codepage: 1257; charset: 'cp1257')  // ANSI Baltic; Baltic (Windows)
+  );
 
 var
   dbgCounter: Integer = 0;
@@ -1685,6 +1700,34 @@ begin
       // This applies to all different whitespaces, brackets, commas etc.
       result := copy( text, 1, i-1 );
       break;
+    end;
+  end;
+end;
+
+
+{***
+  HeidiSQL is currently a non-Unicode application, blindly
+  following the ANSI codepage in use by Windows.
+
+  This function can help when determining which
+  MySQL character set matches the ANSI codepage.
+
+  Delphi has excellent support for Unicode strings
+  (automatic conversion between single- and multi-byte,
+  etc.), so if Zeos could be coerced to regard MySQL
+  strings as UTF-8 (or even look at @character_set_results,
+  ho hum...), we could skip all this and just use
+  "SET NAMES utf8".
+}
+function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
+var
+  i: integer;
+begin
+  result := '';
+  for i := 0 to Length(charset_conv_table) - 1 do begin
+    if charset_conv_table[i].codepage = codepage then begin
+      result := charset_conv_table[i].charset;
+      exit;
     end;
   end;
 end;
