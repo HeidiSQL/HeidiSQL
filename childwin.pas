@@ -668,6 +668,17 @@ begin
     end;
   end;
 
+  // Set the grid-cells to always-edit-mode if set in preferences
+  if Mainform.DataAlwaysEditMode then
+  begin
+    gridData.Options := gridData.Options + [dgAlwaysShowEditor];
+    gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
+  end
+  else
+  begin
+    gridData.Options := gridData.Options - [dgAlwaysShowEditor];
+    gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
+  end;
 end;
 
 
@@ -1155,17 +1166,6 @@ begin
     // Ensure <Table> and <Data> are visible
     tabTable.TabVisible := true;
     tabData.TabVisible := true;
-    // Set the grid-cells to always-edit-mode if set in preferences
-    if Mainform.DataAlwaysEditMode then
-    begin
-      gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-      gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-    end
-    else
-    begin
-      gridData.Options := gridData.Options - [dgAlwaysShowEditor];
-      gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
-    end;
     // Switch to <Data>
     PageControlMain.ActivePage := tabData;
 
