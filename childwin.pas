@@ -265,6 +265,8 @@ type
     QF16: TMenuItem;
     QF17: TMenuItem;
     N21: TMenuItem;
+    btnUnsafeEdit: TToolButton;
+    procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridQueryMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure gridDataMouseDown(Sender: TObject; Button: TMouseButton;
@@ -4068,6 +4070,23 @@ begin
   btnQueryStopOnErrors.Down := StopOnErrors;
 end;
 
+procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
+var
+  confirmed: boolean;
+  msg: string;
+begin
+  msg :=
+    'This will remove the first NUL character _and all text following it_.' + #13#10 +
+    'All newlines will be converted to CRLF format.' + #13#10 +
+    'Are you sure?';
+  confirmed := MessageDlg(msg, mtConfirmation, mbYesNo, 0) = mrYes;
+  if not confirmed then exit;
+  DBMemo1.ReadOnly := false;
+  DBMemo1.Color := clWindow;
+  btnUnsafeEdit.Enabled := false;
+  DBMemo1.SetFocus;
+end;
+
 procedure TMDIChild.DBGridDblClick(Sender: TObject);
 begin
   // If grid is not empty...
@@ -4445,7 +4464,6 @@ end;
 
 {***
   Run a query in a separate thread of execution on the current connection.
-
 }
 function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
 begin
@@ -4462,13 +4480,10 @@ begin
   // Create instance of the progress form (but don't show it yet)
   FProgressForm := TFrmQueryProgress.Create(Self);
 
-
   // Indicate a querythread is active (only one thread allow at this moment)
   FQueryRunning := True;
 
-
-  {
-    Launch a thread of execution that passes the query to the server
+  { Launch a thread of execution that passes the query to the server
 
     The progressform serves as receiver of the status
     messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
@@ -4481,8 +4496,7 @@ begin
   debug('RunThreadedQuery(): Launching asynchronous query.');
   Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
 
-  {
-    Repeatedly check if the query has finished by inspecting FQueryRunning
+  { Repeatedly check if the query has finished by inspecting FQueryRunning
     Allow repainting of user interface
   }
   WaitForQueryCompletion(FProgressForm);
@@ -4496,11 +4510,13 @@ end;
 
 procedure TMDIChild.DataSourceDataChange(Sender: TObject; Field: TField);
 begin
+  debug('DataSourceDataChange()');
   GridHighlightChanged(Sender);
 end;
 
 procedure TMDIChild.DBGridColEnter(Sender: TObject);
 begin
+  debug('DBGridColEnter()');
   GridHighlightChanged(Sender);
 end;
 
@@ -4508,6 +4524,9 @@ procedure TMDIChild.GridHighlightChanged(Sender: TObject);
 var
   grid: TSMDBGrid;
   ds: TDataSource;
+  hasNull: boolean;
+  hasOddNewlines: boolean;
+  s: string;
 begin
   // Current highlighted row and/or column in grid has changed.
   // This also happens when the grid looses focus.
@@ -4530,11 +4549,23 @@ begin
     DBMemo1.DataField := grid.SelectedField.FieldName;
     EDBImage1.DataField := grid.SelectedField.FieldName;
 
-    // Disable text editor if there's binary data or odd newlines in the field,
-    // since the text editor may/will silently corrupt it if used.
-    DBMemo1.ReadOnly :=
-      hasIrregularChars(DBMemo1.Field.AsString) or
-      hasIrregularNewlines(DBMemo1.Field.AsString);
+    // If user is already editing then we're here by accident.
+    if not DBMemo1.Focused then begin
+      // Disable text editor if there's binary data or odd newlines in the field,
+      // since the text editor may/will silently corrupt it if used.
+      hasNull := hasNullChar(DBMemo1.Field.AsString);
+      hasOddNewlines := hasIrregularNewlines(DBMemo1.Field.AsString);
+      DBMemo1.ReadOnly := hasNull or hasOddNewlines;
+      btnUnsafeEdit.Enabled := hasNull or hasOddNewlines;
+      s := 'Cannot edit text because BLOB contains ';
+      if hasNull then s := s + 'NUL characters';
+      if hasOddNewlines then begin
+        if hasNull then s := s + ' and ';
+        s := s + 'non-CRLF newlines';
+      end;
+      s := s + '. Click here to remove NUL plus following text and convert all newlines to CRLF format.';
+      btnUnsafeEdit.Hint := s;
+    end;
 
     // Ensure visibility of the Blob-Editor
     PageControlBottom.ActivePageIndex := 1;
@@ -4564,9 +4595,9 @@ begin
     MenuViewBlob.Enabled := false;
   end;
 
-  if (DBMemo1.ReadOnly or (Length(DBMemo1.DataField) = 0)) then
+  // Indicate the ReadOnly-state of the BLOB to the user
+  if DBMemo1.ReadOnly then
   begin
-    // Indicate the ReadOnly-state of the BLOB to the user
     DBMemo1.Color := clInactiveCaptionText;
   end
   else

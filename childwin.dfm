@@ -21,7 +21,7 @@ object MDIChild: TMDIChild
   TextHeight = 13
   object Splitter2: TSplitter
     Left = 0
-    Top = 274
+    Top = 252
     Width = 677
     Height = 4
     Cursor = crSizeNS
@@ -30,12 +30,13 @@ object MDIChild: TMDIChild
     Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = Splitter2Moved
+    ExplicitTop = 276
   end
   object Panel1: TPanel
     Left = 0
     Top = 0
     Width = 677
-    Height = 274
+    Height = 252
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
@@ -44,16 +45,17 @@ object MDIChild: TMDIChild
       Left = 169
       Top = 0
       Width = 4
-      Height = 274
+      Height = 252
       Cursor = crSizeWE
       Beveled = True
       ResizeStyle = rsUpdate
+      ExplicitHeight = 274
     end
     object DBtree: TTreeView
       Left = 0
       Top = 0
       Width = 169
-      Height = 274
+      Height = 252
       Align = alLeft
       ChangeDelay = 50
       Constraints.MinWidth = 40
@@ -73,7 +75,7 @@ object MDIChild: TMDIChild
       Left = 173
       Top = 0
       Width = 504
-      Height = 274
+      Height = 252
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
@@ -81,7 +83,7 @@ object MDIChild: TMDIChild
         Left = 0
         Top = 0
         Width = 504
-        Height = 274
+        Height = 252
         ActivePage = tabHost
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
@@ -103,7 +105,7 @@ object MDIChild: TMDIChild
             Left = 0
             Top = 17
             Width = 496
-            Height = 225
+            Height = 203
             ActivePage = tabVariables
             Align = alClient
             HotTrack = True
@@ -116,7 +118,7 @@ object MDIChild: TMDIChild
                 Left = 0
                 Top = 0
                 Width = 488
-                Height = 197
+                Height = 175
                 Align = alClient
                 Columns = <
                   item
@@ -141,12 +143,16 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 197
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
                 Top = 0
                 Width = 488
-                Height = 197
+                Height = 175
                 Align = alClient
                 Columns = <
                   item
@@ -194,16 +200,21 @@ object MDIChild: TMDIChild
                 OnChange = ListProcessesChange
                 ImageIndexSortAsc = 95
                 ImageIndexSortDesc = 94
+                ExplicitHeight = 197
               end
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 197
               object ListCommandStats: TSortListView
                 Left = 0
                 Top = 0
                 Width = 488
-                Height = 197
+                Height = 175
                 Align = alClient
                 Columns = <
                   item
@@ -240,6 +251,7 @@ object MDIChild: TMDIChild
                 ViewStyle = vsReport
                 ImageIndexSortAsc = 95
                 ImageIndexSortDesc = 94
+                ExplicitHeight = 197
               end
             end
           end
@@ -267,7 +279,7 @@ object MDIChild: TMDIChild
           ImageIndex = 38
           DesignSize = (
             496
-            242)
+            220)
           object Panel2: TPanel
             Left = 0
             Top = 0
@@ -291,7 +303,7 @@ object MDIChild: TMDIChild
             Left = 30
             Top = 17
             Width = 466
-            Height = 218
+            Height = 196
             Anchors = [akLeft, akTop, akRight, akBottom]
             Columns = <
               item
@@ -351,6 +363,7 @@ object MDIChild: TMDIChild
             OnMouseDown = ListTablesMouseDown
             ImageIndexSortAsc = 95
             ImageIndexSortDesc = 94
+            ExplicitHeight = 218
           end
           object ToolBar1: TToolBar
             Left = 3
@@ -441,7 +454,7 @@ object MDIChild: TMDIChild
           ImageIndex = 40
           DesignSize = (
             496
-            242)
+            220)
           object Panel3: TPanel
             Left = 0
             Top = 0
@@ -525,16 +538,17 @@ object MDIChild: TMDIChild
             Left = 32
             Top = 17
             Width = 465
-            Height = 218
+            Height = 196
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
             TabOrder = 2
+            ExplicitHeight = 218
             object ListColumns: TSortListView
               Tag = -1
               Left = 0
               Top = 0
               Width = 465
-              Height = 218
+              Height = 196
               Align = alClient
               Columns = <
                 item
@@ -571,6 +585,7 @@ object MDIChild: TMDIChild
               OnKeyUp = controlsKeyUp
               ImageIndexSortAsc = 95
               ImageIndexSortDesc = 94
+              ExplicitHeight = 218
             end
           end
           object ToolBar6: TToolBar
@@ -676,7 +691,7 @@ object MDIChild: TMDIChild
             Left = 0
             Top = 23
             Width = 496
-            Height = 219
+            Height = 197
             Align = alClient
             DataSource = DataSource1
             Font.Charset = DEFAULT_CHARSET
@@ -934,7 +949,7 @@ object MDIChild: TMDIChild
             Left = 0
             Top = 159
             Width = 496
-            Height = 83
+            Height = 61
             Align = alClient
             DataSource = DataSource2
             Font.Charset = DEFAULT_CHARSET
@@ -981,9 +996,9 @@ object MDIChild: TMDIChild
   end
   object PageControlBottom: TPageControl
     Left = 0
-    Top = 278
+    Top = 256
     Width = 677
-    Height = 142
+    Height = 164
     ActivePage = tabSQLLog
     Align = alBottom
     HotTrack = True
@@ -993,11 +1008,15 @@ object MDIChild: TMDIChild
     object tabSQLLog: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 112
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
         Width = 669
-        Height = 112
+        Height = 134
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -1018,6 +1037,7 @@ object MDIChild: TMDIChild
         Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
         RightEdge = 40
+        ExplicitHeight = 112
         RemovedKeystrokes = <
           item
             Command = ecDeleteLastChar
@@ -1045,7 +1065,7 @@ object MDIChild: TMDIChild
         Left = 0
         Top = 0
         Width = 23
-        Height = 112
+        Height = 134
         Align = alLeft
         AutoSize = True
         Caption = 'ToolBar1'
@@ -1056,10 +1076,18 @@ object MDIChild: TMDIChild
         ShowHint = True
         TabOrder = 0
         Transparent = True
-        Wrapable = False
-        object btnBlobWordWrap: TToolButton
+        object btnUnsafeEdit: TToolButton
           Left = 0
           Top = 0
+          Caption = 'btnUnsafeEdit'
+          Enabled = False
+          ImageIndex = 32
+          Wrap = True
+          OnClick = btnUnsafeEditClick
+        end
+        object btnBlobWordWrap: TToolButton
+          Left = 0
+          Top = 22
           Hint = 'Wordwrap'
           Caption = 'ToolButton1'
           ImageIndex = 54
@@ -1069,7 +1097,7 @@ object MDIChild: TMDIChild
         end
         object btnBlobLoad: TToolButton
           Left = 0
-          Top = 22
+          Top = 44
           Hint = 'Open|Open file'
           Caption = 'ToolButton4'
           ImageIndex = 6
@@ -1078,7 +1106,7 @@ object MDIChild: TMDIChild
         end
         object btnBlobSave: TToolButton
           Left = 0
-          Top = 44
+          Top = 66
           Hint = 'Save|Save to File'
           Caption = 'ToolButton5'
           ImageIndex = 7
@@ -1087,13 +1115,13 @@ object MDIChild: TMDIChild
         end
         object btnBlobViewAsHtml: TToolButton
           Left = 0
-          Top = 66
+          Top = 88
           Action = MainForm.HTMLview
           Wrap = True
         end
         object btnBlobCopy: TToolButton
           Left = 0
-          Top = 88
+          Top = 110
           Hint = 'Copy to clipboard'
           Caption = 'btnBlobCopy'
           ImageIndex = 1
@@ -1104,7 +1132,7 @@ object MDIChild: TMDIChild
         Left = 23
         Top = 0
         Width = 646
-        Height = 112
+        Height = 134
         ActivePage = TabSheet3
         Align = alClient
         TabOrder = 1
@@ -1115,7 +1143,7 @@ object MDIChild: TMDIChild
             Left = 0
             Top = 0
             Width = 638
-            Height = 84
+            Height = 106
             Align = alClient
             DataSource = DataSource1
             Font.Charset = DEFAULT_CHARSET
@@ -1132,23 +1160,29 @@ object MDIChild: TMDIChild
         object TabSheet4: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 84
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
             Width = 638
-            Height = 84
+            Height = 106
             Align = alClient
             TabOrder = 0
+            ExplicitHeight = 84
             object EDBImage1: TEDBImage
               Left = 0
               Top = 0
               Width = 89
-              Height = 80
+              Height = 102
               Align = alLeft
               BorderStyle = bsNone
               Color = clBtnFace
               Stretch = True
               TabOrder = 0
+              ExplicitHeight = 80
             end
           end
         end
@@ -1161,7 +1195,7 @@ object MDIChild: TMDIChild
         Left = 0
         Top = 29
         Width = 669
-        Height = 83
+        Height = 105
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -1181,6 +1215,7 @@ object MDIChild: TMDIChild
         Highlighter = SynSQLSyn1
         Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
         RightEdge = 40
+        ExplicitHeight = 83
         RemovedKeystrokes = <
           item
             Command = ecDeleteLastChar
@@ -1219,7 +1254,7 @@ object MDIChild: TMDIChild
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 13
+          ItemHeight = 0
           TabOrder = 0
           OnChange = ComboBoxWhereFiltersChange
         end
