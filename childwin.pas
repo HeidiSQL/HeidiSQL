@@ -3556,6 +3556,24 @@ begin
   abort;
 end;
 
+procedure TMDIChild.gridQueryMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  ed: TCustomEdit;
+begin
+  if Button = mbRight then begin
+    // Select text in in-place editor to make popup menu copy and paste work.
+    (Sender as TDBGrid).EditorMode := true;
+    ed := TCustomEdit(FindControl(GetFocus()));
+    ed.SelectAll;
+    //debug('right-click catched, selected all text ''' + ed.SelText + '''.');
+    // Popup menu manually, mucking about with the grid causes it to stop doing it by itself.
+    popupResultGrid.Popup(X + 178, Y + 248);
+  end else begin
+    inherited MouseDown(Button, Shift, X, Y);
+  end;
+end;
+
 procedure TMDIChild.gridDataMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
@@ -3566,6 +3584,7 @@ begin
     (Sender as TDBGrid).EditorMode := true;
     ed := TCustomEdit(FindControl(GetFocus()));
     ed.SelectAll;
+    //debug('right-click catched, selected all text ''' + ed.SelText + '''.');
     // Popup menu manually, mucking about with the grid causes it to stop doing it by itself.
     popupDataGrid.Popup(X + 178, Y + 142);
   end else begin
@@ -4080,7 +4099,6 @@ begin
       end;
     end;
   end;
-
 end;
 
 procedure TMDIChild.DBGridGetCellParams(Sender: TObject; Field: TField;
@@ -4559,23 +4577,6 @@ begin
   PageControl4Change(self);
 end;
 
-
-procedure TMDIChild.gridQueryMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  ed: TCustomEdit;
-begin
-  if Button = mbRight then begin
-    // Select text in in-place editor to make popup menu copy and paste work.
-    (Sender as TDBGrid).EditorMode := true;
-    ed := TCustomEdit(FindControl(GetFocus()));
-    ed.SelectAll;
-    // Popup menu manually, mucking about with the grid causes it to stop doing it by itself.
-    popupResultGrid.Popup(X + 178, Y + 248);
-  end else begin
-    inherited MouseDown(Button, Shift, X, Y);
-  end;
-end;
 
 procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
   var Action: TDataAction);
