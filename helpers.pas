@@ -43,6 +43,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
   function esc(Text: string; ProcessJokerChars: Boolean = false): string;
+  function hasNullChar(Text: string): boolean;
   function hasIrregularChars(Text: string): boolean;
   function hasIrregularNewlines(Text: string): boolean;
   function escapeAuto(Text: string): string;
@@ -1166,6 +1167,26 @@ begin
     Result := #39 + Result + #39;
   end;
 
+end;
+
+
+
+{***
+  Detect NUL character in a text.
+}
+function hasNullChar(Text: string): boolean;
+var
+  i: integer;
+begin
+  result := false;
+  for i:=1 to length(Text) do
+  begin
+    if Ord(Text[i]) = 0 then
+    begin
+      result := true;
+      exit;
+    end;
+  end;
 end;
 
 
