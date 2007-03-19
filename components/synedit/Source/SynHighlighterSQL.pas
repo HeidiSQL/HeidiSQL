@@ -123,6 +123,7 @@ type
     fSymbolAttri: TSynHighlighterAttributes;
     fTableNameAttri: TSynHighlighterAttributes;
     fVariableAttri: TSynHighlighterAttributes;
+    fSingleLineMode: boolean;
     fIdentifiersPtr: PIdentifierTable;
     fmHashTablePtr: PHashTable;
     function KeyHash(ToHash: PChar): Integer;
@@ -218,6 +219,7 @@ type
     property TableNames: TStrings read fTableNames write SetTableNames;
     property VariableAttri: TSynHighlighterAttributes read fVariableAttri
       write fVariableAttri;
+    property SingleLineMode: boolean read fSingleLineMode write fSingleLineMode;
     property SQLDialect: TSQLDialect read fDialect write SetDialect
       default sqlStandard;
   end;
@@ -1172,6 +1174,7 @@ begin
   fDefaultFilter := SYNS_FilterSQL;
   fRange := rsUnknown;
   fDialect := sqlStandard;
+  fSingleLineMode := false;
   InitializeKeywordLists;
 end;
 
@@ -1578,6 +1581,7 @@ end;
 
 function TSynSQLSyn.GetRange: Pointer;
 begin
+  if fSingleLineMode then ResetRange;
   Result := Pointer(fRange);
 end;
 
