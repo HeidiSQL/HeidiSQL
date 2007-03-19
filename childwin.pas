@@ -518,6 +518,7 @@ begin
     time_connected := 0;
     TimerConnected.Enabled := true;
     LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
+    // On Re-Connection, try to restore lost properties
     {***
       SET NAMES statement available since MySQL 4.1.0 .
       Older versions throw a SQL-error: "Unknown system variable 'NAMES'"
@@ -533,7 +534,6 @@ begin
         ExecuteNonQuery('SET NAMES ' + charset);
       end;
     end;
-    // On Re-Connection, try to restore lost properties
     if FMysqlConn.Connection.Database <> '' then
     begin
       ExecUseQuery( FMysqlConn.Connection.Database );
