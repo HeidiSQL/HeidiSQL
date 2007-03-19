@@ -164,10 +164,10 @@ type
     btnBlobWordWrap: TToolButton;
     btnBlobLoad: TToolButton;
     btnBlobSave: TToolButton;
-    PageControl4: TPageControl;
-    TabSheet3: TTabSheet;
+    PageControlBlobEditors: TPageControl;
+    tabBlobEditorText: TTabSheet;
     DBMemo1: TDBMemo;
-    TabSheet4: TTabSheet;
+    tabBlobEditorImage: TTabSheet;
     SynMemoFilter: TSynMemo;
     btnDbCopyTable: TToolButton;
     btnDbDropTable: TToolButton;
@@ -352,7 +352,7 @@ type
     procedure Delete1Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure btnBlobWordWrapClick(Sender: TObject);
-    procedure PageControl4Change(Sender: TObject);
+    procedure PageControlBlobEditorsChange(Sender: TObject);
     procedure btnBlobSaveClick(Sender: TObject);
     procedure btnBlobLoadClick(Sender: TObject);
     procedure btnFilterLoadClick(Sender: TObject);
@@ -2832,7 +2832,7 @@ end;
 
 procedure TMDIChild.MenuViewBlobClick(Sender: TObject);
 begin
-  PageControlBottom.ActivePageIndex := 1;
+  PageControlBottom.ActivePage := tabBlobEditor;
 end;
 
 
@@ -3054,7 +3054,7 @@ end;
 procedure TMDIChild.Filter1Click(Sender: TObject);
 begin
   // Set WHERE-Filter
-  PageControlBottom.ActivePageIndex := 2;
+  PageControlBottom.ActivePage := tabFilter;
   SynMemoFilter.SetFocus;
 end;
 
@@ -3238,7 +3238,7 @@ begin
   end;
 
   SynMemoFilter.Text := filter;
-  PageControlBottom.ActivePageIndex := 2;
+  PageControlBottom.ActivePage := tabFilter;
   SynMemoFilter.SetFocus;
   SetFilter(self);
 end;
@@ -3264,17 +3264,17 @@ begin
   end;
 end;
 
-procedure TMDIChild.PageControl4Change(Sender: TObject);
+procedure TMDIChild.PageControlBlobEditorsChange(Sender: TObject);
 begin
   btnBlobCopy.Enabled := true;
   btnBlobLoad.Enabled := not DBMemo1.ReadOnly;
   btnBlobSave.Enabled := true;
-  if PageControl4.ActivePage = Tabsheet3 then
+  if PageControlBlobEditors.ActivePage = tabBlobEditorText then
   begin
     // MEMO tab activated.
     btnBlobWordWrap.Enabled := true;
   end;
-  if PageControl4.ActivePage = Tabsheet4 then
+  if PageControlBlobEditors.ActivePage = tabBlobEditorImage then
   begin
     // Image tab activated.
     btnBlobWordWrap.Enabled := false;
@@ -3309,7 +3309,7 @@ begin
   grid := ActiveGrid;
 
   with TSaveDialog.Create(self) do begin
-    case PageControl4.ActivePageIndex of
+    case PageControlBlobEditors.ActivePageIndex of
       0 : begin
             Filter := 'Text files (*.txt)|*.txt|All files (*.*)|*.*';
             DefaultExt := 'txt';
@@ -3323,7 +3323,7 @@ begin
     Options := [ofOverwritePrompt,ofEnableSizing];
     if execute then try
       Screen.Cursor := crHourGlass;
-      case PageControl4.ActivePageIndex of
+      case PageControlBlobEditors.ActivePageIndex of
         0 : begin
             AssignFile(bf, filename);
             Rewrite(bf);
@@ -3351,13 +3351,13 @@ begin
   end;
 
   with OpenDialog2 do begin
-    case PageControl4.ActivePageIndex of
+    case PageControlBlobEditors.ActivePageIndex of
       0 : Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
       1 : Filter := 'All Images (*.jpg, *.jpeg, *.bmp)|*.jpg;*.jpeg;*.bmp|JPEG (*.jpg, *.jpeg)|*.jpg;*.jpeg|Bitmap (*.bmp)|*.bmp|All files (*.*)|*.*';
     end;
 
     if execute then
-    case PageControl4.ActivePageIndex of
+    case PageControlBlobEditors.ActivePageIndex of
       0 : DBMemo1.Lines.LoadFromFile(filename);
       1 : EDBImage1.Picture.LoadFromFile(filename);
     end;
@@ -3727,7 +3727,7 @@ end;
 
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
-  MenuAutoupdate.Enabled := PageControlHost.ActivePageIndex=1;
+  MenuAutoupdate.Enabled := PageControlHost.ActivePage = tabProcessList;
 end;
 
 procedure TMDIChild.ListTablesEditing(Sender: TObject; Item: TListItem;
@@ -4113,8 +4113,8 @@ begin
   // If grid is not empty...
   if (Sender as TDBGrid).SelectedField <> nil then begin
     // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
-    if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControl4.ActivePageIndex = 0) then begin
-      PageControlBottom.ActivePageIndex := 1;
+    if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControlBlobEditors.ActivePage = tabBlobEditorText) then begin
+      PageControlBottom.ActivePage := tabBlobEditor;
       DBMemo1.SetFocus;
     end;
   end;
@@ -4238,7 +4238,7 @@ procedure TMDIChild.btnBlobCopyClick(Sender: TObject);
 begin
   if dbmemo1.DataField = '' then exit;
   SaveBlob;
-  case PageControl4.ActivePageIndex of
+  case PageControlBlobEditors.ActivePageIndex of
     0 : clipboard.astext := GetVisualDataset().FieldByName(DBMemo1.DataField).AsString;
     1 : EDBImage1.CopyToClipboard;
   end;
@@ -4600,7 +4600,7 @@ begin
     end;
 
     // Ensure visibility of the Blob-Editor
-    PageControlBottom.ActivePageIndex := 1;
+    PageControlBottom.ActivePage := tabBlobEditor;
     MenuViewBlob.Enabled := true;
 
     // Detect if we have picture-data in this BLOB and
@@ -4608,11 +4608,11 @@ begin
     if grid.Focused then begin
       if EDBImage1.Picture.Height > 0 then
       begin
-        PageControl4.ActivePageIndex := 1;
+        PageControlBlobEditors.ActivePage := tabBlobEditorImage;
       end
       else
       begin
-        PageControl4.ActivePageIndex := 0;
+        PageControlBlobEditors.ActivePage := tabBlobEditorText;
       end;
     end;
     ResizeImageToFit;
@@ -4637,7 +4637,7 @@ begin
     DBMemo1.Color := clWindow;
   end;
 
-  PageControl4Change(self);
+  PageControlBlobEditorsChange(self);
 end;
 
 

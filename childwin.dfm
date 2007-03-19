@@ -1128,16 +1128,16 @@ object MDIChild: TMDIChild
           OnClick = btnBlobCopyClick
         end
       end
-      object PageControl4: TPageControl
+      object PageControlBlobEditors: TPageControl
         Left = 23
         Top = 0
         Width = 646
         Height = 134
-        ActivePage = TabSheet3
+        ActivePage = tabBlobEditorText
         Align = alClient
         TabOrder = 1
-        OnChange = PageControl4Change
-        object TabSheet3: TTabSheet
+        OnChange = PageControlBlobEditorsChange
+        object tabBlobEditorText: TTabSheet
           Caption = 'Text'
           object DBMemo1: TDBMemo
             Left = 0
@@ -1158,7 +1158,7 @@ object MDIChild: TMDIChild
             OnKeyUp = controlsKeyUp
           end
         end
-        object TabSheet4: TTabSheet
+        object tabBlobEditorImage: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
           ExplicitLeft = 0
