@@ -1533,7 +1533,7 @@ begin
           bytes := ZQuery3.FieldByName('Data_length').AsFloat + ZQuery3.FieldByName('Index_length').AsFloat;
           n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
           // Created:
-          if not ZQuery3.FieldByName('Update_time').IsNull then
+          if not ZQuery3.FieldByName('Create_time').IsNull then
             n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) )
           else
             n.SubItems.Add('N/A');
