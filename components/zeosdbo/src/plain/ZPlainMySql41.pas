@@ -298,7 +298,7 @@ type
 
   MYSQL_FIELD_OFFSET = Cardinal;
 
-  MYSQL_ROW = array[00..$ff] of PChar;
+  MYSQL_ROW = array[0..$ffff] of PChar;
   PMYSQL_ROW = ^MYSQL_ROW;
 
   PMYSQL_ROWS = ^MYSQL_ROWS;
