@@ -4589,13 +4589,20 @@ begin
       hasOddNewlines := hasIrregularNewlines(DBMemo1.Field.AsString);
       DBMemo1.ReadOnly := hasNull or hasOddNewlines;
       btnUnsafeEdit.Enabled := hasNull or hasOddNewlines;
-      s := 'Cannot edit text because BLOB contains ';
-      if hasNull then s := s + 'NUL characters';
-      if hasOddNewlines then begin
-        if hasNull then s := s + ' and ';
-        s := s + 'non-CRLF newlines';
+      if btnUnsafeEdit.Enabled then
+      begin
+        s := 'Cannot edit text because BLOB contains ';
+        if hasNull then s := s + 'NUL characters';
+        if hasOddNewlines then begin
+          if hasNull then s := s + ' and ';
+          s := s + 'non-CRLF newlines';
+        end;
+        s := s + '. Click here to remove NUL plus following text and convert all newlines to CRLF format.';
+      end
+      else
+      begin
+        s := 'No irregular characters found in BLOB. It is safe to edit this text.';
       end;
-      s := s + '. Click here to remove NUL plus following text and convert all newlines to CRLF format.';
       btnUnsafeEdit.Hint := s;
     end;
 
