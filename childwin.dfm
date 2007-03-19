@@ -1575,6 +1575,7 @@ object MDIChild: TMDIChild
     SymbolAttri.Foreground = clBlue
     TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
+    SingleLineMode = True
     SQLDialect = sqlMySQL
     Left = 7
     Top = 192
