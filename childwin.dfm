@@ -501,7 +501,7 @@ object MDIChild: TMDIChild
             object btnTableEditField: TToolButton
               Left = 0
               Top = 23
-              Hint = 'Edit Field / Index...'
+              Hint = 'Edit Field...'
               Caption = 'btnTableEditField'
               ImageIndex = 9
               Wrap = True
@@ -510,11 +510,11 @@ object MDIChild: TMDIChild
             object btnTableAddField: TToolButton
               Left = 0
               Top = 46
-              Hint = 'Add Field / Index...'
+              Hint = 'Add Field...'
               Caption = 'btnTableAddField'
               ImageIndex = 34
               Wrap = True
-              OnClick = UpdateField
+              OnClick = MenuAddFieldClick
             end
             object btnTableDropField: TToolButton
               Left = 0
