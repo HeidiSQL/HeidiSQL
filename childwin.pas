@@ -266,6 +266,7 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
+    procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridQueryMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -4140,6 +4141,17 @@ begin
     afont.Color := clInfoText;
   end;
   if field.IsNull then background := mainform.DataNullBackground;
+end;
+
+procedure TMDIChild.DBMemo1Exit(Sender: TObject);
+var
+  ds: TDataSource;
+begin
+  // Save changes.  Fixes issue #1538021.
+  ds := DBMemo1.DataSource;
+  if ds.State in [dsEdit, dsInsert] then begin
+    ds.DataSet.Post;
+  end;
 end;
 
 procedure TMDIChild.popupDataGridPopup(Sender: TObject);

@@ -1154,6 +1154,7 @@ object MDIChild: TMDIChild
             ParentFont = False
             ScrollBars = ssBoth
             TabOrder = 0
+            OnExit = DBMemo1Exit
             OnKeyUp = controlsKeyUp
           end
         end
