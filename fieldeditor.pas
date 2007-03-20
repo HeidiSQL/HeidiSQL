@@ -214,7 +214,7 @@ begin
       begin
         if (strtype=MySqlDataTypeArray[i].Name) then
         begin
-          if (MySqlDataTypeArray[i].Flags And FF_HAS_LENGTH_PROP) = FF_HAS_LENGTH_PROP then
+          if MySqlDataTypeArray[i].HasLength then
           begin
             // enable / disable length field
             // get default length ..

@@ -22,10 +22,15 @@ type
 
   // MySQL Data Type structure
   TMysqlDataTypeRecord = record
-    Index:     Integer;
-    Name:      String[15];
-    Flags:     Integer; // bitset : (bit 0 = NeedsLength, bit 1 = ....
-    DefLength: Integer; // Can we auto-determine this from server ??
+    Index:           Integer;
+    Name:            String[15];
+    HasLength:       Boolean; // Can have Length- or Set-attribute?
+    RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
+    HasUnsigned:     Boolean; // Can be unsigned?
+    HasZerofill:     Boolean; // Can be zerofilled?
+    HasBinary:       Boolean; // Can be binary?
+    HasDefault:      Boolean; // Can have a default value?
+    DefLengthSet:    String;  // Should be set for types which require a length/set
   end;
 
   // MySQL Field structure
@@ -44,13 +49,6 @@ type
     AutoIncrement: Boolean;
   end;
 
-const
-  // field flags
-  FF_HAS_LENGTH_PROP = 1;
-  // FF_xxx = 2
-  // FF_yyy = 4
-  // FF_zzz = 8
-  // ....
 
 // MySQL Field Types Constants
 const
@@ -86,110 +84,268 @@ var
   MySqlDataTypeArray: array [0..25] of TMysqlDataTypeRecord =
   (
     (
-      Index: tpTINYINT;
-      Name: 'TINYINT'
+      Index:           tpTINYINT;
+      Name:            'TINYINT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpSMALLINT;
-      Name: 'SMALLINT'
+      Index:           tpSMALLINT;
+      Name:            'SMALLINT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpMEDIUMINT;
-      Name: 'MEDIUMINT'
+      Index:           tpMEDIUMINT;
+      Name:            'MEDIUMINT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpINT;
-      Name: 'INT'
+      Index:           tpINT;
+      Name:            'INT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpBIGINT;
-      Name: 'BIGINT'
+      Index:           tpBIGINT;
+      Name:            'BIGINT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpFLOAT;
-      Name: 'FLOAT'
+      Index:           tpFLOAT;
+      Name:            'FLOAT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpDOUBLE;
-      Name: 'DOUBLE'
+      Index:           tpDOUBLE;
+      Name:            'DOUBLE';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpDECIMAL;
-      Name: 'DECIMAL'
+      Index:           tpDECIMAL;
+      Name:            'DECIMAL';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasUnsigned:     True;
+      HasZerofill:     True;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpDATE;
-      Name: 'DATE'
+      Index:           tpDATE;
+      Name:            'DATE';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpDATETIME;
-      Name: 'DATETIME'
+      Index:           tpDATETIME;
+      Name:            'DATETIME';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpTIMESTAMP;
-      Name: 'TIMESTAMP'
+      Index:           tpTIMESTAMP;
+      Name:            'TIMESTAMP';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpTIME;
-      Name: 'TIME'
+      Index:           tpTIME;
+      Name:            'TIME';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpYEAR;
-      Name: 'YEAR'
+      Index:           tpYEAR;
+      Name:            'YEAR';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
     ),
     (
-      Index: tpCHAR;
-      Name: 'CHAR'
+      Index:           tpCHAR;
+      Name:            'CHAR';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True;
+      HasDefault:      True;
+      DefLengthSet:    '50';
     ),
     (
-      Index: tpVARCHAR;
-      Name: 'VARCHAR';
-      Flags: FF_HAS_LENGTH_PROP;
-      DefLength: 50
+      Index:           tpVARCHAR;
+      Name:            'VARCHAR';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True; // MySQL-Help says the opposite but it's valid for older versions at least.
+      HasDefault:      True;
+      DefLengthSet:    '50';
     ),
     (
-      Index: tpTINYBLOB;
-      Name: 'TINYBLOB'
+      Index:           tpTINYBLOB;
+      Name:           'TINYBLOB';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      False;
     ),
     (
-      Index: tpTINYTEXT;
-      Name: 'TINYTEXT'
+      Index:           tpTINYTEXT;
+      Name:            'TINYTEXT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True;
+      HasDefault:      False;
     ),
     (
-      Index: tpTEXT;
-      Name: 'TEXT'
+      Index:           tpTEXT;
+      Name:            'TEXT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True;
+      HasDefault:      False;
     ),
     (
-      Index: tpBLOB;
-      Name: 'BLOB'
+      Index:           tpBLOB;
+      Name:            'BLOB';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      False;
     ),
     (
-      Index: tpMEDIUMBLOB;
-      Name: 'MEDIUMBLOB'
+      Index:           tpMEDIUMBLOB;
+      Name:            'MEDIUMBLOB';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      False;
     ),
     (
-      Index: tpMEDIUMTEXT;
-      Name: 'MEDIUMTEXT'
+      Index:           tpMEDIUMTEXT;
+      Name:            'MEDIUMTEXT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True;
+      HasDefault:      False;
     ),
     (
-      Index: tpLONGBLOB;
-      Name: 'LONGBLOB'
+      Index:           tpLONGBLOB;
+      Name:            'LONGBLOB';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      False;
     ),
     (
-      Index: tpLONGTEXT;
-      Name: 'LONGTEXT'
+      Index:           tpLONGTEXT;
+      Name:            'LONGTEXT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True;
+      HasDefault:      False;
     ),
     (
-      Index: tpENUM;
-      Name: 'ENUM'
+      Index:           tpENUM;
+      Name:            'ENUM';
+      HasLength:       True; // Obviously this is not meant as "length", but as "set of values"
+      RequiresLength:  True;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '''Y'',''N''';
     ),
     (
-      Index: tpSET;
-      Name: 'SET'
+      Index:           tpSET;
+      Name:            'SET';
+      HasLength:       True; // Same as for ENUM
+      RequiresLength:  True;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '''Value A'',''Value B''';
     ),
     (
-      Index: tpBIT;
-      Name: 'BIT'
+      Index:           tpBIT;
+      Name:            'BIT';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
     )
   );
 

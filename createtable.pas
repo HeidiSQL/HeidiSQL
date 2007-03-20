@@ -111,6 +111,8 @@ procedure TCreateTableForm.ButtonCreateClick(Sender: TObject);
 var
   createQuery, primaryKey, uniqueKey, indexKey  : String;
   i : Integer;
+  LengthSet : String;
+  FieldType : TMysqlDataTypeRecord;
 begin
   // Prepare Query:
   createQuery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
@@ -118,15 +120,28 @@ begin
   // Columns
   for i := 0 to length(fields) - 1 do
   begin
+    FieldType := MySqlDataTypeArray[fields[i].typ];
     createQuery := createQuery + mainform.mask(fields[i].Name) + ' ' +
       comboboxtype.items[fields[i].Typ];                              // Typ
-    if fields[i].LengthSet <> '' then
-      createQuery := createQuery  + ' (' + fields[i].LengthSet + ')';         // Length/Set
-    if fields[i].Binary then
+    LengthSet := fields[i].LengthSet;
+    // Unset length if not allowed for fieldtype
+    if not FieldType.HasLength then
+      LengthSet := '';
+    // Length required
+    if FieldType.RequiresLength and (LengthSet = '') then
+    begin
+      if FieldType.DefLengthSet <> '' then
+        LengthSet := FieldType.DefLengthSet
+      else
+        LengthSet := '50';
+    end;
+    if LengthSet <> '' then
+      createQuery := createQuery  + ' (' + LengthSet + ')';                   // Length/Set
+    if FieldType.HasBinary and fields[i].Binary then
       createQuery := createQuery  + ' BINARY';                                // Binary
-    if fields[i].Unsigned then
+    if FieldType.HasUnsigned and fields[i].Unsigned then
       createQuery := createQuery  + ' UNSIGNED';                              // Unsigned
-    if fields[i].Zerofill then
+    if FieldType.HasZerofill and fields[i].Zerofill then
       createQuery := createQuery  + ' ZEROFILL';                              // Zerofill
     if fields[i].Default <> '' then
       createQuery := createQuery  + ' DEFAULT ''' + fields[i].Default + '''';   // Default
@@ -247,30 +262,42 @@ end;
 
 
 procedure TCreateTableForm.checktypes(Sender: TObject);
+var
+  FieldType : TMysqlDataTypeRecord;
 begin
-  // "binary" is only valid for char's and varchar's
-  if ComboBoxType.ItemIndex in [13,14] then
-    CheckBoxBinary.Enabled := true
-  else begin
-    CheckBoxBinary.Checked := false;
-    CheckBoxBinary.Enabled := false;
-  end;
+  FieldType := MySqlDataTypeArray[ComboBoxType.ItemIndex];
 
-  // "unsigned" is only valid for numerical columns (not for float's!)
-  if ComboBoxType.ItemIndex in [0,1,2,3,4] then
-    CheckBoxUnsigned.Enabled := true
-  else begin
-    CheckBoxUnsigned.Checked := false;
-    CheckBoxUnsigned.Enabled := false;
-  end;
+  // "binary" is only valid for text-types
+  CheckBoxBinary.Enabled := FieldType.HasBinary;
+  if not CheckBoxBinary.Enabled then
+    CheckBoxBinary.Checked := false; // Ensure checkbox is not ticked
+
+  // "unsigned" is only valid for numerical columns
+  CheckBoxUnsigned.Enabled := FieldType.HasUnsigned;
+  if not CheckBoxUnsigned.Enabled then
+    CheckBoxUnsigned.Checked := false; // Ensure checkbox is not ticked
 
   // "zerofill" is only valid for numerical and float-columns
-  if ComboBoxType.ItemIndex in [0,1,2,3,4,5,6,7] then
-    CheckBoxZerofill.Enabled := true
-  else begin
-    CheckBoxZerofill.Checked := false;
-    CheckBoxZerofill.Enabled := false;
+  CheckBoxZerofill.Enabled := FieldType.HasZerofill;
+  if not CheckBoxZerofill.Enabled then
+    CheckBoxZerofill.Checked := false; // Ensure checkbox is not ticked
+
+  // Length/Set
+  EditLengthSet.Enabled := FieldType.HasLength;
+  if not EditLengthSet.Enabled then
+    EditLengthSet.Text := '';
+  // Fill length/set value with default value if empty
+  if FieldType.RequiresLength then
+  begin
+    if (EditLengthSet.Text = '') and (FieldType.DefLengthSet <> '') then
+      EditLengthSet.Text := FieldType.DefLengthSet;
   end;
+
+  // Default value
+  EditDefault.Enabled := FieldType.HasDefault;
+  if not EditDefault.Enabled then
+    EditDefault.Text := ''; // Ensure empty default value
+
 end;
 
 
@@ -372,8 +399,8 @@ begin
   begin
     Name := EditFieldName.Text;
     Typ := 0;
-    LengthSet := '3';
-    default := '0';
+    LengthSet := '';
+    default := '';
     Primary := false;
     Index := false;
     Unique := false;
@@ -492,6 +519,14 @@ begin
       ComboboxTableType.Items.Add( menu.Items[i].Caption );
     end;
   end;
+
+  // Adds all datatypes for columns
+  ComboboxType.Items.Clear;
+  for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
+  begin
+    ComboboxType.Items.Add( MySqlDataTypeArray[i].Name );
+  end;
+    
     
   index := -1;
   setLength(fields, 0);
