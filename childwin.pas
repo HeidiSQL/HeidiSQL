@@ -510,12 +510,22 @@ end;
 procedure TMDIChild.PerformConnect;
 var
   charset: string;
+  v: String[10];
+  versions: TStringList;
 begin
 
   try
     time_connected := 0;
     TimerConnected.Enabled := true;
     LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
+    {***
+      Detect server version
+    }
+    v := GetVar( 'SELECT VERSION()' );
+    versions := explode( '.', v );
+    mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
+    strHostRunning := FConnParams.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
+
     // On Re-Connection, try to restore lost properties
     {***
       SET NAMES statement available since MySQL 4.1.0 .
@@ -2010,21 +2020,12 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
   end;
 
 var
-  v : String[10];
   i : Integer;
   n : TListItem;
-  versions : TStringList;
   questions : Int64;
 begin
   // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
-
-  // VERSION
-  v := GetVar( 'SELECT VERSION()' );
-  versions := explode( '.', v );
-  mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
-  strHostRunning := FConnParams.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
-
 
   // VARIABLES
   ListVariables.Items.BeginUpdate;
