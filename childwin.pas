@@ -1551,13 +1551,13 @@ begin
           n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
           // Created:
           if not ZQuery3.FieldByName('Create_time').IsNull then
-            n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Create_time').AsDateTime) )
+            n.SubItems.Add( ZQuery3.FieldByName('Create_time').AsString )
           else
             n.SubItems.Add('N/A');
 
           // Updated:
           if not ZQuery3.FieldByName('Update_time').IsNull then
-            n.SubItems.Add( DateTimeToStr(ZQuery3.FieldByName('Update_time').AsDateTime) )
+            n.SubItems.Add( ZQuery3.FieldByName('Update_time').AsString )
           else
             n.SubItems.Add('N/A');
 
