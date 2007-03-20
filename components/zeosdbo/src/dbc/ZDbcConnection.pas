@@ -750,6 +750,7 @@ end;
 }
 function TZAbstractConnection.PingServer: Integer;
 begin
+  Result := -1;
   RaiseUnsupportedException;
 end;
 
