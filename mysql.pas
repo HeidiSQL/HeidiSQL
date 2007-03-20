@@ -36,7 +36,7 @@ type
   // MySQL Field structure
   TMysqlField = record
     Name:          String[64];
-    Typ:           Byte;
+    FieldType:     Byte;
     LengthSet:     String;
     Default:       String;
     Primary:       Boolean;

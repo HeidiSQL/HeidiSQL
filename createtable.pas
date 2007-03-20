@@ -120,9 +120,9 @@ begin
   // Columns
   for i := 0 to length(fields) - 1 do
   begin
-    FieldType := MySqlDataTypeArray[fields[i].typ];
+    FieldType := MySqlDataTypeArray[fields[i].FieldType];
     createQuery := createQuery + mainform.mask(fields[i].Name) + ' ' +
-      comboboxtype.items[fields[i].Typ];                              // Typ
+      comboboxtype.items[fields[i].FieldType];                              // Typ
     LengthSet := fields[i].LengthSet;
     // Unset length if not allowed for fieldtype
     if not FieldType.HasLength then
@@ -304,7 +304,7 @@ end;
 procedure TCreateTableForm.ComboBoxTypeChange(Sender: TObject);
 begin
   // Type
-  fields[index].Typ := ComboBoxType.ItemIndex;
+  fields[index].FieldType := ComboBoxType.ItemIndex;
   checktypes(self);
 end;
 
@@ -398,7 +398,7 @@ begin
   with fields[index] do
   begin
     Name := EditFieldName.Text;
-    Typ := 0;
+    FieldType := 0;
     LengthSet := '';
     default := '';
     Primary := false;
@@ -594,7 +594,7 @@ begin
   // fill controls with values
   with fields[index] do
   begin
-    ComboBoxType.ItemIndex := Typ;
+    ComboBoxType.ItemIndex := FieldType;
     EditLengthSet.Text := LengthSet;
     EditDefault.Text := Default;
     CheckBoxPrimary.Checked := Primary;
