@@ -284,6 +284,11 @@ begin
 
   // Length/Set
   EditLengthSet.Enabled := FieldType.HasLength;
+  lblLengthSet.Enabled := EditLengthSet.Enabled;
+  if FieldType.RequiresLength then // Render required field as bold
+    lblLengthSet.Font.Style := lblLengthSet.Font.Style + [fsBold]
+  else
+    lblLengthSet.Font.Style := lblLengthSet.Font.Style - [fsBold];
   if not EditLengthSet.Enabled then
     EditLengthSet.Text := '';
   // Fill length/set value with default value if empty
@@ -295,6 +300,7 @@ begin
 
   // Default value
   EditDefault.Enabled := FieldType.HasDefault;
+  lblDefault.Enabled := EditDefault.Enabled;
   if not EditDefault.Enabled then
     EditDefault.Text := ''; // Ensure empty default value
 
