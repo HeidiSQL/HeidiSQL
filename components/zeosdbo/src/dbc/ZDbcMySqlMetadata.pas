@@ -1020,6 +1020,7 @@ var
   TypeInfoList: TStrings;
   TypeInfo, TypeInfoFirst, TypeInfoSecond: string;
   Nullable, DefaultValue: string;
+  HasDefaultValue: Boolean;
   ColumnSize, ColumnDecimals: Integer;
   OrdPosition: Integer;
 
@@ -1103,6 +1104,7 @@ begin
             end else
               TypeInfoFirst := TypeInfo;
 
+            TypeInfoFirst := LowerCase(TypeInfoFirst);
             MySQLType := ConvertMySQLTypeToSQLType(TypeInfoFirst, TypeInfo);
             Result.UpdateInt(5, Ord(MySQLType));
             Result.UpdateString(6, TypeInfoFirst);
@@ -1135,59 +1137,59 @@ begin
                 { the column type is other }
                  if TypeInfoSecond <> '' then
                     ColumnSize := StrToIntDef(TypeInfoSecond, 0)
-                 else if LowerCase(TypeInfoFirst) = 'tinyint' then
+                 else if TypeInfoFirst = 'tinyint' then
                     ColumnSize := 1
-                 else if LowerCase(TypeInfoFirst) = 'smallint' then
+                 else if TypeInfoFirst = 'smallint' then
                     ColumnSize := 6
-                 else if LowerCase(TypeInfoFirst) = 'mediumint' then
+                 else if TypeInfoFirst = 'mediumint' then
                     ColumnSize := 6
-                 else if LowerCase(TypeInfoFirst) = 'int' then
+                 else if TypeInfoFirst = 'int' then
                     ColumnSize := 11
-                 else if LowerCase(TypeInfoFirst) = 'integer' then
+                 else if TypeInfoFirst = 'integer' then
                     ColumnSize := 11
-                 else if LowerCase(TypeInfoFirst) = 'bigint' then
+                 else if TypeInfoFirst = 'bigint' then
                     ColumnSize := 25
-                 else if LowerCase(TypeInfoFirst) = 'int24' then
+                 else if TypeInfoFirst = 'int24' then
                     ColumnSize := 25
-                 else if LowerCase(TypeInfoFirst) = 'real' then
+                 else if TypeInfoFirst = 'real' then
                     ColumnSize := 12
-                 else if LowerCase(TypeInfoFirst) = 'float' then
+                 else if TypeInfoFirst = 'float' then
                     ColumnSize := 12
-                 else if LowerCase(TypeInfoFirst) = 'decimal' then
+                 else if TypeInfoFirst = 'decimal' then
                     ColumnSize := 12
-                 else if LowerCase(TypeInfoFirst) = 'numeric' then
+                 else if TypeInfoFirst = 'numeric' then
                     ColumnSize := 12
-                 else if LowerCase(TypeInfoFirst) = 'double' then
+                 else if TypeInfoFirst = 'double' then
                     ColumnSize := 22
-                 else if LowerCase(TypeInfoFirst) = 'char' then
+                 else if TypeInfoFirst = 'char' then
                     ColumnSize := 1
-                 else if LowerCase(TypeInfoFirst) = 'varchar' then
+                 else if TypeInfoFirst = 'varchar' then
                     ColumnSize := 255
-                 else if LowerCase(TypeInfoFirst) = 'date' then
+                 else if TypeInfoFirst = 'date' then
                     ColumnSize := 10
-                 else if LowerCase(TypeInfoFirst) = 'time' then
+                 else if TypeInfoFirst = 'time' then
                     ColumnSize := 8
-                 else if LowerCase(TypeInfoFirst) = 'timestamp' then
+                 else if TypeInfoFirst = 'timestamp' then
                     ColumnSize := 19
-                 else if LowerCase(TypeInfoFirst) = 'datetime' then
+                 else if TypeInfoFirst = 'datetime' then
                     ColumnSize := 19
-                 else if LowerCase(TypeInfoFirst) = 'tinyblob' then
+                 else if TypeInfoFirst = 'tinyblob' then
                     ColumnSize := 255
-                 else if LowerCase(TypeInfoFirst) = 'blob' then
+                 else if TypeInfoFirst = 'blob' then
                     ColumnSize := MAXBUF
-                 else if LowerCase(TypeInfoFirst) = 'mediumblob' then
+                 else if TypeInfoFirst = 'mediumblob' then
                     ColumnSize := 16277215//may be 65535
-                 else if LowerCase(TypeInfoFirst) = 'longblob' then
+                 else if TypeInfoFirst = 'longblob' then
                     ColumnSize := High(Integer)//2147483657//may be 65535
-                 else if LowerCase(TypeInfoFirst) = 'tinytext' then
+                 else if TypeInfoFirst = 'tinytext' then
                     ColumnSize := 255
-                 else if LowerCase(TypeInfoFirst) = 'text' then
+                 else if TypeInfoFirst = 'text' then
                     ColumnSize := 65535
-                 else if LowerCase(TypeInfoFirst) = 'mediumtext' then
+                 else if TypeInfoFirst = 'mediumtext' then
                     ColumnSize := 16277215 //may be 65535
-                 else if LowerCase(TypeInfoFirst) = 'enum' then
+                 else if TypeInfoFirst = 'enum' then
                     ColumnSize := 255
-                 else if LowerCase(TypeInfoFirst) = 'set' then
+                 else if TypeInfoFirst = 'set' then
                     ColumnSize := 255;
                 Result.UpdateInt(7, ColumnSize);
                 Result.UpdateInt(9, 0);
@@ -1215,10 +1217,42 @@ begin
               Result.UpdateString(18, 'NO');
             end;
             Result.UpdateString(12, GetStringByName('Extra'));
-            if not IsNullByName('Default') then
-            begin
+            // MySQL is a bit bizarre.
+            if IsNullByName('Default') then begin
+              // MySQL bizarity 1:
+              // NULL actually means that the default is NULL.
+              // Superfluous, since there's a NULL / NOT NULL flag to control whether the field may have no value.
+              // So we just ignore this, the field gets set to NULL if nothing was specified...
+              HasDefaultValue := false;
+              DefaultValue := '';
+            end else begin
               DefaultValue := GetStringByName('Default');
-              if (MySQLType in [stString, stUnicodeString]) then begin
+              if not (DefaultValue = '') then HasDefaultValue := true
+              else begin
+                // MySQL bizarity 2:
+                // For CHAR, BLOB, TEXT and SET types, '' either means: default value is '' or: no default value
+                // There's absolutely no way of telling when using SHOW COLUMNS FROM,
+                // the correct information can /only/ be discerned by using information_schema.
+                // TODO: For now, just use '' as default value for these types, but this should really be fixed to use information_schema.
+                // For ENUM types, '' means: default value is first value in enum set
+                // For other types, '' means: no default value
+                HasDefaultValue := false;
+                if Pos('blob', TypeInfoFirst) > 0 then HasDefaultValue := true;
+                if Pos('text', TypeInfoFirst) > 0 then HasDefaultValue := true;
+                if Pos('char', TypeInfoFirst) > 0 then HasDefaultValue := true;
+                if 'set' = TypeInfoFirst then HasDefaultValue := true;
+                if 'enum' =  TypeInfoFirst then begin
+                  HasDefaultValue := true;
+                  DefaultValue := Copy(TypeInfoSecond, 2);
+                  DefaultValue := Copy(DefaultValue, 1, Pos('''', DefaultValue) - 1);
+                end;
+              end;
+            end;
+            if HasDefaultValue then
+            begin
+              // String values in the 'Default value' field are not escaped with apostrophes.
+              // Guess this makes it impossible to specify a function call or similar via default values.
+              if (MySQLType in [stString, stUnicodeString, stBinaryStream, stAsciiStream]) then begin
                 // Since we changed date/time-related columntypes to be presented
                 // as strings, we need to move the CURRENT_TIMESTAMP-check to here.
                 // Also left the other line in order to minimize the changes in ZeosLib
@@ -1235,8 +1269,8 @@ begin
                   DefaultValue := '1'
                 else DefaultValue := '0';
               end;
-              Result.UpdateString(13, DefaultValue);
             end;
+            Result.UpdateString(13, DefaultValue);
             Result.UpdateNull(14);
             Result.UpdateNull(15);
       //!!      Result.UpdateInt(16, GetInt(7));
