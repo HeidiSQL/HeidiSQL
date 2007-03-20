@@ -766,6 +766,7 @@ type
     function IsWritable(Column: Integer): Boolean;
     function IsDefinitelyWritable(Column: Integer): Boolean;
     function GetDefaultValue(Column: Integer): string;
+    function HasDefaultValue(Column: Integer): Boolean;
   end;
 
   {** External or internal blob wrapper object. }

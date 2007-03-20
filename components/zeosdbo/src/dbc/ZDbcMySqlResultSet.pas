@@ -274,6 +274,8 @@ begin
       if NOT_NULL_FLAG and FieldFlags <> 0 then
         Nullable := ntNoNulls
       else Nullable := ntNullable;
+
+      // Properties not set via query results here will be fetched from table metadata.
     end;
 
     ColumnsInfo.Add(ColumnInfo);

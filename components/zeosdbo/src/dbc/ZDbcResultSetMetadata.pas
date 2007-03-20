@@ -176,6 +176,7 @@ type
     function IsWritable(Column: Integer): Boolean; virtual;
     function IsDefinitelyWritable(Column: Integer): Boolean; virtual;
     function GetDefaultValue(Column: Integer): string; virtual;
+    function HasDefaultValue(Column: Integer): Boolean; virtual;
   end;
 
 implementation
@@ -515,6 +516,19 @@ function TZAbstractResultSetMetadata.GetDefaultValue(
 begin
   if not Loaded then LoadColumns;
   Result := TZColumnInfo(FResultSet.ColumnsInfo[Column - 1]).DefaultValue;
+end;
+
+{**
+  Finds whether this field has a default value.
+  @param column the first column is 1, the second is 2, ...
+  @return true if this field has a default value.
+}
+function TZAbstractResultSetMetadata.HasDefaultValue(
+  Column: Integer): Boolean;
+begin
+  if not Loaded then LoadColumns;
+  // '' = NULL / no default value, '''''' = empty string (''), etc.
+  Result := TZColumnInfo(FResultSet.ColumnsInfo[Column - 1]).DefaultValue = '';
 end;
 
 {**
