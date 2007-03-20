@@ -517,7 +517,9 @@ begin
   try
     time_connected := 0;
     TimerConnected.Enabled := true;
+    LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname + '" on port ' + inttostr(FMysqlConn.Connection.Port) );
     LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
+
     {***
       Detect server version
     }
@@ -635,9 +637,7 @@ begin
   if FConnParams.DatabaseListSort then
     OnlyDBs.Sort;
 
-  // Versions and Statistics
-  LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname + '" on port ' + inttostr(FMysqlConn.Connection.Port) );
-
+  // Fill variables-list, processlist and DB-tree
   ShowVariablesAndProcesses(self);
   ReadDatabasesAndTables(self);
 
