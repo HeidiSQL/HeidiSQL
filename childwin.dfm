@@ -712,7 +712,7 @@ object MDIChild: TMDIChild
             OnColumnMoved = gridDataColumnMoved
             OnDblClick = DBGridDblClick
             OnKeyUp = controlsKeyUp
-            OnMouseDown = gridDataMouseDown
+            OnMouseDown = gridMouseDown
             OnTitleClick = gridDataTitleClick
             ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
@@ -968,7 +968,7 @@ object MDIChild: TMDIChild
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
             OnDblClick = DBGridDblClick
-            OnMouseDown = gridQueryMouseDown
+            OnMouseDown = gridMouseDown
             ExOptions = [eoBooleanAsCheckBox, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
             RegistryKey = 'Software\MikeSoft'
