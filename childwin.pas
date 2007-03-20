@@ -864,7 +864,7 @@ begin
   begin
     msg :=
       '/* Very large SQL query, showing first ' +
-      IntToStr(sqllog_char_limit) +
+      FormatNumber(sqllog_char_limit) +
       ' characters: */ ' +
       Copy(msg, 0, sqllog_char_limit) +
       ' ...';
