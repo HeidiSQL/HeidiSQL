@@ -29,9 +29,9 @@ type
     CheckBoxZerofill: TCheckBox;
     CheckBoxNotNull: TCheckBox;
     CheckBoxAutoincrement: TCheckBox;
-    Label6: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
+    lblFieldType: TLabel;
+    lblLengthSet: TLabel;
+    lblDefault: TLabel;
     EditTablename: TEdit;
     Label1: TLabel;
     Label2: TLabel;
@@ -552,9 +552,9 @@ procedure TCreateTableForm.disableControls(Sender: TObject);
 begin
   // disable controls
   ButtonDelete.Enabled := false;
-  Label6.Enabled := false; // Type
-  Label7.Enabled := false; // Length
-  Label8.Enabled := false; // Set
+  lblFieldType.Enabled := false; // Type
+  lblLengthSet.Enabled := false; // Length
+  lblDefault.Enabled := false; // Default
   ComboBoxType.Enabled := false;
   EditLengthSet.Enabled := false;
   EditDefault.Enabled := false;
@@ -572,9 +572,9 @@ end;
 procedure TCreateTableForm.enableControls(Sender: TObject);
 begin
   // enable controls
-  Label6.Enabled := true; // Type
-  Label7.Enabled := true; // Length
-  Label8.Enabled := true; // Set
+  lblFieldType.Enabled := true; // Type
+  lblLengthSet.Enabled := true; // Length
+  lblDefault.Enabled := true; // Default
   ComboBoxType.Enabled := true;
   EditLengthSet.Enabled := true;
   EditDefault.Enabled := true;

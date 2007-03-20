@@ -100,7 +100,7 @@ object CreateTableForm: TCreateTableForm
     Height = 185
     Caption = 'Column-Properties:'
     TabOrder = 11
-    object Label6: TLabel
+    object lblFieldType: TLabel
       Left = 16
       Top = 24
       Width = 27
@@ -108,7 +108,7 @@ object CreateTableForm: TCreateTableForm
       Caption = 'Type:'
       Enabled = False
     end
-    object Label7: TLabel
+    object lblLengthSet: TLabel
       Left = 16
       Top = 48
       Width = 57
@@ -116,7 +116,7 @@ object CreateTableForm: TCreateTableForm
       Caption = 'Length/Set:'
       Enabled = False
     end
-    object Label8: TLabel
+    object lblDefault: TLabel
       Left = 16
       Top = 72
       Width = 67
