@@ -281,7 +281,10 @@ begin
   { Defines user password }
   Password := ResultInfo.Values['PWD'];
   if Password = '' then
-    Password := ResultInfo.Values['password'];
+    Password := ResultInfo.Values['password']
+  else
+    // HeidiSQL-specific hack to fix passwords containing semicolon.  With HeidiSQL, PWD is always the last property.
+    Password := Copy(Url, Pos('PWD=', Url) + 4);
 end;
 
 {**
