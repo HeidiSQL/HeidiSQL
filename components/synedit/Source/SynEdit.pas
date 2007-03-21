@@ -606,6 +606,7 @@ type
   protected
     fGutterWidth: Integer;
     fInternalImage: TSynInternalImage;
+    fSingleLineMode: boolean;
     procedure HideCaret;
     procedure ShowCaret;
     procedure DoOnClearBookmark(var Mark: TSynEditMark); virtual;
@@ -886,6 +887,7 @@ type
       read fOnScroll write fOnScroll;
   published
     property Cursor default crIBeam;
+    property SingleLineMode: boolean read fSingleLineMode write fSingleLineMode;
   end;
 
   TSynEdit = class(TCustomSynEdit)
@@ -1266,7 +1268,8 @@ begin
   fOrigUndoList := fUndoList;
   fRedoList := TSynEditUndoList.Create;
   fRedoList.OnAddedUndo := UndoRedoAdded;
-  fOrigRedoList := fRedoList;          
+  fOrigRedoList := fRedoList;
+  fSingleLineMode := false;
 
 {$IFDEF SYN_COMPILER_4_UP}
 {$IFDEF SYN_CLX}
@@ -3272,6 +3275,8 @@ var
           // necessary because we probably did not scan to the end of the last
           // line - the internal highlighter range might be wrong.
           if nLine = 1 then
+            fHighlighter.ResetRange
+          else if fSingleLineMode then
             fHighlighter.ResetRange
           else
             fHighlighter.SetRange( TSynEditStringList(Lines).Ranges[nLine -2] );
