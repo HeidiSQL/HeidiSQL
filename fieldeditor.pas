@@ -179,11 +179,13 @@ begin
     ComboBoxType.Items.Add( MySqlDataTypeArray[i].Name );
   end;
 
-  case FMode of
+  CheckBoxAutoIncrement.Enabled := true;
 
+  case FMode of
     // "Field" tab in Add-mode
     femFieldAdd:
     begin
+      CheckBoxAutoIncrement.Enabled := false;
       EditFieldName.Text := 'FieldName';
       ComboBoxType.ItemIndex := 0;
       EditLength.Text := '';
@@ -195,7 +197,6 @@ begin
       else
         ComboBoxPosition.ItemIndex := 0;
     end;
-
 
     // "Field" tab in Update-mode
     femFieldUpdate:
@@ -224,7 +225,6 @@ begin
         end;
       end;
 
-
       // set attributes:
       strtype := LowerCase( ListColumns.Selected.Subitems[0] );
       CheckBoxBinary.Checked := pos('binary', strtype) > 0;
@@ -233,14 +233,12 @@ begin
       CheckBoxNotNull.Checked := lowercase(ListColumns.Selected.Subitems[1]) <> 'yes';
       CheckBoxAutoIncrement.Checked := lowercase(ListColumns.Selected.Subitems[3]) = 'auto_increment';
 
+      // TODO: Disable 'auto increment' checkbox if field is not part of index or primary key.
     end;
-
 
     // "Indexes" tab
     femIndexEditor: ;
-
   end;
-
 end;
 
 
@@ -835,20 +833,19 @@ end;
   Add column to index
 }
 procedure TFieldEditForm.AddField(Sender: TObject);
-var sel : Integer;
+var
+  idx : Integer;
+  item: string;
 begin
   if ListBox2.ItemIndex > -1 then begin
-    ListBox1.Items.Add(ListBox2.Items[ListBox2.ItemIndex]);
-    klist[ComboBoxKeys.ItemIndex].Columns.Add(ListBox2.Items[ListBox2.ItemIndex]);
-    if ListBox2.ItemIndex > 0 then
-      sel := ListBox2.ItemIndex-1
-    else if ListBox2.Items.Count > 1 then
-      sel := 0
-    else
-      raise Exception.Create('Unexpected sel value in AddField.');
-    ListBox2.Items.Delete(ListBox2.ItemIndex);
+    idx := ListBox2.ItemIndex;
+    item := ListBox2.Items[idx];
+    ListBox1.Items.Add(item);
+    klist[ComboBoxKeys.ItemIndex].Columns.Add(item);
+    ListBox2.Items.Delete(idx);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
-    ListBox2.ItemIndex := sel;
+    // Highlight previous item to added one.
+    ListBox2.ItemIndex := Min(Max(idx - 1, 0), ListBox2.Items.Count - 1);
   end;
   togglebuttons(self);
 end;
@@ -873,20 +870,19 @@ end;
   Delete column from index
 }
 procedure TFieldEditForm.RemoveField(Sender: TObject);
-var sel : Integer;
+var
+  idx : Integer;
+  item: string;
 begin
   if ListBox1.ItemIndex > -1 then begin
-    klist[ComboBoxKeys.ItemIndex].Columns.Delete(ListBox1.ItemIndex);
+    idx := ListBox1.ItemIndex;
+    item := ListBox1.Items[idx];
+    klist[ComboBoxKeys.ItemIndex].Columns.Delete(idx);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
-    if ListBox1.ItemIndex > 0 then
-      sel := ListBox1.ItemIndex-1
-    else if ListBox1.Items.Count > 1 then
-      sel := 0
-    else
-      raise Exception.Create('Unexpected sel value in RemoveField.');
-    ListBox2.Items.Add(ListBox1.Items[ListBox1.ItemIndex]);
-    ListBox1.Items.Delete(ListBox1.ItemIndex);
-    ListBox1.ItemIndex := sel;
+    ListBox2.Items.Add(item);
+    ListBox1.Items.Delete(idx);
+    // Highlight previous item to removed one.
+    ListBox1.ItemIndex := Min(Max(idx - 1, 0), ListBox1.Items.Count - 1);
   end;
   togglebuttons(self);
 end;
@@ -916,6 +912,7 @@ begin
   BitBtn2.Enabled := (ListBox1.ItemIndex > -1);
   BitBtn3.Enabled := (ListBox2.Items.Count > 0);
   BitBtn4.Enabled := (ListBox1.Items.Count > 0);
+  ButtonOK.Enabled := ListBox1.Items.Count > 0;
 end;
 
 
