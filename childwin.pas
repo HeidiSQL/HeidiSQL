@@ -897,8 +897,6 @@ var
   i, j : Integer;
   specialDbs: TStringList;
   dbName : string;
-  tableName : string;
-  tableCount : integer;
 begin
   // Fill DBTree
   Screen.Cursor := crHourGlass;
@@ -930,17 +928,18 @@ begin
     for i := specialDbs.Count -1 downto 0 do OnlyDBs2.Insert(0, specialDbs[i]);
   end else OnlyDBs2 := OnlyDBs;
 
-  // Let synedit know all tablenames so that they can be highlighted
-  SynSQLSyn1.TableNames.Clear;
-  SynSQLSyn1.TableNames.Capacity := OnlyDBs2.Count;
-  SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
+  // Avoids excessive InitializeKeywordLists() calls.
+  SynSQLSyn1.TableNames.BeginUpdate;
+
+  // Let synedit know all database names so that they can be highlighted
+  // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
+  SynSQLSyn1.TableNames.AddStrings(OnlyDBs2);
 
   if (OnlyDBs.Count = 0) and (OnlyDBs2.Count > 50) then
     SelectFromManyDatabasesWindow (Self,OnlyDBs2);
 
   // List Databases and Tables-Names
   tmpSelected := nil;
-  tableCount := 0;
   for i:=0 to OnlyDBs2.Count-1 do
   begin
     GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true );
@@ -951,7 +950,6 @@ begin
     tnode.SelectedIndex := 38;
     if ActualDatabase = OnlyDBs2[i] then tmpSelected := tnode;
     for j:=1 to ZQuery3.RecordCount do begin
-      tableCount := tableCount + 1;
       tchild := DBtree.Items.AddChild( tnode, ZQuery3.Fields[0].AsString );
       tchild.ImageIndex := 39;
       tchild.SelectedIndex := 40;
@@ -960,19 +958,11 @@ begin
         (tmpSelected.Text = OnlyDBs2[i]) and
         (ActualTable = ZQuery3.Fields[0].AsString) then
         tmpSelected := tchild;
+      SynSQLSyn1.TableNames.Add(ZQuery3.Fields[0].AsString);
       ZQuery3.Next;
     end;
   end;
-
-  SynSQLSyn1.TableNames.Capacity := OnlyDBs2.Count + tableCount;
-  ZQuery3.First;
-  for i := 0 to OnlyDBs2.Count - 1 do
-  begin
-    if not ZQuery3.Active then continue;
-    tableName := ZQuery3.Fields[0].AsString;
-    SynSQLSyn1.TableNames.Add(tableName);
-    ZQuery3.Next;
-  end;
+  SynSQLSyn1.TableNames.EndUpdate;
 
   mainform.showstatus(inttostr(OnlyDBs2.count) + ' Databases');
   tnodehost.Expand(false);
