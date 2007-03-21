@@ -4554,6 +4554,7 @@ begin
   begin
     // Connect the BLOB-components to this field
     DBMemo1.DataField := grid.SelectedField.FieldName;
+    // TODO: If it's a BIT field, don't do this; TIcon is happy to load just about anything, and EDBImage will stuff anything at TIcon that starts with $0000, which many BIT(16+) values do.
     EDBImage1.DataField := grid.SelectedField.FieldName;
 
     // If user is already editing then we're here by accident.
