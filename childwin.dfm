@@ -896,6 +896,7 @@ object MDIChild: TMDIChild
               Top = 0
               Width = 496
               Height = 96
+              SingleLineMode = False
               Align = alClient
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
@@ -1017,6 +1018,7 @@ object MDIChild: TMDIChild
         Top = 0
         Width = 669
         Height = 134
+        SingleLineMode = True
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -1197,6 +1199,7 @@ object MDIChild: TMDIChild
         Top = 29
         Width = 669
         Height = 105
+        SingleLineMode = False
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -1575,7 +1578,6 @@ object MDIChild: TMDIChild
     SymbolAttri.Foreground = clBlue
     TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
-    SingleLineMode = True
     SQLDialect = sqlMySQL
     Left = 7
     Top = 192
