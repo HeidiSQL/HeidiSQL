@@ -113,6 +113,7 @@ var
   i : Integer;
   LengthSet : String;
   FieldType : TMysqlDataTypeRecord;
+  res: boolean;
 begin
   // Prepare Query:
   createQuery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
@@ -193,15 +194,15 @@ begin
   if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
     createQuery := createQuery + ' TYPE = ' + ComboBoxTableType.Text;
 
-  // Execute CREATE statement and reload tablesList  
+  // Execute CREATE statement and reload tablesList
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
     ExecUseQuery( DBComboBox.Text );
-    ExecUpdateQuery( createQuery );
+    res := ExecUpdateQuery( createQuery );
     ShowDBProperties(self);
     ActualTable := EditTablename.Text;
   end;
-  close;
+  if res then close;
 end;
 
 
