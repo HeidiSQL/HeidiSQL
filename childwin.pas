@@ -1245,8 +1245,8 @@ begin
       on E:Exception do
       begin
         // Most likely we have a wrong filter-clause when this happens
-        LogSQL( E.Message, true );
-        MessageDlg( E.Message, mtError, [mbOK], 0 );
+        LogSql( mq.Comment, True );
+        MessageDlg( mq.Comment, mtError, [mbOK], 0 );
         viewingdata := false;
         MainForm.ShowStatus( STATUS_MSG_READY, 2 );
         Screen.Cursor := crDefault;
