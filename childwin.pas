@@ -1365,7 +1365,6 @@ begin
 
   if (rows_matching <> rows_total)
     and (trim(SynMemoFilter.Text) <> '')
-    and (FCurDataset.RecordCount = rows_matching) // Avoids displaying wrong numbers after INSERTs, DELETEs and UPDATEs
     then
     Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
   if (mysql_version >= 40000) and (rows_matching = rows_total) and (trim(SynMemoFilter.Text) <> '') then
