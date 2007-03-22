@@ -2231,7 +2231,7 @@ begin
       SQLstart := GetTickCount;
 
       try
-        if ExpectResultSet( copy( SQL[i], 0, 20 ) ) then
+        if ExpectResultSet( SQL[i] ) then
         begin
           ZQuery1.Open;
           fieldcount := ZQuery1.Fieldcount;
@@ -4605,6 +4605,7 @@ begin
   begin
     // No BLOB selected, so disconnect the Blob-components
     // from any field
+    DBMemo1.ReadOnly := true;
     DBMemo1.DataField := '';
     EDBImage1.DataField := '';
     MenuViewBlob.Enabled := false;

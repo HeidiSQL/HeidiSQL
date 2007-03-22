@@ -1656,6 +1656,7 @@ const
    'SELECT',
    'SHOW'
   );
+  NOTRESULTSET_SENTENCE : string[12] = 'INTO OUTFILE';
 var
   kw : String;
   i : Integer;
@@ -1672,7 +1673,7 @@ begin
       break;
     end;
   end;
-
+  if Pos(NOTRESULTSET_SENTENCE, UpperCase(ASql)) > 0 then Result := False;
 end;
 
 
