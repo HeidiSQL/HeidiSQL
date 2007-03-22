@@ -236,19 +236,23 @@ end;
 function ConvertMySQLTypeToSQLType(TypeName, TypeNameFull: string): TZSQLType;
 var
   IsUnsigned: Boolean;
-  Pos, Len: Integer;
+  Posi, Len: Integer;
+  Spec: string;
 begin
   TypeName := UpperCase(TypeName);
   TypeNameFull := UpperCase(TypeNameFull);
   Result := stUnknown;
 
-  Pos := FirstDelimiter(' ', TypeName);
-  if Pos > 0 then
-    TypeName := Copy(TypeName, 1, Pos-1);
+  Posi := FirstDelimiter(' ', TypeName);
+  if Posi > 0 then
+    TypeName := Copy(TypeName, 1, Posi - 1);
 
-  if EndsWith(TypeNameFull, 'UNSIGNED') then
-    IsUnsigned := True
-  else IsUnsigned := False;
+  Spec := '';
+  Posi := FirstDelimiter(' ', TypeNameFull);
+  if Posi > 0 then
+    Spec := Copy(TypeNameFull, Posi + 1);
+
+  IsUnsigned := Pos('UNSIGNED', Spec) > 0;
 
   if TypeName = 'TINYINT' then
   begin
