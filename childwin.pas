@@ -1225,6 +1225,7 @@ begin
       FProgressForm := TFrmQueryProgress.Create(Self);
       debug('viewdata(): Launching asynchronous query.');
       mq := ExecMysqlStatementAsync(sl_query.Text,FConnParams,nil,FProgressForm.Handle);
+      SynMemoFilter.Color := clWindow;
       WaitForQueryCompletion(FProgressForm);
 
       MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
@@ -1246,6 +1247,9 @@ begin
       begin
         // Most likely we have a wrong filter-clause when this happens
         LogSql( mq.Comment, True );
+        // Put the user with his nose onto the wrong filter he specified
+        SynMemoFilter.SetFocus;
+        SynMemoFilter.Color := $008080FF; // light pink
         MessageDlg( mq.Comment, mtError, [mbOK], 0 );
         viewingdata := false;
         MainForm.ShowStatus( STATUS_MSG_READY, 2 );
