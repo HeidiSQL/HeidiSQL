@@ -518,10 +518,6 @@ begin
     query.Connection := cwin.MysqlConn.Connection;
     // Be sure to read everything from the correct database
     cwin.ExecUseQuery( comboSelectDatabase.Text );
-    // Always export in UTF-8
-    if cwin.mysql_version >= 40100 then begin
-      cwin.ExecuteNonQuery( 'SET NAMES utf8' );
-    end;
 
     {***
       Ouput useful header information only when exporting to file
@@ -1036,10 +1032,6 @@ begin
     if tofile then
       f.Free;
     Screen.Cursor := crDefault;
-    try
-      cwin.PerformConnect;
-    except
-    end;
   END;
 
   SaveSettings;
