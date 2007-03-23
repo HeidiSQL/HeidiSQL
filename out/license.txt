@@ -1,4 +1,4 @@
-Copyright (C)2000 -  2006 - Ansgar Becker
+Copyright (C)2000 -  2007 - Ansgar Becker
 
 HeidiSQL is free. You don't have to pay for it, and you can use it any
 way you want. It is developed as an Open Source project under the GNU
