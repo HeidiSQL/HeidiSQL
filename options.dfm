@@ -487,7 +487,7 @@ object optionsform: Toptionsform
         Width = 42
         Height = 21
         TabOrder = 6
-        Text = '1'
+        Text = '0'
         OnChange = Modified
       end
       object updownDefaultColWidth: TUpDown
@@ -496,9 +496,7 @@ object optionsform: Toptionsform
         Width = 16
         Height = 21
         Associate = editDefaultColWidth
-        Min = 1
         Max = 1000
-        Position = 1
         TabOrder = 7
         OnChanging = anyUpDownLimitChanging
       end
