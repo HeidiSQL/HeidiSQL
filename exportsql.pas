@@ -955,7 +955,7 @@ begin
                 ftBoolean:
                   value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
                 else
-                  value := escapeAuto( Query.Fields[k].AsString );
+                  value := escapeAuto( Query.Fields[k].AsString, current_characterset, target_version );
               end;
               thesevalues := thesevalues + value;
               if k < Query.Fieldcount-1 then

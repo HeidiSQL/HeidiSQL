@@ -42,11 +42,11 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
-  function esc(Text: string; ProcessJokerChars: Boolean = false): string;
+  function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
   function hasNullChar(Text: string): boolean;
   function hasIrregularChars(Text: string): boolean;
   function hasIrregularNewlines(Text: string): boolean;
-  function escapeAuto(Text: string): string;
+  function escapeAuto(Text: string; CharSet: string; sql_version: integer): string;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
@@ -1150,28 +1150,32 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function esc(Text: string; ProcessJokerChars: Boolean = false): string;
+function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
 begin
-  // Replace single-backslashes with double-backslashes BEFORE
-  // special characters get escaped using their escape-sequence
-  // Fixes issue #1648978 "exported sql has \\r\\n instead of \r\n for CRLFs"
-  Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+  if sql_version <> SQL_VERSION_ANSI then begin
+    // Replace single-backslashes with double-backslashes BEFORE
+    // special characters get escaped using their escape-sequence
+    // Fixes issue #1648978 "exported sql has \\r\\n instead of \r\n for CRLFs"
+    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
 
-  {NUL} Result := StringReplace(Result, #0, '\0', [rfReplaceAll]);
-  {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
-  {TAB} Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
-  {CR}  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
-  {LF}  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
-  {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
+    {NUL} Result := StringReplace(Result, #0, '\0', [rfReplaceAll]);
+    {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
+    {TAB} Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
+    {CR}  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
+    {LF}  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
+    {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
 
-  {DQ}  Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+    {DQ}  Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+  end;
   {SQ}  Result := StringReplace(Result, #39, #39#39, [rfReplaceAll]);
 
   if ProcessJokerChars then
   begin
     // Escape joker-chars which are used in a LIKE-clause
-    Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
-    Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
+    if sql_version <> SQL_VERSION_ANSI then begin
+      Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
+      Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
+    end;
   end
   else
   begin
@@ -1210,7 +1214,7 @@ end;
   Detect non-latin1 characters in a text (except 9, 10 and 13)
 
   @param string Text to test
-  @return boolean Text has any latin1-characters?
+  @return boolean Text has any non-latin1-characters?
 }
 function hasIrregularChars(Text: string): boolean;
 var
@@ -1286,26 +1290,22 @@ end;
   @param string Text to escape
   @return string
 }
-function escAllCharacters(Text: string): string;
-const
-  VALUES_PER_ROW: integer = 15;
+function escAllCharacters(Text: string; CharSet: string; sql_version: integer): string;
 var
   i: integer;
-  s, tmp: string;
+  s: string;
 begin
-  s := 'CHAR(' + CRLF;
-  for i:=1 to length(Text) do
-  begin
-    Str(Ord(Text[i]), tmp);
-    if i < length(Text) then
-    begin
-      s := s + tmp + ', ';
-      if i mod VALUES_PER_ROW = 0 then s := s + CRLF;
-    end
-    else s := s + tmp;
+  if sql_version <> SQL_VERSION_ANSI then begin
+    s := '0x';
+    for i:=1 to length(Text) do s := s + IntToHex(Ord(Text[i]), 2);
+    Result := '_' + CharSet + ' ' + s;
+  end else begin
+    s := '0x';
+    if CharSet <> 'ucs2' then raise Exception.Create('ANSI SQL supports UCS2 literal strings only.');
+    // Seems that MySQL UCS2 is big endian while ANSI (or at least MS SQL Server) UCS2 is little endian.
+    for i:=1 to length(Text) do if i mod 2 = 0 then s := s + IntToHex(Ord(Text[i + 1]), 2) + IntToHex(Ord(Text[i]), 2);
+    result := 'CAST(' + s + ' AS NATIONAL CHAR)';
   end;
-  s := s + ')';
-  Result := s;
 end;
 
 
@@ -1316,15 +1316,15 @@ end;
   @param string Text to escape
   @return string
 }
-function escapeAuto(Text: string): string;
+function escapeAuto(Text: string; CharSet: string; sql_version: integer): string;
 begin
   if hasIrregularChars(Text) then
   begin
-    Result := escAllCharacters(Text);
+    Result := escAllCharacters(Text, CharSet, sql_version);
   end
   else
   begin
-    Result := esc(Text);
+    Result := esc(Text, false, sql_version);
   end;
 end;
 
