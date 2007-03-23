@@ -1318,7 +1318,9 @@ end;
 }
 function escapeAuto(Text: string; CharSet: string; sql_version: integer): string;
 begin
-  if hasIrregularChars(Text) then
+    // escAllCharacters() won't work with SQL_VERSION_ANSI until HeidiSQL has UCS2 support,
+    // so for now live with stuff like NUL terminators in exported ANSI SQL script.
+  if hasIrregularChars(Text) and (sql_version <> SQL_VERSION_ANSI) then
   begin
     Result := escAllCharacters(Text, CharSet, sql_version);
   end
