@@ -351,50 +351,52 @@ end;
   User selected a new datatype for the selected field.
   Take care of limitations of different datatypes,
   toggle clickability of certain checkboxes
-  @todo Use datatype-array instead of numerical ItemIndexes
 }
 procedure TFieldEditForm.ComboBoxTypeChange(Sender: TObject);
+var
+  FieldType : TMysqlDataTypeRecord;
 begin
   // Attributes
 
-  // "binary" is only valid for char's and varchar's
-  if ComboBoxType.ItemIndex in [13,14] then
-    CheckBoxBinary.Enabled := true
-  else begin
-    CheckBoxBinary.Checked := false;
-    CheckBoxBinary.Enabled := false;
+  // Detect column-type
+  FieldType := MySqlDataTypeArray[ComboBoxType.ItemIndex];
+
+  // BINARY
+  CheckBoxBinary.Enabled := FieldType.HasBinary;
+  if not CheckBoxBinary.Enabled then
+    CheckBoxBinary.Checked := false; // Ensure checkbox is not ticked
+
+  // UNSIGNED
+  CheckBoxUnsigned.Enabled := FieldType.HasUnsigned;
+  if not CheckBoxUnsigned.Enabled then
+    CheckBoxUnsigned.Checked := false; // Ensure checkbox is not ticked
+
+  // ZEROFILL
+  CheckBoxZerofill.Enabled := FieldType.HasZerofill;
+  if not CheckBoxZerofill.Enabled then
+    CheckBoxZerofill.Checked := false; // Ensure checkbox is not ticked
+
+  // Length/Set
+  EditLength.Enabled := FieldType.HasLength;
+  lblLengthSet.Enabled := EditLength.Enabled;
+  if FieldType.RequiresLength then // Render required field as bold
+    lblLengthSet.Font.Style := lblLengthSet.Font.Style + [fsBold]
+  else
+    lblLengthSet.Font.Style := lblLengthSet.Font.Style - [fsBold];
+  if not EditLength.Enabled then
+    EditLength.Text := '';
+  // Fill length/set value with default value if empty
+  if FieldType.RequiresLength then
+  begin
+    if (EditLength.Text = '') and (FieldType.DefLengthSet <> '') then
+      EditLength.Text := FieldType.DefLengthSet;
   end;
 
-  // "unsigned" is only valid for numerical columns (not for float's!)
-  if ComboBoxType.ItemIndex in [0,1,2,3,4] then
-    CheckBoxUnsigned.Enabled := true
-  else begin
-    CheckBoxUnsigned.Checked := false;
-    CheckBoxUnsigned.Enabled := false;
-  end;
-
-  // "zerofill" is only valid for numerical and float-columns
-  if ComboBoxType.ItemIndex in [0,1,2,3,4,5,6,7] then
-    CheckBoxZerofill.Enabled := true
-  else begin
-    CheckBoxZerofill.Checked := false;
-    CheckBoxZerofill.Enabled := false;
-  end;
-
-  // Length/Set NOT valid for date/time/memo/blob-columns
-  if ComboBoxType.ItemIndex in [8,9,11,15..22] then
-    EditLength.Enabled := false
-  else begin
-    EditLength.Enabled := true;
-  end;
-
-  // "default" NOT valid for memo/blob-columns
-  if ComboBoxType.ItemIndex in [15..22] then
-    EditDefault.Enabled := false
-  else begin
-    EditDefault.Enabled := true;
-  end;
-
+  // DEFAULT
+  EditDefault.Enabled := FieldType.HasDefault;
+  lblDefault.Enabled := EditDefault.Enabled;
+  if not EditDefault.Enabled then
+    EditDefault.Text := ''; // Ensure text is empty
 end;
 
 
