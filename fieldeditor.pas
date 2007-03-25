@@ -20,15 +20,15 @@ type
     TabSheet1: TTabSheet;
     ButtonCancel: TButton;
     ButtonOK: TButton;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
-    Label5: TLabel;
+    lblName: TLabel;
+    lblType: TLabel;
+    lblLengthSet: TLabel;
+    lblDefault: TLabel;
     EditDefault: TEdit;
     EditLength: TEdit;
     ComboBoxType: TComboBox;
     EditFieldname: TEdit;
-    GroupBox1: TGroupBox;
+    GroupBoxAttributes: TGroupBox;
     CheckBoxBinary: TCheckBox;
     CheckBoxUnsigned: TCheckBox;
     CheckBoxZerofill: TCheckBox;
@@ -36,22 +36,22 @@ type
     CheckBoxAutoIncrement: TCheckBox;
     TabSheet2: TTabSheet;
     ComboBoxKeys: TComboBox;
-    Label4: TLabel;
+    lblIndexName: TLabel;
     CheckBoxUnique: TCheckBox;
     ButtonAdd: TButton;
     ButtonDelete: TButton;
-    Label6: TLabel;
-    ListBox1: TListBox;
-    ListBox2: TListBox;
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
-    Label7: TLabel;
+    lblColumnsUsed: TLabel;
+    listColumnsUsed: TListBox;
+    listColumnsAvailable: TListBox;
+    btnAddColumnToIndex: TBitBtn;
+    btnDeleteColumnFromIndex: TBitBtn;
+    lblColumnsAvailable: TLabel;
     ButtonAddPrimary: TButton;
     ComboBoxPosition: TComboBox;
-    Label8: TLabel;
+    lblPosition: TLabel;
     CheckBoxFulltext: TCheckBox;
-    BitBtn3: TBitBtn;
-    BitBtn4: TBitBtn;
+    btnAddAllColumnsToIndex: TBitBtn;
+    btnDeleteAllColumnsFromIndex: TBitBtn;
     TabSheet3: TTabSheet;
     Label9: TLabel;
     btnDatatypeHelp: TSpeedButton;
@@ -74,8 +74,8 @@ type
     procedure CheckBoxUniqueClick(Sender: TObject);
     procedure AddField(Sender: TObject);
     procedure CheckBoxFulltextClick(Sender: TObject);
-    procedure BitBtn3Click(Sender: TObject);
-    procedure BitBtn4Click(Sender: TObject);
+    procedure btnAddAllColumnsToIndexClick(Sender: TObject);
+    procedure btnDeleteAllColumnsFromIndexClick(Sender: TObject);
     procedure togglebuttons(Sender: TObject);
     procedure ComboBoxKeysDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
@@ -251,8 +251,8 @@ procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
 begin
-  ListBox1.Items.Clear;
-  ListBox2.Items.Clear;
+  listColumnsUsed.Items.Clear;
+  listColumnsAvailable.Items.Clear;
   setlength(klist, 0);
   TempKeys := TStringList.Create;
 
@@ -284,7 +284,7 @@ begin
 
     for i:=0 to ListColumns.Items.Count-1 do begin
       if ListColumns.Items[i] <> nil then
-        self.ListBox2.Items.Add(ListColumns.Items[i].Caption);
+        self.listColumnsAvailable.Items.Add(ListColumns.Items[i].Caption);
     end;
   end;
   showkeys();
@@ -589,15 +589,14 @@ procedure TFieldEditForm.ComboBoxKeysChange(Sender: TObject);
 var i : Integer;
 begin
   if ComboBoxKeys.ItemIndex > -1 then begin
-    ListBox2.Items.Clear;
+    listColumnsAvailable.Items.Clear;
     with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
       for i:=0 to ListColumns.Items.Count-1 do
         if (ListColumns.Items[i] <> nil) and (klist[self.ComboBoxKeys.ItemIndex].columns.Indexof(ListColumns.Items[i].Caption)=-1) then
-          self.ListBox2.Items.Add(ListColumns.Items[i].Caption);
+          self.listColumnsAvailable.Items.Add(ListColumns.Items[i].Caption);
     end;
     with klist[ComboBoxKeys.ItemIndex] do begin
-      ListBox1.Items := Columns;
-      ListBox1.Items := Columns;
+      listColumnsUsed.Items := Columns;
       CheckBoxUnique.OnClick := nil;
       CheckBoxUnique.Checked := Unique;
       CheckBoxUnique.OnClick := CheckBoxUniqueClick;
@@ -607,8 +606,8 @@ begin
       CheckBoxUnique.Enabled := not (ComboBoxKeys.Text = 'PRIMARY');
       CheckBoxFulltext.Enabled := not (ComboBoxKeys.Text = 'PRIMARY');
       ButtonDelete.Enabled := true;
-      ListBox1.Enabled := true;
-      ListBox2.Enabled := true;
+      listColumnsUsed.Enabled := true;
+      listColumnsAvailable.Enabled := true;
     end;
   end;
   togglebuttons(self);
@@ -688,10 +687,10 @@ begin
   ComboBoxKeys.Items.Clear;
   ButtonAddPrimary.Enabled := true;
   ButtonDelete.Enabled := false;
-  ListBox1.Enabled := false;
-  ListBox2.Enabled := false;
-  BitBtn1.Enabled := false;
-  BitBtn2.Enabled := false;
+  listColumnsUsed.Enabled := false;
+  listColumnsAvailable.Enabled := false;
+  btnAddColumnToIndex.Enabled := false;
+  btnDeleteColumnFromIndex.Enabled := false;
   for i:=0 to length(klist)-1 do
     ComboBoxKeys.Items.Add(klist[i].Name);
 
@@ -837,15 +836,15 @@ var
   idx : Integer;
   item: string;
 begin
-  if ListBox2.ItemIndex > -1 then begin
-    idx := ListBox2.ItemIndex;
-    item := ListBox2.Items[idx];
-    ListBox1.Items.Add(item);
+  if listColumnsAvailable.ItemIndex > -1 then begin
+    idx := listColumnsAvailable.ItemIndex;
+    item := listColumnsAvailable.Items[idx];
+    listColumnsUsed.Items.Add(item);
     klist[ComboBoxKeys.ItemIndex].Columns.Add(item);
-    ListBox2.Items.Delete(idx);
+    listColumnsAvailable.Items.Delete(idx);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
     // Highlight previous item to added one.
-    ListBox2.ItemIndex := Min(Max(idx - 1, 0), ListBox2.Items.Count - 1);
+    listColumnsAvailable.ItemIndex := Min(Max(idx - 1, 0), listColumnsAvailable.Items.Count - 1);
   end;
   togglebuttons(self);
 end;
@@ -855,11 +854,11 @@ end;
 {***
   Add all columns to index
 }
-procedure TFieldEditForm.BitBtn3Click(Sender: TObject);
+procedure TFieldEditForm.btnAddAllColumnsToIndexClick(Sender: TObject);
 begin
-  ListBox1.Items.AddStrings(ListBox2.Items);
-  klist[ComboBoxKeys.ItemIndex].Columns.AddStrings(ListBox2.Items);
-  ListBox2.Items.Clear;
+  listColumnsUsed.Items.AddStrings(listColumnsAvailable.Items);
+  klist[ComboBoxKeys.ItemIndex].Columns.AddStrings(listColumnsAvailable.Items);
+  listColumnsAvailable.Items.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
   togglebuttons(self);
 end;
@@ -874,15 +873,15 @@ var
   idx : Integer;
   item: string;
 begin
-  if ListBox1.ItemIndex > -1 then begin
-    idx := ListBox1.ItemIndex;
-    item := ListBox1.Items[idx];
+  if listColumnsUsed.ItemIndex > -1 then begin
+    idx := listColumnsUsed.ItemIndex;
+    item := listColumnsUsed.Items[idx];
     klist[ComboBoxKeys.ItemIndex].Columns.Delete(idx);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
-    ListBox2.Items.Add(item);
-    ListBox1.Items.Delete(idx);
+    listColumnsAvailable.Items.Add(item);
+    listColumnsUsed.Items.Delete(idx);
     // Highlight previous item to removed one.
-    ListBox1.ItemIndex := Min(Max(idx - 1, 0), ListBox1.Items.Count - 1);
+    listColumnsUsed.ItemIndex := Min(Max(idx - 1, 0), listColumnsUsed.Items.Count - 1);
   end;
   togglebuttons(self);
 end;
@@ -892,12 +891,12 @@ end;
 {***
   Delete all columns from index
 }
-procedure TFieldEditForm.BitBtn4Click(Sender: TObject);
+procedure TFieldEditForm.btnDeleteAllColumnsFromIndexClick(Sender: TObject);
 begin
   klist[ComboBoxKeys.ItemIndex].Columns.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
-  ListBox2.Items.AddStrings(ListBox1.Items);
-  ListBox1.Items.Clear;
+  listColumnsAvailable.Items.AddStrings(listColumnsUsed.Items);
+  listColumnsUsed.Items.Clear;
   togglebuttons(self);
 end;
 
@@ -908,11 +907,11 @@ end;
 }
 procedure TFieldEditForm.togglebuttons(Sender: TObject);
 begin
-  BitBtn1.Enabled := (ListBox2.ItemIndex > -1);
-  BitBtn2.Enabled := (ListBox1.ItemIndex > -1);
-  BitBtn3.Enabled := (ListBox2.Items.Count > 0);
-  BitBtn4.Enabled := (ListBox1.Items.Count > 0);
-  ButtonOK.Enabled := ListBox1.Items.Count > 0;
+  btnAddColumnToIndex.Enabled := (listColumnsAvailable.ItemIndex > -1);
+  btnDeleteColumnFromIndex.Enabled := (listColumnsUsed.ItemIndex > -1);
+  btnAddAllColumnsToIndex.Enabled := (listColumnsAvailable.Items.Count > 0);
+  btnDeleteAllColumnsFromIndex.Enabled := (listColumnsUsed.Items.Count > 0);
+  ButtonOK.Enabled := listColumnsUsed.Items.Count > 0;
 end;
 
 

@@ -35,35 +35,35 @@ object FieldEditForm: TFieldEditForm
       ExplicitTop = 0
       ExplicitWidth = 0
       ExplicitHeight = 0
-      object Label1: TLabel
+      object lblName: TLabel
         Left = 16
         Top = 40
         Width = 31
         Height = 13
         Caption = 'Name:'
       end
-      object Label2: TLabel
+      object lblType: TLabel
         Left = 16
         Top = 64
         Width = 27
         Height = 13
         Caption = 'Type:'
       end
-      object Label3: TLabel
+      object lblLengthSet: TLabel
         Left = 16
         Top = 88
         Width = 63
         Height = 13
         Caption = 'Length / Set:'
       end
-      object Label5: TLabel
+      object lblDefault: TLabel
         Left = 16
         Top = 112
         Width = 37
         Height = 13
         Caption = 'Default:'
       end
-      object Label8: TLabel
+      object lblPosition: TLabel
         Left = 16
         Top = 16
         Width = 40
@@ -118,7 +118,7 @@ object FieldEditForm: TFieldEditForm
         Height = 21
         TabOrder = 1
       end
-      object GroupBox1: TGroupBox
+      object GroupBoxAttributes: TGroupBox
         Left = 16
         Top = 136
         Width = 257
@@ -181,21 +181,21 @@ object FieldEditForm: TFieldEditForm
       ImageIndex = 76
       ParentShowHint = False
       ShowHint = True
-      object Label4: TLabel
+      object lblIndexName: TLabel
         Left = 8
         Top = 10
         Width = 60
         Height = 13
         Caption = 'Index-Name:'
       end
-      object Label6: TLabel
+      object lblColumnsUsed: TLabel
         Left = 8
         Top = 104
         Width = 69
         Height = 13
         Caption = 'Columns used:'
       end
-      object Label7: TLabel
+      object lblColumnsAvailable: TLabel
         Left = 168
         Top = 104
         Width = 89
@@ -241,7 +241,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 3
         OnClick = ButtonDeleteClick
       end
-      object ListBox1: TListBox
+      object listColumnsUsed: TListBox
         Left = 8
         Top = 120
         Width = 113
@@ -252,7 +252,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = togglebuttons
         OnDblClick = RemoveField
       end
-      object ListBox2: TListBox
+      object listColumnsAvailable: TListBox
         Left = 168
         Top = 120
         Width = 113
@@ -264,7 +264,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = togglebuttons
         OnDblClick = AddField
       end
-      object BitBtn1: TBitBtn
+      object btnAddColumnToIndex: TBitBtn
         Tag = 1
         Left = 133
         Top = 152
@@ -290,7 +290,7 @@ object FieldEditForm: TFieldEditForm
           FFFFFFFFF0EEEE0FFFFFFFFFFF0EEE0FFFFFFFFFFFF0EE0FFFFFFFFFFFFF0E0F
           FFFFFFFFFFFFF00FFFFFFFFFFFFFFF0FFFFFFFFFFFFFFFFFFFFF}
       end
-      object BitBtn2: TBitBtn
+      object btnDeleteColumnFromIndex: TBitBtn
         Tag = 2
         Left = 133
         Top = 184
@@ -335,7 +335,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 9
         OnClick = CheckBoxFulltextClick
       end
-      object BitBtn3: TBitBtn
+      object btnAddAllColumnsToIndex: TBitBtn
         Left = 133
         Top = 120
         Width = 25
@@ -343,7 +343,7 @@ object FieldEditForm: TFieldEditForm
         Hint = 'Add all fields to index'
         Enabled = False
         TabOrder = 10
-        OnClick = BitBtn3Click
+        OnClick = btnAddAllColumnsToIndexClick
         Glyph.Data = {
           F6000000424DF600000000000000760000002800000010000000100000000100
           0400000000008000000000000000000000001000000010000000000000000000
@@ -354,7 +354,7 @@ object FieldEditForm: TFieldEditForm
           FFFFFFF0CC0EEEE0FFFFFFFF0CC0EEE0FFFFFFFFF0CC0EE0FFFFFFFFFF0C00E0
           FFFFFFFFFFF00F00FFFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFF}
       end
-      object BitBtn4: TBitBtn
+      object btnDeleteAllColumnsFromIndex: TBitBtn
         Left = 133
         Top = 216
         Width = 25
@@ -362,7 +362,7 @@ object FieldEditForm: TFieldEditForm
         Hint = 'Remove all fields from index'
         Enabled = False
         TabOrder = 11
-        OnClick = BitBtn4Click
+        OnClick = btnDeleteAllColumnsFromIndexClick
         Glyph.Data = {
           F6000000424DF600000000000000760000002800000010000000100000000100
           0400000000008000000000000000000000001000000010000000000000000000
