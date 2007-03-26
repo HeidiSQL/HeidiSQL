@@ -473,7 +473,7 @@ begin
       2: target_version := 40000;
       3: target_version := 40100;
       4: target_version := 50000;
-      5: target_version := 51000;
+      5: target_version := 50100;
     end;
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
