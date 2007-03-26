@@ -471,7 +471,9 @@ begin
       0: target_version := SQL_VERSION_ANSI;
       1: target_version := 32300;
       2: target_version := 40000;
-      3: target_version := 51000;
+      3: target_version := 40100;
+      4: target_version := 50000;
+      5: target_version := 51000;
     end;
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);

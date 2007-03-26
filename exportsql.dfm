@@ -422,11 +422,13 @@ object ExportSQLForm: TExportSQLForm
           ItemHeight = 13
           ItemIndex = 2
           TabOrder = 7
-          Text = 'MySQL 4.0 - 5.0'
+          Text = 'MySQL 4.0'
           Items.Strings = (
             'Standard ANSI SQL'
             'MySQL 3.x'
-            'MySQL 4.0 - 5.0'
+            'MySQL 4.0'
+            'MySQL 4.1'
+            'MySQL 5.0'
             'MySQL 5.1 and above')
         end
         object cbxExtendedInsert: TCheckBox
