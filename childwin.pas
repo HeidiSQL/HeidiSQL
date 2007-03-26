@@ -2598,6 +2598,8 @@ end;
 
 
 procedure TMDIChild.FormActivate(Sender: TObject);
+var
+  inDataOrQueryTab : Boolean;
 begin
   if FMysqlConn.IsConnected then
   begin
@@ -2627,14 +2629,18 @@ begin
       UserManager.Enabled := true;
       Diagnostics.Enabled := true;
       InsertFiles.Enabled := true;
-      PrintList.Enabled := true;
-      if (PageControlMain.ActivePage = tabData) or
-        (PageControlMain.ActivePage = tabQuery) then begin
-        Copy2CSV.Enabled := true;
-        CopyHTMLtable.Enabled := true;
-        Copy2XML.Enabled := true;
-        ExportData.Enabled := true;
-      end;
+      {***
+        Activate export-options if we're on Data- or Query-tab
+        PrintList should only be active if we're focussing one of the ListViews,
+        at least as long we are not able to print DBGrids
+        @see Issue 1686582  
+      }
+      inDataOrQueryTab := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery);
+      PrintList.Enabled := not inDataOrQueryTab;
+      Copy2CSV.Enabled := inDataOrQueryTab;
+      CopyHTMLtable.Enabled := inDataOrQueryTab;
+      Copy2XML.Enabled := inDataOrQueryTab;
+      ExportData.Enabled := inDataOrQueryTab;
       ToolBarData.visible := (PageControlMain.ActivePage = tabData);
       DBNavigator1.DataSource := DataSource1;
       //DBtreeChange( self, DBTree.Selected );
