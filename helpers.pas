@@ -1001,12 +1001,45 @@ end;
   @return string SQL
 }
 function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
+var
+  p, i: Word;
+const
+  REMSTR : String = 'TOBEREMOVED';
 begin
   result := sql;
   if sql_version > SQL_VERSION_ANSI then // For all MySQL-versions
   begin
     result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
   end;
+
+  // Detect if SQL is a CREATE TABLE statement
+  if copy( result, 1, 12 ) = 'CREATE TABLE' then
+  begin
+    // Strip COLLATE and CHARACTER SET for 4.0 and below servers
+    // see issue #1685835
+    if sql_version < 40100 then
+    begin
+      result := StringReplace(result, ' COLLATE ', ' '+REMSTR+' ', [rfReplaceAll, rfIgnoreCase]);
+      result := StringReplace(result, ' CHARACTER SET ', ' '+REMSTR+' ', [rfReplaceAll, rfIgnoreCase]);
+      result := StringReplace(result, ' CHARSET ', ' '+REMSTR+' ', [rfReplaceAll, rfIgnoreCase]);
+      while pos( ' '+REMSTR+' ', result ) > 0 do
+      begin
+        // Get position of placeholder-word (REMSTR)
+        p := pos( ' '+REMSTR+' ', result );
+        for i := p+Length(REMSTR)+2 to Length(result) do
+        begin
+          // delete both: placeholder-word + word after placeholder
+          if not (result[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
+          begin
+            Delete( result, p, i-p );
+            break;
+          end;
+        end;
+      end;
+
+    end
+  end;
+
 end;
 
 

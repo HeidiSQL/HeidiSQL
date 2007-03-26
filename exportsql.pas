@@ -698,6 +698,7 @@ begin
           begin
             sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
           end;
+          sql := fixSQL( sql, target_version );
         end
         {***
           Generate CREATE TABLE statement by hand on old servers
