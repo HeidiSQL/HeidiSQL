@@ -1698,6 +1698,10 @@ begin
   ListColumns.Items.Clear;
   Try
     GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable), ZQuery3 );
+    // Avoid AV with ZQuery-object if table is not accessible somehow (fx if deleted by another user)
+    if not ZQuery3.Active then
+      Abort;
+
     for i:=1 to ZQuery3.RecordCount do
     begin
       n := ListColumns.Items.Add;
@@ -1727,79 +1731,79 @@ begin
         ZQuery3.Next;
       end;
     end;
+
+    Screen.Cursor := crHourglass;
+    GetResults( 'SHOW KEYS FROM ' + mask(ActualTable), ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      // primary key
+      if ZQuery3.FieldByName('Key_name').AsString = 'PRIMARY' then
+      begin
+        for j:=0 to ListColumns.Items.Count-1 do
+        begin
+          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          begin
+            ListColumns.Items[j].ImageIndex := 26;
+            break;
+          end;
+        end;
+      end;
+
+      // index
+      if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY')
+        and (ZQuery3.FieldByName('Non_unique').AsString = '1') then
+      begin
+        for j:=0 to ListColumns.Items.Count-1 do
+        begin
+          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          begin
+            if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
+              ListColumns.Items[j].ImageIndex := 63;
+            break;
+          end;
+        end;
+      end;
+
+      // unique
+      if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and (ZQuery3.FieldByName('Non_unique').AsString = '0') then
+      begin
+        for j:=0 to ListColumns.Items.Count-1 do
+        begin
+          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          begin
+            if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
+              ListColumns.Items[j].ImageIndex := 64;
+            break;
+          end;
+        end;
+      end;
+
+      // column is part of a fulltext key, available since 3.23.xx
+      if mysql_version < 40002 then
+        isFulltext := (ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
+      else
+        isFulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT');
+      if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
+      begin
+        for j:=0 to ListColumns.Items.Count-1 do
+        begin
+          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          begin
+            if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
+              ListColumns.Items[j].ImageIndex := 65;
+            break;
+          end;
+        end;
+      end;
+      ZQuery3.Next;
+    end;
+
   finally
     ListColumns.Items.EndUpdate;
     // Remove existing column-sort-images
     // (TODO: auomatically invoke this method in TSortListView itself)
     ListColumns.ClearSortColumnImages;
     Screen.Cursor := crDefault;
-  end;
-
-
-  Screen.Cursor := crHourglass;
-  GetResults( 'SHOW KEYS FROM ' + mask(ActualTable), ZQuery3 );
-  for i:=1 to ZQuery3.RecordCount do
-  begin
-    // primary key
-    if ZQuery3.FieldByName('Key_name').AsString = 'PRIMARY' then
-    begin
-      for j:=0 to ListColumns.Items.Count-1 do
-      begin
-        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-        begin
-          ListColumns.Items[j].ImageIndex := 26;
-          break;
-        end;
-      end;
-    end;
-
-    // index
-    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY')
-    	and (ZQuery3.FieldByName('Non_unique').AsString = '1') then
-    begin
-      for j:=0 to ListColumns.Items.Count-1 do
-      begin
-        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-        begin
-          if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
-            ListColumns.Items[j].ImageIndex := 63;
-          break;
-        end;
-      end;
-    end;
-
-    // unique
-    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and (ZQuery3.FieldByName('Non_unique').AsString = '0') then
-    begin
-      for j:=0 to ListColumns.Items.Count-1 do
-      begin
-        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-        begin
-          if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
-            ListColumns.Items[j].ImageIndex := 64;
-          break;
-        end;
-      end;
-    end;
-
-    // column is part of a fulltext key, available since 3.23.xx
-    if mysql_version < 40002 then
-      isFulltext := (ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
-    else
-      isFulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT');
-    if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
-    begin
-      for j:=0 to ListColumns.Items.Count-1 do
-      begin
-        if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-        begin
-          if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
-            ListColumns.Items[j].ImageIndex := 65;
-          break;
-        end;
-      end;
-    end;
-    ZQuery3.Next;
   end;
 
   MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
