@@ -1212,7 +1212,10 @@ begin
     // Prepare SELECT statement
     select_base := 'SELECT ';
     // Try to calc the rowcount regardless of a given LIMIT
-    if mysql_version >= 40000 then
+    // Only needed if the user specified a WHERE-clause
+    if (mysql_version >= 40000)
+      and (trim(self.SynMemoFilter.Text) <> '')
+      then
       select_base := select_base + ' SQL_CALC_FOUND_ROWS';
     select_base := select_base + ' * FROM ' + mask(ActualTable);
     sl_query.Add( select_base );
@@ -1374,7 +1377,8 @@ begin
     @see TZMySQLResultSet:Create
     @see TZMySQLResultSet:Open
   }
-  if mysql_version >= 40000 then
+  if (mysql_version >= 40000)
+    and (trim(SynMemoFilter.Text) <> '') then
   begin
     rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
   end
