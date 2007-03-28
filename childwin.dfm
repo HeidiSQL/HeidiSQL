@@ -1384,7 +1384,7 @@ object MDIChild: TMDIChild
       Default = True
       Enabled = False
       ImageIndex = 9
-      OnClick = ShowTableProperties
+      OnClick = ListTablesDblClick
     end
     object MenuAdvancedProperties: TMenuItem
       Caption = 'Advanced Properties'
