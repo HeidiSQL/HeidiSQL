@@ -1142,7 +1142,7 @@ begin
   if radioOtherDatabase.Checked then begin
     comboOtherDatabase.Enabled := true;
     comboOtherDatabase.Color := clWindow;
-    comboOtherDatabase.SetFocus;
+    if comboOtherDatabase.CanFocus then comboOtherDatabase.SetFocus;
   end else begin
     comboOtherDatabase.Enabled := false;
     comboOtherDatabase.Color := clBtnFace;
