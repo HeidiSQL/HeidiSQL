@@ -91,6 +91,17 @@ object optionsform: Toptionsform
         Text = '1'
         OnChange = Modified
       end
+      object CheckBoxRestoreLastUsedDB: TCheckBox
+        Left = 16
+        Top = 119
+        Width = 297
+        Height = 17
+        Caption = 'Restore last used database on startup'
+        Checked = True
+        State = cbChecked
+        TabOrder = 4
+        OnClick = Modified
+      end
     end
     object TabSheet2: TTabSheet
       BorderWidth = 5

@@ -85,6 +85,7 @@ type
     editLogSQLNum: TEdit;
     editDefaultColWidth: TEdit;
     updownDefaultColWidth: TUpDown;
+    CheckBoxRestoreLastUsedDB: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -148,6 +149,7 @@ begin
     openkey(REGPATH, true);
     WriteBool('AutoReconnect', CheckBoxAutoReconnect.Checked);
     WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
+    WriteBool('RestoreLastUsedDB', CheckBoxRestoreLastUsedDB.Checked);
     WriteString('FontName', ComboBoxFonts.Text);
     WriteInteger('FontSize', UpDownFontSize.Position);
     WriteInteger('logsqlnum', updownLogSQLNum.Position);
@@ -249,6 +251,8 @@ begin
       AutoReconnect := ReadBool('AutoReconnect');
     if ValueExists('ConvertHTMLEntities') then
       CheckBoxConvertHTMLEntities.Checked := ReadBool('ConvertHTMLEntities');
+    if ValueExists('RestoreLastUsedDB') then
+      CheckBoxRestoreLastUsedDB.Checked := ReadBool('RestoreLastUsedDB');
     if ValueExists('DataLimit') then
       CheckBoxLimit.Checked := ReadBool('DataLimit');
     if ValueExists('DataLimitEnd') then

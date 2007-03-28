@@ -700,7 +700,7 @@ begin
   Application.Title := winName + ' - ' + APPNAME;
 
   // Reselect last used database
-  if lastUsedDB <> '' then
+  if MainForm.GetRegValue('RestoreLastUsedDB', true) and (lastUsedDB <> '') then
   begin
     for j:=0 to DBTree.Items.Count-1 do
     begin
