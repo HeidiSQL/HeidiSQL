@@ -559,6 +559,8 @@ function decrypt(str: String) : String;
 var
   j, salt, nr : integer;
 begin
+  result := '';
+  if str = '' then exit;
   j := 1;
   salt := StrToIntDef(str[length(str)],0);
   result := '';
