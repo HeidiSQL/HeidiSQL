@@ -2112,7 +2112,8 @@ var
   i,j : Integer;
   n   : TListItem;
 begin
-  // PROCESSLIST
+  // No need to update if it's not visible.
+  if PageControlMain.ActivePage <> tabHost then exit;
   Screen.Cursor := crSQLWait;
   try
     ListProcesses.Items.BeginUpdate;
