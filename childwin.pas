@@ -402,7 +402,7 @@ type
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
     function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
-    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
+    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; DoNotHandleErrors: Boolean = false );
     function GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
@@ -443,11 +443,12 @@ type
       StopOnErrors, WordWrap     : Boolean;
       CanAcessMysqlFlag          : Boolean;
       FCurDataset                : TDataSet;
-      FQueryRunning              : Boolean;
       FMysqlConn                 : TMysqlConn;
       FConnParams                : TConnParams;
+      QueryRunningInterlock      : Integer;
       lastUsedDB                 : String;
 
+      procedure SetQueryRunning(running: Boolean);
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
@@ -468,7 +469,6 @@ type
 
       FProgressForm              : TFrmQueryProgress;
       procedure Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
-      procedure SetQueryRunningFlag(AValue : Boolean);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
@@ -476,6 +476,7 @@ type
       function ExecSelectQuery (AQuery : String; out AMysqlQuery : TMysqlQuery) : Boolean;
       function ExecUseQuery (ADatabase : String) : Boolean;
 
+      property FQueryRunning: Boolean write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property ConnParams : TConnParams read FConnParams;
@@ -561,6 +562,20 @@ begin
 end;
 
 
+procedure TMDIChild.SetQueryRunning(running: Boolean);
+var
+  newValue,
+  oldValue: Integer;
+begin
+  if running then newValue := 1 else newValue := 0;
+  oldValue := InterlockedExchange(QueryRunningInterlock, newValue);
+  if newValue = oldValue then begin
+    if newValue = 1 then raise Exception.Create('Internal badness: Default connection is already executing a query.');
+    if newValue = 0 then raise Exception.Create('Internal badness: Double reset of running flag.');
+  end;
+end;
+
+
 // Check the tabletype of the selected table in the Popupmenu of ListTables
 procedure TMDIChild.popupDbGridPopup(Sender: TObject);
 var
@@ -593,6 +608,8 @@ var
   j                : Integer;
   treenode         : TTreeNode;
 begin
+  QueryRunningInterlock := 0;
+  
   FConnParams := AConnParams^;
   FMysqlConn := AMysqlConn; // we're now responsible to free it
 
@@ -1209,8 +1226,6 @@ begin
     if mainform.CheckBoxLimit.Checked then
       sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
     try
-      FQueryRunning := True;
-
       conn_params := FConnParams;
       conn_params.MysqlParams.Database := ActualDatabase;
 
@@ -1222,11 +1237,12 @@ begin
       end;
 
       // start query (with wait dialog)
-      FProgressForm := TFrmQueryProgress.Create(Self);
-      debug('viewdata(): Launching asynchronous query.');
-      mq := ExecMysqlStatementAsync(sl_query.Text,FConnParams,nil,FProgressForm.Handle);
       SynMemoFilter.Color := clWindow;
-      WaitForQueryCompletion(FProgressForm);
+      debug('viewdata(): Launching asynchronous query.');
+      mq := RunThreadedQuery(sl_query.Text);
+
+      // Re-create exception.....
+      if mq.Result <> MQR_SUCCESS then raise Exception.Create(mq.Comment);
 
       MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
       DataSource1.DataSet := mq.MysqlDataset;
@@ -1246,11 +1262,11 @@ begin
       on E:Exception do
       begin
         // Most likely we have a wrong filter-clause when this happens
-        LogSql( mq.Comment, True );
+        LogSql( E.Message, True );
         // Put the user with his nose onto the wrong filter he specified
-        SynMemoFilter.SetFocus;
+        if SynMemoFilter.CanFocus then SynMemoFilter.SetFocus;
         SynMemoFilter.Color := $008080FF; // light pink
-        MessageDlg( mq.Comment, mtError, [mbOK], 0 );
+        MessageDlg( E.Message, mtError, [mbOK], 0 );
         viewingdata := false;
         MainForm.ShowStatus( STATUS_MSG_READY, 2 );
         Screen.Cursor := crDefault;
@@ -1574,7 +1590,7 @@ begin
               if ZQuery3.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
               begin
                 // Number
-                // TODO: doesn't match any column 
+                // TODO: doesn't match any column
                 ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify;
                 n.SubItems.Add( FormatNumber( ZQuery3.Fields[k].AsFloat ) );
               end
@@ -1589,10 +1605,7 @@ begin
     end
     else begin
       // get slower results with versions 3.22.xx and older
-      ZQuery3.SQL.Clear;
-      ZQuery3.SQL.Add('SHOW TABLES');
-      ZQuery3.Open;
-      ZQuery3.First;
+      GetResults('SHOW TABLES', ZQuery3, true);
       for i := 1 to ZQuery3.RecordCount do
       begin
         n := ListTables.Items.Add;
@@ -1801,11 +1814,15 @@ function TMDIChild.ExecuteQuery(query: string): TDataSet;
 var
   ds: TZReadOnlyQuery;
 begin
-  if FQueryRunning then raise Exception.Create('This connection is already running a query, sorry.');
-  ds := TZReadOnlyQuery.Create(nil);
-  ds.Connection := MysqlConn.Connection;
-  GetResults(query, ds);
-  result := ds;
+  FQueryRunning := true;
+  try
+    ds := TZReadOnlyQuery.Create(nil);
+    ds.Connection := MysqlConn.Connection;
+    GetResults(query, ds);
+    result := ds;
+  finally
+    FQueryRunning := false;
+  end;
 end;
 
 
@@ -1817,20 +1834,23 @@ end;
 }
 procedure TMDIChild.ExecuteNonQuery(SQLQuery: string);
 begin
-  if FQueryRunning then raise Exception.Create('This connection is already running a query, sorry.');
-
+  FQueryRunning := true;
   try
-    CheckConnection;
-  except
-    exit;
-  end;
+    try
+      CheckConnection;
+    except
+      exit;
+    end;
 
-  with TZReadOnlyQuery.Create(Self) do
-  begin
-    Connection := FMysqlConn.Connection;
-    SQL.Text := SQLQuery;
-    ExecSQL;
-    Free;
+    with TZReadOnlyQuery.Create(Self) do
+    begin
+      Connection := FMysqlConn.Connection;
+      SQL.Text := SQLQuery;
+      ExecSQL;
+      Free;
+    end;
+  finally
+    FQueryRunning := false;
   end;
 end;
 
@@ -2097,11 +2117,8 @@ begin
   try
     ListProcesses.Items.BeginUpdate;
     ListProcesses.Items.Clear;
-    ZQuery3.Close;
-    ZQuery3.SQL.Clear;
-    ZQuery3.SQL.Add( 'SHOW FULL PROCESSLIST' );
-    ZQuery3.Open;
-    ZQuery3.First;
+    debug('ShowProcessList()');
+    GetResults('SHOW FULL PROCESSLIST', ZQuery3, true);
     for i:=1 to ZQuery3.RecordCount do
     begin
       n := ListProcesses.Items.Add;
@@ -2121,7 +2138,10 @@ begin
     ListProcesses.ClearSortColumnImages;
     tabProcessList.Caption := 'Process-List (' + inttostr(ListProcesses.Items.Count) + ')';
   except
-    LogSQL( 'Error on loading process-list!' );
+    on E: Exception do begin
+      LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
+      TimerProcesslist.Enabled := false;
+    end;
   end;
   ListProcesses.Items.EndUpdate;
   Screen.Cursor := crDefault;
@@ -2233,34 +2253,40 @@ begin
       // ok, let's rock
       SQLstart := GetTickCount;
 
+      FQueryRunning := true;
       try
-        if ExpectResultSet( SQL[i] ) then
-        begin
-          ZQuery1.Open;
-          fieldcount := ZQuery1.Fieldcount;
-          recordcount := ZQuery1.Recordcount;
-        end
-        else
-        begin
-          ZQuery1.ExecSql;
-          fieldcount := 0;
-          recordcount := 0;
-        end;
-      except
-        on E:Exception do
-        begin
-          if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
-            Screen.Cursor := crdefault;
-            LogSQL(E.Message, true);
-            MessageDLG(E.Message, mtError, [mbOK], 0);
-            ProgressBarQuery.hide;
-            Mainform.ExecuteQuery.Enabled := true;
-            Mainform.ExecuteSelection.Enabled := true;
-            break;
+        try
+          if ExpectResultSet( SQL[i] ) then
+          begin
+            ZQuery1.Open;
+            fieldcount := ZQuery1.Fieldcount;
+            recordcount := ZQuery1.Recordcount;
           end
-          else LogSQL(E.Message, true);
+          else
+          begin
+            ZQuery1.ExecSql;
+            fieldcount := 0;
+            recordcount := 0;
+          end;
+        except
+          on E:Exception do
+          begin
+            if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
+              Screen.Cursor := crdefault;
+              LogSQL(E.Message, true);
+              MessageDLG(E.Message, mtError, [mbOK], 0);
+              ProgressBarQuery.hide;
+              Mainform.ExecuteQuery.Enabled := true;
+              Mainform.ExecuteSelection.Enabled := true;
+              break;
+            end
+            else LogSQL(E.Message, true);
+          end;
         end;
+      finally
+        FQueryRunning := false;
       end;
+
       rowsaffected := rowsaffected + ZQuery1.RowsAffected;
       SQLend := GetTickCount;
       SQLTime := (SQLend - SQLstart) / 1000;
@@ -4365,30 +4391,28 @@ end;
 
   @note This freezes the user interface
 }
-procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; QuietOnError: Boolean = false );
+procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; DoNotHandleErrors: Boolean = false );
 begin
-  // todo: convert it to a function to get info on result
-  // todo: move to separate unit
-
+  FQueryRunning := true;
   try
-    CheckConnection;
-  except
-    exit;
-  end;
-  ZQuery.SQL.Text := SQLQuery;
-  try
-    ZQuery.Open;
-  except
-    on E:Exception do
-    begin
-      if not QuietOnError then
-        MessageDlg( E.Message, mtError, [mbOK], 0 );
-      LogSQL( E.Message );
-      exit;
+    try
+      CheckConnection;
+      ZQuery.SQL.Text := SQLQuery;
+      ZQuery.Open;
+      ZQuery.DisableControls;
+      ZQuery.First;
+    except
+      on E: Exception do
+      begin
+        if not DoNotHandleErrors then begin
+          MessageDlg( E.Message, mtError, [mbOK], 0 );
+          exit;
+        end else raise E;
+      end;
     end;
+  finally
+    FQueryRunning := false;
   end;
-  ZQuery.DisableControls;
-  ZQuery.First;
 end;
 
 
@@ -4455,15 +4479,6 @@ begin
   LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
 end;
 
-{***
-  Property-set procedure for QueryRunningFlag
-  Allows it to be set from other windows
-}
-procedure TMDIChild.SetQueryRunningFlag (AValue : Boolean);
-begin
-  FQueryRunning := AValue;
-end;
-
 
 // Resize image to fit
 procedure TMDIChild.ResizeImageToFit;
@@ -4484,38 +4499,40 @@ end;
 function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
 begin
   Result := nil;
-
-  // Check if the connection of the current window is still alive
-  // Otherwise reconnect
-  try
-    CheckConnection;
-  except
-    exit;
-  end;
-
-  // Create instance of the progress form (but don't show it yet)
-  FProgressForm := TFrmQueryProgress.Create(Self);
-
   // Indicate a querythread is active (only one thread allow at this moment)
-  FQueryRunning := True;
+  FQueryRunning := true;
+  try
+    // Check if the connection of the current window is still alive
+    // Otherwise reconnect
+    try
+      CheckConnection;
+    except
+      exit;
+    end;
 
-  { Launch a thread of execution that passes the query to the server
+    // Create instance of the progress form (but don't show it yet)
+    FProgressForm := TFrmQueryProgress.Create(Self);
 
-    The progressform serves as receiver of the status
-    messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
+    { Launch a thread of execution that passes the query to the server
 
-    * After the thread starts it notifies the progressform (MQE_INITED)
-      (which calls ShowModal on itself)
-    * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
-    * Set FQueryRunning to false
-  }
-  debug('RunThreadedQuery(): Launching asynchronous query.');
-  Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
+      The progressform serves as receiver of the status
+      messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
 
-  { Repeatedly check if the query has finished by inspecting FQueryRunning
-    Allow repainting of user interface
-  }
-  WaitForQueryCompletion(FProgressForm);
+      * After the thread starts it notifies the progressform (MQE_INITED)
+        (which calls ShowModal on itself)
+      * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
+      * Set FQueryRunning to false
+    }
+    debug('RunThreadedQuery(): Launching asynchronous query.');
+    Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
+
+    { Repeatedly check if the query has finished by inspecting FQueryRunning
+      Allow repainting of user interface
+    }
+    WaitForQueryCompletion(FProgressForm);
+  finally
+    FQueryRunning := false;
+  end;
 end;
 
 procedure TMDIChild.Splitter2Moved(Sender: TObject);
@@ -4846,9 +4863,5 @@ begin
 end;
 
 
-
 end.
-
-
-
 
