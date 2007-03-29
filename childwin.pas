@@ -472,14 +472,20 @@ type
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      function ExecUpdateQuery (ASQLQuery: String ) : Boolean;
-      function ExecSelectQuery (AQuery : String; out AMysqlQuery : TMysqlQuery) : Boolean;
-      function ExecUseQuery (ADatabase : String) : Boolean;
+      procedure ExecUpdateQuery (ASQLQuery: String);
+      function ExecSelectQuery (AQuery : String) : TMysqlQuery;
+      procedure ExecUseQuery (ADatabase : String);
 
       property FQueryRunning: Boolean write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property ConnParams : TConnParams read FConnParams;
+  end;
+
+type
+  // Represents errors already "handled" (shown to user),
+  // which can thus safely be ignored.
+  THandledSQLError = class(Exception)
   end;
 
 const
@@ -1029,7 +1035,13 @@ begin
   Panel3.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
-  ShowDBProperties(self);
+  try
+    ShowDBProperties(self);
+  except
+    // Clear selection which we couldn't satisfy.
+    if DBtree.Items.Count < 1 then DBtree.Selected := nil
+    else DBtree.Selected := DBtree.Items[0];
+  end;
   ActualTable := '';
 end;
 
@@ -1048,6 +1060,7 @@ end;
 // react on dbtree-clicks
 procedure TMDIChild.DBtreeChange(Sender: TObject; Node: TTreeNode);
 begin
+  if Node = nil then raise Exception.Create('Internal badness: No host node in object tree.');
   Screen.Cursor := crHourGlass;
 
   case Node.Level of
@@ -1817,6 +1830,8 @@ end;
   The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
+  @note This freezes the user interface.
+  @note Use only as a hack when you need to actively avoid processing of further window messages.
 }
 function TMDIChild.ExecuteQuery(query: string): TDataSet;
 var
@@ -1839,6 +1854,8 @@ end;
   The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
+  @note This freezes the user interface.
+  @note Use only as a hack when you need to actively avoid processing of further window messages.
 }
 procedure TMDIChild.ExecuteNonQuery(SQLQuery: string);
 begin
@@ -4305,10 +4322,10 @@ begin
 end;
 
 
-function TMDIChild.ExecUseQuery (ADatabase : String) : Boolean;
+procedure TMDIChild.ExecUseQuery (ADatabase : String);
 begin
   FConnParams.MysqlParams.Database := ADatabase;
-  Result := ExecUpdateQuery('USE ' + mask(ADatabase));
+  ExecUpdateQuery('USE ' + mask(ADatabase));
 end;
 
 
@@ -4317,28 +4334,27 @@ end;
   The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
-  @return Boolean Return True on success, False otherwise
 }
-function TMDIChild.ExecUpdateQuery(ASQLQuery: String ) : Boolean;
+procedure TMDIChild.ExecUpdateQuery(ASQLQuery: String );
 var
   MysqlQuery : TMysqlQuery;
 begin
   // Start query execution
   MysqlQuery := RunThreadedQuery(ASQLQuery);
-
-  // Inspect query result code and log / notify user on failure
-  if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-  begin
-    MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
-    LogSql( MysqlQuery.Comment, True );
+  try
+    // Inspect query result code and log / notify user on failure
+    if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+    begin
+      MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
+      LogSql( MysqlQuery.Comment, True );
+      // Recreate exception, since we free it below the caller
+      // won't know what happened otherwise.
+      raise THandledSQLError.Create(MysqlQuery.Comment);
+    end;
+  finally
+    // Cleanup the MysqlQuery object, we won't need it anymore
+    FreeAndNil (MysqlQuery);
   end;
-
-  // Get thread result code and convert into function return value
-  Result := (MysqlQuery.Result = MQR_SUCCESS);
-
-  // Cleanup the MysqlQuery object, we won't need it anymore
-  FreeAndNil (MysqlQuery);
-
 end;
 
 
@@ -4348,48 +4364,32 @@ end;
   The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
-  @param TMysqlQuery Containing the dataset and info data availability
-  @return Boolean Return True on success, False otherwise
+  @return TMysqlQuery Containing the dataset and info data availability
 }
-function TMDIChild.ExecSelectQuery(AQuery: String;
-  out AMysqlQuery : TMysqlQuery): Boolean;
+function TMDIChild.ExecSelectQuery(AQuery: String): TMysqlQuery;
 var
-  MysqlQuery : TMysqlQuery;
+  exMsg: string;
 begin
-  Result := False;
-  AMysqlQuery := nil;
-
   // Start query execution
-  MysqlQuery := RunThreadedQuery(AQuery);
+  Result := RunThreadedQuery(AQuery);
 
   // Inspect query result code and log / notify user on failure
-  if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+  if Result.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
   begin
-    MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
-    LogSql( MysqlQuery.Comment, True );
+    exMsg := Result.Comment;
+    MessageDlg( exMsg, mtError, [mbOK], 0 );
+    LogSql( exMsg, True );
+    FreeAndNil(Result);
+    raise THandledSQLError.Create(exMsg);
   end;
-
-  if MysqlQuery.Result = MQR_SUCCESS then
-    begin
-      Result := MysqlQuery.HasResultset; // Report success
-      AMysqlQuery := MysqlQuery;
-    end
-  else
-    begin
-      FreeAndNil (MysqlQuery)
-    end
 end;
-
-
-
-
-
 
 
 {***
   Executes a query with an existing ZQuery-object
 
   @note This freezes the user interface
+  @note Why isn't this done via MysqlQueryThread to avoid above ?
 }
 procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; DoNotHandleErrors: Boolean = false );
 begin
@@ -4419,7 +4419,7 @@ end;
 {***
   Execute a query and return string from column x
 
-  @note This freezes the user interface
+  @note This freezes the user interface as far as GetResults does so.
 }
 function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
 begin
@@ -4453,7 +4453,7 @@ end;
   @param  String SQL query string
   @param  Integer 0-based column index in the resultset to return
   @return TStringList
-  @note   This freezes the user interface
+  @note This freezes the user interface as far as GetResults does so.
 }
 function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
 var

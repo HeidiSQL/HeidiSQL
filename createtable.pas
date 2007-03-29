@@ -113,7 +113,6 @@ var
   i : Integer;
   LengthSet : String;
   FieldType : TMysqlDataTypeRecord;
-  res: boolean;
 begin
   // Prepare Query:
   createQuery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
@@ -195,14 +194,17 @@ begin
     createQuery := createQuery + ' TYPE = ' + ComboBoxTableType.Text;
 
   // Execute CREATE statement and reload tablesList
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    ExecUseQuery( DBComboBox.Text );
-    res := ExecUpdateQuery( createQuery );
-    ShowDBProperties(self);
-    ActualTable := EditTablename.Text;
+  try
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do
+    begin
+      ExecUseQuery( DBComboBox.Text );
+      ExecUpdateQuery( createQuery );
+      ShowDBProperties(self);
+      ActualTable := EditTablename.Text;
+    end;
+    Close;
+  except on E: THandledSQLError do;
   end;
-  if res then close;
 end;
 
 

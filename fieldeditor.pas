@@ -414,7 +414,6 @@ var
   strDefault,
   strPosition,
   fielddef : String;
-  QuerySucceeded : Boolean;
   cwin : TMDIChild;
 begin
   // Apply Changes to field-definition
@@ -437,100 +436,94 @@ begin
     end;
 
   Screen.Cursor := crSQLWait;
+  try
+    strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
+    strNotNull := '';
+    strDefault := '';
+    strAutoIncrement := '';
 
-  // Used later to decide whether to close the field-editor:
-  QuerySucceeded := false;
+    if CheckBoxBinary.Checked = true then
+      strAttributes := strAttributes + ' BINARY';
 
-  strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
-  strNotNull := '';
-  strDefault := '';
-  strAutoIncrement := '';
+    if CheckBoxUnsigned.Checked = true then
+      strAttributes := strAttributes + ' UNSIGNED';
 
-  if CheckBoxBinary.Checked = true then
-    strAttributes := strAttributes + ' BINARY';
+    if CheckBoxZerofill.Checked = true then
+      strAttributes := strAttributes + ' ZEROFILL';
 
-  if CheckBoxUnsigned.Checked = true then
-    strAttributes := strAttributes + ' UNSIGNED';
+    if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
+      strDefault := ' DEFAULT ' + esc(EditDefault.Text);
 
-  if CheckBoxZerofill.Checked = true then
-    strAttributes := strAttributes + ' ZEROFILL';
+    if CheckBoxNotNull.Checked = True then
+      strNotNull := ' NOT NULL';
 
-  if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
-    strDefault := ' DEFAULT ' + esc(EditDefault.Text);
+    if CheckBoxAutoIncrement.Checked = True then
+      strAutoIncrement := ' AUTO_INCREMENT';
 
-  if CheckBoxNotNull.Checked = True then
-    strNotNull := ' NOT NULL';
+    if (EditLength.text <> '') and EditLength.Enabled then
+      strLengthSet := '(' + EditLength.text + ') '
+    else
+      strLengthSet := '';
 
-  if CheckBoxAutoIncrement.Checked = True then
-    strAutoIncrement := ' AUTO_INCREMENT';
+    strPosition := '';
+    case ComboBoxPosition.ItemIndex of
+      0 : ;
+      1 : strPosition := ' FIRST';
+    else
+      strPosition := ' ' + ComboBoxPosition.Text;
+    end;
 
-  if (EditLength.text <> '') and EditLength.Enabled then
-    strLengthSet := '(' + EditLength.text + ') '
-  else
-    strLengthSet := '';
+    fielddef :=
+      ComboBoxType.Text +     // Type
+      strLengthSet +          // Length/Set
+      strAttributes +         // Attribute
+      strDefault +            // Default
+      strNotNull +            // Not Null
+      strAutoIncrement;       // Auto_increment
 
-  strPosition := '';
-  case ComboBoxPosition.ItemIndex of
-    0 : ;
-    1 : strPosition := ' FIRST';
-  else
-    strPosition := ' ' + ComboBoxPosition.Text;
-  end;
+    cwin := TMDIChild(Mainform.ActiveMDIChild);
 
-  fielddef := ComboBoxType.Text +     // Type
-        strLengthSet +                // Length/Set
-        strAttributes +               // Attribute
-        strDefault +                  // Default
-        strNotNull +                  // Not Null
-        strAutoIncrement;             // Auto_increment
-
-  cwin := TMDIChild(Mainform.ActiveMDIChild);
-
-  if (FMode=femFieldAdd) then
-    begin
-      QuerySucceeded := cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) +           // table
-        ' ADD ' + mainform.mask(EditFieldname.Text) + ' ' +     // new name
+    if (FMode = femFieldAdd) then begin
+      cwin.ExecUpdateQuery(
+        'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
+        'ADD ' + mainform.mask(EditFieldname.Text) + ' ' +        // new name
         fielddef +
-        strPosition                                             // Position
-        )
-    end
-  else if (FMode=femFieldUpdate) then
-    begin
-      QuerySucceeded := cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) +                      // table
-        ' CHANGE ' + mainform.mask(cwin.ListColumns.Selected.Caption) + ' ' +     // old name
-        mainform.mask(EditFieldName.Text) + ' ' +                          // new name
+        strPosition                                               // Position
+      );
+    end else if (FMode = femFieldUpdate) then begin
+      cwin.ExecUpdateQuery(
+        'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +              // table
+        'CHANGE ' + mainform.mask(cwin.ListColumns.Selected.Caption) + ' ' +  // old name
+        mainform.mask(EditFieldName.Text) + ' ' +                             // new name
         fielddef
-        );
+      );
 
       //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
 
-      if ComboBoxPosition.ItemIndex > -1 then  // Move field position
-        begin
-          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) +           // table
-          ' ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +          // new name
+      if ComboBoxPosition.ItemIndex > -1 then begin
+        // Move field position
+        cwin.ExecUpdateQuery(
+          'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
+          'ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +             // new name
           fielddef +
-          strPosition                                             // Position
-          );
-          cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
-          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
-          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' CHANGE '+
-            mainform.mask(TEMPFIELDNAME)+' '+mainform.mask(EditFieldName.Text) + ' ' +
-            fielddef
-          );
-        end;
+          strPosition                                               // Position
+        );
+        cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
+        cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+        cwin.ExecUpdateQuery(
+          'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +
+          'CHANGE ' + mainform.mask(TEMPFIELDNAME) + ' ' +
+          mainform.mask(EditFieldName.Text) + ' ' +
+          fielddef
+        );
+      end;
     end;
-
-  Screen.Cursor := crDefault;
-
-  {***
-    Only refresh columnslist and close fieldeditor if ALTER-statement was successful
-    @see issue #1662005
-  }
-  if QuerySucceeded then
-  begin
     cwin.ShowTableProperties(self);
     ModalResult := mrOK;
+  except
+    on E: THandledSQLError do;
   end;
+  Screen.Cursor := crDefault;
 end;
 
 
