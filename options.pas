@@ -259,7 +259,9 @@ begin
       UpDownLimit.Position := ReadInteger('DataLimitEnd');
     CheckBoxLimit.OnClick(self);
     if ValueExists('logsqlnum') then
-      updownLogSQLNum.Position := ReadInteger('logsqlnum');
+      updownLogSQLNum.Position := ReadInteger('logsqlnum')
+    else
+      updownLogSQLNum.Position := MainForm.logsqlnum;
     // Default Column-Width in DBGrids:
     if ValueExists('DefaultColWidth') then
       updownDefaultColWidth.Position := ReadInteger('DefaultColWidth');
