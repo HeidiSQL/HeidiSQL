@@ -2219,13 +2219,13 @@ begin
   SQLscriptstart := GetTickCount;
   LabelResultinfo.Caption := '';
 
+  FQueryRunning := true;
   try
-    CheckConnection;
-  except
-    exit;
-  end;
-
-  TRY
+    try
+      CheckConnection;
+    except
+      exit;
+    end;
     MainForm.showstatus('Initializing SQL...', 2, true);
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
@@ -2261,39 +2261,30 @@ begin
       EDBImage1.DataSource := DataSource2;
       // ok, let's rock
       SQLstart := GetTickCount;
-
-      FQueryRunning := true;
       try
-        try
-          if ExpectResultSet( SQL[i] ) then
-          begin
-            ZQuery1.Open;
-            fieldcount := ZQuery1.Fieldcount;
-            recordcount := ZQuery1.Recordcount;
-          end
-          else
-          begin
-            ZQuery1.ExecSql;
-            fieldcount := 0;
-            recordcount := 0;
-          end;
-        except
-          on E:Exception do
-          begin
-            if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
-              Screen.Cursor := crdefault;
-              LogSQL(E.Message, true);
-              MessageDLG(E.Message, mtError, [mbOK], 0);
-              ProgressBarQuery.hide;
-              Mainform.ExecuteQuery.Enabled := true;
-              Mainform.ExecuteSelection.Enabled := true;
-              break;
-            end
-            else LogSQL(E.Message, true);
-          end;
+        if ExpectResultSet( SQL[i] ) then begin
+          ZQuery1.Open;
+          fieldcount := ZQuery1.Fieldcount;
+          recordcount := ZQuery1.Recordcount;
+        end else begin
+          ZQuery1.ExecSql;
+          fieldcount := 0;
+          recordcount := 0;
         end;
-      finally
-        FQueryRunning := false;
+      except
+        on E:Exception do
+        begin
+          if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
+            Screen.Cursor := crdefault;
+            LogSQL(E.Message, true);
+            MessageDLG(E.Message, mtError, [mbOK], 0);
+            ProgressBarQuery.hide;
+            Mainform.ExecuteQuery.Enabled := true;
+            Mainform.ExecuteSelection.Enabled := true;
+            break;
+          end
+          else LogSQL(E.Message, true);
+        end;
       end;
 
       rowsaffected := rowsaffected + ZQuery1.RowsAffected;
@@ -2309,6 +2300,7 @@ begin
           ' Query time: '+FormatNumber( SQLTime, 3)+' sec.';
       end;
     end;
+
     ProgressBarQuery.hide;
     Mainform.ExecuteQuery.Enabled := true;
     Mainform.ExecuteSelection.Enabled := true;
@@ -2321,10 +2313,9 @@ begin
       LabelResultinfo.Caption := LabelResultinfo.Caption + ' Batch time: ' + FormatNumber(SQLTime, 3)+' sec.';
     end;
 
-
-
-  FINALLY
+  finally
     ZQuery1.EnableControls;
+    FQueryRunning := false;
     // resize all columns, if they are more wide than Mainform.DefaultColWidth
     if Mainform.DefaultColWidth <> 0 then
       for i:=0 to gridQuery.Columns.count-1 do
@@ -2332,7 +2323,7 @@ begin
           gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
     Screen.Cursor := crdefault;
 	  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-  END;
+  end;
 end;
 
 
@@ -4812,8 +4803,21 @@ procedure TMDIChild.CheckConnection;
 begin
   if not FMysqlConn.IsAlive then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
-    FMysqlConn.Connection.Reconnect;
-    PerformConnect;
+    // 1) CheckConnection should always be called
+    //    within an FQueryRunning-enabled block.
+    // 2) PerformConnect (see below) will make calls
+    //    that open an FQueryRunning block, causing an
+    //    error message.
+    // In this particular situation, it's ok for
+    // two blocks to be opened recursively.
+    // Slightly hackish, I'll admit.
+    FQueryRunning := false;
+    try
+      FMysqlConn.Connection.Reconnect;
+      PerformConnect;
+    finally
+      FQueryRunning := true;
+    end;
   end;
 end;
 
@@ -4833,7 +4837,6 @@ begin
   try
     CheckConnection;
   except
-    exit;
   end;
 end;
 
