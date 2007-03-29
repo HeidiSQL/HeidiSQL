@@ -825,6 +825,8 @@ end;
 
 procedure TUserManagerForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
+var
+  cwin : TMDIChild;
 begin
   // free memory
   ZQueryUsers.Active := False;
@@ -832,6 +834,9 @@ begin
   ZQueryTables.Active := False;
   ZQueryColumns.Active := False;
   ZQueryColumnNames.Active := False;
+  cwin := TMDIChild( Mainform.ActiveMDIChild );
+  if cwin.ActualDatabase <> '' then
+    cwin.ExecUseQuery( cwin.ActualDatabase );
 end;
 
 
