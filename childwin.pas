@@ -4544,6 +4544,10 @@ begin
   ResizeImageToFit;
 end;
 
+{***
+  Used to catch when the highlighted row in a grid changes.
+  Possibly the AfterScroll event would be better suited for the purpose?
+*}
 procedure TMDIChild.DataSourceDataChange(Sender: TObject; Field: TField);
 begin
   //debug('DataSourceDataChange()');
