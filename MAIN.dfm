@@ -396,7 +396,7 @@ object MainForm: TMainForm
     end
     object Extra1: TMenuItem
       Tag = 19
-      Caption = 'Tools'
+      Caption = '&Tools'
       object MenuRefresh: TMenuItem
         Tag = 28
         Caption = 'Refresh'
@@ -502,7 +502,7 @@ object MainForm: TMainForm
       end
     end
     object Import1: TMenuItem
-      Caption = 'Import'
+      Caption = '&Import'
       object MenuImportTextFile: TMenuItem
         Tag = 43
         Caption = 'Import CSV file...'
@@ -519,7 +519,7 @@ object MainForm: TMainForm
     end
     object ImExport1: TMenuItem
       Tag = 20
-      Caption = 'Export'
+      Caption = 'E&xport'
       object MenuExport: TMenuItem
         Tag = 45
         Action = ExportTables
