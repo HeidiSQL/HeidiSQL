@@ -4284,9 +4284,6 @@ var
   affected_rows_str, msg  : String;
   affected_rows_int       : Int64;
 begin
-  // Display row count and filter-matchings above dbgrid
-  DisplayRowCountStats;
-
   affected_rows_int := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
   affected_rows_str := FormatNumber( affected_rows_int );
   if affected_rows_int = 0 then
@@ -4312,6 +4309,9 @@ begin
     LogSQL( msg );
     MessageDlg( msg, mtWarning, [mbOK], 0);
   end;
+
+  // Display row count and filter-matchings above dbgrid
+  DisplayRowCountStats;
 end;
 
 procedure TMDIChild.ZQueryGridBeforeClose(DataSet: TDataSet);
