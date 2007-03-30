@@ -1098,10 +1098,8 @@ var
   conn_params : TConnParams;
   sl_query : TStringList;
 begin
-  // view table-data with zeos
-  if viewingdata then
-    abort;
   viewingdata := true;
+  try
 
   sl_query := TStringList.Create();
 
@@ -1245,6 +1243,9 @@ begin
       conn_params := FConnParams;
       conn_params.MysqlParams.Database := ActualDatabase;
 
+      // Avoid excessive GUI updates.
+      if DataSource1.DataSet <> nil then DataSource1.DataSet.DisableControls;
+
       // free previous resultset
       try
         DataSource1.DataSet.Free;
@@ -1261,6 +1262,7 @@ begin
       if mq.Result <> MQR_SUCCESS then raise Exception.Create(mq.Comment);
 
       MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
+      mq.MysqlDataset.DisableControls;
       DataSource1.DataSet := mq.MysqlDataset;
       FCurDataset := mq.MysqlDataset;
 
@@ -1283,14 +1285,11 @@ begin
         if SynMemoFilter.CanFocus then SynMemoFilter.SetFocus;
         SynMemoFilter.Color := $008080FF; // light pink
         MessageDlg( E.Message, mtError, [mbOK], 0 );
-        viewingdata := false;
         MainForm.ShowStatus( STATUS_MSG_READY, 2 );
         Screen.Cursor := crDefault;
         exit;
       end;
     end;
-
-
 
  		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
 
@@ -1351,12 +1350,17 @@ begin
 
     DisplayRowCountStats;
     dataselected := true;
+    viewingdata := false;
+    mq.MysqlDataset.EnableControls;
     pcChange(self);
   end;
 
-  viewingdata := false;
   Screen.Cursor := crDefault;
   FreeAndNil (sl_query);
+
+  finally
+    viewingdata := false;
+  end;
 end;
 
 
@@ -2331,13 +2335,13 @@ begin
     end;
 
   finally
-    ZQuery1.EnableControls;
     FQueryRunning := false;
     // resize all columns, if they are more wide than Mainform.DefaultColWidth
     if Mainform.DefaultColWidth <> 0 then
       for i:=0 to gridQuery.Columns.count-1 do
         if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
           gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+    ZQuery1.EnableControls;
     Screen.Cursor := crdefault;
 	  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   end;
@@ -4540,16 +4544,16 @@ begin
   ResizeImageToFit;
 end;
 
-
 procedure TMDIChild.DataSourceDataChange(Sender: TObject; Field: TField);
 begin
-  debug('DataSourceDataChange()');
-  GridHighlightChanged(Sender);
+  //debug('DataSourceDataChange()');
+  // Avoid calling when switching data source to another TDataset.
+  if not viewingdata then GridHighlightChanged(Sender);
 end;
 
 procedure TMDIChild.DBGridColEnter(Sender: TObject);
 begin
-  debug('DBGridColEnter()');
+  //debug('DBGridColEnter()');
   GridHighlightChanged(Sender);
 end;
 
@@ -4561,12 +4565,12 @@ var
   hasOddNewlines: boolean;
   s: string;
 begin
-  // Current highlighted row and/or column in grid has changed.
-  // This also happens when the grid looses focus.
-
+  // Current highlighted row or column in a grid has changed.
+  // Happens twice (row, then column) if neither row nor column match previously selected field.
   grid := ActiveGrid;
   ds := grid.DataSource;
   if grid.SelectedField = nil then exit;
+  debug('GridHighlightChanged');
 
   if DBMemo1.DataSource <> ds then
   begin
@@ -4876,4 +4880,5 @@ end;
 
 
 end.
+
 
