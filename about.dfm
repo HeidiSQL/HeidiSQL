@@ -1254,7 +1254,7 @@ object AboutBox: TAboutBox
           'com/'
         'Inno Setup - http://www.jrsoftware.org/'
         'Sebasti'#225'n Mayor'#225' for EDBImage'
-        'dAniel hAhler for the name "HeidiSQL" - http://daniel.hahler.de/'
+        'Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/'
         'MySQL for great database software')
       ReadOnly = True
       TabOrder = 0
@@ -1269,9 +1269,10 @@ object AboutBox: TAboutBox
         '- Ansgar Becker (project lead and development)'
         '- David Dindorp (development)'
         '- Martijn Nijenhof (development)'
-        '- Tony Peng (development)'
+        '- Francisco Ernesto Teixeira (development)'
         '- Sven Lorenz (graphics)'
-        '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)')
+        '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)'
+        '- Tony Peng (additional bugfixes)')
       ReadOnly = True
       TabOrder = 1
     end
