@@ -242,8 +242,9 @@ begin
   for I := 0 to FromList.Count - 1 do
   begin
     Current := TZResolverParameter(FromList[I]);
-    ToList.Add(TZResolverParameter.Create(Current.ColumnIndex,
-      Current.ColumnName, Current.ColumnType, Current.NewValue, ''));
+    if Current.ColumnName <> '' then
+      ToList.Add(TZResolverParameter.Create(Current.ColumnIndex,
+        Current.ColumnName, Current.ColumnType, Current.NewValue, ''));
   end;
 end;
 
@@ -452,8 +453,9 @@ begin
   { Takes a a key all non-blob fields. }
   for I := 1 to Metadata.GetColumnCount do
   begin
-    WhereColumns.Add(TZResolverParameter.Create(I,
-      Metadata.GetColumnName(I), Metadata.GetColumnType(I), False, ''));
+    if Metadata.GetColumnName(I) <> '' then
+      WhereColumns.Add(TZResolverParameter.Create(I,
+        Metadata.GetColumnName(I), Metadata.GetColumnType(I), False, ''));
   end;
 
   { Copy defined parameters to target columns }
