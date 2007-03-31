@@ -1937,7 +1937,6 @@ object MDIChild: TMDIChild
     Top = 136
   end
   object DataSource2: TDataSource
-    DataSet = ZQuery1
     OnDataChange = DataSourceDataChange
     Left = 304
     Top = 168

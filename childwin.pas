@@ -2321,6 +2321,14 @@ begin
     exit;
   end;
 
+  // Unlink ZQuery1 from db-controls, relink them when query was successful
+  DataSource2.DataSet := nil;
+  // set db-aware-component's properties..
+  DBMemo1.DataField := '';
+  DBMemo1.DataSource := DataSource2;
+  EDBImage1.DataField := '';
+  EDBImage1.DataSource := DataSource2;
+
   SQLscriptstart := GetTickCount;
   LabelResultinfo.Caption := '';
 
@@ -2359,11 +2367,6 @@ begin
       ZQuery1.Close;
       ZQuery1.SQL.Clear;
       ZQuery1.SQL.Add(SQL[i]);
-      // set db-aware-component's properties..
-      DBMemo1.DataField := '';
-      DBMemo1.DataSource := DataSource2;
-      EDBImage1.DataField := '';
-      EDBImage1.DataSource := DataSource2;
       // ok, let's rock
       SQLstart := GetTickCount;
       try
@@ -2422,14 +2425,25 @@ begin
     FQueryRunning := false;
     // Avoid excessive GridHighlightChanged() when flicking controls.
     viewingdata := true;
-    // Flick controls so that column resizing will work (?)
-    ZQuery1.EnableControls;
-    ZQuery1.DisableControls;
-    // resize all columns, if they are more wide than Mainform.DefaultColWidth
-    if Mainform.DefaultColWidth <> 0 then
-      for i:=0 to gridQuery.Columns.count-1 do
-        if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
-          gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+
+    if not ZQuery1.IsEmpty then
+    begin
+      // Re-link to datasource
+      DataSource2.DataSet := ZQuery1;
+      // Flick controls so that column resizing will work (?)
+      ZQuery1.EnableControls;
+      ZQuery1.DisableControls;
+      // resize all columns, if they are more wide than Mainform.DefaultColWidth
+      if Mainform.DefaultColWidth <> 0 then
+        for i:=0 to gridQuery.Columns.count-1 do
+          if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
+            gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+    end
+    else
+    begin
+      // Avoid AV for mousewheel-scrolling in empty datagrid
+      DataSource2.DataSet := nil;
+    end;
     // Ensure controls are in a valid state
     ValidateControls;
     viewingdata := false;
