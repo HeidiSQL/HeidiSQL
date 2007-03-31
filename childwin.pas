@@ -401,9 +401,9 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
-    function GetVar( SQLQuery: String; x: Integer = 0 ) : String;
-    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; DoNotHandleErrors: Boolean = false );
-    function GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
+    function GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
+    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; HandleErrors: Boolean = true; DisplayErrors: Boolean = true );
+    function GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
     procedure Splitter2Moved(Sender: TObject);
@@ -965,9 +965,8 @@ begin
   tmpSelected := nil;
   for i:=0 to OnlyDBs2.Count-1 do
   begin
-    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true );
-    if not ZQuery3.Active then
-      continue;
+    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true, false );
+    if not ZQuery3.Active then continue;
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 37;
     tnode.SelectedIndex := 38;
@@ -1628,7 +1627,7 @@ begin
     end
     else begin
       // get slower results with versions 3.22.xx and older
-      GetResults('SHOW TABLES', ZQuery3, true);
+      GetResults('SHOW TABLES', ZQuery3, true, false);
       for i := 1 to ZQuery3.RecordCount do
       begin
         n := ListTables.Items.Add;
@@ -1847,7 +1846,7 @@ begin
   try
     ds := TZReadOnlyQuery.Create(nil);
     ds.Connection := MysqlConn.Connection;
-    GetResults(query, ds);
+    GetResults(query, ds, false, false);
     result := ds;
   finally
     FQueryRunning := false;
@@ -2150,7 +2149,7 @@ begin
     ListProcesses.Items.BeginUpdate;
     ListProcesses.Items.Clear;
     debug('ShowProcessList()');
-    GetResults('SHOW FULL PROCESSLIST', ZQuery3, true);
+    GetResults('SHOW FULL PROCESSLIST', ZQuery3, true, false);
     for i:=1 to ZQuery3.RecordCount do
     begin
       n := ListProcesses.Items.Add;
@@ -2450,7 +2449,7 @@ var
     tablename := mask( tablename );
     if dbname <> '' then
       tablename := mask( dbname ) + '.' + tablename;
-    getResults( 'SHOW COLUMNS FROM '+tablename, ZQuery3, true );
+    getResults( 'SHOW COLUMNS FROM '+tablename, ZQuery3, true, false );
     if not ZQuery3.Active then
       exit;
     for i:=0 to ZQuery3.RecordCount-1 do
@@ -4397,7 +4396,7 @@ end;
   @note This freezes the user interface
   @note Why isn't this done via MysqlQueryThread to avoid above ?
 }
-procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; DoNotHandleErrors: Boolean = false );
+procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; HandleErrors: Boolean = true; DisplayErrors: Boolean = true );
 begin
   FQueryRunning := true;
   try
@@ -4410,10 +4409,9 @@ begin
     except
       on E: Exception do
       begin
-        if not DoNotHandleErrors then begin
-          MessageDlg( E.Message, mtError, [mbOK], 0 );
-          exit;
-        end else raise E;
+        LogSQL( E.Message );
+        if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
+        if not HandleErrors then raise;
       end;
     end;
   finally
@@ -4427,9 +4425,10 @@ end;
 
   @note This freezes the user interface as far as GetResults does so.
 }
-function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0 ) : String;
+function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true) : String;
 begin
-  GetResults( SQLQuery, ZQuery3 );
+  GetResults( SQLQuery, ZQuery3, HandleErrors, DisplayErrors );
+  if not ZQuery3.Active then exit;
   Result := ZQuery3.Fields[x].AsString;
   ZQuery3.Close;
 end;
@@ -4461,12 +4460,13 @@ end;
   @return TStringList
   @note This freezes the user interface as far as GetResults does so.
 }
-function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0 ) : TStringList;
+function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
 var
   i: Integer;
 begin
-  GetResults( SQLQuery, ZQuery3 );
+  GetResults( SQLQuery, ZQuery3, HandleErrors, DisplayErrors);
   Result := TStringList.create();
+  if not ZQuery3.Active then exit;
   for i := 0 to ZQuery3.RecordCount - 1 do
   begin
     Result.Add( ZQuery3.Fields[x].AsString );
@@ -4796,8 +4796,9 @@ begin
 
   ds := TZReadOnlyQuery.Create(Self);
   ds.Connection := FMysqlConn.Connection;
-  GetResults( 'SHOW DATABASES', ds );
-  
+  GetResults( 'SHOW DATABASES', ds);
+  if not ds.Active then exit;
+
   while not ds.Eof do
     begin
       dbName := ds.FieldByName('Database').AsString;
@@ -4874,20 +4875,24 @@ const
   ROUNDING: Integer = 1000;
 begin
   result := -1;
-  GetResults( 'SHOW TABLE STATUS LIKE ' + esc(Table), ZQuery3 );
-  AvgRowSize := MakeInt( ZQuery3.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
-  RecordCount := MakeInt( ZQuery3.FieldByName( 'Rows' ).AsString );
-  if AvgRowSize * RecordCount > LOAD_SIZE then
-  begin
-    result := Trunc( LOAD_SIZE / AvgRowSize );
-    result := (Trunc(result / ROUNDING) + 1) * ROUNDING;
-    if result >= RecordCount then
-      result := -1;
+  try
+    GetResults('SHOW TABLE STATUS LIKE ' + esc(Table), ZQuery3);
+    if not ZQuery3.Active then exit;
+    AvgRowSize := MakeInt( ZQuery3.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
+    RecordCount := MakeInt( ZQuery3.FieldByName( 'Rows' ).AsString );
+    if AvgRowSize * RecordCount > LOAD_SIZE then
+    begin
+      result := Trunc( LOAD_SIZE / AvgRowSize );
+      result := (Trunc(result / ROUNDING) + 1) * ROUNDING;
+      if result >= RecordCount then result := -1;
+    end;
+  finally
+    debug( 'GetCalculatedLimit: ' + formatnumber(result) );
   end;
-  debug( 'GetCalculatedLimit: ' + formatnumber(result) );
 end;
 
 
 end.
+
 
 
