@@ -300,7 +300,7 @@ type
     procedure ShowTableProperties(Sender: TObject);
     procedure ListTablesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
-    procedure ValidateDbActions;
+    procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure SelectHost;
     procedure SelectDatabase(db: string);
     procedure SelectTable(db: string; table: string);
@@ -874,8 +874,8 @@ begin
       WriteString('lastUsedDB', ActualDatabase);
     end;
   end;
-  mainform.ToolBarData.visible := false;
   FormDeactivate(sender);
+  mainform.ToolBarData.visible := false;
   Action := caFree;
   SetWindowConnected(false);
   SetWindowName(main.discname);
@@ -1428,7 +1428,6 @@ end;
   Occurs when active tab has changed.
 }
 procedure TMDIChild.pcChange(Sender: TObject);
-var DataOrQueryTab : Boolean;
 begin
   tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
 
@@ -1443,25 +1442,13 @@ begin
     else
       Panel6.Caption := 'SQL-Query on Host ' + FConnParams.MysqlParams.Host + ':';
 
-  // copy and save csv-buttons
-  DataOrQueryTab := (PageControlMain.ActivePage = tabQuery) or (PageControlMain.ActivePage = tabData);
-  with mainform do begin
-    Copy2CSV.Enabled := DataOrQueryTab;
-    CopyHTMLtable.Enabled := DataOrQueryTab;
-    Copy2XML.Enabled := DataOrQueryTab;
-    ExportData.Enabled := DataOrQueryTab;
-    PrintList.Enabled := not DataOrQueryTab;
-    ToolBarData.Visible:= (PageControlMain.ActivePage = tabData);
-    DBNavigator1.DataSource := DataSource1;
-  end;
-  tabBlobEditor.tabVisible := DataOrQueryTab;
-
   // Move focus to relevant controls in order for them to receive keyboard events.
   if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
   if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
   if PageControlMain.ActivePage = tabData then gridData.SetFocus;
 
-  ValidateDbActions;
+  // Ensure controls are in a valid state
+  ValidateControls;
 end;
 
 
@@ -1893,20 +1880,29 @@ begin
   for i := 0 to ListTables.Items.Count - 1 do
     ListTables.Items[i].ImageIndex := 39;
   if (ListTables.Selected <> nil) then ListTables.Selected.ImageIndex := 40;
-  ValidateDbActions;
+  ValidateControls;
 end;
 
-// Enable/disable various buttons and menu items.
-// Invoked when active sheet changes or highlighted database changes.
-procedure TMDIChild.ValidateDbActions;
+{***
+  Enable/disable various buttons and menu items.
+  Invoked when
+    - active sheet changes
+    - highlighted database changes
+    - ChildWindow is activated / deactivated
+  @param boolean Is this form activated in terms of our remaining MDI-functionality?
+    Only used with False by FormDeactivate-procedure to
+    deactivate various controls on mainform
+}
+procedure TMDIChild.ValidateControls( FrmIsFocussed: Boolean = true );
 var
   tableSelected : Boolean;
+  inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
   if (PageControlMain.ActivePage <> tabDatabase) then ListTables.Selected := nil;
 
-  tableSelected := (ListTables.Selected <> nil);
+  tableSelected := (ListTables.Selected <> nil) and FrmIsFocussed;
   btnDbProperties.Enabled := tableSelected;
   menuproperties.Enabled := tableSelected;
   btnDbInsertRecord.Enabled := tableSelected;
@@ -1930,9 +1926,96 @@ begin
   MenuAnalyze.Enabled := tableSelected;
   MenuRepair.Enabled := tableSelected;
 
-  MainForm.ButtonDropDatabase.Enabled := ActualDatabase <> '';
-  MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (ActualTable <> ''));
-  MainForm.ButtonCreateTable.Enabled := ActualDatabase <> '';
+  MainForm.ButtonDropDatabase.Enabled := (ActualDatabase <> '') and FrmIsFocussed;
+  MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (ActualTable <> '') and FrmIsFocussed);
+  MainForm.ButtonCreateTable.Enabled := (ActualDatabase <> '') and FrmIsFocussed;
+
+  with MainForm do
+  begin
+    ButtonRefresh.Enabled := FrmIsFocussed;
+    ButtonReload.Enabled := FrmIsFocussed;
+    ExportTables.Enabled := FrmIsFocussed;
+    ButtonImportTextfile.Enabled := FrmIsFocussed;
+    ButtonCreateTable.Enabled := FrmIsFocussed;
+    ButtonCreateDatabase.Enabled := FrmIsFocussed;
+    ButtonDropDatabase.Enabled := false;
+    MenuRefresh.Enabled := FrmIsFocussed;
+    MenuExport.Enabled := FrmIsFocussed;
+    MenuImportTextFile.Enabled := FrmIsFocussed;
+    MenuCreateTable.Enabled := FrmIsFocussed;
+    MenuCreateDatabase.Enabled := FrmIsFocussed;
+    MenuDropDatabase.Enabled := FrmIsFocussed;
+    DropTable.Enabled := FrmIsFocussed;
+    LoadSQL.Enabled := FrmIsFocussed;
+    MenuFlushHosts.Enabled := FrmIsFocussed;
+    MenuFlushLogs.Enabled := FrmIsFocussed;
+    FlushUserPrivileges1.Enabled := FrmIsFocussed;
+    MenuFlushTables.Enabled := FrmIsFocussed;
+    MenuFlushTableswithreadlock.Enabled := FrmIsFocussed;
+    MenuFlushStatus.Enabled := FrmIsFocussed;
+    UserManager.Enabled := FrmIsFocussed;
+    Diagnostics.Enabled := FrmIsFocussed;
+    InsertFiles.Enabled := FrmIsFocussed;
+    {***
+      Activate export-options if we're on Data- or Query-tab
+      PrintList should only be active if we're focussing one of the ListViews,
+      at least as long we are not able to print DBGrids
+      @see Issue 1686582
+    }
+    inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
+    PrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
+    {***
+      @note ansgarbecker, 2007-31-03
+        1. For data-tab-queries (threaded queries) the TDatasource does *not* have
+        an linked TDataset/TZquery in case of a SQL-error. To avoid an AV with
+        NIL-reference we have to first check if the Dataset is existant - if not,
+        assume the datagrid is empty.
+        2. For query-tab-queries (not threaded) the TZQuery is linked
+        to the TDatasource and we can safely ask for TDataset.IsEmpty without
+        causing a NIL-reference.
+      @todo use the same threaded process for both datagrid and query-grid
+    }
+    inDataOrQueryTabNotEmpty := inDataOrQueryTab and
+      not (
+        (getActiveGrid.DataSource.DataSet = nil)
+        or getActiveGrid.DataSource.DataSet.IsEmpty
+      );
+    Copy2CSV.Enabled := inDataOrQueryTabNotEmpty;
+    CopyHTMLtable.Enabled := inDataOrQueryTabNotEmpty;
+    Copy2XML.Enabled := inDataOrQueryTabNotEmpty;
+    ExportData.Enabled := inDataOrQueryTabNotEmpty;
+    HTMLView.Enabled := inDataOrQueryTabNotEmpty;
+    Self.Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
+    ToolBarData.visible := (PageControlMain.ActivePage = tabData);
+    if FrmIsFocussed then
+      DBNavigator1.DataSource := DataSource1;
+    btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
+    menuSQLHelp.Enabled := btnSQLHelp.Enabled and FrmIsFocussed;
+    {***
+      @todo: Move TPopupMenu "SQLfunctions" from mainform to childwin,
+        so we only need to enable/disable certain menuitems here.
+        The whole menu belongs to childwin's query-tab. For now
+        leave it there and only fix the "enablings"
+    }
+    if FrmIsFocussed then
+    begin
+      menuLoad.OnClick := self.btnQueryLoadClick;
+      menuSave.OnClick := self.btnQuerySaveClick;
+    end
+    else
+    begin
+      menuLoad.OnClick := nil;
+      menuSave.OnClick := nil;
+      MainForm.showstatus('', 1); // empty connected_time
+    end;
+    tabBlobEditor.tabVisible := inDataOrQueryTab;
+  end;
+
+  Mainform.UserManager.Enabled := CanAcessMysqlFlag and FrmIsFocussed;
+  if not CanAcessMysqlFlag then
+    Mainform.UserManager.Hint := 'you have no access to the privilege-tables'
+  else
+    Mainform.UserManager.Hint := 'User-Manager';
 end;
 
 
@@ -2347,6 +2430,8 @@ begin
       for i:=0 to gridQuery.Columns.count-1 do
         if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
           gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+    // Ensure controls are in a valid state
+    ValidateControls;
     viewingdata := false;
     ZQuery1.EnableControls;
     Screen.Cursor := crdefault;
@@ -2652,109 +2737,14 @@ end;
 
 
 procedure TMDIChild.FormActivate(Sender: TObject);
-var
-  inDataOrQueryTab : Boolean;
 begin
-  if FMysqlConn.IsConnected then
-  begin
-    with MainForm do
-    begin
-      ButtonRefresh.Enabled := true;
-      ButtonReload.Enabled := true;
-      ExportTables.Enabled := true;
-      ButtonImportTextfile.Enabled := true;
-      ButtonCreateTable.Enabled := true;
-      ButtonCreateDatabase.Enabled := true;
-      ButtonDropDatabase.Enabled := false;
-      MenuRefresh.Enabled := true;
-      MenuExport.Enabled := true;
-      MenuImportTextFile.Enabled := true;
-      MenuCreateTable.Enabled := true;
-      MenuCreateDatabase.Enabled := true;
-      MenuDropDatabase.Enabled := true;
-      DropTable.Enabled := true;
-      LoadSQL.Enabled := true;
-      MenuFlushHosts.Enabled := true;
-      MenuFlushLogs.Enabled := true;
-      FlushUserPrivileges1.Enabled := true;
-      MenuFlushTables.Enabled := true;
-      MenuFlushTableswithreadlock.Enabled := true;
-      MenuFlushStatus.Enabled := true;
-      UserManager.Enabled := true;
-      Diagnostics.Enabled := true;
-      InsertFiles.Enabled := true;
-      {***
-        Activate export-options if we're on Data- or Query-tab
-        PrintList should only be active if we're focussing one of the ListViews,
-        at least as long we are not able to print DBGrids
-        @see Issue 1686582  
-      }
-      inDataOrQueryTab := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery);
-      PrintList.Enabled := not inDataOrQueryTab;
-      Copy2CSV.Enabled := inDataOrQueryTab;
-      CopyHTMLtable.Enabled := inDataOrQueryTab;
-      Copy2XML.Enabled := inDataOrQueryTab;
-      ExportData.Enabled := inDataOrQueryTab;
-      ToolBarData.visible := (PageControlMain.ActivePage = tabData);
-      DBNavigator1.DataSource := DataSource1;
-      //DBtreeChange( self, DBTree.Selected );
-      btnSQLHelp.Enabled := (mysql_version >= 40100);
-      menuSQLHelp.Enabled := btnSQLHelp.Enabled;
-      menuLoad.OnClick := self.btnQueryLoadClick;
-      menuSave.OnClick := self.btnQuerySaveClick;
-    end;
-  end;
   TimerConnected.OnTimer(self);
-
-  mainform.MenuUserManager.Enabled := CanAcessMysqlFlag;
-  mainform.ButtonUserManager.Enabled := CanAcessMysqlFlag;
-  if not CanAcessMysqlFlag then
-  begin
-    mainform.MenuUserManager.Hint := 'you have no access to the privilege-tables';
-    mainform.ButtonUserManager.Hint := 'you have no access to the privilege-tables';
-  end;
-  // Otherwise leave the default hint
+  ValidateControls;
 end;
 
 procedure TMDIChild.FormDeactivate(Sender: TObject);
 begin
-  with MainForm do
-  begin
-    ButtonRefresh.Enabled := false;
-    ButtonReload.Enabled := false;
-    ExportTables.Enabled := false;
-    ButtonImportTextfile.Enabled := false;
-    ButtonCreateTable.Enabled := false;
-    ButtonCreateDatabase.Enabled := false;
-    ButtonDropDatabase.Enabled := false;
-    MenuRefresh.Enabled := false;
-    MenuExport.Enabled := false;
-    MenuImportTextFile.Enabled := false;
-    MenuCreateTable.Enabled := false;
-    MenuCreateDatabase.Enabled := false;
-    MenuDropDatabase.Enabled := false;
-    DropTable.Enabled := false;
-    MenuFlushHosts.Enabled := false;
-    MenuFlushLogs.Enabled := false;
-    FlushUserPrivileges1.Enabled := false;
-    MenuFlushTables.Enabled := false;
-    MenuFlushTableswithreadlock.Enabled := false;
-    MenuFlushStatus.Enabled := false;
-    UserManager.Enabled := false;
-    Diagnostics.Enabled := false;
-    InsertFiles.Enabled := false;
-    PrintList.Enabled := false;
-    Copy2CSV.Enabled := false;
-    CopyHTMLtable.Enabled := false;
-    Copy2XML.Enabled := false;
-    ExportData.Enabled := false;
-    LoadSQL.Enabled := false;
-    btnSQLHelp.Enabled := false;
-    menuSQLHelp.Enabled := false;
-    menuLoad.OnClick := nil;
-    menuSave.OnClick := nil;
-  end;
-  MainForm.showstatus('', 1); // empty connected_time
+  ValidateControls( False );
 end;
 
 

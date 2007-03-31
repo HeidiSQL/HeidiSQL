@@ -1179,7 +1179,7 @@ begin
     end;
 
     // Fix actions temporarily enabled for popup menu.
-    ValidateDbActions;
+    ValidateControls;
 
     if MessageDlg('Drop ' + inttostr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
       exit;
