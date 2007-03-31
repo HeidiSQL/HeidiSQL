@@ -4858,9 +4858,14 @@ end;
 
 procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
 begin
+  FQueryRunning := true;
   try
-    CheckConnection;
-  except
+    try
+      CheckConnection;
+    except
+    end;
+  finally
+    FQueryRunning := False;
   end;
 end;
 
