@@ -2337,11 +2337,17 @@ begin
 
   finally
     FQueryRunning := false;
+    // Avoid excessive GridHighlightChanged() when flicking controls.
+    viewingdata := true;
+    // Flick controls so that column resizing will work (?)
+    ZQuery1.EnableControls;
+    ZQuery1.DisableControls;
     // resize all columns, if they are more wide than Mainform.DefaultColWidth
     if Mainform.DefaultColWidth <> 0 then
       for i:=0 to gridQuery.Columns.count-1 do
         if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
           gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+    viewingdata := false;
     ZQuery1.EnableControls;
     Screen.Cursor := crdefault;
 	  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
