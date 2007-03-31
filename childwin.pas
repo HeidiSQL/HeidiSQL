@@ -1374,6 +1374,8 @@ var
   rows_matching  : Int64; // rows matching to where-filter
   rows_total     : Int64; // total rowcount
 begin
+  if ActiveGrid = gridQuery then exit;
+  
   // Get rowcount
   rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ) );
 
