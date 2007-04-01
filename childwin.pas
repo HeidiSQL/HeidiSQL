@@ -1829,15 +1829,10 @@ function TMDIChild.ExecuteQuery(query: string): TDataSet;
 var
   ds: TZReadOnlyQuery;
 begin
-  FQueryRunning := true;
-  try
-    ds := TZReadOnlyQuery.Create(nil);
-    ds.Connection := MysqlConn.Connection;
-    GetResults(query, ds, false, false);
-    result := ds;
-  finally
-    FQueryRunning := false;
-  end;
+  ds := TZReadOnlyQuery.Create(nil);
+  ds.Connection := MysqlConn.Connection;
+  GetResults(query, ds, false, false);
+  result := ds;
 end;
 
 
