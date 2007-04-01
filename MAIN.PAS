@@ -242,7 +242,7 @@ var
   StatusText : String = 'Initializing...';
   StatusIconIndex : Integer = 43;
   loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
-  appversion : String = '3.0 RC4 $Rev$';
+  appversion : String = '3.0 $Rev$';
   DIRNAME_SNIPPETS : String;
 
 const
