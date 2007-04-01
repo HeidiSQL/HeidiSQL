@@ -127,6 +127,7 @@ begin
     end;
     // Set result.
     item.res := Results;
+    item.ex := AnException;
     // Stop timer.
     // todo: stop timeout timer.
   finally

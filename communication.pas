@@ -378,7 +378,7 @@ begin
     end;
     RES_EXCEPTION: begin
       s := GetExceptionTextFromMsg(msg);
-      NotifyInterrupted(req, Exception.Create(s));
+      NotifyInterrupted(req, Exception.Create('Error from remote: ' + s));
     end;
   end;
 end;
