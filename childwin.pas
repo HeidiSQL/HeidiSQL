@@ -4150,6 +4150,8 @@ begin
   DBMemo1.Color := clWindow;
   btnUnsafeEdit.Enabled := false;
   DBMemo1.SetFocus;
+  // Sets the grid in edit-state so posting won't ignore changes
+  gridData.DataSource.Edit;
 end;
 
 procedure TMDIChild.DBGridDblClick(Sender: TObject);
