@@ -448,6 +448,7 @@ type
       QueryRunningInterlock      : Integer;
       lastUsedDB                 : String;
 
+      function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
       function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
@@ -476,7 +477,7 @@ type
       function ExecSelectQuery (AQuery : String) : TMysqlQuery;
       procedure ExecUseQuery (ADatabase : String);
 
-      property FQueryRunning: Boolean write SetQueryRunning;
+      property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property ConnParams : TConnParams read FConnParams;
@@ -565,6 +566,12 @@ begin
     end;
   end;
 
+end;
+
+
+function TMDIChild.GetQueryRunning: Boolean;
+begin
+  result := QueryRunningInterlock = 1;
 end;
 
 
@@ -4852,15 +4859,18 @@ end;
 
 
 procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
+var
+  prev: boolean;
 begin
-  FQueryRunning := true;
+  prev := FQueryRunning;
+  if not prev then FQueryRunning := true;
   try
     try
       CheckConnection;
     except
     end;
   finally
-    FQueryRunning := False;
+    if not prev then FQueryRunning := false;
   end;
 end;
 
