@@ -633,9 +633,6 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Copy|Copy to Clipboard'
       ImageIndex = 1
-      ShortCut = 16451
-      SecondaryShortCuts.Strings = (
-        'Ctrl+Ins')
     end
     object EditPaste1: TEditPaste
       Tag = 58
@@ -643,9 +640,6 @@ object MainForm: TMainForm
       Caption = '&Paste'
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 2
-      ShortCut = 16470
-      SecondaryShortCuts.Strings = (
-        'Shift+Ins')
     end
     object UserManager: TAction
       Tag = 34
