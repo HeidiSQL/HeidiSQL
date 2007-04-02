@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Spin, Registry, ExtCtrls;
+  StdCtrls, ComCtrls, Spin, Registry, ExtCtrls, DBGrids;
 
 type
   Toptionsform = class(TForm)
@@ -194,6 +194,17 @@ begin
       DBMemo1.Font := self.Panel8.font;
       gridData.Refresh;
 //      DBMemo1.Font.Charset := tfontcharset(177);
+      // Set the grid-cells to always-edit-mode if set
+      if CheckBoxDataAlwaysEditMode.Checked then
+      begin
+        gridData.Options := gridData.Options + [dgAlwaysShowEditor];
+        gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
+      end
+      else
+      begin
+        gridData.Options := gridData.Options - [dgAlwaysShowEditor];
+        gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
+      end;
     end;
   end;
 
