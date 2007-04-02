@@ -748,8 +748,9 @@ end;
 }
 procedure TFieldEditForm.UpdateKeys(Sender: TObject);
 var
-  i,j, index : Integer;
+  i,j,k, index : Integer;
   query1, query : String;
+  columns_sql : String;
 begin
   query1 := 'ALTER TABLE ' + mainform.mask(TMDIChild(Application.Mainform.ActiveMDIChild).ActualTable);
   for i:=0 to TempKeys.Count-1 do begin
@@ -765,22 +766,32 @@ begin
 
     if (index > -1) and (klist[index].Modified) then begin
       // modify existing key
+
+      // Prepare columns-list
+      columns_sql := '';
+      for k := 0 to klist[index].Columns.Count - 1 do
+      begin
+        columns_sql := columns_sql + mainform.mask( klist[index].Columns[k] );
+        if k < klist[index].Columns.Count-1 then
+          columns_sql := columns_sql + ', ';
+      end;
+
       // PK:
       if klist[index].Name = 'PRIMARY' then
         query := query1 + ' DROP PRIMARY KEY' +
-          ', ADD PRIMARY KEY (' + implodestr(',', klist[index].Columns) + ')'
+          ', ADD PRIMARY KEY (' + columns_sql + ')'
       // UNIQUE:
       else if klist[index].Unique then
         query := query1 + ' DROP INDEX ' + mainform.mask(klist[index].Name) +
-          ', ADD UNIQUE ' + klist[index].Name + ' (' + implodestr(',', klist[index].Columns) + ')'
+          ', ADD UNIQUE ' + mainform.mask(klist[index].Name) + ' (' + columns_sql + ')'
       // FULLTEXT:
       else if klist[index].Fulltext then
         query := query1 + ' DROP INDEX ' + mainform.mask(klist[index].Name) +
-          ', ADD FULLTEXT ' + klist[index].Name + ' (' + implodestr(',', klist[index].Columns) + ')'
+          ', ADD FULLTEXT ' + mainform.mask(klist[index].Name) + ' (' + columns_sql + ')'
       // INDEX:
       else
         query := query1 + ' DROP INDEX '+ mainform.mask(klist[index].Name) +
-          ', ADD INDEX '+klist[index].Name+' (' + implodestr(',', klist[index].Columns) + ')';
+          ', ADD INDEX ' + mainform.mask(klist[index].Name) + ' (' + columns_sql + ')';
       TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
       klist[index].Modified := false;
     end
@@ -801,18 +812,28 @@ begin
   for j:=0 to length(klist)-1 do begin
     if (not klist[j].Ready) then begin
       // Add a new key
+
+      // Prepare columns-list
+      columns_sql := '';
+      for k := 0 to klist[j].Columns.Count - 1 do
+      begin
+        columns_sql := columns_sql + mainform.mask( klist[j].Columns[k] );
+        if k < klist[j].Columns.Count-1 then
+          columns_sql := columns_sql + ', ';
+      end;
+
       // PK:
       if klist[j].Name = 'PRIMARY' then
-        query := query1 + ' ADD PRIMARY KEY (' + implodestr(',', klist[j].Columns) + ')'
+        query := query1 + ' ADD PRIMARY KEY (' + columns_sql + ')'
       // UNIQUE:
       else if klist[j].Unique then
-        query := query1 + ' ADD UNIQUE ' + mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')'
+        query := query1 + ' ADD UNIQUE ' + mainform.mask(klist[j].Name) + ' (' + columns_sql + ')'
       // UNIQUE:
       else if klist[j].Fulltext then
-        query := query1 + ' ADD FULLTEXT ' + mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')'
+        query := query1 + ' ADD FULLTEXT ' + mainform.mask(klist[j].Name) + ' (' + columns_sql + ')'
       // INDEX:
       else
-        query := query1 + ' ADD INDEX '+ mainform.mask(klist[j].Name) + ' (' + implodestr(',', klist[j].Columns) + ')';
+        query := query1 + ' ADD INDEX '+ mainform.mask(klist[j].Name) + ' (' + columns_sql + ')';
       TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
     end;
   end;
