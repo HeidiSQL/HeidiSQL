@@ -258,10 +258,7 @@ begin
 
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    ZQuery3.SQL.Clear();
-    ZQuery3.SQL.Add( 'SHOW KEYS FROM ' + mainform.mask(ActualTable) );
-    ZQuery3.Open;
-    ZQuery3.First;
+    GetResults( 'SHOW KEYS FROM ' + mainform.mask(ActualTable), ZQuery3 );
     for i:=1 to ZQuery3.RecordCount do
     begin
       if TempKeys.IndexOf(ZQuery3.Fields[2].AsString) = -1 then
