@@ -1723,22 +1723,46 @@ end;
 function getFirstWord( text: String ): String;
 var
   i : Integer;
+  wordChars : Set of Char;
 begin
   result := '';
   text := trim( text );
-  // Check chars if they are either alphabetic or numeric
-  // Starting with char nr. 2, because we expect the very first
-  // char to be meant to be some part of a word, even if THIS one
-  // not alphabetical or numerical.
-  for i := 2 to Length(text) - 1 do
+  wordChars := ['a'..'z', 'A'..'Z', '0'..'9', '_', '-'];
+  i := 1;
+
+  // Find beginning of the first word, ignoring non-alphanumeric chars at the very start
+  // @see bug #1692828
+  while i < Length(text) do
   begin
-    if not (text[i] in ['a'..'z', 'A'..'Z', '0'..'9', '_', '-']) then
+    if (text[i] in wordChars) then
     begin
-      // Stop here because we found a non-alphabetic or non-numeric chars.
-      // This applies to all different whitespaces, brackets, commas etc.
-      result := copy( text, 1, i-1 );
+      // Found beginning of word!
       break;
     end;
+    if i = Length(text)-1 then
+    begin
+      // Give up in the very last loop, reset counter
+      // and break. We can't find the start of a word
+      i := 1;
+      break;
+    end;
+    inc(i);
+  end;
+
+  // Add chars as long as they're alpha-numeric
+  while i < Length(text) do
+  begin
+    if (text[i] in wordChars) then
+    begin
+      result := result + text[i];
+    end
+    else
+    begin
+      // Stop here because we found a non-alphanumeric char.
+      // This applies to all different whitespaces, brackets, commas etc.
+      break;
+    end;
+    inc(i);
   end;
 end;
 
