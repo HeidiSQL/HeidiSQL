@@ -53,7 +53,6 @@ type
     ResetWindowOptions1: TMenuItem;
     N5: TMenuItem;
     MenuImportTextFile: TMenuItem;
-    Timer1: TTimer;
     Flush1: TMenuItem;
     MenuFlushLogs: TMenuItem;
     MenuFlushHosts: TMenuItem;
@@ -172,7 +171,6 @@ type
     procedure ButtonAdvancedPropertiesClick(Sender: TObject);
     procedure ResetWindowOptions1Click(Sender: TObject);
     procedure ButtonImportTextfileClick(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
     procedure MenuPreferencesClick(Sender: TObject);
     procedure menuReadmeClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -538,7 +536,7 @@ begin
   // Folder which contains snippet-files
   DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + APPNAME + '\Snippets\'; // CSIDL_COMMON_APPDATA
 
-  timer1.Enabled := true;
+  ShowConnections(self);
 end;
 
 procedure TMainForm.insertFunction(sender: TObject);
@@ -653,13 +651,6 @@ procedure TMainForm.ButtonImportTextfileClick(Sender: TObject);
 begin
   // Import Textfile
   loaddataform.showmodal;
-end;
-
-procedure TMainForm.Timer1Timer(Sender: TObject);
-begin
-  // Startup!
-  timer1.Enabled := false;
-  ShowConnections(self);
 end;
 
 procedure TMainForm.MenuPreferencesClick(Sender: TObject);
