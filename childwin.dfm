@@ -1588,8 +1588,8 @@ object MDIChild: TMDIChild
     Left = 7
     Top = 120
   end
-  object Timer1: TTimer
-    OnTimer = Timer1Timer
+  object TimerHostUptime: TTimer
+    OnTimer = TimerHostUptimeTimer
     Left = 7
     Top = 157
   end
@@ -1924,10 +1924,10 @@ object MDIChild: TMDIChild
       OnClick = Saveastextfile1Click
     end
   end
-  object Timer5: TTimer
+  object TimerConnectErrorCloseWindow: TTimer
     Enabled = False
     Interval = 10
-    OnTimer = Timer5Timer
+    OnTimer = TimerConnectErrorCloseWindowTimer
     Left = 39
     Top = 157
   end

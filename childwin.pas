@@ -75,7 +75,7 @@ type
     Splitter3: TSplitter;
     menucreatetable: TMenuItem;
     OpenDialog1: TOpenDialog;
-    Timer1: TTimer;
+    TimerHostUptime: TTimer;
     popupTableGrid: TPopupMenu;
     Refresh2: TMenuItem;
     DropField1: TMenuItem;
@@ -114,7 +114,7 @@ type
     MenuAnalyze: TMenuItem;
     MenuRepair: TMenuItem;
     More1: TMenuItem;
-    Timer5: TTimer;
+    TimerConnectErrorCloseWindow: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
     Panel9: TPanel;
@@ -320,7 +320,7 @@ type
     procedure DropField(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
     procedure CreateTable(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
+    procedure TimerHostUptimeTimer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -343,7 +343,7 @@ type
     procedure MenuAnalyzeClick(Sender: TObject);
     procedure MenuRepairClick(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
-    procedure Timer5Timer(Sender: TObject);
+    procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
     procedure Filter1Click(Sender: TObject);
     procedure MenuLimitClick(Sender: TObject);
@@ -657,7 +657,7 @@ begin
   try
     PerformConnect;
   except
-    timer5.Enabled := true;
+    TimerConnectErrorCloseWindow.Enabled := true;
     Exit;
   end;
 
@@ -2211,8 +2211,8 @@ begin
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
 
-  Timer1Timer(self);
-  Timer1.OnTimer := Timer1Timer;
+  TimerHostUptimeTimer(self);
+  TimerHostUptime.OnTimer := TimerHostUptimeTimer;
 
   ListVariables.Items.EndUpdate;
   tabVariables.Caption := 'Variables (' + inttostr(ListVariables.Items.Count) + ')';
@@ -2736,7 +2736,7 @@ begin
 end;
 
 
-procedure TMDIChild.Timer1Timer(Sender: TObject);
+procedure TMDIChild.TimerHostUptimeTimer(Sender: TObject);
 var
   days, hours, minutes, seconds : Integer;
 begin
@@ -3060,10 +3060,10 @@ begin
 end;
 
 
-procedure TMDIChild.Timer5Timer(Sender: TObject);
+procedure TMDIChild.TimerConnectErrorCloseWindowTimer(Sender: TObject);
 begin
   // can't connect -> close MDI-Child
-  timer5.Enabled := false;
+  TimerConnectErrorCloseWindow.Enabled := false;
   Mainform.Showstatus('', 1);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   close;
