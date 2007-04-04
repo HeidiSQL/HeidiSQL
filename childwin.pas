@@ -1158,6 +1158,7 @@ begin
       for i:=0 to orderclauses.Count-1 do
       begin
         columnname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
+        columnname := trimc( columnname, '`' );
         columnexists := false;
         for j:=0 to ListColumns.Items.Count-1 do
         begin
