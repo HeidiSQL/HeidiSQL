@@ -2738,18 +2738,18 @@ end;
 
 procedure TMDIChild.Timer1Timer(Sender: TObject);
 var
-  tage, stunden, minuten, sekunden : Integer;
+  days, hours, minutes, seconds : Integer;
 begin
   // Host-Uptime
-  tage:= uptime div (60*60*24);
-  sekunden := uptime mod (60*60*24);
-  stunden := sekunden div (60*60);
-  sekunden := sekunden mod (60*60);
-  minuten  := sekunden div 60;
-  sekunden := sekunden mod 60;
+  days:= uptime div (60*60*24);
+  seconds := uptime mod (60*60*24);
+  hours := seconds div (60*60);
+  seconds := seconds mod (60*60);
+  minutes  := seconds div 60;
+  seconds := seconds mod 60;
 
   inc(uptime);
-  Panel4.Caption := format(strHostRunning + '%d days, %.2d:%.2d:%.2d', [tage,stunden,minuten,sekunden])
+  Panel4.Caption := format(strHostRunning + '%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds])
 end;
 
 
