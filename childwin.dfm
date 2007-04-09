@@ -355,12 +355,12 @@ object MDIChild: TMDIChild
             SmallImages = MainForm.ImageList1
             TabOrder = 1
             ViewStyle = vsReport
-            OnChange = ListTablesChange
             OnColumnRightClick = ListTablesColumnRightClick
             OnDblClick = ListTablesDblClick
             OnEdited = ListTablesEdited
             OnEditing = ListTablesEditing
             OnMouseDown = ListTablesMouseDown
+            OnSelectItem = ListTablesSelectItem
             ImageIndexSortAsc = 95
             ImageIndexSortDesc = 94
             ExplicitHeight = 218

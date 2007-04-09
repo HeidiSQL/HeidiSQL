@@ -266,6 +266,8 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
+    procedure ListTablesSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -298,8 +300,6 @@ type
     procedure viewdata(Sender: TObject);
     procedure ShowDBProperties(Sender: TObject);
     procedure ShowTableProperties(Sender: TObject);
-    procedure ListTablesChange(Sender: TObject; Item: TListItem;
-      Change: TItemChange);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure SelectHost;
     procedure SelectDatabase(db: string);
@@ -1875,8 +1875,13 @@ begin
 end;
 
 
-procedure TMDIChild.ListTablesChange(Sender: TObject; Item: TListItem;
-  Change: TItemChange);
+
+{***
+  Selection in ListTables is changing
+  Used to change the iconindex of selected items and to trigger ValidateControls
+}
+procedure TMDIChild.ListTablesSelectItem(Sender: TObject; Item: TListItem;
+  Selected: Boolean);
 var
   i: integer;
 begin
@@ -1885,6 +1890,8 @@ begin
   if (ListTables.Selected <> nil) then ListTables.Selected.ImageIndex := 40;
   ValidateControls;
 end;
+
+
 
 {***
   Enable/disable various buttons and menu items.
