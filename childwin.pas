@@ -270,6 +270,8 @@ type
       Selected: Boolean);
     procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure ListProcessesSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -311,8 +313,6 @@ type
     procedure DropDB(Sender: TObject);
     procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
-    procedure ListProcessesChange(Sender: TObject; Item: TListItem;
-      Change: TItemChange);
     procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
@@ -2272,8 +2272,8 @@ begin
 end;
 
 
-procedure TMDIChild.ListProcessesChange(Sender: TObject; Item: TListItem;
-  Change: TItemChange);
+procedure TMDIChild.ListProcessesSelectItem(Sender: TObject; Item: TListItem;
+  Selected: Boolean);
 begin
   Kill1.Enabled := (ListProcesses.Selected <> nil) and (PageControlHost.ActivePage = tabProcessList);
 end;
@@ -2299,7 +2299,7 @@ end;
 
 procedure TMDIChild.PageControlHostChange(Sender: TObject);
 begin
-  ListProcessesChange(self, nil, TItemChange(self));
+  ListProcessesSelectItem(self, nil, False);
 end;
 
 

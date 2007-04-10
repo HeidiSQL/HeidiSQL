@@ -205,7 +205,7 @@ object MDIChild: TMDIChild
                 SmallImages = MainForm.ImageList1
                 TabOrder = 0
                 ViewStyle = vsReport
-                OnChange = ListProcessesChange
+                OnSelectItem = ListProcessesSelectItem
                 ImageIndexSortAsc = 95
                 ImageIndexSortDesc = 94
                 ExplicitHeight = 197
