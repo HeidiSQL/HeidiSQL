@@ -268,6 +268,8 @@ type
     btnUnsafeEdit: TToolButton;
     procedure ListTablesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -315,8 +317,6 @@ type
     procedure KillProcess(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false; CurrentLine: Boolean=false);
-    procedure ListColumnsChange(Sender: TObject; Item: TListItem;
-      Change: TItemChange);
     procedure DropField(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
     procedure CreateTable(Sender: TObject);
@@ -2466,8 +2466,8 @@ end;
 
 
 
-procedure TMDIChild.ListColumnsChange(Sender: TObject; Item: TListItem;
-  Change: TItemChange);
+procedure TMDIChild.ListColumnsSelectItem(Sender: TObject; Item: TListItem;
+  Selected: Boolean);
 begin
   // Clicked somewhere in the field-list of the "Table"-tabsheet
 

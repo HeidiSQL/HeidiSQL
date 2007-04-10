@@ -101,6 +101,10 @@ object MDIChild: TMDIChild
         object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -113,6 +117,10 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -277,6 +285,10 @@ object MDIChild: TMDIChild
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 38
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             496
             220)
@@ -452,6 +464,10 @@ object MDIChild: TMDIChild
         object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 40
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             496
             220)
@@ -580,9 +596,9 @@ object MDIChild: TMDIChild
               SmallImages = MainForm.ImageList1
               TabOrder = 0
               ViewStyle = vsReport
-              OnChange = ListColumnsChange
               OnDblClick = UpdateField
               OnKeyUp = controlsKeyUp
+              OnSelectItem = ListColumnsSelectItem
               ImageIndexSortAsc = 95
               ImageIndexSortDesc = 94
               ExplicitHeight = 218
@@ -1063,6 +1079,10 @@ object MDIChild: TMDIChild
     object tabBlobEditor: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1141,6 +1161,10 @@ object MDIChild: TMDIChild
         OnChange = PageControlBlobEditorsChange
         object tabBlobEditorText: TTabSheet
           Caption = 'Text'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1194,6 +1218,10 @@ object MDIChild: TMDIChild
     object tabFilter: TTabSheet
       Caption = 'Filter'
       ImageIndex = 81
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
