@@ -1,4 +1,4 @@
-unit uSerREG;
+unit UserReg;
 
 interface
 
