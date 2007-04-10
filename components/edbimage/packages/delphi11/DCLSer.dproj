@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>C:\Documents and Settings\Administrador\Meus documentos\RAD Studio\Projects\bpl\DCLSer110.bpl</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documentos\RAD Studio\5.0\Bpl\DCLSer110.bpl</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -17,8 +17,8 @@
     <DCC_DcuOutput>..\..\build</DCC_DcuOutput>
     <DCC_ObjOutput>..\..\build</DCC_ObjOutput>
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
-    <DCC_BplOutput>$(BDSPROJECTSDIR)\bpl</DCC_BplOutput>
-    <DCC_DcpOutput>$(BDSPROJECTSDIR)\bpl</DCC_DcpOutput>
+    <DCC_BplOutput>$(BDSCOMMONDIR)\Bpl</DCC_BplOutput>
+    <DCC_DcpOutput>$(BDSCOMMONDIR)\Dcp</DCC_DcpOutput>
     <DCC_UnitSearchPath>..\..\..\compilerdetection</DCC_UnitSearchPath>
     <DCC_ResourcePath>..\..\..\compilerdetection</DCC_ResourcePath>
     <DCC_ObjPath>..\..\..\compilerdetection</DCC_ObjPath>
@@ -33,8 +33,8 @@
     <DCC_DcuOutput>..\..\build</DCC_DcuOutput>
     <DCC_ObjOutput>..\..\build</DCC_ObjOutput>
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
-    <DCC_BplOutput>$(BDSPROJECTSDIR)\bpl</DCC_BplOutput>
-    <DCC_DcpOutput>$(BDSPROJECTSDIR)\bpl</DCC_DcpOutput>
+    <DCC_BplOutput>$(BDSCOMMONDIR)\Bpl</DCC_BplOutput>
+    <DCC_DcpOutput>$(BDSCOMMONDIR)\Dcp</DCC_DcpOutput>
     <DCC_UnitSearchPath>..\..\..\compilerdetection</DCC_UnitSearchPath>
     <DCC_ResourcePath>..\..\..\compilerdetection</DCC_ResourcePath>
     <DCC_ObjPath>..\..\..\compilerdetection</DCC_ObjPath>
@@ -52,7 +52,7 @@
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
     <DCCReference Include="..\..\source\UserReg.pas" />
-    <DCCReference Include="C:\Documents and Settings\Administrador\Meus documentos\RAD Studio\Projects\designide.dcp" />
-    <DCCReference Include="C:\Documents and Settings\Administrador\Meus documentos\RAD Studio\Projects\VCLSer.dcp" />
+    <DCCReference Include="designide.dcp" />
+    <DCCReference Include="VCLSer.dcp" />
   </ItemGroup>
 </Project>
