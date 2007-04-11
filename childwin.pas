@@ -4613,8 +4613,8 @@ begin
     // Connect the BLOB-components to this field
     DBMemo1.DataField := grid.SelectedField.FieldName;
     // Hack: If 8 bytes or less, don't try to interpret as an image.
-    //       Fixes BIT fields, which EDBImage otherwise think contains icons. 
-    if grid.SelectedField.DataSize > 8 then begin
+    // Fixes BIT fields, which EDBImage otherwise think contains icons.
+    if Length(grid.SelectedField.AsString) > 8 then begin
       EDBImage1.DataField := grid.SelectedField.FieldName;
     end;
 
