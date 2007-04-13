@@ -4510,11 +4510,23 @@ end;
 
 // Resize image to fit
 procedure TMDIChild.ResizeImageToFit;
+var
+  height_needed : Cardinal;
 begin
-  if EDBImage1.Picture.Width < 1 then exit;
-  EDBImage1.Width := MulDiv(EDBImage1.Height, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
-  if EDBImage1.Picture.Height < 1 then exit;
-  if EDBImage1.Height < 1 then exit;
+  // Abort zooming if it's not an image or image-tab is sized to minimum size
+  if (EDBImage1.Picture.Width < 1) or (ScrollBox1.Height < 1) then
+    exit;
+
+  // Use all height we can get, but only as much we need to display without zooming
+  if EDBImage1.Picture.Height > Scrollbox1.Height then
+    height_needed := Scrollbox1.Height
+  else
+    height_needed := EDBImage1.Picture.Height;
+
+  // Set size
+  EDBImage1.Height := height_needed;
+  EDBImage1.Width := MulDiv(height_needed, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
+
   MainForm.showstatus('Image: ' + inttostr( EDBImage1.Picture.width)
     + ' x ' + inttostr( EDBImage1.Picture.Height ) + ' pixel, '
     + 'zoomed to ' + IntToStr(round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'

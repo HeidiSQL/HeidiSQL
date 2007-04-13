@@ -1204,7 +1204,6 @@ object MDIChild: TMDIChild
               Top = 0
               Width = 89
               Height = 102
-              Align = alLeft
               BorderStyle = bsNone
               Color = clBtnFace
               Stretch = True
