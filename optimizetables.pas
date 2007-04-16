@@ -120,9 +120,8 @@ begin
       end;
     end;
   end;
-  // select all:
-  for i:=0 to TablesCheckListBox.Items.Count-1 do
-    TablesCheckListBox.checked[i] := true;
+  // Check all
+  ToggleCheckListBox( TablesCheckListBox, True );
 end;
 
 
