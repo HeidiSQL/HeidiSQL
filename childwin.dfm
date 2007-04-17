@@ -2043,7 +2043,7 @@ object MDIChild: TMDIChild
   object SynCompletionProposal1: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     Width = 262
-    EndOfTokenChr = '()[]. '
+    EndOfTokenChr = '()[]. ='
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
