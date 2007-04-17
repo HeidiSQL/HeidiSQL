@@ -264,8 +264,8 @@ begin
 
   case DBUserTree.Selected.Level of
     0 : access := '*.*';
-    1 : access := DBUserTree.Selected.Text + '.*';
-    2 : access := DBUserTree.Selected.Text;
+    1 : access := MainForm.Mask( DBUserTree.Selected.Text ) + '.*';
+    2 : access := MainForm.Mask( DBUserTree.Selected.Text );
   end;
 
   if EditHost.Text = '' then
