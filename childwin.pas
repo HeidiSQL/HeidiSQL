@@ -4843,31 +4843,19 @@ begin
   Result := HasAccessToDB (DBNAME_MYSQL);
 end;
 
+
+{***
+  Checks for access to a certain database by checking if
+  it's contained in the result SHOW DATABASES.
+}
 function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;
 var
-  ds: TZReadOnlyQuery;
   dbName: string;
 begin
-  Result := False;
-
-  ds := TZReadOnlyQuery.Create(Self);
-  ds.Connection := FMysqlConn.Connection;
-  GetResults( 'SHOW DATABASES', ds);
-  if not ds.Active then exit;
-
-  while not ds.Eof do
-    begin
-      dbName := ds.FieldByName('Database').AsString;
-      if LowerCase(dbName) = LowerCase(ADBName) then
-        begin
-          Result := True;
-          Break;
-        end;
-      ds.Next;
-    end;
-
-  FreeAndNil (ds);
+  dbName := GetVar( 'SHOW DATABASES LIKE ''' + ADBName + '''' );
+  Result := dbName <> '';
 end;
+
 
 procedure TMDIChild.CheckConnection;
 begin
