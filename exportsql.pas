@@ -323,7 +323,6 @@ end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
-  tn, child : TTreeNode;
   i,j : Integer;
   dbtree_table : String;
 begin
@@ -331,22 +330,8 @@ begin
   checkListTables.Items.Clear;
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    for i:=0 to DBTree.Items.Count-1 do
-    begin
-      tn := DBTree.Items[i];
-      if tn.Text = comboSelectDatabase.Text then
-      begin
-        child := tn.getFirstChild;
-        for j:=0 to tn.Count-1 do
-        begin
-           // Sometimes a column-name of the last table gets into the table-list.
-           // Seems like a bug in getNextChild
-           if child.Level = 2 then
-            checkListTables.Items.Add(child.Text);
-          child := tn.getNextChild(child);
-        end;
-      end;
-    end;
+    // Fetch tables from DB
+    checkListTables.Items := GetCol( 'SHOW TABLES FROM ' + MainForm.mask(comboSelectDatabase.Text) );
 
     // select all/some:
     for i:=0 to checkListTables.Items.Count-1 do

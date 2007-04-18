@@ -61,6 +61,8 @@ type
     Panel4: TPanel;
     ButtonEditUser: TButton;
     Button1: TButton;
+    procedure DBUserTreeExpanding(Sender: TObject; Node: TTreeNode;
+      var AllowExpansion: Boolean);
     procedure ButtonCloseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CheckBoxAllPrivilegesClick(Sender: TObject);
@@ -136,8 +138,8 @@ end;
 
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
-  i,j        : Integer;
-  tntop, tn1, tn2, tnu1, tnu2, tnu3 : TTreeNode;
+  i        : Integer;
+  tntop, tn1, tnu1, tnu2 : TTreeNode;
 
 //  wsadat : WSAData;
 //  host : String;
@@ -162,13 +164,7 @@ begin
       tnu2 := DBUserTree.Items.AddChild(tnu1, tn1.Text);
       tnu2.ImageIndex := tn1.ImageIndex;
       tnu2.SelectedIndex := tn1.SelectedIndex;
-      for j:=0 to tn1.Count-1 do
-      begin
-        tn2 := tntop.Item[i].Item[j];
-        tnu3 := DBUserTree.Items.AddChild(tnu2, tn1.Text + '.' + tn2.Text);
-        tnu3.ImageIndex := tn2.ImageIndex;
-        tnu3.SelectedIndex := tn2.SelectedIndex;
-      end;
+      DBUserTree.Items.AddChild( tnu2, DUMMY_NODE_TEXT );
       tn1 := tntop.getNextChild(tn1);
 
     end;
@@ -300,8 +296,9 @@ end;
 
 procedure TUserManagerForm.TreeViewUsersDblClick(Sender: TObject);
 var
-  tnu, tndb, tntbl      : TTreeNode;
+  tnu, tndb             : TTreeNode;
   i                     : Integer;
+  TableNames            : TStringList;
 begin
   // Add subitems to TreeNode:
 
@@ -323,22 +320,15 @@ begin
       end;
 
     1 : // add tables to user-node...
-      with TMDIChild(Application.Mainform.ActiveMDIChild) do
       begin
-        tndb := tnodehost.GetFirstChild;
-        // find according db in dbtree
-        for i:=0 to tnodehost.Count-1 do begin
-          if tndb.Text = TreeViewUsers.Selected.Text then
-            break;
-          tndb := tnodehost.getNextChild(tndb);
-        end;
-
-        tntbl := tndb.GetFirstChild;
-        for i:=0 to tndb.Count-1 do begin
-          tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, tntbl.Text);
-          tnu.ImageIndex := tntbl.ImageIndex;
-          tnu.SelectedIndex := tntbl.SelectedIndex;
-          tntbl := tndb.getNextChild(tntbl);
+        TableNames := TMDIChild(MainForm.ActiveMDIChild).GetCol( 'SHOW TABLES FROM ' + MainForm.mask(TreeViewUsers.Selected.Text) );
+        for i:=0 to TableNames.Count-1 do
+        begin
+          with TreeViewUsers.Items.AddChild( TreeViewUsers.Selected, TableNames[i] ) do
+          begin
+            ImageIndex := 39;
+            SelectedIndex := 40;
+          end;
         end;
       end;
 
@@ -845,6 +835,35 @@ begin
   ButtonSet.Enabled := true;
 end;
 
+
+{***
+  A database-node is about to be expanded:
+  Drop the dummy-node and add all tables
+}
+procedure TUserManagerForm.DBUserTreeExpanding(Sender: TObject; Node: TTreeNode;
+  var AllowExpansion: Boolean);
+var
+  i : Integer;
+  TableNames : TStringList;
+begin
+  if (Node.getFirstChild <> nil) and (Node.getFirstChild.Text = DUMMY_NODE_TEXT) then
+  begin
+    // Drop dummynode
+    for i := Node.Count-1 downto 0 do
+      Node.Item[i].delete;
+    // Get all tables into dbtree
+    TableNames := TMDIChild(MainForm.ActiveMDIChild).GetCol( 'SHOW TABLES FROM ' + MainForm.mask(Node.Text) );
+    for i:=0 to TableNames.Count-1 do
+    begin
+      with DBUserTree.Items.AddChild( Node, TableNames[i] ) do
+      begin
+        ImageIndex := 39;
+        SelectedIndex := 40;
+      end;
+    end;
+
+  end;
+end;
 
 procedure TUserManagerForm.ButtonRevokeClick(Sender: TObject);
 var sql : String;

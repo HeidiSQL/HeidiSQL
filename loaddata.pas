@@ -122,37 +122,22 @@ end;
 
 procedure Tloaddataform.DBComboBoxChange(Sender: TObject);
 var
-  tn, child : TTreeNode;
-  i,j : Integer;
+  i : Integer;
+  cwin: TMDIChild;
 begin
   // read tables from db
   TablesComboBox.Items.Clear;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
+  TablesComboBox.Items := cwin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( DBComboBox.Text ) );
+  with TablesComboBox do
   begin
-    for i:=0 to DBTree.Items.Count-1 do
-    begin
-      tn := DBTree.Items[i];
-      if tn.Text = DBComboBox.Text then
-      begin
-        child := tn.getFirstChild;
-        for j:=0 to tn.Count-1 do
-        begin
-          TablesComboBox.Items.Add(child.Text);
-          child := tn.getNextChild(child);
-        end;
-      end;
-    end;
-
-    with TablesComboBox do
-    begin
-      for i:=0 to Items.Count-1 do
-        if Items[i] = ActualTable then
-          ItemIndex := i;
-      if ItemIndex = -1 then
-        ItemIndex := 0;
-    end;
-
+    for i:=0 to Items.Count-1 do
+      if Items[i] = cwin.ActualTable then
+        ItemIndex := i;
+    if ItemIndex = -1 then
+      ItemIndex := 0;
   end;
+
   TablesComboBoxChange(self);
 end;
 

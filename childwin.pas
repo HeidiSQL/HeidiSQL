@@ -266,6 +266,8 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
+    procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
+      var AllowExpansion: Boolean);
     procedure ListTablesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
@@ -923,8 +925,8 @@ end;
 
 procedure TMDIChild.ReadDatabasesAndTables(Sender: TObject);
 var
-  tnode, tchild, tmpSelected: TTreeNode;
-  i, j : Integer;
+  tnode, tmpSelected: TTreeNode;
+  i : Integer;
   specialDbs: TStringList;
   dbName : string;
 begin
@@ -964,6 +966,7 @@ begin
   // Let synedit know all database names so that they can be highlighted
   // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
   SynSQLSyn1.TableNames.AddStrings(OnlyDBs2);
+  SynSQLSyn1.TableNames.EndUpdate;
 
   if (OnlyDBs.Count = 0) and (OnlyDBs2.Count > 50) then
     SelectFromManyDatabasesWindow (Self,OnlyDBs2);
@@ -972,26 +975,14 @@ begin
   tmpSelected := nil;
   for i:=0 to OnlyDBs2.Count-1 do
   begin
-    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true, false );
-    if not ZQuery3.Active then continue;
     tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 37;
     tnode.SelectedIndex := 38;
-    if ActualDatabase = OnlyDBs2[i] then tmpSelected := tnode;
-    for j:=1 to ZQuery3.RecordCount do begin
-      tchild := DBtree.Items.AddChild( tnode, ZQuery3.Fields[0].AsString );
-      tchild.ImageIndex := 39;
-      tchild.SelectedIndex := 40;
-      if
-        (tmpSelected <> nil) and
-        (tmpSelected.Text = OnlyDBs2[i]) and
-        (ActualTable = ZQuery3.Fields[0].AsString) then
-        tmpSelected := tchild;
-      SynSQLSyn1.TableNames.Add(ZQuery3.Fields[0].AsString);
-      ZQuery3.Next;
-    end;
+    // Add dummy-node, will be replaced by real tables on expanding
+    DBTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
+    if ActualDatabase = OnlyDBs2[i] then
+      tmpSelected := tnode;
   end;
-  SynSQLSyn1.TableNames.EndUpdate;
 
   mainform.showstatus(inttostr(OnlyDBs2.count) + ' Databases');
   tnodehost.Expand(false);
@@ -1083,6 +1074,37 @@ begin
 
   pcChange(self);
   Screen.Cursor := crDefault;
+end;
+
+
+{***
+  A database-node is about to be expanded:
+  Drop the dummy-node and add all tables
+}
+procedure TMDIChild.DBtreeExpanding(Sender: TObject; Node: TTreeNode;
+  var AllowExpansion: Boolean);
+var
+  i : Integer;
+  TableNames : TStringList;
+begin
+  if (Node.getFirstChild <> nil) and (Node.getFirstChild.Text = DUMMY_NODE_TEXT) then
+  begin
+    // Drop dummynode
+    for i := Node.Count-1 downto 0 do
+      Node.Item[i].delete;
+    // Get all tables into dbtree
+    TableNames := GetCol( 'SHOW TABLES FROM ' + mask(Node.Text) );
+    for i:=0 to TableNames.Count-1 do
+    begin
+      with DBTree.Items.AddChild( Node, TableNames[i] ) do
+      begin
+        ImageIndex := 39;
+        SelectedIndex := 40;
+      end;
+    end;
+    // Add tables to syntax-highlighter
+    AddUniqueItemsToList( TableNames, SynSQLSyn1.TableNames );
+  end;
 end;
 
 

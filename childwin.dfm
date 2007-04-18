@@ -70,6 +70,7 @@ object MDIChild: TMDIChild
       ShowRoot = False
       TabOrder = 0
       OnChange = DBtreeChange
+      OnExpanding = DBtreeExpanding
     end
     object TableShow: TPanel
       Left = 173

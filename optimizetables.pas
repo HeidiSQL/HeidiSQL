@@ -98,28 +98,9 @@ begin
 end;
 
 procedure Toptimize.DBComboBoxChange(Sender: TObject);
-var
-  tn, child : TTreeNode;
-  i,j : Integer;
 begin
   // read tables from db
-  TablesCheckListBox.Items.Clear;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    for i:=0 to DBTree.Items.Count-1 do
-    begin
-      tn := DBTree.Items[i];
-      if tn.Text = DBComboBox.Text then
-      begin
-        child := tn.getFirstChild;
-        for j:=0 to tn.Count-1 do
-        begin
-          TablesCheckListBox.Items.Add(child.Text);
-          child := tn.getNextChild(child);
-        end;
-      end;
-    end;
-  end;
+  TablesCheckListBox.Items := TMDIChild(Mainform.ActiveMDIChild).GetCol( 'SHOW TABLES FROM ' + MainForm.mask(DBComboBox.Text) );
   // Check all
   ToggleCheckListBox( TablesCheckListBox, True );
 end;

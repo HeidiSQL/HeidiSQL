@@ -63,6 +63,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function ExpectResultSet(ASql: String): Boolean;
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
+  procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1792,6 +1793,24 @@ begin
       exit;
     end;
   end;
+end;
+
+
+{***
+  Add values from a list to another list, avoid adding
+  already existant items
+}
+procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
+var
+  i : Cardinal;
+begin
+  BaseList.BeginUpdate;
+  for i := 0 to ToAdd.Count - 1 do
+  begin
+    if BaseList.IndexOf( ToAdd[i] ) = -1 then
+      BaseList.Append( ToAdd[i] );
+  end;
+  BaseList.EndUpdate;
 end;
 
 

@@ -47,7 +47,6 @@ type
 
   const
     DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
-    DUMMY_NODE_TEXT             : String = 'Dummy node, should never be visible';
     ICONINDEX_CATEGORY_CLOSED   : Integer = 96;
     ICONINDEX_CATEGORY_OPENED   : Integer = 97;
     ICONINDEX_HELPITEM          : Integer = 98;
@@ -58,6 +57,8 @@ var
 implementation
 
 uses ZDataset, helpers, main;
+
+{$I const.inc}
 
 {$R *.dfm}
 

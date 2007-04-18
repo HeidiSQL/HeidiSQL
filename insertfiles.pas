@@ -127,27 +127,15 @@ end;
 { Read tables from selected DB }
 procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
 var
-  tn, child : TTreeNode;
-  i,j : Integer;
+  cwin : TMDIChild;
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  with TMDIChild(Mainform.ActiveMDIChild) do
-  begin
-    for i:=0 to DBTree.Items.Count-1 do
-    begin
-      tn := DBTree.Items[i];
-      if tn.Text = ComboBoxDBs.Text then
-      begin
-        child := tn.getFirstChild;
-        for j:=0 to tn.Count-1 do
-        begin
-          ComboBoxTables.Items.Add(child.Text);
-          child := tn.getNextChild(child);
-        end;
-      end;
-    end;
-  end;
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
+
+  // Fetch tables from DB
+  ComboBoxTables.Items := cwin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(ComboBoxDBs.Text) );
+
   if ComboBoxTables.Items.Count > 0 then
   begin
     ComboBoxTables.ItemIndex := 0;
