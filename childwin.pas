@@ -4852,7 +4852,7 @@ function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;
 var
   dbName: string;
 begin
-  dbName := GetVar( 'SHOW DATABASES LIKE ''' + ADBName + '''' );
+  dbName := GetVar( 'SHOW DATABASES LIKE ' + esc(ADBName) );
   Result := dbName <> '';
 end;
 
