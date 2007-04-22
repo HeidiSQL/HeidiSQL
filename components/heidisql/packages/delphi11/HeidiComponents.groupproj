@@ -1,0 +1,31 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{385a0b5c-fb03-4a06-afbe-f6c17c6c7b9c}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="HeidiComponents">
+    <MSBuild Projects="HeidiComponents.dproj" Targets="" />
+  </Target>
+  <Target Name="HeidiComponents:Clean">
+    <MSBuild Projects="HeidiComponents.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="HeidiComponents:Make">
+    <MSBuild Projects="HeidiComponents.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="HeidiComponents" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="HeidiComponents:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="HeidiComponents:Make" />
+  </Target>
+</Project>
