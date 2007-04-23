@@ -1125,6 +1125,7 @@ var
   mq : TMysqlQuery;
   conn_params : TConnParams;
   sl_query : TStringList;
+  SortDir                  : String;
 begin
   viewingdata := true;
   try
@@ -1161,7 +1162,7 @@ begin
   if not dataselected then
   begin
     SynMemoFilter.Text := '';
-    gridData.SortColumns.Clear;
+    gridData.ClearSort;
     // Read cached WHERE-clause and set filter
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if reg.ValueExists( reg_value ) then
@@ -1172,57 +1173,41 @@ begin
       tabFilter.tabVisible := true;
       PageControlBottom.ActivePage := tabFilter;
     end;
-    // Read cached ORDER-clause and set Grid.Sortcolumns
-    reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
-    if reg.ValueExists( reg_value ) then
+  end;
+
+  // Read stored ORDER-clause
+  reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+  if reg.ValueExists( reg_value ) then
+  begin
+    orderclauses := explode( ',', reg.ReadString( reg_value ) );
+    sorting := '';
+    for i:=0 to orderclauses.Count-1 do
     begin
-      orderclauses := explode( ',', reg.ReadString( reg_value ) );
-      for i:=0 to orderclauses.Count-1 do
+      // TODO: take care of whitespaces in columnnames!
+      columnname := copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) );
+      columnname := trim( columnname );
+      columnname := trimc( columnname, '`' );
+      columnexists := false;
+      for j:=0 to ListColumns.Items.Count-1 do
       begin
-        columnname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
-        columnname := trimc( columnname, '`' );
-        columnexists := false;
-        for j:=0 to ListColumns.Items.Count-1 do
+        if ListColumns.Items[j].Caption = columnname then
         begin
-          if ListColumns.Items[j].Caption = columnname then
-          begin
-            columnexists := true;
-            break;
-          end;
-        end;
-        if not columnexists then
-        begin
-          logsql('Notice: A stored ORDER-BY clause could not be applied, because the column "' + columnname + '" does not exist!');
-          continue;
-        end;
-        with gridData.SortColumns.Add do
-        begin
-          Fieldname := columnname;
-          if copy( orderclauses[i], length(orderclauses[i])-3, 4 ) = 'DESC' then
-            SortType := stAscending
-          else
-            SortType := stDescending;
+          columnexists := true;
+          break;
         end;
       end;
+      if not columnexists then
+      begin
+        logsql('Notice: A stored ORDER-BY clause could not be applied, because the column "' + columnname + '" does not exist!');
+        continue;
+      end;
+      if sorting <> '' then
+        sorting := sorting + ', ';
+      sorting := sorting + orderclauses[i];
     end;
   end;
 
-  sorting := '';
-  for i:=0 to gridData.SortColumns.Count-1 do
-  begin
-    with gridData.SortColumns[i] do
-    begin
-      if SortType <> stNone then begin
-        if sorting <> '' then
-          sorting := sorting + ', ';
-        sorting := sorting + mask(FieldName);
-      end;
-      if SortType = stAscending then
-        sorting := sorting + ' DESC'
-      else if SortType = stDescending then
-        sorting := sorting + ' ASC';
-    end;
-  end;
+  // Save ORDER-clause to registry
   reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
   if sorting <> '' then
   begin
@@ -1373,6 +1358,32 @@ begin
         begin
           gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
           gridData.Columns[j].Color := $02EEEEEE;
+        end;
+      end;
+    end;
+
+    // Apply the sort-indicator to the DBGrid-titles
+    reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+    if reg.ValueExists( reg_value ) then
+    begin
+      OrderClauses := explode( ',', reg.ReadString( reg_value ) );
+      for i:=0 to OrderClauses.Count-1 do
+      begin
+        // TODO: take care of whitespaces in columnnames!
+        ColumnName := copy( OrderClauses[i], 0, pos( ' ', OrderClauses[i] ) );
+        ColumnName := trim( ColumnName );
+        ColumnName := trimc( ColumnName, '`' );
+        SortDir := copy( OrderClauses[i], length(OrderClauses[i])-3, 4 );
+        SortDir := trim( sortdir );
+        for j:=0 to gridData.Columns.count-1 do
+        begin
+          if ColumnName = gridData.Columns[j].FieldName then
+          begin
+            if UpperCase( SortDir ) = 'ASC' then
+              gridData.Columns[j].SortType := stAscending
+            else
+              gridData.Columns[j].SortType := stDescending;
+          end;
         end;
       end;
     end;
@@ -3103,35 +3114,71 @@ procedure TMDIChild.gridDataTitleClick(Column: TColumn);
 var
   Grid : TSMDBGrid;
   i  : Integer;
-  existed : Boolean;
+  OrderClauseExisted : Boolean;
+  reg_value, sorting, columnname, sortdir : String;
+  OrderClauses : TStringList;
+  reg : TRegistry;
 begin
   // column-title clicked -> generate "ORDER BY"
 
   Grid := Column.Grid as TSMDBGrid;
   Grid.DataSource.DataSet.DisableControls;
-  existed := false;
+  OrderClauseExisted := false;
 
-  for i:=Grid.SortColumns.Count-1 downto 0 do
+  reg := TRegistry.Create;
+  reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
+  sorting := '';
+
+  // Read stored ORDER-clauses
+  // If the just clicked column was previously order'ed: Switch that clause to the other direction
+  // If the column was not order'ed yet: Add a new clause
+  reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+  if reg.ValueExists( reg_value ) then
   begin
-    with Grid.SortColumns[i] do
+    OrderClauses := explode( ',', reg.ReadString( reg_value ) );
+    for i:=OrderClauses.Count-1 downto 0 do
     begin
-      if FieldName <> column.FieldName then
-        continue;
-      existed := true;
-      case SortType of
-        stDescending : SortType := stAscending;
-        stAscending : Grid.SortColumns.Delete(i);
-        stNone : SortType := stDescending;
+      // TODO: take care of whitespaces in columnnames!
+      ColumnName := copy( OrderClauses[i], 0, pos( ' ', OrderClauses[i] ) );
+      ColumnName := trim( ColumnName );
+      ColumnName := trimc( ColumnName, '`' );
+      SortDir := copy( OrderClauses[i], length(OrderClauses[i])-3, 4 );
+      SortDir := trim( sortdir );
+      if ColumnName = Column.FieldName then
+      begin
+        OrderClauseExisted := true;
+        // Switch sort-direction
+        if Uppercase(SortDir) = 'ASC' then
+          SortDir := 'DESC'
+        else
+          SortDir := '';
+      end;
+      // Append column=value pair to existing clause
+      if SortDir <> '' then
+      begin
+        if sorting <> '' then
+          sorting := sorting + ', ';
+        sorting := sorting + Mask( ColumnName ) + ' ' + SortDir;
       end;
     end;
   end;
 
-  {add a new sorted column in list - ascending order}
-  if not existed then with Grid.SortColumns.Add do
+  // Add a new ORDER clause if it was not previously restored from registry
+  if not OrderClauseExisted then
   begin
-    FieldName := column.FieldName;
-    SortType := stDescending
+    if sorting <> '' then
+      sorting := sorting + ', ';
+    sorting := sorting + Mask( Column.FieldName ) + ' ASC';
   end;
+
+  // Save ORDER-clause to registry
+  reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+  if sorting <> '' then
+  begin
+    reg.WriteString( reg_value, sorting );
+  end
+  else if reg.ValueExists( reg_value ) then
+    reg.DeleteValue( reg_value );
 
   Grid.DataSource.DataSet.EnableControls;
   viewdata(self);
@@ -4945,6 +4992,7 @@ end;
 
 
 end.
+
 
 
 
