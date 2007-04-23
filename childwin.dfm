@@ -731,27 +731,16 @@ object MDIChild: TMDIChild
             OnKeyUp = controlsKeyUp
             OnMouseDown = gridMouseDown
             OnTitleClick = gridDataTitleClick
-            Flat = False
-            BandsFont.Charset = DEFAULT_CHARSET
-            BandsFont.Color = clWindowText
-            BandsFont.Height = -11
-            BandsFont.Name = 'Tahoma'
-            BandsFont.Style = []
-            Groupings = <>
-            GridStyle.Style = gsCustom
-            GridStyle.OddColor = clWindow
-            GridStyle.EvenColor = clWindow
-            TitleHeight.PixelCount = 24
-            FooterColor = clBtnFace
-            ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection, eoBLOBEditor]
+            ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
             RegistryKey = 'Software\MikeSoft'
             RegistrySection = 'SMDBGrid'
             WidthOfIndicator = 23
-            DefaultRowHeight = 17
             ScrollBars = ssHorizontal
             ColCount = 2
             RowCount = 2
+            Col = 1
+            Row = 1
           end
         end
         object tabQuery: TTabSheet
@@ -986,7 +975,7 @@ object MDIChild: TMDIChild
             Font.Height = -11
             Font.Name = 'Tahoma'
             Font.Style = []
-            Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
+            Options = [dgEditing, dgAlwaysShowEditor, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
             ParentFont = False
             PopupMenu = popupResultGrid
             TabOrder = 2
@@ -998,27 +987,16 @@ object MDIChild: TMDIChild
             OnColEnter = DBGridColEnter
             OnDblClick = DBGridDblClick
             OnMouseDown = gridMouseDown
-            Flat = False
-            BandsFont.Charset = DEFAULT_CHARSET
-            BandsFont.Color = clWindowText
-            BandsFont.Height = -11
-            BandsFont.Name = 'Tahoma'
-            BandsFont.Style = []
-            Groupings = <>
-            GridStyle.Style = gsCustom
-            GridStyle.OddColor = clWindow
-            GridStyle.EvenColor = clWindow
-            TitleHeight.PixelCount = 24
-            FooterColor = clBtnFace
             ExOptions = [eoBooleanAsCheckBox, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
             OnGetCellParams = DBGridGetCellParams
             RegistryKey = 'Software\MikeSoft'
             RegistrySection = 'SMDBGrid'
             WidthOfIndicator = 11
-            DefaultRowHeight = 17
             ScrollBars = ssHorizontal
             ColCount = 2
             RowCount = 2
+            Col = 1
+            Row = 1
           end
           object ProgressBarQuery: TProgressBar
             Left = 0

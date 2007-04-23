@@ -1,167 +1,156 @@
-{ Copyright (C) 1998-2006, written by Mike Shkolnik, Scalabium Software
-  E-Mail: mshkolnik@scalabium
-  WEB: http://www.scalabium.com
-
-  Const strings for localization : Portuguese(Standard)
-  freeware SMComponent library
-}  
 unit SMCnst;
 
 interface
-{Portuguese strings - Translated by Fernando Dias (fernandodias@easygate.com.pt)
- Last update: 03-May-2006}
+
+
+{Portuguese strings}
+{translated by Antonio Roque, antonio_roque@clix.pt}
 const
   strMessage = 'Imprimir...';
-  strSaveChanges = 'Pretende mesmo guardar as alterações na base de dados ?';
-  strErrSaveChanges = 'Não foi possível guardar os dados! Verifique a ligação ao servidor e a validade dos dados.';
-  strDeleteWarning = 'Pretende mesmo eliminar a tabela %s?';
-  strEmptyWarning = 'Pretende mesmo limpar o conteudo da tabela %s?';
+  strSaveChanges = 'Deseja mesmo guardar as alterações na base de Dados ?';
+  strErrSaveChanges = 'Não é possivel guardar a informação ! Veja a ligação ao servidor ou regras de validação.';
+  strDeleteWarning = 'Deseja mesmo apagar a tabela  %s?';
+  strEmptyWarning = 'Deseja mesmo limpar a tabela  %s?';
 
 const
-  PopUpCaption: array [0..24] of string[33] =
-   ('Acrescentar registo',
-    'Inserir registo',
+  PopUpCaption: array [0..22] of string[33] =
+   ('Adicionar registo',
+    'Inserir Registo',
     'Editar registo',
-    'Apagar registo',
+    'Apagar Registo',
     '-',
     'Imprimir ...',
     'Exportar ...',
-    'Filtrar ...',
-    'Procurar ...',
     '-',
     'Guardar alterações',
-    'Cancelar alterações',
+    'Não Guardar alterações',
     'Refrescar',
     '-',
-    'Marcar/Desmarcar registos',
-       'Marcar registo',
-       'Marcar todos',
+    'selecionar/deselecionar registos',
+       'Selecionar registo',
+       'Selecionar todos os registos',
        '-',
-       'Desmarcar registo',
-       'Desmarcar todos',
+       'Deselecionar registo',
+       'deselecionar todos registos',
     '-',
-    'Guardar aspecto da coluna',
-    'Recuperar aspecto da coluna',
+    'salvar formato da coluna',
+    'resturar formato da coluna',
     '-',
-    'Configuração...');
+    'Setup...');
 
 const //for TSMSetDBGridDialog
   SgbTitle = ' Titulo ';
-  SgbData = ' Dados ';
-  STitleCaption = 'Rótulo:';
-  STitleAlignment = 'Alinhamento:';
-  STitleColor = 'Fundo:'; 
-  STitleFont = 'Letra:';
+  SgbData = ' Data ';
+  STitleCaption = 'Titulo';
+  STitleAlignment = 'Alinhamento :';
+  STitleColor = 'Fundo:';
+  STitleFont = 'Fonte:';
   SWidth = 'Largura:';
-  SWidthFix = 'caracteres';
+  SWidthFix = 'characteres';
   SAlignLeft = 'esquerda';
   SAlignRight = 'direita';
   SAlignCenter = 'centro';
-  
+
 const //for TSMDBFilterDialog
   strEqual = 'igual';
-  strNonEqual = 'não igual';
-  strNonMore = 'não maior';
-  strNonLess = 'não menor';
+  strNonEqual = 'diferente';
+  strNonMore = 'nao maior';
+  strNonLess = 'nao menor';
   strLessThan = 'menor que';
   strLargeThan = 'maior que';
   strExist = 'vazio';
-  strNonExist = 'não vazio';
-  strIn = 'na lista';
-  strBetween = 'entre';
-  strLike = 'como';
+  // exist = existe
+  strNonExist = 'nao vazio';ÿ
+  // nonexit = Nao existe
 
+  strIn = 'Na Lista' 
+  strBetween = 'entre';
+ 
   strOR = 'OU';
   strAND = 'E';
-
+ 
   strField = 'Campo';
-  strCondition = 'Condição';
+  strCondition = 'Condicao';
   strValue = 'Valor';
+ 
+  strAddCondition = ' Defineÿa condicao addicional:';
+  strSelection = ' SelecioneÿosÿRegistos pela seguinte(s) Condicoes:';
+ 
+  strAddToList = 'Adicionar a Listaÿ';
+  strDeleteFromList = 'Apagar Da Lista';
 
-  strAddCondition = ' Defina a condição adicional:';
-  strSelection = ' Seleccionar registos pela seguinte condição:';
-
-  strAddToList = 'Adicionar à lista';
-  strEditInList = 'Editar a lista';
-  strDeleteFromList = 'Apagar da lista';
-
-  strTemplate = 'Modelo de filtro';
-  strFLoadFrom = 'Lêr de...';
-  strFSaveAs = 'Guardar como...';
-  strFDescription = 'Descrição';
-  strFFileName = 'Ficheiro';
-  strFCreate = 'Criado: %s';
-  strFModify = 'Modificado: %s';
-  strFProtect = 'Proteger para escrita';
-  strFProtectErr = 'Ficheiro está protegido!';
+  strTemplate = 'Filter template dialog';
+  strFLoadFrom = 'Load from...';
+  strFSaveAs = 'Save as..';
+  strFDescription = 'Description';
+  strFFileName = 'File name';
+  strFCreate = 'Created: %s';
+  strFModify = 'Modified: %s';
+  strFProtect = 'Protect for rewrite';
+  strFProtectErr = 'File is protected!';
 
 const //for SMDBNavigator
-  SFirstRecord = 'Primeiro registo';
-  SPriorRecord = 'Registo anterior';
-  SNextRecord = 'Próximo registo';
-  SLastRecord = 'Último registo';
+  SFirstRecord = 'primeiro registo';
+  SPriorRecord = 'registo anterior';
+  SNextRecord = 'proximo registo';
+  SLastRecord = 'ultimo registo';
   SInsertRecord = 'Inserir registo';
   SCopyRecord = 'Copiar registo';
   SDeleteRecord = 'Apagar registo';
   SEditRecord = 'Editar registo';
-  SFilterRecord = 'Filtrar';
-  SFindRecord = 'Procurar';
-  SPrintRecord = 'Imprimir';
-  SExportRecord = 'Exportar';
-  SImportRecord = 'Importar';
-  SPostEdit = 'Guardar alterações';
+  SFilterRecord = 'condições de filtro';
+  SFindRecord = 'procurar registos';
+  SPrintRecord = 'imprimir registos';
+  SExportRecord = 'Exportar registos';
+  SPostEdit = 'guardar alterações';
   SCancelEdit = 'Cancelar alterações';
   SRefreshRecord = 'Refrescar dados';
-  SChoice = 'Escolher registo';
-  SClear = 'Anular escolha de registo';
-  SDeleteRecordQuestion = 'Apagar registo?';
-  SDeleteMultipleRecordsQuestion = 'Pretende mesmo apagar os registos seleccionados?';
-  SRecordNotFound = 'Registo não encontrado';
+  SChoice = 'escolher um registo';
+  SClear = 'limpar escolha de registo';
+  SDeleteRecordQuestion = 'apagar registo?';
+  SDeleteMultipleRecordsQuestion = 'deseja mesmo apagar os registos selecionados ?';
+  SRecordNotFound = 'Não existe dados ';
 
-  SFirstName = 'Primeiro';
-  SPriorName = 'Anterior';
-  SNextName = 'Próximo';
-  SLastName = 'Último';
+  SFirstName = 'primeiro';
+  SPriorName = 'anterior';
+  SNextName = 'proximo';
+  SLastName = 'ultimo';
   SInsertName = 'Inserir';
   SCopyName = 'Copiar';
-  SDeleteName = 'Apagar';
+  SDeleteName = 'apagar';
   SEditName = 'Editar';
   SFilterName = 'Filtrar';
-  SFindName = 'Procurar';
-  SPrintName = 'Imprimir';
+  SFindName = 'Localizar';
+  SPrintName = 'imprimir';
   SExportName = 'Exportar';
-  SImportName = 'Importar';  
-  SPostName = 'Guardar';
+  SPostName = 'guardar';
   SCancelName = 'Cancelar';
   SRefreshName = 'Refrescar';
-  SChoiceName = 'Escolher';
-  SClearName = 'Limpar';
+  SChoiceName = 'escolher';
+  SClearName = 'limpar';
 
   SBtnOk = '&OK';
   SBtnCancel = '&Cancelar';
-  SBtnLoad = 'Abrir';
-  SBtnSave = 'Guardar';
+  SBtnLoad = 'Carregar';
+  SBtnSave = 'guardar';
   SBtnCopy = 'Copiar';
-  SBtnPaste = 'Colar';
-  SBtnClear = 'Limpar';
+  SBtnPaste = 'colar';
+  SBtnClear = 'limpar';
 
   SRecNo = 'reg.';
   SRecOf = ' de ';
 
 const //for EditTyped
-  etValidNumber = 'numero válido';
-  etValidInteger = 'numero inteiro válido';
+  etValidNumber = 'número válido';
+  etValidInteger = 'número inteiro válido';
   etValidDateTime = 'data/hora válida';
   etValidDate = 'data válida';
   etValidTime = 'hora válida';
   etValid = 'válido';
-  etIsNot = 'não é um(a)';
-  etOutOfRange = 'Valor %s fora do intervalo %s..%s';
+  etIsNot = 'não é um';
+  etOutOfRange = 'Valor %s está fora dos limites %s..%s';
 
-  SApplyAll = 'Aplicar a todos';
-  
-  SNoDataToDisplay = '<Sem dados para apresentar>';
-  
+
 implementation
 
 end.

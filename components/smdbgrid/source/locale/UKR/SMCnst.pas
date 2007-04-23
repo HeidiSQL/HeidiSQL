@@ -6,11 +6,11 @@ interface
 const
   strMessage = 'Друк...';
   strSaveChanges = 'Ви бажаете зберегти внесенi змiни на серверi?';
-  strErrSaveChanges = 'Даннi не вдалося зберегти! Перевiрте з''єднання з сервером та коректнiсть внесених данних.';
-  strDeleteWarning = 'Ви дiйсно бажаєте видалити таблицю %s?';
-  strEmptyWarning = 'Ви дiйсно бажаєте видалити данi з таблицi %s?';
+  strErrSaveChanges = 'Даннi не вдалося зберегти! Перевiрте з''еднання з сервером та коректнiсть внесених данних.';
+  strDeleteWarning = 'Ви дiйсно бажаете видалити таблицю %s?';
+  strEmptyWarning = 'Ви дiйсно бажаете видалити даннi з таблицi %s?';
 
-const PopUpCaption: array [0..22] of string[33] =
+const PopUpCaption: array [0..21] of string[33] =
    ('Додати запис',
     'Вставити запис',
     'Редактувати запис',
@@ -23,17 +23,17 @@ const PopUpCaption: array [0..22] of string[33] =
     'Вiдмiнити змiни',
     'Обновити даннi',
     '-',
-    'Помiтка/Зняти відмутку з записiв',
+    'Помiтка/Разотмiтка записiв',
        'Помiтити запис',
        'Помiтити усi записи',
        '-',
-       'Зняти відмітку запис',
-       'Зняти відмітку з усiх записів',
+       'Разотмiтити запис',
+       'Разотмiтити усi записи',
     '-',
     'Зберегти положення колонок',
-    'Відновити положення колонок',
+    'Востановити положення колонок',
     '-',
-    'Налаштування...');
+    'Настройка...');
 
 
 const //for TSMSetDBGridDialog
@@ -41,7 +41,7 @@ const //for TSMSetDBGridDialog
   SgbData = ' Данi ';
   STitleCaption = 'Назва:';
   STitleAlignment = 'Вирiвнювання:';
-  STitleColor = 'Колір фону:';
+  STitleColor = 'Колор фону:'; 
   STitleFont = 'Шрифт:';
   SWidth = 'Ширина:';
   SWidthFix = 'символiв';
@@ -56,9 +56,9 @@ const //for TSMDBFilterDialog
   strNonLess = 'не менше';
   strLessThan = 'меньше нiж';
   strLargeThan = 'бiльше нiж';
-  strExist = 'пусте';
+  strExist = 'пустене';
   strNonExist = 'не пусте';
-  strIn = 'в списку';
+  strIn = 'в списке';
   strBetween = 'мiж';
 
   strOR = 'АБО';
@@ -69,58 +69,57 @@ const //for TSMDBFilterDialog
   strValue = 'Значення';
 
   strAddCondition = ' Введiть додаткову умову:';
-  strSelection = ' Вибiр записiв згiдно наступних умов:';
+  strSelection = ' Вибiр записiв згiдно слiдуючих умов:';
 
   strAddToList = 'Додати до списку';
-  strEditInList = 'Редактувати';
   strDeleteFromList = 'Видалити з списку';
 
   strTemplate = 'Шаблони фiльтрiв';
   strFLoadFrom = 'Загрузити з...';
   strFSaveAs = 'Зберегти як..';
-  strFDescription = 'Опис';
-  strFFileName = 'Ім''я файла';
-  strFCreate = 'Створено: %s';
-  strFModify = 'Модифiковано: %s';
-  strFProtect = 'Захист вiд перезапису';
-  strFProtectErr = 'Файл закритий вiд запису!';
+  strFDescription = 'Описание';
+  strFFileName = 'Им''я файла';
+  strFCreate = 'Создан: %s';
+  strFModify = 'Модифiкован: %s';
+  strFProtect = 'Защита вiд перезапису';
+  strFProtectErr = 'Файл закрит вiд запису!';
 
 const //for SMDBNavigator
-  SFirstRecord = 'Перший запис';
-  SPriorRecord = 'Попередній запис';
-  SNextRecord = 'Наступний запис';
-  SLastRecord = 'Останній запис';
+  SFirstRecord = 'Перша запис';
+  SPriorRecord = 'Попередня запис';
+  SNextRecord = 'Следуюча запис';
+  SLastRecord = 'Остання запис';
   SInsertRecord = 'Вставка запису';
-  SCopyRecord = 'Копіювання запису';
+  SCopyRecord = 'Копиювання запису';
   SDeleteRecord = 'Видалення запису';
   SEditRecord = 'Редагування запису';
   SFilterRecord = 'Вiдбiр записiв';
-  SFindRecord = 'Пошук запису';
+  SFindRecord = 'Поiск запису';
   SPrintRecord = 'Друк записiв';
   SExportRecord = 'Експорт записiв';
   SPostEdit = 'Збереження змiн';
   SCancelEdit = 'Вiдмiна змiн';
-  SRefreshRecord = 'Оновлення даних';
-  SChoice = 'Вибiр даних';
-  SClear = 'Очистити данi';
+  SRefreshRecord = 'Оновлення данних';
+  SChoice = 'Вибiр данних';
+  SClear = 'Очистити даннi';
   SDeleteRecordQuestion = 'Видалити запис?';
   SDeleteMultipleRecordsQuestion = 'Видалити усi вибранi записи?';
-  SRecordNotFound = 'Запис не знайдено';
+  SRecordNotFound = 'Запис не знайдена';
 
   SFirstName = 'Початок';
   SPriorName = 'Попер.';
-  SNextName = 'Наступ.';
-  SLastName = 'Кiнець';
+  SNextName = 'Слiд.';
+  SLastName = 'Кiнец';
   SInsertName = 'Вставка';
   SCopyName = 'Копiювання';
   SDeleteName = 'Видалення';
-  SEditName = 'Корегування';
+  SEditName = 'Редактування';
   SFilterName = 'Фiльтр';
-  SFindName = 'Пошук';
+  SFindName = 'Поiск';
   SPrintName = 'Друк';
   SExportName = 'Експорт';
   SPostName = 'Збереження';
-  SCancelName = 'Скасувати';
+  SCancelName = 'Вiдмiна';
   SRefreshName = 'Оновлення';
   SChoiceName = 'Вибiр';
   SClearName = 'Зброс';
@@ -143,10 +142,8 @@ const //for EditTyped
   etValidDate = 'коректною датою';
   etValidTime = 'коректним часом';
   etValid = 'коректним';
-  etIsNot = 'не є';
-  etOutOfRange = 'Значення %s не лежить в діапазонi %s..%s';
-
-  SApplyAll = 'Применити усiм';
+  etIsNot = 'не являеться';
+  etOutOfRange = 'Значення %s не лежить в диапазонi %s..%s';
 
 implementation
 

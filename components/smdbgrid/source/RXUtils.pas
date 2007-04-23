@@ -26,12 +26,6 @@ procedure DrawBitmapTransparent(Dest: TCanvas; DstX, DstY: Integer;
 function Max(X, Y: Integer): Integer;
 function Min(X, Y: Integer): Integer;
 
-type
-  TSMGradientDirection = (fdNone, fdTopToBottom, fdBottomToTop, fdLeftToRight, fdRightToLeft);
-
-procedure SMDrawGradient(Canvas: TCanvas; ARect: TRect; StartColor,
-  EndColor: TColor; Direction: TSMGradientDirection; NumColors: Byte);
-
 { Standard Windows colors that are not defined by Delphi }
 const
 {$IFNDEF WIN32}
@@ -59,122 +53,6 @@ begin
     Result := X
   else
     Result := Y;
-end;
-
-procedure SMDrawGradient(Canvas: TCanvas; ARect: TRect; StartColor,
-  EndColor: TColor; Direction: TSMGradientDirection; NumColors: Byte);
-var
-  StartRGB: array[0..2] of Byte;    { Start RGB values }
-  RGBDelta: array[0..2] of Integer; { Difference between start and end RGB values }
-  ColorBand: TRect;                 { Color band rectangular coordinates }
-  I, Delta: Integer;
-  Brush: HBrush;
-begin
-  if (Direction=fdNone) then exit;
-
-  if IsRectEmpty(ARect) then Exit;
-  if NumColors < 2 then
-  begin
-    Brush := CreateSolidBrush(ColorToRGB(StartColor));
-    FillRect(Canvas.Handle, ARect, Brush);
-    DeleteObject(Brush);
-    Exit;
-  end;
-  StartColor := ColorToRGB(StartColor);
-  EndColor := ColorToRGB(EndColor);
-  case Direction of
-    fdTopToBottom, fdLeftToRight: begin
-      { Set the Red, Green and Blue colors }
-      StartRGB[0] := GetRValue(StartColor);
-      StartRGB[1] := GetGValue(StartColor);
-      StartRGB[2] := GetBValue(StartColor);
-      { Calculate the difference between begin and end RGB values }
-      RGBDelta[0] := GetRValue(EndColor) - StartRGB[0];
-      RGBDelta[1] := GetGValue(EndColor) - StartRGB[1];
-      RGBDelta[2] := GetBValue(EndColor) - StartRGB[2];
-    end;
-    fdBottomToTop, fdRightToLeft: begin
-      { Set the Red, Green and Blue colors }
-      { Reverse of TopToBottom and LeftToRight directions }
-      StartRGB[0] := GetRValue(EndColor);
-      StartRGB[1] := GetGValue(EndColor);
-      StartRGB[2] := GetBValue(EndColor);
-      { Calculate the difference between begin and end RGB values }
-      { Reverse of TopToBottom and LeftToRight directions }
-      RGBDelta[0] := GetRValue(StartColor) - StartRGB[0];
-      RGBDelta[1] := GetGValue(StartColor) - StartRGB[1];
-      RGBDelta[2] := GetBValue(StartColor) - StartRGB[2];
-    end;
-  end; {case}
-  { Calculate the color band's coordinates }
-  ColorBand := ARect;
-  if Direction in [fdTopToBottom, fdBottomToTop] then
-  begin
-    NumColors := Max(2, Min(NumColors, ARect.Bottom - ARect.Top));
-    Delta := (ARect.Bottom - ARect.Top) div NumColors;
-  end
-  else
-  begin
-    NumColors := Max(2, Min(NumColors, ARect.Right - ARect.Left));
-    Delta := (ARect.Right - ARect.Left) div NumColors;
-  end;
-  with Canvas.Pen do
-  begin { Set the pen style and mode }
-    Style := psSolid;
-    Mode := pmCopy;
-  end;
-  { Perform the fill }
-  if Delta > 0 then
-  begin
-    for I := 0 to NumColors do
-    begin
-      case Direction of
-        { Calculate the color band's top and bottom coordinates }
-        fdTopToBottom, fdBottomToTop: begin
-          ColorBand.Top := ARect.Top + I * Delta;
-          ColorBand.Bottom := ColorBand.Top + Delta;
-        end;
-        { Calculate the color band's left and right coordinates }
-        fdLeftToRight, fdRightToLeft: begin
-          ColorBand.Left := ARect.Left + I * Delta;
-          ColorBand.Right := ColorBand.Left + Delta;
-        end;
-      end;
-      { Calculate the color band's color }
-      Brush := CreateSolidBrush(RGB(
-        StartRGB[0] + MulDiv(I, RGBDelta[0], NumColors - 1),
-        StartRGB[1] + MulDiv(I, RGBDelta[1], NumColors - 1),
-        StartRGB[2] + MulDiv(I, RGBDelta[2], NumColors - 1)));
-      FillRect(Canvas.Handle, ColorBand, Brush);
-      DeleteObject(Brush);
-    end;
-  end;
-  if Direction in [fdTopToBottom, fdBottomToTop] then
-    Delta := (ARect.Bottom - ARect.Top) mod NumColors
-  else
-    Delta := (ARect.Right - ARect.Left) mod NumColors;
-  if Delta > 0 then
-  begin
-    case Direction of
-      { Calculate the color band's top and bottom coordinates }
-      fdTopToBottom, fdBottomToTop: begin
-                                      ColorBand.Top := ARect.Bottom - Delta;
-                                      ColorBand.Bottom := ColorBand.Top + Delta;
-                                    end;
-      { Calculate the color band's left and right coordinates }
-      fdLeftToRight, fdRightToLeft: begin
-                                      ColorBand.Left := ARect.Right - Delta;
-                                      ColorBand.Right := ColorBand.Left + Delta;
-                                    end;
-    end; {case}
-    case Direction of
-      fdTopToBottom, fdLeftToRight: Brush := CreateSolidBrush(EndColor);
-      else {fdBottomToTop, fdRightToLeft }
-        Brush := CreateSolidBrush(StartColor);
-    end;
-    FillRect(Canvas.Handle, ColorBand, Brush);
-    DeleteObject(Brush);
-  end;
 end;
 
 function PaletteColor(Color: TColor): Longint;

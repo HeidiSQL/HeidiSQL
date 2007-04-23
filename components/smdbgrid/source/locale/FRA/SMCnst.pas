@@ -3,9 +3,7 @@ unit SMCnst;
 interface
 
 {French strings}
-{translated by Remy, walloon@euronet.be
- additional translation made by Martin Ledoux, martinlmtl@hotmail.com
- and Daniel Lepage, daniel_lepage@hotmail.com) }
+{translated by Remy, walloon@euronet.be}
 const
   strMessage = 'Imprimer...';
   strSaveChanges = 'Voulez-vous enregistrer les modifications sur le serveur de données?';
@@ -14,7 +12,7 @@ const
   strEmptyWarning = 'Voulez-vous vider la table %s?';
 
 const
-  PopUpCaption: array [0..24] of string[33] =
+  PopUpCaption: array [0..22] of string[33] =
    ('Ajouter fiche',
     'Ajouter une fiche',
     'Modifier fiche',
@@ -22,8 +20,6 @@ const
     '-',
     'Imprimer ...',
     'Exporter ...',
-    'Filtrer ...',
-    'Rechercher ...',
     '-',
     'Sauver les changements',
     'Annuler les changements',
@@ -53,43 +49,41 @@ const //for TSMSetDBGridDialog
   SAlignLeft = 'a gauche';
   SAlignRight = 'a droite';
   SAlignCenter = 'au centre';
-  
+
 const //for TSMDBFilterDialog
-  strEqual = 'égal';
-  strNonEqual = 'n''est pas égal';
-  strNonMore = 'pas plus grand';
-  strNonLess = 'pas plus petit';
-  strLessThan = 'plus petit que';
-  strLargeThan = 'plus grand que';
-  strExist = 'vide';
-  strNonExist = 'pas vide';
-  strIn = 'dans la liste';
-  strBetween = 'entre';
-  strLike = 'comme';
+  strEqual = 'equal';
+  strNonEqual = 'not equal';
+  strNonMore = 'no greater';
+  strNonLess = 'no less';
+  strLessThan = 'less than';
+  strLargeThan = 'greater than';
+  strExist = 'empty';
+  strNonExist = 'not empty';
+  strIn = 'in list';
+  strBetween = 'between';
 
-  strOR = 'OU';
-  strAND = 'ET';
+  strOR = 'OR';
+  strAND = 'AND';
 
-  strField = 'Champ';
+  strField = 'Field';
   strCondition = 'Condition';
-  strValue = 'Valeur';
+  strValue = 'Value';
 
-  strAddCondition = ' Définir une condition additionnelle:';
-  strSelection = ' Choisir les enregistrements par les conditions suivantes:';
+  strAddCondition = ' Define the additional condition:';
+  strSelection = ' Select the records by the next conditions:';
 
-  strAddToList = 'Ajouter à la liste';
-  strEditInList = 'Modifier dans la liste';
-  strDeleteFromList = 'Effacer de la liste';
+  strAddToList = 'Add to list';
+  strDeleteFromList = 'Delete from list';
 
-  strTemplate = 'Dialogue de modèle de Filtre';
-  strFLoadFrom = 'Ouvrir...';
-  strFSaveAs = 'Enregistrer sous..';
+  strTemplate = 'Filter template dialog';
+  strFLoadFrom = 'Load from...';
+  strFSaveAs = 'Save as..';
   strFDescription = 'Description';
-  strFFileName = 'Nom de fichier';
-  strFCreate = 'Créé: %s';
-  strFModify = 'Modifié: %s';
-  strFProtect = 'Protégé en écriture';
-  strFProtectErr = 'Fichier protégé!';
+  strFFileName = 'File name';
+  strFCreate = 'Created: %s';
+  strFModify = 'Modified: %s';
+  strFProtect = 'Protect for rewrite';
+  strFProtectErr = 'File is protected!';
 
 const //for SMDBNavigator
   SFirstRecord = 'Première fiche';
@@ -152,8 +146,7 @@ const //for EditTyped
   etIsNot = 'n''est pas un';
   etOutOfRange = 'Valeur %s n''est pas dans les bornes %s..%s';
 
-  SApplyAll = 'Appliquez à tous';
-  
+
 implementation
 
 end.

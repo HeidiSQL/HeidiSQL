@@ -4,7 +4,6 @@ interface
 
 {German strings}
 {translated by Thomas Grimm, tgrimm@allegro-itc.de}
-{changed by Reinhold Bauer, reinhold.bauer@onlinehome.de, 30.06.2006}
 const
   strMessage = 'Drucke...';
   strSaveChanges = 'Sollen die Änderungen auf dem Server gespeichert werden?';
@@ -13,16 +12,14 @@ const
   strEmptyWarning = 'Soll geleert werden, Tabelle %s?';
 
 const
-  PopUpCaption: array [0..24] of string[33] =
-   ('Datensatz anfügen',
-    'Datensatz einfügen',
+  PopUpCaption: array [0..22] of string[33] =
+   ('Datensatz einfügen',
+    'Datensatz insert',
     'Datensatz bearbeiten',
     'Datensatz löschen',
     '-',
     'Drucke ...',
     'Exportiere ...',
-    'Filter ...',
-    'Suche ...',
     '-',
     'Speichere Änderungen',
     'Verwerfe Änderungen',
@@ -64,7 +61,6 @@ const //for TSMDBFilterDialog
   strNonExist = 'nicht leer';
   strIn = 'in Liste';
   strBetween = 'zwischen';
-  strLike = 'wie';
 
   strOR = 'ODER';
   strAND = 'UND';
@@ -76,9 +72,8 @@ const //for TSMDBFilterDialog
   strAddCondition = ' Weitere Bedingung eingeben:';
   strSelection = ' Auswahl der Datensätze gemäß der folgenden Bedingungen:';
 
-  strAddToList = 'Hinzufügen';
-  strEditInList = 'Editieren';
-  strDeleteFromList = 'Löschen';
+  strAddToList = 'Hinzufugen';
+  strDeleteFromList = 'Loschen';
 
   strTemplate = 'Filter-Dialog';
   strFLoadFrom = 'Öffnen...';
@@ -103,7 +98,6 @@ const //for SMDBNavigator
   SFindRecord = 'Gefundene Datensätze';
   SPrintRecord = 'Gedruckte Datensätze';
   SExportRecord = 'Exportierte Datensätze';
-  SImportRecord = 'Importiere Datensätze'; 
   SPostEdit = 'Speichere Änderungen';
   SCancelEdit = 'Verwerfe Änderungen';
   SRefreshRecord = 'Aktualisiere Daten';
@@ -125,7 +119,6 @@ const //for SMDBNavigator
   SFindName = 'Suche';
   SPrintName = 'Drucken';
   SExportName = 'Exportieren';
-  SImportName = 'Importieren';
   SPostName = 'Speichern';
   SCancelName = 'Abbrechen';
   SRefreshName = 'Aktualisieren';
@@ -152,12 +145,6 @@ const //for EditTyped
   etValid = 'gültig';
   etIsNot = 'ist kein(e)';
   etOutOfRange = 'Wert %s ist außerhalb des Bereiches %s..%s';
-
-  SApplyAll = 'Auf alle anwenden';
-
-const //for DMDBAccessNavigator
-  dbanOf = 'von';
-  SNoDataToDisplay = '<Keine Daten>';
 
 
 implementation

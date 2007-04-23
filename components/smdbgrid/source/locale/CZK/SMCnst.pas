@@ -11,21 +11,19 @@ const
   strEmptyWarning = 'Chcete doopravdy vypráznit tabulku %s?';
 
 const
-  PopUpCaption: array [0..24] of string[33] =
+  PopUpCaption: array [0..22] of string[33] =
    ('Nový záznam',
     'Vložit záznam',
     'Oprava záznamu',
     'Vymazat záznam',
-  '-',
+    '-',
     'Tisk ...',
     'Export ...',
-    'Filtr ...',
-    'Hledej ...',
     '-',
     'Uložit zmìny',
     'Vrátit zmìny',
     'Obnovit',
-       '-',
+    '-',
     'Oznaèit/Odznaèit záznamy',
        'Oznaèit záznam',
        'Oznaèit všechny záznamy',
@@ -43,74 +41,70 @@ const //for TSMSetDBGridDialog
   SgbData = ' Data ';
   STitleCaption = 'Nadpis:';
   STitleAlignment = 'Zarovnání:';
-  STitleColor = 'Pozadí:'; 
+  STitleColor = 'Pozadí:';
   STitleFont = 'Písmo:';
-  SWidth = 'šíøka:';
+  SWidth = 'Šírka:';
   SWidthFix = 'znaky';
   SAlignLeft = 'vlevo';
   SAlignRight = 'vpravo';
   SAlignCenter = 'na støed';
-  
+
 const //for TSMDBFilterDialog
-  strEqual = 'rovná se';
-  strNonEqual = 'nerovná se';
+  strEqual = 'rovná sa';
+  strNonEqual = 'nerovná sa';
   strNonMore = 'je menší nebo se rovná';
   strNonLess = 'je vìtší nebo se rovná';
   strLessThan = 'je menší';
   strLargeThan = 'je vìtší';
-  strExist = 'prázdný';
-  strNonExist = 'neprázdný';
+  strExist = 'prázdny';
+  strNonExist = 'neprázdny';
   strIn = 'nachází se v';
   strBetween = 'je v rozsahu';
-  strLike = 'obsahuje';
 
   strOR = 'nebo';
-  strAND = 'a zároveò';
+  strAND = 'a souèastnì';
 
-  strField          = 'Položka';
-  strCondition      = 'Podmínka';
-  strValue          = 'Hodnota';
+  strField = 'Položka';
+  strCondition = 'Podmínka';
+  strValue = 'Hodnota';
 
-  strAddCondition   = ' Definice dodateèné podmínky: ';
-  strSelection      = ' Seznam záznamù pro následné podmínky:';
+  strAddCondition = ' Definice dodateèné podmínky: ';
+  strSelection = ' Seznam záznamù pro následné podmínky:';
 
-  strAddToList      = 'Pøidat do seznamu';
-  strEditInList     = 'Upravit do seznamu';
+  strAddToList = 'Pøidat do seznamu';
   strDeleteFromList = 'Odstranit ze seznamu';
 
-  strTemplate       = 'Filtr vzorového dialogu';
-  strFLoadFrom      = 'Èíst z...';  // New constatns
-  strFSaveAs        = 'Uložit jako..';
-  strFDescription   = 'Popis';
-  strFFileName      = 'Název';
-  strFCreate        = 'Vytvoøené : %s';
-  strFModify        = 'Upravené  : %s';
-  strFProtect       = 'Zamezit pøepsání';
-  strFProtectErr    = 'Soubor nelze pøepsat !';
+  strTemplate = 'Filtr vzorového dialogu';
+  strFLoadFrom = 'Èíst z...';  // New constatns
+  strFSaveAs = 'Uložit jako..';
+  strFDescription = 'Popis';
+  strFFileName = 'Název';
+  strFCreate = 'Vytvoøené : %s';
+  strFModify = 'Upravené  : %s';
+  strFProtect = 'Zamezit pøepsání';
+  strFProtectErr = 'Soubor nelze pøepsat !';
 
 const //for SMDBNavigator
-  SFirstRecord      = 'První záznam';
-  SPriorRecord      = 'Pøedchozí záznam';
-  SNextRecord       = 'Další záznam';
-  SLastRecord       = 'Poslední záznam';
-  SInsertRecord     = 'Pøidat záznam';
-  SCopyRecord       = 'Kopírovat záznam';
-  SDeleteRecord     = 'Vymazat záznam';
-  SEditRecord       = 'Upravit záznam';
-  SFilterRecord     = 'Filtrovací podmínka';
-  SFindRecord       = 'Hledání v záznamech';
-  SPrintRecord      = 'Tisk záznamù';
-  SExportRecord     = 'Export záznamù';
-  SImportRecord     = 'Import záznamù';
-  SPostEdit         = 'Uložení zmìn';
-  SCancelEdit       = 'Zrušení zmìn';
-  SRefreshRecord    = 'Obnovit data';
-  SChoice           = 'Vyberte si záznam';
-  SClear            = 'Ostranit vybrané záznamy';
-  SDeleteRecordQuestion = 'Smazat záznam?';
-  SDeleteMultipleRecordsQuestion = 'Skuteènì chcete smazat vybrané záznamy?';
+  SFirstRecord = 'První záznam';
+  SPriorRecord = 'Pøedchozí záznam';
+  SNextRecord = 'Další záznam';
+  SLastRecord = 'Poslední záznam';
+  SInsertRecord = 'Pøidat záznam';
+  SCopyRecord = 'Kopírovat záznam';
+  SDeleteRecord = 'Vymazat záznam';
+  SEditRecord = 'Upravit záznam';
+  SFilterRecord = 'Filtrovací podmínka';
+  SFindRecord = 'Hledání v záznamech';
+  SPrintRecord = 'Tist záznamù';
+  SExportRecord = 'Export záznamù';
+  SPostEdit = 'Uložení zmìn';
+  SCancelEdit = 'Ukonèení zmìn';
+  SRefreshRecord = 'Obnovit data';
+  SChoice = 'Vyberte si záznam';
+  SClear = 'Ostraòují vybrané záznamy';
+  SDeleteRecordQuestion = 'Vymazat záznam?';
+  SDeleteMultipleRecordsQuestion = 'Skuteènì chcete vymazat vybrané záznamy?';
   SRecordNotFound = 'Záznam nenalezen';
-
 
   SFirstName = 'První';
   SPriorName = 'Pøedchozí';
@@ -120,17 +114,15 @@ const //for SMDBNavigator
   SCopyName = 'Kopírovat';
   SDeleteName = 'Vymazat';
   SEditName = 'Upravit';
-  SFilterName = 'Filtr';
+  SFilterName = 'Filt';
   SFindName = 'Hledání';
-  SPrintName = 'Tisk';
+  SPrintName = 'Tlisk';
   SExportName = 'Export';
-  SImportName = 'Import';
   SPostName = 'Uložit';
   SCancelName = 'Storno';
   SRefreshName = 'Obnovit';
   SChoiceName = 'Volba';
   SClearName = 'Odstranit';
-
 
   SBtnOk = '&OK';
   SBtnCancel = '&Storno';
@@ -152,10 +144,6 @@ const //for EditTyped
   etValid = 'platný';
   etIsNot = 'Není';
   etOutOfRange = 'Hodnota %s je mimo rozsahu %s..%s';
-
-  SApplyAll = 'Použít na všechny';
-
-  SNoDataToDisplay = '<žádná data k zobrazení>';
 
 implementation
 
