@@ -44,6 +44,9 @@
     <DelphiCompile Include="SynEditR.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\..\..\packages\delphi11\vcl.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\vcldb.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\vclx.dcp" />
     <DCCReference Include="..\..\Source\SynAutoCorrect.pas" />
     <DCCReference Include="..\..\Source\SynAutoCorrectEditor.pas">
       <Form>frmAutoCorrectEditor</Form>
@@ -150,8 +153,5 @@
     <DCCReference Include="..\..\Source\SynRegExpr.pas" />
     <DCCReference Include="..\..\Source\SynTextDrawer.pas" />
     <DCCReference Include="..\..\Source\SynURIOpener.pas" />
-    <DCCReference Include="vcl.dcp" />
-    <DCCReference Include="vcldb.dcp" />
-    <DCCReference Include="vclx.dcp" />
   </ItemGroup>
 </Project>
