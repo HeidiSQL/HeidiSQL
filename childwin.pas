@@ -1479,6 +1479,10 @@ begin
 
   // Ensure controls are in a valid state
   ValidateControls;
+
+  // Show processlist if it's visible now but empty yet
+  if ListProcesses.Items.Count = 0 then
+    ShowProcessList( self );
 end;
 
 
@@ -2259,6 +2263,7 @@ var
 begin
   // No need to update if it's not visible.
   if PageControlMain.ActivePage <> tabHost then exit;
+  if PageControlHost.ActivePage <> tabProcesslist then exit;
   Screen.Cursor := crSQLWait;
   try
     ListProcesses.Items.BeginUpdate;
@@ -2321,6 +2326,9 @@ end;
 
 procedure TMDIChild.PageControlHostChange(Sender: TObject);
 begin
+  // Show processlist if it's visible now but empty yet
+  if ListProcesses.Items.Count = 0 then
+    ShowProcessList( self );
   ListProcessesSelectItem(self, nil, False);
 end;
 
