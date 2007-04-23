@@ -2,7 +2,7 @@ unit UserReg;
 
 interface
 
-{$R CompsSer.dcr}
+{$R ..\..\resources\CompsSer.dcr}
 {$I compilers.inc}
 procedure Register;
 
