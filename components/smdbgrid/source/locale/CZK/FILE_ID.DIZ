@@ -2,16 +2,18 @@
 {                                                         }
 {       Resources for SMComponent suite. Freeware.        }
 {                                                         }
-{        Copyright (c) 1998-2001  Mike Shkolnik           }
+{        Copyright (c) 1998-2006  Mike Shkolnik           }
 {                                                         }
 {  E-Mail:  mshkolnik@scalabium.com                       }
 {           mshkolnik@yahoo.com                           }
 {  WEB: http://www.scalabium.com                          }
-{       http://www.geocities.com/mshkolnik                }
-{  tel: 380-/44/-552-10-29                                }
 {                                                         }
 {*********************************************************}
 
 Czech resource strings
-translated by Pavel ZIDEK, delphi@kopr.cz
+translated by
+- Pavel ZIDEK, delphi@kopr.cz
+- Tomas Hruska <hruska@arit.cz>
+- Petr <ptresnak@centrum.cz>
+
 

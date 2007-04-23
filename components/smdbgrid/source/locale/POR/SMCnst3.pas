@@ -1,15 +1,12 @@
-{ Copyright (C) 1998-2006, written by Mike Shkolnik, Scalabium Software
-  E-Mail: mshkolnik@scalabium
-  WEB: http://www.scalabium.com
-
-  Const strings for localization : Portuguese(Standard)
-  freeware SMComponent library
-}  
 unit SMCnst;
 
 interface
-{Portuguese strings - Translated by Fernando Dias (fernandodias@easygate.com.pt)
- Last update: 03-May-2006}
+//
+// Portuguese strings 
+//   Translated by Fernando Dias  
+//   e-mail: fernandodias@easygate.com.pt
+//   Last Update: 3-Nov-2005 
+//
 const
   strMessage = 'Imprimir...';
   strSaveChanges = 'Pretende mesmo guardar as alterações na base de dados ?';
@@ -40,13 +37,13 @@ const
        'Desmarcar registo',
        'Desmarcar todos',
     '-',
-    'Guardar aspecto da coluna',
-    'Recuperar aspecto da coluna',
+    'Guardar configuração da coluna',
+    'Recuperar configuração da coluna',
     '-',
     'Configuração...');
 
 const //for TSMSetDBGridDialog
-  SgbTitle = ' Titulo ';
+  SgbTitle = ' Título ';
   SgbData = ' Dados ';
   STitleCaption = 'Rótulo:';
   STitleAlignment = 'Alinhamento:';
@@ -92,7 +89,7 @@ const //for TSMDBFilterDialog
   strFFileName = 'Ficheiro';
   strFCreate = 'Criado: %s';
   strFModify = 'Modificado: %s';
-  strFProtect = 'Proteger para escrita';
+  strFProtect = 'Proteger contra escrita';
   strFProtectErr = 'Ficheiro está protegido!';
 
 const //for SMDBNavigator
@@ -108,7 +105,6 @@ const //for SMDBNavigator
   SFindRecord = 'Procurar';
   SPrintRecord = 'Imprimir';
   SExportRecord = 'Exportar';
-  SImportRecord = 'Importar';
   SPostEdit = 'Guardar alterações';
   SCancelEdit = 'Cancelar alterações';
   SRefreshRecord = 'Refrescar dados';
@@ -130,7 +126,6 @@ const //for SMDBNavigator
   SFindName = 'Procurar';
   SPrintName = 'Imprimir';
   SExportName = 'Exportar';
-  SImportName = 'Importar';  
   SPostName = 'Guardar';
   SCancelName = 'Cancelar';
   SRefreshName = 'Refrescar';

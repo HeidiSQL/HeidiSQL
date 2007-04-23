@@ -10,7 +10,7 @@ const
   strDeleteWarning = 'Вы действительно хотите удалить таблицу %s?';
   strEmptyWarning = 'Вы действительно хотите удалить данные из таблицы %s?';
 
-const PopUpCaption: array [0..22] of string[33] =
+const PopUpCaption: array[0..24] of string[33] =
    ('Добавить запись',
     'Вставить запись',
     'Редактировать запись',
@@ -18,6 +18,8 @@ const PopUpCaption: array [0..22] of string[33] =
     '-',
     'Печать ...',
     'Экспорт данных ...',
+    'Фильтр ...',
+    'Поиск ...',
     '-',
     'Сохранить изменения',
     'Отменить изменения',
@@ -72,6 +74,7 @@ const //for TSMDBFilterDialog
   strSelection = ' Выбор записей по следующим условиям:';
 
   strAddToList = 'Добавить в список';
+  strEditInList = 'Редактировать';
   strDeleteFromList = 'Удалить из списка';
 
   strTemplate = 'Шаблоны фильтров';
@@ -145,6 +148,12 @@ const //for EditTyped
   etIsNot = 'не является';
   etOutOfRange = 'Значение %s не принадлежит диапазону %s..%s';
 
+  SPrevYear = 'Предыдущий год';
+  SNextYear = 'Следующий год|';
+  SPrevMonth = 'Предыдущий месяц|';
+  SNextMonth = 'Следующий месяц|';
+
+  SApplyAll = 'Применить всем';
 
 implementation
 

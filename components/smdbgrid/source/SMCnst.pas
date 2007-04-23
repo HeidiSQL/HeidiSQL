@@ -1,3 +1,10 @@
+{ Copyright (C) 1998-2006, written by Mike Shkolnik, Scalabium Software
+  E-Mail: mshkolnik@scalabium
+  WEB: http://www.scalabium.com
+
+  Const strings for localization
+  freeware SMComponent library
+}
 unit SMCnst;
 
 interface
@@ -11,7 +18,7 @@ const
   strEmptyWarning = 'Do you really want to empty a table %s?';
 
 const
-  PopUpCaption: array [0..22] of string[33] =
+  PopUpCaption: array [0..24] of string[33] =
    ('Add record',
     'Insert record',
     'Edit record',
@@ -19,6 +26,8 @@ const
     '-',
     'Print ...',
     'Export ...',
+    'Filter ...',
+    'Search ...',
     '-',
     'Save changes',
     'Discard changes',
@@ -60,6 +69,7 @@ const //for TSMDBFilterDialog
   strNonExist = 'not empty';
   strIn = 'in list';
   strBetween = 'between';
+  strLike = 'like';
 
   strOR = 'OR';
   strAND = 'AND';
@@ -72,6 +82,7 @@ const //for TSMDBFilterDialog
   strSelection = ' Select the records by the next conditions:';
 
   strAddToList = 'Add to list';
+  strEditInList = 'Edit in list';
   strDeleteFromList = 'Delete from list';
 
   strTemplate = 'Filter template dialog';
@@ -97,6 +108,7 @@ const //for SMDBNavigator
   SFindRecord = 'Search of the record';
   SPrintRecord = 'Print of the records';
   SExportRecord = 'Export of the records';
+  SImportRecord = 'Import the records';
   SPostEdit = 'Save changes';
   SCancelEdit = 'Cancel changes';
   SRefreshRecord = 'Refresh data';
@@ -118,6 +130,7 @@ const //for SMDBNavigator
   SFindName = 'Find';
   SPrintName = 'Print';
   SExportName = 'Export';
+  SImportName = 'Import';
   SPostName = 'Save';
   SCancelName = 'Cancel';
   SRefreshName = 'Refresh';
@@ -144,6 +157,10 @@ const //for EditTyped
   etValid = 'valid';
   etIsNot = 'is not a';
   etOutOfRange = 'Value %s out of range %s..%s';
+
+  SApplyAll = 'Apply to All';
+
+  SNoDataToDisplay = '<No data to display>';
 
 implementation
 

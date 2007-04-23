@@ -1,3 +1,10 @@
+{ Copyright (C) 1998-2006, written by Mike Shkolnik, Scalabium Software
+  E-Mail: mshkolnik@scalabium
+  WEB: http://www.scalabium.com
+
+  Const strings for localization
+  freeware SMComponent library
+}
 unit SMCnst;
 
 interface
@@ -11,7 +18,7 @@ const
   strEmptyWarning = 'Confirma el vaciado de la table %s?';
 
 const
-  PopUpCaption: array [0..22] of string[33] =
+  PopUpCaption: array [0..24] of string[33] =
    ('Agregar registro',
     'Insertar registro',
     'Editar registro',
@@ -19,6 +26,8 @@ const
     '-',
     'Imprimir ...',
     'Exportar ...',
+    'Filtrar...',
+    'Buscar...',
     '-',
     'Grabar cambios',
     'Descartar cambios',
@@ -60,6 +69,7 @@ const //for TSMDBFilterDialog
   strNonExist = 'lleno';
   strIn = 'en la lista';
   strBetween = 'entre';
+  strLike = 'como';
 
   strOR = 'OR';
   strAND = 'AND';
@@ -71,8 +81,9 @@ const //for TSMDBFilterDialog
   strAddCondition = ' Define condición adicional:';
   strSelection = ' Selecciona los registros por las siguientes condiciones:';
 
-  strAddToList = 'Agrega a la lista';
-  strDeleteFromList = 'Borra de la lista';
+  strAddToList = 'Agregar a la lista';
+  strEditInList = 'Editar en la lista';
+  strDeleteFromList = 'Borrar de la lista';
 
   strTemplate = 'Dialogo plantilla de filtro';
   strFLoadFrom = 'Cargar desde...';
@@ -96,7 +107,8 @@ const //for SMDBNavigator
   SFilterRecord = 'Filtrar';
   SFindRecord = 'Buscar';
   SPrintRecord = 'Impresión';
-  SExportRecord = 'Exportar';
+  SExportRecord = 'Exportar los registros';
+  SImportRecord = 'Importar los registros';
   SPostEdit = 'Guardar';
   SCancelEdit = 'Deshacer Cambios';
   SRefreshRecord = 'Refrescar Datos';
@@ -118,6 +130,7 @@ const //for SMDBNavigator
   SFindName = 'Buscar';
   SPrintName = 'Imprimir';
   SExportName = 'Exportar';
+  SImportName = 'Importar';
   SPostName = 'Guardar';
   SCancelName = 'Cancelar';
   SRefreshName = 'Refrescar';
@@ -145,6 +158,11 @@ const //for EditTyped
   etIsNot = 'no es un/a';
   etOutOfRange = 'Valor %s fuera del rango %s..%s';
 
+  SApplyAll = 'Aplicar a Todo';
+
+  SNoDataToDisplay = '<No hay datos para mostrar>';
+
 implementation
 
 end.
+

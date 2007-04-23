@@ -5,6 +5,8 @@ interface
 
 {Brazilian Portuguese strings}
 {translated by Rodrigo Hjort, rodrigo_hjort@excite.com}
+{**30/04/2005** update by Fábio H. Souza, fabio@cefise.com.br}
+
 const
   strMessage = 'Imprimir...';
   strSaveChanges = 'Deseja realmente salvar alterações no Servidor de Banco de Dados?';
@@ -13,14 +15,16 @@ const
   strEmptyWarning = 'Deseja realmente esvaziar a tabela %s?';
 
 const
-  PopUpCaption: array [0..22] of string[33] =
+  PopUpCaption: array [0..24] of string[33] =
    ('Incluir registro',
-    'Insert registro',
+    'Inserir registro',
     'Alterar registro',
     'Excluir registro',
     '-',
     'Imprimir ...',
     'Exportar ...',
+    'Filtrar ...',
+    'Procurar ...',
     '-',
     'Salvar alterações',
     'Cancelar alterações',
@@ -28,10 +32,10 @@ const
     '-',
     'Selecionar/Desselecionar registros',
        'Selecionar registro',
-       'Selecionar todos registros',
+       'Selecionar todos os registros',
        '-',
        'Desselecionar registro',
-       'Desselecionar todos registros',
+       'Desselecionar todos os registros',
     '-',
     'Salvar layout da coluna',
     'Abrir layout da coluna',
@@ -39,52 +43,55 @@ const
     'Configurar...');
 
 const //for TSMSetDBGridDialog
-  SgbTitle = ' Title ';
-  SgbData = ' Data ';
-  STitleCaption = 'Caption:';
-  STitleAlignment = 'Alignment:';
-  STitleColor = 'Color:'; 
-  STitleFont = 'Font:';
-  SWidth = 'Width:';
-  SWidthFix = 'characters';
-  SAlignLeft = 'left';
-  SAlignRight = 'right';
-  SAlignCenter = 'center';
+  SgbTitle = ' Título ';
+  SgbData = ' Dado ';
+  STitleCaption = 'Título:';
+  STitleAlignment = 'alinhamento:';
+  STitleColor = 'Cor:';
+  STitleFont = 'Fonte:';
+  SWidth = 'Largura:';
+  SWidthFix = 'caracteres';
+  SAlignLeft = 'esquerda';
+  SAlignRight = 'direita';
+  SAlignCenter = 'centralizado';
 
 const //for TSMDBFilterDialog
-  strEqual = 'equal';
-  strNonEqual = 'not equal';
-  strNonMore = 'no greater';
-  strNonLess = 'no less';
-  strLessThan = 'less than';
-  strLargeThan = 'greater than';
-  strExist = 'empty';
-  strNonExist = 'not empty';
-  strIn = 'in list';
-  strBetween = 'between';
+  strEqual = 'igual';
+  strNonEqual = 'não igual';
+  strNonMore = 'não maior';
+  strNonLess = 'não menor';
+  strLessThan = 'menor que';
+  strLargeThan = 'maior que';
+  strExist = 'vazio';
+  strNonExist = 'não vazio';
+  strIn = 'na lista';
+  strBetween = 'entre';
+  strLike = 'como';
 
-  strOR = 'OR';
-  strAND = 'AND';
+  strOR = 'OU';
+  strAND = 'E';
 
-  strField = 'Field';
-  strCondition = 'Condition';
-  strValue = 'Value';
+  strField = 'Campo';
+  strCondition = 'Condição';
+  strValue = 'Valor';
 
-  strAddCondition = ' Define the additional condition:';
-  strSelection = ' Select the records by the next conditions:';
+  strAddCondition = ' Define a condição adicional:';
+  strSelection = ' Selecione os Registros pela seguintes condições:';
 
-  strAddToList = 'Add to list';
-  strDeleteFromList = 'Delete from list';
+  strAddToList = 'Adicionar a lista';
+  strEditInList = 'Editar na lista';
+  strDeleteFromList = 'Deletar da lista';
 
-  strTemplate = 'Filter template dialog';
-  strFLoadFrom = 'Load from...';
-  strFSaveAs = 'Save as..';
-  strFDescription = 'Description';
-  strFFileName = 'File name';
-  strFCreate = 'Created: %s';
-  strFModify = 'Modified: %s';
-  strFProtect = 'Protect for rewrite';
-  strFProtectErr = 'File is protected!';
+  strTemplate = 'Dialogo de modelo de Filtro';
+  strFLoadFrom = 'Abrir de...';
+  strFSaveAs = 'Salvar como..';
+  strFDescription = 'Descrição';
+  strFFileName = 'Nome do Arquivo';
+  strFCreate = 'Criado: %s';
+  strFModify = 'Modificado: %s';
+  strFProtect = 'Protegido contra gravação';
+  strFProtectErr = 'Arquivo protegido!';
+
 
 const //for SMDBNavigator
   SFirstRecord = 'Primeiro registro';
@@ -104,7 +111,7 @@ const //for SMDBNavigator
   SRefreshRecord = 'Atualizar dados';
   SChoice = 'Escolher registro';
   SClear = 'Limpar escolha de registro';
-  SDeleteRecordQuestion = 'Excluir registro?';
+  SDeleteRecordQuestion = 'Excluir registro selecionado?';
   SDeleteMultipleRecordsQuestion = 'Deseja realmente excluir registros selecionados?';
   SRecordNotFound = 'Registro não encontrado';
 
@@ -128,14 +135,14 @@ const //for SMDBNavigator
 
   SBtnOk = '&OK';
   SBtnCancel = '&Cancelar';
-  SBtnLoad = 'Load';
-  SBtnSave = 'Save';
-  SBtnCopy = 'Copy';
-  SBtnPaste = 'Paste';
-  SBtnClear = 'Clear';
+  SBtnLoad = 'Abrir';
+  SBtnSave = 'Salvar';
+  SBtnCopy = 'Copiar';
+  SBtnPaste = 'Colar';
+  SBtnClear = 'Limpar';
 
   SRecNo = '#';
-  SRecOf = ' of ';
+  SRecOf = ' de ';
 
 const //for EditTyped
   etValidNumber = 'número válido';
@@ -147,7 +154,7 @@ const //for EditTyped
   etIsNot = 'não é um';
   etOutOfRange = 'Valor %s está fora dos limites %s..%s';
 
-
+  SApplyAll = 'Aplicar a Todos';
 implementation
 
 end.
