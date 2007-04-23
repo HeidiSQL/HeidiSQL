@@ -163,6 +163,7 @@ type
     procedure FileExit1Execute(Sender: TObject);
     procedure FlushClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonRefreshClick(Sender: TObject);
     procedure ButtonCreateDatabaseClick(Sender: TObject);
@@ -409,7 +410,15 @@ begin
     deletefile(filename+'bmp');
 end;
 
-procedure TMainForm.FormShow(Sender: TObject);
+
+{***
+  OnCreate Event
+  Important to set the windowstate here instead of in OnShow
+  because possible windowstate-switching is done with an animation
+  if set in Windows. This animation takes some milliseconds
+  to complete and can be annoying.
+}
+procedure TMainForm.FormCreate(Sender: TObject);
 var
   ws : String;
   mi : TMenuItem;
@@ -535,9 +544,15 @@ begin
 
   // Folder which contains snippet-files
   DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + APPNAME + '\Snippets\'; // CSIDL_COMMON_APPDATA
+end;
 
+
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+  // Cannot be done in OnCreate because we need ready forms here:
   ShowConnections(self);
 end;
+
 
 procedure TMainForm.insertFunction(sender: TObject);
 var

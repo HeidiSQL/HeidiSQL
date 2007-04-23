@@ -13,6 +13,7 @@ object MainForm: TMainForm
   Menu = MainMenu1
   OldCreateOrder = True
   OnClose = FormClose
+  OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
