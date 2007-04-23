@@ -34,7 +34,7 @@
     <DelphiCompile Include="HeidiComponents.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\..\..\packages\delphi11\vcl.dcp" />
     <DCCReference Include="..\..\source\heidicomp.pas" />
-    <DCCReference Include="vcl.dcp" />
   </ItemGroup>
 </Project>
