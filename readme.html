@@ -350,13 +350,30 @@
 	<p>
 		If you get this error while committing the source code:<br />
 		<cite>
-			Error    Commit failed (details follow):<br />
-			Error    COPY of &lt;new file&gt;: 403 Forbidden (https://svn.sourceforge.net)
+			Error: COPY of &lt;some_file&gt;: 403 Forbidden (https://svn.sourceforge.net)
 		</cite>
-		
-		Just <strong>relocate</strong> your source url to:
+	</p>
+	
+	<p>
+		Solution: Just <strong>relocate</strong> the repository URL to this one:
 		<cite>
 			https://heidisql.svn.sourceforge.net/svnroot/heidisql
+		</cite>
+
+		Via commandline:
+		<cite>
+			svn switch --relocate https://svn.sourceforge.net/svnroot/heidisql TO
+			https://heidisql.svn.sourceforge.net/svnroot/heidisql
+		</cite>
+		Via TortoiseSVN:
+		<cite>
+			<ol>
+				<li>Open the folder where you checked out HeidiSQL</li>
+				<li>Rightclick root-folder</li>
+				<li>"TortoiseSVN" submenu</li>
+				<li>"Relocate"</li>
+				<li>[type in the new URL from above]</li>
+			</ol>
 		</cite>
 	</p>
 
