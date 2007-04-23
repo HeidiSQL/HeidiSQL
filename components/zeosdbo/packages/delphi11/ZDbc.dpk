@@ -1,0 +1,89 @@
+package ZDbc;
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Low Level Database API'}
+{$LIBSUFFIX '110'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+{$DEFINE RELEASE}
+
+requires
+  ZParseSql,
+  ZPlain,
+  rtl;
+
+contains
+  ZDbcUtils in '..\..\src\dbc\ZDbcUtils.pas',
+  ZDbcCachedResultSet in '..\..\src\dbc\ZDbcCachedResultSet.pas',
+  ZDbcConnection in '..\..\src\dbc\ZDbcConnection.pas',
+  ZDbcDbLib in '..\..\src\dbc\ZDbcDbLib.pas',
+  ZDbcDbLibMsSqlMetadata in '..\..\src\dbc\ZDbcDbLibMsSqlMetadata.pas',
+  ZDbcDbLibResultSet in '..\..\src\dbc\ZDbcDbLibResultSet.pas',
+  ZDbcDbLibStatement in '..\..\src\dbc\ZDbcDbLibStatement.pas',
+  ZDbcDbLibSybaseMetadata in '..\..\src\dbc\ZDbcDbLibSybaseMetadata.pas',
+  ZDbcDbLibUtils in '..\..\src\dbc\ZDbcDbLibUtils.pas',
+  ZDbcGenericResolver in '..\..\src\dbc\ZDbcGenericResolver.pas',
+  ZDbcInterbase6 in '..\..\src\dbc\ZDbcInterbase6.pas',
+  ZDbcInterbase6Metadata in '..\..\src\dbc\ZDbcInterbase6Metadata.pas',
+  ZDbcInterbase6ResultSet in '..\..\src\dbc\ZDbcInterbase6ResultSet.pas',
+  ZDbcInterbase6Statement in '..\..\src\dbc\ZDbcInterbase6Statement.pas',
+  ZDbcInterbase6Utils in '..\..\src\dbc\ZDbcInterbase6Utils.pas',
+  ZDbcIntfs in '..\..\src\dbc\ZDbcIntfs.pas',
+  ZDbcMetadata in '..\..\src\dbc\ZDbcMetadata.pas',
+  ZDbcMySql in '..\..\src\dbc\ZDbcMySql.pas',
+  ZDbcMySqlMetadata in '..\..\src\dbc\ZDbcMySqlMetadata.pas',
+  ZDbcMySqlResultSet in '..\..\src\dbc\ZDbcMySqlResultSet.pas',
+  ZDbcMySqlStatement in '..\..\src\dbc\ZDbcMySqlStatement.pas',
+  ZDbcMySqlUtils in '..\..\src\dbc\ZDbcMySqlUtils.pas',
+  ZDbcPostgreSql in '..\..\src\dbc\ZDbcPostgreSql.pas',
+  ZDbcPostgreSqlMetadata in '..\..\src\dbc\ZDbcPostgreSqlMetadata.pas',
+  ZDbcPostgreSqlResultSet in '..\..\src\dbc\ZDbcPostgreSqlResultSet.pas',
+  ZDbcPostgreSqlStatement in '..\..\src\dbc\ZDbcPostgreSqlStatement.pas',
+  ZDbcPostgreSqlUtils in '..\..\src\dbc\ZDbcPostgreSqlUtils.pas',
+  ZDbcResultSet in '..\..\src\dbc\ZDbcResultSet.pas',
+  ZDbcResultSetMetadata in '..\..\src\dbc\ZDbcResultSetMetadata.pas',
+  ZDbcStatement in '..\..\src\dbc\ZDbcStatement.pas',
+  ZDbcCache in '..\..\src\dbc\ZDbcCache.pas',
+  ZDbcAdoMetadata in '..\..\src\dbc\ZDbcAdoMetadata.pas',
+  ZDbcAdoResultSet in '..\..\src\dbc\ZDbcAdoResultSet.pas',
+  ZDbcAdoStatement in '..\..\src\dbc\ZDbcAdoStatement.pas',
+  ZDbcAdoUtils in '..\..\src\dbc\ZDbcAdoUtils.pas',
+  ZDbcLogging in '..\..\src\dbc\ZDbcLogging.pas',
+  ZDbcAdo in '..\..\src\dbc\ZDbcAdo.pas',
+  ZDbcOracle in '..\..\src\dbc\ZDbcOracle.pas',
+  ZDbcOracleUtils in '..\..\src\dbc\ZDbcOracleUtils.pas',
+  ZDbcOracleStatement in '..\..\src\dbc\ZDbcOracleStatement.pas',
+  ZDbcOracleResultSet in '..\..\src\dbc\ZDbcOracleResultSet.pas',
+  ZDbcOracleMetadata in '..\..\src\dbc\ZDbcOracleMetadata.pas',
+  ZDbcSqLite in '..\..\src\dbc\ZDbcSqLite.pas',
+  ZDbcSqLiteUtils in '..\..\src\dbc\ZDbcSqLiteUtils.pas',
+  ZDbcSqLiteStatement in '..\..\src\dbc\ZDbcSqLiteStatement.pas',
+  ZDbcSqLiteResultSet in '..\..\src\dbc\ZDbcSqLiteResultSet.pas',
+  ZDbcSqLiteMetadata in '..\..\src\dbc\ZDbcSqLiteMetadata.pas',
+  ZDbcASAUtils in '..\..\src\dbc\ZDbcASAUtils.pas',
+  ZDbcASAMetadata in '..\..\src\dbc\ZDbcASAMetadata.pas',
+  ZDbcASAResultSet in '..\..\src\dbc\ZDbcASAResultSet.pas',
+  ZDbcASAStatement in '..\..\src\dbc\ZDbcASAStatement.pas',
+  ZDbcASA in '..\..\src\dbc\ZDbcASA.pas';
+
+end.
