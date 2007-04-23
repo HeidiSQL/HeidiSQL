@@ -9,10 +9,6 @@
     </Option>
   </PersonalityInfo>
   <Default.Personality>
-    
-    
-    
-    
     <Projects>
       <Projects Name="VCLser100.bpl">..\..\components\edbimage\packages\delphi10\VCLser100.bdsproj</Projects>
       <Projects Name="DCLSer100.bpl">..\..\components\edbimage\packages\delphi10\DCLSer100.bdsproj</Projects>
