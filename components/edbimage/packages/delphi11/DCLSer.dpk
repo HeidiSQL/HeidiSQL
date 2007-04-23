@@ -32,6 +32,6 @@ requires
   designide;
 
 contains
-  UserReg in '..\..\source\UserReg.pas';
+  UserReg in '..\..\source\uSerREG.pas';
 
 end.

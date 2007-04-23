@@ -51,10 +51,10 @@
     <DelphiCompile Include="VCLSer.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\..\..\packages\delphi11\bdertl.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\dbrtl.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\vcldb.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\vcljpg.dcp" />
     <DCCReference Include="..\..\source\EDBImage.pas" />
-    <DCCReference Include="bdertl.dcp" />
-    <DCCReference Include="dbrtl.dcp" />
-    <DCCReference Include="vcldb.dcp" />
-    <DCCReference Include="vcljpg.dcp" />
   </ItemGroup>
 </Project>

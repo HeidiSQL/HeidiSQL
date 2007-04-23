@@ -35,10 +35,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>$(BDSCOMMONDIR)\Bpl</DCC_BplOutput>
     <DCC_DcpOutput>$(BDSCOMMONDIR)\Dcp</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\..\compilerdetection</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\..\compilerdetection</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\..\compilerdetection</DCC_ObjPath>
-    <DCC_IncludePath>..\..\..\compilerdetection</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\..\compilerdetection;..\..\resources</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\..\compilerdetection;..\..\resources</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\..\compilerdetection;..\..\resources</DCC_ObjPath>
+    <DCC_IncludePath>..\..\..\compilerdetection;..\..\resources</DCC_IncludePath>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
@@ -51,8 +51,8 @@
     <DelphiCompile Include="DCLSer.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\source\UserReg.pas" />
-    <DCCReference Include="designide.dcp" />
-    <DCCReference Include="VCLSer.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\designide.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\VCLSer.dcp" />
+    <DCCReference Include="..\..\source\uSerREG.pas" />
   </ItemGroup>
 </Project>
