@@ -39,55 +39,16 @@
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType>Package</Borland.ProjectType>
     <BorlandProject>
-<BorlandProject xmlns=""> <Delphi.Personality>   <Parameters>
-      <Parameters Name="UseLauncher">False</Parameters>
-      <Parameters Name="LoadAllSymbols">True</Parameters>
-      <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-    </Parameters>
-    <Package_Options>
-      <Package_Options Name="PackageDescription">Zeos Low Level Database API</Package_Options>
-      <Package_Options Name="ImplicitBuild">False</Package_Options>
-      <Package_Options Name="DesigntimeOnly">False</Package_Options>
-      <Package_Options Name="RuntimeOnly">True</Package_Options>
-      <Package_Options Name="LibSuffix">110</Package_Options>
-    </Package_Options>
-    <VersionInfo>
-      <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
-      <VersionInfo Name="AutoIncBuild">False</VersionInfo>
-      <VersionInfo Name="MajorVer">1</VersionInfo>
-      <VersionInfo Name="MinorVer">0</VersionInfo>
-      <VersionInfo Name="Release">0</VersionInfo>
-      <VersionInfo Name="Build">0</VersionInfo>
-      <VersionInfo Name="Debug">False</VersionInfo>
-      <VersionInfo Name="PreRelease">False</VersionInfo>
-      <VersionInfo Name="Special">False</VersionInfo>
-      <VersionInfo Name="Private">False</VersionInfo>
-      <VersionInfo Name="DLL">False</VersionInfo>
-      <VersionInfo Name="Locale">1031</VersionInfo>
-      <VersionInfo Name="CodePage">1252</VersionInfo>
-    </VersionInfo>
-    <VersionInfoKeys>
-      <VersionInfoKeys Name="CompanyName"></VersionInfoKeys>
-      <VersionInfoKeys Name="FileDescription"></VersionInfoKeys>
-      <VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
-      <VersionInfoKeys Name="InternalName"></VersionInfoKeys>
-      <VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys>
-      <VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
-      <VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys>
-      <VersionInfoKeys Name="ProductName"></VersionInfoKeys>
-      <VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
-      <VersionInfoKeys Name="Comments"></VersionInfoKeys>
-    </VersionInfoKeys>
-    <Source>
-      <Source Name="MainSource">ZDbc.dpk</Source>
-    </Source>
-  </Delphi.Personality> </BorlandProject></BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><Package_Options><Package_Options Name="PackageDescription">Zeos Low Level Database API</Package_Options><Package_Options Name="ImplicitBuild">False</Package_Options><Package_Options Name="DesigntimeOnly">False</Package_Options><Package_Options Name="RuntimeOnly">True</Package_Options><Package_Options Name="LibSuffix">110</Package_Options></Package_Options><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">1</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">False</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">1031</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription"></VersionInfoKeys><VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename"></VersionInfoKeys><VersionInfoKeys Name="ProductName"></VersionInfoKeys><VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">ZDbc.dpk</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
   </ProjectExtensions>
-  <ItemGroup />
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
   <ItemGroup>
     <DelphiCompile Include="ZDbc.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\..\..\packages\delphi11\rtl.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\ZParseSql.dcp" />
+    <DCCReference Include="..\..\..\..\packages\delphi11\ZPlain.dcp" />
     <DCCReference Include="..\..\src\dbc\ZDbcAdo.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcAdoMetadata.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcAdoResultSet.pas" />
@@ -140,9 +101,5 @@
     <DCCReference Include="..\..\src\dbc\ZDbcSqLiteUtils.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcStatement.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcUtils.pas" />
-    <DCCReference Include="rtl.dcp" />
-    <DCCReference Include="ZParseSql.dcp" />
-    <DCCReference Include="ZPlain.dcp" />
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
 </Project>
