@@ -753,9 +753,6 @@ begin
     if OpenKey(REGPATH, true) then
     begin
       ws := ReadString('childwinstate');
-      if mainform.MDIChildCount > 1 then
-        if mainform.MDIChildren[0].WindowState = wsNormal then
-          ws := '';
       if ws = 'Normal' then
       begin
         windowstate := wsNormal;
