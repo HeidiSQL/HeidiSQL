@@ -91,7 +91,7 @@ end;
 // Connect
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
 var
-  cp : TConnParams;
+  cp : TOpenConnProf;
   mysqlconn : TMysqlConn;
   f : TMDIChild;
 begin

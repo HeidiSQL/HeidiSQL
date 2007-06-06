@@ -15,14 +15,14 @@ type
   TMysqlConn = class
     private
       FConn : TZConnection;
-      FConnParams : TConnParams;
+      FOpenConn : TOpenConnProf;
       FLastError : String;
     function GetDescription: String;
     function GetIsAlive: Boolean;
     function GetIsConnected: Boolean;
       //FTimer : TTimer;
     public
-      constructor Create(AParams : PConnParams);
+      constructor Create(AConn : POpenConnProf);
       destructor Destroy(); override;
       function Connect() : Integer;
       property IsConnected : Boolean read GetIsConnected;
@@ -41,7 +41,7 @@ uses SysUtils;
 constructor TMysqlConn.Create;
 begin
   FConn := TZConnection.Create(nil);
-  FConnParams := AParams^;
+  FOpenConn := AConn^;
   FLastError := '';
 end;
 
@@ -49,7 +49,7 @@ function TMysqlConn.Connect(): Integer;
 begin
   FLastError := '';
 
-  with FConnParams.MysqlParams do
+  with FOpenConn.MysqlParams do
     begin
       FConn.Protocol := 'mysql';
       FConn.Hostname := Host;
@@ -89,7 +89,7 @@ end;
 
 function TMysqlConn.GetDescription: String;
 begin
-  result := FConnParams.Description;
+  result := FOpenConn.Description;
 end;
 
 function TMysqlConn.GetIsAlive: Boolean;

@@ -446,7 +446,7 @@ type
       CanAcessMysqlFlag          : Boolean;
       FCurDataset                : TDataSet;
       FMysqlConn                 : TMysqlConn;
-      FConnParams                : TConnParams;
+      FConn                      : TOpenConnProf;
       QueryRunningInterlock      : Integer;
       lastUsedDB                 : String;
 
@@ -471,7 +471,7 @@ type
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
 
       FProgressForm              : TFrmQueryProgress;
-      procedure Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
+      procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
@@ -482,7 +482,7 @@ type
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
-      property ConnParams : TConnParams read FConnParams;
+      property Conn : TOpenConnProf read FConn;
   end;
 
 type
@@ -536,7 +536,7 @@ begin
     v := GetVar( 'SELECT VERSION()' );
     versions := explode( '.', v );
     mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
-    strHostRunning := FConnParams.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
+    strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
 
     // On Re-Connection, try to restore lost properties
     {***
@@ -614,7 +614,7 @@ begin
 end;
 
 
-procedure TMDIChild.Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
+procedure TMDIChild.Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
 var
   AutoReconnect    : Boolean;
   menuitem         : TMenuItem;
@@ -625,14 +625,14 @@ var
 begin
   QueryRunningInterlock := 0;
   
-  FConnParams := AConnParams^;
+  FConn := AConn^;
   FMysqlConn := AMysqlConn; // we're now responsible to free it
 
-  FConnParams.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zconn)
+  FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zconn)
 
-  // replace default connections
-  ZQuery1.Connection := FConnParams.MysqlConn;
-  ZQuery3.Connection := FConnParams.MysqlConn;
+  // set to use main connection
+  ZQuery1.Connection := FConn.MysqlConn;
+  ZQuery3.Connection := FConn.MysqlConn;
 
   // initialization: establish connection and read some vars from registry
   MainForm.Showstatus('Creating window...', 2, true);
@@ -654,7 +654,7 @@ begin
 
   ReadWindowOptions;
 
-  MainForm.Showstatus('Connecting to '+FConnParams.MysqlParams.Host+'...', 2, true);
+  MainForm.Showstatus('Connecting to '+FConn.MysqlParams.Host+'...', 2, true);
 
   try
     PerformConnect;
@@ -665,8 +665,8 @@ begin
 
   Description := FMysqlConn.Description;;
   Caption := Description;
-  OnlyDBs := explode(';', FConnParams.DatabaseList);
-  if FConnParams.DatabaseListSort then
+  OnlyDBs := explode(';', FConn.DatabaseList);
+  if FConn.DatabaseListSort then
     OnlyDBs.Sort;
 
   // Fill variables-list, processlist and DB-tree
@@ -834,7 +834,7 @@ begin
 
       // Open server-specific registry-folder.
       // relative from already opened folder!
-      OpenKey( 'Servers\' + FConnParams.Description, true );
+      OpenKey( 'Servers\' + FConn.Description, true );
 
       // Set last used database, select it later in Init
       lastUsedDB := ReadString( 'lastUsedDB' );
@@ -876,7 +876,7 @@ begin
 
       // Open server-specific registry-folder.
       // relative from already opened folder!
-      OpenKey( 'Servers\' + FConnParams.Description, true );
+      OpenKey( 'Servers\' + FConn.Description, true );
       WriteString('lastUsedDB', ActualDatabase);
     end;
   end;
@@ -933,7 +933,7 @@ begin
   DBTree.OnChange := nil;
   DBTree.items.Clear;
 
-  tnodehost := DBtree.Items.Add(nil, FConnParams.MysqlParams.User + '@' + FConnParams.MysqlParams.Host);  // Host or Root
+  tnodehost := DBtree.Items.Add(nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host);  // Host or Root
   tnodehost.ImageIndex := 41;
   tnodehost.SelectedIndex := 41;
 
@@ -1120,7 +1120,7 @@ var
   select_base              : String;
   limit                    : Int64;
   mq : TMysqlQuery;
-  conn_params : TConnParams;
+  conn : TOpenConnProf;
   sl_query : TStringList;
 begin
   viewingdata := true;
@@ -1153,7 +1153,7 @@ begin
   EDBImage1.DataSource := DataSource1;
 
   reg := TRegistry.Create;
-  reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
+  reg.openkey( REGPATH + '\Servers\' + FConn.Description, true );
 
   if not dataselected then
   begin
@@ -1266,8 +1266,8 @@ begin
     if mainform.CheckBoxLimit.Checked then
       sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
     try
-      conn_params := FConnParams;
-      conn_params.MysqlParams.Database := ActualDatabase;
+      conn := FConn;
+      conn.MysqlParams.Database := ActualDatabase;
 
       // Avoid excessive GUI updates.
       if DataSource1.DataSet <> nil then DataSource1.DataSet.DisableControls;
@@ -1467,7 +1467,7 @@ begin
     if ActualDatabase <> '' then
       Panel6.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
-      Panel6.Caption := 'SQL-Query on Host ' + FConnParams.MysqlParams.Host + ':';
+      Panel6.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
@@ -1514,7 +1514,7 @@ begin
         popupDbGridHeader.Items.Delete( i );
       with TRegistry.Create do
       begin
-        openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
+        openkey( REGPATH + '\Servers\' + FConn.Description, true );
         if ValueExists( 'TablelistDefaultColumns' ) then
           popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
         if ValueExists( 'TablelistColumns' ) then
@@ -2131,7 +2131,7 @@ begin
         OnlyDBs.Delete( OnlyDBs.IndexOf(tndb_.Text) );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + FConnParams.Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -2857,7 +2857,7 @@ begin
         OnlyDBs.Add( dbname );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + FConnParams.Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -3549,7 +3549,7 @@ begin
   // Store whereclause in Registry
   reg := TRegistry.Create;
   try
-    reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, false );
+    reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if where <> '' then
       reg.WriteString( reg_value, where )
@@ -4378,7 +4378,7 @@ end;
 
 procedure TMDIChild.ExecUseQuery (ADatabase : String);
 begin
-  FConnParams.MysqlParams.Database := ADatabase;
+  FConn.MysqlParams.Database := ADatabase;
   ExecUpdateQuery('USE ' + mask(ADatabase));
 end;
 
@@ -4591,7 +4591,7 @@ begin
       * Set FQueryRunning to false
     }
     debug('RunThreadedQuery(): Launching asynchronous query.');
-    Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
+    Result := ExecMysqlStatementAsync (AQuery,FConn,nil,FProgressForm.Handle);
 
     { Repeatedly check if the query has finished by inspecting FQueryRunning
       Allow repainting of user interface
@@ -4791,7 +4791,7 @@ begin
   menuitem := (Sender as TMenuItem);
   with TRegistry.Create do
   try
-    openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
+    openkey( REGPATH + '\Servers\' + FConn.Description, true );
     case menuitem.Tag of
       1 : // Toggle default-columns
         WriteBool( 'TablelistDefaultColumns', not menuitem.Checked );

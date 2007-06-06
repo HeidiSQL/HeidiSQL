@@ -143,7 +143,7 @@ begin
   // save settings:
   with TRegistry.Create do
   begin
-    openkey(REGPATH + '\Servers\' + TMDIChild(Mainform.ActiveMDIChild).ConnParams.Description, true);
+    openkey(REGPATH + '\Servers\' + TMDIChild(Mainform.ActiveMDIChild).Conn.Description, true);
     WriteString('OnlyDBs', odbs);
     closekey();
   end;
