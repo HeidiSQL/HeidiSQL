@@ -559,7 +559,15 @@ begin
       {***
         Set characterset to current one
       }
-      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
+      if cwin.mysql_version > 40100 then
+        current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 )
+      else if cwin.mysql_version > 40000 then
+        // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
+        current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set"', 1 )
+      else
+        // todo: test this
+        current_characterset := 'binary';
+
       if current_characterset <> '' then
       begin
         sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
@@ -694,6 +702,10 @@ begin
           // Skip VIEWS.  Not foolproof, but good enough until more support for information_schema (fallback to? regexp?) is added.
           // todo: implement working support for views.
           if (Pos(' TABLE `', sql) = 0) and (Pos(' VIEW `', sql) > 0) then continue;
+          if Pos('DEFAULT CHARSET', sql) > 0 then begin
+            Insert('/*!40100 ', sql, Pos('DEFAULT CHARSET', sql));
+            sql := sql + '*/';
+          end;
           if target_version = SQL_VERSION_ANSI then
           begin
             sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
@@ -912,7 +924,6 @@ begin
             RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' DISABLE KEYS');
           RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' WRITE');
         end;
-
 
         offset := 0;
         loopnumber := 0;

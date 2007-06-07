@@ -1332,10 +1332,12 @@ var
   i: integer;
   s: string;
 begin
+  if CharSet = '' then raise Exception.Create('Assertion failed in escAllCharacters(): no character set given.');
   if sql_version <> SQL_VERSION_ANSI then begin
     s := '0x';
     for i:=1 to length(Text) do s := s + IntToHex(Ord(Text[i]), 2);
-    Result := '_' + CharSet + ' ' + s;
+    // Ensure correct import on servers (v4.1+) supporting multiple character sets.
+    Result := '/*!40100 _' + CharSet + '*/ ' + s;
   end else begin
     s := '0x';
     if CharSet <> 'ucs2' then raise Exception.Create('ANSI SQL supports UCS2 literal strings only.');
