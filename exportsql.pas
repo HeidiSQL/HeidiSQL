@@ -568,6 +568,17 @@ begin
         else if tohost then
           RemoteExecNonQuery(win2export, sql );
       end;
+
+      // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL 
+      if target_version = SQL_VERSION_ANSI then
+      begin
+        sql := '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI'' ;*/';
+        if tofile then
+          wfs(f, sql)
+        else if tohost then
+          RemoteExecNonQuery(win2export, sql );
+      end;
+
       if exportdb then
       begin
         {***
@@ -1034,6 +1045,17 @@ begin
         barProgress.StepIt;
       end;
     end;
+
+    // Restore old value for SQL_MODE
+    if (tofile or tohost) and (target_version = SQL_VERSION_ANSI) then
+    begin
+      sql := '/*!40101 SET SQL_MODE=@OLD_SQL_MODE ;*/';
+      if tofile then
+        wfs(f, sql)
+      else if tohost then
+        RemoteExecNonQuery(win2export, sql );
+    end;
+
     if cwin.ActualDatabase <> '' then
     begin
       cwin.ExecUseQuery( cwin.ActualDatabase );
