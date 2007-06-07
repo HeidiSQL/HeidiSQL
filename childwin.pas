@@ -314,7 +314,7 @@ type
     procedure ShowTable(Sender: TObject);
     procedure EmptyTable(Sender: TObject);
     procedure DropDB(Sender: TObject);
-    procedure LogSQLl(msg: String = ''; comment: Boolean = true );
+    procedure LogSQL(msg: String = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
@@ -537,9 +537,9 @@ begin
   try
     time_connected := 0;
     TimerConnected.Enabled := true;
-    LogSQLl( 'Connection established with host "' + FMysqlConn.Connection.hostname +
+    LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname +
       '" on port ' + IntToStr(FMysqlConn.Connection.Port) );
-    LogSQLl( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
+    LogSQL( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
 
     {***
       Detect server version
@@ -562,9 +562,9 @@ begin
       charset := ConvertWindowsCodepageToMysqlCharacterSet( GetACP() );
       if ( charset = '' ) then
       begin
-        LogSQLl( 'Could not find a MySQL character set to match the current ' +
+        LogSQL( 'Could not find a MySQL character set to match the current ' +
           'Windows ANSI codepage.', true );
-        LogSQLl( Format( 'Use SHOW CHARACTER SET to see MySQL character sets; ' +
+        LogSQL( Format( 'Use SHOW CHARACTER SET to see MySQL character sets; ' +
           'if you can find one that you are certain matches %d, please report' +
           ' it via http://rfe.heidisql.com/.', [GetACP()] ), true );
       end
@@ -581,7 +581,7 @@ begin
   except
     on E: Exception do
     begin
-      LogSQLl( E.Message, true );
+      LogSQL( E.Message, true );
       Screen.Cursor := crDefault;
       MessageDlg( E.Message, mtError, [mbOK], 0 );
       raise;
@@ -997,7 +997,7 @@ begin
 end;
 
 
-procedure TMDIChild.LogSQLl(msg: String = ''; comment: Boolean = true);
+procedure TMDIChild.LogSQL(msg: String = ''; comment: Boolean = true);
 begin
   // Add a sql-command or info-line to history-memo
   while ( SynMemoSQLLog.Lines.Count > mainform.logsqlnum ) do
@@ -1356,7 +1356,7 @@ begin
 
           if ( not columnexists ) then
           begin
-            LogSQLl( 'Notice: A stored ORDER-BY clause could not be applied, '+
+            LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
               'because the column "' + columnname + '" does not exist!');
             Continue;
           end;
@@ -1510,7 +1510,7 @@ begin
         on E:Exception do
         begin
           // Most likely we have a wrong filter-clause when this happens
-          LogSQLl( E.Message, True );
+          LogSQL( E.Message, True );
           // Put the user with his nose onto the wrong filter he specified
           if ( SynMemoFilter.CanFocus ) then
           begin
@@ -2524,7 +2524,7 @@ begin
     tabProcessList.Caption := 'Process-List (' + IntToStr(ListProcesses.Items.Count) + ')';
   except
     on E: Exception do begin
-      LogSQLl('Error loading process list (automatic refresh disabled): ' + e.Message);
+      LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
       TimerProcesslist.Enabled := false;
     end;
   end;
@@ -2658,14 +2658,14 @@ begin
         begin
           if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
             Screen.Cursor := crdefault;
-            LogSQLl(E.Message, true);
+            LogSQL(E.Message, true);
             MessageDLG(E.Message, mtError, [mbOK], 0);
             ProgressBarQuery.hide;
             Mainform.ExecuteQuery.Enabled := true;
             Mainform.ExecuteSelection.Enabled := true;
             break;
           end
-          else LogSQLl(E.Message, true);
+          else LogSQL(E.Message, true);
         end;
       end;
 
@@ -4579,25 +4579,25 @@ begin
   affected_rows_str := FormatNumber( affected_rows_int );
   if affected_rows_int = 0 then
   begin
-    LogSQLl( 'Affected rows: ' + affected_rows_str );
+    LogSQL( 'Affected rows: ' + affected_rows_str );
     // Refresh grid to show the user that no change has been applied
     GetVisualDataset().Refresh;
     msg := 'Warning: No row was affected by the last update.' + CRLF + CRLF
       + 'This is most likely caused by entering data which the MySQL-server has converted silently.' + CRLF
       + 'For example when you enter a date like "0000-01-01" (applies only to newer MySQL-versions).';
-    LogSQLl( msg );
+    LogSQL( msg );
     MessageDlg( msg, mtWarning, [mbOK], 0);
   end;
   if affected_rows_int > 1 then
   begin
-    LogSQLl( 'Affected rows: ' + affected_rows_str );
+    LogSQL( 'Affected rows: ' + affected_rows_str );
     // Refresh grid to show the user which values the other records got
     GetVisualDataset().Refresh;
     msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
       + 'The last query affected ' + affected_rows_str + ' rows, when it should have touched only 1 row!'
       + CRLF + CRLF
       + 'This is most likely caused by not having a primary key in the table''s definition.';
-    LogSQLl( msg );
+    LogSQL( msg );
     MessageDlg( msg, mtWarning, [mbOK], 0);
   end;
 
@@ -4637,7 +4637,7 @@ begin
     if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
       MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
-      LogSQLl( MysqlQuery.Comment, True );
+      LogSQL( MysqlQuery.Comment, True );
       // Recreate exception, since we free it below the caller
       // won't know what happened otherwise.
       raise THandledSQLError.Create(MysqlQuery.Comment);
@@ -4669,7 +4669,7 @@ begin
   begin
     exMsg := Result.Comment;
     MessageDlg( exMsg, mtError, [mbOK], 0 );
-    LogSQLl( exMsg, True );
+    LogSQL( exMsg, True );
     FreeAndNil(Result);
     raise THandledSQLError.Create(exMsg);
   end;
@@ -4695,7 +4695,7 @@ begin
     except
       on E: Exception do
       begin
-        LogSQLl( E.Message );
+        LogSQL( E.Message );
         if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
         if not HandleErrors then raise;
       end;
@@ -4768,7 +4768,7 @@ end;
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
-  LogSQLl( Trim( Event.Message ), (Event.Category <> lcExecute) );
+  LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
 end;
 
 
@@ -4965,7 +4965,7 @@ end;
 procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
   var Action: TDataAction);
 begin
-  LogSQLl( E.Message, true );
+  LogSQL( E.Message, true );
 end;
 
 
@@ -5102,7 +5102,7 @@ end;
 procedure TMDIChild.CheckConnection;
 begin
   if not FMysqlConn.IsAlive then begin
-    LogSQLl('Connection failure detected. Trying to reconnect.', true);
+    LogSQL('Connection failure detected. Trying to reconnect.', true);
     // 1) CheckConnection should always be called
     //    within an FQueryRunning-enabled block.
     // 2) PerformConnect (see below) will make calls
