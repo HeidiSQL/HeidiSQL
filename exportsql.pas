@@ -359,6 +359,7 @@ begin
   with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
     // Fetch tables from DB
+    // todo: skip views or add complete support for views.
     checkListTables.Items := GetCol( 'SHOW TABLES FROM ' + MainForm.mask(comboSelectDatabase.Text) );
 
     // select all/some:
@@ -690,6 +691,9 @@ begin
           cwin.GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), Query );
           sql := Query.Fields[1].AsString;
           sql := fixNewlines(sql);
+          // Skip VIEWS.  Not foolproof, but good enough until more support for information_schema (fallback to? regexp?) is added.
+          // todo: implement working support for views.
+          if (Pos(' TABLE `', sql) = 0) and (Pos(' VIEW `', sql) > 0) then continue;
           if target_version = SQL_VERSION_ANSI then
           begin
             sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
