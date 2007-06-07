@@ -218,6 +218,7 @@ begin
     Add( '40100=MySQL 4.1' );
     Add( '50000=MySQL 5.0' );
     Add( '50100=MySQL 5.1' );
+    Add( IntToStr( TMDIChild(MainForm.ActiveMDIChild).mysql_version ) + '=Same as source server (MySQL '+TMDIChild(MainForm.ActiveMDIChild).GetVar('SELECT VERSION()') +')' );
   end;
 
   // Add all target versions to combobox and set default option
