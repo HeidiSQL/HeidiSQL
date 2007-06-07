@@ -133,11 +133,15 @@ const
   OUTPUT_DB         = 2;
   OUTPUT_HOST       = 3;
 
+  // Default output compatibility
+  SQL_VERSION_DEFAULT = SQL_VERSION_ANSI;
+
 var
   appHandles: array of THandle;
   cancelDialog: TForm = nil;
   remote_version: integer;
   remote_max_allowed_packet : Int64;
+  target_versions : TStringList;
 
 function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 var
@@ -203,6 +207,29 @@ begin
 
   end;
   comboSelectDatabaseChange(self);
+
+  // Initialize and fill list with target versions
+  target_versions := TStringList.Create;
+  with target_versions do
+  begin
+    Add( IntToStr( SQL_VERSION_ANSI ) + '=Standard ANSI SQL' );
+    Add( '32300=MySQL 3.23' );
+    Add( '40000=MySQL 4.0' );
+    Add( '40100=MySQL 4.1' );
+    Add( '50000=MySQL 5.0' );
+    Add( '50100=MySQL 5.1' );
+  end;
+
+  // Add all target versions to combobox and set default option
+  comboTargetCompat.Items.Clear;
+  for i := 0 to target_versions.Count - 1 do
+  begin
+    comboTargetCompat.Items.Add( target_versions.ValueFromIndex[i] );
+    if( target_versions.Names[i] = IntToStr( SQL_VERSION_DEFAULT ) ) then
+    begin
+      comboTargetCompat.ItemIndex := i;
+    end;
+  end;
 
   // Read options
   with TRegistry.Create do
@@ -425,7 +452,7 @@ begin
   Screen.Cursor := crHourGlass;
 
   // Initialize default-variables
-  target_version := SQL_VERSION_ANSI;
+  target_version := SQL_VERSION_DEFAULT;
   max_allowed_packet := 1024*1024;
 
   // export what?
@@ -452,14 +479,8 @@ begin
 
   // Export to .sql-file on disk
   if tofile then begin
-    case comboTargetCompat.ItemIndex of
-      0: target_version := SQL_VERSION_ANSI;
-      1: target_version := 32300;
-      2: target_version := 40000;
-      3: target_version := 40100;
-      4: target_version := 50000;
-      5: target_version := 50100;
-    end;
+    // Extract name part of selected target version
+    target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
     except
