@@ -8,8 +8,10 @@ unit About;
 
 interface
 
-uses Windows, Menus, Classes, Graphics, Forms, Controls, StdCtrls,
+uses
+  Windows, Menus, Classes, Graphics, Forms, Controls, StdCtrls,
   Buttons, ExtCtrls, ShellApi, SysUtils, dialogs, ComCtrls;
+
 
 type
   TAboutBox = class(TForm)
@@ -31,36 +33,43 @@ type
     procedure OKButtonClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     procedure ButtonCloseClick(Sender: TObject);
-    procedure MouseOver(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
+    procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
+
   private
     { Private declarations }
+
   public
     { Public declarations }
   end;
 
-  procedure AboutWindow (AOwner : TComponent);
 
+  procedure AboutWindow( AOwner: TComponent );
 
+// -----------------------------------------------------------------------------
 implementation
 
-uses main, helpers;
+
+uses
+  main, helpers;
+
+
 {$R *.DFM}
 
 
-procedure AboutWindow (AOwner : TComponent);
+procedure AboutWindow( AOwner: TComponent );
 var
-  f : TAboutBox;
+  f    : TAboutBox;
 begin
-  f := TAboutBox.Create(AOwner);
-  f.ShowModal; // don't care about result
-  FreeAndNil (f);
+  f := TAboutBox.Create( AOwner );
+  f.ShowModal(); // don't care about result
+  FreeAndNil(f);
 end;
+
 
 procedure TAboutBox.OKButtonClick(Sender: TObject);
 begin
-  close;
+  Close();
 end;
 
 
@@ -70,39 +79,43 @@ begin
 end;
 
 
-
 procedure TAboutBox.ButtonCloseClick(Sender: TObject);
 begin
-  close;
+  Close();
 end;
 
 
 procedure TAboutBox.MouseOver(Sender: TObject; Shift: TShiftState;
   X, Y: Integer);
 begin
-  LabelWebpage.Font.color := clBlue;
-  if sender is TLabel then
-    TLabel(Sender).Font.color := clRed;
+  LabelWebpage.Font.Color := clBlue;
+  if (Sender is TLabel) then
+  begin
+    TLabel(Sender).Font.Color := clRed;
+  end;
 end;
 
 
 procedure TAboutBox.FormShow(Sender: TObject);
 var
-  CompiledInt : Integer;
-  Compiled    : TDateTime;
+  CompiledInt    : Integer;
+  Compiled       : TDateTime;
 begin
+  // Define the current cursor like a clock
   Screen.Cursor := crHourGlass;
 
   // App-Version
   LabelVersion.Caption := 'Version ' + appversion;
 
   // Compile-date
-  CompiledInt := Fileage(paramstr(0));
-  Compiled := FileDateToDateTime(CompiledInt);
-  LabelCompiled.Caption := 'Compiled on: ' + DateTimeToStr(Compiled);
+  CompiledInt := Fileage( ParamStr( 0 ) );
+  Compiled := FileDateToDateTime( CompiledInt );
+  LabelCompiled.Caption := 'Compiled on: ' + DateTimeToStr( Compiled );
 
+  // Define the current cursor like a pointer (default)
   Screen.Cursor := crDefault;
 end;
+
 
 end.
 

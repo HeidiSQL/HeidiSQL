@@ -29,3 +29,5 @@ const
   // Used for simulating a TTreeNode which has subnodes
   DUMMY_NODE_TEXT : String = 'Dummy node, should never be visible';
 
+  // Used for SQL Log display limit (prevents color display errors)
+  SQLLOG_CHAR_LIMIT = 2000;

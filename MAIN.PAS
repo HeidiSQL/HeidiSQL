@@ -219,7 +219,8 @@ type
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
   public
     logsqlnum                  : Integer;
-    CSVSeparator, CSVEncloser,
+    CSVSeparator               : String[10];
+    CSVEncloser                : String[10];
     CSVTerminator              : String[10];
     ConvertHTMLEntities        : Boolean;
     DefaultColWidth            : Integer;
@@ -235,14 +236,14 @@ type
 end;
 
 var
-  MainForm: TMainForm;
-  highestcon : Integer;                       // Remember last connection
-  appstarted : Boolean = false;               // see connections.pas
-  StatusText : String = 'Initializing...';
-  StatusIconIndex : Integer = 43;
-  loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
-  appversion : String = '3.0 $Rev$';
-  DIRNAME_SNIPPETS : String;
+  MainForm            : TMainForm;
+  highestcon          : Integer;                       // Remember last connection
+  appstarted          : Boolean = false;               // see connections.pas
+  StatusText          : String = 'Initializing...';
+  StatusIconIndex     : Integer = 43;
+  loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
+  appversion          : String = '3.0 $Rev$';
+  DIRNAME_SNIPPETS    : String;
 
 const
   discname = 'not connected';
