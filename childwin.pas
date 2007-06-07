@@ -450,7 +450,6 @@ type
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
-      CanAcessMysqlFlag          : Boolean;
       FCurDataset                : TDataSet;
       FMysqlConn                 : TMysqlConn;
       FConn                      : TOpenConnProf;
@@ -459,11 +458,9 @@ type
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
-      function HasAccessToDB(ADBName: String): Boolean;    // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
-      function CanAcessMysql: Boolean;
       procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats;
@@ -484,9 +481,9 @@ type
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      procedure ExecUpdateQuery (ASQLQuery: String);
+      procedure ExecUpdateQuery (ASQLQuery: String; DisplayErrors: Boolean = True );
       function ExecSelectQuery (AQuery : String) : TMysqlQuery;
-      procedure ExecUseQuery (ADatabase : String);
+      procedure ExecUseQuery (ADatabase : String; DisplayErrors: Boolean = True );
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
@@ -759,7 +756,6 @@ begin
   end;
 
   // Define window properties
-  CanAcessMysqlFlag := CanAcessMysql;
   SetWindowConnected( true );
   i := SetWindowName( Description );
   winName := Description;
@@ -2280,12 +2276,6 @@ begin
     end;
     tabBlobEditor.tabVisible := inDataOrQueryTab;
   end;
-
-  Mainform.UserManager.Enabled := CanAcessMysqlFlag and FrmIsFocussed;
-  if not CanAcessMysqlFlag then
-    Mainform.UserManager.Hint := 'you have no access to the privilege-tables'
-  else
-    Mainform.UserManager.Hint := 'User-Manager';
 end;
 
 
@@ -4613,10 +4603,10 @@ begin
 end;
 
 
-procedure TMDIChild.ExecUseQuery (ADatabase : String);
+procedure TMDIChild.ExecUseQuery (ADatabase : String; DisplayErrors: Boolean = True);
 begin
   FConn.MysqlParams.Database := ADatabase;
-  ExecUpdateQuery('USE ' + mask(ADatabase));
+  ExecUpdateQuery('USE ' + mask(ADatabase), DisplayErrors);
 end;
 
 
@@ -4626,7 +4616,7 @@ end;
 
   @param String The single SQL-query to be executed on the server
 }
-procedure TMDIChild.ExecUpdateQuery(ASQLQuery: String );
+procedure TMDIChild.ExecUpdateQuery(ASQLQuery: String; DisplayErrors: Boolean = True );
 var
   MysqlQuery : TMysqlQuery;
 begin
@@ -4636,7 +4626,8 @@ begin
     // Inspect query result code and log / notify user on failure
     if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
-      MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
+      if DisplayErrors then
+        MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
       LogSQL( MysqlQuery.Comment, True );
       // Recreate exception, since we free it below the caller
       // won't know what happened otherwise.
@@ -5077,25 +5068,6 @@ end;
 function TMDIChild.mask(str: String) : String;
 begin
   result := maskSql(mysql_version, str);
-end;
-
-
-function TMDIChild.CanAcessMysql: Boolean;
-begin
-  Result := HasAccessToDB (DBNAME_MYSQL);
-end;
-
-
-{***
-  Checks for access to a certain database by checking if
-  it's contained in the result SHOW DATABASES.
-}
-function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;
-var
-  dbName: String;
-begin
-  dbName := GetVar( 'SHOW DATABASES LIKE ' + esc(ADBName) );
-  Result := dbName <> '';
 end;
 
 

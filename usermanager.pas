@@ -117,7 +117,33 @@ uses
 function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 var
   f : TUserManagerForm;
+  test_result : String;
+  cwin : TMDIChild;
 begin
+  // Test if we can access the privileges database and tables by
+  // A. Using the mysql-DB
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
+  try
+    cwin.ExecUseQuery( DBNAME_MYSQL, false );
+  except
+    MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
+    Result := false;
+    exit;
+  end;
+
+  // B. retrieving a count of all users.
+  test_result := cwin.GetVar( 'SELECT COUNT(*) FROM '+mainform.mask(PRIVTABLE_USERS), 0, true, false );
+  if test_result = '' then
+  begin
+    MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
+    Result := false;
+    if cwin.ActualDatabase <> '' then
+    begin
+      cwin.ExecUseQuery( cwin.ActualDatabase );
+    end;
+    exit;
+  end;
+
   f := TUserManagerForm.Create(AOwner);
 
   // use this dirty trick to overcome limitations
@@ -188,8 +214,6 @@ begin
   EditHost.Text := ph.h_name;
   WSACleanup();
 }
-  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUseQuery( DBNAME_MYSQL );
-
   ZQueryDBs := TZReadOnlyQuery.Create(self);
   ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
