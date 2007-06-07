@@ -1188,11 +1188,12 @@ end;
 }
 function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
 begin
+  Result := Text;
   if sql_version <> SQL_VERSION_ANSI then begin
     // Replace single-backslashes with double-backslashes BEFORE
     // special characters get escaped using their escape-sequence
     // Fixes issue #1648978 "exported sql has \\r\\n instead of \r\n for CRLFs"
-    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
 
     {NUL} Result := StringReplace(Result, #0, '\0', [rfReplaceAll]);
     {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
