@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{9E2CE487-D443-461D-96FD-D39AE2D16E17}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  <Projects>
+      <Projects Name="IpcExample.exe">IpcExample.bdsproj</Projects>
+      <Projects Name="heidisql.exe">..\..\packages\delphi10\heidisql.bdsproj</Projects>
+      <Projects Name="QueryThreadExample.exe">..\QueryThreadExample\QueryThreadExample.bdsproj</Projects>
+      <Projects Name="Targets">IpcExample.exe heidisql.exe QueryThreadExample.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>
