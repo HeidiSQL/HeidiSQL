@@ -36,14 +36,17 @@ type
     DataSource1: TDataSource;
     Button2: TButton;
     Button3: TButton;
+    procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure lvResultSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure bnKillThreadClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
+    procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     function FindListItemByMysqlQueryObject(AObject: Pointer): Integer;
-    function AssembleConnParams () : TConnParams;
+    function AssembleConnParams () : TOpenConnProf;
     function AddListItem(AMysqlQuery : Pointer; ACaption : String) : TListItem;
   public
     procedure LogMsg (AMsg : String);
@@ -56,11 +59,13 @@ var
 
 implementation
 
+uses synchronization, communication, threading;
+
 {$R *.dfm}
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
-  cp : TConnParams;
+  cp : TOpenConnProf;
   mq : TMysqlQuery;
 begin
   cp := AssembleConnParams();
@@ -69,7 +74,7 @@ end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 var
-  cp : TConnParams;
+  cp : TOpenConnProf;
   mq : TMysqlQuery;
 begin
   cp := AssembleConnParams();
@@ -88,7 +93,7 @@ begin
   Result.SubItems.Add('');
 end;
 
-function TForm1.AssembleConnParams: TConnParams;
+function TForm1.AssembleConnParams: TOpenConnProf;
 begin
   ZeroMemory(@Result,SizeOf(Result));
   Result.MysqlParams.Host := edHost.Text;
@@ -101,7 +106,7 @@ end;
 
 procedure TForm1.bnKillThreadClick(Sender: TObject);
 var
-  cp : TConnParams;
+  cp : TOpenConnProf;
   mq : TMysqlQuery;
   li : TListItem;
 begin
@@ -135,6 +140,18 @@ begin
           Break;
         end;
 
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  InitializeSync(Form1.Handle);
+  SetWindowName (Caption);
+  SetWindowConnected (True);
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  DeInitializeSync();
 end;
 
 procedure TForm1.HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
@@ -238,6 +255,33 @@ begin
       end;
       
 
+end;
+
+
+procedure TForm1.HandleWMCopyData(var msg: TWMCopyData);
+var
+  method: DWORD;
+  cp : TOpenConnProf;
+  mq : TMysqlQuery;
+begin
+
+  // extract info from message
+  method := msg.CopyDataStruct^.dwData;
+
+  // display
+  //DebugWrite(Format('WM_COPYDATA received; method=%d',[method]));
+
+  if method in [CMD_EXECUTEQUERY_NORESULTS,CMD_EXECUTEQUERY_RESULTS] then
+    begin
+    //DebugWrite('Query: '+GetQueryFromMsg(msg));
+
+      cp := AssembleConnParams();
+      mq := ExecMysqlStatementBlocking(GetQueryFromMsg(msg),cp,Handle); //HandleQueryNotification
+    end;
+
+
+  // release
+  //ReleaseRemoteCaller(ERR_UNSPECIFIED);
 end;
 
 

@@ -95,9 +95,9 @@ type
 implementation
 
 uses
-  MysqlQuery, Main, Dialogs, helpers
+  MysqlQuery, Dialogs, helpers, communication
 {$IFNDEF EXAMPLE_APP}
-,communication
+, Main
 {$ENDIF}
   ;
 
@@ -106,7 +106,10 @@ begin
   ZeroMemory (@Result,SizeOf(Result));
 
   Result.ThreadID := ThreadID;
-  Result.ConnectionID := FMysqlConn.GetThreadId;
+  try
+    Result.ConnectionID := FMysqlConn.GetThreadId;
+  except
+  end;
   Result.Action := 1;
   Result.Sql := FSql;
   Result.Result := FResult;
