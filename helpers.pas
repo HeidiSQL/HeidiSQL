@@ -64,6 +64,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
   procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
+  function GetFieldValue( Field: TField ): String;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -654,7 +655,7 @@ begin
         // collect data:
         for j:=0 to ds.FieldCount-1 do
         begin
-          data := ds.Fields[j].AsString;
+          data := GetFieldValue( ds.Fields[j] );
           if (filename <> '') and ds.Fields[j].IsBlob then
           begin
             header := copy(data, 0, 20);
@@ -788,7 +789,7 @@ begin
         begin
           if j>0 then
             Buffer := Buffer + Separator;
-          Buffer := Buffer + Encloser + ds.Fields[j].AsString + Encloser;
+          Buffer := Buffer + Encloser + GetFieldValue( ds.Fields[j] ) + Encloser;
         end;
         // write buffer:
         if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
@@ -857,7 +858,7 @@ begin
         // collect data:
         for j:=0 to ds.FieldCount-1 do
         begin
-          data := ds.Fields[j].AsString;
+          data := GetFieldValue( ds.Fields[j] );
           data := htmlentities(data);
           Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
         end;
@@ -1814,6 +1815,26 @@ begin
       BaseList.Append( ToAdd[i] );
   end;
   BaseList.EndUpdate;
+end;
+
+
+
+{***
+  Retrieve the string value from a field
+  Zeos gives "True" or "False" for enum (boolean) fields which
+  gets corrected here to "Y" or "N"
+  @param TField Field object which holds a value
+  @return String Field value
+}
+function GetFieldValue( Field: TField ): String;
+begin
+  Result := '';
+  case Field.DataType of
+    ftBoolean:
+      Result := Bool2Str( Field.AsBoolean );
+    else
+      Result := Field.AsString;
+  end;
 end;
 
 
