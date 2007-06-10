@@ -69,7 +69,7 @@ uses ZDataset, helpers, main;
 }
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
-  m := TMDIChild(Application.Mainform.ActiveMDIChild);
+  m := Mainform.Childwin;
 
   // Set window-layout
   Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', Top );

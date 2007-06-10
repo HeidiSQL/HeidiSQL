@@ -48,23 +48,24 @@ uses childwin, main;
 procedure TprintlistForm.FormShow(Sender: TObject);
 var
   i,t : Integer;
+  cwin : TMDIChild;
 begin
   // show!
   Screen.Cursor := crHourGlass;
   ComboBoxPrinters.Items := Printer.printers;
   ComboBoxPrinters.ItemIndex := Printer.printerIndex;
 
+  cwin := Mainform.ChildWin;
+
   // which ListView to print?
-  with TMDIChild(Mainform.activeMDIChild) do begin
-    case PageControlMain.ActivePageIndex of
-    0 : case PageControlHost.ActivePageIndex of
-      0 : begin list := ListVariables; title := 'Server-Variables for ' + ZQuery3.Connection.HostName; end;
-      1 : begin list := ListProcesses; title := 'Processlist for ' + ZQuery3.Connection.HostName; end;
-      2 : begin list := ListCommandStats; title := 'Command-statistics for ' + ZQuery3.Connection.HostName; end;
+  case cwin.PageControlMain.ActivePageIndex of
+    0 : case cwin.PageControlHost.ActivePageIndex of
+      0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.ZQuery3.Connection.HostName; end;
+      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.ZQuery3.Connection.HostName; end;
+      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.ZQuery3.Connection.HostName; end;
       end;
-    1 : begin list := ListTables; title := 'Tables-List for Database ' + ActualDatabase; end;
-    2 : begin list := ListColumns; title := 'Field-List for ' + ActualDatabase + '/' + ActualTable; end;
-    end;
+    1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
+    2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActualDatabase + '/' + cwin.ActualTable; end;
   end;
   caption := 'Print ' + title + '...';
 

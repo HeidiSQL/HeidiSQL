@@ -163,7 +163,7 @@ begin
   ComboBoxPosition.Items.Add('At Beginning of Table');
 
 	// Reference to childwin's column-ListView
-  ListColumns := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns;
+  ListColumns := Mainform.ChildWin.ListColumns;
 
   // get fieldlist
   // add fieldnames
@@ -250,39 +250,37 @@ end;
 procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
+  cwin : TMDIChild;
 begin
   listColumnsUsed.Items.Clear;
   listColumnsAvailable.Items.Clear;
   setlength(klist, 0);
   TempKeys := TStringList.Create;
-
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  cwin := Mainform.ChildWin;
+  cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.ActualTable), cwin.ZQuery3 );
+  for i:=1 to cwin.ZQuery3.RecordCount do
   begin
-    GetResults( 'SHOW KEYS FROM ' + mainform.mask(ActualTable), ZQuery3 );
-    for i:=1 to ZQuery3.RecordCount do
+    if TempKeys.IndexOf(cwin.ZQuery3.Fields[2].AsString) = -1 then
     begin
-      if TempKeys.IndexOf(ZQuery3.Fields[2].AsString) = -1 then
-      begin
-        TempKeys.Add(ZQuery3.Fields[2].AsString);
-        setlength(klist, length(klist)+1);
-        klist[length(klist)-1].Name := ZQuery3.Fields[2].AsString;
-        klist[length(klist)-1].Columns := TStringList.Create;
-        klist[length(klist)-1].Columns.Add(ZQuery3.Fields[4].AsString);
-        klist[length(klist)-1].Modified := false;
-        klist[length(klist)-1].Unique := (ZQuery3.Fields[1].AsString = '0');
-        if mysql_version < 40002 then
-          klist[length(klist)-1].Fulltext := (ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
-        else
-          klist[length(klist)-1].Fulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT')
-      end else
-        klist[TempKeys.IndexOf(ZQuery3.Fields[2].AsString)].Columns.Add(ZQuery3.Fields[4].AsString);
-      ZQuery3.Next;
-    end;
+      TempKeys.Add(cwin.ZQuery3.Fields[2].AsString);
+      setlength(klist, length(klist)+1);
+      klist[length(klist)-1].Name := cwin.ZQuery3.Fields[2].AsString;
+      klist[length(klist)-1].Columns := TStringList.Create;
+      klist[length(klist)-1].Columns.Add(cwin.ZQuery3.Fields[4].AsString);
+      klist[length(klist)-1].Modified := false;
+      klist[length(klist)-1].Unique := (cwin.ZQuery3.Fields[1].AsString = '0');
+      if cwin.mysql_version < 40002 then
+        klist[length(klist)-1].Fulltext := (cwin.ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
+      else
+        klist[length(klist)-1].Fulltext := (cwin.ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT')
+    end else
+      klist[TempKeys.IndexOf(cwin.ZQuery3.Fields[2].AsString)].Columns.Add(cwin.ZQuery3.Fields[4].AsString);
+    cwin.ZQuery3.Next;
+  end;
 
-    for i:=0 to ListColumns.Items.Count-1 do begin
-      if ListColumns.Items[i] <> nil then
-        self.listColumnsAvailable.Items.Add(ListColumns.Items[i].Caption);
-    end;
+  for i:=0 to cwin.ListColumns.Items.Count-1 do begin
+    if cwin.ListColumns.Items[i] <> nil then
+      self.listColumnsAvailable.Items.Add(cwin.ListColumns.Items[i].Caption);
   end;
   showkeys();
 end;
@@ -301,7 +299,7 @@ begin
 
   if InFieldMode then
     begin
-      Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Field Editor';
+      Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Field Editor';
       pc.Pages[0].TabVisible := True;
       pc.ActivePageIndex := 0;
       EditFieldName.SetFocus();
@@ -309,7 +307,7 @@ begin
 
   if InIndexMode then
     begin
-      Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Index Editor';
+      Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Index Editor';
       pc.Pages[1].TabVisible := True;
       pc.ActivePageIndex := 1;
       if Length(klist) > 0 then
@@ -478,7 +476,7 @@ begin
       strNotNull +            // Not Null
       strAutoIncrement;       // Auto_increment
 
-    cwin := TMDIChild(Mainform.ActiveMDIChild);
+    cwin := Mainform.ChildWin;
 
     if (FMode = femFieldAdd) then begin
       cwin.ExecUpdateQuery(
@@ -582,11 +580,9 @@ var i : Integer;
 begin
   if ComboBoxKeys.ItemIndex > -1 then begin
     listColumnsAvailable.Items.Clear;
-    with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-      for i:=0 to ListColumns.Items.Count-1 do
-        if (ListColumns.Items[i] <> nil) and (klist[self.ComboBoxKeys.ItemIndex].columns.Indexof(ListColumns.Items[i].Caption)=-1) then
-          self.listColumnsAvailable.Items.Add(ListColumns.Items[i].Caption);
-    end;
+    for i:=0 to Mainform.ChildWin.ListColumns.Items.Count-1 do
+      if (Mainform.ChildWin.ListColumns.Items[i] <> nil) and (klist[ComboBoxKeys.ItemIndex].columns.Indexof(Mainform.ChildWin.ListColumns.Items[i].Caption)=-1) then
+        listColumnsAvailable.Items.Add(Mainform.ChildWin.ListColumns.Items[i].Caption);
     with klist[ComboBoxKeys.ItemIndex] do begin
       listColumnsUsed.Items := Columns;
       CheckBoxUnique.OnClick := nil;
@@ -749,7 +745,7 @@ var
   query1, query : String;
   columns_sql : String;
 begin
-  query1 := 'ALTER TABLE ' + mainform.mask(TMDIChild(Application.Mainform.ActiveMDIChild).ActualTable);
+  query1 := 'ALTER TABLE ' + mainform.mask(Mainform.ChildWin.ActualTable);
   for i:=0 to TempKeys.Count-1 do begin
 
     index := -1;
@@ -789,7 +785,7 @@ begin
       else
         query := query1 + ' DROP INDEX '+ mainform.mask(klist[index].Name) +
           ', ADD INDEX ' + mainform.mask(klist[index].Name) + ' (' + columns_sql + ')';
-      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
+      Mainform.ChildWin.ExecUpdateQuery(query);
       klist[index].Modified := false;
     end
 
@@ -799,7 +795,7 @@ begin
         query := query1 + ' DROP PRIMARY KEY'
       else
         query := query1 + ' DROP INDEX ' + mainform.mask(TempKeys[i]);
-      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
+      Mainform.ChildWin.ExecUpdateQuery(query);
     end;
 
     if index > -1 then
@@ -831,11 +827,11 @@ begin
       // INDEX:
       else
         query := query1 + ' ADD INDEX '+ mainform.mask(klist[j].Name) + ' (' + columns_sql + ')';
-      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
+      Mainform.ChildWin.ExecUpdateQuery(query);
     end;
   end;
 
-  TMDIChild(Application.Mainform.ActiveMDIChild).ShowTableProperties(self);
+  Mainform.ChildWin.ShowTableProperties(self);
   close;
 end;
 
@@ -965,7 +961,7 @@ end;
 }
 procedure TFieldEditForm.btnDatatypeHelpClick(Sender: TObject);
 begin
-  TMDIChild(Mainform.ActiveMDIChild).CallSQLHelpWithKeyword(ComboBoxType.Text);
+  Mainform.ChildWin.CallSQLHelpWithKeyword(ComboBoxType.Text);
 end;
 
 

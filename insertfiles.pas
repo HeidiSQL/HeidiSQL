@@ -96,45 +96,39 @@ var
   i : Integer;
 begin
   ComboBoxDBs.Items.Clear;
-  with TMDIChild(Mainform.ActiveMDIChild) do
+  Caption := Mainform.ChildWin.MysqlConn.Description + ' - Insert files into table ...';
+  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
   begin
-    self.Caption := MysqlConn.Description + ' - Insert files into table ...';
-    for i:=0 to DBTree.Items.Count-1 do
-    begin
-      tn := DBTree.Items[i];
-      if tn.Level = 1 then
-        ComboBoxDBs.Items.Add(tn.Text);
-    end;
-
-    for i:=0 to ComboBoxDBs.Items.Count-1 do
-    begin
-      if ComboBoxDBs.Items[i] = ActualDatabase then
-      begin
-        ComboBoxDBs.ItemIndex := i;
-      end;
-    end;
-
-    if ComboBoxDBs.ItemIndex = -1 then
-    begin
-      ComboBoxDBs.ItemIndex := 0;
-    end;
-
+    tn := Mainform.ChildWin.DBTree.Items[i];
+    if tn.Level = 1 then
+      ComboBoxDBs.Items.Add(tn.Text);
   end;
+
+  for i:=0 to ComboBoxDBs.Items.Count-1 do
+  begin
+    if ComboBoxDBs.Items[i] = Mainform.ChildWin.ActualDatabase then
+    begin
+      ComboBoxDBs.ItemIndex := i;
+    end;
+  end;
+
+  if ComboBoxDBs.ItemIndex = -1 then
+  begin
+    ComboBoxDBs.ItemIndex := 0;
+  end;
+
   ComboBoxDBsChange(self);
 end;
 
 
 { Read tables from selected DB }
 procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
-var
-  cwin : TMDIChild;
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  cwin := TMDIChild(Mainform.ActiveMDIChild);
 
   // Fetch tables from DB
-  ComboBoxTables.Items := cwin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(ComboBoxDBs.Text) );
+  ComboBoxTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(ComboBoxDBs.Text) );
 
   if ComboBoxTables.Items.Count > 0 then
   begin
@@ -149,18 +143,15 @@ var i : Integer;
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then
-    with TMDIChild(Mainform.ActiveMDIChild) do
+    Mainform.ChildWin.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text), Mainform.ChildWin.ZQuery3);
+    for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
     begin
-      GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text), ZQuery3);
-      for i:=1 to ZQuery3.RecordCount do
-      begin
-        setlength(cols, length(cols)+1);
-        cols[length(cols)-1].Name := ZQuery3.Fields[0].AsString;
-        cols[length(cols)-1].isBLOB := (pos('blob', lowercase(ZQuery3.Fields[1].AsString)) > 0) or (pos('text', lowercase(ZQuery3.Fields[1].AsString)) > 0);
-        cols[length(cols)-1].Value := 'NULL';
-        cols[length(cols)-1].Quote := false;
-        ZQuery3.Next;
-      end;
+      setlength(cols, length(cols)+1);
+      cols[length(cols)-1].Name := Mainform.ChildWin.ZQuery3.Fields[0].AsString;
+      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(Mainform.ChildWin.ZQuery3.Fields[1].AsString)) > 0) or (pos('text', lowercase(Mainform.ChildWin.ZQuery3.Fields[1].AsString)) > 0);
+      cols[length(cols)-1].Value := 'NULL';
+      cols[length(cols)-1].Quote := false;
+      Mainform.ChildWin.ZQuery3.Next;
     end;
   DisplayColumns(self);
 end;

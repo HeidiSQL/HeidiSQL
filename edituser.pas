@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses usermanager, childwin;
+uses usermanager, childwin, MAIN;
 
 {$I const.inc}
 {$R *.DFM}
@@ -72,13 +72,11 @@ begin
       mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
       passwdset := '';
   end;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
-    ExecUpdateQuery('UPDATE mysql.user SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' '+passwdset+' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    ExecUpdateQuery('UPDATE mysql.db SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    ExecUpdateQuery('UPDATE mysql.tables_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    ExecUpdateQuery('UPDATE mysql.columns_priv SET Host='''+self.EditHost.Text+''', User='''+Self.EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
-    ExecUpdateQuery('FLUSH PRIVILEGES');
-  end;
+  Mainform.ChildWin.ExecUpdateQuery('UPDATE mysql.user SET Host='''+EditHost.Text+''', User='''+EditUsername.Text+''' '+passwdset+' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+  Mainform.ChildWin.ExecUpdateQuery('UPDATE mysql.db SET Host='''+EditHost.Text+''', User='''+EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+  Mainform.ChildWin.ExecUpdateQuery('UPDATE mysql.tables_priv SET Host='''+EditHost.Text+''', User='''+EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+  Mainform.ChildWin.ExecUpdateQuery('UPDATE mysql.columns_priv SET Host='''+EditHost.Text+''', User='''+EditUsername.Text+''' WHERE Host='''+UserManagerForm.host+''' AND User='''+UserManagerForm.user+'''');
+  Mainform.ChildWin.ExecUpdateQuery('FLUSH PRIVILEGES');
 
   UserManagerForm.ShowPrivilegesControls(false, true, false);
 

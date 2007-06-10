@@ -3162,7 +3162,7 @@ var
 begin
   inc(time_connected);
 
-  if Mainform.ActiveMDIChild = self then
+  if Mainform.ChildWin = self then
   begin
     // calculate and display connection-time
     seconds := time_connected mod (60*60*24);

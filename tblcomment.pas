@@ -46,12 +46,9 @@ end;
 
 procedure Ttablecomment.ButtonOKClick(Sender: TObject);
 begin
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    screen.Cursor := crHourGlass;
-    ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ComboBoxTableName.Text) + ' COMMENT = ' + esc(EditComment.Text));
-    ShowDBProperties(self);
-  end;
+  screen.Cursor := crHourGlass;
+  Mainform.Childwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ComboBoxTableName.Text) + ' COMMENT = ' + esc(EditComment.Text));
+  Mainform.Childwin.ShowDBProperties(self);
   close;
 end;
 
@@ -61,22 +58,16 @@ begin
   // read tables
 //  messagedlg('sdf',mtwarning, [], 0);
   ComboBoxTableName.Items.Clear;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    for i:=0 to ListTables.Items.Count-1 do
-      self.ComboBoxTableName.Items.Add( ListTables.Items[i].Caption );
-    self.ComboBoxTableName.ItemIndex := ListTables.Selected.Index;
-  end;
+  for i:=0 to Mainform.Childwin.ListTables.Items.Count-1 do
+    ComboBoxTableName.Items.Add( Mainform.Childwin.ListTables.Items[i].Caption );
+  ComboBoxTableName.ItemIndex := Mainform.Childwin.ListTables.Selected.Index;
   ComboBoxTableNameChange( self );
 end;
 
 procedure Ttablecomment.ComboBoxTableNameChange(Sender: TObject);
 begin
-  with TMDIChild(Mainform.ActiveMDIChild) do
-  begin
-    GetResults( 'SHOW TABLE STATUS LIKE ''' + ComboBoxTableName.Text + '''', ZQuery3 );
-    self.EditComment.Text := ZQuery3.FieldByName( 'Comment' ).AsString;
-  end;
+  Mainform.Childwin.GetResults( 'SHOW TABLE STATUS LIKE ''' + ComboBoxTableName.Text + '''', Mainform.Childwin.ZQuery3 );
+  EditComment.Text := Mainform.Childwin.ZQuery3.FieldByName( 'Comment' ).AsString;
 end;
 
 end.

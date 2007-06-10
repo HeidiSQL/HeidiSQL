@@ -77,20 +77,17 @@ begin
 
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
   begin
-    for i:=0 to DBTree.Items.Count-1 do
-    begin
-      tn := DBTree.Items[i];
-      if tn.Level = 1 then
-        DBComboBox.Items.Add(tn.Text);
-    end;
-    DBComboBox.ItemIndex := 0;
-    for i:=0 to DBComboBox.Items.Count-1 do
-    begin
-      if DBComboBox.Items[i] = ActualDatabase then
-        DBComboBox.ItemIndex := i;
-    end;
+    tn := Mainform.ChildWin.DBTree.Items[i];
+    if tn.Level = 1 then
+      DBComboBox.Items.Add(tn.Text);
+  end;
+  DBComboBox.ItemIndex := 0;
+  for i:=0 to DBComboBox.Items.Count-1 do
+  begin
+    if DBComboBox.Items[i] = Mainform.ChildWin.ActualDatabase then
+      DBComboBox.ItemIndex := i;
   end;
   if DBComboBox.ItemIndex = -1 then
     DBComboBox.ItemIndex := 0;
@@ -100,7 +97,7 @@ end;
 procedure Toptimize.DBComboBoxChange(Sender: TObject);
 begin
   // read tables from db
-  TablesCheckListBox.Items := TMDIChild(Mainform.ActiveMDIChild).GetCol( 'SHOW TABLES FROM ' + MainForm.mask(DBComboBox.Text) );
+  TablesCheckListBox.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(DBComboBox.Text) );
   // Check all
   ToggleCheckListBox( TablesCheckListBox, True );
 end;
@@ -124,14 +121,11 @@ begin
   ListViewResults.Items.Clear;
   ListViewResults.Columns.EndUpdate();
   ListViewResults.Items.EndUpdate();
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
+  for i:=0 to TablesCheckListBox.Items.Count - 1 do
   begin
-    ExecUseQuery( self.DBComboBox.Text );
-    for i:=0 to self.TablesCheckListBox.Items.Count - 1 do
-    begin
-      if TablesCheckListBox.Checked[i] then
-        ExecUpdateQuery('OPTIMIZE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
-    end;
+    if TablesCheckListBox.Checked[i] then
+      Mainform.ChildWin.ExecUpdateQuery('OPTIMIZE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
   end;
   screen.Cursor := crDefault;
 end;
@@ -143,20 +137,17 @@ var
   querystr  : String;
 begin
   screen.Cursor := crSQLWait;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    checkedtables := TStringList.Create;
-    with self.TablesCheckListBox do
-      for i:=0 to Items.Count - 1 do
-        if Checked[i] then
-          checkedtables.Add(mainform.mask(Items[i]));
-    querystr := 'CHECK TABLE ' + implodestr(',', checkedtables);
-    if CheckBoxQuickCheck.Checked then
-      querystr := querystr + ' QUICK';
-    ExecUseQuery( self.DBComboBox.Text );
-    GetResults( querystr, ZQuery3 );
-    showresult(self);
-  end;
+  checkedtables := TStringList.Create;
+  with TablesCheckListBox do
+    for i:=0 to Items.Count - 1 do
+      if Checked[i] then
+        checkedtables.Add(mainform.mask(Items[i]));
+  querystr := 'CHECK TABLE ' + implodestr(',', checkedtables);
+  if CheckBoxQuickCheck.Checked then
+    querystr := querystr + ' QUICK';
+  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
+  Mainform.ChildWin.GetResults( querystr, Mainform.ChildWin.ZQuery3 );
+  showresult(self);
   screen.Cursor := crDefault;
 end;
 
@@ -167,18 +158,15 @@ var
   querystr  : String;
 begin
   screen.Cursor := crSQLWait;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    checkedtables := TStringList.Create;
-    with self.TablesCheckListBox do
-      for i:=0 to Items.Count - 1 do
-        if Checked[i] then
-          checkedtables.Add(mainform.mask(Items[i]));
-    querystr := 'ANALYZE TABLE ' + implodestr(',', checkedtables);
-    ExecUseQuery( self.DBComboBox.Text );
-    GetResults( querystr, ZQuery3 );
-    showresult(self);
-  end;
+  checkedtables := TStringList.Create;
+  with TablesCheckListBox do
+    for i:=0 to Items.Count - 1 do
+      if Checked[i] then
+        checkedtables.Add(mainform.mask(Items[i]));
+  querystr := 'ANALYZE TABLE ' + implodestr(',', checkedtables);
+  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
+  Mainform.ChildWin.GetResults( querystr, Mainform.ChildWin.ZQuery3 );
+  showresult(self);
   screen.Cursor := crDefault;
 end;
 
@@ -189,20 +177,17 @@ var
   querystr  : String;
 begin
   screen.Cursor := crSQLWait;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
-  begin
-    checkedtables := TStringList.Create;
-    with self.TablesCheckListBox do
-      for i:=0 to Items.Count - 1 do
-        if Checked[i] then
-          checkedtables.Add(mainform.mask(Items[i]));
-    querystr := 'REPAIR TABLE ' + implodestr(',', checkedtables);
-    if CheckBoxQuickRepair.Checked then
-      querystr := querystr + ' QUICK';
-    ExecUseQuery( self.DBComboBox.Text );
-    GetResults( querystr, ZQuery3 );
-    showresult(self);
-  end;
+  checkedtables := TStringList.Create;
+  with TablesCheckListBox do
+    for i:=0 to Items.Count - 1 do
+      if Checked[i] then
+        checkedtables.Add(mainform.mask(Items[i]));
+  querystr := 'REPAIR TABLE ' + implodestr(',', checkedtables);
+  if CheckBoxQuickRepair.Checked then
+    querystr := querystr + ' QUICK';
+  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
+  Mainform.ChildWin.GetResults( querystr, Mainform.ChildWin.ZQuery3 );
+  showresult(self);
   screen.Cursor := crDefault;
 end;
 
@@ -216,27 +201,25 @@ begin
   ListViewResults.Columns.Clear;
   ListViewResults.Items.BeginUpdate();
   ListViewResults.Items.Clear;
-  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  fieldcount := Mainform.ChildWin.ZQuery3.FieldCount;
+  for i := 0 to fieldcount -1 do
   begin
-    fieldcount := ZQuery3.FieldCount;
-    for i := 0 to fieldcount -1 do
-    begin
-      lc := ListViewResults.Columns.Add;
-      lc.Caption := ZQuery3.Fields[i].Fieldname;
-    end;
-
-    for i:=1 to ZQuery3.RecordCount do
-    begin
-      li := ListViewResults.Items.Add;
-      li.Caption := ZQuery3.Fields[0].AsString;
-      for j := 1 to fieldcount -1 do // fill cells
-        li.SubItems.Add(ZQuery3.Fields[j].AsString);
-      ZQuery3.Next;
-    end;
-
-    for i := 0 to ListViewResults.Columns.Count-1 do
-      ListViewResults.Columns[i].Width := -2;
+    lc := ListViewResults.Columns.Add;
+    lc.Caption := Mainform.ChildWin.ZQuery3.Fields[i].Fieldname;
   end;
+
+  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+  begin
+    li := ListViewResults.Items.Add;
+    li.Caption := Mainform.ChildWin.ZQuery3.Fields[0].AsString;
+    for j := 1 to fieldcount -1 do // fill cells
+      li.SubItems.Add(Mainform.ChildWin.ZQuery3.Fields[j].AsString);
+    Mainform.ChildWin.ZQuery3.Next;
+  end;
+
+  for i := 0 to ListViewResults.Columns.Count-1 do
+    ListViewResults.Columns[i].Width := -2;
+
   ListViewResults.Columns.EndUpdate();
   ListViewResults.Items.EndUpdate();
 end;
@@ -245,8 +228,8 @@ procedure Toptimize.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // catch exception to be sure window can close
   try
-    with TMDIChild(Application.Mainform.ActiveMDIChild) do
-      if ActualDatabase <> '' then ExecUseQuery( ActualDatabase );
+    if Mainform.ChildWin.ActualDatabase <> '' then
+      Mainform.ChildWin.ExecUseQuery( Mainform.ChildWin.ActualDatabase );
   except
   end;
 
