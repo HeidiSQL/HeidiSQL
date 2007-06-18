@@ -17,7 +17,7 @@ type
 
   TFieldEditForm = class(TForm)
     pc: TPageControl;
-    TabSheet1: TTabSheet;
+    tabField: TTabSheet;
     ButtonCancel: TButton;
     ButtonOK: TButton;
     lblName: TLabel;
@@ -34,7 +34,7 @@ type
     CheckBoxZerofill: TCheckBox;
     CheckBoxNotNull: TCheckBox;
     CheckBoxAutoIncrement: TCheckBox;
-    TabSheet2: TTabSheet;
+    tabIndexes: TTabSheet;
     ComboBoxKeys: TComboBox;
     lblIndexName: TLabel;
     CheckBoxUnique: TCheckBox;
@@ -83,18 +83,13 @@ type
     { Private declarations }
     TempKeys : TStringList;
     FMode : TFieldEditorMode;
+    FModeWhenCalled : TFieldEditorMode;
     FFieldName : String;
-    FFlags : String;
-    function GetInFieldMode: Boolean;
-    function GetInIndexMode: Boolean;
   public
     { Public declarations }
-    procedure Init (AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '');
-    property InFieldMode : Boolean read GetInFieldMode;
-    property InIndexMode : Boolean read GetInIndexMode;
   end;
 
-  function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '') : Boolean;
+  function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
 
 var
   FieldEditForm: TFieldEditForm;
@@ -108,7 +103,7 @@ uses
 
 var
   klist : Array of TMysqlIndex;
-  
+
 {$R *.DFM}
 
 
@@ -116,33 +111,20 @@ var
 {***
   Create form
 }
-function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '') : Boolean;
+function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
 var
   f : TFieldEditForm;
 begin
   f := TFieldEditForm.Create(AOwner);
-  f.Init (AMode,AFieldName,AFlags);
+  f.FMode := AMode;
+  // Also remember original mode for restoring when switching pagecontrol tabs
+  f.FModeWhenCalled := AMode;
+  f.FFieldName := AFieldName;
+  // Init both editors
+  f.InitFieldEditor (nil);
+  f.InitIndexEditor (nil);
   Result := (f.ShowModal = mrOK);
   FreeAndNil (f);
-end;
-
-
-
-{***
-  Init form, detect which button the user clicked (Field-Editor or Index-Editor)
-}
-procedure TFieldEditForm.Init(AMode: TFieldEditorMode; AFieldName,
-  AFlags: String);
-begin
-  FMode := AMode;
-  FFieldName := AFieldName;
-  FFlags := AFlags;
-
-  if InFieldMode then
-    InitFieldEditor (nil);
-
-  if InIndexMode then
-    InitIndexEditor (nil);
 end;
 
 
@@ -183,7 +165,7 @@ begin
 
   case FMode of
     // "Field" tab in Add-mode
-    femFieldAdd:
+    femFieldAdd, femIndexEditor:
     begin
       CheckBoxAutoIncrement.Enabled := false;
       EditFieldName.Text := 'FieldName';
@@ -235,9 +217,6 @@ begin
 
       // TODO: Disable 'auto increment' checkbox if field is not part of index or primary key.
     end;
-
-    // "Indexes" tab
-    femIndexEditor: ;
   end;
 end;
 
@@ -291,53 +270,22 @@ end;
   FormShow
 }
 procedure TFieldEditForm.FormShow(Sender: TObject);
-var
-  i : Integer;
 begin
-  for i := 0 to pc.PageCount - 1 do
-    pc.Pages[i].TabVisible := False;
-
-  if InFieldMode then
+  if fMode in [femFieldUpdate, femFieldAdd] then
     begin
-      Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Field Editor';
-      pc.Pages[0].TabVisible := True;
-      pc.ActivePageIndex := 0;
+      pc.ActivePage := tabField;
       EditFieldName.SetFocus();
     end;
 
-  if InIndexMode then
+  if fMode in [femIndexEditor] then
     begin
-      Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Index Editor';
-      pc.Pages[1].TabVisible := True;
-      pc.ActivePageIndex := 1;
+      pc.ActivePage := tabIndexes;
       if Length(klist) > 0 then
         ComboBoxKeys.SetFocus();
     end;
 
   ComboBoxTypeChange(self);
   pc.OnChange(self);
-end;
-
-
-
-{***
-  Detect if we're in AddField or UpdateField-mode
-  @return boolean
-}
-function TFieldEditForm.GetInFieldMode: Boolean;
-begin
-  Result := FMode in [femFieldAdd,femFieldUpdate];
-end;
-
-
-
-{***
-  Detect if we're in Index-mode
-  @return boolean
-}
-function TFieldEditForm.GetInIndexMode: Boolean;
-begin
-  Result := FMode in [femIndexEditor];
 end;
 
 
@@ -538,12 +486,29 @@ end;
 }
 procedure TFieldEditForm.pcChange(Sender: TObject);
 begin
-  case FMode of
-    femFieldAdd:    ButtonOK.Caption := 'Add';
-    femFieldUpdate: ButtonOK.Caption := 'Update';
-    femIndexEditor: ButtonOK.Caption := 'Update';
-  else
-    ButtonOK.Caption := 'Close';
+  // Set caption of "OK"-Button and FMode
+  if pc.ActivePage = tabField then
+  begin
+    Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Field Editor';
+    if FModeWhenCalled = femFieldUpdate then
+    begin
+      // "Field" tab selected and original mode was "UpdateField"
+      ButtonOK.Caption := 'Update Field';
+      FMode := femFieldUpdate;
+    end
+    else
+    begin
+      // "Field" tab selected and original mode was "AddField"
+      ButtonOK.Caption := 'Add Field';
+      FMode := femFieldAdd;
+    end;
+  end
+  else if pc.ActivePage = tabIndexes then
+  begin
+    // "Index" tab selected
+    Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Index Editor';
+    ButtonOK.Caption := 'Update Indexes';
+    FMode := femIndexEditor;
   end;
 
 end;
@@ -556,11 +521,11 @@ end;
 procedure TFieldEditForm.OKClick(Sender: TObject);
 begin
   // add/update what?
-  if InFieldMode then
+  if fMode in [femFieldUpdate, femFieldAdd] then
     begin
       AddUpdateField(self);
-    end
-  else if InIndexMode then
+    end;
+  if fMode in [femIndexEditor] then
     begin
       UpdateKeys(self);
       ModalResult := mrOK;
@@ -920,7 +885,6 @@ begin
   btnDeleteColumnFromIndex.Enabled := (listColumnsUsed.ItemIndex > -1);
   btnAddAllColumnsToIndex.Enabled := (listColumnsAvailable.Items.Count > 0);
   btnDeleteAllColumnsFromIndex.Enabled := (listColumnsUsed.Items.Count > 0);
-  ButtonOK.Enabled := listColumnsUsed.Items.Count > 0;
 end;
 
 
