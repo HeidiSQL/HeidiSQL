@@ -487,7 +487,7 @@ begin
   // Set caption of "OK"-Button and FMode
   if pc.ActivePage = tabField then
   begin
-    Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Field Editor';
+    Caption := Mainform.ChildWin.Description + ' - Field Editor';
     if FModeWhenCalled = femFieldUpdate then
     begin
       // "Field" tab selected and original mode was "UpdateField"
@@ -504,7 +504,7 @@ begin
   else if pc.ActivePage = tabIndexes then
   begin
     // "Index" tab selected
-    Caption := Mainform.ChildWin.ZQuery3.Connection.Hostname + ' - Index Editor';
+    Caption := Mainform.ChildWin.Description + ' - Index Editor';
     ButtonOK.Caption := 'Update Indexes';
     FMode := femIndexEditor;
   end;
