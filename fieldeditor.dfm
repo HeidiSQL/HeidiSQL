@@ -374,21 +374,6 @@ object FieldEditForm: TFieldEditForm
           FFFFFFFF00F00FFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFFFFFF}
       end
     end
-    object TabSheet3: TTabSheet
-      Caption = 'Foreign Keys'
-      ImageIndex = -1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
-      object Label9: TLabel
-        Left = 104
-        Top = 104
-        Width = 64
-        Height = 13
-        Caption = 'Coming soon!'
-      end
-    end
   end
   object ButtonCancel: TButton
     Left = 207

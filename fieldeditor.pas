@@ -52,8 +52,6 @@ type
     CheckBoxFulltext: TCheckBox;
     btnAddAllColumnsToIndex: TBitBtn;
     btnDeleteAllColumnsFromIndex: TBitBtn;
-    TabSheet3: TTabSheet;
-    Label9: TLabel;
     btnDatatypeHelp: TSpeedButton;
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
