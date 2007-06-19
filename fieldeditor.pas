@@ -83,6 +83,7 @@ type
     FMode : TFieldEditorMode;
     FModeWhenCalled : TFieldEditorMode;
     FFieldName : String;
+    procedure ValidateControls;
   public
     { Public declarations }
   end;
@@ -283,7 +284,7 @@ begin
     end;
 
   ComboBoxTypeChange(self);
-  pc.OnChange(self);
+  ValidateControls;
 end;
 
 
@@ -484,30 +485,27 @@ end;
 }
 procedure TFieldEditForm.pcChange(Sender: TObject);
 begin
-  // Set caption of "OK"-Button and FMode
+  // Set FMode, according to selected tab
   if pc.ActivePage = tabField then
   begin
-    Caption := Mainform.ChildWin.Description + ' - Field Editor';
     if FModeWhenCalled = femFieldUpdate then
     begin
       // "Field" tab selected and original mode was "UpdateField"
-      ButtonOK.Caption := 'Update Field';
       FMode := femFieldUpdate;
     end
     else
     begin
       // "Field" tab selected and original mode was "AddField"
-      ButtonOK.Caption := 'Add Field';
       FMode := femFieldAdd;
     end;
   end
   else if pc.ActivePage = tabIndexes then
   begin
     // "Index" tab selected
-    Caption := Mainform.ChildWin.Description + ' - Index Editor';
-    ButtonOK.Caption := 'Update Indexes';
     FMode := femIndexEditor;
   end;
+
+  ValidateControls;
 
 end;
 
@@ -883,6 +881,7 @@ begin
   btnDeleteColumnFromIndex.Enabled := (listColumnsUsed.ItemIndex > -1);
   btnAddAllColumnsToIndex.Enabled := (listColumnsAvailable.Items.Count > 0);
   btnDeleteAllColumnsFromIndex.Enabled := (listColumnsUsed.Items.Count > 0);
+  ValidateControls;
 end;
 
 
@@ -926,6 +925,37 @@ begin
   Mainform.ChildWin.CallSQLHelpWithKeyword(ComboBoxType.Text);
 end;
 
+
+
+{***
+  Ensure correct state of various controls
+}
+procedure TFieldEditForm.ValidateControls;
+begin
+  ButtonOK.Enabled := true;
+
+  case FMode of
+
+    femFieldUpdate:
+    begin
+      ButtonOK.Caption := 'Update Field';
+    end;
+
+    femFieldAdd:
+    begin
+      ButtonOK.Caption := 'Add Field';
+    end;
+
+    femIndexEditor:
+    begin
+      ButtonOK.Caption := 'Update Indexes';
+      // Disable the button if a key was selected and no columns are listed on the left
+      ButtonOK.Enabled := (ComboBoxKeys.ItemIndex = -1) or (listColumnsUsed.Items.Count > 0);
+    end;
+
+  end;
+  Caption := Mainform.ChildWin.Description + ' - ' + ButtonOK.Caption;
+end;
 
 end.
 
