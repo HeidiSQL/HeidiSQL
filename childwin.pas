@@ -1281,16 +1281,35 @@ var
   mq                   : TMysqlQuery;
   conn                 : TOpenConnProf;
   sl_query             : TStringList;
+  manualLimit          : boolean;
+  manualLimitEnd       : integer;
 begin
   viewingdata := true;
   try
     sl_query := TStringList.Create();
 
     // limit number of rows automatically if first time this table is shown
-    if ( not dataselected ) then
-    begin
-      // limit number of rows fetched if more than ~ 5 MB of data
-      limit := GetCalculatedLimit( ActualTable );
+    if ( not dataselected ) then begin
+      manualLimit := false;
+      manualLimitEnd := -1;
+      with TRegistry.Create do begin
+        if OpenKey(REGPATH, true) then begin
+          if Valueexists('DataLimitEnd') then begin
+            manualLimitEnd := ReadInteger('DataLimitEnd');
+            if Valueexists('DataLimit') then manualLimit := ReadBool('DataLimit');
+          end;
+        end;
+      end;
+
+      // limit number of rows fetched according to preferences
+      if manualLimit then begin
+        // manual limit set in preferences
+        limit := manualLimitEnd;
+      end else begin
+        // no tick in preferences check box - auto-limit:
+        // limit number of rows fetched if more than ~ 5 MB of data
+        limit := GetCalculatedLimit( ActualTable );
+      end;
 
       // adjust limit in GUI
       mainform.ToolBarData.Visible := true;

@@ -395,10 +395,6 @@ begin
       WriteInteger('ToolBarDataLeft', ToolBarData.Left);
       WriteInteger('ToolBar2Top', ToolBarStandard.Top);
       WriteInteger('ToolBarDataTop', ToolBarData.Top);
-      // Limit-options
-      WriteBool('DataLimit', CheckBoxLimit.Checked);
-      WriteInteger('DataLimitStart', UpDownLimitStart.Position);
-      WriteInteger('DataLimitEnd', UpDownLimitEnd.Position);
     end;
     CloseKey;
   end;
@@ -479,14 +475,6 @@ begin
         ToolBarStandard.Top := ReadInteger('ToolBar2Top');
       if valueExists('ToolBarDataTop') then
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
-
-      // Limit-options
-      if valueExists('DataLimit') then
-        CheckBoxLimit.Checked := ReadBool('DataLimit');
-      if valueExists('DataLimitStart') then
-        UpDownLimitStart.Position := ReadInteger('DataLimitStart');
-      if valueExists('DataLimitEnd') then
-        UpDownLimitEnd.Position := ReadInteger('DataLimitEnd');
 
       // Other values
       DataAlwaysEditMode := true;
