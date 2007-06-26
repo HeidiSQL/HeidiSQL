@@ -1611,7 +1611,7 @@ function TSynPasSyn.UseUserSettings(VersionIndex: integer): boolean;
     iVersionTag       : string;
   begin { ReadDelphiSettings }
     {$IFDEF SYN_DELPHI_7_UP}
-    Result := False; // Silence the compiler warning 
+    //Result := False; // Silence the compiler warning 
     {$ENDIF}
     iVersions := TStringList.Create;
     try
