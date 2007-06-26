@@ -119,13 +119,13 @@
     <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponentDesign.dproj" Targets="Make" />
   </Target>
   <Target Name="heidisql">
-    <MSBuild Projects="heidisql.dproj" Targets="" />
+    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="" />
   </Target>
   <Target Name="heidisql:Clean">
-    <MSBuild Projects="heidisql.dproj" Targets="Clean" />
+    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Clean" />
   </Target>
   <Target Name="heidisql:Make">
-    <MSBuild Projects="heidisql.dproj" Targets="Make" />
+    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
     <CallTarget Targets="VCLSer;DCLSer;HeidiComponents;SMDBGridComponents;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;heidisql" />
