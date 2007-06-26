@@ -91,7 +91,7 @@ type
   {$IFDEF WITH_IPROVIDER}
     function PSIsSQLBased: Boolean; override;
     procedure PSExecute; override;
-    function PSGetTableName: string; override;
+    {function PSGetTableName: string; override;}
     procedure PSSetCommandText(const ACommandText: string); override;
   {$ENDIF}
 
@@ -353,10 +353,10 @@ end;
   Gets the name of the stored procedure.
   @returns the name of this stored procedure.
 }
-function TZStoredProc.PSGetTableName: string;
+{function TZStoredProc.PSGetTableName: string;
 begin
   Result := StoredProcName;
-end;
+end;}
 
 {**
   Executes this stored procedure.
