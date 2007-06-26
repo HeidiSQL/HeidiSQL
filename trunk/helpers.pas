@@ -38,7 +38,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function urlencode(url: String): String;
   procedure wfs( var s: TFileStream; str: String = '');
   function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
+  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
+  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
@@ -1061,6 +1062,28 @@ begin
   // select all/none
   for i:=0 to list.Items.Count-1 do
     list.checked[i] := state;
+end;
+
+
+{***
+  Check/Uncheck items in a CheckListBox which come in a second list
+
+  @param TCheckListBox List with checkable items
+  @param boolean Check them?
+  @param TStringList Second list with items to change
+  @return void
+}
+procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList);
+var
+  i : Integer;
+begin
+  for i:=0 to list.Items.Count-1 do
+  begin
+    if list_toggle.IndexOf(list.Items[i]) > -1 then
+    begin
+      list.Checked[i] := state;
+    end;
+  end;
 end;
 
 

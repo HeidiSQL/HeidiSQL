@@ -267,6 +267,8 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
+    btnColumnSelection: TSpeedButton;
+    procedure btnColumnSelectionClick(Sender: TObject);
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure ListTablesSelectItem(Sender: TObject; Item: TListItem;
@@ -505,7 +507,8 @@ implementation
 
 uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
-  selectsomedatabases, optimizetables, copytable, sqlhelp, printlist;
+  selectsomedatabases, optimizetables, copytable, sqlhelp, printlist,
+  column_selection;
 
 
 {$I const.inc}
@@ -1283,6 +1286,7 @@ var
   sl_query             : TStringList;
   manualLimit          : boolean;
   manualLimitEnd       : integer;
+  DisplayedColumnsList : TStringList;
 begin
   viewingdata := true;
   try
@@ -1451,6 +1455,13 @@ begin
         FreeAndNil( FCurDataset );
       end;
 
+      // Read columns to display from registry
+      with( TRegistry.Create ) do
+      begin
+        OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
+        DisplayedColumnsList := explode( '`', ReadString(REGNAME_DISPLAYEDCOLUMNS + '_' + ActualDatabase + '.' + ActualTable));
+      end;
+
       // Prepare SELECT statement
       select_base := 'SELECT ';
       // Try to calc the rowcount regardless of a given LIMIT
@@ -1462,7 +1473,24 @@ begin
       begin
         select_base := select_base + ' SQL_CALC_FOUND_ROWS';
       end;
-      select_base := select_base + ' * FROM ' + mask( ActualTable );
+      // Selected columns
+      if DisplayedColumnsList.Count = 0 then
+      begin
+        select_base := select_base + ' *';
+        btnColumnSelection.Font.Color := clBtnText;
+      end
+      else
+      begin
+        for i := 0 to DisplayedColumnsList.Count - 1 do
+        begin
+          select_base := select_base + ' ' + mask(DisplayedColumnsList[i]) + ',';
+        end;
+        // Cut last comma
+        select_base := copy( select_base, 1, Length(select_base)-1 );
+        // Signal for the user that we now hide some fields
+        btnColumnSelection.Font.Color := clRed;
+      end;
+      select_base := select_base + ' FROM ' + mask( ActualTable );
       sl_query.Add( select_base );
       // Apply custom WHERE filter
       if ( Trim( Self.SynMemoFilter.Text ) <> '' ) then
@@ -5173,6 +5201,30 @@ begin
     end;
   finally
     debug( 'GetCalculatedLimit: ' + formatnumber(result) );
+  end;
+end;
+
+
+{**
+  Column selection for datagrid
+}
+procedure TMDIChild.btnColumnSelectionClick(Sender: TObject);
+var
+  btn : TSpeedButton;
+  frm : TColumnSelectionForm;
+begin
+  btn := (Sender as TSpeedButton);
+
+  if btn.Down then
+  begin
+    frm := TColumnSelectionForm.Create(self);
+
+    // Position new form relative to btn's position
+    frm.Top := btn.ClientOrigin.Y + btn.Height;
+    frm.Left := btn.ClientOrigin.X;
+
+    // Display form
+    frm.ShowModal;
   end;
 end;
 

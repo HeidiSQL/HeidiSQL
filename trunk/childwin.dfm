@@ -655,6 +655,28 @@ object MDIChild: TMDIChild
             DesignSize = (
               496
               23)
+            object btnColumnSelection: TSpeedButton
+              Left = 168
+              Top = 0
+              Width = 79
+              Height = 21
+              AllowAllUp = True
+              Anchors = [akTop, akRight]
+              GroupIndex = 10
+              Caption = 'Columns'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clBlack
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              Glyph.Data = {
+                52000000424D52000000000000003E0000002800000009000000050000000100
+                010000000000140000000000000000000000020000000200000000000000FFFF
+                FF00F7806300E3805C00C18032008080300000004700}
+              Layout = blGlyphRight
+              ParentFont = False
+              OnClick = btnColumnSelectionClick
+            end
             object EditDataSearch: TEdit
               Left = 317
               Top = 0
