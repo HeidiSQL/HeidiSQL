@@ -1153,7 +1153,7 @@ var
 begin
   BlobHandle := nil;
   CurPos := 0;
-  SegmentLenght := UShort(DefaultBlobSegmentSize);
+  //SegmentLenght := UShort(DefaultBlobSegmentSize);
 
   { open blob }
   PlainDriver.isc_open_blob2(@StatusVector, Handle,
