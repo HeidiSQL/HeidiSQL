@@ -1,0 +1,61 @@
+!--
+=<!-- | -->
+!doct
+=<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+=    "http://www.w3.org/TR/REC-html40/loose.dtd">|
+a
+=<a href="http://?">|</a>
+applet
+=<applet code="|.class" width=100 height=100>
+=<param name="?" value="?">
+=<param name="?" value="?">
+=</applet>
+frame
+=<frameset rows="100%" cols="30%,70%">
+=  <frame name="nav" src="http://?.html">
+=  <frame name="main" src="http://?.html">
+=</frameset>|
+head
+=<head>
+=<title>|</title>
+=<meta name="generator" content="SynEdit">
+=<meta name="author" content="?">
+=<meta name="keywords" content="?">
+=<meta name="description" content="?">
+=</head>
+img
+=<img src="|?.gif" alt="?">
+link
+=<link rel='StyleSheet" href="|" type="text/css">
+script
+=<script language="JavaScript" type="text/javascript">
+=<!--
+=|
+=//-->
+=</script>
+style
+=<style type="text/css">
+=<!--
+=|
+=//-->
+=</style>
+table
+=<table align="left" border=0 cellspacing=0 cellpadding=0 width="100%">
+=<tr align="left" valign="middle">
+=<th>|</th>
+=<th></th>
+=<tr align="left" valign=middle">
+=<td></td>
+=<td></td>
+=</table>
+td
+=<td>|</td>
+th
+=<th>|</th>
+tr
+=<tr>|</tr>
+ul
+=<ul>
+=<li>|</li> ?
+=</ul>
+

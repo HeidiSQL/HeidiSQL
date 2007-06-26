@@ -1,0 +1,48 @@
+package ZCore;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Core Classes and Interfaces'}
+{$LIBSUFFIX '90'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl;
+
+contains
+  ZVariant in '..\..\src\core\ZVariant.pas',
+  ZCollections in '..\..\src\core\ZCollections.pas',
+  ZCompatibility in '..\..\src\core\ZCompatibility.pas',
+  ZExpression in '..\..\src\core\ZExpression.pas',
+  ZExprParser in '..\..\src\core\ZExprParser.pas',
+  ZExprToken in '..\..\src\core\ZExprToken.pas',
+  ZFunctions in '..\..\src\core\ZFunctions.pas',
+  ZMatchPattern in '..\..\src\core\ZMatchPattern.pas',
+  ZSysUtils in '..\..\src\core\ZSysUtils.pas',
+  ZTokenizer in '..\..\src\core\ZTokenizer.pas',
+  ZVariables in '..\..\src\core\ZVariables.pas',
+  ZClasses in '..\..\src\core\ZClasses.pas',
+  ZMessages in '..\..\src\core\ZMessages.pas';
+
+end.
