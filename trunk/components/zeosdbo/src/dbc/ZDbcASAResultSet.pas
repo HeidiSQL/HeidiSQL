@@ -798,7 +798,8 @@ end;
 procedure TZASAResultSet.UpdateUnicodeString(ColumnIndex: Integer; const Value: WideString);
 begin
   PrepareUpdateSQLData;
-  FUpdateSqlData.UpdatePChar( ColumnIndex, PChar( Value));
+  raise Exception.Create('Code path disabled to avoid compiler warning.  Todo: Ask Zeos developers for code comments regarding WideString->PChar cast in UpdateUnicodeString().');
+  //FUpdateSqlData.UpdatePChar( ColumnIndex, PChar( Value));
 end;
 
 procedure TZASAResultSet.UpdateBytes(ColumnIndex: Integer; const Value: TByteDynArray);
