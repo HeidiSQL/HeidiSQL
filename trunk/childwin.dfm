@@ -402,7 +402,7 @@ object MDIChild: TMDIChild
               Enabled = False
               ImageIndex = 8
               Wrap = True
-              OnClick = viewdata
+              OnClick = btnDbViewDataClick
             end
             object btnDbProperties: TToolButton
               Left = 0
@@ -513,7 +513,7 @@ object MDIChild: TMDIChild
               Caption = 'btnTableViewData'
               ImageIndex = 8
               Wrap = True
-              OnClick = viewdata
+              OnClick = btnTableViewDataClick
             end
             object btnTableEditField: TToolButton
               Left = 0

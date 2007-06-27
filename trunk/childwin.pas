@@ -268,6 +268,8 @@ type
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
     btnColumnSelection: TSpeedButton;
+    procedure btnTableViewDataClick(Sender: TObject);
+    procedure btnDbViewDataClick(Sender: TObject);
     procedure btnColumnSelectionClick(Sender: TObject);
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
@@ -312,7 +314,8 @@ type
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure SelectHost;
     procedure SelectDatabase(db: String);
-    procedure SelectTable(db: String; table: String);
+    procedure SelectTable(db: String; table: String; switchView: boolean = true);
+    procedure ShowTableData(table: string);
     procedure ShowTable(Sender: TObject);
     procedure EmptyTable(Sender: TObject);
     procedure DropDB(Sender: TObject);
@@ -1187,7 +1190,7 @@ begin
 end;
 
 
-procedure TMDIChild.SelectTable(db: String; table: String);
+procedure TMDIChild.SelectTable(db: String; table: String; switchView: boolean = true);
 begin
   if ( ActualDatabase <> db ) then
   begin
@@ -1198,7 +1201,7 @@ begin
   tabData.TabVisible := true;
   dataselected := false;
   ActualTable := table;
-  ShowTableProperties( Self );
+  if switchView then ShowTableProperties( Self );
   Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
 end;
 
@@ -2326,12 +2329,19 @@ begin
 end;
 
 
+procedure TMDIChild.ShowTableData(table: string);
+begin
+  SelectTable(ActualDatabase, table, false);
+  PageControlMain.ActivePage := tabData;
+  viewdata(self);
+end;
+
+
 procedure TMDIChild.ShowTable(Sender: TObject);
 var
   i : Integer;
   tn, tndb : TTreeNode;
 begin
-  // vor viewdata...
   if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
   else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
   else exit;
@@ -2341,8 +2351,7 @@ begin
     if ListTables.Selected.Caption = tn.Text then
     begin
       DBTree.Selected := tn;
-      PageControlMain.ActivePage := tabData;
-      viewdata(self);
+      ShowTableData(tn.Text);
       break;
     end;
     tn := tndb.GetNextChild(tn);
@@ -3631,6 +3640,11 @@ begin
   end;
 end;
 
+procedure TMDIChild.btnDbViewDataClick(Sender: TObject);
+begin
+  ShowTableData(ListTables.Selected.Caption);
+end;
+
 procedure TMDIChild.PageControlBlobEditorsChange(Sender: TObject);
 begin
   btnBlobCopy.Enabled := true;
@@ -4442,6 +4456,11 @@ procedure TMDIChild.btnQueryStopOnErrorsClick(Sender: TObject);
 begin
   StopOnErrors := not StopOnErrors;
   btnQueryStopOnErrors.Down := StopOnErrors;
+end;
+
+procedure TMDIChild.btnTableViewDataClick(Sender: TObject);
+begin
+  ShowTableData(ActualTable);
 end;
 
 procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
