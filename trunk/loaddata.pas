@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses Main, Childwin, helpers;
+uses Main, Childwin, helpers, Db;
 
 {$R *.DFM}
 
@@ -140,15 +140,17 @@ end;
 procedure Tloaddataform.TablesComboBoxChange(Sender: TObject);
 var
   i : Integer;
+  ds : TDataSet;
 begin
   // fill columns:
   ColumnsCheckListBox.Items.Clear;
-  if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then
-  Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text), Mainform.ChildWin.ZQuery3 );
-  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
-  begin
-    ColumnsCheckListBox.Items.Add(Mainform.ChildWin.ZQuery3.Fields[0].AsString);
-    Mainform.ChildWin.ZQuery3.Next;
+  if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then begin
+    ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text));
+    for i:=1 to ds.RecordCount do
+    begin
+      ColumnsCheckListBox.Items.Add(ds.Fields[0].AsString);
+      ds.Next;
+    end;
   end;
 
   // select all:

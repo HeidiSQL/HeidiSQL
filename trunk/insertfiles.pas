@@ -74,7 +74,7 @@ type
 
 implementation
 
-uses main, childwin, helpers;
+uses main, childwin, helpers, db;
 
 {$R *.DFM}
 
@@ -139,21 +139,23 @@ end;
 
 { Show Columns from selected table }
 procedure TfrmInsertFiles.ComboBoxTablesChange(Sender: TObject);
-var i : Integer;
+var
+  i : Integer;
+  ds : TDataSet;
 begin
   setlength(cols, 0);
-  if ComboBoxTables.ItemIndex > -1 then
-    Mainform.ChildWin.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text), Mainform.ChildWin.ZQuery3);
-    for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
-    begin
+  if ComboBoxTables.ItemIndex > -1 then begin
+    ds := Mainform.ChildWin.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
+    for i:=1 to ds.RecordCount do begin
       setlength(cols, length(cols)+1);
-      cols[length(cols)-1].Name := Mainform.ChildWin.ZQuery3.Fields[0].AsString;
-      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(Mainform.ChildWin.ZQuery3.Fields[1].AsString)) > 0) or (pos('text', lowercase(Mainform.ChildWin.ZQuery3.Fields[1].AsString)) > 0);
+      cols[length(cols)-1].Name := ds.Fields[0].AsString;
+      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(ds.Fields[1].AsString)) > 0) or (pos('text', lowercase(ds.Fields[1].AsString)) > 0);
       cols[length(cols)-1].Value := 'NULL';
       cols[length(cols)-1].Quote := false;
-      Mainform.ChildWin.ZQuery3.Next;
+      ds.Next;
     end;
-  DisplayColumns(self);
+    DisplayColumns(self);
+  end;
 end;
 
 { display columns in combobox }

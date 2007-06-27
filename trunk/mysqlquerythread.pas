@@ -84,7 +84,7 @@ type
       procedure NotifyStatusViaWinMessage (AEvent : Integer);
       function AssembleResult () : TThreadResult;
       function RunDataQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData) : Boolean;
-      function RunUpdateQuery (ASql : String; out AExceptionData : TExceptionData) : Boolean;
+      function RunUpdateQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
     public
       constructor Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer);
@@ -218,9 +218,9 @@ begin
     begin
       NotifyStatus (MQE_STARTED);
 
+      q := nil;
       if ExpectResultSet(FSql) then
         begin
-          q := nil;
           r := RunDataQuery (FSql,TDataSet(q),e);
 
           if r then
@@ -231,10 +231,10 @@ begin
                 end;
             end;
 
-          TMysqlQuery(FOwner).SetMysqlDataset(q);
         end
       else
-        r := RunUpdateQuery (FSql,e);
+        r := RunUpdateQuery (FSql,TDataSet(q),e);
+      TMysqlQuery(FOwner).SetMysqlDataset(q);
 
       if r then
         SetState (MQR_SUCCESS,'SUCCESS')
@@ -335,7 +335,7 @@ begin
   end;
 end;
 
-function TMysqlQueryThread.RunUpdateQuery(ASql: String; out AExceptionData : TExceptionData): Boolean;
+function TMysqlQueryThread.RunUpdateQuery(ASql: String; var ADataset: TDataset; out AExceptionData : TExceptionData): Boolean;
 var
   q : TZQuery;
 begin
@@ -346,6 +346,7 @@ begin
 
   try
     q.ExecSQL();
+    ADataSet := q;
     Result := True;
   except
     On E: Exception do

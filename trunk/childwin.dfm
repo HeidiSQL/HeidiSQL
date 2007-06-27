@@ -57,7 +57,6 @@ object MDIChild: TMDIChild
       Width = 169
       Height = 252
       Align = alLeft
-      ChangeDelay = 50
       Constraints.MinWidth = 40
       DragMode = dmAutomatic
       HotTrack = True
@@ -1930,11 +1929,13 @@ object MDIChild: TMDIChild
   end
   object DataSource1: TDataSource
     OnDataChange = DataSourceDataChange
+    OnUpdateData = DataSourceUpdateData
     Left = 304
     Top = 136
   end
   object DataSource2: TDataSource
     OnDataChange = DataSourceDataChange
+    OnUpdateData = DataSourceUpdateData
     Left = 304
     Top = 168
   end
@@ -1964,28 +1965,6 @@ object MDIChild: TMDIChild
     ConvertHTMLSpecialChars = False
     Left = 72
     Top = 120
-  end
-  object ZQuery1: TZQuery
-    BeforeOpen = ZQueryBeforeSendingSQL
-    BeforeClose = ZQueryGridBeforeClose
-    BeforePost = ZQueryBeforeSendingSQL
-    AfterPost = ZQueryGridAfterPost
-    AfterDelete = ZQueryGridAfterPost
-    OnDeleteError = ZQuery1EditError
-    OnEditError = ZQuery1EditError
-    OnPostError = ZQuery1EditError
-    ParamCheck = False
-    Params = <>
-    UpdateMode = umUpdateAll
-    Left = 272
-    Top = 168
-  end
-  object ZQuery3: TZReadOnlyQuery
-    AutoCalcFields = False
-    ParamCheck = False
-    Params = <>
-    Left = 272
-    Top = 200
   end
   object ZSQLMonitor1: TZSQLMonitor
     Active = True

@@ -56,7 +56,7 @@ var
 
 implementation
 
-uses ZDataset, helpers, main;
+uses ZDataset, helpers, main, db;
 
 {$I const.inc}
 
@@ -103,7 +103,8 @@ end;
 procedure TfrmSQLhelp.fillTreeLevel( ParentNode: TTreeNode );
 var
   tnode   : TTreeNode;
-  ds      : TZReadOnlyQuery;
+  i       : integer;
+  ds      : TDataSet;
   topic   : String;
 begin
   if ParentNode = nil then
@@ -116,12 +117,10 @@ begin
     ParentNode.DeleteChildren;
     topic := ParentNode.Text;
   end;
-  ds := TZReadOnlyQuery.Create(self);
   try
     Screen.Cursor := crHourglass;
-    ds.Connection := m.ZQuery3.Connection;
-    m.GetResults( 'HELP "'+topic+'"', ds );
-    while not ds.Eof do
+    ds := m.GetResults( 'HELP "'+topic+'"' );
+    for i:=1 to ds.RecordCount do
     begin
       tnode := treeTopics.Items.AddChild( ParentNode, ds.FieldByName('name').AsString );
       if (ds.FindField('is_it_category') <> nil) and (ds.FieldByName('is_it_category').AsString = 'Y') then
@@ -239,7 +238,7 @@ end;
 }
 function TfrmSQLhelp.ShowHelpItem: Boolean;
 var
-  ds : TZReadOnlyQuery;
+  ds : TDataSet;
 begin
   lblKeyword.Caption := Copy(Keyword, 0, 100);
   MemoDescription.Lines.Clear;
@@ -250,9 +249,7 @@ begin
   if Keyword <> '' then
   try
     Screen.Cursor := crHourglass;
-    ds := TZReadOnlyQuery.Create(self);
-    ds.Connection := m.ZQuery3.Connection;
-    m.GetResults( 'HELP "'+lblKeyword.Caption+'"', ds );
+    ds := m.GetResults( 'HELP "'+lblKeyword.Caption+'"' );
     if ds.RecordCount = 1 then
     begin
       // We found exactly one matching help item

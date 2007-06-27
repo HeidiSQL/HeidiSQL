@@ -234,8 +234,6 @@ type
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
-    ZQuery1: TZQuery;
-    ZQuery3: TZReadOnlyQuery;
     ZSQLMonitor1: TZSQLMonitor;
     EDBImage1: TEDBImage;
     Exporttables1: TMenuItem;
@@ -268,6 +266,7 @@ type
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
     btnColumnSelection: TSpeedButton;
+    procedure DataSourceUpdateData(Sender: TObject);
     procedure btnTableViewDataClick(Sender: TObject);
     procedure btnDbViewDataClick(Sender: TObject);
     procedure btnColumnSelectionClick(Sender: TObject);
@@ -410,10 +409,12 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
+    function GetNamedVar( SQLQuery: String; x: String;
+      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
     function GetVar( SQLQuery: String; x: Integer = 0;
       HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
-    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true );
+    function GetResults( SQLQuery: String;
+      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ): TDataSet;
     function GetCol( SQLQuery: String; x: Integer = 0;
       HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
@@ -486,9 +487,9 @@ type
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      procedure ExecUpdateQuery (ASQLQuery: String; DisplayErrors: Boolean = True );
-      function ExecSelectQuery (AQuery : String) : TMysqlQuery;
-      procedure ExecUseQuery (ADatabase : String; DisplayErrors: Boolean = True );
+      function ExecUpdateQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): Int64;
+      function ExecSelectQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): TDataSet;
+      procedure ExecUseQuery(db: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
@@ -619,7 +620,7 @@ begin
     case ( newValue ) of
       1 :
       begin
-        raise Exception.Create( 'Internal badness: Default connection is ' +
+        raise Exception.Create( 'Error: Default connection is ' +
         'already executing a query.' );
       end;
       0 :
@@ -667,6 +668,7 @@ var
   winName          : String;
   j                : Integer;
   treenode         : TTreeNode;
+  ds               : TDataSet;
 begin
   QueryRunningInterlock := 0;
 
@@ -674,10 +676,6 @@ begin
   FMysqlConn := AMysqlConn; // we're now responsible to free it
 
   FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zConn)
-
-  // Set to use main connection
-  ZQuery1.Connection := FConn.MysqlConn;
-  ZQuery3.Connection := FConn.MysqlConn;
 
   // Initialization: establish connection and read some vars from registry
   MainForm.Showstatus( 'Creating window...', 2, true );
@@ -744,20 +742,20 @@ begin
     begin
       MenuChangeType.Delete(i);
     end;
-    GetResults( 'SHOW ENGINES', ZQuery3 );
-    for i := 0 to ( ZQuery3.RecordCount - 1 ) do
+    ds := GetResults( 'SHOW ENGINES' );
+    for i := 0 to ( ds.RecordCount - 1 ) do
     begin
       menuitem := TMenuItem.Create(self);
-      menuitem.Caption := ZQuery3.FieldByName('Engine').AsString;
-      menuitem.Hint := ZQuery3.FieldByName('Comment').AsString;
-      if ( UpperCase( ZQuery3.FieldByName('Support').AsString ) = 'NO' ) then
+      menuitem.Caption := ds.FieldByName('Engine').AsString;
+      menuitem.Hint := ds.FieldByName('Comment').AsString;
+      if ( UpperCase( ds.FieldByName('Support').AsString ) = 'NO' ) then
       begin
         menuitem.Enabled := false;
         menuitem.Hint := menuitem.Hint + ' (Not supported on this server)';
       end;
       menuitem.OnClick := MenuChangeTypeClick;
       MenuChangeType.Add( menuitem );
-      ZQuery3.Next();
+      ds.Next();
     end;
   end;
 
@@ -1040,6 +1038,7 @@ var
   i              : Integer;
   specialDbs     : TStringList;
   dbName         : String;
+  ds             : TDataSet;
 begin
   // Fill DBTree
   Screen.Cursor := crHourGlass;
@@ -1057,10 +1056,10 @@ begin
   begin
     OnlyDBs2 := TStringList.Create();
     specialDbs := TStringList.Create();
-    GetResults( 'SHOW DATABASES', ZQuery3 );
-    for i:=1 to ( ZQuery3.RecordCount ) do
+    ds := GetResults( 'SHOW DATABASES' );
+    for i:=1 to ( ds.RecordCount ) do
     begin
-      dbName := ZQuery3.FieldByName('Database').AsString;
+      dbName := ds.FieldByName('Database').AsString;
       if ( dbName = DBNAME_INFORMATION_SCHEMA ) then
       begin
         specialDbs.Insert( 0, dbName )
@@ -1076,7 +1075,7 @@ begin
       begin
         OnlyDBs2.Add( dbName );
       end;
-      ZQuery3.Next();
+      ds.Next();
     end;
     OnlyDBs2.Sort();
     // Prioritised position of system-databases
@@ -1776,6 +1775,7 @@ var
   menuitem        : TMenuItem;
   TablelistColumns: TStringList;
   column          : TListColumn;
+  ds              : TDataSet;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -1789,7 +1789,7 @@ begin
     if mysql_version >= 32300 then
     begin
       // get quick results with versions 3.23.xx and newer
-      GetResults( 'SHOW TABLE STATUS', ZQuery3 );
+      ds := GetResults( 'SHOW TABLE STATUS' );
       MainForm.ShowStatus( 'Displaying tables from ' + ActualDatabase + '...', 2, true );
 
       // Generate items for popupDbGridHeader
@@ -1806,10 +1806,10 @@ begin
           TablelistColumns := TStringList.Create;
         free;
       end;
-      for i:=0 to ZQuery3.FieldCount-1 do
+      for i:=0 to ds.FieldCount-1 do
       begin
         menuitem := TMenuItem.Create( self );
-        menuitem.Caption := ZQuery3.Fields[i].Fieldname;
+        menuitem.Caption := ds.Fields[i].Fieldname;
         menuitem.Tag := 2;
         menuitem.OnClick := MenuTablelistColumnsClick;
         if i=0 then
@@ -1868,77 +1868,77 @@ begin
         column.Autosize := true;
       end;
 
-      for i := 1 to ZQuery3.RecordCount do
+      for i := 1 to ds.RecordCount do
       begin
         n := ListTables.Items.Add;
         n.ImageIndex := 39;
         // Table
-        n.Caption := ZQuery3.FieldByName('Name').AsString;
+        n.Caption := ds.FieldByName('Name').AsString;
         if popupDbGridHeader.Items[0].Checked then
         begin // Default columns
           // Records
-          n.SubItems.Add( FormatNumber( ZQuery3.FieldByName('Rows').AsFloat ) );
+          n.SubItems.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
           // Size: Data_length + Index_length
-          bytes := ZQuery3.FieldByName('Data_length').AsFloat + ZQuery3.FieldByName('Index_length').AsFloat;
+          bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
           n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
           // Created:
-          if not ZQuery3.FieldByName('Create_time').IsNull then
-            n.SubItems.Add( ZQuery3.FieldByName('Create_time').AsString )
+          if not ds.FieldByName('Create_time').IsNull then
+            n.SubItems.Add( ds.FieldByName('Create_time').AsString )
           else
             n.SubItems.Add('N/A');
 
           // Updated:
-          if not ZQuery3.FieldByName('Update_time').IsNull then
-            n.SubItems.Add( ZQuery3.FieldByName('Update_time').AsString )
+          if not ds.FieldByName('Update_time').IsNull then
+            n.SubItems.Add( ds.FieldByName('Update_time').AsString )
           else
             n.SubItems.Add('N/A');
 
           // Type
-          if ZQuery3.FindField('Type')<>nil then
-            n.SubItems.Add( ZQuery3.FieldByName('Type').AsString )
-          else if ZQuery3.FindField('Engine')<>nil then
-            n.SubItems.Add( ZQuery3.FieldByName('Engine').AsString )
+          if ds.FindField('Type')<>nil then
+            n.SubItems.Add( ds.FieldByName('Type').AsString )
+          else if ds.FindField('Engine')<>nil then
+            n.SubItems.Add( ds.FieldByName('Engine').AsString )
           else
             n.SubItems.Add('');
 
           // Comment
-          n.SubItems.Add( ZQuery3.FieldByName('Comment').AsString );
+          n.SubItems.Add( ds.FieldByName('Comment').AsString );
         end;
         for j:=0 to TablelistColumns.Count-1 do
         begin
-          for k:=0 to ZQuery3.FieldCount-1 do
+          for k:=0 to ds.FieldCount-1 do
           begin
-            if TablelistColumns[j] = ZQuery3.Fields[k].FieldName then
+            if TablelistColumns[j] = ds.Fields[k].FieldName then
             begin
-              if ZQuery3.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
+              if ds.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
               begin
                 // Number
                 // TODO: doesn't match any column
                 ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify;
-                n.SubItems.Add( FormatNumber( ZQuery3.Fields[k].AsFloat ) );
+                n.SubItems.Add( FormatNumber( ds.Fields[k].AsFloat ) );
               end
               else
                 // String
-                n.SubItems.Add( ZQuery3.Fields[k].AsString );
+                n.SubItems.Add( ds.Fields[k].AsString );
             end;
           end;
         end;
-        ZQuery3.Next;
+        ds.Next;
       end;
     end
     else begin
       // get slower results with versions 3.22.xx and older
-      GetResults('SHOW TABLES', ZQuery3, true, false);
-      for i := 1 to ZQuery3.RecordCount do
+      ds := GetResults('SHOW TABLES', true, false);
+      for i := 1 to ds.RecordCount do
       begin
         n := ListTables.Items.Add;
-        n.Caption := ZQuery3.Fields[0].AsString;
+        n.Caption := ds.Fields[0].AsString;
         n.ImageIndex := 39;
-        n.SubItems.Add( GetVar( 'SELECT COUNT(*) FROM '+ZQuery3.Fields[0].AsString ) );
-        ZQuery3.Next;
+        n.SubItems.Add( GetVar( 'SELECT COUNT(*) FROM '+ds.Fields[0].AsString ) );
+        ds.Next;
       end;
     end;
-    mainform.showstatus(ActualDatabase + ': ' + IntToStr(ZQuery3.RecordCount) +' table(s)');
+    mainform.showstatus(ActualDatabase + ': ' + IntToStr(ds.RecordCount) +' table(s)');
   Finally
     ListTables.Columns.EndUpdate;
     ListTables.Items.EndUpdate;
@@ -1979,6 +1979,7 @@ var
   n : TListItem;
   tn, tndb : TTreeNode;
   isFulltext : Boolean;
+  ds : TDataSet;
 begin
   // Table-Properties
 
@@ -2016,51 +2017,51 @@ begin
   ListColumns.Items.BeginUpdate;
   ListColumns.Items.Clear;
   Try
-    GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable), ZQuery3 );
+    ds := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable) );
     // Avoid AV with ZQuery-object if table is not accessible somehow (fx if deleted by another user)
-    if not ZQuery3.Active then
+    if not ds.Active then
       Abort;
 
-    for i:=1 to ZQuery3.RecordCount do
+    for i:=1 to ds.RecordCount do
     begin
       n := ListColumns.Items.Add;
       n.ImageIndex := 62;
 
-      n.Caption := ZQuery3.FieldByName('Field').AsString;
-      n.Subitems.Add( ZQuery3.FieldByName('Type').AsString );
-      if lowercase( ZQuery3.FieldByName('Null').AsString ) = 'yes' then
+      n.Caption := ds.FieldByName('Field').AsString;
+      n.Subitems.Add( ds.FieldByName('Type').AsString );
+      if lowercase( ds.FieldByName('Null').AsString ) = 'yes' then
         n.Subitems.Add('Yes')
         else n.Subitems.Add('No');
-      n.Subitems.Add( ZQuery3.FieldByName('Default').AsString );
-      n.Subitems.Add( ZQuery3.FieldByName('Extra').AsString );
-      ZQuery3.Next;
+      n.Subitems.Add( ds.FieldByName('Default').AsString );
+      n.Subitems.Add( ds.FieldByName('Extra').AsString );
+      ds.Next;
     end;
 
     // add fields to dbtree for drag'n dropping purpose
     if not DBTree.Selected.HasChildren then
     begin
-      ZQuery3.First;
-      for i:=1 to ZQuery3.RecordCount do begin
-        tn := DBtree.Items.AddChild(Dbtree.Selected, ZQuery3.FieldByName('Field').AsString );
-        if ZQuery3.FieldByName('Key').AsString = 'PRI' then
+      ds.First;
+      for i:=1 to ds.RecordCount do begin
+        tn := DBtree.Items.AddChild(Dbtree.Selected, ds.FieldByName('Field').AsString );
+        if ds.FieldByName('Key').AsString = 'PRI' then
           tn.ImageIndex := 26
         else
           tn.ImageIndex := 62;
         tn.SelectedIndex := tn.ImageIndex;
-        ZQuery3.Next;
+        ds.Next;
       end;
     end;
 
     Screen.Cursor := crHourglass;
-    GetResults( 'SHOW KEYS FROM ' + mask(ActualTable), ZQuery3 );
-    for i:=1 to ZQuery3.RecordCount do
+    ds := GetResults( 'SHOW KEYS FROM ' + mask(ActualTable) );
+    for i:=1 to ds.RecordCount do
     begin
       // primary key
-      if ZQuery3.FieldByName('Key_name').AsString = 'PRIMARY' then
+      if ds.FieldByName('Key_name').AsString = 'PRIMARY' then
       begin
         for j:=0 to ListColumns.Items.Count-1 do
         begin
-          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
             ListColumns.Items[j].ImageIndex := 26;
             break;
@@ -2069,12 +2070,12 @@ begin
       end;
 
       // index
-      if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY')
-        and (ZQuery3.FieldByName('Non_unique').AsString = '1') then
+      if (ds.FieldByName('Key_name').AsString <> 'PRIMARY')
+        and (ds.FieldByName('Non_unique').AsString = '1') then
       begin
         for j:=0 to ListColumns.Items.Count-1 do
         begin
-          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
             if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
               ListColumns.Items[j].ImageIndex := 63;
@@ -2084,11 +2085,11 @@ begin
       end;
 
       // unique
-      if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and (ZQuery3.FieldByName('Non_unique').AsString = '0') then
+      if (ds.FieldByName('Key_name').AsString <> 'PRIMARY') and (ds.FieldByName('Non_unique').AsString = '0') then
       begin
         for j:=0 to ListColumns.Items.Count-1 do
         begin
-          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
             if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
               ListColumns.Items[j].ImageIndex := 64;
@@ -2099,14 +2100,14 @@ begin
 
       // column is part of a fulltext key, available since 3.23.xx
       if mysql_version < 40002 then
-        isFulltext := (ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
+        isFulltext := (ds.FieldByName('Comment').AsString = 'FULLTEXT')
       else
-        isFulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT');
-      if (ZQuery3.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
+        isFulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT');
+      if (ds.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
       begin
         for j:=0 to ListColumns.Items.Count-1 do
         begin
-          if ZQuery3.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
             if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
               ListColumns.Items[j].ImageIndex := 65;
@@ -2114,7 +2115,7 @@ begin
           end;
         end;
       end;
-      ZQuery3.Next;
+      ds.Next;
     end;
 
   finally
@@ -2136,24 +2137,10 @@ end;
   The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
-  @note This freezes the user interface.
-  @note Use only as a hack when you need to actively avoid processing of further window messages.
 }
 function TMDIChild.ExecuteQuery(query: String): TDataSet;
-var
-  ds: TZReadOnlyQuery;
 begin
-  ds := TZReadOnlyQuery.Create(nil);
-  ds.Connection := MysqlConn.Connection;
-  try
-    GetResults(query, ds, false, false);
-    result := ds;
-  except
-    on e: Exception do begin
-      LogSQL(e.Message, true);
-      raise;
-    end;
-  end;
+  result := GetResults(query, false, false);
 end;
 
 
@@ -2162,36 +2149,10 @@ end;
   The currently active connection is used
 
   @param String The single SQL-query to be executed on the server
-  @note This freezes the user interface.
-  @note Use only as a hack when you need to actively avoid processing of further window messages.
 }
 procedure TMDIChild.ExecuteNonQuery(SQLQuery: String);
 begin
-  FQueryRunning := true;
-  try
-    try
-      CheckConnection;
-    except
-      exit;
-    end;
-
-    with TZReadOnlyQuery.Create(Self) do
-    begin
-      Connection := FMysqlConn.Connection;
-      SQL.Text := SQLQuery;
-      try
-        ExecSQL;
-      except
-        on e: Exception do begin
-          LogSQL(e.Message, true);
-          raise;
-        end;
-      end;
-      Free;
-    end;
-  finally
-    FQueryRunning := false;
-  end;
+  ExecUpdateQuery(SQLQuery);
 end;
 
 
@@ -2479,6 +2440,7 @@ var
   i : Integer;
   n : TListItem;
   questions : Int64;
+  ds : TDataSet;
 begin
   // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
@@ -2487,34 +2449,34 @@ begin
   ListVariables.Items.BeginUpdate;
   ListVariables.Items.Clear;
 
-  GetResults( 'SHOW VARIABLES', ZQuery3 );
-  for i:=1 to ZQuery3.RecordCount do
+  ds := GetResults( 'SHOW VARIABLES' );
+  for i:=1 to ds.RecordCount do
   begin
     n := ListVariables.Items.Add;
     n.ImageIndex := 87;
-    n.Caption := ZQuery3.Fields[0].AsString;
-    n.Subitems.Add( ZQuery3.Fields[1].AsString );
-    ZQuery3.Next;
+    n.Caption := ds.Fields[0].AsString;
+    n.Subitems.Add( ds.Fields[1].AsString );
+    ds.Next;
   end;
 
   // STATUS
   uptime := 1; // avoids division by zero :)
   questions := 1;
-  GetResults( 'SHOW /*!50002 GLOBAL */ STATUS', ZQuery3 );
-  for i:=1 to ZQuery3.RecordCount do
+  ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
+  for i:=1 to ds.RecordCount do
   begin
-    if LowerCase( Copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
+    if LowerCase( Copy( ds.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
     begin
       n := ListVariables.Items.Add;
       n.ImageIndex := 87;
-      n.Caption := ZQuery3.Fields[0].AsString;
-      n.Subitems.Add( ZQuery3.Fields[1].AsString );
-      if lowercase( ZQuery3.Fields[0].AsString ) = 'uptime' then
-        uptime := MakeInt(ZQuery3.Fields[1].AsString);
-      if lowercase( ZQuery3.Fields[0].AsString ) = 'questions' then
-        questions := MakeInt(ZQuery3.Fields[1].AsString);
+      n.Caption := ds.Fields[0].AsString;
+      n.Subitems.Add( ds.Fields[1].AsString );
+      if lowercase( ds.Fields[0].AsString ) = 'uptime' then
+        uptime := MakeInt(ds.Fields[1].AsString);
+      if lowercase( ds.Fields[0].AsString ) = 'questions' then
+        questions := MakeInt(ds.Fields[1].AsString);
     end;
-    ZQuery3.Next;
+    ds.Next;
   end;
   // Remove existing column-sort-images
   // (TODO: auomatically invoke this method in TSortListView itself)
@@ -2524,14 +2486,14 @@ begin
   ListCommandStats.Items.BeginUpdate;
   ListCommandStats.Items.Clear;
   addLVitem( '    All commands', questions, questions );
-  ZQuery3.First;
-  for i:=1 to ZQuery3.RecordCount do
+  ds.First;
+  for i:=1 to ds.RecordCount do
   begin
-    if LowerCase( Copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) = 'com_' then
+    if LowerCase( Copy( ds.Fields[0].AsString, 1, 4 ) ) = 'com_' then
     begin
-      addLVitem( ZQuery3.Fields[0].AsString, MakeInt(ZQuery3.Fields[1].AsString), questions );
+      addLVitem( ds.Fields[0].AsString, MakeInt(ds.Fields[1].AsString), questions );
     end;
-    ZQuery3.Next;
+    ds.Next;
   end;
   ListCommandStats.Items.EndUpdate;
   // Sort 2nd column descending
@@ -2554,6 +2516,7 @@ procedure TMDIChild.ShowProcessList(sender: TObject);
 var
   i,j : Integer;
   n   : TListItem;
+  ds  : TDataSet;
 begin
   // No need to update if it's not visible.
   if PageControlMain.ActivePage <> tabHost then exit;
@@ -2563,20 +2526,20 @@ begin
     ListProcesses.Items.BeginUpdate;
     ListProcesses.Items.Clear;
     debug('ShowProcessList()');
-    GetResults('SHOW FULL PROCESSLIST', ZQuery3, true, false);
-    for i:=1 to ZQuery3.RecordCount do
+    ds := GetResults('SHOW FULL PROCESSLIST', true, false);
+    for i:=1 to ds.RecordCount do
     begin
       n := ListProcesses.Items.Add;
-      n.Caption := ZQuery3.Fields[0].AsString;
-      if CompareText( ZQuery3.Fields[4].AsString, 'Killed') = 0 then
+      n.Caption := ds.Fields[0].AsString;
+      if CompareText( ds.Fields[4].AsString, 'Killed') = 0 then
         n.ImageIndex := 83  // killed
       else
         n.ImageIndex := 82; // running
       for j := 1 to 7 do
-        n.Subitems.Add(ZQuery3.Fields[j].AsString);
-      ZQuery3.Next;
+        n.Subitems.Add(ds.Fields[j].AsString);
+      ds.Next;
     end;
-    ZQuery3.Close;
+    ds.Close;
     ListProcesses.Items.EndUpdate;
     // Remove existing column-sort-images
     // (TODO: auomatically invoke this method in TSortListView itself)
@@ -2638,6 +2601,7 @@ var
   SQLscriptend            : Integer;
   SQLTime                 : Double;
   fieldcount, recordcount : Integer;
+  ds                      : TDataSet;
 begin
   if CurrentLine then begin
     // Run current line
@@ -2666,7 +2630,7 @@ begin
   SQLscriptstart := GetTickCount;
   LabelResultinfo.Caption := '';
 
-  FQueryRunning := true;
+  ds := nil;
   try
     try
       CheckConnection;
@@ -2679,8 +2643,6 @@ begin
 
     if ActualDatabase <> '' then
       FMysqlConn.Connection.Database := ActualDatabase;
-    ZQuery1.Active := false;
-    ZQuery1.DisableControls;
 
     rowsaffected := 0;
     fieldcount := 0;
@@ -2698,18 +2660,17 @@ begin
         continue;
       // open last query with data-aware:
       LabelResultinfo.Caption := '';
-      ZQuery1.Close;
-      ZQuery1.SQL.Clear;
-      ZQuery1.SQL.Add(SQL[i]);
       // ok, let's rock
       SQLstart := GetTickCount;
       try
         if ExpectResultSet( SQL[i] ) then begin
-          ZQuery1.Open;
-          fieldcount := ZQuery1.Fieldcount;
-          recordcount := ZQuery1.Recordcount;
+          ds := GetResults(SQL[i]);
+          gridQuery.DataSource.DataSet := ds;
+          fieldcount := ds.Fieldcount;
+          recordcount := ds.Recordcount;
+          rowsaffected := rowsaffected + TZQuery(ds).RowsAffected;
         end else begin
-          ZQuery1.ExecSql;
+          rowsaffected := rowsaffected + ExecUpdateQuery(SQL[i]);
           fieldcount := 0;
           recordcount := 0;
         end;
@@ -2729,7 +2690,6 @@ begin
         end;
       end;
 
-      rowsaffected := rowsaffected + ZQuery1.RowsAffected;
       SQLend := GetTickCount;
       SQLTime := (SQLend - SQLstart) / 1000;
 
@@ -2756,17 +2716,16 @@ begin
     end;
 
   finally
-    FQueryRunning := false;
     // Avoid excessive GridHighlightChanged() when flicking controls.
     viewingdata := true;
 
-    if not ZQuery1.IsEmpty then
+    if ds <> nil then
     begin
       // Re-link to datasource
-      DataSource2.DataSet := ZQuery1;
+      DataSource2.DataSet := ds;
       // Flick controls so that column resizing will work (?)
-      ZQuery1.EnableControls;
-      ZQuery1.DisableControls;
+      TZQuery(ds).EnableControls;
+      TZQuery(ds).DisableControls;
       // resize all columns, if they are more wide than Mainform.DefaultColWidth
       if Mainform.DefaultColWidth <> 0 then
         for i:=0 to gridQuery.Columns.count-1 do
@@ -2781,13 +2740,11 @@ begin
     // Ensure controls are in a valid state
     ValidateControls;
     viewingdata := false;
-    ZQuery1.EnableControls;
+    TZQuery(ds).EnableControls;
     Screen.Cursor := crdefault;
-	  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+    MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   end;
 end;
-
-
 
 
 procedure TMDIChild.ListColumnsSelectItem(Sender: TObject; Item: TListItem;
@@ -2810,7 +2767,6 @@ begin
     MenuEditField.Enabled := false;
     btnTableEditField.enabled := false;
   end;
-
 end;
 
 
@@ -2878,6 +2834,7 @@ var
   var
     dbname : String;
     i : Integer;
+    ds : TDataSet;
   begin
     dbname := ActualDatabase;
     if Pos( '.', tablename ) > -1 then
@@ -2888,14 +2845,14 @@ var
     tablename := mask( tablename );
     if dbname <> '' then
       tablename := mask( dbname ) + '.' + tablename;
-    getResults( 'SHOW COLUMNS FROM '+tablename, ZQuery3, true, false );
-    if not ZQuery3.Active then
+    ds := getResults( 'SHOW COLUMNS FROM '+tablename, true, false );
+    if not ds.Active then
       exit;
-    for i:=0 to ZQuery3.RecordCount-1 do
+    for i:=0 to ds.RecordCount-1 do
     begin
-      SynCompletionProposal1.InsertList.Add( ZQuery3.FieldByName( 'Field' ).AsString );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ZQuery3.FieldByName( 'Field' ).AsString + '\style{-B} ' + ZQuery3.FieldByName( 'Type' ).AsString );
-      ZQuery3.Next;
+      SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsString );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ds.FieldByName( 'Field' ).AsString + '\style{-B} ' + ds.FieldByName( 'Type' ).AsString );
+      ds.Next;
     end;
   end;
 
@@ -3108,7 +3065,8 @@ begin
     MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
   end;
 
-  ZQuery3.DisableControls;
+  //TODO:
+  //ds.DisableControls;
   FormResize( self );
 end;
 
@@ -4683,10 +4641,10 @@ begin
 end;
 
 
-procedure TMDIChild.ExecUseQuery (ADatabase : String; DisplayErrors: Boolean = True);
+procedure TMDIChild.ExecUseQuery(db: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true);
 begin
-  FConn.MysqlParams.Database := ADatabase;
-  ExecUpdateQuery('USE ' + mask(ADatabase), DisplayErrors);
+  FConn.MysqlParams.Database := db;
+  ExecUpdateQuery('USE ' + mask(db), HandleErrors, DisplayErrors);
 end;
 
 
@@ -4696,22 +4654,23 @@ end;
 
   @param String The single SQL-query to be executed on the server
 }
-procedure TMDIChild.ExecUpdateQuery(ASQLQuery: String; DisplayErrors: Boolean = True );
+function TMDIChild.ExecUpdateQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): Int64;
 var
   MysqlQuery : TMysqlQuery;
 begin
   // Start query execution
-  MysqlQuery := RunThreadedQuery(ASQLQuery);
+  MysqlQuery := RunThreadedQuery(sql);
+  result := TZQuery(MysqlQuery.MysqlDataset).RowsAffected;
   try
     // Inspect query result code and log / notify user on failure
     if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
+      LogSQL( MysqlQuery.Comment, True );
       if DisplayErrors then
         MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
-      LogSQL( MysqlQuery.Comment, True );
       // Recreate exception, since we free it below the caller
       // won't know what happened otherwise.
-      raise THandledSQLError.Create(MysqlQuery.Comment);
+      if not HandleErrors then raise THandledSQLError.Create(MysqlQuery.Comment);
     end;
   finally
     // Cleanup the MysqlQuery object, we won't need it anymore
@@ -4728,68 +4687,59 @@ end;
   @param String The single SQL-query to be executed on the server
   @return TMysqlQuery Containing the dataset and info data availability
 }
-function TMDIChild.ExecSelectQuery(AQuery: String): TMysqlQuery;
+function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): TDataSet;
 var
   exMsg: String;
+  res: TMysqlQuery;
 begin
   // Start query execution
-  Result := RunThreadedQuery(AQuery);
+  res := RunThreadedQuery(sql);
 
   // Inspect query result code and log / notify user on failure
-  if Result.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+  if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
   begin
-    exMsg := Result.Comment;
-    MessageDlg( exMsg, mtError, [mbOK], 0 );
+    exMsg := res.Comment;
     LogSQL( exMsg, True );
-    FreeAndNil(Result);
-    raise THandledSQLError.Create(exMsg);
+    if DisplayErrors then MessageDlg( exMsg, mtError, [mbOK], 0 );
+    FreeAndNil(res);
+    if not HandleErrors then raise THandledSQLError.Create(exMsg);
   end;
+  result := res.MysqlDataset;
 end;
 
 
 {***
   Executes a query with an existing ZQuery-object
-
-  @note This freezes the user interface
-  @note Why isn't this done via MysqlQueryThread to avoid above ?
 }
-procedure TMDIChild.GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; HandleErrors: Boolean = true; DisplayErrors: Boolean = true );
+function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ): TDataSet;
 begin
-  FQueryRunning := true;
-  try
-    try
-      CheckConnection;
-      ZQuery.SQL.Text := SQLQuery;
-      ZQuery.Open;
-      ZQuery.DisableControls;
-      ZQuery.First;
-    except
-      on E: Exception do
-      begin
-        LogSQL( E.Message );
-        if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
-        if not HandleErrors then raise;
-      end;
-    end;
-  finally
-    FQueryRunning := false;
-  end;
+  result := ExecSelectQuery(SQLQuery, HandleErrors, DisplayErrors);
 end;
 
 
 {***
   Execute a query and return String from column x
-
-  @note This freezes the user interface as far as GetResults does so.
 }
 function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true) : String;
+var
+  ds: TDataSet;
 begin
-  GetResults( SQLQuery, ZQuery3, HandleErrors, DisplayErrors );
-  if not ZQuery3.Active then exit;
-  Result := ZQuery3.Fields[x].AsString;
-  ZQuery3.Close;
+  ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
+  if not ds.Active then exit;
+  Result := ds.Fields[x].AsString;
+  ds.Close;
 end;
 
+
+function TMDIChild.GetNamedVar( SQLQuery: String; x: String; HandleErrors: Boolean = true; DisplayErrors: Boolean = true) : String;
+var
+  ds: TDataSet;
+begin
+  ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
+  if not ds.Active then exit;
+  Result := ds.Fields.FieldByName(x).AsString;
+  ds.Close;
+end;
 
 {***
   This returns the dataset object that is currently visible to the user,
@@ -4801,8 +4751,8 @@ function TMDIChild.GetVisualDataset: TDataSet;
 begin
 
   case PageControlMain.ActivePageIndex of
-    3: Result := FCurDataset;
-    4: Result := ZQuery1;
+    3: Result := gridData.DataSource.DataSet;
+    4: Result := gridQuery.DataSource.DataSet;
   else
     Result := nil;
   end;
@@ -4815,21 +4765,21 @@ end;
   @param  String SQL query String
   @param  Integer 0-based column index in the resultset to return
   @return TStringList
-  @note This freezes the user interface as far as GetResults does so.
 }
 function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
 var
   i: Integer;
+  ds: TDataSet;
 begin
-  GetResults( SQLQuery, ZQuery3, HandleErrors, DisplayErrors);
+  ds := GetResults( SQLQuery, HandleErrors, DisplayErrors);
   Result := TStringList.create();
-  if not ZQuery3.Active then exit;
-  for i := 0 to ZQuery3.RecordCount - 1 do
+  if not ds.Active then exit;
+  for i := 0 to ds.RecordCount - 1 do
   begin
-    Result.Add( ZQuery3.Fields[x].AsString );
-    ZQuery3.Next;
+    Result.Add( ds.Fields[x].AsString );
+    ds.Next;
   end;
-  ZQuery3.Close;
+  ds.Close;
 end;
 
 
@@ -4913,6 +4863,11 @@ end;
 procedure TMDIChild.Splitter2Moved(Sender: TObject);
 begin
   ResizeImageToFit;
+end;
+
+procedure TMDIChild.DataSourceUpdateData(Sender: TObject);
+begin
+  debug('TODO: Non-threaded database call to TDataSet.Post().');
 end;
 
 {***
@@ -5208,6 +5163,7 @@ end;
 function TMDIChild.GetCalculatedLimit( Table: String ): Int64;
 var
   AvgRowSize, RecordCount : Int64;
+  ds: TDataSet;
 const
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function
@@ -5222,10 +5178,10 @@ const
 begin
   result := -1;
   try
-    GetResults('SHOW TABLE STATUS LIKE ' + esc(Table), ZQuery3);
-    if not ZQuery3.Active then exit;
-    AvgRowSize := MakeInt( ZQuery3.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
-    RecordCount := MakeInt( ZQuery3.FieldByName( 'Rows' ).AsString );
+    ds := GetResults('SHOW TABLE STATUS LIKE ' + esc(Table));
+    if not ds.Active then exit;
+    AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
+    RecordCount := MakeInt( ds.FieldByName( 'Rows' ).AsString );
     if AvgRowSize * RecordCount > LOAD_SIZE then
     begin
       result := Trunc( LOAD_SIZE / AvgRowSize );

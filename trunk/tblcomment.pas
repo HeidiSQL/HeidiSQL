@@ -66,8 +66,10 @@ end;
 
 procedure Ttablecomment.ComboBoxTableNameChange(Sender: TObject);
 begin
-  Mainform.Childwin.GetResults( 'SHOW TABLE STATUS LIKE ''' + ComboBoxTableName.Text + '''', Mainform.Childwin.ZQuery3 );
-  EditComment.Text := Mainform.Childwin.ZQuery3.FieldByName( 'Comment' ).AsString;
+  EditComment.Text := Mainform.Childwin.GetNamedVar(
+    'SHOW TABLE STATUS LIKE ''' + ComboBoxTableName.Text + '''',
+    'Comment'
+  );
 end;
 
 end.
