@@ -383,7 +383,7 @@ begin
     end;
     RES_EXCEPTION: begin
       s := GetExceptionTextFromMsg(msg);
-      NotifyInterrupted(req, Exception.Create('Error from remote: ' + s));
+      NotifyFailed(req, Exception.Create('Error from remote: ' + s));
     end;
     RES_NONQUERY: begin
       // Uses a blank object to indicate completed queries with no result data..

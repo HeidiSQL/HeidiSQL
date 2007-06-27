@@ -21,12 +21,14 @@ type
       ex: Exception;
       handler: TCompletionHandler;
       ctl: TObject;
+      int: boolean;
     public
       property GetRequestId: Cardinal read req;
-      property GetResult: TObject read res write res;
-      property GetException: Exception read ex write ex;
+      property GetResult: TObject read res;
+      property GetException: Exception read ex;
       property GetHandler: TCompletionHandler read handler;
       property GetWaitControl: TObject read ctl;
+      property GetWasInterrupted: boolean read int;
       constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
   end;
 
@@ -34,6 +36,7 @@ procedure InitializeThreading(myWindow: THandle);
 function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
+procedure NotifyFailed(RequestId: Cardinal; AnException: Exception);
 function ExtractResults(RequestId: Cardinal; PeekOnly: Boolean = false): TNotifyStructure;
 function ExtractResultObject(RequestId: Cardinal): TObject;
 
@@ -61,6 +64,7 @@ begin
   self.ctl := WaitControl;
   self.res := nil;
   self.ex := nil;
+  self.int := false;
 end;
 
 function IndexOf(list: TList; RequestId: Cardinal): integer;
@@ -104,7 +108,7 @@ begin
   end;
 end;
 
-procedure InternalNotify(RequestId: Cardinal; Results: TObject; AnException: Exception);
+procedure InternalNotify(RequestId: Cardinal; Results: TObject; AnException: Exception; Interrupted: boolean = false);
 var
   lockedList: TList;
   idx: integer;
@@ -116,18 +120,28 @@ begin
     idx := IndexOf(lockedList, RequestId);
     // Abort if we can't find notify structure.
     if idx = -1 then begin
-      debug(Format('thr: Received completion notice for %d, but handler does not exist.  Perhaps already completed.', [RequestId]));
+      if not Interrupted then begin
+        debug(Format('thr: Received completion notice for %d, but handler does not exist.  Perhaps already completed.', [RequestId]));
+      end;
       exit;
     end;
     item := TNotifyStructure(lockedList[idx]);
     // Abort if result or exception has already been set.
     if (item.res <> nil) or (item.ex <> nil) then begin
-      debug(Format('thr: Received completion notice for %d, but handler already has result or exception.  Perhaps already completed, but handler hasn''t been activated yet.', [RequestId]));
+      if item.int then begin
+        // Destroy notify structure if receiving results from previously interrupted operation.
+        lockedList.Delete(idx);
+      end else begin
+        if not Interrupted then begin
+          debug(Format('thr: Received completion notice for %d, but handler already has result or exception.  Perhaps already completed, but handler hasn''t been activated yet.', [RequestId]));
+        end;
+      end;
       exit;
     end;
     // Set result.
     item.res := Results;
     item.ex := AnException;
+    item.int := Interrupted;
     // Stop timer.
     // todo: stop timeout timer.
   finally
@@ -138,12 +152,17 @@ begin
   PostMessage(msgHandler, WM_COMPLETED, msgHandler, item.GetRequestId);
 end;
 
-procedure NotifyComplete(RequestId: Cardinal; Results: TObject); overload;
+procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 begin
   InternalNotify(RequestId, Results, nil);
 end;
 
-procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception); overload;
+procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
+begin
+  InternalNotify(RequestId, nil, AnException, true);
+end;
+
+procedure NotifyFailed(RequestId: Cardinal; AnException: Exception);
 begin
   InternalNotify(RequestId, nil, AnException);
 end;
@@ -166,7 +185,7 @@ begin
     end;
     // Remove notify structure from list and return it to caller.
     result := TNotifyStructure(lockedList[idx]);
-    if not PeekOnly then lockedList.Delete(idx);
+    if (not PeekOnly) and (not result.int) then lockedList.Delete(idx);
   finally
     working.UnlockList;
   end;
