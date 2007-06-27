@@ -64,6 +64,7 @@
 		<li><a href="#furtherdevelopment">Further development</a></li>
 		<li><a href="#troubleshooting">Troubleshooting</a></li>
 		<li><a href="#notes">Notes</a></li>
+		<li><a href="#releasing">Releasing (for core developers)</a></li>
 	</ol>
 
 	<hr />
@@ -275,13 +276,13 @@
 	</p>
 
 	<h3>Component installation seemed to work, but components are still missing</h3>
-		<p>
-			Nuke all files in your package output directory, eg.
-			"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".
-		</p>
-		<p>
-			Then repeat the <a href='#troubleshooting_1'>above step</a>.
-		</p>
+	<p>
+		Nuke all files in your package output directory, eg.
+		"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".
+	</p>
+	<p>
+		Then repeat the <a href='#troubleshooting_1'>above step</a>.
+	</p>
 
 	<h3 id="cleaning">How can I completely clean my build environment?</h3>
 	<p>
@@ -446,6 +447,61 @@
 		</li>
 	</ul>
 
+
+	<hr />
+
+
+	<h2 id="releasing">Releasing a new version (for core developers)</h2>
+
+	<p>
+		In order to keep version numbers in the repository and the released executables in sync,
+		it is important to perform releases using an established method.
+	</p>
+	<p>
+		Note: All steps are important!
+	</p>
+	<p>
+		Note: Order is important!
+	</p>
+	<ol>
+		<li>
+			<strong>Make sure your working copy contains both "trunk" and "tags" from repository.</strong><br />
+			If you need to check out "tags", you may put a tick in 'checkout top folder only' to spare bandwidth.<br />
+			<br />
+		</li>
+		<li>
+			<strong>Run 'svn update -rHEAD' on the trunk folder.</strong><br />
+    		This step ensures that all files copied in the next step are at the same source revision.<br />
+		   Using the TortoiseSVN 'svn update' command is fine too.<br />
+			<br />
+		</li>
+		<li>
+			<strong>Run 'svn copy trunk tags/4.0rc1'.</strong><br />
+			This step creates an exact duplicate of the current HEAD revision of trunk.<br />
+			<br />
+		</li>
+		<li>
+			<strong>Edit the release code variable "appversion" in tags/4.0rc1/main.pas.</strong><br />
+			This step modifies above duplicate so it is now different from trunk.<br />
+			<br />
+		</li>
+		<li>
+			<strong>Run 'svn commit tags' to commit "tags" and all subitems.</strong><br />
+			This step creates a repository revision containing the copy with the new appversion.<br />
+			This step also writes the new revision number of this change into $Revision$ in main.pas.<br />
+			<i>Point of no return!</i>  After this step, the version number is final.<br />
+			<br />
+		</li>
+		<li>
+			<strong>Build installer in the tags/4.0rc1 directory.</strong><br />
+			<br />
+		</li>
+		<li>
+			<strong>Upload!</strong><br />
+			<br />
+		</li>
+	</ol>
+
 	<hr />
 
 
@@ -455,7 +511,7 @@
 		Last author: <em>$Author$</em>
 	</p>
 
-	
+
 </body>
 
 </html>
