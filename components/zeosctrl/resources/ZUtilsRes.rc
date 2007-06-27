@@ -1,0 +1,18 @@
+/*********************************************************
+*                                                        *
+*                 Zeos Database Objects                  *
+*                  Common Resources                      *
+*                                                        *
+*       Copyright (c) 1999-2000 Sergey Seroukhov         *
+*                                                        *
+*********************************************************/
+
+14000 CURSOR  IMPURE DISCARDABLE "handshow.cur"
+
+14001 CURSOR  IMPURE DISCARDABLE "handgrab.cur"
+
+14002 CURSOR  IMPURE DISCARDABLE "handflat.cur"
+
+14003  CURSOR  DISCARDABLE     "handcur.cur"
+
+14004  CURSOR  DISCARDABLE     "dragcur.cur"

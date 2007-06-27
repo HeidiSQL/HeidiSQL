@@ -2,6 +2,7 @@ unit tblcomment;
 
 
 // -------------------------------------
+// HeidiSQL
 // Edit table-comment
 // -------------------------------------
 
@@ -46,9 +47,12 @@ end;
 
 procedure Ttablecomment.ButtonOKClick(Sender: TObject);
 begin
-  screen.Cursor := crHourGlass;
-  Mainform.Childwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ComboBoxTableName.Text) + ' COMMENT = ' + esc(EditComment.Text));
-  Mainform.Childwin.ShowDBProperties(self);
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
+    screen.Cursor := crHourGlass;
+    ExecQuery('ALTER TABLE ' + ComboBoxTableName.Text + ' COMMENT = ''' + escape_string(EditComment.Text) + '''');
+    ShowDBProperties(self);
+  end;
   close;
 end;
 
@@ -58,16 +62,18 @@ begin
   // read tables
 //  messagedlg('sdf',mtwarning, [], 0);
   ComboBoxTableName.Items.Clear;
-  for i:=0 to Mainform.Childwin.ListTables.Items.Count-1 do
-    ComboBoxTableName.Items.Add( Mainform.Childwin.ListTables.Items[i].Caption );
-  ComboBoxTableName.ItemIndex := Mainform.Childwin.ListTables.Selected.Index;
-  ComboBoxTableNameChange( self );
+  with TMDIChild(Application.Mainform.ActiveMDIChild).Tabellenliste do
+  begin
+    for i:=0 to Items.Count-1 do
+      self.ComboBoxTableName.Items.Add(Items[i].Caption);
+    self.ComboBoxTableName.ItemIndex := Selected.Index;
+    self.EditComment.Text := Selected.SubItems[4];
+  end;
 end;
 
 procedure Ttablecomment.ComboBoxTableNameChange(Sender: TObject);
 begin
-  Mainform.Childwin.GetResults( 'SHOW TABLE STATUS LIKE ''' + ComboBoxTableName.Text + '''', Mainform.Childwin.ZQuery3 );
-  EditComment.Text := Mainform.Childwin.ZQuery3.FieldByName( 'Comment' ).AsString;
+ EditComment.Text := TMDIChild(Mainform.ActiveMDIChild).Tabellenliste.Items[ComboBoxTableName.ItemIndex].SubItems[5];
 end;
 
 end.

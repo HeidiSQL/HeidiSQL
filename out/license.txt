@@ -1,13 +1,15 @@
-Copyright (C)2000 -  2007 - Ansgar Becker
+Copyright (C)2000 -  2006 - Ansgar Becker
 
 HeidiSQL is free. You don't have to pay for it, and you can use it any
 way you want. It is developed as an Open Source project under the GNU
 General Public License (GPL). That means you have full access to the source
 code of this program. You can find it at Sourceforge here:
-http://sourceforge.net/projects/heidisql
+http://www.sourceforge.net/projects/heidisql
 
-The General Public License (GPL) is shipped with the installer-package and
-should be located in the same folder as this file (gpl.txt).
+Should you wish to modify or redistribute this program, or any part of it,
+you should read the full terms and conditions set out in the license
+agreement before doing so. A copy of the license is available on our
+website.
 
 If you simply wish to install and use this software, you need only be aware
 of the disclaimer conditions in the license, which are set out below.

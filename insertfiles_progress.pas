@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Db, ZDataset;
+  StdCtrls, ComCtrls, ExtCtrls, Db;
 
 type
   TfrmInsertFilesProgress = class(TForm)
@@ -13,27 +13,29 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Button1: TButton;
-    lblNumber: TLabel;
-    lblFilename: TLabel;
-    lblOperation: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
     Timer1: TTimer;
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure ProcessFiles(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
-    FInsertFilesForm : Pointer;
+    { Private declarations }
     canceled : Boolean;
   public
-    property InsertFilesForm : Pointer read FInsertFilesForm write FInsertFilesForm;
+    { Public declarations }
   end;
+
+var
+  frmInsertFilesProgress: TfrmInsertFilesProgress;
 
 
 implementation
 
-uses main, childwin, helpers,insertfiles;
+uses insertfiles, main, childwin, helpers;
 
-{$I const.inc}
+
 {$R *.DFM}
 
 procedure TfrmInsertFilesProgress.Button1Click(Sender: TObject);
@@ -44,115 +46,103 @@ end;
 
 procedure TfrmInsertFilesProgress.ProcessFiles(Sender: TObject);
 
-  procedure die(msg : String);
-  begin
-    Screen.Cursor := crDefault;
-    raise exception.Create(msg);
-  end;
+procedure die(msg : String);
+begin
+  Screen.Cursor := crDefault;
+  raise exception.Create(msg);
+end;
 
 var
   i,j: Integer;
+  Size: DWORD;
   value, filename : String;
   y,m,d,h,mi,s,ms : Word;
   FileStream : TFileStream;
-  zq : TZReadOnlyQuery;
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
-  ProgressBar1.Max := TfrmInsertFiles(FInsertFilesForm).ListViewFiles.Items.Count;
-  zq := Mainform.ChildWin.ZQuery3;
+  ProgressBar1.Max := frmInsertFiles.ListViewFiles.Items.Count;
 
   TRY
 
-  with TfrmInsertFiles(FInsertFilesForm) do
-    begin
+  with frmInsertFiles do begin
     for i:=0 to ListViewFiles.Items.Count-1 do
     begin
       if self.canceled then break;
-      lblNumber.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
-      lblNumber.Repaint;
+      self.Label4.Caption := inttostr(i+1)+' of ' + inttostr(ListViewFiles.Items.Count);
       filename := ListViewFiles.Items[i].Caption;
-      lblFilename.Caption := mince(filename, 30) + ' ('+FormatNumber(ListViewFiles.Items[i].SubItems[0])+' KB)';
-      lblFilename.Repaint;
-      zq.ParamCheck := true;
-      zq.SQL.Clear;
-      zq.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
-        ' (' + mainform.mask(ComboBoxColumns.Text) );
-      lblOperation.caption := 'Inserting data ...';
-      lblOperation.Repaint;
-      for j:=0 to length(cols)-1 do
+      self.Label5.Caption := mince(filename, 30) + ' ('+ListViewFiles.Items[i].SubItems[0]+' KB)';
+      Application.ProcessMessages;
+      with TMDIChild(Mainform.ActiveMDIChild) do
       begin
-        if cols[j].Name = ComboBoxColumns.Text then
-          continue;
-        zq.SQL.Add( ', ' + mainform.mask(cols[j].Name) );
-      end;
-      zq.SQL.Add( ') VALUES (:STREAM, ' );
-
-      for j:=0 to length(cols)-1 do
-      begin
-        if cols[j].Name = ComboBoxColumns.Text then
-          continue;
-        Value := cols[j].Value;
-        if pos('%', Value) > 0 then
+        ZQuery3.SQL.Clear;
+        ZQuery3.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
+          ' (' + mainform.mask(ComboBoxColumns.Text) );
+        self.Label6.caption := 'Inserting data ...';
+        Application.ProcessMessages;
+        for j:=0 to length(cols)-1 do
         begin
-          //Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
-          DecodeDate(FileDateToDateTime(FileAge(filename)), y, m, d);
-          DecodeTime(FileDateToDateTime(FileAge(filename)), h, mi, s, ms);
-          Value := stringreplace(Value, '%filedate%', Format('%.4d-%.2d-%.2d', [y,m,d]), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
+          if cols[j].Name = ComboBoxColumns.Text then
+            continue;
+          ZQuery3.SQL.Add( ', ' + mainform.mask(cols[j].Name) );
         end;
-        if cols[j].Quote then
-          Value := esc(Value);
-        zq.SQL.Add( Value + ', ' );
-      end;
-      // Strip last komma + space + CR + LF
-      zq.SQL.Text := copy( zq.SQL.Text, 1, length(zq.SQL.Text)-4 );
-      zq.SQL.Add( ')' );
-      try
-        lblOperation.caption := 'Reading file ...';
-        lblOperation.Repaint;
-        FileStream := TFileStream.Create( filename, fmShareDenyWrite );
+        ZQuery3.SQL.Add( ') VALUES (:STREAM,' );
+
+        for j:=0 to length(cols)-1 do
+        begin
+          if cols[j].Name = ComboBoxColumns.Text then
+            continue;
+          Value := cols[j].Value;
+          if pos('%', Value) > 0 then
+          begin
+            Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
+            Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
+            Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
+            DecodeDate(FileDateToDateTime(FileAge(filename)), y, m, d);
+            DecodeTime(FileDateToDateTime(FileAge(filename)), h, mi, s, ms);
+            Value := stringreplace(Value, '%filedate%', Format('%.4d-%.2d-%.2d', [y,m,d]), [rfReplaceAll]);
+            Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
+            Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
+          end;
+          if cols[j].Quote then
+            Value := '"' + escape_string(Value) + '"';
+          ZQuery3.SQL.Add( Value );
+        end;
+        ZQuery3.SQL.Add( ')' );
         try
-          zq.Params.Clear;
-          zq.Params.CreateParam( ftBlob, 'STREAM', ptInput );
-          zq.ParamByName('STREAM').LoadfromStream( FileStream, ftBlob );
-        finally
+          self.Label6.caption := 'Reading file ...';
+          Application.ProcessMessages;
+          FileStream := TFileStream.Create( filename, fmShareDenyWrite );
+          ZQuery3.Params.Clear;
+          ZQuery3.Params.CreateParam( ftBlob, 'STREAM', ptInput );
+          ZQuery3.ParamByName('STREAM').LoadfromStream( FileStream, ftBlob );
+        except
           FileStream.Free;
+          MessageDlg( 'Error reading file:'#13#10+filename, mtError, [mbOK], 0 );
+          break;
         end;
-      except
-        MessageDlg( 'Error reading file:' + CRLF + filename, mtError, [mbOK], 0 );
-        break;
+        ZQuery3.ExecSQL;
+        self.Label6.caption := 'Freeing memory ...';
+        Application.ProcessMessages;
+        FileStream.Free;
       end;
-      zq.ExecSQL;
-      lblOperation.caption := 'Freeing memory ...';
-      lblOperation.Repaint;
       ProgressBar1.StepIt;
-      ProgressBar1.Repaint;
+      Application.ProcessMessages;
     end;
   end;
 
   FINALLY
-    zq.ParamCheck := false;
     screen.Cursor := crDefault;
-    Close();
+    close;
   END;
-end;
-
-procedure TfrmInsertFilesProgress.FormClose(Sender: TObject;
-  var Action: TCloseAction);
-begin
-  Action := caFree;
 end;
 
 procedure TfrmInsertFilesProgress.FormShow(Sender: TObject);
 begin
   ProgressBar1.Position := 0;
-  lblNumber.Caption := '';
-  lblFilename.Caption := '';
-  lblOperation.Caption := '';
+  Label4.Caption := '';
+  Label5.Caption := '';
+  Label6.Caption := '';
   Canceled := false;
   Timer1.Enabled := true;
 end;

@@ -2,6 +2,7 @@ unit createtable;
 
 
 // -------------------------------------
+// HeidiSQL
 // Create table
 // -------------------------------------
 
@@ -10,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, Buttons, ComCtrls, ImgList, ToolWin,
+  StdCtrls, ExtCtrls, Buttons, ComCtrls, SortListView, ImgList, ToolWin,
   Menus;
 
 type
@@ -29,14 +30,15 @@ type
     CheckBoxZerofill: TCheckBox;
     CheckBoxNotNull: TCheckBox;
     CheckBoxAutoincrement: TCheckBox;
-    lblFieldType: TLabel;
-    lblLengthSet: TLabel;
-    lblDefault: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
     EditTablename: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     EditDescription: TEdit;
     Label3: TLabel;
+    feldListe: TListBox;
     ButtonMoveUp: TBitBtn;
     ButtonMoveDown: TBitBtn;
     ButtonAdd: TButton;
@@ -49,8 +51,6 @@ type
     ComboBoxTableType: TComboBox;
     Label5: TLabel;
     Bevel2: TBevel;
-    ListboxColumns: TListBox;
-    procedure EditTablenameChange(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonCreateClick(Sender: TObject);
     procedure ButtonDeleteClick(Sender: TObject);
@@ -64,7 +64,7 @@ type
     procedure CheckBoxAutoincrementClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure EditFieldnameChange(Sender: TObject);
-    procedure ListboxColumnsClick(Sender: TObject);
+    procedure feldListeClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure refreshfields(Sender: TObject);
     procedure ButtonChangeClick(Sender: TObject);
@@ -85,123 +85,122 @@ type
     { Public declarations }
   end;
 
+type TMysqlField = record
+    Name : String[64];
+    Typ : Byte;
+    LengthSet : String;
+    Default : String;
+    Primary : Boolean;
+    Index : Boolean;
+    Unique : Boolean;
+    Binary : Boolean;
+    Unsigned : Boolean;
+    Zerofill : Boolean;
+    NotNull : Boolean;
+    AutoIncrement : Boolean;
+  end;
 var
   CreateTableForm: TCreateTableForm;
+  fields : array of TMysqlField;
 
-{$I const.inc}
 
 implementation
 
-uses
-  Main, Childwin, helpers, mysql;
-
-var
-  fields : array of TMysqlField;
+uses Main, Childwin, helpers;
 
 {$R *.DFM}
 
 
 procedure TCreateTableForm.ButtonCancelClick(Sender: TObject);
 begin
-  ModalResult := mrCancel;
+  close;
 end;
 
 
 procedure TCreateTableForm.ButtonCreateClick(Sender: TObject);
 var
-  createQuery, primaryKey, uniqueKey, indexKey  : String;
-  i : Integer;
-  LengthSet : String;
-  FieldType : TMysqlDataTypeRecord;
+  ctquery, pkstr, unstr, instr : String;
+  i       : Integer;
 begin
-  // Prepare Query:
-  createQuery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
-
-  // Columns
-  for i := 0 to length(fields) - 1 do
+  with MainForm.ActiveMDIChild do
   begin
-    FieldType := MySqlDataTypeArray[fields[i].FieldType];
-    createQuery := createQuery + mainform.mask(fields[i].Name) + ' ' +
-      comboboxtype.items[fields[i].FieldType];                              // Typ
-    LengthSet := fields[i].LengthSet;
-    // Unset length if not allowed for fieldtype
-    if not FieldType.HasLength then
-      LengthSet := '';
-    // Length required
-    if FieldType.RequiresLength and (LengthSet = '') then
-    begin
-      if FieldType.DefLengthSet <> '' then
-        LengthSet := FieldType.DefLengthSet
-      else
-        LengthSet := '50';
-    end;
-    if LengthSet <> '' then
-      createQuery := createQuery  + ' (' + LengthSet + ')';                   // Length/Set
-    if FieldType.HasBinary and fields[i].Binary then
-      createQuery := createQuery  + ' BINARY';                                // Binary
-    if FieldType.HasUnsigned and fields[i].Unsigned then
-      createQuery := createQuery  + ' UNSIGNED';                              // Unsigned
-    if FieldType.HasZerofill and fields[i].Zerofill then
-      createQuery := createQuery  + ' ZEROFILL';                              // Zerofill
-    if fields[i].Default <> '' then
-      createQuery := createQuery  + ' DEFAULT ''' + fields[i].Default + '''';   // Default
-    if fields[i].NotNull then
-      createQuery := createQuery  + ' NOT NULL';                              // Not null
-    if fields[i].AutoIncrement then
-      createQuery := createQuery  + ' AUTO_INCREMENT';                         // AutoIncrement
+    // Query vorbereiten:
+    ctquery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
 
-    if i < length(fields)-1 then
-      createQuery := createQuery + ', '
+    // Fields
+    for i := 0 to length(fields) - 1 do
+    begin
+      ctquery := ctquery + mainform.mask(fields[i].Name) + ' ' +
+        comboboxtype.items[fields[i].Typ];                              // Typ
+      if fields[i].LengthSet <> '' then
+        ctquery := ctquery  + ' (' + fields[i].LengthSet + ')';         // Length/Set
+      if fields[i].Binary then
+        ctquery := ctquery  + ' BINARY';                                // Binary
+      if fields[i].Unsigned then
+        ctquery := ctquery  + ' UNSIGNED';                              // Unsigned
+      if fields[i].Zerofill then
+        ctquery := ctquery  + ' ZEROFILL';                              // Zerofill
+      if fields[i].Default <> '' then
+        ctquery := ctquery  + ' DEFAULT ''' + fields[i].Default + '''';   // Default
+      if fields[i].NotNull then
+        ctquery := ctquery  + ' NOT NULL';                              // Not null
+      if fields[i].AutoIncrement then
+        ctquery := ctquery  + ' AUTO_INCREMENT';                         // AutoIncrement
+
+      if i < length(fields)-1 then
+        ctquery := ctquery + ', '
+    end;
+
+    // Indexes:
+    pkstr := '';
+    unstr := '';
+    instr := '';
+    for i := 0 to length(fields) - 1 do
+    begin
+      if fields[i].Primary then
+      begin
+        if pkstr <> '' then pkstr := pkstr + ',';
+        pkstr := pkstr + mainform.mask(fields[i].Name);
+      end;
+      if fields[i].Unique then
+      begin
+        if unstr <> '' then unstr := unstr + ',';
+        unstr := unstr + mainform.mask(fields[i].Name);
+      end;
+      if fields[i].Index then
+      begin
+        if instr <> '' then instr := instr + ',';
+        instr := instr + mainform.mask(fields[i].Name);
+      end;
+    end;
+    if pkstr <> '' then
+      ctquery := ctquery + ', PRIMARY KEY(' + pkstr + ')';
+    if unstr <> '' then
+      ctquery := ctquery + ', UNIQUE(' + unstr + ')';
+    if instr <> '' then
+      ctquery := ctquery + ', INDEX(' + instr + ')';
+
+    // Abschluss-Klammer:
+    ctquery := ctquery + ') ';
+
+    // Comment:
+    if EditDescription.Text <> '' then
+      ctquery := ctquery + ' COMMENT = "' + EditDescription.Text + '"';
+
+    if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> '<Automatic>') then
+      ctquery := ctquery + ' TYPE = ' + ComboBoxTableType.Text;
+
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do
+    begin
+      ExecQuery( 'USE ' + DBComboBox.Text );
+      ExecQuery( ctquery );
+      ShowDBProperties(self);
+      ActualTable := EditTablename.Text;
+//      DBTree.Selected := ti;
+//      ShowTableProperties(self);
+    end;
   end;
-
-  // Indexes:
-  primaryKey := '';
-  uniqueKey := '';
-  indexKey := '';
-  for i := 0 to length(fields) - 1 do
-  begin
-    if fields[i].Primary then
-    begin
-      if primaryKey <> '' then primaryKey := primaryKey + ',';
-      primaryKey := primaryKey + mainform.mask(fields[i].Name);
-    end;
-    if fields[i].Unique then
-    begin
-      if uniqueKey <> '' then uniqueKey := uniqueKey + ',';
-      uniqueKey := uniqueKey + mainform.mask(fields[i].Name);
-    end;
-    if fields[i].Index then
-    begin
-      if indexKey <> '' then indexKey := indexKey + ',';
-      indexKey := indexKey + mainform.mask(fields[i].Name);
-    end;
-  end;
-  if primaryKey <> '' then
-    createQuery := createQuery + ', PRIMARY KEY(' + primaryKey + ')';
-  if uniqueKey <> '' then
-    createQuery := createQuery + ', UNIQUE(' + uniqueKey + ')';
-  if indexKey <> '' then
-    createQuery := createQuery + ', INDEX(' + indexKey + ')';
-
-  // End of columns + indexes:
-  createQuery := createQuery + ') ';
-
-  // Comment:
-  if EditDescription.Text <> '' then
-    createQuery := createQuery + ' COMMENT = "' + EditDescription.Text + '"';
-
-  if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
-    createQuery := createQuery + ' TYPE = ' + ComboBoxTableType.Text;
-
-  // Execute CREATE statement and reload tablesList
-  try
-    Mainform.ChildWin.ExecUseQuery( DBComboBox.Text );
-    Mainform.ChildWin.ExecUpdateQuery( createQuery );
-    Mainform.ChildWin.ShowDBProperties(self);
-    Mainform.ChildWin.ActualTable := EditTablename.Text;
-    Close;
-  except on E: THandledSQLError do;
-  end;
+  close;
 end;
 
 
@@ -210,7 +209,7 @@ procedure TCreateTableForm.refreshfields(Sender: TObject);
 var i : word;
 begin
   // refresh field-list
-  with ListboxColumns do
+  with feldliste do
   begin
     Items.Clear;
     if length(fields) > 0 then
@@ -228,7 +227,7 @@ begin
     enableControls(self);
     fillControls(self);
   end;
-  if index = ListboxColumns.Items.Count - 1 then
+  if index = FeldListe.Items.Count - 1 then
     ButtonMoveDown.Enabled := false
   else
     ButtonMoveDown.Enabled := true;
@@ -251,7 +250,7 @@ begin
   dec(index);
   refreshfields(self);
   EditFieldNameChange(self);
-  ListboxColumnsClick(self);
+  feldListeClick(self);
   if length(fields) = 0 then
   begin
     ButtonMoveUp.Enabled := false;
@@ -262,55 +261,37 @@ end;
 
 
 procedure TCreateTableForm.checktypes(Sender: TObject);
-var
-  FieldType : TMysqlDataTypeRecord;
 begin
-  FieldType := MySqlDataTypeArray[ComboBoxType.ItemIndex];
-
-  // "binary" is only valid for text-types
-  CheckBoxBinary.Enabled := FieldType.HasBinary;
-  if not CheckBoxBinary.Enabled then
-    CheckBoxBinary.Checked := false; // Ensure checkbox is not ticked
-
-  // "unsigned" is only valid for numerical columns
-  CheckBoxUnsigned.Enabled := FieldType.HasUnsigned;
-  if not CheckBoxUnsigned.Enabled then
-    CheckBoxUnsigned.Checked := false; // Ensure checkbox is not ticked
-
-  // "zerofill" is only valid for numerical and float-columns
-  CheckBoxZerofill.Enabled := FieldType.HasZerofill;
-  if not CheckBoxZerofill.Enabled then
-    CheckBoxZerofill.Checked := false; // Ensure checkbox is not ticked
-
-  // Length/Set
-  EditLengthSet.Enabled := FieldType.HasLength;
-  lblLengthSet.Enabled := EditLengthSet.Enabled;
-  if FieldType.RequiresLength then // Render required field as bold
-    lblLengthSet.Font.Style := lblLengthSet.Font.Style + [fsBold]
-  else
-    lblLengthSet.Font.Style := lblLengthSet.Font.Style - [fsBold];
-  if not EditLengthSet.Enabled then
-    EditLengthSet.Text := '';
-  // Fill length/set value with default value if empty
-  if FieldType.RequiresLength then
-  begin
-    if (EditLengthSet.Text = '') and (FieldType.DefLengthSet <> '') then
-      EditLengthSet.Text := FieldType.DefLengthSet;
+  // Binary geht nur bei char und varchar
+  if ComboBoxType.ItemIndex in [13,14] then
+    CheckBoxBinary.Enabled := true
+  else begin
+    CheckBoxBinary.Checked := false;
+    CheckBoxBinary.Enabled := false;
   end;
 
-  // Default value
-  EditDefault.Enabled := FieldType.HasDefault;
-  lblDefault.Enabled := EditDefault.Enabled;
-  if not EditDefault.Enabled then
-    EditDefault.Text := ''; // Ensure empty default value
+  // Unsigned geht nur bei numerischen Feldern, (nicht bei float-feldern!)
+  if ComboBoxType.ItemIndex in [0,1,2,3,4] then
+    CheckBoxUnsigned.Enabled := true
+  else begin
+    CheckBoxUnsigned.Checked := false;
+    CheckBoxUnsigned.Enabled := false;
+  end;
 
+  // Zerofill geht bei numerischen und float-feldern
+  if ComboBoxType.ItemIndex in [0,1,2,3,4,5,6,7] then
+    CheckBoxZerofill.Enabled := true
+  else begin
+    CheckBoxZerofill.Checked := false;
+    CheckBoxZerofill.Enabled := false;
+  end;
 end;
 
 
 procedure TCreateTableForm.ComboBoxTypeChange(Sender: TObject);
 begin
-  // Type
-  fields[index].FieldType := ComboBoxType.ItemIndex;
+  // Typ
+  fields[index].Typ := ComboBoxType.ItemIndex;
   checktypes(self);
 end;
 
@@ -319,28 +300,6 @@ begin
   // LengthSet
   fields[index].LengthSet := EditLengthSet.Text;
 end;
-
-
-{***
-  Check if tablename is valid and warn the user in case he's
-  doing some crappy character here
-}
-procedure TCreateTableForm.EditTablenameChange(Sender: TObject);
-begin
-  ButtonCreate.Enabled := false;
-  try
-    ensureValidIdentifier( EditTablename.Text );
-    EditTablename.Font.Color := clWindowText;
-    EditTablename.Color := clWindow;
-    // Enable "OK"-Button if we have a valid name AND there
-    // is at least 1 column
-    ButtonCreate.Enabled := (ListBoxColumns.Items.Count > 0);
-  except
-    EditTablename.Font.Color := clRed;
-    EditTablename.Color := clYellow;
-  end;
-end;
-
 
 procedure TCreateTableForm.EditDefaultChange(Sender: TObject);
 begin
@@ -404,9 +363,9 @@ begin
   with fields[index] do
   begin
     Name := EditFieldName.Text;
-    FieldType := 0;
-    LengthSet := '';
-    default := '';
+    Typ := 0;
+    LengthSet := '3';
+    default := '0';
     Primary := false;
     Index := false;
     Unique := false;
@@ -415,38 +374,35 @@ begin
     Zerofill := false;
     NotNull := false;
     Autoincrement := false;
-    ListboxColumns.Items.Add(Name);
+    FeldListe.Items.Add(Name);
   end;
   refreshfields(self);
   EditFieldnameChange(self);
-  ListboxColumns.ItemIndex := index;
-  // Call change-handler of Tablename-edit to check if
-  // the Create-Button should be enabled
-  EditTablenameChange(self);
+  Feldliste.ItemIndex := index;
+  // ButtonCreate enablen
+  ButtonCreate.Enabled := length(fields)>0;
 end;
 
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
-var
-  colExists : Boolean;
 begin
   // Field Name EditChange
-  colExists := notinlist(EditFieldName.Text, ListboxColumns.Items);
-  buttonAdd.Enabled := colExists;
-  buttonChange.Enabled := colExists;
-  ButtonAdd.Default := colExists;
-  try
-    ensureValidIdentifier(EditFieldName.Text);
-  except
+  if (validName(EditFieldName.Text)) and (notinlist(EditFieldName.Text, Feldliste.Items)) then
+  begin
+    buttonAdd.Enabled := true;
+    buttonChange.Enabled := true;
+    ButtonAdd.Default := True;
+  end
+  else begin
     buttonAdd.Enabled := false;
     buttonChange.Enabled := false;
   end;
   ButtonsChange(self);
 end;
 
-procedure TCreateTableForm.ListboxColumnsClick(Sender: TObject);
+procedure TCreateTableForm.feldListeClick(Sender: TObject);
 begin
-  // ListColumns Change
-  index := ListboxColumns.ItemIndex;
+  // Feldliste Change
+  index := FeldListe.ItemIndex;
   if index > -1 then
     editfieldname.Text := fields[index].Name;
   refreshfields(self);
@@ -463,7 +419,7 @@ begin
   end else
   begin
     buttonDelete.Enabled := true;
-    if notinlist(EditFieldName.Text, ListboxColumns.Items) then
+    if notinlist(EditFieldName.Text, Feldliste.Items) then
       buttonChange.Enabled := true
     else
       buttonChange.Enabled := false;
@@ -472,30 +428,33 @@ end;
 
 procedure TCreateTableForm.FormShow(Sender: TObject);
 var
-  i         : Integer;
-  tn        : TTreeNode;
-  menu      : TMenuItem;
+  i : Integer;
+  tn : TTreeNode;
 begin
   // FormShow!
 
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
-  end;
-  DBComboBox.ItemIndex := 0;
-  for i:=0 to DBComboBox.Items.Count-1 do
-  begin
-    if DBComboBox.Items[i] = Mainform.ChildWin.ActualDatabase then
-      DBComboBox.ItemIndex := i;
-  end;
-  if DBComboBox.ItemIndex = -1 then
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        DBComboBox.Items.Add(tn.Text);
+    end;
     DBComboBox.ItemIndex := 0;
+    for i:=0 to DBComboBox.Items.Count-1 do
+    begin
+      if DBComboBox.Items[i] = ActualDatabase then
+        DBComboBox.ItemIndex := i;
+    end;
+    if DBComboBox.ItemIndex = -1 then
+      DBComboBox.ItemIndex := 0;
+  end;
 
-  if Mainform.ChildWin.mysql_version >= 32300 then
+
+  if TMDIChild(Application.Mainform.ActiveMDIChild).mysql_version >= 32300 then
   begin
     EditDescription.Visible := true;
     Label3.Visible := true;
@@ -505,33 +464,9 @@ begin
     EditDescription.Visible := false;
     Label3.Visible := false;
   end;
-  // Add all table types detected at application start to ComboboxTableType
-  menu := Mainform.ChildWin.popupDbGrid.Items.Find('Change Type');
-  if menu <> nil then
-  begin
-    ComboboxTableType.Items.Clear;
-    ComboboxTableType.Items.Add( TBLTYPE_AUTOMATIC );
-    for i := 0 to menu.Count - 1 do
-    begin
-      if menu.Items[i].Caption = '-' then // End of list
-        break;
-      if not menu.Items[i].Enabled then  // Not supported engine
-        continue;
-      ComboboxTableType.Items.Add( menu.Items[i].Caption );
-    end;
-  end;
-
-  // Adds all datatypes for columns
-  ComboboxType.Items.Clear;
-  for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
-  begin
-    ComboboxType.Items.Add( MySqlDataTypeArray[i].Name );
-  end;
-    
-    
   index := -1;
   setLength(fields, 0);
-  ListboxColumns.Items.Clear;
+  FeldListe.Items.Clear;
   EditTableName.Text := 'TableName';
   EditFieldName.Text := 'FieldName';
   Editdescription.Text := '';
@@ -553,9 +488,9 @@ procedure TCreateTableForm.disableControls(Sender: TObject);
 begin
   // disable controls
   ButtonDelete.Enabled := false;
-  lblFieldType.Enabled := false; // Type
-  lblLengthSet.Enabled := false; // Length
-  lblDefault.Enabled := false; // Default
+  Label6.Enabled := false; // Type
+  Label7.Enabled := false; // Length
+  Label8.Enabled := false; // Set
   ComboBoxType.Enabled := false;
   EditLengthSet.Enabled := false;
   EditDefault.Enabled := false;
@@ -573,9 +508,9 @@ end;
 procedure TCreateTableForm.enableControls(Sender: TObject);
 begin
   // enable controls
-  lblFieldType.Enabled := true; // Type
-  lblLengthSet.Enabled := true; // Length
-  lblDefault.Enabled := true; // Default
+  Label6.Enabled := true; // Type
+  Label7.Enabled := true; // Length
+  Label8.Enabled := true; // Set
   ComboBoxType.Enabled := true;
   EditLengthSet.Enabled := true;
   EditDefault.Enabled := true;
@@ -595,7 +530,7 @@ begin
   // fill controls with values
   with fields[index] do
   begin
-    ComboBoxType.ItemIndex := FieldType;
+    ComboBoxType.ItemIndex := Typ;
     EditLengthSet.Text := LengthSet;
     EditDefault.Text := Default;
     CheckBoxPrimary.Checked := Primary;

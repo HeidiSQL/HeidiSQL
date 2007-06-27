@@ -1,445 +1,285 @@
 object ExportSQLForm: TExportSQLForm
-  Left = 0
-  Top = 0
+  Left = 429
+  Top = 112
+  BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'Export Tables...'
-  ClientHeight = 417
-  ClientWidth = 634
+  ClientHeight = 405
+  ClientWidth = 558
   Color = clBtnFace
-  Constraints.MinHeight = 423
-  Constraints.MinWidth = 580
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  Position = poMainFormCenter
+  Position = poOwnerFormCenter
   OnShow = FormShow
-  DesignSize = (
-    634
-    417)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblProgress: TLabel
-    Left = 3
-    Top = 396
-    Width = 51
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'lblProgress'
+  object Bevel1: TBevel
+    Left = 0
+    Top = 367
+    Width = 558
+    Height = 38
+    Align = alBottom
+    Shape = bsTopLine
   end
-  object btnExport: TButton
-    Left = 469
-    Top = 388
+  object Label1: TLabel
+    Left = 16
+    Top = 8
+    Width = 144
+    Height = 13
+    Caption = 'Select Database and Table(s):'
+  end
+  object Label2: TLabel
+    Left = 16
+    Top = 328
+    Width = 32
+    Height = 13
+    Caption = 'Label2'
+  end
+  object Button1: TButton
+    Left = 395
+    Top = 376
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
     Caption = 'Export!'
     Default = True
     TabOrder = 0
-    OnClick = btnExportClick
-    ExplicitLeft = 436
-    ExplicitTop = 357
+    OnClick = Button1Click
   end
-  object btnCancel: TButton
-    Left = 551
-    Top = 388
+  object Button2: TButton
+    Left = 477
+    Top = 376
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 1
-    OnClick = btnCancelClick
-    ExplicitLeft = 518
-    ExplicitTop = 357
+    OnClick = Button2Click
   end
-  object barProgress: TProgressBar
-    Left = 3
-    Top = 365
-    Width = 623
+  object TablesCheckListBox: TCheckListBox
+    Left = 16
+    Top = 48
+    Width = 217
+    Height = 145
+    ItemHeight = 13
+    TabOrder = 2
+  end
+  object DBComboBox: TComboBox
+    Left = 16
+    Top = 24
+    Width = 169
+    Height = 21
+    Style = csDropDownList
+    ItemHeight = 13
+    TabOrder = 3
+    OnChange = DBComboBoxChange
+  end
+  object GroupBox1: TGroupBox
+    Left = 256
+    Top = 80
+    Width = 297
+    Height = 241
+    Caption = 'Output'
+    TabOrder = 4
+    object BitBtn1: TBitBtn
+      Left = 259
+      Top = 43
+      Width = 22
+      Height = 22
+      TabOrder = 0
+      OnClick = BitBtn1Click
+      Glyph.Data = {
+        F6000000424DF600000000000000760000002800000010000000100000000100
+        0400000000008000000000000000000000001000000010000000000000000000
+        80000080000000808000800000008000800080800000C0C0C000808080000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
+        777777777777777777777000000000007777700333333333077770B033333333
+        307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
+        777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
+        7700777777777077707077777777770007777777777777777777}
+    end
+    object EditFileName: TEdit
+      Left = 32
+      Top = 44
+      Width = 225
+      Height = 21
+      TabOrder = 1
+      Text = 'EditFileName'
+      OnDblClick = BitBtn1Click
+    end
+    object RadioButtonDB: TRadioButton
+      Left = 16
+      Top = 85
+      Width = 113
+      Height = 17
+      Caption = 'Another Database:'
+      TabOrder = 2
+      OnClick = RadioButtonDBClick
+    end
+    object RadioButtonFile: TRadioButton
+      Left = 16
+      Top = 24
+      Width = 49
+      Height = 17
+      Caption = 'File:'
+      Checked = True
+      TabOrder = 3
+      TabStop = True
+      OnClick = RadioButtonFileClick
+    end
+    object ComboBoxODB: TComboBox
+      Left = 32
+      Top = 103
+      Width = 249
+      Height = 21
+      Style = csDropDownList
+      Color = clBtnFace
+      Enabled = False
+      ItemHeight = 13
+      TabOrder = 4
+    end
+    object RadioButtonHost: TRadioButton
+      Left = 16
+      Top = 151
+      Width = 113
+      Height = 17
+      Caption = 'Another Host / DB:'
+      TabOrder = 5
+      OnClick = RadioButtonHostClick
+    end
+    object ComboBoxHost: TComboBox
+      Left = 32
+      Top = 171
+      Width = 249
+      Height = 21
+      Style = csDropDownList
+      Color = clBtnFace
+      Enabled = False
+      ItemHeight = 13
+      TabOrder = 6
+    end
+  end
+  object ProgressBar1: TProgressBar
+    Left = 16
+    Top = 344
+    Width = 537
     Height = 17
-    Anchors = [akLeft, akRight, akBottom]
+    Min = 0
     Max = 0
     Smooth = True
     Step = 1
-    TabOrder = 2
+    TabOrder = 5
   end
-  object pageControl1: TPageControl
-    Left = 4
-    Top = 0
-    Width = 622
-    Height = 353
-    ActivePage = TabSheet2
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 3
-    object TabSheet1: TTabSheet
-      Caption = 'Source'
-      ExplicitHeight = 331
-      DesignSize = (
-        614
-        325)
-      object lblSelectDbTables: TLabel
-        Left = 8
-        Top = 8
-        Width = 144
-        Height = 13
-        Caption = 'Select Database and Table(s):'
-      end
-      object checkListTables: TCheckListBox
-        Left = 8
-        Top = 52
-        Width = 597
-        Height = 263
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        ItemHeight = 13
-        TabOrder = 1
-        OnKeyDown = checkListTablesKeyDown
-        ExplicitHeight = 269
-      end
-      object comboSelectDatabase: TComboBox
-        Left = 8
-        Top = 24
-        Width = 542
-        Height = 21
-        Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 13
-        TabOrder = 0
-        OnChange = comboSelectDatabaseChange
-        ExplicitWidth = 158
-      end
-      object toolbarSelectTools: TToolBar
-        Left = 558
-        Top = 24
-        Width = 46
-        Height = 22
-        Align = alNone
-        Anchors = [akTop, akRight]
-        AutoSize = True
-        Caption = 'toolbarSelectTools'
-        EdgeInner = esNone
-        EdgeOuter = esNone
-        Images = MainForm.ImageList1
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        ExplicitLeft = 174
-        object ToolButton1: TToolButton
-          Left = 0
-          Top = 0
-          Hint = 'Check none'
-          Caption = 'ToolButton1'
-          ImageIndex = 35
-          OnClick = CheckListToggle
-        end
-        object ToolButton2: TToolButton
-          Tag = 1
-          Left = 23
-          Top = 0
-          Hint = 'Check all'
-          Caption = 'ToolButton2'
-          ImageIndex = 36
-          OnClick = CheckListToggle
-        end
-      end
+  object GroupBox2: TGroupBox
+    Left = 256
+    Top = 16
+    Width = 297
+    Height = 57
+    Caption = 'What to export'
+    TabOrder = 6
+    object CheckBox1: TCheckBox
+      Left = 16
+      Top = 24
+      Width = 73
+      Height = 17
+      Caption = 'Structure'
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+      OnClick = CheckBox1Click
     end
-    object TabSheet2: TTabSheet
-      Caption = 'Destination'
-      ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 28
-      DesignSize = (
-        614
-        325)
-      object groupOutput: TGroupBox
-        Left = 235
-        Top = 0
-        Width = 376
-        Height = 169
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Output'
-        TabOrder = 0
-        DesignSize = (
-          376
-          169)
-        object btnFileBrowse: TBitBtn
-          Left = 338
-          Top = 43
-          Width = 22
-          Height = 22
-          Anchors = [akTop, akRight]
-          TabOrder = 2
-          OnClick = btnFileBrowseClick
-          Glyph.Data = {
-            F6000000424DF600000000000000760000002800000010000000100000000100
-            0400000000008000000000000000000000001000000010000000000000000000
-            80000080000000808000800000008000800080800000C0C0C000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
-            777777777777777777777000000000007777700333333333077770B033333333
-            307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
-            777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
-            7700777777777077707077777777770007777777777777777777}
-          ExplicitLeft = 300
-        end
-        object editFileName: TEdit
-          Left = 32
-          Top = 42
-          Width = 304
-          Height = 21
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 1
-          OnDblClick = btnFileBrowseClick
-          ExplicitWidth = 266
-        end
-        object radioOtherDatabase: TRadioButton
-          Left = 16
-          Top = 69
-          Width = 113
-          Height = 17
-          Caption = 'Another database:'
-          TabOrder = 3
-          OnClick = radioOtherDatabaseClick
-        end
-        object radioFile: TRadioButton
-          Left = 16
-          Top = 24
-          Width = 49
-          Height = 17
-          Caption = 'File:'
-          Checked = True
-          TabOrder = 0
-          TabStop = True
-          OnClick = radioFileClick
-        end
-        object comboOtherDatabase: TComboBox
-          Left = 32
-          Top = 87
-          Width = 328
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 4
-          ExplicitWidth = 290
-        end
-        object radioOtherHost: TRadioButton
-          Left = 16
-          Top = 116
-          Width = 161
-          Height = 17
-          Caption = 'Another host and database'
-          TabOrder = 5
-          OnClick = radioOtherHostClick
-        end
-        object comboOtherHost: TComboBox
-          Left = 32
-          Top = 131
-          Width = 137
-          Height = 21
-          Style = csDropDownList
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 6
-          OnSelect = comboOtherHostSelect
-        end
-        object comboOtherHostDatabase: TComboBox
-          Left = 175
-          Top = 131
-          Width = 183
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 7
-          ExplicitWidth = 145
-        end
-      end
-      object groupExampleSql: TGroupBox
-        Left = 235
-        Top = 175
-        Width = 376
-        Height = 138
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        Caption = 'Example SQL'
-        TabOrder = 1
-        object SynMemoExampleSQL: TSynMemo
-          Left = 2
-          Top = 15
-          Width = 372
-          Height = 121
-          Align = alClient
-          Color = clBtnFace
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -13
-          Font.Name = 'Courier New'
-          Font.Style = []
-          TabOrder = 0
-          BorderStyle = bsNone
-          Gutter.Font.Charset = DEFAULT_CHARSET
-          Gutter.Font.Color = clWindowText
-          Gutter.Font.Height = -11
-          Gutter.Font.Name = 'Terminal'
-          Gutter.Font.Style = []
-          Gutter.Visible = False
-          Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
-          ReadOnly = True
-          ExplicitLeft = 3
-          ExplicitHeight = 111
-          RemovedKeystrokes = <
-            item
-              Command = ecContextHelp
-              ShortCut = 112
-            end>
-          AddedKeystrokes = <
-            item
-              Command = ecContextHelp
-              ShortCut = 16496
-            end>
-        end
-      end
-      object groupOptions: TGroupBox
-        Left = 3
-        Top = 0
-        Width = 226
-        Height = 313
-        Anchors = [akLeft, akTop, akBottom]
-        Caption = 'Options'
-        TabOrder = 2
-        object lblTargetCompat: TLabel
-          Left = 9
-          Top = 213
-          Width = 94
-          Height = 13
-          Caption = 'Target compatibility:'
-        end
-        object cbxStructure: TCheckBox
-          Left = 9
-          Top = 17
-          Width = 73
-          Height = 17
-          Caption = 'Structure'
-          Checked = True
-          State = cbChecked
-          TabOrder = 0
-          OnClick = cbxStructureClick
-        end
-        object cbxDatabase: TCheckBox
-          Left = 25
-          Top = 38
-          Width = 97
-          Height = 17
-          Caption = 'Database'
-          Checked = True
-          State = cbChecked
-          TabOrder = 1
-          OnClick = cbxDatabaseClick
-        end
-        object comboDatabase: TComboBox
-          Left = 32
-          Top = 59
-          Width = 176
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          ItemIndex = 2
-          TabOrder = 2
-          Text = 'Create if necessary'
-          OnChange = comboDatabaseChange
-          Items.Strings = (
-            'Recreate (remove all tables)'
-            'Create'
-            'Create if necessary')
-        end
-        object cbxTables: TCheckBox
-          Left = 25
-          Top = 86
-          Width = 57
-          Height = 17
-          Caption = 'Tables'
-          Checked = True
-          State = cbChecked
-          TabOrder = 3
-          OnClick = cbxTablesClick
-        end
-        object comboTables: TComboBox
-          Left = 32
-          Top = 106
-          Width = 176
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          ItemIndex = 2
-          TabOrder = 4
-          Text = 'Create if necessary'
-          OnChange = comboTablesChange
-          Items.Strings = (
-            'Recreate (remove data)'
-            'Create'
-            'Create if necessary')
-        end
-        object cbxData: TCheckBox
-          Left = 9
-          Top = 152
-          Width = 73
-          Height = 17
-          Caption = 'Data'
-          Checked = True
-          State = cbChecked
-          TabOrder = 5
-          OnClick = cbxDataClick
-        end
-        object comboData: TComboBox
-          Left = 25
-          Top = 171
-          Width = 183
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          ItemIndex = 3
-          TabOrder = 6
-          Text = 'Update existing data'
-          OnChange = comboDataChange
-          Items.Strings = (
-            'Replace (truncate existing data)'
-            'Insert'
-            'Insert new data (do not update existing)'
-            'Update existing data')
-        end
-        object comboTargetCompat: TComboBox
-          Left = 25
-          Top = 232
-          Width = 180
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          TabOrder = 7
-        end
-        object cbxExtendedInsert: TCheckBox
-          Left = 25
-          Top = 259
-          Width = 177
-          Height = 17
-          Caption = 'Extended INSERT (faster import)'
-          Checked = True
-          State = cbChecked
-          TabOrder = 8
-          OnClick = cbxExtendedInsertClick
-        end
-      end
+    object CheckBox2: TCheckBox
+      Left = 112
+      Top = 24
+      Width = 73
+      Height = 17
+      Caption = 'Data'
+      Checked = True
+      State = cbChecked
+      TabOrder = 1
+      OnClick = CheckBox2Click
     end
   end
-  object dialogSave: TSaveDialog
+  object ToolBar1: TToolBar
+    Left = 187
+    Top = 24
+    Width = 46
+    Height = 22
+    Align = alNone
+    AutoSize = True
+    Caption = 'ToolBar1'
+    EdgeInner = esNone
+    EdgeOuter = esNone
+    Flat = True
+    Images = MainForm.ImageList1
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+    object ToolButton1: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Check none'
+      Caption = 'ToolButton1'
+      ImageIndex = 42
+      OnClick = CheckListToggle
+    end
+    object ToolButton2: TToolButton
+      Tag = 1
+      Left = 23
+      Top = 0
+      Hint = 'Check all'
+      Caption = 'ToolButton2'
+      ImageIndex = 43
+      OnClick = CheckListToggle
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 16
+    Top = 200
+    Width = 217
+    Height = 121
+    Caption = 'Options'
+    TabOrder = 8
+    object CheckBoxWithUseDB: TCheckBox
+      Left = 8
+      Top = 24
+      Width = 193
+      Height = 17
+      Caption = 'Include "USE dbname"-Statement'
+      TabOrder = 0
+    end
+    object CheckBoxWithDropTable: TCheckBox
+      Left = 8
+      Top = 48
+      Width = 193
+      Height = 17
+      Caption = 'Include "DROP TABLE"-Statements'
+      TabOrder = 1
+    end
+    object CheckBoxCompleteInserts: TCheckBox
+      Left = 8
+      Top = 72
+      Width = 193
+      Height = 17
+      Caption = 'Complete insert statements'
+      TabOrder = 2
+    end
+    object CheckBoxUseBackticks: TCheckBox
+      Left = 8
+      Top = 96
+      Width = 193
+      Height = 17
+      Caption = 'Use backticks (`) for names'
+      TabOrder = 3
+    end
+  end
+  object SaveDialog1: TSaveDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
-    Left = 8
-    Top = 360
+    Left = 520
+    Top = 96
   end
 end
