@@ -38,8 +38,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function urlencode(url: String): String;
   procedure wfs( var s: TFileStream; str: String = '');
   function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
+  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
@@ -64,8 +63,6 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function ExpectResultSet(ASql: String): Boolean;
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
-  procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
-  function GetFieldValue( Field: TField ): String;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -656,7 +653,7 @@ begin
         // collect data:
         for j:=0 to ds.FieldCount-1 do
         begin
-          data := GetFieldValue( ds.Fields[j] );
+          data := ds.Fields[j].AsString;
           if (filename <> '') and ds.Fields[j].IsBlob then
           begin
             header := copy(data, 0, 20);
@@ -790,7 +787,7 @@ begin
         begin
           if j>0 then
             Buffer := Buffer + Separator;
-          Buffer := Buffer + Encloser + GetFieldValue( ds.Fields[j] ) + Encloser;
+          Buffer := Buffer + Encloser + ds.Fields[j].AsString + Encloser;
         end;
         // write buffer:
         if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
@@ -859,7 +856,7 @@ begin
         // collect data:
         for j:=0 to ds.FieldCount-1 do
         begin
-          data := GetFieldValue( ds.Fields[j] );
+          data := ds.Fields[j].AsString;
           data := htmlentities(data);
           Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
         end;
@@ -1065,28 +1062,6 @@ begin
 end;
 
 
-{***
-  Check/Uncheck items in a CheckListBox which come in a second list
-
-  @param TCheckListBox List with checkable items
-  @param boolean Check them?
-  @param TStringList Second list with items to change
-  @return void
-}
-procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList);
-var
-  i : Integer;
-begin
-  for i:=0 to list.Items.Count-1 do
-  begin
-    if list_toggle.IndexOf(list.Items[i]) > -1 then
-    begin
-      list.Checked[i] := state;
-    end;
-  end;
-end;
-
-
 
 {***
   Get filesize of a given file
@@ -1212,12 +1187,11 @@ end;
 }
 function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
 begin
-  Result := Text;
   if sql_version <> SQL_VERSION_ANSI then begin
     // Replace single-backslashes with double-backslashes BEFORE
     // special characters get escaped using their escape-sequence
     // Fixes issue #1648978 "exported sql has \\r\\n instead of \r\n for CRLFs"
-    Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
 
     {NUL} Result := StringReplace(Result, #0, '\0', [rfReplaceAll]);
     {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
@@ -1356,12 +1330,10 @@ var
   i: integer;
   s: string;
 begin
-  if CharSet = '' then raise Exception.Create('Assertion failed in escAllCharacters(): no character set given.');
   if sql_version <> SQL_VERSION_ANSI then begin
     s := '0x';
     for i:=1 to length(Text) do s := s + IntToHex(Ord(Text[i]), 2);
-    // Ensure correct import on servers (v4.1+) supporting multiple character sets.
-    Result := '/*!40100 _' + CharSet + '*/ ' + s;
+    Result := '_' + CharSet + ' ' + s;
   end else begin
     s := '0x';
     if CharSet <> 'ucs2' then raise Exception.Create('ANSI SQL supports UCS2 literal strings only.');
@@ -1819,44 +1791,6 @@ begin
       result := charset_conv_table[i].charset;
       exit;
     end;
-  end;
-end;
-
-
-{***
-  Add values from a list to another list, avoid adding
-  already existant items
-}
-procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
-var
-  i : Cardinal;
-begin
-  BaseList.BeginUpdate;
-  for i := 0 to ToAdd.Count - 1 do
-  begin
-    if BaseList.IndexOf( ToAdd[i] ) = -1 then
-      BaseList.Append( ToAdd[i] );
-  end;
-  BaseList.EndUpdate;
-end;
-
-
-
-{***
-  Retrieve the string value from a field
-  Zeos gives "True" or "False" for enum (boolean) fields which
-  gets corrected here to "Y" or "N"
-  @param TField Field object which holds a value
-  @return String Field value
-}
-function GetFieldValue( Field: TField ): String;
-begin
-  Result := '';
-  case Field.DataType of
-    ftBoolean:
-      Result := Bool2Str( Field.AsBoolean );
-    else
-      Result := Field.AsString;
   end;
 end;
 

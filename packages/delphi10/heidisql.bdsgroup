@@ -9,6 +9,10 @@
     </Option>
   </PersonalityInfo>
   <Default.Personality>
+    
+    
+    
+    
     <Projects>
       <Projects Name="VCLser100.bpl">..\..\components\edbimage\packages\delphi10\VCLser100.bdsproj</Projects>
       <Projects Name="DCLSer100.bpl">..\..\components\edbimage\packages\delphi10\DCLSer100.bdsproj</Projects>
@@ -22,7 +26,7 @@
       <Projects Name="ZDbc100.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
       <Projects Name="ZComponent100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
       <Projects Name="ZComponentDesign100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponentDesign.bdsproj</Projects>
-      <Projects Name="HeidiSQL">..\..\packages\delphi10\heidisql.bdsproj</Projects>
+      <Projects Name="HeidiSQL">heidisql.bdsproj</Projects>
       <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiSQL</Projects>
     </Projects>
     <Dependencies/>

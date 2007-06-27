@@ -1013,7 +1013,8 @@ var
   MySQLType: TZSQLType;
   TempCatalog, TempColumnNamePattern, TempTableNamePattern: string;
 
-//  TempStr: string;
+  { TODO : TempStr is not set to a value in the whole method. => Length(TempStr) = 0 }
+  TempStr: string;
   TempPos: Integer;
 
   TypeInfoList: TStrings;
@@ -1126,10 +1127,8 @@ begin
               begin
                 TempPos := FirstDelimiter(',', TypeInfoSecond);
                 ColumnSize := StrToIntDef(Copy(TypeInfoSecond, 1, TempPos - 1), 0);
-                { TODO : TempStr is never set ? }
-                //ColumnDecimals := StrToIntDef(Copy(TypeInfoSecond, TempPos + 1,
-                //  Length(TempStr) - TempPos), 0);
-                ColumnDecimals := StrToIntDef(Copy(TypeInfoSecond, TempPos + 1, -TempPos), 0);
+                ColumnDecimals := StrToIntDef(Copy(TypeInfoSecond, TempPos + 1,
+                  Length(TempStr) - TempPos), 0);
                 Result.UpdateInt(7, ColumnSize);
                 Result.UpdateInt(9, ColumnDecimals);
               end

@@ -338,8 +338,8 @@ type
   {$IFDEF WITH_IPROVIDER}
     procedure PSStartTransaction; override;
     procedure PSEndTransaction(Commit: Boolean); override;
-    {function PSGetTableName: string; override;
-    function PSGetQuoteChar: string; override; }
+    function PSGetTableName: string; override;
+    function PSGetQuoteChar: string; override;
     function PSGetUpdateException(E: Exception;
       Prev: EUpdateError): EUpdateError; override;
     function PSIsSQLBased: Boolean; override;
@@ -348,7 +348,7 @@ type
     function PSUpdateRecord(UpdateKind: TUpdateKind;
       Delta: TDataSet): Boolean; override;
     procedure PSExecute; override;
-    {function PSGetKeyFields: string; override;}
+    function PSGetKeyFields: string; override;
     function PSGetParams: TParams; override;
     procedure PSSetParams(AParams: TParams); override;
     function PSExecuteStatement(const ASQL: string; AParams: TParams;
@@ -2766,7 +2766,7 @@ end;
   Returns a string quote character.
   @retuns a quote character.
 }
-{function TZAbstractRODataset.PSGetQuoteChar: string;
+function TZAbstractRODataset.PSGetQuoteChar: string;
 begin
   if Assigned(FConnection) then
   begin
@@ -2778,7 +2778,7 @@ begin
   end
   else
     Result := '"';
-end;}
+end;
 
 {**
   Checks if dataset can execute any commands?
@@ -2887,7 +2887,7 @@ end;
   @returns a table name or an empty string is SQL query is complex SELECT
     or not SELECT statement.
 }
-{function TZAbstractRODataset.PSGetTableName: string;
+function TZAbstractRODataset.PSGetTableName: string;
 var
   Driver: IZDriver;
   Tokenizer: IZTokenizer;
@@ -2905,16 +2905,16 @@ begin
     if Assigned(SelectSchema) and (SelectSchema.TableCount = 1) then
       Result := SelectSchema.Tables[0].FullName;
   end;
-end;}
+end;
 
 {**
   Defines a list of query primary key fields.
   @returns a semicolon delimited list of query key fields.
 }
-{function TZAbstractRODataset.PSGetKeyFields: string;
+function TZAbstractRODataset.PSGetKeyFields: string;
 begin
   Result := inherited PSGetKeyFields;
-end;}
+end;
 
 {**
   Executes a SQL statement with parameters.

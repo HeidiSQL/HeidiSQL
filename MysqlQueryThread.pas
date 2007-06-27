@@ -17,7 +17,7 @@ type
     HelpContext : Integer;
   end;
 
-  // Mysql protocol-relevant connection parameter structure
+  // Mysql connection parameter structure
   TMysqlConnParams = record
     Host,
     Database,
@@ -33,17 +33,15 @@ type
   end;
   PMysqlConnParams = ^TMysqlConnParams;
 
-  // Established connection and it's corresponding connection profile.
-  // (The actual connection need not necessarily be open, of course, it could in theory be closed or nil,
-  //  but to keep the name short; this beats "TConnectionProfileDataAndConnectionObject", which I guess would be the proper name.
-  TOpenConnProf = record
-    MysqlParams : TMysqlConnParams; // stuff that needs to be shipped over to the mysql driver.
+  // HeidiSQL internal param structure (as entered in connection form)
+  TConnParams = record
+    MysqlParams : TMysqlConnParams; // actual params sent to database server
     DatabaseList : String;
     DatabaseListSort : Boolean;
     Description : String;
     MysqlConn : TZConnection;
   end;
-  POpenConnProf = ^TOpenConnProf;
+  PConnParams = ^TConnParams;
 
   TThreadResult = record
     ThreadID : Integer;
@@ -63,7 +61,7 @@ type
   TMysqlQueryThread = class(TThread)
     private
       FMysqlConn : TZConnection;
-      FConn : TOpenConnProf;
+      FConnParams : TConnParams;
       FOwner : TObject; // TMysqlQuery object
       FSql : String;
       FResult : Integer;
@@ -87,7 +85,7 @@ type
       function RunUpdateQuery (ASql : String; out AExceptionData : TExceptionData) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
     public
-      constructor Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer);
+      constructor Create (AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
       destructor Destroy; override;
       property NotifyWndHandle : THandle read FNotifyWndHandle write SetNotifyWndHandle;
   end;
@@ -95,9 +93,9 @@ type
 implementation
 
 uses
-  MysqlQuery, Dialogs, helpers, communication
+  MysqlQuery, Main, Dialogs, helpers
 {$IFNDEF EXAMPLE_APP}
-, Main
+,communication
 {$ENDIF}
   ;
 
@@ -106,36 +104,33 @@ begin
   ZeroMemory (@Result,SizeOf(Result));
 
   Result.ThreadID := ThreadID;
-  try
-    Result.ConnectionID := FMysqlConn.GetThreadId;
-  except
-  end;
+  Result.ConnectionID := FMysqlConn.GetThreadId;
   Result.Action := 1;
   Result.Sql := FSql;
   Result.Result := FResult;
   Result.Comment := FComment;
 end;
 
-constructor TMysqlQueryThread.Create(AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer);
+constructor TMysqlQueryThread.Create(AOwner : TObject; APrm : TConnParams; ASql : String; ASyncMode : Integer);
 var
   mc : TZConnection;
 begin
   Inherited Create(True);
 
   FOwner := AOwner;
-  FConn := AConn;
+  FConnParams := APrm;
   FSyncMode := ASyncMode;
   mc := TMysqlQuery(FOwner).MysqlConnection;
   FMysqlConn := mc;
   FResult := 0;
   FSql := ASql;
 
-  mc.HostName := AConn.MysqlParams.Host;
-  mc.Database := AConn.MysqlParams.Database;
-  mc.User := AConn.MysqlParams.User;
-  mc.Password := AConn.MysqlParams.Pass;
-  mc.Protocol := AConn.MysqlParams.Protocol;
-  mc.Port := AConn.MysqlParams.Port;
+  mc.HostName := APrm.MysqlParams.Host;
+  mc.Database := APrm.MysqlParams.Database;
+  mc.User := APrm.MysqlParams.User;
+  mc.Password := APrm.MysqlParams.Pass;
+  mc.Protocol := APrm.MysqlParams.Protocol;
+  mc.Port := APrm.MysqlParams.Port;
 
   FreeOnTerminate := True;
 

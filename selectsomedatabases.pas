@@ -69,13 +69,16 @@ begin
   end;
 
   if someselected then
-    //OnlyDBs2.clear;
-    FDbList.Clear;
-    with CheckListBoxDBs do
-    for i:=0 to Items.Count -1 do
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do
     begin
-      if Checked[i] then
-        FDbList.Add(Items[i]);
+      //OnlyDBs2.clear;
+      FDbList.Clear;
+      with CheckListBoxDBs do
+      for i:=0 to Items.Count -1 do
+      begin
+        if Checked[i] then
+          FDbList.Add(Items[i]);
+      end;
     end;
 
   close;
@@ -140,7 +143,7 @@ begin
   // save settings:
   with TRegistry.Create do
   begin
-    openkey(REGPATH + '\Servers\' + Mainform.Childwin.Conn.Description, true);
+    openkey(REGPATH + '\Servers\' + TMDIChild(Mainform.ActiveMDIChild).ConnParams.Description, true);
     WriteString('OnlyDBs', odbs);
     closekey();
   end;

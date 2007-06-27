@@ -58,12 +58,14 @@ var
   FieldList: TStringList;
   splitter: TSplitter;
   synmemo: TSynMemo;
+  childWindow: TMDIChild;
   query: TZReadOnlyQuery;
 begin
-  ListTables  := Mainform.Childwin.ListTables;
+  childWindow := TMDIChild(Mainform.ActiveMDIChild);
+  ListTables  := childWindow.ListTables;
 
   query            := TZReadOnlyQuery.Create(self);
-  query.Connection := Mainform.Childwin.ZQuery3.Connection;
+  query.Connection := childWindow.ZQuery3.Connection;
 
   for i := (PageControl.PageCount - 1) downto 0 do
   begin
@@ -73,7 +75,7 @@ begin
   datasize  := 0;
   indexsize := 0;
 
-  Mainform.Childwin.GetResults( 'SHOW TABLE STATUS', query );
+  childWindow.GetResults( 'SHOW TABLE STATUS', query );
 
   FieldList := TStringList.Create;
   for i := 0 to (query.FieldCount - 1) do
@@ -147,7 +149,7 @@ begin
     // create a souce viewer
     synmemo                  := TSynMemo.Create(self);
     synmemo.Parent           := ts;
-    synmemo.Highlighter      := Mainform.Childwin.SynSQLSyn1;
+    synmemo.Highlighter      := TMDIChild(Mainform.ActiveMDIChild).SynSQLSyn1;
     synmemo.ReadOnly         := true;
     synmemo.Options          := synmemo.options - [eoScrollPastEol];
     synmemo.Gutter.Visible   := false;
@@ -156,9 +158,9 @@ begin
     synmemo.Margins.Right    := 0;
     synmemo.Margins.Bottom   := 0;
     synmemo.AlignWithMargins := true;
-    synmemo.Font.Name        := Mainform.Childwin.SynMemoQuery.Font.Name;
-    synmemo.Font.Size        := Mainform.Childwin.SynMemoQuery.Font.Size;
-    synmemo.Lines.Text       := Mainform.Childwin.GetVar( 'SHOW CREATE TABLE ' + Mainform.Childwin.mask(ListTables.Items[t].Caption), 1 );
+    synmemo.Font.Name        := childWindow.SynMemoQuery.Font.Name;
+    synmemo.Font.Size        := childWindow.SynMemoQuery.Font.Size;
+    synmemo.Lines.Text       := childWindow.GetVar( 'SHOW CREATE TABLE ' + childWindow.mask(ListTables.Items[t].Caption), 1 );
 
 
     // realign the components to correct position

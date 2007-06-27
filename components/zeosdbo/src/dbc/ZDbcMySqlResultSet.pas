@@ -940,8 +940,8 @@ procedure TZMySQLCachedResolver.UpdateAutoIncrementFields(
   Sender: IZCachedResultSet; UpdateType: TZRowUpdateType; OldRowAccessor,
   NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver);
 var
-//  Statement: IZStatement;
-//  ResultSet: IZResultSet;
+  Statement: IZStatement;
+  ResultSet: IZResultSet;
   Plaindriver : IZMysqlPlainDriver;
 begin
   inherited UpdateAutoIncrementFields(Sender, UpdateType, OldRowAccessor, NewRowAccessor, Resolver);

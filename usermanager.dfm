@@ -135,7 +135,6 @@ object UserManagerForm: TUserManagerForm
         ShowLines = False
         ShowRoot = False
         TabOrder = 3
-        OnExpanding = DBUserTreeExpanding
       end
       object EditUser: TEdit
         Left = 96

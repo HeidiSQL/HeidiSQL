@@ -7,7 +7,6 @@
 AppName=HeidiSQL
 AppVerName=HeidiSQL 3.0
 AppVersion=3.0
-VersionInfoVersion=3.0
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
 AppSupportURL=http://forum.heidisql.com/

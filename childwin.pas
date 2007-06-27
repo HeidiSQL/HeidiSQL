@@ -1,4 +1,4 @@
-unit Childwin;
+UNIT Childwin;
 
 
 // -------------------------------------
@@ -6,8 +6,7 @@ unit Childwin;
 // -------------------------------------
 
 
-interface
-
+INTERFACE
 
 uses
   Synchronization,
@@ -20,8 +19,8 @@ uses
   Grids, messages, Mask, ZDataset,
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
-  SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
-  MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid;
+  SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery, MysqlQueryThread,
+  queryprogress, communication, MysqlConn, smdbgrid;
 
 
 type
@@ -76,7 +75,7 @@ type
     Splitter3: TSplitter;
     menucreatetable: TMenuItem;
     OpenDialog1: TOpenDialog;
-    TimerHostUptime: TTimer;
+    Timer1: TTimer;
     popupTableGrid: TPopupMenu;
     Refresh2: TMenuItem;
     DropField1: TMenuItem;
@@ -115,7 +114,7 @@ type
     MenuAnalyze: TMenuItem;
     MenuRepair: TMenuItem;
     More1: TMenuItem;
-    TimerConnectErrorCloseWindow: TTimer;
+    Timer5: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
     Panel9: TPanel;
@@ -267,16 +266,6 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
-    btnColumnSelection: TSpeedButton;
-    procedure btnColumnSelectionClick(Sender: TObject);
-    procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
-      var AllowExpansion: Boolean);
-    procedure ListTablesSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
-    procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
-    procedure ListProcessesSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -292,13 +281,13 @@ type
     procedure FindDialogQueryFind(Sender: TObject);
     procedure btnQuerySaveSnippetClick(Sender: TObject);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
-      const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+      const Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure btnDbPropertiesClick(Sender: TObject);
     procedure popupDbGridPopup(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
-      var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+      var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
-      Sender: TObject; var CurrentInput: String; var x, y: Integer;
+      Sender: TObject; var CurrentInput: string; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PerformConnect;
     procedure ToolButton4Click(Sender: TObject);
@@ -309,24 +298,29 @@ type
     procedure viewdata(Sender: TObject);
     procedure ShowDBProperties(Sender: TObject);
     procedure ShowTableProperties(Sender: TObject);
+    procedure ListTablesChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure SelectHost;
-    procedure SelectDatabase(db: String);
-    procedure SelectTable(db: String; table: String);
+    procedure SelectDatabase(db: string);
+    procedure SelectTable(db: string; table: string);
     procedure ShowTable(Sender: TObject);
     procedure EmptyTable(Sender: TObject);
     procedure DropDB(Sender: TObject);
-    procedure LogSQL(msg: String = ''; comment: Boolean = true );
+    procedure LogSQL(msg: string = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
+    procedure ListProcessesChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
     procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
-    procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
-      CurrentLine: Boolean=false);
+    procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false; CurrentLine: Boolean=false);
+    procedure ListColumnsChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
     procedure DropField(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
     procedure CreateTable(Sender: TObject);
-    procedure TimerHostUptimeTimer(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -349,7 +343,7 @@ type
     procedure MenuAnalyzeClick(Sender: TObject);
     procedure MenuRepairClick(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
-    procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
+    procedure Timer5Timer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
     procedure Filter1Click(Sender: TObject);
     procedure MenuLimitClick(Sender: TObject);
@@ -407,12 +401,9 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
-    function GetVar( SQLQuery: String; x: Integer = 0;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
-    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true );
-    function GetCol( SQLQuery: String; x: Integer = 0;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
+    function GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
+    procedure GetResults( SQLQuery: String; ZQuery: TZReadOnlyQuery; HandleErrors: Boolean = true; DisplayErrors: Boolean = true );
+    function GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
     procedure Splitter2Moved(Sender: TObject);
@@ -433,45 +424,44 @@ type
     procedure CheckConnection();
     procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
-    procedure AddOrRemoveFromQueryLoadHistory( filename: String;
-      AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+    procedure AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
-    procedure ExecuteNonQuery(SQLQuery: String);
-    function ExecuteQuery(query: String): TDataSet;
+    procedure ExecuteNonQuery(SQLQuery: string);
+    function ExecuteQuery(query: string): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     function GetCalculatedLimit( Table: String ): Int64;
 
     private
       strHostRunning             : String;
-      uptime                     : Integer;
-      time_connected             : Integer;
-      OnlyDBs                    : TStringList;    // used on connecting
+      uptime, time_connected     : Integer;
+      OnlyDBs                    : TStringList;  // used on connecting
       viewingdata                : Boolean;
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
+      CanAcessMysqlFlag          : Boolean;
       FCurDataset                : TDataSet;
       FMysqlConn                 : TMysqlConn;
-      FConn                      : TOpenConnProf;
+      FConnParams                : TConnParams;
       QueryRunningInterlock      : Integer;
       lastUsedDB                 : String;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
+      function HasAccessToDB(ADBName: String): Boolean;      // used to flag if the current account can access mysql database
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
+      function CanAcessMysql: Boolean;
       procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats;
 
     public
-      ActualDatabase             : String;
-      ActualTable                : String;
-      dataselected               : Boolean;
-      editing                    : Boolean;
+      ActualDatabase, ActualTable: string;
+      dataselected, editing      : Boolean;
       mysql_version              : Integer;
       tnodehost                  : TTreeNode;
       OnlyDBs2                   : TStringList;
@@ -479,20 +469,19 @@ type
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
 
       FProgressForm              : TFrmQueryProgress;
-      procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
+      procedure Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      procedure ExecUpdateQuery (ASQLQuery: String; DisplayErrors: Boolean = True );
+      procedure ExecUpdateQuery (ASQLQuery: String);
       function ExecSelectQuery (AQuery : String) : TMysqlQuery;
-      procedure ExecUseQuery (ADatabase : String; DisplayErrors: Boolean = True );
+      procedure ExecUseQuery (ADatabase : String);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
-      property Conn : TOpenConnProf read FConn;
+      property ConnParams : TConnParams read FConnParams;
   end;
-
 
 type
   // Represents errors already "handled" (shown to user),
@@ -500,19 +489,17 @@ type
   THandledSQLError = class(Exception)
   end;
 
+const
+  sqllog_char_limit = 2000;
 
-// -----------------------------------------------------------------------------
-implementation
-
+// --------------------------------------------------------------------------------------
+IMPLEMENTATION
 
 uses
-  Main, createtable, fieldeditor, tbl_properties, tblcomment,
-  selectsomedatabases, optimizetables, copytable, sqlhelp, printlist,
-  column_selection;
-
+  Main, createtable, fieldeditor, tbl_properties, tblcomment, selectsomedatabases, optimizetables, copytable, sqlhelp,
+  printlist;
 
 {$I const.inc}
-
 
 {$R *.DFM}
 
@@ -530,26 +517,24 @@ end;
 
 procedure TMDIChild.PerformConnect;
 var
-  charset     : String;
-  v           : String[10];
-  versions    : TStringList;
+  charset: string;
+  v: String[10];
+  versions: TStringList;
 begin
+
   try
     time_connected := 0;
     TimerConnected.Enabled := true;
-    LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname +
-      '" on port ' + IntToStr(FMysqlConn.Connection.Port) );
-    LogSQL( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
+    LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname + '" on port ' + inttostr(FMysqlConn.Connection.Port) );
+    LogSQL( 'Connection-ID: ' + IntToStr(MySQLConn.Connection.GetThreadId) );
 
     {***
       Detect server version
     }
     v := GetVar( 'SELECT VERSION()' );
     versions := explode( '.', v );
-    mysql_version := MakeInt( versions[0] ) * 10000 + MakeInt( versions[1] ) *
-      100 + MakeInt( versions[2] );
-    strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v +
-      ' / Uptime: ';
+    mysql_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
+    strHostRunning := FConnParams.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: ';
 
     // On Re-Connection, try to restore lost properties
     {***
@@ -557,74 +542,49 @@ begin
       Older versions throw a SQL-error: "Unknown system variable 'NAMES'"
       @see http://lists.phpbar.de/pipermail/opengeodb/2005-September/002455.html
     }
-    if ( mysql_version >= 40100 ) then
+    if mysql_version >= 40100 then
     begin
-      charset := ConvertWindowsCodepageToMysqlCharacterSet( GetACP() );
-      if ( charset = '' ) then
-      begin
-        LogSQL( 'Could not find a MySQL character set to match the current ' +
-          'Windows ANSI codepage.', true );
-        LogSQL( Format( 'Use SHOW CHARACTER SET to see MySQL character sets; ' +
-          'if you can find one that you are certain matches %d, please report' +
-          ' it via http://rfe.heidisql.com/.', [GetACP()] ), true );
-      end
-      else
-      begin
-        ExecuteNonQuery( 'SET NAMES ' + charset );
+      charset := ConvertWindowsCodepageToMysqlCharacterSet(GetACP);
+      if charset = '' then begin
+        LogSQL('Could not find a MySQL character set to match the current Windows ANSI codepage.', true);
+        LogSQL(Format('Use SHOW CHARACTER SET to see MySQL character sets; if you can find one that you are certain matches %d, please report it via http://rfe.heidisql.com/.', [GetACP]), true);
+      end else begin
+        ExecuteNonQuery('SET NAMES ' + charset);
       end;
     end;
-
-    if ( FMysqlConn.Connection.Database <> '' ) then
+    if FMysqlConn.Connection.Database <> '' then
     begin
       ExecUseQuery( FMysqlConn.Connection.Database );
     end;
   except
     on E: Exception do
     begin
-      LogSQL( E.Message, true );
+      LogSQL(E.Message, true);
       Screen.Cursor := crDefault;
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
+      MessageDlg(E.Message, mtError, [mbOK], 0);
       raise;
     end;
   end;
+
 end;
 
 
 function TMDIChild.GetQueryRunning: Boolean;
 begin
-  Result := ( QueryRunningInterlock = 1 );
+  result := QueryRunningInterlock = 1;
 end;
 
 
 procedure TMDIChild.SetQueryRunning(running: Boolean);
 var
-  newValue    : Integer;
-  oldValue    : Integer;
+  newValue,
+  oldValue: Integer;
 begin
-  if ( running ) then
-  begin
-    newValue := 1;
-  end
-  else
-  begin
-    newValue := 0;
-  end;
-
-  oldValue := InterlockedExchange( QueryRunningInterlock, newValue );
-  if ( newValue = oldValue ) then
-  begin
-    case ( newValue ) of
-      1 :
-      begin
-        raise Exception.Create( 'Internal badness: Default connection is ' +
-        'already executing a query.' );
-      end;
-      0 :
-      begin
-        raise Exception.Create( 'Internal badness: Double reset of running ' +
-        'flag.' );
-      end;
-    end;
+  if running then newValue := 1 else newValue := 0;
+  oldValue := InterlockedExchange(QueryRunningInterlock, newValue);
+  if newValue = oldValue then begin
+    if newValue = 1 then raise Exception.Create('Internal badness: Default connection is already executing a query.');
+    if newValue = 0 then raise Exception.Create('Internal badness: Double reset of running flag.');
   end;
 end;
 
@@ -632,158 +592,142 @@ end;
 // Check the tabletype of the selected table in the Popupmenu of ListTables
 procedure TMDIChild.popupDbGridPopup(Sender: TObject);
 var
-  i                 : byte;
-  SelectedEngine    : String;
+  i               : byte;
+  SelectedEngine  : String;
 begin
-  if ( ListTables.SelCount <> 1 ) then
+  if ListTables.SelCount <> 1 then
+    exit;
+  for i:=0 to ListTables.Columns.count-1 do
   begin
-    Exit;
-  end;
-
-  for i := 0 to ( ListTables.Columns.Count - 1 ) do
-  begin
-    if ( ListTables.Columns[i].Caption = 'Engine' ) then
+    if ListTables.Columns[i].Caption = 'Engine' then
     begin
-      SelectedEngine := ListTables.Selected.SubItems[i - 1];
-      Break;
+      SelectedEngine := ListTables.Selected.SubItems[i-1];
+      break;
     end;
   end;
-
-  for i := 0 to ( MenuChangeType.Count - 1 ) do
+  for i:=0 to MenuChangeType.count-1 do
   begin
-    MenuChangeType.Items[i].Checked := ( MenuChangeType.Items[i].Caption = SelectedEngine );
+    MenuChangeType.Items[i].Checked := MenuChangeType.Items[i].Caption = SelectedEngine;
   end;
 end;
 
 
-procedure TMDIChild.Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
+procedure TMDIChild.Init(AConnParams : PConnParams; AMysqlConn : TMysqlConn);
 var
   AutoReconnect    : Boolean;
   menuitem         : TMenuItem;
   i                : Byte;
-  winName          : String;
+  winName          : string;
   j                : Integer;
   treenode         : TTreeNode;
 begin
   QueryRunningInterlock := 0;
-
-  FConn := AConn^;
+  
+  FConnParams := AConnParams^;
   FMysqlConn := AMysqlConn; // we're now responsible to free it
 
-  FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zConn)
+  FConnParams.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zconn)
 
-  // Set to use main connection
-  ZQuery1.Connection := FConn.MysqlConn;
-  ZQuery3.Connection := FConn.MysqlConn;
+  // replace default connections
+  ZQuery1.Connection := FConnParams.MysqlConn;
+  ZQuery3.Connection := FConnParams.MysqlConn;
 
-  // Initialization: establish connection and read some vars from registry
-  MainForm.Showstatus( 'Creating window...', 2, true );
+  // initialization: establish connection and read some vars from registry
+  MainForm.Showstatus('Creating window...', 2, true);
 
-  // Temporarily disable AutoReconnect in Registry
+  // temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
   AutoReconnect := false;
-  with ( TRegistry.Create() ) do
+  with TRegistry.Create do
   begin
-    OpenKey( REGPATH, true );
-    if ( Valueexists( 'Autoreconnect' ) ) then
+    openkey(REGPATH, true);
+    if Valueexists('Autoreconnect') then
+    if ReadBool('AutoReconnect') then
     begin
-      if ( ReadBool( 'AutoReconnect' ) ) then
-      begin
-        AutoReconnect := true;
-        WriteBool( 'AutoReconnect', false );
-      end;
+      AutoReconnect := true;
+      WriteBool('AutoReconnect', false);
     end;
-    CloseKey();
+    closekey();
   end;
 
-  ReadWindowOptions();
+  ReadWindowOptions;
 
-  MainForm.Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...', 2, true );
+  MainForm.Showstatus('Connecting to '+FConnParams.MysqlParams.Host+'...', 2, true);
 
   try
-    PerformConnect();
+    PerformConnect;
   except
-    TimerConnectErrorCloseWindow.Enabled := true;
+    timer5.Enabled := true;
     Exit;
   end;
 
   Description := FMysqlConn.Description;;
   Caption := Description;
-  OnlyDBs := explode( ';', FConn.DatabaseList );
-  if ( FConn.DatabaseListSort ) then
-  begin
-    OnlyDBs.Sort();
-  end;
+  OnlyDBs := explode(';', FConnParams.DatabaseList);
+  if FConnParams.DatabaseListSort then
+    OnlyDBs.Sort;
 
   // Fill variables-list, processlist and DB-tree
-  ShowVariablesAndProcesses( Self );
-  ReadDatabasesAndTables( Self );
+  ShowVariablesAndProcesses(self);
+  ReadDatabasesAndTables(self);
 
-  // Re-enable AutoReconnect in Registry!
-  if ( AutoReconnect ) then
+  // re-enable AutoReconnect in Registry!
+  if AutoReconnect then
+  with TRegistry.Create do
   begin
-    with ( TRegistry.Create() )  do
-    begin
-      OpenKey( REGPATH, true );
-      WriteBool( 'AutoReconnect', true );
-      CloseKey();
-    end;
+    openkey(REGPATH, true);
+    WriteBool('AutoReconnect', true);
+    closekey();
   end;
 
-  // Set some defaults
+  // set some defaults
   ActualDatabase := '';
   ActualTable := '';
 
-  // Read engine-types for popupmenu in database tab
-  if ( mysql_version >= 40102 ) then
+  // read engine-types for popupmenu in database tab
+  if mysql_version >= 40102 then
   begin
-    for i := ( MenuChangeType.Count - 1 ) downto 0 do
-    begin
+    for i := MenuChangeType.Count-1 downto 0 do
       MenuChangeType.Delete(i);
-    end;
     GetResults( 'SHOW ENGINES', ZQuery3 );
-    for i := 0 to ( ZQuery3.RecordCount - 1 ) do
+    for i := 0 to ZQuery3.RecordCount  -1 do
     begin
       menuitem := TMenuItem.Create(self);
-      menuitem.Caption := ZQuery3.FieldByName('Engine').AsString;
-      menuitem.Hint := ZQuery3.FieldByName('Comment').AsString;
-      if ( UpperCase( ZQuery3.FieldByName('Support').AsString ) = 'NO' ) then
+      menuitem.Caption := ZQuery3.FieldByName('Engine').AsString ;
+      menuitem.Hint := ZQuery3.FieldByName('Comment').AsString ;
+      if Uppercase(ZQuery3.FieldByName('Support').AsString) = 'NO' then
       begin
         menuitem.Enabled := false;
         menuitem.Hint := menuitem.Hint + ' (Not supported on this server)';
       end;
       menuitem.OnClick := MenuChangeTypeClick;
-      MenuChangeType.Add( menuitem );
-      ZQuery3.Next();
+      MenuChangeType.Add(menuitem);
+      ZQuery3.Next;
     end;
   end;
-
-  // Define window properties
-  SetWindowConnected( true );
-  i := SetWindowName( Description );
+  CanAcessMysqlFlag := CanAcessMysql;
+  SetWindowConnected(true);
+  i := SetWindowName(Description);
   winName := Description;
-  if ( i <> 0 ) then
-  begin
-    winName := winName + Format( ' (%d)', [i] );
-  end;
+  if i <> 0 then winName := winName + Format(' (%d)', [i]);
   Application.Title := winName + ' - ' + APPNAME;
 
   // Reselect last used database
-  if ( ( MainForm.GetRegValue( 'RestoreLastUsedDB', true ) ) and ( lastUsedDB <> '' ) ) then
+  if MainForm.GetRegValue('RestoreLastUsedDB', true) and (lastUsedDB <> '') then
   begin
-    for j := 0 to ( DBTree.Items.Count - 1 ) do
+    for j:=0 to DBTree.Items.Count-1 do
     begin
       treenode := DBTree.Items[j];
-      if ( ( treenode.Level = 1 ) and ( treenode.Text = lastUsedDB ) ) then
+      if (treenode.Level = 1) and (treenode.Text = lastUsedDB ) then
       begin
         DBTree.Selected := treenode;
-        Break;
+        break;
       end;
     end;
   end;
 
   // Set the grid-cells to always-edit-mode if set in preferences
-  if ( Mainform.DataAlwaysEditMode ) then
+  if Mainform.DataAlwaysEditMode then
   begin
     gridData.Options := gridData.Options + [dgAlwaysShowEditor];
     gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
@@ -798,131 +742,92 @@ end;
 
 procedure TMDIChild.ReadWindowOptions;
 var
-  ws          : String;
-  i           : Integer;
-  menuitem    : Tmenuitem;
+  ws : String;
+  i : Integer;
+  menuitem : Tmenuitem;
 begin
-  with ( TRegistry.Create() ) do
+  with TRegistry.Create do
   begin
-    if OpenKey( REGPATH, true ) then
+    if OpenKey(REGPATH, true) then
     begin
-      ws := ReadString( 'childwinstate' );
-      if ( ws = 'Normal' ) then
+      ws := ReadString('childwinstate');
+      if mainform.MDIChildCount > 1 then
+        if mainform.MDIChildren[0].WindowState = wsNormal then
+          ws := '';
+      if ws = 'Normal' then
       begin
-        WindowState := wsNormal;
-        if ValueExists( 'childwinleft' ) then
+        windowstate := wsNormal;
+        if valueexists('childwinleft') then
         begin
-          Left := ReadInteger( 'childwinleft' );
-          Top := ReadInteger( 'childwintop' );
-          Width := ReadInteger( 'childwinwidth' );
-          Height := ReadInteger( 'childwinheight' );
+          left := ReadInteger('childwinleft');
+          top := ReadInteger('childwintop');
+          width := ReadInteger('childwinwidth');
+          height := ReadInteger('childwinheight');
         end;
-      end
-      else
-      if ( ws = 'Minimized' ) then
-      begin
-        WindowState := wsMinimized
-      end
-      else
-      if ( ws = 'Maximized' ) then
-      begin
-        WindowState := wsMaximized;
-      end;
+      end else
+      if ws = 'Minimized'
+        then windowstate := wsMinimized else
+      if ws = 'Maximized'
+        then windowstate := wsMaximized;
 
-      // Other values:
-      if ( ValueExists( 'querymemoheight' ) ) then
-      begin
+      // other values:
+      if valueExists('querymemoheight') then
         panel7.Height := ReadInteger('querymemoheight');
-      end;
-
-      if ( ValueExists( 'dbtreewidth' ) ) then
-      begin
-        DBtree.Width := ReadInteger( 'dbtreewidth' );
-      end;
-
-      if ( ValueExists( 'sqloutheight' ) ) then
-      begin
-        PageControlBottom.Height := ReadInteger( 'sqloutheight' );
-      end;
-
-      if ( ValueExists( 'DefaultColWidth' ) ) then
-      begin
-        Mainform.DefaultColWidth := ReadInteger( 'DefaultColWidth' );
-      end
+      if valueExists('dbtreewidth') then
+        dbtree.Width := ReadInteger('dbtreewidth');
+      if valueExists('sqloutheight') then
+        PageControlBottom.Height := ReadInteger('sqloutheight');
+      if valueExists('DefaultColWidth') then
+        Mainform.DefaultColWidth := ReadInteger('DefaultColWidth')
       else
-      begin
         Mainform.DefaultColWidth := 100;
-      end;
 
       // SQL-Font:
-      if ( ( ValueExists( 'FontName' ) ) and ( ValueExists('FontSize') ) ) then
-      begin
-        SynMemoQuery.Font.Name := ReadString( 'FontName' );
-        SynMemoSQLLog.Font.Name := ReadString( 'FontName' );
-        SynMemoQuery.Font.Size := ReadInteger( 'FontSize' );
-        SynMemoSQLLog.Font.Size := ReadInteger( 'FontSize' );
+      if (ValueExists('FontName')) and (ValueExists('FontSize')) then begin
+        SynMemoQuery.Font.Name := ReadString('FontName');
+        SynMemoSQLLog.Font.Name := ReadString('FontName');
+        SynMemoQuery.Font.Size := ReadInteger('FontSize');
+        SynMemoSQLLog.Font.Size := ReadInteger('FontSize');
       end;
 
       // Data-Font:
-      if ( ( ValueExists( 'DataFontName' ) ) and ( ValueExists( 'DataFontSize' ) ) ) then
-      begin
-        gridData.Font.Name := ReadString( 'DataFontName' );
-        gridQuery.Font.Name := ReadString( 'DataFontName' );
-        DBMemo1.Font.Name := ReadString( 'DataFontName' );
-        gridData.Font.Size := ReadInteger( 'DataFontSize' );
-        gridQuery.Font.Size := ReadInteger( 'DataFontSize' );
-        DBMemo1.Font.Size := ReadInteger( 'DataFontSize' );
+      if (ValueExists('DataFontName')) and (ValueExists('DataFontSize')) then begin
+        gridData.Font.Name := ReadString('DataFontName');
+        gridQuery.Font.Name := ReadString('DataFontName');
+        DBMemo1.Font.Name := ReadString('DataFontName');
+        gridData.Font.Size := ReadInteger('DataFontSize');
+        gridQuery.Font.Size := ReadInteger('DataFontSize');
+        DBMemo1.Font.Size := ReadInteger('DataFontSize');
       end;
 
-      // Color coding:
-      if ( ValueExists( 'SQLColKeyAttri' ) ) then
-      begin
-        SynSQLSyn1.KeyAttri.Foreground := StringToColor( ReadString( 'SQLColKeyAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColFunctionAttri' ) ) then
-      begin
-        SynSQLSyn1.FunctionAttri.Foreground := StringToColor( ReadString( 'SQLColFunctionAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColDataTypeAttri' ) ) then
-      begin
-        SynSQLSyn1.DataTypeAttri.Foreground := StringToColor( ReadString( 'SQLColDataTypeAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColNumberAttri' ) ) then
-      begin
-        SynSQLSyn1.NumberAttri.Foreground := StringToColor( ReadString( 'SQLColNumberAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColStringAttri' ) ) then
-      begin
-        SynSQLSyn1.StringAttri.Foreground := StringToColor( ReadString( 'SQLColStringAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColCommentAttri' ) ) then
-      begin
-        SynSQLSyn1.CommentAttri.Foreground := StringToColor( ReadString( 'SQLColCommentAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColTablenameAttri' ) ) then
-      begin
-        SynSQLSyn1.TablenameAttri.Foreground := StringToColor( ReadString( 'SQLColTablenameAttri' ) );
-      end;
+      // color coding:
+      if ValueExists('SQLColKeyAttri') then
+        SynSQLSyn1.KeyAttri.Foreground := StringToColor(ReadString('SQLColKeyAttri'));
+      if ValueExists('SQLColFunctionAttri') then
+        SynSQLSyn1.FunctionAttri.Foreground := StringToColor(ReadString('SQLColFunctionAttri'));
+      if ValueExists('SQLColDataTypeAttri') then
+        SynSQLSyn1.DataTypeAttri.Foreground := StringToColor(ReadString('SQLColDataTypeAttri'));
+      if ValueExists('SQLColNumberAttri') then
+        SynSQLSyn1.NumberAttri.Foreground := StringToColor(ReadString('SQLColNumberAttri'));
+      if ValueExists('SQLColStringAttri') then
+        SynSQLSyn1.StringAttri.Foreground := StringToColor(ReadString('SQLColStringAttri'));
+      if ValueExists('SQLColCommentAttri') then
+        SynSQLSyn1.CommentAttri.Foreground := StringToColor(ReadString('SQLColCommentAttri'));
+      if ValueExists('SQLColTablenameAttri') then
+        SynSQLSyn1.TablenameAttri.Foreground := StringToColor(ReadString('SQLColTablenameAttri'));
 
       // SQLFiles-History
-      FillPopupQueryLoad();
+      FillPopupQueryLoad;
 
       // SQL-Filter-Files-History
       i := 1;
-      popupFilterOpenFile.Items.Clear();
-      while ( ValueExists( 'SQLWhereFile' + IntToStr(i) ) ) do
-      begin
-        menuitem := Tmenuitem.Create(Self);
-        menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + ReadString( 'SQLWhereFile' + IntToStr(i) );
+      popupFilterOpenFile.Items.Clear;
+      while ValueExists('SQLWhereFile'+inttostr(i)) do begin
+        menuitem := Tmenuitem.Create(self);
+        menuitem.Caption := inttostr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString('SQLWhereFile'+inttostr(i));
         menuitem.OnClick := LoadSQLWhereFile;
-        popupFilterOpenFile.Items.Add( menuitem );
-        inc( i );
+        popupFilterOpenFile.Items.Add(menuitem);
+        inc(i);
       end;
 
       // Synchronize internal variables with defaults from DFM.
@@ -930,203 +835,172 @@ begin
 
       // Open server-specific registry-folder.
       // relative from already opened folder!
-      OpenKey( 'Servers\' + FConn.Description, true );
+      OpenKey( 'Servers\' + FConnParams.Description, true );
 
       // Set last used database, select it later in Init
       lastUsedDB := ReadString( 'lastUsedDB' );
+
     end;
-    CloseKey();
+    CloseKey;
   end;
 end;
 
 
 procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
-  ws    : String;
+  ws : String;
 begin
-  SetWindowConnected( false );
-  SetWindowName( main.discname );
+  SetWindowConnected(false);
+  SetWindowName(main.discname);
   Application.Title := APPNAME;
+  // closing connection and saving some vars into registry
+  if windowstate = wsNormal then
+    ws := 'Normal' else
+  if windowstate = wsMinimized
+    then ws := 'Minimized' else
+  if windowstate = wsMaximized
+    then ws := 'Maximized';
 
-  // Closing connection and saving some vars into registry
-  case ( WindowState ) of
-    wsNormal :
-    begin
-      ws := 'Normal';
-    end;
-    wsMinimized :
-    begin
-      ws := 'Minimized';
-    end;
-    wsMaximized :
-    begin
-      ws := 'Maximized';
-    end;
-  end;
-
-  with ( TRegistry.Create() ) do
+  with TRegistry.Create do
   begin
-    if ( OpenKey( REGPATH, true ) ) then
+    if OpenKey(REGPATH, true) then
     begin
-      // Window state and position
-      WriteString( 'childwinstate', ws );
-      WriteInteger( 'childwinleft', left );
-      WriteInteger( 'childwintop', top );
-      WriteInteger( 'childwinwidth', width );
-      WriteInteger( 'childwinheight', height );
+      WriteString('childwinstate', ws);
+      WriteInteger('childwinleft', left);
+      WriteInteger('childwintop', top);
+      WriteInteger('childwinwidth', width);
+      WriteInteger('childwinheight', height);
 
-      WriteInteger( 'querymemoheight', panel7.Height );
-      WriteInteger( 'dbtreewidth', dbtree.width );
-      WriteInteger( 'sqloutheight', PageControlBottom.Height );
+      WriteInteger('querymemoheight', panel7.Height);
+      WriteInteger('dbtreewidth', dbtree.width);
+      WriteInteger('sqloutheight', PageControlBottom.Height);
 
       // Open server-specific registry-folder.
       // relative from already opened folder!
-      OpenKey( 'Servers\' + FConn.Description, true );
-      WriteString( 'lastUsedDB', ActualDatabase );
+      OpenKey( 'Servers\' + FConnParams.Description, true );
+      WriteString('lastUsedDB', ActualDatabase);
     end;
   end;
-
-  FormDeactivate( Sender );
-  mainform.ToolBarData.Visible := false;
+  FormDeactivate(sender);
+  mainform.ToolBarData.visible := false;
   Action := caFree;
-
-  SetWindowConnected( false );
-  SetWindowName( main.discname );
+  SetWindowConnected(false);
+  SetWindowName(main.discname);
   Application.Title := APPNAME;
 end;
 
 
-procedure TMDIChild.LogSQL(msg: String = ''; comment: Boolean = true);
+procedure TMDIChild.LogSQL(msg: string = ''; comment: Boolean = true);
 begin
-  // Add a sql-command or info-line to history-memo
-  while ( SynMemoSQLLog.Lines.Count > mainform.logsqlnum ) do
+  // add a sql-command or info-line to history-memo
+  while SynMemoSQLLog.Lines.Count > mainform.logsqlnum do
   begin
     SynMemoSQLLog.Lines.Delete(0);
   end;
-
   // Shorten very long messages
-  if ( Length( msg ) > SQLLOG_CHAR_LIMIT ) then
+  if Length( msg ) > sqllog_char_limit then
   begin
     msg :=
       '/* Very large SQL query, showing first ' +
-      FormatNumber( SQLLOG_CHAR_LIMIT ) +
+      FormatNumber(sqllog_char_limit) +
       ' characters: */ ' +
-      Copy( msg, 0, SQLLOG_CHAR_LIMIT ) +
+      Copy(msg, 0, sqllog_char_limit) +
       ' ...';
   end;
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #13, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, '  ', ' ', [rfReplaceAll] );
-  if ( comment ) then
-  begin
+  if comment then
     msg := '/* ' + msg + ' */';
-  end;
-  SynMemoSQLLog.Lines.Add( msg );
-  SynMemoSQLLog.SetBookMark( 0, 0, SynMemoSQLLog.Lines.Count );
-  SynMemoSQLLog.GotoBookMark( 0 );
-  SynMemoSQLLog.ClearBookMark( 0 );
-  SynMemoSQLLog.Repaint();
+  SynMemoSQLLog.Lines.Add(msg);
+  SynMemoSQLLog.SetBookMark(0,0,SynMemoSQLLog.Lines.Count);
+  SynMemoSQLLog.GotoBookMark(0);
+  SynMemoSQLLog.ClearBookMark(0);
+  SynMemoSQLLog.Repaint;
 end;
 
 
 procedure TMDIChild.ReadDatabasesAndTables(Sender: TObject);
 var
-  tnode          : TTreeNode;
-  tmpSelected    : TTreeNode;
-  i              : Integer;
-  specialDbs     : TStringList;
-  dbName         : String;
+  tnode, tchild, tmpSelected: TTreeNode;
+  i, j : Integer;
+  specialDbs: TStringList;
+  dbName : string;
 begin
   // Fill DBTree
   Screen.Cursor := crHourGlass;
   dataselected := false;
   DBTree.OnChange := nil;
-  DBTree.items.Clear();
+  DBTree.items.Clear;
 
-  tnodehost := DBtree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
+  tnodehost := DBtree.Items.Add(nil, FConnParams.MysqlParams.User + '@' + FConnParams.MysqlParams.Host);  // Host or Root
   tnodehost.ImageIndex := 41;
   tnodehost.SelectedIndex := 41;
 
   Screen.Cursor := crSQLWait;
-  mainform.Showstatus( 'Reading Databases...', 2, true );
-  if ( OnlyDBs.Count = 0 ) then
+  mainform.Showstatus('Reading Databases...', 2, true);
+  if OnlyDBs.Count = 0 then
   begin
-    OnlyDBs2 := TStringList.Create();
-    specialDbs := TStringList.Create();
+    OnlyDBs2 := TStringList.Create;
+    specialDbs := TStringList.Create;
     GetResults( 'SHOW DATABASES', ZQuery3 );
-    for i:=1 to ( ZQuery3.RecordCount ) do
+    for i:=1 to ZQuery3.RecordCount do
     begin
       dbName := ZQuery3.FieldByName('Database').AsString;
-      if ( dbName = DBNAME_INFORMATION_SCHEMA ) then
-      begin
-        specialDbs.Insert( 0, dbName )
-      end
-      (*
-      else
-      if ( dbName = DBNAME_MYSQL ) then
-      begin
-        specialDbs.Add( dbName );
-      end
-      *)
-      else
-      begin
-        OnlyDBs2.Add( dbName );
-      end;
-      ZQuery3.Next();
+      if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert(0, dbName)
+      //else if dbName = DBNAME_MYSQL then specialDbs.Add(dbName)
+      else OnlyDBs2.Add(dbName);
+      ZQuery3.Next;
     end;
-    OnlyDBs2.Sort();
+    OnlyDBs2.sort;
     // Prioritised position of system-databases
-    for i := ( specialDbs.Count - 1 ) downto 0 do
-    begin
-      OnlyDBs2.Insert( 0, specialDbs[i] );
-    end;
-  end
-  else
-  begin
-    OnlyDBs2 := OnlyDBs;
-  end;
+    for i := specialDbs.Count -1 downto 0 do OnlyDBs2.Insert(0, specialDbs[i]);
+  end else OnlyDBs2 := OnlyDBs;
 
   // Avoids excessive InitializeKeywordLists() calls.
-  SynSQLSyn1.TableNames.BeginUpdate();
+  SynSQLSyn1.TableNames.BeginUpdate;
 
   // Let synedit know all database names so that they can be highlighted
   // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
-  SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
-  SynSQLSyn1.TableNames.EndUpdate();
+  SynSQLSyn1.TableNames.AddStrings(OnlyDBs2);
 
-  if ( ( OnlyDBs.Count = 0 ) and ( OnlyDBs2.Count > 50 ) ) then
-  begin
-    SelectFromManyDatabasesWindow( Self, OnlyDBs2 );
-  end;
+  if (OnlyDBs.Count = 0) and (OnlyDBs2.Count > 50) then
+    SelectFromManyDatabasesWindow (Self,OnlyDBs2);
 
   // List Databases and Tables-Names
   tmpSelected := nil;
-  for i := 0 to ( OnlyDBs2.Count - 1 ) do
+  for i:=0 to OnlyDBs2.Count-1 do
   begin
-    tnode := DBtree.Items.AddChild( tnodehost, OnlyDBs2[i] );
+    GetResults( 'SHOW TABLES FROM ' + mask(OnlyDBs2[i]), ZQuery3, true, false );
+    if not ZQuery3.Active then continue;
+    tnode := DBtree.Items.AddChild(tnodehost, OnlyDBs2[i]);
     tnode.ImageIndex := 37;
     tnode.SelectedIndex := 38;
-    // Add dummy-node, will be replaced by real tables on expanding
-    DBTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
-    if ( ActualDatabase = OnlyDBs2[i] ) then
-    begin
-      tmpSelected := tnode;
+    if ActualDatabase = OnlyDBs2[i] then tmpSelected := tnode;
+    for j:=1 to ZQuery3.RecordCount do begin
+      tchild := DBtree.Items.AddChild( tnode, ZQuery3.Fields[0].AsString );
+      tchild.ImageIndex := 39;
+      tchild.SelectedIndex := 40;
+      if
+        (tmpSelected <> nil) and
+        (tmpSelected.Text = OnlyDBs2[i]) and
+        (ActualTable = ZQuery3.Fields[0].AsString) then
+        tmpSelected := tchild;
+      SynSQLSyn1.TableNames.Add(ZQuery3.Fields[0].AsString);
+      ZQuery3.Next;
     end;
   end;
+  SynSQLSyn1.TableNames.EndUpdate;
 
-  mainform.showstatus( IntToStr( OnlyDBs2.Count ) + ' Databases' );
-  tnodehost.Expand( false );
+  mainform.showstatus(inttostr(OnlyDBs2.count) + ' Databases');
+  tnodehost.Expand(false);
   DBTree.OnChange := DBtreeChange;
-  if ( tmpSelected <> nil ) then
-  begin
-    DBTree.Selected := tmpSelected;
-  end
+  if tmpSelected <> nil then
+    DBTree.Selected := tmpSelected
   else
-  begin
     DBTree.Selected := tnodehost;
-  end;
-  DBtreeChange( Self, tnodehost );
+  DBtreeChange(self, tnodehost);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
@@ -1137,12 +1011,11 @@ begin
   tabDatabase.TabVisible := false;
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
-  if (
-   ( not DBTree.Dragging ) or
-   ( PageControlMain.ActivePage = tabDatabase ) or
-   ( PageControlMain.ActivePage = tabTable ) or
-   ( PageControlMain.ActivePage = tabData )
-  ) then
+  if
+   (not DBTree.Dragging) or
+   (PageControlMain.ActivePage = tabDatabase) or
+   (PageControlMain.ActivePage = tabTable) or
+   (PageControlMain.ActivePage = tabData) then
   begin
     PageControlMain.ActivePage := tabHost;
   end;
@@ -1151,499 +1024,351 @@ begin
   ActualTable := '';
 end;
 
-
-procedure TMDIChild.SelectDatabase(db: String);
+procedure TMDIChild.SelectDatabase(db: string);
 begin
   tabDatabase.TabVisible := true;
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
-  if (
-   ( not DBTree.Dragging ) or
-   ( PageControlMain.ActivePage = tabTable ) or
-   ( PageControlMain.ActivePage = tabData )
-  ) then
+  if
+   (not DBTree.Dragging) or
+   (PageControlMain.ActivePage = tabTable) or
+   (PageControlMain.ActivePage = tabData) then
   begin
     PageControlMain.ActivePage := tabDatabase;
   end;
-  ListTables.Items.Clear();
-  ListColumns.Items.Clear();
+  ListTables.Items.Clear;
+  ListColumns.Items.Clear;
   Panel3.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
   try
-    ShowDBProperties( Self );
+    ShowDBProperties(self);
   except
     // Clear selection which we couldn't satisfy.
-    if ( DBtree.Items.Count < 1 ) then
-    begin
-      DBtree.Selected := nil
-    end
-    else
-    begin
-      DBtree.Selected := DBtree.Items[0];
-    end;
+    if DBtree.Items.Count < 1 then DBtree.Selected := nil
+    else DBtree.Selected := DBtree.Items[0];
   end;
   ActualTable := '';
 end;
 
-
-procedure TMDIChild.SelectTable(db: String; table: String);
+procedure TMDIChild.SelectTable(db: string; table: string);
 begin
-  if ( ActualDatabase <> db ) then
-  begin
-    SelectDatabase( db );
-  end;
+  if ActualDatabase <> db then SelectDatabase(db);
   tabDatabase.TabVisible := true;
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
   dataselected := false;
   ActualTable := table;
-  ShowTableProperties( Self );
+  ShowTableProperties(self);
   Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
 end;
 
-// React on dbtree-clicks
+// react on dbtree-clicks
 procedure TMDIChild.DBtreeChange(Sender: TObject; Node: TTreeNode);
 begin
-  if ( Node = nil ) then
-  begin
-    raise Exception.Create( 'Internal badness: No host node in object tree.' );
-  end;
+  if Node = nil then raise Exception.Create('Internal badness: No host node in object tree.');
   Screen.Cursor := crHourGlass;
 
-  case ( Node.Level ) of
-    0 :                                    // Root / Host chosen
-    begin
-      SelectHost();
+  case Node.Level of
+    0 : begin                                   // Root / Host chosen
+      SelectHost;
     end;
-    1 :                                    // DB chosen
-    begin
-      SelectDatabase( Node.Text );
+    1 : begin                                   // DB chosen
+      SelectDatabase(Node.Text);
     end;
-    2 :                                    // Table chosen
-    begin
-      SelectTable( Node.Parent.Text, Node.Text );
+    2 : begin                                   // Table chosen
+      SelectTable(Node.Parent.Text, Node.Text);
     end;
   end;
 
-  pcChange( Self );
+  pcChange(self);
   Screen.Cursor := crDefault;
-end;
-
-
-{***
-  A database-node is about to be expanded:
-  Drop the dummy-node and add all tables
-}
-procedure TMDIChild.DBtreeExpanding(Sender: TObject; Node: TTreeNode;
-  var AllowExpansion: Boolean);
-var
-  i             : Integer;
-  TableNames    : TStringList;
-begin
-  if ( ( Node.getFirstChild <> nil ) and ( Node.getFirstChild.Text = DUMMY_NODE_TEXT ) ) then
-  begin
-    // Drop dummynode
-    for i := ( Node.Count - 1 ) downto 0 do
-    begin
-      Node.Item[i].Delete();
-    end;
-
-    // Get all tables into dbtree
-    TableNames := GetCol( 'SHOW TABLES FROM ' + mask( Node.Text ) );
-    for i := 0 to ( TableNames.Count - 1 ) do
-    begin
-      with ( DBTree.Items.AddChild( Node, TableNames[i] ) ) do
-      begin
-        ImageIndex := 39;
-        SelectedIndex := 40;
-      end;
-    end;
-
-    // Add tables to syntax-highlighter
-    AddUniqueItemsToList( TableNames, SynSQLSyn1.TableNames );
-  end;
 end;
 
 
 procedure TMDIChild.viewdata(Sender: TObject);
 var
-  sorting              : String;
-  DropDown             : TStringList;
-  i                    : Integer;
-  j                    : Integer;
-  Columns              : TStringList;
-  PrimaryKeyColumns    : TStringList;
-  reg                  : TRegistry;
-  reg_value            : String;
-  orderclauses         : TStringList;
-  columnname           : String;
-  columnexists         : Boolean;
-  select_base          : String;
-  limit                : Int64;
-  mq                   : TMysqlQuery;
-  conn                 : TOpenConnProf;
-  sl_query             : TStringList;
-  manualLimit          : boolean;
-  manualLimitEnd       : integer;
-  DisplayedColumnsList : TStringList;
+  sorting                  : String;
+  DropDown                 : TStringList;
+  i, j                     : Integer;
+  Columns,
+  PrimaryKeyColumns        : TStringList;
+  reg                      : TRegistry;
+  reg_value                : String;
+  orderclauses             : TStringList;
+  columnname               : String;
+  columnexists             : Boolean;
+  select_base              : String;
+  limit                    : Int64;
+  mq : TMysqlQuery;
+  conn_params : TConnParams;
+  sl_query : TStringList;
 begin
   viewingdata := true;
   try
-    sl_query := TStringList.Create();
 
-    // limit number of rows automatically if first time this table is shown
-    if ( not dataselected ) then begin
-      manualLimit := false;
-      manualLimitEnd := -1;
-      with TRegistry.Create do begin
-        if OpenKey(REGPATH, true) then begin
-          if Valueexists('DataLimitEnd') then begin
-            manualLimitEnd := ReadInteger('DataLimitEnd');
-            if Valueexists('DataLimit') then manualLimit := ReadBool('DataLimit');
-          end;
-        end;
-      end;
+  sl_query := TStringList.Create();
 
-      // limit number of rows fetched according to preferences
-      if manualLimit then begin
-        // manual limit set in preferences
-        limit := manualLimitEnd;
-      end else begin
-        // no tick in preferences check box - auto-limit:
-        // limit number of rows fetched if more than ~ 5 MB of data
-        limit := GetCalculatedLimit( ActualTable );
-      end;
+  // limit number of rows automatically if first time this table is shown
+  if not dataselected then
+  begin
+    // limit number of rows fetched if more than ~ 5 MB of data
+    limit := GetCalculatedLimit( ActualTable );
 
-      // adjust limit in GUI
-      mainform.ToolBarData.Visible := true;
-      if ( limit = -1 ) then
-      begin
-        mainform.CheckBoxLimit.Checked := false;
-      end
-      else
-      begin
-        mainform.CheckBoxLimit.Checked := true;
-        mainform.EditLimitStart.Text := '0';
-        mainform.EditLimitEnd.Text := IntToStr( limit );
-      end;
-      mainform.Repaint();
+    // adjust limit in GUI
+    mainform.ToolBarData.Visible := true;
+    if limit = -1 then begin
+      mainform.CheckBoxLimit.Checked := false;
+    end else begin
+      mainform.CheckBoxLimit.Checked := true;
+      mainform.EditLimitStart.Text := '0';
+      mainform.EditLimitEnd.Text := IntToStr(limit);
     end;
+    mainform.Repaint;
+  end;
 
-    // set db-aware-component's properties...
-    DBMemo1.DataField := '';
-    DBMemo1.DataSource := DataSource1;
-    EDBImage1.DataField := '';
-    EDBImage1.DataSource := DataSource1;
+  // set db-aware-component's properties...
+  DBMemo1.DataField := '';
+  DBMemo1.DataSource := DataSource1;
+  EDBImage1.DataField := '';
+  EDBImage1.DataSource := DataSource1;
 
-    reg := TRegistry.Create();
-    reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
+  reg := TRegistry.Create;
+  reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
 
-    if ( not dataselected ) then
+  if not dataselected then
+  begin
+    SynMemoFilter.Text := '';
+    gridData.SortColumns.Clear;
+    // Read cached WHERE-clause and set filter
+    reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
+    if reg.ValueExists( reg_value ) then
     begin
-      SynMemoFilter.Text := '';
-      gridData.SortColumns.Clear();
-      // Read cached WHERE-clause and set filter
-      reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
-      if ( reg.ValueExists( reg_value ) ) then
-      begin
-        SynMemoFilter.Text := reg.ReadString( reg_value );
-        // Ensure the user can see its previous specified filter
-        // in case of an SQL-error, it's important that he can delete it
-        tabFilter.tabVisible := true;
-        PageControlBottom.ActivePage := tabFilter;
-      end;
-      // Read cached ORDER-clause and set Grid.Sortcolumns
-      reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
-      if ( reg.ValueExists( reg_value ) ) then
-      begin
-        orderclauses := explode( ',', reg.ReadString( reg_value ) );
-        for i := 0 to ( orderclauses.Count - 1 ) do
-        begin
-          columnname := Trim( Copy( orderclauses[i], 0, Pos( ' ', orderclauses[i] ) ) );
-          columnname := trimc( columnname, '`' );
-          columnexists := false;
-
-          for j := 0 to ( ListColumns.Items.Count - 1 ) do
-          begin
-            if ( ListColumns.Items[j].Caption = columnname ) then
-            begin
-              columnexists := true;
-              Break;
-            end;
-          end;
-
-          if ( not columnexists ) then
-          begin
-            LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
-              'because the column "' + columnname + '" does not exist!');
-            Continue;
-          end;
-
-          with ( gridData.SortColumns.Add() ) do
-          begin
-            Fieldname := columnname;
-            if ( Copy( orderclauses[i], ( Length( orderclauses[i] ) - 3 ), 4 ) = 'DESC' ) then
-            begin
-              SortType := stAscending;
-            end
-            else
-            begin
-              SortType := stDescending;
-            end;
-          end;
-        end;
-      end;
+      SynMemoFilter.Text := reg.ReadString( reg_value );
+      // Ensure the user can see its previous specified filter
+      // in case of an SQL-error, it's important that he can delete it
+      tabFilter.tabVisible := true;
+      PageControlBottom.ActivePage := tabFilter;
     end;
-
-    sorting := '';
-    for i := 0 to ( gridData.SortColumns.Count - 1 ) do
-    begin
-      with ( gridData.SortColumns[i] ) do
-      begin
-        if ( SortType <> stNone ) then
-        begin
-          if ( sorting <> '' ) then
-          begin
-            sorting := sorting + ', ';
-          end;
-          sorting := sorting + mask( FieldName );
-        end;
-
-        case SortType of
-          // stNone: ;
-          stAscending :
-          begin
-            sorting := sorting + ' DESC';
-          end;
-          stDescending:
-          begin
-            sorting := sorting + ' ASC';
-          end;
-        end;
-      end;
-    end;
-
+    // Read cached ORDER-clause and set Grid.Sortcolumns
     reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
-    if ( sorting <> '' ) then
+    if reg.ValueExists( reg_value ) then
     begin
-      reg.WriteString( reg_value, sorting );
-      sorting := 'ORDER BY ' + sorting;
-    end
-    else
-    if ( reg.ValueExists( reg_value ) ) then
-    begin
-      reg.DeleteValue( reg_value );
-    end;
-
-    MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
-    Columns := TStringList.Create();
-    PrimaryKeyColumns := TStringList.Create();
-
-    if ( ( ActualTable <> '' ) and ( ActualDatabase <> '' ) ) then
-    begin
-      // Ensure <Table> and <Data> are visible
-      tabTable.TabVisible := true;
-      tabData.TabVisible := true;
-      // Switch to <Data>
-      PageControlMain.ActivePage := tabData;
-
-      MainForm.ShowStatus( 'Retrieving data...', 2, true );
-
-      if ( FCurDataset <> nil ) then
+      orderclauses := explode( ',', reg.ReadString( reg_value ) );
+      for i:=0 to orderclauses.Count-1 do
       begin
-        FreeAndNil( FCurDataset );
-      end;
-
-      // Read columns to display from registry
-      with( TRegistry.Create ) do
-      begin
-        OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
-        DisplayedColumnsList := explode( '`', ReadString(REGNAME_DISPLAYEDCOLUMNS + '_' + ActualDatabase + '.' + ActualTable));
-      end;
-
-      // Prepare SELECT statement
-      select_base := 'SELECT ';
-      // Try to calc the rowcount regardless of a given LIMIT
-      // Only needed if the user specified a WHERE-clause
-      if (
-        ( mysql_version >= 40000 ) and
-        ( Trim( Self.SynMemoFilter.Text ) <> '' )
-      ) then
-      begin
-        select_base := select_base + ' SQL_CALC_FOUND_ROWS';
-      end;
-      // Selected columns
-      if DisplayedColumnsList.Count = 0 then
-      begin
-        select_base := select_base + ' *';
-        btnColumnSelection.Font.Color := clBtnText;
-      end
-      else
-      begin
-        for i := 0 to DisplayedColumnsList.Count - 1 do
+        columnname := trim( copy( orderclauses[i], 0, pos( ' ', orderclauses[i] ) ) );
+        columnexists := false;
+        for j:=0 to ListColumns.Items.Count-1 do
         begin
-          select_base := select_base + ' ' + mask(DisplayedColumnsList[i]) + ',';
+          if ListColumns.Items[j].Caption = columnname then
+          begin
+            columnexists := true;
+            break;
+          end;
         end;
-        // Cut last comma
-        select_base := copy( select_base, 1, Length(select_base)-1 );
-        // Signal for the user that we now hide some fields
-        btnColumnSelection.Font.Color := clRed;
+        if not columnexists then
+        begin
+          logsql('Notice: A stored ORDER-BY clause could not be applied, because the column "' + columnname + '" does not exist!');
+          continue;
+        end;
+        with gridData.SortColumns.Add do
+        begin
+          Fieldname := columnname;
+          if copy( orderclauses[i], length(orderclauses[i])-3, 4 ) = 'DESC' then
+            SortType := stAscending
+          else
+            SortType := stDescending;
+        end;
       end;
-      select_base := select_base + ' FROM ' + mask( ActualTable );
-      sl_query.Add( select_base );
-      // Apply custom WHERE filter
-      if ( Trim( Self.SynMemoFilter.Text ) <> '' ) then
-      begin
-        sl_query.Add( 'WHERE ' + Trim( Self.SynMemoFilter.Text ) );
+    end;
+  end;
+
+  sorting := '';
+  for i:=0 to gridData.SortColumns.Count-1 do
+  begin
+    with gridData.SortColumns[i] do
+    begin
+      if SortType <> stNone then begin
+        if sorting <> '' then
+          sorting := sorting + ', ';
+        sorting := sorting + mask(FieldName);
       end;
-      // Apply custom ORDER BY if detected in registry
-      if ( sorting <> '' ) then
-      begin
-        sl_query.Add( sorting );
-      end;
-      // Apply LIMIT
-      if ( mainform.CheckBoxLimit.Checked ) then
-      begin
-        sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
-      end;
+      if SortType = stAscending then
+        sorting := sorting + ' DESC'
+      else if SortType = stDescending then
+        sorting := sorting + ' ASC';
+    end;
+  end;
+  reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+  if sorting <> '' then
+  begin
+    reg.WriteString( reg_value, sorting );
+    sorting := 'ORDER BY ' + sorting;
+  end
+  else if reg.ValueExists( reg_value ) then
+    reg.DeleteValue( reg_value );
+
+  MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
+  Columns := TStringList.Create;
+  PrimaryKeyColumns := TStringList.Create;
+
+  if (ActualTable <> '') and (ActualDatabase <> '') then
+  begin
+    // Ensure <Table> and <Data> are visible
+    tabTable.TabVisible := true;
+    tabData.TabVisible := true;
+    // Switch to <Data>
+    PageControlMain.ActivePage := tabData;
+
+		MainForm.ShowStatus( 'Retrieving data...', 2, true );
+
+    if FCurDataset<>nil then
+      FreeAndNil (FCurDataset);
+
+    // Prepare SELECT statement
+    select_base := 'SELECT ';
+    // Try to calc the rowcount regardless of a given LIMIT
+    // Only needed if the user specified a WHERE-clause
+    if (mysql_version >= 40000)
+      and (trim(self.SynMemoFilter.Text) <> '')
+      then
+      select_base := select_base + ' SQL_CALC_FOUND_ROWS';
+    select_base := select_base + ' * FROM ' + mask(ActualTable);
+    sl_query.Add( select_base );
+    // Apply custom WHERE filter
+    if trim(self.SynMemoFilter.Text) <> '' then
+      sl_query.Add( 'WHERE ' + trim(self.SynMemoFilter.Text) );
+    // Apply custom ORDER BY if detected in registry
+    if sorting <> '' then
+      sl_query.Add( sorting );
+    // Apply LIMIT
+    if mainform.CheckBoxLimit.Checked then
+      sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
+    try
+      conn_params := FConnParams;
+      conn_params.MysqlParams.Database := ActualDatabase;
+
+      // Avoid excessive GUI updates.
+      if DataSource1.DataSet <> nil then DataSource1.DataSet.DisableControls;
+
+      // free previous resultset
       try
-        conn := FConn;
-        conn.MysqlParams.Database := ActualDatabase;
-
-        // Avoid excessive GUI updates.
-        if ( DataSource1.DataSet <> nil ) then
-        begin
-          DataSource1.DataSet.DisableControls();
-        end;
-
-        // free previous resultset
-        try
-          DataSource1.DataSet.Free;
-          DataSource1.DataSet := nil;
-        except
-        end;
-
-        // start query (with wait dialog)
-        SynMemoFilter.Color := clWindow;
-        debug( 'viewdata(): Launching asynchronous query.' );
-        mq := RunThreadedQuery( sl_query.Text );
-
-        // Re-create exception.....
-        if ( mq.Result <> MQR_SUCCESS ) then
-        begin
-          raise Exception.Create( mq.Comment );
-        end;
-
-        MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
-        mq.MysqlDataset.DisableControls();
-        DataSource1.DataSet := mq.MysqlDataset;
-        FCurDataset := mq.MysqlDataset;
-
-        // Attach After- and Before-Events to the new dataset
-        with ( mq.MysqlDataset ) do
-        begin
-          AfterPost := ZQueryGridAfterPost;
-          AfterDelete := ZQueryGridAfterPost;
-          BeforeClose := ZQueryGridBeforeClose;
-          BeforeOpen := ZQueryBeforeSendingSQL;
-          BeforePost := ZQueryBeforeSendingSQL;
-        end;
+        DataSource1.DataSet.Free;
+        DataSource1.DataSet := nil;
       except
-        on E:Exception do
-        begin
-          // Most likely we have a wrong filter-clause when this happens
-          LogSQL( E.Message, True );
-          // Put the user with his nose onto the wrong filter he specified
-          if ( SynMemoFilter.CanFocus ) then
-          begin
-            SynMemoFilter.SetFocus();
-          end;
-          SynMemoFilter.Color := $008080FF; // light pink
-          MessageDlg( E.Message, mtError, [mbOK], 0 );
-          MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-          Screen.Cursor := crDefault;
-          Exit;
-        end;
       end;
 
-      MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+      // start query (with wait dialog)
+      SynMemoFilter.Color := clWindow;
+      debug('viewdata(): Launching asynchronous query.');
+      mq := RunThreadedQuery(sl_query.Text);
 
-      for i := 0 to ( ListColumns.Items.Count - 1 ) do
+      // Re-create exception.....
+      if mq.Result <> MQR_SUCCESS then raise Exception.Create(mq.Comment);
+
+      MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
+      mq.MysqlDataset.DisableControls;
+      DataSource1.DataSet := mq.MysqlDataset;
+      FCurDataset := mq.MysqlDataset;
+
+      // Attach After- and Before-Events to the new dataset
+      with mq.MysqlDataset do
       begin
-        Columns.Add( ListColumns.Items[i].Caption );
-
-        // give all enum-fields a PickList with its Items
-        if ( StrCmpBegin( 'enum', ListColumns.Items[i].SubItems[0]) ) then
-        begin
-          DropDown := explode( ''', ''', getEnumValues( ListColumns.Items[i].SubItems[0] ) );
-          for j := 0 to ( DropDown.Count - 1 ) do
-          begin
-            DropDown[j] := trimc( DropDown[j], '''' );
-          end;
-
-          for j := 0 to ( gridData.Columns.Count - 1 ) do
-          begin
-            if ( gridData.Columns[j].FieldName = ListColumns.Items[i].Caption ) then
-            begin
-              gridData.Columns[j].PickList := DropDown;
-            end;
-          end;
-        end;
-
-        // make PK-columns = fsBold
-        for j := 0 to ( gridData.Columns.Count - 1 ) do
-        begin
-          if (
-            ( gridData.Columns[j].FieldName = ListColumns.Items[i].Caption ) and
-            ( ListColumns.Items[i].ImageIndex = 26 )
-          ) then
-          begin
-            PrimaryKeyColumns.Add( ListColumns.Items[i].Caption );
-          end;
-        end;
+        AfterPost := ZQueryGridAfterPost;
+        AfterDelete := ZQueryGridAfterPost;
+        BeforeClose := ZQueryGridBeforeClose;
+        BeforeOpen := ZQueryBeforeSendingSQL;
+        BeforePost := ZQueryBeforeSendingSQL;
       end;
 
-      for j := 0 to ( gridData.Columns.Count - 1 ) do
+    except
+      on E:Exception do
       begin
-        // for letting NULLs being inserted into "NOT NULL" fields
-        // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
-        // so the Required-check on client-side is not needed at any time
-        FCurDataset.Fields[j].Required := false;
-
-        // set column-width
-        if (
-          (Mainform.DefaultColWidth <> 0) and
-          (gridData.Columns[j].Width > Mainform.DefaultColWidth)
-        ) then
-        begin
-          gridData.Columns[j].Width := Mainform.DefaultColWidth;
-        end;
-
-        // make PK-columns = fsBold
-        for i := 0 to ( PrimaryKeyColumns.Count - 1 ) do
-        begin
-          if (PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname) then
-          begin
-            gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
-            gridData.Columns[j].Color := $02EEEEEE;
-          end;
-        end;
+        // Most likely we have a wrong filter-clause when this happens
+        LogSql( E.Message, True );
+        // Put the user with his nose onto the wrong filter he specified
+        if SynMemoFilter.CanFocus then SynMemoFilter.SetFocus;
+        SynMemoFilter.Color := $008080FF; // light pink
+        MessageDlg( E.Message, mtError, [mbOK], 0 );
+        MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+        Screen.Cursor := crDefault;
+        exit;
       end;
-
-      DisplayRowCountStats();
-      dataselected := true;
-      viewingdata := false;
-      mq.MysqlDataset.EnableControls();
-      pcChange(self);
     end;
 
-    Screen.Cursor := crDefault;
-    FreeAndNil (sl_query);
+ 		MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+
+    for i:=0 to ListColumns.Items.Count-1 do
+    begin
+      Columns.Add( ListColumns.Items[i].Caption );
+
+      // give all enum-fields a PickList with its Items
+      if StrCmpBegin('enum', ListColumns.Items[i].SubItems[0]) then
+      begin
+        DropDown := explode(''',''', getEnumValues(ListColumns.Items[i].SubItems[0]));
+        for j:=0 to DropDown.count-1 do
+        begin
+          DropDown[j] := trimc(DropDown[j], '''');
+        end;
+        for j:=0 to gridData.Columns.count-1 do
+        begin
+          if gridData.Columns[j].FieldName = ListColumns.Items[i].Caption then
+            gridData.Columns[j].PickList := DropDown;
+        end;
+      end;
+
+      // make PK-columns = fsBold
+      for j:=0 to gridData.Columns.count-1 do
+      begin
+        if (gridData.Columns[j].FieldName = ListColumns.Items[i].Caption) and
+          (ListColumns.Items[i].ImageIndex = 26) then
+        begin
+          PrimaryKeyColumns.Add( ListColumns.Items[i].Caption );
+        end;
+      end;
+
+    end;
+
+    for j:=0 to gridData.Columns.count-1 do
+    begin
+      // for letting NULLs being inserted into "NOT NULL" fields
+      // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
+      // so the Required-check on client-side is not needed at any time
+      FCurDataset.Fields[j].Required := false;
+
+      // set column-width
+      if (Mainform.DefaultColWidth <> 0) and (gridData.Columns[j].Width > Mainform.DefaultColWidth) then
+      begin
+        gridData.Columns[j].Width := Mainform.DefaultColWidth;
+      end;
+
+      // make PK-columns = fsBold
+      for i:=0 to PrimaryKeyColumns.Count-1 do
+      begin
+        if (PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname) then
+        begin
+          gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
+          gridData.Columns[j].Color := $02EEEEEE;
+        end;
+      end;
+    end;
+
+    DisplayRowCountStats;
+    dataselected := true;
+    viewingdata := false;
+    mq.MysqlDataset.EnableControls;
+    pcChange(self);
+  end;
+
+  Screen.Cursor := crDefault;
+  FreeAndNil (sl_query);
+
   finally
     viewingdata := false;
   end;
 end;
+
 
 
 {***
@@ -1652,20 +1377,15 @@ end;
 }
 procedure TMDIChild.DisplayRowCountStats;
 var
-  rows_matching    : Int64; // rows matching to where-filter
-  rows_total       : Int64; // total rowcount
+  rows_matching  : Int64; // rows matching to where-filter
+  rows_total     : Int64; // total rowcount
 begin
-  if ( ActiveGrid = gridQuery ) then
-  begin
-    Exit;
-  end;
-
+  if ActiveGrid = gridQuery then exit;
+  
   // Get rowcount
-  rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' +
-    mask( ActualTable ), 0 ) );
+  rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask(ActualTable), 0 ) );
 
-  Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' +
-    FormatNumber( rows_total ) + ' records total';
+  Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' + FormatNumber(rows_total) + ' records total';
 
   {***
     @note: FOUND_ROWS() gives us a correct number, but this number
@@ -1682,10 +1402,8 @@ begin
     @see TZMySQLResultSet:Create
     @see TZMySQLResultSet:Open
   }
-  if (
-    ( mysql_version >= 40000 ) and
-    ( Trim( SynMemoFilter.Text ) <> '' )
-  ) then
+  if (mysql_version >= 40000)
+    and (trim(SynMemoFilter.Text) <> '') then
   begin
     rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
   end
@@ -1694,42 +1412,24 @@ begin
     rows_matching := rows_total;
   end;
 
-  if (
-    ( rows_matching <> rows_total ) and
-    ( Trim( SynMemoFilter.Text ) <> '' )
-  ) then
-  begin
-    Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(rows_matching) +
-      ' matching to filter';
-  end;
-
-  if (
-    ( mysql_version >= 40000 ) and
-    ( rows_matching = rows_total ) and
-    ( Trim( SynMemoFilter.Text ) <> '')
-  ) then
-  begin
+  if (rows_matching <> rows_total)
+    and (trim(SynMemoFilter.Text) <> '')
+    then
+    Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
+  if (mysql_version >= 40000) and (rows_matching = rows_total) and (trim(SynMemoFilter.Text) <> '') then
     Panel5.Caption := Panel5.Caption + ', filter matches all records';
-  end;
-
-  if (
-    ( mainform.CheckBoxLimit.Checked ) and
-    ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) )
-  ) then
-  begin
-    Panel5.Caption := Panel5.Caption + ', limited to ' +
-      FormatNumber( FCurDataset.RecordCount );
-  end;
+  if mainform.CheckBoxLimit.Checked and ( rows_matching > StrToIntDef(mainform.EditLimitEnd.Text,0) ) then
+    Panel5.Caption := Panel5.Caption + ', limited to ' + FormatNumber(FCurDataset.RecordCount);
 end;
+
 
 
 procedure TMDIChild.WaitForQueryCompletion(WaitForm: TForm);
 begin
-  debug( 'Waiting for query to complete.' );
-  WaitForm.ShowModal();
-  debug( 'Query complete.' );
+  debug('Waiting for query to complete.');
+  WaitForm.ShowModal;
+  debug('Query complete.');
 end;
-
 
 {***
   Occurs when active tab has changed.
@@ -1747,7 +1447,7 @@ begin
     if ActualDatabase <> '' then
       Panel6.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
-      Panel6.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
+      Panel6.Caption := 'SQL-Query on Host ' + FConnParams.MysqlParams.Host + ':';
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
@@ -1756,10 +1456,6 @@ begin
 
   // Ensure controls are in a valid state
   ValidateControls;
-
-  // Show processlist if it's visible now but empty yet
-  if ListProcesses.Items.Count = 0 then
-    ShowProcessList( self );
 end;
 
 
@@ -1794,7 +1490,7 @@ begin
         popupDbGridHeader.Items.Delete( i );
       with TRegistry.Create do
       begin
-        openkey( REGPATH + '\Servers\' + FConn.Description, true );
+        openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
         if ValueExists( 'TablelistDefaultColumns' ) then
           popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
         if ValueExists( 'TablelistColumns' ) then
@@ -1935,7 +1631,7 @@ begin
         ZQuery3.Next;
       end;
     end;
-    mainform.showstatus(ActualDatabase + ': ' + IntToStr(ZQuery3.RecordCount) +' table(s)');
+    mainform.showstatus(ActualDatabase + ': ' + inttostr(ZQuery3.RecordCount) +' table(s)');
   Finally
     ListTables.Columns.EndUpdate;
     ListTables.Items.EndUpdate;
@@ -1962,7 +1658,7 @@ begin
     end;
   end;
 
-  Panel2.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.Items.Count) + ' table(s)';
+  Panel2.Caption := 'Database ' + ActualDatabase + ': ' + inttostr(ListTables.Items.Count) + ' table(s)';
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
@@ -2123,7 +1819,7 @@ begin
   end;
 
   MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
-  MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + IntToStr(ListColumns.Items.count) +' field(s)');
+  MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + inttostr(ListColumns.Items.count) +' field(s)');
   Screen.Cursor := crDefault;
 end;
 
@@ -2136,7 +1832,7 @@ end;
   @note This freezes the user interface.
   @note Use only as a hack when you need to actively avoid processing of further window messages.
 }
-function TMDIChild.ExecuteQuery(query: String): TDataSet;
+function TMDIChild.ExecuteQuery(query: string): TDataSet;
 var
   ds: TZReadOnlyQuery;
 begin
@@ -2155,7 +1851,7 @@ end;
   @note This freezes the user interface.
   @note Use only as a hack when you need to actively avoid processing of further window messages.
 }
-procedure TMDIChild.ExecuteNonQuery(SQLQuery: String);
+procedure TMDIChild.ExecuteNonQuery(SQLQuery: string);
 begin
   FQueryRunning := true;
   try
@@ -2178,15 +1874,10 @@ begin
 end;
 
 
-
-{***
-  Selection in ListTables is changing
-  Used to change the iconindex of selected items and to trigger ValidateControls
-}
-procedure TMDIChild.ListTablesSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
+procedure TMDIChild.ListTablesChange(Sender: TObject; Item: TListItem;
+  Change: TItemChange);
 var
-  i: Integer;
+  i: integer;
 begin
   for i := 0 to ListTables.Items.Count - 1 do
     ListTables.Items[i].ImageIndex := 39;
@@ -2194,15 +1885,13 @@ begin
   ValidateControls;
 end;
 
-
-
 {***
   Enable/disable various buttons and menu items.
   Invoked when
     - active sheet changes
     - highlighted database changes
     - ChildWindow is activated / deactivated
-  @param Boolean Is this form activated in terms of our remaining MDI-functionality?
+  @param boolean Is this form activated in terms of our remaining MDI-functionality?
     Only used with False by FormDeactivate-procedure to
     deactivate various controls on mainform
 }
@@ -2323,6 +2012,12 @@ begin
     end;
     tabBlobEditor.tabVisible := inDataOrQueryTab;
   end;
+
+  Mainform.UserManager.Enabled := CanAcessMysqlFlag and FrmIsFocussed;
+  if not CanAcessMysqlFlag then
+    Mainform.UserManager.Hint := 'you have no access to the privilege-tables'
+  else
+    Mainform.UserManager.Hint := 'User-Manager';
 end;
 
 
@@ -2364,7 +2059,7 @@ begin
     if Items[i].Selected then
       t.add(Items[i].Caption);
 
-  if MessageDlg('Empty ' + IntToStr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+  if MessageDlg('Empty ' + inttostr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     exit;
 
   Screen.Cursor := crSQLWait;
@@ -2405,7 +2100,7 @@ begin
         OnlyDBs.Delete( OnlyDBs.IndexOf(tndb_.Text) );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + FConnParams.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -2431,7 +2126,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
   begin
     n := ListCommandStats.Items.Add;
     n.ImageIndex := 86;
-    caption := Copy( caption, 5, Length(caption) );
+    caption := copy( caption, 5, length(caption) );
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
     n.Caption := caption;
     // Total Frequency
@@ -2480,7 +2175,7 @@ begin
   GetResults( 'SHOW /*!50002 GLOBAL */ STATUS', ZQuery3 );
   for i:=1 to ZQuery3.RecordCount do
   begin
-    if LowerCase( Copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
+    if LowerCase( copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
     begin
       n := ListVariables.Items.Add;
       n.ImageIndex := 87;
@@ -2504,7 +2199,7 @@ begin
   ZQuery3.First;
   for i:=1 to ZQuery3.RecordCount do
   begin
-    if LowerCase( Copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) = 'com_' then
+    if LowerCase( copy( ZQuery3.Fields[0].AsString, 1, 4 ) ) = 'com_' then
     begin
       addLVitem( ZQuery3.Fields[0].AsString, MakeInt(ZQuery3.Fields[1].AsString), questions );
     end;
@@ -2515,11 +2210,11 @@ begin
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
 
-  TimerHostUptimeTimer(self);
-  TimerHostUptime.OnTimer := TimerHostUptimeTimer;
+  Timer1Timer(self);
+  Timer1.OnTimer := Timer1Timer;
 
   ListVariables.Items.EndUpdate;
-  tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.Items.Count) + ')';
+  tabVariables.Caption := 'Variables (' + inttostr(ListVariables.Items.Count) + ')';
   Screen.Cursor := crDefault;
 
   ShowProcesslist(self); // look at next procedure
@@ -2534,7 +2229,6 @@ var
 begin
   // No need to update if it's not visible.
   if PageControlMain.ActivePage <> tabHost then exit;
-  if PageControlHost.ActivePage <> tabProcesslist then exit;
   Screen.Cursor := crSQLWait;
   try
     ListProcesses.Items.BeginUpdate;
@@ -2558,7 +2252,7 @@ begin
     // Remove existing column-sort-images
     // (TODO: auomatically invoke this method in TSortListView itself)
     ListProcesses.ClearSortColumnImages;
-    tabProcessList.Caption := 'Process-List (' + IntToStr(ListProcesses.Items.Count) + ')';
+    tabProcessList.Caption := 'Process-List (' + inttostr(ListProcesses.Items.Count) + ')';
   except
     on E: Exception do begin
       LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
@@ -2570,15 +2264,15 @@ begin
 end;
 
 
-procedure TMDIChild.ListProcessesSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
+procedure TMDIChild.ListProcessesChange(Sender: TObject; Item: TListItem;
+  Change: TItemChange);
 begin
   Kill1.Enabled := (ListProcesses.Selected <> nil) and (PageControlHost.ActivePage = tabProcessList);
 end;
 
 
 procedure TMDIChild.KillProcess(Sender: TObject);
-var t : Boolean;
+var t : boolean;
 begin
   if ListProcesses.Selected.Caption = IntToStr( MySQLConn.Connection.GetThreadId ) then
     MessageDlg('Fatal: Better not kill my own Process...', mtError, [mbok], 0)
@@ -2597,10 +2291,7 @@ end;
 
 procedure TMDIChild.PageControlHostChange(Sender: TObject);
 begin
-  // Show processlist if it's visible now but empty yet
-  if ListProcesses.Items.Count = 0 then
-    ShowProcessList( self );
-  ListProcessesSelectItem(self, nil, False);
+  ListProcessesChange(self, nil, TItemChange(self));
 end;
 
 
@@ -2767,8 +2458,8 @@ end;
 
 
 
-procedure TMDIChild.ListColumnsSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
+procedure TMDIChild.ListColumnsChange(Sender: TObject; Item: TListItem;
+  Change: TItemChange);
 begin
   // Clicked somewhere in the field-list of the "Table"-tabsheet
 
@@ -2817,16 +2508,16 @@ begin
 end;
 
 
-{ Proposal about to insert a String into synmemo }
+{ Proposal about to insert a string into synmemo }
 procedure TMDIChild.SynCompletionProposal1CodeCompletion(Sender: TObject;
-  var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+  var Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
 begin
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
 end;
 
 
 procedure TMDIChild.SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
-  const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+  const Value: string; Shift: TShiftState; Index: Integer; EndToken: Char);
 begin
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
 end;
@@ -2834,7 +2525,7 @@ end;
 
 { Proposal-Combobox pops up }
 procedure TMDIChild.SynCompletionProposal1Execute(Kind: TSynCompletionType;
-  Sender: TObject; var CurrentInput: String; var x, y: Integer;
+  Sender: TObject; var CurrentInput: string; var x, y: Integer;
   var CanExecute: Boolean);
 var
   i,j,c,t          : Integer;
@@ -2857,10 +2548,10 @@ var
     i : Integer;
   begin
     dbname := ActualDatabase;
-    if Pos( '.', tablename ) > -1 then
+    if pos( '.', tablename ) > -1 then
     begin
-      dbname := Copy( tablename, 0, Pos( '.', tablename )-1 );
-      tablename := Copy( tablename, Pos( '.', tablename )+1, Length(tablename) );
+      dbname := copy( tablename, 0, pos( '.', tablename )-1 );
+      tablename := copy( tablename, pos( '.', tablename )+1, length(tablename) );
     end;
     tablename := mask( tablename );
     if dbname <> '' then
@@ -2908,7 +2599,7 @@ begin
   t := -1;
   for i := c to Length(sql) do // forward from cursor-position
   begin
-    kw := Copy( sql, i, Pos( ' ', Copy( sql, i, Length(sql) ) )-1 );
+    kw := copy( sql, i, pos( ' ', copy( sql, i, Length(sql) ) )-1 );
     if keywords.IndexOf( kw ) > -1 then
     begin
       t := i + Length( kw );
@@ -2919,7 +2610,7 @@ begin
   begin
     for i := c downto 0 do  // and backwards from cursor-position
     begin
-      kw := Copy( sql, i, Pos( ' ', Copy( sql, i, Length(sql) ) )-1 );
+      kw := copy( sql, i, pos( ' ', copy( sql, i, Length(sql) ) )-1 );
       if keywords.IndexOf( kw ) > -1 then
       begin
         t := i + Length( kw );
@@ -2932,7 +2623,7 @@ begin
   if t>-1 then
   begin
     tables := TStringList.Create;
-    tables.CommaText := StringReplace( Copy( sql, t, Length(sql)), ' ', ',', [rfReplaceall] );
+    tables.CommaText := StringReplace( copy( sql, t, length(sql)), ' ', ',', [rfReplaceall] );
     for i := 0 to tables.Count - 1 do
     begin
       if (UpperCase(tables[i]) = 'AS') and (i > 0) and (i<tables.Count-1) then
@@ -2958,7 +2649,7 @@ begin
   end;
 
 
-  if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
+  if length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
     if OnlyDBs2.IndexOf( SynCompletionProposal1.PreviousToken ) > -1 then
     begin
@@ -2981,7 +2672,7 @@ begin
     end;
   end;
 
-  if (SynCompletionProposal1.ItemList.count = 0) and (Length(CurrentInput)>0) then
+  if (SynCompletionProposal1.ItemList.count = 0) and (length(CurrentInput)>0) then
   begin
     // Add databases
     SynCompletionProposal1.InsertList.AddStrings( OnlyDBs2 );
@@ -2996,18 +2687,18 @@ begin
       begin
         addTable( ListTables.Items[i].Caption );
       end;
-      if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
+      if length(CurrentInput) = 0 then // assume that we have already a dbname in memo
         SynCompletionProposal1.Position := OnlyDBs2.Count;
     end;
 
     // Add functions
     for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
     begin
-      functionname := Copy(MainForm.sqlfunctionlist[i], 0, Pos('(', MainForm.sqlfunctionlist[i])-1);
-      if Pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
-        functiondecl := Copy(MainForm.sqlfunctionlist[i], Length(functionname)+1, Pos( '|', MainForm.sqlfunctionlist[i] )-Length(functionname)-1)
+      functionname := copy(MainForm.sqlfunctionlist[i], 0, pos('(', MainForm.sqlfunctionlist[i])-1);
+      if pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
+        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, pos( '|', MainForm.sqlfunctionlist[i] )-length(functionname)-1)
       else
-        functiondecl := Copy(MainForm.sqlfunctionlist[i], Length(functionname)+1, Length(MainForm.sqlfunctionlist[i]) );
+        functiondecl := copy(MainForm.sqlfunctionlist[i], length(functionname)+1, length(MainForm.sqlfunctionlist[i]) );
       SynCompletionProposal1.InsertList.Add( functionname + functiondecl );
       SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
     end;
@@ -3027,10 +2718,10 @@ end;
 procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
-  PanelCharsInQueryWindow.Caption := FormatNumber( Length(SynMemoQuery.Text) ) + ' Characters';
-  somechars := Length(SynMemoQuery.Text) > 0;
+  PanelCharsInQueryWindow.Caption := FormatNumber( length(SynMemoQuery.Text) ) + ' Characters';
+  somechars := length(SynMemoQuery.Text) > 0;
   Mainform.ExecuteQuery.Enabled := somechars;
-  Mainform.ExecuteSelection.Enabled := Length(SynMemoQuery.SelText) > 0;
+  Mainform.ExecuteSelection.Enabled := length(SynMemoQuery.SelText) > 0;
   Mainform.ExecuteLine.Enabled := SynMemoQuery.LineText <> '';
   btnQuerySave.Enabled := somechars;
   btnQuerySaveSnippet.Enabled := somechars;
@@ -3044,20 +2735,20 @@ begin
 end;
 
 
-procedure TMDIChild.TimerHostUptimeTimer(Sender: TObject);
+procedure TMDIChild.Timer1Timer(Sender: TObject);
 var
-  days, hours, minutes, seconds : Integer;
+  tage, stunden, minuten, sekunden : Integer;
 begin
   // Host-Uptime
-  days:= uptime div (60*60*24);
-  seconds := uptime mod (60*60*24);
-  hours := seconds div (60*60);
-  seconds := seconds mod (60*60);
-  minutes  := seconds div 60;
-  seconds := seconds mod 60;
+  tage:= uptime div (60*60*24);
+  sekunden := uptime mod (60*60*24);
+  stunden := sekunden div (60*60);
+  sekunden := sekunden mod (60*60);
+  minuten  := sekunden div 60;
+  sekunden := sekunden mod 60;
 
   inc(uptime);
-  Panel4.Caption := format(strHostRunning + '%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds])
+  Panel4.Caption := format(strHostRunning + '%d days, %.2d:%.2d:%.2d', [tage,stunden,minuten,sekunden])
 end;
 
 
@@ -3131,7 +2822,7 @@ begin
         OnlyDBs.Add( dbname );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
+          if OpenKey(REGPATH + '\Servers\' + FConnParams.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -3209,7 +2900,7 @@ var
 begin
   inc(time_connected);
 
-  if Mainform.ChildWin = self then
+  if Mainform.ActiveMDIChild = self then
   begin
     // calculate and display connection-time
     seconds := time_connected mod (60*60*24);
@@ -3368,10 +3059,10 @@ begin
 end;
 
 
-procedure TMDIChild.TimerConnectErrorCloseWindowTimer(Sender: TObject);
+procedure TMDIChild.Timer5Timer(Sender: TObject);
 begin
   // can't connect -> close MDI-Child
-  TimerConnectErrorCloseWindow.Enabled := false;
+  timer5.Enabled := false;
   Mainform.Showstatus('', 1);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   close;
@@ -3455,7 +3146,7 @@ end;
 procedure TMDIChild.FindDialogQueryFind(Sender: TObject);
 var
   Options: TSynSearchOptions;
-  Search: String;
+  Search: string;
 begin
   Search := FindDialogQuery.FindText;
   Options := [];
@@ -3485,7 +3176,7 @@ end;
 procedure TMDIChild.ReplaceDialogQueryReplace(Sender: TObject);
 var
   Options: TSynSearchOptions;
-  Search: String;
+  Search: string;
 begin
   Search := ReplaceDialogQuery.FindText;
   Options := [ssoEntireScope];  // Do replaces always on entire scope, because the standard-dialog lacks of a down/up-option
@@ -3529,7 +3220,7 @@ begin
     if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
       GetVisualDataSet().Delete(); // unsafe ...
   end else
-  if MessageDLG('Delete '+IntToStr(gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+  if MessageDLG('Delete '+inttostr(gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
     gridData.SelectedRows.Delete;
 end;
 
@@ -3654,7 +3345,7 @@ procedure TMDIChild.SaveBlob;
 begin
   if not DBMemo1.Modified then exit;
   if DBMemo1.ReadOnly then exit;
-  if Length(DBMemo1.DataField) = 0 then exit;
+  if length(DBMemo1.DataField) = 0 then exit;
   DBMemo1.DataSource.DataSet.Post;
   //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
 end;
@@ -3758,9 +3449,9 @@ begin
         _filename := popupFilterOpenFile.Items[m].Caption;
         i := 0;
         while _filename[i] <> ' ' do
-          Inc( i );
-        _filename := Copy(_filename, i+1, Length(_filename));
-        _filename := Stringreplace(_filename, '&', '', [rfReplaceAll]);
+          inc(i);
+        _filename := copy(_filename, i+1, length(_filename));
+        _filename := stringreplace(_filename, '&', '', [rfReplaceAll]);
         if _filename = FileName then
           dontadd := true;
       end;
@@ -3769,23 +3460,23 @@ begin
         with TRegistry.Create do begin
           openkey(REGPATH, true);
           for i:=1 to 10 do begin
-            if not ValueExists('SQLWhereFile'+IntToStr(i)) then
+            if not ValueExists('SQLWhereFile'+inttostr(i)) then
               break;
           end;
           while i > 1 do begin
-            WriteString('SQLWhereFile'+IntToStr(i), ReadString('SQLWhereFile'+IntToStr(i-1)));
+            WriteString('SQLWhereFile'+inttostr(i), ReadString('SQLWhereFile'+inttostr(i-1)));
             dec(i);
           end;
           WriteString('SQLWhereFile1', FileName);
 
           i := 1;
           popupTreeView.Items.Clear;
-          while ValueExists('SQLWhereFile'+IntToStr(i)) do begin
+          while ValueExists('SQLWhereFile'+inttostr(i)) do begin
             menuitem := Tmenuitem.Create(self);
-            menuitem.Caption := IntToStr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString('SQLWhereFile'+IntToStr(i));
+            menuitem.Caption := inttostr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString('SQLWhereFile'+inttostr(i));
             menuitem.OnClick := LoadSQLWhereFile;
             popupFilterOpenFile.Items.Add(menuitem);
-            Inc( i );
+            inc(i);
           end;
         end;
       end;
@@ -3823,7 +3514,7 @@ begin
   // Store whereclause in Registry
   reg := TRegistry.Create;
   try
-    reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
+    reg.openkey( REGPATH + '\Servers\' + FConnParams.Description, false );
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
     if where <> '' then
       reg.WriteString( reg_value, where )
@@ -3872,9 +3563,9 @@ begin
   filename := (sender as TMenuItem).Caption;
   i := 0;
   while filename[i] <> ' ' do
-    Inc( i );
-  filename := Copy(filename, i+1, Length(filename));
-  filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
+    inc(i);
+  filename := copy(filename, i+1, length(filename));
+  filename := stringreplace(filename, '&', '', [rfReplaceAll]);
 
   try
     SynMemoFilter.Lines.LoadFromFile(filename);
@@ -4001,7 +3692,7 @@ begin
       DisableAutoRefresh.Checked := false;
     end
     else
-      MessageDLG('Seconds must be between 1 and ' + IntToStr(maxint) + '.', mtError, [mbOK], 0);
+      MessageDLG('Seconds must be between 1 and ' + inttostr(maxint) + '.', mtError, [mbOK], 0);
   end;
 end;
 
@@ -4124,7 +3815,7 @@ begin
   // Save snippet
   if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
   begin
-    if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
+    if copy( snippetname, length(snippetname)-4, 4 ) <> '.sql' then
       snippetname := snippetname + '.sql';
     // cleanup snippetname from special characters
     snippetname := DIRNAME_SNIPPETS + goodfilename(snippetname);
@@ -4172,9 +3863,9 @@ begin
     keyword := ListColumns.Selected.SubItems[0];
   end;
   // Clean existing paranthesis, fx: char(64)
-  if Pos( '(', keyword ) > 0 then
+  if pos( '(', keyword ) > 0 then
   begin
-    keyword := Copy( keyword, 1, Pos( '(', keyword )-1 );
+    keyword := copy( keyword, 1, pos( '(', keyword )-1 );
   end;
 
   // Show the window
@@ -4185,7 +3876,7 @@ end;
 
 {***
   Show SQL Help window directly using a keyword
-  @param String SQL-keyword
+  @param string SQL-keyword
   @see FieldeditForm.btnDatatypeHelp
 }
 procedure TMDIChild.CallSQLHelpWithKeyword( keyword: String );
@@ -4225,16 +3916,16 @@ var
 begin
   // Click on the popupQueryLoad
   filename := (Sender as TMenuItem).Caption;
-  if Pos( '\', filename ) = 0 then
+  if pos( '\', filename ) = 0 then
   begin // assuming we load a snippet
     filename := DIRNAME_SNIPPETS + filename;
   end
   else
   begin // assuming we load a file from the recent-list
-    p := Pos( ' ', filename ) + 1;
-    filename := Copy(filename, p, Length(filename));
+    p := pos( ' ', filename ) + 1;
+    filename := copy(filename, p, length(filename));
   end;
-  filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
+  filename := stringreplace(filename, '&', '', [rfReplaceAll]);
   QueryLoad( filename );
 end;
 
@@ -4273,7 +3964,7 @@ begin
   // Add all other filenames
   for i:=0 to Values.Count-1 do
   begin
-    if Pos( 'SQLFile', Values[i] ) <> 1 then
+    if pos( 'SQLFile', Values[i] ) <> 1 then
       continue;
     savedfilename := reg.ReadString( Values[i] );
     reg.DeleteValue( Values[i] );
@@ -4288,7 +3979,7 @@ begin
   begin
     if i >= 20 then
       break;
-    reg.WriteString( 'SQLFile'+IntToStr(i), newfilelist[i] );
+    reg.WriteString( 'SQLFile'+inttostr(i), newfilelist[i] );
   end;
 
   reg.Free;
@@ -4337,7 +4028,7 @@ begin
   SynMemoQuery.EndUpdate;
   SynMemoQueryChange( self );
 
-  if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
+  if pos( DIRNAME_SNIPPETS, filename ) = 0 then
     AddOrRemoveFromQueryLoadHistory( filename, true );
   FillPopupQueryLoad;
 
@@ -4381,12 +4072,12 @@ begin
     j := 0;
     for i:=0 to 19 do
     begin
-      if not ValueExists('SQLFile'+IntToStr(i)) then
+      if not ValueExists('SQLFile'+inttostr(i)) then
         continue;
-      sqlFilename := ReadString( 'SQLFile'+IntToStr(i) );
+      sqlFilename := ReadString( 'SQLFile'+inttostr(i) );
       inc(j);
       menuitem := TMenuItem.Create( popupQueryLoad );
-      menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
+      menuitem.Caption := inttostr(j) + ' ' + sqlFilename;
       menuitem.OnClick := popupQueryLoadClick;
       popupQueryLoad.Items.Add(menuitem);
     end;
@@ -4446,8 +4137,8 @@ end;
 
 procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
 var
-  confirmed: Boolean;
-  msg: String;
+  confirmed: boolean;
+  msg: string;
 begin
   msg :=
     'This will remove the first NUL character _and all text following it_.' + #13#10 +
@@ -4584,7 +4275,7 @@ var d : String;
 begin
   // Insert date/time-value into table
   d := (sender as TMenuItem).Caption;
-  delete(d, Pos('&', d), 1);
+  delete(d, pos('&', d), 1);
   DataSource1.Edit;
   gridData.SelectedField.AsString := d;
 end;
@@ -4650,10 +4341,10 @@ begin
 end;
 
 
-procedure TMDIChild.ExecUseQuery (ADatabase : String; DisplayErrors: Boolean = True);
+procedure TMDIChild.ExecUseQuery (ADatabase : String);
 begin
-  FConn.MysqlParams.Database := ADatabase;
-  ExecUpdateQuery('USE ' + mask(ADatabase), DisplayErrors);
+  FConnParams.MysqlParams.Database := ADatabase;
+  ExecUpdateQuery('USE ' + mask(ADatabase));
 end;
 
 
@@ -4663,7 +4354,7 @@ end;
 
   @param String The single SQL-query to be executed on the server
 }
-procedure TMDIChild.ExecUpdateQuery(ASQLQuery: String; DisplayErrors: Boolean = True );
+procedure TMDIChild.ExecUpdateQuery(ASQLQuery: String );
 var
   MysqlQuery : TMysqlQuery;
 begin
@@ -4673,9 +4364,8 @@ begin
     // Inspect query result code and log / notify user on failure
     if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
-      if DisplayErrors then
-        MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
-      LogSQL( MysqlQuery.Comment, True );
+      MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
+      LogSql( MysqlQuery.Comment, True );
       // Recreate exception, since we free it below the caller
       // won't know what happened otherwise.
       raise THandledSQLError.Create(MysqlQuery.Comment);
@@ -4697,7 +4387,7 @@ end;
 }
 function TMDIChild.ExecSelectQuery(AQuery: String): TMysqlQuery;
 var
-  exMsg: String;
+  exMsg: string;
 begin
   // Start query execution
   Result := RunThreadedQuery(AQuery);
@@ -4707,7 +4397,7 @@ begin
   begin
     exMsg := Result.Comment;
     MessageDlg( exMsg, mtError, [mbOK], 0 );
-    LogSQL( exMsg, True );
+    LogSql( exMsg, True );
     FreeAndNil(Result);
     raise THandledSQLError.Create(exMsg);
   end;
@@ -4745,7 +4435,7 @@ end;
 
 
 {***
-  Execute a query and return String from column x
+  Execute a query and return string from column x
 
   @note This freezes the user interface as far as GetResults does so.
 }
@@ -4779,7 +4469,7 @@ end;
 {***
   Execute a query and return column x as Stringlist
 
-  @param  String SQL query String
+  @param  String SQL query string
   @param  Integer 0-based column index in the resultset to return
   @return TStringList
   @note This freezes the user interface as far as GetResults does so.
@@ -4812,26 +4502,14 @@ end;
 
 // Resize image to fit
 procedure TMDIChild.ResizeImageToFit;
-var
-  height_needed : Cardinal;
 begin
-  // Abort zooming if it's not an image or image-tab is sized to minimum size
-  if (EDBImage1.Picture.Width < 1) or (ScrollBox1.Height < 1) then
-    exit;
-
-  // Use all height we can get, but only as much we need to display without zooming
-  if EDBImage1.Picture.Height > Scrollbox1.Height then
-    height_needed := Scrollbox1.Height
-  else
-    height_needed := EDBImage1.Picture.Height;
-
-  // Set size
-  EDBImage1.Height := height_needed;
-  EDBImage1.Width := MulDiv(height_needed, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
-
-  MainForm.showstatus('Image: ' + IntToStr( EDBImage1.Picture.width)
-    + ' x ' + IntToStr( EDBImage1.Picture.Height ) + ' pixel, '
-    + 'zoomed to ' + IntToStr(Round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'
+  if EDBImage1.Picture.Width < 1 then exit;
+  EDBImage1.Width := MulDiv(EDBImage1.Height, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
+  if EDBImage1.Picture.Height < 1 then exit;
+  if EDBImage1.Height < 1 then exit;
+  MainForm.showstatus('Image: ' + inttostr( EDBImage1.Picture.width)
+    + ' x ' + inttostr( EDBImage1.Picture.Height ) + ' pixel, '
+    + 'zoomed to ' + IntToStr(round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'
   );
 end;
 
@@ -4866,7 +4544,7 @@ begin
       * Set FQueryRunning to false
     }
     debug('RunThreadedQuery(): Launching asynchronous query.');
-    Result := ExecMysqlStatementAsync (AQuery,FConn,nil,FProgressForm.Handle);
+    Result := ExecMysqlStatementAsync (AQuery,FConnParams,nil,FProgressForm.Handle);
 
     { Repeatedly check if the query has finished by inspecting FQueryRunning
       Allow repainting of user interface
@@ -4903,9 +4581,9 @@ procedure TMDIChild.GridHighlightChanged(Sender: TObject);
 var
   grid: TSMDBGrid;
   ds: TDataSource;
-  hasNull: Boolean;
-  hasOddNewlines: Boolean;
-  s: String;
+  hasNull: boolean;
+  hasOddNewlines: boolean;
+  s: string;
 begin
   // Current highlighted row or column in a grid has changed.
   // Happens twice (row, then column) if neither row nor column match previously selected field.
@@ -4927,8 +4605,8 @@ begin
     // Connect the BLOB-components to this field
     DBMemo1.DataField := grid.SelectedField.FieldName;
     // Hack: If 8 bytes or less, don't try to interpret as an image.
-    // Fixes BIT fields, which EDBImage otherwise think contains icons.
-    if Length(grid.SelectedField.AsString) > 8 then begin
+    //       Fixes BIT fields, which EDBImage otherwise think contains icons. 
+    if grid.SelectedField.DataSize > 8 then begin
       EDBImage1.DataField := grid.SelectedField.FieldName;
     end;
 
@@ -5066,7 +4744,7 @@ begin
   menuitem := (Sender as TMenuItem);
   with TRegistry.Create do
   try
-    openkey( REGPATH + '\Servers\' + FConn.Description, true );
+    openkey( REGPATH + '\Servers\' + FConnParams.Description, true );
     case menuitem.Tag of
       1 : // Toggle default-columns
         WriteBool( 'TablelistDefaultColumns', not menuitem.Checked );
@@ -5118,6 +4796,37 @@ begin
 end;
 
 
+function TMDIChild.CanAcessMysql: Boolean;
+begin
+  Result := HasAccessToDB (DBNAME_MYSQL);
+end;
+
+function TMDIChild.HasAccessToDB (ADBName : String) : Boolean;
+var
+  ds: TZReadOnlyQuery;
+  dbName: string;
+begin
+  Result := False;
+
+  ds := TZReadOnlyQuery.Create(Self);
+  ds.Connection := FMysqlConn.Connection;
+  GetResults( 'SHOW DATABASES', ds);
+  if not ds.Active then exit;
+
+  while not ds.Eof do
+    begin
+      dbName := ds.FieldByName('Database').AsString;
+      if LowerCase(dbName) = LowerCase(ADBName) then
+        begin
+          Result := True;
+          Break;
+        end;
+      ds.Next;
+    end;
+
+  FreeAndNil (ds);
+end;
+
 procedure TMDIChild.CheckConnection;
 begin
   if not FMysqlConn.IsAlive then begin
@@ -5153,7 +4862,7 @@ end;
 
 procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
 var
-  prev: Boolean;
+  prev: boolean;
 begin
   prev := FQueryRunning;
   if not prev then FQueryRunning := true;
@@ -5201,30 +4910,6 @@ begin
     end;
   finally
     debug( 'GetCalculatedLimit: ' + formatnumber(result) );
-  end;
-end;
-
-
-{**
-  Column selection for datagrid
-}
-procedure TMDIChild.btnColumnSelectionClick(Sender: TObject);
-var
-  btn : TSpeedButton;
-  frm : TColumnSelectionForm;
-begin
-  btn := (Sender as TSpeedButton);
-
-  if btn.Down then
-  begin
-    frm := TColumnSelectionForm.Create(self);
-
-    // Position new form relative to btn's position
-    frm.Top := btn.ClientOrigin.Y + btn.Height;
-    frm.Left := btn.ClientOrigin.X;
-
-    // Display form
-    frm.ShowModal;
   end;
 end;
 

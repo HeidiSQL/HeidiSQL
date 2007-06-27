@@ -70,7 +70,6 @@ object MDIChild: TMDIChild
       ShowRoot = False
       TabOrder = 0
       OnChange = DBtreeChange
-      OnExpanding = DBtreeExpanding
     end
     object TableShow: TPanel
       Left = 173
@@ -102,10 +101,6 @@ object MDIChild: TMDIChild
         object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -118,10 +113,6 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -206,7 +197,7 @@ object MDIChild: TMDIChild
                 SmallImages = MainForm.ImageList1
                 TabOrder = 0
                 ViewStyle = vsReport
-                OnSelectItem = ListProcessesSelectItem
+                OnChange = ListProcessesChange
                 ImageIndexSortAsc = 95
                 ImageIndexSortDesc = 94
                 ExplicitHeight = 197
@@ -286,10 +277,6 @@ object MDIChild: TMDIChild
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 38
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             496
             220)
@@ -368,12 +355,12 @@ object MDIChild: TMDIChild
             SmallImages = MainForm.ImageList1
             TabOrder = 1
             ViewStyle = vsReport
+            OnChange = ListTablesChange
             OnColumnRightClick = ListTablesColumnRightClick
             OnDblClick = ListTablesDblClick
             OnEdited = ListTablesEdited
             OnEditing = ListTablesEditing
             OnMouseDown = ListTablesMouseDown
-            OnSelectItem = ListTablesSelectItem
             ImageIndexSortAsc = 95
             ImageIndexSortDesc = 94
             ExplicitHeight = 218
@@ -465,10 +452,6 @@ object MDIChild: TMDIChild
         object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 40
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             496
             220)
@@ -597,9 +580,9 @@ object MDIChild: TMDIChild
               SmallImages = MainForm.ImageList1
               TabOrder = 0
               ViewStyle = vsReport
+              OnChange = ListColumnsChange
               OnDblClick = UpdateField
               OnKeyUp = controlsKeyUp
-              OnSelectItem = ListColumnsSelectItem
               ImageIndexSortAsc = 95
               ImageIndexSortDesc = 94
               ExplicitHeight = 218
@@ -655,28 +638,6 @@ object MDIChild: TMDIChild
             DesignSize = (
               496
               23)
-            object btnColumnSelection: TSpeedButton
-              Left = 168
-              Top = 0
-              Width = 79
-              Height = 21
-              AllowAllUp = True
-              Anchors = [akTop, akRight]
-              GroupIndex = 10
-              Caption = 'Columns'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
-              Glyph.Data = {
-                52000000424D52000000000000003E0000002800000009000000050000000100
-                010000000000140000000000000000000000020000000200000000000000FFFF
-                FF00F7806300E3805C00C18032008080300000004700}
-              Layout = blGlyphRight
-              ParentFont = False
-              OnClick = btnColumnSelectionClick
-            end
             object EditDataSearch: TEdit
               Left = 317
               Top = 0
@@ -1102,10 +1063,6 @@ object MDIChild: TMDIChild
     object tabBlobEditor: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1184,10 +1141,6 @@ object MDIChild: TMDIChild
         OnChange = PageControlBlobEditorsChange
         object tabBlobEditorText: TTabSheet
           Caption = 'Text'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1227,6 +1180,7 @@ object MDIChild: TMDIChild
               Top = 0
               Width = 89
               Height = 102
+              Align = alLeft
               BorderStyle = bsNone
               Color = clBtnFace
               Stretch = True
@@ -1240,10 +1194,6 @@ object MDIChild: TMDIChild
     object tabFilter: TTabSheet
       Caption = 'Filter'
       ImageIndex = 81
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
@@ -1638,8 +1588,8 @@ object MDIChild: TMDIChild
     Left = 7
     Top = 120
   end
-  object TimerHostUptime: TTimer
-    OnTimer = TimerHostUptimeTimer
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
     Left = 7
     Top = 157
   end
@@ -1974,10 +1924,10 @@ object MDIChild: TMDIChild
       OnClick = Saveastextfile1Click
     end
   end
-  object TimerConnectErrorCloseWindow: TTimer
+  object Timer5: TTimer
     Enabled = False
     Interval = 10
-    OnTimer = TimerConnectErrorCloseWindowTimer
+    OnTimer = Timer5Timer
     Left = 39
     Top = 157
   end
@@ -2066,7 +2016,7 @@ object MDIChild: TMDIChild
   object SynCompletionProposal1: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     Width = 262
-    EndOfTokenChr = '()[]. ='
+    EndOfTokenChr = '()[]. '
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText

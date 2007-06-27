@@ -37,4 +37,9 @@ requires
   ZDbc,
   ZComponent;
 
+contains
+  ZPropertyEditor in '..\..\src\component\ZPropertyEditor.pas',
+  ZUpdateSqlEditor in '..\..\src\component\ZUpdateSqlEditor.pas' {ZUpdateSQLEditForm},
+  ZComponentReg in '..\..\src\component\ZComponentReg.pas';
+
 end.

@@ -47,6 +47,7 @@ type
 
   const
     DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
+    DUMMY_NODE_TEXT             : String = 'Dummy node, should never be visible';
     ICONINDEX_CATEGORY_CLOSED   : Integer = 96;
     ICONINDEX_CATEGORY_OPENED   : Integer = 97;
     ICONINDEX_HELPITEM          : Integer = 98;
@@ -58,8 +59,6 @@ implementation
 
 uses ZDataset, helpers, main;
 
-{$I const.inc}
-
 {$R *.dfm}
 
 
@@ -69,7 +68,7 @@ uses ZDataset, helpers, main;
 }
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
-  m := Mainform.Childwin;
+  m := TMDIChild(Application.Mainform.ActiveMDIChild);
 
   // Set window-layout
   Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', Top );

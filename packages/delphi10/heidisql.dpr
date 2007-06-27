@@ -35,8 +35,7 @@ uses
   MysqlQuery in '..\..\MysqlQuery.pas',
   MysqlQueryThread in '..\..\MysqlQueryThread.pas',
   MysqlConn in '..\..\MysqlConn.pas',
-  mysql in '..\..\mysql.pas',
-  column_selection in '..\..\column_selection.pas' {ColumnSelectionForm};
+  mysql in '..\..\mysql.pas';
 
 {$R *.RES}
 

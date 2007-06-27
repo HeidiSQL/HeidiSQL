@@ -3018,7 +3018,7 @@ object connform: Tconnform
     AutoCompleteDelay = 5000
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 0
     OnClick = ComboBoxDescriptionClick
   end

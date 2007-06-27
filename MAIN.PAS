@@ -16,7 +16,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin;
+  HeidiComp, sqlhelp, MysqlQueryThread;
 
 type
   TMainForm = class(TForm)
@@ -53,6 +53,7 @@ type
     ResetWindowOptions1: TMenuItem;
     N5: TMenuItem;
     MenuImportTextFile: TMenuItem;
+    Timer1: TTimer;
     Flush1: TMenuItem;
     MenuFlushLogs: TMenuItem;
     MenuFlushHosts: TMenuItem;
@@ -163,7 +164,6 @@ type
     procedure FileExit1Execute(Sender: TObject);
     procedure FlushClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonRefreshClick(Sender: TObject);
     procedure ButtonCreateDatabaseClick(Sender: TObject);
@@ -172,6 +172,7 @@ type
     procedure ButtonAdvancedPropertiesClick(Sender: TObject);
     procedure ResetWindowOptions1Click(Sender: TObject);
     procedure ButtonImportTextfileClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
     procedure MenuPreferencesClick(Sender: TObject);
     procedure menuReadmeClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -217,12 +218,9 @@ type
     procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
-  private
-    function GetChildwin: TMDIChild;
   public
     logsqlnum                  : Integer;
-    CSVSeparator               : String[10];
-    CSVEncloser                : String[10];
+    CSVSeparator, CSVEncloser,
     CSVTerminator              : String[10];
     ConvertHTMLEntities        : Boolean;
     DefaultColWidth            : Integer;
@@ -235,20 +233,17 @@ type
     function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
     procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
     procedure SaveRegValue( valueName: String; value: Boolean; key: String = '' ); Overload;
-
-    // Reference to currently active childwindow:
-    property Childwin: TMDIChild read GetChildwin;
 end;
 
 var
-  MainForm            : TMainForm;
-  highestcon          : Integer;                       // Remember last connection
-  appstarted          : Boolean = false;               // see connections.pas
-  StatusText          : String = 'Initializing...';
-  StatusIconIndex     : Integer = 43;
-  loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
-  appversion          : String = '3.0 $Rev$';
-  DIRNAME_SNIPPETS    : String;
+  MainForm: TMainForm;
+  highestcon : Integer;                       // Remember last connection
+  appstarted : Boolean = false;               // see connections.pas
+  StatusText : String = 'Initializing...';
+  StatusIconIndex : Integer = 43;
+  loadsqlfile : boolean = true;               // load sql-file into query-memo at startup?
+  appversion : String = '3.0 $Rev$';
+  DIRNAME_SNIPPETS : String;
 
 const
   discname = 'not connected';
@@ -270,6 +265,7 @@ end;
 implementation
 
 uses
+  ChildWin,
   About,
   connections,
   exportsql,
@@ -319,7 +315,7 @@ begin
   // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
   // TQueryTab(tab).AddText(query);
   // tab.ExecOrQueueQuery(query);
-  result := ChildWin.ExecuteQuery(query);
+  result := TMDIChild(ActiveMDIChild).ExecuteQuery(query);
 end;
 
 procedure TMainForm.ExecuteRemoteNonQuery(sender: THandle; query: string);
@@ -330,7 +326,7 @@ begin
   // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
   // TQueryTab(tab).AddText(query);
   // tab.ExecOrQueueQuery(query);
-  ChildWin.ExecuteNonQuery(query);
+  TMDIChild(ActiveMDIChild).ExecuteNonQuery(query);
 end;
 
 procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
@@ -362,7 +358,7 @@ begin
   else if sender is TToolButton then
     flushwhat := 'PRIVILEGES';
   delete(flushwhat, pos('&', flushwhat), 1);
-  ChildWin.ExecUpdateQuery('FLUSH ' + flushwhat);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery('FLUSH ' + flushwhat);
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -395,6 +391,10 @@ begin
       WriteInteger('ToolBarDataLeft', ToolBarData.Left);
       WriteInteger('ToolBar2Top', ToolBarStandard.Top);
       WriteInteger('ToolBarDataTop', ToolBarData.Top);
+      // Limit-options
+      WriteBool('DataLimit', CheckBoxLimit.Checked);
+      WriteInteger('DataLimitStart', UpDownLimitStart.Position);
+      WriteInteger('DataLimitEnd', UpDownLimitEnd.Position);
     end;
     CloseKey;
   end;
@@ -411,15 +411,7 @@ begin
     deletefile(filename+'bmp');
 end;
 
-
-{***
-  OnCreate Event
-  Important to set the windowstate here instead of in OnShow
-  because possible windowstate-switching is done with an animation
-  if set in Windows. This animation takes some milliseconds
-  to complete and can be annoying.
-}
-procedure TMainForm.FormCreate(Sender: TObject);
+procedure TMainForm.FormShow(Sender: TObject);
 var
   ws : String;
   mi : TMenuItem;
@@ -475,6 +467,14 @@ begin
         ToolBarStandard.Top := ReadInteger('ToolBar2Top');
       if valueExists('ToolBarDataTop') then
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
+
+      // Limit-options
+      if valueExists('DataLimit') then
+        CheckBoxLimit.Checked := ReadBool('DataLimit');
+      if valueExists('DataLimitStart') then
+        UpDownLimitStart.Position := ReadInteger('DataLimitStart');
+      if valueExists('DataLimitEnd') then
+        UpDownLimitEnd.Position := ReadInteger('DataLimitEnd');
 
       // Other values
       DataAlwaysEditMode := true;
@@ -537,15 +537,9 @@ begin
 
   // Folder which contains snippet-files
   DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + APPNAME + '\Snippets\'; // CSIDL_COMMON_APPDATA
+
+  timer1.Enabled := true;
 end;
-
-
-procedure TMainForm.FormShow(Sender: TObject);
-begin
-  // Cannot be done in OnCreate because we need ready forms here:
-  ShowConnections(self);
-end;
-
 
 procedure TMainForm.insertFunction(sender: TObject);
 var
@@ -553,18 +547,18 @@ var
   sm : TSynMemo;
 begin
   // insert function from function.txt
-  if ChildWin.SynMemoFilter.Focused then
-    sm := ChildWin.SynMemoFilter
+  if TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter.Focused then
+    sm := TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter
   else
-    sm := ChildWin.SynMemoQuery;
+    sm := TMDIChild(Mainform.ActiveMDIChild).SynMemoQuery;
   f := TMenuItem(Sender).Hint;
   f := stringreplace(f, '&', '', [rfReplaceAll]);
   f := copy(f, 0, pos(')', f));
   sm.UndoList.AddGroupBreak;
   sm.SelText := f;
   sm.UndoList.AddGroupBreak;
-  if not ChildWin.SynMemoFilter.Focused then
-    ChildWin.SynMemoQueryChange(self);
+  if not TMDIChild(Mainform.ActiveMDIChild).SynMemoFilter.Focused then
+    TMDIChild(Mainform.ActiveMDIChild).SynMemoQueryChange(self);
 end;
 
 
@@ -572,41 +566,45 @@ end;
 procedure TMainForm.ButtonRefreshClick(Sender: TObject);
 begin
   // Refresh
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabHost then
-    ChildWin.ShowVariablesAndProcesses(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
-    ChildWin.ShowDBProperties(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
-    ChildWin.ShowTableProperties(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    ChildWin.viewdata(self)
-  else
-    ChildWin.ReadDatabasesAndTables(self);
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
+    if PageControlMain.ActivePage = tabHost then
+      ShowVariablesAndProcesses(self)
+    else if PageControlMain.ActivePage = tabDatabase then
+      ShowDBProperties(self)
+    else if PageControlMain.ActivePage = tabTable then
+      ShowTableProperties(self)
+    else if PageControlMain.ActivePage = tabData then
+      viewdata(self)
+    else
+      ReadDatabasesAndTables(self);
+  end;
 end;
 
 procedure TMainForm.ButtonCreateDatabaseClick(Sender: TObject);
 begin
   // create database
-  ChildWin.CreateDatabase(self);
+  TMDIChild(Application.Mainform.ActiveMDIChild).CreateDatabase(self);
 end;
 
 procedure TMainForm.ButtonCreateTableClick(Sender: TObject);
 begin
   // create table
-  ChildWin.CreateTable(self);
+  TMDIChild(Application.Mainform.ActiveMDIChild).CreateTable(self);
 end;
 
 procedure TMainForm.ButtonDropDatabaseClick(Sender: TObject);
 begin
   // drop db
-  if ChildWin.ActualDatabase <> '' then
-    ChildWin.DropDB(self);
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+    if ActualDatabase <> '' then
+      DropDB(self);
 end;
 
 procedure TMainForm.btnSQLHelpClick(Sender: TObject);
 begin
   // SQL help
-  ChildWin.CallSQLHelp( Sender );
+  TMDIChild(Application.Mainform.ActiveMDIChild).CallSQLHelp( Sender );
 end;
 
 procedure TMainForm.ButtonAdvancedPropertiesClick(Sender: TObject);
@@ -655,6 +653,13 @@ procedure TMainForm.ButtonImportTextfileClick(Sender: TObject);
 begin
   // Import Textfile
   loaddataform.showmodal;
+end;
+
+procedure TMainForm.Timer1Timer(Sender: TObject);
+begin
+  // Startup!
+  timer1.Enabled := false;
+  ShowConnections(self);
 end;
 
 procedure TMainForm.MenuPreferencesClick(Sender: TObject);
@@ -732,20 +737,24 @@ end;
 procedure TMainForm.Copy2CSVExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as CSV
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2csv(ChildWin.GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2csv((ChildWin.ZQuery1 as TZQuery), CSVSeparator, CSVEncloser, CSVTerminator);
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    if PageControlMain.ActivePage = tabData then
+      dataset2csv(GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator)
+    else if PageControlMain.ActivePage = tabQuery then
+      dataset2csv((ZQuery1 as TZQuery), CSVSeparator, CSVEncloser, CSVTerminator);
+  end;
 end;
 
 
 procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2html(ChildWin.GetVisualDataset(), TZQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion )
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2html(ChildWin.GetVisualDataset(), TZReadOnlyQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion);
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    if PageControlMain.ActivePage = tabData then
+      dataset2html(GetVisualDataset(), TZQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion )
+    else if PageControlMain.ActivePage = tabQuery then
+      dataset2html(GetVisualDataset(), TZReadOnlyQuery(GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion);
+  end;
 end;
 
 
@@ -754,7 +763,7 @@ var
   page : TTabSheet;
 begin
   // print
-  page := ChildWin.PageControlMain.ActivePage;
+  page := TMDIChild(Mainform.ActiveMDIChild).PageControlMain.ActivePage;
   if page.Name = 'SheetData' then
   begin
     // TODO: Print data
@@ -791,16 +800,16 @@ end;
 procedure TMainForm.ButtonOKClick(Sender: TObject);
 begin
   // Set Filter
-  ChildWin.DBTree.SetFocus;
-  ChildWin.viewdata(self);
+  TMDIChild(Mainform.ActiveMDIChild).DBTree.SetFocus;
+  TMDIChild(Mainform.ActiveMDIChild).viewdata(self);
 end;
 
 
 procedure TMainForm.CheckBoxLimitClick(Sender: TObject);
 begin
   // Check/Uncheck popupmenu-item
-  if ChildWin <> nil then
-    ChildWin.MenuLimit.Checked := CheckBoxLimit.Checked;
+  if TMDIChild(Mainform.ActiveMDIChild) <> nil then
+    TMDIChild(Mainform.ActiveMDIChild).MenuLimit.Checked := CheckBoxLimit.Checked;
 end;
 
 procedure TMainForm.LimitPanelEnter(Sender: TObject);
@@ -820,10 +829,13 @@ var
   memo : TSynMemo;
 begin
   // Clear SynMemo
-  if ChildWin.SynMemoFilter.Focused then
-    memo := ChildWin.SynMemoFilter
-  else
-    memo := ChildWin.SynMemoQuery;
+  with TMDIChild(Mainform.ActiveMDIChild) do
+  begin
+    if SynMemoFilter.Focused then
+      memo := SynMemoFilter
+    else
+      memo := SynMemoQuery;
+  end;
   // Make sure to add this step to SynMemo's undo history
   memo.SelectAll;
   memo.SelText := '';
@@ -889,7 +901,7 @@ procedure TMainForm.SQLFunctionsPopup(Sender: TObject);
 begin
   // Depending which SynMemo is focused, (de-)activate some menuitems
   // The popupmenu SQLFunctions is used in both Filter- and Query-Memo
-  if ChildWin.SynMemoFilter.focused then
+  if TMDIChild(ActiveMDIChild).SynMemoFilter.focused then
   begin
     MenuRun.ShortCut := TextToShortCut('');
     MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
@@ -923,7 +935,7 @@ end;
 
 procedure TMainForm.MenuSetFilterClick(Sender: TObject);
 begin
-  ChildWin.SetFilter(self);
+  TMDIChild(ActiveMDIChild).SetFilter(self);
 end;
 
 
@@ -942,7 +954,7 @@ function TMainform.mask(str: String) : String;
 begin
   if ActiveMDIChild = nil then
     raise Exception.Create('Cannot mask SQL without active MDI');
-  result := ChildWin.mask(str);
+  result := TMDIChild(ActiveMDIChild).mask(str);
 end;
 
 
@@ -966,64 +978,70 @@ end;
 
 procedure TMainForm.ExecuteQueryExecute(Sender: TObject);
 begin
-  ChildWin.ExecSqlClick(sender, false);
+  TMDIChild(ActiveMDIChild).ExecSqlClick(sender, false);
 end;
 
 procedure TMainForm.ExecuteSelectionExecute(Sender: TObject);
 begin
-  ChildWin.ExecSqlClick(sender, true);
+  TMDIChild(ActiveMDIChild).ExecSqlClick(sender, true);
 end;
 
 procedure TMainForm.MenuFindClick(Sender: TObject);
 begin
-  ChildWin.btnQueryFindClick(sender);
+  TMDIChild(ActiveMDIChild).btnQueryFindClick(sender);
 end;
 
 procedure TMainForm.MenuReplaceClick(Sender: TObject);
 begin
-  ChildWin.btnQueryReplaceClick(sender);
+  TMDIChild(ActiveMDIChild).btnQueryReplaceClick(sender);
 end;
 
 procedure TMainForm.ExecuteLineExecute(Sender: TObject);
 begin
-  ChildWin.ExecSqlClick(sender, false, true);
+  TMDIChild(ActiveMDIChild).ExecSqlClick(sender, false, true);
 end;
 
 procedure TMainForm.Save2XMLExecute(Sender: TObject);
 begin
   // Save data in actual dataset as HTML
-  with TSaveDialog.Create(self) do begin
-    Filter := 'XML-Files (*.xml)|*.xml|All files (*.*)|*.*';
-    DefaultExt := 'xml';
-    if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-      FileName := ChildWin.ActualTable
-    else
-      FileName := sstr(ChildWin.ZQuery1.Sql[0], 20);
-    Options := [ofOverwritePrompt,ofEnableSizing];
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
 
-    if Execute and (FileName <> '') then begin
-      if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-        dataset2xml(ChildWin.GetVisualDataset(), ChildWin.ActualTable, FileName)
+    with TSaveDialog.Create(self) do begin
+      Filter := 'XML-Files (*.xml)|*.xml|All files (*.*)|*.*';
+      DefaultExt := 'xml';
+      if PageControlMain.ActivePage = tabData then
+        FileName := ActualTable
       else
-        dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query', FileName);
+        FileName := sstr(ZQuery1.Sql[0], 20);
+      Options := [ofOverwritePrompt,ofEnableSizing];
+
+      if Execute and (FileName <> '') then begin
+        if PageControlMain.ActivePage = tabData then
+          dataset2xml(GetVisualDataset(), ActualTable, FileName)
+        else
+          dataset2xml(GetVisualDataset(), 'SQL-query', FileName);
+      end;
     end;
+
   end;
 end;
 
 procedure TMainForm.Copy2XMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as XML
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2xml(ChildWin.GetVisualDataset(), ChildWin.ActualTable)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query');
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+    if PageControlMain.ActivePage = tabData then
+      dataset2xml(GetVisualDataset(), ActualTable)
+    else if PageControlMain.ActivePage = tabQuery then
+      dataset2xml(GetVisualDataset(), 'SQL-query');
+  end;
 end;
 
 procedure TMainForm.DBNavigator1BeforeAction(Sender: TObject;
   Button: TNavigateBtn);
 begin
   if Button = nbdelete then begin
-    ChildWin.Delete1Click(sender);
+    TMDIChild(Application.Mainform.ActiveMDIChild).Delete1Click(sender);
     abort;
   end;
 end;
@@ -1033,48 +1051,51 @@ var
   query : TDataSet;
 begin
   // Save data in current dataset as CSV, HTML or XML
-
-  case ChildWin.PageControlMain.ActivePageIndex of
-    3 : begin query := ChildWin.GetVisualDataset(){ZQuery2}; ChildWin.SaveDialogExportData.Filename := ChildWin.ActualTable; end;
-    4 : begin query := ChildWin.GetVisualDataset() {ZQuery1}; ChildWin.SaveDialogExportData.Filename := 'SQL-query'; end;
-    else
-      raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
-  end;
-
-  with ChildWin.SaveDialogExportData do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    Title := 'Export result-set from '+Filename+'...';
-    FieldSep := CSVSeparator;
-    LineSep := CSVTerminator;
-    FieldEncl := CSVEncloser;
-    ConvertHTMLSpecialChars := ConvertHTMLEntities;
 
-
-    if Execute and (FileName <> '') then
-    begin
-      Screen.Cursor := crHourGlass;
-      case FilterIndex of
-        1 : dataset2csv(query, FieldSep, FieldEncl, LineSep, Filename);
-        2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+appversion);
-        3 : dataset2xml(query, FileName, FileName);
-      end;
-      CSVSeparator := FieldSep;
-      CSVTerminator := LineSep;
-      CSVEncloser := FieldEncl;
-      ConvertHTMLEntities := ConvertHTMLSpecialChars;
-      with TRegistry.Create do
-      begin
-        openkey(REGPATH, true);
-        WriteBool('ConvertHTMLEntities', ConvertHTMLSpecialChars);
-        WriteString('CSVSeparator', FieldSep);
-        WriteString('CSVEncloser', FieldEncl);
-        WriteString('CSVTerminator', LineSep);
-        closekey();
-      end;
-      Screen.Cursor := crDefault;
+    case PageControlMain.ActivePageIndex of
+      3 : begin query := GetVisualDataset(){ZQuery2}; SaveDialogExportData.Filename := ActualTable; end;
+      4 : begin query := GetVisualDataset() {ZQuery1}; SaveDialogExportData.Filename := 'SQL-query'; end;
+      else
+        raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
     end;
-  end;
 
+    with SaveDialogExportData do
+    begin
+      Title := 'Export result-set from '+Filename+'...';
+      FieldSep := CSVSeparator;
+      LineSep := CSVTerminator;
+      FieldEncl := CSVEncloser;
+      ConvertHTMLSpecialChars := ConvertHTMLEntities;
+
+
+      if Execute and (FileName <> '') then
+      begin
+        Screen.Cursor := crHourGlass;
+        case FilterIndex of
+          1 : dataset2csv(query, FieldSep, FieldEncl, LineSep, Filename);
+          2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+appversion);
+          3 : dataset2xml(query, FileName, FileName);
+        end;
+        CSVSeparator := FieldSep;
+        CSVTerminator := LineSep;
+        CSVEncloser := FieldEncl;
+        ConvertHTMLEntities := ConvertHTMLSpecialChars;
+        with TRegistry.Create do
+        begin
+          openkey(REGPATH, true);
+          WriteBool('ConvertHTMLEntities', ConvertHTMLSpecialChars);
+          WriteString('CSVSeparator', FieldSep);
+          WriteString('CSVEncloser', FieldEncl);
+          WriteString('CSVTerminator', LineSep);
+          closekey();
+        end;
+        Screen.Cursor := crDefault;
+      end;
+    end;
+
+  end;
 end;
 
 
@@ -1087,7 +1108,7 @@ var
   f              : Textfile;
   buffer         : array[0..MAX_PATH] of char;
 begin
-  g := ChildWin.ActiveGrid;
+  g := TMDIChild(Mainform.ActiveMDIChild).ActiveGrid;
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   if g.datasource.State = dsInactive then begin
     messagebeep(MB_ICONASTERISK);
@@ -1128,7 +1149,7 @@ end;
 
 procedure TMainForm.DataSearchExecute(Sender: TObject);
 begin
-  with ChildWin.EditDataSearch do
+  with TMDIChild(Mainform.ActiveMDIChild).EditDataSearch do
   begin
     SetFocus;
     SelectAll;
@@ -1142,7 +1163,7 @@ var
   tn, tndb : TTreeNode;
   t : TStringList;
 begin
-  with ChildWin do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
     t := TStringlist.Create;
 
@@ -1203,8 +1224,11 @@ end;
 // Load SQL-file, make sure that SheetQuery is activated
 procedure TMainForm.LoadSQLExecute(Sender: TObject);
 begin
-  ChildWin.PageControlMain.ActivePage := ChildWin.tabQuery;
-  ChildWin.btnQueryLoadClick( sender );
+  with TMDIChild(ActiveMDIChild) do
+  begin
+    PageControlMain.ActivePage := tabQuery;
+    btnQueryLoadClick( sender );
+  end;
 end;
 
 
@@ -1317,15 +1341,6 @@ begin
 end;
 
 
-
-{***
-  Return active childwin if any
-  @return TMDIChild
-}
-function TMainForm.GetChildwin: TMDIChild;
-begin
-  result := TMDIChild( ActiveMDIChild );
-end;
 
 
 end.

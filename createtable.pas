@@ -195,10 +195,13 @@ begin
 
   // Execute CREATE statement and reload tablesList
   try
-    Mainform.ChildWin.ExecUseQuery( DBComboBox.Text );
-    Mainform.ChildWin.ExecUpdateQuery( createQuery );
-    Mainform.ChildWin.ShowDBProperties(self);
-    Mainform.ChildWin.ActualTable := EditTablename.Text;
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do
+    begin
+      ExecUseQuery( DBComboBox.Text );
+      ExecUpdateQuery( createQuery );
+      ShowDBProperties(self);
+      ActualTable := EditTablename.Text;
+    end;
     Close;
   except on E: THandledSQLError do;
   end;
@@ -474,28 +477,33 @@ procedure TCreateTableForm.FormShow(Sender: TObject);
 var
   i         : Integer;
   tn        : TTreeNode;
+  mdichild  : TMDIChild;
   menu      : TMenuItem;
 begin
   // FormShow!
 
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
-  end;
-  DBComboBox.ItemIndex := 0;
-  for i:=0 to DBComboBox.Items.Count-1 do
-  begin
-    if DBComboBox.Items[i] = Mainform.ChildWin.ActualDatabase then
-      DBComboBox.ItemIndex := i;
-  end;
-  if DBComboBox.ItemIndex = -1 then
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        DBComboBox.Items.Add(tn.Text);
+    end;
     DBComboBox.ItemIndex := 0;
+    for i:=0 to DBComboBox.Items.Count-1 do
+    begin
+      if DBComboBox.Items[i] = ActualDatabase then
+        DBComboBox.ItemIndex := i;
+    end;
+    if DBComboBox.ItemIndex = -1 then
+      DBComboBox.ItemIndex := 0;
+  end;
 
-  if Mainform.ChildWin.mysql_version >= 32300 then
+  mdichild := TMDIChild(Application.Mainform.ActiveMDIChild);
+  if mdichild.mysql_version >= 32300 then
   begin
     EditDescription.Visible := true;
     Label3.Visible := true;
@@ -506,7 +514,7 @@ begin
     Label3.Visible := false;
   end;
   // Add all table types detected at application start to ComboboxTableType
-  menu := Mainform.ChildWin.popupDbGrid.Items.Find('Change Type');
+  menu := mdichild.popupDbGrid.Items.Find('Change Type');
   if menu <> nil then
   begin
     ComboboxTableType.Items.Clear;

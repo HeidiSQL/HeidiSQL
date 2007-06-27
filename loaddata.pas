@@ -90,22 +90,25 @@ var
 begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
-  end;
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        DBComboBox.Items.Add(tn.Text);
+    end;
 
-  with DBComboBox do
-  begin
-    for i:=0 to Items.Count-1 do
-      if Items[i] = Mainform.ChildWin.ActualDatabase then
-        ItemIndex := i;
-    if ItemIndex = -1 then
-      ItemIndex := 0;
-  end;
+    with DBComboBox do
+    begin
+      for i:=0 to Items.Count-1 do
+        if Items[i] = ActualDatabase then
+          ItemIndex := i;
+      if ItemIndex = -1 then
+        ItemIndex := 0;
+    end;
 
+  end;
   DBComboBoxChange(self);
   // filename
   with TRegistry.Create do
@@ -119,20 +122,37 @@ end;
 
 procedure Tloaddataform.DBComboBoxChange(Sender: TObject);
 var
-  i : Integer;
+  tn, child : TTreeNode;
+  i,j : Integer;
 begin
   // read tables from db
   TablesComboBox.Items.Clear;
-  TablesComboBox.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( DBComboBox.Text ) );
-  with TablesComboBox do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    for i:=0 to Items.Count-1 do
-      if Items[i] = Mainform.ChildWin.ActualTable then
-        ItemIndex := i;
-    if ItemIndex = -1 then
-      ItemIndex := 0;
-  end;
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Text = DBComboBox.Text then
+      begin
+        child := tn.getFirstChild;
+        for j:=0 to tn.Count-1 do
+        begin
+          TablesComboBox.Items.Add(child.Text);
+          child := tn.getNextChild(child);
+        end;
+      end;
+    end;
 
+    with TablesComboBox do
+    begin
+      for i:=0 to Items.Count-1 do
+        if Items[i] = ActualTable then
+          ItemIndex := i;
+      if ItemIndex = -1 then
+        ItemIndex := 0;
+    end;
+
+  end;
   TablesComboBoxChange(self);
 end;
 
@@ -144,11 +164,14 @@ begin
   // fill columns:
   ColumnsCheckListBox.Items.Clear;
   if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then
-  Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text), Mainform.ChildWin.ZQuery3 );
-  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    ColumnsCheckListBox.Items.Add(Mainform.ChildWin.ZQuery3.Fields[0].AsString);
-    Mainform.ChildWin.ZQuery3.Next;
+    GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text), ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      ColumnsCheckListBox.Items.Add(ZQuery3.Fields[0].AsString);
+      ZQuery3.Next;
+    end;
   end;
 
   // select all:
@@ -243,7 +266,7 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  Mainform.ChildWin.ExecUpdateQuery(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
   close;
 end;
 

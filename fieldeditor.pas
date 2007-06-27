@@ -17,7 +17,7 @@ type
 
   TFieldEditForm = class(TForm)
     pc: TPageControl;
-    tabField: TTabSheet;
+    TabSheet1: TTabSheet;
     ButtonCancel: TButton;
     ButtonOK: TButton;
     lblName: TLabel;
@@ -34,7 +34,7 @@ type
     CheckBoxZerofill: TCheckBox;
     CheckBoxNotNull: TCheckBox;
     CheckBoxAutoIncrement: TCheckBox;
-    tabIndexes: TTabSheet;
+    TabSheet2: TTabSheet;
     ComboBoxKeys: TComboBox;
     lblIndexName: TLabel;
     CheckBoxUnique: TCheckBox;
@@ -52,6 +52,8 @@ type
     CheckBoxFulltext: TCheckBox;
     btnAddAllColumnsToIndex: TBitBtn;
     btnDeleteAllColumnsFromIndex: TBitBtn;
+    TabSheet3: TTabSheet;
+    Label9: TLabel;
     btnDatatypeHelp: TSpeedButton;
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -81,14 +83,18 @@ type
     { Private declarations }
     TempKeys : TStringList;
     FMode : TFieldEditorMode;
-    FModeWhenCalled : TFieldEditorMode;
     FFieldName : String;
-    procedure ValidateControls;
+    FFlags : String;
+    function GetInFieldMode: Boolean;
+    function GetInIndexMode: Boolean;
   public
     { Public declarations }
+    procedure Init (AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '');
+    property InFieldMode : Boolean read GetInFieldMode;
+    property InIndexMode : Boolean read GetInIndexMode;
   end;
 
-  function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
+  function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '') : Boolean;
 
 var
   FieldEditForm: TFieldEditForm;
@@ -102,7 +108,7 @@ uses
 
 var
   klist : Array of TMysqlIndex;
-
+  
 {$R *.DFM}
 
 
@@ -110,20 +116,33 @@ var
 {***
   Create form
 }
-function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
+function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = ''; AFlags : String = '') : Boolean;
 var
   f : TFieldEditForm;
 begin
   f := TFieldEditForm.Create(AOwner);
-  f.FMode := AMode;
-  // Also remember original mode for restoring when switching pagecontrol tabs
-  f.FModeWhenCalled := AMode;
-  f.FFieldName := AFieldName;
-  // Init both editors
-  f.InitFieldEditor (nil);
-  f.InitIndexEditor (nil);
+  f.Init (AMode,AFieldName,AFlags);
   Result := (f.ShowModal = mrOK);
   FreeAndNil (f);
+end;
+
+
+
+{***
+  Init form, detect which button the user clicked (Field-Editor or Index-Editor)
+}
+procedure TFieldEditForm.Init(AMode: TFieldEditorMode; AFieldName,
+  AFlags: String);
+begin
+  FMode := AMode;
+  FFieldName := AFieldName;
+  FFlags := AFlags;
+
+  if InFieldMode then
+    InitFieldEditor (nil);
+
+  if InIndexMode then
+    InitIndexEditor (nil);
 end;
 
 
@@ -144,7 +163,7 @@ begin
   ComboBoxPosition.Items.Add('At Beginning of Table');
 
 	// Reference to childwin's column-ListView
-  ListColumns := Mainform.ChildWin.ListColumns;
+  ListColumns := TMDIChild(Application.Mainform.ActiveMDIChild).ListColumns;
 
   // get fieldlist
   // add fieldnames
@@ -164,7 +183,7 @@ begin
 
   case FMode of
     // "Field" tab in Add-mode
-    femFieldAdd, femIndexEditor:
+    femFieldAdd:
     begin
       CheckBoxAutoIncrement.Enabled := false;
       EditFieldName.Text := 'FieldName';
@@ -216,6 +235,9 @@ begin
 
       // TODO: Disable 'auto increment' checkbox if field is not part of index or primary key.
     end;
+
+    // "Indexes" tab
+    femIndexEditor: ;
   end;
 end;
 
@@ -228,37 +250,39 @@ end;
 procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
-  cwin : TMDIChild;
 begin
   listColumnsUsed.Items.Clear;
   listColumnsAvailable.Items.Clear;
   setlength(klist, 0);
   TempKeys := TStringList.Create;
-  cwin := Mainform.ChildWin;
-  cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.ActualTable), cwin.ZQuery3 );
-  for i:=1 to cwin.ZQuery3.RecordCount do
-  begin
-    if TempKeys.IndexOf(cwin.ZQuery3.Fields[2].AsString) = -1 then
-    begin
-      TempKeys.Add(cwin.ZQuery3.Fields[2].AsString);
-      setlength(klist, length(klist)+1);
-      klist[length(klist)-1].Name := cwin.ZQuery3.Fields[2].AsString;
-      klist[length(klist)-1].Columns := TStringList.Create;
-      klist[length(klist)-1].Columns.Add(cwin.ZQuery3.Fields[4].AsString);
-      klist[length(klist)-1].Modified := false;
-      klist[length(klist)-1].Unique := (cwin.ZQuery3.Fields[1].AsString = '0');
-      if cwin.mysql_version < 40002 then
-        klist[length(klist)-1].Fulltext := (cwin.ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
-      else
-        klist[length(klist)-1].Fulltext := (cwin.ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT')
-    end else
-      klist[TempKeys.IndexOf(cwin.ZQuery3.Fields[2].AsString)].Columns.Add(cwin.ZQuery3.Fields[4].AsString);
-    cwin.ZQuery3.Next;
-  end;
 
-  for i:=0 to cwin.ListColumns.Items.Count-1 do begin
-    if cwin.ListColumns.Items[i] <> nil then
-      self.listColumnsAvailable.Items.Add(cwin.ListColumns.Items[i].Caption);
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
+  begin
+    GetResults( 'SHOW KEYS FROM ' + mainform.mask(ActualTable), ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      if TempKeys.IndexOf(ZQuery3.Fields[2].AsString) = -1 then
+      begin
+        TempKeys.Add(ZQuery3.Fields[2].AsString);
+        setlength(klist, length(klist)+1);
+        klist[length(klist)-1].Name := ZQuery3.Fields[2].AsString;
+        klist[length(klist)-1].Columns := TStringList.Create;
+        klist[length(klist)-1].Columns.Add(ZQuery3.Fields[4].AsString);
+        klist[length(klist)-1].Modified := false;
+        klist[length(klist)-1].Unique := (ZQuery3.Fields[1].AsString = '0');
+        if mysql_version < 40002 then
+          klist[length(klist)-1].Fulltext := (ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
+        else
+          klist[length(klist)-1].Fulltext := (ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT')
+      end else
+        klist[TempKeys.IndexOf(ZQuery3.Fields[2].AsString)].Columns.Add(ZQuery3.Fields[4].AsString);
+      ZQuery3.Next;
+    end;
+
+    for i:=0 to ListColumns.Items.Count-1 do begin
+      if ListColumns.Items[i] <> nil then
+        self.listColumnsAvailable.Items.Add(ListColumns.Items[i].Caption);
+    end;
   end;
   showkeys();
 end;
@@ -269,22 +293,53 @@ end;
   FormShow
 }
 procedure TFieldEditForm.FormShow(Sender: TObject);
+var
+  i : Integer;
 begin
-  if fMode in [femFieldUpdate, femFieldAdd] then
+  for i := 0 to pc.PageCount - 1 do
+    pc.Pages[i].TabVisible := False;
+
+  if InFieldMode then
     begin
-      pc.ActivePage := tabField;
+      Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Field Editor';
+      pc.Pages[0].TabVisible := True;
+      pc.ActivePageIndex := 0;
       EditFieldName.SetFocus();
     end;
 
-  if fMode in [femIndexEditor] then
+  if InIndexMode then
     begin
-      pc.ActivePage := tabIndexes;
+      Caption := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.Hostname + ' - Index Editor';
+      pc.Pages[1].TabVisible := True;
+      pc.ActivePageIndex := 1;
       if Length(klist) > 0 then
         ComboBoxKeys.SetFocus();
     end;
 
   ComboBoxTypeChange(self);
-  ValidateControls;
+  pc.OnChange(self);
+end;
+
+
+
+{***
+  Detect if we're in AddField or UpdateField-mode
+  @return boolean
+}
+function TFieldEditForm.GetInFieldMode: Boolean;
+begin
+  Result := FMode in [femFieldAdd,femFieldUpdate];
+end;
+
+
+
+{***
+  Detect if we're in Index-mode
+  @return boolean
+}
+function TFieldEditForm.GetInIndexMode: Boolean;
+begin
+  Result := FMode in [femIndexEditor];
 end;
 
 
@@ -423,7 +478,7 @@ begin
       strNotNull +            // Not Null
       strAutoIncrement;       // Auto_increment
 
-    cwin := Mainform.ChildWin;
+    cwin := TMDIChild(Mainform.ActiveMDIChild);
 
     if (FMode = femFieldAdd) then begin
       cwin.ExecUpdateQuery(
@@ -485,27 +540,13 @@ end;
 }
 procedure TFieldEditForm.pcChange(Sender: TObject);
 begin
-  // Set FMode, according to selected tab
-  if pc.ActivePage = tabField then
-  begin
-    if FModeWhenCalled = femFieldUpdate then
-    begin
-      // "Field" tab selected and original mode was "UpdateField"
-      FMode := femFieldUpdate;
-    end
-    else
-    begin
-      // "Field" tab selected and original mode was "AddField"
-      FMode := femFieldAdd;
-    end;
-  end
-  else if pc.ActivePage = tabIndexes then
-  begin
-    // "Index" tab selected
-    FMode := femIndexEditor;
+  case FMode of
+    femFieldAdd:    ButtonOK.Caption := 'Add';
+    femFieldUpdate: ButtonOK.Caption := 'Update';
+    femIndexEditor: ButtonOK.Caption := 'Update';
+  else
+    ButtonOK.Caption := 'Close';
   end;
-
-  ValidateControls;
 
 end;
 
@@ -517,11 +558,11 @@ end;
 procedure TFieldEditForm.OKClick(Sender: TObject);
 begin
   // add/update what?
-  if fMode in [femFieldUpdate, femFieldAdd] then
+  if InFieldMode then
     begin
       AddUpdateField(self);
-    end;
-  if fMode in [femIndexEditor] then
+    end
+  else if InIndexMode then
     begin
       UpdateKeys(self);
       ModalResult := mrOK;
@@ -541,9 +582,11 @@ var i : Integer;
 begin
   if ComboBoxKeys.ItemIndex > -1 then begin
     listColumnsAvailable.Items.Clear;
-    for i:=0 to Mainform.ChildWin.ListColumns.Items.Count-1 do
-      if (Mainform.ChildWin.ListColumns.Items[i] <> nil) and (klist[ComboBoxKeys.ItemIndex].columns.Indexof(Mainform.ChildWin.ListColumns.Items[i].Caption)=-1) then
-        listColumnsAvailable.Items.Add(Mainform.ChildWin.ListColumns.Items[i].Caption);
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+      for i:=0 to ListColumns.Items.Count-1 do
+        if (ListColumns.Items[i] <> nil) and (klist[self.ComboBoxKeys.ItemIndex].columns.Indexof(ListColumns.Items[i].Caption)=-1) then
+          self.listColumnsAvailable.Items.Add(ListColumns.Items[i].Caption);
+    end;
     with klist[ComboBoxKeys.ItemIndex] do begin
       listColumnsUsed.Items := Columns;
       CheckBoxUnique.OnClick := nil;
@@ -706,7 +749,7 @@ var
   query1, query : String;
   columns_sql : String;
 begin
-  query1 := 'ALTER TABLE ' + mainform.mask(Mainform.ChildWin.ActualTable);
+  query1 := 'ALTER TABLE ' + mainform.mask(TMDIChild(Application.Mainform.ActiveMDIChild).ActualTable);
   for i:=0 to TempKeys.Count-1 do begin
 
     index := -1;
@@ -746,7 +789,7 @@ begin
       else
         query := query1 + ' DROP INDEX '+ mainform.mask(klist[index].Name) +
           ', ADD INDEX ' + mainform.mask(klist[index].Name) + ' (' + columns_sql + ')';
-      Mainform.ChildWin.ExecUpdateQuery(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
       klist[index].Modified := false;
     end
 
@@ -756,7 +799,7 @@ begin
         query := query1 + ' DROP PRIMARY KEY'
       else
         query := query1 + ' DROP INDEX ' + mainform.mask(TempKeys[i]);
-      Mainform.ChildWin.ExecUpdateQuery(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
     end;
 
     if index > -1 then
@@ -788,11 +831,11 @@ begin
       // INDEX:
       else
         query := query1 + ' ADD INDEX '+ mainform.mask(klist[j].Name) + ' (' + columns_sql + ')';
-      Mainform.ChildWin.ExecUpdateQuery(query);
+      TMDIChild(Application.Mainform.ActiveMDIChild).ExecUpdateQuery(query);
     end;
   end;
 
-  Mainform.ChildWin.ShowTableProperties(self);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ShowTableProperties(self);
   close;
 end;
 
@@ -881,7 +924,7 @@ begin
   btnDeleteColumnFromIndex.Enabled := (listColumnsUsed.ItemIndex > -1);
   btnAddAllColumnsToIndex.Enabled := (listColumnsAvailable.Items.Count > 0);
   btnDeleteAllColumnsFromIndex.Enabled := (listColumnsUsed.Items.Count > 0);
-  ValidateControls;
+  ButtonOK.Enabled := listColumnsUsed.Items.Count > 0;
 end;
 
 
@@ -922,40 +965,9 @@ end;
 }
 procedure TFieldEditForm.btnDatatypeHelpClick(Sender: TObject);
 begin
-  Mainform.ChildWin.CallSQLHelpWithKeyword(ComboBoxType.Text);
+  TMDIChild(Mainform.ActiveMDIChild).CallSQLHelpWithKeyword(ComboBoxType.Text);
 end;
 
-
-
-{***
-  Ensure correct state of various controls
-}
-procedure TFieldEditForm.ValidateControls;
-begin
-  ButtonOK.Enabled := true;
-
-  case FMode of
-
-    femFieldUpdate:
-    begin
-      ButtonOK.Caption := 'Update Field';
-    end;
-
-    femFieldAdd:
-    begin
-      ButtonOK.Caption := 'Add Field';
-    end;
-
-    femIndexEditor:
-    begin
-      ButtonOK.Caption := 'Update Indexes';
-      // Disable the button if a key was selected and no columns are listed on the left
-      ButtonOK.Enabled := (ComboBoxKeys.ItemIndex = -1) or (listColumnsUsed.Items.Count > 0);
-    end;
-
-  end;
-  Caption := Mainform.ChildWin.Description + ' - ' + ButtonOK.Caption;
-end;
 
 end.
 

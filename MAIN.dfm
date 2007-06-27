@@ -13,7 +13,6 @@ object MainForm: TMainForm
   Menu = MainMenu1
   OldCreateOrder = True
   OnClose = FormClose
-  OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -4223,6 +4222,13 @@ object MainForm: TMainForm
       FEBF80030003DCF7FC9F80070003FF0FFDDF807F0003FFFFFDDF80FF8007FFFF
       FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
       000000000000}
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 1
+    OnTimer = Timer1Timer
+    Left = 40
+    Top = 120
   end
   object SQLFunctions: TPopupMenu
     Images = ImageList1

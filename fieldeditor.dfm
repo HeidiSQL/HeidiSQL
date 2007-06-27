@@ -23,12 +23,12 @@ object FieldEditForm: TFieldEditForm
     Top = 0
     Width = 297
     Height = 289
-    ActivePage = tabField
+    ActivePage = TabSheet2
     Align = alTop
     Images = MainForm.ImageList1
     TabOrder = 0
     OnChange = pcChange
-    object tabField: TTabSheet
+    object TabSheet1: TTabSheet
       Caption = 'Field'
       ImageIndex = 62
       ExplicitLeft = 0
@@ -176,7 +176,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 0
       end
     end
-    object tabIndexes: TTabSheet
+    object TabSheet2: TTabSheet
       Caption = 'Indexes'
       ImageIndex = 76
       ParentShowHint = False
@@ -374,11 +374,26 @@ object FieldEditForm: TFieldEditForm
           FFFFFFFF00F00FFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFFFFFF}
       end
     end
+    object TabSheet3: TTabSheet
+      Caption = 'Foreign Keys'
+      ImageIndex = -1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object Label9: TLabel
+        Left = 104
+        Top = 104
+        Width = 64
+        Height = 13
+        Caption = 'Coming soon!'
+      end
+    end
   end
   object ButtonCancel: TButton
-    Left = 207
-    Top = 295
-    Width = 90
+    Left = 222
+    Top = 296
+    Width = 75
     Height = 25
     Cancel = True
     Caption = 'Cancel'
@@ -386,9 +401,9 @@ object FieldEditForm: TFieldEditForm
     OnClick = ButtonCancelClick
   end
   object ButtonOK: TButton
-    Left = 111
-    Top = 295
-    Width = 90
+    Left = 136
+    Top = 296
+    Width = 75
     Height = 25
     Caption = 'OK'
     Default = True

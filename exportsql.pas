@@ -133,15 +133,11 @@ const
   OUTPUT_DB         = 2;
   OUTPUT_HOST       = 3;
 
-  // Default output compatibility
-  SQL_VERSION_DEFAULT = SQL_VERSION_ANSI;
-
 var
   appHandles: array of THandle;
   cancelDialog: TForm = nil;
   remote_version: integer;
   remote_max_allowed_packet : Int64;
-  target_versions : TStringList;
 
 function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 var
@@ -168,66 +164,45 @@ begin
   barProgress.Position := 0;
   lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
-  SynMemoExampleSQL.Highlighter := Mainform.ChildWin.SynSQLSyn1;
-  SynMemoExampleSQL.Font := Mainform.ChildWin.SynMemoQuery.Font;
+  SynMemoExampleSQL.Highlighter := TMDIChild(MainForm.ActiveMDIChild).SynSQLSyn1;
+  SynMemoExampleSQL.Font := TMDIChild(MainForm.ActiveMDIChild).SynMemoQuery.Font;
   
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
-  Caption := Mainform.ChildWin.MysqlConn.Description + ' - Export Tables...';
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
+  with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      comboSelectDatabase.Items.Add(tn.Text);
-  end;
-
-  if Mainform.ChildWin.DBRightClickSelectedItem <> nil then
-  begin
-    case Mainform.ChildWin.DBRightClickSelectedItem.Level of
-      1 : dbtree_db := Mainform.ChildWin.DBRightClickSelectedItem.Text;
-      2 : dbtree_db := Mainform.ChildWin.DBRightClickSelectedItem.Parent.Text;
-      3 : dbtree_db := Mainform.ChildWin.DBRightClickSelectedItem.Parent.Parent.Text;
-    end;
-  end;
-
-  for i:=0 to comboSelectDatabase.Items.Count-1 do
-  begin
-    if ((dbtree_db = '') and (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActualDatabase))
-      or ((dbtree_db <> '') and (comboSelectDatabase.Items[i] = dbtree_db)) then
+    self.Caption := MysqlConn.Description + ' - Export Tables...';
+    for i:=0 to DBTree.Items.Count-1 do
     begin
-      comboSelectDatabase.ItemIndex := i;
-      break;
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        comboSelectDatabase.Items.Add(tn.Text);
     end;
+
+    if DBRightClickSelectedItem <> nil then
+    begin
+      case DBRightClickSelectedItem.Level of
+        1 : dbtree_db := DBRightClickSelectedItem.Text;
+        2 : dbtree_db := DBRightClickSelectedItem.Parent.Text;
+        3 : dbtree_db := DBRightClickSelectedItem.Parent.Parent.Text;
+      end;
+    end;
+
+    for i:=0 to comboSelectDatabase.Items.Count-1 do
+    begin
+      if ((dbtree_db = '') and (comboSelectDatabase.Items[i] = ActualDatabase))
+        or ((dbtree_db <> '') and (comboSelectDatabase.Items[i] = dbtree_db)) then
+      begin
+        comboSelectDatabase.ItemIndex := i;
+        break;
+      end;
+    end;
+
+    if comboSelectDatabase.ItemIndex = -1 then
+      comboSelectDatabase.ItemIndex := 0;
+
   end;
-
-  if comboSelectDatabase.ItemIndex = -1 then
-    comboSelectDatabase.ItemIndex := 0;
-
   comboSelectDatabaseChange(self);
-
-  // Initialize and fill list with target versions
-  target_versions := TStringList.Create;
-  with target_versions do
-  begin
-    Add( IntToStr( SQL_VERSION_ANSI ) + '=Standard ANSI SQL' );
-    Add( '32300=MySQL 3.23' );
-    Add( '40000=MySQL 4.0' );
-    Add( '40100=MySQL 4.1' );
-    Add( '50000=MySQL 5.0' );
-    Add( '50100=MySQL 5.1' );
-    Add( IntToStr( Mainform.ChildWin.mysql_version ) + '=Same as source server (MySQL '+Mainform.ChildWin.GetVar('SELECT VERSION()') +')' );
-  end;
-
-  // Add all target versions to combobox and set default option
-  comboTargetCompat.Items.Clear;
-  for i := 0 to target_versions.Count - 1 do
-  begin
-    comboTargetCompat.Items.Add( target_versions.ValueFromIndex[i] );
-    if( target_versions.Names[i] = IntToStr( SQL_VERSION_DEFAULT ) ) then
-    begin
-      comboTargetCompat.ItemIndex := i;
-    end;
-  end;
 
   // Read options
   with TRegistry.Create do
@@ -348,43 +323,58 @@ end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
+  tn, child : TTreeNode;
   i,j : Integer;
   dbtree_table : String;
 begin
   // read tables from db
   checkListTables.Items.Clear;
-
-  // Fetch tables from DB
-  // todo: skip views or add complete support for views.
-  checkListTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(comboSelectDatabase.Text) );
-
-  // select all/some:
-  for i:=0 to checkListTables.Items.Count-1 do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    if Mainform.ChildWin.DBRightClickSelectedItem <> nil then
+    for i:=0 to DBTree.Items.Count-1 do
     begin
-      case Mainform.ChildWin.DBRightClickSelectedItem.Level of
-        2 : dbtree_table := Mainform.ChildWin.DBRightClickSelectedItem.Text;
-        3 : dbtree_table := Mainform.ChildWin.DBRightClickSelectedItem.Parent.Text;
-      end;
-      case Mainform.ChildWin.DBRightClickSelectedItem.Level of
-        1 : checkListTables.checked[i] := true;
-        2,3 : checkListTables.checked[i] := dbtree_table = checkListTables.Items[i];
-      end;
-    end
-    else if Mainform.ChildWin.ActualDatabase = comboSelectDatabase.Text then
-      for j:=0 to Mainform.ChildWin.ListTables.Items.Count-1 do
+      tn := DBTree.Items[i];
+      if tn.Text = comboSelectDatabase.Text then
       begin
-        if checkListTables.Items[i] = Mainform.ChildWin.ListTables.Items[j].Caption then
+        child := tn.getFirstChild;
+        for j:=0 to tn.Count-1 do
         begin
-          checkListTables.checked[i] := Mainform.ChildWin.ListTables.Items[j].Selected;
+           // Sometimes a column-name of the last table gets into the table-list.
+           // Seems like a bug in getNextChild
+           if child.Level = 2 then
+            checkListTables.Items.Add(child.Text);
+          child := tn.getNextChild(child);
+        end;
+      end;
+    end;
+
+    // select all/some:
+    for i:=0 to checkListTables.Items.Count-1 do
+    begin
+      if DBRightClickSelectedItem <> nil then
+      begin
+        case DBRightClickSelectedItem.Level of
+          2 : dbtree_table := DBRightClickSelectedItem.Text;
+          3 : dbtree_table := DBRightClickSelectedItem.Parent.Text;
+        end;
+        case DBRightClickSelectedItem.Level of
+          1 : checkListTables.checked[i] := true;
+          2,3 : checkListTables.checked[i] := dbtree_table = checkListTables.Items[i];
+        end;
+      end
+      else if ActualDatabase = comboSelectDatabase.Text then for j:=0 to ListTables.Items.Count-1 do
+      begin
+        if checkListTables.Items[i] = ListTables.Items[j].Caption then
+        begin
+          checkListTables.checked[i] := ListTables.Items[j].Selected;
           break;
         end;
       end
-    else
-      checkListTables.checked[i] := true;
+      else
+        checkListTables.checked[i] := true;
+    end;
+    DBRightClickSelectedItem := nil;
   end;
-  Mainform.ChildWin.DBRightClickSelectedItem := nil;
 
   // write items for "Another Databases":
   fillcombo_anotherdb(self);
@@ -450,7 +440,7 @@ begin
   Screen.Cursor := crHourGlass;
 
   // Initialize default-variables
-  target_version := SQL_VERSION_DEFAULT;
+  target_version := SQL_VERSION_ANSI;
   max_allowed_packet := 1024*1024;
 
   // export what?
@@ -464,7 +454,7 @@ begin
   tohost := radioOtherHost.Checked;
 
   // for easy use of methods in childwin
-  cwin := Mainform.ChildWin;
+  cwin := TMDIChild(Mainform.ActiveMDIChild);
 
   {***
     @note ansgarbecker
@@ -477,8 +467,14 @@ begin
 
   // Export to .sql-file on disk
   if tofile then begin
-    // Extract name part of selected target version
-    target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
+    case comboTargetCompat.ItemIndex of
+      0: target_version := SQL_VERSION_ANSI;
+      1: target_version := 32300;
+      2: target_version := 40000;
+      3: target_version := 40100;
+      4: target_version := 50000;
+      5: target_version := 50100;
+    end;
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
     except
@@ -555,15 +551,7 @@ begin
       {***
         Set characterset to current one
       }
-      if cwin.mysql_version > 40100 then
-        current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 )
-      else if cwin.mysql_version > 40000 then
-        // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
-        current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set"', 1 )
-      else
-        // todo: test this
-        current_characterset := 'binary';
-
+      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 );
       if current_characterset <> '' then
       begin
         sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
@@ -573,17 +561,6 @@ begin
         else if tohost then
           RemoteExecNonQuery(win2export, sql );
       end;
-
-      // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL 
-      if target_version = SQL_VERSION_ANSI then
-      begin
-        sql := '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI'' ;*/';
-        if tofile then
-          wfs(f, sql)
-        else if tohost then
-          RemoteExecNonQuery(win2export, sql );
-      end;
-
       if exportdb then
       begin
         {***
@@ -695,13 +672,6 @@ begin
           cwin.GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), Query );
           sql := Query.Fields[1].AsString;
           sql := fixNewlines(sql);
-          // Skip VIEWS.  Not foolproof, but good enough until more support for information_schema (fallback to? regexp?) is added.
-          // todo: implement working support for views.
-          if (Pos(' TABLE `', sql) = 0) and (Pos(' VIEW `', sql) > 0) then continue;
-          if Pos('DEFAULT CHARSET', sql) > 0 then begin
-            Insert('/*!40100 ', sql, Pos('DEFAULT CHARSET', sql));
-            sql := sql + '*/';
-          end;
           if target_version = SQL_VERSION_ANSI then
           begin
             sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
@@ -921,6 +891,7 @@ begin
           RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' WRITE');
         end;
 
+
         offset := 0;
         loopnumber := 0;
         RecordNo_all := 0;
@@ -1056,17 +1027,6 @@ begin
         barProgress.StepIt;
       end;
     end;
-
-    // Restore old value for SQL_MODE
-    if (tofile or tohost) and (target_version = SQL_VERSION_ANSI) then
-    begin
-      sql := '/*!40101 SET SQL_MODE=@OLD_SQL_MODE ;*/';
-      if tofile then
-        wfs(f, sql)
-      else if tohost then
-        RemoteExecNonQuery(win2export, sql );
-    end;
-
     if cwin.ActualDatabase <> '' then
     begin
       cwin.ExecUseQuery( cwin.ActualDatabase );

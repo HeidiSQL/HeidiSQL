@@ -85,39 +85,45 @@ var
   tn : TTreeNode;
   struc_data : Byte;
 begin
-  oldTableName := Mainform.ChildWin.ListTables.Selected.Caption;
+  oldTableName := TMDIChild(Mainform.ActiveMDIChild).ListTables.Selected.Caption;
   editNewTablename.Text := oldTableName + '_copy';
   editNewTablename.SetFocus;
   lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new Table:';
 
 	// Select TargetDatabase
   ComboSelectDatabase.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
+  with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      comboSelectDatabase.Items.Add(tn.Text);
-  end;
-
-  for i:=0 to comboSelectDatabase.Items.Count-1 do
-  begin
-    if (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActualDatabase) then
+    for i:=0 to DBTree.Items.Count-1 do
     begin
-      comboSelectDatabase.ItemIndex := i;
-      break;
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        comboSelectDatabase.Items.Add(tn.Text);
     end;
+
+    for i:=0 to comboSelectDatabase.Items.Count-1 do
+    begin
+      if (comboSelectDatabase.Items[i] = ActualDatabase) then
+      begin
+        comboSelectDatabase.ItemIndex := i;
+        break;
+      end;
+    end;
+    if comboSelectDatabase.ItemIndex = -1 then
+      comboSelectDatabase.ItemIndex := 0;
   end;
-  if comboSelectDatabase.ItemIndex = -1 then
-    comboSelectDatabase.ItemIndex := 0;
 
 
   // fill columns:
   CheckListBoxFields.Items.Clear;
-  Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName), Mainform.ChildWin.ZQuery3 );
-  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+  with TMDIChild(Mainform.ActiveMDIChild) do
   begin
-    CheckListBoxFields.Items.Add( Mainform.ChildWin.ZQuery3.Fields[0].AsString );
-    Mainform.ChildWin.ZQuery3.Next;
+    GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName), ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      CheckListBoxFields.Items.Add( ZQuery3.Fields[0].AsString );
+      ZQuery3.Next;
+    end;
   end;
 
   // select all:
@@ -164,11 +170,11 @@ begin
   mainform.SaveRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
 
   strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
-  zq := Mainform.ChildWin.ZQuery3;
+  zq := TMDIChild(Mainform.ActiveMDIChild).ZQuery3;
 
   // keys >
   if CheckBoxWithIndexes.Checked then begin
-    Mainform.ChildWin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename), zq );
+    TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename), zq );
     setLength(keylist, 0);
     keystr := '';
 
@@ -189,7 +195,7 @@ begin
         keylist[which].SubParts := TStringList.Create;
         with keylist[which] do // set properties for new key
         begin
-          if Mainform.ChildWin.mysql_version < 40002 then
+          if TMDIChild(Mainform.ActiveMDIChild).mysql_version < 40002 then
             isFulltext := (zq.FieldByName('Comment').AsString = 'FULLTEXT')
           else
             isFulltext := (zq.FieldByName('Index_type').AsString = 'FULLTEXT');
@@ -250,7 +256,7 @@ begin
   if radioStructure.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
-  Mainform.ChildWin.ExecUpdateQuery(strquery);
+  TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(strquery);
 
   // Find a auto_increment-column
   zq.SQL.Clear();
@@ -263,12 +269,12 @@ begin
       if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
       if zq.Fields[4].AsString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsString+'"' else default := '';
       ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
-      Mainform.ChildWin.ExecUpdateQuery(ai_q);
+      TMDIChild(Mainform.ActiveMDIChild).ExecUpdateQuery(ai_q);
     end;
     zq.Next;
   end;
 
-  Mainform.ChildWin.ShowDBProperties(self);
+  TMDIChild(Mainform.ActiveMDIChild).ShowDBProperties(self);
   close;
 
 end;
