@@ -59,18 +59,18 @@ end;
 
 procedure TfrmQueryProgress.HandleQueryNotificationMsg(var AMessage: TMessage);
 begin
-  debug(Format('thr: Progress form received WM_MYSQL_THREAD_NOTIFY message with status %d', [AMessage.LParam]));
+  debug(Format('qry: Progress form received WM_MYSQL_THREAD_NOTIFY message with status %d', [AMessage.LParam]));
   case AMessage.LParam of
     MQE_INITED:
       begin
-        debug('thr: Setting running flag to ''true''.');
+        debug('qry: Setting running flag to ''true''.');
       end;
     MQE_STARTED:
       begin
       end;
     MQE_FINISHED:
       begin
-        debug('thr: Setting running flag to ''false'' and closing dialog.');
+        debug('qry: Setting running flag to ''false'' and closing dialog.');
         Close();
       end;
     MQE_FREED:;

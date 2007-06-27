@@ -47,32 +47,32 @@ type
 procedure InitializeComm(myWindow: THandle; nonQueryRunner: TNonQueryRunner; queryRunner: TQueryRunner);
 
 (*
- Execute a query on a window.
-*)
-procedure RemoteExecNonQuery(window: THandle; query: string);
-
-(*
- Execute a USE query on a window,
- given the version of the mysql server that window is connected to.
-*)
-procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string);
-
-(*
  Execute a query on another window, request results but don't wait for them.
 *)
-function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; waitControl: TObject = nil): Cardinal;
+function RemoteExecSqlAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; method: DWORD; waitControl: TObject = nil): Cardinal;
 
 (*
  Execute a query on another window, showing a wait dialog while processing
  and calling a completion handler via messaging when done.
 *)
-function RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String): Cardinal;
+function RemoteExecSql(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String; method: DWORD): Cardinal;
 
 (*
  Execute a query on another window, showing a wait dialog while processing
  and returning results or raising an exception when done.
 *)
-function RemoteExecQuerySimple(window: THandle; query: String; info: String): TDataSet;
+function RemoteExecQuery(window: THandle; query: String; info: String): TDataSet;
+
+(*
+ Execute a query on a window.
+*)
+procedure RemoteExecNonQuery(window: THandle; query: string; info: string = '');
+
+(*
+ Execute a USE query on a window,
+ given the version of the mysql server that window is connected to.
+*)
+procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string; info: string = '');
 
 (*
  Fill in resulting data and return waiting thread to caller.
@@ -277,7 +277,7 @@ begin
 end;
 
 
-procedure RemoteExecQueryInternal(method: DWORD; req: Cardinal; window: THandle; query: String);
+procedure RemoteExecSqlInternal(method: DWORD; req: Cardinal; window: THandle; query: String);
 var
   ms: TMemoryStream;
   pcsql: PChar;
@@ -301,36 +301,24 @@ begin
 end;
 
 
-procedure RemoteExecNonQuery(window: THandle; query: string);
-begin
-  RemoteExecQueryInternal(CMD_EXECUTEQUERY_NORESULTS, REQUEST_ID_INVALID, window, query);
-end;
-
-
-procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string);
-begin
-  RemoteExecNonQuery(window, 'USE ' + maskSql(mysqlVersion, dbName));
-end;
-
-
-function RemoteExecQueryAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; waitControl: TObject = nil): Cardinal;
+function RemoteExecSqlAsync(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; method: DWORD; waitControl: TObject = nil): Cardinal;
 var
   req: Cardinal;
 begin
   req := SetCompletionHandler(handler, timeout, waitControl);
-  RemoteExecQueryInternal(CMD_EXECUTEQUERY_RESULTS, req, window, query);
+  RemoteExecSqlInternal(method, req, window, query);
   result := req;
 end;
 
 
-function RemoteExecQuery(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String): Cardinal;
+function RemoteExecSql(handler: TCompletionHandler; timeout: Cardinal; window: THandle; query: String; info: String; method: DWORD): Cardinal;
 var
   cancelDialog: TForm;
   requestId: Cardinal;
 begin
   if Length(info) = 0 then info := 'Waiting for remote session to execute query...';
   cancelDialog := CreateMessageDialog(info, mtCustom, [mbCancel]);
-  requestId := RemoteExecQueryAsync(handler, timeout, window, query, cancelDialog);
+  requestId := RemoteExecSqlAsync(handler, timeout, window, query, method, cancelDialog);
   // The callback method shouldn't be activated before messages has been processed,
   // so we can safely touch the wait control (a cancel dialog) here.
   cancelDialog.ShowModal;
@@ -342,14 +330,31 @@ begin
 end;
 
 
-function RemoteExecQuerySimple(window: THandle; query: String; info: String): TDataSet;
+function RemoteExecQuery(window: THandle; query: String; info: String): TDataSet;
 var
   requestId: Cardinal;
 begin
   // Call with no handler (= no completion message) and no timeout.
-  requestId := RemoteExecQuery(nil, INFINITE_TIMEOUT, window, query, info);
+  requestId := RemoteExecSql(nil, INFINITE_TIMEOUT, window, query, info, CMD_EXECUTEQUERY_RESULTS);
   // Take care of results since there's no handler.
   result := TDataSet(ExtractResultObject(requestId));
+end;
+
+
+procedure RemoteExecNonQuery(window: THandle; query: string; info: string);
+var
+  requestId: Cardinal;
+begin
+  // Call with no handler (= no completion message) and no timeout.
+  requestId := RemoteExecSql(nil, INFINITE_TIMEOUT, window, query, info, CMD_EXECUTEQUERY_NORESULTS);
+  // Take care of results since there's no handler.
+  ExtractResultObject(requestId);
+end;
+
+
+procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string; info: string);
+begin
+  RemoteExecNonQuery(window, 'USE ' + maskSql(mysqlVersion, dbName), info);
 end;
 
 
@@ -379,6 +384,10 @@ begin
     RES_EXCEPTION: begin
       s := GetExceptionTextFromMsg(msg);
       NotifyInterrupted(req, Exception.Create('Error from remote: ' + s));
+    end;
+    RES_NONQUERY: begin
+      // Uses a blank object to indicate completed queries with no result data..
+      NotifyComplete(req, TObject.Create());
     end;
   end;
 end;
@@ -460,23 +469,24 @@ begin
     finally
       ReleaseRemoteCaller(ERR_NOERROR);
     end;
-    data := nil;
     try
       if method = CMD_EXECUTEQUERY_NORESULTS then begin
         nqRunner(msg.From, query);
+        ReportFinishedQuery(method, msg.From, remoteReqId, nil);
       end else begin
         data := qRunner(msg.From, query);
+        ReportFinishedQuery(method, msg.From, remoteReqId, data);
       end;
     except
       on e: Exception do begin
         ReportFailedQuery(method, msg.From, remoteReqId, e.Message);
       end;
     end;
-    if data <> nil then ReportFinishedQuery(method, msg.From, remoteReqId, data);
   end;
   if
     (method = RES_QUERYDATA) or
-    (method = RES_EXCEPTION)
+    (method = RES_EXCEPTION) or
+    (method = RES_NONQUERY)
   then begin
     ReleaseRemoteCaller(ERR_NOERROR);
     FinishRemoteExecution(msg);
