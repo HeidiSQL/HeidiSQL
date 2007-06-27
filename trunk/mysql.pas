@@ -61,27 +61,29 @@ const
   tpDOUBLE     = 6;
   tpDECIMAL    = 7;
   tpDATE       = 8;
-  tpDATETIME   = 9;
-  tpTIMESTAMP  = 10;
-  tpTIME       = 11;
-  tpYEAR       = 12;
+  tpTIME       = 9;
+  tpYEAR       = 10;
+  tpDATETIME   = 11;
+  tpTIMESTAMP  = 12;
   tpCHAR       = 13;
   tpVARCHAR    = 14;
-  tpTINYBLOB   = 15;
-  tpTINYTEXT   = 16;
+  tpTINYTEXT   = 15;
+  tpMEDIUMTEXT = 16;
   tpTEXT       = 17;
-  tpBLOB       = 18;
-  tpMEDIUMBLOB = 19;
-  tpMEDIUMTEXT = 20;
-  tpLONGBLOB   = 21;
-  tpLONGTEXT   = 22;
-  tpENUM       = 23;
-  tpSET        = 24;
-  tpBIT        = 25;
+  tpLONGTEXT   = 18;
+  tpBINARY     = 19;
+  tpVARBINARY  = 20;
+  tpTINYBLOB   = 21;
+  tpBLOB       = 22;
+  tpMEDIUMBLOB = 23;
+  tpLONGBLOB   = 24;
+  tpENUM       = 25;
+  tpSET        = 26;
+  tpBIT        = 27;
 
 var
   // MySQL Data Type List and Properties
-  MySqlDataTypeArray: array [0..25] of TMysqlDataTypeRecord =
+  MySqlDataTypeArray: array [0..27] of TMysqlDataTypeRecord =
   (
     (
       Index:           tpTINYINT;
@@ -174,26 +176,6 @@ var
       HasDefault:      True;
     ),
     (
-      Index:           tpDATETIME;
-      Name:            'DATETIME';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
-      HasBinary:       False;
-      HasDefault:      True;
-    ),
-    (
-      Index:           tpTIMESTAMP;
-      Name:            'TIMESTAMP';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
-      HasBinary:       False;
-      HasDefault:      True;
-    ),
-    (
       Index:           tpTIME;
       Name:            'TIME';
       HasLength:       False;
@@ -206,6 +188,26 @@ var
     (
       Index:           tpYEAR;
       Name:            'YEAR';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpDATETIME;
+      Name:            'DATETIME';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpTIMESTAMP;
+      Name:            'TIMESTAMP';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -236,18 +238,18 @@ var
       DefLengthSet:    '50';
     ),
     (
-      Index:           tpTINYBLOB;
-      Name:           'TINYBLOB';
+      Index:           tpTINYTEXT;
+      Name:            'TINYTEXT';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
       HasZerofill:     False;
-      HasBinary:       False;
+      HasBinary:       True;
       HasDefault:      False;
     ),
     (
-      Index:           tpTINYTEXT;
-      Name:            'TINYTEXT';
+      Index:           tpMEDIUMTEXT;
+      Name:            'MEDIUMTEXT';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -263,6 +265,48 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       True;
+      HasDefault:      False;
+    ),
+    (
+      Index:           tpLONGTEXT;
+      Name:            'LONGTEXT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       True;
+      HasDefault:      False;
+    ),
+    (
+      Index:           tpBINARY;
+      Name:            'BINARY';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '50';
+    ),
+    (
+      Index:           tpVARBINARY;
+      Name:            'VARBINARY';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '50';
+    ),
+    (
+      Index:           tpTINYBLOB;
+      Name:           'TINYBLOB';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
       HasDefault:      False;
     ),
     (
@@ -286,16 +330,6 @@ var
       HasDefault:      False;
     ),
     (
-      Index:           tpMEDIUMTEXT;
-      Name:            'MEDIUMTEXT';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
-      HasBinary:       True;
-      HasDefault:      False;
-    ),
-    (
       Index:           tpLONGBLOB;
       Name:            'LONGBLOB';
       HasLength:       False;
@@ -303,16 +337,6 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      False;
-    ),
-    (
-      Index:           tpLONGTEXT;
-      Name:            'LONGTEXT';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
-      HasBinary:       True;
       HasDefault:      False;
     ),
     (
