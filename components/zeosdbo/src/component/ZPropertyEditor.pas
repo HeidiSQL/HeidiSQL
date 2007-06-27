@@ -99,7 +99,7 @@ type
   {** Shows all Fields received from the MasterSource's DataSet.FieldDefs. }
   TZMasterFieldPropertyEditor = class(TZStringProperty)
   public
-    procedure GetValueList(List: TStrings); override;
+{    procedure GetValueList(List: TStrings); override;}
   end;
 
   {** Shows all Tables received from Connection.IZDatabaseMetadata. }
@@ -301,14 +301,14 @@ end;
 
 { TZMasterFieldPropertyEditor }
 
-procedure TZMasterFieldPropertyEditor.GetValueList(List: TStrings);
+{procedure TZMasterFieldPropertyEditor.GetValueList(List: TStrings);
 var
   DataSource: TDataSource;
 begin
   DataSource := GetObjectProp(GetComponent(0), 'MasterSource') as TDataSource;
   if (DataSource <> nil) and (DataSource.DataSet <> nil) then
     DataSource.DataSet.GetFieldNames(List);
-end;
+end;}
 
 { TZTableNamePropertyEditor }
 
