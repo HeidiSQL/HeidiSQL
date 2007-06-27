@@ -104,7 +104,7 @@ begin
   end;
 end;
 
-type THackedDataset = class(TDataset);
+type THackedDataset = class(TWideDataset);
 
 {**
   Destroys this object and cleanups the memory.
