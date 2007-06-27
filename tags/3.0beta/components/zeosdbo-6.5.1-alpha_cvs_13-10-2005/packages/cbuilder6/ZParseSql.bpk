@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="ZParseSql.bpl"/>
+    <OBJFILES value="build\ZParseSql.obj build\ZGenericSqlAnalyser.obj 
+      build\ZGenericSqlToken.obj build\ZInterbaseAnalyser.obj 
+      build\ZInterbaseToken.obj build\ZMySqlAnalyser.obj build\ZMySqlToken.obj 
+      build\ZPostgreSqlAnalyser.obj build\ZPostgreSqlToken.obj 
+      build\ZScriptParser.obj build\ZSelectSchema.obj build\ZSybaseAnalyser.obj 
+      build\ZSybaseToken.obj build\ZSqLiteToken.obj build\ZOracleAnalyser.obj 
+      build\ZOracleToken.obj build\ZSqLiteAnalyser.obj"/>
+    <RESFILES value="ZParseSql.res"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib"/>
+    <PACKAGES value="ZCore.bpi rtl.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql;..\..\src\parsesql"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value="_DEBUG"/>
+    <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="ZParseSql.cpp"/>
+    <INCLUDEPATH value="..\..\src\parsesql;$(BCB)\include;$(BCB)\include\vcl;build"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;..\..\src\parsesql;$(BCB)\lib\obj;$(BCB)\lib;build"/>
+    <WARNINGS value="-w-par"/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\..\src\parsesql -I$(BCB)\include -I$(BCB)\include\vcl -Ibuild 
+      -src_suffix cpp -D_DEBUG -boa"/>
+    <CFLAG1 value="-Od -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- -c -tWM"/>
+    <PFLAGS value="-N2build -N0build -$YD -$W -$R -$Q -$O- -$A8 -v -JPHNE -M"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zi"/>
+    <LFLAGS value="-Ibuild -D&quot;Zeos SQL Parsing Classes and Interfaces&quot; -aa -Tpp -Gpr -x -Gn 
+      -Gl -Gi -v"/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) Memmgr.Lib sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="ZParseSql.cpp" FORMNAME="" UNITNAME="ZParseSql" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="ZParseSql.res" FORMNAME="" UNITNAME="ZParseSql" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZCore.bpi" FORMNAME="" UNITNAME="ZCore" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZGenericSqlAnalyser.pas" FORMNAME="" UNITNAME="ZGenericSqlAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZGenericSqlToken.pas" FORMNAME="" UNITNAME="ZGenericSqlToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZInterbaseAnalyser.pas" FORMNAME="" UNITNAME="ZInterbaseAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZInterbaseToken.pas" FORMNAME="" UNITNAME="ZInterbaseToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZMySqlAnalyser.pas" FORMNAME="" UNITNAME="ZMySqlAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZMySqlToken.pas" FORMNAME="" UNITNAME="ZMySqlToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZPostgreSqlAnalyser.pas" FORMNAME="" UNITNAME="ZPostgreSqlAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZPostgreSqlToken.pas" FORMNAME="" UNITNAME="ZPostgreSqlToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZScriptParser.pas" FORMNAME="" UNITNAME="ZScriptParser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZSelectSchema.pas" FORMNAME="" UNITNAME="ZSelectSchema" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZSybaseAnalyser.pas" FORMNAME="" UNITNAME="ZSybaseAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZSybaseToken.pas" FORMNAME="" UNITNAME="ZSybaseToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZSqLiteToken.pas" FORMNAME="" UNITNAME="ZSqLiteToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZOracleAnalyser.pas" FORMNAME="" UNITNAME="ZOracleAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZOracleToken.pas" FORMNAME="" UNITNAME="ZOracleToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\parsesql\ZSqLiteAnalyser.pas" FORMNAME="" UNITNAME="ZSqLiteAnalyser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl;build
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

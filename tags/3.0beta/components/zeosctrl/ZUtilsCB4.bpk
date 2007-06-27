@@ -1,0 +1,205 @@
+# ---------------------------------------------------------------------------
+!if !$d(BCB)
+BCB = $(MAKEDIR)\..
+!endif
+
+# ---------------------------------------------------------------------------
+# IDE SECTION
+# ---------------------------------------------------------------------------
+# The following section of the project makefile is managed by the BCB IDE.
+# It is recommended to use the IDE to change any of the values in this
+# section.
+# ---------------------------------------------------------------------------
+
+VERSION = BCB.04.04
+# ---------------------------------------------------------------------------
+PROJECT = ZUtilsCB4.bpl
+OBJFILES = utils\ZUtilsRes.obj utils\ZHexEdit.obj utils\ZParams.obj utils\ZSocket.obj \
+  utils\ZUtilsConst.obj utils\ZUtilsReg.obj utils\ZHash.obj UTILS\ZGif.obj \
+  UTILS\ZGraph.obj UTILS\ZDataGrid.obj ZUtilsCB4.obj
+RESFILES = utils\ZHexEdit.dcr UTILS\ZDataGrid.dcr
+RESDEPEN = $(RESFILES)
+LIBFILES =
+LIBRARIES =
+SPARELIBS = VCL40.lib
+PACKAGES = vcl40.bpi vcldb40.bpi ZCommonCB4.bpi
+DEFFILE =
+# ---------------------------------------------------------------------------
+PATHCPP = .;
+PATHASM = .;
+PATHPAS = .;utils
+PATHRC = .;
+DEBUGLIBPATH = $(BCB)\lib\debug
+RELEASELIBPATH = $(BCB)\lib\release
+USERDEFINES =
+SYSDEFINES = _RTLDLL;NO_STRICT;USEPACKAGES
+# ---------------------------------------------------------------------------
+CFLAG1 = -Iutils;resources;$(BCB)\include;$(BCB)\include\vcl -Od -Hc \
+  -H=$(BCB)\lib\vcl40.csm -w -Ve -r- -a8 -k -y -v -vi- -c -b- -w-par -w-inl -Vx \
+  -tWM -D$(SYSDEFINES);$(USERDEFINES)
+PFLAGS = -U..\zeosdbo;utils;resources;$(BCB)\lib\obj;$(BCB)\lib;$(RELEASELIBPATH) \
+  -Iutils;resources;$(BCB)\include;$(BCB)\include\vcl -$YD -$W -v -JPHNE -M
+RFLAGS = -iutils;resources;$(BCB)\include;$(BCB)\include\vcl
+AFLAGS = /iutils /iresources /i$(BCB)\include /i$(BCB)\include\vcl /mx /w2 /zd
+LFLAGS = -L..\zeosdbo;utils;resources;$(BCB)\lib\obj;$(BCB)\lib;$(RELEASELIBPATH) \
+  -D"Zeos Common Controls" -aa -Tpp -x -Gn -Gl -Gi -v
+# ---------------------------------------------------------------------------
+ALLOBJ = c0pkg32.obj Memmgr.Lib $(PACKAGES) sysinit.obj $(OBJFILES)
+ALLRES = $(RESFILES)
+ALLLIB = $(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib
+# ---------------------------------------------------------------------------
+!ifdef IDEOPTIONS
+
+[Version Info]
+IncludeVerInfo=0
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1049
+CodePage=1251
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[Excluded Packages]
+$(BCB)\extra\ZDbwareCB4.bpl=Zeos Dbware Components
+$(BCB)\extra\ZIbSqlCB4.bpl=Zeos Interbase Components
+$(BCB)\extra\ZMySqlCB4.bpl=Zeos MySQL Components
+$(BCB)\extra\ZPgSqlCB4.bpl=Zeos PostgreSQL Components
+
+[HistoryLists\hlIncludePath]
+Count=4
+Item0=utils;resources;$(BCB)\include;$(BCB)\include\vcl
+Item1=common;resources;$(BCB)\include;$(BCB)\include\vcl
+Item2=common;resoures;$(BCB)\include;$(BCB)\include\vcl
+Item3=$(BCB)\include;$(BCB)\include\vcl
+
+[HistoryLists\hlLibraryPath]
+Count=5
+Item0=utils;resources;$(BCB)\lib\obj;$(BCB)\lib
+Item1=c:\program files\borland\cbuilder4\lib\debug\;common;resources;$(BCB)\lib\obj;$(BCB)\lib
+Item2=c:\program files\borland\cbuilder4\lib\debug\;common;$(BCB)\lib\obj;$(BCB)\lib
+Item3=c:\program files\borland\cbuilder4\lib\debug;common;$(BCB)\lib\obj;$(BCB)\lib
+Item4=common;$(BCB)\lib\obj;$(BCB)\lib
+
+[HistoryLists\hlDebugSourcePath]
+Count=1
+Item0=$(BCB)\source\vcl
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl
+
+[Parameters]
+RunParams=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteDebug=0
+
+[Compiler]
+InMemoryExe=0
+ShowInfoMsgs=0
+
+!endif
+
+# ---------------------------------------------------------------------------
+# MAKE SECTION
+# ---------------------------------------------------------------------------
+# This section of the project file is not used by the BCB IDE.  It is for
+# the benefit of building from the command-line using the MAKE utility.
+# ---------------------------------------------------------------------------
+
+.autodepend
+# ---------------------------------------------------------------------------
+!if !$d(BCC32)
+BCC32 = bcc32
+!endif
+
+!if !$d(CPP32)
+CPP32 = cpp32
+!endif
+
+!if !$d(DCC32)
+DCC32 = dcc32
+!endif
+
+!if !$d(TASM32)
+TASM32 = tasm32
+!endif
+
+!if !$d(LINKER)
+LINKER = ilink32
+!endif
+
+!if !$d(BRCC32)
+BRCC32 = brcc32
+!endif
+
+# ---------------------------------------------------------------------------
+!if $d(PATHCPP)
+.PATH.CPP = $(PATHCPP)
+.PATH.C   = $(PATHCPP)
+!endif
+
+!if $d(PATHPAS)
+.PATH.PAS = $(PATHPAS)
+!endif
+
+!if $d(PATHASM)
+.PATH.ASM = $(PATHASM)
+!endif
+
+!if $d(PATHRC)
+.PATH.RC  = $(PATHRC)
+!endif
+# ---------------------------------------------------------------------------
+$(PROJECT): $(OBJFILES) $(RESDEPEN) $(DEFFILE)
+    $(BCB)\BIN\$(LINKER) @&&!
+    $(LFLAGS) +
+    $(ALLOBJ), +
+    $(PROJECT),, +
+    $(ALLLIB), +
+    $(DEFFILE), +
+    $(ALLRES)
+!
+# ---------------------------------------------------------------------------
+.pas.hpp:
+    $(BCB)\BIN\$(DCC32) $(PFLAGS) {$< }
+
+.pas.obj:
+    $(BCB)\BIN\$(DCC32) $(PFLAGS) {$< }
+
+.cpp.obj:
+    $(BCB)\BIN\$(BCC32) $(CFLAG1) -n$(@D) {$< }
+
+.c.obj:
+    $(BCB)\BIN\$(BCC32) $(CFLAG1) -n$(@D) {$< }
+
+.c.i:
+    $(BCB)\BIN\$(CPP32) $(CFLAG1) -n. {$< }
+
+.cpp.i:
+    $(BCB)\BIN\$(CPP32) $(CFLAG1) -n. {$< }
+
+.asm.obj:
+    $(BCB)\BIN\$(TASM32) $(AFLAGS) $<, $@
+
+.rc.res:
+    $(BCB)\BIN\$(BRCC32) $(RFLAGS) -fo$@ $<
+# ---------------------------------------------------------------------------

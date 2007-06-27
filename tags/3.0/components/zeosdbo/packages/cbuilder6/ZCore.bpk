@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="ZCore.bpl"/>
+    <OBJFILES value="build\ZCore.obj build\ZVariant.obj build\ZClasses.obj 
+      build\ZCollections.obj build\ZCompatibility.obj build\ZMatchPattern.obj 
+      build\ZSysUtils.obj build\ZExpression.obj build\ZExprParser.obj 
+      build\ZExprToken.obj build\ZFunctions.obj build\ZTokenizer.obj 
+      build\ZVariables.obj build\ZMessages.obj"/>
+    <RESFILES value="ZCore.res"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib"/>
+    <PACKAGES value="vcl.bpi rtl.bpi bcbie.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core;..\..\src\core"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value="_DEBUG"/>
+    <SYSDEFINES value="_RTLDLL;NO_STRICT;_VIS_NOLIB;USEPACKAGES"/>
+    <MAINSOURCE value="ZCore.cpp"/>
+    <INCLUDEPATH value="..\..\src\core;$(BCB)\include;$(BCB)\include\vcl;build"/>
+    <LIBPATH value="build;$(BCB)\Projects\Lib;..\..\src\core;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <WARNINGS value="-w-par -w-8027 -w-8026"/>
+    <WARNOPTSTR value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\..\src\core -I$(BCB)\include -I$(BCB)\include\vcl -Ibuild -src_suffix 
+      cpp -D_DEBUG -boa"/>
+    <CFLAG1 value="-Od -Q -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- -c -tWM"/>
+    <PFLAGS value="-N2build -N0build -$YD -$W -$R -$Q -$O- -$A8 -v -JPHNE -M"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zi"/>
+    <LFLAGS value="-Ibuild -D&quot;Zeos Core Classes and Interfaces&quot; -aa -Tpp -Gpr -x -Gn -Gl -Gi -v"/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) Memmgr.Lib sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="ZCore.cpp" FORMNAME="" UNITNAME="ZCore" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="ZCore.res" FORMNAME="" UNITNAME="ZCore" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\vcl.bpi" FORMNAME="" UNITNAME="vcl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZVariant.pas" FORMNAME="" UNITNAME="ZVariant" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZClasses.pas" FORMNAME="" UNITNAME="ZClasses" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZCollections.pas" FORMNAME="" UNITNAME="ZCollections" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZCompatibility.pas" FORMNAME="" UNITNAME="ZCompatibility" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZMatchPattern.pas" FORMNAME="" UNITNAME="ZMatchPattern" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZSysUtils.pas" FORMNAME="" UNITNAME="ZSysUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\bcbie.bpi" FORMNAME="" UNITNAME="bcbie" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZExpression.pas" FORMNAME="" UNITNAME="ZExpression" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZExprParser.pas" FORMNAME="" UNITNAME="ZExprParser" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZExprToken.pas" FORMNAME="" UNITNAME="ZExprToken" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZFunctions.pas" FORMNAME="" UNITNAME="ZFunctions" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZTokenizer.pas" FORMNAME="" UNITNAME="ZTokenizer" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZVariables.pas" FORMNAME="" UNITNAME="ZVariables" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\core\ZMessages.pas" FORMNAME="" UNITNAME="ZMessages" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[HistoryLists\hlIncludePath]
+Count=2
+Item0=..\..\src\core;$(BCB)\include;$(BCB)\include\vcl;build
+Item1=$(BCB)\include;$(BCB)\include\vcl;build
+
+[HistoryLists\hlLibraryPath]
+Count=4
+Item0=build;$(BCB)\Projects\Lib;..\..\src\core;$(BCB)\lib\obj;$(BCB)\lib
+Item1=$(BCB)\Projects\Lib;..\..\src\core;$(BCB)\lib\obj;$(BCB)\lib;build
+Item2=..\..\src\core;$(BCB)\lib\obj;$(BCB)\lib;build
+Item3=$(BCB)\lib\obj;$(BCB)\lib;build
+
+[HistoryLists\hlDebugSourcePath]
+Count=1
+Item0=$(BCB)\source\vcl;build
+
+[HistoryLists\hlConditionals]
+Count=1
+Item0=_DEBUG
+
+[HistoryLists\hlIntOutputDir]
+Count=1
+Item0=build
+
+[HistoryLists\hlFinalOutputDir]
+Count=2
+Item0=build\
+Item1=build
+
+[HistoryLists\hIBPIOutputDir]
+Count=1
+Item0=build
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl;build
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

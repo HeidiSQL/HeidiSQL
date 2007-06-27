@@ -1,0 +1,66 @@
+package ZPlain;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Plain Database API'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  ZCore,
+  rtl;
+
+contains
+  ZPlainPostgreSqlDriver in '..\..\src\plain\ZPlainPostgreSqlDriver.pas',
+  ZPlainDbLibDriver in '..\..\src\plain\ZPlainDbLibDriver.pas',
+  ZPlainDbLibMsSql7 in '..\..\src\plain\ZPlainDbLibMsSql7.pas',
+  ZPlainDbLibSybaseAse125 in '..\..\src\plain\ZPlainDbLibSybaseAse125.pas',
+  ZPlainDriver in '..\..\src\plain\ZPlainDriver.pas',
+  ZPlainInterbase5 in '..\..\src\plain\ZPlainInterbase5.pas',
+  ZPlainInterbase6 in '..\..\src\plain\ZPlainInterbase6.pas',
+  ZPlainInterbaseDriver in '..\..\src\plain\ZPlainInterbaseDriver.pas',
+  ZPlainLoader in '..\..\src\plain\ZPlainLoader.pas',
+  ZPlainMySql320 in '..\..\src\plain\ZPlainMySql320.pas',
+  ZPlainMySql323 in '..\..\src\plain\ZPlainMySql323.pas',
+  ZPlainMySql40 in '..\..\src\plain\ZPlainMySql40.pas',
+  ZPlainMySql41 in '..\..\src\plain\ZPlainMySql41.pas',
+  ZPlainMySqlDriver in '..\..\src\plain\ZPlainMySqlDriver.pas',
+  ZPlainPostgreSql73 in '..\..\src\plain\ZPlainPostgreSql73.pas',
+  ZPlainPostgreSql74 in '..\..\src\plain\ZPlainPostgreSql74.pas',
+  ZPlainPostgreSql8x in '..\..\src\plain\ZPlainPostgreSql8x.pas',
+  ZPlainDb2 in '..\..\src\plain\ZPlainDb2.pas',
+  ZPlainDb2Driver in '..\..\src\plain\ZPlainDb2Driver.pas',
+  ZPlainFirebird10 in '..\..\src\plain\ZPlainFirebird10.pas',
+  ZPlainFirebird15 in '..\..\src\plain\ZPlainFirebird15.pas',
+  ZPlainAdoDriver in '..\..\src\plain\ZPlainAdoDriver.pas',
+  ZPlainAdo in '..\..\src\plain\ZPlainAdo.pas',
+  ZPlainOracleDriver in '..\..\src\plain\ZPlainOracleDriver.pas',
+  ZPlainOracle9i in '..\..\src\plain\ZPlainOracle9i.pas',
+  ZPlainSqLite28 in '..\..\src\plain\ZPlainSqLite28.pas',
+  ZPlainSqLiteDriver in '..\..\src\plain\ZPlainSqLiteDriver.pas',
+  ZPlainASADriver in '..\..\src\plain\ZPlainASADriver.pas',
+  ZPlainASA9 in '..\..\src\plain\ZPlainASA9.pas',
+  ZPlainASA8 in '..\..\src\plain\ZPlainASA8.pas',
+  ZPlainASA7 in '..\..\src\plain\ZPlainASA7.pas';
+
+end.

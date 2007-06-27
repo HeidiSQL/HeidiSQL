@@ -1,0 +1,70 @@
+{ Dies ist eine automatisch erzeugte Lazarus-Ressourcendatei }
+
+LazarusResources.Add('TZUpdateSQLEditForm','FORMDATA',[
+  'TPF0'#19'TZUpdateSQLEditForm'#18'ZUpdateSQLEditForm'#11'BorderStyle'#7#8'bsD'
+  +'ialog'#7'Caption'#6#18'ZUpdateSQLEditForm'#12'ClientHeight'#3#2#1#11'Client'
+  +'Width'#3#142#1#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#12'On'
+  +'CloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#9'OnDestroy'#7
+  +#11'FormDestroy'#13'PixelsPerInch'#2'K'#8'Position'#7#14'poScreenCenter'#10
+  +'TextHeight'#2#13#18'HorzScrollBar.Page'#3#141#1#18'VertScrollBar.Page'#3#1#1
+  +#4'Left'#3'S'#1#6'Height'#3#2#1#3'Top'#3#15#1#5'Width'#3#142#1#0#7'TButton'#8
+  +'OkButton'#7'Anchors'#11#7'akRight'#8'akBottom'#0#7'Caption'#6#3'&OK'#7'Defa'
+  +'ult'#9#11'ModalResult'#2#1#7'OnClick'#7#13'OkButtonClick'#8'TabOrder'#2#0#4
+  +'Left'#3#176#0#6'Height'#2#22#3'Top'#3#230#0#5'Width'#2'A'#0#0#7'TButton'#12
+  +'CancelButton'#7'Anchors'#11#7'akRight'#8'akBottom'#0#6'Cancel'#9#7'Caption'
+  +#6#6'Cancel'#11'ModalResult'#2#2#8'TabOrder'#2#1#4'Left'#3#253#0#6'Height'#2
+  +#22#3'Top'#3#230#0#5'Width'#2'A'#0#0#7'TButton'#10'HelpButton'#7'Anchors'#11
+  +#7'akRight'#8'akBottom'#0#7'Caption'#6#5'&Help'#7'OnClick'#7#15'HelpButtonCl'
+  +'ick'#8'TabOrder'#2#2#4'Left'#3'I'#1#6'Height'#2#22#3'Top'#3#230#0#5'Width'#2
+  +'A'#0#0#12'TPageControl'#11'PageControl'#10'ActivePage'#7#10'FieldsPage'#5'A'
+  +'lign'#7#5'alTop'#8'TabIndex'#2#0#8'TabOrder'#2#3#10'OnChanging'#7#19'PageCo'
+  +'ntrolChanging'#6'Height'#3#222#0#5'Width'#3#142#1#0#9'TTabSheet'#10'FieldsP'
+  +'age'#7'Caption'#6#7'Options'#12'ClientHeight'#3#192#0#11'ClientWidth'#3#138
+  +#1#4'Left'#2#2#6'Height'#3#192#0#3'Top'#2#28#5'Width'#3#138#1#0#9'TGroupBox'
+  +#9'GroupBox1'#5'Align'#7#8'alClient'#7'Caption'#6#16' SQL Generation '#12'Cl'
+  +'ientHeight'#3#175#0#11'ClientWidth'#3#134#1#11'ParentColor'#9#8'TabOrder'#2
+  +#0#6'Height'#3#192#0#5'Width'#3#138#1#0#6'TLabel'#6'Label1'#7'Caption'#6#12
+  +'Table &Name:'#5'Color'#7#6'clNone'#12'FocusControl'#7#15'UpdateTableName'#4
+  +'Left'#2#16#6'Height'#2#13#3'Top'#2#8#5'Width'#2'='#0#0#6'TLabel'#6'Label3'#7
+  +'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#12'&Key Fields:'#5'Color'#7#6
+  +'clNone'#12'FocusControl'#7#12'KeyFieldList'#4'Left'#3#140#0#6'Height'#2#13#3
+  +'Top'#2#8#5'Width'#2';'#0#0#6'TLabel'#6'Label4'#7'Anchors'#11#5'akTop'#7'akR'
+  +'ight'#0#7'Caption'#6#15'Update &Fields:'#5'Color'#7#6'clNone'#12'FocusContr'
+  +'ol'#7#15'UpdateFieldList'#4'Left'#3#12#1#6'Height'#2#13#3'Top'#2#8#5'Width'
+  +#2'F'#0#0#9'TCheckBox'#11'QuoteFields'#7'Caption'#6#18'&Quote Field Names'#7
+  +'OnClick'#7#15'SettingsChanged'#8'TabOrder'#2#5#4'Left'#2#16#6'Height'#2#18#3
+  +'Top'#3#152#0#5'Width'#3#130#0#0#0#9'TComboBox'#15'UpdateTableName'#10'ItemH'
+  +'eight'#2#13#9'MaxLength'#2#0#8'OnChange'#7#21'UpdateTableNameChange'#7'OnCl'
+  +'ick'#7#20'UpdateTableNameClick'#8'TabOrder'#2#0#4'Left'#2#16#6'Height'#2#21
+  +#3'Top'#2#24#5'Width'#2'q'#0#0#7'TButton'#14'GenerateButton'#7'Caption'#6#13
+  +'&Generate SQL'#7'OnClick'#7#19'GenerateButtonClick'#8'TabOrder'#2#4#4'Left'
+  +#2#16#6'Height'#2#22#3'Top'#2'x'#5'Width'#2'q'#0#0#7'TButton'#16'PrimaryKeyB'
+  +'utton'#7'Caption'#6#20'Select &Primary Keys'#7'OnClick'#7#21'PrimaryKeyButt'
+  +'onClick'#8'TabOrder'#2#3#4'Left'#2#16#6'Height'#2#22#3'Top'#2'`'#5'Width'#2
+  +'q'#0#0#7'TButton'#13'DefaultButton'#7'Caption'#6#17'&Dataset Defaults'#7'En'
+  +'abled'#8#7'OnClick'#7#18'DefaultButtonClick'#8'TabOrder'#2#2#4'Left'#2#16#6
+  +'Height'#2#21#3'Top'#2'H'#5'Width'#2'q'#0#0#7'TButton'#20'GetTableFieldsButt'
+  +'on'#7'Caption'#6#17'Get &Table Fields'#7'OnClick'#7#25'GetTableFieldsButton'
+  +'Click'#8'TabOrder'#2#1#4'Left'#2#16#6'Height'#2#21#3'Top'#2'0'#5'Width'#2'q'
+  +#0#0#8'TListBox'#15'UpdateFieldList'#7'Anchors'#11#5'akTop'#7'akRight'#8'akB'
+  +'ottom'#0#10'ItemHeight'#2#13#11'MultiSelect'#9#7'OnClick'#7#15'SettingsChan'
+  +'ged'#9'PopupMenu'#7#14'FieldListPopup'#8'TabOrder'#2#7#8'TopIndex'#2#255#4
+  +'Left'#3#12#1#6'Height'#3#142#0#3'Top'#2#24#5'Width'#2'v'#0#0#8'TListBox'#12
+  +'KeyFieldList'#7'Anchors'#11#5'akTop'#7'akRight'#8'akBottom'#0#10'ItemHeight'
+  +#2#13#11'MultiSelect'#9#7'OnClick'#7#15'SettingsChanged'#9'PopupMenu'#7#14'F'
+  +'ieldListPopup'#8'TabOrder'#2#6#8'TopIndex'#2#255#4'Left'#3#140#0#6'Height'#3
+  +#142#0#3'Top'#2#24#5'Width'#2'u'#0#0#0#0#9'TTabSheet'#7'SQLPage'#7'Caption'#6
+  +#3'SQL'#12'ClientHeight'#3#192#0#11'ClientWidth'#3#138#1#4'Left'#2#2#6'Heigh'
+  +'t'#3#192#0#3'Top'#2#28#5'Width'#3#138#1#0#6'TLabel'#6'Label2'#7'Caption'#6
+  +#10'S&QL Text:'#5'Color'#7#6'clNone'#12'FocusControl'#7#7'SQLMemo'#4'Left'#2
+  +#8#6'Height'#2#13#3'Top'#2'('#5'Width'#2'0'#0#0#5'TMemo'#7'SQLMemo'#5'Align'
+  +#7#8'alCustom'#10'OnKeyPress'#7#15'SQLMemoKeyPress'#10'ScrollBars'#7#10'ssVe'
+  +'rtical'#8'TabOrder'#2#0#4'Left'#2#8#6'Height'#3#129#0#3'Top'#2'8'#5'Width'#3
+  +'y'#1#0#0#11'TRadioGroup'#13'StatementType'#5'Align'#7#5'alTop'#7'Caption'#6
+  +#14'Statement Type'#7'Columns'#2#3#13'Items.Strings'#1#6#7'&Modify'#6#7'&Ins'
+  +'ert'#6#7'&Delete'#0#7'OnClick'#7#18'StatementTypeClick'#11'ParentColor'#9#6
+  +'Height'#2'#'#5'Width'#3#138#1#0#0#0#0#10'TPopupMenu'#14'FieldListPopup'#4'l'
+  +'eft'#2'6'#3'top'#3#14#1#0#9'TMenuItem'#11'miSelectAll'#7'Caption'#6#11'&Sel'
+  ,'ect All'#7'OnClick'#7#14'SelectAllClick'#0#0#9'TMenuItem'#10'miClearAll'#7
+  +'Caption'#6#10'&Clear All'#7'OnClick'#7#13'ClearAllClick'#0#0#0#0
+]);

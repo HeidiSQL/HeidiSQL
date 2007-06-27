@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <PersonalityInfo>
+    <Option>
+      <Option Name="Personality">Default.Personality</Option>
+      <Option Name="ProjectType"></Option>
+      <Option Name="Version">1.0</Option>
+      <Option Name="GUID">{FABFC9EF-E53F-47F4-85A7-ADA6558D0DF4}</Option>
+    </Option>
+  </PersonalityInfo>
+  <Default.Personality>
+    
+    
+    
+    
+    <Projects>
+      <Projects Name="VCLser100.bpl">..\..\components\edbimage\packages\delphi10\VCLser100.bdsproj</Projects>
+      <Projects Name="DCLSer100.bpl">..\..\components\edbimage\packages\delphi10\DCLSer100.bdsproj</Projects>
+      <Projects Name="HeidiComponents.bpl">..\..\components\heidisql\packages\delphi10\HeidiComponents.bdsproj</Projects>
+      <Projects Name="SMDBGridComponents.bpl">..\..\components\smdbgrid\packages\delphi10\SMDBGridComponents.bdsproj</Projects>
+      <Projects Name="SynEdit_R2006.bpl">..\..\components\synedit\Packages\delphi10\SynEdit_R2006.bdsproj</Projects>
+      <Projects Name="SynEdit_D10.bpl">..\..\components\synedit\Packages\delphi10\SynEdit_D10.bdsproj</Projects>
+      <Projects Name="ZCore.bpl">..\..\components\zeosdbo\packages\delphi10\ZCore.bdsproj</Projects>
+      <Projects Name="ZParseSql.bpl">..\..\components\zeosdbo\packages\delphi10\ZParseSql.bdsproj</Projects>
+      <Projects Name="ZPlain.bpl">..\..\components\zeosdbo\packages\delphi10\ZPlain.bdsproj</Projects>
+      <Projects Name="ZDbc.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
+      <Projects Name="ZComponent.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
+      <Projects Name="heidisql.exe">heidisql.bdsproj</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore.bpl ZParseSql.bpl ZPlain.bpl ZDbc.bpl ZComponent.bpl heidisql.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>

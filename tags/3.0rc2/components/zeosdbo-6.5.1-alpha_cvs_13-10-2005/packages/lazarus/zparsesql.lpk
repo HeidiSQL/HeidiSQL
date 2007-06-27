@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="2">
+    <Name Value="zparsesql"/>
+    <CompilerOptions>
+      <Version Value="5"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="../../src/parsesql/"/>
+        <UnitOutputDirectory Value="build/"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <DelphiCompat Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Generate Value="Faster"/>
+      </CodeGeneration>
+      <Other>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Zeos SQL Parsing Classes and Interfaces"/>
+    <Version Major="6" Minor="5" Release="1"/>
+    <Files Count="16">
+      <Item1>
+        <Filename Value="../../src/parsesql/ZSybaseToken.pas"/>
+        <UnitName Value="ZSybaseToken"/>
+      </Item1>
+      <Item2>
+        <Filename Value="../../src/parsesql/ZGenericSqlAnalyser.pas"/>
+        <UnitName Value="ZGenericSqlAnalyser"/>
+      </Item2>
+      <Item3>
+        <Filename Value="../../src/parsesql/ZGenericSqlToken.pas"/>
+        <UnitName Value="ZGenericSqlToken"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../../src/parsesql/ZInterbaseAnalyser.pas"/>
+        <UnitName Value="ZInterbaseAnalyser"/>
+      </Item4>
+      <Item5>
+        <Filename Value="../../src/parsesql/ZInterbaseToken.pas"/>
+        <UnitName Value="ZInterbaseToken"/>
+      </Item5>
+      <Item6>
+        <Filename Value="../../src/parsesql/ZMySqlAnalyser.pas"/>
+        <UnitName Value="ZMySqlAnalyser"/>
+      </Item6>
+      <Item7>
+        <Filename Value="../../src/parsesql/ZMySqlToken.pas"/>
+        <UnitName Value="ZMySqlToken"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../../src/parsesql/ZOracleAnalyser.pas"/>
+        <UnitName Value="ZOracleAnalyser"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../../src/parsesql/ZOracleToken.pas"/>
+        <UnitName Value="ZOracleToken"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../../src/parsesql/ZPostgreSqlAnalyser.pas"/>
+        <UnitName Value="ZPostgreSqlAnalyser"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../../src/parsesql/ZPostgreSqlToken.pas"/>
+        <UnitName Value="ZPostgreSqlToken"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../../src/parsesql/ZScriptParser.pas"/>
+        <UnitName Value="ZScriptParser"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../../src/parsesql/ZSelectSchema.pas"/>
+        <UnitName Value="ZSelectSchema"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../../src/parsesql/ZSqLiteAnalyser.pas"/>
+        <UnitName Value="ZSqLiteAnalyser"/>
+      </Item14>
+      <Item15>
+        <Filename Value="../../src/parsesql/ZSqLiteToken.pas"/>
+        <UnitName Value="ZSqLiteToken"/>
+      </Item15>
+      <Item16>
+        <Filename Value="../../src/parsesql/ZSybaseAnalyser.pas"/>
+        <UnitName Value="ZSybaseAnalyser"/>
+      </Item16>
+    </Files>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="zcore"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item3>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)/"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

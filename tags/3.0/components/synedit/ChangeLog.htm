@@ -1,0 +1,1644 @@
+<html>
+<head>
+  <title>SynEdit - Version history and changelog</title>
+</head>
+<body>
+
+<h1>SynEdit - Version history and changelog</h1>
+
+<h3>Contributors:</h3>
+
+<blockquote>
+  Andre Mens,
+  Andrey Ustinov,
+  Andy Colson,
+  Anthony Steele,
+  Arentjan Banck,
+  Bruno Mikkelsen,
+  Colin Laplace,
+  Daniel Parnell,
+  David H. Muir,
+  Dean Harmon,  
+  Eden Kirin,
+  Erik B. Berry,
+  Falko Jens Wagner,
+  Fl&aacute;vio Etrusco,
+  Gerald Nunn,
+  Jan Fiala,
+  James D. Richardson,
+  Jeff Rafter,
+  Johan Visser,
+  Jonathan Halterman,
+  Jordan Russell,
+  Lasse Vagsather Karlsen,
+  Lorant Toth,
+  Maël Hörz,
+  Marko Njezic,
+  Martin Pley,
+  Mattias Gaertner,
+  Michael Beck,
+  Michael Hieke,
+  Morten J. Skovrup,
+  Murad Kakabayev,
+  Pieter Polak,
+  Primoz Gabrijelcic,
+  Roman Silin,
+  Satya,
+  Sheng Quanhu,
+  S&ouml;ren Spr&ouml;&beta;ig,
+  Stefan van As,
+  Steve Sutherland,
+  Sven Blankenberg,
+  Tony De Buys,
+  Woo Young Bum
+</blockquote>
+<hr>
+
+<h2>[SynEdit 1.04]</h2>
+
+<ul>
+  <li>  
+    <b>Various files:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Add sample source to many highlighters</li>
+        </ul>
+      </li>
+
+      <li>
+        Sheng Quanhu: 
+
+        <ul>
+          <li>Fix MBCS compatibility to many highlighter's
+          UnknownProc.</li>
+        </ul>
+      </li>
+
+      <li>
+        Colin Laplace (claplace), Daniel Parnell (dparnell): 
+
+        <ul>
+          <li>Kylix port</li>
+        </ul>
+      </li>
+
+      <li>
+        Jordan Russell (jrx): 
+
+        <ul>
+          <li>Delphi 6 port</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynMacroRecorder</b> 
+
+    <ul>
+      <li>
+        Fl&aacute;vio Etrusco 
+
+        <ul>
+          <li>New component to allow macro recording and playback in
+          TSynEdit</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynCompletionProposal</b> 
+
+    <ul>
+      <li>
+        Dean Harmon, Gerald Nunn 
+
+        <ul>
+          <li>fixed cursor dissapearing from editor problem</li>
+		  <li>added param completion ability</li>
+		  <li>added limit to matching text ability</li>
+		  <li>lots of enhancements and bug fixes</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditPlugIns</b> 
+
+    <ul>
+      <li>
+        Fl&aacute;vio Etrusco 
+
+        <ul>
+          <li>New general objects to implement plugins to the TSynEdit
+          component</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>HighlighterDemo:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>New demo to demonstrate the use of the SynGen utility in
+          combination with the .msg grammar files to create a custom
+          highlighter.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>MultiSynDemo:</b> 
+
+    <ul>
+      <li>
+        Leon Brown: 
+
+        <ul>
+          <li>New demo to demonstrate the use of the TSynMultiSyn
+          component to highlight CSS and JScript inside of HTML
+          files.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterCPM.pas:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Highlighter for COAS product manager report (.rdf)
+          files.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterDfm.pas:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Add the 'inherited' keyword, for use in 'form
+          inheritance' .dfm files.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterGeneral.pas:</b> 
+
+    <ul>
+      <li>
+        Jan Fiala: 
+
+        <ul>
+          <li>IsKeyword function now uses AnsiCompareStr to compare
+          keywords in the keyword list.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterIDL.pas:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Highlighter for CORBA .idl files.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterInno.pas:</b> 
+
+    <ul>
+      <li>
+        Jordan Russell (jrx): 
+
+        <ul>
+          <li>Now highlights keywords from the more recent versions of Inno Setup, up to 2.0.18.</li>
+          <li>Fixed highlighting of quotes inside quoted strings, constants inside constants, and comments with spaces before them.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added code to highlight "string" as keyword
+          or parameter.</li>
+        </ul>
+      </li>
+
+      <li>
+        Satya: 
+
+        <ul>
+          <li>Updated for the most recent version IS / ISX
+          1.3.25.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterJScript.pas:</b> 
+
+    <ul>
+      <li>
+        Eden Kirin (ek): 
+
+        <ul>
+          <li>Added four keywords moveTo, moveBy, resizeTo,
+          resizeBy.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterM3.pas:</b> 
+
+    <ul>
+      <li>
+        Martin Pley (mp): 
+
+        <ul>
+          <li>Fixed bug that keywords were considered
+          case-insensitive.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterMPerl.pas:</b> 
+
+    <ul>
+      <li>
+        Murad Kakabayev: 
+
+        <ul>
+          <li>Added much better implementation of Perl highlighter,
+          which needs to be integrated with the package.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterMsg.pas:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Highlighter for SynGen .msg files.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterMulti.pas:</b> 
+
+    <ul>
+      <li>
+        Lorant Toth: 
+
+        <ul>
+          <li>Fix a bug that causes the highlighter not always to
+          recognize the start and ending expressions correctly.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterPas.pas:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Add Delphi 6 keywords to the list + add a new property
+          'DelphiVersion' which allows selection of which Delphi
+          dialect to be highlighted..</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterPHP.pas:</b> 
+
+    <ul>
+      <li>
+        Eden Kirin: 
+
+        <ul>
+          <li>Fixed incorrect highlighting of "\\" (with the quotes).</li>
+        </ul>
+      </li>
+    </ul>
+
+    <ul>
+      <li>
+        Jordan Russell: 
+
+        <ul>
+          <li>Fixed incorrect highlighting of \' inside a single-quoted string.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynExportRTF.pas:</b> 
+
+    <ul>
+      <li>
+        Sheng Quanhu (sqh): 
+
+        <ul>
+          <li>Fixed bugs in method ReplaceMBCS.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterSDD.pas:</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Highlighter for Semanta database data dictionary
+          files..</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterSQL.pas:</b> 
+
+    <ul>
+      <li>
+        Various SynEdit developers: 
+
+        <ul>
+          <li>Many new keywords and fixes.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterXML.pas:</b> 
+
+    <ul>
+      <li>
+        Jeff Rafter: 
+
+        <ul>
+          <li>Highlighter for XML, which still needs to be added to
+          SynEditReg and D4Demo app.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynGen</b> 
+
+    <ul>
+      <li>
+        Pieter Polak (plpolak): 
+
+        <ul>
+          <li>Improved the generated source code, by including MBCS
+          compatibility, Kylix compatibility, C++ builder 1
+          compatibility, and including the SynEdit GPL/MPL comment
+          header.</li>
+
+          <li>Added new sections (ENCLOSEDBY and SAMPLESOURCE) to the
+          grammar file to allow creation of a complete highlighter via
+          the grammar file only.</li>
+
+          <li>Add a 'howto' document on how to create your own
+          highlighter using a .mg grammar file.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditMiscClasses.pas:</b> 
+
+    <ul>
+      <li>
+        Jeff Rafter (jcr): 
+
+        <ul>
+          <li>Added Assign methods to the TSynBookmarkOpts and
+          TSynSelectedColor classes.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditMiscProcs.pas:</b> 
+
+    <ul>
+      <li>
+        Jordan Russell (jr): 
+
+        <ul>
+          <li>Fixed several helper functions to be
+          MBCS-compatible.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEdit.pas:</b> 
+
+    <ul>
+      <li>
+        Various SynEdit developers (Dean Harmon, Fl&aacute;vio Etrusco, Gerald Nunn, Peiter Polak, Jordan Russell, sblbg): 
+        <ul>
+          <li>Full tab support</li>
+		  <li>Caret positioning tweaks</li>
+		  <li>new editor options
+		  		<ul>
+					<li>eoScrollHintFollows: The scroll hint follows the mouse when scrolling vertically</li>
+                    <li>eoSmartTabDelete: similar to Smart Tabs, but when you delete characters</li>
+                    <li>eoEnhanceHomeKey: enhances home key positioning, similar to visual studio</li>
+                    <li>eoSpecialLineDefaultFg: disables the foreground text color override when using the OnSpecialLineColor event</li>
+                    <li>eoGroupUndo: When undoing/redoing actions, handle all continous changes of the same kind in one call instead undoing/redoing each command separately</li>
+                    <li>eoRightMouseMovesCursor: When clicking with the right mouse for a popup menu, move the cursor to that location</li>
+                    <li>eoHideShowScrollbars: if enabled, then the scrollbars will only show when necessary.  If you have ScrollPastEOL, then it the horizontal bar will always be there (it uses MaxLength instead)</li>
+                    <li>eoDisableScrollArrows: Disables the scroll bar arrow buttons when you can't scroll in that direction any more</li>
+                    <li>eoAutoSizeMaxLeftChar: Automatically resizes the max left char when adding lines</li>
+                    <li>eoShowSpecialChars: Shows the special Characters</li>					
+				</ul>
+			</li>
+		  <li>lots of bug fixes</li>
+        </ul>
+      </li>
+	
+      <li>
+        Jeff Rafter (jcr): 
+
+        <ul>
+          <li>Added checks for ReadOnly at several places where text
+          still could be changed.</li>
+        </ul>
+      </li>
+
+      <li>
+        Jordan Russell (jr): 
+
+        <ul>
+          <li>Added message handler for WM_CAPTURECHANGED to cancel
+          scrolling.</li>
+
+          <li>Small modification in method MouseMove to smooth caret
+          movement when the control is scrolled with the mouse cursor
+          outside the client area.</li>
+
+          <li>Fixed MBCS bug in TCustomSynEdit.PixelsToRowColumn.</li>
+
+          <li>Made TCustomSynEdit.NextWordPos &amp; PrevWordPos
+          MBCS-aware.</li>
+
+          <li>Fixed hint window bug with Delphi 3.</li>
+
+          <li>Middle button clicks no longer move the caret.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<hr>
+
+<h2>SynEdit 1.03 released 2000-11-26</h2>
+
+<ul>
+  <li>
+    <b>Various files:</b> 
+
+    <ul>
+      <li>
+        Andre Mens: 
+
+        <ul>
+          <li>Several file names and class names had to be changed for
+          SynEdit to be installed parallel to the mwEdit package into
+          the IDE.</li>
+
+          <li>RegExpr.pas was moved to the Source folder and renamed
+          to SynRegExpr.pas. There is a more recent version available
+          (2000-07-23), but this would need much more work as
+          internals have changed.</li>
+
+          <li>uTextDrawer.pas was renamed to SynTextDrawer.pas.</li>
+
+          <li>In SynCompletionProposal.pas the name of the base class
+          TCompletion was changed to TSynBaseCompletion.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SimpleIDEDemo:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke: 
+
+        <ul>
+          <li>New demo to show how to change the line colors for
+          breakpoint lines and the current line, and how to draw
+          gutter marks without adding TSynEditMark objects, which is
+          inappropriate for marks to be drawn in nearly every line
+          (like "line is executable"). Shows a simple use
+          of SynEdit plugins.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterM3.pas:</b> 
+
+    <ul>
+      <li>
+        Martin Pley: 
+
+        <ul>
+          <li>Added new highlighter for Modula-3.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterModelica.pas:</b> 
+
+    <ul>
+      <li>
+        Falko Jens Wagner: 
+
+        <ul>
+          <li>Added new highlighter for the Modelica language.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynMemo.pas:</b> 
+
+    <ul>
+      <li>
+        Anthony Steele (as): 
+
+        <ul>
+          <li>Made methods CharIndexToRowCol and RowColToCharIndex
+          public.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditAutoComplete.pas:</b> 
+
+    <ul>
+      <li>
+        Mattias Gaertner (mg): 
+
+        <ul>
+          <li>Fixed bug that last entry of an DCI file was not added
+          to the list of completions.</li>
+
+          <li>Spotted bugs with off-by-one error in caret position
+          when not in first line, and with appended line breaks.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterSQL.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added more Oracle keywords.</li>
+
+          <li>Added support for the REMARK SQL*Plus keyword.</li>
+
+          <li>Added public properties PLSQLAttri, DefaultPackageAttri,
+          SQLPlusAttri.</li>
+        </ul>
+      </li>
+
+      <li>
+        Johan Visser (jjv): 
+
+        <ul>
+          <li>Added missing keywords for Oracle 8i and fixed some
+          typos, source reformatted.</li>
+
+          <li>Added new dialect Ingres.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Computation of hash values includes numeric chars now,
+          because some keywords use them.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditStrConst.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added SYNS_AttrDefaultPackage, SYNS_AttrPLSQL,
+          SYNS_AttrSQLPlus</li>
+        </ul>
+      </li>
+
+      <li>
+        Falko Jens Wagner: 
+
+        <ul>
+          <li>Added language name and default filter for the Modelica
+          language highlighter.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditPrint_Old.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added public properties MarginBottom, MarginLeft,
+          MarginRight, MarginTop, MarginUnits.</li>
+
+          <li>Implemented word-wrap for printing without a
+          highlighter.</li>
+
+          <li>Fixed bug with word-wrap when printing without a
+          highlighter.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditPrint.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added published properties Color and TabWidth.</li>
+        </ul>
+      </li>
+
+      <li>
+        Johan Visser (JJV): 
+
+        <ul>
+          <li>Added new property DocTitle to show in the queue list in
+          print manager.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditExport.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added new virtual abstract function
+          FormatBeforeFirstAttribute to allow for a different format,
+          needed by the HTML exporter, and it is a Good Thing in terms
+          of generalization.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynExportHTML.pas:</b> 
+
+    <ul>
+      <li>
+        Erik Berry (eb): 
+
+        <ul>
+          <li>A new enum value fsDefault allows for exporting HTML in
+          the default font size.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>New virtual abstract function FormatBeforeFirstAttribute
+          overridden to keep the single &lt;font&gt; tag for the font
+          size and font face around the whole exported text.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynExportRTF.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Implementation of FormatBeforeFirstAttribute added,
+          calls the normal FormatAttributeInit.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterPas.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Simplified the code dealing with the rsProperty range
+          state.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterADSP21xx.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added missing SetAttributesOnChange call to the
+          constructor.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterHP48.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Had to add calls to
+          TSynHighlighterAttributes.InternalSaveDefaultValues (see
+          next entry), because this highlighter is a little
+          weird...</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditHighlighter.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added virtual method IsKeyword.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Modified the classes TSynCustomHighlighter and
+          TSynHighlighterAttributes, so that the token attributes as
+          set by the constructor of the highlighter are preserved as
+          the defaults, and only different color or font style
+          settings are saved to the DFM file.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditMiscClasses.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added new property DrawBookmarksFirst to the
+          TSynBookMarkOpt class (it is initially True to keep the code
+          compatible), when set to False gutter marks will be drawn as
+          in the Delphi IDE.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditMiscProcs.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Modified tab-expansion code to optionally return the
+          information whether the line contained a tab char.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditTextBuffer.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added InsertLines, InsertStrings and DeleteLines
+          methods.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>New class TSynEditStringList replaces the TSynEditList
+          class. This new class has a field for the range information,
+          so the Objects property of the stringlist finally can be
+          used in SynEdit. Can also write strings with LF only (UNIX
+          files), albeit this is not surfaced in the editor
+          control.</li>
+
+          <li>Added a read-only property ExpandedStrings.</li>
+
+          <li>Added code to return the length of the longest
+          (expanded) line, to show a proportional horizontal scrollbar
+          in the editor control.</li>
+
+          <li>New change reasons crSilentDelete and
+          crSilentDeleteAfterCursor to hide the selection during
+          undo/redo of internal editor commands.</li>
+        </ul>
+      </li>
+
+      <li>
+        Steve Sutherland (sbs): 
+
+        <ul>
+          <li>Added code to allow for grouped undo/redo of several
+          changes; this can be used programmatically (for instance for
+          undoing a Replace All), but a real group undo for everything
+          is not possible (yet).</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEdit.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added public property OnClearBookmark.</li>
+
+          <li>Added code to speed up insertion and deletion of large
+          amounts of text.</li>
+        </ul>
+      </li>
+
+      <li>
+        Lorant Toth (lt): 
+
+        <ul>
+          <li>Modified MouseDown method to not clear the selection
+          when the right mouse button is clicked and the editor
+          control has no PopupMenu attached (could be assigned to the
+          parent control).</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Modified the ecInsertLine/ecLineBreak part of the
+          ExecuteCommand method, which would not add a new line for a
+          certain combination of option flags (eoAutoIndent, but not
+          eoScrollPastEol).</li>
+
+          <li>Changes to use the new stringlist class
+          TSynEditStringList instead of TSynEditList. Parameter type
+          of ListAdded method changed, ListScanRanges method
+          removed.</li>
+
+          <li>Added support for new bookmark option to switch the
+          order of bookmarks and other marks in the gutter.</li>
+
+          <li>Added new option eoKeepCaretX to keep the horizontal
+          caret position when vertical scrolling hits a shorter
+          line.</li>
+
+          <li>For eoScrollPastEol not set the horizontal scrollbar is
+          now proportional to the longest tab-expanded line.</li>
+
+          <li>ExecuteCommand method rewritten for the editor commands
+          ecDeleteLastChar, ecDeleteChar, ecDeleteWord,
+          ecDeleteLastWord, ecDeleteBOL and ecDeleteEOL, now
+          information is correctly saved to allow for multiple
+          undo/redo of the commands.</li>
+
+          <li>Commands ecDeleteChar and ecDeleteLastChar do not select
+          anything now during undo/redo.</li>
+
+          <li>Fixed undo/redo for trailing spaces when eoScrollPastEol
+          is not set.</li>
+
+          <li>Fixed wrong caret position after undo of
+          ecDeleteChar.</li>
+
+          <li>Added code to clear the redo information when new undo
+          information is added (this is necessary because the redo
+          context is lost).</li>
+
+          <li>Undo/redo of drag-drop operations keeps selection
+          now.</li>
+
+          <li>New option eoAltSetsColumnMode, when set the
+          SelectionMode is toggled between smColumn and smNormal when
+          text is selected with the mouse (depending on the state of
+          the Alt key).</li>
+        </ul>
+      </li>
+
+      <li>
+        Steve Sutherland (sbs): 
+
+        <ul>
+          <li>Added code for (programmatic) grouped undo/redo.</li>
+
+          <li>Fixed bug with undo/redo code for the ecLineBreak editor
+          command.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<hr>
+
+<h2>SynEdit 1.02 released 2000-10-03</h2>
+
+<ul>
+  <li>
+    <b>SynEditTextBuffer.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added code to reset the Modified property when all
+          changes are undone.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterASM.pas:</b> 
+
+    <ul>
+      <li>
+        Eden Kirin (ek): 
+
+        <ul>
+          <li>Fixed NumberProc method to highlight hexadecimal
+          numbers.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditPrint.pas:</b> 
+
+    <ul>
+      <li>
+        Sven Blankenberg (sb): 
+
+        <ul>
+          <li>Changes to expand tab chars in the SetLines method,
+          added FTabWidth field.</li>
+
+          <li>Fix to the TextOut method where right margin was ignored
+          when no word-wrap or no highlighter.</li>
+
+          <li>Optimization: FTestString was replaced with
+          FMaxWidth.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditKeyCmds.pas:</b> 
+
+    <ul>
+      <li>
+        Jordan Russell (jr): 
+
+        <ul>
+          <li>Added a default keystroke for Shift+Backspace and
+          ecDeleteLastChar.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditSearch.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Fixed access violation in method Next.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditHighlighter.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added SampleSource property (for syntax highlighter
+          option dialogs).</li>
+
+          <li>Added overridden Assign method to copy token attributes
+          and samplesource.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynMemo.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Made published properties SelStart and SelEnd
+          public.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEdit.pas:</b> 
+
+    <ul>
+      <li>
+        Andy Colson (abc): 
+
+        <ul>
+          <li>Fixes regarding the new eoTrimTrailingSpaces option flag
+          code.</li>
+        </ul>
+      </li>
+
+      <li>
+        Jon Foster (jgf): 
+
+        <ul>
+          <li>Made trimming of trailing whitespaces an option
+          (eoTrimTrailingSpaces, default to preserve compatibility
+          with old versions).</li>
+
+          <li>Vertical scrollbar does behave now like in TMemo, old
+          behaviour (like Delphi editor) via the new option flag
+          eoScrollPastEof.</li>
+
+          <li>Fixed bug that pressing Return in the last fully visible
+          line of a control would not scroll the then active line into
+          view.</li>
+        </ul>
+      </li>
+
+      <li>
+        Jordan Russell (jr): 
+
+        <ul>
+          <li>Added ClearSelection method.</li>
+
+          <li>Added code to the DragDrop method to reselect the
+          dropped text block.</li>
+
+          <li>New implementation of scrolling code, modelled after the
+          Delphi editor; it uses a timer now (new field fScrollTimer
+          added) instead of calling Sleep. Pressing Shift will scroll
+          in pages. The scrolling speed depends on the distance from
+          the client area of the control.</li>
+
+          <li>Changed the fTopLine field to be 1-based as the TopLine
+          property, property read method removed. Together with the
+          same change to LeftChar, CaretX, CaretY this reduces code
+          size.</li>
+
+          <li>Added some missing calls to SizeOrFontChanged after
+          changes to highlighter settings.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Fixed some small bugs with plugins (code for inserted
+          vs. deleted lines was mixed up), and changed the
+          ecInsertLine / ecLineBreak part of the
+          TCustomSynEdit.Execute method (line with caret is now
+          included if caret is in first column of line).</li>
+
+          <li>Some changes to the ecInsertLine/ecLineBreak part of the
+          ExecuteCommand method to fix problems with range
+          highlighting (inserting a line would destroy range
+          information).</li>
+
+          <li>Drag and drop editing code rewritten, it allows now for
+          drag and drop between different TCustomSynEdit controls and
+          uses line/column positions instead of char indices. Bug with
+          undo fixed.</li>
+
+          <li>CS_HREDRAW and CS_VREDRAW class styles removed.</li>
+
+          <li>Fixed the new behaviour of the vertical scrollbar to
+          adjust the TopLine property on resizing of the control and
+          after changes to the text.</li>
+
+          <li>Protected method InvalidateGutter renamed to
+          InvalidateGutterLines, added public method
+          InvalidateGutter.</li>
+
+          <li>Changed the fLeftChar, fCaretX, fCaretY fields to be
+          1-based as the properties, property read methods removed
+          (done for consistency with the similar change by Jordan).
+          Changed the code to use the properties instead of the fields
+          internally, since the compiler handles this now.</li>
+
+          <li>Added code to reset the Modified property when all
+          changes are undone.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterMulti.pas:</b> 
+
+    <ul>
+      <li>
+        Tony De Buys (LAD): 
+
+        <ul>
+          <li>Added a GetIdentChars method to the TSynMultiSyn
+          class.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterVBScript.pas:</b> 
+
+    <ul>
+      <li>
+        Lasse Vagsather Karlsen (lvk): 
+
+        <ul>
+          <li>Added the keywords "ByRef" and "ByVal".</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterSQL.pas:</b> 
+
+    <ul>
+      <li>
+        James D. Richardson (jdr): 
+
+        <ul>
+          <li>Added new SQL dialect for MySQL.</li>
+        </ul>
+      </li>
+
+      <li>
+        Lasse Vagsather Karlsen (lvk): 
+
+        <ul>
+          <li>Added new SQL dialect for MS-SQL 7.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added new SQL dialect for Interbase 6.</li>
+
+          <li>Fixed bug in TSynSQLSyn.StringProc, spotted by Andy
+          Colson (a backslash would stall the highlighter).</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterInno.pas:</b> 
+
+    <ul>
+      <li>
+        Satya: 
+
+        <ul>
+          <li>Updated for compatibility with the most recent version
+          1.3.18 of Inno Setup and ISX.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<hr>
+
+<h2>SynEdit 1.01 released 2000-07-28</h2>
+
+<ul>
+  <li>
+    <b>SynCompletionProposal.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Fixed a random AV in TSynCompletionProposal.Destroy
+          (fEditors was accessed in Notification method after it was
+          freed).</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEdit_D3.dpk:</b> 
+
+    <ul>
+      <li>
+        David H. Muir (dhm): 
+
+        <ul>
+          <li>Added package file for Delphi 3.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEdit_BCB4.*, SynEdit_BCB5.*:</b> 
+
+    <ul>
+      <li>
+        Jonathan Halterman (jh): 
+
+        <ul>
+          <li>Added package files for C++ Builder 4 and 5.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditTextBuffer.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Changed fLocked field to fLockCount. Removed the Locked
+          property, added methods Lock and Unlock instead. Every call
+          to TCustomSynEdit.LockUndo has to be matched now with a call
+          to UnlockUndo!</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterInno.pas:</b> 
+
+    <ul>
+      <li>
+        Satya: 
+
+        <ul>
+          <li>Updated for compatibility with the most recent versions
+          of Inno Setup and ISX.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterJScript.pas:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added code to handle the rsANSI range for multiline
+          comments.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>All highlighter files:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added several IFDEFs to make the code compilable with
+          BCB1.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditPrint_Old.pas:</b> 
+
+    <ul>
+      <li>
+        Roman Silin (rs): 
+
+        <ul>
+          <li>Added the PrintFilter property to select which pages to
+          print (all, only odd, only even pages).</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditExport.pas:</b> 
+
+    <ul>
+      <li>
+        Arentjan Banck (ajb): 
+
+        <ul>
+          <li>Fixed bug that HTML header of exported data contained
+          wrong size information.</li>
+        </ul>
+      </li>
+
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added code to destroy private field of type TFont in
+          TSynCustomExporter.Destroy.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>ScanTokensDemo:</b> 
+
+    <ul>
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Added new demo to show using a highlighter to scan
+          source text in a background thread and gather information
+          about tokens.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEditKeyCmds.pas:</b> 
+
+    <ul>
+      <li>
+        Andy Colson (ac): 
+
+        <ul>
+          <li>Added public LoadFromStream and SaveToStream methods to
+          the TSynEditKeystroke and TSynEditKeystrokes classes.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynHighlighterSQL.pas:</b> 
+
+    <ul>
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Fixed bug in TSynSQLSyn.AsciiCharProc where closing
+          string delimiter was ignored when first char in line of
+          multi-line string.</li>
+        </ul>
+      </li>
+
+      <li>
+        Johan Visser (jjv): 
+
+        <ul>
+          <li>Added missing keywords, missing data types and missing
+          functions to the Oracle dialect, fixed some typos and
+          reordered stuff.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+
+  <li>
+    <b>SynEdit.pas:</b> 
+
+    <ul>
+      <li>
+        Colin Laplace (cl): 
+
+        <ul>
+          <li>Fixed small bugs in handler methods for WM_HSCROLL and
+          WM_VSCROLL.</li>
+        </ul>
+      </li>
+
+      <li>
+        Daniel Parnell (djlp): 
+
+        <ul>
+          <li>Added abstract plugin ancestor class and list of plugins
+          to the TCustomSynEdit class.</li>
+
+          <li>SetSelTextExternal method modified.</li>
+        </ul>
+      </li>
+
+      <li>
+        Michael Hieke (mh): 
+
+        <ul>
+          <li>Reordered the code in the destructor to free the fields
+          that might reference other fields first, the basic fields at
+          last. fBookmarkOpt is set to nil because the Notification
+          method tests for this field.</li>
+
+          <li>Changes to match every LockUndo with an UnlockUndo,
+          because modified SetSelTextExternal caused multiple calls of
+          LockUndo and UnlockUndo. See also changes to the
+          TSynEditUndoList class.</li>
+
+          <li>Fixed bug that OnStatusChange event was not called for
+          changes to Modified property.</li>
+        </ul>
+      </li>
+
+      <li>
+        Sven Blankenberg (sb): 
+
+        <ul>
+          <li>Fixed bug in TCustomSynEdit.SearchReplace() where search
+          results would be changed even when change was skipped (wrong
+          caret position).</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<hr>
+
+<h2>SynEdit 1.0 released 2000-06-28</h2>
+<hr>
+
+<p><tt>
+$Id: ChangeLog.htm,v 1.6 2004/09/29 08:20:13 etrusco Exp $
+</tt></p>
+
+</body>
+</html>
+

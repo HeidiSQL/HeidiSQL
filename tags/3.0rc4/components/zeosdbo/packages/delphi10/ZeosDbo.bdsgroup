@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{7D421B4E-E011-49EE-805C-99FBDBE85065}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  
+    
+    
+    
+    
+    
+    
+    
+    <Projects>
+      <Projects Name="ZCore.bpl">ZCore.bdsproj</Projects>
+      <Projects Name="ZParseSql.bpl">ZParseSql.bdsproj</Projects>
+      <Projects Name="ZPlain.bpl">ZPlain.bdsproj</Projects>
+      <Projects Name="ZDbc.bpl">ZDbc.bdsproj</Projects>
+      <Projects Name="ZComponent.bpl">ZComponent.bdsproj</Projects>
+      <Projects Name="Targets">ZCore.bpl ZParseSql.bpl ZPlain.bpl ZDbc.bpl ZComponent.bpl</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>

@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="ZDbc.bpl"/>
+    <OBJFILES value="build\ZDbc.obj build\ZDbcUtils.obj build\ZDbcCachedResultSet.obj 
+      build\ZDbcConnection.obj build\ZDbcDbLib.obj 
+      build\ZDbcDbLibMsSqlMetadata.obj build\ZDbcDbLibResultSet.obj 
+      build\ZDbcDbLibStatement.obj build\ZDbcDbLibSybaseMetadata.obj 
+      build\ZDbcDbLibUtils.obj build\ZDbcGenericResolver.obj 
+      build\ZDbcInterbase6.obj build\ZDbcInterbase6Metadata.obj 
+      build\ZDbcInterbase6ResultSet.obj build\ZDbcInterbase6Statement.obj 
+      build\ZDbcInterbase6Utils.obj build\ZDbcIntfs.obj build\ZDbcMetadata.obj 
+      build\ZDbcMySql.obj build\ZDbcMySqlMetadata.obj 
+      build\ZDbcMySqlResultSet.obj build\ZDbcMySqlStatement.obj 
+      build\ZDbcMySqlUtils.obj build\ZDbcPostgreSql.obj 
+      build\ZDbcPostgreSqlMetadata.obj build\ZDbcPostgreSqlResultSet.obj 
+      build\ZDbcPostgreSqlStatement.obj build\ZDbcPostgreSqlUtils.obj 
+      build\ZDbcResultSet.obj build\ZDbcResultSetMetadata.obj 
+      build\ZDbcStatement.obj build\ZDbcCache.obj build\ZDbcAdo.obj 
+      build\ZDbcAdoMetadata.obj build\ZDbcAdoResultSet.obj 
+      build\ZDbcAdoStatement.obj build\ZDbcAdoUtils.obj build\ZDbcLogging.obj 
+      build\ZDbcSqLiteUtils.obj build\ZDbcOracle.obj 
+      build\ZDbcOracleMetadata.obj build\ZDbcOracleResultSet.obj 
+      build\ZDbcOracleStatement.obj build\ZDbcOracleUtils.obj 
+      build\ZDbcSqLite.obj build\ZDbcSqLiteMetadata.obj 
+      build\ZDbcSqLiteResultSet.obj build\ZDbcSqLiteStatement.obj
+      build\ZDbcASA.obj build\ZDbcASAUtils.obj build\ZDbcASAResultSet.obj 
+      build\ZDbcASAStatement.obj build\ZDbcASAMetadata.obj"/>
+    <RESFILES value="ZDbc.res"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib"/>
+    <PACKAGES value="ZPlain.bpi ZParseSql.bpi ZCore.bpi rtl.bpi dbrtl.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;..\..\src\dbc"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value="_DEBUG"/>
+    <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="ZDbc.cpp"/>
+    <INCLUDEPATH value="..\..\src\dbc;$(BCB)\include;$(BCB)\include\vcl;build"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;..\..\src\dbc;$(BCB)\lib\obj;$(BCB)\lib;build"/>
+    <WARNINGS value="-w-par"/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\..\src\dbc -I$(BCB)\include -I$(BCB)\include\vcl -Ibuild -src_suffix 
+      cpp -D_DEBUG -boa"/>
+    <CFLAG1 value="-Od -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- -c -tWM"/>
+    <PFLAGS value="-N2build -N0build -$YD -$W -$R -$Q -$O- -$A8 -v -JPHNE -M"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zi"/>
+    <LFLAGS value="-Ibuild -D&quot;Zeos Low Level Database API&quot; -aa -Tpp -Gpr -x -Gn -Gl -Gi -v"/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) Memmgr.Lib sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="ZDbc.cpp" FORMNAME="" UNITNAME="ZDbc" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="ZDbc.res" FORMNAME="" UNITNAME="ZDbc" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcUtils.pas" FORMNAME="" UNITNAME="ZDbcUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcCachedResultSet.pas" FORMNAME="" UNITNAME="ZDbcCachedResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcConnection.pas" FORMNAME="" UNITNAME="ZDbcConnection" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcDbLib.pas" FORMNAME="" UNITNAME="ZDbcDbLib" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcDbLibMsSqlMetadata.pas" FORMNAME="" UNITNAME="ZDbcDbLibMsSqlMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcDbLibResultSet.pas" FORMNAME="" UNITNAME="ZDbcDbLibResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcDbLibStatement.pas" FORMNAME="" UNITNAME="ZDbcDbLibStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcDbLibSybaseMetadata.pas" FORMNAME="" UNITNAME="ZDbcDbLibSybaseMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcDbLibUtils.pas" FORMNAME="" UNITNAME="ZDbcDbLibUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcGenericResolver.pas" FORMNAME="" UNITNAME="ZDbcGenericResolver" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcInterbase6.pas" FORMNAME="" UNITNAME="ZDbcInterbase6" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcInterbase6Metadata.pas" FORMNAME="" UNITNAME="ZDbcInterbase6Metadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcInterbase6ResultSet.pas" FORMNAME="" UNITNAME="ZDbcInterbase6ResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcInterbase6Statement.pas" FORMNAME="" UNITNAME="ZDbcInterbase6Statement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcInterbase6Utils.pas" FORMNAME="" UNITNAME="ZDbcInterbase6Utils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcIntfs.pas" FORMNAME="" UNITNAME="ZDbcIntfs" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcMetadata.pas" FORMNAME="" UNITNAME="ZDbcMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcMySql.pas" FORMNAME="" UNITNAME="ZDbcMySql" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcMySqlMetadata.pas" FORMNAME="" UNITNAME="ZDbcMySqlMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcMySqlResultSet.pas" FORMNAME="" UNITNAME="ZDbcMySqlResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcMySqlStatement.pas" FORMNAME="" UNITNAME="ZDbcMySqlStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcMySqlUtils.pas" FORMNAME="" UNITNAME="ZDbcMySqlUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcPostgreSql.pas" FORMNAME="" UNITNAME="ZDbcPostgreSql" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcPostgreSqlMetadata.pas" FORMNAME="" UNITNAME="ZDbcPostgreSqlMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcPostgreSqlResultSet.pas" FORMNAME="" UNITNAME="ZDbcPostgreSqlResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcPostgreSqlStatement.pas" FORMNAME="" UNITNAME="ZDbcPostgreSqlStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcPostgreSqlUtils.pas" FORMNAME="" UNITNAME="ZDbcPostgreSqlUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcResultSet.pas" FORMNAME="" UNITNAME="ZDbcResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcResultSetMetadata.pas" FORMNAME="" UNITNAME="ZDbcResultSetMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcStatement.pas" FORMNAME="" UNITNAME="ZDbcStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcCache.pas" FORMNAME="" UNITNAME="ZDbcCache" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZPlain.bpi" FORMNAME="" UNITNAME="ZPlain" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZParseSql.bpi" FORMNAME="" UNITNAME="ZParseSql" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZCore.bpi" FORMNAME="" UNITNAME="ZCore" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcAdo.pas" FORMNAME="" UNITNAME="ZDbcAdo" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcAdoMetadata.pas" FORMNAME="" UNITNAME="ZDbcAdoMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcAdoResultSet.pas" FORMNAME="" UNITNAME="ZDbcAdoResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcAdoStatement.pas" FORMNAME="" UNITNAME="ZDbcAdoStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcAdoUtils.pas" FORMNAME="" UNITNAME="ZDbcAdoUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcLogging.pas" FORMNAME="" UNITNAME="ZDbcLogging" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\dbrtl.bpi" FORMNAME="" UNITNAME="dbrtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteUtils.pas" FORMNAME="" UNITNAME="ZDbcSqLiteUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcOracle.pas" FORMNAME="" UNITNAME="ZDbcOracle" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcOracleMetadata.pas" FORMNAME="" UNITNAME="ZDbcOracleMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcOracleResultSet.pas" FORMNAME="" UNITNAME="ZDbcOracleResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcOracleStatement.pas" FORMNAME="" UNITNAME="ZDbcOracleStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcOracleUtils.pas" FORMNAME="" UNITNAME="ZDbcOracleUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcSqLite.pas" FORMNAME="" UNITNAME="ZDbcSqLite" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteMetadata.pas" FORMNAME="" UNITNAME="ZDbcSqLiteMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteResultSet.pas" FORMNAME="" UNITNAME="ZDbcSqLiteResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteStatement.pas" FORMNAME="" UNITNAME="ZDbcSqLiteStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcASA.pas" FORMNAME="" UNITNAME="ZDbcASA" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcASAUtils.pas" FORMNAME="" UNITNAME="ZDbcASAUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcASAResultSet.pas" FORMNAME="" UNITNAME="ZDbcASAResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcASAStatement.pas" FORMNAME="" UNITNAME="ZDbcASAStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\src\dbc\ZDbcASAMetadata.pas" FORMNAME="" UNITNAME="ZDbcASAMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl;build
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

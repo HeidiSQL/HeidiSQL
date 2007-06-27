@@ -1,0 +1,20 @@
+                         CHANGES
+
+1.1.2 gamma (23/06/01)
+- Added packages for Delphi 6
+
+1.1.1 gamma (07/02/01)
+- Applied fixes by Gianfranco Masia
+
+1.1.0 beta (14/09/00)
+- Added TZDataGrid component
+- Fixed bug with Lookup fields in TZFilterDialog
+- Fixed bug with hot keys in TZDbGrid
+
+1.0.1 beta (17/08/00)
+- Added Spanish resources by Jose Juste Jordan
+- Fixed bug in TZFilterDialog with field names contained white spaces
+- Added Hungary string resources by Gabor Berenyi
+
+1.0.0 beta (08/08/00)
+- Established library, moved controls from Zeos Database Objects

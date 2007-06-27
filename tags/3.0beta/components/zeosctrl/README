@@ -1,0 +1,46 @@
+                            R E A D M E
+
+Zeos Controls is a set of database controls for delphi programmers to use with
+Zeos Database Objects - native sql datasets.
+
+Package contains following components:
+
+Universal components
+
+  TZParser - component for calculate formulas
+  TZHexEdit - visual control to edit binary data
+
+Dbware dialogs
+
+  TZFindDialog - dialog for searching fields
+  TZFilterDialog - dialog for visual building filter equations
+    and filtering records.
+
+Dbware controls
+
+  TZDbGrid - standart TDbGrid with sorting and filtering capabilities
+  TZDbImage - control to show Bitmap, Gif and Jpeg Images 
+    from database
+  TZDbHexEdit - control for edit binary fields
+
+                       LICENCING
+    
+Zeos Database Controls are distributed as open-source product 
+with LGPL licence.
+
+                       DOWNLOADS
+
+The latest versions of Zeos Products can be found on: http://www.zeoslib.org.
+Developers site is located on SourceForge (http://www.sourceforge.net) - 
+ZeosLib Library.
+ 
+
+                     MORE INFORMATION
+
+There are two public maillist to ask a questions and find a help:
+  zeoslib-general@lists.sourceforge.net
+  zeoslib-bugs@lists.sourceforge.net
+More information how to subscribe and post messages look of Zeos home site.
+
+Yours, 
+  Zeos Development Group

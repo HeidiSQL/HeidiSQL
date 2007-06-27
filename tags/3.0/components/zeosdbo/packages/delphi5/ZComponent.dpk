@@ -1,0 +1,53 @@
+package ZComponent;
+
+{$R *.RES}
+{$R '..\..\src\component\ZComponent.dcr'}
+{$ALIGN ON}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Database Components'}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl50,
+  ZPlain,
+  ZDbc,
+  ZCore,
+  ZParseSql;
+
+contains
+  ZStreamBlob in '..\..\src\component\ZStreamBlob.pas',
+  ZAbstractRODataset in '..\..\src\component\ZAbstractRODataset.pas',
+  ZComponentReg in '..\..\src\component\ZComponentReg.pas',
+  ZConnection in '..\..\src\component\ZConnection.pas',
+  ZDataset in '..\..\src\component\ZDataset.pas',
+  ZDatasetUtils in '..\..\src\component\ZDatasetUtils.pas',
+  ZPropertyEditor in '..\..\src\component\ZPropertyEditor.pas',
+  ZSqlMonitor in '..\..\src\component\ZSqlMonitor.pas',
+  ZSqlProcessor in '..\..\src\component\ZSqlProcessor.pas',
+  ZSqlStrings in '..\..\src\component\ZSqlStrings.pas',
+  ZSqlUpdate in '..\..\src\component\ZSqlUpdate.pas',
+  ZStoredProcedure in '..\..\src\component\ZStoredProcedure.pas',
+  ZAbstractDataset in '..\..\src\component\ZAbstractDataset.pas',
+  ZSqlMetadata in '..\..\src\component\ZSqlMetadata.pas',
+  ZAbstractTable in '..\..\src\component\ZAbstractTable.pas',
+  ZSequence in '..\..\src\component\ZSequence.pas';
+
+end.

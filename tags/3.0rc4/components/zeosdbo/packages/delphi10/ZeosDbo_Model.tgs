@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ProjectSupport>
+  <SupportedProjects>
+    <ProjectName>ZPlain</ProjectName>
+    <ProjectName>ZCore</ProjectName>
+    <ProjectName>ZDbc</ProjectName>
+    <ProjectName>ZParseSql</ProjectName>
+    <ProjectName>ZComponent</ProjectName>
+  </SupportedProjects>
+</ProjectSupport>

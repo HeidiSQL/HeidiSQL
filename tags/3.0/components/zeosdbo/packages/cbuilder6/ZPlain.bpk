@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="ZPlain.bpl"/>
+    <OBJFILES value="build\ZPlain.obj build\ZPlainPostgreSqlDriver.obj 
+      build\ZPlainDbLibDriver.obj build\ZPlainDbLibMsSql7.obj 
+      build\ZPlainDbLibSybaseAse125.obj build\ZPlainDriver.obj 
+      build\ZPlainInterbase5.obj build\ZPlainInterbase6.obj 
+      build\ZPlainInterbaseDriver.obj build\ZPlainLoader.obj 
+      build\ZPlainMySql320.obj build\ZPlainMySql323.obj build\ZPlainMySql40.obj 
+      build\ZPlainMySql41.obj build\ZPlainMySqlDriver.obj 
+      build\ZPlainPostgreSql7.obj build\ZPlainPostgreSql8.obj build\ZPlainDb2.obj
+      build\ZPlainDb2Driver.obj build\ZPlainFirebird10.obj 
+      build\ZPlainFirebird15.obj build\ZPlainFirebird20.obj build\ZPlainAdo.obj
+      build\ZPlainAdoDriver.obj build\ZPlainSqLiteDriver.obj 
+      build\ZPlainOracle9i.obj build\ZPlainOracleDriver.obj
+      build\ZPlainASADriver.obj build\ZPlainASA9.obj
+      build\ZPlainASA8.obj build\ZPlainASA7.obj       
+      build\ZPlainSqLite28.obj build\ZPlainSqLite3.obj"/>
+    <RESFILES value="ZPlain.res"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib"/>
+    <PACKAGES value="ZCore.bpi rtl.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain;..\..\src\plain"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value="_DEBUG"/>
+    <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="ZPlain.cpp"/>
+    <INCLUDEPATH value="..\..\src\plain;$(BCB)\include;$(BCB)\include\vcl;build"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;..\..\src\plain;$(BCB)\lib\obj;$(BCB)\lib;build"/>
+    <WARNINGS value="-w-par"/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\..\src\plain -I$(BCB)\include -I$(BCB)\include\vcl -Ibuild 
+      -src_suffix cpp -D_DEBUG -boa"/>
+    <CFLAG1 value="-Od -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- -c -tWM"/>
+    <PFLAGS value="-N2build -N0build -$YD -$W -$R -$Q -$O- -$A8 -v -JPHNE -M"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zi"/>
+    <LFLAGS value="-Ibuild -D&quot;Zeos Plain Database API&quot; -aa -Tpp -Gpr -x -Gn -Gl -Gi -v"/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) Memmgr.Lib sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mti.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=1.0.0.0
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+Comments=
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl;build
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

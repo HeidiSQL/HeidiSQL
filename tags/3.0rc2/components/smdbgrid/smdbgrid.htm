@@ -1,0 +1,437 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>FAQ for TSMDBGrid component from Mike Shkolnik</title>
+</head>
+
+<body background="../IMAGES/background.gif" bgcolor="#FFFFFF">
+
+<p align="center"><font color="#800000" size="6"><strong>FAQ for
+TSMDBGrid component</strong></font></p>
+
+<p align="center">&nbsp;</p>
+
+<ol>
+    <li><a href="#How I can add the sorted column?">How I can add
+        the sorted column?</a></li>
+    <li><a href="#How I can clear the all sorted columns?">How I
+        can clear the all sorted columns?</a></li>
+    <li><a
+        href="#How I can change a standard TSMDBGrig glyphs (sorted arrows, indicator symbols etc)?">How
+        I can change a standard TSMDBGrid glyphs (sorted arrows,
+        indicator symbols etc)?</a></li>
+    <li><a
+        href="#How I can change standard strings for messages?">How
+        I can change standard strings for messages?</a></li>
+    <li><a href="#How I can increase a Indicator column width?">How
+        I can increase a Indicator column width?</a></li>
+    <li><a
+        href="#How I can display the images in Indicator column?">How
+        I can display the images in Indicator column?</a></li>
+    <li><a
+        href="#How I can display the multi-line captions for columns?">How
+        I can display the multi-line captions for columns?</a></li>
+    <li><a
+        href="#I want display the pictures in cells for graphic fields. How I can do it?">I
+        want display the pictures in cells for graphic fields.
+        How I can do it?</a></li>
+    <li><a
+        href="#How I can assign the operations to standard menu items?">How
+        I can assign the operations to standard menu items?</a></li>
+    <li><a
+        href="#Can I use a standard popup menu and add the custom popup?">Can
+        I use a standard popup menu and add the custom popup?</a></li>
+    <li><a
+        href="#I want to prohibit append and/or delete of records in TSMDBGrid.">I
+        want to prohibit append and/or delete of records in
+        TSMDBGrid.</a></li>
+    <li><a href="#Whether it's possible to fix a some columns?">Whether
+        it's possible to fix a some columns?</a></li>
+    <li><a href="#I want to display a hint for each cell.">I want
+        to display a hint for each cell.</a></li>
+    <li><a href="#How I can increase a Indicator column width?">How
+        I can insert a checkbox in cells?</a></li>
+    <li><a
+        href="#I want display a dropdown and ellipsis buttons in cells.">I
+        want to display a dropdown and ellipsis buttons in cells.</a></li>
+    <li><a
+        href="#My users want use Enter key like TAB for column naviagtion.">My
+        users want use Enter key like TAB for column naviagtion.</a></li>
+    <li><a
+        href="#In standard DBGrid I have the event for data drawing only. Whether there is an event for title drawing in TSMDBGrid?">In
+        standard DBGrid I have the event for data drawing only.
+        Whether there is an event for title drawing in TSMDBGrid?</a></li>
+    <li><a href="#I want to draw a rows in other colors.">I want
+        to draw a rows in other colors.</a></li>
+    <li><a href="#I want to change a color for odd rows.">I want
+        change a color for odd rows.</a></li>
+    <li><a
+        href="#How I can receive the latest news about TSMDBGrid, new builds and upgrades?">How
+        I can receive the latest news about TSMDBGrid, new builds
+        and upgrades?</a></li>
+</ol>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<hr color="#008000">
+
+<p><em><strong>1.</strong></em><a
+name="How I can add the sorted column?"><em><strong> How I can
+add the sorted column?</strong></em></a></p>
+
+<pre>SMDBGrid.DataSource.DataSet.DisableControls;
+
+<font color="#000080"><i>{add a new sorted column in list - ascending order}
+</i></font><b>with </b>SMDBGrid.SortColumns.Add <b>do
+begin
+    </b>FieldName := <font color="#0000FF">'yourFieldName'</font>;
+    SortType := stAscending
+<b>end</b>;
+
+<font color="#000080"><i>{add a new sorted column in list - descending order}
+</i></font><b>with </b>SMDBGrid.SortColumns.Add <b>do
+begin
+    </b>FieldName := <font color="#0000FF">'yourFieldName'</font>;
+    SortType := stDescending;
+<b>end</b>;
+
+SMDBGrid.DataSource.DataSet.EnableControls;</pre>
+
+<hr color="#008000">
+
+<p><em><strong>2.</strong></em><a
+name="How I can clear the all sorted columns?"><em><strong> How I
+can clear the all sorted columns?</strong></em></a></p>
+
+<pre>
+SMDBGrid.DataSource.DataSet.DisableControls;
+
+<font color="#000080"><i>{clear the all sorted columns}
+</i></font>SMDBGrid.SortColumns.Clear;
+
+SMDBGrid.DataSource.DataSet.EnableControls;</pre>
+
+<hr color="#008000">
+
+<p><em><strong>3.</strong></em><a
+name="How I can change a standard TSMDBGrig glyphs (sorted arrows, indicator symbols etc)?"><em><strong>
+How I can change a standard TSMDBGrid glyphs (sorted arrows,
+indicator symbols etc)?</strong></em></a></p>
+
+<p>You can run the Image Editor application (or any other
+resource workshop), open the SMDBGrid.RES file and change the any
+glyphs.</p>
+
+<hr color="#008000">
+
+<p><em><strong>4.</strong></em><a
+name="How I can change standard strings for messages?"><em><strong>
+How I can change standard strings for messages?</strong></em></a></p>
+
+<p>In SMCnst.PAS file you can find the any string resource and
+change it or traslate on new language. In this file you can find
+the strings for English, Russian, Ukrainian, French, German,
+Italian and Japan languages. If you have translated the messages
+to the new language or have corrected an mistake, send the
+changed file to me <a href="mailto:(mshkolnik@rs-ukraine.kiev.ua">(mshkolnik@rs-ukraine.kiev.ua</a>,
+<a href="mailto:mike@woccu.freenet.kiev.ua">mike@woccu.freenet.kiev.ua</a>)
+and I shall include it in the new build.</p>
+
+<hr color="#008000">
+
+<p><em><strong>5.</strong></em><a
+name="How I can increase a Indicator column width?"><em><strong>
+How I can increase a Indicator column width?</strong></em></a></p>
+
+<p>For it's necessary to change value of WidthOfIndicator
+property.</p>
+
+<p>Pay attantion to that width cann't be less than 11 (width of
+indicator in standard TDBGrid). Also if you include a
+eoCheckBoxSelect flag in ExOptions property for record selecting
+by checkbox, then minimum value is width of standard checkbox in
+a current Windows settings.</p>
+
+<hr color="#008000">
+
+<p><em><strong>6.</strong></em><a
+name="How I can display the images in Indicator column?"><em><strong>
+How I can display the images in Indicator column?</strong></em></a></p>
+
+<p>Write an OnGetGlyph event handler to provide customized
+drawing for the data in the Indicator column. You can define a
+glyph, which will be displayed. And, of course, this event will
+be called for each row and you can define the other glyphs for
+records.</p>
+
+<p>Pay attantion to that Indicator width will not be
+automatically increased, if the glyph will not be located in
+cell. You should set width of Indicator column in view of other
+information, which will be displayed there (checkbox for record
+selection, row state glyph etc).</p>
+
+<p>In current version you can assign the bitmap only but in
+future I plan to add the any graphics (icons, metafile, jpeg etc)</p>
+
+<hr color="#008000">
+
+<p><em><strong>7.</strong></em><a
+name="How I can display the multi-line captions for columns?"><em><strong>
+How I can display the multi-line captions for columns?</strong></em></a></p>
+
+<p>This feature is supported automatically - when you change a
+width of any column or add/remove the sorted type in column,
+width of columns will be recalculate automatically and if it's
+necessary title height will change!</p>
+
+<hr color="#008000">
+
+<p><em><strong>8.</strong></em><a
+name="I want display the pictures in cells for graphic fields. How I can do it?"><em><strong>
+I want display the pictures in cells for graphic fields. How I
+can do it?</strong></em></a></p>
+
+<p>Simply set a eoDrawGraphicField flag in ExOptions property.</p>
+
+<hr color="#008000">
+
+<p><em><strong>9. </strong></em><a
+name="How I can assign the operations to standard menu items?"><em><strong>How
+I can assign the operations to standard menu items?</strong></em></a></p>
+
+<p>For each item in standard menu are created events:</p>
+
+<ul>
+    <li>OnAppendRecord event will be called with record
+        append/insert in datasource</li>
+    <li>OnEditRecord event will be called with record editing in
+        datasource</li>
+    <li>OnDeleteRecord event will be called with record deleting
+        in datasource</li>
+    <li>OnPostData event will be called with post record in
+        dataset</li>
+    <li>OnCancelData event will be called with cancel record in
+        dataset</li>
+    <li>OnRefreshData event will be called with refresh item
+        click</li>
+    <li>OnPrintData event will be called with print item click</li>
+    <li>OnExportData event will be called with export item click</li>
+    <li>OnSetupGrid event will be called with Setup of grid item
+        click</li>
+</ul>
+
+<p>All this events very useful for creation of user interface.
+For example, you can assign a procedure for append record, in
+which you will create a new form with controls for filling
+fields. And always your user will be append the record in your
+form (irrespective of the fact how he has come in an append
+record mode).</p>
+
+<p>Pay attantion to that if you not assigned the some events,
+then in standard popup menu will be deleted the same items!</p>
+
+<hr color="#008000">
+
+<p><em><strong>10. </strong></em><a
+name="Can I use a standard popup menu and add the custom popup?"><em><strong>Can
+I use a standard popup menu and add the custom popup?</strong></em></a></p>
+
+<p>Yes, of course. When you included the eoStandardPopup flag in
+ExOptions property, the standard popup will be displayed by right
+button mouse click. But if you assigend the custom popup in Popup
+property then the standard popup will be displayed by click in
+&quot;dropdown&quot; cell only (the first cell in title row of
+Indicator column).</p>
+
+<hr color="#008000">
+
+<p><em><strong>11. </strong></em><a
+name="I want to prohibit append and/or delete of records in TSMDBGrid."><em><strong>I
+want to prohibit append and/or delete of records in TSMDBGrid.</strong></em></a></p>
+
+<p>To include a eoDisableInsert and/or eoDisableDelete flag in
+ExOptions property.</p>
+
+<hr color="#008000">
+
+<p><em><strong>12. </strong></em><a
+name="Whether it's possible to fix a some columns?"><em><strong>Whether
+it's possible to fix a some columns?</strong></em></a></p>
+
+<p>Yes, of course. See a FixedCols and FixedColor properties.</p>
+
+<p>Also if you want to fix columns, but to save their attributes,
+see a eoFixedLikeColumn flag in ExOptions property.</p>
+
+<hr color="#008000">
+
+<p><em><strong>13.</strong></em><a
+name="I want to display a hint for each cell."><em><strong> I
+want to display a hint for each cell.</strong></em></a></p>
+
+<p>If you want to display a hint, which contains the full string
+wholly which is not located on cell width, include a eoCellHint
+flag in ExOptions property. In this case with hit of a mouse
+pointer on any cell there will be a hint, containing full text
+with field value.</p>
+
+<p>PS: if the field value is located in cell completely, the hint
+does not occur.</p>
+
+<hr color="#008000">
+
+<p><em><strong>14.</strong></em><a
+name="How I can insert a checkbox in cells?"><em><strong> How I
+can insert a checkbox in cells?</strong></em></a></p>
+
+<p>If you included the eoBooleanAsCheckBox flag in ExOptions
+property, then for any boolean field the user can view and edit
+field values in checkboxs.</p>
+
+<hr color="#008000">
+
+<p><em><strong>15.</strong></em><a
+name="I want display a dropdown and ellipsis buttons in cells."><em><strong>
+I want to display a dropdown and ellipsis buttons in cells.</strong></em></a></p>
+
+<p>If you included the eoShowLookup flag in ExOptions property,
+then for each row of each columns (which have an assigned
+PickList, or ButtonStyle = cbsEllipsis, or assigned field is a
+Lookup-field) will be displayed the buttons (dropdown arrow or
+ellipsis). You can click on it for calling linked event.</p>
+
+<p>PS: in standard TDBGrid these buttons occur only in editor
+mode.</p>
+
+<hr color="#008000">
+
+<p><em><strong>16.</strong></em><a
+name="My users want use Enter key like TAB for column naviagtion."><em><strong>
+My users want use Enter key like TAB for column naviagtion.</strong></em></a></p>
+
+<p>Set the eoENTERlikeTAB flag in ExOptions property.</p>
+
+<hr color="#008000">
+
+<p><em><strong>17. </strong></em><a
+name="In standard DBGrid I have the event for data drawing only. Whether there is an event for title drawing in TSMDBGrid?"><em><strong>In
+standard DBGrid I have the event for data drawing only. Whether
+there is an event for title drawing in TSMDBGrid?</strong></em></a></p>
+
+<p>Yes, see an OnDrawColumnTitle event.</p>
+
+<hr color="#008000">
+
+<p><em><strong>18.</strong></em><a
+name="I want to draw a rows in other colors."><em><strong> I want
+to draw a rows in other colors.</strong></em></a></p>
+
+<p>If you want to draw a rows in TSMDBGrid you can do it in other
+way.</p>
+
+<p>The first way - very-very simply: you can write in
+OnGetCellParams event the procedure, in which you check the some
+condition (for example, value in same field) and change a font or
+backcolor.</p>
+
+<p><strong><u>Example 1:</u></strong></p>
+
+<pre><b>procedure </b>TForm1.SMDBGrid1GetCellParams(Sender: TObject; Field: TField;
+  AFont: TFont; <b>var </b>Background: TColor; Highlight: Boolean);
+<b>begin
+</b><font color="#000080"><i>  {if CustNo less than 15, then set a bold font and red color in background}</i></font><b>
+  if </b>Table1.FieldByName('CustNo') &lt; 15 <b>then
+  begin
+    </b>Font.Style := [fsBold];
+    Background := clRed;
+  <b>end
+  else
+  begin
+    </b>Font.Style := [];
+    Background := clWhite;
+  <b>end
+end</b>;
+</pre>
+
+<p>The second way: you can write in OnDrawColumnCell event the
+procedure, in which you check the condition and draw on canvas.
+In this case you can realize the anything that you want - to draw
+shapes, images, to change a fonts and/or colors, to change a text
+position etc.</p>
+
+<p><strong><u>Example 2:</u></strong></p>
+
+<pre><b>procedure </b>TForm1.SMDBGrid1DrawColumnCell(Sender: TObject;
+  <b>const </b>Rect: TRect; DataCol: Integer; Column: TColumn;
+  State: TGridDrawState);
+<b>begin
+</b><font color="#000080"><i>  {if CustNo is 13 and is a second column,
+   then draw image and text after it}</i></font><b>
+  if </b>(Table1.FieldByName('CustNo').AsInteger = 13) and
+     (DataCol = 2) <b>then</b><font color="#000080"><i>
+  </i></font><b>begin
+    </b>SMDBGrid1.Canvas.FillRect(Rect);
+    SMDBGrid1.Canvas.Draw(Rect.Left, Rect.Top, Image1.Picture.Bitmap);
+    SMDBGrid1.Canvas.TextOut(Rect.Left+20, Rect.Top+20, Column.Field.FieldName);
+  <b>end</b>;
+<b>end</b>;
+</pre>
+
+<hr color="#008000">
+
+<p><em><strong>19.</strong></em><a
+name="I want to change a color for odd rows."><em><strong> I want
+to change a color for odd rows.</strong></em></a></p>
+
+<p>As I described in previous topic you can do it in
+OnGetCellParams or OnDrawColumnCell events. For example:</p>
+
+<pre><b>procedure </b>TForm1.SMDBGrid1GetCellParams(Sender: TObject; Field: TField;
+  AFont: TFont; <b>var </b>Background: TColor; Highlight: Boolean);
+<b>begin
+  if </b>(Table1.RecNo <b>mod </b>2 = 1) <b>then
+    </b>Background := clRed;
+<b>end</b>;</pre>
+
+<p>PS: of course, RecNo is valid for local tables only (Paradox,
+DBase etc). For SQL tables or queries you need do it with
+someelse method.</p>
+
+<hr color="#008000">
+
+<p><em><strong>20. </strong></em><a
+name="How I can receive the latest news about TSMDBGrid, new builds and upgrades?"><em><strong>How
+I can receive the latest news about TSMDBGrid, new builds and
+upgrades?</strong></em></a></p>
+
+<p>If you want to receive the latest news about TSMDBGrid
+development and new versions of it, then send a message to me <a
+href="mailto:(mshkolnik@rs-ukraine.kiev.ua">(mshkolnik@rs-ukraine.kiev.ua</a>,
+<a href="mailto:mike@woccu.freenet.kiev.ua">mike@woccu.freenet.kiev.ua</a>
+or <a href="../../../cgi-bin/geoplus_apps/ans_entry">sign a
+gustbook</a>) and I shall inform you about all changes.</p>
+
+<p>Also I created the mailing list (<a
+href="http://www.onelist.com/subscribe/SMComponents">http://www.onelist.com/subscribe/SMComponents</a>).
+In this list you can discuss the questions connected to my
+components and/or applications (TSMDBGrid too, of course),
+receive the lastest news about development, propose the new
+features, receive the updates, new versions and bug fixings. Also
+there you can take the answer on any Delphi programming question.
+</p>
+
+<hr color="#008000">
+
+<p>Download a lastest version: <a
+href="http://www.geocities.com/SiliconValley/Grid/3989/download/smdbgrid.zip">smdbgrid.zip</a>
+.(35Kb)</p>
+
+<p align="right"><font size="2">Last update: <strong>July 23,
+1999</strong></font></p>
+</body>
+</html>
