@@ -133,8 +133,8 @@ begin
       Width := -1;
     end;
 
-    inc( datasize, query.FieldByName('Data_length').AsInteger );
-    inc( indexsize, query.FieldByName('Index_length').AsInteger );
+    inc( datasize, StrToInt64Def(query.FieldByName('Data_length').AsString, 0) );
+    inc( indexsize, StrToInt64Def(query.FieldByName('Index_length').AsString, 0) );
     for i:=0 to FieldList.count-1 do
     begin
       with (list.Items.add) do
