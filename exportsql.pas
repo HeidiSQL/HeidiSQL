@@ -307,7 +307,7 @@ begin
   // is clicked, so we can switch to the 'file' radio
   // immediately when something goes wrong.
   try
-    data := RemoteExecQuerySimple(
+    data := RemoteExecQuery(
       appHandles[comboOtherHost.ItemIndex],
       'SHOW DATABASES',
       'Fetching remote list of databases...'
@@ -319,7 +319,7 @@ begin
     end;
     data.Free;
 
-    data := RemoteExecQuerySimple(
+    data := RemoteExecQuery(
       appHandles[comboOtherHost.ItemIndex],
       'SELECT VERSION()',
       'Probing for remote version...'
@@ -330,7 +330,7 @@ begin
 
     // Fetch the max_allowed_packet variable to be sure not to
     // overload the server when the user has checked "Extended Insert"
-    data := RemoteExecQuerySimple(
+    data := RemoteExecQuery(
       appHandles[comboOtherHost.ItemIndex],
       'SHOW VARIABLES LIKE "max_allowed_packet"',
       'Checking for maximum allowed SQL-packet size on server '+comboOtherHost.Text+'...'

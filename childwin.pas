@@ -2145,8 +2145,15 @@ var
 begin
   ds := TZReadOnlyQuery.Create(nil);
   ds.Connection := MysqlConn.Connection;
-  GetResults(query, ds, false, false);
-  result := ds;
+  try
+    GetResults(query, ds, false, false);
+    result := ds;
+  except
+    on e: Exception do begin
+      LogSQL(e.Message, true);
+      raise;
+    end;
+  end;
 end;
 
 
@@ -2172,7 +2179,14 @@ begin
     begin
       Connection := FMysqlConn.Connection;
       SQL.Text := SQLQuery;
-      ExecSQL;
+      try
+        ExecSQL;
+      except
+        on e: Exception do begin
+          LogSQL(e.Message, true);
+          raise;
+        end;
+      end;
       Free;
     end;
   finally
