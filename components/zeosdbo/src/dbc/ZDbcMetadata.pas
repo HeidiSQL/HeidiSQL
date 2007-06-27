@@ -472,7 +472,6 @@ procedure TZAbstractDatabaseMetadata.AddResultSetToCache(const Key: string;
 var
   TempKey: IZAnyValue;
 begin
-  Exit;
   TempKey := TZAnyValue.CreateWithString(Key);
   FCachedResultSets.Put(TempKey, CloneCachedResultSet(ResultSet));
 end;
