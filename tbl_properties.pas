@@ -36,7 +36,7 @@ var
 implementation
 
 uses
-  Childwin, Main, helpers;
+  Childwin, Main, helpers, Db;
 
 {$R *.DFM}
 
@@ -58,12 +58,9 @@ var
   FieldList: TStringList;
   splitter: TSplitter;
   synmemo: TSynMemo;
-  query: TZReadOnlyQuery;
+  query: TDataSet;
 begin
   ListTables  := Mainform.Childwin.ListTables;
-
-  query            := TZReadOnlyQuery.Create(self);
-  query.Connection := Mainform.Childwin.ZQuery3.Connection;
 
   for i := (PageControl.PageCount - 1) downto 0 do
   begin
@@ -73,7 +70,7 @@ begin
   datasize  := 0;
   indexsize := 0;
 
-  Mainform.Childwin.GetResults( 'SHOW TABLE STATUS', query );
+  query := Mainform.Childwin.GetResults( 'SHOW TABLE STATUS');
 
   FieldList := TStringList.Create;
   for i := 0 to (query.FieldCount - 1) do

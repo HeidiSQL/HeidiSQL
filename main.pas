@@ -735,7 +735,7 @@ begin
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
     dataset2csv(ChildWin.GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2csv((ChildWin.ZQuery1 as TZQuery), CSVSeparator, CSVEncloser, CSVTerminator);
+    dataset2csv(ChildWin.GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator);
 end;
 
 
@@ -998,14 +998,14 @@ begin
     if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
       FileName := ChildWin.ActualTable
     else
-      FileName := sstr(ChildWin.ZQuery1.Sql[0], 20);
+      FileName := 'SQL query';
     Options := [ofOverwritePrompt,ofEnableSizing];
 
     if Execute and (FileName <> '') then begin
       if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
         dataset2xml(ChildWin.GetVisualDataset(), ChildWin.ActualTable, FileName)
       else
-        dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query', FileName);
+        dataset2xml(ChildWin.GetVisualDataset(), 'SQL query', FileName);
     end;
   end;
 end;

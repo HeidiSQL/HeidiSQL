@@ -443,7 +443,7 @@ var
   offset                    : Int64;
   sql_select                : String;
   cwin                      : TMDIChild;
-  query                     : TZReadOnlyQuery;
+  query                     : TDataSet;
 begin
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -519,9 +519,6 @@ begin
   end;
 
   try
-    // Create helper-dataset
-    query := TZReadOnlyQuery.Create(self);
-    query.Connection := cwin.MysqlConn.Connection;
     // Be sure to read everything from the correct database
     cwin.ExecUseQuery( comboSelectDatabase.Text );
 
@@ -531,7 +528,7 @@ begin
     if tofile then
     begin
       wfs(f, '# --------------------------------------------------------');
-      wfs(f, '# Host:                 ' + query.Connection.HostName );
+      wfs(f, '# Host:                 ' + cwin.MysqlConn.Connection.HostName );
       wfs(f, '# Database:             ' + DB2export );
       wfs(f, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
       wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
@@ -692,7 +689,7 @@ begin
         }
         if cwin.mysql_version >= 32320 then
         begin
-          cwin.GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]), Query );
+          Query := cwin.GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]));
           sql := Query.Fields[1].AsString;
           sql := fixNewlines(sql);
           // Skip VIEWS.  Not foolproof, but good enough until more support for information_schema (fallback to? regexp?) is added.
@@ -734,7 +731,7 @@ begin
           Generate CREATE TABLE statement by hand on old servers
         }
         else if cwin.mysql_version < 32320 then begin
-          cwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]), Query );
+          Query := cwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]));
           if tofile then
             sql := 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, checkListTables.Items[i]) + ' (' + crlf
           else
@@ -753,7 +750,7 @@ begin
           end;
 
           // Keys:
-          cwin.GetResults( 'SHOW KEYS FROM ' + cwin.mask(checkListTables.Items[i]), Query );
+          Query := cwin.GetResults( 'SHOW KEYS FROM ' + cwin.mask(checkListTables.Items[i]));
           setLength(keylist, 0);
           keystr := '';
           if Query.RecordCount > 0 then
@@ -847,7 +844,7 @@ begin
         // Set to mysql-readable char:
         DecimalSeparator := '.';
         columnnames := ' (';
-        cwin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]), Query );
+        Query := cwin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]));
         for k:=1 to Query.RecordCount do
         begin
           if k>1 then
@@ -945,7 +942,7 @@ begin
           end;
 
           // Execute SELECT
-          cwin.GetResults( sql_select, Query );
+          Query := cwin.GetResults( sql_select );
 
           insertquery := '';
           valuescount := 0;

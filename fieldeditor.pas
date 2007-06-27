@@ -98,7 +98,7 @@ var
 implementation
 
 uses
-  helpers, childwin, Main, mysql;
+  helpers, childwin, Main, mysql, db;
 
 var
   klist : Array of TMysqlIndex;
@@ -229,31 +229,32 @@ procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
   cwin : TMDIChild;
+  ds: TDataSet;
 begin
   listColumnsUsed.Items.Clear;
   listColumnsAvailable.Items.Clear;
   setlength(klist, 0);
   TempKeys := TStringList.Create;
   cwin := Mainform.ChildWin;
-  cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.ActualTable), cwin.ZQuery3 );
-  for i:=1 to cwin.ZQuery3.RecordCount do
+  ds := cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.ActualTable) );
+  for i:=1 to ds.RecordCount do
   begin
-    if TempKeys.IndexOf(cwin.ZQuery3.Fields[2].AsString) = -1 then
+    if TempKeys.IndexOf(ds.Fields[2].AsString) = -1 then
     begin
-      TempKeys.Add(cwin.ZQuery3.Fields[2].AsString);
+      TempKeys.Add(ds.Fields[2].AsString);
       setlength(klist, length(klist)+1);
-      klist[length(klist)-1].Name := cwin.ZQuery3.Fields[2].AsString;
+      klist[length(klist)-1].Name := ds.Fields[2].AsString;
       klist[length(klist)-1].Columns := TStringList.Create;
-      klist[length(klist)-1].Columns.Add(cwin.ZQuery3.Fields[4].AsString);
+      klist[length(klist)-1].Columns.Add(ds.Fields[4].AsString);
       klist[length(klist)-1].Modified := false;
-      klist[length(klist)-1].Unique := (cwin.ZQuery3.Fields[1].AsString = '0');
+      klist[length(klist)-1].Unique := (ds.Fields[1].AsString = '0');
       if cwin.mysql_version < 40002 then
-        klist[length(klist)-1].Fulltext := (cwin.ZQuery3.FieldByName('Comment').AsString = 'FULLTEXT')
+        klist[length(klist)-1].Fulltext := (ds.FieldByName('Comment').AsString = 'FULLTEXT')
       else
-        klist[length(klist)-1].Fulltext := (cwin.ZQuery3.FieldByName('Index_type').AsString = 'FULLTEXT')
+        klist[length(klist)-1].Fulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT')
     end else
-      klist[TempKeys.IndexOf(cwin.ZQuery3.Fields[2].AsString)].Columns.Add(cwin.ZQuery3.Fields[4].AsString);
-    cwin.ZQuery3.Next;
+      klist[TempKeys.IndexOf(ds.Fields[2].AsString)].Columns.Add(ds.Fields[4].AsString);
+    ds.Next;
   end;
 
   for i:=0 to cwin.ListColumns.Items.Count-1 do begin

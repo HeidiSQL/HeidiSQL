@@ -60,9 +60,9 @@ begin
   // which ListView to print?
   case cwin.PageControlMain.ActivePageIndex of
     0 : case cwin.PageControlHost.ActivePageIndex of
-      0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.ZQuery3.Connection.HostName; end;
-      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.ZQuery3.Connection.HostName; end;
-      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.ZQuery3.Connection.HostName; end;
+      0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.Conn.MysqlParams.Host; end;
+      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.Conn.MysqlParams.Host; end;
+      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.Conn.MysqlParams.Host; end;
       end;
     1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
     2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActualDatabase + '/' + cwin.ActualTable; end;

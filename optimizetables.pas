@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin;
+  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db;
 
 type
   Toptimize = class(TForm)
@@ -37,7 +37,7 @@ type
     procedure Check(Sender: TObject);
     procedure Analyze(Sender: TObject);
     procedure Repair(Sender: TObject);
-    procedure showresult(Sender: TObject);
+    procedure showresult(Sender: TObject; ds: TDataSet);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure TablesCheckListBoxClickCheck(Sender: TObject);
   private
@@ -135,6 +135,7 @@ var
   i : Integer;
   checkedtables : TStringList;
   querystr  : String;
+  ds: TDataSet;
 begin
   screen.Cursor := crSQLWait;
   checkedtables := TStringList.Create;
@@ -146,8 +147,8 @@ begin
   if CheckBoxQuickCheck.Checked then
     querystr := querystr + ' QUICK';
   Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  Mainform.ChildWin.GetResults( querystr, Mainform.ChildWin.ZQuery3 );
-  showresult(self);
+  ds := Mainform.ChildWin.GetResults( querystr );
+  showresult(self, ds);
   screen.Cursor := crDefault;
 end;
 
@@ -156,6 +157,7 @@ var
   i : Integer;
   checkedtables : TStringList;
   querystr  : String;
+  ds: TDataset;
 begin
   screen.Cursor := crSQLWait;
   checkedtables := TStringList.Create;
@@ -165,8 +167,8 @@ begin
         checkedtables.Add(mainform.mask(Items[i]));
   querystr := 'ANALYZE TABLE ' + implodestr(',', checkedtables);
   Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  Mainform.ChildWin.GetResults( querystr, Mainform.ChildWin.ZQuery3 );
-  showresult(self);
+  ds := Mainform.ChildWin.GetResults( querystr );
+  showresult(self, ds);
   screen.Cursor := crDefault;
 end;
 
@@ -175,6 +177,7 @@ var
   i : Integer;
   checkedtables : TStringList;
   querystr  : String;
+  ds: TDataSet;
 begin
   screen.Cursor := crSQLWait;
   checkedtables := TStringList.Create;
@@ -186,12 +189,12 @@ begin
   if CheckBoxQuickRepair.Checked then
     querystr := querystr + ' QUICK';
   Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  Mainform.ChildWin.GetResults( querystr, Mainform.ChildWin.ZQuery3 );
-  showresult(self);
+  ds := Mainform.ChildWin.GetResults( querystr );
+  showresult(self, ds);
   screen.Cursor := crDefault;
 end;
 
-procedure Toptimize.showresult(Sender: TObject);
+procedure Toptimize.showresult(Sender: TObject; ds: TDataSet);
 var
   i,j,fieldcount : Integer;
   li           : TListItem;
@@ -201,20 +204,20 @@ begin
   ListViewResults.Columns.Clear;
   ListViewResults.Items.BeginUpdate();
   ListViewResults.Items.Clear;
-  fieldcount := Mainform.ChildWin.ZQuery3.FieldCount;
+  fieldcount := ds.FieldCount;
   for i := 0 to fieldcount -1 do
   begin
     lc := ListViewResults.Columns.Add;
-    lc.Caption := Mainform.ChildWin.ZQuery3.Fields[i].Fieldname;
+    lc.Caption := ds.Fields[i].Fieldname;
   end;
 
-  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+  for i:=1 to ds.RecordCount do
   begin
     li := ListViewResults.Items.Add;
-    li.Caption := Mainform.ChildWin.ZQuery3.Fields[0].AsString;
+    li.Caption := ds.Fields[0].AsString;
     for j := 1 to fieldcount -1 do // fill cells
-      li.SubItems.Add(Mainform.ChildWin.ZQuery3.Fields[j].AsString);
-    Mainform.ChildWin.ZQuery3.Next;
+      li.SubItems.Add(ds.Fields[j].AsString);
+    ds.Next;
   end;
 
   for i := 0 to ListViewResults.Columns.Count-1 do

@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, CheckLst, ImgList, ExtCtrls, Registry, ZDataset;
+  ComCtrls, StdCtrls, CheckLst, ImgList, ExtCtrls, Registry, ZDataset, Db;
   // winsock
 
 type
@@ -96,7 +96,7 @@ type
     { Public declarations }
     User, Host            : String; // Remember for setting privileges
     ZQueryDBs, ZQueryTables, ZQueryColumns, ZQueryUsers,
-    ZQueryColumnNames : TZReadOnlyQuery;
+    ZQueryColumnNames : TDataSet;
   end;
 
   function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
@@ -192,7 +192,7 @@ begin
     tn1 := tntop.getNextChild(tn1);
 
   end;
-  EditUser.Text := Mainform.Childwin.ZQuery3.Connection.User;
+  EditUser.Text := Mainform.Childwin.Conn.MysqlParams.User;
 
   tnu1.Expand(false);
   tnu1.Selected := true;
@@ -211,20 +211,6 @@ begin
   EditHost.Text := ph.h_name;
   WSACleanup();
 }
-  ZQueryDBs := TZReadOnlyQuery.Create(self);
-  ZQueryDBs.Connection := Mainform.Childwin.ZQuery3.Connection;
-
-  ZQueryTables := TZReadOnlyQuery.Create(self);
-  ZQueryTables.Connection := Mainform.Childwin.ZQuery3.Connection;
-
-  ZQueryColumns := TZReadOnlyQuery.Create(self);
-  ZQueryColumns.Connection := Mainform.Childwin.ZQuery3.Connection;
-
-  ZQueryUsers := TZReadOnlyQuery.Create(self);
-  ZQueryUsers.Connection := Mainform.Childwin.ZQuery3.Connection;
-
-  ZQueryColumnNames := TZReadOnlyQuery.Create(self);
-  ZQueryColumnNames.Connection := Mainform.Childwin.ZQuery3.Connection;
 
   Screen.Cursor := crDefault;
 end;
@@ -253,10 +239,10 @@ begin
     else with TRegistry.Create do
     begin
       OpenKey(REGPATH + '\Servers\' + EditDescription.Text, true);
-      WriteString('Host', Mainform.Childwin.ZQuery3.Connection.HostName);
+      WriteString('Host', Mainform.Childwin.Conn.MysqlParams.Host);
       WriteString('User', EditUser.Text);
       WriteString('Password', encrypt(EditPassword.Text));
-      WriteString('Port', IntToStr(Mainform.Childwin.ZQuery3.Connection.Port));
+      WriteString('Port', IntToStr(Mainform.Childwin.Conn.MysqlParams.Port));
       WriteString('Timeout', '30');
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
@@ -357,7 +343,7 @@ begin
     2 : // add columns to user-node...
       begin
         // find fields from table
-        Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(TreeViewUsers.Selected.Parent.Text) + '.' + mainform.mask(TreeViewUsers.Selected.Text), ZQueryColumnNames );
+        ZQueryColumnNames := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(TreeViewUsers.Selected.Parent.Text) + '.' + mainform.mask(TreeViewUsers.Selected.Text));
         for i:=1 to ZQueryColumnNames.RecordCount do
         begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, ZQueryColumnNames.Fields[0].AsString);
@@ -406,7 +392,7 @@ begin
         LabelTable.Caption := '<All Tables>'; LabelTable.Font.Color := highlight;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
         if not ZQueryDBs.Active then
-          Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB), ZQueryDBs );
+          ZQueryDBs := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB));
         ButtonEditUser.Enabled := false;
       end;
     2 : begin
@@ -414,7 +400,7 @@ begin
         LabelTable.Caption := Node.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
         if not ZQueryTables.Active then
-          Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES), ZQueryTables );
+          ZQueryTables := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES));
         ButtonEditUser.Enabled := false;
       end;
     3 : begin
@@ -422,7 +408,7 @@ begin
         LabelTable.Caption := Node.Parent.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := Node.Text; LabelColumn.Font.Color := clWindowText;
         if not ZQueryColumns.Active then
-          Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS), ZQueryColumns );
+          ZQueryColumns := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS));
         ButtonEditUser.Enabled := false;
       end;
   end;
@@ -448,7 +434,7 @@ begin
   if (PageControl1.ActivePage = TabSheetEditUsers) and
     (TreeViewUsers.Items.Count = 0) then
   begin
-    Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS), ZQueryUsers );
+    ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS));
     for i:=1 to ZQueryUsers.RecordCount do
     begin
       tn := TreeViewUsers.Items.AddChild(nil, ZQueryUsers.Fields[1].AsString + '@' + ZQueryUsers.Fields[0].AsString );
@@ -479,13 +465,11 @@ procedure TUserManagerForm.ShowPrivilegesControls(v, w, y: Boolean);
   function getPrivNames( privtable : String ): TStringList;
   var
     i,j         : Byte;
-    q           : TZReadOnlyQuery;
+    q           : TDataSet;
     setlist     : TStringList;
     tmpstr      : String;
   begin
-    q := TZReadOnlyQuery.Create(self);
-    q.Connection := Mainform.Childwin.ZQuery3.Connection;
-    Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable), q );
+    q := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable));
     result := TStringList.Create;
     for i := 0 to q.RecordCount-1 do
     begin
@@ -799,7 +783,7 @@ begin
         begin
           sql := 'INSERT INTO '+mainform.mask(PRIVTABLE_TABLES)+' (Host, Db, User, Table_name, Grantor, ';
           sql := sql + ImplodeStr( ', ', getColumnNamesOrValues( 'columns' ) );
-          sql := sql + ') VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+Mainform.Childwin.ZQuery3.Connection.User+''', ';
+          sql := sql + ') VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+Mainform.Childwin.Conn.MysqlParams.User+''', ';
           sql := sql + '''' + ImplodeStr( ''', ''', getColumnNamesOrValues( 'values' ) ) + '''';
           sql := sql + ')';
           editcurrent := true;
@@ -955,22 +939,22 @@ end;
 
 procedure TUserManagerForm.GetResUsers;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS), ZQueryUsers );
+  ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS));
 end;
 
 procedure TUserManagerForm.GetResDBs;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB), ZQueryDBs );
+  ZQueryDBs := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB));
 end;
 
 procedure TUserManagerForm.GetResTables;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES), ZQueryTables );
+  ZQueryTables := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES));
 end;
 
 procedure TUserManagerForm.GetResColumns;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS), ZQueryColumns );
+  ZQueryColumns := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS));
 end;
 
 end.

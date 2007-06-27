@@ -52,7 +52,7 @@ const
 
 implementation
 
-uses helpers, main, childwin;
+uses helpers, main, childwin, db;
 
 {$R *.DFM}
 
@@ -84,6 +84,7 @@ var
   i : Integer;
   tn : TTreeNode;
   struc_data : Byte;
+  ds: TDataSet;
 begin
   oldTableName := Mainform.ChildWin.ListTables.Selected.Caption;
   editNewTablename.Text := oldTableName + '_copy';
@@ -113,11 +114,11 @@ begin
 
   // fill columns:
   CheckListBoxFields.Items.Clear;
-  Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName), Mainform.ChildWin.ZQuery3 );
-  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+  ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName) );
+  for i:=1 to ds.RecordCount do
   begin
-    CheckListBoxFields.Items.Add( Mainform.ChildWin.ZQuery3.Fields[0].AsString );
-    Mainform.ChildWin.ZQuery3.Next;
+    CheckListBoxFields.Items.Add( ds.Fields[0].AsString );
+    ds.Next;
   end;
 
   // select all:
@@ -148,7 +149,7 @@ var
   keylist      : Array of TMyKey;
   keystr       : String;
   ai_q, notnull, default    : String;
-  zq           : TZReadOnlyQuery;
+  zq           : TDataSet;
   isFulltext   : Boolean;
   struc_data   : Byte;
 begin
@@ -164,11 +165,10 @@ begin
   mainform.SaveRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
 
   strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
-  zq := Mainform.ChildWin.ZQuery3;
 
   // keys >
   if CheckBoxWithIndexes.Checked then begin
-    Mainform.ChildWin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename), zq );
+    zq := Mainform.ChildWin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename) );
     setLength(keylist, 0);
     keystr := '';
 
@@ -253,10 +253,7 @@ begin
   Mainform.ChildWin.ExecUpdateQuery(strquery);
 
   // Find a auto_increment-column
-  zq.SQL.Clear();
-  zq.SQL.Add( 'SHOW FIELDS FROM ' + mainform.mask(oldtablename) );
-  zq.Open;
-  zq.First;
+  zq := Mainform.ChildWin.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
   for i:=1 to zq.RecordCount do
   begin
     if zq.Fields[5].AsString = 'auto_increment' then begin

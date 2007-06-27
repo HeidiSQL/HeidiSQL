@@ -60,8 +60,11 @@ begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
   ProgressBar1.Max := TfrmInsertFiles(FInsertFilesForm).ListViewFiles.Items.Count;
-  zq := Mainform.ChildWin.ZQuery3;
+  debug('TODO: Non-threaded database call in TfrmInsertFilesProgress.ProcessFiles().');
+  zq := TZReadOnlyQuery.Create(nil);
+  zq.Connection := MainForm.ChildWin.Conn.MysqlConn;
 
+  MainForm.ChildWin.FQueryRunning := true;
   TRY
 
   with TfrmInsertFiles(FInsertFilesForm) do
@@ -135,6 +138,7 @@ begin
   end;
 
   FINALLY
+    MainForm.ChildWin.FQueryRunning := false;
     zq.ParamCheck := false;
     screen.Cursor := crDefault;
     Close();
