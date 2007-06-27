@@ -15,7 +15,6 @@ mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Hieke.
 Portions created by Michael Hieke are Copyright 2000 Michael Hieke.
 Portions created by James D. Jacobson are Copyright 1999 Martin Waldenburg.
-Changes to emit XHTML 1.0 Strict complying code by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -30,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynExportHTML.pas,v 1.21 2005/12/02 18:50:01 maelh Exp $
+$Id: SynExportHTML.pas,v 1.7 2001/11/09 07:48:57 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -38,44 +37,30 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEXPORTHTML}
 unit SynExportHTML;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  Classes,
 {$IFDEF SYN_CLX}
   Qt,
   QGraphics,
-  QSynEditExport,
-  QSynEditHighlighter,
 {$ELSE}
   Windows,
   Graphics,
-  SynEditExport,
-  SynEditHighlighter,
 {$ENDIF}
-  Classes;
+  SynEditExport;
 
 type
+  THTMLFontSize = (fs01, fs02, fs03, fs04, fs05, fs06, fs07, fsDefault);        //eb 2000-10-12
+
   TSynExporterHTML = class(TSynCustomExporter)
   private
-    fLastAttri: TSynHighlighterAttributes;
-    function AttriToCSS(Attri: TSynHighlighterAttributes;
-      UniqueAttriName: string): string;
-    function AttriToCSSCallback(Highlighter: TSynCustomHighlighter;
-      Attri: TSynHighlighterAttributes; UniqueAttriName: string;
-      Params: array of Pointer): Boolean;
+    fFontSize: THTMLFontSize;
     function ColorToHTML(AColor: TColor): string;
-    function GetStyleName(Highlighter: TSynCustomHighlighter;
-      Attri: TSynHighlighterAttributes): string;
-    function MakeValidName(Name: string): string;
-    function StyleNameCallback(Highlighter: TSynCustomHighlighter;
-      Attri: TSynHighlighterAttributes; UniqueAttriName: string;
-      Params: array of Pointer): Boolean;
   protected
     fCreateHTMLFragment: boolean;
     procedure FormatAfterLastAttribute; override;
@@ -83,13 +68,14 @@ type
       FontStylesChanged: TFontStyles); override;
     procedure FormatAttributeInit(BackgroundChanged, ForegroundChanged: boolean;
       FontStylesChanged: TFontStyles); override;
+{begin}                                                                         //mh 2000-10-10
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
       ForegroundChanged: boolean; FontStylesChanged: TFontStyles); override;
+{end}                                                                           //mh 2000-10-10
     procedure FormatNewLine; override;
     function GetFooter: string; override;
     function GetFormatName: string; override;
     function GetHeader: string; override;
-    procedure SetTokenAttribute(Attri: TSynHighlighterAttributes); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -99,6 +85,7 @@ type
     property DefaultFilter;
     property Font;
     property Highlighter;
+    property HTMLFontSize: THTMLFontSize read fFontSize write fFontSize;        //eb 2000-10-12
     property Title;
     property UseBackground;
   end;
@@ -106,17 +93,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst,
-  QSynHighlighterMulti,
-{$ELSE}
-  SynEditMiscProcs,
-  SynEditStrConst,  
-  SynHighlighterMulti,
-{$ENDIF}
-  SysUtils;
-
+  SysUtils,
+  SynEditStrConst;
 
 { TSynExporterHTML }
 
@@ -129,6 +107,7 @@ begin
   {$IFNDEF SYN_CLX}
   fClipboardFormat := RegisterClipboardFormat(CF_HTML);
   {$ENDIF}
+  fFontSize := fs03;
   fDefaultFilter := SYNS_FilterHTML;
   // setup array of chars to be replaced
   fReplaceReserved['&'] := '&amp;';
@@ -232,42 +211,6 @@ begin
   fReplaceReserved['€'] := '&euro;';
 end;
 
-function TSynExporterHTML.AttriToCSS(Attri: TSynHighlighterAttributes;
-  UniqueAttriName: string): string;
-var
-  StyleName: string;
-begin
-  StyleName := MakeValidName(UniqueAttriName);
-
-  Result := '.' + StyleName + ' { ';
-  if UseBackground and (Attri.Background <> clNone) then
-    Result := Result + 'background-color: ' + ColorToHTML(Attri.Background) + '; ';
-  if Attri.Foreground <> clNone then
-    Result := Result + 'color: ' + ColorToHTML(Attri.Foreground) + '; ';
-
-  if fsBold in Attri.Style then
-    Result := Result + 'font-weight: bold; ';
-  if fsItalic in Attri.Style then
-    Result := Result + 'font-style: italic; ';
-  if fsUnderline in Attri.Style then
-    Result := Result + 'text-decoration: underline; ';
-  if fsStrikeOut in Attri.Style then
-    Result := Result + 'text-decoration: line-through; ';
-
-  Result := Result + '}';
-end;
-
-function TSynExporterHTML.AttriToCSSCallback(Highlighter: TSynCustomHighlighter;
-  Attri: TSynHighlighterAttributes; UniqueAttriName: string;
-  Params: array of Pointer): Boolean;
-var
-  Styles: ^string;
-begin
-  Styles := Params[0];
-  Styles^ := Styles^ + AttriToCSS(Attri, UniqueAttriName) + #13#10;  
-  Result := True; // we want all attributes => tell EnumHighlighterAttris to continue
-end;
-
 function TSynExporterHTML.ColorToHTML(AColor: TColor): string;
 var
   RGBColor: longint;
@@ -276,52 +219,110 @@ const
   Digits: array[0..15] of char = '0123456789ABCDEF';
 begin
   RGBColor := ColorToRGB(AColor);
-  Result := '#000000';
+  Result := '"#000000"';
+ {****************}
+{$IFNDEF SYN_CLX}
   RGBValue := GetRValue(RGBColor);
+{$ENDIF}
   if RGBValue > 0 then begin
-    Result[2] := Digits[RGBValue shr  4];
-    Result[3] := Digits[RGBValue and 15];
+    Result[3] := Digits[RGBValue shr  4];
+    Result[4] := Digits[RGBValue and 15];
   end;
+ {****************}
+{$IFNDEF SYN_CLX}
   RGBValue := GetGValue(RGBColor);
+{$ENDIF}
   if RGBValue > 0 then begin
-    Result[4] := Digits[RGBValue shr  4];
-    Result[5] := Digits[RGBValue and 15];
+    Result[5] := Digits[RGBValue shr  4];
+    Result[6] := Digits[RGBValue and 15];
   end;
+ {****************}
+{$IFNDEF SYN_CLX}
   RGBValue := GetBValue(RGBColor);
+{$ENDIF}
   if RGBValue > 0 then begin
-    Result[6] := Digits[RGBValue shr  4];
-    Result[7] := Digits[RGBValue and 15];
+    Result[7] := Digits[RGBValue shr  4];
+    Result[8] := Digits[RGBValue and 15];
   end;
 end;
 
 procedure TSynExporterHTML.FormatAfterLastAttribute;
 begin
-  AddData('</span>');
+  if fsStrikeout in fLastStyle then
+    AddData('</strike>');
+  if fsUnderline in fLastStyle then
+    AddData('</u>');
+  if fsItalic in fLastStyle then
+    AddData('</i>');
+  if fsBold in fLastStyle then
+    AddData('</b>');
+  if fLastFG <> fFont.Color then                                         
+    AddData('</font>');
+  if UseBackground and (fLastBG <> fBackgroundColor) then
+    AddData('</span>');
 end;
 
 procedure TSynExporterHTML.FormatAttributeDone(BackgroundChanged,
   ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
 begin
-  AddData('</span>');
+  if BackgroundChanged or ForegroundChanged or (FontStylesChanged <> []) then
+  begin
+    if fsStrikeout in fLastStyle then
+      AddData('</strike>');
+    if fsUnderline in fLastStyle then
+      AddData('</u>');
+    if fsItalic in fLastStyle then
+      AddData('</i>');
+    if fsBold in fLastStyle then
+      AddData('</b>');
+  end;
+  if (BackgroundChanged or ForegroundChanged) and (fLastFG <> fFont.Color) then //mh 2000-10-10
+    AddData('</font>');
+  if BackgroundChanged then
+    AddData('</span>');
 end;
 
 procedure TSynExporterHTML.FormatAttributeInit(BackgroundChanged,
   ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
-var
-  StyleName: string;
 begin
-  StyleName := GetStyleName(Highlighter, fLastAttri);
-  AddData(Format('<span class="%s">', [StyleName]));
+  if BackgroundChanged then
+    AddData('<span style="background-color: ' +
+      Copy(ColorToHtml(fLastBG), 2, 9) + '>');
+  if (BackgroundChanged or ForegroundChanged) and (fLastFG <> fFont.Color) then
+    AddData('<font color=' + ColorToHtml(fLastFG) + '>');
+  if BackgroundChanged or ForegroundChanged or (FontStylesChanged <> []) then
+  begin
+    if fsBold in fLastStyle then
+      AddData('<b>');
+    if fsItalic in fLastStyle then
+      AddData('<i>');
+    if fsUnderline in fLastStyle then
+      AddData('<u>');
+    if fsStrikeout in fLastStyle then
+      AddData('<strike>');
+  end;
 end;
 
+{begin}                                                                         //mh 2000-10-10
 procedure TSynExporterHTML.FormatBeforeFirstAttribute(BackgroundChanged,
   ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
-var
-  StyleName: string;
 begin
-  StyleName := GetStyleName(Highlighter, fLastAttri);
-  AddData(Format('<span class="%s">', [StyleName]));
+  if BackgroundChanged then
+    AddData('<span style="background-color: ' +
+      Copy(ColorToHtml(fLastBG), 2, 9) + '>');
+  AddData('<font color=' + ColorToHtml(fLastFG) + '>');
+  if FontStylesChanged <> [] then begin
+    if fsBold in fLastStyle then
+      AddData('<b>');
+    if fsItalic in fLastStyle then
+      AddData('<i>');
+    if fsUnderline in fLastStyle then
+      AddData('<u>');
+    if fsStrikeout in fLastStyle then
+      AddData('<strike>');
+  end;
 end;
+{end}                                                                           //mh 2000-10-10
 
 procedure TSynExporterHTML.FormatNewLine;
 begin
@@ -332,10 +333,8 @@ function TSynExporterHTML.GetFooter: string;
 begin
   Result := '';
   if fExportAsText then
-    Result := '</span>'#13#10'</code></pre>'#13#10
-  else
-    Result := '</code></pre><!--EndFragment-->';
-  if not(fCreateHTMLFragment and fExportAsText) then
+    Result := '</font>'#13#10'</code></pre>'#13#10;
+  if not fCreateHTMLFragment then
     Result := Result + '</body>'#13#10'</html>';
 end;
 
@@ -347,98 +346,47 @@ end;
 function TSynExporterHTML.GetHeader: string;
 const
   DescriptionSize = 105;
-  FooterSize1 = 47;
-  FooterSize2 = 31;
+  HeaderSize = 47;
+  FooterSize1 = 58;
+  FooterSize2 = 24;
   NativeHeader = 'Version:0.9'#13#10 +
                  'StartHTML:%.10d'#13#10 +
                  'EndHTML:%.10d'#13#10 +
                  'StartFragment:%.10d'#13#10 +
                  'EndFragment:%.10d'#13#10;
-  HTMLAsTextHeader = '<?xml version="1.0" encoding="iso-8859-1"?>'#13#10 +
-                     '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'#13#10 +
-                     '<html xmlns="http://www.w3.org/1999/xhtml">'#13#10 +
+  HTMLAsTextHeader = '<html>'#13#10 +
                      '<head>'#13#10 +
                      '<title>%s</title>'#13#10 +
-                     '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />'#13#10 +
-                     '<meta name="generator" content="SynEdit HTML exporter" />'#13#10 +
-                     '<style type="text/css">'#13#10 +
-                     '<!--'#13#10 +
-                     'body { color: %s; background-color: %s; }'#13#10 +
-                     '%s' +
-                     '-->'#13#10 +
-                     '</style>'#13#10 +
                      '</head>'#13#10 +
-                     '<body>'#13#10;
+                     '<!-- Generated by SynEdit HTML exporter -->'#13#10 +
+                     '<body text=%s bgcolor=%s>'#13#10;
 var
-  Styles, Header, Header2: string;
+  sFontSize: string;                                                            //eb 2000-10-12
 begin
-  EnumHighlighterAttris(Highlighter, True, AttriToCSSCallback, [@Styles]);
-
-  Header := Format(HTMLAsTextHeader, [Title, ColorToHtml(fFont.Color),
-    ColorToHTML(fBackgroundColor), Styles]);
-
   Result := '';
-  if fExportAsText then
-  begin
+  if fExportAsText then begin
     if not fCreateHTMLFragment then
-      Result := Header;
-
-    Result := Result + Format('<pre>'#13#10'<code><span style="font: %dpt %s;">',
-      [fFont.Size, fFont.Name]);
-  end
-  else
-  begin
+      Result := Format(HTMLAsTextHeader, [Title, ColorToHtml(fFont.Color),
+        ColorToHTML(fBackgroundColor)]);
+{begin}                                                                         //eb 2000-10-12
+    if fFontSize <> fsDefault then
+      sFontSize := Format(' size=%d', [1 + Ord(fFontSize)])
+    else
+      sFontSize := '';
+    Result := Result + Format('<pre>'#13#10'<code><font %s face="%s">',
+      [sFontSize, fFont.Name]);
+{end}                                                                           //eb 2000-10-12
+  end else begin
     // Described in http://msdn.microsoft.com/library/sdkdoc/htmlclip/htmlclipboard.htm
-    Header2 := '<!--StartFragment--><pre><code>';
     Result := Format(NativeHeader, [DescriptionSize,
-      DescriptionSize + Length(Header) + Length(Header2) + GetBufferSize + FooterSize1,
-      DescriptionSize + Length(Header),
-      DescriptionSize + Length(Header) + Length(Header2) + GetBufferSize + FooterSize2]);
-    Result := Result + Header + Header2;
+      DescriptionSize + HeaderSize + GetBufferSize + FooterSize1,
+      DescriptionSize + HeaderSize,
+      DescriptionSize + HeaderSize + GetBufferSize + FooterSize2]);
+    if not fCreateHTMLFragment then
+      Result := Result + '<html>'#13#10'<head></head>'#13#10'<body>';
+    Result := Result + '<!--StartFragment--><pre><code>';
+    AddData('</code></pre><!--EndFragment-->');
   end;
-end;
-
-function TSynExporterHTML.GetStyleName(Highlighter: TSynCustomHighlighter;
-  Attri: TSynHighlighterAttributes): string;
-begin
-  EnumHighlighterAttris(Highlighter, False, StyleNameCallback, [Attri, @Result]);
-end;
-
-function TSynExporterHTML.MakeValidName(Name: string): string;
-var
-  i: Integer;
-begin
-  Result := LowerCase(Name);
-  for i := Length(Result) downto 1 do
-    if Result[i] in ['.', '_'] then
-      Result[i] := '-'
-    else if not(Result[i] in ['a'..'z', '0'..'9', '-']) then
-      Delete(Result, i, 1);
-end;
-
-procedure TSynExporterHTML.SetTokenAttribute(Attri: TSynHighlighterAttributes);
-begin
-  fLastAttri := Attri;
-  inherited;
-end;
-
-function TSynExporterHTML.StyleNameCallback(Highlighter: TSynCustomHighlighter;
-    Attri: TSynHighlighterAttributes; UniqueAttriName: string;
-    Params: array of Pointer): Boolean;
-var
-  AttriToFind: TSynHighlighterAttributes;
-  StyleName: ^string;
-begin
-  AttriToFind := Params[0];
-  StyleName := Params[1];
-
-  if Attri = AttriToFind then
-  begin
-    StyleName^ := MakeValidName(UniqueAttriName);
-    Result := False; // found => inform EnumHighlighterAttris to stop searching
-  end
-  else
-    Result := True;
 end;
 
 end.

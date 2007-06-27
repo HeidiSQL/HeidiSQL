@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHashEntries.pas,v 1.5 2004/07/09 13:03:55 markonjezic Exp $
+$Id: SynHighlighterHashEntries.pas,v 1.3 2001/11/09 07:46:17 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,22 +42,16 @@ Known Issues:
 The classes in this unit can be used to use the hashing algorithm while still
 having the ability to change the set of keywords.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERHASHENTRIES}
 unit SynHighlighterHashEntries;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-{$ELSE}
+  Classes,
   SynEditTypes,
-{$ENDIF}
-  Classes;
+  SynEditHighlighter;
 
 type
   { Class to hold the keyword to recognize, its length and its token kind. The

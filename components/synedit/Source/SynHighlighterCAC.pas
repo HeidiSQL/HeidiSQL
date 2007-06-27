@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCAC.pas,v 1.11 2005/01/28 16:53:21 maelh Exp $
+$Id: SynHighlighterCAC.pas,v 1.6 2001/11/09 07:46:17 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,27 +42,20 @@ Known Issues:
 The SynHighlighterCAC unit provides SynEdit with a CA-Clipper syntax highlighter.
 Thanks to Primoz Gabrijelcic, Andy Jeffries.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERCAC}
 unit SynHighlighterCAC;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  Qt, QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkDirective, tkIdentifier, tkKey, tkNull, tkNumber,
@@ -186,10 +179,9 @@ type
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
     procedure CStyleProc;
-  protected
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -204,7 +196,7 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ResetRange; override;
+    procedure ReSetRange; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
@@ -226,11 +218,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1052,13 +1040,7 @@ end;
 
 procedure TSynCACSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
-  fTokenID := tkUnknown;
 end;
 
 procedure TSynCACSyn.Next;
@@ -1132,7 +1114,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynCACSyn.ResetRange;
+procedure TSynCACSyn.ReSetRange;
 begin
   fRange := rsUnknown;
 end;
@@ -1142,12 +1124,8 @@ begin
   fRange := TRangeState(Value);
 end;
 
-function TSynCACSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterCAClipper;
-end;
-
-class function TSynCACSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynCACSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangCAClipper;
 end;
@@ -1170,7 +1148,8 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynCACSyn);
 {$ENDIF}
 end.
+

@@ -3,7 +3,6 @@ The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
 http://www.mozilla.org/MPL/
-
 Software distributed under the License is distributed on an "AS IS" basis,
 WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
 the specific language governing rights and limitations under the License.
@@ -27,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterAsm.pas,v 1.15 2005/01/28 16:53:20 maelh Exp $
+$Id: SynHighlighterAsm.pas,v 1.10 2001/11/23 08:11:28 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -43,29 +42,29 @@ The SynHighlighterASM unit provides SynEdit with a x86 Assembler (.asm) highligh
 The highlighter supports all x86 op codes, Intel MMX and AMD 3D NOW! op codes.
 Thanks to Martin Waldenburg, Hideo Koiso.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERASM}
 unit SynHighlighterAsm;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  SysUtils,
+  Classes,
 {$IFDEF SYN_CLX}
+  Qt,
+  QControls,
   QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
 {$ELSE}
+  Windows,
+  Messages,
+  Controls,
   Graphics,
-  SynEditTypes,
+  Registry,
+{$ENDIF}
   SynEditHighlighter,
   SynHighlighterHashEntries,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  SynEditTypes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -116,7 +115,8 @@ type
     function GetSampleSource: string; override;
     function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -149,17 +149,22 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
   mHashTable: array[#0..#255] of Integer;
 
 const
+//mh: added the following opcodes: aaa, bsf, bsr, bswap, bt, btc, btr, bts,
+//    clc, cld, cli, clts, cmpxchg, daa, das, dec, inc, invd, invlpg, iretw,
+//    lar, lfs, lgdt, lgs, lidt, lldt, lmsw, lsl, lss, ltr, movsx, movzx
+//    popaw, popfw, pusha, pushad, pushaw, pushfw, repnz, repz, seta, setae,
+//    setb, setbe, setc, sete, setg, setge, setl, setle, setna, setnae, setnb,
+//    setnbe, setnc, setne, setng, setnge, setnl, setnle, setno, setnp, setns,
+//    setnz, seto, setp, setpe, setpo, sets, setz, sgdt, shld, shrd, sidt,
+//    sldt, smsw, stc, std, sti, str, verr, verw, wbinvd, xadd
+
   OpCodes: string = 'aaa,aad,aam,adc,add,and,arpl,bound,bsf,bsr,bswap,bt,btc,' +
     'btr,bts,call,cbw,cdq,clc,cld,cli,clts,cmc,cmp,cmps,cmpsb,cmpsd,cmpsw,' +
     'cmpxchg,cwd,cwde,daa,das,dec,div,emms,enter,f2xm1,fabs,fadd,faddp,fbld,' +
@@ -332,7 +337,7 @@ begin
   MakeMethodTables;
   EnumerateKeywords(Ord(tkKey), OpCodes, IdentChars, DoAddKeyword);
   SetAttributesOnChange(DefHighlightChange);
-  fDefaultFilter      := SYNS_FilterX86Assembly;
+  fDefaultFilter      := SYNS_FilterX86Asm;
 end;
 
 destructor TSynAsmSyn.Destroy;
@@ -400,7 +405,8 @@ procedure TSynAsmSyn.NumberProc;
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'9', '.', 'a'..'f', 'h', 'A'..'F', 'H'] do
+//  while FLine[Run] in ['0'..'9', '.', 'e', 'E'] do inc(Run);
+  while FLine[Run] in ['0'..'9', '.', 'a'..'f', 'h', 'A'..'F', 'H'] do          //ek 2000-09-23
     Inc(Run);
 end;
 
@@ -462,7 +468,7 @@ procedure TSynAsmSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -534,17 +540,18 @@ end;
 
 function TSynAsmSyn.GetIdentChars: TSynIdentChars;
 begin
-  Result := TSynValidStringChars;
+  Result := TSynValidStringChars;                                               //DDH 10/17/01
 end;
 
-class function TSynAsmSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynAsmSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangX86Asm;
 end;
 
 function TSynAsmSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterX86Assembly;
+  Result := fDefaultFilter <> SYNS_FilterX86Asm;
 end;
 
 function TSynAsmSyn.GetSampleSource: string;
@@ -570,7 +577,8 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynAsmSyn);
 {$ENDIF}
 end.
+

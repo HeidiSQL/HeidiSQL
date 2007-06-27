@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {           Native Plain Drivers for PostgreSQL           }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZPlainPostgreSqlDriver;
 
@@ -80,36 +64,6 @@ type
     CONNECTION_OK,
     CONNECTION_BAD
   );
-
-  TZPostgreSQLFieldCode=( // FirmOS
-        {$IFNDEF VER130}// not possible for Delphi5
-            PG_DIAG_SEVERITY=ord('S'),
-            PG_DIAG_SQLSTATE=ord('C'),
-            PG_DIAG_MESSAGE_PRIMARY=ord('M'),
-            PG_DIAG_MESSAGE_DETAIL=ord('D'),
-            PG_DIAG_MESSAGE_HINT=ord('H'),
-            PG_DIAG_STATEMENT_POSITION=ord('P'),
-            PG_DIAG_INTERNAL_POSITION=ord('p'),
-            PG_DIAG_INTERNAL_QUERY=ord('q'),
-            PG_DIAG_CONTEXT=ord('W'),
-            PG_DIAG_SOURCE_FILE=ord('F'),
-            PG_DIAG_SOURCE_LINE=ord('L'),
-            PG_DIAG_SOURCE_FUNCTION=ord('R')
-        {$ELSE}
-            PG_DIAG_SEVERITY,
-            PG_DIAG_SQLSTATE,
-            PG_DIAG_MESSAGE_PRIMARY,
-            PG_DIAG_MESSAGE_DETAIL,
-            PG_DIAG_MESSAGE_HINT,
-            PG_DIAG_STATEMENT_POSITION,
-            PG_DIAG_INTERNAL_POSITION,
-            PG_DIAG_INTERNAL_QUERY,
-            PG_DIAG_CONTEXT,
-            PG_DIAG_SOURCE_FILE,
-            PG_DIAG_SOURCE_LINE,
-            PG_DIAG_SOURCE_FUNCTION
-        {$ENDIF}
-            );
 
   TZPostgreSQLExecStatusType = (
     PGRES_EMPTY_QUERY,
@@ -184,11 +138,9 @@ type
   IZPostgreSQLPlainDriver = interface (IZPlainDriver)
     ['{03CD6345-2D7A-4FE2-B03D-3C5656789FEB}']
 
-    function  EncodeBYTEA(Value: string;Handle: PZPostgreSQLConnect): string;
-    function  DecodeBYTEA(value: string): string;
-
     function ConnectDatabase(ConnInfo: PChar): PZPostgreSQLConnect;
-    function SetDatabaseLogin(Host, Port, Options, TTY, Db, User,Passwd: PChar): PZPostgreSQLConnect;
+    function SetDatabaseLogin(Host, Port, Options, TTY, Db, User,
+      Passwd: PChar): PZPostgreSQLConnect;
     function GetConnectDefaults: PZPostgreSQLConnectInfoOption;
 
     procedure Finish(Handle: PZPostgreSQLConnect);
@@ -201,16 +153,19 @@ type
     function GetPort(Handle: PZPostgreSQLConnect): PChar;
     function GetTTY(Handle: PZPostgreSQLConnect): PChar; cdecl;
     function GetOptions(Handle: PZPostgreSQLConnect): PChar;
-    function GetStatus(Handle: PZPostgreSQLConnect):TZPostgreSQLConnectStatusType;
+    function GetStatus(Handle: PZPostgreSQLConnect):
+      TZPostgreSQLConnectStatusType;
 
     function GetErrorMessage(Handle: PZPostgreSQLConnect): PChar;
     function GetSocket(Handle: PZPostgreSQLConnect): Integer;
     function GetBackendPID(Handle: PZPostgreSQLConnect): Integer;
     procedure Trace(Handle: PZPostgreSQLConnect; DebugPort: Pointer);
     procedure Untrace(Handle: PZPostgreSQLConnect);
-    procedure SetNoticeProcessor(Handle: PZPostgreSQLConnect;Proc: TZPostgreSQLNoticeProcessor; Arg: Pointer);
+    procedure SetNoticeProcessor(Handle: PZPostgreSQLConnect;
+      Proc: TZPostgreSQLNoticeProcessor; Arg: Pointer);
 
-    function ExecuteQuery(Handle: PZPostgreSQLConnect;Query: PChar): PZPostgreSQLResult;
+    function ExecuteQuery(Handle: PZPostgreSQLConnect;
+      Query: PChar): PZPostgreSQLResult;
 
     function Notifies(Handle: PZPostgreSQLConnect): PZPostgreSQLNotify;
     procedure FreeNotify(Handle: PZPostgreSQLNotify);
@@ -233,9 +188,7 @@ type
       args: PZPostgreSQLArgBlock; nargs: Integer): PZPostgreSQLResult;
     function GetResultStatus(Res: PZPostgreSQLResult):
       TZPostgreSQLExecStatusType;
-
     function GetResultErrorMessage(Res: PZPostgreSQLResult): PChar;
-    function GetResultErrorField(Res: PZPostgreSQLResult;FieldCode:TZPostgreSQLFieldCode):Pchar;
 
     function GetRowCount(Res: PZPostgreSQLResult): Integer;
     function GetFieldCount(Res: PZPostgreSQLResult): Integer;
@@ -289,9 +242,8 @@ type
       FileName: PChar): Integer;
   end;
 
-
-  {** Implements a driver for PostgreSQL 7.4 }
-  TZPostgreSQL7PlainDriver = class(TZAbstractObject, IZPlainDriver,
+{** Implements a driver for PostgreSQL 7.3 }
+  TZPostgreSQL73PlainDriver = class(TZAbstractObject, IZPlainDriver,
     IZPostgreSQLPlainDriver)
   public
     constructor Create;
@@ -300,9 +252,6 @@ type
     function GetDescription: string;
     procedure Initialize;
 
-    function  EncodeBYTEA(Value: string;Handle: PZPostgreSQLConnect): string;
-    function  DecodeBYTEA(value: string): string;
-
     function ConnectDatabase(ConnInfo: PChar): PZPostgreSQLConnect;
     function SetDatabaseLogin(Host, Port, Options, TTY, Db, User,
       Passwd: PChar): PZPostgreSQLConnect;
@@ -354,7 +303,6 @@ type
     function GetResultStatus(Res: PZPostgreSQLResult):
       TZPostgreSQLExecStatusType;
     function GetResultErrorMessage(Res: PZPostgreSQLResult): PChar;
-    function GetResultErrorField(Res: PZPostgreSQLResult;FieldCode:TZPostgreSQLFieldCode):PChar;
 
     function GetRowCount(Res: PZPostgreSQLResult): Integer;
     function GetFieldCount(Res: PZPostgreSQLResult): Integer;
@@ -408,9 +356,9 @@ type
       FileName: PChar): Integer;
   end;
 
-
-  {** Implements a driver for PostgreSQL 8.1 }
-  TZPostgreSQL8PlainDriver = class(TZAbstractObject, IZPlainDriver,IZPostgreSQLPlainDriver)
+  {** Implements a driver for PostgreSQL 7.4 }
+  TZPostgreSQL74PlainDriver = class(TZAbstractObject, IZPlainDriver,
+    IZPostgreSQLPlainDriver)
   public
     constructor Create;
 
@@ -423,9 +371,6 @@ type
       Passwd: PChar): PZPostgreSQLConnect;
     function GetConnectDefaults: PZPostgreSQLConnectInfoOption;
 
-    function  EncodeBYTEA(Value: string;Handle: PZPostgreSQLConnect): string;
-    function  DecodeBYTEA(value: string): string;
-
     procedure Finish(Handle: PZPostgreSQLConnect);
     procedure Reset(Handle: PZPostgreSQLConnect);
     function RequestCancel(Handle: PZPostgreSQLConnect): Integer;
@@ -471,9 +416,7 @@ type
       args: PZPostgreSQLArgBlock; nargs: Integer): PZPostgreSQLResult;
     function GetResultStatus(Res: PZPostgreSQLResult):
       TZPostgreSQLExecStatusType;
-
     function GetResultErrorMessage(Res: PZPostgreSQLResult): PChar;
-    function GetResultErrorField(Res: PZPostgreSQLResult;FieldCode:TZPostgreSQLFieldCode):PChar;
 
     function GetRowCount(Res: PZPostgreSQLResult): Integer;
     function GetFieldCount(Res: PZPostgreSQLResult): Integer;
@@ -527,852 +470,1313 @@ type
       FileName: PChar): Integer;
   end;
 
+  {** Implements a driver for PostgreSQL 8.x }
+  TZPostgreSQL8xPlainDriver = class(TZAbstractObject, IZPlainDriver,
+    IZPostgreSQLPlainDriver)
+  public
+    constructor Create;
+
+    function GetProtocol: string;
+    function GetDescription: string;
+    procedure Initialize;
+
+    function ConnectDatabase(ConnInfo: PChar): PZPostgreSQLConnect;
+    function SetDatabaseLogin(Host, Port, Options, TTY, Db, User,
+      Passwd: PChar): PZPostgreSQLConnect;
+    function GetConnectDefaults: PZPostgreSQLConnectInfoOption;
+
+    procedure Finish(Handle: PZPostgreSQLConnect);
+    procedure Reset(Handle: PZPostgreSQLConnect);
+    function RequestCancel(Handle: PZPostgreSQLConnect): Integer;
+    function GetDatabase(Handle: PZPostgreSQLConnect): PChar;
+    function GetUser(Handle: PZPostgreSQLConnect): PChar;
+    function GetPassword(Handle: PZPostgreSQLConnect): PChar;
+    function GetHost(Handle: PZPostgreSQLConnect): PChar;
+    function GetPort(Handle: PZPostgreSQLConnect): PChar;
+    function GetTTY(Handle: PZPostgreSQLConnect): PChar; cdecl;
+    function GetOptions(Handle: PZPostgreSQLConnect): PChar;
+    function GetStatus(Handle: PZPostgreSQLConnect):
+      TZPostgreSQLConnectStatusType;
+
+    function GetErrorMessage(Handle: PZPostgreSQLConnect): PChar;
+    function GetSocket(Handle: PZPostgreSQLConnect): Integer;
+    function GetBackendPID(Handle: PZPostgreSQLConnect): Integer;
+    procedure Trace(Handle: PZPostgreSQLConnect; DebugPort: Pointer);
+    procedure Untrace(Handle: PZPostgreSQLConnect);
+    procedure SetNoticeProcessor(Handle: PZPostgreSQLConnect;
+      Proc: TZPostgreSQLNoticeProcessor; Arg: Pointer);
+
+    function ExecuteQuery(Handle: PZPostgreSQLConnect;
+      Query: PChar): PZPostgreSQLResult;
+
+    function Notifies(Handle: PZPostgreSQLConnect): PZPostgreSQLNotify;
+    procedure FreeNotify(Handle: PZPostgreSQLNotify);
+
+    function SendQuery(Handle: PZPostgreSQLConnect; Query: PChar): Integer;
+    function GetResult(Handle: PZPostgreSQLConnect): PZPostgreSQLResult;
+    function IsBusy(Handle: PZPostgreSQLConnect): Integer;
+    function ConsumeInput(Handle: PZPostgreSQLConnect): Integer;
+    function GetLine(Handle: PZPostgreSQLConnect; Buffer: PChar;
+      Length: Integer): Integer;
+    function PutLine(Handle: PZPostgreSQLConnect; Buffer: PChar): Integer;
+    function GetLineAsync(Handle: PZPostgreSQLConnect; Buffer: PChar;
+      Length: Integer): Integer;
+
+    function PutBytes(Handle: PZPostgreSQLConnect; Buffer: PChar;
+      Length: Integer): Integer;
+    function EndCopy(Handle: PZPostgreSQLConnect): Integer;
+    function ExecuteFunction(Handle: PZPostgreSQLConnect; fnid: Integer;
+      result_buf, result_len: PInteger; result_is_int: Integer;
+      args: PZPostgreSQLArgBlock; nargs: Integer): PZPostgreSQLResult;
+    function GetResultStatus(Res: PZPostgreSQLResult):
+      TZPostgreSQLExecStatusType;
+    function GetResultErrorMessage(Res: PZPostgreSQLResult): PChar;
+
+    function GetRowCount(Res: PZPostgreSQLResult): Integer;
+    function GetFieldCount(Res: PZPostgreSQLResult): Integer;
+
+    function GetBinaryTuples(Res: PZPostgreSQLResult): Integer;
+    function GetFieldName(Res: PZPostgreSQLResult;
+      FieldNum: Integer): PChar;
+    function GetFieldNumber(Res: PZPostgreSQLResult;
+      FieldName: PChar): Integer;
+    function GetFieldType(Res: PZPostgreSQLResult;
+      FieldNum: Integer): Oid;
+    function GetFieldSize(Res: PZPostgreSQLResult;
+      FieldNum: Integer): Integer;
+    function GetFieldMode(Res: PZPostgreSQLResult;
+      FieldNum: Integer): Integer;
+    function GetCommandStatus(Res: PZPostgreSQLResult): PChar;
+    function GetOidValue(Res: PZPostgreSQLResult): Oid;
+    function GetOidStatus(Res: PZPostgreSQLResult): PChar;
+    function GetCommandTuples(Res: PZPostgreSQLResult): PChar;
+
+    function GetValue(Res: PZPostgreSQLResult;
+      TupNum, FieldNum: Integer): PChar;
+    function GetLength(Res: PZPostgreSQLResult;
+      TupNum, FieldNum: Integer): Integer;
+    function GetIsNull(Res: PZPostgreSQLResult;
+      TupNum, FieldNum: Integer): Integer;
+    procedure Clear(Res: PZPostgreSQLResult);
+
+    function MakeEmptyResult(Handle: PZPostgreSQLConnect;
+      Status: TZPostgreSQLExecStatusType): PZPostgreSQLResult;
+
+    function OpenLargeObject(Handle: PZPostgreSQLConnect; ObjId: Oid;
+      Mode: Integer): Integer;
+    function CloseLargeObject(Handle: PZPostgreSQLConnect;
+      Fd: Integer): Integer;
+    function ReadLargeObject(Handle: PZPostgreSQLConnect; Fd: Integer;
+      Buffer: PChar; Length: Integer): Integer;
+    function WriteLargeObject(Handle: PZPostgreSQLConnect; Fd: Integer;
+      Buffer: PChar; Length: Integer): Integer;
+    function SeekLargeObject(Handle: PZPostgreSQLConnect;
+      Fd, Offset, Whence: Integer): Integer;
+    function CreateLargeObject(Handle: PZPostgreSQLConnect;
+      Mode: Integer): Oid;
+    function TellLargeObject(Handle: PZPostgreSQLConnect;
+      Fd: Integer): Integer;
+    function UnlinkLargeObject(Handle: PZPostgreSQLConnect;
+      ObjId: Oid): Integer;
+    function ImportLargeObject(Handle: PZPostgreSQLConnect;
+      FileName: PChar): Oid;
+    function ExportLargeObject(Handle: PZPostgreSQLConnect; ObjId: Oid;
+      FileName: PChar): Integer;
+  end;
 
 implementation
 
-uses SysUtils, ZPlainPostgreSql7,ZPlainPostgreSql8;
+uses SysUtils, ZPlainPostgreSql73, ZPlainPostgreSql74, ZPlainPostgreSql8x;
 
+{ TZPostgreSQL73PlainDriver }
 
-//Support for Postgresql 7.4 should also work for 7.3
-{ TZPostgreSQL7PlainDriver }
-
-constructor TZPostgreSQL7PlainDriver.Create;
+constructor TZPostgreSQL73PlainDriver.Create;
 begin
 end;
 
-function TZPostgreSQL7PlainDriver.GetProtocol: string;
+function TZPostgreSQL73PlainDriver.GetProtocol: string;
 begin
-  Result := 'postgresql-7';
+  Result := 'postgresql-7.3';
 end;
 
-function TZPostgreSQL7PlainDriver.GetDescription: string;
+function TZPostgreSQL73PlainDriver.GetDescription: string;
 begin
-  Result := 'Native Plain Driver for PostgreSQL 7.x';
+  Result := 'Native Plain Driver for PostgreSQL 7.3';
 end;
 
-procedure TZPostgreSQL7PlainDriver.Initialize;
+procedure TZPostgreSQL73PlainDriver.Initialize;
 begin
-  ZPlainPostgreSql7.LibraryLoader.LoadIfNeeded;
+  ZPlainPostgreSql73.LibraryLoader.LoadIfNeeded;
 end;
 
-procedure TZPostgreSQL7PlainDriver.Clear(Res: PZPostgreSQLResult);
+procedure TZPostgreSQL73PlainDriver.Clear(Res: PZPostgreSQLResult);
 begin
-  ZPlainPostgreSql7.PQclear(Res);
+  ZPlainPostgreSql73.PQclear(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.CloseLargeObject(
+function TZPostgreSQL73PlainDriver.CloseLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_close(Handle, Fd);
+  Result := ZPlainPostgreSql73.lo_close(Handle, Fd);
 end;
 
-function TZPostgreSQL7PlainDriver.ConnectDatabase(
+function TZPostgreSQL73PlainDriver.ConnectDatabase(
   ConnInfo: PChar): PZPostgreSQLConnect;
 begin
-  Result := ZPlainPostgreSql7.PQconnectdb(ConnInfo);
+  Result := ZPlainPostgreSql73.PQconnectdb(ConnInfo);
 end;
 
-function TZPostgreSQL7PlainDriver.ConsumeInput(
+function TZPostgreSQL73PlainDriver.ConsumeInput(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQconsumeInput(Handle);
+  Result := ZPlainPostgreSql73.PQconsumeInput(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.CreateLargeObject(
+function TZPostgreSQL73PlainDriver.CreateLargeObject(
   Handle: PZPostgreSQLConnect; Mode: Integer): Oid;
 begin
-  Result := ZPlainPostgreSql7.lo_creat(Handle, Mode);
+  Result := ZPlainPostgreSql73.lo_creat(Handle, Mode);
 end;
 
-function TZPostgreSQL7PlainDriver.DecodeBYTEA(value: string): string;
-begin
- result:=value;
-end;
-
-function TZPostgreSQL7PlainDriver.EncodeBYTEA(Value: string;  Handle: PZPostgreSQLConnect): string;
-begin
- result:=value;
-end;
-
-function TZPostgreSQL7PlainDriver.EndCopy(
+function TZPostgreSQL73PlainDriver.EndCopy(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQendcopy(Handle);
+  Result := ZPlainPostgreSql73.PQendcopy(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.ExecuteFunction(
+function TZPostgreSQL73PlainDriver.ExecuteFunction(
   Handle: PZPostgreSQLConnect; fnid: Integer; result_buf,
   result_len: PInteger; result_is_int: Integer; args: PZPostgreSQLArgBlock;
   nargs: Integer): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql7.PQfn(Handle, fnid, result_buf,
-    result_len, result_is_int, ZPlainPostgreSql7.PPQArgBlock(args), nargs);
+  Result := ZPlainPostgreSql73.PQfn(Handle, fnid, result_buf,
+    result_len, result_is_int, ZPlainPostgreSql73.PPQArgBlock(args), nargs);
 end;
 
-function TZPostgreSQL7PlainDriver.ExecuteQuery(
+function TZPostgreSQL73PlainDriver.ExecuteQuery(
   Handle: PZPostgreSQLConnect; Query: PChar): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql7.PQexec(Handle, Query);
+  Result := ZPlainPostgreSql73.PQexec(Handle, Query);
 end;
 
-function TZPostgreSQL7PlainDriver.ExportLargeObject(
+function TZPostgreSQL73PlainDriver.ExportLargeObject(
   Handle: PZPostgreSQLConnect; ObjId: Oid; FileName: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_export(Handle, ObjId, FileName);
+  Result := ZPlainPostgreSql73.lo_export(Handle, ObjId, FileName);
 end;
 
-procedure TZPostgreSQL7PlainDriver.Finish(Handle: PZPostgreSQLConnect);
+procedure TZPostgreSQL73PlainDriver.Finish(Handle: PZPostgreSQLConnect);
 begin
-  ZPlainPostgreSql7.PQfinish(Handle);
+  ZPlainPostgreSql73.PQfinish(Handle);
 end;
 
-procedure TZPostgreSQL7PlainDriver.FreeNotify(Handle: PZPostgreSQLNotify);
+procedure TZPostgreSQL73PlainDriver.FreeNotify(Handle: PZPostgreSQLNotify);
 begin
-  ZPlainPostgreSql7.PQfreeNotify(ZPlainPostgreSql7.PPGnotify(Handle));
+  ZPlainPostgreSql73.PQfreeNotify(ZPlainPostgreSql73.PPGnotify(Handle));
 end;
 
-function TZPostgreSQL7PlainDriver.GetBackendPID(
+function TZPostgreSQL73PlainDriver.GetBackendPID(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQbackendPID(Handle);
+  Result := ZPlainPostgreSql73.PQbackendPID(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetBinaryTuples(
+function TZPostgreSQL73PlainDriver.GetBinaryTuples(
   Res: PZPostgreSQLResult): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQbinaryTuples(Res);
+  Result := ZPlainPostgreSql73.PQbinaryTuples(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetCommandStatus(
+function TZPostgreSQL73PlainDriver.GetCommandStatus(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQcmdStatus(Res);
+  Result := ZPlainPostgreSql73.PQcmdStatus(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetCommandTuples(
+function TZPostgreSQL73PlainDriver.GetCommandTuples(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQcmdTuples(Res);
+  Result := ZPlainPostgreSql73.PQcmdTuples(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetConnectDefaults:
+function TZPostgreSQL73PlainDriver.GetConnectDefaults:
   PZPostgreSQLConnectInfoOption;
 begin
-  Result := PZPostgreSQLConnectInfoOption(ZPlainPostgreSql7.PQconndefaults);
+  Result := PZPostgreSQLConnectInfoOption(ZPlainPostgreSql73.PQconndefaults);
 end;
 
-function TZPostgreSQL7PlainDriver.GetDatabase(
+function TZPostgreSQL73PlainDriver.GetDatabase(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQdb(Handle);
+  Result := ZPlainPostgreSql73.PQdb(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetErrorMessage(
+function TZPostgreSQL73PlainDriver.GetErrorMessage(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQerrorMessage(Handle);
+  Result := ZPlainPostgreSql73.PQerrorMessage(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetFieldCount(
+function TZPostgreSQL73PlainDriver.GetFieldCount(
   Res: PZPostgreSQLResult): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQnfields(Res);
+  Result := ZPlainPostgreSql73.PQnfields(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetFieldMode(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetFieldMode(Res: PZPostgreSQLResult;
   FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQfmod(Res, FieldNum);
+  Result := ZPlainPostgreSql73.PQfmod(Res, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.GetFieldName(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetFieldName(Res: PZPostgreSQLResult;
   FieldNum: Integer): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQfname(Res, FieldNum);
+  Result := ZPlainPostgreSql73.PQfname(Res, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.GetFieldNumber(
+function TZPostgreSQL73PlainDriver.GetFieldNumber(
   Res: PZPostgreSQLResult; FieldName: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQfnumber(Res, FieldName);
+  Result := ZPlainPostgreSql73.PQfnumber(Res, FieldName);
 end;
 
-function TZPostgreSQL7PlainDriver.GetFieldSize(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetFieldSize(Res: PZPostgreSQLResult;
   FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQfsize(Res, FieldNum);
+  Result := ZPlainPostgreSql73.PQfsize(Res, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.GetFieldType(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetFieldType(Res: PZPostgreSQLResult;
   FieldNum: Integer): Oid;
 begin
-  Result := ZPlainPostgreSql7.PQftype(Res, FieldNum);
+  Result := ZPlainPostgreSql73.PQftype(Res, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.GetHost(
+function TZPostgreSQL73PlainDriver.GetHost(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQhost(Handle);
+  Result := ZPlainPostgreSql73.PQhost(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetIsNull(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetIsNull(Res: PZPostgreSQLResult;
   TupNum, FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQgetisnull(Res, TupNum, FieldNum);
+  Result := ZPlainPostgreSql73.PQgetisnull(Res, TupNum, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.GetLength(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetLength(Res: PZPostgreSQLResult;
   TupNum, FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQgetlength(Res, TupNum, FieldNum);
+  Result := ZPlainPostgreSql73.PQgetlength(Res, TupNum, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.GetLine(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL73PlainDriver.GetLine(Handle: PZPostgreSQLConnect;
   Buffer: PChar; Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQgetline(Handle, Buffer, Length);
+  Result := ZPlainPostgreSql73.PQgetline(Handle, Buffer, Length);
 end;
 
-function TZPostgreSQL7PlainDriver.GetLineAsync(
+function TZPostgreSQL73PlainDriver.GetLineAsync(
   Handle: PZPostgreSQLConnect; Buffer: PChar; Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQgetlineAsync(Handle, Buffer, Length);
+  Result := ZPlainPostgreSql73.PQgetlineAsync(Handle, Buffer, Length);
 end;
 
-function TZPostgreSQL7PlainDriver.GetOidStatus(
+function TZPostgreSQL73PlainDriver.GetOidStatus(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQoidStatus(Res);
+  Result := ZPlainPostgreSql73.PQoidStatus(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetOidValue(
+function TZPostgreSQL73PlainDriver.GetOidValue(
   Res: PZPostgreSQLResult): Oid;
 begin
-  Result := ZPlainPostgreSql7.PQoidValue(Res);
+  Result := ZPlainPostgreSql73.PQoidValue(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetOptions(
+function TZPostgreSQL73PlainDriver.GetOptions(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQoptions(Handle);
+  Result := ZPlainPostgreSql73.PQoptions(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetPassword(
+function TZPostgreSQL73PlainDriver.GetPassword(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQpass(Handle);
+  Result := ZPlainPostgreSql73.PQpass(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetPort(
+function TZPostgreSQL73PlainDriver.GetPort(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQport(Handle);
+  Result := ZPlainPostgreSql73.PQport(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetResult(
+function TZPostgreSQL73PlainDriver.GetResult(
   Handle: PZPostgreSQLConnect): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql7.PQgetResult(Handle);
+  Result := ZPlainPostgreSql73.PQgetResult(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetResultErrorField(Res: PZPostgreSQLResult;  FieldCode: TZPostgreSQLFieldCode): PChar;
-begin
- // Not implemented for 7
- result:='';
-end;
-
-function TZPostgreSQL7PlainDriver.GetResultErrorMessage(
+function TZPostgreSQL73PlainDriver.GetResultErrorMessage(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQresultErrorMessage(Res);
+  Result := ZPlainPostgreSql73.PQresultErrorMessage(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetResultStatus(
+function TZPostgreSQL73PlainDriver.GetResultStatus(
   Res: PZPostgreSQLResult): TZPostgreSQLExecStatusType;
 begin
-  Result := TZPostgreSQLExecStatusType(ZPlainPostgreSql7.PQresultStatus(Res));
+  Result := TZPostgreSQLExecStatusType(ZPlainPostgreSql73.PQresultStatus(Res));
 end;
 
-function TZPostgreSQL7PlainDriver.GetRowCount(
+function TZPostgreSQL73PlainDriver.GetRowCount(
   Res: PZPostgreSQLResult): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQntuples(Res);
+  Result := ZPlainPostgreSql73.PQntuples(Res);
 end;
 
-function TZPostgreSQL7PlainDriver.GetSocket(
+function TZPostgreSQL73PlainDriver.GetSocket(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQsocket(Handle);
+  Result := ZPlainPostgreSql73.PQsocket(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetStatus(
+function TZPostgreSQL73PlainDriver.GetStatus(
   Handle: PZPostgreSQLConnect): TZPostgreSQLConnectStatusType;
 begin
-  Result := TZPostgreSQLConnectStatusType(ZPlainPostgreSql7.PQstatus(Handle));
+  Result := TZPostgreSQLConnectStatusType(ZPlainPostgreSql73.PQstatus(Handle));
 end;
 
-function TZPostgreSQL7PlainDriver.GetTTY(
+function TZPostgreSQL73PlainDriver.GetTTY(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQtty(Handle);
+  Result := ZPlainPostgreSql73.PQtty(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetUser(
+function TZPostgreSQL73PlainDriver.GetUser(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQuser(Handle);
+  Result := ZPlainPostgreSql73.PQuser(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.GetValue(Res: PZPostgreSQLResult;
+function TZPostgreSQL73PlainDriver.GetValue(Res: PZPostgreSQLResult;
   TupNum, FieldNum: Integer): PChar;
 begin
-  Result := ZPlainPostgreSql7.PQgetvalue(Res, TupNum, FieldNum);
+  Result := ZPlainPostgreSql73.PQgetvalue(Res, TupNum, FieldNum);
 end;
 
-function TZPostgreSQL7PlainDriver.ImportLargeObject(
+function TZPostgreSQL73PlainDriver.ImportLargeObject(
   Handle: PZPostgreSQLConnect; FileName: PChar): Oid;
 begin
-  Result := ZPlainPostgreSql7.lo_import(Handle, FileName);
+  Result := ZPlainPostgreSql73.lo_import(Handle, FileName);
 end;
 
-function TZPostgreSQL7PlainDriver.IsBusy(
+function TZPostgreSQL73PlainDriver.IsBusy(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQisBusy(Handle);
+  Result := ZPlainPostgreSql73.PQisBusy(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.MakeEmptyResult(
+function TZPostgreSQL73PlainDriver.MakeEmptyResult(
   Handle: PZPostgreSQLConnect;
   Status: TZPostgreSQLExecStatusType): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql7.PQmakeEmptyPGresult(Handle,
-    ZPlainPostgreSql7.ExecStatusType(Status));
+  Result := ZPlainPostgreSql73.PQmakeEmptyPGresult(Handle,
+    ZPlainPostgreSql73.ExecStatusType(Status));
 end;
 
-function TZPostgreSQL7PlainDriver.Notifies(
+function TZPostgreSQL73PlainDriver.Notifies(
   Handle: PZPostgreSQLConnect): PZPostgreSQLNotify;
 begin
-  Result := PZPostgreSQLNotify(ZPlainPostgreSql7.PQnotifies(Handle));
+  Result := PZPostgreSQLNotify(ZPlainPostgreSql73.PQnotifies(Handle));
 end;
 
-function TZPostgreSQL7PlainDriver.OpenLargeObject(
+function TZPostgreSQL73PlainDriver.OpenLargeObject(
   Handle: PZPostgreSQLConnect; ObjId: Oid; Mode: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_open(Handle, ObjId, Mode);
+  Result := ZPlainPostgreSql73.lo_open(Handle, ObjId, Mode);
 end;
 
-function TZPostgreSQL7PlainDriver.PutBytes(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL73PlainDriver.PutBytes(Handle: PZPostgreSQLConnect;
   Buffer: PChar; Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQputnbytes(Handle, Buffer, Length);
+  Result := ZPlainPostgreSql73.PQputnbytes(Handle, Buffer, Length);
 end;
 
-function TZPostgreSQL7PlainDriver.PutLine(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL73PlainDriver.PutLine(Handle: PZPostgreSQLConnect;
   Buffer: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQputline(Handle, Buffer);
+  Result := ZPlainPostgreSql73.PQputline(Handle, Buffer);
 end;
 
-function TZPostgreSQL7PlainDriver.ReadLargeObject(
+function TZPostgreSQL73PlainDriver.ReadLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer; Buffer: PChar;
   Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_read(Handle, Fd, Buffer, Length);
+  Result := ZPlainPostgreSql73.lo_read(Handle, Fd, Buffer, Length);
 end;
 
-function TZPostgreSQL7PlainDriver.RequestCancel(
+function TZPostgreSQL73PlainDriver.RequestCancel(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQrequestCancel(Handle);
+  Result := ZPlainPostgreSql73.PQrequestCancel(Handle);
 end;
 
-procedure TZPostgreSQL7PlainDriver.Reset(Handle: PZPostgreSQLConnect);
+procedure TZPostgreSQL73PlainDriver.Reset(Handle: PZPostgreSQLConnect);
 begin
-  ZPlainPostgreSql7.PQreset(Handle);
+  ZPlainPostgreSql73.PQreset(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.SeekLargeObject(
+function TZPostgreSQL73PlainDriver.SeekLargeObject(
   Handle: PZPostgreSQLConnect; Fd, Offset, Whence: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_lseek(Handle, Fd, Offset, Whence);
+  Result := ZPlainPostgreSql73.lo_lseek(Handle, Fd, Offset, Whence);
 end;
 
-function TZPostgreSQL7PlainDriver.SendQuery(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL73PlainDriver.SendQuery(Handle: PZPostgreSQLConnect;
   Query: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql7.PQsendQuery(Handle, Query);
+  Result := ZPlainPostgreSql73.PQsendQuery(Handle, Query);
 end;
 
-function TZPostgreSQL7PlainDriver.SetDatabaseLogin(Host, Port, Options,
+function TZPostgreSQL73PlainDriver.SetDatabaseLogin(Host, Port, Options,
   TTY, Db, User, Passwd: PChar): PZPostgreSQLConnect;
 begin
-  Result := ZPlainPostgreSql7.PQsetdbLogin(Host, Port, Options, TTY, Db,
+  Result := ZPlainPostgreSql73.PQsetdbLogin(Host, Port, Options, TTY, Db,
     User, Passwd);
 end;
 
-procedure TZPostgreSQL7PlainDriver.SetNoticeProcessor(
+procedure TZPostgreSQL73PlainDriver.SetNoticeProcessor(
   Handle: PZPostgreSQLConnect; Proc: TZPostgreSQLNoticeProcessor;
   Arg: Pointer);
 begin
-  ZPlainPostgreSql7.PQsetNoticeProcessor(Handle, Proc, Arg);
+  ZPlainPostgreSql73.PQsetNoticeProcessor(Handle, Proc, Arg);
 end;
 
-function TZPostgreSQL7PlainDriver.TellLargeObject(
+function TZPostgreSQL73PlainDriver.TellLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_tell(Handle, Fd);
+  Result := ZPlainPostgreSql73.lo_tell(Handle, Fd);
 end;
 
-procedure TZPostgreSQL7PlainDriver.Trace(Handle: PZPostgreSQLConnect;
+procedure TZPostgreSQL73PlainDriver.Trace(Handle: PZPostgreSQLConnect;
   DebugPort: Pointer);
 begin
-  ZPlainPostgreSql7.PQtrace(Handle, DebugPort);
+  ZPlainPostgreSql73.PQtrace(Handle, DebugPort);
 end;
 
-function TZPostgreSQL7PlainDriver.UnlinkLargeObject(
+function TZPostgreSQL73PlainDriver.UnlinkLargeObject(
   Handle: PZPostgreSQLConnect; ObjId: Oid): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_unlink(Handle, ObjId);
+  Result := ZPlainPostgreSql73.lo_unlink(Handle, ObjId);
 end;
 
-procedure TZPostgreSQL7PlainDriver.Untrace(Handle: PZPostgreSQLConnect);
+procedure TZPostgreSQL73PlainDriver.Untrace(Handle: PZPostgreSQLConnect);
 begin
-  ZPlainPostgreSql7.PQuntrace(Handle);
+  ZPlainPostgreSql73.PQuntrace(Handle);
 end;
 
-function TZPostgreSQL7PlainDriver.WriteLargeObject(
+function TZPostgreSQL73PlainDriver.WriteLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer; Buffer: PChar;
   Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql7.lo_write(Handle, Fd, Buffer, Length);
+  Result := ZPlainPostgreSql73.lo_write(Handle, Fd, Buffer, Length);
 end;
 
+{ TZPostgreSQL74PlainDriver }
 
-{ TZPostgreSQL8PlainDriver }
-
-constructor TZPostgreSQL8PlainDriver.Create;
+constructor TZPostgreSQL74PlainDriver.Create;
 begin
 end;
 
-function TZPostgreSQL8PlainDriver.GetProtocol: string;
+function TZPostgreSQL74PlainDriver.GetProtocol: string;
 begin
-  Result := 'postgresql-8';
+  Result := 'postgresql-7.4';
 end;
 
-function TZPostgreSQL8PlainDriver.GetDescription: string;
+function TZPostgreSQL74PlainDriver.GetDescription: string;
+begin
+  Result := 'Native Plain Driver for PostgreSQL 7.4';
+end;
+
+procedure TZPostgreSQL74PlainDriver.Initialize;
+begin
+  ZPlainPostgreSql74.LibraryLoader.LoadIfNeeded;
+end;
+
+procedure TZPostgreSQL74PlainDriver.Clear(Res: PZPostgreSQLResult);
+begin
+  ZPlainPostgreSql74.PQclear(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.CloseLargeObject(
+  Handle: PZPostgreSQLConnect; Fd: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_close(Handle, Fd);
+end;
+
+function TZPostgreSQL74PlainDriver.ConnectDatabase(
+  ConnInfo: PChar): PZPostgreSQLConnect;
+begin
+  Result := ZPlainPostgreSql74.PQconnectdb(ConnInfo);
+end;
+
+function TZPostgreSQL74PlainDriver.ConsumeInput(
+  Handle: PZPostgreSQLConnect): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQconsumeInput(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.CreateLargeObject(
+  Handle: PZPostgreSQLConnect; Mode: Integer): Oid;
+begin
+  Result := ZPlainPostgreSql74.lo_creat(Handle, Mode);
+end;
+
+function TZPostgreSQL74PlainDriver.EndCopy(
+  Handle: PZPostgreSQLConnect): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQendcopy(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.ExecuteFunction(
+  Handle: PZPostgreSQLConnect; fnid: Integer; result_buf,
+  result_len: PInteger; result_is_int: Integer; args: PZPostgreSQLArgBlock;
+  nargs: Integer): PZPostgreSQLResult;
+begin
+  Result := ZPlainPostgreSql74.PQfn(Handle, fnid, result_buf,
+    result_len, result_is_int, ZPlainPostgreSql74.PPQArgBlock(args), nargs);
+end;
+
+function TZPostgreSQL74PlainDriver.ExecuteQuery(
+  Handle: PZPostgreSQLConnect; Query: PChar): PZPostgreSQLResult;
+begin
+  Result := ZPlainPostgreSql74.PQexec(Handle, Query);
+end;
+
+function TZPostgreSQL74PlainDriver.ExportLargeObject(
+  Handle: PZPostgreSQLConnect; ObjId: Oid; FileName: PChar): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_export(Handle, ObjId, FileName);
+end;
+
+procedure TZPostgreSQL74PlainDriver.Finish(Handle: PZPostgreSQLConnect);
+begin
+  ZPlainPostgreSql74.PQfinish(Handle);
+end;
+
+procedure TZPostgreSQL74PlainDriver.FreeNotify(Handle: PZPostgreSQLNotify);
+begin
+  ZPlainPostgreSql74.PQfreeNotify(ZPlainPostgreSql74.PPGnotify(Handle));
+end;
+
+function TZPostgreSQL74PlainDriver.GetBackendPID(
+  Handle: PZPostgreSQLConnect): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQbackendPID(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetBinaryTuples(
+  Res: PZPostgreSQLResult): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQbinaryTuples(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetCommandStatus(
+  Res: PZPostgreSQLResult): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQcmdStatus(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetCommandTuples(
+  Res: PZPostgreSQLResult): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQcmdTuples(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetConnectDefaults:
+  PZPostgreSQLConnectInfoOption;
+begin
+  Result := PZPostgreSQLConnectInfoOption(ZPlainPostgreSql74.PQconndefaults);
+end;
+
+function TZPostgreSQL74PlainDriver.GetDatabase(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQdb(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetErrorMessage(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQerrorMessage(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetFieldCount(
+  Res: PZPostgreSQLResult): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQnfields(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetFieldMode(Res: PZPostgreSQLResult;
+  FieldNum: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQfmod(Res, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.GetFieldName(Res: PZPostgreSQLResult;
+  FieldNum: Integer): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQfname(Res, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.GetFieldNumber(
+  Res: PZPostgreSQLResult; FieldName: PChar): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQfnumber(Res, FieldName);
+end;
+
+function TZPostgreSQL74PlainDriver.GetFieldSize(Res: PZPostgreSQLResult;
+  FieldNum: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQfsize(Res, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.GetFieldType(Res: PZPostgreSQLResult;
+  FieldNum: Integer): Oid;
+begin
+  Result := ZPlainPostgreSql74.PQftype(Res, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.GetHost(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQhost(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetIsNull(Res: PZPostgreSQLResult;
+  TupNum, FieldNum: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQgetisnull(Res, TupNum, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.GetLength(Res: PZPostgreSQLResult;
+  TupNum, FieldNum: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQgetlength(Res, TupNum, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.GetLine(Handle: PZPostgreSQLConnect;
+  Buffer: PChar; Length: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQgetline(Handle, Buffer, Length);
+end;
+
+function TZPostgreSQL74PlainDriver.GetLineAsync(
+  Handle: PZPostgreSQLConnect; Buffer: PChar; Length: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQgetlineAsync(Handle, Buffer, Length);
+end;
+
+function TZPostgreSQL74PlainDriver.GetOidStatus(
+  Res: PZPostgreSQLResult): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQoidStatus(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetOidValue(
+  Res: PZPostgreSQLResult): Oid;
+begin
+  Result := ZPlainPostgreSql74.PQoidValue(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetOptions(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQoptions(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetPassword(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQpass(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetPort(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQport(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetResult(
+  Handle: PZPostgreSQLConnect): PZPostgreSQLResult;
+begin
+  Result := ZPlainPostgreSql74.PQgetResult(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetResultErrorMessage(
+  Res: PZPostgreSQLResult): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQresultErrorMessage(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetResultStatus(
+  Res: PZPostgreSQLResult): TZPostgreSQLExecStatusType;
+begin
+  Result := TZPostgreSQLExecStatusType(ZPlainPostgreSql74.PQresultStatus(Res));
+end;
+
+function TZPostgreSQL74PlainDriver.GetRowCount(
+  Res: PZPostgreSQLResult): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQntuples(Res);
+end;
+
+function TZPostgreSQL74PlainDriver.GetSocket(
+  Handle: PZPostgreSQLConnect): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQsocket(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetStatus(
+  Handle: PZPostgreSQLConnect): TZPostgreSQLConnectStatusType;
+begin
+  Result := TZPostgreSQLConnectStatusType(ZPlainPostgreSql74.PQstatus(Handle));
+end;
+
+function TZPostgreSQL74PlainDriver.GetTTY(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQtty(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetUser(
+  Handle: PZPostgreSQLConnect): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQuser(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.GetValue(Res: PZPostgreSQLResult;
+  TupNum, FieldNum: Integer): PChar;
+begin
+  Result := ZPlainPostgreSql74.PQgetvalue(Res, TupNum, FieldNum);
+end;
+
+function TZPostgreSQL74PlainDriver.ImportLargeObject(
+  Handle: PZPostgreSQLConnect; FileName: PChar): Oid;
+begin
+  Result := ZPlainPostgreSql74.lo_import(Handle, FileName);
+end;
+
+function TZPostgreSQL74PlainDriver.IsBusy(
+  Handle: PZPostgreSQLConnect): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQisBusy(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.MakeEmptyResult(
+  Handle: PZPostgreSQLConnect;
+  Status: TZPostgreSQLExecStatusType): PZPostgreSQLResult;
+begin
+  Result := ZPlainPostgreSql74.PQmakeEmptyPGresult(Handle,
+    ZPlainPostgreSql74.ExecStatusType(Status));
+end;
+
+function TZPostgreSQL74PlainDriver.Notifies(
+  Handle: PZPostgreSQLConnect): PZPostgreSQLNotify;
+begin
+  Result := PZPostgreSQLNotify(ZPlainPostgreSql74.PQnotifies(Handle));
+end;
+
+function TZPostgreSQL74PlainDriver.OpenLargeObject(
+  Handle: PZPostgreSQLConnect; ObjId: Oid; Mode: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_open(Handle, ObjId, Mode);
+end;
+
+function TZPostgreSQL74PlainDriver.PutBytes(Handle: PZPostgreSQLConnect;
+  Buffer: PChar; Length: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQputnbytes(Handle, Buffer, Length);
+end;
+
+function TZPostgreSQL74PlainDriver.PutLine(Handle: PZPostgreSQLConnect;
+  Buffer: PChar): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQputline(Handle, Buffer);
+end;
+
+function TZPostgreSQL74PlainDriver.ReadLargeObject(
+  Handle: PZPostgreSQLConnect; Fd: Integer; Buffer: PChar;
+  Length: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_read(Handle, Fd, Buffer, Length);
+end;
+
+function TZPostgreSQL74PlainDriver.RequestCancel(
+  Handle: PZPostgreSQLConnect): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQrequestCancel(Handle);
+end;
+
+procedure TZPostgreSQL74PlainDriver.Reset(Handle: PZPostgreSQLConnect);
+begin
+  ZPlainPostgreSql74.PQreset(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.SeekLargeObject(
+  Handle: PZPostgreSQLConnect; Fd, Offset, Whence: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_lseek(Handle, Fd, Offset, Whence);
+end;
+
+function TZPostgreSQL74PlainDriver.SendQuery(Handle: PZPostgreSQLConnect;
+  Query: PChar): Integer;
+begin
+  Result := ZPlainPostgreSql74.PQsendQuery(Handle, Query);
+end;
+
+function TZPostgreSQL74PlainDriver.SetDatabaseLogin(Host, Port, Options,
+  TTY, Db, User, Passwd: PChar): PZPostgreSQLConnect;
+begin
+  Result := ZPlainPostgreSql74.PQsetdbLogin(Host, Port, Options, TTY, Db,
+    User, Passwd);
+end;
+
+procedure TZPostgreSQL74PlainDriver.SetNoticeProcessor(
+  Handle: PZPostgreSQLConnect; Proc: TZPostgreSQLNoticeProcessor;
+  Arg: Pointer);
+begin
+  ZPlainPostgreSql74.PQsetNoticeProcessor(Handle, Proc, Arg);
+end;
+
+function TZPostgreSQL74PlainDriver.TellLargeObject(
+  Handle: PZPostgreSQLConnect; Fd: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_tell(Handle, Fd);
+end;
+
+procedure TZPostgreSQL74PlainDriver.Trace(Handle: PZPostgreSQLConnect;
+  DebugPort: Pointer);
+begin
+  ZPlainPostgreSql74.PQtrace(Handle, DebugPort);
+end;
+
+function TZPostgreSQL74PlainDriver.UnlinkLargeObject(
+  Handle: PZPostgreSQLConnect; ObjId: Oid): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_unlink(Handle, ObjId);
+end;
+
+procedure TZPostgreSQL74PlainDriver.Untrace(Handle: PZPostgreSQLConnect);
+begin
+  ZPlainPostgreSql74.PQuntrace(Handle);
+end;
+
+function TZPostgreSQL74PlainDriver.WriteLargeObject(
+  Handle: PZPostgreSQLConnect; Fd: Integer; Buffer: PChar;
+  Length: Integer): Integer;
+begin
+  Result := ZPlainPostgreSql74.lo_write(Handle, Fd, Buffer, Length);
+end;
+
+{ TZPostgreSQL8xPlainDriver }
+
+constructor TZPostgreSQL8xPlainDriver.Create;
+begin
+end;
+
+function TZPostgreSQL8xPlainDriver.GetProtocol: string;
+begin
+  Result := 'postgresql-8.x';
+end;
+
+function TZPostgreSQL8xPlainDriver.GetDescription: string;
 begin
   Result := 'Native Plain Driver for PostgreSQL 8.x';
 end;
 
-procedure TZPostgreSQL8PlainDriver.Initialize;
+procedure TZPostgreSQL8xPlainDriver.Initialize;
 begin
-  ZPlainPostgreSql8.LibraryLoader.LoadIfNeeded;
+  ZPlainPostgreSql8x.LibraryLoader.LoadIfNeeded;
 end;
 
-procedure TZPostgreSQL8PlainDriver.Clear(Res: PZPostgreSQLResult);
+procedure TZPostgreSQL8xPlainDriver.Clear(Res: PZPostgreSQLResult);
 begin
-  ZPlainPostgreSql8.PQclear(Res);
+  ZPlainPostgreSql8x.PQclear(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.CloseLargeObject(
+function TZPostgreSQL8xPlainDriver.CloseLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_close(Handle, Fd);
+  Result := ZPlainPostgreSql8x.lo_close(Handle, Fd);
 end;
 
-function TZPostgreSQL8PlainDriver.ConnectDatabase(
+function TZPostgreSQL8xPlainDriver.ConnectDatabase(
   ConnInfo: PChar): PZPostgreSQLConnect;
 begin
-  Result := ZPlainPostgreSql8.PQconnectdb(ConnInfo);
+  Result := ZPlainPostgreSql8x.PQconnectdb(ConnInfo);
 end;
 
-function TZPostgreSQL8PlainDriver.ConsumeInput(
+function TZPostgreSQL8xPlainDriver.ConsumeInput(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQconsumeInput(Handle);
+  Result := ZPlainPostgreSql8x.PQconsumeInput(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.CreateLargeObject(
+function TZPostgreSQL8xPlainDriver.CreateLargeObject(
   Handle: PZPostgreSQLConnect; Mode: Integer): Oid;
 begin
-  Result := ZPlainPostgreSql8.lo_creat(Handle, Mode);
+  Result := ZPlainPostgreSql8x.lo_creat(Handle, Mode);
 end;
 
-function TZPostgreSQL8PlainDriver.DecodeBYTEA(value: string): string;
-var decoded:pchar;
-    len:Longword;
+function TZPostgreSQL8xPlainDriver.EndCopy(
+  Handle: PZPostgreSQLConnect): Integer;
 begin
-  decoded:=ZPlainPostgreSql8.PQUnescapeBytea(pansichar(value),@len);
-  SetLength(result,len);
-  if (len > 0) then Move(decoded^,result[1],len);
-  ZPlainPostgreSql8.PQFreemem(decoded);
+  Result := ZPlainPostgreSql8x.PQendcopy(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.EncodeBYTEA(Value: string;Handle: PZPostgreSQLConnect): string;
-var encoded:pchar;
-    len:Longword;
-    leng:cardinal;
-begin
- leng:=Length(Value);
- if assigned(ZPlainPostgreSql8.PQescapeByteaConn) then begin
-  encoded:=ZPlainPostgreSql8.PQescapeByteaConn(Handle,pansichar(value),leng,@len);
- end else begin
-  encoded:=ZPlainPostgreSql8.PQescapeBytea(pansichar(value),leng,@len);
- end;
- setlength(result,len-1);
- StrCopy(pansichar(result),encoded);
- ZPlainPostgreSql8.PQFreemem(encoded);
- result:=''''+result+'''';
-end;
-
-function TZPostgreSQL8PlainDriver.EndCopy( Handle: PZPostgreSQLConnect): Integer;
-begin
-  Result := ZPlainPostgreSql8.PQendcopy(Handle);
-end;
-
-function TZPostgreSQL8PlainDriver.ExecuteFunction(
+function TZPostgreSQL8xPlainDriver.ExecuteFunction(
   Handle: PZPostgreSQLConnect; fnid: Integer; result_buf,
   result_len: PInteger; result_is_int: Integer; args: PZPostgreSQLArgBlock;
   nargs: Integer): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql8.PQfn(Handle, fnid, result_buf,
-    result_len, result_is_int, ZPlainPostgreSql8.PPQArgBlock(args), nargs);
+  Result := ZPlainPostgreSql8x.PQfn(Handle, fnid, result_buf,
+    result_len, result_is_int, ZPlainPostgreSql8x.PPQArgBlock(args), nargs);
 end;
 
-function TZPostgreSQL8PlainDriver.ExecuteQuery(
+function TZPostgreSQL8xPlainDriver.ExecuteQuery(
   Handle: PZPostgreSQLConnect; Query: PChar): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql8.PQexec(Handle, Query);
+  Result := ZPlainPostgreSql8x.PQexec(Handle, Query);
 end;
 
-function TZPostgreSQL8PlainDriver.ExportLargeObject(
+function TZPostgreSQL8xPlainDriver.ExportLargeObject(
   Handle: PZPostgreSQLConnect; ObjId: Oid; FileName: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_export(Handle, ObjId, FileName);
+  Result := ZPlainPostgreSql8x.lo_export(Handle, ObjId, FileName);
 end;
 
-procedure TZPostgreSQL8PlainDriver.Finish(Handle: PZPostgreSQLConnect);
+procedure TZPostgreSQL8xPlainDriver.Finish(Handle: PZPostgreSQLConnect);
 begin
-  ZPlainPostgreSql8.PQfinish(Handle);
+  ZPlainPostgreSql8x.PQfinish(Handle);
 end;
 
-procedure TZPostgreSQL8PlainDriver.FreeNotify(Handle: PZPostgreSQLNotify);
+procedure TZPostgreSQL8xPlainDriver.FreeNotify(Handle: PZPostgreSQLNotify);
 begin
-  ZPlainPostgreSql8.PQfreeNotify(ZPlainPostgreSql8.PPGnotify(Handle));
+  ZPlainPostgreSql8x.PQfreeNotify(ZPlainPostgreSql8x.PPGnotify(Handle));
 end;
 
-function TZPostgreSQL8PlainDriver.GetBackendPID(
+function TZPostgreSQL8xPlainDriver.GetBackendPID(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQbackendPID(Handle);
+  Result := ZPlainPostgreSql8x.PQbackendPID(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetBinaryTuples(
+function TZPostgreSQL8xPlainDriver.GetBinaryTuples(
   Res: PZPostgreSQLResult): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQbinaryTuples(Res);
+  Result := ZPlainPostgreSql8x.PQbinaryTuples(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetCommandStatus(
+function TZPostgreSQL8xPlainDriver.GetCommandStatus(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQcmdStatus(Res);
+  Result := ZPlainPostgreSql8x.PQcmdStatus(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetCommandTuples(
+function TZPostgreSQL8xPlainDriver.GetCommandTuples(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQcmdTuples(Res);
+  Result := ZPlainPostgreSql8x.PQcmdTuples(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetConnectDefaults:
+function TZPostgreSQL8xPlainDriver.GetConnectDefaults:
   PZPostgreSQLConnectInfoOption;
 begin
-  Result := PZPostgreSQLConnectInfoOption(ZPlainPostgreSql8.PQconndefaults);
+  Result := PZPostgreSQLConnectInfoOption(ZPlainPostgreSql8x.PQconndefaults);
 end;
 
-function TZPostgreSQL8PlainDriver.GetDatabase(
+function TZPostgreSQL8xPlainDriver.GetDatabase(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQdb(Handle);
+  Result := ZPlainPostgreSql8x.PQdb(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetErrorMessage(
+function TZPostgreSQL8xPlainDriver.GetErrorMessage(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQerrorMessage(Handle);
+  Result := ZPlainPostgreSql8x.PQerrorMessage(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetFieldCount(
+function TZPostgreSQL8xPlainDriver.GetFieldCount(
   Res: PZPostgreSQLResult): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQnfields(Res);
+  Result := ZPlainPostgreSql8x.PQnfields(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetFieldMode(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetFieldMode(Res: PZPostgreSQLResult;
   FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQfmod(Res, FieldNum);
+  Result := ZPlainPostgreSql8x.PQfmod(Res, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.GetFieldName(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetFieldName(Res: PZPostgreSQLResult;
   FieldNum: Integer): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQfname(Res, FieldNum);
+  Result := ZPlainPostgreSql8x.PQfname(Res, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.GetFieldNumber(
+function TZPostgreSQL8xPlainDriver.GetFieldNumber(
   Res: PZPostgreSQLResult; FieldName: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQfnumber(Res, FieldName);
+  Result := ZPlainPostgreSql8x.PQfnumber(Res, FieldName);
 end;
 
-function TZPostgreSQL8PlainDriver.GetFieldSize(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetFieldSize(Res: PZPostgreSQLResult;
   FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQfsize(Res, FieldNum);
+  Result := ZPlainPostgreSql8x.PQfsize(Res, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.GetFieldType(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetFieldType(Res: PZPostgreSQLResult;
   FieldNum: Integer): Oid;
 begin
-  Result := ZPlainPostgreSql8.PQftype(Res, FieldNum);
+  Result := ZPlainPostgreSql8x.PQftype(Res, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.GetHost(
+function TZPostgreSQL8xPlainDriver.GetHost(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQhost(Handle);
+  Result := ZPlainPostgreSql8x.PQhost(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetIsNull(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetIsNull(Res: PZPostgreSQLResult;
   TupNum, FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQgetisnull(Res, TupNum, FieldNum);
+  Result := ZPlainPostgreSql8x.PQgetisnull(Res, TupNum, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.GetLength(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetLength(Res: PZPostgreSQLResult;
   TupNum, FieldNum: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQgetlength(Res, TupNum, FieldNum);
+  Result := ZPlainPostgreSql8x.PQgetlength(Res, TupNum, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.GetLine(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL8xPlainDriver.GetLine(Handle: PZPostgreSQLConnect;
   Buffer: PChar; Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQgetline(Handle, Buffer, Length);
+  Result := ZPlainPostgreSql8x.PQgetline(Handle, Buffer, Length);
 end;
 
-function TZPostgreSQL8PlainDriver.GetLineAsync(
+function TZPostgreSQL8xPlainDriver.GetLineAsync(
   Handle: PZPostgreSQLConnect; Buffer: PChar; Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQgetlineAsync(Handle, Buffer, Length);
+  Result := ZPlainPostgreSql8x.PQgetlineAsync(Handle, Buffer, Length);
 end;
 
-function TZPostgreSQL8PlainDriver.GetOidStatus(
+function TZPostgreSQL8xPlainDriver.GetOidStatus(
   Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQoidStatus(Res);
+  Result := ZPlainPostgreSql8x.PQoidStatus(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetOidValue(
+function TZPostgreSQL8xPlainDriver.GetOidValue(
   Res: PZPostgreSQLResult): Oid;
 begin
-  Result := ZPlainPostgreSql8.PQoidValue(Res);
+  Result := ZPlainPostgreSql8x.PQoidValue(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetOptions(
+function TZPostgreSQL8xPlainDriver.GetOptions(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQoptions(Handle);
+  Result := ZPlainPostgreSql8x.PQoptions(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetPassword(
+function TZPostgreSQL8xPlainDriver.GetPassword(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQpass(Handle);
+  Result := ZPlainPostgreSql8x.PQpass(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetPort(
+function TZPostgreSQL8xPlainDriver.GetPort(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQport(Handle);
+  Result := ZPlainPostgreSql8x.PQport(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetResult(
+function TZPostgreSQL8xPlainDriver.GetResult(
   Handle: PZPostgreSQLConnect): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql8.PQgetResult(Handle);
+  Result := ZPlainPostgreSql8x.PQgetResult(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetResultErrorField(Res: PZPostgreSQLResult;  FieldCode: TZPostgreSQLFieldCode): PChar;
+function TZPostgreSQL8xPlainDriver.GetResultErrorMessage(
+  Res: PZPostgreSQLResult): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQresultErrorField(Res,ord(FieldCode));
+  Result := ZPlainPostgreSql8x.PQresultErrorMessage(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetResultErrorMessage(Res: PZPostgreSQLResult): PChar;
-begin
-  Result := ZPlainPostgreSql8.PQresultErrorMessage(Res);
-end;
-
-function TZPostgreSQL8PlainDriver.GetResultStatus(
+function TZPostgreSQL8xPlainDriver.GetResultStatus(
   Res: PZPostgreSQLResult): TZPostgreSQLExecStatusType;
 begin
-  Result := TZPostgreSQLExecStatusType(ZPlainPostgreSql8.PQresultStatus(Res));
+  Result := TZPostgreSQLExecStatusType(ZPlainPostgreSql8x.PQresultStatus(Res));
 end;
 
-function TZPostgreSQL8PlainDriver.GetRowCount(
+function TZPostgreSQL8xPlainDriver.GetRowCount(
   Res: PZPostgreSQLResult): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQntuples(Res);
+  Result := ZPlainPostgreSql8x.PQntuples(Res);
 end;
 
-function TZPostgreSQL8PlainDriver.GetSocket(
+function TZPostgreSQL8xPlainDriver.GetSocket(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQsocket(Handle);
+  Result := ZPlainPostgreSql8x.PQsocket(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetStatus(
+function TZPostgreSQL8xPlainDriver.GetStatus(
   Handle: PZPostgreSQLConnect): TZPostgreSQLConnectStatusType;
 begin
-  Result := TZPostgreSQLConnectStatusType(ZPlainPostgreSql8.PQstatus(Handle));
+  Result := TZPostgreSQLConnectStatusType(ZPlainPostgreSql8x.PQstatus(Handle));
 end;
 
-function TZPostgreSQL8PlainDriver.GetTTY(
+function TZPostgreSQL8xPlainDriver.GetTTY(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQtty(Handle);
+  Result := ZPlainPostgreSql8x.PQtty(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetUser(
+function TZPostgreSQL8xPlainDriver.GetUser(
   Handle: PZPostgreSQLConnect): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQuser(Handle);
+  Result := ZPlainPostgreSql8x.PQuser(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.GetValue(Res: PZPostgreSQLResult;
+function TZPostgreSQL8xPlainDriver.GetValue(Res: PZPostgreSQLResult;
   TupNum, FieldNum: Integer): PChar;
 begin
-  Result := ZPlainPostgreSql8.PQgetvalue(Res, TupNum, FieldNum);
+  Result := ZPlainPostgreSql8x.PQgetvalue(Res, TupNum, FieldNum);
 end;
 
-function TZPostgreSQL8PlainDriver.ImportLargeObject(
+function TZPostgreSQL8xPlainDriver.ImportLargeObject(
   Handle: PZPostgreSQLConnect; FileName: PChar): Oid;
 begin
-  Result := ZPlainPostgreSql8.lo_import(Handle, FileName);
+  Result := ZPlainPostgreSql8x.lo_import(Handle, FileName);
 end;
 
-function TZPostgreSQL8PlainDriver.IsBusy(
+function TZPostgreSQL8xPlainDriver.IsBusy(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQisBusy(Handle);
+  Result := ZPlainPostgreSql8x.PQisBusy(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.MakeEmptyResult(
+function TZPostgreSQL8xPlainDriver.MakeEmptyResult(
   Handle: PZPostgreSQLConnect;
   Status: TZPostgreSQLExecStatusType): PZPostgreSQLResult;
 begin
-  Result := ZPlainPostgreSql8.PQmakeEmptyPGresult(Handle,
-    ZPlainPostgreSql8.ExecStatusType(Status));
+  Result := ZPlainPostgreSql8x.PQmakeEmptyPGresult(Handle,
+    ZPlainPostgreSql8x.ExecStatusType(Status));
 end;
 
-function TZPostgreSQL8PlainDriver.Notifies(
+function TZPostgreSQL8xPlainDriver.Notifies(
   Handle: PZPostgreSQLConnect): PZPostgreSQLNotify;
 begin
-  Result := PZPostgreSQLNotify(ZPlainPostgreSql8.PQnotifies(Handle));
+  Result := PZPostgreSQLNotify(ZPlainPostgreSql8x.PQnotifies(Handle));
 end;
 
-function TZPostgreSQL8PlainDriver.OpenLargeObject(
+function TZPostgreSQL8xPlainDriver.OpenLargeObject(
   Handle: PZPostgreSQLConnect; ObjId: Oid; Mode: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_open(Handle, ObjId, Mode);
+  Result := ZPlainPostgreSql8x.lo_open(Handle, ObjId, Mode);
 end;
 
-function TZPostgreSQL8PlainDriver.PutBytes(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL8xPlainDriver.PutBytes(Handle: PZPostgreSQLConnect;
   Buffer: PChar; Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQputnbytes(Handle, Buffer, Length);
+  Result := ZPlainPostgreSql8x.PQputnbytes(Handle, Buffer, Length);
 end;
 
-function TZPostgreSQL8PlainDriver.PutLine(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL8xPlainDriver.PutLine(Handle: PZPostgreSQLConnect;
   Buffer: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQputline(Handle, Buffer);
+  Result := ZPlainPostgreSql8x.PQputline(Handle, Buffer);
 end;
 
-function TZPostgreSQL8PlainDriver.ReadLargeObject(
+function TZPostgreSQL8xPlainDriver.ReadLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer; Buffer: PChar;
   Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_read(Handle, Fd, Buffer, Length);
+  Result := ZPlainPostgreSql8x.lo_read(Handle, Fd, Buffer, Length);
 end;
 
-function TZPostgreSQL8PlainDriver.RequestCancel(
+function TZPostgreSQL8xPlainDriver.RequestCancel(
   Handle: PZPostgreSQLConnect): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQrequestCancel(Handle);
+  Result := ZPlainPostgreSql8x.PQrequestCancel(Handle);
 end;
 
-procedure TZPostgreSQL8PlainDriver.Reset(Handle: PZPostgreSQLConnect);
+procedure TZPostgreSQL8xPlainDriver.Reset(Handle: PZPostgreSQLConnect);
 begin
-  ZPlainPostgreSql8.PQreset(Handle);
+  ZPlainPostgreSql8x.PQreset(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.SeekLargeObject(
+function TZPostgreSQL8xPlainDriver.SeekLargeObject(
   Handle: PZPostgreSQLConnect; Fd, Offset, Whence: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_lseek(Handle, Fd, Offset, Whence);
+  Result := ZPlainPostgreSql8x.lo_lseek(Handle, Fd, Offset, Whence);
 end;
 
-function TZPostgreSQL8PlainDriver.SendQuery(Handle: PZPostgreSQLConnect;
+function TZPostgreSQL8xPlainDriver.SendQuery(Handle: PZPostgreSQLConnect;
   Query: PChar): Integer;
 begin
-  Result := ZPlainPostgreSql8.PQsendQuery(Handle, Query);
+  Result := ZPlainPostgreSql8x.PQsendQuery(Handle, Query);
 end;
 
-function TZPostgreSQL8PlainDriver.SetDatabaseLogin(Host, Port, Options,
+function TZPostgreSQL8xPlainDriver.SetDatabaseLogin(Host, Port, Options,
   TTY, Db, User, Passwd: PChar): PZPostgreSQLConnect;
 begin
-  Result := ZPlainPostgreSql8.PQsetdbLogin(Host, Port, Options, TTY, Db,
+  Result := ZPlainPostgreSql8x.PQsetdbLogin(Host, Port, Options, TTY, Db,
     User, Passwd);
 end;
 
-procedure TZPostgreSQL8PlainDriver.SetNoticeProcessor(
+procedure TZPostgreSQL8xPlainDriver.SetNoticeProcessor(
   Handle: PZPostgreSQLConnect; Proc: TZPostgreSQLNoticeProcessor;
   Arg: Pointer);
 begin
-  ZPlainPostgreSql8.PQsetNoticeProcessor(Handle, Proc, Arg);
+  ZPlainPostgreSql8x.PQsetNoticeProcessor(Handle, Proc, Arg);
 end;
 
-function TZPostgreSQL8PlainDriver.TellLargeObject(
+function TZPostgreSQL8xPlainDriver.TellLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_tell(Handle, Fd);
+  Result := ZPlainPostgreSql8x.lo_tell(Handle, Fd);
 end;
 
-procedure TZPostgreSQL8PlainDriver.Trace(Handle: PZPostgreSQLConnect;
+procedure TZPostgreSQL8xPlainDriver.Trace(Handle: PZPostgreSQLConnect;
   DebugPort: Pointer);
 begin
-  ZPlainPostgreSql8.PQtrace(Handle, DebugPort);
+  ZPlainPostgreSql8x.PQtrace(Handle, DebugPort);
 end;
 
-function TZPostgreSQL8PlainDriver.UnlinkLargeObject(
+function TZPostgreSQL8xPlainDriver.UnlinkLargeObject(
   Handle: PZPostgreSQLConnect; ObjId: Oid): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_unlink(Handle, ObjId);
+  Result := ZPlainPostgreSql8x.lo_unlink(Handle, ObjId);
 end;
 
-procedure TZPostgreSQL8PlainDriver.Untrace(Handle: PZPostgreSQLConnect);
+procedure TZPostgreSQL8xPlainDriver.Untrace(Handle: PZPostgreSQLConnect);
 begin
-  ZPlainPostgreSql8.PQuntrace(Handle);
+  ZPlainPostgreSql8x.PQuntrace(Handle);
 end;
 
-function TZPostgreSQL8PlainDriver.WriteLargeObject(
+function TZPostgreSQL8xPlainDriver.WriteLargeObject(
   Handle: PZPostgreSQLConnect; Fd: Integer; Buffer: PChar;
   Length: Integer): Integer;
 begin
-  Result := ZPlainPostgreSql8.lo_write(Handle, Fd, Buffer, Length);
+  Result := ZPlainPostgreSql8x.lo_write(Handle, Fd, Buffer, Length);
 end;
 
 end.

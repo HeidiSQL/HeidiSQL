@@ -27,105 +27,47 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHP48.pas,v 1.11 2005/12/31 07:34:36 skyweb Exp $
+$Id: SynHighlighterHP48.pas,v 1.5 2001/11/09 07:46:17 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 Known Issues:
-  - small memory leak in TSpeedStringList has to be fixed
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides SynEdit with a HP48 assembler syntax highlighter.)
 @author(Cyrille de Brebisson <cyrille_de-brebisson@aus.hp.com>, converted to SynEdit by David Muir <dhm@dmsoftware.co.uk>)
 @created(1998-12, converted to SynEdit 2000-06-23)
 @lastmod(2000-06-23)
-The unit SynHighlighterHP48 provides SynEdit with a HP48 assembler highlighter.
+The unit SynHighlighterHP48 provides SynEdit with a HP48 assembler highlighter.  This highlighter uses the
+SynHighlighterHP48Utils unit.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERHP48}
 unit SynHighlighterHP48;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-{$ELSE}
-  Windows,
-  Graphics,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils,
-  Classes;
-
-const
-  NbSubList = 128;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  Qt, QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditHighlighter, SynHighlighterHP48Utils, SynEditStrConst;
 
 type
-  TSpeedStringList = class;
-
-  TSpeedListObject = class
-  protected
-    FName: string;
-    FSpeedList: TSpeedStringList;
-    fobject: tobject;
-    procedure SetName(const Value: string); virtual;
-  public
-    property Name: string read FName write SetName;
-    constructor Create(name: string);
-    destructor Destroy; override;
-    property SpeedList: TSpeedStringList read FSpeedList write FSpeedList;
-    property pointer: tobject read fobject write fobject;
-  end;
-
-  PSpeedListObjects = ^TSpeedListObjects;
-  TSpeedListObjects = array[0..0] of TSpeedListObject;
-
-  TSpeedStringList = class
-  private
-    function GetText: string;
-    procedure SetText(const Value: string);
-    function GetInObject(Index: Integer): TObject;
-    procedure SetInObject(Index: Integer; const Value: TObject);
-  protected
-    FOnChange: TNotifyEvent;
-    SumOfUsed: array[0..NbSubList - 1] of integer;
-    datasUsed: array[0..NbSubList - 1] of integer;
-    datas: array[0..NbSubList - 1] of PSpeedListObjects;
-    lengthDatas: array[0..NbSubList - 1] of integer;
-    procedure Changed; virtual;
-    function Get(Index: Integer): string; virtual;
-    function GetObject(Index: Integer): TSpeedListObject;
-    function GetCount: integer;
-    function GetStringList: TStrings;
-    procedure SetStringList(const value: TStrings);
-  public
-    procedure NameChange(const obj: TSpeedListObject; const NewName: string);
-    procedure ObjectDeleted(const obj: TSpeedListObject);
-
-    destructor Destroy; override;
-    constructor create;
-    function AddObj(const Value: TSpeedListObject): Integer;
-    function Add(const Value: string): TSpeedListObject;
-    procedure Clear;
-    function Find(const name: string): TSpeedListObject;
-    property OnChange: TNotifyEvent read FOnChange write FOnChange;
-    property Objects[Index: Integer]: TSpeedListObject read GetObject;
-    property inobject[Index: Integer]: TObject read GetInObject write SetInObject;
-    property Strings[Index: Integer]: string read Get; default;
-    property count: integer read GetCount;
-    property StringList: TStrings read GetStringList write SetStringList;
-    property text: string read GetText write SetText;
-  end;
-
   TtkTokenKind = (tkNull, tkAsmKey, tkAsm, tkAsmComment, tksAsmKey, tksAsm,
     tksAsmComment, tkRplKey, tkRpl, tkRplComment);
 
+var
+  tkTokenName: array[TtkTokenKind] of string = (SYNS_AttrNull,
+    SYNS_AttrAsmKey, SYNS_AttrAsm, SYNS_AttrAsmComment,
+    SYNS_AttrSASMKey, SYNS_AttrSASM, SYNS_AttrSASMComment,
+    SYNS_AttrRplKey, SYNS_AttrRpl, SYNS_AttrRplComment);
+
+type
   TRangeState = (rsRpl, rsComRpl, rssasm1, rssasm2, rssasm3, rsAsm, rsComAsm2,
     rsComAsm1);
 
@@ -165,9 +107,9 @@ type
   protected
     function GetAttribCount: integer; override;
     function GetAttribute(idx: integer): TSynHighlighterAttributes; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -184,7 +126,7 @@ type
 
     function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ResetRange; override;
+    procedure ReSetRange; override;
     {$IFNDEF SYN_CLX}
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
@@ -217,19 +159,7 @@ type
 
 implementation
 
-uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
-  SynEditStrConst;
-{$ENDIF}
-
 const
-  tkTokenName: array[TtkTokenKind] of string = (SYNS_AttrNull,
-    SYNS_AttrAsmKey, SYNS_AttrAsm, SYNS_AttrAsmComment,
-    SYNS_AttrSASMKey, SYNS_AttrSASM, SYNS_AttrSASMComment,
-    SYNS_AttrRplKey, SYNS_AttrRpl, SYNS_AttrRplComment);
-
   DefaultAsmKeyWords: string = '!RPL'#13#10'ENDCODE'#13#10'{'#13#10'}'#13#10 +
   'GOTO'#13#10'GOSUB'#13#10'GOSBVL'#13#10'GOVLNG'#13#10'GOLONG'#13#10'SKIP' +
     #13#10'SKIPYES' + #13#10'->'#13#10'SKUB'#13#10'SKUBL'#13#10'SKC'#13#10'SKNC'#13#10'SKELSE' +
@@ -261,254 +191,6 @@ const
     'A=PC'#13#10'C=PC'#13#10'APCEX'#13#10'CPCEX'#13#10'XM=0'#13#10'SB=0'#13#10'SR=0'#13#10'MP=0'#13#10'CLRHST'#13#10'?XM=0'#13#10'?SR=0'#13#10'?MP=0'#13#10'?SB=0'#13#10'RTNYES'#13#10'SKIPYES{'#13#10'{'#13#10'}'#13#10'UP'#13#10'EXIT'#13#10'EXITNC'#13#10'EXITC'#13#10'UPC'#13#10'UPNC' +
     '}SKELSE{'#13#10'SKC{'#13#10'SKNC{'#13#10'SKUB{'#13#10'SKUBL{'#13#10'SKIPC{'#13#10'SKIPNC{'#13#10'EXIT2'#13#10'EXIT3'#13#10'UP2'#13#10'UP3'#13#10'}SKLSE{'#13#10'}SKEC{'#13#10'}SKENC{'#13#10;
 
-function StringCrc(S: string): integer;
-var
-  i: integer;
-begin
-  result := 0;
-  for i := 1 to length(s) do begin
-    result := (result shr 4) xor (((result xor ord(s[i])) and $F) * $1081);
-    result := (result shr 4) xor (((result xor (ord(s[i]) shr 4)) and $F) * $1081);
-  end;
-end;
-
-{ TSpeedListObject }
-
-constructor TSpeedListObject.create(name: string);
-begin
-  inherited create;
-  FName := name;
-end;
-
-destructor TSpeedListObject.destroy;
-begin
-  if FSpeedList <> nil then
-    FSpeedList.ObjectDeleted(Self);
-  inherited destroy;
-end;
-
-procedure TSpeedListObject.SetName(const Value: string);
-begin
-  FName := Value;
-  if FSpeedList <> nil then
-    FSpeedList.NameChange(Self, Value);
-end;
-
-{ TSpeedStringList }
-
-function TSpeedStringList.AddObj(const Value: TSpeedListObject): Integer;
-var
-  crc: integer;
-  i: integer;
-begin
-  crc := StringCrc(Value.Name) mod High(Datas) + 1;
-  if DatasUsed[crc] = lengthDatas[crc] then begin
-    ReallocMem(datas[crc], (lengthDatas[crc] * 2 + 1) * SizeOf(datas[1][0]));
-    lengthDatas[crc] := lengthDatas[crc] * 2 + 1;
-  end;
-  Datas[crc][DatasUsed[crc]] := Value;
-  result := SumOfUsed[crc] + DatasUsed[crc];
-  inc(DatasUsed[crc]);
-  for i := crc + 1 to High(SumOfUsed) do
-    inc(SumOfUsed[i]);
-  Value.SpeedList := Self;
-end;
-
-function TSpeedStringList.Add(const Value: string): TSpeedListObject;
-begin
-  result := TSpeedListObject.Create(value);
-  AddObj(Result);
-end;
-
-procedure TSpeedStringList.Changed;
-begin
-  if Assigned(FOnChange) then
-    FOnChange(Self);
-end;
-
-procedure TSpeedStringList.Clear;
-var
-  i, j: integer;
-begin
-  for i := low(datas) to high(datas) do begin
-    for j := 0 to DatasUsed[i] - 1 do
-      datas[i][j].free;
-    datasUsed[i] := 0;
-    ReallocMem(datas[i], 0);
-    lengthDatas[i] := 0;
-    SumOfUsed[i] := 0;
-  end;
-  Changed;
-end;
-
-constructor TSpeedStringList.create;
-var
-  i: integer;
-begin
-  inherited Create;
-  for i := Low(Datas) to high(datas) do begin
-    SumOfUsed[i] := 0;
-    DatasUsed[i] := 0;
-    lengthDatas[i] := 0;
-    datas[i] := nil;
-  end;
-end;
-
-destructor TSpeedStringList.Destroy;
-begin
-  Clear;
-  inherited destroy;
-end;
-
-function TSpeedStringList.Find(const name: string): TSpeedListObject;
-var
-  crc: integer;
-  i: integer;
-begin
-  crc := StringCrc(name) mod High(Datas) + 1;
-  for i := 0 to DatasUsed[crc] - 1 do
-    if Datas[crc][i].name = name then begin
-      result := Datas[crc][i];
-      exit;
-    end;
-  result := nil;
-end;
-
-function TSpeedStringList.Get(Index: Integer): string;
-var
-  i: integer;
-begin
-  for i := low(SumOfUsed) + 1 to High(SumOfUsed) do
-    if Index > SumOfUsed[i] then begin
-      result := Datas[i - 1][Index - SumOfUsed[i - 1]].name;
-      exit;
-    end;
-  result := '';
-end;
-
-function TSpeedStringList.GetCount: integer;
-begin
-  result := SumOfUsed[High(datas)] + DatasUsed[High(Datas)];
-end;
-
-function TSpeedStringList.GetInObject(Index: Integer): TObject;
-var
-  i: integer;
-begin
-  for i := low(SumOfUsed) + 1 to High(SumOfUsed) do
-    if Index > SumOfUSed[i] then begin
-      result := Datas[i - 1][Index - SumOfUsed[i - 1]].pointer;
-      exit;
-    end;
-  result := nil;
-end;
-
-function TSpeedStringList.GetObject(Index: Integer): TSpeedListObject;
-var
-  i: integer;
-begin
-  for i := low(SumOfUsed) + 1 to High(SumOfUsed) do
-    if Index > SumOfUSed[i] then begin
-      result := Datas[i - 1][Index - SumOfUsed[i - 1]];
-      exit;
-    end;
-  result := nil;
-end;
-
-function TSpeedStringList.GetStringList: TStrings;
-var
-  i, j: integer;
-begin
-  result := TStringList.Create;
-  for i := Low(Datas) to High(Datas) do
-    for j := 0 to DatasUsed[i] - 1 do
-      result.add(datas[i][j].name);
-end;
-
-function TSpeedStringList.GetText: string;
-begin
-  with StringList do begin
-    result := Text;
-    free;
-  end;
-end;
-
-procedure TSpeedStringList.NameChange(const Obj: TSpeedListObject; const NewName: string);
-var
-  crc: integer;
-  i: integer;
-  j: integer;
-begin
-  crc := StringCrc(obj.Name) mod High(Datas) + 1;
-  for i := 0 to DatasUsed[crc] - 1 do
-    if Datas[crc][i] = Obj then begin
-      for j := i + 1 to DatasUsed[crc] - 1 do
-        Datas[i - 1] := Datas[i];
-      for j := crc + 1 to High(Datas) do
-        dec(SumOfUsed[j]);
-      if DatasUsed[crc] < lengthDatas[crc] div 2 then begin
-        ReallocMem(Datas[crc], DatasUsed[crc] * SizeOf(Datas[crc][0]));
-        lengthDatas[crc] := DatasUsed[crc];
-      end;
-      AddObj(Obj);
-      exit;
-    end;
-end;
-
-procedure TSpeedStringList.ObjectDeleted(const obj: TSpeedListObject);
-var
-  crc: integer;
-  i: integer;
-  j: integer;
-begin
-  crc := StringCrc(obj.Name) mod High(Datas) + 1;
-  for i := 0 to DatasUsed[crc] - 1 do
-    if Datas[crc][i] = Obj then begin
-      for j := i + 1 to DatasUsed[crc] - 1 do
-        Datas[i - 1] := Datas[i];
-      for j := crc + 1 to High(Datas) do
-        dec(SumOfUsed[j]);
-      Obj.FSpeedList := nil;
-      exit;
-    end;
-end;
-
-procedure TSpeedStringList.SetInObject(Index: Integer;
-  const Value: TObject);
-var
-  i: integer;
-begin
-  for i := low(SumOfUsed) + 1 to High(SumOfUsed) do
-    if Index > SumOfUSed[i] then begin
-      Datas[i - 1][Index - SumOfUsed[i - 1]].pointer := value;
-      exit;
-    end;
-end;
-
-procedure TSpeedStringList.SetStringList(const value: TStrings);
-var
-  i: integer;
-begin
-  clear;
-  for i := 0 to Value.Count - 1 do
-    AddObj(TSpeedListObject.Create(value[i]));
-end;
-
-procedure TSpeedStringList.SetText(const Value: string);
-var
-  s: TStrings;
-begin
-  s := TStringList.Create;
-  try
-    s.Text := Value;
-    StringList := s;
-  finally
-    s.Free;
-  end;
-end;
-
-{ TSynHP48Syn }
-
 constructor TSynHP48Syn.Create(AOwner: TComponent);
 var
   i: TtkTokenKind;
@@ -521,9 +203,15 @@ begin
   FAsmKeyWords := TSpeedStringList.Create;
   FAsmKeyWords.Text := DefaultAsmKeyWords;
   for j := low(OtherAsmKeyWords) to High(OtherAsmKeyWords) do begin
+{$IFNDEF SYN_COMPILER_4_UP}
     FAsmKeyWords.AddObj(TSpeedListObject.Create(OtherAsmKeyWords[j]));
     for k := 1 to 8 do
       FAsmKeyWords.AddObj(TSpeedListObject.Create(OtherAsmKeyWords[j] + IntToStr(k)));
+{$ELSE}
+    FAsmKeyWords.Add(TSpeedListObject.Create(OtherAsmKeyWords[j]));
+    for k := 1 to 8 do
+      FAsmKeyWords.Add(TSpeedListObject.Create(OtherAsmKeyWords[j] + IntToStr(k)));
+{$ENDIF}
   end;
   FRplKeyWords := TSpeedStringList.Create;
   FRplKeyWords.Text := DefaultRplKeyWords;
@@ -814,7 +502,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynHP48Syn.ResetRange;
+procedure TSynHP48Syn.ReSetRange;
 begin
   fRange := BaseRange;
 end;
@@ -845,9 +533,9 @@ begin
     r.RootKey := RootKey;
     if r.OpenKeyReadOnly(Key) then begin
       if r.ValueExists('AsmKeyWordList')
-        then AsmKeywords.Text := r.ReadString('AsmKeyWordList');
+        then AsmKeywords.Text := r.ReadString({'HPSyntax',}'AsmKeyWordList' {, AsmKeywords.Text});
       if r.ValueExists('RplKeyWordList')
-        then RplKeywords.Text := r.ReadString('RplKeyWordList');
+        then RplKeywords.Text := r.ReadString({'HPSyntax',}'RplKeyWordList' {, RplKeywords.Text});
       Result := inherited LoadFromRegistry(RootKey, Key);
     end
     else
@@ -865,8 +553,8 @@ begin
     r.RootKey := RootKey;
     if r.OpenKey(Key, true) then begin
       Result := true;
-      r.WriteString('AsmKeyWordList', AsmKeywords.Text);
-      r.WriteString('RplKeyWordList', RplKeywords.Text);
+      r.WriteString({'HPSyntax',}'AsmKeyWordList', AsmKeywords.Text);
+      r.WriteString({'HPSyntax',}'RplKeyWordList', RplKeywords.Text);
       Result := inherited SaveToRegistry(RootKey, Key);
     end
     else
@@ -906,12 +594,8 @@ begin // sorted by name
     Result := nil;
 end;
 
-function TSynHP48Syn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterHP48;
-end;
-
-class function TSynHP48Syn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynHP48Syn.GetLanguageName: string;
 begin
   Result := SYNS_LangHP48;
 end;
@@ -922,7 +606,7 @@ var
 begin
   for i := Low(Attribs) to High(Attribs) do begin
     Attribs[i].OnChange := DefHighLightChange;
-    Attribs[i].InternalSaveDefaultValues;
+    Attribs[i].InternalSaveDefaultValues;                                       //mh 2000-10-08
   end;
 end;
 
@@ -1017,8 +701,9 @@ begin
   Result := nil;
 end;
 
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
 initialization
   RegisterPlaceableHighlighter(TSynHP48Syn);
 {$ENDIF}
 end.
+

@@ -13,7 +13,6 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
-  OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -38,32 +37,34 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Height = 13
     Caption = 'Nr.'
   end
-  object lblNumber: TLabel
+  object Label4: TLabel
     Left = 112
     Top = 16
-    Width = 47
+    Width = 32
     Height = 13
-    Caption = 'lblNumber'
+    Caption = 'Label4'
   end
-  object lblFilename: TLabel
+  object Label5: TLabel
     Left = 112
     Top = 32
-    Width = 52
+    Width = 32
     Height = 13
-    Caption = 'lblFilename'
+    Caption = 'Label5'
   end
-  object lblOperation: TLabel
+  object Label6: TLabel
     Left = 112
     Top = 48
-    Width = 56
+    Width = 32
     Height = 13
-    Caption = 'lblOperation'
+    Caption = 'Label6'
   end
   object ProgressBar1: TProgressBar
     Left = 16
     Top = 72
     Width = 385
     Height = 17
+    Min = 0
+    Max = 100
     Step = 1
     TabOrder = 0
   end

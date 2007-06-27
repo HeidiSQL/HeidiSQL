@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {          Abstract Read/Only Dataset component           }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZAbstractRODataset;
 
@@ -76,8 +60,6 @@ type
   end;
   {$ENDIF}
 
-  TSortType = (stAscending, stDescending, stIgnored);   {bangfauzan addition}
-
   {** Options for dataset. }
   TZDatasetOption = (doOemTranslate, doCalcDefaults, doAlwaysDetailResync,
     doSmartOpen);
@@ -92,14 +74,11 @@ type
   EZDatabaseError = class(EDatabaseError)
   private
     FErrorCode: Integer;
-    FStatusCode: String;
-    procedure SetStatusCode(const Value: String);
-   public
-    constructor Create(const Msg: string);
+  public
+    constructor Create(Msg: string);
     constructor CreateFromException(E: EZSQLThrowable);
 
     property ErrorCode: Integer read FErrorCode write FErrorCode;
-    property StatusCode: String read FStatusCode write SetStatusCode;
   end;
 
   {** Dataset Linker class. }
@@ -136,6 +115,7 @@ type
 
     FRequestLive: Boolean;
     FSQL: TZSQLStrings;
+    FParamCheck: Boolean;
     FParams: TParams;
     FShowRecordTypes: TUpdateStatusSet;
     FOptions: TZDatasetOptions;
@@ -149,12 +129,8 @@ type
 
     FDataLink: TDataLink;
     FMasterLink: TMasterDataLink;
-    FLinkedFields: string; {renamed by bangfauzan}
-    FIndexFieldNames : String; {bangfauzan addition}
-
+    FIndexFieldNames: string;
     FIndexFields: TList;
-
-    FSortType : TSortType; {bangfauzan addition}
 
     FSortedFields: string;
     FSortedFieldRefs: TObjectDynArray;
@@ -176,19 +152,14 @@ type
     procedure SetConnection(Value: TZConnection);
     procedure SetDataSource(Value: TDataSource);
     function GetMasterFields: string;
-    procedure SetMasterFields(const Value: string);
+    procedure SetMasterFields(Value: string);
     function GetMasterDataSource: TDataSource;
     procedure SetMasterDataSource(Value: TDataSource);
-    function GetLinkedFields: string; {renamed by bangfauzan}
-    procedure SetLinkedFields(const Value: string);  {renamed by bangfauzan}
-    function GetIndexFieldNames : String; {bangfauzan addition}
-    procedure SetIndexFieldNames(Value : String); {bangfauzan addition}
+    function GetIndexFieldNames: string;
+    procedure SetIndexFieldNames(Value: string);
     procedure SetOptions(Value: TZDatasetOptions);
-    procedure SetSortedFields({const} Value: string); {bangfauzan modification}
+    procedure SetSortedFields(Value: string);
     procedure SetProperties(const Value: TStrings);
-
-    function GetSortType : TSortType; {bangfauzan addition}
-    Procedure SetSortType(Value : TSortType); {bangfauzan addition}
 
     procedure UpdateSQLStrings(Sender: TObject);
     procedure ReadParamData(Reader: TReader);
@@ -263,10 +234,8 @@ type
       write SetMasterFields;
     property MasterSource: TDataSource read GetMasterDataSource
       write SetMasterDataSource;
-    property LinkedFields: string read GetLinkedFields
-      write SetLinkedFields; {renamed by bangfauzan}
-    property IndexFieldNames:String read GetIndexFieldNames
-      write SetIndexFieldNames; {bangfauzan addition}
+    property IndexFieldNames: string read GetIndexFieldNames
+      write SetIndexFieldNames;
 
   protected
     { Abstracts methods }
@@ -286,9 +255,9 @@ type
     function AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure CloseBlob(Field: TField); override;
-    function CreateStatement(const SQL: string; Properties: TStrings):
+    function CreateStatement(SQL: string; Properties: TStrings):
       IZPreparedStatement; virtual;
-    function CreateResultSet(const SQL: string; MaxRows: Integer):
+    function CreateResultSet(SQL: string; MaxRows: Integer):
       IZResultSet; virtual;
 
     procedure CheckFieldCompatibility(Field: TField; FieldDef: TFieldDef);
@@ -311,7 +280,7 @@ type
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
 
-    function InternalLocate(const KeyFields: string; const KeyValues: Variant;
+    function InternalLocate(KeyFields: string; KeyValues: Variant;
       Options: TLocateOptions): LongInt;
     function FindRecord(Restart, GoForward: Boolean): Boolean; override;
     procedure SetFiltered(Value: Boolean); override;
@@ -332,14 +301,14 @@ type
     procedure Notification(AComponent: TComponent;
       Operation: TOperation); override;
 
-    procedure RefreshParams;virtual;
+    procedure RefreshParams;
 
   protected
   {$IFDEF WITH_IPROVIDER}
     procedure PSStartTransaction; override;
     procedure PSEndTransaction(Commit: Boolean); override;
-    {function PSGetTableName: string; override;
-    function PSGetQuoteChar: string; override; }
+    function PSGetTableName: string; override;
+    function PSGetQuoteChar: string; override;
     function PSGetUpdateException(E: Exception;
       Prev: EUpdateError): EUpdateError; override;
     function PSIsSQLBased: Boolean; override;
@@ -348,7 +317,7 @@ type
     function PSUpdateRecord(UpdateKind: TUpdateKind;
       Delta: TDataSet): Boolean; override;
     procedure PSExecute; override;
-    {function PSGetKeyFields: string; override;}
+    function PSGetKeyFields: string; override;
     function PSGetParams: TParams; override;
     procedure PSSetParams(AParams: TParams); override;
     function PSExecuteStatement(const ASQL: string; AParams: TParams;
@@ -392,8 +361,6 @@ type
   published
     property Connection: TZConnection read FConnection write SetConnection;
     property SortedFields: string read FSortedFields write SetSortedFields;
-    property SortType : TSortType read FSortType write SetSortType
-      default stAscending; {bangfauzan addition}
 
     property AutoCalcFields;
     property BeforeOpen;
@@ -416,8 +383,7 @@ implementation
 
 uses Math, ZVariant, ZMessages, ZDatasetUtils, ZStreamBlob, ZSelectSchema,
   ZGenericSqlToken, ZTokenizer, ZGenericSqlAnalyser, ZAbstractDataset
-  {$IFNDEF FPC}, DBConsts{$ENDIF}
-  {$IFDEF BDS4_UP}, WideStrUtils{$ENDIF};
+  {$IFNDEF FPC},DBConsts{$ENDIF};
 
 { EZDatabaseError }
 
@@ -425,7 +391,7 @@ uses Math, ZVariant, ZMessages, ZDatasetUtils, ZStreamBlob, ZSelectSchema,
   Constructs a database exception with a string message.
   @param Msg a string message which describes the error.
 }
-constructor EZDatabaseError.Create(const Msg: string);
+constructor EZDatabaseError.Create(Msg: string);
 begin
   inherited Create(Msg);
 end;
@@ -438,20 +404,9 @@ constructor EZDatabaseError.CreateFromException(E: EZSQLThrowable);
 begin
   inherited Create(E.Message);
   ErrorCode := E.ErrorCode;
-  Statuscode:= E.StatusCode;
 end;
 
-procedure EZDatabaseError.SetStatusCode(const Value: String);
-begin
- FStatusCode:=value;
-end;
-
-{ procedure EZDatabaseError.SetStatusCode(const Value: String);
-begin
-  FStatusCode := Value;
-end;
-
-TZDataLink }
+{ TZDataLink }
 
 {**
   Creates this dataset link object.
@@ -496,6 +451,7 @@ begin
   TZSQLStrings(FSQL).Dataset := Self;
   TZSQLStrings(FSQL).MultiStatements := False;
   FSQL.OnChange := UpdateSQLStrings;
+  FParamCheck := True;
   FParams := TParams.Create(Self);
   FCurrentRows := TZSortedList.Create;
   BookmarkSize := SizeOf(Integer);
@@ -564,7 +520,6 @@ end;
   Gets the SQL query.
   @return the SQL query strings.
 }
-
 function TZAbstractRODataset.GetSQL: TStrings;
 begin
   Result := FSQL;
@@ -881,11 +836,7 @@ begin
     try
       OnFilterRecord(Self, Result);
     except
-    {$IFNDEF VER130BELOW}
-        ApplicationHandleException(Self);
-    {$ELSE}
-        ShowException(ExceptObject, ExceptAddr);
-    {$ENDIF}
+      ApplicationHandleException(Self);
     end;
 
     CurrentRow := SavedRow;
@@ -984,9 +935,9 @@ begin
           Continue;
       end;
 
-      if Param.IsNull then begin
-         Statement.SetNull(I + 1, ConvertDatasetToDbcType(Param.DataType))
-      end else begin
+      if Param.IsNull then
+        Statement.SetNull(I + 1, ConvertDatasetToDbcType(Param.DataType))
+      else begin
         case Param.DataType of
           ftBoolean:
             Statement.SetBoolean(I + 1, Param.AsBoolean);
@@ -1008,7 +959,7 @@ begin
             Statement.SetDate(I + 1, Param.AsDate);
           ftTime:
             Statement.SetTime(I + 1, Param.AsTime);
-          ftDateTime{$IFNDEF VER130}, ftTimestamp{$ENDIF}:
+          ftDateTime, ftTimestamp:
             Statement.SetTimestamp(I + 1, Param.AsDateTime);
           ftMemo:
             begin
@@ -1207,11 +1158,7 @@ begin
           end;
         ftWideString:
           begin
-            {$IFDEF BDS4_UP}
-              WStrCopy(Buffer, PWideChar(RowAccessor.GetUnicodeString(ColumnIndex, Result)));
-            {$ELSE}
-              PWideString(Buffer)^ := RowAccessor.GetUnicodeString(ColumnIndex, Result);
-            {$ENDIF ~BDS4_UP}
+            PWideString(Buffer)^ := RowAccessor.GetUnicodeString(ColumnIndex, Result);
             Result := not Result;
           end;
         { Processes all other fields. }
@@ -1425,7 +1372,6 @@ begin
       raise Exception.Create(SCanNotOpenResultSet);
 
     { Reads metadata from resultset. }
-
     with ResultSet.GetMetadata do
     begin
       for I := 1 to GetColumnCount do
@@ -1449,14 +1395,11 @@ begin
           Size, False, I) do
         begin
           {$IFNDEF FPC}
-{$IFNDEF FOSNOMETA}
           Required := IsNullable(I) = ntNoNulls;
-{$ENDIF}
           {$ENDIF}
-{$IFNDEF FOSNOMETA}
-          if IsReadOnly(I) then Attributes := Attributes + [faReadonly];
+          if IsReadOnly(I) then
+            Attributes := Attributes + [faReadonly];
           Precision := GetPrecision(I);
-{$ENDIF}
           DisplayName := FName;
         end;
       end;
@@ -1486,7 +1429,7 @@ end;
   @param Properties a statement specific properties.
   @returns a created DBC statement.
 }
-function TZAbstractRODataset.CreateStatement(const SQL: string; Properties: TStrings):
+function TZAbstractRODataset.CreateStatement(SQL: string; Properties: TStrings):
   IZPreparedStatement;
 var
   Temp: TStrings;
@@ -1512,7 +1455,7 @@ end;
   @param MaxRows a maximum rows number (-1 for all).
   @returns a created DBC resultset.
 }
-function TZAbstractRODataset.CreateResultSet(const SQL: string;
+function TZAbstractRODataset.CreateResultSet(SQL: string;
   MaxRows: Integer): IZResultSet;
 begin
   Connection.ShowSQLHourGlass;
@@ -1570,7 +1513,6 @@ begin
 
     { Initializes field and index defs. }
     InternalInitFieldDefs;
-
     if DefaultFields and not FRefreshInProgress then
       CreateFields;
     BindFields(True);
@@ -1589,7 +1531,7 @@ begin
     InitFilterFields := False;
 
     IndexFields.Clear;
-    GetFieldList(IndexFields, FLinkedFields); {renamed by bangfauzan}
+    GetFieldList(IndexFields, FIndexFieldNames);
 
     { Performs sorting. }
     if FSortedFields <> '' then
@@ -1793,7 +1735,7 @@ end;
   Sets master link fields.
   @param Value a new master link fields.
 }
-procedure TZAbstractRODataset.SetMasterFields(const Value: string);
+procedure TZAbstractRODataset.SetMasterFields(Value: string);
 begin
   if FMasterLink.FieldNames <> Value then
   begin
@@ -1866,24 +1808,24 @@ end;
   Gets a list of index field names.
   @returns a list of index field names.
 }
-function TZAbstractRODataset.GetLinkedFields: string; {renamed by bangfauzan}
+function TZAbstractRODataset.GetIndexFieldNames: string;
 begin
-  Result := FLinkedFields; {renamed by bangfauzan}
+  Result := FIndexFieldNames;
 end;
 
 {**
   Sets a new list of index field names.
   @param Value a new list of index field names.
 }
-procedure TZAbstractRODataset.SetLinkedFields(const Value: string); {renamed by bangfauzan}
+procedure TZAbstractRODataset.SetIndexFieldNames(Value: string);
 begin
-  if FLinkedFields <> Value then {renamed by bangfauzan}
+  if FIndexFieldNames <> Value then
   begin
-    FLinkedFields := Value; {renamed by bangfauzan}
+    FIndexFieldNames := Value;
     IndexFields.Clear;
     if State <> dsInactive then
     begin
-      GetFieldList(IndexFields, FLinkedFields); {renamed by bangfauzan}
+      GetFieldList(IndexFields, FIndexFieldNames);
       RereadRows;
     end;
   end;
@@ -1905,27 +1847,13 @@ end;
   Sets a new sorted fields.
   @param Value a new sorted fields.
 }
-procedure TZAbstractRODataset.SetSortedFields({const} Value: string); {bangfauzan modification}
+procedure TZAbstractRODataset.SetSortedFields(Value: string);
 begin
-  Value:=Trim(Value); {bangfauzan addition}
-  if (FSortedFields <> Value) or (FIndexFieldNames <> Value)then {bangfauzan modification}
+  if FSortedFields <> Value then
   begin
-    FIndexFieldNames:=Value;
-    FSortType := GetSortType; {bangfauzan addition}
-    {removing ASC or DESC behind space}
-    if (FSortType <> stIgnored) then begin {pawelsel modification}
-       Value:=StringReplace(Value,' Desc','',[rfReplaceAll,rfIgnoreCase]);
-       Value:=StringReplace(Value,' Asc','',[rfReplaceAll,rfIgnoreCase]);
-    end;
     FSortedFields := Value;
     if Active then
-      {InternalSort;}
-      {bangfauzan modification}
-       if (FSortedFields = '') then
-          Self.InternalRefresh
-       else
-          InternalSort;
-      {end of bangfauzan modification}
+      InternalSort;
   end;
 end;
 
@@ -2005,7 +1933,7 @@ end;
 }
 procedure TZAbstractRODataset.InternalPost;
 begin
-{$IFNDEF VER130BELOW}
+{$IFNDEF FPC}
   inherited;
 {$ENDIF}
   if not (Self is TZAbstractDataset) then
@@ -2310,8 +2238,8 @@ end;
   @param Options a search options.
   @return an index of found row or -1 if nothing was found.
 }
-function TZAbstractRODataset.InternalLocate(const KeyFields: string;
-  const KeyValues: Variant; Options: TLocateOptions): LongInt;
+function TZAbstractRODataset.InternalLocate(KeyFields: string;
+  KeyValues: Variant; Options: TLocateOptions): LongInt;
 var
   I, RowNo, RowCount: Integer;
   FieldRefs: TObjectDynArray;
@@ -2589,12 +2517,11 @@ var
   I, RowNo: Integer;
   SavedRowBuffer: PZRowBuffer;
 begin
-  if FIndexFieldNames = '' then exit; {bangfauzan addition}
   if (ResultSet <> nil) and not IsUniDirectional then
   begin
-    FIndexFieldNames := Trim(FIndexFieldNames); {bangfauzan modification}
-    DefineSortedFields(Self, {FSortedFields} FIndexFieldNames {bangfauzan modification},
-    FSortedFieldRefs, FSortedFieldDirs, FSortedOnlyDataFields);
+    FSortedFields := Trim(FSortedFields);
+    DefineSortedFields(Self, FSortedFields, FSortedFieldRefs,
+      FSortedFieldDirs, FSortedOnlyDataFields);
 
     if (CurrentRow <= CurrentRows.Count) and (CurrentRows.Count > 0)
       and (CurrentRow > 0) then
@@ -2766,7 +2693,7 @@ end;
   Returns a string quote character.
   @retuns a quote character.
 }
-{function TZAbstractRODataset.PSGetQuoteChar: string;
+function TZAbstractRODataset.PSGetQuoteChar: string;
 begin
   if Assigned(FConnection) then
   begin
@@ -2778,7 +2705,7 @@ begin
   end
   else
     Result := '"';
-end;}
+end;
 
 {**
   Checks if dataset can execute any commands?
@@ -2887,7 +2814,7 @@ end;
   @returns a table name or an empty string is SQL query is complex SELECT
     or not SELECT statement.
 }
-{function TZAbstractRODataset.PSGetTableName: string;
+function TZAbstractRODataset.PSGetTableName: string;
 var
   Driver: IZDriver;
   Tokenizer: IZTokenizer;
@@ -2905,16 +2832,16 @@ begin
     if Assigned(SelectSchema) and (SelectSchema.TableCount = 1) then
       Result := SelectSchema.Tables[0].FullName;
   end;
-end;}
+end;
 
 {**
   Defines a list of query primary key fields.
   @returns a semicolon delimited list of query key fields.
 }
-{function TZAbstractRODataset.PSGetKeyFields: string;
+function TZAbstractRODataset.PSGetKeyFields: string;
 begin
   Result := inherited PSGetKeyFields;
-end;}
+end;
 
 {**
   Executes a SQL statement with parameters.
@@ -2994,9 +2921,8 @@ end;
 
 {$ENDIF}
 
-procedure TZAbstractRODataset.CheckFieldCompatibility(Field: TField;FieldDef: TFieldDef);
-
-{$IFDEF FPC}
+procedure TZAbstractRODataset.CheckFieldCompatibility(Field: TField;
+  FieldDef: TFieldDef);
 const
   BaseFieldTypes: array[TFieldType] of TFieldType = (
     ftUnknown, ftString, ftInteger, ftInteger, ftInteger, ftBoolean, ftFloat,
@@ -3008,27 +2934,6 @@ const
     , ftString, ftBlob, ftTimeStamp, ftString
 {$endif}
   );
-{$ELSE}
- {$IFDEF VER180}
- const
-  BaseFieldTypes: array[TFieldType] of TFieldType = (
-    ftUnknown, ftString, ftInteger, ftInteger, ftInteger, ftBoolean, ftFloat,
-    ftFloat, ftBCD, ftDateTime, ftDateTime, ftDateTime, ftBytes, ftVarBytes,
-    ftInteger, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftUnknown,
-    ftString, ftString, ftLargeInt, ftADT, ftArray, ftReference, ftDataSet,
-    ftBlob, ftBlob, ftVariant, ftInterface, ftInterface, ftString, ftTimeStamp, ftFMTBcd,
-    ftFixedWideChar,ftWideMemo,ftOraTimeStamp,ftOraInterval);
- {$ELSE}
- const
-  BaseFieldTypes: array[TFieldType] of TFieldType = (
-    ftUnknown, ftString, ftInteger, ftInteger, ftInteger, ftBoolean, ftFloat,
-    ftFloat, ftBCD, ftDateTime, ftDateTime, ftDateTime, ftBytes, ftVarBytes,
-    ftInteger, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftBlob, ftUnknown,
-    ftString, ftString, ftLargeInt, ftADT, ftArray, ftReference, ftDataSet,
-    ftBlob, ftBlob, ftVariant, ftInterface, ftInterface, ftString{$IFNDEF VER130}, ftTimestamp, ftFMTBcd{$ENDIF});
- {$ENDIF}
-{$ENDIF}
-
   CheckTypeSizes = [ftBytes, ftVarBytes, ftBCD, ftReference];
 
 begin
@@ -3055,99 +2960,6 @@ begin
     if (Fields[Index - 1].FieldKind in [fkCalculated, fkLookup]) then
       RowAccessor.SetNull(Index);
 end;
-
-{=======================bangfauzan addition========================}
-function TZAbstractRODataset.GetSortType: TSortType;
-var
-  AscCount, DescCount: Integer;
-  s: String;
-begin
-  {pawelsel modification}
-  AscCount:=0;
-  DescCount:=0;
-  s:=StringReplace(FIndexFieldNames,';',',',[rfReplaceAll]);
-  while Pos(',',s)>0 do
-  begin
-    if Pos(' DESC',UpperCase(Copy(s,1,Pos(',',s))))>0 then
-      Inc(DescCount)
-    else
-      Inc(AscCount);
-    s:=Copy(s,Pos(',',s)+1,Length(s)-Pos(',',s));
-  end;
-  if Length(s)>0 then
-    if Pos(' DESC',UpperCase(s))>0 then
-      Inc(DescCount)
-    else
-      Inc(AscCount);
-  if (DescCount > 0) and (AscCount > 0) then
-     Result:=stIgnored
-  else if (DescCount > 0) then
-     Result:=stDescending
-  else
-     Result:=stAscending;
-end;
-
-procedure TZAbstractRODataset.SetSortType(Value: TSortType);
-begin
-  if FSortType <> Value then
-  begin
-    FSortType := Value;
-    if (FSortType <> stIgnored) then begin {pawelsel modification}
-       FSortedFields:=StringReplace(FSortedFields,' Desc','',[rfReplaceAll,rfIgnoreCase]);
-       FSortedFields:=StringReplace(FSortedFields,' Asc','',[rfReplaceAll,rfIgnoreCase]);
-    end;
-    FIndexFieldNames:=GetIndexFieldNames;
-    if Active then
-       if (FSortedFields = '') then
-          Self.InternalRefresh
-      else
-          InternalSort;
-  end;
-end;
-
-function TZAbstractRODataset.GetIndexFieldNames : String;
-begin
-  Result:=FSortedFields;
-  if Result<>'' then begin {pawelsel modification}
-    if FSortType=stAscending then begin
-       Result:=StringReplace(Result,';',' Asc;',[rfReplaceAll]);
-       Result:=StringReplace(Result,',',' Asc,',[rfReplaceAll]);
-       Result:=Result+' Asc';
-    end;
-    if FSortType=stDescending then begin
-       Result:=StringReplace(Result,';',' Desc;',[rfReplaceAll]);
-       Result:=StringReplace(Result,',',' Desc,',[rfReplaceAll]);
-       Result:=Result+' Desc';
-    end;
-  end;
-end;
-
-procedure TZAbstractRODataset.SetIndexFieldNames(Value: String);
-begin
-  Value:=Trim(Value);
-  {pawelsel modification}
-  Value:=StringReplace(Value,'[','',[rfReplaceAll]);
-  Value:=StringReplace(Value,']','',[rfReplaceAll]);
-
-  if FIndexFieldNames <> Value then begin
-     FIndexFieldNames := Value;
-     FSortType:=GetSortType;
-     if (FSortType <> stIgnored) then begin {pawelsel modification}
-        Value:=StringReplace(Value,' Desc','',[rfReplaceAll,rfIgnoreCase]);
-        Value:=StringReplace(Value,' Asc','',[rfReplaceAll,rfIgnoreCase]);
-     end;
-     FSortedFields:=Value;
-  end;
-
-  {Perform sorting}
-  if Active then
-     if (FSortedFields = '') then
-        Self.InternalRefresh
-     else
-        InternalSort;
-end;
-
-{====================end of bangfauzan addition====================}
 
 end.
 

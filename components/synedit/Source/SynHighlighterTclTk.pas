@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterTclTk.pas,v 1.19 2005/01/28 16:53:25 maelh Exp $
+$Id: SynHighlighterTclTk.pas,v 1.13 2002/04/09 09:58:51 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,28 +41,27 @@ Known Issues:
 @lastmod(2000-06-23)
 The SynHighlighterTclTk unit provides SynEdit with a TCL/Tk highlighter.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERTCLTK}
 unit SynHighlighterTclTk;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Windows,
-  Graphics,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
   SysUtils,
-  Classes;
+  Classes,
+  {$IFDEF SYN_CLX}
+  Qt,
+  QControls,
+  QGraphics,
+  {$ELSE}
+  Windows,
+  Messages,
+  Controls,
+  Graphics,
+  {$ENDIF}
+  SynEditTypes,
+  SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSecondKey,
@@ -113,9 +112,9 @@ type
     function IsKeywordListStored: boolean;
   protected
     function GetSampleSource: string; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                  
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -124,7 +123,7 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: string): boolean; override;
+    function IsKeyword(const AKeyword: string): boolean; override;              //mh 2000-11-08
     function IsSecondKeyWord(aToken: string): Boolean;
     procedure SetLine(NewValue: string; LineNumber:Integer); override;
     function GetToken: string; override;
@@ -162,11 +161,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
    TclTkKeys: array[0..146] of string = (
@@ -217,7 +212,7 @@ begin
   end;
 end;
 
-function TSynTclTkSyn.IsKeyword(const AKeyword: string): boolean;
+function TSynTclTkSyn.IsKeyword(const AKeyword: string): boolean;               //mh 2000-11-08
 var
   First, Last, I, Compare: Integer;
   Token: String;
@@ -269,7 +264,7 @@ var
 begin
   for I := #0 to #255 do
     case I of
-      '#': fProcTable[I] := SlashProc;
+      '#': fProcTable[I] := SlashProc{!@#$AsciiCharProc};
       '{': fProcTable[I] := BraceOpenProc;
       ';': fProcTable[I] := PointCommaProc;
       #13: fProcTable[I] := CRProc;
@@ -280,8 +275,9 @@ begin
       '(': fProcTable[I] := RoundOpenProc;
       '/': fProcTable[I] := SlashProc;
       #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      #34: fProcTable[I] := StringProc;
+      #34{!@#$#39}: fProcTable[I] := StringProc;
     else
+      //if I in TSynSpecialChars then fProcTable[I] := IdentProc else
       fProcTable[I] := UnknownProc;
     end;
 end;
@@ -563,7 +559,7 @@ end;
 procedure TSynTclTkSyn.StringProc;
 begin
   fTokenID := tkString;
-  if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34)
+  if (FLine[Run + 1] = #34{!@#$#39}) and (FLine[Run + 2] = #34{!@#$#39})
     then inc(Run, 2);
   repeat
     case FLine[Run] of
@@ -578,7 +574,7 @@ procedure TSynTclTkSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -702,12 +698,8 @@ begin
   DefHighLightChange(nil);
 end;
 
-function TSynTclTkSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterTclTk;
-end;
-
-class function TSynTclTkSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}
+function TSynTclTkSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangTclTk;
 end;
@@ -786,3 +778,4 @@ initialization
   RegisterPlaceableHighlighter(TSynTclTkSyn);
 {$ENDIF}
 end.
+

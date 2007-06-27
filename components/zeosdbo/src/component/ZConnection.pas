@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {              Database Connection Component              }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZConnection;
 
@@ -87,19 +71,7 @@ uses
 {$IFDEF ENABLE_ORACLE}
   ZDbcOracle,
 {$ENDIF}
-{$IFDEF ENABLE_ASA}
-  ZDbcASA,
-{$ENDIF}
- {$IFDEF FPC}
-  SysUtils, Classes, ZDbcIntfs, DB,ZCompatibility;
- {$ELSE}
-  {$IFNDEF VER180}
-   SysUtils, Classes, ZDbcIntfs, DB,ZCompatibility;
-  {$ELSE}
-   SysUtils, Classes, ZDbcIntfs, DB,ZCompatibility;
-  {$ENDIF}
- {$ENDIF}
-
+  SysUtils, Classes, ZDbcIntfs, DB, ZCompatibility;
 
 type
 
@@ -132,8 +104,6 @@ type
     FBeforeDisconnect: TNotifyEvent;
     FAfterDisconnect: TNotifyEvent;
     FAfterConnect: TNotifyEvent;
-    FBeforeReconnect: TNotifyEvent;
-    FAfterReconnect: TNotifyEvent;
     FOnCommit: TNotifyEvent;
     FOnRollback: TNotifyEvent;
     FOnStartTransaction: TNotifyEvent;
@@ -146,14 +116,11 @@ type
     procedure SetAutoCommit(Value: Boolean);
     function GetDbcDriver: IZDriver;
     function GetInTransaction: Boolean;
-    function GetClientVersion: Integer;
-    function GetServerVersion: Integer;
+
     procedure DoBeforeConnect;
     procedure DoAfterConnect;
     procedure DoBeforeDisconnect;
     procedure DoAfterDisconnect;
-    procedure DoBeforeReconnect;
-    procedure DoAfterReconnect;
     procedure DoCommit;
     procedure DoRollback;
     procedure DoStartTransaction;
@@ -162,7 +129,7 @@ type
     procedure CheckAutoCommitMode;
     procedure CheckNonAutoCommitMode;
 
-    function ConstructURL(const UserName, Password: string): string;
+    function ConstructURL(UserName: string; Password: string): string;
 
     procedure CloseAllDataSets;
     procedure UnregisterAllDataSets;
@@ -179,19 +146,10 @@ type
 
     procedure Connect; virtual;
     procedure Disconnect; virtual;
-    procedure Reconnect;
-    function Ping: Boolean; virtual;
-    function GetAffectedRowsFromLastPost: Int64;
-    function GetThreadId: Cardinal;
 
     procedure StartTransaction; virtual;
     procedure Commit; virtual;
     procedure Rollback; virtual;
-
-    procedure PrepareTransaction(const transactionid: string); virtual;
-    procedure CommitPrepared(const transactionid: string); virtual;
-    procedure RollbackPrepared(const transactionid: string); virtual;
-    function PingServer: Boolean; virtual;
 
     procedure RegisterDataSet(DataSet: TDataset);
     procedure UnregisterDataSet(DataSet: TDataset);
@@ -199,17 +157,14 @@ type
     procedure GetProtocolNames(List: TStrings);
     procedure GetCatalogNames(List: TStrings);
     procedure GetSchemaNames(List: TStrings);
-    procedure GetTableNames(const Pattern: string; List: TStrings);overload;
-		procedure GetTableNames(const tablePattern,shemaPattern: string; List: TStrings);overload;
-
+    procedure GetTableNames(const Pattern: string; List: TStrings);
     procedure GetStoredProcNames(const Pattern: string; List: TStrings);
 
     property InTransaction: Boolean read GetInTransaction;
 
     property DbcDriver: IZDriver read GetDbcDriver;
     property DbcConnection: IZConnection read FConnection;
-    property ClientVersion: Integer read GetClientVersion;
-    property ServerVersion: Integer read GetServerVersion;
+
     procedure ShowSQLHourGlass;
     procedure HideSQLHourGlass;
 
@@ -245,10 +200,6 @@ type
       read FBeforeDisconnect write FBeforeDisconnect;
     property AfterDisconnect: TNotifyEvent
       read FAfterDisconnect write FAfterDisconnect;
-    property BeforeReconnect: TNotifyEvent
-      read FBeforeReconnect write FBeforeReconnect;
-    property AfterReconnect: TNotifyEvent
-      read FAfterReconnect write FAfterReconnect;
     property SQLHourGlass: Boolean read FSQLHourGlass write FSQLHourGlass
       default False;
     property OnCommit: TNotifyEvent read FOnCommit write FOnCommit;
@@ -256,6 +207,7 @@ type
     property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
     property OnStartTransaction: TNotifyEvent
       read FOnStartTransaction write FOnStartTransaction;
+
   end;
 
 implementation
@@ -275,6 +227,7 @@ var
 constructor TZConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
   FAutoCommit := True;
   FReadOnly := False;
   FTransactIsolationLevel := tiNone;
@@ -314,7 +267,7 @@ begin
       if Assigned(Classes.ApplicationHandleException) then
         Classes.ApplicationHandleException(ExceptObject)
       else
-    {$ENDIF}
+    {$ENDIF}  
         ShowException(ExceptObject, ExceptAddr)
     else
       raise;
@@ -349,22 +302,6 @@ begin
     end;
   end;
 end;
-
-function TZConnection.GetAffectedRowsFromLastPost: Int64;
-begin
-  Result := FConnection.GetAffectedRowsFromLastPost;
-end;
-
-
-{**
-  Returns the ID of the current session
-}
-function TZConnection.GetThreadId: Cardinal;
-begin
-  Result := FConnection.GetThreadId;
-end;
-
-
 
 {**
   Sets a new connection properties.
@@ -441,38 +378,12 @@ begin
 end;
 
 {**
-  Gets client's full version number.
-  The format of the version resturned must be XYYYZZZ where
-   X   = Major version
-   YYY = Minor version
-   ZZZ = Sub version
-  @return this clients's full version number
-}
-function TZConnection.GetClientVersion: Integer;
-begin
- Result := DbcConnection.GetClientVersion;
-end;
-
-{**
-  Gets server's full version number.
-  The format of the version resturned must be XYYYZZZ where
-   X   = Major version
-   YYY = Minor version
-   ZZZ = Sub version
-  @return this clients's full version number
-}
-function TZConnection.GetServerVersion: Integer;
-begin
- Result := DbcConnection.GetHostVersion;
-end;
-
-{**
   Constructs ZDBC connection URL string.
   @param UserName a name of the user.
   @param Password a user password.
   @returns a constructed connection URL.
 }
-function TZConnection.ConstructURL(const UserName, Password: string): string;
+function TZConnection.ConstructURL(UserName: string; Password: string): string;
 begin
   if Port <> 0 then
   begin
@@ -520,24 +431,6 @@ procedure TZConnection.DoAfterDisconnect;
 begin
   if Assigned(FAfterDisconnect) then
     FAfterDisconnect(Self);
-end;
-
-{**
-  Fires an event before reconnect
-}
-procedure TZConnection.DoBeforeReconnect;
-begin
-  if Assigned(FBeforeReconnect) then
-    FBeforeReconnect(Self);
-end;
-
-{**
-  Fires an event after reconnect
-}
-procedure TZConnection.DoAfterReconnect;
-begin
-  if Assigned(FAfterReconnect) then
-    FAfterReconnect(Self);
 end;
 
 {**
@@ -665,42 +558,6 @@ begin
   end;
 end;
 
-
-{**
-  Sends a ping to the server.
-}
-function TZConnection.Ping: Boolean; 
-begin 
-  Result := (FConnection <> nil) and (FConnection.PingServer=0); 
-end; 
-
-
-{**
-  Reconnect, doesn't destroy DataSets if successful.
-}
-procedure TZConnection.Reconnect;
-begin
-  if FConnection <> nil then
-  begin
-    DoBeforeReconnect;
-
-    ShowSqlHourGlass;
-    try
-      try
-        FConnection.Close;
-        FConnection.Open;
-      except
-        CloseAllDataSets;
-        raise;
-      end;
-    finally
-      HideSqlHourGlass;
-    end;
-
-    DoAfterReconnect;
-  end;
-end;
-
 {**
   Checks if this connection is active.
 }
@@ -773,17 +630,6 @@ begin
     Dec(FExplicitTransactionCounter);
 end;
 
-procedure TZConnection.CommitPrepared(const transactionid: string);
-var
-  oldlev: TZTransactIsolationLevel;
-begin
-  CheckAutoCommitMode;
-  oldlev := TransactIsolationLevel;
-  TransactIsolationLevel := tiNone;
-  FConnection.CommitPrepared(transactionid);
-  TransactIsolationLevel := oldLev;
-end;
-
 {**
   Rollbacks the current transaction.
 }
@@ -816,23 +662,7 @@ begin
     Dec(FExplicitTransactionCounter);
 end;
 
-procedure TZConnection.RollbackPrepared(const transactionid: string);
-var
-  oldlev: TZTransactIsolationLevel;
-begin
-  CheckAutoCommitMode;
-  oldlev := TransactIsolationLevel;
-  TransactIsolationLevel := tiNone;
-  FConnection.RollbackPrepared(transactionid);
-  TransactIsolationLevel := oldLev;
-end;
-
-{procedure TZConnection.RollbackPrepared(transactionid: string);
-begin
-
-end;
-
-**
+{**
   Processes component notifications.
   @param AComponent a changed component object.
   @param Operation a component operation code.
@@ -848,45 +678,7 @@ begin
   end;
 end;
 
-function TZConnection.PingServer: Boolean;
-begin
- Result := (FConnection.PingServer=0);
-end;
-
-procedure TZConnection.PrepareTransaction(const transactionid: string);
-{var
-  ExplicitTran: Boolean;}
-begin
-  CheckConnected;
-  CheckNonAutoCommitMode;
-  if FExplicitTransactionCounter<>1 then begin
-    raise EZDatabaseError.Create(SInvalidOpPrepare);
-  end;
-    ShowSQLHourGlass;
-    try
-      try
-        FConnection.PrepareTransaction(transactionid);
-      finally
-        FExplicitTransactionCounter := 0;
-        AutoCommit := True;
-      end;
-    finally
-      HideSQLHourGlass;
-    end;
-end;
-
-
-{procedure TZConnection.PrepareTransaction(const transactionid: string);
-begin
-
-end;
-
-*procedure TZConnection.PrepareTransaction(const transactionid: string);
-begin
-
-end;
-
-*
+{**
   Closes all registered datasets.
 }
 procedure TZConnection.CloseAllDataSets;
@@ -1056,26 +848,6 @@ begin
   List.Clear;
   Metadata := DbcConnection.GetMetadata;
   ResultSet := Metadata.GetTables('', '', Pattern, nil);
-  while ResultSet.Next do
-    List.Add(ResultSet.GetStringByName('TABLE_NAME'));
-end;
-
-{**
-  Fills string list with table names.
-  @param tablePattern a pattern for table names.
-  @param shemaPattern a pattern for shema names.
-  @param List a string list to fill out.
-}
-procedure TZConnection.GetTableNames(const tablePattern,shemaPattern: string; List: TStrings);
-var
-  Metadata: IZDatabaseMetadata;
-  ResultSet: IZResultSet;
-begin
-  CheckConnected;
-
-  List.Clear;
-  Metadata := DbcConnection.GetMetadata;
-  ResultSet := Metadata.GetTables('', shemaPattern, tablePattern, nil);
   while ResultSet.Next do
     List.Add(ResultSet.GetStringByName('TABLE_NAME'));
 end;

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintPreview.pas,v 1.18 2003/12/27 22:18:43 markonjezic Exp $
+$Id: SynEditPrintPreview.pas,v 1.10 2002/04/04 12:52:21 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -43,9 +43,7 @@ CONTENTS:
   before the preview is shown, and when the printer is changed)
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITPRINTPREVIEW}
 unit SynEditPrintPreview;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -53,26 +51,22 @@ unit SynEditPrintPreview;
 interface
 
 uses
+  Classes,
+  SysUtils,
 {$IFDEF SYN_CLX}
   Qt,
   QControls,
   QGraphics,
   QForms,
   Types,
-  QSynEditPrint,
 {$ELSE}
-  {$IFDEF SYN_COMPILER_7}
-  Themes,
-  {$ENDIF}
   Windows,
   Controls,
   Messages,
   Graphics,
   Forms,
-  SynEditPrint,
 {$ENDIF}
-  Classes,
-  SysUtils;
+  SynEditPrint;
 
 type
 //Event raised when page is changed in preview
@@ -184,11 +178,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   MARGIN_X = 12; // margin width left and right of page
@@ -200,11 +190,6 @@ const
 constructor TSynEditPrintPreview.Create(AOwner: TComponent);
 begin
   inherited;
-{$IFDEF SYN_COMPILER_7_UP}
-  {$IFNDEF SYN_CLX}
-  ControlStyle := ControlStyle + [csNeedsBorderPaint];
-  {$ENDIF}
-{$ENDIF}
   FBorderStyle := bsSingle;
   FScaleMode := pscUserScaled;
   FScalePercent := 100;
@@ -261,42 +246,34 @@ end;
 
 function TSynEditPrintPreview.GetPageHeight100Percent: Integer;
 var
-  {$IFNDEF SYN_CLX}
   DC: HDC;
-  {$ENDIF}
   ScreenDPI: Integer;
 begin
   Result := 0;
-{$IFDEF SYN_CLX}
-  ScreenDPI := Screen.Height;
-{$ELSE}
+{$IFNDEF SYN_CLX}
   DC := GetDC(0);
   ScreenDPI := GetDeviceCaps(DC, LogPixelsY);
   ReleaseDC(0, DC);
-{$ENDIF}
   if Assigned(FSynEditPrint) then
     with FSynEditPrint.PrinterInfo do
       Result := MulDiv(PhysicalHeight, ScreenDPI, YPixPrInch);
+{$ENDIF}
 end;
 
 function TSynEditPrintPreview.GetPageWidth100Percent: Integer;
 var
-  {$IFNDEF SYN_CLX}
   DC: HDC;
-  {$ENDIF}
   ScreenDPI: Integer;
 begin
   Result := 0;
-{$IFDEF SYN_CLX}
-  ScreenDPI := Screen.Height;
-{$ELSE}
+{$IFNDEF SYN_CLX}
   DC := GetDC(0);
   ScreenDPI := GetDeviceCaps(DC, LogPixelsX);
   ReleaseDC(0, DC);
-{$ENDIF}
   if Assigned(FSynEditPrint) then
     with FSynEditPrint.PrinterInfo do
       Result := MulDiv(PhysicalWidth, ScreenDPI, XPixPrInch);
+{$ENDIF}
 end;
 
 procedure TSynEditPrintPreview.Notification(AComponent: TComponent;
@@ -310,9 +287,7 @@ end;
 procedure TSynEditPrintPreview.PaintPaper;
 var
   rcClip, rcPaper: TRect;
-  {$IFNDEF SYN_CLX}
   rgnPaper: HRGN;
-  {$ENDIF}
   i: Integer;
 begin
   with Canvas do begin
@@ -702,22 +677,16 @@ begin
               pt := ClientToScreen(Point(ClientWidth - rc.Right - 4, 10));
               OffsetRect(rc, pt.x, pt.y);
               ScrollHint.ActivateHint(rc, s);
-{$IFDEF SYN_COMPILER_3}
-              SendMessage(ScrollHint.Handle, WM_NCPAINT, 1, 0);
-{$ENDIF}
-{$IFNDEF SYN_COMPILER_3_UP}
               ScrollHint.Invalidate;
-{$ENDIF}
               ScrollHint.Update;
             end;
           end;
         SB_ENDSCROLL: begin
             if FShowScrollHint then
-            begin
-              ScrollHint := GetScrollHint;
-              ScrollHint.Visible := False;
-              ShowWindow(ScrollHint.Handle, SW_HIDE);
-            end;
+              with GetScrollHint do begin
+                Visible := False;
+                ActivateHint(Rect(0, 0, 0, 0), '');
+              end;
           end;
       end;
       {Updating scroll position and redrawing}
@@ -776,7 +745,6 @@ begin
       MouseWheelUp;
   end;
 end;
-
 {$ENDIF}
 
 procedure TSynEditPrintPreview.UpdatePreview;
@@ -790,7 +758,6 @@ begin
   if Assigned(FSynEditPrint) then
     FSynEditPrint.UpdatePages(Canvas);
   SizeChanged;
-  Invalidate;
   ScaleMode := OldMode;
   if ScaleMode = pscUserScaled then
     ScalePercent := OldScale;

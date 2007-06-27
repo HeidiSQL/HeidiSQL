@@ -2,6 +2,7 @@ unit connections;
 
 
 // -------------------------------------
+// HeidiSQL
 // Connections (start-window)
 // -------------------------------------
 
@@ -15,19 +16,19 @@ uses
 type
   Tconnform = class(TForm)
     EditHost: TEdit;
-    lblHost: TLabel;
-    lblUsername: TLabel;
-    EditUsername: TEdit;
-    lblPassword: TLabel;
-    EditPassword: TEdit;
-    lblPort: TLabel;
+    Label1: TLabel;
+    Label2: TLabel;
+    EditBenutzer: TEdit;
+    Label3: TLabel;
+    EditPasswort: TEdit;
+    Label4: TLabel;
     EditPort: TEdit;
-    lblTimeout: TLabel;
+    Label5: TLabel;
     EditTimeout: TEdit;
-    pnlScreen: TPanel;
+    Panel1: TPanel;
     ComboBoxDescription: TComboBox;
     Image1: TImage;
-    lblDescription: TLabel;
+    Label6: TLabel;
     ButtonSave: TBitBtn;
     ButtonNew: TBitBtn;
     ButtonDelete: TBitBtn;
@@ -35,15 +36,12 @@ type
     ButtonCancel: TButton;
     ButtonConnect: TButton;
     CheckBoxCompressed: TCheckBox;
-    lblSeconds: TLabel;
-    lblOnlyDBs: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
     EditOnlyDBs: TEdit;
-    TimerCloseFormReminder: TTimer;
+    Label9: TLabel;
+    Timer1: TTimer;
     ButtonEditDesc: TSpeedButton;
-    CheckBoxSorted: TCheckBox;
-    ButtonSaveAndConnect: TButton;
-    procedure ButtonSaveAndConnectClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -53,7 +51,7 @@ type
     procedure ComboBoxDescriptionClick(Sender: TObject);
     procedure EnableDisable(Enable: Boolean);
     procedure Modified(Sender: TObject);
-    procedure TimerCloseFormReminderTimer(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
     procedure ButtonEditDescClick(Sender: TObject);
   private
     { Private declarations }
@@ -61,24 +59,18 @@ type
     { Public declarations }
   end;
 
-  function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
-
+var
+  connform: Tconnform;
 
 implementation
- uses Main, helpers, MysqlQueryThread, MysqlConn, ChildWin;
+ uses Main, helpers;
 
-{$I const.inc}
+const
+	CRLF = #13#10;
 
 {$R *.DFM}
 
-function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
-var
-  f : Tconnform;
-begin
-  f := Tconnform.Create(AOwner);
-  Result := (f.ShowModal = mrOK);
-  FreeAndNil (f);
-end;
+
 
 
 // Cancel
@@ -90,84 +82,22 @@ end;
 
 // Connect
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
-var
-  cp : TOpenConnProf;
-  mysqlconn : TMysqlConn;
-  f : TMDIChild;
 begin
-  Screen.Cursor := crSQLWait;
-
-  // fill structure
-  ZeroMemory (@cp,SizeOf(cp));
-
-  with cp do
-    begin
-      MysqlParams.Protocol := 'mysql';
-      MysqlParams.Host := trim( EditHost.Text );
-      MysqlParams.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
-      MysqlParams.Database := '';
-      MysqlParams.User := EditUsername.Text;
-      MysqlParams.Pass := EditPassword.Text;
-
-      // additional
-      if CheckBoxCompressed.Checked then
-        MysqlParams.PrpCompress := 'true'
-      else
-        MysqlParams.PrpCompress := 'false';
-
-      MysqlParams.PrpTimeout := EditTimeout.Text;
-      MysqlParams.PrpDbless := 'true';
-      MysqlParams.PrpClientLocalFiles := 'true';
-      MysqlParams.PrpClientInteractive := 'true';
-
-      DatabaseList := EditOnlyDbs.Text;
-      DatabaseListSort := CheckBoxSorted.Checked;
-      Description := ComboBoxDescription.Text;
-    end;
-
   ButtonConnect.Enabled := false;
-  mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, true);
-
-  // Save last connection name to registry
+  mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, 51);
   with TRegistry.Create do
   begin
-    if OpenKey(REGPATH, true) then
+    if OpenKey(regpath, true) then
       WriteString('lastcon', ComboBoxDescription.Text);
     CloseKey;
   end;
-
-  mysqlconn := TMysqlConn.Create(@cp);
-
-  // attempt to establish connection
-  case mysqlconn.Connect() of
-    MCR_SUCCESS:
-      begin
-        // create child window and pass it the conn params and the opened connection
-        f := TMDIChild.Create(Application);
-        f.Init(@cp,mysqlconn); // childwin responsible to free mysqlconn
-
-        Close();
-      end;
-  else
-    // attempt failed -- show error and keep window open
-    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+mysqlconn.LastError, mtError, [mbOK], 0);
-    ButtonConnect.Enabled := True;
-    FreeAndNil (mysqlconn);
-  end;
-
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-  Screen.Cursor := crDefault;
-  
+  close;
+  MainForm.connect(sender);
 end;
 
 
 
 // Read all connections from registry
-procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
-end;
-
 procedure Tconnform.FormShow(Sender: TObject);
 var
   i       : Integer;
@@ -180,12 +110,12 @@ begin
   ComboBoxDescription.Text := '';
   with TRegistry.Create do
   begin
-    if OpenKey(REGPATH + '\Servers', true) then
+    if OpenKey(regpath + '\Servers', true) then
     begin
       GetKeyNames(ComboBoxDescription.Items);
       CloseKey;
     end;
-    OpenKey(REGPATH, true);
+    OpenKey(regpath, true);
     lastcon := ReadString('lastcon');
     if ValueExists('AutoReconnect') then
       AutoReconnect := ReadBool('AutoReconnect')
@@ -211,13 +141,13 @@ begin
   end else
   begin
     EditHost.Text := '';
-    EditUsername.Text := '';
-    EditPassword.Text := '';
+    EditBenutzer.Text := '';
+    EditPasswort.Text := '';
     EditPort.Text := '';
     EditTimeout.Text := '';
     EditOnlyDBs.Text := '';
     CheckBoxCompressed.Checked := false;
-    CheckBoxSorted.Checked := true;
+
     EnableDisable(false);
   end;
   Screen.Cursor := crDefault;
@@ -228,18 +158,12 @@ begin
     if AutoReconnect and (ComboBoxDescription.ItemIndex > -1) then
     begin
       ButtonConnectClick(self);
-      TimerCloseFormReminder.Enabled := true;
+      Timer1.Enabled := true;
     end;
   end;
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+  mainform.showstatus('Ready', 2);
 end;
 
-
-procedure Tconnform.ButtonSaveAndConnectClick(Sender: TObject);
-begin
-  ButtonSaveClick( Sender );
-  ButtonConnectClick( Sender );
-end;
 
 procedure Tconnform.ButtonSaveClick(Sender: TObject);
 begin
@@ -247,16 +171,15 @@ begin
   Screen.Cursor := crHourglass;
   with TRegistry.Create do
   begin
-    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       WriteString('Host', EditHost.Text);
-      WriteString('User', EditUsername.Text);
-      WriteString('Password', encrypt(EditPassword.Text));
+      WriteString('User', EditBenutzer.Text);
+      WriteString('Password', encrypt(EditPasswort.Text));
       WriteString('Port', EditPort.Text);
       WriteString('Timeout', EditTimeout.Text);
       WriteBool('Compressed', CheckBoxCompressed.Checked);
       WriteString('OnlyDBs', EditOnlyDBs.Text);
-      WriteBool('OnlyDBsSorted', CheckBoxSorted.Checked);
       CloseKey;
     end;
   end;
@@ -275,14 +198,14 @@ begin
   begin
     i := 0;
     description := 'New Connection';
-    while KeyExists(REGPATH + '\Servers\' + description) do
+    while KeyExists(regpath + '\Servers\' + description) do
     begin
       inc(i);
       description := 'New Connection' + ' (' + inttostr(i) + ')';
     end;
     if not InputQuery('New Connection...', 'Description:', description) then
       exit;
-    if KeyExists(REGPATH + '\Servers\' + description) then
+    if KeyExists(regpath + '\Servers\' + description) then
     begin
       MessageDlg('Entry "' + description + '" already exists!', mtError, [mbOK], 0);
       exit;
@@ -292,7 +215,7 @@ begin
     ComboBoxDescription.Items.Add(description);
     ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.Count - 1;
 
-    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       WriteString('Host', LOCAL_HOST);
       WriteString('User', 'root');
@@ -301,7 +224,6 @@ begin
       WriteString('Timeout', inttostr(30));
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
-      WriteBool('OnlyDBsSorted', true);
       CloseKey;
     end;
   end;
@@ -320,7 +242,7 @@ begin
   begin
     with TRegistry.Create do
     begin
-      if not DeleteKey(REGPATH + '\Servers\' + ComboBoxDescription.Text) then
+      if not DeleteKey(regpath + '\Servers\' + ComboBoxDescription.Text) then
         MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
     end;
     FormShow(self);
@@ -334,24 +256,19 @@ begin
   Screen.Cursor := crHourglass;
   with TRegistry.Create do
   begin
-    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(regpath + '\Servers\' + ComboBoxDescription.Text, true) then
     begin
       EditHost.Text := ReadString('Host');
-      EditUsername.Text := ReadString('User');
-      EditPassword.Text := decrypt(ReadString('Password'));
+      EditBenutzer.Text := ReadString('User');
+      EditPasswort.Text := decrypt(ReadString('Password'));
       EditPort.Text := ReadString('Port');
       EditTimeout.Text := ReadString('Timeout');
       CheckBoxCompressed.Checked := ReadBool('Compressed');
       EditOnlyDBs.Text := ReadString('OnlyDBs');
-      if ValueExists('OnlyDBsSorted') then
-        CheckBoxSorted.Checked := ReadBool('OnlyDBsSorted')
-      else
-        CheckBoxSorted.Checked := false; // for existing connections from older HS-versions always off
       CloseKey;
     end;
   end;
   ButtonSave.Enabled := false;
-  ButtonSaveAndConnect.Enabled := ButtonSave.Enabled;
   ButtonEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
   Screen.Cursor := crDefault;
 end;
@@ -362,39 +279,35 @@ begin
   ComboBoxDescription.Enabled := Enable;
   ButtonConnect.Enabled := Enable;
   ButtonSave.Enabled := Enable;
-  ButtonSaveAndConnect.Enabled := Enable;
   ButtonDelete.Enabled := Enable;
-  ButtonEditDesc.Enabled := Enable;
 
   EditHost.Enabled := Enable;
-  EditUsername.Enabled := Enable;
-  EditPassword.Enabled := Enable;
+  EditBenutzer.Enabled := Enable;
+  EditPasswort.Enabled := Enable;
   EditPort.Enabled := Enable;
   EditTimeout.Enabled := Enable;
   EditOnlyDBs.Enabled := Enable;
   CheckBoxCompressed.Enabled := Enable;
-  CheckBoxSorted.Enabled := Enable;
-  lblHost.Enabled := Enable;
-  lblUsername.Enabled := Enable;
-  lblPassword.Enabled := Enable;
-  lblPort.Enabled := Enable;
-  lblTimeout.Enabled := Enable;
-  lblDescription.Enabled := Enable;
-  lblSeconds.Enabled := Enable;
-  lblOnlyDBs.Enabled := Enable;
+  Label1.Enabled := Enable;
+  Label2.Enabled := Enable;
+  Label3.Enabled := Enable;
+  Label4.Enabled := Enable;
+  Label5.Enabled := Enable;
+  Label6.Enabled := Enable;
+  Label7.Enabled := Enable;
+  Label8.Enabled := Enable;
+  Label9.Enabled := Enable;
 end;
 
 
 procedure Tconnform.Modified(Sender: TObject);
 begin
   ButtonSave.Enabled := true;
-  ButtonSaveAndConnect.Enabled := true;
-  CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
 end;
 
-procedure Tconnform.TimerCloseFormReminderTimer(Sender: TObject);
+procedure Tconnform.Timer1Timer(Sender: TObject);
 begin
-  TimerCloseFormReminder.Enabled := false;
+  Timer1.Enabled := false;
   close;
 end;
 
@@ -407,19 +320,19 @@ var
 begin
   olddesc := ComboBoxDescription.Text;
   newdesc := olddesc;
-  if not InputQuery('Rename description', 'Rename description:', newdesc) then
+  if not InputQuery('Edit Description', 'Edit Description:', newdesc) then
     exit;
   if newdesc = olddesc then
     exit;
   if ComboBoxDescription.Items.IndexOf(newdesc) > -1 then begin
-    MessageDLG('Description "'+newdesc+'" already exists!', mtError, [mbCancel], 0);
+    MessageDLG('Description already exists!', mtError, [mbCancel], 0);
     exit;
   end;
 
   with TRegistry.Create do begin
     idx := ComboBoxDescription.ItemIndex;
     try
-      MoveKey(REGPATH + '\Servers\' + olddesc, REGPATH + '\Servers\' + newdesc, true);
+      MoveKey(regpath + '\Servers\' + olddesc, regpath + '\Servers\' + newdesc, true);
       ComboBoxDescription.Items[ComboBoxDescription.ItemIndex] := newdesc;
       ComboBoxDescription.ItemIndex := idx;
       ComboBoxDescriptionClick(self);

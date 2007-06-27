@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterModelica.pas,v 1.13 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterModelica.pas,v 1.7 2002/04/07 20:11:31 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -33,27 +33,20 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNHIGHLIGHTERMODELICA}
 unit SynHighlighterModelica;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  Registry,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  Qt, QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkDirective, tkIdentifier, tkKey, tkNull, tkNumber,
@@ -156,9 +149,9 @@ type
     procedure String39Proc;
   protected
     function GetIdentChars: TSynIdentChars; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -192,14 +185,17 @@ type
       write fSymbolAttri;
   end;
 
+procedure Register;
+
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
+
+procedure Register;
+begin
+  RegisterComponents(SYNS_HighlightersPage, [TSynModelicaSyn]);
+end;
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -791,11 +787,6 @@ end;
 
 procedure TSynModelicaSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -960,12 +951,8 @@ begin
   Result := TSynValidStringChars;
 end;
 
-function TSynModelicaSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterModelica;
-end;
-
-class function TSynModelicaSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}
+function TSynModelicaSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangModelica;
 end;
@@ -976,3 +963,4 @@ initialization
   RegisterPlaceableHighlighter(TSynModelicaSyn);
 {$ENDIF}
 end.
+

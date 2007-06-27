@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {            SQL Statements Analysing classes             }
 {                                                         }
-{          Originally written by Sergey Seroukhov         }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZGenericSqlAnalyser;
 
@@ -67,7 +51,7 @@ type
     FName: string;
     FTokens: TStrings;
   public
-    constructor Create(const Name: string; Tokens: TStrings);
+    constructor Create(Name: string; Tokens: TStrings);
     destructor Destroy; override;
 
     function Clone: TZStatementSection;
@@ -80,7 +64,7 @@ type
   IZStatementAnalyser = interface(IZInterface)
     ['{967635B6-411B-4DEF-990C-9C6C01F3DC0A}']
 
-    function TokenizeQuery(Tokenizer: IZTokenizer; const SQL: string;
+    function TokenizeQuery(Tokenizer: IZTokenizer; SQL: string;
       Cleanup: Boolean): TStrings;
     function SplitSections(Tokens: TStrings): TObjectList;
 
@@ -90,7 +74,7 @@ type
     function DefineSelectSchemaFromSections(
       Sections: TObjectList): IZSelectSchema;
     function DefineSelectSchemaFromQuery(Tokenizer: IZTokenizer;
-      const SQL: string): IZSelectSchema;
+      SQL: string): IZSelectSchema;
   end;
 
   {** Implements an SQL statements analyser. }
@@ -101,10 +85,10 @@ type
     FFromJoins: TStrings;
     FFromClauses: TStrings;
   protected
-    function ArrayToStrings(const Value: array of string): TStrings;
+    function ArrayToStrings(Value: array of string): TStrings;
     function CheckForKeyword(Tokens: TStrings; TokenIndex: Integer;
       Keywords: TStrings; var Keyword: string; var WordCount: Integer): Boolean;
-    function FindSectionTokens(Sections: TObjectList; const Name: string): TStrings;
+    function FindSectionTokens(Sections: TObjectList; Name: string): TStrings;
 
     procedure FillFieldRefs(SelectSchema: IZSelectSchema; SelectTokens: TStrings);
     procedure FillTableRefs(SelectSchema: IZSelectSchema; FromTokens: TStrings);
@@ -122,7 +106,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TokenizeQuery(Tokenizer: IZTokenizer; const SQL: string;
+    function TokenizeQuery(Tokenizer: IZTokenizer; SQL: string;
       Cleanup: Boolean): TStrings;
     function SplitSections(Tokens: TStrings): TObjectList;
 
@@ -131,20 +115,20 @@ type
 
     function DefineSelectSchemaFromSections(
       Sections: TObjectList): IZSelectSchema;
-    function DefineSelectSchemaFromQuery(Tokenizer: IZTokenizer; const SQL: string):
+    function DefineSelectSchemaFromQuery(Tokenizer: IZTokenizer; SQL: string):
       IZSelectSchema;
   end;
 
 implementation
 
-uses SysUtils, ZSysUtils;
+uses SysUtils;
 
 { TZStatementSection }
 
 {**
   Create SQL statement section object.
 }
-constructor TZStatementSection.Create(const Name: string; Tokens: TStrings);
+constructor TZStatementSection.Create(Name: string; Tokens: TStrings);
 begin
   FName := Name;
   FTokens := Tokens;
@@ -207,10 +191,15 @@ end;
 }
 destructor TZGenericStatementAnalyser.Destroy;
 begin
-  FSectionNames.Free;
-  FSelectOptions.Free;
-  FFromJoins.Free;
-  FFromClauses.Free;
+  if Assigned(FSectionNames) then
+    FSectionNames.Free;
+  if Assigned(FSelectOptions) then
+    FSelectOptions.Free;
+  if Assigned(FFromJoins) then
+    FFromJoins.Free;
+  if Assigned(FFromClauses) then
+    FFromClauses.Free;
+
   inherited Destroy;
 end;
 
@@ -220,7 +209,7 @@ end;
   @return a TStrings object with specified strings.
 }
 function TZGenericStatementAnalyser.ArrayToStrings(
-  const Value: array of string): TStrings;
+  Value: array of string): TStrings;
 var
   I: Integer;
 begin
@@ -291,7 +280,7 @@ end;
     if section is was not found.
 }
 function TZGenericStatementAnalyser.FindSectionTokens(
-  Sections: TObjectList; const Name: string): TStrings;
+  Sections: TObjectList; Name: string): TStrings;
 var
   I: Integer;
   Current: TZStatementSection;
@@ -315,7 +304,7 @@ end;
   @return a list with tokens.
 }
 function TZGenericStatementAnalyser.TokenizeQuery(
-  Tokenizer: IZTokenizer; const SQL: string; Cleanup: Boolean): TStrings;
+  Tokenizer: IZTokenizer; SQL: string; Cleanup: Boolean): TStrings;
 begin
   if Cleanup then
   begin
@@ -332,7 +321,8 @@ end;
     a list of tokens in the section. It initial list is not started
     with a section name the first section is unnamed ('').
 }
-function TZGenericStatementAnalyser.SplitSections(Tokens: TStrings): TObjectList;
+function TZGenericStatementAnalyser.SplitSections(
+  Tokens: TStrings): TObjectList;
 var
   I: Integer;
   Keyword: string;
@@ -384,8 +374,12 @@ end;
   @returns a composes string.
 }
 function TZGenericStatementAnalyser.ComposeTokens(Tokens: TStrings): string;
+var
+  I: Integer;
 begin
-  Result := ComposeString(Tokens, '');
+  Result := '';
+  for I := 0 to Tokens.Count - 1 do
+    Result := Result + Tokens[I];
 end;
 
 {**
@@ -393,7 +387,8 @@ end;
   @param Tokens a list of statement sections.
   @returns a composes string.
 }
-function TZGenericStatementAnalyser.ComposeSections(Sections: TObjectList): string;
+function TZGenericStatementAnalyser.ComposeSections(
+  Sections: TObjectList): string;
 var
   I: Integer;
 begin
@@ -503,12 +498,12 @@ begin
       SelectTokens.Objects[TokenIndex]{$IFDEF FPC}){$ENDIF});
 
     { Switches to alias part. }
-    if (CurrentType = ttWhitespace) or (CurrentUpper = 'AS') then
+    if (CurrentUpper = 'AS') or (CurrentType = ttWhitespace) then
     begin
-      ReadField := ReadField and (Field = '') and (CurrentUpper <> 'AS');
+      ReadField := ReadField and (CurrentUpper <> 'AS') and (Field = '');
     end
     { Reads field. }
-    else if ReadField and ((CurrentType = ttWord) or (CurrentType = ttQuotedIdentifier) or
+    else if (ReadField = True) and ((CurrentType = ttWord) or
       (CurrentValue = '*')) then
     begin
       Catalog := Schema;
@@ -517,11 +512,11 @@ begin
       Field := CurrentValue;
     end
     { Skips a '.' in field part. }
-    else if ReadField and (CurrentValue = '.') then
+    else if (ReadField = True) and (CurrentValue = '.') then
     begin
     end
     { Reads alias. }
-    else if not ReadField and (CurrentType = ttWord) then
+    else if (ReadField = False) and (CurrentType = ttWord) then
     begin
       Alias := CurrentValue;
     end
@@ -562,7 +557,6 @@ begin
           Alias, nil));
         ClearElements;
       end;
-      Dec(TokenIndex); // go back 1 token(Because of Inc in next lines)
     end;
     Inc(TokenIndex);
   end;
@@ -636,12 +630,12 @@ begin
       end;
     end
     { Switches to alias part. }
-    else if (CurrentType = ttWhitespace) or (CurrentUpper = 'AS') then
+    else if (CurrentUpper = 'AS') or (CurrentType = ttWhitespace) then
     begin
-      ReadTable := ReadTable and (Table = '') and (CurrentUpper <> 'AS');
+      ReadTable := ReadTable and (CurrentUpper <> 'AS') and (Table = '');
     end
     { Reads table. }
-    else if ReadTable and ((CurrentType = ttWord) or (CurrentType = ttQuotedIdentifier)) then
+    else if (ReadTable = True) and (CurrentType = ttWord) then
     begin
       Catalog := Schema;
       Schema := Table;
@@ -662,11 +656,11 @@ begin
       Table := StringReplace(Table, '``', '`', [rfReplaceAll]);
     end
     { Skips a '.' in table part. }
-    else if ReadTable and (CurrentValue = '.') then
+    else if (ReadTable = True) and (CurrentValue = '.') then
     begin
     end
     { Reads alias. }
-    else if not ReadTable and (CurrentType = ttWord) then
+    else if (ReadTable = False) and (CurrentType = ttWord) then
     begin
       Alias := CurrentValue;
     end
@@ -726,7 +720,7 @@ end;
   @return a select statement schema.
 }
 function TZGenericStatementAnalyser.DefineSelectSchemaFromQuery(
-  Tokenizer: IZTokenizer; const SQL: string): IZSelectSchema;
+  Tokenizer: IZTokenizer; SQL: string): IZSelectSchema;
 var
   Tokens: TStrings;
   Sections: TObjectList;

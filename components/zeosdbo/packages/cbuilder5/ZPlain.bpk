@@ -8,14 +8,15 @@
       build\ZPlainAdoDriver.obj build\ZPlainDb2.obj build\ZPlainDb2Driver.obj
       build\ZPlainDbLibDriver.obj build\ZPlainDbLibMsSql7.obj
       build\ZPlainDbLibSybaseAse125.obj build\ZPlainDriver.obj
-      build\ZPlainFirebird10.obj build\ZPlainFirebird15.obj build\ZPlainFirebird20.obj
+      build\ZPlainFirebird10.obj build\ZPlainFirebird15.obj
       build\ZPlainInterbase5.obj build\ZPlainInterbase6.obj
       build\ZPlainInterbaseDriver.obj build\ZPlainLoader.obj
       build\ZPlainMySql40.obj build\ZPlainMySql41.obj build\ZPlainMySql320.obj
       build\ZPlainMySql323.obj build\ZPlainMySqlDriver.obj
-      build\ZPlainPostgreSql7.obj build\ZPlainPostgreSql8.obj build\ZPlainSqLiteDriver.obj
+      build\ZPlainPostgreSql73.obj build\ZPlainPostgreSql74.obj 
+      build\ZPlainPostgreSql8x.obj build\ZPlainSqLiteDriver.obj 
       build\ZPlainOracle9i.obj build\ZPlainOracleDriver.obj 
-      build\ZPlainSqLite28.obj build\ZPlainSqLite3.obj build\ZPlainASADriver.obj
+      build\ZPlainSqLite28.obj build\ZPlainASADriver.obj 
       build\ZPlainASA9.obj build\ZPlainASA8.obj 
       build\ZPlainASA7.obj build\ZPlain.obj"/>
     <RESFILES value="ZPlain.res"/>

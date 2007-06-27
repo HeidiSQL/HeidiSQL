@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterSml.pas,v 1.15 2005/01/28 16:53:25 maelh Exp $
+$Id: SynHighlighterSml.pas,v 1.8 2002/04/07 20:11:31 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -43,35 +43,26 @@ The SynHighlighterSML.pas unit provides SynEdit text control with a Standard ML 
 be specified, and there is an option to include extra keywords and operators only found in the Basis library, this option can
 be disabled for backwards compatibility with older ML compilers that do not have support for the Basis Library.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERSML}
 unit SynHighlighterSml;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  Registry,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  Qt, QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 Type
   TtkTokenKind = (tkCharacter, tkComment, tkIdentifier, tkKey, tkNull, tkNumber,
     tkOperator, tkSpace, tkString, tkSymbol, tkSyntaxError, tkUnknown);
 
   TProcTableProc = procedure of object;
-  TRangeState = (rsUnknown, rsComment, rsMultilineString);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function: TtkTokenKind of object;
@@ -83,7 +74,6 @@ type
     fLine: PChar;
     fLineNumber: Integer;
     fProcTable: array[#0..#255] of TProcTableProc;
-    fRange: TRangeState;
     Run: LongInt;
     fStringLen: Integer;
     fToIdent: PChar;
@@ -100,7 +90,7 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fSyntaxErrorAttri: TSynHighlighterAttributes;
-    function IsValidMLCharacter: Boolean;
+    function IsValidMLCharacter(Ch: Char): Boolean;
     function KeyHash(ToHash: PChar): Integer;
     function KeyComp(const aKey: String): Boolean;
     function Func15: TtkTokenKind;
@@ -137,36 +127,30 @@ type
     function Func114: TtkTokenKind;
     function Func126: TtkTokenKind;
     function Func145: TtkTokenKind;
+    procedure AsciiCharProc;
     procedure CRProc;
     procedure CharacterProc;
     procedure ColonProc;
-    procedure CommentProc;
     procedure IdentProc;
     procedure LFProc;
     procedure NullProc;
     procedure NumberProc;
     procedure OperatorProc;
-    procedure RoundBracketOpenProc;
     procedure SpaceProc;
     procedure StringProc;
     procedure SymbolProc;
     procedure UnknownProc;
     procedure BasisOpProc;
+    procedure RoundBracketOpen;
     function AltFunc: TtkTokenKind;
     procedure InitIdent;
     function IdentKind(MayBe: PChar): TtkTokenKind;
     procedure MakeMethodTables;
-    procedure StringEndProc;
-    procedure PoundProc;
   protected
     function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: string; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
-    function GetRange: Pointer; override;
-    procedure ResetRange; override;
-    procedure SetRange(Value: Pointer); override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -205,54 +189,39 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
-
-const
-  Identifiers = [#39, '_', '0'..'9', 'a'..'z', 'A'..'Z'];
 
 var
+  Identifiers: array[#0..#255] of ByteBool;
   mHashTable: array[#0..#255] of Integer;
 
 procedure MakeIdentTable;
 var
-  I: Char;
+  I, J: Char;
 begin
   for I := #0 to #255 do
   begin
-    if I in ['_', 'A'..'Z', 'a'..'z'] then
-      mHashTable[I] := Ord(UpCase(I)) - 64
-    else
-      mHashTable[I] := 0;
+    Case I of
+      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
+    else Identifiers[I] := False;
+    end;
+    J := UpCase(I);
+    Case I in ['_', 'A'..'Z', 'a'..'z'] of
+      True: mHashTable[I] := Ord(J) - 64
+    else mHashTable[I] := 0;
+    end;
   end;
 end;
 
-function TSynSMLSyn.IsValidMLCharacter: Boolean;
-var
-  ASCIIStr: string;
-  ASCIICode, Error: Integer;
+function TSynSMLSyn.IsValidMLCharacter(Ch: Char): Boolean;
 begin
-  Result := False;
-  if (fLine[Run] = '"') then
-    if (Run > 2) and (fLine[Run - 1] <> '\') and (fLine[Run - 2] = '"') then
-      Result := True
-    else if (Run > 3) and (fLine[Run - 1] = '\') and (fLine[Run - 2] = '\')
-      and (fLine[Run - 3] = '"') then
-      Result := True
-    else if (Run > 3) and (fLine[Run - 1] in ['a', 'b', 'n', 'r', 't']) and
-      (fLine[Run - 2] = '\') and (fLine[Run - 3] = '"') then
-      Result := True
-    else if (Run > 5) and (fLine[Run - 4] = '\') and (fLine[Run - 5] = '"') then
-    begin
-      ASCIIStr := copy(fLine, Run - 2, 3);
-      Val(ASCIIStr, ASCIICode, Error);
-      if (Error = 0) and (ASCIICode >= 0) and (ASCIICode <= 255) then
-        Result := True
-    end
-end;
+  if (Ch in ['A'..'Z', 'a'..'z', '0'..'9']) then Result := True
+  else case Ch of
+    '\','|',',','.','<','>','/','?',':',';','@','#','~','[','{',']','}','_','-','=','+',
+    '!','"','ú','$','%','^','&','*','(',')': Result := True
+    else Result := False;
+  end;
+end; { IsValidMLCharacter }
 
 procedure TSynSMLSyn.InitIdent;
 var
@@ -303,7 +272,7 @@ end;
 function TSynSMLSyn.KeyHash(ToHash: PChar): Integer;
 begin
   Result := 0;
-  while ToHash^ in Identifiers do
+  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
   begin
     inc(Result, mHashTable[ToHash^]);
     inc(ToHash);
@@ -322,7 +291,7 @@ begin
     Result := True;
     for i := 1 to fStringLen do
     begin
-      if Temp^ <> aKey[i] then
+      if mHashTable[Temp^] <> mHashTable[aKey[i]] then
       begin
         Result := False;
         break;
@@ -529,8 +498,9 @@ var
 begin
   for I := #0 to #255 do
     case I of
+      #39: fProcTable[I] := AsciiCharProc;
       #13: fProcTable[I] := CRProc;
-      '#': fProcTable[I] := PoundProc;
+      '#': fProcTable[I] := CharacterProc;
       ':': fProcTable[I] := ColonProc;
       'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
       #10: fProcTable[I] := LFProc;
@@ -539,7 +509,7 @@ begin
       #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
       '"': fProcTable[I] := StringProc;
       '@', '^': fProcTable[I] := BasisOpProc;
-      '(': fProcTable[I] := RoundBracketOpenProc;
+      '(': fProcTable[I] := RoundBracketOpen;
       '+', '-', '~', '*', '/', '=', '<', '>':  fProcTable[i] := OperatorProc;
       ',', '.',  ';': fProcTable[I] := SymbolProc;
     else
@@ -581,7 +551,7 @@ begin
   fSyntaxErrorAttri.Style := [fsBold];
   AddAttribute(fSyntaxErrorAttri);
   SetAttributesOnChange(DefHighlightChange);
-  InitIdent;        
+  InitIdent;
   MakeMethodTables;
   fDefaultFilter := SYNS_FilterSML;
   Basis := True;
@@ -595,12 +565,36 @@ begin
   Next;
 end;
 
+procedure TSynSMLSyn.AsciiCharProc;
+begin
+  fTokenID := tkString;
+  repeat
+    Inc(Run);
+  until fLine[Run] in [#0, #10, #13, #39];
+  if fLine[Run] = #39 then inc(Run);
+end;
+
 procedure TSynSMLSyn.CRProc;
 begin
   fTokenID := tkSpace;
   Case FLine[Run + 1] of
     #10: inc(Run, 2);
   else inc(Run);
+  end;
+end;
+
+procedure TSynSMLSyn.CharacterProc;
+begin
+  if (FLine[Run+1] = '"') and IsValidMLCharacter(FLine[Run+2]) and (FLine[Run+3] = '"') then begin
+    fTokenID := tkCharacter;
+    inc(Run, 4);
+  end
+  else begin
+    fTokenID := tkSyntaxError;
+    inc(Run);
+    if (FLine[Run] = '"') then Inc(Run);
+    if IsValidMLCharacter(FLine[Run]) then Inc(Run);
+    if (FLine[Run] = '"') then Inc(Run);
   end;
 end;
 
@@ -618,7 +612,7 @@ procedure TSynSMLSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while fLine[Run] in Identifiers do inc(Run);
+  while Identifiers[fLine[Run]] do inc(Run);
 end;
 
 procedure TSynSMLSyn.LFProc;
@@ -662,71 +656,16 @@ end;
 procedure TSynSMLSyn.StringProc;
 begin
   fTokenID := tkString;
-  repeat
-    if fLine[Run] = '\' then begin
-      case fLine[Run + 1] of
-        '"', '\':
-          Inc(Run);
-        #00:
-          begin
-            Inc(Run);
-            fRange := rsMultilineString;
-            Exit;
-          end;
-      end;
-    end;
-    inc(Run);
-  until fLine[Run] in [#0, #10, #13, '"'];
-  if FLine[Run] = '"' then
-    inc(Run);
-end;
-
-procedure TSynSMLSyn.StringEndProc;
-begin
-  fTokenID := tkString;
-
-  case FLine[Run] of
-    #0:
-      begin
-        NullProc;
-        Exit;
-      end;
-    #10:
-      begin
-        LFProc;
-        Exit;
-      end;
-    #13:
-      begin
-        CRProc;
-        Exit;
-      end;
-  end;
-
-  fRange := rsUnknown;
-
+  if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then inc(Run, 2);
   repeat
     case FLine[Run] of
-      #0, #10, #13: Break;
-      '\':
-        begin
-          case fLine[Run + 1] of
-            '"', '\':
-              Inc(Run);
-            #00:
-              begin
-                Inc(Run);
-                fRange := rsMultilineString;
-                Exit;
-              end;
-          end;
-        end;
-      '"': Break;
+      #0, #10, #13: break;
+      #92:
+        if FLine[Run + 1] = #10 then inc(Run);
     end;
     inc(Run);
-  until fLine[Run] in [#0, #10, #13, '"'];
-  if FLine[Run] = '"' then
-    inc(Run);
+  until FLine[Run] = #34;
+  if FLine[Run] <> #0 then inc(Run);
 end;
 
 procedure TSynSMLSyn.SymbolProc;
@@ -739,7 +678,7 @@ procedure TSynSMLSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -752,87 +691,31 @@ begin
   if Basis then fTokenID := tkOperator else fTokenID := tkIdentifier;
 end;
 
-procedure TSynSMLSyn.PoundProc;
+procedure TSynSMLSyn.RoundBracketOpen;
 begin
   Inc(Run);
-  if (fLine[Run] = '"') then
-    CharacterProc
-  else
-    fTokenID := tkIdentifier;
-end;
-
-procedure TSynSMLSyn.CharacterProc;
-begin
-  case fLine[Run] of
-     #0: NullProc;
-    #10: LFProc;
-    #13: CRProc;
-  else
-    begin
-      repeat
-        Inc(Run);
-      until fLine[Run] in [#0, #10, #13, '"'];
-
-      if IsValidMLCharacter then
-        fTokenID := tkCharacter
-      else
-      begin
-        if fLine[Run] = '"' then Inc(Run);
-        fTokenID := tkSyntaxError;
-      end;
-    end
-  end
-end;
-
-procedure TSynSMLSyn.RoundBracketOpenProc;
-begin
-  Inc(Run);
-  if (fLine[Run] = '*') then
-  begin
-    fRange := rsComment;
-    CommentProc;
+  if (FLine[Run] = '*') then begin
     fTokenID := tkComment;
+    inc(Run);
+    while fLine[Run] <> #0 do
+      case fLine[Run] of
+        '*': if fLine[Run + 1] = ')' then begin
+               inc(Run, 2);
+               break;
+             end
+             else inc(Run);
+        #10: break;
+        #13: break;
+        else inc(Run);
+      end
   end
-  else
-    fTokenID := tkIdentifier;
-end;
-
-procedure TSynSMLSyn.CommentProc;
-begin
-  case fLine[Run] of
-     #0: NullProc;
-    #10: LFProc;
-    #13: CRProc;
-  else
-    begin
-      fTokenID := tkComment;
-      repeat
-        if (fLine[Run] = '*') and
-           (fLine[Run + 1] = ')') then
-        begin
-          Inc(Run, 2);
-          fRange := rsUnknown;
-          Break;
-        end;
-        if not (fLine[Run] in [#0, #10, #13]) then
-          Inc(Run);
-      until fLine[Run] in [#0, #10, #13];
-    end;
-  end;
+  else fTokenID := tkIdentifier;
 end;
 
 procedure TSynSMLSyn.Next;
 begin
   fTokenPos := Run;
-  case fRange of
-    rsComment: CommentProc;
-    rsMultilineString: StringEndProc; 
-  else
-    begin
-      fRange := rsUnknown;
-      fProcTable[fLine[Run]];
-    end;
-  end;
+  fProcTable[fLine[Run]];
 end;
 
 function TSynSMLSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -900,48 +783,15 @@ begin
   Result := TSynValidStringChars;
 end;
 
-function TSynSMLSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterSML;
-end;
-
-class function TSynSMLSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynSMLSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangSML;
 end;
 
-function TSynSMLSyn.GetSampleSource: string;
-begin
-  Result := '(* Syntax highlighting *)'#13#10 +
-            'load "Real";'#13#10 +
-            'fun PrintNumber(x: int) ='#13#10 +
-            '  let'#13#10 +
-            '    val Number = real(x) / 10.0;'#13#10 +
-            '    val Text = "The Number is " ^ Real.toString(~Number) ^ "\n";'#13#10 +
-            '  in'#13#10 +
-            '    print Text;'#13#10 +
-            '    if x = 0 then () else PrintNumber(x-1)'#13#10+
-            '  end;' 
-end;
-
-procedure TSynSMLSyn.ResetRange;
-begin
-  fRange := rsUnknown;
-end;
-
-procedure TSynSMLSyn.SetRange(Value: Pointer);
-begin
-  fRange := TRangeState(Value);
-end;
-
-function TSynSMLSyn.GetRange: Pointer;
-begin
-  Result := Pointer(fRange);
-end;
-
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynSMLSyn);
 {$ENDIF}
 end.

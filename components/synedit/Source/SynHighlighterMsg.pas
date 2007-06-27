@@ -27,34 +27,33 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterMsg.pas,v 1.9 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterMsg.pas,v 1.6 2002/04/07 20:11:31 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNHIGHLIGHTERMSG}
 unit SynHighlighterMsg;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
   SysUtils,
-  Classes;
-
+  Classes,
+{$IFDEF SYN_CLX}
+  QControls,
+  QGraphics,
+{$ELSE}
+  Windows,
+  Controls,
+  Graphics,
+{$ENDIF}
+  SynEditTypes,
+  SynEditHighlighter;
+  
 const
   MaxKey = 150;
   
@@ -128,7 +127,8 @@ type
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}
+    function GetLanguageName: string; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -154,11 +154,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -466,7 +462,7 @@ procedure TSynMsgSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -565,7 +561,8 @@ begin
   Result := fDefaultFilter <> SYNS_FilterSynGenMsgfiles;
 end;
 
-class function TSynMsgSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}
+function TSynMsgSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangSynGenMsgfiles;
 end;

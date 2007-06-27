@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: frmEditor.pas,v 1.6 2004/11/10 13:03:12 maelh Exp $
+$Id: frmEditor.pas,v 1.2 2000/11/22 08:34:13 mghie Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,8 +42,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Menus,
-  uEditAppIntfs, SynEdit, SynEditTypes, SynEditMiscProcs,
-  SynEditMiscClasses, SynEditSearch;
+  uEditAppIntfs, SynEdit;
 
 type
   TEditorKind = (ekBorderless, ekInTabsheet, ekMDIChild);
@@ -62,7 +61,6 @@ type
     lmiEditUndo: TMenuItem;
     lmiEditRedo: TMenuItem;
     N2: TMenuItem;
-    SynEditSearch1: TSynEditSearch;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormDestroy(Sender: TObject);
@@ -239,7 +237,7 @@ end;
 function TEditor.GetCaretPos: TPoint;
 begin
   if fForm <> nil then
-    Result := TPoint(fForm.SynEditor.CaretXY)
+    Result := fForm.SynEditor.CaretXY
   else
     Result := Point(-1, -1);
 end;
@@ -681,10 +679,8 @@ begin
   if ASearch = AReplace then
     Action := raSkip
   else begin
-    APos := SynEditor.ClientToScreen(
-      SynEditor.RowColumnToPixels(
-      SynEditor.BufferToDisplayPos(
-      BufferCoord(Column, Line) ) ) );
+    APos := Point(Column, Line);
+    APos := SynEditor.ClientToScreen(SynEditor.RowColumnToPixels(APos));
     EditRect := ClientRect;
     EditRect.TopLeft := ClientToScreen(EditRect.TopLeft);
     EditRect.BottomRight := ClientToScreen(EditRect.BottomRight);
@@ -880,7 +876,7 @@ begin
     SearchText := gsSearchText;
     if gbSearchTextAtCaret then begin
       // if something is selected search for that text
-      if SynEditor.SelAvail and (SynEditor.BlockBegin.Line = SynEditor.BlockEnd.Line)
+      if SynEditor.SelAvail and (SynEditor.BlockBegin.Y = SynEditor.BlockEnd.Y)
       then
         SearchText := SynEditor.SelText
       else

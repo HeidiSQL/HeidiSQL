@@ -1,5 +1,6 @@
 package SMDBGridComponents;
 
+{$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -31,8 +32,8 @@ requires
   bdertl;
 
 contains
-  SMDBGrid in '..\..\source\SMDBGrid.pas',
-  SMCnst in '..\..\source\SMCnst.pas',
-  RXUtils in '..\..\source\RXUtils.pas';
+  SMDBGrid in '..\..\SMDBGrid.pas',
+  SMCnst in '..\..\SMCnst.pas',
+  RXUtils in '..\..\RXUtils.pas';
 
 end.

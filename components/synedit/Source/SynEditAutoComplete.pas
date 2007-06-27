@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditAutoComplete.pas,v 1.10 2004/05/06 19:16:44 markonjezic Exp $
+$Id: SynEditAutoComplete.pas,v 1.5 2001/11/09 07:48:58 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -37,28 +37,19 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITAUTOCOMPLETE}
 unit SynEditAutoComplete;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  Classes, SynEdit, SynEditKeyCmds,
   {$IFDEF SYN_CLX}
-  Qt,
-  QMenus,
-  Types,
-  QSynEdit,
-  QSynEditKeyCmds,
+   Qt, QMenus, Types;
   {$ELSE}
-  Windows,
-  Menus,
-  SynEdit,
-  SynEditKeyCmds,
+   Windows, Menus;
   {$ENDIF}
-  Classes;
 
 type
   TCustomSynAutoComplete = class(TComponent)
@@ -78,25 +69,25 @@ type
     function GetCompletionValues: TStrings;
     function GetEditorCount: integer;
     function GetNthEditor(Index: integer): TCustomSynEdit;
+    procedure ParseCompletionList; virtual;
     procedure SetAutoCompleteList(Value: TStrings); virtual;
     procedure SetEditor(Value: TCustomSynEdit);
     procedure SynEditCommandHandler(Sender: TObject; AfterProcessing: boolean;
       var Handled: boolean; var Command: TSynEditorCommand; var AChar: char;
       Data: pointer; HandlerData: pointer);
-    procedure Notification(AComponent: TComponent; Operation: TOperation);
-      override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    procedure AddCompletion(AToken, AValue, AComment: string);
     function AddEditor(AEditor: TCustomSynEdit): boolean;
-    function RemoveEditor(AEditor: TCustomSynEdit): boolean;
-
-    procedure AddCompletion(const AToken, AValue, AComment: string);
     procedure Execute(AEditor: TCustomSynEdit); virtual;
-    procedure ExecuteCompletion(const AToken: string; AEditor: TCustomSynEdit);
+    procedure ExecuteCompletion(AToken: string; AEditor: TCustomSynEdit);
       virtual;
-    procedure ParseCompletionList; virtual;
+    procedure Loaded; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation);
+      override;
+    function RemoveEditor(AEditor: TCustomSynEdit): boolean;
   public
     property AutoCompleteList: TStrings read fAutoCompleteList
       write SetAutoCompleteList;
@@ -121,21 +112,13 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-{$ELSE}
-  SynEditTypes,
-{$ENDIF}
   SysUtils;
 
 { TCustomSynAutoComplete }
 
-procedure TCustomSynAutoComplete.AddCompletion(const AToken, AValue, AComment: string);
+procedure TCustomSynAutoComplete.AddCompletion(AToken, AValue, AComment: string);
 begin
-  if AToken <> '' then
-  begin
-    if (fAutoCompleteList.Count = 0) and (fCompletions.Count = 0) then
-      fParsed := True;
+  if AToken <> '' then begin
     fCompletions.Add(AToken);
     fCompletionComments.Add(AComment);
     fCompletionValues.Add(AValue);
@@ -151,7 +134,8 @@ begin
     if i = -1 then begin
       AEditor.FreeNotification(Self);
       fEditors.Add(AEditor);
-      AEditor.RegisterCommandHandler(SynEditCommandHandler, nil);
+      if ComponentState * [csDesigning, csLoading] = [] then
+        AEditor.RegisterCommandHandler(SynEditCommandHandler, nil);
     end;
     Result := TRUE;
   end else
@@ -177,16 +161,12 @@ end;
 
 destructor TCustomSynAutoComplete.Destroy;
 begin
-  Editor := nil;
-  while EditorCount > 0 do
-    RemoveEditor( TCustomSynEdit(fEditors.Last) );
-
-  inherited Destroy;
   fEditors.Free;
   fCompletions.Free;
   fCompletionComments.Free;
   fCompletionValues.Free;
   fAutoCompleteList.Free;
+  inherited Destroy;
 end;
 
 procedure TCustomSynAutoComplete.Execute(AEditor: TCustomSynEdit);
@@ -209,13 +189,13 @@ begin
   end;
 end;
 
-procedure TCustomSynAutoComplete.ExecuteCompletion(const AToken: string;
+procedure TCustomSynAutoComplete.ExecuteCompletion(AToken: string;
   AEditor: TCustomSynEdit);
 var
   i, j, Len, IndentLen: integer;
   s: string;
   IdxMaybe, NumMaybe: integer;
-  p: TBufferCoord;
+  p: TPoint;
   NewCaretPos: boolean;
   Temp: TStringList;
 begin
@@ -260,10 +240,10 @@ begin
 {begin}                                                                         //mh 2000-11-08
       AEditor.BeginUpdate;
       try
-        AEditor.BlockBegin := BufferCoord(p.Char - Len, p.Line);
+        AEditor.BlockBegin := Point(p.x - Len, p.y);
         AEditor.BlockEnd := p;
         // indent the completion string if necessary, determine the caret pos
-        IndentLen := p.Char - Len - 1;
+        IndentLen := p.x - Len - 1;
         p := AEditor.BlockBegin;
         NewCaretPos := FALSE;
         Temp := TStringList.Create;
@@ -285,12 +265,12 @@ begin
 //              if j > 1 then
 //                Dec(j);
               NewCaretPos := TRUE;
-              Inc(p.Line, i);
+              Inc(p.y, i);
               if i = 0 then
 //                Inc(p.x, j)
-                Inc(p.Char, j - 1)
+                Inc(p.x, j - 1)
               else
-                p.Char := j;
+                p.x := j;
               break;
             end;
           end;
@@ -348,16 +328,29 @@ begin
     Result := nil;
 end;
 
+procedure TCustomSynAutoComplete.Loaded;
+var
+  i: integer;
+  O: TObject;
+begin
+  inherited Loaded;
+  for i := 0 to fEditors.Count - 1 do begin
+    O := TObject(fEditors[i]);
+    (O as TCustomSynEdit).RegisterCommandHandler(SynEditCommandHandler, nil);
+  end;
+end;
+
 procedure TCustomSynAutoComplete.Notification(AComponent: TComponent;
   Operation: TOperation);
+var
+  i: integer;
 begin
   inherited Notification(AComponent, Operation);
   if Operation = opRemove then
   begin
-    if AComponent = Editor then
-      Editor := nil
-    else if AComponent is TCustomSynEdit then
-      RemoveEditor( TCustomSynEdit(AComponent) );
+    i := fEditors.IndexOf(AComponent);
+    if i > -1 then
+      RemoveEditor(AComponent as TCustomSynEdit);
   end;
 end;
 
@@ -436,7 +429,6 @@ begin
     if sCompl <> '' then                                                        //mg 2000-11-07
       SaveEntry;
   end;
-  fParsed := True;
 end;
 
 function TCustomSynAutoComplete.RemoveEditor(AEditor: TCustomSynEdit): boolean;
@@ -451,10 +443,8 @@ begin
       if fEditor = AEditor then
         fEditor := nil;
       fEditors.Delete(i);
-      AEditor.UnregisterCommandHandler(SynEditCommandHandler);
-      {$IFDEF SYN_COMPILER_5_UP}
-      RemoveFreeNotification( AEditor );
-      {$ENDIF}
+      if ComponentState * [csDesigning, csLoading] = [] then
+        AEditor.UnregisterCommandHandler(SynEditCommandHandler);
     end;
   end;
   Result := False;
@@ -472,9 +462,9 @@ begin
   begin
     if fEditor <> nil then
       RemoveEditor(fEditor);
-    fEditor := Value;
-    if (Value <> nil) then
-      AddEditor(Value);
+    fEditor := nil;
+    if (Value <> nil) and AddEditor(Value) then
+      fEditor := Value;
   end;
 end;
 

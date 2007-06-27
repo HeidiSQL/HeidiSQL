@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmdEditor.pas,v 1.10 2004/06/25 14:14:20 markonjezic Exp $
+$Id: SynEditKeyCmdEditor.pas,v 1.5 2001/11/09 07:48:58 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -35,15 +35,44 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITKEYCMDEDITOR}
+
+{-------------------------------------------------------------------------------
+The contents of this file are subject to the Mozilla Public License
+Version 1.1 (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at
+http://www.mozilla.org/MPL/
+Software distributed under the License is distributed on an "AS IS" basis,
+WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+the specific language governing rights and limitations under the License.
+
+
+The Original Code is based on , part of the mwEdit component
+suite.
+All Rights Reserved.
+
+Contributors:
+
+  For a list of the contributors to the mwEdit project see the
+  accompanying Contributors.mwEdit.txt file.
+
+Last Modified: 2000-04-07
+Current Version: 1.00
+
+You may retrieve the latest version of this file at the SynEdit home page,
+located at http://SynEdit.SourceForge.net
+
+Known Issues:
+-------------------------------------------------------------------------------}
+
 unit SynEditKeyCmdEditor;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  SysUtils,
+  Classes,
 {$IFDEF SYN_CLX}
   Qt,
   QGraphics,
@@ -54,8 +83,6 @@ uses
   QStdCtrls,
   QExtCtrls,
   QComCtrls,
-  QSynEditKeyCmds,
-  QSynEditMiscClasses,
 {$ELSE}
   Windows,
   Messages,
@@ -67,11 +94,9 @@ uses
   StdCtrls,
   ComCtrls,
   ExtCtrls,
-  SynEditKeyCmds,
-  SynEditMiscClasses,
 {$ENDIF}
-  SysUtils,
-  Classes;
+  SynEditKeyCmds,
+  SynEditMiscClasses;
 
 
 type
@@ -91,8 +116,6 @@ type
     procedure cmbCommandExit(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
   private
     FExtended: Boolean;
     procedure SetCommand(const Value: TSynEditorCommand);
@@ -239,7 +262,7 @@ begin
 end;
 
 procedure TSynEditKeystrokeEditorForm.FormCreate(Sender: TObject);
-begin    
+begin
   hkKeystroke := TSynHotKey.Create(self);
   with hkKeystroke do
   begin
@@ -249,8 +272,6 @@ begin
     Width := 186;
     Height := 19;
     HotKey := 0;
-    InvalidKeys := [];
-    Modifiers := [];
     TabOrder := 1;
   end;
 
@@ -263,16 +284,9 @@ begin
     Width := 186;
     Height := 19;
     HotKey := 0;
-    InvalidKeys := [];
-    Modifiers := [];
     TabOrder := 2;
   end;
-end;
 
-procedure TSynEditKeystrokeEditorForm.FormKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  // if this event is not present CLX will complain
 end;
 
 end.

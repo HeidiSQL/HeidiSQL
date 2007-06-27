@@ -32,9 +32,9 @@ object CreateTableForm: TCreateTableForm
   object Label2: TLabel
     Left = 16
     Top = 91
-    Width = 43
+    Width = 30
     Height = 13
-    Caption = 'Columns:'
+    Caption = 'Fields:'
   end
   object Label3: TLabel
     Left = 264
@@ -98,9 +98,9 @@ object CreateTableForm: TCreateTableForm
     Top = 112
     Width = 225
     Height = 185
-    Caption = 'Column-Properties:'
+    Caption = 'Field-Properties:'
     TabOrder = 11
-    object lblFieldType: TLabel
+    object Label6: TLabel
       Left = 16
       Top = 24
       Width = 27
@@ -108,7 +108,7 @@ object CreateTableForm: TCreateTableForm
       Caption = 'Type:'
       Enabled = False
     end
-    object lblLengthSet: TLabel
+    object Label7: TLabel
       Left = 16
       Top = 48
       Width = 57
@@ -116,7 +116,7 @@ object CreateTableForm: TCreateTableForm
       Caption = 'Length/Set:'
       Enabled = False
     end
-    object lblDefault: TLabel
+    object Label8: TLabel
       Left = 16
       Top = 72
       Width = 67
@@ -267,7 +267,6 @@ object CreateTableForm: TCreateTableForm
     Height = 21
     MaxLength = 64
     TabOrder = 0
-    OnChange = EditTablenameChange
   end
   object EditDescription: TEdit
     Left = 336
@@ -280,7 +279,7 @@ object CreateTableForm: TCreateTableForm
     ShowHint = True
     TabOrder = 2
   end
-  object ListboxColumns: TListBox
+  object feldListe: TListBox
     Left = 16
     Top = 136
     Width = 137
@@ -288,7 +287,7 @@ object CreateTableForm: TCreateTableForm
     ExtendedSelect = False
     ItemHeight = 13
     TabOrder = 5
-    OnClick = ListboxColumnsClick
+    OnClick = feldListeClick
   end
   object ButtonMoveUp: TBitBtn
     Left = 160

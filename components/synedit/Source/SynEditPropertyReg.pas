@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPropertyReg.pas,v 1.17 2004/05/07 12:53:13 markonjezic Exp $
+$Id: SynEditPropertyReg.pas,v 1.7 2002/04/08 18:35:30 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -34,28 +34,52 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITPROPERTYREG}
 unit SynEditPropertyReg;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
+{*****************}
+{$IFNDEF SYN_CLX}  //js 07-04-2002 changed to SYN_CLX from SYN_KYLIX
+procedure Register;
+{$ENDIF}
+
+implementation
+
 uses
+  Classes,
+{$IFDEF SYN_CLX}
+  QDialogs,
+  QForms,
+  QGraphics,
+  QControls,
+{$ELSE}
+  Dialogs,
+  Forms,
+  Graphics,
+  Controls,
+{$IFDEF SYN_COMPILER_6_UP}
+  VCLEditors,  //js 07-04-2002 don't use in clx version
+{$ENDIF}
+{$ENDIF}
 {$IFDEF SYN_COMPILER_6_UP}
   DesignIntf,
   DesignEditors,
-  {$IFDEF SYN_KYLIX}
-  ClxEditors,
-  {$ELSE}
-  VCLEditors,
-  {$ENDIF}
 {$ELSE}
   DsgnIntf,
 {$ENDIF}
-  Classes;
+  SynEditKeyCmds,
+  SynEditKeyCmdsEditor,
+  SynEdit,
+  SynEditPrint,
+  SynEditPrintMargins,
+  SynEditPrintMarginsDialog,
+  SynAutoCorrect,
+  SynAutoCorrectEditor;
 
+{**************}
+{$IFNDEF SYN_CLX}  //js 07-04-2002 changed to SYN_CLX from SYN_KYLIX
 type
   TSynEditFontProperty = class(TFontProperty)
   public
@@ -79,8 +103,8 @@ type
 
   TSynEditPrintMarginsProperty = class(TClassProperty)
   public
-    procedure Edit; override;
-    function GetAttributes: TPropertyAttributes; override;
+   	procedure Edit; override;
+   	function GetAttributes: TPropertyAttributes; override;
   end;
 
   TAutoCorrectionProperty = class(TPropertyEditor)
@@ -97,43 +121,6 @@ type
     function GetVerbCount: Integer; override;
   end;
 
-procedure Register;
-
-implementation
-
-uses
-{$IFDEF SYN_CLX}
-  QDialogs,
-  QForms,
-  QGraphics,
-  QControls,
-  QSynEditKeyCmds,
-  QSynEditKeyCmdsEditor,
-  QSynEdit,
-  QSynEditPrint,
-  QSynEditPrintMargins,
-  QSynEditPrintMarginsDialog,
-  QSynCompletionProposal,
-  QSynMacroRecorder,
-  QSynAutoCorrect,
-  QSynAutoCorrectEditor,
-{$ELSE}
-  Dialogs,
-  Forms,
-  Graphics,
-  Controls,
-  SynEditKeyCmds,
-  SynEditKeyCmdsEditor,
-  SynEdit,
-  SynEditPrint,
-  SynEditPrintMargins,
-  SynEditPrintMarginsDialog,
-  SynCompletionProposal,
-  SynMacroRecorder,
-  SynAutoCorrect,
-  SynAutoCorrectEditor,
-{$ENDIF}
-  SysUtils;
 
 { TSynEditFontProperty }
 
@@ -241,16 +228,12 @@ begin
 end;
 
 procedure TSynAutoCorrectComponentEditor.Edit;
-var
-  frmAutoCorrectEditor: TfrmAutoCorrectEditor;
 begin
   frmAutoCorrectEditor := TfrmAutoCorrectEditor.Create(Application);
-  try
-    frmAutoCorrectEditor.SynAutoCorrect := TSynAutoCorrect(Component);
-    frmAutoCorrectEditor.ShowModal;
-  finally
-    frmAutoCorrectEditor.Free;
-  end;
+  frmAutoCorrectEditor.SynAutoCorrect := TSynAutoCorrect(Component);
+  frmAutoCorrectEditor.ShowModal;
+  frmAutoCorrectEditor.Free;
+
   Designer.Modified;
 end;
 
@@ -274,17 +257,13 @@ begin
 end;
 
 procedure TAutoCorrectionProperty.Edit;
-var
-  frmAutoCorrectEditor: TfrmAutoCorrectEditor;
 begin
-  frmAutoCorrectEditor := TfrmAutoCorrectEditor.Create(Application);
-  try
-    frmAutoCorrectEditor.SynAutoCorrect := TSynAutoCorrect(GetComponent(0));
-    frmAutoCorrectEditor.ShowModal;
-  finally
-    frmAutoCorrectEditor.Free;
-  end;
-  Designer.Modified;
+   frmAutoCorrectEditor := TfrmAutoCorrectEditor.Create(Application);
+   frmAutoCorrectEditor.SynAutoCorrect := TSynAutoCorrect(GetComponent(0));
+   frmAutoCorrectEditor.ShowModal;
+   frmAutoCorrectEditor.Free;
+
+   Designer.Modified;
 end;
 
 function TAutoCorrectionProperty.GetAttributes: TPropertyAttributes;
@@ -304,24 +283,18 @@ procedure Register;
 begin
   RegisterPropertyEditor(TypeInfo(TFont), TCustomSynEdit,
      'Font', TSynEditFontProperty);
-  RegisterPropertyEditor(TypeInfo(TSynEditorCommand), TPersistent,
-     '', TSynEditCommandProperty);
-  RegisterPropertyEditor(TypeInfo(TSynEditKeystrokes), TPersistent,
-    '', TSynEditKeystrokesProperty);
-  RegisterPropertyEditor(TypeInfo(TSynEditPrintMargins), TPersistent,
-    '', TSynEditPrintMarginsProperty);
-  RegisterPropertyEditor(TypeInfo(TStrings), TSynAutoCorrect,
-    'Items', TAutoCorrectionProperty);
+  RegisterPropertyEditor(TypeInfo(TSynEditorCommand), NIL,
+     'Command', TSynEditCommandProperty);
+  RegisterPropertyEditor(TypeInfo(TSynEditKeystrokes), NIL, '',
+     TSynEditKeystrokesProperty);
+  RegisterPropertyEditor(TypeInfo(TSynEditPrintMargins), NIL, '',
+     TSynEditPrintMarginsProperty);
+  RegisterPropertyEditor(TypeInfo(TStrings), TSynAutoCorrect, 'ReplaceItems',
+     TAutoCorrectionProperty);
   RegisterComponentEditor(TSynAutoCorrect, TSynAutoCorrectComponentEditor);
-  {$IFDEF SYN_DELPHI_6_UP}
-  RegisterPropertyEditor(TypeInfo(TShortCut), TSynCompletionProposal, '',
-    TShortCutProperty);
-  RegisterPropertyEditor(TypeInfo(TShortCut), TSynAutoComplete, '',
-    TShortCutProperty);
-  RegisterPropertyEditor(TypeInfo(TShortCut), TSynMacroRecorder, '',
-    TShortCutProperty);
-  {$ENDIF}
 end;
+
+{$ENDIF}
 
 end.
 

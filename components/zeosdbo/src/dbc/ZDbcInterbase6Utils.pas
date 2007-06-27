@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{        Originally written by Sergey Merkuriev           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Merkuriev                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcInterbase6Utils;
 
@@ -59,8 +43,8 @@ interface
 
 uses
   Classes, SysUtils, ZDbcIntfs, ZDbcStatement, ZDbcConnection,
-  ZPlainInterbaseDriver, ZPlainFirebirdInterbaseConstants,ZCompatibility,
-  ZDbcCachedResultSet, ZDbcResultSetMetadata, ZDbcLogging, ZMessages, ZVariant;
+  ZPlainInterbaseDriver, ZCompatibility, ZDbcCachedResultSet,
+  ZDbcResultSetMetadata, ZDbcLogging, ZMessages, ZVariant;
 
 type
   { Interbase Statement Type }
@@ -83,8 +67,8 @@ type
     segments count, segment size in bytes and blob type
     Note: blob type can be text an binary }
   TIbBlobInfo = record
-    NumSegments: Word;
-    MaxSegmentSize: Word;
+    NumSegments: SmallInt;
+    MaxSegmentSize: SmallInt;
     BlobType: SmallInt;
     TotalSize: LongInt;
   end;
@@ -473,16 +457,14 @@ end;
 function GetCachedResultSet(SQL: string;
   Statement: IZStatement; NativeResultSet: IZResultSet): IZResultSet;
 var
-  CachedResolver: TZInterbase6CachedResolver;
   CachedResultSet: TZCachedResultSet;
 begin
   if (Statement.GetResultSetConcurrency <> rcReadOnly)
     or (Statement.GetResultSetType <> rtForwardOnly) then
   begin
-    CachedResolver  := TZInterbase6CachedResolver.Create(
-      Statement,  NativeResultSet.GetMetadata);
-    CachedResultSet := TZCachedResultSet.Create(NativeResultSet, SQL,
-      CachedResolver);
+    CachedResultSet := TZCachedResultSet.Create(NativeResultSet, SQL, nil);
+    CachedResultSet.SetResolver(TZInterbase6CachedResolver.Create(
+      Statement,  NativeResultSet.GetMetadata));
     CachedResultSet.SetConcurrency(Statement.GetResultSetConcurrency);
     Result := CachedResultSet;
   end else
@@ -1010,7 +992,7 @@ begin
   if InParamCount <> ParamSqlData.GetFieldCount then
     raise EZSQLException.Create(SInvalidInputParameterCount);
 
-  {$R-}
+  {$RANGECHECKS OFF}
   for I := 0 to ParamSqlData.GetFieldCount-1 do
   begin
     if DefVarManager.IsNull(InParamValues[I])then
@@ -1080,9 +1062,7 @@ begin
         raise EZIBConvertError.Create(SUnsupportedParameterType);
     end;
   end;
- {$IFOPT D+}
-{$R+}
-{$ENDIF}
+ {$RANGECHECKS ON}
 end;
 
 {**
@@ -1153,7 +1133,7 @@ var
 begin
   BlobHandle := nil;
   CurPos := 0;
-  //SegmentLenght := UShort(DefaultBlobSegmentSize);
+  SegmentLenght := UShort(DefaultBlobSegmentSize);
 
   { open blob }
   PlainDriver.isc_open_blob2(@StatusVector, Handle,
@@ -1164,8 +1144,6 @@ begin
   GetBlobInfo(PlainDriver, BlobHandle, BlobInfo);
   BlobSize := BlobInfo.TotalSize;
   Size := BlobSize;
-
-  SegmentLenght := BlobInfo.MaxSegmentSize; 
 
   { Allocates a blob buffer }
   Buffer := AllocMem(BlobSize);
@@ -1333,7 +1311,7 @@ var
   I: Integer;
   SqlVar: PXSQLVAR;
 begin
-  {$R-}
+  {$RANGECHECKS OFF}
   for I := 0 to FXSQLDA.sqld - 1 do
   begin
     SqlVar := @FXSQLDA.SqlVar[I];
@@ -1364,9 +1342,7 @@ begin
         SqlVar.sqlind := nil;
     end;    
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1377,7 +1353,7 @@ var
   I: Integer;
   SqlVar: PXSQLVAR;
 begin
-  {$R-}
+  {$RANGECHECKS OFF}
   for I := 0 to FXSQLDA.sqln - 1 do
   begin
     SqlVar := @FXSQLDA.SqlVar[I];
@@ -1386,9 +1362,7 @@ begin
     SqlVar.sqldata := nil;
     SqlVar.sqlind := nil;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1408,12 +1382,10 @@ end;
 function TZSQLDA.GetFieldAliasName(const Index: Word): string;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   SetString(Result, FXSQLDA.sqlvar[Index].aliasname,
     FXSQLDA.sqlvar[Index].aliasname_length);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1440,15 +1412,13 @@ end;
 }
 function TZSQLDA.GetFieldIndex(const Name: String): Word;
 begin
-  {$R-}
+  {$RANGECHECKS OFF}
   for Result := 0 to GetFieldCount - 1 do
     if FXSQLDA.sqlvar[Result].aliasname_length = Length(name) then
       if StrLIComp(@FXSQLDA.sqlvar[Result].aliasname, PChar(Name),
         FXSQLDA.sqlvar[Result].aliasname_length) = 0 then Exit;
   raise Exception.Create(Format(SFieldNotFound1, [name]));
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1458,7 +1428,7 @@ end;
 }
 function TZSQLDA.GetFieldLength(const Index: Word): SmallInt;
 begin
-  {$R-}
+  {$RANGECHECKS OFF}
   case GetIbSqlType(Index) of
     SQL_TEXT: Result := GetIbSqlLen(Index);
     SQL_VARYING: Result := GetIbSqlLen(Index);
@@ -1466,9 +1436,7 @@ begin
     else
       Result := GetIbSqlLen(Index);
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1479,11 +1447,9 @@ end;
 function TZSQLDA.GetFieldScale(const Index: Word): integer;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   Result := Abs(FXSQLDA.sqlvar[Index].sqlscale);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1549,12 +1515,10 @@ end;
 function TZSQLDA.GetFieldOwnerName(const Index: Word): string;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   SetString(Result, FXSQLDA.sqlvar[Index].OwnName,
     FXSQLDA.sqlvar[Index].OwnName_length);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}  
+  {$RANGECHECKS ON}  
 end;
 
 {**
@@ -1565,12 +1529,10 @@ end;
 function TZSQLDA.GetFieldRelationName(const Index: Word): string;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   SetString(Result, FXSQLDA.sqlvar[Index].RelName,
     FXSQLDA.sqlvar[Index].RelName_length);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}  
+  {$RANGECHECKS ON}  
 end;
 
 {**
@@ -1581,11 +1543,9 @@ end;
 function TZSQLDA.GetIbSqlLen(const Index: Word): Smallint;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   result := FXSQLDA.sqlvar[Index].sqllen;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1596,12 +1556,10 @@ end;
 function TZSQLDA.GetFieldSqlName(const Index: Word): string;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   SetString(Result, FXSQLDA.sqlvar[Index].sqlname,
     FXSQLDA.sqlvar[Index].sqlname_length);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}  
+  {$RANGECHECKS ON}  
 end;
 
 {**
@@ -1612,11 +1570,9 @@ end;
 function TZSQLDA.GetIbSqlSubType(const Index: Word): Smallint;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   result := FXSQLDA.sqlvar[Index].sqlsubtype;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1627,11 +1583,9 @@ end;
 function TZSQLDA.GetIbSqlType(const Index: Word): Smallint;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   result := FXSQLDA.sqlvar[Index].sqltype and not (1);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1651,7 +1605,7 @@ procedure TZSQLDA.SetFieldType(const Index: Word; Size: Integer; Code: Smallint;
   Scale: Smallint);
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     sqltype := Code;
@@ -1666,9 +1620,7 @@ begin
       sqldata := nil;
     end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1679,11 +1631,9 @@ end;
 function TZSQLDA.IsBlob(const Index: Word): boolean;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   result := ((FXSQLDA.sqlvar[Index].sqltype and not(1)) = SQL_BLOB);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1694,11 +1644,9 @@ end;
 function TZSQLDA.IsNullable(const Index: Word): boolean;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   Result := FXSQLDA.sqlvar[Index].sqltype and 1 = 1
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1754,7 +1702,7 @@ var
   Len: Cardinal;
 begin
   Len := Length(Str);
-  {$R-}
+  {$RANGECHECKS OFF}
    with FXSQLDA.sqlvar[Index] do
     case Code of
       SQL_TEXT :
@@ -1778,9 +1726,7 @@ begin
               PISC_VARYING(sqldata).strlen);
         end;
     end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1794,7 +1740,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(Int64), SQL_INT64 + 1, -4);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -1827,9 +1773,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1842,7 +1786,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -1875,9 +1819,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1891,7 +1833,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(Smallint), SQL_SHORT + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -1928,9 +1870,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -1968,7 +1908,7 @@ var
   TmpDate: TCTimeStructure;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     DecodeDate(Value, y, m, d);
@@ -1996,9 +1936,7 @@ begin
     end;
     if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2012,7 +1950,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(double), SQL_DOUBLE + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2045,9 +1983,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2061,7 +1997,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(Single), SQL_FLOAT + 1, 1);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2096,9 +2032,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2112,7 +2046,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(Integer), SQL_LONG + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2145,9 +2079,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2161,7 +2093,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(Int64), SQL_INT64 + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2194,9 +2126,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2207,16 +2137,14 @@ end;
 procedure TZParamsSQLDA.UpdateNull(const Index: Integer; Value: boolean);
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
     if (sqlind <> nil) then
       case Value of
         True  : sqlind^ := -1; //NULL
         False : sqlind^ :=  0; //NOT NULL
       end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2241,7 +2169,7 @@ procedure TZParamsSQLDA.UpdateQuad(const Index: Word; const Value: TISC_QUAD);
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(TISC_QUAD), SQL_QUAD + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
     if not ((sqlind <> nil) and (sqlind^ = -1)) then
     begin
@@ -2253,9 +2181,7 @@ begin
       if (sqlind <> nil) then sqlind^ := 0; // not null
     end else
       raise EZIBConvertError.Create(SUnsupportedDataType);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2269,7 +2195,7 @@ var
 begin
   CheckRange(Index);
   SetFieldType(Index, sizeof(Smallint), SQL_SHORT + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2302,9 +2228,7 @@ begin
       end;
       if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2318,7 +2242,7 @@ var
 begin
   CheckRange(Index);
 //  SetFieldType(Index, Length(Value) + 1, SQL_TEXT + 1, 0);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2331,9 +2255,7 @@ begin
     end;
     if (sqlind <> nil) then sqlind^ := 0; // not null
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2382,31 +2304,27 @@ begin
   Stream.Position := 0;
   BlobSize := Stream.Size;
   Buffer := AllocMem(BlobSize);
-  Try
-    Stream.ReadBuffer(Buffer^, BlobSize);
+  Stream.ReadBuffer(Buffer^, BlobSize);
 
-    { put data to blob }
-    CurPos := 0;
-    SegLen := DefaultBlobSegmentSize;
-    while (CurPos < BlobSize) do
-    begin
-      if (CurPos + SegLen > BlobSize) then
-        SegLen := BlobSize - CurPos;
-      if FPlainDriver.isc_put_segment(@StatusVector, @BlobHandle, SegLen,
-           PChar(@Buffer[CurPos])) > 0 then
-        CheckInterbase6Error(FPlainDriver, StatusVector);
-      Inc(CurPos, SegLen);
-    end;
-
-    { close blob handle }
-    FPlainDriver.isc_close_blob(@StatusVector, @BlobHandle);
+  { put data to blob }
+  CurPos := 0;
+  SegLen := DefaultBlobSegmentSize;
+  while (CurPos < BlobSize) do
+  begin
+    if (CurPos + SegLen > BlobSize) then
+      SegLen := BlobSize - CurPos;
+    if FPlainDriver.isc_put_segment(@StatusVector, @BlobHandle, SegLen,
+         PChar(@Buffer[CurPos])) > 0 then
     CheckInterbase6Error(FPlainDriver, StatusVector);
+    Inc(CurPos, SegLen);
+  end;
 
-    Stream.Seek(0, 0);
-    UpdateQuad(Index, BlobId);
-  Finally
-    Freemem(Buffer);
-  End;
+  { close blob handle }
+  FPlainDriver.isc_close_blob(@StatusVector, @BlobHandle);
+  CheckInterbase6Error(FPlainDriver, StatusVector);
+
+  Stream.Seek(0, 0);
+  UpdateQuad(Index, BlobId);
 end;
 
 { TResultSQLDA }
@@ -2420,16 +2338,14 @@ end;
 function TZResultSQLDA.DecodeString(const Code: Smallint;
   const Index: Word): String;
 begin
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   case Code of
     SQL_TEXT    : Result := TrimRight(BufferToStr(sqldata, sqllen));
     SQL_VARYING : SetString(Result, PISC_VARYING(sqldata).str,
                     PISC_VARYING(sqldata).strlen);
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 
@@ -2461,16 +2377,14 @@ end;
 procedure TZResultSQLDA.DecodeString2(const Code: Smallint; const Index: Word;
   out Str: string);
 begin
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   case Code of
     SQL_TEXT    : Str := TrimRight(BufferToStr(sqldata, sqllen));
     SQL_VARYING : SetString(Str, PISC_VARYING(sqldata).str,
       PISC_VARYING(sqldata).strlen);
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2483,7 +2397,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := 0;
@@ -2518,9 +2432,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
    end;   
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2533,7 +2445,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := False;
@@ -2568,9 +2480,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2613,7 +2523,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := 0;
@@ -2648,9 +2558,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2663,7 +2571,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := 0;
@@ -2698,9 +2606,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2723,7 +2629,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := 0;
@@ -2758,9 +2664,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2786,7 +2690,7 @@ var
   SQLCode: SmallInt;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := 0;
@@ -2821,9 +2725,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2837,7 +2739,7 @@ var
 begin
   CheckRange(Index);
   Result := '';
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     if (sqlind <> nil) and (sqlind^ = -1) then Exit;
@@ -2883,9 +2785,7 @@ begin
           [GetFieldAliasName(Index), GetNameSqlType(SQLCode)]));
       end;
   end;
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2908,7 +2808,7 @@ var
   TempDate: TCTimeStructure;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   begin
     Result := 0;
@@ -2935,9 +2835,7 @@ begin
           Result := Trunc(GetDouble(Index));
         end;
   end;
- {$IFOPT D+}
-{$R+}
-{$ENDIF}
+ {$RANGECHECKS ON}
 end;
 
 {**
@@ -2948,12 +2846,10 @@ end;
 function TZResultSQLDA.IsNull(const Index: Integer): Boolean;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
     Result := (sqlind <> nil) and (sqlind^ = ISC_NULL);
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}
 end;
 
 {**
@@ -2964,7 +2860,7 @@ end;
 function TZResultSQLDA.GetQuad(const Index: Integer): TISC_QUAD;
 begin
   CheckRange(Index);
-  {$R-}
+  {$RANGECHECKS OFF}
   with FXSQLDA.sqlvar[Index] do
   if not ((sqlind <> nil) and (sqlind^ = -1)) then
     case (sqltype and not(1)) of
@@ -2974,9 +2870,7 @@ begin
     end
   else
     raise EZIBConvertError.Create('Invalid State.');
-  {$IFOPT D+}
-{$R+}
-{$ENDIF}
+  {$RANGECHECKS ON}  
 end;
 
 {**

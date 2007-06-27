@@ -207,6 +207,7 @@ object optimize: Toptimize
     Caption = 'ToolBar1'
     EdgeInner = esNone
     EdgeOuter = esNone
+    Flat = True
     Images = MainForm.ImageList1
     ParentShowHint = False
     ShowHint = True

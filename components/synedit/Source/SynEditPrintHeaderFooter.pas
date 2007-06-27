@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintHeaderFooter.pas,v 1.12 2007/01/24 02:44:27 etrusco Exp $
+$Id: SynEditPrintHeaderFooter.pas,v 1.5 2002/02/11 18:41:10 harmeister Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -93,9 +93,7 @@ CONTENTS:
 
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITPRINTHEADERFOOTER}
 unit SynEditPrintHeaderFooter;
-{$ENDIF}
 {$M+}
 
 {$I SynEdit.inc}
@@ -103,19 +101,17 @@ unit SynEditPrintHeaderFooter;
 interface
 
 uses
+  Classes,
+  SysUtils,
 {$IFDEF SYN_CLX}
   Qt,
   QGraphics,
-  QSynEditPrintTypes,
-  QSynEditPrintMargins,
 {$ELSE}
   Windows,
   Graphics,
-  SynEditPrintTypes,
-  SynEditPrintMargins,
 {$ENDIF}
-  Classes,
-  SysUtils;
+  SynEditPrintTypes,
+  SynEditPrintMargins;
 
 type
   //An item in a header or footer. An item has a text,Font,LineNumber and
@@ -234,21 +230,10 @@ type
     constructor Create;
   end;
 
-  {$IFNDEF SYN_COMPILER_3_UP}
-  TFontCharSet = 0..255;
-  {$ENDIF}
-
 implementation
 
 uses
-{$IFDEF SYN_COMPILER_4_UP}
-  Math,
-{$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs;
-{$ELSE}
   SynEditMiscProcs;
-{$ENDIF}
 
 {begin}                                                                         //gp 2000-06-24
 // Helper routine for AsString processing.
@@ -292,7 +277,7 @@ begin
     IntToStr(FFont.Charset) + '/' +
 {$ENDIF}
 {$ELSE}
-    IntToStr(DEFAULT_CHARSET)+'/' +                             
+    '1/' +                              // 1 for DEFAULT_CHARSET
 {$ENDIF}
     IntToStr(FFont.Color) + '/' +
     IntToStr(FFont.Height) + '/' +
@@ -339,10 +324,7 @@ var
       Exit;
     end;
     if Macro = '$PAGECOUNT$' then begin
-      if Roman then
-        DoAppend(IntToRoman(NumPages))
-      else
-        DoAppend(IntToStr(NumPages));
+      DoAppend(IntToStr(NumPages));
       Exit;
     end;
     if Macro = '$TITLE$' then begin
@@ -447,9 +429,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FFont.Charset := aCharset;
-    {$ENDIF}
     FFont.Color   := aColor;
     FFont.Height  := aHeight;
     FFont.Name    := aName;
@@ -477,11 +457,7 @@ begin
     Write(PChar(FText)^, aLen);
     Write(FLineNumber, SizeOf(FLineNumber));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FFont.Charset;
-    {$ELSE}
-    aCharset := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FFont.Color;
     aHeight  := FFont.Height;
     aName    := FFont.Name;
@@ -493,11 +469,7 @@ begin
     Write(aHeight, SizeOf(aHeight));
     aLen := Length(aName);
     Write(aLen, SizeOf(aLen));
-    {$IFDEF SYN_COMPILER_2}           // In D2 TFontName is a ShortString
-    Write(PChar(@aName[1])^, aLen);   // D2 cannot convert ShortStrings to PChar
-    {$ELSE}
     Write(PChar(aName)^, aLen);
-    {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
     Write(aStyle, SizeOf(aStyle));
@@ -600,7 +572,7 @@ var
   i: Integer;
 begin
   for i := 0 to FItems.Count - 1 do begin
-    if THeaderFooterItem(FItems[i]).FIndex = Index then begin
+    if THeaderFooterItem(FItems[Index]).FIndex = Index then begin
       FItems.Delete(i);
       Break;
     end;
@@ -689,8 +661,6 @@ function CompareItems(Item1, Item2: Pointer): Integer;
 //Used to sort header/footer items
 begin
   Result := THeaderFooterItem(Item1).LineNumber - THeaderFooterItem(Item2).LineNumber;
-  if Result = 0 then
-    Result := Integer(Item1) - Integer(Item2);
 end;
 
 procedure THeaderFooter.SetPixPrInch(Value: Integer);
@@ -776,9 +746,7 @@ var
   i, X, Y, CurLine: Integer;
   AStr: string;
   AItem: THeaderFooterItem;
-{$IFNDEF SYN_CLX}
   OldAlign: UINT;
-{$ENDIF}
   TheAlignment: TAlignment;
 begin
   if (FFrameHeight <= 0) then Exit; //No header/footer
@@ -931,9 +899,7 @@ begin
     Read(aPitch, SizeOf(aPitch));
     Read(aSize, SizeOf(aSize));
     Read(aStyle, SizeOf(aStyle));
-    {$IFDEF SYN_COMPILER_3_UP}
     FDefaultFont.Charset := aCharset;
-    {$ENDIF}
     FDefaultFont.Color   := aColor;
     FDefaultFont.Height  := aHeight;
     FDefaultFont.Name    := aName;
@@ -971,11 +937,7 @@ begin
     Write(FRomanNumbers, SizeOf(FRomanNumbers));
     Write(FMirrorPosition, SizeOf(FMirrorPosition));
     // font
-    {$IFDEF SYN_COMPILER_3_UP}
     aCharset := FDefaultFont.Charset;
-    {$ELSE}
-    aCharSet := DEFAULT_CHARSET;
-    {$ENDIF}
     aColor   := FDefaultFont.Color;
     aHeight  := FDefaultFont.Height;
     aName    := FDefaultFont.Name;
@@ -987,11 +949,7 @@ begin
     Write(aHeight, SizeOf(aHeight));
     aLen := Length(aName);
     Write(aLen, SizeOf(aLen));
-    {$IFDEF SYN_COMPILER_2}                    // In D2 TFontName is a ShortString
-    Write(PChar(@aName[1])^, Length(aName));   // D2 cannot convert ShortStrings to PChar
-    {$ELSE}
     Write(PChar(aName)^, Length(aName));
-    {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
     Write(aStyle, SizeOf(aStyle));

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: kTextDrawer.pas,v 1.10 2004/05/02 15:50:11 maelh Exp $
+$Id: kTextDrawer.pas,v 1.4 2001/11/09 07:48:59 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -39,7 +39,6 @@ unit kTextDrawer;
 {$I SynEdit.inc}
 
 interface
-
 uses
   Types,
   Qt,
@@ -135,155 +134,155 @@ type
     property Style: TFontStyles write SetStyle;
   end;
 
-  TCaret = class(TComponent)
+  TCaret = class(TCustomControl)
   private
-    FActive: Boolean;
-    FRect: TRect;
-    FInternalShowCount: Integer;
-    FOwnerCanvas: TControlCanvas;
-    FShowCount: Integer;
-    procedure ForceInternalInvisible;
-    procedure ForceInternalVisible;
-    function GetTopLeft: TPoint;
-    procedure Paint;
-    procedure SetTopLeft(const Value: TPoint);
-    procedure InternalHide;
-    procedure InternalShow;
-    function Visible: Boolean;
+    fVisible: boolean;
+    fOffset: TPoint;
+    fPosition: TPoint;
+
+    procedure SetVisible(const Value: boolean);
+  protected
+    procedure Blink(b : boolean);
   public
-    constructor Create(AOwner: TWidgetControl; Width, Height: Integer); reintroduce;
+    constructor Create(AParent : TWidgetControl); reintroduce;
     destructor Destroy; override;
-    procedure Hide;
-    procedure Show;
-    procedure Toggle;
-    property Active: Boolean read FActive;
-    property OwnerCanvas: TControlCanvas read FOwnerCanvas;
-    property TopLeft: TPoint read GetTopLeft write SetTopLeft;
+
+    function CanFocus: Boolean; override;
+    procedure Paint; override;
+
+    property Visible  : boolean read fVisible  write SetVisible;
   end;
 
   TSynEditScrollBar = class(TScrollBar)
+  private
+    function GetVisible: boolean;
+    procedure SetVisible(Value: boolean);
+
+  protected
+    procedure InitWidget; override;
+    procedure WidgetDestroyed; override;
   public
     constructor Create(AOwner: TComponent); override;
+    function CanFocus: Boolean; override;
+    property Visible: boolean read GetVisible write SetVisible;
   end;
 
-procedure InternalFillRect(Canvas: TCanvas; rect: TRect);
-function GetSystemMetrics(Metric: Integer): Integer;
+procedure InternalFillRect(canvas : TCanvas; rect : TRect);
+function GetSystemMetrics(metric : integer):integer;
 
-procedure CreateCaret(Control: TWidgetControl; dummy, Width, Height: Integer);
-procedure SetCaretPos(X, Y: Integer);
-procedure ShowCaret(Control: TWidgetControl);
-procedure HideCaret(Control: TWidgetControl);
+procedure CreateCaret(control : TWidgetControl; dummy, cw, ch : integer);
+procedure SetCaretPos(x, y : integer);
+procedure ShowCaret(control : TWidgetControl);
+procedure HideCaret(control : TWidgetControl);
+function  FindCaret(control : TWidgetControl):TCaret;
 procedure DestroyCaret;
-procedure ScrollWindow(Control: TWidgetControl; DeltaX, DeltaY: Integer; Rect: PRect);
 
 implementation
-
 uses
 {$IFDEF SYN_KYLIX}
   libc,
-{$ENDIF}
+{$ENDIF}  
   QExtCtrls;
 
 type
   TCaretManager = class
-  private
-    fBlinkTimer: TTimer;
-    fCurrentCaret: TCaret;
+    timer : TTimer;
+    CurrentCaret : TCaret;
+    blink : boolean;
+    
     procedure HandleTimer(Sender : TObject);
-    procedure SetCurrentCaret(const Value: TCaret);
-  public
+
     constructor Create;
     destructor Destroy; override;
-    procedure ResetTimer;
-    property CurrentCaret: TCaret read fCurrentCaret write SetCurrentCaret;
   end;
 
 var
-  CaretManager: TCaretManager;
+  CaretManager : TCaretManager;
 
-function FindCaret(Control: TWidgetControl): TCaret;
+
+function  FindCaret(control : TWidgetControl):TCaret;
 var
-  i: Integer;
-begin
-  Result := nil;
+  i : integer;
 
-  for i := 0 to Control.ComponentCount - 1 do
-    if Control.Components[i] is TCaret then
-    begin
-      Result := TCaret(Control.Components[i]);
-      break;
-    end;
+begin
+  result := nil;
+
+  for i:=0 to control.ControlCount-1 do
+    if control.Controls[i] is TCaret then
+      begin
+        result := TCaret(control.Controls[i]);
+        break;
+      end;
 end;
 
-procedure CreateCaret(Control: TWidgetControl; dummy, Width, Height: Integer);
+procedure CreateCaret(control : TWidgetControl; dummy, cw, ch : integer);
 var
-  Caret: TCaret;
-begin
-  Caret := FindCaret(Control);
-  if Assigned(Caret) then
-    Caret.Free;
-  Caret := TCaret.Create(Control, Width, Height);
+  aCaret : TCaret;
 
-  CaretManager.CurrentCaret := Caret;
+begin
+  aCaret := FindCaret(control);
+
+  if aCaret = nil then
+    aCaret := TCaret.Create(control);
+
+  with aCaret do
+    begin
+      width:=cw;
+      height:=ch;
+    end;
 end;
 
 procedure DestroyCaret;
 begin
-  if CaretManager.CurrentCaret <> nil then
-  begin
-    CaretManager.CurrentCaret.Free;
-    CaretManager.CurrentCaret := nil;
-  end;
+  if CaretManager.CurrentCaret<>nil then
+    begin
+      CaretManager.CurrentCaret.Free;
+      CaretManager.CurrentCaret := nil;
+    end;
 end;
 
-procedure ScrollWindow(Control: TWidgetControl; DeltaX, DeltaY: Integer; Rect: PRect);
-var
-  Caret: TCaret;
-  NewTopLeft: TPoint;
-  CaretWasActive: Boolean;
+procedure SetCaretPos(x, y : integer);
 begin
-  Caret := FindCaret(Control);
-  CaretWasActive := False;
-  if Assigned(Caret) then
-  begin
-    CaretWasActive := Caret.Active;
-    if CaretWasActive then Caret.Hide;
-    NewTopLeft := Point(Caret.TopLeft.X + DeltaX, Caret.TopLeft.Y + DeltaY);
-    if NewTopLeft.X < Rect.Left then
-      NewTopLeft.X := -Caret.FRect.Left - 1;
-    if NewTopLeft.Y < Rect.Top then
-      NewTopLeft.Y := -Caret.FRect.Bottom - 1;
-    Caret.TopLeft := NewTopLeft;
-  end;
-  QWidget_Scroll(Control.Handle, DeltaX, DeltaY, Rect);
-  if Assigned(Caret) and CaretWasActive then Caret.Show;
+  if CaretManager.CurrentCaret<>nil then
+    begin
+      CaretManager.CurrentCaret.Top := y;
+      CaretManager.CurrentCaret.Left := x;
+    end;
 end;
 
-procedure SetCaretPos(X, Y: Integer);
+procedure ShowCaret(control : TWidgetControl);
 var
-  Caret: TCaret;
+  aCaret : TCaret;
+
 begin
-  Caret := CaretManager.CurrentCaret;
-  if Assigned(Caret) then
-    Caret.TopLeft := Point(X, Y);
+  aCaret := FindCaret(control);
+
+  if aCaret=nil then
+    aCaret:=TCaret.Create(control);
+
+  if (CaretManager.CurrentCaret<>nil) and (CaretManager.CurrentCaret<>aCaret) then
+    begin
+      CaretManager.CurrentCaret.fVisible := FALSE;
+      TCustomControl(CaretManager.CurrentCaret).Visible := FALSE;
+    end;
+
+  CaretManager.CurrentCaret := aCaret;
+  aCaret.Visible := TRUE;
+  TCustomControl(aCaret).Visible := TRUE;
 end;
 
-procedure ShowCaret(Control: TWidgetControl);
+procedure HideCaret(control : TWidgetControl);
 var
-  Caret: TCaret;
-begin
-  Caret := FindCaret(Control);
-  if Assigned(Caret) then
-    Caret.Show;
-end;
+  aCaret : TCaret;
 
-procedure HideCaret(Control: TWidgetControl);
-var
-  Caret: TCaret;
 begin
-  Caret := FindCaret(Control);
-  if Assigned(Caret) then
-    Caret.Hide;
+  aCaret := FindCaret(control);
+
+  if aCaret<>nil then
+    begin
+      aCaret.fVisible := FALSE;
+      TCustomControl(aCaret).Visible := FALSE;
+    end;
 end;
 
 procedure InternalFillRect(canvas : TCanvas; rect : TRect);
@@ -555,172 +554,122 @@ end;
 
 { TCaret }
 
-constructor TCaret.Create(AOwner: TWidgetControl; Width, Height: Integer);
+constructor TCaret.Create(AParent: TWidgetControl);
 begin
-  inherited Create(AOwner);
-  FRect.Right := Width;
-  FRect.Bottom := Height;
-  FOwnerCanvas := TControlCanvas.Create;
-  TControlCanvas(FOwnerCanvas).Control := AOwner;
+  inherited Create(AParent);
+
+  fVisible := FALSE;
+  fPosition := Point(0,0);
+  fOffset := Point(0,0);
+  inherited Visible := FALSE;
+
+  parent := AParent;
 end;
 
 destructor TCaret.Destroy;
 begin
-  if CaretManager.CurrentCaret = Self then
+  if CaretManager.CurrentCaret=self then
     CaretManager.CurrentCaret := nil;
-  FActive := False;
-  ForceInternalInvisible;
+
   inherited Destroy;
-  FOwnerCanvas.Free;
 end;
 
-procedure TCaret.ForceInternalInvisible;
+procedure TCaret.Blink(b: boolean);
 begin
-  while FInternalShowCount >= 1 do InternalHide;
+  inherited Visible := b and fVisible;
 end;
 
-procedure TCaret.ForceInternalVisible;
+procedure TCaret.SetVisible(const Value: boolean);
 begin
-  while FInternalShowCount <= 0 do InternalShow;
-end;
-
-function TCaret.GetTopLeft: TPoint;
-begin
-  Result := FRect.TopLeft;
-end;
-
-procedure TCaret.Hide;
-begin
-  dec(FShowCount);
-  if FShowCount = 0 then
-  begin
-     FActive := False;
-    ForceInternalInvisible;
-  end;
-end;
-
-procedure TCaret.InternalHide;
-begin
-  dec(FInternalShowCount);
-  if FInternalShowCount = 0 then
-    Paint;
-end;
-
-procedure TCaret.InternalShow;
-begin
-  inc(FInternalShowCount);
-  if FInternalShowCount = 1 then
-    Paint;
+  fVisible := Value;
 end;
 
 procedure TCaret.Paint;
-var
-  OldCopyMode: TCopyMode;
 begin
-  if Assigned(Owner)then
-    with OwnerCanvas do
-    begin
-      OldCopyMode := CopyMode;
-      CopyMode := cmDstInvert;
-      CopyRect(FRect, OwnerCanvas, FRect);
-      CopyMode := OldCopyMode;
-    end;
+  Canvas.Brush.Color := clYellow;
+  Canvas.Brush.Style := bsSolid;
+
+  Canvas.FillRect(rect(0,0,width,height));
 end;
 
-procedure TCaret.SetTopLeft(const Value: TPoint);
+function TCaret.CanFocus: Boolean;
 begin
-  if (FRect.Left = Value.X) and (FRect.Top = Value.Y) then exit;
-
-  if FActive then InternalHide;
-  FRect.Right := FRect.Right + (Value.X - FRect.Left);
-  FRect.Left := Value.X;
-  FRect.Bottom := FRect.Bottom + (Value.Y - FRect.Top);
-  FRect.Top := Value.Y;
-  if FActive then
-  begin
-    ForceInternalVisible;
-    CaretManager.ResetTimer;
-  end;
+  result := FALSE;
 end;
 
-procedure TCaret.Show;
-begin
-  if FShowCount < 1 then
-  begin
-    inc(FShowCount);
-    if FShowCount = 1 then
-    begin
-      FActive := True;
-      ForceInternalVisible;
-      CaretManager.ResetTimer;
-    end;
-  end;
-end;
-
-procedure TCaret.Toggle;
-begin
-  if Active then
-    if Visible then InternalHide else InternalShow;
-end;
-
-function TCaret.Visible: Boolean;
-begin
-  Result := FInternalShowCount > 0;
-end;
 
 { TFontHolder }
 
 constructor TFontHolder.Create(aFont: TFont; aStyle: TFontStyles);
 begin
-  Font := aFont;
-  Style:= aStyle;
+  font:=aFont;
+  style:=aStyle;
 end;
 
 { TCaretManager }
 
 constructor TCaretManager.Create;
 begin
-  fBlinkTimer := TTimer.Create(nil);
-  fBlinkTimer.Enabled := False;
-  fBlinkTimer.Interval := QApplication_cursorFlashTime div 2;
-  fBlinkTimer.OnTimer := HandleTimer;
+  timer := TTimer.Create(nil);
+  timer.Interval := 500;
+  timer.Enabled := TRUE;
+  timer.OnTimer := HandleTimer;
 end;
 
 destructor TCaretManager.Destroy;
 begin
-  fBlinkTimer.Free;
+  timer.Free;
+
   inherited Destroy;
 end;
 
 procedure TCaretManager.HandleTimer(Sender: TObject);
 begin
-  if Assigned(CurrentCaret) then
-    CurrentCaret.Toggle;
-end;
+  blink := not blink;
 
-procedure TCaretManager.ResetTimer;
-begin
-  fBlinkTimer.Enabled := False;
-  fBlinkTimer.Enabled := True;
-end;
-
-procedure TCaretManager.SetCurrentCaret(const Value: TCaret);
-begin
-  if fCurrentCaret <> Value then
-  begin
-    fCurrentCaret := Value;
-    fBlinkTimer.Enabled := (CurrentCaret <> nil) and CurrentCaret.Active;
-  end;
+  if CurrentCaret<>nil then
+    CurrentCaret.Blink(blink);
 end;
 
 { TSynEditScrollBar }
+// stolen from QGrids
 
 constructor TSynEditScrollBar.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  ControlStyle := ControlStyle + [csNoFocus];
-  TabStop := False;
+  Track := False;
+end;
+
+function TSynEditScrollBar.CanFocus: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TSynEditScrollBar.InitWidget;
+begin
+  inherited InitWidget;
+  QWidget_setFocusPolicy(FHandle, QWidgetFocusPolicy_NoFocus);
   Visible := False;
+end;
+
+procedure TSynEditScrollBar.WidgetDestroyed;
+begin
+  inherited WidgetDestroyed;
+end;
+
+function TSynEditScrollBar.GetVisible: boolean;
+begin
+  Result := inherited Visible;
+end;
+
+procedure TSynEditScrollBar.SetVisible(Value: boolean);
+begin
+  inherited Visible := Value;
+  if csDesigning in ComponentState then
+    if Value then
+      QWidget_show(Handle)
+    else
+      QWidget_hide(Handle);
 end;
 
 initialization

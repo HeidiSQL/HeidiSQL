@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         Abstract Database Connectivity Classes          }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcStatement;
 
@@ -118,8 +102,8 @@ type
   public
     destructor Destroy; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; virtual;
-    function ExecuteUpdate(const SQL: string): Integer; virtual;
+    function ExecuteQuery(SQL: string): IZResultSet; virtual;
+    function ExecuteUpdate(SQL: string): Integer; virtual;
     procedure Close; virtual;
 
     function GetMaxFieldSize: Integer; virtual;
@@ -130,9 +114,9 @@ type
     function GetQueryTimeout: Integer; virtual;
     procedure SetQueryTimeout(Value: Integer); virtual;
     procedure Cancel; virtual;
-    procedure SetCursorName(const Value: string); virtual;
+    procedure SetCursorName(Value: string); virtual;
 
-    function Execute(const SQL: string): Boolean; virtual;
+    function Execute(SQL: string): Boolean; virtual;
     function GetResultSet: IZResultSet; virtual;
     function GetUpdateCount: Integer; virtual;
     function GetMoreResults: Boolean; virtual;
@@ -152,7 +136,7 @@ type
     procedure SetLocateUpdates(Value: TZLocateUpdatesMode);
     function GetLocateUpdates: TZLocateUpdatesMode;
 
-    procedure AddBatch(const SQL: string); virtual;
+    procedure AddBatch(SQL: string); virtual;
     procedure ClearBatch; virtual;
     function ExecuteBatch: TIntegerDynArray; virtual;
 
@@ -172,10 +156,10 @@ type
     FInParamDefaultValues: TStringDynArray;
     FInParamCount: Integer;
   protected
-    constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; SQL: string; Info: TStrings);
     procedure SetInParamCount(NewParamCount: Integer); virtual;
     procedure SetInParam(ParameterIndex: Integer; SQLType: TZSQLType;
-      const Value: TZVariant); virtual;
+      Value: TZVariant); virtual;
 
     property SQL: string read FSQL write FSQL;
     property InParamValues: TZVariantDynArray
@@ -192,7 +176,7 @@ type
     function ExecuteUpdatePrepared: Integer; virtual;
     function ExecutePrepared: Boolean; virtual;
 
-    procedure SetDefaultValue(ParameterIndex: Integer; const Value: string);
+    procedure SetDefaultValue(ParameterIndex: Integer; Value: string);
 
     procedure SetNull(ParameterIndex: Integer; SQLType: TZSQLType); virtual;
     procedure SetBoolean(ParameterIndex: Integer; Value: Boolean); virtual;
@@ -204,10 +188,10 @@ type
     procedure SetDouble(ParameterIndex: Integer; Value: Double); virtual;
     procedure SetBigDecimal(ParameterIndex: Integer; Value: Extended); virtual;
     procedure SetPChar(ParameterIndex: Integer; Value: PChar); virtual;
-    procedure SetString(ParameterIndex: Integer; const Value: string); virtual;
+    procedure SetString(ParameterIndex: Integer; Value: string); virtual;
     procedure SetUnicodeString(ParameterIndex: Integer;
-      const Value: WideString); virtual;
-    procedure SetBytes(ParameterIndex: Integer; const Value: TByteDynArray); virtual;
+      Value: WideString); virtual;
+    procedure SetBytes(ParameterIndex: Integer; Value: TByteDynArray); virtual;
     procedure SetDate(ParameterIndex: Integer; Value: TDateTime); virtual;
     procedure SetTime(ParameterIndex: Integer; Value: TDateTime); virtual;
     procedure SetTimestamp(ParameterIndex: Integer; Value: TDateTime); virtual;
@@ -216,7 +200,7 @@ type
     procedure SetBinaryStream(ParameterIndex: Integer; Value: TStream); virtual;
     procedure SetBlob(ParameterIndex: Integer; SQLType: TZSQLType;
       Value: IZBlob); virtual;
-    procedure SetValue(ParameterIndex: Integer; const Value: TZVariant); virtual;
+    procedure SetValue(ParameterIndex: Integer; Value: TZVariant); virtual;
 
     procedure ClearParameters; virtual;
 
@@ -294,9 +278,9 @@ type
 
     procedure Close; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(SQL: string): IZResultSet; override;
+    function ExecuteUpdate(SQL: string): Integer; override;
+    function Execute(SQL: string): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -378,7 +362,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZAbstractStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZAbstractStatement.ExecuteQuery(SQL: string): IZResultSet;
 begin
   Result := nil;
   RaiseUnsupportedException;
@@ -395,7 +379,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZAbstractStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZAbstractStatement.ExecuteUpdate(SQL: string): Integer;
 begin
   Result := 0;
   RaiseUnsupportedException;
@@ -579,7 +563,7 @@ end;
 
   @param name the new cursor name, which must be unique within a connection
 }
-procedure TZAbstractStatement.SetCursorName(const Value: string);
+procedure TZAbstractStatement.SetCursorName(Value: string);
 begin
   FCursorName := Value;
 end;
@@ -607,7 +591,7 @@ end;
   @see #getUpdateCount
   @see #getMoreResults
 }
-function TZAbstractStatement.Execute(const SQL: string): Boolean;
+function TZAbstractStatement.Execute(SQL: string): Boolean;
 begin
   Result := False;
   LastResultSet := nil;
@@ -817,7 +801,7 @@ end;
   @param sql typically this is a static SQL <code>INSERT</code> or
   <code>UPDATE</code> statement
 }
-procedure TZAbstractStatement.AddBatch(const SQL: string);
+procedure TZAbstractStatement.AddBatch(SQL: string);
 begin
   FBatchQueries.Add(SQL);
 end;
@@ -912,7 +896,7 @@ end;
   @param Info a statement parameters.
 }
 constructor TZAbstractPreparedStatement.Create(Connection: IZConnection;
-  const SQL: string; Info: TStrings);
+  SQL: string; Info: TStrings);
 begin
   inherited Create(Connection, Info);
   FSQL := SQL;
@@ -957,7 +941,7 @@ end;
   @paran Value a new parameter value.
 }
 procedure TZAbstractPreparedStatement.SetInParam(ParameterIndex: Integer;
-  SQLType: TZSQLType; const Value: TZVariant);
+  SQLType: TZSQLType; Value: TZVariant);
 begin
   if ParameterIndex >= FInParamCount then
     SetInParamCount(ParameterIndex);
@@ -1003,7 +987,7 @@ end;
   @param Value the default value normally defined in the field's DML SQL statement
 }
 procedure TZAbstractPreparedStatement.SetDefaultValue(
-  ParameterIndex: Integer; const Value: string);
+  ParameterIndex: Integer; Value: string);
 begin
  if ParameterIndex >= FInParamCount then
    SetInParamCount(ParameterIndex);
@@ -1192,7 +1176,7 @@ end;
   @param x the parameter value
 }
 procedure TZAbstractPreparedStatement.SetString(ParameterIndex: Integer;
-  const Value: string);
+  Value: string);
 var
   Temp: TZVariant;
 begin
@@ -1212,7 +1196,7 @@ end;
   @param x the parameter value
 }
 procedure TZAbstractPreparedStatement.SetUnicodeString(ParameterIndex: Integer;
-  const Value: WideString);
+  Value: WideString);
 var
   Temp: TZVariant;
 begin
@@ -1230,7 +1214,7 @@ end;
   @param x the parameter value
 }
 procedure TZAbstractPreparedStatement.SetBytes(ParameterIndex: Integer;
-  const Value: TByteDynArray);
+  Value: TByteDynArray);
 var
   Temp: TZVariant;
 begin
@@ -1379,7 +1363,7 @@ end;
   @param Value the variant value.
 }
 procedure TZAbstractPreparedStatement.SetValue(ParameterIndex: Integer;
-  const Value: TZVariant);
+  Value: TZVariant);
 var
   SQLType: TZSQLType;
 begin
@@ -1956,7 +1940,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZEmulatedPreparedStatement.Execute(const SQL: string): Boolean;
+function TZEmulatedPreparedStatement.Execute(SQL: string): Boolean;
 begin
   LastStatement := GetExecStatement;
   Result := LastStatement.Execute(SQL);
@@ -1972,7 +1956,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZEmulatedPreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZEmulatedPreparedStatement.ExecuteQuery(SQL: string): IZResultSet;
 begin
   Result := GetExecStatement.ExecuteQuery(SQL);
 end;
@@ -1988,7 +1972,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZEmulatedPreparedStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZEmulatedPreparedStatement.ExecuteUpdate(SQL: string): Integer;
 begin
   Result := GetExecStatement.ExecuteUpdate(SQL);
   LastUpdateCount := Result;

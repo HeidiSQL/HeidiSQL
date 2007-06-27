@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {          Abstract Read/Write Dataset component          }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZAbstractDataset;
 
@@ -97,10 +81,6 @@ type
     FWhereMode: TZWhereMode;
     FSequence: TZSequence;
     FSequenceField: string;
-
-    FBeforeApplyUpdates: TNotifyEvent; {bangfauzan addition}
-    FAfterApplyUpdates: TNotifyEvent; {bangfauzan addition}
-
   private
     function GetUpdatesPending: Boolean;
     procedure SetUpdateObject(Value: TZUpdateSQL);
@@ -117,7 +97,9 @@ type
       default umUpdateChanged;
     property WhereMode: TZWhereMode read FWhereMode write SetWhereMode
       default wmWhereKeyOnly;
-
+    property Sequence: TZSequence read FSequence write FSequence;
+    property SequenceField: string read FSequenceField write FSequenceField;
+  protected
     procedure InternalClose; override;
     procedure InternalEdit; override;
     procedure InternalAddRecord(Buffer: Pointer; Append: Boolean); override;
@@ -126,17 +108,14 @@ type
     procedure InternalUpdate;
     procedure InternalCancel; override;
 
-    procedure DOBeforeApplyUpdates; {bangfauzan addition}
-    procedure DOAfterApplyUpdates; {bangfauzan addition}
-
-
-    function CreateStatement(const SQL: string; Properties: TStrings):
+    function CreateStatement(SQL: string; Properties: TStrings):
       IZPreparedStatement; override;
-    function CreateResultSet(const SQL: string; MaxRows: Integer):
+    function CreateResultSet(SQL: string; MaxRows: Integer):
       IZResultSet; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
 
+  protected
   {$IFDEF WITH_IPROVIDER}
     function PSUpdateRecord(UpdateKind: TUpdateKind;
       Delta: TDataSet): Boolean; override;
@@ -151,12 +130,8 @@ type
     procedure CancelUpdates;
     procedure RevertRecord;
 
-    procedure EmptyDataSet; {bangfauzan addition}
-
   public
     property UpdatesPending: Boolean read GetUpdatesPending;
-    property Sequence: TZSequence read FSequence write FSequence;
-    property SequenceField: string read FSequenceField write FSequenceField;
 
   published
     property UpdateObject: TZUpdateSQL read FUpdateObject write SetUpdateObject;
@@ -167,12 +142,6 @@ type
       write FOnApplyUpdateError;
     property OnUpdateRecord: TUpdateRecordEvent read FOnUpdateRecord
       write FOnUpdateRecord;
-
-    property BeforeApplyUpdates: TNotifyEvent read FBeforeApplyUpdates
-      write FBeforeApplyUpdates; {bangfauzan addition}
-    property AfterApplyUpdates: TNotifyEvent read FAfterApplyUpdates
-      write FAfterApplyUpdates; {bangfauzan addition}
-
 
   published
 //    property Constraints;
@@ -291,7 +260,7 @@ end;
   @returns a created DBC statement.
 }
 function TZAbstractDataset.CreateStatement(
-  const SQL: string; Properties: TStrings): IZPreparedStatement;
+  SQL: string; Properties: TStrings): IZPreparedStatement;
 var
   Temp: TStrings;
 begin
@@ -322,7 +291,7 @@ end;
   @param MaxRows a maximum rows number (-1 for all).
   @returns a created DBC resultset.
 }
-function TZAbstractDataset.CreateResultSet(const SQL: string; MaxRows: Integer):
+function TZAbstractDataset.CreateResultSet(SQL: string; MaxRows: Integer):
   IZResultSet;
 begin
   Result := inherited CreateResultSet(SQL, MaxRows);
@@ -441,16 +410,11 @@ end;
 procedure TZAbstractDataset.InternalPost;
 var
   RowBuffer: PZRowBuffer;
-  BM:TBookMarkStr;
 begin
   if (FSequenceField <> '') and Assigned(FSequence) then
   begin
     if FieldByName(FSequenceField).IsNull then
-    {$IFDEF VER130} //Delphi5 
-      FieldByName(FSequenceField).Value := Integer(FSequence.GetNextValue);
-    {$ELSE}
       FieldByName(FSequenceField).Value := FSequence.GetNextValue;
-    {$ENDIF}
   end;
 
   inherited;
@@ -463,19 +427,6 @@ begin
     if State = dsInsert then
       InternalAddRecord(RowBuffer, False)
     else InternalUpdate;
-
-    {BUG-FIX: bangfauzan addition}
-    if (SortedFields<>'') then begin
-      FreeFieldBuffers;
-      SetState(dsBrowse);
-      Resync([]);
-      BM:=Bookmark;
-      DisableControls;
-      InternalSort;
-      BookMark:=BM;
-      EnableControls;
-    end;
-    {end of bangfauzan addition}
   finally
     Connection.HideSqlHourGlass;
   end;
@@ -567,16 +518,11 @@ begin
   try
     if State in [dsEdit, dsInsert] then Post;
 
-    DoBeforeApplyUpdates; {bangfauzan addition}
-
     if CachedResultSet <> nil then
       CachedResultSet.PostUpdates;
 
     if not (State in [dsInactive]) then
       Resync([]);
-
-  DOAfterApplyUpdates; {bangfauzan addition}
-
   finally
     Connection.HideSqlHourGlass;
   end;
@@ -815,34 +761,5 @@ begin
 end;
 
 {$ENDIF}
-
-{============================bangfauzan addition===================}
-
-procedure TZAbstractDataset.DOBeforeApplyUpdates;
-begin
-  if assigned(BeforeApplyUpdates) then
-    FBeforeApplyUpdates(Self);
-end;
-
-procedure TZAbstractDataset.DOAfterApplyUpdates;
-begin
-  if assigned(AfterApplyUpdates) then
-    FAfterApplyUpdates(Self);
-end;
-
-procedure TZAbstractDataset.EmptyDataSet;
-begin
-  if Active then
-  begin
-    Self.CancelUpdates;
-    Self.CurrentRows.Clear;
-    Self.CurrentRow:=0;
-    Resync([]);
-    InitRecord(ActiveBuffer);
-  end;
-end;
-
-{========================end of bangfauzan addition================}
-
 
 end.

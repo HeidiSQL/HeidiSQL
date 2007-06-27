@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKbdHandler.pas,v 1.10 2004/01/04 21:49:04 etrusco Exp $
+$Id: SynEditKbdHandler.pas,v 1.4 2002/06/05 10:23:00 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -35,9 +35,7 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITKBDHANDLER}
 unit SynEditKbdHandler;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
@@ -45,18 +43,15 @@ interface
 
 uses
 {$IFDEF SYN_CLX}
-  Types,
   QGraphics,
   QControls,
   QForms,
-  QSynEditTypes,
 {$ELSE}
   Windows,
   Messages,
   Graphics,
   Controls,
   Forms,
-  SynEditTypes,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -64,142 +59,151 @@ uses
 type
   { This class provides a TWinControl-Object which supports only the
     needed Methods }
+{$IFDEF SYN_CLX}
+  TKeyboardControl = class (TWidgetControl)
+{$ELSE}
   TKeyboardControl = class (TWinControl)
+{$ENDIF}
     public
       property OnKeyDown;
       property OnKeyPress;
-      property OnMouseDown;
+
   end;
 
-  TMouseCursorEvent =  procedure(Sender: TObject; const aLineCharPos: TBufferCoord;
-    var aCursor: TCursor) of object;
 
-  TMethodList = class
-  private
-    fData: TList;
-    function GetItem(aIndex: integer): TMethod;
-    function GetCount: integer;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure Add(aHandler: TMethod);
-    procedure Remove(aHandler: TMethod);
-    property Items[aIndex: integer]: TMethod read GetItem; default;
-    property Count: integer read GetCount;
+  TKeyDownProc = class (TObject)
+
+    private
+      fKeyDownProc : TKeyEvent;
+
+    public
+      constructor Create (aKeyDownProc : TKeyEvent);
+
+      property OnKeyDown : TKeyEvent read fKeyDownProc write fKeyDownProc;
   end;
+
+
+  TKeyPressProc = class (TObject)
+
+    private
+      fKeyPressProc : TKeyPressEvent;
+
+    public
+      constructor Create (aKeyPressProc : TKeyPressEvent);
+
+      property OnKeyPress : TKeyPressEvent read fKeyPressProc write fKeyPressProc;
+  end;
+
 
   TSynEditKbdHandler = class (TObject)
+
     private
-      fKeyPressChain   : TMethodList;
-      fKeyDownChain    : TMethodList;
-      fKeyUpChain      : TMethodList;
-      fMouseDownChain  : TMethodList;
-      fMouseUpChain    : TMethodList;
-      fMouseCursorChain: TMethodList;
-      { avoid infinite recursiveness }
-      fInKeyPress      : Boolean;
-      fInKeyDown       : Boolean;
-      fInKeyUp         : Boolean;
-      fInMouseDown     : Boolean;
-      fInMouseUp       : Boolean;
-      fInMouseCursor   : Boolean;
+      fControl       : TKeyboardControl;
+      fKeyPressChain : TList;
+      fOldKeyPress   : TKeyPressEvent;
+      fInKeyPress    : Boolean;
+      fKeyDownChain  : TList;
+      fOldKeyDown    : TKeyEvent;
+      fInKeyDown     : Boolean;
+
+      procedure SetOnKeyPress (const Value: TKeyPressEvent);
+      procedure SetOnKeyDown (const Value: TKeyEvent);
+
+    protected
+      procedure EditorKeyPress (Sender: TObject; var Key: Char);
+      procedure EditorKeyDown (Sender: TObject; var Key: Word; Shift: TShiftState);
+
     public
-      constructor Create;
+    {$IFDEF SYN_CLX}
+      constructor Create (aControl : TWidgetControl);
+    {$ELSE}
+      constructor Create (aControl : TWinControl);
+    {$ENDIF}
       destructor Destroy; override;
 
       procedure ExecuteKeyPress (Sender: TObject; var Key: Char);
       procedure ExecuteKeyDown (Sender: TObject; var Key: Word; Shift: TShiftState);
-      procedure ExecuteKeyUp (Sender: TObject; var Key: Word; Shift: TShiftState);
-      procedure ExecuteMouseDown(Sender: TObject; Button: TMouseButton;
-        Shift: TShiftState; X, Y: Integer);
-      procedure ExecuteMouseUp(Sender: TObject; Button: TMouseButton;
-        Shift: TShiftState; X, Y: Integer);
-      procedure ExecuteMouseCursor(Sender: TObject; const aLineCharPos: TBufferCoord;
-        var aCursor: TCursor);
 
-      procedure AddKeyDownHandler (aHandler : TKeyEvent);
-      procedure RemoveKeyDownHandler (aHandler : TKeyEvent);
-      procedure AddKeyUpHandler (aHandler : TKeyEvent);
-      procedure RemoveKeyUpHandler (aHandler : TKeyEvent);
-      procedure AddKeyPressHandler (aHandler : TKeyPressEvent);
-      procedure RemoveKeyPressHandler (aHandler : TKeyPressEvent);
-      procedure AddMouseDownHandler(aHandler: TMouseEvent);
-      procedure RemoveMouseDownHandler(aHandler: TMouseEvent);
-      procedure AddMouseUpHandler(aHandler: TMouseEvent);
-      procedure RemoveMouseUpHandler(aHandler: TMouseEvent);
-      procedure AddMouseCursorHandler(aHandler: TMouseCursorEvent);
-      procedure RemoveMouseCursorHandler(aHandler: TMouseCursorEvent);
+      procedure AddKeyDownHandler (aHandler : TKeyDownProc);
+      procedure RemoveKeyDownHandler (aHandler : TKeyDownProc);
+      procedure AddKeyPressHandler (aHandler : TKeyPressProc);
+      procedure RemoveKeyPressHandler (aHandler : TKeyPressProc);
+
+      property  OnKeyPress : TKeyPressEvent read fOldKeyPress write SetOnKeyPress;
+      property  OnKeyDown  : TKeyEvent      read fOldKeyDown  write SetOnKeyDown;
+
   end;
 
 
 implementation
 
+{ TKeyDownProc }
+
+constructor TKeyDownProc.Create (aKeyDownProc : TKeyEvent);
+  begin
+    inherited Create;
+    fKeyDownProc := aKeyDownProc;
+  end;
+
+
+{ TKeyPressProc }
+
+constructor TKeyPressProc.Create (aKeyPressProc : TKeyPressEvent);
+  begin
+    inherited Create;
+    fKeyPressProc := aKeyPressProc;
+  end;
+
+
 { TSynEditKbdHandler }
 
-procedure TSynEditKbdHandler.AddKeyDownHandler(aHandler: TKeyEvent);
-begin
-  fKeyDownChain.Add( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.AddKeyUpHandler(aHandler: TKeyEvent);
-begin
-  fKeyUpChain.Add( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.AddKeyPressHandler(aHandler: TKeyPressEvent);
-begin
-  fKeyPressChain.Add( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.AddMouseDownHandler(aHandler: TMouseEvent);
-begin
-  fMouseDownChain.Add( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.AddMouseUpHandler(aHandler: TMouseEvent);
-begin
-  fMouseUpChain.Add( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.AddMouseCursorHandler(aHandler: TMouseCursorEvent);
-begin
-  fMouseCursorChain.Add( TMethod(aHandler) );
-end;
-
-constructor TSynEditKbdHandler.Create;
+{$IFDEF SYN_CLX}
+constructor TSynEditKbdHandler.Create (aControl : TWidgetControl);
+{$ELSE}
+constructor TSynEditKbdHandler.Create (aControl : TWinControl);
+{$ENDIF}
   begin
-    { Elements to handle KeyDown-Events }
-    fKeyDownChain := TMethodList.Create;
+    { Generic Pointer to the control which needs a handler chain }
+    fControl := TKeyboardControl (aControl);
 
-    { Elements to handle KeyUp-Events }
-    fKeyUpChain := TMethodList.Create;
+    { Elements to handle KeyDown-Events }
+    fInKeyDown := false;
+    fKeyDownChain := TList.Create;
+    fOldKeyDown := fControl.OnKeyDown;
+    fControl.OnKeyDown := EditorKeyDown;
 
     { Elements to handle KeyPress-Events }
-    fKeyPressChain := TMethodList.Create;
-
-    { Elements to handle MouseDown Events }
-    fMouseDownChain := TMethodList.Create;
-
-    { Elements to handle MouseUp Events }
-    fMouseUpChain := TMethodList.Create;
-
-    { Elements to handle MouseCursor Events }
-    fMouseCursorChain := TMethodList.Create;
+    fInKeyPress := false;
+    fKeyPressChain := TList.Create;
+    fOldKeyPress := fControl.OnKeyPress;
+    fControl.OnKeyPress := EditorKeyPress;
   end;
 
 destructor TSynEditKbdHandler.Destroy;
   begin
+    { Reset the control which created the handler chain }
+    fControl.OnKeyDown  := fOldKeyDown;
+    fControl.OnKeyPress := fOldKeyPress;
+
     fKeyPressChain.Free;
     fKeyDownChain.Free;
-    fKeyUpChain.Free;
-    fMouseDownChain.Free;
-    fMouseUpChain.Free;
-    fMouseCursorChain.Free;
 
     inherited Destroy;
   end;
 
-procedure TSynEditKbdHandler.ExecuteKeyDown (Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TSynEditKbdHandler.SetOnKeyDown (const Value: TKeyEvent);
+  begin
+    fOldKeyDown := Value;
+    fControl.OnKeyDown := EditorKeyDown;
+  end;
+
+procedure TSynEditKbdHandler.SetOnKeyPress(const Value: TKeyPressEvent);
+  begin
+    fOldKeyPress := Value;
+    fControl.OnKeyPress := EditorKeyPress;
+  end;
+
+procedure TSynEditKbdHandler.EditorKeyDown (Sender: TObject; var Key: Word; Shift: TShiftState);
   var
     idx : Integer;
   begin
@@ -209,41 +213,24 @@ procedure TSynEditKbdHandler.ExecuteKeyDown (Sender: TObject; var Key: Word; Shi
     try
       with fKeyDownChain do begin
         for idx := Count - 1 downto 0 do begin
-          TKeyEvent(Items[idx])(Sender,Key,Shift);
-          if (Key = 0) then begin
-            fInKeyDown := false;
-            exit;
-          end;
+          with TKeyDownProc (Items[idx]) do
+            if Assigned (OnKeyDown) then begin
+              OnKeyDown (Sender,Key,Shift);
+              if (Key = 0) then begin
+                fInKeyDown := false;
+                exit;
+              end;
+           end;
         end;
       end;
+      if Assigned (fOldKeyDown) then
+        fOldKeyDown (Sender,Key,Shift);
     finally
       fInKeyDown := false;
     end;
   end;
 
-procedure TSynEditKbdHandler.ExecuteKeyUp (Sender: TObject; var Key: Word; Shift: TShiftState);
-  var
-    idx : Integer;
-  begin
-    if fInKeyUp then
-      exit;
-    fInKeyUp := true;
-    try
-      with fKeyUpChain do begin
-        for idx := Count - 1 downto 0 do begin
-          TKeyEvent(Items[idx])(Sender,Key,Shift);
-          if (Key = 0) then begin
-            fInKeyUp := false;
-            exit;
-          end;
-        end;
-      end;
-    finally
-      fInKeyUp := false;
-    end;
-  end;
-
-procedure TSynEditKbdHandler.ExecuteKeyPress (Sender: TObject; var Key: Char);
+procedure TSynEditKbdHandler.EditorKeyPress (Sender: TObject; var Key: Char);
   var
     idx : Integer;
   begin
@@ -253,141 +240,51 @@ procedure TSynEditKbdHandler.ExecuteKeyPress (Sender: TObject; var Key: Char);
     try
       with fKeyPressChain do begin
         for idx := Count - 1 downto 0 do begin
-          TKeyPressEvent(Items[idx])(Sender,Key);
-          if (Key = #0) then begin
-            fInKeyPress := false;
-            exit;
-          end;
+          with TKeyPressProc (Items[idx]) do
+            if Assigned (OnKeyPress) then begin
+              OnKeyPress (Sender,Key);
+              if (Key = #0) then begin
+                fInKeyPress := false;
+                exit;
+              end;
+            end;
         end;
       end;
+      if Assigned (fOldKeyPress) then
+        fOldKeyPress (Sender,Key);
     finally
       fInKeyPress := false;
     end;
   end;
 
-procedure TSynEditKbdHandler.ExecuteMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  cHandler: Integer;
-begin
-  if fInMouseDown then
-    Exit;
-  fInMouseDown := True;
-  try
-    for cHandler := fMouseDownChain.Count - 1 downto 0 do
-      TMouseEvent(fMouseDownChain[cHandler])( Sender, Button, Shift, X, Y );
-  finally
-    fInMouseDown := False;
-  end;
-end;
-
-procedure TSynEditKbdHandler.ExecuteMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  cHandler: Integer;
-begin
-  if fInMouseUp then
-    Exit;
-  fInMouseUp := True;
-  try
-    for cHandler := fMouseUpChain.Count - 1 downto 0 do
-      TMouseEvent(fMouseUpChain[cHandler])( Sender, Button, Shift, X, Y );
-  finally
-    fInMouseUp := False;
-  end;
-end;
-
-procedure TSynEditKbdHandler.ExecuteMouseCursor(Sender: TObject;
-  const aLineCharPos: TBufferCoord; var aCursor: TCursor);
-var
-  cHandler: Integer;
-begin
-  if fInMouseCursor then
-    Exit;
-  fInMouseCursor := True;
-  try
-    for cHandler := fMouseCursorChain.Count - 1 downto 0 do
-      TMouseCursorEvent(fMouseCursorChain[cHandler])(Sender, aLineCharPos, aCursor);
-  finally
-    fInMouseCursor := False;
-  end;
-end;
-
-procedure TSynEditKbdHandler.RemoveKeyDownHandler(aHandler: TKeyEvent);
-begin
-  fKeyDownChain.Remove( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.RemoveKeyUpHandler(aHandler: TKeyEvent);
-begin
-  fKeyUpChain.Remove( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.RemoveKeyPressHandler(aHandler: TKeyPressEvent);
-begin
-  fKeyPressChain.Remove( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.RemoveMouseDownHandler(aHandler: TMouseEvent);
-begin
-  fMouseDownChain.Remove( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.RemoveMouseUpHandler(aHandler: TMouseEvent);
-begin
-  fMouseUpChain.Remove( TMethod(aHandler) );
-end;
-
-procedure TSynEditKbdHandler.RemoveMouseCursorHandler(aHandler: TMouseCursorEvent);
-begin
-  fMouseCursorChain.Remove( TMethod(aHandler) );
-end;
-
-{ TMethodList }
-
-procedure TMethodList.Add(aHandler: TMethod);
-begin
-  fData.Add( aHandler.Data );
-  fData.Add( aHandler.Code );
-end;
-
-constructor TMethodList.Create;
-begin
-  fData := TList.Create;
-end;
-
-destructor TMethodList.Destroy;
-begin
-  fData.Free;
-end;
-
-function TMethodList.GetCount: integer;
-begin
-  Result := fData.Count div 2;
-end;
-
-function TMethodList.GetItem(aIndex: integer): TMethod;
-begin
-  aIndex := aIndex * 2;
-  Result.Data := fData[aIndex];
-  Result.Code := fData[aIndex+1];
-end;
-
-procedure TMethodList.Remove(aHandler: TMethod);
-var
-  cPos: integer;
-begin
-  cPos := fData.Count -2;
-  while cPos >= 0 do
+procedure TSynEditKbdHandler.ExecuteKeyPress (Sender: TObject; var Key: Char);
   begin
-    if (fData.List[cPos] = aHandler.Data) and (fData.List[cPos +1] = aHandler.Code) then
-    begin
-      fData.Delete( cPos );
-      fData.Delete( cPos );
-      Exit;
-    end;
-    Dec( cPos, 2 );
+    EditorKeyPress (Sender,Key);
   end;
+
+procedure TSynEditKbdHandler.ExecuteKeyDown (Sender: TObject; var Key: Word; Shift: TShiftState);
+  begin
+    EditorKeyDown (Sender,Key,Shift);
+  end;
+
+procedure TSynEditKbdHandler.AddKeyDownHandler(aHandler: TKeyDownProc);
+begin
+  fKeyDownChain.Add(aHandler);
+end;
+
+procedure TSynEditKbdHandler.RemoveKeyDownHandler(aHandler: TKeyDownProc);
+begin
+  fKeyDownChain.Remove(aHandler);
+end;
+
+procedure TSynEditKbdHandler.AddKeyPressHandler(aHandler: TKeyPressProc);
+begin
+  fKeyPressChain.Add(aHandler);
+end;
+
+procedure TSynEditKbdHandler.RemoveKeyPressHandler(aHandler: TKeyPressProc);
+begin
+  fKeyPressChain.Remove(aHandler);
 end;
 
 end.

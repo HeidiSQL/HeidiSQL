@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{        Originally written by Sergey Merkuriev           }
+{    Copyright (c) 1999-2003 Zeos Development Group       }
+{            Written by Sergey Merkuriev                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,39 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
-
+{*********************************************************}
 unit ZDbcASA;
 
 interface
@@ -58,8 +41,7 @@ interface
 {$I ZDbc.inc}
 
 uses
-  ZCompatibility, {$IFNDEF VER130BELOW}Types,{$ENDIF}
-  Classes, Contnrs, SysUtils, ZDbcIntfs,
+  ZCompatibility, Types, Classes, Contnrs, SysUtils, ZDbcIntfs,
   ZDbcConnection, ZPlainASADriver, ZSysUtils, ZTokenizer,
   ZDbcGenericResolver, ZGenericSqlAnalyser;
 
@@ -71,10 +53,10 @@ type
     FASA8PlainDriver: IZASA8PlainDriver;
     FASA9PlainDriver: IZASA9PlainDriver;
   protected
-    function GetPlainDriver(const Url: string): IZASAPlainDriver;
+    function GetPlainDriver(Url: string): IZASAPlainDriver;
   public
     constructor Create;
-    function Connect(const Url: string; Info: TStrings): IZConnection; override;
+    function Connect(Url: string; Info: TStrings): IZConnection; override;
 
     function GetSupportedProtocols: TStringDynArray; override;
     function GetMajorVersion: Integer; override;
@@ -100,10 +82,10 @@ type
   private
     procedure StartTransaction; virtual;
   public
-    constructor Create(Driver: IZDriver; const Url: string;
+    constructor Create(Driver: IZDriver; Url: string;
       PlainDriver: IZASAPlainDriver;
-      const HostName: string; Port: Integer; const Database: string;
-      const User: string; const Password: string; Info: TStrings);
+      HostName: string; Port: Integer; Database: string;
+      User: string; Password: string; Info: TStrings);
     destructor Destroy; override;
 
     function GetDBHandle: PZASASQLCA;
@@ -111,15 +93,15 @@ type
 //    procedure CreateNewDatabase(SQL: String);
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(SQL: string; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(SQL: string; Info: TStrings):
       IZCallableStatement; override;
 
     procedure Commit; override;
     procedure Rollback; override;
-    procedure SetOption(Temporary: Integer; User: PChar; const Option: string;
-      const Value: string);
+    procedure SetOption( Temporary: Integer; User: PChar; Option: String;
+      Value: String);
 
     procedure Open; override;
     procedure Close; override;
@@ -167,7 +149,7 @@ uses
   @return a <code>Connection</code> object that represents a
     connection to the URL
 }
-function TZASADriver.Connect(const Url: string; Info: TStrings): IZConnection;
+function TZASADriver.Connect(Url: string; Info: TStrings): IZConnection;
 var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
@@ -241,7 +223,7 @@ end;
   @param Url a database connection URL.
   @return a selected protocol.
 }
-function TZASADriver.GetPlainDriver(const Url: string): IZASAPlainDriver;
+function TZASADriver.GetPlainDriver(Url: string): IZASAPlainDriver;
 var
   Protocol: string;
 begin
@@ -333,9 +315,9 @@ end;
   @param Password a user password.
   @param Info a string list with extra connection parameters.
 }
-constructor TZASAConnection.Create(Driver: IZDriver; const Url: string;
-  PlainDriver: IZASAPlainDriver; const HostName: string; Port: Integer;
-  const Database, User, Password: string; Info: TStrings);
+constructor TZASAConnection.Create(Driver: IZDriver; Url: string;
+  PlainDriver: IZASAPlainDriver; HostName: string; Port: Integer;
+  Database, User, Password: string; Info: TStrings);
 begin
   inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
     TZASADatabaseMetadata.Create(Self, Url, Info));
@@ -369,7 +351,7 @@ end;
   @return a new CallableStatement object containing the
     pre-compiled SQL statement
 }
-function TZASAConnection.CreateCallableStatement(const SQL: string;
+function TZASAConnection.CreateCallableStatement(SQL: string;
   Info: TStrings): IZCallableStatement;
 begin
   if IsClosed then Open;
@@ -403,7 +385,7 @@ end;
   @return a new PreparedStatement object containing the
     pre-compiled statement
 }
-function TZASAConnection.CreatePreparedStatement(const SQL: string;
+function TZASAConnection.CreatePreparedStatement(SQL: string;
   Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
@@ -465,7 +447,7 @@ end;
 }
 procedure TZASAConnection.Open;
 var
-//  i: integer;
+  i: integer;
   ConnectionString: string;
 begin
   if not Closed then Exit;
@@ -548,12 +530,12 @@ begin
   end;
 end;
 
-procedure TZASAConnection.SetOption(Temporary: Integer; User: PChar;
-  const Option: string; const Value: string);
+procedure TZASAConnection.SetOption( Temporary: Integer; User: PChar;
+  Option: String; Value: String);
 var
   SQLDA: PASASQLDA;
   Sz: Integer;
-  S: string;
+  S: String;
 begin
   if Assigned( FHandle) then
   begin

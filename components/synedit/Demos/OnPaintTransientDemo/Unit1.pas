@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   SynEditHighlighter, SynHighlighterPython, SynEditPythonBehaviour, SynEdit,
-  SynHighlighterJava, StdCtrls, ExtCtrls, SynEditTypes;
+  SynHighlighterJava, StdCtrls, ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -22,8 +22,6 @@ type
     procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
-    FBracketFG: TColor;
-    FBracketBG: TColor;
   public
     { Public declarations }
   end;
@@ -37,100 +35,71 @@ implementation
 
 procedure TForm1.EditorPaintTransient(Sender: TObject; Canvas: TCanvas;
   TransientType: TTransientType);
-const AllBrackets = ['{','[','(','<','}',']',')','>'];
-var Editor: TSynEdit;
-    OpenChars: array[0..2] of Char;
-    CloseChars: array[0..2] of Char;
 
-  function CharToPixels(P: TBufferCoord): TPoint;
+const
+  BracketSet = ['{','[','(','}',']',')'];
+  OpenChars:array[0..2] of Char=('{','[','(');
+  CloseChars:array[0..2] of Char=('}',']',')');
+
+  function CharToPixels(P: TPoint): TPoint;
   begin
-    Result:=Editor.RowColumnToPixels(Editor.BufferToDisplayPos(P));
+    Result:=P;
+    Result:=Editor.RowColumnToPixels(Result);
+    Result.Y:=Result.Y-1;
   end;
 
-var P: TBufferCoord;
-    Pix: TPoint;
-    D     : TDisplayCoord;
+var P, Pix: TPoint;
+    D     : TPoint;
     S: String;
     I: Integer;
     Attri: TSynHighlighterAttributes;
-    start: Integer;
-    TmpCharA, TmpCharB: Char;
 begin
-  if TSynEdit(Sender).SelAvail then exit;
-  Editor := TSynEdit(Sender);
-//if you had a highlighter that used a markup language, like html or xml, then you would want to highlight
-//the greater and less than signs as well as illustrated below
-
-//  if (Editor.Highlighter = shHTML) or (Editor.Highlighter = shXML) then
-//    inc(ArrayLength);
-
-  for i := 0 to 2 do
-    case i of
-      0: begin OpenChars[i] := '('; CloseChars[i] := ')'; end;
-      1: begin OpenChars[i] := '{'; CloseChars[i] := '}'; end;
-      2: begin OpenChars[i] := '['; CloseChars[i] := ']'; end;
-      3: begin OpenChars[i] := '<'; CloseChars[i] := '>'; end;
-    end;
-
   P := Editor.CaretXY;
   D := Editor.DisplayXY;
 
-  Start := Editor.SelStart;
-
-  if (Start > 0) and (Start <= length(Editor.Text)) then
-    TmpCharA := Editor.Text[Start]
-  else TmpCharA := #0;
-
-  if (Start < length(Editor.Text)) then
-    TmpCharB := Editor.Text[Start + 1]
-  else TmpCharB := #0;
-
-  if not(TmpCharA in AllBrackets) and not(TmpCharB in AllBrackets) then exit;
-  S := TmpCharB;
-  if not(TmpCharB in AllBrackets) then
-  begin
-    P.Char := P.Char - 1;
-    S := TmpCharA;
-  end;
   Editor.GetHighlighterAttriAtRowCol(P, S, Attri);
 
-  if (Editor.Highlighter.SymbolAttribute = Attri) then
+{ //If you want to be able to highlight on either side of the bracket, uncomment
+  //this block of text
+
+  //Check to see if we need to go back a char;
+  if (s = '') or
+     ((length(s) > 0) and not(S[1] in BracketSet)) then
   begin
-    for i := low(OpenChars) to High(OpenChars) do
+    P.X := P.x - 1;
+    if P.X <=0 then exit;
+    Editor.GetHighlighterAttriAtRowCol(P, S, Attri);
+  end;
+}
+  if (Editor.CaretX<=length(Editor.LineText) + 1) and
+     (Editor.Highlighter.SymbolAttribute = Attri) then
+  begin
+    for i := 0 to 2 do
     begin
       if (S = OpenChars[i]) or (S = CloseChars[i]) then
       begin
-        Pix := CharToPixels(P);
-
-        Editor.Canvas.Brush.Style := bsSolid;//Clear;
+        Pix := CharToPixels(D);
+        Editor.Canvas.Brush.Style := bsClear;
         Editor.Canvas.Font.Assign(Editor.Font);
         Editor.Canvas.Font.Style := Attri.Style;
 
         if (TransientType = ttAfter) then
-        begin
-          Editor.Canvas.Font.Color := FBracketFG;
-          Editor.Canvas.Brush.Color := FBracketBG;
-        end else begin
-          Editor.Canvas.Font.Color := Attri.Foreground;
-          Editor.Canvas.Brush.Color := Attri.Background;
+          Editor.Canvas.Font.Color:=clRed
+        else begin
+          if Attri.Foreground <> clNone then
+            Editor.Canvas.Font.Color:=Attri.Foreground
+          else Editor.Canvas.Font.Color:= Editor.Font.Color;
         end;
-        if Editor.Canvas.Font.Color = clNone then
-          Editor.Canvas.Font.Color := Editor.Font.Color;
-        if Editor.Canvas.Brush.Color = clNone then
-          Editor.Canvas.Brush.Color := Editor.Color;
 
         Editor.Canvas.TextOut(Pix.X, Pix.Y, S);
-        P := Editor.GetMatchingBracketEx(P);
+        P := Editor.GetMatchingBracketEx(P, True);
 
-        if (P.Char > 0) and (P.Line > 0) then
+        if (P.X > 0) and (P.Y > 0) then
         begin
           Pix := CharToPixels(P);
-          if Pix.X > Editor.Gutter.Width then
-          begin
-            if S = OpenChars[i] then
-              Editor.Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
-            else Editor.Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
-          end;
+          if S = OpenChars[i] then
+            Editor.Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
+          else Editor.Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
         end;
       end; //if
     end;//for i :=
@@ -147,8 +116,6 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   Editor.Text := SynJavaSyn1.SampleSource;
-  FBracketFG := clRed;
-  FBracketBG := clNone;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);

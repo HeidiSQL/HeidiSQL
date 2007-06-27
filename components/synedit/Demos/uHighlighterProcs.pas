@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: uHighlighterProcs.pas,v 1.3 2002/06/15 06:57:24 etrusco Exp $
+$Id: uHighlighterProcs.pas,v 1.2 2000/11/22 08:34:13 mghie Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -34,6 +34,8 @@ Known Issues:
 -------------------------------------------------------------------------------}
 
 unit uHighlighterProcs;
+
+{$I SynEdit.inc}
 
 interface
 

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmds.pas,v 1.26 2007/01/23 07:19:38 etrusco Exp $
+$Id: SynEditKeyCmds.pas,v 1.14 2002/04/08 21:40:21 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -35,21 +35,19 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNEDITKEYCMDS}
 unit SynEditKeyCmds;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  Classes,
 {$IFDEF SYN_CLX}
   QMenus,
 {$ELSE}
   Menus,
 {$ENDIF}
-  Classes,
   SysUtils;
 
 const
@@ -118,7 +116,6 @@ const
   ecSelEditorBottom = ecEditorBottom + ecSelection;
   ecSelGotoXY       = ecGotoXY + ecSelection;  // Data = PPoint
 
-	ecSelWord         = 198;
   ecSelectAll       = 199;  // Select entire contents of editor, cursor to end
 
   ecCopy            = 201;  // Copy selection to clipboard
@@ -137,7 +134,6 @@ const
   ecLineSelect      = 233;  // Line selection mode
 
   ecMatchBracket    = 250;  // Go to matching bracket
-  ecCommentBlock    = 251;  // Comment Block
 
   ecGotoMarker0     = 301;  // Goto marker
   ecGotoMarker1     = 302;  // Goto marker
@@ -159,9 +155,6 @@ const
   ecSetMarker7      = 358;  // Set marker, Data = PPoint - X, Y Pos
   ecSetMarker8      = 359;  // Set marker, Data = PPoint - X, Y Pos
   ecSetMarker9      = 360;  // Set marker, Data = PPoint - X, Y Pos
-
-  ecGotFocus        = 480;
-  ecLostFocus       = 481;
 
   ecContextHelp     = 490;  // Help on Word, Data = Word
 
@@ -191,15 +184,15 @@ const
 
   ecAutoCompletion  = 650;
 
-  ecUpperCase       = 620; // apply to the current or previous word
+  ecUpperCase       = 620;
   ecLowerCase       = 621;
   ecToggleCase      = 622;
   ecTitleCase       = 623;
-  ecUpperCaseBlock  = 625; // apply to current selection, or current char if no selection
-  ecLowerCaseBlock  = 626;
-  ecToggleCaseBlock = 627;
 
   ecString          = 630;  //Insert a whole string
+
+  ecGotFocus        = 700;
+  ecLostFocus       = 701;
 
   ecUserFirst       = 1001; // Start of user-defined commands
 
@@ -259,8 +252,6 @@ type
   public
     constructor Create(AOwner: TPersistent);
     function Add: TSynEditKeyStroke;
-    procedure AddKey(const ACmd: TSynEditorCommand; const AKey: word;
-       const AShift: TShiftState);
     procedure Assign(Source: TPersistent); override;
     function FindCommand(Cmd: TSynEditorCommand): integer;
     function FindKeycode(Code: word; SS: TShiftState): integer;
@@ -297,13 +288,10 @@ uses
   kTextDrawer,
   Types,
   Qt,
-  QSynEditKeyConst,
-  QSynEditStrConst;
 {$ELSE}
   Windows,
-  SynEditKeyConst,
-  SynEditStrConst;
 {$ENDIF}
+  SynEditStrConst;
 
 { Command mapping routines }
 
@@ -317,7 +305,7 @@ type
 {$ENDIF}
 
 const
-  EditorCommandStrs: array[0..100] of TIdentMapEntry = (
+  EditorCommandStrs: array[0..95] of TIdentMapEntry = (
     (Value: ecNone; Name: 'ecNone'),
     (Value: ecLeft; Name: 'ecLeft'),
     (Value: ecRight; Name: 'ecRight'),
@@ -353,7 +341,6 @@ const
     (Value: ecSelEditorTop; Name: 'ecSelEditorTop'),
     (Value: ecSelEditorBottom; Name: 'ecSelEditorBottom'),
     (Value: ecSelGotoXY; Name: 'ecSelGotoXY'),
-    (Value: ecSelWord; Name: 'ecSelWord'),
     (Value: ecSelectAll; Name: 'ecSelectAll'),
     (Value: ecDeleteLastChar; Name: 'ecDeleteLastChar'),
     (Value: ecDeleteChar; Name: 'ecDeleteChar'),
@@ -384,7 +371,6 @@ const
     (Value: ecTab; Name: 'ecTab'),
     (Value: ecShiftTab; Name: 'ecShiftTab'),
     (Value: ecMatchBracket; Name: 'ecMatchBracket'),
-    (Value: ecCommentBlock; Name: 'ecCommentBlock'),
     (Value: ecNormalSelect; Name: 'ecNormalSelect'),
     (Value: ecColumnSelect; Name: 'ecColumnSelect'),
     (Value: ecLineSelect; Name: 'ecLineSelect'),
@@ -415,10 +401,8 @@ const
     (Value: ecLowerCase; Name: 'ecLowerCase'),
     (Value: ecToggleCase; Name: 'ecToggleCase'),
     (Value: ecTitleCase; Name: 'ecTitleCase'),
-    (Value: ecUpperCaseBlock; Name: 'ecUpperCaseBlock'),
-    (Value: ecLowerCaseBlock; Name: 'ecLowerCaseBlock'),
-    (Value: ecToggleCaseBlock; Name: 'ecToggleCaseBlock'),
     (Value: ecString; Name:'ecString'));
+
 
 procedure GetEditorCommandValues(Proc: TGetStrProc);
 var
@@ -551,8 +535,8 @@ begin
   if Value <> 0 then
   begin
     // Check for duplicate shortcut in the collection and disallow if there is.
-    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Value, ShortCut2);
-    if (Dup <> -1) and (Collection.Items[Dup] <> Self) then
+    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Value, Key2);
+    if (Dup <> -1) and (Dup <> Self.Index) then
       begin
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
       end;
@@ -593,8 +577,8 @@ begin
   if Value <> 0 then
   begin
     // Check for duplicate shortcut in the collection and disallow if there is.
-    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(ShortCut, Value);
-    if (Dup <> -1) and (Collection.Items[Dup] <> Self) then
+    Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Key, Value);
+    if (Dup <> -1) and (Dup <> Self.Index) then
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
   end;
 
@@ -648,22 +632,6 @@ end;
 function TSynEditKeyStrokes.Add: TSynEditKeyStroke;
 begin
   Result := TSynEditKeyStroke(inherited Add);
-end;
-
-procedure TSynEditKeyStrokes.AddKey(const ACmd: TSynEditorCommand; const AKey: word;
-  const AShift: TShiftState);
-var
-  NewKeystroke: TSynEditKeyStroke;
-begin
-  NewKeystroke := Add;
-  try
-    NewKeystroke.Key := AKey;
-    NewKeystroke.Shift := AShift;
-    NewKeystroke.Command := ACmd;
-  except
-    NewKeystroke.Free;
-    raise;
-  end;
 end;
 
 procedure TSynEditKeyStrokes.Assign(Source: TPersistent);
@@ -783,55 +751,112 @@ end;
 {end}                                                                           //ac 2000-07-05
 
 procedure TSynEditKeyStrokes.ResetDefaults;
+
+  procedure AddKey(const ACmd: TSynEditorCommand; const AKey: word;
+     const AShift: TShiftState);
+  begin
+    with Add do
+    begin
+      Key := AKey;
+      Shift := AShift;
+      Command := ACmd;
+    end;
+  end;
+
 begin
   Clear;
 
-  AddKey(ecUp, SYNEDIT_UP, []);
-  AddKey(ecSelUp, SYNEDIT_UP, [ssShift]);
-  AddKey(ecScrollUp, SYNEDIT_UP, [ssCtrl]);
-  AddKey(ecDown, SYNEDIT_DOWN, []);
-  AddKey(ecSelDown, SYNEDIT_DOWN, [ssShift]);
-  AddKey(ecScrollDown, SYNEDIT_DOWN, [ssCtrl]);
-  AddKey(ecLeft, SYNEDIT_LEFT, []);
-  AddKey(ecSelLeft, SYNEDIT_LEFT, [ssShift]);
-  AddKey(ecWordLeft, SYNEDIT_LEFT, [ssCtrl]);
-  AddKey(ecSelWordLeft, SYNEDIT_LEFT, [ssShift,ssCtrl]);
-  AddKey(ecRight, SYNEDIT_RIGHT, []);
-  AddKey(ecSelRight, SYNEDIT_RIGHT, [ssShift]);
-  AddKey(ecWordRight, SYNEDIT_RIGHT, [ssCtrl]);
-  AddKey(ecSelWordRight, SYNEDIT_RIGHT, [ssShift,ssCtrl]);
-  AddKey(ecPageDown, SYNEDIT_NEXT, []);
-  AddKey(ecSelPageDown, SYNEDIT_NEXT, [ssShift]);
-  AddKey(ecPageBottom, SYNEDIT_NEXT, [ssCtrl]);
-  AddKey(ecSelPageBottom, SYNEDIT_NEXT, [ssShift,ssCtrl]);
-  AddKey(ecPageUp, SYNEDIT_PRIOR, []);
-  AddKey(ecSelPageUp, SYNEDIT_PRIOR, [ssShift]);
-  AddKey(ecPageTop, SYNEDIT_PRIOR, [ssCtrl]);
-  AddKey(ecSelPageTop, SYNEDIT_PRIOR, [ssShift,ssCtrl]);
-  AddKey(ecLineStart, SYNEDIT_HOME, []);
-  AddKey(ecSelLineStart, SYNEDIT_HOME, [ssShift]);
-  AddKey(ecEditorTop, SYNEDIT_HOME, [ssCtrl]);
-  AddKey(ecSelEditorTop, SYNEDIT_HOME, [ssShift,ssCtrl]);
-  AddKey(ecLineEnd, SYNEDIT_END, []);
-  AddKey(ecSelLineEnd, SYNEDIT_END, [ssShift]);
-  AddKey(ecEditorBottom, SYNEDIT_END, [ssCtrl]);
-  AddKey(ecSelEditorBottom, SYNEDIT_END, [ssShift,ssCtrl]);
-  AddKey(ecToggleMode, SYNEDIT_INSERT, []);
-  AddKey(ecCopy, SYNEDIT_INSERT, [ssCtrl]);
-  AddKey(ecCut, SYNEDIT_DELETE, [ssShift]);
-  AddKey(ecPaste, SYNEDIT_INSERT, [ssShift]);
-  AddKey(ecDeleteChar, SYNEDIT_DELETE, []);
-  AddKey(ecDeleteLastChar, SYNEDIT_BACK, []);
-  AddKey(ecDeleteLastChar, SYNEDIT_BACK, [ssShift]);
-  AddKey(ecDeleteLastWord, SYNEDIT_BACK, [ssCtrl]);
-  AddKey(ecUndo, SYNEDIT_BACK, [ssAlt]);
-  AddKey(ecRedo, SYNEDIT_BACK, [ssAlt,ssShift]);
-  AddKey(ecLineBreak, SYNEDIT_RETURN, []);
-  AddKey(ecLineBreak, SYNEDIT_RETURN, [ssShift]);
-  AddKey(ecTab, SYNEDIT_TAB, []);
-  AddKey(ecShiftTab, SYNEDIT_TAB, [ssShift]);
-  AddKey(ecContextHelp, SYNEDIT_F1, []);
-
+{$IFDEF SYN_CLX}
+  AddKey(ecUp, Key_UP, []);
+  AddKey(ecSelUp, Key_UP, [ssShift]);
+  AddKey(ecScrollUp, Key_UP, [ssCtrl]);
+  AddKey(ecDown, Key_DOWN, []);
+  AddKey(ecSelDown, Key_DOWN, [ssShift]);
+  AddKey(ecScrollDown, Key_DOWN, [ssCtrl]);
+  AddKey(ecLeft, Key_LEFT, []);
+  AddKey(ecSelLeft, Key_LEFT, [ssShift]);
+  AddKey(ecWordLeft, Key_LEFT, [ssCtrl]);
+  AddKey(ecSelWordLeft, Key_LEFT, [ssShift,ssCtrl]);
+  AddKey(ecRight, Key_RIGHT, []);
+  AddKey(ecSelRight, Key_RIGHT, [ssShift]);
+  AddKey(ecWordRight, Key_RIGHT, [ssCtrl]);
+  AddKey(ecSelWordRight, Key_RIGHT, [ssShift,ssCtrl]);
+  AddKey(ecPageDown, Key_NEXT, []);
+  AddKey(ecSelPageDown, Key_NEXT, [ssShift]);
+  AddKey(ecPageBottom, Key_NEXT, [ssCtrl]);
+  AddKey(ecSelPageBottom, Key_NEXT, [ssShift,ssCtrl]);
+  AddKey(ecPageUp, Key_PRIOR, []);
+  AddKey(ecSelPageUp, Key_PRIOR, [ssShift]);
+  AddKey(ecPageTop, Key_PRIOR, [ssCtrl]);
+  AddKey(ecSelPageTop, Key_PRIOR, [ssShift,ssCtrl]);
+  AddKey(ecLineStart, Key_HOME, []);
+  AddKey(ecSelLineStart, Key_HOME, [ssShift]);
+  AddKey(ecEditorTop, Key_HOME, [ssCtrl]);
+  AddKey(ecSelEditorTop, Key_HOME, [ssShift,ssCtrl]);
+  AddKey(ecLineEnd, Key_END, []);
+  AddKey(ecSelLineEnd, Key_END, [ssShift]);
+  AddKey(ecEditorBottom, Key_END, [ssCtrl]);
+  AddKey(ecSelEditorBottom, Key_END, [ssShift,ssCtrl]);
+  AddKey(ecToggleMode, Key_INSERT, []);
+  AddKey(ecCopy, Key_INSERT, [ssCtrl]);
+  AddKey(ecPaste, Key_INSERT, [ssShift]);
+  AddKey(ecDeleteChar, Key_DELETE, []);
+  AddKey(ecCut, Key_DELETE, [ssShift]);
+  AddKey(ecDeleteLastChar, Key_BACKSpace, []);
+  AddKey(ecDeleteLastWord, Key_BACKSpace, [ssCtrl]);
+  AddKey(ecUndo, Key_BACKSpace, [ssAlt]);
+  AddKey(ecRedo, Key_BACKSpace, [ssAlt,ssShift]);
+  AddKey(ecLineBreak, Key_RETURN, []);
+//js:this is already defined after endif::  AddKey(ecInsertLine, ord('N'), [ssCtrl]);
+  AddKey(ecTab, Key_TAB, []);
+  AddKey(ecShiftTab, Key_TAB, [ssShift]);
+{$ELSE}
+  AddKey(ecUp, VK_UP, []);
+  AddKey(ecSelUp, VK_UP, [ssShift]);
+  AddKey(ecScrollUp, VK_UP, [ssCtrl]);
+  AddKey(ecDown, VK_DOWN, []);
+  AddKey(ecSelDown, VK_DOWN, [ssShift]);
+  AddKey(ecScrollDown, VK_DOWN, [ssCtrl]);
+  AddKey(ecLeft, VK_LEFT, []);
+  AddKey(ecSelLeft, VK_LEFT, [ssShift]);
+  AddKey(ecWordLeft, VK_LEFT, [ssCtrl]);
+  AddKey(ecSelWordLeft, VK_LEFT, [ssShift,ssCtrl]);
+  AddKey(ecRight, VK_RIGHT, []);
+  AddKey(ecSelRight, VK_RIGHT, [ssShift]);
+  AddKey(ecWordRight, VK_RIGHT, [ssCtrl]);
+  AddKey(ecSelWordRight, VK_RIGHT, [ssShift,ssCtrl]);
+  AddKey(ecPageDown, VK_NEXT, []);
+  AddKey(ecSelPageDown, VK_NEXT, [ssShift]);
+  AddKey(ecPageBottom, VK_NEXT, [ssCtrl]);
+  AddKey(ecSelPageBottom, VK_NEXT, [ssShift,ssCtrl]);
+  AddKey(ecPageUp, VK_PRIOR, []);
+  AddKey(ecSelPageUp, VK_PRIOR, [ssShift]);
+  AddKey(ecPageTop, VK_PRIOR, [ssCtrl]);
+  AddKey(ecSelPageTop, VK_PRIOR, [ssShift,ssCtrl]);
+  AddKey(ecLineStart, VK_HOME, []);
+  AddKey(ecSelLineStart, VK_HOME, [ssShift]);
+  AddKey(ecEditorTop, VK_HOME, [ssCtrl]);
+  AddKey(ecSelEditorTop, VK_HOME, [ssShift,ssCtrl]);
+  AddKey(ecLineEnd, VK_END, []);
+  AddKey(ecSelLineEnd, VK_END, [ssShift]);
+  AddKey(ecEditorBottom, VK_END, [ssCtrl]);
+  AddKey(ecSelEditorBottom, VK_END, [ssShift,ssCtrl]);
+  AddKey(ecToggleMode, VK_INSERT, []);
+  AddKey(ecCopy, VK_INSERT, [ssCtrl]);
+  AddKey(ecCut, VK_DELETE, [ssShift]);
+  AddKey(ecPaste, VK_INSERT, [ssShift]);
+  AddKey(ecDeleteChar, VK_DELETE, []);
+  AddKey(ecDeleteLastChar, VK_BACK, []);
+  AddKey(ecDeleteLastChar, VK_BACK, [ssShift]);                                 //jr 2000-09-23
+  AddKey(ecDeleteLastWord, VK_BACK, [ssCtrl]);
+  AddKey(ecUndo, VK_BACK, [ssAlt]);
+  AddKey(ecRedo, VK_BACK, [ssAlt,ssShift]);
+  AddKey(ecLineBreak, VK_RETURN, []);
+  AddKey(ecLineBreak, VK_RETURN, [ssShift]);                                    //jr 2001-07-24
+  AddKey(ecTab, VK_TAB, []);
+  AddKey(ecShiftTab, VK_TAB, [ssShift]);
+  AddKey(ecContextHelp, VK_F1, [ssCtrl]);                                       // jj 2001-07-19
+{$ENDIF}
   AddKey(ecSelectAll, ord('A'), [ssCtrl]);
   AddKey(ecCopy, ord('C'), [ssCtrl]);
   AddKey(ecPaste, ord('V'), [ssCtrl]);
@@ -939,16 +964,12 @@ begin
 
   WorkStr := AString;
 
-  i := pos('Select All', WorkStr);
-  if i = 0 then
+  i := pos('Select ', WorkStr);
+  while i <> 0 do
   begin
+    Delete(WorkStr,i,Length('Select '));
+    Insert('Sel ',WorkStr,i);
     i := pos('Select ', WorkStr);
-    while i <> 0 do
-    begin
-      Delete(WorkStr,i,Length('Select '));
-      Insert('Sel ',WorkStr,i);
-      i := pos('Select ', WorkStr);
-    end;
   end;
 
   i := pos('Bookmark ', WorkStr);

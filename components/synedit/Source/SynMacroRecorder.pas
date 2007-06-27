@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynMacroRecorder.pas,v 1.31 2004/08/31 04:50:26 etrusco Exp $
+$Id: SynMacroRecorder.pas,v 1.14 2002/04/08 08:38:14 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -34,15 +34,16 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNMACRORECORDER}
 unit SynMacroRecorder;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  Classes,
+  SynEdit,
+  SynEditKeyCmds,  //js 06-04-2002 got consts out here and qconsts in
 {$IFDEF SYN_CLX}
   QConsts,
   QStdCtrls,
@@ -51,10 +52,6 @@ uses
   Types,
   QGraphics,
   QMenus,
-  QSynEdit,
-  QSynEditKeyCmds,
-  QSynEditPlugins,
-  QSynEditTypes,
 {$ELSE}
   StdCtrls,
   Controls,
@@ -62,20 +59,16 @@ uses
   Messages,
   Graphics,
   Menus,
-  SynEdit,
-  SynEditKeyCmds,
-  SynEditPlugins,
-  SynEditTypes,
 {$ENDIF}
-  Classes;
+  SynEditPlugins;
 
 {$IFDEF SYN_COMPILER_3_UP}
 resourcestring
 {$ELSE}
 const
 {$ENDIF}
-  sCannotRecord = 'Cannot record macro; already recording or playing';
-  sCannotPlay = 'Cannot playback macro; already playing or recording';
+  sCannotRecord = 'Cannot record macro when recording';
+  sCannotPlay = 'Cannot playback macro when recording';
   sCannotPause = 'Can only pause when recording';
   sCannotResume = 'Can only resume when paused';
 
@@ -148,7 +141,7 @@ type
 
   TSynPositionEvent = class(TSynBasicEvent)
   protected
-    fPosition: TBufferCoord;
+    fPosition: TPoint;
     function GetAsString : string; override;
     procedure InitEventParameters(aStr : string); override;
   public
@@ -158,7 +151,7 @@ type
     procedure SaveToStream(aStream: TStream); override;
     procedure Playback(aEditor: TCustomSynEdit); override;
   public
-    property Position: TBufferCoord read fPosition write fPosition;
+    property Position: TPoint read fPosition write fPosition;
   end;
 
   TSynDataEvent = class(TSynBasicEvent)
@@ -177,21 +170,12 @@ type
   TSynUserCommandEvent = procedure (aSender: TCustomSynMacroRecorder;
     aCmd: TSynEditorCommand; var aEvent: TSynMacroEvent) of object;
 
-  { TCustomSynMacroRecorder
-  OnStateChange:
-    occurs right after start playing, recording, pausing or stopping
-  SaveMarkerPos:
-    if true, Bookmark position is recorded in the macro. Otherwise, the Bookmark
-    is created in the position the Caret is at the time of playback.
-  }
-
   TCustomSynMacroRecorder = class(TAbstractSynHookerPlugin)
   private
     fShortCuts: array [TSynMacroCommand] of TShortCut;
     fOnStateChange: TNotifyEvent;
     fOnUserCommand: TSynUserCommandEvent;
     fMacroName: string;
-    fSaveMarkerPos: boolean;
     function GetEvent(aIndex: integer): TSynMacroEvent;
     function GetEventCount: integer;
     function GetAsString: string;
@@ -244,10 +228,9 @@ type
       read fShortCuts[mcRecord] write SetShortCut;
     property PlaybackShortCut: TShortCut index Ord(mcPlayback)
       read fShortCuts[mcPlayback] write SetShortCut;
-    property SaveMarkerPos: boolean read fSaveMarkerPos
-      write fSaveMarkerPos default False;
     property AsString : string read GetAsString write SetAsString;
     property MacroName : string read fMacroName write fMacroName;
+    { occurs when changing recorder state }
     property OnStateChange: TNotifyEvent read fOnStateChange write fOnStateChange;
     property OnUserCommand: TSynUserCommandEvent read fOnUserCommand
       write fOnUserCommand;
@@ -255,7 +238,6 @@ type
 
   TSynMacroRecorder = class(TCustomSynMacroRecorder)
   published
-    property SaveMarkerPos;
     property RecordShortCut;
     property PlaybackShortCut;
     property OnStateChange;
@@ -265,13 +247,13 @@ type
 implementation
 
 uses
+  SynEditMiscProcs,
+  SynEditTypes,
 {$IFDEF SYN_CLX}
   QForms,
-  QSynEditMiscProcs,
 {$ELSE}
   Forms,
-  SynEditMiscProcs,
-{$IFDEF SYN_COMPILER_6_UP}
+{$IFDEF SYN_DELPHI_6_UP}
   RTLConsts,
 {$ENDIF}
 {$ENDIF}
@@ -344,7 +326,7 @@ begin
   fMacroName := 'unnamed';
   fCommandIDs[mcRecord] := NewPluginCommand;
   fCommandIDs[mcPlayback] := NewPluginCommand;
-  {$IFDEF SYN_CLX}
+  {$IFDEF SYN_CLX}  //js 06-04-2002 not only for linux, should also use qmenus when in clx for windows
   fShortCuts[mcRecord] := QMenus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
   fShortCuts[mcPlayback] := QMenus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
   {$ELSE}
@@ -388,6 +370,10 @@ procedure TCustomSynMacroRecorder.DeleteEvent(aIndex: integer);
 var
   iObj: Pointer;
 begin
+  {$IFDEF MSWINDOWS}
+  if fEvents = nil then
+    TList.Error( sListIndexError, aIndex );
+  {$ENDIF}
   iObj := fEvents[ aIndex ];
   fEvents.Delete( aIndex );
   TObject( iObj ).Free;
@@ -498,16 +484,12 @@ var
 begin
   if AfterProcessing then
   begin
-    if (Sender = fCurrentEditor) and (State = msRecording) and (not Handled) then
-    begin
+    if fCurrentEditor <> Sender then
+      Exit;
+    if (State = msRecording) and (not Handled) then begin
       iEvent := CreateMacroEvent( Command );
       iEvent.Initialize( Command, aChar, Data );
       fEvents.Add( iEvent );
-      if SaveMarkerPos and (Command >= ecSetMarker0) and
-        (Command <= ecSetMarker9) and (Data = nil) then
-      begin
-        TSynPositionEvent(iEvent).Position := fCurrentEditor.CaretXY;
-      end;
     end;
   end
   else begin
@@ -565,17 +547,10 @@ begin
   try
     StateChanged;
     for cEvent := 0 to EventCount -1 do
-    begin
       Events[ cEvent ].Playback( aEditor );
-      if State <> msPlaying then
-        break;
-    end;
   finally
-    if State = msPlaying then
-    begin
-      fState := msStopped;
-      StateChanged;
-    end;
+    fState := msStopped;
+    StateChanged;
   end;
 end;
 
@@ -692,7 +667,7 @@ begin
       p := Pos(' ', cmdStr);
       if p = 0 then p := Length(cmdStr)+1;
       Cmd := ecNone;
-      if IdentToEditorCommand(Copy(cmdStr, 1, p-1), Longint(Cmd)) then  // D2 needs type-cast
+      if IdentToEditorCommand(Copy(cmdStr, 1, p-1), Cmd) then
       begin
         Delete(cmdStr, 1, p);
         iEvent := CreateMacroEvent(Cmd);
@@ -838,7 +813,7 @@ function TSynPositionEvent.GetAsString: string;
 begin
   Result := inherited GetAsString;
   // add position data here
-  Result := Result + Format(' (%d, %d)', [Position.Char, Position.Line]);
+  Result := Result + Format(' (%d, %d)', [Position.x, Position.y]);
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
@@ -864,7 +839,7 @@ begin
     c := Pos(')', aStr);
     valStr := Copy(aStr, 1, c-1);
     y := StrToIntDef(valStr, 1);
-    Position := BufferCoord(x, y);
+    Position := Point(x, y);
     Delete(aStr, 1, c);
     aStr := Trim(aStr);
     RepeatCount := StrToIntDef(aStr, 1);
@@ -876,9 +851,7 @@ procedure TSynPositionEvent.Initialize(aCmd: TSynEditorCommand;
 begin
   inherited;
   if aData <> nil then
-    Position := TBufferCoord( aData^ )
-  else
-    Position := BufferCoord(0, 0);
+    Position := PPoint( aData )^;
 end;
 
 procedure TSynPositionEvent.LoadFromStream(aStream: TStream);
@@ -888,10 +861,7 @@ end;
 
 procedure TSynPositionEvent.Playback(aEditor: TCustomSynEdit);
 begin
-  if (Position.Char <> 0) or (Position.Line <> 0) then
-    aEditor.CommandProcessor( Command, #0, @Position )
-  else
-    aEditor.CommandProcessor( Command, #0, nil );
+  aEditor.CommandProcessor( Command, #0, @Position );
 end;
 
 procedure TSynPositionEvent.SaveToStream(aStream: TStream);
@@ -902,28 +872,11 @@ end;
 
 { TSynStringEvent }
 
-{$IFNDEF SYN_COMPILER_3_UP}
-function QuotedStr(const S: string; QuoteChar: Char): string;
-var
-  i: Integer;
-begin
-  Result := S;
-  for i := Length(Result) downto 1 do
-    if Result[i] = QuoteChar then
-      Insert(QuoteChar, Result, i);
-  Result := QuoteChar + Result + QuoteChar;
-end;
-{$ENDIF}
-
 function TSynStringEvent.GetAsString: string;
 begin
   Result := '';
   EditorCommandToIdent(ecString, Result);
-  {$IFDEF SYN_COMPILER_3_UP}
   Result := Result + ' ' + AnsiQuotedStr(Value, #39);
-  {$ELSE}
-  Result := Result + ' ' + QuotedStr(Value, #39);
-  {$ENDIF}
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
@@ -956,7 +909,7 @@ begin
   aStream.Read(l, SizeOf(l));
   GetMem(Buff, l);
   try
-  {$IFNDEF SYN_CLX}
+  {$IFNDEF SYN_CLX} //js 07-04-2002 changed from IFDEF WINDOWS
     FillMemory(Buff, l, 0);
   {$ENDIF}
     aStream.Read(Buff^, l);
@@ -993,7 +946,7 @@ begin
   aStream.Write(l, sizeof(l));
   GetMem(Buff, l);
   try
-  {$IFNDEF SYN_CLX}
+  {$IFNDEF SYN_CLX} //js 07-04-2002 changed from IFDEF WINDOWS
     FillMemory(Buff, l, 0);
   {$ENDIF}
     StrPCopy(Buff, Value);
@@ -1003,6 +956,8 @@ begin
   end;
   aStream.Write( RepeatCount, SizeOf(RepeatCount) );
 end;
+
+
 
 { TSynMacroEvent }
 

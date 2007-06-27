@@ -1,12 +1,9 @@
 program heidisql;
 
 {%ToDo 'heidisql.todo'}
-{%File '..\..\const.inc'}
 
 uses
   Forms,
-  SysUtils,
-  Dialogs,
   MAIN in '..\..\MAIN.PAS' {MainForm},
   childwin in '..\..\childwin.pas' {MDIChild},
   about in '..\..\about.pas' {AboutBox},
@@ -24,56 +21,38 @@ uses
   printlist in '..\..\printlist.pas' {printlistForm},
   copytable in '..\..\copytable.pas' {CopyTableForm},
   edituser in '..\..\edituser.pas' {FormEditUser},
+  mysqlerror in '..\..\mysqlerror.pas' {FormError},
   insertfiles in '..\..\insertfiles.pas' {frmInsertFiles},
   insertfiles_progress in '..\..\insertfiles_progress.pas' {frmInsertFilesProgress},
-  helpers in '..\..\helpers.pas',
-  synchronization in '..\..\synchronization.pas',
-  communication in '..\..\communication.pas',
-  threading in '..\..\threading.pas',
-  sqlhelp in '..\..\sqlhelp.pas' {frmSQLhelp},
-  queryprogress in '..\..\queryprogress.pas' {frmQueryProgress},
-  MysqlQuery in '..\..\MysqlQuery.pas',
-  MysqlQueryThread in '..\..\MysqlQueryThread.pas',
-  MysqlConn in '..\..\MysqlConn.pas',
-  mysql in '..\..\mysql.pas',
-  column_selection in '..\..\column_selection.pas' {ColumnSelectionForm};
+  helpers in '..\..\helpers.pas';
 
 {$R *.RES}
 
 begin
-  debug('perf: All modules loaded.');
+//  AboutBox := TAboutBox.Create(Application);
+//  AboutBox.show;
+//  AboutBox.Update;
+
   Application.Initialize;
-  Application.Title := APPNAME;
-  Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
-
-  Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
-  Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
-  Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');
-  Application.CreateForm(Tloaddataform, loaddataform); debug('perf: loaddata created.');
-  Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
-  Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
-  Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
-  Application.CreateForm(TfrmSQLhelp, frmSQLhelp); debug('perf: frmSQLhelp created.');
-
-
-  try
-    try
-      InitializeSync(MainForm.Handle);
-      SetWindowName(main.discname);
-      InitializeThreading(MainForm.Handle);
-      InitializeComm(
-        MainForm.Handle,
-        MainForm.ExecuteRemoteNonQuery,
-        MainForm.ExecuteRemoteQuery
-      );
-      debug('perf: Running.');
-      Application.Run;
-    finally
-      DeInitializeSync;
-    end;
-  except
-    on e: Exception do begin
-      ShowMessage(e.ClassName + ': ' + e.Message);
-    end;
-  end;
+  Application.Title := 'HeidiSQL';
+  Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TAboutBox, AboutBox);
+  Application.CreateForm(Tconnform, connform);
+  Application.CreateForm(TCreateTableForm, CreateTableForm);
+  Application.CreateForm(TFieldEditForm, FieldEditForm);
+  Application.CreateForm(TExportSQLForm, ExportSQLForm);
+  Application.CreateForm(Ttbl_properties_form, tbl_properties_form);
+  Application.CreateForm(Ttablecomment, tablecomment);
+  Application.CreateForm(Tloaddataform, loaddataform);
+  Application.CreateForm(TUserManagerForm, UserManagerForm);
+  Application.CreateForm(Toptionsform, optionsform);
+  Application.CreateForm(TSelectFromManyDatabases, SelectFromManyDatabases);
+  Application.CreateForm(Toptimize, optimize);
+  Application.CreateForm(TprintlistForm, printlistForm);
+  Application.CreateForm(TCopyTableForm, CopyTableForm);
+  Application.CreateForm(TFormEditUser, FormEditUser);
+  Application.CreateForm(TFormError, FormError);
+  Application.CreateForm(TfrmInsertFiles, frmInsertFiles);
+  Application.CreateForm(TfrmInsertFilesProgress, frmInsertFilesProgress);
+  Application.Run;
  end.

@@ -1,108 +1,471 @@
-{$IFNDEF QSYNREGEXPR}
+{$B-}
 unit SynRegExpr;
-{$ENDIF}
 
-{
-     TRegExpr class library
-     Delphi Regular Expressions
+// SynEdit note: The name had to be changed to get SynEdit to install
+//   together with mwEdit into the same Delphi installation
 
- Copyright (c) 1999-2004 Andrey V. Sorokin, St.Petersburg, Russia
+(*
+     TRegExpr library
+     Regular Expressions for Delphi
 
- You may use this software in any kind of development,
- including comercial, redistribute, and modify it freely,
- under the following restrictions :
- 1. This software is provided as it is, without any kind of
-    warranty given. Use it at Your own risk.The author is not
-    responsible for any consequences of use of this software.
- 2. The origin of this software may not be mispresented, You
-    must not claim that You wrote the original software. If
-    You use this software in any kind of product, it would be
-    appreciated that there in a information box, or in the
-    documentation would be an acknowledgement like
+     Author:
+     Andrey V. Sorokin
+     St-Petersburg
+     Russia
+     anso@mail.ru, anso@usa.net
+     http://anso.da.ru
+     http://anso.virtualave.net
 
-     Partial Copyright (c) 2004 Andrey V. Sorokin
-                                http://RegExpStudio.com
-                                mailto:anso@mail.ru
+This library is derived from Henry Spencer sources.
+I translated the C sources into Object Pascal,
+implemented object wrapper and some new features.
+Many features suggested or partially implemented
+by TRegExpr's users (see Gratitude below).
 
- 3. You may not have any income from distributing this source
-    (or altered version of it) to other developers. When You
-    use this product in a comercial package, the source may
-    not be charged seperatly.
- 4. Altered versions must be plainly marked as such, and must
-    not be misrepresented as being the original software.
- 5. RegExp Studio application and all the visual components as 
-    well as documentation is not part of the TRegExpr library 
-    and is not free for usage.
+---------------------------------------------------------------
+     Legal issues
+---------------------------------------------------------------
+ Copyright (c) 1999-00 by Andrey V. Sorokin <anso@mail.ru>
 
-                                    mailto:anso@mail.ru
-                                    http://RegExpStudio.com
-                                    http://anso.da.ru/
-}
+ This software is provided as it is, without any kind of warranty
+ given. Use it at your own risk.
+
+ You may use this software in any kind of development, including
+ comercial, redistribute, and modify it freely, under the
+ following restrictions :
+ 1. The origin of this software may not be mispresented, you must
+    not claim that you wrote the original software. If you use
+    this software in any kind of product, it would be appreciated
+    that there in a information box, or in the documentation would
+    be an acknowledgmnent like this
+           Partial Copyright (c) 2000 by Andrey V. Sorokin
+ 2. You may not have any income from distributing this source
+    to other developers. When you use this product in a comercial
+    package, the source may not be charged seperatly.
+
+
+---------------------------------------------------------------
+     Legal issues for the original C sources:
+---------------------------------------------------------------
+ *  Copyright (c) 1986 by University of Toronto.
+ *  Written by Henry Spencer.  Not derived from licensed software.
+ *
+ *  Permission is granted to anyone to use this software for any
+ *  purpose on any computer system, and to redistribute it freely,
+ *  subject to the following restrictions:
+ *  1. The author is not responsible for the consequences of use of
+ *      this software, no matter how awful, even if they arise
+ *      from defects in it.
+ *  2. The origin of this software must not be misrepresented, either
+ *      by explicit claim or by omission.
+ *  3. Altered versions must be plainly marked as such, and must not
+ *      be misrepresented as being the original software.
+
+
+---------------------------------------------------------------
+     Gratitudes
+---------------------------------------------------------------
+  Guido Muehlwitz
+    found and fixed ugly bug in big string processing
+  Stephan Klimek
+    testing in CPPB and suggesting/implementing many features
+  Steve Mudford
+    implemented Offset parameter
+  Martin Baur
+    usefull suggetions, help translation into German
+  Yury Finkel
+    Implemented UniCode support, found and fixed some bugs
+  Ralf Junker
+    Implemented some features, many optimization suggestions
+  Filip Jirsák and Matthew Winter (wintermi@yahoo.com)
+    Help in Implementation non-greedy mode
+  Kit Eason
+    many examples for introduction help section
+  Juergen Schroth
+    bug hunting and usefull suggestions
+  Simeon Lilov
+    help translation into Bulgarian
+  Martin Ledoux
+    help translation into French
+  Diego Calp (mail@diegocalp.com), Argentina
+    help translation into Spanish
+
+  And many others - for big work of bug hunting !
+
+I am still looking for person who can help me to translate
+this documentation into other languages (especially German)
+
+
+---------------------------------------------------------------
+     To do
+---------------------------------------------------------------
+
+-=- VCL-version of TRegExpr - for dummies ;) and TRegExprEdit
+(replacement for TMaskEdit).
+Actually, I am writing non-VCL aplications (with web-based
+interfaces), so I don't need VCL's TRegExpr for myself.
+Will it be really usefull ?
+
+-=- working with pascal-style string.
+Now pascal-strings converted into PChar, so
+you can't find r.e. in strings with #0 -chars.
+(suggested by Pavel O).
+
+-=- put precalculated lengths into EXACTLY[CI] !
+
+-=- fInputString as string (suggested by Ralf Junker)
+
+-=- Add regstart optimization for case-insensitive mode ?
+ Or complitely remove because FirstCharSet is faster ?
+
+-=- "Russian Ranges" --> National ranges (use property WordChars ?
+for ordering letters in ranges by its order in WirdsChars if modifier /r is On)
+
+-=- FirstCharSet as array [#0 .. #255] of REChar ?
+(2x faster then set of REChar)
+
+-=- p-code optimization (remove BRANCH-to-EEND, COMMENT, BACK(?)
+    merge EXACTLY etc).
+
+-=- !!!!!!!! bug found by Lars Karlslund
+    "If I do '(something|^$)' on '' I get false (which is wrong ...)."
+
+-=- There are no special command for files (Johan Smit).
+
+I need your suggestions !
+What are more importent in this list ?
+Did I forget anything ?
+
+
+---------------------------------------------------------------
+     History
+---------------------------------------------------------------
+Legend:
+ (+) added feature
+ (-) fixed bug
+ (^) upgraded implementation
+
+ v. 0.947 2001.10.03
+ -=- (+) Word boundary (\b & \B) metachar
+ -=- (-) Bug in processing predefined char.classes in non-UseSetOfChar mode
+ -=- (+) Spanish help - translated by Diego Calp (mail@diegocalp.com), Argentina
+ -=- (+) VersionMajor/Minor class method of TRegExpr ;)
+ -=- (-) Bug in CompileRegExpr, Thanks to Oleg Orlov <orlov@diasoft.ru>
+ -=- (^) Method RegExprSubExpressions wasn't compatible with D2-D3.
+  Thanks to Eugene Tarasov for bug report.
+ -=- (+) Method Replace can now do substitution as well (see documentation)
+  Thanks to Warren Bare, Ken Friesen and many others who suggested it.
+ -=- (+) Updated ReplaceRegExpr to use new Replace method functionality
+ -=- (^) Restored UniCode compatibility lost in some previous version
+  Thanks to Stephan Klimek for bug report
+ -=- (^) Updated TestRE project, new examples for Replace with substitution
+  included.
+
+ v. 0.942+ 2001.03.01
+ -=- (+) Published French help for TRegExpr,
+  translated by Martin Ledoux
+
+ v. 0.942 2001.02.12
+ -=- (-) Range-check error in DEMO-project (due to bug in
+  RegExprSubExpressions), Thanks to Juergen Schroth
+ -=- (^) RegExprSubExpressions - added error codes for "unclosed "[" error
+ -=- (^) Help file bug fixing
+
+ v. 0.941 2001.02.01
+ -=- (^) Attension! Behaviour of '\w', '\W' was changed! Now it really
+  match alphanum characters and '_' as described in documentation,
+  not only alpha as it was before. Thanks to Vadim Alexandrov.
+  If You want to restore previous behaviour, reassign
+  RegExprWordChars (exclude '0123456789' from it).
+ -=- (+) Full compatible with recommended at unicode.org implementation
+  of modifier /m, including DOS-styled line separators (\r\n) mixed
+  with Unix styled (\n) - see properties LineSeparators, LinePairedSeparator
+ -=- (^) Attension! Behaviour of '.' was changed! Now if modifier /s is off
+  it doesn't match all chars from LineSeparators and LinePairedSeparator (by
+  default \r and \n)
+ -=- (^) Attension! To prevent unneeded recompilation of r.e., now assignment
+  to Expression or changing modifiers doesn't cause immidiate [re]compilation.
+  So, now You don't get exception while assigning wrong expression, but can
+  get exception while calling Exec[Next], Substitute, Dump, etc if there
+  are errors in Expression or other properties.
+ -=- (+) Non-greedy style iterators (like '*?'), modifier /g.
+  Implemented with help from Matthew Winter and Filip Jirsák
+ -=- (+) /x modifier (eXtended syntax - allow formating r.e., see description
+  in the help)
+ -=- (+) Procedure Compile to [re]compile r.e. Usefull for GUI r.e. editors
+  and so on (to check all properties validity).
+ -=- (+) FAQ in documentation. I am too lazy to answer to the same
+  questions again and again :( Please, read the FAQ before sending
+  question to me!
+ -=- (^) DEMO project have been significantly improved. Now this is the
+  real r.e. debugger! Thanks to Jon Smith for his ideas.
+ -=- (+) function RegExprSubExpressions, usefull for GUI editors of
+  r.e. (see example of using in TestRExp.dpr project)
+ -=- (+) HyperLinkDecorator unit - practical example of TRegExpr
+  using (see description in the help file)
+ -=- (-) Range checking error in some cases if ComplexBraces defined
+  Thanks to Juergen Schroth
+ -=- (^) 'ComplexBraces' now is defined by default
+ -=- (+) Kit Eason sent to me many examples for 'Syntax' help section
+  and I decided to complitely rewrite this section. I hope, You'll enjoy
+  the results ;)
+ -=- (+) The \A and \Z metacharacters are just like "^" and "$", except
+  that they won't match multiple times when the modifier /m is used
+
+ v. 0.939 2000.10.04
+ -=- (-) Bug in Substitute method ($10.. didn't work properly)
+ Thanks to Serge S Klochkovski
+
+ v. 0.938 2000.07.23
+ -=- (^) Exeptions now jump to appropriate source line, not
+     to Error procedure (I am not quite sure this is safe for
+     all compiler versions. You can turn it off - remove
+     reRealExceptionAddr definition below).
+ -=- (^) Forgotten BSUBEXP[CI] in FillFirstCharSet caused
+     exeption 'memory corruption' in case if back reference can
+     be first op, like this: (a)*\1 (first subexpression can be
+     skipped and we'll start matching with back reference..).
+
+ v. 0.937 2000.06.12
+ -=- (-) Bug in optimization engine (since v.0.934). In some cases
+     TRegExpr didn't catch right strings.
+     Thanks to Matthias Fichtner
+
+ v. 0.936 2000.04.22
+ -=- (+) Back references, like <font size=(['"]?)(\d+)\1>, see
+     manual for details
+ -=- (+) Wide hex char support, like '\x{263a}'
+
+ v. 0.935 2000.04.19 (by Yury Finkel)
+ -=- (-) fInvertCase now isn't readonly ;)
+ -=- (-) UniCode mode compiling errors
+
+ v. 0.934 2000.04.17
+ -=- (^) New ranges implementation (range matching now is very fast
+      - uses one(!) CPU instruction)
+ -=- (^) Internal p-code structure converted into 32-bits - works
+      faster and now there is no 64K limit for compiled r.e.
+ -=- (^) '{m,n}' now use 32-bits arguments (up to 2147483646) - specially
+      for Dmitry Veprintsev ;)
+ -=- (^) Ranges now support metachars: [\n-\x0D] -> #10,#11,#12,#13;
+     Changed '-' processing, now it's like in Perl:
+     [\d-t] -> '0'..'9','-','t'; []-a] -> ']'..'a'
+ -=- (-) Bug with \t and etc macro (they worked only in ranges)
+     Thanks to Yury Finkel
+ -=- (^) Added new preprocessing optimization (see FirstCharSet).
+      Incredible fast (!). But be carefull it isn's properly tested.
+      You can switch it Off - remove UseFirstCharSet definition.
+ -=- (^) Many other speed optimizations
+ -=- (-) Case-insensitive mode now support system-defined national
+      charset (due to bug in v.0.90 .. 0.926 supported only english one)
+ -=- (^) Case-insensitive mode implemented with InvertCase (param &
+      result of REChar type) - works 10 .. 100 times faster.
+ -=- (^) Match and ExecNext interfaces optimized, added IsProgrammOk
+      by Ralf Junker
+ -=- (^) Increased NSUBEXP (now 15) and fixed code for this, now you
+      can simply increase NSUBEXP constant by yourself.
+      Suggested by Alexander V. Akimov.
+ -=- (^+) Substitute adapted for NSUBEXP > 10 and significant (!)
+      optimized, improved error checking.
+      ATTENTION! Read new Substitute description - syntax was changed !
+ -=- (+) SpaceChars & WordChars property - now you may change chars
+      treated as \s & \w. By defauled assigned RegExprSpaceChars/WordChars
+ -=- (+) Now \s and \w supported in ranges
+ -=- (-) Infinite loop if end of range=#$FF
+      Thanks to Andrey Kolegov
+ -=- (+) Function QuoteRegExprMetaChars (see description)
+ -=- (+) UniCode support - sorry, works VERY slow (remove '.' from
+     {.$DEFINE UniCode} after this comment for unicode version).
+     Implemented by Yury Finkel
+
+ v. 0.926 2000.02.26
+ -=- (-) Old bug derived from H.Spencer sources - SPSTART was
+     set for '?' and '*' instead of '*', '{m,n}' and '+'.
+ -=- (-^) Now {m,n} works like Perl's one - error occures only
+     if m > n or n > BracesMax (BracesMax = 255 in this version).
+     In other cases (no m or nondigit symbols in m or n values,
+     or no '}') symbol '{' will be compiled as literal.
+     Note: so, you must include m value (use {0,n} instead of {,n}).
+     Note: {m,} will be compiled as {m,BracesMax}.
+ -=- (-^) CaseInsensitive mode now support ranges
+     '(?i)[a]' == '[aA]'
+ -=- (^) Roman-number template in TestRExp ;)
+ -=- (+^) Beta version of complex-braces - like ((abc){1,2}|d){3}
+     By default its turned off. If you want take part in beta-testing,
+     please, remove '.' from {.$DEFINE ComplexBraces} below this comments.
+ -=- (-^) Removed \b metachar (in Perl it isn't BS as in my implementation,
+     but word bound)
+ -=- (+) Add /s modifier. Bu I am not sure that it's ok for Windows.
+     I implemented it as [^\n] for '.' metachar in non-/s mode.
+     But lines separated by \n\r in windows. I need you suggestions !
+ -=- (^) Sorry, but I had to rename Modifiers to ModifierStr
+     (ModifierS uses for /s now)
+
+ v. 0.91 2000.02.02
+ -=- (^) some changes in documentation and demo-project.
+
+ v. 0.90 2000.01.31
+ -=- (+) implemented braces repetitions {min,max}.
+     Sorry - only simple cases now - like '\d{2,3}'
+     or '[a-z1-9]{,7}', but not (abc){2,3} ..
+     I still too short in time.
+     Wait for future versions of TRegExpr or
+     implement it by youself and share with me ;)
+ -=- (+) implemented case-insensitive modifier and way
+     to work with other modifiers - see properties
+     Modifiers, Modifier, ModifierI
+     and (?ismx-ismx) Perl extension.
+     You may use global variables RegExpr* for assigning
+     default modifier values.
+ -=- (+) property ExtSyntaxEnabled changed to 'r'-modifier
+     (russian extensions - see documentation)
+ -=- (+) implemented (?#comment) Perl extension - very hard
+     and usefull work ;)
+ -=- (^) property MatchCount renamed to SubExprMatchCount.
+     Sorry for any inconvenients, but it's because new
+     version works slightly different and if you used
+     MatchCount in your programms you have to rethink
+     it ! (see comments to this property)
+ -=- (+) add InputString property - stores input string
+     from last Exec call. You may directly assign values
+     to this property for using in ExecPos method.
+ -=- (+) add ExecPos method - for working with assigned
+     to InputString property. You may use it like this
+        InputString := AString;
+        ExecPos;
+     or this
+        InputString := AString;
+        ExecPos (AOffset);
+     Note: ExecPos without parameter works only in
+     Delphi 4 or higher.
+ -=- (+) add ExecNext method - simple and fast (!) way to finding
+     multiple occurences of r.e. in big input string.
+ -=- (^) Offset parameter removed from Exec method, if you
+     used it in your programs, please replace all
+        Exec (AString, AOffset)
+     with combination
+        InputString := AString; ExecPos (AOffset)
+     Sorry for any inconvenients, but old design
+     (see v.0.81) was too ugly :(
+     In addition, multiple Exec calls with same input
+     string produce fool overhead because each Exec
+     reallocate input string buffer.
+ -=- (^) optimized implementation of Substitution,
+     Replace and Split methods
+ -=- (-) fixed minor bug - if r.e. compilation raise error
+     during second pass (!!! I think it's impossible
+     in really practice), TRegExpr stayed in 'compiled'
+     state.
+ -=- (-) fixed bug - Dump method didn't check program existance
+     and raised 'access violation' if previouse Exec
+     was finished with error.
+ -=- (+) changed error handling (see functions Error, ErrorMsg,
+     LastError, property CompilerErrorPos, type ERegExpr).
+ -=- (-^) TRegExpr.Replace, Split and ExecNext made a infinite
+     loop in case of r.e. match empty-string.
+     Now ExecNext moves by MatchLen if MatchLen <> 0
+     and by +1 if MatchLen = 0
+     Thanks to Jon Smith and George Tasker for bugreports.
+ -=- (-) While playing with null-matchs I discovered, that
+     null-match at tail of input string is never found.
+     Well, I fixed this, but I am not sure this is safe
+     (MatchPos[0]=length(AInputString)+1, MatchLen = 0).
+     Any suggetions are very appreciated.
+ -=- (^) Demo project and documentation was upgraded
+ -=- (^) Documentation and this version was published on my home page
+     http://anso.da.ru
+
+
+ v. 0.81 1999.12.25 // Merry Christmas ! :)
+ -=- added \s (AnySpace) and \S (NotSpace) meta-symbols
+     - implemented by Stephan Klimek with minor fixes by AVS
+ -=- added \f, \a and \b chars (translates into FF, BEL, BS)
+ -=- removed meta-symbols 'ö' & 'Ö' - sorry for any inconvenients
+ -=- added Match property (== copy (InputStr, MatchPos [Idx], MatchLen [Idx]))
+ -=- added extra parameter Offset to Exec method
+     (thanks to Steve Mudford)
+
+ v. 0.7 1999.08.22
+ -=- fixed bug - in some cases the r.e. [^...]
+     incorrectly processed (as any symbol)
+     (thanks to Jan Korycan)
+ -=- Some changes and improvements in TestRExp.dpr
+
+ v. 0.6 1999.08.13 (Friday 13 !)
+ -=- changed header of TRegExpr.Substitute
+ -=- added Split, Replace & appropriate
+     global wrappers (thanks to Stephan Klimek for suggetions)
+
+ v. 0.5 1999.08.12
+ -=- TRegExpr.Substitute routine added
+ -=- Some changes and improvements in TestRExp.dpr
+ -=- Fixed bug in english version of documentation
+     (Thanks to Jon Buckheit)
+
+ v. 0.4 1999.07.20
+ -=- Fixed bug with parsing of strings longer then 255 bytes
+     (thanks to Guido Muehlwitz)
+ -=- Fixed bug in RegMatch - mathes only first occurence of r.e.
+     (thanks to Stephan Klimek)
+
+ v. 0.3 1999.06.13
+ -=- ExecRegExpr function
+
+ v. 0.2 1999.06.10
+ -=- packed into object-pascal class
+ -=- code slightly rewriten for pascal
+ -=- now macro correct proceeded in ranges
+ -=- r.e.ranges syntax extended for russian letters ranges:
+     à-ÿ - replaced with all small russian letters (Win1251)
+     À-ß - replaced with all capital russian letters (Win1251)
+     à-ß - replaced with all russian letters (Win1251)
+ -=- added macro '\d' (opcode ANYDIGIT) - match any digit
+ -=- added macro '\D' (opcode NOTDIGIT) - match not digit
+ -=- added macro '\w' (opcode ANYLETTER) - match any english letter or '_'
+ -=- added macro '\W' (opcode NOTLETTER) - match not english letter or '_'
+ (all r.e.syntax extensions may be turned off by flag ExtSyntax)
+
+ v. 0.1 1999.06.09
+ first version, with bugs, without help => must die :(
+
+*)
 
 interface
 
-{$INCLUDE SynEdit.inc}
+{$DEFINE DebugRegExpr} // define for dump/trace enabling
 
-// ======== Determine compiler
-{$IFDEF VER80} Sorry, TRegExpr is for 32-bits Delphi only. Delphi 1 is not supported (and whos really care today?!). {$ENDIF}
-{$IFDEF VER90} {$DEFINE D2} {$ENDIF} // D2
-{$IFDEF VER93} {$DEFINE D2} {$ENDIF} // CPPB 1
-{$IFDEF VER100} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D3
-{$IFDEF VER110} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // CPPB 3
-{$IFDEF VER120} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D4
-{$IFDEF VER130} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D5
-{$IFDEF VER140} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D6
-{$IFDEF VER150} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D7
-{$IFDEF VER170} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D2005
-{$IFDEF VER180} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D2006
+{$DEFINE reRealExceptionAddr} // if defined then exceptions will
+// jump to appropriate source line, not to Error procedure
 
-// ======== Define base compiler options
-{$BOOLEVAL OFF}
-{$EXTENDEDSYNTAX ON}
-{$LONGSTRINGS ON}
-{$OPTIMIZATION ON}
-{$IFDEF D6}
-  {$WARN SYMBOL_PLATFORM OFF} // Suppress .Net warnings
-{$ENDIF}
-{$IFDEF D7}
-  {$WARN UNSAFE_CAST OFF} // Suppress .Net warnings
-  {$WARN UNSAFE_TYPE OFF} // Suppress .Net warnings
-  {$WARN UNSAFE_CODE OFF} // Suppress .Net warnings
-{$ENDIF}
-{$IFDEF FPC}
- {$MODE DELPHI} // Delphi-compatible mode in FreePascal
-{$ENDIF}
+{$DEFINE ComplexBraces} // define for beta-version of braces
+// (in stable version it works only for simple cases)
 
-// ======== Define options for TRegExpr engine
-{.$DEFINE UniCode} // Unicode support
-{$DEFINE RegExpPCodeDump} // p-code dumping (see Dump method)
-{$IFNDEF FPC} // the option is not supported in FreePascal
- {$DEFINE reRealExceptionAddr} // exceptions will point to appropriate source line, not to Error procedure
-{$ENDIF}
-{$DEFINE ComplexBraces} // support braces in complex cases
-{$IFNDEF UniCode} // the option applicable only for non-UniCode mode
+{.$DEFINE UniCode} // define for Unicode support
+
+{$IFNDEF UniCode} // optionts applicable only for non-UniCode
  {$DEFINE UseSetOfChar} // Significant optimization by using set of char
 {$ENDIF}
+
 {$IFDEF UseSetOfChar}
- {$DEFINE UseFirstCharSet} // Fast skip between matches for r.e. that starts with determined set of chars
+ {$DEFINE UseFirstCharSet} // Significant optimization inm some cases
 {$ENDIF}
 
-// ======== Define Pascal-language options
-// Define 'UseAsserts' option (do not edit this definitions).
-// Asserts used to catch 'strange bugs' in TRegExpr implementation (when something goes
-// completely wrong). You can swith asserts on/off with help of {$C+}/{$C-} compiler options.
-{$IFDEF D3} {$DEFINE UseAsserts} {$ENDIF}
-{$IFDEF FPC} {$DEFINE UseAsserts} {$ENDIF}
+// Determine version (for using 'params by default')
+{$IFNDEF VER80}         { Delphi 1.0}
+ {$IFNDEF VER90}        { Delphi 2.0}
+  {$IFNDEF VER93}       { C++Builder 1.0}
+    {$IFNDEF VER100}    { Borland Delphi 3.0}
+        {$DEFINE D4_}   { Delphi 4.0 or higher}
+    {$ENDIF}
+  {$ENDIF}
+ {$ENDIF}
+{$ENDIF}
+{.$IFNDEF VER110}  { Borland C++Builder 3.0}
+{.$IFNDEF VER120}  {Borland Delphi 4.0}
 
-// Define 'use subroutine parameters default values' option (do not edit this definition).
-{$IFDEF D4} {$DEFINE DefParam} {$ENDIF}
-
-// Define 'OverMeth' options, to use method overloading (do not edit this definitions).
-{$IFDEF D5} {$DEFINE OverMeth} {$ENDIF}
-{$IFDEF FPC} {$DEFINE OverMeth} {$ENDIF}
 
 uses
- Classes,  // TStrings in Split method
+ Classes, // TStrings in Split method
  SysUtils; // Exception
 
 type
@@ -112,7 +475,7 @@ type
  REChar = WideChar;
  {$ELSE}
  PRegExprChar = PChar;
- RegExprString = AnsiString; //###0.952 was string
+ RegExprString = string;
  REChar = Char;
  {$ENDIF}
  TREOp = REChar; // internal p-code type //###0.933
@@ -132,7 +495,6 @@ type
                                of object;
 
 const
-  EscChar = '\'; // 'Escape'-char ('\' in common r.e.) used for escaping metachars (\w, \d etc).
   RegExprModifierI : boolean = False;    // default value for ModifierI
   RegExprModifierR : boolean = True;     // default value for ModifierR
   RegExprModifierS : boolean = True;     // default value for ModifierS
@@ -183,11 +545,6 @@ type
  PSetOfREChar = ^TSetOfREChar;
  TSetOfREChar = set of REChar;
 {$ENDIF}
-
- TRegExpr = class;
-
- TRegExprReplaceFunction = function (ARegExpr : TRegExpr): string
-                               of object;
 
  TRegExpr = class
    private
@@ -345,10 +702,13 @@ type
     function MatchPrim (prog : PRegExprChar) : boolean;
     // recursively matching routine
 
+    function RegMatch (str : PRegExprChar) : boolean;
+    // try match at specific point, uses MatchPrim for real work
+
     function ExecPrim (AOffset: integer) : boolean;
     // Exec for stored InputString
 
-    {$IFDEF RegExpPCodeDump}
+    {$IFDEF DebugRegExpr}
     function DumpOp (op : REChar) : RegExprString;
     {$ENDIF}
 
@@ -396,7 +756,7 @@ type
     // Modifier /i - caseinsensitive, initialized from RegExprModifierI
 
     property ModifierR : boolean index 2 read GetModifier write SetModifier;
-    // Modifier /r - use r.e.syntax extended for russian,
+    // Modifier /r - use r.e.syntax extended for russian, 
     // (was property ExtSyntaxEnabled in previous versions)
     // If true, then à-ÿ  additional include russian letter '¸',
     // À-ß  additional include '¨', and à-ß include all russian symbols.
@@ -423,30 +783,20 @@ type
     // Modifier /x - eXtended syntax, allow r.e. text formatting,
     // see description in the help. Initialized from RegExprModifierX
 
-    function Exec (const AInputString : RegExprString) : boolean; {$IFDEF OverMeth} overload;
-    {$IFNDEF FPC} // I do not know why FreePascal cannot overload methods with empty param list
-    function Exec : boolean; overload; //###0.949
-    {$ENDIF}
-    function Exec (AOffset: integer) : boolean; overload; //###0.949
-    {$ENDIF}
+    function Exec (const AInputString : RegExprString) : boolean;
     // match a programm against a string AInputString
     // !!! Exec store AInputString into InputString property
-    // For Delphi 5 and higher available overloaded versions - first without
-    // parameter (uses already assigned to InputString property value)
-    // and second that has integer parameter and is same as ExecPos
 
     function ExecNext : boolean;
     // find next match:
-    //    ExecNext;
+    //    Exec (AString); ExecNext;
     // works same as
+    //    Exec (AString);
     //    if MatchLen [0] = 0 then ExecPos (MatchPos [0] + 1)
     //     else ExecPos (MatchPos [0] + MatchLen [0]);
     // but it's more simpler !
-    // Raises exception if used without preceeding SUCCESSFUL call to
-    // Exec* (Exec, ExecPos, ExecNext). So You always must use something like
-    // if Exec (InputString) then repeat { proceed results} until not ExecNext;
 
-    function ExecPos (AOffset: integer {$IFDEF DefParam}= 1{$ENDIF}) : boolean;
+    function ExecPos (AOffset: integer {$IFDEF D4_}= 1{$ENDIF}) : boolean;
     // find match for InputString starting from AOffset position
     // (AOffset=1 - first char of InputString)
 
@@ -473,14 +823,7 @@ type
 
     function Replace (AInputStr : RegExprString;
       const AReplaceStr : RegExprString;
-      AUseSubstitution : boolean{$IFDEF DefParam}= False{$ENDIF}) //###0.946
-     : RegExprString; {$IFDEF OverMeth} overload;
-    function Replace (AInputStr : RegExprString;
-      AReplaceFunc : TRegExprReplaceFunction)
-     : RegExprString; overload;
-    {$ENDIF}
-    function ReplaceEx (AInputStr : RegExprString;
-      AReplaceFunc : TRegExprReplaceFunction)
+      AUseSubstitution : boolean{$IFDEF D4_}= False{$ENDIF}) //###0.946
      : RegExprString;
     // Returns AInputStr with r.e. occurencies replaced by AReplaceStr
     // If AUseSubstitution is true, then AReplaceStr will be used
@@ -492,8 +835,6 @@ type
     //  Replace ('BLOCK( test1)', 'def "$1" value "$2"')
     //   will return:  def "$1" value "$2"
     // Internally calls Exec[Next]
-    // Overloaded version and ReplaceEx operate with call-back function,
-    // so You can implement really complex functionality.
 
     property SubExprMatchCount : integer read GetSubExprMatchCount;
     // Number of subexpressions has been found in last Exec* call.
@@ -568,7 +909,7 @@ type
     // [Re]compile r.e. Usefull for example for GUI r.e. editors (to check
     // all properties validity).
 
-    {$IFDEF RegExpPCodeDump}
+    {$IFDEF DebugRegExpr}
     function Dump : RegExprString;
     // dump a compiled regexp in vaguely comprehensible form
     {$ENDIF}
@@ -581,7 +922,7 @@ type
   end;
 
 const
-  RegExprInvertCaseFunction : TRegExprInvertCaseFunction = {$IFDEF FPC} nil {$ELSE} TRegExpr.InvertCaseFunction{$ENDIF};
+  RegExprInvertCaseFunction : TRegExprInvertCaseFunction = TRegExpr.InvertCaseFunction;
   // defaul for InvertCase property
 
 function ExecRegExpr (const ARegExpr, AInputStr : RegExprString) : boolean;
@@ -592,7 +933,7 @@ procedure SplitRegExpr (const ARegExpr, AInputStr : RegExprString; APieces : TSt
 // Split AInputStr into APieces by r.e. ARegExpr occurencies
 
 function ReplaceRegExpr (const ARegExpr, AInputStr, AReplaceStr : RegExprString;
-      AUseSubstitution : boolean{$IFDEF DefParam}= False{$ENDIF}) : RegExprString; //###0.947
+      AUseSubstitution : boolean{$IFDEF D4_}= False{$ENDIF}) : RegExprString; //###0.947
 // Returns AInputStr with r.e. occurencies replaced by AReplaceStr
 // If AUseSubstitution is true, then AReplaceStr will be used
 // as template for Substitution methods.
@@ -611,7 +952,7 @@ function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
 // user input
 
 function RegExprSubExpressions (const ARegExpr : string;
- ASubExprs : TStrings; AExtendedSyntax : boolean{$IFDEF DefParam}= False{$ENDIF}) : integer;
+ ASubExprs : TStrings; AExtendedSyntax : boolean{$IFDEF D4_}= False{$ENDIF}) : integer;
 // Makes list of subexpressions found in ARegExpr r.e.
 // In ASubExps every item represent subexpression,
 // from first to last, in format:
@@ -636,17 +977,15 @@ function RegExprSubExpressions (const ARegExpr : string;
 
 implementation
 
+{$IFNDEF LINUX} //js 07-04-2002 only use windows in non-CLX-envirolment -- SYN_CLX doesn't work, why?
 uses
-{$IFDEF SYN_WIN32}
  Windows; // CharUpper/Lower
-{$ELSE}
-  Libc; //Qt.pas from Borland does not expose char handling functions
 {$ENDIF}
 
 const
  TRegExprVersionMajor : integer = 0;
- TRegExprVersionMinor : integer = 952;
- // TRegExpr.VersionMajor/Minor return values of this constants
+ TRegExprVersionMinor : integer = 947;
+ // don't use this const directly, use TRegExpr.VersionXXX instead
 
  MaskModI = 1;  // modifier /i bit in fModifiers
  MaskModR = 2;  // -"- /r
@@ -764,19 +1103,21 @@ procedure SplitRegExpr (const ARegExpr, AInputStr : RegExprString; APieces : TSt
 --------------------------------------------------------------}
 
 function ReplaceRegExpr (const ARegExpr, AInputStr, AReplaceStr : RegExprString;
-      AUseSubstitution : boolean{$IFDEF DefParam}= False{$ENDIF}) : RegExprString;
+      AUseSubstitution : boolean{$IFDEF D4_}= False{$ENDIF}) : RegExprString;
+ var r : TRegExpr;
  begin
-  with TRegExpr.Create do try
-    Expression := ARegExpr;
-    Result := Replace (AInputStr, AReplaceStr, AUseSubstitution);
-    finally Free;
+  r := TRegExpr.Create;
+  try
+    r.Expression := ARegExpr;
+    Result := r.Replace (AInputStr, AReplaceStr, AUseSubstitution); //###0.947
+    finally r.Free;
    end;
  end; { of function ReplaceRegExpr
 --------------------------------------------------------------}
 
 function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
  const
-  RegExprMetaSet : RegExprString = '^$.[()|?+*'+EscChar+'{'
+  RegExprMetaSet : RegExprString = '^$.[()|?+*\{'
   + ']}'; // - this last are additional to META.
   // Very similar to META array, but slighly changed.
   // !Any changes in META array must be synchronized with this set.
@@ -790,7 +1131,7 @@ function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
   while i <= Len do begin
     if Pos (AStr [i], RegExprMetaSet) > 0 then begin
       Result := Result + System.Copy (AStr, i0, i - i0)
-                 + EscChar + AStr [i];
+                 + '\' + AStr [i];
       i0 := i + 1;
      end;
     inc (i);
@@ -800,7 +1141,7 @@ function QuoteRegExprMetaChars (const AStr : RegExprString) : RegExprString;
 --------------------------------------------------------------}
 
 function RegExprSubExpressions (const ARegExpr : string;
- ASubExprs : TStrings; AExtendedSyntax : boolean{$IFDEF DefParam}= False{$ENDIF}) : integer;
+ ASubExprs : TStrings; AExtendedSyntax : boolean{$IFDEF D4_}= False{$ENDIF}) : integer;
  type
   TStackItemRec =  record //###0.945
     SubExprIdx : integer;
@@ -874,7 +1215,7 @@ function RegExprSubExpressions (const ARegExpr : string;
             end;
           end;
        end;
-      EscChar: inc (i); // skip quoted symbol
+      '\': inc (i); // skip quoted symbol
       '[': begin
         // we have to skip character ranges at once, because they can
         // contain '#', and '#' in it must NOT be recognized as eXtended
@@ -884,7 +1225,7 @@ function RegExprSubExpressions (const ARegExpr : string;
         if ARegExpr [i] = ']' // cannot be 'emty' ranges - this interpretes
          then inc (i);        // as ']' by itself
         while (i <= Len) and (ARegExpr [i] <> ']') do
-         if ARegExpr [i] = EscChar //###0.942
+         if ARegExpr [i] = '\' //###0.942
           then inc (i, 2) // skip 'escaped' char to prevent stopping at '\]'
           else inc (i);
         if (i > Len) or (ARegExpr [i] <> ']') //###0.942
@@ -1062,7 +1403,6 @@ const
  reeModifierUnsupported = 1013;
  reeLoopStackExceeded = 1014;
  reeLoopWithoutEntry = 1015;
- reeBadPCodeImported = 2000;
 
 function TRegExpr.ErrorMsg (AErrorID : integer) : RegExprString;
  begin
@@ -1098,15 +1438,13 @@ function TRegExpr.ErrorMsg (AErrorID : integer) : RegExprString;
     reeMatchPrimCorruptedPointers: Result := 'TRegExpr(exec): MatchPrim Corrupted Pointers';
     reeNoExpression: Result := 'TRegExpr(exec): Not Assigned Expression Property';
     reeCorruptedProgram: Result := 'TRegExpr(exec): Corrupted Program';
-    reeNoInpitStringSpecified: Result := 'TRegExpr(exec): No Input String Specified';
+    reeNoInpitStringSpecified: Result := 'TRegExpr(exec): No Inpit String Specified';
     reeOffsetMustBeGreaterThen0: Result := 'TRegExpr(exec): Offset Must Be Greater Then 0';
     reeExecNextWithoutExec: Result := 'TRegExpr(exec): ExecNext Without Exec[Pos]';
     reeGetInputStringWithoutInputString: Result := 'TRegExpr(exec): GetInputString Without InputString';
     reeDumpCorruptedOpcode: Result := 'TRegExpr(dump): Corrupted Opcode';
     reeLoopStackExceeded: Result := 'TRegExpr(exec): Loop Stack Exceeded';
     reeLoopWithoutEntry: Result := 'TRegExpr(exec): Loop Without LoopEntry !';
-
-    reeBadPCodeImported: Result := 'TRegExpr(misc): Bad p-code imported';
     else Result := 'Unknown error';
    end;
  end; { of procedure TRegExpr.Error
@@ -1180,9 +1518,11 @@ class function TRegExpr.InvertCaseFunction (const Ch : REChar) : REChar;
   else
   {$ENDIF}
    begin
-    Result := {$IFDEF FPC}AnsiUpperCase (Ch) [1]{$ELSE} {$IFDEF SYN_WIN32}REChar (CharUpper (PChar (Ch))){$ELSE}REChar (toupper (integer (Ch))){$ENDIF} {$ENDIF};
+    {$IFNDEF LINUX} //js 07-04-2002 no use of windows api in clx-version!
+    Result := REChar (CharUpper (pointer (Ch)));
     if Result = Ch
-     then Result := {$IFDEF FPC}AnsiLowerCase (Ch) [1]{$ELSE} {$IFDEF SYN_WIN32}REChar (CharLower (PChar (Ch))){$ELSE}REChar(tolower (integer (Ch))){$ENDIF} {$ENDIF};
+     then Result := REChar (CharLower (pointer (Ch)));
+    {$ENDIF}
    end;
  end; { of function TRegExpr.InvertCaseFunction
 --------------------------------------------------------------}
@@ -1196,8 +1536,6 @@ function TRegExpr.GetExpression : RegExprString;
 --------------------------------------------------------------}
 
 procedure TRegExpr.SetExpression (const s : RegExprString);
- var
-  Len : integer; //###0.950
  begin
   if (s <> fExpression) or not fExprIsCompiled then begin
     fExprIsCompiled := false;
@@ -1206,15 +1544,8 @@ procedure TRegExpr.SetExpression (const s : RegExprString);
       fExpression := nil;
      end;
     if s <> '' then begin
-      Len := length (s); //###0.950
-      GetMem (fExpression, (Len + 1) * SizeOf (REChar));
-//      StrPCopy (fExpression, s); //###0.950 replaced due to StrPCopy limitation of 255 chars
-      {$IFDEF UniCode}
-      StrPCopy (fExpression, Copy (s, 1, Len)); //###0.950
-      {$ELSE}
-      StrLCopy (fExpression, PRegExprChar (s), Len); //###0.950
-      {$ENDIF UniCode}
-
+      GetMem (fExpression, (length (s) + 1) * SizeOf (REChar));
+      StrPCopy (fExpression, s);
       InvalidateProgramm; //###0.941
      end;
    end;
@@ -1440,7 +1771,6 @@ procedure TRegExpr.Tail (p : PRegExprChar; val : PRegExprChar);
  var
   scan : PRegExprChar;
   temp : PRegExprChar;
-//  i : int64;
  begin
   if p = @regdummy
    then EXIT;
@@ -1453,16 +1783,7 @@ procedure TRegExpr.Tail (p : PRegExprChar; val : PRegExprChar);
    scan := temp;
   UNTIL false;
   // Set Next 'pointer'
-  if val < scan
-   then PRENextOff (scan + REOpSz)^ := - (scan - val) //###0.948
-   // work around PWideChar subtraction bug (Delphi uses
-   // shr after subtraction to calculate widechar distance %-( )
-   // so, if difference is negative we have .. the "feature" :(
-   // I could wrap it in $IFDEF UniCode, but I didn't because
-   // "P – Q computes the difference between the address given
-   // by P (the higher address) and the address given by Q (the
-   // lower address)" - Delphi help quotation.
-   else PRENextOff (scan + REOpSz)^ := val - scan; //###0.933
+  PRENextOff (scan + REOpSz)^ := val - scan; //###0.933
  end; { of procedure TRegExpr.Tail
 --------------------------------------------------------------}
 
@@ -1556,7 +1877,7 @@ const
  SPSTART  =   04; // Starts with * or +.
  WORST    =   0;  // Worst case.
  META : array [0 .. 12] of REChar = (
-  '^', '$', '.', '[', '(', ')', '|', '?', '+', '*', EscChar, '{', #0);
+  '^', '$', '.', '[', '(', ')', '|', '?', '+', '*', '\', '{', #0);
  // Any modification must be synchronized with QuoteRegExprMetaChars !!!
 
 {$IFDEF UniCode}
@@ -2145,10 +2466,8 @@ function TRegExpr.ParseAtom (var flagp : integer) : PRegExprChar;
         then EmitRangeCPrim (InvertCase (b)); //###0.930
       end
      else begin
-       {$IFDEF UseAsserts}
        Assert (RangeLen > 0, 'TRegExpr.ParseAtom(subroutine EmitRangeC): empty range'); // impossible, but who knows..
        Assert (RangeChMin <= RangeChMax, 'TRegExpr.ParseAtom(subroutine EmitRangeC): RangeChMin > RangeChMax'); // impossible, but who knows..
-       {$ENDIF}
        if RangeLen <= TinySetLen then begin // emit "tiny set"
           if regcode = @regdummy then begin
             regsize := RangePCodeIdx + TinySetLen; // RangeChMin/Max !!!
@@ -2302,7 +2621,7 @@ function TRegExpr.ParseAtom (var flagp : integer) : PRegExprChar;
               and CanBeRange then begin
              inc (regparse);
              RangeEnd := regparse^;
-             if RangeEnd = EscChar then begin
+             if RangeEnd = '\' then begin
                {$IFDEF UniCode} //###0.935
                if (ord ((regparse + 1)^) < 256)
                   and (char ((regparse + 1)^)
@@ -2346,7 +2665,7 @@ function TRegExpr.ParseAtom (var flagp : integer) : PRegExprChar;
              inc (regparse);
             end
            else begin
-             if regparse^ = EscChar then begin
+             if regparse^ = '\' then begin
                 inc (regparse);
                 if regparse^ = #0 then begin
                   Error (reeParseAtomTrailingBackSlash);
@@ -2418,7 +2737,7 @@ function TRegExpr.ParseAtom (var flagp : integer) : PRegExprChar;
        Error (reeQPSBFollowsNothing);
        EXIT;
       end;
-    EscChar: begin
+    '\': begin
         if regparse^ = #0 then begin
           Error (reeTrailingBackSlash);
           EXIT;
@@ -3246,18 +3565,7 @@ procedure TRegExpr.FillFirstCharSet (prog : PRegExprChar);
            EXIT;
           end;
          BOL, BOLML: ; // EXIT; //###0.937
-         EOL, EOLML: begin //###0.948 was empty in 0.947, was EXIT in 0.937
-           Include (FirstCharSet, #0);
-           if ModifierM
-            then begin
-              opnd := PRegExprChar (LineSeparators);
-              while opnd^ <> #0 do begin
-                Include (FirstCharSet, opnd^);
-                inc (opnd);
-              end;
-            end;
-           EXIT;
-         end;
+         EOL, EOLML: ; // EXIT; //###0.937
          BOUND, NOTBOUND: ; //###0.943 ?!!
          ANY, ANYML: begin // we can better define ANYML !!!
            FirstCharSet := [#0 .. #255]; //###0.930
@@ -3268,7 +3576,7 @@ procedure TRegExpr.FillFirstCharSet (prog : PRegExprChar);
            EXIT;
           end;
          NOTDIGIT: begin
-           FirstCharSet := FirstCharSet + ([#0 .. #255] - ['0' .. '9']); //###0.948 FirstCharSet was forgotten
+           FirstCharSet := [#0 .. #255] - ['0' .. '9'];
            EXIT;
           end;
          EXACTLYCI: begin
@@ -3294,10 +3602,10 @@ procedure TRegExpr.FillFirstCharSet (prog : PRegExprChar);
           end;
          ANYBUTTINYSET: begin
            //!!!TinySet
-           FirstCharSet := FirstCharSet + ([#0 .. #255] - [ //###0.948 FirstCharSet was forgotten
-            (scan + REOpSz + RENextOffSz)^,
-            (scan + REOpSz + RENextOffSz + 1)^,
-            (scan + REOpSz + RENextOffSz + 2)^]);
+           FirstCharSet := [#0 .. #255];
+           Exclude (FirstCharSet, (scan + REOpSz + RENextOffSz)^);
+           Exclude (FirstCharSet, (scan + REOpSz + RENextOffSz + 1)^);
+           Exclude (FirstCharSet, (scan + REOpSz + RENextOffSz + 2)^);
            // ...                                                      // up to TinySetLen
            EXIT;
           end;
@@ -3352,7 +3660,6 @@ procedure TRegExpr.FillFirstCharSet (prog : PRegExprChar);
             then EXIT;
           end;
          EEND: begin
-            FirstCharSet := [#0 .. #255]; //###0.948
             EXIT;
            end;
         else begin
@@ -3362,9 +3669,26 @@ procedure TRegExpr.FillFirstCharSet (prog : PRegExprChar);
         end; { of case scan^}
         scan := next;
     end; { of while scan <> nil}
- end; { of procedure FillFirstCharSet
+ end; { of procedure FillFirstCharSet;
 --------------------------------------------------------------}
 {$ENDIF}
+
+function TRegExpr.RegMatch (str : PRegExprChar) : boolean;
+// try match at specific point
+ var i : integer;
+ begin
+  for i := 0 to NSUBEXP - 1 do begin
+    startp [i] := nil;
+    endp [i] := nil;
+   end;
+  reginput := str;
+  Result := MatchPrim (programm + REOpSz);
+  if Result then begin
+    startp [0] := str;
+    endp [0] := reginput;
+   end;
+ end; { of function TRegExpr.RegMatch
+--------------------------------------------------------------}
 
 function TRegExpr.Exec (const AInputString : RegExprString) : boolean;
  begin
@@ -3373,61 +3697,13 @@ function TRegExpr.Exec (const AInputString : RegExprString) : boolean;
  end; { of function TRegExpr.Exec
 --------------------------------------------------------------}
 
-{$IFDEF OverMeth}
-{$IFNDEF FPC}
-function TRegExpr.Exec : boolean;
- begin
-  Result := ExecPrim (1);
- end; { of function TRegExpr.Exec
---------------------------------------------------------------}
-{$ENDIF}
-function TRegExpr.Exec (AOffset: integer) : boolean;
- begin
-  Result := ExecPrim (AOffset);
- end; { of function TRegExpr.Exec
---------------------------------------------------------------}
-{$ENDIF}
-
-function TRegExpr.ExecPos (AOffset: integer {$IFDEF DefParam}= 1{$ENDIF}) : boolean;
- begin
-  Result := ExecPrim (AOffset);
- end; { of function TRegExpr.ExecPos
---------------------------------------------------------------}
-
 function TRegExpr.ExecPrim (AOffset: integer) : boolean;
- procedure ClearMatchs;
-  // Clears matchs array
-  var i : integer;
-  begin
-   for i := 0 to NSUBEXP - 1 do begin
-     startp [i] := nil;
-     endp [i] := nil;
-    end;
-  end; { of procedure ClearMatchs;
-..............................................................}
- function RegMatch (str : PRegExprChar) : boolean;
-  // try match at specific point
-  begin
-   //###0.949 removed clearing of start\endp
-   reginput := str;
-   Result := MatchPrim (programm + REOpSz);
-   if Result then begin
-     startp [0] := str;
-     endp [0] := reginput;
-    end;
-  end; { of function RegMatch
-..............................................................}
  var
   s : PRegExprChar;
   StartPtr: PRegExprChar;
   InputLen : integer;
  begin
   Result := false; // Be paranoid...
-
-  ClearMatchs; //###0.949
-  // ensure that Match cleared either if optimization tricks or some error
-  // will lead to leaving ExecPrim without actual search. That is
-  // importent for ExecNext logic and so on.
 
   if not IsProgrammOk //###0.929
    then EXIT;
@@ -3493,26 +3769,11 @@ function TRegExpr.ExecPrim (AOffset: integer) : boolean;
      if s <> nil then begin
        Result := RegMatch (s);
        if Result
-        then EXIT
-        else ClearMatchs; //###0.949
+        then EXIT;
        inc (s);
       end;
     UNTIL s = nil
    else begin // We don't - general case.
-     repeat //###0.948
-       {$IFDEF UseFirstCharSet}
-       if s^ in FirstCharSet
-        then Result := RegMatch (s);
-       {$ELSE}
-       Result := RegMatch (s);
-       {$ENDIF}
-       if Result or (s^ = #0) // Exit on a match or after testing the end-of-string.
-        then EXIT
-        else ClearMatchs; //###0.949
-       inc (s);
-     until false;
-(*  optimized and fixed by Martin Fuller - empty strings
-    were not allowed to pass thru in UseFirstCharSet mode
      {$IFDEF UseFirstCharSet} //###0.929
      while s^ <> #0 do begin
        if s^ in FirstCharSet
@@ -3529,7 +3790,6 @@ function TRegExpr.ExecPrim (AOffset: integer) : boolean;
       inc (s);
      UNTIL s^ = #0;
      {$ENDIF}
-*)
     end;
   // Failure
  end; { of function TRegExpr.ExecPrim
@@ -3550,6 +3810,12 @@ function TRegExpr.ExecNext : boolean;
    then inc (Offset); // prevent infinite looping if empty string match r.e.
   Result := ExecPrim (Offset);
  end; { of function TRegExpr.ExecNext
+--------------------------------------------------------------}
+
+function TRegExpr.ExecPos (AOffset: integer {$IFDEF D4_}= 1{$ENDIF}) : boolean;
+ begin
+  Result := ExecPrim (AOffset);
+ end; { of function TRegExpr.ExecPos
 --------------------------------------------------------------}
 
 function TRegExpr.GetInputString : RegExprString;
@@ -3734,7 +4000,7 @@ function TRegExpr.Substitute (const ATemplate : RegExprString) : RegExprString;
         then inc (ResultLen, endp [n] - startp [n]);
       end
      else begin
-       if (Ch = EscChar) and (p < TemplateEnd)
+       if (Ch = '\') and (p < TemplateEnd)
         then inc (p); // quoted or special char followed
        inc (ResultLen);
       end;
@@ -3764,7 +4030,7 @@ function TRegExpr.Substitute (const ATemplate : RegExprString) : RegExprString;
          end;
       end
      else begin
-       if (Ch = EscChar) and (p < TemplateEnd) then begin // quoted or special char followed
+       if (Ch = '\') and (p < TemplateEnd) then begin // quoted or special char followed
          Ch := p^;
          inc (p);
         end;
@@ -3789,9 +4055,8 @@ procedure TRegExpr.Split (AInputStr : RegExprString; APieces : TStrings);
 --------------------------------------------------------------}
 
 function TRegExpr.Replace (AInputStr : RegExprString; const AReplaceStr : RegExprString;
-      AUseSubstitution : boolean{$IFDEF DefParam}= False{$ENDIF}) : RegExprString;
- var
-  PrevPos : integer;
+      AUseSubstitution : boolean{$IFDEF D4_}= False{$ENDIF}) : RegExprString;
+ var PrevPos : integer;
  begin
   Result := '';
   PrevPos := 1;
@@ -3808,41 +4073,12 @@ function TRegExpr.Replace (AInputStr : RegExprString; const AReplaceStr : RegExp
  end; { of function TRegExpr.Replace
 --------------------------------------------------------------}
 
-function TRegExpr.ReplaceEx (AInputStr : RegExprString;
-      AReplaceFunc : TRegExprReplaceFunction)
-     : RegExprString;
- var
-  PrevPos : integer;
- begin
-  Result := '';
-  PrevPos := 1;
-  if Exec (AInputStr) then
-   REPEAT
-    Result := Result + System.Copy (AInputStr, PrevPos,
-      MatchPos [0] - PrevPos)
-     + AReplaceFunc (Self);
-    PrevPos := MatchPos [0] + MatchLen [0];
-   UNTIL not ExecNext;
-  Result := Result + System.Copy (AInputStr, PrevPos, MaxInt); // Tail
- end; { of function TRegExpr.ReplaceEx
---------------------------------------------------------------}
-
-
-{$IFDEF OverMeth}
-function TRegExpr.Replace (AInputStr : RegExprString;
-      AReplaceFunc : TRegExprReplaceFunction)
-     : RegExprString;
- begin
-  ReplaceEx (AInputStr, AReplaceFunc);
- end; { of function TRegExpr.Replace
---------------------------------------------------------------}
-{$ENDIF}
 
 {=============================================================}
 {====================== Debug section ========================}
 {=============================================================}
 
-{$IFDEF RegExpPCodeDump}
+{$IFDEF DebugRegExpr}
 function TRegExpr.DumpOp (op : TREOp) : RegExprString;
 // printable representation of opcode
  begin
@@ -3907,7 +4143,6 @@ function TRegExpr.Dump : RegExprString;
   op : TREOp; // Arbitrary non-END op.
   next : PRegExprChar;
   i : integer;
-  Diff : integer;
 {$IFDEF UseSetOfChar} //###0.929
   Ch : REChar;
 {$ENDIF}
@@ -3924,12 +4159,7 @@ function TRegExpr.Dump : RegExprString;
      next := regnext (s);
      if next = nil // Next ptr.
       then Result := Result + ' (0)'
-      else begin
-        if next > s //###0.948 PWideChar subtraction workaround (see comments in Tail method for details)
-         then Diff := next - s
-         else Diff := - (s - next);
-        Result := Result + Format (' (%d) ', [(s - programm) + Diff]);
-       end;
+      else Result := Result + Format (' (%d) ', [(s - programm) + (next - s)]);
      inc (s, REOpSz + RENextOffSz);
      if (op = ANYOF) or (op = ANYOFCI) or (op = ANYBUT) or (op = ANYBUTCI)
         or (op = EXACTLY) or (op = EXACTLYCI) then begin
@@ -3988,11 +4218,7 @@ function TRegExpr.Dump : RegExprString;
   Result := Result + #$d#$a'FirstCharSet:';
   for Ch := #0 to #255 do
    if Ch in FirstCharSet
-    then begin
-      if Ch < ' '
-       then Result := Result + '#' + IntToStr(Ord(Ch)) //###0.948
-       else Result := Result + Ch;
-    end;
+    then Result := Result + Ch;
   {$ENDIF}
   Result := Result + #$d#$a;
  end; { of function TRegExpr.Dump
@@ -4029,23 +4255,11 @@ procedure TRegExpr.Error (AErrorID : integer);
  end; { of procedure TRegExpr.Error
 --------------------------------------------------------------}
 
-(*
-  PCode persistence:
-   FirstCharSet
-   programm, regsize
-   regstart // -> programm
-   reganch // -> programm
-   regmust, regmlen // -> programm
-   fExprIsCompiled
-*)
-
 // be carefull - placed here code will be always compiled with
 // compiler optimization flag
 
-{$IFDEF FPC}
-initialization
- RegExprInvertCaseFunction := TRegExpr.InvertCaseFunction;
-
-{$ENDIF}
 end.
+
+
+
 

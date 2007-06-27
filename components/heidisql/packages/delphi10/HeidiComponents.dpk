@@ -29,6 +29,6 @@ requires
   vcl;
 
 contains
-  heidicomp in '..\..\source\heidicomp.pas';
+  sortlistview in '..\..\source\sortlistview.pas';
 
 end.

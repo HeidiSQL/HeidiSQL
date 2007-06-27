@@ -14,7 +14,7 @@ package ZComponent;
 {$OPENSTRINGS ON}
 {$OPTIMIZATION ON}
 {$OVERFLOWCHECKS ON}
-{$RANGECHECKS OFF}
+{$RANGECHECKS ON}
 {$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES ON}
@@ -24,7 +24,6 @@ package ZComponent;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Zeos Database Components'}
-{$LIBSUFFIX '90'}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -53,7 +52,6 @@ contains
   ZAbstractTable in '..\..\src\component\ZAbstractTable.pas',
   ZSqlMetadata in '..\..\src\component\ZSqlMetadata.pas',
   ZUpdateSqlEditor in '..\..\src\component\ZUpdateSqlEditor.pas' {ZUpdateSQLEditForm},
-  ZSequence in '..\..\src\component\ZSequence.pas',
-  CompTest in 'CompTest.pas';
+  ZSequence in '..\..\src\component\ZSequence.pas';
 
 end.

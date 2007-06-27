@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {          Oracle Database Connectivity Classes           }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcOracleMetadata;
 
@@ -165,48 +149,49 @@ type
     function DataDefinitionCausesTransactionCommit: Boolean; override;
     function DataDefinitionIgnoredInTransactions: Boolean; override;
 
-    function GetProcedures(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string): IZResultSet; override;
-    function GetProcedureColumns(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string; const ColumnNamePattern: string):
+    function GetProcedures(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string): IZResultSet; override;
+    function GetProcedureColumns(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string; ColumnNamePattern: string):
       IZResultSet; override;
 
-    function GetTables(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet; override;
+    function GetTables(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; Types: TStringDynArray): IZResultSet; override;
     function GetSchemas: IZResultSet; override;
     function GetCatalogs: IZResultSet; override;
     function GetTableTypes: IZResultSet; override;
-    function GetColumns(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet; override;
-    function GetColumnPrivileges(const Catalog: string; const Schema: string;
-      const Table: string; const ColumnNamePattern: string): IZResultSet; override;
+    function GetColumns(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; ColumnNamePattern: string): IZResultSet;
+      override;
+    function GetColumnPrivileges(Catalog: string; Schema: string;
+      Table: string; ColumnNamePattern: string): IZResultSet; override;
 
-    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string): IZResultSet; override;
-    function GetVersionColumns(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
+    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string): IZResultSet; override;
+    function GetVersionColumns(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
 
-    function GetPrimaryKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetImportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetExportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
-      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
-      const ForeignTable: string): IZResultSet; override;
+    function GetPrimaryKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetImportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetExportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
+      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
+      ForeignTable: string): IZResultSet; override;
 
     function GetTypeInfo: IZResultSet; override;
 
-    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
+    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet; override;
 
     function SupportsResultSetType(_Type: TZResultSetType): Boolean; override;
     function SupportsResultSetConcurrency(_Type: TZResultSetType;
       Concurrency: TZResultSetConcurrency): Boolean; override;
 
-    function GetUDTs(const Catalog: string; const SchemaPattern: string;
-      const TypeNamePattern: string; const Types: TIntegerDynArray): IZResultSet; override;
+    function GetUDTs(Catalog: string; SchemaPattern: string;
+      TypeNamePattern: string; Types: TIntegerDynArray): IZResultSet; override;
   end;
 
 implementation
@@ -1128,8 +1113,8 @@ end;
   @return <code>ResultSet</code> - each row is a procedure description
   @see #getSearchStringEscape
 }
-function TZOracleDatabaseMetadata.GetProcedures(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetProcedures(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string): IZResultSet;
 begin
   Result := inherited GetProcedures(
     Catalog, SchemaPattern, ProcedureNamePattern);
@@ -1191,9 +1176,9 @@ end;
        column
   @see #getSearchStringEscape
 }
-function TZOracleDatabaseMetadata.GetProcedureColumns(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetProcedureColumns(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 begin
   Result := inherited GetProcedureColumns(Catalog, SchemaPattern,
     ProcedureNamePattern, ColumnNamePattern);
@@ -1229,13 +1214,14 @@ end;
   @return <code>ResultSet</code> - each row is a table description
   @see #getSearchStringEscape
 }
-function TZOracleDatabaseMetadata.GetTables(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const Types: TStringDynArray): IZResultSet;
+function TZOracleDatabaseMetadata.GetTables(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  Types: TStringDynArray): IZResultSet;
 var
+  I: Integer;
   Key, PartSQL, SQL: string;
 
-  function IncludedType(const TypeName: string): Boolean;
+  function IncludedType(TypeName: string): Boolean;
   var I: Integer;
   begin
     Result := False;
@@ -1245,16 +1231,27 @@ var
   end;
 
 begin
-  Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
+  Key := '';
+  for I := Low(Types) to High(Types) do
+    Key := Key + ':' + Types[I];
+
+  Key := Format('get-tables:%s:%s:%s%s',
+    [Catalog, SchemaPattern, TableNamePattern, Key]);
+
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
+    if TableNamePattern = '' then
+      TableNamePattern := '%';
+    if SchemaPattern = '' then
+      SchemaPattern := '%';
+
     if IncludedType('TABLE') then
     begin
       SQL := 'SELECT NULL AS TABLE_CAT, OWNER AS TABLE_SCHEM, TABLE_NAME,'
         + ' ''TABLE'' AS TABLE_TYPE, NULL AS REMARKS FROM SYS.ALL_TABLES'
-        + ' WHERE OWNER LIKE ''' + ToLikeString(SchemaPattern) + ''' AND TABLE_NAME LIKE '''
-        + ToLikeString(TableNamePattern) + '''';
+        + ' WHERE OWNER LIKE ''' + SchemaPattern + ''' AND TABLE_NAME LIKE '''
+        + TableNamePattern + '''';
     end else
       SQL := '';
 
@@ -1263,7 +1260,7 @@ begin
       PartSQL := 'SELECT NULL AS TABLE_CAT, OWNER AS TABLE_SCHEM,'
         + ' SYNONYM_NAME AS TABLE_NAME, ''SYNONYM'' AS TABLE_TYPE,'
         + ' NULL AS REMARKS FROM SYS.ALL_SYNONYMS WHERE OWNER LIKE '''
-        + ToLikeString(SchemaPattern) + ''' AND SYNONYM_NAME LIKE ''' + ToLikeString(TableNamePattern) + '''';
+        + SchemaPattern + ''' AND SYNONYM_NAME LIKE ''' + TableNamePattern + '''';
 
       if SQL <> '' then
         SQL := SQL + ' UNION ';
@@ -1275,7 +1272,7 @@ begin
       PartSQL := 'SELECT NULL AS TABLE_CAT, OWNER AS TABLE_SCHEM,'
         + ' VIEW_NAME AS TABLE_NAME, ''VIEW'' AS TABLE_TYPE,'
         + ' NULL AS REMARKS FROM SYS.ALL_VIEWS WHERE OWNER LIKE '''
-        + ToLikeString(SchemaPattern) + ''' AND VIEW_NAME LIKE ''' + ToLikeString(TableNamePattern) + '''';
+        + SchemaPattern + ''' AND VIEW_NAME LIKE ''' + TableNamePattern + '''';
 
       if SQL <> '' then
         SQL := SQL + ' UNION ';
@@ -1287,7 +1284,7 @@ begin
       PartSQL := 'SELECT NULL AS TABLE_CAT, SEQUENCE_OWNER AS TABLE_SCHEM,'
         + ' SEQUENCE_NAME AS TABLE_NAME, ''SEQUENCE'' AS TABLE_TYPE,'
         + ' NULL AS REMARKS FROM SYS.ALL_SEQUENCES WHERE SEQUENCE_OWNER LIKE '''
-        + ToLikeString(SchemaPattern) + ''' AND SEQUENCE_NAME LIKE ''' + ToLikeString(TableNamePattern) + '''';
+        + SchemaPattern + ''' AND SEQUENCE_NAME LIKE ''' + TableNamePattern + '''';
 
       if SQL <> '' then
         SQL := SQL + ' UNION ';
@@ -1440,9 +1437,9 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @see #getSearchStringEscape
 }
-function TZOracleDatabaseMetadata.GetColumns(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetColumns(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key, SQL: string;
 begin
@@ -1454,13 +1451,20 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColColumnsDynArray);
 
+    if SchemaPattern = '' then
+      SchemaPattern := '%';
+    if TableNamePattern = '' then
+      TableNamePattern := '%';
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := '%';
+
     SQL := 'SELECT NULL, OWNER, TABLE_NAME, COLUMN_NAME, NULL, DATA_TYPE,'
       + ' DATA_LENGTH, NULL, DATA_PRECISION, DATA_SCALE, NULLABLE, NULL,'
       + ' DATA_DEFAULT, NULL, NULL, NULL, COLUMN_ID, NULLABLE'
       + ' FROM SYS.ALL_TAB_COLUMNS'
-      + ' WHERE OWNER LIKE ''' + ToLikeString(SchemaPattern) + ''' AND TABLE_NAME LIKE '''
-      + ToLikeString(TableNamePattern) + ''' AND COLUMN_NAME LIKE '''
-      + ToLikeString(ColumnNamePattern) + '''';
+      + ' WHERE OWNER LIKE ''' + SchemaPattern + ''' AND TABLE_NAME LIKE '''
+      + TableNamePattern + ''' AND COLUMN_NAME LIKE '''
+      + ColumnNamePattern + '''';
 
     with GetConnection.CreateStatement.ExecuteQuery(SQL) do
     begin
@@ -1542,8 +1546,8 @@ end;
   @return <code>ResultSet</code> - each row is a column privilege description
   @see #getSearchStringEscape
 }
-function TZOracleDatabaseMetadata.GetColumnPrivileges(const Catalog: string;
-  const Schema: string; const Table: string; const ColumnNamePattern: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetColumnPrivileges(Catalog: string;
+  Schema: string; Table: string; ColumnNamePattern: string): IZResultSet;
 var
   Key, SQL: string;
 begin
@@ -1553,6 +1557,9 @@ begin
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := '%';
+
     SQL := 'SELECT NULL AS TABLE_CAT, TABLE_SCHEMA AS TABLE_SCHEM, TABLE_NAME,'
       + ' COLUMN_NAME, GRANTOR, GRANTEE, PRIVILEGE, GRANTABLE AS IS_GRANTABLE'
       + ' FROM SYS.ALL_COL_PRIVS WHERE';
@@ -1560,7 +1567,7 @@ begin
       SQL := SQL + ' TABLE_SCHEMA=''' + Schema + ''' AND';
     if Table <> '' then
       SQL := SQL + ' TABLE_NAME=''' + Table + ''' AND';
-    SQL := SQL + ' COLUMN_NAME LIKE ''' + ToLikeString(ColumnNamePattern) + '''';
+    SQL := SQL + ' COLUMN_NAME LIKE ''' + ColumnNamePattern + '''';
 
     Result := CopyToVirtualResultSet(
       GetConnection.CreateStatement.ExecuteQuery(SQL),
@@ -1601,8 +1608,8 @@ end;
   @return <code>ResultSet</code> - each row is a table privilege description
   @see #getSearchStringEscape
 }
-function TZOracleDatabaseMetadata.GetTablePrivileges(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetTablePrivileges(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string): IZResultSet;
 var
   Key, SQL: string;
 begin
@@ -1612,10 +1619,15 @@ begin
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
+    if SchemaPattern = '' then
+      SchemaPattern := '%';
+    if TableNamePattern = '' then
+      TableNamePattern := '%';
+
     SQL := 'SELECT NULL AS TABLE_CAT, TABLE_SCHEMA AS TABLE_SCHEM, TABLE_NAME,'
       + ' GRANTOR, GRANTEE, PRIVILEGE, GRANTABLE AS IS_GRANTABLE'
-      + ' FROM SYS.ALL_TAB_PRIVS WHERE TABLE_SCHEMA LIKE ''' + ToLikeString(SchemaPattern)
-      + ''' AND TABLE_NAME LIKE ''' + ToLikeString(TableNamePattern) + '''';
+      + ' FROM SYS.ALL_TAB_PRIVS WHERE TABLE_SCHEMA LIKE ''' + SchemaPattern
+      + ''' AND TABLE_NAME LIKE ''' + TableNamePattern + '''';
 
     Result := CopyToVirtualResultSet(
       GetConnection.CreateStatement.ExecuteQuery(SQL),
@@ -1654,8 +1666,8 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @exception SQLException if a database access error occurs
 }
-function TZOracleDatabaseMetadata.GetVersionColumns(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetVersionColumns(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := inherited GetVersionColumns(Catalog, Schema, Table);
 end;
@@ -1682,8 +1694,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @exception SQLException if a database access error occurs
 }
-function TZOracleDatabaseMetadata.GetPrimaryKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetPrimaryKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   SQL, Key: string;
 begin
@@ -1779,8 +1791,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @see #getExportedKeys
 }
-function TZOracleDatabaseMetadata.GetImportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetImportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := inherited GetImportedKeys(Catalog, Schema, Table);
 end;
@@ -1852,8 +1864,8 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZOracleDatabaseMetadata.GetExportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetExportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := inherited GetExportedKeys(Catalog, Schema, Table);
 end;
@@ -1933,9 +1945,9 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZOracleDatabaseMetadata.GetCrossReference(const PrimaryCatalog: string;
-  const PrimarySchema: string; const PrimaryTable: string; const ForeignCatalog: string;
-  const ForeignSchema: string; const ForeignTable: string): IZResultSet;
+function TZOracleDatabaseMetadata.GetCrossReference(PrimaryCatalog: string;
+  PrimarySchema: string; PrimaryTable: string; ForeignCatalog: string;
+  ForeignSchema: string; ForeignTable: string): IZResultSet;
 begin
   Result := inherited GetCrossReference(PrimaryCatalog, PrimarySchema,
     PrimaryTable, ForeignCatalog, ForeignSchema, ForeignTable);
@@ -2042,8 +2054,8 @@ end;
       accurate
   @return <code>ResultSet</code> - each row is an index column description
 }
-function TZOracleDatabaseMetadata.GetIndexInfo(const Catalog: string;
-  const Schema: string; const Table: string; Unique: Boolean;
+function TZOracleDatabaseMetadata.GetIndexInfo(Catalog: string;
+  Schema: string; Table: string; Unique: Boolean;
   Approximate: Boolean): IZResultSet;
 var
   Key, SQL: string;
@@ -2160,9 +2172,9 @@ end;
   STRUCT, or DISTINCT); null returns all types
   @return <code>ResultSet</code> - each row is a type description
 }
-function TZOracleDatabaseMetadata.GetUDTs(const Catalog: string;
-  const SchemaPattern: string; const TypeNamePattern: string;
-  const Types: TIntegerDynArray): IZResultSet;
+function TZOracleDatabaseMetadata.GetUDTs(Catalog: string;
+  SchemaPattern: string; TypeNamePattern: string;
+  Types: TIntegerDynArray): IZResultSet;
 begin
   Result := inherited GetUDTs(Catalog, SchemaPattern, TypeNamePattern, Types);
 end;

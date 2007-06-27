@@ -1,5 +1,6 @@
 package DCLSer100;
 
+{$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -30,6 +31,6 @@ requires
   designide;
 
 contains
-  uSerREG in '..\..\source\uSerREG.pas';
+  uSerREG in '..\..\uSerREG.pas';
 
 end.

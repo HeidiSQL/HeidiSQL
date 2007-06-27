@@ -32,7 +32,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynGenUnit.pas,v 1.18 2003/04/30 13:09:15 etrusco Exp $
+$Id: SynGenUnit.pas,v 1.15 2002/04/08 08:32:48 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -765,17 +765,18 @@ begin
   Writeln(OutFile, 'interface');
   Writeln(OutFile);
   Writeln(OutFile, 'uses');
-  Writeln(OutFile, '{$IFDEF SYN_CLX}');
-  Writeln(OutFile, '  QGraphics,');
-  Writeln(OutFile, '  QSynEditTypes,');
-  Writeln(OutFile, '  QSynEditHighlighter,');
-  Writeln(OutFile, '{$ELSE}');
-  Writeln(OutFile, '  Graphics,');
-  Writeln(OutFile, '  SynEditTypes,');
-  Writeln(OutFile, '  SynEditHighlighter,');
-  Writeln(OutFile, '{$ENDIF}');
   Writeln(OutFile, '  SysUtils,');
-  Writeln(OutFile, '  Classes;');
+  Writeln(OutFile, '  Classes,');
+  Writeln(OutFile, '{$IFDEF SYN_CLX}');
+  Writeln(OutFile, '  QControls,');
+  Writeln(OutFile, '  QGraphics,');
+  Writeln(OutFile, '{$ELSE}');
+  Writeln(OutFile, '  Windows,');
+  Writeln(OutFile, '  Controls,');
+  Writeln(OutFile, '  Graphics,');
+  Writeln(OutFile, '{$ENDIF}');
+  Writeln(OutFile, '  SynEditTypes,');
+  Writeln(OutFile, '  SynEditHighlighter;');
   Writeln(OutFile);
   Writeln(OutFile, 'type');
   Writeln(OutFile, '  T' + IdentPre + 'TokenKind = (');
@@ -929,25 +930,26 @@ begin
     9 : FilterName := 'SYNS_FilterGalaxy';
     10: FilterName := 'SYNS_FilterPython';
     11: FilterName := 'SYNS_FilterSQL';
-    12: FilterName := 'SYNS_FilterTclTk';
-    13: FilterName := 'SYNS_FilterRTF';
-    14: FilterName := 'SYNS_FilterBatch';
-    15: FilterName := 'SYNS_FilterDFM';
-    16: FilterName := 'SYNS_FilterX86Asm';
-    17: FilterName := 'SYNS_FilterGembase';
-    18: FilterName := 'SYNS_FilterINI';
-    19: FilterName := 'SYNS_FilterML';
-    20: FilterName := 'SYNS_FilterVisualBASIC';
-    21: FilterName := 'SYNS_FilterADSP21xx';
-    22: FilterName := 'SYNS_FilterPHP';
-    23: FilterName := 'SYNS_FilterCache';
-    24: FilterName := 'SYNS_FilterCSS';
-    25: FilterName := 'SYNS_FilterJScript';
-    26: FilterName := 'SYNS_FilterKIX';
-    27: FilterName := 'SYNS_FilterBaan';
-    28: FilterName := 'SYNS_FilterFoxpro';
-    29: FilterName := 'SYNS_FilterFortran';
-    30: FilterName := 'SYNS_FilterAsm68HC11';
+    12: FilterName := 'SYNS_FilterHP';
+    13: FilterName := 'SYNS_FilterTclTk';
+    14: FilterName := 'SYNS_FilterRTF';
+    15: FilterName := 'SYNS_FilterBatch';
+    16: FilterName := 'SYNS_FilterDFM';
+    17: FilterName := 'SYNS_FilterX86Asm';
+    18: FilterName := 'SYNS_FilterGembase';
+    19: FilterName := 'SYNS_FilterINI';
+    20: FilterName := 'SYNS_FilterML';
+    21: FilterName := 'SYNS_FilterVisualBASIC';
+    22: FilterName := 'SYNS_FilterADSP21xx';
+    23: FilterName := 'SYNS_FilterPHP';
+    24: FilterName := 'SYNS_FilterCache';
+    25: FilterName := 'SYNS_FilterCSS';
+    26: FilterName := 'SYNS_FilterJScript';
+    27: FilterName := 'SYNS_FilterKIX';
+    28: FilterName := 'SYNS_FilterBaan';
+    29: FilterName := 'SYNS_FilterFoxpro';
+    30: FilterName := 'SYNS_FilterFortran';
+    31: FilterName := 'SYNS_FilterAsm68HC11';
   end;
   Result := FilterName;
 end;
@@ -1034,7 +1036,6 @@ begin
   Writeln(OutFile, 'type');
   Writeln(OutFile, '  ' + LexName + ' = class(TSynCustomHighlighter)');
   Writeln(OutFile, '  private');
-  Writeln(OutFile, '    fLineRef: string;');
   Writeln(OutFile, '    fLine: PChar;');
   Writeln(OutFile, '    fLineNumber: Integer;');
   Writeln(OutFile, '    fProcTable: array[#0..#255] of TProcTableProc;');
@@ -1133,11 +1134,7 @@ begin
   Writeln(OutFile, 'implementation');
   Writeln(OutFile);
   Writeln(OutFile, 'uses');
-  Writeln(OutFile, '{$IFDEF SYN_CLX}');
-  Writeln(OutFile, '  QSynEditStrConst;');
-  Writeln(OutFile, '{$ELSE}');
   Writeln(OutFile, '  SynEditStrConst;');
-  Writeln(OutFile, '{$ENDIF}');
   Writeln(OutFile);
   if (CboFilter.ItemIndex = -1) or (CboLangName.ItemIndex = -1) then
   begin
@@ -1563,8 +1560,7 @@ begin
 
   Writeln(OutFile, 'procedure ' + LexName + '.SetLine(NewValue: String; LineNumber: Integer);');
   Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  fLineRef := NewValue;' );
-  Writeln(OutFile, '  fLine := PChar(fLineRef);');
+  Writeln(OutFile, '  fLine := PChar(NewValue);');
   Writeln(OutFile, '  Run := 0;');
   Writeln(OutFile, '  fLineNumber := LineNumber;');
   Writeln(OutFile, '  Next;');

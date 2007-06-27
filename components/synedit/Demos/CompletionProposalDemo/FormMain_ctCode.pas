@@ -90,25 +90,25 @@ begin
   with mmoItem.Lines do
   begin
     Clear;              
-    Add('constructor \column{}\style{+B}Create\style{-B}(AOwner: TCustomSynEdit)');
-    Add('destructor \column{}\style{+B}Destroy\style{-B}');
-    Add('function \column{}\style{+B}Add\style{-B}(Item: TSynEditMark): Integer');
-    Add('procedure \column{}\style{+B}ClearLine\style{-B}(line: integer)');
-    Add('procedure \column{}\style{+B}Delete\style{-B}(Index: Integer)');
-    Add('function \column{}\style{+B}First\style{-B}: TSynEditMark');
-    Add('procedure \column{}\style{+B}GetMarksForLine\style{-B}(line: integer; var Marks: TSynEditMarks)');
-    Add('procedure \column{}\style{+B}Insert\style{-B}(Index: Integer; Item: TSynEditMark)');
-    Add('function \column{}\style{+B}Last\style{-B}: TSynEditMark');
-    Add('procedure \column{}\style{+B}Place\style{-B}(mark: TSynEditMark)');
-    Add('function \column{}\style{+B}Remove\style{-B}(Item: TSynEditMark): Integer');
-    Add('procedure \column{}\style{+B}WMCaptureChanged\style{-B}(var Msg: TMessage); message WM_CAPTURECHANGED');
-    Add('procedure \column{}\style{+B}WMCopy\style{-B}(var Message: TMessage); message WM_COPY');
-    Add('procedure \column{}\style{+B}WMCut\style{-B}(var Message: TMessage); message WM_CUT');
-    Add('procedure \column{}\style{+B}WMDropFiles\style{-B}(var Msg: TMessage); message WM_DROPFILES');
-    Add('procedure \column{}\style{+B}WMEraseBkgnd\style{-B}(var Msg: TMessage); message WM_ERASEBKGND');
-    Add('procedure \column{}\style{+B}WMGetDlgCode\style{-B}(var Msg: TWMGetDlgCode); message WM_GETDLGCODE');
-    Add('procedure \column{}\style{+B}WMHScroll\style{-B}(var Msg: TWMScroll); message WM_HSCROLL');
-    Add('procedure \column{}\style{+B}WMPaste\style{-B}(var Message: TMessage); message WM_PASTE');
+    Add('constructor '#9'Create'#9'(AOwner: TCustomSynEdit)');
+    Add('destructor '#9'Destroy'#9);
+    Add('function '#9'Add'#9'(Item: TSynEditMark): Integer');
+    Add('procedure '#9'ClearLine'#9'(line: integer)');
+    Add('procedure '#9'Delete'#9'(Index: Integer)');
+    Add('function '#9'First'#9': TSynEditMark');
+    Add('procedure '#9'GetMarksForLine'#9'(line: integer; var Marks: TSynEditMarks)');
+    Add('procedure '#9'Insert'#9'(Index: Integer; Item: TSynEditMark)');
+    Add('function '#9'Last'#9': TSynEditMark');
+    Add('procedure '#9'Place'#9'(mark: TSynEditMark)');
+    Add('function '#9'Remove'#9'(Item: TSynEditMark): Integer');
+    Add('procedure '#9'WMCaptureChanged'#9'(var Msg: TMessage); message WM_CAPTURECHANGED');
+    Add('procedure '#9'WMCopy'#9'(var Message: TMessage); message WM_COPY');
+    Add('procedure '#9'WMCut'#9'(var Message: TMessage); message WM_CUT');
+    Add('procedure '#9'WMDropFiles'#9'(var Msg: TMessage); message WM_DROPFILES');
+    Add('procedure '#9'WMEraseBkgnd'#9'(var Msg: TMessage); message WM_ERASEBKGND');
+    Add('procedure '#9'WMGetDlgCode'#9'(var Msg: TWMGetDlgCode); message WM_GETDLGCODE');
+    Add('procedure '#9'WMHScroll'#9'(var Msg: TWMScroll); message WM_HSCROLL');
+    Add('procedure '#9'WMPaste'#9'(var Message: TMessage); message WM_PASTE');
   end;
   scpDemo.InsertList.AddStrings(mmoInsert.Lines);
   scpDemo.ItemList.AddStrings(mmoItem.Lines);
@@ -141,7 +141,7 @@ end;
 
 procedure TForm1.edBiggestWordChange(Sender: TObject);
 begin
-  scpDemo.Columns[0].BiggestWord := edBiggestWord.Text;
+  scpDemo.BiggestWord := edBiggestWord.Text;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);

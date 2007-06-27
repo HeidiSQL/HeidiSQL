@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterBaan.pas,v 1.14 2005/01/28 16:53:20 maelh Exp $
+$Id: SynHighlighterBaan.pas,v 1.8 2002/04/07 20:11:30 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,26 +42,21 @@ Known Issues:
 The SynHighlighterBaan unit provides SynEdit with a Baan syntax highlighter.
 Thanks to Martin Waldenburg.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERBAAN}
 unit SynHighlighterBaan;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
+
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
   Qt, QControls, QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
+  {$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils, Classes;
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkDirective, tkIdentifier, tkKey, tkNull, tkNumber,
@@ -210,9 +205,9 @@ type
     procedure MakeMethodTables;
   protected
     function GetIdentChars: TSynIdentChars; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -245,14 +240,17 @@ type
       write fVariableAttri;
   end;
 
+procedure Register;
+
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
+
+procedure Register;
+begin
+  RegisterComponents(SYNS_HighlightersPage, [TSynBaanSyn]);
+end;
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1299,7 +1297,7 @@ procedure TSynBaanSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -1376,19 +1374,15 @@ begin
   Result := ['.', '$', '_', '0'..'9', 'a'..'z', 'A'..'Z'] + TSynSpecialChars;
 end;
 
-function TSynBaanSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterBaan;
-end;
-
-class function TSynBaanSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynBaanSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangBaan;
 end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynBaanSyn);
 {$ENDIF}
 end.

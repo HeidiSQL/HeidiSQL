@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {               DBLib Connectivity Classes                }
 {                                                         }
-{        Originally written by Janos Fegyverneki          }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Janos Fegyverneki                 }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcDbLib;
 
@@ -77,7 +61,7 @@ type
     FSybasePlainDriver: IZDBLibPlainDriver;
   public
     constructor Create;
-    function Connect(const Url: string; Info: TStrings): IZConnection; override;
+    function Connect(Url: string; Info: TStrings): IZConnection; override;
 
     function GetSupportedProtocols: TStringDynArray; override;
     function GetMajorVersion: Integer; override;
@@ -93,8 +77,8 @@ type
 
     function GetPlainDriver: IZDBLibPlainDriver;
     function GetConnectionHandle: PDBPROCESS;
-    procedure InternalExecuteStatement(const SQL: string);
-    procedure CheckDBLibError(LogCategory: TZLoggingCategory; const LogMessage: string);
+    procedure InternalExecuteStatement(SQL: string);
+    procedure CheckDBLibError(LogCategory: TZLoggingCategory; LogMessage: string);
   end;
 
   {** Implements a generic DBLib Connection. }
@@ -105,26 +89,26 @@ type
   protected
     FPlainDriver: IZDBLibPlainDriver;
     FHandle: PDBPROCESS;
-    procedure InternalExecuteStatement(const SQL: string); virtual;
+    procedure InternalExecuteStatement(SQL: string); virtual;
     procedure InternalLogin; virtual;
     function GetPlainDriver: IZDBLibPlainDriver;
     function GetConnectionHandle: PDBPROCESS;
-    procedure CheckDBLibError(LogCategory: TZLoggingCategory; const LogMessage: string); virtual;
+    procedure CheckDBLibError(LogCategory: TZLoggingCategory; LogMessage: string); virtual;
     procedure StartTransaction; virtual;
   public
-    constructor Create(Driver: IZDriver; const Url: string;
-      PlainDriver: IZDBLibPlainDriver; const HostName: string; Port: Integer;
-      const Database: string; const User: string; const Password: string; Info: TStrings);
+    constructor Create(Driver: IZDriver; Url: string;
+      PlainDriver: IZDBLibPlainDriver; HostName: string; Port: Integer;
+      Database: string; User: string; Password: string; Info: TStrings);
 
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(SQL: string; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(SQL: string; Info: TStrings):
       IZCallableStatement; override;
 
-    function NativeSQL(const SQL: string): string; override;
+    function NativeSQL(SQL: string): string; override;
 
     procedure SetAutoCommit(AutoCommit: Boolean); override;
     procedure SetTransactionIsolation(Level: TZTransactIsolationLevel); override;
@@ -137,7 +121,7 @@ type
 
     procedure SetReadOnly(ReadOnly: Boolean); override;
 
-    procedure SetCatalog(const Catalog: string); override;
+    procedure SetCatalog(Catalog: string); override;
     function GetCatalog: string; override;
 
     function GetWarnings: EZSQLWarning; override;
@@ -179,7 +163,7 @@ end;
 {**
   Attempts to make a database connection to the given URL.
 }
-function TZDBLibDriver.Connect(const Url: string; Info: TStrings): IZConnection;
+function TZDBLibDriver.Connect(Url: string; Info: TStrings): IZConnection;
 var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
@@ -256,9 +240,9 @@ end;
   @param Password a user password.
   @param Info a string list with extra connection parameters.
 }
-constructor TZDBLibConnection.Create(Driver: IZDriver; const Url: string;
-  PlainDriver: IZDBLibPlainDriver; const HostName: string; Port: Integer;
-  const Database: string; const User: string; const Password: string; Info: TStrings);
+constructor TZDBLibConnection.Create(Driver: IZDriver; Url: string;
+  PlainDriver: IZDBLibPlainDriver; HostName: string; Port: Integer;
+  Database: string; User: string; Password: string; Info: TStrings);
 var
   Metadata: TContainedObject;
 begin
@@ -287,27 +271,23 @@ end;
 {**
   Executes simple statements internally.
 }
-procedure TZDBLibConnection.InternalExecuteStatement(const SQL: string);
-var
-  LSQL: string;
+procedure TZDBLibConnection.InternalExecuteStatement(SQL: string);
 begin
   FHandle := GetConnectionHandle;
   if FPlainDriver.dbCancel(FHandle) <> DBSUCCEED then
     CheckDBLibError(lcExecute, SQL);
   if FPlainDriver.GetProtocol = 'mssql' then
-    LSQL := StringReplace(Sql, '\'#13, '\\'#13, [rfReplaceAll])
-  else
-    LSQL := SQL;
-  if FPlainDriver.dbcmd(FHandle, PChar(LSql)) <> DBSUCCEED then
-    CheckDBLibError(lcExecute, LSQL);
+    SQL := StringReplace(Sql, '\'#13, '\\'#13, [rfReplaceAll]);
+  if FPlainDriver.dbcmd(FHandle, PChar(Sql)) <> DBSUCCEED then
+    CheckDBLibError(lcExecute, SQL);
   if FPlainDriver.dbsqlexec(FHandle) <> DBSUCCEED then
-    CheckDBLibError(lcExecute, LSQL);
+    CheckDBLibError(lcExecute, SQL);
   repeat
     FPlainDriver.dbresults(FHandle);
     FPlainDriver.dbcanquery(FHandle);
   until FPlainDriver.dbmorecmds(FHandle) = DBFAIL;
-  CheckDBLibError(lcExecute, LSQL);
-  DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, LSQL);
+  CheckDBLibError(lcExecute, SQL);
+  DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, Sql);
 end;
 
 {**
@@ -395,7 +375,7 @@ begin
   Result := FHandle;
 end;
 
-procedure TZDBLibConnection.CheckDBLibError(LogCategory: TZLoggingCategory; const LogMessage: string);
+procedure TZDBLibConnection.CheckDBLibError(LogCategory: TZLoggingCategory; LogMessage: string);
 begin
   try
     FPlainDriver.CheckError;
@@ -497,7 +477,7 @@ end;
     pre-compiled statement
 }
 function TZDBLibConnection.CreatePreparedStatement(
-  const SQL: string; Info: TStrings): IZPreparedStatement;
+  SQL: string; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
   Result := TZDBLibPreparedStatementEmulated.Create(Self, SQL, Info);
@@ -530,7 +510,7 @@ end;
     pre-compiled SQL statement
 }
 function TZDBLibConnection.CreateCallableStatement(
-  const SQL: string; Info: TStrings): IZCallableStatement;
+  SQL: string; Info: TStrings): IZCallableStatement;
 begin
   if IsClosed then Open;
   Result := TZDBLibCallableStatement.Create(Self, SQL, Info);
@@ -546,7 +526,7 @@ end;
     parameter placeholders
   @return the native form of this statement
 }
-function TZDBLibConnection.NativeSQL(const SQL: string): string;
+function TZDBLibConnection.NativeSQL(SQL: string): string;
 begin
   Result := SQL;
 end;
@@ -709,7 +689,7 @@ end;
   If the driver does not support catalogs, it will
   silently ignore this request.
 }
-procedure TZDBLibConnection.SetCatalog(const Catalog: string);
+procedure TZDBLibConnection.SetCatalog(Catalog: string);
 var
   LogMessage: string;
 begin

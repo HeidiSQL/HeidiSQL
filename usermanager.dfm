@@ -1,11 +1,13 @@
 object UserManagerForm: TUserManagerForm
   Left = 252
   Top = 131
+  Width = 551
+  Height = 424
   BorderWidth = 5
   Caption = 'User-Manager'
-  ClientHeight = 380
-  ClientWidth = 533
   Color = clBtnFace
+  Constraints.MaxHeight = 800
+  Constraints.MaxWidth = 551
   Constraints.MinHeight = 417
   Constraints.MinWidth = 551
   Font.Charset = DEFAULT_CHARSET
@@ -27,6 +29,7 @@ object UserManagerForm: TUserManagerForm
     ActivePage = TabSheetAddUser
     Align = alClient
     TabHeight = 22
+    TabIndex = 0
     TabOrder = 0
     OnChange = PageControl1Change
     object TabSheetAddUser: TTabSheet
@@ -135,7 +138,6 @@ object UserManagerForm: TUserManagerForm
         ShowLines = False
         ShowRoot = False
         TabOrder = 3
-        OnExpanding = DBUserTreeExpanding
       end
       object EditUser: TEdit
         Left = 96
@@ -226,12 +228,8 @@ object UserManagerForm: TUserManagerForm
         Width = 245
         Height = 311
         Align = alRight
-        Anchors = [akLeft, akTop, akRight, akBottom]
         BevelOuter = bvNone
         TabOrder = 0
-        DesignSize = (
-          245
-          311)
         object Label13: TLabel
           Left = 14
           Top = 82
@@ -328,10 +326,9 @@ object UserManagerForm: TUserManagerForm
         object CheckListBoxPrivs: TCheckListBox
           Left = 14
           Top = 106
-          Width = 107
+          Width = 91
           Height = 193
           OnClickCheck = CheckListBoxPrivsClickCheck
-          Anchors = [akLeft, akTop, akRight, akBottom]
           ItemHeight = 13
           Items.Strings = (
             'Select'
@@ -352,33 +349,30 @@ object UserManagerForm: TUserManagerForm
           Visible = False
         end
         object ButtonSelectAll: TButton
-          Left = 136
-          Top = 172
+          Left = 112
+          Top = 170
           Width = 100
           Height = 25
-          Anchors = [akRight, akBottom]
           Caption = 'Select all'
           TabOrder = 1
           Visible = False
           OnClick = ButtonSelectAllClick
         end
         object ButtonSelectNone: TButton
-          Left = 136
-          Top = 204
+          Left = 112
+          Top = 202
           Width = 100
           Height = 25
-          Anchors = [akRight, akBottom]
           Caption = 'Select none'
           TabOrder = 2
           Visible = False
           OnClick = ButtonSelectNoneClick
         end
         object ButtonSet: TButton
-          Left = 136
-          Top = 244
+          Left = 112
+          Top = 242
           Width = 100
           Height = 25
-          Anchors = [akRight, akBottom]
           Caption = 'Grant Privileges'
           Enabled = False
           TabOrder = 3
@@ -395,11 +389,10 @@ object UserManagerForm: TUserManagerForm
           OnClick = ButtonSelectPrivilegesClick
         end
         object ButtonRevoke: TButton
-          Left = 136
-          Top = 274
+          Left = 112
+          Top = 272
           Width = 100
           Height = 25
-          Anchors = [akRight, akBottom]
           Caption = 'Revoke Privileges'
           TabOrder = 5
           OnClick = ButtonRevokeClick
@@ -428,7 +421,6 @@ object UserManagerForm: TUserManagerForm
           Font.Name = 'MS Sans Serif'
           Font.Style = [fsBold]
           ParentFont = False
-          ExplicitWidth = 100
         end
         object TreeViewUsers: TTreeView
           Left = 5
@@ -436,7 +428,6 @@ object UserManagerForm: TUserManagerForm
           Width = 270
           Height = 253
           Align = alClient
-          Anchors = [akLeft, akTop, akBottom]
           ChangeDelay = 50
           HotTrack = True
           Images = MainForm.ImageList1
@@ -485,15 +476,11 @@ object UserManagerForm: TUserManagerForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    DesignSize = (
-      533
-      37)
     object ButtonClose: TButton
       Left = 456
       Top = 8
       Width = 75
       Height = 25
-      Anchors = [akTop, akRight]
       Cancel = True
       Caption = 'Close'
       TabOrder = 0
@@ -504,7 +491,6 @@ object UserManagerForm: TUserManagerForm
       Top = 8
       Width = 75
       Height = 25
-      Anchors = [akTop, akRight]
       Caption = 'Add User'
       Default = True
       TabOrder = 1

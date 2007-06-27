@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterBat.pas,v 1.15 2005/01/28 16:53:21 maelh Exp $
+$Id: SynHighlighterBat.pas,v 1.9 2001/12/24 16:35:53 plpolak Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,27 +42,20 @@ Known Issues:
 The SynHighlighterBat unit provides SynEdit with a MS-DOS Batch file (.bat) highlighter.
 The highlighter supports the formatting of keywords and parameters (batch file arguments).
 }
-
-{$IFNDEF QSYNHIGHLIGHTERBAT}
 unit SynHighlighterBat;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -113,7 +106,7 @@ type
     function Func77: TtkTokenKind;
     function Func78: TtkTokenKind;
     function Func130: TtkTokenKind;
-    procedure VariableProc;
+    procedure AmpersandProc;
     procedure CRProc;
     procedure CommentProc;
     procedure IdentProc;
@@ -130,9 +123,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: string; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;        
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -162,11 +155,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -377,7 +366,7 @@ var
 begin
   for I := #0 to #255 do
     case I of
-      '%': fProcTable[I] := VariableProc;
+      '%': fProcTable[I] := AmpersandProc;
       #13: fProcTable[I] := CRProc;
       ':': fProcTable[I] := CommentProc;
       'A'..'Q', 'S'..'Z', 'a'..'q', 's'..'z', '_': fProcTable[I] := IdentProc;
@@ -424,14 +413,12 @@ begin
   Next;
 end;
 
-procedure TSynBatSyn.VariableProc;
+procedure TSynBatSyn.AmpersandProc;
 begin
   fTokenID := tkVariable;
   repeat
     Inc(Run);
-  until not (fLine[Run] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-  if fLine[Run] = '%' then
-    Inc(Run);
+  until not (fLine[Run] in ['0'..'9']);
 end;
 
 procedure TSynBatSyn.CRProc;
@@ -482,7 +469,7 @@ end;
 procedure TSynBatSyn.REMCommentProc;
 begin
   if (FLine[Run+1] in ['E','e']) and (FLine[Run+2] in ['M','m'])
-    and (FLine[Run+3] < #33) then
+    and (FLine[Run+3] < #33) then                                               //Fiala
   begin
     fTokenID := tkComment;
     Inc(Run, 3);
@@ -493,10 +480,10 @@ begin
       Inc(Run);
     end; { while }
   end
-  else
-  begin
+  else begin
     fTokenID := tkIdentifier;
-    IdentProc;
+//    inc(Run);                                                                 //Fiala
+    IdentProc;                                                                  //Fiala
   end;
 end;
 
@@ -512,7 +499,7 @@ procedure TSynBatSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -584,12 +571,8 @@ begin
   Result := TSynValidStringChars;
 end;
 
-function TSynBatSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterBatch;
-end;
-
-class function TSynBatSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynBatSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangBatch;
 end;
@@ -610,7 +593,8 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynBatSyn);
 {$ENDIF}
 end.
+

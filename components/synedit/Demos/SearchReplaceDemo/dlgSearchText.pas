@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: dlgSearchText.pas,v 1.3 2002/08/01 05:44:05 etrusco Exp $
+$Id: dlgSearchText.pas,v 1.2 2000/11/22 08:37:05 mghie Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -56,7 +56,6 @@ type
     cbSearchSelectedOnly: TCheckBox;
     btnOK: TButton;
     btnCancel: TButton;
-    cbRegularExpression: TCheckBox;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     function GetSearchBackwards: boolean;
@@ -73,8 +72,6 @@ type
     procedure SetSearchText(Value: string);
     procedure SetSearchTextHistory(Value: string);
     procedure SetSearchWholeWords(Value: boolean);
-    procedure SetSearchRegularExpression(const Value: boolean);
-    function GetSearchRegularExpression: boolean;
   public
     property SearchBackwards: boolean read GetSearchBackwards
       write SetSearchBackwards;
@@ -89,8 +86,6 @@ type
       write SetSearchTextHistory;
     property SearchWholeWords: boolean read GetSearchWholeWords
       write SetSearchWholeWords;
-    property SearchRegularExpression: boolean read GetSearchRegularExpression
-      write SetSearchRegularExpression;
   end;
 
 implementation
@@ -117,11 +112,6 @@ end;
 function TTextSearchDialog.GetSearchInSelection: boolean;
 begin
   Result := cbSearchSelectedOnly.Checked;
-end;
-
-function TTextSearchDialog.GetSearchRegularExpression: boolean;
-begin
-  Result := cbRegularExpression.Checked;
 end;
 
 function TTextSearchDialog.GetSearchText: string;
@@ -183,12 +173,6 @@ begin
   cbSearchWholeWords.Checked := Value;
 end;
 
-procedure TTextSearchDialog.SetSearchRegularExpression(
-  const Value: boolean);
-begin
-  cbRegularExpression.Checked := Value;
-end;
-
 { event handlers }
 
 procedure TTextSearchDialog.FormCloseQuery(Sender: TObject;
@@ -213,4 +197,3 @@ end;
 
 end.
 
- 

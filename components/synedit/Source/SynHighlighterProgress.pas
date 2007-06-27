@@ -26,12 +26,15 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterProgress.pas,v 1.17 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterProgress.pas,v 1.9 2002/04/07 20:11:31 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 Known Issues:
+- Due to an error in SynEdit.pas, the Lines.Objects pointers is not handled
+  properly when inserting lines (pressing Enter or pasting from clipboard)
+  at the start of a line starting a range.
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides a Progress Syntax highlighter for SynEdit)
@@ -43,29 +46,20 @@ Progress programming language.
 Thanks to Michael Hieke for providing a sample highlighter on which this
 highlighter is based.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERPROGRESS}
 unit SynHighlighterProgress;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
   QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-{$ELSE}
+  {$ELSE}
   Graphics,
-  SynEditTypes,
-  SynEditHighlighter,
-  SynHighlighterHashEntries,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter, SynHighlighterHashEntries;
 
 type
   {Enumerates the different tokens in Progress.}
@@ -146,9 +140,9 @@ type
       override;
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: String; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
 {$IFDEF DEBUG}
   public
     property Keywords: TSynHashEntryList read fHashList;
@@ -166,7 +160,7 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ResetRange; override;
+    procedure ReSetRange; override;
     property IdentChars: TSynIdentChars read GetIdentchars write fIdentChars;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -498,12 +492,10 @@ const
 
 implementation
 
+{$B-,O+}
+
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -533,7 +525,7 @@ begin
   for c := '0' to '9' do
     mHashTable[c] := 27 + Ord(c) - Ord('0');
   mHashTable['_'] := 37;
-  mHashTable['-'] := 38;
+  mHashTable['-'] := 38;                                                        //mh 2000-04-22
 end;
 
 function TSynProgressSyn.KeyHash(ToHash: PChar): Integer;
@@ -548,7 +540,7 @@ begin
 {$ENDIF}
     inc(ToHash);
   end;
-  Result := Result and $3FF;
+  Result := Result and $3FF;                                                    //mh 2000-04-22
   fStringLen := ToHash - fToIdent;
 end;
 
@@ -775,7 +767,7 @@ procedure TSynProgressSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -1100,7 +1092,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynProgressSyn.ResetRange;
+procedure TSynProgressSyn.ReSetRange;
 begin
   fRange := rsNone;
   fCommentLevel := 0;
@@ -1129,12 +1121,8 @@ begin
   Result := fIdentChars;
 end;
 
-function TSynProgressSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterProgress;
-end;
-
-class function TSynProgressSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynProgressSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangProgress;
 end;
@@ -1165,7 +1153,8 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynProgressSyn);
 {$ENDIF}
 end.
+

@@ -25,7 +25,6 @@ USEUNIT("..\..\src\component\ZSqlStrings.pas");
 USEUNIT("..\..\src\component\ZSqlUpdate.pas");
 USEUNIT("..\..\src\component\ZStoredProcedure.pas");
 USEUNIT("..\..\src\component\ZStreamBlob.pas");
-USEUNIT("..\..\src\component\ZUpdateSqlEditor.pas");
 USEPACKAGE("vclado50.bpi");
 //---------------------------------------------------------------------------
 #pragma package(smart_init)

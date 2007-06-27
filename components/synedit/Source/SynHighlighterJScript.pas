@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterJScript.pas,v 1.22 2005/01/28 16:53:23 maelh Exp $
+$Id: SynHighlighterJScript.pas,v 1.16 2002/04/07 20:11:31 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,27 +42,20 @@ Known Issues:
 The SynHighlighterJScript unit provides SynEdit with a JScript/JavaScript (.js) highlighter.
 The highlighter formats JavaScript source code highlighting keywords, strings, numbers and characters.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERJSCRIPT}
 unit SynHighlighterJScript;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  Registry,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils, Classes;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  Qt, QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -237,7 +230,7 @@ type
     function Func222: TtkTokenKind;
     function Func252: TtkTokenKind;
     procedure AndSymbolProc;
-    procedure CommentProc;
+    procedure CommentProc;                                                      //mh 2000-07-14
     procedure CRProc;
     procedure IdentProc;
     procedure LFProc;
@@ -261,9 +254,9 @@ type
   protected
     function GetIdentChars: TSynIdentChars; override;
     function GetSampleSource: String; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -278,7 +271,7 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ResetRange; override;
+    procedure ReSetRange; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
@@ -300,11 +293,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -1153,7 +1142,7 @@ function TSynJScriptSyn.Func109: TtkTokenKind;
 begin
   if KeyComp('suffixes') then Result := tkNonReservedKey else
     if KeyComp('linkColor') then Result := tkNonReservedKey else
-      if KeyComp('resizeBy') then Result := tkNonReservedKey else
+      if KeyComp('resizeBy') then Result := tkNonReservedKey else                                 //ek 2000-11-29
         if KeyComp('fromCharCode') then Result := tkNonReservedKey else Result := tkIdentifier;
 end;
 
@@ -1494,7 +1483,8 @@ begin
       #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
       '*': fProcTable[I] := StarProc;
       '"', #39: fProcTable[I] := StringProc;
-      '~', '{', '}', ',', '(', ')', '[', ']', '<', '>', ':', '?', ';', '!', '=':
+//      '~', '{', '}', ',', '(', ')':
+      '~', '{', '}', ',', '(', ')', '[', ']', '<', '>', ':', '?', ';', '!', '=':     //satya 2000-07-15
         fProcTable[I] := SymbolProc;
     else
       fProcTable[I] := UnknownProc;
@@ -1546,6 +1536,8 @@ begin
   if fLine[Run] in ['=', '&'] then inc(Run);
 end;
 
+{begin}                                                                         //mh 2000-07-14
+// copied from CSS highlighter
 procedure TSynJScriptSyn.CommentProc;
 begin
   if fLine[Run] = #0 then
@@ -1562,6 +1554,7 @@ begin
     until fLine[Run] in [#0, #10, #13];
   end;
 end;
+{end}                                                                           //mh 2000-07-14
 
 procedure TSynJScriptSyn.CRProc;
 begin
@@ -1656,6 +1649,7 @@ end;
 
 procedure TSynJScriptSyn.SlashProc;
 begin
+{begin}                                                                         //mh 2000-07-14
   Inc(Run);
   case fLine[Run] of
     '/': begin
@@ -1683,6 +1677,53 @@ begin
     else
       fTokenID := tkSymbol;
   end;
+(*
+  case FLine[Run + 1] of
+    '/':                               {c++ style comments}
+      begin
+        inc(Run, 2);
+        fTokenID := tkComment;
+        while FLine[Run] <> #0 do
+        begin
+          case FLine[Run] of
+            #10, #13: break;
+          end;
+          inc(Run);
+        end;
+      end;
+    '*':                               {c style comments}
+      begin
+        fTokenID := tkComment;
+        fRange := rsAnsi;
+        inc(Run);
+
+        while fLine[Run] <> #0 do
+          case fLine[Run] of
+            '*':
+              if fLine[Run + 1] = '/' then
+              begin
+                fRange := rsUnKnown;
+                inc(Run, 2);
+                break;
+              end else inc(Run);
+            #10: break;
+            #13: break;
+          else inc(Run);
+          end;
+      end;
+    '=':                               {division assign}
+      begin
+        inc(Run, 2);
+        fTokenID := tkSymbol;
+      end;
+  else                                 {division}
+    begin
+      inc(Run);
+      fTokenID := tkSymbol;
+    end;
+  end;
+*)
+{end}                                                                           //mh 2000-07-14
 end;
 
 procedure TSynJScriptSyn.SpaceProc;
@@ -1726,7 +1767,7 @@ procedure TSynJScriptSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
@@ -1736,9 +1777,11 @@ end;
 procedure TSynJScriptSyn.Next;
 begin
   fTokenPos := Run;
+{begin}                                                                         //mh 2000-07-14
   if fRange = rsANSI then
     CommentProc
   else
+{end}                                                                           //mh 2000-07-14
     fProcTable[fLine[Run]];
 end;
 
@@ -1791,7 +1834,7 @@ begin
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
     tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    //tkUnknown: Result := fStringAttri;  <- string?!
     else Result := nil;
   end;
 end;
@@ -1806,7 +1849,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynJScriptSyn.ResetRange;
+procedure TSynJScriptSyn.ReSetRange;
 begin
   fRange := rsUnknown;
 end;
@@ -1821,12 +1864,8 @@ begin
   Result := TSynValidStringChars;
 end;
 
-function TSynJScriptSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterJScript;
-end;
-
-class function TSynJScriptSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynJScriptSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangJScript;
 end;
@@ -1852,7 +1891,7 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynJScriptSyn);
 {$ENDIF}
 end.

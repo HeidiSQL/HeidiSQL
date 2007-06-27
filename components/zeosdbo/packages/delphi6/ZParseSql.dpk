@@ -1,5 +1,5 @@
 package ZParseSql;
-{$LIBSUFFIX '60'}
+
 {$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -13,6 +13,7 @@ package ZParseSql;
 {$OPENSTRINGS ON}
 {$OPTIMIZATION OFF}
 {$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
 {$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES ON}
@@ -22,7 +23,7 @@ package ZParseSql;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Zeos SQL Parsing Classes and Interfaces'}
-{$RUNONLY ON}
+{$RUNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -32,19 +33,20 @@ requires
 contains
   ZSybaseToken in '..\..\src\parsesql\ZSybaseToken.pas',
   ZGenericSqlToken in '..\..\src\parsesql\ZGenericSqlToken.pas',
-  ZInterbaseAnalyser in '..\..\src\parsesql\ZInterbaseAnalyser.pas',
   ZInterbaseToken in '..\..\src\parsesql\ZInterbaseToken.pas',
-  ZMySqlAnalyser in '..\..\src\parsesql\ZMySqlAnalyser.pas',
   ZMySqlToken in '..\..\src\parsesql\ZMySqlToken.pas',
-  ZPostgreSqlAnalyser in '..\..\src\parsesql\ZPostgreSqlAnalyser.pas',
   ZPostgreSqlToken in '..\..\src\parsesql\ZPostgreSqlToken.pas',
-  ZScriptParser in '..\..\src\parsesql\ZScriptParser.pas',
   ZSelectSchema in '..\..\src\parsesql\ZSelectSchema.pas',
-  ZSybaseAnalyser in '..\..\src\parsesql\ZSybaseAnalyser.pas',
   ZGenericSqlAnalyser in '..\..\src\parsesql\ZGenericSqlAnalyser.pas',
+  ZMySqlAnalyser in '..\..\src\parsesql\ZMySqlAnalyser.pas',
+  ZPostgreSqlAnalyser in '..\..\src\parsesql\ZPostgreSqlAnalyser.pas',
+  ZInterbaseAnalyser in '..\..\src\parsesql\ZInterbaseAnalyser.pas',
+  ZSybaseAnalyser in '..\..\src\parsesql\ZSybaseAnalyser.pas',
+  ZScriptParser in '..\..\src\parsesql\ZScriptParser.pas',
   ZOracleToken in '..\..\src\parsesql\ZOracleToken.pas',
   ZOracleAnalyser in '..\..\src\parsesql\ZOracleAnalyser.pas',
   ZSqLiteToken in '..\..\src\parsesql\ZSqLiteToken.pas',
   ZSqLiteAnalyser in '..\..\src\parsesql\ZSqLiteAnalyser.pas';
 
 end.
+

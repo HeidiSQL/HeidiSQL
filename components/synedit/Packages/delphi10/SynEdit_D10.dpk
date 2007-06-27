@@ -1,5 +1,8 @@
 package SynEdit_D10;
 
+{$R *.res}
+{$R '..\..\Source\SynEditReg.dcr'}
+{$R '..\..\Source\SynEdit.res'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -22,16 +25,16 @@ package SynEdit_D10;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'SynEdit component suite'}
-{$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
-  designide,
-  SynEdit_R2006;
+  vcl,
+  vclx,
+  vcldb,
+  designide;
 
 contains
   SynEditReg in '..\..\Source\SynEditReg.pas',
-  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas',
-  SynHighlighterManager in '..\..\Source\SynHighlighterManager.pas';
+  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas';
 
 end.

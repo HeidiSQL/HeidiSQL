@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCache.pas,v 1.14 2005/01/28 16:53:21 maelh Exp $
+$Id: SynHighlighterCache.pas,v 1.9 2002/04/07 20:11:30 jrx Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -42,27 +42,20 @@ Known Issues:
 The SynHighlighterCache unit provides SynEdit with a Cache object script files highlighter.
 Thanks to Martin Waldenburg.
 }
-
-{$IFNDEF QSYNHIGHLIGHTERCACHE}
 unit SynHighlighterCache;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-{$ELSE}
-  Graphics,
-  SynEditTypes,
-  SynEditHighlighter,
-{$ENDIF}
-  SysUtils,
-  Classes;
+  SysUtils, Classes,
+  {$IFDEF SYN_CLX}
+  Qt, QControls, QGraphics,
+  {$ELSE}
+  Windows, Messages, Controls, Graphics, Registry,
+  {$ENDIF}
+  SynEditTypes, SynEditHighlighter;
 
 type
   TtkTokenKind = (tkClass, tkComment, tkFunction, tkIdentifier, tkKey, tkNull,
@@ -249,9 +242,9 @@ type
     procedure MakeMethodTables;
   protected
     function GetIdentChars: TSynIdentChars; override;
-    function IsFilterStored: Boolean; override;
   public
-    class function GetLanguageName: string; override;
+    {$IFNDEF SYN_CPPB_1} class {$ENDIF}                                         //mh 2000-07-14
+    function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -266,7 +259,7 @@ type
     function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
-    procedure ResetRange; override;
+    procedure ReSetRange; override;
     property IdentChars;
   published
     property ClassAttri: TSynHighlighterAttributes read fClassAttri
@@ -305,11 +298,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   Identifiers: array[#0..#255] of ByteBool;
@@ -466,7 +455,7 @@ end;
 function TSynCacheSyn.KeyHash(ToHash: PChar): Integer;
 begin
   Result := 0;
-  while ToHash^ in ['0'..'9', 'a'..'z', 'A'..'Z', '^', '$', '&'] do
+  while ToHash^ in ['0'..'9', 'a'..'z', 'A'..'Z', '^', '$', '&'{, '(', '<'}] do
   begin
     inc(Result, mHashTable[ToHash^]);
     inc(ToHash);
@@ -1347,6 +1336,7 @@ begin
   fTokenID := tkSpace;
   inc(Run);
   if fLine[Run] = #10 then inc(Run);
+//  FCanKey := true;
   FRange := rsUnknown;
 end;
 
@@ -1389,6 +1379,8 @@ begin
       fTokenID := tkIdentifier;
   end;
   while ( Identifiers[fLine[Run]] ) or ( FLine[Run] in ['0'..'9'])  do inc(Run);
+//  FCanKey := false;
+//  FSpaces := 0;
 end;
 
 //------------------------------------------------------------------------------
@@ -1422,6 +1414,7 @@ begin
     end;
     inc(Run);
   end;
+//  FCanKey := false;
   FRange := rsUnknown;
 end;
 
@@ -1451,6 +1444,7 @@ begin
     inc(Run);
   until FLine[Run] = #34;
   if FLine[Run] <> #0 then inc(Run);
+//  FCanKey := false;
   FRange := rsUnknown;
 end;
 
@@ -1459,13 +1453,14 @@ procedure TSynCacheSyn.UnknownProc;
 begin
 {$IFDEF SYN_MBCSSUPPORT}
   if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
+    Inc(Run,2)
   else
 {$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
 
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 procedure TSynCacheSyn.Next;
 begin
@@ -1548,7 +1543,7 @@ begin
   Result := fTokenPos;
 end;
 
-procedure TSynCacheSyn.ResetRange;
+procedure TSynCacheSyn.ReSetRange;
 begin
   fRange := rsUnknown;
 end;
@@ -1564,12 +1559,8 @@ begin
   Result := ['0'..'9', 'a'..'z', 'A'..'Z', '^', '%'] + TSynSpecialChars;
 end;
 
-function TSynCacheSyn.IsFilterStored: Boolean;
-begin
-  Result := fDefaultFilter <> SYNS_FilterCache;
-end;
-
-class function TSynCacheSyn.GetLanguageName: string;
+{$IFNDEF SYN_CPPB_1} class {$ENDIF}                                             //mh 2000-07-14
+function TSynCacheSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangCache;
 end;
@@ -1592,7 +1583,9 @@ procedure TSynCacheSyn.SymbolProc;
 begin
   fTokenID := tkSymbol;
   inc( Run );
+//  FCanKey := false;
   FRange := rsUnknown;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -1617,7 +1610,9 @@ begin
     else fTokenID := tkIdentifier;
   end;
   while Identifiers[fLine[Run]] or (FLine[Run]='$' ) do inc(Run);
+//  FCanKey := false;
   FRange := rsUnknown;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -1643,7 +1638,9 @@ begin
 
   inc( Run );
   while Identifiers[fLine[Run]] or (FLine[Run]='#') do inc(Run);
+//  FCanKey := false;
   FRange := rsUnknown;
+
 end;
 
 //------------------------------------------------------------------------------
@@ -1694,7 +1691,8 @@ end;
 
 initialization
   MakeIdentTable;
-{$IFNDEF SYN_CPPB_1}
+{$IFNDEF SYN_CPPB_1}                                                            //mh 2000-07-14
   RegisterPlaceableHighlighter(TSynCacheSyn);
 {$ENDIF}
 end.
+

@@ -2,6 +2,7 @@ unit loaddata;
 
 
 // -------------------------------------
+// HeidiSQL
 // Load Textfile into table
 // -------------------------------------
 
@@ -35,6 +36,7 @@ type
     CheckBox6: TCheckBox;
     Edit5: TEdit;
     CheckBox7: TCheckBox;
+    SpinEdit1: TSpinEdit;
     Label5: TLabel;
     Label6: TLabel;
     ColumnsCheckListBox: TCheckListBox;
@@ -46,8 +48,6 @@ type
     Label8: TLabel;
     BitBtn2: TBitBtn;
     BitBtn3: TBitBtn;
-    editIgnoreLines: TEdit;
-    updownIgnoreLines: TUpDown;
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
@@ -90,26 +90,29 @@ var
 begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
-  end;
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        DBComboBox.Items.Add(tn.Text);
+    end;
 
-  with DBComboBox do
-  begin
-    for i:=0 to Items.Count-1 do
-      if Items[i] = Mainform.ChildWin.ActualDatabase then
-        ItemIndex := i;
-    if ItemIndex = -1 then
-      ItemIndex := 0;
-  end;
+    with DBComboBox do
+    begin
+      for i:=0 to Items.Count-1 do
+        if Items[i] = ActualDatabase then
+          ItemIndex := i;
+      if ItemIndex = -1 then
+        ItemIndex := 0;
+    end;
 
+  end;
   DBComboBoxChange(self);
   // filename
   with TRegistry.Create do
-    if OpenKey(REGPATH, true) then
+    if OpenKey(regpath, true) then
       EditFileName.Text := ReadString('loadfilename');
   if EditFileName.Text = '' then
     EditFileName.Text := ExtractFilePath(paramstr(0)) + 'import.csv';
@@ -119,20 +122,37 @@ end;
 
 procedure Tloaddataform.DBComboBoxChange(Sender: TObject);
 var
-  i : Integer;
+  tn, child : TTreeNode;
+  i,j : Integer;
 begin
   // read tables from db
   TablesComboBox.Items.Clear;
-  TablesComboBox.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( DBComboBox.Text ) );
-  with TablesComboBox do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    for i:=0 to Items.Count-1 do
-      if Items[i] = Mainform.ChildWin.ActualTable then
-        ItemIndex := i;
-    if ItemIndex = -1 then
-      ItemIndex := 0;
-  end;
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Text = DBComboBox.Text then
+      begin
+        child := tn.getFirstChild;
+        for j:=0 to tn.Count-1 do
+        begin
+          TablesComboBox.Items.Add(child.Text);
+          child := tn.getNextChild(child);
+        end;
+      end;
+    end;
 
+    with TablesComboBox do
+    begin
+      for i:=0 to Items.Count-1 do
+        if Items[i] = ActualTable then
+          ItemIndex := i;
+      if ItemIndex = -1 then
+        ItemIndex := 0;
+    end;
+
+  end;
   TablesComboBoxChange(self);
 end;
 
@@ -144,11 +164,14 @@ begin
   // fill columns:
   ColumnsCheckListBox.Items.Clear;
   if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then
-  Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text), Mainform.ChildWin.ZQuery3 );
-  for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    ColumnsCheckListBox.Items.Add(Mainform.ChildWin.ZQuery3.Fields[0].AsString);
-    Mainform.ChildWin.ZQuery3.Next;
+    GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text), ZQuery3 );
+    for i:=1 to ZQuery3.RecordCount do
+    begin
+      ColumnsCheckListBox.Items.Add(ZQuery3.Fields[0].AsString);
+      ZQuery3.Next;
+    end;
   end;
 
   // select all:
@@ -184,8 +207,7 @@ end;
 
 procedure Tloaddataform.CheckBox7Click(Sender: TObject);
 begin
-  updownIgnoreLines.Enabled := (sender as TCheckBox).checked;
-  editIgnoreLines.Enabled := (sender as TCheckBox).checked;
+  spinedit1.Enabled :=  (sender as TCheckBox).checked;
   Label5.Enabled :=  (sender as TCheckBox).checked;
 end;
 
@@ -198,7 +220,7 @@ var
 begin
 
   with TRegistry.Create do
-    if OpenKey(REGPATH, true) then
+    if OpenKey(regpath, true) then
       WriteString('loadfilename', EditFileName.Text);
 
   query := 'LOAD DATA ';
@@ -206,7 +228,7 @@ begin
   if checkbox1.Checked then
     query := query + 'LOW_PRIORITY ';
 
-  query := query + 'LOCAL INFILE ' + esc(EditFileName.Text) + ' ';
+  query := query + 'LOCAL INFILE ''' + escape_string(EditFileName.Text) + ''' ';
   if checkbox8.Checked then
     query := query + 'REPLACE '
   else if checkbox9.Checked then
@@ -231,7 +253,7 @@ begin
   if checkbox6.Checked then
     query := query + 'LINES TERMINATED BY ''' + Edit5.Text + ''' ';
   if checkbox7.Checked then
-    query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
+    query := query + 'IGNORE ' + inttostr(SpinEdit1.Value) + ' LINES ';
 
   col := TStringList.Create;
   for i:=0 to ColumnsCheckListBox.Items.Count - 1 do
@@ -243,7 +265,7 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  Mainform.ChildWin.ExecUpdateQuery(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
   close;
 end;
 
