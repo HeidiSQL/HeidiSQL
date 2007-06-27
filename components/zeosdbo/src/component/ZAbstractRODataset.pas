@@ -114,7 +114,7 @@ type
   end;
 
   {** Abstract dataset component optimized for read/only access. }
-  TZAbstractRODataset = class(TDataSet)
+  TZAbstractRODataset = class(TWideDataSet)
   private
 {$IFDEF VER130BELOW}
     FUniDirectional: Boolean;
@@ -338,8 +338,8 @@ type
   {$IFDEF WITH_IPROVIDER}
     procedure PSStartTransaction; override;
     procedure PSEndTransaction(Commit: Boolean); override;
-    {function PSGetTableName: string; override;
-    function PSGetQuoteChar: string; override; }
+    function PSGetTableNameW: WideString; override;
+    function PSGetQuoteCharW: WideString; override;
     function PSGetUpdateException(E: Exception;
       Prev: EUpdateError): EUpdateError; override;
     function PSIsSQLBased: Boolean; override;
@@ -348,7 +348,7 @@ type
     function PSUpdateRecord(UpdateKind: TUpdateKind;
       Delta: TDataSet): Boolean; override;
     procedure PSExecute; override;
-    {function PSGetKeyFields: string; override;}
+    function PSGetKeyFieldsW: WideString; override;
     function PSGetParams: TParams; override;
     procedure PSSetParams(AParams: TParams); override;
     function PSExecuteStatement(const ASQL: string; AParams: TParams;
@@ -2766,7 +2766,7 @@ end;
   Returns a string quote character.
   @retuns a quote character.
 }
-{function TZAbstractRODataset.PSGetQuoteChar: string;
+function TZAbstractRODataset.PSGetQuoteCharW: WideString;
 begin
   if Assigned(FConnection) then
   begin
@@ -2778,7 +2778,7 @@ begin
   end
   else
     Result := '"';
-end;}
+end;
 
 {**
   Checks if dataset can execute any commands?
@@ -2887,7 +2887,7 @@ end;
   @returns a table name or an empty string is SQL query is complex SELECT
     or not SELECT statement.
 }
-{function TZAbstractRODataset.PSGetTableName: string;
+function TZAbstractRODataset.PSGetTableNameW: WideString;
 var
   Driver: IZDriver;
   Tokenizer: IZTokenizer;
@@ -2905,16 +2905,16 @@ begin
     if Assigned(SelectSchema) and (SelectSchema.TableCount = 1) then
       Result := SelectSchema.Tables[0].FullName;
   end;
-end;}
+end;
 
 {**
   Defines a list of query primary key fields.
   @returns a semicolon delimited list of query key fields.
 }
-{function TZAbstractRODataset.PSGetKeyFields: string;
+function TZAbstractRODataset.PSGetKeyFieldsW: WideString;
 begin
-  Result := inherited PSGetKeyFields;
-end;}
+  Result := inherited PSGetKeyFieldsW;
+end;
 
 {**
   Executes a SQL statement with parameters.
