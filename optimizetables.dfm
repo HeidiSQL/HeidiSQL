@@ -1,6 +1,6 @@
 object optimize: Toptimize
-  Left = 734
-  Top = 126
+  Left = 568
+  Top = 111
   BorderStyle = bsDialog
   Caption = 'Table-Diagnostics'
   ClientHeight = 386
@@ -207,6 +207,7 @@ object optimize: Toptimize
     Caption = 'ToolBar1'
     EdgeInner = esNone
     EdgeOuter = esNone
+    Flat = True
     Images = MainForm.ImageList1
     ParentShowHint = False
     ShowHint = True
@@ -216,7 +217,7 @@ object optimize: Toptimize
       Top = 0
       Hint = 'Check none'
       Caption = 'ToolButton1'
-      ImageIndex = 35
+      ImageIndex = 42
       ParentShowHint = False
       ShowHint = True
       OnClick = CheckListToggle
@@ -227,7 +228,7 @@ object optimize: Toptimize
       Top = 0
       Hint = 'Check all'
       Caption = 'ToolButton2'
-      ImageIndex = 36
+      ImageIndex = 43
       ParentShowHint = False
       ShowHint = True
       OnClick = CheckListToggle
