@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {        SQL Select Objects and Assembler classes         }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZSelectSchema;
 
@@ -65,10 +49,10 @@ type
   IZIdentifierConvertor = interface (IZInterface)
     ['{2EB07B9B-1E96-4A42-8084-6F98D9140B27}']
 
-    function IsCaseSensitive(const Value: string): Boolean;
-    function IsQuoted(const Value: string): Boolean;
-    function Quote(const Value: string): string;
-    function ExtractQuote(const Value: string): string;
+    function IsCaseSensitive(Value: string): Boolean;
+    function IsQuoted(Value: string): Boolean;
+    function Quote(Value: string): string;
+    function ExtractQuote(Value: string): string;
   end;
 
   {** Implements a table reference assembly. }
@@ -79,7 +63,7 @@ type
     FTable: string;
     FAlias: string;
   public
-    constructor Create(const Catalog, Schema, Table, Alias: string);
+    constructor Create(Catalog, Schema, Table, Alias: string);
     function FullName: string;
 
     property Catalog: string read FCatalog write FCatalog;
@@ -100,7 +84,7 @@ type
     FTableRef: TZTableRef;
     FLinked: Boolean;
   public
-    constructor Create(IsField: Boolean; const Catalog, Schema, Table,
+    constructor Create(IsField: Boolean; Catalog, Schema, Table,
       Field, Alias: string; TableRef: TZTableRef);
 
     property IsField: Boolean read FIsField write FIsField;
@@ -125,12 +109,12 @@ type
 
     procedure LinkReferences(Convertor: IZIdentifierConvertor);
 
-    function FindTableByFullName(const Catalog, Schema, Table: string): TZTableRef;
-    function FindTableByShortName(const Table: string): TZTableRef;
-    function FindFieldByShortName(const Field: string): TZFieldRef;
+    function FindTableByFullName(Catalog, Schema, Table: string): TZTableRef;
+    function FindTableByShortName(Table: string): TZTableRef;
+    function FindFieldByShortName(Field: string): TZFieldRef;
 
     function LinkFieldByIndexAndShortName(
-      ColumnIndex: Integer; const Field: string): TZFieldRef;
+      ColumnIndex: Integer; Field: string): TZFieldRef;
 
     function GetFieldCount: Integer;
     function GetTableCount: Integer;
@@ -162,12 +146,12 @@ type
 
     procedure LinkReferences(Convertor: IZIdentifierConvertor);
 
-    function FindTableByFullName(const Catalog, Schema, Table: string): TZTableRef;
-    function FindTableByShortName(const Table: string): TZTableRef;
-    function FindFieldByShortName(const Field: string): TZFieldRef;
+    function FindTableByFullName(Catalog, Schema, Table: string): TZTableRef;
+    function FindTableByShortName(Table: string): TZTableRef;
+    function FindFieldByShortName(Field: string): TZFieldRef;
 
     function LinkFieldByIndexAndShortName(
-      ColumnIndex: Integer; const Field: string): TZFieldRef;
+      ColumnIndex: Integer; Field: string): TZFieldRef;
 
     function GetFieldCount: Integer;
     function GetTableCount: Integer;
@@ -191,7 +175,7 @@ implementation
   @param Table a table name.
   @param Alias a table alias.
 }
-constructor TZTableRef.Create(const Catalog, Schema, Table, Alias: string);
+constructor TZTableRef.Create(Catalog, Schema, Table, Alias: string);
 begin
   FCatalog := Catalog;
   FSchema := Schema;
@@ -223,7 +207,7 @@ end;
   @param Field a field name.
   @param Alias a field alias.
 }
-constructor TZFieldRef.Create(IsField: Boolean; const Catalog, Schema, Table,
+constructor TZFieldRef.Create(IsField: Boolean; Catalog, Schema, Table,
   Field, Alias: string; TableRef: TZTableRef);
 begin
   FIsField := IsField;
@@ -264,7 +248,7 @@ end;
   @return a found table reference object or <code>null</code> otherwise.
 }
 function TZSelectSchema.FindTableByFullName(
-  const Catalog, Schema, Table: string): TZTableRef;
+  Catalog, Schema, Table: string): TZTableRef;
 var
   I: Integer;
   Current: TZTableRef;
@@ -299,7 +283,7 @@ end;
   @param Table a database table name or alias.
   @return a found table reference object or <code>null</code> otherwise.
 }
-function TZSelectSchema.FindTableByShortName(const Table: string): TZTableRef;
+function TZSelectSchema.FindTableByShortName(Table: string): TZTableRef;
 var
   I: Integer;
   Current: TZTableRef;
@@ -334,7 +318,7 @@ end;
   @param Field a table field name or alias.
   @return a found field reference object or <code>null</code> otherwise.
 }
-function TZSelectSchema.FindFieldByShortName(const Field: string): TZFieldRef;
+function TZSelectSchema.FindFieldByShortName(Field: string): TZFieldRef;
 var
   I: Integer;
   Current: TZFieldRef;
@@ -373,7 +357,7 @@ end;
   @return a found field reference object or <code>null</code> otherwise.
 }
 function TZSelectSchema.LinkFieldByIndexAndShortName(
-  ColumnIndex: Integer; const Field: string): TZFieldRef;
+  ColumnIndex: Integer; Field: string): TZFieldRef;
 var
   I: Integer;
   Current: TZFieldRef;

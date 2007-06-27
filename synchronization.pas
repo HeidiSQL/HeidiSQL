@@ -21,7 +21,7 @@ const
    below so the two incompatible versions of your app can coxist
    peacefully.
   *)
-  compatibilityLevel = 'v3';
+  compatibilityLevel = 'v2';
   maxWindows = 99;
 
 type

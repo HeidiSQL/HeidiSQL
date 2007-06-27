@@ -1,58 +1,52 @@
-{*********************************************************}
-{                                                         }
-{                 Zeos Database Objects                   }
-{                                                         }
-{ This unit contains all the messages that are output by  }
-{ ZEOS methods. One of the given language can be activated}
-{ by setting the language in ->                           }
-{ ZEOS.inc (e.g.: $DEFINE GERMAN).                        }
-{ If no language is defined english will be used.         }
-{                                                         }
-{*********************************************************}
+// ========================================================================= //
+//                                                                           //
+//                            Zeos Database Objects                          //
+//               Copyright (c) 1999-2005 Zeos Development Group              //
+//                                                                           //
+// ========================================================================= //
+//                                                                           //
+// License Agreement:                                                        //
+//                                                                           //
+// This library is free software; you can redistribute it and/or modify it   //
+// under the terms of the GNU Lesser General Public License as published by  //
+// the Free Software Foundation; either version 2.1 of the License, or (at   //
+// your option) any later version.                                           //
+//                                                                           //
+// This library is distributed in the hope that it will be useful, but       //
+// WITHOUT ANY WARRANTY; without even the implied warranty of                //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser  //
+// General Public License for more details.                                  //
+//                                                                           //
+// You should have received a copy of the GNU Lesser General Public License  //
+// along with this library; if not, write to the Free Software Foundation,   //
+// Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA             //
+//                                                                           //
+// The project web site is located on:                                       //
+//    http://www.sourceforge.net/projects/zeoslib.                           //
+//    http://www.zeoslib.sourceforge.net                                     //
+//                                                                           //
+//                                                    Zeos Development Group //
+// ========================================================================= //
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
-{ License Agreement:                                      }
-{                                                         }
-{ This library is distributed in the hope that it will be }
-{ useful, but WITHOUT ANY WARRANTY; without even the      }
-{ implied warranty of MERCHANTABILITY or FITNESS FOR      }
-{ A PARTICULAR PURPOSE.  See the GNU Lesser General       }
-{ Public License for more details.                        }
-{                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
-{                                                         }
-{ The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
-{   http://www.sourceforge.net/projects/zeoslib.          }
-{   http://www.zeoslib.sourceforge.net                    }
-{                                                         }
-{                                                         }
-{                                                         }
-{                                 Zeos Development Group. }
-{********************************************************@}
+
+// ========================================================================= //
+// ZMessages.pas                                                             //
+// ========================================================================= //
+//                                                                           //
+// This unit contains all the messages that are output by ZEOS methods. One  //
+// of the given language can be activated by setting the language in ->      //
+// ZEOS.inc (e.g.: {$DEFINE GERMAN}). If no language is defined in ZEOS.inc  //
+// the english strings will be used.                                         //
+//                                                                           //
+// Date         Rev.   Sgn   Comment                                         //
+// ------------------------------------------------------------------------- //
+// 03/05/2005    1.9   ms    german messagetexts added and corrected some    //
+//                           english messages                                //
+// 09/05/2005    1.9   ms    dutch and portuguese messagetexts added         //
+// 23/06/2005    1.9   ms    added some new message strings (german and      //
+//                           english)                                        //
+// ========================================================================= //
+
 
 unit ZMessages;
 
@@ -90,10 +84,10 @@ resourcestring
   SVariableAlreadyExists = 'Variável "%s" já existe';
   STypesMismatch = 'Tipos não combinam';
   SUnsupportedVariantType = 'Tipo variante não suportado';
-  SUnsupportedOperation = 'Operação não suportada';
+  SUnsupportedOperation = 'Operação não suportado';
 
-  STokenizerIsNotDefined = 'Sinalizador não definido';
-  SLibraryNotFound = 'Nenhuma biblioteca dinâmica da lista %s foi encontrada';
+  STokenizerIsNotDefined = 'Tokenizer is not defined';
+  SLibraryNotFound = 'Nenhuma biblioteca dinaêmica da lista %s foi encontrada';
   SEncodeDateIsNotSupported = 'Esta versão não suporta isc_encode_sql_date';
   SEncodeTimeIsNotSupported = 'Esta versão não suporta supported isc_encode_sql_time';
   SEncodeTimestampIsNotSupported = 'Esta versão não suporta supported isc_encode_sql_timestamp';
@@ -126,12 +120,10 @@ resourcestring
   SWrongTypeForBlobParameter = 'Tipo errado para parâmetro Blob';
   SIncorrectConnectionURL = 'Conexão incorreta URL: %s';
   SUnsupportedProtocol = 'Protocolo não suportado: %s';
-  SUnsupportedByDriver    = 'Translate: Driver can not support this feature natively: [%s]';
 
   SConnectionIsNotOpened = 'Conexão ainda não está aberta.';
   SInvalidOpInAutoCommit = 'Operação inválida no modo AutoCommit.';
   SInvalidOpInNonAutoCommit = 'Operação inválida quando o modo AutoCommit é False.';
-  SInvalidOpPrepare = 'Prepare transaction somente é possível após comandar Starttransaction';
 
   SConnectionIsNotAssigned = 'Componente de conexão de banco de dados não atribuído';
   SQueryIsEmpty = 'Consulta SQL está vazia';
@@ -170,52 +162,36 @@ resourcestring
 
   SLoginPromptFailure = 'Não foi possível encontrar o diálogo padrão de login. Por favor adicione DBLogDlg para a seção uses de seu arquivo principal.';
 
-  SPropertyQuery = 'A Query poderá demorar em bancos de dados volumosos!';
-  SPropertyTables = 'Você deveria limitar por Catalogo e/ou Esquema.';
-  SPropertyColumns = 'Você deveria limitar por Catalogo, Esquema e/ou Tabela.';
-  SPropertyProcedures = 'Você deveria limitar por Catalogo e/ou Esquema.';
-  SPropertySequences = 'Você deveria limitar por Catalogo e/ou Esquema..';
-  SPropertyExecute = 'Executar a Query de qualquer maneira?';
+  SPropertyQuery = 'The Query may last a while on large databases!';
+  SPropertyTables = 'You should limit it by Catalog and/or Schema.';
+  SPropertyColumns = 'You should limit it by Catalog, Schema and/or TableName.';
+  SPropertyProcedures = 'You should limit it by Catalog and/or Schema.';
+  SPropertySequences = 'You should limit it by Catalog and/or Schema.';
+  SPropertyExecute = 'Should the Query be executed anyway?';
 
-  SFormTest = 'Teste Editor ZEOS SQL';
-  SButtonClose = '&Fechar';
-  SFormEditor = 'Editor ZEOS SQL';
-  STabSheetSelect = 'SQL Select';
-  SMenuLoad = 'Carregar';
-  SMenuSave = 'Salvar';
-  SButtonGenerate = '&Gerar';
-  SButtonCheck = '&Verificar';
-  SButtonTest = '&Testar';
+  SFormTest = 'ZEOS SQL Editor Test';
+  SButtonClose = '&Close';
+  SFormEditor = 'ZEOS SQL Editor';
+  STabSheetSelect = 'Select SQL';
+  SMenuLoad = 'Load';
+  SMenuSave = 'Save';
+  SButtonGenerate = '&Generate';
+  SButtonCheck = 'C&heck';
+  SButtonTest = '&Test';
   SButtonOk = '&OK';
-  SButtonCancel = '&Cancelar';
-  STableAlias = '&Alias Tabela';
-  SReplaceSQL = '&Substituir SQL';
-  SDialogOpenTitle = 'Abrir Arquivo SQL';
-  SDialogSaveTitle = 'Salvar Arquivo SQL';
-  SSQLEditor = 'Editor SQL';
-  SDatabaseDialog = 'Abrir Banco de Dados existente';
+  SButtonCancel = '&Cancel';
+  STableAlias = 'T&able alias';
+  SReplaceSQL = '&Replace SQL';
+  SDialogOpenTitle = 'Open SQL File';
+  SDialogSaveTitle = 'Save SQL File';
+  SSQLEditor = 'SQL Editor';
+  SDatabaseDialog = 'Open existing database';
 
-  SUpdateSQLNoResult = 'SQL Update Refresh resultou num conjunto vazio';
-  SUpdateSQLRefreshStatementcount ='Usar somente 1 declaraçao SQL para Update Refresh';
   {$IFDEF FPC}
-  SNotEditing = 'Dataset não está em modo de edição ou inserção';
-  SFieldTypeMismatch = 'Tipo inválido para o campo ''%s'', esperado: %s atual: %s';
-  SFieldSizeMismatch = 'Tamanho Inválido para o campo ''%s'', esperado: %d atual: %d';
+  SNotEditing = 'Dataset not in edit or insert mode';
+  SFieldTypeMismatch = 'Type mismatch for field ''%s'', expecting: %s actual: %s';
+  SFieldSizeMismatch = 'Size mismatch for field ''%s'', expecting: %d actual: %d';
   {$ENDIF}
-
-  SFailedtoInitPrepStmt   = 'A declaração preparada falhou ao inicializar'; 
-  SFailedtoPrepareStmt    = 'A declaração falhou durante o processo de preparo'; 
-  SFailedToBindAllValues  = 'A Aplicação falhou na tradução de todos os valores'; 
-  SAttemptExecOnBadPrep   = 'Tentativa de executar uma declaração que não foi corretamente preparada'; 
-  SBindingFailure         = 'Falha ao traduzir o conjunto de parâmetros'; 
-  SPreparedStmtExecFailure = 'A declaração preparada falhou ao executar'; 
-  SBoundVarStrIndexMissing = 'Índice de texto "%s" da variável de limite não existe'; 
-  SBindVarOutOfRange      = 'Índice da variável de limite fora de alcance: %d';
-
-  SRefreshRowOnlySupportedWithUpdateObject = 'TRANSLATE: The refreshrow method is only supported with an update object';
-  SMustBeInBrowseMode = 'TRANSLATE: Operation is only allowed in dsBROWSE state';
-
-  SUnKnownParamDataType = 'TRANSLATE: Unknown Param.DataType';
 
 {$ELSE}
 
@@ -250,44 +226,42 @@ resourcestring
 
   STokenizerIsNotDefined = 'Tokenizer is niet gedefinieerd';
   SLibraryNotFound = 'DLL van de lijst %s werd niet gevonden';
-  SEncodeDateIsNotSupported = 'Deze versie ondersteunt isc_encode_sql_date niet';
-  SEncodeTimeIsNotSupported = 'Deze versie ondersteunt isc_encode_sql_time niet';
-  SEncodeTimestampIsNotSupported = 'Deze versie ondersteunt isc_encode_sql_timestamp niet';
-  SDecodeDateIsNotSupported = 'Deze versie ondersteunt isc_decode_sql_date niet';
-  SDecodeTimeIsNotSupported = 'Deze versie ondersteunt isc_decode_sql_time niet';
-  SDecodeTimestampIsNotSupported = 'Deze versie ondersteunt isc_decode_sql_timestamp niet';
+  SEncodeDateIsNotSupported = 'Deze versie ondersteund isc_encode_sql_date niet';
+  SEncodeTimeIsNotSupported = 'Deze versie ondersteund isc_encode_sql_time niet';
+  SEncodeTimestampIsNotSupported = 'Deze versie ondersteund isc_encode_sql_timestamp niet';
+  SDecodeDateIsNotSupported = 'Deze versie ondersteund isc_decode_sql_date niet';
+  SDecodeTimeIsNotSupported = 'Deze versie ondersteund isc_decode_sql_time niet';
+  SDecodeTimestampIsNotSupported = 'Deze versie ondersteund isc_decode_sql_timestamp niet';
 
   SCanNotRetrieveResultSetData = 'Kan ResultSet data niet ophalen';
   SRowBufferIsNotAssigned = 'Row buffer is niet toegekend';
-  SColumnIsNotAccessable = 'Kolom met index %d is niet bereikbaar';
+  SColumnIsNotAccessable = 'Kolom met index %d is not bereikbaar';
   SConvertionIsNotPossible = 'Conversie is niet mogelijk voor kolom %d van %s tot %s';
   SCanNotAccessBlobRecord = 'Kan het blob record in kolom %d met type %s niet benaderen';
   SRowDataIsNotAvailable = 'Rij data is niet beschikbaar';
-  SResolverIsNotSpecified = 'Resolver is niet gespecificeerd voor deze ResultSet';
+  SResolverIsNotSpecified = 'Resolver is not gespecificeerd voor deze ResultSet';
   SResultsetIsAlreadyOpened = 'ResultSet is al geopend';
   SCanNotUpdateEmptyRow = 'Kan een lege rij niet updaten';
   SCanNotUpdateDeletedRow = 'Kan een verwijderde rij niet updaten';
   SCanNotDeleteEmptyRow = 'Kan een lege rij niet verwijderen';
   SCannotUseCommit = 'Commit in autocommit mode is niet mogelijk';
   SCannotUseRollBack = 'Rollback in autocommit mode is niet mogelijk';
-  SCanNotUpdateComplexQuery = 'Kan een complexe query met meerdere tabellen niet updaten';
+  SCanNotUpdateComplexQuery = 'Kan een complex query met meerdere tabellen niet updaten';
   SCanNotUpdateThisQueryType = 'Kan dit query type niet updaten';
   SDriverWasNotFound = 'Gevraagde database driver is niet gevonden';
   SCanNotConnectToServer = 'Kan geen verbinding maken met de SQL server';
-  STableIsNotSpecified = 'Tabel is niet gespecifieerd';
+  STableIsNotSpecified = 'Table is not gespecificeerd';
   SLiveResultSetsAreNotSupported = 'Live query is niet ondersteund door deze klasse';
   SInvalidInputParameterCount = 'Input parameter aantal is lager dan verwacht';
-  SIsolationIsNotSupported = 'Transactie isolatie niveau wordt niet ondersteund';
+  SIsolationIsNotSupported = 'Transact isolation level wordt niet ondersteund';
   SColumnWasNotFound = 'Kolom met naam "%s" bestaat niet';
   SWrongTypeForBlobParameter = 'Verkeerde type voor Blob parameter';
   SIncorrectConnectionURL = 'Ongeldige connectie URL: %s';
   SUnsupportedProtocol = 'Niet ondersteund protocol: %s';
-  SUnsupportedByDriver    = 'De driver ondersteunt deze functie niet: [%s]';
 
-  SConnectionIsNotOpened = 'Verbinding is niet gemaakt.';
+  SConnectionIsNotOpened = 'Verbinding is niet niet gemaakt.';
   SInvalidOpInAutoCommit = 'Ongeldige operatie in AutoCommit mode.';
   SInvalidOpInNonAutoCommit = 'Ongeldige operatie in non AutoCommit mode.';
-  SInvalidOpPrepare = 'Transactie voorbereiden is enkel mogelijk bij de eerste aanroep van Starttransaction!';
 
   SConnectionIsNotAssigned = 'Database connectie component is niet toegekend';
   SQueryIsEmpty = 'SQL Query is leeg';
@@ -296,23 +270,23 @@ resourcestring
   SOperationIsNotAllowed2 = 'Bewerking is niet toegestaan in READ ONLY mode';
   SOperationIsNotAllowed3 = 'Bewerking is niet toegestaan in %s mode';
   SOperationIsNotAllowed4 = 'Bewerking is niet toegestaan voor gesloten dataset';
-  SNoMoreRecords = 'Geen records meer aanwezig in ResultSet';
+  SNoMoreRecords = 'Geen meer records in ResultSet aanwezig';
   SCanNotOpenResultSet = 'Kan een ResultSet niet openen';
-  SCircularLink = 'Databron maakt een oneindige verbindingslus';
+  SCircularLink = 'Databron maakt een oneindige verbinding';
   SBookmarkWasNotFound = 'Bookmark niet gevonden';
   SIncorrectSearchFieldsNumber = 'Incorrect aantal zoekvelden';
   SInvalidOperationInTrans = 'Ongeldige operatie in explicit transaction mode';
   SIncorrectSymbol = 'Ongeldig symbool in veld lijst "%s".';
   SIncorrectToken = 'Ongeldig teken gevolgd door ":"';
 
-  SSelectedTransactionIsolation = 'Geselecteerd transactie isolatie niveau niet ondersteund';
+  SSelectedTransactionIsolation = 'Geselecteerd transaction isolation level niet ondersteund';
   SDriverNotSupported = 'Driver niet ondersteund %s';
   SPattern2Long = 'Patroon is te lang';
-  SDriverNotCapableOutParameters = 'Driver ondersteunt geen out parameters';
+  SDriverNotCapableOutParameters = 'Driver is not capable out parameters';
   SStatementIsNotAllowed = 'Statement is niet toegestaan';
-  SStoredProcIsNotAllowed = 'Stored procedures zijn niet toegestaan';
+  SStoredProcIsNotAllowed = 'De stored proc is niet toegestaan';
   SCannotPerformOperation = 'Kan operatie niet uitvoeren op een gesloten ResultSet';
-  SInvalidState = 'Ongeldige status';
+  SInvalidState = 'Ongeldige state';
   SErrorConvertion = 'Conversiefout';
   SDataTypeDoesNotSupported = 'Data type is niet onderstuend';
   SUnsupportedParameterType = 'Niet ondersteund parameter type';
@@ -324,7 +298,7 @@ resourcestring
   SFieldNotFound1 = 'Veld "%s" niet gevonden';
   SFieldNotFound2 = 'Veld %d niet gevonden';
 
-  SLoginPromptFailure = 'Kan de standaard login prompt niet vinden.  Voeg DBLogDlg toe aan de uses sectie.';
+  SLoginPromptFailure = 'Kan de standaard login promt niet vinden.  Voeg DBLogDlg toe aan de uses sectie.';
 
   SPropertyQuery = 'De Query kan enige tijd duren bij grote databases!';
   SPropertyTables = 'Limiet op Catalog en/of Schema is vereist.';
@@ -334,45 +308,28 @@ resourcestring
   SPropertyExecute = 'Dient de Query toch te worden uitgevoerd?';
 
   SFormTest = 'ZEOS SQL Editor Test';
-  SButtonClose = '&Sluiten';
+  SButtonClose = '&Close';
   SFormEditor = 'ZEOS SQL Editor';
   STabSheetSelect = 'Select SQL';
-  SMenuLoad = 'Laden';
-  SMenuSave = 'Opslaan';
-  SButtonGenerate = '&Genereren';
+  SMenuLoad = 'Load';
+  SMenuSave = 'Save';
+  SButtonGenerate = '&Generate';
   SButtonCheck = 'C&heck';
   SButtonTest = '&Test';
   SButtonOk = '&OK';
-  SButtonCancel = '&Annuleren';
-  STableAlias = 'Tabel al&ias';
-  SReplaceSQL = '&Vervang SQL';
-  SDialogOpenTitle = 'SQL Bestand Openen';
-  SDialogSaveTitle = 'SQL Bestand Opslaan';
+  SButtonCancel = '&Cancel';
+  STableAlias = 'T&able alias';
+  SReplaceSQL = '&Replace SQL';
+  SDialogOpenTitle = 'Open SQL File';
+  SDialogSaveTitle = 'Save SQL File';
   SSQLEditor = 'SQL Editor';
-  SDatabaseDialog = 'Open bestaande database';
-
-  SUpdateSQLNoResult = 'Der zuvor aktualisierte SQL liefert kein Resultset zurück';
-  SUpdateSQLRefreshStatementcount ='Update Refresh SQL Statement count moet 1 zijn';
+  SDatabaseDialog = 'Open existing database';
 
   {$IFDEF FPC}
-  SNotEditing = 'Dataset is niet in edit of insert modus';
-  SFieldTypeMismatch = 'Type mismatch voor veld ''%s'', verwacht: %s actueel: %s';
-  SFieldSizeMismatch = 'Size mismatch voor veld ''%s'', verwacht: %d actueel: %d';
+  SNotEditing = 'Dataset not in edit or insert mode';
+  SFieldTypeMismatch = 'Type mismatch for field ''%s'', expecting: %s actual: %s';
+  SFieldSizeMismatch = 'Size mismatch for field ''%s'', expecting: %d actual: %d';
   {$ENDIF}
-
-  SFailedtoInitPrepStmt   = 'Initialisatie van Prepared statement mislukt';
-  SFailedtoPrepareStmt    = 'Statement mislukt tijdens prepare';
-  SFailedToBindAllValues  = 'Pre-bind van allewaarden is mislukt';
-  SAttemptExecOnBadPrep   = 'Poging om een statement uit te voeren voor een succesvolle prepare';
-  SBindingFailure         = 'Binding van parameterset mislukt';
-  SPreparedStmtExecFailure = 'Uitvoeren van Prepared statement mislukt';
-  SBoundVarStrIndexMissing = 'Tekst index van bound variable bestaat niet: "%s"';
-  SBindVarOutOfRange      = 'Bound variable index buiten bereik: %d';
-
-  SRefreshRowOnlySupportedWithUpdateObject = 'De refreshrow methode is enkel ondersteund vooreen update object';
-  SMustBeInBrowseMode = 'Bewerking is enkel toegestaan in dsBROWSE status';
-
-  SUnKnownParamDataType = 'Param.DataType is onbekend';
 
 {$ELSE}
 // <- ms, 09/05/2005
@@ -406,7 +363,6 @@ resourcestring
   STypesMismatch = 'Inkompatible Typen';
   SUnsupportedVariantType = 'Nicht unterstützter Variant-Typ';
   SUnsupportedOperation = 'Nicht unterstützte Operation';
-  SUnsupportedByDriver    = 'Der Treiber unterstützt dieses Feature nicht von haus aus: [%s]';
 
   STokenizerIsNotDefined = 'Tokenizer wurde nicht definiert';
   SLibraryNotFound = 'Es wurde keine der in %s gelisteten DLL''s gefunden';
@@ -446,7 +402,6 @@ resourcestring
   SConnectionIsNotOpened = 'Die Verbindung zur Datenbank ist noch nicht hergestellt';
   SInvalidOpInAutoCommit = 'Ungültige Operation im AUTOCOMMIT-Modus';
   SInvalidOpInNonAutoCommit = 'Ungültige Operation außerhalb des AUTOCOMMIT-Modus';
-  SInvalidOpPrepare = 'Transaktion vorzubereiten ist nur beim ersten Aufruf von Starttransaction möglich!';
 
   SConnectionIsNotAssigned = 'Die Datenbank-Verbindungskomponente ist nicht angegeben';
   SQueryIsEmpty = 'SQL Query leer';
@@ -510,30 +465,12 @@ resourcestring
   SSQLEditor = 'SQL Editor';
   SDatabaseDialog = 'Existierende Datenbank öffnen';
 
-  SUpdateSQLNoResult = 'Translate : Update Refresh SQL delivered no resultset';
-  SUpdateSQLRefreshStatementcount ='Translate : Update Refresh SQL Statement count must be 1';
-
   {$IFDEF FPC}
   SNotEditing = 'Das DataSet ist nicht im "edit" oder "insert" Modus.';
   SFieldTypeMismatch = 'Der Typ für Feld ''%s'' stimmt nicht. Erwartet wird %s der Typ ist aber momentan %s';
   SFieldSizeMismatch = 'Die Größe des Feldes ''%s'' stimmt nicht. Erwartet wird  %d die Größe ist aber momentan %d';
   {$ENDIF}
   // <- ms, 03/05/2005
-
-  SFailedtoInitPrepStmt   = 'Translate: Prepared statement failed to initialize';
-  SFailedtoPrepareStmt    = 'Translate: Statement failed during prepare process';
-  SFailedToBindAllValues  = 'Translate: Application failed to pre-bind all values';
-  SAttemptExecOnBadPrep   = 'Translate: Attempt made to execute a statement before a successful preparation.';
-  SBindingFailure         = 'Translate: Failed to bind parameter set';
-  SPreparedStmtExecFailure = 'Translate: Prepared statement failed to execute';
-  SBoundVarStrIndexMissing = 'Translate: Bound variable text index "%s" does not exist';
-  SBindVarOutOfRange      = 'Translate: Bound variable index out of range: %d';
-
-  SRefreshRowOnlySupportedWithUpdateObject = 'TRANSLATE: The refreshrow method is only supported with an update object';
-  SMustBeInBrowseMode = 'TRANSLATE: Operation is only allowed in dsBROWSE state';
-
-  SUnKnownParamDataType = 'TRANSLATE: Unknown Param.DataType';
-
 {$ELSE}
   // -> fduenas, 28/06/2005
 {$IFDEF SPANISH} //Spanish translations
@@ -599,12 +536,10 @@ resourcestring
   SWrongTypeForBlobParameter = 'Tipo incorrecto para el parámetro Blob';
   SIncorrectConnectionURL = 'URL de conexión incorrecta: %s';
   SUnsupportedProtocol = 'Protocolo no soportado: %s';
-  SUnsupportedByDriver    = 'Translate: Driver can not support this feature natively: [%s]';
 
   SConnectionIsNotOpened = 'La conexión no ha sido abierta todavía';
   SInvalidOpInAutoCommit = 'Operación inválida en modo AutoCommit';
   SInvalidOpInNonAutoCommit = 'Operación inválida en modo No-AutoCommit';
-  SInvalidOpPrepare = 'Translate : Prepare transaction only possible on matching first(!) Starttransaction';
 
   SConnectionIsNotAssigned = 'El componente de conexión a base de datos no está asigando';
   SQueryIsEmpty = 'La Consulta SQL está vacía';
@@ -669,348 +604,13 @@ resourcestring
   SSQLEditor = 'Editor SQL';
   SDatabaseDialog = 'Abrir base de datos existente';
 
-  SUpdateSQLNoResult = 'Translate : Update Refresh SQL delivered no resultset';
-  SUpdateSQLRefreshStatementcount ='Translate : Update Refresh SQL Statement count must be 1';
-
   {$IFDEF FPC}
   SNotEditing = 'El Dataset no se encuentra en modo de edición o inserción';
   SFieldTypeMismatch = 'El Tipo de dato no coincide para el campo ''%s'', se espera: %s, actual: %s';
   SFieldSizeMismatch = 'El Tamaño de dato no coincide para el campo ''%s'', se espera: %d, actual: %d';
   {$ENDIF}
 
-  SFailedtoInitPrepStmt   = 'Translate: Prepared statement failed to initialize';
-  SFailedtoPrepareStmt    = 'Translate: Statement failed during prepare process';
-  SFailedToBindAllValues  = 'Translate: Application failed to pre-bind all values';
-  SAttemptExecOnBadPrep   = 'Translate: Attempt made to execute a statement before a successful preparation.';
-  SBindingFailure         = 'Translate: Failed to bind parameter set';
-  SPreparedStmtExecFailure = 'Translate: Prepared statement failed to execute';
-  SBoundVarStrIndexMissing = 'Translate: Bound variable text index "%s" does not exist';
-  SBindVarOutOfRange      = 'Translate: Bound variable index out of range: %d';
-
-  SRefreshRowOnlySupportedWithUpdateObject = 'TRANSLATE: The refreshrow method is only supported with an update object';
-  SMustBeInBrowseMode = 'TRANSLATE: Operation is only allowed in dsBROWSE state';
-
-  SUnKnownParamDataType = 'TRANSLATE: Unknown Param.DataType';
-
-{$ELSE}
-
-{$IFDEF ROMANA}
-
-
- SSQLError1 = 'SQL Eroare: %s';
-  SSQLError2 = 'SQL Eroare: %s Cod: %d';
-  SSQLError3 = 'SQL Eroare: %s Cod: %d SQL: %s';
-  SSQLError4 = 'SQL Eroare: %s Cod: %d Mesaj: %s';
-
-  SListCapacityError = 'Capacitatea listei este în afara limitelor (%d)';
-  SListCountError = 'Contorul listei este în afara limitelor (%d)';
-  SListIndexError = 'Indexul listei este în afara limitelor (%d)';
-
-  SClonningIsNotSupported = 'Clonning nu este suportat de aceastã clasã';
-  SImmutableOpIsNotAllowed = 'Operaþia nu este permisã ori colecþia nu este modificabilã';
-  SStackIsEmpty = 'Stiva este goalã';
-  SVariableWasNotFound = 'Variabila "%s" nu a fost gãsitã';
-  SFunctionWasNotFound = 'Funcþia "%s" nu a fost gãsitã';
-  SInternalError = 'Eroare Internã';
-  SSyntaxErrorNear = 'Eroare de sintaxã lângã "%s"';
-  SSyntaxError = 'Eroare de sintaxã';
-  SUnknownSymbol = 'Simbol necunoscut "%s"';
-  SUnexpectedExprEnd = 'Final neaºteptat pentru expresie';
-  SRightBraceExpected = ') aºteptat';
-  SParametersError = 'parametrul %d a fost aºteptat dar %d a fost gãsit';
-  SExpectedMoreParams = 'Mai nult de doi parametrii sunt aºteptaþi';
-  SInvalidVarByteArray = 'Arie VarByte invalidã';
-  SVariableAlreadyExists = 'Variabila "%s" deja existã';
-  STypesMismatch = 'Tip nepotrivit';
-  SUnsupportedVariantType = 'Tip variant neasteptat';
-  SUnsupportedOperation = 'Operaþie nesuportatã';
-
-  STokenizerIsNotDefined = 'Simbolistica nu este definitã';
-  SLibraryNotFound = 'None of the dynamic libraries can be found: %s';
-  SEncodeDateIsNotSupported = 'Aceastã versiune nu suportã isc_encode_sql_date';
-  SEncodeTimeIsNotSupported = 'Aceastã versiune nu suportã isc_encode_sql_time';
-  SEncodeTimestampIsNotSupported = 'Aceastã versiune nu suportã isc_encode_sql_timestamp';
-  SDecodeDateIsNotSupported = 'Aceastã versiune nu suportã isc_decode_sql_date';
-  SDecodeTimeIsNotSupported = 'Aceastã versiune nu suportã isc_decode_sql_time';
-  SDecodeTimestampIsNotSupported = 'Aceastã versiune nu suportã isc_decode_sql_timestamp';
-
-  SCanNotRetrieveResultSetData = 'Nu pot returna  Resultset data';
-  SRowBufferIsNotAssigned = 'Row buffer nu este asignat';
-  SColumnIsNotAccessable = 'Column with index %d nu este accesibil';
-  SConvertionIsNotPossible = 'Conversia nu este posibilã pentru coloana %d din %s în %s';
-  SCanNotAccessBlobRecord = 'Nu pot aceesa înregistrarea blob în coloana %d cu tipul %s';
-  SRowDataIsNotAvailable = 'Row data nu este disponibil';
-  SResolverIsNotSpecified = 'Resolver nu este specificat pentru acest ResultSet';
-  SResultsetIsAlreadyOpened = 'Resultset este deja deschisã';
-  SCanNotUpdateEmptyRow = 'Nu pot updata o înregistrare goalã';
-  SCanNotUpdateDeletedRow = 'Nu pot updata o înregistrare ºtearsã';
-  SCanNotDeleteEmptyRow = 'Nu pot ºterge o înregistrare goalã';
-  SCannotUseCommit = 'Nu poþi folosi COMMIT în modul AUTOCOMMIT ';
-  SCannotUseRollBack = 'Nu poþi folosi ROLLBACK în modul AUTOCOMMIT ';
-  SCanNotUpdateComplexQuery = 'Nu pot updata un query complex cu mai mult de un tabel';
-  SCanNotUpdateThisQueryType = 'Nu pot updata acest tip de query';
-  SDriverWasNotFound = 'Driverul pentru baza de date nu a fost gãsit';
-  SCanNotConnectToServer = 'Nu ma pot conecta la serverul SQL';
-  STableIsNotSpecified = 'Tbelul nu este specificat';
-  SLiveResultSetsAreNotSupported = 'Live query is not supported by this class';
-  SInvalidInputParameterCount = 'Input parameter count is less then expected';
-  SIsolationIsNotSupported = 'Transaction isolation level nu este suportat';
-  SColumnWasNotFound = 'Coloana cu numele "%s" nu a fost fãsitã';
-  SWrongTypeForBlobParameter = 'Tip greºit pentru parametru Blob';
-  SIncorrectConnectionURL = 'Conexiune URL incorectã: %s';
-  SUnsupportedProtocol = 'Protocol nesuportat: %s';
-  SUnsupportedByDriver    = 'Driver nu poate suporta aceastã facilitate : [%s]';
-
-  SConnectionIsNotOpened = 'Conexiune nu este deschisã incã';
-  SInvalidOpInAutoCommit = 'Operaþie invalidã în modul AutoCommit';
-  SInvalidOpInNonAutoCommit = 'Operaþie invalidã în modul non AutoCommit ';
-  SInvalidOpPrepare = 'Prepare transaction only possible on matching first(!) Starttransaction';
-
-  SConnectionIsNotAssigned = 'Nu este asignatã o componentã Database connection';
-  SQueryIsEmpty = 'SQL Query este gol';
-  SCanNotExecuteMoreQueries = 'Nu pot executa mai mult de un query';
-  SOperationIsNotAllowed1 = 'Operaþia nu este permisã în modul FORWARD ONLY ';
-  SOperationIsNotAllowed2 = 'Operaþia nu este permisã în modul READ ONLY';
-  SOperationIsNotAllowed3 = 'Operaþia nu este permisã în modul %s ';
-  SOperationIsNotAllowed4 = 'Operaþia nu este permisã pentru în dataset închis';
-  SNoMoreRecords = 'Nu mai sunt înregistrãri în Resultset';
-  SCanNotOpenResultSet = 'Nu pot deschide Resultset';
-  SCircularLink = 'Datasource makes a circular link';
-  SBookmarkWasNotFound = 'Bookmark nu a fost gãsit';
-  SIncorrectSearchFieldsNumber = 'Numãr incorect of search field values';
-  SInvalidOperationInTrans = 'Operaþie invalidã în modul explicit transaction';
-  SIncorrectSymbol = 'Simbol incorect în lista de câmpuri  "%s".';
-  SIncorrectToken = 'Incorect token dupã ":"';
-
-  SSelectedTransactionIsolation = 'Selected transaction isolation level is not supported';
-  SDriverNotSupported = 'Driver nesuportat %s';
-  SPattern2Long = 'Pattern is too long';
-  SDriverNotCapableOutParameters = 'Driver nu este capabil sã mânuie parametrii';
-  SStatementIsNotAllowed = 'Statement nu sunt permise';
-  SStoredProcIsNotAllowed = 'The stored proc nu sunt permise';
-  SCannotPerformOperation = 'Nu se pot face operaþii cu Resultset închis';
-  SInvalidState = 'Stare invalidã';
-  SErrorConvertion = 'Eroare de conversie';
-  SDataTypeDoesNotSupported = 'Tip de datã nesuportat';
-  SUnsupportedParameterType = 'Tip parametru nesuportat';
-  SUnsupportedDataType = 'Tip datã nesuportat';
-  SErrorConvertionField = 'Eroare de conversie pentru câmpul "%s" în TipSQL "%s"';
-  SBadOCI = 'Bad OCI version [%s]. Version 8.0.3 or older is required';
-  SConnect2AsUser = 'Conectare la "%s" ca utlizator "%s"';
-  SUnknownError = 'Eroare necunoscutã';
-  SFieldNotFound1 = 'Câmpul "%s" nu a fost gãsit';
-  SFieldNotFound2 = 'Câmpul %d nu a fost gãsit';
-
-  SLoginPromptFailure = 'Nu gãsesc fereastra de dialog implicitã pentru login. Vã rog adãugaþi DBLogDlg în secþiunea uses.';
-
-  SPropertyQuery = 'The Query may last a while on large databases!';
-  SPropertyTables = 'You should limit it by Catalog and/or Schema.';
-  SPropertyColumns = 'You should limit it by Catalog, Schema and/or TableName.';
-  SPropertyProcedures = 'You should limit it by Catalog and/or Schema.';
-  SPropertySequences = 'You should limit it by Catalog and/or Schema.';
-  SPropertyExecute = 'Query va fi executatã oricum?';
-
-  SFormTest = 'ZEOS SQL Editor Test';
-  SButtonClose = 'În&chide';
-  SFormEditor = 'ZEOS SQL Editor';
-  STabSheetSelect = 'Select SQL';
-  SMenuLoad = 'Deschide';
-  SMenuSave = 'Salvare';
-  SButtonGenerate = '&Generare';
-  SButtonCheck = 'Verificare';
-  SButtonTest = '&Test';
-  SButtonOk = '&OK';
-  SButtonCancel = 'Revo&care';
-  STableAlias = 'T&able alias';
-  SReplaceSQL = '&Replace SQL';
-  SDialogOpenTitle = 'Deschide Fiºier SQL';
-  SDialogSaveTitle = 'Salveazã Fiºier SQL';
-  SSQLEditor = 'SQL Editor';
-  SDatabaseDialog = 'Deschide bazã date existentã';
-
-  SUpdateSQLNoResult = '"Update Refresh SQL" furnizat nu este un recordset';
-  SUpdateSQLRefreshStatementcount ='Declaraþia "Update Refresh SQL" ca numãr trebuie sã fie una';
-
-  {$IFDEF FPC}
-  SNotEditing = 'Dataset nu este în modul de editare sau inserare';
-  SFieldTypeMismatch = 'Tip nepotrivit pentru câmpul ''%s'', aºteptat: %s actual: %s';
-  SFieldSizeMismatch = 'Dimensiune nepotrivitã pentru câmpul  ''%s'', aºteptat: %d actual: %d';
-  {$ENDIF}
-
-  SFailedtoInitPrepStmt   = 'Translate: Prepared statement failed to initialize';
-  SFailedtoPrepareStmt    = 'Translate: Statement failed during prepare process';
-  SFailedToBindAllValues  = 'Translate: Application failed to pre-bind all values';
-  SAttemptExecOnBadPrep   = 'Translate: Attempt made to execute a statement before a successful preparation.';
-  SBindingFailure         = 'Translate: Failed to bind parameter set';
-  SPreparedStmtExecFailure = 'Translate: Prepared statement failed to execute';
-  SBoundVarStrIndexMissing = 'Translate: Bound variable text index "%s" does not exist';
-  SBindVarOutOfRange      = 'Translate: Bound variable index out of range: %d';
-
-  SRefreshRowOnlySupportedWithUpdateObject = 'TRANSLATE: The refreshrow method is only supported with an update object';
-  SMustBeInBrowseMode = 'TRANSLATE: Operation is only allowed in dsBROWSE state';
-
-  SUnKnownParamDataType = 'TRANSLATE: Unknown Param.DataType';
-
-  // <-- added by tohenk
-  {$ELSE}
-  {$IFDEF INDONESIAN}
-  SSQLError1 = 'Kesalahan SQL: %s';
-  SSQLError2 = 'Kesalahan SQL: %s Kode: %d';
-  SSQLError3 = 'Kesalahan SQL: %s Kode: %d SQL: %s';
-  SSQLError4 = 'Kesalahan SQL: %s Kode: %d Pesan: %s';
-
-  SListCapacityError = 'Kapasitas List diluar jangkauan (%d)';
-  SListCountError = 'Jumlah List diluar jangkauan (%d)';
-  SListIndexError = 'Indeks List diluar jangkauan (%d)';
-
-  SClonningIsNotSupported = 'Class ini tidak mendukung kloning';
-  SImmutableOpIsNotAllowed = 'Operasi tidak diperkenankan pada koleksi yang tidak dapat diubah';
-  SStackIsEmpty = 'Stack kosong';
-  SVariableWasNotFound = 'Variabel "%s" tidak ada';
-  SFunctionWasNotFound = 'Fungsi "%s" tidak ada';
-  SInternalError = 'Kesalahan internal';
-  SSyntaxErrorNear = 'Kesalahan Syntax di dekat "%s"';
-  SSyntaxError = 'Kesalahan Syntax';
-  SUnknownSymbol = 'Simbol tidak dikenali "%s"';
-  SUnexpectedExprEnd = 'Tidak dibutuhkan, akhir dari ekspresi';
-  SRightBraceExpected = ') dibutuhkan';
-  SParametersError = '%d parameter dibutuhkan tapi terdapat %d parameter';
-  SExpectedMoreParams = 'Dibutuhkan lebih dari dua parameter';
-  SInvalidVarByteArray = 'array VarByte tidak valid';
-  SVariableAlreadyExists = 'Variabel "%s" sudah ada';
-  STypesMismatch = 'Tipe tidak sesuai';
-  SUnsupportedVariantType = 'Tipe variant tidak didukung';
-  SUnsupportedOperation = 'Operasi tidak didukung';
-
-  STokenizerIsNotDefined = 'Tokenizer belum ditentukan';
-  SLibraryNotFound = 'Tidak ada library ditemukan: %s';
-  SEncodeDateIsNotSupported = 'Versi ini tidak mendukung isc_encode_sql_date';
-  SEncodeTimeIsNotSupported = 'Versi ini tidak mendukung isc_encode_sql_time';
-  SEncodeTimestampIsNotSupported = 'Versi ini tidak mendukung isc_encode_sql_timestamp';
-  SDecodeDateIsNotSupported = 'Versi ini tidak mendukung isc_decode_sql_date';
-  SDecodeTimeIsNotSupported = 'Versi ini tidak mendukung isc_decode_sql_time';
-  SDecodeTimestampIsNotSupported = 'Versi ini tidak mendukung isc_decode_sql_timestamp';
-
-  SCanNotRetrieveResultSetData = 'Tidak dapat mengambil data Resultset';
-  SRowBufferIsNotAssigned = 'Row buffer tidak disediakan';
-  SColumnIsNotAccessable = 'Kolom dengan indeks %d tidak dapat diakses';
-  SConvertionIsNotPossible = 'Konversi tidak dimungkinkan pada kolom %d dari %s ke %s';
-  SCanNotAccessBlobRecord = 'Tidak dapat mengakses rekord `blob` pada kolom %d dengan tipe %s';
-  SRowDataIsNotAvailable = 'Data Row tidak tersedia';
-  SResolverIsNotSpecified = 'Resolver belum ditentukan pada ResultSet ini';
-  SResultsetIsAlreadyOpened = 'Resultset sudah terbuka';
-  SCanNotUpdateEmptyRow = 'Tidak dapat meng-update row kosong';
-  SCanNotUpdateDeletedRow = 'Tidak dapat meng-update row terhapus';
-  SCanNotDeleteEmptyRow = 'Tidak dapat meng-hapus row kosong';
-  SCannotUseCommit = 'COMMIT tidak dapat digunakan pada mode AUTOCOMMIT';
-  SCannotUseRollBack = 'ROLLBACK tidak dapat digunakan pada mode AUTOCOMMIT';
-  SCanNotUpdateComplexQuery = 'Tidak dapat meng-update query kompleks dengan lebih dari satu tabel';
-  SCanNotUpdateThisQueryType = 'Tidak dapat meng-update query dengan tipe ini';
-  SDriverWasNotFound = 'Driver database yang diminta tidak ada';
-  SCanNotConnectToServer = 'Tidak dapat terhubung ke server SQL';
-  STableIsNotSpecified = 'Tabel belum ditentukan';
-  SLiveResultSetsAreNotSupported = 'Live query tidak didukung oleh Class ini';
-  SInvalidInputParameterCount = 'Jumlah parameter Input kurang dari yang dibutuhkan';
-  SIsolationIsNotSupported = 'Level Isolasi Transaksi tidak didukung';
-  SColumnWasNotFound = 'Kolom dengan nama "%s" tidak ada';
-  SWrongTypeForBlobParameter = 'Salah tipe untuk parameter Blob';
-  SIncorrectConnectionURL = 'Salah koneksi URL: %s';
-  SUnsupportedProtocol = 'Protokol tidak didukung: %s';
-  SUnsupportedByDriver    = 'Driver tidak mendukung fitur: [%s]';
-
-  SConnectionIsNotOpened = 'Koneksi belum dibuka';
-  SInvalidOpInAutoCommit = 'Operasi tidak valid pada mode AUTOCOMMIT';
-  SInvalidOpInNonAutoCommit = 'Operasi tidak valid pada mode non AUTOCOMMIT';
-  SInvalidOpPrepare = 'Persiapan transaksi hanya mungkin pada (!) Starttransaction pertama';
-
-  SConnectionIsNotAssigned = 'Komponen koneksi Database tidak ditentukan';
-  SQueryIsEmpty = 'Query SQL kosong';
-  SCanNotExecuteMoreQueries = 'Tidak dapat meng-eksekusi lebih dari satu query';
-  SOperationIsNotAllowed1 = 'Operasi tidak diperkenankan pada mode FORWARD ONLY';
-  SOperationIsNotAllowed2 = 'Operasi tidak diperkenankan pada mode READ ONLY';
-  SOperationIsNotAllowed3 = 'Operasi tidak diperkenankan pada mode %s';
-  SOperationIsNotAllowed4 = 'Operasi tidak diperkenankan pada dataset tertutup';
-  SNoMoreRecords = 'Tidak ada rekord lagi pada Resultset';
-  SCanNotOpenResultSet = 'Tidak dapat membuka Resultset';
-  SCircularLink = 'Terjadi hubungan Datasource circular';
-  SBookmarkWasNotFound = 'Bookmark tidak ada';
-  SIncorrectSearchFieldsNumber = 'Salah jumlah nilai field pada pencarian';
-  SInvalidOperationInTrans = 'Operasi tidak valid pada mode explicit transaction';
-  SIncorrectSymbol = 'Simbol salah pada daftar field "%s".';
-  SIncorrectToken = 'Token salah setelah ":"';
-
-  SSelectedTransactionIsolation = 'Level Isolasi Transaksi terpilih tidak didukung';
-  SDriverNotSupported = 'Driver tidak mendukung %s';
-  SPattern2Long = 'Pola terlalu panjang';
-  SDriverNotCapableOutParameters = 'Driver tidak mampu menangani parameter';
-  SStatementIsNotAllowed = 'Statement tidak diperbolehkan';
-  SStoredProcIsNotAllowed = 'StoredProc tidak diperbolehkan';
-  SCannotPerformOperation = 'Tidak dapat melakukan operasi pada Resultset tertutup';
-  SInvalidState = 'Sate tidak valid';
-  SErrorConvertion = 'Kesalahan konversi';
-  SDataTypeDoesNotSupported = 'Tipe Data tidak didukung';
-  SUnsupportedParameterType = 'Tidak mendukung tipe parameter';
-  SUnsupportedDataType = 'Tidak mendukung tipe data';
-  SErrorConvertionField = 'Kesalahan konversi field "%s" ke Tipe SQL "%s"';
-  SBadOCI = 'OCI version [%s] tidak sah. Dibutuhkan versi 8.0.3 atau terdahulu';
-  SConnect2AsUser = 'Koneksi ke "%s" dengan user "%s"';
-  SUnknownError = 'Kesalahan tidak diketahui';
-  SFieldNotFound1 = 'Field "%s" tidak ada';
-  SFieldNotFound2 = 'Field %d tidak ada';
-
-  SLoginPromptFailure = 'Tidak ada dialog Login default. Silahkan tambahkan DBLogDlg ke klausula `uses` pada file utama.';
-
-  SPropertyQuery = 'Query mungkin berlangsung lama pada database besar!';
-  SPropertyTables = 'Batasi dengan Katalog data/atau Skema.';
-  SPropertyColumns = 'Batasi dengan Katalog, Skema dan/atau Nama Tabel.';
-  SPropertyProcedures = 'Batasi dengan Katalog dan/atau Skema.';
-  SPropertySequences = 'Batasi dengan Katalog dan/atau Skema.';
-  SPropertyExecute = 'Apakah Query jadi dieksekusi?';
-
-  SFormTest = 'Tes Editor SQLZEOS';
-  SButtonClose = '&Tutup';
-  SFormEditor = 'Editor SQL ZEOS';
-  STabSheetSelect = 'SQL Select';
-  SMenuLoad = 'Ambil';
-  SMenuSave = 'Simpan';
-  SButtonGenerate = '&Generate';
-  SButtonCheck = '&Cek';
-  SButtonTest = 'T&es';
-  SButtonOk = '&OK';
-  SButtonCancel = '&Batal';
-  STableAlias = 'Alias T&abel';
-  SReplaceSQL = 'SQL &Replace';
-  SDialogOpenTitle = 'Buka File SQL';
-  SDialogSaveTitle = 'Simpan File SQL';
-  SSQLEditor = 'Editor SQL';
-  SDatabaseDialog = 'Buka database yang tersedia';
-
-  SUpdateSQLNoResult = 'Tidak ada Resultset pada Update Refresh SQL';
-  SUpdateSQLRefreshStatementcount ='Jumlah Statement pada Update Refresh SQL harus 1';
-
-  {$IFDEF FPC}
-  SNotEditing = 'Dataset tidak dalam mode edit atau sisip';
-  SFieldTypeMismatch = 'Tipe tidak sesuai pada field ''%s'', seharusnya: %s aktual: %s';
-  SFieldSizeMismatch = 'Ukuran tidak sesuai pada field ''%s'', seharusnya: %d aktual: %d';
-  {$ENDIF}
-
-  SFailedtoInitPrepStmt   = 'Gagal inisialisasi Prepared statement';
-  SFailedtoPrepareStmt    = 'Statemen gagal sewaktu proses persiapan';
-  SFailedToBindAllValues  = 'Aplikasi gagal dalam penggabungan (bind) pendahuluan semua nilai';
-  SAttemptExecOnBadPrep   = 'Percobaan eksekusi statemen dilakukan sebelum persiapan berhasil.';
-  SBindingFailure         = 'Gagal mem-gabungkan (bind) parameter';
-  SPreparedStmtExecFailure = 'Prepared Statement gagal dieksekusi';
-  SBoundVarStrIndexMissing = 'Teks variabel indeks "%s" tidak ada';
-  SBindVarOutOfRange      = 'Variabel indeks diluar jangkauan: %d';
-
-  SRefreshRowOnlySupportedWithUpdateObject = 'Metode RefreshRow hanya didukung oleh obyek Update';
-  SMustBeInBrowseMode = 'Operasi hanya diperbolehkan pada status dsBrowse';
-
-  SUnKnownParamDataType = 'Param.DataType tidak dikenal';
-
-  // <--- end added by tohenk
-
-  {$ELSE} // default: ENGLISH
+{$ELSE} // default: ENGLISH
 
   SSQLError1 = 'SQL Error: %s';
   SSQLError2 = 'SQL Error: %s Code: %d';
@@ -1074,12 +674,10 @@ resourcestring
   SWrongTypeForBlobParameter = 'Wrong type for Blob parameter';
   SIncorrectConnectionURL = 'Incorrect connection URL: %s';
   SUnsupportedProtocol = 'Unsupported protocol: %s';
-  SUnsupportedByDriver    = 'Driver can not support this feature natively: [%s]';
 
   SConnectionIsNotOpened = 'Connection is not opened yet';
   SInvalidOpInAutoCommit = 'Invalid operation in AutoCommit mode';
   SInvalidOpInNonAutoCommit = 'Invalid operation in non AutoCommit mode';
-  SInvalidOpPrepare = 'Prepare transaction only possible on matching first(!) Starttransaction';
 
   SConnectionIsNotAssigned = 'Database connection component is not assigned';
   SQueryIsEmpty = 'SQL Query is empty';
@@ -1143,33 +741,11 @@ resourcestring
   SSQLEditor = 'SQL Editor';
   SDatabaseDialog = 'Open existing database';
 
-  SUpdateSQLNoResult = 'Update Refresh SQL delivered no resultset';
-  SUpdateSQLRefreshStatementcount ='Update Refresh SQL Statement count must be 1';
-
   {$IFDEF FPC}
   SNotEditing = 'Dataset not in edit or insert mode';
   SFieldTypeMismatch = 'Type mismatch for field ''%s'', expecting: %s actual: %s';
   SFieldSizeMismatch = 'Size mismatch for field ''%s'', expecting: %d actual: %d';
   {$ENDIF}
-
-  SFailedtoInitPrepStmt   = 'Prepared statement failed to initialize';
-  SFailedtoPrepareStmt    = 'Statement failed during prepare process';
-  SFailedToBindAllValues  = 'Application failed to pre-bind all values';
-  SAttemptExecOnBadPrep   = 'Attempt made to execute a statement before a successful preparation.';
-  SBindingFailure         = 'Failed to bind parameter set';
-  SPreparedStmtExecFailure = 'Prepared statement failed to execute';
-  SBoundVarStrIndexMissing = 'Bound variable text index "%s" does not exist';
-  SBindVarOutOfRange      = 'Bound variable index out of range: %d';
-
-//FOS+ 07112006
-  SRefreshRowOnlySupportedWithUpdateObject = 'The refreshrow method is only supported with an update object';
-  SMustBeInBrowseMode = 'Operation is only allowed in dsBROWSE state';
-
-  SUnKnownParamDataType = 'Unknown Param.DataType';
-
-{$ENDIF}   // INDONESIAN <--- added by tohenk
-
-{$ENDIF}   // ROMANA
 
 {$ENDIF} //SPANISH
 

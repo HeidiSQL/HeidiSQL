@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {                Generic Cached Resolver                  }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcGenericResolver;
 
@@ -155,11 +139,6 @@ type
     procedure PostUpdates(Sender: IZCachedResultSet;
       UpdateType: TZRowUpdateType;
       OldRowAccessor, NewRowAccessor: TZRowAccessor); virtual;
-    {BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
-    procedure UpdateAutoIncrementFields(Sender: IZCachedResultSet;
-      UpdateType: TZRowUpdateType;
-      OldRowAccessor, NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver); virtual;
-    {END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
   end;
 
 implementation
@@ -242,9 +221,8 @@ begin
   for I := 0 to FromList.Count - 1 do
   begin
     Current := TZResolverParameter(FromList[I]);
-    if Current.ColumnName <> '' then
-      ToList.Add(TZResolverParameter.Create(Current.ColumnIndex,
-        Current.ColumnName, Current.ColumnType, Current.NewValue, ''));
+    ToList.Add(TZResolverParameter.Create(Current.ColumnIndex,
+      Current.ColumnName, Current.ColumnType, Current.NewValue, ''));
   end;
 end;
 
@@ -453,9 +431,8 @@ begin
   { Takes a a key all non-blob fields. }
   for I := 1 to Metadata.GetColumnCount do
   begin
-    if Metadata.GetColumnName(I) <> '' then
-      WhereColumns.Add(TZResolverParameter.Create(I,
-        Metadata.GetColumnName(I), Metadata.GetColumnType(I), False, ''));
+    WhereColumns.Add(TZResolverParameter.Create(I,
+      Metadata.GetColumnName(I), Metadata.GetColumnType(I), False, ''));
   end;
 
   { Copy defined parameters to target columns }
@@ -723,8 +700,7 @@ begin
       Result := Result + Current.DefaultValue
     else Result := Result + 'NULL';
   end;
-  // Result := 'SELECT ' + Result + ' FROM ' + DefineTableName;
-  Result := 'SELECT ' + Result;
+  Result := 'SELECT ' + Result + ' FROM ' + DefineTableName;
 end;
 
 {**
@@ -856,15 +832,6 @@ begin
     SQLParams.Free;
   end;
 end;
-
-{BEGIN of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
-procedure TZGenericCachedResolver.UpdateAutoIncrementFields(
-  Sender: IZCachedResultSet; UpdateType: TZRowUpdateType; OldRowAccessor,
-  NewRowAccessor: TZRowAccessor; Resolver: IZCachedResolver);
-begin
- //Should be implemented at Specific database Level Cached resolver
-end;
-{END of PATCH [1185969]: Do tasks after posting updates. ie: Updating AutoInc fields in MySQL }
 
 end.
 

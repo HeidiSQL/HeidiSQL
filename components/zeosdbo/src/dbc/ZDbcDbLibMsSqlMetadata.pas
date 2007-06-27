@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {           MsSql Database metadata information           }
 {                                                         }
-{        Originally written by Janos Fegyverneki          }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Janos Fegyverneki                 }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcDbLibMsSqlMetadata;
 
@@ -72,7 +56,7 @@ type
   protected
     function GetStatement: IZSTatement;
   public
-    constructor Create(Connection: TZAbstractConnection; const Url: string;
+    constructor Create(Connection: TZAbstractConnection; Url: string;
       Info: TStrings);
     destructor Destroy; override;
 
@@ -166,48 +150,48 @@ type
     function DataDefinitionCausesTransactionCommit: Boolean; override;
     function DataDefinitionIgnoredInTransactions: Boolean; override;
 
-    function GetProcedures(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string): IZResultSet; override;
-    function GetProcedureColumns(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string; const ColumnNamePattern: string):
+    function GetProcedures(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string): IZResultSet; override;
+    function GetProcedureColumns(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string; ColumnNamePattern: string):
       IZResultSet; override;
 
-    function GetTables(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet; override;
+    function GetTables(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; Types: TStringDynArray): IZResultSet; override;
     function GetSchemas: IZResultSet; override;
     function GetCatalogs: IZResultSet; override;
     function GetTableTypes: IZResultSet; override;
-    function GetColumns(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet; override;
-    function GetColumnPrivileges(const Catalog: string; const Schema: string;
-      const Table: string; const ColumnNamePattern: string): IZResultSet; override;
+    function GetColumns(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; ColumnNamePattern: string): IZResultSet; override;
+    function GetColumnPrivileges(Catalog: string; Schema: string;
+      Table: string; ColumnNamePattern: string): IZResultSet; override;
 
-    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string): IZResultSet; override;
-    function GetVersionColumns(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
+    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string): IZResultSet; override;
+    function GetVersionColumns(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
 
-    function GetPrimaryKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetImportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetExportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
-      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
-      const ForeignTable: string): IZResultSet; override;
+    function GetPrimaryKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetImportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetExportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
+      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
+      ForeignTable: string): IZResultSet; override;
 
     function GetTypeInfo: IZResultSet; override;
 
-    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
+    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet; override;
 
     function SupportsResultSetType(_Type: TZResultSetType): Boolean; override;
     function SupportsResultSetConcurrency(_Type: TZResultSetType;
       Concurrency: TZResultSetConcurrency): Boolean; override;
 
-    function GetUDTs(const Catalog: string; const SchemaPattern: string;
-      const TypeNamePattern: string; const Types: TIntegerDynArray): IZResultSet; override;
+    function GetUDTs(Catalog: string; SchemaPattern: string;
+      TypeNamePattern: string; Types: TIntegerDynArray): IZResultSet; override;
   end;
 
 implementation
@@ -223,7 +207,7 @@ uses Math, ZDbcUtils, ZCollections, ZDbcDbLibUtils;
   @param Info an extra connection properties.
 }
 constructor TZMsSqlDatabaseMetadata.Create(Connection: TZAbstractConnection;
-  const Url: string; Info: TStrings);
+  Url: string; Info: TStrings);
 begin
   inherited Create(Connection, Url, Info);
 end;
@@ -1137,8 +1121,8 @@ end;
   @return <code>ResultSet</code> - each row is a procedure description
   @see #getSearchStringEscape
 }
-function TZMsSqlDatabaseMetadata.GetProcedures(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetProcedures(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1150,9 +1134,19 @@ begin
   begin
     Result := ConstructVirtualResultSet(ProceduresColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if SchemaPattern = '' then
+      SchemaPattern := 'null'
+    else SchemaPattern := AnsiQuotedStr(SchemaPattern, '''');
+    if ProcedureNamePattern = '' then
+      ProcedureNamePattern := 'null'
+    else ProcedureNamePattern := AnsiQuotedStr(ProcedureNamePattern, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_stored_procedures %s, %s, %s',
-      [AQSNull(ProcedureNamePattern), AQSNull(SchemaPattern), AQSNull(Catalog)])) do
+      [ProcedureNamePattern, SchemaPattern, Catalog])) do
     begin
       while Next do
       begin
@@ -1231,9 +1225,9 @@ end;
        column
   @see #getSearchStringEscape
 }
-function TZMsSqlDatabaseMetadata.GetProcedureColumns(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetProcedureColumns(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1245,9 +1239,22 @@ begin
   begin
     Result := ConstructVirtualResultSet(ProceduresColColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if SchemaPattern = '' then
+      SchemaPattern := 'null'
+    else SchemaPattern := AnsiQuotedStr(SchemaPattern, '''');
+    if ProcedureNamePattern = '' then
+      ProcedureNamePattern := 'null'
+    else ProcedureNamePattern := AnsiQuotedStr(ProcedureNamePattern, '''');
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := 'null'
+    else ColumnNamePattern := AnsiQuotedStr(ColumnNamePattern, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_sproc_columns %s, %s, %s, %s',
-      [AQSNull(ProcedureNamePattern), AQSNull(SchemaPattern), AQSNull(Catalog), AQSNull(ColumnNamePattern)])) do
+      [ProcedureNamePattern, SchemaPattern, Catalog, ColumnNamePattern])) do
     begin
       while Next do
       begin
@@ -1321,18 +1328,34 @@ end;
   @return <code>ResultSet</code> - each row is a table description
   @see #getSearchStringEscape
 }
-function TZMsSqlDatabaseMetadata.GetTables(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const Types: TStringDynArray): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetTables(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  Types: TStringDynArray): IZResultSet;
 var
   I: Integer;
   Key, TableTypes: string;
 begin
-  Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
+  Key := '';
+  for I := Low(Types) to High(Types) do
+    Key := Key + ':' + Types[I];
+
+  Key := Format('get-tables:%s:%s:%s%s',
+    [Catalog, SchemaPattern, TableNamePattern, Key]);
+
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
     Result := ConstructVirtualResultSet(TableColumnsDynArray);
+
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if SchemaPattern = '' then
+      SchemaPattern := 'null'
+    else SchemaPattern := AnsiQuotedStr(SchemaPattern, '''');
+    if TableNamePattern = '' then
+      TableNamePattern := 'null'
+    else TableNamePattern := AnsiQuotedStr(TableNamePattern, '''');
 
     TableTypes := '';
     for I := 0 to Length(Types) - 1 do
@@ -1347,7 +1370,7 @@ begin
 
     with GetStatement.ExecuteQuery(
       Format('exec sp_tables %s, %s, %s, %s',
-      [AQSNull(TableNamePattern), AQSNull(SchemaPattern), AQSNull(Catalog), TableTypes])) do
+      [TableNamePattern, SchemaPattern, Catalog, TableTypes])) do
     begin
       while Next do
       begin
@@ -1536,9 +1559,9 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @see #getSearchStringEscape
 }
-function TZMsSqlDatabaseMetadata.GetColumns(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetColumns(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1550,9 +1573,22 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if SchemaPattern = '' then
+      SchemaPattern := 'null'
+    else SchemaPattern := AnsiQuotedStr(SchemaPattern, '''');
+    if TableNamePattern = '' then
+      TableNamePattern := 'null'
+    else TableNamePattern := AnsiQuotedStr(TableNamePattern, '''');
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := 'null'
+    else ColumnNamePattern := AnsiQuotedStr(ColumnNamePattern, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_columns %s, %s, %s, %s',
-      [AQSNull(TableNamePattern), AQSNull(SchemaPattern), AQSNull(Catalog), AQSNull(ColumnNamePattern)])) do
+      [TableNamePattern, SchemaPattern, Catalog, ColumnNamePattern])) do
     begin
       while Next do
       begin
@@ -1612,7 +1648,7 @@ begin
       Format('select c.colid, c.name, c.type, c.prec, c.scale, c.colstat,'
       + ' c.status, c.iscomputed from syscolumns c inner join'
       + ' sysobjects o on (o.id = c.id) where o.name = %s order by colid',
-      [AQSNull(TableNamePattern)])) do
+      [TableNamePattern])) do
     begin
       while Next do
       begin
@@ -1673,8 +1709,8 @@ end;
   @return <code>ResultSet</code> - each row is a column privilege description
   @see #getSearchStringEscape
 }
-function TZMsSqlDatabaseMetadata.GetColumnPrivileges(const Catalog: string;
-  const Schema: string; const Table: string; const ColumnNamePattern: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetColumnPrivileges(Catalog: string;
+  Schema: string; Table: string; ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1686,9 +1722,22 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColPrivColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if Schema = '' then
+      Schema := 'null'
+    else Schema := AnsiQuotedStr(Schema, '''');
+    if Table = '' then
+      Table := 'null'
+    else Table := AnsiQuotedStr(Table, '''');
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := 'null'
+    else ColumnNamePattern := AnsiQuotedStr(ColumnNamePattern, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_column_privileges %s, %s, %s, %s',
-      [AQSNull(Table), AQSNull(Schema), AQSNull(Catalog), AQSNull(ColumnNamePattern)])) do
+      [Table, Schema, Catalog, ColumnNamePattern])) do
     begin
       while Next do
       begin
@@ -1750,8 +1799,8 @@ end;
   @return <code>ResultSet</code> - each row is a table privilege description
   @see #getSearchStringEscape
 }
-function TZMsSqlDatabaseMetadata.GetTablePrivileges(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetTablePrivileges(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1763,9 +1812,19 @@ begin
   begin
     Result := ConstructVirtualResultSet(TablePrivColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if SchemaPattern = '' then
+      SchemaPattern := 'null'
+    else SchemaPattern := AnsiQuotedStr(SchemaPattern, '''');
+    if TableNamePattern = '' then
+      TableNamePattern := 'null'
+    else TableNamePattern := AnsiQuotedStr(TableNamePattern, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_table_privileges %s, %s, %s',
-      [AQSNull(TableNamePattern), AQSNull(SchemaPattern), AQSNull(Catalog)])) do
+      [TableNamePattern, SchemaPattern, Catalog])) do
     begin
       while Next do
       begin
@@ -1823,8 +1882,8 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @exception SQLException if a database access error occurs
 }
-function TZMsSqlDatabaseMetadata.GetVersionColumns(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetVersionColumns(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   MSCol_Type: string;
   Key: string;
@@ -1836,11 +1895,20 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColVerColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if Schema = '' then
+      Schema := 'null'
+    else Schema := AnsiQuotedStr(Schema, '''');
+    if Table = '' then
+      Table := 'null'
+    else Table := AnsiQuotedStr(Table, '''');
     MSCol_Type := '''V''';
 
     with GetStatement.ExecuteQuery(
       Format('exec sp_special_columns %s, %s, %s, %s',
-      [AQSNull(Table), AQSNull(Schema), AQSNull(Catalog), MSCol_Type])) do
+      [Table, Schema, Catalog, MSCol_Type])) do
     begin
       while Next do
       begin
@@ -1892,8 +1960,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @exception SQLException if a database access error occurs
 }
-function TZMsSqlDatabaseMetadata.GetPrimaryKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetPrimaryKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1904,9 +1972,19 @@ begin
   begin
     Result := ConstructVirtualResultSet(PrimaryKeyColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if Schema = '' then
+      Schema := 'null'
+    else Schema := AnsiQuotedStr(Schema, '''');
+    if Table = '' then
+      Table := 'null'
+    else Table := AnsiQuotedStr(Table, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_pkeys %s, %s, %s',
-      [AQSNull(Table), AQSNull(Schema), AQSNull(Catalog)])) do
+      [Table, Schema, Catalog])) do
     begin
       while Next do
       begin
@@ -1999,8 +2077,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @see #getExportedKeys
 }
-function TZMsSqlDatabaseMetadata.GetImportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetImportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := GetCrossReference('', '', '', Catalog, Schema, Table);
 end;
@@ -2072,8 +2150,8 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZMsSqlDatabaseMetadata.GetExportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetExportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := GetCrossReference(Catalog, Schema, Table, '', '', '');
 end;
@@ -2153,9 +2231,9 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZMsSqlDatabaseMetadata.GetCrossReference(const PrimaryCatalog: string;
-  const PrimarySchema: string; const PrimaryTable: string; const ForeignCatalog: string;
-  const ForeignSchema: string; const ForeignTable: string): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetCrossReference(PrimaryCatalog: string;
+  PrimarySchema: string; PrimaryTable: string; ForeignCatalog: string;
+  ForeignSchema: string; ForeignTable: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2168,10 +2246,29 @@ begin
   begin
     Result := ConstructVirtualResultSet(CrossRefColumnsDynArray);
 
+    if PrimaryCatalog = '' then
+      PrimaryCatalog := 'null'
+    else PrimaryCatalog := AnsiQuotedStr(PrimaryCatalog, '''');
+    if PrimarySchema = '' then
+      PrimarySchema := 'null'
+    else PrimarySchema := AnsiQuotedStr(PrimarySchema, '''');
+    if PrimaryTable = '' then
+      PrimaryTable := 'null'
+    else PrimaryTable := AnsiQuotedStr(PrimaryTable, '''');
+    if ForeignCatalog = '' then
+      ForeignCatalog := 'null'
+    else ForeignCatalog := AnsiQuotedStr(ForeignCatalog, '''');
+    if ForeignSchema = '' then
+      ForeignSchema := 'null'
+    else ForeignSchema := AnsiQuotedStr(ForeignSchema, '''');
+    if ForeignTable = '' then
+      ForeignTable := 'null'
+    else ForeignTable := AnsiQuotedStr(ForeignTable, '''');
+
     with GetStatement.ExecuteQuery(
       Format('exec sp_fkeys %s, %s, %s, %s, %s, %s',
-      [AQSNull(PrimaryTable), AQSNull(PrimarySchema), AQSNull(PrimaryCatalog),
-       AQSNull(ForeignTable), AQSNull(ForeignSchema), AQSNull(ForeignCatalog)])) do
+      [PrimaryTable, PrimarySchema, PrimaryCatalog,
+      ForeignTable, ForeignSchema, ForeignCatalog])) do
     begin
       while Next do
       begin
@@ -2369,8 +2466,8 @@ end;
       accurate
   @return <code>ResultSet</code> - each row is an index column description
 }
-function TZMsSqlDatabaseMetadata.GetIndexInfo(const Catalog: string;
-  const Schema: string; const Table: string; Unique: Boolean;
+function TZMsSqlDatabaseMetadata.GetIndexInfo(Catalog: string;
+  Schema: string; Table: string; Unique: Boolean;
   Approximate: Boolean): IZResultSet;
 var
   Is_Unique, Accuracy: string;
@@ -2385,6 +2482,15 @@ begin
   begin
     Result := ConstructVirtualResultSet(IndexInfoColumnsDynArray);
 
+    if Catalog = '' then
+      Catalog := 'null'
+    else Catalog := AnsiQuotedStr(Catalog, '''');
+    if Schema = '' then
+      Schema := 'null'
+    else Schema := AnsiQuotedStr(Schema, '''');
+    if Table = '' then
+      Table := 'null'
+    else Table := AnsiQuotedStr(Table, '''');
     if Unique then
       Is_Unique := '''Y'''
     else Is_Unique := '''N''';
@@ -2394,7 +2500,7 @@ begin
 
     with GetStatement.ExecuteQuery(
       Format('exec sp_statistics %s, %s, %s, ''%%'', %s, %s',
-      [AQSNull(Table), AQSNull(Schema), AQSNull(Catalog), Is_Unique, Accuracy])) do
+      [Table, Schema, Catalog, Is_Unique, Accuracy])) do
     begin
       while Next do
       begin
@@ -2494,9 +2600,9 @@ end;
   STRUCT, or DISTINCT); null returns all types
   @return <code>ResultSet</code> - each row is a type description
 }
-function TZMsSqlDatabaseMetadata.GetUDTs(const Catalog: string;
-  const SchemaPattern: string; const TypeNamePattern: string;
-  const Types: TIntegerDynArray): IZResultSet;
+function TZMsSqlDatabaseMetadata.GetUDTs(Catalog: string;
+  SchemaPattern: string; TypeNamePattern: string;
+  Types: TIntegerDynArray): IZResultSet;
 var
   I: Integer;
   Key: string;
@@ -2512,12 +2618,12 @@ begin
   begin
     Result := ConstructVirtualResultSet(UDTColumnsDynArray);
 
-{    if SchemaPattern = '' then
+    if SchemaPattern = '' then
       SchemaPattern := '''%'''
     else SchemaPattern := AnsiQuotedStr(SchemaPattern, '''');
     if TypeNamePattern = '' then
       TypeNamePattern := '''%'''
-    else TypeNamePattern := AnsiQuotedStr(TypeNamePattern, '''');}
+    else TypeNamePattern := AnsiQuotedStr(TypeNamePattern, '''');
 
   //  with GetStatement.ExecuteQuery(
   //    Format('select TYPE_CAT = db_name(), TYPE_SCHEM = user_name(uid), TYPE_NAME = st.name, DATA_TYPE from master.dbo.spt_datatype_info sti left outer join systypes st on (sti.ss_dtype = st.xtype) where st.xusertype > 255 and user_name(uid) like %s and st.name like %s', [SchemaPattern, TypeNamePattern])) do

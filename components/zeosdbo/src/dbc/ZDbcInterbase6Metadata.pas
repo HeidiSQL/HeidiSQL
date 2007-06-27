@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{        Originally written by Sergey Merkuriev           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Merkuriev                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcInterbase6Metadata;
 
@@ -171,51 +155,51 @@ type
     function DataDefinitionCausesTransactionCommit: Boolean; override;
     function DataDefinitionIgnoredInTransactions: Boolean; override;
 
-    function GetProcedures(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string): IZResultSet; override;
-    function GetProcedureColumns(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string; const ColumnNamePattern: string):
+    function GetProcedures(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string): IZResultSet; override;
+    function GetProcedureColumns(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string; ColumnNamePattern: string):
       IZResultSet; override;
 
-    function GetTables(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet; override;
+    function GetTables(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; Types: TStringDynArray): IZResultSet; override;
     function GetSchemas: IZResultSet; override;
     function GetCatalogs: IZResultSet; override;
     function GetTableTypes: IZResultSet; override;
-    function GetColumns(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet; override;
-    function GetColumnPrivileges(const Catalog: string; const Schema: string;
-      const Table: string; const ColumnNamePattern: string): IZResultSet; override;
+    function GetColumns(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; ColumnNamePattern: string): IZResultSet; override;
+    function GetColumnPrivileges(Catalog: string; Schema: string;
+      Table: string; ColumnNamePattern: string): IZResultSet; override;
 
-    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string): IZResultSet; override;
-    function GetVersionColumns(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
+    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string): IZResultSet; override;
+    function GetVersionColumns(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
 
-    function GetPrimaryKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetImportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetExportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
-      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
-      const ForeignTable: string): IZResultSet; override;
+    function GetPrimaryKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetImportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetExportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
+      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
+      ForeignTable: string): IZResultSet; override;
 
     function GetTypeInfo: IZResultSet; override;
 
-    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
+    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet; override;
 
-    function GetSequences(const Catalog: string; const SchemaPattern: string;
-      const SequenceNamePattern: string): IZResultSet; override;
+    function GetSequences(Catalog: string; SchemaPattern: string;
+      SequenceNamePattern: string): IZResultSet; override;
 
     function SupportsResultSetType(_Type: TZResultSetType): Boolean; override;
     function SupportsResultSetConcurrency(_Type: TZResultSetType;
       Concurrency: TZResultSetConcurrency): Boolean; override;
 
-    function GetUDTs(const Catalog: string; const SchemaPattern: string;
-      const TypeNamePattern: string; const Types: TIntegerDynArray): IZResultSet; override;
+    function GetUDTs(Catalog: string; SchemaPattern: string;
+      TypeNamePattern: string; Types: TIntegerDynArray): IZResultSet; override;
   end;
 
 implementation
@@ -1137,12 +1121,11 @@ end;
   @return <code>ResultSet</code> - each row is a procedure description
   @see #getSearchStringEscape
 }
-function TZInterbase6DatabaseMetadata.GetProcedures(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetProcedures(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string): IZResultSet;
 var
   SQL: string;
   Key: string;
-  LProcedureNamePattern: string;
 begin
   Key := Format('get-procedures:%s:%s:%s',
     [Catalog, SchemaPattern, ProcedureNamePattern]);
@@ -1152,12 +1135,12 @@ begin
   begin
     Result := ConstructVirtualResultSet(ProceduresColumnsDynArray);
 
-    LProcedureNamePattern := ConstructNameCondition(ProcedureNamePattern,
+    ProcedureNamePattern := ConstructNameCondition(ProcedureNamePattern,
       'RDB$PROCEDURE_NAME');
     SQL := 'SELECT RDB$PROCEDURE_NAME, RDB$PROCEDURE_OUTPUTS,'
       + ' RDB$DESCRIPTION FROM RDB$PROCEDURES';
-    if LProcedureNamePattern <> '' then
-      SQL := SQL + ' WHERE ' + LProcedureNamePattern;
+    if ProcedureNamePattern <> '' then
+      SQL := SQL + ' WHERE ' + ProcedureNamePattern;
 
     with GetConnection.CreateStatement.ExecuteQuery(SQL) do
     begin
@@ -1241,13 +1224,12 @@ end;
        column
   @see #getSearchStringEscape
 }
-function TZInterbase6DatabaseMetadata.GetProcedureColumns(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetProcedureColumns(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
   SQL, Where: string;
-  LProcedureNamePattern, LColumnNamePattern: string;
   TypeName, SubTypeName: Integer;
 begin
   Key := Format('get-procedure-columns:%s:%s:%s:%s',
@@ -1258,9 +1240,9 @@ begin
   begin
     Result := ConstructVirtualResultSet(ProceduresColColumnsDynArray);
 
-    LProcedureNamePattern := ConstructNameCondition(ProcedureNamePattern,
+    ProcedureNamePattern := ConstructNameCondition(ProcedureNamePattern,
       'P.RDB$PROCEDURE_NAME');
-    LColumnNamePattern := ConstructNameCondition(ColumnNamePattern,
+    ColumnNamePattern := ConstructNameCondition(ColumnNamePattern,
       'PP.RDB$PARAMETER_NAME');
 
     if StrPos(PChar(ServerVersion), 'Interbase 5') <> nil then
@@ -1274,12 +1256,12 @@ begin
         + '=PP.RDB$PROCEDURE_NAME JOIN RDB$FIELDS F ON PP.RDB$FIELD_SOURCE'
         + '=F.RDB$FIELD_NAME ';
 
-      Where := LProcedureNamePattern;
-      if LColumnNamePattern <> '' then
+      Where := ProcedureNamePattern;
+      if ColumnNamePattern <> '' then
       begin
         if Where = '' then
-          Where := LColumnNamePattern
-        else Where := Where + ' AND ' + LColumnNamePattern;
+          Where := ColumnNamePattern
+        else Where := Where + ' AND ' + ColumnNamePattern;
       end;
       if Where <> '' then
         Where := ' WHERE ' + Where;
@@ -1297,12 +1279,12 @@ begin
         + ' P.RDB$PROCEDURE_NAME = PP.RDB$PROCEDURE_NAME '
         + ' JOIN RDB$FIELDS F ON PP.RDB$FIELD_SOURCE = F.RDB$FIELD_NAME ';
 
-      Where := LProcedureNamePattern;
-      if LColumnNamePattern <> '' then
+      Where := ProcedureNamePattern;
+      if ColumnNamePattern <> '' then
       begin
         if Where = '' then
-          Where := LColumnNamePattern
-        else Where := Where + ' AND ' + LColumnNamePattern;
+          Where := ColumnNamePattern
+        else Where := Where + ' AND ' + ColumnNamePattern;
       end;
       if Where <> '' then
         Where := ' WHERE ' + Where;
@@ -1385,31 +1367,36 @@ end;
   @return <code>ResultSet</code> - each row is a table description
   @see #getSearchStringEscape
 }
-function TZInterbase6DatabaseMetadata.GetTables(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const Types: TStringDynArray): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetTables(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  Types: TStringDynArray): IZResultSet;
 var
   Key: string;
   SQL, TableType: string;
-  LTableNamePattern: string;
   BLR: IZBlob;
   I, SystemFlag, ViewContext: Integer;
 begin
-  Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
+  Key := '';
+  for I := Low(Types) to High(Types) do
+    Key := Key + ':' + Types[I];
+
+  Key := Format('get-tables:%s:%s:%s%s',
+    [Catalog, SchemaPattern, TableNamePattern, Key]);
+
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
     Result := ConstructVirtualResultSet(TableColumnsDynArray);
 
-    LTableNamePattern := ConstructNameCondition(TableNamePattern,
+    TableNamePattern := ConstructNameCondition(TableNamePattern,
       'a.RDB$RELATION_NAME');
     SQL := 'SELECT DISTINCT a.RDB$RELATION_NAME, b.RDB$SYSTEM_FLAG,'
       + ' b.RDB$VIEW_CONTEXT, a.RDB$VIEW_SOURCE FROM RDB$RELATIONS a'
       + ' JOIN RDB$RELATION_FIELDS b ON a.RDB$RELATION_NAME'
       + '=b.RDB$RELATION_NAME';
 
-    if LTableNamePattern <> '' then
-      SQL := SQL + ' WHERE ' + LTableNamePattern;
+    if TableNamePattern <> '' then
+      SQL := SQL + ' WHERE ' + TableNamePattern;
 
     with GetConnection.CreateStatement.ExecuteQuery(SQL) do
     begin
@@ -1586,14 +1573,13 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @see #getSearchStringEscape
 }
-function TZInterbase6DatabaseMetadata.GetColumns(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetColumns(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
   SQL, Where, ColumnName, DefaultValue: string;
   TypeName, SubTypeName, FieldScale: integer;
-  LTableNamePattern, LColumnNamePattern: string;
 begin
   Key := Format('get-columns:%s:%s:%s:%s',
     [Catalog, SchemaPattern, TableNamePattern, ColumnNamePattern]);
@@ -1603,9 +1589,9 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColColumnsDynArray);
 
-    LTableNamePattern := ConstructNameCondition(TableNamePattern,
+    TableNamePattern := ConstructNameCondition(TableNamePattern,
       'a.RDB$RELATION_NAME');
-    LColumnNamePattern := ConstructNameCondition(ColumnNamePattern,
+    ColumnNamePattern := ConstructNameCondition(ColumnNamePattern,
       'a.RDB$FIELD_NAME');
 
     if StrPos(PChar(ServerVersion), 'Interbase 5') <> nil then
@@ -1620,12 +1606,12 @@ begin
         + ' LEFT JOIN RDB$TYPES c ON b.RDB$FIELD_TYPE = c.RDB$TYPE'
         + ' and c.RDB$FIELD_NAME = ''RDB$FIELD_TYPE''';
 
-      Where := LTableNamePattern;
-      if LColumnNamePattern <> '' then
+      Where := TableNamePattern;
+      if ColumnNamePattern <> '' then
       begin
         if Where = '' then
-          Where := LColumnNamePattern
-        else Where := Where + ' AND ' + LColumnNamePattern;
+          Where := ColumnNamePattern
+        else Where := Where + ' AND ' + ColumnNamePattern;
       end;
       if Where <> '' then
         Where := ' WHERE ' + Where;
@@ -1644,12 +1630,12 @@ begin
         + ' LEFT JOIN RDB$TYPES c ON (b.RDB$FIELD_TYPE = c.RDB$TYPE'
         + ' and c.RDB$FIELD_NAME = ''RDB$FIELD_TYPE'')';
 
-      Where := LTableNamePattern;
-      if LColumnNamePattern <> '' then
+      Where := TableNamePattern;
+      if ColumnNamePattern <> '' then
       begin
         if Where = '' then
-          Where := LColumnNamePattern
-        else Where := Where + ' AND ' + LColumnNamePattern;
+          Where := ColumnNamePattern
+        else Where := Where + ' AND ' + ColumnNamePattern;
       end;
       if Where <> '' then
         Where := ' WHERE ' + Where;
@@ -1762,14 +1748,13 @@ end;
   @return <code>ResultSet</code> - each row is a column privilege description
   @see #getSearchStringEscape
 }
-function TZInterbase6DatabaseMetadata.GetColumnPrivileges(const Catalog: string;
-  const Schema: string; const Table: string; const ColumnNamePattern: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetColumnPrivileges(Catalog: string;
+  Schema: string; Table: string; ColumnNamePattern: string): IZResultSet;
 var
   SQL: string;
   Key: string;
   TableName, FieldName, Privilege: string;
   Grantor, Grantee, Grantable: string;
-  LColumnNamePattern, LTable: string;
 begin
   Key := Format('get-column-privileges:%s:%s:%s:%s',
     [Catalog, Schema, Table, ColumnNamePattern]);
@@ -1779,18 +1764,18 @@ begin
   begin
     Result := ConstructVirtualResultSet(TableColPrivColumnsDynArray);
 
-    LTable := ConstructNameCondition(Table, 'a.RDB$RELATION_NAME');
-    LColumnNamePattern := ConstructNameCondition(ColumnNamePattern,
+    Table := ConstructNameCondition(Table, 'a.RDB$RELATION_NAME');
+    ColumnNamePattern := ConstructNameCondition(ColumnNamePattern,
       'a.RDB$FIELD_NAME');
 
     SQL := 'SELECT a.RDB$USER, a.RDB$GRANTOR, a.RDB$PRIVILEGE,'
       + ' a.RDB$GRANT_OPTION, a.RDB$RELATION_NAME, a.RDB$FIELD_NAME '
       + ' FROM RDB$USER_PRIVILEGES a, RDB$TYPES b '
       + ' WHERE a.RDB$OBJECT_TYPE = b.RDB$TYPE AND ';
-    if LTable <> '' then
-      SQL := SQL + LTable + ' AND ';
-    if LColumnNamePattern <> '' then
-      SQL := SQL + LColumnNamePattern + ' AND ';
+    if Table <> '' then
+      SQL := SQL + Table + ' AND ';
+    if ColumnNamePattern <> '' then
+      SQL := SQL + ColumnNamePattern + ' AND ';
     SQL := SQL + ' b.RDB$TYPE_NAME IN (''RELATION'', ''VIEW'','
       + ' ''COMPUTED_FIELD'', ''FIELD'' ) AND b.RDB$FIELD_NAME'
       + '=''RDB$OBJECT_TYPE'' ORDER BY a.RDB$FIELD_NAME, a.RDB$PRIVILEGE  ' ;
@@ -1812,7 +1797,7 @@ begin
         begin
           SQL := 'SELECT RDB$FIELD_NAME FROM RDB$RELATION_FIELDS '
             + ' WHERE RDB$RELATION_NAME = ''' + TableName + ''' AND '
-            + ' RDB$FIELD_NAME = ''' + LColumnNamePattern + ''' AND ';
+            + ' RDB$FIELD_NAME = ''' + ColumnNamePattern + ''' AND ';
           with GetConnection.CreateStatement.ExecuteQuery(SQL) do
           begin
             while Next do
@@ -1884,14 +1869,13 @@ end;
   @return <code>ResultSet</code> - each row is a table privilege description
   @see #getSearchStringEscape
 }
-function TZInterbase6DatabaseMetadata.GetTablePrivileges(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetTablePrivileges(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string): IZResultSet;
 var
   SQL: string;
   Key: string;
   TableName, Privilege, Grantor: string;
   Grantee, Grantable: string;
-  LTableNamePattern: string;
 begin
   Key := Format('get-table-privileges:%s:%s:%s',
     [Catalog, SchemaPattern, TableNamePattern]);
@@ -1901,7 +1885,7 @@ begin
   begin
     Result := ConstructVirtualResultSet(TablePrivColumnsDynArray);
 
-    LTableNamePattern := ConstructNameCondition(TableNamePattern,
+    TableNamePattern := ConstructNameCondition(TableNamePattern,
       'a.RDB$RELATION_NAME');
 
     SQL := 'SELECT a.RDB$USER, a.RDB$GRANTOR, a.RDB$PRIVILEGE,'
@@ -1909,8 +1893,8 @@ begin
       + ' RDB$TYPES b WHERE a.RDB$OBJECT_TYPE = b.RDB$TYPE AND '
       + ' b.RDB$TYPE_NAME IN (''RELATION'', ''VIEW'', ''COMPUTED_FIELD'','
       + ' ''FIELD'' ) AND a.RDB$FIELD_NAME IS NULL ';
-    if LTableNamePattern <> '' then
-      SQL := SQL + ' AND ' + LTableNamePattern;
+    if TableNamePattern <> '' then
+      SQL := SQL + ' AND ' + TableNamePattern;
     SQL := SQL + ' ORDER BY a.RDB$RELATION_NAME, a.RDB$PRIVILEGE';
 
     with GetConnection.CreateStatement.ExecuteQuery(SQL) do
@@ -1973,8 +1957,8 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @exception SQLException if a database access error occurs
 }
-function TZInterbase6DatabaseMetadata.GetVersionColumns(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetVersionColumns(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2022,26 +2006,25 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @exception SQLException if a database access error occurs
 }
-function TZInterbase6DatabaseMetadata.GetPrimaryKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetPrimaryKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   SQL, Key: string;
-  LTable: string;
 begin
   Key := Format('get-primary-keys:%s:%s:%s', [Catalog, Schema, Table]);
 
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
-    LTable := ConstructNameCondition(Table, 'a.RDB$RELATION_NAME');
+    Table := ConstructNameCondition(Table, 'a.RDB$RELATION_NAME');
     SQL := ' SELECT null as TABLE_CAT, null as TABLE_SCHEM,'
       + ' a.RDB$RELATION_NAME as TABLE_NAME, b.RDB$FIELD_NAME as COLUMN_NAME,'
       + ' b.RDB$FIELD_POSITION+1 as KEY_SEQ, a.RDB$INDEX_NAME as PK_NAME'
       + ' FROM RDB$RELATION_CONSTRAINTS a JOIN RDB$INDEX_SEGMENTS b ON'
       + ' (a.RDB$INDEX_NAME = b.RDB$INDEX_NAME)'
       + ' WHERE  RDB$CONSTRAINT_TYPE = ''PRIMARY KEY''';
-    if LTable <> '' then
-      SQL := SQL + ' AND ' + LTable;
+    if Table <> '' then
+      SQL := SQL + ' AND ' + Table;
     SQL := SQL + ' ORDER BY a.RDB$RELATION_NAME, b.RDB$FIELD_NAME';
 
     Result := CopyToVirtualResultSet(
@@ -2118,11 +2101,10 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @see #getExportedKeys
 }
-function TZInterbase6DatabaseMetadata.GetImportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetImportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key, SQL: string;
-  LTable: string;
 begin
   Key := Format('get-imported-keys:%s:%s:%s', [Catalog, Schema, Table]);
 
@@ -2131,7 +2113,7 @@ begin
   begin
     Result := ConstructVirtualResultSet(ImportedKeyColumnsDynArray);
 
-    LTable := ConstructNameCondition(Table, 'RELC_FOR.RDB$RELATION_NAME');
+    Table := ConstructNameCondition(Table, 'RELC_FOR.RDB$RELATION_NAME');
     SQL := 'SELECT RELC_PRIM.RDB$RELATION_NAME, '    // 1 prim.RDB$ key table name
       + ' IS_PRIM.RDB$FIELD_NAME, '         // 2 prim.RDB$ key column name
       + ' RELC_FOR.RDB$RELATION_NAME, '     // 3 foreign key table name
@@ -2145,8 +2127,8 @@ begin
       + ' RDB$RELATION_CONSTRAINTS RELC_PRIM, RDB$REF_CONSTRAINTS REFC_PRIM, '
       + ' RDB$INDEX_SEGMENTS IS_PRIM,  RDB$INDEX_SEGMENTS IS_FOR '
       + ' WHERE RELC_FOR.RDB$CONSTRAINT_TYPE = ''FOREIGN KEY'' AND ';
-     if LTable <> '' then
-       SQL := SQL + LTable + ' AND ';
+     if Table <> '' then
+       SQL := SQL + Table + ' AND ';
      SQL := SQL + ' RELC_FOR.RDB$CONSTRAINT_NAME=REFC_FOR.RDB$CONSTRAINT_NAME'
        + ' and REFC_FOR.RDB$CONST_NAME_UQ = RELC_PRIM.RDB$CONSTRAINT_NAME and '
        + ' RELC_PRIM.RDB$CONSTRAINT_TYPE = ''PRIMARY KEY'' and ' // useful check, anyay
@@ -2273,11 +2255,10 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZInterbase6DatabaseMetadata.GetExportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetExportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   SQL, Key: string;
-  LTable: string;
 begin
   Key := Format('get-exported-keys:%s:%s:%s', [Catalog, Schema, Table]);
 
@@ -2286,10 +2267,10 @@ begin
   begin
     Result := ConstructVirtualResultSet(ExportedKeyColumnsDynArray);
 
-    LTable := ConstructNameCondition(Table, 'RC_PRIM.RDB$RELATION_NAME');
-    SQL := ' SELECT RC_PRIM.RDB$RELATION_NAME, ' // prim.RDB$ key Table name
+    Table := ConstructNameCondition(Table, 'RC_PRIM.RDB$RELATION_NAME');
+    SQL := ' SELECT RC_PRIM.RDB$RELATION_NAME, ' // prim.RDB$ key table name
       + ' IS_PRIM.RDB$FIELD_NAME, '       // prim.RDB$ key column name
-      + ' RC_FOR.RDB$RELATION_NAME, '     // foreign key Table name
+      + ' RC_FOR.RDB$RELATION_NAME, '     // foreign key table name
       + ' IS_FOR.RDB$FIELD_NAME, '        // foreign key column name
       + ' IS_FOR.RDB$FIELD_POSITION, '    // key sequence
       + ' REFC_PRIM.RDB$UPDATE_RULE, '    // if update or delete rule is null, interpret as RESTRICT
@@ -2300,8 +2281,8 @@ begin
       + ' RDB$RELATION_CONSTRAINTS RC_PRIM, RDB$REF_CONSTRAINTS REFC_PRIM, '
       + ' RDB$INDEX_SEGMENTS IS_PRIM, RDB$INDEX_SEGMENTS IS_FOR '
       + ' WHERE RC_PRIM.RDB$CONSTRAINT_TYPE = ''PRIMARY KEY'' and ';
-    if LTable <> '' then
-      SQL := SQL + LTable + ' AND ';
+    if Table <> '' then
+      SQL := SQL + Table + ' AND ';
     SQL := SQL + ' REFC_FOR.RDB$CONST_NAME_UQ = RC_PRIM.RDB$CONSTRAINT_NAME'
       + ' and RC_FOR.RDB$CONSTRAINT_NAME = REFC_FOR.RDB$CONSTRAINT_NAME and '
       + ' RC_FOR.RDB$CONSTRAINT_TYPE = ''FOREIGN KEY'' and '// useful check, anyay
@@ -2436,9 +2417,9 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZInterbase6DatabaseMetadata.GetCrossReference(const PrimaryCatalog: string;
-  const PrimarySchema: string; const PrimaryTable: string; const ForeignCatalog: string;
-  const ForeignSchema: string; const ForeignTable: string): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetCrossReference(PrimaryCatalog: string;
+  PrimarySchema: string; PrimaryTable: string; ForeignCatalog: string;
+  ForeignSchema: string; ForeignTable: string): IZResultSet;
 begin
   Result := inherited GetCrossReference(PrimaryCatalog, PrimarySchema,
     PrimaryTable, ForeignCatalog, ForeignSchema, ForeignTable);
@@ -2576,8 +2557,8 @@ end;
       accurate
   @return <code>ResultSet</code> - each row is an index column description
 }
-function TZInterbase6DatabaseMetadata.GetIndexInfo(const Catalog: string;
-  const Schema: string; const Table: string; Unique: Boolean;
+function TZInterbase6DatabaseMetadata.GetIndexInfo(Catalog: string;
+  Schema: string; Table: string; Unique: Boolean;
   Approximate: Boolean): IZResultSet;
 var
   SQL, Key: string;
@@ -2638,11 +2619,11 @@ begin
   end;
 end;
 
-function TZInterbase6DatabaseMetadata.GetSequences(const Catalog, SchemaPattern,
+function TZInterbase6DatabaseMetadata.GetSequences(Catalog, SchemaPattern,
   SequenceNamePattern: string): IZResultSet;
 var
-  Key, SQL: string;
-  LSequenceNamePattern: string;
+  Key: string;
+  SQL: string;
 begin
   Key := Format('get-sequences:%s:%s:%s',
     [Catalog, SchemaPattern, SequenceNamePattern]);
@@ -2652,14 +2633,14 @@ begin
   begin
     Result := ConstructVirtualResultSet(SequenceColumnsDynArray);
 
-    LSequenceNamePattern := ConstructNameCondition(SequenceNamePattern,
+    SequenceNamePattern := ConstructNameCondition(SequenceNamePattern,
       'RDB$GENERATOR_NAME');
 
-    SQL := ' SELECT RDB$GENERATOR_NAME FROM RDB$GENERATORS ' + 
-      'WHERE (RDB$SYSTEM_FLAG IS NULL OR RDB$SYSTEM_FLAG = 0)';
+    SQL := ' SELECT RDB$GENERATOR_NAME FROM RDB$GENERATORS ' +
+      'WHERE RDB$SYSTEM_FLAG IS NULL';
 
-    if LSequenceNamePattern <> '' then
-      SQL := SQL + ' AND ' + LSequenceNamePattern;
+    if SequenceNamePattern <> '' then
+      SQL := SQL + ' AND ' + SequenceNamePattern;
 
     with GetConnection.CreateStatement.ExecuteQuery(SQL) do
     begin
@@ -2736,9 +2717,9 @@ end;
   STRUCT, or DISTINCT); null returns all types
   @return <code>ResultSet</code> - each row is a type description
 }
-function TZInterbase6DatabaseMetadata.GetUDTs(const Catalog: string;
-  const SchemaPattern: string; const TypeNamePattern: string;
-  const Types: TIntegerDynArray): IZResultSet;
+function TZInterbase6DatabaseMetadata.GetUDTs(Catalog: string;
+  SchemaPattern: string; TypeNamePattern: string;
+  Types: TIntegerDynArray): IZResultSet;
 begin
   Result := inherited GetUDTs(Catalog, SchemaPattern, TypeNamePattern, Types);
 end;

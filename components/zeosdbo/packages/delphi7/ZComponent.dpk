@@ -1,5 +1,7 @@
 package ZComponent;
+
 {$R *.res}
+{$R '..\..\src\component\ZComponent.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -12,6 +14,7 @@ package ZComponent;
 {$OPENSTRINGS ON}
 {$OPTIMIZATION ON}
 {$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
 {$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES ON}
@@ -21,8 +24,6 @@ package ZComponent;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Zeos Database Components'}
-{$LIBSUFFIX '70'}
-{$RUNONLY ON}
 {$IMPLICITBUILD OFF}
 
 requires
@@ -32,6 +33,7 @@ requires
   ZDbc,
   ZCore,
   ZParseSql,
+  designide,
   vclactnband,
   vcl;
 
@@ -44,11 +46,14 @@ contains
   ZDataset in '..\..\src\component\ZDataset.pas',
   ZDatasetUtils in '..\..\src\component\ZDatasetUtils.pas',
   ZSqlStrings in '..\..\src\component\ZSqlStrings.pas',
+  ZComponentReg in '..\..\src\component\ZComponentReg.pas',
   ZSqlProcessor in '..\..\src\component\ZSqlProcessor.pas',
+  ZPropertyEditor in '..\..\src\component\ZPropertyEditor.pas',
   ZSqlMonitor in '..\..\src\component\ZSqlMonitor.pas',
   ZStoredProcedure in '..\..\src\component\ZStoredProcedure.pas',
   ZAbstractTable in '..\..\src\component\ZAbstractTable.pas',
   ZSqlMetadata in '..\..\src\component\ZSqlMetadata.pas',
+  ZUpdateSqlEditor in '..\..\src\component\ZUpdateSqlEditor.pas' {ZUpdateSQLEditForm},
   ZSequence in '..\..\src\component\ZSequence.pas';
 
 end.

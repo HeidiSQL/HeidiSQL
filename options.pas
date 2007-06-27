@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Spin, Registry, ExtCtrls, DBGrids;
+  StdCtrls, ComCtrls, Spin, Registry, ExtCtrls;
 
 type
   Toptionsform = class(TForm)
@@ -30,6 +30,7 @@ type
     Label3: TLabel;
     ComboBoxFonts: TComboBox;
     Label4: TLabel;
+    SpinEditLogSQL: TSpinEdit;
     Label5: TLabel;
     Label6: TLabel;
     pnlKeywords: TPanel;
@@ -78,14 +79,10 @@ type
     UpDownLimit: TUpDown;
     Label26: TLabel;
     Label19: TLabel;
+    SpinEditDefaultColWidth: TSpinEdit;
     Label20: TLabel;
     Label28: TLabel;
     pnlTablenames: TPanel;
-    updownLogSQLNum: TUpDown;
-    editLogSQLNum: TEdit;
-    editDefaultColWidth: TEdit;
-    updownDefaultColWidth: TUpDown;
-    CheckBoxRestoreLastUsedDB: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -95,7 +92,7 @@ type
     procedure CallColorDialog(Sender: TObject);
     procedure DataFontsChange(Sender: TObject);
     procedure CheckBoxlimitClick(Sender: TObject);
-    procedure anyUpDownLimitChanging(Sender: TObject;
+    procedure UpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
   private
     { Private declarations }
@@ -141,18 +138,19 @@ begin
 end;
 
 procedure Toptionsform.Apply(Sender: TObject);
+var
+  i : Integer;
 begin
   // Apply
   Screen.Cursor := crHourGlass;
   with TRegistry.Create do
   begin
-    openkey(REGPATH, true);
+    openkey(regpath, true);
     WriteBool('AutoReconnect', CheckBoxAutoReconnect.Checked);
     WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
-    WriteBool('RestoreLastUsedDB', CheckBoxRestoreLastUsedDB.Checked);
     WriteString('FontName', ComboBoxFonts.Text);
     WriteInteger('FontSize', UpDownFontSize.Position);
-    WriteInteger('logsqlnum', updownLogSQLNum.Position);
+    WriteInteger('logsqlnum', SpinEditLogSQL.Value);
     WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
     WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
     WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
@@ -163,7 +161,7 @@ begin
     WriteString('CSVSeparator', Edit1.Text);
     WriteString('CSVEncloser', Edit2.Text);
     WriteString('CSVTerminator', Edit3.Text);
-    WriteInteger('DefaultColWidth', updownDefaultColWidth.Position);
+    WriteInteger('DefaultColWidth', SpinEditDefaultColWidth.Value);
     WriteBool('DataLimit', CheckBoxLimit.Checked);
     WriteInteger('DataLimitEnd', UpDownLimit.Position);
     WriteString('DataFontName', Panel8.Font.Name);
@@ -176,7 +174,8 @@ begin
   // window-specific preferences stored in childwindows
   if Mainform.MDIChildCount > 0 then
   begin
-    with TMDIChild(Mainform.MDIChildren[0]) do
+    for i:= 0 to Mainform.MDIChildCount -1 do
+    with TMDIChild(Mainform.MDIChildren[i]) do
     begin
       SynMemoQuery.Font := self.Panel1.Font;
       SynMemoSQLLog.Font := self.Panel1.Font;
@@ -187,31 +186,20 @@ begin
       SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
       SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
       SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
-      while SynMemoSQLLog.Lines.Count > updownLogSQLNum.Position do
+      while SynMemoSQLLog.Lines.Count > SpinEditLogSQL.Value do
         SynMemoSQLLog.Lines.Delete(0);
       gridData.Font := self.Panel8.font;
       gridQuery.Font := self.Panel8.font;
       DBMemo1.Font := self.Panel8.font;
       gridData.Refresh;
 //      DBMemo1.Font.Charset := tfontcharset(177);
-      // Set the grid-cells to always-edit-mode if set
-      if CheckBoxDataAlwaysEditMode.Checked then
-      begin
-        gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-        gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-      end
-      else
-      begin
-        gridData.Options := gridData.Options - [dgAlwaysShowEditor];
-        gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
-      end;
     end;
   end;
 
   // general preferences stored in mainform
   with Mainform do begin
-    logsqlnum := self.updownLogSQLNum.Position;
-    DefaultColWidth := updownDefaultColWidth.Position;
+    logsqlnum := self.SpinEditLogSQL.Value;
+    DefaultColWidth := SpinEditDefaultColWidth.value;
     CSVSeparator := self.Edit1.text;
     CSVEncloser := self.Edit2.text;
     CSVTerminator := self.Edit3.text;
@@ -247,7 +235,7 @@ begin
   screen.Cursor := crHourGlass;
 
   with TRegistry.Create do begin
-    openkey(REGPATH, true);
+    openkey(regpath, true);
     if ValueExists('FontName') then
       fontname := ReadString('FontName');
     if ValueExists('FontSize') then
@@ -262,20 +250,16 @@ begin
       AutoReconnect := ReadBool('AutoReconnect');
     if ValueExists('ConvertHTMLEntities') then
       CheckBoxConvertHTMLEntities.Checked := ReadBool('ConvertHTMLEntities');
-    if ValueExists('RestoreLastUsedDB') then
-      CheckBoxRestoreLastUsedDB.Checked := ReadBool('RestoreLastUsedDB');
     if ValueExists('DataLimit') then
       CheckBoxLimit.Checked := ReadBool('DataLimit');
     if ValueExists('DataLimitEnd') then
       UpDownLimit.Position := ReadInteger('DataLimitEnd');
     CheckBoxLimit.OnClick(self);
     if ValueExists('logsqlnum') then
-      updownLogSQLNum.Position := ReadInteger('logsqlnum')
-    else
-      updownLogSQLNum.Position := MainForm.logsqlnum;
+      SpinEditLogSQL.Value := ReadInteger('logsqlnum');
     // Default Column-Width in DBGrids:
     if ValueExists('DefaultColWidth') then
-      updownDefaultColWidth.Position := ReadInteger('DefaultColWidth');
+      SpinEditDefaultColWidth.Value := ReadInteger('DefaultColWidth');
 
     // Color-coding:
     if ValueExists('SQLColKeyAttri') then
@@ -407,7 +391,7 @@ begin
   Modified(sender);
 end;
 
-procedure Toptionsform.anyUpDownLimitChanging(Sender: TObject;
+procedure Toptionsform.UpDownLimitChanging(Sender: TObject;
   var AllowChange: Boolean);
 begin
   modified(sender);

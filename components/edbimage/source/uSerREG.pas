@@ -1,8 +1,8 @@
-unit UserReg;
+unit uSerREG;
 
 interface
 
-{$R ..\..\resources\CompsSer.dcr}
+{$R CompsSer.dcr}
 {$I compilers.inc}
 procedure Register;
 
@@ -22,18 +22,18 @@ uses Classes , {RegisterComponent}
      // qrEDBimage,
      edbimage;  { mis componentes }
 
-{type
+type
   TQREDBImageFieldProperty = Class (TStringProperty)
   public
     function GetAttributes : TPropertyAttributes; override;
     procedure GetValues(Proc : TGetStrProc); override;
     procedure GetValueList(List : TStrings);
-  end;}
+  end;
 
 
 { TQREDBImageFieldProperty }
 
-{function TQREDBImageFieldProperty.GetAttributes: TPropertyAttributes;
+function TQREDBImageFieldProperty.GetAttributes: TPropertyAttributes;
 begin
   Result := [paValueList, paSortList, paMultiSelect];
 end;
@@ -66,7 +66,7 @@ begin
   finally
     Values.Free;
   end;
-end;}
+end;
 
 procedure Register;
 begin

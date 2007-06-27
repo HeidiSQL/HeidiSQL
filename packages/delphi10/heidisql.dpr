@@ -1,7 +1,6 @@
 program heidisql;
 
 {%ToDo 'heidisql.todo'}
-{%File '..\..\const.inc'}
 
 uses
   Forms,
@@ -34,16 +33,14 @@ uses
   queryprogress in '..\..\queryprogress.pas' {frmQueryProgress},
   MysqlQuery in '..\..\MysqlQuery.pas',
   MysqlQueryThread in '..\..\MysqlQueryThread.pas',
-  MysqlConn in '..\..\MysqlConn.pas',
-  mysql in '..\..\mysql.pas',
-  column_selection in '..\..\column_selection.pas' {ColumnSelectionForm};
+  MysqlConn in '..\..\MysqlConn.pas';
 
 {$R *.RES}
 
 begin
   debug('perf: All modules loaded.');
   Application.Initialize;
-  Application.Title := APPNAME;
+  Application.Title := main.appname;
   Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
 
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
@@ -53,19 +50,12 @@ begin
   Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
   Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
   Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
-  Application.CreateForm(TfrmSQLhelp, frmSQLhelp); debug('perf: frmSQLhelp created.');
 
 
   try
     try
-      InitializeSync(MainForm.Handle);
+      InitializeSync(Application.Handle);
       SetWindowName(main.discname);
-      InitializeThreading(MainForm.Handle);
-      InitializeComm(
-        MainForm.Handle,
-        MainForm.ExecuteRemoteNonQuery,
-        MainForm.ExecuteRemoteQuery
-      );
       debug('perf: Running.');
       Application.Run;
     finally

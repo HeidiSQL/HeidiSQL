@@ -6,7 +6,6 @@ uses
   Windows, Classes, Controls, Forms, Dialogs, SysUtils,
   ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics;
 
-{$I ../../../const.inc}
 
 type
   TSortListView = class(TListView)
@@ -88,23 +87,16 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents(APPNAME, [TSortListView, TExportSaveDialog]);
+  RegisterComponents('HeidiSQL', [TSortListView, TExportSaveDialog]);
 end;
 
 
 function CustomSortProc(Item1, Item2: TListItem; Column: integer): integer;
 stdcall;
-  {***
-    Convert a string-number to an integer-number
-    @note
-      Copied from helpers.pas
-      didn't want to add helpers.pas to uses-clause, as we
-      should keep this file without dependencies
-
-    @param string String-number
-    @return int64
-  }
-  function MakeInt( Str: String ) : Int64;
+  // Copied from helpers.pas
+  // didn't want to add helpers.pas to uses-clause, as we
+	// should keep this file without dependencies
+  function MakeInt( Str: String ) : Integer;
   var
     i : Integer;
     StrWithInts : String;
@@ -117,7 +109,7 @@ stdcall;
         StrWithInts := StrWithInts + str[i];
       end;
     end;
-    result := StrToInt64Def( StrWithInts, 0 );
+    result := StrToIntDef( StrWithInts, 0 );
   end;
 
 var
@@ -386,6 +378,7 @@ begin
     Checked := ConvertHTMLSpecialChars;
     Tag := Byte(voHTML);
     Visible := (Tag = Integer(FVisibleOptions));
+    inc(xpos, Width+spacing);
   end;
 
 end;

@@ -3,15 +3,19 @@
 {                 Zeos Database Objects                   }
 {         PostgreSQL Database Connectivity Classes        }
 {                                                         }
-{         Originally written by Sergey Seroukhov          }
-{                           and Sergey Merkuriev          }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{   Written by Sergey Seroukhov and Sergey Merkuriev      }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -19,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcPostgreSqlMetadata;
 
@@ -178,51 +161,52 @@ type
     function DataDefinitionCausesTransactionCommit: Boolean; override;
     function DataDefinitionIgnoredInTransactions: Boolean; override;
 
-    function GetProcedures(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string): IZResultSet; override;
-    function GetProcedureColumns(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string; const ColumnNamePattern: string):
+    function GetProcedures(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string): IZResultSet; override;
+    function GetProcedureColumns(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string; ColumnNamePattern: string):
       IZResultSet; override;
 
-    function GetTables(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet; override;
+    function GetTables(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; Types: TStringDynArray): IZResultSet; override;
     function GetSchemas: IZResultSet; override;
     function GetCatalogs: IZResultSet; override;
     function GetTableTypes: IZResultSet; override;
-    function GetColumns(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet; override;
-    function GetColumnPrivileges(const Catalog: string; const Schema: string;
-      const Table: string; const ColumnNamePattern: string): IZResultSet; override;
+    function GetColumns(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; ColumnNamePattern: string): IZResultSet;
+      override;
+    function GetColumnPrivileges(Catalog: string; Schema: string;
+      Table: string; ColumnNamePattern: string): IZResultSet; override;
 
-    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string): IZResultSet; override;
-    function GetVersionColumns(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
+    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string): IZResultSet; override;
+    function GetVersionColumns(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
 
-    function GetPrimaryKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetImportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetExportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; override;
-    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
-      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
-      const ForeignTable: string): IZResultSet; override;
+    function GetPrimaryKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetImportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetExportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; override;
+    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
+      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
+      ForeignTable: string): IZResultSet; override;
 
     function GetTypeInfo: IZResultSet; override;
 
-    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
+    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet; override;
 
-    function GetSequences(const Catalog: string; const SchemaPattern: string;
-      const SequenceNamePattern: string): IZResultSet; override;
+    function GetSequences(Catalog: string; SchemaPattern: string;
+      SequenceNamePattern: string): IZResultSet; override;
 
     function SupportsResultSetType(_Type: TZResultSetType): Boolean; override;
     function SupportsResultSetConcurrency(_Type: TZResultSetType;
       Concurrency: TZResultSetConcurrency): Boolean; override;
 
-    function GetUDTs(const Catalog: string; const SchemaPattern: string;
-      const TypeNamePattern: string; const Types: TIntegerDynArray): IZResultSet; override;
+    function GetUDTs(Catalog: string; SchemaPattern: string;
+      TypeNamePattern: string; Types: TIntegerDynArray): IZResultSet; override;
   end;
 
 implementation
@@ -1147,10 +1131,10 @@ end;
   @return <code>ResultSet</code> - each row is a procedure description
   @see #getSearchStringEscape
 }
-function TZPostgreSQLDatabaseMetadata.GetProcedures(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetProcedures(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string): IZResultSet;
 var
-  Key, SQL, LProcedureNamePattern: string;
+  Key, SQL: string;
 begin
   Key := Format('get-procedures:%s:%s:%s',
     [Catalog, SchemaPattern, ProcedureNamePattern]);
@@ -1159,10 +1143,7 @@ begin
   if Result = nil then
   begin
     if ProcedureNamePattern = '' then
-      LProcedureNamePattern := '%'
-    else
-      LProcedureNamePattern := ProcedureNamePattern;
-
+      ProcedureNamePattern := '%';
 
     if HaveMinimumServerVersion(7, 3) then
     begin
@@ -1179,8 +1160,23 @@ begin
       if SchemaPattern <> '' then
         SQL := SQL + 'AND n.nspname LIKE ''' + EscapeQuotes(SchemaPattern)+ ''' ';
       SQL := SQL + ' AND p.proname LIKE '''
-        + EscapeQuotes(LProcedureNamePattern) +
+        + EscapeQuotes(ProcedureNamePattern)+
         ''' ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME ';
+    end
+    else if HaveMinimumServerVersion(7, 1) then
+    begin
+      SQL := 'SELECT NULL AS PROCEDURE_CAT, NULL AS PROCEDURE_SCHEM,'
+        + ' p.proname AS PROCEDURE_NAME, NULL AS RESERVED1, NULL AS RESERVED2,'
+        + ' NULL AS RESERVED3, d.description AS REMARKS, '
+        + IntToStr(procedureReturnsResult) + ' AS PROCEDURE_TYPE'
+        + ' FROM pg_proc p LEFT JOIN pg_description d ON (p.oid=d.objoid) ';
+      if HaveMinimumServerVersion(7, 2) then
+      begin
+        SQL := SQL + ' LEFT JOIN pg_class c ON (d.classoid=c.oid'
+        + ' AND c.relname=''pg_proc'') ';
+      end;
+      SQL := SQL + ' WHERE p.proname LIKE '''
+        + EscapeQuotes(ProcedureNamePattern) + ''' ORDER BY PROCEDURE_NAME ';
     end
     else
     begin
@@ -1189,7 +1185,7 @@ begin
         + ' NULL AS RESERVED3, NULL AS REMARKS, '
         + IntToStr(ProcedureReturnsResult) + ' AS PROCEDURE_TYPE'
         + ' FROM pg_proc p WHERE p.proname LIKE '''
-        + EscapeQuotes(LProcedureNamePattern) + ''' '
+        + EscapeQuotes(ProcedureNamePattern) + ''' '
         + ' ORDER BY PROCEDURE_NAME ';
     end;
 
@@ -1256,16 +1252,14 @@ end;
        column
   @see #getSearchStringEscape
 }
-function TZPostgreSQLDatabaseMetadata.GetProcedureColumns(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetProcedureColumns(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   I, ReturnType, ColumnTypeOid, ArgOid: Integer;
   Key, SQL, ReturnTypeType: string;
   ArgTypes: TStrings;
-  ResultSet,
-  ColumnsRS: IZResultSet;
-//  IZCO:IZConnection;
+  ResultSet, ColumnsRS: IZResultSet;
 begin
   Key := Format('get-procedure-columns:%s:%s:%s:%s',
     [Catalog, SchemaPattern, ProcedureNamePattern, ColumnNamePattern]);
@@ -1275,6 +1269,11 @@ begin
   begin
     Result := ConstructVirtualResultSet(ProceduresColColumnsDynArray);
 
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := '%';
+    if ProcedureNamePattern = '' then
+      ProcedureNamePattern := '%';
+
     if HaveMinimumServerVersion(7, 3) then
     begin
       SQL := 'SELECT n.nspname,p.proname,p.prorettype,p.proargtypes,t.typtype,'
@@ -1282,19 +1281,18 @@ begin
         + ' pg_catalog.pg_type t WHERE p.pronamespace=n.oid AND p.prorettype=t.oid';
       if SchemaPattern <> '' then
         SQL := SQL + ' AND n.nspname LIKE ''' + EscapeQuotes(SchemaPattern) + ''' ';
-      SQL := SQL + ' AND p.proname LIKE ''' + EscapeQuotes(ToLikeString(ProcedureNamePattern)) +
+      SQL := SQL + ' AND p.proname LIKE ''' + EscapeQuotes(ProcedureNamePattern) +
         ''' ORDER BY n.nspname, p.proname ';
     end
     else
       SQL := 'SELECT NULL AS nspname,p.proname,p.prorettype,p.proargtypes,'
         + 't.typtype,t.typrelid FROM pg_proc p, pg_type t'
         + ' WHERE p.prorettype=t.oid AND p.proname LIKE '''
-        + EscapeQuotes(ToLikeString(ProcedureNamePattern)) + ''' ORDER BY p.proname ';
+        + EscapeQuotes(ProcedureNamePattern) + ''' ORDER BY p.proname ';
 
     ArgTypes := TStringList.Create;
     try
-      ResultSet:=GetConnection.CreateStatement.ExecuteQuery(SQL); //FirmOS Patch
-      with ResultSet do
+      with GetConnection.CreateStatement.ExecuteQuery(SQL) do
       begin
         while Next do
         begin
@@ -1410,20 +1408,29 @@ end;
   @return <code>ResultSet</code> - each row is a table description
   @see #getSearchStringEscape
 }
-function TZPostgreSQLDatabaseMetadata.GetTables(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const Types: TStringDynArray): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetTables(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  Types: TStringDynArray): IZResultSet;
 var
   I: Integer;
   Key: string;
   TableType, OrderBy, SQL: string;
   UseSchemas: Boolean;
-  LTypes: TStringDynArray;
 begin
-  Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
+  Key := '';
+  for I := Low(Types) to High(Types) do
+    Key := Key + ':' + Types[I];
+
+  Key := Format('get-tables:%s:%s:%s%s',
+    [Catalog, SchemaPattern, TableNamePattern, Key]);
+
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
+    if TableNamePattern = '' then
+      TableNamePattern := '%';
+    if SchemaPattern = '' then
+      SchemaPattern := '%';
     UseSchemas := True;
 
     if HaveMinimumServerVersion(7, 3) then
@@ -1473,10 +1480,10 @@ begin
         + ' AND dc.relname=''pg_class'') LEFT JOIN pg_catalog.pg_namespace dn'
         + ' ON (dn.oid=dc.relnamespace AND dn.nspname=''pg_catalog'') '
         + ' WHERE c.relnamespace = n.oid ';
-      //if SchemaPattern <> '' then // cannot happen due to SchemaPattern := '%'
+      if SchemaPattern <> '' then
       begin
         SQL := SQL + ' AND n.nspname LIKE '''
-          + EscapeQuotes(ToLikeString(SchemaPattern)) + ''' ';
+          + EscapeQuotes(SchemaPattern) + ''' ';
       end;
       OrderBy := ' ORDER BY TABLE_TYPE,TABLE_SCHEM,TABLE_NAME ';
     end
@@ -1516,27 +1523,44 @@ begin
         + 'ELSE NULL '
         + ' END ';
       OrderBy := ' ORDER BY TABLE_TYPE,TABLE_NAME ';
-      SQL := 'SELECT NULL AS TABLE_CAT, NULL AS TABLE_SCHEM,'
-        + ' c.relname AS TABLE_NAME, ' + TableType + ' AS TABLE_TYPE,'
-        + ' NULL AS REMARKS FROM pg_class c WHERE true ';
+      if HaveMinimumServerVersion(7, 2) then
+      begin
+        SQL := 'SELECT NULL AS TABLE_CAT, NULL AS TABLE_SCHEM,'
+          + ' c.relname AS TABLE_NAME, ' + TableType + ' AS TABLE_TYPE,'
+          + ' d.description AS REMARKS FROM pg_class c '
+          + ' LEFT JOIN pg_description d ON (c.oid=d.objoid AND d.objsubid = 0)'
+          + ' LEFT JOIN pg_class dc ON (d.classoid = dc.oid'
+          + ' AND dc.relname=''pg_class'') WHERE true ';
+      end
+      else if HaveMinimumServerVersion(7, 1) then
+      begin
+        SQL := 'SELECT NULL AS TABLE_CAT, NULL AS TABLE_SCHEM,'
+          + ' c.relname AS TABLE_NAME, ' + TableType + ' AS TABLE_TYPE,'
+          + ' d.description AS REMARKS FROM pg_class c '
+          + ' LEFT JOIN pg_description d ON (c.oid=d.objoid) WHERE true '
+      end
+      else
+      begin
+        SQL := 'SELECT NULL AS TABLE_CAT, NULL AS TABLE_SCHEM,'
+          + ' c.relname AS TABLE_NAME, ' + TableType + ' AS TABLE_TYPE,'
+          + ' NULL AS REMARKS FROM pg_class c WHERE true ';
+      end;
     end;
 
-    if (Types = nil) or (Length(Types) = 0) then
+    if (Types = nil) or (High(Types) = 0) then
     begin
-      SetLength(LTypes, 5);
-      LTypes[0] := 'TABLE';
-      LTypes[1] := 'VIEW';
-      LTypes[2] := 'INDEX';
-      LTypes[3] := 'SEQUENCE';
-      LTypes[4] := 'TEMPORARY TABLE';
-    end
-    else
-      LTypes := Types;
+      SetLength(Types, 5);
+      Types[0] := 'TABLE';
+      Types[1] := 'VIEW';
+      Types[2] := 'INDEX';
+      Types[3] := 'SEQUENCE';
+      Types[4] := 'TEMPORARY TABLE';
+    end;
 
-    SQL := SQL + ' AND c.relname LIKE ''' + EscapeQuotes(ToLikeString(TableNamePattern))
+    SQL := SQL + ' AND c.relname LIKE ''' + EscapeQuotes(TableNamePattern)
       + ''' AND (false ';
-    for I := 0 to High(LTypes) do
-      SQL := SQL + ' OR ( ' + TableTypeSQLExpression(LTypes[i], UseSchemas) + ' ) ';
+    for I := 0 to High(Types) do
+      SQL := SQL + ' OR ( ' + TableTypeSQLExpression(Types[i], UseSchemas) + ' ) ';
     SQL := SQL + ' )' + OrderBy;
 
     Result := CopyToVirtualResultSet(
@@ -1710,9 +1734,9 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @see #getSearchStringEscape
 }
-function TZPostgreSQLDatabaseMetadata.GetColumns(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetColumns(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 const
   VARHDRSZ = 4;
 var
@@ -1726,6 +1750,11 @@ begin
   if Result = nil then
   begin
     Result := ConstructVirtualResultSet(TableColColumnsDynArray);
+
+    if TableNamePattern = '' then
+      TableNamePattern := '%';
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := '%';
 
     if HaveMinimumServerVersion(7, 3) then
     begin
@@ -1747,6 +1776,26 @@ begin
           + EscapeQuotes(SchemaPattern) +  ''' ';
       end;
     end
+    else if HaveMinimumServerVersion(7, 2) then
+    begin
+      SQL := 'SELECT NULL::text AS nspname,c.relname,a.attname,a.atttypid,'
+        + 'a.attnotnull,a.atttypmod,a.attlen,a.attnum,def.adsrc,dsc.description '
+        + ' FROM pg_class c JOIN pg_attribute a ON (a.attrelid=c.oid) '
+        + ' LEFT JOIN pg_attrdef def ON (a.attrelid=def.adrelid'
+        + ' AND a.attnum = def.adnum) LEFT JOIN pg_description dsc'
+        + ' ON (c.oid=dsc.objoid AND a.attnum = dsc.objsubid) '
+        + ' LEFT JOIN pg_class dc ON (dc.oid=dsc.classoid'
+        + ' AND dc.relname=''pg_class'') WHERE a.attnum > 0 '
+    end
+    else if HaveMinimumServerVersion(7, 1) then
+    begin
+      SQL := 'SELECT NULL::text AS nspname,c.relname,a.attname,a.atttypid,'
+        + 'a.attnotnull,a.atttypmod,a.attlen,a.attnum,def.adsrc,dsc.description '
+        + ' FROM pg_class c JOIN pg_attribute a ON (a.attrelid=c.oid) '
+        + ' LEFT JOIN pg_attrdef def ON (a.attrelid=def.adrelid'
+        + ' AND a.attnum = def.adnum) LEFT JOIN pg_description dsc'
+        + ' ON (a.oid=dsc.objoid) WHERE a.attnum > 0 ';
+    end
     else
     begin
       SQL := 'SELECT NULL::text AS nspname,c.relname,a.attname,a.atttypid,'
@@ -1755,8 +1804,8 @@ begin
         + ' WHERE a.attrelid=c.oid AND a.attnum > 0 ';
     end;
 
-    SQL := SQL + 'AND c.relname LIKE ''' + EscapeQuotes(ToLikeString(TableNamePattern))
-      + ''' AND a.attname LIKE ''' + EscapeQuotes(ToLikeString(ColumnNamePattern))
+    SQL := SQL + 'AND c.relname LIKE ''' + EscapeQuotes(TableNamePattern)
+      + ''' AND a.attname LIKE ''' + EscapeQuotes(ColumnNamePattern)
       + ''' ORDER BY nspname,relname,attnum ';
 
     with GetConnection.CreateStatement.ExecuteQuery(SQL) do
@@ -1864,8 +1913,8 @@ end;
   @return <code>ResultSet</code> - each row is a column privilege description
   @see #getSearchStringEscape
 }
-function TZPostgreSQLDatabaseMetadata.GetColumnPrivileges(const Catalog: string;
-  const Schema: string; const Table: string; const ColumnNamePattern: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetColumnPrivileges(Catalog: string;
+  Schema: string; Table: string; ColumnNamePattern: string): IZResultSet;
 var
   I, J: Integer;
   Key, SQL, SchemaName, TableName, Column, Owner: string;
@@ -1879,6 +1928,11 @@ begin
   if Result = nil then
   begin
     Result := ConstructVirtualResultSet(TableColPrivColumnsDynArray);
+
+    if Table = '' then
+      Table := '%';
+    if ColumnNamePattern = '' then
+      ColumnNamePattern := '%';
 
     if HaveMinimumServerVersion(7, 3) then
     begin
@@ -1900,7 +1954,7 @@ begin
     end;
 
     SQL := SQL + ' AND c.relname = ''' + EscapeQuotes(Table)+
-      ''' AND a.attname LIKE ''' + EscapeQuotes(ToLikeString(ToLikeString(ColumnNamePattern))) +
+      ''' AND a.attname LIKE ''' + EscapeQuotes(ColumnNamePattern) +
       ''' ORDER BY attname ';
 
     Permissions := TStringList.Create;
@@ -1987,8 +2041,8 @@ end;
   @return <code>ResultSet</code> - each row is a table privilege description
   @see #getSearchStringEscape
 }
-function TZPostgreSQLDatabaseMetadata.GetTablePrivileges(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetTablePrivileges(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string): IZResultSet;
 var
   I, J: Integer;
   Key, SQL, SchemaName, TableName, Owner: string;
@@ -2002,6 +2056,9 @@ begin
   if Result = nil then
   begin
     Result := ConstructVirtualResultSet(TablePrivColumnsDynArray);
+
+    if TableNamePattern = '' then
+      TableNamePattern := '%';
 
     if HaveMinimumServerVersion(7, 3) then
     begin
@@ -2019,7 +2076,7 @@ begin
         + ' AND c.relkind = ''r'' ';
     end;
 
-    SQL := SQL + ' AND c.relname LIKE ''' + EscapeQuotes(ToLikeString(TableNamePattern))
+    SQL := SQL + ' AND c.relname LIKE ''' + EscapeQuotes(TableNamePattern)
       + ''' ORDER BY nspname, relname ';
 
     Permissions := TStringList.Create;
@@ -2103,8 +2160,8 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @exception SQLException if a database access error occurs
 }
-function TZPostgreSQLDatabaseMetadata.GetVersionColumns(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetVersionColumns(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2152,8 +2209,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @exception SQLException if a database access error occurs
 }
-function TZPostgreSQLDatabaseMetadata.GetPrimaryKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetPrimaryKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key, SQL, Select, From, Where: string;
 begin
@@ -2259,8 +2316,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @see #getExportedKeys
 }
-function TZPostgreSQLDatabaseMetadata.GetImportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetImportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := GetCrossReference('', '', '', Catalog, Schema, Table);
 end;
@@ -2332,8 +2389,8 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZPostgreSQLDatabaseMetadata.GetExportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetExportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 begin
   Result := GetCrossReference(Catalog, Schema, Table, '', '', '');
 end;
@@ -2413,9 +2470,9 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZPostgreSQLDatabaseMetadata.GetCrossReference(const PrimaryCatalog: string;
-  const PrimarySchema: string; const PrimaryTable: string; const ForeignCatalog: string;
-  const ForeignSchema: string; const ForeignTable: string): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetCrossReference(PrimaryCatalog: string;
+  PrimarySchema: string; PrimaryTable: string; ForeignCatalog: string;
+  ForeignSchema: string; ForeignTable: string): IZResultSet;
 var
   Key, SQL, Select, From, Where: string;
   DeleteRule, UpdateRule, Rule: string;
@@ -2726,8 +2783,8 @@ end;
       accurate
   @return <code>ResultSet</code> - each row is an index column description
 }
-function TZPostgreSQLDatabaseMetadata.GetIndexInfo(const Catalog: string;
-  const Schema: string; const Table: string; Unique: Boolean;
+function TZPostgreSQLDatabaseMetadata.GetIndexInfo(Catalog: string;
+  Schema: string; Table: string; Unique: Boolean;
   Approximate: Boolean): IZResultSet;
 var
   Key, SQL, Select, From, Where: string;
@@ -2769,7 +2826,7 @@ begin
 
     if Unique then
       SQL := SQL + ' AND i.indisunique ';
-    SQL := SQL + ' ORDER BY NON_UNIQUE, TYPE, INDEX_NAME, ORDINAL_POSITION ';
+    SQL := SQL + ' ORDER BY NON_UNIQUE, TYPE, INDEX_NAME ';
 
     Result := CopyToVirtualResultSet(
       GetConnection.CreateStatement.ExecuteQuery(SQL),
@@ -2778,7 +2835,7 @@ begin
   end;
 end;
 
-function TZPostgreSQLDatabaseMetadata.GetSequences(const Catalog, SchemaPattern,
+function TZPostgreSQLDatabaseMetadata.GetSequences(Catalog, SchemaPattern,
   SequenceNamePattern: string): IZResultSet;
 var
   Key: string;
@@ -2877,9 +2934,9 @@ end;
   STRUCT, or DISTINCT); null returns all types
   @return <code>ResultSet</code> - each row is a type description
 }
-function TZPostgreSQLDatabaseMetadata.GetUDTs(const Catalog: string;
-  const SchemaPattern: string; const TypeNamePattern: string;
-  const Types: TIntegerDynArray): IZResultSet;
+function TZPostgreSQLDatabaseMetadata.GetUDTs(Catalog: string;
+  SchemaPattern: string; TypeNamePattern: string;
+  Types: TIntegerDynArray): IZResultSet;
 begin
   Result := inherited GetUDTs(Catalog, SchemaPattern, TypeNamePattern, Types);
 end;

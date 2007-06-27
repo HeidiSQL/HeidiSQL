@@ -23,69 +23,52 @@ object FieldEditForm: TFieldEditForm
     Top = 0
     Width = 297
     Height = 289
-    ActivePage = tabField
+    ActivePage = TabSheet2
     Align = alTop
     Images = MainForm.ImageList1
     TabOrder = 0
     OnChange = pcChange
-    object tabField: TTabSheet
+    object TabSheet1: TTabSheet
       Caption = 'Field'
       ImageIndex = 62
       ExplicitLeft = 0
       ExplicitTop = 0
       ExplicitWidth = 0
       ExplicitHeight = 0
-      object lblName: TLabel
+      object Label1: TLabel
         Left = 16
         Top = 40
         Width = 31
         Height = 13
         Caption = 'Name:'
       end
-      object lblType: TLabel
+      object Label2: TLabel
         Left = 16
         Top = 64
         Width = 27
         Height = 13
         Caption = 'Type:'
       end
-      object lblLengthSet: TLabel
+      object Label3: TLabel
         Left = 16
         Top = 88
         Width = 63
         Height = 13
         Caption = 'Length / Set:'
       end
-      object lblDefault: TLabel
+      object Label5: TLabel
         Left = 16
         Top = 112
         Width = 37
         Height = 13
         Caption = 'Default:'
       end
-      object lblPosition: TLabel
+      object Label8: TLabel
         Left = 16
         Top = 16
         Width = 40
         Height = 13
         Caption = 'Position:'
-      end
-      object btnDatatypeHelp: TSpeedButton
-        Left = 252
-        Top = 61
-        Width = 21
-        Height = 21
-        Hint = 'Help on selected datatype'
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000010000000000000000000
-          80000080000000808000800000008000800080800000C0C0C000808080000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
-          FFFFFFFFFFFFFFFFFFFFFFFFFF44FFFFFFFFFFFFFF44FFFFFFFFFFFFFFFFFFFF
-          FFFFFFFFFF44FFFFFFFFFFFFFF44FFFFFFFFFFFFFF444FFFFFFFFFFFFFF444FF
-          FFFFFFFFFFFF444FFFFFFFF44FFFF44FFFFFFFF444FFF44FFFFFFFFF444444FF
-          FFFFFFFFF4444FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
-        OnClick = btnDatatypeHelpClick
       end
       object EditDefault: TEdit
         Left = 88
@@ -104,12 +87,38 @@ object FieldEditForm: TFieldEditForm
       object ComboBoxType: TComboBox
         Left = 88
         Top = 61
-        Width = 158
+        Width = 185
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 2
         OnChange = ComboBoxTypeChange
+        Items.Strings = (
+          'TINYINT'
+          'SMALLINT'
+          'MEDIUMINT'
+          'INT'
+          'BIGINT'
+          'FLOAT'
+          'DOUBLE'
+          'DECIMAL'
+          'DATE'
+          'DATETIME'
+          'TIMESTAMP'
+          'TIME'
+          'YEAR'
+          'CHAR'
+          'VARCHAR'
+          'TINYBLOB'
+          'TINYTEXT'
+          'TEXT'
+          'BLOB'
+          'MEDIUMBLOB'
+          'MEDIUMTEXT'
+          'LONGBLOB'
+          'LONGTEXT'
+          'ENUM'
+          'SET')
       end
       object EditFieldname: TEdit
         Left = 88
@@ -118,7 +127,7 @@ object FieldEditForm: TFieldEditForm
         Height = 21
         TabOrder = 1
       end
-      object GroupBoxAttributes: TGroupBox
+      object GroupBox1: TGroupBox
         Left = 16
         Top = 136
         Width = 257
@@ -176,26 +185,26 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 0
       end
     end
-    object tabIndexes: TTabSheet
+    object TabSheet2: TTabSheet
       Caption = 'Indexes'
       ImageIndex = 76
       ParentShowHint = False
       ShowHint = True
-      object lblIndexName: TLabel
+      object Label4: TLabel
         Left = 8
         Top = 10
         Width = 60
         Height = 13
         Caption = 'Index-Name:'
       end
-      object lblColumnsUsed: TLabel
+      object Label6: TLabel
         Left = 8
         Top = 104
         Width = 69
         Height = 13
         Caption = 'Columns used:'
       end
-      object lblColumnsAvailable: TLabel
+      object Label7: TLabel
         Left = 168
         Top = 104
         Width = 89
@@ -241,7 +250,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 3
         OnClick = ButtonDeleteClick
       end
-      object listColumnsUsed: TListBox
+      object ListBox1: TListBox
         Left = 8
         Top = 120
         Width = 113
@@ -252,7 +261,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = togglebuttons
         OnDblClick = RemoveField
       end
-      object listColumnsAvailable: TListBox
+      object ListBox2: TListBox
         Left = 168
         Top = 120
         Width = 113
@@ -264,7 +273,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = togglebuttons
         OnDblClick = AddField
       end
-      object btnAddColumnToIndex: TBitBtn
+      object BitBtn1: TBitBtn
         Tag = 1
         Left = 133
         Top = 152
@@ -290,7 +299,7 @@ object FieldEditForm: TFieldEditForm
           FFFFFFFFF0EEEE0FFFFFFFFFFF0EEE0FFFFFFFFFFFF0EE0FFFFFFFFFFFFF0E0F
           FFFFFFFFFFFFF00FFFFFFFFFFFFFFF0FFFFFFFFFFFFFFFFFFFFF}
       end
-      object btnDeleteColumnFromIndex: TBitBtn
+      object BitBtn2: TBitBtn
         Tag = 2
         Left = 133
         Top = 184
@@ -335,7 +344,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 9
         OnClick = CheckBoxFulltextClick
       end
-      object btnAddAllColumnsToIndex: TBitBtn
+      object BitBtn3: TBitBtn
         Left = 133
         Top = 120
         Width = 25
@@ -343,7 +352,7 @@ object FieldEditForm: TFieldEditForm
         Hint = 'Add all fields to index'
         Enabled = False
         TabOrder = 10
-        OnClick = btnAddAllColumnsToIndexClick
+        OnClick = BitBtn3Click
         Glyph.Data = {
           F6000000424DF600000000000000760000002800000010000000100000000100
           0400000000008000000000000000000000001000000010000000000000000000
@@ -354,7 +363,7 @@ object FieldEditForm: TFieldEditForm
           FFFFFFF0CC0EEEE0FFFFFFFF0CC0EEE0FFFFFFFFF0CC0EE0FFFFFFFFFF0C00E0
           FFFFFFFFFFF00F00FFFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFF}
       end
-      object btnDeleteAllColumnsFromIndex: TBitBtn
+      object BitBtn4: TBitBtn
         Left = 133
         Top = 216
         Width = 25
@@ -362,7 +371,7 @@ object FieldEditForm: TFieldEditForm
         Hint = 'Remove all fields from index'
         Enabled = False
         TabOrder = 11
-        OnClick = btnDeleteAllColumnsFromIndexClick
+        OnClick = BitBtn4Click
         Glyph.Data = {
           F6000000424DF600000000000000760000002800000010000000100000000100
           0400000000008000000000000000000000001000000010000000000000000000
@@ -374,11 +383,26 @@ object FieldEditForm: TFieldEditForm
           FFFFFFFF00F00FFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFFFFFF}
       end
     end
+    object TabSheet3: TTabSheet
+      Caption = 'Foreign Keys'
+      ImageIndex = -1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object Label9: TLabel
+        Left = 104
+        Top = 104
+        Width = 64
+        Height = 13
+        Caption = 'Coming soon!'
+      end
+    end
   end
   object ButtonCancel: TButton
-    Left = 207
-    Top = 295
-    Width = 90
+    Left = 222
+    Top = 296
+    Width = 75
     Height = 25
     Cancel = True
     Caption = 'Cancel'
@@ -386,9 +410,9 @@ object FieldEditForm: TFieldEditForm
     OnClick = ButtonCancelClick
   end
   object ButtonOK: TButton
-    Left = 111
-    Top = 295
-    Width = 90
+    Left = 136
+    Top = 296
+    Width = 75
     Height = 25
     Caption = 'OK'
     Default = True

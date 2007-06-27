@@ -26,8 +26,9 @@
       build\ZDbcOracleStatement.obj build\ZDbcOracleUtils.obj 
       build\ZDbcSqLite.obj build\ZDbcSqLiteMetadata.obj 
       build\ZDbcSqLiteResultSet.obj build\ZDbcSqLiteStatement.obj
-      build\ZDbcASA.obj build\ZDbcASAUtils.obj build\ZDbcASAResultSet.obj 
-      build\ZDbcASAStatement.obj build\ZDbcASAMetadata.obj"/>
+      build\ZDbcASA.obj build\ZDbcASAMetadata.obj
+      build\ZDbcASAResultSet.obj build\ZDbcASAStatement.obj
+      build\ZDbcASAUtils.obj"/>
     <RESFILES value="ZDbc.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -38,7 +39,7 @@
     <SPARELIBS value="rtl.lib"/>
     <PACKAGES value="ZPlain.bpi ZParseSql.bpi ZCore.bpi rtl.bpi dbrtl.bpi"/>
     <PATHCPP value=".;"/>
-    <PATHPAS value=".;..\..\src\dbc"/>
+    <PATHPAS value=".;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc;..\..\src\dbc"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
@@ -123,11 +124,6 @@
       <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteMetadata.pas" FORMNAME="" UNITNAME="ZDbcSqLiteMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteResultSet.pas" FORMNAME="" UNITNAME="ZDbcSqLiteResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\..\src\dbc\ZDbcSqLiteStatement.pas" FORMNAME="" UNITNAME="ZDbcSqLiteStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\dbc\ZDbcASA.pas" FORMNAME="" UNITNAME="ZDbcASA" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\dbc\ZDbcASAUtils.pas" FORMNAME="" UNITNAME="ZDbcASAUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\dbc\ZDbcASAResultSet.pas" FORMNAME="" UNITNAME="ZDbcASAResultSet" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\dbc\ZDbcASAStatement.pas" FORMNAME="" UNITNAME="ZDbcASAStatement" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\src\dbc\ZDbcASAMetadata.pas" FORMNAME="" UNITNAME="ZDbcASAMetadata" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

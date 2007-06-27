@@ -36,23 +36,17 @@
 			margin-top: 1em;
 			margin-bottom: 1em;
 		}
-		cite {
-			display: block;
-			margin: 1em;
-		}
 	</style>
 </head>
 
 <body>
-
-	<a href="http://www.heidisql.com/" title="Go to project-homepage">
+	<a href="http://www.heidisql.com/">
 		<img src="http://www.heidisql.com/images/heidisql_logo.png" alt="HeidiSQL Logo" />
 	</a>
 
 	<h1>HeidiSQL - information file for developers</h1>
 
 	<hr />
-
 
 	<h2>Table of content</h2>
 	<ol>
@@ -67,7 +61,6 @@
 	</ol>
 
 	<hr />
-
 
 	<h2 id="requirements">Prerequisites</h2>
 	<p>
@@ -84,7 +77,6 @@
 	</p>
 
 	<hr />
-
 
 	<h2 id="compiler">What is Borland Developer Studio?</h2>
 	<p>
@@ -110,7 +102,6 @@
 
 	<hr />
 
-
 	<h2 id="compilerversion">Which version of Delphi do I need?</h2>
 	<p>
 		HeidiSQL actually builds with at least Delphi 6 and upwards, but there's only a complete set of project
@@ -121,7 +112,6 @@
 
 	<hr />
 
-
 	<h2 id="downloading">Downloading the source code</h2>
 	<p>
 		If you haven't already done so, retrieve a copy of the source code.<br />
@@ -130,18 +120,15 @@
 	<p>
 		You can use TortoiseSVN (a graphical client), or the command line Subversion client like so:
 		<div>
-			<code>svn co https://heidisql.svn.sourceforge.net/svnroot/heidisql/trunk heidisql</code>
+			<code>svn co https://svn.sourceforge.net/svnroot/heidisql heidisql</code>
 		</div>
 	</p>
 	<p>
 		Alternatively, download a source tarball from the file area:<br />
-		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>
-			HeidiSQL file area on SourceForge
-		</a>
+		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>HeidiSQL file area on SourceForge</a>
 	</p>
 
 	<hr />
-
 
 	<h2 id="gettingstarted">Getting started</h2>
 	<p>
@@ -169,7 +156,7 @@
 			<th>Action</th>
 		</tr>
 		<tr>
-			<td>components/edbimage/packages/delphi10/EDBImage.bds<u>group</u></td>
+			<td>components/edbimage/packages/delphi10/EDBImage.bdsgroup</td>
 			<td>Build All + Install "DCLSer100"</td>
 		</tr>
 		<tr>
@@ -181,12 +168,12 @@
 			<td>Build All + Install "SMDBGridComponents"</td>
 		</tr>
 		<tr>
-			<td>components/synedit/packages/delphi10/SynEdit.bds<u>group</u></td>
+			<td>components/synedit/packages/delphi10/SynEdit.bdsgroup</td>
 			<td>Build All + Install "SynEdit_D10"</td>
 		</tr>
 		<tr>
-			<td>components/zeosdbo/packages/delphi10/ZeosDbo.bds<u>group</u></td>
-			<td>Build All + Install "ZComponentDesign100"</td>
+			<td>components/zeosdbo/packages/delphi10/ZeosDbo.bdsgroup</td>
+			<td>Build All + Install "ZComponent"</td>
 		</tr>
 	</table>
 
@@ -213,7 +200,6 @@
 
 	<hr />
 
-
 	<h2 id="furtherdevelopment">Further development</h2>
 	<p>
 		Once you've performed the initial steps, Delphi will take care of automatically re-installing
@@ -221,47 +207,25 @@
 		Thus the "Install" step is no longer necessary, "Build" is all that is needed!
 	</p>
 	<p>
-		For your convenience, there is a project group under <em>superpackages/delphi10/heidisql.bdsgroup</em>
+		For your convenience, there is a project group under <em>packages/delphi10/heidisql.bdsgroup</em>
 		which includes both HeidiSQL and all of it's dependencies.
 	</p>
 	<p>
-		Using this project group, you have all of the HeidiSQL source code
-		conveniently located at your finger tips!
+		Using this project group, you have all of the HeidiSQL source code conveniently located at your finger tips!
 	</p>
 	<p>
-		You can rebuild and re-install everything by performing a <strong>Build All</strong>
-		on the big project group.
+		You can rebuild and re-install everything by performing a <strong>Build All</strong> on the big project group.
 	</p>
 	<p>
 		Note: Using the big project group can drain resources.
-		If your hardware is not in the big league, you might want to use the
-		individual projects instead.
+		If your hardware is not in the big league, you might want to use the individual projects instead.
 	</p>
 
 	<hr />
 
-
 	<h2 id="troubleshooting">Troubleshooting</h2>
 
-	<h3>"Error Reading Form" / "Class Not Found" error messages</h3>
-	<p>
-		You might have forgotten to Install some of the components.
-	</p>
-	<p>
-		First, make sure that you choose "Cancel" in this dialog!
-		If you do not, BDS will make devastating changes to the source,
-		and you'll need to revert those actions (fx. with SVN) before things
-		are going to work again.
-	</p>
-	<p>
-		Go back to <a href="#gettingstarted">Getting started</a>, and remember to
-		Install the components where it says so ;-).
-	</p>
-	<p>
-		If you still have problems, you can also opt to <a href='#cleaning'>start over</a>.
-	</p>
-
-	<h3 id="troubleshooting_1">"Unable to install component" error message</h3>
+	<h3>"Unable to install component" error message</h3>
 	<p>
 		Remove the (already installed) component by going to Project --> Options --> Packages,
 		selecting the relevant component and clicking 'Remove'.
@@ -274,26 +238,27 @@
 		it the next time you compile the package containing the component.
 	</p>
 
-	<h3>Component installation seemed to work, but components are still missing</h3>
-		<p>
-			Nuke all files in your package output directory, eg.
-			"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".
-		</p>
-		<p>
-			Then repeat the <a href='#troubleshooting_1'>above step</a>.
-		</p>
+	<h3>"Error Reading Form" / "Class Not Found" error messages</h3>
+	<p>
+		You've forgotten to Install some of the components.
+	</p>
+	<p>
+		First, make sure that you choose "Cancel" in this dialog!
+		If you do not, BDS will make devastating changes to the source, and you'll need to revert those actions (fx. with SVN) before things are going to work again.
+	</p>
+	<p>
+		Go back to <a href="#gettingstarted">Getting started</a>, and remember to Install the components where it says so ;-).
+	</p>
 
-	<h3 id="cleaning">How can I completely clean my build environment?</h3>
+	<h3 id="cleaning">How can I clean my build environment?</h3>
 	<p>
 		If the HeidiSQL build process has changed, or you think you might have done something
 		wrong during building, you might want to clean your build environment.
 		You can do like this:
 		<ul>
-			<li>Close all Delphi <strong>projects</strong>, but leave a Delphi
-				<strong>window</strong> open (or open a new one).</li>
+			<li>Close all Delphi <strong>projects</strong>, but leave a Delphi <strong>window</strong> open (or open a new one).</li>
 			<li>Choose Project --> Default Options --> Delphi for Win32</li>
-			<li>Choose "Packages".  Highlight the following packages one by one and
-				click the "Remove" button after highlighting each one:
+			<li>Choose "Packages".  Highlight the following packages one by one and click the "Remove" button after highlighting each one:
 				<ul>
 					<li>EDBImage</li>
 					<li>HeidiSQL helper components</li>
@@ -301,10 +266,8 @@
 					<li>SynEdit component suite</li>
 					<li>Zeos Database Components</li>
 				</ul>
-			<li>Nuke all files in your package output directory, eg.
-				"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
-			<li>Nuke all files from all HeidiSQL "build" directories, for
-				example by performing a fresh checkout.</li>
+			<li>Nuke all files in your package output directory, eg. "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
+			<li>Nuke all files from all HeidiSQL "build" directories, for example by performing a fresh checkout.</li>
 		</ul>
 	</p>
 	<p>
@@ -312,74 +275,7 @@
 	</p>
 
 
-	<h3>Compiler-error: "FOO.pas: E2225 Never-build package BAR must be recompiled"</h3>
-	<p>
-		If you get this error while building any component, nuke all files in the
-		"build"-folder of the package which causes the problem, then try to recompile.
-	</p>
-	<p>
-		At least for me that worked as I couldn't build the ZComponentDesign-package
-		and got this message:<br />
-		<cite>ZPropertyEditor.pas: E2225 Never-build package ZComponent must be recompiled</cite>
-	</p>
-
-
-	<h3>Compiler-error: "F1026 File not found: XYZ", although file is definitely existant</h3>
-	<p>
-		It seems that especially the file ZPlainMysql.inc in the package ZPLain
-		is affected by this phenomen. This is a bug in BDS which has been reported
-		in 2004, closed for version 10.0.2097.6343. 
-		See also <a href="http://qc.borland.com/wc/qcmain.aspx?d=9783">http://qc.borland.com/wc/qcmain.aspx?d=9783</a>:
-		<cite>
-			Charles Pope: (...) It looks like Error Insight is performing some kind
-			of file locking preventing the compiler from being able to access the
-			file. (...)
-		</cite>
-	</p>
-	<p>
-		Workaround:
-		<ol>
-			<li>Go to Tools &gt; Options &gt; Editor Options &gt; Code Insight</li>
-			<li>Uncheck at least "Error Insight"</li>
-			<li>Restart Borland Developer Studio</li>
-		</ol>  
-	</p>
-	
-	
-	<h3>SVN commit error: 403 or 500 Forbidden (https://svn.sourceforge.net)</h3>
-	<p>
-		If you get this error while committing the source code:<br />
-		<cite>
-			Error: COPY of &lt;some_file&gt;: 403 Forbidden (https://svn.sourceforge.net)
-		</cite>
-	</p>
-	
-	<p>
-		Solution: Just <strong>relocate</strong> the repository URL to this one:
-		<cite>
-			https://heidisql.svn.sourceforge.net/svnroot/heidisql
-		</cite>
-
-		Via commandline:
-		<cite>
-			svn switch --relocate https://svn.sourceforge.net/svnroot/heidisql TO
-			https://heidisql.svn.sourceforge.net/svnroot/heidisql
-		</cite>
-		Via TortoiseSVN:
-		<cite>
-			<ol>
-				<li>Open the folder where you checked out HeidiSQL</li>
-				<li>Rightclick root-folder</li>
-				<li>"TortoiseSVN" submenu</li>
-				<li>"Relocate"</li>
-				<li>[type in the new URL from above]</li>
-			</ol>
-		</cite>
-	</p>
-
-	
 	<hr />
-
 
 	<h2 id="notes">Notes</h2>
 
@@ -431,8 +327,7 @@
 
 	<h3>What should I do before editing this readme?</h3>
 	<p>
-		You need to put yourself in the shoes of a newbie, and make
-		<strong>sure</strong> that the method you're proposing actually works.
+		You need to put yourself in the shoes of a newbie, and make <strong>sure</strong> that the method you're proposing actually works.
 	</p>
 	<ul>
 		<li>
@@ -448,14 +343,11 @@
 
 	<hr />
 
-
 	<p>
 		Revision of this file: <em>$Rev$</em><br />
 		Last changed: <em>$Date$</em><br />
 		Last author: <em>$Author$</em>
 	</p>
-
-	
 </body>
 
 </html>

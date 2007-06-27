@@ -50,7 +50,6 @@ object frmSQLhelp: TfrmSQLhelp
       Height = 312
       Align = alBottom
       Anchors = [akLeft, akTop, akRight, akBottom]
-      ChangeDelay = 50
       Images = MainForm.ImageList1
       Indent = 19
       ReadOnly = True

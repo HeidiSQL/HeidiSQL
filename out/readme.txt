@@ -60,13 +60,12 @@ http://www.heidisql.com/donate.php
 - Ansgar Becker (project lead and development)
 - David Dindorp (development)
 - Martijn Nijenhof (development)
-- Francisco Ernesto Teixeira (development)
+- Tony Peng (development)
 - Sven Lorenz (graphics)
 - Mikkel M. Gerhardt-Pedersen (additional bugfixes)
-- Tony Peng (additional bugfixes)
 
-The team is spread over 5 different countries:
-Germany, Danmark, Netherlands, Brazil and China.
+The team is spread over 4 different countries:
+Germany, Danmark, Netherlands and ShangHai.
 
 
 ----------------------------------------
@@ -77,7 +76,7 @@ Germany, Danmark, Netherlands, Brazil and China.
 - Scalabium Software for Freeware SMDBGrid - http://www.scalabium.com/
 - Inno Setup - http://www.jrsoftware.org/
 - Sebastián Mayorá for EDBImage
-- Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/
+- dAniel hAhler for the name "HeidiSQL" - http://daniel.hahler.de/
 - MySQL for great database software
 
 

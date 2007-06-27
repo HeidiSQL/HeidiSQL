@@ -14,16 +14,16 @@ uses
 
 type
   TSelectFromManyDatabases = class(TForm)
-    lblSelectDB: TLabel;
-    btnShowAll: TButton;
-    lblWarning: TLabel;
+    Label1: TLabel;
+    Button1: TButton;
+    Label2: TLabel;
     CheckListBoxDBs: TCheckListBox;
-    imgWarning: TImage;
-    btnSave: TButton;
-    procedure btnShowAllClick(Sender: TObject);
+    Image1: TImage;
+    Button2: TButton;
+    procedure Button1Click(Sender: TObject);
     procedure CheckListBoxDBsClickCheck(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btnSaveClick(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     FDbList : TStringList;
     procedure SetDbList(const Value: TStringList);
@@ -52,7 +52,7 @@ begin
 end;
 
 
-procedure TSelectFromManyDatabases.btnShowAllClick(Sender: TObject);
+procedure TSelectFromManyDatabases.Button1Click(Sender: TObject);
 var
   i : Integer;
   someselected : Boolean;
@@ -69,13 +69,16 @@ begin
   end;
 
   if someselected then
-    //OnlyDBs2.clear;
-    FDbList.Clear;
-    with CheckListBoxDBs do
-    for i:=0 to Items.Count -1 do
+    with TMDIChild(Application.Mainform.ActiveMDIChild) do
     begin
-      if Checked[i] then
-        FDbList.Add(Items[i]);
+      //OnlyDBs2.clear;
+      FDbList.Clear;
+      with CheckListBoxDBs do
+      for i:=0 to Items.Count -1 do
+      begin
+        if Checked[i] then
+          FDbList.Add(Items[i]);
+      end;
     end;
 
   close;
@@ -98,20 +101,20 @@ begin
   end;
   if someselected then
   begin
-    btnShowAll.Caption := 'Show selected';
-    btnSave.Enabled := true;
+    Button1.Caption := 'Show selected';
+    Button2.Enabled := true;
   end
   else
   begin
-    btnShowAll.Caption := 'Show all';
-    btnSave.Enabled := false;
+    Button1.Caption := 'Show all';
+    Button2.Enabled := false;
   end
 end;
 
 procedure TSelectFromManyDatabases.FormShow(Sender: TObject);
 begin
-  btnShowAll.Caption := 'Show all';
-  btnSave.Enabled := false;
+  Button1.Caption := 'Show all';
+  Button2.Enabled := false;
 end;
 
 procedure TSelectFromManyDatabases.SetDbList(const Value: TStringList);
@@ -124,7 +127,7 @@ begin
     CheckListBoxDBs.Items := Value;
 end;
 
-procedure TSelectFromManyDatabases.btnSaveClick(Sender: TObject);
+procedure TSelectFromManyDatabases.Button2Click(Sender: TObject);
 var
   i : Integer;
   odbs : String;
@@ -140,11 +143,11 @@ begin
   // save settings:
   with TRegistry.Create do
   begin
-    openkey(REGPATH + '\Servers\' + Mainform.Childwin.Conn.Description, true);
+    openkey(regpath + '\Servers\' + connform.ComboBoxDescription.Text, true);
     WriteString('OnlyDBs', odbs);
     closekey();
   end;
-  btnSave.Enabled := false;
+  Button2.Enabled := false;
   MessageDlg('Saved selected Databases to your local settings.', mtInformation, [mbOK], 0);
 end;
 

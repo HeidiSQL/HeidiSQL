@@ -2,7 +2,9 @@ program QueryThreadExample;
 
 uses
   Forms,
-  Main in 'Main.pas' {Form1};
+  Main in 'Main.pas' {Form1},
+  MysqlQueryThread in '..\..\MysqlQueryThread.pas',
+  MysqlQuery in '..\..\MysqlQuery.pas';
 
 {$R *.res}
 

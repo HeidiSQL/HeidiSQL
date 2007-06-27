@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         Interbase Database Connectivity Classes         }
 {                                                         }
-{        Originally written by Sergey Merkuriev           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Merkuriev                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcInterbase6;
 
@@ -62,9 +46,8 @@ uses
   Types,
 {$ENDIF}
   ZCompatibility, Classes, SysUtils, ZDbcUtils, ZDbcIntfs, ZDbcConnection,
-  Contnrs, ZPlainInterbaseDriver, ZPlainFirebirdDriver,
-  ZPlainFirebirdInterbaseConstants, ZSysUtils, ZDbcInterbase6Utils, ZDbcLogging,
-  ZDbcGenericResolver, ZTokenizer, ZGenericSqlAnalyser;
+  Contnrs, ZPlainInterbaseDriver, ZSysUtils, ZDbcInterbase6Utils,
+  ZDbcLogging, ZDbcGenericResolver, ZTokenizer, ZGenericSqlAnalyser;
 
 type
 
@@ -75,16 +58,11 @@ type
     FInterbase5PlainDriver: IZInterbase5PlainDriver;
     FFirebird10PlainDriver: IZFirebird10PlainDriver;
     FFirebird15PlainDriver: IZFirebird15PlainDriver;
-    FFirebird20PlainDriver: IZFirebird20PlainDriver;
-    // embedded drivers
-    FFirebirdD15PlainDriver: IZFirebird15PlainDriver;
-    FFirebirdD20PlainDriver: IZFirebird20PlainDriver;
-
   protected
-    function GetPlainDriver(const Url: string): IZInterbasePlainDriver;
+    function GetPlainDriver(Url: string): IZInterbasePlainDriver;
   public
     constructor Create;
-    function Connect(const Url: string; Info: TStrings): IZConnection; override;
+    function Connect(Url: string; Info: TStrings): IZConnection; override;
 
     function GetSupportedProtocols: TStringDynArray; override;
     function GetMajorVersion: Integer; override;
@@ -101,7 +79,7 @@ type
     function GetTrHandle: PISC_TR_HANDLE;
     function GetDialect: Word;
     function GetPlainDriver: IZInterbasePlainDriver;
-    procedure CreateNewDatabase(const SQL: String);
+    procedure CreateNewDatabase(SQL: String);
   end;
 
   {** Implements Interbase6 Database Connection. }
@@ -115,25 +93,25 @@ type
   private
     procedure StartTransaction; virtual;
   public
-    constructor Create(Driver: IZDriver; const Url: string;
+    constructor Create(Driver: IZDriver; Url: string;
       PlainDriver: IZInterbasePlainDriver;
-      const HostName: string; Port: Integer; const Database: string;
-      const User: string; const Password: string; Info: TStrings);
+      HostName: string; Port: Integer; Database: string;
+      User: string; Password: string; Info: TStrings);
     destructor Destroy; override;
 
     function GetDBHandle: PISC_DB_HANDLE;
     function GetTrHandle: PISC_TR_HANDLE;
     function GetDialect: Word;
     function GetPlainDriver: IZInterbasePlainDriver;
-    procedure CreateNewDatabase(const SQL: String);
+    procedure CreateNewDatabase(SQL: String);
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(SQL: string; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(SQL: string; Info: TStrings):
       IZCallableStatement; override;
 
-    function CreateSequence(const Sequence: string; BlockSize: Integer):
+    function CreateSequence(Sequence: string; BlockSize: Integer):
       IZSequence; override;
 
     procedure Commit; override;
@@ -143,10 +121,10 @@ type
     procedure Close; override;
   end;
 
-  {** Implements a specialized cached resolver for Interbase/Firebird. }
+  {** Implements a specialized cached resolver for PostgreSQL. }
   TZInterbase6CachedResolver = class(TZGenericCachedResolver)
   public
-    function FormCalculateStatement(Columns: TObjectList): string; override;
+     function FormCalculateStatement(Columns: TObjectList): string; override;
   end;
 
   {** Implements a Interbase 6 sequence. }
@@ -154,8 +132,6 @@ type
   public
     function GetCurrentValue: Int64; override;
     function GetNextValue: Int64; override;
-    function GetCurrentValueSQL: string; override;
-    function GetNextValueSQL: string; override;
   end;
 
 
@@ -193,7 +169,7 @@ uses ZDbcInterbase6Statement, ZDbcInterbase6Metadata,
   @return a <code>Connection</code> object that represents a
     connection to the URL
 }
-function TZInterbase6Driver.Connect(const Url: string;
+function TZInterbase6Driver.Connect(Url: string;
   Info: TStrings): IZConnection;
 var
   TempInfo: TStrings;
@@ -222,11 +198,6 @@ begin
   FInterbase5PlainDriver := TZInterbase5PlainDriver.Create;
   FFirebird10PlainDriver := TZFirebird10PlainDriver.Create;
   FFirebird15PlainDriver := TZFirebird15PlainDriver.Create;
-  FFirebird20PlainDriver := TZFirebird20PlainDriver.Create;
-  // embedded drivers
-  FFirebirdD15PlainDriver := TZFirebirdD15PlainDriver.Create;
-  FFirebirdD20PlainDriver := TZFirebirdD20PlainDriver.Create;
-
 end;
 
 {**
@@ -275,7 +246,7 @@ end;
   @return a selected protocol.
 }
 function TZInterbase6Driver.GetPlainDriver(
-  const Url: string): IZInterbasePlainDriver;
+  Url: string): IZInterbasePlainDriver;
 var
   Protocol: string;
 begin
@@ -289,14 +260,6 @@ begin
     Result := FFirebird10PlainDriver
   else if Protocol = FFirebird15PlainDriver.GetProtocol then
     Result := FFirebird15PlainDriver
-  else if Protocol = FFirebird20PlainDriver.GetProtocol then
-    Result := FFirebird20PlainDriver
-  // embedded drivers
-  else if Protocol = FFirebirdD15PlainDriver.GetProtocol then
-    Result := FFirebirdD15PlainDriver
-  else if Protocol = FFirebirdD20PlainDriver.GetProtocol then
-    Result := FFirebirdD20PlainDriver
-  // Generic driver
   else Result := FInterbase6PlainDriver;
   Result.Initialize;
 end;
@@ -307,16 +270,11 @@ end;
 }
 function TZInterbase6Driver.GetSupportedProtocols: TStringDynArray;
 begin
-  SetLength(Result, 7);
+  SetLength(Result, 4);
   Result[0] := 'interbase-5';
   Result[1] := 'interbase-6';
   Result[2] := 'firebird-1.0';
   Result[3] := 'firebird-1.5';
-  Result[4] := 'firebird-2.0';
-  // embedded drivers
-  Result[5] := 'firebirdd-1.5';
-  Result[6] := 'firebirdd-2.0';
-
 end;
 
 { TZInterbase6Connection }
@@ -389,9 +347,9 @@ end;
   @param Password a user password.
   @param Info a string list with extra connection parameters.
 }
-constructor TZInterbase6Connection.Create(Driver: IZDriver; const Url: string;
-  PlainDriver: IZInterbasePlainDriver; const HostName: string; Port: Integer;
-  const Database, User, Password: string; Info: TStrings);
+constructor TZInterbase6Connection.Create(Driver: IZDriver; Url: string;
+  PlainDriver: IZInterbasePlainDriver; HostName: string; Port: Integer;
+  Database, User, Password: string; Info: TStrings);
 var
   RoleName: string;
   ClientCodePage: string;
@@ -581,7 +539,7 @@ end;
     pre-compiled statement
 }
 function TZInterbase6Connection.CreatePreparedStatement(
-  const SQL: string; Info: TStrings): IZPreparedStatement;
+  SQL: string; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
   Result := TZInterbase6PreparedStatement.Create(Self, SQL, Info);
@@ -613,7 +571,7 @@ end;
   @return a new CallableStatement object containing the
     pre-compiled SQL statement
 }
-function TZInterbase6Connection.CreateCallableStatement(const SQL: string;
+function TZInterbase6Connection.CreateCallableStatement(SQL: string;
   Info: TStrings): IZCallableStatement;
 begin
  if IsClosed then Open;
@@ -705,7 +663,7 @@ end;
   Creates new database
   @param SQL a sql strinf for creation database
 }
-procedure TZInterbase6Connection.CreateNewDatabase(const SQL: String);
+procedure TZInterbase6Connection.CreateNewDatabase(SQL: String);
 var
   DbHandle: PISC_DB_HANDLE;
   TrHandle: PISC_TR_HANDLE;
@@ -726,7 +684,7 @@ end;
   @param BlockSize a number of unique keys requested in one trip to SQL server.
   @returns a created sequence object.
 }
-function TZInterbase6Connection.CreateSequence(const Sequence: string;
+function TZInterbase6Connection.CreateSequence(Sequence: string;
   BlockSize: Integer): IZSequence;
 begin
   Result := TZInterbase6Sequence.Create(Self, Sequence, BlockSize);
@@ -741,20 +699,10 @@ end;
 }
 function TZInterbase6CachedResolver.FormCalculateStatement(
   Columns: TObjectList): string;
-// --> ms, 30/10/2005
-var iPos: Integer;
 begin
   Result := inherited FormCalculateStatement(Columns);
-  if Result <> '' then begin
-    iPos := pos('FROM', uppercase(Result));
-    if iPos > 0 then begin
-      Result := copy(Result, 1, iPos+3) + ' RDB$DATABASE';
-    end
-    else begin
-      Result := Result + ' FROM RDB$DATABASE';
-    end;
-  end;
-// <-- ms
+  if Result <> '' then
+    Result := Result + ' FROM RDB$DATABASE';
 end;
 
 { TZInterbase6Sequence }
@@ -769,9 +717,10 @@ var
   ResultSet: IZResultSet;
 begin
   Statement := Connection.CreateStatement;
-  ResultSet := Statement.ExecuteQuery(Format(
-    'SELECT GEN_ID("%s", 0) FROM rdb$generators ' +
-    'WHERE rdb$generators.rdb$generator_name = ''%s''', [Name, Name]));
+  ResultSet := Statement.ExecuteQuery(
+    'SELECT GEN_ID(' + Name + ', 0) ' +
+    'FROM rdb$generators ' +
+    'WHERE rdb$generators.rdb$generator_name = ''' + Name + '''');
   if ResultSet.Next then
     Result := ResultSet.GetLong(1)
   else
@@ -784,31 +733,22 @@ end;
   Gets the next unique key generated by this sequence.
   @param the next generated unique key.
 }
-function TZInterbase6Sequence.GetCurrentValueSQL: string;
-begin
-  Result := Format(' GEN_ID("%s", 0) ', [Name]);
-end;
-
 function TZInterbase6Sequence.GetNextValue: Int64;
 var
   Statement: IZStatement;
   ResultSet: IZResultSet;
 begin
   Statement := Connection.CreateStatement;
-  ResultSet := Statement.ExecuteQuery(Format(
-    'SELECT GEN_ID("%s", %d) FROM rdb$generators ' +
-    'WHERE rdb$generators.rdb$generator_name = ''%s''', [Name, BlockSize, Name]));
+  ResultSet := Statement.ExecuteQuery(
+    'SELECT GEN_ID(' + Name + ', ' + IntToStr(BlockSize) + ') ' +
+    'FROM rdb$generators ' +
+    'WHERE rdb$generators.rdb$generator_name = ''' + Name + '''');
   if ResultSet.Next then
     Result := ResultSet.GetLong(1)
   else
     Result := inherited GetNextValue;
   ResultSet.Close;
   Statement.Close;
-end;
-
-function TZInterbase6Sequence.GetNextValueSQL: string;
-begin
-  Result := Format(' GEN_ID("%s", %d) ', [Name, BlockSize]);
 end;
 
 initialization

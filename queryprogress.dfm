@@ -36,4 +36,10 @@ object frmQueryProgress: TfrmQueryProgress
     TabOrder = 0
     OnClick = btnAbortClick
   end
+  object timAntiFreeze: TTimer
+    Interval = 250
+    OnTimer = timAntiFreezeTimer
+    Left = 168
+    Top = 32
+  end
 end

@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {           Abstract Database Connectivity Classes        }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcMetadata;
 
@@ -107,8 +91,8 @@ type
     procedure PostRowUpdates(OldRowAccessor, NewRowAccessor: TZRowAccessor);
       override;
   public
-    constructor CreateWithStatement(const SQL: string; Statement: IZStatement);
-    constructor CreateWithColumns(ColumnsInfo: TObjectList; const SQL: string);
+    constructor CreateWithStatement(SQL: string; Statement: IZStatement);
+    constructor CreateWithColumns(ColumnsInfo: TObjectList; SQL: string);
     destructor Destroy; override;
   end;
 
@@ -121,11 +105,11 @@ type
     FCachedResultSets: IZHashMap;
   protected
     constructor Create(ParentConnection: IZConnection;
-      const Url: string; Info: TStrings);
+      Url: string; Info: TStrings);
 
     { Metadata ResultSets Caching. }
-    procedure AddResultSetToCache(const Key: string; ResultSet: IZResultSet);
-    function GetResultSetFromCache(const Key: string): IZResultSet;
+    procedure AddResultSetToCache(Key: string; ResultSet: IZResultSet);
+    function GetResultSetFromCache(Key: string): IZResultSet;
     function ConstructVirtualResultSet(ColumnsDefs: TZMetadataColumnDefs):
       IZVirtualResultSet;
     function CopyToVirtualResultSet(SrcResultSet: IZResultSet;
@@ -263,60 +247,59 @@ type
     function DataDefinitionCausesTransactionCommit: Boolean; virtual;
     function DataDefinitionIgnoredInTransactions: Boolean; virtual;
 
-    function GetProcedures(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string): IZResultSet; virtual;
-    function GetProcedureColumns(const Catalog: string; const SchemaPattern: string;
-      const ProcedureNamePattern: string; const ColumnNamePattern: string):
+    function GetProcedures(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string): IZResultSet; virtual;
+    function GetProcedureColumns(Catalog: string; SchemaPattern: string;
+      ProcedureNamePattern: string; ColumnNamePattern: string):
       IZResultSet; virtual;
 
-    function GetTables(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const Types: TStringDynArray): IZResultSet; virtual;
+    function GetTables(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; Types: TStringDynArray): IZResultSet; virtual;
     function GetSchemas: IZResultSet; virtual;
     function GetCatalogs: IZResultSet; virtual;
     function GetTableTypes: IZResultSet; virtual;
-    function GetColumns(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string; const ColumnNamePattern: string): IZResultSet; virtual;
-    function GetColumnPrivileges(const Catalog: string; const Schema: string;
-      const Table: string; const ColumnNamePattern: string): IZResultSet; virtual;
+    function GetColumns(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string; ColumnNamePattern: string): IZResultSet; virtual;
+    function GetColumnPrivileges(Catalog: string; Schema: string;
+      Table: string; ColumnNamePattern: string): IZResultSet; virtual;
 
-    function GetTablePrivileges(const Catalog: string; const SchemaPattern: string;
-      const TableNamePattern: string): IZResultSet; virtual;
-    function GetBestRowIdentifier(const Catalog: string; const Schema: string;
-      const Table: string; Scope: Integer; Nullable: Boolean): IZResultSet; virtual;
-    function GetVersionColumns(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; virtual;
+    function GetTablePrivileges(Catalog: string; SchemaPattern: string;
+      TableNamePattern: string): IZResultSet; virtual;
+    function GetBestRowIdentifier(Catalog: string; Schema: string;
+      Table: string; Scope: Integer; Nullable: Boolean): IZResultSet; virtual;
+    function GetVersionColumns(Catalog: string; Schema: string;
+      Table: string): IZResultSet; virtual;
 
-    function GetPrimaryKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; virtual;
-    function GetImportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; virtual;
-    function GetExportedKeys(const Catalog: string; const Schema: string;
-      const Table: string): IZResultSet; virtual;
-    function GetCrossReference(const PrimaryCatalog: string; const PrimarySchema: string;
-      const PrimaryTable: string; const ForeignCatalog: string; const ForeignSchema: string;
-      const ForeignTable: string): IZResultSet; virtual;
+    function GetPrimaryKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; virtual;
+    function GetImportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; virtual;
+    function GetExportedKeys(Catalog: string; Schema: string;
+      Table: string): IZResultSet; virtual;
+    function GetCrossReference(PrimaryCatalog: string; PrimarySchema: string;
+      PrimaryTable: string; ForeignCatalog: string; ForeignSchema: string;
+      ForeignTable: string): IZResultSet; virtual;
 
     function GetTypeInfo: IZResultSet; virtual;
 
-    function GetIndexInfo(const Catalog: string; const Schema: string; const Table: string;
+    function GetIndexInfo(Catalog: string; Schema: string; Table: string;
       Unique: Boolean; Approximate: Boolean): IZResultSet; virtual;
 
-    function GetSequences(const Catalog: string; const SchemaPattern: string;
-      const SequenceNamePattern: string): IZResultSet; virtual;
+    function GetSequences(Catalog: string; SchemaPattern: string;
+      SequenceNamePattern: string): IZResultSet; virtual;
 
     function SupportsResultSetType(_Type: TZResultSetType): Boolean; virtual;
     function SupportsResultSetConcurrency(_Type: TZResultSetType;
       Concurrency: TZResultSetConcurrency): Boolean; virtual;
     function SupportsBatchUpdates: Boolean; virtual;
 
-    function GetUDTs(const Catalog: string; const SchemaPattern: string;
-      const TypeNamePattern: string; const Types: TIntegerDynArray): IZResultSet; virtual;
+    function GetUDTs(Catalog: string; SchemaPattern: string;
+      TypeNamePattern: string; Types: TIntegerDynArray): IZResultSet; virtual;
 
     function GetConnection: IZConnection; virtual;
 
     function GetIdentifierConvertor: IZIdentifierConvertor; virtual;
-    procedure ClearCache; overload;virtual;
-		procedure ClearCache(const Key: string);overload;virtual;
+    procedure ClearCache; virtual;
   end;
 
   {** Implements a default Case Sensitive/Unsensitive identifier convertor. }
@@ -327,21 +310,17 @@ type
   protected
     property Metadata: IZDatabaseMetadata read FMetadata write FMetadata;
 
-    function IsLowerCase(const Value: string): Boolean;
-    function IsUpperCase(const Value: string): Boolean;
-    function IsSpecialCase(const Value: string): Boolean;
+    function IsLowerCase(Value: string): Boolean;
+    function IsUpperCase(Value: string): Boolean;
+    function IsSpecialCase(Value: string): Boolean;
   public
     constructor Create(Metadata: IZDatabaseMetadata);
 
-    function IsCaseSensitive(const Value: string): Boolean;
-    function IsQuoted(const Value: string): Boolean;
-    function Quote(const Value: string): string;
-    function ExtractQuote(const Value: string): string;
+    function IsCaseSensitive(Value: string): Boolean;
+    function IsQuoted(Value: string): Boolean;
+    function Quote(Value: string): string;
+    function ExtractQuote(Value: string): string;
   end;
-
-  function GetTablesMetaDataCacheKey(Const Catalog:String;
-      Const SchemaPattern:String;	Const TableNamePattern:String;const Types: TStringDynArray):String;
-
 
 var
   ProceduresColumnsDynArray: TZMetadataColumnDefs;
@@ -377,7 +356,7 @@ uses ZVariant, ZCollections;
   @param Info an extra connection properties.
 }
 constructor TZAbstractDatabaseMetadata.Create(
-  ParentConnection: IZConnection; const Url: string; Info: TStrings);
+  ParentConnection: IZConnection; Url: string; Info: TStrings);
 begin
   inherited Create(ParentConnection);
   FConnection := Pointer(ParentConnection);
@@ -452,27 +431,15 @@ begin
 end;
 
 {**
-  Clears specific cached metadata.
-}
-procedure TZAbstractDatabaseMetadata.ClearCache(const Key: string);
-var
-  TempKey: IZAnyValue;
-begin
-  TempKey := TZAnyValue.CreateWithString(Key);
-  FCachedResultSets.Remove(TempKey);
-end;
-
-{**
   Adds resultset to the internal cache.
   @param Key a resultset unique key value.
   @param ResultSet a resultset interface.
 }
-procedure TZAbstractDatabaseMetadata.AddResultSetToCache(const Key: string;
+procedure TZAbstractDatabaseMetadata.AddResultSetToCache(Key: string;
   ResultSet: IZResultSet);
 var
   TempKey: IZAnyValue;
 begin
-  Exit;
   TempKey := TZAnyValue.CreateWithString(Key);
   FCachedResultSets.Put(TempKey, CloneCachedResultSet(ResultSet));
 end;
@@ -483,14 +450,13 @@ end;
   @returns a cached resultset interface or <code>nil</code> otherwise.
 }
 function TZAbstractDatabaseMetadata.GetResultSetFromCache(
-  const Key: string): IZResultSet;
+  Key: string): IZResultSet;
 var
   TempKey: IZAnyValue;
 begin
   // Disables retrieving cached results to fix
   // bug #1571441 "Creating a new Field >> changes in this field are not saved."
-  Result := nil;
-  Exit;
+  exit;
   TempKey := TZAnyValue.CreateWithString(Key);
   Result := FCachedResultSets.Get(TempKey) as IZResultSet;
   if Result <> nil then
@@ -1811,8 +1777,8 @@ end;
   @return <code>ResultSet</code> - each row is a procedure description
   @see #getSearchStringEscape
 }
-function TZAbstractDatabaseMetadata.GetProcedures(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetProcedures(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1883,9 +1849,9 @@ end;
        column
   @see #getSearchStringEscape
 }
-function TZAbstractDatabaseMetadata.GetProcedureColumns(const Catalog: string;
-  const SchemaPattern: string; const ProcedureNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetProcedureColumns(Catalog: string;
+  SchemaPattern: string; ProcedureNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -1930,13 +1896,20 @@ end;
   @return <code>ResultSet</code> - each row is a table description
   @see #getSearchStringEscape
 }
-function TZAbstractDatabaseMetadata.GetTables(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const Types: TStringDynArray): IZResultSet;
+function TZAbstractDatabaseMetadata.GetTables(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  Types: TStringDynArray): IZResultSet;
 var
+  I: Integer;
   Key: string;
 begin
-  Key := GetTablesMetaDataCacheKey(Catalog,SchemaPattern,TableNamePattern,Types);
+  Key := '';
+  for I := Low(Types) to High(Types) do
+    Key := Key + ':' + Types[I];
+
+  Key := Format('get-tables:%s:%s:%s%s',
+    [Catalog, SchemaPattern, TableNamePattern, Key]);
+
   Result := GetResultSetFromCache(Key);
   if Result = nil then
   begin
@@ -2081,9 +2054,9 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @see #getSearchStringEscape
 }
-function TZAbstractDatabaseMetadata.GetColumns(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string;
-  const ColumnNamePattern: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetColumns(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string;
+  ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2126,8 +2099,8 @@ end;
   @return <code>ResultSet</code> - each row is a column privilege description
   @see #getSearchStringEscape
 }
-function TZAbstractDatabaseMetadata.GetColumnPrivileges(const Catalog: string;
-  const Schema: string; const Table: string; const ColumnNamePattern: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetColumnPrivileges(Catalog: string;
+  Schema: string; Table: string; ColumnNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2174,8 +2147,8 @@ end;
   @return <code>ResultSet</code> - each row is a table privilege description
   @see #getSearchStringEscape
 }
-function TZAbstractDatabaseMetadata.GetTablePrivileges(const Catalog: string;
-  const SchemaPattern: string; const TableNamePattern: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetTablePrivileges(Catalog: string;
+  SchemaPattern: string; TableNamePattern: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2226,8 +2199,8 @@ end;
   @param nullable include columns that are nullable?
   @return <code>ResultSet</code> - each row is a column description
 }
-function TZAbstractDatabaseMetadata.GetBestRowIdentifier(const Catalog: string;
-  const Schema: string; const Table: string; Scope: Integer; Nullable: Boolean): IZResultSet;
+function TZAbstractDatabaseMetadata.GetBestRowIdentifier(Catalog: string;
+  Schema: string; Table: string; Scope: Integer; Nullable: Boolean): IZResultSet;
 var
   Key: string;
   IndexName: string;
@@ -2330,8 +2303,8 @@ end;
   @return <code>ResultSet</code> - each row is a column description
   @exception SQLException if a database access error occurs
 }
-function TZAbstractDatabaseMetadata.GetVersionColumns(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetVersionColumns(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2367,8 +2340,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @exception SQLException if a database access error occurs
 }
-function TZAbstractDatabaseMetadata.GetPrimaryKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetPrimaryKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2449,8 +2422,8 @@ end;
   @return <code>ResultSet</code> - each row is a primary key column description
   @see #getExportedKeys
 }
-function TZAbstractDatabaseMetadata.GetImportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetImportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2531,8 +2504,8 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZAbstractDatabaseMetadata.GetExportedKeys(const Catalog: string;
-  const Schema: string; const Table: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetExportedKeys(Catalog: string;
+  Schema: string; Table: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2621,9 +2594,9 @@ end;
   @return <code>ResultSet</code> - each row is a foreign key column description
   @see #getImportedKeys
 }
-function TZAbstractDatabaseMetadata.GetCrossReference(const PrimaryCatalog: string;
-  const PrimarySchema: string; const PrimaryTable: string; const ForeignCatalog: string;
-  const ForeignSchema: string; const ForeignTable: string): IZResultSet;
+function TZAbstractDatabaseMetadata.GetCrossReference(PrimaryCatalog: string;
+  PrimarySchema: string; PrimaryTable: string; ForeignCatalog: string;
+  ForeignSchema: string; ForeignTable: string): IZResultSet;
 var
   Key: string;
 begin
@@ -2749,8 +2722,8 @@ end;
       accurate
   @return <code>ResultSet</code> - each row is an index column description
 }
-function TZAbstractDatabaseMetadata.GetIndexInfo(const Catalog: string;
-  const Schema: string; const Table: string; Unique: Boolean;
+function TZAbstractDatabaseMetadata.GetIndexInfo(Catalog: string;
+  Schema: string; Table: string; Unique: Boolean;
   Approximate: Boolean): IZResultSet;
 var
   Key: string;
@@ -2766,7 +2739,7 @@ begin
   end;
 end;
 
-function TZAbstractDatabaseMetadata.GetSequences(const Catalog, SchemaPattern,
+function TZAbstractDatabaseMetadata.GetSequences(Catalog, SchemaPattern,
   SequenceNamePattern: string): IZResultSet;
 var
   Key: string;
@@ -2851,9 +2824,9 @@ end;
   STRUCT, or DISTINCT); null returns all types
   @return <code>ResultSet</code> - each row is a type description
 }
-function TZAbstractDatabaseMetadata.GetUDTs(const Catalog: string;
-  const SchemaPattern: string; const TypeNamePattern: string;
-  const Types: TIntegerDynArray): IZResultSet;
+function TZAbstractDatabaseMetadata.GetUDTs(Catalog: string;
+  SchemaPattern: string; TypeNamePattern: string;
+  Types: TIntegerDynArray): IZResultSet;
 var
   I: Integer;
   Key: string;
@@ -2889,7 +2862,7 @@ end;
   @param Statement an SQL statement object.
   @param SQL an SQL query string.
 }
-constructor TZVirtualResultSet.CreateWithStatement(const SQL: string;
+constructor TZVirtualResultSet.CreateWithStatement( SQL: string;
    Statement: IZStatement);
 begin
   inherited CreateWithStatement(SQL, Statement);
@@ -2901,7 +2874,7 @@ end;
   @param SQL an SQL query string.
 }
 constructor TZVirtualResultSet.CreateWithColumns(ColumnsInfo: TObjectList;
-  const SQL: string);
+  SQL: string);
 begin
   inherited CreateWithColumns(ColumnsInfo, SQL);
 end;
@@ -2951,7 +2924,7 @@ end;
   @param an identifier string.
   @return <code>True</code> is the identifier string in lower case.
 }
-function TZDefaultIdentifierConvertor.IsLowerCase(const Value: string): Boolean;
+function TZDefaultIdentifierConvertor.IsLowerCase(Value: string): Boolean;
 var
   I: Integer;
 begin
@@ -2971,7 +2944,7 @@ end;
   @param an identifier string.
   @return <code>True</code> is the identifier string in upper case.
 }
-function TZDefaultIdentifierConvertor.IsUpperCase(const Value: string): Boolean;
+function TZDefaultIdentifierConvertor.IsUpperCase(Value: string): Boolean;
 var
   I: Integer;
 begin
@@ -2991,16 +2964,11 @@ end;
   @param an identifier string.
   @return <code>True</code> is the identifier string in mixed case.
 }
-function TZDefaultIdentifierConvertor.IsSpecialCase(const Value: string): Boolean;
+function TZDefaultIdentifierConvertor.IsSpecialCase(Value: string): Boolean;
 var
   I: Integer;
 begin
   Result := False;
-  if (Value[1] in ['0'..'9']) then
-  begin
-    Result := True;
-    exit;
-  end;
   for I := 1 to Length(Value) do
   begin
     if not (Value[I] in ['A'..'Z','a'..'z','0'..'9','_']) then
@@ -3015,7 +2983,7 @@ end;
   Checks is the string case sensitive.
   @return <code>True</code> if the string case sensitive.
 }
-function TZDefaultIdentifierConvertor.IsCaseSensitive(const Value: string): Boolean;
+function TZDefaultIdentifierConvertor.IsCaseSensitive(Value: string): Boolean;
 const
   AnsiSQLKeywords = 'insert,update,delete,select,drop,create,from,set,values,'
     + 'where,order,group,by,having,into,as,table,index,primary,key,on,is,null,'
@@ -3047,7 +3015,7 @@ end;
   Checks is the string quoted.
   @return <code>True</code> is the string quoted.
 }
-function TZDefaultIdentifierConvertor.IsQuoted(const Value: string): Boolean;
+function TZDefaultIdentifierConvertor.IsQuoted(Value: string): Boolean;
 var
   QuoteDelim: string;
 begin
@@ -3060,7 +3028,7 @@ end;
   @param an identifier string.
   @return a extracted and processed string.
 }
-function TZDefaultIdentifierConvertor.ExtractQuote(const Value: string): string;
+function TZDefaultIdentifierConvertor.ExtractQuote(Value: string): string;
 begin
   if IsQuoted(Value) then
   begin
@@ -3091,7 +3059,7 @@ end;
   @param an identifier string.
   @return a quoted string.
 }
-function TZDefaultIdentifierConvertor.Quote(const Value: string): string;
+function TZDefaultIdentifierConvertor.Quote(Value: string): string;
 var
   QuoteDelim: string;
 begin
@@ -3102,27 +3070,6 @@ begin
   else if Length(QuoteDelim) = 1 then
     Result := QuoteDelim[1] + Result + QuoteDelim[1];
 end;
-
-{**
-  rerurns cache key for get tables metadata entry
-  @param Catalog catalog name
-  @param SchemaPattern schema pattern
-  @param TableNamePattern table name pattern
-  @param Types table types
-  @return the cache key string
-}
-function GetTablesMetaDataCacheKey(Const Catalog:String;
-      Const SchemaPattern:String;	Const TableNamePattern:String;const Types: TStringDynArray):String;
-Var I : Integer;
-    Key :  String;
-begin
-  for I := Low(Types) to High(Types) do
-    Key := Key + ':' + Types[I];
-
-  Result:= Format('get-tables:%s:%s:%s:%s',
-    [Catalog, SchemaPattern, TableNamePattern, Key]);
-end;
-
 
 const
   ProceduresColumnCount = 8;

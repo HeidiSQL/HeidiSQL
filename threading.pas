@@ -20,45 +20,40 @@ type
       res: TObject;
       ex: Exception;
       handler: TCompletionHandler;
-      ctl: TObject;
     public
       property GetRequestId: Cardinal read req;
       property GetResult: TObject read res write res;
       property GetException: Exception read ex write ex;
       property GetHandler: TCompletionHandler read handler;
-      property GetWaitControl: TObject read ctl;
-      constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
+      constructor Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler);
   end;
 
-procedure InitializeThreading(myWindow: THandle);
-function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
+function SetCompletionHandler(handler: TCompletionHandler; timeout: integer): Cardinal;
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject);
 procedure NotifyInterrupted(RequestId: Cardinal; AnException: Exception);
-function ExtractResults(RequestId: Cardinal; PeekOnly: Boolean = false): TNotifyStructure;
-function ExtractResultObject(RequestId: Cardinal): TObject;
+function ExtractResults(RequestId: Cardinal): TNotifyStructure;
 
 const
   INFINITE_TIMEOUT = $7fffffff;
-  REQUEST_ID_INVALID = 0;
 
 implementation
 
 uses
+  Main,
   Windows,
   Communication,
   Helpers,
   Forms,
   Classes;
 
+
 var
   working: TThreadList;
-  msgHandler: THandle;
 
-constructor TNotifyStructure.Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler; const WaitControl: TObject);
+constructor TNotifyStructure.Create(const RequestId: Cardinal; const CompletionHandler: TCompletionHandler);
 begin
   self.req := RequestId;
   self.handler := CompletionHandler;
-  self.ctl := WaitControl;
   self.res := nil;
   self.ex := nil;
 end;
@@ -77,23 +72,30 @@ begin
   end;
 end;
 
-function SetCompletionHandler(handler: TCompletionHandler; timeout: integer; waitControl: TObject = nil): Cardinal;
+function SetCompletionHandler(handler: TCompletionHandler; timeout: integer): Cardinal;
 var
   lockedList: TList;
   ns: TNotifyStructure;
+  txt: string;
   RequestId: Cardinal;
 begin
   debug('thr: Setting completion handler.');
   lockedList := working.LockList;
   try
-    // Make a unique request id (blocking until a slot is available if full - hopefully an unlikely event).
+    // Make a unique request id.
     repeat
       RequestId := Random($7fffffff);
-    until (RequestId <> REQUEST_ID_INVALID) and (IndexOf(lockedList, RequestId) = -1);
+    until IndexOf(lockedList, RequestId) = -1;
     debug(Format('thr: Assigned request id %d.', [RequestId]));
     result := RequestId;
+    // Raise an exception if a handler already exists.
+    if IndexOf(lockedList, RequestId) > -1 then begin
+      txt := Format('Internal error: Request %d is already in a waiting state?', [RequestId]);
+      debug(txt);
+      raise Exception.Create(txt);
+    end;
     // Create + add notify structure.
-    ns := TNotifyStructure.Create(RequestId, handler, waitControl);
+    ns := TNotifyStructure.Create(RequestId, handler);
     lockedList.Add(ns);
     // Optionally start timer.
     if timeout <> INFINITE_TIMEOUT then begin
@@ -127,15 +129,14 @@ begin
     end;
     // Set result.
     item.res := Results;
-    item.ex := AnException;
     // Stop timer.
     // todo: stop timeout timer.
   finally
     working.UnlockList;
   end;
   // Send a message to the active message loop indicating
-  // that processing has completed.
-  PostMessage(msgHandler, WM_COMPLETED, msgHandler, item.GetRequestId);
+  // that the completion handler should be called.
+  PostMessage(MainForm.Handle, WM_COMPLETED, MainForm.Handle, item.GetRequestId);
 end;
 
 procedure NotifyComplete(RequestId: Cardinal; Results: TObject); overload;
@@ -148,7 +149,7 @@ begin
   InternalNotify(RequestId, nil, AnException);
 end;
 
-function ExtractResults(RequestId: Cardinal; PeekOnly: Boolean = false): TNotifyStructure;
+function ExtractResults(RequestId: Cardinal): TNotifyStructure;
 var
   lockedList: TList;
   idx: integer;
@@ -160,44 +161,17 @@ begin
     idx := IndexOf(lockedList, RequestId);
     // Raise an exception if we can't find notify structure.
     if idx = -1 then begin
-      txt := Format('thr: Request %d does not exist, cannot extract results.', [RequestId]);
+      txt := Format('Request %d does not exist, cannot extract results.', [RequestId]);
       debug(txt);
       raise Exception.Create(txt);
     end;
     // Remove notify structure from list and return it to caller.
     result := TNotifyStructure(lockedList[idx]);
-    if not PeekOnly then lockedList.Delete(idx);
+    lockedList.Delete(idx);
   finally
     working.UnlockList;
   end;
 end;
-
-function ExtractResultObject(RequestId: Cardinal): TObject;
-var
-  res: TNotifyStructure;
-  ex: Exception;
-  o: TObject;
-begin
-  res := ExtractResults(RequestId);
-  o := res.GetResult;
-  ex := res.GetException;
-  res.Free;
-  if o <> nil then begin
-    result := o;
-    exit
-  end else if ex <> nil then begin
-    raise ex;
-  end else begin
-    raise Exception.Create('Internal error in caller: no results available yet.');
-  end;
-end;
-
-
-procedure InitializeThreading(myWindow: THandle);
-begin
-  msgHandler := myWindow;
-end;
-
 
 initialization
   working := TThreadList.Create;

@@ -123,9 +123,9 @@
 			<Directories Name="UnitOutputDir"></Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">..\..\components\zeosdbo\build;C:\Other\HeidiSQL</Directories>
+			<Directories Name="SearchPath">..\..\components\zeosdbo\build;C:\Other\HeidiSQL\components\zeosdbo\src\component</Directories>
 			<Directories Name="Packages"></Directories>
-			<Directories Name="Conditionals">EXAMPLE_APP</Directories>
+			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>

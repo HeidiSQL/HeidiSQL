@@ -19,49 +19,49 @@ object CopyTableForm: TCopyTableForm
     329)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblNewTablename: TLabel
+  object Label1: TLabel
     Left = 16
     Top = 16
     Width = 101
     Height = 13
     Caption = 'Copy .. to new Table:'
   end
-  object lblTargetDB: TLabel
+  object Label3: TLabel
     Left = 16
     Top = 64
     Width = 83
     Height = 13
     Caption = 'Target Database:'
   end
-  object editNewTablename: TEdit
+  object Edit1: TEdit
     Left = 16
     Top = 32
     Width = 270
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
-    OnChange = editNewTablenameChange
+    OnChange = Edit1Change
     ExplicitWidth = 361
   end
-  object radioStructure: TRadioButton
+  object RadioButton1: TRadioButton
     Left = 160
     Top = 117
     Width = 81
     Height = 17
     Caption = 'Structure'
+    Checked = True
     TabOrder = 3
-    OnClick = radioStructureClick
+    TabStop = True
+    OnClick = RadioButton1Click
   end
-  object radioStructureAndData: TRadioButton
+  object RadioButton2: TRadioButton
     Left = 160
     Top = 141
     Width = 113
     Height = 17
     Caption = 'Structure and Data'
-    Checked = True
     TabOrder = 4
-    TabStop = True
-    OnClick = radioStructureAndDataClick
+    OnClick = RadioButton2Click
   end
   object CheckListBoxFields: TCheckListBox
     Left = 16

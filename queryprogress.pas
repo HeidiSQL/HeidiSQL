@@ -10,6 +10,8 @@ type
   TfrmQueryProgress = class(TForm)
     btnAbort: TButton;
     lblStatusMsg: TLabel;
+    timAntiFreeze: TTimer;
+    procedure timAntiFreezeTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnAbortClick(Sender: TObject);
   protected
@@ -25,16 +27,14 @@ var
 
 implementation
 
-uses
-  ChildWin,
-  helpers;
+uses ChildWin; 
 
 {$R *.dfm}
 
 procedure TfrmQueryProgress.btnAbortClick(Sender: TObject);
 begin
   Close();
-  // todo: implement connection killing !!
+  // todo: kill !!
 end;
 
 procedure TfrmQueryProgress.CreateParams(var Params: TCreateParams);
@@ -49,34 +49,29 @@ begin
   Action := caFree;
 end;
 
-{***
-  Handles the TMysqlQueryThread notification messages.
-
-  @param TMessage Message structure containing
-                  * LParam: Event type
-                  * WParam: MysqlQuery object containing status + resultset
-}
-
 procedure TfrmQueryProgress.HandleQueryNotificationMsg(var AMessage: TMessage);
 begin
-  debug(Format('thr: Progress form received WM_MYSQL_THREAD_NOTIFY message with status %d', [AMessage.LParam]));
   case AMessage.LParam of
     MQE_INITED:
       begin
-        debug('thr: Setting running flag to ''true''.');
+        TMDIChild(Owner).SetQueryRunningFlag(True);
       end;
     MQE_STARTED:
       begin
+        ShowModal();
       end;
     MQE_FINISHED:
       begin
-        debug('thr: Setting running flag to ''false'' and closing dialog.');
+        TMDIChild(Owner).SetQueryRunningFlag(False);
         Close();
       end;
     MQE_FREED:;
   end;
 end;
 
-
+procedure TfrmQueryProgress.timAntiFreezeTimer(Sender: TObject);
+begin
+  Application.ProcessMessages();
+end;
 
 end.

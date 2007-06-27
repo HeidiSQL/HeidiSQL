@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         PostgreSQL Database Connectivity Classes        }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcPostgreSqlStatement;
 
@@ -60,7 +44,7 @@ interface
 uses
   Classes, SysUtils, ZSysUtils, ZDbcIntfs, ZDbcStatement, ZDbcLogging,
   ZPlainPostgreSqlDriver, ZCompatibility, ZVariant, ZDbcGenericResolver,
-  ZDbcCachedResultSet, ZDbcPostgreSql;
+  ZDbcCachedResultSet;
 
 type
 
@@ -78,16 +62,16 @@ type
     FPlainDriver: IZPostgreSQLPlainDriver;
     FOidAsBlob: Boolean;
   protected
-    function CreateResultSet(const SQL: string;
+    function CreateResultSet(SQL: string;
       QueryHandle: PZPostgreSQLResult): IZResultSet;
   public
     constructor Create(PlainDriver: IZPostgreSQLPlainDriver;
       Connection: IZConnection; Info: TStrings; Handle: PZPostgreSQLConnect);
     destructor Destroy; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(SQL: string): IZResultSet; override;
+    function ExecuteUpdate(SQL: string): Integer; override;
+    function Execute(SQL: string): Boolean; override;
 
     function IsOidAsBlob: Boolean;
   end;
@@ -97,13 +81,12 @@ type
   private
     FHandle: PZPostgreSQLConnect;
     FPlainDriver: IZPostgreSQLPlainDriver;
-    FCharactersetCode : TZPgCharactersetType;
   protected
     function CreateExecStatement: IZStatement; override;
     function PrepareSQLParam(ParamIndex: Integer): string; override;
   public
     constructor Create(PlainDriver: IZPostgreSQLPlainDriver;
-      Connection: IZConnection; const SQL: string; Info: TStrings;
+      Connection: IZConnection; SQL: string; Info: TStrings;
       Handle: PZPostgreSQLConnect);
   end;
 
@@ -116,7 +99,7 @@ type
 implementation
 
 uses
-  ZMessages, ZDbcPostgreSqlResultSet, ZPostgreSqlToken,
+  ZMessages, ZDbcPostgreSql, ZDbcPostgreSqlResultSet, ZPostgreSqlToken,
   ZDbcPostgreSqlUtils;
 
 { TZPostgreSQLStatement }
@@ -130,17 +113,19 @@ uses
 }
 constructor TZPostgreSQLStatement.Create(PlainDriver: IZPostgreSQLPlainDriver;
   Connection: IZConnection; Info: TStrings; Handle: PZPostgreSQLConnect);
+var
+  PostgreSQLConnection: IZPostgreSQLConnection;
 begin
   inherited Create(Connection, Info);
   FHandle := Handle;
   FPlainDriver := PlainDriver;
   ResultSetType := rtScrollInsensitive;
 
+  PostgreSQLConnection := Connection as IZPostgreSQLConnection;
   { Processes connection properties. }
   if Self.Info.Values['oidasblob'] <> '' then
     FOidAsBlob := StrToBoolEx(Self.Info.Values['oidasblob'])
-  else
-    FOidAsBlob := (Connection as IZPostgreSQLConnection).IsOidAsBlob;
+  else FOidAsBlob := PostgreSQLConnection.IsOidAsBlob;
 end;
 
 {**
@@ -164,7 +149,7 @@ end;
   Creates a result set based on the current settings.
   @return a created result set object.
 }
-function TZPostgreSQLStatement.CreateResultSet(const SQL: string;
+function TZPostgreSQLStatement.CreateResultSet(SQL: string;
   QueryHandle: PZPostgreSQLResult): IZResultSet;
 var
   NativeResultSet: TZPostgreSQLResultSet;
@@ -190,13 +175,13 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZPostgreSQLStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZPostgreSQLStatement.ExecuteQuery(SQL: string): IZResultSet;
 var
   QueryHandle: PZPostgreSQLResult;
 begin
   Result := nil;
   QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(SQL));
-  CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
+  CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
   if QueryHandle <> nil then
     Result := CreateResultSet(SQL, QueryHandle)
@@ -214,13 +199,13 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZPostgreSQLStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZPostgreSQLStatement.ExecuteUpdate(SQL: string): Integer;
 var
   QueryHandle: PZPostgreSQLResult;
 begin
   Result := -1;
   QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(SQL));
-  CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
+  CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
   if QueryHandle <> nil then
@@ -254,13 +239,13 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZPostgreSQLStatement.Execute(const SQL: string): Boolean;
+function TZPostgreSQLStatement.Execute(SQL: string): Boolean;
 var
   QueryHandle: PZPostgreSQLResult;
   ResultStatus: TZPostgreSQLExecStatusType;
 begin
   QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(SQL));
-  CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
+  CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
   { Process queries with result sets }
@@ -303,13 +288,12 @@ end;
 }
 constructor TZPostgreSQLPreparedStatement.Create(
   PlainDriver: IZPostgreSQLPlainDriver; Connection: IZConnection;
-  const SQL: string; Info: TStrings; Handle: PZPostgreSQLConnect);
+  SQL: string; Info: TStrings; Handle: PZPostgreSQLConnect);
 begin
   inherited Create(Connection, SQL, Info);
   FHandle := Handle;
   FPlainDriver := PlainDriver;
   ResultSetType := rtScrollInsensitive;
-  FCharactersetCode := (Connection as IZPostgreSQLConnection).GetCharactersetCode;
 end;
 
 {**
@@ -352,7 +336,7 @@ begin
       stByte, stShort, stInteger, stLong, stBigDecimal, stFloat, stDouble:
         Result := SoftVarManager.GetAsString(Value);
       stString, stBytes:
-        Result := EncodeString(FCharactersetCode,SoftVarManager.GetAsString(Value));
+        Result := EncodeString(SoftVarManager.GetAsString(Value));
       stDate:
         Result := Format('''%s''::date',
           [FormatDateTime('yyyy-mm-dd', SoftVarManager.GetAsDateTime(Value))]);
@@ -366,11 +350,10 @@ begin
       stAsciiStream, stUnicodeStream:
         begin
           TempBlob := DefVarManager.GetAsInterface(Value) as IZBlob;
-          if not TempBlob.IsEmpty then begin
+          if not TempBlob.IsEmpty then
+          begin
             Result := EncodeString(TempBlob.GetString)
-          end else begin
-           Result := 'NULL';
-          end;
+          end else Result := 'NULL';
         end;
       stBinaryStream:
         begin
@@ -390,13 +373,12 @@ begin
                 WriteTempBlob := nil;
                 TempStream.Free;
               end;
-            end else begin
-              result:= FPlainDriver.EncodeBYTEA(TempBlob.GetString,FHandle); // FirmOS
-              {
-               Result := EncodeString(TempBlob.GetString);
-               Result := Copy(Result, 2, Length(Result) - 2);
-               Result := EncodeString(Result);
-              }
+            end
+            else
+            begin
+              Result := EncodeString(TempBlob.GetString);
+              Result := Copy(Result, 2, Length(Result) - 2);
+              Result := EncodeString(Result);
             end;
           end else
             Result := 'NULL';

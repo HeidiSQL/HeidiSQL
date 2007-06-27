@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {         PostgreSQL Database Connectivity Classes        }
 {                                                         }
-{        Originally written by Sergey Seroukhov           }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZDbcPostgreSqlResultSet;
 
@@ -69,6 +53,7 @@ type
     FHandle: PZPostgreSQLConnect;
     FQueryHandle: PZPostgreSQLResult;
     FPlainDriver: IZPostgreSQLPlainDriver;
+    function GetRawString(ColumnIndex: Integer): string;
   protected
     procedure Open; override;
     procedure DefinePostgreSQLToSQLType(ColumnIndex: Integer;
@@ -309,7 +294,7 @@ end;
   @return the column value; if the value is SQL <code>NULL</code>, the
     value returned is <code>null</code>
 }
-function TZPostgreSQLResultSet.GetString(ColumnIndex: Integer): string;
+function TZPostgreSQLResultSet.GetRawString(ColumnIndex: Integer): string;
 begin
 {$IFNDEF DISABLE_CHECKING}
   CheckClosed;
@@ -328,6 +313,14 @@ begin
 end;
 
 {**
+  Returns string reverted from escaped string.   
+}
+function TZPostgreSQLResultSet.GetString(ColumnIndex: Integer): String;
+begin
+  Result := DecodeString(GetRawString(ColumnIndex));
+end;
+
+{**
   Gets the value of the designated column in the current row
   of this <code>ResultSet</code> object as
   a <code>boolean</code> in the Java programming language.
@@ -343,7 +336,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stBoolean);
 {$ENDIF}
-  Temp := UpperCase(GetString(ColumnIndex));
+  Temp := UpperCase(GetRawString(ColumnIndex));
   Result := (Temp = 'Y') or (Temp = 'YES') or (Temp = 'T') or
     (Temp = 'TRUE') or (StrToIntDef(Temp, 0) <> 0);
 end;
@@ -362,7 +355,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stByte);
 {$ENDIF}
-  Result := ShortInt(StrToIntDef(GetString(ColumnIndex), 0));
+  Result := ShortInt(StrToIntDef(GetRawString(ColumnIndex), 0));
 end;
 
 {**
@@ -379,7 +372,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stShort);
 {$ENDIF}
-  Result := SmallInt(StrToIntDef(GetString(ColumnIndex), 0));
+  Result := SmallInt(StrToIntDef(GetRawString(ColumnIndex), 0));
 end;
 
 {**
@@ -396,7 +389,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stInteger);
 {$ENDIF}
-  Result := StrToIntDef(GetString(ColumnIndex), 0);
+  Result := StrToIntDef(GetRawString(ColumnIndex), 0);
 end;
 
 {**
@@ -413,7 +406,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stLong);
 {$ENDIF}
-  Result := StrToInt64Def(GetString(ColumnIndex), 0);
+  Result := StrToInt64Def(GetRawString(ColumnIndex), 0);
 end;
 
 {**
@@ -430,7 +423,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stFloat);
 {$ENDIF}
-  Result := SQLStrToFloatDef(GetString(ColumnIndex), 0);
+  Result := SQLStrToFloatDef(GetRawString(ColumnIndex), 0);
 end;
 
 {**
@@ -447,7 +440,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stDouble);
 {$ENDIF}
-  Result := SQLStrToFloatDef(GetString(ColumnIndex), 0);
+  Result := SQLStrToFloatDef(GetRawString(ColumnIndex), 0);
 end;
 
 {**
@@ -465,7 +458,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stBigDecimal);
 {$ENDIF}
-  Result := SQLStrToFloatDef(GetString(ColumnIndex), 0);
+  Result := SQLStrToFloatDef(GetRawString(ColumnIndex), 0);
 end;
 
 {**
@@ -483,7 +476,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stBytes);
 {$ENDIF}
-  Result := StrToBytes(DecodeString(GetString(ColumnIndex)));
+  Result := StrToBytes(GetString(ColumnIndex));
 end;
 
 {**
@@ -502,7 +495,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stDate);
 {$ENDIF}
-  Value := GetString(ColumnIndex);
+  Value := GetRawString(ColumnIndex);
   if IsMatch('????-??-??*', Value) then
     Result := Trunc(AnsiSQLDateToDateTime(Value))
   else Result := Trunc(MySQLTimestampToDateTime(Value));
@@ -524,7 +517,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stTime);
 {$ENDIF}
-  Value := GetString(ColumnIndex);
+  Value := GetRawString(ColumnIndex);
   if IsMatch('*??:??:??*', Value) then
     Result := Frac(AnsiSQLDateToDateTime(Value))
   else Result := Frac(MySQLTimestampToDateTime(Value));
@@ -547,7 +540,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stTimestamp);
 {$ENDIF}
-  Value := GetString(ColumnIndex);
+  Value := GetRawString(ColumnIndex);
   if IsMatch('????-??-??*', Value) then
     Result := AnsiSQLDateToDateTime(Value)
   else Result := MySQLTimestampToDateTime(Value);
@@ -578,7 +571,7 @@ begin
     and (Statement.GetConnection as IZPostgreSQLConnection).IsOidAsBlob then
   begin
     if FPlainDriver.GetIsNull(FQueryHandle, RowNo - 1, ColumnIndex - 1) = 0 then
-      BlobOid := StrToIntDef(GetString(ColumnIndex), 0)
+      BlobOid := StrToIntDef(GetRawString(ColumnIndex), 0)
     else BlobOid := 0;
 
     Result := TZPostgreSQLBlob.Create(FPlainDriver, nil, 0, FHandle, BlobOid);
@@ -589,8 +582,10 @@ begin
     begin
       Stream := nil;
       try
-//        Stream := TStringStream.Create(DecodeString(GetRawString(ColumnIndex)));
-        Stream := TStringStream.Create(FPlainDriver.DecodeBYTEA(GetString(ColumnIndex)));
+        if (GetMetadata.GetColumnType(ColumnIndex) = stAsciiStream) then 
+          Stream := TStringStream.Create(GetString(ColumnIndex))
+        else
+          Stream := TStringStream.Create(DecodeString(GetString(ColumnIndex)));
         Result := TZAbstractBlob.CreateWithStream(Stream);
       finally
         if Assigned(Stream) then
@@ -706,7 +701,8 @@ begin
   if not Updated and (FBlobOid > 0) then
   begin
     BlobHandle := FPlainDriver.OpenLargeObject(FHandle, FBlobOid, INV_READ);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther, 'Read Large Object',nil);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther,
+      'Read Large Object');
     if BlobHandle >= 0 then
     begin
       ReadStream := TMemoryStream.Create;
@@ -746,13 +742,15 @@ begin
   { Creates a new large object. }
   if FBlobOid = 0 then
   begin
-    FBlobOid := FPlainDriver.CreateLargeObject(FHandle, INV_WRITE);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther, 'Create Large Object',nil);
+    FBlobOid := FPlainDriver.CreateLargeObject(FHandle, INV_WRITE or INV_READ);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther,
+      'Create Large Object');
   end;
 
   { Opens and writes a large object. }
   BlobHandle := FPlainDriver.OpenLargeObject(FHandle, FBlobOid, INV_WRITE);
-  CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther, 'Open Large Object',nil);
+  CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther,
+    'Open Large Object');
 
   Position := 0;
   while Position < BlobSize do
@@ -762,12 +760,14 @@ begin
     else Size := 1024;
     FPlainDriver.WriteLargeObject(FHandle, BlobHandle,
       Pointer(LongInt(BlobData) + Position), Size);
-    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther, 'Write Large Object',nil);
+    CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther,
+      'Write Large Object');
     Inc(Position, Size);
   end;
 
   FPlainDriver.CloseLargeObject(FHandle, BlobHandle);
-  CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther, 'Close Large Object',nil);
+  CheckPostgreSQLError(nil, FPlainDriver, FHandle, lcOther,
+    'Close Large Object');
 end;
 
 {**

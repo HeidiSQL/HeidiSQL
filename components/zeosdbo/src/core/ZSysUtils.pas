@@ -3,14 +3,19 @@
 {                 Zeos Database Objects                   }
 {           System Utility Classes and Functions          }
 {                                                         }
-{          Originally written by Sergey Seroukhov         }
+{    Copyright (c) 1999-2004 Zeos Development Group       }
+{            Written by Sergey Seroukhov                  }
 {                                                         }
 {*********************************************************}
 
-{@********************************************************}
-{    Copyright (c) 1999-2006 Zeos Development Group       }
-{                                                         }
+{*********************************************************}
 { License Agreement:                                      }
+{                                                         }
+{ This library is free software; you can redistribute     }
+{ it and/or modify it under the terms of the GNU Lesser   }
+{ General Public License as published by the Free         }
+{ Software Foundation; either version 2.1 of the License, }
+{ or (at your option) any later version.                  }
 {                                                         }
 { This library is distributed in the hope that it will be }
 { useful, but WITHOUT ANY WARRANTY; without even the      }
@@ -18,38 +23,17 @@
 { A PARTICULAR PURPOSE.  See the GNU Lesser General       }
 { Public License for more details.                        }
 {                                                         }
-{ The source code of the ZEOS Libraries and packages are  }
-{ distributed under the Library GNU General Public        }
-{ License (see the file COPYING / COPYING.ZEOS)           }
-{ with the following  modification:                       }
-{ As a special exception, the copyright holders of this   }
-{ library give you permission to link this library with   }
-{ independent modules to produce an executable,           }
-{ regardless of the license terms of these independent    }
-{ modules, and to copy and distribute the resulting       }
-{ executable under terms of your choice, provided that    }
-{ you also meet, for each linked independent module,      }
-{ the terms and conditions of the license of that module. }
-{ An independent module is a module which is not derived  }
-{ from or based on this library. If you modify this       }
-{ library, you may extend this exception to your version  }
-{ of the library, but you are not obligated to do so.     }
-{ If you do not wish to do so, delete this exception      }
-{ statement from your version.                            }
-{                                                         }
+{ You should have received a copy of the GNU Lesser       }
+{ General Public License along with this library; if not, }
+{ write to the Free Software Foundation, Inc.,            }
+{ 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA }
 {                                                         }
 { The project web site is located on:                     }
-{   http://zeos.firmos.at  (FORUM)                        }
-{   http://zeosbugs.firmos.at (BUGTRACKER)                }
-{   svn://zeos.firmos.at/zeos/trunk (SVN Repository)      }
-{                                                         }
 {   http://www.sourceforge.net/projects/zeoslib.          }
 {   http://www.zeoslib.sourceforge.net                    }
 {                                                         }
-{                                                         }
-{                                                         }
 {                                 Zeos Development Group. }
-{********************************************************@}
+{*********************************************************}
 
 unit ZSysUtils;
 
@@ -65,7 +49,7 @@ uses
     Variants,
   {$ENDIF}
 {$ENDIF}
-  ZMessages, ZCompatibility, Classes, Math, SysUtils;
+  ZMessages, ZCompatibility, Classes, SysUtils;
 
 type
   {** Modified comaprison function. }
@@ -91,7 +75,7 @@ const
   @param Str a string to be checked.
   @return a position of the first found delimiter or 0 if no delimiters was found.
 }
-function FirstDelimiter(const Delimiters, Str: string): Integer;
+function FirstDelimiter(Delimiters: string; Str: string): Integer;
 
 {**
   Determines a position of a LAST delimiter.
@@ -99,15 +83,7 @@ function FirstDelimiter(const Delimiters, Str: string): Integer;
   @param Str a string to be checked.
   @return a position of the last found delimiter or 0 if no delimiters was found.
 }
-function LastDelimiter(const Delimiters, Str: string): Integer;
-
-{**
-  Compares two PChars without stopping at #0
-  @param P1 first PChar
-  @param P2 seconds PChar
-  @return <code>True</code> if the memory at P1 and P2 are equal 
-}
-function MemLComp(P1, P2: PChar; Len: Integer): Boolean;
+function LastDelimiter(Delimiters: string; Str: string): Integer;
 
 {**
   Checks is the string starts with substring.
@@ -115,7 +91,7 @@ function MemLComp(P1, P2: PChar; Len: Integer): Boolean;
   @param SubStr a string to test at the start of the Str.
   @return <code>True</code> if Str started with SubStr;
 }
-function StartsWith(const Str, SubStr: string): Boolean;
+function StartsWith(Str: string; SubStr: string): Boolean;
 
 {**
   Checks is the string ends with substring.
@@ -123,7 +99,7 @@ function StartsWith(const Str, SubStr: string): Boolean;
   @param SubStr a string to test at the end of the Str.
   @return <code>True</code> if Str ended with SubStr;
 }
-function EndsWith(const Str, SubStr: string): Boolean;
+function EndsWith(Str: string; SubStr: string): Boolean;
 
 {**
   Converts SQL string into float value.
@@ -138,7 +114,7 @@ function SQLStrToFloatDef(Str: string; Def: Extended): Extended;
   @param Str an SQL string with comma delimiter.
   @return a converted value or Def if conversion was failt.
 }
-function SQLStrToFloat(const Str: string): Extended;
+function SQLStrToFloat(Str: string): Extended;
 
 {**
   Converts a character buffer into pascal string.
@@ -156,19 +132,12 @@ function BufferToStr(Buffer: PChar; Length: LongInt): string;
 function StrToBoolEx(Str: string): Boolean;
 
 {**
-  Converts a boolean into string value.
-  @param Bool a boolean value.
-  @return <code>"True"</code> or <code>"False"</code>
-}
-function BoolToStrEx(Bool: Boolean): String;
-
-{**
   Checks if the specified string can represent an IP address.
   @param Str a string value.
   @return <code>True</code> if the string can represent an IP address
     or <code>False</code> otherwise.
 }
-function IsIpAddr(const Str: string): Boolean;
+function IsIpAddr(Str: string): Boolean;
 
 {**
   Splits string using the multiple chars.
@@ -176,7 +145,7 @@ function IsIpAddr(const Str: string): Boolean;
   @param Delimiters the delimiters string
   @return the result list where plased delimited string
 }
-function SplitString(const Str, Delimiters: string): TStrings;
+function SplitString(Str, Delimiters: string): TStrings;
 
 {**
   Puts to list a splitted string using the multiple chars which replaces
@@ -185,7 +154,7 @@ function SplitString(const Str, Delimiters: string): TStrings;
   @param Str the source string
   @param Delimiters the delimiters string
 }
-procedure PutSplitString(List: TStrings; const Str, Delimiters: string);
+procedure PutSplitString(List: TStrings; Str, Delimiters: string);
 
 {**
   Appends to list a splitted string using the multiple chars.
@@ -193,7 +162,7 @@ procedure PutSplitString(List: TStrings; const Str, Delimiters: string);
   @param Str the source string
   @param Delimiters the delimiters string
 }
-procedure AppendSplitString(List: TStrings; const Str, Delimiters: string);
+procedure AppendSplitString(List: TStrings; Str, Delimiters: string);
 
 {**
   Composes a string from the specified strings list delimited with
@@ -202,7 +171,7 @@ procedure AppendSplitString(List: TStrings; const Str, Delimiters: string);
   @param Delimiter a delimiter string.
   @return a composed string from the list.
 }
-function ComposeString(List: TStrings; const Delimiter: string): string;
+function ComposeString(List: TStrings; Delimiter: string): string;
 
 {**
   Converts a float value into SQL string with '.' delimiter.
@@ -218,7 +187,7 @@ function FloatToSQLStr(Value: Extended): string;
   @param Str the source string
   @param Delimiters the delimiter string
 }
-procedure PutSplitStringEx(List: TStrings; const Str, Delimiter: string);
+procedure PutSplitStringEx(List: TStrings; Str, Delimiter: string);
 
 {**
   Splits string using the delimiter string.
@@ -226,7 +195,7 @@ procedure PutSplitStringEx(List: TStrings; const Str, Delimiter: string);
   @param Delimiters the delimiter string
   @return the result list where plased delimited string
 }
-function SplitStringEx(const Str, Delimiter: string): TStrings;
+function SplitStringEx(Str, Delimiter: string): TStrings;
 
 {**
   Appends to list a splitted string using the delimeter string.
@@ -234,35 +203,35 @@ function SplitStringEx(const Str, Delimiter: string): TStrings;
   @param Str the source string
   @param Delimiters the delimiters string
 }
-procedure AppendSplitStringEx(List: TStrings; const Str, Delimiter: string);
+procedure AppendSplitStringEx(List: TStrings; Str, Delimiter: string);
 
 {**
   Converts bytes into a string representation.
   @param Value an array of bytes to be converted.
   @return a converted string.
 }
-function BytesToStr(const Value: TByteDynArray): string;
+function BytesToStr(Value: TByteDynArray): string;
 
 {**
   Converts string into an array of bytes.
   @param Value a string to be converted.
   @return a converted array of bytes.
 }
-function StrToBytes(const Value: string): TByteDynArray;
+function StrToBytes(Value: string): TByteDynArray;
 
 {**
   Converts bytes into a variant representation.
   @param Value an array of bytes to be converted.
   @return a converted variant.
 }
-function BytesToVar(const Value: TByteDynArray): Variant;
+function BytesToVar(Value: TByteDynArray): Variant;
 
 {**
   Converts variant into an array of bytes.
   @param Value a varaint to be converted.
   @return a converted array of bytes.
 }
-function VarToBytes(const Value: Variant): TByteDynArray;
+function VarToBytes(Value: Variant): TByteDynArray;
 
 {$IFDEF VER130BELOW}
 {**
@@ -294,7 +263,7 @@ function StrToFloatDef(const S: string; const Default: Extended): Extended;
   @param Value a date and time string.
   @return a decoded TDateTime value.
 }
-function AnsiSQLDateToDateTime(const Value: string): TDateTime;
+function AnsiSQLDateToDateTime(Value: string): TDateTime;
 
 {**
   Converts TDateTime to Ansi SQL Date/Time
@@ -308,14 +277,14 @@ function DateTimeToAnsiSQLDate(Value: TDateTime): string;
   @param Value a regular string.
   @return a string in PostgreSQL escape format.
 }
-function EncodeCString(const Value: string): string;
+function EncodeCString(Value: string): string;
 
 {**
   Converts an string from escape PostgreSQL format.
   @param Value a string in PostgreSQL escape format.
   @return a regular string.
 }
-function DecodeCString(const Value: string): string;
+function DecodeCString(Value: string): string;
 
 {**
   Replace chars in the string
@@ -330,34 +299,9 @@ function ReplaceChar(const Source, Target: Char; const Str: string): string;
    Copy buffer to the pascal string
    @param Buffer a buffer with data
    @param Length a buffer length
-   @return a buffer content
+   @return a bufeer content
 }
 function MemPas(Buffer: PChar; Length: LongInt): string;
-
-{**
-  Decodes a Full Version Value encoded with the format:
-   (major_version * 1,000,000) + (minor_version * 1,000) + sub_version
-  into separated major, minor and subversion values
-  @param FullVersion an integer containing the Full Version to decode.
-  @param MajorVersion an integer containing the Major Version decoded.
-  @param MinorVersion an integer containing the Minor Version decoded.
-  @param SubVersion an integer contaning the Sub Version (revision) decoded.
-}
-procedure DecodeSQLVersioning(const FullVersion: Integer;
- out MajorVersion: Integer; out MinorVersion: Integer;
- out SubVersion: Integer);
-
-{**
-  Encodes major, minor and subversion (revision) values in this format:
-   (major_version * 1,000,000) + (minor_version * 1,000) + sub_version
-  For example, 4.1.12 is returned as 4001012.
-  @param MajorVersion an integer containing the Major Version.
-  @param MinorVersion an integer containing the Minor Version.
-  @param SubVersion an integer containing the Sub Version (revision).
-  @return an integer containing the full version.
-}
-function EncodeSQLVersioning(const MajorVersion: Integer;
- const MinorVersion: Integer; const SubVersion: Integer): Integer;
 
 implementation
 
@@ -369,7 +313,7 @@ uses ZMatchPattern;
   @param Str a string to be checked.
   @return a position of the first found delimiter or 0 if no delimiters was found.
 }
-function FirstDelimiter(const Delimiters, Str: string): Integer;
+function FirstDelimiter(Delimiters: string; Str: string): Integer;
 var
   I, Index: Integer;
 begin
@@ -388,7 +332,7 @@ end;
   @param Str a string to be checked.
   @return a position of the last found delimiter or 0 if no delimiters was found.
 }
-function LastDelimiter(const Delimiters, Str: string): Integer;
+function LastDelimiter(Delimiters: string; Str: string): Integer;
 var
   I, Index: Integer;
 begin
@@ -405,41 +349,14 @@ begin
 end;
 
 {**
-  Compares two PChars without stopping at #0
-  @param P1 first PChar
-  @param P2 seconds PChar
-  @return <code>True</code> if the memory at P1 and P2 are equal
-}
-function MemLComp(P1, P2: PChar; Len: Integer): Boolean;
-begin
-  while (Len > 0) and (P1^ = P2^) do
-  begin
-    Inc(P1);
-    Inc(P2);
-    Dec(Len);
-  end;
-  Result := Len = 0;
-end;
-
-{**
   Checks is the string starts with substring.
   @param Str a string to be checked.
   @param SubStr a string to test at the start of the Str.
   @return <code>True</code> if Str started with SubStr;
 }
-function StartsWith(const Str, SubStr: string): Boolean;
-var
-  LenSubStr: Integer;
+function StartsWith(Str: string; SubStr: string): Boolean;
 begin
-  LenSubStr := Length(SubStr);
-  if SubStr = '' then
-    Result := True
-  else
-  if LenSubStr <= Length(Str) then
-    //Result := Copy(Str, 1, Length(SubStr)) = SubStr;
-    Result := MemLComp(PChar(Str), PChar(SubStr), LenSubStr)
-  else
-    Result := False;
+  Result := Copy(Str, 1, Length(SubStr)) = SubStr;
 end;
 
 {**
@@ -448,23 +365,14 @@ end;
   @param SubStr a string to test at the end of the Str.
   @return <code>True</code> if Str ended with SubStr;
 }
-function EndsWith(const Str, SubStr: string): Boolean;
-var
-  LenSubStr: Integer;
-  LenStr: Integer;
+function EndsWith(Str: string; SubStr: string): Boolean;
 begin
-  if SubStr = '' then
-    Result := False // act like Delphi's AnsiEndsStr()
-  else
+  if Length(SubStr) <= Length(Str) then
   begin
-    LenSubStr := Length(SubStr);
-    LenStr := Length(Str);
-    if LenSubStr <= LenStr then
-      //Result := Copy(Str, LenStr - LenSubStr + 1, LenSubStr) = SubStr
-      Result := MemLComp(PChar(Pointer(Str)) + LenStr - LenSubStr, Pointer(SubStr), LenSubStr)
-    else
-      Result := False;
-  end;
+    Result := Copy(Str, Length(Str) - Length(SubStr) + 1,
+    Length(SubStr)) = SubStr;
+  end else
+    Result := False;
 end;
 
 {**
@@ -481,23 +389,8 @@ begin
   DecimalSeparator := '.';
   if Pos('$', Str) = 1 then
     Str := Copy(Str, 2, Pred(Length(Str)));
-{$IFDEF FPC}
-  if OldDecimalSeparator = ',' then
-    try
-      DecimalSeparator := OldDecimalSeparator;
-      Result := StrToFloat(Str);
-    except
-      Result := 0;
-    end
-  else
-    begin
-    Result := StrToFloatDef(Str, Def);
-    DecimalSeparator := OldDecimalSeparator;
-    end;
-{$ELSE}
   Result := StrToFloatDef(Str, Def);
   DecimalSeparator := OldDecimalSeparator;
-{$ENDIF}
 end;
 
 {**
@@ -505,7 +398,7 @@ end;
   @param Str an SQL string with comma delimiter.
   @return a converted value or Def if conversion was failt.
 }
-function SQLStrToFloat(const Str: string): Extended;
+function SQLStrToFloat(Str: string): Extended;
 var
   OldDecimalSeparator: Char;
 begin
@@ -539,25 +432,12 @@ begin
 end;
 
 {**
-  Converts a boolean into string value.
-  @param Bool a boolean value.
-  @return <code>"True"</code> or <code>"False"</code>
-}
-function BoolToStrEx(Bool: Boolean): String;
-begin
-  if Bool then
-    Result := 'True'
-  else
-    Result := 'False';
-end;
-
-{**
   Checks if the specified string can represent an IP address.
   @param Str a string value.
   @return <code>True</code> if the string can represent an IP address
     or <code>False</code> otherwise.
 }
-function IsIpAddr(const Str: string): Boolean;
+function IsIpAddr(Str: string): Boolean;
 var
   I, N, M, Pos: Integer;
 begin
@@ -583,39 +463,29 @@ begin
     Result := False;
 end;
 
-procedure SplitToStringList(List: TStrings; Str: string; const Delimiters: string);
-var
-  DelimPos: Integer;
-begin
-  repeat
-    DelimPos := FirstDelimiter(Delimiters, Str);
-    if DelimPos > 0 then
-    begin
-      if DelimPos > 1 then
-        List.Add(Copy(Str, 1, DelimPos - 1));
-      Str := Copy(Str, DelimPos + 1, Length(Str) - DelimPos);
-    end else
-      Break;
-  until DelimPos <= 0;
-  if Str <> '' then
-    List.Add(Str);
-end;
-
 {**
   Splits string using the multiple chars.
   @param Str the source string
   @param Delimiters the delimiters string
   @return the result list where plased delimited string
 }
-function SplitString(const Str, Delimiters: string): TStrings;
+function SplitString(Str, Delimiters: string): TStrings;
+var
+  DelimPos: Integer;
 begin
   Result := TStringList.Create;
-  try
-    SplitToStringList(Result, Str, Delimiters);
-  except
-    Result.Free;
-    raise;
-  end;
+  repeat
+    DelimPos := FirstDelimiter(Delimiters, Str);
+    if DelimPos > 0 then
+    begin
+      if DelimPos > 1 then
+        Result.Add(Copy(Str, 1, DelimPos - 1));
+      Str := Copy(Str, DelimPos + 1, Length(Str) - DelimPos);
+    end else
+      Break;
+  until DelimPos <= 0;
+  if Str <> '' then
+    Result.Add(Str);
 end;
 
 {**
@@ -625,10 +495,16 @@ end;
   @param Str the source string
   @param Delimiters the delimiters string
 }
-procedure PutSplitString(List: TStrings; const Str, Delimiters: string);
+procedure PutSplitString(List: TStrings; Str, Delimiters: string);
+var
+  Temp: TStrings;
 begin
-  List.Clear;
-  SplitToStringList(List, Str, Delimiters);
+  Temp := SplitString(Str, Delimiters);
+  try
+    List.Assign(Temp);
+  finally
+    Temp.Free;
+  end;
 end;
 
 {**
@@ -637,9 +513,16 @@ end;
   @param Str the source string
   @param Delimiters the delimiters string
 }
-procedure AppendSplitString(List: TStrings; const Str, Delimiters: string);
+procedure AppendSplitString(List: TStrings; Str, Delimiters: string);
+var
+  Temp: TStrings;
 begin
-  SplitToStringList(List, Str, Delimiters);
+  Temp := SplitString(Str, Delimiters);
+  try
+    List.AddStrings(Temp);
+  finally
+    Temp.Free;
+  end;
 end;
 
 {**
@@ -649,36 +532,16 @@ end;
   @param Delimiter a delimiter string.
   @return a composed string from the list.
 }
-function ComposeString(List: TStrings; const Delimiter: string): string;
+function ComposeString(List: TStrings; Delimiter: string): string;
 var
-  i, Len, DelimLen: Integer;
-  S: string;
-  P: PChar;
+  I: Integer;
 begin
-  DelimLen := Length(Delimiter);
-  Len := 0;
-  if List.Count > 0 then
+  Result := '';
+  for I := 0 to List.Count - 1 do
   begin
-    Inc(Len, Length(List[0]));
-    for i := 1 to List.Count - 1 do
-      Inc(Len, DelimLen + Length(List[i]));
-  end;
-  SetLength(Result, Len);
-  P := Pointer(Result);
-  for i := 0 to List.Count - 1 do
-  begin
-    if (i > 0) and (DelimLen > 0) then
-    begin
-      Move(Pointer(Delimiter)^, P^, DelimLen * SizeOf(Char));
-      Inc(P, DelimLen);
-    end;
-    S := List[i];
-    Len := Length(S);
-    if Len > 0 then
-    begin
-      Move(Pointer(S)^, P^, Len * SizeOf(Char));
-      Inc(P, Len);
-    end;
+    if Result <> '' then
+      Result := Result + Delimiter;
+    Result := Result + List[I];
   end;
 end;
 
@@ -693,26 +556,8 @@ var
 begin
   OldDecimalSeparator := DecimalSeparator;
   DecimalSeparator := '.';
-  try
-    Result := FloatToStr(Value);
-  finally
-    DecimalSeparator := OldDecimalSeparator;
-  end;
-end;
-
-procedure SplitToStringListEx(List: TStrings; const Str, Delimiter: string);
-var
-  Pos: integer;
-  Temp: string;
-begin
-  Temp := Str;
-  repeat
-    Pos := AnsiPos(Delimiter, Temp);
-    List.Add(Copy(Temp, 1, Pos - 1));
-    Delete(Temp, 1, Pos + Length(Delimiter) - 1);
-  until Pos = 0;
-  if Temp <> '' then
-    List.Add(Temp);
+  Result := FloatToStr(Value);
+  DecimalSeparator := OldDecimalSeparator;
 end;
 
 {**
@@ -722,10 +567,17 @@ end;
   @param Str the source string
   @param Delimiters the delimiter string
 }
-procedure PutSplitStringEx(List: TStrings; const Str, Delimiter: string);
+procedure PutSplitStringEx(List: TStrings; Str, Delimiter: string);
+var
+  Temp: TStrings;
 begin
-  List.Clear;
-  SplitToStringListEx(List, Str, Delimiter);
+  Temp := SplitStringEx(Str, Delimiter);
+  try
+    List.Clear;
+    List.AddStrings(Temp);
+  finally
+    Temp.Free;
+  end;
 end;
 
 {**
@@ -734,15 +586,20 @@ end;
   @param Delimiters the delimiter string
   @return the result list where plased delimited string
 }
-function SplitStringEx(const Str, Delimiter: string): TStrings;
+function SplitStringEx(Str, Delimiter: string): TStrings;
+var
+ Pos: integer;
+ Temp: string;
 begin
   Result := TStringList.Create;
-  try
-    SplitToStringListEx(Result, Str, Delimiter);
-  except
-    Result.Free;
-    raise;
-  end;
+  Temp := Str;
+  repeat
+    Pos := AnsiPos(Delimiter, Temp);
+    Result.Add(Copy(Temp, 1, Pos - 1));
+    Delete(Temp, 1, Pos + Length(Delimiter) - 1);
+  until Pos = 0;
+  if Temp <> '' then
+    Result.Add(Temp);
 end;
 
 {**
@@ -751,9 +608,16 @@ end;
   @param Str the source string
   @param Delimiters the delimiters string
 }
-procedure AppendSplitStringEx(List: TStrings; const Str, Delimiter: string);
+procedure AppendSplitStringEx(List: TStrings; Str, Delimiter: string);
+var
+  Temp: TStrings;
 begin
-  SplitToStringListEx(List, Str, Delimiter);
+  Temp := SplitStringEx(Str, Delimiter);
+  try
+    List.AddStrings(Temp);
+  finally
+    Temp.Free;
+  end;
 end;
 
 {**
@@ -761,9 +625,13 @@ end;
   @param Value an array of bytes to be converted.
   @return a converted string.
 }
-function BytesToStr(const Value: TByteDynArray): string;
+function BytesToStr(Value: TByteDynArray): string;
+var
+  I: Integer;
 begin
-  SetString(Result, PChar(@Value[0]), Length(Value))
+  SetLength(Result, Length(Value));
+  for I := 1 to Length(Value) do
+    Result[I] := Char(Value[I - 1]);
 end;
 
 {**
@@ -771,11 +639,13 @@ end;
   @param Value a string to be converted.
   @return a converted array of bytes.
 }
-function StrToBytes(const Value: string): TByteDynArray;
+function StrToBytes(Value: string): TByteDynArray;
+var
+  I: Integer;
 begin
   SetLength(Result, Length(Value));
-  if Value <> '' then
-    Move(Value[1], Result[0], Length(Value))
+  for I := 1 to Length(Value) do
+    Result[I - 1] := Ord(Value[I]);
 end;
 
 {**
@@ -783,7 +653,7 @@ end;
   @param Value an array of bytes to be converted.
   @return a converted variant.
 }
-function BytesToVar(const Value: TByteDynArray): Variant;
+function BytesToVar(Value: TByteDynArray): Variant;
 var
   I: Integer;
 begin
@@ -797,7 +667,7 @@ end;
   @param Value a varaint to be converted.
   @return a converted array of bytes.
 }
-function VarToBytes(const Value: Variant): TByteDynArray;
+function VarToBytes(Value: Variant): TByteDynArray;
 var
   I: Integer;
 begin
@@ -853,7 +723,7 @@ end;
   @param Value a date and time string.
   @return a decoded TDateTime value.
 }
-function AnsiSQLDateToDateTime(const Value: string): TDateTime;
+function AnsiSQLDateToDateTime(Value: string): TDateTime;
 var
   Year, Month, Day, Hour, Min, Sec: Word;
   Temp: string;
@@ -949,7 +819,7 @@ end;
   @param Value a regular string.
   @return a string in PostgreSQL escape format.
 }
-function EncodeCString(const Value: string): string;
+function EncodeCString(Value: string): string;
 var
   I: Integer;
   SrcLength, DestLength: Integer;
@@ -1002,7 +872,7 @@ end;
   @param Value a string in PostgreSQL escape format.
   @return a regular string.
 }
-function DecodeCString(const Value: string): string;
+function DecodeCString(Value: string): string;
 var
   SrcLength, DestLength: Integer;
   SrcBuffer, DestBuffer: PChar;
@@ -1060,64 +930,25 @@ end;
 }
 function ReplaceChar(const Source, Target: Char; const Str: string): string;
 var
-  P: PChar;
-  I:Integer;
+ I: integer;
 begin
   Result := Str;
-  UniqueString(Result);
-  P := Pointer(Result);
-  for i := 0 to Length(Str) - 1 do
-  begin
-    if P^ = Source then
-      P^ := Target;
-    Inc(P);
-  end;
+  for i := 1 to Length(Str) do
+    if Result[I] = Source then
+      Result[I] := Target;
 end;
 
 {**
    Copy buffer to the pascal string
    @param Buffer a buffer with data
    @param Length a buffer length
-   @return a buffer content
+   @return a bufeer content
 }
 function MemPas(Buffer: PChar; Length: LongInt): string;
 begin
   Result := '';
   if Assigned(Buffer) then
     SetString(Result, Buffer, Length);
-end;
-
-{**
-  Decodes a full version value encoded with Zeos SQL format:
-   (major_version * 1,000,000) + (minor_version * 1,000) + sub_version
-  into separated major, minor and subversion values
-  @param FullVersion an integer containing the Full Version to decode.
-  @param MajorVersion an integer containing the Major Version decoded.
-  @param MinorVersion an integer containing the Minor Version decoded.
-  @param SubVersion an integer contaning the Sub Version (revision) decoded.
-}
-procedure DecodeSQLVersioning(const FullVersion: Integer;
- out MajorVersion: Integer; out MinorVersion: Integer;
- out SubVersion: Integer);
-begin
- MajorVersion := Trunc(FullVersion/1000000);
- MinorVersion := Trunc((FullVersion-(MajorVersion*1000000))/1000);
- SubVersion   := Trunc((FullVersion-(MajorVersion*1000000)-(MinorVersion*1000)));
-end;
-
-{**
-  Encodes major, minor and subversion (revision) values in Zeos SQL format:
-   (major_version * 1,000,000) + (minor_version * 1,000) + sub_version
-  For example, 4.1.12 is returned as 4001012.
-  @param MajorVersion an integer containing the Major Version.
-  @param MinorVersion an integer containing the Minor Version.
-  @param SubVersion an integer containing the Sub Version (revision).
-  @return an integer containing the full version.
-}
-function EncodeSQLVersioning(const MajorVersion: Integer;
- const MinorVersion: Integer; const SubVersion: Integer): Integer;
-begin
- Result := (MajorVersion * 1000000) + (MinorVersion * 1000) + SubVersion;
 end;
 
 end.

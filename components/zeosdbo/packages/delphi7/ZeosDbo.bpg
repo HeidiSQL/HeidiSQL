@@ -9,8 +9,7 @@ MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
 DCC = $(ROOT)\bin\dcc32.exe $**
 BRCC = $(ROOT)\bin\brcc32.exe $**
 #------------------------------------------------------------------------------
-PROJECTS = ZCore.bpl ZParseSql.bpl ZPlain.bpl ZDbc.bpl ZComponent.bpl \
-  ZComponentDesign70.bpl
+PROJECTS = ZCore.bpl ZParseSql.bpl ZPlain.bpl ZDbc.bpl ZComponent.bpl 
 #------------------------------------------------------------------------------
 default: $(PROJECTS)
 #------------------------------------------------------------------------------
@@ -29,8 +28,4 @@ ZDbc.bpl: ZDbc.dpk
 
 ZComponent.bpl: ZComponent.dpk
   $(DCC)
-
-ZComponentDesign70.bpl: ZComponentDesign.dpk
-  $(DCC)
-
 

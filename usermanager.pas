@@ -61,8 +61,6 @@ type
     Panel4: TPanel;
     ButtonEditUser: TButton;
     Button1: TButton;
-    procedure DBUserTreeExpanding(Sender: TObject; Node: TTreeNode;
-      var AllowExpansion: Boolean);
     procedure ButtonCloseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CheckBoxAllPrivilegesClick(Sender: TObject);
@@ -111,39 +109,22 @@ implementation
 uses
   main, childwin, helpers, edituser;
 
-{$I const.inc}
+
+const
+  crlf = #13#10;
+  // Names of the system tables which hold user-privileges
+  PRIVTABLE_USERS    = 'user';
+  PRIVTABLE_DB       = 'db';
+  PRIVTABLE_TABLES   = 'tables_priv';
+  PRIVTABLE_COLUMNS  = 'columns_priv';
+
+
 {$R *.DFM}
 
 function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 var
   f : TUserManagerForm;
-  test_result : String;
-  cwin : TMDIChild;
 begin
-  // Test if we can access the privileges database and tables by
-  // A. Using the mysql-DB
-  cwin := Mainform.Childwin;
-  try
-    cwin.ExecUseQuery( DBNAME_MYSQL, false );
-  except
-    MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
-    Result := false;
-    exit;
-  end;
-
-  // B. retrieving a count of all users.
-  test_result := cwin.GetVar( 'SELECT COUNT(*) FROM '+mainform.mask(PRIVTABLE_USERS), 0, true, false );
-  if test_result = '' then
-  begin
-    MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
-    Result := false;
-    if cwin.ActualDatabase <> '' then
-    begin
-      cwin.ExecUseQuery( cwin.ActualDatabase );
-    end;
-    exit;
-  end;
-
   f := TUserManagerForm.Create(AOwner);
 
   // use this dirty trick to overcome limitations
@@ -164,8 +145,8 @@ end;
 
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
-  i        : Integer;
-  tntop, tn1, tnu1, tnu2 : TTreeNode;
+  i,j        : Integer;
+  tntop, tn1, tn2, tnu1, tnu2, tnu3 : TTreeNode;
 
 //  wsadat : WSAData;
 //  host : String;
@@ -176,24 +157,33 @@ begin
   TreeViewUsers.Items.Clear;
   PageControl1.ActivePageIndex := 0;
   ShowPrivilegesControls(false, true, false);
-  CheckBoxCreateAccount.Caption := 'Create connection account for ' + APPNAME;
+  CheckBoxCreateAccount.Caption := 'Create connection account for ' + appname;
 
   tnu1 := DBUserTree.Items.Add(nil, 'Global Access');
   tnu1.ImageIndex := 41;
   tnu1.SelectedIndex := tnu1.ImageIndex;
-  tntop := Mainform.Childwin.tnodehost;  // tnodehost on childwin
-  tn1 := tntop.GetFirstChild;
-  for i:=0 to tntop.Count-1 do
+  with TMDIChild(Application.Mainform.ActiveMDIChild) do
   begin
-    tnu2 := DBUserTree.Items.AddChild(tnu1, tn1.Text);
-    tnu2.ImageIndex := tn1.ImageIndex;
-    tnu2.SelectedIndex := tn1.SelectedIndex;
-    DBUserTree.Items.AddChild( tnu2, DUMMY_NODE_TEXT );
-    tn1 := tntop.getNextChild(tn1);
+    tntop := tnodehost;  // tnodehost on childwin
+    tn1 := tntop.GetFirstChild;
+    for i:=0 to tntop.Count-1 do
+    begin
+      tnu2 := DBUserTree.Items.AddChild(tnu1, tn1.Text);
+      tnu2.ImageIndex := tn1.ImageIndex;
+      tnu2.SelectedIndex := tn1.SelectedIndex;
+      for j:=0 to tn1.Count-1 do
+      begin
+        tn2 := tntop.Item[i].Item[j];
+        tnu3 := DBUserTree.Items.AddChild(tnu2, tn1.Text + '.' + tn2.Text);
+        tnu3.ImageIndex := tn2.ImageIndex;
+        tnu3.SelectedIndex := tn2.SelectedIndex;
+      end;
+      tn1 := tntop.getNextChild(tn1);
+
+    end;
+    EditUser.Text := ZQuery3.Connection.User;
 
   end;
-  EditUser.Text := Mainform.Childwin.ZQuery3.Connection.User;
-
   tnu1.Expand(false);
   tnu1.Selected := true;
 
@@ -211,20 +201,22 @@ begin
   EditHost.Text := ph.h_name;
   WSACleanup();
 }
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecUseQuery( DBNAME_MYSQL );
+
   ZQueryDBs := TZReadOnlyQuery.Create(self);
-  ZQueryDBs.Connection := Mainform.Childwin.ZQuery3.Connection;
+  ZQueryDBs.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryTables := TZReadOnlyQuery.Create(self);
-  ZQueryTables.Connection := Mainform.Childwin.ZQuery3.Connection;
+  ZQueryTables.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryColumns := TZReadOnlyQuery.Create(self);
-  ZQueryColumns.Connection := Mainform.Childwin.ZQuery3.Connection;
+  ZQueryColumns.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryUsers := TZReadOnlyQuery.Create(self);
-  ZQueryUsers.Connection := Mainform.Childwin.ZQuery3.Connection;
+  ZQueryUsers.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   ZQueryColumnNames := TZReadOnlyQuery.Create(self);
-  ZQueryColumnNames.Connection := Mainform.Childwin.ZQuery3.Connection;
+  ZQueryColumnNames.Connection := TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection;
 
   Screen.Cursor := crDefault;
 end;
@@ -243,20 +235,20 @@ begin
   if CheckBoxCreateAccount.Checked then
   with TRegistry.Create do
   begin
-    OpenKey(REGPATH + '\Servers\', false);
+    OpenKey(regpath + '\Servers\', false);
     if KeyExists(EditDescription.Text) then
     begin
-      MessageDlg('This Description (' + EditDescription.Text + ') is already used.' + CRLF + 'Please specify another description!', mtError, [mbOK], 0);
+      MessageDlg('This Description (' + EditDescription.Text + ') is already used.' + crlf + 'Please specify another description!', mtError, [mbOK], 0);
       EditDescription.SetFocus;
       exit;
     end
     else with TRegistry.Create do
     begin
-      OpenKey(REGPATH + '\Servers\' + EditDescription.Text, true);
-      WriteString('Host', Mainform.Childwin.ZQuery3.Connection.HostName);
+      OpenKey(regpath + '\Servers\' + EditDescription.Text, true);
+      WriteString('Host', TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection.HostName);
       WriteString('User', EditUser.Text);
       WriteString('Password', encrypt(EditPassword.Text));
-      WriteString('Port', IntToStr(Mainform.Childwin.ZQuery3.Connection.Port));
+      WriteString('Port', IntToStr(TMDIChild(Application.Mainform.ActiveMDIChild).ZQuery3.Connection.Port));
       WriteString('Timeout', '30');
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
@@ -281,8 +273,8 @@ begin
 
   case DBUserTree.Selected.Level of
     0 : access := '*.*';
-    1 : access := MainForm.Mask( DBUserTree.Selected.Text ) + '.*';
-    2 : access := MainForm.Mask( DBUserTree.Selected.Text );
+    1 : access := DBUserTree.Selected.Text + '.*';
+    2 : access := DBUserTree.Selected.Text;
   end;
 
   if EditHost.Text = '' then
@@ -297,8 +289,8 @@ begin
     grant := ' WITH GRANT OPTION';
 
   query := 'GRANT ' + priv + ' ON ' + access + ' TO ''' + EditUser.Text + '''@''' + fromhost + '''' + pass + grant;
-  Mainform.Childwin.ExecUpdateQuery(query);
-  Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery(query);
+  TMDIChild(Application.Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
   ShowMessage('User succesfully created.');
 end;
 
@@ -309,7 +301,7 @@ begin
   EditDescription.Enabled := CheckBoxCreateAccount.Checked;
   if (CheckBoxCreateAccount.Checked) and (EditDescription.Text = '') then
   begin
-    EditDescription.Text := Mainform.Childwin.Caption;
+    EditDescription.Text := TMDIChild(Application.Mainform.ActiveMDIChild).Caption;
     EditDescription.SetFocus;
   end;
 end;
@@ -317,9 +309,8 @@ end;
 
 procedure TUserManagerForm.TreeViewUsersDblClick(Sender: TObject);
 var
-  tnu, tndb             : TTreeNode;
+  tnu, tndb, tntbl      : TTreeNode;
   i                     : Integer;
-  TableNames            : TStringList;
 begin
   // Add subitems to TreeNode:
 
@@ -329,27 +320,34 @@ begin
   case TreeViewUsers.Selected.Level of
 
     0 : // add dbs to user-node...
-      begin
-        tndb := Mainform.Childwin.tnodehost.GetFirstChild;
-        for i:=0 to Mainform.Childwin.tnodehost.Count-1 do
+      with TMDIChild(Application.Mainform.ActiveMDIChild) do begin
+        tndb := tnodehost.GetFirstChild;
+        for i:=0 to tnodehost.Count-1 do
         begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, tndb.Text);
           tnu.ImageIndex := tndb.ImageIndex;
           tnu.SelectedIndex := tndb.SelectedIndex;
-          tndb := Mainform.Childwin.tnodehost.getNextChild(tndb);
+          tndb := tnodehost.getNextChild(tndb);
         end;
       end;
 
     1 : // add tables to user-node...
+      with TMDIChild(Application.Mainform.ActiveMDIChild) do
       begin
-        TableNames := Mainform.Childwin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(TreeViewUsers.Selected.Text) );
-        for i:=0 to TableNames.Count-1 do
-        begin
-          with TreeViewUsers.Items.AddChild( TreeViewUsers.Selected, TableNames[i] ) do
-          begin
-            ImageIndex := 39;
-            SelectedIndex := 40;
-          end;
+        tndb := tnodehost.GetFirstChild;
+        // find according db in dbtree
+        for i:=0 to tnodehost.Count-1 do begin
+          if tndb.Text = TreeViewUsers.Selected.Text then
+            break;
+          tndb := tnodehost.getNextChild(tndb);
+        end;
+
+        tntbl := tndb.GetFirstChild;
+        for i:=0 to tndb.Count-1 do begin
+          tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, tntbl.Text);
+          tnu.ImageIndex := tntbl.ImageIndex;
+          tnu.SelectedIndex := tntbl.SelectedIndex;
+          tntbl := tndb.getNextChild(tntbl);
         end;
       end;
 
@@ -357,7 +355,7 @@ begin
     2 : // add columns to user-node...
       begin
         // find fields from table
-        Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(TreeViewUsers.Selected.Parent.Text) + '.' + mainform.mask(TreeViewUsers.Selected.Text), ZQueryColumnNames );
+        TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(TreeViewUsers.Selected.Parent.Text) + '.' + mainform.mask(TreeViewUsers.Selected.Text), ZQueryColumnNames );
         for i:=1 to ZQueryColumnNames.RecordCount do
         begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, ZQueryColumnNames.Fields[0].AsString);
@@ -406,7 +404,7 @@ begin
         LabelTable.Caption := '<All Tables>'; LabelTable.Font.Color := highlight;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
         if not ZQueryDBs.Active then
-          Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB), ZQueryDBs );
+          TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB), ZQueryDBs );
         ButtonEditUser.Enabled := false;
       end;
     2 : begin
@@ -414,7 +412,7 @@ begin
         LabelTable.Caption := Node.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
         if not ZQueryTables.Active then
-          Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES), ZQueryTables );
+          TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES), ZQueryTables );
         ButtonEditUser.Enabled := false;
       end;
     3 : begin
@@ -422,7 +420,7 @@ begin
         LabelTable.Caption := Node.Parent.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := Node.Text; LabelColumn.Font.Color := clWindowText;
         if not ZQueryColumns.Active then
-          Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS), ZQueryColumns );
+          TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS), ZQueryColumns );
         ButtonEditUser.Enabled := false;
       end;
   end;
@@ -448,7 +446,7 @@ begin
   if (PageControl1.ActivePage = TabSheetEditUsers) and
     (TreeViewUsers.Items.Count = 0) then
   begin
-    Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS), ZQueryUsers );
+    TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS), ZQueryUsers );
     for i:=1 to ZQueryUsers.RecordCount do
     begin
       tn := TreeViewUsers.Items.AddChild(nil, ZQueryUsers.Fields[1].AsString + '@' + ZQueryUsers.Fields[0].AsString );
@@ -484,8 +482,8 @@ procedure TUserManagerForm.ShowPrivilegesControls(v, w, y: Boolean);
     tmpstr      : String;
   begin
     q := TZReadOnlyQuery.Create(self);
-    q.Connection := Mainform.Childwin.ZQuery3.Connection;
-    Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable), q );
+    q.Connection := TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection;
+    TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable), q );
     result := TStringList.Create;
     for i := 0 to q.RecordCount-1 do
     begin
@@ -500,7 +498,7 @@ procedure TUserManagerForm.ShowPrivilegesControls(v, w, y: Boolean);
         // table + column are set(x,y,z)
         else if StrCmpBegin( 'set', q.FieldByName('Type').AsString ) then
         begin
-          tmpstr := getEnumValues(q.FieldByName('Type').AsString);
+          tmpstr := getklammervalues(q.FieldByName('Type').AsString);
           tmpstr := StringReplace( tmpstr, '''', '', [rfReplaceAll] );
           setlist := explode(',', tmpstr );
           for j:=0 to setlist.Count-1 do
@@ -764,7 +762,7 @@ begin
         sql := 'UPDATE '+mainform.mask(PRIVTABLE_USERS)+' SET ';
         sql := sql + getUpdateClause;
         sql := sql + ' WHERE Host = ''' + Host + ''' AND User = ''' + User + '''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         GetResUsers;
       end;
 
@@ -784,7 +782,7 @@ begin
           sql := sql + ')';
           editcurrent := true;
         end;
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         GetResDBs;
       end;
 
@@ -799,12 +797,12 @@ begin
         begin
           sql := 'INSERT INTO '+mainform.mask(PRIVTABLE_TABLES)+' (Host, Db, User, Table_name, Grantor, ';
           sql := sql + ImplodeStr( ', ', getColumnNamesOrValues( 'columns' ) );
-          sql := sql + ') VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+Mainform.Childwin.ZQuery3.Connection.User+''', ';
+          sql := sql + ') VALUES ('''+Host+''','''+TreeViewUsers.Selected.Parent.Text+''','''+User+''','''+TreeViewUsers.Selected.Text+''','''+TMDIChild(Mainform.ActiveMDIChild).ZQuery3.Connection.User+''', ';
           sql := sql + '''' + ImplodeStr( ''', ''', getColumnNamesOrValues( 'values' ) ) + '''';
           sql := sql + ')';
           editcurrent := true;
         end;
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         GetResTables;
       end;
 
@@ -822,11 +820,11 @@ begin
           sql := sql + ')';
           editcurrent := true;
         end;
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         GetResColumns;
       end;
   end;
-  Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
+  TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
   ButtonRevoke.Enabled := editcurrent;
   Screen.Cursor := crDefault;
 end;
@@ -843,8 +841,6 @@ begin
   ZQueryTables.Active := False;
   ZQueryColumns.Active := False;
   ZQueryColumnNames.Active := False;
-  if Mainform.Childwin.ActualDatabase <> '' then
-    Mainform.Childwin.ExecUseQuery( Mainform.Childwin.ActualDatabase );
 end;
 
 
@@ -853,35 +849,6 @@ begin
   ButtonSet.Enabled := true;
 end;
 
-
-{***
-  A database-node is about to be expanded:
-  Drop the dummy-node and add all tables
-}
-procedure TUserManagerForm.DBUserTreeExpanding(Sender: TObject; Node: TTreeNode;
-  var AllowExpansion: Boolean);
-var
-  i : Integer;
-  TableNames : TStringList;
-begin
-  if (Node.getFirstChild <> nil) and (Node.getFirstChild.Text = DUMMY_NODE_TEXT) then
-  begin
-    // Drop dummynode
-    for i := Node.Count-1 downto 0 do
-      Node.Item[i].delete;
-    // Get all tables into dbtree
-    TableNames := Mainform.Childwin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(Node.Text) );
-    for i:=0 to TableNames.Count-1 do
-    begin
-      with DBUserTree.Items.AddChild( Node, TableNames[i] ) do
-      begin
-        ImageIndex := 39;
-        SelectedIndex := 40;
-      end;
-    end;
-
-  end;
-end;
 
 procedure TUserManagerForm.ButtonRevokeClick(Sender: TObject);
 var sql : String;
@@ -892,43 +859,43 @@ begin
     0 : // delete user
       if MessageDLG('Delete User '''+User+''' and all its privileges?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_USERS)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_DB)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_TABLES)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_COLUMNS)+' WHERE Host='''+Host+''' AND User='''+User+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         TreeViewUsers.Selected.Delete;
         ZQueryDBs.Active := False;
         ZQueryTables.Active := False;
         ZQueryColumns.Active := False;
         GetResUsers;
-        Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     1 : // delete db-privs
       begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_DB)+' WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Text+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
         GetResDBs;
-        Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     2 : // delete table-privs
       begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_TABLES)+' WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Text+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
         GetResTables;
-        Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
     3 : // delete column-privs
       begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_COLUMNS)+' WHERE Host='''+Host+''' AND User='''+User+''' AND Db='''+TreeViewUsers.Selected.Parent.Parent.Text+''' AND Table_name='''+TreeViewUsers.Selected.Parent.Text+''' AND Column_name='''+TreeViewUsers.Selected.Text+'''';
-        Mainform.Childwin.ExecUpdateQuery(sql);
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery(sql);
         ShowPrivilegesControls(false, false, true);
         GetResColumns;
-        Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
+        TMDIChild(Mainform.ActiveMDIChild).ExecQuery('FLUSH PRIVILEGES');
       end;
   end;
   Screen.Cursor := crDefault;
@@ -955,22 +922,22 @@ end;
 
 procedure TUserManagerForm.GetResUsers;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS), ZQueryUsers );
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS), ZQueryUsers );
 end;
 
 procedure TUserManagerForm.GetResDBs;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB), ZQueryDBs );
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB), ZQueryDBs );
 end;
 
 procedure TUserManagerForm.GetResTables;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES), ZQueryTables );
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES), ZQueryTables );
 end;
 
 procedure TUserManagerForm.GetResColumns;
 begin
-  Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS), ZQueryColumns );
+  TMDIChild(Mainform.ActiveMDIChild).GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS), ZQueryColumns );
 end;
 
 end.

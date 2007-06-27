@@ -3,7 +3,7 @@
 #include <vcl.h>
 #pragma hdrstop
 USERES("ZPlain.res");
-USEPACKAGE("rtl.bpi");
+USEPACKAGE("vcl50.bpi");
 USEPACKAGE("ZCore.bpi");
 USEUNIT("..\..\src\plain\ZPlainPostgreSqlDriver.pas");
 USEUNIT("..\..\src\plain\ZPlainAdo.pas");
@@ -16,7 +16,6 @@ USEUNIT("..\..\src\plain\ZPlainDbLibSybaseAse125.pas");
 USEUNIT("..\..\src\plain\ZPlainDriver.pas");
 USEUNIT("..\..\src\plain\ZPlainFirebird10.pas");
 USEUNIT("..\..\src\plain\ZPlainFirebird15.pas");
-USEUNIT("..\..\src\plain\ZPlainFirebird20.pas");
 USEUNIT("..\..\src\plain\ZPlainInterbase5.pas");
 USEUNIT("..\..\src\plain\ZPlainInterbase6.pas");
 USEUNIT("..\..\src\plain\ZPlainInterbaseDriver.pas");
@@ -26,13 +25,13 @@ USEUNIT("..\..\src\plain\ZPlainMySql41.pas");
 USEUNIT("..\..\src\plain\ZPlainMySql320.pas");
 USEUNIT("..\..\src\plain\ZPlainMySql323.pas");
 USEUNIT("..\..\src\plain\ZPlainMySqlDriver.pas");
-USEUNIT("..\..\src\plain\ZPlainPostgreSql7.pas");
-USEUNIT("..\..\src\plain\ZPlainPostgreSql8.pas");
+USEUNIT("..\..\src\plain\ZPlainPostgreSql73.pas");
+USEUNIT("..\..\src\plain\ZPlainPostgreSql74.pas");
+USEUNIT("..\..\src\plain\ZPlainPostgreSql8x.pas");
 USEUNIT("..\..\src\plain\ZPlainSqLiteDriver.pas");
 USEUNIT("..\..\src\plain\ZPlainOracle9i.pas");
 USEUNIT("..\..\src\plain\ZPlainOracleDriver.pas");
 USEUNIT("..\..\src\plain\ZPlainSqLite28.pas");
-USEUNIT("..\..\src\plain\ZPlainSqLite3.pas");
 USEUNIT("..\..\src\plain\ZPlainASADriver.pas");
 USEUNIT("..\..\src\plain\ZPlainASA9.pas");
 USEUNIT("..\..\src\plain\ZPlainASA8.pas");
