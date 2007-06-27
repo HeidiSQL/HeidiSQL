@@ -102,10 +102,6 @@ object MDIChild: TMDIChild
         object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -118,10 +114,6 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TSortListView
                 Tag = -1
                 Left = 0
@@ -286,10 +278,6 @@ object MDIChild: TMDIChild
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 38
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             496
             220)
@@ -465,10 +453,6 @@ object MDIChild: TMDIChild
         object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 40
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             496
             220)
@@ -1048,10 +1032,6 @@ object MDIChild: TMDIChild
     object tabSQLLog: TTabSheet
       Caption = 'SQL Log'
       ImageIndex = 79
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 112
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1078,7 +1058,6 @@ object MDIChild: TMDIChild
         Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
         RightEdge = 40
-        ExplicitHeight = 112
         RemovedKeystrokes = <
           item
             Command = ecDeleteLastChar
@@ -1102,10 +1081,6 @@ object MDIChild: TMDIChild
     object tabBlobEditor: TTabSheet
       Caption = 'BLOB-Editor'
       ImageIndex = 80
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1231,7 +1206,6 @@ object MDIChild: TMDIChild
               Color = clBtnFace
               Stretch = True
               TabOrder = 0
-              ExplicitHeight = 80
             end
           end
         end
@@ -1240,10 +1214,6 @@ object MDIChild: TMDIChild
     object tabFilter: TTabSheet
       Caption = 'Filter'
       ImageIndex = 81
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
