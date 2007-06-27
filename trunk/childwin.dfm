@@ -144,10 +144,6 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 197
               object ListProcesses: TSortListView
                 Tag = -1
                 Left = 0
@@ -201,16 +197,11 @@ object MDIChild: TMDIChild
                 OnSelectItem = ListProcessesSelectItem
                 ImageIndexSortAsc = 95
                 ImageIndexSortDesc = 94
-                ExplicitHeight = 197
               end
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 197
               object ListCommandStats: TSortListView
                 Left = 0
                 Top = 0
@@ -252,7 +243,6 @@ object MDIChild: TMDIChild
                 ViewStyle = vsReport
                 ImageIndexSortAsc = 95
                 ImageIndexSortDesc = 94
-                ExplicitHeight = 197
               end
             end
           end
@@ -364,7 +354,6 @@ object MDIChild: TMDIChild
             OnSelectItem = ListTablesSelectItem
             ImageIndexSortAsc = 95
             ImageIndexSortDesc = 94
-            ExplicitHeight = 218
           end
           object ToolBar1: TToolBar
             Left = 3
@@ -543,7 +532,6 @@ object MDIChild: TMDIChild
             Anchors = [akLeft, akTop, akRight, akBottom]
             BevelOuter = bvNone
             TabOrder = 2
-            ExplicitHeight = 218
             object ListColumns: TSortListView
               Tag = -1
               Left = 0
@@ -586,7 +574,6 @@ object MDIChild: TMDIChild
               OnSelectItem = ListColumnsSelectItem
               ImageIndexSortAsc = 95
               ImageIndexSortDesc = 94
-              ExplicitHeight = 218
             end
           end
           object ToolBar6: TToolBar
@@ -1159,10 +1146,6 @@ object MDIChild: TMDIChild
         OnChange = PageControlBlobEditorsChange
         object tabBlobEditorText: TTabSheet
           Caption = 'Text'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object DBMemo1: TDBMemo
             Left = 0
             Top = 0
@@ -1185,10 +1168,6 @@ object MDIChild: TMDIChild
         object tabBlobEditorImage: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 84
           object ScrollBox1: TScrollBox
             Left = 0
             Top = 0
@@ -1196,7 +1175,6 @@ object MDIChild: TMDIChild
             Height = 106
             Align = alClient
             TabOrder = 0
-            ExplicitHeight = 84
             object EDBImage1: TEDBImage
               Left = 0
               Top = 0
@@ -1239,7 +1217,6 @@ object MDIChild: TMDIChild
         Highlighter = SynSQLSyn1
         Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
         RightEdge = 40
-        ExplicitHeight = 83
         RemovedKeystrokes = <
           item
             Command = ecDeleteLastChar
