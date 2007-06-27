@@ -52,8 +52,8 @@ var
   ts: TTabSheet;
   list: TSortListView;
   ListTables: TSortListView;
-  datasize: Integer;
-  indexsize: Integer;
+  datasize: Int64;
+  indexsize: Int64;
   isSelected: Boolean;
   FieldList: TStringList;
   splitter: TSplitter;
