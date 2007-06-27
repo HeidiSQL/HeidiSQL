@@ -1,0 +1,52 @@
+package ZParseSql;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos SQL Parsing Classes and Interfaces'}
+{$RUNONLY ON}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  ZCore;
+
+contains
+  ZSybaseToken in '../../src/parsesql/ZSybaseToken.pas',
+  ZGenericSqlToken in '../../src/parsesql/ZGenericSqlToken.pas',
+  ZInterbaseToken in '../../src/parsesql/ZInterbaseToken.pas',
+  ZMySqlToken in '../../src/parsesql/ZMySqlToken.pas',
+  ZPostgreSqlToken in '../../src/parsesql/ZPostgreSqlToken.pas',
+  ZSelectSchema in '../../src/parsesql/ZSelectSchema.pas',
+  ZGenericSqlAnalyser in '../../src/parsesql/ZGenericSqlAnalyser.pas',
+  ZMySqlAnalyser in '../../src/parsesql/ZMySqlAnalyser.pas',
+  ZPostgreSqlAnalyser in '../../src/parsesql/ZPostgreSqlAnalyser.pas',
+  ZInterbaseAnalyser in '../../src/parsesql/ZInterbaseAnalyser.pas',
+  ZSybaseAnalyser in '../../src/parsesql/ZSybaseAnalyser.pas',
+  ZScriptParser in '../../src/parsesql/ZScriptParser.pas',
+  ZOracleToken in '../../src/parsesql/ZOracleToken.pas',
+  ZOracleAnalyser in '../../src/parsesql/ZOracleAnalyser.pas',
+  ZSqLiteToken in '../../src/parsesql/ZSqLiteToken.pas',
+  ZSqLiteAnalyser in '../../src/parsesql/ZSqLiteAnalyser.pas';
+
+end.
+

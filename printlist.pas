@@ -2,6 +2,7 @@ unit printlist;
 
 
 // -------------------------------------
+// HeidiSQL
 // Print TListView-Content
 // -------------------------------------
 
@@ -48,24 +49,22 @@ uses childwin, main;
 procedure TprintlistForm.FormShow(Sender: TObject);
 var
   i,t : Integer;
-  cwin : TMDIChild;
 begin
   // show!
   Screen.Cursor := crHourGlass;
   ComboBoxPrinters.Items := Printer.printers;
   ComboBoxPrinters.ItemIndex := Printer.printerIndex;
 
-  cwin := Mainform.ChildWin;
-
   // which ListView to print?
-  case cwin.PageControlMain.ActivePageIndex of
-    0 : case cwin.PageControlHost.ActivePageIndex of
-      0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.ZQuery3.Connection.HostName; end;
-      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.ZQuery3.Connection.HostName; end;
-      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.ZQuery3.Connection.HostName; end;
+  with TMDIChild(Mainform.activeMDIChild) do begin
+    case PageControl1.ActivePageIndex of
+    0 : case PageControl2.ActivePageIndex of
+      0 : begin list := VariabelListe; title := 'Server-Variables for ' + ZConn.HostName; end;
+      1 : begin list := ProcessListe; title := 'Processlist for ' + ZConn.HostName; end;
       end;
-    1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
-    2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActualDatabase + '/' + cwin.ActualTable; end;
+    1 : begin list := TabellenListe; title := 'Tables-List for Database ' + ActualDatabase; end;
+    2 : begin list := FeldListe; title := 'Field-List for ' + ActualDatabase + '/' + ActualTable; end;
+    end;
   end;
   caption := 'Print ' + title + '...';
 
@@ -133,7 +132,7 @@ begin
 
   lspace := 200;
   rspace := 100;
-  Printer.Title := APPNAME + ': ' + Title;
+  Printer.Title := main.appname + ': ' + Title;
   Printer.BeginDoc;
 
   with Printer.Canvas do begin
@@ -148,7 +147,7 @@ begin
 
     Font.Height := 40;
     Font.Style := [fsBold];
-    TextOut(lspace, -100, APPNAME + ': ' + title);
+    TextOut(lspace, -100, main.appname + ': ' + title);
     Font.Height := 30;
 
     // print columns

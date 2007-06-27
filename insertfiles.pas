@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math, insertfiles_progress;
+  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math;
 
 type TCol = record
   Name   : String;   // for displaying in lists
@@ -61,33 +61,23 @@ type
       Change: TItemChange);
 
   private
-    FProgressForm : TfrmInsertFilesProgress;
-
+    { Private declarations }
   public
     { Public declarations }
     cols : Array of TCol;
     procedure AcceptFiles( var msg : TMessage ); message WM_DROPFILES;
   end;
 
-  function InsertFilesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
+var
+  frmInsertFiles: TfrmInsertFiles;
 
 implementation
 
-uses main, childwin, helpers;
+uses main, childwin, insertfiles_progress, helpers;
 
 {$R *.DFM}
 
-
-function InsertFilesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
-var
-  f : TfrmInsertFiles;
-begin
-  f := TfrmInsertFiles.Create(AOwner);
-  // todo: pass flags
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil (f);
-end;
 
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
@@ -96,44 +86,51 @@ var
   i : Integer;
 begin
   ComboBoxDBs.Items.Clear;
-  Caption := Mainform.ChildWin.MysqlConn.Description + ' - Insert files into table ...';
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      ComboBoxDBs.Items.Add(tn.Text);
-  end;
-
-  for i:=0 to ComboBoxDBs.Items.Count-1 do
-  begin
-    if ComboBoxDBs.Items[i] = Mainform.ChildWin.ActualDatabase then
-    begin
-      ComboBoxDBs.ItemIndex := i;
+  with TMDIChild(Mainform.ActiveMDIChild) do begin
+    self.Caption := ZConn.HostName + ' - Insert files into table ...';
+    for i:=0 to DBTree.Items.Count-1 do begin
+      tn := DBTree.Items[i];
+      if tn.Level = 1 then
+        ComboBoxDBs.Items.Add(tn.Text);
     end;
-  end;
 
-  if ComboBoxDBs.ItemIndex = -1 then
-  begin
-    ComboBoxDBs.ItemIndex := 0;
-  end;
+    for i:=0 to ComboBoxDBs.Items.Count-1 do
+      if ComboBoxDBs.Items[i] = ActualDatabase then
+        ComboBoxDBs.ItemIndex := i;
 
+    if ComboBoxDBs.ItemIndex = -1 then
+      ComboBoxDBs.ItemIndex := 0;
+
+  end;
   ComboBoxDBsChange(self);
 end;
 
 
 { Read tables from selected DB }
 procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
+var
+  tn, child : TTreeNode;
+  i,j : Integer;
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-
-  // Fetch tables from DB
-  ComboBoxTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(ComboBoxDBs.Text) );
-
-  if ComboBoxTables.Items.Count > 0 then
-  begin
-    ComboBoxTables.ItemIndex := 0;
+  with TMDIChild(Mainform.ActiveMDIChild) do begin
+    for i:=0 to DBTree.Items.Count-1 do
+    begin
+      tn := DBTree.Items[i];
+      if tn.Text = ComboBoxDBs.Text then
+      begin
+        child := tn.getFirstChild;
+        for j:=0 to tn.Count-1 do
+        begin
+          ComboBoxTables.Items.Add(child.Text);
+          child := tn.getNextChild(child);
+        end;
+      end;
+    end;
   end;
+  if ComboBoxTables.Items.Count > 0 then
+    ComboBoxTables.ItemIndex := 0;
   ComboBoxTablesChange(self);
 end;
 
@@ -143,15 +140,18 @@ var i : Integer;
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then
-    Mainform.ChildWin.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text), Mainform.ChildWin.ZQuery3);
-    for i:=1 to Mainform.ChildWin.ZQuery3.RecordCount do
+    with TMDIChild(Mainform.ActiveMDIChild) do
     begin
-      setlength(cols, length(cols)+1);
-      cols[length(cols)-1].Name := Mainform.ChildWin.ZQuery3.Fields[0].AsString;
-      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(Mainform.ChildWin.ZQuery3.Fields[1].AsString)) > 0) or (pos('text', lowercase(Mainform.ChildWin.ZQuery3.Fields[1].AsString)) > 0);
-      cols[length(cols)-1].Value := 'NULL';
-      cols[length(cols)-1].Quote := false;
-      Mainform.ChildWin.ZQuery3.Next;
+      GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text), ZQuery3);
+      for i:=1 to ZQuery3.RecordCount do
+      begin
+        setlength(cols, length(cols)+1);
+        cols[length(cols)-1].Name := ZQuery3.Fields[0].AsString;
+        cols[length(cols)-1].isBLOB := (pos('blob', lowercase(ZQuery3.Fields[1].AsString)) > 0) or (pos('text', lowercase(ZQuery3.Fields[1].AsString)) > 0);
+        cols[length(cols)-1].Value := 'NULL';
+        cols[length(cols)-1].Quote := false;
+        ZQuery3.Next;
+      end;
     end;
   DisplayColumns(self);
 end;
@@ -181,7 +181,7 @@ end;
 { Cancel! }
 procedure TfrmInsertFiles.ButtonCancelClick(Sender: TObject);
 begin
-  ModalResult := mrCancel;
+  close;
 end;
 
 { buttons need to be checked for being enabled }
@@ -198,8 +198,7 @@ var
   Info    : TSHFileInfo;
 begin
   attrs := filegetattr(filename);
-  if attrs and faDirectory <> 0 then
-    exit;
+  if attrs and faDirectory <> 0 then exit;
   li := ListViewFiles.Items.Add;
   li.Caption := filename;
   filesize := ceil(_getfilesize(filename) / 1024);
@@ -213,8 +212,7 @@ procedure TfrmInsertFiles.ButtonAddFilesClick(Sender: TObject);
 var
   i : Integer;
 begin
-  if OpenDialog.Execute then
-  begin
+  if OpenDialog.Execute then begin
     Screen.Cursor := crHourglass;
     ListViewFiles.Items.BeginUpdate;
     try
@@ -238,15 +236,10 @@ begin
   ButtonRemoveFiles.Enabled := ListViewFiles.SelCount > 0;
   ButtonClearList.Enabled := ListViewFiles.Items.Count > 0;
   kbytes := 0;
-  with LabelFileCount do
-  begin
+  with LabelFileCount do begin
     for i:=0 to ListViewFiles.Items.Count-1 do
-    begin
       if ListViewFiles.Items[i].SubItems.Count > 0 then
-      begin
         kbytes := kbytes + strtointdef(ListViewFiles.Items[i].Subitems[0], 0);
-      end;
-    end;
     Caption := format('%u files, %.0n KB, %u files selected.', [ListViewFiles.Items.count, kbytes, ListViewFiles.selcount]);
   end;
   Modified;
@@ -258,25 +251,17 @@ var
   i, lastdel : Integer;
 begin
   Screen.Cursor := crHourglass;
-  lastdel := -1;
   ListViewFiles.Items.BeginUpdate;
   for i:=ListViewFiles.Items.Count-1 downto 0 do
-  begin
-    if ListViewFiles.Items[i].Selected then
-    begin
+    if ListViewFiles.Items[i].Selected then begin
       ListViewFiles.Items[i].Delete;
       lastdel := i;
     end;
-  end;
   ListViewFiles.Items.EndUpdate;
   if ListViewFiles.Items.count > lastdel then
-  begin
-    ListViewFiles.Selected := ListViewFiles.Items[lastdel];
-  end
+    ListViewFiles.Selected := ListViewFiles.Items[lastdel]
   else if ListViewFiles.Items.count > 0 then
-  begin
     ListViewFiles.Selected := ListViewFiles.Items[lastdel-1];
-  end;
   ListViewFiles.SetFocus;
   ListViewFilesClick(self); // count files and (de-)activate buttons
   Screen.Cursor := crDefault;
@@ -326,8 +311,7 @@ var i : Integer;
 begin
   ListBoxOtherFields.Items.BeginUpdate;
   ListBoxOtherFields.Items.Clear;
-  for i:=0 to length(cols)-1 do
-  begin
+  for i:=0 to length(cols)-1 do begin
     if ComboBoxColumns.Text <> cols[i].Name then
       ListBoxOtherFields.Items.Add(cols[i].Name);
   end;
@@ -354,10 +338,7 @@ begin
   CheckBoxQuote.Enabled := enable;
   if not enable then exit;
   for i:=0 to length(cols)-1 do
-  begin
-    if ListBoxOtherFields.Items[ListBoxOtherFields.ItemIndex] = cols[i].Name then
-      break;
-  end;
+    if ListBoxOtherFields.Items[ListBoxOtherFields.ItemIndex] = cols[i].Name then break;
   ComboBoxValue.Text := cols[i].Value;
   CheckBoxQuote.Checked := cols[i].Quote;
 end;
@@ -376,16 +357,14 @@ end;
 { ok, let's rock! }
 procedure TfrmInsertFiles.ButtonInsertClick(Sender: TObject);
 begin
-  FProgressForm := TfrmInsertFilesProgress.Create(Self); 
-  FProgressForm.InsertFilesForm := Self;
-  FProgressForm.ShowModal;
+  frmInsertFilesProgress.ShowModal;
 end;
 
 { Execute selected file }
 procedure TfrmInsertFiles.ListViewFilesDblClick(Sender: TObject);
 begin
   if ListViewFiles.Selected <> nil then
-    ShellExec( ListViewFiles.Selected.Caption );
+    shellexecute(0, 'open', pchar(ListViewFiles.Selected.Caption), nil, nil, SW_SHOWNORMAL);
 end;
 
 { for file-dropping into listview }

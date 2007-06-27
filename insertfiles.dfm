@@ -1,10 +1,10 @@
 object frmInsertFiles: TfrmInsertFiles
   Left = 262
   Top = 131
+  Width = 519
+  Height = 475
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Insert files...'
-  ClientHeight = 448
-  ClientWidth = 511
   Color = clBtnFace
   Constraints.MinHeight = 353
   Constraints.MinWidth = 475
@@ -19,7 +19,7 @@ object frmInsertFiles: TfrmInsertFiles
   OnShow = FormShow
   DesignSize = (
     511
-    448)
+    441)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
