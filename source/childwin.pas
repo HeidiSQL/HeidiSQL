@@ -1563,7 +1563,7 @@ begin
         // give all enum-fields a PickList with its Items
         if ( StrCmpBegin( 'enum', ListColumns.Items[i].SubItems[0]) ) then
         begin
-          DropDown := explode( ''', ''', getEnumValues( ListColumns.Items[i].SubItems[0] ) );
+          DropDown := explode( ''',''', getEnumValues( ListColumns.Items[i].SubItems[0] ) );
           for j := 0 to ( DropDown.Count - 1 ) do
           begin
             DropDown[j] := trimc( DropDown[j], '''' );
