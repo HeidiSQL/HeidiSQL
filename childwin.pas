@@ -457,7 +457,6 @@ type
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
       StopOnErrors, WordWrap     : Boolean;
-      FCurDataset                : TDataSet;
       FMysqlConn                 : TMysqlConn;
       FConn                      : TOpenConnProf;
       QueryRunningInterlock      : Integer;
@@ -470,7 +469,7 @@ type
       function GetActiveGrid: TSMDBGrid;
       procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
-      procedure DisplayRowCountStats;
+      procedure DisplayRowCountStats(ds: TDataSet);
 
     public
       ActualDatabase             : String;
@@ -1282,6 +1281,7 @@ var
   manualLimit          : boolean;
   manualLimitEnd       : integer;
   DisplayedColumnsList : TStringList;
+  tmp                  : TDataSet;
 begin
   viewingdata := true;
   try
@@ -1445,11 +1445,6 @@ begin
 
       MainForm.ShowStatus( 'Retrieving data...', 2, true );
 
-      if ( FCurDataset <> nil ) then
-      begin
-        FreeAndNil( FCurDataset );
-      end;
-
       // Read columns to display from registry
       with( TRegistry.Create ) do
       begin
@@ -1513,11 +1508,9 @@ begin
         end;
 
         // free previous resultset
-        try
-          DataSource1.DataSet.Free;
-          DataSource1.DataSet := nil;
-        except
-        end;
+        tmp := DataSource1.DataSet;
+        DataSource1.DataSet := nil;
+        FreeAndNil(tmp);
 
         // start query (with wait dialog)
         SynMemoFilter.Color := clWindow;
@@ -1533,7 +1526,6 @@ begin
         MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
         mq.MysqlDataset.DisableControls();
         DataSource1.DataSet := mq.MysqlDataset;
-        FCurDataset := mq.MysqlDataset;
 
         // Attach After- and Before-Events to the new dataset
         with ( mq.MysqlDataset ) do
@@ -1604,7 +1596,7 @@ begin
         // for letting NULLs being inserted into "NOT NULL" fields
         // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
         // so the Required-check on client-side is not needed at any time
-        FCurDataset.Fields[j].Required := false;
+        mq.MysqlDataset.Fields[j].Required := false;
 
         // set column-width
         if (
@@ -1626,7 +1618,7 @@ begin
         end;
       end;
 
-      DisplayRowCountStats();
+      DisplayRowCountStats(mq.MysqlDataset);
       dataselected := true;
       viewingdata := false;
       mq.MysqlDataset.EnableControls();
@@ -1645,7 +1637,7 @@ end;
   Calculate + display total rowcount and found rows matching to filter
   in data-tab
 }
-procedure TMDIChild.DisplayRowCountStats;
+procedure TMDIChild.DisplayRowCountStats(ds: TDataSet);
 var
   rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
@@ -1713,7 +1705,7 @@ begin
   ) then
   begin
     Panel5.Caption := Panel5.Caption + ', limited to ' +
-      FormatNumber( FCurDataset.RecordCount );
+      FormatNumber( ds.RecordCount );
   end;
 end;
 
@@ -2615,8 +2607,10 @@ begin
     exit;
   end;
 
-  // Unlink ZQuery1 from db-controls, relink them when query was successful
+  // Destroy old data set.
+  ds := DataSource2.DataSet;
   DataSource2.DataSet := nil;
+  FreeAndNil(ds);
   // set db-aware-component's properties..
   DBMemo1.DataField := '';
   DBMemo1.DataSource := DataSource2;
@@ -4631,7 +4625,7 @@ begin
   end;
 
   // Display row count and filter-matchings above dbgrid
-  DisplayRowCountStats;
+  DisplayRowCountStats(DataSet);
 end;
 
 procedure TMDIChild.ZQueryGridBeforeClose(DataSet: TDataSet);
