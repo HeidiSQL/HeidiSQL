@@ -6,7 +6,7 @@ uses
   Windows, Classes, Controls, Forms, Dialogs, SysUtils,
   ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics;
 
-{$I ../../../const.inc}
+{$I ../../../source/const.inc}
 
 type
   TSortListView = class(TListView)
