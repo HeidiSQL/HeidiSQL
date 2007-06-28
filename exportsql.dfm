@@ -39,8 +39,6 @@ object ExportSQLForm: TExportSQLForm
     Default = True
     TabOrder = 0
     OnClick = btnExportClick
-    ExplicitLeft = 436
-    ExplicitTop = 357
   end
   object btnCancel: TButton
     Left = 551
@@ -52,8 +50,6 @@ object ExportSQLForm: TExportSQLForm
     Caption = 'Cancel'
     TabOrder = 1
     OnClick = btnCancelClick
-    ExplicitLeft = 518
-    ExplicitTop = 357
   end
   object barProgress: TProgressBar
     Left = 3
@@ -76,7 +72,6 @@ object ExportSQLForm: TExportSQLForm
     TabOrder = 3
     object TabSheet1: TTabSheet
       Caption = 'Source'
-      ExplicitHeight = 331
       DesignSize = (
         614
         325)
@@ -96,7 +91,6 @@ object ExportSQLForm: TExportSQLForm
         ItemHeight = 13
         TabOrder = 1
         OnKeyDown = checkListTablesKeyDown
-        ExplicitHeight = 269
       end
       object comboSelectDatabase: TComboBox
         Left = 8
@@ -108,7 +102,6 @@ object ExportSQLForm: TExportSQLForm
         ItemHeight = 13
         TabOrder = 0
         OnChange = comboSelectDatabaseChange
-        ExplicitWidth = 158
       end
       object toolbarSelectTools: TToolBar
         Left = 558
@@ -125,7 +118,6 @@ object ExportSQLForm: TExportSQLForm
         ParentShowHint = False
         ShowHint = True
         TabOrder = 2
-        ExplicitLeft = 174
         object ToolButton1: TToolButton
           Left = 0
           Top = 0
@@ -148,8 +140,6 @@ object ExportSQLForm: TExportSQLForm
     object TabSheet2: TTabSheet
       Caption = 'Destination'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 28
       DesignSize = (
         614
         325)
@@ -181,7 +171,6 @@ object ExportSQLForm: TExportSQLForm
             307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
             777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
             7700777777777077707077777777770007777777777777777777}
-          ExplicitLeft = 300
         end
         object editFileName: TEdit
           Left = 32
@@ -191,7 +180,6 @@ object ExportSQLForm: TExportSQLForm
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
           OnDblClick = btnFileBrowseClick
-          ExplicitWidth = 266
         end
         object radioOtherDatabase: TRadioButton
           Left = 16
@@ -224,7 +212,6 @@ object ExportSQLForm: TExportSQLForm
           Enabled = False
           ItemHeight = 13
           TabOrder = 4
-          ExplicitWidth = 290
         end
         object radioOtherHost: TRadioButton
           Left = 16
@@ -258,7 +245,6 @@ object ExportSQLForm: TExportSQLForm
           Enabled = False
           ItemHeight = 13
           TabOrder = 7
-          ExplicitWidth = 145
         end
       end
       object groupExampleSql: TGroupBox
@@ -291,8 +277,6 @@ object ExportSQLForm: TExportSQLForm
           Gutter.Visible = False
           Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
           ReadOnly = True
-          ExplicitLeft = 3
-          ExplicitHeight = 111
           RemovedKeystrokes = <
             item
               Command = ecContextHelp
