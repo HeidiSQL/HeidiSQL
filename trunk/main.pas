@@ -228,7 +228,6 @@ type
     DefaultColWidth            : Integer;
     NativeFieldTypes           : Boolean;
     LanguageOffset             : Integer;
-    DataAlwaysEditMode         : Boolean;
     DataNullBackground         : TColor;
     sqlfunctionlist            : TStringList;
     function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
@@ -486,9 +485,6 @@ begin
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
 
       // Other values
-      DataAlwaysEditMode := true;
-      if valueExists('DataAlwaysEditMode') then
-        DataAlwaysEditMode := ReadBool('DataAlwaysEditMode');
       if valueExists('DataNullBackground') then
         DataNullBackground := StringToColor(ReadString('DataNullBackground'))
       else
