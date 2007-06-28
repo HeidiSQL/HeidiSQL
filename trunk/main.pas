@@ -358,11 +358,20 @@ var
   flushwhat : String;
 begin
   if sender is TMenuItem then
-    flushwhat := (sender as TMenuItem).Caption
+    flushwhat := UpperCase((sender as TMenuItem).Caption)
   else if sender is TToolButton then
     flushwhat := 'PRIVILEGES';
   delete(flushwhat, pos('&', flushwhat), 1);
   ChildWin.ExecUpdateQuery('FLUSH ' + flushwhat);
+  if sender = MenuFlushTableswithreadlock then begin
+    MessageDlg(
+      'Tables have been flushed and read lock acquired.'#10 +
+      'Perform backup or snapshot of table data files now.'#10 +
+      'Press OK to unlock when done...',
+      mtInformation, [mbOk], 0
+    );
+    ChildWin.ExecUpdateQuery('UNLOCK TABLES');
+  end;
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
