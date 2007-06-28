@@ -428,7 +428,6 @@ object UserManagerForm: TUserManagerForm
           Font.Name = 'MS Sans Serif'
           Font.Style = [fsBold]
           ParentFont = False
-          ExplicitWidth = 100
         end
         object TreeViewUsers: TTreeView
           Left = 5

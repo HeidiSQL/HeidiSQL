@@ -31,10 +31,6 @@ object FieldEditForm: TFieldEditForm
     object tabField: TTabSheet
       Caption = 'Field'
       ImageIndex = 62
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblName: TLabel
         Left = 16
         Top = 40

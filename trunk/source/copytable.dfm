@@ -41,7 +41,6 @@ object CopyTableForm: TCopyTableForm
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     OnChange = editNewTablenameChange
-    ExplicitWidth = 361
   end
   object radioStructure: TRadioButton
     Left = 160
@@ -115,7 +114,6 @@ object CopyTableForm: TCopyTableForm
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
     TabOrder = 7
-    ExplicitWidth = 361
   end
   object ButtonOK: TButton
     Left = 114

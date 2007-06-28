@@ -30,7 +30,6 @@ object MDIChild: TMDIChild
     Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = Splitter2Moved
-    ExplicitTop = 276
   end
   object Panel1: TPanel
     Left = 0
@@ -49,7 +48,6 @@ object MDIChild: TMDIChild
       Cursor = crSizeWE
       Beveled = True
       ResizeStyle = rsUpdate
-      ExplicitHeight = 274
     end
     object DBtree: TTreeView
       Left = 0
@@ -760,7 +758,6 @@ object MDIChild: TMDIChild
             Width = 496
             Height = 13
             Align = alTop
-            ExplicitWidth = 3
           end
           object Panel6: TPanel
             Left = 0
