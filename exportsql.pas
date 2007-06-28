@@ -1114,11 +1114,11 @@ const
   STR_CREATE_TABLE         = 'CREATE TABLE <table> <definition>;' + CRLF;
   STR_CREATE_TABLE_IGNORE  = 'CREATE TABLE IF NOT EXISTS <table> <definition>;' + CRLF;
   STR_TRUNCATE_TABLE       = 'TRUNCATE TABLE <table>;' + CRLF;
-  STR_INSERT               = 'INSERT INTO <table> (<columns>) <values>';
-  STR_INSERT_IGNORE        = 'INSERT IGNORE INTO <table> (<columns>) <values>';
-  STR_REPLACE_INTO         = 'REPLACE INTO <table> (<columns>) <values>';
+  STR_INSERT               = 'INSERT INTO <table> (<columns>) VALUES (<values>)';
+  STR_INSERT_IGNORE        = 'INSERT IGNORE INTO <table> (<columns>) VALUES (<values>)';
+  STR_REPLACE_INTO         = 'REPLACE INTO <table> (<columns>) VALUES (<values>)';
   STR_END_INSERT_REG       = ';' + CRLF + '(...)' + CRLF;
-  STR_END_INSERT_EXT       = ', <values...>;' + CRLF;
+  STR_END_INSERT_EXT       = ', (<values>)...;' + CRLF;
 var
   s: string;
 procedure add(str: string); overload;
