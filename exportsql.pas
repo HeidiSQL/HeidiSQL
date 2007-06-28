@@ -67,9 +67,8 @@ type
     cbxData: TCheckBox;
     comboData: TComboBox;
     comboTargetCompat: TComboBox;
-    cbxExtendedInsert: TCheckBox;
+    procedure comboTargetCompatChange(Sender: TObject);
     procedure comboOtherHostSelect(Sender: TObject);
-    procedure cbxExtendedInsertClick(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
     procedure comboTablesChange(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
@@ -241,7 +240,6 @@ begin
     if Valueexists('CreateTablesHow') then comboTables.ItemIndex := ReadInteger('CreateTablesHow')
     else if Valueexists('WithDropTable') and ReadBool('WithDropTable') then comboTables.ItemIndex := TAB_DROP_CREATE;
     if Valueexists('CreateDataHow') then comboData.ItemIndex := ReadInteger('CreateDataHow');
-    if Valueexists('ExtendedInsert') then cbxExtendedInsert.Checked := ReadBool('ExtendedInsert');
     if Valueexists('Compatibility') then comboTargetCompat.ItemIndex := ReadInteger('Compatibility');
     if Valueexists('exportfilename') then editFileName.Text := ReadString('exportfilename');
     if Valueexists('ExportSQL_OutputTo') then
@@ -329,7 +327,7 @@ begin
     data.Free;
 
     // Fetch the max_allowed_packet variable to be sure not to
-    // overload the server when the user has checked "Extended Insert"
+    // overload the server when using "Extended Insert"
     data := RemoteExecQuery(
       appHandles[comboOtherHost.ItemIndex],
       'SHOW VARIABLES LIKE "max_allowed_packet"',
@@ -397,6 +395,11 @@ begin
   generateExampleSQL;
 end;
 
+procedure TExportSQLForm.comboTargetCompatChange(Sender: TObject);
+begin
+  generateExampleSQL;
+end;
+
 procedure TExportSQLForm.CheckListToggle(Sender: TObject);
 begin
   // check all or none
@@ -431,6 +434,7 @@ var
   StrProgress               : String;
   value                     : String;
   Escaped,fullvalue         : PChar;
+  extended_insert           : Boolean;
   max_allowed_packet        : Int64;
   thesevalues               : String;
   valuescount, limit        : Integer;
@@ -495,11 +499,7 @@ begin
   // Export to other database in the same window
   if todb then begin
     target_version := cwin.mysql_version;
-    // Only query max_allowed_packet if we really need that value later
-    if cbxExtendedInsert.Checked then
-    begin
-      max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ) );
-    end;
+    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ) );
     DB2export := comboOtherDatabase.Text;
   end;
 
@@ -518,6 +518,9 @@ begin
       DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
   end;
 
+  // MySQL has supported extended insert since 3.23.
+  extended_insert := not (target_version = SQL_VERSION_ANSI);
+
   try
     // Be sure to read everything from the correct database
     cwin.ExecUseQuery( comboSelectDatabase.Text );
@@ -533,8 +536,7 @@ begin
       wfs(f, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
       wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
       wfs(f, '# Target-Compatibility: ' + comboTargetCompat.Text );
-      wfs(f, '# Extended INSERTs:     ' + Bool2Str( cbxExtendedInsert.Checked ) );
-      if cbxExtendedInsert.Checked then
+      if extended_insert then
       begin
         wfs(f, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
       end;
@@ -991,7 +993,7 @@ begin
                 thesevalues := thesevalues + ',';
             end;
             thesevalues := thesevalues + ')';
-            if cbxExtendedInsert.Checked then
+            if extended_insert then
             begin
               if (valuescount > 1)
                 and (length(insertquery)+length(thesevalues)+2 >= max_allowed_packet)
@@ -1156,7 +1158,7 @@ begin
       DATA_INSERT_IGNORE:    add(STR_INSERT_IGNORE);
       DATA_REPLACE_INTO:     add(STR_REPLACE_INTO);
     end;
-    if cbxExtendedInsert.Checked then add(STR_END_INSERT_EXT)
+    if comboTargetCompat.ItemIndex > 0 then add(STR_END_INSERT_EXT)
     else add(STR_END_INSERT_REG);
   end;
   s := TrimRight(s);
@@ -1212,7 +1214,6 @@ begin
   comboTables.Enabled := cbxStructure.Checked and cbxTables.Checked;
 
   comboData.Enabled := cbxData.Checked;
-  cbxExtendedInsert.Enabled := cbxData.Checked;
 
   // Prevent choosing export of db struct + data but no table struct.
   if cbxData.Checked then begin
@@ -1245,12 +1246,6 @@ begin
 end;
 
 procedure TExportSQLForm.cbxDataClick(Sender: TObject);
-begin
-  validateControls(Sender);
-  generateExampleSQL;
-end;
-
-procedure TExportSQLForm.cbxExtendedInsertClick(Sender: TObject);
 begin
   validateControls(Sender);
   generateExampleSQL;
@@ -1386,7 +1381,6 @@ begin
     WriteInteger('CreateDatabaseHow', comboDatabase.ItemIndex);
     WriteInteger('CreateTablesHow',   comboTables.ItemIndex);
     WriteInteger('CreateDataHow',     comboData.ItemIndex);
-    WriteBool('ExtendedInsert',       cbxExtendedInsert.Checked);
     WriteInteger('Compatibility',     comboTargetCompat.ItemIndex);
     WriteString('exportfilename',     EditFileName.Text);
     OutputTo := OUTPUT_FILE;
