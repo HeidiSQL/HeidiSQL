@@ -23,7 +23,7 @@ type
   // MySQL Data Type structure
   TMysqlDataTypeRecord = record
     Index:           Integer;
-    Name:            String[15];
+    Name:            String[18];
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
     HasUnsigned:     Boolean; // Can be unsigned?
@@ -80,10 +80,18 @@ const
   tpENUM       = 25;
   tpSET        = 26;
   tpBIT        = 27;
+  tpPOINT      = 28;
+  tpLINESTRING = 29;
+  tpPOLYGON    = 30;
+  tpGEOMETRY   = 31;
+  tpMULTIPOINT = 32;
+  tpMULTILINESTRING    = 33;
+  tpMULTIPOLYGON       = 34;
+  tpGEOMETRYCOLLECTION = 35;
 
 var
   // MySQL Data Type List and Properties
-  MySqlDataTypeArray: array [0..27] of TMysqlDataTypeRecord =
+  MySqlDataTypeArray: array [0..35] of TMysqlDataTypeRecord =
   (
     (
       Index:           tpTINYINT;
@@ -365,6 +373,86 @@ var
       Index:           tpBIT;
       Name:            'BIT';
       HasLength:       True;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpPOINT;
+      Name:            'POINT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpLINESTRING;
+      Name:            'LINESTRING';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpPOLYGON;
+      Name:            'POLYGON';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpGEOMETRY;
+      Name:            'GEOMETRY';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpMULTIPOINT;
+      Name:            'MULTIPOINT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpMULTILINESTRING;
+      Name:            'MULTILINESTRING';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpMULTIPOLYGON;
+      Name:            'MULTIPOLYGON';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasUnsigned:     False;
+      HasZerofill:     False;
+      HasBinary:       False;
+      HasDefault:      True;
+    ),
+    (
+      Index:           tpGEOMETRYCOLLECTION;
+      Name:            'GEOMETRYCOLLECTION';
+      HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
       HasZerofill:     False;
