@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{53d02113-9bb2-4326-83eb-53734f07dae7}</ProjectGuid>
     <MainSource>heidisql.dpr</MainSource>
@@ -103,76 +103,76 @@
     <DelphiCompile Include="heidisql.dpr">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <None Include="..\..\const.inc" />
-    <DCCReference Include="..\..\about.pas">
+    <None Include="..\..\source\const.inc" />
+    <DCCReference Include="..\..\source\about.pas">
       <Form>AboutBox</Form>
     </DCCReference>
-    <DCCReference Include="..\..\childwin.pas">
+    <DCCReference Include="..\..\source\childwin.pas">
       <Form>MDIChild</Form>
     </DCCReference>
-    <DCCReference Include="..\..\communication.pas" />
-    <DCCReference Include="..\..\connections.pas">
+    <DCCReference Include="..\..\source\communication.pas" />
+    <DCCReference Include="..\..\source\connections.pas">
       <Form>connform</Form>
     </DCCReference>
-    <DCCReference Include="..\..\copytable.pas">
+    <DCCReference Include="..\..\source\copytable.pas">
       <Form>CopyTableForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\createtable.pas">
+    <DCCReference Include="..\..\source\createtable.pas">
       <Form>CreateTableForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\edituser.pas">
+    <DCCReference Include="..\..\source\edituser.pas">
       <Form>FormEditUser</Form>
     </DCCReference>
-    <DCCReference Include="..\..\exportsql.pas">
+    <DCCReference Include="..\..\source\exportsql.pas">
       <Form>ExportSQLForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\fieldeditor.pas">
+    <DCCReference Include="..\..\source\fieldeditor.pas">
       <Form>FieldEditForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\helpers.pas" />
-    <DCCReference Include="..\..\insertfiles.pas">
+    <DCCReference Include="..\..\source\helpers.pas" />
+    <DCCReference Include="..\..\source\insertfiles.pas">
       <Form>frmInsertFiles</Form>
     </DCCReference>
-    <DCCReference Include="..\..\insertfiles_progress.pas">
+    <DCCReference Include="..\..\source\insertfiles_progress.pas">
       <Form>frmInsertFilesProgress</Form>
     </DCCReference>
-    <DCCReference Include="..\..\loaddata.pas">
+    <DCCReference Include="..\..\source\loaddata.pas">
       <Form>loaddataform</Form>
     </DCCReference>
-    <DCCReference Include="..\..\main.PAS">
+    <DCCReference Include="..\..\source\main.PAS">
       <Form>MainForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\mysql.pas" />
-    <DCCReference Include="..\..\mysqlconn.pas" />
-    <DCCReference Include="..\..\mysqlquery.pas" />
-    <DCCReference Include="..\..\mysqlquerythread.pas" />
-    <DCCReference Include="..\..\optimizetables.pas">
+    <DCCReference Include="..\..\source\mysql.pas" />
+    <DCCReference Include="..\..\source\mysqlconn.pas" />
+    <DCCReference Include="..\..\source\mysqlquery.pas" />
+    <DCCReference Include="..\..\source\mysqlquerythread.pas" />
+    <DCCReference Include="..\..\source\optimizetables.pas">
       <Form>optimize</Form>
     </DCCReference>
-    <DCCReference Include="..\..\options.pas">
+    <DCCReference Include="..\..\source\options.pas">
       <Form>optionsform</Form>
     </DCCReference>
-    <DCCReference Include="..\..\printlist.pas">
+    <DCCReference Include="..\..\source\printlist.pas">
       <Form>printlistForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\queryprogress.pas">
+    <DCCReference Include="..\..\source\queryprogress.pas">
       <Form>frmQueryProgress</Form>
     </DCCReference>
-    <DCCReference Include="..\..\selectsomedatabases.pas">
+    <DCCReference Include="..\..\source\selectsomedatabases.pas">
       <Form>SelectFromManyDatabases</Form>
     </DCCReference>
-    <DCCReference Include="..\..\sqlhelp.pas">
+    <DCCReference Include="..\..\source\sqlhelp.pas">
       <Form>frmSQLhelp</Form>
     </DCCReference>
-    <DCCReference Include="..\..\synchronization.pas" />
-    <DCCReference Include="..\..\tblcomment.pas">
+    <DCCReference Include="..\..\source\synchronization.pas" />
+    <DCCReference Include="..\..\source\tblcomment.pas">
       <Form>tablecomment</Form>
     </DCCReference>
-    <DCCReference Include="..\..\tbl_properties.pas">
+    <DCCReference Include="..\..\source\tbl_properties.pas">
       <Form>tbl_properties_form</Form>
     </DCCReference>
-    <DCCReference Include="..\..\threading.pas" />
-    <DCCReference Include="..\..\usermanager.pas">
+    <DCCReference Include="..\..\source\threading.pas" />
+    <DCCReference Include="..\..\source\usermanager.pas">
       <Form>UserManagerForm</Form>
     </DCCReference>
   </ItemGroup>
