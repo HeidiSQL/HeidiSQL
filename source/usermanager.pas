@@ -87,6 +87,7 @@ type
     procedure GetResTables;
     procedure GetResColumns;
     function getColumnNamesOrValues( which: String = 'columns' ): TStringList;
+    function getPrivColumns( privtable: String ): TDataSet;
 
 
   private
@@ -96,6 +97,7 @@ type
     { Public declarations }
     User, Host            : String; // Remember for setting privileges
     ZQueryDBs, ZQueryTables, ZQueryColumns, ZQueryUsers: TDataSet;
+    ColumnsUsers, ColumnsDB, ColumnsTables, ColumnsColumns : TDataSet;
   end;
 
   function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
@@ -467,7 +469,8 @@ procedure TUserManagerForm.ShowPrivilegesControls(v, w, y: Boolean);
     setlist     : TStringList;
     tmpstr      : String;
   begin
-    q := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable));
+    // Get cached dataset
+    q := getPrivColumns( privtable );
     result := TStringList.Create;
     for i := 0 to q.RecordCount-1 do
     begin
@@ -955,6 +958,53 @@ procedure TUserManagerForm.GetResColumns;
 begin
   if (not Assigned(ZQueryColumns)) or (not ZQueryColumns.Active) then
     ZQueryColumns := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS));
+end;
+
+
+{***
+  Return and cache column names from privtables
+  This caching avoids tons of SHOW COLUMNS queries
+  @param string Name of privileges table
+}
+function TUserManagerForm.getPrivColumns( privtable: String ): TDataSet;
+begin
+  if privtable = PRIVTABLE_USERS then
+  begin
+    if not Assigned(ColumnsUsers) then
+      ColumnsUsers := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable));
+    result := ColumnsUsers;
+  end
+
+  else if privtable = PRIVTABLE_DB then
+  begin
+    if not Assigned(ColumnsDB) then
+      ColumnsDB := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable));
+    result := ColumnsDB;
+  end
+
+  else if privtable = PRIVTABLE_TABLES then
+  begin
+    if not Assigned(ColumnsTables) then
+      ColumnsTables := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable));
+    result := ColumnsTables;
+  end
+
+  else if privtable = PRIVTABLE_COLUMNS then
+  begin
+    if not Assigned(ColumnsColumns) then
+      ColumnsColumns := Mainform.Childwin.GetResults( 'SHOW COLUMNS FROM '+mainform.mask(privtable));
+    result := ColumnsColumns;
+  end
+
+  else
+  begin
+    result := nil;
+  end;
+
+  // Make sure cursor is set to 1st row
+  if Assigned(result) then
+    result.First;
+
 end;
 
 end.
