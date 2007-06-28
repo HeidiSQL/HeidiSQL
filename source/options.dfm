@@ -31,10 +31,6 @@ object optionsform: Toptionsform
     TabOrder = 3
     object TabSheet1: TTabSheet
       Caption = 'Miscellaneous'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label4: TLabel
         Left = 16
         Top = 85
@@ -107,10 +103,6 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'SQL-Appearance'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PageControl2: TPageControl
         Left = 0
         Top = 0
@@ -121,10 +113,6 @@ object optionsform: Toptionsform
         TabOrder = 0
         object TabSheet3: TTabSheet
           Caption = 'Font'
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label2: TLabel
             Left = 156
             Top = 60
@@ -194,10 +182,6 @@ object optionsform: Toptionsform
         object TabSheet4: TTabSheet
           Caption = 'Color-Coding'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object Label6: TLabel
             Left = 16
             Top = 27
@@ -331,10 +315,6 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'Data-Appearance'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Label27: TLabel
         Left = 8
         Top = 93
@@ -506,10 +486,6 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'CSV-Options'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0

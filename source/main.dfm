@@ -36,7 +36,6 @@ object MainForm: TMainForm
         Width = 280
       end>
     OnDrawPanel = StatusBarDrawPanel
-    ExplicitTop = 327
   end
   object ControlBar1: TControlBar
     Left = 0

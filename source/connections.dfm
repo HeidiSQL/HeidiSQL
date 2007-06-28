@@ -85,8 +85,6 @@ object connform: Tconnform
     Height = 41
     Align = alBottom
     Shape = bsTopLine
-    ExplicitLeft = -16
-    ExplicitWidth = 473
   end
   object lblSeconds: TLabel
     Tag = 11
@@ -117,7 +115,6 @@ object connform: Tconnform
     Caption = 'Rename'
     Enabled = False
     OnClick = ButtonEditDescClick
-    ExplicitLeft = 391
   end
   object EditHost: TEdit
     Left = 232
