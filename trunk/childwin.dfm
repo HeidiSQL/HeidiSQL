@@ -780,9 +780,9 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
             object Panel8: TPanel
-              Left = 296
+              Left = 272
               Top = 1
-              Width = 199
+              Width = 223
               Height = 27
               Align = alRight
               BevelOuter = bvNone
@@ -791,7 +791,7 @@ object MDIChild: TMDIChild
               object ToolBarQuery: TToolBar
                 Left = 1
                 Top = 1
-                Width = 197
+                Width = 221
                 Height = 25
                 Align = alClient
                 ButtonHeight = 25
@@ -870,10 +870,18 @@ object MDIChild: TMDIChild
                   Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
+                object btnAltTerminator: TToolButton
+                  Left = 197
+                  Top = 0
+                  Hint = 'Use alternate '#39'//'#39' SQL sentence terminator'
+                  Caption = 'btnAltTerminator'
+                  ImageIndex = 54
+                  Style = tbsCheck
+                end
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 180
+              Left = 156
               Top = 1
               Width = 116
               Height = 27

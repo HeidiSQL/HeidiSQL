@@ -266,6 +266,7 @@ type
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
     btnColumnSelection: TSpeedButton;
+    btnAltTerminator: TToolButton;
     procedure DataSourceUpdateData(Sender: TObject);
     procedure btnTableViewDataClick(Sender: TObject);
     procedure btnDbViewDataClick(Sender: TObject);
@@ -2602,16 +2603,19 @@ var
   SQLTime                 : Double;
   fieldcount, recordcount : Integer;
   ds                      : TDataSet;
+  term                    : String;
 begin
+  if btnAltTerminator.Down then term := '//' else term := ';';
+
   if CurrentLine then begin
     // Run current line
-    SQL := parseSQL(SynMemoQuery.LineText);
+    SQL := parseSQL(SynMemoQuery.LineText, term);
   end else if Selection then begin
     // Run selection
-    SQL := parsesql(SynMemoQuery.SelText);
+    SQL := parsesql(SynMemoQuery.SelText, term);
   end else begin
     // Run all
-    SQL := parsesql(SynMemoQuery.Text);
+    SQL := parsesql(SynMemoQuery.Text, term);
   end;
 
   if SQL.Count = 0 then begin
