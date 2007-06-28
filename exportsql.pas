@@ -969,7 +969,7 @@ begin
               else
                 insertquery := insertquery + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]);
               insertquery := insertquery + columnnames;
-              insertquery := insertquery + ' VALUES ';
+              insertquery := insertquery + ' VALUES' + crlf + #9;
             end;
             thesevalues := '(';
 
