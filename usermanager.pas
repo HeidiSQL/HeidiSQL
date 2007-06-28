@@ -822,11 +822,11 @@ procedure TUserManagerForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   // free memory
-  ZQueryUsers.Active := False;
-  ZQueryDBs.Active := False;
-  ZQueryTables.Active := False;
-  ZQueryColumns.Active := False;
-  ZQueryColumnNames.Active := False;
+  //ZQueryUsers.Active := False;
+  //ZQueryDBs.Active := False;
+  //ZQueryTables.Active := False;
+  //ZQueryColumns.Active := False;
+  //ZQueryColumnNames.Active := False;
   if Mainform.Childwin.ActualDatabase <> '' then
     Mainform.Childwin.ExecUseQuery( Mainform.Childwin.ActualDatabase );
 end;
