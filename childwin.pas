@@ -784,17 +784,9 @@ begin
     end;
   end;
 
-  // Set the grid-cells to always-edit-mode if set in preferences
-  if ( Mainform.DataAlwaysEditMode ) then
-  begin
-    gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-    gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-  end
-  else
-  begin
-    gridData.Options := gridData.Options - [dgAlwaysShowEditor];
-    gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
-  end;
+  // Set the grid-cells to always-edit-mode.
+  gridData.Options := gridData.Options + [dgAlwaysShowEditor];
+  gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
 end;
 
 
