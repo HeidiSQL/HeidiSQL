@@ -95,8 +95,7 @@ type
   public
     { Public declarations }
     User, Host            : String; // Remember for setting privileges
-    ZQueryDBs, ZQueryTables, ZQueryColumns, ZQueryUsers,
-    ZQueryColumnNames : TDataSet;
+    ZQueryDBs, ZQueryTables, ZQueryColumns, ZQueryUsers: TDataSet;
   end;
 
   function UserManagerWindow (AOwner : TComponent; Flags : String = '') : Boolean;
@@ -306,6 +305,7 @@ var
   tnu, tndb             : TTreeNode;
   i                     : Integer;
   TableNames            : TStringList;
+  ZQueryColumnNames     : TDataSet;
 begin
   // Add subitems to TreeNode:
 
@@ -351,6 +351,7 @@ begin
           tnu.SelectedIndex := 62;
           ZQueryColumnNames.Next;
         end;
+        FreeAndNil( ZQueryColumnNames );
       end;
 
 
@@ -391,24 +392,21 @@ begin
         LabelDB.Caption := Node.Text; LabelDB.Font.Color := clWindowText;
         LabelTable.Caption := '<All Tables>'; LabelTable.Font.Color := highlight;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
-        if not ZQueryDBs.Active then
-          ZQueryDBs := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB));
+        GetResDBs;
         ButtonEditUser.Enabled := false;
       end;
     2 : begin
         LabelDB.Caption := Node.Parent.Text; LabelDB.Font.Color := clWindowText;
         LabelTable.Caption := Node.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := '<All Columns>'; LabelColumn.Font.Color := highlight;
-        if not ZQueryTables.Active then
-          ZQueryTables := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES));
+        GetResTables;
         ButtonEditUser.Enabled := false;
       end;
     3 : begin
         LabelDB.Caption := Node.Parent.Parent.Text; LabelDB.Font.Color := clWindowText;
         LabelTable.Caption := Node.Parent.Text; LabelTable.Font.Color := clWindowText;
         LabelColumn.Caption := Node.Text; LabelColumn.Font.Color := clWindowText;
-        if not ZQueryColumns.Active then
-          ZQueryColumns := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS));
+        GetResColumns;
         ButtonEditUser.Enabled := false;
       end;
   end;
@@ -434,7 +432,7 @@ begin
   if (PageControl1.ActivePage = TabSheetEditUsers) and
     (TreeViewUsers.Items.Count = 0) then
   begin
-    ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS));
+    GetResUsers;
     for i:=1 to ZQueryUsers.RecordCount do
     begin
       tn := TreeViewUsers.Items.AddChild(nil, ZQueryUsers.Fields[1].AsString + '@' + ZQueryUsers.Fields[0].AsString );
@@ -822,11 +820,10 @@ procedure TUserManagerForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   // free memory
-  //ZQueryUsers.Active := False;
-  //ZQueryDBs.Active := False;
-  //ZQueryTables.Active := False;
-  //ZQueryColumns.Active := False;
-  //ZQueryColumnNames.Active := False;
+  FreeAndNil( ZQueryUsers );
+  FreeAndNil( ZQueryDBs );
+  FreeAndNil( ZQueryTables );
+  FreeAndNil( ZQueryColumns );
   if Mainform.Childwin.ActualDatabase <> '' then
     Mainform.Childwin.ExecUseQuery( Mainform.Childwin.ActualDatabase );
 end;
@@ -884,9 +881,9 @@ begin
         sql := 'DELETE FROM '+mainform.mask(PRIVTABLE_COLUMNS)+' WHERE Host='''+Host+''' AND User='''+User+'''';
         Mainform.Childwin.ExecUpdateQuery(sql);
         TreeViewUsers.Selected.Delete;
-        ZQueryDBs.Active := False;
-        ZQueryTables.Active := False;
-        ZQueryColumns.Active := False;
+        FreeAndNil( ZQueryDBs );
+        FreeAndNil( ZQueryTables );
+        FreeAndNil( ZQueryColumns );
         GetResUsers;
         Mainform.Childwin.ExecUpdateQuery('FLUSH PRIVILEGES');
       end;
@@ -926,11 +923,10 @@ end;
 procedure TUserManagerForm.Button1Click(Sender: TObject);
 begin
   // free memory
-  ZQueryUsers.Active := False;
-  ZQueryDBs.Active := False;
-  ZQueryTables.Active := False;
-  ZQueryColumns.Active := False;
-  ZQueryColumnNames.Active := False;
+  FreeAndNil( ZQueryUsers );
+  FreeAndNil( ZQueryDBs );
+  FreeAndNil( ZQueryTables );
+  FreeAndNil( ZQueryColumns );
   ShowPrivilegesControls(false, true, false);
   TreeViewUsers.Items.Clear;
   PageControl1.OnChange(self);
@@ -939,22 +935,26 @@ end;
 
 procedure TUserManagerForm.GetResUsers;
 begin
-  ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS));
+  if (not Assigned(ZQueryUsers)) or (not ZQueryUsers.Active) then
+    ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS));
 end;
 
 procedure TUserManagerForm.GetResDBs;
 begin
-  ZQueryDBs := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB));
+  if (not Assigned(ZQueryDBs)) or (not ZQueryDBs.Active) then
+    ZQueryDBs := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_DB));
 end;
 
 procedure TUserManagerForm.GetResTables;
 begin
-  ZQueryTables := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES));
+  if (not Assigned(ZQueryTables)) or (not ZQueryTables.Active) then
+    ZQueryTables := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_TABLES));
 end;
 
 procedure TUserManagerForm.GetResColumns;
 begin
-  ZQueryColumns := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS));
+  if (not Assigned(ZQueryColumns)) or (not ZQueryColumns.Active) then
+    ZQueryColumns := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_COLUMNS));
 end;
 
 end.
