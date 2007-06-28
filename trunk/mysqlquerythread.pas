@@ -321,10 +321,10 @@ begin
   q := TZQuery.Create(nil);
   q.Connection := FMysqlConn;
   q.SQL.Text := ASql;
+  ADataset := q;
 
   try
     q.Active := True;
-    ADataset := q;
     Result := True;
   except
     on E: Exception do
@@ -343,10 +343,10 @@ begin
   q := TZQuery.Create(nil);
   q.Connection := FMysqlConn;
   q.SQL.Text := ASql;
+  ADataSet := q;
 
   try
     q.ExecSQL();
-    ADataSet := q;
     Result := True;
   except
     On E: Exception do

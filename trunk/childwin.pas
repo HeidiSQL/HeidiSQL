@@ -2666,8 +2666,13 @@ begin
         if ExpectResultSet( SQL[i] ) then begin
           ds := GetResults(SQL[i]);
           gridQuery.DataSource.DataSet := ds;
-          fieldcount := ds.Fieldcount;
-          recordcount := ds.Recordcount;
+          if ds.Active then begin
+            fieldcount := ds.Fieldcount;
+            recordcount := ds.Recordcount;
+          end else begin
+            fieldcount := 0;
+            recordcount := 0;
+          end;
           rowsaffected := rowsaffected + TZQuery(ds).RowsAffected;
         end else begin
           rowsaffected := rowsaffected + ExecUpdateQuery(SQL[i]);
@@ -4694,6 +4699,7 @@ var
 begin
   // Start query execution
   res := RunThreadedQuery(sql);
+  result := res.MysqlDataset;
 
   // Inspect query result code and log / notify user on failure
   if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
@@ -4704,7 +4710,6 @@ begin
     FreeAndNil(res);
     if not HandleErrors then raise THandledSQLError.Create(exMsg);
   end;
-  result := res.MysqlDataset;
 end;
 
 
