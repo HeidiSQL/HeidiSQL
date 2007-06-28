@@ -165,30 +165,32 @@ end;
 }
 function ConvertMySQLHandleToSQLType(PlainDriver: IZMySQLPlainDriver;
   FieldHandle: PZMySQLField; FieldFlags: Integer): TZSQLType;
+
+function Signed: Boolean;
+begin
+  Result := (UNSIGNED_FLAG and FieldFlags) = 0;
+end;
+
 begin
   case PlainDriver.GetFieldType(FieldHandle) of
     FIELD_TYPE_TINY:
       begin
-        if (UNSIGNED_FLAG and FieldFlags) = 0 then
-          Result := stByte
+        if Signed then Result := stByte
         else Result := stShort;
       end;
     FIELD_TYPE_YEAR, FIELD_TYPE_SHORT:
       begin
-        if (UNSIGNED_FLAG and FieldFlags) = 0 then
-          Result := stShort
+        if Signed then Result := stShort
         else Result := stInteger;
       end;
     FIELD_TYPE_INT24, FIELD_TYPE_LONG:
       begin
-        if (UNSIGNED_FLAG and FieldFlags) = 0 then
-          Result := stInteger
+        if Signed then Result := stInteger
         else Result := stLong;
       end;
     FIELD_TYPE_LONGLONG:
       begin
-        if (UNSIGNED_FLAG and FieldFlags) = 0 then
-          Result := stLong
+        if Signed then Result := stLong
         //else Result := stBigDecimal;
         else Result := stString;
       end;
@@ -270,22 +272,9 @@ begin
   end
   else if TypeName = 'MEDIUMINT' then
     Result := stInteger
-  else if TypeName = 'INT' then
-  begin
-    if StartsWith(TypeNameFull, 'INT(10)') or
-      StartsWith(TypeNameFull, 'INT(11)') then
-    begin
-      if IsUnsigned then
-        Result := stLong
-      else Result := stInteger;
-    end else
-      Result := stInteger;
-  end
-  else if TypeName = 'INTEGER' then
-  begin
-    if IsUnsigned then
-      Result := stLong
-    else Result := stInteger;
+  else if (TypeName = 'INT') or (TypeName = 'INTEGER') then begin
+    if IsUnsigned then Result := stLong
+    else Result := stInteger
   end
   else if TypeName = 'BIGINT' then
   begin
