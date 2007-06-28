@@ -81,11 +81,10 @@ begin
   UserManagerForm.ShowPrivilegesControls(false, true, false);
 
   // Clear and refill user-list
-  UserManagerForm.ZQueryDBs.Close;
-  UserManagerForm.ZQueryTables.Close;
-  UserManagerForm.ZQueryColumns.Close;
-  UserManagerForm.ZQueryUsers.Close;
-  UserManagerForm.ZQueryColumnNames.Close;
+  FreeAndNil(UserManagerForm.ZQueryDBs);
+  FreeAndNil(UserManagerForm.ZQueryTables);
+  FreeAndNil(UserManagerForm.ZQueryColumns);
+  FreeAndNil(UserManagerForm.ZQueryUsers);
   UserManagerForm.TreeViewUsers.Items.Clear;
   UserManagerForm.PageControl1.OnChange(self);
 
