@@ -70,7 +70,6 @@ type
     Label22: TLabel;
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
-    CheckBoxDataAlwaysEditMode: TCheckBox;
     Label27: TLabel;
     Panel9: TPanel;
     CheckBoxlimit: TCheckBox;
@@ -169,7 +168,6 @@ begin
     WriteString('DataFontName', Panel8.Font.Name);
     WriteInteger('DataFontSize', UpDownDataFontSize.Position);
     WriteString('DataNullBackground', ColorToString(Panel9.color));
-    WriteBool('DataAlwaysEditMode', CheckBoxDataAlwaysEditMode.Checked);
   end;
   ButtonApply.Enabled := false;
 
@@ -194,17 +192,9 @@ begin
       DBMemo1.Font := self.Panel8.font;
       gridData.Refresh;
 //      DBMemo1.Font.Charset := tfontcharset(177);
-      // Set the grid-cells to always-edit-mode if set
-      if CheckBoxDataAlwaysEditMode.Checked then
-      begin
-        gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-        gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-      end
-      else
-      begin
-        gridData.Options := gridData.Options - [dgAlwaysShowEditor];
-        gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
-      end;
+      // Set the grid-cells to always-edit-mode
+      gridData.Options := gridData.Options + [dgAlwaysShowEditor];
+      gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
     end;
   end;
 
@@ -218,7 +208,6 @@ begin
     ConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
     CheckBoxLimit.Checked := self.CheckBoxLimit.Checked;
     UpDownLimitEnd.Position := UpDownLimit.Position;
-    DataAlwaysEditMode := CheckBoxDataAlwaysEditMode.Checked;
     DataNullBackground := Panel9.color;
   end;
 
@@ -320,8 +309,6 @@ begin
     if ValueExists('CSVTerminator') then
       Edit3.Text := ReadString('CSVTerminator');
 
-    if ValueExists('DataAlwaysEditMode') then
-      CheckBoxDataAlwaysEditMode.Checked := ReadBool('DataAlwaysEditMode');
     if ValueExists('DataNullBackground') then
       Panel9.Color := StringToColor(ReadString('DataNullBackground'))
     else
