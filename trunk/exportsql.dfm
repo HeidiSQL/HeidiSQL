@@ -299,14 +299,14 @@ object ExportSQLForm: TExportSQLForm
         TabOrder = 2
         object lblTargetCompat: TLabel
           Left = 9
-          Top = 213
+          Top = 221
           Width = 94
           Height = 13
           Caption = 'Target compatibility:'
         end
         object cbxStructure: TCheckBox
           Left = 9
-          Top = 17
+          Top = 25
           Width = 73
           Height = 17
           Caption = 'Structure'
@@ -317,7 +317,7 @@ object ExportSQLForm: TExportSQLForm
         end
         object cbxDatabase: TCheckBox
           Left = 25
-          Top = 38
+          Top = 46
           Width = 97
           Height = 17
           Caption = 'Database'
@@ -328,7 +328,7 @@ object ExportSQLForm: TExportSQLForm
         end
         object comboDatabase: TComboBox
           Left = 32
-          Top = 59
+          Top = 67
           Width = 176
           Height = 21
           Style = csDropDownList
@@ -344,7 +344,7 @@ object ExportSQLForm: TExportSQLForm
         end
         object cbxTables: TCheckBox
           Left = 25
-          Top = 86
+          Top = 94
           Width = 57
           Height = 17
           Caption = 'Tables'
@@ -355,7 +355,7 @@ object ExportSQLForm: TExportSQLForm
         end
         object comboTables: TComboBox
           Left = 32
-          Top = 106
+          Top = 114
           Width = 176
           Height = 21
           Style = csDropDownList
@@ -371,7 +371,7 @@ object ExportSQLForm: TExportSQLForm
         end
         object cbxData: TCheckBox
           Left = 9
-          Top = 152
+          Top = 160
           Width = 73
           Height = 17
           Caption = 'Data'
@@ -382,7 +382,7 @@ object ExportSQLForm: TExportSQLForm
         end
         object comboData: TComboBox
           Left = 25
-          Top = 171
+          Top = 179
           Width = 183
           Height = 21
           Style = csDropDownList
@@ -399,23 +399,13 @@ object ExportSQLForm: TExportSQLForm
         end
         object comboTargetCompat: TComboBox
           Left = 25
-          Top = 232
+          Top = 240
           Width = 180
           Height = 21
           Style = csDropDownList
           ItemHeight = 13
           TabOrder = 7
-        end
-        object cbxExtendedInsert: TCheckBox
-          Left = 25
-          Top = 259
-          Width = 177
-          Height = 17
-          Caption = 'Extended INSERT (faster import)'
-          Checked = True
-          State = cbChecked
-          TabOrder = 8
-          OnClick = cbxExtendedInsertClick
+          OnChange = comboTargetCompatChange
         end
       end
     end
