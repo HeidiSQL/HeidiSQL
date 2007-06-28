@@ -439,17 +439,6 @@ object optionsform: Toptionsform
           TabOrder = 3
         end
       end
-      object CheckBoxDataAlwaysEditMode: TCheckBox
-        Left = 8
-        Top = 16
-        Width = 337
-        Height = 17
-        Caption = 'Data-grid always in editor-mode'
-        Checked = True
-        State = cbChecked
-        TabOrder = 1
-        OnClick = Modified
-      end
       object Panel9: TPanel
         Left = 190
         Top = 91
@@ -459,7 +448,7 @@ object optionsform: Toptionsform
         BevelOuter = bvLowered
         Color = clAqua
         ParentBackground = False
-        TabOrder = 2
+        TabOrder = 1
         OnClick = CallColorDialog
       end
       object CheckBoxlimit: TCheckBox
@@ -470,7 +459,7 @@ object optionsform: Toptionsform
         Caption = 'View data by default limited to'
         Checked = True
         State = cbChecked
-        TabOrder = 3
+        TabOrder = 2
         OnClick = CheckBoxlimitClick
       end
       object EditLimit: TEdit
@@ -478,8 +467,8 @@ object optionsform: Toptionsform
         Top = 37
         Width = 41
         Height = 21
-        TabOrder = 4
-        Text = '0'
+        TabOrder = 3
+        Text = '50'
         OnChange = Modified
       end
       object UpDownLimit: TUpDown
@@ -489,7 +478,8 @@ object optionsform: Toptionsform
         Height = 21
         Associate = EditLimit
         Max = 32767
-        TabOrder = 5
+        Position = 50
+        TabOrder = 4
         OnChanging = anyUpDownLimitChanging
       end
       object editDefaultColWidth: TEdit
@@ -497,7 +487,7 @@ object optionsform: Toptionsform
         Top = 65
         Width = 42
         Height = 21
-        TabOrder = 6
+        TabOrder = 5
         Text = '0'
         OnChange = Modified
       end
@@ -508,7 +498,7 @@ object optionsform: Toptionsform
         Height = 21
         Associate = editDefaultColWidth
         Max = 1000
-        TabOrder = 7
+        TabOrder = 6
         OnChanging = anyUpDownLimitChanging
       end
     end
