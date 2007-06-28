@@ -21,7 +21,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function strpos(haystack, needle: String; offset: Integer=0) : Integer;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String):String;
-  function parsesql(sql: String) : TStringList;
+  function parsesql(sql: String; term: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function notinlist(str: String; strlist: TStrings): Boolean;
   function inarray(str: String; a: Array of String): Boolean;
@@ -338,12 +338,13 @@ end;
   @param string (possibly large) bunch of SQL-statements, separated by semicolon
   @return TStringList Separated statements
 }
-function parsesql(sql: String) : TStringList;
+function parsesql(sql: String; term: String) : TStringList;
 var
   i, start                          : Integer;
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
   inbigcomment                      : Boolean;
+  longterm                          : Boolean;
   encloser, secchar, thdchar        : Char;
 begin
   result := TStringList.Create;
@@ -355,6 +356,7 @@ begin
   inbigcomment := false;
   inconditional := false;
   condterminated := false;
+  longterm := Length(term) > 1;
   encloser := ' ';
 
   i := 0;
@@ -436,7 +438,7 @@ begin
     if (sql[i] = '\') or backslash then
       backslash := not backslash;
 
-    if (sql[i] = ';') and (not instring) then begin
+    if (not instring) and ((sql[i] = term) or (sql[i] + secchar = term)) then begin
       if inconditional then
       begin
         // note:
@@ -444,8 +446,13 @@ begin
         // inside each /*!nnnnn blah */ conditional comment.
         condterminated := true;
         sql[i] := ' ';
+        if longterm then begin
+          i := i + 1;
+          sql[i] := ' ';
+        end;
       end else begin
         addResult(result, copy(sql, start, i-start));
+        if longterm then i := i + 1;
         start := i+1;
       end;
     end;
