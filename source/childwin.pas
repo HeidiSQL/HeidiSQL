@@ -3729,6 +3729,7 @@ begin
   if not DBMemo1.Modified then exit;
   if DBMemo1.ReadOnly then exit;
   if Length(DBMemo1.DataField) = 0 then exit;
+  debug('TODO: Non-threaded database call to TDataSet.Post().');
   DBMemo1.DataSource.DataSet.Post;
   //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
 end;
@@ -4592,6 +4593,7 @@ begin
   // Save changes.  Fixes issue #1538021.
   ds := DBMemo1.DataSource;
   if ds.State in [dsEdit, dsInsert] then begin
+    debug('TODO: Non-threaded database call to TDataSet.Post().');
     ds.DataSet.Post;
   end;
 end;
