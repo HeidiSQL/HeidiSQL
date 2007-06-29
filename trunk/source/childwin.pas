@@ -2828,7 +2828,7 @@ begin
     ValidateControls;
     viewingdata := false;
     ActualDatabase := prevDb;
-    TZQuery(ds).EnableControls;
+    if ds <> nil then TZQuery(ds).EnableControls;
     Screen.Cursor := crdefault;
     MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   end;
