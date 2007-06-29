@@ -579,9 +579,10 @@ begin
   // Refresh
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabHost then
     ChildWin.ShowVariablesAndProcesses(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
+  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then begin
+    ChildWin.RefreshActiveDbTableList;
     ChildWin.ShowDBProperties(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
+  end else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
     ChildWin.ShowTableProperties(self)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
     ChildWin.viewdata(self)

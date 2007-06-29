@@ -461,6 +461,8 @@ type
       FConn                      : TOpenConnProf;
       QueryRunningInterlock      : Integer;
       lastUsedDB                 : String;
+      UserQueryFired             : Boolean;
+      CachedTableLists           : TStringList;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -470,6 +472,7 @@ type
       procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
+      procedure EnsureActiveDatabase;
 
     public
       ActualDatabase             : String;
@@ -495,6 +498,11 @@ type
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property Conn : TOpenConnProf read FConn;
+
+      function FetchActiveDbTableList: TDataSet;
+      function RefreshActiveDbTableList: TDataSet;
+      procedure ClearAllTableLists;
+      procedure UpdateTreeTableList;
   end;
 
 
@@ -671,6 +679,8 @@ var
   ds               : TDataSet;
 begin
   QueryRunningInterlock := 0;
+  UserQueryFired := False;
+  CachedTableLists := TStringList.Create;
 
   FConn := AConn^;
   FMysqlConn := AMysqlConn; // we're now responsible to free it
@@ -1037,6 +1047,7 @@ begin
   dataselected := false;
   DBTree.OnChange := nil;
   DBTree.items.Clear();
+  ClearAllTableLists;
 
   tnodehost := DBtree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
   tnodehost.ImageIndex := 41;
@@ -1164,6 +1175,7 @@ begin
   Panel3.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
+  ActualTable := '';
   try
     ShowDBProperties( Self );
   except
@@ -1177,20 +1189,16 @@ begin
       DBtree.Selected := DBtree.Items[0];
     end;
   end;
-  ActualTable := '';
 end;
 
 
 procedure TMDIChild.SelectTable(db: String; table: String; switchView: boolean = true);
 begin
-  if ( ActualDatabase <> db ) then
-  begin
-    SelectDatabase( db );
-  end;
   tabDatabase.TabVisible := true;
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
   dataselected := false;
+  ActualDatabase := db;
   ActualTable := table;
   if switchView then ShowTableProperties( Self );
   Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
@@ -1750,13 +1758,119 @@ begin
 end;
 
 
+{***
+  Ensures that we're connected to the currently selected database.
+}
+procedure TMDIChild.EnsureActiveDatabase;
+begin
+  // Blank = current database undefined
+  if ActualDatabase = '' then Exit;
+  if (FMysqlConn.Connection.Database <> ActualDatabase) or UserQueryFired then begin
+    FMysqlConn.Connection.Database := ActualDatabase;
+    ExecUseQuery(ActualDatabase);
+    UserQueryFired := false;
+  end;
+end;
+
+
+{***
+  Look for list of tables for current database in cache.
+  Retrieve from server if necessary.
+  @return TDataSet The cached list of tables for the active database.
+}
+function TMDIChild.FetchActiveDbTableList: TDataSet;
+var
+  ds: TDataSet;
+begin
+  if CachedTableLists.IndexOf(ActualDatabase) = -1 then begin
+    // Not in cache, load table list.
+    Screen.Cursor := crHourGlass;
+    MainForm.ShowStatus('Displaying tables from ' + ActualDatabase + '...', 2, true);
+    if mysql_version >= 32300 then begin
+      ds := GetResults('SHOW TABLE STATUS');
+    end else begin
+      // contains table names, nothing else.
+      ds := GetResults('SHOW TABLES');
+      // could clean up data (rename first column to 'Name') and
+      // and add row counters to data set as a new field by using
+      // SELECT COUNT(*), but that would potentially be rather slow.
+    end;
+    CachedTableLists.AddObject(ActualDatabase, ds);
+  end;
+  Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(ActualDatabase)]);
+  Result.First;
+end;
+
+
+{***
+  Nukes cached table list for active database, then refreshes it.
+  @return TDataSet The newly cached list of tables for the active database.
+}
+function TMDIChild.RefreshActiveDbTableList: TDataSet;
+var
+  idx: Integer;
+  o: TObject;
+begin
+  idx := CachedTableLists.IndexOf(ActualDatabase);
+  if idx > -1 then begin
+    o := CachedTableLists.Objects[idx];
+    FreeAndNil(o);
+    CachedTableLists.Delete(idx);
+  end;
+  Result := FetchActiveDbTableList;
+end;
+
+
+{***
+  Nukes the table list cache.
+}
+procedure TMDIChild.ClearAllTableLists;
+var
+  idx: Integer;
+  o: TObject;
+begin
+  for idx := 0 to CachedTableLists.Count - 1 do begin
+    o := CachedTableLists.Objects[idx];
+    FreeAndNil(o);
+  end;
+  CachedTableLists.Clear;
+end;
+
+
+{***
+  Updates tree with table list for currently selected database (or table).
+}
+procedure TMDIChild.UpdateTreeTableList;
+var
+  tndb : TTreenode;
+  ds: TDataSet;
+  t, u: Integer;
+begin
+  if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
+  else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
+  else exit;
+
+  // get all tables back into dbtree
+  for u:=tndb.Count-1 downto 0 do tndb.Item[u].delete;
+  ds := FetchActiveDbTableList;
+  for t:=0 to ds.RecordCount-1 do
+  begin
+    with DBtree.Items.AddChild(tndb, ds.Fields[0].AsString) do
+    begin
+      ImageIndex := 39;
+      selectedIndex := 40;
+    end;
+    ds.Next;
+  end;
+end;
+
+
 { Show tables and their properties on the tabsheet "Database" }
 procedure TMDIChild.ShowDBProperties(Sender: TObject);
 var
   n               : TListItem;
-  i,j,k,t,u       : Integer;
+  i,j,k           : Integer;
   bytes           : Extended;
-  tndb            : TTreenode;
   menuitem        : TMenuItem;
   TablelistColumns: TStringList;
   column          : TListColumn;
@@ -1767,188 +1881,157 @@ begin
   MainForm.ShowStatus( 'Reading from database ' + ActualDatabase + '...', 2, true );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
 
-  FMysqlConn.Connection.Database := ActualDatabase;
-  ExecUseQuery( ActualDatabase );
+  // Refresh chosen in table list?
+  if sender = menurefresh then RefreshActiveDbTableList;
 
-  Try
-    if mysql_version >= 32300 then
+  // Populate database subitems (= tables) in tree.
+  UpdateTreeTableList;
+
+  ds := FetchActiveDbTableList;
+  try
+    // Generate items for popupDbGridHeader
+    for i:=popupDbGridHeader.Items.Count-1 downto 2 do
+      popupDbGridHeader.Items.Delete( i );
+    with TRegistry.Create do
     begin
-      // get quick results with versions 3.23.xx and newer
-      ds := GetResults( 'SHOW TABLE STATUS' );
-      MainForm.ShowStatus( 'Displaying tables from ' + ActualDatabase + '...', 2, true );
-
-      // Generate items for popupDbGridHeader
-      for i:=popupDbGridHeader.Items.Count-1 downto 2 do
-        popupDbGridHeader.Items.Delete( i );
-      with TRegistry.Create do
+      openkey( REGPATH + '\Servers\' + FConn.Description, true );
+      if ValueExists( 'TablelistDefaultColumns' ) then
+        popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
+      if ValueExists( 'TablelistColumns' ) then
+        TablelistColumns := Explode( ',', ReadString( 'TablelistColumns' ) )
+      else
+        TablelistColumns := TStringList.Create;
+      free;
+    end;
+    for i:=0 to ds.FieldCount-1 do
+    begin
+      menuitem := TMenuItem.Create( self );
+      menuitem.Caption := ds.Fields[i].Fieldname;
+      menuitem.Tag := 2;
+      menuitem.OnClick := MenuTablelistColumnsClick;
+      if i=0 then
       begin
-        openkey( REGPATH + '\Servers\' + FConn.Description, true );
-        if ValueExists( 'TablelistDefaultColumns' ) then
-          popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
-        if ValueExists( 'TablelistColumns' ) then
-          TablelistColumns := Explode( ',', ReadString( 'TablelistColumns' ) )
-        else
-          TablelistColumns := TStringList.Create;
-        free;
-      end;
-      for i:=0 to ds.FieldCount-1 do
+        menuitem.Enabled := false; // tablename should always be kept
+        menuitem.Checked := true;
+      end
+      else if TablelistColumns.Count > 0 then
       begin
-        menuitem := TMenuItem.Create( self );
-        menuitem.Caption := ds.Fields[i].Fieldname;
-        menuitem.Tag := 2;
-        menuitem.OnClick := MenuTablelistColumnsClick;
-        if i=0 then
-        begin
-          menuitem.Enabled := false; // tablename should always be kept
-          menuitem.Checked := true;
-        end
-        else if TablelistColumns.Count > 0 then
-        begin
-          menuitem.Checked := TablelistColumns.IndexOf( menuitem.Caption ) > -1;
-        end;
-        popupDbGridHeader.Items.Add( menuitem );
+        menuitem.Checked := TablelistColumns.IndexOf( menuitem.Caption ) > -1;
       end;
+      popupDbGridHeader.Items.Add( menuitem );
+    end;
 
-      ListTables.Items.BeginUpdate;
-      ListTables.Items.Clear;
-      ListTables.Columns.BeginUpdate;
-      ListTables.Columns.Clear;
+    ListTables.Items.BeginUpdate;
+    ListTables.Items.Clear;
+    ListTables.Columns.BeginUpdate;
+    ListTables.Columns.Clear;
+    column := ListTables.Columns.Add;
+    column.Caption := 'Table';
+    column.Width := -1;
+    if popupDbGridHeader.Items[0].Checked then
+    begin // Default columns - initialize column headers
       column := ListTables.Columns.Add;
-      column.Caption := 'Table';
+      column.Caption := 'Records';
+      column.Alignment := taRightJustify;
+      column.Width := 80;
+
+      column := ListTables.Columns.Add;
+      column.Caption := 'Size';
+      column.Alignment := taRightJustify;
       column.Width := -1;
-      if popupDbGridHeader.Items[0].Checked then
-      begin // Default columns - initialize column headers
-        column := ListTables.Columns.Add;
-        column.Caption := 'Records';
-        column.Alignment := taRightJustify;
-        column.Width := 80;
 
-        column := ListTables.Columns.Add;
-        column.Caption := 'Size';
-        column.Alignment := taRightJustify;
-        column.Width := -1;
+      column := ListTables.Columns.Add;
+      column.Caption := 'Created';
+      column.Width := -1;
 
-        column := ListTables.Columns.Add;
-        column.Caption := 'Created';
-        column.Width := -1;
+      column := ListTables.Columns.Add;
+      column.Caption := 'Updated';
+      column.Width := -1;
 
-        column := ListTables.Columns.Add;
-        column.Caption := 'Updated';
-        column.Width := -1;
+      column := ListTables.Columns.Add;
+      column.Caption := 'Engine';
+      column.Width := -1;
 
-        column := ListTables.Columns.Add;
-        column.Caption := 'Engine';
-        column.Width := -1;
+      column := ListTables.Columns.Add;
+      column.Caption := 'Comment';
+      column.Width := -1;
+    end;
+    for i:=0 to TablelistColumns.Count-1 do
+    begin
+      column := ListTables.Columns.Add;
+      column.Caption := TablelistColumns[i];
+      column.Width := -1;
+      column.MinWidth := 50;
+      column.Autosize := true;
+    end;
 
-        column := ListTables.Columns.Add;
-        column.Caption := 'Comment';
-        column.Width := -1;
+    for i := 1 to ds.RecordCount do
+    begin
+      n := ListTables.Items.Add;
+      n.ImageIndex := 39;
+      // Table
+      n.Caption := ds.Fields[0].AsString;
+      if (mysql_version >= 32300) and popupDbGridHeader.Items[0].Checked then
+      begin // Default columns
+        // Records
+        n.SubItems.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
+        // Size: Data_length + Index_length
+        bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
+        n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
+        // Created:
+        if not ds.FieldByName('Create_time').IsNull then
+          n.SubItems.Add( ds.FieldByName('Create_time').AsString )
+        else
+          n.SubItems.Add('N/A');
+
+        // Updated:
+        if not ds.FieldByName('Update_time').IsNull then
+          n.SubItems.Add( ds.FieldByName('Update_time').AsString )
+        else
+          n.SubItems.Add('N/A');
+
+        // Type
+        if ds.FindField('Type')<>nil then
+          n.SubItems.Add( ds.FieldByName('Type').AsString )
+        else if ds.FindField('Engine')<>nil then
+          n.SubItems.Add( ds.FieldByName('Engine').AsString )
+        else
+          n.SubItems.Add('');
+
+        // Comment
+        n.SubItems.Add( ds.FieldByName('Comment').AsString );
       end;
-      for i:=0 to TablelistColumns.Count-1 do
+      for j:=0 to TablelistColumns.Count-1 do
       begin
-        column := ListTables.Columns.Add;
-        column.Caption := TablelistColumns[i];
-        column.Width := -1;
-        column.MinWidth := 50;
-        column.Autosize := true;
-      end;
-
-      for i := 1 to ds.RecordCount do
-      begin
-        n := ListTables.Items.Add;
-        n.ImageIndex := 39;
-        // Table
-        n.Caption := ds.FieldByName('Name').AsString;
-        if popupDbGridHeader.Items[0].Checked then
-        begin // Default columns
-          // Records
-          n.SubItems.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
-          // Size: Data_length + Index_length
-          bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-          n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
-          // Created:
-          if not ds.FieldByName('Create_time').IsNull then
-            n.SubItems.Add( ds.FieldByName('Create_time').AsString )
-          else
-            n.SubItems.Add('N/A');
-
-          // Updated:
-          if not ds.FieldByName('Update_time').IsNull then
-            n.SubItems.Add( ds.FieldByName('Update_time').AsString )
-          else
-            n.SubItems.Add('N/A');
-
-          // Type
-          if ds.FindField('Type')<>nil then
-            n.SubItems.Add( ds.FieldByName('Type').AsString )
-          else if ds.FindField('Engine')<>nil then
-            n.SubItems.Add( ds.FieldByName('Engine').AsString )
-          else
-            n.SubItems.Add('');
-
-          // Comment
-          n.SubItems.Add( ds.FieldByName('Comment').AsString );
-        end;
-        for j:=0 to TablelistColumns.Count-1 do
+        for k:=0 to ds.FieldCount-1 do
         begin
-          for k:=0 to ds.FieldCount-1 do
+          if TablelistColumns[j] = ds.Fields[k].FieldName then
           begin
-            if TablelistColumns[j] = ds.Fields[k].FieldName then
+            if ds.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
             begin
-              if ds.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
-              begin
-                // Number
-                // TODO: doesn't match any column
-                ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify;
-                n.SubItems.Add( FormatNumber( ds.Fields[k].AsFloat ) );
-              end
-              else
-                // String
-                n.SubItems.Add( ds.Fields[k].AsString );
-            end;
+              // Number
+              // TODO: doesn't match any column
+              ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify;
+              n.SubItems.Add( FormatNumber( ds.Fields[k].AsFloat ) );
+            end
+            else
+              // String
+              n.SubItems.Add( ds.Fields[k].AsString );
           end;
         end;
-        ds.Next;
       end;
-    end
-    else begin
-      // get slower results with versions 3.22.xx and older
-      ds := GetResults('SHOW TABLES', true, false);
-      for i := 1 to ds.RecordCount do
-      begin
-        n := ListTables.Items.Add;
-        n.Caption := ds.Fields[0].AsString;
-        n.ImageIndex := 39;
-        n.SubItems.Add( GetVar( 'SELECT COUNT(*) FROM '+ds.Fields[0].AsString ) );
-        ds.Next;
-      end;
+      ds.Next;
     end;
     mainform.showstatus(ActualDatabase + ': ' + IntToStr(ds.RecordCount) +' table(s)');
-  Finally
+  finally
     ListTables.Columns.EndUpdate;
     ListTables.Items.EndUpdate;
     // Remove existing column-sort-images
     // (TODO: auomatically invoke this method in TSortListView itself)
     ListTables.ClearSortColumnImages;
     Screen.Cursor := crDefault;
-  End;
-  Screen.Cursor := crHourglass;
-
-  // update dbtree with new/deleted tables
-  if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
-  else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
-  else exit;
-
-  // get all tables back into dbtree
-  for u:=tndb.Count-1 downto 0 do
-    tndb.Item[u].delete;
-  for t:=0 to ListTables.Items.Count-1 do
-  begin
-    with DBtree.Items.AddChild(tndb, ListTables.Items[t].Caption) do begin
-      ImageIndex := 39;
-      selectedIndex := 40;
-    end;
   end;
+  Screen.Cursor := crHourglass;
 
   Panel2.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.Items.Count) + ' table(s)';
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
@@ -2022,6 +2105,8 @@ begin
       ds.Next;
     end;
 
+    {*
+      TODO: Create drag-drop box next to query window with these columns.
     // add fields to dbtree for drag'n dropping purpose
     if not DBTree.Selected.HasChildren then
     begin
@@ -2036,6 +2121,7 @@ begin
         ds.Next;
       end;
     end;
+    *}
 
     Screen.Cursor := crHourglass;
     ds := GetResults( 'SHOW KEYS FROM ' + mask(ActualTable) );
@@ -2588,6 +2674,7 @@ var
   fieldcount, recordcount : Integer;
   ds                      : TDataSet;
   term                    : String;
+  prevDb                  : String;
 begin
   if btnAltTerminator.Down then term := '//' else term := ';';
 
@@ -2606,6 +2693,11 @@ begin
     LabelResultinfo.Caption := '(nothing to do)';
     exit;
   end;
+
+  // Let EnsureActiveDatabase know that we're firing user queries.
+  prevDb := ActualDatabase;
+  ActualDatabase := '';
+  UserQueryFired := true;
 
   // Destroy old data set.
   ds := DataSource2.DataSet;
@@ -2735,6 +2827,7 @@ begin
     // Ensure controls are in a valid state
     ValidateControls;
     viewingdata := false;
+    ActualDatabase := prevDb;
     TZQuery(ds).EnableControls;
     Screen.Cursor := crdefault;
     MainForm.ShowStatus( STATUS_MSG_READY, 2 );
@@ -4819,6 +4912,7 @@ end;
 function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
 begin
   Result := nil;
+  if (Copy(AQuery, 1, 3) <> 'USE') then EnsureActiveDatabase;
   // Indicate a querythread is active (only one thread allow at this moment)
   FQueryRunning := true;
   try
