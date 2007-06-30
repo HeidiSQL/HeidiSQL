@@ -1934,13 +1934,11 @@ object MDIChild: TMDIChild
   end
   object DataSource1: TDataSource
     OnDataChange = DataSourceDataChange
-    OnUpdateData = DataSourceUpdateData
     Left = 304
     Top = 136
   end
   object DataSource2: TDataSource
     OnDataChange = DataSourceDataChange
-    OnUpdateData = DataSourceUpdateData
     Left = 304
     Top = 168
   end
