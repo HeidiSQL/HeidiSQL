@@ -26,7 +26,13 @@ package HeidiComponents;
 {$IMPLICITBUILD OFF}
 
 requires
-  vcl;
+  vcl,
+  dbrtl,
+  ZParseSql,
+  ZCore,
+  ZDbc,
+  ZPlain,
+  ZComponent;
 
 contains
   heidicomp in '..\..\source\heidicomp.pas';

@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, Dialogs, SysUtils,
-  ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics;
+  ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics,
+  ZDataset;
 
 {$I ../../../source/const.inc}
 
@@ -79,12 +80,60 @@ type
 
   end;
 
+type
+  TDeferDataSet = class;
+  TAsyncPostRunner = procedure(ds: TDeferDataSet) of object;
+
+  TDeferDataSet = class(TZQuery)
+  private
+    callback: TAsyncPostRunner;
+    kind: Integer;
+ protected
+    procedure InternalPost; override;
+ public
+    constructor Create(AOwner: TComponent; PostCallback: TAsyncPostRunner); reintroduce;
+    procedure ExecSQL; override;
+    procedure DoAsync;
+    procedure DoAsyncExecSql;
+ end;
 
 procedure Register;
 
+
 implementation
 
+procedure TDeferDataSet.InternalPost;
+begin
+  kind := 1;
+  if @callback = nil then DoAsync
+  else callback(self);
+end;
 
+procedure TDeferDataSet.ExecSql;
+begin
+  kind := 2;
+  if @callback = nil then DoAsync
+  else callback(self);
+end;
+
+constructor TDeferDataSet.Create(AOwner: TComponent; PostCallback: TAsyncPostRunner);
+begin
+  callback := PostCallback;
+  inherited Create(AOwner);
+end;
+
+procedure TDeferDataSet.DoAsync;
+begin
+  case kind of
+    1: inherited InternalPost;
+    2: inherited ExecSQL;
+  end;
+end;
+
+procedure TDeferDataSet.DoAsyncExecSql;
+begin
+  inherited ExecSql;
+end;
 
 procedure Register;
 begin

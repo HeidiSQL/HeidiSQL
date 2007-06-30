@@ -267,7 +267,6 @@ type
     btnUnsafeEdit: TToolButton;
     btnColumnSelection: TSpeedButton;
     btnAltTerminator: TToolButton;
-    procedure DataSourceUpdateData(Sender: TObject);
     procedure btnTableViewDataClick(Sender: TObject);
     procedure btnDbViewDataClick(Sender: TObject);
     procedure btnColumnSelectionClick(Sender: TObject);
@@ -447,6 +446,7 @@ type
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     function GetCalculatedLimit( Table: String ): Int64;
+    procedure RunAsyncPost(ds: TDeferDataSet);
 
     private
       strHostRunning             : String;
@@ -3729,7 +3729,6 @@ begin
   if not DBMemo1.Modified then exit;
   if DBMemo1.ReadOnly then exit;
   if Length(DBMemo1.DataField) = 0 then exit;
-  debug('TODO: Non-threaded database call to TDataSet.Post().');
   DBMemo1.DataSource.DataSet.Post;
   //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
 end;
@@ -4593,7 +4592,6 @@ begin
   // Save changes.  Fixes issue #1538021.
   ds := DBMemo1.DataSource;
   if ds.State in [dsEdit, dsInsert] then begin
-    debug('TODO: Non-threaded database call to TDataSet.Post().');
     ds.DataSet.Post;
   end;
 end;
@@ -4908,6 +4906,24 @@ begin
   );
 end;
 
+procedure TMDIChild.RunAsyncPost(ds: TDeferDataSet);
+begin
+  FQueryRunning := true;
+  try
+    try
+      CheckConnection;
+    except
+      exit;
+    end;
+    FProgressForm := TFrmQueryProgress.Create(Self);
+    debug('RunThreadedQuery(): Launching asynchronous query.');
+    ExecPostAsync(FConn,nil,FProgressForm.Handle,ds);
+    WaitForQueryCompletion(FProgressForm);
+  finally
+    FQueryRunning := false;
+  end;
+end;
+
 {***
   Run a query in a separate thread of execution on the current connection.
 }
@@ -4940,7 +4956,7 @@ begin
       * Set FQueryRunning to false
     }
     debug('RunThreadedQuery(): Launching asynchronous query.');
-    Result := ExecMysqlStatementAsync (AQuery,FConn,nil,FProgressForm.Handle);
+    Result := ExecMysqlStatementAsync (AQuery,FConn,nil,FProgressForm.Handle,RunAsyncPost);
 
     { Repeatedly check if the query has finished by inspecting FQueryRunning
       Allow repainting of user interface
@@ -4954,11 +4970,6 @@ end;
 procedure TMDIChild.Splitter2Moved(Sender: TObject);
 begin
   ResizeImageToFit;
-end;
-
-procedure TMDIChild.DataSourceUpdateData(Sender: TObject);
-begin
-  debug('TODO: Non-threaded database call to TDataSet.Post().');
 end;
 
 {***

@@ -31,7 +31,8 @@ type
 
 implementation
 
-uses main, childwin, helpers,insertfiles;
+uses main, childwin, helpers,insertfiles,
+  HeidiComp;
 
 {$I const.inc}
 {$R *.DFM}
@@ -55,16 +56,14 @@ var
   value, filename : String;
   y,m,d,h,mi,s,ms : Word;
   FileStream : TFileStream;
-  zq : TZReadOnlyQuery;
+  zq : TDeferDataSet;
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
   ProgressBar1.Max := TfrmInsertFiles(FInsertFilesForm).ListViewFiles.Items.Count;
-  debug('TODO: Non-threaded database call in TfrmInsertFilesProgress.ProcessFiles().');
-  zq := TZReadOnlyQuery.Create(nil);
+  zq := TDeferDataSet.Create(nil, MainForm.ChildWin.RunAsyncPost);
   zq.Connection := MainForm.ChildWin.Conn.MysqlConn;
 
-  MainForm.ChildWin.FQueryRunning := true;
   TRY
 
   with TfrmInsertFiles(FInsertFilesForm) do
@@ -129,7 +128,8 @@ begin
         MessageDlg( 'Error reading file:' + CRLF + filename, mtError, [mbOK], 0 );
         break;
       end;
-      zq.ExecSQL;
+      debug('TODO: Non-threaded ExecSql call in TfrmInsertFilesProgress.ProcessFiles().');
+      zq.ExecSql;
       lblOperation.caption := 'Freeing memory ...';
       lblOperation.Repaint;
       ProgressBar1.StepIt;
@@ -138,7 +138,6 @@ begin
   end;
 
   FINALLY
-    MainForm.ChildWin.FQueryRunning := false;
     zq.ParamCheck := false;
     screen.Cursor := crDefault;
     Close();

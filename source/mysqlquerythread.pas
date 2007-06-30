@@ -3,7 +3,8 @@ unit MysqlQueryThread;
 interface
 
 uses
-  Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls, SysUtils;
+  Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls, SysUtils,
+  HeidiComp;
 
 {$IFDEF EXAMPLE_APP}
 const
@@ -66,6 +67,8 @@ type
       FConn : TOpenConnProf;
       FOwner : TObject; // TMysqlQuery object
       FSql : String;
+      FCallback: TAsyncPostRunner;
+      FPostDataSet: TDeferDataSet;
       FResult : Integer;
       FComment : String;
       FSyncMode : Integer;
@@ -83,11 +86,11 @@ type
       procedure NotifyStatusViaEventProc (AEvent : Integer);
       procedure NotifyStatusViaWinMessage (AEvent : Integer);
       function AssembleResult () : TThreadResult;
-      function RunDataQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData) : Boolean;
-      function RunUpdateQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData) : Boolean;
+      function RunDataQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner) : Boolean;
+      function RunUpdateQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner) : Boolean;
       function QuerySingleCellAsInteger (ASql : String) : Integer;
     public
-      constructor Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer);
+      constructor Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer; Callback: TAsyncPostRunner; APostDataSet: TDeferDataSet);
       destructor Destroy; override;
       property NotifyWndHandle : THandle read FNotifyWndHandle write SetNotifyWndHandle;
   end;
@@ -116,7 +119,7 @@ begin
   Result.Comment := FComment;
 end;
 
-constructor TMysqlQueryThread.Create(AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer);
+constructor TMysqlQueryThread.Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer; Callback: TAsyncPostRunner; APostDataSet: TDeferDataSet);
 var
   mc : TZConnection;
 begin
@@ -125,6 +128,8 @@ begin
   FOwner := AOwner;
   FConn := AConn;
   FSyncMode := ASyncMode;
+  FCallback := Callback;
+  FPostDataSet := APostDataSet;
   mc := TMysqlQuery(FOwner).MysqlConnection;
   FMysqlConn := mc;
   FResult := 0;
@@ -189,15 +194,17 @@ procedure TMysqlQueryThread.NotifyStatusViaWinMessage(AEvent: Integer);
 var
   qr : TThreadResult;
 begin
-  qr := AssembleResult();
   debug(Format('qry: Setting result and posting status %d via WM_MYSQL_THREAD_NOTIFY message', [AEvent]));
-  TMysqlQuery(FOwner).SetThreadResult(qr);
+  if self.FPostDataSet = nil then begin
+    qr := AssembleResult();
+    TMysqlQuery(FOwner).SetThreadResult(qr);
+  end;
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
 procedure TMysqlQueryThread.Execute;
 var
-  q : TZQuery;
+  q : TDeferDataSet;
   r : Boolean;
   e : TExceptionData;
 begin
@@ -219,9 +226,11 @@ begin
       NotifyStatus (MQE_STARTED);
 
       q := nil;
-      if ExpectResultSet(FSql) then
+      if FPostDataSet <> nil then FPostDataSet.DoAsync
+      else begin
+        if ExpectResultSet(FSql) then
         begin
-          r := RunDataQuery (FSql,TDataSet(q),e);
+          r := RunDataQuery (FSql,TDataSet(q),e,FCallback);
 
           if r then
             begin
@@ -232,18 +241,19 @@ begin
             end;
 
         end
-      else
-        r := RunUpdateQuery (FSql,TDataSet(q),e);
-      TMysqlQuery(FOwner).SetMysqlDataset(q);
+        else
+          r := RunUpdateQuery (FSql,TDataSet(q),e,FCallBack);
+        TMysqlQuery(FOwner).SetMysqlDataset(q);
 
-      if r then
-        SetState (MQR_SUCCESS,'SUCCESS')
-      else
-        SetState (MQR_QUERY_FAIL,e.Msg);
+        if r then
+          SetState (MQR_SUCCESS,'SUCCESS')
+        else
+          SetState (MQR_QUERY_FAIL,e.Msg);
 
+      end;
     end;
 
-  NotifyStatus (MQE_FINISHED);    
+  NotifyStatus (MQE_FINISHED);
   NotifyStatus (MQE_FREED);
   debug(Format('qry: Thread %d suspending.', [ThreadID]));
 end;
@@ -264,7 +274,7 @@ var
 begin
   Result := 0;
 
-  if RunDataQuery(ASql,ds,e) then
+  if RunDataQuery(ASql,ds,e, FCallback) then
     begin
       if ds.Fields.Count > 0 then
         Result := ds.Fields[0].AsInteger;
@@ -313,12 +323,12 @@ begin
 end;
 
 function TMysqlQueryThread.RunDataQuery(ASql: String;
-  var ADataset: TDataset; out AExceptionData : TExceptionData): Boolean;
+  var ADataset: TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner): Boolean;
 var
-  q : TZQuery;
+  q : TDeferDataSet;
 begin
   Result := False;
-  q := TZQuery.Create(nil);
+  q := TDeferDataSet.Create(nil, callback);
   q.Connection := FMysqlConn;
   q.SQL.Text := ASql;
   ADataset := q;
@@ -335,18 +345,18 @@ begin
   end;
 end;
 
-function TMysqlQueryThread.RunUpdateQuery(ASql: String; var ADataset: TDataset; out AExceptionData : TExceptionData): Boolean;
+function TMysqlQueryThread.RunUpdateQuery(ASql: String; var ADataset: TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner): Boolean;
 var
-  q : TZQuery;
+  q : TDeferDataSet;
 begin
   Result := False;
-  q := TZQuery.Create(nil);
+  q := TDeferDataSet.Create(nil, callback);
   q.Connection := FMysqlConn;
   q.SQL.Text := ASql;
   ADataSet := q;
 
   try
-    q.ExecSQL();
+    q.DoAsyncExecSql();
     Result := True;
   except
     On E: Exception do
