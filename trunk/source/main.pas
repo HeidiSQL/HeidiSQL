@@ -229,7 +229,9 @@ type
     NativeFieldTypes           : Boolean;
     LanguageOffset             : Integer;
     DataNullBackground         : TColor;
-    sqlfunctionlist            : TStringList;
+    SQLFunctionNames,
+    SQLFunctionDeclarations,
+    SQLFunctionDescriptions    : TStringList;
     function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
     procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
@@ -432,7 +434,10 @@ var
   ws : String;
   mi : TMenuItem;
   f : TextFile;
-  functionname, functionhint : String;
+  FunctionLine,
+  FunctionName,
+  FunctionDeclaration,
+  FunctionDescription : String;
   i, pipeposition : Integer;
 begin
   caption := APPNAME;
@@ -499,28 +504,40 @@ begin
     AssignFile(f, ExtractFilePath(paramstr(0)) + 'function.txt');
     Reset(f);
     i := 1;
+    SQLFunctionNames := TStringList.Create;
+    SQLFunctionDeclarations := TStringList.Create;
+    SQLFunctionDescriptions := TStringList.Create;
 
     while not eof(f) do
     begin
-      functionname := '';
-      Readln(f, functionname);
-      pipeposition := pos('|', functionname);
-      if pipeposition > 0 then // read hint
+      FunctionName := '';
+      FunctionDeclaration := '';
+      FunctionDescription := '';
+      Readln(f, FunctionLine);
+
+      if (length(FunctionLine) > 0) and (FunctionLine[1] <> '#') then
       begin
-        if sqlfunctionlist = nil then
-          sqlfunctionlist := TStringList.Create;
-        sqlfunctionlist.Add( trim(functionname) );
-        functionhint := copy(functionname, 0, pipeposition-1) + ' - ' + copy(functionname, pipeposition+1, length(functionname)-1);
-        functionname := copy(functionname, 0, pos('(', functionname)-1);
-      end else
-        functionhint := '';
-      if (functionname[1] <> '#') and (length(trim(functionname)) > 0) then
-      begin
+        FunctionName := FunctionLine;
+        if pos('(', FunctionName) > 0 then
+          FunctionName := copy(FunctionName, 0, pos('(', FunctionName)-1);
+        FunctionName := trim(FunctionName);
+
+        FunctionDeclaration := Copy(FunctionLine, 0, Pos( ')', FunctionLine ) );
+        FunctionDeclaration := Copy(FunctionDeclaration, Pos( '(', FunctionDeclaration ), Length(FunctionDeclaration) );
+
+        pipeposition := pos('|', FunctionLine);
+        if pipeposition > 0 then // read hint
+        begin
+          FunctionDescription := copy(FunctionLine, 0, pipeposition-1) + ' - ' + copy(FunctionLine, pipeposition+1, length(FunctionLine)-1);
+          FunctionDescription := trim(FunctionDescription);
+        end;
+
         mi := TMenuItem.Create(self);
-        mi.Caption := trim(functionname);
-        mi.Hint := trim(functionhint);
+        mi.Caption := FunctionName;
+        mi.Hint := FunctionDescription;
         mi.OnClick := insertFunction;
-        if functionname[1] <> ' ' then // build submenu
+
+        if FunctionLine[1] <> ' ' then // build submenu
         begin
           SQLfunctions.Items.add(mi);
           inc(i);
@@ -528,6 +545,9 @@ begin
         begin
           SQLfunctions.Items[i+11].OnClick := nil; // deactivate parent Menuitem
           SQLfunctions.Items[i+11].Add(mi);
+          SQLFunctionNames.Add(FunctionName);
+          SQLFunctionDeclarations.Add(FunctionDeclaration);
+          SQLFunctionDescriptions.Add(FunctionDescription);
         end;
       end;
     end;
