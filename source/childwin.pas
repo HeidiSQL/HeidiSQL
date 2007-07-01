@@ -37,9 +37,9 @@ type
     tabQuery: TTabSheet;
     popupTreeView: TPopupMenu;
     Drop1: TMenuItem;
-    Panel2: TPanel;
+    pnlDatabaseTop: TPanel;
     tabTable: TTabSheet;
-    Panel3: TPanel;
+    pnlTableTop: TPanel;
     popupDbGrid: TPopupMenu;
     menuviewdata: TMenuItem;
     menuproperties: TMenuItem;
@@ -58,22 +58,22 @@ type
     ListTables: TSortListView;
     Refresh1: TMenuItem;
     Panel4: TPanel;
-    Panel5: TPanel;
-    Panel6: TPanel;
-    ToolBar1: TToolBar;
+    pnlDataTop: TPanel;
+    pnlQueryTop: TPanel;
+    tlbDataLeft1: TToolBar;
     btnDbViewData: TToolButton;
     btnDbProperties: TToolButton;
     btnDbInsertRecord: TToolButton;
     btnDbEmptyTable: TToolButton;
-    ToolBar2: TToolBar;
+    tlbTableLeft1: TToolBar;
     menurefresh: TMenuItem;
     N2: TMenuItem;
-    Panel7: TPanel;
+    pnlQueryMemo: TPanel;
     btnTableDropField: TToolButton;
     btnTableViewData: TToolButton;
     SynSQLSyn1: TSynSQLSyn;
     SynMemoQuery: TSynMemo;
-    Splitter3: TSplitter;
+    spltQuery: TSplitter;
     menucreatetable: TMenuItem;
     OpenDialog1: TOpenDialog;
     TimerHostUptime: TTimer;
@@ -118,7 +118,7 @@ type
     TimerConnectErrorCloseWindow: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
-    Panel9: TPanel;
+    pnlTableList: TPanel;
     ListColumns: TSortListView;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
@@ -184,7 +184,7 @@ type
     QF7: TMenuItem;
     QF5: TMenuItem;
     QF6: TMenuItem;
-    Panel8: TPanel;
+    pnlQueryToolbar: TPanel;
     ToolBarQuery: TToolBar;
     btnQueryRun: TToolButton;
     btnQueryRunSelected: TToolButton;
@@ -835,7 +835,7 @@ begin
       // Other values:
       if ( ValueExists( 'querymemoheight' ) ) then
       begin
-        panel7.Height := ReadInteger('querymemoheight');
+        pnlQueryMemo.Height := ReadInteger('querymemoheight');
       end;
 
       if ( ValueExists( 'dbtreewidth' ) ) then
@@ -978,7 +978,7 @@ begin
       WriteInteger( 'childwinwidth', width );
       WriteInteger( 'childwinheight', height );
 
-      WriteInteger( 'querymemoheight', panel7.Height );
+      WriteInteger( 'querymemoheight', pnlQueryMemo.Height );
       WriteInteger( 'dbtreewidth', dbtree.width );
       WriteInteger( 'sqloutheight', PageControlBottom.Height );
 
@@ -1172,7 +1172,7 @@ begin
   end;
   ListTables.Items.Clear();
   ListColumns.Items.Clear();
-  Panel3.Caption := 'Table-Properties';
+  pnlTableTop.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
   ActualTable := '';
@@ -1659,7 +1659,7 @@ begin
   rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' +
     mask( ActualTable ), 0 ) );
 
-  Panel5.Caption := ActualDatabase + '.' + ActualTable + ': ' +
+  pnlDataTop.Caption := ActualDatabase + '.' + ActualTable + ': ' +
     FormatNumber( rows_total ) + ' records total';
 
   {***
@@ -1694,7 +1694,7 @@ begin
     ( Trim( SynMemoFilter.Text ) <> '' )
   ) then
   begin
-    Panel5.Caption := Panel5.Caption + ', ' + FormatNumber(rows_matching) +
+    pnlDataTop.Caption := pnlDataTop.Caption + ', ' + FormatNumber(rows_matching) +
       ' matching to filter';
   end;
 
@@ -1704,7 +1704,7 @@ begin
     ( Trim( SynMemoFilter.Text ) <> '')
   ) then
   begin
-    Panel5.Caption := Panel5.Caption + ', filter matches all records';
+    pnlDataTop.Caption := pnlDataTop.Caption + ', filter matches all records';
   end;
 
   if (
@@ -1712,7 +1712,7 @@ begin
     ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) )
   ) then
   begin
-    Panel5.Caption := Panel5.Caption + ', limited to ' +
+    pnlDataTop.Caption := pnlDataTop.Caption + ', limited to ' +
       FormatNumber( ds.RecordCount );
   end;
 end;
@@ -1740,9 +1740,9 @@ begin
     viewdata(self);
   if PageControlMain.ActivePage = tabQuery then
     if ActualDatabase <> '' then
-      Panel6.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
+      pnlQueryTop.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
-      Panel6.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
+      pnlQueryTop.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
@@ -2033,7 +2033,7 @@ begin
   end;
   Screen.Cursor := crHourglass;
 
-  Panel2.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.Items.Count) + ' table(s)';
+  pnlDatabaseTop.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.Items.Count) + ' table(s)';
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
@@ -2055,7 +2055,7 @@ begin
 
   if (PageControlMain.ActivePage <> tabData) and (not DBTree.Dragging) then
     PageControlMain.ActivePage := tabTable;
-  Panel3.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
+  pnlTableTop.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
 
   // set current node in DBTree to ActualTable:
   with DBTree do begin
@@ -5099,10 +5099,10 @@ end;
 
 procedure TMDIChild.FormResize(Sender: TObject);
 begin
-  ListTables.Width := tabDatabase.Width - Toolbar1.Width - Toolbar1.Left;
-  ListTables.Height := tabDatabase.Height - Panel2.Height;
-  Panel9.Width := tabTable.Width - Toolbar2.Width - Toolbar2.Left;
-  Panel9.Height := tabTable.Height - Panel3.Height;
+  ListTables.Width := tabDatabase.Width - tlbDataLeft1.Width - tlbDataLeft1.Left;
+  ListTables.Height := tabDatabase.Height - pnlDatabaseTop.Height;
+  pnlTableList.Width := tabTable.Width - tlbTableLeft1.Width - tlbTableLeft1.Left;
+  pnlTableList.Height := tabTable.Height - pnlTableTop.Height;
 end;
 
 

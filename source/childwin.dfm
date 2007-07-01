@@ -268,7 +268,7 @@ object MDIChild: TMDIChild
           DesignSize = (
             496
             220)
-          object Panel2: TPanel
+          object pnlDatabaseTop: TPanel
             Left = 0
             Top = 0
             Width = 496
@@ -352,13 +352,13 @@ object MDIChild: TMDIChild
             ImageIndexSortAsc = 95
             ImageIndexSortDesc = 94
           end
-          object ToolBar1: TToolBar
+          object tlbDataLeft1: TToolBar
             Left = 3
             Top = 20
             Width = 26
             Height = 146
             Align = alNone
-            Caption = 'ToolBar1'
+            Caption = 'tlbDataLeft1'
             Color = clBtnFace
             EdgeInner = esNone
             EdgeOuter = esNone
@@ -411,13 +411,13 @@ object MDIChild: TMDIChild
               Wrap = True
             end
           end
-          object ToolBar5: TToolBar
+          object tlbDataLeft2: TToolBar
             Left = 3
             Top = 153
             Width = 23
             Height = 29
             Align = alNone
-            Caption = 'ToolBar5'
+            Caption = 'tlbDataLeft2'
             EdgeInner = esNone
             EdgeOuter = esNone
             Images = MainForm.ImageList1
@@ -442,7 +442,7 @@ object MDIChild: TMDIChild
           DesignSize = (
             496
             220)
-          object Panel3: TPanel
+          object pnlTableTop: TPanel
             Left = 0
             Top = 0
             Width = 496
@@ -460,14 +460,14 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
           end
-          object ToolBar2: TToolBar
+          object tlbTableLeft1: TToolBar
             Left = 3
             Top = 20
             Width = 26
             Height = 146
             Align = alNone
             ButtonHeight = 23
-            Caption = 'ToolBar2'
+            Caption = 'tlbTableLeft1'
             EdgeInner = esNone
             EdgeOuter = esNone
             Images = MainForm.ImageList1
@@ -521,7 +521,7 @@ object MDIChild: TMDIChild
               OnClick = ManageIndexes1Click
             end
           end
-          object Panel9: TPanel
+          object pnlTableList: TPanel
             Left = 32
             Top = 17
             Width = 465
@@ -573,7 +573,7 @@ object MDIChild: TMDIChild
               ImageIndexSortDesc = 94
             end
           end
-          object ToolBar6: TToolBar
+          object tlbTableLeft2: TToolBar
             Left = 2
             Top = 143
             Width = 23
@@ -603,7 +603,7 @@ object MDIChild: TMDIChild
         object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 39
-          object Panel5: TPanel
+          object pnlDataTop: TPanel
             Left = 0
             Top = 0
             Width = 496
@@ -742,7 +742,7 @@ object MDIChild: TMDIChild
           Font.Style = []
           ImageIndex = 57
           ParentFont = False
-          object Splitter3: TSplitter
+          object spltQuery: TSplitter
             Left = 0
             Top = 125
             Width = 496
@@ -759,7 +759,7 @@ object MDIChild: TMDIChild
             Height = 13
             Align = alTop
           end
-          object Panel6: TPanel
+          object pnlQueryTop: TPanel
             Left = 0
             Top = 0
             Width = 496
@@ -776,7 +776,7 @@ object MDIChild: TMDIChild
             Font.Style = [fsBold]
             ParentFont = False
             TabOrder = 0
-            object Panel8: TPanel
+            object pnlQueryToolbar: TPanel
               Left = 272
               Top = 1
               Width = 223
@@ -896,7 +896,7 @@ object MDIChild: TMDIChild
               TabOrder = 1
             end
           end
-          object Panel7: TPanel
+          object pnlQueryMemo: TPanel
             Left = 0
             Top = 29
             Width = 496
