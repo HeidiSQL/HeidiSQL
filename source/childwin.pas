@@ -21,7 +21,7 @@ uses
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
-  MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid;
+  MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs;
 
 
 type
@@ -267,6 +267,12 @@ type
     btnUnsafeEdit: TToolButton;
     btnColumnSelection: TSpeedButton;
     btnAltTerminator: TToolButton;
+    pnlQueryHelpers: TPanel;
+    tabsetQueryHelpers: TTabSet;
+    lboxQueryHelpers: TListBox;
+    procedure lboxQueryHelpersDblClick(Sender: TObject);
+    procedure tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
+      var AllowChange: Boolean);
     procedure btnTableViewDataClick(Sender: TObject);
     procedure btnDbViewDataClick(Sender: TObject);
     procedure btnColumnSelectionClick(Sender: TObject);
@@ -1730,6 +1736,8 @@ end;
   Occurs when active tab has changed.
 }
 procedure TMDIChild.pcChange(Sender: TObject);
+var
+  dummy : Boolean;
 begin
   tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
 
@@ -1739,10 +1747,14 @@ begin
   if (PageControlMain.ActivePage = tabData) and (not dataselected) then
     viewdata(self);
   if PageControlMain.ActivePage = tabQuery then
+  begin
     if ActualDatabase <> '' then
       pnlQueryTop.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
     else
       pnlQueryTop.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
+    // Manually invoke OnChange event of tabset to fill helper list with data
+    tabsetQueryHelpers.OnChange( Sender, tabsetQueryHelpers.TabIndex, dummy);
+  end;
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
@@ -2905,8 +2917,6 @@ procedure TMDIChild.SynCompletionProposal1Execute(Kind: TSynCompletionType;
   var CanExecute: Boolean);
 var
   i,j,c,t          : Integer;
-  functionname     : String;
-  functiondecl     : String;
   tn, child        : TTreeNode;
   sql, tmpsql, kw  : String;
   keywords, tables : TStringList;
@@ -3069,15 +3079,10 @@ begin
     end;
 
     // Add functions
-    for i := 0 to MainForm.sqlfunctionlist.Count - 1 do
+    for i := 0 to MainForm.SQLFunctionNames.Count - 1 do
     begin
-      functionname := Copy(MainForm.sqlfunctionlist[i], 0, Pos('(', MainForm.sqlfunctionlist[i])-1);
-      if Pos( '|', MainForm.sqlfunctionlist[i] ) > 0 then
-        functiondecl := Copy(MainForm.sqlfunctionlist[i], Length(functionname)+1, Pos( '|', MainForm.sqlfunctionlist[i] )-Length(functionname)-1)
-      else
-        functiondecl := Copy(MainForm.sqlfunctionlist[i], Length(functionname)+1, Length(MainForm.sqlfunctionlist[i]) );
-      SynCompletionProposal1.InsertList.Add( functionname + functiondecl );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + functionname + '\style{-B}' + functiondecl );
+      SynCompletionProposal1.InsertList.Add( MainForm.SQLFunctionNames[i] + MainForm.SQLFunctionDeclarations[i] );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + MainForm.SQLFunctionNames[i] + '\style{-B}' + MainForm.SQLFunctionDeclarations[i] );
     end;
 
     // Add keywords
@@ -4099,10 +4104,13 @@ end;
 
 procedure TMDIChild.SynMemoQueryDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
+var
+  src : TControl;
 begin
   // dragging an object over the query-memo
-  if (Source as TControl).Parent = DBTree then
-    accept := true;
+  src := Source as TControl;
+  // Accepting drag's from DBTree and QueryHelpers
+  Accept := (src = DBTree) or (src = lboxQueryHelpers);
   // set x-position of cursor
   SynMemoQuery.CaretX := (x - SynMemoQuery.Gutter.Width) div SynMemoQuery.CharWidth - 1 + SynMemoQuery.LeftChar;
   // set y-position of cursor
@@ -4114,10 +4122,24 @@ end;
 
 procedure TMDIChild.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
+var
+  src : TControl;
+  Text : String;
 begin
   // dropping a TTreeNode into the query-memo
   SynMemoQuery.UndoList.AddGroupBreak;
-  SynMemoQuery.SelText := DBTree.Selected.Text;
+  src := Source as TControl;
+  // Check for allowed controls as source has already
+  // been performed in OnDragOver. So, only do typecasting here.
+  if src is TTreeView then
+  begin
+    Text := (src as TTreeView).Selected.Text;
+  end
+  else if src is TListBox then
+  begin
+    Text := (src as TListBox).Items[(src as TListBox).ItemIndex];
+  end;
+  SynMemoQuery.SelText := Text;
   SynMemoQuery.UndoList.AddGroupBreak;
 end;
 
@@ -5318,6 +5340,68 @@ begin
     frm.ShowModal;
   end;
 end;
+
+
+{**
+  Tabset right to query-memo was clicked
+}
+procedure TMDIChild.tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
+  var AllowChange: Boolean);
+var
+  i : Integer;
+begin
+  // Leaving early if method was invoked manually without changing
+  // the tabIndex while listbox is already filled
+  if (NewTab = tabsetQueryHelpers.TabIndex) and (lboxQueryHelpers.Items.Count > 0) then
+    exit;
+
+  lboxQueryHelpers.Items.BeginUpdate;
+  lboxQueryHelpers.Items.Clear;
+  // By default sorted alpabetically
+  lboxQueryHelpers.Sorted := True;
+
+  case NewTab of
+    0: // Cols
+    begin
+      // Keep native order of columns
+      lboxQueryHelpers.Sorted := False;
+      for i := 0 to ListColumns.Items.Count - 1 do
+      begin
+        lboxQueryHelpers.Items.Add(ListColumns.Items[i].Caption);
+      end;
+    end;
+
+    1: // SQL functions
+    begin
+      for i := 0 to Mainform.SQLFunctionNames.Count - 1 do
+      begin
+        lboxQueryHelpers.Items.Add( Mainform.SQLFunctionNames[i] + Mainform.SQLFunctionDeclarations[i] );
+      end;
+    end;
+
+    2: // SQL keywords
+    begin
+      lboxQueryHelpers.Items := MYSQL_KEYWORDS;
+      lboxQueryHelpers.Sorted := True;
+    end;
+
+  end;
+
+  lboxQueryHelpers.Items.EndUpdate;
+
+end;
+
+
+
+{**
+  Insert string from listbox with query helpers into SQL
+  memo at doubleclick
+}
+procedure TMDIChild.lboxQueryHelpersDblClick(Sender: TObject);
+begin
+  SynMemoQuery.SelText := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+end;
+
 
 
 end.

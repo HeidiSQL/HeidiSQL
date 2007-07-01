@@ -908,7 +908,7 @@ object MDIChild: TMDIChild
             object SynMemoQuery: TSynMemo
               Left = 0
               Top = 0
-              Width = 496
+              Width = 336
               Height = 96
               SingleLineMode = False
               Align = alClient
@@ -958,6 +958,48 @@ object MDIChild: TMDIChild
                   ShortCut = 16473
                 end>
               AddedKeystrokes = <>
+            end
+            object pnlQueryHelpers: TPanel
+              Left = 336
+              Top = 0
+              Width = 160
+              Height = 96
+              Align = alRight
+              BevelOuter = bvNone
+              TabOrder = 1
+              object tabsetQueryHelpers: TTabSet
+                Left = 0
+                Top = 72
+                Width = 160
+                Height = 24
+                Align = alBottom
+                AutoScroll = False
+                Font.Charset = DEFAULT_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Tahoma'
+                Font.Style = []
+                ParentShowHint = False
+                ShowHint = False
+                Style = tsModernTabs
+                Tabs.Strings = (
+                  'Cols'
+                  'SQL fn'
+                  'SQL kw')
+                TabIndex = 0
+                OnChange = tabsetQueryHelpersChange
+              end
+              object lboxQueryHelpers: TListBox
+                Left = 0
+                Top = 0
+                Width = 160
+                Height = 72
+                Align = alClient
+                DragMode = dmAutomatic
+                ItemHeight = 13
+                TabOrder = 1
+                OnDblClick = lboxQueryHelpersDblClick
+              end
             end
           end
           object gridQuery: TSMDBGrid
