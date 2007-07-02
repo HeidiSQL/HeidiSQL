@@ -270,6 +270,7 @@ type
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
     lboxQueryHelpers: TListBox;
+    procedure lboxQueryHelpersClick(Sender: TObject);
     procedure lboxQueryHelpersDblClick(Sender: TObject);
     procedure tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
       var AllowChange: Boolean);
@@ -469,6 +470,7 @@ type
       lastUsedDB                 : String;
       UserQueryFired             : Boolean;
       CachedTableLists           : TStringList;
+      QueryHelpersSelectedItems  : Array[0..2] of Integer;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -5388,6 +5390,13 @@ begin
 
   end;
 
+  // Restore last selected item in tab
+  if (QueryHelpersSelectedItems[NewTab] > -1)
+    and (QueryHelpersSelectedItems[NewTab] < lboxQueryHelpers.Count) then
+  begin
+    lboxQueryHelpers.ItemIndex := QueryHelpersSelectedItems[NewTab];
+  end;
+
   lboxQueryHelpers.Items.EndUpdate;
 
 end;
@@ -5404,6 +5413,13 @@ begin
 end;
 
 
+{**
+  Remember last used items in query helper tabs
+}
+procedure TMDIChild.lboxQueryHelpersClick(Sender: TObject);
+begin
+  QueryHelpersSelectedItems[tabsetQueryHelpers.TabIndex] := lboxQueryHelpers.ItemIndex;
+end;
 
 end.
 
