@@ -998,6 +998,7 @@ object MDIChild: TMDIChild
                 DragMode = dmAutomatic
                 ItemHeight = 13
                 TabOrder = 1
+                OnClick = lboxQueryHelpersClick
                 OnDblClick = lboxQueryHelpersDblClick
               end
             end
