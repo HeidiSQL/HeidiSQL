@@ -2062,6 +2062,7 @@ var
   tn, tndb : TTreeNode;
   isFulltext : Boolean;
   ds : TDataSet;
+  dummy: Boolean;
 begin
   // Table-Properties
 
@@ -2118,6 +2119,10 @@ begin
       n.Subitems.Add( ds.FieldByName('Extra').AsString );
       ds.Next;
     end;
+
+    // Manually invoke OnChange event of tabset to fill helper list with data
+    if tabsetQueryHelpers.TabIndex = 0 then
+      tabsetQueryHelpers.OnChange( Sender, tabsetQueryHelpers.TabIndex, dummy);
 
     {*
       TODO: Create drag-drop box next to query window with these columns.
@@ -5353,11 +5358,6 @@ procedure TMDIChild.tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
 var
   i : Integer;
 begin
-  // Leaving early if method was invoked manually without changing
-  // the tabIndex while listbox is already filled
-  if (NewTab = tabsetQueryHelpers.TabIndex) and (lboxQueryHelpers.Items.Count > 0) then
-    exit;
-
   lboxQueryHelpers.Items.BeginUpdate;
   lboxQueryHelpers.Items.Clear;
   // By default sorted alpabetically
