@@ -10,7 +10,7 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX;
+  shlobj, ActiveX, StrUtils;
 
 {$I const.inc}
 
@@ -66,6 +66,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
   procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
   function GetFieldValue( Field: TField ): String;
+  function LastPos( substr: WideString; str: WideString): Integer;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1865,6 +1866,22 @@ begin
     else
       Result := Field.AsString;
   end;
+end;
+
+
+
+{**
+  Get last position of substr in str
+  @param string Substring
+  @param string Text
+  @return Integer Last position
+}
+function LastPos( substr: WideString; str: WideString): Integer;
+begin
+  Result := 0;
+  str := ReverseString( str );
+  if Pos( substr, str ) > 0 then
+    Result := Length(str) - Pos( substr, str ) + 1;
 end;
 
 

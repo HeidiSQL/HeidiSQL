@@ -525,17 +525,21 @@ begin
         FunctionDeclaration := Copy(FunctionLine, 0, Pos( ')', FunctionLine ) );
         FunctionDeclaration := Copy(FunctionDeclaration, Pos( '(', FunctionDeclaration ), Length(FunctionDeclaration) );
 
-        pipeposition := pos('|', FunctionLine);
+        pipeposition := LastPos('|', FunctionLine);
         if pipeposition > 0 then // read hint
         begin
-          FunctionDescription := copy(FunctionLine, 0, pipeposition-1) + ' - ' + copy(FunctionLine, pipeposition+1, length(FunctionLine)-1);
+          FunctionDescription := copy(FunctionLine, pipeposition+1, length(FunctionLine)-1);
           FunctionDescription := trim(FunctionDescription);
         end;
 
         mi := TMenuItem.Create(self);
         mi.Caption := FunctionName;
-        mi.Hint := FunctionDescription;
-        mi.OnClick := insertFunction;
+        mi.Hint := FunctionName + FunctionDeclaration;
+        if FunctionDescription <> '' then
+          mi.Hint := mi.Hint + ' - ' + FunctionDescription;
+        mi.Hint := Trim(mi.Hint);
+        // Replace pipes as they're used to seperate ShortHint and LongHint 
+        mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
 
         if FunctionLine[1] <> ' ' then // build submenu
         begin
@@ -543,7 +547,7 @@ begin
           inc(i);
         end else
         begin
-          SQLfunctions.Items[i+11].OnClick := nil; // deactivate parent Menuitem
+          mi.OnClick := insertFunction;
           SQLfunctions.Items[i+11].Add(mi);
           SQLFunctionNames.Add(FunctionName);
           SQLFunctionDeclarations.Add(FunctionDeclaration);
@@ -584,6 +588,8 @@ begin
     sm := ChildWin.SynMemoQuery;
   f := TMenuItem(Sender).Hint;
   f := stringreplace(f, '&', '', [rfReplaceAll]);
+  // Restore pipes as they're used to seperate ShortHint and LongHint
+  f := StringReplace( f, '¦', '|', [rfReplaceAll] );
   f := copy(f, 0, pos(')', f));
   sm.UndoList.AddGroupBreak;
   sm.SelText := f;
