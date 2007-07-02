@@ -5385,7 +5385,6 @@ begin
     2: // SQL keywords
     begin
       lboxQueryHelpers.Items := MYSQL_KEYWORDS;
-      lboxQueryHelpers.Sorted := True;
     end;
 
   end;
