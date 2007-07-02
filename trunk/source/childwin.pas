@@ -4129,6 +4129,7 @@ begin
   // dropping a TTreeNode into the query-memo
   SynMemoQuery.UndoList.AddGroupBreak;
   src := Source as TControl;
+  Text := 'Error: Unspecified source control in drag''n drop operation!';
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src is TTreeView then
