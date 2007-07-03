@@ -39,8 +39,7 @@ type
     { Public declarations }
   end;
 
-var
-  CopyTableForm: TCopyTableForm;
+  function CopyTableWindow(AOwner: TComponent): Boolean;
 
 const
   OPTION_UNDEFINED = 255;
@@ -55,6 +54,21 @@ implementation
 uses helpers, main, childwin, db;
 
 {$R *.DFM}
+
+{**
+  Create form on demand
+  @param TComponent Owner of form (should be calling form)
+  @return Boolean Form closed using modalresult mrOK
+}
+function CopyTableWindow(AOwner: TComponent): Boolean;
+var
+  f : TCopyTableForm;
+begin
+  f := TCopyTableForm.Create(AOwner);
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil(f);
+end;
+
 
 procedure TCopyTableForm.radioStructureClick(Sender: TObject);
 begin
