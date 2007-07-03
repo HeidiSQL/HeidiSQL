@@ -459,7 +459,8 @@ type
       strHostRunning             : String;
       uptime                     : Integer;
       time_connected             : Integer;
-      OnlyDBs                    : TStringList;    // used on connecting
+      OnlyDBs,
+      OnlyDBs2                   : TStringList;    // used on connecting
       viewingdata                : Boolean;
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
@@ -489,7 +490,6 @@ type
       editing                    : Boolean;
       mysql_version              : Integer;
       tnodehost                  : TTreeNode;
-      OnlyDBs2                   : TStringList;
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
 
