@@ -45,8 +45,6 @@ begin
   Application.Title := APPNAME;
   Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
 
-  Application.CreateForm(TfrmSQLhelp, frmSQLhelp); debug('perf: frmSQLhelp created.');
-
 
   try
     try
