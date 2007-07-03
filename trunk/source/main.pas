@@ -796,7 +796,7 @@ end;
 procedure TMainForm.CopyTableExecute(Sender: TObject);
 begin
   // copy table
-  CopyTableForm.ShowModal;
+  CopyTableWindow(self);
 end;
 
 

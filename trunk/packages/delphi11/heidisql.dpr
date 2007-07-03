@@ -45,7 +45,6 @@ begin
   Application.CreateForm(TMainForm, MainForm);
   debug('perf: Main created.');
 
-  Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
   Application.CreateForm(TFormEditUser, FormEditUser); debug('perf: EditUser created.');
   Application.CreateForm(TfrmSQLhelp, frmSQLhelp); debug('perf: frmSQLhelp created.');
 

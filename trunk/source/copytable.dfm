@@ -92,6 +92,7 @@ object CopyTableForm: TCopyTableForm
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 5
     OnClick = ButtonCancelClick
   end
@@ -123,6 +124,7 @@ object CopyTableForm: TCopyTableForm
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
+    ModalResult = 1
     TabOrder = 8
     OnClick = ButtonOKClick
   end
