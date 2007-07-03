@@ -43,7 +43,6 @@ begin
   Application.Initialize;
   Application.Title := APPNAME;
   Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TColumnSelectionForm, ColumnSelectionForm);
   debug('perf: Main created.');
 
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
