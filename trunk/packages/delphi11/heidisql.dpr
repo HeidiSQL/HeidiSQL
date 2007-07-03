@@ -18,7 +18,6 @@ uses
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
   options in '..\..\source\options.pas' {optionsform},
-  selectsomedatabases in '..\..\source\selectsomedatabases.pas' {SelectFromManyDatabases},
   optimizetables in '..\..\source\optimizetables.pas' {optimize},
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},
