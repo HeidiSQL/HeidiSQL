@@ -112,6 +112,7 @@ object printlistForm: TprintlistForm
     Height = 25
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 4
     OnClick = Button2Click
   end
@@ -122,6 +123,7 @@ object printlistForm: TprintlistForm
     Height = 25
     Caption = 'Print'
     Default = True
+    ModalResult = 1
     TabOrder = 3
     OnClick = Button3Click
   end
