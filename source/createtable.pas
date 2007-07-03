@@ -85,8 +85,7 @@ type
     { Public declarations }
   end;
 
-var
-  CreateTableForm: TCreateTableForm;
+  function CreateTableWindow (AOwner : TComponent) : Boolean;
 
 {$I const.inc}
 
@@ -99,6 +98,21 @@ var
   fields : array of TMysqlField;
 
 {$R *.DFM}
+
+
+{**
+  Create form on demand
+  @param TComponent Owner of form (should be calling form)
+  @return Boolean Form closed using modalresult mrOK
+}
+function CreateTableWindow (AOwner : TComponent) : Boolean;
+var
+  f : TCreateTableForm;
+begin
+  f := TCreateTableForm.Create(AOwner);
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil (f);
+end;
 
 
 procedure TCreateTableForm.ButtonCancelClick(Sender: TObject);

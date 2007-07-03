@@ -80,6 +80,7 @@ object CreateTableForm: TCreateTableForm
     Height = 25
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 13
     OnClick = ButtonCancelClick
   end
@@ -90,6 +91,7 @@ object CreateTableForm: TCreateTableForm
     Height = 25
     Caption = 'Create!'
     Enabled = False
+    ModalResult = 1
     TabOrder = 12
     OnClick = ButtonCreateClick
   end

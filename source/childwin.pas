@@ -3115,7 +3115,7 @@ end;
 
 procedure TMDIChild.CreateTable(Sender: TObject);
 begin
-  CreateTableForm.showmodal;
+  CreateTableWindow(Self);
 end;
 
 

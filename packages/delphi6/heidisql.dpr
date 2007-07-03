@@ -34,7 +34,6 @@ begin
   Application.Title := 'HeidiSQL';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(Tconnform, connform);
-  Application.CreateForm(TCreateTableForm, CreateTableForm);
   Application.CreateForm(TFieldEditForm, FieldEditForm);
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form);
   Application.CreateForm(Ttablecomment, tablecomment);
