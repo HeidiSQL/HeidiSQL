@@ -789,7 +789,7 @@ begin
     // TODO: Print data
   end
   else
-    printlistform.showmodal;
+    printlistWindow(self);
 end;
 
 
