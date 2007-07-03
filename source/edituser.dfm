@@ -25,6 +25,7 @@ object FormEditUser: TFormEditUser
     Height = 25
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 0
     OnClick = Button1Click
   end
@@ -35,6 +36,7 @@ object FormEditUser: TFormEditUser
     Height = 25
     Caption = 'Save'
     Default = True
+    ModalResult = 1
     TabOrder = 1
     OnClick = Button2Click
   end
