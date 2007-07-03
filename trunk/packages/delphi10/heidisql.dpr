@@ -45,7 +45,6 @@ begin
   Application.Title := APPNAME;
   Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
 
-  Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
   Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');
   Application.CreateForm(Tloaddataform, loaddataform); debug('perf: loaddata created.');
