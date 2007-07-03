@@ -27,7 +27,8 @@ package HeidiComponents;
 {$IMPLICITBUILD OFF}
 
 requires
-  vcl;
+  vcl,
+  dbrtl;
 
 contains
   heidicomp in '..\..\source\heidicomp.pas';
