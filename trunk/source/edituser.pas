@@ -28,8 +28,7 @@ type
     { Public declarations }
   end;
 
-var
-  FormEditUser: TFormEditUser;
+  function EditUserWindow(AOwner: TComponent): Boolean;
 
 implementation
 
@@ -37,6 +36,21 @@ uses usermanager, childwin, MAIN;
 
 {$I const.inc}
 {$R *.DFM}
+
+{**
+  Create form on demand
+  @param TComponent Owner of form (should be calling form)
+  @return Boolean Form closed using modalresult mrOK
+}
+function EditUserWindow(AOwner: TComponent): Boolean;
+var
+  f : TFormEditUser;
+begin
+  f := TFormEditUser.Create(AOwner);
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil(f);
+end;
+
 
 procedure TFormEditUser.Button1Click(Sender: TObject);
 begin

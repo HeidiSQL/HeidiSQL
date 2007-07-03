@@ -920,7 +920,7 @@ end;
 
 procedure TUserManagerForm.ButtonEditUserClick(Sender: TObject);
 begin
-  FormEditUser.ShowModal;
+  EditUserWindow(self);
 end;
 
 procedure TUserManagerForm.Button1Click(Sender: TObject);

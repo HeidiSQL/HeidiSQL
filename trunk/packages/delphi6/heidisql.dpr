@@ -36,6 +36,5 @@ begin
   Application.CreateForm(Tconnform, connform);
   Application.CreateForm(TFieldEditForm, FieldEditForm);
   Application.CreateForm(TUserManagerForm, UserManagerForm);
-  Application.CreateForm(TFormEditUser, FormEditUser);
   Application.Run;
  end.
