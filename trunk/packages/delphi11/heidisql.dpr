@@ -1,12 +1,12 @@
 program heidisql;
 
-{%File '..\..\source\const.inc'}
+
 
 uses
   Forms,
   SysUtils,
   Dialogs,
-  main in '..\..\source\main.PAS' {MainForm},
+  main in '..\..\source\main.pas' {MainForm},
   childwin in '..\..\source\childwin.pas' {MDIChild},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},
@@ -33,7 +33,8 @@ uses
   mysqlquery in '..\..\source\mysqlquery.pas',
   mysqlquerythread in '..\..\source\mysqlquerythread.pas',
   mysqlconn in '..\..\source\mysqlconn.pas',
-  mysql in '..\..\source\mysql.pas';
+  mysql in '..\..\source\mysql.pas',
+  column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm};
 
 {$R *.RES}
 
@@ -41,7 +42,9 @@ begin
   debug('perf: All modules loaded.');
   Application.Initialize;
   Application.Title := APPNAME;
-  Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
+  Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TColumnSelectionForm, ColumnSelectionForm);
+  debug('perf: Main created.');
 
   Application.CreateForm(TCreateTableForm, CreateTableForm); debug('perf: CreateTable created.');
   Application.CreateForm(Ttbl_properties_form, tbl_properties_form); debug('perf: tbl_properties created.');
