@@ -679,7 +679,7 @@ end;
 procedure TMainForm.ButtonImportTextfileClick(Sender: TObject);
 begin
   // Import Textfile
-  loaddataform.showmodal;
+  loaddataWindow(self);
 end;
 
 procedure TMainForm.MenuPreferencesClick(Sender: TObject);
