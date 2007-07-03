@@ -3226,7 +3226,7 @@ end;
 
 procedure TMDIChild.MenuAdvancedPropertiesClick(Sender: TObject);
 begin
-  tbl_properties_form.showmodal;
+  tbl_properties_Window(self);
 end;
 
 

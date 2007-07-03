@@ -121,6 +121,7 @@ object tbl_properties_form: Ttbl_properties_form
       Cancel = True
       Caption = 'Close'
       Default = True
+      ModalResult = 1
       TabOrder = 0
       OnClick = btnCloseClick
     end

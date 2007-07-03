@@ -169,7 +169,6 @@ type
     procedure ButtonCreateDatabaseClick(Sender: TObject);
     procedure ButtonCreateTableClick(Sender: TObject);
     procedure ButtonDropDatabaseClick(Sender: TObject);
-    procedure ButtonAdvancedPropertiesClick(Sender: TObject);
     procedure ResetWindowOptions1Click(Sender: TObject);
     procedure ButtonImportTextfileClick(Sender: TObject);
     procedure MenuPreferencesClick(Sender: TObject);
@@ -639,12 +638,6 @@ procedure TMainForm.btnSQLHelpClick(Sender: TObject);
 begin
   // SQL help
   ChildWin.CallSQLHelp( Sender );
-end;
-
-procedure TMainForm.ButtonAdvancedPropertiesClick(Sender: TObject);
-begin
-  // Show advanced table-properties
-  tbl_properties_form.showmodal;
 end;
 
 

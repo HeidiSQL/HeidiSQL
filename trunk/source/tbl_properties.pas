@@ -30,8 +30,7 @@ type
     procedure FormResize(Sender: TObject);
   end;
 
-var
-  tbl_properties_form: Ttbl_properties_form;
+  function tbl_properties_Window(AOwner: TComponent): Boolean;
 
 implementation
 
@@ -39,6 +38,21 @@ uses
   Childwin, Main, helpers, Db;
 
 {$R *.DFM}
+
+
+{**
+  Create form on demand
+  @param TComponent Owner of form (should be calling form)
+  @return Boolean Form closed using modalresult mrOK
+}
+function tbl_properties_Window(AOwner: TComponent): Boolean;
+var
+  f : Ttbl_properties_form;
+begin
+  f := Ttbl_properties_form.Create(AOwner);
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil(f);
+end;
 
 
 {***
