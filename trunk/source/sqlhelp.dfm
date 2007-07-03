@@ -202,6 +202,7 @@ object frmSQLhelp: TfrmSQLhelp
         Cancel = True
         Caption = 'Close'
         Default = True
+        ModalResult = 1
         TabOrder = 1
         OnClick = ButtonCloseClick
       end

@@ -4290,8 +4290,7 @@ end;
 procedure TMDIChild.CallSQLHelpWithKeyword( keyword: String );
 begin
   // Set help-keyword and show window
-  frmSQLhelp.keyword := keyword;
-  frmSQLhelp.Show;
+  SQLhelpWindow(self, keyword);
 end;
 
 procedure TMDIChild.ToolButton4Click(Sender: TObject);
