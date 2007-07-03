@@ -35,7 +35,6 @@ begin
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(Tconnform, connform);
   Application.CreateForm(TFieldEditForm, FieldEditForm);
-  Application.CreateForm(Ttablecomment, tablecomment);
   Application.CreateForm(Tloaddataform, loaddataform);
   Application.CreateForm(TUserManagerForm, UserManagerForm);
   Application.CreateForm(TprintlistForm, printlistForm);

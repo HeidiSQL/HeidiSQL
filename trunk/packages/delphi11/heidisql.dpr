@@ -45,7 +45,6 @@ begin
   Application.CreateForm(TMainForm, MainForm);
   debug('perf: Main created.');
 
-  Application.CreateForm(Ttablecomment, tablecomment); debug('perf: tablecomment created.');
   Application.CreateForm(Tloaddataform, loaddataform); debug('perf: loaddata created.');
   Application.CreateForm(TprintlistForm, printlistForm); debug('perf: printlist created.');
   Application.CreateForm(TCopyTableForm, CopyTableForm); debug('perf: CopyTable created.');
