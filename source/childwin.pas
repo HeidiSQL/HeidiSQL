@@ -527,7 +527,7 @@ implementation
 
 uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
-  selectsomedatabases, optimizetables, copytable, sqlhelp, printlist,
+  optimizetables, copytable, sqlhelp, printlist,
   column_selection;
 
 
@@ -1107,11 +1107,6 @@ begin
   // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
   SynSQLSyn1.TableNames.EndUpdate();
-
-  if ( ( OnlyDBs.Count = 0 ) and ( OnlyDBs2.Count > 50 ) ) then
-  begin
-    SelectFromManyDatabasesWindow( Self, OnlyDBs2 );
-  end;
 
   // List Databases and Tables-Names
   tmpSelected := nil;
