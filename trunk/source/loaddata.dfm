@@ -91,6 +91,7 @@ object loaddataform: Tloaddataform
     Height = 25
     Caption = 'Import!'
     Default = True
+    ModalResult = 1
     TabOrder = 0
     OnClick = Button1Click
   end
@@ -101,6 +102,7 @@ object loaddataform: Tloaddataform
     Height = 25
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 1
     OnClick = Button2Click
   end
