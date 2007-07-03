@@ -3311,7 +3311,7 @@ end;
 procedure TMDIChild.MenuTableCommentClick(Sender: TObject);
 begin
   // table-comment
-  tablecomment.showmodal;
+  tablecommentWindow(self);
 end;
 
 

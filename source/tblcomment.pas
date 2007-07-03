@@ -30,14 +30,28 @@ type
     { Public declarations }
   end;
 
-var
-  tablecomment: Ttablecomment;
+  function tablecommentWindow(AOwner: TComponent): Boolean;
 
 implementation
 
 uses Childwin, helpers, Main;
 
 {$R *.DFM}
+
+{**
+  Create form on demand
+  @param TComponent Owner of form (should be calling form)
+  @return Boolean Form closed using modalresult mrOK
+}
+function tablecommentWindow(AOwner: TComponent): Boolean;
+var
+  f : Ttablecomment;
+begin
+  f := Ttablecomment.Create(AOwner);
+  Result := (f.ShowModal=mrOK);
+  FreeAndNil(f);
+end;
+
 
 procedure Ttablecomment.ButtonCancelClick(Sender: TObject);
 begin

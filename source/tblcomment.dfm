@@ -46,6 +46,7 @@ object tablecomment: Ttablecomment
     Height = 25
     Caption = 'OK'
     Default = True
+    ModalResult = 1
     TabOrder = 1
     OnClick = ButtonOKClick
   end
@@ -56,6 +57,7 @@ object tablecomment: Ttablecomment
     Height = 25
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 2
     OnClick = ButtonCancelClick
   end
