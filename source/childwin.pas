@@ -481,7 +481,6 @@ type
       procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
-      procedure EnsureActiveDatabase;
 
     public
       ActualDatabase             : String;
@@ -511,6 +510,7 @@ type
       function RefreshActiveDbTableList: TDataSet;
       procedure ClearAllTableLists;
       procedure UpdateTreeTableList;
+      procedure EnsureActiveDatabase;
   end;
 
 
