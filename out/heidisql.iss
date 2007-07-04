@@ -41,7 +41,6 @@ Source: "heidisql.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "function.txt"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "heidisql.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{commonappdata}\HeidiSQL\Snippets";
@@ -73,4 +72,5 @@ Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait po
 Type: files; Name: "{app}\heidisql.url"
 Type: files; Name: "{app}\heidisql_forum.url"
 Type: files; Name: "{app}\donate.url"
+Type: files; Name: "{app}\function.txt"
 
