@@ -528,7 +528,7 @@ implementation
 uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
   optimizetables, copytable, sqlhelp, printlist,
-  column_selection;
+  column_selection, mysql;
 
 
 {$I const.inc}
@@ -3081,10 +3081,10 @@ begin
     end;
 
     // Add functions
-    for i := 0 to MainForm.SQLFunctionNames.Count - 1 do
+    for i := 0 to Length(MySQLFunctions) - 1 do
     begin
-      SynCompletionProposal1.InsertList.Add( MainForm.SQLFunctionNames[i] + MainForm.SQLFunctionDeclarations[i] );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + MainForm.SQLFunctionNames[i] + '\style{-B}' + MainForm.SQLFunctionDeclarations[i] );
+      SynCompletionProposal1.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + MySQLFunctions[i].Name + '\style{-B}' + MySQLFunctions[i].Declaration );
     end;
 
     // Add keywords
@@ -5370,9 +5370,9 @@ begin
 
     1: // SQL functions
     begin
-      for i := 0 to Mainform.SQLFunctionNames.Count - 1 do
+      for i := 0 to Length(MySQLFunctions) - 1 do
       begin
-        lboxQueryHelpers.Items.Add( Mainform.SQLFunctionNames[i] + Mainform.SQLFunctionDeclarations[i] );
+        lboxQueryHelpers.Items.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       end;
     end;
 

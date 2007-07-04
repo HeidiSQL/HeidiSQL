@@ -228,9 +228,6 @@ type
     NativeFieldTypes           : Boolean;
     LanguageOffset             : Integer;
     DataNullBackground         : TColor;
-    SQLFunctionNames,
-    SQLFunctionDeclarations,
-    SQLFunctionDescriptions    : TStringList;
     function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
     procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
@@ -282,7 +279,8 @@ uses
   copytable,
   insertfiles,
   Helpers,
-  Threading;
+  Threading,
+  mysql;
 
 {$R *.DFM}
 
@@ -432,12 +430,8 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   ws : String;
   mi : TMenuItem;
-  f : TextFile;
-  FunctionLine,
-  FunctionName,
-  FunctionDeclaration,
-  FunctionDescription : String;
-  i, pipeposition : Integer;
+  i, j : Integer;
+  functioncats : TStringList;
 begin
   caption := APPNAME;
   setLocales;
@@ -497,65 +491,36 @@ begin
     CloseKey;
   end;
 
-  // read function-list from function.txt:
-  if fileexists(ExtractFilePath(paramstr(0)) + 'function.txt') then
-  try
-    AssignFile(f, ExtractFilePath(paramstr(0)) + 'function.txt');
-    Reset(f);
-    i := 1;
-    SQLFunctionNames := TStringList.Create;
-    SQLFunctionDeclarations := TStringList.Create;
-    SQLFunctionDescriptions := TStringList.Create;
+  // read function-list into menu
+  functioncats := GetFunctionCategories;
 
-    while not eof(f) do
+  for i:=0 to functioncats.Count-1 do
+  begin
+    // Create a menu item which gets subitems later
+    mi := TMenuItem.Create(self);
+    mi.Caption := functioncats[i];
+    SQLfunctions.Items.add(mi);
+    for j:=0 to Length(MySqlFunctions)-1 do
     begin
-      FunctionName := '';
-      FunctionDeclaration := '';
-      FunctionDescription := '';
-      Readln(f, FunctionLine);
-
-      if (length(FunctionLine) > 0) and (FunctionLine[1] <> '#') then
-      begin
-        FunctionName := FunctionLine;
-        if pos('(', FunctionName) > 0 then
-          FunctionName := copy(FunctionName, 0, pos('(', FunctionName)-1);
-        FunctionName := trim(FunctionName);
-
-        FunctionDeclaration := Copy(FunctionLine, 0, Pos( ')', FunctionLine ) );
-        FunctionDeclaration := Copy(FunctionDeclaration, Pos( '(', FunctionDeclaration ), Length(FunctionDeclaration) );
-
-        pipeposition := LastPos('|', FunctionLine);
-        if pipeposition > 0 then // read hint
-        begin
-          FunctionDescription := copy(FunctionLine, pipeposition+1, length(FunctionLine)-1);
-          FunctionDescription := trim(FunctionDescription);
-        end;
-
-        mi := TMenuItem.Create(self);
-        mi.Caption := FunctionName;
-        mi.Hint := FunctionName + FunctionDeclaration;
-        if FunctionDescription <> '' then
-          mi.Hint := mi.Hint + ' - ' + FunctionDescription;
-        mi.Hint := Trim(mi.Hint);
-        // Replace pipes as they're used to seperate ShortHint and LongHint 
-        mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
-
-        if FunctionLine[1] <> ' ' then // build submenu
-        begin
-          SQLfunctions.Items.add(mi);
-          inc(i);
-        end else
-        begin
-          mi.OnClick := insertFunction;
-          SQLfunctions.Items[i+11].Add(mi);
-          SQLFunctionNames.Add(FunctionName);
-          SQLFunctionDeclarations.Add(FunctionDeclaration);
-          SQLFunctionDescriptions.Add(FunctionDescription);
-        end;
-      end;
+      if MySqlFunctions[j].Category <> functioncats[i] then
+        continue;
+      mi := TMenuItem.Create(self);
+      mi.Caption := MySqlFunctions[j].Name;
+      // Prevent generating a hotkey
+      mi.Caption := StringReplace(mi.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if mi.Caption = '-' then
+        mi.Caption := '&-';
+      mi.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
+      if MySqlFunctions[j].Description <> '' then
+        mi.Hint := mi.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+      // Prevent generating a seperator for ShortHint and LongHint
+      mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
+      mi.Tag := j;
+      // Place menuitem on menu
+      mi.OnClick := insertFunction;
+      SQLfunctions.Items[i+13].Add(mi);
     end;
-  finally
-    CloseFile(f);
   end;
 
   // Beautify appversion
@@ -585,11 +550,9 @@ begin
     sm := ChildWin.SynMemoFilter
   else
     sm := ChildWin.SynMemoQuery;
-  f := TMenuItem(Sender).Hint;
-  f := stringreplace(f, '&', '', [rfReplaceAll]);
-  // Restore pipes as they're used to seperate ShortHint and LongHint
-  f := StringReplace( f, '¦', '|', [rfReplaceAll] );
-  f := copy(f, 0, pos(')', f));
+  // Restore function name from array
+  f := MySQLFunctions[TControl(Sender).tag].Name
+    + MySQLFunctions[TControl(Sender).tag].Declaration;
   sm.UndoList.AddGroupBreak;
   sm.SelText := f;
   sm.UndoList.AddGroupBreak;
