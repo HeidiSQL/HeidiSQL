@@ -448,6 +448,7 @@ var
   sql_select                : String;
   cwin                      : TMDIChild;
   query                     : TDataSet;
+  OldActualDatabase         : String;
 begin
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -523,7 +524,9 @@ begin
 
   try
     // Be sure to read everything from the correct database
-    cwin.ExecUseQuery( comboSelectDatabase.Text );
+    OldActualDatabase := cwin.ActualDatabase;
+    cwin.ActualDatabase := comboSelectDatabase.Text;
+    cwin.EnsureActiveDatabase;
 
     {***
       Ouput useful header information only when exporting to file
@@ -1066,9 +1069,10 @@ begin
         RemoteExecNonQuery(win2export, sql );
     end;
 
-    if cwin.ActualDatabase <> '' then
+    if OldActualDatabase <> '' then
     begin
-      cwin.ExecUseQuery( cwin.ActualDatabase );
+      cwin.ActualDatabase := OldActualDatabase;
+      cwin.EnsureActiveDatabase;
     end;
   FINALLY
     if tofile then
