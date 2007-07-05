@@ -2680,158 +2680,202 @@ end;
 
 procedure TMDIChild.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
 var
-  SQL                     : TStringList;
-  i, rowsaffected         : Integer;
-  SQLstart, SQLend, SQLscriptstart,
-  SQLscriptend            : Integer;
-  SQLTime                 : Double;
-  fieldcount, recordcount : Integer;
-  ds                      : TDataSet;
-  term                    : String;
-  prevDb                  : String;
+  SQL               : TStringList;
+  i                 : Integer;
+  rowsaffected      : Integer;
+  SQLstart          : Integer;
+  SQLend            : Integer;
+  SQLscriptstart    : Integer;
+  SQLscriptend      : Integer;
+  SQLTime           : Double;
+  fieldcount        : Integer;
+  recordcount       : Integer;
+  ds                : TDataSet;
+  term              : String;
+  prevDb            : String;
 begin
-  if btnAltTerminator.Down then term := '//' else term := ';';
-
-  if CurrentLine then begin
-    // Run current line
-    SQL := parseSQL(SynMemoQuery.LineText, term);
-  end else if Selection then begin
-    // Run selection
-    SQL := parsesql(SynMemoQuery.SelText, term);
-  end else begin
-    // Run all
-    SQL := parsesql(SynMemoQuery.Text, term);
+  if ( btnAltTerminator.Down ) then
+  begin
+    term := '//';
+  end
+  else
+  begin
+    term := ';';
   end;
 
-  if SQL.Count = 0 then begin
+  if ( CurrentLine ) then
+  begin
+    // Run current line
+    SQL := parseSQL( SynMemoQuery.LineText, term );
+  end
+  else
+  if ( Selection ) then
+  begin
+    // Run selection
+    SQL := parseSQL( SynMemoQuery.SelText, term );
+  end
+  else
+  begin
+    // Run all
+    SQL := parseSQL( SynMemoQuery.Text, term );
+  end;
+
+  if ( SQL.Count = 0 ) then
+  begin
     LabelResultinfo.Caption := '(nothing to do)';
-    exit;
+    Exit;
   end;
 
   // Let EnsureActiveDatabase know that we're firing user queries.
   prevDb := ActualDatabase;
-  ActualDatabase := '';
+  ActualDatabase := EmptyStr;
   UserQueryFired := true;
 
   // Destroy old data set.
   ds := DataSource2.DataSet;
   DataSource2.DataSet := nil;
-  FreeAndNil(ds);
+  FreeAndNil( ds );
   // set db-aware-component's properties..
-  DBMemo1.DataField := '';
+  DBMemo1.DataField := EmptyStr;
   DBMemo1.DataSource := DataSource2;
-  EDBImage1.DataField := '';
+  EDBImage1.DataField := EmptyStr;
   EDBImage1.DataSource := DataSource2;
 
-  SQLscriptstart := GetTickCount;
-  LabelResultinfo.Caption := '';
+  SQLscriptstart := GetTickCount();
+  LabelResultinfo.Caption := EmptyStr;
 
   ds := nil;
   try
     try
-      CheckConnection;
+      CheckConnection();
     except
-      exit;
+      Exit;
     end;
-    MainForm.showstatus('Initializing SQL...', 2, true);
+    MainForm.showstatus( 'Initializing SQL...', 2, true );
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
 
-    if ActualDatabase <> '' then
+    if ( ActualDatabase <> EmptyStr ) then
+    begin
       FMysqlConn.Connection.Database := ActualDatabase;
+    end;
 
     rowsaffected := 0;
     fieldcount := 0;
     recordcount := 0;
     ProgressBarQuery.Max := SQL.Count;
     ProgressBarQuery.Position := 0;
-    ProgressBarQuery.show;
+    ProgressBarQuery.Show();
 
-    MainForm.showstatus('Executing SQL...', 2, true);
-    for i:=0 to SQL.Count-1 do
+    MainForm.showstatus( 'Executing SQL...', 2, true );
+    for i := 0 to (SQL.Count - 1) do
     begin
-      ProgressBarQuery.Stepit;
+      ProgressBarQuery.StepIt();
       ProgressBarQuery.Repaint;
-      if sql[i] = '' then
+      if ( sql[i] = EmptyStr ) then
+      begin
         continue;
+      end;
       // open last query with data-aware:
-      LabelResultinfo.Caption := '';
+      LabelResultinfo.Caption := EmptyStr;
       // ok, let's rock
-      SQLstart := GetTickCount;
+      SQLstart := GetTickCount();
       try
-        if ExpectResultSet( SQL[i] ) then begin
-          ds := GetResults(SQL[i]);
+        if ( ExpectResultSet( SQL[i] ) ) then
+        begin
+          ds := GetResults( SQL[i] );
           gridQuery.DataSource.DataSet := ds;
-          if ds.Active then begin
+          if ( ds.Active ) then
+          begin
             fieldcount := ds.Fieldcount;
             recordcount := ds.Recordcount;
-          end else begin
+          end
+          else
+          begin
             fieldcount := 0;
             recordcount := 0;
           end;
           rowsaffected := rowsaffected + TZQuery(ds).RowsAffected;
-        end else begin
-          rowsaffected := rowsaffected + ExecUpdateQuery(SQL[i]);
+        end
+        else
+        begin
+          rowsaffected := rowsaffected + ExecUpdateQuery( SQL[i] );
           fieldcount := 0;
           recordcount := 0;
         end;
       except
         on E:Exception do
         begin
-          if btnQueryStopOnErrors.Down or (i=SQL.Count-1) then begin
-            Screen.Cursor := crdefault;
-            LogSQL(E.Message, true);
-            MessageDLG(E.Message, mtError, [mbOK], 0);
-            ProgressBarQuery.hide;
+          if (
+            ( btnQueryStopOnErrors.Down ) or
+            ( i = (SQL.Count - 1) )
+          ) then
+          begin
+            Screen.Cursor := crDefault;
+            LogSQL( E.Message, true );
+            MessageDlg( E.Message, mtError, [mbOK], 0 );
+            ProgressBarQuery.Hide();
             Mainform.ExecuteQuery.Enabled := true;
             Mainform.ExecuteSelection.Enabled := true;
-            break;
+            Break;
           end
-          else LogSQL(E.Message, true);
+          else
+          begin
+            LogSQL( E.Message, true );
+          end;
         end;
       end;
 
-      SQLend := GetTickCount;
+      SQLend := GetTickCount();
       SQLTime := (SQLend - SQLstart) / 1000;
 
       LabelResultinfo.Caption :=
-        FormatNumber( rowsaffected ) + ' row(s) affected, ' +
-        FormatNumber( fieldcount ) + ' field(s) / ' +
-        FormatNumber( recordcount ) + ' record(s) in last result set.';
-      if SQL.Count = 1 then begin
+        FormatNumber( rowsaffected ) +' row(s) affected, '+
+        FormatNumber( fieldcount ) +' field(s) / '+
+        FormatNumber( recordcount ) +' record(s) in last result set.';
+      if ( SQL.Count = 1 ) then
+      begin
         LabelResultinfo.Caption := LabelResultinfo.Caption +
-          ' Query time: '+FormatNumber( SQLTime, 3)+' sec.';
+          ' Query time: '+ FormatNumber( SQLTime, 3) +' sec.';
       end;
     end;
 
-    ProgressBarQuery.hide;
+    ProgressBarQuery.Hide();
     Mainform.ExecuteQuery.Enabled := true;
     Mainform.ExecuteSelection.Enabled := true;
     // count chars:
-    SynMemoQuery.OnChange(self);
+    SynMemoQuery.OnChange( Self );
 
-    if SQL.Count > 1 then begin
-      SQLscriptend := GetTickCount;
+    if ( SQL.Count > 1 ) then
+    begin
+      SQLscriptend := GetTickCount();
       SQLTime := (SQLscriptend - SQLscriptstart) / 1000;
-      LabelResultinfo.Caption := LabelResultinfo.Caption + ' Batch time: ' + FormatNumber(SQLTime, 3)+' sec.';
+      LabelResultinfo.Caption := LabelResultinfo.Caption +' Batch time: '+
+        FormatNumber( SQLTime, 3 ) +' sec.';
     end;
 
   finally
     // Avoid excessive GridHighlightChanged() when flicking controls.
     viewingdata := true;
 
-    if ds <> nil then
+    if ( ds <> nil ) then
     begin
       // Re-link to datasource
       DataSource2.DataSet := ds;
       // Flick controls so that column resizing will work (?)
-      TZQuery(ds).EnableControls;
-      TZQuery(ds).DisableControls;
+      TZQuery(ds).EnableControls();
+      TZQuery(ds).DisableControls();
       // resize all columns, if they are more wide than Mainform.DefaultColWidth
-      if Mainform.DefaultColWidth <> 0 then
+      if ( Mainform.DefaultColWidth <> 0 ) then
+      begin
         for i:=0 to gridQuery.Columns.count-1 do
-          if gridQuery.Columns[i].Width > Mainform.DefaultColWidth then
+        begin
+          if ( gridQuery.Columns[i].Width > Mainform.DefaultColWidth ) then
+          begin
             gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+          end;
+        end;
+      end;
     end
     else
     begin
@@ -2839,11 +2883,14 @@ begin
       DataSource2.DataSet := nil;
     end;
     // Ensure controls are in a valid state
-    ValidateControls;
+    ValidateControls();
     viewingdata := false;
     ActualDatabase := prevDb;
-    if ds <> nil then TZQuery(ds).EnableControls;
-    Screen.Cursor := crdefault;
+    if ( ds <> nil ) then
+    begin
+      TZQuery(ds).EnableControls();
+    end;
+    Screen.Cursor := crDefault;
     MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   end;
 end;
