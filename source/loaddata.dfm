@@ -40,7 +40,7 @@ object loaddataform: Tloaddataform
   end
   object lblFields: TLabel
     Left = 208
-    Top = 56
+    Top = 58
     Width = 30
     Height = 13
     Caption = 'Fields:'
@@ -52,13 +52,12 @@ object loaddataform: Tloaddataform
     Height = 13
     Caption = 'Lines:'
   end
-  object lblIgnoreLines: TLabel
+  object lblIgnoreLinesCount: TLabel
     Left = 415
     Top = 169
     Width = 25
     Height = 13
     Caption = 'Lines'
-    Enabled = False
   end
   object lblColumns: TLabel
     Left = 16
@@ -83,6 +82,41 @@ object loaddataform: Tloaddataform
       'Note: the LOCAL INFILE feature is only available for MySQL-Versi' +
       'ons > 3.22.6. On previous versions you will get an error!'
     WordWrap = True
+  end
+  object lblFieldTerminater: TLabel
+    Left = 272
+    Top = 58
+    Width = 63
+    Height = 13
+    Caption = 'terminated by'
+  end
+  object lblFieldEncloser: TLabel
+    Left = 272
+    Top = 83
+    Width = 57
+    Height = 13
+    Caption = 'enclosed by'
+  end
+  object lblFieldEscaper: TLabel
+    Left = 272
+    Top = 107
+    Width = 55
+    Height = 13
+    Caption = 'escaped by'
+  end
+  object lblLineTerminator: TLabel
+    Left = 272
+    Top = 147
+    Width = 63
+    Height = 13
+    Caption = 'terminated by'
+  end
+  object lblIgnoreLines: TLabel
+    Left = 272
+    Top = 170
+    Width = 29
+    Height = 13
+    Caption = 'ignore'
   end
   object btnImport: TButton
     Left = 328
@@ -150,57 +184,27 @@ object loaddataform: Tloaddataform
     TabOrder = 5
     OnChange = comboTableChange
   end
-  object chkFieldsTerminated: TCheckBox
-    Left = 272
-    Top = 56
-    Width = 97
-    Height = 17
-    Caption = 'terminated by'
-    TabOrder = 6
-    OnClick = chkFieldsTerminatedClick
-  end
   object editFieldTerminator: TEdit
     Left = 360
     Top = 56
     Width = 49
     Height = 21
-    Enabled = False
-    TabOrder = 7
+    TabOrder = 6
     Text = '\t'
-  end
-  object chkFieldsEnclosed: TCheckBox
-    Left = 272
-    Top = 80
-    Width = 97
-    Height = 17
-    Caption = 'enclosed by'
-    TabOrder = 8
-    OnClick = chkFieldsEnclosedClick
   end
   object editFieldEncloser: TEdit
     Left = 360
     Top = 80
     Width = 49
     Height = 21
-    Enabled = False
-    TabOrder = 9
-  end
-  object chkFieldsEscaped: TCheckBox
-    Left = 272
-    Top = 104
-    Width = 97
-    Height = 17
-    Caption = 'escaped by'
-    TabOrder = 10
-    OnClick = chkFieldsEscapedClick
+    TabOrder = 7
   end
   object editFieldEscaper: TEdit
     Left = 360
     Top = 104
     Width = 49
     Height = 21
-    Enabled = False
-    TabOrder = 11
+    TabOrder = 8
     Text = '\\'
   end
   object chkFieldsEnclosedOptionally: TCheckBox
@@ -209,35 +213,15 @@ object loaddataform: Tloaddataform
     Width = 73
     Height = 17
     Caption = 'optionally'
-    Enabled = False
-    TabOrder = 12
-  end
-  object chkLinesTerminated: TCheckBox
-    Left = 272
-    Top = 144
-    Width = 89
-    Height = 17
-    Caption = 'terminated by'
-    TabOrder = 13
-    OnClick = chkLinesTerminatedClick
+    TabOrder = 9
   end
   object editLineTerminator: TEdit
     Left = 360
     Top = 144
     Width = 49
     Height = 21
-    Enabled = False
-    TabOrder = 14
+    TabOrder = 10
     Text = '\n'
-  end
-  object chkLinesIgnore: TCheckBox
-    Left = 272
-    Top = 168
-    Width = 73
-    Height = 17
-    Caption = 'ignore'
-    TabOrder = 15
-    OnClick = chkLinesIgnoreClick
   end
   object chklistColumns: TCheckListBox
     Left = 16
@@ -245,7 +229,7 @@ object loaddataform: Tloaddataform
     Width = 121
     Height = 161
     ItemHeight = 13
-    TabOrder = 16
+    TabOrder = 11
   end
   object comboDatabase: TComboBox
     Left = 16
@@ -254,7 +238,7 @@ object loaddataform: Tloaddataform
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    TabOrder = 17
+    TabOrder = 12
     OnChange = comboDatabaseChange
   end
   object chkReplace: TCheckBox
@@ -263,7 +247,7 @@ object loaddataform: Tloaddataform
     Width = 65
     Height = 17
     Caption = 'Replace'
-    TabOrder = 18
+    TabOrder = 13
     OnClick = chkReplaceClick
   end
   object chkIgnore: TCheckBox
@@ -272,7 +256,7 @@ object loaddataform: Tloaddataform
     Width = 57
     Height = 17
     Caption = 'Ignore'
-    TabOrder = 19
+    TabOrder = 14
     OnClick = chkIgnoreClick
   end
   object btnColUp: TBitBtn
@@ -280,7 +264,7 @@ object loaddataform: Tloaddataform
     Top = 178
     Width = 25
     Height = 25
-    TabOrder = 21
+    TabOrder = 16
     OnClick = btnColUpClick
     Glyph.Data = {
       F6000000424DF600000000000000760000002800000010000000100000000100
@@ -297,7 +281,7 @@ object loaddataform: Tloaddataform
     Top = 202
     Width = 25
     Height = 25
-    TabOrder = 20
+    TabOrder = 15
     OnClick = btnColDownClick
     Glyph.Data = {
       F6000000424DF600000000000000760000002800000010000000100000000100
@@ -314,20 +298,18 @@ object loaddataform: Tloaddataform
     Top = 167
     Width = 33
     Height = 21
-    Enabled = False
-    TabOrder = 22
+    TabOrder = 17
     Text = '1'
   end
   object updownIgnoreLines: TUpDown
-    Left = 391
-    Top = 168
+    Left = 393
+    Top = 167
     Width = 18
     Height = 21
     Associate = editIgnoreLines
-    Enabled = False
     Max = 32767
     Position = 1
-    TabOrder = 23
+    TabOrder = 18
   end
   object OpenDialogCSVFile: TOpenDialog
     DefaultExt = 'csv'

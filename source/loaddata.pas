@@ -23,19 +23,14 @@ type
     lblTable: TLabel;
     comboTable: TComboBox;
     lblFilename: TLabel;
-    chkFieldsTerminated: TCheckBox;
     lblFields: TLabel;
     editFieldTerminator: TEdit;
-    chkFieldsEnclosed: TCheckBox;
     editFieldEncloser: TEdit;
-    chkFieldsEscaped: TCheckBox;
     editFieldEscaper: TEdit;
     chkFieldsEnclosedOptionally: TCheckBox;
     lblLines: TLabel;
-    chkLinesTerminated: TCheckBox;
     editLineTerminator: TEdit;
-    chkLinesIgnore: TCheckBox;
-    lblIgnoreLines: TLabel;
+    lblIgnoreLinesCount: TLabel;
     lblColumns: TLabel;
     chklistColumns: TCheckListBox;
     comboDatabase: TComboBox;
@@ -48,15 +43,15 @@ type
     btnColDown: TBitBtn;
     editIgnoreLines: TEdit;
     updownIgnoreLines: TUpDown;
+    lblFieldTerminater: TLabel;
+    lblFieldEncloser: TLabel;
+    lblFieldEscaper: TLabel;
+    lblLineTerminator: TLabel;
+    lblIgnoreLines: TLabel;
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
     procedure comboTableChange(Sender: TObject);
-    procedure chkFieldsTerminatedClick(Sender: TObject);
-    procedure chkFieldsEnclosedClick(Sender: TObject);
-    procedure chkFieldsEscapedClick(Sender: TObject);
-    procedure chkLinesTerminatedClick(Sender: TObject);
-    procedure chkLinesIgnoreClick(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
     procedure btnOpenFileClick(Sender: TObject);
     procedure chkReplaceClick(Sender: TObject);
@@ -102,6 +97,7 @@ procedure Tloaddataform.FormShow(Sender: TObject);
 var
   tn : TTreeNode;
   i : Integer;
+  reg : TRegistry;
 begin
   // read dbs and Tables from treeview
   comboDatabase.Items.Clear;
@@ -122,13 +118,29 @@ begin
   end;
 
   comboDatabaseChange(self);
-  // filename
-  with TRegistry.Create do
-    if OpenKey(REGPATH, true) then
-      editFilename.Text := ReadString('loadfilename');
-  if editFilename.Text = '' then
-    editFilename.Text := ExtractFilePath(paramstr(0)) + 'import.csv';
-  editFilename.Text := stringreplace(editFilename.Text, '\', '/', [rfReplaceAll]);
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, true) then
+  begin
+    // filename
+    editFilename.Text := reg.ReadString('loadfilename');
+    // Use options from CSV export
+    editFieldTerminator.Text := reg.ReadString('CSVSeparator');
+    editFieldEncloser.Text := reg.ReadString('CSVEncloser');
+    editLineTerminator.Text := reg.ReadString('CSVTerminator');
+    // Other options
+    if reg.ValueExists('CSVImportFieldsEnclosedOptionally') then
+      chkFieldsEnclosedOptionally.Checked := reg.ReadBool('CSVImportFieldsEnclosedOptionally');
+    editFieldEscaper.Text := reg.ReadString('CSVImportFieldEscaper');
+    if reg.ValueExists('CSVImportIgnoreLines') then
+      updownIgnoreLines.Position := reg.ReadInteger('CSVImportIgnoreLines');
+    if reg.ValueExists('CSVImportLowPriority') then
+      chkLowPriority.Checked := reg.ReadBool('CSVImportLowPriority');
+    if reg.ValueExists('CSVImportReplace') then
+      chkReplace.Checked := reg.ReadBool('CSVImportReplace');
+    if reg.ValueExists('CSVImportIgnore') then
+      chkIgnore.Checked := reg.ReadBool('CSVImportIgnore');
+  end;
+
 end;
 
 
@@ -174,49 +186,32 @@ begin
 end;
 
 
-procedure Tloaddataform.chkFieldsTerminatedClick(Sender: TObject);
-begin
-  editFieldTerminator.Enabled :=  (sender as TCheckBox).checked;
-end;
-
-
-procedure Tloaddataform.chkFieldsEnclosedClick(Sender: TObject);
-begin
-  editFieldEncloser.Enabled :=  (sender as TCheckBox).checked;
-  chkFieldsEnclosedOptionally.Enabled :=  (sender as TCheckBox).checked;
-end;
-
-
-procedure Tloaddataform.chkFieldsEscapedClick(Sender: TObject);
-begin
-  editFieldEscaper.Enabled :=  (sender as TCheckBox).checked;
-end;
-
-
-procedure Tloaddataform.chkLinesTerminatedClick(Sender: TObject);
-begin
-  editLineTerminator.Enabled :=  (sender as TCheckBox).checked;
-end;
-
-
-procedure Tloaddataform.chkLinesIgnoreClick(Sender: TObject);
-begin
-  updownIgnoreLines.Enabled := (sender as TCheckBox).checked;
-  editIgnoreLines.Enabled := (sender as TCheckBox).checked;
-  lblIgnoreLines.Enabled :=  (sender as TCheckBox).checked;
-end;
-
-
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   query : string;
   col   : TStringList;
   i     : Integer;
+  reg   : TRegistry;
 begin
 
-  with TRegistry.Create do
-    if OpenKey(REGPATH, true) then
-      WriteString('loadfilename', editFilename.Text);
+  // Save settings
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, true) then
+  begin
+    // filename
+    reg.WriteString( 'loadfilename', editFilename.Text );
+    // Use options from CSV export
+    reg.WriteString( 'CSVSeparator', editFieldTerminator.Text );
+    reg.WriteString( 'CSVEncloser', editFieldEncloser.Text );
+    reg.WriteString( 'CSVTerminator', editLineTerminator.Text );
+    // Other options
+    reg.WriteBool( 'CSVImportFieldsEnclosedOptionally', chkFieldsEnclosedOptionally.Checked );
+    reg.WriteString( 'CSVImportFieldEscaper', editFieldEscaper.Text );
+    reg.WriteInteger( 'CSVImportIgnoreLines', updownIgnoreLines.Position );
+    reg.WriteBool( 'CSVImportLowPriority', chkLowPriority.Checked );
+    reg.WriteBool( 'CSVImportReplace', chkReplace.Checked );
+    reg.WriteBool( 'CSVImportIgnore', chkIgnore.Checked );
+  end;
 
   query := 'LOAD DATA ';
 
@@ -228,33 +223,33 @@ begin
     query := query + 'REPLACE '
   else if chkIgnore.Checked then
     query := query + 'IGNORE ';
-  query := query + 'INTO TABLE ' + comboDatabase.Text + '.' +  comboTable.Text + ' ';
+  query := query + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
 
   // Fields:
-  if chkFieldsTerminated.Checked or chkFieldsEnclosed.Checked or chkFieldsEscaped.Checked then
+  if (editFieldTerminator.Text <> '') or (editFieldEncloser.Text <> '') or (editFieldEscaper.Text <> '') then
     query := query + 'FIELDS ';
-  if chkFieldsTerminated.Checked then
-    query := query + 'TERMINATED BY ''' + editFieldTerminator.Text + ''' ';
-  if chkFieldsEnclosed.Checked then
+  if editFieldTerminator.Text <> '' then
+    query := query + 'TERMINATED BY ' + esc(editFieldTerminator.Text) + ' ';
+  if editFieldEncloser.Text <> '' then
   begin
     if chkFieldsEnclosedOptionally.Checked then
       query := query + 'OPTIONALLY ';
-    query := query + 'ENCLOSED BY ''' + editFieldEncloser.Text + ''' ';
+    query := query + 'ENCLOSED BY ' + esc(editFieldEncloser.Text) + ' ';
   end;
-  if chkFieldsEscaped.Checked then
-    query := query + 'ESCAPED BY ''' + editFieldEscaper.Text + ''' ';
+  if editFieldEscaper.Text <> '' then
+    query := query + 'ESCAPED BY ' + esc(editFieldEscaper.Text) + ' ';
 
   // Lines:
-  if chkLinesTerminated.Checked then
+  if editLineTerminator.Text <> '' then
     query := query + 'LINES TERMINATED BY ''' + editLineTerminator.Text + ''' ';
-  if chkLinesIgnore.Checked then
+  if updownIgnoreLines.Position > 0 then
     query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
   col := TStringList.Create;
   for i:=0 to chklistColumns.Items.Count - 1 do
   begin
     if chklistColumns.checked[i] then
-      col.Add(chklistColumns.Items[i]);
+      col.Add(Mainform.Mask( chklistColumns.Items[i] ));
   end;
 
 //  if col.Count < ColumnsCheckListBox.Items.Count then
