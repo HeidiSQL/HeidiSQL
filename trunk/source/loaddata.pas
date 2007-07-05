@@ -14,55 +14,55 @@ uses
 
 type
   Tloaddataform = class(TForm)
-    Bevel1: TBevel;
-    Button1: TButton;
-    Button2: TButton;
-    EditFileName: TEdit;
-    BitBtn1: TBitBtn;
-    CheckBox1: TCheckBox;
-    Label1: TLabel;
-    TablesComboBox: TComboBox;
-    Label2: TLabel;
-    CheckBox2: TCheckBox;
-    Label3: TLabel;
-    Edit2: TEdit;
-    CheckBox3: TCheckBox;
-    Edit3: TEdit;
-    CheckBox4: TCheckBox;
-    Edit4: TEdit;
-    CheckBox5: TCheckBox;
-    Label4: TLabel;
-    CheckBox6: TCheckBox;
-    Edit5: TEdit;
-    CheckBox7: TCheckBox;
-    Label5: TLabel;
-    Label6: TLabel;
-    ColumnsCheckListBox: TCheckListBox;
-    DBComboBox: TComboBox;
-    Label7: TLabel;
-    OpenDialog1: TOpenDialog;
-    CheckBox8: TCheckBox;
-    CheckBox9: TCheckBox;
-    Label8: TLabel;
-    BitBtn2: TBitBtn;
-    BitBtn3: TBitBtn;
+    bvlBottom: TBevel;
+    btnImport: TButton;
+    btnCancel: TButton;
+    editFilename: TEdit;
+    btnOpenFile: TBitBtn;
+    chkLowPriority: TCheckBox;
+    lblTable: TLabel;
+    comboTable: TComboBox;
+    lblFilename: TLabel;
+    chkFieldsTerminated: TCheckBox;
+    lblFields: TLabel;
+    editFieldTerminator: TEdit;
+    chkFieldsEnclosed: TCheckBox;
+    editFieldEncloser: TEdit;
+    chkFieldsEscaped: TCheckBox;
+    editFieldEscaper: TEdit;
+    chkFieldsEnclosedOptionally: TCheckBox;
+    lblLines: TLabel;
+    chkLinesTerminated: TCheckBox;
+    editLineTerminator: TEdit;
+    chkLinesIgnore: TCheckBox;
+    lblIgnoreLines: TLabel;
+    lblColumns: TLabel;
+    chklistColumns: TCheckListBox;
+    comboDatabase: TComboBox;
+    lblDatabase: TLabel;
+    OpenDialogCSVFile: TOpenDialog;
+    chkReplace: TCheckBox;
+    chkIgnore: TCheckBox;
+    lblNote: TLabel;
+    btnColUp: TBitBtn;
+    btnColDown: TBitBtn;
     editIgnoreLines: TEdit;
     updownIgnoreLines: TUpDown;
-    procedure Button2Click(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure DBComboBoxChange(Sender: TObject);
-    procedure TablesComboBoxChange(Sender: TObject);
-    procedure CheckBox2Click(Sender: TObject);
-    procedure CheckBox3Click(Sender: TObject);
-    procedure CheckBox4Click(Sender: TObject);
-    procedure CheckBox6Click(Sender: TObject);
-    procedure CheckBox7Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure BitBtn1Click(Sender: TObject);
-    procedure CheckBox8Click(Sender: TObject);
-    procedure CheckBox9Click(Sender: TObject);
-    procedure BitBtn2Click(Sender: TObject);
-    procedure BitBtn3Click(Sender: TObject);
+    procedure comboDatabaseChange(Sender: TObject);
+    procedure comboTableChange(Sender: TObject);
+    procedure chkFieldsTerminatedClick(Sender: TObject);
+    procedure chkFieldsEnclosedClick(Sender: TObject);
+    procedure chkFieldsEscapedClick(Sender: TObject);
+    procedure chkLinesTerminatedClick(Sender: TObject);
+    procedure chkLinesIgnoreClick(Sender: TObject);
+    procedure btnImportClick(Sender: TObject);
+    procedure btnOpenFileClick(Sender: TObject);
+    procedure chkReplaceClick(Sender: TObject);
+    procedure chkIgnoreClick(Sender: TObject);
+    procedure btnColUpClick(Sender: TObject);
+    procedure btnColDownClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -93,7 +93,7 @@ begin
 end;
 
 
-procedure Tloaddataform.Button2Click(Sender: TObject);
+procedure Tloaddataform.btnCancelClick(Sender: TObject);
 begin
   close;
 end;
@@ -104,15 +104,15 @@ var
   i : Integer;
 begin
   // read dbs and Tables from treeview
-  DBComboBox.Items.Clear;
+  comboDatabase.Items.Clear;
   for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
   begin
     tn := Mainform.ChildWin.DBTree.Items[i];
     if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
+      comboDatabase.Items.Add(tn.Text);
   end;
 
-  with DBComboBox do
+  with comboDatabase do
   begin
     for i:=0 to Items.Count-1 do
       if Items[i] = Mainform.ChildWin.ActualDatabase then
@@ -121,25 +121,25 @@ begin
       ItemIndex := 0;
   end;
 
-  DBComboBoxChange(self);
+  comboDatabaseChange(self);
   // filename
   with TRegistry.Create do
     if OpenKey(REGPATH, true) then
-      EditFileName.Text := ReadString('loadfilename');
-  if EditFileName.Text = '' then
-    EditFileName.Text := ExtractFilePath(paramstr(0)) + 'import.csv';
-  EditFileName.Text := stringreplace(EditFileName.Text, '\', '/', [rfReplaceAll]);
+      editFilename.Text := ReadString('loadfilename');
+  if editFilename.Text = '' then
+    editFilename.Text := ExtractFilePath(paramstr(0)) + 'import.csv';
+  editFilename.Text := stringreplace(editFilename.Text, '\', '/', [rfReplaceAll]);
 end;
 
 
-procedure Tloaddataform.DBComboBoxChange(Sender: TObject);
+procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
   i : Integer;
 begin
   // read tables from db
-  TablesComboBox.Items.Clear;
-  TablesComboBox.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( DBComboBox.Text ) );
-  with TablesComboBox do
+  comboTable.Items.Clear;
+  comboTable.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( comboDatabase.Text ) );
+  with comboTable do
   begin
     for i:=0 to Items.Count-1 do
       if Items[i] = Mainform.ChildWin.ActualTable then
@@ -148,66 +148,66 @@ begin
       ItemIndex := 0;
   end;
 
-  TablesComboBoxChange(self);
+  comboTableChange(self);
 end;
 
 
-procedure Tloaddataform.TablesComboBoxChange(Sender: TObject);
+procedure Tloaddataform.comboTableChange(Sender: TObject);
 var
   i : Integer;
   ds : TDataSet;
 begin
   // fill columns:
-  ColumnsCheckListBox.Items.Clear;
-  if (DBComboBox.Text <> '') and (TablesComboBox.Text <> '') then begin
-    ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(DBComboBox.Text) + '.' +  mainform.mask(TablesComboBox.Text));
+  chklistColumns.Items.Clear;
+  if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
+    ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text));
     for i:=1 to ds.RecordCount do
     begin
-      ColumnsCheckListBox.Items.Add(ds.Fields[0].AsString);
+      chklistColumns.Items.Add(ds.Fields[0].AsString);
       ds.Next;
     end;
   end;
 
   // select all:
-  for i:=0 to ColumnsCheckListBox.Items.Count-1 do
-    ColumnsCheckListBox.checked[i] := true;
+  for i:=0 to chklistColumns.Items.Count-1 do
+    chklistColumns.checked[i] := true;
 end;
 
 
-procedure Tloaddataform.CheckBox2Click(Sender: TObject);
+procedure Tloaddataform.chkFieldsTerminatedClick(Sender: TObject);
 begin
-  edit2.Enabled :=  (sender as TCheckBox).checked;
+  editFieldTerminator.Enabled :=  (sender as TCheckBox).checked;
 end;
 
 
-procedure Tloaddataform.CheckBox3Click(Sender: TObject);
+procedure Tloaddataform.chkFieldsEnclosedClick(Sender: TObject);
 begin
-  edit3.Enabled :=  (sender as TCheckBox).checked;
-  checkbox5.Enabled :=  (sender as TCheckBox).checked;
+  editFieldEncloser.Enabled :=  (sender as TCheckBox).checked;
+  chkFieldsEnclosedOptionally.Enabled :=  (sender as TCheckBox).checked;
 end;
 
 
-procedure Tloaddataform.CheckBox4Click(Sender: TObject);
+procedure Tloaddataform.chkFieldsEscapedClick(Sender: TObject);
 begin
-  edit4.Enabled :=  (sender as TCheckBox).checked;
+  editFieldEscaper.Enabled :=  (sender as TCheckBox).checked;
 end;
 
 
-procedure Tloaddataform.CheckBox6Click(Sender: TObject);
+procedure Tloaddataform.chkLinesTerminatedClick(Sender: TObject);
 begin
-  edit5.Enabled :=  (sender as TCheckBox).checked;
+  editLineTerminator.Enabled :=  (sender as TCheckBox).checked;
 end;
 
 
-procedure Tloaddataform.CheckBox7Click(Sender: TObject);
+procedure Tloaddataform.chkLinesIgnoreClick(Sender: TObject);
 begin
   updownIgnoreLines.Enabled := (sender as TCheckBox).checked;
   editIgnoreLines.Enabled := (sender as TCheckBox).checked;
-  Label5.Enabled :=  (sender as TCheckBox).checked;
+  lblIgnoreLines.Enabled :=  (sender as TCheckBox).checked;
 end;
 
 
-procedure Tloaddataform.Button1Click(Sender: TObject);
+procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   query : string;
   col   : TStringList;
@@ -216,45 +216,45 @@ begin
 
   with TRegistry.Create do
     if OpenKey(REGPATH, true) then
-      WriteString('loadfilename', EditFileName.Text);
+      WriteString('loadfilename', editFilename.Text);
 
   query := 'LOAD DATA ';
 
-  if checkbox1.Checked then
+  if chkLowPriority.Checked then
     query := query + 'LOW_PRIORITY ';
 
-  query := query + 'LOCAL INFILE ' + esc(EditFileName.Text) + ' ';
-  if checkbox8.Checked then
+  query := query + 'LOCAL INFILE ' + esc(editFilename.Text) + ' ';
+  if chkReplace.Checked then
     query := query + 'REPLACE '
-  else if checkbox9.Checked then
+  else if chkIgnore.Checked then
     query := query + 'IGNORE ';
-  query := query + 'INTO TABLE ' + DBComboBox.Text + '.' +  TablesComboBox.Text + ' ';
+  query := query + 'INTO TABLE ' + comboDatabase.Text + '.' +  comboTable.Text + ' ';
 
   // Fields:
-  if checkbox2.Checked or checkbox3.Checked or checkbox4.Checked then
+  if chkFieldsTerminated.Checked or chkFieldsEnclosed.Checked or chkFieldsEscaped.Checked then
     query := query + 'FIELDS ';
-  if checkbox2.Checked then
-    query := query + 'TERMINATED BY ''' + Edit2.Text + ''' ';
-  if checkbox3.Checked then
+  if chkFieldsTerminated.Checked then
+    query := query + 'TERMINATED BY ''' + editFieldTerminator.Text + ''' ';
+  if chkFieldsEnclosed.Checked then
   begin
-    if checkbox5.Checked then
+    if chkFieldsEnclosedOptionally.Checked then
       query := query + 'OPTIONALLY ';
-    query := query + 'ENCLOSED BY ''' + Edit3.Text + ''' ';
+    query := query + 'ENCLOSED BY ''' + editFieldEncloser.Text + ''' ';
   end;
-  if checkbox4.Checked then
-    query := query + 'ESCAPED BY ''' + Edit4.Text + ''' ';
+  if chkFieldsEscaped.Checked then
+    query := query + 'ESCAPED BY ''' + editFieldEscaper.Text + ''' ';
 
   // Lines:
-  if checkbox6.Checked then
-    query := query + 'LINES TERMINATED BY ''' + Edit5.Text + ''' ';
-  if checkbox7.Checked then
+  if chkLinesTerminated.Checked then
+    query := query + 'LINES TERMINATED BY ''' + editLineTerminator.Text + ''' ';
+  if chkLinesIgnore.Checked then
     query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
   col := TStringList.Create;
-  for i:=0 to ColumnsCheckListBox.Items.Count - 1 do
+  for i:=0 to chklistColumns.Items.Count - 1 do
   begin
-    if ColumnsCheckListBox.checked[i] then
-      col.Add(ColumnsCheckListBox.Items[i]);
+    if chklistColumns.checked[i] then
+      col.Add(chklistColumns.Items[i]);
   end;
 
 //  if col.Count < ColumnsCheckListBox.Items.Count then
@@ -264,31 +264,31 @@ begin
   close;
 end;
 
-procedure Tloaddataform.BitBtn1Click(Sender: TObject);
+procedure Tloaddataform.btnOpenFileClick(Sender: TObject);
 begin
-  if opendialog1.Execute then
-    editfilename.Text := opendialog1.FileName;
+  if OpenDialogCSVFile.Execute then
+    editfilename.Text := OpenDialogCSVFile.FileName;
 end;
 
-procedure Tloaddataform.CheckBox8Click(Sender: TObject);
+procedure Tloaddataform.chkReplaceClick(Sender: TObject);
 begin
-  if CheckBox8.Checked then
-    CheckBox9.checked := false;
+  if chkReplace.Checked then
+    chkIgnore.checked := false;
 end;
 
-procedure Tloaddataform.CheckBox9Click(Sender: TObject);
+procedure Tloaddataform.chkIgnoreClick(Sender: TObject);
 begin
-  if CheckBox9.Checked then
-    CheckBox8.checked := false;
+  if chkIgnore.Checked then
+    chkReplace.checked := false;
 end;
 
-procedure Tloaddataform.BitBtn2Click(Sender: TObject);
+procedure Tloaddataform.btnColUpClick(Sender: TObject);
 var
   strtemp : String;
   strchecked : boolean;
 begin
   // move item up!
-  with ColumnsCheckListbox do
+  with chklistColumns do
     if ItemIndex > -1 then begin
       if ItemIndex > 0 then begin // not first item...
         strtemp := items[ItemIndex-1];
@@ -305,13 +305,13 @@ begin
     end;
 end;
 
-procedure Tloaddataform.BitBtn3Click(Sender: TObject);
+procedure Tloaddataform.btnColDownClick(Sender: TObject);
 var
   strtemp : String;
   strchecked : boolean;
 begin
   // move item down!
-  with ColumnsCheckListbox do
+  with chklistColumns do
     if ItemIndex > -1 then begin
       if ItemIndex < items.count-1 then begin // not last item...
         strtemp := items[ItemIndex+1];
