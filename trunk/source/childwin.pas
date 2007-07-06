@@ -3304,10 +3304,14 @@ begin
   ShowDBProperties(self);
   // re-select same item
   for i:=0 to ListTables.Items.Count-1 do
+  begin
     if ListTables.Items[i].Caption = S then
+    begin
+      ListTables.Selected := ListTables.Items[i];
+      ListTables.Items[i].Focused := True;
       break;
-  ListTables.Selected := ListTables.Items[i];
-  ListTables.Items[i].Focused := true;
+    end;
+  end;
   // Important! Otherwise OnEdited refreshes list too:
   abort;
 end;
