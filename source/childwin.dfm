@@ -917,7 +917,7 @@ object MDIChild: TMDIChild
               Font.Height = -13
               Font.Name = 'Courier New'
               Font.Style = []
-              PopupMenu = MainForm.SQLFunctions
+              PopupMenu = popupQuery
               TabOrder = 0
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
@@ -1251,7 +1251,7 @@ object MDIChild: TMDIChild
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = MainForm.SQLFunctions
+        PopupMenu = popupQuery
         TabOrder = 0
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
@@ -2101,5 +2101,64 @@ object MDIChild: TMDIChild
     OnReplace = ReplaceDialogQueryReplace
     Left = 40
     Top = 224
+  end
+  object popupQuery: TPopupMenu
+    Images = MainForm.ImageList1
+    OnPopup = popupQueryPopup
+    Left = 136
+    Top = 80
+    object MenuRun: TMenuItem
+      Action = MainForm.ExecuteQuery
+    end
+    object MenuRunSelection: TMenuItem
+      Action = MainForm.ExecuteSelection
+    end
+    object MenuRunLine: TMenuItem
+      Action = MainForm.ExecuteLine
+    end
+    object MenuSetFilter: TMenuItem
+      Caption = 'Set Filter'
+      ImageIndex = 10
+      Visible = False
+      OnClick = setFilter
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object menucopy: TMenuItem
+      Action = MainForm.EditCopy1
+    end
+    object menupaste: TMenuItem
+      Action = MainForm.EditPaste1
+    end
+    object menuload: TMenuItem
+      Caption = 'Load from File...'
+      ImageIndex = 6
+    end
+    object menusave: TMenuItem
+      Caption = 'Save to file...'
+      ImageIndex = 7
+    end
+    object menuclear: TMenuItem
+      Caption = 'Clear'
+      ShortCut = 16471
+      OnClick = menuclearClick
+    end
+    object MenuFind: TMenuItem
+      Caption = 'Find...'
+      ImageIndex = 50
+      ShortCut = 16454
+      OnClick = btnQueryFindClick
+    end
+    object MenuReplace: TMenuItem
+      Caption = 'Replace ...'
+      Hint = 'Search and replace...'
+      ImageIndex = 51
+      ShortCut = 16466
+      OnClick = btnQueryReplaceClick
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
   end
 end

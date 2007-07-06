@@ -270,6 +270,22 @@ type
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
     lboxQueryHelpers: TListBox;
+    popupQuery: TPopupMenu;
+    MenuRun: TMenuItem;
+    MenuRunSelection: TMenuItem;
+    MenuRunLine: TMenuItem;
+    MenuSetFilter: TMenuItem;
+    MenuItem1: TMenuItem;
+    menucopy: TMenuItem;
+    menupaste: TMenuItem;
+    menuload: TMenuItem;
+    menusave: TMenuItem;
+    menuclear: TMenuItem;
+    MenuFind: TMenuItem;
+    MenuReplace: TMenuItem;
+    MenuItem2: TMenuItem;
+    procedure menuclearClick(Sender: TObject);
+    procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
     procedure lboxQueryHelpersDblClick(Sender: TObject);
     procedure tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
@@ -481,6 +497,7 @@ type
       procedure WaitForQueryCompletion(WaitForm: TForm);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
+      procedure insertFunction(Sender: TObject);
 
     public
       ActualDatabase             : String;
@@ -680,11 +697,12 @@ procedure TMDIChild.Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
 var
   AutoReconnect    : Boolean;
   menuitem         : TMenuItem;
-  i                : Byte;
   winName          : String;
-  j                : Integer;
+  i, j             : Integer;
   treenode         : TTreeNode;
   ds               : TDataSet;
+  mi               : TMenuItem;
+  functioncats     : TStringList;
 begin
   QueryRunningInterlock := 0;
   UserQueryFired := False;
@@ -804,6 +822,40 @@ begin
   // Set the grid-cells to always-edit-mode.
   gridData.Options := gridData.Options + [dgAlwaysShowEditor];
   gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
+
+  
+  // read function-list into menu
+  functioncats := GetFunctionCategories;
+
+  for i:=0 to functioncats.Count-1 do
+  begin
+    // Create a menu item which gets subitems later
+    mi := TMenuItem.Create(self);
+    mi.Caption := functioncats[i];
+    popupQuery.Items.add(mi);
+    for j:=0 to Length(MySqlFunctions)-1 do
+    begin
+      if MySqlFunctions[j].Category <> functioncats[i] then
+        continue;
+      mi := TMenuItem.Create(self);
+      mi.Caption := MySqlFunctions[j].Name;
+      // Prevent generating a hotkey
+      mi.Caption := StringReplace(mi.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if mi.Caption = '-' then
+        mi.Caption := '&-';
+      mi.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
+      if MySqlFunctions[j].Description <> '' then
+        mi.Hint := mi.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+      // Prevent generating a seperator for ShortHint and LongHint
+      mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
+      mi.Tag := j;
+      // Place menuitem on menu
+      mi.OnClick := insertFunction;
+      popupQuery.Items[i+13].Add(mi);
+    end;
+  end;
+
 end;
 
 
@@ -3442,6 +3494,25 @@ begin
 end;
 
 
+{**
+  Clear Query memo
+}
+procedure TMDIChild.menuclearClick(Sender: TObject);
+var
+  memo : TSynMemo;
+begin
+  // Clear SynMemo
+  if SynMemoFilter.Focused then
+    memo := SynMemoFilter
+  else
+    memo := SynMemoQuery;
+  // Make sure to add this step to SynMemo's undo history
+  memo.SelectAll;
+  memo.SelText := '';
+  memo.SelStart := 0;
+  memo.SelEnd := 0;
+end;
+
 procedure TMDIChild.MenuAnalyzeClick(Sender: TObject);
 var
   i : Integer;
@@ -4063,6 +4134,41 @@ var i : Integer;
 begin
   for i:=0 to ListTables.Items.count-1 do
     ListTables.Items[i].Selected := true;
+end;
+
+procedure TMDIChild.popupQueryPopup(Sender: TObject);
+begin
+  // Depending which SynMemo is focused, (de-)activate some menuitems
+  // The popupmenu SQLFunctions is used in both Filter- and Query-Memo
+  if SynMemoFilter.focused then
+  begin
+    MenuRun.ShortCut := TextToShortCut('');
+    MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
+    MenuSetFilter.Visible := true;
+    MenuRun.Visible := false;
+    MenuRunSelection.Visible := false;
+    MenuRunLine.Visible := false;
+    MenuCopy.Visible := false;
+    MenuPaste.Visible := false;
+    MenuLoad.Visible := false;
+    MenuSave.Visible := false;
+    MenuFind.Visible := false;
+    MenuReplace.Visible := false;
+  end
+  else begin
+    MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
+    MenuSetFilter.ShortCut := TextToShortCut('');
+    MenuSetFilter.Visible := false;
+    MenuRun.Visible := true;
+    MenuRunSelection.Visible := true;
+    MenuRunLine.Visible := true;
+    MenuCopy.Visible := true;
+    MenuPaste.Visible := true;
+    MenuLoad.Visible := true;
+    MenuSave.Visible := true;
+    MenuFind.Visible := true;
+    MenuReplace.Visible := true;
+  end;
 end;
 
 procedure TMDIChild.popupResultGridPopup(Sender: TObject);
@@ -5464,6 +5570,31 @@ procedure TMDIChild.lboxQueryHelpersClick(Sender: TObject);
 begin
   QueryHelpersSelectedItems[tabsetQueryHelpers.TabIndex] := lboxQueryHelpers.ItemIndex;
 end;
+
+
+{**
+  Insert function name from popupmenu to query memo
+}
+procedure TMDIChild.insertFunction(Sender: TObject);
+var
+  f : String;
+  sm : TSynMemo;
+begin
+  // Detect which memo is focused
+  if SynMemoFilter.Focused then
+    sm := SynMemoFilter
+  else
+    sm := SynMemoQuery;
+  // Restore function name from array
+  f := MySQLFunctions[TControl(Sender).tag].Name
+    + MySQLFunctions[TControl(Sender).tag].Declaration;
+  sm.UndoList.AddGroupBreak;
+  sm.SelText := f;
+  sm.UndoList.AddGroupBreak;
+  if not SynMemoFilter.Focused then
+    SynMemoQueryChange(self);
+end;
+
 
 end.
 
