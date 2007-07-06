@@ -106,22 +106,10 @@ type
     ButtonOK: TButton;
     UpDownLimitStart: TUpDown;
     UpDownLimitEnd: TUpDown;
-    SQLFunctions: TPopupMenu;
-    MenuRun: TMenuItem;
-    MenuRunSelection: TMenuItem;
-    N10: TMenuItem;
-    menuclear: TMenuItem;
     EditUndo1: TEditUndo;
     ToolButton14: TToolButton;
     ExecuteQuery: TAction;
     ExecuteSelection: TAction;
-    MenuSetFilter: TMenuItem;
-    menucopy: TMenuItem;
-    N12: TMenuItem;
-    menupaste: TMenuItem;
-    menuload: TMenuItem;
-    menusave: TMenuItem;
-    MenuFind: TMenuItem;
     SaveDialog2: TSaveDialog;
     ExportSettings1: TMenuItem;
     Importsettings1: TMenuItem;
@@ -131,9 +119,7 @@ type
     ExportData: TAction;
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
-    MenuReplace: TMenuItem;
     ExecuteLine: TAction;
-    MenuRunLine: TMenuItem;
     HTMLview: TAction;
     InsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
@@ -158,7 +144,6 @@ type
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
-    procedure MenuReplaceClick(Sender: TObject);
     procedure ShowConnections(Sender: TObject);
     procedure FileExit1Execute(Sender: TObject);
     procedure FlushClick(Sender: TObject);
@@ -188,17 +173,12 @@ type
     procedure CheckBoxLimitClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
     procedure LimitPanelExit(Sender: TObject);
-    procedure insertFunction(sender: TObject);
-    procedure menuclearClick(Sender: TObject);
-    procedure SQLFunctionsPopup(Sender: TObject);
-    procedure MenuSetFilterClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     function mask(str: String) : String;
     procedure ExportSettings1Click(Sender: TObject);
     procedure Importsettings1Click(Sender: TObject);
     procedure ExecuteQueryExecute(Sender: TObject);
     procedure ExecuteSelectionExecute(Sender: TObject);
-    procedure MenuFindClick(Sender: TObject);
     procedure Save2XMLExecute(Sender: TObject);
     procedure Copy2XMLExecute(Sender: TObject);
     procedure DBNavigator1BeforeAction(Sender: TObject;
@@ -429,9 +409,6 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   ws : String;
-  mi : TMenuItem;
-  i, j : Integer;
-  functioncats : TStringList;
 begin
   caption := APPNAME;
   setLocales;
@@ -491,38 +468,6 @@ begin
     CloseKey;
   end;
 
-  // read function-list into menu
-  functioncats := GetFunctionCategories;
-
-  for i:=0 to functioncats.Count-1 do
-  begin
-    // Create a menu item which gets subitems later
-    mi := TMenuItem.Create(self);
-    mi.Caption := functioncats[i];
-    SQLfunctions.Items.add(mi);
-    for j:=0 to Length(MySqlFunctions)-1 do
-    begin
-      if MySqlFunctions[j].Category <> functioncats[i] then
-        continue;
-      mi := TMenuItem.Create(self);
-      mi.Caption := MySqlFunctions[j].Name;
-      // Prevent generating a hotkey
-      mi.Caption := StringReplace(mi.Caption, '&', '&&', [rfReplaceAll]);
-      // Prevent generating a seperator line
-      if mi.Caption = '-' then
-        mi.Caption := '&-';
-      mi.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
-      if MySqlFunctions[j].Description <> '' then
-        mi.Hint := mi.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
-      // Prevent generating a seperator for ShortHint and LongHint
-      mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
-      mi.Tag := j;
-      // Place menuitem on menu
-      mi.OnClick := insertFunction;
-      SQLfunctions.Items[i+13].Add(mi);
-    end;
-  end;
-
   // Beautify appversion
   appversion := StringReplace( appversion, '$Rev', 'Revision', [rfIgnoreCase] );
   appversion := StringReplace( appversion, '$', '', [] );
@@ -538,28 +483,6 @@ begin
   // Cannot be done in OnCreate because we need ready forms here:
   ShowConnections(self);
 end;
-
-
-procedure TMainForm.insertFunction(sender: TObject);
-var
-  f : String;
-  sm : TSynMemo;
-begin
-  // insert function from function.txt
-  if ChildWin.SynMemoFilter.Focused then
-    sm := ChildWin.SynMemoFilter
-  else
-    sm := ChildWin.SynMemoQuery;
-  // Restore function name from array
-  f := MySQLFunctions[TControl(Sender).tag].Name
-    + MySQLFunctions[TControl(Sender).tag].Declaration;
-  sm.UndoList.AddGroupBreak;
-  sm.SelText := f;
-  sm.UndoList.AddGroupBreak;
-  if not ChildWin.SynMemoFilter.Focused then
-    ChildWin.SynMemoQueryChange(self);
-end;
-
 
 
 procedure TMainForm.ButtonRefreshClick(Sender: TObject);
@@ -803,23 +726,6 @@ begin
   ButtonOK.Default := false;
 end;
 
-procedure TMainForm.menuclearClick(Sender: TObject);
-var
-  memo : TSynMemo;
-begin
-  // Clear SynMemo
-  if ChildWin.SynMemoFilter.Focused then
-    memo := ChildWin.SynMemoFilter
-  else
-    memo := ChildWin.SynMemoQuery;
-  // Make sure to add this step to SynMemo's undo history
-  memo.SelectAll;
-  memo.SelText := '';
-  memo.SelStart := 0;
-  memo.SelEnd := 0;
-end;
-
-
 procedure TMainForm.focusWindow(Sender: TObject);
 begin
   ActivateWindow((Sender as TMenuItem).Tag);
@@ -873,47 +779,6 @@ begin
   end;
 end;
 
-procedure TMainForm.SQLFunctionsPopup(Sender: TObject);
-begin
-  // Depending which SynMemo is focused, (de-)activate some menuitems
-  // The popupmenu SQLFunctions is used in both Filter- and Query-Memo
-  if ChildWin.SynMemoFilter.focused then
-  begin
-    MenuRun.ShortCut := TextToShortCut('');
-    MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
-    MenuSetFilter.Visible := true;
-    MenuRun.Visible := false;
-    MenuRunSelection.Visible := false;
-    MenuRunLine.Visible := false;
-    MenuCopy.Visible := false;
-    MenuPaste.Visible := false;
-    MenuLoad.Visible := false;
-    MenuSave.Visible := false;
-    MenuFind.Visible := false;
-    MenuReplace.Visible := false;
-  end
-  else begin
-    MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
-    MenuSetFilter.ShortCut := TextToShortCut('');
-    MenuSetFilter.Visible := false;
-    MenuRun.Visible := true;
-    MenuRunSelection.Visible := true;
-    MenuRunLine.Visible := true;
-    MenuCopy.Visible := true;
-    MenuPaste.Visible := true;
-    MenuLoad.Visible := true;
-    MenuSave.Visible := true;
-    MenuFind.Visible := true;
-    MenuReplace.Visible := true;
-  end;
-
-end;
-
-procedure TMainForm.MenuSetFilterClick(Sender: TObject);
-begin
-  ChildWin.SetFilter(self);
-end;
-
 
 procedure TMainForm.OpenURL(Sender: TObject);
 begin
@@ -960,16 +825,6 @@ end;
 procedure TMainForm.ExecuteSelectionExecute(Sender: TObject);
 begin
   ChildWin.ExecSqlClick(sender, true);
-end;
-
-procedure TMainForm.MenuFindClick(Sender: TObject);
-begin
-  ChildWin.btnQueryFindClick(sender);
-end;
-
-procedure TMainForm.MenuReplaceClick(Sender: TObject);
-begin
-  ChildWin.btnQueryReplaceClick(sender);
 end;
 
 procedure TMainForm.ExecuteLineExecute(Sender: TObject);

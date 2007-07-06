@@ -4223,66 +4223,6 @@ object MainForm: TMainForm
       FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
       000000000000}
   end
-  object SQLFunctions: TPopupMenu
-    Images = ImageList1
-    OnPopup = SQLFunctionsPopup
-    Left = 40
-    Top = 88
-    object MenuRun: TMenuItem
-      Action = ExecuteQuery
-    end
-    object MenuRunSelection: TMenuItem
-      Action = ExecuteSelection
-    end
-    object MenuRunLine: TMenuItem
-      Action = ExecuteLine
-      Enabled = False
-    end
-    object MenuSetFilter: TMenuItem
-      Caption = 'Set Filter'
-      ImageIndex = 10
-      Visible = False
-      OnClick = MenuSetFilterClick
-    end
-    object N10: TMenuItem
-      Caption = '-'
-    end
-    object menucopy: TMenuItem
-      Action = EditCopy1
-    end
-    object menupaste: TMenuItem
-      Action = EditPaste1
-    end
-    object menuload: TMenuItem
-      Caption = 'Load from File...'
-      ImageIndex = 6
-    end
-    object menusave: TMenuItem
-      Caption = 'Save to file...'
-      ImageIndex = 7
-    end
-    object menuclear: TMenuItem
-      Caption = 'Clear'
-      ShortCut = 16471
-      OnClick = menuclearClick
-    end
-    object MenuFind: TMenuItem
-      Caption = 'Find...'
-      ImageIndex = 50
-      ShortCut = 16454
-      OnClick = MenuFindClick
-    end
-    object MenuReplace: TMenuItem
-      Caption = 'Replace ...'
-      Hint = 'Search and replace...'
-      ImageIndex = 51
-      ShortCut = 16466
-      OnClick = MenuReplaceClick
-    end
-    object N12: TMenuItem
-      Caption = '-'
-    end
-  end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
