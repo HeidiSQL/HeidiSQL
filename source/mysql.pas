@@ -471,7 +471,7 @@ var
   );
 
 
-  MySqlFunctions: Array [0..216] of TMysqlFunction =
+  MySqlFunctions: Array [0..291] of TMysqlFunction =
   (
 
     // Function nr. 1
@@ -579,7 +579,7 @@ var
       Name:         '=';
       Declaration:  '';
       Category:     'Comparison operators';
-      Description:  ''
+      Description:  'Equal:'
     ),
 
     // Function nr. 14
@@ -672,6 +672,24 @@ var
 
     // Function nr. 22
     (
+      Name:         'AREA';
+      Declaration:  '(poly)';
+      Category:     'Geographic Features';
+      Description:  'Returns as a double-precision number the area of the Polygon value '
+        +'poly, as measured in its spatial reference system.'
+    ),
+
+    // Function nr. 23
+    (
+      Name:         'ASBINARY';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Converts a value in internal geometry format to its WKB representation '
+        +'and returns the binary result.'
+    ),
+
+    // Function nr. 24
+    (
       Name:         'ASCII';
       Declaration:  '(str)';
       Category:     'String Functions';
@@ -680,7 +698,7 @@ var
         +'ASCII() works for characters with numeric values from 0 to 255.'
     ),
 
-    // Function nr. 23
+    // Function nr. 25
     (
       Name:         'ASIN';
       Declaration:  '(X)';
@@ -689,7 +707,16 @@ var
         +'NULL if X is not in the range -1 to 1.'
     ),
 
-    // Function nr. 24
+    // Function nr. 26
+    (
+      Name:         'ASTEXT';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Converts a value in internal geometry format to its WKT representation '
+        +'and returns the string result.'
+    ),
+
+    // Function nr. 27
     (
       Name:         'ATAN';
       Declaration:  '(X)';
@@ -697,7 +724,7 @@ var
       Description:  'Returns the arc tangent of X, that is, the value whose tangent is X.'
     ),
 
-    // Function nr. 25
+    // Function nr. 28
     (
       Name:         'ATAN2';
       Declaration:  '(Y,X)';
@@ -707,7 +734,17 @@ var
         +'arguments are used to determine the quadrant of the result.'
     ),
 
-    // Function nr. 26
+    // Function nr. 29
+    (
+      Name:         'AVG';
+      Declaration:  '([DISTINCT] expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the average value of expr. The DISTINCT option can be used to '
+        +'return the average of the distinct values of expr. AVG() returns NULL '
+        +'if there were no matching rows.'
+    ),
+
+    // Function nr. 30
     (
       Name:         'BENCHMARK';
       Declaration:  '(count,expr)';
@@ -718,7 +755,7 @@ var
         +'within the mysql client, which reports query execution times:'
     ),
 
-    // Function nr. 27
+    // Function nr. 31
     (
       Name:         'BETWEEN';
       Declaration:  '';
@@ -732,7 +769,7 @@ var
         +'applied to all the three arguments.'
     ),
 
-    // Function nr. 28
+    // Function nr. 32
     (
       Name:         'BIN';
       Declaration:  '(N)';
@@ -742,7 +779,7 @@ var
         +'NULL if N is NULL.'
     ),
 
-    // Function nr. 29
+    // Function nr. 33
     (
       Name:         'BINARY';
       Declaration:  '';
@@ -754,7 +791,16 @@ var
         +'BINARY also causes trailing spaces to be significant.'
     ),
 
-    // Function nr. 30
+    // Function nr. 34
+    (
+      Name:         'BIT_AND';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the bitwise AND of all bits in expr. The calculation is '
+        +'performed with 64-bit (BIGINT) precision.'
+    ),
+
+    // Function nr. 35
     (
       Name:         'BIT_COUNT';
       Declaration:  '(N)';
@@ -762,7 +808,7 @@ var
       Description:  'Returns the number of bits that are set in the argument N.'
     ),
 
-    // Function nr. 31
+    // Function nr. 36
     (
       Name:         'BIT_LENGTH';
       Declaration:  '(str)';
@@ -770,7 +816,34 @@ var
       Description:  'Returns the length of the string str in bits.'
     ),
 
-    // Function nr. 32
+    // Function nr. 37
+    (
+      Name:         'BIT_OR';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the bitwise OR of all bits in expr. The calculation is '
+        +'performed with 64-bit (BIGINT) precision.'
+    ),
+
+    // Function nr. 38
+    (
+      Name:         'BIT_XOR';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the bitwise XOR of all bits in expr. The calculation is '
+        +'performed with 64-bit (BIGINT) precision.'
+    ),
+
+    // Function nr. 39
+    (
+      Name:         'BOUNDARY';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Returns a geometry that is the closure of the combinatorial boundary '
+        +'of the geometry value g.'
+    ),
+
+    // Function nr. 40
     (
       Name:         'CASE';
       Declaration:  '';
@@ -782,7 +855,7 @@ var
         +'the result after ELSE is returned, or NULL if there is no ELSE part.'
     ),
 
-    // Function nr. 33
+    // Function nr. 41
     (
       Name:         'CAST';
       Declaration:  '(expr AS type)';
@@ -806,7 +879,7 @@ var
         +'USING utf8);'
     ),
 
-    // Function nr. 34
+    // Function nr. 42
     (
       Name:         'CEILING';
       Declaration:  '(X)';
@@ -814,7 +887,7 @@ var
       Description:  'Returns the smallest integer value not less than X.'
     ),
 
-    // Function nr. 35
+    // Function nr. 43
     (
       Name:         'CHAR';
       Declaration:  '(N,... [USING charset_name])';
@@ -833,7 +906,7 @@ var
         +'enabled, the result from CHAR() becomes NULL.'
     ),
 
-    // Function nr. 36
+    // Function nr. 44
     (
       Name:         'CHARACTER_LENGTH';
       Declaration:  '(str)';
@@ -841,7 +914,7 @@ var
       Description:  'CHARACTER_LENGTH() is a synonym for CHAR_LENGTH().'
     ),
 
-    // Function nr. 37
+    // Function nr. 45
     (
       Name:         'CHARSET';
       Declaration:  '(str)';
@@ -849,7 +922,7 @@ var
       Description:  'Returns the character set of the string argument.'
     ),
 
-    // Function nr. 38
+    // Function nr. 46
     (
       Name:         'CHAR_LENGTH';
       Declaration:  '(str)';
@@ -860,7 +933,7 @@ var
         +'whereas CHAR_LENGTH() returns 5.'
     ),
 
-    // Function nr. 39
+    // Function nr. 47
     (
       Name:         'COALESCE';
       Declaration:  '(value,...)';
@@ -869,7 +942,7 @@ var
         +'non-NULL values.'
     ),
 
-    // Function nr. 40
+    // Function nr. 48
     (
       Name:         'COERCIBILITY';
       Declaration:  '(str)';
@@ -877,7 +950,7 @@ var
       Description:  'Returns the collation coercibility value of the string argument.'
     ),
 
-    // Function nr. 41
+    // Function nr. 49
     (
       Name:         'COLLATION';
       Declaration:  '(str)';
@@ -885,7 +958,7 @@ var
       Description:  'Returns the collation of the string argument.'
     ),
 
-    // Function nr. 42
+    // Function nr. 50
     (
       Name:         'COMPRESS';
       Declaration:  '(string_to_compress)';
@@ -896,7 +969,7 @@ var
         +'compressed string can be uncompressed with UNCOMPRESS().'
     ),
 
-    // Function nr. 43
+    // Function nr. 51
     (
       Name:         'CONCAT';
       Declaration:  '(str1,str2,...)';
@@ -911,7 +984,7 @@ var
         +'argument is NULL.'
     ),
 
-    // Function nr. 44
+    // Function nr. 52
     (
       Name:         'CONCAT_WS';
       Declaration:  '(separator,str1,str2,...)';
@@ -923,7 +996,7 @@ var
         +'arguments. If the separator is NULL, the result is NULL.'
     ),
 
-    // Function nr. 45
+    // Function nr. 53
     (
       Name:         'CONNECTION_ID';
       Declaration:  '()';
@@ -933,7 +1006,15 @@ var
         +'connected clients.'
     ),
 
-    // Function nr. 46
+    // Function nr. 54
+    (
+      Name:         'CONTAINS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 completely contains g2.'
+    ),
+
+    // Function nr. 55
     (
       Name:         'CONV';
       Declaration:  '(N,from_base,to_base)';
@@ -947,7 +1028,7 @@ var
         +'is treated as unsigned. CONV() works with 64-bit precision.'
     ),
 
-    // Function nr. 47
+    // Function nr. 56
     (
       Name:         'CONVERT_TZ';
       Declaration:  '(dt,from_tz,to_tz)';
@@ -959,7 +1040,7 @@ var
         +'function returns NULL if the arguments are invalid.'
     ),
 
-    // Function nr. 48
+    // Function nr. 57
     (
       Name:         'COS';
       Declaration:  '(X)';
@@ -967,7 +1048,7 @@ var
       Description:  'Returns the cosine of X, where X is given in radians.'
     ),
 
-    // Function nr. 49
+    // Function nr. 58
     (
       Name:         'COT';
       Declaration:  '(X)';
@@ -975,7 +1056,17 @@ var
       Description:  'Returns the cotangent of X.'
     ),
 
-    // Function nr. 50
+    // Function nr. 59
+    (
+      Name:         'COUNT';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns a count of the number of non-NULL values in the rows retrieved '
+        +'by a SELECT statement. The result is a BIGINT value. COUNT() returns 0 '
+        +'if there were no matching rows.'
+    ),
+
+    // Function nr. 60
     (
       Name:         'CRC32';
       Declaration:  '(expr)';
@@ -986,7 +1077,22 @@ var
         +'not.'
     ),
 
-    // Function nr. 51
+    // Function nr. 61
+    (
+      Name:         'CROSSES';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 if g1 spatially crosses g2. Returns NULL if g1 is a Polygon '
+        +'or a MultiPolygon, or if g2 is a Point or a MultiPoint. Otherwise, '
+        +'returns 0. The term spatially crosses denotes a spatial relation '
+        +'between two given geometries that has the following properties: The '
+        +'two geometries intersect Their intersection results in a geometry that '
+        +'has a dimension that is one less than the maximum dimension of the two '
+        +'given geometries Their intersection is not equal to either of the two '
+        +'given geometries'
+    ),
+
+    // Function nr. 62
     (
       Name:         'CURDATE';
       Declaration:  '()';
@@ -996,7 +1102,7 @@ var
         +'numeric context.'
     ),
 
-    // Function nr. 52
+    // Function nr. 63
     (
       Name:         'CURRENT_DATE';
       Declaration:  '()';
@@ -1004,7 +1110,7 @@ var
       Description:  'CURRENT_DATE and CURRENT_DATE() are synonyms for CURDATE().'
     ),
 
-    // Function nr. 53
+    // Function nr. 64
     (
       Name:         'CURRENT_TIME';
       Declaration:  '()';
@@ -1012,7 +1118,7 @@ var
       Description:  'CURRENT_TIME and CURRENT_TIME() are synonyms for CURTIME().'
     ),
 
-    // Function nr. 54
+    // Function nr. 65
     (
       Name:         'CURRENT_TIMESTAMP';
       Declaration:  '()';
@@ -1020,7 +1126,7 @@ var
       Description:  'CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW().'
     ),
 
-    // Function nr. 55
+    // Function nr. 66
     (
       Name:         'CURRENT_USER';
       Declaration:  '()';
@@ -1034,7 +1140,7 @@ var
         +'the value of USER().'
     ),
 
-    // Function nr. 56
+    // Function nr. 67
     (
       Name:         'CURTIME';
       Declaration:  '()';
@@ -1044,7 +1150,7 @@ var
         +'context.'
     ),
 
-    // Function nr. 57
+    // Function nr. 68
     (
       Name:         'DATABASE';
       Declaration:  '()';
@@ -1056,7 +1162,7 @@ var
         +'as the database that is the default in the calling context.'
     ),
 
-    // Function nr. 58
+    // Function nr. 69
     (
       Name:         'DATE';
       Declaration:  '(expr)';
@@ -1064,7 +1170,7 @@ var
       Description:  'Extracts the date part of the date or datetime expression expr.'
     ),
 
-    // Function nr. 59
+    // Function nr. 70
     (
       Name:         'DATEDIFF';
       Declaration:  '(expr1,expr2)';
@@ -1075,7 +1181,7 @@ var
         +'calculation.'
     ),
 
-    // Function nr. 60
+    // Function nr. 71
     (
       Name:         'DATE_ADD';
       Declaration:  '(date,INTERVAL expr unit)';
@@ -1088,7 +1194,7 @@ var
         +'be interpreted.'
     ),
 
-    // Function nr. 61
+    // Function nr. 72
     (
       Name:         'DATE_FORMAT';
       Declaration:  '(date,format)';
@@ -1096,7 +1202,7 @@ var
       Description:  'Formats the date value according to the format string.'
     ),
 
-    // Function nr. 62
+    // Function nr. 73
     (
       Name:         'DATE_SUB';
       Declaration:  '(date,INTERVAL expr unit)';
@@ -1104,7 +1210,7 @@ var
       Description:  'See DATE_ADD().'
     ),
 
-    // Function nr. 63
+    // Function nr. 74
     (
       Name:         'DAY';
       Declaration:  '(date)';
@@ -1112,18 +1218,15 @@ var
       Description:  'DAY() is a synonym for DAYOFMONTH().'
     ),
 
-    // Function nr. 64
+    // Function nr. 75
     (
       Name:         'DAYNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Description:  'Returns the name of the weekday for date. As of MySQL 5.1.12, the '
-        +'language used for the name is controlled by the value of the '
-        +'lc_time_names system variable '
-        +'(http://dev.mysql.com/doc/refman/5.1/en/locale-support.html).'
+      Description:  'Returns the name of the weekday for date.'
     ),
 
-    // Function nr. 65
+    // Function nr. 76
     (
       Name:         'DAYOFMONTH';
       Declaration:  '(date)';
@@ -1131,7 +1234,7 @@ var
       Description:  'Returns the day of the month for date, in the range 0 to 31.'
     ),
 
-    // Function nr. 66
+    // Function nr. 77
     (
       Name:         'DAYOFWEEK';
       Declaration:  '(date)';
@@ -1140,7 +1243,7 @@ var
         +'Saturday). These index values correspond to the ODBC standard.'
     ),
 
-    // Function nr. 67
+    // Function nr. 78
     (
       Name:         'DAYOFYEAR';
       Declaration:  '(date)';
@@ -1148,7 +1251,7 @@ var
       Description:  'Returns the day of the year for date, in the range 1 to 366.'
     ),
 
-    // Function nr. 68
+    // Function nr. 79
     (
       Name:         'DECODE';
       Declaration:  '(crypt_str,pass_str)';
@@ -1157,7 +1260,7 @@ var
         +'password. crypt_str should be a string returned from ENCODE().'
     ),
 
-    // Function nr. 69
+    // Function nr. 80
     (
       Name:         'DEFAULT';
       Declaration:  '(col_name)';
@@ -1166,7 +1269,7 @@ var
         +'column has no default value.'
     ),
 
-    // Function nr. 70
+    // Function nr. 81
     (
       Name:         'DEGREES';
       Declaration:  '(X)';
@@ -1174,7 +1277,7 @@ var
       Description:  'Returns the argument X, converted from radians to degrees.'
     ),
 
-    // Function nr. 71
+    // Function nr. 82
     (
       Name:         'DES_DECRYPT';
       Declaration:  '(crypt_str[,key_str])';
@@ -1194,7 +1297,7 @@ var
         +'given crypt_str.'
     ),
 
-    // Function nr. 72
+    // Function nr. 83
     (
       Name:         'DES_ENCRYPT';
       Declaration:  '(str[,{key_num|key_str}])';
@@ -1202,7 +1305,26 @@ var
       Description:  'Encrypts the string with the given key using the Triple-DES algorithm.'
     ),
 
-    // Function nr. 73
+    // Function nr. 84
+    (
+      Name:         'DIMENSION';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Returns the inherent dimension of the geometry value g. The result can '
+        +'be -1, 0, 1, or 2. The meaning of these values is given in [HELP MBR '
+        +'definition].'
+    ),
+
+    // Function nr. 85
+    (
+      Name:         'DISJOINT';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 is spatially disjoint from (does '
+        +'not intersect) g2.'
+    ),
+
+    // Function nr. 86
     (
       Name:         'DIV';
       Declaration:  '';
@@ -1210,7 +1332,7 @@ var
       Description:  'Integer division. Similar to FLOOR(), but is safe with BIGINT values.'
     ),
 
-    // Function nr. 74
+    // Function nr. 87
     (
       Name:         'ELT';
       Declaration:  '(N,str1,str2,str3,...)';
@@ -1220,7 +1342,7 @@ var
         +'complement of FIELD().'
     ),
 
-    // Function nr. 75
+    // Function nr. 88
     (
       Name:         'ENCODE';
       Declaration:  '(str,pass_str)';
@@ -1231,7 +1353,7 @@ var
         +'is. It should suffice for short strings.'
     ),
 
-    // Function nr. 76
+    // Function nr. 89
     (
       Name:         'ENCRYPT';
       Declaration:  '(str[,salt])';
@@ -1241,7 +1363,34 @@ var
         +'characters. If no salt argument is given, a random value is used.'
     ),
 
-    // Function nr. 77
+    // Function nr. 90
+    (
+      Name:         'ENDPOINT';
+      Declaration:  '(ls)';
+      Category:     'Geographic Features';
+      Description:  'Returns the Point that is the endpoint of the LineString value ls.'
+    ),
+
+    // Function nr. 91
+    (
+      Name:         'ENVELOPE';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Returns the Minimum Bounding Rectangle (MBR) for the geometry value g. '
+        +'The result is returned as a Polygon value. The polygon is defined by '
+        +'the corner points of the bounding box: POLYGON((MINX MINY, MAXX MINY, '
+        +'MAXX MAXY, MINX MAXY, MINX MINY))'
+    ),
+
+    // Function nr. 92
+    (
+      Name:         'EQUALS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 is spatially equal to g2.'
+    ),
+
+    // Function nr. 93
     (
       Name:         'EXP';
       Declaration:  '(X)';
@@ -1250,7 +1399,7 @@ var
         +'power of X.'
     ),
 
-    // Function nr. 78
+    // Function nr. 94
     (
       Name:         'EXPORT_SET';
       Declaration:  '(bits,on,off[,separator[,number_of_bits]])';
@@ -1264,7 +1413,15 @@ var
         +'64).'
     ),
 
-    // Function nr. 79
+    // Function nr. 95
+    (
+      Name:         'EXTERIORRING';
+      Declaration:  '(poly)';
+      Category:     'Geographic Features';
+      Description:  'Returns the exterior ring of the Polygon value poly as a LineString.'
+    ),
+
+    // Function nr. 96
     (
       Name:         'EXTRACT';
       Declaration:  '(unit FROM date)';
@@ -1274,7 +1431,7 @@ var
         +'performing date arithmetic.'
     ),
 
-    // Function nr. 80
+    // Function nr. 97
     (
       Name:         'EXTRACTVALUE';
       Declaration:  '(xml_frag, xpath_expr)';
@@ -1324,7 +1481,7 @@ var
         +'content (see the result returned as val1 in the following example).'
     ),
 
-    // Function nr. 81
+    // Function nr. 98
     (
       Name:         'FIELD';
       Declaration:  '(str,str1,str2,str3,...)';
@@ -1338,7 +1495,7 @@ var
         +'ELT().'
     ),
 
-    // Function nr. 82
+    // Function nr. 99
     (
       Name:         'FIND_IN_SET';
       Declaration:  '(str,strlist)';
@@ -1353,7 +1510,7 @@ var
         +'properly if the first argument contains a comma (`,'') character.'
     ),
 
-    // Function nr. 83
+    // Function nr. 100
     (
       Name:         'FLOOR';
       Declaration:  '(X)';
@@ -1361,7 +1518,7 @@ var
       Description:  'Returns the largest integer value not greater than X.'
     ),
 
-    // Function nr. 84
+    // Function nr. 101
     (
       Name:         'FORMAT';
       Declaration:  '(X,D)';
@@ -1371,7 +1528,7 @@ var
         +'result has no decimal point or fractional part.'
     ),
 
-    // Function nr. 85
+    // Function nr. 102
     (
       Name:         'FOUND_ROWS';
       Declaration:  '()';
@@ -1384,7 +1541,7 @@ var
         +'statement, and then invoke FOUND_ROWS() afterward:'
     ),
 
-    // Function nr. 86
+    // Function nr. 103
     (
       Name:         'FROM_DAYS';
       Declaration:  '(N)';
@@ -1392,7 +1549,7 @@ var
       Description:  'Given a day number N, returns a DATE value.'
     ),
 
-    // Function nr. 87
+    // Function nr. 104
     (
       Name:         'FROM_UNIXTIME';
       Declaration:  '(unix_timestamp)';
@@ -1406,7 +1563,71 @@ var
         +'in the entry for the DATE_FORMAT() function.'
     ),
 
-    // Function nr. 88
+    // Function nr. 105
+    (
+      Name:         'GEOMCOLLFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a GEOMETRYCOLLECTION value using its WKT representation and '
+        +'SRID.'
+    ),
+
+    // Function nr. 106
+    (
+      Name:         'GEOMCOLLFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a GEOMETRYCOLLECTION value using its WKB representation and '
+        +'SRID.'
+    ),
+
+    // Function nr. 107
+    (
+      Name:         'GEOMETRY';
+      Declaration:  '';
+      Category:     'Geographic Features';
+      Description:  ''
+    ),
+
+    // Function nr. 108
+    (
+      Name:         'GEOMETRYCOLLECTION';
+      Declaration:  '(g1,g2,...)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB GeometryCollection. If any argument is not a '
+        +'well-formed WKB representation of a geometry, the return value is '
+        +'NULL.'
+    ),
+
+    // Function nr. 109
+    (
+      Name:         'GEOMETRYTYPE';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Returns as a string the name of the geometry type of which the '
+        +'geometry instance g is a member. The name corresponds to one of the '
+        +'instantiable Geometry subclasses.'
+    ),
+
+    // Function nr. 110
+    (
+      Name:         'GEOMFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a geometry value of any type using its WKT representation '
+        +'and SRID.'
+    ),
+
+    // Function nr. 111
+    (
+      Name:         'GEOMFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a geometry value of any type using its WKB representation '
+        +'and SRID.'
+    ),
+
+    // Function nr. 112
     (
       Name:         'GET_FORMAT';
       Declaration:  '(DATE|TIME|DATETIME, ''EUR''|''USA''|''JIS''|''ISO''|''INTERNAL'')';
@@ -1415,7 +1636,7 @@ var
         +'the DATE_FORMAT() and the STR_TO_DATE() functions.'
     ),
 
-    // Function nr. 89
+    // Function nr. 113
     (
       Name:         'GET_LOCK';
       Declaration:  '(str,timeout)';
@@ -1444,7 +1665,16 @@ var
         +'db_name.str or app_name.str.'
     ),
 
-    // Function nr. 90
+    // Function nr. 114
+    (
+      Name:         'GLENGTH';
+      Declaration:  '(ls)';
+      Category:     'Geographic Features';
+      Description:  'Returns as a double-precision number the length of the LineString '
+        +'value ls in its associated spatial reference.'
+    ),
+
+    // Function nr. 115
     (
       Name:         'GREATEST';
       Declaration:  '(value1,value2,...)';
@@ -1454,7 +1684,19 @@ var
         +'LEAST().'
     ),
 
-    // Function nr. 91
+    // Function nr. 116
+    (
+      Name:         'GROUP_CONCAT';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'This function returns a string result with the concatenated non-NULL '
+        +'values from a group. It returns NULL if there are no non-NULL values. '
+        +'The full syntax is as follows: GROUP_CONCAT([DISTINCT] expr [,expr '
+        +'...] [ORDER BY {unsigned_integer | col_name | expr} [ASC | DESC] '
+        +'[,col_name ...]] [SEPARATOR str_val])'
+    ),
+
+    // Function nr. 117
     (
       Name:         'HEX';
       Declaration:  '(N_or_S)';
@@ -1466,7 +1708,7 @@ var
         +'N_or_S is converted to two hexadecimal digits.'
     ),
 
-    // Function nr. 92
+    // Function nr. 118
     (
       Name:         'HOUR';
       Declaration:  '(time)';
@@ -1476,7 +1718,7 @@ var
         +'much larger, so HOUR can return values greater than 23.'
     ),
 
-    // Function nr. 93
+    // Function nr. 119
     (
       Name:         'IF';
       Declaration:  '(expr1,expr2,expr3)';
@@ -1486,7 +1728,7 @@ var
         +'value, depending on the context in which it is used.'
     ),
 
-    // Function nr. 94
+    // Function nr. 120
     (
       Name:         'IFNULL';
       Declaration:  '(expr1,expr2)';
@@ -1496,7 +1738,7 @@ var
         +'context in which it is used.'
     ),
 
-    // Function nr. 95
+    // Function nr. 121
     (
       Name:         'IN';
       Declaration:  '(value,...)';
@@ -1511,7 +1753,7 @@ var
         +'applied to all the arguments.'
     ),
 
-    // Function nr. 96
+    // Function nr. 122
     (
       Name:         'INET_ATON';
       Declaration:  '(expr)';
@@ -1521,7 +1763,7 @@ var
         +'Addresses may be 4- or 8-byte addresses.'
     ),
 
-    // Function nr. 97
+    // Function nr. 123
     (
       Name:         'INET_NTOA';
       Declaration:  '(expr)';
@@ -1530,7 +1772,7 @@ var
         +'representation of the address as a string.'
     ),
 
-    // Function nr. 98
+    // Function nr. 124
     (
       Name:         'INSERT';
       Declaration:  '(str,pos,len,newstr)';
@@ -1543,7 +1785,7 @@ var
         +'NULL.'
     ),
 
-    // Function nr. 99
+    // Function nr. 125
     (
       Name:         'INSTR';
       Declaration:  '(str,substr)';
@@ -1553,7 +1795,24 @@ var
         +'except that the order of the arguments is reversed.'
     ),
 
-    // Function nr. 100
+    // Function nr. 126
+    (
+      Name:         'INTERIORRINGN';
+      Declaration:  '(poly,N)';
+      Category:     'Geographic Features';
+      Description:  'Returns the N-th interior ring for the Polygon value poly as a '
+        +'LineString. Rings are numbered beginning with 1.'
+    ),
+
+    // Function nr. 127
+    (
+      Name:         'INTERSECTS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 spatially intersects g2.'
+    ),
+
+    // Function nr. 128
     (
       Name:         'INTERVAL';
       Declaration:  '(N,N1,N2,N3,...)';
@@ -1564,7 +1823,7 @@ var
         +'search is used (very fast).'
     ),
 
-    // Function nr. 101
+    // Function nr. 129
     (
       Name:         'IS';
       Declaration:  '';
@@ -1573,7 +1832,17 @@ var
         +'TRUE, FALSE, or UNKNOWN.'
     ),
 
-    // Function nr. 102
+    // Function nr. 130
+    (
+      Name:         'ISEMPTY';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 if the geometry value g is the empty geometry, 0 if it is '
+        +'not empty, and -1 if the argument is NULL. If the geometry is empty, '
+        +'it represents the empty point set.'
+    ),
+
+    // Function nr. 131
     (
       Name:         'ISNULL';
       Declaration:  '(expr)';
@@ -1581,7 +1850,22 @@ var
       Description:  'If expr is NULL, ISNULL() returns 1, otherwise it returns 0.'
     ),
 
-    // Function nr. 103
+    // Function nr. 132
+    (
+      Name:         'ISSIMPLE';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Currently, this function is a placeholder and should not be used. If '
+        +'implemented, its behavior will be as described in the next paragraph. '
+        +'Returns 1 if the geometry value g has no anomalous geometric points, '
+        +'such as self-intersection or self-tangency. IsSimple() returns 0 if '
+        +'the argument is not simple, and -1 if it is NULL. The description of '
+        +'each instantiable geometric class given earlier in the chapter '
+        +'includes the specific conditions that cause an instance of that class '
+        +'to be classified as not simple. (See [HELP Geometry hierarchy].)'
+    ),
+
+    // Function nr. 133
     (
       Name:         'IS_FREE_LOCK';
       Declaration:  '(str)';
@@ -1592,7 +1876,7 @@ var
         +'incorrect argument).'
     ),
 
-    // Function nr. 104
+    // Function nr. 134
     (
       Name:         'IS_USED_LOCK';
       Declaration:  '(str)';
@@ -1602,7 +1886,7 @@ var
         +'lock. Otherwise, it returns NULL.'
     ),
 
-    // Function nr. 105
+    // Function nr. 135
     (
       Name:         'LAST_DAY';
       Declaration:  '(date)';
@@ -1611,52 +1895,38 @@ var
         +'the last day of the month. Returns NULL if the argument is invalid.'
     ),
 
-    // Function nr. 106
+    // Function nr. 136
     (
       Name:         'LAST_INSERT_ID';
       Declaration:  '()';
       Category:     'Information Functions';
-      Description:  'For MySQL 5.1.12 and later, LAST_INSERT_ID() (no arguments) returns '
-        +'the first automatically generated value successfully inserted for an '
-        +'AUTO_INCREMENT column as a result of the most recently executed INSERT '
-        +'statement. The value of LAST_INSERT_ID() remains unchanged if no rows '
-        +'are successfully inserted. For example, after inserting a row that '
-        +'generates an AUTO_INCREMENT value, you can get the value like this: '
-        +'mysql> SELECT LAST_INSERT_ID(); -> 195 In MySQL 5.1.11 and earlier, '
-        +'LAST_INSERT_ID() (no arguments) returns the first automatically '
-        +'generated value if any rows were successfully inserted or updated. '
-        +'This means that the returned value could be a value that was not '
-        +'successfully inserted into the table. If no rows were successfully '
-        +'inserted, LAST_INSERT_ID() returns 0. The value of LAST_INSERT_ID() '
-        +'will be consistent across all versions if all rows in the INSERT or '
-        +'UPDATE statement were successful. The currently executing statement '
-        +'does not affect the value of LAST_INSERT_ID(). Suppose that you '
-        +'generate an AUTO_INCREMENT value with one statement, and then refer to '
+      Description:  'LAST_INSERT_ID() (with no argument) returns the first automatically '
+        +'generated value that was set for an AUTO_INCREMENT column by the most '
+        +'recently executed INSERT or UPDATE statement to affect such a column. '
+        +'For example, after inserting a row that generates an AUTO_INCREMENT '
+        +'value, you can get the value like this: mysql> SELECT '
+        +'LAST_INSERT_ID(); -> 195 The currently executing statement does not '
+        +'affect the value of LAST_INSERT_ID(). Suppose that you generate an '
+        +'AUTO_INCREMENT value with one statement, and then refer to '
         +'LAST_INSERT_ID() in a multiple-row INSERT statement that inserts rows '
         +'into a table with its own AUTO_INCREMENT column. The value of '
         +'LAST_INSERT_ID() will remain stable in the second statement; its value '
         +'for the second and later rows is not affected by the earlier row '
         +'insertions. (However, if you mix references to LAST_INSERT_ID() and '
-        +'LAST_INSERT_ID(expr), the effect is undefined.) If the previous '
-        +'statement returned an error, the value of LAST_INSERT_ID() is '
-        +'undefined. For transactional tables, if the statement is rolled back '
-        +'due to an error, the value of LAST_INSERT_ID() is left undefined. For '
-        +'manual ROLLBACK, the value of LAST_INSERT_ID() is not restored to that '
-        +'before the transaction; it remains as it was at the point of the '
-        +'ROLLBACK. Within the body of a stored routine (procedure or function) '
-        +'or a trigger, the value of LAST_INSERT_ID() changes the same way as '
-        +'for statements executed outside the body of these kinds of objects. '
-        +'The effect of a stored routine or trigger upon the value of '
-        +'LAST_INSERT_ID() that is seen by following statements depends on the '
-        +'kind of routine: If a stored procedure executes statements that change '
-        +'the value of LAST_INSERT_ID(), the changed value will be seen by '
-        +'statements that follow the procedure call. For stored functions and '
-        +'triggers that change the value, the value is restored when the '
-        +'function or trigger ends, so following statements will not see a '
-        +'changed value.'
+        +'LAST_INSERT_ID(expr), the effect is undefined.) Within the body of a '
+        +'stored routine (procedure or function) or a trigger, the value of '
+        +'LAST_INSERT_ID() changes the same way as for statements executed '
+        +'outside the body of these kinds of objects. The effect of a stored '
+        +'routine or trigger upon the value of LAST_INSERT_ID() that is seen by '
+        +'following statements depends on the kind of routine: If a stored '
+        +'procedure executes statements that change the value of '
+        +'LAST_INSERT_ID(), the changed value will be seen by statements that '
+        +'follow the procedure call. For stored functions and triggers that '
+        +'change the value, the value is restored when the function or trigger '
+        +'ends, so following statements will not see a changed value.'
     ),
 
-    // Function nr. 107
+    // Function nr. 137
     (
       Name:         'LCASE';
       Declaration:  '(str)';
@@ -1664,7 +1934,7 @@ var
       Description:  'LCASE() is a synonym for LOWER().'
     ),
 
-    // Function nr. 108
+    // Function nr. 138
     (
       Name:         'LEAST';
       Declaration:  '(value1,value2,...)';
@@ -1680,7 +1950,7 @@ var
         +'returns NULL if any argument is NULL.'
     ),
 
-    // Function nr. 109
+    // Function nr. 139
     (
       Name:         'LEFT';
       Declaration:  '(str,len)';
@@ -1689,7 +1959,7 @@ var
         +'any argument is NULL.'
     ),
 
-    // Function nr. 110
+    // Function nr. 140
     (
       Name:         'LENGTH';
       Declaration:  '(str)';
@@ -1700,7 +1970,7 @@ var
         +'CHAR_LENGTH() returns 5.'
     ),
 
-    // Function nr. 111
+    // Function nr. 141
     (
       Name:         'LIKE';
       Declaration:  '';
@@ -1711,7 +1981,34 @@ var
         +'it can be specified as a string expression or table column.'
     ),
 
-    // Function nr. 112
+    // Function nr. 142
+    (
+      Name:         'LINEFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a LINESTRING value using its WKT representation and SRID.'
+    ),
+
+    // Function nr. 143
+    (
+      Name:         'LINEFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a LINESTRING value using its WKB representation and SRID.'
+    ),
+
+    // Function nr. 144
+    (
+      Name:         'LINESTRING';
+      Declaration:  '(pt1,pt2,...)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB LineString value from a number of WKB Point '
+        +'arguments. If any argument is not a WKB Point, the return value is '
+        +'NULL. If the number of Point arguments is less than two, the return '
+        +'value is NULL.'
+    ),
+
+    // Function nr. 145
     (
       Name:         'LN';
       Declaration:  '(X)';
@@ -1720,7 +2017,7 @@ var
         +'X.'
     ),
 
-    // Function nr. 113
+    // Function nr. 146
     (
       Name:         'LOAD_FILE';
       Declaration:  '(file_name)';
@@ -1736,7 +2033,7 @@ var
         +'literal strings.'
     ),
 
-    // Function nr. 114
+    // Function nr. 147
     (
       Name:         'LOCALTIME';
       Declaration:  '()';
@@ -1744,7 +2041,7 @@ var
       Description:  'LOCALTIME and LOCALTIME() are synonyms for NOW().'
     ),
 
-    // Function nr. 115
+    // Function nr. 148
     (
       Name:         'LOCALTIMESTAMP';
       Declaration:  '()';
@@ -1752,7 +2049,7 @@ var
       Description:  'LOCALTIMESTAMP and LOCALTIMESTAMP() are synonyms for NOW().'
     ),
 
-    // Function nr. 116
+    // Function nr. 149
     (
       Name:         'LOCATE';
       Declaration:  '(substr,str)';
@@ -1763,7 +2060,7 @@ var
         +'position pos. Returns 0 if substr is not in str.'
     ),
 
-    // Function nr. 117
+    // Function nr. 150
     (
       Name:         'LOG';
       Declaration:  '(X)';
@@ -1772,7 +2069,7 @@ var
         +'logarithm of X.'
     ),
 
-    // Function nr. 118
+    // Function nr. 151
     (
       Name:         'LOG10';
       Declaration:  '(X)';
@@ -1780,7 +2077,7 @@ var
       Description:  'Returns the base-10 logarithm of X.'
     ),
 
-    // Function nr. 119
+    // Function nr. 152
     (
       Name:         'LOG2';
       Declaration:  '(X)';
@@ -1788,7 +2085,7 @@ var
       Description:  'Returns the base-2 logarithm of X.'
     ),
 
-    // Function nr. 120
+    // Function nr. 153
     (
       Name:         'LOWER';
       Declaration:  '(str)';
@@ -1798,7 +2095,7 @@ var
         +'(cp1252 West European).'
     ),
 
-    // Function nr. 121
+    // Function nr. 154
     (
       Name:         'LPAD';
       Declaration:  '(str,len,padstr)';
@@ -1808,7 +2105,7 @@ var
         +'shortened to len characters.'
     ),
 
-    // Function nr. 122
+    // Function nr. 155
     (
       Name:         'LTRIM';
       Declaration:  '(str)';
@@ -1816,7 +2113,7 @@ var
       Description:  'Returns the string str with leading space characters removed.'
     ),
 
-    // Function nr. 123
+    // Function nr. 156
     (
       Name:         'MAKEDATE';
       Declaration:  '(year,dayofyear)';
@@ -1825,7 +2122,7 @@ var
         +'greater than 0 or the result is NULL.'
     ),
 
-    // Function nr. 124
+    // Function nr. 157
     (
       Name:         'MAKETIME';
       Declaration:  '(hour,minute,second)';
@@ -1834,7 +2131,7 @@ var
         +'arguments.'
     ),
 
-    // Function nr. 125
+    // Function nr. 158
     (
       Name:         'MAKE_SET';
       Declaration:  '(bits,str1,str2,...)';
@@ -1845,7 +2142,7 @@ var
         +'values in str1, str2, ... are not appended to the result.'
     ),
 
-    // Function nr. 126
+    // Function nr. 159
     (
       Name:         'MASTER_POS_WAIT';
       Declaration:  '(log_name,log_pos[,timeout])';
@@ -1862,7 +2159,7 @@ var
         +'is past the specified position, the function returns immediately.'
     ),
 
-    // Function nr. 127
+    // Function nr. 160
     (
       Name:         'MATCH';
       Declaration:  '(col1,col2,...)';
@@ -1910,7 +2207,78 @@ var
         +'EXPANSION modifiers were added in MySQL 5.1.7.'
     ),
 
-    // Function nr. 128
+    // Function nr. 161
+    (
+      Name:         'MBR';
+      Declaration:  '';
+      Category:     'Geographic Features';
+      Description:  ''
+    ),
+
+    // Function nr. 162
+    (
+      Name:         'MBRCONTAINS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangle of '
+        +'g1 contains the Minimum Bounding Rectangle of g2.'
+    ),
+
+    // Function nr. 163
+    (
+      Name:         'MBRDISJOINT';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
+        +'the two geometries g1 and g2 are disjoint (do not intersect).'
+    ),
+
+    // Function nr. 164
+    (
+      Name:         'MBREQUAL';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
+        +'the two geometries g1 and g2 are the same.'
+    ),
+
+    // Function nr. 165
+    (
+      Name:         'MBRINTERSECTS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
+        +'the two geometries g1 and g2 intersect.'
+    ),
+
+    // Function nr. 166
+    (
+      Name:         'MBROVERLAPS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
+        +'the two geometries g1 and g2 overlap.'
+    ),
+
+    // Function nr. 167
+    (
+      Name:         'MBRTOUCHES';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
+        +'the two geometries g1 and g2 touch.'
+    ),
+
+    // Function nr. 168
+    (
+      Name:         'MBRWITHIN';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangle of '
+        +'g1 is within the Minimum Bounding Rectangle of g2.'
+    ),
+
+    // Function nr. 169
     (
       Name:         'MD5';
       Declaration:  '(str)';
@@ -1920,7 +2288,7 @@ var
         +'was NULL. The return value can, for example, be used as a hash key.'
     ),
 
-    // Function nr. 129
+    // Function nr. 170
     (
       Name:         'MICROSECOND';
       Declaration:  '(expr)';
@@ -1929,7 +2297,7 @@ var
         +'a number in the range from 0 to 999999.'
     ),
 
-    // Function nr. 130
+    // Function nr. 171
     (
       Name:         'MID';
       Declaration:  '(str,pos,len)';
@@ -1937,7 +2305,22 @@ var
       Description:  'MID(str,pos,len) is a synonym for SUBSTRING(str,pos,len).'
     ),
 
-    // Function nr. 131
+    // Function nr. 172
+    (
+      Name:         'MIN';
+      Declaration:  '([DISTINCT] expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the minimum or maximum value of expr. MIN() and MAX() may take '
+        +'a string argument; in such cases they return the minimum or maximum '
+        +'string value. See '
+        +'http://dev.mysql.com/doc/refman/5.1/en/mysql-indexes.html. The '
+        +'DISTINCT keyword can be used to find the minimum or maximum of the '
+        +'distinct values of expr, however, this produces the same result as '
+        +'omitting DISTINCT. MIN() and MAX() return NULL if there were no '
+        +'matching rows.'
+    ),
+
+    // Function nr. 173
     (
       Name:         'MINUTE';
       Declaration:  '(time)';
@@ -1945,15 +2328,25 @@ var
       Description:  'Returns the minute for time, in the range 0 to 59.'
     ),
 
-    // Function nr. 132
+    // Function nr. 174
     (
-      Name:         'MOD';
-      Declaration:  '(N,M)';
-      Category:     'Numeric Functions';
-      Description:  'Modulo operation. Returns the remainder of N divided by M.'
+      Name:         'MLINEFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a MULTILINESTRING value using its WKT representation and '
+        +'SRID.'
     ),
 
-    // Function nr. 133
+    // Function nr. 175
+    (
+      Name:         'MLINEFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a MULTILINESTRING value using its WKB representation and '
+        +'SRID.'
+    ),
+
+    // Function nr. 176
     (
       Name:         'MONTH';
       Declaration:  '(date)';
@@ -1961,18 +2354,75 @@ var
       Description:  'Returns the month for date, in the range 0 to 12.'
     ),
 
-    // Function nr. 134
+    // Function nr. 177
     (
       Name:         'MONTHNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Description:  'Returns the full name of the month for date. As of MySQL 5.1.12, the '
-        +'language used for the name is controlled by the value of the '
-        +'lc_time_names system variable '
-        +'(http://dev.mysql.com/doc/refman/5.1/en/locale-support.html).'
+      Description:  'Returns the full name of the month for date.'
     ),
 
-    // Function nr. 135
+    // Function nr. 178
+    (
+      Name:         'MPOINTFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a MULTIPOINT value using its WKT representation and SRID.'
+    ),
+
+    // Function nr. 179
+    (
+      Name:         'MPOINTFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a MULTIPOINT value using its WKB representation and SRID.'
+    ),
+
+    // Function nr. 180
+    (
+      Name:         'MPOLYFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a MULTIPOLYGON value using its WKT representation and SRID.'
+    ),
+
+    // Function nr. 181
+    (
+      Name:         'MPOLYFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a MULTIPOLYGON value using its WKB representation and SRID.'
+    ),
+
+    // Function nr. 182
+    (
+      Name:         'MULTILINESTRING';
+      Declaration:  '(ls1,ls2,...)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB MultiLineString value using WKB LineString arguments. '
+        +'If any argument is not a WKB LineString, the return value is NULL.'
+    ),
+
+    // Function nr. 183
+    (
+      Name:         'MULTIPOINT';
+      Declaration:  '(pt1,pt2,...)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB MultiPoint value using WKB Point arguments. If any '
+        +'argument is not a WKB Point, the return value is NULL.'
+    ),
+
+    // Function nr. 184
+    (
+      Name:         'MULTIPOLYGON';
+      Declaration:  '(poly1,poly2,...)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB MultiPolygon value from a set of WKB Polygon '
+        +'arguments. If any argument is not a WKB Polygon, the return value is '
+        +'NULL.'
+    ),
+
+    // Function nr. 185
     (
       Name:         'NAME_CONST';
       Declaration:  '(name,value)';
@@ -1983,7 +2433,7 @@ var
         +'+--------+'
     ),
 
-    // Function nr. 136
+    // Function nr. 186
     (
       Name:         'NOT';
       Declaration:  '';
@@ -1991,7 +2441,7 @@ var
       Description:  'This is the same as NOT (expr BETWEEN min AND max).'
     ),
 
-    // Function nr. 137
+    // Function nr. 187
     (
       Name:         'NOW';
       Declaration:  '()';
@@ -2001,7 +2451,7 @@ var
         +'is used in a string or numeric context.'
     ),
 
-    // Function nr. 138
+    // Function nr. 188
     (
       Name:         'NULLIF';
       Declaration:  '(expr1,expr2)';
@@ -2010,7 +2460,23 @@ var
         +'is the same as CASE WHEN expr1 = expr2 THEN NULL ELSE expr1 END.'
     ),
 
-    // Function nr. 139
+    // Function nr. 189
+    (
+      Name:         'NUMINTERIORRINGS';
+      Declaration:  '(poly)';
+      Category:     'Geographic Features';
+      Description:  'Returns the number of interior rings in the Polygon value poly.'
+    ),
+
+    // Function nr. 190
+    (
+      Name:         'NUMPOINTS';
+      Declaration:  '(ls)';
+      Category:     'Geographic Features';
+      Description:  'Returns the number of Point objects in the LineString value ls.'
+    ),
+
+    // Function nr. 191
     (
       Name:         'OCT';
       Declaration:  '(N)';
@@ -2020,7 +2486,7 @@ var
         +'NULL if N is NULL.'
     ),
 
-    // Function nr. 140
+    // Function nr. 192
     (
       Name:         'OCTETLENGTH';
       Declaration:  '(str)';
@@ -2028,7 +2494,7 @@ var
       Description:  'OCTET_LENGTH() is a synonym for LENGTH().'
     ),
 
-    // Function nr. 141
+    // Function nr. 193
     (
       Name:         'OLD_PASSWORD';
       Declaration:  '(str)';
@@ -2042,7 +2508,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/password-hashing.html.'
     ),
 
-    // Function nr. 142
+    // Function nr. 194
     (
       Name:         'ORD';
       Declaration:  '(str)';
@@ -2055,7 +2521,18 @@ var
         +'as the ASCII() function.'
     ),
 
-    // Function nr. 143
+    // Function nr. 195
+    (
+      Name:         'OVERLAPS';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 spatially overlaps g2. The term '
+        +'spatially overlaps is used if two geometries intersect and their '
+        +'intersection results in a geometry of the same dimension but not equal '
+        +'to either of the given geometries.'
+    ),
+
+    // Function nr. 196
     (
       Name:         'PASSWORD';
       Declaration:  '(str)';
@@ -2066,7 +2543,7 @@ var
         +'storage in the Password column of the user grant table.'
     ),
 
-    // Function nr. 144
+    // Function nr. 197
     (
       Name:         'PERIOD_ADD';
       Declaration:  '(P,N)';
@@ -2076,7 +2553,7 @@ var
         +'date value.'
     ),
 
-    // Function nr. 145
+    // Function nr. 198
     (
       Name:         'PERIOD_DIFF';
       Declaration:  '(P1,P2)';
@@ -2086,7 +2563,7 @@ var
         +'P1 and P2 are not date values.'
     ),
 
-    // Function nr. 146
+    // Function nr. 199
     (
       Name:         'PI';
       Declaration:  '()';
@@ -2096,7 +2573,67 @@ var
         +'internally.'
     ),
 
-    // Function nr. 147
+    // Function nr. 200
+    (
+      Name:         'POINT';
+      Declaration:  '(x,y)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB Point using its coordinates.'
+    ),
+
+    // Function nr. 201
+    (
+      Name:         'POINTFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a POINT value using its WKT representation and SRID.'
+    ),
+
+    // Function nr. 202
+    (
+      Name:         'POINTFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a POINT value using its WKB representation and SRID.'
+    ),
+
+    // Function nr. 203
+    (
+      Name:         'POINTN';
+      Declaration:  '(ls,N)';
+      Category:     'Geographic Features';
+      Description:  'Returns the N-th Point in the Linestring value ls. Points are numbered '
+        +'beginning with 1.'
+    ),
+
+    // Function nr. 204
+    (
+      Name:         'POLYFROMTEXT';
+      Declaration:  '(wkt[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a POLYGON value using its WKT representation and SRID.'
+    ),
+
+    // Function nr. 205
+    (
+      Name:         'POLYFROMWKB';
+      Declaration:  '(wkb[,srid])';
+      Category:     'Geographic Features';
+      Description:  'Constructs a POLYGON value using its WKB representation and SRID.'
+    ),
+
+    // Function nr. 206
+    (
+      Name:         'POLYGON';
+      Declaration:  '(ls1,ls2,...)';
+      Category:     'Geographic Features';
+      Description:  'Constructs a WKB Polygon value from a number of WKB LineString '
+        +'arguments. If any argument does not represent the WKB of a LinearRing '
+        +'(that is, not a closed and simple LineString) the return value is '
+        +'NULL.'
+    ),
+
+    // Function nr. 207
     (
       Name:         'POSITION';
       Declaration:  '(substr IN str)';
@@ -2104,7 +2641,7 @@ var
       Description:  'POSITION(substr IN str) is a synonym for LOCATE(substr,str).'
     ),
 
-    // Function nr. 148
+    // Function nr. 208
     (
       Name:         'POWER';
       Declaration:  '(X,Y)';
@@ -2112,7 +2649,7 @@ var
       Description:  'Returns the value of X raised to the power of Y.'
     ),
 
-    // Function nr. 149
+    // Function nr. 209
     (
       Name:         'QUARTER';
       Declaration:  '(date)';
@@ -2120,7 +2657,7 @@ var
       Description:  'Returns the quarter of the year for date, in the range 1 to 4.'
     ),
 
-    // Function nr. 150
+    // Function nr. 210
     (
       Name:         'QUOTE';
       Declaration:  '(str)';
@@ -2133,7 +2670,7 @@ var
         +'"NULL" without enclosing single quotes.'
     ),
 
-    // Function nr. 151
+    // Function nr. 211
     (
       Name:         'RADIANS';
       Declaration:  '(X)';
@@ -2142,17 +2679,18 @@ var
         +'? radians equals 180 degrees.)'
     ),
 
-    // Function nr. 152
+    // Function nr. 212
     (
       Name:         'RAND';
       Declaration:  '()';
       Category:     'Numeric Functions';
-      Description:  'Returns a random floating-point value v in the range 0 <= v < 1.0. If '
-        +'an integer argument N is specified, it is used as the seed value, '
-        +'which produces a repeatable sequence of column values.'
+      Description:  'Returns a random floating-point value v between 0 and 1 inclusive '
+        +'(that is, in the range 0 <= v <= 1.0). If an integer argument N is '
+        +'specified, it is used as the seed value, which produces a repeatable '
+        +'sequence of column values.'
     ),
 
-    // Function nr. 153
+    // Function nr. 213
     (
       Name:         'REGEXP';
       Declaration:  '';
@@ -2171,7 +2709,7 @@ var
         +'used with binary strings.'
     ),
 
-    // Function nr. 154
+    // Function nr. 214
     (
       Name:         'RELEASE_LOCK';
       Declaration:  '(str)';
@@ -2185,7 +2723,7 @@ var
         +'RELEASE_LOCK(). See [HELP DO].'
     ),
 
-    // Function nr. 155
+    // Function nr. 215
     (
       Name:         'REPEAT';
       Declaration:  '(str,count)';
@@ -2195,7 +2733,7 @@ var
         +'count are NULL.'
     ),
 
-    // Function nr. 156
+    // Function nr. 216
     (
       Name:         'REPLACE';
       Declaration:  '(str,from_str,to_str)';
@@ -2205,7 +2743,7 @@ var
         +'match when searching for from_str.'
     ),
 
-    // Function nr. 157
+    // Function nr. 217
     (
       Name:         'REVERSE';
       Declaration:  '(str)';
@@ -2213,7 +2751,7 @@ var
       Description:  'Returns the string str with the order of the characters reversed.'
     ),
 
-    // Function nr. 158
+    // Function nr. 218
     (
       Name:         'RIGHT';
       Declaration:  '(str,len)';
@@ -2222,18 +2760,18 @@ var
         +'any argument is NULL.'
     ),
 
-    // Function nr. 159
+    // Function nr. 219
     (
       Name:         'ROUND';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
-      Description:  'Rounds the argument X to D decimal places. The rounding algorithm '
-        +'depends on the data type of X. D defaults to 0 if not specified. D can '
-        +'be negative to cause D digits left of the decimal point of the value X '
-        +'to become zero.'
+      Description:  'Returns the argument X, rounded to the nearest integer. With two '
+        +'arguments, returns X rounded to D decimal places. D can be negative to '
+        +'cause D digits left of the decimal point of the value X to become '
+        +'zero.'
     ),
 
-    // Function nr. 160
+    // Function nr. 220
     (
       Name:         'ROW_COUNT';
       Declaration:  '()';
@@ -2244,7 +2782,7 @@ var
         +'API function.'
     ),
 
-    // Function nr. 161
+    // Function nr. 221
     (
       Name:         'RPAD';
       Declaration:  '(str,len,padstr)';
@@ -2254,7 +2792,7 @@ var
         +'is shortened to len characters.'
     ),
 
-    // Function nr. 162
+    // Function nr. 222
     (
       Name:         'RTRIM';
       Declaration:  '(str)';
@@ -2262,7 +2800,7 @@ var
       Description:  'Returns the string str with trailing space characters removed.'
     ),
 
-    // Function nr. 163
+    // Function nr. 223
     (
       Name:         'SCHEMA';
       Declaration:  '()';
@@ -2270,7 +2808,7 @@ var
       Description:  'This function is a synonym for DATABASE().'
     ),
 
-    // Function nr. 164
+    // Function nr. 224
     (
       Name:         'SECOND';
       Declaration:  '(time)';
@@ -2278,7 +2816,7 @@ var
       Description:  'Returns the second for time, in the range 0 to 59.'
     ),
 
-    // Function nr. 165
+    // Function nr. 225
     (
       Name:         'SEC_TO_TIME';
       Declaration:  '(seconds)';
@@ -2288,7 +2826,7 @@ var
         +'whether the function is used in a string or numeric context.'
     ),
 
-    // Function nr. 166
+    // Function nr. 226
     (
       Name:         'SESSION_USER';
       Declaration:  '()';
@@ -2296,7 +2834,7 @@ var
       Description:  'SESSION_USER() is a synonym for USER().'
     ),
 
-    // Function nr. 167
+    // Function nr. 227
     (
       Name:         'SHA';
       Declaration:  '(str)';
@@ -2309,7 +2847,7 @@ var
         +'with SHA1().'
     ),
 
-    // Function nr. 168
+    // Function nr. 228
     (
       Name:         'SIGN';
       Declaration:  '(X)';
@@ -2318,7 +2856,7 @@ var
         +'X is negative, zero, or positive.'
     ),
 
-    // Function nr. 169
+    // Function nr. 229
     (
       Name:         'SIN';
       Declaration:  '(X)';
@@ -2326,7 +2864,7 @@ var
       Description:  'Returns the sine of X, where X is given in radians.'
     ),
 
-    // Function nr. 170
+    // Function nr. 230
     (
       Name:         'SLEEP';
       Declaration:  '(duration)';
@@ -2336,7 +2874,7 @@ var
         +'duration may have a fractional part given in microseconds.'
     ),
 
-    // Function nr. 171
+    // Function nr. 231
     (
       Name:         'SOUNDEX';
       Declaration:  '(str)';
@@ -2347,18 +2885,10 @@ var
         +'arbitrarily long string. You can use SUBSTRING() on the result to get '
         +'a standard soundex string. All non-alphabetic characters in str are '
         +'ignored. All international alphabetic characters outside the A-Z range '
-        +'are treated as vowels. Important: When using SOUNDEX(), you should be '
-        +'aware of the following limitations: This function, as currently '
-        +'implemented, is intended to work well with strings that are in the '
-        +'English language only. Strings in other languages may not produce '
-        +'reliable results. This function is not guaranteed to provide '
-        +'consistent results with strings that use multi-byte character sets, '
-        +'including utf-8. We hope to remove these limitations in a future '
-        +'release. See Bug#22638 (http://bugs.mysql.com/22638) for more '
-        +'information.'
+        +'are treated as vowels.'
     ),
 
-    // Function nr. 172
+    // Function nr. 232
     (
       Name:         'SOUNDS';
       Declaration:  '';
@@ -2366,7 +2896,7 @@ var
       Description:  'This is the same as SOUNDEX(expr1) = SOUNDEX(expr2).'
     ),
 
-    // Function nr. 173
+    // Function nr. 233
     (
       Name:         'SPACE';
       Declaration:  '(N)';
@@ -2374,7 +2904,26 @@ var
       Description:  'Returns a string consisting of N space characters.'
     ),
 
-    // Function nr. 174
+    // Function nr. 234
+    (
+      Name:         'SPATIAL';
+      Declaration:  '';
+      Category:     'Geographic Features';
+      Description:  'o With CREATE TABLE: CREATE TABLE geom (g GEOMETRY NOT NULL, SPATIAL '
+        +'INDEX(g)); With ALTER TABLE: ALTER TABLE geom ADD SPATIAL INDEX(g); '
+        +'With CREATE INDEX: CREATE SPATIAL INDEX sp_index ON geom (g); For '
+        +'MyISAM tables, SPATIAL INDEX creates an R-tree index. For other '
+        +'storage engines that support spatial indexing, SPATIAL INDEX creates a '
+        +'B-tree index. A B-tree index on spatial values will be useful for '
+        +'exact-value lookups, but not for range scans. To drop spatial indexes, '
+        +'use ALTER TABLE or DROP INDEX: With ALTER TABLE: ALTER TABLE geom DROP '
+        +'INDEX g; With DROP INDEX: DROP INDEX sp_index ON geom; Example: '
+        +'Suppose that a table geom contains more than 32,000 geometries, which '
+        +'are stored in the column g of type GEOMETRY. The table also has an '
+        +'AUTO_INCREMENT column fid for storing object ID values.'
+    ),
+
+    // Function nr. 235
     (
       Name:         'SQRT';
       Declaration:  '(X)';
@@ -2382,7 +2931,58 @@ var
       Description:  'Returns the square root of a non-negative number X.'
     ),
 
-    // Function nr. 175
+    // Function nr. 236
+    (
+      Name:         'SRID';
+      Declaration:  '(g)';
+      Category:     'Geographic Features';
+      Description:  'Returns an integer indicating the Spatial Reference System ID for the '
+        +'geometry value g. In MySQL, the SRID value is just an integer '
+        +'associated with the geometry value. All calculations are done assuming '
+        +'Euclidean (planar) geometry.'
+    ),
+
+    // Function nr. 237
+    (
+      Name:         'STARTPOINT';
+      Declaration:  '(ls)';
+      Category:     'Geographic Features';
+      Description:  'Returns the Point that is the start point of the LineString value ls.'
+    ),
+
+    // Function nr. 238
+    (
+      Name:         'STDDEV';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the population standard deviation of expr. This is an '
+        +'extension to standard SQL. The STDDEV() form of this function is '
+        +'provided for compatibility with Oracle. The standard SQL function '
+        +'STDDEV_POP() can be used instead. These functions return NULL if there '
+        +'were no matching rows.'
+    ),
+
+    // Function nr. 239
+    (
+      Name:         'STDDEV_POP';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the population standard deviation of expr (the square root of '
+        +'VAR_POP()). You can also use STD() or STDDEV(), which are equivalent '
+        +'but not standard SQL. STDDEV_POP() returns NULL if there were no '
+        +'matching rows.'
+    ),
+
+    // Function nr. 240
+    (
+      Name:         'STDDEV_SAMP';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the sample standard deviation of expr (the square root of '
+        +'VAR_SAMP(). STDDEV_SAMP() returns NULL if there were no matching rows.'
+    ),
+
+    // Function nr. 241
     (
       Name:         'STRCMP';
       Declaration:  '(expr1,expr2)';
@@ -2392,7 +2992,7 @@ var
         +'order, and 1 otherwise.'
     ),
 
-    // Function nr. 176
+    // Function nr. 242
     (
       Name:         'STR_TO_DATE';
       Declaration:  '(str,format)';
@@ -2408,7 +3008,7 @@ var
         +'illegal value also produces a warning.'
     ),
 
-    // Function nr. 177
+    // Function nr. 243
     (
       Name:         'SUBDATE';
       Declaration:  '(date,INTERVAL expr unit)';
@@ -2424,7 +3024,7 @@ var
         +'SUBDATE(''1998-01-02 12:00:00'', 31); -> ''1997-12-02 12:00:00'''
     ),
 
-    // Function nr. 178
+    // Function nr. 244
     (
       Name:         'SUBSTRING';
       Declaration:  '(str,pos)';
@@ -2439,7 +3039,7 @@ var
         +'forms of this function.'
     ),
 
-    // Function nr. 179
+    // Function nr. 245
     (
       Name:         'SUBSTRING_INDEX';
       Declaration:  '(str,delim,count)';
@@ -2452,7 +3052,7 @@ var
         +'case-sensitive match when searching for delim.'
     ),
 
-    // Function nr. 180
+    // Function nr. 246
     (
       Name:         'SUBTIME';
       Declaration:  '(expr1,expr2)';
@@ -2462,7 +3062,18 @@ var
         +'a time expression.'
     ),
 
-    // Function nr. 181
+    // Function nr. 247
+    (
+      Name:         'SUM';
+      Declaration:  '([DISTINCT] expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the sum of expr. If the return set has no rows, SUM() returns '
+        +'NULL. The DISTINCT keyword can be used in MySQL 5.1 to sum only the '
+        +'distinct values of expr. SUM() returns NULL if there were no matching '
+        +'rows.'
+    ),
+
+    // Function nr. 248
     (
       Name:         'SYSDATE';
       Declaration:  '()';
@@ -2497,7 +3108,7 @@ var
         +'NOW().'
     ),
 
-    // Function nr. 182
+    // Function nr. 249
     (
       Name:         'SYSTEM_USER';
       Declaration:  '()';
@@ -2505,7 +3116,7 @@ var
       Description:  'SYSTEM_USER() is a synonym for USER().'
     ),
 
-    // Function nr. 183
+    // Function nr. 250
     (
       Name:         'TAN';
       Declaration:  '(X)';
@@ -2513,7 +3124,7 @@ var
       Description:  'Returns the tangent of X, where X is given in radians.'
     ),
 
-    // Function nr. 184
+    // Function nr. 251
     (
       Name:         'TIME';
       Declaration:  '(expr)';
@@ -2522,7 +3133,7 @@ var
         +'returns it as a string.'
     ),
 
-    // Function nr. 185
+    // Function nr. 252
     (
       Name:         'TIMEDIFF';
       Declaration:  '(expr1,expr2)';
@@ -2532,7 +3143,7 @@ var
         +'same type.'
     ),
 
-    // Function nr. 186
+    // Function nr. 253
     (
       Name:         'TIMESTAMP';
       Declaration:  '(expr)';
@@ -2543,7 +3154,7 @@ var
         +'returns the result as a datetime value.'
     ),
 
-    // Function nr. 187
+    // Function nr. 254
     (
       Name:         'TIMESTAMPADD';
       Declaration:  '(unit,interval,datetime_expr)';
@@ -2556,7 +3167,7 @@ var
         +'prefix of SQL_TSI_. For example, DAY and SQL_TSI_DAY both are legal.'
     ),
 
-    // Function nr. 188
+    // Function nr. 255
     (
       Name:         'TIMESTAMPDIFF';
       Declaration:  '(unit,datetime_expr1,datetime_expr2)';
@@ -2567,7 +3178,7 @@ var
         +'as those listed in the description of the TIMESTAMPADD() function.'
     ),
 
-    // Function nr. 189
+    // Function nr. 256
     (
       Name:         'TIME_FORMAT';
       Declaration:  '(time,format)';
@@ -2577,7 +3188,7 @@ var
         +'Other specifiers produce a NULL value or 0.'
     ),
 
-    // Function nr. 190
+    // Function nr. 257
     (
       Name:         'TIME_TO_SEC';
       Declaration:  '(time)';
@@ -2585,7 +3196,18 @@ var
       Description:  'Returns the time argument, converted to seconds.'
     ),
 
-    // Function nr. 191
+    // Function nr. 258
+    (
+      Name:         'TOUCHES';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 spatially touches g2. Two '
+        +'geometries spatially touch if the interiors of the geometries do not '
+        +'intersect, but the boundary of one of the geometries intersects either '
+        +'the boundary or the interior of the other.'
+    ),
+
+    // Function nr. 259
     (
       Name:         'TO_DAYS';
       Declaration:  '(date)';
@@ -2594,7 +3216,7 @@ var
         +'0).'
     ),
 
-    // Function nr. 192
+    // Function nr. 260
     (
       Name:         'TRIM';
       Declaration:  '([{BOTH | LEADING | TRAILING} [remstr] FROM] str)';
@@ -2604,7 +3226,7 @@ var
         +'assumed. remstr is optional and, if not specified, spaces are removed.'
     ),
 
-    // Function nr. 193
+    // Function nr. 261
     (
       Name:         'TRUNCATE';
       Declaration:  '(X,D)';
@@ -2615,7 +3237,7 @@ var
         +'zero.'
     ),
 
-    // Function nr. 194
+    // Function nr. 262
     (
       Name:         'UCASE';
       Declaration:  '(str)';
@@ -2623,7 +3245,7 @@ var
       Description:  'UCASE() is a synonym for UPPER().'
     ),
 
-    // Function nr. 195
+    // Function nr. 263
     (
       Name:         'UNCOMPRESS';
       Declaration:  '(string_to_uncompress)';
@@ -2634,7 +3256,7 @@ var
         +'as zlib. Otherwise, the return value is always NULL.'
     ),
 
-    // Function nr. 196
+    // Function nr. 264
     (
       Name:         'UNCOMPRESSED_LENGTH';
       Declaration:  '(compressed_string)';
@@ -2643,7 +3265,7 @@ var
         +'compressed.'
     ),
 
-    // Function nr. 197
+    // Function nr. 265
     (
       Name:         'UNHEX';
       Declaration:  '';
@@ -2654,7 +3276,7 @@ var
         +'resulting characters are returned as a binary string.'
     ),
 
-    // Function nr. 198
+    // Function nr. 266
     (
       Name:         'UNIX_TIMESTAMP';
       Declaration:  '()';
@@ -2670,7 +3292,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/time-zone-support.html.'
     ),
 
-    // Function nr. 199
+    // Function nr. 267
     (
       Name:         'UPDATEXML';
       Declaration:  '(xml_target, xpath_expr, new_xml)';
@@ -2684,7 +3306,7 @@ var
         +'arguments must be strings.'
     ),
 
-    // Function nr. 200
+    // Function nr. 268
     (
       Name:         'UPPER';
       Declaration:  '(str)';
@@ -2694,7 +3316,7 @@ var
         +'(cp1252 West European).'
     ),
 
-    // Function nr. 201
+    // Function nr. 269
     (
       Name:         'USER';
       Declaration:  '()';
@@ -2703,7 +3325,7 @@ var
         +'utf8 character set.'
     ),
 
-    // Function nr. 202
+    // Function nr. 270
     (
       Name:         'UTC_DATE';
       Declaration:  '()';
@@ -2713,7 +3335,7 @@ var
         +'numeric context.'
     ),
 
-    // Function nr. 203
+    // Function nr. 271
     (
       Name:         'UTC_TIME';
       Declaration:  '()';
@@ -2723,7 +3345,7 @@ var
         +'numeric context.'
     ),
 
-    // Function nr. 204
+    // Function nr. 272
     (
       Name:         'UTC_TIMESTAMP';
       Declaration:  '()';
@@ -2733,7 +3355,7 @@ var
         +'is used in a string or numeric context.'
     ),
 
-    // Function nr. 205
+    // Function nr. 273
     (
       Name:         'UUID';
       Declaration:  '()';
@@ -2763,7 +3385,7 @@ var
         +'number.'
     ),
 
-    // Function nr. 206
+    // Function nr. 274
     (
       Name:         'VALUES';
       Declaration:  '(col_name)';
@@ -2779,7 +3401,39 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/insert-on-duplicate.html.'
     ),
 
-    // Function nr. 207
+    // Function nr. 275
+    (
+      Name:         'VARIANCE';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the population standard variance of expr. This is an extension '
+        +'to standard SQL. The standard SQL function VAR_POP() can be used '
+        +'instead. VARIANCE() returns NULL if there were no matching rows.'
+    ),
+
+    // Function nr. 276
+    (
+      Name:         'VAR_POP';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the population standard variance of expr. It considers rows as '
+        +'the whole population, not as a sample, so it has the number of rows as '
+        +'the denominator. You can also use VARIANCE(), which is equivalent but '
+        +'is not standard SQL. VAR_POP() returns NULL if there were no matching '
+        +'rows.'
+    ),
+
+    // Function nr. 277
+    (
+      Name:         'VAR_SAMP';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Description:  'Returns the sample variance of expr. That is, the denominator is the '
+        +'number of rows minus one. VAR_SAMP() returns NULL if there were no '
+        +'matching rows.'
+    ),
+
+    // Function nr. 278
     (
       Name:         'VERSION';
       Declaration:  '()';
@@ -2788,7 +3442,7 @@ var
         +'uses the utf8 character set.'
     ),
 
-    // Function nr. 208
+    // Function nr. 279
     (
       Name:         'WEEK';
       Declaration:  '(date[,mode])';
@@ -2801,7 +3455,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/server-system-variables.html.'
     ),
 
-    // Function nr. 209
+    // Function nr. 280
     (
       Name:         'WEEKDAY';
       Declaration:  '(date)';
@@ -2810,7 +3464,7 @@ var
         +'Sunday).'
     ),
 
-    // Function nr. 210
+    // Function nr. 281
     (
       Name:         'WEEKOFYEAR';
       Declaration:  '(date)';
@@ -2820,7 +3474,32 @@ var
         +'WEEK(date,3).'
     ),
 
-    // Function nr. 211
+    // Function nr. 282
+    (
+      Name:         'WITHIN';
+      Declaration:  '(g1,g2)';
+      Category:     'Geographic Features';
+      Description:  'Returns 1 or 0 to indicate whether g1 is spatially within g2.'
+    ),
+
+    // Function nr. 283
+    (
+      Name:         'WKT';
+      Declaration:  '';
+      Category:     'Geographic Features';
+      Description:  ''
+    ),
+
+    // Function nr. 284
+    (
+      Name:         'X';
+      Declaration:  '(p)';
+      Category:     'Geographic Features';
+      Description:  'Returns the X-coordinate value for the point p as a double-precision '
+        +'number.'
+    ),
+
+    // Function nr. 285
     (
       Name:         'XOR';
       Declaration:  '';
@@ -2830,7 +3509,16 @@ var
         +'otherwise 0 is returned.'
     ),
 
-    // Function nr. 212
+    // Function nr. 286
+    (
+      Name:         'Y';
+      Declaration:  '(p)';
+      Category:     'Geographic Features';
+      Description:  'Returns the Y-coordinate value for the point p as a double-precision '
+        +'number.'
+    ),
+
+    // Function nr. 287
     (
       Name:         'YEAR';
       Declaration:  '(date)';
@@ -2839,18 +3527,18 @@ var
         +'"zero" date.'
     ),
 
-    // Function nr. 213
+    // Function nr. 288
     (
       Name:         'YEARWEEK';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Description:  'Returns year and week for a date. The mode argument works exactly like '
-        +'the mode argument to WEEK(). The year in the result may be different '
-        +'from the year in the date argument for the first and the last week of '
-        +'the year.'
+      Description:  'Returns year and week for a date. The start argument works exactly '
+        +'like the start argument to WEEK(). The year in the result may be '
+        +'different from the year in the date argument for the first and the '
+        +'last week of the year.'
     ),
 
-    // Function nr. 214
+    // Function nr. 289
     (
       Name:         '^';
       Declaration:  '';
@@ -2858,7 +3546,7 @@ var
       Description:  'Bitwise XOR:'
     ),
 
-    // Function nr. 215
+    // Function nr. 290
     (
       Name:         '|';
       Declaration:  '';
@@ -2866,7 +3554,7 @@ var
       Description:  'Bitwise OR:'
     ),
 
-    // Function nr. 216
+    // Function nr. 291
     (
       Name:         '||';
       Declaration:  '';
@@ -2877,7 +3565,7 @@ var
         +'operands are NULL, the result is NULL.'
     ),
 
-    // Function nr. 217
+    // Function nr. 292
     (
       Name:         '~';
       Declaration:  '';
