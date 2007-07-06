@@ -21,8 +21,11 @@ while( $row = mysql_fetch_object($q) )
 		getfunctions($row->name);
 	}
 }
+getfunctions('Functions and Modifiers for Use with GROUP BY');
+getfunctions('Geographic Features');
 
-function getfunctions($cat)
+
+function getfunctions( $cat, $rootcat='' )
 {
 	global $nl, $fstruc, $fnames;
 	$q = mysql_query('HELP "'.$cat.'"');
@@ -30,7 +33,11 @@ function getfunctions($cat)
 	{
 		if( $row->is_it_category == 'Y' )
 		{
-			getfunctions( $row->name );
+			if( empty($rootcat) )
+			{
+				$rootcat = $cat;
+			}
+			getfunctions( $row->name, $rootcat );
 		}
 		else
 		{
@@ -55,18 +62,18 @@ function getfunctions($cat)
 
 			$declaration = '';
 			$desc_cut = substr($rowdetails->description, 0, strpos($rowdetails->description,"\n\n")); 
-			$df = preg_match('#Syntax:[^\(]*(\([^\)]*\))#Us', $desc_cut, $m2);
+			$df = preg_match('#(Syntax:)?[^\(]*(\([^\)]*\))#Us', $desc_cut, $m2);
 			if( $df )
 			{
-				$declaration = $m2[1];
+				$declaration = $m2[2];
 				$declaration = str_replace("'", "''", $declaration );
 			}
 
 			$description = '';
-			$df = preg_match('#Syntax:.*\n\n(.+)$#Uis', $rowdetails->description, $m3);
+			$df = preg_match('#(Syntax:)?.*\n\n(.+)$#Uis', $rowdetails->description, $m3);
 			if( $df )
 			{
-				$description = trim($m3[1]);
+				$description = trim($m3[2]);
 				$description = preg_replace('#(\s+)#', ' ', $description );
 				$description = str_replace(' o ', ' ', $description);
 				$description = str_replace("'", "''", $description );
@@ -81,7 +88,7 @@ function getfunctions($cat)
 				."    ),".$nl.$nl,
 				$name,
 				$declaration,
-				$cat,
+				(!empty($rootcat) ? $rootcat : $cat),
 				$description
 				);
 		}
