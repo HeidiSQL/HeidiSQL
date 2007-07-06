@@ -787,7 +787,7 @@ begin
       if ( UpperCase( ds.FieldByName('Support').AsString ) = 'NO' ) then
       begin
         menuitem.Enabled := false;
-        menuitem.Hint := menuitem.Hint + ' (Not supported on this server)';
+        menuitem.Hint := menuitem.Hint + ' ('+STR_NOTSUPPORTED+')';
       end;
       menuitem.OnClick := MenuChangeTypeClick;
       MenuChangeType.Add( menuitem );
@@ -845,13 +845,22 @@ begin
       if mi.Caption = '-' then
         mi.Caption := '&-';
       mi.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
-      if MySqlFunctions[j].Description <> '' then
-        mi.Hint := mi.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+      // Take care of needed server version
+      if MySqlFunctions[j].Version <= mysql_version then
+      begin
+        if MySqlFunctions[j].Description <> '' then
+          mi.Hint := mi.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+        mi.Tag := j;
+        // Place menuitem on menu
+        mi.OnClick := insertFunction;
+      end
+      else
+      begin
+        mi.Hint := mi.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
+        mi.Enabled := False;
+      end;
       // Prevent generating a seperator for ShortHint and LongHint
       mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
-      mi.Tag := j;
-      // Place menuitem on menu
-      mi.OnClick := insertFunction;
       popupQuery.Items[i+13].Add(mi);
     end;
   end;
@@ -3182,6 +3191,9 @@ begin
     // Add functions
     for i := 0 to Length(MySQLFunctions) - 1 do
     begin
+      // Don't display unsupported functions here
+      if MySqlFunctions[i].Version > mysql_version then
+        continue;
       SynCompletionProposal1.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + MySQLFunctions[i].Name + '\style{-B}' + MySQLFunctions[i].Declaration );
     end;
@@ -5529,6 +5541,9 @@ begin
     begin
       for i := 0 to Length(MySQLFunctions) - 1 do
       begin
+        // Don't display unsupported functions here
+        if MySqlFunctions[i].Version > mysql_version then
+          continue;
         lboxQueryHelpers.Items.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       end;
     end;

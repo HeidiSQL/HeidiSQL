@@ -67,6 +67,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
   function GetFieldValue( Field: TField ): String;
   function LastPos( substr: WideString; str: WideString): Integer;
+  function ConvertServerVersion( Version: Integer ): String;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1882,6 +1883,21 @@ begin
   str := ReverseString( str );
   if Pos( substr, str ) > 0 then
     Result := Length(str) - Pos( substr, str ) + 1;
+end;
+
+
+{**
+  Convert integer version to real version string
+}
+function ConvertServerVersion( Version: Integer ): String;
+var
+  v : String;
+  v1, v2 : Byte;
+begin
+  v := IntToStr( Version );
+  v1 := StrToIntDef( v[2]+v[3], 0 );
+  v2 := StrToIntDef( v[4]+v[5], 0 );
+  Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);  
 end;
 
 

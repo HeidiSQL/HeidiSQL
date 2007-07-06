@@ -5,6 +5,33 @@
  * Functions are fetched by using the HELP commands 
  */  
 
+// Gather version information for functions
+$ver_cont = file_get_contents('http://dev.mysql.com/doc/refman/5.2/en/func-op-summary-ref.html');
+if( $ver_cont )
+{
+	// <code class="literal">ADDDATE()</code></a>(v4.1.1)
+	$ver_cont = html_entity_decode($ver_cont);
+	$matches = array();
+	preg_match_all( '#\<a[^\>]+\>\<code class="literal"\>([^\(\s\<]+).*\<\/a\>\(v(.+)\)#', $ver_cont, $matches );
+	$versions = array();
+	for( $i=0; $i<count($matches[0]); $i++ )
+	{
+		$versionArr = explode( '.', $matches[2][$i] );
+		// make int of array
+		if( !isset($versionArr[1]) )
+			$versionArr[1] = '0';
+		if( !isset($versionArr[2]) )
+			$versionArr[2] = '0';
+		$version = sprintf('%d%02d%02d',
+			$versionArr[0],
+			$versionArr[1],
+			$versionArr[2]
+			);
+		// functionname => version
+		$versions[ $matches[1][$i] ] = $version;
+	}
+}
+
 // Specify your own host, user, pass here.
 // Do NOT commit passwords into SVN!!
 mysql_connect( 'localhost', 'root' );
@@ -27,7 +54,7 @@ getfunctions('Geographic Features');
 
 function getfunctions( $cat, $rootcat='' )
 {
-	global $nl, $fstruc, $fnames;
+	global $nl, $fstruc, $fnames, $versions;
 	$q = mysql_query('HELP "'.$cat.'"');
 	while( $row = mysql_fetch_object($q) )
 	{
@@ -80,15 +107,23 @@ function getfunctions( $cat, $rootcat='' )
 				$description = wordwrap($description,70, " '".$nl."        +'" );
 			}
 
+			$version = 'SQL_VERSION_ANSI';
+			if( !empty($versions[$name]) )
+			{
+				$version = $versions[$name];
+			}
+
 			$fstruc[$name] .= sprintf("    (".$nl
 				."      Name:         '%s';".$nl
 				."      Declaration:  '%s';".$nl
 				."      Category:     '%s';".$nl
+				."      Version:      %s;".$nl
 				."      Description:  '%s'".$nl
 				."    ),".$nl.$nl,
 				$name,
 				$declaration,
 				(!empty($rootcat) ? $rootcat : $cat),
+				$version,
 				$description
 				);
 		}

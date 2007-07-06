@@ -9,6 +9,8 @@ interface
 uses
   Classes;
 
+{$I const.inc}
+
 type
   // MySQL Index structure
   TMysqlIndex = record
@@ -54,6 +56,7 @@ type
     Name:         String;
     Declaration:  String;
     Category:     String;
+    Version:      Integer; // Minimum MySQL version where function is available
     Description:  String;
   end;
 
@@ -473,12 +476,12 @@ var
 
   MySqlFunctions: Array [0..291] of TMysqlFunction =
   (
-
     // Function nr. 1
     (
       Name:         '!';
       Declaration:  '';
       Category:     'Logical operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Logical NOT. Evaluates to 1 if the operand is 0, to 0 if the operand '
         +'is non-zero, and NOT NULL returns NULL.'
     ),
@@ -488,6 +491,7 @@ var
       Name:         '!=';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Not equal:'
     ),
 
@@ -496,6 +500,7 @@ var
       Name:         '&&';
       Declaration:  '';
       Category:     'Logical operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Logical AND. Evaluates to 1 if all operands are non-zero and not NULL, '
         +'to 0 if one or more operands are 0, otherwise NULL is returned.'
     ),
@@ -505,6 +510,7 @@ var
       Name:         '&';
       Declaration:  '';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Bitwise AND:'
     ),
 
@@ -513,6 +519,7 @@ var
       Name:         '*';
       Declaration:  '';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Multiplication:'
     ),
 
@@ -521,6 +528,7 @@ var
       Name:         '+';
       Declaration:  '';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Addition:'
     ),
 
@@ -529,6 +537,7 @@ var
       Name:         '-';
       Declaration:  '';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Subtraction:'
     ),
 
@@ -537,6 +546,7 @@ var
       Name:         '/';
       Declaration:  '';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Division:'
     ),
 
@@ -545,6 +555,7 @@ var
       Name:         '<';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Less than:'
     ),
 
@@ -553,6 +564,7 @@ var
       Name:         '<<';
       Declaration:  '';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Shifts a longlong (BIGINT) number to the left.'
     ),
 
@@ -561,6 +573,7 @@ var
       Name:         '<=';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Less than or equal:'
     ),
 
@@ -569,6 +582,7 @@ var
       Name:         '<=>';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'NULL-safe equal. This operator performs an equality comparison like '
         +'the = operator, but returns 1 rather than NULL if both operands are '
         +'NULL, and 0 rather than NULL if one operand is NULL.'
@@ -579,6 +593,7 @@ var
       Name:         '=';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Equal:'
     ),
 
@@ -587,6 +602,7 @@ var
       Name:         '>';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Greater than:'
     ),
 
@@ -595,6 +611,7 @@ var
       Name:         '>=';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Greater than or equal:'
     ),
 
@@ -603,6 +620,7 @@ var
       Name:         '>>';
       Declaration:  '';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Shifts a longlong (BIGINT) number to the right.'
     ),
 
@@ -611,6 +629,7 @@ var
       Name:         'ABS';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the absolute value of X.'
     ),
 
@@ -619,6 +638,7 @@ var
       Name:         'ACOS';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the arc cosine of X, that is, the value whose cosine is X. '
         +'Returns NULL if X is not in the range -1 to 1.'
     ),
@@ -628,6 +648,7 @@ var
       Name:         'ADDDATE';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'When invoked with the INTERVAL form of the second argument, ADDDATE() '
         +'is a synonym for DATE_ADD(). The related function SUBDATE() is a '
         +'synonym for DATE_SUB(). For information on the INTERVAL unit argument, '
@@ -643,6 +664,7 @@ var
       Name:         'ADDTIME';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'ADDTIME() adds expr2 to expr1 and returns the result. expr1 is a time '
         +'or datetime expression, and expr2 is a time expression.'
     ),
@@ -652,6 +674,7 @@ var
       Name:         'AES_DECRYPT';
       Declaration:  '(str,key_str)';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'These functions allow encryption and decryption of data using the '
         +'official AES (Advanced Encryption Standard) algorithm, previously '
         +'known as "Rijndael." Encoding with a 128-bit key length is used, but '
@@ -675,6 +698,7 @@ var
       Name:         'AREA';
       Declaration:  '(poly)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns as a double-precision number the area of the Polygon value '
         +'poly, as measured in its spatial reference system.'
     ),
@@ -684,6 +708,7 @@ var
       Name:         'ASBINARY';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Converts a value in internal geometry format to its WKB representation '
         +'and returns the binary result.'
     ),
@@ -693,6 +718,7 @@ var
       Name:         'ASCII';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the numeric value of the leftmost character of the string str. '
         +'Returns 0 if str is the empty string. Returns NULL if str is NULL. '
         +'ASCII() works for characters with numeric values from 0 to 255.'
@@ -703,6 +729,7 @@ var
       Name:         'ASIN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the arc sine of X, that is, the value whose sine is X. Returns '
         +'NULL if X is not in the range -1 to 1.'
     ),
@@ -712,6 +739,7 @@ var
       Name:         'ASTEXT';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Converts a value in internal geometry format to its WKT representation '
         +'and returns the string result.'
     ),
@@ -721,6 +749,7 @@ var
       Name:         'ATAN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the arc tangent of X, that is, the value whose tangent is X.'
     ),
 
@@ -729,6 +758,7 @@ var
       Name:         'ATAN2';
       Declaration:  '(Y,X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the arc tangent of the two variables X and Y. It is similar to '
         +'calculating the arc tangent of Y / X, except that the signs of both '
         +'arguments are used to determine the quadrant of the result.'
@@ -739,6 +769,7 @@ var
       Name:         'AVG';
       Declaration:  '([DISTINCT] expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the average value of expr. The DISTINCT option can be used to '
         +'return the average of the distinct values of expr. AVG() returns NULL '
         +'if there were no matching rows.'
@@ -749,6 +780,7 @@ var
       Name:         'BENCHMARK';
       Declaration:  '(count,expr)';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'The BENCHMARK() function executes the expression expr repeatedly count '
         +'times. It may be used to time how quickly MySQL processes the '
         +'expression. The result value is always 0. The intended use is from '
@@ -760,6 +792,7 @@ var
       Name:         'BETWEEN';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If expr is greater than or equal to min and expr is less than or equal '
         +'to max, BETWEEN returns 1, otherwise it returns 0. This is equivalent '
         +'to the expression (min <= expr AND expr <= max) if all the arguments '
@@ -774,6 +807,7 @@ var
       Name:         'BIN';
       Declaration:  '(N)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string representation of the binary value of N, where N is a '
         +'longlong (BIGINT) number. This is equivalent to CONV(N,10,2). Returns '
         +'NULL if N is NULL.'
@@ -784,6 +818,7 @@ var
       Name:         'BINARY';
       Declaration:  '';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'The BINARY operator casts the string following it to a binary string. '
         +'This is an easy way to force a column comparison to be done byte by '
         +'byte rather than character by character. This causes the comparison to '
@@ -796,6 +831,7 @@ var
       Name:         'BIT_AND';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the bitwise AND of all bits in expr. The calculation is '
         +'performed with 64-bit (BIGINT) precision.'
     ),
@@ -805,6 +841,7 @@ var
       Name:         'BIT_COUNT';
       Declaration:  '(N)';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the number of bits that are set in the argument N.'
     ),
 
@@ -813,6 +850,7 @@ var
       Name:         'BIT_LENGTH';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the length of the string str in bits.'
     ),
 
@@ -821,6 +859,7 @@ var
       Name:         'BIT_OR';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the bitwise OR of all bits in expr. The calculation is '
         +'performed with 64-bit (BIGINT) precision.'
     ),
@@ -830,6 +869,7 @@ var
       Name:         'BIT_XOR';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      40101;
       Description:  'Returns the bitwise XOR of all bits in expr. The calculation is '
         +'performed with 64-bit (BIGINT) precision.'
     ),
@@ -839,6 +879,7 @@ var
       Name:         'BOUNDARY';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a geometry that is the closure of the combinatorial boundary '
         +'of the geometry value g.'
     ),
@@ -848,6 +889,7 @@ var
       Name:         'CASE';
       Declaration:  '';
       Category:     'Control flow functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CASE WHEN [condition] THEN result [WHEN [condition] THEN result ...] '
         +'[ELSE result] END The first version returns the result where '
         +'value=compare_value. The second version returns the result for the '
@@ -860,6 +902,7 @@ var
       Name:         'CAST';
       Declaration:  '(expr AS type)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'The CAST() and CONVERT() functions take a value of one type and '
         +'produce a value of another type. The type can be one of the following '
         +'values: BINARY[(N)] CHAR[(N)] DATE DATETIME DECIMAL SIGNED [INTEGER] '
@@ -884,6 +927,7 @@ var
       Name:         'CEILING';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the smallest integer value not less than X.'
     ),
 
@@ -892,6 +936,7 @@ var
       Name:         'CHAR';
       Declaration:  '(N,... [USING charset_name])';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CHAR() interprets each argument N as an integer and returns a string '
         +'consisting of the characters given by the code values of those '
         +'integers. NULL values are skipped. By default, CHAR() returns a binary '
@@ -911,6 +956,7 @@ var
       Name:         'CHARACTER_LENGTH';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CHARACTER_LENGTH() is a synonym for CHAR_LENGTH().'
     ),
 
@@ -919,6 +965,7 @@ var
       Name:         'CHARSET';
       Declaration:  '(str)';
       Category:     'Information Functions';
+      Version:      40100;
       Description:  'Returns the character set of the string argument.'
     ),
 
@@ -927,6 +974,7 @@ var
       Name:         'CHAR_LENGTH';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the length of the string str, measured in characters. A '
         +'multi-byte character counts as a single character. This means that for '
         +'a string containing five two-byte characters, LENGTH() returns 10, '
@@ -938,6 +986,7 @@ var
       Name:         'COALESCE';
       Declaration:  '(value,...)';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the first non-NULL value in the list, or NULL if there are no '
         +'non-NULL values.'
     ),
@@ -947,6 +996,7 @@ var
       Name:         'COERCIBILITY';
       Declaration:  '(str)';
       Category:     'Information Functions';
+      Version:      40101;
       Description:  'Returns the collation coercibility value of the string argument.'
     ),
 
@@ -955,6 +1005,7 @@ var
       Name:         'COLLATION';
       Declaration:  '(str)';
       Category:     'Information Functions';
+      Version:      40100;
       Description:  'Returns the collation of the string argument.'
     ),
 
@@ -963,6 +1014,7 @@ var
       Name:         'COMPRESS';
       Declaration:  '(string_to_compress)';
       Category:     'Encryption Functions';
+      Version:      40101;
       Description:  'Compresses a string and returns the result as a binary string. This '
         +'function requires MySQL to have been compiled with a compression '
         +'library such as zlib. Otherwise, the return value is always NULL. The '
@@ -974,6 +1026,7 @@ var
       Name:         'CONCAT';
       Declaration:  '(str1,str2,...)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string that results from concatenating the arguments. May '
         +'have one or more arguments. If all arguments are non-binary strings, '
         +'the result is a non-binary string. If the arguments include any binary '
@@ -989,6 +1042,7 @@ var
       Name:         'CONCAT_WS';
       Declaration:  '(separator,str1,str2,...)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CONCAT_WS() stands for Concatenate With Separator and is a special '
         +'form of CONCAT(). The first argument is the separator for the rest of '
         +'the arguments. The separator is added between the strings to be '
@@ -1001,6 +1055,7 @@ var
       Name:         'CONNECTION_ID';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the connection ID (thread ID) for the connection. Every '
         +'connection has an ID that is unique among the set of currently '
         +'connected clients.'
@@ -1011,6 +1066,7 @@ var
       Name:         'CONTAINS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 completely contains g2.'
     ),
 
@@ -1019,6 +1075,7 @@ var
       Name:         'CONV';
       Declaration:  '(N,from_base,to_base)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Converts numbers between different number bases. Returns a string '
         +'representation of the number N, converted from base from_base to base '
         +'to_base. Returns NULL if any argument is NULL. The argument N is '
@@ -1033,6 +1090,7 @@ var
       Name:         'CONVERT_TZ';
       Declaration:  '(dt,from_tz,to_tz)';
       Category:     'Date and Time Functions';
+      Version:      40103;
       Description:  'CONVERT_TZ() converts a datetime value dt from the time zone given by '
         +'from_tz to the time zone given by to_tz and returns the resulting '
         +'value. Time zones are specified as described in '
@@ -1045,6 +1103,7 @@ var
       Name:         'COS';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the cosine of X, where X is given in radians.'
     ),
 
@@ -1053,6 +1112,7 @@ var
       Name:         'COT';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the cotangent of X.'
     ),
 
@@ -1061,6 +1121,7 @@ var
       Name:         'COUNT';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a count of the number of non-NULL values in the rows retrieved '
         +'by a SELECT statement. The result is a BIGINT value. COUNT() returns 0 '
         +'if there were no matching rows.'
@@ -1071,6 +1132,7 @@ var
       Name:         'CRC32';
       Declaration:  '(expr)';
       Category:     'Numeric Functions';
+      Version:      40100;
       Description:  'Computes a cyclic redundancy check value and returns a 32-bit unsigned '
         +'value. The result is NULL if the argument is NULL. The argument is '
         +'expected to be a string and (if possible) is treated as one if it is '
@@ -1082,6 +1144,7 @@ var
       Name:         'CROSSES';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 if g1 spatially crosses g2. Returns NULL if g1 is a Polygon '
         +'or a MultiPolygon, or if g2 is a Point or a MultiPoint. Otherwise, '
         +'returns 0. The term spatially crosses denotes a spatial relation '
@@ -1097,6 +1160,7 @@ var
       Name:         'CURDATE';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current date as a value in ''YYYY-MM-DD'' or YYYYMMDD '
         +'format, depending on whether the function is used in a string or '
         +'numeric context.'
@@ -1107,6 +1171,7 @@ var
       Name:         'CURRENT_DATE';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CURRENT_DATE and CURRENT_DATE() are synonyms for CURDATE().'
     ),
 
@@ -1115,6 +1180,7 @@ var
       Name:         'CURRENT_TIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CURRENT_TIME and CURRENT_TIME() are synonyms for CURTIME().'
     ),
 
@@ -1123,6 +1189,7 @@ var
       Name:         'CURRENT_TIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW().'
     ),
 
@@ -1131,6 +1198,7 @@ var
       Name:         'CURRENT_USER';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the username and hostname combination for the MySQL account '
         +'that the server used to authenticate the current client. This account '
         +'determines your access privileges. Within a stored routine that is '
@@ -1145,6 +1213,7 @@ var
       Name:         'CURTIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current time as a value in ''HH:MM:SS'' or HHMMSS format, '
         +'depending on whether the function is used in a string or numeric '
         +'context.'
@@ -1155,6 +1224,7 @@ var
       Name:         'DATABASE';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the default (current) database name as a string in the utf8 '
         +'character set. If there is no default database, DATABASE() returns '
         +'NULL. Within a stored routine, the default database is the database '
@@ -1167,6 +1237,7 @@ var
       Name:         'DATE';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Extracts the date part of the date or datetime expression expr.'
     ),
 
@@ -1175,6 +1246,7 @@ var
       Name:         'DATEDIFF';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'DATEDIFF() returns expr1 - expr2 expressed as a value in days from one '
         +'date to the other. expr1 and expr2 are date or date-and-time '
         +'expressions. Only the date parts of the values are used in the '
@@ -1186,6 +1258,7 @@ var
       Name:         'DATE_ADD';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'These functions perform date arithmetic. date is a DATETIME or DATE '
         +'value specifying the starting date. expr is an expression specifying '
         +'the interval value to be added or subtracted from the starting date. '
@@ -1199,6 +1272,7 @@ var
       Name:         'DATE_FORMAT';
       Declaration:  '(date,format)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Formats the date value according to the format string.'
     ),
 
@@ -1207,6 +1281,7 @@ var
       Name:         'DATE_SUB';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'See DATE_ADD().'
     ),
 
@@ -1215,6 +1290,7 @@ var
       Name:         'DAY';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'DAY() is a synonym for DAYOFMONTH().'
     ),
 
@@ -1223,6 +1299,7 @@ var
       Name:         'DAYNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      40121;
       Description:  'Returns the name of the weekday for date.'
     ),
 
@@ -1231,6 +1308,7 @@ var
       Name:         'DAYOFMONTH';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the day of the month for date, in the range 0 to 31.'
     ),
 
@@ -1239,6 +1317,7 @@ var
       Name:         'DAYOFWEEK';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the weekday index for date (1 = Sunday, 2 = Monday, ..., 7 = '
         +'Saturday). These index values correspond to the ODBC standard.'
     ),
@@ -1248,6 +1327,7 @@ var
       Name:         'DAYOFYEAR';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the day of the year for date, in the range 1 to 366.'
     ),
 
@@ -1256,6 +1336,7 @@ var
       Name:         'DECODE';
       Declaration:  '(crypt_str,pass_str)';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Decrypts the encrypted string crypt_str using pass_str as the '
         +'password. crypt_str should be a string returned from ENCODE().'
     ),
@@ -1265,6 +1346,7 @@ var
       Name:         'DEFAULT';
       Declaration:  '(col_name)';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the default value for a table column. An error results if the '
         +'column has no default value.'
     ),
@@ -1274,6 +1356,7 @@ var
       Name:         'DEGREES';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the argument X, converted from radians to degrees.'
     ),
 
@@ -1282,6 +1365,7 @@ var
       Name:         'DES_DECRYPT';
       Declaration:  '(crypt_str[,key_str])';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Decrypts a string encrypted with DES_ENCRYPT(). If an error occurs, '
         +'this function returns NULL. Note that this function works only if '
         +'MySQL has been configured with SSL support. See '
@@ -1302,6 +1386,7 @@ var
       Name:         'DES_ENCRYPT';
       Declaration:  '(str[,{key_num|key_str}])';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Encrypts the string with the given key using the Triple-DES algorithm.'
     ),
 
@@ -1310,6 +1395,7 @@ var
       Name:         'DIMENSION';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the inherent dimension of the geometry value g. The result can '
         +'be -1, 0, 1, or 2. The meaning of these values is given in [HELP MBR '
         +'definition].'
@@ -1320,6 +1406,7 @@ var
       Name:         'DISJOINT';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 is spatially disjoint from (does '
         +'not intersect) g2.'
     ),
@@ -1329,6 +1416,7 @@ var
       Name:         'DIV';
       Declaration:  '';
       Category:     'Numeric Functions';
+      Version:      40100;
       Description:  'Integer division. Similar to FLOOR(), but is safe with BIGINT values.'
     ),
 
@@ -1337,6 +1425,7 @@ var
       Name:         'ELT';
       Declaration:  '(N,str1,str2,str3,...)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns str1 if N = 1, str2 if N = 2, and so on. Returns NULL if N is '
         +'less than 1 or greater than the number of arguments. ELT() is the '
         +'complement of FIELD().'
@@ -1347,6 +1436,7 @@ var
       Name:         'ENCODE';
       Declaration:  '(str,pass_str)';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Encrypt str using pass_str as the password. To decrypt the result, use '
         +'DECODE(). The result is a binary string of the same length as str. The '
         +'strength of the encryption is based on how good the random generator '
@@ -1358,6 +1448,7 @@ var
       Name:         'ENCRYPT';
       Declaration:  '(str[,salt])';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Encrypts str using the Unix crypt() system call and returns a binary '
         +'string. The salt argument should be a string with at least two '
         +'characters. If no salt argument is given, a random value is used.'
@@ -1368,6 +1459,7 @@ var
       Name:         'ENDPOINT';
       Declaration:  '(ls)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the Point that is the endpoint of the LineString value ls.'
     ),
 
@@ -1376,6 +1468,7 @@ var
       Name:         'ENVELOPE';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the Minimum Bounding Rectangle (MBR) for the geometry value g. '
         +'The result is returned as a Polygon value. The polygon is defined by '
         +'the corner points of the bounding box: POLYGON((MINX MINY, MAXX MINY, '
@@ -1387,6 +1480,7 @@ var
       Name:         'EQUALS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 is spatially equal to g2.'
     ),
 
@@ -1395,6 +1489,7 @@ var
       Name:         'EXP';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the value of e (the base of natural logarithms) raised to the '
         +'power of X.'
     ),
@@ -1404,6 +1499,7 @@ var
       Name:         'EXPORT_SET';
       Declaration:  '(bits,on,off[,separator[,number_of_bits]])';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string such that for every bit set in the value bits, you '
         +'get an on string and for every reset bit, you get an off string. Bits '
         +'in bits are examined from right to left (from low-order to high-order '
@@ -1418,6 +1514,7 @@ var
       Name:         'EXTERIORRING';
       Declaration:  '(poly)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the exterior ring of the Polygon value poly as a LineString.'
     ),
 
@@ -1426,6 +1523,7 @@ var
       Name:         'EXTRACT';
       Declaration:  '(unit FROM date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'The EXTRACT() function uses the same kinds of unit specifiers as '
         +'DATE_ADD() or DATE_SUB(), but extracts parts from the date rather than '
         +'performing date arithmetic.'
@@ -1436,6 +1534,7 @@ var
       Name:         'EXTRACTVALUE';
       Declaration:  '(xml_frag, xpath_expr)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'ExtractValue() takes two string arguments, a fragment of XML markup '
         +'xml_frag and an XPath expression xpath_expr (also known as a locator); '
         +'it returns the text (CDATA) of the first text node which is a child of '
@@ -1486,6 +1585,7 @@ var
       Name:         'FIELD';
       Declaration:  '(str,str1,str2,str3,...)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the index (position) of str in the str1, str2, str3, ... list. '
         +'Returns 0 if str is not found. If all arguments to FIELD() are '
         +'strings, all arguments are compared as strings. If all arguments are '
@@ -1500,6 +1600,7 @@ var
       Name:         'FIND_IN_SET';
       Declaration:  '(str,strlist)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a value in the range of 1 to N if the string str is in the '
         +'string list strlist consisting of N substrings. A string list is a '
         +'string composed of substrings separated by `,'' characters. If the '
@@ -1515,6 +1616,7 @@ var
       Name:         'FLOOR';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the largest integer value not greater than X.'
     ),
 
@@ -1523,6 +1625,7 @@ var
       Name:         'FORMAT';
       Declaration:  '(X,D)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Formats the number X to a format like ''#,###,###.##'', rounded to D '
         +'decimal places, and returns the result as a string. If D is 0, the '
         +'result has no decimal point or fractional part.'
@@ -1533,6 +1636,7 @@ var
       Name:         'FOUND_ROWS';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'A SELECT statement may include a LIMIT clause to restrict the number '
         +'of rows the server returns to the client. In some cases, it is '
         +'desirable to know how many rows the statement would have returned '
@@ -1546,6 +1650,7 @@ var
       Name:         'FROM_DAYS';
       Declaration:  '(N)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Given a day number N, returns a DATE value.'
     ),
 
@@ -1554,6 +1659,7 @@ var
       Name:         'FROM_UNIXTIME';
       Declaration:  '(unix_timestamp)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a representation of the unix_timestamp argument as a value in '
         +'''YYYY-MM-DD HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether '
         +'the function is used in a string or numeric context. unix_timestamp is '
@@ -1568,6 +1674,7 @@ var
       Name:         'GEOMCOLLFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a GEOMETRYCOLLECTION value using its WKT representation and '
         +'SRID.'
     ),
@@ -1577,6 +1684,7 @@ var
       Name:         'GEOMCOLLFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a GEOMETRYCOLLECTION value using its WKB representation and '
         +'SRID.'
     ),
@@ -1586,6 +1694,7 @@ var
       Name:         'GEOMETRY';
       Declaration:  '';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  ''
     ),
 
@@ -1594,6 +1703,7 @@ var
       Name:         'GEOMETRYCOLLECTION';
       Declaration:  '(g1,g2,...)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB GeometryCollection. If any argument is not a '
         +'well-formed WKB representation of a geometry, the return value is '
         +'NULL.'
@@ -1604,6 +1714,7 @@ var
       Name:         'GEOMETRYTYPE';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns as a string the name of the geometry type of which the '
         +'geometry instance g is a member. The name corresponds to one of the '
         +'instantiable Geometry subclasses.'
@@ -1614,6 +1725,7 @@ var
       Name:         'GEOMFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a geometry value of any type using its WKT representation '
         +'and SRID.'
     ),
@@ -1623,6 +1735,7 @@ var
       Name:         'GEOMFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a geometry value of any type using its WKB representation '
         +'and SRID.'
     ),
@@ -1632,6 +1745,7 @@ var
       Name:         'GET_FORMAT';
       Declaration:  '(DATE|TIME|DATETIME, ''EUR''|''USA''|''JIS''|''ISO''|''INTERNAL'')';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns a format string. This function is useful in combination with '
         +'the DATE_FORMAT() and the STR_TO_DATE() functions.'
     ),
@@ -1641,6 +1755,7 @@ var
       Name:         'GET_LOCK';
       Declaration:  '(str,timeout)';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Tries to obtain a lock with a name given by the string str, using a '
         +'timeout of timeout seconds. Returns 1 if the lock was obtained '
         +'successfully, 0 if the attempt timed out (for example, because another '
@@ -1670,6 +1785,7 @@ var
       Name:         'GLENGTH';
       Declaration:  '(ls)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns as a double-precision number the length of the LineString '
         +'value ls in its associated spatial reference.'
     ),
@@ -1679,6 +1795,7 @@ var
       Name:         'GREATEST';
       Declaration:  '(value1,value2,...)';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'With two or more arguments, returns the largest (maximum-valued) '
         +'argument. The arguments are compared using the same rules as for '
         +'LEAST().'
@@ -1689,6 +1806,7 @@ var
       Name:         'GROUP_CONCAT';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      40100;
       Description:  'This function returns a string result with the concatenated non-NULL '
         +'values from a group. It returns NULL if there are no non-NULL values. '
         +'The full syntax is as follows: GROUP_CONCAT([DISTINCT] expr [,expr '
@@ -1701,6 +1819,7 @@ var
       Name:         'HEX';
       Declaration:  '(N_or_S)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If N_or_S is a number, returns a string representation of the '
         +'hexadecimal value of N, where N is a longlong (BIGINT) number. This is '
         +'equivalent to CONV(N,10,16). If N_or_S is a string, returns a '
@@ -1713,6 +1832,7 @@ var
       Name:         'HOUR';
       Declaration:  '(time)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the hour for time. The range of the return value is 0 to 23 '
         +'for time-of-day values. However, the range of TIME values actually is '
         +'much larger, so HOUR can return values greater than 23.'
@@ -1723,6 +1843,7 @@ var
       Name:         'IF';
       Declaration:  '(expr1,expr2,expr3)';
       Category:     'Control flow functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If expr1 is TRUE (expr1 <> 0 and expr1 <> NULL) then IF() returns '
         +'expr2; otherwise it returns expr3. IF() returns a numeric or string '
         +'value, depending on the context in which it is used.'
@@ -1733,6 +1854,7 @@ var
       Name:         'IFNULL';
       Declaration:  '(expr1,expr2)';
       Category:     'Control flow functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If expr1 is not NULL, IFNULL() returns expr1; otherwise it returns '
         +'expr2. IFNULL() returns a numeric or string value, depending on the '
         +'context in which it is used.'
@@ -1743,6 +1865,7 @@ var
       Name:         'IN';
       Declaration:  '(value,...)';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 if expr is equal to any of the values in the IN list, else '
         +'returns 0. If all values are constants, they are evaluated according '
         +'to the type of expr and sorted. The search for the item then is done '
@@ -1758,6 +1881,7 @@ var
       Name:         'INET_ATON';
       Declaration:  '(expr)';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Given the dotted-quad representation of a network address as a string, '
         +'returns an integer that represents the numeric value of the address. '
         +'Addresses may be 4- or 8-byte addresses.'
@@ -1768,6 +1892,7 @@ var
       Name:         'INET_NTOA';
       Declaration:  '(expr)';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Given a numeric network address (4 or 8 byte), returns the dotted-quad '
         +'representation of the address as a string.'
     ),
@@ -1777,6 +1902,7 @@ var
       Name:         'INSERT';
       Declaration:  '(str,pos,len,newstr)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str, with the substring beginning at position pos '
         +'and len characters long replaced by the string newstr. Returns the '
         +'original string if pos is not within the length of the string. '
@@ -1790,6 +1916,7 @@ var
       Name:         'INSTR';
       Declaration:  '(str,substr)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the position of the first occurrence of substring substr in '
         +'string str. This is the same as the two-argument form of LOCATE(), '
         +'except that the order of the arguments is reversed.'
@@ -1800,6 +1927,7 @@ var
       Name:         'INTERIORRINGN';
       Declaration:  '(poly,N)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the N-th interior ring for the Polygon value poly as a '
         +'LineString. Rings are numbered beginning with 1.'
     ),
@@ -1809,6 +1937,7 @@ var
       Name:         'INTERSECTS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 spatially intersects g2.'
     ),
 
@@ -1817,6 +1946,7 @@ var
       Name:         'INTERVAL';
       Declaration:  '(N,N1,N2,N3,...)';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 0 if N < N1, 1 if N < N2 and so on or -1 if N is NULL. All '
         +'arguments are treated as integers. It is required that N1 < N2 < N3 < '
         +'... < Nn for this function to work correctly. This is because a binary '
@@ -1828,6 +1958,7 @@ var
       Name:         'IS';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Tests a value against a boolean value, where boolean_value can be '
         +'TRUE, FALSE, or UNKNOWN.'
     ),
@@ -1837,6 +1968,7 @@ var
       Name:         'ISEMPTY';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 if the geometry value g is the empty geometry, 0 if it is '
         +'not empty, and -1 if the argument is NULL. If the geometry is empty, '
         +'it represents the empty point set.'
@@ -1847,6 +1979,7 @@ var
       Name:         'ISNULL';
       Declaration:  '(expr)';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If expr is NULL, ISNULL() returns 1, otherwise it returns 0.'
     ),
 
@@ -1855,6 +1988,7 @@ var
       Name:         'ISSIMPLE';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Currently, this function is a placeholder and should not be used. If '
         +'implemented, its behavior will be as described in the next paragraph. '
         +'Returns 1 if the geometry value g has no anomalous geometric points, '
@@ -1870,6 +2004,7 @@ var
       Name:         'IS_FREE_LOCK';
       Declaration:  '(str)';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Checks whether the lock named str is free to use (that is, not '
         +'locked). Returns 1 if the lock is free (no one is using the lock), 0 '
         +'if the lock is in use, and NULL if an error occurs (such as an '
@@ -1881,6 +2016,7 @@ var
       Name:         'IS_USED_LOCK';
       Declaration:  '(str)';
       Category:     'Miscellaneous Functions';
+      Version:      40100;
       Description:  'Checks whether the lock named str is in use (that is, locked). If so, '
         +'it returns the connection identifier of the client that holds the '
         +'lock. Otherwise, it returns NULL.'
@@ -1891,6 +2027,7 @@ var
       Name:         'LAST_DAY';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Takes a date or datetime value and returns the corresponding value for '
         +'the last day of the month. Returns NULL if the argument is invalid.'
     ),
@@ -1900,6 +2037,7 @@ var
       Name:         'LAST_INSERT_ID';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'LAST_INSERT_ID() (with no argument) returns the first automatically '
         +'generated value that was set for an AUTO_INCREMENT column by the most '
         +'recently executed INSERT or UPDATE statement to affect such a column. '
@@ -1931,6 +2069,7 @@ var
       Name:         'LCASE';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'LCASE() is a synonym for LOWER().'
     ),
 
@@ -1939,6 +2078,7 @@ var
       Name:         'LEAST';
       Declaration:  '(value1,value2,...)';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'With two or more arguments, returns the smallest (minimum-valued) '
         +'argument. The arguments are compared using the following rules: If the '
         +'return value is used in an INTEGER context or all arguments are '
@@ -1955,6 +2095,7 @@ var
       Name:         'LEFT';
       Declaration:  '(str,len)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the leftmost len characters from the string str, or NULL if '
         +'any argument is NULL.'
     ),
@@ -1964,6 +2105,7 @@ var
       Name:         'LENGTH';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the length of the string str, measured in bytes. A multi-byte '
         +'character counts as multiple bytes. This means that for a string '
         +'containing five two-byte characters, LENGTH() returns 10, whereas '
@@ -1975,6 +2117,7 @@ var
       Name:         'LIKE';
       Declaration:  '';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Pattern matching using SQL simple regular expression comparison. '
         +'Returns 1 (TRUE) or 0 (FALSE). If either expr or pat is NULL, the '
         +'result is NULL. The pattern need not be a literal string. For example, '
@@ -1986,6 +2129,7 @@ var
       Name:         'LINEFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a LINESTRING value using its WKT representation and SRID.'
     ),
 
@@ -1994,6 +2138,7 @@ var
       Name:         'LINEFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a LINESTRING value using its WKB representation and SRID.'
     ),
 
@@ -2002,6 +2147,7 @@ var
       Name:         'LINESTRING';
       Declaration:  '(pt1,pt2,...)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB LineString value from a number of WKB Point '
         +'arguments. If any argument is not a WKB Point, the return value is '
         +'NULL. If the number of Point arguments is less than two, the return '
@@ -2013,6 +2159,7 @@ var
       Name:         'LN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the natural logarithm of X; that is, the base-e logarithm of '
         +'X.'
     ),
@@ -2022,6 +2169,7 @@ var
       Name:         'LOAD_FILE';
       Declaration:  '(file_name)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Reads the file and returns the file contents as a string. To use this '
         +'function, the file must be located on the server host, you must '
         +'specify the full pathname to the file, and you must have the FILE '
@@ -2038,6 +2186,7 @@ var
       Name:         'LOCALTIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'LOCALTIME and LOCALTIME() are synonyms for NOW().'
     ),
 
@@ -2046,6 +2195,7 @@ var
       Name:         'LOCALTIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      40006;
       Description:  'LOCALTIMESTAMP and LOCALTIMESTAMP() are synonyms for NOW().'
     ),
 
@@ -2054,6 +2204,7 @@ var
       Name:         'LOCATE';
       Declaration:  '(substr,str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'The first syntax returns the position of the first occurrence of '
         +'substring substr in string str. The second syntax returns the position '
         +'of the first occurrence of substring substr in string str, starting at '
@@ -2065,6 +2216,7 @@ var
       Name:         'LOG';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If called with one parameter, this function returns the natural '
         +'logarithm of X.'
     ),
@@ -2074,6 +2226,7 @@ var
       Name:         'LOG10';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the base-10 logarithm of X.'
     ),
 
@@ -2082,6 +2235,7 @@ var
       Name:         'LOG2';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the base-2 logarithm of X.'
     ),
 
@@ -2090,6 +2244,7 @@ var
       Name:         'LOWER';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with all characters changed to lowercase '
         +'according to the current character set mapping. The default is latin1 '
         +'(cp1252 West European).'
@@ -2100,6 +2255,7 @@ var
       Name:         'LPAD';
       Declaration:  '(str,len,padstr)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str, left-padded with the string padstr to a length '
         +'of len characters. If str is longer than len, the return value is '
         +'shortened to len characters.'
@@ -2110,6 +2266,7 @@ var
       Name:         'LTRIM';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with leading space characters removed.'
     ),
 
@@ -2118,6 +2275,7 @@ var
       Name:         'MAKEDATE';
       Declaration:  '(year,dayofyear)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns a date, given year and day-of-year values. dayofyear must be '
         +'greater than 0 or the result is NULL.'
     ),
@@ -2127,6 +2285,7 @@ var
       Name:         'MAKETIME';
       Declaration:  '(hour,minute,second)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns a time value calculated from the hour, minute, and second '
         +'arguments.'
     ),
@@ -2136,6 +2295,7 @@ var
       Name:         'MAKE_SET';
       Declaration:  '(bits,str1,str2,...)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a set value (a string containing substrings separated by `,'' '
         +'characters) consisting of the strings that have the corresponding bit '
         +'in bits set. str1 corresponds to bit 0, str2 to bit 1, and so on. NULL '
@@ -2147,6 +2307,7 @@ var
       Name:         'MASTER_POS_WAIT';
       Declaration:  '(log_name,log_pos[,timeout])';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'This function is useful for control of master/slave synchronization. '
         +'It blocks until the slave has read and applied all updates up to the '
         +'specified position in the master log. The return value is the number '
@@ -2164,6 +2325,7 @@ var
       Name:         'MATCH';
       Declaration:  '(col1,col2,...)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'search_modifier: { IN BOOLEAN MODE | IN NATURAL LANGUAGE MODE | IN '
         +'NATURAL LANGUAGE MODE WITH QUERY EXPANSION | WITH QUERY EXPANSION } '
         +'MySQL has support for full-text indexing and searching: A full-text '
@@ -2212,6 +2374,7 @@ var
       Name:         'MBR';
       Declaration:  '';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  ''
     ),
 
@@ -2220,6 +2383,7 @@ var
       Name:         'MBRCONTAINS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangle of '
         +'g1 contains the Minimum Bounding Rectangle of g2.'
     ),
@@ -2229,6 +2393,7 @@ var
       Name:         'MBRDISJOINT';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
         +'the two geometries g1 and g2 are disjoint (do not intersect).'
     ),
@@ -2238,6 +2403,7 @@ var
       Name:         'MBREQUAL';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
         +'the two geometries g1 and g2 are the same.'
     ),
@@ -2247,6 +2413,7 @@ var
       Name:         'MBRINTERSECTS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
         +'the two geometries g1 and g2 intersect.'
     ),
@@ -2256,6 +2423,7 @@ var
       Name:         'MBROVERLAPS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
         +'the two geometries g1 and g2 overlap.'
     ),
@@ -2265,6 +2433,7 @@ var
       Name:         'MBRTOUCHES';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
         +'the two geometries g1 and g2 touch.'
     ),
@@ -2274,6 +2443,7 @@ var
       Name:         'MBRWITHIN';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangle of '
         +'g1 is within the Minimum Bounding Rectangle of g2.'
     ),
@@ -2283,6 +2453,7 @@ var
       Name:         'MD5';
       Declaration:  '(str)';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Calculates an MD5 128-bit checksum for the string. The value is '
         +'returned as a binary string of 32 hex digits, or NULL if the argument '
         +'was NULL. The return value can, for example, be used as a hash key.'
@@ -2293,6 +2464,7 @@ var
       Name:         'MICROSECOND';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns the microseconds from the time or datetime expression expr as '
         +'a number in the range from 0 to 999999.'
     ),
@@ -2302,6 +2474,7 @@ var
       Name:         'MID';
       Declaration:  '(str,pos,len)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'MID(str,pos,len) is a synonym for SUBSTRING(str,pos,len).'
     ),
 
@@ -2310,6 +2483,7 @@ var
       Name:         'MIN';
       Declaration:  '([DISTINCT] expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the minimum or maximum value of expr. MIN() and MAX() may take '
         +'a string argument; in such cases they return the minimum or maximum '
         +'string value. See '
@@ -2325,6 +2499,7 @@ var
       Name:         'MINUTE';
       Declaration:  '(time)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the minute for time, in the range 0 to 59.'
     ),
 
@@ -2333,6 +2508,7 @@ var
       Name:         'MLINEFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a MULTILINESTRING value using its WKT representation and '
         +'SRID.'
     ),
@@ -2342,6 +2518,7 @@ var
       Name:         'MLINEFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a MULTILINESTRING value using its WKB representation and '
         +'SRID.'
     ),
@@ -2351,6 +2528,7 @@ var
       Name:         'MONTH';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the month for date, in the range 0 to 12.'
     ),
 
@@ -2359,6 +2537,7 @@ var
       Name:         'MONTHNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      40121;
       Description:  'Returns the full name of the month for date.'
     ),
 
@@ -2367,6 +2546,7 @@ var
       Name:         'MPOINTFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a MULTIPOINT value using its WKT representation and SRID.'
     ),
 
@@ -2375,6 +2555,7 @@ var
       Name:         'MPOINTFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a MULTIPOINT value using its WKB representation and SRID.'
     ),
 
@@ -2383,6 +2564,7 @@ var
       Name:         'MPOLYFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a MULTIPOLYGON value using its WKT representation and SRID.'
     ),
 
@@ -2391,6 +2573,7 @@ var
       Name:         'MPOLYFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a MULTIPOLYGON value using its WKB representation and SRID.'
     ),
 
@@ -2399,6 +2582,7 @@ var
       Name:         'MULTILINESTRING';
       Declaration:  '(ls1,ls2,...)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB MultiLineString value using WKB LineString arguments. '
         +'If any argument is not a WKB LineString, the return value is NULL.'
     ),
@@ -2408,6 +2592,7 @@ var
       Name:         'MULTIPOINT';
       Declaration:  '(pt1,pt2,...)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB MultiPoint value using WKB Point arguments. If any '
         +'argument is not a WKB Point, the return value is NULL.'
     ),
@@ -2417,6 +2602,7 @@ var
       Name:         'MULTIPOLYGON';
       Declaration:  '(poly1,poly2,...)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB MultiPolygon value from a set of WKB Polygon '
         +'arguments. If any argument is not a WKB Polygon, the return value is '
         +'NULL.'
@@ -2427,6 +2613,7 @@ var
       Name:         'NAME_CONST';
       Declaration:  '(name,value)';
       Category:     'Miscellaneous Functions';
+      Version:      50012;
       Description:  'Returns the given value. When used to produce a result set column, '
         +'NAME_CONST() causes the column to have the given name. mysql> SELECT '
         +'NAME_CONST(''myname'', 14); +--------+ | myname | +--------+ | 14 | '
@@ -2438,6 +2625,7 @@ var
       Name:         'NOT';
       Declaration:  '';
       Category:     'Comparison operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'This is the same as NOT (expr BETWEEN min AND max).'
     ),
 
@@ -2446,6 +2634,7 @@ var
       Name:         'NOW';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current date and time as a value in ''YYYY-MM-DD '
         +'HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether the function '
         +'is used in a string or numeric context.'
@@ -2456,6 +2645,7 @@ var
       Name:         'NULLIF';
       Declaration:  '(expr1,expr2)';
       Category:     'Control flow functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns NULL if expr1 = expr2 is true, otherwise returns expr1. This '
         +'is the same as CASE WHEN expr1 = expr2 THEN NULL ELSE expr1 END.'
     ),
@@ -2465,6 +2655,7 @@ var
       Name:         'NUMINTERIORRINGS';
       Declaration:  '(poly)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the number of interior rings in the Polygon value poly.'
     ),
 
@@ -2473,6 +2664,7 @@ var
       Name:         'NUMPOINTS';
       Declaration:  '(ls)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the number of Point objects in the LineString value ls.'
     ),
 
@@ -2481,6 +2673,7 @@ var
       Name:         'OCT';
       Declaration:  '(N)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string representation of the octal value of N, where N is a '
         +'longlong (BIGINT) number. This is equivalent to CONV(N,10,8). Returns '
         +'NULL if N is NULL.'
@@ -2491,6 +2684,7 @@ var
       Name:         'OCTETLENGTH';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'OCTET_LENGTH() is a synonym for LENGTH().'
     ),
 
@@ -2499,6 +2693,7 @@ var
       Name:         'OLD_PASSWORD';
       Declaration:  '(str)';
       Category:     'Encryption Functions';
+      Version:      40100;
       Description:  'OLD_PASSWORD() was added to MySQL when the implementation of '
         +'PASSWORD() was changed to improve security. OLD_PASSWORD() returns the '
         +'value of the old (pre-4.1) implementation of PASSWORD() as a binary '
@@ -2513,6 +2708,7 @@ var
       Name:         'ORD';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If the leftmost character of the string str is a multi-byte character, '
         +'returns the code for that character, calculated from the numeric '
         +'values of its constituent bytes using this formula: (1st byte code) + '
@@ -2526,6 +2722,7 @@ var
       Name:         'OVERLAPS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 spatially overlaps g2. The term '
         +'spatially overlaps is used if two geometries intersect and their '
         +'intersection results in a geometry of the same dimension but not equal '
@@ -2537,6 +2734,7 @@ var
       Name:         'PASSWORD';
       Declaration:  '(str)';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Calculates and returns a password string from the plaintext password '
         +'str and returns a binary string, or NULL if the argument was NULL. '
         +'This is the function that is used for encrypting MySQL passwords for '
@@ -2548,6 +2746,7 @@ var
       Name:         'PERIOD_ADD';
       Declaration:  '(P,N)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Adds N months to period P (in the format YYMM or YYYYMM). Returns a '
         +'value in the format YYYYMM. Note that the period argument P is not a '
         +'date value.'
@@ -2558,6 +2757,7 @@ var
       Name:         'PERIOD_DIFF';
       Declaration:  '(P1,P2)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the number of months between periods P1 and P2. P1 and P2 '
         +'should be in the format YYMM or YYYYMM. Note that the period arguments '
         +'P1 and P2 are not date values.'
@@ -2568,6 +2768,7 @@ var
       Name:         'PI';
       Declaration:  '()';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the value of ? (pi). The default number of decimal places '
         +'displayed is seven, but MySQL uses the full double-precision value '
         +'internally.'
@@ -2578,6 +2779,7 @@ var
       Name:         'POINT';
       Declaration:  '(x,y)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB Point using its coordinates.'
     ),
 
@@ -2586,6 +2788,7 @@ var
       Name:         'POINTFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a POINT value using its WKT representation and SRID.'
     ),
 
@@ -2594,6 +2797,7 @@ var
       Name:         'POINTFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a POINT value using its WKB representation and SRID.'
     ),
 
@@ -2602,6 +2806,7 @@ var
       Name:         'POINTN';
       Declaration:  '(ls,N)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the N-th Point in the Linestring value ls. Points are numbered '
         +'beginning with 1.'
     ),
@@ -2611,6 +2816,7 @@ var
       Name:         'POLYFROMTEXT';
       Declaration:  '(wkt[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a POLYGON value using its WKT representation and SRID.'
     ),
 
@@ -2619,6 +2825,7 @@ var
       Name:         'POLYFROMWKB';
       Declaration:  '(wkb[,srid])';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a POLYGON value using its WKB representation and SRID.'
     ),
 
@@ -2627,6 +2834,7 @@ var
       Name:         'POLYGON';
       Declaration:  '(ls1,ls2,...)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Constructs a WKB Polygon value from a number of WKB LineString '
         +'arguments. If any argument does not represent the WKB of a LinearRing '
         +'(that is, not a closed and simple LineString) the return value is '
@@ -2638,6 +2846,7 @@ var
       Name:         'POSITION';
       Declaration:  '(substr IN str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'POSITION(substr IN str) is a synonym for LOCATE(substr,str).'
     ),
 
@@ -2646,6 +2855,7 @@ var
       Name:         'POWER';
       Declaration:  '(X,Y)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the value of X raised to the power of Y.'
     ),
 
@@ -2654,6 +2864,7 @@ var
       Name:         'QUARTER';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the quarter of the year for date, in the range 1 to 4.'
     ),
 
@@ -2662,6 +2873,7 @@ var
       Name:         'QUOTE';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Quotes a string to produce a result that can be used as a properly '
         +'escaped data value in an SQL statement. The string is returned '
         +'enclosed by single quotes and with each instance of single quote '
@@ -2675,6 +2887,7 @@ var
       Name:         'RADIANS';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the argument X, converted from degrees to radians. (Note that '
         +'? radians equals 180 degrees.)'
     ),
@@ -2684,6 +2897,7 @@ var
       Name:         'RAND';
       Declaration:  '()';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a random floating-point value v between 0 and 1 inclusive '
         +'(that is, in the range 0 <= v <= 1.0). If an integer argument N is '
         +'specified, it is used as the seed value, which produces a repeatable '
@@ -2695,6 +2909,7 @@ var
       Name:         'REGEXP';
       Declaration:  '';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Performs a pattern match of a string expression expr against a pattern '
         +'pat. The pattern can be an extended regular expression. The syntax for '
         +'regular expressions is discussed in '
@@ -2714,6 +2929,7 @@ var
       Name:         'RELEASE_LOCK';
       Declaration:  '(str)';
       Category:     'Miscellaneous Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Releases the lock named by the string str that was obtained with '
         +'GET_LOCK(). Returns 1 if the lock was released, 0 if the lock was not '
         +'established by this thread (in which case the lock is not released), '
@@ -2728,6 +2944,7 @@ var
       Name:         'REPEAT';
       Declaration:  '(str,count)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string consisting of the string str repeated count times. If '
         +'count is less than 1, returns an empty string. Returns NULL if str or '
         +'count are NULL.'
@@ -2738,6 +2955,7 @@ var
       Name:         'REPLACE';
       Declaration:  '(str,from_str,to_str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with all occurrences of the string from_str '
         +'replaced by the string to_str. REPLACE() performs a case-sensitive '
         +'match when searching for from_str.'
@@ -2748,6 +2966,7 @@ var
       Name:         'REVERSE';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with the order of the characters reversed.'
     ),
 
@@ -2756,6 +2975,7 @@ var
       Name:         'RIGHT';
       Declaration:  '(str,len)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the rightmost len characters from the string str, or NULL if '
         +'any argument is NULL.'
     ),
@@ -2765,6 +2985,7 @@ var
       Name:         'ROUND';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the argument X, rounded to the nearest integer. With two '
         +'arguments, returns X rounded to D decimal places. D can be negative to '
         +'cause D digits left of the decimal point of the value X to become '
@@ -2776,6 +2997,7 @@ var
       Name:         'ROW_COUNT';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      50001;
       Description:  'ROW_COUNT() returns the number of rows updated, inserted, or deleted '
         +'by the preceding statement. This is the same as the row count that the '
         +'mysql client displays and the value from the mysql_affected_rows() C '
@@ -2787,6 +3009,7 @@ var
       Name:         'RPAD';
       Declaration:  '(str,len,padstr)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str, right-padded with the string padstr to a '
         +'length of len characters. If str is longer than len, the return value '
         +'is shortened to len characters.'
@@ -2797,6 +3020,7 @@ var
       Name:         'RTRIM';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with trailing space characters removed.'
     ),
 
@@ -2805,6 +3029,7 @@ var
       Name:         'SCHEMA';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      50002;
       Description:  'This function is a synonym for DATABASE().'
     ),
 
@@ -2813,6 +3038,7 @@ var
       Name:         'SECOND';
       Declaration:  '(time)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the second for time, in the range 0 to 59.'
     ),
 
@@ -2821,6 +3047,7 @@ var
       Name:         'SEC_TO_TIME';
       Declaration:  '(seconds)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the seconds argument, converted to hours, minutes, and '
         +'seconds, as a value in ''HH:MM:SS'' or HHMMSS format, depending on '
         +'whether the function is used in a string or numeric context.'
@@ -2831,6 +3058,7 @@ var
       Name:         'SESSION_USER';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'SESSION_USER() is a synonym for USER().'
     ),
 
@@ -2839,6 +3067,7 @@ var
       Name:         'SHA';
       Declaration:  '(str)';
       Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Calculates an SHA-1 160-bit checksum for the string, as described in '
         +'RFC 3174 (Secure Hash Algorithm). The value is returned as a binary '
         +'string of 40 hex digits, or NULL if the argument was NULL. One of the '
@@ -2852,6 +3081,7 @@ var
       Name:         'SIGN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the sign of the argument as -1, 0, or 1, depending on whether '
         +'X is negative, zero, or positive.'
     ),
@@ -2861,6 +3091,7 @@ var
       Name:         'SIN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the sine of X, where X is given in radians.'
     ),
 
@@ -2869,6 +3100,7 @@ var
       Name:         'SLEEP';
       Declaration:  '(duration)';
       Category:     'Miscellaneous Functions';
+      Version:      50012;
       Description:  'Sleeps (pauses) for the number of seconds given by the duration '
         +'argument, then returns 0. If SLEEP() is interrupted, it returns 1. The '
         +'duration may have a fractional part given in microseconds.'
@@ -2879,6 +3111,7 @@ var
       Name:         'SOUNDEX';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a soundex string from str. Two strings that sound almost the '
         +'same should have identical soundex strings. A standard soundex string '
         +'is four characters long, but the SOUNDEX() function returns an '
@@ -2893,6 +3126,7 @@ var
       Name:         'SOUNDS';
       Declaration:  '';
       Category:     'String Functions';
+      Version:      40100;
       Description:  'This is the same as SOUNDEX(expr1) = SOUNDEX(expr2).'
     ),
 
@@ -2901,6 +3135,7 @@ var
       Name:         'SPACE';
       Declaration:  '(N)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string consisting of N space characters.'
     ),
 
@@ -2909,6 +3144,7 @@ var
       Name:         'SPATIAL';
       Declaration:  '';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'o With CREATE TABLE: CREATE TABLE geom (g GEOMETRY NOT NULL, SPATIAL '
         +'INDEX(g)); With ALTER TABLE: ALTER TABLE geom ADD SPATIAL INDEX(g); '
         +'With CREATE INDEX: CREATE SPATIAL INDEX sp_index ON geom (g); For '
@@ -2928,6 +3164,7 @@ var
       Name:         'SQRT';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the square root of a non-negative number X.'
     ),
 
@@ -2936,6 +3173,7 @@ var
       Name:         'SRID';
       Declaration:  '(g)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns an integer indicating the Spatial Reference System ID for the '
         +'geometry value g. In MySQL, the SRID value is just an integer '
         +'associated with the geometry value. All calculations are done assuming '
@@ -2947,6 +3185,7 @@ var
       Name:         'STARTPOINT';
       Declaration:  '(ls)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the Point that is the start point of the LineString value ls.'
     ),
 
@@ -2955,6 +3194,7 @@ var
       Name:         'STDDEV';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the population standard deviation of expr. This is an '
         +'extension to standard SQL. The STDDEV() form of this function is '
         +'provided for compatibility with Oracle. The standard SQL function '
@@ -2967,6 +3207,7 @@ var
       Name:         'STDDEV_POP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      50003;
       Description:  'Returns the population standard deviation of expr (the square root of '
         +'VAR_POP()). You can also use STD() or STDDEV(), which are equivalent '
         +'but not standard SQL. STDDEV_POP() returns NULL if there were no '
@@ -2978,6 +3219,7 @@ var
       Name:         'STDDEV_SAMP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      50003;
       Description:  'Returns the sample standard deviation of expr (the square root of '
         +'VAR_SAMP(). STDDEV_SAMP() returns NULL if there were no matching rows.'
     ),
@@ -2987,6 +3229,7 @@ var
       Name:         'STRCMP';
       Declaration:  '(expr1,expr2)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'STRCMP() returns 0 if the strings are the same, -1 if the first '
         +'argument is smaller than the second according to the current sort '
         +'order, and 1 otherwise.'
@@ -2997,6 +3240,7 @@ var
       Name:         'STR_TO_DATE';
       Declaration:  '(str,format)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'This is the inverse of the DATE_FORMAT() function. It takes a string '
         +'str and a format string format. STR_TO_DATE() returns a DATETIME value '
         +'if the format string contains both date and time parts, or a DATE or '
@@ -3013,6 +3257,7 @@ var
       Name:         'SUBDATE';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'When invoked with the INTERVAL form of the second argument, SUBDATE() '
         +'is a synonym for DATE_SUB(). For information on the INTERVAL unit '
         +'argument, see the discussion for DATE_ADD(). mysql> SELECT '
@@ -3029,6 +3274,7 @@ var
       Name:         'SUBSTRING';
       Declaration:  '(str,pos)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'The forms without a len argument return a substring from string str '
         +'starting at position pos. The forms with a len argument return a '
         +'substring len characters long from string str, starting at position '
@@ -3044,6 +3290,7 @@ var
       Name:         'SUBSTRING_INDEX';
       Declaration:  '(str,delim,count)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the substring from string str before count occurrences of the '
         +'delimiter delim. If count is positive, everything to the left of the '
         +'final delimiter (counting from the left) is returned. If count is '
@@ -3057,6 +3304,7 @@ var
       Name:         'SUBTIME';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'SUBTIME() returns expr1 - expr2 expressed as a value in the same '
         +'format as expr1. expr1 is a time or datetime expression, and expr2 is '
         +'a time expression.'
@@ -3067,6 +3315,7 @@ var
       Name:         'SUM';
       Declaration:  '([DISTINCT] expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the sum of expr. If the return set has no rows, SUM() returns '
         +'NULL. The DISTINCT keyword can be used in MySQL 5.1 to sum only the '
         +'distinct values of expr. SUM() returns NULL if there were no matching '
@@ -3078,6 +3327,7 @@ var
       Name:         'SYSDATE';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current date and time as a value in ''YYYY-MM-DD '
         +'HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether the function '
         +'is used in a string or numeric context. SYSDATE() returns the time at '
@@ -3113,6 +3363,7 @@ var
       Name:         'SYSTEM_USER';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'SYSTEM_USER() is a synonym for USER().'
     ),
 
@@ -3121,6 +3372,7 @@ var
       Name:         'TAN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the tangent of X, where X is given in radians.'
     ),
 
@@ -3129,6 +3381,7 @@ var
       Name:         'TIME';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Extracts the time part of the time or datetime expression expr and '
         +'returns it as a string.'
     ),
@@ -3138,6 +3391,7 @@ var
       Name:         'TIMEDIFF';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'TIMEDIFF() returns expr1 - expr2 expressed as a time value. expr1 and '
         +'expr2 are time or date-and-time expressions, but both must be of the '
         +'same type.'
@@ -3148,6 +3402,7 @@ var
       Name:         'TIMESTAMP';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'With a single argument, this function returns the date or datetime '
         +'expression expr as a datetime value. With two arguments, it adds the '
         +'time expression expr2 to the date or datetime expression expr1 and '
@@ -3159,6 +3414,7 @@ var
       Name:         'TIMESTAMPADD';
       Declaration:  '(unit,interval,datetime_expr)';
       Category:     'Date and Time Functions';
+      Version:      50000;
       Description:  'Adds the integer expression interval to the date or datetime '
         +'expression datetime_expr. The unit for interval is given by the unit '
         +'argument, which should be one of the following values: FRAC_SECOND, '
@@ -3172,6 +3428,7 @@ var
       Name:         'TIMESTAMPDIFF';
       Declaration:  '(unit,datetime_expr1,datetime_expr2)';
       Category:     'Date and Time Functions';
+      Version:      50000;
       Description:  'Returns the integer difference between the date or datetime '
         +'expressions datetime_expr1 and datetime_expr2. The unit for the result '
         +'is given by the unit argument. The legal values for unit are the same '
@@ -3183,6 +3440,7 @@ var
       Name:         'TIME_FORMAT';
       Declaration:  '(time,format)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'This is used like the DATE_FORMAT() function, but the format string '
         +'may contain format specifiers only for hours, minutes, and seconds. '
         +'Other specifiers produce a NULL value or 0.'
@@ -3193,6 +3451,7 @@ var
       Name:         'TIME_TO_SEC';
       Declaration:  '(time)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the time argument, converted to seconds.'
     ),
 
@@ -3201,6 +3460,7 @@ var
       Name:         'TOUCHES';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 spatially touches g2. Two '
         +'geometries spatially touch if the interiors of the geometries do not '
         +'intersect, but the boundary of one of the geometries intersects either '
@@ -3212,6 +3472,7 @@ var
       Name:         'TO_DAYS';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Given a date date, returns a day number (the number of days since year '
         +'0).'
     ),
@@ -3221,6 +3482,7 @@ var
       Name:         'TRIM';
       Declaration:  '([{BOTH | LEADING | TRAILING} [remstr] FROM] str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with all remstr prefixes or suffixes removed. '
         +'If none of the specifiers BOTH, LEADING, or TRAILING is given, BOTH is '
         +'assumed. remstr is optional and, if not specified, spaces are removed.'
@@ -3231,6 +3493,7 @@ var
       Name:         'TRUNCATE';
       Declaration:  '(X,D)';
       Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the number X, truncated to D decimal places. If D is 0, the '
         +'result has no decimal point or fractional part. D can be negative to '
         +'cause D digits left of the decimal point of the value X to become '
@@ -3242,6 +3505,7 @@ var
       Name:         'UCASE';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'UCASE() is a synonym for UPPER().'
     ),
 
@@ -3250,6 +3514,7 @@ var
       Name:         'UNCOMPRESS';
       Declaration:  '(string_to_uncompress)';
       Category:     'Encryption Functions';
+      Version:      40101;
       Description:  'Uncompresses a string compressed by the COMPRESS() function. If the '
         +'argument is not a compressed value, the result is NULL. This function '
         +'requires MySQL to have been compiled with a compression library such '
@@ -3261,6 +3526,7 @@ var
       Name:         'UNCOMPRESSED_LENGTH';
       Declaration:  '(compressed_string)';
       Category:     'Encryption Functions';
+      Version:      40101;
       Description:  'Returns the length that the compressed string had before being '
         +'compressed.'
     ),
@@ -3270,6 +3536,7 @@ var
       Name:         'UNHEX';
       Declaration:  '';
       Category:     'String Functions';
+      Version:      40102;
       Description:  'UNHEX(str) Performs the inverse operation of HEX(str). That is, it '
         +'interprets each pair of hexadecimal digits in the argument as a number '
         +'and converts it to the character represented by the number. The '
@@ -3281,6 +3548,7 @@ var
       Name:         'UNIX_TIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'If called with no argument, returns a Unix timestamp (seconds since '
         +'''1970-01-01 00:00:00'' UTC) as an unsigned integer. If '
         +'UNIX_TIMESTAMP() is called with a date argument, it returns the value '
@@ -3297,6 +3565,7 @@ var
       Name:         'UPDATEXML';
       Declaration:  '(xml_target, xpath_expr, new_xml)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'This function replaces a single portion of a given fragment of XML '
         +'markup xml_target with a new XML fragment new_xml, and then returns '
         +'the changed XML. The portion of xml_target that is replaced matches an '
@@ -3311,6 +3580,7 @@ var
       Name:         'UPPER';
       Declaration:  '(str)';
       Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with all characters changed to uppercase '
         +'according to the current character set mapping. The default is latin1 '
         +'(cp1252 West European).'
@@ -3321,6 +3591,7 @@ var
       Name:         'USER';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current MySQL username and hostname as a string in the '
         +'utf8 character set.'
     ),
@@ -3330,6 +3601,7 @@ var
       Name:         'UTC_DATE';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns the current UTC date as a value in ''YYYY-MM-DD'' or YYYYMMDD '
         +'format, depending on whether the function is used in a string or '
         +'numeric context.'
@@ -3340,6 +3612,7 @@ var
       Name:         'UTC_TIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns the current UTC time as a value in ''HH:MM:SS'' or HHMMSS '
         +'format, depending on whether the function is used in a string or '
         +'numeric context.'
@@ -3350,6 +3623,7 @@ var
       Name:         'UTC_TIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns the current UTC date and time as a value in ''YYYY-MM-DD '
         +'HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether the function '
         +'is used in a string or numeric context.'
@@ -3360,6 +3634,7 @@ var
       Name:         'UUID';
       Declaration:  '()';
       Category:     'Miscellaneous Functions';
+      Version:      40102;
       Description:  'Returns a Universal Unique Identifier (UUID) generated according to '
         +'"DCE 1.1: Remote Procedure Call" (Appendix A) CAE (Common Applications '
         +'Environment) Specifications published by The Open Group in October '
@@ -3390,6 +3665,7 @@ var
       Name:         'VALUES';
       Declaration:  '(col_name)';
       Category:     'Miscellaneous Functions';
+      Version:      40101;
       Description:  'In an INSERT ... ON DUPLICATE KEY UPDATE statement, you can use the '
         +'VALUES(col_name) function in the UPDATE clause to refer to column '
         +'values from the INSERT portion of the statement. In other words, '
@@ -3406,6 +3682,7 @@ var
       Name:         'VARIANCE';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      40100;
       Description:  'Returns the population standard variance of expr. This is an extension '
         +'to standard SQL. The standard SQL function VAR_POP() can be used '
         +'instead. VARIANCE() returns NULL if there were no matching rows.'
@@ -3416,6 +3693,7 @@ var
       Name:         'VAR_POP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      50003;
       Description:  'Returns the population standard variance of expr. It considers rows as '
         +'the whole population, not as a sample, so it has the number of rows as '
         +'the denominator. You can also use VARIANCE(), which is equivalent but '
@@ -3428,6 +3706,7 @@ var
       Name:         'VAR_SAMP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      50003;
       Description:  'Returns the sample variance of expr. That is, the denominator is the '
         +'number of rows minus one. VAR_SAMP() returns NULL if there were no '
         +'matching rows.'
@@ -3438,6 +3717,7 @@ var
       Name:         'VERSION';
       Declaration:  '()';
       Category:     'Information Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string that indicates the MySQL server version. The string '
         +'uses the utf8 character set.'
     ),
@@ -3447,6 +3727,7 @@ var
       Name:         'WEEK';
       Declaration:  '(date[,mode])';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'This function returns the week number for date. The two-argument form '
         +'of WEEK() allows you to specify whether the week starts on Sunday or '
         +'Monday and whether the return value should be in the range from 0 to '
@@ -3460,6 +3741,7 @@ var
       Name:         'WEEKDAY';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the weekday index for date (0 = Monday, 1 = Tuesday, ... 6 = '
         +'Sunday).'
     ),
@@ -3469,6 +3751,7 @@ var
       Name:         'WEEKOFYEAR';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      40101;
       Description:  'Returns the calendar week of the date as a number in the range from 1 '
         +'to 53. WEEKOFYEAR() is a compatibility function that is equivalent to '
         +'WEEK(date,3).'
@@ -3479,6 +3762,7 @@ var
       Name:         'WITHIN';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether g1 is spatially within g2.'
     ),
 
@@ -3487,6 +3771,7 @@ var
       Name:         'WKT';
       Declaration:  '';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  ''
     ),
 
@@ -3495,6 +3780,7 @@ var
       Name:         'X';
       Declaration:  '(p)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the X-coordinate value for the point p as a double-precision '
         +'number.'
     ),
@@ -3504,6 +3790,7 @@ var
       Name:         'XOR';
       Declaration:  '';
       Category:     'Logical operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Logical XOR. Returns NULL if either operand is NULL. For non-NULL '
         +'operands, evaluates to 1 if an odd number of operands is non-zero, '
         +'otherwise 0 is returned.'
@@ -3514,6 +3801,7 @@ var
       Name:         'Y';
       Declaration:  '(p)';
       Category:     'Geographic Features';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the Y-coordinate value for the point p as a double-precision '
         +'number.'
     ),
@@ -3523,6 +3811,7 @@ var
       Name:         'YEAR';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the year for date, in the range 1000 to 9999, or 0 for the '
         +'"zero" date.'
     ),
@@ -3532,6 +3821,7 @@ var
       Name:         'YEARWEEK';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns year and week for a date. The start argument works exactly '
         +'like the start argument to WEEK(). The year in the result may be '
         +'different from the year in the date argument for the first and the '
@@ -3543,6 +3833,7 @@ var
       Name:         '^';
       Declaration:  '';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Bitwise XOR:'
     ),
 
@@ -3551,6 +3842,7 @@ var
       Name:         '|';
       Declaration:  '';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Bitwise OR:'
     ),
 
@@ -3559,6 +3851,7 @@ var
       Name:         '||';
       Declaration:  '';
       Category:     'Logical operators';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Logical OR. When both operands are non-NULL, the result is 1 if any '
         +'operand is non-zero, and 0 otherwise. With a NULL operand, the result '
         +'is 1 if the other operand is non-zero, and NULL otherwise. If both '
@@ -3570,6 +3863,7 @@ var
       Name:         '~';
       Declaration:  '';
       Category:     'Bit Functions';
+      Version:      SQL_VERSION_ANSI;
       Description:  'Invert all bits.'
     )
 
