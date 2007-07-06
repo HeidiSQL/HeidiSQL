@@ -839,6 +839,7 @@ begin
         continue;
       mi := TMenuItem.Create(self);
       mi.Caption := MySqlFunctions[j].Name;
+      mi.ImageIndex := 86;
       // Prevent generating a hotkey
       mi.Caption := StringReplace(mi.Caption, '&', '&&', [rfReplaceAll]);
       // Prevent generating a seperator line
