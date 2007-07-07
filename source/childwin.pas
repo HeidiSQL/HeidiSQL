@@ -1742,12 +1742,16 @@ begin
     @see TZMySQLResultSet:Create
     @see TZMySQLResultSet:Open
   }
-  if (
-    ( mysql_version >= 40000 ) and
-    ( Trim( SynMemoFilter.Text ) <> '' )
-  ) then
+  if Trim( SynMemoFilter.Text ) <> '' then
   begin
-    rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
+    if mysql_version >= 40000 then
+    begin
+      rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
+    end
+    else
+    begin
+      rows_matching := ActiveGrid.DataSource.DataSet.RecordCount;
+    end;
   end
   else
   begin
@@ -1764,7 +1768,6 @@ begin
   end;
 
   if (
-    ( mysql_version >= 40000 ) and
     ( rows_matching = rows_total ) and
     ( Trim( SynMemoFilter.Text ) <> '')
   ) then
