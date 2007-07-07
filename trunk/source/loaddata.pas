@@ -28,7 +28,6 @@ type
     chklistColumns: TCheckListBox;
     btnColUp: TBitBtn;
     btnColDown: TBitBtn;
-    lblNote: TLabel;
     grpOptions: TGroupBox;
     chkLowPriority: TCheckBox;
     chkReplace: TCheckBox;
