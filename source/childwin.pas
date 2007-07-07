@@ -2370,6 +2370,8 @@ begin
   MainForm.ButtonDropDatabase.Enabled := (ActualDatabase <> '') and FrmIsFocussed;
   MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (ActualTable <> '') and FrmIsFocussed);
   MainForm.ButtonCreateTable.Enabled := (ActualDatabase <> '') and FrmIsFocussed;
+  MainForm.ButtonImportTextFile.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
+  MainForm.MenuImportTextFile.Enabled := MainForm.ButtonImportTextFile.Enabled;
 
   with MainForm do
   begin

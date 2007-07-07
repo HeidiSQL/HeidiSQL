@@ -245,17 +245,6 @@ object loaddataform: Tloaddataform
         Height = 13
         Caption = 'Use Columns:'
       end
-      object lblNote: TLabel
-        Left = 196
-        Top = 142
-        Width = 203
-        Height = 39
-        Anchors = [akTop, akRight]
-        Caption = 
-          'Note: the LOCAL INFILE feature is only available for MySQL-Versi' +
-          'ons > 3.22.6. On previous versions you will get an error!'
-        WordWrap = True
-      end
       object comboDatabase: TComboBox
         Left = 10
         Top = 26
