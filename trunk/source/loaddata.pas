@@ -112,14 +112,16 @@ begin
       comboDatabase.Items.Add(tn.Text);
   end;
 
-  with comboDatabase do
+  for i:=0 to comboDatabase.Items.Count-1 do
   begin
-    for i:=0 to Items.Count-1 do
-      if Items[i] = Mainform.ChildWin.ActualDatabase then
-        ItemIndex := i;
-    if ItemIndex = -1 then
-      ItemIndex := 0;
+    if comboDatabase.Items[i] = Mainform.ChildWin.ActualDatabase then
+    begin
+      comboDatabase.ItemIndex := i;
+      break;
+    end;
   end;
+  if comboDatabase.ItemIndex = -1 then
+    comboDatabase.ItemIndex := 0;
 
   comboDatabaseChange(self);
   reg := TRegistry.Create;
@@ -155,14 +157,16 @@ begin
   // read tables from db
   comboTable.Items.Clear;
   comboTable.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( comboDatabase.Text ) );
-  with comboTable do
+  for i:=0 to comboTable.Items.Count-1 do
   begin
-    for i:=0 to Items.Count-1 do
-      if Items[i] = Mainform.ChildWin.ActualTable then
-        ItemIndex := i;
-    if ItemIndex = -1 then
-      ItemIndex := 0;
+    if comboTable.Items[i] = Mainform.ChildWin.ActualTable then
+    begin
+      comboTable.ItemIndex := i;
+      break;
+    end;
   end;
+  if comboTable.ItemIndex = -1 then
+    comboTable.ItemIndex := 0;
 
   comboTableChange(self);
 end;
@@ -185,8 +189,7 @@ begin
   end;
 
   // select all:
-  for i:=0 to chklistColumns.Items.Count-1 do
-    chklistColumns.checked[i] := true;
+  ToggleCheckListBox( chklistColumns, True );
 
   // Ensure valid state of Import-Button
   editFilenameChange(sender);  
@@ -290,21 +293,22 @@ var
   strchecked : boolean;
 begin
   // move item up!
-  with chklistColumns do
-    if ItemIndex > -1 then begin
-      if ItemIndex > 0 then begin // not first item...
-        strtemp := items[ItemIndex-1];
-        strchecked := checked[ItemIndex-1];
-        // replace old with new item...
-        items[ItemIndex-1] := items[ItemIndex];
-        checked[ItemIndex-1] := checked[ItemIndex];
-        // and set old item to its origin values...
-        items[ItemIndex] := strtemp;
-        checked[ItemIndex] := strchecked;
+  if chklistColumns.ItemIndex > -1 then
+  begin
+    if chklistColumns.ItemIndex > 0 then
+    begin // not first item...
+      strtemp := chklistColumns.Items[chklistColumns.ItemIndex-1];
+      strchecked := chklistColumns.Checked[chklistColumns.ItemIndex-1];
+      // replace old with new item...
+      chklistColumns.Items[chklistColumns.ItemIndex-1] := chklistColumns.Items[chklistColumns.ItemIndex];
+      chklistColumns.Checked[chklistColumns.ItemIndex-1] := chklistColumns.Checked[chklistColumns.ItemIndex];
+      // and set old item to its origin values...
+      chklistColumns.Items[chklistColumns.ItemIndex] := strtemp;
+      chklistColumns.Checked[chklistColumns.ItemIndex] := strchecked;
 
-        ItemIndex := ItemIndex-1;
-      end;
+      chklistColumns.ItemIndex := chklistColumns.ItemIndex-1;
     end;
+  end;
 end;
 
 procedure Tloaddataform.btnColDownClick(Sender: TObject);
@@ -313,21 +317,22 @@ var
   strchecked : boolean;
 begin
   // move item down!
-  with chklistColumns do
-    if ItemIndex > -1 then begin
-      if ItemIndex < items.count-1 then begin // not last item...
-        strtemp := items[ItemIndex+1];
-        strchecked := checked[ItemIndex+1];
-        // replace old with new item...
-        items[ItemIndex+1] := items[ItemIndex];
-        checked[ItemIndex+1] := checked[ItemIndex];
-        // and set old item to its origin values...
-        items[ItemIndex] := strtemp;
-        checked[ItemIndex] := strchecked;
+  if chklistColumns.ItemIndex > -1 then
+  begin
+    if chklistColumns.ItemIndex < chklistColumns.Items.count-1 then
+    begin // not last item...
+      strtemp := chklistColumns.Items[chklistColumns.ItemIndex+1];
+      strchecked := chklistColumns.Checked[chklistColumns.ItemIndex+1];
+      // replace old with new item...
+      chklistColumns.Items[chklistColumns.ItemIndex+1] := chklistColumns.Items[chklistColumns.ItemIndex];
+      chklistColumns.Checked[chklistColumns.ItemIndex+1] := chklistColumns.Checked[chklistColumns.ItemIndex];
+      // and set old item to its origin values...
+      chklistColumns.Items[chklistColumns.ItemIndex] := strtemp;
+      chklistColumns.Checked[chklistColumns.ItemIndex] := strchecked;
 
-        ItemIndex := ItemIndex+1;
-      end;
+      chklistColumns.ItemIndex := chklistColumns.ItemIndex+1;
     end;
+  end;
 end;
 
 
