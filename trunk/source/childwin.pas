@@ -2434,12 +2434,7 @@ begin
       DBNavigator1.DataSource := DataSource1;
     btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
     menuSQLHelp.Enabled := btnSQLHelp.Enabled and FrmIsFocussed;
-    {***
-      @todo: Move TPopupMenu "SQLfunctions" from mainform to childwin,
-        so we only need to enable/disable certain menuitems here.
-        The whole menu belongs to childwin's query-tab. For now
-        leave it there and only fix the "enablings"
-    }
+
     if FrmIsFocussed then
     begin
       menuLoad.OnClick := self.btnQueryLoadClick;
@@ -4157,7 +4152,7 @@ end;
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
 begin
   // Depending which SynMemo is focused, (de-)activate some menuitems
-  // The popupmenu SQLFunctions is used in both Filter- and Query-Memo
+  // The popupQuery is used in both Filter- and Query-Memo
   if SynMemoFilter.focused then
   begin
     MenuRun.ShortCut := TextToShortCut('');
