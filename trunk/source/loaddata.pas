@@ -52,6 +52,7 @@ type
     editLineTerminator: TEdit;
     lblLineTerminator: TLabel;
     lblIgnoreLines: TLabel;
+    procedure editFilenameChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
@@ -187,6 +188,9 @@ begin
   // select all:
   for i:=0 to chklistColumns.Items.Count-1 do
     chklistColumns.checked[i] := true;
+
+  // Ensure valid state of Import-Button
+  editFilenameChange(sender);  
 end;
 
 
@@ -326,5 +330,21 @@ begin
       end;
     end;
 end;
+
+
+
+{** Make "OK"-button only clickable if
+ - filename is not empty
+ - table is selected
+ - columnnames could be fetched normally
+ - filename exists
+}
+procedure Tloaddataform.editFilenameChange(Sender: TObject);
+begin
+  btnImport.Enabled := (editFilename.Text <> '')
+    and (chklistColumns.Items.Count > 0)
+    and (FileExists(editFilename.Text));
+end;
+
 
 end.

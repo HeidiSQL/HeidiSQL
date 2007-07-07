@@ -28,6 +28,7 @@ object loaddataform: Tloaddataform
     Anchors = [akRight, akBottom]
     Caption = 'Import!'
     Default = True
+    Enabled = False
     ModalResult = 1
     TabOrder = 0
     OnClick = btnImportClick
@@ -77,6 +78,7 @@ object loaddataform: Tloaddataform
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
           Text = 'editFilename'
+          OnChange = editFilenameChange
           OnDblClick = btnOpenFileClick
         end
         object btnOpenFile: TBitBtn
