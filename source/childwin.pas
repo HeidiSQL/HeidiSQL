@@ -284,6 +284,7 @@ type
     MenuFind: TMenuItem;
     MenuReplace: TMenuItem;
     MenuItem2: TMenuItem;
+    lblDataTop: TLabel;
     procedure menuclearClick(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
@@ -1724,7 +1725,7 @@ begin
   rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' +
     mask( ActualTable ), 0 ) );
 
-  pnlDataTop.Caption := ActualDatabase + '.' + ActualTable + ': ' +
+  lblDataTop.Caption := ActualDatabase + '.' + ActualTable + ': ' +
     FormatNumber( rows_total ) + ' records total';
 
   {***
@@ -1763,7 +1764,7 @@ begin
     ( Trim( SynMemoFilter.Text ) <> '' )
   ) then
   begin
-    pnlDataTop.Caption := pnlDataTop.Caption + ', ' + FormatNumber(rows_matching) +
+    lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) +
       ' matching to filter';
   end;
 
@@ -1772,7 +1773,7 @@ begin
     ( Trim( SynMemoFilter.Text ) <> '')
   ) then
   begin
-    pnlDataTop.Caption := pnlDataTop.Caption + ', filter matches all records';
+    lblDataTop.Caption := lblDataTop.Caption + ', filter matches all records';
   end;
 
   if (
@@ -1780,7 +1781,7 @@ begin
     ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) )
   ) then
   begin
-    pnlDataTop.Caption := pnlDataTop.Caption + ', limited to ' +
+    lblDataTop.Caption := lblDataTop.Caption + ', limited to ' +
       FormatNumber( ds.RecordCount );
   end;
 end;

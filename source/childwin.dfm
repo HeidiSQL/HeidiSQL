@@ -607,12 +607,11 @@ object MDIChild: TMDIChild
             Left = 0
             Top = 0
             Width = 496
-            Height = 23
+            Height = 31
             Align = alTop
             Alignment = taLeftJustify
             BevelOuter = bvNone
             BorderWidth = 1
-            Caption = 'Data'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
@@ -622,10 +621,10 @@ object MDIChild: TMDIChild
             TabOrder = 0
             DesignSize = (
               496
-              23)
+              31)
             object btnColumnSelection: TSpeedButton
               Left = 168
-              Top = 0
+              Top = 4
               Width = 79
               Height = 21
               AllowAllUp = True
@@ -645,9 +644,21 @@ object MDIChild: TMDIChild
               ParentFont = False
               OnClick = btnColumnSelectionClick
             end
+            object lblDataTop: TLabel
+              Left = 1
+              Top = 1
+              Width = 161
+              Height = 29
+              Align = alLeft
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              AutoSize = False
+              Caption = 'lblDataTop'
+              Layout = tlCenter
+              WordWrap = True
+            end
             object EditDataSearch: TEdit
               Left = 317
-              Top = 0
+              Top = 4
               Width = 121
               Height = 21
               Anchors = [akTop, akRight]
@@ -664,7 +675,7 @@ object MDIChild: TMDIChild
             end
             object ButtonDataSearch: TButton
               Left = 440
-              Top = 0
+              Top = 4
               Width = 51
               Height = 21
               Anchors = [akTop, akRight]
@@ -680,7 +691,7 @@ object MDIChild: TMDIChild
             end
             object CheckBoxDataSearch: TCheckBox
               Left = 264
-              Top = 2
+              Top = 6
               Width = 49
               Height = 17
               Anchors = [akTop, akRight]
@@ -696,9 +707,9 @@ object MDIChild: TMDIChild
           end
           object gridData: TSMDBGrid
             Left = 0
-            Top = 23
+            Top = 31
             Width = 496
-            Height = 197
+            Height = 189
             Align = alClient
             DataSource = DataSource1
             Font.Charset = DEFAULT_CHARSET
