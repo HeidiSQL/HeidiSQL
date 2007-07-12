@@ -5544,8 +5544,9 @@ begin
     frm.Top := btn.ClientOrigin.Y + btn.Height;
     frm.Left := btn.ClientOrigin.X;
 
-    // Display form
-    frm.ShowModal;
+    // Display form and refresh data if needed
+    if frm.ShowModal = mrOK then
+      ViewData(self);
 
     btn.Down := False;
   end;
