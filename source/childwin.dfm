@@ -623,9 +623,9 @@ object MDIChild: TMDIChild
               496
               31)
             object btnColumnSelection: TSpeedButton
-              Left = 168
+              Left = 187
               Top = 4
-              Width = 79
+              Width = 70
               Height = 21
               AllowAllUp = True
               Anchors = [akTop, akRight]
@@ -642,12 +642,12 @@ object MDIChild: TMDIChild
                 FF00F7806300E3805C00C18032008080300000004700}
               Layout = blGlyphRight
               ParentFont = False
-              OnClick = btnColumnSelectionClick
+              OnClick = btnDataClick
             end
             object lblDataTop: TLabel
               Left = 1
               Top = 1
-              Width = 161
+              Width = 104
               Height = 29
               Align = alLeft
               Anchors = [akLeft, akTop, akRight, akBottom]
@@ -655,6 +655,28 @@ object MDIChild: TMDIChild
               Caption = 'lblDataTop'
               Layout = tlCenter
               WordWrap = True
+            end
+            object btnDataSorting: TSpeedButton
+              Left = 111
+              Top = 4
+              Width = 70
+              Height = 21
+              AllowAllUp = True
+              Anchors = [akTop, akRight]
+              GroupIndex = 10
+              Caption = 'Sorting'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clBlack
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              Glyph.Data = {
+                52000000424D52000000000000003E0000002800000009000000050000000100
+                010000000000140000000000000000000000020000000200000000000000FFFF
+                FF00F7806300E3805C00C18032008080300000004700}
+              Layout = blGlyphRight
+              ParentFont = False
+              OnClick = btnDataClick
             end
             object EditDataSearch: TEdit
               Left = 317
