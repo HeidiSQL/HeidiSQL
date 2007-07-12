@@ -5572,6 +5572,7 @@ end;
 procedure TMDIChild.lboxQueryHelpersDblClick(Sender: TObject);
 begin
   SynMemoQuery.SelText := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+  SynMemoQuery.SetFocus;
 end;
 
 
