@@ -2846,7 +2846,7 @@ begin
       try
         if ( ExpectResultSet( SQL[i] ) ) then
         begin
-          ds := GetResults( SQL[i] );
+          ds := GetResults( SQL[i], false, false );
           gridQuery.DataSource.DataSet := ds;
           if ( ds.Active ) then
           begin
@@ -2862,7 +2862,7 @@ begin
         end
         else
         begin
-          rowsaffected := rowsaffected + ExecUpdateQuery( SQL[i] );
+          rowsaffected := rowsaffected + ExecUpdateQuery( SQL[i], false, false );
           fieldcount := 0;
           recordcount := 0;
         end;
@@ -2875,16 +2875,11 @@ begin
           ) then
           begin
             Screen.Cursor := crDefault;
-            LogSQL( E.Message, true );
             MessageDlg( E.Message, mtError, [mbOK], 0 );
             ProgressBarQuery.Hide();
             Mainform.ExecuteQuery.Enabled := true;
             Mainform.ExecuteSelection.Enabled := true;
             Break;
-          end
-          else
-          begin
-            LogSQL( E.Message, true );
           end;
         end;
       end;
