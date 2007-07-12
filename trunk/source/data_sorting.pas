@@ -341,9 +341,6 @@ begin
   reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActualDatabase + '.' + Mainform.Childwin.ActualTable;
   reg.WriteString( reg_name, reg_value );
   reg.CloseKey;
-
-  // Refresh data
-  Mainform.Childwin.viewdata(self);
 end;
 
 

@@ -16,9 +16,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure chklistColumnsClickCheck(Sender: TObject);
     procedure chkSelectAllClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnOKClick(Sender: TObject);
-    procedure btnCancelClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -77,15 +75,6 @@ end;
 
 
 {**
-  Cancel clicked
-}
-procedure TColumnSelectionForm.btnCancelClick(Sender: TObject);
-begin
-  ModalResult := mrCancel;
-end;
-
-
-{**
   OK clicked
 }
 procedure TColumnSelectionForm.btnOKClick(Sender: TObject);
@@ -138,24 +127,12 @@ begin
     reg.WriteString( reg_name, reg_newvalue );
   end;
 
-  try
-    // Reload grid-data if column selection has changed
-    if reg_oldvalue <> reg_newvalue then
-      Mainform.Childwin.viewdata( Sender );
-  finally
-    ModalResult := mrOk;
-  end;
+  // Signalizes childwin to refresh grid-data
+  if reg_oldvalue <> reg_newvalue then
+    ModalResult := mrOk
+  else
+    ModalResult := mrCancel;
 
-end;
-
-
-{**
-  Form is closing
-}
-procedure TColumnSelectionForm.FormClose(Sender: TObject;
-  var Action: TCloseAction);
-begin
-  Mainform.Childwin.btnColumnSelection.Down := False;
 end;
 
 
