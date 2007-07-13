@@ -35,7 +35,8 @@ uses
   MysqlQueryThread in '..\..\source\MysqlQueryThread.pas',
   MysqlConn in '..\..\source\MysqlConn.pas',
   mysql in '..\..\source\mysql.pas',
-  column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm};
+  column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
+  data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm};
 
 {$R *.RES}
 
