@@ -1435,7 +1435,7 @@ begin
       RewriteOrderClause := False;
       for i := 0 to ( orderclauses.Count - 1 ) do
       begin
-        columnname := Trim( Copy( orderclauses[i], 0, Pos( ' ', orderclauses[i] ) ) );
+        columnname := Trim( Copy( orderclauses[i], 0, LastPos( ' ', orderclauses[i] ) ) );
         columnname := trimc( columnname, '`' );
         columnexists := false;
 
