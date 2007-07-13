@@ -104,6 +104,7 @@ type
 
 var
   UserManagerForm: TUserManagerForm;
+  old_ActualDatabase    : String;
 
 
 implementation
@@ -124,11 +125,14 @@ begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
   cwin := Mainform.Childwin;
+  old_ActualDatabase := cwin.ActualDatabase;
+  cwin.ActualDatabase := DBNAME_MYSQL;
   try
-    cwin.ExecUseQuery( DBNAME_MYSQL, false );
+    cwin.EnsureActiveDatabase;
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
     Result := false;
+    cwin.ActualDatabase := old_ActualDatabase;
     exit;
   end;
 
@@ -138,9 +142,9 @@ begin
   begin
     MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
     Result := false;
-    if cwin.ActualDatabase <> '' then
+    if old_ActualDatabase <> '' then
     begin
-      cwin.ExecUseQuery( cwin.ActualDatabase );
+      cwin.ActualDatabase := old_ActualDatabase;
     end;
     exit;
   end;
@@ -827,8 +831,8 @@ begin
   FreeAndNil( ZQueryDBs );
   FreeAndNil( ZQueryTables );
   FreeAndNil( ZQueryColumns );
-  if Mainform.Childwin.ActualDatabase <> '' then
-    Mainform.Childwin.ExecUseQuery( Mainform.Childwin.ActualDatabase );
+  if old_ActualDatabase <> '' then
+    Mainform.Childwin.ActualDatabase := old_ActualDatabase;
 end;
 
 
