@@ -1850,9 +1850,11 @@ end;
 function TMDIChild.FetchActiveDbTableList: TDataSet;
 var
   ds: TDataSet;
+  OldCursor: TCursor;
 begin
   if CachedTableLists.IndexOf(ActualDatabase) = -1 then begin
     // Not in cache, load table list.
+    OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
     MainForm.ShowStatus('Displaying tables from ' + ActualDatabase + '...', 2, true);
     if mysql_version >= 32300 then begin
@@ -1865,6 +1867,7 @@ begin
       // SELECT COUNT(*), but that would potentially be rather slow.
     end;
     CachedTableLists.AddObject(ActualDatabase, ds);
+    Screen.Cursor := OldCursor;
   end;
   Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(ActualDatabase)]);
   Result.First;
