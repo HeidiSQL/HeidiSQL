@@ -211,6 +211,7 @@ begin
   try
     Mainform.ChildWin.ExecUseQuery( DBComboBox.Text );
     Mainform.ChildWin.ExecUpdateQuery( createQuery );
+    Mainform.Childwin.RefreshActiveDbTableList;
     Mainform.ChildWin.ShowDBProperties(self);
     Mainform.ChildWin.ActualTable := EditTablename.Text;
     Close;

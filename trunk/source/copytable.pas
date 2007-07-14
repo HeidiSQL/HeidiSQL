@@ -279,6 +279,7 @@ begin
     zq.Next;
   end;
 
+  Mainform.Childwin.RefreshActiveDbTableList;
   Mainform.ChildWin.ShowDBProperties(self);
   close;
 

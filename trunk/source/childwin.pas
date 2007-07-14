@@ -2978,6 +2978,7 @@ begin
       tn := DBTree.Selected;
       DBTree.Selected := DBTree.Selected.Parent;
       tn.Destroy;
+      RefreshActiveDbTableList;
       ShowDBProperties(self);
       Screen.Cursor := crDefault;
     end;
@@ -3349,6 +3350,7 @@ begin
   if i > -1 then
     SynSQLSyn1.TableNames[i] := S;
   ActualTable := S;
+  RefreshActiveDbTableList;
   ShowDBProperties(self);
   // re-select same item
   for i:=0 to ListTables.Items.Count-1 do
