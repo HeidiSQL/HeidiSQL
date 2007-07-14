@@ -3350,15 +3350,20 @@ begin
       abort;
     end;
   end;
-  
-  // rename table
-  ExecUpdateQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S) );
+
+  // Try to rename, on any error abort and don't rename ListItem  
+  try
+    // rename table
+    ExecUpdateQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S), False );
+  except
+    abort;
+  end;
+
   i := SynSQLSyn1.TableNames.IndexOf( Item.Caption );
   if i > -1 then
     SynSQLSyn1.TableNames[i] := S;
   ActualTable := S;
   RefreshActiveDbTableList;
-  ShowDBProperties(self);
   // re-select same item
   for i:=0 to ListTables.Items.Count-1 do
   begin
@@ -3369,8 +3374,6 @@ begin
       break;
     end;
   end;
-  // Important! Otherwise OnEdited refreshes list too:
-  abort;
 end;
 
 
