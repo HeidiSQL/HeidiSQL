@@ -3344,22 +3344,18 @@ procedure TMDIChild.ListTablesEdited(Sender: TObject; Item: TListItem;
 var
   i : Integer;
 begin
+
+  // Try to rename, on any error abort and don't rename ListItem
   try
     ensureValidIdentifier( S );
+    // rename table
+    ExecUpdateQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S), False, False );
   except
     On E : Exception do
     begin
       MessageDlg( E.Message, mtError, [mbOK], 0 );
       abort;
     end;
-  end;
-
-  // Try to rename, on any error abort and don't rename ListItem  
-  try
-    // rename table
-    ExecUpdateQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S), False );
-  except
-    abort;
   end;
 
   i := SynSQLSyn1.TableNames.IndexOf( Item.Caption );
