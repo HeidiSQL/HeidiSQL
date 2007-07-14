@@ -3367,16 +3367,6 @@ begin
     SynSQLSyn1.TableNames[i] := S;
   ActualTable := S;
   RefreshActiveDbTableList;
-  // re-select same item
-  for i:=0 to ListTables.Items.Count-1 do
-  begin
-    if ListTables.Items[i].Caption = S then
-    begin
-      ListTables.Selected := ListTables.Items[i];
-      ListTables.Items[i].Focused := True;
-      break;
-    end;
-  end;
 end;
 
 
