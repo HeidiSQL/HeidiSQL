@@ -489,7 +489,7 @@ type
       lastUsedDB                 : String;
       UserQueryFired             : Boolean;
       CachedTableLists           : TStringList;
-      QueryHelpersSelectedItems  : Array[0..2] of Integer;
+      QueryHelpersSelectedItems  : Array[0..3] of Integer;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -4329,22 +4329,32 @@ procedure TMDIChild.SynMemoQueryDragDrop(Sender, Source: TObject; X,
 var
   src : TControl;
   Text : String;
+  LoadText : Boolean;
 begin
   // dropping a TTreeNode into the query-memo
   SynMemoQuery.UndoList.AddGroupBreak;
   src := Source as TControl;
   Text := 'Error: Unspecified source control in drag''n drop operation!';
+  LoadText := True;
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src is TTreeView then
   begin
     Text := (src as TTreeView).Selected.Text;
   end
-  else if src is TListBox then
+  else if src = lboxQueryHelpers then
   begin
     Text := (src as TListBox).Items[(src as TListBox).ItemIndex];
+    if tabsetQueryHelpers.TabIndex = 3 then
+    begin
+      QueryLoad( DIRNAME_SNIPPETS + Text, False );
+      LoadText := False;
+    end;
   end;
-  SynMemoQuery.SelText := Text;
+  // Only insert text if no previous action did the job.
+  // Should be false when dropping a snippet-file here
+  if LoadText then
+    SynMemoQuery.SelText := Text;
   SynMemoQuery.UndoList.AddGroupBreak;
 end;
 
@@ -5595,6 +5605,11 @@ begin
       lboxQueryHelpers.Items := MYSQL_KEYWORDS;
     end;
 
+    3: // SQL Snippets
+    begin
+      lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql' );
+    end;
+
   end;
 
   // Restore last selected item in tab
@@ -5615,8 +5630,18 @@ end;
   memo at doubleclick
 }
 procedure TMDIChild.lboxQueryHelpersDblClick(Sender: TObject);
+var
+  itemtext : String;
 begin
-  SynMemoQuery.SelText := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+  itemtext := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+
+  case tabsetQueryHelpers.TabIndex of
+    3: // Load snippet file ínto query-memo
+      QueryLoad( DIRNAME_SNIPPETS + itemtext, False );
+    else // For all other tabs just insert the item from the list
+      SynMemoQuery.SelText := itemtext;
+  end;
+
   SynMemoQuery.SetFocus;
 end;
 

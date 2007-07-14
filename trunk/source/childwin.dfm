@@ -1006,7 +1006,6 @@ object MDIChild: TMDIChild
                 Width = 160
                 Height = 24
                 Align = alBottom
-                AutoScroll = False
                 Font.Charset = DEFAULT_CHARSET
                 Font.Color = clWindowText
                 Font.Height = -11
@@ -1018,7 +1017,8 @@ object MDIChild: TMDIChild
                 Tabs.Strings = (
                   'Cols'
                   'SQL fn'
-                  'SQL kw')
+                  'SQL kw'
+                  'Snippets')
                 TabIndex = 0
                 OnChange = tabsetQueryHelpersChange
               end
