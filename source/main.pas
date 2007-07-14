@@ -1037,6 +1037,7 @@ begin
       end;
     end;
 
+    RefreshActiveDbTableList;
     ShowDBProperties(self);
     Screen.Cursor := crDefault;
   end;
