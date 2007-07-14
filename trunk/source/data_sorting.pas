@@ -26,11 +26,13 @@ type
     { Private declarations }
     ColumnNames : TStringList;
     OrderColumns : Array of TOrderCol;
+    reg_name, OldOrderClause : String;
     procedure DisplaySortingControls;
     procedure dropdownColsChange( Sender: TObject );
     procedure buttonOrderClick( Sender: TObject );
     procedure buttonDeleteClick( Sender: TObject );
     procedure Modified;
+    function ComposeOrderClause: String;
   public
     { Public declarations }
   end;
@@ -59,6 +61,7 @@ procedure TDataSortingForm.FormShow(Sender: TObject);
 var
   i : Cardinal;
   grid: TSMDBGrid;
+  reg : TRegistry;
 begin
   // Take column names from listColumns and add here
   ColumnNames := TStringList.Create;
@@ -66,6 +69,13 @@ begin
   begin
     ColumnNames.Add( Mainform.Childwin.listColumns.Items[i].Caption );
   end;
+
+  // Read original ORDER clause from registry
+  reg := TRegistry.Create();
+  reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
+  reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActualDatabase + '.' + Mainform.Childwin.ActualTable;
+  OldOrderClause := reg.ReadString(reg_name);
+  reg.CloseKey;
 
   // Create one OrderColumns record for each grid.SortColumn
   grid := Mainform.Childwin.gridData;
@@ -305,41 +315,47 @@ end;
 
 
 {**
-  Gets called when any option has changed. Enables the OK button.
+  Gets called when any option has changed.
+  Enables the OK button if ORDER options have changed
 }
 procedure TDataSortingForm.Modified;
 begin
-  btnOk.Enabled := True;
+  btnOk.Enabled := ComposeOrderClause <> OldOrderClause;
 end;
 
 
 {**
-  OK clicked
+  Concat all sort options to a ORDER clause
 }
-procedure TDataSortingForm.btnOKClick(Sender: TObject);
+function TDataSortingForm.ComposeOrderClause: String;
 var
-  reg : TRegistry;
-  reg_name, reg_value, sort : String;
   i : Integer;
+  sort : String;
 begin
-  // Concat all sort options to a ORDER clause
-  reg_value := '';
+  result := '';
   for i := 0 to Length(OrderColumns) - 1 do
   begin
-    if reg_value <> '' then
-      reg_value := reg_value + ', ';
+    if result <> '' then
+      result := result + ', ';
     if OrderColumns[i].SortDirection = ORDER_ASC then
       sort := TXT_ASC
     else
       sort := TXT_DESC;
-    reg_value := reg_value + Mainform.Mask( OrderColumns[i].ColumnName ) + ' ' + sort;
+    result := result + Mainform.Mask( OrderColumns[i].ColumnName ) + ' ' + sort;
   end;
+end;
 
-  // Write ORDER clause to registry
+
+{**
+  OK clicked: Write ORDER clause to registry
+}
+procedure TDataSortingForm.btnOKClick(Sender: TObject);
+var
+  reg : TRegistry;
+begin
   reg := TRegistry.Create();
   reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
-  reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActualDatabase + '.' + Mainform.Childwin.ActualTable;
-  reg.WriteString( reg_name, reg_value );
+  reg.WriteString( reg_name, ComposeOrderClause );
   reg.CloseKey;
 end;
 
