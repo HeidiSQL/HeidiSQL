@@ -1042,6 +1042,7 @@ object MDIChild: TMDIChild
                 TabOrder = 1
                 OnClick = lboxQueryHelpersClick
                 OnDblClick = lboxQueryHelpersDblClick
+                OnKeyUp = controlsKeyUp
               end
             end
           end

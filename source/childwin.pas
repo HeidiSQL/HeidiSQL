@@ -4488,7 +4488,16 @@ begin
   else if ListColumns.Focused and (ListColumns.Selected <> nil) then
   begin
     keyword := ListColumns.Selected.SubItems[0];
+  end
+  else if lboxQueryHelpers.Focused then
+  begin
+    // Makes only sense if one of the tabs "SQL fn" or "SQL kw" was selected
+    if tabsetQueryHelpers.TabIndex in [1,2] then
+    begin
+      keyword := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+    end;
   end;
+
   // Clean existing paranthesis, fx: char(64)
   if Pos( '(', keyword ) > 0 then
   begin
