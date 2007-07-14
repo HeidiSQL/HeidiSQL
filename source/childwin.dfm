@@ -938,10 +938,19 @@ object MDIChild: TMDIChild
             BevelOuter = bvNone
             Constraints.MinHeight = 10
             TabOrder = 1
+            object spltQueryHelpers: TSplitter
+              Left = 332
+              Top = 0
+              Width = 4
+              Height = 96
+              Cursor = crSizeWE
+              Align = alRight
+              ResizeStyle = rsUpdate
+            end
             object SynMemoQuery: TSynMemo
               Left = 0
               Top = 0
-              Width = 336
+              Width = 332
               Height = 96
               SingleLineMode = False
               Align = alClient

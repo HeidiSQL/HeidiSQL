@@ -286,6 +286,7 @@ type
     MenuItem2: TMenuItem;
     lblDataTop: TLabel;
     btnDataSorting: TSpeedButton;
+    spltQueryHelpers: TSplitter;
     procedure menuclearClick(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
@@ -910,6 +911,11 @@ begin
         pnlQueryMemo.Height := ReadInteger('querymemoheight');
       end;
 
+      if ValueExists( 'queryhelperswidth' ) then
+      begin
+        pnlQueryHelpers.Width := ReadInteger('queryhelperswidth');
+      end;
+
       if ( ValueExists( 'dbtreewidth' ) ) then
       begin
         DBtree.Width := ReadInteger( 'dbtreewidth' );
@@ -1051,6 +1057,7 @@ begin
       WriteInteger( 'childwinheight', height );
 
       WriteInteger( 'querymemoheight', pnlQueryMemo.Height );
+      WriteInteger( 'queryhelperswidth', pnlQueryHelpers.Width );
       WriteInteger( 'dbtreewidth', dbtree.width );
       WriteInteger( 'sqloutheight', PageControlBottom.Height );
 
