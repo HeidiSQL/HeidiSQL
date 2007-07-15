@@ -287,6 +287,10 @@ type
     lblDataTop: TLabel;
     btnDataSorting: TSpeedButton;
     spltQueryHelpers: TSplitter;
+    menuRenameColumn: TMenuItem;
+    procedure menuRenameColumnClick(Sender: TObject);
+    procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
+      var S: string);
     procedure menuclearClick(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
@@ -5684,6 +5688,72 @@ begin
   sm.UndoList.AddGroupBreak;
   if not SynMemoFilter.Focused then
     SynMemoQueryChange(self);
+end;
+
+
+{**
+  Activate inline-item-editor of listColumns
+}
+procedure TMDIChild.menuRenameColumnClick(Sender: TObject);
+begin
+  listColumns.Selected.EditCaption;
+end;
+
+
+{**
+  Rename a column name from within listColumns
+}
+procedure TMDIChild.ListColumnsEdited(Sender: TObject; Item: TListItem;
+  var S: string);
+var
+  def : TDataSet;
+  sql_update, sql_null, sql_default, sql_extra, DefaultValue : String;
+begin
+  // Try to rename, on any error abort and don't rename ListItem
+  try
+    ensureValidIdentifier( S );
+
+    // Fetch column definition
+    def := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable) + ' LIKE ' + esc(Item.Caption), False, False );
+
+    // Check NOT NULL
+    sql_null := 'NULL ';
+    if UpperCase(def.FieldByName('Null').AsString) = 'NO' then
+      sql_null := 'NOT NULL ';
+
+    // Check default value, take care of non-literals / functions
+    sql_default := '';
+    DefaultValue := def.FieldByName('Default').AsString;
+    if DefaultValue <> '' then
+    begin
+      if (UpperCase(def.FieldByName('Type').AsString) <> 'TIMESTAMP') and (DefaultValue <> 'CURRENT_TIMESTAMP') then
+        DefaultValue := esc(DefaultValue);
+      sql_default := 'DEFAULT ' + DefaultValue + ' ';
+    end;
+
+    // Check extra options (auto_increment)
+    sql_extra := '';
+    if def.FieldByName('Extra').AsString <> '' then
+      sql_default := ' '+UpperCase(def.FieldByName('Extra').AsString) + ' ';
+
+    // Concat column definition
+    sql_update := 'ALTER TABLE ' + mask(ActualTable) +
+      ' CHANGE ' + mask(Item.Caption) +
+      ' ' + mask(S) + ' ' +
+      def.FieldByName('Type').AsString + ' ' +
+      sql_null +
+      sql_default +
+      sql_extra;
+
+    // Fire ALTER query
+    ExecUpdateQuery( sql_update, False, False );
+  except
+    On E : Exception do
+    begin
+      MessageDlg( E.Message, mtError, [mbOK], 0 );
+      abort;
+    end;
+  end;
 end;
 
 
