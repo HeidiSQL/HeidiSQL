@@ -560,13 +560,13 @@ object MDIChild: TMDIChild
                   Width = 200
                 end>
               GridLines = True
-              ReadOnly = True
               RowSelect = True
               PopupMenu = popupTableGrid
               SmallImages = MainForm.ImageList1
               TabOrder = 0
               ViewStyle = vsReport
               OnDblClick = UpdateField
+              OnEdited = ListColumnsEdited
               OnKeyUp = controlsKeyUp
               OnSelectItem = ListColumnsSelectItem
               ImageIndexSortAsc = 95
@@ -1688,7 +1688,7 @@ object MDIChild: TMDIChild
       Caption = 'Properties'
       Default = True
       ImageIndex = 9
-      ShortCut = 13
+      ShortCut = 32781
       OnClick = UpdateField
     end
     object MenuAddField: TMenuItem
@@ -1701,8 +1701,13 @@ object MDIChild: TMDIChild
       Caption = 'Drop Field...'
       Hint = 'Delete Field from Table'
       ImageIndex = 33
-      ShortCut = 46
+      ShortCut = 16430
       OnClick = DropField
+    end
+    object menuRenameColumn: TMenuItem
+      Caption = 'Rename Field'
+      ShortCut = 113
+      OnClick = menuRenameColumnClick
     end
     object N16: TMenuItem
       Caption = '-'
