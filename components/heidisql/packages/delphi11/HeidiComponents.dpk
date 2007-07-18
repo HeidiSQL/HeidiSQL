@@ -28,7 +28,12 @@ package HeidiComponents;
 
 requires
   vcl,
-  dbrtl;
+  dbrtl,
+  ZComponent,
+  ZParseSql,
+  ZCore,
+  ZDbc,
+  ZPlain;
 
 contains
   heidicomp in '..\..\source\heidicomp.pas';
