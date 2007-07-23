@@ -484,6 +484,7 @@ begin
   if tofile then begin
     // Extract name part of selected target version
     target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
+    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ) );
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
     except
