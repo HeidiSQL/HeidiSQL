@@ -465,7 +465,6 @@ type
       Shift: TShiftState; X, Y: Integer);
     function mask(str: String) : String;
     procedure CheckConnection();
-    procedure ZQueryBeforeSendingSQL(DataSet: TDataSet);
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
     procedure AddOrRemoveFromQueryLoadHistory( filename: String;
       AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
@@ -480,6 +479,7 @@ type
 
     private
       strHostRunning             : String;
+      strHostNotRunning          : String;
       uptime                     : Integer;
       time_connected             : Integer;
       OnlyDBs,
@@ -593,8 +593,8 @@ begin
     mysql_version := MakeInt( versions[0] ) * 10000 + MakeInt( versions[1] ) *
       100 + MakeInt( versions[2] );
     strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v +
-      ' / Uptime: ';
-
+      ' / Uptime: %s';
+    strHostNotRunning := 'Disconnected from ' + FConn.MysqlParams.Host + '.';
     // On Re-Connection, try to restore lost properties
     {***
       SET NAMES statement available since MySQL 4.1.0 .
@@ -1361,7 +1361,7 @@ var
   columnexists         : Boolean;
   select_base          : String;
   limit                : Int64;
-  mq                   : TMysqlQuery;
+  ds                   : TDataSet;
   conn                 : TOpenConnProf;
   sl_query             : TStringList;
   manualLimit          : boolean;
@@ -1586,28 +1586,16 @@ begin
 
         // start query (with wait dialog)
         SynMemoFilter.Color := clWindow;
-        debug( 'viewdata(): Launching asynchronous query.' );
-        mq := RunThreadedQuery( sl_query.Text );
-
-        // Re-create exception.....
-        if ( mq.Result <> MQR_SUCCESS ) then
-        begin
-          raise Exception.Create( mq.Comment );
-        end;
+        ds := GetResults(sl_query.Text, false);
 
         MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
-        mq.MysqlDataset.DisableControls();
-        DataSource1.DataSet := mq.MysqlDataset;
+        ds.DisableControls();
+        DataSource1.DataSet := ds;
 
         // Attach After- and Before-Events to the new dataset
-        with ( mq.MysqlDataset ) do
-        begin
-          AfterPost := ZQueryGridAfterPost;
-          AfterDelete := ZQueryGridAfterPost;
-          BeforeClose := ZQueryGridBeforeClose;
-          BeforeOpen := ZQueryBeforeSendingSQL;
-          BeforePost := ZQueryBeforeSendingSQL;
-        end;
+        ds.AfterPost := ZQueryGridAfterPost;
+        ds.AfterDelete := ZQueryGridAfterPost;
+        ds.BeforeClose := ZQueryGridBeforeClose;
       except
         on E:Exception do
         begin
@@ -1668,7 +1656,7 @@ begin
         // for letting NULLs being inserted into "NOT NULL" fields
         // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
         // so the Required-check on client-side is not needed at any time
-        mq.MysqlDataset.Fields[j].Required := false;
+        ds.Fields[j].Required := false;
 
         // set column-width
         if (
@@ -1690,10 +1678,10 @@ begin
         end;
       end;
 
-      DisplayRowCountStats(mq.MysqlDataset);
+      DisplayRowCountStats(ds);
       dataselected := true;
       viewingdata := false;
-      mq.MysqlDataset.EnableControls();
+      ds.EnableControls();
       pcChange(self);
     end;
 
@@ -1862,10 +1850,10 @@ begin
     Screen.Cursor := crHourGlass;
     MainForm.ShowStatus('Displaying tables from ' + ActualDatabase + '...', 2, true);
     if mysql_version >= 32300 then begin
-      ds := GetResults('SHOW TABLE STATUS');
+      ds := GetResults('SHOW TABLE STATUS', false, false);
     end else begin
       // contains table names, nothing else.
-      ds := GetResults('SHOW TABLES');
+      ds := GetResults('SHOW TABLES', false, false);
       // could clean up data (rename first column to 'Name') and
       // and add row counters to data set as a new field by using
       // SELECT COUNT(*), but that would potentially be rather slow.
@@ -2162,10 +2150,7 @@ begin
   ListColumns.Items.BeginUpdate;
   ListColumns.Items.Clear;
   Try
-    ds := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable) );
-    // Avoid AV with ZQuery-object if table is not accessible somehow (fx if deleted by another user)
-    if not ds.Active then
-      Abort;
+    ds := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable), false );
 
     for i:=1 to ds.RecordCount do
     begin
@@ -2598,7 +2583,7 @@ begin
   ListVariables.Items.BeginUpdate;
   ListVariables.Items.Clear;
 
-  ds := GetResults( 'SHOW VARIABLES' );
+  ds := GetResults( 'SHOW VARIABLES', false );
   for i:=1 to ds.RecordCount do
   begin
     n := ListVariables.Items.Add;
@@ -2649,6 +2634,7 @@ begin
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
   ListCommandStats.ColClick( ListCommandStats.Columns[1] );
 
+  TimerHostUptime.Enabled := true;
   TimerHostUptimeTimer(self);
   TimerHostUptime.OnTimer := TimerHostUptimeTimer;
 
@@ -2675,7 +2661,7 @@ begin
     ListProcesses.Items.BeginUpdate;
     ListProcesses.Items.Clear;
     debug('ShowProcessList()');
-    ds := GetResults('SHOW FULL PROCESSLIST', true, false);
+    ds := GetResults('SHOW FULL PROCESSLIST', false, false);
     for i:=1 to ds.RecordCount do
     begin
       n := ListProcesses.Items.Add;
@@ -2810,11 +2796,6 @@ begin
 
   ds := nil;
   try
-    try
-      CheckConnection();
-    except
-      Exit;
-    end;
     MainForm.showstatus( 'Initializing SQL...', 2, true );
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
@@ -2849,7 +2830,7 @@ begin
         begin
           ds := GetResults( SQL[i], false, false );
           gridQuery.DataSource.DataSet := ds;
-          if ( ds.Active ) then
+          if ( ds <> nil ) then
           begin
             fieldcount := ds.Fieldcount;
             recordcount := ds.Recordcount;
@@ -3053,8 +3034,7 @@ var
     if dbname <> '' then
       tablename := mask( dbname ) + '.' + tablename;
     ds := getResults( 'SHOW COLUMNS FROM '+tablename, true, false );
-    if not ds.Active then
-      exit;
+    if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
     begin
       SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsString );
@@ -3232,6 +3212,7 @@ end;
 procedure TMDIChild.TimerHostUptimeTimer(Sender: TObject);
 var
   days, hours, minutes, seconds : Integer;
+  msg: string;
 begin
   // Host-Uptime
   days:= uptime div (60*60*24);
@@ -3242,7 +3223,10 @@ begin
   seconds := seconds mod 60;
 
   inc(uptime);
-  Panel4.Caption := format(strHostRunning + '%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds])
+  msg := Format('%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]);
+  if TimerHostUptime.Enabled then msg := Format(strHostRunning, [msg])
+  else msg := Format(strHostNotRunning, [msg]);
+  Panel4.Caption := msg;
 end;
 
 
@@ -3387,18 +3371,20 @@ procedure TMDIChild.TimerConnectedTimer(Sender: TObject);
 var
   hours, minutes, seconds : Integer;
 begin
+  if not TimerConnected.Enabled then begin
+    MainForm.showstatus('Disconnected.', 1);
+    exit;
+  end;
+
   inc(time_connected);
 
-  if Mainform.ChildWin = self then
-  begin
-    // calculate and display connection-time
-    seconds := time_connected mod (60*60*24);
-    hours := seconds div (60*60);
-    seconds := seconds mod (60*60);
-    minutes := seconds div 60;
-    seconds := seconds mod 60;
-    MainForm.showstatus( format('Connected: %.2d:%.2d:%.2d', [hours, minutes, seconds]), 1 );
-  end;
+  // calculate and display connection-time
+  seconds := time_connected mod (60*60*24);
+  hours := seconds div (60*60);
+  seconds := seconds mod (60*60);
+  minutes := seconds div 60;
+  seconds := seconds mod 60;
+  MainForm.showstatus( format('Connected: %.2d:%.2d:%.2d', [hours, minutes, seconds]), 1 );
 end;
 
 
@@ -4994,23 +4980,31 @@ function TMDIChild.ExecUpdateQuery(sql: string; HandleErrors: Boolean = true; Di
 var
   MysqlQuery : TMysqlQuery;
 begin
-  // Start query execution
-  MysqlQuery := RunThreadedQuery(sql);
-  result := TZQuery(MysqlQuery.MysqlDataset).RowsAffected;
+  Result := -1; // Silence compiler warning.
+  MysqlQuery := nil;
   try
-    // Inspect query result code and log / notify user on failure
-    if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-    begin
-      LogSQL( MysqlQuery.Comment, True );
-      if DisplayErrors then
-        MessageDlg( MysqlQuery.Comment, mtError, [mbOK], 0 );
-      // Recreate exception, since we free it below the caller
-      // won't know what happened otherwise.
-      if not HandleErrors then raise THandledSQLError.Create(MysqlQuery.Comment);
+    try
+      // Start query execution
+      MysqlQuery := RunThreadedQuery(sql);
+      Result := TZQuery(MysqlQuery.MysqlDataset).RowsAffected;
+      // Inspect query result code and log / notify user on failure
+      if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+      begin
+        raise Exception.Create(MysqlQuery.Comment);
+      end;
+    except
+      on E: Exception do begin
+        LogSQL( E.Message, True );
+        if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
+        // Recreate exception, since we free it below the caller
+        // won't know what happened otherwise.
+        if not HandleErrors then raise THandledSQLError.Create(MysqlQuery.Comment);
+        Result := -1;
+      end;
     end;
   finally
     // Cleanup the MysqlQuery object, we won't need it anymore
-    FreeAndNil (MysqlQuery);
+    if MysqlQuery <> nil then FreeAndNil (MysqlQuery);
   end;
 end;
 
@@ -5025,27 +5019,32 @@ end;
 }
 function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): TDataSet;
 var
-  exMsg: String;
   res: TMysqlQuery;
 begin
-  // Start query execution
-  res := RunThreadedQuery(sql);
-  result := res.MysqlDataset;
-
-  // Inspect query result code and log / notify user on failure
-  if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-  begin
-    exMsg := res.Comment;
-    LogSQL( exMsg, True );
-    if DisplayErrors then MessageDlg( exMsg, mtError, [mbOK], 0 );
-    FreeAndNil(res);
-    if not HandleErrors then raise THandledSQLError.Create(exMsg);
+  res := nil;
+  try
+    // Start query execution
+    res := RunThreadedQuery(sql);
+    result := res.MysqlDataset;
+    // Inspect query result code and log / notify user on failure
+    if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+    begin
+      raise Exception.Create(res.Comment);
+    end;
+  except
+    on E: Exception do begin
+      LogSQL( E.Message, True );
+      if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
+      if res <> nil then FreeAndNil(res);
+      if not HandleErrors then raise THandledSQLError.Create(E.Message);
+      Result := nil;
+    end;
   end;
 end;
 
 
 {***
-  Executes a query with an existing ZQuery-object
+  Executes a query.
 }
 function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ): TDataSet;
 begin
@@ -5061,7 +5060,7 @@ var
   ds: TDataSet;
 begin
   ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
-  if not ds.Active then exit;
+  if ds = nil then exit;
   Result := ds.Fields[x].AsString;
   ds.Close;
 end;
@@ -5072,7 +5071,7 @@ var
   ds: TDataSet;
 begin
   ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
-  if not ds.Active then exit;
+  if ds = nil then exit;
   Result := ds.Fields.FieldByName(x).AsString;
   ds.Close;
 end;
@@ -5109,7 +5108,7 @@ var
 begin
   ds := GetResults( SQLQuery, HandleErrors, DisplayErrors);
   Result := TStringList.create();
-  if not ds.Active then exit;
+  if ds = nil then exit;
   for i := 0 to ds.RecordCount - 1 do
   begin
     Result.Add( ds.Fields[x].AsString );
@@ -5161,7 +5160,9 @@ begin
     try
       CheckConnection;
     except
-      exit;
+      on E: Exception do begin
+        raise Exception.Create('Failed to reconnect, giving up. (' + E.Message + ')');
+      end;
     end;
     FProgressForm := TFrmQueryProgress.Create(Self);
     debug('RunThreadedQuery(): Launching asynchronous query.');
@@ -5187,7 +5188,9 @@ begin
     try
       CheckConnection;
     except
-      exit;
+      on E: Exception do begin
+        raise Exception.Create('Failed to reconnect, giving up. (' + E.Message + ')');
+      end;
     end;
 
     // Create instance of the progress form (but don't show it yet)
@@ -5460,14 +5463,18 @@ procedure TMDIChild.CheckConnection;
 begin
   if not FMysqlConn.IsAlive then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
-    // 1) CheckConnection should always be called
+    TimerConnected.Enabled := false;
+    TimerConnectedTimer(self);
+    TimerHostUptime.Enabled := false;
+    TimerHostUptimeTimer(self);
+    // 1) CheckConnection is always called from
     //    within an FQueryRunning-enabled block.
     // 2) PerformConnect (see below) will make calls
     //    that open an FQueryRunning block, causing an
     //    error message.
-    // In this particular situation, it's ok for
-    // two blocks to be opened recursively.
-    // Slightly hackish, I'll admit.
+    //
+    // Therefore, flick the state of the running
+    // flag before running PerformConnect().
     FQueryRunning := false;
     try
       FMysqlConn.Connection.Reconnect;
@@ -5485,24 +5492,6 @@ begin
   Result := nil;
   if PageControlMain.ActivePage = tabData then Result := gridData;
   if PageControlMain.ActivePage = tabQuery then Result := gridQuery;
-end;
-
-
-
-procedure TMDIChild.ZQueryBeforeSendingSQL(DataSet: TDataSet);
-var
-  prev: Boolean;
-begin
-  prev := FQueryRunning;
-  if not prev then FQueryRunning := true;
-  try
-    try
-      CheckConnection;
-    except
-    end;
-  finally
-    if not prev then FQueryRunning := false;
-  end;
 end;
 
 
@@ -5529,7 +5518,7 @@ begin
   result := -1;
   try
     ds := GetResults('SHOW TABLE STATUS LIKE ' + esc(Table));
-    if not ds.Active then exit;
+    if ds = nil then exit;
     AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
     RecordCount := MakeInt( ds.FieldByName( 'Rows' ).AsString );
     if AvgRowSize * RecordCount > LOAD_SIZE then
