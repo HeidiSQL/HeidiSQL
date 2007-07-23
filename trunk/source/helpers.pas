@@ -332,6 +332,8 @@ begin
   s := trim(s);
   if length(s) > 0 then
     list.Add(s);
+  // Avoid memory leak
+  s := '';
 end;
 
 
@@ -464,6 +466,9 @@ begin
 
   if start < i then
     addResult(result, copy(sql, start, i-start+1));
+
+  // Avoid memory leak
+  sql := '';
 end;
 
 
