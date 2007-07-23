@@ -35,3 +35,9 @@ const
 
   // Registry name for storing list of displayed columns
   REGNAME_DISPLAYEDCOLUMNS = 'DisplayedColumns';
+
+  // how much memory we're aiming to use for the
+  // data grid and it's automatic limit function
+  // this value should probably be user configurable
+  LOAD_SIZE = 5*1024*1024;
+

@@ -120,6 +120,9 @@
     <DCCReference Include="..\..\source\queryprogress.pas">
       <Form>frmQueryProgress</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\runsqlfile.pas">
+      <Form>RunSQLFileForm</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\selectsomedatabases.pas">
       <Form>SelectFromManyDatabases</Form>
     </DCCReference>
