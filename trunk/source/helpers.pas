@@ -68,6 +68,8 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function GetFieldValue( Field: TField ): String;
   function LastPos( substr: WideString; str: WideString): Integer;
   function ConvertServerVersion( Version: Integer ): String;
+  function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
+  function FormatTimeNumber( Seconds: Cardinal ): String;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1898,6 +1900,46 @@ begin
   v1 := StrToIntDef( v[2]+v[3], 0 );
   v2 := StrToIntDef( v[4]+v[5], 0 );
   Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);  
+end;
+
+
+{**
+  Format a filesize to automatically use the best fitting expression
+  16 100 000 Bytes -> 16,1 MB
+  4 500 Bytes -> 4,5 KB
+  @param Int64 Number of Bytes
+  @param Byte Decimals to display when bytes is bigger than 1M
+}
+function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
+const
+  KB = 1024;
+begin
+  if Bytes > KB *KB *KB then
+    Result := FormatNumber( Bytes / (KB *KB *KB), Decimals ) + ' GB'
+  else if Bytes > KB *KB then
+    Result := FormatNumber( Bytes / (KB *KB), Decimals ) + ' MB'
+  else if Bytes > KB then
+    Result := FormatNumber( Bytes / KB, Decimals ) + ' KB'
+  else
+    Result := FormatNumber( Bytes ) + ' Bytes'
+end;
+
+
+{**
+  Format a number of seconds to a human readable time format
+  @param Cardinal Number of seconds
+  @result String 12:34:56
+}
+function FormatTimeNumber( Seconds: Cardinal ): String;
+var
+  h, m, s : Integer;
+begin
+  s := Seconds mod (60*60*24);
+  h := s div (60*60);
+  s := s mod (60*60);
+  m := s div 60;
+  s := s mod 60;
+  Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
 end;
 
 

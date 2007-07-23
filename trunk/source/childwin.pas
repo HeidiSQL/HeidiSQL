@@ -481,7 +481,7 @@ type
       strHostRunning             : String;
       strHostNotRunning          : String;
       uptime                     : Integer;
-      time_connected             : Integer;
+      time_connected             : Cardinal;
       OnlyDBs,
       OnlyDBs2                   : TStringList;    // used on connecting
       viewingdata                : Boolean;
@@ -552,7 +552,7 @@ implementation
 uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
   optimizetables, copytable, sqlhelp, printlist,
-  column_selection, data_sorting, mysql;
+  column_selection, data_sorting, runsqlfile, mysql;
 
 
 {$I const.inc}
@@ -3368,8 +3368,6 @@ end;
 
 
 procedure TMDIChild.TimerConnectedTimer(Sender: TObject);
-var
-  hours, minutes, seconds : Integer;
 begin
   if not TimerConnected.Enabled then begin
     MainForm.showstatus('Disconnected.', 1);
@@ -3379,12 +3377,7 @@ begin
   inc(time_connected);
 
   // calculate and display connection-time
-  seconds := time_connected mod (60*60*24);
-  hours := seconds div (60*60);
-  seconds := seconds mod (60*60);
-  minutes := seconds div 60;
-  seconds := seconds mod 60;
-  MainForm.showstatus( format('Connected: %.2d:%.2d:%.2d', [hours, minutes, seconds]), 1 );
+  MainForm.showstatus( 'Connected: ' + FormatTimeNumber(time_connected), 1 );
 end;
 
 
@@ -4608,7 +4601,36 @@ procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true 
 var
   tmpstr, filecontent      : String;
   f                        : TextFile;
+  msgtext                  : String;
 begin
+  // Ask for action when loading a big file
+  if _GetFileSize( filename ) > LOAD_SIZE then
+  begin
+    msgtext := 'The file you are about to load is bigger than '+FormatByteNumber(LOAD_SIZE, 0)+'.' + CRLF + CRLF +
+      'Do you want to just run the file to avoid loading it completely into the query-editor ( = memory ) ?' + CRLF + CRLF +
+      'Press' + CRLF +
+      '  [Yes] to run the file without loading it into the editor' + CRLF +
+      '  [No] to load the file into the query editor' + CRLF +
+      '  [Cancel] to cancel file opening.';
+    case MessageDlg( msgtext, mtWarning, [mbYes, mbNo, mbCancel], 0 ) of
+      mrYes: // Run the file, don't load it into the editor
+        begin
+          RunSQLFileWindow( Self, filename );
+          // Add filename to history menu
+          if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
+            AddOrRemoveFromQueryLoadHistory( filename, true );
+          // Don't load into editor
+          abort;
+        end;
+
+      mrNo:; // Do nothing, just load the file normally into the editor
+
+      mrCancel: // Cancel opening file
+        abort;
+
+    end;
+  end;
+
   // Load file and add that to the undo-history of SynEdit.
   // Normally we would do a simple SynMemo.Lines.LoadFromFile but
   // this would prevent SynEdit from adding this step to the undo-history
@@ -5504,10 +5526,6 @@ var
   AvgRowSize, RecordCount : Int64;
   ds: TDataSet;
 const
-  // how much memory we're aiming to use for the
-  // data grid and it's automatic limit function
-  // this value should probably be user configurable
-  LOAD_SIZE: Integer = 5*1024*1024;
   // how much overhead this application has per row
   ROW_SIZE_OVERHEAD : Integer = 1150;
   // average row size guess for mysql server < 5.0
