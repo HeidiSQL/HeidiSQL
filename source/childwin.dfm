@@ -2179,18 +2179,13 @@ object MDIChild: TMDIChild
     object menupaste: TMenuItem
       Action = MainForm.EditPaste1
     end
-    object menuload: TMenuItem
-      Caption = 'Load from File...'
-      ImageIndex = 6
-    end
-    object menusave: TMenuItem
-      Caption = 'Save to file...'
-      ImageIndex = 7
-    end
     object menuclear: TMenuItem
       Caption = 'Clear'
       ShortCut = 16471
       OnClick = menuclearClick
+    end
+    object N22: TMenuItem
+      Caption = '-'
     end
     object MenuFind: TMenuItem
       Caption = 'Find...'
@@ -2206,6 +2201,41 @@ object MDIChild: TMDIChild
       OnClick = btnQueryReplaceClick
     end
     object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object menuload: TMenuItem
+      Caption = 'Load from file ...'
+      ImageIndex = 6
+      OnClick = btnQueryLoadClick
+    end
+    object menuInsertFileAtCursor: TMenuItem
+      Caption = 'Insert file at cursor ...'
+      ImageIndex = 6
+      OnClick = menuInsertFileAtCursorClick
+    end
+    object menusave: TMenuItem
+      Caption = 'Save to file ...'
+      ImageIndex = 7
+      OnClick = btnQuerySaveClick
+    end
+    object menuSaveSelectionToFile: TMenuItem
+      Tag = 1
+      Caption = 'Save selection to file ...'
+      ImageIndex = 7
+      OnClick = btnQuerySaveClick
+    end
+    object menuSaveAsSnippet: TMenuItem
+      Caption = 'Save as snippet ...'
+      ImageIndex = 88
+      OnClick = btnQuerySaveSnippetClick
+    end
+    object menuSaveSelectionAsSnippet: TMenuItem
+      Tag = 1
+      Caption = 'Save selection as snippet ...'
+      ImageIndex = 88
+      OnClick = btnQuerySaveSnippetClick
+    end
+    object N23: TMenuItem
       Caption = '-'
     end
   end

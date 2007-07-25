@@ -288,6 +288,12 @@ type
     btnDataSorting: TSpeedButton;
     spltQueryHelpers: TSplitter;
     menuRenameColumn: TMenuItem;
+    N22: TMenuItem;
+    N23: TMenuItem;
+    menuInsertFileAtCursor: TMenuItem;
+    menuSaveSelectionToFile: TMenuItem;
+    menuSaveAsSnippet: TMenuItem;
+    menuSaveSelectionAsSnippet: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
       var S: string);
@@ -475,6 +481,7 @@ type
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     function GetCalculatedLimit( Table: String ): Int64;
+    procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
 
     private
@@ -708,7 +715,8 @@ var
   i, j             : Integer;
   treenode         : TTreeNode;
   ds               : TDataSet;
-  mi               : TMenuItem;
+  miGroup,
+  miFunction      : TMenuItem;
   functioncats     : TStringList;
 begin
   QueryRunningInterlock := 0;
@@ -837,39 +845,39 @@ begin
   for i:=0 to functioncats.Count-1 do
   begin
     // Create a menu item which gets subitems later
-    mi := TMenuItem.Create(self);
-    mi.Caption := functioncats[i];
-    popupQuery.Items.add(mi);
+    miGroup := TMenuItem.Create(self);
+    miGroup.Caption := functioncats[i];
+    popupQuery.Items.add(miGroup);
     for j:=0 to Length(MySqlFunctions)-1 do
     begin
       if MySqlFunctions[j].Category <> functioncats[i] then
         continue;
-      mi := TMenuItem.Create(self);
-      mi.Caption := MySqlFunctions[j].Name;
-      mi.ImageIndex := 86;
+      miFunction := TMenuItem.Create(self);
+      miFunction.Caption := MySqlFunctions[j].Name;
+      miFunction.ImageIndex := 86;
       // Prevent generating a hotkey
-      mi.Caption := StringReplace(mi.Caption, '&', '&&', [rfReplaceAll]);
+      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
       // Prevent generating a seperator line
-      if mi.Caption = '-' then
-        mi.Caption := '&-';
-      mi.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
+      if miFunction.Caption = '-' then
+        miFunction.Caption := '&-';
+      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
       // Take care of needed server version
       if MySqlFunctions[j].Version <= mysql_version then
       begin
         if MySqlFunctions[j].Description <> '' then
-          mi.Hint := mi.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
-        mi.Tag := j;
+          miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+        miFunction.Tag := j;
         // Place menuitem on menu
-        mi.OnClick := insertFunction;
+        miFunction.OnClick := insertFunction;
       end
       else
       begin
-        mi.Hint := mi.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
-        mi.Enabled := False;
+        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
+        miFunction.Enabled := False;
       end;
       // Prevent generating a seperator for ShortHint and LongHint
-      mi.Hint := StringReplace( mi.Hint, '|', '¦', [rfReplaceAll] );
-      popupQuery.Items[i+13].Add(mi);
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miGroup.Add(miFunction);
     end;
   end;
 
@@ -2422,15 +2430,8 @@ begin
     btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
     menuSQLHelp.Enabled := btnSQLHelp.Enabled and FrmIsFocussed;
 
-    if FrmIsFocussed then
+    if not FrmIsFocussed then
     begin
-      menuLoad.OnClick := self.btnQueryLoadClick;
-      menuSave.OnClick := self.btnQuerySaveClick;
-    end
-    else
-    begin
-      menuLoad.OnClick := nil;
-      menuSave.OnClick := nil;
       MainForm.showstatus('', 1); // empty connected_time
     end;
     tabBlobEditor.tabVisible := inDataOrQueryTab;
@@ -3195,10 +3196,16 @@ begin
   PanelCharsInQueryWindow.Caption := FormatNumber( Length(SynMemoQuery.Text) ) + ' Characters';
   somechars := Length(SynMemoQuery.Text) > 0;
   Mainform.ExecuteQuery.Enabled := somechars;
-  Mainform.ExecuteSelection.Enabled := Length(SynMemoQuery.SelText) > 0;
+  Mainform.ExecuteSelection.Enabled := SynMemoQuery.SelAvail;
   Mainform.ExecuteLine.Enabled := SynMemoQuery.LineText <> '';
   btnQuerySave.Enabled := somechars;
   btnQuerySaveSnippet.Enabled := somechars;
+  // Inserting file at cursor only makes sense with content
+  menuInsertFileAtCursor.Enabled := somechars;
+  menusave.Enabled := somechars;
+  menuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
+  menuSaveAsSnippet.Enabled := somechars;
+  menuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
 end;
 
 
@@ -4429,7 +4436,12 @@ begin
     Screen.Cursor := crHourglass;
     AssignFile( sfile, snippetname );
     Rewrite( sfile );
-    Write( sfile, SynMemoQuery.Text );
+    // Save complete content or just the selected text,
+    // depending on the tag of calling control
+    case (Sender as TComponent).Tag of
+      0: Write( sfile, SynMemoQuery.Text );
+      1: Write( sfile, SynMemoQuery.SelText );
+    end;
     CloseFile( sfile );
     FillPopupQueryLoad;
     Screen.Cursor := crDefault;
@@ -4512,7 +4524,12 @@ begin
     Screen.Cursor := crHourGlass;
     AssignFile(f, SaveDialogSQLFile.FileName);
     Rewrite(f);
-    Write(f, SynMemoQuery.Text);
+    // Save complete content or just the selected text,
+    // depending on the tag of calling control
+    case (Sender as TComponent).Tag of
+      0: Write( f, SynMemoQuery.Text );
+      1: Write( f, SynMemoQuery.SelText );
+    end;
     CloseFile(f);
     Screen.Cursor := crDefault;
   end;
@@ -4546,6 +4563,18 @@ begin
   if OpenDialogSQLfile.Execute then
   begin
     QueryLoad( OpenDialogSQLfile.FileName );
+  end;
+end;
+
+
+{**
+  Insert SQL file at cursor
+}
+procedure TMDIChild.menuInsertFileAtCursorClick(Sender: TObject);
+begin
+  if OpenDialogSQLfile.Execute then
+  begin
+    QueryLoad( OpenDialogSQLfile.FileName, False );
   end;
 end;
 
