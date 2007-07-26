@@ -3206,6 +3206,7 @@ begin
   menuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
   menuSaveAsSnippet.Enabled := somechars;
   menuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
+  menuClear.Enabled := somechars;
 end;
 
 
@@ -4171,37 +4172,43 @@ begin
 end;
 
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
+var
+  NotInFilterMemo: Boolean;
 begin
   // Depending which SynMemo is focused, (de-)activate some menuitems
   // The popupQuery is used in both Filter- and Query-Memo
-  if SynMemoFilter.focused then
+  NotInFilterMemo := Not SynMemoFilter.Focused;
+
+  MenuSetFilter.Visible := Not NotInFilterMemo;
+
+  MenuRun.Visible := NotInFilterMemo;
+  MenuRunSelection.Visible := NotInFilterMemo;
+  MenuRunLine.Visible := NotInFilterMemo;
+
+  MenuCopy.Visible := NotInFilterMemo;
+  MenuPaste.Visible := NotInFilterMemo;
+
+  MenuFind.Visible := NotInFilterMemo;
+  MenuReplace.Visible := NotInFilterMemo;
+
+  MenuLoad.Visible := NotInFilterMemo;
+  MenuInsertFileAtCursor.Visible := NotInFilterMemo;
+  MenuSave.Visible := NotInFilterMemo;
+  MenuSaveSelectionToFile.Visible := NotInFilterMemo;
+  MenuSaveAsSnippet.Visible := NotInFilterMemo;
+  MenuSaveSelectionAsSnippet.Visible := NotInFilterMemo;
+
+  if NotInFilterMemo then
+  begin
+    MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
+    MenuSetFilter.ShortCut := TextToShortCut('');
+    // Ensure certain menuitems are en-/disabled
+    SynMemoQueryChange(Sender);
+  end
+  else
   begin
     MenuRun.ShortCut := TextToShortCut('');
     MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
-    MenuSetFilter.Visible := true;
-    MenuRun.Visible := false;
-    MenuRunSelection.Visible := false;
-    MenuRunLine.Visible := false;
-    MenuCopy.Visible := false;
-    MenuPaste.Visible := false;
-    MenuLoad.Visible := false;
-    MenuSave.Visible := false;
-    MenuFind.Visible := false;
-    MenuReplace.Visible := false;
-  end
-  else begin
-    MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
-    MenuSetFilter.ShortCut := TextToShortCut('');
-    MenuSetFilter.Visible := false;
-    MenuRun.Visible := true;
-    MenuRunSelection.Visible := true;
-    MenuRunLine.Visible := true;
-    MenuCopy.Visible := true;
-    MenuPaste.Visible := true;
-    MenuLoad.Visible := true;
-    MenuSave.Visible := true;
-    MenuFind.Visible := true;
-    MenuReplace.Visible := true;
   end;
 end;
 
