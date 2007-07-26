@@ -911,15 +911,14 @@ object MDIChild: TMDIChild
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 156
+              Left = 200
               Top = 1
-              Width = 116
+              Width = 72
               Height = 27
               Align = alRight
               Alignment = taRightJustify
               BevelOuter = bvNone
               BorderWidth = 2
-              Caption = '0 Characters'
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clBlack
               Font.Height = -11

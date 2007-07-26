@@ -3193,7 +3193,7 @@ end;
 procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
-  PanelCharsInQueryWindow.Caption := FormatNumber( Length(SynMemoQuery.Text) ) + ' Characters';
+  PanelCharsInQueryWindow.Caption := FormatByteNumber( SynMemoQuery.GetTextLen );
   somechars := Length(SynMemoQuery.Text) > 0;
   Mainform.ExecuteQuery.Enabled := somechars;
   Mainform.ExecuteSelection.Enabled := SynMemoQuery.SelAvail;
