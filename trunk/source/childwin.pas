@@ -3200,13 +3200,6 @@ begin
   Mainform.ExecuteLine.Enabled := SynMemoQuery.LineText <> '';
   btnQuerySave.Enabled := somechars;
   btnQuerySaveSnippet.Enabled := somechars;
-  // Inserting file at cursor only makes sense with content
-  menuInsertFileAtCursor.Enabled := somechars;
-  menusave.Enabled := somechars;
-  menuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
-  menuSaveAsSnippet.Enabled := somechars;
-  menuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
-  menuClear.Enabled := somechars;
 end;
 
 
@@ -4173,7 +4166,8 @@ end;
 
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
 var
-  NotInFilterMemo: Boolean;
+  NotInFilterMemo,
+  somechars         : Boolean;
 begin
   // Depending which SynMemo is focused, (de-)activate some menuitems
   // The popupQuery is used in both Filter- and Query-Memo
@@ -4200,16 +4194,23 @@ begin
 
   if NotInFilterMemo then
   begin
+    somechars := SynMemoQuery.GetTextLen > 0;
     MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
     MenuSetFilter.ShortCut := TextToShortCut('');
-    // Ensure certain menuitems are en-/disabled
-    SynMemoQueryChange(Sender);
+    // Inserting file at cursor only makes sense with content
+    MenuInsertFileAtCursor.Enabled := somechars;
+    Menusave.Enabled := somechars;
+    MenuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
+    MenuSaveAsSnippet.Enabled := somechars;
+    MenuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
   end
   else
   begin
+    somechars := SynMemoFilter.GetTextLen > 0;
     MenuRun.ShortCut := TextToShortCut('');
     MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
   end;
+  MenuClear.Enabled := somechars;
 end;
 
 procedure TMDIChild.popupResultGridPopup(Sender: TObject);
