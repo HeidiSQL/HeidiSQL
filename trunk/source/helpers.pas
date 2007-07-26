@@ -1919,11 +1919,11 @@ function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
 const
   KB = 1024;
 begin
-  if Bytes > KB *KB *KB then
+  if Bytes >= KB *KB *KB then
     Result := FormatNumber( Bytes / (KB *KB *KB), Decimals ) + ' GB'
-  else if Bytes > KB *KB then
+  else if Bytes >= KB *KB then
     Result := FormatNumber( Bytes / (KB *KB), Decimals ) + ' MB'
-  else if Bytes > KB then
+  else if Bytes >= KB then
     Result := FormatNumber( Bytes / KB, Decimals ) + ' KB'
   else
     Result := FormatNumber( Bytes ) + ' Bytes'
