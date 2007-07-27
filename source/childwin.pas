@@ -1225,18 +1225,16 @@ end;
 
 procedure TMDIChild.SelectHost;
 begin
+  if (not DBTree.Dragging) and (
+   (PageControlMain.ActivePage = tabDatabase) or
+   (PageControlMain.ActivePage = tabTable) or
+   (PageControlMain.ActivePage = tabData)
+  ) then PageControlMain.ActivePage := tabHost;
+
   tabDatabase.TabVisible := false;
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
-  if (
-   ( not DBTree.Dragging ) or
-   ( PageControlMain.ActivePage = tabDatabase ) or
-   ( PageControlMain.ActivePage = tabTable ) or
-   ( PageControlMain.ActivePage = tabData )
-  ) then
-  begin
-    PageControlMain.ActivePage := tabHost;
-  end;
+
   Caption := Description;
   ActualDatabase := '';
   ActualTable := '';
@@ -1245,17 +1243,15 @@ end;
 
 procedure TMDIChild.SelectDatabase(db: String);
 begin
+  if (not DBTree.Dragging) and (
+   (PageControlMain.ActivePage = tabTable) or
+   (PageControlMain.ActivePage = tabData)
+  ) then PageControlMain.ActivePage := tabDatabase;
+
   tabDatabase.TabVisible := true;
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
-  if (
-   ( not DBTree.Dragging ) or
-   ( PageControlMain.ActivePage = tabTable ) or
-   ( PageControlMain.ActivePage = tabData )
-  ) then
-  begin
-    PageControlMain.ActivePage := tabDatabase;
-  end;
+
   ListTables.Items.Clear();
   ListColumns.Items.Clear();
   pnlTableTop.Caption := 'Table-Properties';
@@ -1280,9 +1276,6 @@ end;
 
 procedure TMDIChild.SelectTable(db: String; table: String; switchView: boolean = true);
 begin
-  tabDatabase.TabVisible := true;
-  tabTable.TabVisible := true;
-  tabData.TabVisible := true;
   dataselected := false;
   ActualDatabase := db;
   ActualTable := table;
@@ -2126,8 +2119,15 @@ begin
 
   Screen.Cursor := crHourGlass;
 
-  if (PageControlMain.ActivePage <> tabData) and (not DBTree.Dragging) then
-    PageControlMain.ActivePage := tabTable;
+  if (not DBTree.Dragging) and (
+   (PageControlMain.ActivePage = tabHost) or
+   (PageControlMain.ActivePage = tabDatabase)
+  ) then PageControlMain.ActivePage := tabTable;
+
+  tabDatabase.TabVisible := true;
+  tabTable.TabVisible := true;
+  tabData.TabVisible := true;
+
   pnlTableTop.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
 
   // set current node in DBTree to ActualTable:
