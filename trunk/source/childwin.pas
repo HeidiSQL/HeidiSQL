@@ -446,13 +446,13 @@ type
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
     function GetNamedVar( SQLQuery: String; x: String;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
     function GetVar( SQLQuery: String; x: Integer = 0;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : String;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
     function GetResults( SQLQuery: String;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ): TDataSet;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ): TDataSet;
     function GetCol( SQLQuery: String; x: Integer = 0;
-      HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
     procedure Splitter2Moved(Sender: TObject);
@@ -528,9 +528,9 @@ type
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      function ExecUpdateQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): Int64;
-      function ExecSelectQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): TDataSet;
-      procedure ExecUseQuery(db: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true);
+      function ExecUpdateQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
+      function ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): TDataSet;
+      procedure ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TSMDBGrid read GetActiveGrid;
@@ -5027,7 +5027,7 @@ begin
 end;
 
 
-procedure TMDIChild.ExecUseQuery(db: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true);
+procedure TMDIChild.ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 begin
   FConn.MysqlParams.Database := db;
   ExecUpdateQuery('USE ' + mask(db), HandleErrors, DisplayErrors);
@@ -5040,7 +5040,7 @@ end;
 
   @param String The single SQL-query to be executed on the server
 }
-function TMDIChild.ExecUpdateQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): Int64;
+function TMDIChild.ExecUpdateQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
 var
   MysqlQuery : TMysqlQuery;
 begin
@@ -5081,7 +5081,7 @@ end;
   @param String The single SQL-query to be executed on the server
   @return TMysqlQuery Containing the dataset and info data availability
 }
-function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = true; DisplayErrors: boolean = true): TDataSet;
+function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): TDataSet;
 var
   res: TMysqlQuery;
 begin
@@ -5110,7 +5110,7 @@ end;
 {***
   Executes a query.
 }
-function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ): TDataSet;
+function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ): TDataSet;
 begin
   result := ExecSelectQuery(SQLQuery, HandleErrors, DisplayErrors);
 end;
@@ -5119,7 +5119,7 @@ end;
 {***
   Execute a query and return String from column x
 }
-function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true) : String;
+function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
 var
   ds: TDataSet;
 begin
@@ -5130,7 +5130,7 @@ begin
 end;
 
 
-function TMDIChild.GetNamedVar( SQLQuery: String; x: String; HandleErrors: Boolean = true; DisplayErrors: Boolean = true) : String;
+function TMDIChild.GetNamedVar( SQLQuery: String; x: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
 var
   ds: TDataSet;
 begin
@@ -5165,7 +5165,7 @@ end;
   @param  Integer 0-based column index in the resultset to return
   @return TStringList
 }
-function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = true; DisplayErrors: Boolean = true ) : TStringList;
+function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
 var
   i: Integer;
   ds: TDataSet;
