@@ -4454,7 +4454,6 @@ begin
     FillPopupQueryLoad;
     Screen.Cursor := crDefault;
   end;
-
 end;
 
 procedure TMDIChild.CallSQLHelp(Sender: TObject);
@@ -4717,22 +4716,21 @@ var
   i, j                       : Integer;
   menuitem, snippetsfolder   : TMenuItem;
   snippets                   : TStringList;
-  sqlFilename, s             : String;
+  sqlFilename                : String;
 begin
   // Fill the popupQueryLoad menu
 
   popupQueryLoad.Items.Clear;
 
   // Snippets
-  snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql' );
+  snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
   snippetsfolder := TMenuItem.Create( popupQueryLoad );
   snippetsfolder.Caption := 'Snippets';
   popupQueryLoad.Items.Add(snippetsfolder);
   for i := 0 to snippets.Count - 1 do
   begin
-    s := Copy(snippets[i], 1, Length(snippets[i]) - 4);
     menuitem := TMenuItem.Create( snippetsfolder );
-    menuitem.Caption := s;
+    menuitem.Caption := snippets[i];
     menuitem.OnClick := popupQueryLoadClick;
     snippetsfolder.Add(menuitem);
   end;
