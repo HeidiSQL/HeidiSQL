@@ -294,6 +294,9 @@ type
     menuSaveSelectionToFile: TMenuItem;
     menuSaveAsSnippet: TMenuItem;
     menuSaveSelectionAsSnippet: TMenuItem;
+    popupQueryHelpers: TPopupMenu;
+    menuDeleteSnippet: TMenuItem;
+    menuHelp: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
       var S: string);
@@ -480,6 +483,7 @@ type
     procedure ExecuteNonQuery(SQLQuery: String);
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
+    procedure menuDeleteSnippetClick(Sender: TObject);
     function GetCalculatedLimit( Table: String ): Int64;
     procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
@@ -5638,6 +5642,9 @@ begin
   lboxQueryHelpers.Items.Clear;
   // By default sorted alpabetically
   lboxQueryHelpers.Sorted := True;
+  // By default disable all items in popupmenu, enable them when needed
+  menuDeleteSnippet.Enabled := False;
+  menuHelp.Enabled := False;
 
   case NewTab of
     0: // Cols
@@ -5652,6 +5659,8 @@ begin
 
     1: // SQL functions
     begin
+      // State of items in popupmenu
+      menuHelp.Enabled := True;
       for i := 0 to Length(MySQLFunctions) - 1 do
       begin
         // Don't display unsupported functions here
@@ -5663,11 +5672,15 @@ begin
 
     2: // SQL keywords
     begin
+      // State of items in popupmenu
+      menuHelp.Enabled := True;
       lboxQueryHelpers.Items := MYSQL_KEYWORDS;
     end;
 
     3: // SQL Snippets
     begin
+      // State of items in popupmenu
+      menuDeleteSnippet.Enabled := True;
       lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
     end;
 
@@ -5802,6 +5815,38 @@ begin
       MessageDlg( E.Message, mtError, [mbOK], 0 );
       abort;
     end;
+  end;
+end;
+
+
+{**
+  Delete a snippet file
+}
+procedure TMDIChild.menuDeleteSnippetClick(Sender: TObject);
+var
+  snippetfile : String;
+  mayChange : Boolean;
+begin
+  // Don't do anything if no item was selected
+  if lboxQueryHelpers.ItemIndex = -1 then
+    abort;
+
+  snippetfile := DIRNAME_SNIPPETS + lboxQueryHelpers.Items[ lboxQueryHelpers.ItemIndex ] + '.sql';
+  if MessageDlg( 'Delete snippet file? ' + CRLF + snippetfile, mtConfirmation, [mbOk, mbCancel], 0) = mrOk then
+  begin
+    Screen.Cursor := crHourGlass;
+    if DeleteFile( snippetfile ) then
+    begin
+      // Refresh list with snippets
+      mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
+      tabsetQueryHelpersChange( Sender, tabsetQueryHelpers.TabIndex, mayChange );
+    end
+    else
+    begin
+      Screen.Cursor := crDefault;
+      MessageDlg( 'Failed deleting ' + snippetfile, mtError, [mbOK], 0 );
+    end;
+    Screen.Cursor := crDefault;
   end;
 end;
 

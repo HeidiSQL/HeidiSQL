@@ -1038,6 +1038,7 @@ object MDIChild: TMDIChild
                 Align = alClient
                 DragMode = dmAutomatic
                 ItemHeight = 13
+                PopupMenu = popupQueryHelpers
                 TabOrder = 1
                 OnClick = lboxQueryHelpersClick
                 OnDblClick = lboxQueryHelpersDblClick
@@ -2236,6 +2237,24 @@ object MDIChild: TMDIChild
     end
     object N23: TMenuItem
       Caption = '-'
+    end
+  end
+  object popupQueryHelpers: TPopupMenu
+    Images = MainForm.ImageList1
+    Left = 168
+    Top = 80
+    object menuDeleteSnippet: TMenuItem
+      Caption = 'Delete ...'
+      Enabled = False
+      ImageIndex = 23
+      ShortCut = 46
+      OnClick = menuDeleteSnippetClick
+    end
+    object menuHelp: TMenuItem
+      Caption = 'Help'
+      ImageIndex = 96
+      ShortCut = 112
+      OnClick = CallSQLHelp
     end
   end
 end
