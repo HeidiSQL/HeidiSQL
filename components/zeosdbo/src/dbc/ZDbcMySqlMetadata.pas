@@ -820,10 +820,10 @@ begin
       is always the case. Except for those Zeos-internal queries
       which partly use "information_schema" as catalog.
     }
-    if Catalog <> '' then
+    if LCatalog <> '' then
     begin
       sql := Format('SHOW TABLES FROM %s LIKE ''%s''',
-        [GetIdentifierConvertor.Quote(Catalog), EncodeCString(LTableNamePattern)]);
+        [GetIdentifierConvertor.Quote(LCatalog), EncodeCString(LTableNamePattern)]);
     end
     else
     begin
