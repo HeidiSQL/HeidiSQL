@@ -52,7 +52,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
   function GetShellFolder(CSIDL: integer): string;
-  function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
+  function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
   function FormatNumber( str: String ): String; Overload;
   function FormatNumber( int: Int64 ): String; Overload;
@@ -1507,9 +1507,10 @@ end;
   @param string Filepattern to filter files, defaults to all files (*.*)
   @return TStringList Filenames
 }
-function getFilesFromDir( dir: String; pattern: String = '*.*' ): TStringList;
+function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
 var
   sr : TSearchRec;
+  s : String;
 begin
   result := TStringList.Create;
   if dir[length(dir)] <> '\' then
@@ -1517,8 +1518,13 @@ begin
   if FindFirst( dir + pattern, $3F, sr ) = 0 then
   begin
     repeat
-      if (sr.Attr and faAnyFile) > 0 then
-        result.Add( sr.Name );
+      if (sr.Attr and faAnyFile) > 0 then begin
+        s := sr.Name;
+        if hideExt and (Pos('.', s) > 0) then begin
+          SetLength(s, Pos('.', s) - 1);
+        end;
+        result.Add( s );
+      end;
     until FindNext( sr ) <> 0;
     // FindClose( sr );
   end;
