@@ -1829,7 +1829,7 @@ begin
   if ActualDatabase = '' then Exit;
   if (FMysqlConn.Connection.Database <> ActualDatabase) or UserQueryFired then begin
     FMysqlConn.Connection.Database := ActualDatabase;
-    ExecUseQuery(ActualDatabase);
+    ExecUseQuery(ActualDatabase, false, false);
     UserQueryFired := false;
   end;
 end;
