@@ -4428,6 +4428,7 @@ procedure TMDIChild.btnQuerySaveSnippetClick(Sender: TObject);
 var
   snippetname : String;
   sfile       : Textfile;
+  mayChange   : Boolean;
 begin
   // Save snippet
   if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
@@ -4452,6 +4453,11 @@ begin
     end;
     CloseFile( sfile );
     FillPopupQueryLoad;
+    if tabsetQueryHelpers.TabIndex = 3 then begin
+      // SQL Snippets selected in query helper, refresh list
+      mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
+      tabsetQueryHelpersChange(Sender, 3, mayChange);
+    end;
     Screen.Cursor := crDefault;
   end;
 end;
