@@ -4344,7 +4344,7 @@ begin
     Text := (src as TListBox).Items[(src as TListBox).ItemIndex];
     if tabsetQueryHelpers.TabIndex = 3 then
     begin
-      QueryLoad( DIRNAME_SNIPPETS + Text, False );
+      QueryLoad( DIRNAME_SNIPPETS + Text + '.sql', False );
       LoadText := False;
     end;
   end;
@@ -4553,7 +4553,7 @@ begin
   filename := (Sender as TMenuItem).Caption;
   if Pos( '\', filename ) = 0 then
   begin // assuming we load a snippet
-    filename := DIRNAME_SNIPPETS + filename;
+    filename := DIRNAME_SNIPPETS + filename + '.sql';
   end
   else
   begin // assuming we load a file from the recent-list
@@ -4717,7 +4717,7 @@ var
   i, j                       : Integer;
   menuitem, snippetsfolder   : TMenuItem;
   snippets                   : TStringList;
-  sqlFilename                : String;
+  sqlFilename, s             : String;
 begin
   // Fill the popupQueryLoad menu
 
@@ -4730,8 +4730,9 @@ begin
   popupQueryLoad.Items.Add(snippetsfolder);
   for i := 0 to snippets.Count - 1 do
   begin
+    s := Copy(snippets[i], 1, Length(snippets[i]) - 4);
     menuitem := TMenuItem.Create( snippetsfolder );
-    menuitem.Caption := snippets[i];
+    menuitem.Caption := s;
     menuitem.OnClick := popupQueryLoadClick;
     snippetsfolder.Add(menuitem);
   end;
@@ -5663,7 +5664,7 @@ begin
 
     3: // SQL Snippets
     begin
-      lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql' );
+      lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
     end;
 
   end;
@@ -5693,7 +5694,7 @@ begin
 
   case tabsetQueryHelpers.TabIndex of
     3: // Load snippet file ínto query-memo
-      QueryLoad( DIRNAME_SNIPPETS + itemtext, False );
+      QueryLoad( DIRNAME_SNIPPETS + itemtext + '.sql', False );
     else // For all other tabs just insert the item from the list
       SynMemoQuery.SelText := itemtext;
   end;
