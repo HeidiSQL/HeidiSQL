@@ -14,12 +14,12 @@ uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL, SynEditSearch,
-  SynEditTypes, Registry, Spin, Clipbrd, Shellapi,
+  SynEditTypes, Registry, Clipbrd,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
   DBCtrls, helpers,
-  Grids, messages, Mask, ZDataset,
+  Grids, ZDataset,
   ZAbstractRODataset, ZConnection,
-  ZSqlMonitor, ZPlainMySqlDriver, EDBImage, ZAbstractDataset, ZDbcLogging,
+  ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs;
 
