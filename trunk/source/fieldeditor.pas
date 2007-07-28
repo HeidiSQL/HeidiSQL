@@ -52,7 +52,7 @@ type
     CheckBoxFulltext: TCheckBox;
     btnAddAllColumnsToIndex: TBitBtn;
     btnDeleteAllColumnsFromIndex: TBitBtn;
-    btnDatatypeHelp: TSpeedButton;
+    btnDatatypeHelp: TButton;
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
