@@ -73,6 +73,7 @@ object FieldEditForm: TFieldEditForm
         Height = 21
         Hint = 'Help on selected datatype'
         Caption = '?'
+        TabOrder = 6
         OnClick = btnDatatypeHelpClick
       end
       object EditDefault: TEdit
