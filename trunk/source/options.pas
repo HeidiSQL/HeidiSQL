@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Spin, Registry, ExtCtrls, DBGrids;
+  StdCtrls, ComCtrls, Registry, ExtCtrls, DBGrids;
 
 type
   Toptionsform = class(TForm)

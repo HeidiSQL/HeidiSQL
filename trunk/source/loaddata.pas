@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, comctrls, Spin, Buttons, CheckLst, Registry;
+  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry;
 
 type
   Tloaddataform = class(TForm)
