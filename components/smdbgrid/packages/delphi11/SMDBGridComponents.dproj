@@ -42,12 +42,12 @@
     <DelphiCompile Include="SMDBGridComponents.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\bdertl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\dbrtl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\vcl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\vcldb.dcp" />
     <DCCReference Include="..\..\source\RXUtils.pas" />
     <DCCReference Include="..\..\source\SMCnst.pas" />
     <DCCReference Include="..\..\source\SMDBGrid.pas" />
+    <DCCReference Include="bdertl.dcp" />
+    <DCCReference Include="dbrtl.dcp" />
+    <DCCReference Include="vcl.dcp" />
+    <DCCReference Include="vcldb.dcp" />
   </ItemGroup>
 </Project>

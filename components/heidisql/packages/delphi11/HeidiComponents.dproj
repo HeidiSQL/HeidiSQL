@@ -42,8 +42,13 @@
     <DelphiCompile Include="HeidiComponents.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\source\dbrtl.dcp" />
-    <DCCReference Include="..\..\..\..\source\vcl.dcp" />
     <DCCReference Include="..\..\source\heidicomp.pas" />
+    <DCCReference Include="dbrtl.dcp" />
+    <DCCReference Include="vcl.dcp" />
+    <DCCReference Include="ZComponent.dcp" />
+    <DCCReference Include="ZCore.dcp" />
+    <DCCReference Include="ZDbc.dcp" />
+    <DCCReference Include="ZParseSql.dcp" />
+    <DCCReference Include="ZPlain.dcp" />
   </ItemGroup>
 </Project>

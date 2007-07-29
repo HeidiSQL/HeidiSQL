@@ -50,9 +50,6 @@
     <DelphiCompile Include="ZPlain.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\rtl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\vcl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZCore.dcp" />
     <DCCReference Include="..\..\src\plain\ZPlainAdo.pas" />
     <DCCReference Include="..\..\src\plain\ZPlainAdoDriver.pas" />
     <DCCReference Include="..\..\src\plain\ZPlainASA7.pas" />
@@ -89,5 +86,8 @@
     <DCCReference Include="..\..\src\plain\ZPlainSqLite28.pas" />
     <DCCReference Include="..\..\src\plain\ZPlainSqLite3.pas" />
     <DCCReference Include="..\..\src\plain\ZPlainSqLiteDriver.pas" />
+    <DCCReference Include="rtl.dcp" />
+    <DCCReference Include="vcl.dcp" />
+    <DCCReference Include="ZCore.dcp" />
   </ItemGroup>
 </Project>

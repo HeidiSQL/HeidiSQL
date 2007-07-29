@@ -44,10 +44,10 @@
     <DelphiCompile Include="SynEditD.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\designide.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\SynEditR.dcp" />
     <DCCReference Include="..\..\Source\SynEditPropertyReg.pas" />
     <DCCReference Include="..\..\Source\SynEditReg.pas" />
     <DCCReference Include="..\..\Source\SynHighlighterManager.pas" />
+    <DCCReference Include="designide.dcp" />
+    <DCCReference Include="SynEditR.dcp" />
   </ItemGroup>
 </Project>
