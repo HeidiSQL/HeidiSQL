@@ -46,7 +46,6 @@
     <DelphiCompile Include="ZParseSql.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZCore.dcp" />
     <DCCReference Include="..\..\src\parsesql\ZGenericSqlAnalyser.pas" />
     <DCCReference Include="..\..\src\parsesql\ZGenericSqlToken.pas" />
     <DCCReference Include="..\..\src\parsesql\ZInterbaseAnalyser.pas" />
@@ -63,5 +62,6 @@
     <DCCReference Include="..\..\src\parsesql\ZSqLiteToken.pas" />
     <DCCReference Include="..\..\src\parsesql\ZSybaseAnalyser.pas" />
     <DCCReference Include="..\..\src\parsesql\ZSybaseToken.pas" />
+    <DCCReference Include="ZCore.dcp" />
   </ItemGroup>
 </Project>

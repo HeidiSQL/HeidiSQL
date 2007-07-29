@@ -46,13 +46,6 @@
     <DelphiCompile Include="ZComponentDesign.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\dbrtl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\designide.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZComponent.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZCore.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZDbc.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZParseSql.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZPlain.dcp" />
     <DCCReference Include="..\..\src\component\ZComponent.dcr" />
     <DCCReference Include="..\..\src\component\ZComponent.dcr" />
     <DCCReference Include="..\..\src\component\ZComponentReg.pas" />
@@ -60,5 +53,12 @@
     <DCCReference Include="..\..\src\component\ZUpdateSqlEditor.pas">
       <Form>ZUpdateSQLEditForm</Form>
     </DCCReference>
+    <DCCReference Include="dbrtl.dcp" />
+    <DCCReference Include="designide.dcp" />
+    <DCCReference Include="ZComponent.dcp" />
+    <DCCReference Include="ZCore.dcp" />
+    <DCCReference Include="ZDbc.dcp" />
+    <DCCReference Include="ZParseSql.dcp" />
+    <DCCReference Include="ZPlain.dcp" />
   </ItemGroup>
 </Project>

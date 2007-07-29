@@ -46,9 +46,6 @@
     <DelphiCompile Include="ZDbc.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\rtl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZParseSql.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZPlain.dcp" />
     <DCCReference Include="..\..\src\dbc\ZDbcAdo.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcAdoMetadata.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcAdoResultSet.pas" />
@@ -101,5 +98,8 @@
     <DCCReference Include="..\..\src\dbc\ZDbcSqLiteUtils.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcStatement.pas" />
     <DCCReference Include="..\..\src\dbc\ZDbcUtils.pas" />
+    <DCCReference Include="rtl.dcp" />
+    <DCCReference Include="ZParseSql.dcp" />
+    <DCCReference Include="ZPlain.dcp" />
   </ItemGroup>
 </Project>

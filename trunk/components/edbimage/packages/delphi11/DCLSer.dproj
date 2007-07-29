@@ -51,8 +51,8 @@
     <DelphiCompile Include="DCLSer.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\designide.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\VCLSer.dcp" />
     <DCCReference Include="..\..\source\uSerREG.pas" />
+    <DCCReference Include="designide.dcp" />
+    <DCCReference Include="VCLSer.dcp" />
   </ItemGroup>
 </Project>

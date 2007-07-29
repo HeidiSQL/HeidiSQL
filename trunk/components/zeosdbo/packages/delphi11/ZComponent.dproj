@@ -46,14 +46,6 @@
     <DelphiCompile Include="ZComponent.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\..\..\packages\delphi11\dbrtl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\rtl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\vcl.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\vclactnband.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZCore.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZDbc.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZParseSql.dcp" />
-    <DCCReference Include="..\..\..\..\packages\delphi11\ZPlain.dcp" />
     <DCCReference Include="..\..\src\component\ZAbstractDataset.pas" />
     <DCCReference Include="..\..\src\component\ZAbstractRODataset.pas" />
     <DCCReference Include="..\..\src\component\ZAbstractTable.pas" />
@@ -68,5 +60,13 @@
     <DCCReference Include="..\..\src\component\ZSqlUpdate.pas" />
     <DCCReference Include="..\..\src\component\ZStoredProcedure.pas" />
     <DCCReference Include="..\..\src\component\ZStreamBlob.pas" />
+    <DCCReference Include="dbrtl.dcp" />
+    <DCCReference Include="rtl.dcp" />
+    <DCCReference Include="vcl.dcp" />
+    <DCCReference Include="vclactnband.dcp" />
+    <DCCReference Include="ZCore.dcp" />
+    <DCCReference Include="ZDbc.dcp" />
+    <DCCReference Include="ZParseSql.dcp" />
+    <DCCReference Include="ZPlain.dcp" />
   </ItemGroup>
 </Project>
