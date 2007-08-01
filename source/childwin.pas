@@ -2943,26 +2943,20 @@ end;
 
 procedure TMDIChild.ListColumnsSelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
+var
+  SomeSelected: Boolean;
 begin
   // Clicked somewhere in the field-list of the "Table"-tabsheet
 
   // some columns selected ?
-  if ListColumns.Selected <> nil then with ListColumns.Selected do
-  begin
-    btnTableDropField.Enabled := True;
-    DropField1.Enabled := True;
-    MenuEditField.Enabled := true;
-    btnTableEditField.enabled := true;
-    menuRenameColumn.Enabled := True;
-  end
-  else
-  begin
-    btnTableDropField.Enabled := False;
-    DropField1.Enabled := false;
-    MenuEditField.Enabled := false;
-    btnTableEditField.enabled := false;
-    menuRenameColumn.Enabled := False;
-  end;
+  SomeSelected := ListColumns.Selected <> nil;
+
+  // Toggle state of menuitems and buttons
+  btnTableDropField.Enabled := SomeSelected;
+  DropField1.Enabled := SomeSelected;
+  MenuEditField.Enabled := SomeSelected;
+  btnTableEditField.enabled := SomeSelected;
+  menuRenameColumn.Enabled := SomeSelected;
 end;
 
 
