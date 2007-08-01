@@ -5877,6 +5877,7 @@ begin
       // Refresh list with snippets
       mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
       tabsetQueryHelpersChange( Sender, tabsetQueryHelpers.TabIndex, mayChange );
+      FillPopupQueryLoad;
     end
     else
     begin
