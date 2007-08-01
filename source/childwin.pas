@@ -2953,6 +2953,7 @@ begin
     DropField1.Enabled := True;
     MenuEditField.Enabled := true;
     btnTableEditField.enabled := true;
+    menuRenameColumn.Enabled := True;
   end
   else
   begin
@@ -2960,6 +2961,7 @@ begin
     DropField1.Enabled := false;
     MenuEditField.Enabled := false;
     btnTableEditField.enabled := false;
+    menuRenameColumn.Enabled := False;
   end;
 end;
 
