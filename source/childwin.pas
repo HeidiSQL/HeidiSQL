@@ -2967,12 +2967,24 @@ end;
 procedure TMDIChild.DropField(Sender: TObject);
 var
   tn : TTreeNode;
-  selectedField: Integer;
+  i, j: Integer;
+  dropCmd : String;
+  dropList : TStringList;
 begin
-  // Drop Column
-  if ListColumns.Items.Count = 1 then
+  // Drop Columns
+
+  // We allow the user to select and delete multiple listItems
+  dropList := TStringList.Create;
+  for i := 0 to ListColumns.Items.Count - 1 do
   begin
-    if MessageDlg('Can''t drop the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+    if ListColumns.Items[i].Selected then
+      dropList.Add(ListColumns.Items[i].Caption);
+  end;
+
+  // In case all listItems are selected:
+  if dropList.Count = ListColumns.Items.Count then
+  begin
+    if MessageDlg('Can''t drop all or the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
       Screen.Cursor := crSQLWait;
       ExecUpdateQuery( 'DROP TABLE '+mask(ActualTable) );
@@ -2984,16 +2996,33 @@ begin
       Screen.Cursor := crDefault;
     end;
   end else
-  if MessageDlg('Drop field ' + ListColumns.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  if MessageDlg('Drop ' + IntToStr(dropList.Count) + ' field(s): ' + ImplodeStr( ', ', dropList ) + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   try
-    ExecUpdateQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(ListColumns.Selected.Caption) );
-    // Rely on the server respective ExecUpdateQuery raising an exception on an error
-    selectedField := ListColumns.Selected.Index;
-    ListColumns.Selected.Delete;
-    // Set focus on next available field
-    if selectedField = ListColumns.Items.Count then
-      dec(selectedField);
-    ListColumns.Selected := ListColumns.Items[selectedField];
+    // Concat fields for ALTER query
+    for i := 0 to dropList.Count - 1 do
+      dropCmd := dropCmd + 'DROP ' + mask(dropList[i]) + ', ';
+    // Remove trailing comma
+    delete(dropCmd, Length(dropCmd)-1, 2);
+
+    // Execute field dropping
+    ExecUpdateQuery( 'ALTER TABLE '+mask(ActualTable)+' ' + dropCmd );
+
+    // Rely on the server respective ExecUpdateQuery has raised an exception so the
+    // following code will be skipped on any error
+    for i := ListColumns.Items.Count - 1 downto 0 do
+    begin
+      for j := 0 to dropList.Count - 1 do
+      begin
+        if dropList[j] = ListColumns.Items[i].Caption then
+        begin
+          ListColumns.Items[i].Delete;
+          break;
+        end;
+      end;
+    end;
+
+    // Set focus on automatically focused item
+    ListColumns.Selected := ListColumns.ItemFocused;
   except
     On E : Exception do
     begin

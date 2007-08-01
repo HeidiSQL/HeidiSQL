@@ -560,6 +560,7 @@ object MDIChild: TMDIChild
                   Width = 200
                 end>
               GridLines = True
+              MultiSelect = True
               RowSelect = True
               PopupMenu = popupTableGrid
               SmallImages = MainForm.ImageList1
@@ -1698,8 +1699,8 @@ object MDIChild: TMDIChild
       OnClick = MenuAddFieldClick
     end
     object DropField1: TMenuItem
-      Caption = 'Drop Field...'
-      Hint = 'Delete Field from Table'
+      Caption = 'Drop Field(s)...'
+      Hint = 'Delete Field(s) from Table'
       ImageIndex = 33
       ShortCut = 16430
       OnClick = DropField
