@@ -2967,6 +2967,7 @@ end;
 procedure TMDIChild.DropField(Sender: TObject);
 var
   tn : TTreeNode;
+  selectedField: Integer;
 begin
   // Drop Column
   if ListColumns.Items.Count = 1 then
@@ -2984,9 +2985,20 @@ begin
     end;
   end else
   if MessageDlg('Drop field ' + ListColumns.Selected.Caption + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
-  begin
+  try
     ExecUpdateQuery( 'ALTER TABLE '+mask(ActualTable)+' DROP '+mask(ListColumns.Selected.Caption) );
-    ShowTableProperties(self);
+    // Rely on the server respective ExecUpdateQuery raising an exception on an error
+    selectedField := ListColumns.Selected.Index;
+    ListColumns.Selected.Delete;
+    // Set focus on next available field
+    if selectedField = ListColumns.Items.Count then
+      dec(selectedField);
+    ListColumns.Selected := ListColumns.Items[selectedField];
+  except
+    On E : Exception do
+    begin
+      MessageDlg( E.Message, mtError, [mbOK], 0 );
+    end;
   end;
 end;
 
