@@ -262,8 +262,7 @@ begin
       ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver,
         FieldHandle, FieldFlags);
       ColumnDisplaySize := FPlainDriver.GetFieldLength(FieldHandle);
-      Precision := Max(FPlainDriver.GetFieldMaxLength(FieldHandle),
-        FPlainDriver.GetFieldLength(FieldHandle));
+      Precision := FPlainDriver.GetFieldMaxLength(FieldHandle);
       Scale := FPlainDriver.GetFieldDecimals(FieldHandle);
       if (AUTO_INCREMENT_FLAG and FieldFlags <> 0)
         or (TIMESTAMP_FLAG and FieldFlags <> 0) then
