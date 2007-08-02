@@ -35,7 +35,7 @@ type
     CheckBoxNotNull: TCheckBox;
     CheckBoxAutoIncrement: TCheckBox;
     tabIndexes: TTabSheet;
-    ComboBoxKeys: TComboBox;
+    ComboBoxKeys: TComboBoxEx;
     lblIndexName: TLabel;
     CheckBoxUnique: TCheckBox;
     ButtonAdd: TButton;
@@ -75,8 +75,6 @@ type
     procedure btnAddAllColumnsToIndexClick(Sender: TObject);
     procedure btnDeleteAllColumnsFromIndexClick(Sender: TObject);
     procedure togglebuttons(Sender: TObject);
-    procedure ComboBoxKeysDrawItem(Control: TWinControl; Index: Integer;
-      Rect: TRect; State: TOwnerDrawState);
   private
     { Private declarations }
     TempKeys : TStringList;
@@ -549,8 +547,8 @@ begin
       CheckBoxFulltext.OnClick := nil;
       CheckBoxFulltext.Checked := Fulltext;
       CheckBoxFulltext.OnClick := CheckBoxFulltextClick;
-      CheckBoxUnique.Enabled := not (ComboBoxKeys.Text = 'PRIMARY');
-      CheckBoxFulltext.Enabled := not (ComboBoxKeys.Text = 'PRIMARY');
+      CheckBoxUnique.Enabled := not (ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].Caption = 'PRIMARY');
+      CheckBoxFulltext.Enabled := not (ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].Caption = 'PRIMARY');
       ButtonDelete.Enabled := true;
       listColumnsUsed.Enabled := true;
       listColumnsAvailable.Enabled := true;
@@ -593,7 +591,7 @@ var i,j : Integer;
 begin
   i := ComboBoxKeys.ItemIndex;
   if i > -1 then
-  if MessageDlg('Delete Index ''' + ComboBoxKeys.Text + ''' ?',
+  if MessageDlg('Delete Index ''' + ComboBoxKeys.Items[ComboBoxKeys.ItemIndex] + ''' ?',
     mtConfirmation, [mbYes,mbCancel], 0) = mrYes then begin
     inc(i); // jump to next entry after the one to delete!
     for j:=i to length(klist)-1 do
@@ -628,9 +626,9 @@ end;
 }
 procedure TFieldEditForm.ShowKeys(index: Integer=0);
 var
-  i : Integer;
+  i, icon : Integer;
 begin
-  ComboBoxKeys.Items.Clear;
+  ComboBoxKeys.ItemsEx.Clear;
   ButtonAddPrimary.Enabled := true;
   ButtonDelete.Enabled := false;
   listColumnsUsed.Enabled := false;
@@ -638,7 +636,17 @@ begin
   btnAddColumnToIndex.Enabled := false;
   btnDeleteColumnFromIndex.Enabled := false;
   for i:=0 to length(klist)-1 do
-    ComboBoxKeys.Items.Add(klist[i].Name);
+  begin
+    if (klist[i].Unique) and (klist[i].Name <> 'PRIMARY') then
+      icon := ICONINDEX_UNIQUEKEY
+    else if klist[i].Fulltext then
+      icon := ICONINDEX_FULLTEXTKEY
+    else if klist[i].Name = 'PRIMARY' then
+      icon := ICONINDEX_PRIMARYKEY
+    else
+      icon := ICONINDEX_INDEXKEY;
+    ComboBoxKeys.ItemsEx.AddItem( klist[i].Name, icon, icon, -1, 0, nil);
+  end;
 
   if ComboBoxKeys.Items.IndexOf('PRIMARY') > -1 then
     ButtonAddPrimary.Enabled := false;
@@ -671,6 +679,12 @@ begin
   if CheckBoxUnique.Checked then begin
     klist[ComboBoxKeys.ItemIndex].Fulltext := false;
     CheckBoxFulltext.Checked := false;
+    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_UNIQUEKEY;
+  end
+  else
+  begin
+    // Not unique, not fulltext
+    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_INDEXKEY;
   end;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
 end;
@@ -686,6 +700,12 @@ begin
   if CheckBoxFulltext.Checked then begin
     klist[ComboBoxKeys.ItemIndex].Unique := false;
     CheckBoxUnique.Checked := false;
+    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_FULLTEXTKEY;
+  end
+  else
+  begin
+    // Not unique, not fulltext
+    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_INDEXKEY;
   end;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
 end;
@@ -903,37 +923,6 @@ begin
   btnAddAllColumnsToIndex.Enabled := (listColumnsAvailable.Items.Count > 0);
   btnDeleteAllColumnsFromIndex.Enabled := (listColumnsUsed.Items.Count > 0);
   ValidateControls;
-end;
-
-
-
-{***
-  Add square-icon to index-names in combobox
-  @todo: use Delphi's built-in TComboBox with icon-support
-}
-procedure TFieldEditForm.ComboBoxKeysDrawItem(Control: TWinControl;
-  Index: Integer; Rect: TRect; State: TOwnerDrawState);
-var
-  icon : Integer;
-  c : tComboBox;
-begin
-  c := (Control as TComboBox);
-  with c.Canvas do
-    begin
-      Brush.Color := clWindow;
-      FillRect(rect);
-      if (klist[index].Unique) and (klist[index].Name <> 'PRIMARY') then
-        icon := 64
-      else if klist[index].Fulltext then
-        icon := 65
-      else if klist[index].Name = 'PRIMARY' then
-        icon := 26
-      else
-        icon := 63;
-      Mainform.ImageList1.Draw(c.canvas, Rect.Left, Rect.Top, Icon);
-      Font.Color := clWindowText;
-      TextOut(Rect.Left + 18, Rect.Top, c.Items[Index]);
-    end;
 end;
 
 

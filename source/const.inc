@@ -41,3 +41,9 @@ const
   // this value should probably be user configurable
   LOAD_SIZE = 5*1024*1024;
 
+  // Various iconindexes
+  ICONINDEX_PRIMARYKEY = 26;
+  ICONINDEX_INDEXKEY = 63;
+  ICONINDEX_UNIQUEKEY = 64;
+  ICONINDEX_FULLTEXTKEY = 65;
+
