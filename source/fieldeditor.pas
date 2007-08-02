@@ -90,9 +90,6 @@ type
 
   function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
 
-var
-  FieldEditForm: TFieldEditForm;
-
 {$I const.inc}
 
 implementation
