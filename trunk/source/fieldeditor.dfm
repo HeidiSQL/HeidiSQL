@@ -191,16 +191,17 @@ object FieldEditForm: TFieldEditForm
         Height = 13
         Caption = 'Available Columns:'
       end
-      object ComboBoxKeys: TComboBox
+      object ComboBoxKeys: TComboBoxEx
         Left = 72
         Top = 8
         Width = 209
         Height = 22
-        Style = csOwnerDrawFixed
+        ItemsEx = <>
+        Style = csExDropDownList
         ItemHeight = 16
         TabOrder = 0
         OnChange = ComboBoxKeysChange
-        OnDrawItem = ComboBoxKeysDrawItem
+        Images = MainForm.ImageList1
       end
       object CheckBoxUnique: TCheckBox
         Left = 8
