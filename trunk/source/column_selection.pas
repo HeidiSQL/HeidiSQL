@@ -24,7 +24,6 @@ type
   end;
 
 var
-  ColumnSelectionForm: TColumnSelectionForm;
   reg_name : String;
 
 implementation
