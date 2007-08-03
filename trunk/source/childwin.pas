@@ -2167,7 +2167,7 @@ begin
     for i:=1 to ds.RecordCount do
     begin
       n := ListColumns.Items.Add;
-      n.ImageIndex := 62;
+      n.ImageIndex := ICONINDEX_FIELD;
 
       n.Caption := ds.FieldByName('Field').AsString;
       n.Subitems.Add( ds.FieldByName('Type').AsString );
@@ -2212,7 +2212,7 @@ begin
         begin
           if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
-            ListColumns.Items[j].ImageIndex := 26;
+            ListColumns.Items[j].ImageIndex := ICONINDEX_PRIMARYKEY;
             break;
           end;
         end;
@@ -2226,8 +2226,8 @@ begin
         begin
           if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
-            if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
-              ListColumns.Items[j].ImageIndex := 63;
+            if ListColumns.Items[j].ImageIndex = ICONINDEX_FIELD then // Only apply if it's the default image
+              ListColumns.Items[j].ImageIndex := ICONINDEX_INDEXKEY;
             break;
           end;
         end;
@@ -2240,8 +2240,8 @@ begin
         begin
           if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
-            if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
-              ListColumns.Items[j].ImageIndex := 64;
+            if ListColumns.Items[j].ImageIndex = ICONINDEX_FIELD then // Only apply if it's the default image
+              ListColumns.Items[j].ImageIndex := ICONINDEX_UNIQUEKEY;
             break;
           end;
         end;
@@ -2258,8 +2258,8 @@ begin
         begin
           if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
           begin
-            if ListColumns.Items[j].ImageIndex = 62 then // Only apply if it's the default image
-              ListColumns.Items[j].ImageIndex := 65;
+            if ListColumns.Items[j].ImageIndex = ICONINDEX_FIELD then // Only apply if it's the default image
+              ListColumns.Items[j].ImageIndex := ICONINDEX_FULLTEXTKEY;
             break;
           end;
         end;

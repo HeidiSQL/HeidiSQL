@@ -353,8 +353,8 @@ begin
         for i:=1 to ZQueryColumnNames.RecordCount do
         begin
           tnu := TreeViewUsers.Items.AddChild(TreeViewUsers.Selected, ZQueryColumnNames.Fields[0].AsString);
-          tnu.ImageIndex := 62;
-          tnu.SelectedIndex := 62;
+          tnu.ImageIndex := ICONINDEX_FIELD;
+          tnu.SelectedIndex := ICONINDEX_FIELD;
           ZQueryColumnNames.Next;
         end;
         FreeAndNil( ZQueryColumnNames );
