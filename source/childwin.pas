@@ -2205,63 +2205,36 @@ begin
     ds := GetResults( 'SHOW KEYS FROM ' + mask(ActualTable) );
     for i:=1 to ds.RecordCount do
     begin
-      // primary key
-      if ds.FieldByName('Key_name').AsString = 'PRIMARY' then
+      // Search for the column name in listColumns
+      for j:=0 to ListColumns.Items.Count-1 do
       begin
-        for j:=0 to ListColumns.Items.Count-1 do
+        if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
         begin
-          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-          begin
-            ListColumns.Items[j].ImageIndex := ICONINDEX_PRIMARYKEY;
+          // Only apply a new icon if it was not already changed
+          if ListColumns.Items[j].ImageIndex <> ICONINDEX_FIELD then
             break;
-          end;
-        end;
-      end;
 
-      // index
-      if (ds.FieldByName('Key_name').AsString <> 'PRIMARY')
-        and (ds.FieldByName('Non_unique').AsString = '1') then
-      begin
-        for j:=0 to ListColumns.Items.Count-1 do
-        begin
-          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-          begin
-            if ListColumns.Items[j].ImageIndex = ICONINDEX_FIELD then // Only apply if it's the default image
-              ListColumns.Items[j].ImageIndex := ICONINDEX_INDEXKEY;
-            break;
-          end;
-        end;
-      end;
+          // Check if column is part of a fulltext key
+          if mysql_version < 40002 then
+            isFulltext := (ds.FieldByName('Comment').AsString = 'FULLTEXT')
+          else
+            isFulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT');
 
-      // unique
-      if (ds.FieldByName('Key_name').AsString <> 'PRIMARY') and (ds.FieldByName('Non_unique').AsString = '0') then
-      begin
-        for j:=0 to ListColumns.Items.Count-1 do
-        begin
-          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-          begin
-            if ListColumns.Items[j].ImageIndex = ICONINDEX_FIELD then // Only apply if it's the default image
-              ListColumns.Items[j].ImageIndex := ICONINDEX_UNIQUEKEY;
-            break;
-          end;
-        end;
-      end;
+          // Primary key
+          if ds.FieldByName('Key_name').AsString = 'PRIMARY' then
+            ListColumns.Items[j].ImageIndex := ICONINDEX_PRIMARYKEY
+          // Fulltext index
+          else if isFullText then
+            ListColumns.Items[j].ImageIndex := ICONINDEX_FULLTEXTKEY
+          // Unique index
+          else if ds.FieldByName('Non_unique').AsString = '0' then
+            ListColumns.Items[j].ImageIndex := ICONINDEX_UNIQUEKEY
+          // Normal index
+          else
+            ListColumns.Items[j].ImageIndex := ICONINDEX_INDEXKEY;
 
-      // column is part of a fulltext key, available since 3.23.xx
-      if mysql_version < 40002 then
-        isFulltext := (ds.FieldByName('Comment').AsString = 'FULLTEXT')
-      else
-        isFulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT');
-      if (ds.FieldByName('Key_name').AsString <> 'PRIMARY') and isFulltext then
-      begin
-        for j:=0 to ListColumns.Items.Count-1 do
-        begin
-          if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
-          begin
-            if ListColumns.Items[j].ImageIndex = ICONINDEX_FIELD then // Only apply if it's the default image
-              ListColumns.Items[j].ImageIndex := ICONINDEX_FULLTEXTKEY;
-            break;
-          end;
+          // Column was found and processed
+          break;
         end;
       end;
       ds.Next;
