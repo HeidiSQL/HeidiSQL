@@ -12,8 +12,6 @@ type
     lblStatusMsg: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnAbortClick(Sender: TObject);
-  protected
-    procedure CreateParams(var Params: TCreateParams); override;
   private
     procedure HandleQueryNotificationMsg(var AMessage : TMessage); message WM_MYSQL_THREAD_NOTIFY;
   public
@@ -37,11 +35,6 @@ begin
   // todo: implement connection killing !!
 end;
 
-procedure TfrmQueryProgress.CreateParams(var Params: TCreateParams);
-begin
-  inherited;
-  Params.ExStyle := Params.ExStyle or WS_EX_TOPMOST;
-end;
 
 procedure TfrmQueryProgress.FormClose(Sender: TObject;
   var Action: TCloseAction);
