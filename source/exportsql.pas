@@ -591,7 +591,8 @@ begin
         FOREIGN KEY import compatibility (head)
         Based on mysqldump output file
       }
-      sql := '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;';
+      sql := '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0; */';
+      sql := fixSQL( sql, target_version );
       if tofile then
         wfs(f, sql)
       else if tohost then
@@ -1084,7 +1085,8 @@ begin
       FOREIGN KEY import compatibility (foot)
       Based on mysqldump output file
     }
-    sql := '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;';
+    sql := '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS; */';
+    sql := fixSQL( sql, target_version );
     if tofile then
       wfs(f, sql)
     else if tohost then
