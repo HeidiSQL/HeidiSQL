@@ -1,4 +1,4 @@
-package VirtualTreesD10D;
+package VirtualTreesD;
 
 {$R *.res}
 {$R '..\..\Design\VirtualTreesD.dcr'}
