@@ -1,4 +1,4 @@
-package VirtualTreesD10;
+package VirtualTrees;
 
 {$R *.res}
 {$ALIGN 8}
