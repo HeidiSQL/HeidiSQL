@@ -31,8 +31,8 @@ requires
   vclx;
 
 contains
-  VirtualTrees in '..\Source\VirtualTrees.pas',
-  VTHeaderPopup in '..\Source\VTHeaderPopup.pas';
+  VirtualTrees in '..\..\Source\VirtualTrees.pas',
+  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas';
 
 end.
 
