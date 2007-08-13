@@ -1,0 +1,39 @@
+package VirtualTreesD4;
+
+{$R *.RES}
+{$ALIGN ON}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Virtual Treeview run time package'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  vcl40,
+  dclstd40,
+  ThemeManagerD4;
+
+contains
+  VirtualTrees in '..\Source\VirtualTrees.pas',
+  VTHeaderPopup in '..\Source\VTHeaderPopup.pas';
+
+end.
+
