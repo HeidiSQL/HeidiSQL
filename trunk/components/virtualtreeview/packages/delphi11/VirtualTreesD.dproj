@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{aa45159e-a89d-4a19-8645-df52ec37cddf}</ProjectGuid>
     <MainSource>VirtualTreesD.dpk</MainSource>
@@ -23,6 +23,10 @@
     <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     <DCC_ImageBase>30400000</DCC_ImageBase>
     <DCC_Define>DEBUG</DCC_Define>
+    <DCC_UnitSearchPath>..\..\Source\</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\Source\</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\Source\</DCC_ObjPath>
+    <DCC_IncludePath>..\..\Source\</DCC_IncludePath>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
@@ -79,7 +83,6 @@
     <DCCReference Include="..\..\Design\VirtualTreesD.dcr" />
     <DCCReference Include="..\..\Design\VirtualTreesReg.pas" />
     <DCCReference Include="dclstd.dcp" />
-    <DCCReference Include="VirtualTrees.dcp" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
 </Project>
