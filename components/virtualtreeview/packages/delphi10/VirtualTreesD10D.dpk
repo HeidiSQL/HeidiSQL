@@ -1,7 +1,7 @@
 package VirtualTreesD10D;
 
 {$R *.res}
-{$R '..\Design\VirtualTrees.dcr'}
+{$R '..\..\Design\VirtualTrees.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -32,7 +32,7 @@ requires
   VirtualTreesD10;
 
 contains
-  VirtualTreesReg in '..\Design\VirtualTreesReg.pas';
+  VirtualTreesReg in '..\..\Design\VirtualTreesReg.pas';
 
 end.
 
