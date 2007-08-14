@@ -111,31 +111,48 @@ object MDIChild: TMDIChild
             OnChange = PageControlHostChange
             object tabVariables: TTabSheet
               Caption = 'Variables'
-              object ListVariables: TSortListView
-                Tag = -1
+              object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
                 Width = 488
                 Height = 175
                 Align = alClient
+                DragOperations = []
+                Header.AutoSizeIndex = 1
+                Header.Font.Charset = DEFAULT_CHARSET
+                Header.Font.Color = clWindowText
+                Header.Font.Height = -11
+                Header.Font.Name = 'Tahoma'
+                Header.Font.Style = []
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.SortColumn = 0
+                Header.Style = hsXPStyle
+                Images = MainForm.ImageList1
+                IncrementalSearch = isInitializedOnly
+                TabOrder = 0
+                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+                TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+                OnCompareNodes = vstCompareNodes
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = ListVariablesInitNode
                 Columns = <
                   item
-                    Caption = 'Variable'
-                    Width = 130
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 0
+                    Width = 160
+                    WideText = 'Variable'
                   end
                   item
-                    Caption = 'Value'
-                    Width = 354
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 1
+                    Width = 324
+                    WideText = 'Value'
                   end>
-                GridLines = True
-                ReadOnly = True
-                RowSelect = True
-                PopupMenu = popupHost
-                SmallImages = MainForm.ImageList1
-                TabOrder = 0
-                ViewStyle = vsReport
-                ImageIndexSortAsc = 95
-                ImageIndexSortDesc = 94
               end
             end
             object tabProcessList: TTabSheet
@@ -1346,7 +1363,7 @@ object MDIChild: TMDIChild
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 0
+          ItemHeight = 13
           TabOrder = 0
           OnChange = ComboBoxWhereFiltersChange
         end
