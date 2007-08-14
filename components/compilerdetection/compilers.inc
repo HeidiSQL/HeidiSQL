@@ -26,7 +26,9 @@
 // - COMPILER_9    : Kylix/Delphi/BCB 9.x is the compiler.
 // - COMPILER_9_UP : Kylix/Delphi/BCB 9.x or higher is the compiler.
 // - COMPILER_10   : Kylix/Delphi/BCB 10.x is the compiler.
-// - COMPILER_10_UP : Kylix/Delphi/BCB 10.x or higher is the compiler.
+// - COMPILER_10_UP: Kylix/Delphi/BCB 10.x or higher is the compiler.
+// - COMPILER_11   : Kylix/Delphi/BCB 11.x is the compiler.
+// - COMPILER_11_UP: Kylix/Delphi/BCB 11.x or higher is the compiler.
 //
 // Only defined if Windows is the target:
 // - CPPB        : Any version of BCB is being used.
@@ -59,8 +61,10 @@
 // - DELPHI_8_UP : Delphi v8.x or higher is being used.
 // - DELPHI_9    : Delphi v9.x is being used.
 // - DELPHI_9_UP : Delphi v9.x or higher is being used.
-// - DELPHI_10   : Delphi v9.x is being used.
-// - DELPHI_10_UP : Delphi v9.x or higher is being used.
+// - DELPHI_10   : Delphi v10.x is being used.
+// - DELPHI_10_UP: Delphi v10.x or higher is being used.
+// - DELPHI_11   : Delphi v11.x is being used.
+// - DELPHI_11_UP: Delphi v11.x or higher is being used.
 //
 // Only defined if Linux is the target:
 // - KYLIX       : Any version of Kylix is being used.
@@ -98,6 +102,12 @@
 {$endif}
 
 {$ifdef Win32}
+  {$ifdef VER190}
+    {$define COMPILER_11}
+    {$define DELPHI}
+    {$define DELPHI_11}
+  {$endif}
+
   {$ifdef VER180}
     {$define COMPILER_10}
     {$define DELPHI}
@@ -256,6 +266,19 @@
     {$define DELPHI_8_UP}
     {$define DELPHI_9_UP}
     {$define DELPHI_10_UP}
+  {$endif}
+
+  {$ifdef DELPHI_11}
+    {$define DELPHI_2_UP}
+    {$define DELPHI_3_UP}
+    {$define DELPHI_4_UP}
+    {$define DELPHI_5_UP}
+    {$define DELPHI_6_UP}
+    {$define DELPHI_7_UP}
+    {$define DELPHI_8_UP}
+    {$define DELPHI_9_UP}
+    {$define DELPHI_10_UP}
+    {$define DELPHI_11_UP}
   {$endif}
 
   {$ifdef CPPB_3}
@@ -422,10 +445,25 @@
   {$define COMPILER_10_UP}
 {$endif}
 
+{$ifdef COMPILER_11}
+  {$define COMPILER_1_UP}
+  {$define COMPILER_2_UP}
+  {$define COMPILER_3_UP}
+  {$define COMPILER_4_UP}
+  {$define COMPILER_5_UP}
+  {$define COMPILER_6_UP}
+  {$define COMPILER_7_UP}
+  {$define COMPILER_8_UP}
+  {$define COMPILER_9_UP}
+  {$define COMPILER_10_UP}
+  {$define COMPILER_11_UP}
+{$endif}
+
 {$ifndef COMPILER_1_UP}
   // Die on unknown compiler.
   ERROR: Unknown compiler - please update detection logic.
 {$endif}
 
 //----------------------------------------------------------------------------------------------------------------------
+
 
