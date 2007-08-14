@@ -21,10 +21,20 @@ uses
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
-  MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs;
+  MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs,
+  VirtualTrees;
 
 
 type
+
+  // Define a record which can hold everything we need for one row / node in a VirtualStringTree
+  TVTreeData = record
+    Captions: TStringList;
+    ImageIndex: Integer;
+  end;
+  PVTreedata = ^TVTreeData;
+
+
   TMDIChild = class(TForm)
     Panel1: TPanel;
     DBtree: TTreeView;
@@ -50,7 +60,7 @@ type
     PageControlHost: TPageControl;
     tabVariables: TTabSheet;
     tabProcessList: TTabSheet;
-    ListVariables: TSortListView;
+    ListVariables: TVirtualStringTree;
     ListProcesses: TSortListView;
     popupHost: TPopupMenu;
     Kill1: TMenuItem;
@@ -487,6 +497,19 @@ type
     function GetCalculatedLimit( Table: String ): Int64;
     procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
+    procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
+        NodeDataSize: Integer);
+    procedure ListVariablesInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
+        PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure vstGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+    procedure vstGetImageIndex(Sender: TBaseVirtualTree; Node:
+        PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
+        Boolean; var ImageIndex: Integer);
+    procedure vstHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
+        Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure vstCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
+        PVirtualNode; Column: TColumnIndex; var Result: Integer);
 
     private
       strHostRunning             : String;
@@ -506,6 +529,7 @@ type
       UserQueryFired             : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
+      VTRowDataListVariables     : Array of TVTreeData;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -2549,8 +2573,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
   end;
 
 var
-  i : Integer;
-  n : TListItem;
+  i, rowindex : Integer;
   questions : Int64;
   ds : TDataSet;
 begin
@@ -2558,16 +2581,14 @@ begin
   Screen.Cursor := crSQLWait;
 
   // VARIABLES
-  ListVariables.Items.BeginUpdate;
-  ListVariables.Items.Clear;
-
   ds := GetResults( 'SHOW VARIABLES', false );
+  SetLength( VTRowDataListVariables, ds.RecordCount );
   for i:=1 to ds.RecordCount do
   begin
-    n := ListVariables.Items.Add;
-    n.ImageIndex := 87;
-    n.Caption := ds.Fields[0].AsString;
-    n.Subitems.Add( ds.Fields[1].AsString );
+    VTRowDataListVariables[i-1].ImageIndex := 87;
+    VTRowDataListVariables[i-1].Captions := TStringList.Create;
+    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsString );
+    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsString );
     ds.Next;
   end;
 
@@ -2579,10 +2600,12 @@ begin
   begin
     if LowerCase( Copy( ds.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
     begin
-      n := ListVariables.Items.Add;
-      n.ImageIndex := 87;
-      n.Caption := ds.Fields[0].AsString;
-      n.Subitems.Add( ds.Fields[1].AsString );
+      rowindex := Length(VTRowDataListVariables);
+      SetLength( VTRowDataListVariables, rowindex+1 );
+      VTRowDataListVariables[rowindex].ImageIndex := 87;
+      VTRowDataListVariables[rowindex].Captions := TStringList.Create;
+      VTRowDataListVariables[rowindex].Captions.Add( ds.Fields[0].AsString );
+      VTRowDataListVariables[rowindex].Captions.Add( ds.Fields[1].AsString );
       if lowercase( ds.Fields[0].AsString ) = 'uptime' then
         uptime := MakeInt(ds.Fields[1].AsString);
       if lowercase( ds.Fields[0].AsString ) = 'questions' then
@@ -2590,9 +2613,14 @@ begin
     end;
     ds.Next;
   end;
-  // Remove existing column-sort-images
-  // (TODO: auomatically invoke this method in TSortListView itself)
-  ListVariables.ClearSortColumnImages;
+
+  // Tell VirtualTree the number of nodes it will display
+  ListVariables.RootNodeCount := Length(VTRowDataListVariables);
+  ListVariables.ReinitNode(nil, true);
+  // Manually invoke sorting
+  ListVariables.SortTree( ListVariables.Header.SortColumn, ListVariables.Header.SortDirection );
+  // Display number of listed values on tab  
+  tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
 
   // Command-Statistics
   ListCommandStats.Items.BeginUpdate;
@@ -2616,8 +2644,6 @@ begin
   TimerHostUptimeTimer(self);
   TimerHostUptime.OnTimer := TimerHostUptimeTimer;
 
-  ListVariables.Items.EndUpdate;
-  tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.Items.Count) + ')';
   Screen.Cursor := crDefault;
 
   ShowProcesslist(self); // look at next procedure
@@ -5858,6 +5884,118 @@ begin
       MessageDlg( 'Failed deleting ' + snippetfile, mtError, [mbOK], 0 );
     end;
     Screen.Cursor := crDefault;
+  end;
+end;
+
+
+{**
+  Tell a VirtualStringTree the mem size to allocate per node
+}
+procedure TMDIChild.vstGetNodeDataSize(Sender: TBaseVirtualTree; var
+    NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TVTreeData);
+end;
+
+
+{**
+  ListVariables initializes its nodes by calling the following procedure
+  once per node
+}
+procedure TMDIChild.ListVariablesInitNode(Sender: TBaseVirtualTree; ParentNode,
+    Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  NodeData : PVTreeData;
+begin
+  // Get the pointer to the node data
+  NodeData := ListVariables.GetNodeData(Node);
+  // Bind data to node
+  NodeData.Captions := VTRowDataListVariables[Node.Index].Captions;
+  NodeData.ImageIndex := VTRowDataListVariables[Node.Index].ImageIndex;
+end;
+
+
+{**
+  A node in a VirtualStringTree gets visible and asks which text it shall display
+}
+procedure TMDIChild.vstGetText(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
+    WideString);
+var
+  NodeData : PVTreeData;
+begin
+  // Get pointer to node which gets displayed
+  NodeData := Sender.GetNodeData(Node);
+  case Column of
+    -1: CellText := NodeData.Captions[0]; // Column is -1 if no column headers are defined
+    else CellText := NodeData.Captions[Column];
+  end;
+end;
+
+
+{**
+  A node in a VirtualStringTree gets visible and asks which icon it shall display
+}
+procedure TMDIChild.vstGetImageIndex(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
+    Boolean; var ImageIndex: Integer);
+var
+  NodeData : PVTreeData;
+begin
+  // Display icon only for leftmost cell
+  if Column <> 0 then
+    exit;
+  // Get pointer to node which gets displayed
+  NodeData := Sender.GetNodeData(Node);
+  ImageIndex := NodeData.ImageIndex;
+end;
+
+
+{**
+  A column header of a VirtualStringTree was clicked:
+  Toggle the sort direction
+}
+procedure TMDIChild.vstHeaderClick(Sender: TVTHeader; Column:
+    TColumnIndex; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Sender.SortColumn <> Column then
+    Sender.SortColumn := Column
+  else if Sender.SortDirection = sdAscending then
+    Sender.SortDirection := sdDescending
+  else
+    Sender.SortDirection := sdAscending;
+  Sender.Treeview.SortTree( Column, Sender.SortDirection );
+end;
+
+
+{**
+  Sorting a column of a VirtualTree by comparing two cells
+}
+procedure TMDIChild.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
+    Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
+var
+  CellText1, CellText2 : String;
+  Int1, Int2 : Integer;
+begin
+  CellText1 := PVTreeData(Sender.GetNodeData(Node1)).Captions[Column];
+  CellText2 := PVTreeData(Sender.GetNodeData(Node2)).Captions[Column];
+
+  // Apply different comparisons for numbers and text
+  if StrToIntDef( copy(CellText1,0,1), -1 ) <> -1 then
+  begin
+    // Assuming numeric values
+    Int1 := MakeInt( CellText1 );
+    Int2 := MakeInt( CellText2 );
+    if Int1 > Int2 then
+      Result := 1
+    else if Int1 = Int2 then
+      Result := 0
+    else if Int1 < Int2 then
+      Result := -1;
+  end
+  else begin
+    // Compare Strings
+    Result := CompareText( CellText1, CellText2 );
   end;
 end;
 
