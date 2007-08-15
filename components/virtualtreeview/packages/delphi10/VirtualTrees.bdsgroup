@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <PersonalityInfo>
+    <Option>
+      <Option Name="Personality">Default.Personality</Option>
+      <Option Name="ProjectType"></Option>
+      <Option Name="Version">1.0</Option>
+      <Option Name="GUID">{541A928F-B114-444A-A452-C846B70F0FEB}</Option>
+    </Option>
+  </PersonalityInfo>
+  <Default.Personality>
+    
+    <Projects>
+      <Projects Name="VirtualTreesD10.bpl">VirtualTreesD10.bdsproj</Projects>
+      <Projects Name="VirtualTreesD10D.bpl">VirtualTreesD10D.bdsproj</Projects>
+      <Projects Name="Targets">VirtualTreesD10.bpl VirtualTreesD10D.bpl</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>
