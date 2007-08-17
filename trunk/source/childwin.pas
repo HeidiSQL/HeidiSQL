@@ -309,6 +309,7 @@ type
     menuHelp: TMenuItem;
     menuLoadSnippet: TMenuItem;
     menuInsertSnippetAtCursor: TMenuItem;
+    menuExplore: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
       var S: string);
@@ -497,6 +498,7 @@ type
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     procedure menuDeleteSnippetClick(Sender: TObject);
     function GetCalculatedLimit( Table: String ): Int64;
+    procedure menuExploreClick(Sender: TObject);
     procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
@@ -5693,6 +5695,7 @@ begin
   menuInsertSnippetAtCursor.Enabled := False;
   menuLoadSnippet.Enabled := False;
   menuDeleteSnippet.Enabled := False;
+  menuExplore.Enabled := False;
   menuHelp.Enabled := False;
 
   case NewTab of
@@ -5732,6 +5735,7 @@ begin
       menuDeleteSnippet.Enabled := True;
       menuInsertSnippetAtCursor.Enabled := True;
       menuLoadSnippet.Enabled := True;
+      menuExplore.Enabled := True;
       lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
     end;
 
@@ -5918,6 +5922,15 @@ end;
 procedure TMDIChild.menuLoadSnippetClick(Sender: TObject);
 begin
   QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', True );
+end;
+
+
+{**
+  Open snippets-directory in Explorer 
+}
+procedure TMDIChild.menuExploreClick(Sender: TObject);
+begin
+  ShellExec( '', DIRNAME_SNIPPETS );
 end;
 
 
