@@ -10,14 +10,14 @@
     <BorlandProject>
   <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
   </ProjectExtensions>
-  <Target Name="VirtualTrees">
-    <MSBuild Projects="VirtualTrees.dproj" Targets="" />
+  <Target Name="VirtualTreesR">
+    <MSBuild Projects="VirtualTreesR.dproj" Targets="" />
   </Target>
-  <Target Name="VirtualTrees:Clean">
-    <MSBuild Projects="VirtualTrees.dproj" Targets="Clean" />
+  <Target Name="VirtualTreesR:Clean">
+    <MSBuild Projects="VirtualTreesR.dproj" Targets="Clean" />
   </Target>
-  <Target Name="VirtualTrees:Make">
-    <MSBuild Projects="VirtualTrees.dproj" Targets="Make" />
+  <Target Name="VirtualTreesR:Make">
+    <MSBuild Projects="VirtualTreesR.dproj" Targets="Make" />
   </Target>
   <Target Name="VirtualTreesD">
     <MSBuild Projects="VirtualTreesD.dproj" Targets="" />
@@ -29,12 +29,12 @@
     <MSBuild Projects="VirtualTreesD.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
-    <CallTarget Targets="VirtualTrees;VirtualTreesD" />
+    <CallTarget Targets="VirtualTreesR;VirtualTreesD" />
   </Target>
   <Target Name="Clean">
-    <CallTarget Targets="VirtualTrees:Clean;VirtualTreesD:Clean" />
+    <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean" />
   </Target>
   <Target Name="Make">
-    <CallTarget Targets="VirtualTrees:Make;VirtualTreesD:Make" />
+    <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make" />
   </Target>
 </Project>

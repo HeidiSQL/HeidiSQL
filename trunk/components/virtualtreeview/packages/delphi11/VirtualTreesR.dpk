@@ -1,4 +1,4 @@
-package VirtualTrees;
+package VirtualTreesR;
 
 {$R *.res}
 {$ALIGN 8}
@@ -23,6 +23,7 @@ package VirtualTrees;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $30400000}
 {$DESCRIPTION 'Virtual Treeview runtime package'}
+{$LIBSUFFIX '110'}
 {$RUNONLY}
 {$IMPLICITBUILD ON}
 
