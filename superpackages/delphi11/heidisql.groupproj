@@ -2,8 +2,6 @@
   <PropertyGroup>
     <ProjectGuid>{9d2773a7-5199-4f9f-9b9a-ad4c0c48a953}</ProjectGuid>
   </PropertyGroup>
-  <ItemGroup />
-  <ItemGroup />
   <ProjectExtensions>
     <Borland.Personality>Default.Personality</Borland.Personality>
     <Borland.ProjectType />
@@ -118,14 +116,14 @@
   <Target Name="HeidiComponents:Make">
     <MSBuild Projects="..\..\components\heidisql\packages\delphi11\HeidiComponents.dproj" Targets="Make" />
   </Target>
-  <Target Name="VirtualTrees">
-    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTrees.dproj" Targets="" />
+  <Target Name="VirtualTreesR">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesR.dproj" Targets="" />
   </Target>
-  <Target Name="VirtualTrees:Clean">
-    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTrees.dproj" Targets="Clean" />
+  <Target Name="VirtualTreesR:Clean">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesR.dproj" Targets="Clean" />
   </Target>
-  <Target Name="VirtualTrees:Make">
-    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTrees.dproj" Targets="Make" />
+  <Target Name="VirtualTreesR:Make">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesR.dproj" Targets="Make" />
   </Target>
   <Target Name="VirtualTreesD">
     <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesD.dproj" Targets="" />
@@ -146,12 +144,12 @@
     <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
-    <CallTarget Targets="VCLSer;DCLSer;SMDBGridComponents;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;VirtualTrees;VirtualTreesD;heidisql" />
+    <CallTarget Targets="VCLSer;DCLSer;SMDBGridComponents;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;VirtualTreesR;VirtualTreesD;heidisql" />
   </Target>
   <Target Name="Clean">
-    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SMDBGridComponents:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;VirtualTrees:Clean;VirtualTreesD:Clean;heidisql:Clean" />
+    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SMDBGridComponents:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;heidisql:Clean" />
   </Target>
   <Target Name="Make">
-    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SMDBGridComponents:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;VirtualTrees:Make;VirtualTreesD:Make;heidisql:Make" />
+    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SMDBGridComponents:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;VirtualTreesR:Make;VirtualTreesD:Make;heidisql:Make" />
   </Target>
 </Project>
