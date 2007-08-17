@@ -13,10 +13,12 @@ type
     btnOK: TButton;
     chkSelectAll: TCheckBox;
     chklistColumns: TCheckListBox;
+    chkSort: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure chklistColumnsClickCheck(Sender: TObject);
     procedure chkSelectAllClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure chkSortClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -70,6 +72,13 @@ begin
 
   // Call check-event to update state of "Select / Deselect all" checkbox
   chklistColumnsClickCheck( Sender );
+
+  // Restore last used sorting state from registry
+  reg.OpenKey( REGPATH, false );
+  if (reg.ValueExists(REGNAME_SORTDISPLAYEDCOLUMNS)) then
+    chkSort.Checked := reg.ReadBool(REGNAME_SORTDISPLAYEDCOLUMNS);
+
+  reg.CloseKey;
 end;
 
 
@@ -126,6 +135,12 @@ begin
     reg.WriteString( reg_name, reg_newvalue );
   end;
 
+  // Store state of sort-checkbox in registry
+  reg.OpenKey( REGPATH, false );
+  reg.WriteBool( REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.checked );
+
+  reg.CloseKey;
+
   // Signalizes childwin to refresh grid-data
   if reg_oldvalue <> reg_newvalue then
     ModalResult := mrOk
@@ -175,6 +190,43 @@ begin
   else
     chkSelectAll.State := cbGrayed;
 
+end;
+
+
+{**
+  Sort / Unsort the list with fields
+}
+procedure TColumnSelectionForm.chkSortClick(Sender: TObject);
+var
+  checkedfields : TStringList;
+  i: Integer;
+begin
+  chklistColumns.Sorted := TCheckBox(Sender).Checked;
+
+  // Setting Sorted to false doesn't resort anything in the list.
+  // So we have to add all items again in original order
+  if( not chklistColumns.Sorted ) then
+  begin
+
+    // Memorize checked items in a list
+    checkedfields := TStringList.Create;
+    for i := 0 to chklistColumns.Items.Count - 1 do
+    begin
+      if chklistColumns.Checked[i] then
+        checkedfields.Add(chklistColumns.Items[i]);
+    end;
+
+    // Add all fieldnames again and check those which are in the checkedfields list
+    chklistColumns.Items.BeginUpdate;
+    chklistColumns.Items.Clear;
+    for i := 0 to Mainform.Childwin.listColumns.Items.Count-1 do
+    begin
+      chklistColumns.Items.Add( Mainform.Childwin.listColumns.Items[i].Caption );
+      if checkedfields.IndexOf( chklistColumns.Items[i] ) > -1 then
+        chklistColumns.Checked[i] := True;
+    end;
+    chklistColumns.Items.EndUpdate;
+  end;
 end;
 
 

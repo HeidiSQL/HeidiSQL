@@ -35,6 +35,7 @@ const
 
   // Registry name for storing list of displayed columns
   REGNAME_DISPLAYEDCOLUMNS = 'DisplayedColumns';
+  REGNAME_SORTDISPLAYEDCOLUMNS = 'DisplayedColumnsSorted';
 
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function

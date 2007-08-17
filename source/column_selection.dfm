@@ -45,7 +45,7 @@ object ColumnSelectionForm: TColumnSelectionForm
     end
     object chkSelectAll: TCheckBox
       Left = 4
-      Top = 223
+      Top = 207
       Width = 150
       Height = 17
       Caption = 'Select / Deselect all'
@@ -56,11 +56,20 @@ object ColumnSelectionForm: TColumnSelectionForm
       Left = 4
       Top = 4
       Width = 158
-      Height = 215
+      Height = 197
       OnClickCheck = chklistColumnsClickCheck
       Align = alTop
       ItemHeight = 13
       TabOrder = 0
+    end
+    object chkSort: TCheckBox
+      Left = 4
+      Top = 225
+      Width = 125
+      Height = 17
+      Caption = 'Sort alphabetically'
+      TabOrder = 4
+      OnClick = chkSortClick
     end
   end
 end
