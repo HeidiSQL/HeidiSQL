@@ -2307,6 +2307,11 @@ object MDIChild: TMDIChild
       ShortCut = 46
       OnClick = menuDeleteSnippetClick
     end
+    object menuExplore: TMenuItem
+      Caption = 'Explore folder'
+      Enabled = False
+      OnClick = menuExploreClick
+    end
     object menuHelp: TMenuItem
       Caption = 'Help'
       ImageIndex = 96
