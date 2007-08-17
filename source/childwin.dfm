@@ -2287,6 +2287,19 @@ object MDIChild: TMDIChild
     Images = MainForm.ImageList1
     Left = 168
     Top = 80
+    object menuInsertSnippetAtCursor: TMenuItem
+      Caption = 'Insert at cursor'
+      Default = True
+      Enabled = False
+      ImageIndex = 47
+      OnClick = menuInsertSnippetAtCursorClick
+    end
+    object menuLoadSnippet: TMenuItem
+      Caption = 'Load'
+      Enabled = False
+      ImageIndex = 6
+      OnClick = menuLoadSnippetClick
+    end
     object menuDeleteSnippet: TMenuItem
       Caption = 'Delete ...'
       Enabled = False

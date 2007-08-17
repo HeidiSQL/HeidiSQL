@@ -307,6 +307,8 @@ type
     popupQueryHelpers: TPopupMenu;
     menuDeleteSnippet: TMenuItem;
     menuHelp: TMenuItem;
+    menuLoadSnippet: TMenuItem;
+    menuInsertSnippetAtCursor: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
       var S: string);
@@ -496,6 +498,8 @@ type
     procedure menuDeleteSnippetClick(Sender: TObject);
     function GetCalculatedLimit( Table: String ): Int64;
     procedure menuInsertFileAtCursorClick(Sender: TObject);
+    procedure menuInsertSnippetAtCursorClick(Sender: TObject);
+    procedure menuLoadSnippetClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
     procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
         NodeDataSize: Integer);
@@ -5686,6 +5690,8 @@ begin
   // By default sorted alpabetically
   lboxQueryHelpers.Sorted := True;
   // By default disable all items in popupmenu, enable them when needed
+  menuInsertSnippetAtCursor.Enabled := False;
+  menuLoadSnippet.Enabled := False;
   menuDeleteSnippet.Enabled := False;
   menuHelp.Enabled := False;
 
@@ -5724,6 +5730,8 @@ begin
     begin
       // State of items in popupmenu
       menuDeleteSnippet.Enabled := True;
+      menuInsertSnippetAtCursor.Enabled := True;
+      menuLoadSnippet.Enabled := True;
       lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
     end;
 
@@ -5892,6 +5900,24 @@ begin
     end;
     Screen.Cursor := crDefault;
   end;
+end;
+
+
+{**
+  Load snippet at cursor
+}
+procedure TMDIChild.menuInsertSnippetAtCursorClick(Sender: TObject);
+begin
+  QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
+end;
+
+
+{**
+  Load snippet and replace content
+}
+procedure TMDIChild.menuLoadSnippetClick(Sender: TObject);
+begin
+  QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', True );
 end;
 
 
