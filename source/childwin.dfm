@@ -130,11 +130,13 @@ object MDIChild: TMDIChild
                 Header.Style = hsXPStyle
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
+                PopupMenu = popupHost
                 TabOrder = 0
                 TreeOptions.MiscOptions = [toToggleOnDblClick]
                 TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
                 OnCompareNodes = vstCompareNodes
+                OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
                 OnGetImageIndex = vstGetImageIndex
                 OnGetNodeDataSize = vstGetNodeDataSize
