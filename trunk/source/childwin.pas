@@ -266,7 +266,7 @@ type
     ManageIndexes1: TMenuItem;
     btnTableManageIndexes: TToolButton;
     tabCommandStats: TTabSheet;
-    ListCommandStats: TSortListView;
+    ListCommandStats: TVirtualStringTree;
     CheckBoxDataSearch: TCheckBox;
     QF13: TMenuItem;
     QF14: TMenuItem;
@@ -499,8 +499,9 @@ type
     procedure RunAsyncPost(ds: TDeferDataSet);
     procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
         NodeDataSize: Integer);
-    procedure ListVariablesInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
+    procedure vstInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure vstFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure vstGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
     procedure vstGetImageIndex(Sender: TBaseVirtualTree; Node:
@@ -529,7 +530,8 @@ type
       UserQueryFired             : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
-      VTRowDataListVariables     : Array of TVTreeData;
+      VTRowDataListVariables,
+      VTRowDataListCommandStats  : Array of TVTreeData;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -2546,30 +2548,32 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
 
   procedure addLVitem( caption: String; commandCount: Int64; totalCount: Int64 );
   var
-    n : TListItem;
+    i : Integer;
     tmpval : Double;
   begin
-    n := ListCommandStats.Items.Add;
-    n.ImageIndex := 86;
+    SetLength( VTRowDataListCommandStats, Length(VTRowDataListCommandStats)+1 );
+    i := Length(VTRowDataListCommandStats)-1;
+    VTRowDataListCommandStats[i].ImageIndex := 86;
+    VTRowDataListCommandStats[i].Captions := TStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
-    n.Caption := caption;
+    VTRowDataListCommandStats[i].Captions.Add( caption );
     // Total Frequency
-    n.Subitems.Add( FormatNumber( commandCount ) );
+    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( commandCount ) );
     // Average per hour
     uptime := max(uptime, 1);
     tmpval := commandCount / ( uptime / 60 / 60 );
-    n.Subitems.Add( FormatNumber( tmpval, 1 ) );
+    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
     tmpval := commandCount / uptime;
-    n.Subitems.Add( FormatNumber( tmpval, 1 ) );
+    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
     if commandCount < 1 then
       commandCount := 1;
     if totalCount < 1 then
       totalCount := 1;
     tmpval := 100 / totalCount * commandCount;
-    n.Subitems.Add( FormatNumber( tmpval, 1 ) + ' %' );
+    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
   end;
 
 var
@@ -2619,12 +2623,12 @@ begin
   ListVariables.ReinitNode(nil, true);
   // Manually invoke sorting
   ListVariables.SortTree( ListVariables.Header.SortColumn, ListVariables.Header.SortDirection );
-  // Display number of listed values on tab  
+  // Display number of listed values on tab
   tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
 
   // Command-Statistics
-  ListCommandStats.Items.BeginUpdate;
-  ListCommandStats.Items.Clear;
+  ListCommandStats.BeginUpdate;
+  SetLength( VTRowDataListCommandStats, 0 );
   addLVitem( '    All commands', questions, questions );
   ds.First;
   for i:=1 to ds.RecordCount do
@@ -2635,10 +2639,13 @@ begin
     end;
     ds.Next;
   end;
-  ListCommandStats.Items.EndUpdate;
-  // Sort 2nd column descending
-  ListCommandStats.ColClick( ListCommandStats.Columns[1] );
-  ListCommandStats.ColClick( ListCommandStats.Columns[1] );
+
+  // Tell VirtualTree the number of nodes it will display
+  ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
+  ListCommandStats.ReinitNode(nil, true);
+  // Manually invoke sorting
+  ListCommandStats.SortTree( ListCommandStats.Header.SortColumn, ListCommandStats.Header.SortDirection );
+  ListCommandStats.EndUpdate;
 
   TimerHostUptime.Enabled := true;
   TimerHostUptimeTimer(self);
@@ -5899,19 +5906,43 @@ end;
 
 
 {**
-  ListVariables initializes its nodes by calling the following procedure
+  Various lists initialize their nodes by calling the following procedure
   once per node
 }
-procedure TMDIChild.ListVariablesInitNode(Sender: TBaseVirtualTree; ParentNode,
+procedure TMDIChild.vstInitNode(Sender: TBaseVirtualTree; ParentNode,
     Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
   NodeData : PVTreeData;
 begin
   // Get the pointer to the node data
-  NodeData := ListVariables.GetNodeData(Node);
+  NodeData := Sender.GetNodeData(Node);
   // Bind data to node
-  NodeData.Captions := VTRowDataListVariables[Node.Index].Captions;
-  NodeData.ImageIndex := VTRowDataListVariables[Node.Index].ImageIndex;
+  if Sender = ListVariables then
+  begin
+    NodeData.Captions := VTRowDataListVariables[Node.Index].Captions;
+    NodeData.ImageIndex := VTRowDataListVariables[Node.Index].ImageIndex;
+  end
+  else if Sender = ListCommandStats then
+  begin
+    NodeData.Captions := VTRowDataListCommandStats[Node.Index].Captions;
+    NodeData.ImageIndex := VTRowDataListCommandStats[Node.Index].ImageIndex;
+  end;
+end;
+
+
+{**
+  Free data of a node
+}
+procedure TMDIChild.vstFreeNode(Sender: TBaseVirtualTree; Node:
+    PVirtualNode);
+var
+  NodeData : PVTreeData;
+begin
+  // Get the pointer to the node data
+  NodeData := Sender.GetNodeData(Node);
+  // Free data
+  NodeData.Captions.Free;
+  NodeData.ImageIndex := -1;
 end;
 
 

@@ -139,7 +139,7 @@ object MDIChild: TMDIChild
                 OnGetImageIndex = vstGetImageIndex
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
-                OnInitNode = ListVariablesInitNode
+                OnInitNode = vstInitNode
                 Columns = <
                   item
                     Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
@@ -216,47 +216,71 @@ object MDIChild: TMDIChild
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 2
-              object ListCommandStats: TSortListView
+              object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
                 Width = 488
                 Height = 175
                 Align = alClient
+                Header.AutoSizeIndex = 4
+                Header.Font.Charset = DEFAULT_CHARSET
+                Header.Font.Color = clWindowText
+                Header.Font.Height = -11
+                Header.Font.Name = 'Tahoma'
+                Header.Font.Style = []
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.SortColumn = 1
+                Header.SortDirection = sdDescending
+                Header.Style = hsFlatButtons
+                Images = MainForm.ImageList1
+                IncrementalSearch = isInitializedOnly
+                PopupMenu = popupHost
+                TabOrder = 0
+                TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+                TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+                TreeOptions.SelectionOptions = [toFullRowSelect]
+                OnCompareNodes = vstCompareNodes
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
                 Columns = <
                   item
-                    Caption = 'Command-type'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 0
                     Width = 120
+                    WideText = 'Command-type'
                   end
                   item
                     Alignment = taRightJustify
-                    Caption = 'Total count'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 1
                     Width = 100
+                    WideText = 'Total count'
                   end
                   item
                     Alignment = taRightJustify
-                    Caption = 'Average per hour'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 2
                     Width = 100
+                    WideText = 'Average per hour'
                   end
                   item
                     Alignment = taRightJustify
-                    Caption = 'Average per second'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 3
                     Width = 100
+                    WideText = 'Average per second'
                   end
                   item
-                    Alignment = taRightJustify
-                    Caption = 'Percentage'
-                    Width = 67
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 4
+                    Width = 64
+                    WideText = 'Percentage'
                   end>
-                GridLines = True
-                ReadOnly = True
-                RowSelect = True
-                PopupMenu = popupHost
-                SmallImages = MainForm.ImageList1
-                SortType = stBoth
-                TabOrder = 0
-                ViewStyle = vsReport
-                ImageIndexSortAsc = 95
-                ImageIndexSortDesc = 94
               end
             end
           end
