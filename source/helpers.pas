@@ -70,12 +70,15 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function ConvertServerVersion( Version: Integer ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
   function FormatTimeNumber( Seconds: Cardinal ): String;
+  function TColorToHex( Color : TColor ): string;
 
 var
   MYSQL_KEYWORDS             : TStringList;
 
 
 implementation
+
+uses main;
 
 type
   CharacterSet = record
@@ -627,7 +630,7 @@ var
   FStream                   : TFileStream;
   blobfilename, extension   : String;
   bf                        : Textfile;
-  header                    : String;
+  header, attribs           : String;
   cursorpos                 : Integer;
 begin
   FStream := nil;
@@ -646,16 +649,19 @@ begin
         '<head>' + crlf +
         '  <title>' + htmltitle + '</title>' + crlf +
         '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
-        '  <style type="text/css"><!--' + crlf +
-        '    .header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
-        '    th {vertical-align: top;}' + crlf +
-        '    td {vertical-align: top;}' + crlf +
-        '  --></style>' + crlf +
+        '  <style type="text/css">' + crlf +
+        '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
+        '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.ActiveGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.ActiveGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
+        '    table, td {border: 1px solid silver;}' + crlf +
+        '    table {border-collapse: collapse;}' + crlf +
+        '    td.isnull {background-color: '+TColorToHex(Mainform.DataNullBackground) +'}' + crlf +
+        '    td.pk {background-color: #EEEEEE; font-weight: bold;}' + crlf +
+        '  </style>' + crlf +
         '</head>' + crlf + crlf +
         '<body>' + crlf + crlf +
         '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
-        '<table border="1">' + crlf +
-        '  <tr class="header">' + crlf;
+        '<table >' + crlf +
+        '  <tr id="header">' + crlf;
       for j:=0 to ds.FieldCount-1 do
         buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
       buffer := buffer + '  </tr>' + crlf;
@@ -695,7 +701,6 @@ begin
             begin
               if ConvertHTMLEntities then data := htmlentities(data);
               data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
-              data := data + '&nbsp;';
             end;
           end
           else
@@ -703,9 +708,17 @@ begin
             if ConvertHTMLEntities then
               data := htmlentities(data);
             data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
-            data := data + '&nbsp;';
           end;
-          Buffer := Buffer + '    <td>' + data + '</td>' + crlf;
+          if ds.Fields[j].IsNull then
+            attribs := ' class="isnull"'
+          else
+          begin
+            // Primary key field
+            attribs := '';
+            if fsBold in Mainform.Childwin.ActiveGrid.Columns[j].Font.Style then
+              attribs := ' class="pk"';
+          end;
+          Buffer := Buffer + '    <td'+attribs+'>' + data + '</td>' + crlf;
         end;
         buffer := buffer + '  </tr>' + crlf;
         // write buffer:
@@ -1953,6 +1966,18 @@ begin
   Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
 end;
 
+
+{**
+  Return TColor value in XXXXXX format
+  (X being a hex digit)
+}
+function TColorToHex( Color : TColor ): string;
+begin
+  Result := '#' +
+    { red   } IntToHex( GetRValue( Color ), 2 ) +
+    { green } IntToHex( GetGValue( Color ), 2 ) +
+    { blue }  IntToHex( GetBValue( Color ), 2 );
+end;
 
 initialization
 
