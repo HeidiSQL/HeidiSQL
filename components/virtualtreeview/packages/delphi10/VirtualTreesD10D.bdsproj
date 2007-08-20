@@ -120,7 +120,7 @@
     </Linker>
     <Directories>
       <Directories Name="OutputDir"></Directories>
-      <Directories Name="UnitOutputDir"></Directories>
+      <Directories Name="UnitOutputDir">..\..\build</Directories>
       <Directories Name="PackageDLLOutputDir"></Directories>
       <Directories Name="PackageDCPOutputDir"></Directories>
       <Directories Name="SearchPath">..\..\Source\</Directories>
