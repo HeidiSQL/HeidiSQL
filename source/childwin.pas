@@ -5686,6 +5686,7 @@ procedure TMDIChild.tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
   var AllowChange: Boolean);
 var
   i : Integer;
+  SnippetsAccessible : Boolean;
 begin
   lboxQueryHelpers.Items.BeginUpdate;
   lboxQueryHelpers.Items.Clear;
@@ -5732,11 +5733,12 @@ begin
     3: // SQL Snippets
     begin
       // State of items in popupmenu
-      menuDeleteSnippet.Enabled := True;
-      menuInsertSnippetAtCursor.Enabled := True;
-      menuLoadSnippet.Enabled := True;
-      menuExplore.Enabled := True;
       lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+      SnippetsAccessible := lboxQueryHelpers.Items.Count > 0;
+      menuDeleteSnippet.Enabled := SnippetsAccessible;
+      menuInsertSnippetAtCursor.Enabled := SnippetsAccessible;
+      menuLoadSnippet.Enabled := SnippetsAccessible;
+      menuExplore.Enabled := True;
     end;
 
   end;
@@ -5926,11 +5928,24 @@ end;
 
 
 {**
-  Open snippets-directory in Explorer 
+  Open snippets-directory in Explorer
 }
 procedure TMDIChild.menuExploreClick(Sender: TObject);
 begin
-  ShellExec( '', DIRNAME_SNIPPETS );
+  // Normally the snippets folder is created at installation. But it sure
+  // can be the case that it has been deleted or that the application was
+  // not installed properly. Ask if we should create the folder now.
+  if DirectoryExists( DIRNAME_SNIPPETS ) then
+    ShellExec( '', DIRNAME_SNIPPETS )
+  else
+    if MessageDlg( 'Snippets folder does not exist: ' + DIRNAME_SNIPPETS + CRLF + CRLF + 'This folder is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
+      mtWarning, [mbYes, mbNo], 0 ) = mrYes then
+    try
+      Screen.Cursor := crHourglass;
+      ForceDirectories( DIRNAME_SNIPPETS );
+    finally
+      Screen.Cursor := crDefault;
+    end;
 end;
 
 
