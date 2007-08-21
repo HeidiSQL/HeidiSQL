@@ -26,6 +26,7 @@ package VirtualTreesR;
 {$LIBSUFFIX '110'}
 {$RUNONLY}
 {$IMPLICITBUILD ON}
+{$DEFINE DEBUG}
 
 requires
   vcl,

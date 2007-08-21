@@ -1,7 +1,7 @@
 package VirtualTreesD;
 
 {$R *.res}
-{$R '..\..\Design\VirtualTreesD.dcr'}
+{$R '..\..\Resources\VirtualTreesD.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -27,6 +27,7 @@ package VirtualTreesD;
 {$LIBSUFFIX '110'}
 {$DESIGNONLY}
 {$IMPLICITBUILD ON}
+{$DEFINE DEBUG}
 
 requires
   dclstd,
