@@ -127,7 +127,6 @@ object MDIChild: TMDIChild
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
-                Header.Style = hsXPStyle
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
                 PopupMenu = popupHost
@@ -234,7 +233,6 @@ object MDIChild: TMDIChild
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
-                Header.Style = hsFlatButtons
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
                 PopupMenu = popupHost
