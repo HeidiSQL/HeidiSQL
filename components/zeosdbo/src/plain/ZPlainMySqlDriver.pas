@@ -198,7 +198,7 @@ type
     // eof
     function GetLastErrorCode(Handle: PZMySQLConnect): Integer;
     function GetLastError(Handle: PZMySQLConnect): PChar;
-    function GetEscapeString(StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
+    function GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
     function FetchField(Res: PZMySQLResult): PZMySQLField;
     // fetch_field_direct
     // fetch_fields
@@ -393,7 +393,7 @@ type
     function GetStatInfo(Handle: PZMySQLConnect): PChar;
     function SetOptions(Handle: PZMySQLConnect; Option: TZMySQLOption;
       const Arg: PChar): Integer;
-    function GetEscapeString(StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
+    function GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
 
     function GetServerInfo(Handle: PZMySQLConnect): PChar;
     function GetClientInfo: PChar;
@@ -513,7 +513,7 @@ type
     function GetStatInfo(Handle: PZMySQLConnect): PChar;
     function SetOptions(Handle: PZMySQLConnect; Option: TZMySQLOption;
       const Arg: PChar): Integer;
-    function GetEscapeString(StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
+    function GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
 
     function GetServerInfo(Handle: PZMySQLConnect): PChar;
     function GetClientInfo: PChar;
@@ -633,7 +633,7 @@ type
     function GetStatInfo(Handle: PZMySQLConnect): PChar;
     function SetOptions(Handle: PZMySQLConnect; Option: TZMySQLOption;
       const Arg: PChar): Integer;
-    function GetEscapeString(StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
+    function GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
 
     function GetServerInfo(Handle: PZMySQLConnect): PChar;
     function GetClientInfo: PChar;
@@ -763,7 +763,7 @@ type
     function GetStatInfo(Handle: PZMySQLConnect): PChar;
     function SetOptions(Handle: PZMySQLConnect; Option: TZMySQLOption;
       const Arg: PChar): Integer;
-    function GetEscapeString(StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
+    function GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
 
     function GetServerInfo(Handle: PZMySQLConnect): PChar;
     function GetClientInfo: PChar;
@@ -894,7 +894,7 @@ type
     function GetStatInfo(Handle: PZMySQLConnect): PChar;
     function SetOptions(Handle: PZMySQLConnect; Option: TZMySQLOption;
       const Arg: PChar): Integer;
-    function GetEscapeString(StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
+    function GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar; Length: Cardinal): Cardinal;
 
     function GetServerInfo(Handle: PZMySQLConnect): PChar;
     function GetClientInfo: PChar;
@@ -1088,10 +1088,10 @@ begin
   Result := MYSQL_API.mysql_get_client_info;
 end;
 
-function TZMySQL320PlainDriver.GetEscapeString(StrTo, StrFrom: PChar;
+function TZMySQL320PlainDriver.GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar;
   Length: Cardinal): Cardinal;
 begin
-  Result := MYSQL_API.mysql_escape_string(StrTo, StrFrom, Length);
+  Result := MYSQL_API.mysql_real_escape_string(Handle, StrTo, StrFrom, Length);
 end;
 
 function TZMySQL320PlainDriver.GetHostInfo(Handle: PZMySQLConnect): PChar;
@@ -1580,10 +1580,10 @@ begin
   Result := MYSQL_API.mysql_get_client_info;
 end;
 
-function TZMySQL323PlainDriver.GetEscapeString(StrTo, StrFrom: PChar;
+function TZMySQL323PlainDriver.GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar;
   Length: Cardinal): Cardinal;
 begin
-  Result := MYSQL_API.mysql_escape_string(StrTo, StrFrom, Length);
+  Result := MYSQL_API.mysql_real_escape_string(Handle, StrTo, StrFrom, Length);
 end;
 
 function TZMySQL323PlainDriver.GetHostInfo(Handle: PZMySQLConnect): PChar;
@@ -2070,10 +2070,10 @@ begin
   Result := MYSQL_API.mysql_get_client_info;
 end;
 
-function TZMySQL40PlainDriver.GetEscapeString(StrTo, StrFrom: PChar;
+function TZMySQL40PlainDriver.GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar;
   Length: Cardinal): Cardinal;
 begin
-  Result := MYSQL_API.mysql_escape_string(StrTo, StrFrom, Length);
+  Result := MYSQL_API.mysql_real_escape_string(Handle, StrTo, StrFrom, Length);
 end;
 
 function TZMySQL40PlainDriver.GetHostInfo(Handle: PZMySQLConnect): PChar;
@@ -2593,10 +2593,10 @@ begin
   Result := MYSQL_API.mysql_get_client_info;
 end;
 
-function TZMySQL41PlainDriver.GetEscapeString(StrTo, StrFrom: PChar;
+function TZMySQL41PlainDriver.GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar;
   Length: Cardinal): Cardinal;
 begin
-  Result := MYSQL_API.mysql_escape_string(StrTo, StrFrom, Length);
+  Result := MYSQL_API.mysql_real_escape_string(Handle, StrTo, StrFrom, Length);
 end;
 
 function TZMySQL41PlainDriver.GetHostInfo(Handle: PZMySQLConnect): PChar;
@@ -3117,10 +3117,10 @@ begin
   Result := MYSQL_API.mysql_get_client_info;
 end;
 
-function TZMySQL5PlainDriver.GetEscapeString(StrTo, StrFrom: PChar;
+function TZMySQL5PlainDriver.GetEscapeString(Handle: PZMySQLConnect; StrTo, StrFrom: PChar;
   Length: Cardinal): Cardinal;
 begin
-  Result := MYSQL_API.mysql_escape_string(StrTo, StrFrom, Length);
+  Result := MYSQL_API.mysql_real_escape_string(Handle, StrTo, StrFrom, Length);
 end;
 
 function TZMySQL5PlainDriver.GetHostInfo(Handle: PZMySQLConnect): PChar;

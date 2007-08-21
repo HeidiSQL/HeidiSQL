@@ -1240,24 +1240,25 @@ end;
   @return string
 }
 function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
+var
+  i : Integer;
 begin
-  Result := Text;
-  if sql_version <> SQL_VERSION_ANSI then begin
-    // Replace single-backslashes with double-backslashes BEFORE
-    // special characters get escaped using their escape-sequence
-    // Fixes issue #1648978 "exported sql has \\r\\n instead of \r\n for CRLFs"
-    Result := StringReplace(Result, '\', '\\', [rfReplaceAll]);
-
-    {NUL} Result := StringReplace(Result, #0, '\0', [rfReplaceAll]);
-    {BS}  Result := StringReplace(Result, #8, '\b', [rfReplaceAll]);
-    {TAB} Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
-    {CR}  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
-    {LF}  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
-    {EOF} Result := StringReplace(Result, #26, '\Z', [rfReplaceAll]);
-
-    {DQ}  Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+  if sql_version = SQL_VERSION_ANSI then begin
+    // Do a manual iteration + replacing of single quotes, which is much
+    // faster than StringReplace on text with a large amount of replacements
+    Result := '';
+    for i := 1 to Length(Text) do
+    begin
+      if Text[i] = #39 then
+        Result := Result + #39#39
+      else
+        Result := Result + Text[i];
+    end;
+  end
+  else begin
+    // Use the API function mysql_real_escape_string to escape text
+    Result := Mainform.Childwin.MysqlConn.Connection.GetEscapeString(Text);
   end;
-  {SQ}  Result := StringReplace(Result, #39, #39#39, [rfReplaceAll]);
 
   if ProcessJokerChars then
   begin

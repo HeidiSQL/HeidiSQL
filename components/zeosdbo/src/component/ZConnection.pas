@@ -183,6 +183,7 @@ type
     function Ping: Boolean; virtual;
     function GetAffectedRowsFromLastPost: Int64;
     function GetThreadId: Cardinal;
+    function GetEscapeString(const Value: string): string;
 
     procedure StartTransaction; virtual;
     procedure Commit; virtual;
@@ -364,6 +365,10 @@ begin
   Result := FConnection.GetThreadId;
 end;
 
+function TZConnection.GetEscapeString(const Value: string): string;
+begin
+  Result := FConnection.GetEscapeString(Value);
+end;
 
 
 {**

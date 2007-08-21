@@ -246,6 +246,7 @@ type
     function Ping: Boolean;
     function GetAffectedRowsFromLastPost: Int64;
     function GetThreadId: Cardinal;
+    function GetEscapeString(const Value: string): string;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;
