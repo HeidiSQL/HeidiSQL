@@ -1864,9 +1864,9 @@ begin
   // Blank = current database undefined
   if ActualDatabase = '' then Exit;
   if (FMysqlConn.Connection.Database <> ActualDatabase) or UserQueryFired then begin
-    FMysqlConn.Connection.Database := ActualDatabase;
     ExecUseQuery(ActualDatabase, false, false);
     UserQueryFired := false;
+    FMysqlConn.Connection.Database := ActualDatabase;
   end;
 end;
 
@@ -1982,14 +1982,15 @@ begin
   MainForm.ShowStatus( 'Reading from database ' + ActualDatabase + '...', 2, true );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
 
-  // Refresh chosen in table list?
-  if sender = menurefresh then RefreshActiveDbTableList;
-
-  // Populate database subitems (= tables) in tree.
-  UpdateTreeTableList;
-
-  ds := FetchActiveDbTableList;
   try
+    // Refresh chosen in table list?
+    if sender = menurefresh then RefreshActiveDbTableList;
+
+    // Populate database subitems (= tables) in tree.
+    UpdateTreeTableList;
+
+    ds := FetchActiveDbTableList;
+
     // Generate items for popupDbGridHeader
     for i:=popupDbGridHeader.Items.Count-1 downto 2 do
       popupDbGridHeader.Items.Delete( i );
@@ -2999,7 +3000,10 @@ begin
       tn := DBTree.Selected;
       DBTree.Selected := DBTree.Selected.Parent;
       tn.Destroy;
-      RefreshActiveDbTableList;
+      try
+        RefreshActiveDbTableList;
+      except
+      end;
       ShowDBProperties(self);
       Screen.Cursor := crDefault;
     end;
@@ -5082,8 +5086,8 @@ end;
 
 procedure TMDIChild.ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 begin
-  FConn.MysqlParams.Database := db;
   ExecUpdateQuery('USE ' + mask(db), HandleErrors, DisplayErrors);
+  FConn.MysqlParams.Database := db;
 end;
 
 
