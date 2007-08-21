@@ -127,6 +127,7 @@ type
     procedure Close; override;
     function GetAffectedRowsFromLastPost: Int64; override;
     function GetThreadId: Cardinal; override;
+    function GetEscapeString(const Value: string): string; override;
 
     procedure SetCatalog(const Catalog: string); override;
     function GetCatalog: string; override;
@@ -617,6 +618,21 @@ end;
 function TZMySQLConnection.GetThreadId: Cardinal;
 begin
   Result := FPlainDriver.GetThreadId(FHandle);
+end;
+
+{**
+  Escapes a string for usage in SQL queries
+}
+function TZMySQLConnection.GetEscapeString(const Value: string): string;
+var
+  BufferLen: Integer;
+  Buffer: PChar;
+begin
+  BufferLen := Length(Value) * 2 + 1;
+  GetMem(Buffer, BufferLen);
+  BufferLen := FPlainDriver.GetEscapeString(FHandle, Buffer, PChar(Value), Length(Value));
+  Result := BufferToStr(Buffer, BufferLen);
+  FreeMem(Buffer);
 end;
 
 {**

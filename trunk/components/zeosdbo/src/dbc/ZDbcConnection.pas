@@ -176,6 +176,7 @@ type
     function Ping: Boolean; virtual;
     function GetAffectedRowsFromLastPost: Int64; virtual;
     function GetThreadId: Cardinal; virtual;
+    function GetEscapeString(const Value: string): string; virtual;
 
     function GetDriver: IZDriver;
     function GetMetadata: IZDatabaseMetadata;
@@ -801,6 +802,11 @@ end;
 function TZAbstractConnection.GetThreadId: Cardinal;
 begin
   raise Exception.Create('GetThreadId() is unsupported by this particular DB driver.');
+end;
+
+function TZAbstractConnection.GetEscapeString(const Value: string): string;
+begin
+  raise Exception.Create('GetEscapeString() is unsupported by this particular DB driver.');
 end;
 
 {**

@@ -336,7 +336,7 @@ var
 begin
   BufferLen := Length(Value) * 2 + 1;
   GetMem(Buffer, BufferLen);
-  BufferLen := FPlainDriver.GetEscapeString(Buffer, PChar(Value), Length(Value));
+  BufferLen := FPlainDriver.GetEscapeString(FHandle, Buffer, PChar(Value), Length(Value));
   Result := '''' + BufferToStr(Buffer, BufferLen) + '''';
   FreeMem(Buffer);
 end;
