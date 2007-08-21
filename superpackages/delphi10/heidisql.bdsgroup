@@ -11,7 +11,6 @@
 	<Default.Personality>  <Projects>
       <Projects Name="VCLser100.bpl">..\..\components\edbimage\packages\delphi10\VCLser100.bdsproj</Projects>
       <Projects Name="DCLSer100.bpl">..\..\components\edbimage\packages\delphi10\DCLSer100.bdsproj</Projects>
-      <Projects Name="HeidiComponents.bpl">..\..\components\heidisql\packages\delphi10\HeidiComponents.bdsproj</Projects>
       <Projects Name="SMDBGridComponents.bpl">..\..\components\smdbgrid\packages\delphi10\SMDBGridComponents.bdsproj</Projects>
       <Projects Name="SynEdit_R2006.bpl">..\..\components\synedit\Packages\delphi10\SynEdit_R2006.bdsproj</Projects>
       <Projects Name="SynEdit_D10.bpl">..\..\components\synedit\Packages\delphi10\SynEdit_D10.bdsproj</Projects>
@@ -21,10 +20,11 @@
       <Projects Name="ZDbc100.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
       <Projects Name="ZComponent100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
       <Projects Name="ZComponentDesign100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponentDesign.bdsproj</Projects>
+      <Projects Name="HeidiComponents.bpl">..\..\components\heidisql\packages\delphi10\HeidiComponents.bdsproj</Projects>
       <Projects Name="VirtualTreesD10.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesD10.bdsproj</Projects>
       <Projects Name="VirtualTreesD10D.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesD10D.bdsproj</Projects>
       <Projects Name="heidisql.exe">..\..\packages\delphi10\heidisql.bdsproj</Projects>
-      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl HeidiComponents.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl VirtualTreesD10.bpl VirtualTreesD10D.bpl heidisql.exe</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl SMDBGridComponents.bpl SynEdit_R2006.bpl SynEdit_D10.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiComponents.bpl VirtualTreesD10.bpl VirtualTreesD10D.bpl heidisql.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
