@@ -27,7 +27,6 @@ object MDIChild: TMDIChild
     Cursor = crSizeNS
     Align = alBottom
     AutoSnap = False
-    Beveled = True
     ResizeStyle = rsUpdate
     OnMoved = Splitter2Moved
   end
@@ -46,7 +45,6 @@ object MDIChild: TMDIChild
       Width = 4
       Height = 252
       Cursor = crSizeWE
-      Beveled = True
       ResizeStyle = rsUpdate
     end
     object DBtree: TTreeView
@@ -824,7 +822,6 @@ object MDIChild: TMDIChild
             Height = 4
             Cursor = crSizeNS
             Align = alTop
-            Beveled = True
             ResizeStyle = rsUpdate
           end
           object LabelResultinfo: TLabel
