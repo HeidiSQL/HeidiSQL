@@ -3082,7 +3082,7 @@ object connform: Tconnform
     Top = 293
     Width = 89
     Height = 25
-    Anchors = [akTop, akRight]
+    Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 10
@@ -3094,7 +3094,7 @@ object connform: Tconnform
     Top = 293
     Width = 89
     Height = 25
-    Anchors = [akTop, akRight]
+    Anchors = [akRight, akBottom]
     Caption = 'Connect!'
     Default = True
     TabOrder = 9
@@ -3135,7 +3135,7 @@ object connform: Tconnform
     Top = 293
     Width = 89
     Height = 25
-    Anchors = [akTop, akRight]
+    Anchors = [akRight, akBottom]
     Caption = 'Save + Connect'
     TabOrder = 15
     OnClick = ButtonSaveAndConnectClick
