@@ -4942,7 +4942,7 @@ begin
     background := clInfoBK;
     afont.Color := clInfoText;
   end;
-  if field.IsNull then background := mainform.DataNullBackground;
+  if (field <> nil) and field.IsNull then background := mainform.DataNullBackground;
 end;
 
 procedure TMDIChild.DBMemo1Exit(Sender: TObject);
