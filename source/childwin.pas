@@ -61,7 +61,7 @@ type
     tabVariables: TTabSheet;
     tabProcessList: TTabSheet;
     ListVariables: TVirtualStringTree;
-    ListProcesses: TSortListView;
+    ListProcesses: TVirtualStringTree;
     popupHost: TPopupMenu;
     Kill1: TMenuItem;
     NewDatabase1: TMenuItem;
@@ -329,8 +329,6 @@ type
       Selected: Boolean);
     procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
-    procedure ListProcessesSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -538,6 +536,7 @@ type
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
       VTRowDataListVariables,
+      VTRowDataListProcesses,
       VTRowDataListCommandStats  : Array of TVTreeData;
 
       function GetQueryRunning: Boolean;
@@ -1852,7 +1851,7 @@ begin
   ValidateControls;
 
   // Show processlist if it's visible now but empty yet
-  if ListProcesses.Items.Count = 0 then
+  if ListProcesses.RootNodeCount = 0 then
     ShowProcessList( self );
 end;
 
@@ -2669,7 +2668,6 @@ end;
 procedure TMDIChild.ShowProcessList(sender: TObject);
 var
   i,j : Integer;
-  n   : TListItem;
   ds  : TDataSet;
 begin
   // No need to update if it's not visible.
@@ -2677,57 +2675,49 @@ begin
   if PageControlHost.ActivePage <> tabProcesslist then exit;
   Screen.Cursor := crSQLWait;
   try
-    ListProcesses.Items.BeginUpdate;
-    ListProcesses.Items.Clear;
+    ListProcesses.BeginUpdate;
+    ListProcesses.Clear;
     debug('ShowProcessList()');
     ds := GetResults('SHOW FULL PROCESSLIST', false, false);
+    SetLength(VTRowDataListProcesses, ds.RecordCount);
     for i:=1 to ds.RecordCount do
     begin
-      n := ListProcesses.Items.Add;
-      n.Caption := ds.Fields[0].AsString;
+      VTRowDataListProcesses[i-1].Captions := TStringList.Create;
+      VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsString );
       if CompareText( ds.Fields[4].AsString, 'Killed') = 0 then
-        n.ImageIndex := 83  // killed
+        VTRowDataListProcesses[i-1].ImageIndex := 83  // killed
       else
-        n.ImageIndex := 82; // running
+        VTRowDataListProcesses[i-1].ImageIndex := 82; // running
       for j := 1 to 7 do
-        n.Subitems.Add(ds.Fields[j].AsString);
+        VTRowDataListProcesses[i-1].Captions.Add(ds.Fields[j].AsString);
       ds.Next;
     end;
     ds.Close;
-    ListProcesses.Items.EndUpdate;
-    // Remove existing column-sort-images
-    // (TODO: auomatically invoke this method in TSortListView itself)
-    ListProcesses.ClearSortColumnImages;
-    tabProcessList.Caption := 'Process-List (' + IntToStr(ListProcesses.Items.Count) + ')';
+    tabProcessList.Caption := 'Process-List (' + IntToStr(Length(VTRowDataListProcesses)) + ')';
   except
     on E: Exception do begin
       LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
       TimerProcesslist.Enabled := false;
     end;
   end;
-  ListProcesses.Items.EndUpdate;
+  ListProcesses.RootNodeCount := Length(VTRowDataListProcesses);
+  ListProcesses.EndUpdate;
   Screen.Cursor := crDefault;
 end;
 
-
-procedure TMDIChild.ListProcessesSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
-begin
-  Kill1.Enabled := (ListProcesses.Selected <> nil) and (PageControlHost.ActivePage = tabProcessList);
-end;
-
-
 procedure TMDIChild.KillProcess(Sender: TObject);
 var t : Boolean;
+  NodeData : PVTreeData;
 begin
-  if ListProcesses.Selected.Caption = IntToStr( MySQLConn.Connection.GetThreadId ) then
+  NodeData := ListProcesses.GetNodeData(ListProcesses.FocusedNode);
+  if NodeData.Captions[0] = IntToStr( MySQLConn.Connection.GetThreadId ) then
     MessageDlg('Fatal: Better not kill my own Process...', mtError, [mbok], 0)
   else begin
     t := TimerProcessList.Enabled;
     TimerProcessList.Enabled := false; // prevent av (ListProcesses.selected...)
-    if MessageDlg('Kill Process '+ListProcesses.Selected.Caption+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+    if MessageDlg('Kill Process '+NodeData.Captions[0]+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
-      ExecUpdateQuery( 'KILL '+ListProcesses.Selected.Caption );
+      ExecUpdateQuery( 'KILL '+NodeData.Captions[0] );
       ShowVariablesAndProcesses(self);
     end;
     TimerProcessList.Enabled := t; // re-enable autorefresh timer
@@ -2738,9 +2728,8 @@ end;
 procedure TMDIChild.PageControlHostChange(Sender: TObject);
 begin
   // Show processlist if it's visible now but empty yet
-  if ListProcesses.Items.Count = 0 then
+  if ListProcesses.RootNodeCount = 0 then
     ShowProcessList( self );
-  ListProcessesSelectItem(self, nil, False);
 end;
 
 
@@ -4450,6 +4439,7 @@ end;
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
   MenuAutoupdate.Enabled := PageControlHost.ActivePage = tabProcessList;
+  Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
 end;
 
 procedure TMDIChild.ListTablesEditing(Sender: TObject; Item: TListItem;
@@ -5989,6 +5979,11 @@ begin
   begin
     NodeData.Captions := VTRowDataListCommandStats[Node.Index].Captions;
     NodeData.ImageIndex := VTRowDataListCommandStats[Node.Index].ImageIndex;
+  end
+  else if Sender = ListProcesses then
+  begin
+    NodeData.Captions := VTRowDataListProcesses[Node.Index].Captions;
+    NodeData.ImageIndex := VTRowDataListProcesses[Node.Index].ImageIndex;
   end;
 end;
 
@@ -6017,13 +6012,20 @@ procedure TMDIChild.vstGetText(Sender: TBaseVirtualTree; Node:
     WideString);
 var
   NodeData : PVTreeData;
+  i : Integer;
 begin
   // Get pointer to node which gets displayed
   NodeData := Sender.GetNodeData(Node);
-  case Column of
-    -1: CellText := NodeData.Captions[0]; // Column is -1 if no column headers are defined
-    else CellText := NodeData.Captions[Column];
-  end;
+  // Column is -1 if no column headers are defined
+  if Column = -1 then
+    i := 0
+  else
+    i := Column;
+  // Avoid AV, don't exceed Captions content
+  if NodeData.Captions.Count > i then
+    CellText := NodeData.Captions[i]
+  else
+    CellText := '';
 end;
 
 

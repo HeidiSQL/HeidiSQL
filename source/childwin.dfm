@@ -157,59 +157,83 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
-              object ListProcesses: TSortListView
-                Tag = -1
+              object ListProcesses: TVirtualStringTree
                 Left = 0
                 Top = 0
                 Width = 488
                 Height = 175
                 Align = alClient
+                Header.AutoSizeIndex = 7
+                Header.Font.Charset = DEFAULT_CHARSET
+                Header.Font.Color = clWindowText
+                Header.Font.Height = -11
+                Header.Font.Name = 'Tahoma'
+                Header.Font.Style = []
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.SortColumn = 0
+                Header.SortDirection = sdDescending
+                Images = MainForm.ImageList1
+                IncrementalSearch = isInitializedOnly
+                PopupMenu = popupHost
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+                TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+                TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+                OnCompareNodes = vstCompareNodes
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
                 Columns = <
                   item
-                    Caption = 'id'
-                    Width = -1
-                    WidthType = (
-                      -1)
+                    Alignment = taRightJustify
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 0
+                    WideText = 'id'
                   end
                   item
-                    Caption = 'User'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 1
                     Width = 80
+                    WideText = 'User'
                   end
                   item
-                    Caption = 'Host'
-                    Tag = -1
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 2
                     Width = 80
+                    WideText = 'Host'
                   end
                   item
-                    Caption = 'DB'
-                    Width = -1
-                    WidthType = (
-                      -1)
-                  end
-                  item
-                    Caption = 'Command'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 3
                     Width = 80
+                    WideText = 'DB'
                   end
                   item
-                    Caption = 'Time'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 4
+                    Width = 80
+                    WideText = 'Command'
                   end
                   item
-                    Caption = 'State'
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 5
+                    WideText = 'Time'
                   end
                   item
-                    Caption = 'Info'
-                    Width = 126
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 6
+                    WideText = 'State'
+                  end
+                  item
+                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                    Position = 7
+                    Width = 14
+                    WideText = 'Info'
                   end>
-                GridLines = True
-                ReadOnly = True
-                RowSelect = True
-                PopupMenu = popupHost
-                SmallImages = MainForm.ImageList1
-                TabOrder = 0
-                ViewStyle = vsReport
-                OnSelectItem = ListProcessesSelectItem
-                ImageIndexSortAsc = 95
-                ImageIndexSortDesc = 94
               end
             end
             object tabCommandStats: TTabSheet
