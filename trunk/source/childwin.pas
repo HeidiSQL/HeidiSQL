@@ -310,6 +310,7 @@ type
     menuLoadSnippet: TMenuItem;
     menuInsertSnippetAtCursor: TMenuItem;
     menuExplore: TMenuItem;
+    PopupMenuCreateTable: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
       var S: string);
@@ -3263,7 +3264,10 @@ end;
 
 procedure TMDIChild.CreateTable(Sender: TObject);
 begin
-  CreateTableWindow(Self);
+  if Sender = PopupMenuCreateTable then begin
+    if DBTree.Selected.Level = 2 then CreateTableWindow(Self, DBtree.Selected.Parent.Text);
+    if DBTree.Selected.Level = 1 then CreateTableWindow(Self, DBtree.Selected.Text);
+  end else CreateTableWindow(Self);
 end;
 
 
@@ -4476,6 +4480,7 @@ procedure TMDIChild.popupTreeViewPopup(Sender: TObject);
 begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
+  PopupMenuCreateTable.Enabled := DBtree.Selected.Level in [1,2];
   MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
   DBRightClickSelectedItem := DBtree.Selected;
 end;

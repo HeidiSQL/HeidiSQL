@@ -1479,13 +1479,18 @@ object MDIChild: TMDIChild
       ImageIndex = 73
       OnClick = CreateDatabase
     end
-    object N17: TMenuItem
-      Caption = '-'
-    end
     object PopupmenuDropDatabase: TMenuItem
       Caption = 'Drop Database...'
       ImageIndex = 22
       OnClick = DropDB
+    end
+    object N17: TMenuItem
+      Caption = '-'
+    end
+    object PopupMenuCreateTable: TMenuItem
+      Caption = 'Create Table...'
+      ImageIndex = 72
+      OnClick = CreateTable
     end
     object PopupMenuDropTable: TMenuItem
       Action = MainForm.DropTable

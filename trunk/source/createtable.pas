@@ -85,7 +85,7 @@ type
     { Public declarations }
   end;
 
-  function CreateTableWindow (AOwner : TComponent) : Boolean;
+  function CreateTableWindow (AOwner : TComponent; Database: string = '') : Boolean;
 
 {$I const.inc}
 
@@ -105,11 +105,12 @@ var
   @param TComponent Owner of form (should be calling form)
   @return Boolean Form closed using modalresult mrOK
 }
-function CreateTableWindow (AOwner : TComponent) : Boolean;
+function CreateTableWindow (AOwner : TComponent; Database: string) : Boolean;
 var
   f : TCreateTableForm;
 begin
   f := TCreateTableForm.Create(AOwner);
+  if Database <> '' then f.DBComboBox.SelText := Database;
   Result := (f.ShowModal=mrOK);
   FreeAndNil (f);
 end;
