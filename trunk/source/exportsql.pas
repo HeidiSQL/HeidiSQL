@@ -550,23 +550,23 @@ begin
     end;
 
     {***
+      Set characterset to current one
+    }
+    if cwin.mysql_version > 40100 then
+      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 )
+    else if cwin.mysql_version > 40000 then
+      // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
+      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set"', 1 )
+    else
+      // todo: test this
+      current_characterset := 'binary';
+
+    {***
       Some actions which are only needed if we're not in OtherDatabase-mode:
       Set character set, create and use database.
     }
     if tofile or tohost then
     begin
-      {***
-        Set characterset to current one
-      }
-      if cwin.mysql_version > 40100 then
-        current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 )
-      else if cwin.mysql_version > 40000 then
-        // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
-        current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set"', 1 )
-      else
-        // todo: test this
-        current_characterset := 'binary';
-
       if current_characterset <> '' then
       begin
         sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
