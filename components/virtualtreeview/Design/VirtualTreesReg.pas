@@ -15,7 +15,7 @@ interface
 {$endif COMPILER_7_UP}
 
 {$ifdef COMPILER_4}
-  {$R '..\Design\VirtualTreesD.dcr'}
+  {$R 'VirtualTreesD.dcr'}
 {$endif COMPILER_4}
 
 uses
