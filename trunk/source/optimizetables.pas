@@ -29,6 +29,8 @@ type
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
+    cbxExtendedCheck: TCheckBox;
+    cbxExtendedRepair: TCheckBox;
     procedure Button3Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
@@ -146,6 +148,8 @@ begin
   querystr := 'CHECK TABLE ' + implodestr(',', checkedtables);
   if CheckBoxQuickCheck.Checked then
     querystr := querystr + ' QUICK';
+  if cbxExtendedCheck.Checked then
+    querystr := querystr + ' EXTENDED';
   Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
   ds := Mainform.ChildWin.GetResults( querystr );
   showresult(self, ds);
@@ -188,6 +192,8 @@ begin
   querystr := 'REPAIR TABLE ' + implodestr(',', checkedtables);
   if CheckBoxQuickRepair.Checked then
     querystr := querystr + ' QUICK';
+  if cbxExtendedRepair.Checked then
+    querystr := querystr + ' EXTENDED';
   Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
   ds := Mainform.ChildWin.GetResults( querystr );
   showresult(self, ds);
