@@ -39,7 +39,7 @@ object optimize: Toptimize
     OnClickCheck = TablesCheckListBoxClickCheck
     Columns = 2
     ItemHeight = 13
-    TabOrder = 0
+    TabOrder = 2
   end
   object DBComboBox: TComboBox
     Left = 16
@@ -48,7 +48,7 @@ object optimize: Toptimize
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    TabOrder = 1
+    TabOrder = 0
     OnChange = DBComboBoxChange
   end
   object Button3: TButton
@@ -59,32 +59,32 @@ object optimize: Toptimize
     Cancel = True
     Caption = 'Close'
     Default = True
-    TabOrder = 2
+    TabOrder = 12
     OnClick = Button3Click
   end
   object CheckBoxQuickRepair: TCheckBox
     Left = 360
-    Top = 179
+    Top = 168
     Width = 57
     Height = 17
     Caption = 'Quick'
-    TabOrder = 3
+    TabOrder = 9
   end
   object CheckBoxQuickCheck: TCheckBox
     Left = 360
-    Top = 116
+    Top = 88
     Width = 57
     Height = 17
     Caption = 'Quick'
-    TabOrder = 4
+    TabOrder = 5
   end
   object BitBtn1: TBitBtn
     Left = 248
-    Top = 72
+    Top = 56
     Width = 99
     Height = 25
     Caption = 'Optimze'
-    TabOrder = 5
+    TabOrder = 3
     OnClick = Optimze
     Glyph.Data = {
       36050000424D3605000000000000360400002800000010000000100000000100
@@ -132,11 +132,11 @@ object optimize: Toptimize
   end
   object BitBtn2: TBitBtn
     Left = 248
-    Top = 107
+    Top = 96
     Width = 99
     Height = 25
     Caption = 'Check'
-    TabOrder = 6
+    TabOrder = 4
     OnClick = Check
     Glyph.Data = {
       F6000000424DF600000000000000760000002800000010000000100000000100
@@ -150,7 +150,7 @@ object optimize: Toptimize
   end
   object BitBtn3: TBitBtn
     Left = 248
-    Top = 142
+    Top = 136
     Width = 99
     Height = 25
     Caption = 'Analyze'
@@ -168,7 +168,7 @@ object optimize: Toptimize
   end
   object BitBtn4: TBitBtn
     Left = 248
-    Top = 177
+    Top = 176
     Width = 99
     Height = 25
     Caption = 'Repair'
@@ -194,7 +194,7 @@ object optimize: Toptimize
     MultiSelect = True
     ReadOnly = True
     RowSelect = True
-    TabOrder = 9
+    TabOrder = 11
     ViewStyle = vsReport
   end
   object ToolBar1: TToolBar
@@ -210,7 +210,7 @@ object optimize: Toptimize
     Images = MainForm.ImageList1
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 10
+    TabOrder = 1
     object ToolButton1: TToolButton
       Left = 0
       Top = 0
@@ -232,5 +232,21 @@ object optimize: Toptimize
       ShowHint = True
       OnClick = CheckListToggle
     end
+  end
+  object cbxExtendedCheck: TCheckBox
+    Left = 360
+    Top = 111
+    Width = 70
+    Height = 17
+    Caption = 'Extended'
+    TabOrder = 6
+  end
+  object cbxExtendedRepair: TCheckBox
+    Left = 360
+    Top = 191
+    Width = 70
+    Height = 17
+    Caption = 'Extended'
+    TabOrder = 10
   end
 end
