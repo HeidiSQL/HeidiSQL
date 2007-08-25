@@ -123,7 +123,7 @@ object MDIChild: TMDIChild
                 Header.Font.Name = 'Tahoma'
                 Header.Font.Style = []
                 Header.Height = 20
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
@@ -169,7 +169,8 @@ object MDIChild: TMDIChild
                 Header.Font.Height = -11
                 Header.Font.Name = 'Tahoma'
                 Header.Font.Style = []
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
                 Images = MainForm.ImageList1
@@ -252,7 +253,7 @@ object MDIChild: TMDIChild
                 Header.Font.Name = 'Tahoma'
                 Header.Font.Style = []
                 Header.Height = 20
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
                 Images = MainForm.ImageList1
