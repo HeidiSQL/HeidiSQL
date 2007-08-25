@@ -346,8 +346,9 @@ end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
-  i,j : Integer;
+  i : Integer;
   dbtree_table : String;
+  Selected : TStringList;
 begin
   // read tables from db
   checkListTables.Items.Clear;
@@ -355,6 +356,9 @@ begin
   // Fetch tables from DB
   // todo: skip views or add complete support for views.
   checkListTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(comboSelectDatabase.Text) );
+
+  // Fetch selected tables in list
+  Selected := GetSelectedNodesFromVT( Mainform.ChildWin.ListTables );
 
   // select all/some:
   for i:=0 to checkListTables.Items.Count-1 do
@@ -371,14 +375,7 @@ begin
       end;
     end
     else if Mainform.ChildWin.ActualDatabase = comboSelectDatabase.Text then
-      for j:=0 to Mainform.ChildWin.ListTables.Items.Count-1 do
-      begin
-        if checkListTables.Items[i] = Mainform.ChildWin.ListTables.Items[j].Caption then
-        begin
-          checkListTables.checked[i] := Mainform.ChildWin.ListTables.Items[j].Selected;
-          break;
-        end;
-      end
+      checkListTables.checked[i] := Selected.IndexOf( checkListTables.Items[i] ) > -1
     else
       checkListTables.checked[i] := true;
   end;

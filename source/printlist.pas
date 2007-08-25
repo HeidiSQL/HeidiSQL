@@ -78,7 +78,7 @@ begin
 //      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.Conn.MysqlParams.Host; end;
 //      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.Conn.MysqlParams.Host; end;
 //      end;
-    1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
+//    1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
     2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActualDatabase + '/' + cwin.ActualTable; end;
   end;
   caption := 'Print ' + title + '...';

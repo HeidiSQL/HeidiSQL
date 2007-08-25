@@ -99,8 +99,10 @@ var
   tn : TTreeNode;
   struc_data : Byte;
   ds: TDataSet;
+  NodeData: PVTreeData;
 begin
-  oldTableName := Mainform.ChildWin.ListTables.Selected.Caption;
+  NodeData := Mainform.ChildWin.ListTables.GetNodeData(Mainform.ChildWin.ListTables.FocusedNode);
+  oldTableName := NodeData.Captions[0];
   editNewTablename.Text := oldTableName + '_copy';
   editNewTablename.SetFocus;
   lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new Table:';

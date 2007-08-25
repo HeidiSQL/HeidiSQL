@@ -349,72 +349,6 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
           end
-          object ListTables: TSortListView
-            Tag = -1
-            Left = 30
-            Top = 17
-            Width = 466
-            Height = 196
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            Columns = <
-              item
-                Caption = 'Table'
-                Width = -1
-                WidthType = (
-                  -1)
-              end
-              item
-                Alignment = taRightJustify
-                Caption = 'Records'
-                Width = 80
-              end
-              item
-                Alignment = taRightJustify
-                Caption = 'Size'
-                Width = -1
-                WidthType = (
-                  -1)
-              end
-              item
-                Caption = 'Created'
-                Width = -1
-                WidthType = (
-                  -1)
-              end
-              item
-                Caption = 'Updated'
-                Width = -1
-                WidthType = (
-                  -1)
-              end
-              item
-                Caption = 'Type'
-                Width = -1
-                WidthType = (
-                  -1)
-              end
-              item
-                Caption = 'Comment'
-                Width = 328
-              end>
-            GridLines = True
-            MultiSelect = True
-            RowSelect = True
-            ParentShowHint = False
-            PopupMenu = popupDbGrid
-            ShowHint = False
-            SmallImages = MainForm.ImageList1
-            TabOrder = 1
-            ViewStyle = vsReport
-            OnColumnRightClick = ListTablesColumnRightClick
-            OnDblClick = ListTablesDblClick
-            OnEdited = ListTablesEdited
-            OnEditing = ListTablesEditing
-            OnMouseDown = ListTablesMouseDown
-            OnSelectItem = ListTablesSelectItem
-            ImageIndexSortAsc = 95
-            ImageIndexSortDesc = 94
-          end
           object tlbDataLeft1: TToolBar
             Left = 3
             Top = 20
@@ -429,7 +363,7 @@ object MDIChild: TMDIChild
             ParentColor = False
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 2
+            TabOrder = 1
             Transparent = True
             object btnDbViewData: TToolButton
               Left = 0
@@ -486,7 +420,7 @@ object MDIChild: TMDIChild
             Images = MainForm.ImageList1
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 3
+            TabOrder = 2
             Transparent = True
             object btnDbInsertRecord: TToolButton
               Left = 0
@@ -497,6 +431,86 @@ object MDIChild: TMDIChild
               ImageIndex = 32
               OnClick = InsertRecord
             end
+          end
+          object ListTables: TVirtualStringTree
+            Left = 30
+            Top = 17
+            Width = 467
+            Height = 200
+            EditDelay = 500
+            Header.AutoSizeIndex = 6
+            Header.Font.Charset = DEFAULT_CHARSET
+            Header.Font.Color = clWindowText
+            Header.Font.Height = -11
+            Header.Font.Name = 'Tahoma'
+            Header.Font.Style = []
+            Header.Height = 20
+            Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Header.PopupMenu = popupDbGridHeader
+            Header.SortColumn = 0
+            Images = MainForm.ImageList1
+            IncrementalSearch = isInitializedOnly
+            PopupMenu = popupDbGrid
+            TabOrder = 3
+            TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+            TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+            TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+            TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+            OnClick = ListTablesClick
+            OnCompareNodes = vstCompareNodes
+            OnDblClick = ListTablesDblClick
+            OnFreeNode = vstFreeNode
+            OnGetText = vstGetText
+            OnGetImageIndex = vstGetImageIndex
+            OnGetNodeDataSize = vstGetNodeDataSize
+            OnHeaderClick = vstHeaderClick
+            OnInitNode = vstInitNode
+            OnNewText = ListTablesNewText
+            Columns = <
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 0
+                Width = 120
+                WideText = 'Table'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 1
+                Width = 70
+                WideText = 'Records'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 2
+                Width = 70
+                WideText = 'Size'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 3
+                Width = 120
+                WideText = 'Created'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 4
+                Width = 120
+                WideText = 'Updated'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 5
+                Width = 70
+                WideText = 'Type'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 6
+                Width = 10
+                WideText = 'Comment'
+              end>
           end
         end
         object tabTable: TTabSheet
@@ -1529,7 +1543,6 @@ object MDIChild: TMDIChild
   end
   object popupDbGrid: TPopupMenu
     AutoHotkeys = maManual
-    AutoPopup = False
     Images = MainForm.ImageList1
     OnPopup = popupDbGridPopup
     Left = 72

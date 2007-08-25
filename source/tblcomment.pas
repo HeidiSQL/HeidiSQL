@@ -67,14 +67,18 @@ begin
 end;
 
 procedure Ttablecomment.FormShow(Sender: TObject);
-var i : integer;
+var
+  i : integer;
+  NodeData : PVTreeData;
 begin
   // read tables
 //  messagedlg('sdf',mtwarning, [], 0);
   ComboBoxTableName.Items.Clear;
-  for i:=0 to Mainform.Childwin.ListTables.Items.Count-1 do
-    ComboBoxTableName.Items.Add( Mainform.Childwin.ListTables.Items[i].Caption );
-  ComboBoxTableName.ItemIndex := Mainform.Childwin.ListTables.Selected.Index;
+  for i:=0 to Length(Mainform.Childwin.VTRowDataListTables)-1 do
+    ComboBoxTableName.Items.Add( Mainform.Childwin.VTRowDataListTables[i].Captions[0] );
+  // Select the correct item in the tables dropdown
+  NodeData := Mainform.Childwin.ListTables.GetNodeData(Mainform.Childwin.ListTables.FocusedNode);
+  ComboBoxTableName.ItemIndex := ComboBoxTableName.Items.IndexOf(NodeData.Captions[0]);
   ComboBoxTableNameChange( self );
 end;
 

@@ -10,7 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, HeidiComp, ExtCtrls, ZDataset, SynMemo, Synedit;
+  StdCtrls, ComCtrls, HeidiComp, ExtCtrls, ZDataset, SynMemo, Synedit,
+  VirtualTrees;
 
 type
   Ttbl_properties_form = class(TForm)
@@ -65,7 +66,7 @@ var
   t: Integer;
   ts: TTabSheet;
   list: TSortListView;
-  ListTables: TSortListView;
+  ListTables: TVirtualStringTree;
   datasize: Int64;
   indexsize: Int64;
   isSelected: Boolean;
@@ -73,6 +74,7 @@ var
   splitter: TSplitter;
   synmemo: TSynMemo;
   query: TDataSet;
+  Selected: TStringList;
 begin
   ListTables  := Mainform.Childwin.ListTables;
 
@@ -92,14 +94,17 @@ begin
     FieldList.add( query.Fields[i].Fieldname );
   end;
 
+  // Fetch selected nodes
+  Selected := GetSelectedNodesFromVT(ListTables);
+
   // for tables found
   for t := 0 to (query.RecordCount - 1) do
   begin
     isSelected := false;
 
-    for i := 0 to (ListTables.Items.Count - 1) do
+    for i := 0 to Selected.Count-1 do
     begin
-      isSelected := (ListTables.Items[i].caption = query.Fields[0].AsString) and ListTables.Items[i].Selected;
+      isSelected := Selected[i] = query.Fields[0].AsString;
       if (isSelected) then
       begin
         Break;
@@ -116,7 +121,7 @@ begin
 
     // creates a tab
     ts             := TTabSheet.Create(PageControl);
-    ts.Caption     := ListTables.Items[t].Caption;
+    ts.Caption     := query.Fields[0].AsString;
     ts.PageControl := PageControl;
 
     // creates a splitter
@@ -169,7 +174,7 @@ begin
     synmemo.AlignWithMargins := true;
     synmemo.Font.Name        := Mainform.Childwin.SynMemoQuery.Font.Name;
     synmemo.Font.Size        := Mainform.Childwin.SynMemoQuery.Font.Size;
-    synmemo.Lines.Text       := Mainform.Childwin.GetVar( 'SHOW CREATE TABLE ' + Mainform.Childwin.mask(ListTables.Items[t].Caption), 1 );
+    synmemo.Lines.Text       := Mainform.Childwin.GetVar( 'SHOW CREATE TABLE ' + Mainform.Childwin.mask(query.Fields[0].AsString), 1 );
 
 
     // realign the components to correct position
