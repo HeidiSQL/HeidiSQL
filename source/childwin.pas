@@ -62,17 +62,9 @@ type
     Panel4: TPanel;
     pnlDataTop: TPanel;
     pnlQueryTop: TPanel;
-    tlbDataLeft1: TToolBar;
-    btnDbViewData: TToolButton;
-    btnDbProperties: TToolButton;
-    btnDbInsertRecord: TToolButton;
-    btnDbEmptyTable: TToolButton;
-    tlbTableLeft1: TToolBar;
     menurefresh: TMenuItem;
     N2: TMenuItem;
     pnlQueryMemo: TPanel;
-    btnTableDropField: TToolButton;
-    btnTableViewData: TToolButton;
     SynSQLSyn1: TSynSQLSyn;
     SynMemoQuery: TSynMemo;
     spltQuery: TSplitter;
@@ -85,13 +77,10 @@ type
     N3: TMenuItem;
     N5: TMenuItem;
     PopupmenuDropDatabase: TMenuItem;
-    btnTableInsertRecord: TToolButton;
     popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
     Insertrecord2: TMenuItem;
-    btnTableAddField: TToolButton;
     MenuAddField: TMenuItem;
-    btnTableEditField: TToolButton;
     MenuEditField: TMenuItem;
     popupResultGrid: TPopupMenu;
     Copyrecords1: TMenuItem;
@@ -120,7 +109,7 @@ type
     TimerConnectErrorCloseWindow: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
-    pnlTableList: TPanel;
+    pnlTableToolbar: TPanel;
     ListColumns: TSortListView;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
@@ -172,8 +161,6 @@ type
     DBMemo1: TDBMemo;
     tabBlobEditorImage: TTabSheet;
     SynMemoFilter: TSynMemo;
-    btnDbCopyTable: TToolButton;
-    btnDbDropTable: TToolButton;
     N18: TMenuItem;
     MenuChangeType5: TMenuItem;
     selectall1: TMenuItem;
@@ -256,7 +243,6 @@ type
     ReplaceDialogQuery: TReplaceDialog;
     N16: TMenuItem;
     ManageIndexes1: TMenuItem;
-    btnTableManageIndexes: TToolButton;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     CheckBoxDataSearch: TCheckBox;
@@ -303,6 +289,23 @@ type
     menuInsertSnippetAtCursor: TMenuItem;
     menuExplore: TMenuItem;
     PopupMenuCreateTable: TMenuItem;
+    pnlDatabaseToolbar: TPanel;
+    tlbDataLeft2: TToolBar;
+    btnDbInsertRecord: TToolButton;
+    tlbDataLeft1: TToolBar;
+    btnDbViewData: TToolButton;
+    btnDbProperties: TToolButton;
+    btnDbEmptyTable: TToolButton;
+    btnDbDropTable: TToolButton;
+    btnDbCopyTable: TToolButton;
+    tlbTableLeft1: TToolBar;
+    btnTableViewData: TToolButton;
+    btnTableEditField: TToolButton;
+    btnTableAddField: TToolButton;
+    btnTableDropField: TToolButton;
+    btnTableManageIndexes: TToolButton;
+    tlbTableLeft2: TToolBar;
+    btnTableInsertRecord: TToolButton;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
       var S: string);
@@ -464,7 +467,6 @@ type
     procedure DBGridColEnter(Sender: TObject);
     procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
       var Action: TDataAction);
-    procedure FormResize(Sender: TObject);
     procedure ButtonDataSearchClick(Sender: TObject);
     procedure EditDataSearchEnter(Sender: TObject);
     procedure EditDataSearchExit(Sender: TObject);
@@ -3291,7 +3293,6 @@ begin
 
   //TODO:
   //ds.DisableControls;
-  FormResize( self );
 end;
 
 
@@ -5463,15 +5464,6 @@ procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
   var Action: TDataAction);
 begin
   LogSQL( E.Message, true );
-end;
-
-
-procedure TMDIChild.FormResize(Sender: TObject);
-begin
-  ListTables.Width := tabDatabase.Width - tlbDataLeft1.Width - tlbDataLeft1.Left;
-  ListTables.Height := tabDatabase.Height - pnlDatabaseTop.Height;
-  pnlTableList.Width := tabTable.Width - tlbTableLeft1.Width - tlbTableLeft1.Left;
-  pnlTableList.Height := tabTable.Height - pnlTableTop.Height;
 end;
 
 
