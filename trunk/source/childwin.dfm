@@ -1713,12 +1713,14 @@ object MDIChild: TMDIChild
       object EnableAutoRefresh: TMenuItem
         Caption = 'Active'
         RadioItem = True
+        ShortCut = 16500
         OnClick = EnableAutoRefreshClick
       end
       object DisableAutoRefresh: TMenuItem
         Caption = 'Inactive'
         Checked = True
         RadioItem = True
+        ShortCut = 27
         OnClick = DisableAutoRefreshClick
       end
     end
