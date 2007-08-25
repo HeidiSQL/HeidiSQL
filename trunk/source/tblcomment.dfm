@@ -67,7 +67,7 @@ object tablecomment: Ttablecomment
     Width = 121
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 3
     OnChange = ComboBoxTableNameChange
   end

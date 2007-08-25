@@ -27,14 +27,6 @@ uses
 
 type
 
-  // Define a record which can hold everything we need for one row / node in a VirtualStringTree
-  TVTreeData = record
-    Captions: TStringList;
-    ImageIndex: Integer;
-  end;
-  PVTreedata = ^TVTreeData;
-
-
   TMDIChild = class(TForm)
     Panel1: TPanel;
     DBtree: TTreeView;
@@ -65,7 +57,7 @@ type
     popupHost: TPopupMenu;
     Kill1: TMenuItem;
     NewDatabase1: TMenuItem;
-    ListTables: TSortListView;
+    ListTables: TVirtualStringTree;
     Refresh1: TMenuItem;
     Panel4: TPanel;
     pnlDataTop: TPanel;
@@ -325,8 +317,7 @@ type
     procedure btnDataClick(Sender: TObject);
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
-    procedure ListTablesSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
+    procedure ListTablesClick(Sender: TObject);
     procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure DBMemo1Exit(Sender: TObject);
@@ -385,8 +376,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure UpdateField(Sender: TObject);
     procedure MenuAdvancedPropertiesClick(Sender: TObject);
-    procedure ListTablesEdited(Sender: TObject; Item: TListItem;
-      var S: String);
+    procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; NewText: WideString);
     procedure MenuRenameTableClick(Sender: TObject);
     procedure MenuViewBlobClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
@@ -439,8 +430,6 @@ type
     procedure SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure popupHostPopup(Sender: TObject);
-    procedure ListTablesEditing(Sender: TObject; Item: TListItem;
-      var AllowEdit: Boolean);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
     procedure btnQueryFindClick(Sender: TObject);
@@ -479,11 +468,7 @@ type
     procedure ButtonDataSearchClick(Sender: TObject);
     procedure EditDataSearchEnter(Sender: TObject);
     procedure EditDataSearchExit(Sender: TObject);
-    procedure ListTablesColumnRightClick(Sender: TObject;
-      Column: TListColumn; Point: TPoint);
     procedure MenuTablelistColumnsClick(Sender: TObject);
-    procedure ListTablesMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     function mask(str: String) : String;
     procedure CheckConnection();
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
@@ -535,9 +520,6 @@ type
       UserQueryFired             : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
-      VTRowDataListVariables,
-      VTRowDataListProcesses,
-      VTRowDataListCommandStats  : Array of TVTreeData;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -558,6 +540,10 @@ type
       tnodehost                  : TTreeNode;
       Description                : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
+      VTRowDataListVariables,
+      VTRowDataListProcesses,
+      VTRowDataListCommandStats,
+      VTRowDataListTables        : Array of TVTreeData;
 
       FProgressForm              : TFrmQueryProgress;
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -721,17 +707,19 @@ procedure TMDIChild.popupDbGridPopup(Sender: TObject);
 var
   i                 : byte;
   SelectedEngine    : String;
+  NodeData          : PVTreeData;
 begin
-  if ( ListTables.SelCount <> 1 ) then
+  if ListTables.SelectedCount <> 1 then
   begin
     Exit;
   end;
 
-  for i := 0 to ( ListTables.Columns.Count - 1 ) do
+  for i := 0 to ListTables.Header.Columns.Count - 1 do
   begin
-    if ( ListTables.Columns[i].Caption = 'Engine' ) then
+    if (ListTables.Header.Columns[i].Text = 'Engine') or (ListTables.Header.Columns[i].Text = 'Type') then
     begin
-      SelectedEngine := ListTables.Selected.SubItems[i - 1];
+      NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+      SelectedEngine := NodeData.Captions[i];
       Break;
     end;
   end;
@@ -1288,7 +1276,7 @@ begin
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
-  ListTables.Items.Clear();
+  ListTables.Clear;
   ListColumns.Items.Clear();
   pnlTableTop.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
@@ -1969,13 +1957,14 @@ end;
 { Show tables and their properties on the tabsheet "Database" }
 procedure TMDIChild.ShowDBProperties(Sender: TObject);
 var
-  n               : TListItem;
   i,j,k           : Integer;
   bytes           : Extended;
   menuitem        : TMenuItem;
   TablelistColumns: TStringList;
-  column          : TListColumn;
+  column          : TVirtualTreeColumn;
   ds              : TDataSet;
+  OldSortColumn   : Integer;
+  OldSortDirection: TSortDirection;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -2023,85 +2012,93 @@ begin
       popupDbGridHeader.Items.Add( menuitem );
     end;
 
-    ListTables.Items.BeginUpdate;
-    ListTables.Items.Clear;
-    ListTables.Columns.BeginUpdate;
-    ListTables.Columns.Clear;
-    column := ListTables.Columns.Add;
-    column.Caption := 'Table';
-    column.Width := -1;
+    // Remember sorting options and restore them later
+    OldSortColumn := ListTables.Header.SortColumn;
+    OldSortDirection := ListTables.Header.SortDirection;
+
+    ListTables.BeginUpdate;
+    ListTables.Clear;
+    ListTables.Header.Columns.BeginUpdate;
+    ListTables.Header.Columns.Clear;
+    column := ListTables.Header.Columns.Add;
+    column.Text := 'Table';
+    column.Width := 120;
     if popupDbGridHeader.Items[0].Checked then
     begin // Default columns - initialize column headers
-      column := ListTables.Columns.Add;
-      column.Caption := 'Records';
+      column := ListTables.Header.Columns.Add;
+      column.Text := 'Records';
       column.Alignment := taRightJustify;
       column.Width := 80;
 
-      column := ListTables.Columns.Add;
-      column.Caption := 'Size';
+      column := ListTables.Header.Columns.Add;
+      column.Text := 'Size';
       column.Alignment := taRightJustify;
-      column.Width := -1;
+      column.Width := 70;
 
-      column := ListTables.Columns.Add;
-      column.Caption := 'Created';
-      column.Width := -1;
+      column := ListTables.Header.Columns.Add;
+      column.Text := 'Created';
+      column.Width := 120;
 
-      column := ListTables.Columns.Add;
-      column.Caption := 'Updated';
-      column.Width := -1;
+      column := ListTables.Header.Columns.Add;
+      column.Text := 'Updated';
+      column.Width := 120;
 
-      column := ListTables.Columns.Add;
-      column.Caption := 'Engine';
-      column.Width := -1;
+      column := ListTables.Header.Columns.Add;
+      column.Text := 'Engine';
+      column.Width := 70;
 
-      column := ListTables.Columns.Add;
-      column.Caption := 'Comment';
-      column.Width := -1;
+      column := ListTables.Header.Columns.Add;
+      column.Text := 'Comment';
+      column.Width := 50;
     end;
     for i:=0 to TablelistColumns.Count-1 do
     begin
-      column := ListTables.Columns.Add;
-      column.Caption := TablelistColumns[i];
-      column.Width := -1;
+      column := ListTables.Header.Columns.Add;
+      column.Text := TablelistColumns[i];
+      column.Width := 50;
       column.MinWidth := 50;
-      column.Autosize := true;
     end;
+    // Ensure AutoResize does not cause an AV
+    ListTables.Header.SortColumn := OldSortColumn;
+    ListTables.Header.SortDirection := OldSortDirection;
+    ListTables.Header.Columns.EndUpdate;
 
+    SetLength(VTRowDataListTables, ds.RecordCount);
     for i := 1 to ds.RecordCount do
     begin
-      n := ListTables.Items.Add;
-      n.ImageIndex := 39;
+      VTRowDataListTables[i-1].Captions := TStringList.Create;
+      VTRowDataListTables[i-1].ImageIndex := 39;
       // Table
-      n.Caption := ds.Fields[0].AsString;
+      VTRowDataListTables[i-1].Captions.Add( ds.Fields[0].AsString );
       if (mysql_version >= 32300) and popupDbGridHeader.Items[0].Checked then
       begin // Default columns
         // Records
-        n.SubItems.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
+        VTRowDataListTables[i-1].Captions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
         // Size: Data_length + Index_length
         bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-        n.SubItems.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
+        VTRowDataListTables[i-1].Captions.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
         // Created:
         if not ds.FieldByName('Create_time').IsNull then
-          n.SubItems.Add( ds.FieldByName('Create_time').AsString )
+          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Create_time').AsString )
         else
-          n.SubItems.Add('N/A');
+          VTRowDataListTables[i-1].Captions.Add('N/A');
 
         // Updated:
         if not ds.FieldByName('Update_time').IsNull then
-          n.SubItems.Add( ds.FieldByName('Update_time').AsString )
+          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Update_time').AsString )
         else
-          n.SubItems.Add('N/A');
+          VTRowDataListTables[i-1].Captions.Add('N/A');
 
         // Type
         if ds.FindField('Type')<>nil then
-          n.SubItems.Add( ds.FieldByName('Type').AsString )
+          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Type').AsString )
         else if ds.FindField('Engine')<>nil then
-          n.SubItems.Add( ds.FieldByName('Engine').AsString )
+          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Engine').AsString )
         else
-          n.SubItems.Add('');
+          VTRowDataListTables[i-1].Captions.Add('');
 
         // Comment
-        n.SubItems.Add( ds.FieldByName('Comment').AsString );
+        VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Comment').AsString );
       end;
       for j:=0 to TablelistColumns.Count-1 do
       begin
@@ -2113,12 +2110,13 @@ begin
             begin
               // Number
               // TODO: doesn't match any column
-              ListTables.Columns[n.SubItems.Count].Alignment := taRightJustify;
-              n.SubItems.Add( FormatNumber( ds.Fields[k].AsFloat ) );
+              ListTables.Header.Columns[ListTables.Header.Columns.Count-1].Alignment := taRightJustify;
+              VTRowDataListTables[i-1].Captions.Add( FormatNumber( ds.Fields[k].AsFloat ) );
             end
             else
               // String
-              n.SubItems.Add( ds.Fields[k].AsString );
+              VTRowDataListTables[i-1].Captions.Add( ds.Fields[k].AsString );
+            break;
           end;
         end;
       end;
@@ -2126,16 +2124,13 @@ begin
     end;
     mainform.showstatus(ActualDatabase + ': ' + IntToStr(ds.RecordCount) +' table(s)');
   finally
-    ListTables.Columns.EndUpdate;
-    ListTables.Items.EndUpdate;
-    // Remove existing column-sort-images
-    // (TODO: auomatically invoke this method in TSortListView itself)
-    ListTables.ClearSortColumnImages;
+    ListTables.RootNodeCount := Length(VTRowDataListTables);
+    ListTables.EndUpdate;
     Screen.Cursor := crDefault;
   end;
   Screen.Cursor := crHourglass;
 
-  pnlDatabaseTop.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.Items.Count) + ' table(s)';
+  pnlDatabaseTop.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.RootNodeCount) + ' table(s)';
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
@@ -2183,12 +2178,6 @@ begin
       break;
     end;
     tn := tndb.GetNextChild(tn);
-  end;
-
-  // and the other way around: set current listitem in tableslist to ActualTable:
-  for i:=0 to ListTables.items.Count -1 do
-  begin
-    // ListTables.Items[i].Selected := (ActualTable = ListTables.Items[i].Caption); // ListTablesOnChange will be called by this line
   end;
 
   MainForm.ShowStatus( 'Reading table properties...', 2, true );
@@ -2316,14 +2305,8 @@ end;
   Selection in ListTables is changing
   Used to change the iconindex of selected items and to trigger ValidateControls
 }
-procedure TMDIChild.ListTablesSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
-var
-  i: Integer;
+procedure TMDIChild.ListTablesClick(Sender: TObject);
 begin
-  for i := 0 to ListTables.Items.Count - 1 do
-    ListTables.Items[i].ImageIndex := 39;
-  if (ListTables.Selected <> nil) then ListTables.Selected.ImageIndex := 40;
   ValidateControls;
 end;
 
@@ -2346,9 +2329,9 @@ var
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
-  if (PageControlMain.ActivePage <> tabDatabase) then ListTables.Selected := nil;
+  if (PageControlMain.ActivePage <> tabDatabase) then ListTables.FocusedNode := nil;
 
-  tableSelected := (ListTables.Selected <> nil) and FrmIsFocussed;
+  tableSelected := Assigned(ListTables.FocusedNode) and FrmIsFocussed;
   btnDbProperties.Enabled := tableSelected;
   menuproperties.Enabled := tableSelected;
   btnDbInsertRecord.Enabled := tableSelected;
@@ -2461,6 +2444,7 @@ procedure TMDIChild.ShowTable(Sender: TObject);
 var
   i : Integer;
   tn, tndb : TTreeNode;
+  NodeData: PVTreeData;
 begin
   if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
   else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
@@ -2468,7 +2452,8 @@ begin
 
   tn := tndb.getFirstChild;
   for i:=0 to tndb.Count -1 do begin
-    if ListTables.Selected.Caption = tn.Text then
+    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+    if NodeData.Captions[0] = tn.Text then
     begin
       DBTree.Selected := tn;
       ShowTableData(tn.Text);
@@ -2485,13 +2470,11 @@ var
   i : Integer;
 begin
   // Empty Table(s)
-  if ListTables.SelCount = 0 then
+  if ListTables.SelectedCount = 0 then
     exit;
-  t := TStringlist.Create;
-  with ListTables do
-  for i:=0 to Items.count-1 do
-    if Items[i].Selected then
-      t.add(Items[i].Caption);
+
+  // Add selected items/tables to helper list
+  t := GetSelectedNodesFromVT(ListTables);
 
   if MessageDlg('Empty ' + IntToStr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     exit;
@@ -2499,6 +2482,7 @@ begin
   Screen.Cursor := crSQLWait;
   for i:=0 to t.count-1 do
     ExecUpdateQuery( 'DELETE FROM ' + mask(t[i]) );
+  t.Free;
   ShowDBProperties(self);
   Screen.Cursor := crDefault;
 end;
@@ -3207,9 +3191,9 @@ begin
     if ActualDatabase <> '' then
     begin
       // Add tables
-      for i:=0 to ListTables.Items.Count-1 do
+      for i:=0 to Length(VTRowDataListTables)-1 do
       begin
-        addTable( ListTables.Items[i].Caption );
+        addTable( VTRowDataListTables[i].Captions[0] );
       end;
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
         SynCompletionProposal1.Position := OnlyDBs2.Count;
@@ -3378,37 +3362,42 @@ end;
 {***
   Rename table after checking the new name for invalid characters
 }
-procedure TMDIChild.ListTablesEdited(Sender: TObject; Item: TListItem;
-  var S: String);
+procedure TMDIChild.ListTablesNewText(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
   i : Integer;
+  NodeData : PVTreeData;
 begin
+  // Fetch data from node
+  NodeData := Sender.GetNodeData(Node);
 
   // Try to rename, on any error abort and don't rename ListItem
   try
-    ensureValidIdentifier( S );
+    ensureValidIdentifier( NewText );
     // rename table
-    ExecUpdateQuery( 'ALTER TABLE ' + mask(Item.Caption) + ' RENAME ' + mask(S), False, False );
+    ExecUpdateQuery( 'ALTER TABLE ' + mask(NodeData.Captions[0]) + ' RENAME ' + mask(NewText), False, False );
+
+    i := SynSQLSyn1.TableNames.IndexOf( NodeData.Captions[0] );
+    if i > -1 then
+      SynSQLSyn1.TableNames[i] := NewText;
+    // Update nodedata
+    NodeData.Captions[0] := NewText;
+    ActualTable := NewText;
+    RefreshActiveDbTableList;
   except
     On E : Exception do
     begin
       MessageDlg( E.Message, mtError, [mbOK], 0 );
-      abort;
     end;
   end;
 
-  i := SynSQLSyn1.TableNames.IndexOf( Item.Caption );
-  if i > -1 then
-    SynSQLSyn1.TableNames[i] := S;
-  ActualTable := S;
-  RefreshActiveDbTableList;
 end;
 
 
 procedure TMDIChild.MenuRenameTableClick(Sender: TObject);
 begin
   // menuitem for edit table-name
-  ListTables.Selected.EditCaption;
+  ListTables.EditNode( ListTables.FocusedNode, 0 );
 end;
 
 
@@ -3488,16 +3477,18 @@ end;
 procedure TMDIChild.MenuOptimizeClick(Sender: TObject);
 var
   i : Integer;
+  Selected : TStringList;
 begin
   // Optimize tables
   Screen.Cursor := crHourGlass;
+  Selected := GetSelectedNodesFromVT( ListTables );
   try
-    for i:=0 to ListTables.Items.Count - 1 do
+    for i:=0 to Selected.Count-1 do
     begin
-      if ListTables.Items[i].Selected then
-        ExecUpdateQuery( 'OPTIMIZE TABLE ' + mask(ListTables.Items[i].Caption) );
+      ExecUpdateQuery( 'OPTIMIZE TABLE ' + mask(Selected[i]) );
     end;
   finally
+    Selected.Free;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -3507,19 +3498,22 @@ procedure TMDIChild.MenuCheckClick(Sender: TObject);
 var
   i : Integer;
   tables : String;
+  Selected : TStringList;
 begin
   // Check tables
   Screen.Cursor := crHourGlass;
+  tables := '';
+  Selected := GetSelectedNodesFromVT( ListTables );
   try
-    tables := '';
-    for i:=0 to ListTables.Items.Count - 1 do
-      if ListTables.Items[i].Selected then begin
-        if tables <> '' then
-          tables := tables + ', ';
-        tables := tables + mask(ListTables.Items[i].Caption);
-      end;
+    for i:=0 to Selected.Count-1 do
+    begin
+      if tables <> '' then
+        tables := tables + ', ';
+      tables := tables + mask(Selected[i]);
+    end;
     ExecUpdateQuery( 'CHECK TABLE ' + tables + ' QUICK' );
   finally
+    Selected.Free;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -3548,19 +3542,22 @@ procedure TMDIChild.MenuAnalyzeClick(Sender: TObject);
 var
   i : Integer;
   tables : String;
+  Selected : TStringList;
 begin
   // Analyze tables
   Screen.Cursor := crHourGlass;
+  tables := '';
+  Selected := GetSelectedNodesFromVT( ListTables );
   try
-    tables := '';
-    for i:=0 to ListTables.Items.Count - 1 do
-      if ListTables.Items[i].Selected then begin
-        if tables <> '' then
-          tables := tables + ', ';
-        tables := tables + mask(ListTables.Items[i].Caption);
-      end;
+    for i:=0 to Selected.Count-1 do
+    begin
+      if tables <> '' then
+        tables := tables + ', ';
+      tables := tables + mask(Selected[i]);
+    end;
     ExecUpdateQuery( 'ANALYZE TABLE ' + tables );
   finally
+    Selected.Free;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -3570,29 +3567,35 @@ procedure TMDIChild.MenuRepairClick(Sender: TObject);
 var
   i : Integer;
   tables : String;
+  Selected : TStringList;
 begin
   // Repair tables
   Screen.Cursor := crHourGlass;
+  tables := '';
+  Selected := GetSelectedNodesFromVT( ListTables );
   try
-    tables := '';
-    for i:=0 to ListTables.Items.Count - 1 do
-      if ListTables.Items[i].Selected then begin
-        if tables <> '' then
-          tables := tables + ', ';
-        tables := tables + mask(ListTables.Items[i].Caption);
-      end;
+    for i:=0 to Selected.Count - 1 do
+    begin
+      if tables <> '' then
+        tables := tables + ', ';
+      tables := tables + mask(Selected[i]);
+    end;
     ExecUpdateQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
   finally
+    Selected.Free;
     Screen.Cursor := crDefault;
   end;
 end;
 
 
 procedure TMDIChild.ListTablesDblClick(Sender: TObject);
+var
+  NodeData : PVTreeData;
 begin
   // table-doubleclick
-  if ListTables.Selected <> nil then begin
-    SelectTable(ActualDatabase, ListTables.Selected.Caption);
+  if Assigned(ListTables.FocusedNode) then begin
+    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+    SelectTable(ActualDatabase, NodeData.Captions[0]);
   end;
 end;
 
@@ -3900,16 +3903,22 @@ end;
 
 
 procedure TMDIChild.btnDbPropertiesClick(Sender: TObject);
+var
+  NodeData : PVTreeData;
 begin
-  if ListTables.Selected <> nil then
+  if Assigned(ListTables.FocusedNode) then
   begin
-    SelectTable(ActualDatabase, ListTables.Selected.Caption);
+    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+    SelectTable(ActualDatabase, NodeData.Captions[0]);
   end;
 end;
 
 procedure TMDIChild.btnDbViewDataClick(Sender: TObject);
+var
+  NodeData : PVTreeData;
 begin
-  ShowTableData(ListTables.Selected.Caption);
+  NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+  ShowTableData(NodeData.Captions[0]);
 end;
 
 procedure TMDIChild.PageControlBlobEditorsChange(Sender: TObject);
@@ -4176,12 +4185,14 @@ procedure TMDIChild.MenuChangeTypeClick(Sender: TObject);
 var
   i : Integer;
   tabletype : String;
+  Selected : TStringList;
 begin
   tabletype := (Sender as TMenuItem).Caption;
   tabletype := StringReplace( tabletype, '&', '', [rfReplaceAll] ); // Remove Auto-Hotkey
-  for i:=0 to ListTables.Items.Count - 1 do
-    if ListTables.Items[i].Selected then
-      ExecUpdateQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + tabletype);
+  Selected := GetSelectedNodesFromVT(ListTables);
+  for i:=0 to Selected.Count - 1 do
+    ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + tabletype);
+  Selected.Free;
   ShowDBProperties(self);
 end;
 
@@ -4189,12 +4200,14 @@ procedure TMDIChild.MenuChangeTypeOtherClick(Sender: TObject);
 var
   i : Integer;
   strtype : String;
+  Selected : TStringList;
 begin
   // change table-type:
   if inputquery('Change table-type...','New table-type:', strtype) then begin
-    for i:=0 to ListTables.Items.Count - 1 do
-      if ListTables.Items[i].Selected then
-        ExecUpdateQuery( 'ALTER TABLE ' + mask(ListTables.Items[i].Caption) + ' TYPE = ' + strtype );
+    Selected := GetSelectedNodesFromVT(ListTables);
+    for i:=0 to Selected.Count - 1 do
+      ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + strtype );
+    Selected.Free;
     ShowDBProperties(self);
   end;
 end;
@@ -4208,10 +4221,8 @@ end;
 
 // select all tables
 procedure TMDIChild.selectall1Click(Sender: TObject);
-var i : Integer;
 begin
-  for i:=0 to ListTables.Items.count-1 do
-    ListTables.Items[i].Selected := true;
+  ListTables.SelectAll(False);
 end;
 
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
@@ -4441,15 +4452,6 @@ begin
   MenuAutoupdate.Enabled := PageControlHost.ActivePage = tabProcessList;
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
 end;
-
-procedure TMDIChild.ListTablesEditing(Sender: TObject; Item: TListItem;
-  var AllowEdit: Boolean);
-begin
-  // so that one can press DEL when editing
-  menudroptable.ShortCut := TextToShortCut('');
-end;
-
-
 
 procedure TMDIChild.Saveastextfile1Click(Sender: TObject);
 begin
@@ -5551,23 +5553,6 @@ begin
 end;
 
 
-// Rightclick on header of table grid
-procedure TMDIChild.ListTablesColumnRightClick(Sender: TObject;
-  Column: TListColumn; Point: TPoint);
-begin
-  popupDbGridHeader.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
-end;
-
-
-// Rightclick on database grid
-procedure TMDIChild.ListTablesMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  if button = mbright then
-    popupDbGrid.Popup( Mouse.CursorPos.X, Mouse.CursorPos.Y );
-end;
-
-
 
 function TMDIChild.mask(str: String) : String;
 begin
@@ -5984,6 +5969,11 @@ begin
   begin
     NodeData.Captions := VTRowDataListProcesses[Node.Index].Captions;
     NodeData.ImageIndex := VTRowDataListProcesses[Node.Index].ImageIndex;
+  end
+  else if Sender = ListTables then
+  begin
+    NodeData.Captions := VTRowDataListTables[Node.Index].Captions;
+    NodeData.ImageIndex := VTRowDataListTables[Node.Index].ImageIndex;
   end;
 end;
 
@@ -6070,11 +6060,22 @@ end;
 procedure TMDIChild.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
     Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
+  NodeData1, NodeData2 : PVTreeData;
   CellText1, CellText2 : String;
   Int1, Int2 : Integer;
 begin
-  CellText1 := PVTreeData(Sender.GetNodeData(Node1)).Captions[Column];
-  CellText2 := PVTreeData(Sender.GetNodeData(Node2)).Captions[Column];
+  NodeData1 := Sender.GetNodeData(Node1);
+  NodeData2 := Sender.GetNodeData(Node2);
+
+  // If captions-item from either nodes is not set, assume empty string
+  if NodeData1.Captions.Count >= Column then
+    CellText1 := NodeData1.Captions[Column]
+  else
+    CellText1 := '';
+  if NodeData2.Captions.Count >= Column then
+    CellText2 := NodeData2.Captions[Column]
+  else
+    CellText2 := '';
 
   // Apply different comparisons for numbers and text
   if StrToIntDef( copy(CellText1,0,1), -1 ) <> -1 then
@@ -6094,6 +6095,7 @@ begin
     Result := CompareText( CellText1, CellText2 );
   end;
 end;
+
 
 
 end.

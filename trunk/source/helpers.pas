@@ -10,7 +10,17 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX, StrUtils;
+  shlobj, ActiveX, StrUtils, VirtualTrees;
+
+type
+
+  // Define a record which can hold everything we need for one row / node in a VirtualStringTree
+  TVTreeData = record
+    Captions: TStringList;
+    ImageIndex: Integer;
+  end;
+  PVTreedata = ^TVTreeData;
+
 
 {$I const.inc}
 
@@ -71,6 +81,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
+  function GetSelectedNodesFromVT( VT: TVirtualStringTree; Column: Integer = 0 ): TStringList;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1978,6 +1989,26 @@ begin
     { red   } IntToHex( GetRValue( Color ), 2 ) +
     { green } IntToHex( GetGValue( Color ), 2 ) +
     { blue }  IntToHex( GetBValue( Color ), 2 );
+end;
+
+
+{**
+  Return a TStringList with captions from all selected nodes in a VirtualTree
+  Especially helpful when toMultiSelect is True
+}
+function GetSelectedNodesFromVT( VT: TVirtualStringTree; Column: Integer = 0 ): TStringList;
+var
+  SelectedNodes : TNodeArray;
+  NodeData : PVTreeData;
+  i: Integer;
+begin
+  Result := TStringList.Create;
+  SelectedNodes := VT.GetSortedSelection(False);
+  for i := 0 to Length(SelectedNodes) - 1 do
+  begin
+    NodeData := VT.GetNodeData(SelectedNodes[i]);
+    Result.Add(NodeData.Captions[Column]);
+  end;
 end;
 
 initialization

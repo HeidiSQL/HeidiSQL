@@ -16,7 +16,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin;
+  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees;
 
 type
   TMainForm = class(TForm)
@@ -992,9 +992,13 @@ begin
     if (Sender as TBasicAction).ActionComponent = PopupMenuDropTable then begin
       // Invoked by tree menu popup.
       t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
-    end else if PageControlMain.ActivePage = tabDatabase then with ListTables do begin
+    end else if PageControlMain.ActivePage = tabDatabase then begin
       // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
-      for i:=0 to Items.count-1 do if Items[i].Selected then t.add(mask(Items[i].Caption));
+      t := GetSelectedNodesFromVT(ListTables);
+      for i:=0 to t.count-1 do
+      begin
+        t[i] := mask(t[i]);
+      end;
     end else begin
       // Invoked from one of the various buttons, drop table selected in tree view.
       t.add(mask(ActualDatabase) + '.' + mask(ActualTable));
