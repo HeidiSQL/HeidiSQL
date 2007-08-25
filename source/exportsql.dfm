@@ -260,6 +260,7 @@ object ExportSQLForm: TExportSQLForm
           Top = 15
           Width = 372
           Height = 121
+          SingleLineMode = False
           Align = alClient
           Color = clBtnFace
           Font.Charset = DEFAULT_CHARSET
