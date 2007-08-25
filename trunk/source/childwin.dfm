@@ -15,7 +15,6 @@ object MDIChild: TMDIChild
   OnActivate = FormActivate
   OnClose = FormClose
   OnDeactivate = FormDeactivate
-  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -350,94 +349,12 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
           end
-          object tlbDataLeft1: TToolBar
-            Left = 3
-            Top = 20
-            Width = 26
-            Height = 146
-            Align = alNone
-            Caption = 'tlbDataLeft1'
-            Color = clBtnFace
-            EdgeInner = esNone
-            EdgeOuter = esNone
-            Images = MainForm.ImageList1
-            ParentColor = False
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 1
-            Transparent = True
-            object btnDbViewData: TToolButton
-              Left = 0
-              Top = 0
-              Hint = 'View Data'
-              Caption = 'View Data'
-              Enabled = False
-              ImageIndex = 8
-              Wrap = True
-              OnClick = btnDbViewDataClick
-            end
-            object btnDbProperties: TToolButton
-              Left = 0
-              Top = 22
-              Hint = 'Show Table-Properties'
-              Caption = 'Show Table-Properties'
-              Enabled = False
-              ImageIndex = 9
-              Wrap = True
-              OnClick = btnDbPropertiesClick
-            end
-            object btnDbEmptyTable: TToolButton
-              Left = 0
-              Top = 44
-              Hint = 'Empty Table ...'
-              Caption = 'btnDbEmptyTable'
-              Enabled = False
-              ImageIndex = 31
-              Wrap = True
-              OnClick = EmptyTable
-            end
-            object btnDbDropTable: TToolButton
-              Left = 0
-              Top = 66
-              Action = MainForm.DropTable
-              Wrap = True
-            end
-            object btnDbCopyTable: TToolButton
-              Left = 0
-              Top = 88
-              Action = MainForm.CopyTable
-              Wrap = True
-            end
-          end
-          object tlbDataLeft2: TToolBar
-            Left = 3
-            Top = 153
-            Width = 23
-            Height = 29
-            Align = alNone
-            Caption = 'tlbDataLeft2'
-            EdgeInner = esNone
-            EdgeOuter = esNone
-            Images = MainForm.ImageList1
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 2
-            Transparent = True
-            object btnDbInsertRecord: TToolButton
-              Left = 0
-              Top = 0
-              Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'Insert Record'
-              Enabled = False
-              ImageIndex = 32
-              OnClick = InsertRecord
-            end
-          end
           object ListTables: TVirtualStringTree
-            Left = 30
+            Left = 28
             Top = 17
-            Width = 467
-            Height = 200
+            Width = 468
+            Height = 203
+            Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = 6
             Header.Font.Charset = DEFAULT_CHARSET
@@ -452,7 +369,7 @@ object MDIChild: TMDIChild
             Images = MainForm.ImageList1
             IncrementalSearch = isInitializedOnly
             PopupMenu = popupDbGrid
-            TabOrder = 3
+            TabOrder = 1
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
             TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
@@ -513,6 +430,97 @@ object MDIChild: TMDIChild
                 WideText = 'Comment'
               end>
           end
+          object pnlDatabaseToolbar: TPanel
+            Left = 0
+            Top = 17
+            Width = 28
+            Height = 203
+            Align = alLeft
+            BevelOuter = bvNone
+            TabOrder = 2
+            object tlbDataLeft1: TToolBar
+              Left = 2
+              Top = 1
+              Width = 25
+              Height = 123
+              Align = alNone
+              Caption = 'tlbDataLeft1'
+              Color = clBtnFace
+              EdgeInner = esNone
+              EdgeOuter = esNone
+              Images = MainForm.ImageList1
+              ParentColor = False
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              Transparent = True
+              object btnDbViewData: TToolButton
+                Left = 0
+                Top = 0
+                Hint = 'View Data'
+                Caption = 'View Data'
+                Enabled = False
+                ImageIndex = 8
+                Wrap = True
+                OnClick = btnDbViewDataClick
+              end
+              object btnDbProperties: TToolButton
+                Left = 0
+                Top = 22
+                Hint = 'Show Table-Properties'
+                Caption = 'Show Table-Properties'
+                Enabled = False
+                ImageIndex = 9
+                Wrap = True
+                OnClick = btnDbPropertiesClick
+              end
+              object btnDbEmptyTable: TToolButton
+                Left = 0
+                Top = 44
+                Hint = 'Empty Table ...'
+                Caption = 'btnDbEmptyTable'
+                Enabled = False
+                ImageIndex = 31
+                Wrap = True
+                OnClick = EmptyTable
+              end
+              object btnDbDropTable: TToolButton
+                Left = 0
+                Top = 66
+                Action = MainForm.DropTable
+                Wrap = True
+              end
+              object btnDbCopyTable: TToolButton
+                Left = 0
+                Top = 88
+                Action = MainForm.CopyTable
+              end
+            end
+            object tlbDataLeft2: TToolBar
+              Left = 2
+              Top = 126
+              Width = 23
+              Height = 29
+              Align = alNone
+              Caption = 'tlbDataLeft2'
+              EdgeInner = esNone
+              EdgeOuter = esNone
+              Images = MainForm.ImageList1
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 0
+              Transparent = True
+              object btnDbInsertRecord: TToolButton
+                Left = 0
+                Top = 0
+                Hint = 'Insert Record...|Insert new Record into Table...'
+                Caption = 'Insert Record'
+                Enabled = False
+                ImageIndex = 32
+                OnClick = InsertRecord
+              end
+            end
+          end
         end
         object tabTable: TTabSheet
           Caption = 'Table'
@@ -538,145 +546,144 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
           end
-          object tlbTableLeft1: TToolBar
-            Left = 3
-            Top = 20
-            Width = 26
-            Height = 146
-            Align = alNone
-            ButtonHeight = 23
-            Caption = 'tlbTableLeft1'
-            EdgeInner = esNone
-            EdgeOuter = esNone
-            Images = MainForm.ImageList1
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 1
-            Transparent = True
-            Wrapable = False
-            object btnTableViewData: TToolButton
-              Left = 0
-              Top = 0
-              Hint = 'View Data'
-              Caption = 'btnTableViewData'
-              ImageIndex = 8
-              Wrap = True
-              OnClick = btnTableViewDataClick
-            end
-            object btnTableEditField: TToolButton
-              Left = 0
-              Top = 23
-              Hint = 'Edit Field...'
-              Caption = 'btnTableEditField'
-              ImageIndex = 9
-              Wrap = True
-              OnClick = UpdateField
-            end
-            object btnTableAddField: TToolButton
-              Left = 0
-              Top = 46
-              Hint = 'Add Field...'
-              Caption = 'btnTableAddField'
-              ImageIndex = 34
-              Wrap = True
-              OnClick = MenuAddFieldClick
-            end
-            object btnTableDropField: TToolButton
-              Left = 0
-              Top = 69
-              Hint = 'Drop Field ...'
-              Caption = 'btnTableDropField'
-              ImageIndex = 33
-              Wrap = True
-              OnClick = DropField
-            end
-            object btnTableManageIndexes: TToolButton
-              Left = 0
-              Top = 92
-              Hint = 'Manages indexes'
-              Caption = 'btnTableManageIndexes'
-              ImageIndex = 76
-              OnClick = ManageIndexes1Click
-            end
-          end
-          object pnlTableList: TPanel
-            Left = 32
+          object pnlTableToolbar: TPanel
+            Left = 0
             Top = 17
-            Width = 465
-            Height = 196
-            Anchors = [akLeft, akTop, akRight, akBottom]
+            Width = 28
+            Height = 203
+            Align = alLeft
             BevelOuter = bvNone
-            TabOrder = 2
-            object ListColumns: TSortListView
-              Tag = -1
-              Left = 0
-              Top = 0
-              Width = 465
-              Height = 196
-              Align = alClient
-              Columns = <
-                item
-                  Caption = 'Name'
-                  Width = -1
-                  WidthType = (
-                    -1)
-                end
-                item
-                  Caption = 'Type'
-                  Width = 100
-                end
-                item
-                  Caption = 'Null'
-                  Width = 40
-                end
-                item
-                  Caption = 'Default'
-                  Width = 115
-                end
-                item
-                  Caption = 'Extra'
-                  Width = 200
-                end>
-              GridLines = True
-              MultiSelect = True
-              RowSelect = True
-              PopupMenu = popupTableGrid
-              SmallImages = MainForm.ImageList1
+            TabOrder = 1
+            object tlbTableLeft1: TToolBar
+              Left = 2
+              Top = 1
+              Width = 25
+              Height = 123
+              Align = alNone
+              ButtonHeight = 23
+              Caption = 'tlbTableLeft1'
+              EdgeInner = esNone
+              EdgeOuter = esNone
+              Images = MainForm.ImageList1
+              ParentShowHint = False
+              ShowHint = True
               TabOrder = 0
-              ViewStyle = vsReport
-              OnDblClick = UpdateField
-              OnEdited = ListColumnsEdited
-              OnKeyUp = controlsKeyUp
-              OnSelectItem = ListColumnsSelectItem
-              ImageIndexSortAsc = 95
-              ImageIndexSortDesc = 94
+              Transparent = True
+              Wrapable = False
+              object btnTableViewData: TToolButton
+                Left = 0
+                Top = 0
+                Hint = 'View Data'
+                Caption = 'btnTableViewData'
+                ImageIndex = 8
+                Wrap = True
+                OnClick = btnTableViewDataClick
+              end
+              object btnTableEditField: TToolButton
+                Left = 0
+                Top = 23
+                Hint = 'Edit Field...'
+                Caption = 'btnTableEditField'
+                ImageIndex = 9
+                Wrap = True
+                OnClick = UpdateField
+              end
+              object btnTableAddField: TToolButton
+                Left = 0
+                Top = 46
+                Hint = 'Add Field...'
+                Caption = 'btnTableAddField'
+                ImageIndex = 34
+                Wrap = True
+                OnClick = MenuAddFieldClick
+              end
+              object btnTableDropField: TToolButton
+                Left = 0
+                Top = 69
+                Hint = 'Drop Field ...'
+                Caption = 'btnTableDropField'
+                ImageIndex = 33
+                Wrap = True
+                OnClick = DropField
+              end
+              object btnTableManageIndexes: TToolButton
+                Left = 0
+                Top = 92
+                Hint = 'Manages indexes'
+                Caption = 'btnTableManageIndexes'
+                ImageIndex = 76
+                OnClick = ManageIndexes1Click
+              end
+            end
+            object tlbTableLeft2: TToolBar
+              Left = 2
+              Top = 129
+              Width = 23
+              Align = alNone
+              ButtonHeight = 23
+              Caption = 'ToolBar2'
+              EdgeInner = esNone
+              EdgeOuter = esNone
+              Images = MainForm.ImageList1
+              ParentShowHint = False
+              ShowHint = True
+              TabOrder = 1
+              Transparent = True
+              Wrapable = False
+              object btnTableInsertRecord: TToolButton
+                Left = 0
+                Top = 0
+                Hint = 'Insert Record...|Insert new Record into Table...'
+                Caption = 'btnTableInsertRecord'
+                ImageIndex = 32
+                Wrap = True
+                OnClick = InsertRecord
+              end
             end
           end
-          object tlbTableLeft2: TToolBar
-            Left = 2
-            Top = 143
-            Width = 23
-            Height = 39
-            Align = alNone
-            ButtonHeight = 23
-            Caption = 'ToolBar2'
-            EdgeInner = esNone
-            EdgeOuter = esNone
-            Images = MainForm.ImageList1
-            ParentShowHint = False
-            ShowHint = True
-            TabOrder = 3
-            Transparent = True
-            Wrapable = False
-            object btnTableInsertRecord: TToolButton
-              Left = 0
-              Top = 0
-              Hint = 'Insert Record...|Insert new Record into Table...'
-              Caption = 'btnTableInsertRecord'
-              ImageIndex = 32
-              Wrap = True
-              OnClick = InsertRecord
-            end
+          object ListColumns: TSortListView
+            Tag = -1
+            Left = 28
+            Top = 17
+            Width = 468
+            Height = 203
+            Align = alClient
+            Columns = <
+              item
+                Caption = 'Name'
+                Width = -1
+                WidthType = (
+                  -1)
+              end
+              item
+                Caption = 'Type'
+                Width = 100
+              end
+              item
+                Caption = 'Null'
+                Width = 40
+              end
+              item
+                Caption = 'Default'
+                Width = 115
+              end
+              item
+                Caption = 'Extra'
+                Width = 200
+              end>
+            GridLines = True
+            MultiSelect = True
+            RowSelect = True
+            PopupMenu = popupTableGrid
+            SmallImages = MainForm.ImageList1
+            TabOrder = 2
+            ViewStyle = vsReport
+            OnDblClick = UpdateField
+            OnEdited = ListColumnsEdited
+            OnKeyUp = controlsKeyUp
+            OnSelectItem = ListColumnsSelectItem
+            ImageIndexSortAsc = 0
+            ImageIndexSortDesc = 0
           end
         end
         object tabData: TTabSheet
