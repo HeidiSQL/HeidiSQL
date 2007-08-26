@@ -711,6 +711,8 @@ var
   SelectedEngine    : String;
   NodeData          : PVTreeData;
 begin
+  ValidateControls;
+
   if ListTables.SelectedCount <> 1 then
   begin
     Exit;
@@ -2333,7 +2335,7 @@ begin
   // not table (now invisibly) selected on the database grid.
   if (PageControlMain.ActivePage <> tabDatabase) then ListTables.FocusedNode := nil;
 
-  tableSelected := Assigned(ListTables.FocusedNode) and FrmIsFocussed;
+  tableSelected := (Length(ListTables.GetSortedSelection(False))>0) and FrmIsFocussed;
   btnDbProperties.Enabled := tableSelected;
   menuproperties.Enabled := tableSelected;
   btnDbInsertRecord.Enabled := tableSelected;
