@@ -2617,8 +2617,6 @@ begin
 
   // Tell VirtualTree the number of nodes it will display
   ListVariables.RootNodeCount := Length(VTRowDataListVariables);
-  // Manually invoke sorting
-  ListVariables.SortTree( ListVariables.Header.SortColumn, ListVariables.Header.SortDirection );
   ListVariables.EndUpdate;
   // Display number of listed values on tab
   tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
@@ -2640,8 +2638,6 @@ begin
 
   // Tell VirtualTree the number of nodes it will display
   ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
-  // Manually invoke sorting
-  ListCommandStats.SortTree( ListCommandStats.Header.SortColumn, ListCommandStats.Header.SortDirection );
   ListCommandStats.EndUpdate;
 
   TimerHostUptime.Enabled := true;
