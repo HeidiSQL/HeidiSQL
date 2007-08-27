@@ -128,6 +128,7 @@ object MDIChild: TMDIChild
                 IncrementalSearch = isInitializedOnly
                 PopupMenu = popupHost
                 TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
                 TreeOptions.MiscOptions = [toToggleOnDblClick]
                 TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
@@ -259,6 +260,7 @@ object MDIChild: TMDIChild
                 IncrementalSearch = isInitializedOnly
                 PopupMenu = popupHost
                 TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
                 TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect]
