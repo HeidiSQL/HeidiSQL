@@ -2580,6 +2580,8 @@ begin
   Screen.Cursor := crSQLWait;
 
   // VARIABLES
+  ListVariables.BeginUpdate;
+  ListVariables.Clear;
   ds := GetResults( 'SHOW VARIABLES', false );
   SetLength( VTRowDataListVariables, ds.RecordCount );
   for i:=1 to ds.RecordCount do
@@ -2615,14 +2617,15 @@ begin
 
   // Tell VirtualTree the number of nodes it will display
   ListVariables.RootNodeCount := Length(VTRowDataListVariables);
-  ListVariables.ReinitNode(nil, true);
   // Manually invoke sorting
   ListVariables.SortTree( ListVariables.Header.SortColumn, ListVariables.Header.SortDirection );
+  ListVariables.EndUpdate;
   // Display number of listed values on tab
   tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
 
   // Command-Statistics
   ListCommandStats.BeginUpdate;
+  ListCommandStats.Clear;
   SetLength( VTRowDataListCommandStats, 0 );
   addLVitem( '    All commands', questions, questions );
   ds.First;
@@ -2637,7 +2640,6 @@ begin
 
   // Tell VirtualTree the number of nodes it will display
   ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
-  ListCommandStats.ReinitNode(nil, true);
   // Manually invoke sorting
   ListCommandStats.SortTree( ListCommandStats.Header.SortColumn, ListCommandStats.Header.SortDirection );
   ListCommandStats.EndUpdate;
