@@ -546,6 +546,7 @@ type
       VTRowDataListCommandStats,
       VTRowDataListTables,
       VTRowDataListColumns       : TVTreeDataArray;
+      function GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
 
       FProgressForm              : TFrmQueryProgress;
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -5936,35 +5937,15 @@ procedure TMDIChild.vstInitNode(Sender: TBaseVirtualTree; ParentNode,
     Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
   NodeData : PVTreeData;
+  a : TVTreeDataArray;
 begin
   // Get the pointer to the node data
   NodeData := Sender.GetNodeData(Node);
+  // Fetch data array
+  a := GetVTreeDataArray( Sender );
   // Bind data to node
-  if Sender = ListVariables then
-  begin
-    NodeData.Captions := VTRowDataListVariables[Node.Index].Captions;
-    NodeData.ImageIndex := VTRowDataListVariables[Node.Index].ImageIndex;
-  end
-  else if Sender = ListCommandStats then
-  begin
-    NodeData.Captions := VTRowDataListCommandStats[Node.Index].Captions;
-    NodeData.ImageIndex := VTRowDataListCommandStats[Node.Index].ImageIndex;
-  end
-  else if Sender = ListProcesses then
-  begin
-    NodeData.Captions := VTRowDataListProcesses[Node.Index].Captions;
-    NodeData.ImageIndex := VTRowDataListProcesses[Node.Index].ImageIndex;
-  end
-  else if Sender = ListTables then
-  begin
-    NodeData.Captions := VTRowDataListTables[Node.Index].Captions;
-    NodeData.ImageIndex := VTRowDataListTables[Node.Index].ImageIndex;
-  end
-  else if Sender = ListColumns then
-  begin
-    NodeData.Captions := VTRowDataListColumns[Node.Index].Captions;
-    NodeData.ImageIndex := VTRowDataListColumns[Node.Index].ImageIndex;
-  end;
+  NodeData.Captions := a[Node.Index].Captions;
+  NodeData.ImageIndex := a[Node.Index].ImageIndex;
 end;
 
 
@@ -5977,16 +5958,7 @@ var
   a : TVTreeDataArray;
 begin
   // Detect which global array should be processed
-  if Sender = ListVariables then
-    a := VTRowDataListVariables
-  else if Sender = ListCommandStats then
-    a := VTRowDataListCommandStats
-  else if Sender = ListProcesses then
-    a := VTRowDataListProcesses
-  else if Sender = ListTables then
-    a := VTRowDataListTables
-  else if Sender = ListColumns then
-    a := VTRowDataListColumns;
+  a := GetVTreeDataArray( Sender );
 
   if Node.Index < Cardinal(High(a)-1) then
   begin
@@ -6100,6 +6072,28 @@ begin
   else begin
     // Compare Strings
     Result := CompareText( CellText1, CellText2 );
+  end;
+end;
+
+
+{**
+  Return the data array which belongs to a VirtualTree component
+}
+function TMDIChild.GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
+begin
+  if VT = ListVariables then
+    Result := VTRowDataListVariables
+  else if VT = ListCommandStats then
+    Result := VTRowDataListCommandStats
+  else if VT = ListProcesses then
+    Result := VTRowDataListProcesses
+  else if VT = ListTables then
+    Result := VTRowDataListTables
+  else if VT = ListColumns then
+    Result := VTRowDataListColumns
+  else begin
+    Result := nil;
+    raise Exception.Create( VT.ClassName + ' "' + VT.Name + '" doesn''t have an assigned array with data.' );
   end;
 end;
 
