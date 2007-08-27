@@ -320,7 +320,7 @@ type
     procedure btnDataClick(Sender: TObject);
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
-    procedure ListTablesClick(Sender: TObject);
+    procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
@@ -711,8 +711,6 @@ var
   SelectedEngine    : String;
   NodeData          : PVTreeData;
 begin
-  ValidateControls;
-
   if ListTables.SelectedCount <> 1 then
   begin
     Exit;
@@ -2307,9 +2305,9 @@ end;
 
 {***
   Selection in ListTables is changing
-  Used to change the iconindex of selected items and to trigger ValidateControls
 }
-procedure TMDIChild.ListTablesClick(Sender: TObject);
+procedure TMDIChild.ListTablesChange(Sender: TBaseVirtualTree; Node:
+    PVirtualNode);
 begin
   ValidateControls;
 end;
