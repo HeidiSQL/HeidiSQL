@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons;
+  StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons, VirtualTrees;
 
 type
   TFieldEditorMode = (femFieldAdd,femFieldUpdate,femIndexEditor);
@@ -130,7 +130,8 @@ procedure TFieldEditForm.InitFieldEditor(Sender: TObject);
 var
   strtype        : String;
   i              : Integer;
-  ListColumns    : TListView;
+  ListColumns    : TVirtualStringTree;
+  NodeData       : PVTreeData;
 begin
 
   // Initiate "Position"-combobox
@@ -143,9 +144,9 @@ begin
 
   // get fieldlist
   // add fieldnames
-  for i:=0 to ListColumns.Items.Count-1 do
+  for i:=0 to High(Mainform.Childwin.VTRowDataListColumns) do
   begin
-    ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(ListColumns.Items[i].Caption));
+    ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(Mainform.Childwin.VTRowDataListColumns[i].Captions[0]));
   end;
 
   // re-fill datatypes-combobox
@@ -168,8 +169,8 @@ begin
       EditDefault.Text := '';
       CheckBoxUnsigned.Checked := true;
 
-      if ListColumns.Selected <> nil then
-        ComboBoxPosition.ItemIndex := ListColumns.Selected.Index+2
+      if Assigned(ListColumns.FocusedNode) then
+        ComboBoxPosition.ItemIndex := ListColumns.FocusedNode.Index+2
       else
         ComboBoxPosition.ItemIndex := 0;
     end;
@@ -177,12 +178,13 @@ begin
     // "Field" tab in Update-mode
     femFieldUpdate:
     begin
-      EditFieldname.Text := ListColumns.Selected.Caption;
-      EditLength.Text := getEnumValues( ListColumns.Selected.Subitems[0] );
-      EditDefault.Text := ListColumns.Selected.Subitems[2];
+      NodeData := ListColumns.GetNodeData(ListColumns.FocusedNode);
+      EditFieldname.Text := FFieldName;
+      EditLength.Text := getEnumValues( NodeData.Captions[1] );
+      EditDefault.Text := NodeData.Captions[3];
 
       // extract field type
-      strtype := UpperCase( ListColumns.Selected.Subitems[0] );
+      strtype := UpperCase( NodeData.Captions[1] );
       if Pos ('(',strtype) > 0 then
         strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
 
@@ -202,12 +204,12 @@ begin
       end;
 
       // set attributes:
-      strtype := LowerCase( ListColumns.Selected.Subitems[0] );
+      strtype := LowerCase( NodeData.Captions[1] );
       CheckBoxBinary.Checked := pos('binary', strtype) > 0;
       CheckBoxZerofill.Checked := pos('zerofill', strtype) > 0;
       CheckBoxUnsigned.Checked := pos('unsigned', strtype) > 0;
-      CheckBoxNotNull.Checked := lowercase(ListColumns.Selected.Subitems[1]) <> 'yes';
-      CheckBoxAutoIncrement.Checked := lowercase(ListColumns.Selected.Subitems[3]) = 'auto_increment';
+      CheckBoxNotNull.Checked := lowercase(NodeData.Captions[2]) <> 'yes';
+      CheckBoxAutoIncrement.Checked := lowercase(NodeData.Captions[4]) = 'auto_increment';
 
       // TODO: Disable 'auto increment' checkbox if field is not part of index or primary key.
     end;
@@ -252,10 +254,7 @@ begin
     ds.Next;
   end;
 
-  for i:=0 to cwin.ListColumns.Items.Count-1 do begin
-    if cwin.ListColumns.Items[i] <> nil then
-      self.listColumnsAvailable.Items.Add(cwin.ListColumns.Items[i].Caption);
-  end;
+  listColumnsAvailable.Items := GetVTCaptions(cwin.ListColumns);
   showkeys();
 end;
 
@@ -431,7 +430,7 @@ begin
     end else if (FMode = femFieldUpdate) then begin
       cwin.ExecUpdateQuery(
         'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +              // table
-        'CHANGE ' + mainform.mask(cwin.ListColumns.Selected.Caption) + ' ' +  // old name
+        'CHANGE ' + mainform.mask(FFieldName) + ' ' +                         // old name
         mainform.mask(EditFieldName.Text) + ' ' +                             // new name
         fielddef
       );
@@ -532,13 +531,16 @@ end;
   @todo code cleanup, get rid of WITH statement
 }
 procedure TFieldEditForm.ComboBoxKeysChange(Sender: TObject);
-var i : Integer;
+var i, j : Integer;
 begin
   if ComboBoxKeys.ItemIndex > -1 then begin
-    listColumnsAvailable.Items.Clear;
-    for i:=0 to Mainform.ChildWin.ListColumns.Items.Count-1 do
-      if (Mainform.ChildWin.ListColumns.Items[i] <> nil) and (klist[ComboBoxKeys.ItemIndex].columns.Indexof(Mainform.ChildWin.ListColumns.Items[i].Caption)=-1) then
-        listColumnsAvailable.Items.Add(Mainform.ChildWin.ListColumns.Items[i].Caption);
+    listColumnsAvailable.Items := GetVTCaptions(Mainform.ChildWin.ListColumns);
+    for i:=0 to klist[ComboBoxKeys.ItemIndex].columns.Count-1 do
+    begin
+      j := listColumnsAvailable.Items.IndexOf(klist[ComboBoxKeys.ItemIndex].columns[i]);
+      if j > -1 then
+        listColumnsAvailable.Items.Delete( j );
+    end;
     with klist[ComboBoxKeys.ItemIndex] do begin
       listColumnsUsed.Items := Columns;
       CheckBoxUnique.OnClick := nil;

@@ -21,6 +21,9 @@ type
   end;
   PVTreedata = ^TVTreeData;
 
+  // Standardize the list with node-data-records to be able to
+  // use this type as variables in functions/procedures (fx VT.OnFreeNode)
+  TVTreeDataArray = Array of TVTreeData;
 
 {$I const.inc}
 
@@ -81,7 +84,7 @@ type
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
-  function GetSelectedNodesFromVT( VT: TVirtualStringTree; Column: Integer = 0 ): TStringList;
+  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -1996,18 +1999,31 @@ end;
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
-function GetSelectedNodesFromVT( VT: TVirtualStringTree; Column: Integer = 0 ): TStringList;
+function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
 var
   SelectedNodes : TNodeArray;
-  NodeData : PVTreeData;
+  Node : PVirtualNode;
   i: Integer;
 begin
   Result := TStringList.Create;
-  SelectedNodes := VT.GetSortedSelection(False);
-  for i := 0 to Length(SelectedNodes) - 1 do
+  if OnlySelected then
   begin
-    NodeData := VT.GetNodeData(SelectedNodes[i]);
-    Result.Add(NodeData.Captions[Column]);
+    // Fetch only selected nodes
+    SelectedNodes := VT.GetSortedSelection(False);
+    for i := 0 to Length(SelectedNodes) - 1 do
+    begin
+      Node := SelectedNodes[i];
+      Result.Add( VT.Text[ Node, Column ] );
+    end;
+  end
+  else begin
+    // Fetch all nodes
+    Node := VT.GetFirst;
+    for i := 0 to VT.RootNodeCount - 1 do
+    begin
+      Result.Add( VT.Text[ Node, Column ] );
+      Node := VT.GetNext(Node);
+    end;
   end;
 end;
 

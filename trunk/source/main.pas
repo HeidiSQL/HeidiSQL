@@ -994,7 +994,7 @@ begin
       t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
     end else if PageControlMain.ActivePage = tabDatabase then begin
       // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
-      t := GetSelectedNodesFromVT(ListTables);
+      t := GetVTCaptions(ListTables, True);
       for i:=0 to t.count-1 do
       begin
         t[i] := mask(t[i]);

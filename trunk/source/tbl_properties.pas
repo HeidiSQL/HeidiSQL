@@ -95,7 +95,7 @@ begin
   end;
 
   // Fetch selected nodes
-  Selected := GetSelectedNodesFromVT(ListTables);
+  Selected := GetVTCaptions(ListTables, True);
 
   // for tables found
   for t := 0 to (query.RecordCount - 1) do

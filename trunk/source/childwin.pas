@@ -110,7 +110,7 @@ type
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
     pnlTableToolbar: TPanel;
-    ListColumns: TSortListView;
+    ListColumns: TVirtualStringTree;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
     Copy3: TMenuItem;
@@ -307,8 +307,8 @@ type
     tlbTableLeft2: TToolBar;
     btnTableInsertRecord: TToolButton;
     procedure menuRenameColumnClick(Sender: TObject);
-    procedure ListColumnsEdited(Sender: TObject; Item: TListItem;
-      var S: string);
+    procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; NewText: WideString);
     procedure menuclearClick(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
@@ -321,8 +321,7 @@ type
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure ListTablesClick(Sender: TObject);
-    procedure ListColumnsSelectItem(Sender: TObject; Item: TListItem;
-      Selected: Boolean);
+    procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -545,7 +544,8 @@ type
       VTRowDataListVariables,
       VTRowDataListProcesses,
       VTRowDataListCommandStats,
-      VTRowDataListTables        : Array of TVTreeData;
+      VTRowDataListTables,
+      VTRowDataListColumns       : TVTreeDataArray;
 
       FProgressForm              : TFrmQueryProgress;
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -1280,8 +1280,6 @@ begin
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
-  ListTables.Clear;
-  ListColumns.Items.Clear();
   pnlTableTop.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
@@ -1381,7 +1379,7 @@ var
   DropDown             : TStringList;
   i                    : Integer;
   j                    : Integer;
-  Columns              : TStringList;
+  ValidColumns         : TStringList;
   PrimaryKeyColumns    : TStringList;
   reg                  : TRegistry;
   reg_value            : String;
@@ -1473,20 +1471,12 @@ begin
     begin
       orderclauses := explode( ',', reg.ReadString( reg_value ) );
       RewriteOrderClause := False;
+      ValidColumns := GetVTCaptions( ListColumns );
       for i := 0 to ( orderclauses.Count - 1 ) do
       begin
         columnname := Trim( Copy( orderclauses[i], 0, LastPos( ' ', orderclauses[i] ) ) );
         columnname := trimc( columnname, '`' );
-        columnexists := false;
-
-        for j := 0 to ( ListColumns.Items.Count - 1 ) do
-        begin
-          if ( ListColumns.Items[j].Caption = columnname ) then
-          begin
-            columnexists := true;
-            Break;
-          end;
-        end;
+        columnexists := ValidColumns.IndexOf(columnname) > -1;
 
         if ( not columnexists ) then
         begin
@@ -1533,7 +1523,6 @@ begin
     end;
 
     MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
-    Columns := TStringList.Create();
     PrimaryKeyColumns := TStringList.Create();
 
     if ( ( ActualTable <> '' ) and ( ActualDatabase <> '' ) ) then
@@ -1645,14 +1634,13 @@ begin
 
       MainForm.ShowStatus( STATUS_MSG_READY, 2 );
 
-      for i := 0 to ( ListColumns.Items.Count - 1 ) do
+      for i := 0 to Length(VTRowDataListColumns) - 1 do
       begin
-        Columns.Add( ListColumns.Items[i].Caption );
 
         // give all enum-fields a PickList with its Items
-        if ( StrCmpBegin( 'enum', ListColumns.Items[i].SubItems[0]) ) then
+        if ( StrCmpBegin( 'enum', VTRowDataListColumns[i].Captions[1]) ) then
         begin
-          DropDown := explode( ''',''', getEnumValues( ListColumns.Items[i].SubItems[0] ) );
+          DropDown := explode( ''',''', getEnumValues( VTRowDataListColumns[i].Captions[1] ) );
           for j := 0 to ( DropDown.Count - 1 ) do
           begin
             DropDown[j] := trimc( DropDown[j], '''' );
@@ -1660,7 +1648,7 @@ begin
 
           for j := 0 to ( gridData.Columns.Count - 1 ) do
           begin
-            if ( gridData.Columns[j].FieldName = ListColumns.Items[i].Caption ) then
+            if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) then
             begin
               gridData.Columns[j].PickList := DropDown;
             end;
@@ -1671,11 +1659,11 @@ begin
         for j := 0 to ( gridData.Columns.Count - 1 ) do
         begin
           if (
-            ( gridData.Columns[j].FieldName = ListColumns.Items[i].Caption ) and
-            ( ListColumns.Items[i].ImageIndex = 26 )
+            ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
+            ( VTRowDataListColumns[i].ImageIndex = 26 )
           ) then
           begin
-            PrimaryKeyColumns.Add( ListColumns.Items[i].Caption );
+            PrimaryKeyColumns.Add( VTRowDataListColumns[i].Captions[0] );
           end;
         end;
       end;
@@ -2145,7 +2133,6 @@ end;
 procedure TMDIChild.ShowTableProperties(Sender: TObject);
 var
   i,j : Integer;
-  n : TListItem;
   tn, tndb : TTreeNode;
   isFulltext : Boolean;
   ds : TDataSet;
@@ -2185,25 +2172,27 @@ begin
   end;
 
   MainForm.ShowStatus( 'Reading table properties...', 2, true );
-  ListColumns.Items.BeginUpdate;
-  ListColumns.Items.Clear;
+  ListColumns.BeginUpdate;
+  ListColumns.Clear;
   Try
     ds := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable), false );
 
+    SetLength(VTRowDataListColumns, ds.RecordCount);
     for i:=1 to ds.RecordCount do
     begin
-      n := ListColumns.Items.Add;
-      n.ImageIndex := ICONINDEX_FIELD;
-
-      n.Caption := ds.FieldByName('Field').AsString;
-      n.Subitems.Add( ds.FieldByName('Type').AsString );
+      VTRowDataListColumns[i-1].ImageIndex := ICONINDEX_FIELD;
+      VTRowDataListColumns[i-1].Captions := TStringList.Create;
+      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Field').AsString );
+      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Type').AsString );
       if lowercase( ds.FieldByName('Null').AsString ) = 'yes' then
-        n.Subitems.Add('Yes')
-        else n.Subitems.Add('No');
-      n.Subitems.Add( ds.FieldByName('Default').AsString );
-      n.Subitems.Add( ds.FieldByName('Extra').AsString );
+        VTRowDataListColumns[i-1].Captions.Add('Yes')
+        else VTRowDataListColumns[i-1].Captions.Add('No');
+      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Default').AsString );
+      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Extra').AsString );
       ds.Next;
     end;
+
+    ListColumns.RootNodeCount := Length(VTRowDataListColumns);
 
     // Manually invoke OnChange event of tabset to fill helper list with data
     if tabsetQueryHelpers.TabIndex = 0 then
@@ -2232,12 +2221,12 @@ begin
     for i:=1 to ds.RecordCount do
     begin
       // Search for the column name in listColumns
-      for j:=0 to ListColumns.Items.Count-1 do
+      for j:=0 to Length(VTRowDataListColumns)-1 do
       begin
-        if ds.FieldByName('Column_name').AsString = ListColumns.Items[j].Caption then
+        if ds.FieldByName('Column_name').AsString = VTRowDataListColumns[j].Captions[0] then
         begin
           // Only apply a new icon if it was not already changed
-          if ListColumns.Items[j].ImageIndex <> ICONINDEX_FIELD then
+          if VTRowDataListColumns[j].ImageIndex <> ICONINDEX_FIELD then
             break;
 
           // Check if column is part of a fulltext key
@@ -2248,16 +2237,16 @@ begin
 
           // Primary key
           if ds.FieldByName('Key_name').AsString = 'PRIMARY' then
-            ListColumns.Items[j].ImageIndex := ICONINDEX_PRIMARYKEY
+            VTRowDataListColumns[j].ImageIndex := ICONINDEX_PRIMARYKEY
           // Fulltext index
           else if isFullText then
-            ListColumns.Items[j].ImageIndex := ICONINDEX_FULLTEXTKEY
+            VTRowDataListColumns[j].ImageIndex := ICONINDEX_FULLTEXTKEY
           // Unique index
           else if ds.FieldByName('Non_unique').AsString = '0' then
-            ListColumns.Items[j].ImageIndex := ICONINDEX_UNIQUEKEY
+            VTRowDataListColumns[j].ImageIndex := ICONINDEX_UNIQUEKEY
           // Normal index
           else
-            ListColumns.Items[j].ImageIndex := ICONINDEX_INDEXKEY;
+            VTRowDataListColumns[j].ImageIndex := ICONINDEX_INDEXKEY;
 
           // Column was found and processed
           break;
@@ -2265,17 +2254,28 @@ begin
       end;
       ds.Next;
     end;
+    {
+      ** note, ansgarbecker, 2007-08-26
+      VT has a pretty autosorting feature, which keeps the sorting even after having
+      filled it with new data.
+      But: Don't use this auto-sorting here, neither automatically nor manual
+      because that would cause big confusion to the user if a just clicked
+      table displays its fields not in the natural order.
+
+      @todo Detect if the list was just refreshed (and then keep sorting)
+      or if another table get displayed (then don't sort, as below)
+    }
+    ListColumns.Header.SortColumn := -1;
+    ListColumns.Header.SortDirection := sdAscending;
 
   finally
-    ListColumns.Items.EndUpdate;
-    // Remove existing column-sort-images
-    // (TODO: auomatically invoke this method in TSortListView itself)
-    ListColumns.ClearSortColumnImages;
+
+    ListColumns.EndUpdate;
     Screen.Cursor := crDefault;
   end;
 
   MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
-  MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + IntToStr(ListColumns.Items.count) +' field(s)');
+  MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
   Screen.Cursor := crDefault;
 end;
 
@@ -2478,7 +2478,7 @@ begin
     exit;
 
   // Add selected items/tables to helper list
-  t := GetSelectedNodesFromVT(ListTables);
+  t := GetVTCaptions(ListTables, True);
 
   if MessageDlg('Empty ' + IntToStr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     exit;
@@ -2932,44 +2932,41 @@ begin
 end;
 
 
-procedure TMDIChild.ListColumnsSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
+{**
+  Clicked somewhere in the field-list of the "Table"-tabsheet
+}
+procedure TMDIChild.ListColumnsChange(Sender: TBaseVirtualTree; Node:
+    PVirtualNode);
 var
-  SomeSelected: Boolean;
+  SomeSelected, OneFocused: Boolean;
 begin
-  // Clicked somewhere in the field-list of the "Table"-tabsheet
-
   // some columns selected ?
-  SomeSelected := ListColumns.Selected <> nil;
+  OneFocused := Assigned(Sender.FocusedNode);
+  SomeSelected := Length(Sender.GetSortedSelection(False))>0;
 
   // Toggle state of menuitems and buttons
   btnTableDropField.Enabled := SomeSelected;
   DropField1.Enabled := SomeSelected;
-  MenuEditField.Enabled := SomeSelected;
-  btnTableEditField.enabled := SomeSelected;
-  menuRenameColumn.Enabled := SomeSelected;
+  MenuEditField.Enabled := OneFocused;
+  btnTableEditField.enabled := OneFocused;
+  menuRenameColumn.Enabled := OneFocused;
 end;
 
 
 procedure TMDIChild.DropField(Sender: TObject);
 var
   tn : TTreeNode;
-  i, j: Integer;
+  i : Integer;
   dropCmd : String;
   dropList : TStringList;
 begin
   // Drop Columns
 
   // We allow the user to select and delete multiple listItems
-  dropList := TStringList.Create;
-  for i := 0 to ListColumns.Items.Count - 1 do
-  begin
-    if ListColumns.Items[i].Selected then
-      dropList.Add(ListColumns.Items[i].Caption);
-  end;
+  dropList := GetVTCaptions( ListColumns, True );
 
   // In case all listItems are selected:
-  if dropList.Count = ListColumns.Items.Count then
+  if dropList.Count = Length(VTRowDataListColumns) then
   begin
     if MessageDlg('Can''t drop all or the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
@@ -2999,20 +2996,12 @@ begin
 
     // Rely on the server respective ExecUpdateQuery has raised an exception so the
     // following code will be skipped on any error
-    for i := ListColumns.Items.Count - 1 downto 0 do
-    begin
-      for j := 0 to dropList.Count - 1 do
-      begin
-        if dropList[j] = ListColumns.Items[i].Caption then
-        begin
-          ListColumns.Items[i].Delete;
-          break;
-        end;
-      end;
-    end;
+    ListColumns.BeginUpdate;
+    ListColumns.DeleteSelectedNodes;
+    ListColumns.EndUpdate;
 
-    // Set focus on automatically focused item
-    ListColumns.Selected := ListColumns.ItemFocused;
+    // Set focus on first item
+    ListColumns.FocusedNode := ListColumns.GetFirstVisible;
   except
     On E : Exception do
     begin
@@ -3307,8 +3296,8 @@ begin
   fn := '';
   fem := femFieldAdd;
 
-  if ListColumns.Selected<>nil then
-    fn := ListColumns.Selected.Caption;
+  if Assigned(ListColumns.FocusedNode) then
+    fn := ListColumns.Text[ListColumns.FocusedNode, 0];
 
   if fn<>'' then
     fem := femFieldUpdate;
@@ -3484,7 +3473,7 @@ var
 begin
   // Optimize tables
   Screen.Cursor := crHourGlass;
-  Selected := GetSelectedNodesFromVT( ListTables );
+  Selected := GetVTCaptions( ListTables, True );
   try
     for i:=0 to Selected.Count-1 do
     begin
@@ -3506,7 +3495,7 @@ begin
   // Check tables
   Screen.Cursor := crHourGlass;
   tables := '';
-  Selected := GetSelectedNodesFromVT( ListTables );
+  Selected := GetVTCaptions( ListTables, True );
   try
     for i:=0 to Selected.Count-1 do
     begin
@@ -3550,7 +3539,7 @@ begin
   // Analyze tables
   Screen.Cursor := crHourGlass;
   tables := '';
-  Selected := GetSelectedNodesFromVT( ListTables );
+  Selected := GetVTCaptions( ListTables, True );
   try
     for i:=0 to Selected.Count-1 do
     begin
@@ -3575,7 +3564,7 @@ begin
   // Repair tables
   Screen.Cursor := crHourGlass;
   tables := '';
-  Selected := GetSelectedNodesFromVT( ListTables );
+  Selected := GetVTCaptions( ListTables, True );
   try
     for i:=0 to Selected.Count - 1 do
     begin
@@ -4192,7 +4181,7 @@ var
 begin
   tabletype := (Sender as TMenuItem).Caption;
   tabletype := StringReplace( tabletype, '&', '', [rfReplaceAll] ); // Remove Auto-Hotkey
-  Selected := GetSelectedNodesFromVT(ListTables);
+  Selected := GetVTCaptions(ListTables, True);
   for i:=0 to Selected.Count - 1 do
     ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + tabletype);
   Selected.Free;
@@ -4207,7 +4196,7 @@ var
 begin
   // change table-type:
   if inputquery('Change table-type...','New table-type:', strtype) then begin
-    Selected := GetSelectedNodesFromVT(ListTables);
+    Selected := GetVTCaptions(ListTables, True);
     for i:=0 to Selected.Count - 1 do
       ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + strtype );
     Selected.Free;
@@ -4537,14 +4526,14 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and (-1 < gridData.Col)
-    and (gridData.Col <= ListColumns.Items.Count) then
+    and (gridData.Col <= Length(VTRowDataListColumns)) then
   begin
-    keyword := ListColumns.Items[gridData.Col-1].SubItems[0];
+    keyword := VTRowDataListColumns[gridData.Col-1].Captions[1];
   end
   // Table-Tab
-  else if ListColumns.Focused and (ListColumns.Selected <> nil) then
+  else if ListColumns.Focused and Assigned(ListColumns.FocusedNode) then
   begin
-    keyword := ListColumns.Selected.SubItems[0];
+    keyword := ListColumns.Text[ListColumns.FocusedNode, 1];
   end
   else if lboxQueryHelpers.Focused then
   begin
@@ -5682,9 +5671,9 @@ begin
     begin
       // Keep native order of columns
       lboxQueryHelpers.Sorted := False;
-      for i := 0 to ListColumns.Items.Count - 1 do
+      for i := 0 to High(VTRowDataListColumns) do
       begin
-        lboxQueryHelpers.Items.Add(ListColumns.Items[i].Caption);
+        lboxQueryHelpers.Items.Add(VTRowDataListColumns[i].Captions[0]);
       end;
     end;
 
@@ -5793,25 +5782,29 @@ end;
 }
 procedure TMDIChild.menuRenameColumnClick(Sender: TObject);
 begin
-  listColumns.Selected.EditCaption;
+  ListColumns.EditNode(ListColumns.FocusedNode, 0);
 end;
 
 
 {**
   Rename a column name from within listColumns
 }
-procedure TMDIChild.ListColumnsEdited(Sender: TObject; Item: TListItem;
-  var S: string);
+procedure TMDIChild.ListColumnsNewText(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
   def : TDataSet;
   sql_update, sql_null, sql_default, sql_extra, DefaultValue : String;
+  NodeData : PVTreeData;
 begin
   // Try to rename, on any error abort and don't rename ListItem
   try
-    ensureValidIdentifier( S );
+    ensureValidIdentifier( NewText );
+
+    // Fetch data from listitem
+    NodeData := ListColumns.GetNodeData(Node);
 
     // Fetch column definition
-    def := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable) + ' LIKE ' + esc(Item.Caption), False, False );
+    def := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable) + ' LIKE ' + esc(NodeData.Captions[0]), False, False );
 
     // Check NOT NULL
     sql_null := 'NULL ';
@@ -5835,8 +5828,8 @@ begin
 
     // Concat column definition
     sql_update := 'ALTER TABLE ' + mask(ActualTable) +
-      ' CHANGE ' + mask(Item.Caption) +
-      ' ' + mask(S) + ' ' +
+      ' CHANGE ' + mask(NodeData.Captions[0]) +
+      ' ' + mask(NewText) + ' ' +
       def.FieldByName('Type').AsString + ' ' +
       sql_null +
       sql_default +
@@ -5844,11 +5837,13 @@ begin
 
     // Fire ALTER query
     ExecUpdateQuery( sql_update, False, False );
+
+    // Update listitem
+    NodeData.Captions[0] := NewText;
   except
     On E : Exception do
     begin
       MessageDlg( E.Message, mtError, [mbOK], 0 );
-      abort;
     end;
   end;
 end;
@@ -5968,6 +5963,11 @@ begin
   begin
     NodeData.Captions := VTRowDataListTables[Node.Index].Captions;
     NodeData.ImageIndex := VTRowDataListTables[Node.Index].ImageIndex;
+  end
+  else if Sender = ListColumns then
+  begin
+    NodeData.Captions := VTRowDataListColumns[Node.Index].Captions;
+    NodeData.ImageIndex := VTRowDataListColumns[Node.Index].ImageIndex;
   end;
 end;
 
@@ -5978,13 +5978,30 @@ end;
 procedure TMDIChild.vstFreeNode(Sender: TBaseVirtualTree; Node:
     PVirtualNode);
 var
-  NodeData : PVTreeData;
+  a : TVTreeDataArray;
 begin
-  // Get the pointer to the node data
-  NodeData := Sender.GetNodeData(Node);
-  // Free data
-  NodeData.Captions.Free;
-  NodeData.ImageIndex := -1;
+  // Detect which global array should be processed
+  if Sender = ListVariables then
+    a := VTRowDataListVariables
+  else if Sender = ListCommandStats then
+    a := VTRowDataListCommandStats
+  else if Sender = ListProcesses then
+    a := VTRowDataListProcesses
+  else if Sender = ListTables then
+    a := VTRowDataListTables
+  else if Sender = ListColumns then
+    a := VTRowDataListColumns;
+
+  if Node.Index < Cardinal(High(a)-1) then
+  begin
+    // Delete node somewhere in the middle of the array
+    // Taken from http://delphi.about.com/cs/adptips2004/a/bltip0204_2.htm
+    System.Move( a[Node.Index +1],
+      a[Node.Index],
+      (Cardinal(Length(a)) - Node.Index -1) * SizeOf(TVTreeData) + 1
+      );
+  end;
+  SetLength(a, Length(a) - 1)
 end;
 
 
