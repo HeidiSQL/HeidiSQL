@@ -2004,6 +2004,7 @@ var
   SelectedNodes : TNodeArray;
   Node : PVirtualNode;
   i: Integer;
+  a : TVTreeDataArray;
 begin
   Result := TStringList.Create;
   if OnlySelected then
@@ -2018,12 +2019,9 @@ begin
   end
   else begin
     // Fetch all nodes
-    Node := VT.GetFirst;
-    for i := 0 to VT.RootNodeCount - 1 do
-    begin
-      Result.Add( VT.Text[ Node, Column ] );
-      Node := VT.GetNext(Node);
-    end;
+    a := Mainform.Childwin.GetVTreeDataArray( VT );
+    for i := 0 to High(a) do
+      Result.Add( a[i].Captions[ Column ] );
   end;
 end;
 
