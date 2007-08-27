@@ -46,11 +46,7 @@ var
   reg_columns : TStringList;
 begin
   // Take column names from listColumns and add here
-  chklistColumns.Items.Clear;
-  for i := 0 to Mainform.Childwin.listColumns.Items.Count-1 do
-  begin
-    chklistColumns.Items.Add( Mainform.Childwin.listColumns.Items[i].Caption );
-  end;
+  chklistColumns.Items := GetVTCaptions(Mainform.Childwin.ListColumns);
 
   // Set global reg_name (also used in btnOKClick)
   reg_name := REGNAME_DISPLAYEDCOLUMNS + '_' + Mainform.Childwin.ActualDatabase + '.' + Mainform.Childwin.ActualTable;
@@ -218,10 +214,9 @@ begin
 
     // Add all fieldnames again and check those which are in the checkedfields list
     chklistColumns.Items.BeginUpdate;
-    chklistColumns.Items.Clear;
-    for i := 0 to Mainform.Childwin.listColumns.Items.Count-1 do
+    chklistColumns.Items := GetVTCaptions(Mainform.Childwin.ListColumns);
+    for i := 0 to chklistColumns.Items.Count-1 do
     begin
-      chklistColumns.Items.Add( Mainform.Childwin.listColumns.Items[i].Caption );
       if checkedfields.IndexOf( chklistColumns.Items[i] ) > -1 then
         chklistColumns.Checked[i] := True;
     end;

@@ -358,7 +358,7 @@ begin
   checkListTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(comboSelectDatabase.Text) );
 
   // Fetch selected tables in list
-  Selected := GetSelectedNodesFromVT( Mainform.ChildWin.ListTables );
+  Selected := GetVTCaptions( Mainform.ChildWin.ListTables, True );
 
   // select all/some:
   for i:=0 to checkListTables.Items.Count-1 do

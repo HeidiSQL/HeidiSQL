@@ -641,49 +641,70 @@ object MDIChild: TMDIChild
               end
             end
           end
-          object ListColumns: TSortListView
-            Tag = -1
+          object ListColumns: TVirtualStringTree
             Left = 28
             Top = 17
             Width = 468
             Height = 203
             Align = alClient
+            EditDelay = 500
+            Header.AutoSizeIndex = 0
+            Header.Font.Charset = DEFAULT_CHARSET
+            Header.Font.Color = clWindowText
+            Header.Font.Height = -11
+            Header.Font.Name = 'Tahoma'
+            Header.Font.Style = []
+            Header.Height = 20
+            Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Images = MainForm.ImageList1
+            IncrementalSearch = isInitializedOnly
+            PopupMenu = popupTableGrid
+            TabOrder = 2
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+            TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+            TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+            OnChange = ListColumnsChange
+            OnCompareNodes = vstCompareNodes
+            OnDblClick = UpdateField
+            OnFreeNode = vstFreeNode
+            OnGetText = vstGetText
+            OnGetImageIndex = vstGetImageIndex
+            OnGetNodeDataSize = vstGetNodeDataSize
+            OnHeaderClick = vstHeaderClick
+            OnInitNode = vstInitNode
+            OnKeyUp = controlsKeyUp
+            OnNewText = ListColumnsNewText
             Columns = <
               item
-                Caption = 'Name'
-                Width = -1
-                WidthType = (
-                  -1)
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 0
+                Width = 94
+                WideText = 'Name'
               end
               item
-                Caption = 'Type'
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 1
                 Width = 100
+                WideText = 'Type'
               end
               item
-                Caption = 'Null'
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 2
                 Width = 40
+                WideText = 'Null'
               end
               item
-                Caption = 'Default'
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 3
                 Width = 115
+                WideText = 'Default'
               end
               item
-                Caption = 'Extra'
-                Width = 200
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 4
+                Width = 100
+                WideText = 'Extra'
               end>
-            GridLines = True
-            MultiSelect = True
-            RowSelect = True
-            PopupMenu = popupTableGrid
-            SmallImages = MainForm.ImageList1
-            TabOrder = 2
-            ViewStyle = vsReport
-            OnDblClick = UpdateField
-            OnEdited = ListColumnsEdited
-            OnKeyUp = controlsKeyUp
-            OnSelectItem = ListColumnsSelectItem
-            ImageIndexSortAsc = 0
-            ImageIndexSortDesc = 0
           end
         end
         object tabData: TTabSheet

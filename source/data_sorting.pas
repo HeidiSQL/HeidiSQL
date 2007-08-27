@@ -49,7 +49,7 @@ const
 
 implementation
 
-uses main;
+uses main, helpers;
 
 {$R *.dfm}
 
@@ -64,11 +64,7 @@ var
   reg : TRegistry;
 begin
   // Take column names from listColumns and add here
-  ColumnNames := TStringList.Create;
-  for i := 0 to Mainform.Childwin.listColumns.Items.Count-1 do
-  begin
-    ColumnNames.Add( Mainform.Childwin.listColumns.Items[i].Caption );
-  end;
+  ColumnNames := GetVTCaptions( Mainform.Childwin.ListColumns );
 
   // Read original ORDER clause from registry
   reg := TRegistry.Create();
