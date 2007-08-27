@@ -132,6 +132,7 @@ object MDIChild: TMDIChild
                 TreeOptions.MiscOptions = [toToggleOnDblClick]
                 TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+                OnBeforePaint = vstBeforePaint
                 OnCompareNodes = vstCompareNodes
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
@@ -181,6 +182,7 @@ object MDIChild: TMDIChild
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
                 TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+                OnBeforePaint = vstBeforePaint
                 OnCompareNodes = vstCompareNodes
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
@@ -264,6 +266,7 @@ object MDIChild: TMDIChild
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
                 TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect]
+                OnBeforePaint = vstBeforePaint
                 OnCompareNodes = vstCompareNodes
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
@@ -376,6 +379,7 @@ object MDIChild: TMDIChild
             TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+            OnBeforePaint = vstBeforePaint
             OnChange = ListTablesChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = ListTablesDblClick
@@ -665,6 +669,7 @@ object MDIChild: TMDIChild
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+            OnBeforePaint = vstBeforePaint
             OnChange = ListColumnsChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = UpdateField
