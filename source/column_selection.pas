@@ -41,7 +41,6 @@ uses MAIN, helpers;
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
-  i : Integer;
   reg : TRegistry;
   reg_columns : TStringList;
 begin
