@@ -502,6 +502,8 @@ type
         Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure vstCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
+    procedure vstBeforePaint(Sender: TBaseVirtualTree; TargetCanvas:
+        TCanvas);
 
     private
       strHostRunning             : String;
@@ -6072,6 +6074,26 @@ begin
   else begin
     // Compare Strings
     Result := CompareText( CellText1, CellText2 );
+  end;
+end;
+
+
+{**
+  VirtualTree gets painted. Adjust background color of sorted column.
+}
+procedure TMDIChild.vstBeforePaint(Sender: TBaseVirtualTree;
+    TargetCanvas: TCanvas);
+var
+  i : Integer;
+  h : TVTHeader;
+begin
+  h := TVirtualStringTree(Sender).Header;
+  for i := 0 to h.Columns.Count - 1 do
+  begin
+    if h.SortColumn = i then
+      h.Columns[i].Color := COLOR_SORTCOLUMN
+    else
+      h.Columns[i].Color := clWindow;
   end;
 end;
 

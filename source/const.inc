@@ -23,6 +23,8 @@ const
   REGPATH          = 'Software\' + APPNAME;
   STATUS_MSG_READY = 'Ready.';
   STR_NOTSUPPORTED = 'Not supported by this server';
+  // Used by ListViews
+  COLOR_SORTCOLUMN = $00F7F7F7;
 
   // Used by maskSQL and fixSQL:
   SQL_VERSION_ANSI = -1;
