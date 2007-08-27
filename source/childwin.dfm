@@ -650,7 +650,7 @@ object MDIChild: TMDIChild
             Height = 203
             Align = alClient
             EditDelay = 500
-            Header.AutoSizeIndex = 0
+            Header.AutoSizeIndex = 4
             Header.Font.Charset = DEFAULT_CHARSET
             Header.Font.Color = clWindowText
             Header.Font.Height = -11
@@ -680,13 +680,13 @@ object MDIChild: TMDIChild
               item
                 Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 0
-                Width = 94
+                Width = 120
                 WideText = 'Name'
               end
               item
                 Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 1
-                Width = 100
+                Width = 120
                 WideText = 'Type'
               end
               item
@@ -704,7 +704,7 @@ object MDIChild: TMDIChild
               item
                 Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 4
-                Width = 100
+                Width = 69
                 WideText = 'Extra'
               end>
           end
