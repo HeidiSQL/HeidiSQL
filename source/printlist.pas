@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, printers, comctrls, ExtCtrls;
+  StdCtrls, printers, comctrls, ExtCtrls, VirtualTrees;
 
 type
   TprintlistForm = class(TForm)
@@ -29,7 +29,7 @@ type
     procedure CheckBox1Click(Sender: TObject);
     procedure ComboBoxPrintersChange(Sender: TObject);
   private
-    list : TListView;
+    list : TVirtualStringTree;
     title : String;
     { Private declarations }
   public
@@ -40,7 +40,7 @@ type
 
 implementation
 
-uses childwin, main;
+uses childwin, main, helpers;
 
 {$R *.DFM}
 
@@ -72,16 +72,15 @@ begin
   cwin := Mainform.ChildWin;
 
   // which ListView to print?
-  // TODO: Reactivate after switching to VirtualTree!
-//  case cwin.PageControlMain.ActivePageIndex of
-//    0 : case cwin.PageControlHost.ActivePageIndex of
-//      0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.Conn.MysqlParams.Host; end;
-//      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.Conn.MysqlParams.Host; end;
-//      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.Conn.MysqlParams.Host; end;
-//      end;
-//    1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
-//    2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActualDatabase + '/' + cwin.ActualTable; end;
-//  end;
+  case cwin.PageControlMain.ActivePageIndex of
+    0 : case cwin.PageControlHost.ActivePageIndex of
+      0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.Conn.MysqlParams.Host; end;
+      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.Conn.MysqlParams.Host; end;
+      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.Conn.MysqlParams.Host; end;
+      end;
+    1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActualDatabase; end;
+    2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActualDatabase + '/' + cwin.ActualTable; end;
+  end;
   caption := 'Print ' + title + '...';
 
   // delete all CheckBoxes
@@ -94,10 +93,10 @@ begin
   // add one CheckBox per list-column
   t := 2;
   CheckBox1.Checked := true;
-  for i:=0 to list.Columns.count-1 do begin
+  for i:=0 to list.Header.Columns.count-1 do begin
     with TCheckBox.Create(self) do begin
       parent := GroupBox1;
-      Caption := list.Columns[i].Caption;
+      Caption := list.Header.Columns[i].Text;
       checked := true;
       enabled := false;
       if i mod 2 = 0 then begin
@@ -132,17 +131,19 @@ var
   lspace, rspace, i, j, k, limiter, breite, hoehe, colwidth : Integer;
   Cols : TStringList;
   str  : String;
+  Node : PVirtualNode;
+  NodeData : PVTreeData;
 begin
   // print!
   Screen.Cursor := crHourglass;
 
   Cols := TStringList.Create;
-  for i:=0 to list.Columns.Count-1 do begin
+  for i:=0 to list.Header.Columns.Count-1 do begin
     for j:=0 to ComponentCount-1 do if (Components[j].tag = 1) then begin
-      if ((Components[j] as TCheckBox).caption = list.columns[i].Caption) and
+      if ((Components[j] as TCheckBox).caption = list.Header.Columns[i].Text) and
         ((Components[j] as TCheckBox).checked)
          then
-        Cols.add(list.columns[i].Caption);
+        Cols.add(list.Header.Columns[i].Text);
     end;
   end;
 
@@ -183,7 +184,12 @@ begin
     // print lines
     Font.Style := [];
     limiter := 0;
-    for i:=0 to list.Items.count-1 do begin
+
+    // Find first list node
+    Node := list.GetFirstVisible;
+    i := 0;
+    while Assigned(Node) do
+    begin
       if ((i-limiter) * 50 + 360 + 100) > hoehe then begin
         printer.NewPage;
         TextOut(lspace, -(hoehe-50), 'Page ' + inttostr(printer.PageNumber));
@@ -192,13 +198,13 @@ begin
       MoveTo(lspace, -((i-limiter) * 50 + 365 + font.Height));
       LineTo(breite - rspace, -((i-limiter) * 50 + 365 + font.Height));
 
+      // Fetch node data
+      NodeData := list.GetNodeData( Node );
       for j:=0 to Cols.count-1 do begin
-        for k:=0 to list.columns.count-1 do begin
-          if list.columns[k].Caption = Cols[j] then begin
-            if k = 0 then
-              str := list.Items[i].Caption
-            else if list.items[i].subitems.count >= k then
-              str := list.items[i].SubItems[k-1]
+        for k:=0 to NodeData.Captions.count-1 do begin
+          if list.Header.Columns[k].Text = Cols[j] then begin
+            if NodeData.Captions.count >= k then
+              str := NodeData.Captions[k]
             else
               str := '';
           end;
@@ -206,6 +212,9 @@ begin
         TextOut(lspace + j*colwidth, -((i - limiter) * 50 + 360), str)
       end;
 
+      // Go to next node in list
+      Node := list.GetNextVisible(Node);
+      inc(i);
     end;
 
   end;
