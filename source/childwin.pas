@@ -546,7 +546,6 @@ type
       VTRowDataListCommandStats,
       VTRowDataListTables,
       VTRowDataListColumns       : TVTreeDataArray;
-      function GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
 
       FProgressForm              : TFrmQueryProgress;
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -567,6 +566,7 @@ type
       procedure ClearAllTableLists;
       procedure UpdateTreeTableList;
       procedure EnsureActiveDatabase;
+      function GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
   end;
 
 
