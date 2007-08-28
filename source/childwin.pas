@@ -6025,6 +6025,11 @@ end;
 procedure TMDIChild.vstHeaderClick(Sender: TVTHeader; Column:
     TColumnIndex; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
+  // Don't call sorting procedure on right click
+  // Some list-headers have a contextmenu which should popup then.
+  if Button = mbRight then
+    Exit;
+  
   if Sender.SortColumn <> Column then
     Sender.SortColumn := Column
   else if Sender.SortDirection = sdAscending then
