@@ -42,7 +42,7 @@ object optimize: Toptimize
     TabOrder = 2
   end
   object DBComboBox: TComboBox
-    Left = 16
+    Left = 62
     Top = 32
     Width = 171
     Height = 21
@@ -198,7 +198,7 @@ object optimize: Toptimize
     ViewStyle = vsReport
   end
   object ToolBar1: TToolBar
-    Left = 187
+    Left = 16
     Top = 32
     Width = 46
     Height = 22

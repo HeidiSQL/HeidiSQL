@@ -93,7 +93,7 @@ object ExportSQLForm: TExportSQLForm
         OnKeyDown = checkListTablesKeyDown
       end
       object comboSelectDatabase: TComboBox
-        Left = 8
+        Left = 63
         Top = 24
         Width = 542
         Height = 21
@@ -104,12 +104,11 @@ object ExportSQLForm: TExportSQLForm
         OnChange = comboSelectDatabaseChange
       end
       object toolbarSelectTools: TToolBar
-        Left = 558
+        Left = 8
         Top = 24
         Width = 46
         Height = 22
         Align = alNone
-        Anchors = [akTop, akRight]
         AutoSize = True
         Caption = 'toolbarSelectTools'
         EdgeInner = esNone
