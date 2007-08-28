@@ -2772,6 +2772,10 @@ begin
     Exit;
   end;
 
+  // In case user selected a different database in the tree,
+  // make sure that we activate it before firing any queries.
+  EnsureActiveDatabase;
+  
   // Let EnsureActiveDatabase know that we're firing user queries.
   prevDb := ActualDatabase;
   ActualDatabase := EmptyStr;
