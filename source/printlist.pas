@@ -130,7 +130,6 @@ procedure TprintlistForm.Button3Click(Sender: TObject);
 var
   lspace, rspace, i, j, k, limiter, breite, hoehe, colwidth : Integer;
   Cols : TStringList;
-  str  : String;
   Node : PVirtualNode;
   NodeData : PVTreeData;
 begin
@@ -200,16 +199,13 @@ begin
 
       // Fetch node data
       NodeData := list.GetNodeData( Node );
-      for j:=0 to Cols.count-1 do begin
-        for k:=0 to NodeData.Captions.count-1 do begin
-          if list.Header.Columns[k].Text = Cols[j] then begin
-            if NodeData.Captions.count >= k then
-              str := NodeData.Captions[k]
-            else
-              str := '';
-          end;
+      for j:=0 to Cols.count-1 do
+      begin
+        for k:=0 to NodeData.Captions.count-1 do
+        begin
+          if list.Header.Columns[k].Text = Cols[j] then
+            TextOut(lspace + j*colwidth, -((i - limiter) * 50 + 360), NodeData.Captions[k]);
         end;
-        TextOut(lspace + j*colwidth, -((i - limiter) * 50 + 360), str)
       end;
 
       // Go to next node in list
