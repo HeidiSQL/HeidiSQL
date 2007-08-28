@@ -1284,6 +1284,7 @@ begin
   pnlTableTop.Caption := 'Table-Properties';
   Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
+  EnsureActiveDatabase;
   ActualTable := '';
   try
     ShowDBProperties( Self );
