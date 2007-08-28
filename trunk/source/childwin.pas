@@ -6048,7 +6048,7 @@ procedure TMDIChild.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
 var
   NodeData1, NodeData2 : PVTreeData;
   CellText1, CellText2 : String;
-  Int1, Int2 : Integer;
+  Int1, Int2 : Int64;
 begin
   NodeData1 := Sender.GetNodeData(Node1);
   NodeData2 := Sender.GetNodeData(Node2);
