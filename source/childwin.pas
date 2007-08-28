@@ -1282,9 +1282,9 @@ begin
   tabData.TabVisible := false;
 
   pnlTableTop.Caption := 'Table-Properties';
-  Caption := Description + ' - /' + ActualDatabase;
   ActualDatabase := db;
   EnsureActiveDatabase;
+  Caption := Description + ' - /' + ActualDatabase;
   ActualTable := '';
   try
     ShowDBProperties( Self );
