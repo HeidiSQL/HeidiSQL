@@ -85,6 +85,7 @@ type
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
   function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
+  function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2024,6 +2025,16 @@ begin
       Result.Add( a[i].Captions[ Column ] );
   end;
 end;
+
+function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
+var
+  NewHayStack: string;
+begin
+  NewHayStack := Copy(HayStack, StartPos, Length(HayStack));
+  Result := Pos(Needle, NewHayStack);
+  if Result > 0 then Result := Result + StartPos - 1;
+end;
+
 
 initialization
 
