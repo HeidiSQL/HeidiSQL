@@ -349,13 +349,16 @@ var
   i : Integer;
   dbtree_table : String;
   Selected : TStringList;
+  sql: string;
 begin
   // read tables from db
   checkListTables.Items.Clear;
 
   // Fetch tables from DB
-  // todo: skip views or add complete support for views.
-  checkListTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(comboSelectDatabase.Text) );
+  sql := 'FROM ' + MainForm.mask(comboSelectDatabase.Text);
+  if Mainform.ChildWin.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
+  else sql := 'SHOW TABLES ' + sql;
+  checkListTables.Items := Mainform.ChildWin.GetCol( sql );
 
   // Fetch selected tables in list
   Selected := GetVTCaptions( Mainform.ChildWin.ListTables, True );
