@@ -421,6 +421,7 @@ procedure TExportSQLForm.btnExportClick(Sender: TObject);
 var
   f                         : TFileStream;
   i,j,k,m                   : Integer;
+  spos, epos                : Integer;
   exportdb,exporttables     : boolean;
   exportdata                : boolean;
   dropquery,createquery,insertquery,
@@ -715,6 +716,16 @@ begin
           if Pos('DEFAULT CHARSET', sql) > 0 then begin
             Insert('/*!40100 ', sql, Pos('DEFAULT CHARSET', sql));
             sql := sql + '*/';
+          end;
+          // Mask USING {BTREE,HASH,RTREE} from older servers.
+          spos := 1;
+          while true do begin
+            spos := Pos2('USING', sql, spos);
+            if spos = 0 then break;
+            epos := min(Pos2(',', sql, spos), Pos2(')', sql, spos));
+            Insert('*/', sql, epos);
+            Insert('/*!50100 ', sql, spos);
+            spos := epos + 11;
           end;
           if target_version = SQL_VERSION_ANSI then
           begin
