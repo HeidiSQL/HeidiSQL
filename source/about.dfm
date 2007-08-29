@@ -4,7 +4,7 @@ object AboutBox: TAboutBox
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'About'
-  ClientHeight = 366
+  ClientHeight = 374
   ClientWidth = 531
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,14 +19,14 @@ object AboutBox: TAboutBox
   OnShow = FormShow
   DesignSize = (
     531
-    366)
+    374)
   PixelsPerInch = 96
   TextHeight = 13
   object PanelLogos: TPanel
     Left = 401
     Top = 0
     Width = 129
-    Height = 263
+    Height = 271
     Anchors = [akTop, akRight, akBottom]
     BevelInner = bvRaised
     BevelOuter = bvLowered
@@ -1153,7 +1153,7 @@ object AboutBox: TAboutBox
   end
   object ButtonClose: TButton
     Left = 401
-    Top = 341
+    Top = 349
     Width = 129
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1167,7 +1167,7 @@ object AboutBox: TAboutBox
     Left = 1
     Top = 0
     Width = 394
-    Height = 366
+    Height = 374
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvRaised
     BevelOuter = bvLowered
@@ -1175,7 +1175,7 @@ object AboutBox: TAboutBox
     OnMouseMove = MouseOver
     DesignSize = (
       394
-      366)
+      374)
     object ProductName: TLabel
       Left = 10
       Top = 10
@@ -1244,7 +1244,7 @@ object AboutBox: TAboutBox
       Left = 10
       Top = 248
       Width = 376
-      Height = 107
+      Height = 115
       Anchors = [akLeft, akTop, akRight, akBottom]
       Lines.Strings = (
         'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
@@ -1255,6 +1255,7 @@ object AboutBox: TAboutBox
         'Inno Setup - http://www.jrsoftware.org/'
         'Sebasti'#225'n Mayor'#225' for EDBImage'
         'Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/'
+        'Mark James for his Silk icon set'
         'MySQL for great database software')
       ReadOnly = True
       TabOrder = 0
@@ -1279,7 +1280,7 @@ object AboutBox: TAboutBox
   end
   object ButtonDonate: TButton
     Left = 401
-    Top = 305
+    Top = 313
     Width = 129
     Height = 25
     Hint = 'http://www.heidisql.com/donate.php'
@@ -1290,7 +1291,7 @@ object AboutBox: TAboutBox
   end
   object ButtonBoard: TButton
     Left = 401
-    Top = 269
+    Top = 277
     Width = 129
     Height = 25
     Hint = 'http://www.heidisql.com/forum/'
