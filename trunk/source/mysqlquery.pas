@@ -77,7 +77,7 @@ type
 
   function ExecMysqlStatementAsync(ASql : String; AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; Callback: TAsyncPostRunner) : TMysqlQuery;
   function ExecMysqlStatementBlocking(ASql : String; AConn : TOpenConnProf; AWndHandle : THandle) : TMysqlQuery;
-  procedure ExecPostAsync(AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; ds: TDeferDataSet);
+  function ExecPostAsync(AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; ds: TDeferDataSet): TMysqlQuery;
 
 
 implementation
@@ -111,13 +111,11 @@ begin
 end;
 
 
-procedure ExecPostAsync(AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; ds: TDeferDataSet);
-var
-  q: TMysqlQuery;
+function ExecPostAsync(AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; ds: TDeferDataSet): TMysqlQuery;
 begin
-  q := TMysqlQuery.Create(nil,@AConn);
-  q.OnNotify := ANotifyProc;
-  q.Query('',MQM_ASYNC,AWndHandle,nil,ds);
+  Result := TMysqlQuery.Create(nil,@AConn);
+  Result.OnNotify := ANotifyProc;
+  Result.Query('',MQM_ASYNC,AWndHandle,nil,ds);
 end;
 
 {***
