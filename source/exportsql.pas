@@ -907,34 +907,44 @@ begin
         RecordCount_all := MakeInt( cwin.GetVar( 'SELECT COUNT(*) FROM ' + cwin.mask(checkListTables.Items[i]) ) );
         limit := cwin.GetCalculatedLimit( checkListTables.Items[i] );
 
-        if tofile then
-        begin
-          wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
-          wfs(f, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i]) +' WRITE;' );
+        if RecordCount_all = 0 then begin
+          if tofile then
+          begin
+            wfs(f, '# (No data found.)');
+            wfs(f);
+          end;
         end
-        else if todb then
+        else
         begin
-          cwin.ExecUseQuery(DB2Export);
-          if target_version > 40000 then
-            cwin.ExecUpdateQuery( 'ALTER TABLE ' + cwin.mask(checkListTables.Items[i])+' DISABLE KEYS' );
-          {***
-            @note ansgarbecker, 2007-02-18:
-            Normally we would have to apply a WRITE-LOCK to the target-table.
-            Unfortunately the server invokes a "Table xyz was not locked"-error
-            on the source-table if we do that:
-            cwin.ExecQuery( 'LOCK TABLES ' + cwin.mask(DB2Export) + '.' +  cwin.mask(checkListTables.Items[i])+' WRITE' );
-            Even when applying a WRITE- or READ-LOCK also to the source-table,
-            the INSERTs seem to be not executed.
-            So the best solution for now seems to be to not LOCK the target-table,
-            running the risk that the table is edited by other concurrent users
-          }
-          cwin.ExecUseQuery(comboSelectDatabase.Text);
-        end
-        else if tohost then
-        begin
-          if target_version > 40000 then
-            RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' DISABLE KEYS');
-          RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' WRITE');
+          if tofile then
+          begin
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
+            wfs(f, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i]) +' WRITE;' );
+          end
+          else if todb then
+          begin
+            cwin.ExecUseQuery(DB2Export);
+            if target_version > 40000 then
+              cwin.ExecUpdateQuery( 'ALTER TABLE ' + cwin.mask(checkListTables.Items[i])+' DISABLE KEYS' );
+            {***
+              @note ansgarbecker, 2007-02-18:
+              Normally we would have to apply a WRITE-LOCK to the target-table.
+              Unfortunately the server invokes a "Table xyz was not locked"-error
+              on the source-table if we do that:
+              cwin.ExecQuery( 'LOCK TABLES ' + cwin.mask(DB2Export) + '.' +  cwin.mask(checkListTables.Items[i])+' WRITE' );
+              Even when applying a WRITE- or READ-LOCK also to the source-table,
+              the INSERTs seem to be not executed.
+              So the best solution for now seems to be to not LOCK the target-table,
+              running the risk that the table is edited by other concurrent users
+            }
+            cwin.ExecUseQuery(comboSelectDatabase.Text);
+          end
+          else if tohost then
+          begin
+            if target_version > 40000 then
+              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' DISABLE KEYS');
+            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' WRITE');
+          end;
         end;
 
         offset := 0;
@@ -1053,21 +1063,23 @@ begin
         // Set back to local setting:
         setLocales;
 
-        if tofile then
-        begin
-          wfs(f, 'UNLOCK TABLES;' );
-          wfs(f, fixSQL( '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i])+' ENABLE KEYS;*/', target_version) );
-        end
-        else if todb then
-        begin
-          if target_version > 40000 then
-            cwin.ExecUpdateQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS' );
-        end
-        else if tohost then
-        begin
-          RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
-          if target_version > 40000 then
-            RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS');
+        if RecordCount_all > 0 then begin
+          if tofile then
+          begin
+            wfs(f, 'UNLOCK TABLES;' );
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i])+' ENABLE KEYS;*/', target_version) );
+          end
+          else if todb then
+          begin
+            if target_version > 40000 then
+              cwin.ExecUpdateQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS' );
+          end
+          else if tohost then
+          begin
+            RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
+            if target_version > 40000 then
+              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS');
+          end;
         end;
         barProgress.StepIt;
       end;
