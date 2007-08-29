@@ -229,11 +229,10 @@ var
 
 const
   discname = 'not connected';
-  // TODO: Wait for Sven's better icons to represent server connections here.
   ICON_MYSELF_CONNECTED = 89;
-  ICON_MYSELF_DISCONNECTED = 90;
+  ICON_MYSELF_DISCONNECTED = 92;
   ICON_OTHER_CONNECTED = 91;
-  ICON_OTHER_DISCONNECTED = 92;
+  ICON_OTHER_DISCONNECTED = -1;
 
 {$I const.inc}
 
