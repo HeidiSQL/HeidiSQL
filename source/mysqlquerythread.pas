@@ -195,10 +195,8 @@ var
   qr : TThreadResult;
 begin
   debug(Format('qry: Setting result and posting status %d via WM_MYSQL_THREAD_NOTIFY message', [AEvent]));
-  if self.FPostDataSet = nil then begin
-    qr := AssembleResult();
-    TMysqlQuery(FOwner).SetThreadResult(qr);
-  end;
+  qr := AssembleResult();
+  TMysqlQuery(FOwner).SetThreadResult(qr);
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
@@ -206,52 +204,47 @@ procedure TMysqlQueryThread.Execute;
 var
   q : TDeferDataSet;
   r : Boolean;
-  e : TExceptionData;
+  ex : TExceptionData;
 begin
   debug(Format('qry: Thread %d running...', [ThreadID]));
   NotifyStatus(MQE_INITED);
 
   try
-    if not FMysqlConn.Connected then
-      FMysqlConn.Connect();
+    if not FMysqlConn.Connected then FMysqlConn.Connect();
   except
-    on E: Exception do
-      begin
-        SetState (MQR_CONNECT_FAIL,Format('%s',[E.Message]));
-      end;
+    on E: Exception do begin
+      SetState (MQR_CONNECT_FAIL,Format('%s',[E.Message]));
+    end;
   end;
 
-  if FMysqlConn.Connected then
-    begin
-      NotifyStatus (MQE_STARTED);
+  if FMysqlConn.Connected then begin
+    NotifyStatus (MQE_STARTED);
 
-      q := nil;
-      if FPostDataSet <> nil then FPostDataSet.DoAsync
-      else begin
-        if ExpectResultSet(FSql) then
-        begin
-          r := RunDataQuery (FSql,TDataSet(q),e,FCallback);
-
-          if r then
-            begin
-              if q.State=dsBrowse then
-                begin
-                  // WTF?
-                end;
-            end;
-
-        end
-        else
-          r := RunUpdateQuery (FSql,TDataSet(q),e,FCallBack);
-        TMysqlQuery(FOwner).SetMysqlDataset(q);
-
-        if r then
-          SetState (MQR_SUCCESS,'SUCCESS')
-        else
-          SetState (MQR_QUERY_FAIL,e.Msg);
-
+    q := nil;
+    if FPostDataSet <> nil then begin
+      try
+        FPostDataSet.DoAsync;
+        SetState (MQR_SUCCESS,'SUCCESS')
+      except
+        on E: Exception do begin
+          SetState (MQR_QUERY_FAIL,Format('%s', [E.Message]));
+        end;
       end;
+    end else begin
+      if ExpectResultSet(FSql) then begin
+        r := RunDataQuery (FSql,TDataSet(q),ex,FCallback);
+        if r then begin
+          if q.State=dsBrowse then begin
+            // WTF?
+          end;
+        end;
+      end else r := RunUpdateQuery (FSql,TDataSet(q),ex,FCallBack);
+      TMysqlQuery(FOwner).SetMysqlDataset(q);
+
+      if r then SetState (MQR_SUCCESS,'SUCCESS')
+      else SetState (MQR_QUERY_FAIL,ex.Msg);
     end;
+  end;
 
   NotifyStatus (MQE_FINISHED);
   NotifyStatus (MQE_FREED);

@@ -5268,6 +5268,8 @@ begin
 end;
 
 procedure TMDIChild.RunAsyncPost(ds: TDeferDataSet);
+var
+  res: TMysqlQuery;
 begin
   FQueryRunning := true;
   try
@@ -5280,8 +5282,12 @@ begin
     end;
     FProgressForm := TFrmQueryProgress.Create(Self);
     debug('RunThreadedQuery(): Launching asynchronous query.');
-    ExecPostAsync(FConn,nil,FProgressForm.Handle,ds);
+    res := ExecPostAsync(FConn,nil,FProgressForm.Handle,ds);
     WaitForQueryCompletion(FProgressForm);
+    if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+    begin
+      raise Exception.Create(res.Comment);
+    end;
   finally
     FQueryRunning := false;
   end;
