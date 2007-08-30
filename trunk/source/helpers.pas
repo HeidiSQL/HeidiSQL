@@ -81,7 +81,8 @@ type
   function GetFieldValue( Field: TField ): String;
   function LastPos( substr: WideString; str: WideString): Integer;
   function ConvertServerVersion( Version: Integer ): String;
-  function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
+  function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
+  function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
   function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
@@ -1587,7 +1588,10 @@ end;
 }
 function FormatNumber( str: String ): String; Overload;
 begin
-  result := FormatNumber( StrToFloat( str ) );
+  if str <> '' then
+    result := FormatNumber( StrToFloat( str ) )
+  else
+    result := FormatNumber( 0 );
 end;
 
 
@@ -1950,7 +1954,7 @@ end;
   @param Int64 Number of Bytes
   @param Byte Decimals to display when bytes is bigger than 1M
 }
-function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String;
+function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
 const
   KB = 1024;
 begin
@@ -1962,6 +1966,16 @@ begin
     Result := FormatNumber( Bytes / KB, Decimals ) + ' KB'
   else
     Result := FormatNumber( Bytes ) + ' Bytes'
+end;
+
+
+{**
+  An overloaded function of the previous one which can
+  take a string as input
+}
+function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
+begin
+  Result := FormatByteNumber( MakeInt(Bytes), Decimals );
 end;
 
 

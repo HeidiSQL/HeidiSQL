@@ -523,6 +523,7 @@ type
       UserQueryFired             : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
+      ListTablesColumnNames      : TStringList;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -533,6 +534,7 @@ type
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
+      procedure SetupListTablesHeader;
 
     public
       ActualDatabase             : String;
@@ -1951,14 +1953,10 @@ end;
 { Show tables and their properties on the tabsheet "Database" }
 procedure TMDIChild.ShowDBProperties(Sender: TObject);
 var
-  i,j,k           : Integer;
+  i               : Integer;
   bytes           : Extended;
-  menuitem        : TMenuItem;
-  TablelistColumns: TStringList;
-  column          : TVirtualTreeColumn;
   ds              : TDataSet;
-  OldSortColumn   : Integer;
-  OldSortDirection: TSortDirection;
+  ListCaptions    : TStringList;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -1974,146 +1972,107 @@ begin
 
     ds := FetchActiveDbTableList;
 
-    // Generate items for popupDbGridHeader
-    for i:=popupDbGridHeader.Items.Count-1 downto 2 do
-      popupDbGridHeader.Items.Delete( i );
-    with TRegistry.Create do
-    begin
-      openkey( REGPATH + '\Servers\' + FConn.Description, true );
-      if ValueExists( 'TablelistDefaultColumns' ) then
-        popupDbGridHeader.Items[0].Checked := ReadBool( 'TablelistDefaultColumns' );
-      if ValueExists( 'TablelistColumns' ) then
-        TablelistColumns := Explode( ',', ReadString( 'TablelistColumns' ) )
-      else
-        TablelistColumns := TStringList.Create;
-      free;
-    end;
-    for i:=0 to ds.FieldCount-1 do
-    begin
-      menuitem := TMenuItem.Create( self );
-      menuitem.Caption := ds.Fields[i].Fieldname;
-      menuitem.Tag := 2;
-      menuitem.OnClick := MenuTablelistColumnsClick;
-      if i=0 then
-      begin
-        menuitem.Enabled := false; // tablename should always be kept
-        menuitem.Checked := true;
-      end
-      else if TablelistColumns.Count > 0 then
-      begin
-        menuitem.Checked := TablelistColumns.IndexOf( menuitem.Caption ) > -1;
-      end;
-      popupDbGridHeader.Items.Add( menuitem );
-    end;
-
-    // Remember sorting options and restore them later
-    OldSortColumn := ListTables.Header.SortColumn;
-    OldSortDirection := ListTables.Header.SortDirection;
-
     ListTables.BeginUpdate;
     ListTables.Clear;
-    ListTables.Header.Columns.BeginUpdate;
-    ListTables.Header.Columns.Clear;
-    column := ListTables.Header.Columns.Add;
-    column.Text := 'Table';
-    column.Width := 120;
-    if popupDbGridHeader.Items[0].Checked then
-    begin // Default columns - initialize column headers
-      column := ListTables.Header.Columns.Add;
-      column.Text := 'Records';
-      column.Alignment := taRightJustify;
-      column.Width := 80;
 
-      column := ListTables.Header.Columns.Add;
-      column.Text := 'Size';
-      column.Alignment := taRightJustify;
-      column.Width := 70;
-
-      column := ListTables.Header.Columns.Add;
-      column.Text := 'Created';
-      column.Width := 120;
-
-      column := ListTables.Header.Columns.Add;
-      column.Text := 'Updated';
-      column.Width := 120;
-
-      column := ListTables.Header.Columns.Add;
-      column.Text := 'Engine';
-      column.Width := 70;
-
-      column := ListTables.Header.Columns.Add;
-      column.Text := 'Comment';
-      column.Width := 50;
-    end;
-    for i:=0 to TablelistColumns.Count-1 do
-    begin
-      column := ListTables.Header.Columns.Add;
-      column.Text := TablelistColumns[i];
-      column.Width := 50;
-      column.MinWidth := 50;
-    end;
-    // Ensure AutoResize does not cause an AV
-    ListTables.Header.SortColumn := OldSortColumn;
-    ListTables.Header.SortDirection := OldSortDirection;
-    ListTables.Header.Columns.EndUpdate;
+    // (Un)hides (un)selected column names in list
+    SetupListTablesHeader;
 
     SetLength(VTRowDataListTables, ds.RecordCount);
     for i := 1 to ds.RecordCount do
     begin
-      VTRowDataListTables[i-1].Captions := TStringList.Create;
-      VTRowDataListTables[i-1].ImageIndex := 39;
+      listcaptions := TStringList.Create;
       // Table
-      VTRowDataListTables[i-1].Captions.Add( ds.Fields[0].AsString );
-      if (mysql_version >= 32300) and popupDbGridHeader.Items[0].Checked then
+      ListCaptions.Add( ds.Fields[0].AsString );
+      if mysql_version >= 32300 then
       begin // Default columns
         // Records
-        VTRowDataListTables[i-1].Captions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
+        ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
         // Size: Data_length + Index_length
         bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-        VTRowDataListTables[i-1].Captions.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
+        ListCaptions.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
         // Created:
         if not ds.FieldByName('Create_time').IsNull then
-          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Create_time').AsString )
+          ListCaptions.Add( ds.FieldByName('Create_time').AsString )
         else
-          VTRowDataListTables[i-1].Captions.Add('N/A');
+          ListCaptions.Add('N/A');
 
         // Updated:
         if not ds.FieldByName('Update_time').IsNull then
-          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Update_time').AsString )
+          ListCaptions.Add( ds.FieldByName('Update_time').AsString )
         else
-          VTRowDataListTables[i-1].Captions.Add('N/A');
+          ListCaptions.Add('N/A');
 
         // Type
         if ds.FindField('Type')<>nil then
-          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Type').AsString )
+          ListCaptions.Add( ds.FieldByName('Type').AsString )
         else if ds.FindField('Engine')<>nil then
-          VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Engine').AsString )
+          ListCaptions.Add( ds.FieldByName('Engine').AsString )
         else
-          VTRowDataListTables[i-1].Captions.Add('');
+          ListCaptions.Add('');
 
         // Comment
-        VTRowDataListTables[i-1].Captions.Add( ds.FieldByName('Comment').AsString );
+        ListCaptions.Add( ds.FieldByName('Comment').AsString );
+
+        // Add content from other columns which are not visible in ListTables by default
+
+        if ds.FindField('Version')<>nil then
+          ListCaptions.Add( ds.FieldByName('Version').AsString )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Row_format')<>nil then
+          ListCaptions.Add( ds.FieldByName('Row_format').AsString )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Avg_row_length')<>nil then
+          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Avg_row_length').AsString) )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Max_data_length')<>nil then
+          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Max_data_length').AsString) )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Index_length')<>nil then
+          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Index_length').AsString) )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Data_free')<>nil then
+          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Data_free').AsString) )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Auto_increment')<>nil then
+          ListCaptions.Add( FormatNumber(ds.FieldByName('Auto_increment').AsString) )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Check_time')<>nil then
+          ListCaptions.Add( ds.FieldByName('Check_time').AsString )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Collation')<>nil then
+          ListCaptions.Add( ds.FieldByName('Collation').AsString )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Checksum')<>nil then
+          ListCaptions.Add( ds.FieldByName('Checksum').AsString )
+        else
+          ListCaptions.Add('');
+
+        if ds.FindField('Create_options')<>nil then
+          ListCaptions.Add( ds.FieldByName('Create_options').AsString )
+        else
+          ListCaptions.Add('');
       end;
-      for j:=0 to TablelistColumns.Count-1 do
-      begin
-        for k:=0 to ds.FieldCount-1 do
-        begin
-          if TablelistColumns[j] = ds.Fields[k].FieldName then
-          begin
-            if ds.Fields[k].DataType in [ftInteger, ftSmallint, ftWord, ftFloat, ftWord ] then
-            begin
-              // Number
-              // TODO: doesn't match any column
-              ListTables.Header.Columns[ListTables.Header.Columns.Count-1].Alignment := taRightJustify;
-              VTRowDataListTables[i-1].Captions.Add( FormatNumber( ds.Fields[k].AsFloat ) );
-            end
-            else
-              // String
-              VTRowDataListTables[i-1].Captions.Add( ds.Fields[k].AsString );
-            break;
-          end;
-        end;
-      end;
+      VTRowDataListTables[i-1].ImageIndex := 39;
+      VTRowDataListTables[i-1].Captions := ListCaptions;
       ds.Next;
     end;
     mainform.showstatus(ActualDatabase + ': ' + IntToStr(ds.RecordCount) +' table(s)');
@@ -5509,44 +5468,6 @@ end;
 
 
 
-// Click on first menu-item in context-menu of tablelist-columns
-procedure TMDIChild.MenuTablelistColumnsClick(Sender: TObject);
-var
-  menuitem : TMenuItem;
-  TablelistColumnsList : TStringList;
-begin
-  menuitem := (Sender as TMenuItem);
-  with TRegistry.Create do
-  try
-    openkey( REGPATH + '\Servers\' + FConn.Description, true );
-    case menuitem.Tag of
-      1 : // Toggle default-columns
-        WriteBool( 'TablelistDefaultColumns', not menuitem.Checked );
-      2 :
-        begin
-          if ValueExists( 'TablelistColumns' ) then
-            TablelistColumnsList := Explode( ',', ReadString( 'TablelistColumns' ) )
-          else
-            TablelistColumnsList := TStringList.Create;
-          if TablelistColumnsList.IndexOf( menuitem.Caption ) > -1 then
-            TablelistColumnsList.Delete( TablelistColumnsList.IndexOf( menuitem.Caption ) )
-          else
-            TablelistColumnsList.Add( menuitem.Caption );
-          WriteString( 'TablelistColumns', implodestr( ',', TablelistColumnsList ) );
-        end;
-     end;
-    free;
-  except
-    free;
-    MessageDlg( 'Error while writing to registry.', mtError, [mbOK], 0 );
-    exit;
-  end;
-  menuitem.Checked := not menuitem.Checked;
-  ShowDBProperties( self );
-end;
-
-
-
 function TMDIChild.mask(str: String) : String;
 begin
   result := maskSql(mysql_version, str);
@@ -6135,6 +6056,85 @@ begin
   end;
 end;
 
+
+{**
+  Click on popupDBGridHeader
+}
+procedure TMDIChild.MenuTablelistColumnsClick(Sender: TObject);
+var
+  menuitem : TMenuItem;
+  reg : TRegistry;
+begin
+  menuitem := (Sender as TMenuItem);
+  reg := TRegistry.Create;
+  reg.OpenKey( REGPATH, true );
+  if ListTablesColumnNames.IndexOf( menuitem.Caption ) > -1 then
+    ListTablesColumnNames.Delete( ListTablesColumnNames.IndexOf( menuitem.Caption ) )
+  else
+    ListTablesColumnNames.Add( menuitem.Caption );
+  // Store list of columns in registry
+  reg.WriteString( REGNAME_LISTTABLESCOLUMNNAMES, ListTablesColumnNames.DelimitedText );
+  SetupListTablesHeader;
+end;
+
+
+{**
+  (Un)hides (un)selected columns in ListTables
+}
+procedure TMDIChild.SetupListTablesHeader;
+var
+  reg : TRegistry;
+  i : Integer;
+  menuitem : TMenuItem;
+begin
+  if ListTablesColumnNames = nil then
+  begin
+    // First time we read the columns list from registry into this global variable
+    ListTablesColumnNames := TStringList.Create;
+
+    reg := TRegistry.Create;
+    reg.openkey( REGPATH, true );
+    if reg.ValueExists( REGNAME_LISTTABLESCOLUMNNAMES ) then
+    begin
+      ListTablesColumnNames.DelimitedText := reg.ReadString( REGNAME_LISTTABLESCOLUMNNAMES );
+      // Ensure first column (Table) is always visible
+      if ListTablesColumnNames.IndexOf(ListTables.Header.Columns[0].Text) = -1 then
+        ListTablesColumnNames.Add( ListTables.Header.Columns[0].Text );
+    end
+    else begin
+      // If not set, by default make the first 7 columns visible
+      for i:=0 to ListTables.Header.Columns.Count-1 do
+      begin
+        ListTablesColumnNames.Add(ListTables.Header.Columns[i].Text);
+        if i >= 6 then
+          break;
+      end;
+    end;
+    reg.Free;
+  end;
+
+  // All columns in ListTables are created at designtime. Only (un)hide them here
+  // Plus generate menuitems for popupDBgridColumns
+  popupDBGridHeader.Items.Clear;
+  for i:=0 to ListTables.Header.Columns.Count-1 do
+  begin
+    menuitem := TMenuItem.Create( popupDBGridHeader );
+    menuitem.Caption := ListTables.Header.Columns[i].Text;
+    menuitem.OnClick := MenuTablelistColumnsClick;
+    // Disable hiding first column
+    menuitem.Enabled := i>0;
+    popupDbGridHeader.Items.Add( menuitem );
+    if (i=0) or (ListTablesColumnNames.IndexOf( ListTables.Header.Columns[i].Text ) > -1) then
+    begin
+      ListTables.Header.Columns[i].Options := ListTables.Header.Columns[i].Options + [coVisible];
+      menuitem.Checked := True;
+    end
+    else begin
+      ListTables.Header.Columns[i].Options := ListTables.Header.Columns[i].Options - [coVisible];
+      menuitem.Checked := False;
+    end;
+  end;
+end;
 
 
 end.
