@@ -361,14 +361,14 @@ object MDIChild: TMDIChild
             Height = 203
             Align = alClient
             EditDelay = 500
-            Header.AutoSizeIndex = 6
+            Header.AutoSizeIndex = -1
             Header.Font.Charset = DEFAULT_CHARSET
             Header.Font.Color = clWindowText
             Header.Font.Height = -11
             Header.Font.Name = 'Tahoma'
             Header.Font.Style = []
             Header.Height = 20
-            Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Header.PopupMenu = popupDbGridHeader
             Header.SortColumn = 0
             Images = MainForm.ImageList1
@@ -432,8 +432,78 @@ object MDIChild: TMDIChild
               item
                 Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 6
-                Width = 10
+                Width = 100
                 WideText = 'Comment'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 7
+                WideText = 'Version'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 8
+                Width = 70
+                WideText = 'Row format'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 9
+                Width = 70
+                WideText = 'Avg row length'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 10
+                Width = 70
+                WideText = 'Max data length'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 11
+                Width = 70
+                WideText = 'Index length'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 12
+                Width = 70
+                WideText = 'Data free'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 13
+                Width = 90
+                WideText = 'Auto increment'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 14
+                Width = 120
+                WideText = 'Check time'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 15
+                Width = 70
+                WideText = 'Collation'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 16
+                Width = 70
+                WideText = 'Checksum'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 17
+                Width = 70
+                WideText = 'Create options'
               end>
           end
           object pnlDatabaseToolbar: TPanel
@@ -2189,7 +2259,6 @@ object MDIChild: TMDIChild
   object popupDbGridHeader: TPopupMenu
     AutoHotkeys = maManual
     AutoLineReduction = maManual
-    Images = MainForm.ImageList1
     Left = 72
     Top = 80
     object DefaultColumnLayout1: TMenuItem
