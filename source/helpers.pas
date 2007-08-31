@@ -1956,12 +1956,20 @@ end;
 }
 function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
 const
-  KB = 1024;
+  {KiloByte} KB = 1024;
+  {MegaByte} MB = 1048576;         
+  {GigaByte} GB = 1073741824;
+  {TeraByte} TB = 1099511627776;
+  {PetaByte} PB = 1125899906842624;
 begin
-  if Bytes >= KB *KB *KB then
-    Result := FormatNumber( Bytes / (KB *KB *KB), Decimals ) + ' GB'
-  else if Bytes >= KB *KB then
-    Result := FormatNumber( Bytes / (KB *KB), Decimals ) + ' MB'
+  if Bytes >= PB then
+    Result := FormatNumber( Bytes / PB, Decimals ) + ' PB'
+  else if Bytes >= TB then
+    Result := FormatNumber( Bytes / TB, Decimals ) + ' TB'
+  else if Bytes >= GB then
+    Result := FormatNumber( Bytes / GB, Decimals ) + ' GB'
+  else if Bytes >= MB then
+    Result := FormatNumber( Bytes / MB, Decimals ) + ' MB'
   else if Bytes >= KB then
     Result := FormatNumber( Bytes / KB, Decimals ) + ' KB'
   else
