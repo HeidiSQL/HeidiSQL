@@ -1243,7 +1243,12 @@ begin
 
   // Temporarly convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
-  float := StrToFloat( StrNumber );
+  try
+    float := StrToFloat( StrNumber );
+  except
+    // Fallback for empty strings
+    float := 0;
+  end;
 
   // Detect if the string was previously formatted by FormatByteNumber
   // and convert it back by multiplying it with its byte unit
