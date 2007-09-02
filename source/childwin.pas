@@ -2681,21 +2681,25 @@ end;
 
 procedure TMDIChild.KillProcess(Sender: TObject);
 var t : Boolean;
-  NodeData : PVTreeData;
+  ProcessIDs : TStringList;
+  i : Integer;
 begin
-  NodeData := ListProcesses.GetNodeData(ListProcesses.FocusedNode);
-  if NodeData.Captions[0] = IntToStr( MySQLConn.Connection.GetThreadId ) then
-    MessageDlg('Fatal: Better not kill my own Process...', mtError, [mbok], 0)
-  else begin
-    t := TimerProcessList.Enabled;
-    TimerProcessList.Enabled := false; // prevent av (ListProcesses.selected...)
-    if MessageDlg('Kill Process '+NodeData.Captions[0]+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  t := TimerProcessList.Enabled;
+  TimerProcessList.Enabled := false; // prevent av (ListProcesses.selected...)
+  ProcessIDs := GetVTCaptions( ListProcesses, True );
+  if MessageDlg('Kill '+inttostr(ProcessIDs.count)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  begin
+    for i := 0 to ProcessIDs.Count - 1 do
     begin
-      ExecUpdateQuery( 'KILL '+NodeData.Captions[0] );
-      ShowVariablesAndProcesses(self);
+      // Don't kill own process
+      if ProcessIDs[i] = IntToStr( MySQLConn.Connection.GetThreadId ) then
+        LogSQL('Ignoring own process id '+ProcessIDs[i]+' when trying to kill it.')
+      else
+        ExecUpdateQuery( 'KILL '+ProcessIDs[i] );
     end;
-    TimerProcessList.Enabled := t; // re-enable autorefresh timer
+    ShowVariablesAndProcesses(self);
   end;
+  TimerProcessList.Enabled := t; // re-enable autorefresh timer
 end;
 
 
