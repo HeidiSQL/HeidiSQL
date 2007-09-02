@@ -2447,6 +2447,7 @@ procedure TMDIChild.EmptyTable(Sender: TObject);
 var
   t : TStringList;
   i : Integer;
+  sql_pattern : String;
 begin
   // Empty Table(s)
   if ListTables.SelectedCount = 0 then
@@ -2459,8 +2460,19 @@ begin
     exit;
 
   Screen.Cursor := crSQLWait;
+
+  {**
+    @note ansgarbecker: Empty table using faster TRUNCATE statement on newer servers
+    @see http://dev.mysql.com/doc/refman/5.0/en/truncate.html
+    @see https://sourceforge.net/tracker/index.php?func=detail&aid=1644143&group_id=164593&atid=832350
+  }
+  if mysql_version < 50003 then
+    sql_pattern := 'DELETE FROM '
+  else
+    sql_pattern := 'TRUNCATE ';
+
   for i:=0 to t.count-1 do
-    ExecUpdateQuery( 'DELETE FROM ' + mask(t[i]) );
+    ExecUpdateQuery( sql_pattern + mask(t[i]) );
   t.Free;
   RefreshActiveDbTableList;
   ShowDBProperties(self);
