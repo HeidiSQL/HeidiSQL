@@ -481,6 +481,18 @@ object optionsform: Toptionsform
         TabOrder = 6
         OnChanging = anyUpDownLimitChanging
       end
+      object chkRememberFilters: TCheckBox
+        Left = 8
+        Top = 12
+        Width = 391
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Remember WHERE filters'
+        Checked = True
+        State = cbChecked
+        TabOrder = 7
+        OnClick = Modified
+      end
     end
     object TabSheet5: TTabSheet
       BorderWidth = 5
