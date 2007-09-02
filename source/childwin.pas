@@ -1990,7 +1990,7 @@ begin
         ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
         // Size: Data_length + Index_length
         bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-        ListCaptions.Add( FormatNumber( bytes / 1024 + 1 ) + ' KB');
+        ListCaptions.Add( FormatByteNumber( FloatToStr(bytes) ) );
         // Created:
         if not ds.FieldByName('Create_time').IsNull then
           ListCaptions.Add( ds.FieldByName('Create_time').AsString )

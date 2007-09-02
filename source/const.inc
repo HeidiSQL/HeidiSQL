@@ -52,3 +52,18 @@ const
   ICONINDEX_UNIQUEKEY = 64;
   ICONINDEX_FULLTEXTKEY = 65;
 
+  // Size of byte units
+  {KiloByte} SIZE_KB = 1024;
+  {MegaByte} SIZE_MB = 1048576;
+  {GigaByte} SIZE_GB = 1073741824;
+  {TeraByte} SIZE_TB = 1099511627776;
+  {PetaByte} SIZE_PB = 1125899906842624;
+
+  // Abbreviations of byte unit names
+  {Bytes} NAME_BYTES = ' B';
+  {KiloByte} NAME_KB = ' KB';
+  {MegaByte} NAME_MB = ' MB';
+  {GigaByte} NAME_GB = ' GB';
+  {TeraByte} NAME_TB = ' TB';
+  {PetaByte} NAME_PB = ' PB';
+
