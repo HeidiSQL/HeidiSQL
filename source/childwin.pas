@@ -552,6 +552,7 @@ type
       VTRowDataListColumns       : TVTreeDataArray;
 
       FProgressForm              : TFrmQueryProgress;
+      RememberFilters            : Boolean;
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
@@ -1058,6 +1059,12 @@ begin
 
       // Set last used database, select it later in Init
       lastUsedDB := ReadString( 'lastUsedDB' );
+
+      // Says if the filters on the data tab shall be remembered
+      if ValueExists( 'RememberFilters' ) then
+        RememberFilters := ReadBool('RememberFilters')
+      else
+        RememberFilters := True;
     end;
     CloseKey();
   end;
@@ -1452,7 +1459,7 @@ begin
     reg := TRegistry.Create();
     reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
 
-    if ( not dataselected ) then
+    if not dataselected and RememberFilters then
     begin
       SynMemoFilter.Text := '';
       // Read cached WHERE-clause and set filter
@@ -4079,6 +4086,7 @@ begin
 
   // Store whereclause in Registry
   reg := TRegistry.Create;
+  if RememberFilters then
   try
     reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;

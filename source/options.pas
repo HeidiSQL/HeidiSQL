@@ -85,6 +85,7 @@ type
     editDefaultColWidth: TEdit;
     updownDefaultColWidth: TUpDown;
     CheckBoxRestoreLastUsedDB: TCheckBox;
+    chkRememberFilters: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -168,6 +169,7 @@ begin
     WriteString('DataFontName', Panel8.Font.Name);
     WriteInteger('DataFontSize', UpDownDataFontSize.Position);
     WriteString('DataNullBackground', ColorToString(Panel9.color));
+    WriteBool('RememberFilters', chkRememberFilters.Checked);
   end;
   ButtonApply.Enabled := false;
 
@@ -195,6 +197,7 @@ begin
       // Set the grid-cells to always-edit-mode
       gridData.Options := gridData.Options + [dgAlwaysShowEditor];
       gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
+      RememberFilters := chkRememberFilters.Checked;
     end;
   end;
 
@@ -313,6 +316,10 @@ begin
       Panel9.Color := StringToColor(ReadString('DataNullBackground'))
     else
       Panel9.Color := clAqua;
+
+    // Remember data pane filters across sessions
+    if ValueExists('RememberFilters') then
+      chkRememberFilters.Checked := ReadBool('RememberFilters');
 
     closekey;
   end;
