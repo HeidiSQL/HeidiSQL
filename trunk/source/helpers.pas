@@ -1228,17 +1228,44 @@ End;
 function MakeInt( Str: String ) : Int64;
 var
   i : Integer;
-  StrWithInts : String;
+  StrNumber : String;
+  float : Extended;
+  p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
 begin
-  StrWithInts := '';
-  for i:=1 to Length(str) do
+  StrNumber := '';
+  for i:=1 to Length(Str) do
   begin
-    if StrToIntDef( str[i], -1 ) <> -1 then
+    if Str[i] in ['0'..'9', DecimalSeparator] then
     begin
-      StrWithInts := StrWithInts + str[i];
+      StrNumber := StrNumber + Str[i];
     end;
   end;
-  result := StrToInt64Def( StrWithInts, 0 );
+
+  // Temporarly convert result to a floating point value to ensure
+  // we don't discard decimal digits for the next step
+  float := StrToFloat( StrNumber );
+
+  // Detect if the string was previously formatted by FormatByteNumber
+  // and convert it back by multiplying it with its byte unit
+  p_kb := Pos(NAME_KB, Str);
+  p_mb := Pos(NAME_MB, Str);
+  p_gb := Pos(NAME_GB, Str);
+  p_tb := Pos(NAME_TB, Str);
+  p_pb := Pos(NAME_PB, Str);
+
+  if (p_kb > 0) and (p_kb = Length(Str)-Length(NAME_KB)+1) then
+    float := float * SIZE_KB
+  else if (p_mb > 0) and (p_mb = Length(Str)-Length(NAME_MB)+1) then
+    float := float * SIZE_MB
+  else if (p_gb > 0) and (p_gb = Length(Str)-Length(NAME_GB)+1) then
+    float := float * SIZE_GB
+  else if (p_tb > 0) and (p_tb = Length(Str)-Length(NAME_TB)+1) then
+    float := float * SIZE_TB
+  else if (p_pb > 0) and (p_pb = Length(Str)-Length(NAME_PB)+1) then
+    float := float * SIZE_PB;
+
+  // Result has to be of integer type
+  Result := Trunc( float );
 end;
 
 
@@ -1943,7 +1970,7 @@ begin
   v := IntToStr( Version );
   v1 := StrToIntDef( v[2]+v[3], 0 );
   v2 := StrToIntDef( v[4]+v[5], 0 );
-  Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);  
+  Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);
 end;
 
 
@@ -1955,25 +1982,19 @@ end;
   @param Byte Decimals to display when bytes is bigger than 1M
 }
 function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
-const
-  {KiloByte} KB = 1024;
-  {MegaByte} MB = 1048576;         
-  {GigaByte} GB = 1073741824;
-  {TeraByte} TB = 1099511627776;
-  {PetaByte} PB = 1125899906842624;
 begin
-  if Bytes >= PB then
-    Result := FormatNumber( Bytes / PB, Decimals ) + ' PB'
-  else if Bytes >= TB then
-    Result := FormatNumber( Bytes / TB, Decimals ) + ' TB'
-  else if Bytes >= GB then
-    Result := FormatNumber( Bytes / GB, Decimals ) + ' GB'
-  else if Bytes >= MB then
-    Result := FormatNumber( Bytes / MB, Decimals ) + ' MB'
-  else if Bytes >= KB then
-    Result := FormatNumber( Bytes / KB, Decimals ) + ' KB'
+  if Bytes >= SIZE_PB then
+    Result := FormatNumber( Bytes / SIZE_PB, Decimals ) + NAME_PB
+  else if Bytes >= SIZE_TB then
+    Result := FormatNumber( Bytes / SIZE_TB, Decimals ) + NAME_TB
+  else if Bytes >= SIZE_GB then
+    Result := FormatNumber( Bytes / SIZE_GB, Decimals ) + NAME_GB
+  else if Bytes >= SIZE_MB then
+    Result := FormatNumber( Bytes / SIZE_MB, Decimals ) + NAME_MB
+  else if Bytes >= SIZE_KB then
+    Result := FormatNumber( Bytes / SIZE_KB, Decimals ) + NAME_KB
   else
-    Result := FormatNumber( Bytes ) + ' Bytes'
+    Result := FormatNumber( Bytes ) + NAME_BYTES
 end;
 
 
