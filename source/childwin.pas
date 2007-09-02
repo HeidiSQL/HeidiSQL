@@ -1936,6 +1936,7 @@ begin
   else exit;
 
   // get all tables back into dbtree
+  DBTree.Items.BeginUpdate;
   for u:=tndb.Count-1 downto 0 do tndb.Item[u].delete;
   ds := FetchActiveDbTableList;
   for t:=0 to ds.RecordCount-1 do
@@ -1947,6 +1948,7 @@ begin
     end;
     ds.Next;
   end;
+  DBTree.Items.EndUpdate;
 end;
 
 
