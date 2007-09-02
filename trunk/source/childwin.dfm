@@ -195,6 +195,7 @@ object MDIChild: TMDIChild
                     Alignment = taRightJustify
                     Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 0
+                    Width = 70
                     WideText = 'id'
                   end
                   item
@@ -234,7 +235,7 @@ object MDIChild: TMDIChild
                   item
                     Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 7
-                    Width = 14
+                    Width = 10
                     WideText = 'Info'
                   end>
               end
