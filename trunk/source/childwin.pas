@@ -2455,6 +2455,7 @@ begin
   for i:=0 to t.count-1 do
     ExecUpdateQuery( 'DELETE FROM ' + mask(t[i]) );
   t.Free;
+  RefreshActiveDbTableList;
   ShowDBProperties(self);
   Screen.Cursor := crDefault;
 end;
@@ -3449,6 +3450,8 @@ begin
     begin
       ExecUpdateQuery( 'OPTIMIZE TABLE ' + mask(Selected[i]) );
     end;
+    // Update ListTables because relevant table properties probably have changed
+    Mainform.Childwin.RefreshActiveDbTableList;
   finally
     Selected.Free;
     Screen.Cursor := crDefault;
@@ -3543,6 +3546,8 @@ begin
       tables := tables + mask(Selected[i]);
     end;
     ExecUpdateQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
+    // Update ListTables because relevant table properties probably have changed
+    Mainform.Childwin.RefreshActiveDbTableList;
   finally
     Selected.Free;
     Screen.Cursor := crDefault;
@@ -4155,6 +4160,7 @@ begin
   for i:=0 to Selected.Count - 1 do
     ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + tabletype);
   Selected.Free;
+  RefreshActiveDbTableList;
   ShowDBProperties(self);
 end;
 
@@ -4170,6 +4176,7 @@ begin
     for i:=0 to Selected.Count - 1 do
       ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + strtype );
     Selected.Free;
+    RefreshActiveDbTableList;
     ShowDBProperties(self);
   end;
 end;
