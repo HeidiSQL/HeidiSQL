@@ -1986,93 +1986,98 @@ begin
       listcaptions := TStringList.Create;
       // Table
       ListCaptions.Add( ds.Fields[0].AsString );
-      if mysql_version >= 32300 then
-      begin // Default columns
-        // Records
-        ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
-        // Size: Data_length + Index_length
-        bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-        ListCaptions.Add( FormatByteNumber( FloatToStr(bytes) ) );
-        // Created:
-        if not ds.FieldByName('Create_time').IsNull then
-          ListCaptions.Add( ds.FieldByName('Create_time').AsString )
-        else
-          ListCaptions.Add('N/A');
 
-        // Updated:
-        if not ds.FieldByName('Update_time').IsNull then
-          ListCaptions.Add( ds.FieldByName('Update_time').AsString )
-        else
-          ListCaptions.Add('N/A');
+      // SHOW TABLE STATUS only available on 3.23.0 + servers
+      if mysql_version < 32300 then
+        continue;
 
-        // Type
-        if ds.FindField('Type')<>nil then
-          ListCaptions.Add( ds.FieldByName('Type').AsString )
-        else if ds.FindField('Engine')<>nil then
-          ListCaptions.Add( ds.FieldByName('Engine').AsString )
-        else
-          ListCaptions.Add('');
+      // Default visible columns
 
-        // Comment
-        ListCaptions.Add( ds.FieldByName('Comment').AsString );
+      // Records
+      ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
+      // Size: Data_length + Index_length
+      bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
+      ListCaptions.Add( FormatByteNumber( FloatToStr(bytes) ) );
+      // Created:
+      if not ds.FieldByName('Create_time').IsNull then
+        ListCaptions.Add( ds.FieldByName('Create_time').AsString )
+      else
+        ListCaptions.Add('N/A');
 
-        // Add content from other columns which are not visible in ListTables by default
+      // Updated:
+      if not ds.FieldByName('Update_time').IsNull then
+        ListCaptions.Add( ds.FieldByName('Update_time').AsString )
+      else
+        ListCaptions.Add('N/A');
 
-        if ds.FindField('Version')<>nil then
-          ListCaptions.Add( ds.FieldByName('Version').AsString )
-        else
-          ListCaptions.Add('');
+      // Type
+      if ds.FindField('Type')<>nil then
+        ListCaptions.Add( ds.FieldByName('Type').AsString )
+      else if ds.FindField('Engine')<>nil then
+        ListCaptions.Add( ds.FieldByName('Engine').AsString )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Row_format')<>nil then
-          ListCaptions.Add( ds.FieldByName('Row_format').AsString )
-        else
-          ListCaptions.Add('');
+      // Comment
+      ListCaptions.Add( ds.FieldByName('Comment').AsString );
 
-        if ds.FindField('Avg_row_length')<>nil then
-          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Avg_row_length').AsString) )
-        else
-          ListCaptions.Add('');
+      // Add content from other columns which are not visible in ListTables by default
 
-        if ds.FindField('Max_data_length')<>nil then
-          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Max_data_length').AsString) )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Version')<>nil then
+        ListCaptions.Add( ds.FieldByName('Version').AsString )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Index_length')<>nil then
-          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Index_length').AsString) )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Row_format')<>nil then
+        ListCaptions.Add( ds.FieldByName('Row_format').AsString )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Data_free')<>nil then
-          ListCaptions.Add( FormatByteNumber(ds.FieldByName('Data_free').AsString) )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Avg_row_length')<>nil then
+        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Avg_row_length').AsString) )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Auto_increment')<>nil then
-          ListCaptions.Add( FormatNumber(ds.FieldByName('Auto_increment').AsString) )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Max_data_length')<>nil then
+        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Max_data_length').AsString) )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Check_time')<>nil then
-          ListCaptions.Add( ds.FieldByName('Check_time').AsString )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Index_length')<>nil then
+        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Index_length').AsString) )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Collation')<>nil then
-          ListCaptions.Add( ds.FieldByName('Collation').AsString )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Data_free')<>nil then
+        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Data_free').AsString) )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Checksum')<>nil then
-          ListCaptions.Add( ds.FieldByName('Checksum').AsString )
-        else
-          ListCaptions.Add('');
+      if ds.FindField('Auto_increment')<>nil then
+        ListCaptions.Add( FormatNumber(ds.FieldByName('Auto_increment').AsString) )
+      else
+        ListCaptions.Add('');
 
-        if ds.FindField('Create_options')<>nil then
-          ListCaptions.Add( ds.FieldByName('Create_options').AsString )
-        else
-          ListCaptions.Add('');
-      end;
+      if ds.FindField('Check_time')<>nil then
+        ListCaptions.Add( ds.FieldByName('Check_time').AsString )
+      else
+        ListCaptions.Add('');
+
+      if ds.FindField('Collation')<>nil then
+        ListCaptions.Add( ds.FieldByName('Collation').AsString )
+      else
+        ListCaptions.Add('');
+
+      if ds.FindField('Checksum')<>nil then
+        ListCaptions.Add( ds.FieldByName('Checksum').AsString )
+      else
+        ListCaptions.Add('');
+
+      if ds.FindField('Create_options')<>nil then
+        ListCaptions.Add( ds.FieldByName('Create_options').AsString )
+      else
+        ListCaptions.Add('');
+
       VTRowDataListTables[i-1].ImageIndex := 39;
       VTRowDataListTables[i-1].Captions := ListCaptions;
       ds.Next;
