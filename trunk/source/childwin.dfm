@@ -181,7 +181,7 @@ object MDIChild: TMDIChild
                 TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
                 TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-                TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+                TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
                 OnBeforePaint = vstBeforePaint
                 OnCompareNodes = vstCompareNodes
                 OnFreeNode = vstFreeNode
@@ -1803,7 +1803,7 @@ object MDIChild: TMDIChild
     Left = 41
     Top = 48
     object Kill1: TMenuItem
-      Caption = 'Kill Process...'
+      Caption = 'Kill Process(es)...'
       Enabled = False
       ImageIndex = 83
       ShortCut = 46
