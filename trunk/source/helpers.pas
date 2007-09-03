@@ -670,7 +670,7 @@ begin
         '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.ActiveGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.ActiveGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
         '    table, td {border: 1px solid silver;}' + crlf +
         '    table {border-collapse: collapse;}' + crlf +
-        '    td.isnull {background-color: '+TColorToHex(Mainform.DataNullBackground) +'}' + crlf +
+        '    td.isnull {background-color: '+TColorToHex(Mainform.Childwin.prefDataNullBackground) +'}' + crlf +
         '    td.pk {background-color: #EEEEEE; font-weight: bold;}' + crlf +
         '  </style>' + crlf +
         '</head>' + crlf + crlf +

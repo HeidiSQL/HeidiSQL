@@ -199,15 +199,6 @@ type
   private
     function GetChildwin: TMDIChild;
   public
-    logsqlnum                  : Integer;
-    CSVSeparator               : String[10];
-    CSVEncloser                : String[10];
-    CSVTerminator              : String[10];
-    ConvertHTMLEntities        : Boolean;
-    DefaultColWidth            : Integer;
-    NativeFieldTypes           : Boolean;
-    LanguageOffset             : Integer;
-    DataNullBackground         : TColor;
     function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
     procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
@@ -428,25 +419,6 @@ begin
       end else
       if ws = 'Maximized'
         then windowstate := wsMaximized;
-      CSVSeparator := ',';
-      CSVEncloser := '';
-      CSVTerminator := '\r\n';
-      ConvertHTMLEntities := true;
-      logsqlnum := 300;
-      if Valueexists('CSVSeparator') then
-        CSVSeparator := ReadString('CSVSeparator');
-      if Valueexists('CSVEncloser') then
-        CSVEncloser := ReadString('CSVEncloser');
-      if Valueexists('CSVTerminator') then
-        CSVTerminator := ReadString('CSVTerminator');
-      if Valueexists('ConvertHTMLEntities') then
-        ConvertHTMLEntities := ReadBool('ConvertHTMLEntities');
-      if valueExists('logsqlnum') then
-        logsqlnum := ReadInteger('logsqlnum');
-      if valueExists('NativeFieldTypes') then
-        NativeFieldTypes := ReadBool('NativeFieldTypes')
-      else
-        NativeFieldTypes := false;
 
       // Position of Toolbars
       if valueExists('ToolBar2Left') then
@@ -457,12 +429,6 @@ begin
         ToolBarStandard.Top := ReadInteger('ToolBar2Top');
       if valueExists('ToolBarDataTop') then
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
-
-      // Other values
-      if valueExists('DataNullBackground') then
-        DataNullBackground := StringToColor(ReadString('DataNullBackground'))
-      else
-        DataNullBackground := clAqua;
     end;
     CloseKey;
   end;
@@ -643,9 +609,9 @@ procedure TMainForm.Copy2CSVExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as CSV
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2csv(ChildWin.GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator)
+    dataset2csv(ChildWin.GetVisualDataset(), ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2csv(ChildWin.GetVisualDataset(), CSVSeparator, CSVEncloser, CSVTerminator);
+    dataset2csv(ChildWin.GetVisualDataset(), ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator);
 end;
 
 
@@ -653,9 +619,9 @@ procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2html(ChildWin.GetVisualDataset(), TZQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion )
+    dataset2html(ChildWin.GetVisualDataset(), TZQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + appversion )
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2html(ChildWin.GetVisualDataset(), TZReadOnlyQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ConvertHTMLEntities, APPNAME + ' ' + appversion);
+    dataset2html(ChildWin.GetVisualDataset(), TZReadOnlyQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + appversion);
 end;
 
 
@@ -886,10 +852,10 @@ begin
   with ChildWin.SaveDialogExportData do
   begin
     Title := 'Export result-set from '+Filename+'...';
-    FieldSep := CSVSeparator;
-    LineSep := CSVTerminator;
-    FieldEncl := CSVEncloser;
-    ConvertHTMLSpecialChars := ConvertHTMLEntities;
+    FieldSep := ChildWin.prefCSVSeparator;
+    LineSep := ChildWin.prefCSVTerminator;
+    FieldEncl := ChildWin.prefCSVEncloser;
+    ConvertHTMLSpecialChars := ChildWin.prefConvertHTMLEntities;
 
 
     if Execute and (FileName <> '') then
@@ -900,10 +866,10 @@ begin
         2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+appversion);
         3 : dataset2xml(query, FileName, FileName);
       end;
-      CSVSeparator := FieldSep;
-      CSVTerminator := LineSep;
-      CSVEncloser := FieldEncl;
-      ConvertHTMLEntities := ConvertHTMLSpecialChars;
+      ChildWin.prefCSVSeparator := FieldSep;
+      ChildWin.prefCSVTerminator := LineSep;
+      ChildWin.prefCSVEncloser := FieldEncl;
+      ChildWin.prefConvertHTMLEntities := ConvertHTMLSpecialChars;
       with TRegistry.Create do
       begin
         openkey(REGPATH, true);

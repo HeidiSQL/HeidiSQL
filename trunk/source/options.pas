@@ -140,79 +140,88 @@ begin
   ButtonApply.Enabled := true;
 end;
 
+
+{**
+  Apply settings to registry, childwin and mainform
+}
 procedure Toptionsform.Apply(Sender: TObject);
+var
+  cwin : TMDIChild;
+  reg  : TRegistry;
 begin
-  // Apply
   Screen.Cursor := crHourGlass;
-  with TRegistry.Create do
+
+  // Open registry key
+  reg := TRegistry.Create;
+  reg.OpenKey(REGPATH, true);
+
+  // Save values
+  reg.WriteBool('AutoReconnect', CheckBoxAutoReconnect.Checked);
+  reg.WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
+  reg.WriteBool('RestoreLastUsedDB', CheckBoxRestoreLastUsedDB.Checked);
+  reg.WriteString('FontName', ComboBoxFonts.Text);
+  reg.WriteInteger('FontSize', UpDownFontSize.Position);
+  reg.WriteInteger('logsqlnum', updownLogSQLNum.Position);
+  reg.WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
+  reg.WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
+  reg.WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
+  reg.WriteString('SQLColNumberAttri', colortostring(pnlNumeric.Color));
+  reg.WriteString('SQLColStringAttri', colortostring(pnlString.Color));
+  reg.WriteString('SQLColCommentAttri', colortostring(pnlComments.Color));
+  reg.WriteString('SQLColTablenameAttri', colortostring(pnlTablenames.Color));
+  reg.WriteString('CSVSeparator', Edit1.Text);
+  reg.WriteString('CSVEncloser', Edit2.Text);
+  reg.WriteString('CSVTerminator', Edit3.Text);
+  reg.WriteInteger('DefaultColWidth', updownDefaultColWidth.Position);
+  reg.WriteBool('DataLimit', CheckBoxLimit.Checked);
+  reg.WriteInteger('DataLimitEnd', UpDownLimit.Position);
+  reg.WriteString('DataFontName', Panel8.Font.Name);
+  reg.WriteInteger('DataFontSize', UpDownDataFontSize.Position);
+  reg.WriteString('DataNullBackground', ColorToString(Panel9.color));
+  reg.WriteBool('RememberFilters', chkRememberFilters.Checked);
+
+  // Close registry key
+  reg.CloseKey;
+  reg.Free;
+
+  // Set relevant properties in childwin
+  cwin := Mainform.Childwin;
+  if cwin <> nil then
   begin
-    openkey(REGPATH, true);
-    WriteBool('AutoReconnect', CheckBoxAutoReconnect.Checked);
-    WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
-    WriteBool('RestoreLastUsedDB', CheckBoxRestoreLastUsedDB.Checked);
-    WriteString('FontName', ComboBoxFonts.Text);
-    WriteInteger('FontSize', UpDownFontSize.Position);
-    WriteInteger('logsqlnum', updownLogSQLNum.Position);
-    WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
-    WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
-    WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
-    WriteString('SQLColNumberAttri', colortostring(pnlNumeric.Color));
-    WriteString('SQLColStringAttri', colortostring(pnlString.Color));
-    WriteString('SQLColCommentAttri', colortostring(pnlComments.Color));
-    WriteString('SQLColTablenameAttri', colortostring(pnlTablenames.Color));
-    WriteString('CSVSeparator', Edit1.Text);
-    WriteString('CSVEncloser', Edit2.Text);
-    WriteString('CSVTerminator', Edit3.Text);
-    WriteInteger('DefaultColWidth', updownDefaultColWidth.Position);
-    WriteBool('DataLimit', CheckBoxLimit.Checked);
-    WriteInteger('DataLimitEnd', UpDownLimit.Position);
-    WriteString('DataFontName', Panel8.Font.Name);
-    WriteInteger('DataFontSize', UpDownDataFontSize.Position);
-    WriteString('DataNullBackground', ColorToString(Panel9.color));
-    WriteBool('RememberFilters', chkRememberFilters.Checked);
+    cwin.SynMemoQuery.Font := self.Panel1.Font;
+    cwin.SynMemoSQLLog.Font := self.Panel1.Font;
+    cwin.SynSQLSyn1.KeyAttri.Foreground := self.pnlKeywords.Color;
+    cwin.SynSQLSyn1.FunctionAttri.Foreground := self.pnlFunctions.Color;
+    cwin.SynSQLSyn1.DataTypeAttri.Foreground := self.pnlDatatypes.Color;
+    cwin.SynSQLSyn1.NumberAttri.Foreground := self.pnlNumeric.Color;
+    cwin.SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
+    cwin.SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
+    cwin.SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
+    while cwin.SynMemoSQLLog.Lines.Count > updownLogSQLNum.Position do
+      cwin.SynMemoSQLLog.Lines.Delete(0);
+    cwin.gridData.Font := self.Panel8.font;
+    cwin.gridQuery.Font := self.Panel8.font;
+    cwin.DBMemo1.Font := self.Panel8.font;
+    cwin.gridData.Refresh;
+    // Set the grid-cells to always-edit-mode
+    cwin.gridData.Options := cwin.gridData.Options + [dgAlwaysShowEditor];
+    cwin.gridQuery.Options := cwin.gridQuery.Options + [dgAlwaysShowEditor];
+    cwin.prefRememberFilters := chkRememberFilters.Checked;
+    cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
+    cwin.prefDefaultColWidth := updownDefaultColWidth.Position;
+    cwin.prefCSVSeparator := self.Edit1.text;
+    cwin.prefCSVEncloser := self.Edit2.text;
+    cwin.prefCSVTerminator := self.Edit3.text;
+    cwin.prefConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
+    cwin.prefDataNullBackground := Panel9.color;
   end;
+
+  // Set relevant properties in mainform
+  Mainform.CheckBoxLimit.Checked := CheckBoxLimit.Checked;
+  Mainform.UpDownLimitEnd.Position := UpDownLimit.Position;
+
+  // Settings have been applied, send a signal to the user
   ButtonApply.Enabled := false;
-
-  // window-specific preferences stored in childwindows
-  if Mainform.MDIChildCount > 0 then
-  begin
-    with TMDIChild(Mainform.MDIChildren[0]) do
-    begin
-      SynMemoQuery.Font := self.Panel1.Font;
-      SynMemoSQLLog.Font := self.Panel1.Font;
-      SynSQLSyn1.KeyAttri.Foreground := self.pnlKeywords.Color;
-      SynSQLSyn1.FunctionAttri.Foreground := self.pnlFunctions.Color;
-      SynSQLSyn1.DataTypeAttri.Foreground := self.pnlDatatypes.Color;
-      SynSQLSyn1.NumberAttri.Foreground := self.pnlNumeric.Color;
-      SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
-      SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
-      SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
-      while SynMemoSQLLog.Lines.Count > updownLogSQLNum.Position do
-        SynMemoSQLLog.Lines.Delete(0);
-      gridData.Font := self.Panel8.font;
-      gridQuery.Font := self.Panel8.font;
-      DBMemo1.Font := self.Panel8.font;
-      gridData.Refresh;
-//      DBMemo1.Font.Charset := tfontcharset(177);
-      // Set the grid-cells to always-edit-mode
-      gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-      gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-      RememberFilters := chkRememberFilters.Checked;
-    end;
-  end;
-
-  // general preferences stored in mainform
-  with Mainform do begin
-    logsqlnum := self.updownLogSQLNum.Position;
-    DefaultColWidth := updownDefaultColWidth.Position;
-    CSVSeparator := self.Edit1.text;
-    CSVEncloser := self.Edit2.text;
-    CSVTerminator := self.Edit3.text;
-    ConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
-    CheckBoxLimit.Checked := self.CheckBoxLimit.Checked;
-    UpDownLimitEnd.Position := UpDownLimit.Position;
-    DataNullBackground := Panel9.color;
-  end;
 
   Screen.Cursor := crDefault;
 end;
@@ -234,95 +243,98 @@ begin
     (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
 end;
 
-
+var
+  reg : TRegistry;
 begin
   screen.Cursor := crHourGlass;
 
-  with TRegistry.Create do begin
-    openkey(REGPATH, true);
-    if ValueExists('FontName') then
-      fontname := ReadString('FontName');
-    if ValueExists('FontSize') then
-      fontsize := ReadInteger('FontSize');
-    if ValueExists('DataFontName') then
-      datafontname := ReadString('DataFontName');
-    if ValueExists('DataFontCharset') then
-      datafontcharset := ReadString('DataFontCharset');
-    if ValueExists('DataFontSize') then
-      datafontsize := ReadInteger('DataFontSize');
-    if ValueExists('AutoReconnect') then
-      AutoReconnect := ReadBool('AutoReconnect');
-    if ValueExists('ConvertHTMLEntities') then
-      CheckBoxConvertHTMLEntities.Checked := ReadBool('ConvertHTMLEntities');
-    if ValueExists('RestoreLastUsedDB') then
-      CheckBoxRestoreLastUsedDB.Checked := ReadBool('RestoreLastUsedDB');
-    if ValueExists('DataLimit') then
-      CheckBoxLimit.Checked := ReadBool('DataLimit');
-    if ValueExists('DataLimitEnd') then
-      UpDownLimit.Position := ReadInteger('DataLimitEnd');
-    CheckBoxLimit.OnClick(self);
-    if ValueExists('logsqlnum') then
-      updownLogSQLNum.Position := ReadInteger('logsqlnum')
-    else
-      updownLogSQLNum.Position := MainForm.logsqlnum;
-    // Default Column-Width in DBGrids:
-    if ValueExists('DefaultColWidth') then
-      updownDefaultColWidth.Position := ReadInteger('DefaultColWidth');
+  // Open registry key
+  reg := TRegistry.Create;
+  reg.OpenKey(REGPATH, true);
 
-    // Color-coding:
-    if ValueExists('SQLColKeyAttri') then
-      pnlKeywords.Color := StringToColor(readstring('SQLColKeyAttri'))
-    else
-      pnlKeywords.Color := clBlue;
-    if ValueExists('SQLColFunctionAttri') then
-      pnlFunctions.Color := StringToColor(readstring('SQLColFunctionAttri'))
-    else
-      pnlFunctions.Color := clNavy;
-    if ValueExists('SQLColDataTypeAttri') then
-      pnlDatatypes.Color := StringToColor(readstring('SQLColDataTypeAttri'))
-    else
-      pnlDatatypes.Color := clMaroon;
-    if ValueExists('SQLColNumberAttri') then
-      pnlNumeric.Color := StringToColor(readstring('SQLColNumberAttri'))
-    else
-      pnlNumeric.Color := clPurple;
-    if ValueExists('SQLColStringAttri') then
-      pnlString.Color := StringToColor(readstring('SQLColStringAttri'))
-    else
-      pnlString.Color := clGreen;
-    if ValueExists('SQLColCommentAttri') then
-      pnlComments.Color := StringToColor(readstring('SQLColCommentAttri'))
-    else
-      pnlComments.Color := clGray;
-    if ValueExists('SQLColTablenameAttri') then
-      pnlTablenames.Color := StringToColor(readstring('SQLColTablenameAttri'))
-    else
-      pnlTablenames.Color := clFuchsia;
+  // Read and display values
+  if reg.ValueExists('FontName') then
+    fontname := reg.ReadString('FontName');
+  if reg.ValueExists('FontSize') then
+    fontsize := reg.ReadInteger('FontSize');
+  if reg.ValueExists('DataFontName') then
+    datafontname := reg.ReadString('DataFontName');
+  if reg.ValueExists('DataFontCharset') then
+    datafontcharset := reg.ReadString('DataFontCharset');
+  if reg.ValueExists('DataFontSize') then
+    datafontsize := reg.ReadInteger('DataFontSize');
+  if reg.ValueExists('AutoReconnect') then
+    AutoReconnect := reg.ReadBool('AutoReconnect');
+  if reg.ValueExists('ConvertHTMLEntities') then
+    CheckBoxConvertHTMLEntities.Checked := reg.ReadBool('ConvertHTMLEntities');
+  if reg.ValueExists('RestoreLastUsedDB') then
+    CheckBoxRestoreLastUsedDB.Checked := reg.ReadBool('RestoreLastUsedDB');
+  if reg.ValueExists('DataLimit') then
+    CheckBoxLimit.Checked := reg.ReadBool('DataLimit');
+  if reg.ValueExists('DataLimitEnd') then
+    UpDownLimit.Position := reg.ReadInteger('DataLimitEnd');
+  CheckBoxLimit.OnClick(self);
+  if reg.ValueExists('logsqlnum') then
+    updownLogSQLNum.Position := reg.ReadInteger('logsqlnum');
+  // Default Column-Width in DBGrids:
+  if reg.ValueExists('DefaultColWidth') then
+    updownDefaultColWidth.Position := reg.ReadInteger('DefaultColWidth');
+
+  // Color-coding:
+  if reg.ValueExists('SQLColKeyAttri') then
+    pnlKeywords.Color := StringToColor(reg.readstring('SQLColKeyAttri'))
+  else
+    pnlKeywords.Color := clBlue;
+  if reg.ValueExists('SQLColFunctionAttri') then
+    pnlFunctions.Color := StringToColor(reg.readstring('SQLColFunctionAttri'))
+  else
+    pnlFunctions.Color := clNavy;
+  if reg.ValueExists('SQLColDataTypeAttri') then
+    pnlDatatypes.Color := StringToColor(reg.readstring('SQLColDataTypeAttri'))
+  else
+    pnlDatatypes.Color := clMaroon;
+  if reg.ValueExists('SQLColNumberAttri') then
+    pnlNumeric.Color := StringToColor(reg.readstring('SQLColNumberAttri'))
+  else
+    pnlNumeric.Color := clPurple;
+  if reg.ValueExists('SQLColStringAttri') then
+    pnlString.Color := StringToColor(reg.readstring('SQLColStringAttri'))
+  else
+    pnlString.Color := clGreen;
+  if reg.ValueExists('SQLColCommentAttri') then
+    pnlComments.Color := StringToColor(reg.readstring('SQLColCommentAttri'))
+  else
+    pnlComments.Color := clGray;
+  if reg.ValueExists('SQLColTablenameAttri') then
+    pnlTablenames.Color := StringToColor(reg.readstring('SQLColTablenameAttri'))
+  else
+    pnlTablenames.Color := clFuchsia;
 
 
-    Edit1.Text := ',';
-    Edit2.Text := '';
-    Edit3.Text := '\r\n';
+  Edit1.Text := ',';
+  Edit2.Text := '';
+  Edit3.Text := '\r\n';
 
-    // CSV-Options:
-    if ValueExists('CSVSeparator') then
-      Edit1.Text := ReadString('CSVSeparator');
-    if ValueExists('CSVEncloser') then
-      Edit2.Text := ReadString('CSVEncloser');
-    if ValueExists('CSVTerminator') then
-      Edit3.Text := ReadString('CSVTerminator');
+  // CSV-Options:
+  if reg.ValueExists('CSVSeparator') then
+    Edit1.Text := reg.ReadString('CSVSeparator');
+  if reg.ValueExists('CSVEncloser') then
+    Edit2.Text := reg.ReadString('CSVEncloser');
+  if reg.ValueExists('CSVTerminator') then
+    Edit3.Text := reg.ReadString('CSVTerminator');
 
-    if ValueExists('DataNullBackground') then
-      Panel9.Color := StringToColor(ReadString('DataNullBackground'))
-    else
-      Panel9.Color := clAqua;
+  if reg.ValueExists('DataNullBackground') then
+    Panel9.Color := StringToColor(reg.ReadString('DataNullBackground'))
+  else
+    Panel9.Color := clAqua;
 
-    // Remember data pane filters across sessions
-    if ValueExists('RememberFilters') then
-      chkRememberFilters.Checked := ReadBool('RememberFilters');
+  // Remember data pane filters across sessions
+  if reg.ValueExists('RememberFilters') then
+    chkRememberFilters.Checked := reg.ReadBool('RememberFilters');
 
-    closekey;
-  end;
+  // Close registry key  
+  reg.CloseKey;
+  reg.Free;
 
   // Miscellaneous:
   CheckBoxAutoReconnect.Checked := AutoReconnect;

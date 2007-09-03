@@ -552,7 +552,18 @@ type
       VTRowDataListColumns       : TVTreeDataArray;
 
       FProgressForm              : TFrmQueryProgress;
-      RememberFilters            : Boolean;
+
+      // Variables set by preferences dialog
+      prefRememberFilters,
+      prefConvertHTMLEntities    : Boolean;
+      prefLogsqlnum,
+      prefDefaultColWidth        : Integer;
+      prefCSVSeparator,
+      prefCSVEncloser,
+      prefCSVTerminator          : String[10];
+      prefDataNullBackground     : TColor;
+
+
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
@@ -956,9 +967,32 @@ begin
       PageControlBottom.Height := reg.ReadInteger( 'sqloutheight' );
 
     if reg.ValueExists( 'DefaultColWidth' ) then
-      Mainform.DefaultColWidth := reg.ReadInteger( 'DefaultColWidth' )
+      prefDefaultColWidth := reg.ReadInteger( 'DefaultColWidth' )
     else
-      Mainform.DefaultColWidth := 100;
+      prefDefaultColWidth := 100;
+
+    if reg.ValueExists('logsqlnum') then
+      prefLogsqlnum := reg.ReadInteger('logsqlnum')
+    else
+      prefLogsqlnum := 300;
+
+    prefConvertHTMLEntities := true;
+    if reg.Valueexists('ConvertHTMLEntities') then
+      prefConvertHTMLEntities := reg.ReadBool('ConvertHTMLEntities');
+
+    prefDataNullBackground := clAqua;
+    if reg.ValueExists('DataNullBackground') then
+      prefDataNullBackground := StringToColor(reg.ReadString('DataNullBackground'));
+
+    prefCSVSeparator := ',';
+    prefCSVEncloser := '';
+    prefCSVTerminator := '\r\n';
+    if reg.Valueexists('CSVSeparator') then
+      prefCSVSeparator := reg.ReadString('CSVSeparator');
+    if reg.Valueexists('CSVEncloser') then
+      prefCSVEncloser := reg.ReadString('CSVEncloser');
+    if reg.Valueexists('CSVTerminator') then
+      prefCSVTerminator := reg.ReadString('CSVTerminator');
 
     // SQL-Font:
     if reg.ValueExists( 'FontName' ) and reg.ValueExists('FontSize') then
@@ -1016,9 +1050,9 @@ begin
 
     // Says if the filters on the data tab shall be remembered
     if reg.ValueExists( 'RememberFilters' ) then
-      RememberFilters := reg.ReadBool('RememberFilters')
+      prefRememberFilters := reg.ReadBool('RememberFilters')
     else
-      RememberFilters := True;
+      prefRememberFilters := True;
 
     // Open server-specific registry-folder.
     // relative from already opened folder!
@@ -1092,7 +1126,7 @@ end;
 procedure TMDIChild.LogSQL(msg: String = ''; comment: Boolean = true);
 begin
   // Add a sql-command or info-line to history-memo
-  while ( SynMemoSQLLog.Lines.Count > mainform.logsqlnum ) do
+  while ( SynMemoSQLLog.Lines.Count > prefLogsqlnum ) do
   begin
     SynMemoSQLLog.Lines.Delete(0);
   end;
@@ -1420,7 +1454,7 @@ begin
     reg := TRegistry.Create();
     reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
 
-    if not dataselected and RememberFilters then
+    if not dataselected and prefRememberFilters then
     begin
       SynMemoFilter.Text := '';
       // Read cached WHERE-clause and set filter
@@ -1649,11 +1683,11 @@ begin
 
         // set column-width
         if (
-          (Mainform.DefaultColWidth <> 0) and
-          (gridData.Columns[j].Width > Mainform.DefaultColWidth)
+          (prefDefaultColWidth <> 0) and
+          (gridData.Columns[j].Width > prefDefaultColWidth)
         ) then
         begin
-          gridData.Columns[j].Width := Mainform.DefaultColWidth;
+          gridData.Columns[j].Width := prefDefaultColWidth;
         end;
 
         // make PK-columns = fsBold
@@ -2857,13 +2891,13 @@ begin
       TZQuery(ds).EnableControls();
       TZQuery(ds).DisableControls();
       // resize all columns, if they are more wide than Mainform.DefaultColWidth
-      if ( Mainform.DefaultColWidth <> 0 ) then
+      if ( prefDefaultColWidth <> 0 ) then
       begin
         for i:=0 to gridQuery.Columns.count-1 do
         begin
-          if ( gridQuery.Columns[i].Width > Mainform.DefaultColWidth ) then
+          if ( gridQuery.Columns[i].Width > prefDefaultColWidth ) then
           begin
-            gridQuery.Columns[i].Width := Mainform.DefaultColWidth;
+            gridQuery.Columns[i].Width := prefDefaultColWidth;
           end;
         end;
       end;
@@ -4063,7 +4097,7 @@ begin
 
   // Store whereclause in Registry
   reg := TRegistry.Create;
-  if RememberFilters then
+  if prefRememberFilters then
   try
     reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
     reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
@@ -4887,7 +4921,7 @@ begin
     background := clInfoBK;
     afont.Color := clInfoText;
   end;
-  if (field <> nil) and field.IsNull then background := mainform.DataNullBackground;
+  if (field <> nil) and field.IsNull then background := prefDataNullBackground;
 end;
 
 procedure TMDIChild.DBMemo1Exit(Sender: TObject);
