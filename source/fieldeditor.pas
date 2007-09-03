@@ -350,13 +350,16 @@ var
   strLengthSet,
   strDefault,
   strPosition,
-  fielddef : String;
+  fielddef,
+  sql_alterfield   : String;
   cwin : TMDIChild;
 begin
   // Apply Changes to field-definition
 
+  cwin := Mainform.ChildWin;
+
   // move field if position changed
-  if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) then
+  if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) and (cwin.mysql_version < 40001) then
     begin // Move field position
       if MessageDLG('You are about to move a field''s position in the table-structure. While there is no handy one-query-method in MySQL to do that, this will be done in 4 steps:'+CRLF+
        ' 1. Adding a temporary field at the specified position'+CRLF+
@@ -418,8 +421,6 @@ begin
       strNotNull +            // Not Null
       strAutoIncrement;       // Auto_increment
 
-    cwin := Mainform.ChildWin;
-
     if (FMode = femFieldAdd) then begin
       cwin.ExecUpdateQuery(
         'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
@@ -428,31 +429,42 @@ begin
         strPosition                                               // Position
       );
     end else if (FMode = femFieldUpdate) then begin
-      cwin.ExecUpdateQuery(
-        'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +              // table
-        'CHANGE ' + mainform.mask(FFieldName) + ' ' +                         // old name
-        mainform.mask(EditFieldName.Text) + ' ' +                             // new name
-        fielddef
-      );
 
-      //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
-
-      if ComboBoxPosition.ItemIndex > -1 then begin
-        // Move field position
-        cwin.ExecUpdateQuery(
-          'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
-          'ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +             // new name
-          fielddef +
-          strPosition                                               // Position
-        );
-        cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
-        cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
-        cwin.ExecUpdateQuery(
-          'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +
-          'CHANGE ' + mainform.mask(TEMPFIELDNAME) + ' ' +
+      sql_alterfield := 'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +
+          'CHANGE ' + mainform.mask(FFieldName) + ' ' +
           mainform.mask(EditFieldName.Text) + ' ' +
-          fielddef
-        );
+          fielddef;
+
+      if cwin.mysql_version >= 40001 then
+      begin
+        // MySQL 4.0.1+ allows column moving in a ALTER TABLE statement.
+        // @see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
+        cwin.ExecUpdateQuery( sql_alterfield + strPosition );
+      end
+      else begin
+        // Use manual mechanism on older servers
+        cwin.ExecUpdateQuery( sql_alterfield );
+
+        //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
+
+        if ComboBoxPosition.ItemIndex > -1 then begin
+          // Move field position
+          cwin.ExecUpdateQuery(
+            'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
+            'ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +             // new name
+            fielddef +
+            strPosition                                               // Position
+          );
+          cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
+          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+
+          cwin.ExecUpdateQuery(
+            'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +
+            'CHANGE ' + mainform.mask(TEMPFIELDNAME) + ' ' +
+            mainform.mask(EditFieldName.Text) + ' ' +
+            fielddef
+          );
+        end;
       end;
     end;
     cwin.ShowTableProperties(self);
