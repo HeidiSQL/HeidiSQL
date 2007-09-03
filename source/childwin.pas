@@ -1053,18 +1053,18 @@ begin
       // Synchronize internal variables with defaults from DFM.
       StopOnErrors := btnQueryStopOnErrors.Down;
 
+      // Says if the filters on the data tab shall be remembered
+      if ValueExists( 'RememberFilters' ) then
+        RememberFilters := ReadBool('RememberFilters')
+      else
+        RememberFilters := True;
+
       // Open server-specific registry-folder.
       // relative from already opened folder!
       OpenKey( 'Servers\' + FConn.Description, true );
 
       // Set last used database, select it later in Init
       lastUsedDB := ReadString( 'lastUsedDB' );
-
-      // Says if the filters on the data tab shall be remembered
-      if ValueExists( 'RememberFilters' ) then
-        RememberFilters := ReadBool('RememberFilters')
-      else
-        RememberFilters := True;
     end;
     CloseKey();
   end;
