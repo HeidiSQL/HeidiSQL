@@ -2231,10 +2231,10 @@ object MDIChild: TMDIChild
     Left = 302
     Top = 278
   end
-  object TimerProcesslist: TTimer
+  object TimerHost: TTimer
     Enabled = False
     Interval = 5000
-    OnTimer = ShowProcessList
+    OnTimer = ShowVariablesAndProcesses
     Left = 72
     Top = 157
   end
