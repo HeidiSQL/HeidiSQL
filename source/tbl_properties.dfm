@@ -1,14 +1,11 @@
 object tbl_properties_form: Ttbl_properties_form
-  Left = 611
-  Top = 109
+  Left = 771
+  Top = 113
   BorderIcons = [biSystemMenu]
-  BorderWidth = 5
   Caption = 'Table-Properties'
-  ClientHeight = 339
-  ClientWidth = 286
+  ClientHeight = 415
+  ClientWidth = 334
   Color = clBtnFace
-  Constraints.MaxHeight = 550
-  Constraints.MaxWidth = 450
   Constraints.MinHeight = 376
   Constraints.MinWidth = 304
   Font.Charset = DEFAULT_CHARSET
@@ -18,34 +15,29 @@ object tbl_properties_form: Ttbl_properties_form
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Bevel: TBevel
-    Left = 0
-    Top = 230
-    Width = 286
-    Height = 8
-    Align = alBottom
-    Shape = bsSpacer
-  end
   object PageControl: TPageControl
-    Left = 0
-    Top = 0
-    Width = 286
-    Height = 230
+    AlignWithMargins = True
+    Left = 3
+    Top = 3
+    Width = 328
+    Height = 286
+    Margins.Bottom = 0
     Align = alClient
     HotTrack = True
     TabOrder = 0
   end
   object PanelSummary: TPanel
     Left = 0
-    Top = 238
-    Width = 286
-    Height = 65
+    Top = 289
+    Width = 334
+    Height = 107
     Align = alBottom
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 1
     object LabelSizeOfTableData: TLabel
       Left = 8
@@ -62,19 +54,17 @@ object tbl_properties_form: Ttbl_properties_form
       Caption = 'Size of Indexes:'
     end
     object LabelSizeOfTableDataValue: TLabel
-      Left = 144
+      Left = 112
       Top = 8
       Width = 134
       Height = 13
-      Alignment = taRightJustify
       Caption = 'LabelSizeOfTableDataValue'
     end
     object LabelIndexesValue: TLabel
-      Left = 188
+      Left = 112
       Top = 24
       Width = 90
       Height = 13
-      Alignment = taRightJustify
       Caption = 'LabelIndexesValue'
     end
     object LabelSum: TLabel
@@ -91,11 +81,10 @@ object tbl_properties_form: Ttbl_properties_form
       ParentFont = False
     end
     object LabelSumValue: TLabel
-      Left = 191
+      Left = 112
       Top = 45
       Width = 88
       Height = 13
-      Alignment = taRightJustify
       Caption = 'LabelSumValue'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -104,26 +93,37 @@ object tbl_properties_form: Ttbl_properties_form
       Font.Style = [fsBold]
       ParentFont = False
     end
-  end
-  object PanelControl: TPanel
-    Left = 0
-    Top = 303
-    Width = 286
-    Height = 36
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 2
     object btnClose: TButton
-      Left = 96
-      Top = 9
-      Width = 89
+      Left = 112
+      Top = 73
+      Width = 97
       Height = 25
       Cancel = True
       Caption = 'Close'
       Default = True
       ModalResult = 1
       TabOrder = 0
-      OnClick = btnCloseClick
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 396
+    Width = 334
+    Height = 19
+    Panels = <>
+    SimplePanel = True
+  end
+  object popupSynMemo: TPopupMenu
+    Images = MainForm.ImageList1
+    Left = 16
+    Top = 24
+    object Copy1: TMenuItem
+      Action = MainForm.EditCopy1
+    end
+    object menuSelectAll: TMenuItem
+      Caption = 'Select all'
+      ShortCut = 16449
+      OnClick = menuSelectAllClick
     end
   end
 end
