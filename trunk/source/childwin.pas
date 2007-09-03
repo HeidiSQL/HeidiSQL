@@ -921,153 +921,114 @@ var
   ws          : String;
   i           : Integer;
   menuitem    : Tmenuitem;
+  reg         : TRegistry;
 begin
-  with ( TRegistry.Create() ) do
+  reg := TRegistry.Create;
+  if reg.OpenKey( REGPATH, true ) then
   begin
-    if OpenKey( REGPATH, true ) then
+    ws := reg.ReadString( 'childwinstate' );
+    if ws = 'Normal' then
     begin
-      ws := ReadString( 'childwinstate' );
-      if ( ws = 'Normal' ) then
+      WindowState := wsNormal;
+      if reg.ValueExists( 'childwinleft' ) then
       begin
-        WindowState := wsNormal;
-        if ValueExists( 'childwinleft' ) then
-        begin
-          Left := ReadInteger( 'childwinleft' );
-          Top := ReadInteger( 'childwintop' );
-          Width := ReadInteger( 'childwinwidth' );
-          Height := ReadInteger( 'childwinheight' );
-        end;
-      end
-      else
-      if ( ws = 'Minimized' ) then
-      begin
-        WindowState := wsMinimized
-      end
-      else
-      if ( ws = 'Maximized' ) then
-      begin
-        WindowState := wsMaximized;
+        Left := reg.ReadInteger( 'childwinleft' );
+        Top := reg.ReadInteger( 'childwintop' );
+        Width := reg.ReadInteger( 'childwinwidth' );
+        Height := reg.ReadInteger( 'childwinheight' );
       end;
+    end
+    else if ws = 'Minimized' then
+      WindowState := wsMinimized
+    else if ( ws = 'Maximized' ) then
+      WindowState := wsMaximized;
 
-      // Other values:
-      if ( ValueExists( 'querymemoheight' ) ) then
-      begin
-        pnlQueryMemo.Height := ReadInteger('querymemoheight');
-      end;
+    // Other values:
+    if reg.ValueExists( 'querymemoheight' ) then
+      pnlQueryMemo.Height := reg.ReadInteger('querymemoheight');
+    if reg.ValueExists( 'queryhelperswidth' ) then
+      pnlQueryHelpers.Width := reg.ReadInteger('queryhelperswidth');
 
-      if ValueExists( 'queryhelperswidth' ) then
-      begin
-        pnlQueryHelpers.Width := ReadInteger('queryhelperswidth');
-      end;
+    if reg.ValueExists( 'dbtreewidth' ) then
+      DBtree.Width := reg.ReadInteger( 'dbtreewidth' );
 
-      if ( ValueExists( 'dbtreewidth' ) ) then
-      begin
-        DBtree.Width := ReadInteger( 'dbtreewidth' );
-      end;
+    if reg.ValueExists( 'sqloutheight' ) then
+      PageControlBottom.Height := reg.ReadInteger( 'sqloutheight' );
 
-      if ( ValueExists( 'sqloutheight' ) ) then
-      begin
-        PageControlBottom.Height := ReadInteger( 'sqloutheight' );
-      end;
+    if reg.ValueExists( 'DefaultColWidth' ) then
+      Mainform.DefaultColWidth := reg.ReadInteger( 'DefaultColWidth' )
+    else
+      Mainform.DefaultColWidth := 100;
 
-      if ( ValueExists( 'DefaultColWidth' ) ) then
-      begin
-        Mainform.DefaultColWidth := ReadInteger( 'DefaultColWidth' );
-      end
-      else
-      begin
-        Mainform.DefaultColWidth := 100;
-      end;
-
-      // SQL-Font:
-      if ( ( ValueExists( 'FontName' ) ) and ( ValueExists('FontSize') ) ) then
-      begin
-        SynMemoQuery.Font.Name := ReadString( 'FontName' );
-        SynMemoSQLLog.Font.Name := ReadString( 'FontName' );
-        SynMemoQuery.Font.Size := ReadInteger( 'FontSize' );
-        SynMemoSQLLog.Font.Size := ReadInteger( 'FontSize' );
-      end;
-
-      // Data-Font:
-      if ( ( ValueExists( 'DataFontName' ) ) and ( ValueExists( 'DataFontSize' ) ) ) then
-      begin
-        gridData.Font.Name := ReadString( 'DataFontName' );
-        gridQuery.Font.Name := ReadString( 'DataFontName' );
-        DBMemo1.Font.Name := ReadString( 'DataFontName' );
-        gridData.Font.Size := ReadInteger( 'DataFontSize' );
-        gridQuery.Font.Size := ReadInteger( 'DataFontSize' );
-        DBMemo1.Font.Size := ReadInteger( 'DataFontSize' );
-      end;
-
-      // Color coding:
-      if ( ValueExists( 'SQLColKeyAttri' ) ) then
-      begin
-        SynSQLSyn1.KeyAttri.Foreground := StringToColor( ReadString( 'SQLColKeyAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColFunctionAttri' ) ) then
-      begin
-        SynSQLSyn1.FunctionAttri.Foreground := StringToColor( ReadString( 'SQLColFunctionAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColDataTypeAttri' ) ) then
-      begin
-        SynSQLSyn1.DataTypeAttri.Foreground := StringToColor( ReadString( 'SQLColDataTypeAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColNumberAttri' ) ) then
-      begin
-        SynSQLSyn1.NumberAttri.Foreground := StringToColor( ReadString( 'SQLColNumberAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColStringAttri' ) ) then
-      begin
-        SynSQLSyn1.StringAttri.Foreground := StringToColor( ReadString( 'SQLColStringAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColCommentAttri' ) ) then
-      begin
-        SynSQLSyn1.CommentAttri.Foreground := StringToColor( ReadString( 'SQLColCommentAttri' ) );
-      end;
-
-      if ( ValueExists( 'SQLColTablenameAttri' ) ) then
-      begin
-        SynSQLSyn1.TablenameAttri.Foreground := StringToColor( ReadString( 'SQLColTablenameAttri' ) );
-      end;
-
-      // SQLFiles-History
-      FillPopupQueryLoad();
-
-      // SQL-Filter-Files-History
-      i := 1;
-      popupFilterOpenFile.Items.Clear();
-      while ( ValueExists( 'SQLWhereFile' + IntToStr(i) ) ) do
-      begin
-        menuitem := Tmenuitem.Create(Self);
-        menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + ReadString( 'SQLWhereFile' + IntToStr(i) );
-        menuitem.OnClick := LoadSQLWhereFile;
-        popupFilterOpenFile.Items.Add( menuitem );
-        inc( i );
-      end;
-
-      // Synchronize internal variables with defaults from DFM.
-      StopOnErrors := btnQueryStopOnErrors.Down;
-
-      // Says if the filters on the data tab shall be remembered
-      if ValueExists( 'RememberFilters' ) then
-        RememberFilters := ReadBool('RememberFilters')
-      else
-        RememberFilters := True;
-
-      // Open server-specific registry-folder.
-      // relative from already opened folder!
-      OpenKey( 'Servers\' + FConn.Description, true );
-
-      // Set last used database, select it later in Init
-      lastUsedDB := ReadString( 'lastUsedDB' );
+    // SQL-Font:
+    if reg.ValueExists( 'FontName' ) and reg.ValueExists('FontSize') then
+    begin
+      SynMemoQuery.Font.Name := reg.ReadString( 'FontName' );
+      SynMemoSQLLog.Font.Name := reg.ReadString( 'FontName' );
+      SynMemoQuery.Font.Size := reg.ReadInteger( 'FontSize' );
+      SynMemoSQLLog.Font.Size := reg.ReadInteger( 'FontSize' );
     end;
-    CloseKey();
+
+    // Data-Font:
+    if reg.ValueExists( 'DataFontName' ) and reg.ValueExists( 'DataFontSize' ) then
+    begin
+      gridData.Font.Name := reg.ReadString( 'DataFontName' );
+      gridQuery.Font.Name := reg.ReadString( 'DataFontName' );
+      DBMemo1.Font.Name := reg.ReadString( 'DataFontName' );
+      gridData.Font.Size := reg.ReadInteger( 'DataFontSize' );
+      gridQuery.Font.Size := reg.ReadInteger( 'DataFontSize' );
+      DBMemo1.Font.Size := reg.ReadInteger( 'DataFontSize' );
+    end;
+
+    // Color coding:
+    if reg.ValueExists( 'SQLColKeyAttri' ) then
+      SynSQLSyn1.KeyAttri.Foreground := StringToColor( reg.ReadString( 'SQLColKeyAttri' ) );
+    if reg.ValueExists( 'SQLColFunctionAttri' ) then
+      SynSQLSyn1.FunctionAttri.Foreground := StringToColor( reg.ReadString( 'SQLColFunctionAttri' ) );
+    if reg.ValueExists( 'SQLColDataTypeAttri' ) then
+      SynSQLSyn1.DataTypeAttri.Foreground := StringToColor( reg.ReadString( 'SQLColDataTypeAttri' ) );
+    if reg.ValueExists( 'SQLColNumberAttri' ) then
+      SynSQLSyn1.NumberAttri.Foreground := StringToColor( reg.ReadString( 'SQLColNumberAttri' ) );
+    if reg.ValueExists( 'SQLColStringAttri' ) then
+      SynSQLSyn1.StringAttri.Foreground := StringToColor( reg.ReadString( 'SQLColStringAttri' ) );
+    if reg.ValueExists( 'SQLColCommentAttri' ) then
+      SynSQLSyn1.CommentAttri.Foreground := StringToColor( reg.ReadString( 'SQLColCommentAttri' ) );
+    if reg.ValueExists( 'SQLColTablenameAttri' ) then
+      SynSQLSyn1.TablenameAttri.Foreground := StringToColor( reg.ReadString( 'SQLColTablenameAttri' ) );
+
+    // SQLFiles-History
+    FillPopupQueryLoad();
+
+    // SQL-Filter-Files-History
+    i := 1;
+    popupFilterOpenFile.Items.Clear();
+    while ( reg.ValueExists( 'SQLWhereFile' + IntToStr(i) ) ) do
+    begin
+      menuitem := Tmenuitem.Create(Self);
+      menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + reg.ReadString( 'SQLWhereFile' + IntToStr(i) );
+      menuitem.OnClick := LoadSQLWhereFile;
+      popupFilterOpenFile.Items.Add( menuitem );
+      inc( i );
+    end;
+
+    // Synchronize internal variables with defaults from DFM.
+    StopOnErrors := btnQueryStopOnErrors.Down;
+
+    // Says if the filters on the data tab shall be remembered
+    if reg.ValueExists( 'RememberFilters' ) then
+      RememberFilters := reg.ReadBool('RememberFilters')
+    else
+      RememberFilters := True;
+
+    // Open server-specific registry-folder.
+    // relative from already opened folder!
+    reg.OpenKey( 'Servers\' + FConn.Description, true );
+
+    // Set last used database, select it later in Init
+    lastUsedDB := reg.ReadString( 'lastUsedDB' );
   end;
+  reg.CloseKey;
+  reg.Free;
 end;
 
 
