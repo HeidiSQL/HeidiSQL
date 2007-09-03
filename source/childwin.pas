@@ -165,7 +165,7 @@ type
     MenuChangeType5: TMenuItem;
     selectall1: TMenuItem;
     MenuAutoupdate: TMenuItem;
-    TimerProcesslist: TTimer;
+    TimerHost: TTimer;
     Set1: TMenuItem;
     EnableAutoRefresh: TMenuItem;
     DisableAutoRefresh: TMenuItem;
@@ -2671,7 +2671,7 @@ begin
   except
     on E: Exception do begin
       LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
-      TimerProcesslist.Enabled := false;
+      TimerHost.Enabled := false;
     end;
   end;
   ListProcesses.RootNodeCount := Length(VTRowDataListProcesses);
@@ -2684,8 +2684,8 @@ var t : Boolean;
   ProcessIDs : TStringList;
   i : Integer;
 begin
-  t := TimerProcessList.Enabled;
-  TimerProcessList.Enabled := false; // prevent av (ListProcesses.selected...)
+  t := TimerHost.Enabled;
+  TimerHost.Enabled := false; // prevent av (ListProcesses.selected...)
   ProcessIDs := GetVTCaptions( ListProcesses, True );
   if MessageDlg('Kill '+inttostr(ProcessIDs.count)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
@@ -2699,7 +2699,7 @@ begin
     end;
     ShowVariablesAndProcesses(self);
   end;
-  TimerProcessList.Enabled := t; // re-enable autorefresh timer
+  TimerHost.Enabled := t; // re-enable autorefresh timer
 end;
 
 
@@ -4325,12 +4325,12 @@ var
   secondsInt : Integer;
 begin
   // set interval for autorefresh-timer
-  seconds := IntToStr(TimerProcesslist.interval div 1000);
+  seconds := IntToStr(TimerHost.interval div 1000);
   if inputquery('Auto-refresh processlist','Update list every ... seconds:', seconds) then begin
     secondsInt := StrToIntDef(seconds, 0);
     if secondsInt > 0 then begin
-      TimerProcesslist.Interval := secondsInt * 1000;
-      TimerProcesslist.Enabled := true;
+      TimerHost.Interval := secondsInt * 1000;
+      TimerHost.Enabled := true;
       EnableAutoRefresh.Checked := true;
       DisableAutoRefresh.Checked := false;
     end
@@ -4342,7 +4342,7 @@ end;
 procedure TMDIChild.EnableAutoRefreshClick(Sender: TObject);
 begin
   // enable autorefresh-timer
-  TimerProcesslist.Enabled := true;
+  TimerHost.Enabled := true;
   EnableAutoRefresh.Checked := true;
   DisableAutoRefresh.Checked := false;
 end;
@@ -4350,7 +4350,7 @@ end;
 procedure TMDIChild.DisableAutoRefreshClick(Sender: TObject);
 begin
   // enable autorefresh-timer
-  TimerProcesslist.Enabled := false;
+  TimerHost.Enabled := false;
   EnableAutoRefresh.Checked := false;
   DisableAutoRefresh.Checked := true;
 end;
@@ -4442,7 +4442,6 @@ end;
 
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
-  MenuAutoupdate.Enabled := PageControlHost.ActivePage = tabProcessList;
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
 end;
 
