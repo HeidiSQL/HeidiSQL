@@ -21,6 +21,7 @@ GOTO start
 :usage
 ECHO Please modify path and version settings in build_super.cmd.
 ECHO.
+PAUSE
 GOTO end
 
 :start
