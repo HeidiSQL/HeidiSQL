@@ -7,7 +7,7 @@ uses
   ComCtrls, CommCtrl, StdCtrls, ExtCtrls, Graphics,
   ZDataset;
 
-{$I ../../../source/const.inc}
+{$I const.inc}
 
 type
   TSortListView = class(TListView)

@@ -123,7 +123,7 @@
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
 			<Directories Name="PackageDLLOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
 			<Directories Name="PackageDCPOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
-			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\build</Directories>
+			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\build;..\..\..\compilerdetection</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
