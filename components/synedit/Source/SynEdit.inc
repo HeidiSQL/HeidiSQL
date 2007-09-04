@@ -1,4 +1,4 @@
-{$I ../../compilerdetection/Compilers.inc}
+{$I Compilers.inc}
 
 (******************************************************************************)
 (* SynEdit Include File.  This file was adapted from Brad Stowers' DFS.INC    *)

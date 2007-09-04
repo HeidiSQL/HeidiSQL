@@ -1,4 +1,4 @@
-{$I ../../../compilerdetection/compilers.inc}
+{$I compilers.inc}
 
 
 // Compilation directives for Delphi4
