@@ -32,9 +32,8 @@ set base_dir=%start_dir%\..\
 rem Switch to base directory
 cd %base_dir%
 
-REM Delete old files to ensure we're not working with local modifications
-REM Also ensure this .cmd file is not deleted!
-del /S *.dcu *.pas *.dfm *.inc *.dpr *.dpk *.bdsproj *.groupproj *.dproj *.bdsgroup
+rem Delete old binaries
+del /S *.dcu
 
 set params=-aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
