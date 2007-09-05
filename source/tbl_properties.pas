@@ -75,7 +75,7 @@ var
   i: Integer;
   t: Integer;
   ts: TTabSheet;
-  list: TSortListView;
+  list: TListView;
   datasize: Int64;
   indexsize: Int64;
   isSelected: Boolean;
@@ -85,6 +85,8 @@ var
   Selected: TStringList;
   reg : TRegistry;
   listheight : Integer;
+  col : TListColumn;
+  item : TListItem;
 begin
 
   datasize  := 0;
@@ -145,36 +147,38 @@ begin
     splitter.OnMoved := SplitterMove;
 
     // create a detailed properties list
-    list           := TSortListView.Create(self);
+    list           := TListView.Create(self);
     list.Parent    := ts;
     list.Height    := listheight;
     list.ViewStyle := vsReport;
     list.ReadOnly  := true;
     list.GridLines := true;
     list.RowSelect := true;
+    list.ColumnClick := false;
     list.BringToFront();
 
-    with (list.Columns.Add) do
-    begin
-      Caption := 'Variable';
-      Width := 100;
-    end;
-    with (list.Columns.Add) do
-    begin
-      Caption := 'Value';
-      Width := -1;
-    end;
+    list.Columns.BeginUpdate;
 
+    col := list.Columns.Add;
+    col.Caption := 'Variable';
+    col.Width := -1;
+
+    col := list.Columns.Add;
+    col.Caption := 'Value';
+    col.AutoSize := true;
+
+    list.Columns.EndUpdate;
+
+    list.Items.BeginUpdate;
     inc( datasize, StrToInt64Def(query.FieldByName('Data_length').AsString, 0) );
     inc( indexsize, StrToInt64Def(query.FieldByName('Index_length').AsString, 0) );
     for i:=0 to query.FieldCount - 1 do
     begin
-      with (list.Items.add) do
-      begin
-        Caption := query.Fields[i].FieldName;
-        SubItems.Add( query.Fields[i].AsString);
-      end;
+      item := list.Items.add;
+      item.Caption := query.Fields[i].FieldName;
+      item.SubItems.Add( query.Fields[i].AsString);
     end;
+    list.Items.EndUpdate;
 
     // create a souce viewer
     synmemo                  := TSynMemo.Create(self);
@@ -280,7 +284,7 @@ begin
   for i := 0 to ComponentCount-1 do
   begin
     if Components[i] is TListView then
-      TSortListView(Components[i]).Height := TSplitter(Sender).Top;
+      TListView(Components[i]).Height := TSplitter(Sender).Top;
   end;
 end;
 
