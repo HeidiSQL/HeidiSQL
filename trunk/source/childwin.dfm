@@ -725,14 +725,14 @@ object MDIChild: TMDIChild
             Height = 203
             Align = alClient
             EditDelay = 500
-            Header.AutoSizeIndex = 4
+            Header.AutoSizeIndex = -1
             Header.Font.Charset = DEFAULT_CHARSET
             Header.Font.Color = clWindowText
             Header.Font.Height = -11
             Header.Font.Name = 'Tahoma'
             Header.Font.Style = []
             Header.Height = 20
-            Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Images = MainForm.ImageList1
             IncrementalSearch = isInitializedOnly
             PopupMenu = popupTableGrid
@@ -780,8 +780,14 @@ object MDIChild: TMDIChild
               item
                 Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 4
-                Width = 69
+                Width = 80
                 WideText = 'Extra'
+              end
+              item
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Position = 5
+                Width = 120
+                WideText = 'Comment'
               end>
           end
         end

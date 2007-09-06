@@ -2107,6 +2107,7 @@ var
   isFulltext : Boolean;
   ds : TDataSet;
   dummy: Boolean;
+  hasCommentColumn: Boolean;
 begin
   // Table-Properties
 
@@ -2145,7 +2146,12 @@ begin
   ListColumns.BeginUpdate;
   ListColumns.Clear;
   Try
-    ds := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable), false );
+    ds := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(ActualTable), false );
+
+    // Hide column "Comment" on old servers.
+    hasCommentColumn := ds.FindField('Comment') <> nil;
+    if not hasCommentColumn then
+      ListColumns.Header.Columns[5].Options := ListColumns.Header.Columns[5].Options - [coVisible];
 
     SetLength(VTRowDataListColumns, ds.RecordCount);
     for i:=1 to ds.RecordCount do
@@ -2159,6 +2165,11 @@ begin
         else VTRowDataListColumns[i-1].Captions.Add('No');
       VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Default').AsString );
       VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Extra').AsString );
+      if hasCommentColumn then
+        VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Comment').AsString )
+      else
+        VTRowDataListColumns[i-1].Captions.Add('');
+
       ds.Next;
     end;
 
