@@ -943,7 +943,8 @@ end;
 procedure TUserManagerForm.GetResUsers;
 begin
   if (not Assigned(ZQueryUsers)) or (not ZQueryUsers.Active) then
-    ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS));
+    ZQueryUsers := Mainform.Childwin.GetResults( 'SELECT * FROM '+mainform.mask(PRIVTABLE_USERS)
+      + ' ORDER BY '+mainform.mask('User')+', '+mainform.mask('Host'));
 end;
 
 procedure TUserManagerForm.GetResDBs;
