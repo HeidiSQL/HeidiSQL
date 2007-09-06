@@ -53,6 +53,8 @@ type
     btnAddAllColumnsToIndex: TBitBtn;
     btnDeleteAllColumnsFromIndex: TBitBtn;
     btnDatatypeHelp: TButton;
+    lblComment: TLabel;
+    EditComment: TEdit;
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
@@ -158,6 +160,10 @@ begin
 
   CheckBoxAutoIncrement.Enabled := true;
 
+  // Disable Comment editing on old servers.
+  EditComment.Enabled := Mainform.Childwin.mysql_version >= 40100;
+  lblComment.Enabled := EditComment.Enabled;
+
   case FMode of
     // "Field" tab in Add-mode
     femFieldAdd, femIndexEditor:
@@ -167,6 +173,7 @@ begin
       ComboBoxType.ItemIndex := 0;
       EditLength.Text := '';
       EditDefault.Text := '';
+      EditComment.Text := '';
       CheckBoxUnsigned.Checked := true;
 
       if Assigned(ListColumns.FocusedNode) then
@@ -182,6 +189,7 @@ begin
       EditFieldname.Text := FFieldName;
       EditLength.Text := getEnumValues( NodeData.Captions[1] );
       EditDefault.Text := NodeData.Captions[3];
+      EditComment.Text := NodeData.Captions[5];
 
       // extract field type
       strtype := UpperCase( NodeData.Captions[1] );
@@ -349,6 +357,7 @@ var
   strAutoIncrement,
   strLengthSet,
   strDefault,
+  strComment,
   strPosition,
   fielddef,
   sql_alterfield   : String;
@@ -405,6 +414,9 @@ begin
     else
       strLengthSet := '';
 
+    if EditComment.Enabled and (length(EditComment.Text) > 0) then
+      strComment := ' COMMENT ' + esc(EditComment.Text);
+
     strPosition := '';
     case ComboBoxPosition.ItemIndex of
       0 : ;
@@ -419,7 +431,8 @@ begin
       strAttributes +         // Attribute
       strDefault +            // Default
       strNotNull +            // Not Null
-      strAutoIncrement;       // Auto_increment
+      strAutoIncrement +      // Auto_increment
+      strComment;             // Comment
 
     if (FMode = femFieldAdd) then begin
       cwin.ExecUpdateQuery(

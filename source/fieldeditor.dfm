@@ -1,11 +1,10 @@
 object FieldEditForm: TFieldEditForm
   Left = 572
   Top = 111
-  AutoSize = True
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'Field-Editor'
-  ClientHeight = 321
+  ClientHeight = 354
   ClientWidth = 297
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -22,7 +21,7 @@ object FieldEditForm: TFieldEditForm
     Left = 0
     Top = 0
     Width = 297
-    Height = 289
+    Height = 321
     ActivePage = tabField
     Align = alTop
     Images = MainForm.ImageList1
@@ -66,6 +65,13 @@ object FieldEditForm: TFieldEditForm
         Height = 13
         Caption = 'Position:'
       end
+      object lblComment: TLabel
+        Left = 16
+        Top = 136
+        Width = 47
+        Height = 13
+        Caption = 'Comment:'
+      end
       object btnDatatypeHelp: TButton
         Left = 252
         Top = 61
@@ -73,7 +79,7 @@ object FieldEditForm: TFieldEditForm
         Height = 21
         Hint = 'Help on selected datatype'
         Caption = '?'
-        TabOrder = 6
+        TabOrder = 7
         OnClick = btnDatatypeHelpClick
       end
       object EditDefault: TEdit
@@ -109,11 +115,11 @@ object FieldEditForm: TFieldEditForm
       end
       object GroupBoxAttributes: TGroupBox
         Left = 16
-        Top = 136
+        Top = 168
         Width = 257
         Height = 113
         Caption = 'Attributes'
-        TabOrder = 5
+        TabOrder = 6
         object CheckBoxBinary: TCheckBox
           Left = 32
           Top = 24
@@ -163,6 +169,13 @@ object FieldEditForm: TFieldEditForm
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 0
+      end
+      object EditComment: TEdit
+        Left = 88
+        Top = 133
+        Width = 185
+        Height = 21
+        TabOrder = 5
       end
     end
     object tabIndexes: TTabSheet
@@ -235,7 +248,7 @@ object FieldEditForm: TFieldEditForm
         Left = 8
         Top = 120
         Width = 113
-        Height = 129
+        Height = 161
         Enabled = False
         ItemHeight = 13
         TabOrder = 4
@@ -246,7 +259,7 @@ object FieldEditForm: TFieldEditForm
         Left = 168
         Top = 120
         Width = 113
-        Height = 129
+        Height = 161
         Enabled = False
         ItemHeight = 13
         Sorted = True
@@ -367,7 +380,7 @@ object FieldEditForm: TFieldEditForm
   end
   object ButtonCancel: TButton
     Left = 207
-    Top = 295
+    Top = 327
     Width = 90
     Height = 25
     Cancel = True
@@ -377,7 +390,7 @@ object FieldEditForm: TFieldEditForm
   end
   object ButtonOK: TButton
     Left = 111
-    Top = 295
+    Top = 327
     Width = 90
     Height = 25
     Caption = 'OK'
