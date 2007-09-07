@@ -61,7 +61,6 @@ rem -Q = Quiet compile
 rem      This is a workaround for avoiding error D21153
 rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
 %compiler% -N0"..\..\build" -Q %params% SynEditR.dpk
-%compiler% -N0"..\..\build" -Q %params% SynEditD.dpk
 
 
 rem Build ZeosDBO
@@ -71,7 +70,6 @@ cd %base_dir%components\zeosdbo\packages\%package_dir%\
 %compiler% -N0"..\..\build" -Q %params% ZParseSql.dpk
 %compiler% -N0"..\..\build" -Q %params% ZDbc.dpk
 %compiler% -N0"..\..\build" -Q %params% ZComponent.dpk
-%compiler% -N0"..\..\build" -Q %params% ZComponentDesign.dpk
 
 
 rem Build HeidiComponents
