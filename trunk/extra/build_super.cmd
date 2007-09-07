@@ -2,14 +2,13 @@
 
 REM =============================================
 REM
-REM Set compiler_dir and package_dir appropriately.
+REM Set compiler_dir and package_dir appropriately via command line.
 REM Example:
-REM  set compiler_dir=C:\path\to\delphi\bin\directory\
-REM  set package_dir=delphi11
+REM  build_super.cmd C:\path\to\delphi\bin\directory\ delphi11
 REM
 
-set compiler_dir=
-set package_dir=
+set compiler_dir=%1
+set package_dir=%2
 
 REM =============================================
 
@@ -19,7 +18,7 @@ IF "%package_dir%" == "" GOTO usage
 GOTO start
 
 :usage
-ECHO Please modify path and version settings in build_super.cmd.
+ECHO Please pass compiler_dir AND package_dir via command line.
 ECHO.
 PAUSE
 GOTO end
