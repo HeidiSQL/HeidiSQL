@@ -5,7 +5,7 @@ unit Main;
 // Main-window
 // -------------------------------------
 
-{$I ../../components/compilerdetection/compilers.inc}
+{$I compilers.inc}
 
 interface
 
