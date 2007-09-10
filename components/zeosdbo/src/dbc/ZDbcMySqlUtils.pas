@@ -245,6 +245,8 @@ begin
     else
       raise Exception.Create('Unknown MySQL data type!');
   end;
+  { SHOW FULL PROCESSLIST on 4.x servers can return veeery long FIELD_TYPE_VAR_STRINGs. The following helps avoid excessive row buffer allocation later on. }
+  if (Result = stString) and (PlainDriver.GetFieldLength(FieldHandle) > 8192) then Result := stAsciiStream;
 end;
 
 {**
