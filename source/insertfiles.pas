@@ -106,7 +106,7 @@ begin
 
   for i:=0 to ComboBoxDBs.Items.Count-1 do
   begin
-    if ComboBoxDBs.Items[i] = Mainform.ChildWin.ActualDatabase then
+    if ComboBoxDBs.Items[i] = Mainform.ChildWin.ActiveDatabase then
     begin
       ComboBoxDBs.ItemIndex := i;
     end;

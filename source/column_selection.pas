@@ -48,7 +48,7 @@ begin
   chklistColumns.Items := GetVTCaptions(Mainform.Childwin.ListColumns);
 
   // Set global reg_name (also used in btnOKClick)
-  reg_name := REGNAME_DISPLAYEDCOLUMNS + '_' + Mainform.Childwin.ActualDatabase + '.' + Mainform.Childwin.ActualTable;
+  reg_name := REGNAME_DISPLAYEDCOLUMNS + '_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
 
   // Read reg value and check items!
   reg := TRegistry.Create;

@@ -69,7 +69,7 @@ begin
   // Read original ORDER clause from registry
   reg := TRegistry.Create();
   reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
-  reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActualDatabase + '.' + Mainform.Childwin.ActualTable;
+  reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
   OldOrderClause := reg.ReadString(reg_name);
   reg.CloseKey;
 

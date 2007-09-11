@@ -241,7 +241,7 @@ begin
   setlength(klist, 0);
   TempKeys := TStringList.Create;
   cwin := Mainform.ChildWin;
-  ds := cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.ActualTable) );
+  ds := cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.SelectedTable) );
   for i:=1 to ds.RecordCount do
   begin
     if TempKeys.IndexOf(ds.Fields[2].AsString) = -1 then
@@ -436,14 +436,14 @@ begin
 
     if (FMode = femFieldAdd) then begin
       cwin.ExecUpdateQuery(
-        'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
+        'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +  // table
         'ADD ' + mainform.mask(EditFieldname.Text) + ' ' +        // new name
         fielddef +
         strPosition                                               // Position
       );
     end else if (FMode = femFieldUpdate) then begin
 
-      sql_alterfield := 'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +
+      sql_alterfield := 'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +
           'CHANGE ' + mainform.mask(FFieldName) + ' ' +
           mainform.mask(EditFieldName.Text) + ' ' +
           fielddef;
@@ -463,16 +463,16 @@ begin
         if ComboBoxPosition.ItemIndex > -1 then begin
           // Move field position
           cwin.ExecUpdateQuery(
-            'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +  // table
+            'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +  // table
             'ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +             // new name
             fielddef +
             strPosition                                               // Position
           );
-          cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.ActualTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
-          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+          cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.SelectedTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
+          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' DROP '+mainform.mask(EditFieldName.Text));
 
           cwin.ExecUpdateQuery(
-            'ALTER TABLE ' + mainform.mask(cwin.ActualTable) + ' ' +
+            'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +
             'CHANGE ' + mainform.mask(TEMPFIELDNAME) + ' ' +
             mainform.mask(EditFieldName.Text) + ' ' +
             fielddef
@@ -480,7 +480,7 @@ begin
         end;
       end;
     end;
-    cwin.ShowTableProperties(self);
+    cwin.ShowTableProperties(cwin.SelectedTable);
     ModalResult := mrOK;
   except
     on E: THandledSQLError do;
@@ -843,12 +843,12 @@ begin
   begin
     // Remove trailing comma
     delete( query, Length(query)-1, 2 );
-    query := 'ALTER TABLE ' + mainform.mask(Mainform.ChildWin.ActualTable) + ' ' + query;
+    query := 'ALTER TABLE ' + mainform.mask(Mainform.ChildWin.SelectedTable) + ' ' + query;
     try
       // Send query
       Mainform.ChildWin.ExecUpdateQuery(query);
       // Refresh listColumns to display correct field-icons
-      Mainform.ChildWin.ShowTableProperties(self);
+      Mainform.ChildWin.MenuRefreshClick(Self);
       ModalResult := mrOK;
     except
       On E : Exception do

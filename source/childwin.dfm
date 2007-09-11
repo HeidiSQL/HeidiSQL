@@ -1676,7 +1676,7 @@ object MDIChild: TMDIChild
       Caption = 'View Data'
       Enabled = False
       ImageIndex = 8
-      OnClick = ShowTable
+      OnClick = MenuViewDataClick
     end
     object menuinsert: TMenuItem
       Caption = 'Insert Record'
@@ -1795,7 +1795,7 @@ object MDIChild: TMDIChild
       Caption = 'Refresh'
       ImageIndex = 18
       ShortCut = 116
-      OnClick = ShowDBProperties
+      OnClick = MenuRefreshClick
     end
     object selectall1: TMenuItem
       Caption = 'select all'
@@ -1933,7 +1933,7 @@ object MDIChild: TMDIChild
       Hint = 'Refresh|Refresh Field-List'
       ImageIndex = 18
       ShortCut = 116
-      OnClick = ShowTableProperties
+      OnClick = RefreshFieldListClick
     end
   end
   object popupDataGrid: TPopupMenu
