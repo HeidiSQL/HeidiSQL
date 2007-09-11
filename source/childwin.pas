@@ -1973,7 +1973,7 @@ begin
   cur := '';
   if ActiveDatabase = tndb.Text then cur := SelectedTable;
   if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
-    if tndb.Selected then tndb.Parent.Selected := true;
+    if tndb.Item[u].Selected then tndb.Selected := true;
     tndb.Item[u].delete;
   end;
   if ForceRefresh then ds := RefreshDbTableList(tndb.Text)
