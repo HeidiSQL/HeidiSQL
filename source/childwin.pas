@@ -595,7 +595,8 @@ type
       procedure PopulateTreeTableList(tndb: TTreeNode = nil; ForceRefresh: Boolean = false);
       procedure EnsureDatabase(db: string);
       procedure EnsureActiveDatabase;
-      function GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
+      procedure TestVTreeDataArray( P: PVTreeDataArray );
+      function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
   end;
 
 type
@@ -2540,6 +2541,7 @@ begin
         end;
       end;
     end;
+    if tndb_.Selected then tndb_.Parent.Selected := true;
     tndb_.Delete;
   except
     MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
@@ -5983,7 +5985,7 @@ begin
   // Get the pointer to the node data
   NodeData := Sender.GetNodeData(Node);
   // Fetch data array
-  a := GetVTreeDataArray( Sender );
+  a := GetVTreeDataArray( Sender )^;
   // Bind data to node
   NodeData.Captions := a[Node.Index].Captions;
   NodeData.ImageIndex := a[Node.Index].ImageIndex;
@@ -5993,24 +5995,29 @@ end;
 {**
   Free data of a node
 }
-procedure TMDIChild.vstFreeNode(Sender: TBaseVirtualTree; Node:
-    PVirtualNode);
+procedure TMDIChild.vstFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
-  a : TVTreeDataArray;
+  b : PVTreeDataArray;
 begin
   // Detect which global array should be processed
-  a := GetVTreeDataArray( Sender );
-
-  if Node.Index < Cardinal(High(a)-1) then
+  b := GetVTreeDataArray( Sender );
+  // TODO: If you optimize 'b' out of the code, the compiler will
+  //       sometimes generate code that causes a new array here instead of
+  //       a reference to the global array, thus breaking SetLength.  Find
+  //       out why...
+  //TestVTreeDataArray(b);
+  if (Low(b^) < 0) or (High(b^) < 0) then raise Exception.Create('Internal error: unsupported array bounds.');
+  if Node.Index + 1 < Cardinal(High(b^)) then
   begin
     // Delete node somewhere in the middle of the array
     // Taken from http://delphi.about.com/cs/adptips2004/a/bltip0204_2.htm
-    System.Move( a[Node.Index +1],
-      a[Node.Index],
-      (Cardinal(Length(a)) - Node.Index -1) * SizeOf(TVTreeData) + 1
-      );
+    System.Move(
+      b^[Node.Index + 1],
+      b^[Node.Index],
+      (Cardinal(Length(b^)) - (Node.Index - Cardinal(Low(b^))) - 1) * SizeOf(TVTreeData)
+    );
   end;
-  SetLength(a, Length(a) - 1)
+  SetLength(b^, Length(b^) - 1);
 end;
 
 
@@ -6145,24 +6152,36 @@ end;
 {**
   Return the data array which belongs to a VirtualTree component
 }
-function TMDIChild.GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
+function TMDIChild.GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
 begin
   if VT = ListVariables then
-    Result := VTRowDataListVariables
+    Result := @VTRowDataListVariables
   else if VT = ListCommandStats then
-    Result := VTRowDataListCommandStats
+    Result := @VTRowDataListCommandStats
   else if VT = ListProcesses then
-    Result := VTRowDataListProcesses
+    Result := @VTRowDataListProcesses
   else if VT = ListTables then
-    Result := VTRowDataListTables
+    Result := @VTRowDataListTables
   else if VT = ListColumns then
-    Result := VTRowDataListColumns
+    Result := @VTRowDataListColumns
   else begin
-    Result := nil;
     raise Exception.Create( VT.ClassName + ' "' + VT.Name + '" doesn''t have an assigned array with data.' );
   end;
 end;
 
+
+{**
+  Internal: Test quality of code/compiler.
+}
+procedure TMDIChild.TestVTreeDataArray( P: PVTreeDataArray );
+begin
+  if P = @VTRowDataListVariables then Exit;
+  if P = @VTRowDataListCommandStats then Exit;
+  if P = @VTRowDataListProcesses then Exit;
+  if P = @VTRowDataListTables then Exit;
+  if P = @VTRowDataListColumns then Exit;
+  raise Exception.Create('Assertion failed: Invalid global VT array.');
+end;
 
 {**
   Click on popupDBGridHeader

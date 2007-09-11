@@ -24,6 +24,7 @@ type
   // Standardize the list with node-data-records to be able to
   // use this type as variables in functions/procedures (fx VT.OnFreeNode)
   TVTreeDataArray = Array of TVTreeData;
+  PVTreeDataArray = ^TVTreeDataArray;
 
 {$I const.inc}
 
@@ -2068,7 +2069,7 @@ begin
   end
   else begin
     // Fetch all nodes
-    a := Mainform.Childwin.GetVTreeDataArray( VT );
+    a := Mainform.Childwin.GetVTreeDataArray( VT )^;
     for i := 0 to High(a) do
       Result.Add( a[i].Captions[ Column ] );
   end;
