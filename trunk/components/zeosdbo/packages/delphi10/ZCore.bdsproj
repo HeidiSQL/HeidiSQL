@@ -33,7 +33,7 @@
 			<Compiler Name="O">1</Compiler>
 			<Compiler Name="P">1</Compiler>
 			<Compiler Name="Q">1</Compiler>
-			<Compiler Name="R">0</Compiler>
+			<Compiler Name="R">1</Compiler>
 			<Compiler Name="S">0</Compiler>
 			<Compiler Name="T">0</Compiler>
 			<Compiler Name="U">0</Compiler>
