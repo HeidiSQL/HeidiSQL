@@ -305,6 +305,8 @@ type
     btnTableManageIndexes: TToolButton;
     tlbTableLeft2: TToolBar;
     btnTableInsertRecord: TToolButton;
+    procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
+      var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -351,6 +353,7 @@ type
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
+    procedure LoadDatabaseProperties(db: string);
     procedure ShowHost;
     procedure ShowDatabase(db: String);
     procedure ShowDBProperties(db: String);
@@ -1364,6 +1367,21 @@ begin
 end;
 
 
+procedure TMDIChild.DBtreeChanging(Sender: TObject; Node: TTreeNode;
+  var AllowChange: Boolean);
+var
+  newDb: string;
+begin
+  case Node.Level of
+       2: if Node.Parent.Text <> ActiveDatabase then newDb := Node.Parent.Text
+          else Exit;
+       1: newDb := Node.Text;
+    else Exit;
+  end;
+  LoadDatabaseProperties(newDb);
+end;
+
+
 {***
   A database-node is about to be expanded:
   Drop the dummy-node and add all tables
@@ -1991,8 +2009,7 @@ begin
 end;
 
 
-{ Show tables and their properties on the tabsheet "Database" }
-procedure TMDIChild.ShowDBProperties(db: string);
+procedure TMDIChild.LoadDatabaseProperties(db: string);
 var
   i               : Integer;
   bytes           : Extended;
@@ -2121,6 +2138,12 @@ begin
     ListTables.EndUpdate;
     Screen.Cursor := crDefault;
   end;
+end;
+
+
+{ Show tables and their properties on the tabsheet "Database" }
+procedure TMDIChild.ShowDBProperties(db: string);
+begin
   Screen.Cursor := crHourglass;
   pcChange( Self );
   pnlDatabaseTop.Caption := 'Database ' + db + ': ' + IntToStr(ListTables.RootNodeCount) + ' table(s)';
@@ -2157,13 +2180,13 @@ begin
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
 
-  pnlTableTop.Caption := 'Table-Properties for ' + ActiveDatabase + ': ' + SelectedTable;
+  pnlTableTop.Caption := 'Table-Properties for ' + ActiveDatabase + ': ' + table;
 
   MainForm.ShowStatus( 'Reading table properties...', 2, true );
   ListColumns.BeginUpdate;
   ListColumns.Clear;
   Try
-    ds := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
+    ds := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(table), false );
 
     // Hide column "Comment" on old servers.
     hasCommentColumn := ds.FindField('Comment') <> nil;
@@ -2215,7 +2238,7 @@ begin
     *}
 
     Screen.Cursor := crHourglass;
-    ds := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
+    ds := GetResults( 'SHOW KEYS FROM ' + mask(table) );
     for i:=1 to ds.RecordCount do
     begin
       // Search for the column name in listColumns
@@ -2274,7 +2297,7 @@ begin
 
   pcChange( Self );
   MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
-  MainForm.showstatus(ActiveDatabase + ': '+ SelectedTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
+  MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
   Screen.Cursor := crDefault;
 end;
 
