@@ -16,7 +16,7 @@
 			<FileVersion Name="Version">7.0</FileVersion>
 		</FileVersion>
 		<Compiler>
-			<Compiler Name="A">1</Compiler>
+			<Compiler Name="A">8</Compiler>
 			<Compiler Name="B">0</Compiler>
 			<Compiler Name="C">1</Compiler>
 			<Compiler Name="D">1</Compiler>
@@ -25,12 +25,12 @@
 			<Compiler Name="G">1</Compiler>
 			<Compiler Name="H">1</Compiler>
 			<Compiler Name="I">1</Compiler>
-			<Compiler Name="J">1</Compiler>
+			<Compiler Name="J">0</Compiler>
 			<Compiler Name="K">0</Compiler>
 			<Compiler Name="L">1</Compiler>
 			<Compiler Name="M">0</Compiler>
 			<Compiler Name="N">1</Compiler>
-			<Compiler Name="O">0</Compiler>
+			<Compiler Name="O">1</Compiler>
 			<Compiler Name="P">1</Compiler>
 			<Compiler Name="Q">0</Compiler>
 			<Compiler Name="R">0</Compiler>
@@ -40,7 +40,7 @@
 			<Compiler Name="V">1</Compiler>
 			<Compiler Name="W">0</Compiler>
 			<Compiler Name="X">1</Compiler>
-			<Compiler Name="Y">2</Compiler>
+			<Compiler Name="Y">1</Compiler>
 			<Compiler Name="Z">1</Compiler>
 			<Compiler Name="ShowHints">True</Compiler>
 			<Compiler Name="ShowWarnings">True</Compiler>
@@ -123,7 +123,7 @@
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\smdbgrid\build;..\..\components\smdbgrid\resources;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources</Directories>
+			<Directories Name="SearchPath">..\..\components\compilerdetection;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\smdbgrid\build;..\..\components\smdbgrid\resources;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources</Directories>
 			<Directories Name="Packages">Vcl50;Vclx50;VclSmp50;Vcldb50;vclado50;ibevnt50;Vclbde50;vcldbx50;Qrpt50;TeeUI50;TeeDB50;Tee50;Dss50;TeeQR50;VCLIB50;Vclmid50;vclie50;Inetdb50;Inet50;NMFast50;webmid50;dclocx50;dclaxserver50;vcl;rtl;dbrtl;vcldb;bdertl;ZUtils6;ZCommon6</Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs">..\..;..\..\components\compilerdetection;..\..\components\edbimage\source;..\..\components\heidisql\source;..\..\components\smdbgrid\source;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Directories>
