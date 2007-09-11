@@ -769,7 +769,6 @@ var
   menuitem         : TMenuItem;
   winName          : String;
   i, j             : Integer;
-  treenode         : TTreeNode;
   ds               : TDataSet;
   miGroup,
   miFunction       : TMenuItem;
@@ -881,15 +880,7 @@ begin
   // Reselect last used database
   if ( ( MainForm.GetRegValue( 'RestoreLastUsedDB', true ) ) and ( lastUsedDB <> '' ) ) then
   begin
-    for j := 0 to ( DBTree.Items.Count - 1 ) do
-    begin
-      treenode := DBTree.Items[j];
-      if ( ( treenode.Level = 1 ) and ( treenode.Text = lastUsedDB ) ) then
-      begin
-        DBTree.Selected := treenode;
-        Break;
-      end;
-    end;
+    ActiveDatabase := lastUsedDB;
   end;
 
   // Set the grid-cells to always-edit-mode.
@@ -1335,7 +1326,6 @@ end;
 }
 procedure TMDIChild.ShowTable(table: String; tab: TTabSheet = nil);
 begin
-  dataselected := false;
   if tab = nil then tab := tabTable; // Alternative default: tabData
   if tab = tabTable then ShowTableProperties( table );
   if tab = tabData then ShowTableData( table );
@@ -1852,8 +1842,10 @@ begin
   ValidateControls;
 
   // Show processlist if it's visible now but empty yet
-  if ListProcesses.RootNodeCount = 0 then
-    ShowProcessList( self );
+  if PageControlMain.ActivePage = tabHost then begin
+    if ListProcesses.RootNodeCount = 0 then
+      ShowProcessList( self );
+  end;
 end;
 
 
@@ -2168,7 +2160,7 @@ var
   hasCommentColumn: Boolean;
 begin
   // Table-Properties
-
+  dataselected := false;
   Screen.Cursor := crHourGlass;
 
   if (not DBTree.Dragging) and (
@@ -2455,6 +2447,7 @@ end;
 
 procedure TMDIChild.ShowTableData(table: string);
 begin
+  dataselected := false;
   PageControlMain.ActivePage := tabData;
   viewdata(self);
   pcChange( Self );
@@ -2463,24 +2456,13 @@ end;
 
 procedure TMDIChild.MenuViewDataClick(Sender: TObject);
 var
-  i : Integer;
-  tn, tndb : TTreeNode;
   NodeData: PVTreeData;
 begin
-  if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
-  else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
-  else exit;
-
-  tn := tndb.getFirstChild;
-  for i:=0 to tndb.Count -1 do begin
+  if Assigned(ListTables.FocusedNode) then begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    if NodeData.Captions[0] = tn.Text then
-    begin
-      DBTree.Selected := tn;
-      ShowTableData(tn.Text);
-      break;
-    end;
-    tn := tndb.GetNextChild(tn);
+    PopulateTreeTableList;
+    SelectedTable := NodeData.Captions[0];
+    ShowTableData(SelectedTable);
   end;
 end;
 
@@ -2533,7 +2515,6 @@ begin
   else case DBTree.Selected.Level of  // drop cmd from toolbar
     1 : tndb_ := DBTree.Selected;
     2 : tndb_ := DBTree.Selected.Parent;
-    3 : tndb_ := DBTree.Selected.Parent.Parent;
   end;
 
   if tndb_ = nil then raise Exception.Create('Internal error: Cannot drop NIL database.');
@@ -3611,7 +3592,9 @@ begin
   // table-doubleclick
   if Assigned(ListTables.FocusedNode) then begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    ShowTable(NodeData.Captions[0]);
+    PopulateTreeTableList;
+    SelectedTable := NodeData.Captions[0];
+    ShowTable(SelectedTable);
   end;
 end;
 
@@ -3925,7 +3908,9 @@ begin
   if Assigned(ListTables.FocusedNode) then
   begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    ShowTableProperties(NodeData.Captions[0]);
+    PopulateTreeTableList;
+    SelectedTable := NodeData.Captions[0];
+    ShowTableProperties(SelectedTable);
   end;
 end;
 
@@ -3934,7 +3919,9 @@ var
   NodeData : PVTreeData;
 begin
   NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-  ShowTableData(NodeData.Captions[0]);
+  PopulateTreeTableList;
+  SelectedTable := NodeData.Captions[0];
+  ShowTableData(SelectedTable);
 end;
 
 procedure TMDIChild.PageControlBlobEditorsChange(Sender: TObject);
