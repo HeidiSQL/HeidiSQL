@@ -1919,14 +1919,15 @@ var
   i : Cardinal;
 begin
   BaseList.BeginUpdate;
-  for i := 0 to ToAdd.Count - 1 do
+  if ToAdd.Count > 0 then
   begin
-    if BaseList.IndexOf( ToAdd[i] ) = -1 then
-      BaseList.Append( ToAdd[i] );
+    for i := 0 to ToAdd.Count - 1 do
+    begin
+      if BaseList.IndexOf( ToAdd[i] ) = -1 then BaseList.Append( ToAdd[i] );
+    end;
   end;
   BaseList.EndUpdate;
 end;
-
 
 
 {***
@@ -1946,7 +1947,6 @@ begin
       Result := Field.AsString;
   end;
 end;
-
 
 
 {**
