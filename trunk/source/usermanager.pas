@@ -125,14 +125,11 @@ begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
   cwin := Mainform.Childwin;
-  old_ActualDatabase := cwin.ActualDatabase;
-  cwin.ActualDatabase := DBNAME_MYSQL;
   try
-    cwin.EnsureActiveDatabase;
+    cwin.EnsureDatabase(DBNAME_MYSQL);
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
     Result := false;
-    cwin.ActualDatabase := old_ActualDatabase;
     exit;
   end;
 
@@ -142,10 +139,6 @@ begin
   begin
     MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
     Result := false;
-    if old_ActualDatabase <> '' then
-    begin
-      cwin.ActualDatabase := old_ActualDatabase;
-    end;
     exit;
   end;
 
@@ -831,8 +824,6 @@ begin
   FreeAndNil( ZQueryDBs );
   FreeAndNil( ZQueryTables );
   FreeAndNil( ZQueryColumns );
-  if old_ActualDatabase <> '' then
-    Mainform.Childwin.ActualDatabase := old_ActualDatabase;
 end;
 
 

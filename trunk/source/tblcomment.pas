@@ -62,8 +62,7 @@ procedure Ttablecomment.ButtonOKClick(Sender: TObject);
 begin
   screen.Cursor := crHourGlass;
   Mainform.Childwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(ComboBoxTableName.Text) + ' COMMENT = ' + esc(EditComment.Text));
-  Mainform.Childwin.RefreshActiveDbTableList;
-  Mainform.Childwin.ShowDBProperties(self);
+  Mainform.Childwin.MenuRefreshClick(self);
   close;
 end;
 

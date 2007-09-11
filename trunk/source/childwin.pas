@@ -14,7 +14,7 @@ uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL, SynEditSearch,
-  SynEditTypes, Registry, Clipbrd,
+  SynEditTypes, Clipbrd,
   Buttons, CheckLst, ToolWin, Db, DBGrids,
   DBCtrls, helpers,
   Grids, ZDataset,
@@ -26,7 +26,6 @@ uses
 
 
 type
-
   TMDIChild = class(TForm)
     Panel1: TPanel;
     DBtree: TTreeView;
@@ -351,15 +350,17 @@ type
     procedure ReadDatabasesAndTables(Sender: TObject);
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
     procedure pcChange(Sender: TObject);
-    procedure viewdata(Sender: TObject);
-    procedure ShowDBProperties(Sender: TObject);
-    procedure ShowTableProperties(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
-    procedure SelectHost;
-    procedure SelectDatabase(db: String);
-    procedure SelectTable(db: String; table: String; switchView: boolean = true);
+    procedure ShowHost;
+    procedure ShowDatabase(db: String);
+    procedure ShowDBProperties(db: String);
+    procedure ShowTable(table: String; tab: TTabSheet = nil);
+    procedure ShowTableProperties(table: string);
     procedure ShowTableData(table: string);
-    procedure ShowTable(Sender: TObject);
+    procedure viewdata(Sender: TObject);
+    procedure RefreshFieldListClick(Sender: TObject);
+    procedure MenuViewDataClick(Sender: TObject);
+    procedure MenuRefreshClick(Sender: TObject);
     procedure EmptyTable(Sender: TObject);
     procedure DropDB(Sender: TObject);
     procedure LogSQL(msg: String = ''; comment: Boolean = true );
@@ -521,6 +522,7 @@ type
       QueryRunningInterlock      : Integer;
       lastUsedDB                 : String;
       UserQueryFired             : Boolean;
+      UserQueryFiring            : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
       ListTablesColumnNames      : TStringList;
@@ -535,10 +537,12 @@ type
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
       procedure SetupListTablesHeader;
+      function GetActiveDatabase: string;
+      function GetSelectedTable: string;
+      procedure SetSelectedDatabase(db: string);
+      procedure SetSelectedTable(table: string);
 
     public
-      ActualDatabase             : String;
-      ActualTable                : String;
       dataselected               : Boolean;
       editing                    : Boolean;
       mysql_version              : Integer;
@@ -577,14 +581,19 @@ type
       property MysqlConn : TMysqlConn read FMysqlConn;
       property Conn : TOpenConnProf read FConn;
 
+      property ActiveDatabase : string read GetActiveDatabase write SetSelectedDatabase;
+      property SelectedTable : string read GetSelectedTable write SetSelectedTable;
+
       function FetchActiveDbTableList: TDataSet;
       function RefreshActiveDbTableList: TDataSet;
+      function FetchDbTableList(db: string): TDataSet;
+      function RefreshDbTableList(db: string): TDataSet;
       procedure ClearAllTableLists;
-      procedure UpdateTreeTableList;
+      procedure PopulateTreeTableList(tndb: TTreeNode = nil; ForceRefresh: Boolean = false);
+      procedure EnsureDatabase(db: string);
       procedure EnsureActiveDatabase;
       function GetVTreeDataArray( VT: TBaseVirtualTree ): TVTreeDataArray;
   end;
-
 
 type
   // Represents errors already "handled" (shown to user),
@@ -600,7 +609,8 @@ implementation
 uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
   optimizetables, copytable, sqlhelp, printlist,
-  column_selection, data_sorting, runsqlfile, mysql;
+  column_selection, data_sorting, runsqlfile, mysql,
+  Registry;
 
 
 {$I const.inc}
@@ -759,11 +769,13 @@ var
   treenode         : TTreeNode;
   ds               : TDataSet;
   miGroup,
-  miFunction      : TMenuItem;
+  miFunction       : TMenuItem;
   functioncats     : TStringList;
+  reg, reg2        : TRegistry;
 begin
   QueryRunningInterlock := 0;
   UserQueryFired := False;
+  UserQueryFiring := False;
   CachedTableLists := TStringList.Create;
 
   FConn := AConn^;
@@ -777,7 +789,8 @@ begin
   // Temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
   AutoReconnect := false;
-  with ( TRegistry.Create() ) do
+  reg := TRegistry.Create();
+  with ( reg ) do
   begin
     OpenKey( REGPATH, true );
     if ( Valueexists( 'Autoreconnect' ) ) then
@@ -790,6 +803,7 @@ begin
     end;
     CloseKey();
   end;
+  FreeAndNil(reg);
 
   ReadWindowOptions();
 
@@ -817,17 +831,15 @@ begin
   // Re-enable AutoReconnect in Registry!
   if ( AutoReconnect ) then
   begin
-    with ( TRegistry.Create() )  do
+    reg2 := TRegistry.Create();
+    with ( reg2 )  do
     begin
       OpenKey( REGPATH, true );
       WriteBool( 'AutoReconnect', true );
       CloseKey();
     end;
+    FreeAndNil(reg2);
   end;
-
-  // Set some defaults
-  ActualDatabase := '';
-  ActualTable := '';
 
   // Read engine-types for popupmenu in database tab
   if ( mysql_version >= 40102 ) then
@@ -1069,6 +1081,7 @@ end;
 procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ws    : String;
+  reg   : TRegistry;
 begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
@@ -1090,7 +1103,8 @@ begin
     end;
   end;
 
-  with ( TRegistry.Create() ) do
+  reg := TRegistry.Create();
+  with ( reg ) do
   begin
     if ( OpenKey( REGPATH, true ) ) then
     begin
@@ -1109,9 +1123,10 @@ begin
       // Open server-specific registry-folder.
       // relative from already opened folder!
       OpenKey( 'Servers\' + FConn.Description, true );
-      WriteString( 'lastUsedDB', ActualDatabase );
+      WriteString( 'lastUsedDB', ActiveDatabase );
     end;
   end;
+  FreeAndNil(reg);
 
   FormDeactivate( Sender );
   mainform.ToolBarData.Visible := false;
@@ -1160,22 +1175,16 @@ end;
 procedure TMDIChild.ReadDatabasesAndTables(Sender: TObject);
 var
   tnode          : TTreeNode;
-  tmpSelected    : TTreeNode;
   i              : Integer;
   specialDbs     : TStringList;
   dbName         : String;
+  curDb,
+  curTable       : String;
   ds             : TDataSet;
+  chgHandler     : procedure(Sender: TObject; Node: TTreeNode) of object;
 begin
-  // Fill DBTree
-  Screen.Cursor := crHourGlass;
+  // Force data tab update when appropriate.
   dataselected := false;
-  DBTree.OnChange := nil;
-  DBTree.items.Clear();
-  ClearAllTableLists;
-
-  tnodehost := DBtree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
-  tnodehost.ImageIndex := 41;
-  tnodehost.SelectedIndex := 41;
 
   Screen.Cursor := crSQLWait;
   mainform.Showstatus( 'Reading Databases...', 2, true );
@@ -1216,16 +1225,29 @@ begin
     OnlyDBs2 := OnlyDBs;
   end;
 
+  Screen.Cursor := crHourGlass;
+  // Postpone event handling.
+  chgHandler := DBTree.OnChange;
+  DBTree.OnChange := nil;
+  DBTree.Items.BeginUpdate();
+  curDb := ActiveDatabase;
+  curTable := SelectedTable;
+  DBTree.Items.Clear();
+  ClearAllTableLists;
+
+  tnodehost := DBtree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
+  tnodehost.ImageIndex := 41;
+  tnodehost.SelectedIndex := 41;
+
   // Avoids excessive InitializeKeywordLists() calls.
   SynSQLSyn1.TableNames.BeginUpdate();
-
+  SynSQLSyn1.TableNames.Clear();
   // Let synedit know all database names so that they can be highlighted
   // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
   SynSQLSyn1.TableNames.AddStrings( OnlyDBs2 );
   SynSQLSyn1.TableNames.EndUpdate();
 
   // List Databases and Tables-Names
-  tmpSelected := nil;
   for i := 0 to ( OnlyDBs2.Count - 1 ) do
   begin
     tnode := DBtree.Items.AddChild( tnodehost, OnlyDBs2[i] );
@@ -1233,30 +1255,32 @@ begin
     tnode.SelectedIndex := 38;
     // Add dummy-node, will be replaced by real tables on expanding
     DBTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
-    if ( ActualDatabase = OnlyDBs2[i] ) then
+    if i = 0 then tnodehost.Expand(false);
+    // Reselect previously selected database and table.
+    if ( curDb = OnlyDBs2[i] ) then
     begin
-      tmpSelected := tnode;
+      tnode.Selected := True;
+      PopulateTreeTableList(tnode);
+      tnode.Expand(false);
+      if curTable <> '' then try
+        SelectedTable := curTable;
+      except
+        // The table might have been removed - ignore.
+      end;
     end;
   end;
+  if DBTree.Selected = nil then DBTree.Selected := tnodehost;
 
   mainform.showstatus( IntToStr( OnlyDBs2.Count ) + ' Databases' );
-  tnodehost.Expand( false );
-  DBTree.OnChange := DBtreeChange;
-  if ( tmpSelected <> nil ) then
-  begin
-    DBTree.Selected := tmpSelected;
-  end
-  else
-  begin
-    DBTree.Selected := tnodehost;
-  end;
-  DBtreeChange( Self, tnodehost );
+  DBTree.Items.EndUpdate();
+  DBTree.OnChange := chgHandler;
+  if @chgHandler <> nil then chgHandler(self, DBTree.Selected);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
 
 
-procedure TMDIChild.SelectHost;
+procedure TMDIChild.ShowHost;
 begin
   if (not DBTree.Dragging) and (
    (PageControlMain.ActivePage = tabDatabase) or
@@ -1269,12 +1293,11 @@ begin
   tabData.TabVisible := false;
 
   Caption := Description;
-  ActualDatabase := '';
-  ActualTable := '';
+  pcChange( Self );
 end;
 
 
-procedure TMDIChild.SelectDatabase(db: String);
+procedure TMDIChild.ShowDatabase(db: String);
 begin
   if (not DBTree.Dragging) and (
    (PageControlMain.ActivePage = tabTable) or
@@ -1286,12 +1309,10 @@ begin
   tabData.TabVisible := false;
 
   pnlTableTop.Caption := 'Table-Properties';
-  ActualDatabase := db;
-  EnsureActiveDatabase;
-  Caption := Description + ' - /' + ActualDatabase;
-  ActualTable := '';
+  EnsureDatabase(db);
+  Caption := Description + ' - /' + db;
   try
-    ShowDBProperties( Self );
+    ShowDBProperties( db );
   except
     // Clear selection which we couldn't satisfy.
     if ( DBtree.Items.Count < 1 ) then
@@ -1306,41 +1327,40 @@ begin
 end;
 
 
-procedure TMDIChild.SelectTable(db: String; table: String; switchView: boolean = true);
+{***
+  Do the default action (show table properties or table data) for a table.
+}
+procedure TMDIChild.ShowTable(table: String; tab: TTabSheet = nil);
 begin
   dataselected := false;
-  ActualDatabase := db;
-  ActualTable := table;
-  if switchView then ShowTableProperties( Self );
-  Caption := Description + ' - /' + ActualDatabase + '/' + ActualTable;
+  if tab = nil then tab := tabTable; // Alternative default: tabData
+  if tab = tabTable then ShowTableProperties( table );
+  if tab = tabData then ShowTableData( table );
+  Caption := Description + ' - /' + ActiveDatabase + '/' + SelectedTable;
 end;
+
 
 // React on dbtree-clicks
 procedure TMDIChild.DBtreeChange(Sender: TObject; Node: TTreeNode);
 begin
-  if ( Node = nil ) then
-  begin
+  if (Node = nil) then begin
     raise Exception.Create( 'Internal badness: No host node in object tree.' );
   end;
-  Screen.Cursor := crHourGlass;
 
   case ( Node.Level ) of
     0 :                                    // Root / Host chosen
     begin
-      SelectHost();
+      ShowHost();
     end;
     1 :                                    // DB chosen
     begin
-      SelectDatabase( Node.Text );
+      ShowDatabase( Node.Text );
     end;
     2 :                                    // Table chosen
     begin
-      SelectTable( Node.Parent.Text, Node.Text );
+      ShowTable( Node.Text );
     end;
   end;
-
-  pcChange( Self );
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -1350,31 +1370,10 @@ end;
 }
 procedure TMDIChild.DBtreeExpanding(Sender: TObject; Node: TTreeNode;
   var AllowExpansion: Boolean);
-var
-  i             : Integer;
-  TableNames    : TStringList;
 begin
   if ( ( Node.getFirstChild <> nil ) and ( Node.getFirstChild.Text = DUMMY_NODE_TEXT ) ) then
   begin
-    // Drop dummynode
-    for i := ( Node.Count - 1 ) downto 0 do
-    begin
-      Node.Item[i].Delete();
-    end;
-
-    // Get all tables into dbtree
-    TableNames := GetCol( 'SHOW TABLES FROM ' + mask( Node.Text ) );
-    for i := 0 to ( TableNames.Count - 1 ) do
-    begin
-      with ( DBTree.Items.AddChild( Node, TableNames[i] ) ) do
-      begin
-        ImageIndex := 39;
-        SelectedIndex := 40;
-      end;
-    end;
-
-    // Add tables to syntax-highlighter
-    AddUniqueItemsToList( TableNames, SynSQLSyn1.TableNames );
+    PopulateTreeTableList(Node);
   end;
 end;
 
@@ -1387,7 +1386,7 @@ var
   j                    : Integer;
   ValidColumns         : TStringList;
   PrimaryKeyColumns    : TStringList;
-  reg                  : TRegistry;
+  reg, reg2            : TRegistry;
   reg_value            : String;
   orderclauses         : TStringList;
   columnname           : String;
@@ -1395,7 +1394,6 @@ var
   select_base          : String;
   limit                : Int64;
   ds                   : TDataSet;
-  conn                 : TOpenConnProf;
   sl_query             : TStringList;
   manualLimit          : boolean;
   manualLimitEnd       : integer;
@@ -1427,7 +1425,7 @@ begin
       end else begin
         // no tick in preferences check box - auto-limit:
         // limit number of rows fetched if more than ~ 5 MB of data
-        limit := GetCalculatedLimit( ActualTable );
+        limit := GetCalculatedLimit( SelectedTable );
       end;
 
       // adjust limit in GUI
@@ -1458,7 +1456,7 @@ begin
     begin
       SynMemoFilter.Text := '';
       // Read cached WHERE-clause and set filter
-      reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
+      reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
       if ( reg.ValueExists( reg_value ) ) then
       begin
         SynMemoFilter.Text := reg.ReadString( reg_value );
@@ -1470,7 +1468,7 @@ begin
     end;
 
     // Read cached ORDER-clause and set Grid.Sortcolumns
-    reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+    reg_value := 'ORDERCLAUSE_' + ActiveDatabase + '.' + SelectedTable;
     sorting := '';
     gridData.SortColumns.Clear();
     if ( reg.ValueExists( reg_value ) ) then
@@ -1531,7 +1529,7 @@ begin
     MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
     PrimaryKeyColumns := TStringList.Create();
 
-    if ( ( ActualTable <> '' ) and ( ActualDatabase <> '' ) ) then
+    if ( ( SelectedTable <> '' ) and ( ActiveDatabase <> '' ) ) then
     begin
       // Ensure <Table> and <Data> are visible
       tabTable.TabVisible := true;
@@ -1542,11 +1540,13 @@ begin
       MainForm.ShowStatus( 'Retrieving data...', 2, true );
 
       // Read columns to display from registry
-      with( TRegistry.Create ) do
+      reg2 := TRegistry.Create;
+      with ( reg2 ) do
       begin
         OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
-        DisplayedColumnsList := explode( '`', ReadString(REGNAME_DISPLAYEDCOLUMNS + '_' + ActualDatabase + '.' + ActualTable));
+        DisplayedColumnsList := explode( '`', ReadString(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable));
       end;
+      FreeAndNil(reg2);
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
@@ -1576,7 +1576,7 @@ begin
         // Signal for the user that we now hide some fields
         btnColumnSelection.Font.Color := clRed;
       end;
-      select_base := select_base + ' FROM ' + mask( ActualTable );
+      select_base := select_base + ' FROM ' + mask( SelectedTable );
       sl_query.Add( select_base );
       // Apply custom WHERE filter
       if ( Trim( Self.SynMemoFilter.Text ) <> '' ) then
@@ -1594,9 +1594,6 @@ begin
         sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
       end;
       try
-        conn := FConn;
-        conn.MysqlParams.Database := ActualDatabase;
-
         // Avoid excessive GUI updates.
         if ( DataSource1.DataSet <> nil ) then
         begin
@@ -1732,9 +1729,9 @@ begin
 
   // Get rowcount
   rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' +
-    mask( ActualTable ), 0 ) );
+    mask( SelectedTable ), 0 ) );
 
-  lblDataTop.Caption := ActualDatabase + '.' + ActualTable + ': ' +
+  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ' +
     FormatNumber( rows_total ) + ' records total';
 
   {***
@@ -1820,8 +1817,8 @@ begin
     viewdata(self);
   if PageControlMain.ActivePage = tabQuery then
   begin
-    if ActualDatabase <> '' then
-      pnlQueryTop.Caption := 'SQL-Query on Database ' + ActualDatabase + ':'
+    if ActiveDatabase <> '' then
+      pnlQueryTop.Caption := 'SQL-Query on Database ' + ActiveDatabase + ':'
     else
       pnlQueryTop.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
     // Manually invoke OnChange event of tabset to fill helper list with data
@@ -1847,12 +1844,17 @@ end;
 }
 procedure TMDIChild.EnsureActiveDatabase;
 begin
-  // Blank = current database undefined
-  if ActualDatabase = '' then Exit;
-  if (FMysqlConn.Connection.Database <> ActualDatabase) or UserQueryFired then begin
-    ExecUseQuery(ActualDatabase, false, false);
+  EnsureDatabase(ActiveDatabase);
+end;
+
+procedure TMDIChild.EnsureDatabase(db: string);
+begin
+  // Blank = database undefined
+  if db = '' then Exit;
+  if (FMysqlConn.Connection.Database <> db) or (UserQueryFired and not UserQueryFiring) then begin
+    ExecUseQuery(db, false, false);
     UserQueryFired := false;
-    FMysqlConn.Connection.Database := ActualDatabase;
+    FMysqlConn.Connection.Database := db;
   end;
 end;
 
@@ -1863,28 +1865,33 @@ end;
   @return TDataSet The cached list of tables for the active database.
 }
 function TMDIChild.FetchActiveDbTableList: TDataSet;
+begin
+  Result := FetchDbTableList(ActiveDatabase);
+end;
+
+function TMDIChild.FetchDbTableList(db: string): TDataSet;
 var
   ds: TDataSet;
   OldCursor: TCursor;
 begin
-  if CachedTableLists.IndexOf(ActualDatabase) = -1 then begin
+  if CachedTableLists.IndexOf(db) = -1 then begin
     // Not in cache, load table list.
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
-    MainForm.ShowStatus('Displaying tables from ' + ActualDatabase + '...', 2, true);
+    MainForm.ShowStatus('Displaying tables from ' + db + '...', 2, true);
     if mysql_version >= 32300 then begin
-      ds := GetResults('SHOW TABLE STATUS', false, false);
+      ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
     end else begin
       // contains table names, nothing else.
-      ds := GetResults('SHOW TABLES', false, false);
+      ds := GetResults('SHOW TABLES FROM ' + mask(db), false, false);
       // could clean up data (rename first column to 'Name') and
       // and add row counters to data set as a new field by using
       // SELECT COUNT(*), but that would potentially be rather slow.
     end;
-    CachedTableLists.AddObject(ActualDatabase, ds);
+    CachedTableLists.AddObject(db, ds);
     Screen.Cursor := OldCursor;
   end;
-  Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(ActualDatabase)]);
+  Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
   Result.First;
 end;
 
@@ -1894,17 +1901,22 @@ end;
   @return TDataSet The newly cached list of tables for the active database.
 }
 function TMDIChild.RefreshActiveDbTableList: TDataSet;
+begin
+  Result := RefreshDbTableList(ActiveDatabase);
+end;
+
+function TMDIChild.RefreshDbTableList(db: string): TDataSet;
 var
   idx: Integer;
   o: TObject;
 begin
-  idx := CachedTableLists.IndexOf(ActualDatabase);
+  idx := CachedTableLists.IndexOf(db);
   if idx > -1 then begin
     o := CachedTableLists.Objects[idx];
     FreeAndNil(o);
     CachedTableLists.Delete(idx);
   end;
-  Result := FetchActiveDbTableList;
+  Result := FetchDbTableList(db);
 end;
 
 
@@ -1926,36 +1938,61 @@ end;
 
 {***
   Updates tree with table list for currently selected database (or table).
+  Does not postpone event handling.
 }
-procedure TMDIChild.UpdateTreeTableList;
+procedure TMDIChild.PopulateTreeTableList(tndb: TTreeNode; ForceRefresh: Boolean);
 var
-  tndb : TTreenode;
   ds: TDataSet;
+  s: string;
   t, u: Integer;
+  cur: string;
 begin
-  if DBTree.Selected.Level = 1 then tndb := DBTree.Selected
-  else if DBTree.Selected.Level = 2 then tndb := DBTree.Selected.Parent
-  else exit;
+  // Find currently selected node if not specified, or exit.
+  if tndb = nil then case DBTree.Selected.Level of
+    2: tndb := DBTree.Selected.Parent;
+    1: tndb := DBTree.Selected;
+    else Exit;
+  end;
 
-  // get all tables back into dbtree
-  DBTree.Items.BeginUpdate;
-  for u:=tndb.Count-1 downto 0 do tndb.Item[u].delete;
-  ds := FetchActiveDbTableList;
+  // Do nothing if node already populated with children.
+  if (not ForceRefresh) and (tndb.Count > 0) and (tndb[0].Text <> DUMMY_NODE_TEXT) then Exit;
+
+  // Clear children and populate tree with table names.
+  SynSQLSyn1.TableNames.BeginUpdate;
+  cur := '';
+  if ActiveDatabase = tndb.Text then cur := SelectedTable;
+  if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
+    if tndb.Selected then tndb.Parent.Selected := true;
+    tndb.Item[u].delete;
+  end;
+  if ForceRefresh then ds := RefreshDbTableList(tndb.Text)
+  else ds := FetchDbTableList(tndb.Text);
   for t:=0 to ds.RecordCount-1 do
   begin
-    with DBtree.Items.AddChild(tndb, ds.Fields[0].AsString) do
+    s := ds.Fields[0].AsString;
+    with DBtree.Items.AddChild(tndb, s) do
     begin
       ImageIndex := 39;
       selectedIndex := 40;
+      if Text = cur then Selected := true;
     end;
+    // Add tables to syntax highlighter
+    if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
     ds.Next;
   end;
-  DBTree.Items.EndUpdate;
+  SynSQLSyn1.TableNames.EndUpdate;
+end;
+
+
+procedure TMDIChild.MenuRefreshClick(Sender: TObject);
+begin
+  RefreshActiveDbTableList;
+  ShowDBProperties(ActiveDatabase);
 end;
 
 
 { Show tables and their properties on the tabsheet "Database" }
-procedure TMDIChild.ShowDBProperties(Sender: TObject);
+procedure TMDIChild.ShowDBProperties(db: string);
 var
   i               : Integer;
   bytes           : Extended;
@@ -1964,17 +2001,11 @@ var
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
-  MainForm.ShowStatus( 'Reading from database ' + ActualDatabase + '...', 2, true );
-  Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + ActualDatabase + '...';
+  MainForm.ShowStatus( 'Reading from database ' + db + '...', 2, true );
+  Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + db + '...';
 
   try
-    // Refresh chosen in table list?
-    if sender = menurefresh then RefreshActiveDbTableList;
-
-    // Populate database subitems (= tables) in tree.
-    UpdateTreeTableList;
-
-    ds := FetchActiveDbTableList;
+    ds := FetchDbTableList(db);
 
     ListTables.BeginUpdate;
     ListTables.Clear;
@@ -2035,27 +2066,27 @@ begin
       else
         ListCaptions.Add('');
 
-      if ds.FindField('Avg_row_length')<>nil then
+      if (ds.FindField('Avg_row_length')<>nil) and (ds.FieldByName('Avg_row_length').AsString<>'') then
         ListCaptions.Add( FormatByteNumber(ds.FieldByName('Avg_row_length').AsString) )
       else
         ListCaptions.Add('');
 
-      if ds.FindField('Max_data_length')<>nil then
+      if (ds.FindField('Max_data_length')<>nil) and (ds.FieldByName('Max_data_length').AsString<>'') then
         ListCaptions.Add( FormatByteNumber(ds.FieldByName('Max_data_length').AsString) )
       else
         ListCaptions.Add('');
 
-      if ds.FindField('Index_length')<>nil then
+      if (ds.FindField('Index_length')<>nil) and (ds.FieldByName('Index_length').AsString<>'') then
         ListCaptions.Add( FormatByteNumber(ds.FieldByName('Index_length').AsString) )
       else
         ListCaptions.Add('');
 
-      if ds.FindField('Data_free')<>nil then
+      if (ds.FindField('Data_free')<>nil) and (ds.FieldByName('Data_free').AsString<>'') then
         ListCaptions.Add( FormatByteNumber(ds.FieldByName('Data_free').AsString) )
       else
         ListCaptions.Add('');
 
-      if ds.FindField('Auto_increment')<>nil then
+      if (ds.FindField('Auto_increment')<>nil) and (ds.FieldByName('Auto_increment').AsString<>'') then
         ListCaptions.Add( FormatNumber(ds.FieldByName('Auto_increment').AsString) )
       else
         ListCaptions.Add('');
@@ -2084,26 +2115,30 @@ begin
       VTRowDataListTables[i-1].Captions := ListCaptions;
       ds.Next;
     end;
-    mainform.showstatus(ActualDatabase + ': ' + IntToStr(ds.RecordCount) +' table(s)');
+    mainform.showstatus(db + ': ' + IntToStr(ds.RecordCount) +' table(s)');
   finally
     ListTables.RootNodeCount := Length(VTRowDataListTables);
     ListTables.EndUpdate;
     Screen.Cursor := crDefault;
   end;
   Screen.Cursor := crHourglass;
-
-  pnlDatabaseTop.Caption := 'Database ' + ActualDatabase + ': ' + IntToStr(ListTables.RootNodeCount) + ' table(s)';
+  pcChange( Self );
+  pnlDatabaseTop.Caption := 'Database ' + db + ': ' + IntToStr(ListTables.RootNodeCount) + ' table(s)';
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
 
 
-
 { Show columns of selected table, indicate indexed columns by certain icons }
-procedure TMDIChild.ShowTableProperties(Sender: TObject);
+procedure TMDIChild.RefreshFieldListClick(Sender: TObject);
+begin
+  ShowTableProperties(SelectedTable);
+end;
+
+
+procedure TMDIChild.ShowTableProperties(table: string);
 var
   i,j : Integer;
-  tn, tndb : TTreeNode;
   isFulltext : Boolean;
   ds : TDataSet;
   dummy: Boolean;
@@ -2122,31 +2157,13 @@ begin
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
 
-  pnlTableTop.Caption := 'Table-Properties for ' + ActualDatabase + ': ' + ActualTable;
-
-  // set current node in DBTree to ActualTable:
-  with DBTree do begin
-    if Selected.Level = 1 then tndb := Selected
-    else if Selected.Level = 2 then tndb := Selected.Parent
-    else if Selected.Level = 3 then tndb := Selected.Parent.Parent
-    else exit;
-  end;
-  tn := tndb.getFirstChild;
-  for i:=0 to tndb.Count -1 do
-  begin
-    if ActualTable = tn.Text then
-    begin
-      DBTree.Selected := tn; // select table
-      break;
-    end;
-    tn := tndb.GetNextChild(tn);
-  end;
+  pnlTableTop.Caption := 'Table-Properties for ' + ActiveDatabase + ': ' + SelectedTable;
 
   MainForm.ShowStatus( 'Reading table properties...', 2, true );
   ListColumns.BeginUpdate;
   ListColumns.Clear;
   Try
-    ds := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(ActualTable), false );
+    ds := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
 
     // Hide column "Comment" on old servers.
     hasCommentColumn := ds.FindField('Comment') <> nil;
@@ -2177,7 +2194,7 @@ begin
 
     // Manually invoke OnChange event of tabset to fill helper list with data
     if tabsetQueryHelpers.TabIndex = 0 then
-      tabsetQueryHelpers.OnChange( Sender, tabsetQueryHelpers.TabIndex, dummy);
+      tabsetQueryHelpers.OnChange( Self, tabsetQueryHelpers.TabIndex, dummy);
 
     {*
       TODO: Create drag-drop box next to query window with these columns.
@@ -2198,7 +2215,7 @@ begin
     *}
 
     Screen.Cursor := crHourglass;
-    ds := GetResults( 'SHOW KEYS FROM ' + mask(ActualTable) );
+    ds := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
     for i:=1 to ds.RecordCount do
     begin
       // Search for the column name in listColumns
@@ -2255,8 +2272,9 @@ begin
     Screen.Cursor := crDefault;
   end;
 
+  pcChange( Self );
   MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
-  MainForm.showstatus(ActualDatabase + ': '+ ActualTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
+  MainForm.showstatus(ActiveDatabase + ': '+ SelectedTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
   Screen.Cursor := crDefault;
 end;
 
@@ -2340,9 +2358,9 @@ begin
   MenuAnalyze.Enabled := tableSelected;
   MenuRepair.Enabled := tableSelected;
 
-  MainForm.ButtonDropDatabase.Enabled := (ActualDatabase <> '') and FrmIsFocussed;
-  MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (ActualTable <> '') and FrmIsFocussed);
-  MainForm.ButtonCreateTable.Enabled := (ActualDatabase <> '') and FrmIsFocussed;
+  MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
+  MainForm.ButtonCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.ButtonImportTextFile.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
   MainForm.MenuImportTextFile.Enabled := MainForm.ButtonImportTextFile.Enabled;
 
@@ -2414,13 +2432,13 @@ end;
 
 procedure TMDIChild.ShowTableData(table: string);
 begin
-  SelectTable(ActualDatabase, table, false);
   PageControlMain.ActivePage := tabData;
   viewdata(self);
+  pcChange( Self );
 end;
 
 
-procedure TMDIChild.ShowTable(Sender: TObject);
+procedure TMDIChild.MenuViewDataClick(Sender: TObject);
 var
   i : Integer;
   tn, tndb : TTreeNode;
@@ -2475,8 +2493,7 @@ begin
   for i:=0 to t.count-1 do
     ExecUpdateQuery( sql_pattern + mask(t[i]) );
   t.Free;
-  RefreshActiveDbTableList;
-  ShowDBProperties(self);
+  MenuRefreshClick(self);
   Screen.Cursor := crDefault;
 end;
 
@@ -2729,7 +2746,6 @@ var
   recordcount       : Integer;
   ds                : TDataSet;
   term              : String;
-  prevDb            : String;
 begin
   if ( btnAltTerminator.Down ) then
   begin
@@ -2763,15 +2779,6 @@ begin
     Exit;
   end;
 
-  // In case user selected a different database in the tree,
-  // make sure that we activate it before firing any queries.
-  EnsureActiveDatabase;
-  
-  // Let EnsureActiveDatabase know that we're firing user queries.
-  prevDb := ActualDatabase;
-  ActualDatabase := EmptyStr;
-  UserQueryFired := true;
-
   // Destroy old data set.
   ds := DataSource2.DataSet;
   DataSource2.DataSet := nil;
@@ -2791,10 +2798,8 @@ begin
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
 
-    if ( ActualDatabase <> EmptyStr ) then
-    begin
-      FMysqlConn.Connection.Database := ActualDatabase;
-    end;
+    // Let EnsureActiveDatabase know that we've fired user queries.
+    UserQueryFiring := true;
 
     rowsaffected := 0;
     fieldcount := 0;
@@ -2886,6 +2891,10 @@ begin
     end;
 
   finally
+    // Let EnsureActiveDatabase know that we've fired user queries.
+    UserQueryFired := true;
+    UserQueryFiring := false;
+
     // Avoid excessive GridHighlightChanged() when flicking controls.
     viewingdata := true;
 
@@ -2916,7 +2925,6 @@ begin
     // Ensure controls are in a valid state
     ValidateControls();
     viewingdata := false;
-    ActualDatabase := prevDb;
     if ( ds <> nil ) then
     begin
       TZQuery(ds).EnableControls();
@@ -2963,18 +2971,14 @@ begin
   // In case all listItems are selected:
   if dropList.Count = Length(VTRowDataListColumns) then
   begin
-    if MessageDlg('Can''t drop all or the last Field - drop Table '+ActualTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+    if MessageDlg('Can''t drop all or the last Field - drop Table '+SelectedTable+'?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
     begin
       Screen.Cursor := crSQLWait;
-      ExecUpdateQuery( 'DROP TABLE '+mask(ActualTable) );
+      ExecUpdateQuery( 'DROP TABLE '+mask(SelectedTable) );
       tn := DBTree.Selected;
       DBTree.Selected := DBTree.Selected.Parent;
       tn.Destroy;
-      try
-        RefreshActiveDbTableList;
-      except
-      end;
-      ShowDBProperties(self);
+      MenuRefreshClick(self);
       Screen.Cursor := crDefault;
     end;
   end else
@@ -2987,7 +2991,7 @@ begin
     delete(dropCmd, Length(dropCmd)-1, 2);
 
     // Execute field dropping
-    ExecUpdateQuery( 'ALTER TABLE '+mask(ActualTable)+' ' + dropCmd );
+    ExecUpdateQuery( 'ALTER TABLE '+mask(SelectedTable)+' ' + dropCmd );
 
     // Rely on the server respective ExecUpdateQuery has raised an exception so the
     // following code will be skipped on any error
@@ -3044,7 +3048,7 @@ var
     i : Integer;
     ds : TDataSet;
   begin
-    dbname := ActualDatabase;
+    dbname := ActiveDatabase;
     if Pos( '.', tablename ) > -1 then
     begin
       dbname := Copy( tablename, 0, Pos( '.', tablename )-1 );
@@ -3176,7 +3180,7 @@ begin
     for i:=0 to SynCompletionProposal1.ItemList.count-1 do
       SynCompletionProposal1.ItemList[i] := '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}database\color{clWindowText}\column{}' + SynCompletionProposal1.ItemList[i];
 
-    if ActualDatabase <> '' then
+    if ActiveDatabase <> '' then
     begin
       // Add tables
       for i:=0 to Length(VTRowDataListTables)-1 do
@@ -3330,8 +3334,8 @@ begin
           end;
         end;
       end;
-      ActualDatabase := dbname;
       ReadDatabasesAndTables(self);
+      ActiveDatabase := dbname;
     except
       MessageDLG('Creation failed.'+crlf+'Maybe '''+dbname+''' is not a valid database-name.', mtError, [mbOK], 0)
     end;
@@ -3352,7 +3356,6 @@ end;
 procedure TMDIChild.ListTablesNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
-  i : Integer;
   NodeData : PVTreeData;
 begin
   // Fetch data from node
@@ -3364,12 +3367,11 @@ begin
     // rename table
     ExecUpdateQuery( 'ALTER TABLE ' + mask(NodeData.Captions[0]) + ' RENAME ' + mask(NewText), False, False );
 
-    i := SynSQLSyn1.TableNames.IndexOf( NodeData.Captions[0] );
-    if i > -1 then
-      SynSQLSyn1.TableNames[i] := NewText;
+    if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
+      SynSQLSyn1.TableNames.Add(NewText);
+    end;
     // Update nodedata
     NodeData.Captions[0] := NewText;
-    ActualTable := NewText;
     RefreshActiveDbTableList;
   except
     On E : Exception do
@@ -3586,7 +3588,7 @@ begin
   // table-doubleclick
   if Assigned(ListTables.FocusedNode) then begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    SelectTable(ActualDatabase, NodeData.Captions[0]);
+    ShowTable(NodeData.Captions[0]);
   end;
 end;
 
@@ -3670,7 +3672,7 @@ begin
   // Write orderclause to registry
   reg := TRegistry.Create();
   reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
-  reg_value := 'ORDERCLAUSE_' + ActualDatabase + '.' + ActualTable;
+  reg_value := 'ORDERCLAUSE_' + ActiveDatabase + '.' + SelectedTable;
   if ( sorting <> '' ) then
   begin
     reg.WriteString( reg_value, sorting );
@@ -3900,7 +3902,7 @@ begin
   if Assigned(ListTables.FocusedNode) then
   begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    SelectTable(ActualDatabase, NodeData.Captions[0]);
+    ShowTableProperties(NodeData.Captions[0]);
   end;
 end;
 
@@ -4080,7 +4082,7 @@ begin
   // save where-filter
   With TSaveDialog.Create(self) do begin
     Filter := 'Textfiles (*.txt)|*.txt|SQL-Files (*.sql)|*.sql|All files (*.*)|*.*';
-    FileName := ActualTable;
+    FileName := SelectedTable;
     Options := [ofOverwritePrompt,ofEnableSizing];
     DefaultExt := 'txt';
     if Execute and (Filename <> '') then
@@ -4106,7 +4108,7 @@ begin
   if prefRememberFilters then
   try
     reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
-    reg_value := 'WHERECLAUSE_' + ActualDatabase + '.' + ActualTable;
+    reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
     if where <> '' then
       reg.WriteString( reg_value, where )
     else
@@ -4185,8 +4187,7 @@ begin
   for i:=0 to Selected.Count - 1 do
     ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + tabletype);
   Selected.Free;
-  RefreshActiveDbTableList;
-  ShowDBProperties(self);
+  MenuRefreshClick(self);
 end;
 
 procedure TMDIChild.MenuChangeTypeOtherClick(Sender: TObject);
@@ -4201,8 +4202,7 @@ begin
     for i:=0 to Selected.Count - 1 do
       ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + strtype );
     Selected.Free;
-    RefreshActiveDbTableList;
-    ShowDBProperties(self);
+    MenuRefreshClick(self);
   end;
 end;
 
@@ -4865,7 +4865,7 @@ end;
 
 procedure TMDIChild.btnTableViewDataClick(Sender: TObject);
 begin
-  ShowTableData(ActualTable);
+  ShowTableData(SelectedTable);
 end;
 
 procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
@@ -5548,6 +5548,65 @@ begin
 end;
 
 
+function TMDIChild.GetActiveDatabase: string;
+begin
+  // Find currently selected database node in database tree,
+  // or the parent if a table is currently selected.
+  if DBTree.Selected = nil then Result := ''
+  else case DBTree.Selected.Level of
+      2: Result := DBTree.Selected.Parent.Text;
+      1: Result := DBTree.Selected.Text;
+    else Result := '';
+  end;
+end;
+
+
+function TMDIChild.GetSelectedTable: string;
+begin
+  if DBTree.Selected = nil then Result := ''
+  else case DBTree.Selected.Level of
+      2: Result := DBTree.Selected.Text;
+    else Result := '';
+  end;
+end;
+
+
+procedure TMDIChild.SetSelectedTable(table: string);
+var
+  allnodes: TTreeNodes;
+  i: integer;
+begin
+  allnodes := DBTree.Items;
+  if allnodes.Count > 0 then begin
+    for i := 0 to allnodes.Count - 1 do begin
+      if (allnodes[i].Level = 2) and (allnodes[i].Text = table) then begin
+        allnodes[i].Selected := true;
+        exit;
+      end;
+    end;
+  end;
+  raise Exception.Create('Node ' + table + ' not found in tree.');
+end;
+
+
+procedure TMDIChild.SetSelectedDatabase(db: string);
+var
+  allnodes: TTreeNodes;
+  i: integer;
+begin
+  allnodes := DBTree.Items;
+  if allnodes.Count > 0 then begin
+    for i := 0 to allnodes.Count - 1 do begin
+      if (allnodes[i].Level = 1) and (allnodes[i].Text = db) then begin
+        allnodes[i].Selected := true;
+        exit;
+      end;
+    end;
+  end;
+  raise Exception.Create('Node ' + db + ' not found in tree.');
+end;
+
+
 {***
   Detect average row size and limit the number of rows fetched at
   once if more than ~ 5 MB of data
@@ -5773,7 +5832,7 @@ begin
     NodeData := ListColumns.GetNodeData(Node);
 
     // Fetch column definition
-    def := GetResults( 'SHOW COLUMNS FROM ' + mask(ActualTable) + ' LIKE ' + esc(NodeData.Captions[0]), False, False );
+    def := GetResults( 'SHOW COLUMNS FROM ' + mask(SelectedTable) + ' LIKE ' + esc(NodeData.Captions[0]), False, False );
 
     // Check NOT NULL
     sql_null := 'NULL ';
@@ -5796,7 +5855,7 @@ begin
       sql_default := ' '+UpperCase(def.FieldByName('Extra').AsString) + ' ';
 
     // Concat column definition
-    sql_update := 'ALTER TABLE ' + mask(ActualTable) +
+    sql_update := 'ALTER TABLE ' + mask(SelectedTable) +
       ' CHANGE ' + mask(NodeData.Captions[0]) +
       ' ' + mask(NewText) + ' ' +
       def.FieldByName('Type').AsString + ' ' +

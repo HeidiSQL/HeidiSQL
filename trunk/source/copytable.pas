@@ -118,7 +118,7 @@ begin
 
   for i:=0 to comboSelectDatabase.Items.Count-1 do
   begin
-    if (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActualDatabase) then
+    if (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActiveDatabase) then
     begin
       comboSelectDatabase.ItemIndex := i;
       break;
@@ -281,8 +281,7 @@ begin
     zq.Next;
   end;
 
-  Mainform.Childwin.RefreshActiveDbTableList;
-  Mainform.ChildWin.ShowDBProperties(self);
+  Mainform.Childwin.MenuRefreshClick(Self);
   close;
 
 end;

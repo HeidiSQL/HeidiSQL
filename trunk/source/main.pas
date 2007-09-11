@@ -455,15 +455,13 @@ begin
   // Refresh
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabHost then
     ChildWin.ShowVariablesAndProcesses(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then begin
-    ChildWin.RefreshActiveDbTableList;
-    ChildWin.ShowDBProperties(self)
-  end else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
-    ChildWin.ShowTableProperties(self)
+  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
+    ChildWin.MenuRefreshClick(self)
+  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
+    ChildWin.ShowTableProperties(ChildWin.SelectedTable)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
     ChildWin.viewdata(self)
-  else
-    ChildWin.ReadDatabasesAndTables(self);
+  else ChildWin.ReadDatabasesAndTables(self);
 end;
 
 procedure TMainForm.ButtonCreateDatabaseClick(Sender: TObject);
@@ -481,7 +479,7 @@ end;
 procedure TMainForm.ButtonDropDatabaseClick(Sender: TObject);
 begin
   // drop db
-  if ChildWin.ActualDatabase <> '' then
+  if ChildWin.ActiveDatabase <> '' then
     ChildWin.DropDB(self);
 end;
 
@@ -804,14 +802,14 @@ begin
     Filter := 'XML-Files (*.xml)|*.xml|All files (*.*)|*.*';
     DefaultExt := 'xml';
     if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-      FileName := ChildWin.ActualTable
+      FileName := ChildWin.SelectedTable
     else
       FileName := 'SQL query';
     Options := [ofOverwritePrompt,ofEnableSizing];
 
     if Execute and (FileName <> '') then begin
       if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-        dataset2xml(ChildWin.GetVisualDataset(), ChildWin.ActualTable, FileName)
+        dataset2xml(ChildWin.GetVisualDataset(), ChildWin.SelectedTable, FileName)
       else
         dataset2xml(ChildWin.GetVisualDataset(), 'SQL query', FileName);
     end;
@@ -822,7 +820,7 @@ procedure TMainForm.Copy2XMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as XML
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2xml(ChildWin.GetVisualDataset(), ChildWin.ActualTable)
+    dataset2xml(ChildWin.GetVisualDataset(), ChildWin.SelectedTable)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
     dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query');
 end;
@@ -843,7 +841,7 @@ begin
   // Save data in current dataset as CSV, HTML or XML
 
   case ChildWin.PageControlMain.ActivePageIndex of
-    3 : begin query := ChildWin.GetVisualDataset(){ZQuery2}; ChildWin.SaveDialogExportData.Filename := ChildWin.ActualTable; end;
+    3 : begin query := ChildWin.GetVisualDataset(){ZQuery2}; ChildWin.SaveDialogExportData.Filename := ChildWin.SelectedTable; end;
     4 : begin query := ChildWin.GetVisualDataset() {ZQuery1}; ChildWin.SaveDialogExportData.Filename := 'SQL-query'; end;
     else
       raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
@@ -966,7 +964,7 @@ begin
       end;
     end else begin
       // Invoked from one of the various buttons, drop table selected in tree view.
-      t.add(mask(ActualDatabase) + '.' + mask(ActualTable));
+      t.add(mask(ActiveDatabase) + '.' + mask(SelectedTable));
     end;
 
     // Fix actions temporarily enabled for popup menu.
@@ -1006,8 +1004,7 @@ begin
       end;
     end;
 
-    RefreshActiveDbTableList;
-    ShowDBProperties(self);
+    MenuRefreshClick(Self);
     Screen.Cursor := crDefault;
   end;
 end;

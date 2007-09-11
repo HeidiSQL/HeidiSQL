@@ -40,7 +40,6 @@ type
     procedure Analyze(Sender: TObject);
     procedure Repair(Sender: TObject);
     procedure showresult(Sender: TObject; ds: TDataSet);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure TablesCheckListBoxClickCheck(Sender: TObject);
   private
     { Private declarations }
@@ -88,7 +87,7 @@ begin
   DBComboBox.ItemIndex := 0;
   for i:=0 to DBComboBox.Items.Count-1 do
   begin
-    if DBComboBox.Items[i] = Mainform.ChildWin.ActualDatabase then
+    if DBComboBox.Items[i] = Mainform.ChildWin.ActiveDatabase then
       DBComboBox.ItemIndex := i;
   end;
   if DBComboBox.ItemIndex = -1 then
@@ -231,17 +230,6 @@ begin
 
   ListViewResults.Columns.EndUpdate();
   ListViewResults.Items.EndUpdate();
-end;
-
-procedure Toptimize.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  // catch exception to be sure window can close
-  try
-    if Mainform.ChildWin.ActualDatabase <> '' then
-      Mainform.ChildWin.ExecUseQuery( Mainform.ChildWin.ActualDatabase );
-  except
-  end;
-
 end;
 
 procedure Toptimize.TablesCheckListBoxClickCheck(Sender: TObject);

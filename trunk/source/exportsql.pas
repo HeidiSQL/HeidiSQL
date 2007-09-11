@@ -169,7 +169,7 @@ begin
   PageControl1.ActivePageIndex := 0;
   SynMemoExampleSQL.Highlighter := Mainform.ChildWin.SynSQLSyn1;
   SynMemoExampleSQL.Font := Mainform.ChildWin.SynMemoQuery.Font;
-  
+
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
   Caption := Mainform.ChildWin.MysqlConn.Description + ' - Export Tables...';
@@ -191,7 +191,7 @@ begin
 
   for i:=0 to comboSelectDatabase.Items.Count-1 do
   begin
-    if ((dbtree_db = '') and (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActualDatabase))
+    if ((dbtree_db = '') and (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActiveDatabase))
       or ((dbtree_db <> '') and (comboSelectDatabase.Items[i] = dbtree_db)) then
     begin
       comboSelectDatabase.ItemIndex := i;
@@ -377,7 +377,7 @@ begin
         2,3 : checkListTables.checked[i] := dbtree_table = checkListTables.Items[i];
       end;
     end
-    else if Mainform.ChildWin.ActualDatabase = comboSelectDatabase.Text then
+    else if Mainform.ChildWin.ActiveDatabase = comboSelectDatabase.Text then
       checkListTables.checked[i] := Selected.IndexOf( checkListTables.Items[i] ) > -1
     else
       checkListTables.checked[i] := true;
@@ -526,9 +526,7 @@ begin
 
   try
     // Be sure to read everything from the correct database
-    OldActualDatabase := cwin.ActualDatabase;
-    cwin.ActualDatabase := comboSelectDatabase.Text;
-    cwin.EnsureActiveDatabase;
+    cwin.EnsureDatabase(comboSelectDatabase.Text);
 
     {***
       Ouput useful header information only when exporting to file
@@ -1117,11 +1115,6 @@ begin
     else if tohost then
       RemoteExecNonQuery(win2export, sql );
 
-    if OldActualDatabase <> '' then
-    begin
-      cwin.ActualDatabase := OldActualDatabase;
-      cwin.EnsureActiveDatabase;
-    end;
   FINALLY
     if tofile then
       f.Free;

@@ -212,9 +212,9 @@ begin
   try
     Mainform.ChildWin.ExecUseQuery( DBComboBox.Text );
     Mainform.ChildWin.ExecUpdateQuery( createQuery );
-    Mainform.Childwin.RefreshActiveDbTableList;
-    Mainform.ChildWin.ShowDBProperties(self);
-    Mainform.ChildWin.ActualTable := EditTablename.Text;
+    Mainform.ChildWin.RefreshDbTableList( DBComboBox.Text );
+    Mainform.ChildWin.SelectedTable := EditTablename.Text;
+    Mainform.ChildWin.ShowTable(EditTablename.Text);
     Close;
   except on E: THandledSQLError do;
   end;
@@ -505,7 +505,7 @@ begin
   DBComboBox.ItemIndex := 0;
   for i:=0 to DBComboBox.Items.Count-1 do
   begin
-    if DBComboBox.Items[i] = Mainform.ChildWin.ActualDatabase then
+    if DBComboBox.Items[i] = Mainform.ChildWin.ActiveDatabase then
       DBComboBox.ItemIndex := i;
   end;
   if DBComboBox.ItemIndex = -1 then

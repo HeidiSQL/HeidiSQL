@@ -114,7 +114,7 @@ begin
 
   for i:=0 to comboDatabase.Items.Count-1 do
   begin
-    if comboDatabase.Items[i] = Mainform.ChildWin.ActualDatabase then
+    if comboDatabase.Items[i] = Mainform.ChildWin.ActiveDatabase then
     begin
       comboDatabase.ItemIndex := i;
       break;
@@ -159,7 +159,7 @@ begin
   comboTable.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( comboDatabase.Text ) );
   for i:=0 to comboTable.Items.Count-1 do
   begin
-    if comboTable.Items[i] = Mainform.ChildWin.ActualTable then
+    if comboTable.Items[i] = Mainform.ChildWin.SelectedTable then
     begin
       comboTable.ItemIndex := i;
       break;
