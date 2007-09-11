@@ -2351,17 +2351,12 @@ begin
     ButtonRefresh.Enabled := FrmIsFocussed;
     ButtonReload.Enabled := FrmIsFocussed;
     ExportTables.Enabled := FrmIsFocussed;
-    ButtonImportTextfile.Enabled := FrmIsFocussed;
-    ButtonCreateTable.Enabled := FrmIsFocussed;
     ButtonCreateDatabase.Enabled := FrmIsFocussed;
-    ButtonDropDatabase.Enabled := false;
     MenuRefresh.Enabled := FrmIsFocussed;
     MenuExport.Enabled := FrmIsFocussed;
-    MenuImportTextFile.Enabled := FrmIsFocussed;
     MenuCreateTable.Enabled := FrmIsFocussed;
     MenuCreateDatabase.Enabled := FrmIsFocussed;
     MenuDropDatabase.Enabled := FrmIsFocussed;
-    DropTable.Enabled := FrmIsFocussed;
     LoadSQL.Enabled := FrmIsFocussed;
     MenuFlushHosts.Enabled := FrmIsFocussed;
     MenuFlushLogs.Enabled := FrmIsFocussed;
