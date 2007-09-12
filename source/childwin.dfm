@@ -2434,6 +2434,15 @@ object MDIChild: TMDIChild
     object N23: TMenuItem
       Caption = '-'
     end
+    object menuSQLhelp: TMenuItem
+      Caption = 'Lookup in SQL help ...'
+      ImageIndex = 96
+      ShortCut = 112
+      OnClick = menuSQLhelpClick
+    end
+    object N24: TMenuItem
+      Caption = '-'
+    end
   end
   object popupQueryHelpers: TPopupMenu
     Images = MainForm.ImageList1

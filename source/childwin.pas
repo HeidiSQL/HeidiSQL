@@ -305,6 +305,8 @@ type
     btnTableManageIndexes: TToolButton;
     tlbTableLeft2: TToolBar;
     btnTableInsertRecord: TToolButton;
+    menuSQLhelp: TMenuItem;
+    N24: TMenuItem;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -491,6 +493,7 @@ type
     procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
+    procedure menuSQLhelpClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
     procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
         NodeDataSize: Integer);
@@ -4235,10 +4238,16 @@ procedure TMDIChild.popupQueryPopup(Sender: TObject);
 var
   NotInFilterMemo,
   somechars         : Boolean;
+  ActiveSynMemo     : TSynMemo;
 begin
   // Depending which SynMemo is focused, (de-)activate some menuitems
   // The popupQuery is used in both Filter- and Query-Memo
   NotInFilterMemo := Not SynMemoFilter.Focused;
+
+  if NotInFilterMemo then
+    ActiveSynMemo := SynMemoQuery
+  else
+    ActiveSynMemo := SynMemoFilter;
 
   MenuSetFilter.Visible := Not NotInFilterMemo;
 
@@ -4261,23 +4270,27 @@ begin
 
   if NotInFilterMemo then
   begin
-    somechars := SynMemoQuery.GetTextLen > 0;
+    somechars := ActiveSynMemo.GetTextLen > 0;
     MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
     MenuSetFilter.ShortCut := TextToShortCut('');
     // Inserting file at cursor only makes sense with content
     MenuInsertFileAtCursor.Enabled := somechars;
     Menusave.Enabled := somechars;
-    MenuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
+    MenuSaveSelectionToFile.Enabled := ActiveSynMemo.SelAvail;
     MenuSaveAsSnippet.Enabled := somechars;
-    MenuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
+    MenuSaveSelectionAsSnippet.Enabled := ActiveSynMemo.SelAvail;
   end
   else
   begin
-    somechars := SynMemoFilter.GetTextLen > 0;
+    somechars := ActiveSynMemo.GetTextLen > 0;
     MenuRun.ShortCut := TextToShortCut('');
     MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
   end;
   MenuClear.Enabled := somechars;
+
+  menuSQLHelp.Enabled := (mysql_version >= 40100) and (ActiveSynMemo.WordAtCursor <> '');
+  // Insert keyword into menuitem, so it's very clear what the menuitem does
+  menuSQLHelp.Caption := 'Lookup "'+sstr(ActiveSynMemo.WordAtCursor,50)+'" in SQL help ...';
 end;
 
 procedure TMDIChild.popupResultGridPopup(Sender: TObject);
@@ -4536,6 +4549,9 @@ begin
   // LogSQL-Tab
   else if SynMemoSQLLog.Focused then
     keyword := SynMemoQuery.WordAtCursor
+  // Filter-Tab
+  else if SynMemoFilter.Focused then
+    keyword := SynMemoFilter.WordAtCursor
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and (-1 < gridData.Col)
@@ -6260,6 +6276,15 @@ begin
       menuitem.Checked := False;
     end;
   end;
+end;
+
+
+{**
+  Call context sensitive help from popupmenu (fx popupQuery)
+}
+procedure TMDIChild.menuSQLhelpClick(Sender: TObject);
+begin
+  CallSQLHelp( Sender );
 end;
 
 
