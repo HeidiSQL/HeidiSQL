@@ -4548,7 +4548,7 @@ begin
     keyword := SynMemoQuery.WordAtCursor
   // LogSQL-Tab
   else if SynMemoSQLLog.Focused then
-    keyword := SynMemoQuery.WordAtCursor
+    keyword := SynMemoSQLLog.WordAtCursor
   // Filter-Tab
   else if SynMemoFilter.Focused then
     keyword := SynMemoFilter.WordAtCursor
