@@ -307,6 +307,7 @@ type
     btnTableInsertRecord: TToolButton;
     menuSQLhelp: TMenuItem;
     N24: TMenuItem;
+    menuSQLhelpData: TMenuItem;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
