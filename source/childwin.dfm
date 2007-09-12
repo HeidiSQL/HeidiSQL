@@ -2139,6 +2139,12 @@ object MDIChild: TMDIChild
     object N19: TMenuItem
       Caption = '-'
     end
+    object menuSQLhelpData: TMenuItem
+      Caption = 'Lookup field datatype in SQL help ...'
+      ImageIndex = 96
+      ShortCut = 112
+      OnClick = menuSQLhelpClick
+    end
     object Refresh3: TMenuItem
       Tag = 28
       Caption = 'Refresh'
