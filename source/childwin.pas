@@ -2686,7 +2686,7 @@ begin
     begin
       VTRowDataListProcesses[i-1].Captions := TStringList.Create;
       VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsString );
-      if CompareText( ds.Fields[4].AsString, 'Killed') = 0 then
+      if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
         VTRowDataListProcesses[i-1].ImageIndex := 83  // killed
       else
         VTRowDataListProcesses[i-1].ImageIndex := 82; // running
@@ -6140,7 +6140,7 @@ begin
   end
   else begin
     // Compare Strings
-    Result := CompareText( CellText1, CellText2 );
+    Result := AnsiCompareText( CellText1, CellText2 );
   end;
 end;
 
