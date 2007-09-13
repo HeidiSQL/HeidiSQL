@@ -11,9 +11,25 @@ type
 
   {TMySQLConnection}
 
-  TSQLLogCategory = (lcStats, lcSQL, lcError);
+  TMySQLLogCategory = (lcStats, lcSQL, lcError);
+  TMySQLLogEvent = procedure (Category: TMySQLLogCategory; Msg: String) of object;
 
-  TSQLLogEvent = procedure (Category: TSQLLogCategory; Msg: String) of object;
+  TMySQLCapability = (
+    cpShowEngines,          // SHOW ENGINES
+    cpShowTableStatus,      // SHOW TABLE STATUS
+    cpShowFullTables,       // SHOW FULL TABLES
+    cpShowCreateTable,      // SHOW CREATE TABLE foo
+    cpShowCreateDatabase,   // SHOW CREATE DATABASE foo
+    cpHelpSystem,           // HELP "foo"
+    cpSetNames,             // SET NAMES
+    cpCalcFoundRows,        // SELECT SQL_CALC_FOUND_ROWS ...
+    cpLoadFile,             // LOAD DATA LOCAL INFILE ...
+    cpTableComment,         // CREATE TABLE ... COMMENT = "foo"
+    cpFieldComment,         // ALTER TABLE ADD ... COMMENT = "foo"
+    cpColumnMoving,         // ALTER TABLE CHANGE ... FIRST|AFTER foo
+    cpTruncateTable         // TRUNCATE TABLE foo
+    );
+  TMySQLCapabilities = set of TMySQLCapability;
 
   TMySQLConnection = class(TComponent)
     private
@@ -26,15 +42,17 @@ type
       FTimeout: Cardinal;
       FCompressed: Boolean;
       FDatabase: String;
-      FOnSQLLog: TSQLLogEvent;
-      FServerVersionStr: String;
+      FOnLog: TMySQLLogEvent;
+      FCapabilities: TMySQLCapabilities;
       procedure SetActive( Value: Boolean );
       procedure SetDatabase( Value: String );
       function GetThreadId: Cardinal;
       function GetCharacterSet: String;
       function GetLastError: String;
+      function GetServerVersionStr: String;
       function GetServerVersionInt: Integer;
-      procedure SQLLog(Category: TSQLLogCategory; Msg: String);
+      procedure Log(Category: TMySQLLogCategory; Msg: String);
+      procedure DetectCapabilities;
     public
       constructor Create(AOwner: TComponent); override;
       property ThreadId: Cardinal read GetThreadId;
@@ -42,9 +60,10 @@ type
       property CharacterSet: String read GetCharacterSet;
       function Query( SQL: String ): Longint;
       property LastError: String read GetLastError;
-      property ServerVersionStr: String read FServerVersionStr;
+      property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
       function EscapeString( Text: String ): String;
+      property Capabilities: TMySQLCapabilities read FCapabilities;
 
     published
       property Active: Boolean read FActive write SetActive;
@@ -57,7 +76,7 @@ type
       property Database: String read FDatabase write SetDatabase;
 
       // Events
-      property OnSQLLog: TSQLLogEvent read FOnSQLLog write FOnSQLLog;
+      property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
   end;
 
 
@@ -165,18 +184,18 @@ begin
       );
     if connected = nil then
     begin
-      SQLLog( lcError, GetLastError );
+      Log( lcError, GetLastError );
       raise Exception.Create(GetLastError);
       FActive := False;
       FHandle := nil;
     end
     else begin
-      FServerVersionStr := mysql_get_server_info(FHandle);
-      SQLLog( lcStats, 'Connection established with host "'+FHostname+'" on port '+IntToStr(FPort)+' as user "'+FUsername+'"' );
-      SQLLog( lcStats, 'Connection-ID: '+IntToStr(GetThreadId) );
-      SQLLog( lcStats, 'Characterset: '+GetCharacterSet );
-      SQLLog( lcStats, 'Server version: '+FServerVersionStr+' ('+IntToStr(GetServerVersionInt)+')' );
+      Log( lcStats, 'Connection established with host "'+FHostname+'" on port '+IntToStr(FPort)+' as user "'+FUsername+'"' );
+      Log( lcStats, 'Connection-ID: '+IntToStr(GetThreadId) );
+      Log( lcStats, 'Characterset: '+GetCharacterSet );
+      Log( lcStats, 'Server version: '+ServerVersionStr+' ('+IntToStr(ServerVersionInt)+')' );
       SetDatabase( FDatabase );
+      DetectCapabilities;
     end;
   end
 
@@ -184,25 +203,29 @@ begin
   begin
     mysql_close(FHandle);
     FHandle := nil;
-    SQLLog( lcStats, 'Connection closed' );
+    Log( lcStats, 'Connection closed' );
   end;
 
 end;
 
+
+{**
+   Executes a query
+}
 function TMySQLConnection.Query(SQL: string): Longint;
 begin
   if Not FActive then
     SetActive( True );
-  SQLLog( lcSQL, Trim(Copy(SQL, 1, 1024)) );
+  Log( lcSQL, Trim(Copy(SQL, 1, 1024)) );
   Result := mysql_real_query(FHandle, pChar(SQL), length(SQL));
   if Result <> 0 then
   begin
-    SQLLog( lcError, GetLastError );
+    Log( lcError, GetLastError );
     raise Exception.Create(GetLastError);
   end
   else
   begin
-    SQLLog( lcStats, IntToStr(mysql_affected_rows( FHandle ))+' rows affected' );
+    Log( lcStats, IntToStr(mysql_affected_rows( FHandle ))+' rows affected' );
   end;
 end;
 
@@ -225,7 +248,7 @@ begin
   begin
     res := Query( 'USE '+Value );
     if res = 0 then
-      SQLLog( lcStats, 'Database "'+Value+'" selected' )
+      Log( lcStats, 'Database "'+Value+'" selected' )
     else begin
       raise Exception.Create(GetLastError);
       FDatabase := '';
@@ -262,37 +285,48 @@ end;
 
 
 {**
+  Return the untouched server version string
+}
+function TMySQLConnection.GetServerVersionStr: String;
+begin
+  Result := mysql_get_server_info(FHandle);
+end;
+
+
+{**
   Get version string as normalized integer
   "5.1.12-beta-community-123" => 50112
 }
 function TMySQLConnection.GetServerVersionInt: Integer;
 var
   i, dots: Byte;
-  v1, v2, v3: String;
+  fullversion, v1, v2, v3: String;
 begin
   Result := -1;
 
   dots := 0;
+  // Avoid calling GetServerVersionStr too often
+  fullversion := ServerVersionStr;
   v1 := '';
   v2 := '';
   v3 := '';
-  for i := 1 to Length(FServerVersionStr) do
+  for i := 1 to Length(fullversion) do
   begin
-    if FServerVersionStr[i] = '.' then
+    if fullversion[i] = '.' then
     begin
       inc(dots);
       // We expect exactly 2 dots.
       if dots > 2 then
         break;
     end
-    else if FServerVersionStr[i] in ['0'..'9'] then
+    else if fullversion[i] in ['0'..'9'] then
     begin
       if dots = 0 then
-        v1 := v1 + FServerVersionStr[i]
+        v1 := v1 + fullversion[i]
       else if dots = 1 then
-        v2 := v2 + FServerVersionStr[i]
+        v2 := v2 + fullversion[i]
       else if dots = 2 then
-        v3 := v3 + FServerVersionStr[i];
+        v3 := v3 + fullversion[i];
     end
     else // Don't include potential numbers of trailing string
       break;
@@ -312,10 +346,10 @@ end;
 {**
   Call log event if assigned to object
 }
-procedure TMySQLConnection.SQLLog(Category: TSQLLogCategory; Msg: String);
+procedure TMySQLConnection.Log(Category: TMySQLLogCategory; Msg: String);
 begin
-  if Assigned(FOnSQLLog) then
-    FOnSQLLog( Category, Msg);
+  if Assigned(FOnLog) then
+    FOnLog( Category, Msg);
 end;
 
 
@@ -334,6 +368,37 @@ begin
   FreeMem(Buffer);
 end;
 
+
+{**
+  Detect various capabilities of the server and store them
+  for easy access in client-applications.
+}
+procedure TMySQLConnection.DetectCapabilities;
+var
+  ver : Integer;
+  procedure addCap( c: TMySQLCapability; addit: Boolean );
+  begin
+    if addit then
+      Include( FCapabilities, c );
+  end;
+begin
+  // Avoid calling GetServerVersionInt too often
+  ver := ServerVersionInt;
+
+  addCap( cpShowEngines, ver >= 40102 );
+  addCap( cpShowTableStatus, ver >= 32300 );
+  addCap( cpShowFullTables, ver >= 50002 );
+  addCap( cpShowCreateTable, ver >= 32320 );
+  addCap( cpShowCreateDatabase, ver >= 50002 );
+  addCap( cpHelpSystem, ver >= 40100 );
+  addCap( cpSetNames, ver >= 40100 );
+  addCap( cpCalcFoundRows, ver >= 40000 );
+  addCap( cpLoadFile, ver >= 32206 );
+  addCap( cpTableComment, ver >= 32300 );
+  addCap( cpFieldComment, ver >= 40100 );
+  addCap( cpColumnMoving, ver >= 40001 );
+  addCap( cpTruncateTable, ver >= 50003 );
+end;
 
 
 
