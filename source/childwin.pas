@@ -3346,10 +3346,9 @@ begin
       end;
       ReadDatabasesAndTables(self);
       ActiveDatabase := dbname;
-    except
-      MessageDLG('Creation failed.'+crlf+'Maybe '''+dbname+''' is not a valid database-name.', mtError, [mbOK], 0)
-    end;
-    Screen.Cursor := crDefault;
+    Finally
+      Screen.Cursor := crDefault;
+    End;
   end;
 end;
 
@@ -5626,7 +5625,7 @@ begin
   allnodes := DBTree.Items;
   if allnodes.Count > 0 then begin
     for i := 0 to allnodes.Count - 1 do begin
-      if (allnodes[i].Level = 1) and (allnodes[i].Text = db) then begin
+      if (allnodes[i].Level = 1) and (AnsiCompareText(allnodes[i].Text, db) = 0) then begin
         allnodes[i].Selected := true;
         exit;
       end;
