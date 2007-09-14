@@ -213,6 +213,8 @@ begin
     Mainform.ChildWin.ExecUseQuery( DBComboBox.Text );
     Mainform.ChildWin.ExecUpdateQuery( createQuery );
     Mainform.ChildWin.RefreshDbTableList( DBComboBox.Text );
+    Mainform.Childwin.ActiveDatabase := DBComboBox.Text;
+    Mainform.Childwin.PopulateTreeTableList( nil, True );
     Mainform.ChildWin.SelectedTable := EditTablename.Text;
     Mainform.ChildWin.ShowTable(EditTablename.Text);
     Close;
