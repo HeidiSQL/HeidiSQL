@@ -5606,8 +5606,18 @@ var
 begin
   allnodes := DBTree.Items;
   if allnodes.Count > 0 then begin
+    // Round 1: Search case-sensitive.
+    // Important after creating a table on servers with lower_case_table_names=0
     for i := 0 to allnodes.Count - 1 do begin
       if (allnodes[i].Level = 2) and (allnodes[i].Text = table) then begin
+        allnodes[i].Selected := true;
+        exit;
+      end;
+    end;
+    // Round 2: Search case-insensitive
+    // Important after creating a table on servers with lower_case_table_names=1
+    for i := 0 to allnodes.Count - 1 do begin
+      if (allnodes[i].Level = 2) and (AnsiCompareText(allnodes[i].Text, table) = 0) then begin
         allnodes[i].Selected := true;
         exit;
       end;
@@ -5624,6 +5634,16 @@ var
 begin
   allnodes := DBTree.Items;
   if allnodes.Count > 0 then begin
+    // Round 1: Search case-sensitive.
+    // Important after creating a DB on servers with lower_case_table_names=0
+    for i := 0 to allnodes.Count - 1 do begin
+      if (allnodes[i].Level = 1) and (allnodes[i].Text = db) then begin
+        allnodes[i].Selected := true;
+        exit;
+      end;
+    end;
+    // Round 2: Search case-insensitive
+    // Important after creating a DB on servers with lower_case_table_names=1
     for i := 0 to allnodes.Count - 1 do begin
       if (allnodes[i].Level = 1) and (AnsiCompareText(allnodes[i].Text, db) = 0) then begin
         allnodes[i].Selected := true;
