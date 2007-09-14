@@ -330,7 +330,7 @@ begin
     // overload the server when using "Extended Insert"
     data := RemoteExecQuery(
       appHandles[comboOtherHost.ItemIndex],
-      'SHOW VARIABLES LIKE "max_allowed_packet"',
+      'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'),
       'Checking for maximum allowed SQL-packet size on server '+comboOtherHost.Text+'...'
     );
     remote_max_allowed_packet := MakeInt( data.FieldByName('Value').AsString );
@@ -485,7 +485,7 @@ begin
   if tofile then begin
     // Extract name part of selected target version
     target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
-    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ) );
+    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     try
       f := TFileStream.Create(EditFileName.Text, fmCreate);
     except
@@ -502,7 +502,7 @@ begin
   // Export to other database in the same window
   if todb then begin
     target_version := cwin.mysql_version;
-    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ''max_allowed_packet''', 1 ) );
+    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     DB2export := comboOtherDatabase.Text;
   end;
 
@@ -537,7 +537,7 @@ begin
       wfs(f, '# Host:                 ' + cwin.MysqlConn.Connection.HostName );
       wfs(f, '# Database:             ' + DB2export );
       wfs(f, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
-      wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE "version_compile_os"', 1 ) );
+      wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1 ) );
       wfs(f, '# Target-Compatibility: ' + comboTargetCompat.Text );
       if extended_insert then
       begin
@@ -552,10 +552,10 @@ begin
       Set characterset to current one
     }
     if cwin.mysql_version > 40100 then
-      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set_connection"', 1 )
+      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set_connection'), 1 )
     else if cwin.mysql_version > 40000 then
       // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
-      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE "character_set"', 1 )
+      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set'), 1 )
     else
       // todo: test this
       current_characterset := 'binary';
