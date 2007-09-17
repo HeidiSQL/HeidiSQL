@@ -130,7 +130,7 @@ var
   FieldType : TMysqlDataTypeRecord;
 begin
   // Prepare Query:
-  createQuery := 'CREATE TABLE ' + mainform.mask(EditTablename.Text) + ' (';
+  createQuery := 'CREATE TABLE ' + mainform.mask(DBComboBox.Text) + '.' + mainform.mask(EditTablename.Text) + ' (';
 
   // Columns
   for i := 0 to length(fields) - 1 do
@@ -210,7 +210,6 @@ begin
 
   // Execute CREATE statement and reload tablesList
   try
-    Mainform.ChildWin.ExecUseQuery( DBComboBox.Text );
     Mainform.ChildWin.ExecUpdateQuery( createQuery );
     Mainform.ChildWin.RefreshDbTableList( DBComboBox.Text );
     Mainform.Childwin.ActiveDatabase := DBComboBox.Text;

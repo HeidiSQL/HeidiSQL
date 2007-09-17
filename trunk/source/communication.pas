@@ -352,6 +352,13 @@ begin
 end;
 
 
+{***
+ Note: Broken, will not work as intended.
+       Remote window needs to set TemporaryDatabase (and reset it afterwards)
+       for this to work.  Also, queries are fired asynchronously, so the user
+       may change the active database at any point.  It is safest to just add
+       the database name explicitly in the SQL rather than to run USE remotely.
+}
 procedure RemoteExecUseNonQuery(window: THandle; mysqlVersion: integer; dbName: string; info: string);
 begin
   RemoteExecNonQuery(window, 'USE ' + maskSql(mysqlVersion, dbName), info);
