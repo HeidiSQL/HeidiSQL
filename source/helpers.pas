@@ -333,8 +333,8 @@ var
   p1,p2        : Integer;
 begin
   p1 := pos('(', str);
-  for p2:=strlen(pchar(str)) downto 0 do
-    if str[p2] = ')' then break;
+  if p1 = 0 then p2 := Length(str) + 1
+  else for p2:=strlen(pchar(str)) downto 0 do if str[p2] = ')' then break;
   result := copy (str, p1+1, p2-p1-1);
 end;
 
