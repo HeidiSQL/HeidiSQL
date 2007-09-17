@@ -37,7 +37,8 @@ uses
   mysql in '..\..\source\mysql.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
-  runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm};
+  runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
+  createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm};
 
 {$R *.RES}
 
