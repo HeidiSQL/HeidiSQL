@@ -1256,6 +1256,7 @@ object AboutBox: TAboutBox
         'Sebasti'#225'n Mayor'#225' for EDBImage'
         'Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/'
         'Mark James for his Silk icon set'
+        'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
         'MySQL for great database software')
       ReadOnly = True
       TabOrder = 0
