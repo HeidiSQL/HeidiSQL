@@ -39,8 +39,11 @@ type
     procedure Check(Sender: TObject);
     procedure Analyze(Sender: TObject);
     procedure Repair(Sender: TObject);
-    procedure showresult(Sender: TObject; ds: TDataSet);
+    procedure ClearResults;
+    procedure AddResults(ds: TDataSet);
     procedure TablesCheckListBoxClickCheck(Sender: TObject);
+    procedure RunIterated(pseudoSql: string);
+    procedure ValidateControls;
   private
     { Private declarations }
   public
@@ -74,8 +77,6 @@ var
   i : Integer;
   tn : TTreeNode;
 begin
-  // FormShow!
-
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
   for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
@@ -111,111 +112,92 @@ begin
   TablesCheckListBox.OnClickCheck(self);
 end;
 
+procedure Toptimize.RunIterated(pseudoSql: string);
+var
+  i: integer;
+  ds: TDataSet;
+  sql: string;
+begin
+  Screen.Cursor := crSQLWait;
+  Mainform.ChildWin.TemporaryDatabase := self.DBComboBox.Text;
+  ClearResults;
+  try
+    for i := 0 to TablesCheckListBox.Items.Count - 1 do begin
+      if TablesCheckListBox.Checked[i] then begin
+        sql := StringReplace(pseudoSql, '$table', mainform.mask(TablesCheckListBox.Items[i]), [rfReplaceAll]);
+        ds := Mainform.ChildWin.GetResults(sql);
+        AddResults(ds);
+        TablesCheckListBox.Checked[i] := false;
+      end;
+    end;
+  finally
+    Screen.Cursor := crDefault;
+    Mainform.ChildWin.TemporaryDatabase := '';
+    ValidateControls;
+  end;
+end;
 
 procedure Toptimize.Optimze(Sender: TObject);
-var i : Integer;
 begin
-  screen.Cursor := crSQLWait;
+  RunIterated('OPTIMIZE TABLE $table');
+end;
+
+procedure Toptimize.Check(Sender: TObject);
+var
+  querystr  : String;
+begin
+  querystr := 'CHECK TABLE $table';
+  if CheckBoxQuickCheck.Checked then
+    querystr := querystr + ' QUICK';
+  if cbxExtendedCheck.Checked then
+    querystr := querystr + ' EXTENDED';
+  RunIterated(querystr);
+end;
+
+procedure Toptimize.Analyze(Sender: TObject);
+begin
+  RunIterated('ANALYZE TABLE $table');
+end;
+
+procedure Toptimize.Repair(Sender: TObject);
+var
+  querystr  : String;
+begin
+  querystr := 'REPAIR TABLE $table';
+  if CheckBoxQuickRepair.Checked then
+    querystr := querystr + ' QUICK';
+  if cbxExtendedRepair.Checked then
+    querystr := querystr + ' EXTENDED';
+  RunIterated(querystr);
+end;
+
+procedure Toptimize.ClearResults;
+begin
   ListViewResults.Columns.BeginUpdate();
   ListViewResults.Columns.Clear;
   ListViewResults.Items.BeginUpdate();
   ListViewResults.Items.Clear;
   ListViewResults.Columns.EndUpdate();
   ListViewResults.Items.EndUpdate();
-  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  for i:=0 to TablesCheckListBox.Items.Count - 1 do
-  begin
-    if TablesCheckListBox.Checked[i] then
-      Mainform.ChildWin.ExecUpdateQuery('OPTIMIZE TABLE ' + mainform.mask(TablesCheckListBox.Items[i]));
-  end;
-  screen.Cursor := crDefault;
 end;
 
-procedure Toptimize.Check(Sender: TObject);
-var
-  i : Integer;
-  checkedtables : TStringList;
-  querystr  : String;
-  ds: TDataSet;
-begin
-  screen.Cursor := crSQLWait;
-  checkedtables := TStringList.Create;
-  with TablesCheckListBox do
-    for i:=0 to Items.Count - 1 do
-      if Checked[i] then
-        checkedtables.Add(mainform.mask(Items[i]));
-  querystr := 'CHECK TABLE ' + implodestr(',', checkedtables);
-  if CheckBoxQuickCheck.Checked then
-    querystr := querystr + ' QUICK';
-  if cbxExtendedCheck.Checked then
-    querystr := querystr + ' EXTENDED';
-  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  ds := Mainform.ChildWin.GetResults( querystr );
-  showresult(self, ds);
-  screen.Cursor := crDefault;
-end;
-
-procedure Toptimize.Analyze(Sender: TObject);
-var
-  i : Integer;
-  checkedtables : TStringList;
-  querystr  : String;
-  ds: TDataset;
-begin
-  screen.Cursor := crSQLWait;
-  checkedtables := TStringList.Create;
-  with TablesCheckListBox do
-    for i:=0 to Items.Count - 1 do
-      if Checked[i] then
-        checkedtables.Add(mainform.mask(Items[i]));
-  querystr := 'ANALYZE TABLE ' + implodestr(',', checkedtables);
-  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  ds := Mainform.ChildWin.GetResults( querystr );
-  showresult(self, ds);
-  screen.Cursor := crDefault;
-end;
-
-procedure Toptimize.Repair(Sender: TObject);
-var
-  i : Integer;
-  checkedtables : TStringList;
-  querystr  : String;
-  ds: TDataSet;
-begin
-  screen.Cursor := crSQLWait;
-  checkedtables := TStringList.Create;
-  with TablesCheckListBox do
-    for i:=0 to Items.Count - 1 do
-      if Checked[i] then
-        checkedtables.Add(mainform.mask(Items[i]));
-  querystr := 'REPAIR TABLE ' + implodestr(',', checkedtables);
-  if CheckBoxQuickRepair.Checked then
-    querystr := querystr + ' QUICK';
-  if cbxExtendedRepair.Checked then
-    querystr := querystr + ' EXTENDED';
-  Mainform.ChildWin.ExecUseQuery( self.DBComboBox.Text );
-  ds := Mainform.ChildWin.GetResults( querystr );
-  showresult(self, ds);
-  screen.Cursor := crDefault;
-end;
-
-procedure Toptimize.showresult(Sender: TObject; ds: TDataSet);
+procedure Toptimize.AddResults(ds: TDataSet);
 var
   i,j,fieldcount : Integer;
   li           : TListItem;
   lc           : TListColumn;
 begin
-  ListViewResults.Columns.BeginUpdate();
-  ListViewResults.Columns.Clear;
-  ListViewResults.Items.BeginUpdate();
-  ListViewResults.Items.Clear;
   fieldcount := ds.FieldCount;
-  for i := 0 to fieldcount -1 do
-  begin
-    lc := ListViewResults.Columns.Add;
-    lc.Caption := ds.Fields[i].Fieldname;
+  if fieldcount > ListViewResults.Columns.Count then begin
+    ListViewResults.Columns.BeginUpdate();
+    for i := ListViewResults.Columns.Count to fieldcount - 1 do begin
+      lc := ListViewResults.Columns.Add;
+      lc.Caption := ds.Fields[i].Fieldname;
+    end;
+    ListViewResults.Columns.EndUpdate();
   end;
 
+  ListViewResults.Items.BeginUpdate();
   for i:=1 to ds.RecordCount do
   begin
     li := ListViewResults.Items.Add;
@@ -228,11 +210,16 @@ begin
   for i := 0 to ListViewResults.Columns.Count-1 do
     ListViewResults.Columns[i].Width := -2;
 
-  ListViewResults.Columns.EndUpdate();
+  ListViewResults.Items[ListViewResults.Items.Count - 1].MakeVisible(false);
   ListViewResults.Items.EndUpdate();
 end;
 
 procedure Toptimize.TablesCheckListBoxClickCheck(Sender: TObject);
+begin
+  ValidateControls;
+end;
+
+procedure Toptimize.ValidateControls;
 var
    i : Integer;
    somechecked : Boolean;
@@ -249,9 +236,6 @@ begin
   BitBtn2.Enabled := somechecked;
   BitBtn3.Enabled := somechecked;
   BitBtn4.Enabled := somechecked;
-  CheckBoxQuickRepair.Enabled := somechecked;
-  CheckBoxQuickCheck.Enabled := somechecked;
-
 end;
 
 end.
