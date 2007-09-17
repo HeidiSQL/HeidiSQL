@@ -102,6 +102,8 @@ begin
   TablesCheckListBox.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(DBComboBox.Text) );
   // Check all
   ToggleCheckListBox( TablesCheckListBox, True );
+  // Enable controls if there are tables in the database.
+  ValidateControls;
 end;
 
 
