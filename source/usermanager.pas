@@ -126,32 +126,37 @@ begin
   // A. Using the mysql-DB
   cwin := Mainform.Childwin;
   try
-    cwin.EnsureDatabase(DBNAME_MYSQL);
-  except
-    MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
-    Result := false;
-    exit;
+    try
+      cwin.TemporaryDatabase := DBNAME_MYSQL;
+      cwin.EnsureDatabase;
+    except
+      MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
+      Result := false;
+      exit;
+    end;
+
+    // B. retrieving a count of all users.
+    test_result := cwin.GetVar( 'SELECT COUNT(*) FROM '+mainform.mask(PRIVTABLE_USERS), 0, true, false );
+    if test_result = '' then
+    begin
+      MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
+      Result := false;
+      exit;
+    end;
+
+    f := TUserManagerForm.Create(AOwner);
+
+    // use this dirty trick to overcome limitations
+    UsermanagerForm := f;
+
+    // set flags ...
+    Result := (f.ShowModal = mrOK);
+    FreeAndNil (f);
+
+    UsermanagerForm := nil; // uhhh
+  finally
+    cwin.TemporaryDatabase := '';
   end;
-
-  // B. retrieving a count of all users.
-  test_result := cwin.GetVar( 'SELECT COUNT(*) FROM '+mainform.mask(PRIVTABLE_USERS), 0, true, false );
-  if test_result = '' then
-  begin
-    MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
-    Result := false;
-    exit;
-  end;
-
-  f := TUserManagerForm.Create(AOwner);
-
-  // use this dirty trick to overcome limitations
-  UsermanagerForm := f;
-
-  // set flags ...
-  Result := (f.ShowModal = mrOK);
-  FreeAndNil (f);
-
-  UsermanagerForm := nil; // uhhh 
 end;
 
 procedure TUserManagerForm.ButtonCloseClick(Sender: TObject);
