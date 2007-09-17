@@ -427,7 +427,8 @@ var
   dropquery,createquery,insertquery,
   columnnames               : String;
   keylist                   : Array of TMyKey;
-  keystr,DB2export          : String;
+  keystr                    : String;
+  sourceDb, destDb          : String;
   which                     : Integer;
   tofile,todb,tohost        : boolean;
   tcount,tablecounter       : Integer;
@@ -450,6 +451,27 @@ var
   cwin                      : TMDIChild;
   query                     : TDataSet;
   OldActualDatabase         : String;
+
+function sourceMask(sql: String): String;
+begin
+  // Same as cwin.mask(sql).
+  Result := maskSql(cwin.mysql_version, sql);
+end;
+
+function destMask(sql: String): String;
+begin
+  Result := maskSql(target_version, sql);
+end;
+
+function makeConditionalStmt(sql: String; version: integer; tofile: boolean): String;
+begin
+  // End statement with semicolon, unless destination is a live server.
+  // Afterwards, wrap in conditional comment.
+  Result := sql;
+  if tofile then Result := Result + ';';
+  Result := '/*!' + IntToStr(version) + ' ' + Result + '*/';
+end;
+
 begin
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -496,14 +518,16 @@ begin
     end;
     wfs(f, '# ' + APPNAME + ' Dump ');
     wfs(f, '#');
-    DB2export := comboSelectDatabase.Text;
+    sourceDb := comboSelectDatabase.Text;
+    destDb := comboSelectDatabase.Text;
   end;
 
   // Export to other database in the same window
   if todb then begin
     target_version := cwin.mysql_version;
     max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
-    DB2export := comboOtherDatabase.Text;
+    sourceDb := comboSelectDatabase.Text;
+    destDb := comboOtherDatabase.Text;
   end;
 
   // Export to other window/host
@@ -511,14 +535,15 @@ begin
     target_version := remote_version;
     max_allowed_packet := remote_max_allowed_packet;
     win2export := appHandles[comboOtherHost.ItemIndex];
+    sourceDb := comboSelectDatabase.Text;
     if cbxDatabase.Checked then
     begin
       // Use original DB-name from source-server
-      DB2export := comboSelectDatabase.Text;
+      destDb := comboSelectDatabase.Text;
     end
     else
       // Use existing DB-name on target-server
-      DB2export := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
+      destDb := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
   end;
 
   // MySQL has supported extended insert since 3.23.
@@ -535,7 +560,7 @@ begin
     begin
       wfs(f, '# --------------------------------------------------------');
       wfs(f, '# Host:                 ' + cwin.MysqlConn.Connection.HostName );
-      wfs(f, '# Database:             ' + DB2export );
+      wfs(f, '# Database:             ' + sourceDb );
       wfs(f, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
       wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1 ) );
       wfs(f, '# Target-Compatibility: ' + comboTargetCompat.Text );
@@ -568,18 +593,20 @@ begin
     begin
       if current_characterset <> '' then
       begin
-        sql := '/*!40100 SET CHARACTER SET ' + current_characterset + ';*/';
+        sql := makeConditionalStmt('SET CHARACTER SET ' + current_characterset, 40100, tofile);
         sql := fixSQL( sql, target_version );
-        if tofile then
+        if tofile then begin
           wfs(f, sql)
-        else if tohost then
+        end else if tohost then begin
           RemoteExecNonQuery(win2export, sql );
+        end;
       end;
 
-      // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL 
+      // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL
       if target_version = SQL_VERSION_ANSI then
       begin
-        sql := '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI'' ;*/';
+        sql := makeConditionalStmt('SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI''', 40101, tofile);
+        sql := fixSQL( sql, target_version );
         if tofile then
           wfs(f, sql)
         else if tohost then
@@ -590,7 +617,7 @@ begin
         FOREIGN KEY import compatibility (head)
         Based on mysqldump output file
       }
-      sql := '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0; */';
+      sql := makeConditionalStmt('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0', 40014, tofile);
       sql := fixSQL( sql, target_version );
       if tofile then
         wfs(f, sql)
@@ -607,15 +634,15 @@ begin
           wfs(f);
           wfs(f);
           wfs(f, '#');
-          wfs(f, '# Database structure for database ''' + DB2export + '''');
+          wfs(f, '# Database structure for database ''' + sourceDb + '''');
           wfs(f, '#');
           wfs(f);
         end;
         if comboDatabase.ItemIndex = DB_DROP_CREATE then
         begin
-          sql := 'DROP DATABASE IF EXISTS ' + maskSql(target_version, DB2export) + ';';
+          sql := 'DROP DATABASE IF EXISTS ' + destMask(destDb);
           if tofile then
-            wfs(f, sql)
+            wfs(f, sql + ';')
           else if tohost then
             RemoteExecNonQuery(win2export, sql );
         end;
@@ -630,12 +657,12 @@ begin
           begin
             sql := sql + '/*!32312 IF NOT EXISTS*/ ';
           end;
-          sql := sql + maskSql(target_version, DB2export) + ';';
+          sql := sql + destMask(destDb);
         end
         else
         begin
-          sql := cwin.GetVar( 'SHOW CREATE DATABASE ' + mainform.mask(DB2export), 1 );
-          sql := fixNewlines(sql) + ';';
+          sql := cwin.GetVar( 'SHOW CREATE DATABASE ' + sourceMask(sourceDb), 1 );
+          sql := fixNewlines(sql);
           if target_version = SQL_VERSION_ANSI then
             sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
           if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
@@ -645,19 +672,17 @@ begin
         end;
         sql := fixSQL( sql, target_version);
         if tofile then
-          wfs(f, sql )
+          wfs(f, sql + ';')
         else if tohost then
-          RemoteExecNonQuery(win2export, sql );
+          RemoteExecNonQuery(win2export, sql);
         if exporttables then
         begin
-          sql := 'USE ' + maskSql(target_version, DB2export) + ';';
           if tofile then
           begin
+            sql := 'USE ' + destMask(destDb);
             wfs(f);
-            wfs(f, sql);
-          end
-          else if tohost then
-            RemoteExecNonQuery(win2export, sql);
+            wfs(f, sql + ';');
+          end;
         end;
       end;
     end;
@@ -688,9 +713,9 @@ begin
         dropquery := '';
         if comboTables.ItemIndex = TAB_DROP_CREATE then begin
           if tofile then
-            dropquery := 'DROP TABLE IF EXISTS ' + maskSql(target_version, checkListTables.Items[i])
+            dropquery := 'DROP TABLE IF EXISTS ' + destMask(checkListTables.Items[i])
           else
-            dropquery := 'DROP TABLE IF EXISTS ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]);
+            dropquery := 'DROP TABLE IF EXISTS ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]);
         end;
 
         createquery := '';
@@ -701,16 +726,13 @@ begin
         end;
 
         {***
-          Let the server generate the CREATE TABLE statement if the version allows that 
+          Let the server generate the CREATE TABLE statement if the version allows that
         }
         if cwin.mysql_version >= 32320 then
         begin
-          Query := cwin.GetResults('SHOW CREATE TABLE ' + mainform.mask(checkListTables.Items[i]));
+          Query := cwin.GetResults('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]));
           sql := Query.Fields[1].AsString;
           sql := fixNewlines(sql);
-          // Skip VIEWS.  Not foolproof, but good enough until more support for information_schema (fallback to? regexp?) is added.
-          // todo: implement working support for views.
-          if (Pos(' TABLE `', sql) = 0) and (Pos(' VIEW `', sql) > 0) then continue;
           if Pos('DEFAULT CHARSET', sql) > 0 then begin
             Insert('/*!40100 ', sql, Pos('DEFAULT CHARSET', sql));
             sql := sql + '*/';
@@ -759,14 +781,14 @@ begin
           Generate CREATE TABLE statement by hand on old servers
         }
         else if cwin.mysql_version < 32320 then begin
-          Query := cwin.GetResults( 'SHOW COLUMNS FROM ' + mainform.mask(checkListTables.Items[i]));
+          Query := cwin.GetResults( 'SHOW COLUMNS FROM ' + sourceMask(checkListTables.Items[i]));
           if tofile then
-            sql := 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, checkListTables.Items[i]) + ' (' + crlf
+            sql := 'CREATE TABLE ' + destMask(checkListTables.Items[i]) + ' (' + crlf
           else
-            sql := sql + 'CREATE TABLE IF NOT EXISTS ' + maskSql(target_version, DB2Export) + '.' + cwin.mask(checkListTables.Items[i]) + ' (' + crlf;
+            sql := sql + 'CREATE TABLE ' + destMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' (' + crlf;
           for j := 1 to Query.Fieldcount do
           begin
-            sql := sql + '  ' + maskSql(target_version, Query.Fields[0].AsString) + ' ' + Query.Fields[1].AsString;
+            sql := sql + '  ' + destMask(Query.Fields[0].AsString) + ' ' + Query.Fields[1].AsString;
             if Query.Fields[2].AsString <> 'YES' then
               sql := sql + ' NOT NULL';
             if Query.Fields[4].AsString <> '' then
@@ -778,7 +800,7 @@ begin
           end;
 
           // Keys:
-          Query := cwin.GetResults( 'SHOW KEYS FROM ' + cwin.mask(checkListTables.Items[i]));
+          Query := cwin.GetResults( 'SHOW KEYS FROM ' + sourceMask(checkListTables.Items[i]));
           setLength(keylist, 0);
           keystr := '';
           if Query.RecordCount > 0 then
@@ -811,7 +833,7 @@ begin
                   _type := 'UNIQUE';
               end;
             end;
-            keylist[which].Columns.add(maskSql(target_version, Query.Fields[4].AsString)); // add column(s)
+            keylist[which].Columns.add(destMask(Query.Fields[4].AsString)); // add column(s)
             Query.Next;
           end;
           for k:=0 to high(keylist) do
@@ -821,12 +843,14 @@ begin
             if keylist[k].Name = 'PRIMARY' then
               keystr := keystr + crlf + '  PRIMARY KEY ('
             else
-              keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + maskSql(target_version, keylist[k].Name) + ' (';
+              keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + destMask(keylist[k].Name) + ' (';
             keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
           end;
           sql := sql + keystr + crlf + ')';
         end; // mysql_version < 32320
 
+        if not tofile then Insert(destMask(destDb) + '.', sql, Pos('TABLE', sql) + 6);
+        
         if comboTables.ItemIndex = TAB_CREATE_IGNORE then
         begin
           Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('TABLE', sql) + 6);
@@ -846,16 +870,13 @@ begin
 
         // Run CREATE TABLE on another Database
         else if todb then begin
-          cwin.ExecUseQuery( DB2export );
           if comboTables.ItemIndex = TAB_DROP_CREATE then
             cwin.ExecUpdateQuery( dropquery );
           cwin.ExecUpdateQuery( createquery );
-          cwin.ExecUseQuery( comboSelectDatabase.Text );
         end
 
         // Run CREATE TABLE on another host
         else if tohost then begin
-          RemoteExecUseNonQuery(win2export, cwin.mysql_version, DB2Export);
           if comboTables.ItemIndex = TAB_DROP_CREATE then
             RemoteExecNonQuery(win2export, dropquery);
           RemoteExecNonQuery(win2export, createquery);
@@ -872,12 +893,12 @@ begin
         // Set to mysql-readable char:
         DecimalSeparator := '.';
         columnnames := ' (';
-        Query := cwin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(checkListTables.Items[i]));
+        Query := cwin.GetResults( 'SHOW FIELDS FROM ' + sourceMask(checkListTables.Items[i]));
         for k:=1 to Query.RecordCount do
         begin
           if k>1 then
             columnnames := columnnames + ', ';
-          columnnames := columnnames + maskSql(target_version, Query.Fields[0].AsString);
+          columnnames := columnnames + destMask(Query.Fields[0].AsString);
           Query.Next;
         end;
         columnnames := columnnames+')';
@@ -896,15 +917,15 @@ begin
         begin
           if tofile then
           begin
-            wfs(f, 'TRUNCATE TABLE ' + maskSql(target_version, checkListTables.Items[i]) + ';');
+            wfs(f, 'TRUNCATE TABLE ' + destMask(checkListTables.Items[i]) + ';');
           end
           else if todb then
           begin
-            cwin.ExecUpdateQuery('TRUNCATE TABLE ' + cwin.mask(DB2Export) + '.' + checkListTables.Items[i]);
+            cwin.ExecUpdateQuery('TRUNCATE TABLE ' + sourceMask(destDb) + '.' + checkListTables.Items[i]);
           end
           else if tohost then
           begin
-            RemoteExecNonQuery(win2export, 'TRUNCATE TABLE ' + maskSql(target_version, DB2Export) + '.' + checkListTables.Items[i]);
+            RemoteExecNonQuery(win2export, 'TRUNCATE TABLE ' + destMask(destDb) + '.' + checkListTables.Items[i]);
           end;
         end;
 
@@ -913,7 +934,7 @@ begin
           once if more than ~ 5 MB of data
           Be sure to do this step before the table is locked!
         }
-        RecordCount_all := MakeInt( cwin.GetVar( 'SELECT COUNT(*) FROM ' + cwin.mask(checkListTables.Items[i]) ) );
+        RecordCount_all := MakeInt( cwin.GetVar( 'SELECT COUNT(*) FROM ' + sourceMask(checkListTables.Items[i]) ) );
         limit := cwin.GetCalculatedLimit( checkListTables.Items[i] );
 
         if RecordCount_all = 0 then begin
@@ -927,32 +948,20 @@ begin
         begin
           if tofile then
           begin
-            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ maskSql(target_version, checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
-            wfs(f, 'LOCK TABLES '+ maskSql(target_version, checkListTables.Items[i]) +' WRITE;' );
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ destMask(checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
+            wfs(f, 'LOCK TABLES '+ destMask(checkListTables.Items[i]) +' WRITE;' );
           end
           else if todb then
           begin
-            cwin.ExecUseQuery(DB2Export);
             if target_version > 40000 then
-              cwin.ExecUpdateQuery( 'ALTER TABLE ' + cwin.mask(checkListTables.Items[i])+' DISABLE KEYS' );
-            {***
-              @note ansgarbecker, 2007-02-18:
-              Normally we would have to apply a WRITE-LOCK to the target-table.
-              Unfortunately the server invokes a "Table xyz was not locked"-error
-              on the source-table if we do that:
-              cwin.ExecQuery( 'LOCK TABLES ' + cwin.mask(DB2Export) + '.' +  cwin.mask(checkListTables.Items[i])+' WRITE' );
-              Even when applying a WRITE- or READ-LOCK also to the source-table,
-              the INSERTs seem to be not executed.
-              So the best solution for now seems to be to not LOCK the target-table,
-              running the risk that the table is edited by other concurrent users
-            }
-            cwin.ExecUseQuery(comboSelectDatabase.Text);
+              cwin.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' DISABLE KEYS' );
+            cwin.ExecUpdateQuery( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
           end
           else if tohost then
           begin
             if target_version > 40000 then
-              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' DISABLE KEYS');
-            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' WRITE');
+              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' DISABLE KEYS');
+            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' WRITE');
           end;
         end;
 
@@ -972,7 +981,7 @@ begin
             break;
           end;
 
-          sql_select := 'SELECT * FROM ' + cwin.mask(comboSelectDatabase.Text) + '.' + cwin.mask(checkListTables.Items[i]);
+          sql_select := 'SELECT * FROM ' + sourceMask(comboSelectDatabase.Text) + '.' + sourceMask(checkListTables.Items[i]);
           if limit > -1 then
           begin
             sql_select := sql_select + ' LIMIT ' + IntToStr( offset ) + ', ' + IntToStr( limit );
@@ -1003,9 +1012,9 @@ begin
                 DATA_REPLACE_INTO: insertquery := 'REPLACE INTO ';
               end;
               if tofile then
-                insertquery := insertquery + maskSql(target_version, checkListTables.Items[i])
+                insertquery := insertquery + destMask(checkListTables.Items[i])
               else
-                insertquery := insertquery + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]);
+                insertquery := insertquery + destMask(destDb) + '.' + destMask(checkListTables.Items[i]);
               insertquery := insertquery + columnnames;
               insertquery := insertquery + ' VALUES' + crlf + #9;
             end;
@@ -1056,9 +1065,10 @@ begin
             begin
               insertquery := insertquery + thesevalues;
             end;
-            if tofile then
-              wfs(f, insertquery + ';')
-            else if todb then
+            if tofile then begin
+              insertquery := insertquery + ';';
+              wfs(f, insertquery)
+            end else if todb then
               cwin.ExecUpdateQuery(insertquery)
             else if tohost then
               RemoteExecNonQuery(win2export, insertquery);
@@ -1076,18 +1086,19 @@ begin
           if tofile then
           begin
             wfs(f, 'UNLOCK TABLES;' );
-            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+maskSql(target_version, checkListTables.Items[i])+' ENABLE KEYS;*/', target_version) );
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+destMask(checkListTables.Items[i])+' ENABLE KEYS;*/', target_version) );
           end
           else if todb then
           begin
+            cwin.ExecUpdateQuery( 'UNLOCK TABLES' );
             if target_version > 40000 then
-              cwin.ExecUpdateQuery( 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS' );
+              cwin.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' ENABLE KEYS' );
           end
           else if tohost then
           begin
             RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
             if target_version > 40000 then
-              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + maskSql(target_version, DB2Export) + '.' + maskSql(target_version, checkListTables.Items[i]) + ' ENABLE KEYS');
+              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' ENABLE KEYS');
           end;
         end;
         barProgress.StepIt;
@@ -1097,7 +1108,8 @@ begin
     // Restore old value for SQL_MODE
     if (tofile or tohost) and (target_version = SQL_VERSION_ANSI) then
     begin
-      sql := '/*!40101 SET SQL_MODE=@OLD_SQL_MODE ;*/';
+      sql := makeConditionalStmt('SET SQL_MODE=@OLD_SQL_MODE', 40101, tofile);
+      sql := fixSql(sql, target_version);
       if tofile then
         wfs(f, sql)
       else if tohost then
@@ -1108,7 +1120,7 @@ begin
       FOREIGN KEY import compatibility (foot)
       Based on mysqldump output file
     }
-    sql := '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS; */';
+    sql := makeConditionalStmt('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS', 40014, tofile);
     sql := fixSQL( sql, target_version );
     if tofile then
       wfs(f, sql)
