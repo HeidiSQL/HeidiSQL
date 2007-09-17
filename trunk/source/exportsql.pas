@@ -526,7 +526,7 @@ begin
 
   try
     // Be sure to read everything from the correct database
-    cwin.EnsureDatabase(comboSelectDatabase.Text);
+    cwin.TemporaryDatabase := comboSelectDatabase.Text;
 
     {***
       Ouput useful header information only when exporting to file
@@ -1116,6 +1116,7 @@ begin
       RemoteExecNonQuery(win2export, sql );
 
   FINALLY
+    cwin.TemporaryDatabase := '';
     if tofile then
       f.Free;
     Screen.Cursor := crDefault;

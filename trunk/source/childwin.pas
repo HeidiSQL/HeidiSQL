@@ -550,6 +550,7 @@ type
       procedure SetSelectedTable(table: string);
 
     public
+      TemporaryDatabase          : String;
       dataselected               : Boolean;
       editing                    : Boolean;
       mysql_version              : Integer;
@@ -597,8 +598,7 @@ type
       function RefreshDbTableList(db: string): TDataSet;
       procedure ClearAllTableLists;
       procedure PopulateTreeTableList(tndb: TTreeNode = nil; ForceRefresh: Boolean = false);
-      procedure EnsureDatabase(db: string);
-      procedure EnsureActiveDatabase;
+      procedure EnsureDatabase;
       procedure TestVTreeDataArray( P: PVTreeDataArray );
       function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
   end;
@@ -783,6 +783,7 @@ begin
   QueryRunningInterlock := 0;
   UserQueryFired := False;
   UserQueryFiring := False;
+  TemporaryDatabase := '';
   CachedTableLists := TStringList.Create;
 
   FConn := AConn^;
@@ -1308,7 +1309,6 @@ begin
   tabData.TabVisible := false;
 
   pnlTableTop.Caption := 'Table-Properties';
-  EnsureDatabase(db);
   Caption := Description + ' - /' + db;
   try
     ShowDBProperties( db );
@@ -1857,13 +1857,13 @@ end;
 {***
   Ensures that we're connected to the currently selected database.
 }
-procedure TMDIChild.EnsureActiveDatabase;
+procedure TMDIChild.EnsureDatabase;
+var
+  db: String;
 begin
-  EnsureDatabase(ActiveDatabase);
-end;
-
-procedure TMDIChild.EnsureDatabase(db: string);
-begin
+  // Some functions temporarily switch away from the database selected by the user, handle that.
+  if TemporaryDatabase <> '' then db := TemporaryDatabase
+  else db := ActiveDatabase;
   // Blank = database undefined
   if db = '' then Exit;
   if (FMysqlConn.Connection.Database <> db) or (UserQueryFired and not UserQueryFiring) then begin
@@ -5324,7 +5324,7 @@ end;
 function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
 begin
   Result := nil;
-  if (Copy(AQuery, 1, 3) <> 'USE') then EnsureActiveDatabase;
+  if (Copy(AQuery, 1, 3) <> 'USE') then EnsureDatabase;
   // Indicate a querythread is active (only one thread allow at this moment)
   FQueryRunning := true;
   try
