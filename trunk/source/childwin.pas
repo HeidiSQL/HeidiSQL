@@ -618,7 +618,7 @@ uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
   optimizetables, copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql,
-  Registry;
+  Registry, createdatabase;
 
 
 {$I const.inc}
@@ -3323,33 +3323,33 @@ end;
 
 
 procedure TMDIChild.CreateDatabase(Sender: TObject);
-var dbname : String;
+var
+  f : TCreateDatabaseForm;
 begin
-  // Create new Database:
-  if InputQuery('Create new Database...', 'Database Name:', dbname) then
+  // Create database:
+  // - create modal form
+  // - rely on the modalresult being set correctly
+  f := TCreateDatabaseForm.Create(Self);
+  if f.ShowModal = mrOK then
   begin
-    Screen.Cursor := crSQLWait;
-    Try
-      ExecUpdateQuery( 'CREATE DATABASE ' + mask( dbname ) );
-      // Add DB to OnlyDBs-regkey if this is not empty
-      if OnlyDBs.Count > 0 then
+    // Add DB to OnlyDBs-regkey if this is not empty
+    if OnlyDBs.Count > 0 then
+    begin
+      OnlyDBs.Add( f.editDBName.Text );
+      with TRegistry.Create do
       begin
-        OnlyDBs.Add( dbname );
-        with TRegistry.Create do
+        if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
         begin
-          if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
-          begin
-            WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
-            CloseKey;
-          end;
+          WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
+          CloseKey;
         end;
       end;
-      ReadDatabasesAndTables(self);
-      ActiveDatabase := dbname;
-    Finally
-      Screen.Cursor := crDefault;
-    End;
+    end;
+    // Todo: Don't expand node of old database in dbtree, just reload and switch to new one
+    ReadDatabasesAndTables(self);
+    ActiveDatabase := f.editDBName.Text;
   end;
+  FreeAndNil(f);
 end;
 
 

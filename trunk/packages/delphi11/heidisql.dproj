@@ -79,6 +79,9 @@
     <DCCReference Include="..\..\source\copytable.pas">
       <Form>CopyTableForm</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\createdatabase.pas">
+      <Form>CreateDatabaseForm</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\createtable.pas">
       <Form>CreateTableForm</Form>
     </DCCReference>
