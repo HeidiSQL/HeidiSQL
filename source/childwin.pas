@@ -886,7 +886,13 @@ begin
   // Reselect last used database
   if ( ( MainForm.GetRegValue( 'RestoreLastUsedDB', true ) ) and ( lastUsedDB <> '' ) ) then
   begin
-    ActiveDatabase := lastUsedDB;
+    try
+      ActiveDatabase := lastUsedDB;
+    except
+      // Suppress exception message when db was dropped externally or
+      // the session was just opened with "OnlyDBs" in place and the
+      // last db is not contained in this list.
+    end;
   end;
 
   // Set the grid-cells to always-edit-mode.
