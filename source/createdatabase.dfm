@@ -13,7 +13,9 @@ object CreateDatabaseForm: TCreateDatabaseForm
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnClose = FormClose
   OnCreate = FormCreate
+  OnShow = FormShow
   DesignSize = (
     317
     135)
