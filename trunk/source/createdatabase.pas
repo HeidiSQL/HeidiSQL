@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, db, Registry;
+  Dialogs, StdCtrls, db, Registry, SynEdit, SynMemo;
 
 type
   TCreateDatabaseForm = class(TForm)
@@ -16,12 +16,16 @@ type
     btnCancel: TButton;
     lblCollation: TLabel;
     comboCollation: TComboBox;
+    lblPreview: TLabel;
+    SynMemoPreview: TSynMemo;
     procedure btnOKClick(Sender: TObject);
     procedure comboCharsetChange(Sender: TObject);
+    procedure Modified(Sender: TObject);
     procedure editDBNameChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    function GetCreateStatement: String;
   private
     { Private declarations }
     listCharsets : TStringList;
@@ -63,6 +67,10 @@ begin
   end;
 
   comboCollation.Enabled := dsCollations <> nil;
+
+  // Setup SynMemoPreview
+  SynMemoPreview.Highlighter := Mainform.Childwin.SynSQLSyn1;
+  SynMemoPreview.Font := Mainform.Childwin.SynMemoQuery.Font;
 end;
 
 
@@ -119,6 +127,8 @@ begin
     comboCharsetChange( Sender );
   end;
 
+  // Invoke SQL preview
+  Modified(Sender);
 end;
 
 
@@ -158,6 +168,9 @@ begin
     comboCollation.ItemIndex := 0;
 
   comboCollation.Items.EndUpdate;
+
+  // Invoke SQL preview
+  Modified(Sender);
 end;
 
 
@@ -177,6 +190,9 @@ begin
     editDBName.Color := clYellow;
     btnOK.Enabled := False;
   end;
+
+  // Invoke SQL preview
+  Modified(Sender);
 end;
 
 
@@ -189,14 +205,7 @@ var
 begin
   if modifyDB = '' then
   begin
-    sql := 'CREATE DATABASE ' + Mainform.Childwin.mask( editDBName.Text );
-    if comboCharset.Enabled and (comboCharset.Text <> '') then
-    begin
-      sql := sql + ' /*!40100 CHARACTER SET ' + comboCharset.Text;
-      if comboCollation.Enabled and (comboCollation.Text <> '') then
-        sql := sql + ' COLLATE ' + comboCollation.Text;
-      sql := sql + ' */';
-    end;
+    sql := GetCreateStatement;
     Try
       Mainform.Childwin.ExecUpdateQuery( sql );
       // Close form
@@ -230,6 +239,32 @@ begin
         MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
       // Keep form open
     end;
+  end;
+end;
+
+
+{**
+  Called on each change
+}
+procedure TCreateDatabaseForm.Modified(Sender: TObject);
+begin
+  SynMemoPreview.Clear;
+  SynMemoPreview.Text := GetCreateStatement;
+end;
+
+
+{**
+  Generate CREATE DATABASE statement, used for preview and execution
+}
+function TCreateDatabaseForm.GetCreateStatement: String;
+begin
+  Result := 'CREATE DATABASE ' + Mainform.Childwin.mask( editDBName.Text );
+  if comboCharset.Enabled and (comboCharset.Text <> '') then
+  begin
+    Result := Result + ' /*!40100 CHARACTER SET ' + comboCharset.Text;
+    if comboCollation.Enabled and (comboCollation.Text <> '') then
+      Result := Result + ' COLLATE ' + comboCollation.Text;
+    Result := Result + ' */';
   end;
 end;
 

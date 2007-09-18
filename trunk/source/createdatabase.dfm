@@ -3,7 +3,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Create database ...'
-  ClientHeight = 135
+  ClientHeight = 218
   ClientWidth = 317
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   OnShow = FormShow
   DesignSize = (
     317
-    135)
+    218)
   PixelsPerInch = 96
   TextHeight = 13
   object lblDBName: TLabel
@@ -44,6 +44,14 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Height = 13
     Caption = 'C&ollation:'
     FocusControl = comboCollation
+  end
+  object lblPreview: TLabel
+    Left = 8
+    Top = 138
+    Width = 178
+    Height = 13
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'SQL &preview for CREATE DATABASE:'
   end
   object editDBName: TEdit
     Left = 88
@@ -100,5 +108,29 @@ object CreateDatabaseForm: TCreateDatabaseForm
     ItemHeight = 13
     Sorted = True
     TabOrder = 2
+    OnChange = Modified
+  end
+  object SynMemoPreview: TSynMemo
+    Left = 8
+    Top = 154
+    Width = 301
+    Height = 56
+    SingleLineMode = False
+    Anchors = [akLeft, akRight, akBottom]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Style = []
+    TabOrder = 5
+    Gutter.Font.Charset = DEFAULT_CHARSET
+    Gutter.Font.Color = clWindowText
+    Gutter.Font.Height = -11
+    Gutter.Font.Name = 'Courier New'
+    Gutter.Font.Style = []
+    Gutter.Visible = False
+    ReadOnly = True
+    ScrollBars = ssNone
+    WordWrap = True
   end
 end
