@@ -1626,6 +1626,11 @@ object MDIChild: TMDIChild
       ImageIndex = 73
       OnClick = CreateDatabase
     end
+    object menuAlterdatabase: TMenuItem
+      Caption = 'Alter database ...'
+      Enabled = False
+      OnClick = menuAlterdatabaseClick
+    end
     object PopupmenuDropDatabase: TMenuItem
       Caption = 'Drop Database...'
       ImageIndex = 22

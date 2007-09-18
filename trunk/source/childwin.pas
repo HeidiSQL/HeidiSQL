@@ -308,6 +308,7 @@ type
     menuSQLhelp: TMenuItem;
     N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
+    menuAlterdatabase: TMenuItem;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -494,6 +495,7 @@ type
     procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
+    procedure menuAlterdatabaseClick(Sender: TObject);
     procedure menuSQLhelpClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
     procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
@@ -4497,6 +4499,11 @@ begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
   PopupMenuCreateTable.Enabled := DBtree.Selected.Level in [1,2];
+  menuAlterDatabase.Enabled := (DBtree.Selected.Level = 1) and (mysql_version >= 50002);
+  if mysql_version < 50002 then
+    menuAlterDatabase.Hint := STR_NOTSUPPORTED
+  else
+    menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
   MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
   DBRightClickSelectedItem := DBtree.Selected;
 end;
@@ -6311,6 +6318,19 @@ end;
 procedure TMDIChild.menuSQLhelpClick(Sender: TObject);
 begin
   CallSQLHelp( Sender );
+end;
+
+
+{**
+  Modify existing database properties
+}
+procedure TMDIChild.menuAlterdatabaseClick(Sender: TObject);
+begin
+  if CreateDatabaseForm = nil then
+    CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
+
+  CreateDatabaseForm.modifyDB := DBRightClickSelectedItem.Text;
+  CreateDatabaseForm.ShowModal;
 end;
 
 
