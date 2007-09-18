@@ -56,7 +56,7 @@ begin
     comboCharset.Enabled := True;
     comboCharset.Items := listCharsets;
     // Detect servers default charset
-    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_database'), 1 );
+    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   end;
 
   comboCollation.Enabled := dsCollations <> nil;
