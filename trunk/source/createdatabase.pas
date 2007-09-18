@@ -191,9 +191,12 @@ begin
   begin
     sql := 'CREATE DATABASE ' + Mainform.Childwin.mask( editDBName.Text );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
-      sql := sql + ' CHARACTER SET ' + comboCharset.Text;
-    if comboCollation.Enabled and (comboCollation.Text <> '') then
-      sql := sql + ' COLLATE ' + comboCollation.Text;
+    begin
+      sql := sql + ' /*!40100 CHARACTER SET ' + comboCharset.Text;
+      if comboCollation.Enabled and (comboCollation.Text <> '') then
+        sql := sql + ' COLLATE ' + comboCollation.Text;
+      sql := sql + ' */';
+    end;
     Try
       Mainform.Childwin.ExecUpdateQuery( sql );
       // Close form
@@ -207,9 +210,11 @@ begin
   else begin
     sql := 'ALTER DATABASE ' + Mainform.Childwin.mask( modifyDB );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
+    begin
       sql := sql + ' CHARACTER SET ' + comboCharset.Text;
-    if comboCollation.Enabled and (comboCollation.Text <> '') then
-      sql := sql + ' COLLATE ' + comboCollation.Text;
+      if comboCollation.Enabled and (comboCollation.Text <> '') then
+        sql := sql + ' COLLATE ' + comboCollation.Text;
+    end;
     Try
       Mainform.Childwin.ExecUpdateQuery( sql );
       if modifyDB <> editDBName.Text then
