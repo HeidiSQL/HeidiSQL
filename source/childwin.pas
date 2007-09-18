@@ -22,7 +22,7 @@ uses
   ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs,
-  VirtualTrees;
+  VirtualTrees, createdatabase;
 
 
 type
@@ -533,6 +533,7 @@ type
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
       ListTablesColumnNames      : TStringList;
+      CreateDatabaseForm         : TCreateDatabaseForm;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -618,7 +619,7 @@ uses
   Main, createtable, fieldeditor, tbl_properties, tblcomment,
   optimizetables, copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql,
-  Registry, createdatabase;
+  Registry;
 
 
 {$I const.inc}
@@ -3329,19 +3330,19 @@ end;
 
 
 procedure TMDIChild.CreateDatabase(Sender: TObject);
-var
-  f : TCreateDatabaseForm;
 begin
   // Create database:
-  // - create modal form
-  // - rely on the modalresult being set correctly
-  f := TCreateDatabaseForm.Create(Self);
-  if f.ShowModal = mrOK then
+  // Create modal form once on demand
+  if CreateDatabaseForm = nil then
+    CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
+
+  // Rely on the modalresult being set correctly
+  if CreateDatabaseForm.ShowModal = mrOK then
   begin
     // Add DB to OnlyDBs-regkey if this is not empty
     if OnlyDBs.Count > 0 then
     begin
-      OnlyDBs.Add( f.editDBName.Text );
+      OnlyDBs.Add( CreateDatabaseForm.editDBName.Text );
       with TRegistry.Create do
       begin
         if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
@@ -3353,9 +3354,8 @@ begin
     end;
     // Todo: Don't expand node of old database in dbtree, just reload and switch to new one
     ReadDatabasesAndTables(self);
-    ActiveDatabase := f.editDBName.Text;
+    ActiveDatabase := CreateDatabaseForm.editDBName.Text;
   end;
-  FreeAndNil(f);
 end;
 
 
