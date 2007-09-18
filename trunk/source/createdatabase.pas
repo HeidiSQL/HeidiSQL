@@ -20,10 +20,12 @@ type
     procedure comboCharsetChange(Sender: TObject);
     procedure editDBNameChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     listCharsets : TStringList;
     dsCollations : TDataSet;
+    defaultCharset : String;
   public
     { Public declarations }
   end;
@@ -40,8 +42,6 @@ uses main, childwin, helpers;
   Fetch list with character sets and collations from the server
 }
 procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
-var
-  defaultCharset : String;
 begin
   try
     listCharsets := Mainform.Childwin.GetCol('SHOW CHARACTER SET');
@@ -55,16 +55,29 @@ begin
   begin
     comboCharset.Enabled := True;
     comboCharset.Items := listCharsets;
-    // Select servers default charset if possible
+    // Detect servers default charset
     defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_database'), 1 );
+  end;
+
+  comboCollation.Enabled := dsCollations <> nil;
+end;
+
+
+{**
+  Form gets displayed: Set default values.
+}
+procedure TCreateDatabaseForm.FormShow(Sender: TObject);
+begin
+  editDBName.Text := '';
+  if comboCharset.Items.Count > 0 then
+  begin
     if comboCharset.Items.IndexOf(defaultCharset) > -1 then
       comboCharset.ItemIndex := comboCharset.Items.IndexOf(defaultCharset)
     else
       comboCharset.ItemIndex := 0;
+    // Invoke selecting default collation
+    comboCharsetChange( Sender );
   end;
-
-  comboCollation.Enabled := dsCollations <> nil;
-  comboCharsetChange( Sender );
 end;
 
 
