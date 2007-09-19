@@ -14,7 +14,7 @@ type
   TMySQLLogCategory = (lcStats, lcSQL, lcError, lcInternal);
   TMySQLLogEvent = procedure (Category: TMySQLLogCategory; Msg: String) of object;
 
-  TMySQLCapability = (
+  TMySQLServerCapability = (
     cpShowEngines,          // SHOW ENGINES
     cpShowTableStatus,      // SHOW TABLE STATUS
     cpShowFullTables,       // SHOW FULL TABLES
@@ -30,11 +30,11 @@ type
     cpTruncateTable,        // TRUNCATE TABLE foo
     cpBackticks,            // `identifier`
     cpAlterDatabase,        // ALTER DATABASE
-    cpRenameDatabase        // RENAME DATABASE     
+    cpRenameDatabase        // RENAME DATABASE
     );
-  TMySQLCapabilities = set of TMySQLCapability;
+  TMySQLServerCapabilities = set of TMySQLServerCapability;
 
-  TMySQLConnectionOption = (
+  TMySQLClientOption = (
     opCompress,             // CLIENT_COMPRESS
     opConnectWithDb,        // CLIENT_CONNECT_WITH_DB
     opFoundRows,            // CLIENT_FOUND_ROWS
@@ -55,7 +55,7 @@ type
     opSSL,                  // CLIENT_SSL
     opTransactions          // CLIENT_TRANSACTIONS
     );
-  TMySQLConnectionOptions = set of TMySQLConnectionOption;
+  TMySQLClientOptions = set of TMySQLClientOption;
 
 const
   DEFAULT_MYSQLOPTIONS = [opLocalFiles, opInteractive, opProtocol41];
@@ -72,8 +72,8 @@ type
       FTimeout: Cardinal;
       FDatabase: String;
       FOnLog: TMySQLLogEvent;
-      FOptions: TMySQLConnectionOptions;
-      FCapabilities: TMySQLCapabilities;
+      FOptions: TMySQLClientOptions;
+      FCapabilities: TMySQLServerCapabilities;
       procedure SetActive( Value: Boolean );
       procedure SetDatabase( Value: String );
       function GetThreadId: Cardinal;
@@ -93,7 +93,7 @@ type
       property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
       function EscapeString( Text: String; DoQuote: Boolean = True ): String;
-      property Capabilities: TMySQLCapabilities read FCapabilities;
+      property Capabilities: TMySQLServerCapabilities read FCapabilities;
       function QuoteIdent( Identifier: String ): String;
 
     published
@@ -104,7 +104,7 @@ type
       property Password: String read FPassword write FPassword;
       property Timeout: Cardinal read FTimeout write FTimeout default NET_READ_TIMEOUT;
       property Database: String read FDatabase write SetDatabase;
-      property Options: TMySQLConnectionOptions read FOptions write FOptions default DEFAULT_MYSQLOPTIONS;
+      property Options: TMySQLClientOptions read FOptions write FOptions default DEFAULT_MYSQLOPTIONS;
 
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
@@ -478,7 +478,7 @@ end;
 procedure TMySQLConnection.DetectCapabilities;
 var
   ver : Integer;
-  procedure addCap( c: TMySQLCapability; addit: Boolean );
+  procedure addCap( c: TMySQLServerCapability; addit: Boolean );
   begin
     if addit then
       Include( FCapabilities, c )
