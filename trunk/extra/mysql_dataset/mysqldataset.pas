@@ -11,7 +11,7 @@ type
 
   {TMySQLConnection}
 
-  TMySQLLogCategory = (lcStats, lcSQL, lcError);
+  TMySQLLogCategory = (lcStats, lcSQL, lcError, lcInternal);
   TMySQLLogEvent = procedure (Category: TMySQLLogCategory; Msg: String) of object;
 
   TMySQLCapability = (
@@ -27,10 +27,40 @@ type
     cpTableComment,         // CREATE TABLE ... COMMENT = "foo"
     cpFieldComment,         // ALTER TABLE ADD ... COMMENT = "foo"
     cpColumnMoving,         // ALTER TABLE CHANGE ... FIRST|AFTER foo
-    cpTruncateTable         // TRUNCATE TABLE foo
+    cpTruncateTable,        // TRUNCATE TABLE foo
+    cpBackticks,            // `identifier`
+    cpAlterDatabase,        // ALTER DATABASE
+    cpRenameDatabase        // RENAME DATABASE     
     );
   TMySQLCapabilities = set of TMySQLCapability;
 
+  TMySQLConnectionOption = (
+    opCompress,             // CLIENT_COMPRESS
+    opConnectWithDb,        // CLIENT_CONNECT_WITH_DB
+    opFoundRows,            // CLIENT_FOUND_ROWS
+    opIgnoreSigpipe,        // CLIENT_IGNORE_SIGPIPE
+    opIgnoreSpace,          // CLIENT_IGNORE_SPACE
+    opInteractive,          // CLIENT_INTERACTIVE
+    opLocalFiles,           // CLIENT_LOCAL_FILES
+    opLongFlag,             // CLIENT_LONG_FLAG
+    opLongPassword,         // CLIENT_LONG_PASSWORD
+    opMultiResults,         // CLIENT_MULTI_RESULTS
+    opMultiStatements,      // CLIENT_MULTI_STATEMENTS
+    opNoSchema,             // CLIENT_NO_SCHEMA
+    opODBC,                 // CLIENT_ODBC
+    opProtocol41,           // CLIENT_PROTOCOL_41
+    opRememberOptions,      // CLIENT_REMEMBER_OPTIONS
+    opReserved,             // CLIENT_RESERVED
+    opSecureConnection,     // CLIENT_SECURE_CONNECTION
+    opSSL,                  // CLIENT_SSL
+    opTransactions          // CLIENT_TRANSACTIONS
+    );
+  TMySQLConnectionOptions = set of TMySQLConnectionOption;
+
+const
+  DEFAULT_MYSQLOPTIONS = [opLocalFiles, opInteractive, opProtocol41];
+
+type
   TMySQLConnection = class(TComponent)
     private
       FHandle: PMYSQL;
@@ -40,9 +70,9 @@ type
       FUsername: String;
       FPassword: String;
       FTimeout: Cardinal;
-      FCompressed: Boolean;
       FDatabase: String;
       FOnLog: TMySQLLogEvent;
+      FOptions: TMySQLConnectionOptions;
       FCapabilities: TMySQLCapabilities;
       procedure SetActive( Value: Boolean );
       procedure SetDatabase( Value: String );
@@ -62,18 +92,19 @@ type
       property LastError: String read GetLastError;
       property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
-      function EscapeString( Text: String ): String;
+      function EscapeString( Text: String; DoQuote: Boolean = True ): String;
       property Capabilities: TMySQLCapabilities read FCapabilities;
+      function QuoteIdent( Identifier: String ): String;
 
     published
-      property Active: Boolean read FActive write SetActive;
+      property Active: Boolean read FActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
-      property Port: Cardinal read FPort write FPort;
+      property Port: Cardinal read FPort write FPort default MYSQL_PORT;
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
-      property Timeout: Cardinal read FTimeout write FTimeout;
-      property Compressed: Boolean read FCompressed write FCompressed;
+      property Timeout: Cardinal read FTimeout write FTimeout default NET_READ_TIMEOUT;
       property Database: String read FDatabase write SetDatabase;
+      property Options: TMySQLConnectionOptions read FOptions write FOptions default DEFAULT_MYSQLOPTIONS;
 
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
@@ -89,6 +120,7 @@ type
       FRowsAffected: Int64;
       FLastResult: PMYSQL_RES;
       FRecNo: Int64;
+      FCurrentRow: PMYSQL_ROW;
       procedure SetQuery(Value: TStrings);
     protected
       function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
@@ -123,7 +155,23 @@ type
     published
       property SQL: TStrings read FSQL write SetQuery;
       property Connection: TMySQLConnection read FConnection write FConnection;
+
+      property AutoCalcFields;
+      property BeforeOpen;
+      property AfterOpen;
+      property BeforeClose;
+      property AfterClose;
+      property BeforeRefresh;
+      property AfterRefresh;
+      property BeforeScroll;
+      property AfterScroll;
+      property OnCalcFields;
+      property OnFilterRecord;
+      property Filter;
+      property Filtered;
   end;
+
+  procedure Register;
 
   // Should be removed when this baby is running
   procedure debug(txt: String);
@@ -138,6 +186,11 @@ begin
   OutputDebugString(PChar(txt));
 end;
 
+procedure Register;
+begin
+  RegisterComponents('MySQL Dataset', [TMySQLConnection, TMySQLQuery]);
+end;
+
 
 
 {TMySQLConnection}
@@ -145,7 +198,8 @@ end;
 constructor TMySQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FHostname := LOCAL_HOST;
+  FOptions := DEFAULT_MYSQLOPTIONS;
+  FTimeout := NET_READ_TIMEOUT;
   FPort := MYSQL_PORT;
 end;
 
@@ -157,6 +211,8 @@ end;
 procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   connected : PMYSQL;
+  ClientFlags : Integer;
+  error : String;
 begin
   FActive := Value;
 
@@ -172,6 +228,29 @@ begin
     // read [Client]-section from ini-file
     mysql_options(FHandle, MYSQL_READ_DEFAULT_GROUP, pchar('Client'));
 
+    // Gather client options
+    ClientFlags := 0;
+    if opRememberOptions   in FOptions then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
+    if opLongPassword      in FOptions then ClientFlags := ClientFlags or CLIENT_LONG_PASSWORD;
+    if opFoundRows         in FOptions then ClientFlags := ClientFlags or CLIENT_FOUND_ROWS;
+    if opLongFlag          in FOptions then ClientFlags := ClientFlags or CLIENT_LONG_FLAG;
+    if opConnectWithDb     in FOptions then ClientFlags := ClientFlags or CLIENT_CONNECT_WITH_DB;
+    if opNoSchema          in FOptions then ClientFlags := ClientFlags or CLIENT_NO_SCHEMA;
+    if opCompress          in FOptions then ClientFlags := ClientFlags or CLIENT_COMPRESS;
+    if opODBC              in FOptions then ClientFlags := ClientFlags or CLIENT_ODBC;
+    if opLocalFiles        in FOptions then ClientFlags := ClientFlags or CLIENT_LOCAL_FILES;
+    if opIgnoreSpace       in FOptions then ClientFlags := ClientFlags or CLIENT_IGNORE_SPACE;
+    if opProtocol41        in FOptions then ClientFlags := ClientFlags or CLIENT_PROTOCOL_41;
+    if opInteractive       in FOptions then ClientFlags := ClientFlags or CLIENT_INTERACTIVE;
+    if opSSL               in FOptions then ClientFlags := ClientFlags or CLIENT_SSL;
+    if opIgnoreSigpipe     in FOptions then ClientFlags := ClientFlags or CLIENT_IGNORE_SIGPIPE;
+    if opTransactions      in FOptions then ClientFlags := ClientFlags or CLIENT_TRANSACTIONS;
+    if opReserved          in FOptions then ClientFlags := ClientFlags or CLIENT_RESERVED;
+    if opSecureConnection  in FOptions then ClientFlags := ClientFlags or CLIENT_SECURE_CONNECTION;
+    if opMultiStatements   in FOptions then ClientFlags := ClientFlags or CLIENT_MULTI_STATEMENTS;
+    if opMultiResults      in FOptions then ClientFlags := ClientFlags or CLIENT_MULTI_RESULTS;
+    if opRememberOptions   in FOptions then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
+
     // Connect
     connected := mysql_real_connect(FHandle,
       pChar(FHostname),
@@ -180,22 +259,23 @@ begin
       nil,
       FPort,
       nil,
-      Integer(FCompressed) * _CLIENT_COMPRESS
+      ClientFlags
       );
     if connected = nil then
     begin
-      Log( lcError, GetLastError );
-      raise Exception.Create(GetLastError);
+      error := LastError;
+      Log( lcError, error );
       FActive := False;
       FHandle := nil;
+      raise Exception.Create( error );
     end
     else begin
-      Log( lcStats, 'Connection established with host "'+FHostname+'" on port '+IntToStr(FPort)+' as user "'+FUsername+'"' );
-      Log( lcStats, 'Connection-ID: '+IntToStr(GetThreadId) );
-      Log( lcStats, 'Characterset: '+GetCharacterSet );
+      DetectCapabilities;
+      Log( lcStats, 'Connection established with host "'+Hostname+'" on port '+IntToStr(Port)+' as user "'+Username+'"' );
+      Log( lcStats, 'Connection-ID: '+IntToStr(ThreadId) );
+      Log( lcStats, 'Characterset: '+CharacterSet );
       Log( lcStats, 'Server version: '+ServerVersionStr+' ('+IntToStr(ServerVersionInt)+')' );
       SetDatabase( FDatabase );
-      DetectCapabilities;
     end;
   end
 
@@ -203,6 +283,7 @@ begin
   begin
     mysql_close(FHandle);
     FHandle := nil;
+    FCapabilities := [];
     Log( lcStats, 'Connection closed' );
   end;
 
@@ -236,22 +317,24 @@ end;
 procedure TMySQLConnection.SetDatabase( Value: String );
 var
   res : Integer;
+  oldValue : String;
 begin
   if Value = '' then
     Exit;
 
+  oldValue := FDatabase;
   FDatabase := Value;
 
   // Switch to DB if connected.
   // If not connected, SetDatabase() should be called by SetActive()
   if FActive then
   begin
-    res := Query( 'USE '+Value );
+    res := Query( 'USE '+QuoteIdent(Value) );
     if res = 0 then
       Log( lcStats, 'Database "'+Value+'" selected' )
     else begin
+      FDatabase := oldValue;
       raise Exception.Create(GetLastError);
-      FDatabase := '';
     end;
   end;
 end;
@@ -356,7 +439,7 @@ end;
 {**
   Escapes a string for usage in SQL queries
 }
-function TMySQLConnection.EscapeString( Text: String ): String;
+function TMySQLConnection.EscapeString( Text: String; DoQuote: Boolean ): String;
 var
   BufferLen: Integer;
   Buffer: PChar;
@@ -366,12 +449,31 @@ begin
   BufferLen := mysql_real_escape_string(FHandle, Buffer, PChar(Text), Length(Text));
   SetString(Result, Buffer, BufferLen);
   FreeMem(Buffer);
+
+  if DoQuote then
+    Result := '''' + Result + '''';
 end;
 
 
 {**
-  Detect various capabilities of the server and store them
-  for easy access in client-applications.
+  Add backticks to identifier
+  Todo: Support ANSI style
+}
+function TMySQLConnection.QuoteIdent( Identifier: String ): String;
+begin
+  if cpBackticks in Capabilities then
+  begin
+    Result := StringReplace(Identifier, '`', '``', [rfReplaceAll]);
+    Result := '`' + Result + '`';
+  end
+  else
+    Result := Identifier;
+end;
+
+
+{**
+  Detect various capabilities of the server
+  for easy feature-checks in client-applications.
 }
 procedure TMySQLConnection.DetectCapabilities;
 var
@@ -379,7 +481,9 @@ var
   procedure addCap( c: TMySQLCapability; addit: Boolean );
   begin
     if addit then
-      Include( FCapabilities, c );
+      Include( FCapabilities, c )
+    else
+      Exclude( FCapabilities, c );
   end;
 begin
   // Avoid calling GetServerVersionInt too often
@@ -398,6 +502,10 @@ begin
   addCap( cpFieldComment, ver >= 40100 );
   addCap( cpColumnMoving, ver >= 40001 );
   addCap( cpTruncateTable, ver >= 50003 );
+  addCap( cpBackticks, ver >= 32300 );
+  addCap( cpAlterDatabase, ver >= 50002 );
+  addCap( cpRenameDatabase, ver >= 50107 );
+
 end;
 
 
@@ -446,16 +554,16 @@ end;
 }
 function TMySQLQuery.GetRecord(Buffer: PChar; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
-var
-  row: PMYSQL_ROW;
 begin
   Result := grOK;
 
   case GetMode of
     gmCurrent:
       begin
-        row := mysql_fetch_row( FLastResult );
-        Result := grOK;
+        if (RecNo < 0) or (RecNo >= RecordCount) then
+          Result := grError
+        else
+          Result := grOK;
       end;
 
     gmNext:
@@ -463,8 +571,7 @@ begin
         Result := grEOF
       else
       begin
-        inc(FRecNo);
-        row := mysql_fetch_row( FLastResult );
+        RecNo := RecNo + 1;
         Result := grOK;
       end;
 
@@ -473,14 +580,20 @@ begin
         Result := grBOF
       else
       begin
-        dec(FRecNo);
-        row := mysql_fetch_row( FLastResult );
+        RecNo := RecNo - 1;
         Result := grOK;
       end;
   end;
 
-  if row <> nil then
-    Buffer := pointer(row); // Obviously incorrect
+  if Result = grOK then
+  begin
+    FCurrentRow := mysql_fetch_row( FLastResult );
+    System.Move(
+      FCurrentRow,
+      Buffer,
+      SizeOf(FCurrentRow)
+    );
+  end;
 
 end;
 
@@ -513,7 +626,20 @@ begin
 
   That covers the GetFieldData method.
   }
-  Result := True;
+  FConnection.Log(lcInternal, 'GetFieldData called for RecNo '+inttostr(RecNo)+' field "'+Field.Name+'" ('+inttostr(field.FieldNo)+')');
+  if Field.DataType = ftString then
+  begin
+    System.Move(
+      FCurrentRow[Field.FieldNo-1]^,
+      //ZEOS: RowAccessor.GetColumnData(ColumnIndex, Result)^,
+      Buffer,
+      //ZEOS: RowAccessor.GetColumnDataSize(ColumnIndex)
+      SizeOf(FCurrentRow[Field.FieldNo-1])
+      );
+    Result := True;
+  end
+  else
+    Result := False;
 end;
 
 
@@ -526,6 +652,14 @@ begin
   of GetFieldData. It is passed a buffer with some field value in the buffer that
   must then be copied back into your record buffer.
   }
+  if Field.DataType = ftString then
+  begin
+    System.Move(
+      Buffer^,
+      FCurrentRow,
+      SizeOf(FCurrentRow)
+      );
+  end;
 end;
 
 
@@ -826,8 +960,8 @@ end;
 }
 procedure TMySQLQuery.SetRecNo(Value: Integer);
 begin
-  if Value > GetRecordCount then
-    Value := GetRecordCount-1;
+  if Value > RecordCount then
+    Value := RecordCount-1;
   FRecNo := Value;
   mysql_data_seek( FLastResult, FRecNo );
 end;
