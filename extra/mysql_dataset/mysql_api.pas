@@ -59,9 +59,9 @@ const
   REFRESH_READ_LOCK        = 16384; { Lock tables for read }
   REFRESH_FAST		         = 32768; { Intern flag }
   REFRESH_QUERY_CACHE	     = 65536;
-  REFRESH_QUERY_CACHE_FREE = $20000; { Pack query cache }
-  REFRESH_DES_KEY_FILE	   = $40000;
-  REFRESH_USER_RESOURCES   = $80000;
+  REFRESH_QUERY_CACHE_FREE = 131072; { Pack query cache }
+  REFRESH_DES_KEY_FILE	   = 262144;
+  REFRESH_USER_RESOURCES   = 524288;
 
   { Client Connection Options }
   CLIENT_LONG_PASSWORD	    = 1;	 { new more secure passwords }
@@ -80,10 +80,10 @@ const
   CLIENT_TRANSACTIONS	      = 8192;    { Client knows about transactions }
   CLIENT_RESERVED           = 16384;    { Old flag for 4.1 protocol  }
   CLIENT_SECURE_CONNECTION  = 32768;    { New 4.1 authentication }
-  CLIENT_MULTI_STATEMENTS   = $10000;   { Enable/disable multi-stmt support }
-  CLIENT_MULTI_RESULTS      = $20000;   { Enable/disable multi-results }
-  // CLIENT_SSL_VERIFY_SERVER_CERT = (1UL << 30)
-  CLIENT_REMEMBER_OPTIONS   = $8000000; {Enable/disable multi-results }
+  CLIENT_MULTI_STATEMENTS   = 65536;   { Enable/disable multi-stmt support }
+  CLIENT_MULTI_RESULTS      = 131072;   { Enable/disable multi-results }
+  CLIENT_SSL_VERIFY_SERVER_CERT = 67108864;
+  CLIENT_REMEMBER_OPTIONS   = 134217728;
 
   SERVER_STATUS_IN_TRANS          = 1;   {Transaction has started}
   SERVER_STATUS_AUTOCOMMIT        = 2;   {Server in Autocommit Mode}
@@ -537,7 +537,7 @@ var
   mysql_list_fields            : function(Handle: PMYSQL; const Table, Wild: PChar): PMYSQL_RES; stdcall;
   mysql_list_processes         : function(Handle: PMYSQL): PMYSQL_RES; stdcall;
   mysql_list_tables            : function(Handle: PMYSQL; const Wild: PChar): PMYSQL_RES; stdcall;
-  mysql_num_fields             : function(Result: PMYSQL_RES): Cardinal; stdcall;
+  mysql_num_fields             : function(Result: PMYSQL_RES): Integer; stdcall;
   mysql_num_rows               : function(Result: PMYSQL_RES): Int64; stdcall;
   mysql_options                : function(Handle: PMYSQL; Option: TMySQLOption; const Arg: PChar): Integer; stdcall;
   mysql_ping                   : function(Handle: PMYSQL): Integer; stdcall;
