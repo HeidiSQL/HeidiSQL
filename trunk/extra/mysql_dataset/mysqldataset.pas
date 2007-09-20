@@ -9,7 +9,9 @@ uses
 
 type
 
-  {TMySQLConnection}
+  { **************** }
+  { TMySQLConnection }
+  { **************** }
 
   TMySQLLogCategory = (lcStats, lcSQL, lcError, lcInternal);
   TMySQLLogEvent = procedure (Category: TMySQLLogCategory; Msg: String) of object;
@@ -58,7 +60,7 @@ type
   TMySQLClientOptions = set of TMySQLClientOption;
 
 const
-  DEFAULT_MYSQLOPTIONS = [opLocalFiles, opInteractive, opProtocol41];
+  DEFAULT_MYSQLOPTIONS = [opCompress, opLocalFiles, opInteractive, opProtocol41];
 
 type
   TMySQLConnection = class(TComponent)
@@ -74,6 +76,8 @@ type
       FOnLog: TMySQLLogEvent;
       FOptions: TMySQLClientOptions;
       FCapabilities: TMySQLServerCapabilities;
+      FRowsFound: Int64;
+      FRowsAffected: Int64;
       procedure SetActive( Value: Boolean );
       procedure SetDatabase( Value: String );
       function GetThreadId: Cardinal;
@@ -85,16 +89,22 @@ type
       procedure DetectCapabilities;
     public
       constructor Create(AOwner: TComponent); override;
+      function Query( SQL: String ): PMYSQL_RES;
+      function EscapeString( Text: String; DoQuote: Boolean = True ): String;
+      function QuoteIdent( Identifier: String ): String;
+      function GetRow( SQL: String; RowOffset: Int64 = 0 ): TStringList;
+      function GetVar( SQL: String; Column: Integer = 0 ): String; overload;
+      function GetVar( SQL: String; Column: String ): String; overload;
+
       property ThreadId: Cardinal read GetThreadId;
       property Handle: PMYSQL read FHandle;
       property CharacterSet: String read GetCharacterSet;
-      function Query( SQL: String ): Longint;
       property LastError: String read GetLastError;
       property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
-      function EscapeString( Text: String; DoQuote: Boolean = True ): String;
       property Capabilities: TMySQLServerCapabilities read FCapabilities;
-      function QuoteIdent( Identifier: String ): String;
+      property RowsFound: Int64 read FRowsFound;
+      property RowsAffected: Int64 read FRowsAffected;
 
     published
       property Active: Boolean read FActive write SetActive default False;
@@ -111,7 +121,9 @@ type
   end;
 
 
-  {TMySQLQuery}
+  { *********** }
+  { TMySQLQuery }
+  { *********** }
 
   TMySQLQuery = class(TDataSet)
     private
@@ -193,7 +205,9 @@ end;
 
 
 
-{TMySQLConnection}
+{ **************** }
+{ TMySQLConnection }
+{ **************** }
 
 constructor TMySQLConnection.Create(AOwner: TComponent);
 begin
@@ -201,6 +215,8 @@ begin
   FOptions := DEFAULT_MYSQLOPTIONS;
   FTimeout := NET_READ_TIMEOUT;
   FPort := MYSQL_PORT;
+  FRowsFound := -1;
+  FRowsAffected := -1;
 end;
 
 
@@ -293,20 +309,33 @@ end;
 {**
    Executes a query
 }
-function TMySQLConnection.Query(SQL: string): Longint;
+function TMySQLConnection.Query(SQL: string): PMYSQL_RES;
+var
+  querystatus : Integer;
 begin
   if Not FActive then
     SetActive( True );
   Log( lcSQL, Trim(Copy(SQL, 1, 1024)) );
-  Result := mysql_real_query(FHandle, pChar(SQL), length(SQL));
-  if Result <> 0 then
+  querystatus := mysql_real_query(FHandle, pChar(SQL), length(SQL));
+  if querystatus <> 0 then
   begin
     Log( lcError, GetLastError );
     raise Exception.Create(GetLastError);
   end
-  else
-  begin
-    Log( lcStats, IntToStr(mysql_affected_rows( FHandle ))+' rows affected' );
+  else begin
+    FRowsAffected := mysql_affected_rows( FHandle );
+    Log( lcStats, IntToStr(RowsAffected)+' rows affected.' );
+    Result := mysql_store_result( FHandle );
+    try
+      FRowsFound := mysql_num_rows( Result );
+      Log( lcStats, IntToStr(RowsFound)+' rows found.' );
+    except
+      // mysql_num_rows caused an exception.
+      // Now we know that the query was a non-result-query.
+      Log( lcInternal, 'Query returned empty resultset.' );
+      mysql_free_result( Result );
+      Result := nil;
+    end;
   end;
 end;
 
@@ -316,7 +345,6 @@ end;
 }
 procedure TMySQLConnection.SetDatabase( Value: String );
 var
-  res : Integer;
   oldValue : String;
 begin
   if Value = '' then
@@ -328,13 +356,14 @@ begin
   // Switch to DB if connected.
   // If not connected, SetDatabase() should be called by SetActive()
   if FActive then
-  begin
-    res := Query( 'USE '+QuoteIdent(Value) );
-    if res = 0 then
-      Log( lcStats, 'Database "'+Value+'" selected' )
-    else begin
+  try
+    Query( 'USE '+QuoteIdent(Value) );
+    Log( lcStats, 'Database "'+Value+'" selected' )
+  except
+    On E:Exception do
+    begin
       FDatabase := oldValue;
-      raise Exception.Create(GetLastError);
+      raise Exception.Create(e.Message);
     end;
   end;
 end;
@@ -509,8 +538,80 @@ begin
 end;
 
 
+{**
+  Get one row via SQL query as TStringList
+  Todo: free res after raising exception
+}
+function TMySQLConnection.GetRow( SQL: String; RowOffset: Int64 = 0 ): TStringList;
+var
+  res : PMYSQL_RES;
+  row : PMYSQL_ROW;
+  field : PMYSQL_FIELD;
+  i : Integer;
+begin
+  Result := TStringList.Create;
+  res := Query( SQL );
+  if RowsFound < RowOffset+1 then
+    raise Exception.Create( 'Error ('+Self.ClassName+'): Query returned not enough rows: '+IntToStr(RowsFound)+', wanted offset: '+IntToStr(RowOffset) );
+  mysql_data_seek( res, RowOffset );
+  row := mysql_fetch_row( res );
+  for i := 0 to mysql_num_fields(res) - 1 do
+  begin
+    field := mysql_fetch_field_direct( res, i );
+    Result.Values[field.name] := row[i];
+  end;
+  mysql_free_result(res);
+end;
 
+
+{**
+  Get single cell value via SQL query, identified by column number
+  Todo: free row after raising exception
+}
+function TMySQLConnection.GetVar( SQL: String; Column: Integer = 0 ): String;
+var
+  row : TStringList;
+begin
+  row := GetRow( SQL );
+  if row.Count < Column+1 then
+    raise Exception.Create( 'Error ('+Self.ClassName+'): Fetching field nr. '+IntToStr(Column)+' not possible - query returned '+IntToStr(row.Count)+' fields.' );
+  Result := row.ValueFromIndex[Column];
+  FreeAndNil(row);
+end;
+
+
+{**
+  Get single cell value via SQL query, identified by column name
+  Todo: free row after raising exception
+}
+function TMySQLConnection.GetVar( SQL: String; Column: String ): String;
+var
+  row : TStringList;
+  i : Integer;
+  colexists : Boolean;
+begin
+  row := GetRow( SQL );
+  colexists := False;
+  for i := 0 to row.Count - 1 do
+  begin
+    if LowerCase(row.Names[i]) = LowerCase(Column) then
+    begin
+      colexists := True;
+      break;
+    end;
+  end;
+  if not colexists then
+    raise Exception.Create( 'Error ('+Self.ClassName+'): Field "'+Column+'" does not exist in resultset.' );
+  Result := row.Values[Column];
+  FreeAndNil(row);
+end;
+
+
+
+
+{ *********** }
 { TMySQLQuery }
+{ *********** }
 
 constructor TMySQLQuery.Create(AOwner: TComponent);
 begin
@@ -525,9 +626,15 @@ end;
   Executes a query without handling the resultset
 }
 procedure TMySQLQuery.ExecSQL;
+var
+  res: PMYSQL_RES;
 begin
-  FConnection.Query( FSQL.Text );
-  FRowsAffected := mysql_affected_rows( FConnection.Handle );
+  res := FConnection.Query( FSQL.Text );
+  // Important to temporary store the number of affected rows now
+  // because the connection object is free to execute further queries now.
+  FRowsAffected := Connection.RowsAffected;
+  // Free result, we don't do anything with it in ExecSQL
+  mysql_free_result( res );
 end;
 
 
@@ -674,7 +781,7 @@ end;
 
 {**
   Dataset is editable?
-  Should be True for simple SELECTs and False for not parsable SELECTs 
+  Should be True for simple SELECTs and False for not parsable SELECTs
 }
 function TMySQLQuery.GetCanModify: Boolean;
 begin
@@ -687,8 +794,7 @@ end;
 }
 procedure TMySQLQuery.InternalOpen;
 begin
-  FConnection.Query( FSQL.Text );
-  FLastResult := mysql_store_result( FConnection.Handle );
+  FLastResult := FConnection.Query( FSQL.Text );
   FieldDefs.Clear;
   FieldDefs.Update; // Calls InternalInitFieldDefs
 
