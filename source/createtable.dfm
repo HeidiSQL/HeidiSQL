@@ -3,7 +3,7 @@ object CreateTableForm: TCreateTableForm
   Top = 95
   BorderStyle = bsDialog
   Caption = 'Create Table...'
-  ClientHeight = 354
+  ClientHeight = 366
   ClientWidth = 499
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -13,6 +13,7 @@ object CreateTableForm: TCreateTableForm
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -31,21 +32,22 @@ object CreateTableForm: TCreateTableForm
   end
   object Label2: TLabel
     Left = 16
-    Top = 91
+    Top = 106
     Width = 43
     Height = 13
+    Anchors = [akLeft, akBottom]
     Caption = 'Columns:'
   end
   object Label3: TLabel
-    Left = 264
-    Top = 16
+    Left = 16
+    Top = 66
     Width = 47
     Height = 13
     Caption = 'Comment:'
   end
   object Bevel1: TBevel
     Left = 0
-    Top = 313
+    Top = 325
     Width = 499
     Height = 41
     Align = alBottom
@@ -60,24 +62,39 @@ object CreateTableForm: TCreateTableForm
   end
   object Label5: TLabel
     Left = 264
-    Top = 41
+    Top = 16
     Width = 57
     Height = 13
     Caption = 'Table-Type:'
     OnClick = Button1Click
   end
   object Bevel2: TBevel
-    Left = 16
-    Top = 76
+    Left = 18
+    Top = 94
     Width = 473
     Height = 9
     Shape = bsTopLine
   end
+  object lblCharacterset: TLabel
+    Left = 264
+    Top = 41
+    Width = 66
+    Height = 13
+    Caption = 'Character set:'
+  end
+  object lblCollation: TLabel
+    Left = 264
+    Top = 66
+    Width = 43
+    Height = 13
+    Caption = 'Collation:'
+  end
   object ButtonCancel: TButton
     Left = 408
-    Top = 324
+    Top = 333
     Width = 83
     Height = 25
+    Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -86,9 +103,10 @@ object CreateTableForm: TCreateTableForm
   end
   object ButtonCreate: TButton
     Left = 312
-    Top = 324
+    Top = 333
     Width = 83
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'Create!'
     Enabled = False
     ModalResult = 1
@@ -97,9 +115,10 @@ object CreateTableForm: TCreateTableForm
   end
   object GroupBox1: TGroupBox
     Left = 264
-    Top = 112
+    Top = 128
     Width = 225
     Height = 185
+    Anchors = [akLeft, akRight, akBottom]
     Caption = 'Column-Properties:'
     TabOrder = 11
     object lblFieldType: TLabel
@@ -272,8 +291,8 @@ object CreateTableForm: TCreateTableForm
     OnChange = EditTablenameChange
   end
   object EditDescription: TEdit
-    Left = 336
-    Top = 14
+    Left = 96
+    Top = 64
     Width = 153
     Height = 21
     Hint = 'A 60 characters comment for this table'
@@ -284,9 +303,10 @@ object CreateTableForm: TCreateTableForm
   end
   object ListboxColumns: TListBox
     Left = 16
-    Top = 136
+    Top = 151
     Width = 137
     Height = 161
+    Anchors = [akLeft, akBottom]
     ExtendedSelect = False
     ItemHeight = 13
     TabOrder = 5
@@ -294,9 +314,10 @@ object CreateTableForm: TCreateTableForm
   end
   object ButtonMoveUp: TBitBtn
     Left = 160
-    Top = 248
+    Top = 263
     Width = 25
     Height = 25
+    Anchors = [akLeft, akBottom]
     Enabled = False
     TabOrder = 9
     OnClick = ButtonMoveUpClick
@@ -312,9 +333,10 @@ object CreateTableForm: TCreateTableForm
   end
   object ButtonMoveDown: TBitBtn
     Left = 160
-    Top = 272
+    Top = 287
     Width = 25
     Height = 25
+    Anchors = [akLeft, akBottom]
     Enabled = False
     TabOrder = 10
     OnClick = ButtonMoveDownClick
@@ -330,18 +352,20 @@ object CreateTableForm: TCreateTableForm
   end
   object ButtonAdd: TButton
     Left = 160
-    Top = 112
+    Top = 127
     Width = 75
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'Add'
     TabOrder = 6
     OnClick = Button1Click
   end
   object ButtonDelete: TButton
     Left = 160
-    Top = 176
+    Top = 191
     Width = 75
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'Remove'
     Enabled = False
     TabOrder = 8
@@ -349,9 +373,10 @@ object CreateTableForm: TCreateTableForm
   end
   object ButtonChange: TButton
     Left = 160
-    Top = 144
+    Top = 159
     Width = 75
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'Change'
     Enabled = False
     TabOrder = 7
@@ -359,9 +384,10 @@ object CreateTableForm: TCreateTableForm
   end
   object EditFieldname: TEdit
     Left = 16
-    Top = 112
+    Top = 127
     Width = 137
     Height = 21
+    Anchors = [akLeft, akBottom]
     MaxLength = 64
     TabOrder = 4
     Text = 'FieldName'
@@ -377,8 +403,8 @@ object CreateTableForm: TCreateTableForm
     TabOrder = 1
   end
   object ComboBoxTableType: TComboBox
-    Left = 336
-    Top = 39
+    Left = 338
+    Top = 14
     Width = 153
     Height = 21
     ItemHeight = 13
@@ -393,5 +419,26 @@ object CreateTableForm: TCreateTableForm
       'InnoDB'
       'BDB'
       'Gemini')
+  end
+  object comboCharset: TComboBox
+    Left = 338
+    Top = 39
+    Width = 153
+    Height = 21
+    Style = csDropDownList
+    Enabled = False
+    ItemHeight = 13
+    TabOrder = 14
+    OnChange = comboCharsetChange
+  end
+  object comboCollation: TComboBox
+    Left = 338
+    Top = 64
+    Width = 153
+    Height = 21
+    Style = csDropDownList
+    Enabled = False
+    ItemHeight = 13
+    TabOrder = 15
   end
 end
