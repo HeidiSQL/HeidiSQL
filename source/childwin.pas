@@ -2011,7 +2011,7 @@ end;
 procedure TMDIChild.MenuRefreshClick(Sender: TObject);
 begin
   RefreshActiveDbTableList;
-  ShowDBProperties(ActiveDatabase);
+  LoadDatabaseProperties(ActiveDatabase);
 end;
 
 
