@@ -1866,7 +1866,7 @@ begin
   end;
 
   // Add chars as long as they're alpha-numeric
-  while i < Length(text) do
+  while i <= Length(text) do
   begin
     if (text[i] in wordChars) then
     begin
