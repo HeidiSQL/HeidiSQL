@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Buttons, ComCtrls, ImgList, ToolWin,
-  Menus;
+  Menus, db;
 
 type
   TCreateTableForm = class(TForm)
@@ -50,6 +50,11 @@ type
     Label5: TLabel;
     Bevel2: TBevel;
     ListboxColumns: TListBox;
+    lblCharacterset: TLabel;
+    lblCollation: TLabel;
+    comboCharset: TComboBox;
+    comboCollation: TComboBox;
+    procedure FormCreate(Sender: TObject);
     procedure EditTablenameChange(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonCreateClick(Sender: TObject);
@@ -78,8 +83,12 @@ type
     procedure checktypes(Sender: TObject);
     procedure ButtonMoveUpClick(Sender: TObject);
     procedure ButtonMoveDownClick(Sender: TObject);
+    procedure comboCharsetChange(Sender: TObject);
   private
     index : Integer;
+    listCharsets : TStringList;
+    dsCollations : TDataSet;
+    defaultCharset : String;
     { Private declarations }
   public
     { Public declarations }
@@ -113,6 +122,32 @@ begin
   if Database <> '' then f.DBComboBox.SelText := Database;
   Result := (f.ShowModal=mrOK);
   FreeAndNil (f);
+end;
+
+
+{**
+  Fetch list with character sets and collations from the server
+  @todo: share these lists with other forms, fx createdatabase
+}
+procedure TCreateTableForm.FormCreate(Sender: TObject);
+begin
+  try
+    listCharsets := Mainform.Childwin.GetCol('SHOW CHARACTER SET');
+    dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
+  except
+    // Ignore it when the above statements don't work on pre 4.1 servers.
+    // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
+  end;
+
+  if (listCharsets <> nil) and (listCharsets.Count > 0) then
+  begin
+    comboCharset.Enabled := True;
+    comboCharset.Items := listCharsets;
+    // Detect servers default charset
+    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+  end;
+
+  comboCollation.Enabled := dsCollations <> nil;
 end;
 
 
@@ -207,6 +242,14 @@ begin
 
   if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
     createQuery := createQuery + ' TYPE = ' + ComboBoxTableType.Text;
+
+  if comboCharset.Enabled and (comboCharset.Text <> '') then
+  begin
+    createQuery := createQuery + ' /*!40100 DEFAULT CHARSET ' + comboCharset.Text;
+    if comboCollation.Enabled and (comboCollation.Text <> '') then
+      createQuery := createQuery + ' COLLATE ' + comboCollation.Text;
+    createQuery := createQuery + ' */';
+  end;
 
   // Execute CREATE statement and reload tablesList
   try
@@ -554,6 +597,18 @@ begin
   Editdescription.Text := '';
   ButtonCreate.Enabled := false;
   ButtonAdd.Enabled := true;
+
+  // Preselect charset item in pulldown
+  if comboCharset.Items.Count > 0 then
+  begin
+    if comboCharset.Items.IndexOf(defaultCharset) > -1 then
+      comboCharset.ItemIndex := comboCharset.Items.IndexOf(defaultCharset)
+    else
+      comboCharset.ItemIndex := 0;
+    // Invoke selecting default collation
+    comboCharsetChange( Sender );
+  end;
+
   disablecontrols(self);
 end;
 
@@ -650,6 +705,43 @@ begin
   setlength(fields, length(fields)-1);
   inc(index);
   refreshfields(self);
+end;
+
+
+{**
+  Charset has been selected: Display fitting collations
+  and select default one.
+}
+procedure TCreateTableForm.comboCharsetChange(Sender: TObject);
+var
+  defaultCollation : String;
+begin
+  // Abort if collations were not fetched successfully
+  if dsCollations = nil then
+    Exit;
+
+  // Fill pulldown with fitting collations
+  comboCollation.Items.BeginUpdate;
+  comboCollation.Items.Clear;
+  dsCollations.First;
+  while not dsCollations.Eof do
+  begin
+    if dsCollations.FieldByName('Charset').AsString = comboCharset.Text then
+    begin
+      comboCollation.Items.Add( dsCollations.FieldByName('Collation').AsString );
+      if dsCollations.FieldByName('Default').AsString = 'Yes' then
+        defaultCollation := dsCollations.FieldByName('Collation').AsString;
+    end;
+    dsCollations.Next;
+  end;
+
+  // Preselect default collation
+  if comboCollation.Items.IndexOf(defaultCollation) > -1 then
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(defaultCollation)
+  else
+    comboCollation.ItemIndex := 0;
+
+  comboCollation.Items.EndUpdate;
 end;
 
 end.
