@@ -133,9 +133,6 @@
       <Form>frmSQLhelp</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\synchronization.pas" />
-    <DCCReference Include="..\..\source\tblcomment.pas">
-      <Form>tablecomment</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\tbl_properties.pas">
       <Form>tbl_properties_form</Form>
     </DCCReference>

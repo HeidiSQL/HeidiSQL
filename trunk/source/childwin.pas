@@ -92,7 +92,6 @@ type
     MenuViewBlob: TMenuItem;
     TimerConnected: TTimer;
     N12: TMenuItem;
-    MenuTableComment: TMenuItem;
     popupSqlLog: TPopupMenu;
     Clear2: TMenuItem;
     Copy1: TMenuItem;
@@ -138,13 +137,6 @@ type
     PrintList3: TMenuItem;
     PrintList4: TMenuItem;
     N1: TMenuItem;
-    MenuChangeType: TMenuItem;
-    MenuChangeType2: TMenuItem;
-    MenuChangeType3: TMenuItem;
-    MenuChangeTypeOther: TMenuItem;
-    N8: TMenuItem;
-    MenuChangeType1: TMenuItem;
-    MenuChangeType4: TMenuItem;
     MenuCopyTable: TMenuItem;
     PageControlBottom: TPageControl;
     tabSQLLog: TTabSheet;
@@ -161,7 +153,6 @@ type
     tabBlobEditorImage: TTabSheet;
     SynMemoFilter: TSynMemo;
     N18: TMenuItem;
-    MenuChangeType5: TMenuItem;
     selectall1: TMenuItem;
     MenuAutoupdate: TMenuItem;
     TimerHost: TTimer;
@@ -392,7 +383,6 @@ type
     procedure MenuViewBlobClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear1Click(Sender: TObject);
-    procedure MenuTableCommentClick(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
     procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
@@ -419,8 +409,6 @@ type
     procedure ClearFilter(Sender: TObject);
     procedure LoadSQLWhereFile(Sender: TObject);
     procedure DropFilter1Click(Sender: TObject);
-    procedure MenuChangeTypeClick(Sender: TObject);
-    procedure MenuChangeTypeOtherClick(Sender: TObject);
     procedure InsertRecord(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
@@ -619,7 +607,7 @@ implementation
 
 
 uses
-  Main, createtable, fieldeditor, tblcomment,
+  Main, createtable, fieldeditor,
   optimizetables, copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql,
   Registry;
@@ -764,21 +752,14 @@ begin
       Break;
     end;
   end;
-
-  for i := 0 to ( MenuChangeType.Count - 1 ) do
-  begin
-    MenuChangeType.Items[i].Checked := ( MenuChangeType.Items[i].Caption = SelectedEngine );
-  end;
 end;
 
 
 procedure TMDIChild.Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
 var
   AutoReconnect    : Boolean;
-  menuitem         : TMenuItem;
   winName          : String;
   i, j             : Integer;
-  ds               : TDataSet;
   miGroup,
   miFunction       : TMenuItem;
   functioncats     : TStringList;
@@ -851,30 +832,6 @@ begin
       CloseKey();
     end;
     FreeAndNil(reg2);
-  end;
-
-  // Read engine-types for popupmenu in database tab
-  if ( mysql_version >= 40102 ) then
-  begin
-    for i := ( MenuChangeType.Count - 1 ) downto 0 do
-    begin
-      MenuChangeType.Delete(i);
-    end;
-    ds := GetResults( 'SHOW ENGINES' );
-    for i := 0 to ( ds.RecordCount - 1 ) do
-    begin
-      menuitem := TMenuItem.Create(self);
-      menuitem.Caption := ds.FieldByName('Engine').AsString;
-      menuitem.Hint := ds.FieldByName('Comment').AsString;
-      if ( UpperCase( ds.FieldByName('Support').AsString ) = 'NO' ) then
-      begin
-        menuitem.Enabled := false;
-        menuitem.Hint := menuitem.Hint + ' ('+STR_NOTSUPPORTED+')';
-      end;
-      menuitem.OnClick := MenuChangeTypeClick;
-      MenuChangeType.Add( menuitem );
-      ds.Next();
-    end;
   end;
 
   // Define window properties
@@ -2375,14 +2332,7 @@ begin
   menuemptytable.Enabled := tableSelected;
   MenuAdvancedProperties.Enabled := tableSelected;
   MenuRenameTable.Enabled := tableSelected;
-  MenuChangeType1.Enabled := tableSelected;
-  MenuChangeType2.Enabled := tableSelected;
-  MenuChangeType3.Enabled := tableSelected;
-  MenuChangeType4.Enabled := tableSelected;
-  MenuChangeType5.Enabled := tableSelected;
-  MenuChangeTypeOther.Enabled := tableSelected;
   Mainform.CopyTable.Enabled := tableSelected;
-  MenuTableComment.Enabled := tableSelected;
   MenuOptimize.Enabled := tableSelected;
   MenuCheck.Enabled := tableSelected;
   MenuAnalyze.Enabled := tableSelected;
@@ -3440,13 +3390,6 @@ begin
 end;
 
 
-procedure TMDIChild.MenuTableCommentClick(Sender: TObject);
-begin
-  // table-comment
-  tablecommentWindow(self);
-end;
-
-
 procedure TMDIChild.Clear2Click(Sender: TObject);
 begin
   // clear history-memo
@@ -4201,36 +4144,6 @@ begin
   viewdata(self);
 end;
 
-procedure TMDIChild.MenuChangeTypeClick(Sender: TObject);
-var
-  i : Integer;
-  tabletype : String;
-  Selected : TStringList;
-begin
-  tabletype := (Sender as TMenuItem).Caption;
-  tabletype := StringReplace( tabletype, '&', '', [rfReplaceAll] ); // Remove Auto-Hotkey
-  Selected := GetVTCaptions(ListTables, True);
-  for i:=0 to Selected.Count - 1 do
-    ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + tabletype);
-  Selected.Free;
-  MenuRefreshClick(self);
-end;
-
-procedure TMDIChild.MenuChangeTypeOtherClick(Sender: TObject);
-var
-  i : Integer;
-  strtype : String;
-  Selected : TStringList;
-begin
-  // change table-type:
-  if inputquery('Change table-type...','New table-type:', strtype) then begin
-    Selected := GetVTCaptions(ListTables, True);
-    for i:=0 to Selected.Count - 1 do
-      ExecUpdateQuery( 'ALTER TABLE ' + mask(Selected[i]) + ' TYPE = ' + strtype );
-    Selected.Free;
-    MenuRefreshClick(self);
-  end;
-end;
 
 procedure TMDIChild.InsertRecord(Sender: TObject);
 begin
