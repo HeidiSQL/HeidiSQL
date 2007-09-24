@@ -39,9 +39,6 @@ const
   REGNAME_DISPLAYEDCOLUMNS = 'DisplayedColumns';
   REGNAME_SORTDISPLAYEDCOLUMNS = 'DisplayedColumnsSorted';
   REGNAME_LISTTABLESCOLUMNNAMES = 'ListTablesColumnNames';
-  REGNAME_TBLPROP_LISTHEIGHT = 'TablePropertiesListHeight';
-  REGNAME_TBLPROP_FORMHEIGHT = 'TablePropertiesFormHeight';
-  REGNAME_TBLPROP_FORMWIDTH = 'TablePropertiesFormWidth';
 
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function

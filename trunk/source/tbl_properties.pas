@@ -9,30 +9,47 @@ unit tbl_properties;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, HeidiComp, ExtCtrls, ZDataset, SynMemo, Synedit,
-  VirtualTrees, Registry, Menus;
+  Windows, Messages, SysUtils, Classes, Controls, Forms, Graphics,
+  Dialogs, StdCtrls, Db, Menus, SynMemo, SynEdit;
 
 type
   Ttbl_properties_form = class(TForm)
-    PageControl: TPageControl;
-    PanelSummary: TPanel;
-    LabelSizeOfTableData: TLabel;
-    LabelIndexes: TLabel;
-    LabelSizeOfTableDataValue: TLabel;
-    LabelIndexesValue: TLabel;
-    LabelSum: TLabel;
-    LabelSumValue: TLabel;
-    StatusBar1: TStatusBar;
-    btnClose: TButton;
+    lblName: TLabel;
+    editName: TEdit;
+    lblComment: TLabel;
+    editComment: TEdit;
+    lblEngine: TLabel;
+    comboEngine: TComboBox;
+    lblCharset: TLabel;
+    comboCharset: TComboBox;
+    lblCollation: TLabel;
+    comboCollation: TComboBox;
+    lblAutoincrement: TLabel;
+    editAutoincrement: TEdit;
+
+    btnOK: TButton;
+    btnCancel: TButton;
+
+    lblCreate: TLabel;
+    SynMemoCreate: TSynMemo;
     popupSynMemo: TPopupMenu;
     Copy1: TMenuItem;
     menuSelectAll: TMenuItem;
+
+    procedure comboCharsetChange(Sender: TObject);
+    procedure editNameChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure menuSelectAllClick(Sender: TObject);
-    procedure SplitterMove(Sender: TObject);
+  private
+    dsCollations, dsEngines : TDataSet;
+    currentName,
+    currentComment,
+    currentEngine,
+    currentCharset,
+    currentCollation,
+    currentAutoincrement : String;
   end;
 
   function tbl_properties_Window(AOwner: TComponent): Boolean;
@@ -40,12 +57,9 @@ type
 implementation
 
 uses
-  Childwin, Main, helpers, Db;
+  Childwin, Main, helpers;
 
 {$R *.DFM}
-
-const
-  DEFAULT_LISTHEIGHT = 150;
 
 
 {**
@@ -64,194 +78,186 @@ end;
 
 
 {**
+  Form gets created. Fetch list with charsets, collations and engines once.
+}
+procedure Ttbl_properties_form.FormCreate(Sender: TObject);
+var
+  charset : String;
+begin
+  try
+    dsEngines := Mainform.Childwin.ExecSelectQuery('SHOW ENGINES');
+    dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
+  except
+    // Ignore it when the above statements don't work on pre 4.1 servers.
+    // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
+  end;
+
+  // Create a list with charsets from collations dataset
+  comboCharset.Enabled := dsCollations <> nil;
+  lblCharset.Enabled := comboCharset.Enabled;
+  if comboCharset.Enabled then
+  begin
+    comboCharset.Items.BeginUpdate;
+    dsCollations.First;
+    while not dsCollations.Eof do
+    begin
+      charset := dsCollations.FieldByName('Charset').AsString;
+      if comboCharset.Items.IndexOf(charset) = -1 then
+        comboCharset.Items.Add(charset);
+      dsCollations.Next;
+    end;
+    comboCharset.Sorted := True;
+    comboCharset.Items.EndUpdate;
+  end;
+
+  // Only enable collation selection if list was fetched successfully
+  comboCollation.Enabled := dsCollations <> nil;
+  lblCollation.Enabled := comboCollation.Enabled;
+
+  // Display supported engines in pulldown
+  comboEngine.Enabled := dsEngines <> nil;
+  lblEngine.Enabled := comboEngine.Enabled;
+  if comboEngine.Enabled then
+  begin
+    comboEngine.Items.BeginUpdate;
+    comboEngine.Items.Clear;
+    dsEngines.First;
+    while not dsEngines.Eof do
+    begin
+      if LowerCase(dsEngines.FieldByName('Support').AsString) <> 'no' then
+        comboEngine.Items.Add(dsEngines.FieldByName('Engine').AsString);
+      dsEngines.Next;
+    end;
+    comboEngine.Sorted := True;
+    comboEngine.Items.EndUpdate;
+  end;
+
+  // Setup SynMemo
+  SynMemoCreate.Highlighter := Mainform.Childwin.SynSQLSyn1;
+  SynMemoCreate.Font.Name := Mainform.Childwin.SynMemoQuery.Font.Name;
+  SynMemoCreate.Font.Size := Mainform.Childwin.SynMemoQuery.Font.Size;
+end;
+
+
+{**
   Form gets displayed.
-  - Setup dimensions of components
-  - create one page + listview + synmemo for each selected table.
-  - display data and CREATE TABLE statement
-  - calculate the sum of their size
 }
 procedure Ttbl_properties_form.FormShow(Sender: TObject);
 var
-  i: Integer;
-  t: Integer;
-  ts: TTabSheet;
-  list: TListView;
-  datasize: Int64;
-  indexsize: Int64;
-  isSelected: Boolean;
-  splitter: TSplitter;
-  synmemo: TSynMemo;
-  query: TDataSet;
-  Selected: TStringList;
-  reg : TRegistry;
-  listheight : Integer;
-  col : TListColumn;
-  item : TListItem;
+  NodeData: PVTreeData;
 begin
+  // Fetch properties from ListTables
+  NodeData := Mainform.Childwin.ListTables.GetNodeData(Mainform.Childwin.ListTables.FocusedNode);
 
-  datasize  := 0;
-  indexsize := 0;
-  listheight := DEFAULT_LISTHEIGHT;
+  // Table name
+  currentName := NodeData.Captions[0];
+  editName.Text := currentName;
 
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH, true );
-  try
-    // Read values
-    if reg.ValueExists( REGNAME_TBLPROP_LISTHEIGHT ) then
-      listheight := reg.ReadInteger( REGNAME_TBLPROP_LISTHEIGHT );
-    if reg.ValueExists( REGNAME_TBLPROP_FORMHEIGHT ) then
-      Height := reg.ReadInteger( REGNAME_TBLPROP_FORMHEIGHT );
-    if reg.ValueExists( REGNAME_TBLPROP_FORMWIDTH ) then
-      Width := reg.ReadInteger( REGNAME_TBLPROP_FORMWIDTH );
-  finally
-    reg.CloseKey;
-    reg.Free;
-  end;
+  // Comment
+  currentComment := NodeData.Captions[6];
+  editComment.Text := currentComment;
 
-  // Fetch selected nodes
-  Selected := GetVTCaptions(Mainform.Childwin.ListTables, True);
+  // Engine
+  currentEngine := NodeData.Captions[5];
+  comboEngine.ItemIndex := comboEngine.Items.IndexOf(currentEngine);
 
-  query := Mainform.Childwin.GetResults( 'SHOW TABLE STATUS');
+  // Collation
+  currentCollation := NodeData.Captions[15];
 
-  // for tables found
-  for t := 0 to (query.RecordCount - 1) do
+  // Character set
+  currentCharset := '';
+  if dsCollations <> nil then
   begin
-    isSelected := false;
-
-    for i := 0 to Selected.Count-1 do
+    dsCollations.First;
+    while not dsCollations.Eof do
     begin
-      isSelected := Selected[i] = query.Fields[0].AsString;
-      if (isSelected) then
+      if dsCollations.FieldByName('Collation').AsString = currentCollation then
       begin
-        Break;
+        currentCharset := dsCollations.FieldByName('Charset').AsString;
+        comboCharset.ItemIndex := comboCharset.Items.IndexOf(currentCharset);
+        // Invoke selecting collation
+        comboCharsetChange( Sender );
+        break;
       end;
+      dsCollations.Next;
     end;
-
-    if (not(isSelected)) then
-    begin
-      query.Next();
-      Continue;
-    end;
-
-    // if a table is selected
-
-    // creates a tab
-    ts             := TTabSheet.Create(PageControl);
-    ts.Caption     := query.Fields[0].AsString;
-    ts.PageControl := PageControl;
-
-    // creates a splitter
-    splitter        := TSplitter.Create(self);
-    splitter.Parent := ts;
-    splitter.ResizeStyle := rsUpdate;
-    splitter.OnMoved := SplitterMove;
-
-    // create a detailed properties list
-    list           := TListView.Create(self);
-    list.Parent    := ts;
-    list.Height    := listheight;
-    list.ViewStyle := vsReport;
-    list.ReadOnly  := true;
-    list.GridLines := true;
-    list.RowSelect := true;
-    list.ColumnClick := false;
-    list.BringToFront();
-
-    list.Columns.BeginUpdate;
-
-    col := list.Columns.Add;
-    col.Caption := 'Variable';
-    col.Width := -1;
-
-    col := list.Columns.Add;
-    col.Caption := 'Value';
-    col.AutoSize := true;
-
-    list.Columns.EndUpdate;
-
-    list.Items.BeginUpdate;
-    inc( datasize, StrToInt64Def(query.FieldByName('Data_length').AsString, 0) );
-    inc( indexsize, StrToInt64Def(query.FieldByName('Index_length').AsString, 0) );
-    for i:=0 to query.FieldCount - 1 do
-    begin
-      item := list.Items.add;
-      item.Caption := query.Fields[i].FieldName;
-      item.SubItems.Add( query.Fields[i].AsString);
-    end;
-    list.Items.EndUpdate;
-
-    // create a souce viewer
-    synmemo                  := TSynMemo.Create(self);
-    synmemo.Parent           := ts;
-    synmemo.Highlighter      := Mainform.Childwin.SynSQLSyn1;
-    synmemo.ReadOnly         := true;
-    synmemo.Options          := synmemo.options - [eoScrollPastEol];
-    synmemo.Gutter.Visible   := false;
-    synmemo.Margins.Top      := 0;
-    synmemo.Margins.Left     := 0;
-    synmemo.Margins.Right    := 0;
-    synmemo.Margins.Bottom   := 0;
-    synmemo.AlignWithMargins := true;
-    synmemo.Font.Name        := Mainform.Childwin.SynMemoQuery.Font.Name;
-    synmemo.Font.Size        := Mainform.Childwin.SynMemoQuery.Font.Size;
-    synmemo.Lines.Text       := Mainform.Childwin.GetVar( 'SHOW CREATE TABLE ' + Mainform.Childwin.mask(query.Fields[0].AsString), 1 );
-    synmemo.PopupMenu        := popupSynMemo;
-
-    // realign the components to correct position
-    list.Align     := alTop;
-    splitter.Align := alTop;
-    synmemo.Align  := alClient;
-
-    // go to next table
-    query.Next();
   end;
 
-  LabelSizeOfTableDataValue.Caption := FormatByteNumber(datasize);
-  LabelIndexesValue.Caption         := FormatByteNumber(indexsize);
-  LabelSumValue.Caption             := FormatByteNumber(datasize + indexsize);
-end;
-
-
-{**
-  Form closes. Store dimensions of relevant components.
-}
-procedure Ttbl_properties_form.FormClose(Sender: TObject; var Action:
-    TCloseAction);
-var
-  reg: TRegistry;
-  i, listheight: Integer;
-begin
-  // Find height of dynamically created listviews
-  listheight := DEFAULT_LISTHEIGHT;
-  for i := 0 to ComponentCount-1 do
+  // Auto increment. Disabled if empty string.
+  editAutoincrement.Text := '';
+  editAutoincrement.Enabled := False;
+  if NodeData.Captions[13] <> '' then
   begin
-    if Components[i] is TListView then
-    begin
-      listheight := TListView(Components[i]).Height;
-      break;
-    end;
+    currentAutoincrement := IntToStr(MakeInt(NodeData.Captions[13]));
+    editAutoincrement.Text := currentAutoincrement;
+    editAutoincrement.Enabled := True;
   end;
+  lblAutoincrement.Enabled := editAutoincrement.Enabled;
 
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH, true );
-  try
-    // Save values
-    reg.WriteInteger( REGNAME_TBLPROP_LISTHEIGHT, listheight );
-    reg.WriteInteger( REGNAME_TBLPROP_FORMHEIGHT, Height );
-    reg.WriteInteger( REGNAME_TBLPROP_FORMWIDTH, Width );
-  finally
-    reg.CloseKey;
-    reg.Free;
-  end;
+  // SQL preview
+  SynMemoCreate.Lines.Text := Mainform.Childwin.GetVar( 'SHOW CREATE TABLE ' + Mainform.Childwin.mask(NodeData.Captions[0]), 1 );
+
+  editName.SetFocus;
+  editName.SelectAll;
 end;
 
 
 {**
-  Form has been resized. Adjust position of Close-button.
+  Charset has been selected: Display fitting collations
+  and select default one.
 }
-procedure Ttbl_properties_form.FormResize(Sender: TObject);
+procedure Ttbl_properties_form.comboCharsetChange(Sender: TObject);
+var
+  defaultCollation : String;
 begin
-  btnClose.Left := PanelSummary.Width div 2 - (btnClose.Width div 2);
+  // Abort if collations were not fetched successfully
+  if dsCollations = nil then
+    Exit;
+
+  // Fill pulldown with fitting collations
+  comboCollation.Items.BeginUpdate;
+  comboCollation.Items.Clear;
+  dsCollations.First;
+  while not dsCollations.Eof do
+  begin
+    if dsCollations.FieldByName('Charset').AsString = comboCharset.Text then
+    begin
+      comboCollation.Items.Add( dsCollations.FieldByName('Collation').AsString );
+      if dsCollations.FieldByName('Default').AsString = 'Yes' then
+        defaultCollation := dsCollations.FieldByName('Collation').AsString;
+    end;
+    dsCollations.Next;
+  end;
+  comboCollation.Sorted := True;
+
+  // Preselect default or current collation
+  if currentCollation <> '' then
+    defaultCollation := currentCollation;
+  if comboCollation.Items.IndexOf(defaultCollation) > -1 then
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(defaultCollation)
+  else
+    comboCollation.ItemIndex := 0;
+
+  comboCollation.Items.EndUpdate;
+end;
+
+
+{**
+  User writes something into editName
+}
+procedure Ttbl_properties_form.editNameChange(Sender: TObject);
+begin
+  try
+    ensureValidIdentifier( editName.Text );
+    editName.Font.Color := clWindowText;
+    editName.Color := clWindow;
+    // Enable "OK"-Button if we have a valid name
+    btnOK.Enabled := True;
+  except
+    editName.Font.Color := clRed;
+    editName.Color := clYellow;
+    btnOK.Enabled := False;
+  end;
 end;
 
 
@@ -259,32 +265,64 @@ end;
   Select all text in a synmemo
 }
 procedure Ttbl_properties_form.menuSelectAllClick(Sender: TObject);
-var
-  i: Integer;
 begin
-  for i := 0 to ComponentCount - 1 do
-  begin
-    if (Components[i] is TSynMemo) and (TSynMemo(Components[i]).Parent = PageControl.ActivePage) then
-    begin
-      TSynMemo(Components[i]).SelectAll;
-      break;
-    end;
-  end;
+  SynMemoCreate.SelectAll;
 end;
 
 
 {**
-  Splitter between list and synmemo was moved.
-  Move all other splitters to the same position
+  Form is closing. Check ModalResult for which button was clicked.
 }
-procedure Ttbl_properties_form.SplitterMove(Sender: TObject);
+procedure Ttbl_properties_form.FormClose(Sender: TObject; var Action:
+    TCloseAction);
 var
-  i: Integer;
+  sql : String;
+  AlterSpecs : TStringList;
 begin
-  for i := 0 to ComponentCount-1 do
+  if ModalResult = mrOK then
   begin
-    if Components[i] is TListView then
-      TListView(Components[i]).Height := TSplitter(Sender).Top;
+    AlterSpecs := TStringList.Create;
+
+    // Rename table
+    if currentName <> editName.Text then
+      AlterSpecs.Add( 'RENAME ' + Mainform.Childwin.mask(editName.Text) );
+
+    // Comment
+    if currentComment <> editComment.Text then
+      AlterSpecs.Add( 'COMMENT = ' + esc(editComment.Text) );
+
+    // Engine
+    if comboEngine.Enabled and (currentEngine <> comboEngine.Text) then
+      AlterSpecs.Add( 'ENGINE = ' + comboEngine.Text );
+
+    // Charset
+    if comboCharset.Enabled and (currentCharset <> comboCharset.Text) then
+      AlterSpecs.Add( 'CHARSET ' + comboCharset.Text );
+
+    // Collation
+    if comboCollation.Enabled and (currentCollation <> comboCollation.Text) then
+      AlterSpecs.Add( 'COLLATE ' + comboCollation.Text );
+
+    // Auto_increment
+    if currentAutoincrement <> editAutoincrement.Text then
+      AlterSpecs.Add( 'AUTO_INCREMENT = ' + IntToStr( MakeInt(editAutoincrement.Text) ) );
+
+    if AlterSpecs.Count > 0 then
+    begin
+      sql := 'ALTER TABLE ' + Mainform.Childwin.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
+      try
+        Mainform.ChildWin.ExecUpdateQuery( sql );
+        Mainform.ChildWin.MenuRefreshClick( Sender );
+      except
+        On E:Exception do
+        begin
+          MessageDlg('Altering table was not successful: '+CRLF+CRLF+E.Message, mtError, [mbOK], 0);
+          // Keep form open
+          ModalResult := mrNone;
+        end;
+      end;
+    end;
+
   end;
 end;
 
