@@ -304,7 +304,7 @@ begin
       AlterSpecs.Add( 'COLLATE ' + comboCollation.Text );
 
     // Auto_increment
-    if currentAutoincrement <> editAutoincrement.Text then
+    if editAutoincrement.Enabled and (currentAutoincrement <> editAutoincrement.Text) then
       AlterSpecs.Add( 'AUTO_INCREMENT = ' + IntToStr( MakeInt(editAutoincrement.Text) ) );
 
     if AlterSpecs.Count > 0 then
