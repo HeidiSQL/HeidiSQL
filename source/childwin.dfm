@@ -1713,12 +1713,6 @@ object MDIChild: TMDIChild
       ShortCut = 113
       OnClick = MenuRenameTableClick
     end
-    object MenuTableComment: TMenuItem
-      Caption = 'Edit Comment'
-      Enabled = False
-      ShortCut = 114
-      OnClick = MenuTableCommentClick
-    end
     object Table1: TMenuItem
       Caption = 'Maintenance'
       object MenuOptimize: TMenuItem
@@ -1751,36 +1745,6 @@ object MDIChild: TMDIChild
     end
     object MenuCopyTable: TMenuItem
       Action = MainForm.CopyTable
-    end
-    object MenuChangeType: TMenuItem
-      Caption = 'Change Type'
-      object MenuChangeType1: TMenuItem
-        Caption = 'ISAM'
-        OnClick = MenuChangeTypeClick
-      end
-      object MenuChangeType2: TMenuItem
-        Caption = 'MyISAM'
-        OnClick = MenuChangeTypeClick
-      end
-      object MenuChangeType3: TMenuItem
-        Caption = 'HEAP'
-        OnClick = MenuChangeTypeClick
-      end
-      object MenuChangeType4: TMenuItem
-        Caption = 'MERGE'
-        OnClick = MenuChangeTypeClick
-      end
-      object MenuChangeType5: TMenuItem
-        Caption = 'InnoDB'
-        OnClick = MenuChangeTypeClick
-      end
-      object N8: TMenuItem
-        Caption = '-'
-      end
-      object MenuChangeTypeOther: TMenuItem
-        Caption = 'Other...'
-        OnClick = MenuChangeTypeOtherClick
-      end
     end
     object menucreatetable: TMenuItem
       Caption = 'Create new Table...'

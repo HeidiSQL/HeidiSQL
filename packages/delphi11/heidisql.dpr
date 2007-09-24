@@ -14,7 +14,6 @@ uses
   fieldeditor in '..\..\source\fieldeditor.pas' {FieldEditForm},
   exportsql in '..\..\source\exportsql.pas' {ExportSQLForm},
   tbl_properties in '..\..\source\tbl_properties.pas' {tbl_properties_form},
-  tblcomment in '..\..\source\tblcomment.pas' {tablecomment},
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
   options in '..\..\source\options.pas' {optionsform},
