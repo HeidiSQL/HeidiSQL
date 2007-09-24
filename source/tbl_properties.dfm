@@ -186,7 +186,7 @@ object tbl_properties_form: Ttbl_properties_form
     Images = MainForm.ImageList1
     Left = 16
     Top = 240
-    object Copy1: TMenuItem
+    object menuCopy: TMenuItem
       Action = MainForm.EditCopy1
     end
     object menuSelectAll: TMenuItem

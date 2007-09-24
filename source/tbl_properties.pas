@@ -33,7 +33,7 @@ type
     lblCreate: TLabel;
     SynMemoCreate: TSynMemo;
     popupSynMemo: TPopupMenu;
-    Copy1: TMenuItem;
+    menuCopy: TMenuItem;
     menuSelectAll: TMenuItem;
 
     procedure comboCharsetChange(Sender: TObject);
