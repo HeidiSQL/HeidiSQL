@@ -52,29 +52,12 @@ type
     currentAutoincrement : String;
   end;
 
-  function tbl_properties_Window(AOwner: TComponent): Boolean;
-
 implementation
 
 uses
   Childwin, Main, helpers;
 
 {$R *.DFM}
-
-
-{**
-  Create form on demand
-  @param TComponent Owner of form (should be calling form)
-  @return Boolean Form closed using modalresult mrOK
-}
-function tbl_properties_Window(AOwner: TComponent): Boolean;
-var
-  f : Ttbl_properties_form;
-begin
-  f := Ttbl_properties_form.Create(AOwner);
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil(f);
-end;
 
 
 {**

@@ -22,7 +22,7 @@ uses
   ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs,
-  VirtualTrees, createdatabase;
+  VirtualTrees, createdatabase, tbl_properties;
 
 
 type
@@ -536,6 +536,7 @@ type
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
       ListTablesColumnNames      : TStringList;
       CreateDatabaseForm         : TCreateDatabaseForm;
+      TablePropertiesForm        : Ttbl_properties_form;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -618,7 +619,7 @@ implementation
 
 
 uses
-  Main, createtable, fieldeditor, tbl_properties, tblcomment,
+  Main, createtable, fieldeditor, tblcomment,
   optimizetables, copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql,
   Registry;
@@ -3363,7 +3364,9 @@ end;
 
 procedure TMDIChild.MenuAdvancedPropertiesClick(Sender: TObject);
 begin
-  tbl_properties_Window(self);
+  if TablePropertiesForm = nil then
+    TablePropertiesForm := Ttbl_properties_form.Create(Self);
+  TablePropertiesForm.ShowModal;
 end;
 
 
