@@ -456,9 +456,7 @@ begin
     if i + 1 < length(sql) then thdchar := sql[i + 2];
 
     {$REGION 'DELIMITER command'}
-    // proccess a DELIMITER command (like MySQL Prompt Client)
-    // note:
-    // LENGTH(DELIMITER<space>) = 10
+    // process a DELIMITER command (like MySQL Prompt Client)
 
     // first, verify if could be a DELIMITER command
     // arrangement to don't decrease this parse speed
@@ -510,9 +508,9 @@ begin
         end
         else
         begin
-          // now we jump this(these) space(s)
+          // now we jump this(these) space(s) and/or horizontal tab(s)
           j := i + 1;
-          while ( sql[j] = ' ' ) do
+          while ( ( sql[j] = ' ' ) or ( sql[j] = Char(VK_TAB) )  ) do
             j := j + 1;
 
           // start to get the new delimiter
