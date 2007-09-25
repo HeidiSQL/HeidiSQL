@@ -35,7 +35,8 @@ type
   function strpos(haystack, needle: String; offset: Integer=0) : Integer;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String):String;
-  function parsesql(sql: String; term: String) : TStringList;
+  type TParseSQLProcessCommand = procedure(command: String; parameter: String) of object;
+  function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function notinlist(str: String; strlist: TStrings): Boolean;
   function inarray(str: String; a: Array of String): Boolean;
@@ -361,17 +362,75 @@ end;
 {***
   Tokenize sql-script and return a TStringList with sql-statements
 
-  @param string (possibly large) bunch of SQL-statements, separated by semicolon
+  @param String (possibly large) bunch of SQL-statements, separated by semicolon
+  @param String SQL start delimiter
+  @param TParseSQLProcessCommand Method that execute actions relative to an object
   @return TStringList Separated statements
 }
-function parsesql(sql: String; term: String) : TStringList;
+function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
 var
-  i, start                          : Integer;
+  i, j, start                       : Integer;
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
   inbigcomment                      : Boolean;
-  longterm                          : Boolean;
+  delimiter_length                  : Integer;
+  delimiter_is_delimiter            : Boolean;
   encloser, secchar, thdchar        : Char;
+  msg                               : String;
+  start_of_command_pos              : Integer;
+
+  {***
+    If a procedure of object (method) is defined, call it
+
+  }
+  procedure CallProcessCommand( command: String; parameter: String );
+  begin
+    if ( Assigned( processcommand ) ) then
+    begin
+      processcommand( command, parameter );
+    end;
+  end;
+
+  {***
+    Detects the next command position after a delimiter or delimiter
+    definition
+
+  }
+  procedure DetectNextCommandPosition;
+  var
+    position: Integer;
+  begin
+    // we must jump over spaces, horizontal tabs and #CRLF after delimiter
+    position := i + delimiter_length;
+    while ( sql[position] in [' ', Char(VK_TAB), #13, #10] ) do
+    begin
+      position := position + 1;
+    end;
+
+    if ( position >= Length(sql) ) then
+    begin
+      start_of_command_pos := Length(sql) + 1;
+    end
+    else
+    begin
+      start_of_command_pos := position;
+    end;
+  end;
+
+  {***
+    Updates the delimiter data
+
+  }
+  procedure UpdateDelimiterData( execute_callback: Boolean = true );
+  begin
+    if ( execute_callback ) then
+      CallProcessCommand( 'DELIMITER', delimiter );
+
+    // update the delimiter variables helper
+    delimiter_length := Length( delimiter );
+    delimiter_is_delimiter := ( UpperCase( delimiter ) = 'DELIMITER' );
+  end;
+
 begin
   result := TStringList.Create;
   sql := trim(sql);
@@ -382,8 +441,10 @@ begin
   inbigcomment := false;
   inconditional := false;
   condterminated := false;
-  longterm := Length(term) > 1;
   encloser := ' ';
+  start_of_command_pos := 1;
+
+  UpdateDelimiterData( false );
 
   i := 0;
   while i < length(sql) do begin
@@ -393,6 +454,100 @@ begin
     thdchar := ' ';
     if i < length(sql) then secchar := sql[i + 1];
     if i + 1 < length(sql) then thdchar := sql[i + 2];
+
+    {$REGION 'DELIMITER command'}
+    // proccess a DELIMITER command (like MySQL Prompt Client)
+    // note:
+    // LENGTH(DELIMITER<space>) = 10
+
+    // first, verify if could be a DELIMITER command
+    // arrangement to don't decrease this parse speed
+    if (
+      ( not instring ) and
+      ( not incomment ) and
+      ( not inbigcomment ) and
+      // verify if is a delimiter command from here
+      // the next_command position must starts with D
+      ( sql[start_of_command_pos] in ['d', 'D'] ) and
+      // the DELIMITER command ends with R
+      ( sql[i] in ['r', 'R'] ) and
+      // must be bigger or equals than delimiter command length
+      ( i >= 9 )
+    ) then
+    begin
+      // we verify if it is really the DELIMITER command
+      if (
+        ( sql[i - 8] in ['d', 'D'] ) and
+        ( sql[i - 7] in ['e', 'E'] ) and
+        ( sql[i - 6] in ['l', 'L'] ) and
+        ( sql[i - 5] in ['i', 'I'] ) and
+        ( sql[i - 4] in ['m', 'M'] ) and
+        ( sql[i - 3] in ['i', 'I'] ) and
+        ( sql[i - 2] in ['t', 'T'] ) and
+        ( sql[i - 1] in ['e', 'E'] )
+        // we know that sql[i] is R, so, just for pay attention
+        // and sql[i] in ['r', 'R']
+      ) then
+      begin
+        // now, we'll see the cases around DELIMITER command
+
+        // the allowed DELIMITER command call are:
+        // DELIMITER<n spaces(s)>#DELIMITER
+        // <n space(s)>DELIMITER<n spaces(s)>#DELIMITER
+        // <CURRENT_DELIMITER><n space(s)>DELIMITER<n spaces(s)>#DELIMITER
+
+        // the character after DELIMITER command must be space(s) or horizontal tab(s)
+        if (( sql[i + 1] <> ' ' ) and ( sql[i + 1] <> Char(VK_TAB) )) then
+        begin
+          // but if the current delimiter is the string 'DELIMITER' in any case,
+          // we could pass it,
+          // so, if it isn't equals...
+          if ( not delimiter_is_delimiter ) then
+          begin
+            msg := 'DELIMITER must be followed by a ''delimiter'' character or string';
+            CallProcessCommand( 'CLIENTSQL_ERROR', msg );
+          end;
+        end
+        else
+        begin
+          // now we jump this(these) space(s)
+          j := i + 1;
+          while ( sql[j] = ' ' ) do
+            j := j + 1;
+
+          // start to get the new delimiter
+          delimiter := EmptyStr;
+          for j := j to Length(sql) do
+          begin
+            if ( sql[j] in [' ', Char(VK_TAB), #13, #10] ) then break
+            else
+            begin
+              delimiter := delimiter + sql[j];
+              // remove the new delimiter from sql
+              sql[j] := ' ';
+            end;
+          end;
+
+          // the delimiter couldn't be empty, so
+          delimiter := Trim( delimiter );
+          if ( delimiter = EmptyStr ) then
+          begin
+            msg := 'DELIMITER must be followed by a ''delimiter'' character or string';
+            CallProcessCommand( 'CLIENTSQL_ERROR', msg );
+          end;
+
+          // reapply the delimiter definition
+          UpdateDelimiterData();
+
+          // remove the command DELIMITER from sql
+          for j := i - 8 to ( i - 8 + 10 ) do sql[j] := ' ';
+
+          DetectNextCommandPosition();
+
+          continue;
+        end;
+      end;
+    end;
 
     if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
       incomment := true;
@@ -464,23 +619,24 @@ begin
     if (sql[i] = '\') or backslash then
       backslash := not backslash;
 
-    if (not instring) and ((sql[i] = term) or (sql[i] + secchar = term)) then begin
+    // remove the delimiter from sql command
+    if ( (not instring) and ( Copy( sql, i, delimiter_length ) = delimiter ) ) then begin
       if inconditional then
       begin
         // note:
         // this logic is wrong, it only supports 1 statement
         // inside each /*!nnnnn blah */ conditional comment.
         condterminated := true;
-        sql[i] := ' ';
-        if longterm then begin
-          i := i + 1;
-          sql[i] := ' ';
+        for j := i to ( i + delimiter_length ) do
+        begin
+          sql[j] := ' ';
         end;
       end else begin
         addResult(result, copy(sql, start, i-start));
-        if longterm then i := i + 1;
-        start := i+1;
+        start := i + delimiter_length;
       end;
+
+      DetectNextCommandPosition();
     end;
   end;
 
@@ -2126,7 +2282,7 @@ MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,
   'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
   'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
   'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
-  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
+  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE,DELIMITER';
 
 
 end.

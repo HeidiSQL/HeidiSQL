@@ -244,7 +244,6 @@ type
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
     btnColumnSelection: TSpeedButton;
-    btnAltTerminator: TToolButton;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
     lboxQueryHelpers: TListBox;
@@ -300,6 +299,9 @@ type
     N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
     menuAlterdatabase: TMenuItem;
+    PanelQueryDelimiter: TPanel;
+    LabelQueryDelimiter: TLabel;
+    ComboBoxQueryDelimiter: TComboBox;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -502,6 +504,9 @@ type
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure vstBeforePaint(Sender: TBaseVirtualTree; TargetCanvas:
         TCanvas);
+    procedure ComboBoxQueryDelimiterExit(Sender: TObject);
+    procedure ComboBoxQueryDelimiterAdd(delimiter: String);
+    procedure FormCreate(Sender: TObject);
 
     private
       strHostRunning             : String;
@@ -540,6 +545,7 @@ type
       function GetSelectedTable: string;
       procedure SetSelectedDatabase(db: string);
       procedure SetSelectedTable(table: string);
+      procedure ProcessClientSQL(command: String; parameter: String);
 
     public
       TemporaryDatabase          : String;
@@ -548,6 +554,7 @@ type
       mysql_version              : Integer;
       tnodehost                  : TTreeNode;
       Description                : String;
+      delimiter                  : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
       VTRowDataListVariables,
       VTRowDataListProcesses,
@@ -2715,32 +2722,22 @@ var
   fieldcount        : Integer;
   recordcount       : Integer;
   ds                : TDataSet;
-  term              : String;
 begin
-  if ( btnAltTerminator.Down ) then
-  begin
-    term := '//';
-  end
-  else
-  begin
-    term := ';';
-  end;
-
   if ( CurrentLine ) then
   begin
     // Run current line
-    SQL := parseSQL( SynMemoQuery.LineText, term );
+    SQL := parseSQL( SynMemoQuery.LineText, delimiter, ProcessClientSQL );
   end
   else
   if ( Selection ) then
   begin
     // Run selection
-    SQL := parseSQL( SynMemoQuery.SelText, term );
+    SQL := parseSQL( SynMemoQuery.SelText, delimiter, ProcessClientSQL );
   end
   else
   begin
     // Run all
-    SQL := parseSQL( SynMemoQuery.Text, term );
+    SQL := parseSQL( SynMemoQuery.Text, delimiter, ProcessClientSQL );
   end;
 
   if ( SQL.Count = 0 ) then
@@ -6250,7 +6247,108 @@ begin
 end;
 
 
+{***
+  Add a new query delimiter and select it
+ 
+  @param term The delimiter to add and/or select
+}
+procedure TMDIChild.ComboBoxQueryDelimiterAdd( delimiter: String );
+var
+  index: Integer;
+  found: Boolean;
+begin
+  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 824
+  // Check that delimiter does not contain a backslash
+  if ( Pos( '\', delimiter ) > 0 ) then
+  begin
+    // rollback the delimiter
+    ComboBoxQueryDelimiter.Text := Self.delimiter;
+    // notify the user
+    raise Exception.Create(Format(
+        'DELIMITER cannot contain a backslash character: %s', [
+        delimiter
+      ]));
+  end
+  else
+  begin
+    // the delimiter is case-sensitive, so, we must locate it by hand
+    found := False;
+    for index := 0 to ( ComboBoxQueryDelimiter.Items.Count - 1 ) do
+    begin
+      if ( ComboBoxQueryDelimiter.Items[index] = delimiter ) then
+      begin
+        ComboBoxQueryDelimiter.ItemIndex := index;
+        found := True;
+        break;
+      end;
+    end;
+ 
+    if ( not found ) then
+    begin
+      ComboBoxQueryDelimiter.Items.Add( delimiter );
+      ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.Count - 1;
+    end;
+ 
+    Self.delimiter := ComboBoxQueryDelimiter.Text;
+  end;
+end;
+
+
+{***
+  When ComboBoxQueryDelimiter lose the focus, defines the query delimiter
+
+  @param Sender A object
+}
+procedure TMDIChild.ComboBoxQueryDelimiterExit(Sender: TObject);
+var
+  msg: String;
+begin
+  // a delimiter couldn't be empty
+  ComboBoxQueryDelimiter.Text := Trim( ComboBoxQueryDelimiter.Text );
+
+  // verify if the delimiter combobox isn't empty
+  if ( ComboBoxQueryDelimiter.Text = EmptyStr ) then
+  begin
+    msg := 'A delimiter is needed.';
+    MessageDlg( msg, mtWarning, [mbOK], 0);
+    ComboBoxQueryDelimiter.SetFocus();
+  end
+  else
+  // add the new delimiter to combobox
+  begin
+    ComboBoxQueryDelimiterAdd( ComboBoxQueryDelimiter.Text );
+  end;
+end;
+
+
+procedure TMDIChild.FormCreate(Sender: TObject);
+begin
+  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 365
+  delimiter := DEFAULT_DELIMITER;
+  ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( delimiter );
+end;
+
+
+{***
+  Callback procedure able to handle client-side SQL statements such as DELIMITER
+
+  @param command The command/option to be called
+  @param parameter The parameter of command
+}
+procedure TMDIChild.ProcessClientSQL(command: String; parameter: String);
+begin
+  if ( command = 'DELIMITER' ) then
+  begin
+    ComboBoxQueryDelimiterAdd( parameter );
+  end
+  else
+  if ( command = 'CLIENTSQL_ERROR' ) then
+  begin
+    LogSQL( parameter, True );
+    if ( StopOnErrors ) then
+      raise Exception.Create( parameter );
+  end;
+end;
+
+
 end.
-
-
-
