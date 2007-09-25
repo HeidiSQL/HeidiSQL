@@ -67,3 +67,5 @@ const
   {TeraByte} NAME_TB = ' TB';
   {PetaByte} NAME_PB = ' PB';
 
+  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 112
+  DEFAULT_DELIMITER = ';';

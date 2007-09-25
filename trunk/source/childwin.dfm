@@ -14,6 +14,7 @@ object MDIChild: TMDIChild
   Visible = True
   OnActivate = FormActivate
   OnClose = FormClose
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96
@@ -1001,9 +1002,9 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 0
             object pnlQueryToolbar: TPanel
-              Left = 272
+              Left = 175
               Top = 1
-              Width = 223
+              Width = 199
               Height = 27
               Align = alRight
               BevelOuter = bvNone
@@ -1012,7 +1013,7 @@ object MDIChild: TMDIChild
               object ToolBarQuery: TToolBar
                 Left = 1
                 Top = 1
-                Width = 221
+                Width = 197
                 Height = 25
                 Align = alClient
                 ButtonHeight = 25
@@ -1091,18 +1092,10 @@ object MDIChild: TMDIChild
                   Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
-                object btnAltTerminator: TToolButton
-                  Left = 197
-                  Top = 0
-                  Hint = 'Use alternate '#39'//'#39' SQL sentence terminator'
-                  Caption = 'btnAltTerminator'
-                  ImageIndex = 54
-                  Style = tbsCheck
-                end
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 200
+              Left = 103
               Top = 1
               Width = 72
               Height = 27
@@ -1117,6 +1110,34 @@ object MDIChild: TMDIChild
               Font.Style = []
               ParentFont = False
               TabOrder = 1
+            end
+            object PanelQueryDelimiter: TPanel
+              Left = 374
+              Top = 1
+              Width = 121
+              Height = 27
+              Align = alRight
+              BevelOuter = bvNone
+              TabOrder = 2
+              object LabelQueryDelimiter: TLabel
+                Left = 6
+                Top = 7
+                Width = 55
+                Height = 13
+                Caption = 'Delimiter:'
+              end
+              object ComboBoxQueryDelimiter: TComboBox
+                Left = 64
+                Top = 4
+                Width = 55
+                Height = 21
+                ItemHeight = 13
+                TabOrder = 0
+                Items.Strings = (
+                  ';'
+                  ';;'
+                  '//')
+              end
             end
           end
           object pnlQueryMemo: TPanel
