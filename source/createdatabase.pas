@@ -28,7 +28,6 @@ type
     function GetCreateStatement: String;
   private
     { Private declarations }
-    listCharsets : TStringList;
     dsCollations : TDataSet;
     defaultCharset : String;
     currentCollation : String;
@@ -49,24 +48,37 @@ uses main, childwin, helpers;
   Fetch list with character sets and collations from the server
 }
 procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
+var
+  charset: String;
 begin
   try
-    listCharsets := Mainform.Childwin.GetCol('SHOW CHARACTER SET');
     dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
+    // Detect servers default charset
+    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   except
     // Ignore it when the above statements don't work on pre 4.1 servers.
     // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
   end;
 
-  if (listCharsets <> nil) and (listCharsets.Count > 0) then
+  // Create a list with charsets from collations dataset
+  comboCharset.Enabled := dsCollations <> nil;
+  lblCharset.Enabled := comboCharset.Enabled;
+  if comboCharset.Enabled then
   begin
-    comboCharset.Enabled := True;
-    comboCharset.Items := listCharsets;
-    // Detect servers default charset
-    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+    comboCharset.Items.BeginUpdate;
+    dsCollations.First;
+    while not dsCollations.Eof do
+    begin
+      charset := dsCollations.FieldByName('Charset').AsString;
+      if comboCharset.Items.IndexOf(charset) = -1 then
+        comboCharset.Items.Add(charset);
+      dsCollations.Next;
+    end;
+    comboCharset.Items.EndUpdate;
   end;
 
   comboCollation.Enabled := dsCollations <> nil;
+  lblCollation.Enabled := comboCollation.Enabled;
 
   // Setup SynMemoPreview
   SynMemoPreview.Highlighter := Mainform.Childwin.SynSQLSyn1;
