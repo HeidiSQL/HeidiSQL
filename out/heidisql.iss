@@ -4,6 +4,7 @@
 ; Original HeidiSQL setup script for Innosetup
 
 [Setup]
+AppId=HeidiSQL
 AppName=HeidiSQL
 AppVerName=HeidiSQL 3.1 RC1
 AppVersion=3.1 RC1
@@ -26,6 +27,11 @@ UninstallDisplayIcon={app}\heidisql.exe
 SetupIconFile=.\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
 ; MinVersion=4,3.51
+UsePreviousAppDir=yes
+DirExistsWarning=auto
+; uncomment the two following lines if you want to build an update installation
+;CreateUninstallRegKey=no
+;UpdateUninstallLogAppName=no
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
