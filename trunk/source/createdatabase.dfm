@@ -69,7 +69,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    Enabled = False
     ItemHeight = 13
     Sorted = True
     TabOrder = 1
@@ -104,7 +103,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Width = 221
     Height = 21
     Style = csDropDownList
-    Enabled = False
     ItemHeight = 13
     Sorted = True
     TabOrder = 2

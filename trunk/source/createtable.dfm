@@ -75,7 +75,7 @@ object CreateTableForm: TCreateTableForm
     Height = 9
     Shape = bsTopLine
   end
-  object lblCharacterset: TLabel
+  object lblCharset: TLabel
     Left = 264
     Top = 41
     Width = 66
@@ -426,8 +426,8 @@ object CreateTableForm: TCreateTableForm
     Width = 153
     Height = 21
     Style = csDropDownList
-    Enabled = False
     ItemHeight = 13
+    Sorted = True
     TabOrder = 14
     OnChange = comboCharsetChange
   end
@@ -437,8 +437,8 @@ object CreateTableForm: TCreateTableForm
     Width = 153
     Height = 21
     Style = csDropDownList
-    Enabled = False
     ItemHeight = 13
+    Sorted = True
     TabOrder = 15
   end
 end
