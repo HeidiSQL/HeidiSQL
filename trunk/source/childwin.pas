@@ -919,6 +919,29 @@ var
   i           : Integer;
   menuitem    : Tmenuitem;
   reg         : TRegistry;
+
+  {**
+    Sub-procedure: Restore width of list-columns from registry
+  }
+  procedure RestoreColumnWidths( List: TVirtualStringTree );
+  var
+    i : Byte;
+    colwidth : Integer;
+    colwidths : TStringList;
+  begin
+    if not reg.ValueExists( REGPREFIX_COLWIDTHS + List.Name ) then
+      exit;
+    colwidths := Explode( ',', reg.ReadString( REGPREFIX_COLWIDTHS + List.Name ) );
+    for i := 0 to colwidths.Count - 1 do
+    begin
+      colwidth := MakeInt(colwidths[i]);
+      // Check if column number exists and width is at least 1 pixel
+      if (List.Header.Columns.Count > i) and (colwidth > 0) then
+        List.Header.Columns[i].Width := colwidth;
+    end;
+    FreeAndNil(colwidths);
+  end;
+
 begin
   reg := TRegistry.Create;
   if reg.OpenKey( REGPATH, true ) then
@@ -1040,6 +1063,13 @@ begin
     else
       prefRememberFilters := True;
 
+    // Restore width of columns of all VirtualTrees
+    RestoreColumnWidths(ListVariables);
+    RestoreColumnWidths(ListProcesses);
+    RestoreColumnWidths(ListCommandStats);
+    RestoreColumnWidths(ListTables);
+    RestoreColumnWidths(ListColumns);
+
     // Open server-specific registry-folder.
     // relative from already opened folder!
     reg.OpenKey( 'Servers\' + FConn.Description, true );
@@ -1056,6 +1086,25 @@ procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ws    : String;
   reg   : TRegistry;
+
+  {**
+    Sub-procedure: Save width of list-columns to registry
+  }
+  procedure SaveColumnWidths( List: TVirtualStringTree );
+  var
+    i     : Byte;
+    colwidths : String;
+  begin
+    colwidths := '';
+    for i := 0 to List.Header.Columns.Count - 1 do
+    begin
+      if colwidths <> '' then
+        colwidths := colwidths + ',';
+      colwidths := colwidths + IntToStr(List.Header.Columns[i].Width);
+    end;
+    reg.WriteString( REGPREFIX_COLWIDTHS + List.Name, colwidths );
+  end;
+
 begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
@@ -1093,6 +1142,13 @@ begin
       WriteInteger( 'queryhelperswidth', pnlQueryHelpers.Width );
       WriteInteger( 'dbtreewidth', dbtree.width );
       WriteInteger( 'sqloutheight', PageControlBottom.Height );
+
+      // Save width of probably resized columns of all VirtualTrees
+      SaveColumnWidths(ListVariables);
+      SaveColumnWidths(ListProcesses);
+      SaveColumnWidths(ListCommandStats);
+      SaveColumnWidths(ListTables);
+      SaveColumnWidths(ListColumns);
 
       // Open server-specific registry-folder.
       // relative from already opened folder!

@@ -40,6 +40,8 @@ const
   REGNAME_SORTDISPLAYEDCOLUMNS = 'DisplayedColumnsSorted';
   REGNAME_LISTTABLESCOLUMNNAMES = 'ListTablesColumnNames';
 
+  REGPREFIX_COLWIDTHS = 'ColWidths_';
+
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function
   // this value should probably be user configurable
