@@ -10,7 +10,7 @@ object optionsform: Toptionsform
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -116,7 +116,7 @@ object optionsform: Toptionsform
           object Label2: TLabel
             Left = 156
             Top = 60
-            Width = 28
+            Width = 29
             Height = 13
             Caption = 'points'
           end
@@ -130,14 +130,14 @@ object optionsform: Toptionsform
           object Label3: TLabel
             Left = 16
             Top = 32
-            Width = 24
+            Width = 26
             Height = 13
             Caption = 'Font:'
           end
           object Label25: TLabel
             Left = 16
             Top = 96
-            Width = 37
+            Width = 40
             Height = 13
             Caption = 'Pattern:'
           end
@@ -185,42 +185,42 @@ object optionsform: Toptionsform
           object Label6: TLabel
             Left = 16
             Top = 27
-            Width = 49
+            Width = 51
             Height = 13
             Caption = 'Keywords:'
           end
           object Label7: TLabel
             Left = 16
             Top = 61
-            Width = 49
+            Width = 50
             Height = 13
             Caption = 'Functions:'
           end
           object Label8: TLabel
             Left = 192
             Top = 27
-            Width = 77
+            Width = 76
             Height = 13
             Caption = 'Numeric Values:'
           end
           object Label9: TLabel
             Left = 16
             Top = 94
-            Width = 58
+            Width = 59
             Height = 13
             Caption = 'Data Types:'
           end
           object Label10: TLabel
             Left = 192
             Top = 61
-            Width = 65
+            Width = 66
             Height = 13
             Caption = 'String Values:'
           end
           object Label11: TLabel
             Left = 192
             Top = 94
-            Width = 52
+            Width = 54
             Height = 13
             Caption = 'Comments:'
           end
@@ -318,28 +318,28 @@ object optionsform: Toptionsform
       object Label27: TLabel
         Left = 8
         Top = 93
-        Width = 167
+        Width = 166
         Height = 13
         Caption = 'Background-color for NULL-values:'
       end
       object Label26: TLabel
         Left = 257
         Top = 40
-        Width = 35
+        Width = 36
         Height = 13
         Caption = 'records'
       end
       object Label19: TLabel
         Left = 8
         Top = 68
-        Width = 172
+        Width = 177
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
       object Label20: TLabel
         Left = 256
         Top = 68
-        Width = 70
+        Width = 75
         Height = 13
         Caption = '(0 = automatic)'
       end
@@ -356,7 +356,7 @@ object optionsform: Toptionsform
         object Label21: TLabel
           Left = 20
           Top = 24
-          Width = 24
+          Width = 26
           Height = 13
           Caption = 'Font:'
         end
@@ -370,14 +370,14 @@ object optionsform: Toptionsform
         object Label24: TLabel
           Left = 20
           Top = 80
-          Width = 37
+          Width = 40
           Height = 13
           Caption = 'Pattern:'
         end
         object Label22: TLabel
           Left = 160
           Top = 52
-          Width = 28
+          Width = 29
           Height = 13
           Caption = 'points'
         end
@@ -509,28 +509,28 @@ object optionsform: Toptionsform
         object Label12: TLabel
           Left = 16
           Top = 32
-          Width = 94
+          Width = 98
           Height = 13
           Caption = 'Fields separated by:'
         end
         object Label13: TLabel
           Left = 16
           Top = 82
-          Width = 94
+          Width = 98
           Height = 13
           Caption = 'Lines terminated by:'
         end
         object Label14: TLabel
           Left = 16
           Top = 58
-          Width = 90
+          Width = 91
           Height = 13
           Caption = 'Fields enclosed by:'
         end
         object Label15: TLabel
           Left = 248
           Top = 120
-          Width = 95
+          Width = 102
           Height = 13
           Caption = '\r  =  Carriage return'
         end
@@ -544,14 +544,14 @@ object optionsform: Toptionsform
         object Label17: TLabel
           Left = 248
           Top = 152
-          Width = 45
+          Width = 46
           Height = 13
           Caption = '\t  =  Tab'
         end
         object Label18: TLabel
           Left = 16
           Top = 120
-          Width = 218
+          Width = 219
           Height = 13
           Caption = 'Note: You can use these escaped characters:'
         end

@@ -11,7 +11,7 @@ object UserManagerForm: TUserManagerForm
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -34,21 +34,21 @@ object UserManagerForm: TUserManagerForm
       object Label4: TLabel
         Left = 16
         Top = 40
-        Width = 51
+        Width = 52
         Height = 13
         Caption = '&Username:'
         FocusControl = EditUser
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
       end
       object Label5: TLabel
         Left = 16
         Top = 88
-        Width = 49
+        Width = 50
         Height = 13
         Caption = '&Password:'
         FocusControl = EditPassword
@@ -56,54 +56,54 @@ object UserManagerForm: TUserManagerForm
       object Label6: TLabel
         Left = 16
         Top = 64
-        Width = 51
+        Width = 53
         Height = 13
         Caption = 'From &Host:'
         FocusControl = EditHost
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
       end
       object Label7: TLabel
         Left = 256
         Top = 16
-        Width = 94
+        Width = 89
         Height = 13
         Caption = 'Allow a&ccess to:'
         FocusControl = DBUserTree
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
       end
       object Label8: TLabel
         Left = 16
         Top = 128
-        Width = 60
+        Width = 58
         Height = 13
         Caption = 'Privileges:'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
       end
       object Label9: TLabel
         Left = 16
         Top = 16
-        Width = 68
+        Width = 67
         Height = 13
         Caption = 'Credentials:'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
       end
@@ -117,7 +117,7 @@ object UserManagerForm: TUserManagerForm
       object Label1: TLabel
         Left = 274
         Top = 272
-        Width = 56
+        Width = 57
         Height = 13
         Caption = '&Description:'
         Enabled = False
@@ -235,7 +235,7 @@ object UserManagerForm: TUserManagerForm
         object Label13: TLabel
           Left = 14
           Top = 82
-          Width = 38
+          Width = 39
           Height = 13
           Caption = 'Column:'
           Visible = False
@@ -243,7 +243,7 @@ object UserManagerForm: TUserManagerForm
         object LabelColumn: TLabel
           Left = 84
           Top = 82
-          Width = 61
+          Width = 60
           Height = 13
           Caption = 'LabelColumn'
           Visible = False
@@ -251,7 +251,7 @@ object UserManagerForm: TUserManagerForm
         object LabelTable: TLabel
           Left = 84
           Top = 66
-          Width = 53
+          Width = 51
           Height = 13
           Caption = 'LabelTable'
           Visible = False
@@ -259,7 +259,7 @@ object UserManagerForm: TUserManagerForm
         object LabelDB: TLabel
           Left = 84
           Top = 50
-          Width = 41
+          Width = 38
           Height = 13
           Caption = 'LabelDB'
           Visible = False
@@ -275,7 +275,7 @@ object UserManagerForm: TUserManagerForm
         object Label11: TLabel
           Left = 14
           Top = 50
-          Width = 49
+          Width = 50
           Height = 13
           Caption = 'Database:'
           Visible = False
@@ -283,13 +283,13 @@ object UserManagerForm: TUserManagerForm
         object LabelPrivileges: TLabel
           Left = 14
           Top = 8
-          Width = 60
+          Width = 58
           Height = 13
           Caption = 'Privileges:'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Name = 'Tahoma'
           Font.Style = [fsBold]
           ParentFont = False
           Visible = False
@@ -298,7 +298,7 @@ object UserManagerForm: TUserManagerForm
         object LabelPleaseSelect: TLabel
           Left = 40
           Top = 96
-          Width = 142
+          Width = 136
           Height = 39
           Caption = 
             'Please select a user or doubleclick on a user to access items be' +
@@ -306,7 +306,7 @@ object UserManagerForm: TUserManagerForm
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Name = 'Tahoma'
           Font.Style = [fsBold]
           ParentFont = False
           WordWrap = True
@@ -314,7 +314,7 @@ object UserManagerForm: TUserManagerForm
         object LabelNoPrivs: TLabel
           Left = 24
           Top = 120
-          Width = 195
+          Width = 200
           Height = 13
           Caption = 'No Privileges are set for the selected item'
           Visible = False
@@ -425,7 +425,7 @@ object UserManagerForm: TUserManagerForm
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Name = 'Tahoma'
           Font.Style = [fsBold]
           ParentFont = False
         end

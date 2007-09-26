@@ -9,7 +9,7 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
@@ -20,21 +20,21 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
   object Label1: TLabel
     Left = 16
     Top = 32
-    Width = 45
+    Width = 46
     Height = 13
     Caption = 'Filename:'
   end
   object Label2: TLabel
     Left = 16
     Top = 48
-    Width = 84
+    Width = 90
     Height = 13
     Caption = 'Current operation:'
   end
   object Label3: TLabel
     Left = 16
     Top = 16
-    Width = 14
+    Width = 15
     Height = 13
     Caption = 'Nr.'
   end
@@ -55,7 +55,7 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
   object lblOperation: TLabel
     Left = 112
     Top = 48
-    Width = 56
+    Width = 58
     Height = 13
     Caption = 'lblOperation'
   end

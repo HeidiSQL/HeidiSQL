@@ -10,7 +10,7 @@ object loaddataform: Tloaddataform
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -111,7 +111,7 @@ object loaddataform: Tloaddataform
         object lblFieldTerminater: TLabel
           Left = 10
           Top = 26
-          Width = 63
+          Width = 67
           Height = 13
           Caption = 'terminated by'
         end
@@ -172,21 +172,21 @@ object loaddataform: Tloaddataform
         object lblIgnoreLinesCount: TLabel
           Left = 166
           Top = 44
-          Width = 25
+          Width = 24
           Height = 13
           Caption = 'Lines'
         end
         object lblLineTerminator: TLabel
           Left = 16
           Top = 20
-          Width = 63
+          Width = 67
           Height = 13
           Caption = 'terminated by'
         end
         object lblIgnoreLines: TLabel
           Left = 16
           Top = 44
-          Width = 29
+          Width = 30
           Height = 13
           Caption = 'ignore'
         end
@@ -227,14 +227,14 @@ object loaddataform: Tloaddataform
       object lblDatabase: TLabel
         Left = 10
         Top = 10
-        Width = 49
+        Width = 50
         Height = 13
         Caption = 'Database:'
       end
       object lblTable: TLabel
         Left = 10
         Top = 53
-        Width = 78
+        Width = 84
         Height = 13
         Caption = 'Import into table:'
       end
@@ -323,7 +323,7 @@ object loaddataform: Tloaddataform
         object lblDuplicates: TLabel
           Left = 16
           Top = 54
-          Width = 141
+          Width = 143
           Height = 13
           Caption = 'Handling of duplicate records:'
         end

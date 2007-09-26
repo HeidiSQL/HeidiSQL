@@ -11,7 +11,7 @@ object ExportSQLForm: TExportSQLForm
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -24,7 +24,7 @@ object ExportSQLForm: TExportSQLForm
   object lblProgress: TLabel
     Left = 3
     Top = 396
-    Width = 51
+    Width = 52
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'lblProgress'
@@ -78,7 +78,7 @@ object ExportSQLForm: TExportSQLForm
       object lblSelectDbTables: TLabel
         Left = 8
         Top = 8
-        Width = 144
+        Width = 145
         Height = 13
         Caption = 'Select Database and Table(s):'
       end
@@ -299,7 +299,7 @@ object ExportSQLForm: TExportSQLForm
         object lblTargetCompat: TLabel
           Left = 9
           Top = 221
-          Width = 94
+          Width = 98
           Height = 13
           Caption = 'Target compatibility:'
         end

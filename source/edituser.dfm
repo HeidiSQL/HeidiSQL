@@ -11,7 +11,7 @@ object FormEditUser: TFormEditUser
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -50,14 +50,14 @@ object FormEditUser: TFormEditUser
     object Label1: TLabel
       Left = 24
       Top = 32
-      Width = 51
+      Width = 52
       Height = 13
       Caption = 'Username:'
     end
     object Label2: TLabel
       Left = 24
       Top = 56
-      Width = 25
+      Width = 26
       Height = 13
       Caption = 'Host:'
     end
@@ -71,7 +71,7 @@ object FormEditUser: TFormEditUser
     object Label4: TLabel
       Left = 24
       Top = 104
-      Width = 86
+      Width = 88
       Height = 13
       Caption = 'Retype Password:'
     end
