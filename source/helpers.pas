@@ -29,17 +29,14 @@ type
 {$I const.inc}
 
   function trimc(s: String; c: Char) : String;
-  function implode(seperator: String; a: array of string) :String;
   function implodestr(seperator: String; a: TStringList) :String;
   function explode(separator, a: String) :TStringList;
-  function strpos(haystack, needle: String; offset: Integer=0) : Integer;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String):String;
   type TParseSQLProcessCommand = procedure(command: String; parameter: String) of object;
   function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function notinlist(str: String; strlist: TStrings): Boolean;
-  function inarray(str: String; a: Array of String): Boolean;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
@@ -79,7 +76,6 @@ type
   function ExpectResultSet(ASql: String): Boolean;
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
-  procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
   function GetFieldValue( Field: TField ): String;
   function LastPos( substr: WideString; str: WideString): Integer;
   function ConvertServerVersion( Version: Integer ): String;
@@ -156,31 +152,6 @@ end;
 
 
 {***
-  Convert an array to string using a separator-string
-
-  @todo Look at each caller to see if escaping is necessary.
-  @param string Separator
-  @param a array Containing strings
-  @return string
-}
-function implode(seperator: String; a: array of string) :String;
-var
-  i : Integer;
-  text : String;
-begin
-  result := '';
-  for i:=1 to high(a) do
-  begin
-    text := text + a[i];
-    if i < high(a) then
-      text := text + seperator;
-  end;
-  result := text;
-end;
-
-
-
-{***
   Convert a TStringList to a string using a separator-string
 
   @todo Look at each caller to see if escaping is necessary.
@@ -228,23 +199,6 @@ begin
   end;
   if a <> '' then
     result.Add(trim(a));
-end;
-
-
-
-{***
-  Return first position of needle in haystack (from char[offset])
-
-  @param string Target
-  @param string Text to find
-  @return Integer
-}
-function strpos( haystack, needle: String; offset: Integer=0 ) : Integer;
-begin
-  haystack := copy(haystack, offset, length(haystack));
-  result := pos(needle, haystack);
-  if result > 0 then
-    result := result + offset-1;
 end;
 
 
@@ -684,31 +638,6 @@ begin
       result := false;
       break;
     end;
-  end;
-end;
-
-
-
-{***
-  Check existance of a string in an Array
-
-  @param string Searched text
-  @param array List of Strings
-  @return boolean
-}
-function inarray(str: String; a: Array of String): Boolean;
-var i : Integer;
-begin
-  result := false;
-  i := 0;
-  while i < length(a) do
-  begin
-    if a[i] = str then
-    begin
-      result := true;
-      break;
-    end;
-    inc(i);
   end;
 end;
 
@@ -2062,26 +1991,6 @@ begin
       exit;
     end;
   end;
-end;
-
-
-{***
-  Add values from a list to another list, avoid adding
-  already existant items
-}
-procedure AddUniqueItemsToList( ToAdd: TStrings; BaseList: TStrings );
-var
-  i : Cardinal;
-begin
-  BaseList.BeginUpdate;
-  if ToAdd.Count > 0 then
-  begin
-    for i := 0 to ToAdd.Count - 1 do
-    begin
-      if BaseList.IndexOf( ToAdd[i] ) = -1 then BaseList.Append( ToAdd[i] );
-    end;
-  end;
-  BaseList.EndUpdate;
 end;
 
 

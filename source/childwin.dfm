@@ -1686,7 +1686,6 @@ object MDIChild: TMDIChild
   object popupDbGrid: TPopupMenu
     AutoHotkeys = maManual
     Images = MainForm.ImageList1
-    OnPopup = popupDbGridPopup
     Left = 72
     Top = 48
     object menuproperties: TMenuItem

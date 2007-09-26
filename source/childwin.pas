@@ -337,14 +337,12 @@ type
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure btnDbPropertiesClick(Sender: TObject);
-    procedure popupDbGridPopup(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
       var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
       Sender: TObject; var CurrentInput: String; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PerformConnect;
-    procedure ToolButton4Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ReadDatabasesAndTables(Sender: TObject);
     procedure DBtreeChange(Sender: TObject; Node: TTreeNode);
@@ -384,7 +382,6 @@ type
     procedure MenuRenameTableClick(Sender: TObject);
     procedure MenuViewBlobClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
-    procedure Clear1Click(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
     procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
@@ -462,8 +459,6 @@ type
     procedure Splitter2Moved(Sender: TObject);
     procedure DataSourceDataChange(Sender: TObject; Field: TField);
     procedure DBGridColEnter(Sender: TObject);
-    procedure ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
-      var Action: TDataAction);
     procedure ButtonDataSearchClick(Sender: TObject);
     procedure EditDataSearchEnter(Sender: TObject);
     procedure EditDataSearchExit(Sender: TObject);
@@ -733,30 +728,6 @@ begin
         raise Exception.Create( 'Internal badness: Double reset of running ' +
         'flag.' );
       end;
-    end;
-  end;
-end;
-
-
-// Check the tabletype of the selected table in the Popupmenu of ListTables
-procedure TMDIChild.popupDbGridPopup(Sender: TObject);
-var
-  i                 : byte;
-  SelectedEngine    : String;
-  NodeData          : PVTreeData;
-begin
-  if ListTables.SelectedCount <> 1 then
-  begin
-    Exit;
-  end;
-
-  for i := 0 to ListTables.Header.Columns.Count - 1 do
-  begin
-    if (ListTables.Header.Columns[i].Text = 'Engine') or (ListTables.Header.Columns[i].Text = 'Type') then
-    begin
-      NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-      SelectedEngine := NodeData.Captions[i];
-      Break;
     end;
   end;
 end;
@@ -3433,16 +3404,6 @@ begin
 end;
 
 
-procedure TMDIChild.Clear1Click(Sender: TObject);
-begin
-  // clear
-  if SynMemoFilter.Focused then
-    SynMemoFilter.Lines.Clear
-  else
-    SynMemoQuery.Lines.Clear;
-end;
-
-
 procedure TMDIChild.Clear2Click(Sender: TObject);
 begin
   // clear history-memo
@@ -4578,12 +4539,6 @@ begin
   SQLhelpWindow(self, keyword);
 end;
 
-procedure TMDIChild.ToolButton4Click(Sender: TObject);
-begin
-  SaveBlob;
-  mainform.HTMLviewExecute(Sender);
-end;
-
 procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
 var
   f : TextFile;
@@ -5465,13 +5420,6 @@ begin
   end;
 
   PageControlBlobEditorsChange(self);
-end;
-
-
-procedure TMDIChild.ZQuery1EditError(DataSet: TDataSet; E: EDatabaseError;
-  var Action: TDataAction);
-begin
-  LogSQL( E.Message, true );
 end;
 
 
