@@ -10,7 +10,7 @@ object FieldEditForm: TFieldEditForm
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
@@ -40,7 +40,7 @@ object FieldEditForm: TFieldEditForm
       object lblType: TLabel
         Left = 16
         Top = 64
-        Width = 27
+        Width = 28
         Height = 13
         Caption = 'Type:'
       end
@@ -54,21 +54,21 @@ object FieldEditForm: TFieldEditForm
       object lblDefault: TLabel
         Left = 16
         Top = 112
-        Width = 37
+        Width = 39
         Height = 13
         Caption = 'Default:'
       end
       object lblPosition: TLabel
         Left = 16
         Top = 16
-        Width = 40
+        Width = 41
         Height = 13
         Caption = 'Position:'
       end
       object lblComment: TLabel
         Left = 16
         Top = 136
-        Width = 47
+        Width = 49
         Height = 13
         Caption = 'Comment:'
       end
@@ -186,21 +186,21 @@ object FieldEditForm: TFieldEditForm
       object lblIndexName: TLabel
         Left = 8
         Top = 10
-        Width = 60
+        Width = 63
         Height = 13
         Caption = 'Index-Name:'
       end
       object lblColumnsUsed: TLabel
         Left = 8
         Top = 104
-        Width = 69
+        Width = 70
         Height = 13
         Caption = 'Columns used:'
       end
       object lblColumnsAvailable: TLabel
         Left = 168
         Top = 104
-        Width = 89
+        Width = 90
         Height = 13
         Caption = 'Available Columns:'
       end

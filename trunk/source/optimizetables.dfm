@@ -9,7 +9,7 @@ object optimize: Toptimize
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
@@ -19,14 +19,14 @@ object optimize: Toptimize
   object Label1: TLabel
     Left = 16
     Top = 16
-    Width = 144
+    Width = 145
     Height = 13
     Caption = 'Select Database and Table(s):'
   end
   object Label3: TLabel
     Left = 16
     Top = 224
-    Width = 38
+    Width = 39
     Height = 13
     Caption = 'Results:'
   end

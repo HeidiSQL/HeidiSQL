@@ -11,7 +11,7 @@ object frmInsertFiles: TfrmInsertFiles
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
@@ -25,7 +25,7 @@ object frmInsertFiles: TfrmInsertFiles
   object Label1: TLabel
     Left = 8
     Top = 195
-    Width = 49
+    Width = 50
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'Database:'
@@ -41,7 +41,7 @@ object frmInsertFiles: TfrmInsertFiles
   object Label3: TLabel
     Left = 8
     Top = 243
-    Width = 38
+    Width = 39
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'Column:'
@@ -49,7 +49,7 @@ object frmInsertFiles: TfrmInsertFiles
   object LabelFileCount: TLabel
     Left = 8
     Top = 163
-    Width = 27
+    Width = 28
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = '0 files'
@@ -57,7 +57,7 @@ object frmInsertFiles: TfrmInsertFiles
   object Label5: TLabel
     Left = 392
     Top = 120
-    Width = 104
+    Width = 96
     Height = 39
     Anchors = [akTop, akRight]
     Caption = 'Note: You can drop files from explorer into the list.'
@@ -207,8 +207,8 @@ object frmInsertFiles: TfrmInsertFiles
     object Label4: TLabel
       Left = 170
       Top = 66
-      Width = 261
-      Height = 26
+      Width = 215
+      Height = 39
       Caption = 
         'Note: Don'#39't quote functions or NULL-values, otherwise they will ' +
         'be inserted as ordinary string-values.'

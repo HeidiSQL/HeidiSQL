@@ -10,7 +10,7 @@ object AboutBox: TAboutBox
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsStayOnTop
   OldCreateOrder = True
@@ -1194,7 +1194,7 @@ object AboutBox: TAboutBox
     object LabelVersion: TLabel
       Left = 10
       Top = 41
-      Width = 61
+      Width = 60
       Height = 13
       Caption = 'LabelVersion'
       Transparent = True
@@ -1203,7 +1203,7 @@ object AboutBox: TAboutBox
     object LabelCompiled: TLabel
       Left = 10
       Top = 58
-      Width = 69
+      Width = 68
       Height = 13
       Caption = 'LabelCompiled'
       Transparent = True
@@ -1211,7 +1211,7 @@ object AboutBox: TAboutBox
     object LabelWebpage: TLabel
       Left = 10
       Top = 76
-      Width = 121
+      Width = 122
       Height = 13
       Cursor = crHandPoint
       Hint = 'http://www.heidisql.com/'
@@ -1219,7 +1219,7 @@ object AboutBox: TAboutBox
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
       Font.Height = -11
-      Font.Name = 'MS Sans Serif'
+      Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
       Transparent = True
@@ -1229,7 +1229,7 @@ object AboutBox: TAboutBox
     object LabelAuthors: TLabel
       Left = 10
       Top = 101
-      Width = 39
+      Width = 42
       Height = 13
       Caption = 'Authors:'
     end

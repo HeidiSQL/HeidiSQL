@@ -13,7 +13,7 @@ object connform: Tconnform
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
@@ -37,7 +37,7 @@ object connform: Tconnform
     Tag = 7
     Left = 152
     Top = 139
-    Width = 25
+    Width = 26
     Height = 13
     Caption = '&User:'
     FocusControl = EditUsername
@@ -46,7 +46,7 @@ object connform: Tconnform
     Tag = 8
     Left = 152
     Top = 163
-    Width = 49
+    Width = 50
     Height = 13
     Caption = '&Password:'
     FocusControl = EditPassword
@@ -55,7 +55,7 @@ object connform: Tconnform
     Tag = 9
     Left = 152
     Top = 187
-    Width = 22
+    Width = 24
     Height = 13
     Caption = 'P&ort:'
     FocusControl = EditPort
@@ -64,7 +64,7 @@ object connform: Tconnform
     Tag = 10
     Left = 287
     Top = 187
-    Width = 41
+    Width = 42
     Height = 13
     Caption = '&Timeout:'
     FocusControl = EditTimeout
@@ -73,7 +73,7 @@ object connform: Tconnform
     Tag = 5
     Left = 152
     Top = 67
-    Width = 56
+    Width = 57
     Height = 13
     Caption = '&Description:'
     FocusControl = ComboBoxDescription
@@ -90,7 +90,7 @@ object connform: Tconnform
     Tag = 11
     Left = 391
     Top = 187
-    Width = 40
+    Width = 39
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
@@ -99,7 +99,7 @@ object connform: Tconnform
     Tag = 13
     Left = 152
     Top = 234
-    Width = 67
+    Width = 66
     Height = 39
     Caption = 'Data&base(s): (separated by semicolon)'
     FocusControl = EditOnlyDBs

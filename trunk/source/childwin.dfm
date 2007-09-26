@@ -86,7 +86,7 @@ object MDIChild: TMDIChild
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
-        Font.Name = 'MS Sans Serif'
+        Font.Name = 'Tahoma'
         Font.Style = []
         HotTrack = True
         Images = MainForm.ImageList1
@@ -152,7 +152,7 @@ object MDIChild: TMDIChild
                   item
                     Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 1
-                    Width = 324
+                    Width = 328
                     WideText = 'Value'
                   end>
               end
@@ -308,7 +308,7 @@ object MDIChild: TMDIChild
                   item
                     Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 4
-                    Width = 64
+                    Width = 68
                     WideText = 'Percentage'
                   end>
               end
@@ -939,7 +939,7 @@ object MDIChild: TMDIChild
             TitleFont.Charset = DEFAULT_CHARSET
             TitleFont.Color = clWindowText
             TitleFont.Height = -11
-            TitleFont.Name = 'MS Sans Serif'
+            TitleFont.Name = 'Tahoma'
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
             OnColumnMoved = gridDataColumnMoved
@@ -964,7 +964,7 @@ object MDIChild: TMDIChild
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
-          Font.Name = 'MS Sans Serif'
+          Font.Name = 'Tahoma'
           Font.Style = []
           ImageIndex = 57
           ParentFont = False
@@ -1278,7 +1278,7 @@ object MDIChild: TMDIChild
             TitleFont.Charset = DEFAULT_CHARSET
             TitleFont.Color = clWindowText
             TitleFont.Height = -11
-            TitleFont.Name = 'MS Sans Serif'
+            TitleFont.Name = 'Tahoma'
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
             OnDblClick = DBGridDblClick
@@ -1460,7 +1460,7 @@ object MDIChild: TMDIChild
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clWindowText
             Font.Height = -11
-            Font.Name = 'MS Sans Serif'
+            Font.Name = 'Tahoma'
             Font.Style = []
             ParentFont = False
             ScrollBars = ssBoth

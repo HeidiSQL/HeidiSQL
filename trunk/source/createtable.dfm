@@ -9,31 +9,34 @@ object CreateTableForm: TCreateTableForm
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnShow = FormShow
+  DesignSize = (
+    499
+    366)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 16
     Top = 16
-    Width = 73
+    Width = 71
     Height = 13
     Caption = 'Table-Name:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
-    Font.Name = 'MS Sans Serif'
+    Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
   end
   object Label2: TLabel
     Left = 16
     Top = 106
-    Width = 43
+    Width = 44
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'Columns:'
@@ -41,7 +44,7 @@ object CreateTableForm: TCreateTableForm
   object Label3: TLabel
     Left = 16
     Top = 66
-    Width = 47
+    Width = 49
     Height = 13
     Caption = 'Comment:'
   end
@@ -56,14 +59,14 @@ object CreateTableForm: TCreateTableForm
   object Label4: TLabel
     Left = 16
     Top = 41
-    Width = 61
+    Width = 63
     Height = 13
     Caption = 'In Database:'
   end
   object Label5: TLabel
     Left = 264
     Top = 16
-    Width = 57
+    Width = 58
     Height = 13
     Caption = 'Table-Type:'
     OnClick = Button1Click
@@ -78,14 +81,14 @@ object CreateTableForm: TCreateTableForm
   object lblCharset: TLabel
     Left = 264
     Top = 41
-    Width = 66
+    Width = 70
     Height = 13
     Caption = 'Character set:'
   end
   object lblCollation: TLabel
     Left = 264
     Top = 66
-    Width = 43
+    Width = 45
     Height = 13
     Caption = 'Collation:'
   end
@@ -124,7 +127,7 @@ object CreateTableForm: TCreateTableForm
     object lblFieldType: TLabel
       Left = 16
       Top = 24
-      Width = 27
+      Width = 28
       Height = 13
       Caption = 'Type:'
       Enabled = False
@@ -140,7 +143,7 @@ object CreateTableForm: TCreateTableForm
     object lblDefault: TLabel
       Left = 16
       Top = 72
-      Width = 67
+      Width = 68
       Height = 13
       Caption = 'Default Value:'
       Enabled = False
