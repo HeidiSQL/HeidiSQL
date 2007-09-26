@@ -179,7 +179,6 @@ type
     procedure Importsettings1Click(Sender: TObject);
     procedure ExecuteQueryExecute(Sender: TObject);
     procedure ExecuteSelectionExecute(Sender: TObject);
-    procedure Save2XMLExecute(Sender: TObject);
     procedure Copy2XMLExecute(Sender: TObject);
     procedure DBNavigator1BeforeAction(Sender: TObject;
       Button: TNavigateBtn);
@@ -793,27 +792,6 @@ end;
 procedure TMainForm.ExecuteLineExecute(Sender: TObject);
 begin
   ChildWin.ExecSqlClick(sender, false, true);
-end;
-
-procedure TMainForm.Save2XMLExecute(Sender: TObject);
-begin
-  // Save data in actual dataset as HTML
-  with TSaveDialog.Create(self) do begin
-    Filter := 'XML-Files (*.xml)|*.xml|All files (*.*)|*.*';
-    DefaultExt := 'xml';
-    if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-      FileName := ChildWin.SelectedTable
-    else
-      FileName := 'SQL query';
-    Options := [ofOverwritePrompt,ofEnableSizing];
-
-    if Execute and (FileName <> '') then begin
-      if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-        dataset2xml(ChildWin.GetVisualDataset(), ChildWin.SelectedTable, FileName)
-      else
-        dataset2xml(ChildWin.GetVisualDataset(), 'SQL query', FileName);
-    end;
-  end;
 end;
 
 procedure TMainForm.Copy2XMLExecute(Sender: TObject);

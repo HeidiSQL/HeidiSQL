@@ -30,7 +30,6 @@ type
     MemoThanks: TMemo;
     LabelThanks: TLabel;
     MemoAuthors: TMemo;
-    procedure OKButtonClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     procedure ButtonCloseClick(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -64,12 +63,6 @@ begin
   f := TAboutBox.Create( AOwner );
   f.ShowModal(); // don't care about result
   FreeAndNil(f);
-end;
-
-
-procedure TAboutBox.OKButtonClick(Sender: TObject);
-begin
-  Close();
 end;
 
 
