@@ -265,10 +265,9 @@ begin
 
   // Execute CREATE statement and reload tablesList
   try
-    Mainform.ChildWin.ExecUpdateQuery( createQuery );
-    Mainform.ChildWin.RefreshDbTableList( DBComboBox.Text );
     Mainform.Childwin.ActiveDatabase := DBComboBox.Text;
-    Mainform.Childwin.PopulateTreeTableList( nil, True );
+    Mainform.ChildWin.ExecUpdateQuery( createQuery );
+    Mainform.ChildWin.MenuRefreshClick(sender);
     Mainform.ChildWin.SelectedTable := EditTablename.Text;
     Mainform.ChildWin.ShowTable(EditTablename.Text);
     Close;
