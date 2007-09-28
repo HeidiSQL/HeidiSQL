@@ -922,69 +922,60 @@ end;
 // Drop Table(s)
 procedure TMainForm.DropTableExecute(Sender: TObject);
 var
-  i,j : Integer;
-  tn, tndb : TTreeNode;
+  i : Integer;
+  tndb : TTreeNode;
   t : TStringList;
+  db, msg, sql, activeDB : String;
 begin
-  with ChildWin do
-  begin
-    t := TStringlist.Create;
+  t := TStringlist.Create;
+  // Set default database name to to ActiveDatabase.
+  // Can be overwritten when someone selects a table in dbtree from different database
+  activeDB := Childwin.ActiveDatabase;
+  db := activeDB;
+  tndb := nil;
 
-    if (Sender as TBasicAction).ActionComponent = PopupMenuDropTable then begin
-      // Invoked by tree menu popup.
-      t.add(mask(DBRightClickSelectedItem.Parent.text) + '.' + mask(DBRightClickSelectedItem.text));
-    end else if PageControlMain.ActivePage = tabDatabase then begin
-      // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
-      t := GetVTCaptions(ListTables, True);
-      for i:=0 to t.count-1 do
-      begin
-        t[i] := mask(t[i]);
-      end;
-    end else begin
-      // Invoked from one of the various buttons, drop table selected in tree view.
-      t.add(mask(ActiveDatabase) + '.' + mask(SelectedTable));
-    end;
-
-    // Fix actions temporarily enabled for popup menu.
-    ValidateControls;
-
-    if MessageDlg('Drop ' + inttostr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
-      exit;
-
-    Screen.Cursor := crSQLWait;
-    ExecUpdateQuery( 'DROP TABLE ' + implodestr(', ', t) );
-
-    if DBtree.Selected.Level in [1, 2] then
-    begin
-      tndb := nil;
-      if DBTree.Selected.Level = 1 then
-        tndb := DBTree.Selected
-      else if DBTree.Selected.Level = 2 then
-        tndb := DBTree.Selected.Parent;
-
-      for i:=0 to t.count-1 do
-      begin
-        // delete table in dbtree
-        tn := tndb.getFirstChild;
-        for j:=0 to tndb.Count -1 do
-        begin
-          if t[i] = tn.Text then
-          begin
-            tn.Delete;
-            break;
-          end;
-          tn := tndb.GetNextChild(tn);
-        end;
-        // delete in SynEditHighlighter's tablenames
-        j := SynSQLSyn1.TableNames.IndexOf( t[i] );
-        if j > -1 then
-          SynSQLSyn1.TableNames.Delete( j );
-      end;
-    end;
-
-    MenuRefreshClick(Self);
-    Screen.Cursor := crDefault;
+  if (Sender as TBasicAction).ActionComponent = Childwin.PopupMenuDropTable then begin
+    // Invoked by tree menu popup.
+    tndb := Childwin.DBRightClickSelectedItem.Parent;
+    db := tndb.Text;
+    t.add( Childwin.DBRightClickSelectedItem.Text );
+  end else if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
+    // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
+    t := GetVTCaptions(Childwin.ListTables, True);
+  end else begin
+    // Invoked from one of the various buttons, drop table selected in tree view.
+    t.add( Childwin.SelectedTable );
   end;
+
+  // Fix actions temporarily enabled for popup menu.
+  Childwin.ValidateControls;
+
+  // Safety stop to avoid firing DROP TABLE without tablenames
+  if t.Count = 0 then
+    Exit;
+
+  // Ask user for confirmation to drop selected tables
+  msg := 'Drop ' + inttostr(t.count) + ' table(s) in database "'+db+'"?' + crlf + crlf + implodestr(', ', t);
+  if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+    Exit;
+
+  // Form and execute SQL
+  sql := 'DROP TABLE ';
+  for i := 0 to t.Count - 1 do
+  begin
+    if i > 0 then
+      sql := sql + ', ';
+    if db <> activeDB then
+      sql := sql + Childwin.mask(db) + '.';
+    sql := sql + Childwin.mask(t[i]);
+  end;
+  Childwin.ExecUpdateQuery( sql );
+
+  // Refresh ListTables + dbtree so the dropped tables are gone:
+  if db = activeDB then
+    Childwin.MenuRefreshClick(Sender)
+  else
+    Childwin.PopulateTreeTableList( tndb, True );
 end;
 
 
