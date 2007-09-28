@@ -41,6 +41,7 @@ const
   REGNAME_LISTTABLESCOLUMNNAMES = 'ListTablesColumnNames';
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
+  REGPREFIX_COLSVISIBLE = 'ColsVisible_';
 
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function

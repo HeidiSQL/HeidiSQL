@@ -221,8 +221,6 @@ type
     ButtonDataSearch: TButton;
     Find1: TMenuItem;
     popupDbGridHeader: TPopupMenu;
-    DefaultColumnLayout1: TMenuItem;
-    N20: TMenuItem;
     SynCompletionProposal1: TSynCompletionProposal;
     popupQueryLoad: TPopupMenu;
     OpenDialogSQLFile: TOpenDialog;
@@ -522,7 +520,6 @@ type
       UserQueryFiring            : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
-      ListTablesColumnNames      : TStringList;
       CreateDatabaseForm         : TCreateDatabaseForm;
       TablePropertiesForm        : Ttbl_properties_form;
 
@@ -535,12 +532,14 @@ type
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
-      procedure SetupListTablesHeader;
       function GetActiveDatabase: string;
       function GetSelectedTable: string;
       procedure SetSelectedDatabase(db: string);
       procedure SetSelectedTable(table: string);
       procedure ProcessClientSQL(command: String; parameter: String);
+      procedure SaveListSetup( List: TVirtualStringTree );
+      procedure RestoreListSetup( List: TVirtualStringTree );
+      procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
 
     public
       TemporaryDatabase          : String;
@@ -891,28 +890,6 @@ var
   menuitem    : Tmenuitem;
   reg         : TRegistry;
 
-  {**
-    Sub-procedure: Restore width of list-columns from registry
-  }
-  procedure RestoreColumnWidths( List: TVirtualStringTree );
-  var
-    i : Byte;
-    colwidth : Integer;
-    colwidths : TStringList;
-  begin
-    if not reg.ValueExists( REGPREFIX_COLWIDTHS + List.Name ) then
-      exit;
-    colwidths := Explode( ',', reg.ReadString( REGPREFIX_COLWIDTHS + List.Name ) );
-    for i := 0 to colwidths.Count - 1 do
-    begin
-      colwidth := MakeInt(colwidths[i]);
-      // Check if column number exists and width is at least 1 pixel
-      if (List.Header.Columns.Count > i) and (colwidth > 0) then
-        List.Header.Columns[i].Width := colwidth;
-    end;
-    FreeAndNil(colwidths);
-  end;
-
 begin
   reg := TRegistry.Create;
   if reg.OpenKey( REGPATH, true ) then
@@ -1035,11 +1012,11 @@ begin
       prefRememberFilters := True;
 
     // Restore width of columns of all VirtualTrees
-    RestoreColumnWidths(ListVariables);
-    RestoreColumnWidths(ListProcesses);
-    RestoreColumnWidths(ListCommandStats);
-    RestoreColumnWidths(ListTables);
-    RestoreColumnWidths(ListColumns);
+    RestoreListSetup(ListVariables);
+    RestoreListSetup(ListProcesses);
+    RestoreListSetup(ListCommandStats);
+    RestoreListSetup(ListTables);
+    RestoreListSetup(ListColumns);
 
     // Open server-specific registry-folder.
     // relative from already opened folder!
@@ -1050,6 +1027,20 @@ begin
   end;
   reg.CloseKey;
   reg.Free;
+
+  // Generate menuitems for popupDbGridHeader (column selection for ListTables)
+  popupDBGridHeader.Items.Clear;
+  for i:=0 to ListTables.Header.Columns.Count-1 do
+  begin
+    menuitem := TMenuItem.Create( popupDBGridHeader );
+    menuitem.Caption := ListTables.Header.Columns[i].Text;
+    menuitem.OnClick := MenuTablelistColumnsClick;
+    // Disable hiding first column
+    menuitem.Enabled := i>0;
+    menuitem.Checked := coVisible in ListTables.Header.Columns[i].Options;
+    popupDbGridHeader.Items.Add( menuitem );
+  end;
+
 end;
 
 
@@ -1057,25 +1048,6 @@ procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ws    : String;
   reg   : TRegistry;
-
-  {**
-    Sub-procedure: Save width of list-columns to registry
-  }
-  procedure SaveColumnWidths( List: TVirtualStringTree );
-  var
-    i     : Byte;
-    colwidths : String;
-  begin
-    colwidths := '';
-    for i := 0 to List.Header.Columns.Count - 1 do
-    begin
-      if colwidths <> '' then
-        colwidths := colwidths + ',';
-      colwidths := colwidths + IntToStr(List.Header.Columns[i].Width);
-    end;
-    reg.WriteString( REGPREFIX_COLWIDTHS + List.Name, colwidths );
-  end;
-
 begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
@@ -1115,11 +1087,11 @@ begin
       WriteInteger( 'sqloutheight', PageControlBottom.Height );
 
       // Save width of probably resized columns of all VirtualTrees
-      SaveColumnWidths(ListVariables);
-      SaveColumnWidths(ListProcesses);
-      SaveColumnWidths(ListCommandStats);
-      SaveColumnWidths(ListTables);
-      SaveColumnWidths(ListColumns);
+      SaveListSetup(ListVariables);
+      SaveListSetup(ListProcesses);
+      SaveListSetup(ListCommandStats);
+      SaveListSetup(ListTables);
+      SaveListSetup(ListColumns);
 
       // Open server-specific registry-folder.
       // relative from already opened folder!
@@ -2024,9 +1996,6 @@ begin
 
     ListTables.BeginUpdate;
     ListTables.Clear;
-
-    // (Un)hides (un)selected column names in list
-    SetupListTablesHeader;
 
     SetLength(VTRowDataListTables, ds.RecordCount);
     for i := 1 to ds.RecordCount do
@@ -6155,77 +6124,19 @@ end;
 procedure TMDIChild.MenuTablelistColumnsClick(Sender: TObject);
 var
   menuitem : TMenuItem;
-  reg : TRegistry;
-begin
-  menuitem := (Sender as TMenuItem);
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH, true );
-  if ListTablesColumnNames.IndexOf( menuitem.Caption ) > -1 then
-    ListTablesColumnNames.Delete( ListTablesColumnNames.IndexOf( menuitem.Caption ) )
-  else
-    ListTablesColumnNames.Add( menuitem.Caption );
-  // Store list of columns in registry
-  reg.WriteString( REGNAME_LISTTABLESCOLUMNNAMES, ListTablesColumnNames.DelimitedText );
-  SetupListTablesHeader;
-end;
-
-
-{**
-  (Un)hides (un)selected columns in ListTables
-}
-procedure TMDIChild.SetupListTablesHeader;
-var
-  reg : TRegistry;
+  VisibleColumns : TStringList;
   i : Integer;
-  menuitem : TMenuItem;
 begin
-  if ListTablesColumnNames = nil then
+  VisibleColumns := TStringList.Create;
+  menuitem := TMenuItem( Sender );
+  menuitem.Checked := not menuitem.Checked;
+  for i := 0 to ListTables.Header.Columns.Count - 1 do
   begin
-    // First time we read the columns list from registry into this global variable
-    ListTablesColumnNames := TStringList.Create;
-
-    reg := TRegistry.Create;
-    reg.openkey( REGPATH, true );
-    if reg.ValueExists( REGNAME_LISTTABLESCOLUMNNAMES ) then
-    begin
-      ListTablesColumnNames.DelimitedText := reg.ReadString( REGNAME_LISTTABLESCOLUMNNAMES );
-      // Ensure first column (Table) is always visible
-      if ListTablesColumnNames.IndexOf(ListTables.Header.Columns[0].Text) = -1 then
-        ListTablesColumnNames.Add( ListTables.Header.Columns[0].Text );
-    end
-    else begin
-      // If not set, by default make the first 7 columns visible
-      for i:=0 to ListTables.Header.Columns.Count-1 do
-      begin
-        ListTablesColumnNames.Add(ListTables.Header.Columns[i].Text);
-        if i >= 6 then
-          break;
-      end;
-    end;
-    reg.Free;
+    menuitem := popupDbGridHeader.Items[i];
+    if menuitem.Checked then
+      VisibleColumns.Add(IntToStr(i));
   end;
-
-  // All columns in ListTables are created at designtime. Only (un)hide them here
-  // Plus generate menuitems for popupDBgridColumns
-  popupDBGridHeader.Items.Clear;
-  for i:=0 to ListTables.Header.Columns.Count-1 do
-  begin
-    menuitem := TMenuItem.Create( popupDBGridHeader );
-    menuitem.Caption := ListTables.Header.Columns[i].Text;
-    menuitem.OnClick := MenuTablelistColumnsClick;
-    // Disable hiding first column
-    menuitem.Enabled := i>0;
-    popupDbGridHeader.Items.Add( menuitem );
-    if (i=0) or (ListTablesColumnNames.IndexOf( ListTables.Header.Columns[i].Text ) > -1) then
-    begin
-      ListTables.Header.Columns[i].Options := ListTables.Header.Columns[i].Options + [coVisible];
-      menuitem.Checked := True;
-    end
-    else begin
-      ListTables.Header.Columns[i].Options := ListTables.Header.Columns[i].Options - [coVisible];
-      menuitem.Checked := False;
-    end;
-  end;
+  SetVisibleListColumns( ListTables, VisibleColumns );
 end;
 
 
@@ -6351,6 +6262,98 @@ begin
     LogSQL( parameter, True );
     if ( StopOnErrors ) then
       raise Exception.Create( parameter );
+  end;
+end;
+
+
+{**
+  Save setup of a VirtualStringTree to registry
+}
+procedure TMDIChild.SaveListSetup( List: TVirtualStringTree );
+var
+  i : Byte;
+  ColWidths, ColsVisible : String;
+  reg   : TRegistry;
+begin
+  reg := TRegistry.Create;
+  reg.OpenKey( REGPATH, true );
+
+  ColWidths := '';
+  ColsVisible := '';
+  for i := 0 to List.Header.Columns.Count - 1 do
+  begin
+    // Column widths
+    if ColWidths <> '' then
+      ColWidths := ColWidths + ',';
+    ColWidths := ColWidths + IntToStr(List.Header.Columns[i].Width);
+
+    // Column visibility
+    if coVisible in List.Header.Columns[i].Options then
+    begin
+      if ColsVisible <> '' then
+        ColsVisible := ColsVisible + ',';
+      ColsVisible := ColsVisible + IntToStr(i);
+    end;
+
+  end;
+  reg.WriteString( REGPREFIX_COLWIDTHS + List.Name, ColWidths );
+  reg.WriteString( REGPREFIX_COLSVISIBLE + List.Name, ColsVisible );
+
+end;
+
+
+{**
+  Restore setup of VirtualStringTree from registry
+}
+procedure TMDIChild.RestoreListSetup( List: TVirtualStringTree );
+var
+  i : Byte;
+  colwidth : Integer;
+  ValueList : TStringList;
+  reg : TRegistry;
+begin
+  reg := TRegistry.Create;
+  reg.OpenKey( REGPATH, true );
+  ValueList := TStringList.Create;
+
+  // Column widths
+  if reg.ValueExists( REGPREFIX_COLWIDTHS + List.Name ) then
+  begin
+    ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLWIDTHS + List.Name ) );
+    for i := 0 to ValueList.Count - 1 do
+    begin
+      colwidth := MakeInt(ValueList[i]);
+      // Check if column number exists and width is at least 1 pixel
+      if (List.Header.Columns.Count > i) and (colwidth > 0) then
+        List.Header.Columns[i].Width := colwidth;
+    end;
+  end;
+
+  // Column visibility
+  if reg.ValueExists( REGPREFIX_COLSVISIBLE + List.Name ) then
+  begin
+    ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLSVISIBLE + List.Name ) );
+    SetVisibleListColumns( List, ValueList );
+  end;
+
+  reg.Free;
+  ValueList.Free;
+end;
+
+
+{**
+  (Un)hide columns in a VirtualStringTree.
+}
+procedure TMDIChild.SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
+var
+  i : Integer;
+begin
+  for i := 0 to List.Header.Columns.Count - 1 do
+  begin
+    if Columns.IndexOf( IntToStr(i) ) > -1 then
+      List.Header.Columns[i].Options := List.Header.Columns[i].Options + [coVisible]
+    else
+      List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
   end;
 end;
 
