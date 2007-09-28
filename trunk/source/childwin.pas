@@ -1974,6 +1974,7 @@ begin
   SynSQLSyn1.TableNames.BeginUpdate;
   cur := '';
   if ActiveDatabase = tndb.Text then cur := SelectedTable;
+  dbtree.Items.BeginUpdate;
   if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
     if tndb.Item[u].Selected then tndb.Selected := true;
     tndb.Item[u].delete;
@@ -1993,6 +1994,7 @@ begin
     if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
     ds.Next;
   end;
+  dbtree.Items.EndUpdate;
   SynSQLSyn1.TableNames.EndUpdate;
 end;
 
