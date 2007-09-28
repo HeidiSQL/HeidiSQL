@@ -1970,9 +1970,6 @@ begin
     else Exit;
   end;
 
-  // Do nothing if node already populated with children.
-  if (not ForceRefresh) and (tndb.Count > 0) and (tndb[0].Text <> DUMMY_NODE_TEXT) then Exit;
-
   // Clear children and populate tree with table names.
   SynSQLSyn1.TableNames.BeginUpdate;
   cur := '';
@@ -2004,6 +2001,7 @@ procedure TMDIChild.MenuRefreshClick(Sender: TObject);
 begin
   RefreshActiveDbTableList;
   LoadDatabaseProperties(ActiveDatabase);
+  PopulateTreeTableList;
 end;
 
 
