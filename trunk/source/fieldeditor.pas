@@ -76,7 +76,7 @@ type
     procedure CheckBoxFulltextClick(Sender: TObject);
     procedure btnAddAllColumnsToIndexClick(Sender: TObject);
     procedure btnDeleteAllColumnsFromIndexClick(Sender: TObject);
-    procedure togglebuttons(Sender: TObject);
+    procedure listClick(Sender: TObject);
   private
     { Private declarations }
     TempKeys : TStringList;
@@ -581,7 +581,7 @@ begin
       listColumnsAvailable.Enabled := true;
     end;
   end;
-  togglebuttons(self);
+  ValidateControls;
 end;
 
 
@@ -660,8 +660,6 @@ begin
   ButtonDelete.Enabled := false;
   listColumnsUsed.Enabled := false;
   listColumnsAvailable.Enabled := false;
-  btnAddColumnToIndex.Enabled := false;
-  btnDeleteColumnFromIndex.Enabled := false;
   for i:=0 to length(klist)-1 do
   begin
     if (klist[i].Unique) and (klist[i].Name <> 'PRIMARY') then
@@ -884,7 +882,7 @@ begin
     // Highlight previous item to added one.
     listColumnsAvailable.ItemIndex := Min(Max(idx - 1, 0), listColumnsAvailable.Items.Count - 1);
   end;
-  togglebuttons(self);
+  ValidateControls;
 end;
 
 
@@ -898,7 +896,7 @@ begin
   klist[ComboBoxKeys.ItemIndex].Columns.AddStrings(listColumnsAvailable.Items);
   listColumnsAvailable.Items.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
-  togglebuttons(self);
+  ValidateControls;
 end;
 
 
@@ -921,7 +919,7 @@ begin
     // Highlight previous item to removed one.
     listColumnsUsed.ItemIndex := Min(Max(idx - 1, 0), listColumnsUsed.Items.Count - 1);
   end;
-  togglebuttons(self);
+  ValidateControls;
 end;
 
 
@@ -935,20 +933,6 @@ begin
   klist[ComboBoxKeys.ItemIndex].Modified := true;
   listColumnsAvailable.Items.AddStrings(listColumnsUsed.Items);
   listColumnsUsed.Items.Clear;
-  togglebuttons(self);
-end;
-
-
-
-{***
-  Toggle enabled-status of Add- and Delete-Column-From-Index-buttons
-}
-procedure TFieldEditForm.togglebuttons(Sender: TObject);
-begin
-  btnAddColumnToIndex.Enabled := (listColumnsAvailable.ItemIndex > -1);
-  btnDeleteColumnFromIndex.Enabled := (listColumnsUsed.ItemIndex > -1);
-  btnAddAllColumnsToIndex.Enabled := (listColumnsAvailable.Items.Count > 0);
-  btnDeleteAllColumnsFromIndex.Enabled := (listColumnsUsed.Items.Count > 0);
   ValidateControls;
 end;
 
@@ -968,6 +952,8 @@ end;
   Ensure correct state of various controls
 }
 procedure TFieldEditForm.ValidateControls;
+var
+  KeySelected : Boolean;
 begin
   ButtonOK.Enabled := true;
 
@@ -986,13 +972,30 @@ begin
     femIndexEditor:
     begin
       ButtonOK.Caption := 'Update Indexes';
+      KeySelected := ComboBoxKeys.ItemIndex > -1;
       // Disable the button if a key was selected and no columns are listed on the left
-      ButtonOK.Enabled := (ComboBoxKeys.ItemIndex = -1) or (listColumnsUsed.Items.Count > 0);
+      ButtonOK.Enabled := KeySelected and (listColumnsUsed.Items.Count > 0);
+      // Buttons to add or remove columns, only enabled if key was selected and the
+      // relevant list has items left
+      btnAddColumnToIndex.Enabled := KeySelected and (listColumnsAvailable.ItemIndex > -1);
+      btnAddAllColumnsToIndex.Enabled := KeySelected and (listColumnsAvailable.Items.Count > 0);
+      btnDeleteColumnFromIndex.Enabled := KeySelected and (listColumnsUsed.ItemIndex > -1);
+      btnDeleteAllColumnsFromIndex.Enabled := KeySelected and (listColumnsUsed.Items.Count > 0);
     end;
 
   end;
   Caption := Mainform.ChildWin.Description + ' - ' + ButtonOK.Caption;
 end;
+
+
+{**
+  Call ValidateControls if user selects an item in one of the lists
+}
+procedure TFieldEditForm.listClick(Sender: TObject);
+begin
+  ValidateControls;
+end;
+
 
 end.
 
