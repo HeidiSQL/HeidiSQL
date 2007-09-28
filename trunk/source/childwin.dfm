@@ -439,71 +439,71 @@ object MDIChild: TMDIChild
                 WideText = 'Comment'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 7
                 WideText = 'Version'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 8
                 Width = 70
                 WideText = 'Row format'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 9
                 Width = 70
                 WideText = 'Avg row length'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 10
                 Width = 70
                 WideText = 'Max data length'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 11
                 Width = 70
                 WideText = 'Index length'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 12
                 Width = 70
                 WideText = 'Data free'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 13
                 Width = 90
                 WideText = 'Auto increment'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 14
                 Width = 120
                 WideText = 'Check time'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 15
                 Width = 70
                 WideText = 'Collation'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 16
                 Width = 70
                 WideText = 'Checksum'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
+                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 17
                 Width = 70
                 WideText = 'Create options'
@@ -2266,15 +2266,6 @@ object MDIChild: TMDIChild
     AutoLineReduction = maManual
     Left = 72
     Top = 80
-    object DefaultColumnLayout1: TMenuItem
-      Tag = 1
-      Caption = 'Default columns'
-      Checked = True
-      OnClick = MenuTablelistColumnsClick
-    end
-    object N20: TMenuItem
-      Caption = '-'
-    end
   end
   object SynCompletionProposal1: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
