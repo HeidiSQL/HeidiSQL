@@ -334,7 +334,6 @@ type
     procedure btnQuerySaveSnippetClick(Sender: TObject);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
-    procedure btnDbPropertiesClick(Sender: TObject);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
       var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
@@ -1942,6 +1941,10 @@ begin
     else Exit;
   end;
 
+  // Postpone change event handling in tree
+  DBtree.OnChange := nil;
+  DBtree.OnChanging := nil;
+
   // Clear children and populate tree with table names.
   SynSQLSyn1.TableNames.BeginUpdate;
   cur := '';
@@ -1966,6 +1969,11 @@ begin
     if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
     ds.Next;
   end;
+
+  // Restore change event handlers
+  DBtree.OnChange := DBtreeChange;
+  DBtree.OnChanging := DBtreeChanging;
+
   dbtree.Items.EndUpdate;
   SynSQLSyn1.TableNames.EndUpdate;
 end;
@@ -2430,6 +2438,7 @@ begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
     PopulateTreeTableList;
     SelectedTable := NodeData.Captions[0];
+    ShowTable(SelectedTable);
     ShowTableData(SelectedTable);
   end;
 end;
@@ -3840,20 +3849,6 @@ begin
     DBMemo1.Scrollbars := ssVertical
   else
     DBMemo1.Scrollbars := ssBoth;
-end;
-
-
-procedure TMDIChild.btnDbPropertiesClick(Sender: TObject);
-var
-  NodeData : PVTreeData;
-begin
-  if Assigned(ListTables.FocusedNode) then
-  begin
-    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    PopulateTreeTableList;
-    SelectedTable := NodeData.Captions[0];
-    ShowTableProperties(SelectedTable);
-  end;
 end;
 
 procedure TMDIChild.btnDbViewDataClick(Sender: TObject);
@@ -5502,7 +5497,14 @@ procedure TMDIChild.SetSelectedTable(table: string);
 var
   allnodes: TTreeNodes;
   i: integer;
+  procedure RestoreTreeEvents;
+  begin
+    DBtree.OnChange := DBTreeChange;
+    DBtree.OnChanging := DBTreeChanging;
+  end;
 begin
+  DBtree.OnChange := nil;
+  DBtree.OnChanging := nil;
   allnodes := DBTree.Items;
   if allnodes.Count > 0 then begin
     // Round 1: Search case-sensitive.
@@ -5510,6 +5512,7 @@ begin
     for i := 0 to allnodes.Count - 1 do begin
       if (allnodes[i].Level = 2) and (allnodes[i].Text = table) then begin
         allnodes[i].Selected := true;
+        RestoreTreeEvents;
         exit;
       end;
     end;
@@ -5518,10 +5521,12 @@ begin
     for i := 0 to allnodes.Count - 1 do begin
       if (allnodes[i].Level = 2) and (AnsiCompareText(allnodes[i].Text, table) = 0) then begin
         allnodes[i].Selected := true;
+        RestoreTreeEvents;
         exit;
       end;
     end;
   end;
+  RestoreTreeEvents;
   raise Exception.Create('Node ' + table + ' not found in tree.');
 end;
 

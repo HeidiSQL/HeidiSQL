@@ -529,7 +529,7 @@ object MDIChild: TMDIChild
                 Enabled = False
                 ImageIndex = 9
                 Wrap = True
-                OnClick = btnDbPropertiesClick
+                OnClick = ListTablesDblClick
               end
               object btnDbEmptyTable: TToolButton
                 Left = 0
