@@ -84,7 +84,7 @@ type
     CopyasCSVData1: TMenuItem;
     N9: TMenuItem;
     LabelResultinfo: TLabel;
-    MenuAdvancedProperties: TMenuItem;
+    menuAlterTable: TMenuItem;
     N10: TMenuItem;
     MenuRenameTable: TMenuItem;
     MenuViewBlob: TMenuItem;
@@ -368,7 +368,7 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure UpdateField(Sender: TObject);
-    procedure MenuAdvancedPropertiesClick(Sender: TObject);
+    procedure menuAlterTableClick(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
     procedure MenuRenameTableClick(Sender: TObject);
@@ -2333,7 +2333,7 @@ begin
   menuviewdata.Enabled := tableSelected;
   btnDbEmptyTable.Enabled := tableSelected;
   menuemptytable.Enabled := tableSelected;
-  MenuAdvancedProperties.Enabled := tableSelected;
+  menuAlterTable.Enabled := tableSelected;
   MenuRenameTable.Enabled := tableSelected;
   Mainform.CopyTable.Enabled := tableSelected;
   MenuOptimize.Enabled := tableSelected;
@@ -3306,7 +3306,7 @@ begin
 end;
 
 
-procedure TMDIChild.MenuAdvancedPropertiesClick(Sender: TObject);
+procedure TMDIChild.menuAlterTableClick(Sender: TObject);
 begin
   if TablePropertiesForm = nil then
     TablePropertiesForm := Ttbl_properties_form.Create(Self);

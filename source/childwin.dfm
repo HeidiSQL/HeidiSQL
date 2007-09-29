@@ -1649,10 +1649,10 @@ object MDIChild: TMDIChild
       ImageIndex = 9
       OnClick = ListTablesDblClick
     end
-    object MenuAdvancedProperties: TMenuItem
-      Caption = 'Advanced Properties'
+    object menuAlterTable: TMenuItem
+      Caption = 'Alter table ...'
       Enabled = False
-      OnClick = MenuAdvancedPropertiesClick
+      OnClick = menuAlterTableClick
     end
     object menuviewdata: TMenuItem
       Caption = 'View Data'
