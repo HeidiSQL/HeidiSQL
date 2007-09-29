@@ -131,6 +131,8 @@ end;
 procedure TCreateTableForm.FormCreate(Sender: TObject);
 var
   charset : String;
+  dsEngines : TDataSet;
+  engineSupport : String;
 begin
   try
     dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
@@ -160,6 +162,26 @@ begin
 
   comboCollation.Enabled := dsCollations <> nil;
   lblCollation.Enabled := comboCollation.Enabled;
+
+  dsEngines := Mainform.Childwin.ExecSelectQuery('SHOW ENGINES', True);
+  if dsEngines <> nil then
+  begin
+    ComboboxTableType.Style := csDropDownList; // No editing needed
+    ComboboxTableType.Items.BeginUpdate;
+    ComboboxTableType.Items.Clear;
+    while not dsEngines.Eof do
+    begin
+      engineSupport := LowerCase(dsEngines.FieldByName('Support').AsString);
+      if engineSupport <> 'no' then
+      begin
+        ComboboxTableType.Items.Add(dsEngines.FieldByName('Engine').AsString);
+        if engineSupport = 'default' then
+          ComboboxTableType.ItemIndex := ComboboxTableType.Items.Count-1;
+      end;
+      dsEngines.Next;
+    end;
+    ComboboxTableType.Items.EndUpdate;
+  end;
 end;
 
 
