@@ -519,7 +519,7 @@ object MDIChild: TMDIChild
                 Enabled = False
                 ImageIndex = 8
                 Wrap = True
-                OnClick = btnDbViewDataClick
+                OnClick = MenuViewDataClick
               end
               object btnDbProperties: TToolButton
                 Left = 0
