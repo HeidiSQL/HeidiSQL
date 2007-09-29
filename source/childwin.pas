@@ -6272,7 +6272,7 @@ end;
 procedure TMDIChild.SaveListSetup( List: TVirtualStringTree );
 var
   i : Byte;
-  ColWidths, ColsVisible : String;
+  ColWidths, ColsVisible, ColPos : String;
   reg   : TRegistry;
 begin
   reg := TRegistry.Create;
@@ -6280,6 +6280,7 @@ begin
 
   ColWidths := '';
   ColsVisible := '';
+  ColPos := '';
   for i := 0 to List.Header.Columns.Count - 1 do
   begin
     // Column widths
@@ -6295,9 +6296,15 @@ begin
       ColsVisible := ColsVisible + IntToStr(i);
     end;
 
+    // Column position
+    if ColPos <> '' then
+      ColPos := ColPos + ',';
+    ColPos := ColPos + IntToStr(List.Header.Columns[i].Position);
+
   end;
   reg.WriteString( REGPREFIX_COLWIDTHS + List.Name, ColWidths );
   reg.WriteString( REGPREFIX_COLSVISIBLE + List.Name, ColsVisible );
+  reg.WriteString( REGPREFIX_COLPOS + List.Name, ColPos );
 
 end;
 
@@ -6308,7 +6315,7 @@ end;
 procedure TMDIChild.RestoreListSetup( List: TVirtualStringTree );
 var
   i : Byte;
-  colwidth : Integer;
+  colwidth, colpos : Integer;
   ValueList : TStringList;
   reg : TRegistry;
 begin
@@ -6334,6 +6341,19 @@ begin
   begin
     ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLSVISIBLE + List.Name ) );
     SetVisibleListColumns( List, ValueList );
+  end;
+
+  // Column position
+  if reg.ValueExists( REGPREFIX_COLPOS + List.Name ) then
+  begin
+    ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLPOS + List.Name ) );
+    for i := 0 to ValueList.Count - 1 do
+    begin
+      colpos := MakeInt(ValueList[i]);
+      // Check if column number exists
+      if List.Header.Columns.Count > i then
+        List.Header.Columns[i].Position := colpos;
+    end;
   end;
 
   reg.Free;
