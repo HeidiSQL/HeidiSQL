@@ -312,7 +312,6 @@ type
     procedure tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
       var AllowChange: Boolean);
     procedure btnTableViewDataClick(Sender: TObject);
-    procedure btnDbViewDataClick(Sender: TObject);
     procedure btnDataClick(Sender: TObject);
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
@@ -3849,16 +3848,6 @@ begin
     DBMemo1.Scrollbars := ssVertical
   else
     DBMemo1.Scrollbars := ssBoth;
-end;
-
-procedure TMDIChild.btnDbViewDataClick(Sender: TObject);
-var
-  NodeData : PVTreeData;
-begin
-  NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-  PopulateTreeTableList;
-  SelectedTable := NodeData.Captions[0];
-  ShowTableData(SelectedTable);
 end;
 
 procedure TMDIChild.PageControlBlobEditorsChange(Sender: TObject);
