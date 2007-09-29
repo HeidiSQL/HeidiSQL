@@ -567,15 +567,6 @@ object MDIChild: TMDIChild
               ShowHint = True
               TabOrder = 0
               Transparent = True
-              object btnDbInsertRecord: TToolButton
-                Left = 0
-                Top = 0
-                Hint = 'Insert Record...|Insert new Record into Table...'
-                Caption = 'Insert Record'
-                Enabled = False
-                ImageIndex = 32
-                OnClick = InsertRecord
-              end
             end
           end
         end
@@ -687,15 +678,6 @@ object MDIChild: TMDIChild
               TabOrder = 1
               Transparent = True
               Wrapable = False
-              object btnTableInsertRecord: TToolButton
-                Left = 0
-                Top = 0
-                Hint = 'Insert Record...|Insert new Record into Table...'
-                Caption = 'btnTableInsertRecord'
-                ImageIndex = 32
-                Wrap = True
-                OnClick = InsertRecord
-              end
             end
           end
           object ListColumns: TVirtualStringTree
@@ -1678,13 +1660,6 @@ object MDIChild: TMDIChild
       ImageIndex = 8
       OnClick = MenuViewDataClick
     end
-    object menuinsert: TMenuItem
-      Caption = 'Insert Record'
-      Enabled = False
-      ImageIndex = 32
-      ShortCut = 45
-      OnClick = InsertRecord
-    end
     object InsertfilesintoBLOBfields1: TMenuItem
       Action = MainForm.InsertFiles
     end
@@ -1878,12 +1853,6 @@ object MDIChild: TMDIChild
     end
     object N3: TMenuItem
       Caption = '-'
-    end
-    object Insertrecord2: TMenuItem
-      Caption = 'Insert record...'
-      ImageIndex = 32
-      ShortCut = 45
-      OnClick = InsertRecord
     end
     object InsertfilesintoBLOBfields2: TMenuItem
       Action = MainForm.InsertFiles

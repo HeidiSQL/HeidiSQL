@@ -44,7 +44,6 @@ type
     popupDbGrid: TPopupMenu;
     menuviewdata: TMenuItem;
     menuproperties: TMenuItem;
-    menuinsert: TMenuItem;
     menudroptable: TMenuItem;
     menuemptytable: TMenuItem;
     tabHost: TTabSheet;
@@ -78,7 +77,6 @@ type
     PopupmenuDropDatabase: TMenuItem;
     popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
-    Insertrecord2: TMenuItem;
     MenuAddField: TMenuItem;
     MenuEditField: TMenuItem;
     popupResultGrid: TPopupMenu;
@@ -278,7 +276,6 @@ type
     PopupMenuCreateTable: TMenuItem;
     pnlDatabaseToolbar: TPanel;
     tlbDataLeft2: TToolBar;
-    btnDbInsertRecord: TToolButton;
     tlbDataLeft1: TToolBar;
     btnDbViewData: TToolButton;
     btnDbProperties: TToolButton;
@@ -292,7 +289,6 @@ type
     btnTableDropField: TToolButton;
     btnTableManageIndexes: TToolButton;
     tlbTableLeft2: TToolBar;
-    btnTableInsertRecord: TToolButton;
     menuSQLhelp: TMenuItem;
     N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
@@ -404,7 +400,6 @@ type
     procedure ClearFilter(Sender: TObject);
     procedure LoadSQLWhereFile(Sender: TObject);
     procedure DropFilter1Click(Sender: TObject);
-    procedure InsertRecord(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
     procedure gridDataColumnMoved(Sender: TObject; FromIndex,
@@ -2334,8 +2329,6 @@ begin
   tableSelected := (Length(ListTables.GetSortedSelection(False))>0) and FrmIsFocussed;
   btnDbProperties.Enabled := tableSelected;
   menuproperties.Enabled := tableSelected;
-  btnDbInsertRecord.Enabled := tableSelected;
-  menuinsert.Enabled := tableSelected;
   btnDbViewData.Enabled := tableSelected;
   menuviewdata.Enabled := tableSelected;
   btnDbEmptyTable.Enabled := tableSelected;
@@ -4109,13 +4102,6 @@ begin
   // Drop Filter
   ClearFilter(Self);
   viewdata(self);
-end;
-
-
-procedure TMDIChild.InsertRecord(Sender: TObject);
-begin
-  viewdata(self);
-  GetVisualDataset().Insert;
 end;
 
 
