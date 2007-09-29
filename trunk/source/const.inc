@@ -42,6 +42,7 @@ const
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
+  REGPREFIX_COLPOS = 'ColPositions_';
 
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function

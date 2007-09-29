@@ -144,13 +144,11 @@ object MDIChild: TMDIChild
                 OnInitNode = vstInitNode
                 Columns = <
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 0
                     Width = 160
                     WideText = 'Variable'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 1
                     Width = 328
                     WideText = 'Value'
@@ -195,47 +193,39 @@ object MDIChild: TMDIChild
                 Columns = <
                   item
                     Alignment = taRightJustify
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 0
                     Width = 70
                     WideText = 'id'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 1
                     Width = 80
                     WideText = 'User'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 2
                     Width = 80
                     WideText = 'Host'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 3
                     Width = 80
                     WideText = 'DB'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 4
                     Width = 80
                     WideText = 'Command'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 5
                     WideText = 'Time'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 6
                     WideText = 'State'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 7
                     Width = 10
                     WideText = 'Info'
@@ -279,34 +269,29 @@ object MDIChild: TMDIChild
                 OnInitNode = vstInitNode
                 Columns = <
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 0
                     Width = 120
                     WideText = 'Command-type'
                   end
                   item
                     Alignment = taRightJustify
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 1
                     Width = 100
                     WideText = 'Total count'
                   end
                   item
                     Alignment = taRightJustify
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 2
                     Width = 100
                     WideText = 'Average per hour'
                   end
                   item
                     Alignment = taRightJustify
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 3
                     Width = 100
                     WideText = 'Average per second'
                   end
                   item
-                    Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                     Position = 4
                     Width = 68
                     WideText = 'Percentage'
@@ -371,7 +356,7 @@ object MDIChild: TMDIChild
             Header.Font.Name = 'Tahoma'
             Header.Font.Style = []
             Header.Height = 20
-            Header.Options = [hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Header.PopupMenu = popupDbGridHeader
             Header.SortColumn = 0
             Images = MainForm.ImageList1
@@ -395,115 +380,108 @@ object MDIChild: TMDIChild
             OnNewText = ListTablesNewText
             Columns = <
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 0
                 Width = 120
                 WideText = 'Table'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 1
                 Width = 70
                 WideText = 'Records'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 2
                 Width = 70
                 WideText = 'Size'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 3
                 Width = 120
                 WideText = 'Created'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 4
                 Width = 120
                 WideText = 'Updated'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 5
                 Width = 70
                 WideText = 'Type'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 6
                 Width = 100
                 WideText = 'Comment'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 7
                 WideText = 'Version'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 8
                 Width = 70
                 WideText = 'Row format'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 9
                 Width = 70
                 WideText = 'Avg row length'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 10
                 Width = 70
                 WideText = 'Max data length'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 11
                 Width = 70
                 WideText = 'Index length'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 12
                 Width = 70
                 WideText = 'Data free'
               end
               item
                 Alignment = taRightJustify
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 13
                 Width = 90
                 WideText = 'Auto increment'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 14
                 Width = 120
                 WideText = 'Check time'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 15
                 Width = 70
                 WideText = 'Collation'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 16
                 Width = 70
                 WideText = 'Checksum'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 17
                 Width = 70
                 WideText = 'Create options'
@@ -734,7 +712,7 @@ object MDIChild: TMDIChild
             Header.Font.Name = 'Tahoma'
             Header.Font.Style = []
             Header.Height = 20
-            Header.Options = [hoColumnResize, hoDblClickResize, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Images = MainForm.ImageList1
             IncrementalSearch = isInitializedOnly
             PopupMenu = popupTableGrid
@@ -756,37 +734,31 @@ object MDIChild: TMDIChild
             OnNewText = ListColumnsNewText
             Columns = <
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 0
                 Width = 120
                 WideText = 'Name'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 1
                 Width = 120
                 WideText = 'Type'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 2
                 Width = 40
                 WideText = 'Null'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 3
                 Width = 115
                 WideText = 'Default'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 4
                 Width = 80
                 WideText = 'Extra'
               end
               item
-                Options = [coAllowClick, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible]
                 Position = 5
                 Width = 120
                 WideText = 'Comment'
