@@ -4113,39 +4113,37 @@ end;
 
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
 var
-  NotInFilterMemo,
+  InQueryMemo,
   somechars         : Boolean;
   ActiveSynMemo     : TSynMemo;
 begin
+  // Check on which memo the menu was popped up 
+  ActiveSynMemo := TSynMemo( TPopupMenu(Sender).PopupComponent );
+
   // Depending which SynMemo is focused, (de-)activate some menuitems
   // The popupQuery is used in both Filter- and Query-Memo
-  NotInFilterMemo := Not SynMemoFilter.Focused;
+  InQueryMemo := ActiveSynMemo = SynMemoQuery;
 
-  if NotInFilterMemo then
-    ActiveSynMemo := SynMemoQuery
-  else
-    ActiveSynMemo := SynMemoFilter;
+  // Sets cursor into memo and activates TAction(s) like paste
+  ActiveSynMemo.SetFocus;
 
-  MenuSetFilter.Visible := Not NotInFilterMemo;
+  MenuSetFilter.Visible := Not InQueryMemo;
 
-  MenuRun.Visible := NotInFilterMemo;
-  MenuRunSelection.Visible := NotInFilterMemo;
-  MenuRunLine.Visible := NotInFilterMemo;
+  MenuRun.Visible := InQueryMemo;
+  MenuRunSelection.Visible := InQueryMemo;
+  MenuRunLine.Visible := InQueryMemo;
 
-  MenuCopy.Visible := NotInFilterMemo;
-  MenuPaste.Visible := NotInFilterMemo;
+  MenuFind.Visible := InQueryMemo;
+  MenuReplace.Visible := InQueryMemo;
 
-  MenuFind.Visible := NotInFilterMemo;
-  MenuReplace.Visible := NotInFilterMemo;
+  MenuLoad.Visible := InQueryMemo;
+  MenuInsertFileAtCursor.Visible := InQueryMemo;
+  MenuSave.Visible := InQueryMemo;
+  MenuSaveSelectionToFile.Visible := InQueryMemo;
+  MenuSaveAsSnippet.Visible := InQueryMemo;
+  MenuSaveSelectionAsSnippet.Visible := InQueryMemo;
 
-  MenuLoad.Visible := NotInFilterMemo;
-  MenuInsertFileAtCursor.Visible := NotInFilterMemo;
-  MenuSave.Visible := NotInFilterMemo;
-  MenuSaveSelectionToFile.Visible := NotInFilterMemo;
-  MenuSaveAsSnippet.Visible := NotInFilterMemo;
-  MenuSaveSelectionAsSnippet.Visible := NotInFilterMemo;
-
-  if NotInFilterMemo then
+  if InQueryMemo then
   begin
     somechars := ActiveSynMemo.GetTextLen > 0;
     MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
