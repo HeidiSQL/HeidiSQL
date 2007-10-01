@@ -1266,6 +1266,7 @@ end;
 procedure TMDIChild.ShowDatabase(db: String);
 begin
   if (not DBTree.Dragging) and (
+   (PageControlMain.ActivePage = tabHost) or
    (PageControlMain.ActivePage = tabTable) or
    (PageControlMain.ActivePage = tabData)
   ) then PageControlMain.ActivePage := tabDatabase;
