@@ -296,6 +296,7 @@ type
     PanelQueryDelimiter: TPanel;
     LabelQueryDelimiter: TLabel;
     ComboBoxQueryDelimiter: TComboBox;
+    menuTreeAlterTable: TMenuItem;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -3307,10 +3308,31 @@ begin
 end;
 
 
+{**
+  "Alter table ..."
+  called by popupTreeView or popupDbGrid
+}
 procedure TMDIChild.menuAlterTableClick(Sender: TObject);
+var
+  NodeData: PVTreeData;
+  caller : TPopupMenu;
 begin
   if TablePropertiesForm = nil then
     TablePropertiesForm := Ttbl_properties_form.Create(Self);
+
+  TablePropertiesForm.DatabaseName := '';
+  caller := TPopupMenu( TMenuItem( Sender ).GetParentMenu );
+  if caller = popupTreeView then
+  begin
+    if DBRightClickSelectedItem.Parent.Text <> ActiveDatabase then
+      TablePropertiesForm.DatabaseName := DBRightClickSelectedItem.Parent.Text;
+    TablePropertiesForm.TableName := DBRightClickSelectedItem.Text;
+  end
+  else begin
+    NodeData := ListTables.GetNodeData( ListTables.FocusedNode );
+    TablePropertiesForm.TableName := NodeData.Captions[0];
+  end;
+
   TablePropertiesForm.ShowModal;
 end;
 
@@ -4379,6 +4401,7 @@ begin
     menuAlterDatabase.Hint := STR_NOTSUPPORTED
   else
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
+  menuTreeAlterTable.Enabled := DBtree.Selected.Level = 2;
   MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
   DBRightClickSelectedItem := DBtree.Selected;
 end;
