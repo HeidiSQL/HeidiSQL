@@ -252,7 +252,7 @@ object FieldEditForm: TFieldEditForm
         Enabled = False
         ItemHeight = 13
         TabOrder = 4
-        OnClick = togglebuttons
+        OnClick = listClick
         OnDblClick = RemoveField
       end
       object listColumnsAvailable: TListBox
@@ -264,7 +264,7 @@ object FieldEditForm: TFieldEditForm
         ItemHeight = 13
         Sorted = True
         TabOrder = 5
-        OnClick = togglebuttons
+        OnClick = listClick
         OnDblClick = AddField
       end
       object btnAddColumnToIndex: TBitBtn
