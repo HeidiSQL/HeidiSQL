@@ -342,6 +342,14 @@ begin
       E.Free;
     end;
   end;
+
+  // Select remote database with the same name as the source db if available
+  if comboOtherHostDatabase.Items.IndexOf( comboSelectDatabase.Text ) > -1 then
+    comboOtherHostDatabase.ItemIndex := comboOtherHostDatabase.Items.IndexOf( comboSelectDatabase.Text )
+  // Otherwise, select first database
+  else
+    comboOtherHostDatabase.ItemIndex := 0;
+
 end;
 
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
@@ -1405,10 +1413,9 @@ begin
     abort;
   end;
 
-  // Select first host and first database.
+  // Select first host and call change event
   comboOtherHost.ItemIndex := 0;
   comboOtherHost.OnSelect(comboOtherHost);
-  comboOtherHostDatabase.ItemIndex := 0;
 
   // De-select database structure to enable database dropdown box.
   cbxDatabase.Checked := false;
