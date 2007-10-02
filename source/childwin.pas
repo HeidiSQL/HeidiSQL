@@ -4121,6 +4121,13 @@ begin
   // Check on which memo the menu was popped up 
   ActiveSynMemo := TSynMemo( TPopupMenu(Sender).PopupComponent );
 
+  // When a shortcut from popupQuery is used, this procedure is
+  // also called, which then leads to PopupComponent being nil.
+  // However, this procedure only changes visible things in popupQuery,
+  // so we only need to run it if the popup is really displayed.
+  if ActiveSynMemo = nil then
+    Exit;
+
   // Depending which SynMemo is focused, (de-)activate some menuitems
   // The popupQuery is used in both Filter- and Query-Memo
   InQueryMemo := ActiveSynMemo = SynMemoQuery;
