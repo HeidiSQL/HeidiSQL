@@ -50,6 +50,9 @@ type
     currentCharset,
     currentCollation,
     currentAutoincrement : String;
+  public
+    DatabaseName,
+    TableName : String;
   end;
 
 implementation
@@ -127,25 +130,31 @@ end;
 }
 procedure Ttbl_properties_form.FormShow(Sender: TObject);
 var
-  NodeData: PVTreeData;
+  ds: TDataSet;
+  sql : String;
 begin
-  // Fetch properties from ListTables
-  NodeData := Mainform.Childwin.ListTables.GetNodeData(Mainform.Childwin.ListTables.FocusedNode);
+  // Fetch table properties
+  sql := 'SHOW TABLE STATUS ';
+  if DatabaseName <> '' then
+    sql := sql + ' FROM ' + Mainform.mask(DatabaseName)+' ';
+  sql := sql + 'LIKE '+esc(TableName);
+  ds := Mainform.Childwin.GetResults(sql);
 
   // Table name
-  currentName := NodeData.Captions[0];
+  currentName := ds.FieldByName('Name').AsString;
   editName.Text := currentName;
 
   // Comment
-  currentComment := NodeData.Captions[6];
+  currentComment := ds.FieldByName('Comment').AsString;
   editComment.Text := currentComment;
 
   // Engine
-  currentEngine := NodeData.Captions[5];
+  currentEngine := ds.Fields[1].AsString;
   comboEngine.ItemIndex := comboEngine.Items.IndexOf(currentEngine);
 
   // Collation
-  currentCollation := NodeData.Captions[15];
+  if ds.FindField('Collation') <> nil then
+    currentCollation := ds.FieldByName('Collation').AsString;
 
   // Character set
   currentCharset := '';
@@ -169,16 +178,20 @@ begin
   // Auto increment. Disabled if empty string.
   editAutoincrement.Text := '';
   editAutoincrement.Enabled := False;
-  if NodeData.Captions[13] <> '' then
+  if ds.FieldByName('Auto_increment').AsString <> '' then
   begin
-    currentAutoincrement := IntToStr(MakeInt(NodeData.Captions[13]));
+    currentAutoincrement := IntToStr(MakeInt(ds.FieldByName('Auto_increment').AsString));
     editAutoincrement.Text := currentAutoincrement;
     editAutoincrement.Enabled := True;
   end;
   lblAutoincrement.Enabled := editAutoincrement.Enabled;
 
   // SQL preview
-  SynMemoCreate.Lines.Text := Mainform.Childwin.GetVar( 'SHOW CREATE TABLE ' + Mainform.Childwin.mask(NodeData.Captions[0]), 1 );
+  sql := 'SHOW CREATE TABLE ';
+  if DatabaseName <> '' then
+    sql := sql + Mainform.mask(DatabaseName)+'.';
+  sql := sql + Mainform.Childwin.mask(currentName);
+  SynMemoCreate.Lines.Text := Mainform.Childwin.GetVar( sql, 1 );
 
   editName.SetFocus;
   editName.SelectAll;
@@ -259,7 +272,7 @@ end;
 procedure Ttbl_properties_form.FormClose(Sender: TObject; var Action:
     TCloseAction);
 var
-  sql : String;
+  sql, tmp : String;
   AlterSpecs : TStringList;
 begin
   if ModalResult = mrOK then
@@ -268,7 +281,13 @@ begin
 
     // Rename table
     if currentName <> editName.Text then
-      AlterSpecs.Add( 'RENAME ' + Mainform.Childwin.mask(editName.Text) );
+    begin
+      tmp := 'RENAME ';
+      if DatabaseName <> '' then
+        tmp := tmp + Mainform.mask(DatabaseName)+'.';
+      tmp := tmp + Mainform.mask(editName.Text);
+      AlterSpecs.Add( tmp );
+    end;
 
     // Comment
     if currentComment <> editComment.Text then
@@ -292,10 +311,16 @@ begin
 
     if AlterSpecs.Count > 0 then
     begin
-      sql := 'ALTER TABLE ' + Mainform.Childwin.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
+      sql := 'ALTER TABLE ';
+      if DatabaseName <> '' then
+        sql := sql + Mainform.mask(DatabaseName)+'.';
+      sql := sql + Mainform.Childwin.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
       try
         Mainform.ChildWin.ExecUpdateQuery( sql );
-        Mainform.ChildWin.MenuRefreshClick( Sender );
+        if DatabaseName = '' then
+          Mainform.ChildWin.MenuRefreshClick( Sender )
+        else
+          Mainform.ChildWin.PopulateTreeTableList( Mainform.ChildWin.DBRightClickSelectedItem.Parent, True );
       except
         On E:Exception do
         begin

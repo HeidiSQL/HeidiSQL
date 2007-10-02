@@ -1599,7 +1599,7 @@ object MDIChild: TMDIChild
     Left = 8
     Top = 48
     object NewDatabase1: TMenuItem
-      Caption = 'Create Database...'
+      Caption = 'Create database...'
       ImageIndex = 73
       OnClick = CreateDatabase
     end
@@ -1609,7 +1609,7 @@ object MDIChild: TMDIChild
       OnClick = menuAlterdatabaseClick
     end
     object PopupmenuDropDatabase: TMenuItem
-      Caption = 'Drop Database...'
+      Caption = 'Drop database...'
       ImageIndex = 22
       OnClick = DropDB
     end
@@ -1617,9 +1617,14 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object PopupMenuCreateTable: TMenuItem
-      Caption = 'Create Table...'
+      Caption = 'Create table...'
       ImageIndex = 72
       OnClick = CreateTable
+    end
+    object menuTreeAlterTable: TMenuItem
+      Caption = 'Alter table ...'
+      Enabled = False
+      OnClick = menuAlterTableClick
     end
     object PopupMenuDropTable: TMenuItem
       Action = MainForm.DropTable
