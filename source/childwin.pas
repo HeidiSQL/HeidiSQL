@@ -1131,10 +1131,9 @@ begin
   begin
     msg := '/* ' + msg + ' */';
   end;
+
   SynMemoSQLLog.Lines.Add( msg );
-  SynMemoSQLLog.SetBookMark( 0, 0, SynMemoSQLLog.Lines.Count );
-  SynMemoSQLLog.GotoBookMark( 0 );
-  SynMemoSQLLog.ClearBookMark( 0 );
+  SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
   SynMemoSQLLog.Repaint();
 end;
 
