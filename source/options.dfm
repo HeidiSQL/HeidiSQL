@@ -33,14 +33,14 @@ object optionsform: Toptionsform
       Caption = 'Miscellaneous'
       object Label4: TLabel
         Left = 16
-        Top = 85
+        Top = 104
         Width = 37
         Height = 13
         Caption = 'Log last'
       end
       object Label5: TLabel
-        Left = 143
-        Top = 85
+        Left = 142
+        Top = 104
         Width = 95
         Height = 13
         Caption = 'Lines in SQL-History'
@@ -48,7 +48,7 @@ object optionsform: Toptionsform
       object CheckBoxAutoReconnect: TCheckBox
         Left = 16
         Top = 16
-        Width = 297
+        Width = 334
         Height = 17
         Caption = 'Automatically reconnect to last session-account on startup'
         TabOrder = 0
@@ -56,7 +56,7 @@ object optionsform: Toptionsform
       end
       object CheckBoxConvertHTMLEntities: TCheckBox
         Left = 16
-        Top = 48
+        Top = 70
         Width = 305
         Height = 17
         Caption = 'Convert HTML-entities when copying/saving data (<, >)'
@@ -66,8 +66,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object updownLogSQLNum: TUpDown
-        Left = 121
-        Top = 82
+        Left = 120
+        Top = 101
         Width = 17
         Height = 21
         Associate = editLogSQLNum
@@ -79,8 +79,8 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object editLogSQLNum: TEdit
-        Left = 68
-        Top = 82
+        Left = 67
+        Top = 101
         Width = 53
         Height = 21
         TabOrder = 3
@@ -89,7 +89,7 @@ object optionsform: Toptionsform
       end
       object CheckBoxRestoreLastUsedDB: TCheckBox
         Left = 16
-        Top = 119
+        Top = 42
         Width = 297
         Height = 17
         Caption = 'Restore last used database on startup'
