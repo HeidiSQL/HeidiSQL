@@ -3784,7 +3784,7 @@ var
   menuitem : TMenuItem;
 begin
   // Set filter for "where..."-clause
-  value := gridData.SelectedField.AsString;
+  value := GetFieldValue(gridData.SelectedField);
   menuitem := (Sender as TMenuItem);
   column := mask(gridData.SelectedField.FieldName);
   if menuitem = QF1 then
@@ -4899,7 +4899,7 @@ begin
     // Manipulate the Quick-filter menuitems
     selectedColumn := mask(gridData.SelectedField.FieldName);
     // 1. block: include selected columnname and value from datagrid in caption
-    value := sstr(gridData.SelectedField.AsString, 100);
+    value := sstr(GetFieldValue(gridData.SelectedField), 100);
     QF1.Caption := selectedColumn + ' = ' + esc( value );
     QF2.Caption := selectedColumn + ' != ' + esc( value );
     QF3.Caption := selectedColumn + ' > ' + esc( value );
