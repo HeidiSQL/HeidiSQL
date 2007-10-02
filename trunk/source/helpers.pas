@@ -356,19 +356,17 @@ var
   begin
     // we must jump over spaces, horizontal tabs and #CRLF after delimiter
     position := i + delimiter_length;
-    while ( sql[position] in [' ', Char(VK_TAB), #13, #10] ) do
-    begin
-      position := position + 1;
-    end;
+    while (
+      ( sql[position] = ' ' ) or
+      ( sql[position] = Char(VK_TAB) ) or
+      ( sql[position] = #13 ) or
+      ( sql[position] = #10 )
+    ) do position := position + 1;
 
     if ( position >= Length(sql) ) then
-    begin
-      start_of_command_pos := Length(sql) + 1;
-    end
+      start_of_command_pos := Length(sql) + 1
     else
-    begin
       start_of_command_pos := position;
-    end;
   end;
 
   {***
@@ -420,25 +418,25 @@ begin
       ( not inbigcomment ) and
       // verify if is a delimiter command from here
       // the next_command position must starts with D
-      ( sql[start_of_command_pos] in ['d', 'D'] ) and
+      ( ( sql[start_of_command_pos] = 'd') or ( sql[start_of_command_pos] = 'D') ) and
       // the DELIMITER command ends with R
-      ( sql[i] in ['r', 'R'] ) and
+      ( ( sql[i] = 'r') or ( sql[i] = 'R') ) and
       // must be bigger or equals than delimiter command length
       ( i >= 9 )
     ) then
     begin
       // we verify if it is really the DELIMITER command
       if (
-        ( sql[i - 8] in ['d', 'D'] ) and
-        ( sql[i - 7] in ['e', 'E'] ) and
-        ( sql[i - 6] in ['l', 'L'] ) and
-        ( sql[i - 5] in ['i', 'I'] ) and
-        ( sql[i - 4] in ['m', 'M'] ) and
-        ( sql[i - 3] in ['i', 'I'] ) and
-        ( sql[i - 2] in ['t', 'T'] ) and
-        ( sql[i - 1] in ['e', 'E'] )
+        ( ( sql[i - 8] = 'd') or ( sql[i - 8] = 'D') ) and
+        ( ( sql[i - 7] = 'e') or ( sql[i - 7] = 'E') ) and
+        ( ( sql[i - 6] = 'l') or ( sql[i - 6] = 'L') ) and
+        ( ( sql[i - 5] = 'i') or ( sql[i - 5] = 'I') ) and
+        ( ( sql[i - 4] = 'm') or ( sql[i - 4] = 'M') ) and
+        ( ( sql[i - 3] = 'i') or ( sql[i - 3] = 'I') ) and
+        ( ( sql[i - 2] = 't') or ( sql[i - 2] = 'T') ) and
+        ( ( sql[i - 1] = 'e') or ( sql[i - 1] = 'E') )
         // we know that sql[i] is R, so, just for pay attention
-        // and sql[i] in ['r', 'R']
+        // and ( ( sql[i] = 'r') or ( sql[i] = 'R') )
       ) then
       begin
         // now, we'll see the cases around DELIMITER command
@@ -471,7 +469,12 @@ begin
           delimiter := EmptyStr;
           for j := j to Length(sql) do
           begin
-            if ( sql[j] in [' ', Char(VK_TAB), #13, #10] ) then break
+            if (
+              ( sql[j] = ' ' ) or
+              ( sql[j] = Char(VK_TAB) ) or
+              ( sql[j] = #13 ) or
+              ( sql[j] = #10 )
+            ) then break
             else
             begin
               delimiter := delimiter + sql[j];
@@ -579,10 +582,7 @@ begin
         // this logic is wrong, it only supports 1 statement
         // inside each /*!nnnnn blah */ conditional comment.
         condterminated := true;
-        for j := i to ( i + delimiter_length ) do
-        begin
-          sql[j] := ' ';
-        end;
+        for j := i to ( i + delimiter_length ) do sql[j] := ' ';
       end else begin
         addResult(result, copy(sql, start, i-start));
         start := i + delimiter_length;
