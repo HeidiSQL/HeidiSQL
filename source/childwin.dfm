@@ -2331,22 +2331,26 @@ object MDIChild: TMDIChild
     object menuload: TMenuItem
       Caption = 'Load from file ...'
       ImageIndex = 6
+      ShortCut = 16463
       OnClick = btnQueryLoadClick
     end
     object menuInsertFileAtCursor: TMenuItem
       Caption = 'Insert file at cursor ...'
       ImageIndex = 6
+      ShortCut = 24655
       OnClick = menuInsertFileAtCursorClick
     end
     object menusave: TMenuItem
       Caption = 'Save to file ...'
       ImageIndex = 7
+      ShortCut = 16467
       OnClick = btnQuerySaveClick
     end
     object menuSaveSelectionToFile: TMenuItem
       Tag = 1
       Caption = 'Save selection to file ...'
       ImageIndex = 7
+      ShortCut = 24659
       OnClick = btnQuerySaveClick
     end
     object menuSaveAsSnippet: TMenuItem
