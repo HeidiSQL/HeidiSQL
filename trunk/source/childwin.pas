@@ -516,6 +516,8 @@ type
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
       CreateDatabaseForm         : TCreateDatabaseForm;
       TablePropertiesForm        : Ttbl_properties_form;
+      FileNameSessionLog         : String;
+      FileHandleSessionLog       : Textfile;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -561,6 +563,7 @@ type
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
       prefDataNullBackground     : TColor;
+      prefLogToFile              : Boolean;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -588,6 +591,8 @@ type
       procedure EnsureDatabase;
       procedure TestVTreeDataArray( P: PVTreeDataArray );
       function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
+      procedure ActivateFileLogging;
+      procedure DeactivateFileLogging;
   end;
 
 type
@@ -1012,6 +1017,10 @@ begin
     RestoreListSetup(ListTables);
     RestoreListSetup(ListColumns);
 
+    // Activate logging
+    if reg.ValueExists( 'LogToFile' ) and reg.ReadBool('LogToFile') then
+      ActivateFileLogging;
+
     // Open server-specific registry-folder.
     // relative from already opened folder!
     reg.OpenKey( 'Servers\' + FConn.Description, true );
@@ -1102,6 +1111,9 @@ begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
+
+  if prefLogToFile then
+    DeactivateFileLogging;
 end;
 
 
@@ -1135,6 +1147,15 @@ begin
   SynMemoSQLLog.Lines.Add( msg );
   SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
   SynMemoSQLLog.Repaint();
+
+  // Log to file?
+  if prefLogToFile then
+  try
+    WriteLn( FileHandleSessionLog, msg );
+  except
+    DeactivateFileLogging;
+    MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
+  end;
 end;
 
 
@@ -6385,5 +6406,63 @@ begin
   end;
 end;
 
+
+{**
+  Start writing logfile.
+  Called either in FormShow or after closing preferences dialog
+}
+procedure TMDIChild.ActivateFileLogging;
+var
+  LogfilePattern : String;
+  i : Integer;
+begin
+  // Ensure directory exists
+  ForceDirectories( DirnameSessionLogs );
+
+  // Determine free filename if it's emtpy yet
+  if FileNameSessionLog = '' then
+  begin
+    LogfilePattern := '%s %.6u.log';
+    i := 1;
+    FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [FConn.Description, i]));
+    while FileExists( FileNameSessionLog ) do
+    begin
+      inc(i);
+      FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [FConn.Description, i]));
+    end;
+  end;
+
+  // Be sure file is closed before we (re-)open it
+  DeactivateFileLogging;
+  // Create file handle for writing
+  AssignFile( FileHandleSessionLog, FileNameSessionLog );
+  {$I-} // Supress errors
+  if FileExists(FileNameSessionLog) then
+    Append(FileHandleSessionLog)
+  else
+    Rewrite(FileHandleSessionLog);
+  {$I+}
+  if IOResult <> 0 then
+  begin
+    MessageDlg('Error opening session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
+    prefLogToFile := False;
+  end else
+    prefLogToFile := True;
+end;
+
+
+{**
+  Close logfile.
+  Called in FormClose, in ActivateFileLogging and on closing preferences dialog
+}
+procedure TMDIChild.DeactivateFileLogging;
+begin
+  prefLogToFile := False;
+  {$I-} // Supress errors
+  CloseFile(FileHandleSessionLog);
+  {$I+}
+  // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
+  IOResult;
+end;
 
 end.
