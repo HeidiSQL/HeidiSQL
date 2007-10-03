@@ -86,6 +86,8 @@ type
     updownDefaultColWidth: TUpDown;
     CheckBoxRestoreLastUsedDB: TCheckBox;
     chkRememberFilters: TCheckBox;
+    chkLogToFile: TCheckBox;
+    btnOpenLogFolder: TButton;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -97,6 +99,7 @@ type
     procedure CheckBoxlimitClick(Sender: TObject);
     procedure anyUpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
+    procedure btnOpenLogFolderClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -114,7 +117,7 @@ var
   AutoReconnect : Boolean = false;
 
 implementation
-uses childwin, main;
+uses childwin, main, helpers;
 {$R *.DFM}
 
 
@@ -179,6 +182,7 @@ begin
   reg.WriteInteger('DataFontSize', UpDownDataFontSize.Position);
   reg.WriteString('DataNullBackground', ColorToString(Panel9.color));
   reg.WriteBool('RememberFilters', chkRememberFilters.Checked);
+  reg.WriteBool('LogToFile', chkLogToFile.Checked);
 
   // Close registry key
   reg.CloseKey;
@@ -208,6 +212,11 @@ begin
     cwin.gridQuery.Options := cwin.gridQuery.Options + [dgAlwaysShowEditor];
     cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
+    if chkLogToFile.Checked then
+      cwin.ActivateFileLogging
+    else if cwin.prefLogToFile then
+      cwin.DeactivateFileLogging;
+    btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
     cwin.prefDefaultColWidth := updownDefaultColWidth.Position;
     cwin.prefCSVSeparator := self.Edit1.text;
     cwin.prefCSVEncloser := self.Edit2.text;
@@ -332,7 +341,12 @@ begin
   if reg.ValueExists('RememberFilters') then
     chkRememberFilters.Checked := reg.ReadBool('RememberFilters');
 
-  // Close registry key  
+  // Log to file
+  if reg.ValueExists('LogToFile') then
+    chkLogToFile.Checked := reg.ReadBool('LogToFile');
+  btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
+
+  // Close registry key
   reg.CloseKey;
   reg.Free;
 
@@ -417,6 +431,15 @@ procedure Toptionsform.anyUpDownLimitChanging(Sender: TObject;
   var AllowChange: Boolean);
 begin
   modified(sender);
+end;
+
+
+{**
+  Open folder with session logs
+}
+procedure Toptionsform.btnOpenLogFolderClick(Sender: TObject);
+begin
+  ShellExec( '', DirnameSessionLogs );
 end;
 
 end.

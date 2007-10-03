@@ -98,6 +98,25 @@ object optionsform: Toptionsform
         TabOrder = 4
         OnClick = Modified
       end
+      object chkLogToFile: TCheckBox
+        Left = 16
+        Top = 135
+        Width = 145
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Write SQL log to file'
+        TabOrder = 5
+        OnClick = Modified
+      end
+      object btnOpenLogFolder: TButton
+        Left = 167
+        Top = 134
+        Width = 106
+        Height = 20
+        Caption = 'Open log folder ...'
+        TabOrder = 6
+        OnClick = btnOpenLogFolderClick
+      end
     end
     object TabSheet2: TTabSheet
       BorderWidth = 5

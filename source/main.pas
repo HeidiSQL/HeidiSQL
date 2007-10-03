@@ -16,7 +16,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees;
+  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, ShlObj;
 
 type
   TMainForm = class(TForm)
@@ -215,7 +215,10 @@ var
   StatusIconIndex     : Integer = 43;
   loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
   appversion          : String = 'x.y $Rev$';
-  DIRNAME_SNIPPETS    : String;
+  DirnameCommonAppData,
+  DirnameUserAppData,
+  DIRNAME_SNIPPETS,
+  DirnameSessionLogs  : String;
 
 const
   discname = 'not connected';
@@ -437,8 +440,17 @@ begin
   appversion := StringReplace( appversion, '$', '', [] );
   appversion := Trim( appversion );
 
+  // "All users" folder for HeidiSQL's data (All Users\Application Data)
+  DirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
+
+  // User folder for HeidiSQL's data (<user name>\Application Data)
+  DirnameUserAppData := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+
   // Folder which contains snippet-files
-  DIRNAME_SNIPPETS := GetShellFolder($0023) + '\' + APPNAME + '\Snippets\'; // CSIDL_COMMON_APPDATA
+  DIRNAME_SNIPPETS := DirnameCommonAppData + 'Snippets\';
+
+  // Folder for session logfiles
+  DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
 end;
 
 
