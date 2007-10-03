@@ -346,8 +346,8 @@ begin
   // Select remote database with the same name as the source db if available
   if comboOtherHostDatabase.Items.IndexOf( comboSelectDatabase.Text ) > -1 then
     comboOtherHostDatabase.ItemIndex := comboOtherHostDatabase.Items.IndexOf( comboSelectDatabase.Text )
-  // Otherwise, select first database
-  else
+  // Otherwise, select first database if available
+  else if comboOtherHostDatabase.Items.Count > 0 then
     comboOtherHostDatabase.ItemIndex := 0;
 
 end;
