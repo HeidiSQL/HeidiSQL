@@ -6193,29 +6193,28 @@ end;
 
 {***
   Add a new query delimiter and select it
- 
   @param term The delimiter to add and/or select
 }
 procedure TMDIChild.ComboBoxQueryDelimiterAdd( delimiter: String );
 var
   index: Integer;
   found: Boolean;
+  msg: String;
 begin
   // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 824
   // Check that delimiter does not contain a backslash
-  if ( Pos( '\', delimiter ) > 0 ) then
+  msg := IsValidDelimiter( delimiter );
+  if ( msg <> '' ) then
   begin
     // rollback the delimiter
     ComboBoxQueryDelimiter.Text := Self.delimiter;
     // notify the user
-    raise Exception.Create(Format(
-        'DELIMITER cannot contain a backslash character: %s', [
-        delimiter
-      ]));
+    raise Exception.Create( msg );
   end
   else
   begin
-    // the delimiter is case-sensitive, so, we must locate it by hand
+    // the delimiter is case-sensitive, following the implementation
+    // in the MySQL CLI, so we must locate it by hand
     found := False;
     for index := 0 to ( ComboBoxQueryDelimiter.Items.Count - 1 ) do
     begin
@@ -6226,13 +6225,13 @@ begin
         break;
       end;
     end;
- 
+
     if ( not found ) then
     begin
       ComboBoxQueryDelimiter.Items.Add( delimiter );
       ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.Count - 1;
     end;
- 
+
     Self.delimiter := ComboBoxQueryDelimiter.Text;
   end;
 end;

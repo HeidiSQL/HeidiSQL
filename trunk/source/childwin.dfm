@@ -1087,6 +1087,7 @@ object MDIChild: TMDIChild
                 Height = 21
                 ItemHeight = 13
                 TabOrder = 0
+                OnExit = ComboBoxQueryDelimiterExit
                 Items.Strings = (
                   ';'
                   ';;'
