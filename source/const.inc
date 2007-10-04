@@ -73,3 +73,10 @@ const
 
   // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 112
   DEFAULT_DELIMITER = ';';
+
+  // Copied constants from [delphi11]\source\win32\rtl\win\ShlObj.pas to make them
+  // available in Delphi 10. We don't use the constants from ShlObj until delphi 10
+  // support is removed.
+  CSIDL_COMMON_APPDATA = $0023; { All Users\Application Data }
+  CSIDL_APPDATA = $001a; { <user name>\Application Data }
+
