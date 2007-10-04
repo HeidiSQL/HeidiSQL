@@ -33,6 +33,7 @@ type
   function explode(separator, a: String) :TStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String):String;
+  function IsValidDelimiter(var s: string): string;
   type TParseSQLProcessCommand = procedure(command: String; parameter: String) of object;
   function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
   function sstr(str: String; len: Integer) : String;
@@ -314,6 +315,80 @@ end;
 
 
 {***
+  Test that a delimiter looks reasonable.
+
+  @param s a string to be trimmed and tested.
+  @return s an error message if validation fails, a nil string if it succeeds.
+}
+function IsValidDelimiter(var s: string): string;
+begin
+  result := '';
+  s := Trim(s);
+  // Test for empty delimiter.
+  if s = '' then result := 'DELIMITER must be followed by a character or string';
+  // Disallow backslash, because the MySQL CLI does so for some reason.
+  // Then again, is there any reason to be bug-per-bug compatible with some random SQL parser?
+  if Pos('\', s) > 0 then result := 'Backslash disallowed in DELIMITER because the MySQL CLI does not accept it';
+  // Disallow using DELIMITER, so we don't have to deal with it in code.
+  if UpperCase(s) = 'DELIMITER' then result := '"DELIMITER" is disallowed as a SQL delimiter';
+end;
+
+
+
+{***
+  Return true if given character represents whitespace.
+  Limitations: only recognizes ANSI whitespace.
+  Eligible for inlining, hope the compiler does this automatically.
+}
+function isWhitespace(const c: char): boolean;
+begin
+  result :=
+    (c = #9) or
+    (c = #10) or
+    (c = #13) or
+    (c = #32)
+  ;
+end;
+
+
+
+{***
+  Scan backwards, returning true if SQL matches the given string case sensitively.
+  Limitations: in case insensitive mode, input must be ANSI and lower case (for speed).
+  Eligible for inlining, hope the compiler does this automatically.
+}
+function scanReverse(const haystack: string; const hayIndex: integer; const needle: string; insensitive: boolean): boolean;
+var
+  z, y: integer;
+  b: byte;
+  c: char;
+begin
+  y := Length(needle);
+  if (hayIndex < y) then begin
+    result := false;
+    exit;
+  end;
+  z := hayIndex;
+  while (z > 0) and (y > 0) do begin
+    // Lowercase ANSI A-Z if requested.
+    if insensitive then begin
+      b := Ord(haystack[z]);
+      if (b > 64) and (b < 91) then b := b - 65 + 97;
+      c := Chr(b);
+    end else c := haystack[z];
+    if c <> needle[y] then begin
+      result := false;
+      exit;
+    end;
+    y := y - 1;
+    z := z - 1;
+  end;
+  result := true;
+end;
+
+
+
+{***
   Tokenize sql-script and return a TStringList with sql-statements
 
   @param String (possibly large) bunch of SQL-statements, separated by semicolon
@@ -323,185 +398,91 @@ end;
 }
 function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
 var
-  i, j, start                       : Integer;
+  i, j, start, len                  : Integer;
+  tmp                               : String;
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
-  inbigcomment                      : Boolean;
+  inbigcomment, indelimiter         : Boolean;
   delimiter_length                  : Integer;
-  delimiter_is_delimiter            : Boolean;
   encloser, secchar, thdchar        : Char;
   msg                               : String;
-  start_of_command_pos              : Integer;
 
-  {***
-    If a procedure of object (method) is defined, call it
+{***
+  If a callback for processing client SQL etc was given, invoke it.
+}
+procedure CallProcessCommand(command: String; parameter: String);
+begin
+  if Assigned(processcommand) then processcommand(command, parameter);
+end;
 
-  }
-  procedure CallProcessCommand( command: String; parameter: String );
-  begin
-    if ( Assigned( processcommand ) ) then
-    begin
-      processcommand( command, parameter );
-    end;
-  end;
-
-  {***
-    Detects the next command position after a delimiter or delimiter
-    definition
-
-  }
-  procedure DetectNextCommandPosition;
-  var
-    position: Integer;
-  begin
-    // we must jump over spaces, horizontal tabs and #CRLF after delimiter
-    position := i + delimiter_length;
-    while (
-      ( sql[position] = ' ' ) or
-      ( sql[position] = Char(VK_TAB) ) or
-      ( sql[position] = #13 ) or
-      ( sql[position] = #10 )
-    ) do position := position + 1;
-
-    if ( position >= Length(sql) ) then
-      start_of_command_pos := Length(sql) + 1
-    else
-      start_of_command_pos := position;
-  end;
-
-  {***
-    Updates the delimiter data
-
-  }
-  procedure UpdateDelimiterData( execute_callback: Boolean = true );
-  begin
-    if ( execute_callback ) then
-      CallProcessCommand( 'DELIMITER', delimiter );
-
-    // update the delimiter variables helper
-    delimiter_length := Length( delimiter );
-    delimiter_is_delimiter := ( UpperCase( delimiter ) = 'DELIMITER' );
-  end;
+{***
+  Updates the delimiter in the GUI from the one specified via pseudo-SQL.
+}
+procedure UpdateDelimiterData(execute_callback: Boolean = true);
+begin
+  if (execute_callback) then CallProcessCommand('DELIMITER', delimiter);
+  // update the delimiter variables helper
+  delimiter_length := Length(delimiter);
+end;
 
 begin
   result := TStringList.Create;
   sql := trim(sql);
   instring := false;
   start := 1;
+  len := length(sql);
   backslash := false;
   incomment := false;
   inbigcomment := false;
   inconditional := false;
   condterminated := false;
+  indelimiter := false;
   encloser := ' ';
-  start_of_command_pos := 1;
 
-  UpdateDelimiterData( false );
+  UpdateDelimiterData(false);
 
   i := 0;
-  while i < length(sql) do begin
+  while i < len do begin
     i := i + 1;
 
-    secchar := ' ';
-    thdchar := ' ';
+    // Skip whitespace immediately if at start of sentence.
+    if (start = i) and isWhitespace(sql[i]) then begin
+      start := start + 1;
+      continue;
+    end;
+
+    // Helpers for multi-character tests, avoids testing for string length.
+    secchar := '-';
+    thdchar := '-';
     if i < length(sql) then secchar := sql[i + 1];
     if i + 1 < length(sql) then thdchar := sql[i + 2];
 
-    {$REGION 'DELIMITER command'}
-    // process a DELIMITER command (like MySQL Prompt Client)
-
-    // first, verify if could be a DELIMITER command
-    // arrangement to don't decrease this parse speed
-    if (
-      ( not instring ) and
-      ( not incomment ) and
-      ( not inbigcomment ) and
-      // verify if is a delimiter command from here
-      // the next_command position must starts with D
-      ( ( sql[start_of_command_pos] = 'd') or ( sql[start_of_command_pos] = 'D') ) and
-      // the DELIMITER command ends with R
-      ( ( sql[i] = 'r') or ( sql[i] = 'R') ) and
-      // must be bigger or equals than delimiter command length
-      ( i >= 9 )
-    ) then
-    begin
-      // we verify if it is really the DELIMITER command
-      if (
-        ( ( sql[i - 8] = 'd') or ( sql[i - 8] = 'D') ) and
-        ( ( sql[i - 7] = 'e') or ( sql[i - 7] = 'E') ) and
-        ( ( sql[i - 6] = 'l') or ( sql[i - 6] = 'L') ) and
-        ( ( sql[i - 5] = 'i') or ( sql[i - 5] = 'I') ) and
-        ( ( sql[i - 4] = 'm') or ( sql[i - 4] = 'M') ) and
-        ( ( sql[i - 3] = 'i') or ( sql[i - 3] = 'I') ) and
-        ( ( sql[i - 2] = 't') or ( sql[i - 2] = 'T') ) and
-        ( ( sql[i - 1] = 'e') or ( sql[i - 1] = 'E') )
-        // we know that sql[i] is R, so, just for pay attention
-        // and ( ( sql[i] = 'r') or ( sql[i] = 'R') )
-      ) then
-      begin
-        // now, we'll see the cases around DELIMITER command
-
-        // the allowed DELIMITER command call are:
-        // DELIMITER<n spaces(s)>#DELIMITER
-        // <n space(s)>DELIMITER<n spaces(s)>#DELIMITER
-        // <CURRENT_DELIMITER><n space(s)>DELIMITER<n spaces(s)>#DELIMITER
-
-        // the character after DELIMITER command must be space(s) or horizontal tab(s)
-        if (( sql[i + 1] <> ' ' ) and ( sql[i + 1] <> Char(VK_TAB) )) then
-        begin
-          // but if the current delimiter is the string 'DELIMITER' in any case,
-          // we could pass it,
-          // so, if it isn't equals...
-          if ( not delimiter_is_delimiter ) then
-          begin
-            msg := 'DELIMITER must be followed by a ''delimiter'' character or string';
-            CallProcessCommand( 'CLIENTSQL_ERROR', msg );
-          end;
-        end
-        else
-        begin
-          // now we jump this(these) space(s) and/or horizontal tab(s)
-          j := i + 1;
-          while ( ( sql[j] = ' ' ) or ( sql[j] = Char(VK_TAB) )  ) do
-            j := j + 1;
-
-          // start to get the new delimiter
-          delimiter := EmptyStr;
-          for j := j to Length(sql) do
-          begin
-            if (
-              ( sql[j] = ' ' ) or
-              ( sql[j] = Char(VK_TAB) ) or
-              ( sql[j] = #13 ) or
-              ( sql[j] = #10 )
-            ) then break
-            else
-            begin
-              delimiter := delimiter + sql[j];
-              // remove the new delimiter from sql
-              sql[j] := ' ';
-            end;
-          end;
-
-          // the delimiter couldn't be empty, so
-          delimiter := Trim( delimiter );
-          if ( delimiter = EmptyStr ) then
-          begin
-            msg := 'DELIMITER must be followed by a ''delimiter'' character or string';
-            CallProcessCommand( 'CLIENTSQL_ERROR', msg );
-          end;
-
-          // reapply the delimiter definition
-          UpdateDelimiterData();
-
-          // remove the command DELIMITER from sql
-          for j := i - 8 to ( i - 8 + 10 ) do sql[j] := ' ';
-
-          DetectNextCommandPosition();
-
-          continue;
-        end;
+    // Allow a DELIMITER command in middle of SQL, like the MySQL CLI does.
+    if (not instring) and (not incomment) and (not inbigcomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', true) then begin
+      // The allowed DELIMITER format is:
+      //   <delimiter> <whitespace(s)> <character(s)> <whitespace(s)> <newline>
+      if isWhitespace(secchar) then begin
+        indelimiter := true;
+        i := i + 1;
+        continue;
       end;
+    end;
+
+    if indelimiter then begin
+      if (sql[i] in [#13, #10]) or (i = len) then begin
+        if (i = len) then j := 1 else j := 0;
+        tmp := copy(sql, start + 10, i + j - (start + 10));
+        msg := IsValidDelimiter(tmp);
+        if msg = '' then begin
+          delimiter := tmp;
+          UpdateDelimiterData(true);
+        end else begin
+          CallProcessCommand('CLIENTSQL_ERROR', msg);
+        end;
+        indelimiter := false;
+        start := i + 1;
+      end;
+      continue;
     end;
 
     if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
@@ -518,8 +499,11 @@ begin
       sql[i] := ' ';
       i := i + 1;
     end;
-    if (sql[i] in [#13, #10]) and incomment and (not inbigcomment) then incomment := false;
-    if (sql[i] + secchar = '*/') and inbigcomment then begin
+    if incomment and (not inbigcomment) and (sql[i] in [#13, #10]) then begin
+      incomment := false;
+      continue;
+    end;
+    if inbigcomment and (sql[i] + secchar = '*/') then begin
       inbigcomment := false;
       incomment := false;
       sql[i] := ' ';
@@ -554,9 +538,9 @@ begin
     end;
 
     if (not instring) and (not incomment) and (sql[i] + secchar = '*/') and inconditional then begin
-    // note:
-    // we do not trim the start of the SQL inside conditional
-    // comments like we do on non-commented sql.
+        // note:
+        // we do not trim the start of the SQL inside conditional
+        // comments like we do on non-commented sql.
       inconditional := false;
       if condterminated then begin
         addResult(result, trim(copy(sql, start, i-start)) + '*/');
@@ -567,28 +551,25 @@ begin
       // the trail of the SQL inside the conditional comment will
       // not get trimmed, as we otherwise do (above) in cases where
       // the semicolon is contained within the conditional comment.
-      i := i + 1;
+        i := i + 1;
       continue;
-    end;
+      end;
 
     if (sql[i] = '\') or backslash then
       backslash := not backslash;
 
     // remove the delimiter from sql command
-    if ( (not instring) and ( Copy( sql, i, delimiter_length ) = delimiter ) ) then begin
-      if inconditional then
-      begin
+    if (not instring) and scanReverse(sql, i, delimiter, true) then begin
+      for j := i downto i - delimiter_length + 1 do sql[j] := ' ';
+      if inconditional then begin
         // note:
         // this logic is wrong, it only supports 1 statement
         // inside each /*!nnnnn blah */ conditional comment.
         condterminated := true;
-        for j := i to ( i + delimiter_length ) do sql[j] := ' ';
       end else begin
         addResult(result, copy(sql, start, i-start));
-        start := i + delimiter_length;
       end;
-
-      DetectNextCommandPosition();
+      start := i + 1;
     end;
   end;
 
@@ -2189,7 +2170,7 @@ MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,
   'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
   'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
   'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
-  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE,DELIMITER';
+  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
 
 
 end.
