@@ -16,7 +16,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, ShlObj;
+  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees;
 
 type
   TMainForm = class(TForm)
