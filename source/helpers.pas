@@ -1942,18 +1942,23 @@ end;
 function getFirstWord( text: String ): String;
 var
   i : Integer;
-  wordChars : Set of Char;
+  wordChars, wordCharsFirst : Set of Char;
 begin
   result := '';
   text := trim( text );
+  // First char in word must not be numerical. Fixes queries like
+  // /*!40000 SHOW ENGINES */ to be recognized as "result"-queries
+  // while not breaking getFirstWord in situations where the second
+  // or later char can be a number (fx the collation in createdatabase).
   wordChars := ['a'..'z', 'A'..'Z', '0'..'9', '_', '-'];
+  wordCharsFirst := wordChars - ['0'..'9'];
   i := 1;
 
   // Find beginning of the first word, ignoring non-alphanumeric chars at the very start
   // @see bug #1692828
   while i < Length(text) do
   begin
-    if (text[i] in wordChars) then
+    if (text[i] in wordCharsFirst) then
     begin
       // Found beginning of word!
       break;
@@ -1971,7 +1976,7 @@ begin
   // Add chars as long as they're alpha-numeric
   while i <= Length(text) do
   begin
-    if (text[i] in wordChars) then
+    if ((result = '') and (text[i] in wordCharsFirst)) or (text[i] in wordChars) then
     begin
       result := result + text[i];
     end
