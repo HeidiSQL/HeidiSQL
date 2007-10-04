@@ -301,13 +301,16 @@ end;
 
   @param TStringList
   @param string to add
+  @param string to enclose added string in (use %s)
   @return void
 }
-procedure addResult(list: TStringList; s: string);
+procedure addResult(list: TStringList; s: string; enclose: string = '');
 begin
   s := trim(s);
-  if length(s) > 0 then
+  if length(s) > 0 then begin
+    if enclose <> '' then s := Format(enclose, [s]);
     list.Add(s);
+  end;
   // Avoid memory leak
   s := '';
 end;
@@ -347,6 +350,24 @@ begin
     (c = #10) or
     (c = #13) or
     (c = #32)
+  ;
+end;
+
+
+
+{***
+  Return true if given character represents a number.
+  Limitations: only recognizes ANSI numerals.
+  Eligible for inlining, hope the compiler does this automatically.
+}
+function isNumber(const c: char): boolean;
+var
+  b: byte;
+begin
+  b := ord(c);
+  result :=
+    (b >= 48) and
+    (b <= 57)
   ;
 end;
 
@@ -403,8 +424,10 @@ var
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
   inbigcomment, indelimiter         : Boolean;
+  openconditional                   : Boolean;
   delimiter_length                  : Integer;
   encloser, secchar, thdchar        : Char;
+  conditional                       : String;
   msg                               : String;
 
 {***
@@ -435,9 +458,11 @@ begin
   incomment := false;
   inbigcomment := false;
   inconditional := false;
+  openconditional := false;
   condterminated := false;
   indelimiter := false;
   encloser := ' ';
+  conditional := '';
 
   UpdateDelimiterData(false);
 
@@ -533,48 +558,62 @@ begin
     if (not instring) and (not incomment) and (sql[i] + secchar + thdchar = '/*!') then begin
       inconditional := true;
       condterminated := false;
+      openconditional := true;
+      tmp := '';
+      conditional := '';
       i := i + 2;
       continue;
     end;
 
-    if (not instring) and (not incomment) and (sql[i] + secchar = '*/') and inconditional then begin
+    if inconditional and (conditional = '') then begin
+      if not isNumber(sql[i]) then begin
+        conditional := tmp;
         // note:
         // we do not trim the start of the SQL inside conditional
         // comments like we do on non-commented sql.
+        continue;
+      end else tmp := tmp + sql[i];
+    end;
+
+    if inconditional and (not instring) and (not incomment) and (sql[i] + secchar = '*/') then begin
       inconditional := false;
-      if condterminated then begin
-        addResult(result, trim(copy(sql, start, i-start)) + '*/');
-        start := i+2;
-        condterminated := false;
-      end;
-      // note:
-      // the trail of the SQL inside the conditional comment will
-      // not get trimmed, as we otherwise do (above) in cases where
-      // the semicolon is contained within the conditional comment.
+      // skip openconditional stage if entirely empty conditional.
+      j := start;
+      while (not condterminated) and (j < i) and (not isWhitespace(sql[j])) do j := j + 1;
+      if trim(copy(sql, j, i - j)) = '' then begin
+        openconditional := false;
+        // just nuke the empty conditional now that we have it.
         i := i + 1;
-      continue;
+        start := i + 1;
+      end else begin
+        sql[i] := ' ';
+        i := i + 1;
+        sql[i] := ' ';
       end;
+    end;
 
     if (sql[i] = '\') or backslash then
       backslash := not backslash;
 
-    // remove the delimiter from sql command
-    if (not instring) and scanReverse(sql, i, delimiter, true) then begin
-      for j := i downto i - delimiter_length + 1 do sql[j] := ' ';
-      if inconditional then begin
-        // note:
-        // this logic is wrong, it only supports 1 statement
-        // inside each /*!nnnnn blah */ conditional comment.
+    // add sql sentence
+    if (not instring) and (scanReverse(sql, i, delimiter, false) or (i = len)) then begin
+      if (i < len) then j := delimiter_length else begin
+        // end of string, add sql sentence but only remove delimiter if it's there
+        if scanReverse(sql, i, delimiter, false) then j := 1 else j := 0;
+      end;
+      if inconditional or openconditional then begin
+        if condterminated then
+          addResult(result, copy(sql, start, i - start - j + 1), '/*!' + conditional + ' %s */')
+        else
+          addResult(result, copy(sql, start, i - start - j + 1), '%s */');
         condterminated := true;
+        openconditional := false;
       end else begin
-        addResult(result, copy(sql, start, i-start));
+        addResult(result, copy(sql, start, i - start - j + 1));
       end;
       start := i + 1;
     end;
   end;
-
-  if start < i then
-    addResult(result, copy(sql, start, i-start+1));
 
   // Avoid memory leak
   sql := '';
