@@ -540,7 +540,7 @@ begin
       backslash := not backslash;
 
     // Allow a DELIMITER command in middle of SQL, like the MySQL CLI does.
-    if (not instring) and (not incomment) and (not inbigcomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', true) then begin
+    if (not instring) and (not incomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', true) then begin
       // The allowed DELIMITER format is:
       //   <delimiter> <whitespace(s)> <character(s)> <whitespace(s)> <newline>
       if isWhitespace(secchar) then begin
