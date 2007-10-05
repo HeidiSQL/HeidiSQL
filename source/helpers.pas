@@ -602,7 +602,7 @@ begin
     if ((not instring) and (scanReverse(sql, i, delimiter, false)) or (i = len)) then begin
       if (i < len) then j := delimiter_length else begin
         // end of string, add sql sentence but only remove delimiter if it's there
-        if scanReverse(sql, i, delimiter, false) then j := 1 else j := 0;
+        if scanReverse(sql, i, delimiter, false) then j := delimiter_length else j := 0;
       end;
       if inconditional then begin
         addResult(result, copy(sql, start, i - start - j + 1), '%s */');
