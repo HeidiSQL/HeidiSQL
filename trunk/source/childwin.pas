@@ -2808,27 +2808,19 @@ begin
       // ok, let's rock
       SQLstart := GetTickCount();
       try
-        if ( ExpectResultSet( SQL[i] ) ) then
+        ds := GetResults( SQL[i], false, false );
+        gridQuery.DataSource.DataSet := ds;
+        if ( ds <> nil ) then
         begin
-          ds := GetResults( SQL[i], false, false );
-          gridQuery.DataSource.DataSet := ds;
-          if ( ds <> nil ) then
-          begin
-            fieldcount := ds.Fieldcount;
-            recordcount := ds.Recordcount;
-          end
-          else
-          begin
-            fieldcount := 0;
-            recordcount := 0;
-          end;
+          fieldcount := ds.Fieldcount;
+          recordcount := ds.Recordcount;
           rowsaffected := rowsaffected + TZQuery(ds).RowsAffected;
         end
         else
         begin
-          rowsaffected := rowsaffected + ExecUpdateQuery( SQL[i], false, false );
           fieldcount := 0;
           recordcount := 0;
+          rowsaffected := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
         end;
       except
         on E:Exception do
@@ -5050,7 +5042,7 @@ begin
     try
       // Start query execution
       MysqlQuery := RunThreadedQuery(sql);
-      Result := TZQuery(MysqlQuery.MysqlDataset).RowsAffected;
+      Result := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
       // Inspect query result code and log / notify user on failure
       if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
       begin

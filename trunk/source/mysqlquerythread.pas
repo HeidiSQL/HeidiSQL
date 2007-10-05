@@ -4,6 +4,7 @@ interface
 
 uses
   Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls, SysUtils,
+  ZMessages,
   HeidiComp;
 
 {$IFDEF EXAMPLE_APP}
@@ -232,14 +233,12 @@ begin
       end;
     end else begin
       try
-        if ExpectResultSet(FSql) then begin
-          r := RunDataQuery (FSql,TDataSet(q),ex,FCallback);
-          if r then begin
-            if q.State=dsBrowse then begin
-              // WTF?
-            end;
-          end;
-        end else r := RunUpdateQuery (FSql,TDataSet(q),ex,FCallBack);
+        r := RunDataQuery (FSql,TDataSet(q),ex,FCallback);
+        if r then begin
+          //if q.State=dsBrowse then begin
+            // WTF?
+          //end;
+        end;
         TMysqlQuery(FOwner).SetMysqlDataset(q);
 
         if r then SetState (MQR_SUCCESS,'SUCCESS')
@@ -336,11 +335,12 @@ begin
     q.Active := True;
     Result := True;
   except
-    on E: Exception do
-      begin
-        AExceptionData := GetExceptionData(E);
-      end;
-    // EZSQLException
+    on E: Exception do begin
+      if E.Message = SCanNotOpenResultSet then begin
+        Result := true;
+        ADataset := nil;
+      end else AExceptionData := GetExceptionData(E);
+    end;
   end;
 end;
 
