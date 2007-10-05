@@ -327,12 +327,22 @@ begin
   result := '';
   s := Trim(s);
   // Test for empty delimiter.
-  if s = '' then result := 'DELIMITER must be followed by a character or string';
+  if s = '' then result := 'DELIMITER must be followed by a non-comment character or string';
   // Disallow backslash, because the MySQL CLI does so for some reason.
   // Then again, is there any reason to be bug-per-bug compatible with some random SQL parser?
-  if Pos('\', s) > 0 then result := 'Backslash disallowed in DELIMITER because the MySQL CLI does not accept it';
-  // Disallow using DELIMITER, so we don't have to deal with it in code.
-  if UpperCase(s) = 'DELIMITER' then result := '"DELIMITER" is disallowed as a SQL delimiter';
+  if Pos('\', s) > 0 then result := 'Backslash disallowed in DELIMITER (because the MySQL CLI does not accept it)';
+  // Disallow stuff which would be negated by the comment parsing logic.
+  if
+    (Pos('/*', s) > 0) or
+    (Pos('--', s) > 0) or
+    (Pos('#', s) > 0)
+  then result := 'Start-of-comment tokens disallowed in DELIMITER (because it would be ignored)';
+  // Disallow stuff which would be negated by the SQL parser (and could slightly confuse it, if at end-of-string).
+  if
+    (Pos('''', s) > 0) or
+    (Pos('`', s) > 0) or
+    (Pos('"', s) > 0)
+  then result := 'String literal markers disallowed in DELIMITER (because it would be ignored)';
 end;
 
 
@@ -468,11 +478,12 @@ begin
     i := i + 1;
 
     // Helpers for multi-character tests, avoids testing for string length.
-    secchar := '-';
-    thdchar := '-';
+    secchar := '+';
+    thdchar := '+';
     if i < length(sql) then secchar := sql[i + 1];
     if i + 1 < length(sql) then thdchar := sql[i + 2];
 
+    // Turn comments into whitespace.
     if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
       incomment := true;
     end;
@@ -510,6 +521,7 @@ begin
       if i < len then continue;
     end;
 
+    // Avoid parsing stuff inside string literals.
     if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) then begin
       if instring and (sql[i] = encloser) then begin
         if secchar = encloser then
@@ -523,6 +535,9 @@ begin
       end;
       if i < len then continue;
     end;
+
+    if (instring and (sql[i] = '\')) or backslash then
+      backslash := not backslash;
 
     // Allow a DELIMITER command in middle of SQL, like the MySQL CLI does.
     if (not instring) and (not incomment) and (not inbigcomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', true) then begin
@@ -552,6 +567,7 @@ begin
       if i < len then continue;
     end;
 
+    // Handle conditional comments.
     if (not instring) and (not incomment) and (sql[i] + secchar + thdchar = '/*!') then begin
       inconditional := true;
       condterminated := false;
@@ -584,7 +600,7 @@ begin
           start := i + 1;
         end else begin
           tmp := '/*!' + conditional + ' ';
-          Move(tmp[1], sql[start - length(tmp)], length(tmp));
+          move(tmp[1], sql[start - length(tmp)], length(tmp));
           start := start - length(tmp);
         end;
         condterminated := false;
@@ -595,10 +611,7 @@ begin
       if i < len then continue;
     end;
 
-    if (sql[i] = '\') or backslash then
-      backslash := not backslash;
-
-    // add sql sentence
+    // Add sql sentence.
     if ((not instring) and (scanReverse(sql, i, delimiter, false)) or (i = len)) then begin
       if (i < len) then j := delimiter_length else begin
         // end of string, add sql sentence but only remove delimiter if it's there
