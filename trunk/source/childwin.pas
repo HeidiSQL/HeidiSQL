@@ -247,7 +247,6 @@ type
     MenuRun: TMenuItem;
     MenuRunSelection: TMenuItem;
     MenuRunLine: TMenuItem;
-    MenuSetFilter: TMenuItem;
     MenuItem1: TMenuItem;
     menucopy: TMenuItem;
     menupaste: TMenuItem;
@@ -297,6 +296,15 @@ type
     LabelQueryDelimiter: TLabel;
     ComboBoxQueryDelimiter: TComboBox;
     menuTreeAlterTable: TMenuItem;
+    popupFilter: TPopupMenu;
+    menuApplyFilter: TMenuItem;
+    menuFilterCopy: TMenuItem;
+    menuFilterPaste: TMenuItem;
+    menuFilterClear: TMenuItem;
+    N8: TMenuItem;
+    N20: TMenuItem;
+    menuFilterSQLhelp: TMenuItem;
+    N25: TMenuItem;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -494,6 +502,7 @@ type
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure ComboBoxQueryDelimiterAdd(delimiter: String);
     procedure FormCreate(Sender: TObject);
+    procedure popupFilterPopup(Sender: TObject);
 
     private
       strHostRunning             : String;
@@ -737,7 +746,9 @@ var
   winName          : String;
   i, j             : Integer;
   miGroup,
-  miFunction       : TMenuItem;
+  miFilterGroup,
+  miFunction,
+  miFilterFunction : TMenuItem;
   functioncats     : TStringList;
   reg, reg2        : TRegistry;
 begin
@@ -843,14 +854,17 @@ begin
   for i:=0 to functioncats.Count-1 do
   begin
     // Create a menu item which gets subitems later
-    miGroup := TMenuItem.Create(self);
+    miGroup := TMenuItem.Create(popupQuery);
     miGroup.Caption := functioncats[i];
     popupQuery.Items.add(miGroup);
+    miFilterGroup := TMenuItem.Create(popupFilter);
+    miFilterGroup.Caption := miGroup.Caption;
+    popupFilter.Items.add(miFilterGroup);
     for j:=0 to Length(MySqlFunctions)-1 do
     begin
       if MySqlFunctions[j].Category <> functioncats[i] then
         continue;
-      miFunction := TMenuItem.Create(self);
+      miFunction := TMenuItem.Create(popupQuery);
       miFunction.Caption := MySqlFunctions[j].Name;
       miFunction.ImageIndex := 86;
       // Prevent generating a hotkey
@@ -876,6 +890,15 @@ begin
       // Prevent generating a seperator for ShortHint and LongHint
       miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
       miGroup.Add(miFunction);
+      // Create a copy of the menuitem for popupFilter
+      miFilterFunction := TMenuItem.Create(popupFilter);
+      miFilterFunction.Caption := miFunction.Caption;
+      miFilterFunction.Hint := miFunction.Hint;
+      miFilterFunction.ImageIndex := miFunction.ImageIndex;
+      miFilterFunction.Tag := miFunction.Tag;
+      miFilterFunction.OnClick := miFunction.OnClick;
+      miFilterFunction.Enabled := miFunction.Enabled;
+      miFilterGroup.Add(miFilterFunction);
     end;
   end;
 
@@ -4148,66 +4171,21 @@ end;
 
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
 var
-  InQueryMemo,
   somechars         : Boolean;
-  ActiveSynMemo     : TSynMemo;
 begin
-  // Check on which memo the menu was popped up 
-  ActiveSynMemo := TSynMemo( TPopupMenu(Sender).PopupComponent );
-
-  // When a shortcut from popupQuery is used, this procedure is
-  // also called, which then leads to PopupComponent being nil.
-  // However, this procedure only changes visible things in popupQuery,
-  // so we only need to run it if the popup is really displayed.
-  if ActiveSynMemo = nil then
-    Exit;
-
-  // Depending which SynMemo is focused, (de-)activate some menuitems
-  // The popupQuery is used in both Filter- and Query-Memo
-  InQueryMemo := ActiveSynMemo = SynMemoQuery;
-
   // Sets cursor into memo and activates TAction(s) like paste
-  ActiveSynMemo.SetFocus;
-
-  MenuSetFilter.Visible := Not InQueryMemo;
-
-  MenuRun.Visible := InQueryMemo;
-  MenuRunSelection.Visible := InQueryMemo;
-  MenuRunLine.Visible := InQueryMemo;
-
-  MenuFind.Visible := InQueryMemo;
-  MenuReplace.Visible := InQueryMemo;
-
-  MenuLoad.Visible := InQueryMemo;
-  MenuInsertFileAtCursor.Visible := InQueryMemo;
-  MenuSave.Visible := InQueryMemo;
-  MenuSaveSelectionToFile.Visible := InQueryMemo;
-  MenuSaveAsSnippet.Visible := InQueryMemo;
-  MenuSaveSelectionAsSnippet.Visible := InQueryMemo;
-
-  if InQueryMemo then
-  begin
-    somechars := ActiveSynMemo.GetTextLen > 0;
-    MenuRun.ShortCut := TextToShortCut('F9');  // Exec SQL with F9
-    MenuSetFilter.ShortCut := TextToShortCut('');
-    // Inserting file at cursor only makes sense with content
-    MenuInsertFileAtCursor.Enabled := somechars;
-    Menusave.Enabled := somechars;
-    MenuSaveSelectionToFile.Enabled := ActiveSynMemo.SelAvail;
-    MenuSaveAsSnippet.Enabled := somechars;
-    MenuSaveSelectionAsSnippet.Enabled := ActiveSynMemo.SelAvail;
-  end
-  else
-  begin
-    somechars := ActiveSynMemo.GetTextLen > 0;
-    MenuRun.ShortCut := TextToShortCut('');
-    MenuSetFilter.ShortCut := TextToShortCut('F9'); // set Filter with F9
-  end;
+  SynMemoQuery.SetFocus;
+  somechars := SynMemoQuery.GetTextLen > 0;
+  // Inserting file at cursor only makes sense with content
+  MenuInsertFileAtCursor.Enabled := somechars;
+  Menusave.Enabled := somechars;
+  MenuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
+  MenuSaveAsSnippet.Enabled := somechars;
+  MenuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
   MenuClear.Enabled := somechars;
-
-  menuSQLHelp.Enabled := (mysql_version >= 40100) and (ActiveSynMemo.WordAtCursor <> '');
+  menuSQLHelp.Enabled := (mysql_version >= 40100) and (SynMemoQuery.WordAtCursor <> '');
   // Insert keyword into menuitem, so it's very clear what the menuitem does
-  menuSQLHelp.Caption := 'Lookup "'+sstr(ActiveSynMemo.WordAtCursor,50)+'" in SQL help ...';
+  menuSQLHelp.Caption := 'Lookup "'+sstr(SynMemoQuery.WordAtCursor,50)+'" in SQL help ...';
 end;
 
 procedure TMDIChild.popupResultGridPopup(Sender: TObject);
@@ -6454,6 +6432,25 @@ begin
   {$I+}
   // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
   IOResult;
+end;
+
+
+{**
+  popupFilter displays or a key was pressed which is assigned to
+  it as a shortcut 
+}
+procedure TMDIChild.popupFilterPopup(Sender: TObject);
+var
+  somechars         : Boolean;
+begin
+  // Sets cursor into memo and activates TAction(s) like paste
+  SynMemoFilter.SetFocus;
+  somechars := SynMemoFilter.GetTextLen > 0;
+  // Inserting file at cursor only makes sense with content
+  MenuFilterClear.Enabled := somechars;
+  menuFilterSQLHelp.Enabled := (mysql_version >= 40100) and (SynMemoFilter.WordAtCursor <> '');
+  // Insert keyword into menuitem, so it's very clear what the menuitem does
+  menuFilterSQLHelp.Caption := 'Lookup "'+sstr(SynMemoFilter.WordAtCursor,50)+'" in SQL help ...';
 end;
 
 end.

@@ -1463,7 +1463,7 @@ object MDIChild: TMDIChild
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = popupQuery
+        PopupMenu = popupFilter
         TabOrder = 0
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
@@ -1537,8 +1537,8 @@ object MDIChild: TMDIChild
           object btnFilterSet: TToolButton
             Left = 0
             Top = 0
-            Hint = 'Set Filter'
-            Caption = 'Set Filter'
+            Hint = 'Apply Filter'
+            Caption = 'Apply Filter'
             ImageIndex = 10
             OnClick = setFilter
           end
@@ -2175,12 +2175,12 @@ object MDIChild: TMDIChild
     Top = 168
   end
   object popupFilterOpenFile: TPopupMenu
-    Left = 272
-    Top = 278
+    Left = 48
+    Top = 318
   end
   object OpenDialog2: TOpenDialog
-    Left = 302
-    Top = 278
+    Left = 48
+    Top = 350
   end
   object TimerHost: TTimer
     Enabled = False
@@ -2294,12 +2294,6 @@ object MDIChild: TMDIChild
     end
     object MenuRunLine: TMenuItem
       Action = MainForm.ExecuteLine
-    end
-    object MenuSetFilter: TMenuItem
-      Caption = 'Set Filter'
-      ImageIndex = 10
-      Visible = False
-      OnClick = setFilter
     end
     object MenuItem1: TMenuItem
       Caption = '-'
@@ -2417,6 +2411,43 @@ object MDIChild: TMDIChild
       ImageIndex = 96
       ShortCut = 112
       OnClick = CallSQLHelp
+    end
+  end
+  object popupFilter: TPopupMenu
+    Images = MainForm.ImageList1
+    OnPopup = popupFilterPopup
+    Left = 80
+    Top = 318
+    object menuApplyFilter: TMenuItem
+      Caption = 'Appply filter ...'
+      ImageIndex = 10
+      ShortCut = 120
+      OnClick = setFilter
+    end
+    object N20: TMenuItem
+      Caption = '-'
+    end
+    object menuFilterCopy: TMenuItem
+      Action = MainForm.EditCopy1
+    end
+    object menuFilterPaste: TMenuItem
+      Action = MainForm.EditPaste1
+    end
+    object menuFilterClear: TMenuItem
+      Caption = 'Clear'
+      ShortCut = 16471
+      OnClick = menuclearClick
+    end
+    object N8: TMenuItem
+      Caption = '-'
+    end
+    object menuFilterSQLhelp: TMenuItem
+      Caption = 'Lookup in SQL help'
+      ImageIndex = 96
+      OnClick = menuSQLhelpClick
+    end
+    object N25: TMenuItem
+      Caption = '-'
     end
   end
 end
