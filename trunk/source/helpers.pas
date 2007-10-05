@@ -387,33 +387,26 @@ end;
   Limitations: in case insensitive mode, input must be ANSI and lower case (for speed).
   Eligible for inlining, hope the compiler does this automatically.
 }
-function scanReverse(const haystack: string; const hayIndex: integer; const needle: string; insensitive: boolean): boolean;
+function scanReverse(const haystack: string; hayIndex: integer; const needle: string; needleEnd: integer; insensitive: boolean): boolean;
 var
-  z, y: integer;
   b: byte;
   c: char;
 begin
-  y := Length(needle);
-  if (hayIndex < y) then begin
-    result := false;
-    exit;
-  end;
-  z := hayIndex;
-  while (z > 0) and (y > 0) do begin
+  while (hayIndex > 0) and (needleEnd > 0) do begin
     // Lowercase ANSI A-Z if requested.
     if insensitive then begin
-      b := Ord(haystack[z]);
+      b := Ord(haystack[hayIndex]);
       if (b > 64) and (b < 91) then b := b - 65 + 97;
       c := Chr(b);
-    end else c := haystack[z];
-    if c <> needle[y] then begin
+    end else c := haystack[hayIndex];
+    if c <> needle[needleEnd] then begin
       result := false;
       exit;
     end;
-    y := y - 1;
-    z := z - 1;
+    needleEnd := needleEnd - 1;
+    hayIndex := hayIndex - 1;
   end;
-  result := true;
+  result := needleEnd = 0;
 end;
 
 
@@ -540,7 +533,7 @@ begin
       backslash := not backslash;
 
     // Allow a DELIMITER command in middle of SQL, like the MySQL CLI does.
-    if (not instring) and (not incomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', true) then begin
+    if (not instring) and (not incomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', 9, true) then begin
       // The allowed DELIMITER format is:
       //   <delimiter> <whitespace(s)> <character(s)> <whitespace(s)> <newline>
       if isWhitespace(secchar) then begin
@@ -612,10 +605,10 @@ begin
     end;
 
     // Add sql sentence.
-    if ((not instring) and (scanReverse(sql, i, delimiter, false)) or (i = len)) then begin
+    if ((not instring) and (scanReverse(sql, i, delimiter, delimiter_length, false)) or (i = len)) then begin
       if (i < len) then j := delimiter_length else begin
         // end of string, add sql sentence but only remove delimiter if it's there
-        if scanReverse(sql, i, delimiter, false) then j := delimiter_length else j := 0;
+        if scanReverse(sql, i, delimiter, delimiter_length, false) then j := delimiter_length else j := 0;
       end;
       if inconditional then begin
         addResult(result, copy(sql, start, i - start - j + 1), '%s */');
