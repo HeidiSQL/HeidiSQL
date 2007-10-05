@@ -1174,7 +1174,7 @@ begin
   // Log to file?
   if prefLogToFile then
   try
-    WriteLn( FileHandleSessionLog, msg );
+    WriteLn( FileHandleSessionLog, Format('[%s] %s', [DateTimeToStr(Now), msg]) );
   except
     DeactivateFileLogging;
     MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
