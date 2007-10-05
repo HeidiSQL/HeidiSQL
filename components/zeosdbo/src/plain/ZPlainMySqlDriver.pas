@@ -3099,7 +3099,8 @@ end;
 
 function TZMySQL5PlainDriver.FetchRow(Res: PZMySQLResult): PZMySQLRow;
 begin
-  Result := MYSQL_API.mysql_fetch_row(Res);
+  if Res = nil then Result := nil
+  else Result := MYSQL_API.mysql_fetch_row(Res);
 end;
 
 procedure TZMySQL5PlainDriver.FreeResult(Res: PZMySQLResult);
