@@ -126,9 +126,12 @@ object MDIChild: TMDIChild
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
+                HintMode = hmTooltip
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
                 PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 0
                 TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
                 TreeOptions.MiscOptions = [toToggleOnDblClick]
@@ -139,6 +142,7 @@ object MDIChild: TMDIChild
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
                 OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
                 OnInitNode = vstInitNode
@@ -174,9 +178,12 @@ object MDIChild: TMDIChild
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
+                HintMode = hmTooltip
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
                 PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 0
                 TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
@@ -187,6 +194,7 @@ object MDIChild: TMDIChild
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
                 OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
                 OnInitNode = vstInitNode
@@ -251,9 +259,12 @@ object MDIChild: TMDIChild
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
+                HintMode = hmTooltip
                 Images = MainForm.ImageList1
                 IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
                 PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 0
                 TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
@@ -264,6 +275,7 @@ object MDIChild: TMDIChild
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
                 OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
                 OnInitNode = vstInitNode
@@ -359,9 +371,12 @@ object MDIChild: TMDIChild
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Header.PopupMenu = popupDbGridHeader
             Header.SortColumn = 0
+            HintMode = hmTooltip
             Images = MainForm.ImageList1
             IncrementalSearch = isInitializedOnly
+            ParentShowHint = False
             PopupMenu = popupDbGrid
+            ShowHint = True
             TabOrder = 1
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
             TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
@@ -374,6 +389,7 @@ object MDIChild: TMDIChild
             OnFreeNode = vstFreeNode
             OnGetText = vstGetText
             OnGetImageIndex = vstGetImageIndex
+            OnGetHint = vstGetHint
             OnGetNodeDataSize = vstGetNodeDataSize
             OnHeaderClick = vstHeaderClick
             OnInitNode = vstInitNode
@@ -695,9 +711,12 @@ object MDIChild: TMDIChild
             Header.Font.Style = []
             Header.Height = 20
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            HintMode = hmTooltip
             Images = MainForm.ImageList1
             IncrementalSearch = isInitializedOnly
+            ParentShowHint = False
             PopupMenu = popupTableGrid
+            ShowHint = True
             TabOrder = 2
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
@@ -709,6 +728,7 @@ object MDIChild: TMDIChild
             OnFreeNode = vstFreeNode
             OnGetText = vstGetText
             OnGetImageIndex = vstGetImageIndex
+            OnGetHint = vstGetHint
             OnGetNodeDataSize = vstGetNodeDataSize
             OnHeaderClick = vstHeaderClick
             OnInitNode = vstInitNode

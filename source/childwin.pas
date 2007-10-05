@@ -502,6 +502,9 @@ type
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure ComboBoxQueryDelimiterAdd(delimiter: String);
     procedure FormCreate(Sender: TObject);
+    procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
+        HintText: WideString);
     procedure popupFilterPopup(Sender: TObject);
 
     private
@@ -6452,5 +6455,34 @@ begin
   // Insert keyword into menuitem, so it's very clear what the menuitem does
   menuFilterSQLHelp.Caption := 'Lookup "'+sstr(SynMemoFilter.WordAtCursor,50)+'" in SQL help ...';
 end;
+
+
+{**
+  Display tooltips in VirtualTrees. Imitates default behaviour of TListView.
+}
+procedure TMDIChild.vstGetHint(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; var LineBreakStyle:
+    TVTTooltipLineBreakStyle; var HintText: WideString);
+var
+  NodeData : PVTreeData;
+  r : TRect;
+  DisplayedWidth,
+  NeededWidth : Integer;
+begin
+  NodeData := Sender.GetNodeData( Node );
+  if NodeData.Captions.Count > Column then
+    HintText := NodeData.Captions[Column]
+  else
+    Exit;
+  // Check if the list has shortened the text
+  r := Sender.GetDisplayRect(Node, Column, True);
+  DisplayedWidth := r.Right-r.Left;
+  NeededWidth := Canvas.TextWidth(HintText) + TVirtualStringTree(Sender).TextMargin*2;
+  //debug(format('need: %d, given: %d, font: %s %d', [NeededWidth, DisplayedWidth, canvas.Font.Name, canvas.Font.Size]));
+  // Disable displaying hint if text is displayed completely in list
+  if NeededWidth <= DisplayedWidth then
+    HintText := '';
+end;
+
 
 end.
