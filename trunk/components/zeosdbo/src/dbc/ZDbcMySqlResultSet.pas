@@ -244,7 +244,7 @@ begin
 
   { Fills the column info. }
   ColumnsInfo.Clear;
-  for I := 0 to FPlainDriver.GetFieldCount(FQueryHandle) - 1 do
+  if Assigned(FQueryHandle) then for I := 0 to FPlainDriver.GetFieldCount(FQueryHandle) - 1 do
   begin
     FPlainDriver.SeekField(FQueryHandle, I);
     FieldHandle := FPlainDriver.FetchField(FQueryHandle);
