@@ -522,7 +522,7 @@ begin
     end;
 
     // Avoid parsing stuff inside string literals.
-    if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) then begin
+    if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) and (not indelimiter) then begin
       if instring and (sql[i] = encloser) then begin
         if secchar = encloser then
           i := i + 1                            // encoded encloser-char
