@@ -231,18 +231,24 @@ begin
         end;
       end;
     end else begin
-      if ExpectResultSet(FSql) then begin
-        r := RunDataQuery (FSql,TDataSet(q),ex,FCallback);
-        if r then begin
-          if q.State=dsBrowse then begin
-            // WTF?
+      try
+        if ExpectResultSet(FSql) then begin
+          r := RunDataQuery (FSql,TDataSet(q),ex,FCallback);
+          if r then begin
+            if q.State=dsBrowse then begin
+              // WTF?
+            end;
           end;
-        end;
-      end else r := RunUpdateQuery (FSql,TDataSet(q),ex,FCallBack);
-      TMysqlQuery(FOwner).SetMysqlDataset(q);
+        end else r := RunUpdateQuery (FSql,TDataSet(q),ex,FCallBack);
+        TMysqlQuery(FOwner).SetMysqlDataset(q);
 
-      if r then SetState (MQR_SUCCESS,'SUCCESS')
-      else SetState (MQR_QUERY_FAIL,ex.Msg);
+        if r then SetState (MQR_SUCCESS,'SUCCESS')
+        else SetState (MQR_QUERY_FAIL,ex.Msg);
+      except
+        on E: Exception do begin
+          SetState (MQR_QUERY_FAIL,Format('%s', [E.Message]));
+        end;
+      end;
     end;
   end;
 
