@@ -74,7 +74,6 @@ type
   function maskSql(sql_version: integer; str: String) : String;
   procedure ActivateWindow(Window : HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
-  function ExpectResultSet(ASql: String): Boolean;
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
   function GetFieldValue( Field: TField ): String;
@@ -1881,55 +1880,6 @@ begin
   else
     ppath := nil;
   ShellExecute(0, 'open', pchar(cmd), Nil, ppath, SW_SHOWNORMAL);
-end;
-
-
-
-{***
-  Checks if the SQL will bring up any resultset.
-  Important to know for deciding on whether to do a
-  ZQuery.Open or ZQuery.ExecSQL
-
-  @param string (part of) SQL-query
-  @return boolean
-  @see TMDIChild:ExecSQLClick
-  @see TMysqlQueryThread:Execute
-}
-function ExpectResultSet(ASql: String): Boolean;
-const
-  RESULTSET_KEYWORDS : array[0..11] of string[10] =
-  (
-   'ANALYZE',
-   'CALL',
-   'CHECK',
-   'DESC',
-   'DESCRIBE',
-   'EXECUTE',
-   'EXPLAIN',
-   'HELP',
-   'OPTIMIZE',
-   'REPAIR',
-   'SELECT',
-   'SHOW'
-  );
-  NOTRESULTSET_SENTENCE : string[12] = 'INTO OUTFILE';
-var
-  kw : String;
-  i : Integer;
-begin
-  Result := False;
-
-  // Find keyword and check existance in const-array of resultset-keywords
-  kw := UpperCase( getFirstWord( ASql ) );
-  for i := Low(RESULTSET_KEYWORDS) to High(RESULTSET_KEYWORDS) do
-  begin
-    if kw = RESULTSET_KEYWORDS[i] then
-    begin
-      Result := True;
-      break;
-    end;
-  end;
-  if Pos(NOTRESULTSET_SENTENCE, UpperCase(ASql)) > 0 then Result := False;
 end;
 
 
