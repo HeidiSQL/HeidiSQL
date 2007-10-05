@@ -791,7 +791,7 @@ begin
 
   { Checks for maximum row. }
   Result := False;
-  if (MaxRows > 0) and (Row > MaxRows) then
+  if (MaxRows > -1) and (Row >= MaxRows) then
     Exit;
 
   if not FUseResult then
@@ -837,7 +837,7 @@ function TZMySQLResultSet.Next: Boolean;
 begin
   { Checks for maximum row. }
   Result := False;
-  if (MaxRows > 0) and (RowNo >= MaxRows) then
+  if (MaxRows > -1) and (RowNo >= MaxRows) then
     Exit;
 
   FRowHandle := FPlainDriver.FetchRow(FQueryHandle);

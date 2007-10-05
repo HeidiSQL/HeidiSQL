@@ -1736,7 +1736,7 @@ var
   TempRow: PZRowBuffer;
 begin
   Result := FResultSet.Next;
-  if not Result or ((MaxRows > 0) and (LastRowNo >= MaxRows)) then
+  if not Result or ((MaxRows > -1) and (LastRowNo >= MaxRows)) then
     Exit;
 
   TempRow := RowAccessor.RowBuffer;
@@ -1928,7 +1928,7 @@ function TZCachedResultSet.MoveAbsolute(Row: Integer): Boolean;
 begin
   { Checks for maximum row. }
   Result := False;
-  if (MaxRows > 0) and (Row > MaxRows) then
+  if (MaxRows > -1) and (Row >= MaxRows) then
     Exit;
 
   { Processes negative rows }

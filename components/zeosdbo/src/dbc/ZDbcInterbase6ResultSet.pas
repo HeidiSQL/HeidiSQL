@@ -547,7 +547,7 @@ var
 begin
   { Checks for maximum row. }
   Result := False;
-  if (MaxRows > 0) and (LastRowNo >= MaxRows) then
+  if (MaxRows > -1) and (LastRowNo >= MaxRows) then
     Exit;
 
   { Fetch row. }

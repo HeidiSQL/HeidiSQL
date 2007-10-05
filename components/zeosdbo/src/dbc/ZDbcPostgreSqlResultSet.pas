@@ -636,7 +636,7 @@ begin
 
   { Checks for maximum row. }
   Result := False;
-  if (MaxRows > 0) and (Row > MaxRows) then
+  if (MaxRows > -1) and (Row >= MaxRows) then
     Exit;
 
   { Processes negative rows. }

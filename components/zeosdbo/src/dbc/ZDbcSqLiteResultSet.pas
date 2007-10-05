@@ -734,7 +734,7 @@ begin
   { Checks for maximum row. }
   Result := False;
 
-  if (MaxRows > 0) and (RowNo >= MaxRows) then
+  if (MaxRows > -1) and (RowNo >= MaxRows) then
     Exit;
 
   if LastRowNo = 0 then

@@ -1528,8 +1528,7 @@ begin
     if IsUniDirectional then
       Statement.SetResultSetType(rtForwardOnly)
     else Statement.SetResultSetType(rtScrollInsensitive);
-    if MaxRows > 0 then
-      Statement.SetMaxRows(MaxRows);
+    Statement.SetMaxRows(MaxRows);
 
     if doSmartOpen in FOptions then
     begin
