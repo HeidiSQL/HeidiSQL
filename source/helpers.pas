@@ -424,7 +424,6 @@ var
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
   inbigcomment, indelimiter         : Boolean;
-  openconditional                   : Boolean;
   delimiter_length                  : Integer;
   encloser, secchar, thdchar        : Char;
   conditional                       : String;
@@ -458,7 +457,6 @@ begin
   incomment := false;
   inbigcomment := false;
   inconditional := false;
-  openconditional := false;
   condterminated := false;
   indelimiter := false;
   encloser := ' ';
@@ -470,17 +468,62 @@ begin
   while i < len do begin
     i := i + 1;
 
-    // Skip whitespace immediately if at start of sentence.
-    if (start = i) and isWhitespace(sql[i]) then begin
-      start := start + 1;
-      continue;
-    end;
-
     // Helpers for multi-character tests, avoids testing for string length.
     secchar := '-';
     thdchar := '-';
     if i < length(sql) then secchar := sql[i + 1];
     if i + 1 < length(sql) then thdchar := sql[i + 2];
+
+    if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
+      incomment := true;
+    end;
+    if (sql[i] + secchar = '--') and (not instring) and (not inbigcomment) then begin
+      incomment := true;
+      sql[i] := ' ';
+      if start = i then start := start + 1;
+      i := i + 1;
+    end;
+    if (sql[i] + secchar = '/*') and (not (thdchar = '!')) and (not instring) and (not incomment) then begin
+      inbigcomment := true;
+      incomment := true;
+      sql[i] := ' ';
+      if start = i then start := start + 1;
+      i := i + 1;
+    end;
+    if incomment and (not inbigcomment) and (sql[i] in [#13, #10]) then begin
+      incomment := false;
+    end;
+    if inbigcomment and (sql[i] + secchar = '*/') then begin
+      inbigcomment := false;
+      incomment := false;
+      sql[i] := ' ';
+      if start = i then start := start + 1;
+      i := i + 1;
+      sql[i] := ' ';
+    end;
+    if incomment or inbigcomment then begin
+      sql[i] := ' ';
+    end;
+
+    // Skip whitespace immediately if at start of sentence.
+    if (start = i) and isWhitespace(sql[i]) then begin
+      start := start + 1;
+      if i < len then continue;
+    end;
+
+    if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) then begin
+      if instring and (sql[i] = encloser) then begin
+        if secchar = encloser then
+          i := i + 1                            // encoded encloser-char
+        else
+          instring := not instring              // string closed
+      end
+      else if not instring then begin           // string is following
+        instring := true;
+        encloser := sql[i];                     // remember enclosing-character
+      end;
+      if i < len then continue;
+    end;
 
     // Allow a DELIMITER command in middle of SQL, like the MySQL CLI does.
     if (not instring) and (not incomment) and (not inbigcomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', true) then begin
@@ -489,7 +532,7 @@ begin
       if isWhitespace(secchar) then begin
         indelimiter := true;
         i := i + 1;
-        continue;
+        if i < len then continue;
       end;
     end;
 
@@ -507,62 +550,16 @@ begin
         indelimiter := false;
         start := i + 1;
       end;
-      continue;
-    end;
-
-    if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
-      incomment := true;
-    end;
-    if (sql[i] + secchar = '--') and (not instring) and (not inbigcomment) then begin
-      incomment := true;
-      sql[i] := ' ';
-      i := i + 1;
-    end;
-    if (sql[i] + secchar = '/*') and (not (thdchar = '!')) and (not instring) and (not incomment) then begin
-      inbigcomment := true;
-      incomment := true;
-      sql[i] := ' ';
-      i := i + 1;
-    end;
-    if incomment and (not inbigcomment) and (sql[i] in [#13, #10]) then begin
-      incomment := false;
-      continue;
-    end;
-    if inbigcomment and (sql[i] + secchar = '*/') then begin
-      inbigcomment := false;
-      incomment := false;
-      sql[i] := ' ';
-      i := i + 1;
-      sql[i] := ' ';
-      continue;
-    end;
-    if incomment or inbigcomment then begin
-      sql[i] := ' ';
-      continue;
-    end;
-
-    if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) then begin
-      if instring and (sql[i] = encloser) then begin
-        if secchar = encloser then
-          i := i + 1                            // encoded encloser-char
-        else
-          instring := not instring              // string closed
-      end
-      else if not instring then begin           // string is following
-        instring := true;
-        encloser := sql[i];                     // remember enclosing-character
-      end;
-      continue;
+      if i < len then continue;
     end;
 
     if (not instring) and (not incomment) and (sql[i] + secchar + thdchar = '/*!') then begin
       inconditional := true;
       condterminated := false;
-      openconditional := true;
       tmp := '';
       conditional := '';
       i := i + 2;
-      continue;
+      if i < len then continue;
     end;
 
     if inconditional and (conditional = '') then begin
@@ -571,43 +568,46 @@ begin
         // note:
         // we do not trim the start of the SQL inside conditional
         // comments like we do on non-commented sql.
-        continue;
+        if i < len then continue;
       end else tmp := tmp + sql[i];
     end;
 
     if inconditional and (not instring) and (not incomment) and (sql[i] + secchar = '*/') then begin
       inconditional := false;
-      // skip openconditional stage if entirely empty conditional.
-      j := start;
-      while (not condterminated) and (j < i) and (not isWhitespace(sql[j])) do j := j + 1;
-      if trim(copy(sql, j, i - j)) = '' then begin
-        openconditional := false;
-        // just nuke the empty conditional now that we have it.
-        i := i + 1;
-        start := i + 1;
+      if condterminated then begin
+        // at least one statement was terminated inside the conditional.
+        // if the conditional had no more contents after that statement,
+        // clear the end marker.  otherwise, add a new start marker.
+        if trim(copy(sql, start, i - start)) = '' then begin
+          sql[i] := ' ';
+          i := i + 1;
+          sql[i] := ' ';
+          start := i + 1;
+        end else begin
+          tmp := '/*!' + conditional + ' ';
+          Move(tmp[1], sql[start - length(tmp)], length(tmp));
+          start := start - length(tmp);
+        end;
+        condterminated := false;
       end else begin
-        sql[i] := ' ';
+        if start = i then start := start + 1;
         i := i + 1;
-        sql[i] := ' ';
       end;
+      if i < len then continue;
     end;
 
     if (sql[i] = '\') or backslash then
       backslash := not backslash;
 
     // add sql sentence
-    if (not instring) and (scanReverse(sql, i, delimiter, false) or (i = len)) then begin
+    if ((not instring) and (scanReverse(sql, i, delimiter, false)) or (i = len)) then begin
       if (i < len) then j := delimiter_length else begin
         // end of string, add sql sentence but only remove delimiter if it's there
         if scanReverse(sql, i, delimiter, false) then j := 1 else j := 0;
       end;
-      if inconditional or openconditional then begin
-        if condterminated then
-          addResult(result, copy(sql, start, i - start - j + 1), '/*!' + conditional + ' %s */')
-        else
-          addResult(result, copy(sql, start, i - start - j + 1), '%s */');
+      if inconditional then begin
+        addResult(result, copy(sql, start, i - start - j + 1), '%s */');
         condterminated := true;
-        openconditional := false;
       end else begin
         addResult(result, copy(sql, start, i - start - j + 1));
       end;
