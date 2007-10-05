@@ -356,7 +356,7 @@ begin
     FResultSetConcurrency := rcReadOnly;
     FPostUpdates := poColumnsAll;
     FLocateUpdates := loWhereAll;
-    FMaxRows := 0;
+    FMaxRows := -1;
   end
   else
   begin

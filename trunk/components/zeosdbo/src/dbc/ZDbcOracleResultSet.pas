@@ -886,7 +886,7 @@ var
 begin
   { Checks for maximum row. }
   Result := False;
-  if (RowNo > LastRowNo) or ((MaxRows > 0) and (RowNo >= MaxRows)) then
+  if (RowNo > LastRowNo) or ((MaxRows > -1) and (RowNo >= MaxRows)) then
     Exit;
 
   if RowNo = 0 then

@@ -575,7 +575,7 @@ end;
 function TZASAResultSet.MoveAbsolute(Row: Integer): Boolean;
 begin
   Result := False;
-  if (MaxRows > 0) and (Row >= MaxRows) then
+  if (MaxRows > -1) and (Row >= MaxRows) then
     Exit;
 
   FASAConnection.GetPlainDriver.db_fetch( FASAConnection.GetDBHandle,
@@ -601,7 +601,7 @@ end;
 function TZASAResultSet.MoveRelative(Rows: Integer): Boolean;
 begin
   Result := False;
-  if (MaxRows > 0) and ( Abs( RowNo) + Rows >= MaxRows) then
+  if (MaxRows > -1) and ( Abs( RowNo) + Rows >= MaxRows) then
     Exit;
 
   FASAConnection.GetPlainDriver.db_fetch( FASAConnection.GetDBHandle,
