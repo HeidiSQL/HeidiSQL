@@ -88,6 +88,8 @@ type
     chkRememberFilters: TCheckBox;
     chkLogToFile: TCheckBox;
     btnOpenLogFolder: TButton;
+    Label29: TLabel;
+    pnlActiveLine: TPanel;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -172,6 +174,7 @@ begin
   reg.WriteString('SQLColStringAttri', colortostring(pnlString.Color));
   reg.WriteString('SQLColCommentAttri', colortostring(pnlComments.Color));
   reg.WriteString('SQLColTablenameAttri', colortostring(pnlTablenames.Color));
+  reg.WriteString('SQLColActiveLine', ColorToString(pnlActiveLine.Color));
   reg.WriteString('CSVSeparator', Edit1.Text);
   reg.WriteString('CSVEncloser', Edit2.Text);
   reg.WriteString('CSVTerminator', Edit3.Text);
@@ -201,6 +204,7 @@ begin
     cwin.SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
     cwin.SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
     cwin.SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
+    cwin.SynMemoQuery.ActiveLineColor := self.pnlActiveLine.Color;
     while cwin.SynMemoSQLLog.Lines.Count > updownLogSQLNum.Position do
       cwin.SynMemoSQLLog.Lines.Delete(0);
     cwin.gridData.Font := self.Panel8.font;
@@ -318,6 +322,10 @@ begin
     pnlTablenames.Color := StringToColor(reg.readstring('SQLColTablenameAttri'))
   else
     pnlTablenames.Color := clFuchsia;
+  if reg.ValueExists('SQLColActiveLine') then
+    pnlActiveLine.Color := StringToColor(reg.readstring('SQLColActiveLine'))
+  else
+    pnlActiveLine.Color := clWindow;
 
 
   Edit1.Text := ',';

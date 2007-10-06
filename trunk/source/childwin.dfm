@@ -1140,7 +1140,7 @@ object MDIChild: TMDIChild
               Height = 96
               SingleLineMode = False
               Align = alClient
-              ActiveLineColor = 8454143
+              ActiveLineColor = clWindow
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
               Font.Height = -13
