@@ -6206,6 +6206,7 @@ begin
     end;
 
     Self.delimiter := ComboBoxQueryDelimiter.Text;
+    LogSQL( Format( 'Delimiter changed to %s.', [delimiter] ));
   end;
 end;
 
