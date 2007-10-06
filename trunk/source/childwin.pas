@@ -3398,6 +3398,7 @@ begin
     // Update nodedata
     NodeData.Captions[0] := NewText;
     RefreshActiveDbTableList;
+    PopulateTreeTableList;
   except
     On E : Exception do
     begin
