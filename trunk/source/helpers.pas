@@ -343,6 +343,10 @@ begin
     (Pos('`', s) > 0) or
     (Pos('"', s) > 0)
   then result := 'String literal markers disallowed in DELIMITER (because it would be ignored)';
+
+  if result <> '' then begin
+    result := Format('Invalid delimiter %s: %s.', [s, result]);
+  end;
 end;
 
 
