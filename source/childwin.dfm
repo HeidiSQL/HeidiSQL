@@ -1319,7 +1319,7 @@ object MDIChild: TMDIChild
         Gutter.Font.Height = -11
         Gutter.Font.Name = 'Terminal'
         Gutter.Font.Style = []
-        Gutter.Visible = False
+        Gutter.ShowLineNumbers = True
         Highlighter = SynSQLSyn1
         Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True

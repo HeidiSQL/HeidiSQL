@@ -1151,6 +1151,8 @@ begin
   while ( SynMemoSQLLog.Lines.Count > prefLogsqlnum ) do
   begin
     SynMemoSQLLog.Lines.Delete(0);
+    // Increase first displayed number in gutter so it doesn't lie about the log entries
+    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + 1;
   end;
 
   // Shorten very long messages
