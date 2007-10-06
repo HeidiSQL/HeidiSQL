@@ -1011,6 +1011,8 @@ begin
       SynSQLSyn1.CommentAttri.Foreground := StringToColor( reg.ReadString( 'SQLColCommentAttri' ) );
     if reg.ValueExists( 'SQLColTablenameAttri' ) then
       SynSQLSyn1.TablenameAttri.Foreground := StringToColor( reg.ReadString( 'SQLColTablenameAttri' ) );
+    if reg.ValueExists( 'SQLColActiveLine' ) then
+      SynMemoQuery.ActiveLineColor := StringToColor( reg.ReadString('SQLColActiveLine') );
 
     // SQLFiles-History
     FillPopupQueryLoad();

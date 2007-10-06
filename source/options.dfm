@@ -250,6 +250,13 @@ object optionsform: Toptionsform
             Height = 13
             Caption = 'Table-Names:'
           end
+          object Label29: TLabel
+            Left = 16
+            Top = 169
+            Width = 112
+            Height = 13
+            Caption = 'Active line background:'
+          end
           object pnlKeywords: TPanel
             Left = 104
             Top = 25
@@ -325,6 +332,17 @@ object optionsform: Toptionsform
             BevelOuter = bvLowered
             ParentBackground = False
             TabOrder = 6
+            OnClick = CallColorDialog
+          end
+          object pnlActiveLine: TPanel
+            Left = 156
+            Top = 165
+            Width = 25
+            Height = 25
+            Cursor = crHandPoint
+            BevelOuter = bvLowered
+            ParentBackground = False
+            TabOrder = 7
             OnClick = CallColorDialog
           end
         end
