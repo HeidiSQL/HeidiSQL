@@ -1149,16 +1149,11 @@ begin
 end;
 
 
+{**
+  Add a SQL-command or comment to SynMemoSQLLog
+}
 procedure TMDIChild.LogSQL(msg: String = ''; comment: Boolean = true);
 begin
-  // Add a sql-command or info-line to history-memo
-  while ( SynMemoSQLLog.Lines.Count > prefLogsqlnum ) do
-  begin
-    SynMemoSQLLog.Lines.Delete(0);
-    // Increase first displayed number in gutter so it doesn't lie about the log entries
-    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + 1;
-  end;
-
   // Shorten very long messages
   if ( Length( msg ) > SQLLOG_CHAR_LIMIT ) then
   begin
@@ -1181,6 +1176,14 @@ begin
   SynMemoSQLLog.Lines.Add( msg );
   SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
   SynMemoSQLLog.Repaint();
+
+  // Delete first line(s)
+  while SynMemoSQLLog.Lines.Count > prefLogsqlnum do
+  begin
+    SynMemoSQLLog.Lines.Delete(0);
+    // Increase first displayed number in gutter so it doesn't lie about the log entries
+    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + 1;
+  end;
 
   // Log to file?
   if prefLogToFile then
