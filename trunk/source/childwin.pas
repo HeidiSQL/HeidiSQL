@@ -305,6 +305,8 @@ type
     N20: TMenuItem;
     menuFilterSQLhelp: TMenuItem;
     N25: TMenuItem;
+    menuLogToFile: TMenuItem;
+    menuOpenLogFolder: TMenuItem;
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -502,6 +504,8 @@ type
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure ComboBoxQueryDelimiterAdd(delimiter: String);
     procedure FormCreate(Sender: TObject);
+    procedure menuLogToFileClick(Sender: TObject);
+    procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
         HintText: WideString);
@@ -6426,6 +6430,9 @@ begin
     prefLogToFile := False;
   end else
     prefLogToFile := True;
+  // Update popupMenu items
+  menuLogToFile.Checked := prefLogToFile;
+  menuOpenLogFolder.Enabled := prefLogToFile;
 end;
 
 
@@ -6441,6 +6448,9 @@ begin
   {$I+}
   // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
   IOResult;
+  // Update popupMenu items
+  menuLogToFile.Checked := prefLogToFile;
+  menuOpenLogFolder.Enabled := prefLogToFile;
 end;
 
 
@@ -6488,6 +6498,40 @@ begin
   // Disable displaying hint if text is displayed completely in list
   if NeededWidth <= DisplayedWidth then
     HintText := '';
+end;
+
+
+{**
+  Enable/disable file logging by popupmenuclick
+}
+procedure TMDIChild.menuLogToFileClick(Sender: TObject);
+var
+  reg : TRegistry;
+  OldprefLogToFile: Boolean;
+begin
+  OldprefLogToFile := prefLogToFile;
+  if not prefLogToFile then
+    ActivateFileLogging
+  else
+    DeactivateFileLogging;
+
+  // Save option
+  if prefLogToFile <> OldprefLogToFile then
+  begin
+    reg := TRegistry.Create;
+    reg.OpenKey(REGPATH, true);
+    reg.WriteBool('LogToFile', prefLogToFile);
+    reg.Free;
+  end;
+end;
+
+
+{**
+  Open folder with session logs
+}
+procedure TMDIChild.menuOpenLogFolderClick(Sender: TObject);
+begin
+  ShellExec( '', DirnameSessionLogs );
 end;
 
 
