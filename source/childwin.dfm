@@ -2176,6 +2176,15 @@ object MDIChild: TMDIChild
       ImageIndex = 7
       OnClick = Saveastextfile1Click
     end
+    object menuLogToFile: TMenuItem
+      Caption = 'Log to file'
+      OnClick = menuLogToFileClick
+    end
+    object menuOpenLogFolder: TMenuItem
+      Caption = 'Open log folder ...'
+      Enabled = False
+      OnClick = menuOpenLogFolderClick
+    end
   end
   object TimerConnectErrorCloseWindow: TTimer
     Enabled = False
