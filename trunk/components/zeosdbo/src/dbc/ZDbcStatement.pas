@@ -318,7 +318,7 @@ constructor TZAbstractStatement.Create(Connection: IZConnection; Info: TStrings)
 begin
   { Sets the default properties. }
   FMaxFieldSize := 0;
-  FMaxRows := 0;
+  FMaxRows := -1;
   FEscapeProcessing := False;
   FQueryTimeout := 0;
   FLastUpdateCount := -1;
