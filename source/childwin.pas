@@ -510,6 +510,7 @@ type
         Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
         HintText: WideString);
     procedure popupFilterPopup(Sender: TObject);
+    procedure ProcessSqlLog;
 
     private
       strHostRunning             : String;
@@ -534,6 +535,8 @@ type
       TablePropertiesForm        : Ttbl_properties_form;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
+      SqlMessages                : TStringList;
+      SqlMessagesLock            : TRtlCriticalSection;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -764,6 +767,10 @@ begin
   UserQueryFiring := False;
   TemporaryDatabase := '';
   CachedTableLists := TStringList.Create;
+  InitializeCriticalSection(SqlMessagesLock);
+  EnterCriticalSection(SqlMessagesLock);
+  SqlMessages := TStringList.Create;
+  LeaveCriticalSection(SqlMessagesLock);
 
   FConn := AConn^;
   FMysqlConn := AMysqlConn; // we're now responsible to free it
@@ -1087,6 +1094,9 @@ begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
+  EnterCriticalSection(SqlMessagesLock);
+  FreeAndNil(SqlMessages);
+  LeaveCriticalSection(SqlMessagesLock);
 
   // Closing connection and saving some vars into registry
   case ( WindowState ) of
@@ -1173,7 +1183,30 @@ begin
     msg := '/* ' + msg + ' */';
   end;
 
-  SynMemoSQLLog.Lines.Add( msg );
+  EnterCriticalSection(SqlMessagesLock);
+  try
+    SqlMessages.Add(msg);
+  finally
+    LeaveCriticalSection(SqlMessagesLock);
+  end;
+  PostMessage(MainForm.Handle, WM_PROCESSLOG, 0, 0);
+end;
+
+procedure TMDIChild.ProcessSqlLog;
+var
+  msg: string;
+begin
+  EnterCriticalSection(SqlMessagesLock);
+  try
+    if SqlMessages = nil then Exit;
+    if SqlMessages.Count < 1 then Exit;
+    msg := SqlMessages[0];
+    SqlMessages.Delete(0);
+  finally
+    LeaveCriticalSection(SqlMessagesLock);
+  end;
+
+  SynMemoSQLLog.Lines.Add( String(msg) );
   SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
   SynMemoSQLLog.Repaint();
 
@@ -1834,7 +1867,7 @@ end;
 procedure TMDIChild.WaitForQueryCompletion(WaitForm: TForm);
 begin
   debug( 'Waiting for query to complete.' );
-  WaitForm.ShowModal();
+    WaitForm.ShowModal();
   debug( 'Query complete.' );
 end;
 
