@@ -1207,8 +1207,6 @@ begin
   end;
 
   SynMemoSQLLog.Lines.Add( String(msg) );
-  SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
-  SynMemoSQLLog.Repaint();
 
   // Delete first line(s)
   while SynMemoSQLLog.Lines.Count > prefLogsqlnum do
@@ -1217,6 +1215,10 @@ begin
     // Increase first displayed number in gutter so it doesn't lie about the log entries
     SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + 1;
   end;
+
+  // Scroll to last line and repaint
+  SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
+  SynMemoSQLLog.Repaint;
 
   // Log to file?
   if prefLogToFile then
