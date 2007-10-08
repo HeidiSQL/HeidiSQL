@@ -4329,7 +4329,7 @@ begin
   begin
     Text := (src as TTreeView).Selected.Text;
   end
-  else if src = lboxQueryHelpers then
+  else if (src = lboxQueryHelpers) and ((src as TListBox).ItemIndex > -1) then
   begin
     Text := (src as TListBox).Items[(src as TListBox).ItemIndex];
     if tabsetQueryHelpers.TabIndex = 3 then
