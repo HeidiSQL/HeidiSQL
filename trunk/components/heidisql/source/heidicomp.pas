@@ -73,6 +73,7 @@ type
     kind: Integer;
  protected
     procedure InternalPost; override;
+    procedure InternalRefresh; override;
  public
     constructor Create(AOwner: TComponent; PostCallback: TAsyncPostRunner); reintroduce;
     procedure ExecSQL; override;
@@ -88,6 +89,13 @@ implementation
 procedure TDeferDataSet.InternalPost;
 begin
   kind := 1;
+  if @callback = nil then DoAsync
+  else callback(self);
+end;
+
+procedure TDeferDataSet.InternalRefresh;
+begin
+  kind := 3;
   if @callback = nil then DoAsync
   else callback(self);
 end;
@@ -110,6 +118,7 @@ begin
   case kind of
     1: inherited InternalPost;
     2: inherited ExecSQL;
+    3: inherited InternalRefresh;
   end;
 end;
 
