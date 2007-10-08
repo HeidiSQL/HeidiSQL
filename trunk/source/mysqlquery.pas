@@ -45,6 +45,7 @@ type
       FSyncMode : Integer;
       FQueryThread : TMysqlQueryThread;
       FEventName : String;
+      FEventHandle : THandle;
       FSql : String;
       FOnNotify : TMysqlQueryNotificationEvent;
       function GetNotificationMode: Integer;
@@ -71,6 +72,7 @@ type
       property ThreadID : Integer read FThreadID;               // Mysql query thread ID (on the clients os)
       property Sql : String read FSql;                          // Query string
       property EventName : String read FEventName;              // Operating system event name used for blocking mode
+      property EventHandle : THandle read FEventHandle;
       property NotificationMode : Integer read GetNotificationMode;
       property OnNotify : TMysqlQueryNotificationEvent read FOnNotify write FOnNotify; // Event procedure used in MQN_EVENTPROC notification mode
   end;
@@ -187,57 +189,20 @@ begin
   inherited;
 end;
 
-
-{***
-
-  @param
-  @param
-
-  @result
-}
-
 function TMysqlQuery.GetComment: String;
 begin
-  Result := FQueryResult.Comment;  
+  Result := FQueryResult.Comment;
 end;
-
-
-{***
-
-  @param
-  @param
-
-  @result
-}
 
 function TMysqlQuery.GetConnectionID: Integer;
 begin
   Result := FQueryResult.ConnectionID;
 end;
 
-
-{***
-
-  @param
-  @param
-
-  @result
-}
-
 function TMysqlQuery.GetHasresultSet: Boolean;
 begin
   Result := FMysqlDataset <> nil;
 end;
-
-
-
-{***
-
-  @param
-  @param
-
-  @result
-}
 
 function TMysqlQuery.GetNotificationMode: Integer;
 begin
@@ -247,28 +212,10 @@ begin
     Result := MQN_WINMESSAGE;
 end;
 
-
-{***
-
-  @param
-  @param
-
-  @result
-}
-
 function TMysqlQuery.GetResult: Integer;
 begin
   Result := FQueryResult.Result;
 end;
-
-
-{***
-
-  @param
-  @param
-
-  @result
-}
 
 procedure TMysqlQuery.PostNotification(AQueryResult: TThreadResult; AEvent : Integer);
 begin
@@ -285,18 +232,7 @@ begin
     end;
 end;
 
-
-{***
-
-  @param
-  @param
-
-  @result
-}
-
 procedure TMysqlQuery.Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle; Callback: TAsyncPostRunner; ds: TDeferDataSet);
-var
-  EventHandle : THandle;
 begin
 
   // create thread object
@@ -307,11 +243,11 @@ begin
   FSyncMode := AMode;
   FSql := ASql;
 
+  FEventHandle := CreateEvent ({*EVENT_MODIFY_STATE + SYNCHRONIZE*}nil, False, False, PChar(FEventName));
+
   case AMode of
     MQM_SYNC:
       begin
-        // create mutex
-        EventHandle := CreateEvent (nil,False,False,PChar(FEventName));
         // exec query
         debug(Format('qry: Starting query thread %d', [FQueryThread.ThreadID]));
         FQueryThread.Resume();
