@@ -195,6 +195,7 @@ type
     procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
+    procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
   private
     function GetChildwin: TMDIChild;
   public
@@ -274,6 +275,11 @@ end;
 procedure TMainForm.HandleWMCopyData(var msg: TWMCopyData);
 begin
   HandleWMCopyDataMessage(msg);
+end;
+
+procedure TMainForm.HandleWMProcessLog(var msg: TMessage);
+begin
+  ChildWin.ProcessSqlLog;
 end;
 
 procedure TMainForm.EnsureConnected;
