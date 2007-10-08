@@ -543,7 +543,7 @@ type
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TSMDBGrid;
-      procedure WaitForQueryCompletion(WaitForm: TForm);
+      procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
@@ -1864,10 +1864,18 @@ begin
 end;
 
 
-procedure TMDIChild.WaitForQueryCompletion(WaitForm: TForm);
+procedure TMDIChild.WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery);
+var
+  signal: Cardinal;
 begin
   debug( 'Waiting for query to complete.' );
+  signal := WaitForSingleObject(query.EventHandle, 300);
+  if signal = 0 then debug( 'Query completed within 300msec.' )
+  else begin
+    debug( '300msec passed, showing progress form.' ); 
     WaitForm.ShowModal();
+  end;
+  CloseHandle(query.EventHandle);
   debug( 'Query complete.' );
 end;
 
@@ -5251,7 +5259,7 @@ begin
     FProgressForm := TFrmQueryProgress.Create(Self);
     debug('RunThreadedQuery(): Launching asynchronous query.');
     res := ExecPostAsync(FConn,nil,FProgressForm.Handle,ds);
-    WaitForQueryCompletion(FProgressForm);
+    WaitForQueryCompletion(FProgressForm, res);
     if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
       raise Exception.Create(res.Comment);
@@ -5300,7 +5308,7 @@ begin
     { Repeatedly check if the query has finished by inspecting FQueryRunning
       Allow repainting of user interface
     }
-    WaitForQueryCompletion(FProgressForm);
+    WaitForQueryCompletion(FProgressForm, Result);
   finally
     FQueryRunning := false;
   end;

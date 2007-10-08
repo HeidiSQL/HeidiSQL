@@ -161,14 +161,13 @@ var
   h : THandle;
 begin
 
-  // trigger query finished event
-  if (FSyncMode=MQM_SYNC) and (AEvent=MQE_FREED) then
-    begin
-      h := OpenEvent (EVENT_ALL_ACCESS,False,PChar(TMysqlQuery(FOwner).EventName));
-
-      if h<>0 then
-        SetEvent (h);
-    end;
+  if AEvent = MQE_FINISHED then begin
+    // trigger query finished event
+    h := OpenEvent (EVENT_MODIFY_STATE,False,PChar(TMysqlQuery(FOwner).EventName));
+    debug('qry: Signalling completion via event.');
+    if not SetEvent (h) then debug(Format('qry: Assertion failed: Error %d signaling event', [GetLastError]));
+    CloseHandle(h);
+  end;
 
   case TMysqlQuery(FOwner).NotificationMode of
     MQN_EVENTPROC:  NotifyStatusViaEventProc(AEvent);
@@ -198,6 +197,7 @@ begin
   debug(Format('qry: Setting result and posting status %d via WM_MYSQL_THREAD_NOTIFY message', [AEvent]));
   qr := AssembleResult();
   TMysqlQuery(FOwner).SetThreadResult(qr);
+  debug('qry: Signalling completion via message.');
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
@@ -234,11 +234,11 @@ begin
     end else begin
       try
         r := RunDataQuery (FSql,TDataSet(q),ex,FCallback);
-        if r then begin
+        //if r then begin
           //if q.State=dsBrowse then begin
             // WTF?
           //end;
-        end;
+        //end;
         TMysqlQuery(FOwner).SetMysqlDataset(q);
 
         if r then SetState (MQR_SUCCESS,'SUCCESS')
