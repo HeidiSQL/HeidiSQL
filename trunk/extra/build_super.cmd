@@ -63,24 +63,25 @@ IF %errorlevel% == 0 GOTO svn_good
 ECHO Please install subversion from http://subversion.tigris.org/
 ECHO and make sure that svnversion.exe is in:
 ECHO "%ProgramFiles%\Subversion\bin\"
-GOTO end
+ECHO.
+GOTO skip_wcver
 
 :svn_good
 rem Put WC version into main.pas
-SET WCVER=
 %base_dir%\extra\EnvPipe\EnvPipe.exe WCVER "%ProgramFiles%\Subversion\bin\svnversion.exe" "%base_dir%"
-IF NOT %errorlevel% == 0 GOTO pipefail
+IF %errorlevel% == 0 GOTO go_wcver
+ECHO EnvPipe or svnversion failure - run this step manually to see what went wrong?
+ECHO.
 
+:skip_wcver
+SET WCVER=unknown
+
+:go_wcver
 %base_dir%\extra\sed\sed.exe "s/\$Revision.*\$/\$Revision: WC %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 IF NOT %errorlevel% == 0 GOTO sedfail
 %base_dir%\extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: WC %WCVER% \$/g" -i "%base_dir%\source\main.pas"
-
 IF NOT %errorlevel% == 0 GOTO sedfail
 GOTO wc_ver_good
-
-:pipefail
-ECHO EnvPipe or svnversion failure - run this step manually to see what went wrong?
-GOTO end
 
 :sedfail
 ECHO SED failure - run this step manually to see what went wrong?
