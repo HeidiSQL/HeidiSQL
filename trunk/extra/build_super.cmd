@@ -42,9 +42,9 @@ set params=-aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs
 set params=%params% -B
 set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\Obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir\%components\synedit\build;%base_dir%\components\smdbgrid\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build;"
 set params=%params% -i"%base_dir%\components\compilerdetection;%base_dir%source"
-set params=%params% -LE"%base_dir%build"
-set params=%params% -LN"%base_dir%build"
-set params=%params% -r"%base_dir%source;%base_dir%\components\smdbgrid\Resources;%base_dir%\components\synedit\resources;%base_dir%\components\synedit\Source;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
+set params=%params% -LE"%base_dir%\build"
+set params=%params% -LN"%base_dir%\build"
+set params=%params% -r"%base_dir%\source;%base_dir%\components\smdbgrid\Resources;%base_dir%\components\synedit\resources;%base_dir%\components\synedit\Source;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
 
 echo.
 echo Base directory:          %base_dir%
