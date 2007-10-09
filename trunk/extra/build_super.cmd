@@ -92,12 +92,15 @@ echo.
 rem Build EDBImage
 cd "%base_dir%\components\edbimage\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" %params% VCLSer.dpk
+if not %errorlevel% == 0 goto end
 "%compiler%" -N0"..\..\build" %params% DCLSer.dpk
+if not %errorlevel% == 0 goto end
 
 
 rem Build SMDBGrid
 cd "%base_dir%\components\smdbgrid\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" %params% SMDBGridComponents.dpk
+if not %errorlevel% == 0 goto end
 
 
 rem Build SynEdit
@@ -106,30 +109,38 @@ rem -Q = Quiet compile
 rem      This is a workaround for avoiding error D21153
 rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
 "%compiler%" -N0"..\..\build" -Q %params% SynEditR.dpk
+if not %errorlevel% == 0 goto end
 
 
 rem Build ZeosDBO
 cd "%base_dir%\components\zeosdbo\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" -Q %params% ZCore.dpk
+if not %errorlevel% == 0 goto end
 "%compiler%" -N0"..\..\build" -Q %params% ZPlain.dpk
+if not %errorlevel% == 0 goto end
 "%compiler%" -N0"..\..\build" -Q %params% ZParseSql.dpk
+if not %errorlevel% == 0 goto end
 "%compiler%" -N0"..\..\build" -Q %params% ZDbc.dpk
+if not %errorlevel% == 0 goto end
 "%compiler%" -N0"..\..\build" -Q %params% ZComponent.dpk
-
+if not %errorlevel% == 0 goto end
 
 rem Build HeidiComponents
 cd "%base_dir%\components\heidisql\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" %params% HeidiComponents.dpk
+if not %errorlevel% == 0 goto end
 
 
 rem Build VirtualTreeView
 cd "%base_dir%\components\virtualtreeview\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" %params% VirtualTreesR.dpk
+if not %errorlevel% == 0 goto end
 
 
 rem Build main executable
 cd "%base_dir%\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" -e"%base_dir%\out" %params% heidisql.dpr
+if not %errorlevel% == 0 goto end
 
 :end
 cd "%base_dir%\extra"
