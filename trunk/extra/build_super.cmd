@@ -44,6 +44,7 @@ ECHO.
 GOTO end
 
 :start
+set start_time=%DATE% %TIME%
 set start_dir=%CD%
 cd ..
 set base_dir=%CD%
@@ -163,6 +164,10 @@ rem Build main executable
 cd "%base_dir%\packages\%package_dir%\"
 "%compiler%" -N0"..\..\build" -e"%base_dir%\out" %params% heidisql.dpr
 if not %errorlevel% == 0 goto end
+
+echo.
+echo Started:   %start_time%
+echo Finished:  %DATE% %TIME%
 
 :end
 cd "%base_dir%\extra" 2>NUL:
