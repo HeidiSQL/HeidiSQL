@@ -13,12 +13,13 @@ set package_dir=%2
 REM =============================================
 
 
-IF "%compiler_dir%" == "" GOTO usage
-IF "%package_dir%" == "" GOTO usage
+IF %compiler_dir%. == . GOTO usage
+IF %package_dir%. == . GOTO usage
 GOTO start
 
 :usage
 ECHO Please pass compiler_dir AND package_dir via command line.
+ECHO base_dir is automatically derived from current working directory.
 ECHO.
 PAUSE
 GOTO end
@@ -42,6 +43,37 @@ set params=%params% -LE"%base_dir%build"
 set params=%params% -LN"%base_dir%build"
 set params=%params% -r"%base_dir%source;%base_dir%components\smdbgrid\Resources;%base_dir%components\synedit\resources;%base_dir%components\synedit\Source;%base_dir%components\virtualtreeview\Resources;%base_dir%components\edbimage\resources"
 
+REM Check that svnversion exists
+svnversion --version > NUL:
+IF %errorlevel% == 0 GOTO svn_good
+
+ECHO Please install subversion from http://subversion.tigris.org/
+ECHO and make sure that svnversion.exe is in:
+ECHO "%ProgramFiles%\Subversion\bin\"
+GOTO end
+
+:svn_good
+rem Put WC version into main.pas
+SET WCVER=
+%base_dir%extra\EnvPipe\EnvPipe.exe WCVER "%ProgramFiles%\Subversion\bin\svnversion.exe" "%base_dir%"
+IF NOT %errorlevel% == 0 GOTO pipefail
+
+%base_dir%extra\sed\sed.exe "s/\$Revision.*\$/\$Revision: WC %WCVER% \$/g" -i "%base_dir%\source\main.pas"
+IF NOT %errorlevel% == 0 GOTO sedfail
+%base_dir%extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: WC %WCVER% \$/g" -i "%base_dir%\source\main.pas"
+
+IF NOT %errorlevel% == 0 GOTO sedfail
+GOTO wc_ver_good
+
+:pipefail
+ECHO EnvPipe or svnversion failure - run this step manually to see what went wrong?
+GOTO end
+
+:sedfail
+ECHO SED failure - run this step manually to see what went wrong?
+GOTO end
+
+:wc_ver_good
 
 rem Build EDBImage
 cd %base_dir%components\edbimage\packages\%package_dir%\
@@ -89,3 +121,4 @@ cd %start_dir%
 
 
 :end
+CD extra

@@ -442,6 +442,10 @@ begin
   end;
 
   // Beautify appversion
+  if Pos('$Rev: WC', appversion) < 1 then begin
+    appversion := Copy(appversion, 1, Pos('$Rev', appversion) + 4);
+    appversion := appversion + ' unknown';
+  end else appversion := StringReplace(appversion, 'WC ', '', []);
   appversion := StringReplace( appversion, '$Rev', 'Revision', [rfIgnoreCase] );
   appversion := StringReplace( appversion, '$', '', [] );
   appversion := Trim( appversion );
