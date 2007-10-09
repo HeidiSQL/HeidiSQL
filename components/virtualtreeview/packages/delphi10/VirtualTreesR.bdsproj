@@ -5,12 +5,12 @@
 			<Option Name="Personality">Delphi.Personality</Option>
 			<Option Name="ProjectType">VCLApplication</Option>
 			<Option Name="Version">1.0</Option>
-			<Option Name="GUID">{1AD9C754-C173-4959-B291-986AB1FD6E76}</Option>
+			<Option Name="GUID">{E1DB5073-A0F8-4622-B6FB-6E7EC2E7337D}</Option>
 		</Option>
 	</PersonalityInfo>
 	<Delphi.Personality>
 		<Source>
-			<Source Name="MainSource">VCLser100.dpk</Source>
+			<Source Name="MainSource">VirtualTreesR.dpk</Source>
 		</Source>
 		<FileVersion>
 			<FileVersion Name="Version">7.0</FileVersion>
@@ -115,15 +115,15 @@
 			<Linker Name="GenerateDRC">False</Linker>
 			<Linker Name="MinStackSize">16384</Linker>
 			<Linker Name="MaxStackSize">1048576</Linker>
-			<Linker Name="ImageBase">4194304</Linker>
-			<Linker Name="ExeDescription">EDBImage 1.4 Runtime by SER</Linker>
+			<Linker Name="ImageBase">809500672</Linker>
+			<Linker Name="ExeDescription">Virtual Treeview runtime package</Linker>
 		</Linker>
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">..\..\..\compilerdetection</Directories>
+			<Directories Name="SearchPath">..\..\..\compilerdetection;..\..\resources</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
@@ -139,11 +139,6 @@
 			<Parameters Name="LoadAllSymbols">True</Parameters>
 			<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
 		</Parameters>
-		<Language>
-			<Language Name="ActiveLang"></Language>
-			<Language Name="ProjectLang">$00000000</Language>
-			<Language Name="RootDir"></Language>
-		</Language>
 		<VersionInfo>
 			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
 			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
@@ -156,7 +151,7 @@
 			<VersionInfo Name="Special">False</VersionInfo>
 			<VersionInfo Name="Private">False</VersionInfo>
 			<VersionInfo Name="DLL">False</VersionInfo>
-			<VersionInfo Name="Locale">11274</VersionInfo>
+			<VersionInfo Name="Locale">1031</VersionInfo>
 			<VersionInfo Name="CodePage">1252</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
@@ -172,6 +167,4 @@
 			<VersionInfoKeys Name="Comments"></VersionInfoKeys>
 		</VersionInfoKeys>
 	</Delphi.Personality>
-	<StarTeamAssociation></StarTeamAssociation>
-	<StarTeamNonRelativeFiles></StarTeamNonRelativeFiles>
 </BorlandProject>

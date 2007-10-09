@@ -23,6 +23,7 @@ package SMDBGridComponents;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'SMDBGrid'}
+{$LIBSUFFIX '100'}
 {$IMPLICITBUILD OFF}
 
 requires

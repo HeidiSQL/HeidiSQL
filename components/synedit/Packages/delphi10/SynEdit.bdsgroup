@@ -9,9 +9,9 @@
 		</Option>
 	</PersonalityInfo>
 	<Default.Personality>  <Projects>
-      <Projects Name="SynEdit_R2006.bpl">SynEdit_R2006.bdsproj</Projects>
-      <Projects Name="SynEdit_D10.bpl">SynEdit_D10.bdsproj</Projects>
-      <Projects Name="Targets">SynEdit_R2006.bpl SynEdit_D10.bpl</Projects>
+      <Projects Name="SynEditR.bpl">SynEditR.bdsproj</Projects>
+      <Projects Name="SynEditD.bpl">SynEditD.bdsproj</Projects>
+      <Projects Name="Targets">SynEditR.bpl SynEditD.bpl</Projects>
     </Projects>
     <Dependencies>
       <Dependency GUID="{96EFD372-9A97-4D20-8FA5-0D6D10D49B32}">

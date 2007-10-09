@@ -13,9 +13,9 @@
     
     
     <Projects>
-      <Projects Name="VCLser100.bpl">VCLser100.bdsproj</Projects>
-      <Projects Name="DCLSer100.bpl">DCLSer100.bdsproj</Projects>
-      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl</Projects>
+      <Projects Name="VCLSer.bpl">VCLSer.bdsproj</Projects>
+      <Projects Name="DCLSer.bpl">DCLSer.bdsproj</Projects>
+      <Projects Name="Targets">VCLSer.bpl DCLSer.bpl</Projects>
     </Projects>
     <Dependencies>
       <Dependency GUID="{759FAD5D-818D-4B74-9C65-4FAE307BFFE2}">

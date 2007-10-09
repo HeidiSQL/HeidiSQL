@@ -1,4 +1,4 @@
-package VCLser100;
+package VirtualTreesR;
 
 {$R *.res}
 {$ALIGN 8}
@@ -21,18 +21,19 @@ package VCLser100;
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
-{$IMAGEBASE $400000}
-{$DESCRIPTION 'EDBImage 1.4 Runtime by SER'}
+{$IMAGEBASE $30400000}
+{$DESCRIPTION 'Virtual Treeview runtime package'}
+{$LIBSUFFIX '100'}
 {$RUNONLY}
-{$IMPLICITBUILD OFF}
+{$IMPLICITBUILD ON}
 
 requires
-  vcljpg,
-  dbrtl,
-  vcldb,
-  bdertl;
+  vcl,
+  vclx;
 
 contains
-  EDBImage in '..\..\source\EDBImage.pas';
+  VirtualTrees in '..\..\Source\VirtualTrees.pas',
+  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas';
 
 end.
+

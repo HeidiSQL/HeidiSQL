@@ -1,4 +1,4 @@
-package VirtualTreesD10;
+package DCLSer;
 
 {$R *.res}
 {$ALIGN 8}
@@ -21,18 +21,17 @@ package VirtualTreesD10;
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
-{$IMAGEBASE $30400000}
-{$DESCRIPTION 'Virtual Treeview runtime package'}
-{$RUNONLY}
-{$IMPLICITBUILD ON}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'EDBImage 1.4 by SER'}
+{$LIBSUFFIX '100'}
+{$DESIGNONLY}
+{$IMPLICITBUILD OFF}
 
 requires
-  vcl,
-  vclx;
+  VCLSer,
+  designide;
 
 contains
-  VirtualTrees in '..\..\Source\VirtualTrees.pas',
-  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas';
+  uSerREG in '..\..\source\uSerREG.pas';
 
 end.
-

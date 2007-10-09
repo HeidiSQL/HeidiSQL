@@ -1,4 +1,4 @@
-package SynEdit_R2006;
+package SynEditR;
 
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -22,6 +22,7 @@ package SynEdit_R2006;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'SynEdit component suite runtime'}
+{$LIBSUFFIX '100'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
