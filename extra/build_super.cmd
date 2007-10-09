@@ -1,5 +1,7 @@
 @echo off
 
+CLS
+
 REM =============================================
 REM
 REM Set compiler_dir and compiler_version appropriately via command line.
@@ -12,20 +14,33 @@ set package_dir=%2
 
 REM =============================================
 
+IF %compiler_dir%. == . GOTO nostart
+IF NOT %package_dir%. == . GOTO start
+
+:nostart
+ECHO =================== Note ===================
+ECHO If you are being asked about paths, you can also enter them
+ECHO directly into the build script, or provide them on the command line.
+ECHO.
+ECHO For help with building individual packages, see the developer readme.
+ECHO ============================================
+ECHO.
+ECHO.
 
 IF %compiler_dir%. == . SET /P compiler_dir=Please enter path to delphi bin folder: 
 IF %package_dir%. == . SET /P package_dir=Please enter compiler version (eg delphi11): 
-GOTO start
 
 IF %compiler_dir%. == . GOTO usage
 IF %package_dir%. == . GOTO usage
 GOTO start
 
 :usage
-ECHO Please pass compiler_dir AND package_dir via command line.
-ECHO base_dir is automatically derived from current working directory.
+ECHO.
+ECHO Please pass compiler_dir AND package_dir via
+ECHO command line or supply them when prompted.
 ECHO.
 PAUSE
+ECHO.
 GOTO end
 
 :start
@@ -150,4 +165,4 @@ cd "%base_dir%\packages\%package_dir%\"
 if not %errorlevel% == 0 goto end
 
 :end
-cd "%base_dir%\extra"
+cd "%base_dir%\extra" 2>NUL:
