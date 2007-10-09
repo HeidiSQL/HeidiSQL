@@ -79,7 +79,11 @@ del /S *.bpl
 echo.
 
 REM Check that svnversion exists
-svnversion --version > NUL:
+set svndir=%ProgramFiles%\Subversion\bin\
+"%svndir%svnversion" --version > NUL:
+IF %errorlevel% == 0 GOTO svn_good
+set svndir=%ProgramFiles(x86)%\Subversion\bin\
+"%svndir%svnversion" --version > NUL:
 IF %errorlevel% == 0 GOTO svn_good
 
 ECHO Please install subversion from http://subversion.tigris.org/
@@ -90,7 +94,7 @@ GOTO skip_wcver
 
 :svn_good
 rem Put WC version into main.pas
-%base_dir%\extra\EnvPipe\EnvPipe.exe WCVER "%ProgramFiles%\Subversion\bin\svnversion.exe" "%base_dir%"
+%base_dir%\extra\EnvPipe\EnvPipe.exe WCVER "%svndir%svnversion.exe" "%base_dir%"
 IF %errorlevel% == 0 GOTO go_wcver
 ECHO EnvPipe or svnversion failure - run this step manually to see what went wrong?
 ECHO.
