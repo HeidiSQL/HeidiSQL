@@ -372,7 +372,7 @@ begin
               OutputDebugString(PChar(Format('ReadProcessMemory read %d out of %d attempted bytes of environment.', [retLenU, size])));
               last := last shr 1;
               if last = 0 then last := 1;
-              if res then size := size + last;
+              if res and (last > 1) then size := size + last;
               if (not res) and (err = 299) then size := size - last;
             until ((not res) and (err <> 299)) or ((last = 1) and res);
             if err <> 299 then begin
