@@ -58,6 +58,8 @@ cd %base_dir%
 
 rem Delete old binaries
 del /S *.dcu
+del /S *.dcp
+del /S *.bpl
 echo.
 
 REM Check that svnversion exists
