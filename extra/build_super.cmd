@@ -13,6 +13,10 @@ set package_dir=%2
 REM =============================================
 
 
+IF %compiler_dir%. == . SET /P compiler_dir=Please enter path to delphi bin folder: 
+IF %package_dir%. == . SET /P package_dir=Please enter compiler version (eg delphi11): 
+GOTO start
+
 IF %compiler_dir%. == . GOTO usage
 IF %package_dir%. == . GOTO usage
 GOTO start
