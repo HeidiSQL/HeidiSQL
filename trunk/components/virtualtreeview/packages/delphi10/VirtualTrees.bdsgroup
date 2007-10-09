@@ -11,9 +11,9 @@
   <Default.Personality>
     
     <Projects>
-      <Projects Name="VirtualTreesD10.bpl">VirtualTreesD10.bdsproj</Projects>
-      <Projects Name="VirtualTreesD10D.bpl">VirtualTreesD10D.bdsproj</Projects>
-      <Projects Name="Targets">VirtualTreesD10.bpl VirtualTreesD10D.bpl</Projects>
+      <Projects Name="VirtualTreesR.bpl">VirtualTreesR.bdsproj</Projects>
+      <Projects Name="VirtualTreesD.bpl">VirtualTreesD.bdsproj</Projects>
+      <Projects Name="Targets">VirtualTreesR.bpl VirtualTreesD.bpl</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>

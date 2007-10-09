@@ -1,4 +1,4 @@
-package SynEdit_D10;
+package VCLSer;
 
 {$R *.res}
 {$ALIGN 8}
@@ -22,17 +22,18 @@ package SynEdit_D10;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'SynEdit component suite'}
-{$DESIGNONLY}
+{$DESCRIPTION 'EDBImage 1.4 Runtime by SER'}
+{$LIBSUFFIX '100'}
+{$RUNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
-  designide,
-  SynEdit_R2006;
+  vcljpg,
+  dbrtl,
+  vcldb,
+  bdertl;
 
 contains
-  SynEditReg in '..\..\Source\SynEditReg.pas',
-  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas',
-  SynHighlighterManager in '..\..\Source\SynHighlighterManager.pas';
+  EDBImage in '..\..\source\EDBImage.pas';
 
 end.

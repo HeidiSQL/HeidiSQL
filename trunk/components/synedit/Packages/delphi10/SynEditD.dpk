@@ -1,4 +1,4 @@
-package DCLSer100;
+package SynEditD;
 
 {$R *.res}
 {$ALIGN 8}
@@ -22,15 +22,18 @@ package DCLSer100;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'EDBImage 1.4 by SER'}
+{$DESCRIPTION 'SynEdit component suite'}
+{$LIBSUFFIX '100'}
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
 requires
-  VCLSer100,
-  designide;
+  designide,
+  SynEditR;
 
 contains
-  uSerREG in '..\..\source\uSerREG.pas';
+  SynEditReg in '..\..\Source\SynEditReg.pas',
+  SynEditPropertyReg in '..\..\Source\SynEditPropertyReg.pas',
+  SynHighlighterManager in '..\..\Source\SynHighlighterManager.pas';
 
 end.
