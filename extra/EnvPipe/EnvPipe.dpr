@@ -370,12 +370,11 @@ begin
               res := ReadProcessMemory(pwnd, upp.Environment, @env, size, retLenU);
               err := GetLastError;
               OutputDebugString(PChar(Format('ReadProcessMemory read %d out of %d attempted bytes of environment.', [retLenU, size])));
-              if size shr 1 < last then last := size shr 1
-              else last := last shr 1;
+              last := last shr 1;
               if last = 0 then last := 1;
-              if res and (err <> 299) then size := size + last;
+              if res then size := size + last;
               if (not res) and (err = 299) then size := size - last;
-            until ((not res) and (err <> 299)) or ((err = 299) and res);
+            until ((not res) and (err <> 299)) or ((last = 1) and res);
             if err <> 299 then begin
               WriteLn(Format('%d: ReadProcessMemory failed.', [err]));
             end else begin
