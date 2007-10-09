@@ -4,44 +4,7 @@ program EnvPipe;
 
 uses
   SysUtils,
-  Windows,
-  TlHelp32;
-
-function GetParentProcessId: Cardinal;
-var
-  Snapshot: THandle;
-  lppe: TProcessEntry32;
-  CurrentID: Cardinal;
-begin
-  Result := 0;
-  CurrentID := GetCurrentProcessId;
-  Snapshot := CreateToolhelp32Snapshot(th32cs_SnapProcess, 0);
-  try
-    lppe.dwSize := SizeOf(TProcessEntry32);
-    if Process32First(Snapshot, lppe) then repeat
-      // loop to find the current process
-      if lppe.th32ProcessID = CurrentID then begin
-        // store ID of current process's parent
-        Result := lppe.th32ParentProcessID;
-        // found it; exit the loop
-        Break;
-      end;
-    // terminate loop when there are no more processes.
-    until not Process32Next(Snapshot, lppe);
-    // couldn't find CurrentID.
-    if GetLastError = ERROR_NO_MORE_FILES then exit;
-    // find the parent process
-    if Process32First(Snapshot, lppe) then repeat
-      if lppe.th32ProcessID = Result then begin
-        Result := lppe.th32ProcessID;
-        // found it; exit the loop.
-        break;
-      end;
-    until not Process32Next(Snapshot, lppe);
-  finally
-    CloseHandle(Snapshot);
-  end;
-end;
+  Windows;
 
 function GetCommandOutput: string;
 var
@@ -127,17 +90,17 @@ end;
 const 
   ProcessBasicInformation = 0; 
 
-{ NtQueryInformation types } 
+{ NtQueryInformation types }
 
 type 
   TProcessBasicInformation = packed record
-    ExitStatus: Integer; 
+    ExitStatus: Integer;
     PebBaseAddress: Pointer;
     AffinityMask: Integer;
-    BasePriority: Integer; 
-    UniqueProcessID: Integer; 
+    BasePriority: Integer;
+    UniqueProcessID: Integer;
     InheritedFromUniqueProcessID: Integer;
-  end; 
+  end;
 
   TNtQueryInformationProcess = 
     function(hProcess: THandle; ProcessInformationClass: Integer;
@@ -296,16 +259,17 @@ type
 
 var
   ppid: Cardinal;
-  pwnd: THandle;
+  ownd, pwnd: THandle;
   hNTDLL: Integer;
   ntQip: TNtQueryInformationProcess;
   pbi: TProcessBasicInformation;
   peb: TProcessEnvironmentBlock;
   upp: TRtlUserProcessParameters;
   env: array[0..16383] of WideChar;
-  envstr: PWideChar;
+  envstr: WideString;
+  newstr: PWideChar;
   size, last: Cardinal;
-  p, len: Cardinal;
+  p, cur, len, ends: Cardinal;
   retLen: Integer;
   retLenU: Cardinal;
   err: Cardinal;
@@ -332,79 +296,123 @@ begin
   end;
 
   variable := ParamStr(1);
-  ppid := GetParentProcessId;
-  WriteLn(Format('Parent process id is %d', [ppid]));
   line := Trim(GetCommandOutput);
-  WriteLn(Format('Output is %s', [line])); 
+  line := StringReplace(line, #13, '', [rfReplaceAll]);
+  line := StringReplace(line, #10, '', [rfReplaceAll]);
+  line := StringReplace(line, #0, '', [rfReplaceAll]);
+  line := Copy(line, 1, 255);
+  WriteLn(Format('Output is %s', [line]));
 
-  pwnd := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ or PROCESS_VM_WRITE or PROCESS_VM_OPERATION, false, ppid);
-  if pwnd = 0 then begin
-    WriteLn(Format('%d: OpenProcess failed.', [GetLastError]));
-  end;
   hNTDLL := LoadLibrary('NTDLL.DLL');
   if hNTDLL = 0 then begin
     WriteLn(Format('%d: LoadLibrary("ntdll.dll") failed.', [GetLastError]));
-  end else begin
-    ntQip := GetProcAddress(hNTDLL, 'NtQueryInformationProcess');
-    if not Assigned(ntQip) then begin
-      WriteLn(Format('%d: GetProcAddress("NtQueryInformationProcess") failed.', [GetLastError]));
-    end else begin
-      ntQip(pwnd, ProcessBasicInformation, pbi, sizeof(pbi), retLen);
-      OutputDebugString(PChar(Format('PEB base address: %x', [Cardinal(pbi.PebBaseAddress)])));
-      if pbi.PebBaseAddress = nil then begin
-        WriteLn(Format('Failed to get correct PEB base address: %d', [GetLastError]));
+    Exit;
+  end;
+  ntQip := GetProcAddress(hNTDLL, 'NtQueryInformationProcess');
+  if not Assigned(ntQip) then begin
+    WriteLn(Format('%d: GetProcAddress("NtQueryInformationProcess") failed.', [GetLastError]));
+    Exit;
+  end;
+  ownd := OpenProcess(PROCESS_QUERY_INFORMATION, false, GetCurrentProcessId);
+  if ownd = 0 then begin
+    WriteLn(Format('%d: OpenProcess 1 failed.', [GetLastError]));
+  end;
+  ntQip(ownd, ProcessBasicInformation, pbi, sizeof(pbi), retLen);
+  OutputDebugString(PChar(Format('PID: %d', [Cardinal(pbi.UniqueProcessID)])));
+  ppid := pbi.InheritedFromUniqueProcessID;
+  WriteLn(Format('Parent process id is %d', [ppid]));
+  CloseHandle(ownd);
+  pwnd := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ or PROCESS_VM_WRITE or PROCESS_VM_OPERATION, false, ppid);
+  if pwnd = 0 then begin
+    WriteLn(Format('%d: OpenProcess 2 failed.', [GetLastError]));
+  end;
+  ntQip(pwnd, ProcessBasicInformation, pbi, sizeof(pbi), retLen);
+  OutputDebugString(PChar(Format('PEB base address: %x', [Cardinal(pbi.PebBaseAddress)])));
+  if pbi.PebBaseAddress = nil then begin
+    WriteLn(Format('Failed to get correct PEB base address: %d', [GetLastError]));
+    Exit;
+  end;
+  if not ReadProcessMemory(pwnd, pbi.PebBaseAddress, @peb, sizeof(peb), retLenU) then begin
+    WriteLn(Format('%d: ReadProcessMemory failed.', [GetLastError]));
+    Exit;
+  end;
+  OutputDebugString(PChar(Format('UPP base address: %x', [Cardinal(peb.ProcessParameters)])));
+  if not ReadProcessMemory(pwnd, peb.ProcessParameters, @upp, sizeof(upp), retLenU) then begin
+    WriteLn(Format('%d: ReadProcessMemory failed.', [GetLastError]));
+    Exit;
+  end;
+  OutputDebugString(PChar(Format('Environment base address: %x', [Cardinal(upp.Environment)])));
+
+  size := sizeof(env);
+  last := size;
+  SetLastError(0);
+  repeat
+    // Quite probably always a multiple of the heap manager's block size, which is usually 4kB all year around.
+    res := ReadProcessMemory(pwnd, upp.Environment, @env, size, retLenU);
+    err := GetLastError;
+    OutputDebugString(PChar(Format('ReadProcessMemory read %d out of %d attempted bytes of environment.', [retLenU, size])));
+    last := last shr 1;
+    if last = 0 then last := 1;
+    if res and (last > 1) then size := size + last;
+    if (not res) and (err = 299) then size := size - last;
+  until ((not res) and (err <> 299)) or ((last = 1) and res);
+  if err <> 299 then begin
+    WriteLn(Format('%d: ReadProcessMemory failed.', [err]));
+    Exit;
+  end;
+
+  size := size shr 1;
+  SetLength(envstr, size);
+  for p := 0 to size do envstr[p + 1] := env[p];
+
+  len := Succ(Length(variable + '='));
+  GetMem(newstr, SizeOf(WideChar) * len);
+  StringToWideChar(variable + '=', newstr, len);
+  cur := Pos(newstr, envstr);
+
+  len := Succ(Length(variable + '=' + line));
+  GetMem(newstr, SizeOf(WideChar) * len);
+  StringToWideChar(variable + '=' + line, newstr, len);
+
+  ends := 0;
+  for p := 1 to size do begin
+    if env[p - 1] + env[p] = #0#0 then begin
+      if p + len > size then begin
+        WriteLn('Failed: not enough room in environment.');
+        Exit;
       end else begin
-        if not ReadProcessMemory(pwnd, pbi.PebBaseAddress, @peb, sizeof(peb), retLenU) then begin
-          WriteLn(Format('%d: ReadProcessMemory failed.', [GetLastError]));
-        end else begin
-          OutputDebugString(PChar(Format('UPP base address: %x', [Cardinal(peb.ProcessParameters)])));
-          if not ReadProcessMemory(pwnd, peb.ProcessParameters, @upp, sizeof(upp), retLenU) then begin
-            WriteLn(Format('%d: ReadProcessMemory failed.', [GetLastError]));
-          end else begin
-            OutputDebugString(PChar(Format('Environment base address: %x', [Cardinal(upp.Environment)])));
-            size := sizeof(env);
-            last := size;
-            SetLastError(0);
-            repeat
-              // Quite probably always a multiple of the heap manager's block size, which is usually 4kB all year around.
-              res := ReadProcessMemory(pwnd, upp.Environment, @env, size, retLenU);
-              err := GetLastError;
-              OutputDebugString(PChar(Format('ReadProcessMemory read %d out of %d attempted bytes of environment.', [retLenU, size])));
-              last := last shr 1;
-              if last = 0 then last := 1;
-              if res and (last > 1) then size := size + last;
-              if (not res) and (err = 299) then size := size - last;
-            until ((not res) and (err <> 299)) or ((last = 1) and res);
-            if err <> 299 then begin
-              WriteLn(Format('%d: ReadProcessMemory failed.', [err]));
-            end else begin
-              len := Succ(Length(variable + '=' + line));
-              GetMem(envstr, SizeOf(WideChar) * len);
-              StringToWideChar(variable + '=' + line, envstr, len);
-              for p := 1 to size do begin
-                if env[p - 1] + env[p] = #0#0 then begin
-                  if p + (SizeOf(WideChar) * len) > size then begin
-                    WriteLn('Failed: not enough room in environment.');
-                  end else begin
-                    // No effort is done to remove existing values.
-                    // cmd.exe seems to cope fine with duplicate values,
-                    // but to be on the safe side it's probably a good
-                    // idea to clear them beforehand..
-                    Move(envstr[0], env[p], SizeOf(WideChar) * len);
-                    if not WriteProcessMemory(pwnd, upp.Environment, @env, size, retLenU) then begin
-                      WriteLn(Format('%d: WriteProcessMemory failed; wrote %d out of %d attempted bytes of environment.', [GetLastError, retLenU, size]));
-                    end else begin
-                      OutputDebugString(PChar(Format('WriteProcessMemory successfully wrote %d out of %d attempted bytes of environment.', [retLenU, size])));
-                    end;
-                    Break;
-                  end;
-                end;
-              end;
-            end;
-          end;
-        end;
+        ends := p;
+        Break;
       end;
     end;
   end;
+
+  if ends = 0 then begin
+    WriteLn('Failed: not enough room in environment.');
+    Exit;
+  end;
+
+  if cur > ends then begin
+    WriteLn('Failed: environment is dirty, #0#0 followed by string data.');
+    Exit;
+  end;
+
+  if cur > 0 then begin
+    cur := cur - 1;
+    for p := cur to ends do if env[p] = #0 then begin
+      last := p + 1;
+      break;
+    end;
+    Move(env[last], env[cur], (size - last) * 2);
+    FillChar(env[size - last + cur], (last - cur) * 2, 0);
+    ends := ends - last + cur;
+  end;
+
+  Move(newstr[0], env[ends], SizeOf(WideChar) * len);
+  if not WriteProcessMemory(pwnd, upp.Environment, @env, size shl 1, retLenU) then begin
+    WriteLn(Format('%d: WriteProcessMemory failed; wrote %d out of %d attempted bytes of environment.', [GetLastError, retLenU, size]));
+    Exit;
+  end;
+  OutputDebugString(PChar(Format('WriteProcessMemory successfully wrote %d out of %d attempted bytes of environment.', [retLenU, size])));
 end.
 
