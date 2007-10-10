@@ -79,10 +79,11 @@ cd ..
 set base_dir=%CD%
 
 set compiler=dcc32.exe
-set params=-aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
+set params=--no-config
+set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir\%components\synedit\build;%base_dir%\components\smdbgrid\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build"
-set params=%params% -i"%base_dir%\components\compilerdetection"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\smdbgrid\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build"
+set params=%params% -i"%base_dir%\components\compilerdetection\include;%base_dir%\components\heidisql\include"
 set params=%params% -LE"%base_dir%\build"
 set params=%params% -LN"%base_dir%\build"
 set params=%params% -r"%base_dir%\components\smdbgrid\Resources;%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
