@@ -1058,6 +1058,14 @@ begin
     RestoreListSetup(ListTables);
     RestoreListSetup(ListColumns);
 
+    // Read the delimiters
+    delimiters := Trim( reg.ReadString( 'delimiters' ) );
+    if ( delimiters <> EmptyStr ) then
+    begin
+      ComboBoxQueryDelimiter.Items.Text := delimiters;
+      ComboBoxQueryDelimiter.ItemIndex := reg.ReadInteger( 'delimiterselected' );
+    end;
+
     // Activate logging
     if reg.ValueExists( 'LogToFile' ) and reg.ReadBool('LogToFile') then
       ActivateFileLogging;
@@ -1068,14 +1076,6 @@ begin
 
     // Set last used database, select it later in Init
     lastUsedDB := reg.ReadString( 'lastUsedDB' );
-
-    // Read the delimiters
-    delimiters := Trim( reg.ReadString( 'delimiters' ) );
-    if ( delimiters <> EmptyStr ) then
-    begin
-      ComboBoxQueryDelimiter.Items.Text := delimiters;
-      ComboBoxQueryDelimiter.ItemIndex := reg.ReadInteger( 'delimiterselected' );
-    end;
   end;
   reg.CloseKey;
   reg.Free;
@@ -1148,14 +1148,14 @@ begin
       SaveListSetup(ListTables);
       SaveListSetup(ListColumns);
 
+      // Save the delimiters
+      WriteString( 'delimiters', ComboBoxQueryDelimiter.Items.Text );
+      WriteInteger( 'delimiterselected', ComboBoxQueryDelimiter.ItemIndex );
+
       // Open server-specific registry-folder.
       // relative from already opened folder!
       OpenKey( 'Servers\' + FConn.Description, true );
       WriteString( 'lastUsedDB', ActiveDatabase );
-
-      // Save the delimiters
-      WriteString( 'delimiters', ComboBoxQueryDelimiter.Items.Text );
-      WriteInteger( 'delimiterselected', ComboBoxQueryDelimiter.ItemIndex );
     end;
   end;
   FreeAndNil(reg);
