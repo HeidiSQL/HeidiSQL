@@ -3,7 +3,7 @@
 setlocal enableextensions 2>nul:
 if not %errorlevel% == 0 goto extensions_failure
 
-setlocal enabledelayexpansion
+setlocal enabledelayexpansion 2>nul:
 if not %errorlevel% == 0 goto delayexpansion_failure
 goto test_dcc32
 
