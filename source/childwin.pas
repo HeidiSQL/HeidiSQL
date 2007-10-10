@@ -612,6 +612,7 @@ type
       function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
       procedure ActivateFileLogging;
       procedure DeactivateFileLogging;
+      procedure TrimSQLLog;
   end;
 
 type
@@ -1208,13 +1209,7 @@ begin
 
   SynMemoSQLLog.Lines.Add( String(msg) );
 
-  // Delete first line(s)
-  while SynMemoSQLLog.Lines.Count > prefLogsqlnum do
-  begin
-    SynMemoSQLLog.Lines.Delete(0);
-    // Increase first displayed number in gutter so it doesn't lie about the log entries
-    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + 1;
-  end;
+  TrimSQLLog;
 
   // Scroll to last line and repaint
   SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
@@ -1228,6 +1223,26 @@ begin
     DeactivateFileLogging;
     MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
   end;
+end;
+
+
+{**
+  Delete first line(s) in SQL log and adjust LineNumberStart in gutter
+  Called by LogSQL and preferences dialog
+}
+procedure TMDIChild.TrimSQLLog;
+var
+  i : Integer;
+begin
+  i := 0;
+  while SynMemoSQLLog.Lines.Count > prefLogsqlnum do
+  begin
+    SynMemoSQLLog.Lines.Delete(0);
+    inc(i);
+  end;
+  // Increase first displayed number in gutter so it doesn't lie about the log entries
+  if i > 0 then
+    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
 end;
 
 
