@@ -1,13 +1,10 @@
 program heidisql;
 
-{%ToDo 'heidisql.todo'}
-{%File '..\..\source\const.inc'}
-
 uses
   Forms,
   SysUtils,
   Dialogs,
-  MAIN in '..\..\source\MAIN.PAS' {MainForm},
+  main in '..\..\source\main.pas' {MainForm},
   childwin in '..\..\source\childwin.pas' {MDIChild},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},
@@ -30,23 +27,21 @@ uses
   threading in '..\..\source\threading.pas',
   sqlhelp in '..\..\source\sqlhelp.pas' {frmSQLhelp},
   queryprogress in '..\..\source\queryprogress.pas' {frmQueryProgress},
-  MysqlQuery in '..\..\source\MysqlQuery.pas',
-  MysqlQueryThread in '..\..\source\MysqlQueryThread.pas',
-  MysqlConn in '..\..\source\MysqlConn.pas',
+  mysqlquery in '..\..\source\mysqlquery.pas',
+  mysqlquerythread in '..\..\source\mysqlquerythread.pas',
+  mysqlconn in '..\..\source\mysqlconn.pas',
   mysql in '..\..\source\mysql.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
   runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm};
 
-{$R *.RES}
-
 begin
   debug('perf: All modules loaded.');
   Application.Initialize;
   Application.Title := APPNAME;
-  Application.CreateForm(TMainForm, MainForm); debug('perf: Main created.');
-
+  Application.CreateForm(TMainForm, MainForm);
+  debug('perf: Main created.');
 
   try
     try
