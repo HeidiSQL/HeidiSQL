@@ -143,6 +143,7 @@ goto end
 
 :start
 rem Delete old binaries
+echo Cleaning build directories.
 cd /d "%base_dir%"
 del /S *.dcu
 del /S *.dcp
