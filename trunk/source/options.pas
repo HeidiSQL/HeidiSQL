@@ -205,8 +205,6 @@ begin
     cwin.SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
     cwin.SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
     cwin.SynMemoQuery.ActiveLineColor := self.pnlActiveLine.Color;
-    while cwin.SynMemoSQLLog.Lines.Count > updownLogSQLNum.Position do
-      cwin.SynMemoSQLLog.Lines.Delete(0);
     cwin.gridData.Font := self.Panel8.font;
     cwin.gridQuery.Font := self.Panel8.font;
     cwin.DBMemo1.Font := self.Panel8.font;
@@ -216,6 +214,7 @@ begin
     cwin.gridQuery.Options := cwin.gridQuery.Options + [dgAlwaysShowEditor];
     cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
+    cwin.TrimSQLLog;
     if chkLogToFile.Checked then
       cwin.ActivateFileLogging
     else if cwin.prefLogToFile then
