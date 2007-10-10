@@ -923,6 +923,7 @@ end;
 procedure TMDIChild.ReadWindowOptions;
 var
   ws          : String;
+  delimiters  : String;
   i           : Integer;
   menuitem    : Tmenuitem;
   reg         : TRegistry;
@@ -1067,6 +1068,14 @@ begin
 
     // Set last used database, select it later in Init
     lastUsedDB := reg.ReadString( 'lastUsedDB' );
+
+    // Read the delimiters
+    delimiters := Trim( reg.ReadString( 'delimiters' ) );
+    if ( delimiters <> EmptyStr ) then
+    begin
+      ComboBoxQueryDelimiter.Items.Text := delimiters;
+      ComboBoxQueryDelimiter.ItemIndex := reg.ReadInteger( 'delimiterselected' );
+    end;
   end;
   reg.CloseKey;
   reg.Free;
@@ -1143,6 +1152,10 @@ begin
       // relative from already opened folder!
       OpenKey( 'Servers\' + FConn.Description, true );
       WriteString( 'lastUsedDB', ActiveDatabase );
+
+      // Save the delimiters
+      WriteString( 'delimiters', ComboBoxQueryDelimiter.Items.Text );
+      WriteInteger( 'delimiterselected', ComboBoxQueryDelimiter.ItemIndex );
     end;
   end;
   FreeAndNil(reg);
