@@ -124,63 +124,58 @@ rem Put WC version or "unknown" into main.pas
 if not %errorlevel% == 0 goto sedfail
 %base_dir%\extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 if not %errorlevel% == 0 goto sedfail
-goto after_wcver
+goto build
 
 :sedfail
 echo Error: SED failure - run this step manually to see what went wrong?
 echo.
 goto end
 
-:after_wcver
+:compile
+echo Compiling component %1, package %2.
+cd /d "%base_dir%\components\%1\packages\%package_dir%\"
+"%compiler%" %params% %2.dpk
+if not %errorlevel% == 0 goto end
+echo.
+goto :eof
+
+:build
 echo.
 
 rem Build EDBImage
-cd /d "%base_dir%\components\edbimage\packages\%package_dir%\"
-"%compiler%" %params% VCLSer.dpk
-if not %errorlevel% == 0 goto end
-"%compiler%" %params% DCLSer.dpk
-if not %errorlevel% == 0 goto end
+call :compile edbimage VCLSer
+call :compile edbimage DCLSer
 
 
 rem Build SMDBGrid
-cd /d "%base_dir%\components\smdbgrid\packages\%package_dir%\"
-"%compiler%" %params% SMDBGridComponents.dpk
-if not %errorlevel% == 0 goto end
+call :compile smdbgrid SMDBGridComponents
 
 
 rem Build SynEdit
-cd /d "%base_dir%\components\synedit\packages\%package_dir%\"
-"%compiler%" %params% SynEditR.dpk
-if not %errorlevel% == 0 goto end
+call :compile synedit SynEditR
+call :compile synedit SynEditD
 
 
 rem Build ZeosDBO
-cd /d "%base_dir%\components\zeosdbo\packages\%package_dir%\"
-"%compiler%" %params% ZCore.dpk
-if not %errorlevel% == 0 goto end
-"%compiler%" %params% ZPlain.dpk
-if not %errorlevel% == 0 goto end
-"%compiler%" %params% ZParseSql.dpk
-if not %errorlevel% == 0 goto end
-"%compiler%" %params% ZDbc.dpk
-if not %errorlevel% == 0 goto end
-"%compiler%" %params% ZComponent.dpk
-if not %errorlevel% == 0 goto end
+call :compile zeosdbo ZCore
+call :compile zeosdbo ZPlain
+call :compile zeosdbo ZParseSql
+call :compile zeosdbo ZDbc
+call :compile zeosdbo ZComponent
+call :compile zeosdbo ZComponentDesign
 
 
 rem Build HeidiComponents
-cd /d "%base_dir%\components\heidisql\packages\%package_dir%\"
-"%compiler%" %params% HeidiComponents.dpk
-if not %errorlevel% == 0 goto end
+call :compile heidisql HeidiComponents
 
 
 rem Build VirtualTreeView
-cd /d "%base_dir%\components\virtualtreeview\packages\%package_dir%\"
-"%compiler%" %params% VirtualTreesR.dpk
-if not %errorlevel% == 0 goto end
+call :compile virtualtreeview VirtualTreesR
+call :compile virtualtreeview VirtualTreesD
 
 
 rem Build main executable
+echo Compiling main project.
 cd /d "%base_dir%\packages\%package_dir%\"
 "%compiler%" %params% -e"%base_dir%\out" heidisql.dpr
 if not %errorlevel% == 0 goto end
