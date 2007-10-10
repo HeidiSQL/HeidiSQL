@@ -89,6 +89,11 @@ set params=%params% -LE"%base_dir%\build"
 set params=%params% -LN"%base_dir%\build"
 set params=%params% -r"%base_dir%\components\smdbgrid\Resources;%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
 
+rem -Q = Quiet compile
+rem      This is a workaround for avoiding error D21153
+rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
+set params=%params% -Q
+
 echo.
 echo Base directory:          %base_dir%
 echo Compiler directory:      %compiler_dir%
@@ -145,24 +150,21 @@ if not %errorlevel% == 0 goto end
 
 rem Build SynEdit
 cd /d "%base_dir%\components\synedit\packages\%package_dir%\"
-rem -Q = Quiet compile
-rem      This is a workaround for avoiding error D21153
-rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
-"%compiler%" %params% -Q SynEditR.dpk
+"%compiler%" %params% SynEditR.dpk
 if not %errorlevel% == 0 goto end
 
 
 rem Build ZeosDBO
 cd /d "%base_dir%\components\zeosdbo\packages\%package_dir%\"
-"%compiler%" %params% -Q ZCore.dpk
+"%compiler%" %params% ZCore.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" %params% -Q ZPlain.dpk
+"%compiler%" %params% ZPlain.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" %params% -Q ZParseSql.dpk
+"%compiler%" %params% ZParseSql.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" %params% -Q ZDbc.dpk
+"%compiler%" %params% ZDbc.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" %params% -Q ZComponent.dpk
+"%compiler%" %params% ZComponent.dpk
 if not %errorlevel% == 0 goto end
 
 
