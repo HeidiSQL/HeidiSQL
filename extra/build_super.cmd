@@ -1,4 +1,6 @@
 @echo off
+setlocal enableextensions
+setlocal enabledelayexpansion
 
 CLS
 
@@ -30,8 +32,11 @@ ECHO.
 IF %compiler_dir%. == . SET /P compiler_dir=Please enter path to delphi bin folder: 
 IF %package_dir%. == . SET /P package_dir=Please enter compiler version (eg delphi11): 
 
-IF %compiler_dir%. == . GOTO usage
-IF %package_dir%. == . GOTO usage
+set compiler_dir=%compiler_dir:"=%
+set package_dir=%package_dir:"=%
+
+IF "%compiler_dir%" == "" GOTO usage
+IF "%package_dir%" == "" GOTO usage
 GOTO start
 
 :usage
@@ -78,34 +83,36 @@ del /S *.dcp
 del /S *.bpl
 echo.
 
+SET wcver=unknown
 REM Check that svnversion exists
-set svndir=%ProgramFiles%\Subversion\bin\
-"%svndir%svnversion" --version > NUL:
+set svndir=%ProgramFiles%\Subversion\bin
+"%svndir%\svnversion" --version > NUL:
 IF %errorlevel% == 0 GOTO svn_good
-set svndir=%ProgramFiles(x86)%\Subversion\bin\
-"%svndir%svnversion" --version > NUL:
+set svndir=%ProgramFiles(x86)%\Subversion\bin
+"%svndir%\svnversion" --version > NUL:
 IF %errorlevel% == 0 GOTO svn_good
 
 ECHO Please install subversion from http://subversion.tigris.org/
 ECHO and make sure that svnversion.exe is in:
 ECHO "%ProgramFiles%\Subversion\bin\"
 ECHO.
-GOTO skip_wcver
+GOTO after_wcver
 
 :svn_good
-rem Put WC version into main.pas
-%base_dir%\extra\EnvPipe\EnvPipe.exe WCVER "%svndir%svnversion.exe" "%base_dir%"
-IF %errorlevel% == 0 GOTO go_wcver
-ECHO EnvPipe or svnversion failure - run this step manually to see what went wrong?
+rem Unix tool, may not handle Windows paths well, so go to directory and use dot.
+CD "%base_dir%"
+FOR /F "usebackq" %%s IN (`"%svndir%\svnversion" . ^|^| ECHO unknown`) DO SET wcver=WC %%s
+IF NOT "%wcver%" == "WC unknown" GOTO go_wcver
+SET wcver=unknown
+ECHO svnversion failure - run this step manually to see what went wrong?
 ECHO.
-
-:skip_wcver
-SET WCVER=unknown
+GOTO after_wcver
 
 :go_wcver
-%base_dir%\extra\sed\sed.exe "s/\$Revision.*\$/\$Revision: WC %WCVER% \$/g" -i "%base_dir%\source\main.pas"
+rem Put WC version or "unknown" into main.pas
+%base_dir%\extra\sed\sed.exe "s/\$Revision.*\$/\$Revision: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 IF NOT %errorlevel% == 0 GOTO sedfail
-%base_dir%\extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: WC %WCVER% \$/g" -i "%base_dir%\source\main.pas"
+%base_dir%\extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 IF NOT %errorlevel% == 0 GOTO sedfail
 GOTO wc_ver_good
 
@@ -113,7 +120,7 @@ GOTO wc_ver_good
 ECHO SED failure - run this step manually to see what went wrong?
 GOTO end
 
-:wc_ver_good
+:after_wcver
 echo.
 
 rem Build EDBImage
