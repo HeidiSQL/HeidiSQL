@@ -1,5 +1,4 @@
 package ZDbc;
-{$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
