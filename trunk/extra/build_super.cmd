@@ -111,7 +111,6 @@ rem      This is a workaround for avoiding error D21153
 rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
 set params=%params% -Q
 
-echo.
 echo Base directory:          %base_dir%
 echo Compiler directory:      %compiler_dir%
 
