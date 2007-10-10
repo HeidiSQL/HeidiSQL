@@ -5,7 +5,6 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documentos\RAD Studio\5.0\Bpl\VCLSer110.bpl</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -19,10 +18,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>$(BDSCOMMONDIR)\Bpl</DCC_BplOutput>
     <DCC_DcpOutput>$(BDSCOMMONDIR)\Dcp</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\..\compilerdetection</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\..\compilerdetection</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\..\compilerdetection</DCC_ObjPath>
-    <DCC_IncludePath>..\..\..\compilerdetection</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\..\compilerdetection\include</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\..\compilerdetection\include</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\..\compilerdetection\include</DCC_ObjPath>
+    <DCC_IncludePath>..\..\..\compilerdetection\include</DCC_IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
@@ -35,10 +34,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>$(BDSCOMMONDIR)\Bpl</DCC_BplOutput>
     <DCC_DcpOutput>$(BDSCOMMONDIR)\Dcp</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\..\compilerdetection;..\..\resources</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\..\compilerdetection;..\..\resources</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\..\compilerdetection;..\..\resources</DCC_ObjPath>
-    <DCC_IncludePath>..\..\..\compilerdetection;..\..\resources</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\..\compilerdetection\include;..\..\resources</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\..\compilerdetection\include;..\..\resources</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\..\compilerdetection\include;..\..\resources</DCC_ObjPath>
+    <DCC_IncludePath>..\..\..\compilerdetection\include;..\..\resources</DCC_IncludePath>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
