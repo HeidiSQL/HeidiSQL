@@ -1,5 +1,4 @@
 package ZPlain;
-{$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}

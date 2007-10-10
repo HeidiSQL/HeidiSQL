@@ -1,6 +1,5 @@
 package ZComponentDesign;
 
-{$R *.res}
 {$R '..\..\src\component\ZComponent.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}

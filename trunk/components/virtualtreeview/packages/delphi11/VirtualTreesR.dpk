@@ -1,6 +1,5 @@
 package VirtualTreesR;
 
-{$R *.res}
 {$ALIGN 8}
 {$ASSERTIONS OFF}
 {$BOOLEVAL OFF}
