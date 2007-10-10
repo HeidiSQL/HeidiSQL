@@ -36,6 +36,8 @@ uses
   runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm};
 
+{$R *.RES}
+
 begin
   debug('perf: All modules loaded.');
   Application.Initialize;
