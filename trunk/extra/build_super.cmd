@@ -97,15 +97,6 @@ set params=%params% -Q
 echo.
 echo Base directory:          %base_dir%
 echo Compiler directory:      %compiler_dir%
-echo.
-
-:start
-rem Delete old binaries
-cd /d "%base_dir%"
-del /S *.dcu
-del /S *.dcp
-del /S *.bpl
-del /S out\heidisql.exe
 
 :find_wcver
 rem Unix tool, may not handle Windows paths well, so go to base directory and use dot.
@@ -115,21 +106,33 @@ if "%wcver%" == "WC unknown" (set wcver=unknown) else (goto insert_wcver)
 
 :svnversion_failure
 rem Non-fatal, continue if this happens.
+echo.
 echo Error: svnversion failed - run this step manually to see what went wrong?
 echo.
 
 :insert_wcver
+echo Version:                 %WCVER%
+echo.
 rem Put WC version or "unknown" into main.pas
 %base_dir%\extra\sed\sed.exe "s/\$Revision.*\$/\$Revision: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 if not %errorlevel% == 0 goto sedfail
 %base_dir%\extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 if not %errorlevel% == 0 goto sedfail
-goto build
+goto start
 
 :sedfail
 echo Error: SED failure - run this step manually to see what went wrong?
 echo.
 goto end
+
+:start
+rem Delete old binaries
+cd /d "%base_dir%"
+del /S *.dcu
+del /S *.dcp
+del /S *.bpl
+del /S out\heidisql.exe
+goto build
 
 :compile
 echo Compiling component %1, package %2.
