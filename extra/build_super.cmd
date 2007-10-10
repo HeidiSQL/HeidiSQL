@@ -1,8 +1,25 @@
 @echo off
-setlocal enableextensions
-setlocal enabledelayexpansion
 
-cls
+setlocal enableextensions 2>nul:
+if not %errorlevel% == 0 goto extensions_failure
+
+setlocal enabledelayexpansion
+if not %errorlevel% == 0 goto delayexpansion_failure
+goto test_dcc32
+
+:extensions_failure
+echo Error: Your command interpreter (cmd.exe) does not support
+echo command processor extensions.  This is a requirement for
+echo this build script to work.  Please upgrade your command processor.
+echo.
+pause > NUL:
+goto :eof
+
+:delayexpansion_failure
+echo Notice: Your command interpreter (cmd.exe) does not support
+echo delayed variable expansion.  This is not currently a requirement
+echo for this build script, but may be in the future.
+echo.
 
 :test_dcc32
 dcc32.exe --version >NUL: 2>NUL:
