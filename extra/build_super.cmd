@@ -82,6 +82,7 @@ set compiler=dcc32.exe
 set params=--no-config
 set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
+set params=%params% -N0"..\..\build" 
 set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\smdbgrid\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build"
 set params=%params% -i"%base_dir%\components\compilerdetection\include;%base_dir%\components\heidisql\include"
 set params=%params% -LE"%base_dir%\build"
@@ -130,15 +131,15 @@ echo.
 
 rem Build EDBImage
 cd /d "%base_dir%\components\edbimage\packages\%package_dir%\"
-"%compiler%" -N0"..\..\build" %params% VCLSer.dpk
+"%compiler%" %params% VCLSer.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" -N0"..\..\build" %params% DCLSer.dpk
+"%compiler%" %params% DCLSer.dpk
 if not %errorlevel% == 0 goto end
 
 
 rem Build SMDBGrid
 cd /d "%base_dir%\components\smdbgrid\packages\%package_dir%\"
-"%compiler%" -N0"..\..\build" %params% SMDBGridComponents.dpk
+"%compiler%" %params% SMDBGridComponents.dpk
 if not %errorlevel% == 0 goto end
 
 
@@ -147,39 +148,39 @@ cd /d "%base_dir%\components\synedit\packages\%package_dir%\"
 rem -Q = Quiet compile
 rem      This is a workaround for avoiding error D21153
 rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
-"%compiler%" -N0"..\..\build" -Q %params% SynEditR.dpk
+"%compiler%" %params% -Q SynEditR.dpk
 if not %errorlevel% == 0 goto end
 
 
 rem Build ZeosDBO
 cd /d "%base_dir%\components\zeosdbo\packages\%package_dir%\"
-"%compiler%" -N0"..\..\build" -Q %params% ZCore.dpk
+"%compiler%" %params% -Q ZCore.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" -N0"..\..\build" -Q %params% ZPlain.dpk
+"%compiler%" %params% -Q ZPlain.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" -N0"..\..\build" -Q %params% ZParseSql.dpk
+"%compiler%" %params% -Q ZParseSql.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" -N0"..\..\build" -Q %params% ZDbc.dpk
+"%compiler%" %params% -Q ZDbc.dpk
 if not %errorlevel% == 0 goto end
-"%compiler%" -N0"..\..\build" -Q %params% ZComponent.dpk
+"%compiler%" %params% -Q ZComponent.dpk
 if not %errorlevel% == 0 goto end
 
 
 rem Build HeidiComponents
 cd /d "%base_dir%\components\heidisql\packages\%package_dir%\"
-"%compiler%" -N0"..\..\build" %params% HeidiComponents.dpk
+"%compiler%" %params% HeidiComponents.dpk
 if not %errorlevel% == 0 goto end
 
 
 rem Build VirtualTreeView
 cd /d "%base_dir%\components\virtualtreeview\packages\%package_dir%\"
-"%compiler%" -N0"..\..\build" %params% VirtualTreesR.dpk
+"%compiler%" %params% VirtualTreesR.dpk
 if not %errorlevel% == 0 goto end
 
 
 rem Build main executable
 cd /d "%base_dir%\packages\%package_dir%\"
-"%compiler%" -N0"..\..\build" -e"%base_dir%\out" %params% heidisql.dpr
+"%compiler%" %params% -e"%base_dir%\out" heidisql.dpr
 if not %errorlevel% == 0 goto end
 
 
