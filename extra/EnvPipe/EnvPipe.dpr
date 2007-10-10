@@ -34,6 +34,7 @@ begin
     secinfo.bInheritHandle := true;
     secinfo.lpSecurityDescriptor := nil;
 
+    SetLastError($deadbeef);
     if not CreatePipe(stdoutread, stdoutwrite, @secinfo, 0) then begin
       WriteLn(Format('%d: Failed to create pipe for stdout substitute.', [GetLastError]));
       Exit;
@@ -53,6 +54,7 @@ begin
 
     FillChar(processinfo, sizeof(TProcessInformation), 0);
 
+    SetLastError($deadbeef);
     if not CreateProcess(PChar(executable), PChar(parameters), nil, nil, true, 0, nil, nil, startinfo, processinfo) then begin
       WriteLn(Format('%d: CreateProcess failed.', [GetLastError]));
       Exit;
@@ -61,6 +63,7 @@ begin
     CloseHandle(stdoutwrite);
 
     repeat
+      SetLastError($deadbeef);
       if not ReadFile(stdoutread, buffer, 255, bytes, nil) then begin
         OutputDebugString(PChar(Format('%d: ReadFile failed after %d bytes consumed.', [GetLastError, Length(Result)])));
         // Non-fatal?  MSDN example just stops reading when any ReadFile error occurs.
@@ -72,6 +75,7 @@ begin
       end;
     until (bytes = 0) or (WaitForSingleObject(processinfo.hProcess, 0) = 0);
 
+    SetLastError($deadbeef);
     if not GetExitCodeProcess(processinfo.hProcess, Cardinal(ExitCode)) then begin
       ExitCode := 1;
       WriteLn(Format('%d: GetExitCodeProcess failed.', [GetLastError]));
@@ -85,7 +89,36 @@ begin
   end;
 end;
 
-{ NtQueryInformation constants } 
+procedure PrintLastError;
+var
+  buf: PChar;
+  err: Cardinal;
+  res: Cardinal;
+begin
+  err := GetLastError;
+  if err = $deadbeef then begin
+    WriteLn('(No Win32 error returned.)');
+    Exit;
+  end;
+  buf := nil;
+  res := FormatMessage(
+    FORMAT_MESSAGE_FROM_SYSTEM or FORMAT_MESSAGE_ALLOCATE_BUFFER,
+    nil,
+    err,
+    0,
+    @buf,
+    0,
+    nil
+  );
+  if res = 0 then begin
+    WriteLn(Format('Win32 error %d.', [err]));
+    Exit;
+  end;
+  WriteLn(Format('Win32 error %d: %s', [err, buf]));
+  LocalFree(Cardinal(buf));
+end;
+
+{ NtQueryInformation constants }
 
 const 
   ProcessBasicInformation = 0; 
@@ -303,42 +336,58 @@ begin
   line := Copy(line, 1, 255);
   WriteLn(Format('Output is %s', [line]));
 
+  SetLastError($deadbeef);
   hNTDLL := LoadLibrary('NTDLL.DLL');
   if hNTDLL = 0 then begin
-    WriteLn(Format('%d: LoadLibrary("ntdll.dll") failed.', [GetLastError]));
+    WriteLn('LoadLibrary("ntdll.dll") failed:');
+    PrintLastError;
     Exit;
   end;
+  SetLastError($deadbeef);
   ntQip := GetProcAddress(hNTDLL, 'NtQueryInformationProcess');
   if not Assigned(ntQip) then begin
-    WriteLn(Format('%d: GetProcAddress("NtQueryInformationProcess") failed.', [GetLastError]));
+    WriteLn('GetProcAddress("NtQueryInformationProcess") failed:');
+    PrintLastError;
     Exit;
   end;
+  SetLastError($deadbeef);
   ownd := OpenProcess(PROCESS_QUERY_INFORMATION, false, GetCurrentProcessId);
   if ownd = 0 then begin
-    WriteLn(Format('%d: OpenProcess 1 failed.', [GetLastError]));
+    WriteLn('OpenProcess #1 failed:');
+    PrintLastError;
+    Exit;
   end;
   ntQip(ownd, ProcessBasicInformation, pbi, sizeof(pbi), retLen);
   OutputDebugString(PChar(Format('PID: %d', [Cardinal(pbi.UniqueProcessID)])));
   ppid := pbi.InheritedFromUniqueProcessID;
   WriteLn(Format('Parent process id is %d', [ppid]));
   CloseHandle(ownd);
+  SetLastError($deadbeef);
   pwnd := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ or PROCESS_VM_WRITE or PROCESS_VM_OPERATION, false, ppid);
   if pwnd = 0 then begin
-    WriteLn(Format('%d: OpenProcess 2 failed.', [GetLastError]));
+    WriteLn('OpenProcess #2 failed:');
+    PrintLastError;
+    Exit;
   end;
   ntQip(pwnd, ProcessBasicInformation, pbi, sizeof(pbi), retLen);
   OutputDebugString(PChar(Format('PEB base address: %x', [Cardinal(pbi.PebBaseAddress)])));
+  SetLastError($deadbeef);
   if pbi.PebBaseAddress = nil then begin
-    WriteLn(Format('Failed to get correct PEB base address: %d', [GetLastError]));
+    WriteLn('Failed to get correct PEB base address:');
+    PrintLastError;
     Exit;
   end;
+  SetLastError($deadbeef);
   if not ReadProcessMemory(pwnd, pbi.PebBaseAddress, @peb, sizeof(peb), retLenU) then begin
-    WriteLn(Format('%d: ReadProcessMemory failed.', [GetLastError]));
+    WriteLn('ReadProcessMemory #1 failed:');
+    PrintLastError;
     Exit;
   end;
   OutputDebugString(PChar(Format('UPP base address: %x', [Cardinal(peb.ProcessParameters)])));
+  SetLastError($deadbeef);
   if not ReadProcessMemory(pwnd, peb.ProcessParameters, @upp, sizeof(upp), retLenU) then begin
-    WriteLn(Format('%d: ReadProcessMemory failed.', [GetLastError]));
+    WriteLn('ReadProcessMemory #2 failed:');
+    PrintLastError;
     Exit;
   end;
   OutputDebugString(PChar(Format('Environment base address: %x', [Cardinal(upp.Environment)])));
@@ -357,7 +406,8 @@ begin
     if (not res) and (err = 299) then size := size - last;
   until ((not res) and (err <> 299)) or ((last = 1) and res);
   if err <> 299 then begin
-    WriteLn(Format('%d: ReadProcessMemory failed.', [err]));
+    WriteLn('ReadProcessMemory #3 failed:');
+    PrintLastError;
     Exit;
   end;
 
@@ -409,8 +459,11 @@ begin
   end;
 
   Move(newstr[0], env[ends], SizeOf(WideChar) * len);
-  if not WriteProcessMemory(pwnd, upp.Environment, @env, size shl 1, retLenU) then begin
-    WriteLn(Format('%d: WriteProcessMemory failed; wrote %d out of %d attempted bytes of environment.', [GetLastError, retLenU, size]));
+  SetLastError($deadbeef);
+  size := size shl 1;
+  if not WriteProcessMemory(pwnd, upp.Environment, @env, size, retLenU) then begin
+    WriteLn(Format('WriteProcessMemory failed; wrote %d out of %d attempted bytes of environment:', [retLenU, size]));
+    PrintLastError;
     Exit;
   end;
   OutputDebugString(PChar(Format('WriteProcessMemory successfully wrote %d out of %d attempted bytes of environment.', [retLenU, size])));
