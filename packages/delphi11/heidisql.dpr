@@ -1,7 +1,5 @@
 program heidisql;
 
-
-
 uses
   Forms,
   SysUtils,
@@ -38,15 +36,12 @@ uses
   runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm};
 
-{$R *.RES}
-
 begin
   debug('perf: All modules loaded.');
   Application.Initialize;
   Application.Title := APPNAME;
   Application.CreateForm(TMainForm, MainForm);
   debug('perf: Main created.');
-
 
   try
     try
