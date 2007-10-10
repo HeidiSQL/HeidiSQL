@@ -31,75 +31,81 @@ object FieldEditForm: TFieldEditForm
       Caption = 'Field'
       ImageIndex = 62
       object lblName: TLabel
-        Left = 16
+        Left = 8
         Top = 40
         Width = 31
         Height = 13
-        Caption = 'Name:'
+        Caption = '&Name:'
+        FocusControl = EditFieldname
       end
       object lblType: TLabel
-        Left = 16
+        Left = 8
         Top = 64
         Width = 28
         Height = 13
-        Caption = 'Type:'
+        Caption = '&Type:'
+        FocusControl = ComboBoxType
       end
       object lblLengthSet: TLabel
-        Left = 16
+        Left = 8
         Top = 88
         Width = 63
         Height = 13
-        Caption = 'Length / Set:'
+        Caption = '&Length / Set:'
+        FocusControl = EditLength
       end
       object lblDefault: TLabel
-        Left = 16
+        Left = 8
         Top = 112
         Width = 39
         Height = 13
-        Caption = 'Default:'
+        Caption = '&Default:'
+        FocusControl = EditDefault
       end
       object lblPosition: TLabel
-        Left = 16
-        Top = 16
+        Left = 8
+        Top = 17
         Width = 41
         Height = 13
-        Caption = 'Position:'
+        Caption = '&Position:'
+        FocusControl = ComboBoxPosition
       end
       object lblComment: TLabel
-        Left = 16
+        Left = 8
         Top = 136
         Width = 49
         Height = 13
-        Caption = 'Comment:'
+        Caption = '&Comment:'
+        FocusControl = EditComment
       end
       object btnDatatypeHelp: TButton
-        Left = 252
+        Left = 259
         Top = 61
         Width = 21
         Height = 21
         Hint = 'Help on selected datatype'
         Caption = '?'
-        TabOrder = 7
+        TabOrder = 3
         OnClick = btnDatatypeHelpClick
       end
       object EditDefault: TEdit
         Left = 88
         Top = 109
-        Width = 185
+        Width = 192
         Height = 21
-        TabOrder = 4
+        TabOrder = 5
       end
       object EditLength: TEdit
         Left = 88
         Top = 85
-        Width = 185
+        Width = 192
         Height = 21
-        TabOrder = 3
+        TabOrder = 4
       end
       object ComboBoxType: TComboBox
         Left = 88
         Top = 61
-        Width = 158
+        Width = 165
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
@@ -109,19 +115,19 @@ object FieldEditForm: TFieldEditForm
       object EditFieldname: TEdit
         Left = 88
         Top = 37
-        Width = 185
+        Width = 192
         Height = 21
         TabOrder = 1
       end
       object GroupBoxAttributes: TGroupBox
-        Left = 16
+        Left = 8
         Top = 168
-        Width = 257
+        Width = 272
         Height = 113
         Caption = 'Attributes'
-        TabOrder = 6
+        TabOrder = 7
         object CheckBoxBinary: TCheckBox
-          Left = 32
+          Left = 16
           Top = 24
           Width = 65
           Height = 17
@@ -129,7 +135,7 @@ object FieldEditForm: TFieldEditForm
           TabOrder = 0
         end
         object CheckBoxUnsigned: TCheckBox
-          Left = 32
+          Left = 16
           Top = 48
           Width = 65
           Height = 17
@@ -137,7 +143,7 @@ object FieldEditForm: TFieldEditForm
           TabOrder = 1
         end
         object CheckBoxZerofill: TCheckBox
-          Left = 32
+          Left = 16
           Top = 72
           Width = 57
           Height = 17
@@ -164,7 +170,7 @@ object FieldEditForm: TFieldEditForm
       object ComboBoxPosition: TComboBox
         Left = 88
         Top = 14
-        Width = 185
+        Width = 192
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
@@ -173,9 +179,9 @@ object FieldEditForm: TFieldEditForm
       object EditComment: TEdit
         Left = 88
         Top = 133
-        Width = 185
+        Width = 192
         Height = 21
-        TabOrder = 5
+        TabOrder = 6
       end
     end
     object tabIndexes: TTabSheet
@@ -185,10 +191,11 @@ object FieldEditForm: TFieldEditForm
       ShowHint = True
       object lblIndexName: TLabel
         Left = 8
-        Top = 10
+        Top = 11
         Width = 63
         Height = 13
-        Caption = 'Index-Name:'
+        Caption = '&Index-Name:'
+        FocusControl = ComboBoxKeys
       end
       object lblColumnsUsed: TLabel
         Left = 8
