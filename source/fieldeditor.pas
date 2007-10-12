@@ -542,15 +542,9 @@ procedure TFieldEditForm.OKClick(Sender: TObject);
 begin
   // add/update what?
   if fMode in [femFieldUpdate, femFieldAdd] then
-    begin
-      AddUpdateField(self);
-    end;
-  if fMode in [femIndexEditor] then
-    begin
-      UpdateKeys(self);
-    end
-  else
-    ModalResult := mrCancel;
+    AddUpdateField(self)
+  else if fMode in [femIndexEditor] then
+    UpdateKeys(self);
 end;
 
 
