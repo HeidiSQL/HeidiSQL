@@ -483,7 +483,11 @@ begin
     cwin.ShowTableProperties(cwin.SelectedTable);
     ModalResult := mrOK;
   except
-    on E: THandledSQLError do;
+    on E: THandledSQLError do
+    begin
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ModalResult := mrNone;
+    end;
   end;
   Screen.Cursor := crDefault;
 end;
