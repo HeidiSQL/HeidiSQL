@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{53d02113-9bb2-4326-83eb-53734f07dae7}</ProjectGuid>
     <MainSource>heidisql.dpr</MainSource>
@@ -140,6 +140,5 @@
     <DCCReference Include="..\..\source\usermanager.pas">
       <Form>UserManagerForm</Form>
     </DCCReference>
-    <None Include="..\..\source\const.inc" />
   </ItemGroup>
 </Project>
