@@ -89,7 +89,17 @@ end;
 procedure TCopyTableForm.editNewTablenameChange(Sender: TObject);
 begin
   // validate tablename
-  ButtonOK.Enabled := (editNewTablename.text <> '');
+  try
+    ensureValidIdentifier( editNewTablename.Text );
+    editNewTablename.Font.Color := clWindowText;
+    editNewTablename.Color := clWindow;
+    // Enable "OK"-Button if we have a valid name
+    ButtonOK.Enabled := True;
+  except
+    editNewTablename.Font.Color := clRed;
+    editNewTablename.Color := clYellow;
+    ButtonOK.Enabled := False;
+  end;
 end;
 
 
