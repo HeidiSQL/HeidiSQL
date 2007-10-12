@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{FABFC9EF-E53F-47F4-85A7-ADA6558D0DF4}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  <Projects>
+      <Projects Name="VCLser100.bpl">..\..\components\edbimage\packages\delphi10\VCLser.bdsproj</Projects>
+      <Projects Name="DCLSer100.bpl">..\..\components\edbimage\packages\delphi10\DCLSer.bdsproj</Projects>
+      <Projects Name="SMDBGridComponents100.bpl">..\..\components\smdbgrid\packages\delphi10\SMDBGridComponents.bdsproj</Projects>
+      <Projects Name="SynEditR100.bpl">..\..\components\synedit\Packages\delphi10\SynEditR.bdsproj</Projects>
+      <Projects Name="SynEditD100.bpl">..\..\components\synedit\Packages\delphi10\SynEditD.bdsproj</Projects>
+      <Projects Name="ZCore100.bpl">..\..\components\zeosdbo\packages\delphi10\ZCore.bdsproj</Projects>
+      <Projects Name="ZPlain100.bpl">..\..\components\zeosdbo\packages\delphi10\ZPlain.bdsproj</Projects>
+      <Projects Name="ZParseSql100.bpl">..\..\components\zeosdbo\packages\delphi10\ZParseSql.bdsproj</Projects>
+      <Projects Name="ZDbc100.bpl">..\..\components\zeosdbo\packages\delphi10\ZDbc.bdsproj</Projects>
+      <Projects Name="ZComponent100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponent.bdsproj</Projects>
+      <Projects Name="ZComponentDesign100.bpl">..\..\components\zeosdbo\packages\delphi10\ZComponentDesign.bdsproj</Projects>
+      <Projects Name="HeidiComponents100.bpl">..\..\components\heidisql\packages\delphi10\HeidiComponents.bdsproj</Projects>
+      <Projects Name="VirtualTreesR100.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesR.bdsproj</Projects>
+      <Projects Name="VirtualTreesD100.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesD.bdsproj</Projects>
+      <Projects Name="heidisql.exe">..\..\packages\delphi10\heidisql.bdsproj</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl SMDBGridComponents100.bpl SynEditR100.bpl SynEditD100.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiComponents100.bpl VirtualTreesR100.bpl VirtualTreesD100.bpl heidisql.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>
