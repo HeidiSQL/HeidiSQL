@@ -159,9 +159,13 @@ end;
 procedure TMysqlQueryThread.NotifyStatus(AEvent: Integer);
 var
   h : THandle;
+  qr : TThreadResult;
 begin
 
   if AEvent = MQE_FINISHED then begin
+    debug(Format('qry: Setting result', [AEvent]));
+    qr := AssembleResult();
+    TMysqlQuery(FOwner).SetThreadResult(qr);
     // trigger query finished event
     h := OpenEvent (EVENT_MODIFY_STATE,False,PChar(TMysqlQuery(FOwner).EventName));
     debug('qry: Signalling completion via event.');
@@ -191,13 +195,9 @@ begin
 end;
 
 procedure TMysqlQueryThread.NotifyStatusViaWinMessage(AEvent: Integer);
-var
-  qr : TThreadResult;
 begin
-  debug(Format('qry: Setting result and posting status %d via WM_MYSQL_THREAD_NOTIFY message', [AEvent]));
-  qr := AssembleResult();
-  TMysqlQuery(FOwner).SetThreadResult(qr);
   debug('qry: Signalling completion via message.');
+  debug(Format('qry: Posting status %d via WM_MYSQL_THREAD_NOTIFY message', [AEvent]));
   PostMessage(FNotifyWndHandle,WM_MYSQL_THREAD_NOTIFY,Integer(FOwner),AEvent);
 end;
 
