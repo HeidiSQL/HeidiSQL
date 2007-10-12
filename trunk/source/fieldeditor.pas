@@ -401,7 +401,14 @@ begin
       strAttributes := strAttributes + ' ZEROFILL';
 
     if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
-      strDefault := ' DEFAULT ' + esc(EditDefault.Text);
+    begin
+      strDefault := ' DEFAULT ';
+      // Only escape default value if it's not "CURRENT_TIMESTAMP"
+      if (UpperCase(ComboBoxType.Text) = 'TIMESTAMP') and (UpperCase(EditDefault.Text) = 'CURRENT_TIMESTAMP') then
+        strDefault := strDefault + EditDefault.Text
+      else
+        strDefault := strDefault + esc(EditDefault.Text)
+    end;
 
     if CheckBoxNotNull.Checked = True then
       strNotNull := ' NOT NULL';
