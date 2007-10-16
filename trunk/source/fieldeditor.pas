@@ -192,9 +192,7 @@ begin
       EditComment.Text := NodeData.Captions[5];
 
       // extract field type
-      strtype := UpperCase( NodeData.Captions[1] );
-      if Pos ('(',strtype) > 0 then
-        strtype := Trim(copy (strtype,0,Pos ('(',strtype)-1));
+      strtype := UpperCase( getFirstWord( NodeData.Captions[1] ) );
 
       // field field type structure
       for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
