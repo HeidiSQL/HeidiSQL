@@ -352,7 +352,7 @@ end;
 }
 procedure TFieldEditForm.AddUpdateField(Sender: TObject);
 var
-  strNotNull,
+  strNull,
   strAttributes,
   strAutoIncrement,
   strLengthSet,
@@ -387,7 +387,7 @@ begin
   Screen.Cursor := crSQLWait;
   try
     strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
-    strNotNull := '';
+    strNull := '';
     strDefault := '';
     strAutoIncrement := '';
 
@@ -403,15 +403,20 @@ begin
     if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
     begin
       strDefault := ' DEFAULT ';
-      // Only escape default value if it's not "CURRENT_TIMESTAMP"
-      if (UpperCase(ComboBoxType.Text) = 'TIMESTAMP') and (UpperCase(EditDefault.Text) = 'CURRENT_TIMESTAMP') then
+      // Don't escape certain default values
+      if (UpperCase(EditDefault.Text) = 'CURRENT_TIMESTAMP')
+        or (UpperCase(EditDefault.Text) = 'NULL') then
         strDefault := strDefault + EditDefault.Text
       else
         strDefault := strDefault + esc(EditDefault.Text)
     end;
 
-    if CheckBoxNotNull.Checked = True then
-      strNotNull := ' NOT NULL';
+    if CheckBoxNotNull.Enabled then
+    begin
+      if CheckBoxNotNull.Checked then
+        strNull := ' NOT';
+      strNull := strNull + ' NULL';
+    end;
 
     if CheckBoxAutoIncrement.Checked = True then
       strAutoIncrement := ' AUTO_INCREMENT';
@@ -437,7 +442,7 @@ begin
       strLengthSet +          // Length/Set
       strAttributes +         // Attribute
       strDefault +            // Default
-      strNotNull +            // Not Null
+      strNull +               // [NOT] Null
       strAutoIncrement +      // Auto_increment
       strComment;             // Comment
 
