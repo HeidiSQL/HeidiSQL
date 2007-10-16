@@ -2143,7 +2143,7 @@ begin
       // Default visible columns
 
       // Records
-      ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsFloat ) );
+      ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsString ) );
       // Size: Data_length + Index_length
       bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
       ListCaptions.Add( FormatByteNumber( FloatToStr(bytes) ) );
