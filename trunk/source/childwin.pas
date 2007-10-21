@@ -2231,10 +2231,10 @@ begin
       VTRowDataListTables[i-1].Captions := ListCaptions;
       ds.Next;
     end;
-    mainform.showstatus(db + ': ' + IntToStr(ds.RecordCount) +' table(s)');
   finally
     ListTables.RootNodeCount := Length(VTRowDataListTables);
     ListTables.EndUpdate;
+    Mainform.showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)');
     Screen.Cursor := crDefault;
   end;
 end;
