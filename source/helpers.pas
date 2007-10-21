@@ -56,6 +56,7 @@ type
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
+  function MakeFloat( Str: String ): Extended;
   function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
   function hasNullChar(Text: string): boolean;
   function hasIrregularChars(Text: string): boolean;
@@ -1344,10 +1345,16 @@ End;
   @return int64
 }
 function MakeInt( Str: String ) : Int64;
+begin
+  // Result has to be of integer type
+  Result := Trunc( MakeFloat( Str ) );
+end;
+
+
+function MakeFloat( Str: String ): Extended;
 var
   i : Integer;
   StrNumber : String;
-  float : Extended;
   p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
 begin
   StrNumber := '';
@@ -1362,10 +1369,10 @@ begin
   // Temporarly convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
   try
-    float := StrToFloat( StrNumber );
+    Result := StrToFloat( StrNumber );
   except
     // Fallback for empty strings
-    float := 0;
+    Result := 0;
   end;
 
   // Detect if the string was previously formatted by FormatByteNumber
@@ -1377,18 +1384,15 @@ begin
   p_pb := Pos(NAME_PB, Str);
 
   if (p_kb > 0) and (p_kb = Length(Str)-Length(NAME_KB)+1) then
-    float := float * SIZE_KB
+    Result := Result * SIZE_KB
   else if (p_mb > 0) and (p_mb = Length(Str)-Length(NAME_MB)+1) then
-    float := float * SIZE_MB
+    Result := Result * SIZE_MB
   else if (p_gb > 0) and (p_gb = Length(Str)-Length(NAME_GB)+1) then
-    float := float * SIZE_GB
+    Result := Result * SIZE_GB
   else if (p_tb > 0) and (p_tb = Length(Str)-Length(NAME_TB)+1) then
-    float := float * SIZE_TB
+    Result := Result * SIZE_TB
   else if (p_pb > 0) and (p_pb = Length(Str)-Length(NAME_PB)+1) then
-    float := float * SIZE_PB;
-
-  // Result has to be of integer type
-  Result := Trunc( float );
+    Result := Result * SIZE_PB;
 end;
 
 

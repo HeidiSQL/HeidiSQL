@@ -6114,7 +6114,7 @@ procedure TMDIChild.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
 var
   NodeData1, NodeData2 : PVTreeData;
   CellText1, CellText2 : String;
-  Int1, Int2 : Int64;
+  Number1, Number2 : Extended;
 begin
   NodeData1 := Sender.GetNodeData(Node1);
   NodeData2 := Sender.GetNodeData(Node2);
@@ -6133,13 +6133,13 @@ begin
   if StrToIntDef( copy(CellText1,0,1), -1 ) <> -1 then
   begin
     // Assuming numeric values
-    Int1 := MakeInt( CellText1 );
-    Int2 := MakeInt( CellText2 );
-    if Int1 > Int2 then
+    Number1 := MakeFloat( CellText1 );
+    Number2 := MakeFloat( CellText2 );
+    if Number1 > Number2 then
       Result := 1
-    else if Int1 = Int2 then
+    else if Number1 = Number2 then
       Result := 0
-    else if Int1 < Int2 then
+    else if Number1 < Number2 then
       Result := -1;
   end
   else begin
