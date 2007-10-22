@@ -10,24 +10,23 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, printers, comctrls, ExtCtrls, VirtualTrees;
+  StdCtrls, printers, comctrls, ExtCtrls, VirtualTrees, Math;
 
 type
   TprintlistForm = class(TForm)
-    ComboBoxPrinters: TComboBox;
-    Button1: TButton;
-    GroupBox1: TGroupBox;
-    Button2: TButton;
-    Button3: TButton;
-    PrinterSetupDialog1: TPrinterSetupDialog;
-    CheckBox1: TCheckBox;
-    Image1: TImage;
+    comboPrinters: TComboBox;
+    btnConfigure: TButton;
+    boxColumns: TGroupBox;
+    btnCancel: TButton;
+    btnPrint: TButton;
+    PrinterSetup: TPrinterSetupDialog;
+    chkAllColumns: TCheckBox;
+    lblSelect: TLabel;
     procedure FormShow(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure CheckBox1Click(Sender: TObject);
-    procedure ComboBoxPrintersChange(Sender: TObject);
+    procedure btnConfigureClick(Sender: TObject);
+    procedure btnPrintClick(Sender: TObject);
+    procedure chkAllColumnsClick(Sender: TObject);
+    procedure comboPrintersChange(Sender: TObject);
   private
     list : TVirtualStringTree;
     title : String;
@@ -61,13 +60,16 @@ end;
 
 procedure TprintlistForm.FormShow(Sender: TObject);
 var
-  i,t : Integer;
+  i, chkTop, chkCount : Integer;
   cwin : TMDIChild;
+  chk : TCheckBox;
+const
+  chkHeight = 23;
 begin
   // show!
   Screen.Cursor := crHourGlass;
-  ComboBoxPrinters.Items := Printer.printers;
-  ComboBoxPrinters.ItemIndex := Printer.printerIndex;
+  comboPrinters.Items := Printer.printers;
+  comboPrinters.ItemIndex := Printer.printerIndex;
 
   cwin := Mainform.ChildWin;
 
@@ -91,42 +93,45 @@ begin
 
 
   // add one CheckBox per list-column
-  t := 2;
-  CheckBox1.Checked := true;
-  for i:=0 to list.Header.Columns.count-1 do begin
-    with TCheckBox.Create(self) do begin
-      parent := GroupBox1;
-      Caption := list.Header.Columns[i].Text;
-      checked := true;
-      enabled := false;
-      if i mod 2 = 0 then begin
-        inc(t);
-        left := 16;
-      end
-      else
-        left := 130;
-      top := t * 23;
-      tag := 1;
-    end;
+  chkTop := 2;
+  chkCount := 0;
+  chkAllColumns.Checked := True;
+  for i:=0 to list.Header.Columns.count-1 do
+  begin
+    // Skip hidden columns
+    if not (coVisible in list.Header.Columns[i].Options) then
+      continue;
+
+    chk := TCheckBox.Create(self);
+    chk.Parent := boxColumns;
+    chk.Caption := list.Header.Columns[i].Text;
+    chk.Checked := True;
+    chk.Enabled := False;
+    if chkCount mod 2 = 0 then begin
+      inc(chkTop);
+      chk.Left := 16;
+    end else
+      chk.Left := 130;
+    chk.Top := chkTop * chkHeight;
+    chk.Tag := 1;
+    inc(chkCount);
   end;
+  Height := boxColumns.Top
+    + (3 * chkHeight) // "All columns checkbox + space
+    + (Height - boxColumns.Top - boxColumns.Height) // Bottom rest
+    + (Ceil(chkCount/2) * chkHeight); // Height of generated checkboxes
   Screen.Cursor := crDefault;
 end;
 
-procedure TprintlistForm.Button1Click(Sender: TObject);
+procedure TprintlistForm.btnConfigureClick(Sender: TObject);
 begin
   Screen.Cursor := crHourglass;
-  printerSetupDialog1.Execute;
-  ComboBoxPrinters.ItemIndex := Printer.PrinterIndex;
+  printerSetup.Execute;
+  comboPrinters.ItemIndex := Printer.PrinterIndex;
   Screen.Cursor := crDefault;
 end;
 
-procedure TprintlistForm.Button2Click(Sender: TObject);
-begin
-  close;
-end;
-
-
-procedure TprintlistForm.Button3Click(Sender: TObject);
+procedure TprintlistForm.btnPrintClick(Sender: TObject);
 var
   lspace, rspace, i, j, k, limiter, breite, hoehe, colwidth : Integer;
   Cols : TStringList;
@@ -216,30 +221,31 @@ begin
   end;
   Printer.EndDoc;
   Screen.Cursor := crDefault;
-  close;
 end;
 
 
 
-procedure TprintlistForm.CheckBox1Click(Sender: TObject);
+procedure TprintlistForm.chkAllColumnsClick(Sender: TObject);
 var i : Integer;
 begin
   // toggle checkboxes-enabled
-  for i:=ComponentCount-1 downto 0 do begin
-    if Components[i].tag = 1 then begin
-      (Components[i] as TCheckBox).enabled := not CheckBox1.checked;
-      if CheckBox1.checked then
-        (Components[i] as TCheckBox).checked := true;
+  for i:=ComponentCount-1 downto 0 do
+  begin
+    if Components[i].tag = 1 then
+    begin
+      (Components[i] as TCheckBox).enabled := not chkAllColumns.checked;
+      if chkAllColumns.Checked then
+        (Components[i] as TCheckBox).Checked := true;
     end;
   end;
 end;
 
 
-procedure TprintlistForm.ComboBoxPrintersChange(Sender: TObject);
+procedure TprintlistForm.comboPrintersChange(Sender: TObject);
 begin
   // chose printer
   Screen.Cursor := crHourglass;
-  Printer.PrinterIndex := ComboBoxPrinters.ItemIndex;
+  Printer.PrinterIndex := comboPrinters.ItemIndex;
   Screen.Cursor := crDefault;
 end;
 
