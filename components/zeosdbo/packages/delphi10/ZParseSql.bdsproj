@@ -121,9 +121,9 @@
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
-			<Directories Name="PackageDLLOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
-			<Directories Name="PackageDCPOutputDir">$(BDSPROJECTSDIR)\bpl</Directories>
-			<Directories Name="SearchPath">.\..\..\..\compilerdetection</Directories>
+			<Directories Name="PackageDLLOutputDir">..\..\build</Directories>
+			<Directories Name="PackageDCPOutputDir">..\..\build</Directories>
+			<Directories Name="SearchPath">..\..\..\compilerdetection\include</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>

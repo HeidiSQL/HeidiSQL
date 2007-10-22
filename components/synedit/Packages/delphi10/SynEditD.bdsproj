@@ -121,12 +121,12 @@
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
 			<Directories Name="UnitOutputDir">..\..\build</Directories>
-			<Directories Name="PackageDLLOutputDir"></Directories>
-			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">..\..\build;..\..\..\compilerdetection</Directories>
+			<Directories Name="PackageDLLOutputDir">..\..\build</Directories>
+			<Directories Name="PackageDCPOutputDir">..\..\build</Directories>
+			<Directories Name="SearchPath">..\..\build;..\..\..\compilerdetection\include</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals"></Directories>
-			<Directories Name="DebugSourceDirs">..\..\Source</Directories>
+			<Directories Name="DebugSourceDirs">..\..\source</Directories>
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>
 		<Parameters>
