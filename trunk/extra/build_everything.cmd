@@ -5,7 +5,7 @@ if not %errorlevel% == 0 goto extensions_failure
 
 setlocal enabledelayexpansion 2>nul:
 if not %errorlevel% == 0 goto delayexpansion_failure
-goto test_dcc32
+goto tool_tests
 
 :extensions_failure
 echo Error: Your command interpreter (cmd.exe) does not support
@@ -20,6 +20,8 @@ echo Notice: Your command interpreter (cmd.exe) does not support
 echo delayed variable expansion.  This is not currently a requirement
 echo for this build script, but may be in the future.
 echo.
+
+:tool_tests
 
 :test_dcc32
 dcc32.exe --version >NUL: 2>NUL:
@@ -155,7 +157,7 @@ goto build
 echo Compiling component %1, package %2.
 cd /d "%base_dir%\components\%1\packages\%package_dir%\"
 "%compiler%" %params% %2.dpk
-if not %errorlevel% == 0 goto end
+set err=%errorlevel%
 echo.
 goto :eof
 
@@ -164,34 +166,48 @@ echo.
 
 rem Build EDBImage
 call :compile edbimage VCLSer
+if not %err% == 0 goto end
 call :compile edbimage DCLSer
+if not %err% == 0 goto end
 
 
 rem Build SMDBGrid
 call :compile smdbgrid SMDBGridComponents
+if not %err% == 0 goto end
 
 
 rem Build SynEdit
 call :compile synedit SynEditR
+if not %err% == 0 goto end
 call :compile synedit SynEditD
+if not %err% == 0 goto end
 
 
 rem Build ZeosDBO
 call :compile zeosdbo ZCore
+if not %err% == 0 goto end
 call :compile zeosdbo ZPlain
+if not %err% == 0 goto end
 call :compile zeosdbo ZParseSql
+if not %err% == 0 goto end
 call :compile zeosdbo ZDbc
+if not %err% == 0 goto end
 call :compile zeosdbo ZComponent
+if not %err% == 0 goto end
 call :compile zeosdbo ZComponentDesign
+if not %err% == 0 goto end
 
 
 rem Build HeidiComponents
 call :compile heidisql HeidiComponents
+if not %err% == 0 goto end
 
 
 rem Build VirtualTreeView
 call :compile virtualtreeview VirtualTreesR
+if not %err% == 0 goto end
 call :compile virtualtreeview VirtualTreesD
+if not %err% == 0 goto end
 
 
 rem Build main executable
