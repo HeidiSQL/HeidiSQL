@@ -45,7 +45,7 @@
 
 <body>
 
-	<a href="http://www.heidisql.com/" title="Go to project-homepage">
+	<a href="http://www.heidisql.com/" title="Go to project homepage">
 		<img src="http://www.heidisql.com/images/heidisql_logo.png" alt="HeidiSQL Logo" />
 	</a>
 
@@ -57,10 +57,10 @@
 	<h2 id="contents">Table of contents</h2>
 	<ol>
 		<li><a href="#requirements">Prerequisites</a></li>
-		<li><a href="#compiler">What is Borland Developer Studio?</a></li>
-		<li><a href="#compilerversion">Which version of Delphi do I need (and where can I get it)?</a></li>
+		<li><a href="#compiler">What is Borland Developer Studio / Delphi?</a></li>
 		<li><a href="#downloading">Downloading the source code</a></li>
-		<li><a href="#gettingstarted">Getting started</a></li>
+		<li><a href="#quickstart">Quick-start tutorial</a></li>
+		<li><a href="#gettingstarted">Manual build</a></li>
 		<li><a href="#furtherdevelopment">Further development</a></li>
 		<li><a href="#troubleshooting">Troubleshooting</a></li>
 		<li><a href="#notes">Notes</a></li>
@@ -76,45 +76,15 @@
 		If you do find anything which you don't understand in this document, feel free to ask.
 	</p>
 	<p>
-		In the software department, you'll need the following for building HeidiSQL:
-		<ul><li>Borland Developer Studio 2006</li></ul>
-	</p>
-	<p>
-		All third party components and dependencies used by HeidiSQL is included in the Subversion
-		repository and the source package.
+		You will need the following software for building HeidiSQL.  Install in any order you prefer.
+		<ul><li><a href='http://www.codegear.com/downloads/free/delphi'>CodeGear Delphi 2007</a> or Borland Developer Studio 2006</li></ul>
+		<ul><li><a href='http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=91&amp;filter=setup.exe'>Subversion</a> command line tools</li></ul>
+		<ul><li><a href='http://tortoisesvn.net/downloads'>TortoiseSVN</a> graphical Subversion client</li></ul>
 	</p>
 
 	<p>
-		<a href="#contents">To table of contents</a>
-	</p>
-
-	<hr />
-
-
-	<h2 id="compiler">What is Borland Developer Studio?</h2>
-	<p>
-		Delphi is a graphical development environment.  It uses a language which is as powerful as C++,
-		but has a much clearer and better syntax, named Pascal.  Pascal is a modern language, with major
-		benefits compared to other languages, among them is great support for Structured Exception Handling,
-		the various types of strings in existence, componentized development, and other things.  It also has
-		it's drawbacks, mostly minor things on the technical front like for example the newbie-friendly but
-		overly verbose "begin -> end" scope declarators and lack of various syntactic sugar such as "+=" and "?:".
-	</p>
-
-	<p>
-		On the corporate side of things are more grave issues, such as lack of communication with developers
-		and Borland seemingly wanting to get rid of the compiler business as a whole.  Luckily, we don't have
-		to care too much about that, as the product pretty much works just fine as it is :-).
-	</p>
-
-	<p>
-		Update: The entire suite of compiler and code IDE products from Borland has been sold to CodeGear.
-	</p>
-
-	<p>
-		Borland Developer Studio (BDS) is the name of the successor of the Delphi environment.
-		BDS 2005 is also known as Delphi 9, and BDS 2006 is also known as Delphi 10.  We'll be using the name
-		"Delphi", both when we refer to older versions and to newer ones (BDS).
+		All other third party components and dependencies used by HeidiSQL are
+		included in the Subversion repository and the source package.
 	</p>
 
 	<p>
@@ -124,16 +94,21 @@
 	<hr />
 
 
-	<h2 id="compilerversion">Which version of Delphi do I need (and where can I get it)?</h2>
+	<h2 id="compiler">What is Borland Developer Studio / Delphi?</h2>
 	<p>
-		HeidiSQL actually builds with at least Delphi 6 and upwards, but there's only a complete set of project
-		files for Delphi 10 and Delphi 11, aka BDS 2006 and BDS 2007.  There's incomplete support for Delphi 6
-		in the source codes, only a few projects are missing.  For other environments, much more may be missing.
-		If you want to make life easy for yourself, just get Delphi 10+ ;-).
+		Borland Developer Studio is a graphical user interface for developing code, also known as an IDE.
+		Delphi was the original name for Borland's IDE products, but nowadays refer to the part of the IDE
+		that deals with code in the Pascal language.  You don't need the full-fledged Developer Studio, a
+		plain Delphi IDE is enough to build HeidiSQL.
 	</p>
 
 	<p>
-		You can download a free trial at the <a href='http://www.codegear.com/downloads/free/delphi'>CodeGear web site</a>.
+		Pascal is a language which is as powerful as C++, but has a much cleaner syntax.  Pascal is a modern
+		language, with major benefits compared to other languages, among them is limited garbage collection,
+		great support for Structured Exception Handling, the various types of strings in existence,
+		componentized development, and other things.  It also has it's drawbacks, mostly minor things on the
+		technical front like for example the newbie-friendly but overly verbose "begin -> end" scope
+		declarators and lack of various syntactic sugar such as "+=" and "?:".
 	</p>
 
 	<p>
@@ -149,7 +124,7 @@
 		Preferably, use Subversion to check out a working copy.
 	</p>
 	<p>
-		You can use TortoiseSVN (a graphical client), or the command line Subversion client like so:
+		You can use TortoiseSVN, or the command line Subversion client like so:
 		<div>
 			<code>svn co https://heidisql.svn.sourceforge.net/svnroot/heidisql/trunk heidisql</code>
 		</div>
@@ -168,9 +143,34 @@
 	<hr />
 
 
-	<h2 id="gettingstarted">Getting started</h2>
+	<h2 id="quickstart">Getting started</h2>
 	<p>
-		Start by compiling and installing the components that HeidiSQL depends on.
+		To quickly setup a HeidiSQL build environment, follow these instructions.
+	</p>
+	<p>
+		<ol>
+			<li>Install the software listed in <a href="#requirements">prerequisites</a>.</li>
+			<li><a href="#downloading">Get a copy</a> of the source code.</li>
+			<li>Run the script <code>heidisql/extra/build_everything.cmd</code>.</li>
+			<li>Run the script <code>heidisql/extra/install_ide_components.cmd</code>.</li>
+			<li>Done!</li>
+		</ol>
+	</p>
+	<p>
+		The final executable should now be in <code>heidisql/out/</code>, and you should be able
+		to modify the project by opening <code>heidisql/packages/delphiXX/heidisql.bdsproj</code>.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="gettingstarted">Manual build</h2>
+	<p>
+		We'll start by compiling and installing the components that HeidiSQL depends on and then HeidiSQL itself.
 	</p>
 
 	<p>
@@ -328,18 +328,25 @@
 		wrong during building, you might want to clean your build environment.
 		You can do like this:
 		<ul>
-			<li>Close all Delphi <strong>projects</strong>, but leave a Delphi
-				<strong>window</strong> open (or open a new one).</li>
-			<li>Choose Project --> Default Options --> Delphi for Win32</li>
-			<li>Choose "Packages".  Highlight the following packages one by one and
-				click the "Remove" button after highlighting each one:
+			<li>Either close all Delphi windows and delete the registry key
+				<code>HKEY_CURRENT_USER\Software\Borland</code>, or perform the next three steps:
 				<ul>
-					<li>EDBImage</li>
-					<li>HeidiSQL helper components</li>
-					<li>SMDBGrid</li>
-					<li>SynEdit component suite</li>
-					<li>Zeos Database Components</li>
+					<li>Close all Delphi <strong>projects</strong>, but leave a Delphi
+						<strong>window</strong> open (or open a new one).
+					</li>
+					<li>Choose Project --> Default Options --> Delphi for Win32</li>
+					<li>Choose "Packages".  Highlight the following packages one by one and
+						click the "Remove" button after highlighting each one:
+						<ul>
+							<li>EDBImage</li>
+							<li>HeidiSQL helper components</li>
+							<li>SMDBGrid</li>
+							<li>SynEdit component suite</li>
+							<li>Zeos Database Components</li>
+						</ul>
+					</li>
 				</ul>
+			</li>
 			<li>Nuke all files in your package output directory, eg.
 				"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
 			<li>Nuke all files from all HeidiSQL "build" directories, for
@@ -460,6 +467,10 @@
 		I have no clue.  If you find out, please update this readme.<br />
 		Supposedly, one can use textual RC files instead of binary RES files, and by adding the RC files to
 		a project, Delphi should compile them into RES files on demand.  That's probably what we should do.
+	</p>
+	<p>
+		(Hint: Delphi comes with two resource compilers, brc32.exe and brcc32.exe.  The Delphi compiler
+		can be called with --drc to generate text resource files at compile time (?).)
 	</p>
 
 	<h3>What tool is practical for editing the multi-icon bitmap in /res/icons8bit.bmp?</h3>
