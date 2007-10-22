@@ -113,6 +113,15 @@ rem      This is a workaround for avoiding error D21153
 rem      see here: http://qc.borland.com/wc/qcmain.aspx?d=44731
 set params=%params% -Q
 
+set clean_only=false
+
+:param_loop
+if %0. == . goto param_done
+if %0. == --clean. set clean_only=true
+shift
+goto param_loop
+
+:param_done
 echo Base directory:          %base_dir%
 echo Compiler directory:      %compiler_dir%
 
@@ -151,6 +160,7 @@ del /S *.dcu
 del /S *.dcp
 del /S *.bpl
 del /S out\heidisql.exe
+if %clean_only% == true goto end
 goto build
 
 :compile
