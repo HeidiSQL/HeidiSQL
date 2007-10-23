@@ -1723,7 +1723,9 @@ begin
         begin
           // Most likely we have a wrong filter-clause when this happens
           LogSQL( E.Message, True );
-          // Put the user with his nose onto the wrong filter he specified
+          // Put the user with his nose onto the wrong filter
+          // either specified by user or
+          // created by HeidiSQL by using the search box
           if ( SynMemoFilter.CanFocus ) then
           begin
             SynMemoFilter.SetFocus();
