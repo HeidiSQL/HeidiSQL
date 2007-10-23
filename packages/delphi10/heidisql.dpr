@@ -30,7 +30,7 @@ uses
   mysqlquery in '..\..\source\mysqlquery.pas',
   mysqlquerythread in '..\..\source\mysqlquerythread.pas',
   mysqlconn in '..\..\source\mysqlconn.pas',
-  mysql in '..\..\source\mysql.pas',
+  mysql_structures in '..\..\source\mysql_structures.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
   runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},

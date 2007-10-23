@@ -253,7 +253,7 @@ uses
   insertfiles,
   Helpers,
   Threading,
-  mysql;
+  mysql_structures;
 
 {$R *.DFM}
 
