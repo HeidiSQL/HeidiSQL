@@ -1351,6 +1351,12 @@ begin
 end;
 
 
+{***
+  Convert a string-number to an floatingpoint-number
+
+  @param String text representation of a number
+  @return Extended
+}
 function MakeFloat( Str: String ): Extended;
 var
   i : Integer;
@@ -1366,7 +1372,7 @@ begin
     end;
   end;
 
-  // Temporarly convert result to a floating point value to ensure
+  // Convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
   try
     Result := StrToFloat( StrNumber );
