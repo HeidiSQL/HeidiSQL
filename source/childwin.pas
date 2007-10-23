@@ -512,6 +512,9 @@ type
         HintText: WideString);
     procedure popupFilterPopup(Sender: TObject);
     procedure ProcessSqlLog;
+    procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
+        TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
+        TRect);
 
     private
       strHostRunning             : String;
@@ -6628,6 +6631,40 @@ begin
   // Hide the draggedout column
   Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
 end;
+
+
+{**
+  A cell in ListCommandStats gets painted.
+  Draw a progress bar on it to visualize its percentage value.
+}
+procedure TMDIChild.ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
+    TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
+    TRect);
+var
+  percent : Extended;
+  barwidth, cellwidth: Integer;
+  NodeData: PVTreeData;
+begin
+  // Only paint bar in percentage column
+  if Column <> 4 then
+    Exit;
+
+  // Add minimal margin to cell edges
+  InflateRect(CellRect, -1, -1);
+  cellwidth := CellRect.Right - CellRect.Left;
+
+  // Calculate value to display
+  NodeData := Sender.GetNodeData(Node);
+  percent := MakeFloat(NodeData.Captions[Column]);
+  barwidth := Round(cellwidth / 100 * percent);
+
+  // Adjust width of rect and paint the bar
+  CellRect.Right := CellRect.Right - cellwidth + barwidth;
+  TargetCanvas.Pen.Color := clGray;
+  TargetCanvas.Brush.Color := clInfoBk;
+  TargetCanvas.Rectangle(CellRect);
+end;
+
 
 
 end.
