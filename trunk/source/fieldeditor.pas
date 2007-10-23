@@ -95,7 +95,7 @@ type
 implementation
 
 uses
-  helpers, childwin, Main, mysql, db;
+  helpers, childwin, Main, mysql_structures, db;
 
 var
   klist : Array of TMysqlIndex;

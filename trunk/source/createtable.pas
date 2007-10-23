@@ -100,7 +100,7 @@ type
 implementation
 
 uses
-  Main, Childwin, helpers, mysql;
+  Main, Childwin, helpers, mysql_structures;
 
 var
   fields : array of TMysqlField;

@@ -629,7 +629,7 @@ implementation
 uses
   Main, createtable, fieldeditor,
   optimizetables, copytable, sqlhelp, printlist,
-  column_selection, data_sorting, runsqlfile, mysql,
+  column_selection, data_sorting, runsqlfile, mysql_structures,
   Registry;
 
 
