@@ -1694,6 +1694,7 @@ begin
       begin
         sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
       end;
+
       try
         // Avoid excessive GUI updates.
         if ( DataSource1.DataSet <> nil ) then
@@ -1740,70 +1741,71 @@ begin
 
       MainForm.ShowStatus( STATUS_MSG_READY, 2 );
 
-      for i := 0 to Length(VTRowDataListColumns) - 1 do
-      begin
-
-        // give all enum-fields a PickList with its Items
-        if ( StrCmpBegin( 'enum', VTRowDataListColumns[i].Captions[1]) ) then
+      if DataSource1.DataSet <> nil then begin
+        for i := 0 to Length(VTRowDataListColumns) - 1 do
         begin
-          DropDown := explode( ''',''', getEnumValues( VTRowDataListColumns[i].Captions[1] ) );
-          for j := 0 to ( DropDown.Count - 1 ) do
+          // give all enum-fields a PickList with its Items
+          if ( StrCmpBegin( 'enum', VTRowDataListColumns[i].Captions[1]) ) then
           begin
-            DropDown[j] := trimc( DropDown[j], '''' );
+            DropDown := explode( ''',''', getEnumValues( VTRowDataListColumns[i].Captions[1] ) );
+            for j := 0 to ( DropDown.Count - 1 ) do
+            begin
+              DropDown[j] := trimc( DropDown[j], '''' );
+            end;
+
+            for j := 0 to ( gridData.Columns.Count - 1 ) do
+            begin
+              if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) then
+              begin
+                gridData.Columns[j].PickList := DropDown;
+              end;
+            end;
           end;
 
+          // make PK-columns = fsBold
           for j := 0 to ( gridData.Columns.Count - 1 ) do
           begin
-            if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) then
+            if (
+              ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
+              ( VTRowDataListColumns[i].ImageIndex = 26 )
+            ) then
             begin
-              gridData.Columns[j].PickList := DropDown;
+              PrimaryKeyColumns.Add( VTRowDataListColumns[i].Captions[0] );
             end;
           end;
         end;
 
-        // make PK-columns = fsBold
         for j := 0 to ( gridData.Columns.Count - 1 ) do
         begin
+          // for letting NULLs being inserted into "NOT NULL" fields
+          // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
+          // so the Required-check on client-side is not needed at any time
+          ds.Fields[j].Required := false;
+
+          // set column-width
           if (
-            ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
-            ( VTRowDataListColumns[i].ImageIndex = 26 )
+            (prefDefaultColWidth <> 0) and
+            (gridData.Columns[j].Width > prefDefaultColWidth)
           ) then
           begin
-            PrimaryKeyColumns.Add( VTRowDataListColumns[i].Captions[0] );
+            gridData.Columns[j].Width := prefDefaultColWidth;
           end;
-        end;
-      end;
 
-      for j := 0 to ( gridData.Columns.Count - 1 ) do
-      begin
-        // for letting NULLs being inserted into "NOT NULL" fields
-        // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
-        // so the Required-check on client-side is not needed at any time
-        ds.Fields[j].Required := false;
-
-        // set column-width
-        if (
-          (prefDefaultColWidth <> 0) and
-          (gridData.Columns[j].Width > prefDefaultColWidth)
-        ) then
-        begin
-          gridData.Columns[j].Width := prefDefaultColWidth;
-        end;
-
-        // make PK-columns = fsBold
-        for i := 0 to ( PrimaryKeyColumns.Count - 1 ) do
-        begin
-          if (PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname) then
+          // make PK-columns = fsBold
+          for i := 0 to ( PrimaryKeyColumns.Count - 1 ) do
           begin
-            gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
-            gridData.Columns[j].Color := $02EEEEEE;
+            if (PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname) then
+            begin
+              gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
+              gridData.Columns[j].Color := $02EEEEEE;
+            end;
           end;
         end;
-      end;
 
-      DisplayRowCountStats(ds);
-      dataselected := true;
-      viewingdata := false;
+        DisplayRowCountStats(ds);
+        dataselected := true;
+        viewingdata := false;
+      end;
       ds.EnableControls();
       pcChange(self);
     end;
@@ -5473,8 +5475,8 @@ var
   i : Integer;
   where : String;
 begin
-  if not gridData.DataSource.DataSet.Active then
-    exit;
+  if gridData.DataSource.DataSet = nil then Exit;
+  if not gridData.DataSource.DataSet.Active then Exit;
   where := '';
   if EditDataSearch.text <> '' then
   begin
