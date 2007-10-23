@@ -269,6 +269,7 @@ object MDIChild: TMDIChild
                 TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
                 TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect]
+                OnBeforeCellPaint = ListCommandStatsBeforeCellPaint
                 OnBeforePaint = vstBeforePaint
                 OnCompareNodes = vstCompareNodes
                 OnFreeNode = vstFreeNode
