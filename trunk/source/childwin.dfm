@@ -819,7 +819,7 @@ object MDIChild: TMDIChild
               Align = alLeft
               Anchors = [akLeft, akTop, akRight, akBottom]
               AutoSize = False
-              Caption = 'lblDataTop'
+              Caption = 'Data'
               Layout = tlCenter
               WordWrap = True
             end
