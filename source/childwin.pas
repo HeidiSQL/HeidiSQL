@@ -4178,15 +4178,13 @@ begin
 
   // Store whereclause in Registry
   reg := TRegistry.Create;
-  if prefRememberFilters then
   try
-    reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
-    reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
-    if where <> '' then
-      reg.WriteString( reg_value, where )
-    else
-    if reg.ValueExists( reg_value ) then
-      reg.DeleteValue( reg_value );
+    if prefRememberFilters then begin
+      reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
+      reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
+      if where <> '' then reg.WriteString( reg_value, where )
+      else if reg.ValueExists( reg_value ) then reg.DeleteValue( reg_value );
+    end;
   finally
     reg.Free;
   end;
