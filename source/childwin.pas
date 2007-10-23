@@ -501,6 +501,8 @@ type
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure vstBeforePaint(Sender: TBaseVirtualTree; TargetCanvas:
         TCanvas);
+    procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
+        DropPosition: TPoint);
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure ComboBoxQueryDelimiterAdd(delimiter: String);
     procedure FormCreate(Sender: TObject);
@@ -6608,6 +6610,28 @@ end;
 procedure TMDIChild.menuOpenLogFolderClick(Sender: TObject);
 begin
   ShellExec( '', DirnameSessionLogs );
+end;
+
+
+{**
+  A header column of a VirtualTree was "dragged out", which means:
+  dragged down or up, not to the left or right.
+  We imitate the behaviour of various applications (fx Outlook) and
+  hide this dragged column
+}
+procedure TMDIChild.vstHeaderDraggedOut(Sender: TVTHeader; Column:
+    TColumnIndex; DropPosition: TPoint);
+begin
+  if Sender.Treeview = ListTables then
+  begin
+    // Keep "Tables" column
+    if Column = 0 then
+      Exit;
+    // Uncheck menuitem in header's contextmenu
+    popupDBGridHeader.Items[Column].Checked := False;
+  end;
+  // Hide the draggedout column
+  Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
 end;
 
 

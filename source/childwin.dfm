@@ -392,6 +392,7 @@ object MDIChild: TMDIChild
             OnGetHint = vstGetHint
             OnGetNodeDataSize = vstGetNodeDataSize
             OnHeaderClick = vstHeaderClick
+            OnHeaderDraggedOut = vstHeaderDraggedOut
             OnInitNode = vstInitNode
             OnNewText = ListTablesNewText
             Columns = <
