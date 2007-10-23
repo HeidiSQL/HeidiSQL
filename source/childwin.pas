@@ -505,7 +505,6 @@ type
         DropPosition: TPoint);
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure ComboBoxQueryDelimiterAdd(delimiter: String);
-    procedure FormCreate(Sender: TObject);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -931,6 +930,10 @@ var
   reg         : TRegistry;
 
 begin
+  // Initialize delimiter settings
+  delimiter := DEFAULT_DELIMITER;
+  ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( delimiter );
+
   reg := TRegistry.Create;
   if reg.OpenKey( REGPATH, true ) then
   begin
@@ -6322,14 +6325,6 @@ begin
   begin
     ComboBoxQueryDelimiterAdd( ComboBoxQueryDelimiter.Text );
   end;
-end;
-
-
-procedure TMDIChild.FormCreate(Sender: TObject);
-begin
-  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 365
-  delimiter := DEFAULT_DELIMITER;
-  ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( delimiter );
 end;
 
 
