@@ -333,9 +333,6 @@ object MDIChild: TMDIChild
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 38
-          DesignSize = (
-            496
-            220)
           object pnlDatabaseTop: TPanel
             Left = 0
             Top = 0
@@ -590,9 +587,6 @@ object MDIChild: TMDIChild
         object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 40
-          DesignSize = (
-            496
-            220)
           object pnlTableTop: TPanel
             Left = 0
             Top = 0
