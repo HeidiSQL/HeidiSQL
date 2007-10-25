@@ -1175,10 +1175,10 @@ end;
 
 procedure TExportSQLForm.generateExampleSQL;
 const
-  STR_DROP_DB              = 'DROP DATABASE <db>;' + CRLF;
+  STR_DROP_DB              = 'DROP DATABASE IF EXISTS <db>;' + CRLF;
   STR_CREATE_DB            = 'CREATE DATABASE <db>;' + CRLF;
   STR_CREATE_DB_IGNORE     = 'CREATE DATABASE IF NOT EXISTS <db>;' + CRLF;
-  STR_DROP_TABLE           = 'DROP TABLE <table>;' + CRLF;
+  STR_DROP_TABLE           = 'DROP TABLE IF EXISTS <table>;' + CRLF;
   STR_CREATE_TABLE         = 'CREATE TABLE <table> <definition>;' + CRLF;
   STR_CREATE_TABLE_IGNORE  = 'CREATE TABLE IF NOT EXISTS <table> <definition>;' + CRLF;
   STR_TRUNCATE_TABLE       = 'TRUNCATE TABLE <table>;' + CRLF;
