@@ -584,11 +584,6 @@ begin
       CheckBoxFulltext.OnClick := nil;
       CheckBoxFulltext.Checked := Fulltext;
       CheckBoxFulltext.OnClick := CheckBoxFulltextClick;
-      CheckBoxUnique.Enabled := not (ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].Caption = 'PRIMARY');
-      CheckBoxFulltext.Enabled := not (ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].Caption = 'PRIMARY');
-      ButtonDelete.Enabled := true;
-      listColumnsUsed.Enabled := true;
-      listColumnsAvailable.Enabled := true;
     end;
   end;
   ValidateControls;
@@ -709,19 +704,22 @@ end;
   Make index unique!
 }
 procedure TFieldEditForm.CheckBoxUniqueClick(Sender: TObject);
+var
+  idx : Integer;
 begin
-  klist[ComboBoxKeys.ItemIndex].Unique := CheckBoxUnique.Checked;
+  idx := ComboBoxKeys.ItemIndex;
+  if idx = -1 then
+    Exit;
+  klist[idx].Unique := CheckBoxUnique.Checked;
   if CheckBoxUnique.Checked then begin
-    klist[ComboBoxKeys.ItemIndex].Fulltext := false;
+    klist[idx].Fulltext := false;
     CheckBoxFulltext.Checked := false;
-    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_UNIQUEKEY;
-  end
-  else
-  begin
+    ComboBoxKeys.ItemsEx[idx].ImageIndex := ICONINDEX_UNIQUEKEY;
+  end else begin
     // Not unique, not fulltext
-    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_INDEXKEY;
+    ComboBoxKeys.ItemsEx[idx].ImageIndex := ICONINDEX_INDEXKEY;
   end;
-  klist[ComboBoxKeys.ItemIndex].Modified := true;
+  klist[idx].Modified := true;
 end;
 
 
@@ -730,19 +728,22 @@ end;
   Make index fulltext!
 }
 procedure TFieldEditForm.CheckBoxFulltextClick(Sender: TObject);
+var
+  idx : Integer;
 begin
-  klist[ComboBoxKeys.ItemIndex].Fulltext := CheckBoxFulltext.Checked;
+  idx := ComboBoxKeys.ItemIndex;
+  if idx = -1 then
+    Exit;
+  klist[idx].Fulltext := CheckBoxFulltext.Checked;
   if CheckBoxFulltext.Checked then begin
-    klist[ComboBoxKeys.ItemIndex].Unique := false;
+    klist[idx].Unique := false;
     CheckBoxUnique.Checked := false;
-    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_FULLTEXTKEY;
-  end
-  else
-  begin
+    ComboBoxKeys.ItemsEx[idx].ImageIndex := ICONINDEX_FULLTEXTKEY;
+  end else begin
     // Not unique, not fulltext
-    ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].ImageIndex := ICONINDEX_INDEXKEY;
+    ComboBoxKeys.ItemsEx[idx].ImageIndex := ICONINDEX_INDEXKEY;
   end;
-  klist[ComboBoxKeys.ItemIndex].Modified := true;
+  klist[idx].Modified := true;
 end;
 
 
@@ -995,6 +996,11 @@ begin
       btnAddAllColumnsToIndex.Enabled := KeySelected and (listColumnsAvailable.Items.Count > 0);
       btnDeleteColumnFromIndex.Enabled := KeySelected and (listColumnsUsed.ItemIndex > -1);
       btnDeleteAllColumnsFromIndex.Enabled := KeySelected and (listColumnsUsed.Items.Count > 0);
+      CheckBoxUnique.Enabled := KeySelected and not (ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].Caption = 'PRIMARY');
+      CheckBoxFulltext.Enabled := KeySelected and not (ComboBoxKeys.ItemsEx[ComboBoxKeys.ItemIndex].Caption = 'PRIMARY');
+      ButtonDelete.Enabled := KeySelected;
+      listColumnsUsed.Enabled := KeySelected;
+      listColumnsAvailable.Enabled := KeySelected;
     end;
 
   end;
