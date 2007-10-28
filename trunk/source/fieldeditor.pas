@@ -983,8 +983,12 @@ begin
     begin
       ButtonOK.Caption := 'Update Indexes';
       KeySelected := ComboBoxKeys.ItemIndex > -1;
-      // Disable the button if a key was selected and no columns are listed on the left
-      ButtonOK.Enabled := KeySelected and (listColumnsUsed.Items.Count > 0);
+      // Disable the button if
+      //  1) a key was selected and no columns are listed on the left
+      //     or
+      //  2) all existing keys were deleted
+      ButtonOK.Enabled := (KeySelected and (listColumnsUsed.Items.Count > 0))
+        or (Length(klist) < TempKeys.Count);
       // Buttons to add or remove columns, only enabled if key was selected and the
       // relevant list has items left
       btnAddColumnToIndex.Enabled := KeySelected and (listColumnsAvailable.ItemIndex > -1);
