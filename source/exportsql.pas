@@ -481,6 +481,17 @@ begin
 end;
 
 begin
+  // to where?
+  tofile := radioFile.Checked;
+  todb := radioOtherDatabase.Checked;
+  tohost := radioOtherHost.Checked;
+
+  // Warn about overwriting target file
+  if tofile and FileExists(EditFileName.Text) then begin
+    if MessageDlg('Overwrite file "'+EditFileName.Text+'" ?', mtConfirmation, [mbYes, mbCancel], 0 ) <> mrYes  then
+      Exit;
+  end;
+
   // export!
   pageControl1.ActivePageIndex := 0;
   Screen.Cursor := crHourGlass;
@@ -493,11 +504,6 @@ begin
   exportdb      := cbxDatabase.Enabled and cbxDatabase.Checked;
   exporttables  := cbxTables.Enabled and cbxTables.Checked;
   exportdata    := cbxData.Checked;
-
-  // to where?
-  tofile := radioFile.Checked;
-  todb := radioOtherDatabase.Checked;
-  tohost := radioOtherHost.Checked;
 
   // for easy use of methods in childwin
   cwin := Mainform.ChildWin;
