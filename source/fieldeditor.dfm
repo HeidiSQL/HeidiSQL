@@ -141,6 +141,7 @@ object FieldEditForm: TFieldEditForm
           Height = 17
           Caption = 'Unsigned'
           TabOrder = 1
+          OnClick = CheckBoxUnsignedClick
         end
         object CheckBoxZerofill: TCheckBox
           Left = 16
@@ -149,6 +150,7 @@ object FieldEditForm: TFieldEditForm
           Height = 17
           Caption = 'Zerofill'
           TabOrder = 2
+          OnClick = CheckBoxZerofillClick
         end
         object CheckBoxNotNull: TCheckBox
           Left = 128

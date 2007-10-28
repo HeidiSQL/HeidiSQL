@@ -76,6 +76,8 @@ type
     procedure CheckBoxFulltextClick(Sender: TObject);
     procedure btnAddAllColumnsToIndexClick(Sender: TObject);
     procedure btnDeleteAllColumnsFromIndexClick(Sender: TObject);
+    procedure CheckBoxUnsignedClick(Sender: TObject);
+    procedure CheckBoxZerofillClick(Sender: TObject);
     procedure listClick(Sender: TObject);
   private
     { Private declarations }
@@ -1002,6 +1004,28 @@ end;
 procedure TFieldEditForm.listClick(Sender: TObject);
 begin
   ValidateControls;
+end;
+
+
+{**
+  "Unsigned" option was (un)checked
+  Ensure "Zerofill" gets unchecked too
+}
+procedure TFieldEditForm.CheckBoxUnsignedClick(Sender: TObject);
+begin
+  if not CheckboxUnsigned.Checked then
+    CheckboxZerofill.Checked := False;
+end;
+
+
+{**
+  "Zerofill" option was (un)checked.
+  Ensure "Unsigned" is checked too
+}
+procedure TFieldEditForm.CheckBoxZerofillClick(Sender: TObject);
+begin
+  if CheckBoxZerofill.Checked then
+    CheckboxUnsigned.Checked := True;
 end;
 
 
