@@ -338,7 +338,7 @@ begin
     on E: Exception do begin
       if E.Message = SCanNotOpenResultSet then begin
         Result := true;
-        ADataset := nil;
+        FreeAndNil(ADataset);
       end else AExceptionData := GetExceptionData(E);
     end;
   end;
