@@ -1099,20 +1099,20 @@ begin
         if RecordCount_all > 0 then begin
           if tofile then
           begin
-            wfs(f, 'UNLOCK TABLES;' );
             wfs(f, fixSQL( '/*!40000 ALTER TABLE '+destMask(checkListTables.Items[i])+' ENABLE KEYS;*/', target_version) );
+            wfs(f, 'UNLOCK TABLES;' );
           end
           else if todb then
           begin
-            cwin.ExecUpdateQuery( 'UNLOCK TABLES' );
             if target_version > 40000 then
               cwin.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' ENABLE KEYS' );
+            cwin.ExecUpdateQuery( 'UNLOCK TABLES' );
           end
           else if tohost then
           begin
-            RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
             if target_version > 40000 then
               RemoteExecNonQuery(win2export, 'ALTER TABLE ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' ENABLE KEYS');
+            RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
           end;
         end;
         barProgress.StepIt;
