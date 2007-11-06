@@ -22,8 +22,10 @@ uses
 
 const
   // Our custom message types.
-  WM_COMPLETED        = WM_APP + 1;
-  WM_PROCESSLOG       = WM_APP + 2;
+  WM_COMPLETED                 = WM_APP + 1;
+  WM_PROCESSLOG                = WM_APP + 2;
+  WM_MYSQL_THREAD_NOTIFY       = WM_APP + 3;
+  WM_CLEAR_RIGHTCLICK_POINTER  = WM_APP + 4;
   // Our message subtypes for WM_COPYDATA messages.
   CMD_EXECUTEQUERY_NORESULTS     = 1; { Slightly faster  - Fire-and-forget, no results }
   CMD_EXECUTEQUERY_RESULTS       = 2; { Normal           - Wait for completion, fetch results }
@@ -33,9 +35,6 @@ const
   // Our custom return codes.
   ERR_NOERROR         = 0;
   ERR_UNSPECIFIED     = 1;
-
-  // Sent by TMysqlQueryThread to notify status
-  WM_MYSQL_THREAD_NOTIFY = WM_USER+100;
 
 type
   TNonQueryRunner = procedure(sendingApp: THandle; query: string) of object;
