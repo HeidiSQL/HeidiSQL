@@ -962,20 +962,20 @@ begin
         begin
           if tofile then
           begin
-            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ destMask(checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
             wfs(f, 'LOCK TABLES '+ destMask(checkListTables.Items[i]) +' WRITE;' );
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ destMask(checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
           end
           else if todb then
           begin
+            cwin.ExecUpdateQuery( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
             if target_version > 40000 then
               cwin.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' DISABLE KEYS' );
-            cwin.ExecUpdateQuery( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
           end
           else if tohost then
           begin
+            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' WRITE');
             if target_version > 40000 then
               RemoteExecNonQuery(win2export, 'ALTER TABLE ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' DISABLE KEYS');
-            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' WRITE');
           end;
         end;
 
