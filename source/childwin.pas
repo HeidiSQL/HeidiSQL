@@ -2666,7 +2666,6 @@ begin
     MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
   end;
   Screen.Cursor := crDefault;
-  DBRightClickSelectedItem := nil;
 end;
 
 
