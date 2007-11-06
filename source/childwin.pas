@@ -2666,6 +2666,7 @@ begin
     MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
   end;
   Screen.Cursor := crDefault;
+  DBRightClickSelectedItem := nil;
 end;
 
 
@@ -4488,6 +4489,7 @@ end;
 
 procedure TMDIChild.popupTreeViewPopup(Sender: TObject);
 begin
+  if DBRightClickSelectedItem <> nil then Exit;
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
   PopupMenuCreateTable.Enabled := DBtree.Selected.Level in [1,2];
@@ -4499,6 +4501,12 @@ begin
   menuTreeAlterTable.Enabled := DBtree.Selected.Level = 2;
   MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
   DBRightClickSelectedItem := DBtree.Selected;
+  try
+    popupTreeView.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+    Abort;
+  finally
+    DBRightClickSelectedItem := nil;
+  end;
 end;
 
 
