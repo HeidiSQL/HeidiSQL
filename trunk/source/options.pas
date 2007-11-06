@@ -90,6 +90,10 @@ type
     btnOpenLogFolder: TButton;
     Label29: TLabel;
     pnlActiveLine: TPanel;
+    labelLogSnip: TLabel;
+    editLogSnip: TEdit;
+    updownLogSnip: TUpDown;
+    labelSqlSnipHint: TLabel;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -167,6 +171,7 @@ begin
   reg.WriteString('FontName', ComboBoxFonts.Text);
   reg.WriteInteger('FontSize', UpDownFontSize.Position);
   reg.WriteInteger('logsqlnum', updownLogSQLNum.Position);
+  reg.WriteInteger('logsqlwidth', updownLogSnip.Position);
   reg.WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
   reg.WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
   reg.WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
@@ -214,6 +219,7 @@ begin
     cwin.gridQuery.Options := cwin.gridQuery.Options + [dgAlwaysShowEditor];
     cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
+    cwin.prefLogSqlWidth := self.updownLogSnip.Position;
     cwin.TrimSQLLog;
     if chkLogToFile.Checked then
       cwin.ActivateFileLogging
@@ -288,6 +294,8 @@ begin
   CheckBoxLimit.OnClick(self);
   if reg.ValueExists('logsqlnum') then
     updownLogSQLNum.Position := reg.ReadInteger('logsqlnum');
+  if reg.ValueExists('logsqlwidth') then
+    updownLogSnip.Position := reg.ReadInteger('logsqlwidth');
   // Default Column-Width in DBGrids:
   if reg.ValueExists('DefaultColWidth') then
     updownDefaultColWidth.Position := reg.ReadInteger('DefaultColWidth');
