@@ -1332,7 +1332,6 @@ begin
   // Postpone event handling.
   chgHandler := DBTree.OnChange;
   DBTree.OnChange := nil;
-  DBTree.Items.BeginUpdate();
   curDb := ActiveDatabase;
   curTable := SelectedTable;
   DBTree.Items.Clear();
@@ -1375,7 +1374,6 @@ begin
   if DBTree.Selected = nil then DBTree.Selected := tnodehost;
 
   mainform.showstatus( IntToStr( OnlyDBs2.Count ) + ' Databases' );
-  DBTree.Items.EndUpdate();
   DBTree.OnChange := chgHandler;
   if @chgHandler <> nil then chgHandler(self, DBTree.Selected);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
@@ -2094,9 +2092,8 @@ begin
   SynSQLSyn1.TableNames.BeginUpdate;
   cur := '';
   if ActiveDatabase = tndb.Text then cur := SelectedTable;
-  dbtree.Items.BeginUpdate;
   if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
-    if tndb.Item[u].Selected then tndb.Selected := true;
+    if tndb.Item[u] = DBTree.Selected then DBTree.Selected := tndb;
     tndb.Item[u].delete;
   end;
   if ForceRefresh then ds := RefreshDbTableList(tndb.Text)
@@ -2119,7 +2116,6 @@ begin
   DBtree.OnChange := DBtreeChange;
   DBtree.OnChanging := DBtreeChanging;
 
-  dbtree.Items.EndUpdate;
   SynSQLSyn1.TableNames.EndUpdate;
 end;
 
