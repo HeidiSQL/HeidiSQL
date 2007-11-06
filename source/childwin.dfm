@@ -969,7 +969,7 @@ object MDIChild: TMDIChild
             Font.Name = 'Tahoma'
             Font.Style = [fsBold]
             ParentFont = False
-            TabOrder = 0
+            TabOrder = 1
             object pnlQueryToolbar: TPanel
               Left = 175
               Top = 1
@@ -1118,7 +1118,7 @@ object MDIChild: TMDIChild
             Align = alTop
             BevelOuter = bvNone
             Constraints.MinHeight = 10
-            TabOrder = 1
+            TabOrder = 0
             object spltQueryHelpers: TSplitter
               Left = 332
               Top = 0
