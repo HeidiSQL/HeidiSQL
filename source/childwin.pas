@@ -581,6 +581,7 @@ type
       prefRememberFilters,
       prefConvertHTMLEntities    : Boolean;
       prefLogsqlnum,
+      prefLogSqlWidth,
       prefDefaultColWidth        : Integer;
       prefCSVSeparator,
       prefCSVEncloser,
@@ -979,6 +980,11 @@ begin
     else
       prefLogsqlnum := 300;
 
+    if reg.ValueExists('logsqlwidth') then
+      prefLogSqlWidth := reg.ReadInteger('logsqlwidth')
+    else
+      prefLogSqlWidth := 2000;
+
     prefConvertHTMLEntities := true;
     if reg.Valueexists('ConvertHTMLEntities') then
       prefConvertHTMLEntities := reg.ReadBool('ConvertHTMLEntities');
@@ -1185,16 +1191,18 @@ end;
   Add a SQL-command or comment to SynMemoSQLLog
 }
 procedure TMDIChild.LogSQL(msg: String = ''; comment: Boolean = true);
+var
+  snip : boolean;
 begin
   // Shorten very long messages
-  if ( Length( msg ) > SQLLOG_CHAR_LIMIT ) then
+  snip := (prefLogSqlWidth > 0) and (Length(msg) > prefLogSqlWidth);
+  if snip then
   begin
     msg :=
-      '/* Very large SQL query, showing first ' +
-      FormatNumber( SQLLOG_CHAR_LIMIT ) +
-      ' characters: */ ' +
-      Copy( msg, 0, SQLLOG_CHAR_LIMIT ) +
-      ' ...';
+      Copy( msg, 0, prefLogSqlWidth ) +
+      '/* large SQL query, snipped at  ' +
+      FormatNumber( prefLogSqlWidth ) +
+      ' characters */';
   end;
   msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
   msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );

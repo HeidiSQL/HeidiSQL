@@ -45,6 +45,20 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Lines in SQL-History'
       end
+      object labelLogSnip: TLabel
+        Left = 16
+        Top = 136
+        Width = 96
+        Height = 13
+        Caption = 'Snip SQL log lines to'
+      end
+      object labelSqlSnipHint: TLabel
+        Left = 218
+        Top = 134
+        Width = 139
+        Height = 13
+        Caption = 'characters  (0 = no snipping)'
+      end
       object CheckBoxAutoReconnect: TCheckBox
         Left = 16
         Top = 16
@@ -100,7 +114,7 @@ object optionsform: Toptionsform
       end
       object chkLogToFile: TCheckBox
         Left = 16
-        Top = 135
+        Top = 169
         Width = 145
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -110,12 +124,31 @@ object optionsform: Toptionsform
       end
       object btnOpenLogFolder: TButton
         Left = 167
-        Top = 134
+        Top = 166
         Width = 106
         Height = 20
         Caption = 'Open log folder ...'
         TabOrder = 6
         OnClick = btnOpenLogFolderClick
+      end
+      object editLogSnip: TEdit
+        Left = 121
+        Top = 131
+        Width = 72
+        Height = 21
+        TabOrder = 7
+        Text = '2000'
+      end
+      object updownLogSnip: TUpDown
+        Left = 193
+        Top = 131
+        Width = 15
+        Height = 21
+        Associate = editLogSnip
+        Max = 32767
+        Position = 2000
+        TabOrder = 8
+        OnChanging = anyUpDownLimitChanging
       end
     end
     object TabSheet2: TTabSheet
