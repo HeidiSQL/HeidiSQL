@@ -1950,6 +1950,7 @@ begin
   if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
   if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
   if PageControlMain.ActivePage = tabData then gridData.SetFocus;
+  if PageControlMain.ActivePage = tabQuery then SynMemoQuery.SetFocus;
 
   // Ensure controls are in a valid state
   ValidateControls;
