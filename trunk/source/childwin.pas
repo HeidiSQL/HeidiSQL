@@ -4504,7 +4504,7 @@ begin
     popupTreeView.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
     Abort;
   finally
-    DBRightClickSelectedItem := nil;
+    PostMessage(MainForm.Handle, WM_CLEAR_RIGHTCLICK_POINTER, 0, 0);
   end;
 end;
 

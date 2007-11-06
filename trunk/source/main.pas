@@ -196,6 +196,7 @@ type
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
+    procedure HandleWMClearRightClickPointer(var msg: TMessage); message WM_CLEAR_RIGHTCLICK_POINTER;
   private
     function GetChildwin: TMDIChild;
   public
@@ -280,6 +281,11 @@ end;
 procedure TMainForm.HandleWMProcessLog(var msg: TMessage);
 begin
   ChildWin.ProcessSqlLog;
+end;
+
+procedure TMainForm.HandleWMClearRightClickPointer(var msg: TMessage);
+begin
+  ChildWin.DBRightClickSelectedItem := nil;
 end;
 
 procedure TMainForm.EnsureConnected;
