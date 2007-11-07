@@ -11,6 +11,7 @@ interface
 
 uses
   Synchronization,
+  Contnrs,
   Windows, Classes, Graphics, Forms, Controls, StdCtrls,
   ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL, SynEditSearch,
@@ -517,6 +518,7 @@ type
         TRect);
 
     private
+      methodStack                : TStack;
       strHostRunning             : String;
       strHostNotRunning          : String;
       uptime                     : Integer;
@@ -559,6 +561,8 @@ type
       procedure SaveListSetup( List: TVirtualStringTree );
       procedure RestoreListSetup( List: TVirtualStringTree );
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
+      procedure DisableTreeEvents;
+      procedure EnableTreeEvents(invokeChanged: TTreeNode = nil);
 
     public
       TemporaryDatabase          : String;
@@ -611,7 +615,7 @@ type
       function FetchDbTableList(db: string): TDataSet;
       function RefreshDbTableList(db: string): TDataSet;
       procedure ClearAllTableLists;
-      procedure PopulateTreeTableList(tndb: TTreeNode = nil; ForceRefresh: Boolean = false);
+      function PopulateTreeTableList(tndb: TTreeNode = nil; find: string = ''; ForceRefresh: Boolean = false): TTreeNode;
       procedure EnsureDatabase;
       procedure TestVTreeDataArray( P: PVTreeDataArray );
       function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
@@ -636,6 +640,10 @@ uses
   optimizetables, copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
   Registry;
+
+
+type
+  PMethod = ^TMethod;
 
 
 {$I const.inc}
@@ -772,6 +780,7 @@ begin
   UserQueryFired := False;
   UserQueryFiring := False;
   TemporaryDatabase := '';
+  methodStack := TStack.Create;
   CachedTableLists := TStringList.Create;
   InitializeCriticalSection(SqlMessagesLock);
   EnterCriticalSection(SqlMessagesLock);
@@ -1277,14 +1286,13 @@ end;
 
 procedure TMDIChild.ReadDatabasesAndTables(Sender: TObject);
 var
-  tnode          : TTreeNode;
+  tnode, found   : TTreeNode;
   i              : Integer;
   specialDbs     : TStringList;
   dbName         : String;
-  curDb,
-  curTable       : String;
   ds             : TDataSet;
-  chgHandler     : procedure(Sender: TObject; Node: TTreeNode) of object;
+  select         : Integer;
+  newTree        : TTreeView;
 begin
   // Force data tab update when appropriate.
   dataselected := false;
@@ -1299,47 +1307,29 @@ begin
     for i:=1 to ( ds.RecordCount ) do
     begin
       dbName := ds.FieldByName('Database').AsString;
-      if ( dbName = DBNAME_INFORMATION_SCHEMA ) then
-      begin
-        specialDbs.Insert( 0, dbName )
-      end
-      (*
-      else
-      if ( dbName = DBNAME_MYSQL ) then
-      begin
-        specialDbs.Add( dbName );
-      end
-      *)
-      else
-      begin
-        OnlyDBs2.Add( dbName );
-      end;
+      if ( dbName = DBNAME_INFORMATION_SCHEMA ) then specialDbs.Insert( 0, dbName )
+      //else if ( dbName = DBNAME_MYSQL ) then specialDbs.Add( dbName )
+      else OnlyDBs2.Add( dbName );
       ds.Next();
     end;
     OnlyDBs2.Sort();
     // Prioritised position of system-databases
-    for i := ( specialDbs.Count - 1 ) downto 0 do
-    begin
+    for i := ( specialDbs.Count - 1 ) downto 0 do begin
       OnlyDBs2.Insert( 0, specialDbs[i] );
     end;
-  end
-  else
-  begin
-    OnlyDBs2 := OnlyDBs;
-  end;
+  end else OnlyDBs2 := OnlyDBs;
 
   Screen.Cursor := crHourGlass;
-  // Postpone event handling.
-  chgHandler := DBTree.OnChange;
-  DBTree.OnChange := nil;
-  curDb := ActiveDatabase;
-  curTable := SelectedTable;
-  DBTree.Items.Clear();
   ClearAllTableLists;
 
-  tnodehost := DBtree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
+  newTree := TTreeView.Create(nil);
+  newTree.Visible := false;
+  newTree.Parent := self;
+
+  tnodehost := newTree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
   tnodehost.ImageIndex := 41;
   tnodehost.SelectedIndex := 41;
+  select := 0;
 
   // Avoids excessive InitializeKeywordLists() calls.
   SynSQLSyn1.TableNames.BeginUpdate();
@@ -1352,30 +1342,31 @@ begin
   // List Databases and Tables-Names
   for i := 0 to ( OnlyDBs2.Count - 1 ) do
   begin
-    tnode := DBtree.Items.AddChild( tnodehost, OnlyDBs2[i] );
+    tnode := newTree.Items.AddChild( tnodehost, OnlyDBs2[i] );
     tnode.ImageIndex := 37;
     tnode.SelectedIndex := 38;
     // Add dummy-node, will be replaced by real tables on expanding
-    DBTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
+    newTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
     if i = 0 then tnodehost.Expand(false);
     // Reselect previously selected database and table.
-    if ( curDb = OnlyDBs2[i] ) then
+    if ( ActiveDatabase = OnlyDBs2[i] ) then
     begin
-      tnode.Selected := True;
-      PopulateTreeTableList(tnode);
+      select := newTree.Items.Count - 2;
+      found := PopulateTreeTableList(tnode, SelectedTable);
+      if found <> nil then select := found.AbsoluteIndex;
       tnode.Expand(false);
-      if curTable <> '' then try
-        SelectedTable := curTable;
-      except
-        // The table might have been removed - ignore.
-      end;
     end;
   end;
-  if DBTree.Selected = nil then DBTree.Selected := tnodehost;
 
   mainform.showstatus( IntToStr( OnlyDBs2.Count ) + ' Databases' );
-  DBTree.OnChange := chgHandler;
-  if @chgHandler <> nil then chgHandler(self, DBTree.Selected);
+
+  DBTree.Items.Assign(newTree.Items);
+  // Expansion state is discarded when assigning new items, for some reason.
+  for i := 0 to newTree.Items.Count - 1 do begin
+    if newTree.Items[i].Expanded then DBTree.Items[i].Expand(false);
+  end;
+  DBTree.Selected := DBTree.Items[select];
+//  EnableTreeEvents(DBTree.Items[select]);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
@@ -1469,13 +1460,15 @@ procedure TMDIChild.DBtreeChanging(Sender: TObject; Node: TTreeNode;
 var
   newDb: string;
 begin
-  case Node.Level of
-       2: if Node.Parent.Text <> ActiveDatabase then newDb := Node.Parent.Text
-          else Exit;
-       1: newDb := Node.Text;
-    else Exit;
+  if Node <> nil then begin
+    case Node.Level of
+      2: if Node.Parent.Text <> ActiveDatabase then newDb := Node.Parent.Text
+        else Exit;
+      1: newDb := Node.Text;
+      else Exit;
+    end;
+    LoadDatabaseProperties(newDb);
   end;
-  LoadDatabaseProperties(newDb);
 end;
 
 
@@ -2068,55 +2061,66 @@ end;
 
 {***
   Updates tree with table list for currently selected database (or table).
-  Does not postpone event handling.
 }
-procedure TMDIChild.PopulateTreeTableList(tndb: TTreeNode; ForceRefresh: Boolean);
+function TMDIChild.PopulateTreeTableList(tndb: TTreeNode; find: string; ForceRefresh: Boolean): TTreeNode;
 var
   ds: TDataSet;
   s: string;
   t, u: Integer;
-  cur: string;
+  select, tmp: TTreeNode;
 begin
+  result := nil;
+
   // Find currently selected node if not specified, or exit.
+  select := nil;
   if tndb = nil then case DBTree.Selected.Level of
     2: tndb := DBTree.Selected.Parent;
     1: tndb := DBTree.Selected;
     else Exit;
+    if ActiveDatabase = tndb.Text then find := SelectedTable;
+  end else begin
+    // Looking for a subitem?
+    // Select the parent if it cannot be found after populating tndb.
+    if find <> '' then select := tndb;
   end;
 
   // Postpone change event handling in tree
-  DBtree.OnChange := nil;
-  DBtree.OnChanging := nil;
-
-  // Clear children and populate tree with table names.
+  DisableTreeEvents;
   SynSQLSyn1.TableNames.BeginUpdate;
-  cur := '';
-  if ActiveDatabase = tndb.Text then cur := SelectedTable;
-  if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
-    if tndb.Item[u] = DBTree.Selected then DBTree.Selected := tndb;
-    tndb.Item[u].delete;
-  end;
-  if ForceRefresh then ds := RefreshDbTableList(tndb.Text)
-  else ds := FetchDbTableList(tndb.Text);
-  for t:=0 to ds.RecordCount-1 do
-  begin
-    s := ds.Fields[0].AsString;
-    with DBtree.Items.AddChild(tndb, s) do
-    begin
-      ImageIndex := 39;
-      selectedIndex := 40;
-      if Text = cur then Selected := true;
+  try
+    // Clear children and populate tree with table names.
+    if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
+      if (select = nil) and (tndb.Item[u] = tndb.TreeView.Selected) then begin
+        select := tndb;
+        tndb.TreeView.Deselect(tndb.Item[u]);
+      end;
+      tndb.Item[u].delete;
     end;
-    // Add tables to syntax highlighter
-    if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
-    ds.Next;
+    if ForceRefresh then ds := RefreshDbTableList(tndb.Text)
+    else ds := FetchDbTableList(tndb.Text);
+    for t:=0 to ds.RecordCount-1 do
+    begin
+      s := ds.Fields[0].AsString;
+      tmp := tndb.Owner.AddChild(tndb, s);
+      with tmp do
+      begin
+        ImageIndex := 39;
+        selectedIndex := 40;
+        if Text = find then select := tmp;
+      end;
+      // Add tables to syntax highlighter
+      if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
+      ds.Next;
+    end;
+    if select <> nil then begin
+      result := select;
+      tndb.TreeView.Selected := select;
+    end;
+  finally
+    // Restore change event handlers
+    EnableTreeEvents;
+    SynSQLSyn1.TableNames.EndUpdate;
   end;
-
-  // Restore change event handlers
-  DBtree.OnChange := DBtreeChange;
-  DBtree.OnChanging := DBtreeChanging;
-
-  SynSQLSyn1.TableNames.EndUpdate;
 end;
 
 
@@ -2656,7 +2660,10 @@ begin
         end;
       end;
     end;
-    if tndb_.Selected then tndb_.Parent.Selected := true;
+    if tndb_.Selected then begin
+      DBTree.Deselect(tndb_);
+      tndb_.Parent.Selected := true;
+    end;
     tndb_.Delete;
   except
     MessageDLG('Dropping failed.'+crlf+'Maybe '''+tndb_.Text+''' is not a valid database-name.', mtError, [mbOK], 0)
@@ -5595,18 +5602,48 @@ begin
 end;
 
 
+procedure TMDIChild.DisableTreeEvents;
+var
+  p: PMethod;
+begin
+  p := new(PMethod);
+  p^.Code := TMethod(DBTree.OnChange).Code;
+  p^.Data := TMethod(DBTree.OnChange).Data;
+  methodStack.Push(p);
+  p := new(PMethod);
+  p^.Code := TMethod(DBTree.OnChanging).Code;
+  p^.Data := TMethod(DBTree.OnChanging).Data;
+  methodStack.Push(p);
+  DBTree.OnChange := nil;
+  DBTree.OnChanging := nil;
+end;
+
+
+procedure TMDIChild.EnableTreeEvents(invokeChanged: TTreeNode);
+var
+  p: PMethod;
+  t1, t2: TMethod;
+begin
+  p := methodStack.Pop;
+  t1.Code := p^.Code;
+  t1.Data := p^.Data;
+  //FreeAndNil(p);
+  p := methodStack.Pop;
+  t2.Code := p^.Code;
+  t2.Data := p^.Data;
+  //FreeAndNil(p);
+  DBTree.OnChanging := TTVChangingEvent(t1);
+  DBTree.OnChange := TTVChangedEvent(t2);
+  if (invokeChanged <> nil) and (TMethod(DBTree.OnChange).Code <> nil) then DBTree.OnChange(Self, invokeChanged);
+end;
+
+
 procedure TMDIChild.SetSelectedTable(table: string);
 var
   allnodes: TTreeNodes;
   i: integer;
-  procedure RestoreTreeEvents;
-  begin
-    DBtree.OnChange := DBTreeChange;
-    DBtree.OnChanging := DBTreeChanging;
-  end;
 begin
-  DBtree.OnChange := nil;
-  DBtree.OnChanging := nil;
+  DisableTreeEvents;
   allnodes := DBTree.Items;
   if allnodes.Count > 0 then begin
     // Round 1: Search case-sensitive.
@@ -5614,7 +5651,7 @@ begin
     for i := 0 to allnodes.Count - 1 do begin
       if (allnodes[i].Level = 2) and (allnodes[i].Text = table) then begin
         allnodes[i].Selected := true;
-        RestoreTreeEvents;
+        EnableTreeEvents;
         exit;
       end;
     end;
@@ -5623,12 +5660,12 @@ begin
     for i := 0 to allnodes.Count - 1 do begin
       if (allnodes[i].Level = 2) and (AnsiCompareText(allnodes[i].Text, table) = 0) then begin
         allnodes[i].Selected := true;
-        RestoreTreeEvents;
+        EnableTreeEvents;
         exit;
       end;
     end;
   end;
-  RestoreTreeEvents;
+  EnableTreeEvents;
   raise Exception.Create('Node ' + table + ' not found in tree.');
 end;
 
