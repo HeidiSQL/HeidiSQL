@@ -202,6 +202,14 @@ var
   col   : TStringList;
   i     : Integer;
   reg   : TRegistry;
+
+  // Correctly escape field-terminator, line-terminator or encloser
+  // and take care of already escaped characters like \t
+  // See bug 1827494
+  function escOptionString( str: String ): String;
+  begin
+    Result := '''' + StringReplace(str, '''', '\''', [rfReplaceAll]) + '''';
+  end;
 begin
 
   // Save settings
@@ -239,19 +247,19 @@ begin
   if (editFieldTerminator.Text <> '') or (editFieldEncloser.Text <> '') or (editFieldEscaper.Text <> '') then
     query := query + 'FIELDS ';
   if editFieldTerminator.Text <> '' then
-    query := query + 'TERMINATED BY ' + esc(editFieldTerminator.Text) + ' ';
+    query := query + 'TERMINATED BY ' + escOptionString(editFieldTerminator.Text) + ' ';
   if editFieldEncloser.Text <> '' then
   begin
     if chkFieldsEnclosedOptionally.Checked then
       query := query + 'OPTIONALLY ';
-    query := query + 'ENCLOSED BY ' + esc(editFieldEncloser.Text) + ' ';
+    query := query + 'ENCLOSED BY ' + escOptionString(editFieldEncloser.Text) + ' ';
   end;
   if editFieldEscaper.Text <> '' then
-    query := query + 'ESCAPED BY ' + esc(editFieldEscaper.Text) + ' ';
+    query := query + 'ESCAPED BY ' + escOptionString(editFieldEscaper.Text) + ' ';
 
   // Lines:
   if editLineTerminator.Text <> '' then
-    query := query + 'LINES TERMINATED BY ''' + editLineTerminator.Text + ''' ';
+    query := query + 'LINES TERMINATED BY ' + escOptionString(editLineTerminator.Text) + ' ';
   if updownIgnoreLines.Position > 0 then
     query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
