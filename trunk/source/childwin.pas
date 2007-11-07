@@ -563,6 +563,7 @@ type
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
       procedure DisableTreeEvents;
       procedure EnableTreeEvents(invokeChanged: TTreeNode = nil);
+      function FindTreeViewAbsoluteIndex(n: TTreeNode): Integer;
 
     public
       TemporaryDatabase          : String;
@@ -1284,6 +1285,23 @@ begin
 end;
 
 
+function TMDIChild.FindTreeViewAbsoluteIndex(n: TTreeNode): Integer;
+var
+  tv: TTreeView;
+  i: Integer;
+begin
+  Result := -1;
+  tv := TTreeView(n.TreeView);
+  i := 0;
+  while i < tv.Items.Count do begin
+    if tv.Items[i] = n then begin
+      Result := i;
+      Exit;
+    end;
+    i := i + 1;
+  end;
+end;
+
 procedure TMDIChild.ReadDatabasesAndTables(Sender: TObject);
 var
   tnode, found   : TTreeNode;
@@ -1353,20 +1371,23 @@ begin
     begin
       select := newTree.Items.Count - 2;
       found := PopulateTreeTableList(tnode, SelectedTable);
-      if found <> nil then select := found.AbsoluteIndex;
+      if found <> nil then select := FindTreeViewAbsoluteIndex(found);
       tnode.Expand(false);
     end;
   end;
 
   mainform.showstatus( IntToStr( OnlyDBs2.Count ) + ' Databases' );
 
+  DisableTreeEvents;
+  DBTree.Items.Clear;
   DBTree.Items.Assign(newTree.Items);
   // Expansion state is discarded when assigning new items, for some reason.
   for i := 0 to newTree.Items.Count - 1 do begin
     if newTree.Items[i].Expanded then DBTree.Items[i].Expand(false);
   end;
+  DBTree.ClearSelection;
+  EnableTreeEvents;
   DBTree.Selected := DBTree.Items[select];
-//  EnableTreeEvents(DBTree.Items[select]);
   MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
 end;
@@ -1435,6 +1456,7 @@ end;
 procedure TMDIChild.DBtreeChange(Sender: TObject; Node: TTreeNode);
 begin
   if (Node = nil) then begin
+    // Can nil also occur after a DBTree.ClearSelection() ?
     raise Exception.Create( 'Internal badness: No host node in object tree.' );
   end;
 
