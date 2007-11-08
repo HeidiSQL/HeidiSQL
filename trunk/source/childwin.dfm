@@ -57,7 +57,6 @@ object MDIChild: TMDIChild
       HotTrack = True
       Images = MainForm.ImageList1
       Indent = 19
-      PopupMenu = popupTreeView
       ReadOnly = True
       RightClickSelect = True
       RowSelect = True
@@ -65,6 +64,7 @@ object MDIChild: TMDIChild
       TabOrder = 0
       OnChange = DBtreeChange
       OnChanging = DBtreeChanging
+      OnContextPopup = DBtreeContextPopup
       OnExpanding = DBtreeExpanding
     end
     object TableShow: TPanel

@@ -308,6 +308,8 @@ type
     N25: TMenuItem;
     menuLogToFile: TMenuItem;
     menuOpenLogFolder: TMenuItem;
+    procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
     procedure menuRenameColumnClick(Sender: TObject);
@@ -1493,6 +1495,15 @@ begin
   end;
 end;
 
+
+procedure TMDIChild.DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+  debug('context menu; storing right click item so it won''t get lost');
+  DBRightClickSelectedItem := DBtree.Selected;
+  popupTreeView.Popup(MousePos.X, MousePos.Y);
+  PostMessage(MainForm.Handle, WM_CLEAR_RIGHTCLICK_POINTER, 0, 0);
+end;
 
 {***
   A database-node is about to be expanded:
@@ -4513,7 +4524,6 @@ end;
 
 procedure TMDIChild.popupTreeViewPopup(Sender: TObject);
 begin
-  if DBRightClickSelectedItem <> nil then Exit;
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
   PopupMenuCreateTable.Enabled := DBtree.Selected.Level in [1,2];
@@ -4524,13 +4534,6 @@ begin
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
   menuTreeAlterTable.Enabled := DBtree.Selected.Level = 2;
   MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
-  DBRightClickSelectedItem := DBtree.Selected;
-  try
-    popupTreeView.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
-    Abort;
-  finally
-    PostMessage(MainForm.Handle, WM_CLEAR_RIGHTCLICK_POINTER, 0, 0);
-  end;
 end;
 
 

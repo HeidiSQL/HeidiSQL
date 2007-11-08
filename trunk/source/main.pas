@@ -285,6 +285,7 @@ end;
 
 procedure TMainForm.HandleWMClearRightClickPointer(var msg: TMessage);
 begin
+  debug('clearing stored right click item');
   ChildWin.DBRightClickSelectedItem := nil;
 end;
 
@@ -955,6 +956,7 @@ var
   t : TStringList;
   db, msg, sql, activeDB : String;
 begin
+  debug('drop table activated');
   t := TStringlist.Create;
   // Set default database name to to ActiveDatabase.
   // Can be overwritten when someone selects a table in dbtree from different database
