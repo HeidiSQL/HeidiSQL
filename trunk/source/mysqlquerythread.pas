@@ -328,6 +328,9 @@ begin
   Result := False;
   q := TDeferDataSet.Create(nil, callback);
   q.Connection := FMysqlConn;
+  // Parameter checking is used in Insert Files,
+  // which does not pass through here (yet).
+  q.ParamCheck := false;
   q.SQL.Text := ASql;
   ADataset := q;
 
@@ -351,6 +354,9 @@ begin
   Result := False;
   q := TDeferDataSet.Create(nil, callback);
   q.Connection := FMysqlConn;
+  // Parameter checking is used in Insert Files,
+  // which does not pass through here (yet).
+  q.ParamCheck := false;
   q.SQL.Text := ASql;
   ADataSet := q;
 
