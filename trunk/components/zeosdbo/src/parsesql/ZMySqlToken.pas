@@ -338,14 +338,19 @@ begin
     ReadNum := Stream.Read(ReadChar, 1);
     if (ReadNum > 0) and (ReadChar = '*') then
     begin
-      Result.TokenType := ttComment;
-      Result.Value := '/*' + GetMultiLineComment(Stream);
-    end
-    else
-    begin
+      ReadNum := Stream.Read(ReadChar, 1);
       if ReadNum > 0 then
         Stream.Seek(-1, soFromCurrent);
+      if (ReadNum > 0) and (ReadChar <> '!') then
+      begin
+        ReadNum := 0;
+        Result.TokenType := ttComment;
+        Result.Value := '/*' + GetMultiLineComment(Stream);
+      end else
+        ReadNum := 1;
     end;
+    if ReadNum > 0 then
+      Stream.Seek(-1, soFromCurrent);
   end;
 
   if (Result.TokenType = ttUnknown) and (Tokenizer.SymbolState <> nil) then
