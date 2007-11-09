@@ -24,9 +24,6 @@
     <DCC_ObjPath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\smdbgrid\build;..\..\components\smdbgrid\resources;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources</DCC_ObjPath>
     <DCC_IncludePath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\smdbgrid\build;..\..\components\smdbgrid\resources;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
-    <DCC_SYMBOL_DEPRECATED>False</DCC_SYMBOL_DEPRECATED>
-    <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
-    <DCC_FOR_LOOP_VAR_UNDEF>False</DCC_FOR_LOOP_VAR_UNDEF>
     <DCC_Description>HeidiSQL</DCC_Description>
     <DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>
   </PropertyGroup>
@@ -48,9 +45,6 @@
     <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\smdbgrid\build;..\..\components\smdbgrid\resources;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources</DCC_ObjPath>
     <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\smdbgrid\build;..\..\components\smdbgrid\resources;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources</DCC_IncludePath>
     <DCC_Define>DEBUG</DCC_Define>
-    <DCC_SYMBOL_DEPRECATED>False</DCC_SYMBOL_DEPRECATED>
-    <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
-    <DCC_FOR_LOOP_VAR_UNDEF>False</DCC_FOR_LOOP_VAR_UNDEF>
     <DCC_Description>HeidiSQL</DCC_Description>
   </PropertyGroup>
   <ProjectExtensions>

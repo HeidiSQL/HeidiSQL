@@ -52,11 +52,12 @@ procedure TfrmInsertFilesProgress.ProcessFiles(Sender: TObject);
   end;
 
 var
-  i,j: Integer;
-  value, filename : String;
-  y,m,d,h,mi,s,ms : Word;
-  FileStream : TFileStream;
-  zq : TDeferDataSet;
+  i, j: Integer;
+  value, filename: String;
+  dt: TDateTime;
+  y, m, d, h, mi, s, ms: Word;
+  FileStream: TFileStream;
+  zq: TDeferDataSet;
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
@@ -100,8 +101,9 @@ begin
           //Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
           Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
           Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
-          DecodeDate(FileDateToDateTime(FileAge(filename)), y, m, d);
-          DecodeTime(FileDateToDateTime(FileAge(filename)), h, mi, s, ms);
+          FileAge(filename, dt);
+          DecodeDate(dt, y, m, d);
+          DecodeTime(dt, h, mi, s, ms);
           Value := stringreplace(Value, '%filedate%', Format('%.4d-%.2d-%.2d', [y,m,d]), [rfReplaceAll]);
           Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
           Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);

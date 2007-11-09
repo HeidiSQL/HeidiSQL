@@ -48,9 +48,9 @@
 			<Compiler Name="NamespacePrefix"></Compiler>
 			<Compiler Name="GenerateDocumentation">False</Compiler>
 			<Compiler Name="DefaultNamespace"></Compiler>
-			<Compiler Name="SymbolDeprecated">False</Compiler>
+			<Compiler Name="SymbolDeprecated">True</Compiler>
 			<Compiler Name="SymbolLibrary">True</Compiler>
-			<Compiler Name="SymbolPlatform">False</Compiler>
+			<Compiler Name="SymbolPlatform">True</Compiler>
 			<Compiler Name="SymbolExperimental">True</Compiler>
 			<Compiler Name="UnitLibrary">True</Compiler>
 			<Compiler Name="UnitPlatform">True</Compiler>
@@ -85,7 +85,7 @@
 			<Compiler Name="HPPEMITIgnored">True</Compiler>
 			<Compiler Name="NoRetVal">True</Compiler>
 			<Compiler Name="UseBeforeDef">True</Compiler>
-			<Compiler Name="ForLoopVarUndef">False</Compiler>
+			<Compiler Name="ForLoopVarUndef">True</Compiler>
 			<Compiler Name="UnitNameMismatch">True</Compiler>
 			<Compiler Name="NoCFGFileFound">True</Compiler>
 			<Compiler Name="ImplicitVariants">True</Compiler>

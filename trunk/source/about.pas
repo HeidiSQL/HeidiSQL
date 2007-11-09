@@ -91,7 +91,7 @@ end;
 
 procedure TAboutBox.FormShow(Sender: TObject);
 var
-  CompiledInt    : Integer;
+//  CompiledInt    : Integer;
   Compiled       : TDateTime;
 begin
   // Define the current cursor like a clock
@@ -101,8 +101,7 @@ begin
   LabelVersion.Caption := 'Version ' + appversion;
 
   // Compile-date
-  CompiledInt := Fileage( ParamStr( 0 ) );
-  Compiled := FileDateToDateTime( CompiledInt );
+  FileAge(ParamStr(0), Compiled);
   LabelCompiled.Caption := 'Compiled on: ' + DateTimeToStr( Compiled );
 
   // Define the current cursor like a pointer (default)
