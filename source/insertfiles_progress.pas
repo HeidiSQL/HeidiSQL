@@ -128,7 +128,6 @@ begin
         MessageDlg( 'Error reading file:' + CRLF + filename, mtError, [mbOK], 0 );
         break;
       end;
-      debug('TODO: Non-threaded ExecSql call in TfrmInsertFilesProgress.ProcessFiles().');
       zq.ExecSql;
       lblOperation.caption := 'Freeing memory ...';
       lblOperation.Repaint;
