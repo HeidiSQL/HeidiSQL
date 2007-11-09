@@ -582,7 +582,7 @@ begin
       stDate, stTime, stTimestamp:
         Result := CompareFloat(PDateTime(ValuePtr1)^, PDateTime(ValuePtr2)^);
       stString:
-        Result := AnsiStrComp(PChar(ValuePtr1), PChar(ValuePtr2));
+        Result := Integer(ValuePtr1 <> ValuePtr2);
       stUnicodeString:
       {$IFNDEF VER130BELOW}
         Result := WideCompareStr(PWideChar(ValuePtr1), PWideChar(ValuePtr2));
@@ -615,7 +615,7 @@ begin
             else Result := 1;
           end
           else if FColumnTypes[ColumnIndex] = stAsciiStream then
-            Result := AnsiCompareStr(Blob1.GetString, Blob2.GetString)
+            Result := Integer(Blob1.GetString <> Blob2.GetString)
           else if FColumnTypes[ColumnIndex] = stBinaryStream then
             Result := CompareStr(Blob1.GetString, Blob2.GetString)
           else if FColumnTypes[ColumnIndex] = stAsciiStream then
