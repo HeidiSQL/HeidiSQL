@@ -273,6 +273,7 @@ begin
     end;
     if ValueExists('ExportSQL_WindowWidth') then Width := ReadInteger('ExportSQL_WindowWidth');
     if ValueExists('ExportSQL_WindowHeight') then Height := ReadInteger('ExportSQL_WindowHeight');
+    Free;
   end;
 
   if EditFileName.Text = '' then
@@ -746,6 +747,8 @@ begin
         begin
           Query := cwin.GetResults('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]));
           sql := Query.Fields[1].AsString;
+          Query.Close;
+          FreeAndNil(Query);
           sql := fixNewlines(sql);
           if Pos('DEFAULT CHARSET', sql) > 0 then begin
             Insert('/*!40100 ', sql, Pos('DEFAULT CHARSET', sql));
@@ -812,6 +815,8 @@ begin
             if j < Query.Fieldcount then
               sql := sql + ',' + crlf;
           end;
+          Query.Close;
+          FreeAndNil(Query);
 
           // Keys:
           Query := cwin.GetResults( 'SHOW KEYS FROM ' + sourceMask(checkListTables.Items[i]));
@@ -850,6 +855,8 @@ begin
             keylist[which].Columns.add(destMask(Query.Fields[4].AsString)); // add column(s)
             Query.Next;
           end;
+          Query.Close;
+          FreeAndNil(Query);
           for k:=0 to high(keylist) do
           begin
             if k > 0 then
@@ -916,6 +923,8 @@ begin
           Query.Next;
         end;
         columnnames := columnnames+')';
+        Query.Close;
+        FreeAndNil(Query);
 
         if tofile then
         begin
@@ -1092,6 +1101,7 @@ begin
             insertquery := '';
           end;
           Query.Close;
+          FreeAndNil(Query);
         end;
         // Set back to local setting:
         setLocales;
@@ -1463,6 +1473,7 @@ begin
     WriteInteger('ExportSQL_WindowWidth',  Width );
     WriteInteger('ExportSQL_WindowHeight', Height );
     CloseKey();
+    Free;
   end;
 end;
 

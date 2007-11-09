@@ -18,6 +18,7 @@ type
     comboCollation: TComboBox;
     lblPreview: TLabel;
     SynMemoPreview: TSynMemo;
+    procedure FormDestroy(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure comboCharsetChange(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -52,7 +53,7 @@ var
   charset: String;
 begin
   try
-    dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
+    dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
     // Detect servers default charset
     defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   except
@@ -85,6 +86,12 @@ begin
   SynMemoPreview.Font := Mainform.Childwin.SynMemoQuery.Font;
 end;
 
+
+procedure TCreateDatabaseForm.FormDestroy(Sender: TObject);
+begin
+  if dsCollations <> nil then dsCollations.Close;
+  FreeAndNil(dsCollations);
+end;
 
 {**
   Form gets displayed: Set default values.

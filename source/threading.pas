@@ -221,5 +221,8 @@ end;
 initialization
   working := TThreadList.Create;
 
+finalization
+  FreeAndNil(working);
+
 end.
 

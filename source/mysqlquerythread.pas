@@ -56,11 +56,11 @@ type
     Comment : String;
   end;
 
-  TMysqlConnectThread = class(TThread)
+  {*TMysqlConnectThread = class(TThread)
     private
     protected
     public
-  end;
+  end;*}
 
   TMysqlQueryThread = class(TThread)
     private

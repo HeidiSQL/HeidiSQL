@@ -389,6 +389,7 @@ begin
       WriteInteger('ToolBarDataTop', ToolBarData.Top);
     end;
     CloseKey;
+    Free;
   end;
   GetTempPath(MAX_PATH, buffer);
   filename := buffer;
@@ -446,6 +447,7 @@ begin
         ToolBarData.Top := ReadInteger('ToolBarDataTop');
     end;
     CloseKey;
+    Free;
   end;
 
   // Beautify appversion
@@ -883,6 +885,7 @@ begin
         WriteString('CSVEncloser', FieldEncl);
         WriteString('CSVTerminator', LineSep);
         closekey();
+        Free;
       end;
       Screen.Cursor := crDefault;
     end;

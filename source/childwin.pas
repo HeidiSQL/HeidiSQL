@@ -1126,15 +1126,33 @@ procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ws    : String;
   reg   : TRegistry;
+  ds    : TDataSet;
 begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
+
+  ds := DataSource1.DataSet;
+  DataSource1.DataSet := nil;
+  if ds <> nil then ds.Close;
+  FreeAndNil(ds);
+  ds := DataSource2.DataSet;
+  DataSource2.DataSet := nil;
+  if ds <> nil then ds.Close;
+  FreeAndNil(ds);
+  ClearAllTableLists;
+  FreeAndNil(CachedTableLists);
+  FreeAndNil(methodStack);
+
+  // Closing connection
+  FMysqlConn.Disconnect;
+  FreeAndNil(FMysqlConn);
+
   EnterCriticalSection(SqlMessagesLock);
   FreeAndNil(SqlMessages);
   LeaveCriticalSection(SqlMessagesLock);
 
-  // Closing connection and saving some vars into registry
+  // Saving some vars into registry
   case ( WindowState ) of
     wsNormal :
     begin
@@ -1332,6 +1350,8 @@ begin
       else OnlyDBs2.Add( dbName );
       ds.Next();
     end;
+    ds.Close;
+    FreeAndNil(ds);
     OnlyDBs2.Sort();
     // Prioritised position of system-databases
     for i := ( specialDbs.Count - 1 ) downto 0 do begin
@@ -1543,9 +1563,9 @@ var
   RewriteOrderClause   : Boolean;
 begin
   viewingdata := true;
+  reg := TRegistry.Create();
+  sl_query := TStringList.Create();
   try
-    sl_query := TStringList.Create();
-
     // limit number of rows automatically if first time this table is shown
     if ( not dataselected ) then begin
       manualLimit := false;
@@ -1557,6 +1577,7 @@ begin
             if Valueexists('DataLimit') then manualLimit := ReadBool('DataLimit');
           end;
         end;
+        Free;
       end;
 
       // limit number of rows fetched according to preferences
@@ -1590,7 +1611,6 @@ begin
     EDBImage1.DataField := '';
     EDBImage1.DataSource := DataSource1;
 
-    reg := TRegistry.Create();
     reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
 
     if not dataselected and prefRememberFilters then
@@ -1745,6 +1765,7 @@ begin
         // free previous resultset
         tmp := DataSource1.DataSet;
         DataSource1.DataSet := nil;
+        if tmp <> nil then tmp.Close;
         FreeAndNil(tmp);
 
         // start query (with wait dialog)
@@ -1851,8 +1872,9 @@ begin
     end;
 
     Screen.Cursor := crDefault;
-    FreeAndNil (sl_query);
   finally
+    FreeAndNil(reg);
+    FreeAndNil(sl_query);
     viewingdata := false;
   end;
 end;
@@ -2082,11 +2104,12 @@ end;
 procedure TMDIChild.ClearAllTableLists;
 var
   idx: Integer;
-  o: TObject;
+  ds: TDataSet;
 begin
   for idx := 0 to CachedTableLists.Count - 1 do begin
-    o := CachedTableLists.Objects[idx];
-    FreeAndNil(o);
+    ds := TDataSet(CachedTableLists.Objects[idx]);
+    ds.Close;
+    FreeAndNil(ds);
   end;
   CachedTableLists.Clear;
 end;
@@ -2389,6 +2412,8 @@ begin
       end;
     end;
     *}
+    ds.Close;
+    FreeAndNil(ds);
 
     Screen.Cursor := crHourglass;
     ds := GetResults( 'SHOW KEYS FROM ' + mask(table) );
@@ -2428,6 +2453,8 @@ begin
       end;
       ds.Next;
     end;
+    ds.Close;
+    FreeAndNil(ds);
     {
       ** note, ansgarbecker, 2007-08-26
       VT has a pretty autosorting feature, which keeps the sorting even after having
@@ -2560,17 +2587,9 @@ begin
     }
     inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
     PrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
-    {***
-      @note ansgarbecker, 2007-31-03
-        1. For data-tab-queries (threaded queries) the TDatasource does *not* have
-        an linked TDataset/TZquery in case of a SQL-error. To avoid an AV with
-        NIL-reference we have to first check if the Dataset is existant - if not,
-        assume the datagrid is empty.
-        2. For query-tab-queries (not threaded) the TZQuery is linked
-        to the TDatasource and we can safely ask for TDataset.IsEmpty without
-        causing a NIL-reference.
-      @todo use the same threaded process for both datagrid and query-grid
-    }
+    // Both the Query and the Data grid may have a nil DataSet reference,
+    // either in case the relevant grid has not been used yet, or when
+    // an error has occurred.
     inDataOrQueryTabNotEmpty := inDataOrQueryTab and
       not (
         (getActiveGrid.DataSource.DataSet = nil)
@@ -2690,6 +2709,7 @@ begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
           end;
+          Free;
         end;
       end;
     end;
@@ -2759,6 +2779,8 @@ begin
     VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsString );
     ds.Next;
   end;
+  ds.Close;
+  FreeAndNil(ds);
 
   // STATUS
   uptime := 1; // avoids division by zero :)
@@ -2802,6 +2824,8 @@ begin
     end;
     ds.Next;
   end;
+  ds.Close;
+  FreeAndNil(ds);
 
   // Tell VirtualTree the number of nodes it will display
   ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
@@ -2846,6 +2870,7 @@ begin
       ds.Next;
     end;
     ds.Close;
+    FreeAndNil(ds);
     tabProcessList.Caption := 'Process-List (' + IntToStr(Length(VTRowDataListProcesses)) + ')';
   except
     on E: Exception do begin
@@ -2933,6 +2958,7 @@ begin
   // Destroy old data set.
   ds := DataSource2.DataSet;
   DataSource2.DataSet := nil;
+  if ds <> nil then ds.Close;
   FreeAndNil( ds );
   // set db-aware-component's properties..
   DBMemo1.DataField := EmptyStr;
@@ -3059,11 +3085,6 @@ begin
           end;
         end;
       end;
-    end
-    else
-    begin
-      // Avoid AV for mousewheel-scrolling in empty datagrid
-      DataSource2.DataSet := nil;
     end;
     // Ensure controls are in a valid state
     ValidateControls();
@@ -3208,6 +3229,8 @@ var
       SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ds.FieldByName( 'Field' ).AsString + '\style{-B} ' + ds.FieldByName( 'Type' ).AsString );
       ds.Next;
     end;
+    ds.Close;
+    FreeAndNil(ds);
   end;
 
 begin
@@ -3476,6 +3499,7 @@ begin
           WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
           CloseKey;
         end;
+        Free;
       end;
     end;
     // Todo: Don't expand node of old database in dbtree, just reload and switch to new one
@@ -3833,6 +3857,7 @@ begin
       reg.DeleteValue( reg_value );
   end;
   reg.CloseKey;
+  FreeAndNil(reg);
 
   ViewData(self);
 
@@ -4200,6 +4225,7 @@ begin
             popupFilterOpenFile.Items.Add(menuitem);
             Inc( i );
           end;
+          Free;
         end;
       end;
 
@@ -5153,6 +5179,7 @@ end;
 function TMDIChild.ExecUpdateQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
 var
   MysqlQuery : TMysqlQuery;
+  ds: TDataSet;
 begin
   Result := -1; // Silence compiler warning.
   MysqlQuery := nil;
@@ -5178,7 +5205,13 @@ begin
     end;
   finally
     // Cleanup the MysqlQuery object, we won't need it anymore
-    if MysqlQuery <> nil then FreeAndNil (MysqlQuery);
+    if MysqlQuery <> nil then begin
+    if MysqlQuery.MysqlDataset <> nil then
+      MysqlQuery.MysqlDataset.Close;
+      ds := MysqlQuery.MysqlDataset;
+      FreeAndNil(ds);
+    end;
+    FreeAndNil (MysqlQuery);
   end;
 end;
 
@@ -5196,23 +5229,27 @@ var
   res: TMysqlQuery;
 begin
   res := nil;
+  result := nil;
   try
-    // Start query execution
-    res := RunThreadedQuery(sql);
-    result := res.MysqlDataset;
-    // Inspect query result code and log / notify user on failure
-    if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-    begin
-      raise Exception.Create(res.Comment);
+    try
+      // Start query execution
+      res := RunThreadedQuery(sql);
+      result := res.MysqlDataset;
+      // Inspect query result code and log / notify user on failure
+      if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
+      begin
+        raise Exception.Create(res.Comment);
+      end;
+    except
+      on E: Exception do begin
+        LogSQL( E.Message, True );
+        if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
+        if not HandleErrors then raise THandledSQLError.Create(E.Message);
+        Result := nil;
+      end;
     end;
-  except
-    on E: Exception do begin
-      LogSQL( E.Message, True );
-      if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
-      if res <> nil then FreeAndNil(res);
-      if not HandleErrors then raise THandledSQLError.Create(E.Message);
-      Result := nil;
-    end;
+  finally
+    FreeAndNil(res);
   end;
 end;
 
@@ -5237,6 +5274,7 @@ begin
   if ds = nil then exit;
   Result := ds.Fields[x].AsString;
   ds.Close;
+  FreeAndNil(ds);
 end;
 
 
@@ -5248,6 +5286,7 @@ begin
   if ds = nil then exit;
   Result := ds.Fields.FieldByName(x).AsString;
   ds.Close;
+  FreeAndNil(ds);
 end;
 
 {***
@@ -5289,6 +5328,7 @@ begin
     ds.Next;
   end;
   ds.Close;
+  FreeAndNil(ds);
 end;
 
 
@@ -5751,6 +5791,8 @@ begin
       result := (Trunc(result / ROUNDING) + 1) * ROUNDING;
       if result >= RecordCount then result := -1;
     end;
+    ds.Close;
+    FreeAndNil(ds);
   finally
     debug( 'GetCalculatedLimit: ' + formatnumber(result) );
   end;
@@ -5979,6 +6021,10 @@ begin
       sql_default +
       sql_extra;
 
+    // Cleanup
+    def.Close;
+    FreeAndNil(def);
+    
     // Fire ALTER query
     ExecUpdateQuery( sql_update, False, False );
 
@@ -6466,7 +6512,7 @@ begin
   reg.WriteString( REGPREFIX_COLWIDTHS + List.Name, ColWidths );
   reg.WriteString( REGPREFIX_COLSVISIBLE + List.Name, ColsVisible );
   reg.WriteString( REGPREFIX_COLPOS + List.Name, ColPos );
-
+  FreeAndNil(reg);
 end;
 
 

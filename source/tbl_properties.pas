@@ -35,6 +35,7 @@ type
     popupSynMemo: TPopupMenu;
     menuCopy: TMenuItem;
     menuSelectAll: TMenuItem;
+    procedure FormDestroy(Sender: TObject);
 
     procedure comboCharsetChange(Sender: TObject);
     procedure editNameChange(Sender: TObject);
@@ -71,8 +72,8 @@ var
   charset : String;
 begin
   try
-    dsEngines := Mainform.Childwin.ExecSelectQuery('SHOW ENGINES');
-    dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
+    dsEngines := Mainform.Childwin.GetResults('SHOW ENGINES');
+    dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
   except
     // Ignore it when the above statements don't work on pre 4.1 servers.
     // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
@@ -124,6 +125,14 @@ begin
   SynMemoCreate.Font.Size := Mainform.Childwin.SynMemoQuery.Font.Size;
 end;
 
+
+procedure Ttbl_properties_form.FormDestroy(Sender: TObject);
+begin
+  if dsEngines <> nil then dsEngines.Close;
+  FreeAndNil(dsEngines);
+  if dsCollations <> nil then dsCollations.Close;
+  FreeAndNil(dsCollations);
+end;
 
 {**
   Form gets displayed.
@@ -185,6 +194,8 @@ begin
     editAutoincrement.Enabled := True;
   end;
   lblAutoincrement.Enabled := editAutoincrement.Enabled;
+  ds.Close;
+  FreeAndNil(ds);
 
   // SQL preview
   sql := 'SHOW CREATE TABLE ';

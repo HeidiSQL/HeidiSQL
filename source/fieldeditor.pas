@@ -261,6 +261,8 @@ begin
       klist[TempKeys.IndexOf(ds.Fields[2].AsString)].Columns.Add(ds.Fields[4].AsString);
     ds.Next;
   end;
+  ds.Close;
+  FreeAndNil(ds);
 
   listColumnsAvailable.Items := GetVTCaptions(cwin.ListColumns);
   showkeys();

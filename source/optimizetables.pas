@@ -129,6 +129,8 @@ begin
         sql := StringReplace(pseudoSql, '$table', mainform.mask(TablesCheckListBox.Items[i]), [rfReplaceAll]);
         ds := Mainform.ChildWin.GetResults(sql);
         AddResults(ds);
+        ds.Close;
+        FreeAndNil(ds);
         TablesCheckListBox.Checked[i] := false;
       end;
     end;

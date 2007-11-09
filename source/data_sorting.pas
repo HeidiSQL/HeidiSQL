@@ -72,6 +72,7 @@ begin
   reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
   OldOrderClause := reg.ReadString(reg_name);
   reg.CloseKey;
+  FreeAndNil(reg);
 
   // Create one OrderColumns record for each grid.SortColumn
   grid := Mainform.Childwin.gridData;
@@ -353,6 +354,7 @@ begin
   reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
   reg.WriteString( reg_name, ComposeOrderClause );
   reg.CloseKey;
+  FreeAndNil(reg);
 end;
 
 
