@@ -198,12 +198,10 @@ end;
 procedure TfrmInsertFiles.addfile(filename: String);
 var
   li : TListItem;
-  filesize, attrs: Integer;
+  filesize: Integer;
   Info    : TSHFileInfo;
 begin
-  attrs := filegetattr(filename);
-  if attrs and faDirectory <> 0 then
-    exit;
+  if DirectoryExists(filename) then Exit;
   li := ListViewFiles.Items.Add;
   li.Caption := filename;
   filesize := ceil(_getfilesize(filename) / 1024);
