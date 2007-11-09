@@ -146,6 +146,8 @@ begin
     CheckListBoxFields.Items.Add( ds.Fields[0].AsString );
     ds.Next;
   end;
+  ds.Close;
+  FreeAndNil(ds);
 
   // select all:
   for i:=0 to CheckListBoxFields.Items.Count-1 do
@@ -235,6 +237,8 @@ begin
       keylist[which].SubParts.add( zq.FieldByName('Sub_part').AsString );
       zq.Next;
     end;
+    zq.Close;
+    FreeAndNil(zq);
     for k:=0 to high(keylist) do
     begin
       if k > 0 then
@@ -290,6 +294,8 @@ begin
     end;
     zq.Next;
   end;
+  zq.Close;
+  FreeAndNil(zq);
 
   Mainform.Childwin.MenuRefreshClick(Self);
   close;

@@ -54,6 +54,7 @@ type
     lblCollation: TLabel;
     comboCharset: TComboBox;
     comboCollation: TComboBox;
+    procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditTablenameChange(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
@@ -135,7 +136,7 @@ var
   engineSupport : String;
 begin
   try
-    dsCollations := Mainform.Childwin.ExecSelectQuery('SHOW COLLATION');
+    dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
     // Detect servers default charset
     defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   except
@@ -163,7 +164,7 @@ begin
   comboCollation.Enabled := dsCollations <> nil;
   lblCollation.Enabled := comboCollation.Enabled;
 
-  dsEngines := Mainform.Childwin.ExecSelectQuery('SHOW ENGINES', True);
+  dsEngines := Mainform.Childwin.GetResults('SHOW ENGINES', True);
   if dsEngines <> nil then
   begin
     ComboboxTableType.Style := csDropDownList; // No editing needed
@@ -181,9 +182,17 @@ begin
       dsEngines.Next;
     end;
     ComboboxTableType.Items.EndUpdate;
+    dsEngines.Close;
   end;
+  FreeAndNil(dsEngines);
 end;
 
+
+procedure TCreateTableForm.FormDestroy(Sender: TObject);
+begin
+  if dsCollations <> nil then dsCollations.Close;
+  FreeAndNil(dsCollations);
+end;
 
 procedure TCreateTableForm.ButtonCancelClick(Sender: TObject);
 begin

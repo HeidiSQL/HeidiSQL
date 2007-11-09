@@ -154,6 +154,8 @@ begin
       cols[length(cols)-1].Quote := false;
       ds.Next;
     end;
+    ds.Close;
+    FreeAndNil(ds);
     DisplayColumns(self);
   end;
 end;

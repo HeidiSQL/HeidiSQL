@@ -74,6 +74,7 @@ begin
     chkSort.Checked := reg.ReadBool(REGNAME_SORTDISPLAYEDCOLUMNS);
 
   reg.CloseKey;
+  FreeAndNil(reg);
 end;
 
 
@@ -135,6 +136,7 @@ begin
   reg.WriteBool( REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.checked );
 
   reg.CloseKey;
+  FreeAndNil(reg);
 
   // Signalizes childwin to refresh grid-data
   if reg_oldvalue <> reg_newvalue then

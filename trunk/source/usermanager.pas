@@ -88,6 +88,7 @@ type
     procedure GetResColumns;
     function getColumnNamesOrValues( which: String = 'columns' ): TStringList;
     function getPrivColumns( privtable: String ): TDataSet;
+    procedure clearCache;
 
 
   private
@@ -250,7 +251,9 @@ begin
       WriteBool('Compressed', false);
       WriteString('OnlyDBs', '');
       CloseKey;
+      Free;
     end;
+  Free;
   end;
 
   priv := '';
@@ -355,6 +358,7 @@ begin
           tnu.SelectedIndex := ICONINDEX_FIELD;
           ZQueryColumnNames.Next;
         end;
+        ZQueryColumnNames.Close;
         FreeAndNil( ZQueryColumnNames );
       end;
 
@@ -824,11 +828,7 @@ end;
 procedure TUserManagerForm.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-  // free memory
-  FreeAndNil( ZQueryUsers );
-  FreeAndNil( ZQueryDBs );
-  FreeAndNil( ZQueryTables );
-  FreeAndNil( ZQueryColumns );
+  clearCache;
 end;
 
 
@@ -923,13 +923,30 @@ begin
   EditUserWindow(self);
 end;
 
-procedure TUserManagerForm.Button1Click(Sender: TObject);
+procedure TUserManagerForm.clearCache;
 begin
   // free memory
+  if ZQueryUsers <> nil then ZQueryUsers.Close;
   FreeAndNil( ZQueryUsers );
+  if ZQueryDBs <> nil then ZQueryDBs.Close;
   FreeAndNil( ZQueryDBs );
+  if ZQueryTables <> nil then ZQueryTables.Close;
   FreeAndNil( ZQueryTables );
+  if ZQueryColumns <> nil then ZQueryColumns.Close;
   FreeAndNil( ZQueryColumns );
+  if ColumnsUsers <> nil then ColumnsUsers.Close;
+  FreeAndNil(ColumnsUsers);
+  if ColumnsDB <> nil then ColumnsDB.Close;
+  FreeAndNil(ColumnsDB);
+  if ColumnsTables <> nil then ColumnsTables.Close;
+  FreeAndNil(ColumnsTables);
+  if ColumnsColumns <> nil then ColumnsColumns.Close;
+  FreeAndNil(ColumnsColumns);
+end;
+
+procedure TUserManagerForm.Button1Click(Sender: TObject);
+begin
+  clearCache;
   ShowPrivilegesControls(false, true, false);
   TreeViewUsers.Items.Clear;
   PageControl1.OnChange(self);

@@ -132,6 +132,7 @@ begin
     ParentNode.DeleteChildren;
     topic := ParentNode.Text;
   end;
+  ds := nil;
   try
     Screen.Cursor := crHourglass;
     ds := m.GetResults( 'HELP "'+topic+'"' );
@@ -154,6 +155,7 @@ begin
       ds.Next;
     end;
   finally
+    if ds <> nil then ds.Close;
     FreeAndNil( ds );
     Screen.Cursor := crDefault;
   end;
@@ -261,6 +263,7 @@ begin
   Caption := DEFAULT_WINDOW_CAPTION;
   result := false; // Keyword not found yet
 
+  ds := nil;
   if Keyword <> '' then
   try
     Screen.Cursor := crHourglass;
@@ -278,6 +281,7 @@ begin
       result := true;
     end;
   finally
+    if ds <> nil then ds.Close;
     FreeAndNil( ds );
     Screen.Cursor := crDefault;
   end;

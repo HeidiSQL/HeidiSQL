@@ -145,8 +145,8 @@ begin
       chkReplace.Checked := reg.ReadBool('CSVImportReplace');
     if reg.ValueExists('CSVImportIgnore') then
       chkIgnore.Checked := reg.ReadBool('CSVImportIgnore');
+    Free;
   end;
-
 end;
 
 
@@ -186,6 +186,8 @@ begin
       chklistColumns.Items.Add(ds.Fields[0].AsString);
       ds.Next;
     end;
+    ds.Close;
+    FreeAndNil(ds);
   end;
 
   // select all:
@@ -230,6 +232,7 @@ begin
     reg.WriteBool( 'CSVImportReplace', chkReplace.Checked );
     reg.WriteBool( 'CSVImportIgnore', chkIgnore.Checked );
   end;
+  FreeAndNil(reg);
 
   query := 'LOAD DATA ';
 

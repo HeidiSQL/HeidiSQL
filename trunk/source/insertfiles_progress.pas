@@ -137,7 +137,7 @@ begin
   end;
 
   FINALLY
-    zq.ParamCheck := false;
+    FreeAndNil(zq);
     screen.Cursor := crDefault;
     Close();
   END;

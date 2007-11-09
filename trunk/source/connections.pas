@@ -134,6 +134,7 @@ begin
     if OpenKey(REGPATH, true) then
       WriteString('lastcon', ComboBoxDescription.Text);
     CloseKey;
+    Free;
   end;
 
   mysqlconn := TMysqlConn.Create(@cp);
@@ -192,6 +193,7 @@ begin
     else
       AutoReconnect := false;
     CloseKey;
+    Free;
   end;
   if ComboBoxDescription.Items.Count > 0 then
   begin
@@ -259,6 +261,7 @@ begin
       WriteBool('OnlyDBsSorted', CheckBoxSorted.Checked);
       CloseKey;
     end;
+    Free;
   end;
   ComboBoxDescriptionClick(self);
   Screen.Cursor := crDefault;
@@ -304,6 +307,7 @@ begin
       WriteBool('OnlyDBsSorted', true);
       CloseKey;
     end;
+    Free;
   end;
 
   EnableDisable(true);
@@ -322,6 +326,7 @@ begin
     begin
       if not DeleteKey(REGPATH + '\Servers\' + ComboBoxDescription.Text) then
         MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
+      Free;
     end;
     FormShow(self);
   end;
@@ -349,6 +354,7 @@ begin
         CheckBoxSorted.Checked := false; // for existing connections from older HS-versions always off
       CloseKey;
     end;
+    Free;
   end;
   ButtonSave.Enabled := false;
   ButtonSaveAndConnect.Enabled := ButtonSave.Enabled;
@@ -426,6 +432,7 @@ begin
     except
       MessageDLG('Error on renaming.', mtError, [mbCancel], 0);
     end;
+    Free;
   end;
 
 end;

@@ -25,6 +25,7 @@ type
       constructor Create(AConn : POpenConnProf);
       destructor Destroy(); override;
       function Connect() : Integer;
+      procedure Disconnect();
       property IsConnected : Boolean read GetIsConnected;
       property IsAlive : Boolean read GetIsAlive;
       property Connection : TZConnection read FConn;
@@ -49,6 +50,7 @@ function TMysqlConn.Connect(): Integer;
 begin
   FLastError := '';
 
+  if FConn.Connected then FConn.Disconnect;
   with FOpenConn.MysqlParams do
     begin
       FConn.Protocol := 'mysql';
@@ -80,9 +82,15 @@ begin
 end;
 
 
+procedure TMysqlConn.Disconnect;
+begin
+  if FConn.Connected then FConn.Disconnect;
+end;
+
 
 destructor TMysqlConn.Destroy;
 begin
+  if FConn.Connected then FConn.Disconnect;
   FreeAndNil (FConn);
   inherited;
 end;
