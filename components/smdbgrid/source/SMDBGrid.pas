@@ -1028,17 +1028,11 @@ end;
 function TSMDBGrid.AcquireFocus: Boolean;
 begin
   Result := True;
-  if FAcquireFocus and not (csDesigning in ComponentState) then
+  if FAcquireFocus and CanFocus and not (csDesigning in ComponentState) then
   begin
-    if (InplaceEditor <> nil) then begin
-      if InplaceEditor.CanFocus then begin
-        InplaceEditor.SetFocus;
-        Result := InplaceEditor.Focused;
-      end;
-    end else if CanFocus then begin
-      SetFocus;
-      Result := Focused;
-    end;
+    Windows.SetFocus(Self.Handle);
+    SetFocus;
+    Result := Focused or (InplaceEditor <> nil) and InplaceEditor.Focused;
   end;
 end;
 
@@ -1459,7 +1453,7 @@ var
   EnableClick: Boolean;
   PopCoord: TPoint;
 begin
-  if not AcquireFocus then Exit;
+  if not AcquireFocus then exit;
   if (ssDouble in Shift) and (Button = mbLeft) then
   begin
     DblClick;
