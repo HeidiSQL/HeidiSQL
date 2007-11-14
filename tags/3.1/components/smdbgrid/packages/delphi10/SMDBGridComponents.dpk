@@ -1,0 +1,39 @@
+package SMDBGridComponents;
+
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'SMDBGrid'}
+{$LIBSUFFIX '100'}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl,
+  dbrtl,
+  vcldb,
+  bdertl;
+
+contains
+  SMDBGrid in '..\..\source\SMDBGrid.pas',
+  SMCnst in '..\..\source\SMCnst.pas',
+  RXUtils in '..\..\source\RXUtils.pas';
+
+end.
