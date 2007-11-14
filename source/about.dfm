@@ -1270,8 +1270,8 @@ object AboutBox: TAboutBox
       Lines.Strings = (
         '- Ansgar Becker (project lead and development)'
         '- David Dindorp (development)'
-        '- Martijn Nijenhof (development)'
         '- Francisco Ernesto Teixeira (development)'
+        '- Martijn Nijenhof (development)'
         '- Sven Lorenz (graphics)'
         '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)'
         '- Tony Peng (additional bugfixes)')
