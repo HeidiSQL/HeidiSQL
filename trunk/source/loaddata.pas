@@ -145,8 +145,8 @@ begin
       chkReplace.Checked := reg.ReadBool('CSVImportReplace');
     if reg.ValueExists('CSVImportIgnore') then
       chkIgnore.Checked := reg.ReadBool('CSVImportIgnore');
-    Free;
   end;
+  FreeAndNil(reg);
 end;
 
 
