@@ -23,8 +23,10 @@
       <Projects Name="HeidiComponents100.bpl">..\..\components\heidisql\packages\delphi10\HeidiComponents.bdsproj</Projects>
       <Projects Name="VirtualTreesR100.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesR.bdsproj</Projects>
       <Projects Name="VirtualTreesD100.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesD.bdsproj</Projects>
+      <Projects Name="TntUnicodeVcl100.bpl">..\..\components\tntunictrls\packages\delphi10\TntUnicodeVcl.bdsproj</Projects>
+      <Projects Name="TntUnicodeVcl_Design100.bpl">..\..\components\tntunictrls\packages\delphi10\TntUnicodeVcl_Design.bdsproj</Projects>
       <Projects Name="heidisql.exe">..\..\packages\delphi10\heidisql.bdsproj</Projects>
-      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl SMDBGridComponents100.bpl SynEditR100.bpl SynEditD100.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiComponents100.bpl VirtualTreesR100.bpl VirtualTreesD100.bpl heidisql.exe</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl SMDBGridComponents100.bpl SynEditR100.bpl SynEditD100.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiComponents100.bpl VirtualTreesR100.bpl VirtualTreesD100.bpl TntUnicodeVcl100.bpl TntUnicodeVcl_Design100.bpl heidisql.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
