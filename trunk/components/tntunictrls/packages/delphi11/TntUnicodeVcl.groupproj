@@ -1,0 +1,40 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{55b69b23-9984-4b79-9b9c-9c2c693d1e0b}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="TntUnicodeVcl">
+    <MSBuild Projects="TntUnicodeVcl.dproj" Targets="" />
+  </Target>
+  <Target Name="TntUnicodeVcl:Clean">
+    <MSBuild Projects="TntUnicodeVcl.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="TntUnicodeVcl:Make">
+    <MSBuild Projects="TntUnicodeVcl.dproj" Targets="Make" />
+  </Target>
+  <Target Name="TntUnicodeVcl_Design" DependsOnTargets="TntUnicodeVcl">
+    <MSBuild Projects="TntUnicodeVcl_Design.dproj" Targets="" />
+  </Target>
+  <Target Name="TntUnicodeVcl_Design:Clean" DependsOnTargets="TntUnicodeVcl:Clean">
+    <MSBuild Projects="TntUnicodeVcl_Design.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="TntUnicodeVcl_Design:Make" DependsOnTargets="TntUnicodeVcl:Make">
+    <MSBuild Projects="TntUnicodeVcl_Design.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="TntUnicodeVcl;TntUnicodeVcl_Design" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make" />
+  </Target>
+</Project>
