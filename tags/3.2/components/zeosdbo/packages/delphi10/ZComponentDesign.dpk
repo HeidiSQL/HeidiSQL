@@ -1,0 +1,44 @@
+package ZComponentDesign;
+
+{$R '..\..\src\component\ZComponent.dcr'}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Zeos Database Components'}
+{$LIBSUFFIX '100'}
+{$DESIGNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  dbrtl,
+  designide,
+  ZParseSql,
+  ZCore,
+  ZPlain,
+  ZDbc,
+  ZComponent;
+
+contains
+  ZPropertyEditor in '..\..\src\component\ZPropertyEditor.pas',
+  ZUpdateSqlEditor in '..\..\src\component\ZUpdateSqlEditor.pas' {ZUpdateSQLEditForm},
+  ZComponentReg in '..\..\src\component\ZComponentReg.pas';
+
+end.

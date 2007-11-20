@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{3C8E9903-08DB-4309-B761-74F6EBFD523D}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  <Projects>
+      <Projects Name="SynEditR.bpl">SynEditR.bdsproj</Projects>
+      <Projects Name="SynEditD.bpl">SynEditD.bdsproj</Projects>
+      <Projects Name="Targets">SynEditR.bpl SynEditD.bpl</Projects>
+    </Projects>
+    <Dependencies>
+      <Dependency GUID="{96EFD372-9A97-4D20-8FA5-0D6D10D49B32}">
+        <Dependency GUID="{89178523-7453-428B-A911-E7D59B6118C0}"/>
+      </Dependency>
+    </Dependencies>
+  </Default.Personality>
+</BorlandProject>

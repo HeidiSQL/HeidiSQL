@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <PersonalityInfo>
+    <Option>
+      <Option Name="Personality">Default.Personality</Option>
+      <Option Name="ProjectType"></Option>
+      <Option Name="Version">1.0</Option>
+      <Option Name="GUID">{27C02478-E824-42BE-98E2-FB9EBCDCAF77}</Option>
+    </Option>
+  </PersonalityInfo>
+  <Default.Personality>
+    
+    
+    
+    <Projects>
+      <Projects Name="VCLSer.bpl">VCLSer.bdsproj</Projects>
+      <Projects Name="DCLSer.bpl">DCLSer.bdsproj</Projects>
+      <Projects Name="Targets">VCLSer.bpl DCLSer.bpl</Projects>
+    </Projects>
+    <Dependencies>
+      <Dependency GUID="{759FAD5D-818D-4B74-9C65-4FAE307BFFE2}">
+        <Dependency GUID="{1AD9C754-C173-4959-B291-986AB1FD6E76}"/>
+      </Dependency>
+    </Dependencies>
+  </Default.Personality>
+</BorlandProject>

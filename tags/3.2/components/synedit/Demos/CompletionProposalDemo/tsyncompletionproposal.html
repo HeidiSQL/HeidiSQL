@@ -1,0 +1,150 @@
+<html><head><title>TSynCompletionProposal Painting Changes</title>
+
+<style>
+  BODY
+  {
+    font-family: "Verdana", "Arial", "sans serif";
+    font-size: "10pt";
+  }
+
+  TD
+  {
+    font-family: "Verdana", "Arial", "sans serif";
+    font-size: "10pt";
+  }
+
+</style></head>
+
+<body>
+<h1>TSynCompletionProposal</h1>
+
+<ol>
+<li>Introduction</li>
+<li>Painting and Formatting</li>
+</ol>
+
+<h2>Introduction</h2>
+
+<h2>Painting and Formatting</h2>
+
+
+<a name="intro">
+</a><h3><a name="intro">I. Introduction</a></h3>
+<blockquote>
+
+<p>
+<a name="intro">  In this section I want to describe the new format mechanism, column painting and how existing applications must be modified
+  to work with the new painting method.
+</a></p>
+
+
+</blockquote>
+
+<a name="fcmds">
+</a><h3><a name="fcmds">II. Format Commands</a></h3>
+<blockquote>
+<p>
+<a name="fcmds">  The old binary format commands are exchanged for escape sequences. This was necessary because several
+  Delphi function don't like low ASCII characters in strings. (Especially #0s)
+</a></p>
+<p>
+<a name="fcmds">  The new format commands all start with a backslash followed by a command identifier and a parameter.
+  Parameters are enclosed by { and }. This is similar to the syntax of TeX.
+  If you want to use a single backslash without starting a command, just type two backslashes.
+</a></p>
+
+<h4><a name="fcmds">Example</a></h4>
+<p>
+<a name="fcmds">A formatted string like <br><br>
+<code><b>\color{clNavy}\style{+I}</b>\<b>\</b>\<b>\</b>This<b>\style{~I}\color{0}</b> is a<b>\style{+B}\color{$0000FF}</b> Test</code>
+<br><br>
+which was represented fomerly by
+<br><br>
+<code><b>#1#0#0#128#3'I'</b>\\This<b>'#3'i'#1#0#0#0'</b> is a '<b>#3'B'#1#255#0#0</b>' Test'</code>
+<br><br>
+would produce this output:
+<br><br>
+<img src="sample1.png" border="1">
+
+</a></p>
+
+<a name="fcmds"><br>
+</a><h4><a name="fcmds">All commands</a></h4>
+
+<table border="4" cellspacing="0" cellpadding="6">
+<tbody><tr> <td><b>Command Identifier</b></td> <td><b>Description</b></td> <td><b>Parameter</b></td> </tr>
+<tr> <td>color</td> <td>Changes the font color</td> <td>Either a Delphi color identifier or a hexadecimal
+  color value. (Pascal style) (In fact anything that the Delphi function <em>StringToColor</em> can parse)</td> </tr>
+<tr> <td>style</td> <td>Changes the font style</td> <td>Either a "+", a "-" or a "~" followed by
+  either "B", "I", "S" or "U" (for bold, italic, strike-out and underline). "+"/"-" switches
+    the style on/off, while "~" toggles the specified font style.</td></tr>
+<tr> <td>column</td> <td>Marks the end of the current column</td> <td>No parameters for this command.</td> </tr>
+
+<tr> <td>image</td> <td>Inserts an image from the image list provided by the ImageList property</td>
+  <td>Index of the image you want to insert.</td> </tr>
+
+<tr> <td>hspace</td> <td>Inserts an empty margin. Only useful in combination with the \image{} command.</td>
+  <td>Width of the margin in pixels.</td> </tr>
+
+</tbody></table>
+
+
+</blockquote>
+
+
+<a name="columns">
+</a><h3><a name="columns">III. Column Painting</a></h3>
+<blockquote>
+<p>
+<a name="columns">  I've completly reworked column painting. The old TSynCompletionProposal had some rudimentary implicit column
+  painting functionality. (Which could be controlled by the BiggestWord property)
+</a></p>
+
+<p>
+<a name="columns">  The new method supports any number of columns. The \column{} command moves the cursor to the beginning of the
+  next column, just like the old #9-command did. \column{} does no longer toggle the bold font style.
+  As a replacement there is a default font style for every column.
+</a></p>
+<a name="columns"><br>
+</a><h4><a name="columns">Example</a></h4>
+
+<a name="columns"><b><u>A formatted string...</u></b><br><br>
+<code>
+function <b>\column{}</b>Length(S: string): <b>\column{}</b>Integer;
+</code>
+<br><br><br>
+
+
+<b><u>...with these column definitions:</u></b>
+<code>
+</code></a><ol>
+<li><a name="columns">Column: (BiggestWord = "CONSTRUCTOR", FontStyle = [fsBold])</a></li>
+<li><a name="columns">Column: (BiggestWord = "VERYLONGDELPHIFUNCTION", FontStyle = [fsItalic, fsUnderline])</a></li>
+<li><a name="columns">Column: (BiggestWord = "INTEGER", FontStyle = [fsBold, fsItalic])</a></li>
+</ol>
+
+<a name="columns"><br>
+
+
+<b><u>...looks like:</u></b><br><br>
+<img src="Sample2.png" border="1">
+
+
+</a></blockquote>
+
+
+<a name="conversion">
+</a><h3><a name="conversion">IV. Converting</a></h3>
+<blockquote>
+<p>
+<a name="conversion">  To convert a current application using the new TSynCompletionProposal would require these steps:
+  </a></p><ol>
+<a name="conversion">  <li>Convert the current format strings to the new ones.</li>
+  <li>Create one single column with its BiggestWord-property set to your old BiggestWord property.</li>
+  <li>Wherever you expected from a #9 to change the font style you have to insert one \style{} command.</li>
+
+  </a></ol>
+<p></p>
+</blockquote>
+
+</body></html>
