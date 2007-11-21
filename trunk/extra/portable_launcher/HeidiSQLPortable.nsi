@@ -1,7 +1,7 @@
 ; **************************************************************************
 ; Name: HeidiSQL Portable
 ;
-; Version: 3.0 Revision 572
+; Version: 3.2 Revision 1129
 ;
 ; Website: http://www.heidisql.com/
 ;
@@ -27,7 +27,7 @@
 !define AUTHOR "Bruno Soares Pasin"
 !define APP "HeidiSQL"
 !define VER "1.0.0.0"
-!define APPVER "3.0 Revision 572"
+!define APPVER "3.2 Revision 1129"
 !define EXE "heidisql.exe"
 !define PNAME "${App}Portable"
 !define ICON "HeidiSQLPortable.ico"
