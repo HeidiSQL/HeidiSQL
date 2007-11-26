@@ -1249,9 +1249,7 @@ object AboutBox: TAboutBox
       Lines.Strings = (
         'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
         'SynEdit under LGPL - http://synedit.sourceforge.net'
-        
-          'Scalabium Software for Freeware SMDBGrid - http://www.scalabium.' +
-          'com/'
+        'TNT Unicode Controls - http://www.mh-nexus.de/tntunicodecontrols.htm'
         'Inno Setup - http://www.jrsoftware.org/'
         'Sebasti'#225'n Mayor'#225' for EDBImage'
         'Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/'

@@ -22,9 +22,15 @@ uses
   ZAbstractRODataset, ZConnection,
   ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
-  MysqlQueryThread, queryprogress, communication, MysqlConn, smdbgrid, Tabs,
-  VirtualTrees, createdatabase, tbl_properties;
+  MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
+  VirtualTrees, createdatabase, tbl_properties, TntDBGrids, TntClasses;
 
+type
+  TOrderCol = class(TObject)
+    ColumnName: String;
+    SortDirection: Byte;
+  end;
+  TOrderColArray = Array of TOrderCol;
 
 type
   TMDIChild = class(TForm)
@@ -113,9 +119,9 @@ type
     Copy3: TMenuItem;
     Paste2: TMenuItem;
     N4: TMenuItem;
-    gridData: TSMDBGrid;
+    gridData: TTntDBGrid;
     DataSource1: TDataSource;
-    gridQuery: TSMDBGrid;
+    gridQuery: TTntDBGrid;
     DataSource2: TDataSource;
     Copytableas1: TMenuItem;
     Filter1: TMenuItem;
@@ -443,8 +449,8 @@ type
     procedure btnQueryStopOnErrorsClick(Sender: TObject);
     procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
-    procedure DBGridGetCellParams(Sender: TObject; Field: TField;
-      AFont: TFont; var Background: TColor; Highlight: Boolean);
+    procedure GridDrawDataCell(Sender: TObject; const Rect: TRect; Field:
+        TField; State: TGridDrawState);
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure btnBlobCopyClick(Sender: TObject);
@@ -550,7 +556,7 @@ type
       procedure SetQueryRunning(running: Boolean);
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
-      function GetActiveGrid: TSMDBGrid;
+      function GetActiveGrid: TTntDBGrid;
       procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery);
       function RunThreadedQuery(AQuery : String) : TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
@@ -606,7 +612,7 @@ type
       procedure ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
-      property ActiveGrid: TSMDBGrid read GetActiveGrid;
+      property ActiveGrid: TTntDBGrid read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property Conn : TOpenConnProf read FConn;
 
@@ -625,6 +631,8 @@ type
       procedure ActivateFileLogging;
       procedure DeactivateFileLogging;
       procedure TrimSQLLog;
+      function HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
+      function ComposeOrderClause( Cols: TOrderColArray ): String;
   end;
 
 type
@@ -1542,16 +1550,13 @@ end;
 procedure TMDIChild.viewdata(Sender: TObject);
 var
   sorting              : String;
-  DropDown             : TStringList;
+  DropDown             : TTntStringList;
   i                    : Integer;
   j                    : Integer;
-  ValidColumns         : TStringList;
+  OrderColumns         : TOrderColArray;
   PrimaryKeyColumns    : TStringList;
   reg, reg2            : TRegistry;
   reg_value            : String;
-  orderclauses         : TStringList;
-  columnname           : String;
-  columnexists         : Boolean;
   select_base          : String;
   limit                : Int64;
   ds                   : TDataSet;
@@ -1560,7 +1565,6 @@ var
   manualLimitEnd       : integer;
   DisplayedColumnsList : TStringList;
   tmp                  : TDataSet;
-  RewriteOrderClause   : Boolean;
 begin
   viewingdata := true;
   reg := TRegistry.Create();
@@ -1629,63 +1633,16 @@ begin
     end;
 
     // Read cached ORDER-clause and set Grid.Sortcolumns
-    reg_value := 'ORDERCLAUSE_' + ActiveDatabase + '.' + SelectedTable;
     sorting := '';
-    gridData.SortColumns.Clear();
-    if ( reg.ValueExists( reg_value ) ) then
+    OrderColumns := HandleOrderColumns;
+    if Length(OrderColumns) > 0 then
     begin
-      orderclauses := explode( ',', reg.ReadString( reg_value ) );
-      RewriteOrderClause := False;
-      ValidColumns := GetVTCaptions( ListColumns );
-      for i := 0 to ( orderclauses.Count - 1 ) do
-      begin
-        columnname := Trim( Copy( orderclauses[i], 0, LastPos( ' ', orderclauses[i] ) ) );
-        columnname := trimc( columnname, '`' );
-        columnexists := ValidColumns.IndexOf(columnname) > -1;
-
-        if ( not columnexists ) then
-        begin
-          LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
-            'because the column "' + columnname + '" does not exist!');
-          RewriteOrderClause := True;
-          Continue;
-        end;
-
-        // Add column to order clause
-        if sorting <> '' then
-          sorting := sorting + ', ';
-        sorting := sorting + orderclauses[i];
-
-        with ( gridData.SortColumns.Add() ) do
-        begin
-          Fieldname := columnname;
-          if ( Copy( orderclauses[i], ( Length( orderclauses[i] ) - 3 ), 4 ) = 'DESC' ) then
-          begin
-            SortType := stAscending;
-          end
-          else
-          begin
-            SortType := stDescending;
-          end;
-        end;
-      end;
-      // Old orderclause contained a no longer existing column, so overwrite it
-      if RewriteOrderClause then
-      begin
-        reg.WriteString( reg_value, sorting );
-      end;
-    end;
-
-    if ( sorting <> '' ) then
-    begin
-      sorting := 'ORDER BY ' + sorting;
+      sorting := 'ORDER BY ' + ComposeOrderClause(OrderColumns);
       // Signal for the user that we applied an ORDER-clause
       btnDataSorting.Font.Color := clRed;
     end
     else
-    begin
       btnDataSorting.Font.Color := clWindowText;
-    end;
 
     MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
     PrimaryKeyColumns := TStringList.Create();
@@ -1806,37 +1763,29 @@ begin
         for i := 0 to Length(VTRowDataListColumns) - 1 do
         begin
           // give all enum-fields a PickList with its Items
-          if ( StrCmpBegin( 'enum', VTRowDataListColumns[i].Captions[1]) ) then
+          if StrCmpBegin( 'enum', VTRowDataListColumns[i].Captions[1]) then
           begin
-            DropDown := explode( ''',''', getEnumValues( VTRowDataListColumns[i].Captions[1] ) );
-            for j := 0 to ( DropDown.Count - 1 ) do
-            begin
-              DropDown[j] := trimc( DropDown[j], '''' );
-            end;
+            DropDown := TTntStringList.Create;
+            DropDown.QuoteChar := '''';
+            DropDown.DelimitedText := getEnumValues( VTRowDataListColumns[i].Captions[1] );
 
-            for j := 0 to ( gridData.Columns.Count - 1 ) do
+            for j := 0 to gridData.Columns.Count - 1 do
             begin
-              if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) then
-              begin
-                gridData.Columns[j].PickList := DropDown;
-              end;
+              if gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] then
+                gridData.Columns[j].WidePickList := DropDown;
             end;
           end;
 
           // make PK-columns = fsBold
-          for j := 0 to ( gridData.Columns.Count - 1 ) do
+          for j := 0 to gridData.Columns.Count - 1 do
           begin
-            if (
-              ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
-              ( VTRowDataListColumns[i].ImageIndex = 26 )
-            ) then
-            begin
+            if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
+              ( VTRowDataListColumns[i].ImageIndex = 26 ) then
               PrimaryKeyColumns.Add( VTRowDataListColumns[i].Captions[0] );
-            end;
           end;
         end;
 
-        for j := 0 to ( gridData.Columns.Count - 1 ) do
+        for j := 0 to gridData.Columns.Count - 1 do
         begin
           // for letting NULLs being inserted into "NOT NULL" fields
           // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
@@ -3777,90 +3726,17 @@ begin
 end;
 
 
+{**
+  Column-title clicked -> generate "ORDER BY"
+}
 procedure TMDIChild.gridDataTitleClick(Column: TColumn);
 var
-  Grid : TSMDBGrid;
-  i  : Integer;
-  existed : Boolean;
-  sortcol : TSMSortColumn;
-  sorting, reg_value : String;
-  reg : TRegistry;
+  c : TOrderCol;
 begin
-  // column-title clicked -> generate "ORDER BY"
-
-  Grid := Column.Grid as TSMDBGrid;
-  Grid.DataSource.DataSet.DisableControls;
-  existed := false;
-
-  for i:=Grid.SortColumns.Count-1 downto 0 do
-  begin
-    sortcol := Grid.SortColumns[i];
-    if sortcol.FieldName <> Column.FieldName then
-      continue;
-    existed := true;
-    case sortcol.SortType of
-      stDescending : sortcol.SortType := stAscending;
-      stAscending : Grid.SortColumns.Delete(i);
-      stNone : sortcol.SortType := stDescending;
-    end;
-  end;
-
-  {add a new sorted column in list - ascending order}
-  if not existed then
-  begin
-    sortcol := Grid.SortColumns.Add;
-    sortcol.FieldName := column.FieldName;
-    sortcol.SortType := stDescending;
-  end;
-
-  Grid.DataSource.DataSet.EnableControls;
-
-  // Concat orderclause
-  sorting := '';
-  for i := 0 to ( gridData.SortColumns.Count - 1 ) do
-  begin
-    sortcol := gridData.SortColumns[i];
-
-    if ( sortcol.SortType <> stNone ) then
-    begin
-      if ( sorting <> '' ) then
-      begin
-        sorting := sorting + ', ';
-      end;
-      sorting := sorting + mask( sortcol.FieldName );
-    end;
-
-    case sortcol.SortType of
-      // stNone: ;
-      stAscending :
-      begin
-        sorting := sorting + ' DESC';
-      end;
-      stDescending:
-      begin
-        sorting := sorting + ' ASC';
-      end;
-    end;
-  end;
-
-  // Write orderclause to registry
-  reg := TRegistry.Create();
-  reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
-  reg_value := 'ORDERCLAUSE_' + ActiveDatabase + '.' + SelectedTable;
-  if ( sorting <> '' ) then
-  begin
-    reg.WriteString( reg_value, sorting );
-  end
-  else
-  begin
-    if ( reg.ValueExists( reg_value ) ) then
-      reg.DeleteValue( reg_value );
-  end;
-  reg.CloseKey;
-  FreeAndNil(reg);
-
+  c := TOrderCol.Create;
+  c.ColumnName := Column.FieldName;
+  HandleOrderColumns(c);
   ViewData(self);
-
 end;
 
 
@@ -4101,7 +3977,7 @@ end;
 procedure TMDIChild.btnBlobSaveClick(Sender: TObject);
 var
   bf: Textfile;
-  grid: TSMDBGrid;
+  grid: TTntDBGrid;
 begin
   // Todo: Weird fix, we probably shouldn't even be showing the button in the first place.
   if Length(DBMemo1.DataField) = 0 then
@@ -4621,10 +4497,10 @@ begin
     keyword := SynMemoFilter.WordAtCursor
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
-    and (-1 < gridData.Col)
-    and (gridData.Col <= Length(VTRowDataListColumns)) then
+    and (-1 < gridData.SelectedField.Index)
+    and (gridData.SelectedField.Index <= Length(VTRowDataListColumns)) then
   begin
-    keyword := VTRowDataListColumns[gridData.Col-1].Captions[1];
+    keyword := VTRowDataListColumns[gridData.SelectedField.Index].Captions[1];
   end
   // Table-Tab
   else if ListColumns.Focused and Assigned(ListColumns.FocusedNode) then
@@ -4979,9 +4855,9 @@ end;
 procedure TMDIChild.DBGridDblClick(Sender: TObject);
 begin
   // If grid is not empty...
-  if (Sender as TDBGrid).SelectedField <> nil then begin
+  if (Sender as TTntDBGrid).SelectedField <> nil then begin
     // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
-    if (sender as TSMDBGrid).SelectedField.IsBlob and (PageControlBlobEditors.ActivePage = tabBlobEditorText) then begin
+    if (sender as TTntDBGrid).SelectedField.IsBlob and (PageControlBlobEditors.ActivePage = tabBlobEditorText) then begin
       PageControlBottom.ActivePage := tabBlobEditor;
       DBMemo1.SetFocus;
     end;
@@ -5009,15 +4885,21 @@ begin
   end;
 end;
 
-procedure TMDIChild.DBGridGetCellParams(Sender: TObject; Field: TField;
-  AFont: TFont; var Background: TColor; Highlight: Boolean);
+
+{**
+  A cell in a DBGrid is painted. Sets custom background color NULL fields.
+}
+procedure TMDIChild.GridDrawDataCell(Sender: TObject; const Rect: TRect;
+    Field: TField; State: TGridDrawState);
+var
+  Grid : TTntDBGrid;
 begin
-  if (Sender as TDBGrid).SelectedRows.CurrentRowSelected then begin
-    background := clInfoBK;
-    afont.Color := clInfoText;
-  end;
-  if (field <> nil) and field.IsNull then background := prefDataNullBackground;
+  Grid := Sender as TTntDBGrid;
+  if (Field <> nil) and Field.IsNull then
+    Grid.Canvas.Brush.Color := prefDataNullBackground;
+  Grid.DefaultDrawDataCell(Rect, Field, State);
 end;
+
 
 procedure TMDIChild.DBMemo1Exit(Sender: TObject);
 var
@@ -5462,7 +5344,7 @@ end;
 
 procedure TMDIChild.GridHighlightChanged(Sender: TObject);
 var
-  grid: TSMDBGrid;
+  grid: TTntDBGrid;
   ds: TDataSource;
   hasNull: Boolean;
   hasOddNewlines: Boolean;
@@ -5636,7 +5518,7 @@ end;
 
 
 
-function TMDIChild.GetActiveGrid: TSMDBGrid;
+function TMDIChild.GetActiveGrid: TTntDBGrid;
 begin
   Result := nil;
   if PageControlMain.ActivePage = tabData then Result := gridData;
@@ -6785,6 +6667,118 @@ begin
   TargetCanvas.Rectangle(CellRect);
 end;
 
+
+function TMDIChild.HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
+var
+  i, j : Integer;
+  reg : TRegistry;
+  reg_name : String;
+  old_orderclause, new_orderclause, columnname : String;
+  order_parts, ValidColumns : TStringList;
+  columnexists : Boolean;
+begin
+  SetLength( Result, 0 );
+
+  // Read ORDER clause from registry
+  reg := TRegistry.Create();
+  reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
+  reg_name := REGPREFIX_ORDERCLAUSE + ActiveDatabase + '.' + SelectedTable;
+
+  if reg.ValueExists(reg_name) then
+  begin
+    old_orderclause := reg.ReadString(reg_name);
+    // Parse ORDER clause
+    order_parts := explode( ',', old_orderclause );
+    ValidColumns := GetVTCaptions( ListColumns );
+    for i := 0 to order_parts.Count - 1 do
+    begin
+      columnname := Trim( Copy( order_parts[i], 0, LastPos( ' ', order_parts[i] ) ) );
+      columnname := trimc( columnname, '`' );
+      columnexists := ValidColumns.IndexOf(columnname) > -1;
+
+      if not columnexists then
+      begin
+        LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
+          'because the column "' + columnname + '" does not exist!');
+        Continue;
+      end;
+
+      // Add part of order clause to result array
+      SetLength(Result, Length(Result)+1);
+      Result[Length(Result)-1] := TOrderCol.Create;
+      Result[Length(Result)-1].ColumnName := columnname;
+      Result[Length(Result)-1].SortDirection := Integer( Copy( order_parts[i], ( Length( order_parts[i] ) - 3 ), 4 ) = 'DESC' );
+
+    end;
+  end;
+
+  // Add a new order column after a columns title has been clicked
+  if AddOrderCol <> nil then
+  begin
+    // Check if order column is already existant
+    columnexists := False;
+    for i := Low(Result) to High(Result) do
+    begin
+      if Result[i].ColumnName = AddOrderCol.ColumnName then
+      begin
+        // AddOrderCol is already in the list. Switch its direction:
+        // ASC > DESC > [delete col]
+        columnexists := True;
+        if Result[i].SortDirection = ORDER_ASC then
+          Result[i].SortDirection := ORDER_DESC
+        else
+        begin
+          // Delete order col
+          for j := i to High(Result) - 1 do
+            Result[j] := Result[j+1];
+          SetLength(Result, Length(Result)-1);
+        end;
+        // We found the matching column, no need to loop further
+        break;
+      end;
+    end;
+
+    if not columnexists then
+    begin
+      SetLength(Result, Length(Result)+1);
+      Result[Length(Result)-1] := AddOrderCol;
+    end;
+  end;
+
+  // Update registry
+  new_orderclause := ComposeOrderClause(Result);
+  if new_orderclause <> old_orderclause then
+  begin
+    if new_orderclause <> '' then
+      reg.WriteString(reg_name , new_orderclause)
+    else
+      reg.DeleteValue(reg_name);
+  end;
+
+  reg.Free;
+end;
+
+
+{**
+  Concat all sort options to a ORDER clause
+}
+function TMDIChild.ComposeOrderClause(Cols: TOrderColArray): String;
+var
+  i : Integer;
+  sort : String;
+begin
+  result := '';
+  for i := 0 to Length(Cols) - 1 do
+  begin
+    if result <> '' then
+      result := result + ', ';
+    if Cols[i].SortDirection = ORDER_ASC then
+      sort := TXT_ASC
+    else
+      sort := TXT_DESC;
+    result := result + Mainform.Mask( Cols[i].ColumnName ) + ' ' + sort;
+  end;
+end;
 
 
 end.

@@ -15,8 +15,8 @@ uses
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
-  SynMemo, synedit, SynEditTypes, smdbgrid, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees;
+  SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
+  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids;
 
 type
   TMainForm = class(TForm)
@@ -898,7 +898,7 @@ end;
 // view HTML
 procedure TMainForm.HTMLviewExecute(Sender: TObject);
 var
-  g              : TSMDBGrid;
+  g              : TTntDBGrid;
   filename,extension   : String;
   f              : Textfile;
   buffer         : array[0..MAX_PATH] of char;

@@ -889,20 +889,14 @@ object MDIChild: TMDIChild
               TabOrder = 2
             end
           end
-          object gridData: TSMDBGrid
+          object gridData: TTntDBGrid
             Left = 0
             Top = 31
             Width = 496
             Height = 189
             Align = alClient
             DataSource = DataSource1
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = []
             Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
-            ParentFont = False
             PopupMenu = popupDataGrid
             TabOrder = 1
             TitleFont.Charset = DEFAULT_CHARSET
@@ -912,20 +906,11 @@ object MDIChild: TMDIChild
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
             OnColumnMoved = gridDataColumnMoved
+            OnDrawDataCell = GridDrawDataCell
             OnDblClick = DBGridDblClick
             OnKeyUp = controlsKeyUp
             OnMouseDown = gridMouseDown
             OnTitleClick = gridDataTitleClick
-            ExOptions = [eoBooleanAsCheckBox, eoCheckBoxSelect, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
-            OnGetCellParams = DBGridGetCellParams
-            RegistryKey = 'Software\MikeSoft'
-            RegistrySection = 'SMDBGrid'
-            WidthOfIndicator = 23
-            ScrollBars = ssHorizontal
-            ColCount = 2
-            RowCount = 2
-            Col = 1
-            Row = 1
           end
         end
         object tabQuery: TTabSheet
@@ -1229,7 +1214,7 @@ object MDIChild: TMDIChild
               end
             end
           end
-          object gridQuery: TSMDBGrid
+          object gridQuery: TTntDBGrid
             Left = 0
             Top = 159
             Width = 496
@@ -1251,18 +1236,9 @@ object MDIChild: TMDIChild
             TitleFont.Name = 'Tahoma'
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
+            OnDrawDataCell = GridDrawDataCell
             OnDblClick = DBGridDblClick
             OnMouseDown = gridMouseDown
-            ExOptions = [eoBooleanAsCheckBox, eoCellHint, eoENTERlikeTAB, eoKeepSelection]
-            OnGetCellParams = DBGridGetCellParams
-            RegistryKey = 'Software\MikeSoft'
-            RegistrySection = 'SMDBGrid'
-            WidthOfIndicator = 11
-            ScrollBars = ssHorizontal
-            ColCount = 2
-            RowCount = 2
-            Col = 1
-            Row = 1
           end
           object ProgressBarQuery: TProgressBar
             Left = 0

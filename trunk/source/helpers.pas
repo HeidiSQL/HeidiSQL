@@ -32,7 +32,7 @@ type
   function implodestr(seperator: String; a: TStringList) :String;
   function explode(separator, a: String) :TStringList;
   procedure ensureValidIdentifier(name: String);
-  function getEnumValues(str: String):String;
+  function getEnumValues(str: WideString): WideString;
   function IsValidDelimiter(var s: string): string;
   type TParseSQLProcessCommand = procedure(command: String; parameter: String) of object;
   function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
@@ -284,7 +284,7 @@ end;
   @param string Type definition, fx: enum('Y','N')
   @return string Content of brackets
 }
-function getEnumValues(str: String):String;
+function getEnumValues(str: WideString): WideString;
 var
   p1,p2        : Integer;
 begin
@@ -293,7 +293,7 @@ begin
   // Only return something if opening bracket was found, otherwise empty string
   if p1 > 0 then
   begin
-    for p2:=strlen(pchar(str)) downto 0 do
+    for p2:=Length(str) downto 0 do
       if str[p2] = ')' then break;
     result := copy (str, p1+1, p2-p1-1);
   end;

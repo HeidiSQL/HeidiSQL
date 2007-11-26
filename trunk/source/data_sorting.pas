@@ -4,13 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry, smdbgrid;
-
-type
-  TOrderCol = record
-    ColumnName: String;
-    SortDirection: Byte;
-  end;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry, TntDBgrids, childwin;
 
 
 type
@@ -25,24 +19,19 @@ type
   private
     { Private declarations }
     ColumnNames : TStringList;
-    OrderColumns : Array of TOrderCol;
+    OrderColumns : TOrderColArray;
     reg_name, OldOrderClause : String;
     procedure DisplaySortingControls;
     procedure dropdownColsChange( Sender: TObject );
     procedure buttonOrderClick( Sender: TObject );
     procedure buttonDeleteClick( Sender: TObject );
     procedure Modified;
-    function ComposeOrderClause: String;
   public
     { Public declarations }
   end;
 
 
 const
-  ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
-  ORDER_DESC = 1;           // dito
-  TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
-  TXT_DESC = 'DESC';        // dito
   LINE_HEIGHT = 20;         // Height of automatically created controls
   MARGIN = 2;               // Space between controls
   MARGIN_BIG = 3 * MARGIN;  // Space above the very first and last controls, used to separate stuff
@@ -59,8 +48,6 @@ uses main, helpers;
 }
 procedure TDataSortingForm.FormShow(Sender: TObject);
 var
-  i : Cardinal;
-  grid: TSMDBGrid;
   reg : TRegistry;
 begin
   // Take column names from listColumns and add here
@@ -69,25 +56,12 @@ begin
   // Read original ORDER clause from registry
   reg := TRegistry.Create();
   reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
-  reg_name := 'ORDERCLAUSE_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
+  reg_name := REGPREFIX_ORDERCLAUSE + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
   OldOrderClause := reg.ReadString(reg_name);
   reg.CloseKey;
   FreeAndNil(reg);
 
-  // Create one OrderColumns record for each grid.SortColumn
-  grid := Mainform.Childwin.gridData;
-  if grid.SortColumns.Count > 0 then // Avoids AV when accessing SortColumn[0] ... ??
-  begin
-    for i := 0 to grid.SortColumns.Count - 1 do
-    begin
-      SetLength( OrderColumns, i+1 );
-      OrderColumns[i].ColumnName := grid.SortColumns[i].FieldName;
-      if grid.SortColumns[i].SortType = stDescending then
-        OrderColumns[i].SortDirection := ORDER_ASC
-      else
-        OrderColumns[i].SortDirection := ORDER_DESC; // Also applies for SortType = stNone
-    end;
-  end;
+  OrderColumns := Mainform.Childwin.HandleOrderColumns;
 
   // First creation of controls
   DisplaySortingControls;
@@ -284,6 +258,7 @@ var
 begin
   SetLength( OrderColumns, Length(OrderColumns)+1 );
   new := Length(OrderColumns)-1;
+  OrderColumns[new] := TOrderCol.Create;
 
   // Take first unused column as default for new sort column
   UnusedColumns := TStringList.Create;
@@ -317,29 +292,7 @@ end;
 }
 procedure TDataSortingForm.Modified;
 begin
-  btnOk.Enabled := ComposeOrderClause <> OldOrderClause;
-end;
-
-
-{**
-  Concat all sort options to a ORDER clause
-}
-function TDataSortingForm.ComposeOrderClause: String;
-var
-  i : Integer;
-  sort : String;
-begin
-  result := '';
-  for i := 0 to Length(OrderColumns) - 1 do
-  begin
-    if result <> '' then
-      result := result + ', ';
-    if OrderColumns[i].SortDirection = ORDER_ASC then
-      sort := TXT_ASC
-    else
-      sort := TXT_DESC;
-    result := result + Mainform.Mask( OrderColumns[i].ColumnName ) + ' ' + sort;
-  end;
+  btnOk.Enabled := Mainform.Childwin.ComposeOrderClause(OrderColumns) <> OldOrderClause;
 end;
 
 
@@ -352,7 +305,7 @@ var
 begin
   reg := TRegistry.Create();
   reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
-  reg.WriteString( reg_name, ComposeOrderClause );
+  reg.WriteString( reg_name, Mainform.Childwin.ComposeOrderClause(OrderColumns) );
   reg.CloseKey;
   FreeAndNil(reg);
 end;
