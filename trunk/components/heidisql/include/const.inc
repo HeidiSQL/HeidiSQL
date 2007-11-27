@@ -40,6 +40,7 @@ const
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
+  REGPREFIX_ORDERCLAUSE = 'ORDERCLAUSE_';
 
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function
@@ -76,4 +77,9 @@ const
   // support is removed.
   CSIDL_COMMON_APPDATA = $0023; { All Users\Application Data }
   CSIDL_APPDATA = $001a; { <user name>\Application Data }
+
+  ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
+  ORDER_DESC = 1;           // dito
+  TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
+  TXT_DESC = 'DESC';        // dito
 
