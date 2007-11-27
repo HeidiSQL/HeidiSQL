@@ -1,6 +1,5 @@
 package TntUnicodeVcl_Design;
 
-{$R *.res}
 {$R '..\..\Design\TntComCtrls.dcr'}
 {$R '..\..\Design\TntDBCtrls.dcr'}
 {$R '..\..\Design\TntStdCtrls.dcr'}
