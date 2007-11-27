@@ -127,6 +127,11 @@ call :install virtualtreeview VirtualTreesD
 if not %err% == 0 goto end
 
 
+rem Install TNTUnicodeControls
+call :install tntunictrls TntUnicodeVcl_Design
+if not %err% == 0 goto end
+
+
 echo.
 echo Finished.
 echo.
