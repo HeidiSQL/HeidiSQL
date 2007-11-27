@@ -141,9 +141,9 @@ echo.
 echo Version:                 %WCVER%
 echo.
 rem Put WC version or "unknown" into main.pas
-%base_dir%\extra\sed\sed.exe "s/\$Revision.*\$/\$Revision: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
+"%base_dir%\extra\sed\sed.exe" "s/\$Revision.*\$/\$Revision: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 if not %errorlevel% == 0 goto sedfail
-%base_dir%\extra\sed\sed.exe "s/\$Rev[^i].*\$/\$Rev: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
+"%base_dir%\extra\sed\sed.exe" "s/\$Rev[^i].*\$/\$Rev: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
 if not %errorlevel% == 0 goto sedfail
 goto start
 
