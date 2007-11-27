@@ -102,8 +102,8 @@ set params=--no-config
 set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
 set params=%params% -i"%base_dir%\components\compilerdetection\include;%base_dir%\components\heidisql\include"
-set params=%params% -r"%base_dir%\components\smdbgrid\Resources;%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\smdbgrid\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build;%base_dir%\components\tntunictrls\build"
+set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build;%base_dir%\components\tntunictrls\build"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
@@ -178,11 +178,6 @@ rem Build EDBImage
 call :compile edbimage VCLSer
 if not %err% == 0 goto end
 call :compile edbimage DCLSer
-if not %err% == 0 goto end
-
-
-rem Build SMDBGrid
-call :compile smdbgrid SMDBGridComponents
 if not %err% == 0 goto end
 
 
