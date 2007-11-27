@@ -107,11 +107,6 @@ call :install edbimage DCLSer
 if not %err% == 0 goto end
 
 
-rem Install SMDBGrid
-call :install smdbgrid SMDBGridComponents
-if not %err% == 0 goto end
-
-
 rem Install SynEdit
 call :install synedit SynEditD
 if not %err% == 0 goto end

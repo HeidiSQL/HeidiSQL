@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{9d2773a7-5199-4f9f-9b9a-ad4c0c48a953}</ProjectGuid>
   </PropertyGroup>
@@ -25,15 +25,6 @@
   </Target>
   <Target Name="DCLSer:Make">
     <MSBuild Projects="..\..\components\edbimage\packages\delphi11\DCLSer.dproj" Targets="Make" />
-  </Target>
-  <Target Name="SMDBGridComponents">
-    <MSBuild Projects="..\..\components\smdbgrid\packages\delphi11\SMDBGridComponents.dproj" Targets="" />
-  </Target>
-  <Target Name="SMDBGridComponents:Clean">
-    <MSBuild Projects="..\..\components\smdbgrid\packages\delphi11\SMDBGridComponents.dproj" Targets="Clean" />
-  </Target>
-  <Target Name="SMDBGridComponents:Make">
-    <MSBuild Projects="..\..\components\smdbgrid\packages\delphi11\SMDBGridComponents.dproj" Targets="Make" />
   </Target>
   <Target Name="SynEditR">
     <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditR.dproj" Targets="" />
@@ -162,12 +153,12 @@
     <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
-    <CallTarget Targets="VCLSer;DCLSer;SMDBGridComponents;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;VirtualTreesR;VirtualTreesD;TntUnicodeVcl;TntUnicodeVcl_Design;heidisql" />
+    <CallTarget Targets="VCLSer;DCLSer;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;VirtualTreesR;VirtualTreesD;TntUnicodeVcl;TntUnicodeVcl_Design;heidisql" />
   </Target>
   <Target Name="Clean">
-    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SMDBGridComponents:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;heidisql:Clean" />
+    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;heidisql:Clean" />
   </Target>
   <Target Name="Make">
-    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SMDBGridComponents:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;VirtualTreesR:Make;VirtualTreesD:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;heidisql:Make" />
+    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;VirtualTreesR:Make;VirtualTreesD:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;heidisql:Make" />
   </Target>
 </Project>
