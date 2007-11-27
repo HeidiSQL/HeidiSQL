@@ -94,7 +94,7 @@ rem
 rem    see here: http://qc.borland.com/wc/qcmain.aspx?d=23225
 rem
 copy /y "%base_dir%\components\%1\build\*.bpl" "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl\" >NUL:
-%start_dir%\IdeBplInstall\IdeBplInstall.exe "%base_dir%\components\%1\build\%2%package_suffix%.bpl" "%1"
+"%start_dir%\IdeBplInstall\IdeBplInstall.exe" "%base_dir%\components\%1\build\%2%package_suffix%.bpl" "%1"
 set err=%errorlevel%
 echo.
 goto :eof
