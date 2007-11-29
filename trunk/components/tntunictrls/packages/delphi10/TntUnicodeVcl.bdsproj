@@ -107,7 +107,7 @@
 		</Compiler>
 		<Linker>
 			<Linker Name="MapFile" Type="Integer">0</Linker>
-			<Linker Name="OutputObjs" Type="Integer">44</Linker>
+			<Linker Name="OutputObjs" Type="Integer">0</Linker>
 			<Linker Name="ConsoleApp" Type="Integer">1</Linker>
 			<Linker Name="DebugInfo" Type="Boolean">False</Linker>
 			<Linker Name="RemoteSymbols" Type="Boolean">False</Linker>
