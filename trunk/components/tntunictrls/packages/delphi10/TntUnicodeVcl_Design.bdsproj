@@ -121,8 +121,8 @@
 		<Directories>
 			<Directories Name="OutputDir" Type="String"></Directories>
 			<Directories Name="UnitOutputDir" Type="String">..\..\build</Directories>
-			<Directories Name="PackageDLLOutputDir" Type="String"></Directories>
-			<Directories Name="PackageDCPOutputDir" Type="String"></Directories>
+			<Directories Name="PackageDLLOutputDir" Type="String">..\..\build</Directories>
+			<Directories Name="PackageDCPOutputDir" Type="String">..\..\build</Directories>
 			<Directories Name="SearchPath" Type="String"></Directories>
 			<Directories Name="Packages" Type="String"></Directories>
 			<Directories Name="Conditionals" Type="String"></Directories>
