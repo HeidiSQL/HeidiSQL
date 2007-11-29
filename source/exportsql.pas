@@ -750,9 +750,11 @@ begin
           Query.Close;
           FreeAndNil(Query);
           sql := fixNewlines(sql);
-          if Pos('DEFAULT CHARSET', sql) > 0 then begin
-            Insert('/*!40100 ', sql, Pos('DEFAULT CHARSET', sql));
-            sql := sql + '*/';
+          spos := Pos('DEFAULT CHARSET', sql);
+          if (spos > 0) then begin
+            epos := Pos2(' ', sql, spos + 14);
+            Insert('*/', sql, epos);
+            Insert('/*!40100 ', sql, spos);
           end;
           // Mask USING {BTREE,HASH,RTREE} from older servers.
           spos := 1;
