@@ -759,7 +759,7 @@ begin
           while true do begin
             spos := Pos2('USING', sql, spos);
             if spos = 0 then break;
-            epos := min(Pos2(',', sql, spos), Pos2(')', sql, spos));
+            epos := Pos2(' ', sql, spos + 6);
             Insert('*/', sql, epos);
             Insert('/*!50100 ', sql, spos);
             spos := epos + 11;
