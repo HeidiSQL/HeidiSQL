@@ -6,9 +6,9 @@
 [Setup]
 AppId=HeidiSQL
 AppName=HeidiSQL
-AppVerName=HeidiSQL 3.2
-AppVersion=3.2
-VersionInfoVersion=3.2
+AppVerName=HeidiSQL 0.0
+AppVersion=0.0
+VersionInfoVersion=0.0
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
 AppSupportURL=http://forum.heidisql.com/
@@ -22,7 +22,7 @@ WizardImageFile=.\..\res\installer-logo.bmp
 WizardImageBackColor=$ffffff
 WizardSmallImageFile=.\..\res\installer-small-logo.bmp
 OutputDir=.
-OutputBaseFilename=HeidiSQL_3.2_Setup
+OutputBaseFilename=HeidiSQL_0.0_Setup
 UninstallDisplayIcon={app}\heidisql.exe
 SetupIconFile=.\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
