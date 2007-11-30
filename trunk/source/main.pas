@@ -16,7 +16,8 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids;
+  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
+  StrUtils;
 
 type
   TMainForm = class(TForm)
@@ -199,11 +200,14 @@ type
     procedure HandleWMClearRightClickPointer(var msg: TMessage); message WM_CLEAR_RIGHTCLICK_POINTER;
   private
     function GetChildwin: TMDIChild;
+    function GetParamValue(const paramChar: Char; const paramName:
+      string; var curIdx: Byte; out paramValue: string): Boolean;
   public
     function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
     procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
     procedure SaveRegValue( valueName: String; value: Boolean; key: String = '' ); Overload;
+    function CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: String): Boolean;
 
     // Reference to currently active childwindow:
     property Childwin: TMDIChild read GetChildwin;
@@ -254,7 +258,8 @@ uses
   insertfiles,
   Helpers,
   Threading,
-  mysql_structures;
+  mysql_structures,
+  MysqlConn;
 
 {$R *.DFM}
 
@@ -473,10 +478,83 @@ begin
 end;
 
 
+{**
+  Check for connection parameters on commandline or show connections form.
+}
 procedure TMainForm.FormShow(Sender: TObject);
+var
+  curParam : Byte;
+  sValue,
+  parHost, parPort, parUser, parPass, parDatabase,
+  parTimeout, parCompress, parSortDatabases, parDescription : String;
+  reg : TRegistry;
 begin
-  // Cannot be done in OnCreate because we need ready forms here:
-  ShowConnections(self);
+  // Check commandline if parameters were passed. Otherwise show connections windows
+  curParam := 1;
+  while curParam <= ParamCount do
+  begin
+    // -M and -d are choosen not to conflict with mysql.exe
+    // http://dev.mysql.com/doc/refman/5.0/en/mysql-command-options.html
+    //
+    // To test all supported variants, set Run > Parameters > Parameters option to:
+    // --host=192.168.0.1 --user=root --password -d "My session name" -D"test db" -C -P 2200
+    if GetParamValue('h', 'host', curParam, sValue) then
+      parHost := sValue
+    else if GetParamValue('P', 'port', curParam, sValue) then
+      parPort := sValue
+    else if GetParamValue('C', 'compress', curParam, sValue) then
+      parCompress := sValue
+    else if GetParamValue('M', 'timeout', curParam, sValue) then
+      parTimeout := sValue
+    else if GetParamValue('u', 'user', curParam, sValue) then
+      parUser := sValue
+    else if GetParamValue('p', 'password', curParam, sValue) then
+      parPass := sValue
+    else if GetParamValue('D', 'database', curParam, sValue) then
+      parDatabase := sValue
+    else if GetParamValue('d', 'description', curParam, sValue) then
+      parDescription := sValue;
+    Inc(curParam);
+  end;
+
+  // Minimal parameter is hostname. If given, user commandline parameters.
+  if parHost <> '' then
+  begin
+    // Parameters belong to connection, not to a SQL file which should get opened
+    loadsqlfile := False;
+    // Take care for empty description - it gets used to read/write session settings to registry!
+    if parDescription = '' then
+      parDescription := parHost;
+    if CreateMDIChild(
+      parHost,
+      parPort,
+      parUser,
+      parPass,
+      parDatabase,
+      parTimeout,
+      parCompress,
+      parSortDatabases,
+      parDescription) then
+    begin
+      // Save session parameters to registry
+      reg := TRegistry.Create;
+      if reg.OpenKey(REGPATH + '\Servers\' + parDescription, true) then
+      begin
+        reg.WriteString('Host', parHost);
+        reg.WriteString('User', parUser);
+        reg.WriteString('Password', encrypt(parPass));
+        reg.WriteString('Port', parPort);
+        reg.WriteString('Timeout', parTimeout);
+        reg.WriteBool('Compressed', Boolean(StrToIntDef(parCompress, 0)) );
+        reg.WriteString('OnlyDBs', parDatabase);
+        reg.WriteBool('OnlyDBsSorted', Boolean(StrToIntDef(parSortDatabases, 0)) );
+        reg.CloseKey;
+        reg.Free;
+      end;
+    end;
+  end else
+    // Cannot be done in OnCreate because we need ready forms here:
+    ShowConnections(self);
 end;
 
 
@@ -1045,7 +1123,7 @@ end;
 
 
 {***
-  Safely read a given valueName from the registry default-folder REGPATH 
+  Safely read a given valueName from the registry default-folder REGPATH
   @param string Name of the value
   @param boolean Default-value to return if valueName was not found
   @param string Subkey of REGPATH where to search for the value
@@ -1137,6 +1215,112 @@ end;
 function TMainForm.GetChildwin: TMDIChild;
 begin
   result := TMDIChild( ActiveMDIChild );
+end;
+
+
+{**
+  Parse commandline for a specific name=value pair
+  @return Boolean True if parameter was found, False if not
+}
+function TMainForm.GetParamValue(const paramChar: Char; const paramName:
+  string; var curIdx: Byte; out paramValue: string): Boolean;
+var
+  i, nextIdx: Integer;
+  param, nextParam: string;
+begin
+  paramValue := '';
+  param := ParamStr(curIdx);
+  // Example: --user=root --session="My session name" --password
+  if AnsiStartsStr('--'+paramName, param) then
+  begin
+    i := Length('--'+paramName) + 1;
+    if param[i] = '=' then
+      paramValue := MidStr(param, i+1, Length(param)+1);
+      if (AnsiLeftStr(paramValue, 1) = '"') and (AnsiRightStr(paramValue, 1) = '"') then
+        paramValue := MidStr(paramValue, 2, Length(paramValue));
+    result := True;
+
+  end else if AnsiStartsStr('-'+paramChar, param) then
+  begin
+    if Length(param) > 2 then
+    begin
+      // Example: -uroot -s"My session name"
+      paramValue := MidStr(param, 3, Length(param)+1);
+      if (AnsiLeftStr(paramValue, 1) = '"') and (AnsiRightStr(paramValue, 1) = '"') then
+        paramValue := MidStr(paramValue, 2, Length(paramValue));
+    end else
+    begin
+      // Example: -u root -s "My session name" -p
+      nextIdx := curIdx + 1;
+      if nextIdx <= ParamCount then begin
+        nextParam := ParamStr(nextIdx);
+        if not AnsiStartsStr('-', nextParam) then
+          paramValue := nextParam;
+      end;
+    end;
+    result := True;
+  end else
+    result := False;
+end;
+
+
+{**
+  Receive connection parameters and create the mdi-window
+  Paremeters are either sent by connection-form or by commandline.
+}
+function TMainform.CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: String): Boolean;
+var
+  cp : TOpenConnProf;
+  mysqlconn : TMysqlConn;
+  f : TMDIChild;
+begin
+  // fill structure
+  ZeroMemory (@cp,SizeOf(cp));
+
+  with cp do
+  begin
+    MysqlParams.Protocol := 'mysql';
+    MysqlParams.Host := Trim( parHost );
+    MysqlParams.Port := StrToIntDef(parPort, MYSQL_PORT);
+    MysqlParams.Database := '';
+    MysqlParams.User := parUser;
+    MysqlParams.Pass := parPass;
+
+    // additional
+    if Integer(parCompress) > 0 then
+      MysqlParams.PrpCompress := 'true'
+    else
+      MysqlParams.PrpCompress := 'false';
+
+    MysqlParams.PrpTimeout := parTimeout;
+    MysqlParams.PrpDbless := 'true';
+    MysqlParams.PrpClientLocalFiles := 'true';
+    MysqlParams.PrpClientInteractive := 'true';
+
+    DatabaseList := parDatabase;
+    DatabaseListSort := Boolean(StrToIntDef(parSortDatabases, 0));
+    Description := parDescription;
+  end;
+
+  mysqlconn := TMysqlConn.Create(@cp);
+
+  // attempt to establish connection
+  case mysqlconn.Connect of
+    MCR_SUCCESS:
+    begin
+      // create child window and pass it the conn params and the opened connection
+      f := TMDIChild.Create(Application);
+      f.Init(@cp,mysqlconn); // childwin responsible to free mysqlconn
+      Result := True;
+    end;
+  else
+    // attempt failed -- show error
+    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+mysqlconn.LastError, mtError, [mbOK], 0);
+    Result := False;
+    FreeAndNil (mysqlconn);
+  end;
+
+  ShowStatus( STATUS_MSG_READY, 2 );
 end;
 
 

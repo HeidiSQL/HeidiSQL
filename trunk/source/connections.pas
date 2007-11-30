@@ -65,7 +65,7 @@ type
 
 
 implementation
- uses Main, helpers, MysqlQueryThread, MysqlConn, ChildWin;
+ uses Main, helpers, MysqlQueryThread, ChildWin;
 
 {$I const.inc}
 
@@ -91,74 +91,32 @@ end;
 // Connect
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
 var
-  cp : TOpenConnProf;
-  mysqlconn : TMysqlConn;
-  f : TMDIChild;
+  reg : TRegistry;
 begin
   Screen.Cursor := crSQLWait;
-
-  // fill structure
-  ZeroMemory (@cp,SizeOf(cp));
-
-  with cp do
-    begin
-      MysqlParams.Protocol := 'mysql';
-      MysqlParams.Host := trim( EditHost.Text );
-      MysqlParams.Port := strToIntDef(EditPort.Text, MYSQL_PORT);
-      MysqlParams.Database := '';
-      MysqlParams.User := EditUsername.Text;
-      MysqlParams.Pass := EditPassword.Text;
-
-      // additional
-      if CheckBoxCompressed.Checked then
-        MysqlParams.PrpCompress := 'true'
-      else
-        MysqlParams.PrpCompress := 'false';
-
-      MysqlParams.PrpTimeout := EditTimeout.Text;
-      MysqlParams.PrpDbless := 'true';
-      MysqlParams.PrpClientLocalFiles := 'true';
-      MysqlParams.PrpClientInteractive := 'true';
-
-      DatabaseList := EditOnlyDbs.Text;
-      DatabaseListSort := CheckBoxSorted.Checked;
-      Description := ComboBoxDescription.Text;
-    end;
-
   ButtonConnect.Enabled := false;
-  mainform.Showstatus('Connecting to ' + EditHost.Text + '...', 2, true);
 
-  // Save last connection name to registry
-  with TRegistry.Create do
+  if Mainform.CreateMDIChild(
+    EditHost.Text,
+    EditPort.Text,
+    EditUsername.Text,
+    EditPassword.Text,
+    EditOnlyDBs.Text,
+    EditTimeout.Text,
+    IntToStr(Integer(CheckBoxCompressed.Checked)),
+    IntToStr(Integer(CheckboxSorted.Checked)),
+    ComboboxDescription.Text) then
   begin
-    if OpenKey(REGPATH, true) then
-      WriteString('lastcon', ComboBoxDescription.Text);
-    CloseKey;
-    Free;
-  end;
-
-  mysqlconn := TMysqlConn.Create(@cp);
-
-  // attempt to establish connection
-  case mysqlconn.Connect() of
-    MCR_SUCCESS:
-      begin
-        // create child window and pass it the conn params and the opened connection
-        f := TMDIChild.Create(Application);
-        f.Init(@cp,mysqlconn); // childwin responsible to free mysqlconn
-
-        Close();
-      end;
-  else
-    // attempt failed -- show error and keep window open
-    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+mysqlconn.LastError, mtError, [mbOK], 0);
+    // Save last connection name to registry
+    reg := TRegistry.Create;
+    if reg.OpenKey(REGPATH, true) then
+      reg.WriteString('lastcon', ComboBoxDescription.Text);
+    reg.CloseKey;
+    reg.Free;
+    Close;
+  end else
     ButtonConnect.Enabled := True;
-    FreeAndNil (mysqlconn);
-  end;
-
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   Screen.Cursor := crDefault;
-  
 end;
 
 
