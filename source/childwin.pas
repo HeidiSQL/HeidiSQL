@@ -449,8 +449,8 @@ type
     procedure btnQueryStopOnErrorsClick(Sender: TObject);
     procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
-    procedure GridDrawDataCell(Sender: TObject; const Rect: TRect; Field:
-        TField; State: TGridDrawState);
+    procedure GridDrawColumnCell(Sender: TObject; const Rect: TRect; DataCol:
+        Integer; Column: TColumn; State: TGridDrawState);
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure btnBlobCopyClick(Sender: TObject);
@@ -599,7 +599,6 @@ type
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
-      prefDataNullBackground     : TColor;
       prefLogToFile              : Boolean;
 
 
@@ -1008,10 +1007,6 @@ begin
     prefConvertHTMLEntities := true;
     if reg.Valueexists('ConvertHTMLEntities') then
       prefConvertHTMLEntities := reg.ReadBool('ConvertHTMLEntities');
-
-    prefDataNullBackground := clAqua;
-    if reg.ValueExists('DataNullBackground') then
-      prefDataNullBackground := StringToColor(reg.ReadString('DataNullBackground'));
 
     prefCSVSeparator := ',';
     prefCSVEncloser := '';
@@ -1801,14 +1796,23 @@ begin
             gridData.Columns[j].Width := prefDefaultColWidth;
           end;
 
-          // make PK-columns = fsBold
-          for i := 0 to ( PrimaryKeyColumns.Count - 1 ) do
+          // Colorize ordered columns
+          for i := Low(OrderColumns) to High(OrderColumns) do
           begin
-            if (PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname) then
+            if OrderColumns[i].ColumnName = gridData.Columns[j].Fieldname then
             begin
-              gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
-              gridData.Columns[j].Color := $02EEEEEE;
+              if OrderColumns[i].SortDirection = ORDER_ASC then
+                gridData.Columns[j].Color := COLOR_SORTCOLUMN_ASC
+              else
+                gridData.Columns[j].Color := COLOR_SORTCOLUMN_DESC
             end;
+          end;
+
+          // make PK-columns = fsBold
+          for i := 0 to PrimaryKeyColumns.Count - 1 do
+          begin
+            if PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname then
+              gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
           end;
         end;
 
@@ -4889,15 +4893,17 @@ end;
 {**
   A cell in a DBGrid is painted. Sets custom background color NULL fields.
 }
-procedure TMDIChild.GridDrawDataCell(Sender: TObject; const Rect: TRect;
-    Field: TField; State: TGridDrawState);
+procedure TMDIChild.GridDrawColumnCell(Sender: TObject; const Rect: TRect;
+    DataCol: Integer; Column: TColumn; State: TGridDrawState);
 var
   Grid : TTntDBGrid;
 begin
   Grid := Sender as TTntDBGrid;
-  if (Field <> nil) and Field.IsNull then
-    Grid.Canvas.Brush.Color := prefDataNullBackground;
-  Grid.DefaultDrawDataCell(Rect, Field, State);
+  if (Grid.Fields[DataCol] <> nil) and Grid.Fields[DataCol].IsNull then
+  begin
+    Grid.Canvas.Font.Color := COLOR_NULLVALUE;
+    Grid.Canvas.TextOut(Rect.Left+2, Rect.Top+2, '(NULL)');
+  end;
 end;
 
 
@@ -6174,8 +6180,10 @@ begin
   for i := 0 to h.Columns.Count - 1 do
   begin
     if h.SortColumn = i then
-      h.Columns[i].Color := COLOR_SORTCOLUMN
-    else
+    case h.SortDirection of
+      sdAscending: h.Columns[i].Color := COLOR_SORTCOLUMN_ASC;
+      sdDescending: h.Columns[i].Color := COLOR_SORTCOLUMN_DESC;
+    end else
       h.Columns[i].Color := clWindow;
   end;
 end;

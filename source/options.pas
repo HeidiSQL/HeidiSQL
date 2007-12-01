@@ -70,8 +70,6 @@ type
     Label22: TLabel;
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
-    Label27: TLabel;
-    Panel9: TPanel;
     CheckBoxlimit: TCheckBox;
     EditLimit: TEdit;
     UpDownLimit: TUpDown;
@@ -188,7 +186,6 @@ begin
   reg.WriteInteger('DataLimitEnd', UpDownLimit.Position);
   reg.WriteString('DataFontName', Panel8.Font.Name);
   reg.WriteInteger('DataFontSize', UpDownDataFontSize.Position);
-  reg.WriteString('DataNullBackground', ColorToString(Panel9.color));
   reg.WriteBool('RememberFilters', chkRememberFilters.Checked);
   reg.WriteBool('LogToFile', chkLogToFile.Checked);
 
@@ -231,7 +228,6 @@ begin
     cwin.prefCSVEncloser := self.Edit2.text;
     cwin.prefCSVTerminator := self.Edit3.text;
     cwin.prefConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
-    cwin.prefDataNullBackground := Panel9.color;
   end;
 
   // Set relevant properties in mainform
@@ -346,11 +342,6 @@ begin
     Edit2.Text := reg.ReadString('CSVEncloser');
   if reg.ValueExists('CSVTerminator') then
     Edit3.Text := reg.ReadString('CSVTerminator');
-
-  if reg.ValueExists('DataNullBackground') then
-    Panel9.Color := StringToColor(reg.ReadString('DataNullBackground'))
-  else
-    Panel9.Color := clAqua;
 
   // Remember data pane filters across sessions
   if reg.ValueExists('RememberFilters') then

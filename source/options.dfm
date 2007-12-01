@@ -385,13 +385,6 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'Data-Appearance'
       ImageIndex = 4
-      object Label27: TLabel
-        Left = 8
-        Top = 93
-        Width = 166
-        Height = 13
-        Caption = 'Background-color for NULL-values:'
-      end
       object Label26: TLabel
         Left = 257
         Top = 40
@@ -415,9 +408,9 @@ object optionsform: Toptionsform
       end
       object GroupBox2: TGroupBox
         Left = 0
-        Top = 118
+        Top = 104
         Width = 403
-        Height = 115
+        Height = 129
         Align = alBottom
         Caption = 
           'Change this font in order to view special language characters in' +
@@ -489,18 +482,6 @@ object optionsform: Toptionsform
           TabOrder = 3
         end
       end
-      object Panel9: TPanel
-        Left = 190
-        Top = 91
-        Width = 60
-        Height = 18
-        Cursor = crHandPoint
-        BevelOuter = bvLowered
-        Color = clAqua
-        ParentBackground = False
-        TabOrder = 1
-        OnClick = CallColorDialog
-      end
       object CheckBoxlimit: TCheckBox
         Left = 8
         Top = 40
@@ -509,7 +490,7 @@ object optionsform: Toptionsform
         Caption = 'View data by default limited to'
         Checked = True
         State = cbChecked
-        TabOrder = 2
+        TabOrder = 1
         OnClick = CheckBoxlimitClick
       end
       object EditLimit: TEdit
@@ -517,7 +498,7 @@ object optionsform: Toptionsform
         Top = 37
         Width = 41
         Height = 21
-        TabOrder = 3
+        TabOrder = 2
         Text = '50'
         OnChange = Modified
       end
@@ -529,7 +510,7 @@ object optionsform: Toptionsform
         Associate = EditLimit
         Max = 32767
         Position = 50
-        TabOrder = 4
+        TabOrder = 3
         OnChanging = anyUpDownLimitChanging
       end
       object editDefaultColWidth: TEdit
@@ -537,7 +518,7 @@ object optionsform: Toptionsform
         Top = 65
         Width = 42
         Height = 21
-        TabOrder = 5
+        TabOrder = 4
         Text = '0'
         OnChange = Modified
       end
@@ -548,7 +529,7 @@ object optionsform: Toptionsform
         Height = 21
         Associate = editDefaultColWidth
         Max = 1000
-        TabOrder = 6
+        TabOrder = 5
         OnChanging = anyUpDownLimitChanging
       end
       object chkRememberFilters: TCheckBox
@@ -560,7 +541,7 @@ object optionsform: Toptionsform
         Caption = 'Remember WHERE filters'
         Checked = True
         State = cbChecked
-        TabOrder = 7
+        TabOrder = 6
         OnClick = Modified
       end
     end

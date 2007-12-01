@@ -23,8 +23,6 @@ const
   REGPATH          = 'Software\' + APPNAME;
   STATUS_MSG_READY = 'Ready.';
   STR_NOTSUPPORTED = 'Not supported by this server';
-  // Used by ListViews
-  COLOR_SORTCOLUMN = $00F7F7F7;
 
   // Used by maskSQL and fixSQL:
   SQL_VERSION_ANSI = -1;
@@ -78,6 +76,10 @@ const
   CSIDL_COMMON_APPDATA = $0023; { All Users\Application Data }
   CSIDL_APPDATA = $001a; { <user name>\Application Data }
 
+  // Used by ListViews and Grids
+  COLOR_SORTCOLUMN_ASC = $00F7F7F7; // light grey
+  COLOR_SORTCOLUMN_DESC = $00EEEEEE; // medium grey
+  COLOR_NULLVALUE = $00A0A0A0; // darker gray
   ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
   ORDER_DESC = 1;           // dito
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
