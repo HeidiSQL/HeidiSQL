@@ -906,7 +906,7 @@ object MDIChild: TMDIChild
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
             OnColumnMoved = gridDataColumnMoved
-            OnDrawDataCell = GridDrawDataCell
+            OnDrawColumnCell = GridDrawColumnCell
             OnDblClick = DBGridDblClick
             OnKeyUp = controlsKeyUp
             OnMouseDown = gridMouseDown
@@ -1236,7 +1236,7 @@ object MDIChild: TMDIChild
             TitleFont.Name = 'Tahoma'
             TitleFont.Style = []
             OnColEnter = DBGridColEnter
-            OnDrawDataCell = GridDrawDataCell
+            OnDrawColumnCell = GridDrawColumnCell
             OnDblClick = DBGridDblClick
             OnMouseDown = gridMouseDown
           end
