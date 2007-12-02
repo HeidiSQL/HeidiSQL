@@ -65,6 +65,7 @@ http://www.heidisql.com/donate.php
 - Sven Lorenz (graphics)
 - Mikkel M. Gerhardt-Pedersen (additional bugfixes)
 - Tony Peng (additional bugfixes)
+- Nemanja Čorlija (commandline parser)
 
 
 ----------------------------------------

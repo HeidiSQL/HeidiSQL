@@ -1235,21 +1235,22 @@ object AboutBox: TAboutBox
     end
     object LabelThanks: TLabel
       Left = 10
-      Top = 229
+      Top = 245
       Width = 66
       Height = 13
       Caption = 'Thanks go to:'
     end
     object MemoThanks: TMemo
       Left = 10
-      Top = 248
+      Top = 264
       Width = 376
-      Height = 115
+      Height = 99
       Anchors = [akLeft, akTop, akRight, akBottom]
       Lines.Strings = (
         'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
         'SynEdit under LGPL - http://synedit.sourceforge.net'
-        'TNT Unicode Controls - http://www.mh-nexus.de/tntunicodecontrols.htm'
+        'TNT Unicode Controls - '
+        'http://www.mh-nexus.de/tntunicodecontrols.htm'
         'Inno Setup - http://www.jrsoftware.org/'
         'Sebasti'#225'n Mayor'#225' for EDBImage'
         'Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/'
@@ -1257,13 +1258,14 @@ object AboutBox: TAboutBox
         'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
         'MySQL for great database software')
       ReadOnly = True
+      ScrollBars = ssVertical
       TabOrder = 0
     end
     object MemoAuthors: TMemo
       Left = 10
       Top = 120
       Width = 376
-      Height = 97
+      Height = 119
       Anchors = [akLeft, akTop, akRight]
       Lines.Strings = (
         '- Ansgar Becker (project lead and development)'
@@ -1272,7 +1274,8 @@ object AboutBox: TAboutBox
         '- Martijn Nijenhof (development)'
         '- Sven Lorenz (graphics)'
         '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)'
-        '- Tony Peng (additional bugfixes)')
+        '- Tony Peng (additional bugfixes)'
+        '- Nemanja Corlija (commandline parser)')
       ReadOnly = True
       TabOrder = 1
     end
