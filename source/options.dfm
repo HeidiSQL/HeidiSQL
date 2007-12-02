@@ -408,14 +408,14 @@ object optionsform: Toptionsform
       end
       object GroupBox2: TGroupBox
         Left = 0
-        Top = 104
+        Top = 120
         Width = 403
-        Height = 129
+        Height = 113
         Align = alBottom
         Caption = 
           'Change this font in order to view special language characters in' +
           ' data-grids:'
-        TabOrder = 0
+        TabOrder = 7
         object Label21: TLabel
           Left = 20
           Top = 24
@@ -482,6 +482,15 @@ object optionsform: Toptionsform
           TabOrder = 3
         end
       end
+      object chkDataAlwaysEditMode: TCheckBox
+        Left = 8
+        Top = 92
+        Width = 337
+        Height = 17
+        Caption = 'Data-grids always in editor-mode'
+        TabOrder = 6
+        OnClick = Modified
+      end
       object CheckBoxlimit: TCheckBox
         Left = 8
         Top = 40
@@ -541,7 +550,7 @@ object optionsform: Toptionsform
         Caption = 'Remember WHERE filters'
         Checked = True
         State = cbChecked
-        TabOrder = 6
+        TabOrder = 0
         OnClick = Modified
       end
     end
