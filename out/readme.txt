@@ -1,4 +1,4 @@
-========================================
+ï»¿========================================
  Information-File for HeidiSQL
 ========================================
 
@@ -8,7 +8,7 @@
 ----------------------------------------
 HeidiSQL is an easy-to-use interface and a "working-horse" for web-developers
 using the popular MySQL-Database. It allows you to manage and browse your
-databases and tables from an intuitive Windows® interface. 
+databases and tables from an intuitive WindowsÂ® interface. 
 
 With HeidiSQL you will also be able to 
 - generate nice SQL-exports 
@@ -19,7 +19,8 @@ With HeidiSQL you will also be able to
 - browse and edit table-data using a comfortable grid 
 - batch-insert ascii or binary files into tables 
 - write queries with syntax-highlighting
-- monitor and kill client-processes 
+- monitor and kill client-processes
+- connect to servers via commandline
 - and much more :)
 
 
@@ -27,12 +28,12 @@ With HeidiSQL you will also be able to
  ** Links for more information:
 ----------------------------------------
 Website:            http://www.heidisql.com/
-Support-Forum:      http://forum.heidisql.com/
+User-Forum:         http://www.heidisql.com/forum/
 Bugtracker:         http://bugs.heidisql.com/
 Featuretracker:     http://rfe.heidisql.com/
-Changelog:          http://changes.heidisql.com/
-Developer-Readme:   http://svn.heidisql.com/readme.html
-This file:          http://svn.heidisql.com/out/readme.txt
+Changelog:          http://www.heidisql.com/changes.php
+Developer-Readme:   http://www.heidisql.com/svn/readme.html
+This file:          http://www.heidisql.com/svn/out/readme.txt
 
 
 ----------------------------------------
@@ -65,9 +66,6 @@ http://www.heidisql.com/donate.php
 - Mikkel M. Gerhardt-Pedersen (additional bugfixes)
 - Tony Peng (additional bugfixes)
 
-The team is spread over 5 different countries:
-Germany, Danmark, Netherlands, Brazil and China.
-
 
 ----------------------------------------
  ** Very special thanks go to:
@@ -76,7 +74,7 @@ Germany, Danmark, Netherlands, Brazil and China.
 - SynEdit under LGPL - http://synedit.sourceforge.net
 - TNT Unicode Controls with unicode exceptions - http://www.mh-nexus.de/tntunicodecontrols.htm
 - Inno Setup - http://www.jrsoftware.org/
-- Sebastián Mayorá for EDBImage
+- SebastiÃ¡n MayorÃ¡ for EDBImage
 - Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/
 - MySQL for great database software
 
