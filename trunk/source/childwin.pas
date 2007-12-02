@@ -599,7 +599,8 @@ type
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
-      prefLogToFile              : Boolean;
+      prefLogToFile,
+      prefDataAlwaysEditMode     : Boolean;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -882,11 +883,6 @@ begin
     end;
   end;
 
-  // Set the grid-cells to always-edit-mode.
-  gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-  gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-
-  
   // read function-list into menu
   functioncats := GetFunctionCategories;
 
@@ -1079,6 +1075,20 @@ begin
       prefRememberFilters := reg.ReadBool('RememberFilters')
     else
       prefRememberFilters := True;
+
+    // Toggle "always in editor" mode for dbgrids
+    if reg.ValueExists( 'DataAlwaysEditMode' ) then
+      prefDataAlwaysEditMode := reg.ReadBool( 'DataAlwaysEditMode' )
+    else
+      prefDataAlwaysEditMode := False;
+    if prefDataAlwaysEditMode then begin
+      gridData.Options := gridData.Options + [dgAlwaysShowEditor];
+      gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
+    end
+    else begin
+      gridData.Options := gridData.Options - [dgAlwaysShowEditor];
+      gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
+    end;
 
     // Restore width of columns of all VirtualTrees
     RestoreListSetup(ListVariables);
@@ -4272,6 +4282,8 @@ end;
 
 procedure TMDIChild.controlsKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
+var
+  Grid : TTNTDBGrid;
 begin
   // Check for F1-pressed
   if Key = VK_F1 then
@@ -4284,6 +4296,27 @@ begin
       DBMemo1.SelectAll
     else if Sender = EditDataSearch then
       EditDataSearch.SelectAll;
+  end
+
+  // Enable copy + paste shortcuts in dbgrids
+  else if (Sender is TTNTDBGrid) and (Shift = [ssCtrl]) then
+  begin
+    Grid := Sender as TTNTDBGrid;
+    if Key = Ord('C') then
+      Clipboard.AsText := Grid.SelectedField.AsWideString
+    else if Key = Ord('V') then begin
+      // Ensure dataset is in editing mode, otherwise we'll get an exception while
+      // trying to insert content into a cell.
+      // Hint: Dataset.Edit is not the same as Grid.EditorMode=True, it just enables
+      // internal editing of the record. The grid's editing mode is not activated here.
+      Grid.DataSource.DataSet.Edit;
+      Grid.SelectedField.Text := Clipboard.AsText;
+    end
+    else if Key = Ord('X') then begin
+      Clipboard.AsText := Grid.SelectedField.AsWideString;
+      Grid.DataSource.DataSet.Edit;
+      Grid.SelectedField.Text := '';
+    end;
   end;
 end;
 
