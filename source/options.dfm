@@ -415,7 +415,7 @@ object optionsform: Toptionsform
         Caption = 
           'Change this font in order to view special language characters in' +
           ' data-grids:'
-        TabOrder = 7
+        TabOrder = 6
         object Label21: TLabel
           Left = 20
           Top = 24
@@ -481,15 +481,6 @@ object optionsform: Toptionsform
           Position = 8
           TabOrder = 3
         end
-      end
-      object chkDataAlwaysEditMode: TCheckBox
-        Left = 8
-        Top = 92
-        Width = 337
-        Height = 17
-        Caption = 'Data-grids always in editor-mode'
-        TabOrder = 6
-        OnClick = Modified
       end
       object CheckBoxlimit: TCheckBox
         Left = 8
