@@ -70,7 +70,6 @@ type
     Label22: TLabel;
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
-    chkDataAlwaysEditMode: TCheckBox;
     CheckBoxlimit: TCheckBox;
     EditLimit: TEdit;
     UpDownLimit: TUpDown;
@@ -189,7 +188,6 @@ begin
   reg.WriteInteger('DataFontSize', UpDownDataFontSize.Position);
   reg.WriteBool('RememberFilters', chkRememberFilters.Checked);
   reg.WriteBool('LogToFile', chkLogToFile.Checked);
-  reg.WriteBool('DataAlwaysEditMode', chkDataAlwaysEditMode.Checked);
 
   // Close registry key
   reg.CloseKey;
@@ -213,16 +211,6 @@ begin
     cwin.gridQuery.Font := self.Panel8.font;
     cwin.DBMemo1.Font := self.Panel8.font;
     cwin.gridData.Refresh;
-    // Set the grid-cells to always-edit-mode if set
-    cwin.prefDataAlwaysEditMode := chkDataAlwaysEditMode.Checked;
-    if cwin.prefDataAlwaysEditMode then begin
-      cwin.gridData.Options := cwin.gridData.Options + [dgAlwaysShowEditor];
-      cwin.gridQuery.Options := cwin.gridQuery.Options + [dgAlwaysShowEditor];
-    end
-    else begin
-      cwin.gridData.Options := cwin.gridData.Options - [dgAlwaysShowEditor];
-      cwin.gridQuery.Options := cwin.gridQuery.Options - [dgAlwaysShowEditor];
-    end;
     cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
     cwin.prefLogSqlWidth := self.updownLogSnip.Position;
@@ -360,10 +348,6 @@ begin
   if reg.ValueExists('LogToFile') then
     chkLogToFile.Checked := reg.ReadBool('LogToFile');
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
-
-  // Remember data pane filters across sessions
-  if reg.ValueExists('DataAlwaysEditMode') then
-    chkDataAlwaysEditMode.Checked := reg.ReadBool('DataAlwaysEditMode');
 
   // Close registry key
   reg.CloseKey;

@@ -599,8 +599,7 @@ type
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
-      prefLogToFile,
-      prefDataAlwaysEditMode     : Boolean;
+      prefLogToFile              : Boolean;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -1075,20 +1074,6 @@ begin
       prefRememberFilters := reg.ReadBool('RememberFilters')
     else
       prefRememberFilters := True;
-
-    // Toggle "always in editor" mode for dbgrids
-    if reg.ValueExists( 'DataAlwaysEditMode' ) then
-      prefDataAlwaysEditMode := reg.ReadBool( 'DataAlwaysEditMode' )
-    else
-      prefDataAlwaysEditMode := False;
-    if prefDataAlwaysEditMode then begin
-      gridData.Options := gridData.Options + [dgAlwaysShowEditor];
-      gridQuery.Options := gridQuery.Options + [dgAlwaysShowEditor];
-    end
-    else begin
-      gridData.Options := gridData.Options - [dgAlwaysShowEditor];
-      gridQuery.Options := gridQuery.Options - [dgAlwaysShowEditor];
-    end;
 
     // Restore width of columns of all VirtualTrees
     RestoreListSetup(ListVariables);
