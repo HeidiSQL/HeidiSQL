@@ -9,6 +9,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
 the specific language governing rights and limitations under the License.
 
 The Original Code is SynEditWordWrap.pas by Flávio Etrusco, released 2003-12-11.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -24,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditWordWrap.pas,v 1.11 2007/01/24 00:17:33 etrusco Exp $
+$Id: SynEditWordWrap.pas,v 1.8.2.5 2007/01/24 00:16:24 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -90,11 +91,10 @@ type
     fLineCapacity: integer;
     fRowCapacity: integer;
     fLineCount: integer;
-    //
+
     fEditor: TCustomSynEdit;
     fMinRowLength: TRowLength;
     fMaxRowLength: TRowLength;
-    fBreakChars: TSysCharSet;
     procedure GrowLines(aMinSize: integer);
     procedure MoveLines(aStart: TLineIndex; aMoveBy: integer);
     procedure GrowRows(aMinSize: integer);
@@ -126,11 +126,16 @@ type
 implementation
 
 uses
+{$IFDEF SYN_CLX}
+  QSynUnicode,
+{$ELSE}
+  SynUnicode,
+{$ENDIF}
 {$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
 {$ELSE}
   {$IFDEF SYN_CLX}
-    QConsts;
+    QConsts,
   {$ELSE}
     Consts,
   {$ENDIF}
@@ -149,33 +154,33 @@ var
   cRow: integer;
   vRowLen: integer;
 begin
-  Assert( aPos.Char > 0 );
-  Assert( aPos.Line > 0 );
+  Assert(aPos.Char > 0);
+  Assert(aPos.Line > 0);
   if LineCount < aPos.Line then
   begin
     // beyond EOF
     Result.Column := aPos.Char;
-    Result.Row := RowCount + ( aPos.Line - LineCount );
+    Result.Row := RowCount + (aPos.Line - LineCount);
     Exit;
   end;
   if aPos.Line = 1 then
     vStartRow := 0
   else
-    vStartRow := fLineOffsets[ aPos.Line -2 ];
-  vRowLen := 0; 
-  for cRow := vStartRow to fLineOffsets[ aPos.Line -1 ] -1 do
+    vStartRow := fLineOffsets[aPos.Line - 2];
+  vRowLen := 0;
+  for cRow := vStartRow to fLineOffsets[aPos.Line - 1] - 1 do
   begin
-    Inc( vRowLen, fRowLengths[cRow] );
+    Inc(vRowLen, fRowLengths[cRow]);
     if aPos.Char <= vRowLen then
     begin
       Result.Column := aPos.Char - vRowLen + fRowLengths[cRow];
-      Result.Row := cRow +1;
+      Result.Row := cRow + 1;
       Exit;
     end;
   end;
   // beyond EOL
-  Result.Column := aPos.Char - vRowLen + fRowLengths[ fLineOffsets[ aPos.Line -1 ] -1 ];
-  Result.Row := fLineOffsets[ aPos.Line -1 ];
+  Result.Column := aPos.Char - vRowLen + fRowLengths[fLineOffsets[aPos.Line - 1] - 1];
+  Result.Row := fLineOffsets[aPos.Line - 1];
 end;
 
 constructor TSynWordWrapPlugin.Create(aOwner: TCustomSynEdit);
@@ -190,8 +195,8 @@ end;
 destructor TSynWordWrapPlugin.Destroy;
 begin
   inherited;
-  FreeMem( fLineOffsets );
-  FreeMem( fRowLengths );
+  FreeMem(fLineOffsets);
+  FreeMem(fRowLengths);
 end;
 
 procedure TSynWordWrapPlugin.DisplayChanged;
@@ -206,8 +211,8 @@ var
   cLine: integer;
   cRow: integer;
 begin
-  Assert( aPos.Column > 0 );
-  Assert( aPos.Row > 0 );
+  Assert(aPos.Column > 0);
+  Assert(aPos.Row > 0);
   if aPos.Row > RowCount then
   begin
     // beyond EOF
@@ -216,15 +221,15 @@ begin
     Exit;
   end;
   //todo: use a binary search or something smarter
-  for cLine := LineCount -2 downto 0 do
+  for cLine := LineCount - 2 downto 0 do
     if aPos.Row > fLineOffsets[cLine] then
     begin
-      Result.Line := cLine +2;
+      Result.Line := cLine + 2;
       if aPos.Row = fLineOffsets[cLine + 1] then //last row of line
         Result.Char := Min(aPos.Column, fMaxRowLength + 1)
       else
         Result.Char := Min(aPos.Column, fRowLengths[aPos.Row - 1] + 1);
-      for cRow := fLineOffsets[cLine] to aPos.Row -2 do
+      for cRow := fLineOffsets[cLine] to aPos.Row - 2 do
         Inc(Result.Char, fRowLengths[cRow]);
       Exit;
     end;
@@ -242,19 +247,19 @@ function TSynWordWrapPlugin.GetRowLength(aRow: integer): integer;
 // aRow is 1-based...
 begin
   if (aRow <= 0) or (aRow > RowCount) then
-    TList.Error( SListIndexError, aRow );
-  Result := fRowLengths[ aRow -1 ];
+    TList.Error(SListIndexError, aRow);
+  Result := fRowLengths[aRow - 1];
 end;
 
 procedure TSynWordWrapPlugin.GrowLines(aMinSize: integer);
 const
   vStepSize = 256;
 begin
-  Assert( aMinSize > 0 );
+  Assert(aMinSize > 0);
   if aMinSize > fLineCapacity then
   begin
     aMinSize := aMinSize + vStepSize - (aMinSize mod vStepSize);
-    ReallocMem( fLineOffsets, aMinSize * SizeOf(TRowIndex) );
+    ReallocMem(fLineOffsets, aMinSize * SizeOf(TRowIndex));
     fLineCapacity := aMinSize;
   end;
 end;
@@ -263,11 +268,11 @@ procedure TSynWordWrapPlugin.GrowRows(aMinSize: integer);
 const
   vStepSize = 512;
 begin
-  Assert( aMinSize > 0 );
+  Assert(aMinSize > 0);
   if aMinSize > fRowCapacity then
   begin
     aMinSize := aMinSize + vStepSize - (aMinSize mod vStepSize);
-    ReallocMem( fRowLengths, aMinSize * SizeOf(TRowLength) );
+    ReallocMem(fRowLengths, aMinSize * SizeOf(TRowLength));
     fRowCapacity := aMinSize;
   end;
 end;
@@ -283,25 +288,25 @@ begin
     Result := 0;
     Exit;
   end;
-  Assert( aIndex >= 0 );
-  Assert( aCount >= 1 );
-  Assert( aIndex + aCount <= LineCount );
-  //
+  Assert(aIndex >= 0);
+  Assert(aCount >= 1);
+  Assert(aIndex + aCount <= LineCount);
+
   if aIndex = 0 then
     vStartRow := 0
   else
-    vStartRow := fLineOffsets[ aIndex -1 ];
-  vEndRow := fLineOffsets[ aIndex + aCount -1 ];
+    vStartRow := fLineOffsets[aIndex - 1];
+  vEndRow := fLineOffsets[aIndex + aCount - 1];
   Result := vEndRow - vStartRow;
   // resize fRowLengths
   if vEndRow < RowCount then
-    MoveRows( vEndRow, - Result );
+    MoveRows(vEndRow, -Result);
   // resize fLineOffsets
-  MoveLines( aIndex + aCount, - aCount );
-  Dec( fLineCount, aCount );
+  MoveLines(aIndex + aCount, -aCount);
+  Dec(fLineCount, aCount);
   // update offsets
-  for cLine := aIndex to LineCount -1 do
-    Dec( fLineOffsets[cLine], Result );
+  for cLine := aIndex to LineCount - 1 do
+    Dec(fLineOffsets[cLine], Result);
 end;
 
 function TSynWordWrapPlugin.LinesInserted(aIndex: integer; aCount: integer): integer;
@@ -314,29 +319,29 @@ begin
     Result := 0;
     Exit;
   end;
-  Assert( aIndex >= 0 );
-  Assert( aCount >= 1 );
-  Assert( aIndex <= LineCount );
+  Assert(aIndex >= 0);
+  Assert(aCount >= 1);
+  Assert(aIndex <= LineCount);
   // resize fLineOffsets
-  GrowLines( LineCount + aCount );
+  GrowLines(LineCount + aCount);
   if aIndex < LineCount then // no need for MoveLines if inserting at LineCount (TSynEditStringList.Add)
   begin
-    Inc( fLineCount, aCount ); // fLineCount must be updated before calling MoveLines()
-    MoveLines( aIndex, aCount );
+    Inc(fLineCount, aCount); // fLineCount must be updated before calling MoveLines()
+    MoveLines(aIndex, aCount);
   end
   else
-    Inc( fLineCount, aCount ); 
+    Inc(fLineCount, aCount); 
   // set offset to same as previous line (i.e. the line has 0 rows)
   if aIndex = 0 then
     vPrevOffset := 0
   else
-    vPrevOffset := fLineOffsets[ aIndex -1 ];
-  for cLine := aIndex to aIndex + aCount -1 do
+    vPrevOffset := fLineOffsets[aIndex - 1];
+  for cLine := aIndex to aIndex + aCount - 1 do
     fLineOffsets[cLine] := vPrevOffset;
-  // Rewrap.
+  // Rewrap
   Result := 0;
-  for cLine := aIndex to aIndex + aCount -1 do
-    Inc( Result, ReWrapLine(cLine) );
+  for cLine := aIndex to aIndex + aCount - 1 do
+    Inc(Result, ReWrapLine(cLine));
 end;
 
 function TSynWordWrapPlugin.LinesPutted(aIndex: integer; aCount: integer): integer;
@@ -348,50 +353,49 @@ begin
     Result := 0;
     Exit;
   end;
-  Assert( aIndex >= 0 );
-  Assert( aCount >= 1 );
-  Assert( aIndex + aCount <= LineCount );
-  // Rewrap.
+  Assert(aIndex >= 0);
+  Assert(aCount >= 1);
+  Assert(aIndex + aCount <= LineCount);
+  // Rewrap
   Result := 0;
-  for cLine := aIndex to aIndex + aCount -1 do
-    Inc( Result, ReWrapLine(cLine) );
+  for cLine := aIndex to aIndex + aCount - 1 do
+    Inc(Result, ReWrapLine(cLine));
 end;
 
 procedure TSynWordWrapPlugin.MoveLines(aStart: TLineIndex; aMoveBy: integer);
 var
   vMoveCount: integer;
 begin
-  Assert( aMoveBy <> 0 );
-  Assert( aStart + aMoveBy >= 0 );
-  Assert( aStart + aMoveBy < LineCount );
+  Assert(aMoveBy <> 0);
+  Assert(aStart + aMoveBy >= 0);
+  Assert(aStart + aMoveBy < LineCount);
   vMoveCount := LineCount - aStart;
   if aMoveBy > 0 then
-    Dec( vMoveCount, aMoveBy );
-  Move( fLineOffsets[aStart], fLineOffsets[aStart + aMoveBy],
-    vMoveCount * SizeOf(TRowIndex) );
+    Dec(vMoveCount, aMoveBy);
+  Move(fLineOffsets[aStart], fLineOffsets[aStart + aMoveBy],
+    vMoveCount * SizeOf(TRowIndex));
 end;
 
 procedure TSynWordWrapPlugin.MoveRows(aStart: TRowIndex; aMoveBy: integer);
 var
   vMoveCount: integer;
 begin
-  Assert( aMoveBy <> 0 );
-  Assert( aStart + aMoveBy >= 0 );
-  Assert( aStart + aMoveBy < RowCount );
+  Assert(aMoveBy <> 0);
+  Assert(aStart + aMoveBy >= 0);
+  Assert(aStart + aMoveBy < RowCount);
   vMoveCount := RowCount - aStart;
   if aMoveBy > 0 then
-    Dec( vMoveCount, aMoveBy );
-  Move( fRowLengths[aStart], fRowLengths[aStart + aMoveBy],
-    vMoveCount * SizeOf(TRowLength) );
+    Dec(vMoveCount, aMoveBy);
+  Move(fRowLengths[aStart], fRowLengths[aStart + aMoveBy],
+    vMoveCount * SizeOf(TRowLength));
 end;
 
 procedure TSynWordWrapPlugin.Reset;
 begin
-  Assert( Editor.CharsInWindow >= 0 );
+  Assert(Editor.CharsInWindow >= 0);
 
   fMaxRowLength := Editor.CharsInWindow;
   fMinRowLength := Editor.CharsInWindow - (Editor.CharsInWindow div 3);
-  fBreakChars :=  [#0..#255] - Editor.IdentChars;
 
   if fMinRowLength <= 0 then
     fMinRowLength := 1;
@@ -403,44 +407,46 @@ function TSynWordWrapPlugin.ReWrapLine(aIndex: TLineIndex): integer;
 // Returns RowCount delta (how many wrapped lines were added or removed by this change).
 var
   vMaxNewRows: Cardinal;
-  vLine: string;
+  vLine: WideString;
   vLineRowCount: Integer; //numbers of rows parsed in this line
   vTempRowLengths: PRowLengthArray;
-  vRowBegin: PChar;
-  vLineEnd: PChar;
-  vRowEnd: PChar;
-  vRunner: PChar;
-  vRowMinEnd: PChar;
-  //
+  vRowBegin: PWideChar;
+  vLineEnd: PWideChar;
+  vRowEnd: PWideChar;
+  vRunner: PWideChar;
+  vRowMinEnd: PWideChar;
+  vLastVisibleChar: PWideChar;
+
   vStartRow: Integer; // first row of the line
   vOldNextRow: Integer; // first row of the next line, before the change
   cLine: Integer;
 begin
   // ****** First parse the new string using an auxiliar array *****
   vLine := TSynEditStringList(Editor.Lines).ExpandedStrings[aIndex];
+  vLine := Editor.ExpandAtWideGlyphs(vLine);
   // Pre-allocate a buffer for rowlengths
   vMaxNewRows := ((Length(vLine) - 1) div fMinRowLength) + 1;
   vTempRowLengths := AllocMem(vMaxNewRows);
   try
     vLineRowCount := 0;
-    vRowBegin := PChar(vLine);
+    vRowBegin := PWideChar(vLine);
     vRowEnd := vRowBegin + fMaxRowLength;
     vLineEnd := vRowBegin + Length(vLine);
     while vRowEnd < vLineEnd do
     begin
-      //
-      if OldWhitespaceBehaviour and (vRowEnd^ in [#32, #9]) then
+      if OldWhitespaceBehaviour and (vRowEnd^ in [WideChar(#32), WideChar(#9)]) then
       begin
         repeat
           Inc(vRowEnd);
-        until not(vRowEnd^ in [#32, #9]);
+        until not(vRowEnd^ in [WideChar(#32), WideChar(#9)]);
       end
-      else begin
+      else
+      begin
         vRowMinEnd := vRowBegin + fMinRowLength;
         vRunner := vRowEnd;
         while vRunner > vRowMinEnd do
         begin
-          if vRunner^ in fBreakChars then
+          if Editor.IsWordBreakChar(vRunner^) then
           begin
             vRowEnd := vRunner;
             break;
@@ -456,13 +462,19 @@ begin
         while (vRowEnd^ = #9) and (vRowEnd > vRowMinEnd) do
           Dec(vRowEnd);
       end;
-{$IFDEF SYN_MBCSSUPPORT}
-      if StrByteType(vRowBegin, vRowEnd - vRowBegin) = mbTrailByte then
-        Dec(vRowEnd);
-{$ENDIF}
+
+      // do not cut wide glyphs in half
+      if vRowEnd > vRowBegin then
+      begin
+        vLastVisibleChar := vRowEnd - 1;
+        while (vLastVisibleChar^ = FillerChar) and (vLastVisibleChar > vRowBegin) do
+          dec(vLastVisibleChar);
+        vRowEnd := vLastVisibleChar + 1;
+      end;
+
       // Finally store the rowlength
       vTempRowLengths[vLineRowCount] := vRowEnd - vRowBegin;
-      //
+
       Inc(vLineRowCount);
       vRowBegin := vRowEnd;
       Inc(vRowEnd, fMaxRowLength);
@@ -492,7 +504,8 @@ begin
         if vOldNextRow < RowCount - Result then
           MoveRows(vOldNextRow, Result);
       end
-      else begin
+      else
+      begin
         // ...if shrinking, update offsets after rowlengths
         if vOldNextRow < RowCount then
           MoveRows(vOldNextRow, Result);
@@ -510,13 +523,14 @@ procedure TSynWordWrapPlugin.WrapLines;
 var
   cRow: Integer;
   cLine: Integer;
-  vLine: string;
+  vLine: WideString;
   vMaxNewRows: Integer;
-  vRowBegin: PChar;
-  vLineEnd: PChar;
-  vRowEnd: PChar;
-  vRunner: PChar;
-  vRowMinEnd: PChar;
+  vRowBegin: PWideChar;
+  vLineEnd: PWideChar;
+  vRowEnd: PWideChar;
+  vRunner: PWideChar;
+  vRowMinEnd: PWideChar;
+  vLastVisibleChar: PWideChar;
 begin
   if (Editor.Lines.Count = 0) or (fMaxRowLength <= 0) then
   begin
@@ -526,33 +540,34 @@ begin
 
   GrowLines(Editor.Lines.Count);
   GrowRows(Editor.Lines.Count);
-  //
+
   cRow := 0;
-  for cLine := 0 to Editor.Lines.Count -1 do
+  for cLine := 0 to Editor.Lines.Count - 1 do
   begin
     vLine := TSynEditStringList(Editor.Lines).ExpandedStrings[cLine];
-    //
+    vLine := Editor.ExpandAtWideGlyphs(vLine);
+
     vMaxNewRows := ((Length(vLine) - 1) div fMinRowLength) + 1;
     GrowRows(cRow + vMaxNewRows);
-    //
-    vRowBegin := PChar(vLine);
+
+    vRowBegin := PWideChar(vLine);
     vRowEnd := vRowBegin + fMaxRowLength;
     vLineEnd := vRowBegin + Length(vLine);
     while vRowEnd < vLineEnd do
     begin
-      //
-      if OldWhitespaceBehaviour and (vRowEnd^ in [#32, #9]) then
+      if OldWhitespaceBehaviour and (vRowEnd^ in [WideChar(#32), WideChar(#9)]) then
       begin
         repeat
           Inc(vRowEnd);
-        until not(vRowEnd^ in [#32, #9]);
+        until not(vRowEnd^ in [WideChar(#32), WideChar(#9)]);
       end
-      else begin
+      else
+      begin
         vRowMinEnd := vRowBegin + fMinRowLength;
         vRunner := vRowEnd;
         while vRunner > vRowMinEnd do
         begin
-          if vRunner^ in fBreakChars then
+          if Editor.IsWordBreakChar(vRunner^) then
           begin
             vRowEnd := vRunner;
             break;
@@ -560,7 +575,7 @@ begin
           Dec(vRunner);
         end;
       end;
-      //
+
       if OldWhitespaceBehaviour and (vRowEnd - vRowBegin > High(TRowLength)) then
       begin
         vRowEnd := vRowBegin + High(TRowLength);
@@ -568,12 +583,18 @@ begin
         while (vRowEnd^ = #9) and (vRowEnd > vRowMinEnd) do
           Dec(vRowEnd);
       end;
-{$IFDEF SYN_MBCSSUPPORT}
-      if StrByteType(vRowBegin, vRowEnd - vRowBegin) = mbTrailByte then
-        Dec(vRowEnd);
-{$ENDIF}
+
+      // do not cut wide glyphs in half
+      if vRowEnd > vRowBegin then
+      begin
+        vLastVisibleChar := vRowEnd - 1;
+        while (vLastVisibleChar^ = FillerChar) and (vLastVisibleChar > vRowBegin) do
+          dec(vLastVisibleChar);
+        vRowEnd := vLastVisibleChar + 1;
+      end;
+
       fRowLengths[cRow] := vRowEnd - vRowBegin;
-      //
+
       Inc(cRow);
       vRowBegin := vRowEnd;
       Inc(vRowEnd, fMaxRowLength);
@@ -591,7 +612,7 @@ end;
 function TSynWordWrapPlugin.RowCount: integer;
 begin
   if LineCount > 0 then
-    Result := fLineOffsets[ LineCount -1 ]
+    Result := fLineOffsets[LineCount - 1]
   else
     Result := 0;
 end;
@@ -605,9 +626,9 @@ end;
 
 procedure TSynWordWrapPlugin.TrimArrays;
 begin
-  ReallocMem( fLineOffsets, LineCount * SizeOf(TRowIndex) );
+  ReallocMem(fLineOffsets, LineCount * SizeOf(TRowIndex));
   fLineCapacity := LineCount;
-  ReallocMem( fRowLengths, RowCount * SizeOf(TRowLength) );
+  ReallocMem(fRowLengths, RowCount * SizeOf(TRowLength));
   fRowCapacity := RowCount;
 end;
 

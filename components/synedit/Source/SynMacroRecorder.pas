@@ -12,6 +12,7 @@ The Original Code is: SynMacroRecorder.pas, released 2001-10-17.
 
 Author of this file is Flávio Etrusco.
 Portions created by Flávio Etrusco are Copyright 2001 Flávio Etrusco.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -26,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynMacroRecorder.pas,v 1.31 2004/08/31 04:50:26 etrusco Exp $
+$Id: SynMacroRecorder.pas,v 1.31.2.2 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -86,28 +87,28 @@ type
   TSynMacroEvent = class(TObject)
   protected
     fRepeatCount: Byte;
-    function GetAsString : string; virtual; abstract;
-    procedure InitEventParameters(aStr : string); virtual; abstract;
+    function GetAsString: WideString; virtual; abstract;
+    procedure InitEventParameters(aStr: WideString); virtual; abstract;
   public
     constructor Create; virtual;
-    procedure Initialize(aCmd: TSynEditorCommand; aChar: Char; aData: Pointer);
+    procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       virtual; abstract;
     { the CommandID must not be read inside LoadFromStream/SaveToStream. It's read by the
     MacroRecorder component to decide which MacroEvent class to instanciate }
     procedure LoadFromStream(aStream: TStream); virtual; abstract;
     procedure SaveToStream(aStream: TStream); virtual; abstract;
     procedure Playback(aEditor: TCustomSynEdit); virtual; abstract;
-    property AsString : string read GetAsString;
-    property RepeatCount : Byte read fRepeatCount write fRepeatCount;
+    property AsString: WideString read GetAsString;
+    property RepeatCount: Byte read fRepeatCount write fRepeatCount;
   end;
 
   TSynBasicEvent = class(TSynMacroEvent)
   protected
     fCommand: TSynEditorCommand;
-    function GetAsString : string; override;
-    procedure InitEventParameters(aStr : string); override;
+    function GetAsString: WideString; override;
+    procedure InitEventParameters(aStr: WideString); override;
   public
-    procedure Initialize(aCmd: TSynEditorCommand; aChar: Char; aData: Pointer);
+    procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
     procedure LoadFromStream(aStream: TStream); override;
     procedure SaveToStream(aStream: TStream); override;
@@ -118,41 +119,41 @@ type
 
   TSynCharEvent = class(TSynMacroEvent)
   protected
-    fKey: char;
-    function GetAsString : string; override;
-    procedure InitEventParameters(aStr : string); override;
+    fKey: WideChar;
+    function GetAsString: WideString; override;
+    procedure InitEventParameters(aStr: WideString); override;
   public
-    procedure Initialize(aCmd: TSynEditorCommand; aChar: Char; aData: Pointer);
+    procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
     procedure LoadFromStream(aStream: TStream); override;
     procedure SaveToStream(aStream: TStream); override;
     procedure Playback(aEditor: TCustomSynEdit); override;
   public
-    property Key: char read fKey write fKey;
+    property Key: WideChar read fKey write fKey;
   end;
 
   TSynStringEvent = class(TSynMacroEvent)
   protected
-    fString: string;
-    function GetAsString : string; override;
-    procedure InitEventParameters(aStr : string); override;
+    fString: WideString;
+    function GetAsString: WideString; override;
+    procedure InitEventParameters(aStr: WideString); override;
   public
-    procedure Initialize(aCmd: TSynEditorCommand; aChar: Char; aData: Pointer);
+    procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
     procedure LoadFromStream(aStream: TStream); override;
     procedure SaveToStream(aStream: TStream); override;
     procedure Playback(aEditor: TCustomSynEdit); override;
   public
-    property Value: string read fString write fString;
+    property Value: WideString read fString write fString;
   end;
 
   TSynPositionEvent = class(TSynBasicEvent)
   protected
     fPosition: TBufferCoord;
-    function GetAsString : string; override;
-    procedure InitEventParameters(aStr : string); override;
+    function GetAsString: WideString; override;
+    procedure InitEventParameters(aStr: WideString); override;
   public
-    procedure Initialize(aCmd: TSynEditorCommand; aChar: Char; aData: Pointer);
+    procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
     procedure LoadFromStream(aStream: TStream); override;
     procedure SaveToStream(aStream: TStream); override;
@@ -165,7 +166,7 @@ type
   protected
     fData: Pointer;
   public
-    procedure Initialize(aCmd: TSynEditorCommand; aChar: Char; aData: Pointer);
+    procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
     procedure LoadFromStream(aStream: TStream); override;
     procedure SaveToStream(aStream: TStream); override;
@@ -194,8 +195,8 @@ type
     fSaveMarkerPos: boolean;
     function GetEvent(aIndex: integer): TSynMacroEvent;
     function GetEventCount: integer;
-    function GetAsString: string;
-    procedure SetAsString(const Value: string);
+    function GetAsString: WideString;
+    procedure SetAsString(const Value: WideString);
   protected
     fCurrentEditor: TCustomSynEdit;
     fState: TSynMacroState;
@@ -207,7 +208,7 @@ type
     procedure DoAddEditor(aEditor: TCustomSynEdit); override;
     procedure DoRemoveEditor(aEditor: TCustomSynEdit); override;
     procedure OnCommand(Sender: TObject; AfterProcessing: boolean;
-      var Handled: boolean; var Command: TSynEditorCommand; var aChar: char;
+      var Handled: boolean; var Command: TSynEditorCommand; var aChar: WideChar;
       Data: pointer; HandlerData: pointer); override;
     function CreateMacroEvent(aCmd: TSynEditorCommand): TSynMacroEvent;
   protected
@@ -227,8 +228,8 @@ type
     property IsEmpty: boolean read GetIsEmpty;
     property State: TSynMacroState read fState;
     procedure Clear;
-    procedure AddEvent(aCmd: TSynEditorCommand; aChar: char; aData: pointer);
-    procedure InsertEvent(aIndex: integer; aCmd: TSynEditorCommand; aChar: char;
+    procedure AddEvent(aCmd: TSynEditorCommand; aChar: WideChar; aData: pointer);
+    procedure InsertEvent(aIndex: integer; aCmd: TSynEditorCommand; aChar: WideChar;
       aData: pointer);
     procedure AddCustomEvent(aEvent: TSynMacroEvent);
     procedure InsertCustomEvent(aIndex: integer; aEvent: TSynMacroEvent);
@@ -246,8 +247,8 @@ type
       read fShortCuts[mcPlayback] write SetShortCut;
     property SaveMarkerPos: boolean read fSaveMarkerPos
       write fSaveMarkerPos default False;
-    property AsString : string read GetAsString write SetAsString;
-    property MacroName : string read fMacroName write fMacroName;
+    property AsString: WideString read GetAsString write SetAsString;
+    property MacroName: string read fMacroName write fMacroName;
     property OnStateChange: TNotifyEvent read fOnStateChange write fOnStateChange;
     property OnUserCommand: TSynUserCommandEvent read fOnUserCommand
       write fOnUserCommand;
@@ -268,9 +269,11 @@ uses
 {$IFDEF SYN_CLX}
   QForms,
   QSynEditMiscProcs,
+  QSynUnicode,
 {$ELSE}
   Forms,
   SynEditMiscProcs,
+  SynUnicode,
 {$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
 {$ENDIF}
@@ -279,35 +282,35 @@ uses
 
 { TSynDataEvent }
 
-procedure TSynDataEvent.Initialize(aCmd: TSynEditorCommand; aChar: Char;
+procedure TSynDataEvent.Initialize(aCmd: TSynEditorCommand; aChar: WideChar;
   aData: Pointer);
 begin
   fCommand := aCmd;
-  Assert( aChar = #0 );
+  Assert(aChar = #0);
   fData := aData;
 end;
 
 procedure TSynDataEvent.LoadFromStream(aStream: TStream);
 begin
-  aStream.Read( fData, SizeOf(fData) );
+  aStream.Read(fData, SizeOf(fData));
 end;
 
 procedure TSynDataEvent.Playback(aEditor: TCustomSynEdit);
 begin
-  aEditor.CommandProcessor( Command, #0, fData );
+  aEditor.CommandProcessor(Command, #0, fData);
 end;
 
 procedure TSynDataEvent.SaveToStream(aStream: TStream);
 begin
   inherited;
-  aStream.Write( fData, SizeOf(fData) );
+  aStream.Write(fData, SizeOf(fData));
 end;
 
 { TCustomSynMacroRecorder }
 
 procedure TCustomSynMacroRecorder.AddCustomEvent(aEvent: TSynMacroEvent);
 begin
-  InsertCustomEvent( EventCount, aEvent );
+  InsertCustomEvent(EventCount, aEvent);
 end;
 
 procedure TCustomSynMacroRecorder.AddEditor(aEditor: TCustomSynEdit);
@@ -316,9 +319,9 @@ begin
 end;
 
 procedure TCustomSynMacroRecorder.AddEvent(aCmd: TSynEditorCommand;
-  aChar: char; aData: pointer);
+  aChar: WideChar; aData: pointer);
 begin
-  InsertEvent( EventCount, aCmd, aChar, aData );
+  InsertEvent(EventCount, aCmd, aChar, aData);
 end;
 
 procedure TCustomSynMacroRecorder.Clear;
@@ -334,7 +337,7 @@ begin
       fEvents.Delete(I);
       Obj.Free;
     end;
-    FreeAndNil( fEvents );
+    FreeAndNil(fEvents);
   end;
 end;
 
@@ -344,12 +347,12 @@ begin
   fMacroName := 'unnamed';
   fCommandIDs[mcRecord] := NewPluginCommand;
   fCommandIDs[mcPlayback] := NewPluginCommand;
-  {$IFDEF SYN_CLX}
-  fShortCuts[mcRecord] := QMenus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
-  fShortCuts[mcPlayback] := QMenus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
+  {$IFDEF SYN_CLX} 
+  fShortCuts[mcRecord] := QMenus.ShortCut(Ord('R'), [ssCtrl, ssShift]);
+  fShortCuts[mcPlayback] := QMenus.ShortCut(Ord('P'), [ssCtrl, ssShift]);
   {$ELSE}
-  fShortCuts[mcRecord] := Menus.ShortCut( Ord('R'), [ssCtrl, ssShift] );
-  fShortCuts[mcPlayback] := Menus.ShortCut( Ord('P'), [ssCtrl, ssShift] );
+  fShortCuts[mcRecord] := Menus.ShortCut(Ord('R'), [ssCtrl, ssShift]);
+  fShortCuts[mcPlayback] := Menus.ShortCut(Ord('P'), [ssCtrl, ssShift]);
   {$ENDIF}
 end;
 
@@ -357,8 +360,8 @@ function TCustomSynMacroRecorder.CreateMacroEvent(aCmd: TSynEditorCommand): TSyn
 
   function WantDefaultEvent(var aEvent: TSynMacroEvent): boolean;
   begin
-    if Assigned( OnUserCommand ) then
-      OnUserCommand( Self, aCmd, aEvent );
+    if Assigned(OnUserCommand) then
+      OnUserCommand(Self, aCmd, aEvent);
     Result := aEvent = nil;
   end;
 
@@ -375,7 +378,7 @@ begin
       Result := TSynStringEvent.Create;
     else begin
       Result := nil;
-      if (aCmd < ecUserFirst) or WantDefaultEvent( Result ) then
+      if (aCmd < ecUserFirst) or WantDefaultEvent(Result) then
       begin
         Result := TSynBasicEvent.Create;
         TSynBasicEvent(Result).Command := aCmd;
@@ -388,29 +391,29 @@ procedure TCustomSynMacroRecorder.DeleteEvent(aIndex: integer);
 var
   iObj: Pointer;
 begin
-  iObj := fEvents[ aIndex ];
-  fEvents.Delete( aIndex );
-  TObject( iObj ).Free;
+  iObj := fEvents[aIndex];
+  fEvents.Delete(aIndex);
+  TObject(iObj).Free;
 end;
 
 destructor TCustomSynMacroRecorder.Destroy;
 begin
   Clear;
   inherited;
-  ReleasePluginCommand( PlaybackCommandID );
-  ReleasePluginCommand( RecordCommandID );
+  ReleasePluginCommand(PlaybackCommandID);
+  ReleasePluginCommand(RecordCommandID);
 end;
 
 procedure TCustomSynMacroRecorder.DoAddEditor(aEditor: TCustomSynEdit);
 begin
-  HookEditor( aEditor, RecordCommandID, 0, RecordShortCut );
-  HookEditor( aEditor, PlaybackCommandID, 0, PlaybackShortCut );
+  HookEditor(aEditor, RecordCommandID, 0, RecordShortCut);
+  HookEditor(aEditor, PlaybackCommandID, 0, PlaybackShortCut);
 end;
 
 procedure TCustomSynMacroRecorder.DoRemoveEditor(aEditor: TCustomSynEdit);
 begin
-  UnHookEditor( aEditor, RecordCommandID, RecordShortCut );
-  UnHookEditor( aEditor, PlaybackCommandID, PlaybackShortCut );
+  UnHookEditor(aEditor, RecordCommandID, RecordShortCut);
+  UnHookEditor(aEditor, PlaybackCommandID, PlaybackShortCut);
 end;
 
 procedure TCustomSynMacroRecorder.Error(const aMsg: String);
@@ -420,7 +423,7 @@ end;
 
 function TCustomSynMacroRecorder.GetEvent(aIndex: integer): TSynMacroEvent;
 begin
-  Result := TSynMacroEvent( fEvents[aIndex] );
+  Result := TSynMacroEvent(fEvents[aIndex]);
 end;
 
 function TCustomSynMacroRecorder.GetEventCount: integer;
@@ -441,18 +444,18 @@ procedure TCustomSynMacroRecorder.InsertCustomEvent(aIndex: integer;
 begin
   if fEvents = nil then
     fEvents := TList.Create;
-  fEvents.Insert( aIndex, aEvent );
+  fEvents.Insert(aIndex, aEvent);
 end;
 
 procedure TCustomSynMacroRecorder.InsertEvent(aIndex: integer;
-  aCmd: TSynEditorCommand; aChar: char; aData: pointer);
+  aCmd: TSynEditorCommand; aChar: WideChar; aData: pointer);
 var
   iEvent: TSynMacroEvent;
 begin
-  iEvent := CreateMacroEvent( aCmd );
+  iEvent := CreateMacroEvent(aCmd);
   try
-    iEvent.Initialize( aCmd, aChar, aData );
-    InsertCustomEvent( aIndex, iEvent );
+    iEvent.Initialize(aCmd, aChar, aData);
+    InsertCustomEvent(aIndex, iEvent);
   except
     iEvent.Free;
     raise;
@@ -461,15 +464,15 @@ end;
 
 procedure TCustomSynMacroRecorder.LoadFromStream(aSrc: TStream);
 begin
-  LoadFromStreamEx( aSrc, True );
+  LoadFromStreamEx(aSrc, True);
 end;
 
 procedure TCustomSynMacroRecorder.LoadFromStreamEx(aSrc: TStream;
   aClear: boolean);
 var
-  iCommand : TSynEditorCommand;
+  iCommand: TSynEditorCommand;
   iEvent: TSynMacroEvent;
-  cnt, i : Integer;
+  cnt, i: Integer;
 begin
   Stop;
   if aClear then
@@ -477,21 +480,22 @@ begin
   fEvents := TList.Create;
   aSrc.Read(cnt, sizeof(cnt));
   i := 0;
-  fEvents.Capacity := aSrc.Size div SizeOf( TSynEditorCommand );
+  fEvents.Capacity := aSrc.Size div SizeOf(TSynEditorCommand);
   while (aSrc.Position < aSrc.Size) and (i < cnt) do
   begin
-    aSrc.Read( iCommand, SizeOf(TSynEditorCommand) );
-    iEvent := CreateMacroEvent( iCommand );
-    iEvent.Initialize( iCommand, #0, nil );
-    iEvent.LoadFromStream( aSrc );
-    fEvents.Add( iEvent );
+    aSrc.Read(iCommand, SizeOf(TSynEditorCommand));
+    iEvent := CreateMacroEvent(iCommand);
+    iEvent.Initialize(iCommand, #0, nil);
+    iEvent.LoadFromStream(aSrc);
+    fEvents.Add(iEvent);
     Inc(i);
   end;
 end;
 
+// TODO: Sender could be also something else then a TCustomSynedit(namely a TObject) but the code below assumes it is a TCustomSynedit even if Sender is of type TObject.
 procedure TCustomSynMacroRecorder.OnCommand(Sender: TObject;
   AfterProcessing: boolean; var Handled: boolean;
-  var Command: TSynEditorCommand; var aChar: char; Data,
+  var Command: TSynEditorCommand; var aChar: WideChar; Data,
   HandlerData: pointer);
 var
   iEvent: TSynMacroEvent;
@@ -500,9 +504,9 @@ begin
   begin
     if (Sender = fCurrentEditor) and (State = msRecording) and (not Handled) then
     begin
-      iEvent := CreateMacroEvent( Command );
-      iEvent.Initialize( Command, aChar, Data );
-      fEvents.Add( iEvent );
+      iEvent := CreateMacroEvent(Command);
+      iEvent.Initialize(Command, aChar, Data);
+      fEvents.Add(iEvent);
       if SaveMarkerPos and (Command >= ecSetMarker0) and
         (Command <= ecSetMarker9) and (Data = nil) then
       begin
@@ -510,18 +514,19 @@ begin
       end;
     end;
   end
-  else begin
+  else
+  begin
     {not AfterProcessing}
     case State of
       msStopped:
         if Command = RecordCommandID then
         begin
-          RecordMacro( TCustomSynEdit( Sender ) );
+          RecordMacro(TCustomSynEdit(Sender));
           Handled := True;
         end
         else if Command = PlaybackCommandID then
         begin
-          PlaybackMacro( TCustomSynEdit( Sender ) );
+          PlaybackMacro(TCustomSynEdit(Sender));
           Handled := True;
         end;
       msPlaying:
@@ -550,7 +555,7 @@ end;
 procedure TCustomSynMacroRecorder.Pause;
 begin
   if State <> msRecording then
-    Error( sCannotPause );
+    Error(sCannotPause);
   fState := msPaused;
   StateChanged;
 end;
@@ -560,13 +565,13 @@ var
   cEvent: integer;
 begin
   if State <> msStopped then
-    Error( sCannotPlay );
+    Error(sCannotPlay);
   fState := msPlaying;
   try
     StateChanged;
     for cEvent := 0 to EventCount -1 do
     begin
-      Events[ cEvent ].Playback( aEditor );
+      Events[cEvent].Playback(aEditor);
       if State <> msPlaying then
         break;
     end;
@@ -582,7 +587,7 @@ end;
 procedure TCustomSynMacroRecorder.RecordMacro(aEditor: TCustomSynEdit);
 begin
   if fState <> msStopped then
-    Error( sCannotRecord );
+    Error(sCannotRecord);
   Clear;
   fEvents := TList.Create;
   fEvents.Capacity := 512;
@@ -593,25 +598,25 @@ end;
 
 procedure TCustomSynMacroRecorder.RemoveEditor(aEditor: TCustomSynEdit);
 begin
-  inherited RemoveEditor( aEditor );
+  inherited RemoveEditor(aEditor);
 end;
 
 procedure TCustomSynMacroRecorder.Resume;
 begin
   if fState <> msPaused then
-    Error( sCannotResume );
+    Error(sCannotResume);
   fState := msRecording;
   StateChanged;
 end;
 
 procedure TCustomSynMacroRecorder.SaveToStream(aDest: TStream);
 var
-  cEvent, eCnt : integer;
+  cEvent, eCnt: integer;
 begin
   eCnt := EventCount;
   aDest.Write(eCnt, sizeof(eCnt));
   for cEvent := 0 to eCnt -1 do
-    Events[ cEvent ].SaveToStream( aDest );
+    Events[cEvent].SaveToStream(aDest);
 end;
 
 procedure TCustomSynMacroRecorder.SetShortCut(const Index: Integer;
@@ -625,13 +630,13 @@ begin
       if Value <> 0 then
       begin
         for cEditor := 0 to fEditors.Count -1 do
-          HookEditor( Editors[cEditor], fCommandIDs[TSynMacroCommand(Index)],
-            fShortCuts[TSynMacroCommand(Index)], Value );
+          HookEditor(Editors[cEditor], fCommandIDs[TSynMacroCommand(Index)],
+            fShortCuts[TSynMacroCommand(Index)], Value);
       end else
       begin
         for cEditor := 0 to fEditors.Count -1 do
-          UnHookEditor( Editors[cEditor], fCommandIDs[TSynMacroCommand(Index)],
-            fShortCuts[TSynMacroCommand(Index)] );
+          UnHookEditor(Editors[cEditor], fCommandIDs[TSynMacroCommand(Index)],
+            fShortCuts[TSynMacroCommand(Index)]);
       end;
     fShortCuts[TSynMacroCommand(Index)] := Value;
   end;
@@ -639,8 +644,8 @@ end;
 
 procedure TCustomSynMacroRecorder.StateChanged;
 begin
-  if Assigned( OnStateChange ) then
-    OnStateChange( Self );
+  if Assigned(OnStateChange) then
+    OnStateChange(Self);
 end;
 
 procedure TCustomSynMacroRecorder.Stop;
@@ -650,14 +655,14 @@ begin
   fState := msStopped;
   fCurrentEditor := nil;
   if fEvents.Count = 0 then
-    FreeAndNil( fEvents );
+    FreeAndNil(fEvents);
   StateChanged;
 end;
 
-function TCustomSynMacroRecorder.GetAsString: string;
+function TCustomSynMacroRecorder.GetAsString: WideString;
 var
-  i : integer;
-  eStr : string;
+  i: integer;
+  eStr: WideString;
 begin
   Result := 'macro ' + MacroName + #13#10 + 'begin' + #13#10;
   if Assigned(fEvents) then
@@ -672,27 +677,27 @@ begin
   Result := Result + 'end';
 end;
 
-procedure TCustomSynMacroRecorder.SetAsString(const Value: string);
+procedure TCustomSynMacroRecorder.SetAsString(const Value: WideString);
 var
-  i, p, Cmd : Integer;
-  S : TStrings;
-  cmdStr : string;
+  i, p, Cmd: Integer;
+  S: TWideStrings;
+  cmdStr: WideString;
   iEvent: TSynMacroEvent;
 begin
   Stop;
   Clear;
   fEvents := TList.Create;
   // process file line by line and create events
-  S := TStringList.Create;
+  S := TWideStringList.Create;
   try
     S.Text := Value;
     for i := 0 to S.Count - 1 do
     begin
-      cmdStr := Trim(S[i]);
+      cmdStr := WideTrim(S[i]);
       p := Pos(' ', cmdStr);
-      if p = 0 then p := Length(cmdStr)+1;
+      if p = 0 then p := Length(cmdStr) + 1;
       Cmd := ecNone;
-      if IdentToEditorCommand(Copy(cmdStr, 1, p-1), Longint(Cmd)) then  // D2 needs type-cast
+      if IdentToEditorCommand(Copy(cmdStr, 1, p - 1), Longint(Cmd)) then  // D2 needs type-cast
       begin
         Delete(cmdStr, 1, p);
         iEvent := CreateMacroEvent(Cmd);
@@ -736,21 +741,23 @@ end;
 
 { TSynBasicEvent }
 
-function TSynBasicEvent.GetAsString: string;
+function TSynBasicEvent.GetAsString: WideString;
+var
+  Ident: string;
 begin
-  Result := '';
-  EditorCommandToIdent(Command, Result);
+  EditorCommandToIdent(Command, Ident);
+  Result := Ident;
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynBasicEvent.InitEventParameters(aStr: string);
+procedure TSynBasicEvent.InitEventParameters(aStr: WideString);
 begin
   // basic events have no parameters but can contain an optional repeat count
-  RepeatCount := StrToIntDef(Trim(aStr), 1);
+  RepeatCount := StrToIntDef(WideTrim(aStr), 1);
 end;
 
-procedure TSynBasicEvent.Initialize(aCmd: TSynEditorCommand; aChar: Char;
+procedure TSynBasicEvent.Initialize(aCmd: TSynEditorCommand; aChar: WideChar;
   aData: Pointer);
 begin
   Command := aCmd;
@@ -762,7 +769,7 @@ end;
 
 procedure TSynBasicEvent.LoadFromStream(aStream: TStream);
 begin
-  aStream.Read( fRepeatCount, SizeOf(fRepeatCount) );
+  aStream.Read(fRepeatCount, SizeOf(fRepeatCount));
 end;
 
 procedure TSynBasicEvent.Playback(aEditor: TCustomSynEdit);
@@ -770,27 +777,28 @@ var
   i : Integer;
 begin
   for i := 1 to RepeatCount do
-    aEditor.CommandProcessor( Command, #0, nil );
+    aEditor.CommandProcessor(Command, #0, nil);
 end;
 
 procedure TSynBasicEvent.SaveToStream(aStream: TStream);
 begin
-  aStream.Write( Command, SizeOf(TSynEditorCommand) );
-  aStream.Write( RepeatCount, SizeOf(RepeatCount) );
+  aStream.Write(Command, SizeOf(TSynEditorCommand));
+  aStream.Write(RepeatCount, SizeOf(RepeatCount));
 end;
 
 { TSynCharEvent }
 
-function TSynCharEvent.GetAsString: string;
+function TSynCharEvent.GetAsString: WideString;
+var
+  Ident: string;
 begin
-  Result := '';
-  EditorCommandToIdent(ecChar, Result);
-  Result := Result + ' ' + Key;
+  EditorCommandToIdent(ecChar, Ident);
+  Result := Ident + ' ' + Key;
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynCharEvent.InitEventParameters(aStr: string);
+procedure TSynCharEvent.InitEventParameters(aStr: WideString);
 begin
   // aStr should be a Key value one character in length
   // with an optional repeat count whitespace separated
@@ -799,42 +807,42 @@ begin
   else
     Key := ' ';
   Delete(aStr, 1, 1); // if possible delete the first character
-  RepeatCount := StrToIntDef(Trim(aStr), 1);
+  RepeatCount := StrToIntDef(WideTrim(aStr), 1);
 end;
 
-procedure TSynCharEvent.Initialize(aCmd: TSynEditorCommand; aChar: Char;
+procedure TSynCharEvent.Initialize(aCmd: TSynEditorCommand; aChar: WideChar;
   aData: Pointer);
 begin
   Key := aChar;
-  Assert( aData = nil );
+  Assert(aData = nil);
 end;
 
 procedure TSynCharEvent.LoadFromStream(aStream: TStream);
 begin
-  aStream.Read( fKey, SizeOf(Key) );
-  aStream.Read( fRepeatCount, SizeOf(fRepeatCount) );
+  aStream.Read(fKey, SizeOf(Key));
+  aStream.Read(fRepeatCount, SizeOf(fRepeatCount));
 end;
 
 procedure TSynCharEvent.Playback(aEditor: TCustomSynEdit);
 var
-  i : Integer;
+  i: Integer;
 begin
   for i := 1 to RepeatCount do
-    aEditor.CommandProcessor( ecChar, Key, nil );
+    aEditor.CommandProcessor(ecChar, Key, nil);
 end;
 
 procedure TSynCharEvent.SaveToStream(aStream: TStream);
 const
   iCharCommand: TSynEditorCommand = ecChar;
 begin
-  aStream.Write( iCharCommand, SizeOf(TSynEditorCommand) );
-  aStream.Write( Key, SizeOf(Key) );
-  aStream.Write( RepeatCount, SizeOf(RepeatCount) );
+  aStream.Write(iCharCommand, SizeOf(TSynEditorCommand));
+  aStream.Write(Key, SizeOf(Key));
+  aStream.Write(RepeatCount, SizeOf(RepeatCount));
 end;
 
 { TSynPositionEvent }
 
-function TSynPositionEvent.GetAsString: string;
+function TSynPositionEvent.GetAsString: WideString;
 begin
   Result := inherited GetAsString;
   // add position data here
@@ -843,133 +851,117 @@ begin
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynPositionEvent.InitEventParameters(aStr: string);
+procedure TSynPositionEvent.InitEventParameters(aStr: WideString);
 var
-  i, o, c, x, y : Integer;
-  valStr : string;
+  i, o, c, x, y: Integer;
+  valStr: WideString;
 begin
   inherited;
   // aStr should be (x, y) with optional repeat count whitespace separated
-  aStr := Trim(aStr);
+  aStr := WideTrim(aStr);
   i := Pos(',', aStr);
   o := Pos('(', aStr);
   c := Pos(')', aStr);
   if (not ((i = 0) or (o = 0) or (c = 0))) and
      ((i > o) and (i < c)) then
   begin
-    valStr := Copy(aStr, o+1, i-o-1);
+    valStr := Copy(aStr, o + 1, i - o - 1);
     x := StrToIntDef(valStr, 1);
     Delete(aStr, 1, i);
-    aStr := Trim(aStr);
+    aStr := WideTrim(aStr);
     c := Pos(')', aStr);
-    valStr := Copy(aStr, 1, c-1);
+    valStr := Copy(aStr, 1, c - 1);
     y := StrToIntDef(valStr, 1);
     Position := BufferCoord(x, y);
     Delete(aStr, 1, c);
-    aStr := Trim(aStr);
+    aStr := WideTrim(aStr);
     RepeatCount := StrToIntDef(aStr, 1);
   end;
 end;
 
 procedure TSynPositionEvent.Initialize(aCmd: TSynEditorCommand;
-  aChar: Char; aData: Pointer);
+  aChar: WideChar; aData: Pointer);
 begin
   inherited;
   if aData <> nil then
-    Position := TBufferCoord( aData^ )
+    Position := TBufferCoord(aData^)
   else
     Position := BufferCoord(0, 0);
 end;
 
 procedure TSynPositionEvent.LoadFromStream(aStream: TStream);
 begin
-  aStream.Read( fPosition, SizeOf(Position) );
+  aStream.Read(fPosition, SizeOf(Position));
 end;
 
 procedure TSynPositionEvent.Playback(aEditor: TCustomSynEdit);
 begin
   if (Position.Char <> 0) or (Position.Line <> 0) then
-    aEditor.CommandProcessor( Command, #0, @Position )
+    aEditor.CommandProcessor(Command, #0, @Position)
   else
-    aEditor.CommandProcessor( Command, #0, nil );
+    aEditor.CommandProcessor(Command, #0, nil);
 end;
 
 procedure TSynPositionEvent.SaveToStream(aStream: TStream);
 begin
   inherited;
-  aStream.Write( Position, SizeOf(Position) );
+  aStream.Write(Position, SizeOf(Position));
 end;
 
 { TSynStringEvent }
 
-{$IFNDEF SYN_COMPILER_3_UP}
-function QuotedStr(const S: string; QuoteChar: Char): string;
+function TSynStringEvent.GetAsString: WideString;
 var
-  i: Integer;
+  Ident: string;
 begin
-  Result := S;
-  for i := Length(Result) downto 1 do
-    if Result[i] = QuoteChar then
-      Insert(QuoteChar, Result, i);
-  Result := QuoteChar + Result + QuoteChar;
-end;
-{$ENDIF}
-
-function TSynStringEvent.GetAsString: string;
-begin
-  Result := '';
-  EditorCommandToIdent(ecString, Result);
-  {$IFDEF SYN_COMPILER_3_UP}
-  Result := Result + ' ' + AnsiQuotedStr(Value, #39);
-  {$ELSE}
-  Result := Result + ' ' + QuotedStr(Value, #39);
-  {$ENDIF}
+  EditorCommandToIdent(ecString, Ident);
+  Result := Ident + ' ' + WideQuotedStr(Value, #39);
   if RepeatCount > 1 then
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynStringEvent.InitEventParameters(aStr: string);
+procedure TSynStringEvent.InitEventParameters(aStr: WideString);
 var
-  o, c : Integer;
-  valStr : string;
-begin
+  o, c: Integer;
+  valStr: WideString;
+begin                      
   // aStr = 'test' with optional whitespace separated repeat count
   o := Pos('''', aStr);
-  c := LastDelimiter('''', aStr);
-  valStr := Copy(aStr, o+1, c-o-1);
-  Value := StringReplace(valStr, '''''', '''', [rfReplaceAll]);
+  c := WideLastDelimiter('''', aStr);
+  valStr := Copy(aStr, o + 1, c - o - 1);
+  Value := WideStringReplace(valStr, '''''', '''', [rfReplaceAll]);
   Delete(aStr, 1, c);
-  RepeatCount := StrToIntDef(Trim(aStr), 1);
+  RepeatCount := StrToIntDef(WideTrim(aStr), 1);
 end;
 
-procedure TSynStringEvent.Initialize(aCmd: TSynEditorCommand; aChar: Char;
+procedure TSynStringEvent.Initialize(aCmd: TSynEditorCommand; aChar: WideChar;
   aData: Pointer);
 begin
-  Value := String(aData);
+  Value := WideString(aData);
 end;
 
 procedure TSynStringEvent.LoadFromStream(aStream: TStream);
 var
-  l : Integer;
-  Buff : PChar;
+  l: Integer;
+  Buff: PWideChar;
 begin
-  aStream.Read(l, SizeOf(l));
-  GetMem(Buff, l);
+  aStream.Read(l, sizeof(l));
+  GetMem(Buff, l * sizeof(WideChar));
   try
   {$IFNDEF SYN_CLX}
     FillMemory(Buff, l, 0);
   {$ENDIF}
-    aStream.Read(Buff^, l);
+    aStream.Read(Buff^, l * sizeof(WideChar));
     fString := Buff;
   finally
     FreeMem(Buff);
   end;
-  aStream.Read( fRepeatCount, SizeOf(fRepeatCount) );
+  aStream.Read(fRepeatCount, sizeof(fRepeatCount));
 end;
 
 procedure TSynStringEvent.Playback(aEditor: TCustomSynEdit);
 var
-  i, j : Integer;
+  i, j: Integer;
 begin
   for j := 1 to RepeatCount do
   begin
@@ -985,24 +977,25 @@ procedure TSynStringEvent.SaveToStream(aStream: TStream);
 const
   StrCommand: TSynEditorCommand = ecString;
 var
-  l : Integer;
-  Buff : PChar;
+  l: Integer;
+  Buff: PWideChar;
 begin
   aStream.Write(StrCommand, SizeOf(StrCommand));
   l := Length(Value) + 1;
   aStream.Write(l, sizeof(l));
-  GetMem(Buff, l);
+  GetMem(Buff, l * sizeof(WideChar));
   try
   {$IFNDEF SYN_CLX}
     FillMemory(Buff, l, 0);
   {$ENDIF}
-    StrPCopy(Buff, Value);
-    aStream.Write(Buff^, l);
+    StrCopyW(Buff, PWideChar(Value));
+    aStream.Write(Buff^, l * sizeof(WideChar));
   finally
     FreeMem(Buff);
   end;
-  aStream.Write( RepeatCount, SizeOf(RepeatCount) );
+  aStream.Write(RepeatCount, sizeof(RepeatCount));
 end;
+
 
 { TSynMacroEvent }
 

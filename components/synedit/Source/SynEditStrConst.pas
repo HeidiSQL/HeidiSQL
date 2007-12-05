@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditStrConst.pas,v 1.43 2005/01/07 12:11:55 markonjezic Exp $
+$Id: SynEditStrConst.pas,v 1.41.2.3 2006/05/22 10:50:11 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -46,15 +46,12 @@ const
   SYNS_ComponentsPage           =  'SynEdit';
   SYNS_HighlightersPage         =  'SynEdit Highlighters';
 
-{$IFDEF SYN_COMPILER_3_UP}
-resourcestring
-{$ELSE}
+// NOTE: the following constants are used to store information to the registry.
+//       If you want translated/more detailed descriptions use the resourcestrings,
+//       i.e. the "friendly" versions below.
+
+// constant names for highlighter attributes
 const
-{$ENDIF}
-
-  SYNS_Untitled                 =  'Untitled';
-
-  // names for highlighter attributes
   SYNS_AttrAreaAIdentifier      =  'Area A Identifier';
   SYNS_AttrArrowHead            =  'ArrowHead';
   SYNS_AttrAsm                  =  'Asm';
@@ -128,6 +125,7 @@ const
   SYNS_AttrPredefined           =  'Predefined';
   SYNS_AttrPreprocessor         =  'Preprocessor';
   SYNS_AttrProcessingInstr      =  'Processing Instruction';
+  SYNS_AttrProperty             =  'Property';
   SYNS_AttrQuad                 =  'Quad';
   SYNS_AttrQualifier            =  'Qualifier';
   SYNS_AttrRegister             =  'Register';
@@ -164,6 +162,7 @@ const
   SYNS_AttrTextMathMode         =  'Text in Math Mode';
   SYNS_AttrThirdTri             =  'ThirdTri';
   SYNS_AttrTriangle             =  'Triangle';
+  SYNS_AttrUndefinedProperty    =  'Undefined Property';
   SYNS_AttrUnknownWord          =  'Unknown Word';
   SYNS_AttrURI                  =  'URI';
   SYNS_AttrUser                 =  'User Functions and Variables';
@@ -191,83 +190,7 @@ const
   SYNS_AttrX3DDocType           =  'X3DDocType';
   SYNS_AttrX3DHeader            =  'X3DHeader';
 
-  // names of exporter output formats
-  SYNS_ExporterFormatHTML       =  'HTML';
-  SYNS_ExporterFormatRTF        =  'RTF';
-  SYNS_ExporterFormatTeX        =  'TeX';
-
-  // TCustomSynEdit scroll hint window caption
-  SYNS_ScrollInfoFmt            =  '%d - %d';
-  SYNS_ScrollInfoFmtTop         =  'Top Line: %d';
-  // TSynEditPrintPreview page number
-  SYNS_PreviewScrollInfoFmt     =  'Page: %d';
-
-  // strings for property editors etc
-  SYNS_EDuplicateShortcut       =  'Shortcut already exists';
-  SYNS_ShortcutNone             =  '<none>';
-  SYNS_DuplicateShortcutMsg     =  'The keystroke "%s" is already assigned ' +
-                                   'to another editor command. (%s)';
-  SYNS_DuplicateShortcutMsg2    =  'The keystroke "%s" is already assigned ' +
-                                   'to another editor command.'#13#10'The ' +
-                                   'shortcut for this item has not been changed.';
-
-  // Filters used for open/save dialog
-  SYNS_FilterPascal             =  'Pascal Files (*.pas;*.pp;*.dpr;*.dpk;*.inc)|*.pas;*.pp;*.dpr;*.dpk;*.inc';
-  SYNS_FilterHP48               =  'HP48 Files (*.s;*.sou;*.a;*.hp)|*.s;*.sou;*.a;*.hp';
-  SYNS_FilterCAClipper          =  'CA-Clipper Files (*.prg;*.ch;*.inc)|*.prg;*.ch;*.inc';
-  SYNS_FilterCORBAIDL           =  'CORBA IDL Files (*.idl)|*.idl';
-  SYNS_FilterCPM                =  'CPM Reports (*.rdf;*.rif;*.rmf;*.rxf)|*.rdf;*.rif;*.rmf;*.rxf';
-  SYNS_FilterCPP                =  'C/C++ Files (*.c;*.cpp;*.h;*.hpp)|*.c;*.cpp;*.h;*.hpp';
-  SYNS_FilterCS                 =  'C# Files (*.cs)|*.cs';
-  SYNS_FilterJava               =  'Java Files (*.java)|*.java';
-  SYNS_FilterPerl               =  'Perl Files (*.pl;*.pm;*.cgi)|*.pl;*.pm;*.cgi';
-  SYNS_FilterAWK                =  'AWK Scripts (*.awk)|*.awk';
-  SYNS_FilterHTML               =  'HTML Documents (*.htm;*.html)|*.htm;*.html';
-  SYNS_FilterVBScript           =  'VBScript Files (*.vbs)|*.vbs';
-  SYNS_FilterGalaxy             =  'Galaxy Files (*.gtv;*.galrep;*.txt)|*.gtv;*.galrep;*.txt';
-  SYNS_FilterPython             =  'Python Files (*.py)|*.py';
-  SYNS_FilterSQL                =  'SQL Files (*.sql)|*.sql';
-  SYNS_FilterTclTk              =  'Tcl/Tk Files (*.tcl)|*.tcl';
-  SYNS_FilterRTF                =  'Rich Text Format Documents (*.rtf)|*.rtf';
-  SYNS_FilterBatch              =  'MS-DOS Batch Files (*.bat;*.cmd)|*.bat;*.cmd';
-  SYNS_FilterDFM                =  'Borland Form Files (*.dfm;*.xfm)|*.dfm;*.xfm';
-  SYNS_FilterX86Assembly        =  'x86 Assembly Files (*.asm)|*.asm';
-  SYNS_FilterGembase            =  'GEMBASE Files (*.dml;*.gem)|*.dml;*.gem';
-  SYNS_FilterINI                =  'INI Files (*.ini)|*.ini';
-  SYNS_FilterSML                =  'Standard ML Files (*.sml)|*.sml';
-  SYNS_FilterVisualBASIC        =  'Visual Basic Files (*.bas)|*.bas';
-  SYNS_FilterADSP21xx           =  'DSP Files (*.dsp;*.inc)|*.dsp;*.inc';
-  SYNS_FilterPHP                =  'PHP Files (*.php;*.php3;*.phtml;*.inc)|*.php;*.php3;*.phtml;*.inc';
-  SYNS_FilterCache              =  'Cache Files (*.mac;*.inc;*.int)|*.mac;*.inc;*.int';
-  SYNS_FilterCSS                =  'Cascading Stylesheets (*.css)|*.css';
-  SYNS_FilterJScript            =  'Javascript Files (*.js)|*.js';
-  SYNS_FilterKIX                =  'KiXtart Scripts (*.kix)|*.kix';
-  SYNS_FilterBaan               =  'Baan 4GL Files (*.cln)|*.cln';
-  SYNS_FilterFoxpro             =  'Foxpro Files (*.prg)|*.prg';
-  SYNS_FilterFortran            =  'Fortran Files (*.for)|*.for';
-  SYNS_FilterAsm68HC11          =  '68HC11 Assembler Files (*.hc11;*.asm;*.asc)|*.hc11;*.asm;*.asc';
-  SYNS_FilterProgress           =  'Progress Files (*.w;*.p;*.i)|*.w;*.p;*.i';
-  SYNS_FilterInno               =  'Inno Setup Scripts (*.iss)|*.iss';
-  SYNS_FilterModelica           =  'Modelica Files (*.mo)|*.mo';
-  SYNS_FilterModula3            =  'Modula-3 Files (*.m3)|*.m3';
-  SYNS_FilterSDD                =  'Semanta DD Files (*.sdd)|*.sdd';
-  SYNS_FilterXML                =  'XML Files (*.xml;*.xsd;*.xsl;*.xslt;*.dtd)|*.xml;*.xsd;*.xsl;*.xslt;*.dtd';
-  SYNS_FilterGWS                =  'GW-TEL Scripts (*.gws)|*.gws';
-  SYNS_FilterSynGenMsgfiles     =  'Msg Files (*.msg)|*.msg';
-  SYNS_FilterST                 =  'Structured Text Files (*.st)|*.st';
-  SYNS_FilterCOBOL              =  'COBOL Files (*.cbl;*.cob)|*.cbl;*.cob';
-  SYNS_FilterTeX                =  'TeX Files (*.tex)|*.tex';
-  SYNS_FilterRC                 =  'Resource Files (*.rc)|*.rc';
-  SYNS_FilterRuby               =  'Ruby Files (*.rb;*.rbw)|*.rb;*.rbw';
-  SYNS_FilterUNIXShellScript    =  'UNIX Shell Scripts (*.sh)|*.sh';
-  SYNS_FilterHaskell            =  'Haskell Files (*.hs;*.lhs)|*.hs;*.lhs';
-  SYNS_FilterDOT                =  'DOT Graph Drawing Description (*.dot)|*.dot';
-  SYNS_FilterEiffel             =  'Eiffel (*.e;*.ace)|*.e;*.ace';
-  SYNS_FilterLDraw              =  'LEGO LDraw Files (*.ldr)|*.ldr';
-  SYNS_FilterURI                =  'All Files (*.*)|*.*';
-  SYNS_FilterVrml97             =  'Vrml97/X3D World (*.wrl;*.wrml;*.vrl;*.vrml;*.x3d)|*.wrl;*.wrml;*.vrl;*.vrml;*.x3d';
-
-  // Language names. Maybe somebody wants them translated / more detailed...
+  // constant language names
   SYNS_LangHP48                 =  'HP48';
   SYNS_LangCAClipper            =  'CA-Clipper';
   SYNS_LangCPM                  =  'COAS Product Manager Report';
@@ -323,8 +246,289 @@ const
   SYNS_LangDOT                  =  'DOT Graph Drawing Description language';
   SYNS_LangEiffel               =  'Eiffel';
   SYNS_LangLDraw                =  'LEGO LDraw';
+  SYNS_LangUnknown              =  '<Unknown>';
   SYNS_LangURI                  =  'URI';
   SYNS_LangVrml97               =  'Vrml97';
+
+resourcestring
+  SYNS_NoSearchEngineError      = 'No search engine has been assigned';
+
+  SYNS_Untitled                 =  'Untitled';
+
+  // Friendly names for highlighter attributes
+  SYNS_FriendlyAttrAreaAIdentifier      =  'Area A Identifier';
+  SYNS_FriendlyAttrArrowHead            =  'ArrowHead';
+  SYNS_FriendlyAttrAsm                  =  'Asm';
+  SYNS_FriendlyAttrAsmComment           =  'Asm Comment';
+  SYNS_FriendlyAttrAsmKey               =  'Asm Key';
+  SYNS_FriendlyAttrAssembler            =  'Assembler';
+  SYNS_FriendlyAttrAttribute            =  'Attribute';
+  SYNS_FriendlyAttrAttributeName        =  'Attribute Name';
+  SYNS_FriendlyAttrAttributeValue       =  'Attribute Value';
+  SYNS_FriendlyAttrBasicTypes           =  'Basic Types';
+  SYNS_FriendlyAttrBlock                =  'Block';
+  SYNS_FriendlyAttrBoolean              =  'Boolean value';
+  SYNS_FriendlyAttrBrackets             =  'Brackets';
+  SYNS_FriendlyAttrCDATASection         =  'CDATA Section';
+  SYNS_FriendlyAttrCharacter            =  'Character';
+  SYNS_FriendlyAttrClass                =  'Class';
+  SYNS_FriendlyAttrColor                =  'Color Value';
+  SYNS_FriendlyAttrComment              =  'Comment';
+  SYNS_FriendlyAttrCondition            =  'Condition';
+  SYNS_FriendlyAttrConditionalComment   =  'Conditional Comment';
+  SYNS_FriendlyAttrDataType             =  'Data Type';
+  SYNS_FriendlyAttrDebugLines           =  'Debugging Lines';
+  SYNS_FriendlyAttrDefaultPackage       =  'Default Packages';
+  SYNS_FriendlyAttrDelimitedIdentifier  =  'Delimited Identifier';  
+  SYNS_FriendlyAttrDir                  =  'Direction';
+  SYNS_FriendlyAttrDirections           =  'Directions';
+  SYNS_FriendlyAttrDirective            =  'Directive';
+  SYNS_FriendlyAttrDOCTYPESection       =  'DOCTYPE Section';
+  SYNS_FriendlyAttrDocumentation        =  'Documentation';
+  SYNS_FriendlyAttrElementName          =  'Element Name';
+  SYNS_FriendlyAttrEmbedSQL             =  'Embedded SQL';
+  SYNS_FriendlyAttrEmbedText            =  'Embedded Text';
+  SYNS_FriendlyAttrEntityReference      =  'Entity Reference';
+  SYNS_FriendlyAttrEscapeAmpersand      =  'Escape Ampersand';
+  SYNS_FriendlyAttrEvent                =  'Event';
+  SYNS_FriendlyAttrException            =  'Exception';
+  SYNS_FriendlyAttrFirstTri             =  'FirstTri';
+  SYNS_FriendlyAttrFloat                =  'Float';
+  SYNS_FriendlyAttrForm                 =  'Form';
+  SYNS_FriendlyAttrFourthTri            =  'FourthTri';
+  SYNS_FriendlyAttrFunction             =  'Function';
+  SYNS_FriendlyAttrHexadecimal          =  'Hexadecimal';
+  SYNS_FriendlyAttrIcon                 =  'Icon Reference';
+  SYNS_FriendlyAttrIdentifier           =  'Identifier';
+  SYNS_FriendlyAttrIllegalChar          =  'Illegal Char';
+  SYNS_FriendlyAttrInclude              =  'Include';
+  SYNS_FriendlyAttrIndicator            =  'Indicator Area';
+  SYNS_FriendlyAttrIndirect             =  'Indirect';
+  SYNS_FriendlyAttrInvalidSymbol        =  'Invalid Symbol';
+  SYNS_FriendlyAttrInternalFunction     =  'Internal Function';
+  SYNS_FriendlyAttrKey                  =  'Key';
+  SYNS_FriendlyAttrLabel                =  'Label';
+  SYNS_FriendlyAttrLace                 =  'Lace';
+  SYNS_FriendlyAttrLine                 =  'Line';
+  SYNS_FriendlyAttrMacro                =  'Macro';
+  SYNS_FriendlyAttrMarker               =  'Marker';
+  SYNS_FriendlyAttrMathMode             =  'Math Mode';
+  SYNS_FriendlyAttrMessage              =  'Message';
+  SYNS_FriendlyAttrMiscellaneous        =  'Miscellaneous';
+  SYNS_FriendlyAttrNamespaceAttrName    =  'Namespace Attribute Name';
+  SYNS_FriendlyAttrNamespaceAttrValue   =  'Namespace Attribute Value';
+  SYNS_FriendlyAttrNonReservedKeyword   =  'Non-reserved Keyword';
+  SYNS_FriendlyAttrNull                 =  'Null';
+  SYNS_FriendlyAttrNumber               =  'Number';
+  SYNS_FriendlyAttrOctal                =  'Octal';
+  SYNS_FriendlyAttrOperator             =  'Operator';
+  SYNS_FriendlyAttrOperatorAndSymbols   =  'Operator And Symbols';
+  SYNS_FriendlyAttrOpLine               =  'OpLine';
+  SYNS_FriendlyAttrPLSQL                =  'PL/SQL Reserved Word';
+  SYNS_FriendlyAttrPragma               =  'Pragma';
+  SYNS_FriendlyAttrPredefined           =  'Predefined';
+  SYNS_FriendlyAttrPreprocessor         =  'Preprocessor';
+  SYNS_FriendlyAttrProcessingInstr      =  'Processing Instruction';
+  SYNS_FriendlyAttrProperty             =  'Property';
+  SYNS_FriendlyAttrQuad                 =  'Quad';
+  SYNS_FriendlyAttrQualifier            =  'Qualifier';
+  SYNS_FriendlyAttrRegister             =  'Register';
+  SYNS_FriendlyAttrReservedWord         =  'Reserved Word';
+  SYNS_FriendlyAttrResultValue          =  'Result Value';
+  SYNS_FriendlyAttrRoundBracket         =  'Round Bracket';
+  SYNS_FriendlyAttrRpl                  =  'Rpl';
+  SYNS_FriendlyAttrRplKey               =  'Rpl Key';
+  SYNS_FriendlyAttrRplComment           =  'Rpl Comment';
+  SYNS_FriendlyAttrSASM                 =  'SASM';
+  SYNS_FriendlyAttrSASMComment          =  'SASM Comment';
+  SYNS_FriendlyAttrSASMKey              =  'SASM Key';
+  SYNS_FriendlyAttrSecondReservedWord   =  'Second Reserved Word';
+  SYNS_FriendlyAttrSecondTri            =  'SecondTri';
+  SYNS_FriendlyAttrSection              =  'Section';
+  SYNS_FriendlyAttrSequence             =  'Sequence Number Area';
+  SYNS_FriendlyAttrShape                =  'Shape';
+  SYNS_FriendlyAttrSingleString         =  'Single Quoted String';
+  SYNS_FriendlyAttrSpace                =  'Space';
+  SYNS_FriendlyAttrSpecialVariable      =  'Special Variable';
+  SYNS_FriendlyAttrSQLKey               =  'SQL Keyword';
+  SYNS_FriendlyAttrSQLPlus              =  'SQL*Plus Command';
+  SYNS_FriendlyAttrSquareBracket        =  'Square Bracket';
+  SYNS_FriendlyAttrString               =  'String';
+  SYNS_FriendlyAttrSymbol               =  'Symbol';
+  SYNS_FriendlyAttrSyntaxError          =  'Syntax Error';
+  SYNS_FriendlyAttrSystem               =  'System Functions and Variables';
+  SYNS_FriendlyAttrSystemValue          =  'System Value';
+  SYNS_FriendlyAttrTagArea              =  'Tag Area';
+  SYNS_FriendlyAttrTableName            =  'Table Name';
+  SYNS_FriendlyAttrTerminator           =  'Terminator';
+  SYNS_FriendlyAttrTeXCommand           =  'TeX Command';
+  SYNS_FriendlyAttrText                 =  'Text';
+  SYNS_FriendlyAttrTextMathMode         =  'Text in Math Mode';
+  SYNS_FriendlyAttrThirdTri             =  'ThirdTri';
+  SYNS_FriendlyAttrTriangle             =  'Triangle';
+  SYNS_FriendlyAttrUndefinedProperty    =  'Undefined Property';  
+  SYNS_FriendlyAttrUnknownWord          =  'Unknown Word';
+  SYNS_FriendlyAttrURI                  =  'URI';
+  SYNS_FriendlyAttrUser                 =  'User Functions and Variables';
+  SYNS_FriendlyAttrUserFunction         =  'User Functions';
+  SYNS_FriendlyAttrValue                =  'Value';
+  SYNS_FriendlyAttrVariable             =  'Variable';
+  SYNS_FriendlyAttrVisitedURI           =  'Visited URI';
+  SYNS_FriendlyAttrVrmlAppearance       =  'Vrml_Appearance';
+  SYNS_FriendlyAttrVrmlAttribute        =  'Vrml_Attribute';
+  SYNS_FriendlyAttrVrmlDefinition       =  'Vrml_Definition';
+  SYNS_FriendlyAttrVrmlEvent            =  'Vrml_Event';
+  SYNS_FriendlyAttrVrmlGrouping         =  'Vrml_Grouping';
+  SYNS_FriendlyAttrVrmlInterpolator     =  'Vrml_Interpolator';
+  SYNS_FriendlyAttrVrmlLight            =  'Vrml_Light';
+  SYNS_FriendlyAttrVrmlNode             =  'Vrml_Node';
+  SYNS_FriendlyAttrVrmlParameter        =  'Vrml_Parameter';
+  SYNS_FriendlyAttrVrmlProto            =  'Vrml_Proto';
+  SYNS_FriendlyAttrVrmlSensor           =  'Vrml_Sensor';
+  SYNS_FriendlyAttrVrmlShape            =  'Vrml_Shape';
+  SYNS_FriendlyAttrVrmlShape_Hint       =  'Vrml_Shape_Hint';
+  SYNS_FriendlyAttrVrmlTime_dependent   =  'Vrml_Time_dependent';
+  SYNS_FriendlyAttrVrmlViewpoint        =  'Vrml_Viewpoint';
+  SYNS_FriendlyAttrVrmlWorldInfo        =  'Vrml_WorldInfo';
+  SYNS_FriendlyAttrWhitespace           =  'Whitespace';
+  SYNS_FriendlyAttrX3DDocType           =  'X3DDocType';
+  SYNS_FriendlyAttrX3DHeader            =  'X3DHeader';
+
+  // names of exporter output formats
+  SYNS_ExporterFormatHTML       =  'HTML';
+  SYNS_ExporterFormatRTF        =  'RTF';
+  SYNS_ExporterFormatTeX        =  'TeX';
+
+  // TCustomSynEdit scroll hint window caption
+  SYNS_ScrollInfoFmt            =  '%d - %d';
+  SYNS_ScrollInfoFmtTop         =  'Top Line: %d';
+  // TSynEditPrintPreview page number
+  SYNS_PreviewScrollInfoFmt     =  'Page: %d';
+
+  // strings for property editors etc
+  SYNS_EDuplicateShortcut       =  'Shortcut already exists';
+  SYNS_ShortcutNone             =  '<none>';
+  SYNS_DuplicateShortcutMsg     =  'The keystroke "%s" is already assigned ' +
+                                   'to another editor command. (%s)';
+  SYNS_DuplicateShortcutMsg2    =  'The keystroke "%s" is already assigned ' +
+                                   'to another editor command.'#13#10'The ' +
+                                   'shortcut for this item has not been changed.';
+
+  // Filters used for open/save dialog
+  SYNS_FilterPascal             =  'Pascal Files (*.pas;*.pp;*.dpr;*.dpk;*.inc)|*.pas;*.pp;*.dpr;*.dpk;*.inc';
+  SYNS_FilterHP48               =  'HP48 Files (*.s;*.sou;*.a;*.hp)|*.s;*.sou;*.a;*.hp';
+  SYNS_FilterCAClipper          =  'CA-Clipper Files (*.prg;*.ch;*.inc)|*.prg;*.ch;*.inc';
+  SYNS_FilterCORBAIDL           =  'CORBA IDL Files (*.idl)|*.idl';
+  SYNS_FilterCPM                =  'CPM Reports (*.rdf;*.rif;*.rmf;*.rxf)|*.rdf;*.rif;*.rmf;*.rxf';
+  SYNS_FilterCPP                =  'C/C++ Files (*.c;*.cpp;*.cc;*.h;*.hpp;*.hh;*.cxx;*.hxx)|*.c;*.cpp;*.cc;*.h;*.hpp;*.hh;*.cxx;*.hxx';
+  SYNS_FilterCS                 =  'C# Files (*.cs)|*.cs';
+  SYNS_FilterJava               =  'Java Files (*.java)|*.java';
+  SYNS_FilterPerl               =  'Perl Files (*.pl;*.pm;*.cgi)|*.pl;*.pm;*.cgi';
+  SYNS_FilterAWK                =  'AWK Scripts (*.awk)|*.awk';
+  SYNS_FilterHTML               =  'HTML Documents (*.htm;*.html)|*.htm;*.html';
+  SYNS_FilterVBScript           =  'VBScript Files (*.vbs)|*.vbs';
+  SYNS_FilterGalaxy             =  'Galaxy Files (*.gtv;*.galrep;*.txt)|*.gtv;*.galrep;*.txt';
+  SYNS_FilterPython             =  'Python Files (*.py)|*.py';
+  SYNS_FilterSQL                =  'SQL Files (*.sql)|*.sql';
+  SYNS_FilterTclTk              =  'Tcl/Tk Files (*.tcl)|*.tcl';
+  SYNS_FilterRTF                =  'Rich Text Format Documents (*.rtf)|*.rtf';
+  SYNS_FilterBatch              =  'MS-DOS Batch Files (*.bat;*.cmd)|*.bat;*.cmd';
+  SYNS_FilterDFM                =  'Borland Form Files (*.dfm;*.xfm)|*.dfm;*.xfm';
+  SYNS_FilterX86Assembly        =  'x86 Assembly Files (*.asm)|*.asm';
+  SYNS_FilterGembase            =  'GEMBASE Files (*.dml;*.gem)|*.dml;*.gem';
+  SYNS_FilterINI                =  'INI Files (*.ini)|*.ini';
+  SYNS_FilterSML                =  'Standard ML Files (*.sml)|*.sml';
+  SYNS_FilterVisualBASIC        =  'Visual Basic Files (*.bas)|*.bas';
+  SYNS_FilterADSP21xx           =  'DSP Files (*.dsp;*.inc)|*.dsp;*.inc';
+  SYNS_FilterPHP                =  'PHP Files (*.php;*.php3;*.phtml;*.inc)|*.php;*.php3;*.phtml;*.inc';
+  SYNS_FilterCache              =  'Cache Files (*.mac;*.inc;*.int)|*.mac;*.inc;*.int';
+  SYNS_FilterCSS                =  'Cascading Stylesheets (*.css)|*.css';
+  SYNS_FilterJScript            =  'Javascript Files (*.js)|*.js';
+  SYNS_FilterKIX                =  'KiXtart Scripts (*.kix)|*.kix';
+  SYNS_FilterBaan               =  'Baan 4GL Files (*.cln)|*.cln';
+  SYNS_FilterFoxpro             =  'Foxpro Files (*.prg)|*.prg';
+  SYNS_FilterFortran            =  'Fortran Files (*.for)|*.for';
+  SYNS_FilterAsm68HC11          =  '68HC11 Assembler Files (*.hc11;*.asm;*.asc)|*.hc11;*.asm;*.asc';
+  SYNS_FilterProgress           =  'Progress Files (*.w;*.p;*.i)|*.w;*.p;*.i';
+  SYNS_FilterInno               =  'Inno Setup Scripts (*.iss)|*.iss';
+  SYNS_FilterModelica           =  'Modelica Files (*.mo)|*.mo';
+  SYNS_FilterModula3            =  'Modula-3 Files (*.m3)|*.m3';
+  SYNS_FilterSDD                =  'Semanta DD Files (*.sdd)|*.sdd';
+  SYNS_FilterXML                =  'XML Files (*.xml;*.xsd;*.xsl;*.xslt;*.dtd)|*.xml;*.xsd;*.xsl;*.xslt;*.dtd';
+  SYNS_FilterGWS                =  'GW-TEL Scripts (*.gws)|*.gws';
+  SYNS_FilterSynGenMsgfiles     =  'Msg Files (*.msg)|*.msg';
+  SYNS_FilterST                 =  'Structured Text Files (*.st)|*.st';
+  SYNS_FilterCOBOL              =  'COBOL Files (*.cbl;*.cob)|*.cbl;*.cob';
+  SYNS_FilterTeX                =  'TeX Files (*.tex)|*.tex';
+  SYNS_FilterRC                 =  'Resource Files (*.rc)|*.rc';
+  SYNS_FilterRuby               =  'Ruby Files (*.rb;*.rbw)|*.rb;*.rbw';
+  SYNS_FilterUNIXShellScript    =  'UNIX Shell Scripts (*.sh)|*.sh';
+  SYNS_FilterHaskell            =  'Haskell Files (*.hs;*.lhs)|*.hs;*.lhs';
+  SYNS_FilterDOT                =  'DOT Graph Drawing Description (*.dot)|*.dot';
+  SYNS_FilterEiffel             =  'Eiffel (*.e;*.ace)|*.e;*.ace';
+  SYNS_FilterLDraw              =  'LEGO LDraw Files (*.ldr)|*.ldr';
+  SYNS_FilterURI                =  'All Files (*.*)|*.*';
+  SYNS_FilterVrml97             =  'Vrml97/X3D World (*.wrl;*.wrml;*.vrl;*.vrml;*.x3d)|*.wrl;*.wrml;*.vrl;*.vrml;*.x3d';
+
+  // friendly language names
+  SYNS_FriendlyLangHP48                 =  'HP48';
+  SYNS_FriendlyLangCAClipper            =  'CA-Clipper';
+  SYNS_FriendlyLangCPM                  =  'COAS Product Manager Report';
+  SYNS_FriendlyLangCPP                  =  'C/C++';
+  SYNS_FriendlyLangCS                   =  'C#';
+  SYNS_FriendlyLangJava                 =  'Java';
+  SYNS_FriendlyLangPerl                 =  'Perl';
+  SYNS_FriendlyLangBatch                =  'MS-DOS Batch';
+  SYNS_FriendlyLangDfm                  =  'Borland Forms';
+  SYNS_FriendlyLangAWK                  =  'AWK';
+  SYNS_FriendlyLangCORBAIDL             =  'CORBA IDL';
+  SYNS_FriendlyLangHTML                 =  'HTML';
+  SYNS_FriendlyLangVBSScript            =  'MS VBScript';
+  SYNS_FriendlyLangGalaxy               =  'Galaxy';
+  SYNS_FriendlyLangGeneral              =  'General';
+  SYNS_FriendlyLangPascal               =  'Object Pascal';
+  SYNS_FriendlyLangX86Asm               =  'x86 Assembly';
+  SYNS_FriendlyLangPython               =  'Python';
+  SYNS_FriendlyLangTclTk                =  'Tcl/Tk';
+  SYNS_FriendlyLangSQL                  =  'SQL';
+  SYNS_FriendlyLangGembase              =  'Gembase';
+  SYNS_FriendlyLangINI                  =  'INI';
+  SYNS_FriendlyLangSML                  =  'Standard ML';
+  SYNS_FriendlyLangVisualBASIC          =  'Visual Basic';
+  SYNS_FriendlyLangADSP21xx             =  'ADSP21xx';
+  SYNS_FriendlyLangPHP                  =  'PHP';
+  SYNS_FriendlyLangSybaseSQL            =  'Sybase SQL';
+  SYNS_FriendlyLangGeneralMulti         =  'General Multi-Highlighter';
+  SYNS_FriendlyLangCache                =  'Cache Object Script';
+  SYNS_FriendlyLangCSS                  =  'Cascading Style Sheet';
+  SYNS_FriendlyLangJScript              =  'JavaScript';
+  SYNS_FriendlyLangKIX                  =  'KiXtart';
+  SYNS_FriendlyLangBaan                 =  'Baan 4GL';
+  SYNS_FriendlyLangFoxpro               =  'Foxpro';
+  SYNS_FriendlyLangFortran              =  'Fortran';
+  SYNS_FriendlyLang68HC11               =  '68HC11 Assembler';
+  SYNS_FriendlyLangProgress             =  'Progress';
+  SYNS_FriendlyLangInno                 =  'Inno Setup Script';
+  SYNS_FriendlyLangModelica             =  'Modelica';
+  SYNS_FriendlyLangModula3              =  'Modula 3';
+  SYNS_FriendlyLangSDD                  =  'Semanta Data Dictionary';
+  SYNS_FriendlyLangXML                  =  'XML';
+  SYNS_FriendlyLangGWS                  =  'GW-TEL';
+  SYNS_FriendlyLangSynGenMsgfiles       =  'SynGen Msg';
+  SYNS_FriendlyLangUnreal               =  'Unreal';
+  SYNS_FriendlyLangST                   =  'Structured Text';
+  SYNS_FriendlyLangCOBOL                =  'COBOL';
+  SYNS_FriendlyLangTeX                  =  'TeX';
+  SYNS_FriendlyLangRC                   =  'Resource';
+  SYNS_FriendlyLangRuby                 =  'Ruby';
+  SYNS_FriendlyLangNameUNIXShellScript  =  'UNIX Shell Script';
+  SYNS_FriendlyLangHaskell              =  'Haskell';
+  SYNS_FriendlyLangDOT                  =  'DOT Graph Drawing Description language';
+  SYNS_FriendlyLangEiffel               =  'Eiffel';
+  SYNS_FriendlyLangLDraw                =  'LEGO LDraw';
+  SYNS_FriendlyLangUnknown              =  '<Unknown>';  
+  SYNS_FriendlyLangURI                  =  'URI';
+  SYNS_FriendlyLangVrml97               =  'Vrml97';
 
 implementation
 

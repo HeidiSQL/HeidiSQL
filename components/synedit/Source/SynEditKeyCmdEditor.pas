@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmdEditor.pas,v 1.10 2004/06/25 14:14:20 markonjezic Exp $
+$Id: SynEditKeyCmdEditor.pas,v 1.10.2.1 2004/08/31 12:55:17 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -129,7 +129,6 @@ end;
 
 procedure TSynEditKeystrokeEditorForm.SetKeystroke(const Value: TShortcut);
 begin
-  {*****************}
   hkKeystroke.Hotkey := Value;
 end;
 
@@ -173,7 +172,6 @@ end;
 
 function TSynEditKeystrokeEditorForm.GetKeystroke: TShortcut;
 begin
- {*****************}
   Result := hkKeystroke.HotKey;
 end;
 

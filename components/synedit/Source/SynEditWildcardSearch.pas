@@ -11,6 +11,7 @@ the specific language governing rights and limitations under the License.
 The Original Code is: SynEditWildcardSearch.pas, released 2003-06-21.
 
 The original author of this file is Michael Elsdoerfer.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -25,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditWildcardSearch.pas,v 1.2 2003/09/20 17:42:52 miracle2k Exp $
+$Id: SynEditWildcardSearch.pas,v 1.2.2.1 2004/08/31 12:55:18 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -59,21 +60,21 @@ uses
 type
   TSynEditWildcardSearch = class(TSynEditRegexSearch)
   private
-    fPattern: string;
+    fPattern: WideString;
   protected
-    function GetPattern: string; override;
-    procedure SetPattern(const Value: string); override;
+    function GetPattern: WideString; override;
+    procedure SetPattern(const Value: WideString); override;
     procedure SetOptions(const Value: TSynSearchOptions); override;
-    function GetLength(aIndex: integer): integer; override;
-    function GetResult(aIndex: integer): integer; override;
-    function GetResultCount: integer; override;
+    function GetLength(Index: Integer): Integer; override;
+    function GetResult(Index: Integer): Integer; override;
+    function GetResultCount: Integer; override;
     // Converts the Wildcard to a regular expression
-    function WildCardToRegExpr(AWildCard: string): string;
+    function WildCardToRegExpr(AWildCard: WideString): WideString;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function FindAll(const NewText: string): integer; override;
-    function Replace(const aOccurrence, aReplacement: string): string; override;        //slm 11/29/02
+    function FindAll(const NewText: WideString): Integer; override;
+    function Replace(const aOccurrence, aReplacement: WideString): WideString; override;        //slm 11/29/02
   end;
 
 implementation
@@ -98,29 +99,29 @@ begin
   inherited;
 end;
 
-function TSynEditWildcardSearch.FindAll(const NewText: string): integer;
+function TSynEditWildcardSearch.FindAll(const NewText: WideString): integer;
 begin
   Result := inherited FindAll(NewText);
 end;
 
-function TSynEditWildcardSearch.Replace(const aOccurrence, aReplacement: string): string;
+function TSynEditWildcardSearch.Replace(const aOccurrence, aReplacement: WideString): WideString;
 begin
   Result := inherited Replace(aOccurrence, aReplacement);
 end;   
 
-function TSynEditWildcardSearch.GetLength(aIndex: integer): integer;
+function TSynEditWildcardSearch.GetLength(Index: Integer): Integer;
 begin
-  Result := inherited GetLength(aIndex);
+  Result := inherited GetLength(Index);
 end;
 
-function TSynEditWildcardSearch.GetPattern: string;
+function TSynEditWildcardSearch.GetPattern: WideString;
 begin
   Result := fPattern;
 end;
 
-function TSynEditWildcardSearch.GetResult(aIndex: integer): integer;
+function TSynEditWildcardSearch.GetResult(Index: integer): integer;
 begin
-  Result := inherited GetResult(aIndex);
+  Result := inherited GetResult(Index);
 end;
 
 function TSynEditWildcardSearch.GetResultCount: integer;
@@ -133,7 +134,7 @@ begin
   inherited;
 end;
 
-procedure TSynEditWildcardSearch.SetPattern(const Value: string);
+procedure TSynEditWildcardSearch.SetPattern(const Value: WideString);
 begin
   fPattern := Value;
   // Convert into a real regular expression and assign it
@@ -141,12 +142,13 @@ begin
 end;
 
 function TSynEditWildcardSearch.WildCardToRegExpr(
-  AWildCard: string): string;
-var i: integer;
+  AWildCard: WideString): WideString;
+var
+  i: Integer;
 begin
   Result := '';
 
-  for i := 1 to length(AWildCard) do
+  for i := 1 to Length(AWildCard) do
     case AWildCard[i] of
       '*': Result := Result + '.*';
       '?': Result := Result + '.?';

@@ -12,6 +12,7 @@ The Original Code is: SynEditPlugins.pas, released 2001-10-17.
 
 Author of this file is Flávio Etrusco.
 Portions created by Flávio Etrusco are Copyright 2001 Flávio Etrusco.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -26,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPlugins.pas,v 1.8 2003/04/30 12:59:47 etrusco Exp $
+$Id: SynEditPlugins.pas,v 1.8.2.1 2004/08/31 12:55:17 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -87,7 +88,7 @@ type
     procedure UnHookEditor(aEditor: TCustomSynEdit;
       aCommandID: TSynEditorCommand; aShortCut: TShortCut);
     procedure OnCommand(Sender: TObject; AfterProcessing: boolean;
-      var Handled: boolean; var Command: TSynEditorCommand; var aChar: char;
+      var Handled: boolean; var Command: TSynEditorCommand; var AChar: WideChar;
       Data: pointer; HandlerData: pointer); virtual; abstract;
   end;
 
@@ -113,7 +114,6 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     property CommandID: TSynEditorCommand read fCommandID;
-    {}
     property CurrentEditor: TCustomSynEdit read fCurrentEditor;
     function Executing: boolean;
     procedure Execute(aEditor: TCustomSynEdit);
@@ -128,19 +128,19 @@ type
 
   TAbstractSynCompletion = class(TAbstractSynSingleHookPlugin)
   protected
-    fCurrentString: String;
+    fCurrentString: WideString;
   protected
-    procedure SetCurrentString(const Value: String); virtual;
+    procedure SetCurrentString(const Value: WideString); virtual;
     procedure OnCommand(Sender: TObject; AfterProcessing: boolean;
-      var Handled: boolean; var Command: TSynEditorCommand; var aChar: char;
+      var Handled: boolean; var Command: TSynEditorCommand; var AChar: WideChar;
       Data: pointer; HandlerData: pointer); override;
     procedure DoExecute; override;
     procedure DoAccept; override;
     procedure DoCancel; override;
-    function GetCurrentEditorString: String; virtual;
+    function GetCurrentEditorString: WideString; virtual;
   public
     procedure AddEditor(aEditor: TCustomSynEdit);
-    property CurrentString: String read fCurrentString write SetCurrentString;
+    property CurrentString: WideString read fCurrentString write SetCurrentString;
   end;
 
 function NewPluginCommand: TSynEditorCommand;
@@ -171,12 +171,12 @@ var
 function NewPluginCommand: TSynEditorCommand;
 begin
   Result := gCurrentCommand;
-  Inc( gCurrentCommand );
+  Inc(gCurrentCommand);
 end;
 
 procedure ReleasePluginCommand(aCmd: TSynEditorCommand);
 begin
-  if aCmd = Pred( gCurrentCommand ) then
+  if aCmd = Pred(gCurrentCommand) then
     gCurrentCommand := aCmd;
 end;
 
@@ -189,21 +189,21 @@ begin
     fEditors := TList.Create;
   end
   else
-    if fEditors.IndexOf( aEditor ) >= 0 then
+    if fEditors.IndexOf(aEditor) >= 0 then
     begin
       Result := -1;
       Exit;
     end;
-  aEditor.FreeNotification( Self );
-  Result := fEditors.Add( aEditor );
-  DoAddEditor( aEditor );
+  aEditor.FreeNotification(Self);
+  Result := fEditors.Add(aEditor);
+  DoAddEditor(aEditor);
 end;
 
 destructor TAbstractSynPlugin.Destroy;
 begin
   { RemoveEditor will free fEditors when it reaches count = 0}
-  while Assigned( fEditors ) do
-    RemoveEditor( Editors[0] );
+  while Assigned(fEditors) do
+    RemoveEditor(Editors[0]);
   inherited;
 end;
 
@@ -214,7 +214,7 @@ begin
   if aOperation = opRemove then
   begin
     if (aComponent = Editor) or (aComponent is TCustomSynEdit) then
-      RemoveEditor( TCustomSynEdit(aComponent) );
+      RemoveEditor(TCustomSynEdit(aComponent));
   end;
 end;
 
@@ -235,15 +235,15 @@ begin
     Result := -1;
     Exit;
   end;
-  Result := fEditors.Remove( aEditor );
-  //aEditor.RemoveFreeNotification( Self );
+  Result := fEditors.Remove(aEditor);
+  //aEditor.RemoveFreeNotification(Self);
   if fEditors.Count = 0 then
   begin
     fEditors.Free;
     fEditors := nil;
   end;
   if Result >= 0 then
-    DoRemoveEditor( aEditor );
+    DoRemoveEditor(aEditor);
 end;
 
 procedure TAbstractSynPlugin.SetEditor(const Value: TCustomSynEdit);
@@ -254,9 +254,9 @@ begin
   if iEditor <> Value then
   try
     if (iEditor <> nil) and (fEditors.Count = 1) then
-      RemoveEditor( iEditor );
+      RemoveEditor(iEditor);
     if Value <> nil then
-      AddEditor( Value );
+      AddEditor(Value);
   except
     if [csDesigning] * ComponentState = [csDesigning] then
       Application.HandleException(Self)
@@ -294,11 +294,11 @@ var
   iIndex: integer;
   iKeystroke: TSynEditKeyStroke;
 begin
-  Assert( aNewShortCut <> 0 );
+  Assert(aNewShortCut <> 0);
   { shortcurts aren't created while in design-time }
   if [csDesigning] * ComponentState = [csDesigning] then
   begin
-    if TSynEdit(aEditor).Keystrokes.FindShortcut( aNewShortCut ) >= 0 then
+    if TSynEdit(aEditor).Keystrokes.FindShortcut(aNewShortCut) >= 0 then
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut)
     else
       Exit;
@@ -306,7 +306,7 @@ begin
   { tries to update old Keystroke }
   if aOldShortCut <> 0 then
   begin
-    iIndex := TSynEdit(aEditor).Keystrokes.FindShortcut( aOldShortCut );
+    iIndex := TSynEdit(aEditor).Keystrokes.FindShortcut(aOldShortCut);
     if (iIndex >= 0) then
     begin
       iKeystroke := TSynEdit(aEditor).Keystrokes[iIndex];
@@ -326,7 +326,7 @@ begin
     raise;
   end;
   iKeystroke.Command := aCommandID;
-  aEditor.RegisterCommandHandler( OnCommand, Self );
+  aEditor.RegisterCommandHandler(OnCommand, Self);
 end;
 
 procedure TAbstractSynHookerPlugin.UnHookEditor(aEditor: TCustomSynEdit;
@@ -334,8 +334,8 @@ procedure TAbstractSynHookerPlugin.UnHookEditor(aEditor: TCustomSynEdit;
 var
   iIndex: integer;
 begin
-  aEditor.UnregisterCommandHandler( OnCommand );
-  iIndex := TSynEdit(aEditor).Keystrokes.FindShortcut( aShortCut );
+  aEditor.UnregisterCommandHandler(OnCommand);
+  iIndex := TSynEdit(aEditor).Keystrokes.FindShortcut(aShortCut);
   if (iIndex >= 0) and
     (TSynEdit(aEditor).Keystrokes[iIndex].Command = aCommandID) then
     TSynEdit(aEditor).Keystrokes[iIndex].Free;
@@ -381,7 +381,7 @@ destructor TAbstractSynSingleHookPlugin.Destroy;
 begin
   if Executing then
     Cancel;
-  ReleasePluginCommand( CommandID );
+  ReleasePluginCommand(CommandID);
   inherited;
 end;
 
@@ -389,16 +389,16 @@ procedure TAbstractSynSingleHookPlugin.DoAddEditor(
   aEditor: TCustomSynEdit);
 begin
   if ShortCut <> 0 then
-    HookEditor( aEditor, CommandID, 0, ShortCut );
+    HookEditor(aEditor, CommandID, 0, ShortCut);
 end;
 
 procedure TAbstractSynSingleHookPlugin.Execute(aEditor: TCustomSynEdit);
 begin
   if Executing then
     Cancel;
-  Assert( fCurrentEditor = nil );
+  Assert(fCurrentEditor = nil);
   fCurrentEditor := aEditor;
-  Assert( fState = psNone );
+  Assert(fState = psNone);
   fState := psExecuting;
   try
     DoExecute;
@@ -421,7 +421,7 @@ end;
 procedure TAbstractSynSingleHookPlugin.DoRemoveEditor(aEditor: TCustomSynEdit);
 begin
   if ShortCut <> 0 then
-    UnHookEditor( aEditor, CommandID, ShortCut );
+    UnHookEditor(aEditor, CommandID, ShortCut);
   if Executing and (CurrentEditor = aEditor) then
     Cancel;
 end;
@@ -436,12 +436,12 @@ begin
       if Value <> 0 then
       begin
         for cEditor := 0 to fEditors.Count -1 do
-          HookEditor( Editors[cEditor], CommandID, fShortCut, Value );
+          HookEditor(Editors[cEditor], CommandID, fShortCut, Value);
       end
       else
       begin
         for cEditor := 0 to fEditors.Count -1 do
-          UnHookEditor( Editors[cEditor], CommandID, fShortCut );
+          UnHookEditor(Editors[cEditor], CommandID, fShortCut);
       end;
     fShortCut := Value;
   end;
@@ -449,21 +449,19 @@ end;
 
 { TAbstractSynCompletion }
 
-function TAbstractSynCompletion.GetCurrentEditorString: String;
+function TAbstractSynCompletion.GetCurrentEditorString: WideString;
 var
-  iString: String;
-  cCol: integer;
-  iIdentChars: TSynIdentChars;
+  S: WideString;
+  Col: integer;
 begin
-  iString := CurrentEditor.LineText;
+  S := CurrentEditor.LineText;
   if (CurrentEditor.CaretX > 1) and
-    (CurrentEditor.CaretX -1 <= Length(iString)) then
+    (CurrentEditor.CaretX - 1 <= Length(S)) then
   begin
-    iIdentChars := CurrentEditor.IdentChars;
-    for cCol := CurrentEditor.CaretX -1 downto 1 do
-      if not (iString[cCol] in iIdentChars) then
+    for Col := CurrentEditor.CaretX - 1 downto 1 do
+      if not CurrentEditor.IsIdentChar(S[Col])then
         break;
-    Result := Copy( iString, cCol +1, CurrentEditor.CaretX - cCol -1);
+    Result := Copy(S, Col + 1, CurrentEditor.CaretX - Col - 1);
   end;
 end;
 
@@ -484,16 +482,16 @@ end;
 
 procedure TAbstractSynCompletion.OnCommand(Sender: TObject;
   AfterProcessing: boolean; var Handled: boolean;
-  var Command: TSynEditorCommand; var aChar: char; Data,
-  HandlerData: pointer);
+  var Command: TSynEditorCommand; var AChar: WideChar; Data,
+  HandlerData: Pointer);
 var
-  iString: String;
-begin
+  S: WideString;
+begin  
   if not Executing then
   begin
     if (Command = CommandID) then
     begin
-      Execute( Sender as TCustomSynEdit );
+      Execute(Sender as TCustomSynEdit);
       Handled := True;
     end;
   end
@@ -511,7 +509,7 @@ begin
               end
               else
               begin
-                if not(aChar in CurrentEditor.IdentChars) then
+                if not(CurrentEditor.IsIdentChar(aChar)) then 
                   Accept;
                 {don't handle the char}
               end;
@@ -546,11 +544,11 @@ begin
           ecChar:
             CurrentString := GetCurrentEditorString;
           ecRight, ecSelRight: begin
-            iString := GetCurrentEditorString;
-            if iString = '' then
+            S := GetCurrentEditorString;
+            if S = '' then
               Cancel
             else
-              CurrentString := iString;
+              CurrentString := S;
           end;
           else
             if CurrentString <> GetCurrentEditorString then
@@ -559,7 +557,7 @@ begin
     end; {endif Sender = CurrentEditor}
 end;
 
-procedure TAbstractSynCompletion.SetCurrentString(const Value: String);
+procedure TAbstractSynCompletion.SetCurrentString(const Value: WideString);
 begin
   fCurrentString := Value;
 end;

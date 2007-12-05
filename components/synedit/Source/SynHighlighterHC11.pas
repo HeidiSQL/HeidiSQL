@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterHC11.pas, released 2000-04-21.
 The Original Code is based on the CIHC11Syn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Nils Springob.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHC11.pas,v 1.14 2005/01/28 16:53:22 maelh Exp $
+$Id: SynHighlighterHC11.pas,v 1.13.2.4 2005/11/27 22:22:44 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,17 +58,15 @@ uses
   QGraphics,
   QSynEditHighlighter,
   QSynEditTypes,
+  QSynHighlighterHashEntries,  
 {$ELSE}
   Graphics,
   SynEditHighlighter,
   SynEditTypes,
+  SynHighlighterHashEntries,
 {$ENDIF}
   SysUtils,
   Classes;
-
-const
-  KeyWordCount = 149;
-  DirectiveCount = 6;
 
 type
   TtkTokenKind = (tkComment, tkDirective, tkIdentifier, tkKey, tkNull, tkNumber,
@@ -78,22 +77,13 @@ type
   PHashListEntry = ^THashListEntry;
   THashListEntry = record
     Next: PHashListEntry;
-    Token: String;
+    Token: WideString;
     Kind: TtkTokenKind;
     Op: Boolean;
   end;
 
-  TProcTableProc = procedure of Object;
-
   TSynHC11Syn = class(TSynCustomHighLighter)
   private
-    fLine: PChar;
-    fLineNumber: integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     FTokenID: TtkTokenKind;
     FKeyWordType: TkwKeyWordType;
     fCommentAttri: TSynHighlighterAttributes;
@@ -105,14 +95,10 @@ type
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-
-    fHashArray: array[0..DirectiveCount+KeyWordCount] of THashListEntry;
-    fHashList: array[#0..#255] of PHashListEntry;
-    fHashArrayIndex: integer;
-
-    function KeyHash(ToHash: PChar): char;
-    function KeyComp(const aKey: string): Boolean;
-
+    fKeywords: TSynHashEntryList;
+    procedure DoAddKeyword(AKeyword: WideString; AKind: Integer);
+    function HashKey(Str: PWideChar): Integer;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure SymAsciiCharProc;
     procedure SymbolProc;
     procedure SymDollarProc;
@@ -126,28 +112,21 @@ type
     procedure SymStarProc;
     procedure SymStringProc;
     procedure SymUnknownProc;
-
-    procedure InitIdent;
-    procedure MakeMethodTables;
-    procedure AddHashEntry(NewToken: String; NewKind: TtkTokenKind);
-    function IdentKind(MayBe: PChar): TtkTokenKind;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: string; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber:Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -178,211 +157,128 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-
 const
-  KeyWords: array[1..KeyWordCount] of string = (
-    'ABA', 'ABX', 'ABY', 'ADCA_', 'ADCB_', 'ADDA_', 'ADDB_', 'ADDD_', 'ANDA_',
-    'ANDB_', 'ASLA', 'ASLB', 'ASL_', 'ASLD', 'ASRA', 'ASRB', 'ASR_', 'BCC_',
-    'BCLR_', 'BCS_', 'BEQ_', 'BGE_', 'BGT_', 'BHI_', 'BHS_', 'BITA_', 'BITB_',
-    'BLE_', 'BLO_', 'BLS_', 'BLT_', 'BMI_', 'BNE_', 'BPL_', 'BRA_', 'BRCLR_',
-    'BRN_', 'BRSET_', 'BSET_', 'BSR_', 'BVC_', 'BVS_', 'CBA', 'CLC', 'CLI',
-    'CLRA', 'CLRB', 'CLR_', 'CLV', 'CMPA_', 'CMPB_', 'COMA', 'COMB', 'COM_',
-    'CPD_', 'CPX_', 'CPY_', 'DAA', 'DECA', 'DECB', 'DEC_', 'DES', 'DEX', 'DEY',
-    'EORA_', 'EORB_', 'FDIV', 'IDIV', 'INCA', 'INCB', 'INC_', 'INS', 'INX',
-    'INY', 'JMP_', 'JSR_', 'LDAA_', 'LDAB_', 'LDD_', 'LDS_', 'LDX_', 'LDY_',
-    'LSLA', 'LSLB', 'LSL_', 'LSLD', 'LSRA', 'LSRB', 'LSR_', 'LSRD', 'MUL',
-    'NEGA', 'NEGB', 'NEG_', 'NOP', 'ORAA_', 'ORAB_', 'PSHA', 'PSHB', 'PSHX',
-    'PSHY', 'PULA', 'PULB', 'PULX', 'PULY', 'ROLA', 'ROLB', 'ROL_', 'RORA',
-    'RORB', 'ROR_', 'RTI', 'RTS', 'SBA', 'SBCA_', 'SBCB_', 'SEC', 'SEI', 'SEV',
-    'STAA_', 'STAB_', 'STD_', 'STOP', 'STS_', 'STX_', 'STY_', 'SUBA_', 'SUBB_',
-    'SUBD_', 'SWI', 'TAB', 'TAP', 'TBA', 'TEST', 'TPA', 'TSTA', 'TSTB', 'TST_',
-    'TSX', 'TSY', 'TXS', 'TYS', 'WAI', 'XGDX', 'XGDY', // end commands
-    'FCC_','FCB_','BSZ_','FDB_' // codegenerating directives
-    );
+  { TODO: seems as if the Ansi version ignores the underscores and therfore
+    highlights more KeyWords than this(=Unicode) version.
+    Also the SampleSource uses EQU_ and EQU, so it isn't clear what is
+    the correct syntax: with other without the underscores.
+  }
+  KeyWords: WideString = (
+    'ABA,ABX,ABY,ADCA_,ADCB_,ADDA_,ADDB_,ADDD_,ANDA_,ANDB_,ASLA,ASLB,' +
+    'ASL_,ASLD,ASRA,ASRB,ASR_,BCC_,BCLR_,BCS_,BEQ_,BGE_,BGT_,BHI_,BHS' +
+    '_,BITA_,BITB_,BLE_,BLO_,BLS_,BLT_,BMI_,BNE_,BPL_,BRA_,BRCLR_,BRN' +
+    '_,BRSET_,BSET_,BSR_,BVC_,BVS_,CBA,CLC,CLI,CLRA,CLRB,CLR_,CLV,CMP' +
+    'A_,CMPB_,COMA,COMB,COM_,CPD_,CPX_,CPY_,DAA,DECA,DECB,DEC_,DES,DE' +
+    'X,DEY,EORA_,EORB_,FDIV,IDIV,INCA,INCB,INC_,INS,INX,INY,JMP_,JSR_' +
+    ',LDAA_,LDAB_,LDD_,LDS_,LDX_,LDY_,LSLA,LSLB,LSL_,LSLD,LSRA,LSRB,L' +
+    'SR_,LSRD,MUL,NEGA,NEGB,NEG_,NOP,ORAA_,ORAB_,PSHA,PSHB,PSHX,PSHY,' +
+    'PULA,PULB,PULX,PULY,ROLA,ROLB,ROL_,RORA,RORB,ROR_,RTI,RTS,SBA,SB' +
+    'CA_,SBCB_,SEC,SEI,SEV,STAA_,STAB_,STD_,STOP,STS_,STX_,STY_,SUBA_' +
+    ',SUBB_,SUBD_,SWI,TAB,TAP,TBA,TEST,' +
+    'TPA,TSTA,TSTB,TST_,TSX,TSY,TXS,TYS,WAI,XGDX,XGDY,' + // end commands
+    'FCC_,FCB_,BSZ_,FDB_' // codegenerating directives
+  );
 
-  Directives: array[1..DirectiveCount] of string = (
-    'EQU_', 'OPT_', 'PAGE', 'ORG_', 'RMB_', 'END'  // directives
-    );
-procedure MakeIdentTable;
+  Directives: WideString = (
+    'EQU_,OPT_,PAGE,ORG_,RMB_,END'  // directives
+  );
+
+procedure TSynHC11Syn.DoAddKeyword(AKeyword: WideString; AKind: Integer);
 var
-  I: Char;
+  HashValue: Integer;
 begin
-  for I := #0 to #255 do
-  begin
-    Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else Identifiers[I] := False;
-    end;
-  end;
+  HashValue := HashKey(PWideChar(AKeyword));
+  fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
+function TSynHC11Syn.HashKey(Str: PWideChar): Integer;
 
-procedure TSynHC11Syn.AddHashEntry(NewToken: String; NewKind: TtkTokenKind);
-var
-  Hash: char;
-  actEntryPtr: ^PHashListEntry;
-  actEntry: PHashListEntry;
-begin
-  with fHashArray[fHashArrayIndex] do
+  function GetOrd: Integer;
   begin
-    Op := false;
-    if Pos('_', NewToken) <> 0 then begin
-      Delete(NewToken, Length(NewToken), 1);
-      Op := true;
-    end;
-    Token := NewToken;
-    Kind := NewKind;
-    Hash := KeyHash(PChar(NewToken));
-    actEntryPtr := @fHashList[Hash];
-    actEntry := fHashList[Hash];
-    while (actEntry <> nil) do
-    begin
-      actEntryPtr := @actEntry.Next;
-      actEntry := actEntry.Next;
-    end;
-    Next := nil;
+    case Str^ of
+      'a'..'z': Result := 1 + Ord(Str^) - Ord('a');
+      'A'..'Z': Result := 1 + Ord(Str^) - Ord('A');
+      '0'..'9': Result := 28 + Ord(Str^) - Ord('0');
+      '_': Result := 27;
+      else Result := 0;
+    end
   end;
-  actEntryPtr^ := @fHashArray[fHashArrayIndex];
-  inc(fHashArrayIndex);
+
+begin
+  Result := 0;
+  while IsIdentChar(Str^) do
+  begin
+{$IFOPT Q-}
+    Result := 7 * Result + GetOrd;
+{$ELSE}
+    Result := (7 * Result + GetOrd) and $FFFFFF;
+{$ENDIF}
+    Inc(Str);
+  end;
+  Result := Result and $FF; // 255
+  fStringLen := Str - fToIdent;
 end;
 
-procedure TSynHC11Syn.InitIdent;
+function TSynHC11Syn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
-  i: integer;
-  c: char;
-begin
-  // initialize list
-  fHashArrayIndex := 0;
-  for c := #0 to #255 do
-    fHashList[c] := nil;
-  // put all keywords into the list
-  for i := 1 to KeyWordCount do
-    AddHashEntry(KeyWords[i], tkKey);
-  // put all directives into the list
-  for i := 1 to DirectiveCount do
-    AddHashEntry(Directives[i], tkDirective);
-end;
-
-function TSynHC11Syn.KeyHash(ToHash: PChar): char;
-begin
-  Result := #0;
-  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
-  begin
-    Result := char(byte(Result) + byte(ToHash^));
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end; { KeyHash }
-
-function TSynHC11Syn.KeyComp(const aKey: String): Boolean;
-var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Temp^ <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
-end; { KeyComp }
-
-function TSynHC11Syn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  Hash: char;
-  actEntry: PHashListEntry;
+  Entry: TSynHashEntry;
 begin
   fToIdent := MayBe;
-  Hash := KeyHash(MayBe);
-
-  Result := tkIdentifier;
-
-  actEntry := fHashList[Hash];
-  while (actEntry <> nil) do
+  Entry := fKeywords[HashKey(MayBe)];
+  while Assigned(Entry) do
   begin
-    if KeyComp(actEntry.Token) then
-    begin
-      Result := actEntry.Kind;
-      if actEntry.Op then
-        FKeyWordType := kwOperand
-      else
-        FKeyWordType := kwNoOperand;
-    end;
-    actEntry := actEntry.Next;
+    if Entry.KeywordLen > fStringLen then
+      break
+    else if Entry.KeywordLen = fStringLen then
+      if IsCurrentToken(Entry.Keyword) then
+      begin
+        Result := TtkTokenKind(Entry.Kind);
+        exit;
+      end;
+    Entry := Entry.Next;
   end;
-end;
-
-procedure TSynHC11Syn.MakeMethodTables;
-var
-  I: Char;
-begin
-  for I := #0 to #255 do
-    case I of
-      #39: fProcTable[I] := SymAsciiCharProc;
-      '$': fProcTable[I] := SymDollarProc;
-      #13: fProcTable[I] := SymCRProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := SymIdentProc;
-      #10: fProcTable[I] := SymLFProc;
-      '%': fProcTable[I] := SymPercentProc;
-      #0: fProcTable[I] := SymNullProc;
-      '0'..'9': fProcTable[I] := SymNumberProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SymSpaceProc;
-      '*': fProcTable[I] := SymStarProc;
-      #34: fProcTable[I] := SymStringProc;
-      '#', ':', ',', ';', '(', ')': fProcTable[I] := SymbolProc;
-    else
-      fProcTable[I] := SymUnknownProc;
-    end;
+  Result := tkIdentifier;
 end;
 
 constructor TSynHC11Syn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := True;
+
+  fKeywords := TSynHashEntryList.Create;
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style:= [fsItalic];
   AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
+  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
   AddAttribute(fInvalidAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style:= [fsBold];
   AddAttribute(fKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
-  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor);
+  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
   AddAttribute(fDirecAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  MakeMethodTables;
-  InitIdent;
+  EnumerateKeywords(Ord(tkKey), Keywords, IsIdentChar, DoAddKeyword);
+  EnumerateKeywords(Ord(tkDirective), Directives, IsIdentChar, DoAddKeyword);
   fDefaultFilter := SYNS_FilterAsm68HC11;
 end; { Create }
 
-procedure TSynHC11Syn.SetLine(NewValue: string; LineNumber: Integer);
+destructor TSynHC11Syn.Destroy;
 begin
-  FKeyWordType := kwNone;
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end; { SetLine }
+  fKeywords.Free;
+  inherited Destroy;
+end;
 
 procedure TSynHC11Syn.SymAsciiCharProc;
 begin
@@ -411,8 +307,11 @@ procedure TSynHC11Syn.SymDollarProc;
 begin
   fTokenID := tkNumber;
   inc(Run);
-  while FLine[Run] in ['0'..'9', 'A'..'F', 'a'..'f'] do
+  while FLine[Run] in [WideChar('0')..WideChar('9'),
+    WideChar('A')..WideChar('F'), WideChar('a')..WideChar('f')] do
+  begin
     inc(Run);
+  end;
 end;
 
 procedure TSynHC11Syn.SymCRProc;
@@ -425,9 +324,9 @@ end;
 
 procedure TSynHC11Syn.SymIdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
+  fTokenID := IdentKind(fLine + Run);
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynHC11Syn.SymLFProc;
@@ -441,36 +340,40 @@ procedure TSynHC11Syn.SymPercentProc;
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'1'] do
+  while FLine[Run] in [WideChar('0')..WideChar('1')] do
     inc(Run);
 end;
 
 procedure TSynHC11Syn.SymNullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynHC11Syn.SymNumberProc;
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'9'] do
+  while FLine[Run] in [WideChar('0')..WideChar('9')] do
     inc(Run);
 end;
 
 procedure TSynHC11Syn.SymSpaceProc;
 begin
   inc(Run);
-  if FKeyWordType in [kwOperandOver, kwNoOperand] then begin
+  if FKeyWordType in [kwOperandOver, kwNoOperand] then
+  begin
     FKeyWordType := kwNone;
     fTokenID := tkComment;
-    while not (fLine[Run] in [#0, #10, #13]) do
+    while not IsLineEnd(Run) do
       Inc(Run);
-  end else begin
+  end
+  else
+  begin
     if FKeyWordType = kwOperand then
       FKeyWordType := kwOperandOver;
     fTokenID := tkSpace;
-    while (fLine[Run] <= #32) and not (fLine[Run] in [#0, #10, #13]) do
+    while (fLine[Run] <= #32) and not IsLineEnd(Run) do
       inc(Run);
   end;
 end;
@@ -480,9 +383,10 @@ begin
   inc(Run);
   if FKeyWordType = kwOperandOver then
     fTokenID := tkSymbol
-  else begin
+  else
+  begin
     fTokenID := tkComment;
-    while not (fLine[Run] in [#0, #10, #13]) do
+    while not IsLineEnd(Run) do
       inc(Run);
   end;
 end;
@@ -502,11 +406,6 @@ end;
 
 procedure TSynHC11Syn.SymUnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -514,7 +413,22 @@ end;
 procedure TSynHC11Syn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case fLine[Run] of
+    #39: SymAsciiCharProc;
+    '$': SymDollarProc;
+    #13: SymCRProc;
+    'A'..'Z', 'a'..'z', '_': SymIdentProc;
+    #10: SymLFProc;
+    '%': SymPercentProc;
+    #0: SymNullProc;
+    '0'..'9': SymNumberProc;
+    #1..#9, #11, #12, #14..#32: SymSpaceProc;
+    '*': SymStarProc;
+    #34: SymStringProc;
+    '#', ':', ',', ';', '(', ')': SymbolProc;
+    else SymUnknownProc;
+  end;
+  inherited;
 end;
 
 function TSynHC11Syn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -533,15 +447,7 @@ end;
 
 function TSynHC11Syn.GetEol: Boolean;
 begin
-  Result := (fTokenId = tkNull);
-end;
-
-function TSynHC11Syn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynHC11Syn.GetTokenAttribute: TSynHighlighterAttributes;
@@ -570,16 +476,6 @@ begin
   Result := fTokenId;
 end;
 
-function TSynHC11Syn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynHC11Syn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
-end;
-
 function TSynHC11Syn.IsFilterStored: Boolean;
 begin
   Result := fDefaultFilter <> SYNS_FilterAsm68HC11;
@@ -590,7 +486,7 @@ begin
   Result := SYNS_Lang68HC11;
 end;
 
-function TSynHC11Syn.GetSampleSource: string;
+function TSynHC11Syn.GetSampleSource: WideString;
 begin
   Result :=
     '* TX.ASM'#13#10 +
@@ -605,8 +501,12 @@ begin
     '	END';
 end;
 
+class function TSynHC11Syn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLang68HC11;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynHC11Syn);
 {$ENDIF}

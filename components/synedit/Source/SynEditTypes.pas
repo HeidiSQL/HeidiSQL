@@ -12,6 +12,7 @@ The Original Code is: SynEditTypes.pas, released 2000-04-07.
 The Original Code is based on parts of mwCustomEdit.pas by Martin Waldenburg,
 part of the mwEdit component suite.
 Portions created by Martin Waldenburg are Copyright (C) 1998 Martin Waldenburg.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditTypes.pas,v 1.13 2004/07/29 19:24:40 maelh Exp $
+$Id: SynEditTypes.pas,v 1.13.2.1 2004/08/31 12:55:18 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -43,36 +44,38 @@ unit SynEditTypes;
 
 interface
 
+uses
+  SysUtils;
+
 const
-  TSynSpecialChars = ['À'..'Ö', 'Ø'..'ö', 'ø'..'ÿ'];
-  TSynValidStringChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z'] + TSynSpecialChars;
-  TSynWordBreakChars = ['.', ',', ';', ':', '"', '''', '!', '?', '[', ']', '(',
-                        ')', '{', '}', '^', '-', '=', '+', '-', '*', '/', '\',
-                        '|'];
-
-  TSynTabChar = #9;
-
-//These might need to be localized depending on the characterset because they might be
-//interpreted as valid ident characters.
-  SynTabGlyph = Chr($BB);       //'»'
-  SynSoftBreakGlyph = Chr($AC); //'¬'
-  SynLineBreakGlyph = Chr($B6); //'¶'
-  SynSpaceGlyph = Chr($B7);     //'·'
-
-  SLineBreak = {$IFDEF SYN_WIN32} #13#10 {$ELSE} #10 {$ENDIF};
+// These might need to be localized depending on the characterset because they might be
+// interpreted as valid ident characters.
+  SynTabGlyph = WideChar($2192);       //'->'
+  SynSoftBreakGlyph = WideChar($00AC); //'¬'
+  SynLineBreakGlyph = WideChar($00B6); //'¶'
+  SynSpaceGlyph = WideChar($2219);     //'·'
 
 type
+  ESynError = class(Exception);
+
   TSynSearchOption = (ssoMatchCase, ssoWholeWord, ssoBackwards,
     ssoEntireScope, ssoSelectedOnly, ssoReplace, ssoReplaceAll, ssoPrompt);
   TSynSearchOptions = set of TSynSearchOption;
 
-  TSynIdentChars = set of char;
+  TCategoryMethod = function(AChar: WideChar): Boolean of object;
 
-  //NOTE: This will need to be localized and currently will not work will with
-  //      MBCS languages like Japanese or Korean.
+  TKeyPressWEvent = procedure(Sender: TObject; var Key: WideChar) of object;
 
   PSynSelectionMode = ^TSynSelectionMode;
   TSynSelectionMode = (smNormal, smLine, smColumn);
+
+  PBorlandSelectionMode = ^TBorlandSelectionMode;
+  TBorlandSelectionMode = (
+    bsmInclusive, // selects inclusive blocks. Borland IDE shortcut: Ctrl+O+I
+    bsmLine,      // selects line blocks. Borland IDE shortcut: Ctrl+O+L
+    bsmColumn,    // selects column blocks. Borland IDE shortcut: Ctrl+O+C
+    bsmNormal     // selects normal Block. Borland IDE shortcut: Ctrl+O+K
+  );
 
   //todo: better field names. CharIndex and LineIndex?
   TBufferCoord = record

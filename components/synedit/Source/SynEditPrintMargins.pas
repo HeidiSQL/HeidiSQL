@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintMargins.pas,v 1.5 2003/04/30 12:59:48 etrusco Exp $
+$Id: SynEditPrintMargins.pas,v 1.5.2.2 2006/05/21 11:59:34 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -96,10 +96,12 @@ uses
   QGraphics,
   QSynEditPrintTypes,
   QSynEditPrinterInfo,
+  QSynUnicode,  
 {$ELSE}
   Graphics,
   SynEditPrintTypes,
   SynEditPrinterInfo,
+  SynUnicode,
 {$ENDIF}
   Classes,
   SysUtils;
@@ -336,7 +338,7 @@ begin
     PRight := PrinterInfo.PrintableWidth - PrinterInfo.PixFromRight(FRight);
   end;
   if LineNumbers and (not LineNumbersInMargin) then
-    PLeft := PLeft + ACanvas.TextWidth(IntToStr(MaxLineNum) + ': ');
+    PLeft := PLeft + TextWidth(ACanvas, IntToStr(MaxLineNum) + ': ');
   PTop := PrinterInfo.PixFromTop(FTop);
   PBottom := PrinterInfo.PrintableHeight - PrinterInfo.PixFromBottom(FBottom);
   PHeader := PrinterInfo.PixFromTop(FHeader);

@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterHTML.pas, released 2000-04-10.
 The Original Code is based on the hkHTMLSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Hideo Koiso.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHtml.pas,v 1.25 2005/01/28 16:53:23 maelh Exp $
+$Id: SynHighlighterHtml.pas,v 1.24.2.10 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -66,7 +67,7 @@ uses
 const
   MAX_ESCAPEAMPS = 249;
 
-  EscapeAmps: array[0..MAX_ESCAPEAMPS - 1] of PChar = (
+  EscapeAmps: array[0..MAX_ESCAPEAMPS - 1] of PWideChar = (
     ('&Alpha;'),         { ?        }  { greek capital alpha }
     ('&Beta;'),          { ?        }  { greek capital beta }
     ('&Gamma;'),         { G        }  { greek capital gamma }
@@ -326,21 +327,14 @@ type
   TRangeState = (rsAmpersand, rsComment, rsKey, rsParam, rsText,
     rsUnKnown, rsValue, rsQuoteValue, rsDoubleQuoteValue);
 
-  TProcTableProc = procedure of object;
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
+  PIdentFuncTableFunc = ^TIdentFuncTableFunc;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
   TSynHTMLSyn = class(TSynCustomHighlighter)
   private
     fAndCode: Integer;
     fRange: TRangeState;
-    fLine: PChar;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: Longint;
-    Temp: PChar;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fIdentFuncTable: array[0..250] of TIdentFuncTableFunc;
-    fTokenPos: Integer;
+    fIdentFuncTable: array[0..1542] of TIdentFuncTableFunc;
     fTokenID: TtkTokenKind;
     fAndAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
@@ -351,151 +345,11 @@ type
     fTextAttri: TSynHighlighterAttributes;
     fUndefKeyAttri: TSynHighlighterAttributes;
     fValueAttri: TSynHighlighterAttributes;
-    fLineNumber: Integer;
-
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: string): Boolean;
-    function Func1: TtkTokenKind;
-    function Func2: TtkTokenKind;
-    function Func8: TtkTokenKind;
-    function Func9: TtkTokenKind;
-    function Func10: TtkTokenKind;
-    function Func11: TtkTokenKind;
-    function Func12: TtkTokenKind;
-    function Func13: TtkTokenKind;
-    function Func14: TtkTokenKind;
-    function Func16: TtkTokenKind;
-    function Func17: TtkTokenKind;
-    function Func18: TtkTokenKind;
-    function Func19: TtkTokenKind;
-    function Func20: TtkTokenKind;
-    function Func21: TtkTokenKind;
-    function Func23: TtkTokenKind;
-    function Func24: TtkTokenKind;
-    function Func25: TtkTokenKind;
-    function Func26: TtkTokenKind;
-    function Func27: TtkTokenKind;
-    function Func28: TtkTokenKind;
-    function Func29: TtkTokenKind;
-    function Func30: TtkTokenKind;
-    function Func31: TtkTokenKind;
-    function Func32: TtkTokenKind;
-    function Func33: TtkTokenKind;
-    function Func35: TtkTokenKind;
-    function Func37: TtkTokenKind;
-    function Func38: TtkTokenKind;
-    function Func39: TtkTokenKind;
-    function Func40: TtkTokenKind;
-    function Func41: TtkTokenKind;
-    function Func42: TtkTokenKind;
-    function Func43: TtkTokenKind;
-    function Func46: TtkTokenKind;
-    function Func47: TtkTokenKind;
-    function Func48: TtkTokenKind;
-    function Func49: TtkTokenKind;
-    function Func50: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func53: TtkTokenKind;
-    function Func55: TtkTokenKind;
-    function Func56: TtkTokenKind;
-    function Func57: TtkTokenKind;
-    function Func58: TtkTokenKind;
-    function Func61: TtkTokenKind;
-    function Func62: TtkTokenKind;
-    function Func64: TtkTokenKind;
-    function Func65: TtkTokenKind;
-    function Func66: TtkTokenKind;
-    function Func67: TtkTokenKind;
-    function Func70: TtkTokenKind;
-    function Func76: TtkTokenKind;
-    function Func78: TtkTokenKind;
-    function Func80: TtkTokenKind;
-    function Func81: TtkTokenKind;
-    function Func82: TtkTokenKind;
-    function Func83: TtkTokenKind;
-    function Func84: TtkTokenKind;
-    function Func85: TtkTokenKind;
-    function Func87: TtkTokenKind;
-    function Func89: TtkTokenKind;
-    function Func90: TtkTokenKind;
-    function Func91: TtkTokenKind;
-    function Func92: TtkTokenKind;
-    function Func93: TtkTokenKind;
-    function Func94: TtkTokenKind;
-    function Func105: TtkTokenKind;
-    function Func107: TtkTokenKind;
-    function Func114: TtkTokenKind;
-    function Func121: TtkTokenKind;
-    function Func123: TtkTokenKind;
-    function Func124: TtkTokenKind;
-    function Func128: TtkTokenKind;
-    function Func130: TtkTokenKind;
-    function Func131: TtkTokenKind;
-    function Func132: TtkTokenKind;
-    function Func133: TtkTokenKind;
-    function Func134: TtkTokenKind;
-    function Func135: TtkTokenKind;
-    function Func136: TtkTokenKind;
-    function Func138: TtkTokenKind;
-    function Func139: TtkTokenKind;
-    function Func140: TtkTokenKind;
-    function Func141: TtkTokenKind;
-    function Func143: TtkTokenKind;
-    function Func145: TtkTokenKind;
-    function Func146: TtkTokenKind;
-    function Func149: TtkTokenKind;
-    function Func150: TtkTokenKind;
-    function Func151: TtkTokenKind;
-    function Func152: TtkTokenKind;
-    function Func153: TtkTokenKind;
-    function Func154: TtkTokenKind;
-    function Func155: TtkTokenKind;
-    function Func157: TtkTokenKind;
-    function Func159: TtkTokenKind;
-    function Func160: TtkTokenKind;
-    function Func161: TtkTokenKind;
-    function Func162: TtkTokenKind;
-    function Func163: TtkTokenKind;
-    function Func164: TtkTokenKind;
-    function Func168: TtkTokenKind;
-    function Func169: TtkTokenKind;
-    function Func170: TtkTokenKind;
-    function Func171: TtkTokenKind;
-    function Func172: TtkTokenKind;
-    function Func174: TtkTokenKind;
-    function Func175: TtkTokenKind;
-    function Func177: TtkTokenKind;
-    function Func178: TtkTokenKind;
-    function Func179: TtkTokenKind;
-    function Func180: TtkTokenKind;
-    function Func183: TtkTokenKind;
-    function Func186: TtkTokenKind;
-    function Func187: TtkTokenKind;
-    function Func188: TtkTokenKind;
-    function Func192: TtkTokenKind;
-    function Func198: TtkTokenKind;
-    function Func200: TtkTokenKind;
-    function Func202: TtkTokenKind;
-    function Func203: TtkTokenKind;
-    function Func204: TtkTokenKind;
-    function Func205: TtkTokenKind;
-    function Func207: TtkTokenKind;
-    function Func209: TtkTokenKind;
-    function Func211: TtkTokenKind;
-    function Func212: TtkTokenKind;
-    function Func213: TtkTokenKind;
-    function Func214: TtkTokenKind;
-    function Func215: TtkTokenKind;
-    function Func216: TtkTokenKind;
-    function Func227: TtkTokenKind;
-    function Func229: TtkTokenKind;
-    function Func236: TtkTokenKind;
-    function Func243: TtkTokenKind;
-    function Func250: TtkTokenKind;
-    function AltFunc: TtkTokenKind;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function KeyWordFunc(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure InitIdent;
-    procedure MakeMethodTables;
     procedure TextProc;
     procedure CommentProc;
     procedure BraceCloseProc;
@@ -509,11 +363,12 @@ type
     procedure StringProc;
     procedure AmpersandProc;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource : String; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
+    procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -521,15 +376,11 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: string; LineNumber:Integer); override;
-    function GetToken: string; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
-    property IdentChars;
   published
     property AndAttri: TSynHighlighterAttributes read fAndAttri write fAndAttri;
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -553,1551 +404,227 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
+  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
+  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
-var
-  mHashTable: array[#0..#255] of Integer;
+const
+  KeyWords: array[0..201] of WideString = (
+    '!doctype', '/a', '/abbr', '/acronym', '/address', '/applet', '/b', '/bdo', 
+    '/big', '/blink', '/blockquote', '/body', '/button', '/caption', '/center', 
+    '/cite', '/code', '/colgroup', '/comment', '/dd', '/del', '/dfn', '/dir', 
+    '/div', '/dl', '/dt', '/em', '/embed', '/fieldset', '/font', '/form', 
+    '/frameset', '/h1', '/h2', '/h3', '/h4', '/h5', '/h6', '/head', '/html', 
+    '/i', '/iframe', '/ilayer', '/ins', '/kbd', '/label', '/layer', '/legend', 
+    '/li', '/listing', '/map', '/marquee', '/menu', '/multicol', '/nobr', 
+    '/noembed', '/noframes', '/nolayer', '/noscript', '/object', '/ol', 
+    '/optgroup', '/option', '/p', '/pre', '/q', '/s', '/samp', '/script', 
+    '/select', '/server', '/small', '/span', '/strike', '/strong', '/style', 
+    '/sub', '/sup', '/table', '/tbody', '/td', '/textarea', '/tfoot', '/th', 
+    '/thead', '/title', '/tr', '/tt', '/u', '/ul', '/var', '/xmp', 'a', 'abbr', 
+    'acronym', 'address', 'applet', 'area', 'b', 'base', 'basefont', 'bdo', 
+    'bgsound', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'caption', 
+    'center', 'cite', 'code', 'col', 'colgroup', 'comment', 'dd', 'del', 'dfn', 
+    'dir', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'font', 'form', 
+    'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'hr', 
+    'html', 'i', 'iframe', 'ilayer', 'img', 'input', 'ins', 'isindex', 'kbd', 
+    'keygen', 'label', 'layer', 'legend', 'li', 'link', 'listing', 'map', 
+    'marquee', 'menu', 'meta', 'multicol', 'nextid', 'nobr', 'noembed', 
+    'noframes', 'nolayer', 'noscript', 'object', 'ol', 'optgroup', 'option', 
+    'p', 'param', 'plaintext', 'pre', 'q', 's', 'samp', 'script', 'select', 
+    'server', 'small', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 
+    'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 'title', 
+    'tr', 'tt', 'u', 'ul', 'var', 'wbr', 'xmp' 
+  );
 
-procedure MakeIdentTable;
-var
-  i: Char;
+  KeyIndices: array[0..1542] of Integer = (
+    -1, -1, 182, -1, -1, -1, 97, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 33, -1, -1, -1, -1, 40, -1, -1, -1, -1, -1, 137, 189, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 191, -1, -1, -1, -1, -1, -1, -1, 52, 170, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 5, 55, -1, 83, -1, -1, 34, -1, 198, -1, -1, -1, 
+    -1, -1, -1, -1, 82, -1, -1, -1, -1, -1, 74, 111, -1, 62, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 93, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 35, 72, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 130, 
+    190, -1, 117, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 36, -1, -1, 157, -1, -1, -1, 
+    -1, -1, 13, 114, -1, -1, -1, -1, 131, -1, -1, -1, -1, -1, -1, 21, -1, -1, 
+    -1, 161, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 139, -1, 
+    -1, -1, -1, 37, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 192, -1, -1, 
+    132, 103, -1, -1, -1, 199, -1, -1, -1, -1, -1, -1, -1, 129, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 133, -1, -1, -1, -1, -1, -1, -1, -1, 54, 
+    -1, -1, -1, -1, -1, 42, -1, -1, -1, -1, -1, -1, -1, -1, -1, 109, -1, -1, -1, 
+    148, -1, -1, -1, -1, -1, -1, -1, 96, -1, -1, -1, -1, -1, -1, -1, -1, 134, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 183, -1, -1, 168, -1, 45, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 179, -1, -1, 63, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 135, -1, -1, -1, -1, -1, -1, 60, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 71, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 65, -1, -1, -1, -1, -1, -1, -1, 125, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 4, -1, -1, 39, -1, -1, -1, -1, 128, 20, -1, -1, 51, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 176, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 112, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    180, -1, -1, -1, -1, -1, 172, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 107, 
+    -1, -1, -1, -1, 66, -1, -1, -1, 59, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 162, -1, 8, -1, -1, -1, -1, -1, -1, 166, -1, 
+    -1, -1, 169, 141, 86, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 95, -1, -1, 
+    -1, -1, -1, -1, -1, 56, -1, -1, -1, -1, -1, 124, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 19, -1, -1, 41, -1, 173, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 88, -1, -1, -1, -1, -1, 27, -1, -1, -1, -1, -1, -1, -1, -1, -1, 186, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, -1, 200, -1, 
+    -1, -1, 87, 181, -1, -1, -1, -1, 119, -1, -1, -1, 57, -1, -1, -1, 104, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 47, -1, 26, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 174, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 201, -1, -1, -1, 195, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    58, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 49, -1, -1, -1, 101, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 116, -1, -1, -1, -1, 113, 187, -1, -1, 
+    -1, 94, -1, -1, -1, -1, -1, 165, -1, -1, -1, -1, -1, -1, -1, 69, -1, -1, -1, 
+    -1, -1, 167, -1, -1, 163, -1, -1, 197, -1, -1, -1, -1, 78, -1, 68, -1, -1, 
+    -1, -1, -1, -1, 145, -1, -1, 196, -1, -1, -1, -1, 12, -1, -1, -1, 160, -1, 
+    61, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 123, 
+    -1, -1, -1, -1, -1, -1, 76, 120, -1, 140, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 10, -1, -1, -1, -1, -1, 153, -1, -1, -1, -1, -1, -1, -1, 30, -1, -1, 
+    -1, -1, -1, -1, 142, -1, -1, -1, -1, -1, 99, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 152, -1, 171, 
+    -1, -1, -1, -1, -1, 11, -1, -1, -1, -1, -1, 150, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 14, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    22, -1, -1, -1, -1, -1, 138, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    24, -1, 70, -1, -1, -1, -1, -1, -1, 29, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 38, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 53, -1, -1, 177, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, -1, -1, 100, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 108, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 144, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 90, -1, -1, 
+    -1, 121, 159, 102, -1, -1, -1, -1, -1, -1, -1, -1, -1, 23, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 155, 149, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 81, 2, -1, 110, -1, -1, -1, 46, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 146, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    178, -1, -1, -1, -1, -1, 17, -1, -1, -1, -1, -1, 143, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 164, -1, -1, -1, 48, -1, -1, -1, -1, -1, -1, 9, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 31, -1, 6, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 188, -1, -1, -1, -1, -1, -1, -1, 25, -1, -1, 73, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 64, 
+    79, -1, -1, -1, -1, -1, -1, -1, -1, -1, 127, -1, -1, -1, 18, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 43, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 184, -1, -1, -1, 175, -1, -1, 193, -1, 92, 151, 154, -1, -1, -1, -1, 
+    106, -1, -1, -1, -1, -1, -1, -1, -1, -1, 194, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 75, -1, -1, -1, -1, -1, -1, 84, -1, -1, -1, -1, -1, 28, -1, -1, -1, -1, 
+    -1, -1, 98, -1, 80, -1, -1, -1, 85, -1, -1, -1, -1, 67, -1, 118, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 126, -1, -1, -1, -1, -1, 77, -1, -1, 122, 44, -1, -1, 
+    -1, -1, -1, 89, -1, -1, -1, 115, 136, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 105, -1, -1, -1, -1, -1, -1, -1, -1, 147, -1, 
+    16, 185, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    158, -1, -1, -1, -1, -1, -1, -1, 32, -1, -1, -1, -1, -1, -1, -1, -1, -1, 91, 
+    -1, -1, 156, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 
+  );
+
+{$Q-}
+function TSynHTMLSyn.HashKey(Str: PWideChar): Cardinal;
 begin
-  for i := #0 to #255 do
-    case i of
-      'a'..'z', 'A'..'Z':
-        mHashTable[i] := (Ord(UpCase(i)) - 64);
-      '!':
-        mHashTable[i] := $7B;
-      '/':
-        mHashTable[i] := $7A;
-      else
-        mHashTable[Char(i)] := 0;
-    end;
+  Result := 0;
+  while IsIdentChar(Str^) or (Str^ in [WideChar('!'), WideChar('/')]) do
+  begin
+    Result := Result * 932 + Ord(Str^) * 46;
+    inc(Str);
+  end;
+  Result := Result mod 1543;
+  fStringLen := Str - fToIdent;
+end;
+{$Q+}
+
+function TSynHTMLSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
+var
+  Key: Cardinal;
+begin
+  fToIdent := MayBe;
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  else
+    Result := tkIdentifier;
 end;
 
 procedure TSynHTMLSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := 0 to 250 do
-    case i of
-      1:   fIdentFuncTable[i] := Func1;
-      2:   fIdentFuncTable[i] := Func2;
-      8:   fIdentFuncTable[i] := Func8;
-      9:   fIdentFuncTable[i] := Func9;
-      10:  fIdentFuncTable[i] := Func10;
-      11:  fIdentFuncTable[i] := Func11;
-      12:  fIdentFuncTable[i] := Func12;
-      13:  fIdentFuncTable[i] := Func13;
-      14:  fIdentFuncTable[i] := Func14;
-      16:  fIdentFuncTable[i] := Func16;
-      17:  fIdentFuncTable[i] := Func17;
-      18:  fIdentFuncTable[i] := Func18;
-      19:  fIdentFuncTable[i] := Func19;
-      20:  fIdentFuncTable[i] := Func20;
-      21:  fIdentFuncTable[i] := Func21;
-      23:  fIdentFuncTable[i] := Func23;
-      24:  fIdentFuncTable[i] := Func24;
-      25:  fIdentFuncTable[i] := Func25;
-      26:  fIdentFuncTable[i] := Func26;
-      27:  fIdentFuncTable[i] := Func27;
-      28:  fIdentFuncTable[i] := Func28;
-      29:  fIdentFuncTable[i] := Func29;
-      30:  fIdentFuncTable[i] := Func30;
-      31:  fIdentFuncTable[i] := Func31;
-      32:  fIdentFuncTable[i] := Func32;
-      33:  fIdentFuncTable[i] := Func33;
-      35:  fIdentFuncTable[i] := Func35;
-      37:  fIdentFuncTable[i] := Func37;
-      38:  fIdentFuncTable[i] := Func38;
-      39:  fIdentFuncTable[i] := Func39;
-      40:  fIdentFuncTable[i] := Func40;
-      41:  fIdentFuncTable[i] := Func41;
-      42:  fIdentFuncTable[i] := Func42;
-      43:  fIdentFuncTable[i] := Func43;
-      46:  fIdentFuncTable[i] := Func46;
-      47:  fIdentFuncTable[i] := Func47;
-      48:  fIdentFuncTable[i] := Func48;
-      49:  fIdentFuncTable[i] := Func49;
-      50:  fIdentFuncTable[i] := Func50;
-      52:  fIdentFuncTable[i] := Func52;
-      53:  fIdentFuncTable[i] := Func53;
-      55:  fIdentFuncTable[i] := Func55;
-      56:  fIdentFuncTable[i] := Func56;
-      57:  fIdentFuncTable[i] := Func57;
-      58:  fIdentFuncTable[i] := Func58;
-      61:  fIdentFuncTable[i] := Func61;
-      62:  fIdentFuncTable[i] := Func62;
-      64:  fIdentFuncTable[i] := Func64;
-      65:  fIdentFuncTable[i] := Func65;
-      66:  fIdentFuncTable[i] := Func66;
-      67:  fIdentFuncTable[i] := Func67;
-      70:  fIdentFuncTable[i] := Func70;
-      76:  fIdentFuncTable[i] := Func76;
-      78:  fIdentFuncTable[i] := Func78;
-      80:  fIdentFuncTable[i] := Func80;
-      81:  fIdentFuncTable[i] := Func81;
-      82:  fIdentFuncTable[i] := Func82;
-      83:  fIdentFuncTable[i] := Func83;
-      84:  fIdentFuncTable[i] := Func84;
-      85:  fIdentFuncTable[i] := Func85;
-      87:  fIdentFuncTable[i] := Func87;
-      89:  fIdentFuncTable[i] := Func89;
-      90:  fIdentFuncTable[i] := Func90;
-      91:  fIdentFuncTable[i] := Func91;
-      92:  fIdentFuncTable[i] := Func92;
-      93:  fIdentFuncTable[i] := Func93;
-      94:  fIdentFuncTable[i] := Func94;
-      105: fIdentFuncTable[i] := Func105;
-      107: fIdentFuncTable[i] := Func107;
-      114: fIdentFuncTable[i] := Func114;
-      121: fIdentFuncTable[i] := Func121;
-      123: fIdentFuncTable[i] := Func123;
-      124: fIdentFuncTable[i] := Func124;
-      128: fIdentFuncTable[i] := Func128;
-      130: fIdentFuncTable[i] := Func130;
-      131: fIdentFuncTable[i] := Func131;
-      132: fIdentFuncTable[i] := Func132;
-      133: fIdentFuncTable[i] := Func133;
-      134: fIdentFuncTable[i] := Func134;
-      135: fIdentFuncTable[i] := Func135;
-      136: fIdentFuncTable[i] := Func136;
-      138: fIdentFuncTable[i] := Func138;
-      139: fIdentFuncTable[i] := Func139;
-      140: fIdentFuncTable[i] := Func140;
-      141: fIdentFuncTable[i] := Func141;
-      143: fIdentFuncTable[i] := Func143;
-      145: fIdentFuncTable[i] := Func145;
-      146: fIdentFuncTable[i] := Func146;
-      149: fIdentFuncTable[i] := Func149;
-      150: fIdentFuncTable[i] := Func150;
-      151: fIdentFuncTable[i] := Func151;
-      152: fIdentFuncTable[i] := Func152;
-      153: fIdentFuncTable[i] := Func153;
-      154: fIdentFuncTable[i] := Func154;
-      155: fIdentFuncTable[i] := Func155;
-      157: fIdentFuncTable[i] := Func157;
-      159: fIdentFuncTable[i] := Func159;
-      160: fIdentFuncTable[i] := Func160;
-      161: fIdentFuncTable[i] := Func161;
-      162: fIdentFuncTable[i] := Func162;
-      163: fIdentFuncTable[i] := Func163;
-      164: fIdentFuncTable[i] := Func164;
-      168: fIdentFuncTable[i] := Func168;
-      169: fIdentFuncTable[i] := Func169;
-      170: fIdentFuncTable[i] := Func170;
-      171: fIdentFuncTable[i] := Func171;
-      172: fIdentFuncTable[i] := Func172;
-      174: fIdentFuncTable[i] := Func174;
-      175: fIdentFuncTable[i] := Func175;
-      177: fIdentFuncTable[i] := Func177;
-      178: fIdentFuncTable[i] := Func178;
-      179: fIdentFuncTable[i] := Func179;
-      180: fIdentFuncTable[i] := Func180;
-      183: fIdentFuncTable[i] := Func183;
-      186: fIdentFuncTable[i] := Func186;
-      187: fIdentFuncTable[i] := Func187;
-      188: fIdentFuncTable[i] := Func188;
-      192: fIdentFuncTable[i] := Func192;
-      198: fIdentFuncTable[i] := Func198;
-      200: fIdentFuncTable[i] := Func200;
-      202: fIdentFuncTable[i] := Func202;
-      203: fIdentFuncTable[i] := Func203;
-      204: fIdentFuncTable[i] := Func204;
-      205: fIdentFuncTable[i] := Func205;
-      207: fIdentFuncTable[i] := Func207;
-      209: fIdentFuncTable[i] := Func209;
-      211: fIdentFuncTable[i] := Func211;
-      212: fIdentFuncTable[i] := Func212;
-      213: fIdentFuncTable[i] := Func213;
-      214: fIdentFuncTable[i] := Func214;
-      215: fIdentFuncTable[i] := Func215;
-      216: fIdentFuncTable[i] := Func216;
-      227: fIdentFuncTable[i] := Func227;
-      229: fIdentFuncTable[i] := Func229;
-      236: fIdentFuncTable[i] := Func236;
-      243: fIdentFuncTable[i] := Func243;
-      250: fIdentFuncTable[i] := Func250;
-      else fIdentFuncTable[i] := AltFunc;
-    end;
-end;
-
-function TSynHTMLSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-  While (ToHash^ In ['a'..'z', 'A'..'Z', '!', '/']) do begin
-    Inc(Result, mHashTable[ToHash^]);
-    Inc(ToHash);
-  end;
-  While (ToHash^ In ['0'..'9']) do begin
-    Inc(Result, (Ord(ToHash^) - Ord('0')) );
-    Inc(ToHash);
-  end;
-  fStringLen := (ToHash - fToIdent);
-end;
-
-function TSynHTMLSyn.KeyComp(const aKey: string): Boolean;
-var
-  i: Integer;
-begin
-  Temp := fToIdent;
-  if (Length(aKey) = fStringLen) then begin
-    Result := True;
-    For i:=1 To fStringLen do begin
-      if (mHashTable[Temp^] <> mHashTable[aKey[i]]) then begin
-        Result := False;
-        Break;
-      end;
-      Inc(Temp);
-    end;
-  end else begin
-    Result := False;
-  end;
-end;
-
-function TSynHTMLSyn.Func1: TtkTokenKind;
-begin
-  if KeyComp('A') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func2: TtkTokenKind;
-begin
-  if KeyComp('B') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func8: TtkTokenKind;
-begin
-  if KeyComp('DD') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func9: TtkTokenKind;
-begin
-  if KeyComp('I') Or KeyComp('H1') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func10: TtkTokenKind;
-begin
-  if KeyComp('H2') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func11: TtkTokenKind;
-begin
-  if KeyComp('H3') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func12: TtkTokenKind;
-begin
-  if KeyComp('H4') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func13: TtkTokenKind;
-begin
-  if KeyComp('H5') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func14: TtkTokenKind;
-begin
-  if KeyComp('H6') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func16: TtkTokenKind;
-begin
-  if KeyComp('DL') Or KeyComp('P') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('KBD') Or KeyComp('Q') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func18: TtkTokenKind;
-begin
-  if KeyComp('BIG') Or KeyComp('EM') Or KeyComp('HEAD') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func19: TtkTokenKind;
-begin
-  if KeyComp('S') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func20: TtkTokenKind;
-begin
-  if KeyComp('BR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func21: TtkTokenKind;
-begin
-  if KeyComp('DEL') Or KeyComp('LI') Or KeyComp('U') Or KeyComp('BDO') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func23: TtkTokenKind;
-begin
-  if KeyComp('ABBR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func24: TtkTokenKind;
-begin
-  if KeyComp('DFN') Or KeyComp('DT') Or KeyComp('TD') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func25: TtkTokenKind;
-begin
-  if KeyComp('AREA') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func26: TtkTokenKind;
-begin
-  if KeyComp('HR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func27: TtkTokenKind;
-begin
-  if KeyComp('BASE') Or KeyComp('CODE') Or KeyComp('OL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func28: TtkTokenKind;
-begin
-  if KeyComp('TH') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func29: TtkTokenKind;
-begin
-  if KeyComp('EMBED') Or KeyComp('IMG') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func30: TtkTokenKind;
-begin
-  if KeyComp('COL') Or KeyComp('MAP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func31: TtkTokenKind;
-begin
-  if KeyComp('DIR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func32: TtkTokenKind;
-begin
-  if KeyComp('LABEL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func33: TtkTokenKind;
-begin
-  if KeyComp('UL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func35: TtkTokenKind;
-begin
-  if KeyComp('DIV') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func37: TtkTokenKind;
-begin
-  if KeyComp('CITE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func38: TtkTokenKind;
-begin
-  if KeyComp('THEAD') Or KeyComp('TR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func39: TtkTokenKind;
-begin
-  if KeyComp('META') Or KeyComp('PRE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func40: TtkTokenKind;
-begin
-  if KeyComp('TABLE') Or KeyComp('TT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func41: TtkTokenKind;
-begin
-  if KeyComp('var') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('INS') Or KeyComp('SUB') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func43: TtkTokenKind;
-begin
-  if KeyComp('FRAME') Or KeyComp('WBR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func46: TtkTokenKind;
-begin
-  if KeyComp('BODY') Or KeyComp('LINK') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func47: TtkTokenKind;
-begin
-  if KeyComp('LEGend') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('BLINK') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func49: TtkTokenKind;
-begin
-  if KeyComp('NOBR') Or KeyComp('PARAM') Or KeyComp('SAMP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func50: TtkTokenKind;
-begin
-  if KeyComp('SPAN') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('FORM') Or KeyComp('IFRAME') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func53: TtkTokenKind;
-begin
-  if KeyComp('HTML') Or KeyComp('MENU') Or KeyComp('XMP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func55: TtkTokenKind;
-begin
-  if KeyComp('FONT') Or KeyComp('object') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func56: TtkTokenKind;
-begin
-  if KeyComp('SUP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func57: TtkTokenKind;
-begin
-  if KeyComp('SMALL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func58: TtkTokenKind;
-begin
-  if KeyComp('NOEMBED') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func61: TtkTokenKind;
-begin
-  if KeyComp('LAYER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('SPACER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func64: TtkTokenKind;
-begin
-  if KeyComp('SELECT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func65: TtkTokenKind;
-begin
-  if KeyComp('CENTER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func66: TtkTokenKind;
-begin
-  if KeyComp('TBODY') Or KeyComp('TITLE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func67: TtkTokenKind;
-begin
-  if KeyComp('KEYGEN') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func70: TtkTokenKind;
-begin
-  if KeyComp('ADDRESS') Or KeyComp('APPLET') Or KeyComp('ILAYER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func76: TtkTokenKind;
-begin
-  if KeyComp('NEXTID') Or KeyComp('TFOOT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func78: TtkTokenKind;
-begin
-  if KeyComp('CAPTION') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func80: TtkTokenKind;
-begin
-  if KeyComp('FIELDSET') Or KeyComp('INPUT') Or KeyComp('MARQUEE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func81: TtkTokenKind;
-begin
-  if KeyComp('STYLE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func82: TtkTokenKind;
-begin
-  if KeyComp('BASEFONT') Or KeyComp('BGSOUND') Or KeyComp('STRIKE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func83: TtkTokenKind;
-begin
-  if KeyComp('COMMENT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func84: TtkTokenKind;
-begin
-  if KeyComp('ISINDEX') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func85: TtkTokenKind;
-begin
-  if KeyComp('SCRIPT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func87: TtkTokenKind;
-begin
-  if KeyComp('SERVER') Or KeyComp('FRAMESET') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func89: TtkTokenKind;
-begin
-  if KeyComp('ACRONYM') Or KeyComp('OPTION') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func90: TtkTokenKind;
-begin
-  if KeyComp('LISTING') Or KeyComp('NOLAYER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func91: TtkTokenKind;
-begin
-  if KeyComp('NOFRAMES') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func92: TtkTokenKind;
-begin
-  if KeyComp('BUTTON') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func93: TtkTokenKind;
-begin
-  if KeyComp('STRONG') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func94: TtkTokenKind;
-begin
-  if KeyComp('TEXTAREA') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func105: TtkTokenKind;
-begin
-  if KeyComp('MULTICOL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func107: TtkTokenKind;
-begin
-  if KeyComp('COLGROUP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func114: TtkTokenKind;
-begin
-  if KeyComp('NOSCRIPT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func121: TtkTokenKind;
-begin
-  if KeyComp('BLOCKQUOTE') Or KeyComp('PLAINTEXT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func123: TtkTokenKind;
-begin
-  if KeyComp('/A') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func124: TtkTokenKind;
-begin
-  if KeyComp('/B') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func128: TtkTokenKind;
-begin
-  if KeyComp('OPTGROUP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func130: TtkTokenKind;
-begin
-  if KeyComp('/DD') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func131: TtkTokenKind;
-begin
-  if KeyComp('/I') Or KeyComp('/H1') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func132: TtkTokenKind;
-begin
-  if KeyComp('/H2') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func133: TtkTokenKind;
-begin
-  if KeyComp('/H3') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func134: TtkTokenKind;
-begin
-  if KeyComp('/H4') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func135: TtkTokenKind;
-begin
-  if KeyComp('/H5') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func136: TtkTokenKind;
-begin
-  if KeyComp('/H6') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func138: TtkTokenKind;
-begin
-  if KeyComp('/DL') Or KeyComp('/P') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func139: TtkTokenKind;
-begin
-  if KeyComp('/KBD') Or KeyComp('/Q') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func140: TtkTokenKind;
-begin
-  if KeyComp('/BIG') Or KeyComp('/EM') Or KeyComp('/HEAD') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func141: TtkTokenKind;
-begin
-  if KeyComp('/S') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func143: TtkTokenKind;
-begin
-  if KeyComp('/DEL') Or KeyComp('/LI') Or KeyComp('/U') Or KeyComp('/BDO') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func145: TtkTokenKind;
-begin
-  if KeyComp('/ABBR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func146: TtkTokenKind;
-begin
-  if KeyComp('/DFN') Or KeyComp('/DT') Or KeyComp('/TD') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func149: TtkTokenKind;
-begin
-  if KeyComp('/CODE') Or KeyComp('/OL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func150: TtkTokenKind;
-begin
-  if KeyComp('/TH') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func151: TtkTokenKind;
-begin
-  if KeyComp('/EMBED') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func152: TtkTokenKind;
-begin
-  if KeyComp('/MAP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func153: TtkTokenKind;
-begin
-  if KeyComp('/DIR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func154: TtkTokenKind;
-begin
-  if KeyComp('/LABEL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func155: TtkTokenKind;
-begin
-  if KeyComp('/UL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func157: TtkTokenKind;
-begin
-  if KeyComp('/DIV') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func159: TtkTokenKind;
-begin
-  if KeyComp('/CITE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func160: TtkTokenKind;
-begin
-  if KeyComp('/THEAD') Or KeyComp('/TR') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func161: TtkTokenKind;
-begin
-  if KeyComp('/PRE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func162: TtkTokenKind;
-begin
-  if KeyComp('/TABLE') Or KeyComp('/TT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func163: TtkTokenKind;
-begin
-  if KeyComp('/var') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func164: TtkTokenKind;
-begin
-  if KeyComp('/INS') Or KeyComp('/SUB') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func168: TtkTokenKind;
-begin
-  if KeyComp('/BODY') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func169: TtkTokenKind;
-begin
-  if KeyComp('/LEGend') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func170: TtkTokenKind;
-begin
-  if KeyComp('/BLINK') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func171: TtkTokenKind;
-begin
-  if KeyComp('/NOBR') Or KeyComp('/SAMP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func172: TtkTokenKind;
-begin
-  if KeyComp('/SPAN') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func174: TtkTokenKind;
-begin
-  if KeyComp('/FORM') Or KeyComp('/IFRAME') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func175: TtkTokenKind;
-begin
-  if KeyComp('/HTML') Or KeyComp('/MENU') Or KeyComp('/XMP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func177: TtkTokenKind;
-begin
-  if KeyComp('/FONT') Or KeyComp('/object') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func178: TtkTokenKind;
-begin
-  if KeyComp('/SUP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func179: TtkTokenKind;
-begin
-  if KeyComp('/SMALL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func180: TtkTokenKind;
-begin
-  if KeyComp('/NOEMBED') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func183: TtkTokenKind;
-begin
-  if KeyComp('/LAYER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func186: TtkTokenKind;
-begin
-  if KeyComp('/SELECT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func187: TtkTokenKind;
-begin
-  if KeyComp('/CENTER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func188: TtkTokenKind;
-begin
-  if KeyComp('/TBODY') Or KeyComp('/TITLE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func192: TtkTokenKind;
-begin
-  if KeyComp('/ADDRESS') Or KeyComp('/APPLET') Or KeyComp('/ILAYER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func198: TtkTokenKind;
-begin
-  if KeyComp('/TFOOT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func200: TtkTokenKind;
-begin
-  if KeyComp('/CAPTION') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func202: TtkTokenKind;
-begin
-  if KeyComp('/FIELDSET') Or KeyComp('/MARQUEE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func203: TtkTokenKind;
-begin
-  if KeyComp('/STYLE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func204: TtkTokenKind;
-begin
-  if KeyComp('/STRIKE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func205: TtkTokenKind;
-begin
-  if KeyComp('/COMMENT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func207: TtkTokenKind;
-begin
-  if KeyComp('/SCRIPT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func209: TtkTokenKind;
-begin
-  if KeyComp('/FRAMESET') Or KeyComp('/SERVER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func211: TtkTokenKind;
-begin
-  if KeyComp('/ACRONYM') Or KeyComp('/OPTION') Or KeyComp('!DOCTYPE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func212: TtkTokenKind;
-begin
-  if KeyComp('/LISTING') Or KeyComp('/NOLAYER') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func213: TtkTokenKind;
-begin
-  if KeyComp('/NOFRAMES') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func214: TtkTokenKind;
-begin
-  if KeyComp('/BUTTON') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func215: TtkTokenKind;
-begin
-  if KeyComp('/STRONG') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func216: TtkTokenKind;
-begin
-  if KeyComp('/TEXTAREA') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func227: TtkTokenKind;
-begin
-  if KeyComp('/MULTICOL') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func229: TtkTokenKind;
-begin
-  if KeyComp('/COLGROUP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func236: TtkTokenKind;
-begin
-  if KeyComp('/NOSCRIPT') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
-
-function TSynHTMLSyn.Func243: TtkTokenKind;
-begin
-  if KeyComp('/BLOCKQUOTE') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
-end;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
 
-function TSynHTMLSyn.Func250: TtkTokenKind;
-begin
-  if KeyComp('/OPTGROUP') then begin
-    Result := tkKey;
-  end else begin
-    Result := tkUndefKey;
-  end;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if @fIdentFuncTable[i] = nil then
+      fIdentFuncTable[i] := KeyWordFunc;
 end;
 
-function TSynHTMLSyn.AltFunc: TtkTokenKind;
+function TSynHTMLSyn.AltFunc(Index: Integer): TtkTokenKind;
 begin
   Result := tkUndefKey;
 end;
 
-procedure TSynHTMLSyn.MakeMethodTables;
-var
-  i: Char;
+function TSynHTMLSyn.KeyWordFunc(Index: Integer): TtkTokenKind;
 begin
-  For i:=#0 To #255 do begin
-    case i of
-    #0:
-      begin
-        fProcTable[i] := NullProc;
-      end;
-    #10:
-      begin
-        fProcTable[i] := LFProc;
-      end;
-    #13:
-      begin
-        fProcTable[i] := CRProc;
-      end;
-    #1..#9, #11, #12, #14..#32:
-      begin
-        fProcTable[i] := SpaceProc;
-      end;
-    '&':
-      begin
-        fProcTable[i] := AmpersandProc;
-      end;
-    '"', #39:
-      begin
-        fProcTable[i] := StringProc;
-      end;
-    '<':
-      begin
-        fProcTable[i] := BraceOpenProc;
-      end;
-    '>':
-      begin
-        fProcTable[i] := BraceCloseProc;
-      end;
-    '=':
-      begin
-        fProcTable[i] := EqualProc;
-      end;
-    else
-    fProcTable[i] := IdentProc;
-  end;
-  end;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkUndefKey;
 end;
 
 constructor TSynHTMLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+  fCaseSensitive := False;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   AddAttribute(fCommentAttri);
 
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   fIdentifierAttri.Style := [fsBold];
   AddAttribute(fIdentifierAttri);
 
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   fKeyAttri.Foreground := $00ff0080;
   AddAttribute(fKeyAttri);
 
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   fSymbolAttri.Style := [fsBold];
   AddAttribute(fSymbolAttri);
 
-  fTextAttri := TSynHighlighterAttributes.Create(SYNS_AttrText);
+  fTextAttri := TSynHighlighterAttributes.Create(SYNS_AttrText, SYNS_FriendlyAttrText);
   AddAttribute(fTextAttri);
 
-  fUndefKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrUnknownWord);
+  fUndefKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrUnknownWord, SYNS_FriendlyAttrUnknownWord);
   fUndefKeyAttri.Style := [fsBold];
   fUndefKeyAttri.Foreground := clRed;
   AddAttribute(fUndefKeyAttri);
 
-  fValueAttri := TSynHighlighterAttributes.Create(SYNS_AttrValue);
+  fValueAttri := TSynHighlighterAttributes.Create(SYNS_AttrValue, SYNS_FriendlyAttrValue);
   fValueAttri.Foreground := $00ff8000;
   AddAttribute(fValueAttri);
 
-  fAndAttri := TSynHighlighterAttributes.Create(SYNS_AttrEscapeAmpersand);
+  fAndAttri := TSynHighlighterAttributes.Create(SYNS_AttrEscapeAmpersand, SYNS_FriendlyAttrEscapeAmpersand);
   fAndAttri.Style := [fsBold];
   fAndAttri.Foreground := $0000ff00;
   AddAttribute(fAndAttri);
   SetAttributesOnChange(DefHighlightChange);
 
   InitIdent;
-  MakeMethodTables;
   fRange := rsText;
   fDefaultFilter := SYNS_FilterHTML;
   fAndCode := -1;
-end;
-
-procedure TSynHTMLSyn.SetLine(NewValue: string; LineNumber:Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
 end;
 
 procedure TSynHTMLSyn.BraceCloseProc;
@@ -2111,14 +638,16 @@ procedure TSynHTMLSyn.CommentProc;
 begin
   fTokenID := tkComment;
 
-  if (fLine[Run] In [#0, #10, #13]) then begin
-    fProcTable[fLine[Run]];
+  if IsLineEnd(Run) then
+  begin
+    NextProcedure;
     Exit;
   end;
 
-  while not (fLine[Run] in [#0, #10, #13]) do begin
-    if (fLine[Run] = '>') and (fLine[Run - 1] = '-') and (fLine[Run - 2] = '-')
-    then begin
+  while not IsLineEnd(Run) do
+  begin
+    if (fLine[Run] = '>') and (fLine[Run - 1] = '-') and (fLine[Run - 2] = '-') then
+    begin
       fRange := rsText;
       Inc(Run);
       break;
@@ -2130,12 +659,14 @@ end;
 procedure TSynHTMLSyn.BraceOpenProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '!') and (fLine[Run + 1] = '-') and (fLine[Run + 2] = '-')
-  then begin
+  if (fLine[Run] = '!') and (fLine[Run + 1] = '-') and (fLine[Run + 2] = '-') then
+  begin
     fRange := rsComment;
     fTokenID := tkComment;
     Inc(Run, 3);
-  end else begin
+  end
+  else
+  begin
     fRange := rsKey;
     fTokenID := tkSymbol;
   end;
@@ -2155,19 +686,6 @@ begin
   Inc(Run);
 end;
 
-function TSynHTMLSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  hashKey: Integer;
-begin
-  fToIdent := MayBe;
-  hashKey := KeyHash(MayBe);
-  if (hashKey < 251) then begin
-    Result := fIdentFuncTable[hashKey];
-  end else begin
-    Result := tkIdentifier;
-  end;
-end;
-
 procedure TSynHTMLSyn.IdentProc;
 begin
   case fRange of
@@ -2183,13 +701,14 @@ begin
       fTokenID := tkValue;
       repeat
         Inc(Run);
-      until (fLine[Run] In [#0..#32, '>']);
+      until (fLine[Run] <= #32) or (fLine[Run] = '>');
     end;
   else
     fTokenID := tkIdentifier;
     repeat
       Inc(Run);
-    until (fLine[Run] In [#0..#32, '=', '"', '>']);
+    until (fLine[Run] <= #32) or (fLine[Run] = '=') or (fLine[Run] = '"') or
+      (fLine[Run] = '>'); 
   end;
 end;
 
@@ -2202,67 +721,104 @@ end;
 procedure TSynHTMLSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynHTMLSyn.TextProc;
-const StopSet = [#0..#31, '<', '&'];
+
+  function IsStopChar: Boolean;
+  begin
+    case fLine[Run] of
+      #0..#31, '<', '&':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', 'A'..'F', 'a'..'f':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 var
   i: Integer;
 begin
-  if fLine[Run] in (StopSet - ['&']) then begin
-    fProcTable[fLine[Run]];
+  if fLine[Run] in ([WideChar(#0)..WideChar(#31), WideChar('<')]) then
+  begin
+    NextProcedure;
     exit;
   end;
 
   fTokenID := tkText;
-  While True do begin
-    while not (fLine[Run] in StopSet) do Inc(Run);
 
-    if (fLine[Run] = '&') then begin
-      if (fLine[Run+1]='#') then begin
-        fAndCode:=-1;
-        i:=Run;
+  while True do
+  begin
+    while not IsStopChar do Inc(Run);
+
+    if (fLine[Run] = '&') then
+    begin
+      if (fLine[Run + 1] = '#') then
+      begin
+        fAndCode := -1;
+        i := Run;
         inc(Run, 2);
-        if fLine[Run] in ['X', 'x'] then
+        if fLine[Run] in [WideChar('X'), WideChar('x')] then
         begin
           inc(Run);
-          while (fLine[Run] in ['0'..'9', 'A'..'F', 'a'..'f']) do
+          while IsNumberChar do
             inc(Run);
         end
         else
-          while (fLine[Run] in ['0'..'9']) do
+          while (fLine[Run] in [WideChar('0')..WideChar('9')]) do
             inc(Run);
-        if (fLine[Run]=';') then begin
+        if (fLine[Run] = ';') then
+        begin
           inc(Run);
-          Run:=i;
+          Run := i;
           fRange := rsAmpersand;
         end;
-        BREAK;
-      end else begin
-      For i:=Low(EscapeAmps) To High(EscapeAmps) do begin
-        if (StrLComp((fLine + Run), PChar(EscapeAmps[i]), StrLen(EscapeAmps[i])) = 0) then begin
-          fAndCode := i;
-          fRange := rsAmpersand;
-          Exit;
-        end;
-      end;
-      end;
+        break;
+      end
+      else
+        for i := Low(EscapeAmps) To High(EscapeAmps) do
+          if (StrLCompW((fLine + Run), EscapeAmps[i], StrLenW(EscapeAmps[i])) = 0) then
+          begin
+            fAndCode := i;
+            fRange := rsAmpersand;
+            Exit;
+          end;
 
       Inc(Run);
-    end else begin
+    end
+    else
       Break;
-    end;
   end;
-
 end;
 
 procedure TSynHTMLSyn.AmpersandProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', 'A'..'F', 'a'..'f':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   if fRange <> rsAmpersand then
   begin
     if fRange = rsKey then
     begin
-      Inc( Run );
+      Inc(Run);
       fRange := rsText;
       fTokenID := tkText;
     end
@@ -2275,22 +831,23 @@ begin
   Low(EscapeAmps)..High(EscapeAmps):
     begin
       fTokenID := tkAmpersand;
-      Inc(Run, StrLen(EscapeAmps[fAndCode]));
+      Inc(Run, StrLenW(EscapeAmps[fAndCode]));
     end;
     else begin
-      if (fLine[Run+1]='#') then begin
-        fAndCode:=-1;
+      if (fLine[Run + 1] = '#') then
+      begin
+        fAndCode := -1;
         inc(Run, 2);
-        if fLine[Run] in ['X', 'x'] then
+        if fLine[Run] in [WideChar('X'), WideChar('x')] then
         begin
           inc(Run);
-          while (fLine[Run] in ['0'..'9', 'A'..'F', 'a'..'f']) do
+          while IsNumberChar do
             inc(Run);
         end
         else
-          while (fLine[Run] in ['0'..'9']) do
+          while (fLine[Run] in [WideChar('0')..WideChar('9')]) do
             inc(Run);
-        if (fLine[Run]=';') then begin
+        if (fLine[Run] = ';') then begin
           inc(Run);
           fTokenID := tkAmpersand;
         end else
@@ -2304,30 +861,35 @@ end;
 
 procedure TSynHTMLSyn.SpaceProc;
 begin
-  Inc(Run);
+  inc(Run);
   fTokenID := tkSpace;
-  while fLine[Run] <= #32 do begin
-    if fLine[Run] in [#0, #9, #10, #13] then break;
+  while fLine[Run] <= #32 do
+  begin
+    if fLine[Run] in [WideChar(#0), WideChar(#9), WideChar(#10), WideChar(#13)] then break;
     Inc(Run);
   end;
 end;
 
 procedure TSynHTMLSyn.StringProc;
 var
-  iOpenChar: Char;
+  iOpenChar: WideChar;
 begin
   case fRange of
-    rsQuoteValue: begin
-      iOpenChar := #39;
-      fTokenID := tkValue;
-    end;
-    rsDoubleQuoteValue: begin
-      iOpenChar := '"';
-      fTokenID := tkValue;
-    end;
-    else begin
+    rsQuoteValue:
+      begin
+        iOpenChar := #39;
+        fTokenID := tkValue;
+      end;
+    rsDoubleQuoteValue:
+      begin
+        iOpenChar := '"';
+        fTokenID := tkValue;
+      end;
+    else
+    begin
       iOpenChar := fLine[Run];
-      if fRange = rsValue then begin
+      if fRange = rsValue then
+      begin
         if iOpenChar = '"' then
           fRange := rsDoubleQuoteValue
         else
@@ -2338,20 +900,22 @@ begin
         IdentProc;
         Exit;
       end;
-      Inc( Run ); { jumps over the opening char }
+      Inc(Run); { jumps over the opening char }
     end;
   end;
 
-  while not( fLine[ Run ] in [#0, #10, #13] ) do begin
-    if fLine[ Run ] = iOpenChar then begin
-      Inc( Run );  { jumps over the closing char }
+  while not IsLineEnd(Run) do
+  begin
+    if fLine[Run] = iOpenChar then
+    begin
+      Inc(Run);  { jumps over the closing char }
       if fRange in [rsDoubleQuoteValue, rsQuoteValue] then
         fRange := rsParam
       else
         fRange := rsText;
       break;
     end;
-    Inc( Run );
+    Inc(Run);
   end;
 end;
 
@@ -2364,12 +928,33 @@ begin
     rsComment:
       CommentProc;
     rsQuoteValue, rsDoubleQuoteValue:
-      if fLine[ Run ] in [#0, #10, #13] then
-        fProcTable[ fLine[Run] ]
+      if IsLineEnd(Run) then
+        NextProcedure
       else
         StringProc;
     else
-      fProcTable[fLine[Run]];
+      NextProcedure;
+  end;
+
+  // ensure that one call of Next is enough to reach next token
+  if (fOldRun = Run) and not GetEol then Next;
+
+  inherited;
+end;
+
+procedure TSynHTMLSyn.NextProcedure;
+begin
+  case fLine[Run] of
+    #0: NullProc;
+    #10: LFProc;
+    #13: CRProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    '&': AmpersandProc;
+    '"', #39: StringProc;
+    '<': BraceOpenProc;
+    '>': BraceCloseProc;
+    '=': EqualProc;
+    else IdentProc;
   end;
 end;
 
@@ -2388,15 +973,7 @@ end;
 
 function TSynHTMLSyn.GetEol: Boolean;
 begin
-  Result := fTokenId = tkNull;
-end;
-
-function TSynHTMLSyn.GetToken: string;
-var
-  len: Longint;
-begin
-  Len := (Run - fTokenPos);
-  SetString(Result, (FLine + fTokenPos), len);
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynHTMLSyn.GetTokenID: TtkTokenKind;
@@ -2425,11 +1002,6 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynHTMLSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
 function TSynHTMLSyn.GetRange: Pointer;
 begin
   Result := Pointer(fRange);
@@ -2445,11 +1017,6 @@ begin
   fRange:= rsText;
 end;
 
-function TSynHTMLSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
-end;
-
 function TSynHTMLSyn.IsFilterStored: Boolean;
 begin
   Result := fDefaultFilter <> SYNS_FilterHTML;
@@ -2460,7 +1027,7 @@ begin
   Result := SYNS_LangHTML;
 end;
 
-function TSynHTMLSyn.GetSampleSource: String;
+function TSynHTMLSyn.GetSampleSource: WideString;
 begin
   Result := '<!-- Syntax highlighting -->'#13#10 +
             #13#10 +
@@ -2475,8 +1042,12 @@ begin
             '</html>';
 end;
 
+class function TSynHTMLSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangHTML;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynHTMLSyn);
 {$ENDIF}

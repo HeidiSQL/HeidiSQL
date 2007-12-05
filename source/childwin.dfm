@@ -2232,10 +2232,12 @@ object MDIChild: TMDIChild
     Columns = <
       item
         BiggestWord = 'databasemore'
+        BiggestWordW = 'databasemore'
       end
       item
         BiggestWord = 'IHAVENOCLUEWHICHLENGTH'
         DefaultFontStyle = [fsBold]
+        BiggestWordW = 'IHAVENOCLUEWHICHLENGTH'
       end>
     ItemHeight = 18
     Images = MainForm.ImageList1
@@ -2248,6 +2250,8 @@ object MDIChild: TMDIChild
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
     Left = 40
     Top = 192
+    EndOfTokenChrW = '()[]. ='
+    TriggerCharsW = '.'
   end
   object popupQueryLoad: TPopupMenu
     Left = 104

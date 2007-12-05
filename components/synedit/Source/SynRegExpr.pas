@@ -70,11 +70,11 @@ interface
   {$WARN UNSAFE_CODE OFF} // Suppress .Net warnings
 {$ENDIF}
 {$IFDEF FPC}
- {$MODE DELPHI} // Delphi-compatible mode in FreePascal
+  {$MODE DELPHI} // Delphi-compatible mode in FreePascal
 {$ENDIF}
 
 // ======== Define options for TRegExpr engine
-{.$DEFINE UniCode} // Unicode support
+{$DEFINE UniCode} // Unicode support
 {$DEFINE RegExpPCodeDump} // p-code dumping (see Dump method)
 {$IFNDEF FPC} // the option is not supported in FreePascal
  {$DEFINE reRealExceptionAddr} // exceptions will point to appropriate source line, not to Error procedure
@@ -226,7 +226,7 @@ type
     // work variables for compiler's routines
     regparse : PRegExprChar;  // Input-scan pointer.
     regnpar : integer; // count.
-    regdummy : char;
+    regdummy : REChar;
     regcode : PRegExprChar;   // Code-emit pointer; @regdummy = don't.
     regsize : integer; // Code size.
 

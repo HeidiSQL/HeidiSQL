@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterPerl.pas, released 2000-04-10.
 The Original Code is based on the DcjSynPerl.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Trier.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPerl.pas,v 1.15 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterPerl.pas,v 1.14.2.7 2005/12/16 20:09:37 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -70,20 +71,13 @@ type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkOperator,
     tkPragma, tkSpace, tkString, tkSymbol, tkUnknown, tkVariable);
 
-  TProcTableProc = procedure of object;
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
+  PIdentFuncTableFunc = ^TIdentFuncTableFunc;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
   TSynPerlSyn = class(TSynCustomHighlighter)
   private
-    fLine: PChar;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..2167] of TIdentFuncTableFunc;
-    fLineNumber: Integer;
+    fIdentFuncTable: array[0..2422] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fInvalidAttri: TSynHighlighterAttributes;
@@ -95,246 +89,292 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fVariableAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: String): Boolean;
-    function Func109: TtkTokenKind;
-    function Func113: TtkTokenKind;
-    function Func196: TtkTokenKind;
-    function Func201: TtkTokenKind;
-    function Func204: TtkTokenKind;
-    function Func207: TtkTokenKind;
-    function Func209: TtkTokenKind;
-    function Func211: TtkTokenKind;
-    function Func214: TtkTokenKind;
-    function Func216: TtkTokenKind;
-    function Func219: TtkTokenKind;
-    function Func221: TtkTokenKind;
-    function Func224: TtkTokenKind;
-    function Func225: TtkTokenKind;
-    function Func226: TtkTokenKind;
-    function Func230: TtkTokenKind;
-    function Func232: TtkTokenKind;
-    function Func233: TtkTokenKind;
-    function Func248: TtkTokenKind;
-    function Func254: TtkTokenKind;
-    function Func255: TtkTokenKind;
-    function Func257: TtkTokenKind;
-    function Func262: TtkTokenKind;
-    function Func263: TtkTokenKind;
-    function Func269: TtkTokenKind;
-    function Func280: TtkTokenKind;
-    function Func282: TtkTokenKind;
-    function Func306: TtkTokenKind;
-    function Func307: TtkTokenKind;
-    function Func310: TtkTokenKind;
-    function Func314: TtkTokenKind;
-    function Func317: TtkTokenKind;
-    function Func318: TtkTokenKind;
-    function Func320: TtkTokenKind;
-    function Func322: TtkTokenKind;
-    function Func325: TtkTokenKind;
-    function Func326: TtkTokenKind;
-    function Func327: TtkTokenKind;
-    function Func330: TtkTokenKind;
-    function Func331: TtkTokenKind;
-    function Func333: TtkTokenKind;
-    function Func335: TtkTokenKind;
-    function Func337: TtkTokenKind;
-    function Func338: TtkTokenKind;
-    function Func340: TtkTokenKind;
-    function Func345: TtkTokenKind;
-    function Func346: TtkTokenKind;
-    function Func368: TtkTokenKind;
-    function Func401: TtkTokenKind;
-    function Func412: TtkTokenKind;
-    function Func413: TtkTokenKind;
-    function Func415: TtkTokenKind;
-    function Func419: TtkTokenKind;
-    function Func420: TtkTokenKind;
-    function Func421: TtkTokenKind;
-    function Func424: TtkTokenKind;
-    function Func425: TtkTokenKind;
-    function Func426: TtkTokenKind;
-    function Func428: TtkTokenKind;
-    function Func430: TtkTokenKind;
-    function Func431: TtkTokenKind;
-    function Func432: TtkTokenKind;
-    function Func433: TtkTokenKind;
-    function Func434: TtkTokenKind;
-    function Func436: TtkTokenKind;
-    function Func437: TtkTokenKind;
-    function Func438: TtkTokenKind;
-    function Func439: TtkTokenKind;
-    function Func440: TtkTokenKind;
-    function Func441: TtkTokenKind;
-    function Func442: TtkTokenKind;
-    function Func444: TtkTokenKind;
-    function Func445: TtkTokenKind;
-    function Func447: TtkTokenKind;
-    function Func448: TtkTokenKind;
-    function Func456: TtkTokenKind;
-    function Func458: TtkTokenKind;
-    function Func470: TtkTokenKind;
-    function Func477: TtkTokenKind;
-    function Func502: TtkTokenKind;
-    function Func522: TtkTokenKind;
-    function Func523: TtkTokenKind;
-    function Func525: TtkTokenKind;
-    function Func527: TtkTokenKind;
-    function Func530: TtkTokenKind;
-    function Func531: TtkTokenKind;
-    function Func534: TtkTokenKind;
-    function Func535: TtkTokenKind;
-    function Func536: TtkTokenKind;
-    function Func537: TtkTokenKind;
-    function Func539: TtkTokenKind;
-    function Func542: TtkTokenKind;
-    function Func543: TtkTokenKind;
-    function Func545: TtkTokenKind;
-    function Func546: TtkTokenKind;
-    function Func547: TtkTokenKind;
-    function Func548: TtkTokenKind;
-    function Func549: TtkTokenKind;
-    function Func552: TtkTokenKind;
-    function Func555: TtkTokenKind;
-    function Func556: TtkTokenKind;
-    function Func557: TtkTokenKind;
-    function Func562: TtkTokenKind;
-    function Func569: TtkTokenKind;
-    function Func570: TtkTokenKind;
-    function Func622: TtkTokenKind;
-    function Func624: TtkTokenKind;
-    function Func627: TtkTokenKind;
-    function Func630: TtkTokenKind;
-    function Func632: TtkTokenKind;
-    function Func637: TtkTokenKind;
-    function Func640: TtkTokenKind;
-    function Func642: TtkTokenKind;
-    function Func643: TtkTokenKind;
-    function Func645: TtkTokenKind;
-    function Func647: TtkTokenKind;
-    function Func648: TtkTokenKind;
-    function Func649: TtkTokenKind;
-    function Func650: TtkTokenKind;
-    function Func651: TtkTokenKind;
-    function Func652: TtkTokenKind;
-    function Func655: TtkTokenKind;
-    function Func656: TtkTokenKind;
-    function Func657: TtkTokenKind;
-    function Func658: TtkTokenKind;
-    function Func665: TtkTokenKind;
-    function Func666: TtkTokenKind;
-    function Func667: TtkTokenKind;
-    function Func672: TtkTokenKind;
-    function Func675: TtkTokenKind;
-    function Func677: TtkTokenKind;
-    function Func687: TtkTokenKind;
-    function Func688: TtkTokenKind;
-    function Func716: TtkTokenKind;
-    function Func719: TtkTokenKind;
-    function Func727: TtkTokenKind;
-    function Func728: TtkTokenKind;
-    function Func731: TtkTokenKind;
-    function Func734: TtkTokenKind;
-    function Func740: TtkTokenKind;
-    function Func741: TtkTokenKind;
-    function Func743: TtkTokenKind;
-    function Func746: TtkTokenKind;
-    function Func749: TtkTokenKind;
-    function Func750: TtkTokenKind;
-    function Func752: TtkTokenKind;
-    function Func753: TtkTokenKind;
-    function Func754: TtkTokenKind;
-    function Func759: TtkTokenKind;
-    function Func761: TtkTokenKind;
-    function Func762: TtkTokenKind;
-    function Func763: TtkTokenKind;
-    function Func764: TtkTokenKind;
-    function Func765: TtkTokenKind;
-    function Func768: TtkTokenKind;
-    function Func769: TtkTokenKind;
-    function Func773: TtkTokenKind;
-    function Func774: TtkTokenKind;
-    function Func775: TtkTokenKind;
-    function Func815: TtkTokenKind;
-    function Func821: TtkTokenKind;
-    function Func841: TtkTokenKind;
-    function Func842: TtkTokenKind;
-    function Func845: TtkTokenKind;
-    function Func853: TtkTokenKind;
-    function Func855: TtkTokenKind;
-    function Func857: TtkTokenKind;
-    function Func860: TtkTokenKind;
-    function Func864: TtkTokenKind;
-    function Func867: TtkTokenKind;
-    function Func868: TtkTokenKind;
-    function Func869: TtkTokenKind;
-    function Func870: TtkTokenKind;
-    function Func873: TtkTokenKind;
-    function Func874: TtkTokenKind;
-    function Func876: TtkTokenKind;
-    function Func877: TtkTokenKind;
-    function Func878: TtkTokenKind;
-    function Func881: TtkTokenKind;
-    function Func883: TtkTokenKind;
-    function Func890: TtkTokenKind;
-    function Func892: TtkTokenKind;
-    function Func906: TtkTokenKind;
-    function Func933: TtkTokenKind;
-    function Func954: TtkTokenKind;
-    function Func956: TtkTokenKind;
-    function Func965: TtkTokenKind;
-    function Func968: TtkTokenKind;
-    function Func974: TtkTokenKind;
-    function Func978: TtkTokenKind;
-    function Func981: TtkTokenKind;
-    function Func985: TtkTokenKind;
-    function Func986: TtkTokenKind;
-    function Func988: TtkTokenKind;
-    function Func1056: TtkTokenKind;
-    function Func1077: TtkTokenKind;
-    function Func1079: TtkTokenKind;
-    function Func1084: TtkTokenKind;
-    function Func1086: TtkTokenKind;
-    function Func1091: TtkTokenKind;
-    function Func1093: TtkTokenKind;
-    function Func1095: TtkTokenKind;
-    function Func1103: TtkTokenKind;
-    function Func1105: TtkTokenKind;
-    function Func1107: TtkTokenKind;
-    function Func1136: TtkTokenKind;
-    function Func1158: TtkTokenKind;
-    function Func1165: TtkTokenKind;
-    function Func1169: TtkTokenKind;
-    function Func1172: TtkTokenKind;
-    function Func1176: TtkTokenKind;
-    function Func1202: TtkTokenKind;
-    function Func1211: TtkTokenKind;
-    function Func1215: TtkTokenKind;
-    function Func1218: TtkTokenKind;
-    function Func1223: TtkTokenKind;
-    function Func1230: TtkTokenKind;
-    function Func1273: TtkTokenKind;
-    function Func1277: TtkTokenKind;
-    function Func1283: TtkTokenKind;
-    function Func1327: TtkTokenKind;
-    function Func1343: TtkTokenKind;
-    function Func1361: TtkTokenKind;
-    function Func1379: TtkTokenKind;
-    function Func1396: TtkTokenKind;
-    function Func1402: TtkTokenKind;
-    function Func1404: TtkTokenKind;
-    function Func1409: TtkTokenKind;
-    function Func1421: TtkTokenKind;
-    function Func1425: TtkTokenKind;
-    function Func1440: TtkTokenKind;
-    function Func1520: TtkTokenKind;
-    function Func1523: TtkTokenKind;
-    function Func1673: TtkTokenKind;
-    function Func1752: TtkTokenKind;
-    function Func1762: TtkTokenKind;
-    function Func1768: TtkTokenKind;
-    function Func2167: TtkTokenKind;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function Func36accumulator(Index: Integer): TtkTokenKind;
+    function Func36arg(Index: Integer): TtkTokenKind;
+    function Func36argv(Index: Integer): TtkTokenKind;
+    function Func36basetime(Index: Integer): TtkTokenKind;
+    function Func36child95error(Index: Integer): TtkTokenKind;
+    function Func36debugging(Index: Integer): TtkTokenKind;
+    function Func36effective95group95id(Index: Integer): TtkTokenKind;
+    function Func36effective95user95id(Index: Integer): TtkTokenKind;
+    function Func36egid(Index: Integer): TtkTokenKind;
+    function Func36env(Index: Integer): TtkTokenKind;
+    function Func36errno(Index: Integer): TtkTokenKind;
+    function Func36euid(Index: Integer): TtkTokenKind;
+    function Func36eval95error(Index: Integer): TtkTokenKind;
+    function Func36executable95name(Index: Integer): TtkTokenKind;
+    function Func36format95formfeed(Index: Integer): TtkTokenKind;
+    function Func36format95line95break95characters(Index: Integer): TtkTokenKind;
+    function Func36format95lines95left(Index: Integer): TtkTokenKind;
+    function Func36format95lines95per95page(Index: Integer): TtkTokenKind;
+    function Func36format95name(Index: Integer): TtkTokenKind;
+    function Func36format95page95number(Index: Integer): TtkTokenKind;
+    function Func36format95top95name(Index: Integer): TtkTokenKind;
+    function Func36gid(Index: Integer): TtkTokenKind;
+    function Func36inplace95edit(Index: Integer): TtkTokenKind;
+    function Func36input95line95number(Index: Integer): TtkTokenKind;
+    function Func36input95record95separator(Index: Integer): TtkTokenKind;
+    function Func36last95paren95match(Index: Integer): TtkTokenKind;
+    function Func36list95separator(Index: Integer): TtkTokenKind;
+    function Func36match(Index: Integer): TtkTokenKind;
+    function Func36multiline95matching(Index: Integer): TtkTokenKind;
+    function Func36nr(Index: Integer): TtkTokenKind;
+    function Func36ofmt(Index: Integer): TtkTokenKind;
+    function Func36ors(Index: Integer): TtkTokenKind;
+    function Func36os95error(Index: Integer): TtkTokenKind;
+    function Func36output95autoflush(Index: Integer): TtkTokenKind;
+    function Func36output95field95separator(Index: Integer): TtkTokenKind;
+    function Func36perl95version(Index: Integer): TtkTokenKind;
+    function Func36perldb(Index: Integer): TtkTokenKind;
+    function Func36pid(Index: Integer): TtkTokenKind;
+    function Func36postmatch(Index: Integer): TtkTokenKind;
+    function Func36prematch(Index: Integer): TtkTokenKind;
+    function Func36process95id(Index: Integer): TtkTokenKind;
+    function Func36program95name(Index: Integer): TtkTokenKind;
+    function Func36real95group95id(Index: Integer): TtkTokenKind;
+    function Func36real95user95id(Index: Integer): TtkTokenKind;
+    function Func36rs(Index: Integer): TtkTokenKind;
+    function Func36sig(Index: Integer): TtkTokenKind;
+    function Func36subscript95separator(Index: Integer): TtkTokenKind;
+    function Func36subsep(Index: Integer): TtkTokenKind;
+    function Func36system95fd95max(Index: Integer): TtkTokenKind;
+    function Func36uid(Index: Integer): TtkTokenKind;
+    function Func36warning(Index: Integer): TtkTokenKind;
+    function Func37inc(Index: Integer): TtkTokenKind;
+    function Func64argv(Index: Integer): TtkTokenKind;
+    function Func64inc(Index: Integer): TtkTokenKind;
+    function FuncAbs(Index: Integer): TtkTokenKind;
+    function FuncAccept(Index: Integer): TtkTokenKind;
+    function FuncAlarm(Index: Integer): TtkTokenKind;
+    function FuncAnd(Index: Integer): TtkTokenKind;
+    function FuncAtan2(Index: Integer): TtkTokenKind;
+    function FuncBind(Index: Integer): TtkTokenKind;
+    function FuncBinmode(Index: Integer): TtkTokenKind;
+    function FuncBless(Index: Integer): TtkTokenKind;
+    function FuncCaller(Index: Integer): TtkTokenKind;
+    function FuncChdir(Index: Integer): TtkTokenKind;
+    function FuncChmod(Index: Integer): TtkTokenKind;
+    function FuncChomp(Index: Integer): TtkTokenKind;
+    function FuncChop(Index: Integer): TtkTokenKind;
+    function FuncChown(Index: Integer): TtkTokenKind;
+    function FuncChr(Index: Integer): TtkTokenKind;
+    function FuncChroot(Index: Integer): TtkTokenKind;
+    function FuncClose(Index: Integer): TtkTokenKind;
+    function FuncClosedir(Index: Integer): TtkTokenKind;
+    function FuncCmp(Index: Integer): TtkTokenKind;
+    function FuncConnect(Index: Integer): TtkTokenKind;
+    function FuncConstant(Index: Integer): TtkTokenKind;
+    function FuncCos(Index: Integer): TtkTokenKind;
+    function FuncCrypt(Index: Integer): TtkTokenKind;
+    function FuncDbmclose(Index: Integer): TtkTokenKind;
+    function FuncDbmopen(Index: Integer): TtkTokenKind;
+    function FuncDefined(Index: Integer): TtkTokenKind;
+    function FuncDelete(Index: Integer): TtkTokenKind;
+    function FuncDiagnostics(Index: Integer): TtkTokenKind;
+    function FuncDie(Index: Integer): TtkTokenKind;
+    function FuncDo(Index: Integer): TtkTokenKind;
+    function FuncDump(Index: Integer): TtkTokenKind;
+    function FuncEach(Index: Integer): TtkTokenKind;
+    function FuncElse(Index: Integer): TtkTokenKind;
+    function FuncElsif(Index: Integer): TtkTokenKind;
+    function FuncEndgrent(Index: Integer): TtkTokenKind;
+    function FuncEndhostent(Index: Integer): TtkTokenKind;
+    function FuncEndnetent(Index: Integer): TtkTokenKind;
+    function FuncEndprotoent(Index: Integer): TtkTokenKind;
+    function FuncEndpwent(Index: Integer): TtkTokenKind;
+    function FuncEndservent(Index: Integer): TtkTokenKind;
+    function FuncEof(Index: Integer): TtkTokenKind;
+    function FuncEq(Index: Integer): TtkTokenKind;
+    function FuncEval(Index: Integer): TtkTokenKind;
+    function FuncExec(Index: Integer): TtkTokenKind;
+    function FuncExists(Index: Integer): TtkTokenKind;
+    function FuncExit(Index: Integer): TtkTokenKind;
+    function FuncExp(Index: Integer): TtkTokenKind;
+    function FuncFcntl(Index: Integer): TtkTokenKind;
+    function FuncFileno(Index: Integer): TtkTokenKind;
+    function FuncFlock(Index: Integer): TtkTokenKind;
+    function FuncFor(Index: Integer): TtkTokenKind;
+    function FuncForeach(Index: Integer): TtkTokenKind;
+    function FuncFork(Index: Integer): TtkTokenKind;
+    function FuncFormat(Index: Integer): TtkTokenKind;
+    function FuncFormline(Index: Integer): TtkTokenKind;
+    function FuncGe(Index: Integer): TtkTokenKind;
+    function FuncGetc(Index: Integer): TtkTokenKind;
+    function FuncGetgrent(Index: Integer): TtkTokenKind;
+    function FuncGetgrgid(Index: Integer): TtkTokenKind;
+    function FuncGetgrnam(Index: Integer): TtkTokenKind;
+    function FuncGethostbyaddr(Index: Integer): TtkTokenKind;
+    function FuncGethostbyname(Index: Integer): TtkTokenKind;
+    function FuncGethostent(Index: Integer): TtkTokenKind;
+    function FuncGetlogin(Index: Integer): TtkTokenKind;
+    function FuncGetnetbyaddr(Index: Integer): TtkTokenKind;
+    function FuncGetnetbyname(Index: Integer): TtkTokenKind;
+    function FuncGetnetent(Index: Integer): TtkTokenKind;
+    function FuncGetpeername(Index: Integer): TtkTokenKind;
+    function FuncGetpgrp(Index: Integer): TtkTokenKind;
+    function FuncGetppid(Index: Integer): TtkTokenKind;
+    function FuncGetpriority(Index: Integer): TtkTokenKind;
+    function FuncGetprotobyname(Index: Integer): TtkTokenKind;
+    function FuncGetprotobynumber(Index: Integer): TtkTokenKind;
+    function FuncGetprotoent(Index: Integer): TtkTokenKind;
+    function FuncGetpwent(Index: Integer): TtkTokenKind;
+    function FuncGetpwnam(Index: Integer): TtkTokenKind;
+    function FuncGetpwuid(Index: Integer): TtkTokenKind;
+    function FuncGetservbyname(Index: Integer): TtkTokenKind;
+    function FuncGetservbyport(Index: Integer): TtkTokenKind;
+    function FuncGetservent(Index: Integer): TtkTokenKind;
+    function FuncGetsockname(Index: Integer): TtkTokenKind;
+    function FuncGetsockopt(Index: Integer): TtkTokenKind;
+    function FuncGlob(Index: Integer): TtkTokenKind;
+    function FuncGmtime(Index: Integer): TtkTokenKind;
+    function FuncGoto(Index: Integer): TtkTokenKind;
+    function FuncGrep(Index: Integer): TtkTokenKind;
+    function FuncGt(Index: Integer): TtkTokenKind;
+    function FuncHex(Index: Integer): TtkTokenKind;
+    function FuncIf(Index: Integer): TtkTokenKind;
+    function FuncImport(Index: Integer): TtkTokenKind;
+    function FuncIndex(Index: Integer): TtkTokenKind;
+    function FuncInt(Index: Integer): TtkTokenKind;
+    function FuncInteger(Index: Integer): TtkTokenKind;
+    function FuncIoctl(Index: Integer): TtkTokenKind;
+    function FuncJoin(Index: Integer): TtkTokenKind;
+    function FuncKeys(Index: Integer): TtkTokenKind;
+    function FuncKill(Index: Integer): TtkTokenKind;
+    function FuncLast(Index: Integer): TtkTokenKind;
+    function FuncLc(Index: Integer): TtkTokenKind;
+    function FuncLcfirst(Index: Integer): TtkTokenKind;
+    function FuncLe(Index: Integer): TtkTokenKind;
+    function FuncLength(Index: Integer): TtkTokenKind;
+    function FuncLess(Index: Integer): TtkTokenKind;
+    function FuncLink(Index: Integer): TtkTokenKind;
+    function FuncListen(Index: Integer): TtkTokenKind;
+    function FuncLocal(Index: Integer): TtkTokenKind;
+    function FuncLocale(Index: Integer): TtkTokenKind;
+    function FuncLocaltime(Index: Integer): TtkTokenKind;
+    function FuncLog(Index: Integer): TtkTokenKind;
+    function FuncLstat(Index: Integer): TtkTokenKind;
+    function FuncLt(Index: Integer): TtkTokenKind;
+    function FuncM(Index: Integer): TtkTokenKind;
+    function FuncMap(Index: Integer): TtkTokenKind;
+    function FuncMkdir(Index: Integer): TtkTokenKind;
+    function FuncMsgctl(Index: Integer): TtkTokenKind;
+    function FuncMsgget(Index: Integer): TtkTokenKind;
+    function FuncMsgrcv(Index: Integer): TtkTokenKind;
+    function FuncMsgsnd(Index: Integer): TtkTokenKind;
+    function FuncMy(Index: Integer): TtkTokenKind;
+    function FuncNe(Index: Integer): TtkTokenKind;
+    function FuncNext(Index: Integer): TtkTokenKind;
+    function FuncNo(Index: Integer): TtkTokenKind;
+    function FuncNot(Index: Integer): TtkTokenKind;
+    function FuncOct(Index: Integer): TtkTokenKind;
+    function FuncOpen(Index: Integer): TtkTokenKind;
+    function FuncOpendir(Index: Integer): TtkTokenKind;
+    function FuncOr(Index: Integer): TtkTokenKind;
+    function FuncOrd(Index: Integer): TtkTokenKind;
+    function FuncPack(Index: Integer): TtkTokenKind;
+    function FuncPackage(Index: Integer): TtkTokenKind;
+    function FuncPipe(Index: Integer): TtkTokenKind;
+    function FuncPop(Index: Integer): TtkTokenKind;
+    function FuncPos(Index: Integer): TtkTokenKind;
+    function FuncPrint(Index: Integer): TtkTokenKind;
+    function FuncPush(Index: Integer): TtkTokenKind;
+    function FuncQ(Index: Integer): TtkTokenKind;
+    function FuncQq(Index: Integer): TtkTokenKind;
+    function FuncQuotemeta(Index: Integer): TtkTokenKind;
+    function FuncQw(Index: Integer): TtkTokenKind;
+    function FuncQx(Index: Integer): TtkTokenKind;
+    function FuncRand(Index: Integer): TtkTokenKind;
+    function FuncRead(Index: Integer): TtkTokenKind;
+    function FuncReaddir(Index: Integer): TtkTokenKind;
+    function FuncReadlink(Index: Integer): TtkTokenKind;
+    function FuncRecv(Index: Integer): TtkTokenKind;
+    function FuncRedo(Index: Integer): TtkTokenKind;
+    function FuncRef(Index: Integer): TtkTokenKind;
+    function FuncRename(Index: Integer): TtkTokenKind;
+    function FuncRequire(Index: Integer): TtkTokenKind;
+    function FuncReset(Index: Integer): TtkTokenKind;
+    function FuncReturn(Index: Integer): TtkTokenKind;
+    function FuncReverse(Index: Integer): TtkTokenKind;
+    function FuncRewinddir(Index: Integer): TtkTokenKind;
+    function FuncRindex(Index: Integer): TtkTokenKind;
+    function FuncRmdir(Index: Integer): TtkTokenKind;
+    function FuncScalar(Index: Integer): TtkTokenKind;
+    function FuncSeek(Index: Integer): TtkTokenKind;
+    function FuncSeekdir(Index: Integer): TtkTokenKind;
+    function FuncSelect(Index: Integer): TtkTokenKind;
+    function FuncSemctl(Index: Integer): TtkTokenKind;
+    function FuncSemget(Index: Integer): TtkTokenKind;
+    function FuncSemop(Index: Integer): TtkTokenKind;
+    function FuncSend(Index: Integer): TtkTokenKind;
+    function FuncSetgrent(Index: Integer): TtkTokenKind;
+    function FuncSethostent(Index: Integer): TtkTokenKind;
+    function FuncSetnetent(Index: Integer): TtkTokenKind;
+    function FuncSetpgrp(Index: Integer): TtkTokenKind;
+    function FuncSetpriority(Index: Integer): TtkTokenKind;
+    function FuncSetprotoent(Index: Integer): TtkTokenKind;
+    function FuncSetpwent(Index: Integer): TtkTokenKind;
+    function FuncSetservent(Index: Integer): TtkTokenKind;
+    function FuncSetsockopt(Index: Integer): TtkTokenKind;
+    function FuncShift(Index: Integer): TtkTokenKind;
+    function FuncShmctl(Index: Integer): TtkTokenKind;
+    function FuncShmget(Index: Integer): TtkTokenKind;
+    function FuncShmread(Index: Integer): TtkTokenKind;
+    function FuncShmwrite(Index: Integer): TtkTokenKind;
+    function FuncShutdown(Index: Integer): TtkTokenKind;
+    function FuncSigtrap(Index: Integer): TtkTokenKind;
+    function FuncSin(Index: Integer): TtkTokenKind;
+    function FuncSleep(Index: Integer): TtkTokenKind;
+    function FuncSocket(Index: Integer): TtkTokenKind;
+    function FuncSocketpair(Index: Integer): TtkTokenKind;
+    function FuncSort(Index: Integer): TtkTokenKind;
+    function FuncSplice(Index: Integer): TtkTokenKind;
+    function FuncSplit(Index: Integer): TtkTokenKind;
+    function FuncSprintf(Index: Integer): TtkTokenKind;
+    function FuncSqrt(Index: Integer): TtkTokenKind;
+    function FuncSrand(Index: Integer): TtkTokenKind;
+    function FuncStat(Index: Integer): TtkTokenKind;
+    function FuncStrict(Index: Integer): TtkTokenKind;
+    function FuncStudy(Index: Integer): TtkTokenKind;
+    function FuncSub(Index: Integer): TtkTokenKind;
+    function FuncSubs(Index: Integer): TtkTokenKind;
+    function FuncSubstr(Index: Integer): TtkTokenKind;
+    function FuncSymlink(Index: Integer): TtkTokenKind;
+    function FuncSyscall(Index: Integer): TtkTokenKind;
+    function FuncSysread(Index: Integer): TtkTokenKind;
+    function FuncSystem(Index: Integer): TtkTokenKind;
+    function FuncSyswrite(Index: Integer): TtkTokenKind;
+    function FuncTell(Index: Integer): TtkTokenKind;
+    function FuncTelldir(Index: Integer): TtkTokenKind;
+    function FuncTie(Index: Integer): TtkTokenKind;
+    function FuncTime(Index: Integer): TtkTokenKind;
+    function FuncTimes(Index: Integer): TtkTokenKind;
+    function FuncTr(Index: Integer): TtkTokenKind;
+    function FuncTruncate(Index: Integer): TtkTokenKind;
+    function FuncUc(Index: Integer): TtkTokenKind;
+    function FuncUcfirst(Index: Integer): TtkTokenKind;
+    function FuncUmask(Index: Integer): TtkTokenKind;
+    function FuncUndef(Index: Integer): TtkTokenKind;
+    function FuncUnless(Index: Integer): TtkTokenKind;
+    function FuncUnlink(Index: Integer): TtkTokenKind;
+    function FuncUnpack(Index: Integer): TtkTokenKind;
+    function FuncUnshift(Index: Integer): TtkTokenKind;
+    function FuncUntie(Index: Integer): TtkTokenKind;
+    function FuncUse(Index: Integer): TtkTokenKind;
+    function FuncUtime(Index: Integer): TtkTokenKind;
+    function FuncValues(Index: Integer): TtkTokenKind;
+    function FuncVars(Index: Integer): TtkTokenKind;
+    function FuncVec(Index: Integer): TtkTokenKind;
+    function FuncWait(Index: Integer): TtkTokenKind;
+    function FuncWaitpid(Index: Integer): TtkTokenKind;
+    function FuncWantarray(Index: Integer): TtkTokenKind;
+    function FuncWarn(Index: Integer): TtkTokenKind;
+    function FuncWhile(Index: Integer): TtkTokenKind;
+    function FuncWrite(Index: Integer): TtkTokenKind;
+    function FuncXor(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure InitIdent;
     procedure AndSymbolProc;
     procedure CRProc;
     procedure ColonProc;
@@ -358,27 +398,21 @@ type
     procedure SymbolProc;
     procedure XOrSymbolProc;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: string; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber:Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
+    function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -413,1636 +447,2807 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
+const
+  KeyWords: array[0..281] of WideString = (
+    '$ACCUMULATOR', '$ARG', '$ARGV', '$BASETIME', '$CHILD_ERROR', '$DEBUGGING', 
+    '$EFFECTIVE_GROUP_ID', '$EFFECTIVE_USER_ID', '$EGID', '$ENV', '$ERRNO', 
+    '$EUID', '$EVAL_ERROR', '$EXECUTABLE_NAME', '$FORMAT_FORMFEED', 
+    '$FORMAT_LINE_BREAK_CHARACTERS', '$FORMAT_LINES_LEFT', 
+    '$FORMAT_LINES_PER_PAGE', '$FORMAT_NAME', '$FORMAT_PAGE_NUMBER', 
+    '$FORMAT_TOP_NAME', '$GID', '$INPLACE_EDIT', '$INPUT_LINE_NUMBER', 
+    '$INPUT_RECORD_SEPARATOR', '$LAST_PAREN_MATCH', '$LIST_SEPARATOR', '$MATCH', 
+    '$MULTILINE_MATCHING', '$NR', '$OFMT', '$ORS', '$OS_ERROR', 
+    '$OUTPUT_AUTOFLUSH', '$OUTPUT_FIELD_SEPARATOR', '$PERL_VERSION', '$PERLDB', 
+    '$PID', '$POSTMATCH', '$PREMATCH', '$PROCESS_ID', '$PROGRAM_NAME', 
+    '$REAL_GROUP_ID', '$REAL_USER_ID', '$RS', '$SIG', '$SUBSCRIPT_SEPARATOR', 
+    '$SUBSEP', '$SYSTEM_FD_MAX', '$UID', '$WARNING', '%INC', '@ARGV', '@INC', 
+    'abs', 'accept', 'alarm', 'and', 'atan2', 'bind', 'binmode', 'bless', 
+    'caller', 'chdir', 'chmod', 'chomp', 'chop', 'chown', 'chr', 'chroot', 
+    'close', 'closedir', 'cmp', 'connect', 'constant', 'cos', 'crypt', 
+    'dbmclose', 'dbmopen', 'defined', 'delete', 'diagnostics', 'die', 'do', 
+    'dump', 'each', 'else', 'elsif', 'endgrent', 'endhostent', 'endnetent', 
+    'endprotoent', 'endpwent', 'endservent', 'eof', 'eq', 'eval', 'exec', 
+    'exists', 'exit', 'exp', 'fcntl', 'fileno', 'flock', 'for', 'foreach', 
+    'fork', 'format', 'formline', 'ge', 'getc', 'getgrent', 'getgrgid', 
+    'getgrnam', 'gethostbyaddr', 'gethostbyname', 'gethostent', 'getlogin', 
+    'getnetbyaddr', 'getnetbyname', 'getnetent', 'getpeername', 'getpgrp', 
+    'getppid', 'getpriority', 'getprotobyname', 'getprotobynumber', 
+    'getprotoent', 'getpwent', 'getpwnam', 'getpwuid', 'getservbyname', 
+    'getservbyport', 'getservent', 'getsockname', 'getsockopt', 'glob', 
+    'gmtime', 'goto', 'grep', 'gt', 'hex', 'if', 'import', 'index', 'int', 
+    'integer', 'ioctl', 'join', 'keys', 'kill', 'last', 'lc', 'lcfirst', 'le', 
+    'length', 'less', 'link', 'listen', 'local', 'locale', 'localtime', 'log', 
+    'lstat', 'lt', 'm', 'map', 'mkdir', 'msgctl', 'msgget', 'msgrcv', 'msgsnd', 
+    'my', 'ne', 'next', 'no', 'not', 'oct', 'open', 'opendir', 'or', 'ord', 
+    'pack', 'package', 'pipe', 'pop', 'pos', 'print', 'push', 'q', 'qq', 
+    'quotemeta', 'qw', 'qx', 'rand', 'read', 'readdir', 'readlink', 'recv', 
+    'redo', 'ref', 'rename', 'require', 'reset', 'return', 'reverse', 
+    'rewinddir', 'rindex', 'rmdir', 'scalar', 'seek', 'seekdir', 'select', 
+    'semctl', 'semget', 'semop', 'send', 'setgrent', 'sethostent', 'setnetent', 
+    'setpgrp', 'setpriority', 'setprotoent', 'setpwent', 'setservent', 
+    'setsockopt', 'shift', 'shmctl', 'shmget', 'shmread', 'shmwrite', 
+    'shutdown', 'sigtrap', 'sin', 'sleep', 'socket', 'socketpair', 'sort', 
+    'splice', 'split', 'sprintf', 'sqrt', 'srand', 'stat', 'strict', 'study', 
+    'sub', 'subs', 'substr', 'symlink', 'syscall', 'sysread', 'system', 
+    'syswrite', 'tell', 'telldir', 'tie', 'time', 'times', 'tr', 'truncate', 
+    'uc', 'ucfirst', 'umask', 'undef', 'unless', 'unlink', 'unpack', 'unshift', 
+    'untie', 'use', 'utime', 'values', 'vars', 'vec', 'wait', 'waitpid', 
+    'wantarray', 'warn', 'while', 'write', 'xor' 
+  );
 
-procedure MakeIdentTable;
-var
-  I: Char;
+  KeyIndices: array[0..2422] of Integer = (
+    -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    62, -1, -1, -1, -1, -1, -1, 133, -1, -1, -1, -1, -1, -1, -1, -1, 10, -1, -1, 
+    -1, -1, -1, -1, 212, 189, -1, -1, -1, -1, -1, -1, -1, 111, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 55, -1, 242, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 34, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 77, 247, 
+    -1, -1, 102, -1, -1, -1, -1, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1, -1, 
+    155, -1, -1, -1, -1, -1, -1, -1, -1, 9, -1, -1, -1, -1, -1, -1, -1, 254, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 253, -1, 273, -1, -1, -1, 180, -1, -1, -1, -1, 
+    41, -1, -1, 18, -1, 173, -1, -1, -1, -1, -1, -1, -1, -1, -1, 243, -1, 132, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 172, -1, 45, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 44, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 46, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 208, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 281, -1, 142, -1, -1, -1, -1, 233, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 23, -1, 7, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 87, 179, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    161, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 256, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 165, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 198, -1, -1, -1, -1, -1, 116, 124, -1, -1, 203, 47, -1, -1, -1, -1, 
+    150, -1, -1, -1, 205, -1, -1, 152, -1, -1, 271, -1, -1, -1, -1, 76, 92, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 186, -1, -1, -1, 207, -1, -1, -1, 
+    -1, -1, 72, -1, -1, -1, -1, -1, -1, -1, 175, -1, -1, -1, -1, -1, -1, 153, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 11, -1, 170, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 258, -1, -1, -1, -1, 99, -1, -1, -1, -1, 22, -1, -1, 33, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 135, -1, -1, -1, -1, -1, -1, -1, -1, 227, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    259, 228, -1, -1, -1, -1, 115, -1, -1, 215, -1, -1, -1, -1, -1, -1, -1, 167, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 158, 40, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 174, -1, 169, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, 59, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 197, -1, -1, 32, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 261, -1, -1, 
+    276, -1, -1, -1, -1, -1, -1, -1, -1, 266, -1, -1, -1, -1, 101, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 144, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 75, -1, -1, 38, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 134, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 190, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 262, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 239, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 202, -1, -1, 70, -1, -1, -1, -1, -1, -1, -1, -1, -1, 49, -1, -1, -1, -1, 
+    -1, -1, -1, 112, -1, -1, 20, -1, -1, -1, -1, -1, 238, -1, -1, 8, -1, 249, 
+    -1, -1, -1, -1, -1, -1, 246, -1, 232, 216, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 146, 54, -1, -1, -1, -1, -1, -1, -1, -1, 39, -1, -1, -1, -1, -1, -1, 
+    218, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    214, -1, -1, -1, -1, 277, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 31, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 89, 183, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 6, -1, -1, -1, 79, -1, -1, -1, 
+    -1, -1, 86, 63, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 53, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 267, 48, 131, 91, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 69, -1, -1, -1, -1, -1, 94, -1, -1, -1, -1, -1, -1, -1, 270, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 109, -1, 166, -1, 73, -1, -1, -1, -1, -1, 
+    -1, -1, 43, -1, -1, -1, -1, -1, -1, 279, -1, 26, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 68, -1, 280, -1, -1, -1, -1, 61, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 278, -1, 184, -1, -1, -1, -1, -1, -1, -1, -1, 206, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 264, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    163, -1, -1, -1, -1, 52, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 81, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 176, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 21, -1, -1, -1, -1, -1, 117, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 250, -1, -1, -1, -1, -1, -1, -1, 244, -1, -1, -1, 
+    -1, -1, 129, -1, -1, -1, -1, -1, 95, -1, 234, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 231, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 230, -1, 138, -1, -1, 
+    -1, -1, -1, 191, -1, 200, -1, -1, -1, 125, -1, -1, 268, 108, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 178, -1, -1, -1, -1, -1, -1, -1, 185, -1, -1, 66, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 194, -1, 222, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 143, -1, 226, 182, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, 
+    -1, -1, -1, -1, -1, -1, 251, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 192, -1, -1, -1, -1, -1, -1, -1, -1, 
+    113, -1, -1, -1, -1, -1, -1, -1, 37, -1, 71, -1, 15, -1, -1, -1, 154, 257, 
+    -1, -1, -1, -1, 209, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 160, -1, -1, -1, 126, -1, -1, -1, -1, -1, 58, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 140, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    240, -1, -1, -1, -1, -1, -1, 241, -1, -1, -1, -1, -1, -1, 275, -1, -1, -1, 
+    -1, -1, -1, -1, 36, -1, -1, -1, -1, -1, -1, -1, -1, 139, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 100, -1, -1, 13, -1, -1, -1, -1, -1, -1, -1, 177, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 223, -1, -1, -1, -1, -1, -1, 130, -1, -1, 97, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 224, -1, -1, -1, -1, -1, 196, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 120, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 114, -1, 148, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 93, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 168, -1, -1, -1, 274, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 137, 35, 159, -1, -1, -1, -1, -1, -1, -1, 260, -1, 
+    -1, -1, -1, -1, 24, -1, 118, 245, -1, -1, 88, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 211, 119, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 187, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 217, -1, -1, -1, -1, -1, 237, -1, -1, -1, -1, 188, 147, 
+    -1, 50, -1, -1, -1, -1, -1, -1, 103, -1, -1, -1, -1, -1, 96, 181, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 14, -1, -1, -1, 
+    -1, 210, 27, -1, 136, -1, -1, 106, -1, -1, -1, -1, -1, -1, -1, 107, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 236, -1, -1, -1, 
+    -1, 141, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 85, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 25, -1, 164, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 265, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 193, -1, -1, -1, -1, 67, -1, -1, -1, -1, -1, 
+    121, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 78, 
+    -1, -1, -1, 51, -1, -1, -1, -1, -1, -1, -1, -1, 151, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 98, 213, -1, -1, -1, -1, 5, 
+    -1, 219, -1, -1, -1, -1, 162, -1, -1, -1, -1, -1, 74, -1, -1, -1, -1, -1, 
+    -1, -1, 221, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 12, -1, 255, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 272, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 56, -1, -1, -1, -1, 83, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    82, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 195, 225, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 30, -1, -1, -1, -1, -1, -1, 171, 
+    -1, -1, -1, 157, 149, -1, -1, -1, -1, -1, -1, 127, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 42, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 252, -1, -1, -1, 65, 28, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    229, -1, -1, -1, -1, -1, -1, -1, 199, -1, -1, -1, 105, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 64, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 248, -1, -1, -1, -1, 104, -1, -1, 
+    -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 269, -1, -1, -1, -1, -1, -1, 
+    -1, 220, 110, -1, -1, -1, 128, -1, -1, -1, -1, 235, 263, -1, -1, -1, -1, -1, 
+    -1, -1, 201, -1, -1, -1, -1, -1, 29, -1, 156, -1, -1, -1, 19, -1, 123, -1, 
+    204, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 122, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 57, -1, -1, 145, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 84, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 90, -1, -1, -1, -1, -1, 
+    80, -1, -1, -1, -1 
+  );
+
+{$Q-}
+function TSynPerlSyn.HashKey(Str: PWideChar): Cardinal;
 begin
-  for I := #0 to #255 do
+  Result := 0;
+  while IsIdentChar(Str^) or (Str^ in [WideChar('$'), WideChar('%'), WideChar('@')]) do
   begin
-    Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else Identifiers[I] := False;
-    end;
-    Case I in['%', '@', '$', '_', 'a'..'z', 'A'..'Z'] of
-      True:
-        begin
-          if (I > #64) and (I < #91) then mHashTable[I] := Ord(I) - 64 else
-            if (I > #96) then mHashTable[I] := Ord(I) - 95;
-        end;
-    else mHashTable[I] := 0;
-    end;
+    Result := Result * 975 + Ord(Str^) * 515;
+    inc(Str);
   end;
+  Result := Result mod 2423;
+  fStringLen := Str - fToIdent;
+end;
+{$Q+}
+
+function TSynPerlSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
+var
+  Key: Cardinal;
+begin
+  fToIdent := MayBe;
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  else
+    Result := tkIdentifier;
 end;
 
 procedure TSynPerlSyn.InitIdent;
 var
-  I: Integer;
-begin
-  for I := 0 to 2167 do
-    Case I of
-      109: fIdentFuncTable[I] := Func109;
-      113: fIdentFuncTable[I] := Func113;
-      196: fIdentFuncTable[I] := Func196;
-      201: fIdentFuncTable[I] := Func201;
-      204: fIdentFuncTable[I] := Func204;
-      207: fIdentFuncTable[I] := Func207;
-      209: fIdentFuncTable[I] := Func209;
-      211: fIdentFuncTable[I] := Func211;
-      214: fIdentFuncTable[I] := Func214;
-      216: fIdentFuncTable[I] := Func216;
-      219: fIdentFuncTable[I] := Func219;
-      221: fIdentFuncTable[I] := Func221;
-      224: fIdentFuncTable[I] := Func224;
-      225: fIdentFuncTable[I] := Func225;
-      226: fIdentFuncTable[I] := Func226;
-      230: fIdentFuncTable[I] := Func230;
-      232: fIdentFuncTable[I] := Func232;
-      233: fIdentFuncTable[I] := Func233;
-      248: fIdentFuncTable[I] := Func248;
-      254: fIdentFuncTable[I] := Func254;
-      255: fIdentFuncTable[I] := Func255;
-      257: fIdentFuncTable[I] := Func257;
-      262: fIdentFuncTable[I] := Func262;
-      263: fIdentFuncTable[I] := Func263;
-      269: fIdentFuncTable[I] := Func269;
-      280: fIdentFuncTable[I] := Func280;
-      282: fIdentFuncTable[I] := Func282;
-      306: fIdentFuncTable[I] := Func306;
-      307: fIdentFuncTable[I] := Func307;
-      310: fIdentFuncTable[I] := Func310;
-      314: fIdentFuncTable[I] := Func314;
-      317: fIdentFuncTable[I] := Func317;
-      318: fIdentFuncTable[I] := Func318;
-      320: fIdentFuncTable[I] := Func320;
-      322: fIdentFuncTable[I] := Func322;
-      325: fIdentFuncTable[I] := Func325;
-      326: fIdentFuncTable[I] := Func326;
-      327: fIdentFuncTable[I] := Func327;
-      330: fIdentFuncTable[I] := Func330;
-      331: fIdentFuncTable[I] := Func331;
-      333: fIdentFuncTable[I] := Func333;
-      335: fIdentFuncTable[I] := Func335;
-      337: fIdentFuncTable[I] := Func337;
-      338: fIdentFuncTable[I] := Func338;
-      340: fIdentFuncTable[I] := Func340;
-      345: fIdentFuncTable[I] := Func345;
-      346: fIdentFuncTable[I] := Func346;
-      368: fIdentFuncTable[I] := Func368;
-      401: fIdentFuncTable[I] := Func401;
-      412: fIdentFuncTable[I] := Func412;
-      413: fIdentFuncTable[I] := Func413;
-      415: fIdentFuncTable[I] := Func415;
-      419: fIdentFuncTable[I] := Func419;
-      420: fIdentFuncTable[I] := Func420;
-      421: fIdentFuncTable[I] := Func421;
-      424: fIdentFuncTable[I] := Func424;
-      425: fIdentFuncTable[I] := Func425;
-      426: fIdentFuncTable[I] := Func426;
-      428: fIdentFuncTable[I] := Func428;
-      430: fIdentFuncTable[I] := Func430;
-      431: fIdentFuncTable[I] := Func431;
-      432: fIdentFuncTable[I] := Func432;
-      433: fIdentFuncTable[I] := Func433;
-      434: fIdentFuncTable[I] := Func434;
-      436: fIdentFuncTable[I] := Func436;
-      437: fIdentFuncTable[I] := Func437;
-      438: fIdentFuncTable[I] := Func438;
-      439: fIdentFuncTable[I] := Func439;
-      440: fIdentFuncTable[I] := Func440;
-      441: fIdentFuncTable[I] := Func441;
-      442: fIdentFuncTable[I] := Func442;
-      444: fIdentFuncTable[I] := Func444;
-      445: fIdentFuncTable[I] := Func445;
-      447: fIdentFuncTable[I] := Func447;
-      448: fIdentFuncTable[I] := Func448;
-      456: fIdentFuncTable[I] := Func456;
-      458: fIdentFuncTable[I] := Func458;
-      470: fIdentFuncTable[I] := Func470;
-      477: fIdentFuncTable[I] := Func477;
-      502: fIdentFuncTable[I] := Func502;
-      522: fIdentFuncTable[I] := Func522;
-      523: fIdentFuncTable[I] := Func523;
-      525: fIdentFuncTable[I] := Func525;
-      527: fIdentFuncTable[I] := Func527;
-      530: fIdentFuncTable[I] := Func530;
-      531: fIdentFuncTable[I] := Func531;
-      534: fIdentFuncTable[I] := Func534;
-      535: fIdentFuncTable[I] := Func535;
-      536: fIdentFuncTable[I] := Func536;
-      537: fIdentFuncTable[I] := Func537;
-      539: fIdentFuncTable[I] := Func539;
-      542: fIdentFuncTable[I] := Func542;
-      543: fIdentFuncTable[I] := Func543;
-      545: fIdentFuncTable[I] := Func545;
-      546: fIdentFuncTable[I] := Func546;
-      547: fIdentFuncTable[I] := Func547;
-      548: fIdentFuncTable[I] := Func548;
-      549: fIdentFuncTable[I] := Func549;
-      552: fIdentFuncTable[I] := Func552;
-      555: fIdentFuncTable[I] := Func555;
-      556: fIdentFuncTable[I] := Func556;
-      557: fIdentFuncTable[I] := Func557;
-      562: fIdentFuncTable[I] := Func562;
-      569: fIdentFuncTable[I] := Func569;
-      570: fIdentFuncTable[I] := Func570;
-      622: fIdentFuncTable[I] := Func622;
-      624: fIdentFuncTable[I] := Func624;
-      627: fIdentFuncTable[I] := Func627;
-      630: fIdentFuncTable[I] := Func630;
-      632: fIdentFuncTable[I] := Func632;
-      637: fIdentFuncTable[I] := Func637;
-      640: fIdentFuncTable[I] := Func640;
-      642: fIdentFuncTable[I] := Func642;
-      643: fIdentFuncTable[I] := Func643;
-      645: fIdentFuncTable[I] := Func645;
-      647: fIdentFuncTable[I] := Func647;
-      648: fIdentFuncTable[I] := Func648;
-      649: fIdentFuncTable[I] := Func649;
-      650: fIdentFuncTable[I] := Func650;
-      651: fIdentFuncTable[I] := Func651;
-      652: fIdentFuncTable[I] := Func652;
-      655: fIdentFuncTable[I] := Func655;
-      656: fIdentFuncTable[I] := Func656;
-      657: fIdentFuncTable[I] := Func657;
-      658: fIdentFuncTable[I] := Func658;
-      665: fIdentFuncTable[I] := Func665;
-      666: fIdentFuncTable[I] := Func666;
-      667: fIdentFuncTable[I] := Func667;
-      672: fIdentFuncTable[I] := Func672;
-      675: fIdentFuncTable[I] := Func675;
-      677: fIdentFuncTable[I] := Func677;
-      687: fIdentFuncTable[I] := Func687;
-      688: fIdentFuncTable[I] := Func688;
-      716: fIdentFuncTable[I] := Func716;
-      719: fIdentFuncTable[I] := Func719;
-      727: fIdentFuncTable[I] := Func727;
-      728: fIdentFuncTable[I] := Func728;
-      731: fIdentFuncTable[I] := Func731;
-      734: fIdentFuncTable[I] := Func734;
-      740: fIdentFuncTable[I] := Func740;
-      741: fIdentFuncTable[I] := Func741;
-      743: fIdentFuncTable[I] := Func743;
-      746: fIdentFuncTable[I] := Func746;
-      749: fIdentFuncTable[I] := Func749;
-      750: fIdentFuncTable[I] := Func750;
-      752: fIdentFuncTable[I] := Func752;
-      753: fIdentFuncTable[I] := Func753;
-      754: fIdentFuncTable[I] := Func754;
-      759: fIdentFuncTable[I] := Func759;
-      761: fIdentFuncTable[I] := Func761;
-      762: fIdentFuncTable[I] := Func762;
-      763: fIdentFuncTable[I] := Func763;
-      764: fIdentFuncTable[I] := Func764;
-      765: fIdentFuncTable[I] := Func765;
-      768: fIdentFuncTable[I] := Func768;
-      769: fIdentFuncTable[I] := Func769;
-      773: fIdentFuncTable[I] := Func773;
-      774: fIdentFuncTable[I] := Func774;
-      775: fIdentFuncTable[I] := Func775;
-      815: fIdentFuncTable[I] := Func815;
-      821: fIdentFuncTable[I] := Func821;
-      841: fIdentFuncTable[I] := Func841;
-      842: fIdentFuncTable[I] := Func842;
-      845: fIdentFuncTable[I] := Func845;
-      853: fIdentFuncTable[I] := Func853;
-      855: fIdentFuncTable[I] := Func855;
-      857: fIdentFuncTable[I] := Func857;
-      860: fIdentFuncTable[I] := Func860;
-      864: fIdentFuncTable[I] := Func864;
-      867: fIdentFuncTable[I] := Func867;
-      868: fIdentFuncTable[I] := Func868;
-      869: fIdentFuncTable[I] := Func869;
-      870: fIdentFuncTable[I] := Func870;
-      873: fIdentFuncTable[I] := Func873;
-      874: fIdentFuncTable[I] := Func874;
-      876: fIdentFuncTable[I] := Func876;
-      877: fIdentFuncTable[I] := Func877;
-      878: fIdentFuncTable[I] := Func878;
-      881: fIdentFuncTable[I] := Func881;
-      883: fIdentFuncTable[I] := Func883;
-      890: fIdentFuncTable[I] := Func890;
-      892: fIdentFuncTable[I] := Func892;
-      906: fIdentFuncTable[I] := Func906;
-      933: fIdentFuncTable[I] := Func933;
-      954: fIdentFuncTable[I] := Func954;
-      956: fIdentFuncTable[I] := Func956;
-      965: fIdentFuncTable[I] := Func965;
-      968: fIdentFuncTable[I] := Func968;
-      974: fIdentFuncTable[I] := Func974;
-      978: fIdentFuncTable[I] := Func978;
-      981: fIdentFuncTable[I] := Func981;
-      985: fIdentFuncTable[I] := Func985;
-      986: fIdentFuncTable[I] := Func986;
-      988: fIdentFuncTable[I] := Func988;
-      1056: fIdentFuncTable[I] := Func1056;
-      1077: fIdentFuncTable[I] := Func1077;
-      1079: fIdentFuncTable[I] := Func1079;
-      1084: fIdentFuncTable[I] := Func1084;
-      1086: fIdentFuncTable[I] := Func1086;
-      1091: fIdentFuncTable[I] := Func1091;
-      1093: fIdentFuncTable[I] := Func1093;
-      1095: fIdentFuncTable[I] := Func1095;
-      1103: fIdentFuncTable[I] := Func1103;
-      1105: fIdentFuncTable[I] := Func1105;
-      1107: fIdentFuncTable[I] := Func1107;
-      1136: fIdentFuncTable[I] := Func1136;
-      1158: fIdentFuncTable[I] := Func1158;
-      1165: fIdentFuncTable[I] := Func1165;
-      1169: fIdentFuncTable[I] := Func1169;
-      1172: fIdentFuncTable[I] := Func1172;
-      1176: fIdentFuncTable[I] := Func1176;
-      1202: fIdentFuncTable[I] := Func1202;
-      1211: fIdentFuncTable[I] := Func1211;
-      1215: fIdentFuncTable[I] := Func1215;
-      1218: fIdentFuncTable[I] := Func1218;
-      1223: fIdentFuncTable[I] := Func1223;
-      1230: fIdentFuncTable[I] := Func1230;
-      1273: fIdentFuncTable[I] := Func1273;
-      1277: fIdentFuncTable[I] := Func1277;
-      1283: fIdentFuncTable[I] := Func1283;
-      1327: fIdentFuncTable[I] := Func1327;
-      1343: fIdentFuncTable[I] := Func1343;
-      1361: fIdentFuncTable[I] := Func1361;
-      1379: fIdentFuncTable[I] := Func1379;
-      1396: fIdentFuncTable[I] := Func1396;
-      1402: fIdentFuncTable[I] := Func1402;
-      1404: fIdentFuncTable[I] := Func1404;
-      1409: fIdentFuncTable[I] := Func1409;
-      1421: fIdentFuncTable[I] := Func1421;
-      1425: fIdentFuncTable[I] := Func1425;
-      1440: fIdentFuncTable[I] := Func1440;
-      1520: fIdentFuncTable[I] := Func1520;
-      1523: fIdentFuncTable[I] := Func1523;
-      1673: fIdentFuncTable[I] := Func1673;
-      1752: fIdentFuncTable[I] := Func1752;
-      1762: fIdentFuncTable[I] := Func1762;
-      1768: fIdentFuncTable[I] := Func1768;
-      2167: fIdentFuncTable[I] := Func2167;
-    else fIdentFuncTable[I] := AltFunc;
-    end;
-end;
-
-function TSynPerlSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-  while ToHash^ in ['%', '@', '$', '_', '0'..'9', 'a'..'z', 'A'..'Z'] do
-  begin
-    inc(Result, Integer(ToHash^));
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end; { KeyHash }
-
-function TSynPerlSyn.KeyComp(const aKey: String): Boolean;
-var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Temp^ <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
-end; { KeyComp }
-
-function TSynPerlSyn.Func109: TtkTokenKind;
-begin
-  if KeyComp('m') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func113: TtkTokenKind;
-begin
-  if KeyComp('q') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func196: TtkTokenKind;
-begin
-  if KeyComp('$NR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func201: TtkTokenKind;
-begin
-  if KeyComp('$RS') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func204: TtkTokenKind;
-begin
-  if KeyComp('ge') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func207: TtkTokenKind;
-begin
-  if KeyComp('lc') then Result := tkKey else
-    if KeyComp('if') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func209: TtkTokenKind;
-begin
-  if KeyComp('le') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func211: TtkTokenKind;
-begin
-  if KeyComp('ne') then Result := tkOperator else
-    if KeyComp('do') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func214: TtkTokenKind;
-begin
-  if KeyComp('eq') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func216: TtkTokenKind;
-begin
-  if KeyComp('uc') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func219: TtkTokenKind;
-begin
-  if KeyComp('gt') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func221: TtkTokenKind;
-begin
-  if KeyComp('no') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func224: TtkTokenKind;
-begin
-  if KeyComp('lt') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func225: TtkTokenKind;
-begin
-  if KeyComp('or') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func226: TtkTokenKind;
-begin
-  if KeyComp('qq') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func230: TtkTokenKind;
-begin
-  if KeyComp('tr') then Result := tkKey else
-    if KeyComp('my') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func232: TtkTokenKind;
-begin
-  if KeyComp('qw') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func233: TtkTokenKind;
-begin
-  if KeyComp('qx') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func248: TtkTokenKind;
-begin
-  if KeyComp('$GID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func254: TtkTokenKind;
-begin
-  if KeyComp('$ARG') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func255: TtkTokenKind;
-begin
-  if KeyComp('%INC') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func257: TtkTokenKind;
-begin
-  if KeyComp('$PID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func262: TtkTokenKind;
-begin
-  if KeyComp('$UID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func263: TtkTokenKind;
-begin
-  if KeyComp('$SIG') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func269: TtkTokenKind;
-begin
-  if KeyComp('$ENV') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func280: TtkTokenKind;
-begin
-  if KeyComp('$ORS') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func282: TtkTokenKind;
-begin
-  if KeyComp('@INC') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func306: TtkTokenKind;
-begin
-  if KeyComp('die') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func307: TtkTokenKind;
-begin
-  if KeyComp('and') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func310: TtkTokenKind;
-begin
-  if KeyComp('abs') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func314: TtkTokenKind;
-begin
-  if KeyComp('eof') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func317: TtkTokenKind;
-begin
-  if KeyComp('ref') then Result := tkKey else
-    if KeyComp('chr') then Result := tkKey else
-      if KeyComp('$EGID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func318: TtkTokenKind;
-begin
-  if KeyComp('vec') then Result := tkKey else
-    if KeyComp('map') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func320: TtkTokenKind;
-begin
-  if KeyComp('cmp') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func322: TtkTokenKind;
-begin
-  if KeyComp('tie') then Result := tkKey else
-    if KeyComp('log') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func325: TtkTokenKind;
-begin
-  if KeyComp('hex') then Result := tkKey else
-    if KeyComp('ord') then Result := tkKey else
-      if KeyComp('cos') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func326: TtkTokenKind;
-begin
-  if KeyComp('oct') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func327: TtkTokenKind;
-begin
-  if KeyComp('for') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func330: TtkTokenKind;
-begin
-  if KeyComp('sin') then Result := tkKey else
-    if KeyComp('sub') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func331: TtkTokenKind;
-begin
-  if KeyComp('$EUID') then Result := tkVariable else
-    if KeyComp('int') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func333: TtkTokenKind;
-begin
-  if KeyComp('use') then Result := tkKey else
-    if KeyComp('exp') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func335: TtkTokenKind;
-begin
-  if KeyComp('pop') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func337: TtkTokenKind;
-begin
-  if KeyComp('not') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func338: TtkTokenKind;
-begin
-  if KeyComp('pos') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func340: TtkTokenKind;
-begin
-  if KeyComp('$ARGV') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func345: TtkTokenKind;
-begin
-  if KeyComp('xor') then Result := tkOperator else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func346: TtkTokenKind;
-begin
-  if KeyComp('$OFMT') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func368: TtkTokenKind;
-begin
-  if KeyComp('@ARGV') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func401: TtkTokenKind;
-begin
-  if KeyComp('$MATCH') then Result := tkVariable else
-    if KeyComp('each') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func412: TtkTokenKind;
-begin
-  if KeyComp('read') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func413: TtkTokenKind;
-begin
-  if KeyComp('bind') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func415: TtkTokenKind;
-begin
-  if KeyComp('pack') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func419: TtkTokenKind;
-begin
-  if KeyComp('getc') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func420: TtkTokenKind;
-begin
-  if KeyComp('glob') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func421: TtkTokenKind;
-begin
-  if KeyComp('exec') then Result := tkKey else
-    if KeyComp('rand') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func424: TtkTokenKind;
-begin
-  if KeyComp('seek') then Result := tkKey else
-    if KeyComp('eval') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func425: TtkTokenKind;
-begin
-  if KeyComp('else') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func426: TtkTokenKind;
-begin
-  if KeyComp('chop') then Result := tkKey else
-    if KeyComp('redo') then Result := tkKey else
-      if KeyComp('send') then Result := tkKey else
-        if KeyComp('$ERRNO') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func428: TtkTokenKind;
-begin
-  if KeyComp('kill') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func430: TtkTokenKind;
-begin
-  if KeyComp('grep') then Result := tkKey else
-    if KeyComp('pipe') then Result := tkKey else
-      if KeyComp('link') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func431: TtkTokenKind;
-begin
-  if KeyComp('time') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func432: TtkTokenKind;
-begin
-  if KeyComp('recv') then Result := tkKey else
-    if KeyComp('join') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func433: TtkTokenKind;
-begin
-  if KeyComp('tell') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func434: TtkTokenKind;
-begin
-  if KeyComp('open') then Result := tkKey else
-    if KeyComp('fork') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func436: TtkTokenKind;
-begin
-  if KeyComp('last') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func437: TtkTokenKind;
-begin
-  if KeyComp('wait') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func438: TtkTokenKind;
-begin
-  if KeyComp('dump') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func439: TtkTokenKind;
-begin
-  if KeyComp('less') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func440: TtkTokenKind;
-begin
-  if KeyComp('warn') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func441: TtkTokenKind;
-begin
-  if KeyComp('goto') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func442: TtkTokenKind;
-begin
-  if KeyComp('exit') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func444: TtkTokenKind;
-begin
-  if KeyComp('vars') then Result := tkPragma else
-    if KeyComp('keys') then Result := tkKey else
-      if KeyComp('stat') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func445: TtkTokenKind;
-begin
-  if KeyComp('subs') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func447: TtkTokenKind;
-begin
-  if KeyComp('next') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func448: TtkTokenKind;
-begin
-  if KeyComp('push') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func456: TtkTokenKind;
-begin
-  if KeyComp('sort') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func458: TtkTokenKind;
-begin
-  if KeyComp('sqrt') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func470: TtkTokenKind;
-begin
-  if KeyComp('atan2') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func477: TtkTokenKind;
-begin
-  if KeyComp('$PERLDB') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func502: TtkTokenKind;
-begin
-  if KeyComp('$SUBSEP') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func522: TtkTokenKind;
-begin
-  if KeyComp('chdir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func523: TtkTokenKind;
-begin
-  if KeyComp('local') then Result := tkKey else
-    if KeyComp('chmod') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func525: TtkTokenKind;
-begin
-  if KeyComp('alarm') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func527: TtkTokenKind;
-begin
-  if KeyComp('flock') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func530: TtkTokenKind;
-begin
-  if KeyComp('undef') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func531: TtkTokenKind;
-begin
-  if KeyComp('elsif') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func534: TtkTokenKind;
-begin
-  if KeyComp('close') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func535: TtkTokenKind;
-begin
-  if KeyComp('mkdir') then Result := tkKey else
-    if KeyComp('fcntl') then Result := tkKey else
-      if KeyComp('chomp') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func536: TtkTokenKind;
-begin
-  if KeyComp('index') then Result := tkKey else
-    if KeyComp('srand') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func537: TtkTokenKind;
-begin
-  if KeyComp('sleep') then Result := tkKey else
-    if KeyComp('while') then Result := tkKey else
-      if KeyComp('bless') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func539: TtkTokenKind;
-begin
-  if KeyComp('ioctl') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func542: TtkTokenKind;
-begin
-  if KeyComp('shift') then Result := tkKey else
-    if KeyComp('rmdir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func543: TtkTokenKind;
-begin
-  if KeyComp('chown') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func545: TtkTokenKind;
-begin
-  if KeyComp('umask') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func546: TtkTokenKind;
-begin
-  if KeyComp('times') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func547: TtkTokenKind;
-begin
-  if KeyComp('reset') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func548: TtkTokenKind;
-begin
-  if KeyComp('semop') then Result := tkKey else
-    if KeyComp('utime') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func549: TtkTokenKind;
-begin
-  if KeyComp('untie') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func552: TtkTokenKind;
-begin
-  if KeyComp('lstat') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func555: TtkTokenKind;
-begin
-  if KeyComp('write') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func556: TtkTokenKind;
-begin
-  if KeyComp('split') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func557: TtkTokenKind;
-begin
-  if KeyComp('print') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func562: TtkTokenKind;
-begin
-  if KeyComp('crypt') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func569: TtkTokenKind;
-begin
-  if KeyComp('study') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func570: TtkTokenKind;
-begin
-  if KeyComp('$WARNING') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func622: TtkTokenKind;
-begin
-  if KeyComp('$BASETIME') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func624: TtkTokenKind;
-begin
-  if KeyComp('locale') then Result := tkPragma else
-    if KeyComp('accept') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func627: TtkTokenKind;
-begin
-  if KeyComp('caller') then Result := tkKey else
-    if KeyComp('delete') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func630: TtkTokenKind;
-begin
-  if KeyComp('scalar') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func632: TtkTokenKind;
-begin
-  if KeyComp('rename') then Result := tkKey else
-    if KeyComp('$PREMATCH') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func637: TtkTokenKind;
-begin
-  if KeyComp('fileno') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func640: TtkTokenKind;
-begin
-  if KeyComp('splice') then Result := tkKey else
-    if KeyComp('select') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func642: TtkTokenKind;
-begin
-  if KeyComp('length') then Result := tkKey else
-    if KeyComp('unpack') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func643: TtkTokenKind;
-begin
-  if KeyComp('gmtime') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func645: TtkTokenKind;
-begin
-  if KeyComp('semget') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func647: TtkTokenKind;
-begin
-  if KeyComp('msgget') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func648: TtkTokenKind;
-begin
-  if KeyComp('shmget') then Result := tkKey else
-    if KeyComp('semctl') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func649: TtkTokenKind;
-begin
-  if KeyComp('socket') then Result := tkKey else
-    if KeyComp('format') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func650: TtkTokenKind;
-begin
-  if KeyComp('rindex') then Result := tkKey else
-    if KeyComp('msgctl') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func651: TtkTokenKind;
-begin
-  if KeyComp('shmctl') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func652: TtkTokenKind;
-begin
-  if KeyComp('msgsnd') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func655: TtkTokenKind;
-begin
-  if KeyComp('listen') then Result := tkKey else
-    if KeyComp('chroot') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func656: TtkTokenKind;
-begin
-  if KeyComp('values') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func657: TtkTokenKind;
-begin
-  if KeyComp('unlink') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func658: TtkTokenKind;
-begin
-  if KeyComp('msgrcv') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func665: TtkTokenKind;
-begin
-  if KeyComp('strict') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func666: TtkTokenKind;
-begin
-  if KeyComp('unless') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func667: TtkTokenKind;
-begin
-  if KeyComp('import') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func672: TtkTokenKind;
-begin
-  if KeyComp('return') then Result := tkKey else
-    if KeyComp('exists') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func675: TtkTokenKind;
-begin
-  if KeyComp('substr') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func677: TtkTokenKind;
-begin
-  if KeyComp('system') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func687: TtkTokenKind;
-begin
-  if KeyComp('$OS_ERROR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func688: TtkTokenKind;
-begin
-  if KeyComp('$DEBUGGING') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func716: TtkTokenKind;
-begin
-  if KeyComp('package') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func719: TtkTokenKind;
-begin
-  if KeyComp('defined') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func727: TtkTokenKind;
-begin
-  if KeyComp('$POSTMATCH') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func728: TtkTokenKind;
-begin
-  if KeyComp('foreach') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func731: TtkTokenKind;
-begin
-  if KeyComp('readdir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func734: TtkTokenKind;
-begin
-  if KeyComp('binmode') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func740: TtkTokenKind;
-begin
-  if KeyComp('shmread') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func741: TtkTokenKind;
-begin
-  if KeyComp('dbmopen') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func743: TtkTokenKind;
-begin
-  if KeyComp('seekdir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func746: TtkTokenKind;
-begin
-  if KeyComp('connect') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func749: TtkTokenKind;
-begin
-  if KeyComp('getppid') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func750: TtkTokenKind;
-begin
-  if KeyComp('integer') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func752: TtkTokenKind;
-begin
-  if KeyComp('telldir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func753: TtkTokenKind;
-begin
-  if KeyComp('opendir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func754: TtkTokenKind;
-begin
-  if KeyComp('waitpid') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func759: TtkTokenKind;
-begin
-  if KeyComp('lcfirst') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func761: TtkTokenKind;
-begin
-  if KeyComp('getpgrp') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func762: TtkTokenKind;
-begin
-  if KeyComp('sigtrap') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func763: TtkTokenKind;
-begin
-  if KeyComp('sysread') then Result := tkKey else
-    if KeyComp('syscall') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func764: TtkTokenKind;
-begin
-  if KeyComp('reverse') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func765: TtkTokenKind;
-begin
-  if KeyComp('require') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func768: TtkTokenKind;
-begin
-  if KeyComp('ucfirst') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func769: TtkTokenKind;
-begin
-  if KeyComp('unshift') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func773: TtkTokenKind;
-begin
-  if KeyComp('setpgrp') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func774: TtkTokenKind;
-begin
-  if KeyComp('sprintf') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func775: TtkTokenKind;
-begin
-  if KeyComp('symlink') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func815: TtkTokenKind;
-begin
-  if KeyComp('$PROCESS_ID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func821: TtkTokenKind;
-begin
-  if KeyComp('$EVAL_ERROR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func841: TtkTokenKind;
-begin
-  if KeyComp('dbmclose') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func842: TtkTokenKind;
-begin
-  if KeyComp('readlink') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func845: TtkTokenKind;
-begin
-  if KeyComp('getgrgid') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func853: TtkTokenKind;
-begin
-  if KeyComp('getgrnam') then Result := tkKey else
-    if KeyComp('closedir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func855: TtkTokenKind;
-begin
-  if KeyComp('endgrent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func857: TtkTokenKind;
-begin
-  if KeyComp('getlogin') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func860: TtkTokenKind;
-begin
-  if KeyComp('formline') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func864: TtkTokenKind;
-begin
-  if KeyComp('getgrent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func867: TtkTokenKind;
-begin
-  if KeyComp('getpwnam') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func868: TtkTokenKind;
-begin
-  if KeyComp('$ACCUMULATOR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func869: TtkTokenKind;
-begin
-  if KeyComp('endpwent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func870: TtkTokenKind;
-begin
-  if KeyComp('truncate') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func873: TtkTokenKind;
-begin
-  if KeyComp('getpwuid') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func874: TtkTokenKind;
-begin
-  if KeyComp('constant') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func876: TtkTokenKind;
-begin
-  if KeyComp('setgrent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func877: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_NAME') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func878: TtkTokenKind;
-begin
-  if KeyComp('getpwent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func881: TtkTokenKind;
-begin
-  if KeyComp('$CHILD_ERROR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func883: TtkTokenKind;
-begin
-  if KeyComp('shmwrite') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func890: TtkTokenKind;
-begin
-  if KeyComp('setpwent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func892: TtkTokenKind;
-begin
-  if KeyComp('shutdown') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func906: TtkTokenKind;
-begin
-  if KeyComp('syswrite') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func933: TtkTokenKind;
-begin
-  if KeyComp('$INPLACE_EDIT') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func954: TtkTokenKind;
-begin
-  if KeyComp('localtime') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func956: TtkTokenKind;
-begin
-  if KeyComp('$PROGRAM_NAME') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func965: TtkTokenKind;
-begin
-  if KeyComp('endnetent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func968: TtkTokenKind;
-begin
-  if KeyComp('rewinddir') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func974: TtkTokenKind;
-begin
-  if KeyComp('getnetent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func978: TtkTokenKind;
-begin
-  if KeyComp('$REAL_USER_ID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func981: TtkTokenKind;
-begin
-  if KeyComp('quotemeta') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func985: TtkTokenKind;
-begin
-  if KeyComp('wantarray') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func986: TtkTokenKind;
-begin
-  if KeyComp('setnetent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func988: TtkTokenKind;
-begin
-  if KeyComp('$PERL_VERSION') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1056: TtkTokenKind;
-begin
-  if KeyComp('$REAL_GROUP_ID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1077: TtkTokenKind;
-begin
-  if KeyComp('socketpair') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1079: TtkTokenKind;
-begin
-  if KeyComp('$SYSTEM_FD_MAX') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1084: TtkTokenKind;
-begin
-  if KeyComp('endhostent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1086: TtkTokenKind;
-begin
-  if KeyComp('endservent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1091: TtkTokenKind;
-begin
-  if KeyComp('getsockopt') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1093: TtkTokenKind;
-begin
-  if KeyComp('gethostent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1095: TtkTokenKind;
-begin
-  if KeyComp('getservent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1103: TtkTokenKind;
-begin
-  if KeyComp('setsockopt') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1105: TtkTokenKind;
-begin
-  if KeyComp('sethostent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1107: TtkTokenKind;
-begin
-  if KeyComp('setservent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1136: TtkTokenKind;
-begin
-  if KeyComp('$LIST_SEPARATOR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1158: TtkTokenKind;
-begin
-  if KeyComp('$EXECUTABLE_NAME') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1165: TtkTokenKind;
-begin
-  if KeyComp('getpeername') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1169: TtkTokenKind;
-begin
-  if KeyComp('getsockname') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1172: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_FORMFEED') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1176: TtkTokenKind;
-begin
-  if KeyComp('diagnostics') then Result := tkPragma else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1202: TtkTokenKind;
-begin
-  if KeyComp('endprotoent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1211: TtkTokenKind;
-begin
-  if KeyComp('getprotoent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1215: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_TOP_NAME') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1218: TtkTokenKind;
-begin
-  if KeyComp('getpriority') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1223: TtkTokenKind;
-begin
-  if KeyComp('setprotoent') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1230: TtkTokenKind;
-begin
-  if KeyComp('setpriority') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1273: TtkTokenKind;
-begin
-  if KeyComp('$LAST_PAREN_MATCH') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1277: TtkTokenKind;
-begin
-  if KeyComp('getnetbyaddr') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1283: TtkTokenKind;
-begin
-  if KeyComp('getnetbyname') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1327: TtkTokenKind;
-begin
-  if KeyComp('$OUTPUT_AUTOFLUSH') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1343: TtkTokenKind;
-begin
-  if KeyComp('$EFFECTIVE_USER_ID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1361: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_LINES_LEFT') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1379: TtkTokenKind;
-begin
-  if KeyComp('$INPUT_LINE_NUMBER') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1396: TtkTokenKind;
-begin
-  if KeyComp('gethostbyaddr') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1402: TtkTokenKind;
-begin
-  if KeyComp('gethostbyname') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1404: TtkTokenKind;
-begin
-  if KeyComp('getservbyname') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1409: TtkTokenKind;
-begin
-  if KeyComp('$MULTILINE_MATCHING') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1421: TtkTokenKind;
-begin
-  if KeyComp('$EFFECTIVE_GROUP_ID') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1425: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_PAGE_NUMBER') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1440: TtkTokenKind;
-begin
-  if KeyComp('getservbyport') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1520: TtkTokenKind;
-begin
-  if KeyComp('getprotobyname') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1523: TtkTokenKind;
-begin
-  if KeyComp('$SUBSCRIPT_SEPARATOR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1673: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_LINES_PER_PAGE') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1752: TtkTokenKind;
-begin
-  if KeyComp('getprotobynumber') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1762: TtkTokenKind;
-begin
-  if KeyComp('$INPUT_RECORD_SEPARATOR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func1768: TtkTokenKind;
-begin
-  if KeyComp('$OUTPUT_FIELD_SEPARATOR') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.Func2167: TtkTokenKind;
-begin
-  if KeyComp('$FORMAT_LINE_BREAK_CHARACTERS') then Result := tkVariable else Result := tkIdentifier;
-end;
-
-function TSynPerlSyn.AltFunc: TtkTokenKind;
+  i: Integer;
+begin
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  fIdentFuncTable[368] := Func36accumulator;
+  fIdentFuncTable[2] := Func36arg;
+  fIdentFuncTable[804] := Func36argv;
+  fIdentFuncTable[2272] := Func36basetime;
+  fIdentFuncTable[626] := Func36child95error;
+  fIdentFuncTable[2026] := Func36debugging;
+  fIdentFuncTable[981] := Func36effective95group95id;
+  fIdentFuncTable[317] := Func36effective95user95id;
+  fIdentFuncTable[876] := Func36egid;
+  fIdentFuncTable[141] := Func36env;
+  fIdentFuncTable[35] := Func36errno;
+  fIdentFuncTable[495] := Func36euid;
+  fIdentFuncTable[2067] := Func36eval95error;
+  fIdentFuncTable[1589] := Func36executable95name;
+  fIdentFuncTable[1835] := Func36format95formfeed;
+  fIdentFuncTable[1465] := Func36format95line95break95characters;
+  fIdentFuncTable[1415] := Func36format95lines95left;
+  fIdentFuncTable[201] := Func36format95lines95per95page;
+  fIdentFuncTable[172] := Func36format95name;
+  fIdentFuncTable[2319] := Func36format95page95number;
+  fIdentFuncTable[867] := Func36format95top95name;
+  fIdentFuncTable[1237] := Func36gid;
+  fIdentFuncTable[519] := Func36inplace95edit;
+  fIdentFuncTable[315] := Func36input95line95number;
+  fIdentFuncTable[1733] := Func36input95record95separator;
+  fIdentFuncTable[1923] := Func36last95paren95match;
+  fIdentFuncTable[1093] := Func36list95separator;
+  fIdentFuncTable[1841] := Func36match;
+  fIdentFuncTable[2201] := Func36multiline95matching;
+  fIdentFuncTable[2313] := Func36nr;
+  fIdentFuncTable[2149] := Func36ofmt;
+  fIdentFuncTable[955] := Func36ors;
+  fIdentFuncTable[648] := Func36os95error;
+  fIdentFuncTable[522] := Func36output95autoflush;
+  fIdentFuncTable[97] := Func36output95field95separator;
+  fIdentFuncTable[1718] := Func36perl95version;
+  fIdentFuncTable[1568] := Func36perldb;
+  fIdentFuncTable[1461] := Func36pid;
+  fIdentFuncTable[723] := Func36postmatch;
+  fIdentFuncTable[908] := Func36prematch;
+  fIdentFuncTable[594] := Func36process95id;
+  fIdentFuncTable[169] := Func36program95name;
+  fIdentFuncTable[2182] := Func36real95group95id;
+  fIdentFuncTable[1084] := Func36real95user95id;
+  fIdentFuncTable[238] := Func36rs;
+  fIdentFuncTable[220] := Func36sig;
+  fIdentFuncTable[261] := Func36subscript95separator;
+  fIdentFuncTable[427] := Func36subsep;
+  fIdentFuncTable[1016] := Func36system95fd95max;
+  fIdentFuncTable[856] := Func36uid;
+  fIdentFuncTable[1803] := Func36warning;
+  fIdentFuncTable[1992] := Func37inc;
+  fIdentFuncTable[1181] := Func64argv;
+  fIdentFuncTable[1004] := Func64inc;
+  fIdentFuncTable[899] := FuncAbs;
+  fIdentFuncTable[79] := FuncAccept;
+  fIdentFuncTable[2102] := FuncAlarm;
+  fIdentFuncTable[2365] := FuncAnd;
+  fIdentFuncTable[1501] := FuncAtan2;
+  fIdentFuncTable[630] := FuncBind;
+  fIdentFuncTable[125] := FuncBinmode;
+  fIdentFuncTable[1110] := FuncBless;
+  fIdentFuncTable[19] := FuncCaller;
+  fIdentFuncTable[992] := FuncChdir;
+  fIdentFuncTable[2236] := FuncChmod;
+  fIdentFuncTable[2200] := FuncChomp;
+  fIdentFuncTable[1341] := FuncChop;
+  fIdentFuncTable[1964] := FuncChown;
+  fIdentFuncTable[1103] := FuncChr;
+  fIdentFuncTable[1046] := FuncChroot;
+  fIdentFuncTable[846] := FuncClose;
+  fIdentFuncTable[1463] := FuncClosedir;
+  fIdentFuncTable[470] := FuncCmp;
+  fIdentFuncTable[1076] := FuncConnect;
+  fIdentFuncTable[2039] := FuncConstant;
+  fIdentFuncTable[720] := FuncCos;
+  fIdentFuncTable[447] := FuncCrypt;
+  fIdentFuncTable[111] := FuncDbmclose;
+  fIdentFuncTable[1988] := FuncDbmopen;
+  fIdentFuncTable[985] := FuncDefined;
+  fIdentFuncTable[2418] := FuncDelete;
+  fIdentFuncTable[1194] := FuncDiagnostics;
+  fIdentFuncTable[2120] := FuncDie;
+  fIdentFuncTable[2107] := FuncDo;
+  fIdentFuncTable[2381] := FuncDump;
+  fIdentFuncTable[1909] := FuncEach;
+  fIdentFuncTable[991] := FuncElse;
+  fIdentFuncTable[341] := FuncElsif;
+  fIdentFuncTable[1739] := FuncEndgrent;
+  fIdentFuncTable[967] := FuncEndhostent;
+  fIdentFuncTable[2412] := FuncEndnetent;
+  fIdentFuncTable[1018] := FuncEndprotoent;
+  fIdentFuncTable[448] := FuncEndpwent;
+  fIdentFuncTable[1681] := FuncEndservent;
+  fIdentFuncTable[1052] := FuncEof;
+  fIdentFuncTable[1278] := FuncEq;
+  fIdentFuncTable[1816] := FuncEval;
+  fIdentFuncTable[1618] := FuncExec;
+  fIdentFuncTable[2020] := FuncExists;
+  fIdentFuncTable[514] := FuncExit;
+  fIdentFuncTable[1586] := FuncExp;
+  fIdentFuncTable[686] := FuncFcntl;
+  fIdentFuncTable[115] := FuncFileno;
+  fIdentFuncTable[1810] := FuncFlock;
+  fIdentFuncTable[2265] := FuncFor;
+  fIdentFuncTable[2225] := FuncForeach;
+  fIdentFuncTable[1846] := FuncFork;
+  fIdentFuncTable[1854] := FuncFormat;
+  fIdentFuncTable[1319] := FuncFormline;
+  fIdentFuncTable[1072] := FuncGe;
+  fIdentFuncTable[2289] := FuncGetc;
+  fIdentFuncTable[51] := FuncGetgrent;
+  fIdentFuncTable[864] := FuncGetgrgid;
+  fIdentFuncTable[1453] := FuncGetgrnam;
+  fIdentFuncTable[1663] := FuncGethostbyaddr;
+  fIdentFuncTable[567] := FuncGethostbyname;
+  fIdentFuncTable[422] := FuncGethostent;
+  fIdentFuncTable[1243] := FuncGetlogin;
+  fIdentFuncTable[1735] := FuncGetnetbyaddr;
+  fIdentFuncTable[1749] := FuncGetnetbyname;
+  fIdentFuncTable[1647] := FuncGetnetent;
+  fIdentFuncTable[1970] := FuncGetpeername;
+  fIdentFuncTable[2348] := FuncGetpgrp;
+  fIdentFuncTable[2321] := FuncGetppid;
+  fIdentFuncTable[423] := FuncGetpriority;
+  fIdentFuncTable[1315] := FuncGetprotobyname;
+  fIdentFuncTable[1495] := FuncGetprotobynumber;
+  fIdentFuncTable[2168] := FuncGetprotoent;
+  fIdentFuncTable[2293] := FuncGetpwent;
+  fIdentFuncTable[1272] := FuncGetpwnam;
+  fIdentFuncTable[1615] := FuncGetpwuid;
+  fIdentFuncTable[1017] := FuncGetservbyname;
+  fIdentFuncTable[186] := FuncGetservbyport;
+  fIdentFuncTable[26] := FuncGetservent;
+  fIdentFuncTable[737] := FuncGetsockname;
+  fIdentFuncTable[531] := FuncGetsockopt;
+  fIdentFuncTable[1843] := FuncGlob;
+  fIdentFuncTable[1717] := FuncGmtime;
+  fIdentFuncTable[1303] := FuncGoto;
+  fIdentFuncTable[1577] := FuncGrep;
+  fIdentFuncTable[1528] := FuncGt;
+  fIdentFuncTable[1896] := FuncHex;
+  fIdentFuncTable[292] := FuncIf;
+  fIdentFuncTable[1381] := FuncImport;
+  fIdentFuncTable[708] := FuncIndex;
+  fIdentFuncTable[2368] := FuncInt;
+  fIdentFuncTable[898] := FuncInteger;
+  fIdentFuncTable[1801] := FuncIoctl;
+  fIdentFuncTable[1665] := FuncJoin;
+  fIdentFuncTable[2161] := FuncKeys;
+  fIdentFuncTable[432] := FuncKill;
+  fIdentFuncTable[2001] := FuncLast;
+  fIdentFuncTable[439] := FuncLc;
+  fIdentFuncTable[485] := FuncLcfirst;
+  fIdentFuncTable[1469] := FuncLe;
+  fIdentFuncTable[132] := FuncLength;
+  fIdentFuncTable[2315] := FuncLess;
+  fIdentFuncTable[2160] := FuncLink;
+  fIdentFuncTable[593] := FuncListen;
+  fIdentFuncTable[1719] := FuncLocal;
+  fIdentFuncTable[1491] := FuncLocale;
+  fIdentFuncTable[357] := FuncLocaltime;
+  fIdentFuncTable[2033] := FuncLog;
+  fIdentFuncTable[1176] := FuncLstat;
+  fIdentFuncTable[1925] := FuncLt;
+  fIdentFuncTable[406] := FuncM;
+  fIdentFuncTable[1074] := FuncMap;
+  fIdentFuncTable[578] := FuncMkdir;
+  fIdentFuncTable[1701] := FuncMsgctl;
+  fIdentFuncTable[613] := FuncMsgget;
+  fIdentFuncTable[497] := FuncMsgrcv;
+  fIdentFuncTable[2156] := FuncMsgsnd;
+  fIdentFuncTable[218] := FuncMy;
+  fIdentFuncTable[174] := FuncNe;
+  fIdentFuncTable[611] := FuncNext;
+  fIdentFuncTable[478] := FuncNo;
+  fIdentFuncTable[1217] := FuncNot;
+  fIdentFuncTable[1597] := FuncOct;
+  fIdentFuncTable[1330] := FuncOpen;
+  fIdentFuncTable[342] := FuncOpendir;
+  fIdentFuncTable[164] := FuncOr;
+  fIdentFuncTable[1817] := FuncOrd;
+  fIdentFuncTable[1384] := FuncPack;
+  fIdentFuncTable[968] := FuncPackage;
+  fIdentFuncTable[1125] := FuncPipe;
+  fIdentFuncTable[1338] := FuncPop;
+  fIdentFuncTable[460] := FuncPos;
+  fIdentFuncTable[1768] := FuncPrint;
+  fIdentFuncTable[1800] := FuncPush;
+  fIdentFuncTable[43] := FuncQ;
+  fIdentFuncTable[777] := FuncQq;
+  fIdentFuncTable[1309] := FuncQuotemeta;
+  fIdentFuncTable[1444] := FuncQw;
+  fIdentFuncTable[1959] := FuncQx;
+  fIdentFuncTable[1367] := FuncRand;
+  fIdentFuncTable[2133] := FuncRead;
+  fIdentFuncTable[1635] := FuncReaddir;
+  fIdentFuncTable[645] := FuncReadlink;
+  fIdentFuncTable[416] := FuncRecv;
+  fIdentFuncTable[2221] := FuncRedo;
+  fIdentFuncTable[1311] := FuncRef;
+  fIdentFuncTable[2307] := FuncRename;
+  fIdentFuncTable[843] := FuncRequire;
+  fIdentFuncTable[426] := FuncReset;
+  fIdentFuncTable[2323] := FuncReturn;
+  fIdentFuncTable[436] := FuncReverse;
+  fIdentFuncTable[1134] := FuncRewinddir;
+  fIdentFuncTable[464] := FuncRindex;
+  fIdentFuncTable[272] := FuncRmdir;
+  fIdentFuncTable[1475] := FuncScalar;
+  fIdentFuncTable[1840] := FuncSeek;
+  fIdentFuncTable[1748] := FuncSeekdir;
+  fIdentFuncTable[42] := FuncSelect;
+  fIdentFuncTable[2021] := FuncSemctl;
+  fIdentFuncTable[933] := FuncSemget;
+  fIdentFuncTable[570] := FuncSemop;
+  fIdentFuncTable[888] := FuncSend;
+  fIdentFuncTable[1789] := FuncSetgrent;
+  fIdentFuncTable[915] := FuncSethostent;
+  fIdentFuncTable[2028] := FuncSetnetent;
+  fIdentFuncTable[2288] := FuncSetpgrp;
+  fIdentFuncTable[2047] := FuncSetpriority;
+  fIdentFuncTable[1369] := FuncSetprotoent;
+  fIdentFuncTable[1608] := FuncSetpwent;
+  fIdentFuncTable[1629] := FuncSetservent;
+  fIdentFuncTable[2134] := FuncSetsockopt;
+  fIdentFuncTable[1383] := FuncShift;
+  fIdentFuncTable[540] := FuncShmctl;
+  fIdentFuncTable[562] := FuncShmget;
+  fIdentFuncTable[2213] := FuncShmread;
+  fIdentFuncTable[1301] := FuncShmwrite;
+  fIdentFuncTable[1289] := FuncShutdown;
+  fIdentFuncTable[887] := FuncSigtrap;
+  fIdentFuncTable[297] := FuncSin;
+  fIdentFuncTable[1280] := FuncSleep;
+  fIdentFuncTable[2298] := FuncSocket;
+  fIdentFuncTable[1891] := FuncSocketpair;
+  fIdentFuncTable[1795] := FuncSort;
+  fIdentFuncTable[873] := FuncSplice;
+  fIdentFuncTable[830] := FuncSplit;
+  fIdentFuncTable[1546] := FuncSprintf;
+  fIdentFuncTable[1553] := FuncSqrt;
+  fIdentFuncTable[81] := FuncSrand;
+  fIdentFuncTable[184] := FuncStat;
+  fIdentFuncTable[1266] := FuncStrict;
+  fIdentFuncTable[1736] := FuncStudy;
+  fIdentFuncTable[885] := FuncSub;
+  fIdentFuncTable[112] := FuncSubs;
+  fIdentFuncTable[2260] := FuncSubstr;
+  fIdentFuncTable[878] := FuncSymlink;
+  fIdentFuncTable[1258] := FuncSyscall;
+  fIdentFuncTable[1422] := FuncSysread;
+  fIdentFuncTable[2196] := FuncSystem;
+  fIdentFuncTable[158] := FuncSyswrite;
+  fIdentFuncTable[149] := FuncTell;
+  fIdentFuncTable[2069] := FuncTelldir;
+  fIdentFuncTable[387] := FuncTie;
+  fIdentFuncTable[1470] := FuncTime;
+  fIdentFuncTable[509] := FuncTimes;
+  fIdentFuncTable[561] := FuncTr;
+  fIdentFuncTable[1727] := FuncTruncate;
+  fIdentFuncTable[669] := FuncUc;
+  fIdentFuncTable[819] := FuncUcfirst;
+  fIdentFuncTable[2299] := FuncUmask;
+  fIdentFuncTable[1162] := FuncUndef;
+  fIdentFuncTable[1946] := FuncUnless;
+  fIdentFuncTable[681] := FuncUnlink;
+  fIdentFuncTable[1015] := FuncUnpack;
+  fIdentFuncTable[1318] := FuncUnshift;
+  fIdentFuncTable[2280] := FuncUntie;
+  fIdentFuncTable[1060] := FuncUse;
+  fIdentFuncTable[442] := FuncUtime;
+  fIdentFuncTable[2080] := FuncValues;
+  fIdentFuncTable[160] := FuncVars;
+  fIdentFuncTable[1705] := FuncVec;
+  fIdentFuncTable[1560] := FuncWait;
+  fIdentFuncTable[672] := FuncWaitpid;
+  fIdentFuncTable[938] := FuncWantarray;
+  fIdentFuncTable[1123] := FuncWarn;
+  fIdentFuncTable[1091] := FuncWhile;
+  fIdentFuncTable[1105] := FuncWrite;
+  fIdentFuncTable[290] := FuncXor;
+end;
+
+function TSynPerlSyn.AltFunc(Index: Integer): TtkTokenKind;
 begin
   Result := tkIdentifier;
 end;
 
-function TSynPerlSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  HashKey: Integer;
+function TSynPerlSyn.Func36accumulator(Index: Integer): TtkTokenKind;
 begin
-  fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < 2168 then Result := fIdentFuncTable[HashKey] else Result := tkIdentifier;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
 end;
 
-procedure TSynPerlSyn.MakeMethodTables;
-var
-  I: Char;
+function TSynPerlSyn.Func36arg(Index: Integer): TtkTokenKind;
 begin
-  for I := #0 to #255 do
-    case I of
-      '&': fProcTable[I] := AndSymbolProc;
-      #13: fProcTable[I] := CRProc;
-      ':': fProcTable[I] := ColonProc;
-      '#': fProcTable[I] := CommentProc;
-      '=': fProcTable[I] := EqualProc;
-      '>': fProcTable[I] := GreaterProc;
-      '%', '@', '$', 'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      '<': fProcTable[I] := LowerProc;
-      '-': fProcTable[I] := MinusProc;
-      '!': fProcTable[I] := NotSymbolProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9', '.': fProcTable[I] := NumberProc;
-      '|': fProcTable[I] := OrSymbolProc;
-      '+': fProcTable[I] := PlusProc;
-      '/': fProcTable[I] := SlashProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      '*': fProcTable[I] := StarProc;
-      #34: fProcTable[I] := StringInterpProc;
-      #39: fProcTable[I] := StringLiteralProc;
-      '^': fProcTable[I] := XOrSymbolProc;
-      '(', ')', '[', ']', '\', '{', '}', ',', ';', '?', '~':
-        fProcTable[I] := SymbolProc;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36argv(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36basetime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36child95error(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36debugging(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36effective95group95id(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36effective95user95id(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36egid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36env(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36errno(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36euid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36eval95error(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36executable95name(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95formfeed(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95line95break95characters(Index: Integer):
+  TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95lines95left(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95lines95per95page(Index: Integer):
+  TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95name(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95page95number(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36format95top95name(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36gid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36inplace95edit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36input95line95number(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36input95record95separator(Index: Integer):
+  TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36last95paren95match(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36list95separator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36match(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36multiline95matching(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36nr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36ofmt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36ors(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36os95error(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36output95autoflush(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36output95field95separator(Index: Integer):
+  TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36perl95version(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36perldb(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36pid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36postmatch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36prematch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36process95id(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36program95name(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36real95group95id(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36real95user95id(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36rs(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36sig(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36subscript95separator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36subsep(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36system95fd95max(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36uid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func36warning(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func37inc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func64argv(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.Func64inc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkVariable
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncAbs(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncAccept(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncAlarm(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncAnd(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncAtan2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncBind(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncBinmode(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncBless(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncCaller(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChdir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChmod(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChomp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChop(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChown(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncChroot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncClose(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncClosedir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncCmp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncConnect(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncConstant(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncCos(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncCrypt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDbmclose(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDbmopen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDefined(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDelete(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDiagnostics(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDie(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncDump(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEach(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncElse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncElsif(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEndgrent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEndhostent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEndnetent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEndprotoent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEndpwent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEndservent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEof(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEq(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncEval(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncExec(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncExists(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncExit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncExp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFcntl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFileno(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFlock(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncForeach(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFork(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFormat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncFormline(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGe(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetgrent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetgrgid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetgrnam(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGethostbyaddr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGethostbyname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGethostent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetlogin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetnetbyaddr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetnetbyname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetnetent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetpeername(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetpgrp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetppid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetpriority(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetprotobyname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetprotobynumber(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetprotoent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetpwent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetpwnam(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetpwuid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetservbyname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetservbyport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetservent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetsockname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGetsockopt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGlob(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGmtime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGoto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGrep(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncGt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncHex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncIf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncImport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncIndex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncInt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncInteger(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncIoctl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncJoin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncKeys(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncKill(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLast(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLcfirst(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLe(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLength(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLess(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncListen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLocal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLocale(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLocaltime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLog(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLstat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncLt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncM(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMap(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMkdir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMsgctl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMsgget(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMsgrcv(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMsgsnd(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncMy(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncNe(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncNext(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncNo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncNot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncOct(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncOpen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncOpendir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncOr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncOrd(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPack(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPackage(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPipe(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPop(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPos(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPrint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncPush(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncQ(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncQq(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncQuotemeta(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncQw(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncQx(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRand(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRead(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncReaddir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncReadlink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRecv(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRedo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRef(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRename(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRequire(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncReset(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncReturn(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncReverse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRewinddir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRindex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncRmdir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncScalar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSeek(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSeekdir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSelect(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSemctl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSemget(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSemop(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSend(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetgrent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSethostent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetnetent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetpgrp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetpriority(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetprotoent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetpwent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetservent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSetsockopt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncShift(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncShmctl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncShmget(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncShmread(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncShmwrite(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncShutdown(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSigtrap(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSleep(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSocket(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSocketpair(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSort(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSplice(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSplit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSprintf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSqrt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSrand(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncStat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncStrict(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncStudy(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSub(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSubs(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSubstr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSymlink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSyscall(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSysread(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSystem(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncSyswrite(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTell(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTelldir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTie(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTimes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncTruncate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUcfirst(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUmask(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUndef(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUnless(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUnlink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUnpack(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUnshift(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUntie(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncUtime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncValues(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncVars(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkPragma
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncVec(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncWait(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncWaitpid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncWantarray(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncWarn(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncWhile(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncWrite(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynPerlSyn.FuncXor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkOperator
+  else
+    Result := tkIdentifier;
 end;
 
 constructor TSynPerlSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := True;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style:= [fsItalic];
   AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
+  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
   AddAttribute(fInvalidAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style:= [fsBold];
   AddAttribute(fKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
-  fOperatorAttri := TSynHighlighterAttributes.Create(SYNS_AttrOperator);
+  fOperatorAttri := TSynHighlighterAttributes.Create(SYNS_AttrOperator, SYNS_FriendlyAttrOperator);
   AddAttribute(fOperatorAttri);
-  fPragmaAttri := TSynHighlighterAttributes.Create(SYNS_AttrPragma);
+  fPragmaAttri := TSynHighlighterAttributes.Create(SYNS_AttrPragma, SYNS_FriendlyAttrPragma);
   fPragmaAttri.Style := [fsBold];
   AddAttribute(fPragmaAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
-  fSpaceAttri.Foreground := clWindow;
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
-  fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable);
+  fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
   fVariableAttri.Style := [fsBold];
   AddAttribute(fVariableAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterPerl;
 end; { Create }
-
-procedure TSynPerlSyn.SetLine(NewValue: String; LineNumber:Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end; { SetLine }
 
 procedure TSynPerlSyn.AndSymbolProc;
 begin
@@ -2156,7 +3361,7 @@ end;
 
 procedure TSynPerlSyn.IdentProc;
 begin
-  Case FLine[Run] of
+  case FLine[Run] of
     '$':
       begin
         Case FLine[Run + 1] of
@@ -2223,7 +3428,7 @@ begin
   {regular identifier}
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynPerlSyn.LFProc;
@@ -2309,9 +3514,21 @@ end;
 procedure TSynPerlSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynPerlSyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', '-', '_', '.', 'A'..'F', 'a'..'f', 'x', 'X':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   if FLine[Run] = '.' then
   begin
@@ -2341,8 +3558,7 @@ begin
   end;
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in
-      ['0'..'9', '-', '_', '.', 'A'..'F', 'a'..'f', 'x', 'X'] do
+  while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
@@ -2419,7 +3635,7 @@ procedure TSynPerlSyn.SpaceProc;
 begin
   inc(Run);
   fTokenID := tkSpace;
-  while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynPerlSyn.StarProc;
@@ -2511,11 +3727,6 @@ end;
 
 procedure TSynPerlSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -2523,7 +3734,32 @@ end;
 procedure TSynPerlSyn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case fLine[Run] of
+    '&': AndSymbolProc;
+    #13: CRProc;
+    ':': ColonProc;
+    '#': CommentProc;
+    '=': EqualProc;
+    '>': GreaterProc;
+    '%', '@', '$', 'A'..'Z', 'a'..'z', '_': IdentProc;
+    #10: LFProc;
+    '<': LowerProc;
+    '-': MinusProc;
+    '!': NotSymbolProc;
+    #0: NullProc;
+    '0'..'9', '.': NumberProc;
+    '|': OrSymbolProc;
+    '+': PlusProc;
+    '/': SlashProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    '*': StarProc;
+    #34: StringInterpProc;
+    #39: StringLiteralProc;
+    '^': XOrSymbolProc;
+    '(', ')', '[', ']', '\', '{', '}', ',', ';', '?', '~': SymbolProc;
+    else UnknownProc;
+  end;
+  inherited;
 end;
 
 function TSynPerlSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -2542,15 +3778,7 @@ end;
 
 function TSynPerlSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
-end;
-
-function TSynPerlSyn.GetToken: string;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynPerlSyn.GetTokenID: TtkTokenKind;
@@ -2581,17 +3809,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynPerlSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynPerlSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := ['%', '@', '$', '_', '0'..'9', 'a'..'z', 'A'..'Z'] + TSynSpecialChars;
-end;
-
-function TSynPerlSyn.GetSampleSource: string;
+function TSynPerlSyn.GetSampleSource: WideString;
 begin
   Result :=
     '#!/bin/perl'#13#10 +
@@ -2611,13 +3829,27 @@ begin
   Result := fDefaultFilter <> SYNS_FilterPerl;
 end;
 
+function TSynPerlSyn.IsIdentChar(AChar: WideChar): Boolean;
+begin
+  case AChar of
+    '%', '@', '$', '_', '0'..'9', 'a'..'z', 'A'..'Z':
+      Result := True;
+    else
+      Result := False;
+  end;
+end;
+
 class function TSynPerlSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangPerl;
 end;
 
+class function TSynPerlSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangPerl;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynPerlSyn);
 {$ENDIF}

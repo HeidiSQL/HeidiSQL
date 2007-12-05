@@ -24,7 +24,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditReg.pas,v 1.33 2004/06/13 17:22:40 maelh Exp $
+$Id: SynEditReg.pas,v 1.33.2.2 2004/10/18 15:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -137,7 +137,7 @@ uses
   SynEditExport,
   SynExportHTML,
   SynExportRTF,
-  SynExportTeX,
+  SynExportTeX,      
   SynHighlighterMulti,
   SynCompletionProposal,
   SynEditPythonBehaviour,
@@ -154,25 +154,25 @@ uses
   SynHighlighterADSP21xx,
   SynHighlighterAsm,
   SynHighlighterAWK,
-  SynHighlighterBaan,
+  SynHighlighterBaan, 
   SynHighlighterBat,
   SynHighlighterCAC,
   SynHighlighterCache,
-  SynHighlighterCobol,
+  SynHighlighterCobol,   
   SynHighlighterCpp,
   SynHighlighterCS,
   SynHighlighterCss,
   SynHighlighterDfm,
   SynHighlighterDml,
-  SynHighlighterDOT,
+  SynHighlighterDOT,   
   SynHighlighterEiffel,
   SynHighlighterFortran,
   SynHighlighterFoxpro,
   SynHighlighterGalaxy,
-  SynHighlighterGeneral,
+  SynHighlighterGeneral, 
   SynHighlighterHaskell,
   SynHighlighterHC11,
-  SynHighlighterHP48,
+  SynHighlighterHP48, 
   SynHighlighterHtml,
   SynHighlighterIni,
   SynHighlighterInno,
@@ -180,32 +180,32 @@ uses
   SynHighlighterJScript,
   SynHighlighterKix,
   SynHighlighterModelica,
-  SynHighlighterM3,
+  SynHighlighterM3,   
   SynHighlighterPas,
-  SynHighlighterPerl,
+  SynHighlighterPerl, 
   SynHighlighterPHP,
-  SynHighlighterProgress,
+  SynHighlighterProgress, 
   SynHighlighterPython,
   SynHighlighterRC,
-  SynHighlighterRuby,
+  SynHighlighterRuby, 
   SynHighlighterSml,
-  SynHighlighterSQL,
+  SynHighlighterSQL,  
   SynHighlighterTclTk,
   SynHighlighterTeX,
   SynHighlighterUNIXShellScript,
   SynHighlighterURI,
   SynHighlighterVB,
   SynHighlighterVBScript,
-  SynHighlighterVrml97,
+  SynHighlighterVrml97,  
   SynHighlighterGWS,
-  SynHighlighterCPM,
+  SynHighlighterCPM, 
   SynHighlighterSDD,
   SynHighlighterXML,
-  SynHighlighterMsg,
+  SynHighlighterMsg, 
   SynHighlighterIDL,
   SynHighlighterUnreal,
   SynHighlighterST,
-  SynHighlighterLDraw,
+  SynHighlighterLDraw,   
   SynURIOpener,
 {$ENDIF}
   Classes;
@@ -259,8 +259,8 @@ begin
     TSynCssSyn, TSynHTMLSyn, TSynJScriptSyn, TSynPHPSyn, TSynVBScriptSyn,
     TSynXMLSyn, TSynVrml97Syn,
     //interpreted
-    TSynAWKSyn, TSynBATSyn, TSynKixSyn, TSynPerlSyn, TSynPythonSyn,
-    TSynTclTkSyn, TSynGWScriptSyn, TSynRubySyn, TSynUNIXShellScriptSyn, 
+    TSynAWKSyn, TSynBATSyn, TSynKixSyn, TSynPerlSyn, TSynPythonSyn, 
+    TSynTclTkSyn, TSynGWScriptSyn, TSynRubySyn, TSynUNIXShellScriptSyn,
     //database
     TSynCACSyn, TSynCacheSyn, TSynFoxproSyn, TSynSQLSyn, TSynSDDSyn,
     //assembler
@@ -270,8 +270,8 @@ begin
     //data
     TSynDfmSyn, TSynIniSyn, TSynInnoSyn,
     // other
-    TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn,
-    TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, 
+    TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn, 
+    TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn,
     TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn
   ]);
 end;

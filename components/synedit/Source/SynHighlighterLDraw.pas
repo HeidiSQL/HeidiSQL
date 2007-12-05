@@ -13,6 +13,7 @@ The original code is: SynHighlighterLDraw.pas, released 2003-04-12.
 Description: LDraw Parser/Highlighter
 The initial author of this file is Orion Pobursky.
 Copyright (c) 2003, all rights reserved.
+Unicode translation by Maël Hörz.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
 Contributors.txt file.
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterLDraw.pas,v 1.8 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterLDraw.pas,v 1.7.2.6 2005/11/27 22:22:45 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -80,27 +81,15 @@ type
 
   TRangeState = (rsUnKnown);
 
-  TProcTableProc = procedure of object;
-
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
-
-const
-  MaxKey = 83;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
 type
   TSynLDRSyn = class(TSynCustomHighlighter)
   private
-    fLine: PChar;
-    fLineNumber: Integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
     fRange: TRangeState;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     fTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0 .. MaxKey] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..1] of TIdentFuncTableFunc;
     fColorAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
     fFirstTriAttri: TSynHighlighterAttributes;
@@ -113,39 +102,35 @@ type
     fSecondTriAttri: TSynHighlighterAttributes;
     fThirdTriAttri: TSynHighlighterAttributes;
     fTriangleAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: string): Boolean;
-    function Func83: TtkTokenKind;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function FuncAuthor(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure InitIdent;
     procedure IdentProc;
     procedure Number1Proc;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
     procedure NullProc;
     procedure CRProc;
     procedure LFProc;
-    function FirstChar(DatLine: PChar): Char;
+    function FirstChar(DatLine: PWideChar): WideChar;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: string; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
-    function GetKeyWords: string;
+    function GetKeyWords(TokenKind: Integer): WideString; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber: Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
+    function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
     property ColorAttri: TSynHighlighterAttributes read fColorAttri write fColorAttri;
@@ -171,126 +156,76 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable : array[#0..#255] of Integer;
+const
+  KeyWords: array[0..0] of WideString = (
+    'author' 
+  );
 
-{$IFDEF SYN_CLX}
-function RGB(CONST r, g, b:  BYTE):  TColor;
-begin
-  RESULT := (r OR (g SHL 8) OR (b SHL 16))
-end;
-{$ENDIF}
+  KeyIndices: array[0..1] of Integer = (
+    -1, 0 
+  );
 
-procedure MakeIdentTable;
-var
-  I, J: Char;
-begin
-  for I := #0 to #255 do
-  begin
-    case I of
-      '_', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else
-      Identifiers[I] := False;
-    end;
-    J := UpCase(I);
-    case I in ['_', 'A'..'Z', 'a'..'z'] of
-      True: mHashTable[I] := Ord(J) - 64
-    else
-      mHashTable[I] := 0;
-    end;
-  end;
-end;
-
-procedure TSynLDRSyn.InitIdent;
-var
-  I: Integer;
-  pF: PIdentFuncTableFunc;
-begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do
-  begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[83] := Func83;
-end;
-
-function TSynLDRSyn.KeyHash(ToHash: PChar): Integer;
+{$Q-}
+function TSynLDRSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
-  while ToHash^ in ['_', 'a'..'z', 'A'..'Z'] do
+  while IsIdentChar(Str^) do
   begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
+    Result := Result + Ord(Str^);
+    inc(Str);
   end;
-  fStringLen := ToHash - fToIdent;
+  Result := Result mod 2;
+  fStringLen := Str - fToIdent;
 end;
+{$Q+}
 
-function TSynLDRSyn.KeyComp(const aKey: String): Boolean;
+function TSynLDRSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if mHashTable[Temp^] <> mHashTable[aKey[i]] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end
-  else
-    Result := False;
-end;
-
-function TSynLDRSyn.Func83: TtkTokenKind;
-begin
-  if KeyComp('Author') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynLDRSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier;
-end;
-
-function TSynLDRSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  HashKey: Integer;
+  Key: Cardinal;
 begin
   fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey <= MaxKey then
-    Result := fIdentFuncTable[HashKey]
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
 
-procedure TSynLDRSyn.MakeMethodTables;
+procedure TSynLDRSyn.InitIdent;
 var
-  I: Char;
+  i: Integer;
 begin
-  for I := #0 to #255 do
-    case I of
-      #0: fProcTable[I] := NullProc;
-      #10: fProcTable[I] := LFProc;
-      #13: fProcTable[I] := CRProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      '0'..'9': fProcTable[I] := Number1Proc;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  fIdentFuncTable[1] := FuncAuthor;
+end;
+
+{$IFDEF SYN_CLX}
+function RGB(const R, G, B: Byte):  TColor;
+begin
+  Result := R or (G shl 8) or (B shl 16)
+end;
+{$ENDIF}
+
+function TSynLDRSyn.AltFunc(Index: Integer): TtkTokenKind;
+begin
+  Result := tkIdentifier;
+end;
+
+function TSynLDRSyn.FuncAuthor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
 end;
 
 procedure TSynLDRSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynLDRSyn.CRProc;
@@ -318,76 +253,66 @@ constructor TSynLDRSyn.Create(AOwner: TComponent);
 
 begin
   inherited Create(AOwner);
-  fColorAttri := TSynHighLighterAttributes.Create(SYNS_AttrColor);
+  fColorAttri := TSynHighLighterAttributes.Create(SYNS_AttrColor, SYNS_FriendlyAttrColor);
   fColorAttri.Foreground := clNavy;
   AddAttribute(fColorAttri);
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment);
+  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Foreground := clBlue;
   AddAttribute(fCommentAttri);
 
-  fFirstTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFirstTri);
+  fFirstTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFirstTri, SYNS_FriendlyAttrFirstTri);
   fFirstTriAttri.Foreground := RGB(206,111,73);
   AddAttribute(fFirstTriAttri);
 
-  fFourthTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFourthTri);
+  fFourthTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFourthTri, SYNS_FriendlyAttrFourthTri);
   fFourthTriAttri.Foreground := RGB(54,99,12);
   AddAttribute(fFourthTriAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
 
-  fLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrLine);
+  fLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrLine, SYNS_FriendlyAttrLine);
   fLineAttri.Foreground := clBlack;
   AddAttribute(fLineAttri);
 
-  fOpLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrOpLine);
+  fOpLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrOpLine, SYNS_FriendlyAttrOpLine);
   fOpLineAttri.Foreground := clBlack;
   AddAttribute(fOpLineAttri);
 
-  fQuadAttri := TSynHighLighterAttributes.Create(SYNS_AttrQuad);
+  fQuadAttri := TSynHighLighterAttributes.Create(SYNS_AttrQuad, SYNS_FriendlyAttrQuad);
   fQuadAttri.Foreground := clRed;
   AddAttribute(fQuadAttri);
 
-  fSecondTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrSecondTri);
+  fSecondTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrSecondTri, SYNS_FriendlyAttrSecondTri);
   fSecondTriAttri.Foreground := RGB(54,99,12);
   AddAttribute(fSecondTriAttri);
 
-  fThirdTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrThirdTri);
+  fThirdTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrThirdTri, SYNS_FriendlyAttrThirdTri);
   fThirdTriAttri.Foreground := RGB(206,111,73);
   AddAttribute(fThirdTriAttri);
 
-  fTriangleAttri := TSynHighLighterAttributes.Create(SYNS_AttrTriangle);
+  fTriangleAttri := TSynHighLighterAttributes.Create(SYNS_AttrTriangle, SYNS_FriendlyAttrTriangle);
   fTriangleAttri.Foreground := clBlack;
   AddAttribute(fTriangleAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterLDraw;
   fRange := rsUnknown;
 end;
 
-procedure TSynLDRSyn.SetLine(NewValue: String; LineNumber: Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end;
-
-function TSynLDRSyn.FirstChar(DatLine: PChar): Char;
+function TSynLDRSyn.FirstChar(DatLine: PWideChar): WideChar;
 var
-  index: Integer;
-
+  i: Integer;
 begin
-  index := 0;
-  while DATLine[index] = ' ' do inc(index);
-  Result := DATLine[index];
+  i := 0;
+  while DatLine[i] = ' ' do inc(i);
+  Result := DatLine[i];
 end;
 
 procedure TSynLDRSyn.IdentProc;
@@ -402,41 +327,39 @@ begin
   begin
     fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do
+  while IsIdentChar(fLine[Run]) do
     Inc(Run);
   end;
 end;
 
 procedure TSynLDRSyn.Number1Proc;
-  function ArgNumber(DatLine: PChar): Byte;
 
+  function ArgNumber(DatLine: PWideChar): Byte;
   var
-   index: Integer;
-   flag: Boolean;
-
+   i: Integer;
+   b: Boolean;
   begin
-    index := 0;
+    i := 0;
     Result := 0;
-    flag := false;
-    while index <= Run do 
+    b := False;
+    while i <= Run do
     begin
-      if DatLine[index] = ' ' then 
+      if DatLine[i] = ' ' then
       begin
-        inc(index);
-        flag := false;
+        inc(i);
+        b := False;
       end
       else
       begin
-        if flag = false then inc(Result);
-        flag := true;
-        inc(index)
+        if not b then inc(Result);
+        b := True;
+        inc(i)
       end;
     end;
   end;
 
 begin
   case ArgNumber(fLine) of
-  
     1: begin
          case fLine[Run] of
            '0': fTokenID := tkComment;
@@ -460,16 +383,11 @@ begin
     else
       fTokenID := tkIdentifier;
   end;
-  while FLine[Run] in ['0'..'9', '.'] do inc(Run);
+  while FLine[Run] in [WideChar('0')..WideChar('9'), WideChar('.')] do inc(Run);
 end;
 
 procedure TSynLDRSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -477,15 +395,23 @@ end;
 procedure TSynLDRSyn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case fLine[Run] of
+    #0: NullProc;
+    #10: LFProc;
+    #13: CRProc;
+    'A'..'Z', 'a'..'z', '_': IdentProc;
+    '0'..'9': Number1Proc;
+    else UnknownProc;
+  end;
+  inherited;
 end;
 
 function TSynLDRSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT    : Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER : Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD    : Result := fKeyAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
   else
     Result := nil;
   end;
@@ -493,21 +419,12 @@ end;
 
 function TSynLDRSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
-function TSynLDRSyn.GetKeyWords: string;
+function TSynLDRSyn.GetKeyWords(TokenKind: Integer): WideString;
 begin
-  Result := 
-    'Author';
-end;
-
-function TSynLDRSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
+  Result := 'Author';
 end;
 
 function TSynLDRSyn.GetTokenID: TtkTokenKind;
@@ -541,17 +458,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynLDRSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynLDRSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := ['_', 'a'..'z', 'A'..'Z', '0'..'9'];
-end;
-
-function TSynLDRSyn.GetSampleSource: string;
+function TSynLDRSyn.GetSampleSource: WideString;
 begin
   Result := #13#10 +
             'Sample source for: '#13#10 +
@@ -567,6 +474,16 @@ end;
 function TSynLDRSyn.IsFilterStored: Boolean;
 begin
   Result := fDefaultFilter <> SYNS_FilterLDraw;
+end;
+
+function TSynLDRSyn.IsIdentChar(AChar: WideChar): Boolean;
+begin
+  case AChar of
+    '_', 'A'..'Z', 'a'..'z':
+      Result := True;
+    else
+      Result := False;
+  end;
 end;
 
 class function TSynLDRSyn.GetLanguageName: string;
@@ -589,8 +506,12 @@ begin
   Result := Pointer(fRange);
 end;
 
+class function TSynLDRSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangLDraw;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynLDRSyn);
 {$ENDIF}

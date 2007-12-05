@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditOptionsDialog.pas,v 1.25 2005/12/31 07:34:36 skyweb Exp $
+$Id: SynEditOptionsDialog.pas,v 1.21.2.5 2005/07/20 13:37:18 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -96,7 +96,7 @@ type
   TColorPopup = (cpGutter, cpRightEdge);
   
   TSynEditorOptionsUserCommand = procedure(AUserCommand: Integer;
-                                           var ADescription: String) of object;
+                                           var ADescription: string) of object;
 
   //NOTE: in order for the user commands to be recorded correctly, you must
   //      put the command itself in the object property.
@@ -295,7 +295,7 @@ type
     function GetExtended: Boolean;
     procedure SetExtended(const Value: Boolean);
   public
-    constructor Create(AOwner : TComponent); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function Execute(EditOptions : TSynEditorOptionsContainer) : Boolean;
     property Form: TfmEditorOptionsDialog read FForm;
@@ -328,7 +328,6 @@ type
     FKeystrokes: TSynEditKeyStrokes;
     FOptions: TSynEditorOptions;
     FSynGutter: TSynGutter;
-    FWordBreakChars: String;
     FColor: TColor;
     procedure SetBookMarks(const Value: TSynBookMarkOpt);
     procedure SetFont(const Value: TFont);
@@ -336,7 +335,7 @@ type
     procedure SetOptions(const Value: TSynEditorOptions);
     procedure SetSynGutter(const Value: TSynGutter);
   public
-    constructor Create(AOwner : TComponent); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source : TPersistent); override;
     procedure AssignTo(Dest : TPersistent); override;
@@ -357,7 +356,6 @@ type
     property MaxUndo : Integer read FMaxUndo write FMaxUndo;
     property SelectedColor : TSynSelectedColor read FSelectedColor write FSelectedColor;
     property TabWidth : Integer read FTabWidth write FTabWidth;
-    property WordBreakChars : String read FWordBreakChars write FWordBreakChars;
     property Keystrokes : TSynEditKeyStrokes read FKeystrokes write SetKeystrokes;
   end;
 
@@ -447,7 +445,6 @@ begin
     Self.RightEdgeColor := TCustomSynEdit(Source).RightEdgeColor;
     Self.TabWidth := TCustomSynEdit(Source).TabWidth;
     Self.WantTabs := TCustomSynEdit(Source).WantTabs;
-//!!    Self.WordBreakChars := TSynEdit(Source).WordBreakChars;
   end else
     inherited;
 end;
@@ -504,7 +501,6 @@ begin
   RightEdgeColor := clSilver;
   TabWidth := 8;
   WantTabs := True;
-//!!  WordBreakChars:= '.,;:''"&!?$%#@<>[](){}^-=+-*/\|';
 end;
 
 destructor TSynEditorOptionsContainer.destroy;
@@ -585,8 +581,6 @@ begin
   //Line Spacing
   eLineSpacing.Text:= IntToStr(FSynEdit.ExtraLineSpacing);
   eTabWidth.Text:= IntToStr(FSynEdit.TabWidth);
-  //Break Chars
-//!!  eBreakchars.Text:= FSynEdit.WordBreakChars;
   //Bookmarks
   ckBookmarkKeys.Checked:= FSynEdit.BookMarkOptions.EnableKeys;
   ckBookmarkVisible.Checked:= FSynEdit.BookMarkOptions.GlyphsVisible;
@@ -665,8 +659,6 @@ begin
   //Line Spacing
   FSynEdit.ExtraLineSpacing:= StrToIntDef(eLineSpacing.Text, 0);
   FSynEdit.TabWidth:= StrToIntDef(eTabWidth.Text, 8);
-  //Break Chars
-//!!  FSynEdit.WordBreakChars:= eBreakchars.Text;
   //Bookmarks
   FSynEdit.BookMarkOptions.EnableKeys:= ckBookmarkKeys.Checked;
   FSynEdit.BookMarkOptions.GlyphsVisible:= ckBookmarkVisible.Checked;
@@ -830,7 +822,7 @@ end;
 procedure TfmEditorOptionsDialog.btnUpdateKeyClick(Sender: TObject);
 var Cmd          : Integer;
 {    KeyLoc       : Integer;
-    TmpCommand   : String;
+    TmpCommand   : string;
     OldShortcut  : TShortcut;
     OldShortcut2 : TShortcut;
 }
@@ -1009,15 +1001,15 @@ end;
 
 procedure TfmEditorOptionsDialog.cKeyCommandKeyPress(Sender: TObject;
   var Key: Char);
-var WorkStr : String;
+var WorkStr : string;
     i       : Integer;
 begin
 //This would be better if componentized, but oh well...
-  WorkStr := AnsiUppercase(Copy(cKeyCommand.Text, 1, cKeyCommand.SelStart) + Key);
+  WorkStr := Uppercase(Copy(cKeyCommand.Text, 1, cKeyCommand.SelStart) + Key);
   i := 0;
   While i < cKeyCommand.Items.Count do
   begin
-    if pos(WorkStr, AnsiUppercase(cKeyCommand.Items[i])) = 1 then
+    if pos(WorkStr, Uppercase(cKeyCommand.Items[i])) = 1 then
     begin
       cKeyCommand.Text := cKeyCommand.Items[i];
       cKeyCommand.SelStart := length(WorkStr);

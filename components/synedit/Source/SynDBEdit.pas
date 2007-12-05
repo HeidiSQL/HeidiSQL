@@ -12,6 +12,7 @@ The Original Code is: SynDBEdit.pas, released 2000-05-05.
 The Original Code is based on DBmwEdit.pas by Vladimir Kuznetsov, part of
 the mwEdit component suite.
 Portions created by Vladimir Kuznetsov are Copyright (C) 1999 Vladimir Kuznetsov.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynDBEdit.pas,v 1.11 2004/03/28 18:37:27 etrusco Exp $
+$Id: SynDBEdit.pas,v 1.11.2.1 2004/08/31 12:55:16 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -82,14 +83,10 @@ type
     procedure SetEditing(Value: Boolean);
     procedure UpdateData(Sender: TObject);
   private
-    {*****************}
   {$IFNDEF SYN_CLX}
-    procedure CMEnter(var Msg: TCMEnter);
-      message CM_ENTER;
-    procedure CMExit(var Msg: TCMExit);
-      message CM_EXIT;
-    procedure CMGetDataLink(var Msg: TMessage);
-      message CM_GETDATALINK;
+    procedure CMEnter(var Msg: TCMEnter); message CM_ENTER;
+    procedure CMExit(var Msg: TCMExit); message CM_EXIT;
+    procedure CMGetDataLink(var Msg: TMessage); message CM_GETDATALINK;
   {$ENDIF}
   protected
     function GetReadOnly: boolean; override;
@@ -100,7 +97,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
-    procedure ExecuteCommand(Command: TSynEditorCommand; AChar: char;
+    procedure ExecuteCommand(Command: TSynEditorCommand; AChar: WideChar;
       Data: pointer); override;
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
@@ -125,10 +122,10 @@ type
     property OnLoadData;
     // inherited properties
     property Align;
-{$IFDEF SYN_COMPILER_4_UP}
+  {$IFDEF SYN_COMPILER_4_UP}
     property Anchors;
     property Constraints;
-{$ENDIF}
+  {$ENDIF}
     property Color;
   {$IFNDEF SYN_CLX}
     property Ctl3D;
@@ -155,11 +152,11 @@ type
     property OnDblClick;
     property OnDragDrop;
     property OnDragOver;
-{$IFDEF SYN_COMPILER_4_UP}
+  {$IFDEF SYN_COMPILER_4_UP}
   {$IFNDEF SYN_CLX}
     property OnEndDock;
   {$ENDIF}
-{$ENDIF}
+  {$ENDIF}
     property OnEndDrag;
     property OnEnter;
     property OnExit;
@@ -169,11 +166,11 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-{$IFDEF SYN_COMPILER_4_UP}
+  {$IFDEF SYN_COMPILER_4_UP}
   {$IFNDEF SYN_CLX}
     property OnStartDock;
   {$ENDIF}
-{$ENDIF}
+  {$ENDIF}
     property OnStartDrag;
     // TCustomSynEdit properties
     property BookMarkOptions;
@@ -182,6 +179,10 @@ type
     property Gutter;
     property HideSelection;
     property Highlighter;
+{$IFNDEF SYN_CLX}
+    property ImeMode;
+    property ImeName;
+{$ENDIF}
     property InsertCaret;
     property InsertMode;
     property Keystrokes;
@@ -234,17 +235,13 @@ begin
   inherited Destroy;
 end;
 
-{*****************}
 {$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMEnter(var Msg: TCMEnter);
 begin
   SetEditing(True);
   inherited;
 end;
-{$ENDIF}
 
-{*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMExit(var Msg: TCMExit);
 begin
   try
@@ -256,10 +253,7 @@ begin
   SetEditing(False);
   inherited;
 end;
-{$ENDIF}
 
-{*****************}
-{$IFNDEF SYN_CLX}
 procedure TCustomDBSynEdit.CMGetDataLink(var Msg: TMessage);
 begin
   Msg.Result := Integer(FDataLink);
@@ -268,7 +262,8 @@ end;
 
 procedure TCustomDBSynEdit.DataChange(Sender: TObject);
 begin
-  if FDataLink.Field <> nil then begin
+  if FDataLink.Field <> nil then
+  begin
     if FBeginEdit then
     begin
       FBeginEdit := False;
@@ -282,7 +277,9 @@ begin
       Text := FDataLink.Field.Text;
     if Assigned(FLoadData) then
       FLoadData(Self);
-  end else begin
+  end
+  else
+  begin
     if csDesigning in ComponentState then
       Text := Name
     else
@@ -298,7 +295,8 @@ end;
 
 procedure TCustomDBSynEdit.EditingChange(Sender: TObject);
 begin
-  if FDataLink.Editing then begin
+  if FDataLink.Editing then
+  begin
     if Assigned(FDataLink.DataSource)
       and (FDataLink.DataSource.State <> dsInsert)
     then
@@ -307,7 +305,7 @@ begin
 end;
 
 procedure TCustomDBSynEdit.ExecuteCommand(Command: TSynEditorCommand;
-  AChar: char; Data: pointer);
+  AChar: WideChar; Data: pointer);
 begin
   // cancel on [ESC]
   if (Command = ecChar) and (AChar = #27) then
@@ -368,10 +366,10 @@ begin
     Lines.LoadFromStream(BlobStream);
     Lines.EndUpdate;
     BlobStream.Free;
-    Modified := false;
+    Modified := False;
     ClearUndo;
   except
-    { Memo too large }
+    // Memo too large 
     on E: EInvalidOperation do
       Lines.Text := Format('(%s)', [E.Message]);
   end;
@@ -408,7 +406,8 @@ end;
 
 procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
-  if fEditing <> Value then begin
+  if fEditing <> Value then
+  begin
     fEditing := Value;
 {$IFDEF SYN_COMPILER_3_UP}
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
@@ -443,12 +442,12 @@ end;
 function TCustomDBSynEdit.EventFilter(Sender: QObjectH;
   Event: QEventH): Boolean;
 begin
-  Result := inherited EventFilter( Sender, Event );
+  Result := inherited EventFilter(Sender, Event);
   case QEvent_type(Event) of
     QEventType_FocusIn:
-      SetEditing( True );
+      SetEditing(True);
     QEventType_FocusOut:
-      SetEditing( False );
+      SetEditing(False);
   end;
 end;
 {$ENDIF}

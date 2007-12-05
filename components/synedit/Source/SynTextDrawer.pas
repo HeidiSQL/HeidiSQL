@@ -17,6 +17,7 @@
   All Rights Reserved.
  ==============================================================================
   Contributor(s):   HANAI Tohru
+  Unicode translation by Maël Hörz.
  ==============================================================================
   History:  01/19/1999  HANAI Tohru
                         Initial Version
@@ -55,7 +56,7 @@
                         Added BaseStyle property to TheFontFont class.
  ==============================================================================}
 
-// $Id: SynTextDrawer.pas,v 1.6 2003/09/19 21:32:48 etrusco Exp $
+// $Id: SynTextDrawer.pas,v 1.6.2.11 2006/05/21 11:59:35 maelh Exp $
 
 // SynEdit note: The name had to be changed to get SynEdit to install 
 //   together with mwEdit into the same Delphi installation
@@ -67,16 +68,21 @@ unit SynTextDrawer;
 interface
 
 uses
+  SynUnicode,
   SysUtils,
   Classes,
   Windows,
-  Graphics;
+  Graphics,
+  Math;
 
 const
   FontStyleCount = Ord(High(TFontStyle)) +1;
   FontStyleCombineCount = (1 shl FontStyleCount);
   
 type
+  PIntegerArray = ^TIntegerArray;
+  TIntegerArray = array[0..MaxInt div SizeOf(Integer) - 1] of Integer;
+
   TheStockFontPatterns = 0..FontStyleCombineCount -1;
 
   PheFontData = ^TheFontData;
@@ -126,7 +132,7 @@ type
   { TheFontStock }
 
   TheExtTextOutProc = procedure (X, Y: Integer; fuOptions: UINT;
-    const ARect: TRect; Text: PChar; Length: Integer) of object;
+    const ARect: TRect; const Text: WideString; Length: Integer) of object;
 
   EheFontStockException = class(Exception);
 
@@ -189,14 +195,14 @@ type
 
     // Font information
     FFontStock: TheFontStock;
+    FStockBitmap: TBitmap;
     FCalcExtentBaseStyle: TFontStyles;
     FBaseCharWidth: Integer;
     FBaseCharHeight: Integer;
 
     // current font and properties
     FCrntFont: HFONT;
-    FETODist: Pointer;
-    FETOSizeInChar: Integer;
+    FETODist: PIntegerArray;
 
     // current font attributes
     FColor: TColor;
@@ -221,9 +227,13 @@ type
     function GetCharHeight: Integer; virtual;
     procedure BeginDrawing(DC: HDC); virtual;
     procedure EndDrawing; virtual;
-    procedure TextOut(X, Y: Integer; Text: PChar; Length: Integer); virtual;
-    procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; const ARect: TRect;
-      Text: PChar; Length: Integer); virtual;
+    procedure TextOut(X, Y: Integer; Text: PWideChar; Length: Integer); virtual;
+    procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; ARect: TRect;
+      const Text: WideString; Length: Integer); virtual;
+    function TextExtent(const Text: WideString): TSize; overload;
+    function TextExtent(Text: PWideChar; Count: Integer): TSize; overload;
+    function TextWidth(const Text: WideString): Integer; overload;
+    function TextWidth(Text: PWideChar; Count: Integer): Integer; overload;
     procedure SetBaseFont(Value: TFont); virtual;
     procedure SetBaseStyle(const Value: TFontStyles); virtual;
     procedure SetStyle(Value: TFontStyles); virtual;
@@ -264,16 +274,16 @@ type
     procedure AfterStyleSet; override;
     procedure DoSetCharExtra(Value: Integer); override;
     procedure TextOutOrExtTextOut(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; Text: PChar; Length: Integer); virtual;
+      const ARect: TRect; const Text: WideString; Length: Integer); virtual;
     procedure ExtTextOutFixed(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; Text: PChar; Length: Integer); virtual;
+      const ARect: TRect; const Text: WideString; Length: Integer); virtual;
     procedure ExtTextOutWithETO(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; Text: PChar; Length: Integer); virtual;
+      const ARect: TRect; const Text: WideString; Length: Integer); virtual;
     procedure ExtTextOutForDBCS(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; Text: PChar; Length: Integer); virtual;
+      const ARect: TRect; Text: PAnsiChar; Length: Integer); virtual;
   public
-    procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; const ARect: TRect;
-      Text: PChar; Length: Integer); override;
+    procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; ARect: TRect;
+      const Text: WideString; Length: Integer); override;
   end;
 
   function GetFontsInfoManager: TheFontsInfoManager;
@@ -290,7 +300,7 @@ type
 
 {$IFNDEF HE_LEADBYTES}
 type
-  TheLeadByteChars = set of Char;
+  TheLeadByteChars = set of AnsiChar;
 
   function SetLeadBytes(const Value: TheLeadByteChars): TheLeadByteChars;
 {$ENDIF}
@@ -503,7 +513,7 @@ end;
 procedure TheFontsInfoManager.RetrieveLogFontForComparison(ABaseFont: TFont;
   var LF: TLogFont);
 var
-  pEnd: PChar;
+  pEnd: PAnsiChar;
 begin
   GetObject(ABaseFont.Handle, SizeOf(TLogFont), @LF);
   with LF do
@@ -800,6 +810,7 @@ begin
   inherited Create;
 
   FFontStock := TheFontStock.Create(BaseFont);
+  FStockBitmap := TBitmap.Create;
   FCalcExtentBaseStyle := CalcExtentBaseStyle;
   SetBaseFont(BaseFont);
   FColor := clWindowText;
@@ -808,9 +819,10 @@ end;
 
 destructor TheTextDrawer.Destroy;
 begin
+  FStockBitmap.Free;
   FFontStock.Free;
   ReleaseETODist;
-
+  
   inherited;
 end;
 
@@ -818,7 +830,6 @@ procedure TheTextDrawer.ReleaseETODist;
 begin
   if Assigned(FETODist) then
   begin
-    FETOSizeInChar := 0;
     FreeMem(FETODist);
     FETODist := nil;
   end;
@@ -870,6 +881,8 @@ begin
   if Assigned(Value) then
   begin
     ReleaseETODist;
+    FStockBitmap.Canvas.Font.Assign(Value);
+    FStockBitmap.Canvas.Font.Style := [];
     with FFontStock do
     begin
       SetBaseFont(Value);
@@ -949,46 +962,103 @@ begin
     SetTextCharacterExtra(FDC, Value);
 end;
 
-procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PChar;
+procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PWideChar;
   Length: Integer);
 begin
-  Windows.TextOut(FDC, X, Y, Text, Length);
+  Windows.TextOutW(FDC, X, Y, Text, Length);
 end;
 
 procedure TheTextDrawer.ExtTextOut(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PChar; Length: Integer);
+  ARect: TRect; const Text: WideString; Length: Integer);
 
-  procedure InitETODist(InitValue: Integer);
-  const
-    EtoBlockSize = $40;          
+  procedure InitETODist(CharWidth: Integer);
   var
-    NewSize: Integer;
-    TmpLen: Integer;
-    p: PInteger;
+    Size: TSize;
     i: Integer;
   begin
-    TmpLen := ((not (EtoBlockSize - 1)) and Length) + EtoBlockSize;
-    NewSize := TmpLen * SizeOf(Integer);
-    ReallocMem(FETODist, NewSize);
-    p := PInteger(Integer(FETODist) + FETOSizeInChar * SizeOf(Integer));
-    for i := 1 to TmpLen - FETOSizeInChar do
+    ReallocMem(FETODist, Length * SizeOf(Integer));
+    for i := 1 to Length do
     begin
-      p^ := InitValue;
-      Inc(p);
+      Size := TextExtent(@Text[i], 1);
+      FETODist[i - 1] := Ceil(Size.cx / CharWidth) * CharWidth;
     end;
-    FETOSizeInChar := TmpLen;
+  end;
+
+  procedure AdjustLastCharWidthAndRect;
+  var
+    LastChar: Cardinal;
+    RealCharWidth, CharWidth: Integer;
+    CharInfo: TABC;
+    tm: TTextMetricA;
+  begin
+    if Length <= 0 then Exit;
+    
+    LastChar := Ord(Text[Length]);
+    CharWidth := FETODist[Length - 1];
+    RealCharWidth := CharWidth;
+    if Win32PlatformIsUnicode then
+    begin
+      if GetCharABCWidthsW(FDC, LastChar, LastChar, CharInfo) then
+      begin
+        RealCharWidth := CharInfo.abcA + Integer(CharInfo.abcB);
+        if CharInfo.abcC >= 0 then
+          Inc(RealCharWidth, CharInfo.abcC);
+      end
+      else if LastChar < Ord(High(AnsiChar)) then
+      begin
+        GetTextMetricsA(FDC, tm);
+        RealCharWidth := tm.tmAveCharWidth + tm.tmOverhang;
+      end;
+    end
+    else if WideChar(LastChar) <= High(AnsiChar) then
+    begin
+      if GetCharABCWidthsA(FDC, LastChar, LastChar, CharInfo) then
+      begin
+        RealCharWidth := CharInfo.abcA + Integer(CharInfo.abcB);
+        if CharInfo.abcC >= 0 then
+          Inc(RealCharWidth, CharInfo.abcC);
+      end
+      else if LastChar < Ord(High(AnsiChar)) then
+      begin
+        GetTextMetricsA(FDC, tm);
+        RealCharWidth := tm.tmAveCharWidth + tm.tmOverhang;
+      end;
+    end;
+    if RealCharWidth > CharWidth then
+      Inc(ARect.Right, RealCharWidth - CharWidth);
+    FETODist[Length - 1] := Max(RealCharWidth, CharWidth);
   end;
 
 begin
-  if FETOSizeInChar < Length then
-    InitETODist(GetCharWidth);
-  Windows.ExtTextOut(FDC, X, Y, fuOptions, @ARect, Text,
+  InitETODist(GetCharWidth);
+  AdjustLastCharWidthAndRect;
+  Windows.ExtTextOutW(FDC, X, Y, fuOptions, @ARect, PWideChar(Text),
     Length, PInteger(FETODist));
 end;
 
 procedure TheTextDrawer.ReleaseTemporaryResources;
 begin
   FFontStock.ReleaseFontHandles;
+end;
+
+function TheTextDrawer.TextExtent(const Text: WideString): TSize;
+begin
+  Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text);
+end;
+
+function TheTextDrawer.TextExtent(Text: PWideChar; Count: Integer): TSize;
+begin
+  Result := GetTextSize(FStockBitmap.Canvas.Handle, Text, Count);
+end;
+
+function TheTextDrawer.TextWidth(const Text: WideString): Integer;
+begin
+  Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
+end;
+
+function TheTextDrawer.TextWidth(Text: PWideChar; Count: Integer): Integer;
+begin
+  Result := GetTextSize(FStockBitmap.Canvas.Handle, Text, Count).cX;
 end;
 
 { TheTextDrawer2 }
@@ -1058,23 +1128,23 @@ begin
 end;
 
 procedure TheTextDrawerEx.ExtTextOut(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PChar; Length: Integer);
+  ARect: TRect; const Text: WideString; Length: Integer);
 begin
   FExtTextOutProc(X, Y, fuOptions, ARect, Text, Length);
 end;
 
 procedure TheTextDrawerEx.ExtTextOutFixed(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PChar; Length: Integer);
+  const ARect: TRect; const Text: WideString; Length: Integer);
 begin
-  Windows.ExtTextOut(StockDC, X, Y, fuOptions, @ARect, Text, Length, nil);
+  Windows.ExtTextOutW(StockDC, X, Y, fuOptions, @ARect, @Text[1], Length, nil);
 end;
 
 procedure TheTextDrawerEx.ExtTextOutForDBCS(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PChar; Length: Integer);
+  const ARect: TRect; Text: PAnsiChar; Length: Integer);
 var
-  pCrnt: PChar;
-  pTail: PChar;
-  pRun: PChar;
+  pCrnt: PAnsiChar;
+  pTail: PAnsiChar;
+  pRun: PAnsiChar;
 
   procedure GetSBCharRange;
   begin
@@ -1095,7 +1165,7 @@ var
 begin
   pCrnt := Text;
   pRun := Text;
-  pTail := PChar(Integer(Text) + Length);
+  pTail := PAnsiChar(Integer(Text) + Length);
   TmpRect := ARect;
   while pCrnt < pTail do
   begin
@@ -1140,13 +1210,13 @@ begin
 end;
 
 procedure TheTextDrawerEx.ExtTextOutWithETO(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PChar; Length: Integer);
+  const ARect: TRect; const Text: WideString; Length: Integer);
 begin
   inherited ExtTextOut(X, Y, fuOptions, ARect, Text, Length);
 end;
 
 procedure TheTextDrawerEx.TextOutOrExtTextOut(X, Y: Integer;
-  fuOptions: UINT; const ARect: TRect; Text: PChar; Length: Integer);
+  fuOptions: UINT; const ARect: TRect; const Text: WideString; Length: Integer);
 begin
   // this function may be used when:
   //  a. the text does not containing any multi-byte characters
@@ -1154,21 +1224,21 @@ begin
   //   a-1. current font is TrueType.
   //   a-2. current font is RasterType and it is not italicic.
   with ARect do
-    if Assigned(Text) and (Length > 0) and
+    if (Length > 0) and
        (Left = X) and (Top = Y) and
        ((Bottom - Top) = GetCharHeight) and
        (Left + GetCharWidth * (Length + 1) > Right) then
-    Windows.TextOut(StockDC, X, Y, Text, Length)
+    Windows.TextOutW(StockDC, X, Y, @Text[1], Length)
   else
-    Windows.ExtTextOut(StockDC, X, Y, fuOptions, @ARect, Text, Length, nil)
+    Windows.ExtTextOutW(StockDC, X, Y, fuOptions, @ARect, @Text[1], Length, nil)
 end;
 
 {$IFNDEF HE_LEADBYTES}
 procedure InitializeLeadBytes;
 var
-  c: Char;
+  c: AnsiChar;
 begin
-  for c := Low(Char) to High(Char) do
+  for c := Low(AnsiChar) to High(AnsiChar) do
     if IsDBCSLeadByte(Byte(c)) then
       Include(LeadBytes, c);
 end;

@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterCpp.pas, released 2000-04-10.
 The Original Code is based on the dcjCppSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Trier.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGWS.pas,v 1.14 2005/01/28 16:53:22 maelh Exp $
+$Id: SynHighlighterGWS.pas,v 1.13.2.6 2005/12/16 20:09:37 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -83,121 +84,102 @@ Type
 
   TRangeState = (rsAnsiC, rsUnKnown);
 
-  TProcTableProc = procedure of Object;
-
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function: TtkTokenKind of Object;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
   TSynGWScriptSyn = class(TSynCustomHighlighter)
-    private
-      fRange: TRangeState;
-      fLine: PChar;
-      fProcTable: array[#0..#255] of TProcTableProc;
-      Run: LongInt;
-      fStringLen: Integer;
-      fToIdent: PChar;
-      fTokenPos: Integer;
-      FTokenID: TtkTokenKind;
-      FExtTokenID: TxtkTokenKind;
-      fLineNumber: Integer;
-      fIdentFuncTable: array[0..206] of TIdentFuncTableFunc;
-      fCommentAttri: TSynHighlighterAttributes;
-      fIdentifierAttri: TSynHighlighterAttributes;
-      fInvalidAttri: TSynHighlighterAttributes;
-      fKeyAttri: TSynHighlighterAttributes;
-      fNumberAttri: TSynHighlighterAttributes;
-      fSpaceAttri: TSynHighlighterAttributes;
-      fStringAttri: TSynHighlighterAttributes;
-      fSymbolAttri: TSynHighlighterAttributes;
+  private
+    fRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FExtTokenID: TxtkTokenKind;
+    fIdentFuncTable: array[0..12] of TIdentFuncTableFunc;
+    fCommentAttri: TSynHighlighterAttributes;
+    fIdentifierAttri: TSynHighlighterAttributes;
+    fInvalidAttri: TSynHighlighterAttributes;
+    fKeyAttri: TSynHighlighterAttributes;
+    fNumberAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fStringAttri: TSynHighlighterAttributes;
+    fSymbolAttri: TSynHighlighterAttributes;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function FuncBool(Index: Integer): TtkTokenKind;
+    function FuncBreak(Index: Integer): TtkTokenKind;
+    function FuncChar(Index: Integer): TtkTokenKind;
+    function FuncDo(Index: Integer): TtkTokenKind;
+    function FuncElse(Index: Integer): TtkTokenKind;
+    function FuncFalse(Index: Integer): TtkTokenKind;
+    function FuncFor(Index: Integer): TtkTokenKind;
+    function FuncIf(Index: Integer): TtkTokenKind;
+    function FuncInt(Index: Integer): TtkTokenKind;
+    function FuncReturn(Index: Integer): TtkTokenKind;
+    function FuncString(Index: Integer): TtkTokenKind;
+    function FuncTrue(Index: Integer): TtkTokenKind;
+    function FuncWhile(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure AnsiCProc;
+    procedure AndSymbolProc;
+    procedure AsciiCharProc;
+    procedure AtSymbolProc;
+    procedure BraceCloseProc;
+    procedure BraceOpenProc;
+    procedure CRProc;
+    procedure ColonProc;
+    procedure CommaProc;
+    procedure EqualProc;
+    procedure GreaterProc;
+    procedure IdentProc;
+    procedure LFProc;
+    procedure LowerProc;
+    procedure MinusProc;
+    procedure ModSymbolProc;
+    procedure NotSymbolProc;
+    procedure NullProc;
+    procedure NumberProc;
+    procedure OrSymbolProc;
+    procedure PlusProc;
+    procedure PointProc;
+    procedure QuestionProc;
+    procedure RoundCloseProc;
+    procedure RoundOpenProc;
+    procedure SemiColonProc;
+    procedure SlashProc;
+    procedure SpaceProc;
+    procedure SquareCloseProc;
+    procedure SquareOpenProc;
+    procedure StarProc;
+    procedure StringProc;
+    procedure TildeProc;
+    procedure XOrSymbolProc;
+    procedure UnknownProc;
+    procedure InitIdent;
+  protected
+    function GetExtTokenID: TxtkTokenKind;
+    function IsFilterStored: Boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
+    function GetDefaultAttribute (Index: integer): TSynHighlighterAttributes; override;
+    function GetEol: Boolean; override;
+    function GetRange: Pointer; override;
+    function GetTokenID: TtkTokenKind;
+    function GetTokenAttribute: TSynHighlighterAttributes; override;
+    function GetTokenKind: integer; override;
+    procedure Next; override;
+    procedure SetRange(Value: Pointer); override;
+    procedure ResetRange; override;
 
-      function KeyHash(ToHash: PChar): Integer;
-      function KeyComp(const aKey: String): Boolean;
-      function Func17: TtkTokenKind;
-      function Func21: TtkTokenKind;
-      function Func34: TtkTokenKind;
-      function Func42: TtkTokenKind;
-      function Func45: TtkTokenKind;
-      function Func46: TtkTokenKind;
-      function Func48: TtkTokenKind;
-      function Func62: TtkTokenKind;
-      function Func68: TtkTokenKind;
-      function Func93: TtkTokenKind;
-      function Func102: TtkTokenKind;
-
-      procedure AnsiCProc;
-      procedure AndSymbolProc;
-      procedure AsciiCharProc;
-      procedure AtSymbolProc;
-      procedure BraceCloseProc;
-      procedure BraceOpenProc;
-      procedure CRProc;
-      procedure ColonProc;
-      procedure CommaProc;
-      procedure EqualProc;
-      procedure GreaterProc;
-      procedure IdentProc;
-      procedure LFProc;
-      procedure LowerProc;
-      procedure MinusProc;
-      procedure ModSymbolProc;
-      procedure NotSymbolProc;
-      procedure NullProc;
-      procedure NumberProc;
-      procedure OrSymbolProc;
-      procedure PlusProc;
-      procedure PointProc;
-      procedure QuestionProc;
-      procedure RoundCloseProc;
-      procedure RoundOpenProc;
-      procedure SemiColonProc;
-      procedure SlashProc;
-      procedure SpaceProc;
-      procedure SquareCloseProc;
-      procedure SquareOpenProc;
-      procedure StarProc;
-      procedure StringProc;
-      procedure TildeProc;
-      procedure XOrSymbolProc;
-      procedure UnknownProc;
-      function AltFunc: TtkTokenKind;
-      procedure InitIdent;
-      function IdentKind(MayBe: PChar): TtkTokenKind;
-      procedure MakeMethodTables;
-
-    protected
-      function GetIdentChars: TSynIdentChars; override;
-      function GetExtTokenID: TxtkTokenKind;
-      function IsFilterStored: Boolean; override;
-
-    public
-      constructor Create(AOwner: TComponent); override;
-
-      class function GetLanguageName: string; override;
-      function GetDefaultAttribute (Index: integer): TSynHighlighterAttributes; override;
-
-      function GetEol: Boolean; override;
-      function GetRange: Pointer; override;
-      function GetTokenID: TtkTokenKind;
-      procedure SetLine(NewValue: String; LineNumber:Integer); override;
-      function GetToken: String; override;
-      function GetTokenAttribute: TSynHighlighterAttributes; override;
-      function GetTokenKind: integer; override;
-      function GetTokenPos: Integer; override;
-      procedure Next; override;
-      procedure SetRange(Value: Pointer); override;
-      procedure ResetRange; override;
-
-      property ExtTokenID: TxtkTokenKind read GetExtTokenID;
-
-    published
-      property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-      property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-      property InvalidAttri: TSynHighlighterAttributes read fInvalidAttri write fInvalidAttri;
-      property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-      property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
-      property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
-      property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
-      property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
+    property ExtTokenID: TxtkTokenKind read GetExtTokenID;
+  published
+    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
+    property InvalidAttri: TSynHighlighterAttributes read fInvalidAttri write fInvalidAttri;
+    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
   end;
 
 implementation
@@ -209,216 +191,192 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
+const
+  KeyWords: array[0..12] of WideString = (
+    'bool', 'break', 'char', 'do', 'else', 'false', 'for', 'if', 'int', 
+    'return', 'string', 'true', 'while' 
+  );
 
-procedure MakeIdentTable;
-var
-  I: Char;
+  KeyIndices: array[0..12] of Integer = (
+    8, 5, 11, 12, 1, 10, 0, 2, 9, 4, 6, 3, 7 
+  );
+
+{$Q-}
+function TSynGWScriptSyn.HashKey(Str: PWideChar): Cardinal;
 begin
-  for I := #0 to #255 do
+  Result := 0;
+  while IsIdentChar(Str^) do
   begin
-    Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else Identifiers[I] := False;
-    end;
-    Case I in['_', 'a'..'z', 'A'..'Z'] of
-      True:
-        begin
-          if (I > #64) and (I < #91) then mHashTable[I] := Ord(I) - 64 else
-            if (I > #96) then mHashTable[I] := Ord(I) - 95;
-        end;
-    else mHashTable[I] := 0;
-    end;
+    Result := Result * 797 + Ord(Str^) * 6;
+    inc(Str);
   end;
+  Result := Result mod 13;
+  fStringLen := Str - fToIdent;
 end;
+{$Q+}
 
 procedure TSynGWScriptSyn.InitIdent;
 var
-  I: Integer;
-  pF: PIdentFuncTableFunc;
+  i: Integer;
 begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[17] := Func17;
-  fIdentFuncTable[21] := Func21;
-  fIdentFuncTable[34] := Func34;
-  fIdentFuncTable[42] := Func42;
-  fIdentFuncTable[45] := Func45;
-  fIdentFuncTable[46] := Func46;
-  fIdentFuncTable[48] := Func48;
-  fIdentFuncTable[62] := Func62;
-  fIdentFuncTable[68] := Func68;
-  fIdentFuncTable[93] := Func93;
-  fIdentFuncTable[102] := Func102;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  fIdentFuncTable[6] := FuncBool;
+  fIdentFuncTable[4] := FuncBreak;
+  fIdentFuncTable[7] := FuncChar;
+  fIdentFuncTable[11] := FuncDo;
+  fIdentFuncTable[9] := FuncElse;
+  fIdentFuncTable[1] := FuncFalse;
+  fIdentFuncTable[10] := FuncFor;
+  fIdentFuncTable[12] := FuncIf;
+  fIdentFuncTable[0] := FuncInt;
+  fIdentFuncTable[8] := FuncReturn;
+  fIdentFuncTable[5] := FuncString;
+  fIdentFuncTable[2] := FuncTrue;
+  fIdentFuncTable[3] := FuncWhile;
 end;
 
-function TSynGWScriptSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
-  begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end; { KeyHash }
-
-function TSynGWScriptSyn.KeyComp(const aKey: String): Boolean;
-var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Temp^ <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
-end; { KeyComp }
-
-function TSynGWScriptSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('if') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func21: TtkTokenKind;
-begin
-  if KeyComp('do') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func34: TtkTokenKind;
-begin
-  if KeyComp('char') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('for') then Result := tkKey else
-    if KeyComp('break') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('else') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func46: TtkTokenKind;
-begin
- if KeyComp('int') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('false') then Result := tkKey else
-    if KeyComp('bool') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('while') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func68: TtkTokenKind;
-begin
-  if KeyComp('true') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func93: TtkTokenKind;
-begin
-  if KeyComp('string') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.Func102: TtkTokenKind;
-begin
-  if KeyComp('return') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynGWScriptSyn.AltFunc: TtkTokenKind;
+function TSynGWScriptSyn.AltFunc(Index: Integer): TtkTokenKind;
 begin
   Result := tkIdentifier;
 end;
 
-function TSynGWScriptSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  HashKey: Integer;
+
+function TSynGWScriptSyn.FuncBool(Index: Integer): TtkTokenKind;
 begin
-  fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < 207 then Result := fIdentFuncTable[HashKey] else Result := tkIdentifier;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
 end;
 
-procedure TSynGWScriptSyn.MakeMethodTables;
-var
-  I: Char;
+function TSynGWScriptSyn.FuncBreak(Index: Integer): TtkTokenKind;
 begin
-  for I := #0 to #255 do
-    case I of
-      '&': fProcTable[I] := AndSymbolProc;
-      #39: fProcTable[I] := AsciiCharProc;
-      '@': fProcTable[I] := AtSymbolProc;
-      '}': fProcTable[I] := BraceCloseProc;
-      '{': fProcTable[I] := BraceOpenProc;
-      #13: fProcTable[I] := CRProc;
-      ':': fProcTable[I] := ColonProc;
-      ',': fProcTable[I] := CommaProc;
-      '=': fProcTable[I] := EqualProc;
-      '>': fProcTable[I] := GreaterProc;
-      '?': fProcTable[I] := QuestionProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      '<': fProcTable[I] := LowerProc;
-      '-': fProcTable[I] := MinusProc;
-      '%': fProcTable[I] := ModSymbolProc;
-      '!': fProcTable[I] := NotSymbolProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9': fProcTable[I] := NumberProc;
-      '|': fProcTable[I] := OrSymbolProc;
-      '+': fProcTable[I] := PlusProc;
-      '.': fProcTable[I] := PointProc;
-      ')': fProcTable[I] := RoundCloseProc;
-      '(': fProcTable[I] := RoundOpenProc;
-      ';': fProcTable[I] := SemiColonProc;
-      '/': fProcTable[I] := SlashProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      ']': fProcTable[I] := SquareCloseProc;
-      '[': fProcTable[I] := SquareOpenProc;
-      '*': fProcTable[I] := StarProc;
-      #34: fProcTable[I] := StringProc;
-      '~': fProcTable[I] := TildeProc;
-      '^': fProcTable[I] := XOrSymbolProc;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncChar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncDo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncElse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncFalse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncFor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncIf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncInt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncReturn(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncString(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncTrue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGWScriptSyn.FuncWhile(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+
+function TSynGWScriptSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
+var
+  Key: Cardinal;
+begin
+  fToIdent := MayBe;
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  else
+    Result := tkIdentifier;
 end;
 
 constructor TSynGWScriptSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+  fCaseSensitive := True;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style:= [fsItalic];
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
-  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style:= [fsBold];
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
-  fSpaceAttri.Foreground := clWindow;
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
 
   AddAttribute(fCommentAttri);
   AddAttribute(fIdentifierAttri);
@@ -431,18 +389,9 @@ begin
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fRange         := rsUnknown;
   fDefaultFilter := SYNS_FilterGWS;
 end; { Create }
-
-procedure TSynGWScriptSyn.SetLine(NewValue: String; LineNumber:Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end; { SetLine }
 
 procedure TSynGWScriptSyn.AnsiCProc;
 begin
@@ -507,11 +456,11 @@ begin
   fTokenID := tkString;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [#39, '\'] then
+      if fLine[Run + 1] in [WideChar(#39), WideChar('\')] then
         inc(Run);
     end;
     inc(Run);
-  until fLine[Run] in [#0, #10, #13, #39];
+  until IsLineEnd(Run) or (fLine[Run] = #39);
   if fLine[Run] = #39 then
     inc(Run);
 end;
@@ -626,7 +575,7 @@ procedure TSynGWScriptSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynGWScriptSyn.LFProc;
@@ -729,14 +678,25 @@ end;
 procedure TSynGWScriptSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynGWScriptSyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in
-    ['0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X'] do
+  while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
@@ -834,7 +794,7 @@ begin
       begin
         fTokenID := tkComment;
         inc(Run, 2);
-       while not (fLine[Run] in [#0, #10, #13]) do Inc(Run);
+       while not IsLineEnd(Run) do Inc(Run);
       end;
     '*':                               {c style comments}
       begin
@@ -874,7 +834,7 @@ procedure TSynGWScriptSyn.SpaceProc;
 begin
   inc(Run);
   fTokenID := tkSpace;
-  while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynGWScriptSyn.SquareCloseProc;
@@ -952,11 +912,6 @@ end;
 
 procedure TSynGWScriptSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -969,27 +924,55 @@ begin
   else
     begin
       fRange := rsUnknown;
-      fProcTable[fLine[Run]];
+      case fLine[Run] of
+        '&': AndSymbolProc;
+        #39: AsciiCharProc;
+        '@': AtSymbolProc;
+        '}': BraceCloseProc;
+        '{': BraceOpenProc;
+        #13: CRProc;
+        ':': ColonProc;
+        ',': CommaProc;
+        '=': EqualProc;
+        '>': GreaterProc;
+        '?': QuestionProc;
+        'A'..'Z', 'a'..'z', '_': IdentProc;
+        #10: LFProc;
+        '<': LowerProc;
+        '-': MinusProc;
+        '%': ModSymbolProc;
+        '!': NotSymbolProc;
+        #0: NullProc;
+        '0'..'9': NumberProc;
+        '|': OrSymbolProc;
+        '+': PlusProc;
+        '.': PointProc;
+        ')': RoundCloseProc;
+        '(': RoundOpenProc;
+        ';': SemiColonProc;
+        '/': SlashProc;
+        #1..#9, #11, #12, #14..#32: SpaceProc;
+        ']': SquareCloseProc;
+        '[': SquareOpenProc;
+        '*': StarProc;
+        #34: StringProc;
+        '~': TildeProc;
+        '^': XOrSymbolProc;
+        else UnknownProc;
+      end;
     end;
   end;
+  inherited;
 end;
 
 function TSynGWScriptSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynGWScriptSyn.GetRange: Pointer;
 begin
   Result := Pointer(fRange);
-end;
-
-function TSynGWScriptSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynGWScriptSyn.GetTokenID: TtkTokenKind;
@@ -1022,11 +1005,6 @@ begin
   Result := Ord(GetTokenID);
 end;
 
-function TSynGWScriptSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
 procedure TSynGWScriptSyn.ResetRange;
 begin
   fRange:= rsUnknown;
@@ -1035,11 +1013,6 @@ end;
 procedure TSynGWScriptSyn.SetRange(Value: Pointer);
 begin
   fRange := TRangeState(Value);
-end;
-
-function TSynGWScriptSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
 end;
 
 function TSynGWScriptSyn.IsFilterStored: Boolean;
@@ -1066,8 +1039,12 @@ begin
   end;
 end;
 
+class function TSynGWScriptSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangGWS;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter (TSynGWScriptSyn);
 {$ENDIF}

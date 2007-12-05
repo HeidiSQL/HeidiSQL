@@ -11,6 +11,7 @@ the specific language governing rights and limitations under the License.
 The Original Code is: SynHighlighterModelica.pas, released 2000-11-09.
 The Initial Author of this file is Falko Jens Wagner.
 Portions created by Falko Jens Wagner are Copyright 2000 Falko Jens Wagner.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -25,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterModelica.pas,v 1.13 2005/01/28 16:53:24 maelh Exp $
+$Id: SynHighlighterModelica.pas,v 1.12.2.5 2005/11/27 22:22:45 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -61,24 +62,15 @@ type
 
   TRangeState = (rsUnknown, rsString39, rsString34, rsComment);
 
-  TProcTableProc = procedure of object;
-
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
 type
   TSynModelicaSyn = class(TSynCustomHighlighter)
   private
     fRange: TRangeState;
-    fLine: PChar;
-    fLineNumber: integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: integer;
-    fToIdent: PChar;
     fTokenID: TtkTokenKind;
-    fTokenPos: integer;
-    fIdentFuncTable: array[0..137] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..96] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
     fDirectiveAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
@@ -87,45 +79,11 @@ type
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): integer;
-    function KeyComp(const aKey: string): boolean;
-    function Func17: TtkTokenKind;
-    function Func22: TtkTokenKind;
-    function Func25: TtkTokenKind;
-    function Func26: TtkTokenKind;
-    function Func30: TtkTokenKind;
-    function Func35: TtkTokenKind;
-    function Func39: TtkTokenKind;
-    function Func42: TtkTokenKind;
-    function Func45: TtkTokenKind;
-    function Func47: TtkTokenKind;
-    function Func48: TtkTokenKind;
-    function Func51: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func54: TtkTokenKind;
-    function Func59: TtkTokenKind;
-    function Func60: TtkTokenKind;
-    function Func62: TtkTokenKind;
-    function Func68: TtkTokenKind;
-    function Func69: TtkTokenKind;
-    function Func70: TtkTokenKind;
-    function Func80: TtkTokenKind;
-    function Func81: TtkTokenKind;
-    function Func84: TtkTokenKind;
-    function Func85: TtkTokenKind;
-    function Func88: TtkTokenKind;
-    function Func91: TtkTokenKind;
-    function Func98: TtkTokenKind;
-    function Func106: TtkTokenKind;
-    function Func107: TtkTokenKind;
-    function Func110: TtkTokenKind;
-    function Func112: TtkTokenKind;
-    function Func114: TtkTokenKind;
-    function Func115: TtkTokenKind;
-    function Func116: TtkTokenKind;
-    function Func119: TtkTokenKind;
-    function Func133: TtkTokenKind;
-    function Func137: TtkTokenKind;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function KeyWordFunc(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure InitIdent;
     procedure AndSymbolProc;
     procedure AsciiCharProc;
     procedure CRProc;
@@ -147,18 +105,14 @@ type
     procedure SymbolProc;
     procedure SymbolProcWithEqual;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
     procedure AnsiCProc;
     procedure String34Proc;
     procedure String39Proc;
   protected
-    function GetIdentChars: TSynIdentChars; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -166,11 +120,8 @@ type
     function GetEol: boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: string; LineNumber: integer); override;
-    function GetToken: string; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -201,402 +152,112 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of integer;
+const
+  KeyWords: array[0..47] of WideString = (
+    'algorithm', 'and', 'annotation', 'assert', 'block', 'Boolean', 'class', 
+    'connect', 'connector', 'constant', 'der', 'discrete', 'else', 'elseif', 
+    'end', 'equation', 'extends', 'external', 'false', 'final', 'flow', 'for', 
+    'function', 'if', 'in', 'input', 'Integer', 'loop', 'model', 'nondiscrete', 
+    'not', 'or', 'output', 'package', 'parameter', 'partial', 'protected', 
+    'public', 'Real', 'record', 'redeclare', 'replaceable', 'terminate', 'then', 
+    'true', 'type', 'when', 'while' 
+  );
 
-procedure MakeIdentTable;
-var
-  I: Char;
-begin
-  for I := #0 to #255 do
-  begin
-    case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else
-      Identifiers[I] := False;
-    end;
-    case I in ['_', 'A'..'Z', 'a'..'z'] of
-      True:
-        begin
-          if (I > #64) and (I < #91) then mHashTable[I] := Ord(I) - 64 else
-            if (I > #96) then mHashTable[I] := Ord(I) - 95;
-        end;
-      else mHashTable[I] := 0;
-    end;
-  end;
-end;
+  KeyIndices: array[0..96] of Integer = (
+    -1, 8, 41, 46, -1, 21, -1, 30, 5, -1, 45, -1, -1, 23, 7, -1, -1, 17, 15, -1, 
+    -1, 10, -1, -1, -1, 3, -1, 18, -1, 28, -1, -1, 47, -1, -1, -1, -1, -1, 39, 
+    16, 27, 25, -1, 4, 22, -1, 43, -1, 37, 40, -1, -1, 31, -1, 42, -1, -1, 26, 
+    14, 24, 44, -1, -1, -1, -1, 11, 33, 0, -1, -1, -1, -1, 36, 19, -1, 38, -1, 
+    32, -1, -1, 29, -1, -1, -1, 6, 35, 12, 1, -1, -1, -1, 20, 34, -1, 13, 9, 2 
+  );
 
-procedure TSynModelicaSyn.InitIdent;
-var
-  I: integer;
-  pF: PIdentFuncTableFunc;
-begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[17] := Func17;
-  fIdentFuncTable[22] := Func22;
-  fIdentFuncTable[25] := Func25;
-  fIdentFuncTable[26] := Func26;
-  fIdentFuncTable[30] := Func30;
-  fIdentFuncTable[35] := Func35;
-  fIdentFuncTable[39] := Func39;
-  fIdentFuncTable[42] := Func42;
-  fIdentFuncTable[45] := Func45;
-  fIdentFuncTable[47] := Func47;
-  fIdentFuncTable[48] := Func48;
-  fIdentFuncTable[51] := Func51;
-  fIdentFuncTable[52] := Func52;
-  fIdentFuncTable[54] := Func54;
-  fIdentFuncTable[59] := Func59;
-  fIdentFuncTable[60] := Func60;
-  fIdentFuncTable[62] := Func62;
-  fIdentFuncTable[68] := Func68;
-  fIdentFuncTable[69] := Func69;
-  fIdentFuncTable[70] := Func70;
-  fIdentFuncTable[80] := Func80;
-  fIdentFuncTable[81] := Func81;
-  fIdentFuncTable[84] := Func84;
-  fIdentFuncTable[85] := Func85;
-  fIdentFuncTable[88] := Func88;
-  fIdentFuncTable[91] := Func91;
-  fIdentFuncTable[98] := Func98;
-  fIdentFuncTable[106] := Func106;
-  fIdentFuncTable[107] := Func107;
-  fIdentFuncTable[110] := Func110;
-  fIdentFuncTable[112] := Func112;
-  fIdentFuncTable[114] := Func114;
-  fIdentFuncTable[115] := Func115;
-  fIdentFuncTable[116] := Func116;
-  fIdentFuncTable[119] := Func119;
-  fIdentFuncTable[133] := Func133;
-  fIdentFuncTable[137] := Func137;
-end;
-
-function TSynModelicaSyn.KeyHash(ToHash: PChar): integer;
+{$Q-}
+function TSynModelicaSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
-  while Identifiers[ToHash^] do begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end;
-
-function TSynModelicaSyn.KeyComp(const aKey: string): boolean;
-var
-  I: integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
+  while IsIdentChar(Str^) do
   begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Temp^ <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
+    Result := Result * 598 + Ord(Str^) * 127;
+    inc(Str);
+  end;
+  Result := Result mod 97;
+  fStringLen := Str - fToIdent;
 end;
+{$Q+}
 
-function TSynModelicaSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('if') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func22: TtkTokenKind;
-begin
-  if KeyComp('and') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func25: TtkTokenKind;
-begin
-  if KeyComp('in') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func26: TtkTokenKind;
-begin
-  if KeyComp('end') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func30: TtkTokenKind;
-begin
-  if KeyComp('der') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func35: TtkTokenKind;
-begin
-  if KeyComp('or') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func39: TtkTokenKind;
-begin
-  if KeyComp('Real') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('for') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('else') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func47: TtkTokenKind;
-begin
-  if KeyComp('final') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('block') then Result := tkKey else
-    if KeyComp('false') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func51: TtkTokenKind;
-begin
-  if KeyComp('package') then Result := tkKey else
-    if KeyComp('then') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('not') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func54: TtkTokenKind;
-begin
-  if KeyComp('when') then Result := tkKey else
-    if KeyComp('model') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func59: TtkTokenKind;
-begin
-  if KeyComp('class') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func60: TtkTokenKind;
-begin
-  if KeyComp('flow') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('elseif') then Result := tkKey else
-    if KeyComp('while') then Result := tkKey else
-      if KeyComp('loop') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func68: TtkTokenKind;
-begin
-  if KeyComp('true') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func69: TtkTokenKind;
-begin
-  if KeyComp('public') then Result := tkKey else
-    if KeyComp('record') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func70: TtkTokenKind;
-begin
-  if KeyComp('Boolean') then Result := tkKey else
-    if KeyComp('type') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func80: TtkTokenKind;
-begin
-  if KeyComp('redeclare') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func81: TtkTokenKind;
-begin
-  if KeyComp('connect') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func84: TtkTokenKind;
-begin
-  if KeyComp('partial') then Result := tkKey else
-    if KeyComp('Integer') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func85: TtkTokenKind;
-begin
-  if KeyComp('input') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func88: TtkTokenKind;
-begin
-  if KeyComp('assert') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func91: TtkTokenKind;
-begin
-  if KeyComp('replaceable') then Result := tkKey else
-    if KeyComp('discrete') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func98: TtkTokenKind;
-begin
-  if KeyComp('extends') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func106: TtkTokenKind;
-begin
-  if KeyComp('parameter') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func107: TtkTokenKind;
-begin
-  if KeyComp('external') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func110: TtkTokenKind;
-begin
-  if KeyComp('function') then Result := tkKey else
-    if KeyComp('equation') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func112: TtkTokenKind;
-begin
-  if KeyComp('algorithm') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func114: TtkTokenKind;
-begin
-  if KeyComp('constant') then Result := tkKey else
-    if KeyComp('terminate') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func115: TtkTokenKind;
-begin
-  if KeyComp('protected') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func116: TtkTokenKind;
-begin
-  if KeyComp('connector') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func119: TtkTokenKind;
-begin
-  if KeyComp('output') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func133: TtkTokenKind;
-begin
-  if KeyComp('annotation') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.Func137: TtkTokenKind;
-begin
-  if KeyComp('nondiscrete') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier;
-end;
-
-function TSynModelicaSyn.IdentKind(MayBe: PChar): TtkTokenKind;
+function TSynModelicaSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
-  HashKey: integer;
+  Key: Cardinal;
 begin
   fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < 138 then
-    Result := fIdentFuncTable[HashKey]
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
 
-procedure TSynModelicaSyn.MakeMethodTables;
+procedure TSynModelicaSyn.InitIdent;
 var
-  I: Char;
+  i: Integer;
 begin
-  for I := #0 to #255 do
-    case I of
-      '&': fProcTable[I] := AndSymbolProc;
-      #39: fProcTable[I] := AsciiCharProc;
-      #13: fProcTable[I] := CRProc;
-      ':': fProcTable[I] := ColonProc;
-      '#': fProcTable[I] := DirectiveProc;
-      '>': fProcTable[I] := GreaterProc;
-      'A'..'Z', 'a'..'z', '_':
-        fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      '<': fProcTable[I] := LowerProc;
-      '-': fProcTable[I] := MinusProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9':
-        fProcTable[I] := NumberProc;
-      '|': fProcTable[I] := OrSymbolProc;
-      '+': fProcTable[I] := PlusProc;
-      '.': fProcTable[I] := PointProc;
-      '/': fProcTable[I] := SlashProc;
-      #1..#9, #11, #12, #14..#32:
-        fProcTable[I] := SpaceProc;
-      #34: fProcTable[I] := StringProc;
-      '~', '[', ']', '@', '{', '}', '(', ')', ';', ',':
-        fProcTable[I] := SymbolProc;
-      '*', '^', '=', '%', '!':
-        fProcTable[I] := SymbolProcWithEqual;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if @fIdentFuncTable[i] = nil then
+      fIdentFuncTable[i] := KeyWordFunc;
+end;
+
+function TSynModelicaSyn.AltFunc(Index: Integer): TtkTokenKind;
+begin
+  Result := tkIdentifier;
+end;
+
+function TSynModelicaSyn.KeyWordFunc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier
 end;
 
 constructor TSynModelicaSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := True;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
-  fDirectiveAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective);
+  fDirectiveAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective, SYNS_FriendlyAttrDirective);
   AddAttribute(fDirectiveAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterModelica;
   fRange := rsUnknown;
-end;
-
-procedure TSynModelicaSyn.SetLine(NewValue: string; LineNumber: integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
 end;
 
 procedure TSynModelicaSyn.AndSymbolProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in ['=', '&'] then
+  if fLine[Run] in [WideChar('='), WideChar('&')] then
     Inc(Run);
 end;
 
@@ -606,8 +267,9 @@ begin
   fTokenID := tkString;
   repeat
     Inc(Run);
-  until fLine[Run] in [#0, #10, #13, #39];
-  if fLine[Run] = #39 then begin
+  until IsLineEnd(Run) or (fLine[Run] = #39);
+  if fLine[Run] = #39 then
+  begin
     fRange := rsUnknown;
     Inc(Run);
   end;
@@ -634,7 +296,7 @@ begin
   fTokenID := tkDirective;
   repeat
     Inc(Run);
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 procedure TSynModelicaSyn.GreaterProc;
@@ -655,7 +317,7 @@ procedure TSynModelicaSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynModelicaSyn.LFProc;
@@ -682,21 +344,32 @@ procedure TSynModelicaSyn.MinusProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in ['=', '-', '>'] then
+  if fLine[Run] in [WideChar('='), WideChar('-'), WideChar('>')] then
     Inc(Run);
 end;
 
 procedure TSynModelicaSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynModelicaSyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', '.', 'u', 'U', 'l', 'L', 'x', 'X', 'e', 'E', 'f', 'F':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in
-      ['0'..'9', '.', 'u', 'U', 'l', 'L', 'x', 'X', 'e', 'E', 'f', 'F'] do
+  while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
@@ -710,7 +383,7 @@ procedure TSynModelicaSyn.OrSymbolProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in ['=', '|'] then
+  if fLine[Run] in [WideChar('='), WideChar('|')] then
     Inc(Run);
 end;
 
@@ -718,7 +391,7 @@ procedure TSynModelicaSyn.PlusProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in ['=', '+'] then
+  if fLine[Run] in [WideChar('='), WideChar('+')] then
     Inc(Run);
 end;
 
@@ -739,13 +412,13 @@ begin
         fTokenID := tkComment;
         repeat
           Inc(Run);
-        until fLine[Run] in [#0, #10, #13];
+        until IsLineEnd(Run);
       end;
     '*':
       begin
         fRange := rsComment;
         inc(Run);
-        if fLine[Run] in [#0, #10, #13] then
+        if IsLineEnd(Run) then
           fTokenID := tkComment
         else
           AnsiCProc;
@@ -762,14 +435,14 @@ begin
   fTokenID := tkSpace;
   repeat
     Inc(Run);
-  until (fLine[Run] > #32) or (fLine[Run] in [#0, #10, #13]);
+  until (fLine[Run] > #32) or IsLineEnd(Run);
 end;
 
 procedure TSynModelicaSyn.StringProc;
 begin
   fRange := rsString34;
   Inc(Run);
-  if fLine[Run] in [#0, #10, #13] then
+  if IsLineEnd(Run) then
     fTokenID := tkString
   else
     String34Proc;
@@ -791,11 +464,6 @@ end;
 
 procedure TSynModelicaSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -815,7 +483,7 @@ begin
         break;
       end;
       Inc(Run);
-    until fLine[Run] in [#0, #10, #13];
+    until IsLineEnd(Run);
   end;
 end;
 
@@ -834,7 +502,7 @@ begin
         break;
       end;
       Inc(Run);
-    until fLine[Run] in [#0, #10, #13];
+    until IsLineEnd(Run);
   end;
 end;
 
@@ -863,7 +531,7 @@ begin
       else
         Inc(Run);
       end;
-    until fLine[Run] in [#0, #10, #13];
+    until IsLineEnd(Run);
   end;
 end;
 
@@ -876,12 +544,34 @@ begin
     rsString34: String34Proc;
   else
     fRange := rsUnknown;
-    fProcTable[fLine[Run]];
+    case fLine[Run] of
+      '&': AndSymbolProc;
+      #39: AsciiCharProc;
+      #13: CRProc;
+      ':': ColonProc;
+      '#': DirectiveProc;
+      '>': GreaterProc;
+      'A'..'Z', 'a'..'z', '_': IdentProc;
+      #10: LFProc;
+      '<': LowerProc;
+      '-': MinusProc;
+      #0: NullProc;
+      '0'..'9': NumberProc;
+      '|': OrSymbolProc;
+      '+': PlusProc;
+      '.': PointProc;
+      '/': SlashProc;
+      #1..#9, #11, #12, #14..#32: SpaceProc;
+      #34: StringProc;
+      '~', '[', ']', '@', '{', '}', '(', ')', ';', ',': SymbolProc;
+      '*', '^', '=', '%', '!': SymbolProcWithEqual;
+      else UnknownProc;
+    end;
   end;
+  inherited;
 end;
 
-function TSynModelicaSyn.GetDefaultAttribute(
-  Index: integer): TSynHighlighterAttributes;
+function TSynModelicaSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
 begin
   case Index of
     SYN_ATTR_COMMENT: Result := fCommentAttri;
@@ -897,20 +587,12 @@ end;
 
 function TSynModelicaSyn.GetEol: boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynModelicaSyn.GetRange: Pointer;
 begin
   Result := Pointer(fRange);
-end;
-
-function TSynModelicaSyn.GetToken: string;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynModelicaSyn.GetTokenID: TtkTokenKind;
@@ -940,11 +622,6 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynModelicaSyn.GetTokenPos: integer;
-begin
-  Result := fTokenPos;
-end;
-
 procedure TSynModelicaSyn.ResetRange;
 begin
   fRange := rsUnknown;
@@ -953,11 +630,6 @@ end;
 procedure TSynModelicaSyn.SetRange(Value: Pointer);
 begin
   fRange := TRangeState(Value);
-end;
-
-function TSynModelicaSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
 end;
 
 function TSynModelicaSyn.IsFilterStored: Boolean;
@@ -970,8 +642,12 @@ begin
   Result := SYNS_LangModelica;
 end;
 
+class function TSynModelicaSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangModelica;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynModelicaSyn);
 {$ENDIF}

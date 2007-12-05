@@ -11,6 +11,7 @@ the specific language governing rights and limitations under the License.
 The Original Code is based on the UnrealSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Dean Harmon.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -26,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterUnreal.pas,v 1.18 2005/01/28 16:53:25 maelh Exp $
+$Id: SynHighlighterUnreal.pas,v 1.17.2.7 2005/12/16 20:09:37 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -63,9 +64,6 @@ uses
   SysUtils,
   Classes;
 
-const
-  MAXIDENTTABLE = 238;
-
 type
   TtkTokenKind = (
     tkComment,
@@ -95,26 +93,17 @@ type
 
   TRangeState = (rsANil, rsAnsiC, rsDirective, rsDirectiveComment, rsUnKnown);
 
-  TProcTableProc = procedure of Object;
-
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function: TtkTokenKind of Object;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
   TSynUnrealSyn = class(TSynCustomHighlighter)
   private
     fRange: TRangeState;
-    fLine: PChar;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
     FRoundCount: Integer;
     FSquareCount: Integer;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
-    fLineNumber: Integer;
-    fIdentFuncTable: array[0..MAXIDENTTABLE] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..732] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
     fDirecAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
@@ -126,99 +115,153 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fString2Attri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: String): Boolean;
-    function Func15: TtkTokenKind;
-    function Func17: TtkTokenKind;
-    function Func19: TtkTokenKind;
-    function Func20: TtkTokenKind;
-    function Func28: TtkTokenKind;
-    function Func33: TtkTokenKind;
-    function Func35: TtkTokenKind;
-    function Func37: TtkTokenKind;
-    function Func39: TtkTokenKind;
-    function Func40: TtkTokenKind;
-    function Func41: TtkTokenKind;
-    function Func42: TtkTokenKind;
-    function Func43: TtkTokenKind;
-    function Func44: TtkTokenKind;
-    function Func45: TtkTokenKind;
-    function Func48: TtkTokenKind;
-    function Func49: TtkTokenKind;
-    function Func50: TtkTokenKind;
-    function Func51: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func53: TtkTokenKind;
-    function Func54: TtkTokenKind;
-    function Func55: TtkTokenKind;
-    function Func56: TtkTokenKind;
-    function Func57: TtkTokenKind;
-    function Func59: TtkTokenKind;
-    function Func62: TtkTokenKind;
-    function Func63: TtkTokenKind;
-    function Func64: TtkTokenKind;
-    function Func65: TtkTokenKind;
-    function Func66: TtkTokenKind;
-    function Func69: TtkTokenKind;
-    function Func70: TtkTokenKind;
-    function Func71: TtkTokenKind;
-    function Func72: TtkTokenKind;
-    function Func73: TtkTokenKind;
-    function Func74: TtkTokenKind;
-    function Func76: TtkTokenKind;
-    function Func78: TtkTokenKind;
-    function Func79: TtkTokenKind;
-    function Func80: TtkTokenKind;
-    function Func81: TtkTokenKind;
-    function Func82: TtkTokenKind;
-    function Func83: TtkTokenKind;
-    function Func84: TtkTokenKind;
-    function Func85: TtkTokenKind;
-    function Func87: TtkTokenKind;
-    function Func89: TtkTokenKind;
-    function Func91: TtkTokenKind;
-    function Func92: TtkTokenKind;
-    function Func96: TtkTokenKind;
-    function Func97: TtkTokenKind;
-    function Func98: TtkTokenKind;
-    function Func99: TtkTokenKind;
-    function Func100: TtkTokenKind;
-    function Func101: TtkTokenKind;
-    function Func102: TtkTokenKind;
-    function Func103: TtkTokenKind;
-    function Func104: TtkTokenKind;
-    function Func106: TtkTokenKind;
-    function Func107: TtkTokenKind;
-    function Func108: TtkTokenKind;
-    function Func109: TtkTokenKind;
-    function Func113: TtkTokenKind;
-    function Func115: TtkTokenKind;
-    function Func120: TtkTokenKind;
-    function Func122: TtkTokenKind;
-    function Func126: TtkTokenKind;
-    function Func127: TtkTokenKind;
-    function Func128: TtkTokenKind;
-    function Func135: TtkTokenKind;
-    function Func136: TtkTokenKind;
-    function Func143: TtkTokenKind;
-    function Func144: TtkTokenKind;
-    function Func146: TtkTokenKind;
-    function Func147: TtkTokenKind;
-    function Func148: TtkTokenKind;
-    function Func156: TtkTokenKind;
-    function Func167: TtkTokenKind;
-    function Func172: TtkTokenKind;
-    function Func174: TtkTokenKind;
-    function Func178: TtkTokenKind;
-    function Func185: TtkTokenKind;
-    function Func190: TtkTokenKind;
-    function Func192: TtkTokenKind;
-    function Func193: TtkTokenKind;
-    function Func210: TtkTokenKind;
-    function Func218: TtkTokenKind;
-    function Func238: TtkTokenKind;
-
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function FuncAbstract(Index: Integer): TtkTokenKind;
+    function FuncAlways(Index: Integer): TtkTokenKind;
+    function FuncArray(Index: Integer): TtkTokenKind;
+    function FuncArraycount(Index: Integer): TtkTokenKind;
+    function FuncAssert(Index: Integer): TtkTokenKind;
+    function FuncAuto(Index: Integer): TtkTokenKind;
+    function FuncAutomated(Index: Integer): TtkTokenKind;
+    function FuncBool(Index: Integer): TtkTokenKind;
+    function FuncBoundingbox(Index: Integer): TtkTokenKind;
+    function FuncBoundingvolume(Index: Integer): TtkTokenKind;
+    function FuncBreak(Index: Integer): TtkTokenKind;
+    function FuncButton(Index: Integer): TtkTokenKind;
+    function FuncByte(Index: Integer): TtkTokenKind;
+    function FuncCache(Index: Integer): TtkTokenKind;
+    function FuncCacheexempt(Index: Integer): TtkTokenKind;
+    function FuncCase(Index: Integer): TtkTokenKind;
+    function FuncCatch(Index: Integer): TtkTokenKind;
+    function FuncClass(Index: Integer): TtkTokenKind;
+    function FuncCoerce(Index: Integer): TtkTokenKind;
+    function FuncCollapsecategories(Index: Integer): TtkTokenKind;
+    function FuncColor(Index: Integer): TtkTokenKind;
+    function FuncConfig(Index: Integer): TtkTokenKind;
+    function FuncConst(Index: Integer): TtkTokenKind;
+    function FuncContinue(Index: Integer): TtkTokenKind;
+    function FuncCoords(Index: Integer): TtkTokenKind;
+    function FuncCpptext(Index: Integer): TtkTokenKind;
+    function FuncCross(Index: Integer): TtkTokenKind;
+    function FuncDefault(Index: Integer): TtkTokenKind;
+    function FuncDefaultproperties(Index: Integer): TtkTokenKind;
+    function FuncDelegate(Index: Integer): TtkTokenKind;
+    function FuncDelete(Index: Integer): TtkTokenKind;
+    function FuncDependson(Index: Integer): TtkTokenKind;
+    function FuncDeprecated(Index: Integer): TtkTokenKind;
+    function FuncDo(Index: Integer): TtkTokenKind;
+    function FuncDontcollapsecategories(Index: Integer): TtkTokenKind;
+    function FuncDot(Index: Integer): TtkTokenKind;
+    function FuncEach(Index: Integer): TtkTokenKind;
+    function FuncEdfindable(Index: Integer): TtkTokenKind;
+    function FuncEditconst(Index: Integer): TtkTokenKind;
+    function FuncEditconstarray(Index: Integer): TtkTokenKind;
+    function FuncEditinline(Index: Integer): TtkTokenKind;
+    function FuncEditinlinenew(Index: Integer): TtkTokenKind;
+    function FuncEditinlinenotify(Index: Integer): TtkTokenKind;
+    function FuncEditinlineuse(Index: Integer): TtkTokenKind;
+    function FuncElse(Index: Integer): TtkTokenKind;
+    function FuncEnum(Index: Integer): TtkTokenKind;
+    function FuncEnumcount(Index: Integer): TtkTokenKind;
+    function FuncEvent(Index: Integer): TtkTokenKind;
+    function FuncExec(Index: Integer): TtkTokenKind;
+    function FuncExpands(Index: Integer): TtkTokenKind;
+    function FuncExplicit(Index: Integer): TtkTokenKind;
+    function FuncExport(Index: Integer): TtkTokenKind;
+    function FuncExportstructs(Index: Integer): TtkTokenKind;
+    function FuncExtends(Index: Integer): TtkTokenKind;
+    function FuncFalse(Index: Integer): TtkTokenKind;
+    function FuncFinal(Index: Integer): TtkTokenKind;
+    function FuncFloat(Index: Integer): TtkTokenKind;
+    function FuncFor(Index: Integer): TtkTokenKind;
+    function FuncForeach(Index: Integer): TtkTokenKind;
+    function FuncFunction(Index: Integer): TtkTokenKind;
+    function FuncGlobal(Index: Integer): TtkTokenKind;
+    function FuncGlobalconfig(Index: Integer): TtkTokenKind;
+    function FuncGoto(Index: Integer): TtkTokenKind;
+    function FuncGuid(Index: Integer): TtkTokenKind;
+    function FuncHidecategories(Index: Integer): TtkTokenKind;
+    function FuncHidedropdown(Index: Integer): TtkTokenKind;
+    function FuncHideparent(Index: Integer): TtkTokenKind;
+    function FuncIf(Index: Integer): TtkTokenKind;
+    function FuncIgnores(Index: Integer): TtkTokenKind;
+    function FuncImport(Index: Integer): TtkTokenKind;
+    function FuncInit(Index: Integer): TtkTokenKind;
+    function FuncInput(Index: Integer): TtkTokenKind;
+    function FuncInsert(Index: Integer): TtkTokenKind;
+    function FuncInstanced(Index: Integer): TtkTokenKind;
+    function FuncInt(Index: Integer): TtkTokenKind;
+    function FuncIntrinsic(Index: Integer): TtkTokenKind;
+    function FuncInvariant(Index: Integer): TtkTokenKind;
+    function FuncIterator(Index: Integer): TtkTokenKind;
+    function FuncLatent(Index: Integer): TtkTokenKind;
+    function FuncLength(Index: Integer): TtkTokenKind;
+    function FuncLocal(Index: Integer): TtkTokenKind;
+    function FuncLocalized(Index: Integer): TtkTokenKind;
+    function FuncLong(Index: Integer): TtkTokenKind;
+    function FuncMesh(Index: Integer): TtkTokenKind;
+    function FuncModel(Index: Integer): TtkTokenKind;
+    function FuncMutable(Index: Integer): TtkTokenKind;
+    function FuncName(Index: Integer): TtkTokenKind;
+    function FuncNative(Index: Integer): TtkTokenKind;
+    function FuncNativereplication(Index: Integer): TtkTokenKind;
+    function FuncNew(Index: Integer): TtkTokenKind;
+    function FuncNoexport(Index: Integer): TtkTokenKind;
+    function FuncNone(Index: Integer): TtkTokenKind;
+    function FuncNoteditinlinenew(Index: Integer): TtkTokenKind;
+    function FuncNotplaceable(Index: Integer): TtkTokenKind;
+    function FuncNousercreate(Index: Integer): TtkTokenKind;
+    function FuncOperator(Index: Integer): TtkTokenKind;
+    function FuncOptional(Index: Integer): TtkTokenKind;
+    function FuncOut(Index: Integer): TtkTokenKind;
+    function FuncParseconfig(Index: Integer): TtkTokenKind;
+    function FuncPerobjectconfig(Index: Integer): TtkTokenKind;
+    function FuncPlaceable(Index: Integer): TtkTokenKind;
+    function FuncPlane(Index: Integer): TtkTokenKind;
+    function FuncPointer(Index: Integer): TtkTokenKind;
+    function FuncPostoperator(Index: Integer): TtkTokenKind;
+    function FuncPreoperator(Index: Integer): TtkTokenKind;
+    function FuncPrivate(Index: Integer): TtkTokenKind;
+    function FuncProtected(Index: Integer): TtkTokenKind;
+    function FuncRegister(Index: Integer): TtkTokenKind;
+    function FuncReliable(Index: Integer): TtkTokenKind;
+    function FuncRemove(Index: Integer): TtkTokenKind;
+    function FuncReplication(Index: Integer): TtkTokenKind;
+    function FuncReturn(Index: Integer): TtkTokenKind;
+    function FuncRng(Index: Integer): TtkTokenKind;
+    function FuncRot(Index: Integer): TtkTokenKind;
+    function FuncRotator(Index: Integer): TtkTokenKind;
+    function FuncSafereplace(Index: Integer): TtkTokenKind;
+    function FuncScale(Index: Integer): TtkTokenKind;
+    function FuncScriptconst(Index: Integer): TtkTokenKind;
+    function FuncSelf(Index: Integer): TtkTokenKind;
+    function FuncShowcategories(Index: Integer): TtkTokenKind;
+    function FuncSimulated(Index: Integer): TtkTokenKind;
+    function FuncSingular(Index: Integer): TtkTokenKind;
+    function FuncSkip(Index: Integer): TtkTokenKind;
+    function FuncSound(Index: Integer): TtkTokenKind;
+    function FuncState(Index: Integer): TtkTokenKind;
+    function FuncStatic(Index: Integer): TtkTokenKind;
+    function FuncStop(Index: Integer): TtkTokenKind;
+    function FuncString(Index: Integer): TtkTokenKind;
+    function FuncStruct(Index: Integer): TtkTokenKind;
+    function FuncSuper(Index: Integer): TtkTokenKind;
+    function FuncSwitch(Index: Integer): TtkTokenKind;
+    function FuncTexture(Index: Integer): TtkTokenKind;
+    function FuncTransient(Index: Integer): TtkTokenKind;
+    function FuncTravel(Index: Integer): TtkTokenKind;
+    function FuncTrue(Index: Integer): TtkTokenKind;
+    function FuncUnreliable(Index: Integer): TtkTokenKind;
+    function FuncUntil(Index: Integer): TtkTokenKind;
+    function FuncVar(Index: Integer): TtkTokenKind;
+    function FuncVect(Index: Integer): TtkTokenKind;
+    function FuncVector(Index: Integer): TtkTokenKind;
+    function FuncVoid(Index: Integer): TtkTokenKind;
+    function FuncWhile(Index: Integer): TtkTokenKind;
+    function FuncWithin(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure InitIdent;
     procedure AnsiCProc;
     procedure AndSymbolProc;
     procedure AsciiCharProc;
@@ -255,18 +298,15 @@ type
     procedure TildeProc;
     procedure XOrSymbolProc;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
   protected
-    function GetIdentChars: TSynIdentChars; override;
     function GetExtTokenID: TxtkTokenKind;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
-    function GetSampleSource: string; override;
+    procedure NextProcedure;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -274,11 +314,8 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber:Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -317,772 +354,1443 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
+const
+  KeyWords: array[0..142] of WideString = (
+    'abstract', 'always', 'array', 'arraycount', 'assert', 'auto', 'automated', 
+    'bool', 'boundingbox', 'boundingvolume', 'break', 'button', 'byte', 'cache', 
+    'cacheexempt', 'case', 'catch', 'class', 'coerce', 'collapsecategories', 
+    'color', 'config', 'const', 'continue', 'coords', 'cpptext', 'cross', 
+    'default', 'defaultproperties', 'delegate', 'delete', 'dependson', 
+    'deprecated', 'do', 'dontcollapsecategories', 'dot', 'each', 'edfindable', 
+    'editconst', 'editconstarray', 'editinline', 'editinlinenew', 
+    'editinlinenotify', 'editinlineuse', 'else', 'enum', 'enumcount', 'event', 
+    'exec', 'expands', 'explicit', 'export', 'exportstructs', 'extends', 
+    'false', 'final', 'float', 'for', 'foreach', 'function', 'global', 
+    'globalconfig', 'goto', 'guid', 'hidecategories', 'hidedropdown', 
+    'hideparent', 'if', 'ignores', 'import', 'init', 'input', 'insert', 
+    'instanced', 'int', 'intrinsic', 'invariant', 'iterator', 'latent', 
+    'length', 'local', 'localized', 'long', 'mesh', 'model', 'mutable', 'name', 
+    'native', 'nativereplication', 'new', 'noexport', 'none', 
+    'noteditinlinenew', 'notplaceable', 'nousercreate', 'operator', 'optional', 
+    'out', 'parseconfig', 'perobjectconfig', 'placeable', 'plane', 'pointer', 
+    'postoperator', 'preoperator', 'private', 'protected', 'register', 
+    'reliable', 'remove', 'replication', 'return', 'rng', 'rot', 'rotator', 
+    'safereplace', 'scale', 'scriptconst', 'self', 'showcategories', 
+    'simulated', 'singular', 'skip', 'sound', 'state', 'static', 'stop', 
+    'string', 'struct', 'super', 'switch', 'texture', 'transient', 'travel', 
+    'true', 'unreliable', 'until', 'var', 'vect', 'vector', 'void', 'while', 
+    'within' 
+  );
 
-procedure MakeIdentTable;
-var
-  I: Char;
+  KeyIndices: array[0..732] of Integer = (
+    -1, -1, -1, -1, -1, -1, 78, -1, -1, -1, -1, 25, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 79, -1, -1, -1, -1, -1, -1, -1, -1, 104, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 36, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 34, -1, -1, -1, 18, -1, -1, -1, -1, -1, 30, 1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 63, -1, -1, -1, -1, 114, 
+    -1, -1, 121, -1, -1, -1, -1, -1, 105, -1, -1, 108, -1, 135, 9, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 117, 33, 109, -1, -1, -1, -1, -1, -1, 90, -1, -1, 
+    -1, -1, -1, 106, -1, -1, -1, -1, -1, -1, -1, 124, -1, -1, -1, -1, 19, -1, 
+    -1, -1, -1, 81, -1, 82, -1, -1, -1, -1, 40, 15, -1, -1, -1, 52, -1, 80, -1, 
+    -1, -1, -1, -1, -1, 136, -1, -1, 61, -1, 113, -1, -1, -1, 83, -1, -1, -1, 
+    -1, -1, -1, 27, -1, -1, 133, -1, -1, -1, -1, 62, -1, -1, -1, -1, -1, -1, -1, 
+    76, -1, -1, -1, -1, -1, -1, -1, 126, -1, -1, -1, -1, -1, 2, -1, -1, -1, -1, 
+    51, -1, -1, -1, -1, 44, -1, 22, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 20, -1, -1, -1, 8, -1, -1, -1, 110, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 96, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 65, -1, -1, 
+    -1, -1, -1, -1, -1, 39, 24, -1, -1, -1, -1, 54, -1, 4, 123, -1, -1, -1, -1, 
+    -1, -1, 50, 141, -1, -1, -1, -1, -1, -1, -1, 87, -1, -1, 21, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1, 85, -1, 
+    -1, -1, -1, -1, 70, -1, 68, 131, -1, -1, 69, -1, -1, -1, -1, -1, 128, 26, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 7, -1, -1, 142, -1, -1, 122, -1, 74, -1, -1, 
+    -1, -1, -1, -1, -1, 13, -1, -1, -1, -1, 101, 119, -1, -1, 94, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 100, -1, -1, -1, -1, -1, 89, -1, -1, 0, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 29, -1, -1, 92, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 112, -1, -1, -1, -1, 67, -1, -1, 45, -1, 
+    116, -1, -1, 132, 28, -1, -1, -1, 31, -1, -1, -1, 77, -1, -1, -1, -1, -1, 
+    91, -1, 37, -1, -1, -1, -1, 35, -1, 6, -1, -1, -1, -1, -1, -1, -1, 97, -1, 
+    -1, -1, -1, -1, 53, -1, 84, -1, -1, -1, -1, 56, 14, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 23, -1, 107, -1, -1, -1, -1, 98, -1, -1, 75, -1, -1, -1, -1, 
+    -1, 88, -1, -1, 103, -1, -1, 93, -1, -1, -1, -1, -1, -1, -1, -1, -1, 59, 
+    139, 11, 42, -1, -1, 95, -1, -1, -1, -1, -1, 3, -1, -1, -1, 38, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 16, -1, 46, -1, -1, -1, -1, -1, 102, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 111, -1, -1, 41, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 48, 64, -1, -1, -1, -1, 86, -1, 58, 43, 72, -1, -1, 66, 
+    137, 71, -1, -1, -1, -1, -1, 129, -1, -1, -1, -1, -1, -1, -1, -1, 17, 130, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 120, -1, 73, -1, -1, 118, -1, -1, -1, 
+    -1, -1, -1, 138, -1, -1, -1, 55, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 10, -1, -1, -1, -1, -1, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, 115, -1, 
+    -1, -1, -1, 32, 47, 49, -1, -1, -1, -1, -1, -1, -1, 57, -1, -1, -1, -1, -1, 
+    -1, 125, 134, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 99, 12, -1, 127, 
+    140, -1, -1 
+  );
+
+{$Q-}
+function TSynUnrealSyn.HashKey(Str: PWideChar): Cardinal;
 begin
-  for I := #0 to #255 do
+  Result := 0;
+  while IsIdentChar(Str^) do
   begin
-    Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else Identifiers[I] := False;
-    end;
-    Case I in['_', 'a'..'z', 'A'..'Z'] of
-      True:
-        begin
-          if (I > #64) and (I < #91) then mHashTable[I] := Ord(I) - 64 else
-            if (I > #96) then mHashTable[I] := Ord(I) - 96;
-        end;
-    else mHashTable[I] := 0;
-    end;
+    Result := Result * 41 + Ord(Str^) * 701;
+    inc(Str);
   end;
+  Result := Result mod 733;
+  fStringLen := Str - fToIdent;
+end;
+{$Q+}
+
+function TSynUnrealSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
+var
+  Key: Cardinal;
+begin
+  fToIdent := MayBe;
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  else
+    Result := tkIdentifier;
 end;
 
 procedure TSynUnrealSyn.InitIdent;
 var
-  I: Integer;
-  pF: PIdentFuncTableFunc;
-begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[15] := Func15;
-  fIdentFuncTable[17] := Func17;
-  fIdentFuncTable[19] := Func19;
-  fIdentFuncTable[20] := Func20;
-  fIdentFuncTable[28] := Func28;
-  fIdentFuncTable[33] := Func33;
-  fIdentFuncTable[35] := Func35;
-  fIdentFuncTable[37] := Func37;
-  fIdentFuncTable[39] := Func39;
-  fIdentFuncTable[40] := Func40;
-  fIdentFuncTable[41] := Func41;
-  fIdentFuncTable[42] := Func42;
-  fIdentFuncTable[43] := Func43;
-  fIdentFuncTable[44] := Func44;
-  fIdentFuncTable[45] := Func45;
-  fIdentFuncTable[48] := Func48;
-  fIdentFuncTable[49] := Func49;
-  fIdentFuncTable[50] := Func50;
-  fIdentFuncTable[51] := Func51;
-  fIdentFuncTable[52] := Func52;
-  fIdentFuncTable[53] := Func53;
-  fIdentFuncTable[54] := Func54;
-  fIdentFuncTable[55] := Func55;
-  fIdentFuncTable[56] := Func56;
-  fIdentFuncTable[57] := Func57;
-  fIdentFuncTable[59] := Func59;
-  fIdentFuncTable[62] := Func62;
-  fIdentFuncTable[63] := Func63;
-  fIdentFuncTable[64] := Func64;
-  fIdentFuncTable[65] := Func65;
-  fIdentFuncTable[66] := Func66;
-  fIdentFuncTable[69] := Func69;
-  fIdentFuncTable[70] := Func70;
-  fIdentFuncTable[71] := Func71;
-  fIdentFuncTable[72] := Func72;
-  fIdentFuncTable[73] := Func73;
-  fIdentFuncTable[74] := Func74;
-  fIdentFuncTable[76] := Func76;
-  fIdentFuncTable[78] := Func78;
-  fIdentFuncTable[79] := Func79;
-  fIdentFuncTable[80] := Func80;
-  fIdentFuncTable[81] := Func81;
-  fIdentFuncTable[82] := Func82;
-  fIdentFuncTable[83] := Func83;
-  fIdentFuncTable[84] := Func84;
-  fIdentFuncTable[85] := Func85;
-  fIdentFuncTable[87] := Func87;
-  fIdentFuncTable[89] := Func89;
-  fIdentFuncTable[91] := Func91;
-  fIdentFuncTable[92] := Func92;
-  fIdentFuncTable[96] := Func96;
-  fIdentFuncTable[97] := Func97;
-  fIdentFuncTable[98] := Func98;
-  fIdentFuncTable[99] := Func99;
-  fIdentFuncTable[100] := Func100;
-  fIdentFuncTable[101] := Func101;
-  fIdentFuncTable[102] := Func102;
-  fIdentFuncTable[103] := Func103;
-  fIdentFuncTable[104] := Func104;
-  fIdentFuncTable[106] := Func106;
-  fIdentFuncTable[107] := Func107;
-  fIdentFuncTable[108] := Func108;
-  fIdentFuncTable[109] := Func109;
-  fIdentFuncTable[113] := Func113;
-  fIdentFuncTable[115] := Func115;
-  fIdentFuncTable[120] := Func120;
-  fIdentFuncTable[122] := Func122;
-  fIdentFuncTable[126] := Func126;
-  fIdentFuncTable[127] := Func127;
-  fIdentFuncTable[128] := Func128;
-  fIdentFuncTable[135] := Func135;
-  fIdentFuncTable[136] := Func136;
-  fIdentFuncTable[143] := Func143;
-  fIdentFuncTable[144] := Func144;
-  fIdentFuncTable[146] := Func146;
-  fIdentFuncTable[147] := Func147;
-  fIdentFuncTable[148] := Func148;
-  fIdentFuncTable[156] := Func156;
-  fIdentFuncTable[167] := Func167;
-  fIdentFuncTable[172] := Func172;
-  fIdentFuncTable[174] := Func174;
-  fIdentFuncTable[178] := Func178;
-  fIdentFuncTable[185] := Func185;
-  fIdentFuncTable[190] := Func190;
-  fIdentFuncTable[192] := Func192;
-  fIdentFuncTable[193] := Func193;
-  fIdentFuncTable[210] := Func210;
-  fIdentFuncTable[218] := Func218;
-  fIdentFuncTable[238] := Func238;
-end;
-
-function TSynUnrealSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-
-  while ToHash^ in TSynValidStringChars do
-  begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
-  end;
-  fStringLen := ToHash - fToIdent;
-end; { KeyHash }
-
-function TSynUnrealSyn.KeyComp(const aKey: String): Boolean;
-var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Uppercase(Temp^) <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
-end; { KeyComp }
-
-function TSynUnrealSyn.Func15: TtkTokenKind;
-begin
-  if KeyComp('IF') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('EACH') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func19: TtkTokenKind;
-begin
-  if KeyComp('DO') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func20: TtkTokenKind;
-begin
-  if KeyComp('CACHE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func28: TtkTokenKind;
-begin
-  if KeyComp('CASE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func33: TtkTokenKind;
-begin
-  if KeyComp('NAME') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func35: TtkTokenKind;
-begin
-  if KeyComp('CATCH') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func37: TtkTokenKind;
-begin
-  if KeyComp('BREAK') then Result := tkKey else
-    if KeyComp('EXEC') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func39: TtkTokenKind;
-begin
-  if KeyComp('DOT') then Result := tkSymbol else
-    if KeyComp('FOR') then Result := tkKey else
-      if KeyComp('RNG') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func40: TtkTokenKind;
-begin
-  if KeyComp('SCALE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func41: TtkTokenKind;
-begin
-  if KeyComp('ELSE') then Result := tkKey else
-    if KeyComp('VAR') then Result := tkKey else
-      if KeyComp('GUID') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('FINAL') then Result := tkKey2 else
-    if KeyComp('FOR') then Result := tkKey else
-      if KeyComp('SELF') then Result := tkKey else
-      if KeyComp('NEW') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func43: TtkTokenKind;
-begin
-  if KeyComp('NEW') then Result := tkKey else
-    if KeyComp('INT') then Result := tkKey else
-      if KeyComp('SELF') then Result := tkKey else
-        if KeyComp('LOCAL') then Result := tkKey else
-          if KeyComp('FALSE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func44: TtkTokenKind;
-begin
-  if KeyComp('FALSE') then Result := tkKey else
-    if KeyComp('BOOL') then Result := tkKey else
-      if KeyComp('LOCAL') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('BOOL') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('MESH') then Result := tkKey else
-    if KeyComp('LONG') then Result := tkKey else 
-      if KeyComp('NONE') then Result := tkKey else
-        if KeyComp('PLANE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func49: TtkTokenKind;
-begin
-  if KeyComp('GLOBAL') then Result := tkKey else
-    if KeyComp('MODEL') then Result := tkKey else
-      if KeyComp('COERCE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func50: TtkTokenKind;
-begin
-  if KeyComp('VOID') then Result := tkKey else
-    if KeyComp('VECT') then Result := tkKey else Result := tkIdentifier; 
-end;
-
-function TSynUnrealSyn.Func51: TtkTokenKind;
-begin
-  if KeyComp('DELETE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('BYTE') then Result := tkKey else
-    if KeyComp('INIT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func53: TtkTokenKind;
-begin
-  if KeyComp('ENUM') then Result := tkKey else
-    if KeyComp('ROT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func54: TtkTokenKind;
-begin
-  if KeyComp('CLASS') then Result := tkKey else
-    if KeyComp('CONFIG') then Result := tkKey else
-      if KeyComp('FLOAT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func55: TtkTokenKind;
-begin
-  if KeyComp('SKIP') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func56: TtkTokenKind;
-begin
-  if KeyComp('FOREACH') then Result := tkKey else
-    if KeyComp('OUT') then Result := tkKey else Result := tkIdentifier;
-end;                                                                                  
-
-function TSynUnrealSyn.Func57: TtkTokenKind;
-begin
-  if KeyComp('AUTO') then Result := tkKey else
-    if KeyComp('GOTO') then Result := tkKey else
-      if KeyComp('WHILE') then Result := tkKey else
-        if KeyComp('PLACEABLE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func59: TtkTokenKind;
-begin
-  if KeyComp('DELEGATE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('EDFINDABLE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func63: TtkTokenKind;
-begin
-  if KeyComp('COLOR') then Result := tkKey else
-    if KeyComp('ARRAY') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func64: TtkTokenKind;
-begin
-  if KeyComp('TRUE') then Result := tkKey else
-    if KeyComp('RELIABLE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func65: TtkTokenKind;
-begin
-  if KeyComp('STATE') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func66: TtkTokenKind;
-begin
-  if KeyComp('EVENT') then Result := tkKey else
-    if KeyComp('LENGTH') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func69: TtkTokenKind;
-begin
-  if KeyComp('DEFAULT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func70: TtkTokenKind;
-begin
-  if KeyComp('STOP') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func71: TtkTokenKind;
-begin
-  if KeyComp('CONST') then Result := tkKey2 else
-    if KeyComp('NATIVE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func72: TtkTokenKind;
-begin
-  if KeyComp('LATENT') then Result := tkKey2 else
-    if KeyComp('STATIC') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func73: TtkTokenKind;
-begin
-  if KeyComp('SOUND') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func74: TtkTokenKind;
-begin
-  if KeyComp('CROSS') then Result := tkSymbol else
-    if KeyComp('MUTABLE') then Result := tkKey else
-      if KeyComp('COORDS') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func76: TtkTokenKind;
-begin
-  if KeyComp('UNTIL') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func78: TtkTokenKind;
-begin
-  if KeyComp('TRAVEL') then Result := tkKey else
-    if KeyComp('REMOVE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func79: TtkTokenKind;
-begin
-  if KeyComp('SUPER') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func80: TtkTokenKind;
-begin
-  if KeyComp('INPUT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func81: TtkTokenKind;
-begin
-  if KeyComp('DEPRECATED') then Result := tkKey2 else
-    if KeyComp('ALWAYS') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func82: TtkTokenKind;
-begin
-  if KeyComp('SWITCH') then Result := tkKey else
-    if KeyComp('ASSERT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func83: TtkTokenKind;
-begin
-  if KeyComp('EXPANDS') then Result := tkKey else
-    if KeyComp('VECTOR') then Result := tkKey else
-      if KeyComp('WITHIN') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func84: TtkTokenKind;
-begin
-  if KeyComp('ABSTRACT') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func85: TtkTokenKind;
-begin
-  if KeyComp('INSERT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func87: TtkTokenKind;
-begin
-  if KeyComp('LOCALIZED') then Result := tkKey2 else
-    if KeyComp('STRING') then Result := tkKey else
-      if KeyComp('IGNORES') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func89: TtkTokenKind;
-begin
-  if KeyComp('INSTANCED') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func91: TtkTokenKind;
-begin
-  if KeyComp('EXTENDS') then Result := tkKey else
-    if KeyComp('PRIVATE') then Result := tkKey2 else
-      if KeyComp('SAFEREPLACE') then Result := tkKey2 else
-        if KeyComp('IMPORT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func92: TtkTokenKind;
-begin
-  if KeyComp('BUTTON') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func96: TtkTokenKind;
-begin
-  if KeyComp('RETURN') then Result := tkKey else
-    if KeyComp('DEPENDSON') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func97: TtkTokenKind;
-begin
-  if KeyComp('POINTER') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func98: TtkTokenKind;
-begin
-  if KeyComp('EXPLICIT') then Result := tkKey else
-    if KeyComp('EXPORT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func99: TtkTokenKind;
-begin
-  if KeyComp('UNRELIABLE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func100: TtkTokenKind;
-begin
-  if KeyComp('HIDEPARENT') then Result := tkKey else
-    if KeyComp('AUTOMATED') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func101: TtkTokenKind;
-begin
-  if KeyComp('CONTINUE') then Result := tkKey else
-    if KeyComp('REGISTER') then Result := tkKey else
-      if KeyComp('STRUCT') then Result := tkKey else
-        if KeyComp('SINGULAR') then Result := tkKey2 else
-          if KeyComp('EDITINLINE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func102: TtkTokenKind;
-begin
-  if KeyComp('FUNCTION') then Result := tkKey else
-    if KeyComp('OPTIONAL') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func103: TtkTokenKind;
-begin
-  if KeyComp('GLOBALCONFIG') then Result := tkKey else
-    if KeyComp('CACHEEXEMPT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func104: TtkTokenKind;
-begin
-  if KeyComp('SIMULATED') then Result := tkKey2 else
-    if KeyComp('CPPTEXT') then Result := tkKey else Result := tkIdentifier;
-
-end;
-
-function TSynUnrealSyn.Func106: TtkTokenKind;
-begin
-  if KeyComp('ITERATOR') then Result := tkKey else
-    if KeyComp('PROTECTED') then Result := tkKey2 else
-      if KeyComp('NOTPLACEABLE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func107: TtkTokenKind;
-begin
-  if KeyComp('ROTATOR') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func108: TtkTokenKind;
-begin
-  if KeyComp('OPERATOR') then Result := tkKey else
-    if KeyComp('INVARIANT') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func109: TtkTokenKind;
-begin
-  if KeyComp('EDITCONST') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func113: TtkTokenKind;
-begin
-  if KeyComp('TEXTURE') then Result := tkKey else
-    if KeyComp('PARSECONFIG') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func115: TtkTokenKind;
-begin
-  if KeyComp('INTRINSIC') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func120: TtkTokenKind;
-begin
-  if KeyComp('TRANSIENT') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func122: TtkTokenKind;
-begin
-  if KeyComp('REPLICATION') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func126: TtkTokenKind;
-begin
-  if KeyComp('ENUMCOUNT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func127: TtkTokenKind;
-begin
-  if KeyComp('NOEXPORT') then Result := tkKey2 else
-    if KeyComp('BOUNDINGBOX') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func128: TtkTokenKind;
-begin
-  if KeyComp('HIDECATEGORIES') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func135: TtkTokenKind;
-begin
-  if KeyComp('HIDEDROPDOWN') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func136: TtkTokenKind;
-begin
-  if KeyComp('ARRAYCOUNT') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func143: TtkTokenKind;
-begin
-  if KeyComp('EDITINLINENEW') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func144: TtkTokenKind;
-begin
-  if KeyComp('NOUSERCREATE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func146: TtkTokenKind;
-begin
-  if KeyComp('EDITINLINEUSE') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func147: TtkTokenKind;
-begin
-  if KeyComp('PREOPERATOR') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func148: TtkTokenKind;
-begin
-  if KeyComp('PEROBJECTCONFIG') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func156: TtkTokenKind;
-begin
-  if KeyComp('SCRIPTCONST') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func167: TtkTokenKind;
-begin
-  if KeyComp('SHOWCATEGORIES') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func172: TtkTokenKind;
-begin
-  if KeyComp('EDITCONSTARRAY') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func174: TtkTokenKind;
-begin
-  if KeyComp('BOUNDINGVOLUME') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func178: TtkTokenKind;
-begin
-  if KeyComp('POSTOPERATOR') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func185: TtkTokenKind;
-begin
-  if KeyComp('COLLAPSECATEGORIES') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func190: TtkTokenKind;
-begin
-  if KeyComp('EDITINLINENOTIFY') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func192: TtkTokenKind;
-begin
-  if KeyComp('DONTCOLLAPSECATEGORIES') then Result := tkKey else
-    if KeyComp('NOTEDITINLINENEW') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func193: TtkTokenKind;
-begin
-  if KeyComp('NATIVEREPLICATION') then Result := tkKey2 else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func210: TtkTokenKind;
-begin
-  if KeyComp('DEFAULTPROPERTIES') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func218: TtkTokenKind;
-begin
-  if KeyComp('EXPORTSTRUCTS') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.Func238: TtkTokenKind;
-begin
-  if KeyComp('DONTCOLLAPSECATEGORIES') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynUnrealSyn.AltFunc: TtkTokenKind;
+  i: Integer;
+begin
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  fIdentFuncTable[410] := FuncAbstract;
+  fIdentFuncTable[71] := FuncAlways;
+  fIdentFuncTable[219] := FuncArray;
+  fIdentFuncTable[554] := FuncArraycount;
+  fIdentFuncTable[294] := FuncAssert;
+  fIdentFuncTable[681] := FuncAuto;
+  fIdentFuncTable[477] := FuncAutomated;
+  fIdentFuncTable[364] := FuncBool;
+  fIdentFuncTable[249] := FuncBoundingbox;
+  fIdentFuncTable[109] := FuncBoundingvolume;
+  fIdentFuncTable[675] := FuncBreak;
+  fIdentFuncTable[544] := FuncButton;
+  fIdentFuncTable[727] := FuncByte;
+  fIdentFuncTable[380] := FuncCache;
+  fIdentFuncTable[499] := FuncCacheexempt;
+  fIdentFuncTable[160] := FuncCase;
+  fIdentFuncTable[567] := FuncCatch;
+  fIdentFuncTable[635] := FuncClass;
+  fIdentFuncTable[64] := FuncCoerce;
+  fIdentFuncTable[147] := FuncCollapsecategories;
+  fIdentFuncTable[245] := FuncColor;
+  fIdentFuncTable[314] := FuncConfig;
+  fIdentFuncTable[231] := FuncConst;
+  fIdentFuncTable[510] := FuncContinue;
+  fIdentFuncTable[287] := FuncCoords;
+  fIdentFuncTable[11] := FuncCpptext;
+  fIdentFuncTable[355] := FuncCross;
+  fIdentFuncTable[189] := FuncDefault;
+  fIdentFuncTable[454] := FuncDefaultproperties;
+  fIdentFuncTable[425] := FuncDelegate;
+  fIdentFuncTable[70] := FuncDelete;
+  fIdentFuncTable[458] := FuncDependson;
+  fIdentFuncTable[696] := FuncDeprecated;
+  fIdentFuncTable[120] := FuncDo;
+  fIdentFuncTable[60] := FuncDontcollapsecategories;
+  fIdentFuncTable[475] := FuncDot;
+  fIdentFuncTable[49] := FuncEach;
+  fIdentFuncTable[470] := FuncEdfindable;
+  fIdentFuncTable[558] := FuncEditconst;
+  fIdentFuncTable[286] := FuncEditconstarray;
+  fIdentFuncTable[159] := FuncEditinline;
+  fIdentFuncTable[596] := FuncEditinlinenew;
+  fIdentFuncTable[545] := FuncEditinlinenotify;
+  fIdentFuncTable[614] := FuncEditinlineuse;
+  fIdentFuncTable[229] := FuncElse;
+  fIdentFuncTable[448] := FuncEnum;
+  fIdentFuncTable[569] := FuncEnumcount;
+  fIdentFuncTable[697] := FuncEvent;
+  fIdentFuncTable[605] := FuncExec;
+  fIdentFuncTable[698] := FuncExpands;
+  fIdentFuncTable[302] := FuncExplicit;
+  fIdentFuncTable[224] := FuncExport;
+  fIdentFuncTable[164] := FuncExportstructs;
+  fIdentFuncTable[491] := FuncExtends;
+  fIdentFuncTable[292] := FuncFalse;
+  fIdentFuncTable[662] := FuncFinal;
+  fIdentFuncTable[498] := FuncFloat;
+  fIdentFuncTable[706] := FuncFor;
+  fIdentFuncTable[613] := FuncForeach;
+  fIdentFuncTable[542] := FuncFunction;
+  fIdentFuncTable[330] := FuncGlobal;
+  fIdentFuncTable[176] := FuncGlobalconfig;
+  fIdentFuncTable[197] := FuncGoto;
+  fIdentFuncTable[89] := FuncGuid;
+  fIdentFuncTable[606] := FuncHidecategories;
+  fIdentFuncTable[278] := FuncHidedropdown;
+  fIdentFuncTable[618] := FuncHideparent;
+  fIdentFuncTable[445] := FuncIf;
+  fIdentFuncTable[344] := FuncIgnores;
+  fIdentFuncTable[348] := FuncImport;
+  fIdentFuncTable[342] := FuncInit;
+  fIdentFuncTable[620] := FuncInput;
+  fIdentFuncTable[615] := FuncInsert;
+  fIdentFuncTable[648] := FuncInstanced;
+  fIdentFuncTable[372] := FuncInt;
+  fIdentFuncTable[520] := FuncIntrinsic;
+  fIdentFuncTable[205] := FuncInvariant;
+  fIdentFuncTable[462] := FuncIterator;
+  fIdentFuncTable[6] := FuncLatent;
+  fIdentFuncTable[24] := FuncLength;
+  fIdentFuncTable[166] := FuncLocal;
+  fIdentFuncTable[152] := FuncLocalized;
+  fIdentFuncTable[154] := FuncLong;
+  fIdentFuncTable[182] := FuncMesh;
+  fIdentFuncTable[493] := FuncModel;
+  fIdentFuncTable[336] := FuncMutable;
+  fIdentFuncTable[611] := FuncName;
+  fIdentFuncTable[311] := FuncNative;
+  fIdentFuncTable[526] := FuncNativereplication;
+  fIdentFuncTable[407] := FuncNew;
+  fIdentFuncTable[128] := FuncNoexport;
+  fIdentFuncTable[468] := FuncNone;
+  fIdentFuncTable[428] := FuncNoteditinlinenew;
+  fIdentFuncTable[532] := FuncNotplaceable;
+  fIdentFuncTable[389] := FuncNousercreate;
+  fIdentFuncTable[548] := FuncOperator;
+  fIdentFuncTable[265] := FuncOptional;
+  fIdentFuncTable[485] := FuncOut;
+  fIdentFuncTable[517] := FuncParseconfig;
+  fIdentFuncTable[726] := FuncPerobjectconfig;
+  fIdentFuncTable[401] := FuncPlaceable;
+  fIdentFuncTable[385] := FuncPlane;
+  fIdentFuncTable[575] := FuncPointer;
+  fIdentFuncTable[529] := FuncPostoperator;
+  fIdentFuncTable[33] := FuncPreoperator;
+  fIdentFuncTable[103] := FuncPrivate;
+  fIdentFuncTable[134] := FuncProtected;
+  fIdentFuncTable[512] := FuncRegister;
+  fIdentFuncTable[106] := FuncReliable;
+  fIdentFuncTable[121] := FuncRemove;
+  fIdentFuncTable[253] := FuncReplication;
+  fIdentFuncTable[593] := FuncReturn;
+  fIdentFuncTable[440] := FuncRng;
+  fIdentFuncTable[178] := FuncRot;
+  fIdentFuncTable[94] := FuncRotator;
+  fIdentFuncTable[691] := FuncSafereplace;
+  fIdentFuncTable[450] := FuncScale;
+  fIdentFuncTable[119] := FuncScriptconst;
+  fIdentFuncTable[651] := FuncSelf;
+  fIdentFuncTable[386] := FuncShowcategories;
+  fIdentFuncTable[646] := FuncSimulated;
+  fIdentFuncTable[97] := FuncSingular;
+  fIdentFuncTable[370] := FuncSkip;
+  fIdentFuncTable[295] := FuncSound;
+  fIdentFuncTable[142] := FuncState;
+  fIdentFuncTable[713] := FuncStatic;
+  fIdentFuncTable[213] := FuncStop;
+  fIdentFuncTable[729] := FuncString;
+  fIdentFuncTable[354] := FuncStruct;
+  fIdentFuncTable[626] := FuncSuper;
+  fIdentFuncTable[636] := FuncSwitch;
+  fIdentFuncTable[345] := FuncTexture;
+  fIdentFuncTable[453] := FuncTransient;
+  fIdentFuncTable[192] := FuncTravel;
+  fIdentFuncTable[714] := FuncTrue;
+  fIdentFuncTable[108] := FuncUnreliable;
+  fIdentFuncTable[173] := FuncUntil;
+  fIdentFuncTable[619] := FuncVar;
+  fIdentFuncTable[658] := FuncVect;
+  fIdentFuncTable[543] := FuncVector;
+  fIdentFuncTable[730] := FuncVoid;
+  fIdentFuncTable[303] := FuncWhile;
+  fIdentFuncTable[367] := FuncWithin;
+end;
+
+function TSynUnrealSyn.AltFunc(Index: Integer): TtkTokenKind;
 begin
   Result := tkIdentifier;
 end;
 
-function TSynUnrealSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var HashKey: Integer;
+function TSynUnrealSyn.FuncAbstract(Index: Integer): TtkTokenKind;
 begin
-  fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < MAXIDENTTABLE + 1 then Result := fIdentFuncTable[HashKey] else Result := tkIdentifier;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
 end;
 
-procedure TSynUnrealSyn.MakeMethodTables;
-var
-  I: Char;
+function TSynUnrealSyn.FuncAlways(Index: Integer): TtkTokenKind;
 begin
-  for I := #0 to #255 do
-    case I of
-      '&': fProcTable[I] := AndSymbolProc;
-      #39: fProcTable[I] := AsciiCharProc;
-      '}': fProcTable[I] := BraceCloseProc;
-      '{': fProcTable[I] := BraceOpenProc;
-      #13: fProcTable[I] := CRProc;
-      ':': fProcTable[I] := ColonProc;
-      ',': fProcTable[I] := CommaProc;
-      '#': fProcTable[I] := DirectiveProc;
-      '=': fProcTable[I] := EqualProc;
-      '>': fProcTable[I] := GreaterProc;
-      '?': fProcTable[I] := QuestionProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      '<': fProcTable[I] := LowerProc;
-      '-': fProcTable[I] := MinusProc;
-      '%': fProcTable[I] := ModSymbolProc;
-      '!': fProcTable[I] := NotSymbolProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9': fProcTable[I] := NumberProc;
-      '|': fProcTable[I] := OrSymbolProc;
-      '+': fProcTable[I] := PlusProc;
-      '.': fProcTable[I] := PointProc;
-      ')': fProcTable[I] := RoundCloseProc;
-      '(': fProcTable[I] := RoundOpenProc;
-      ';': fProcTable[I] := SemiColonProc;
-      '/': fProcTable[I] := SlashProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      ']': fProcTable[I] := SquareCloseProc;
-      '[': fProcTable[I] := SquareOpenProc;
-      '*': fProcTable[I] := StarProc;
-      #34: fProcTable[I] := StringProc;
-      '$', '@': fProcTable[I] := DollarSignProc;
-      '~': fProcTable[I] := TildeProc;
-      '^': fProcTable[I] := XOrSymbolProc;
-      else fProcTable[I] := UnknownProc;
-    end;
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncArray(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncArraycount(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncAssert(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncAuto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncAutomated(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncBool(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncBoundingbox(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncBoundingvolume(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncBreak(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncButton(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncByte(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCache(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCacheexempt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCase(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCatch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncClass(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCoerce(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCollapsecategories(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncColor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncConfig(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncConst(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncContinue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCoords(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncCpptext(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+
+end;
+
+function TSynUnrealSyn.FuncCross(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkSymbol
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDefault(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDefaultproperties(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDelegate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDelete(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDependson(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDeprecated(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDontcollapsecategories(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncDot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkSymbol
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEach(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEdfindable(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEditconst(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEditconstarray(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEditinline(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEditinlinenew(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEditinlinenotify(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEditinlineuse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncElse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEnum(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEnumcount(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncEvent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncExec(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncExpands(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncExplicit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncExport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncExportstructs(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncExtends(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncFalse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncFinal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncFloat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncFor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncForeach(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncFunction(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncGlobal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncGlobalconfig(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncGoto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncGuid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncHidecategories(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncHidedropdown(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncHideparent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncIf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncIgnores(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncImport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncInit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncInput(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncInsert(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncInstanced(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncInt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncIntrinsic(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncInvariant(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncIterator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncLatent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncLength(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncLocal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncLocalized(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncLong(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncMesh(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncModel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncMutable(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncName(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNative(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNativereplication(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNew(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNoexport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNone(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNoteditinlinenew(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNotplaceable(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncNousercreate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncOperator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncOptional(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncOut(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncParseconfig(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPerobjectconfig(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPlaceable(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPlane(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPointer(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPostoperator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPreoperator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncPrivate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncProtected(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncRegister(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncReliable(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncRemove(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncReplication(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncReturn(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncRng(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncRot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncRotator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSafereplace(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncScale(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncScriptconst(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSelf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncShowcategories(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSimulated(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+
+end;
+
+function TSynUnrealSyn.FuncSingular(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSkip(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSound(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncState(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncStatic(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncStop(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncString(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncStruct(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSuper(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncSwitch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncTexture(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncTransient(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncTravel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncTrue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncUnreliable(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey2
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncUntil(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncVar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncVect(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncVector(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncVoid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncWhile(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynUnrealSyn.FuncWithin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
 end;
 
 constructor TSynUnrealSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := False;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style:= [fsItalic];
   AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
+  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
   AddAttribute(fInvalidAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style:= [fsBold];
   AddAttribute(fKeyAttri);
-  fKey2Attri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord);
+  fKey2Attri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord, SYNS_FriendlyAttrSecondReservedWord);
   fKey2Attri.Style:= [fsBold];
   AddAttribute(fKey2Attri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
-  fSpaceAttri.Foreground := clWindow;
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
-  fString2Attri := TSynHighlighterAttributes.Create(SYNS_AttrSingleString);
+  fString2Attri := TSynHighlighterAttributes.Create(SYNS_AttrSingleString, SYNS_FriendlyAttrSingleString);
   AddAttribute(fString2Attri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
-  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective);
+  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective, SYNS_FriendlyAttrDirective);
   AddAttribute(fDirecAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fRange := rsUnknown;
   fDefaultFilter := SYNS_FilterCPP;
 end; { Create }
-
-procedure TSynUnrealSyn.SetLine(NewValue: String; LineNumber:Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end; { SetLine }
 
 procedure TSynUnrealSyn.AnsiCProc;
 begin
@@ -1105,7 +1813,7 @@ begin
       end;
   end;
 
-  while FLine[Run] <> #0 do
+  while not IsLineEnd(Run) do
     case FLine[Run] of
       '*':
         if fLine[Run + 1] = '/' then
@@ -1150,15 +1858,13 @@ procedure TSynUnrealSyn.AsciiCharProc;
 begin
   fTokenID := tkString2;
   repeat
-    case FLine[Run] of
-      #0, #10, #13: break;
-      #92:                             {backslash}
+    if IsLineEnd(Run) then break;
+    if FLine[Run] = #92 then                             {backslash}
         {if we have an escaped single quote it doesn't count}
-        if FLine[Run + 1] = #39 then inc(Run);
-    end;
+      if FLine[Run + 1] = #39 then inc(Run);
     inc(Run);
   until FLine[Run] = #39;
-  if FLine[Run] <> #0 then inc(Run);
+  if not IsLineEnd(Run) then inc(Run);
 end;
 
 procedure TSynUnrealSyn.BraceCloseProc;
@@ -1208,11 +1914,14 @@ end;
 
 procedure TSynUnrealSyn.DirectiveProc;
 begin
-  if fLine[Run] in [#0, #10, #13] then begin
+  if IsLineEnd(Run) then
+  begin
     if (Run <= 0) then
       fRange := rsUnknown;
-    fProcTable[fLine[Run]];
-  end else begin
+    NextProcedure;
+  end
+  else
+  begin
     fTokenID := tkDirective;
     while TRUE do
       case fLine[Run] of
@@ -1220,7 +1929,8 @@ begin
           begin
             if fLine[Run + 1] = '/' then // is end of directive as well
               break
-            else if fLine[Run + 1] = '*' then begin // might be embedded only
+            else if fLine[Run + 1] = '*' then
+            begin // might be embedded only
               fRange := rsDirectiveComment;
               break;
             end else
@@ -1256,7 +1966,7 @@ end;
 procedure TSynUnrealSyn.GreaterProc;
 begin
   fTokenID := tkSymbol;
-  Case FLine[Run + 1] of
+  case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
         inc(Run, 2);
@@ -1294,7 +2004,7 @@ procedure TSynUnrealSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynUnrealSyn.LFProc;
@@ -1397,14 +2107,25 @@ end;
 procedure TSynUnrealSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynUnrealSyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in
-    ['0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X'] do
+  while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
@@ -1503,7 +2224,7 @@ begin
       begin
         fTokenID := tkComment;
         inc(Run, 2);
-       while not (fLine[Run] in [#0, #10, #13]) do Inc(Run);
+       while not IsLineEnd(Run) do Inc(Run);
       end;
     '*':                               {c style comments}
       begin
@@ -1511,7 +2232,7 @@ begin
         if fRange <> rsDirectiveComment then                               
           fRange := rsAnsiC;
         inc(Run, 2);
-        while fLine[Run] <> #0 do
+        while not IsLineEnd(Run) do
           case fLine[Run] of
             '*':
               if fLine[Run + 1] = '/' then
@@ -1551,7 +2272,7 @@ procedure TSynUnrealSyn.SpaceProc;
 begin
   inc(Run);
   fTokenID := tkSpace;
-  while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynUnrealSyn.SquareCloseProc;
@@ -1592,18 +2313,16 @@ begin
   fTokenID := tkString;
   if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then inc(Run, 2);
   repeat
-    case FLine[Run] of
-      #0, #10, #13: break;
-      #92:                             {backslash}
+    if IsLineEnd(Run) then break;
+    if FLine[Run] = #92 then                             {backslash}
         case FLine[Run + 1] of
           #10: inc(Run);               {line continuation character}
           #34: inc(Run);               {escaped quote doesn't count}
           #92: inc(Run);
         end;
-    end;
     inc(Run);
   until FLine[Run] = #34;
-  if FLine[Run] <> #0 then inc(Run);
+  if not IsLineEnd(Run) then inc(Run);
 end;
 
 procedure TSynUnrealSyn.DollarSignProc;
@@ -1639,11 +2358,6 @@ end;
 
 procedure TSynUnrealSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -1657,20 +2371,62 @@ begin
   else
     begin
       fRange := rsUnknown;
-      fProcTable[fLine[Run]];
+      NextProcedure
     end;
+  end;
+  inherited;
+end;
+
+procedure TSynUnrealSyn.NextProcedure;
+begin
+  case fLine[Run] of
+    '&': AndSymbolProc;
+    #39: AsciiCharProc;
+    '}': BraceCloseProc;
+    '{': BraceOpenProc;
+    #13: CRProc;
+    ':': ColonProc;
+    ',': CommaProc;
+    '#': DirectiveProc;
+    '=': EqualProc;
+    '>': GreaterProc;
+    '?': QuestionProc;
+    'A'..'Z', 'a'..'z', '_': IdentProc;
+    #10: LFProc;
+    '<': LowerProc;
+    '-': MinusProc;
+    '%': ModSymbolProc;
+    '!': NotSymbolProc;
+    #0: NullProc;
+    '0'..'9': NumberProc;
+    '|': OrSymbolProc;
+    '+': PlusProc;
+    '.': PointProc;
+    ')': RoundCloseProc;
+    '(': RoundOpenProc;
+    ';': SemiColonProc;
+    '/': SlashProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    ']': SquareCloseProc;
+    '[': SquareOpenProc;
+    '*': StarProc;
+    #34: StringProc;
+    '$', '@': DollarSignProc;
+    '~': TildeProc;
+    '^': XOrSymbolProc;
+    else UnknownProc;
   end;
 end;
 
 function TSynUnrealSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT   : Result := fCommentAttri;
-    SYN_ATTR_KEYWORD   : Result := fKeyAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
     SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_STRING    : Result := fStringAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
     SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_SYMBOL    : Result := fSymbolAttri;
+    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
   else
     Result := nil;
   end;
@@ -1678,20 +2434,12 @@ end;
 
 function TSynUnrealSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynUnrealSyn.GetRange: Pointer;
 begin
   Result := Pointer(fRange);
-end;
-
-function TSynUnrealSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynUnrealSyn.GetTokenID: TtkTokenKind;
@@ -1732,11 +2480,6 @@ end;
 function TSynUnrealSyn.GetTokenKind: integer;
 begin
   Result := Ord(GetTokenID);
-end;
-
-function TSynUnrealSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
 end;
 
 procedure TSynUnrealSyn.ResetRange;
@@ -1820,23 +2563,23 @@ function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
     tmpInvalidAttri   : TSynHighlighterAttributes;
     tmpSpaceAttri     : TSynHighlighterAttributes;
     tmpDirecAttri     : TSynHighlighterAttributes;
-    s                 : TStringList;
+    sl                 : TStringList;
 
   begin { ReadCPPBSettings }
-    s := TStringList.Create;
+    sl := TStringList.Create;
     try
-      EnumUserSettings(s);
-      if settingIndex >= s.Count then Result := false
+      EnumUserSettings(sl);
+      if settingIndex >= sl.Count then Result := false
       else begin
-        tmpStringAttri    := TSynHighlighterAttributes.Create('');
-        tmpNumberAttri    := TSynHighlighterAttributes.Create('');
-        tmpKeyAttri       := TSynHighlighterAttributes.Create('');
-        tmpSymbolAttri    := TSynHighlighterAttributes.Create('');
-        tmpCommentAttri   := TSynHighlighterAttributes.Create('');
-        tmpIdentifierAttri:= TSynHighlighterAttributes.Create('');
-        tmpInvalidAttri   := TSynHighlighterAttributes.Create('');
-        tmpSpaceAttri     := TSynHighlighterAttributes.Create('');
-        tmpDirecAttri     := TSynHighlighterAttributes.Create('');
+        tmpStringAttri    := TSynHighlighterAttributes.Create('', '');
+        tmpNumberAttri    := TSynHighlighterAttributes.Create('', '');
+        tmpKeyAttri       := TSynHighlighterAttributes.Create('', '');
+        tmpSymbolAttri    := TSynHighlighterAttributes.Create('', '');
+        tmpCommentAttri   := TSynHighlighterAttributes.Create('', '');
+        tmpIdentifierAttri:= TSynHighlighterAttributes.Create('', '');
+        tmpInvalidAttri   := TSynHighlighterAttributes.Create('', '');
+        tmpSpaceAttri     := TSynHighlighterAttributes.Create('', '');
+        tmpDirecAttri     := TSynHighlighterAttributes.Create('', '');
         tmpStringAttri    .Assign(fStringAttri);
         tmpNumberAttri    .Assign(fNumberAttri);
         tmpKeyAttri       .Assign(fKeyAttri);
@@ -1846,15 +2589,15 @@ function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
         tmpInvalidAttri   .Assign(fInvalidAttri);
         tmpSpaceAttri     .Assign(fSpaceAttri);
         tmpDirecAttri     .Assign(fDirecAttri);
-        Result := ReadCPPBSetting(s[settingIndex],fCommentAttri,'Comment')       and
-                  ReadCPPBSetting(s[settingIndex],fIdentifierAttri,'Identifier') and
-                  ReadCPPBSetting(s[settingIndex],fInvalidAttri,'Illegal Char')  and
-                  ReadCPPBSetting(s[settingIndex],fKeyAttri,'Reserved word')     and
-                  ReadCPPBSetting(s[settingIndex],fNumberAttri,'Integer')        and
-                  ReadCPPBSetting(s[settingIndex],fSpaceAttri,'Whitespace')      and
-                  ReadCPPBSetting(s[settingIndex],fStringAttri,'String')         and
-                  ReadCPPBSetting(s[settingIndex],fSymbolAttri,'Symbol')         and
-                  ReadCPPBSetting(s[settingIndex],fDirecAttri,'Preprocessor');
+        Result := ReadCPPBSetting(sl[settingIndex],fCommentAttri,'Comment')       and
+                  ReadCPPBSetting(sl[settingIndex],fIdentifierAttri,'Identifier') and
+                  ReadCPPBSetting(sl[settingIndex],fInvalidAttri,'Illegal Char')  and
+                  ReadCPPBSetting(sl[settingIndex],fKeyAttri,'Reserved word')     and
+                  ReadCPPBSetting(sl[settingIndex],fNumberAttri,'Integer')        and
+                  ReadCPPBSetting(sl[settingIndex],fSpaceAttri,'Whitespace')      and
+                  ReadCPPBSetting(sl[settingIndex],fStringAttri,'String')         and
+                  ReadCPPBSetting(sl[settingIndex],fSymbolAttri,'Symbol')         and
+                  ReadCPPBSetting(sl[settingIndex],fDirecAttri,'Preprocessor');
         if not Result then begin
           fStringAttri    .Assign(tmpStringAttri);
           fString2Attri   .Assign(tmpStringAttri);
@@ -1878,7 +2621,9 @@ function TSynUnrealSyn.UseUserSettings(settingIndex: integer): boolean;
         tmpSpaceAttri     .Free;
         tmpDirecAttri     .Free;
       end;
-    finally s.Free; end;
+    finally
+      sl.Free;
+    end;
   end; { ReadCPPBSettings }
 {$ENDIF}
 
@@ -1890,11 +2635,6 @@ begin
 {$ENDIF}
 end; { TSynUnrealSyn.UseUserSettings }
 
-function TSynUnrealSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := ['_', '0'..'9', 'a'..'z', 'A'..'Z'];
-end;
-
 class function TSynUnrealSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangUnreal;
@@ -1905,7 +2645,7 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-function TSynUnrealSyn.GetSampleSource: string;
+function TSynUnrealSyn.GetSampleSource: WideString;
 begin
   Result := '//----Comment-----------------------------------------------------------'#13#10+
             'class TestObject expands Object native;'#13#10+
@@ -1927,8 +2667,12 @@ begin
             '}';
 end;
 
+class function TSynUnrealSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangUnreal;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynUnrealSyn);
 {$ENDIF}

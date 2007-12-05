@@ -10,9 +10,10 @@ the specific language governing rights and limitations under the License.
 
 The Original Code is: SynHighlighterRuby.pas, released 2001-11-13.
 The Initial Author of this file is Stefan Ascher.
-All Rights Reserved.
 Portions by Jan Verhoeven (http://jansfreeware.com/jfdelphi.htm)
 "Heredoc" syntax highlighting implementation by Marko Njezic.
+Unicode translation by Maël Hörz.
+All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
 Contributors.txt file.
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterRuby.pas,v 1.11 2005/01/28 16:53:25 maelh Exp $
+$Id: SynHighlighterRuby.pas,v 1.10.2.8 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -55,10 +56,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,  
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -72,29 +75,22 @@ type
 
   TRangePointer = packed record
     case Boolean of
-      True  : (Ptr: Pointer);
-      False : (Range: Byte; Length: Byte; Checksum: Word);
+      True: (Ptr: Pointer);
+      False: (Range: Byte; Length: Byte; Checksum: Word);
     end;
 {$ELSE}
   TRangeState = (rsUnknown);
 {$ENDIF}
-
-  TProcTableProc = procedure of object;
 
 type
   TSynRubySyn = class(TSynCustomHighlighter)
   private
     fRange: TRangeState;
 {$IFDEF SYN_HEREDOC}
-    fHeredocLength : Byte;
-    fHeredocChecksum : Word;
+    fHeredocLength: Byte;
+    fHeredocChecksum: Word;
 {$ENDIF}
-    fLine: PChar;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fTokenPos: Integer;
     FTokenID: TtkTokenKind;
-    fLineNumber: Integer;
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
@@ -103,9 +99,8 @@ type
     fCommentAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyWords: TStrings;
-    fSecondKeys: TStrings;
-
+    fKeyWords: TWideStrings;
+    fSecondKeys: TWideStrings;
     procedure BraceOpenProc;
     procedure PointCommaProc;
     procedure CRProc;
@@ -119,16 +114,17 @@ type
     procedure SpaceProc;
     procedure StringProc;
     procedure UnknownProc;
-    procedure MakeMethodTables;
 {$IFDEF SYN_HEREDOC}
     procedure HeredocProc;
 {$ENDIF}
-    procedure SetSecondKeys(const Value: TStrings);
+    procedure SetSecondKeys(const Value: TWideStrings);
   protected
-    function GetSampleSource: string; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
+    procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -137,13 +133,10 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: string): boolean; override;
-    function IsSecondKeyWord(aToken: string): Boolean;
-    procedure SetLine(NewValue: string; LineNumber:Integer); override;
-    function GetToken: string; override;
+    function IsKeyword(const AKeyword: WideString): boolean; override;
+    function IsSecondKeyWord(aToken: WideString): Boolean;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -155,7 +148,7 @@ type
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
     property SecondKeyAttri: TSynHighlighterAttributes read fSecondKeyAttri
       write fSecondKeyAttri;
-    property SecondKeyWords: TStrings read fSecondKeys write SetSecondKeys;
+    property SecondKeyWords: TWideStrings read fSecondKeys write SetSecondKeys;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
@@ -179,143 +172,105 @@ uses
 
 const
   RubyKeysCount = 43;
-  RubyKeys: array[1..RubyKeysCount] of string = (
-    'ALIAS', 'ATTR', 'BEGIN', 'BREAK', 'CASE', 'CLASS', 'DEF', 'DO', 'ELSE',
-    'ELSIF', 'END', 'ENSURE', 'EXIT', 'EXTEND', 'FALSE', 'FOR', 'GETS', 'IF',
-    'IN', 'INCLUDE', 'LOAD', 'LOOP', 'MODULE', 'NEXT', 'NIL', 'NOT', 'PRINT',
-    'PRIVATE', 'PUBLIC', 'PUTS', 'RAISE', 'REDO', 'REQUIRE', 'RESCUE', 'RETRY',
-    'RETURN', 'SELF', 'THEN', 'TRUE', 'UNLESS', 'WHEN', 'WHILE', 'YIELD');
+  RubyKeys: array[1..RubyKeysCount] of WideString = (
+    'alias', 'attr', 'begin', 'break', 'case', 'class', 'def', 'do', 'else',
+    'elsif', 'end', 'ensure', 'exit', 'extend', 'false', 'for', 'gets', 'if',
+    'in', 'include', 'load', 'loop', 'module', 'next', 'nil', 'not', 'print',
+    'private', 'public', 'puts', 'raise', 'redo', 'require', 'rescue', 'retry',
+    'return', 'self', 'then', 'true', 'unless', 'when', 'while', 'yield');
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
-
-procedure MakeIdentTable;
-var
-  I, J: Char;
-begin
-  for I := #0 to #255 do
-  begin
-    case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z':
-        Identifiers[I] := True;
-      else
-        Identifiers[I] := False;
-    end;
-    J := UpCase(I);
-    case I in ['_', 'a'..'z', 'A'..'Z'] of
-      True: mHashTable[I] := Ord(J) - 64
-      else mHashTable[I] := 0;
-    end;
-  end;
-end;
-
-function TSynRubySyn.IsKeyword(const AKeyword: string): boolean;
+function TSynRubySyn.IsKeyword(const AKeyword: WideString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: String;
+  Token: WideString;
 begin
   First := 0;
   Last := fKeywords.Count - 1;
   Result := False;
-  Token := UpperCase(AKeyword);
+  Token := SynWideUpperCase(AKeyword);
 
-  while First <= Last do begin
-    I := (First + Last) shr 1;
-    Compare := CompareStr(fKeywords[I], Token);
-    if Compare = 0 then begin
-      Result := True;
-      break;
-    end else
-      if Compare < 0 then First := I + 1 else Last := I - 1;
-  end;
-end; { IsKeyWord }
-
-function TSynRubySyn.IsSecondKeyWord(aToken: String): Boolean;
-var
-  First, Last, I, Compare: Integer;
-  Token: String;
-begin
-  First := 0;
-  Last := fSecondKeys.Count - 1;
-  Result := False;
-  Token := UpperCase(aToken);
   while First <= Last do
   begin
     I := (First + Last) shr 1;
-    Compare := CompareStr(fSecondKeys[i], Token);
+    Compare := WideCompareStr(fKeywords[I], Token);
     if Compare = 0 then
     begin
       Result := True;
       break;
     end
+    else if Compare < 0 then
+      First := I + 1
     else
-      if Compare < 0 then First := I + 1 else Last := I - 1;
+      Last := I - 1;
+  end;
+end; { IsKeyWord }
+
+function TSynRubySyn.IsSecondKeyWord(aToken: WideString): Boolean;
+var
+  First, Last, I, Compare: Integer;
+  Token: WideString;
+begin
+  First := 0;
+  Last := fSecondKeys.Count - 1;
+  Result := False;
+  Token := SynWideUpperCase(aToken);
+  while First <= Last do
+  begin
+    I := (First + Last) shr 1;
+    Compare := WideCompareStr(fSecondKeys[i], Token);
+    if Compare = 0 then
+    begin
+      Result := True;
+      break;
+    end
+    else if Compare < 0 then
+      First := I + 1
+    else
+      Last := I - 1;
   end;
 end; { IsSecondKeyWord }
-
-procedure TSynRubySyn.MakeMethodTables;
-var
-  I: Char;
-begin
-  for I := #0 to #255 do
-    case I of
-      '<': fProcTable[I] := LowerProc;
-      '#': fProcTable[I] := SlashProc;
-      '{': fProcTable[I] := BraceOpenProc;
-      ';': fProcTable[I] := PointCommaProc;
-      #13: fProcTable[I] := CRProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9': fProcTable[I] := NumberProc;
-      '(': fProcTable[I] := RoundOpenProc;
-      '/': fProcTable[I] := SlashProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      #34, #39: fProcTable[I] := StringProc;
-      else fProcTable[I] := UnknownProc;
-    end;
-end;
 
 constructor TSynRubySyn.Create(AOwner: TComponent);
 var
   i: integer;
 begin
   inherited Create(AOwner);
-  fKeyWords := TStringList.Create;
-  TStringList(fKeyWords).Sorted := True;
-  TStringList(fKeyWords).Duplicates := dupIgnore;
-  fSecondKeys := TStringList.Create;
-  TStringList(fSecondKeys).Sorted := True;
-  TStringList(fSecondKeys).Duplicates := dupIgnore;
+
+  fCaseSensitive := False;
+
+  fKeyWords := TWideStringList.Create;
+  TWideStringList(fKeyWords).Sorted := True;
+  TWideStringList(fKeyWords).Duplicates := dupIgnore;
+  fSecondKeys := TWideStringList.Create;
+  TWideStringList(fSecondKeys).Sorted := True;
+  TWideStringList(fSecondKeys).Duplicates := dupIgnore;
   if not (csDesigning in ComponentState) then
     for i := 1 to RubyKeysCount do
       fKeyWords.Add(RubyKeys[i]);
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Foreground := clMaroon;
   AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Foreground := clBlue;
   AddAttribute(fKeyAttri);
-  fSecondKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord);
+  fSecondKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrSecondReservedWord, SYNS_FriendlyAttrSecondReservedWord);
   AddAttribute(fSecondKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   fNumberAttri.Foreground := clGreen;
   AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   fStringAttri.Foreground := clPurple;
   AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   fSymbolAttri.Foreground := clBlue;
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  MakeMethodTables;
   fRange := rsUnknown;
   fDefaultFilter := SYNS_FilterRuby;
 end; { Create }
@@ -326,14 +281,6 @@ begin
   fSecondKeys.Free;
   inherited Destroy;
 end; { Destroy }
-
-procedure TSynRubySyn.SetLine(NewValue: String; LineNumber:Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end; { SetLine }
 
 procedure TSynRubySyn.BraceOpenProc;
 begin
@@ -358,15 +305,17 @@ end;
 
 procedure TSynRubySyn.IdentProc;
 begin
-  while Identifiers[fLine[Run]] do inc(Run);
-  if IsKeyWord(GetToken) then begin
+  while IsIdentChar(fLine[Run]) do inc(Run);
+  if IsKeyWord(GetToken) then
+  begin
     fTokenId := tkKey;
     Exit;
   end
   else fTokenId := tkIdentifier;
-  if IsSecondKeyWord(GetToken)
-    then fTokenId := tkSecondKey
-    else fTokenId := tkIdentifier;
+  if IsSecondKeyWord(GetToken) then
+    fTokenId := tkSecondKey
+  else
+    fTokenId := tkIdentifier;
 end;
 
 procedure TSynRubySyn.LFProc;
@@ -377,12 +326,10 @@ end;
 
 procedure TSynRubySyn.LowerProc;
 {$IFDEF SYN_HEREDOC}
-const
-  AlphaNumericChars = ['A'..'Z', 'a'..'z', '0'..'9', '_'];
 var
-  i, Len, SkipRun : Integer;
-  IndentedHeredoc : Boolean;
-  QuoteChar : Char;
+  i, Len, SkipRun: Integer;
+  IndentedHeredoc: Boolean;
+  QuoteChar: WideChar;
 {$ENDIF}
 begin
 {$IFDEF SYN_HEREDOC}
@@ -392,13 +339,14 @@ begin
 
     SkipRun := 0;
     QuoteChar := #0;
-    if (FLine[Run + 2] = '-') and (FLine[Run + 3] in ['"', '''', '`']) then
+    if (FLine[Run + 2] = '-') and (FLine[Run + 3] in
+      [WideChar('"'), WideChar(''''), WideChar('`')]) then
     begin
       SkipRun := 2;
       QuoteChar := FLine[Run + 3];
     end
     else
-    if (FLine[Run + 2] in ['-', '"', '''', '`']) then
+    if (FLine[Run + 2] in [WideChar('-'), WideChar('"'), WideChar(''''), WideChar('`')]) then
     begin
       SkipRun := 1;
       if FLine[Run + 2] <> '-' then
@@ -406,12 +354,12 @@ begin
     end;
     IndentedHeredoc := (SkipRun > 0) and (FLine[Run + 2] = '-');
 
-    if (FLine[Run + SkipRun + 2] in AlphaNumericChars) then
+    if IsIdentChar(FLine[Run + SkipRun + 2]) then
     begin
       inc(Run, 2);
 
       i := Run;
-      while FLine[SkipRun + i] in AlphaNumericChars do Inc(i);
+      while IsIdentChar(FLine[SkipRun + i]) do Inc(i);
       Len := i - Run;
 
       if Len > 255 then
@@ -450,13 +398,25 @@ end;
 procedure TSynRubySyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynRubySyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', '.', 'e', 'E':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'9', '.', 'e', 'E'] do
+  while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
@@ -503,12 +463,12 @@ procedure TSynRubySyn.SpaceProc;
 begin
   inc(Run);
   fTokenID := tkSpace;
-  while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynRubySyn.StringProc;
 var
-  QuoteChar: Char;
+  QuoteChar: WideChar;
 begin
 // Ha, ha, Strings in Ruby (could be anything)!!!!
 
@@ -541,11 +501,6 @@ end;
 
 procedure TSynRubySyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -556,34 +511,34 @@ procedure TSynRubySyn.HeredocProc;
   procedure SkipToEOL;
   begin
     case FLine[Run] of
-       #0 : NullProc;
-      #10 : LFProc;
-      #13 : CRProc;
+       #0: NullProc;
+      #10: LFProc;
+      #13: CRProc;
     else
       repeat
         inc(Run);
-      until FLine[Run] in [#0, #10, #13];
+      until IsLineEnd(Run);
     end;
   end;
 
 var
   i : Integer;
 begin
-  if (FLine[Run] in [#0, #10, #13]) and (fTokenPos = Run) then
+  if IsLineEnd(Run) and (fTokenPos = Run) then
   begin
-    fProcTable[ FLine[Run] ];
+    NextProcedure;
     Exit;
   end;
   fTokenID := tkString;
 
   if fRange = rsIndentedHeredoc then
-    while FLine[Run] in [#9, #32] do Inc(Run);
+    while FLine[Run] in [WideChar(#9), WideChar(#32)] do Inc(Run);
 
   if ((Run = 0) and (fRange = rsHeredoc)) or (fRange = rsIndentedHeredoc) then
   begin
     i := 0;
 
-    while not (FLine[Run + i] in [#0, #10, #13]) do
+    while not IsLineEnd(FLine[Run + i]) do
     begin
       if i > fHeredocLength then
       begin
@@ -619,7 +574,28 @@ begin
     HeredocProc
   else
 {$ENDIF}
-    fProcTable[fLine[Run]];
+    NextProcedure;
+  inherited;
+end;
+
+procedure TSynRubySyn.NextProcedure;
+begin
+  case fLine[Run] of
+    '<': LowerProc;
+    '#': SlashProc;
+    '{': BraceOpenProc;
+    ';': PointCommaProc;
+    #13: CRProc;
+    'A'..'Z', 'a'..'z', '_': IdentProc;
+    #10: LFProc;
+    #0: NullProc;
+    '0'..'9': NumberProc;
+    '(': RoundOpenProc;
+    '/': SlashProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    #34, #39: StringProc;
+    else UnknownProc;
+  end;
 end;
 
 function TSynRubySyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -637,14 +613,13 @@ end;
 
 function TSynRubySyn.GetEol: Boolean;
 begin
-  Result := False;
-  if fTokenId = tkNull then Result := True;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynRubySyn.GetRange: Pointer;
 {$IFDEF SYN_HEREDOC}
 var
-  RangePointer : TRangePointer;
+  RangePointer: TRangePointer;
 {$ENDIF}
 begin
 {$IFDEF SYN_HEREDOC}
@@ -660,14 +635,6 @@ begin
 {$ELSE}
   Result := Pointer(fRange);
 {$ENDIF}
-end;
-
-function TSynRubySyn.GetToken: string;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynRubySyn.GetTokenID: TtkTokenKind;
@@ -697,11 +664,6 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynRubySyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
 procedure TSynRubySyn.ResetRange;
 begin
   fRange := rsUnknown;
@@ -714,7 +676,7 @@ end;
 procedure TSynRubySyn.SetRange(Value: Pointer);
 {$IFDEF SYN_HEREDOC}
 var
-  RangePointer : TRangePointer;
+  RangePointer: TRangePointer;
 {$ENDIF}
 begin
 {$IFDEF SYN_HEREDOC}
@@ -732,7 +694,7 @@ begin
 {$ENDIF}
 end;
 
-procedure TSynRubySyn.SetSecondKeys(const Value: TStrings);
+procedure TSynRubySyn.SetSecondKeys(const Value: TWideStrings);
 var
   i: Integer;
 begin
@@ -740,7 +702,7 @@ begin
     begin
       Value.BeginUpdate;
       for i := 0 to Value.Count - 1 do
-        Value[i] := UpperCase(Value[i]);
+        Value[i] := SynWideUpperCase(Value[i]);
       Value.EndUpdate;
     end;
   fSecondKeys.Assign(Value);
@@ -757,7 +719,7 @@ begin
   Result := SYNS_LangRuby;
 end;
 
-function TSynRubySyn.GetSampleSource: string;
+function TSynRubySyn.GetSampleSource: WideString;
 begin
   Result :=
     '# Factorial'+#13#10+
@@ -771,8 +733,12 @@ begin
     'print fact(ARGV[0].to_i), "\n"';
 end;
 
+class function TSynRubySyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangRuby;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynRubySyn);
 {$ENDIF}
