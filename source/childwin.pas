@@ -4285,9 +4285,10 @@ begin
   end
 
   // Enable copy + paste shortcuts in dbgrids
-  else if (Sender is TTNTDBGrid) and (Shift = [ssCtrl]) then
+  else if (Sender is TTNTDBGrid) and (not TTNTDBGrid(Sender).EditorMode) and (Shift = [ssCtrl]) then
   begin
     Grid := Sender as TTNTDBGrid;
+    // TODO: Clipboard.AsText is not Unicode safe!
     if Key = Ord('C') then
       Clipboard.AsText := Grid.SelectedField.AsWideString
     else if Key = Ord('V') then begin
