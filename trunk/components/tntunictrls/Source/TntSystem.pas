@@ -11,7 +11,7 @@
 
 unit TntSystem;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 {*****************************************************************************}
 {  Special thanks go to Francisco Leong for originating the design for        }

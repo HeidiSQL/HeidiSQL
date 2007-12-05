@@ -11,7 +11,7 @@
 
 unit TntForms;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

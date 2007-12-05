@@ -11,7 +11,7 @@
 
 unit TntClipBrd;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

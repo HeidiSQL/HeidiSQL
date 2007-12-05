@@ -11,7 +11,7 @@
 
 unit TntWideStringProperty_Design;
 
-{$INCLUDE ..\Source\TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

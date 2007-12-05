@@ -11,7 +11,7 @@
 
 unit TntGrids;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

@@ -11,7 +11,7 @@
 
 unit TntStrEdit_Design;
 
-{$INCLUDE ..\Source\TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 // The following unit is adapted from StrEdit.pas.
 

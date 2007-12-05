@@ -11,7 +11,7 @@
 
 unit TntFormatStrUtils;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

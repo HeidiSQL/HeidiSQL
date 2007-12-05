@@ -11,7 +11,7 @@
 
 unit TntDBGrids;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

@@ -11,7 +11,7 @@
 
 unit ActiveIMM_TLB;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 {TNT-IGNORE-UNIT}
 

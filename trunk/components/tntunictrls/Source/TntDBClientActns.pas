@@ -11,7 +11,7 @@
 
 unit TntDBClientActns;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

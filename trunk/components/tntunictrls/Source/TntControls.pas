@@ -11,7 +11,7 @@
 
 unit TntControls;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 {
   Windows NT provides support for native Unicode windows.  To add Unicode support to a
