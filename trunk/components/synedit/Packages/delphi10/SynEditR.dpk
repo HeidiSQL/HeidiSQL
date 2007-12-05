@@ -29,7 +29,8 @@ package SynEditR;
 requires
   vcl,
   vcldb,
-  vclx;
+  vclx,
+  rtl;
 
 contains
   SynTextDrawer in '..\..\Source\SynTextDrawer.pas',
@@ -127,6 +128,7 @@ contains
   SynURIOpener in '..\..\Source\SynURIOpener.pas',
   SynHighlighterDOT in '..\..\Source\SynHighlighterDOT.pas',
   SynHighlighterVrml97 in '..\..\Source\SynHighlighterVrml97.pas',
-  SynHighlighterEiffel in '..\..\Source\SynHighlighterEiffel.pas';
+  SynHighlighterEiffel in '..\..\Source\SynHighlighterEiffel.pas',
+  SynUnicode in '..\..\Source\SynUnicode.pas';
 
 end.

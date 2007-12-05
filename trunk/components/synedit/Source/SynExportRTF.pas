@@ -15,6 +15,7 @@ mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Hieke.
 Portions created by Michael Hieke are Copyright 2000 Michael Hieke.
 Portions created by James D. Jacobson are Copyright 1999 Martin Waldenburg.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -29,7 +30,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynExportRTF.pas,v 1.10 2004/07/27 14:24:02 markonjezic Exp $
+$Id: SynExportRTF.pas,v 1.10.2.2 2006/05/21 11:59:34 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -47,43 +48,49 @@ interface
 
 uses
   {$IFDEF SYN_CLX}
-  Qt, QGraphics,
+  Qt,
+  QGraphics,
   QSynEditExport,
+  QSynUnicode,  
   {$ELSE}
-  Windows, Graphics, RichEdit,
+  Windows,
+  Graphics,
+  RichEdit,
   SynEditExport,
+  SynUnicode,    
   {$ENDIF}
   Classes;
 
 type
   TSynExporterRTF = class(TSynCustomExporter)
   private
-    fAttributesChanged: boolean;
+    fAttributesChanged: Boolean;
     fListColors: TList;
-    function ColorToRTF(AColor: TColor): string;
-    function GetColorIndex(AColor: TColor): integer;
+    function ColorToRTF(AColor: TColor): WideString;
+    function GetColorIndex(AColor: TColor): Integer;
   protected
     procedure FormatAfterLastAttribute; override;
-    procedure FormatAttributeDone(BackgroundChanged, ForegroundChanged: boolean;
+    procedure FormatAttributeDone(BackgroundChanged, ForegroundChanged: Boolean;
       FontStylesChanged: TFontStyles); override;
-    procedure FormatAttributeInit(BackgroundChanged, ForegroundChanged: boolean;
+    procedure FormatAttributeInit(BackgroundChanged, ForegroundChanged: Boolean;
       FontStylesChanged: TFontStyles); override;
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
-      ForegroundChanged: boolean; FontStylesChanged: TFontStyles); override;
+      ForegroundChanged: Boolean; FontStylesChanged: TFontStyles); override;
     procedure FormatNewLine; override;
-    function GetFooter: string; override;
+    function GetFooter: WideString; override;
     function GetFormatName: string; override;
-    function GetHeader: string; override;
-{$IFDEF SYN_MBCSSUPPORT}
-    function ReplaceMBCS(Char1, Char2: char): string; override;
-{$ENDIF}
+    function GetHeader: WideString; override;
+    function ReplaceReservedChar(AChar: WideChar): WideString; override;
+    function UseBom: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear; override;
+    function SupportedEncodings: TSynEncodings; override;
   published
     property Color;
     property DefaultFilter;
+    property Encoding;
     property Font;
     property Highlighter;
     property Title;
@@ -108,14 +115,10 @@ begin
   inherited Create(AOwner);
   fListColors := TList.Create;
   fDefaultFilter := SYNS_FilterRTF;
-  {*****************}
 {$IFNDEF SYN_CLX}
   fClipboardFormat := RegisterClipboardFormat(CF_RTF);
-{$ENDIF}
-  // setup array of chars to be replaced
-  fReplaceReserved['\'] := '\\';
-  fReplaceReserved['{'] := '\{';
-  fReplaceReserved['}'] := '\}';
+{$ENDIF} // TODO: register for Kylix, too, see what Netscape Composer uses/accepts
+  FEncoding := seUTF8;
 end;
 
 destructor TSynExporterRTF.Destroy;
@@ -132,12 +135,11 @@ begin
     fListColors.Clear;
 end;
 
-function TSynExporterRTF.ColorToRTF(AColor: TColor): string;
+function TSynExporterRTF.ColorToRTF(AColor: TColor): WideString;
 var
   Col: Integer;
 begin
   Col := ColorToRGB(AColor);
-  {*****************}
   Result := Format('\red%d\green%d\blue%d;', [GetRValue(Col), GetGValue(Col),
     GetBValue(Col)]);
 end;
@@ -148,52 +150,58 @@ begin
 end;
 
 procedure TSynExporterRTF.FormatAttributeDone(BackgroundChanged,
-  ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
+  ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 const
-  FontTags: array[TFontStyle] of string = ('\b0', '\i0', '\ul0', '\strike0');
+  FontTags: array[TFontStyle] of WideString = ('\b0', '\i0', '\ul0', '\strike0');
 var
   AStyle: TFontStyle;
 begin
   // nothing to do about the color, but reset the font style
-  for AStyle := Low(TFontStyle) to High(TFontStyle) do begin
-    if AStyle in FontStylesChanged then begin
-      fAttributesChanged := TRUE;
+  for AStyle := Low(TFontStyle) to High(TFontStyle) do
+  begin
+    if AStyle in FontStylesChanged then
+    begin
+      fAttributesChanged := True;
       AddData(FontTags[AStyle]);
     end;
   end;
 end;
 
 procedure TSynExporterRTF.FormatAttributeInit(BackgroundChanged,
-  ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
+  ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 const
-  FontTags: array[TFontStyle] of string = ('\b', '\i', '\ul', '\strike');
+  FontTags: array[TFontStyle] of WideString = ('\b', '\i', '\ul', '\strike');
 var
   AStyle: TFontStyle;
 begin
   // background color
-  if BackgroundChanged then begin
+  if BackgroundChanged then
+  begin
     AddData(Format('\cb%d', [GetColorIndex(fLastBG)]));
-    fAttributesChanged := TRUE;
+    fAttributesChanged := True;
   end;
   // text color
-  if ForegroundChanged then begin
+  if ForegroundChanged then
+  begin
     AddData(Format('\cf%d', [GetColorIndex(fLastFG)]));
-    fAttributesChanged := TRUE;
+    fAttributesChanged := True;
   end;
   // font styles
   for AStyle := Low(TFontStyle) to High(TFontStyle) do
-    if AStyle in FontStylesChanged then begin
+    if AStyle in FontStylesChanged then
+    begin
       AddData(FontTags[AStyle]);
-      fAttributesChanged := TRUE;
+      fAttributesChanged := True;
     end;
-  if fAttributesChanged then begin
+  if fAttributesChanged then
+  begin
     AddData(' ');
-    fAttributesChanged := FALSE;
+    fAttributesChanged := False;
   end;
 end;
 
 procedure TSynExporterRTF.FormatBeforeFirstAttribute(BackgroundChanged,
-  ForegroundChanged: boolean; FontStylesChanged: TFontStyles);
+  ForegroundChanged: Boolean; FontStylesChanged: TFontStyles);
 begin
   FormatAttributeInit(BackgroundChanged, ForegroundChanged, FontStylesChanged);
 end;
@@ -203,14 +211,14 @@ begin
   AddData(#13#10'\par ');
 end;
 
-function TSynExporterRTF.GetColorIndex(AColor: TColor): integer;
+function TSynExporterRTF.GetColorIndex(AColor: TColor): Integer;
 begin
   Result := fListColors.IndexOf(pointer(AColor));
   if Result = -1 then
     Result := fListColors.Add(pointer(AColor));
 end;
 
-function TSynExporterRTF.GetFooter: string;
+function TSynExporterRTF.GetFooter: WideString;
 begin
   Result := '}';
 end;
@@ -220,24 +228,18 @@ begin
   Result := SYNS_ExporterFormatRTF;
 end;
 
-function TSynExporterRTF.GetHeader: string;
+function TSynExporterRTF.GetHeader: WideString;
 var
-  i: integer;
+  i: Integer;
 
-  function GetFontTable: string;
+  function GetFontTable: WideString;
   begin
-{$IFDEF SYN_MBCSSUPPORT}
-    if ByteType(Font.Name, 1) <> mbSingleByte then begin
-      Result := '{\fonttbl{\f0\fnil\fcharset134 ' +
-        ReplaceReservedChars(Font.Name)
-    end else
-{$ENDIF}
-      Result := '{\fonttbl{\f0\fmodern ' + Font.Name;
+    Result := '{\fonttbl{\f0\fmodern ' + Font.Name;
     Result := Result + ';}}'#13#10;
   end;
 
 begin
-  Result := '{\rtf1\ansi\deff0\deftab720' + GetFontTable;
+  Result := '{\rtf1\ansi\ansicpg1252\uc1\deff0\deftab720' + GetFontTable;
   // all the colors
   Result := Result + '{\colortbl';
   for i := 0 to fListColors.Count - 1 do
@@ -248,17 +250,39 @@ begin
     'exporter}'#13#10;
   Result := Result + '{\title ' + fTitle + '}}'#13#10;
   if fUseBackground then
-    Result := Result + { TODO } #13#10;
+    Result := Result + { TODO: use background color } #13#10;
   Result := Result + Format('\deflang1033\pard\plain\f0\fs%d ',
     [2 * Font.Size]);
 end;
 
-{$IFDEF SYN_MBCSSUPPORT}
-function TSynExporterRTF.ReplaceMBCS(Char1, Char2: char): string;
+function TSynExporterRTF.ReplaceReservedChar(AChar: WideChar): WideString;
 begin
-  Result := Format('\''%x\''%x', [integer(Char1), integer(Char2)]);
+  Result := '';
+  case AChar of
+    '\': Result := '\\';
+    '{': Result := '\{';
+    '}': Result := '\}';
+  end;
+  if AChar > #127 then
+  begin
+    if AChar <= #255 then
+      Result := '\''' + LowerCase(IntToHex(Ord(AChar), 2))
+    else
+      // SmallInt type-cast is necessary because RTF
+      // uses signed 16-Bit Integer for Unicode characters
+      Result := '\u' + IntToStr(SmallInt(AChar)) + '?';
+  end;
 end;
-{$ENDIF}
+
+function TSynExporterRTF.SupportedEncodings: TSynEncodings;
+begin
+  Result := [seUTF8];
+end;
+
+function TSynExporterRTF.UseBom: Boolean;
+begin
+  Result := False;
+end;
 
 end.
 

@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterHP48.pas, released 2000-06-23.
 The Original Code is based on the cbHPSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Cyrille de Brebisson.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHP48.pas,v 1.11 2005/12/31 07:34:36 skyweb Exp $
+$Id: SynHighlighterHP48.pas,v 1.10.2.8 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -55,10 +56,12 @@ uses
 {$IFDEF SYN_CLX}
   QGraphics,
   QSynEditHighlighter,
+  QSynUnicode,  
 {$ELSE}
   Windows,
   Graphics,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -71,16 +74,16 @@ type
 
   TSpeedListObject = class
   protected
-    FName: string;
+    FName: WideString;
     FSpeedList: TSpeedStringList;
-    fobject: tobject;
-    procedure SetName(const Value: string); virtual;
+    FObject: TObject;
+    procedure SetName(const Value: WideString); virtual;
   public
-    property Name: string read FName write SetName;
-    constructor Create(name: string);
+    property Name: WideString read FName write SetName;
+    constructor Create(name: WideString);
     destructor Destroy; override;
     property SpeedList: TSpeedStringList read FSpeedList write FSpeedList;
-    property pointer: tobject read fobject write fobject;
+    property Pointer: TObject read FObject write FObject;
   end;
 
   PSpeedListObjects = ^TSpeedListObjects;
@@ -88,39 +91,39 @@ type
 
   TSpeedStringList = class
   private
-    function GetText: string;
-    procedure SetText(const Value: string);
+    function GetText: WideString;
+    procedure SetText(const Value: WideString);
     function GetInObject(Index: Integer): TObject;
     procedure SetInObject(Index: Integer; const Value: TObject);
   protected
     FOnChange: TNotifyEvent;
-    SumOfUsed: array[0..NbSubList - 1] of integer;
-    datasUsed: array[0..NbSubList - 1] of integer;
-    datas: array[0..NbSubList - 1] of PSpeedListObjects;
-    lengthDatas: array[0..NbSubList - 1] of integer;
+    SumOfUsed: array[0..NbSubList - 1] of Integer;
+    DatasUsed: array[0..NbSubList - 1] of Integer;
+    Datas: array[0..NbSubList - 1] of PSpeedListObjects;
+    LengthDatas: array[0..NbSubList - 1] of Integer;
     procedure Changed; virtual;
-    function Get(Index: Integer): string; virtual;
+    function Get(Index: Integer): WideString; virtual;
     function GetObject(Index: Integer): TSpeedListObject;
-    function GetCount: integer;
-    function GetStringList: TStrings;
-    procedure SetStringList(const value: TStrings);
+    function GetCount: Integer;
+    function GetStringList: TWideStrings;
+    procedure SetStringList(const Value: TWideStrings);
   public
-    procedure NameChange(const obj: TSpeedListObject; const NewName: string);
+    procedure NameChange(const obj: TSpeedListObject; const NewName: WideString);
     procedure ObjectDeleted(const obj: TSpeedListObject);
 
     destructor Destroy; override;
-    constructor create;
+    constructor Create;
     function AddObj(const Value: TSpeedListObject): Integer;
-    function Add(const Value: string): TSpeedListObject;
+    function Add(const Value: WideString): TSpeedListObject;
     procedure Clear;
-    function Find(const name: string): TSpeedListObject;
+    function Find(const Name: WideString): TSpeedListObject;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property Objects[Index: Integer]: TSpeedListObject read GetObject;
-    property inobject[Index: Integer]: TObject read GetInObject write SetInObject;
-    property Strings[Index: Integer]: string read Get; default;
-    property count: integer read GetCount;
-    property StringList: TStrings read GetStringList write SetStringList;
-    property text: string read GetText write SetText;
+    property InObject[Index: Integer]: TObject read GetInObject write SetInObject;
+    property Strings[Index: Integer]: WideString read Get; default;
+    property Count: Integer read GetCount;
+    property StringList: TWideStrings read GetStringList write SetStringList;
+    property Text: WideString read GetText write SetText;
   end;
 
   TtkTokenKind = (tkNull, tkAsmKey, tkAsm, tkAsmComment, tksAsmKey, tksAsm,
@@ -133,10 +136,6 @@ type
   private
     fTockenKind: TtkTokenKind;
     fRange: TRangeState;
-    fLine: string;
-    Run: LongInt;
-    fTokenPos: Integer;
-    fEol: Boolean;
     Attribs: array[TtkTokenKind] of TSynHighlighterAttributes;
     FRplKeyWords: TSpeedStringList;
     FAsmKeyWords: TSpeedStringList;
@@ -149,7 +148,7 @@ type
     function SpaceProc: TtkTokenKind;
     function ParOpenProc: TtkTokenKind;
     function RplComProc: TtkTokenKind;
-    function AsmComProc(c: char): TtkTokenKind;
+    function AsmComProc(c: WideChar): TtkTokenKind;
     function PersentProc: TtkTokenKind;
     function IdentProc: TtkTokenKind;
     function SlashProc: TtkTokenKind;
@@ -166,19 +165,20 @@ type
     function GetAttribCount: integer; override;
     function GetAttribute(idx: integer): TSynHighlighterAttributes; override;
     function IsFilterStored: Boolean; override;
+    function IsLineEnd(Run: Integer): Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
-    procedure SetLine(NewValue: string; LineNumber: Integer); override;
-    function GetToken: string; override;
-    function GetTokenPos: Integer; override;
+    procedure DoSetLine(const Value: WideString; LineNumber: Integer); override;
     procedure Next; override;
 
+    function GetToken: WideString; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
 
@@ -225,18 +225,13 @@ uses
 {$ENDIF}
 
 const
-  tkTokenName: array[TtkTokenKind] of string = (SYNS_AttrNull,
-    SYNS_AttrAsmKey, SYNS_AttrAsm, SYNS_AttrAsmComment,
-    SYNS_AttrSASMKey, SYNS_AttrSASM, SYNS_AttrSASMComment,
-    SYNS_AttrRplKey, SYNS_AttrRpl, SYNS_AttrRplComment);
-
-  DefaultAsmKeyWords: string = '!RPL'#13#10'ENDCODE'#13#10'{'#13#10'}'#13#10 +
+  DefaultAsmKeyWords: WideString = '!RPL'#13#10'ENDCODE'#13#10'{'#13#10'}'#13#10 +
   'GOTO'#13#10'GOSUB'#13#10'GOSBVL'#13#10'GOVLNG'#13#10'GOLONG'#13#10'SKIP' +
     #13#10'SKIPYES' + #13#10'->'#13#10'SKUB'#13#10'SKUBL'#13#10'SKC'#13#10'SKNC'#13#10'SKELSE' +
     #13#10'SKEC'#13#10'SKENC'#13#10'SKLSE'#13#10 + 'GOTOL'#13#10'GOSUBL'#13#10 +
     'RTN'#13#10'RTNC'#13#10'RTNNC'#13#10'RTNSC'#13#10'RTNCC'#13#10'RTNSXM'#13#10'RTI';
-  OtherAsmKeyWords: array[0..5] of string = ('UP', 'EXIT', 'UPC', 'EXITC', 'UPNC', 'EXITNC');
-  DefaultRplKeyWords: string =
+  OtherAsmKeyWords: array[0..5] of WideString = ('UP', 'EXIT', 'UPC', 'EXITC', 'UPNC', 'EXITNC');
+  DefaultRplKeyWords: WideString =
     'CODEM'#13#10'ASSEMBLEM'#13#10'CODE'#13#10'ASSEMBLE'#13#10'IT'#13#10'ITE'#13#10'case'#13#10'::'#13#10';'#13#10'?SEMI'#13#10''''#13#10'#=case'#13#10'{'#13#10'}'#13#10'NAMELESS'#13#10'LOCAL'#13#10'LOCALNAME'#13#10'LABEL'#13#10 +
     'LOCALLABEL'#13#10'xNAME'#13#10'tNAME' + 'COLA'#13#10'NULLNAME'#13#10'xROMID'#13#10'#0=ITE'#13#10'#<ITE'#13#10'#=ITE'#13#10'#>ITE'#13#10'2''RCOLARPITE'#13#10'ANDITE'#13#10'COLAITE'#13#10'COLARPITE'#13#10'DUP#0=ITE'#13#10 +
     'EQITE'#13#10'ITE'#13#10'RPITE'#13#10'SysITE'#13#10'UNxSYMRPITE'#13#10'UserITE'#13#10'snnSYMRPITE'#13#10'snsSYMRPITE'#13#10'ssnSYMRPITE'#13#10'sssSYMRPITE'#13#10'$_EXIT'#13#10'DA1OK?NOTIT'#13#10'DA2aOK?NOTIT'#13#10 +
@@ -252,7 +247,7 @@ const
     'dMATRIXcase'#13#10'dREALNcase'#13#10'dREALcase'#13#10'dZINTNcase'#13#10'delimcase'#13#10'estcase'#13#10'idntcase'#13#10'idntlamcase'#13#10'j#-1=case'#13#10'j#0=case'#13#10'j#1=case'#13#10'j%-1=case'#13#10'j%0=case'#13#10 +
     'j%1=case'#13#10'jEQcase'#13#10'jZ-1=case'#13#10'jZ0=case'#13#10'jZ1=case'#13#10'namelscase'#13#10'need''case'#13#10'negrealcase'#13#10'ngsizecase'#13#10'nonopcase'#13#10'nonrmcase'#13#10'num#-1=case'#13#10'num#0=case'#13#10 +
     'num#1=case'#13#10'num-1=case'#13#10'num0=case'#13#10'num0case'#13#10'num1=case'#13#10'num2=case'#13#10'numb1stcase'#13#10'rebuildcase'#13#10'tok=casedrop'#13#10'wildcase'#13#10'zerdercase'#13#10;
-  SasmNoField: string = 'LOOP'#13#10'RTNSXM'#13#10'RTN'#13#10'RTNSC'#13#10'RTNCC'#13#10'SETDEC'#13#10'SETHEX'#13#10'RSTK=C'#13#10'C=RSTK'#13#10'CLRST'#13#10'C=ST'#13#10'ST=C'#13#10'CSTEX'#13#10 +
+  SasmNoField: WideString = 'LOOP'#13#10'RTNSXM'#13#10'RTN'#13#10'RTNSC'#13#10'RTNCC'#13#10'SETDEC'#13#10'SETHEX'#13#10'RSTK=C'#13#10'C=RSTK'#13#10'CLRST'#13#10'C=ST'#13#10'ST=C'#13#10'CSTEX'#13#10 +
   'RTI'#13#10'R0=A'#13#10'R1=A'#13#10'R2=A'#13#10'R3=A'#13#10'R4=A'#13#10'R0=C'#13#10'R1=C'#13#10'R2=C'#13#10'R3=C'#13#10'R4=C'#13#10'A=R0'#13#10'A=R1'#13#10'A=R2'#13#10'A=R3'#13#10'A=R4'#13#10 +
     'C=R0'#13#10'C=R1'#13#10'C=R2'#13#10'C=R3'#13#10'C=R4'#13#10'AR0EX'#13#10'AR1EX'#13#10'AR2EX'#13#10'AR3EX'#13#10'AR4EX'#13#10'CR0EX'#13#10'CR1EX'#13#10'CR2EX'#13#10'CR3EX'#13#10'CR4EX'#13#10 +
     'D0=A'#13#10'D0=C'#13#10'D1=A'#13#10'D1=C'#13#10'AD0EX'#13#10'AD1EX'#13#10'CD0EX'#13#10'CD1EX'#13#10'D0=AS'#13#10'D1=AS'#13#10'D0=CS'#13#10'D1=CD'#13#10'CD1XS'#13#10'CD0XS'#13#10'AD1XS'#13#10'AD0XS'#13#10 +
@@ -261,7 +256,7 @@ const
     'A=PC'#13#10'C=PC'#13#10'APCEX'#13#10'CPCEX'#13#10'XM=0'#13#10'SB=0'#13#10'SR=0'#13#10'MP=0'#13#10'CLRHST'#13#10'?XM=0'#13#10'?SR=0'#13#10'?MP=0'#13#10'?SB=0'#13#10'RTNYES'#13#10'SKIPYES{'#13#10'{'#13#10'}'#13#10'UP'#13#10'EXIT'#13#10'EXITNC'#13#10'EXITC'#13#10'UPC'#13#10'UPNC' +
     '}SKELSE{'#13#10'SKC{'#13#10'SKNC{'#13#10'SKUB{'#13#10'SKUBL{'#13#10'SKIPC{'#13#10'SKIPNC{'#13#10'EXIT2'#13#10'EXIT3'#13#10'UP2'#13#10'UP3'#13#10'}SKLSE{'#13#10'}SKEC{'#13#10'}SKENC{'#13#10;
 
-function StringCrc(S: string): integer;
+function StringCrc(S: WideString): integer;
 var
   i: integer;
 begin
@@ -274,7 +269,7 @@ end;
 
 { TSpeedListObject }
 
-constructor TSpeedListObject.create(name: string);
+constructor TSpeedListObject.create(name: WideString);
 begin
   inherited create;
   FName := name;
@@ -287,7 +282,7 @@ begin
   inherited destroy;
 end;
 
-procedure TSpeedListObject.SetName(const Value: string);
+procedure TSpeedListObject.SetName(const Value: WideString);
 begin
   FName := Value;
   if FSpeedList <> nil then
@@ -314,7 +309,7 @@ begin
   Value.SpeedList := Self;
 end;
 
-function TSpeedStringList.Add(const Value: string): TSpeedListObject;
+function TSpeedStringList.Add(const Value: WideString): TSpeedListObject;
 begin
   result := TSpeedListObject.Create(value);
   AddObj(Result);
@@ -360,7 +355,7 @@ begin
   inherited destroy;
 end;
 
-function TSpeedStringList.Find(const name: string): TSpeedListObject;
+function TSpeedStringList.Find(const name: WideString): TSpeedListObject;
 var
   crc: integer;
   i: integer;
@@ -374,7 +369,7 @@ begin
   result := nil;
 end;
 
-function TSpeedStringList.Get(Index: Integer): string;
+function TSpeedStringList.Get(Index: Integer): WideString;
 var
   i: integer;
 begin
@@ -415,17 +410,17 @@ begin
   result := nil;
 end;
 
-function TSpeedStringList.GetStringList: TStrings;
+function TSpeedStringList.GetStringList: TWideStrings;
 var
   i, j: integer;
 begin
-  result := TStringList.Create;
+  result := TWideStringList.Create;
   for i := Low(Datas) to High(Datas) do
     for j := 0 to DatasUsed[i] - 1 do
       result.add(datas[i][j].name);
 end;
 
-function TSpeedStringList.GetText: string;
+function TSpeedStringList.GetText: WideString;
 begin
   with StringList do begin
     result := Text;
@@ -433,7 +428,7 @@ begin
   end;
 end;
 
-procedure TSpeedStringList.NameChange(const Obj: TSpeedListObject; const NewName: string);
+procedure TSpeedStringList.NameChange(const Obj: TSpeedListObject; const NewName: WideString);
 var
   crc: integer;
   i: integer;
@@ -485,7 +480,7 @@ begin
     end;
 end;
 
-procedure TSpeedStringList.SetStringList(const value: TStrings);
+procedure TSpeedStringList.SetStringList(const value: TWideStrings);
 var
   i: integer;
 begin
@@ -494,11 +489,11 @@ begin
     AddObj(TSpeedListObject.Create(value[i]));
 end;
 
-procedure TSpeedStringList.SetText(const Value: string);
+procedure TSpeedStringList.SetText(const Value: WideString);
 var
-  s: TStrings;
+  s: TWideStrings;
 begin
-  s := TStringList.Create;
+  s := TWideStringList.Create;
   try
     s.Text := Value;
     StringList := s;
@@ -511,11 +506,19 @@ end;
 
 constructor TSynHP48Syn.Create(AOwner: TComponent);
 var
-  i: TtkTokenKind;
   j, k: integer;
 begin
-  for i := low(TtkTokenKind) to High(TtkTokenKind) do
-    Attribs[i] := TSynHighlighterAttributes.Create(tkTokenName[i]);
+  Attribs[tkNull] := TSynHighlighterAttributes.Create(SYNS_AttrNull, SYNS_FriendlyAttrNull);
+  Attribs[tkAsmKey] := TSynHighlighterAttributes.Create(SYNS_AttrAsmKey, SYNS_FriendlyAttrAsmKey);
+  Attribs[tkAsm] := TSynHighlighterAttributes.Create(SYNS_AttrAsm, SYNS_FriendlyAttrAsm);
+  Attribs[tkAsmComment] := TSynHighlighterAttributes.Create(SYNS_AttrAsmComment, SYNS_FriendlyAttrAsmComment);
+  Attribs[tksAsmKey] := TSynHighlighterAttributes.Create(SYNS_AttrSASMKey, SYNS_FriendlyAttrSASMKey);
+  Attribs[tksAsm] := TSynHighlighterAttributes.Create(SYNS_AttrSASM, SYNS_FriendlyAttrSASM);
+  Attribs[tksAsmComment] := TSynHighlighterAttributes.Create(SYNS_AttrSASMComment, SYNS_FriendlyAttrSASMComment);
+  Attribs[tkRplKey] := TSynHighlighterAttributes.Create(SYNS_AttrRplKey, SYNS_FriendlyAttrRplKey);
+  Attribs[tkRpl] := TSynHighlighterAttributes.Create(SYNS_AttrRpl, SYNS_FriendlyAttrRpl);
+  Attribs[tkRplComment] := TSynHighlighterAttributes.Create(SYNS_AttrRplComment, SYNS_FriendlyAttrRplComment);
+
   inherited Create(AOwner);
   SetHighlightChange;
   FAsmKeyWords := TSpeedStringList.Create;
@@ -546,25 +549,17 @@ begin
   inherited Destroy;
 end; { Destroy }
 
-procedure TSynHP48Syn.SetLine(NewValue: string; LineNumber: Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 1;
-  fEol := False;
-  Next;
-end; { SetLine }
-
-function TSynHP48Syn.AsmComProc(c: char): TtkTokenKind;
+function TSynHP48Syn.AsmComProc(c: WideChar): TtkTokenKind;
 begin
   Result := tkAsmComment;
-  if (Run > Length(fLine)) then
+  if (Run > Length(fLineStr)) then
     Result := NullProc
   else
-    while Run <= Length(FLine) do
-      if ((run = 1) or (fLine[run - 1] <= ' ')) and
-        (fLine[Run] = '*') and
-        ((run < Length(fLine)) and (fLine[run + 1] = c)) and
-        ((run + 1 = Length(fLine)) or (fLine[run + 2] <= ' ')) then begin
+    while Run <= Length(fLineStr) do
+      if ((run = 1) or (fLineStr[run - 1] <= ' ')) and
+        (fLineStr[Run] = '*') and
+        ((run < Length(fLineStr)) and (fLineStr[run + 1] = c)) and
+        ((run + 1 = Length(fLineStr)) or (fLineStr[run + 2] <= ' ')) then begin
         inc(run, 2);
         fRange := rsAsm;
         break;
@@ -576,11 +571,11 @@ end;
 function TSynHP48Syn.RplComProc: TtkTokenKind;
 begin
   Result := tkRplComment;
-  if (Run > Length(fLine)) then
+  if (Run > Length(fLineStr)) then
     Result := NullProc
   else
-    while Run <= Length(FLine) do
-      if fLine[Run] = ')' then begin
+    while Run <= Length(fLineStr) do
+      if fLineStr[Run] = ')' then begin
         inc(run);
         fRange := rsRpl;
         break;
@@ -593,20 +588,20 @@ function TSynHP48Syn.SlashProc: TtkTokenKind;
 begin
   if fRange = rsRpl then
     Result := IdentProc
-  else if ((Run = 1) or (fLine[Run - 1] <= ' ')) and
-    (fLine[Run] = '/') and
-    (run < Length(fLine)) and
-    (fLine[run + 1] = '*') and
-    ((run + 1 = Length(fLine)) or (fLine[Run + 2] <= ' ')) then begin
+  else if ((Run = 1) or (fLineStr[Run - 1] <= ' ')) and
+    (fLineStr[Run] = '/') and
+    (run < Length(fLineStr)) and
+    (fLineStr[run + 1] = '*') and
+    ((run + 1 = Length(fLineStr)) or (fLineStr[Run + 2] <= ' ')) then begin
     inc(Run, 2);
     Result := tkAsmComment;
     fRange := rsComAsm2;
   end
-  else if (run < Length(fLine)) and (fLine[Run + 1] = '/') then begin
+  else if (run < Length(fLineStr)) and (fLineStr[Run + 1] = '/') then begin
     inc(Run, 2);
     Result := tkAsmComment;
-    while (run <= Length(fLine)) do
-      if FLine[Run] in [#10, #13] then begin
+    while (run <= Length(fLineStr)) do
+      if fLineStr[Run] in [WideChar(#10), WideChar(#13)] then begin
         inc(Run);
         break;
       end
@@ -620,19 +615,19 @@ end;
 function TSynHP48Syn.ParOpenProc: TtkTokenKind;
 begin
   if fRange = rsRpl then
-    if ((Run = 1) and ((Length(fLine) = 1) or (fLine[Run + 1] <= ' '))) or
-      ((fLine[Run - 1] <= ' ') and ((Length(fLine) = Run) or (fLine[Run + 1] <= ' '))) then begin
+    if ((Run = 1) and ((Length(fLineStr) = 1) or (fLineStr[Run + 1] <= ' '))) or
+      ((fLineStr[Run - 1] <= ' ') and ((Length(fLineStr) = Run) or (fLineStr[Run + 1] <= ' '))) then begin
       inc(Run);
       Result := tkRplComment;
       fRange := rsComRpl;
     end
     else
       Result := IdentProc
-  else if ((run = 1) or (fLine[run - 1] <= ' ')) and
-    (fline[Run] = '(') and
-    (run < Length(fLine)) and
-    (fLine[run + 1] = '*') and
-    ((run + 2 > Length(fLine)) or (fLine[run + 2] <= ' ')) then begin
+  else if ((run = 1) or (fLineStr[run - 1] <= ' ')) and
+    (fLineStr[Run] = '(') and
+    (run < Length(fLineStr)) and
+    (fLineStr[run + 1] = '*') and
+    ((run + 2 > Length(fLineStr)) or (fLineStr[run + 2] <= ' ')) then begin
     inc(Run, 2);
     Result := tkAsmComment;
     fRange := rsComAsm1;
@@ -646,8 +641,8 @@ begin
   if fRange = rsAsm then begin
     inc(Run);
     Result := tkAsmComment;
-    while (run <= Length(fLine)) do
-      case FLine[Run] of
+    while (run <= Length(fLineStr)) do
+      case fLineStr[Run] of
         #10, #13: begin
             inc(Run);
             break;
@@ -665,8 +660,8 @@ begin
   if fRange = rsRpl then begin
     inc(Run);
     Result := tkRplComment;
-    while (run <= Length(fLine)) do
-      case FLine[Run] of
+    while (run <= Length(fLineStr)) do
+      case fLineStr[Run] of
         #10, #13: begin
             inc(Run);
             break;
@@ -682,11 +677,11 @@ end;
 function TSynHP48Syn.IdentProc: TtkTokenKind;
 var
   i: integer;
-  s: string;
+  s: WideString;
 begin
   i := Run;
   EndOfToken;
-  s := Copy(fLine, i, run - i);
+  s := Copy(fLineStr, i, run - i);
   if fRange = rsAsm then
     if FAsmKeyWords.Find(s) <> nil then
       if (s = '!RPL') or (s = 'ENDCODE') then begin
@@ -695,7 +690,7 @@ begin
       end
       else
         result := tkAsmKey
-    else if fLine[i] <> '*' then
+    else if fLineStr[i] <> '*' then
       result := tkAsm
     else
       result := tkAsmKey
@@ -732,21 +727,21 @@ end;
 function TSynHP48Syn.NullProc: TtkTokenKind;
 begin
   Result := tkNull;
-  fEol := True;
+  inc(Run);
 end;
 
 function TSynHP48Syn.SpaceProc: TtkTokenKind;
 begin
   inc(Run);
-  while (Run <= Length(FLine)) and (FLine[Run] in [#1..#32]) do
+  while (Run <= Length(fLineStr)) and (fLineStr[Run] in [WideChar(#1)..WideChar(#32)]) do
     inc(Run);
   result := GetTokenFromRange;
 end;
 
 function TSynHP48Syn.Next1: TtkTokenKind;
 begin
-  fTokenPos := Run;
-  if Run > Length(fLine) then
+  fTokenPos := Run - 1;
+  if Run > Length(fLineStr) then
     result := NullProc
   else if fRange = rsComRpl then
     result := RplComProc
@@ -760,15 +755,15 @@ begin
     result := sasmproc2
   else if frange = rssasm3 then
     result := sasmproc3
-  else if fLine[Run] in [#1..#32] then
+  else if fLineStr[Run] in [WideChar(#1)..WideChar(#32)] then
     result := SpaceProc
-  else if fLine[Run] = '(' then
+  else if fLineStr[Run] = '(' then
     result := ParOpenProc
-  else if fLine[Run] = '%' then
+  else if fLineStr[Run] = '%' then
     result := PersentProc
-  else if fLine[Run] = '/' then
+  else if fLineStr[Run] = '/' then
     result := SlashProc
-  else if (run = 1) and (fRange = rsRpl) and (fLine[1] = '*') then
+  else if (run = 1) and (fRange = rsRpl) and (fLineStr[1] = '*') then
     result := StarProc
   else
     result := IdentProc;
@@ -782,26 +777,12 @@ end;
 procedure TSynHP48Syn.Next;
 begin
   Next2(Next1);
+  inherited;
 end;
 
 function TSynHP48Syn.GetEol: Boolean;
 begin
-  Result := fEol;
-end;
-
-function TSynHP48Syn.GetToken: string;
-var
-  Len: LongInt;
-  a: PChar;
-begin
-  a := @(fLine[fTokenPos]);
-  Len := Run - fTokenPos;
-  SetString(Result, a, Len);
-end;
-
-function TSynHP48Syn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos - 1;
+  Result := Run = fLineLen + 2;
 end;
 
 function TSynHP48Syn.GetRange: Pointer;
@@ -831,7 +812,7 @@ end;
 
 procedure TSynHP48Syn.EndOfToken;
 begin
-  while (Run <= Length(fLine)) and (FLine[Run] > ' ') do
+  while (Run <= Length(fLineStr)) and (fLineStr[Run] > ' ') do
     Inc(Run);
 end;
 
@@ -929,29 +910,29 @@ end;
 function TSynHP48Syn.SasmProc1: TtkTokenKind;
 var
   i: integer;
-  s: string;
+  s: WideString;
 begin
   Result := tksAsmKey;
-  if run > Length(fLine) then
+  if run > Length(fLineStr) then
     exit;
-  if FLine[Run] = '*' then begin
+  if fLineStr[Run] = '*' then begin
     frange := rssasm3;
     result := tksAsmComment;
     exit;
   end;
-  if FLine[Run] >= ' ' then begin
+  if fLineStr[Run] >= ' ' then begin
     i := run;
-    while (run <= Length(fLine)) and (FLine[run] > ' ') do
+    while (run <= Length(fLineStr)) and (fLineStr[run] > ' ') do
       inc(run);
-    s := Copy(fLine, i, run - i);
+    s := Copy(fLineStr, i, run - i);
     if (s = 'RPL') or (s = 'ENDCODE') then begin
       frange := rsRpl;
       exit;
     end;
   end;
-  while (run <= Length(fLine)) and (FLine[run] <= ' ') and (FLine[run] <> #10) do
+  while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
     inc(run);
-  if run <= Length(fLine) then
+  if run <= Length(fLineStr) then
     frange := rssasm2
   else
     frange := rssasm1;
@@ -960,33 +941,33 @@ end;
 function TSynHP48Syn.SasmProc2: TtkTokenKind;
 var
   i: integer;
-  s: string;
+  s: WideString;
 begin
   Result := tksAsm;
-  while (run <= Length(fLine)) and (FLine[run] <= ' ') and (fline[run] <> #10) do
+  while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
     inc(run);
   if run > 30 then begin
     frange := rssasm3;
     exit;
   end;
   i := run;
-  while (run <= Length(fLine)) and (FLine[run] > ' ') do
+  while (run <= Length(fLineStr)) and (fLineStr[run] > ' ') do
     inc(run);
-  s := Copy(fLine, i, run - i);
+  s := Copy(fLineStr, i, run - i);
   if (s = 'ENDCODE') or (s = 'RPL') then begin
     frange := rsRpl;
     result := tksAsmKey;
   end
   else begin
     if FSAsmNoField.Find(s) = nil then begin
-      while (run <= Length(fLine)) and (FLine[run] <= ' ') and (FLine[run] <> #10) do
+      while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
         inc(run);
-      while (run <= Length(fLine)) and (FLine[run] > ' ') do
+      while (run <= Length(fLineStr)) and (fLineStr[run] > ' ') do
         inc(run);
-      while (run <= Length(fLine)) and (FLine[run] <= ' ') and (FLine[run] <> #10) do
+      while (run <= Length(fLineStr)) and (fLineStr[run] <= ' ') and (fLineStr[run] <> #10) do
         inc(run);
     end;
-    if run <= Length(fLine) then
+    if run <= Length(fLineStr) then
       frange := rssasm3
     else
       frange := rssasm1;
@@ -996,9 +977,9 @@ end;
 function TSynHP48Syn.SasmProc3: TtkTokenKind;
 begin
   Result := tksAsmComment;
-  while (run <= Length(fLine)) and (FLine[run] <> #10) do
+  while (run <= Length(fLineStr)) and (fLineStr[run] <> #10) do
     inc(run);
-  if run <= Length(fLine) then inc(run);
+  if run <= Length(fLineStr) then inc(run);
   frange := rssasm1;
 end;
 
@@ -1017,7 +998,38 @@ begin
   Result := nil;
 end;
 
+// reimplement functions to handle the non-standard use of 1-based Run
+// (instead of the standard 0-based Run)
+
+procedure TSynHP48Syn.DoSetLine(const Value: WideString;
+  LineNumber: Integer);
+begin
+  inherited;
+  Run := 1;
+  fOldRun := Run;
+end;
+
+function TSynHP48Syn.GetToken: WideString;
+var
+  Len: Integer;
+begin
+  Len := (Run - 1) - fTokenPos;
+  SetLength(Result, Len);
+  if Len > 0 then
+    StrLCopyW(@Result[1], fCasedLine + fTokenPos, Len);
+end;
+
+function TSynHP48Syn.IsLineEnd(Run: Integer): Boolean;
+begin
+  Result := (Run - 1 >= fLineLen) or (fLine[Run - 1] = #10) or (fLine[Run - 1] = #13);
+end;
+
 {$IFNDEF SYN_CPPB_1}
+class function TSynHP48Syn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangHP48;
+end;
+
 initialization
   RegisterPlaceableHighlighter(TSynHP48Syn);
 {$ENDIF}

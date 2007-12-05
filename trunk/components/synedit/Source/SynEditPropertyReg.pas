@@ -11,6 +11,7 @@ the specific language governing rights and limitations under the License.
 The Original Code is: SynEditPropertyReg.pas, released 2000-04-07.
 The Original Code is based on mwEditPropertyReg.pas, part of the
 mwEdit component suite.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -26,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPropertyReg.pas,v 1.17 2004/05/07 12:53:13 markonjezic Exp $
+$Id: SynEditPropertyReg.pas,v 1.17.2.5 2006/05/21 11:59:34 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -48,15 +49,47 @@ uses
   DesignEditors,
   {$IFDEF SYN_KYLIX}
   ClxEditors,
+  ClxStrEdit,
   {$ELSE}
   VCLEditors,
+  StrEdit,
   {$ENDIF}
 {$ELSE}
   DsgnIntf,
+  StrEdit,
+{$ENDIF}
+{$IFDEF SYN_CLX}
+  QSynUnicode,
+{$ELSE}
+  SynUnicode,
+{$ENDIF}
+{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
+  TntClasses,
+  TntStrEdit_Design,
 {$ENDIF}
   Classes;
 
 type
+{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
+  // Wrapper around TWideStringListProperty to enable the TNT property editor to
+  // handle TWideStrings
+  TSynWideStringListProperty = class(TWideStringListProperty)
+  private
+    FWideStrings: TWideStrings;
+    FTntStrings: TTntStrings;
+  protected
+    function GetStrings: TTntStrings; override;
+    procedure SetStrings(const Value: TTntStrings); override;
+  public
+{$IFDEF SYN_COMPILER_6_UP}
+    constructor Create(const ADesigner: IDesigner; APropCount: Integer); override;
+{$ELSE}
+    constructor Create(const ADesigner: IFormDesigner; APropCount: Integer); override;
+{$ENDIF}
+    destructor Destroy; override;
+  end;
+{$ENDIF}
+
   TSynEditFontProperty = class(TFontProperty)
   public
     procedure Edit; override;
@@ -134,6 +167,63 @@ uses
   SynAutoCorrectEditor,
 {$ENDIF}
   SysUtils;
+
+{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
+
+{ TSynWideStringListProperty }
+
+{$IFDEF SYN_COMPILER_6_UP}
+constructor TSynWideStringListProperty.Create(const ADesigner: IDesigner; APropCount: Integer);
+{$ELSE}
+constructor TSynWideStringListProperty.Create(const ADesigner: IFormDesigner; APropCount: Integer);
+{$ENDIF}
+begin
+  inherited;
+  FWideStrings := TWideStringList.Create;
+  FTntStrings := TTntStringList.Create;
+end;
+
+destructor TSynWideStringListProperty.Destroy;
+begin
+  FTntStrings.Free;
+  FWideStrings.Free;
+  inherited;
+end;
+
+function TSynWideStringListProperty.GetStrings: TTntStrings;
+var
+  WideStrings: TWideStrings;
+  i: Integer;
+begin
+  WideStrings := TWideStrings(GetOrdValue);
+  
+  FTntStrings.Clear;
+  FTntStrings.BeginUpdate;
+  try
+    for i := 0 to WideStrings.Count - 1 do
+      FTntStrings.AddObject(WideStrings[i], WideStrings.Objects[i]);
+  finally
+    FTntStrings.EndUpdate;
+  end;
+  Result := FTntStrings;
+end;
+
+procedure TSynWideStringListProperty.SetStrings(const Value: TTntStrings);
+var
+  i: Integer;
+begin
+  FWideStrings.Clear;
+  FWideStrings.BeginUpdate;
+  try
+    for i := 0 to Value.Count - 1 do
+      FWideStrings.AddObject(Value[I], Value.Objects[I]);
+  finally
+    FWideStrings.EndUpdate;
+  end;
+  SetOrdValue(Longint(FWideStrings));
+end;
+{$ENDIF}
+
 
 { TSynEditFontProperty }
 
@@ -223,7 +313,7 @@ end;
 
 procedure TSynEditPrintMarginsProperty.Edit;
 var
-  SynEditPrintMarginsDlg : TSynEditPrintMarginsDlg;
+  SynEditPrintMarginsDlg: TSynEditPrintMarginsDlg;
 begin
   SynEditPrintMarginsDlg := TSynEditPrintMarginsDlg.Create(nil);
   try
@@ -238,7 +328,7 @@ end;
 function TSynEditPrintMarginsProperty.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paSubProperties, paReadOnly, paSortList];
-end;
+end;                           
 
 procedure TSynAutoCorrectComponentEditor.Edit;
 var
@@ -292,28 +382,44 @@ begin
   GetAttributes := [paDialog, paReadOnly];
 end;
 
-function TAutoCorrectionProperty.GetValue: String;
+function TAutoCorrectionProperty.GetValue: string;
 begin
   GetValue := '(AutoCorrections)';
-end;
+end;                
 
 
 { Register }
 
 procedure Register;
 begin
+// TODO: Delphi 2005 has native Unicode property editors, we should use them (but I don't have D2005 to test)
+{$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
+  // Troy Wolbrink added my (Maël Hörz) WideChar property editor to
+  // TntWideStringProperty_Design.pas.
+  // As it is registered there, no need to do it a second time here.
+  // However as he uses TTntStrings and we use TWideStrings, we need
+  // a wrapper to do the "translation".
+  RegisterPropertyEditor(TypeInfo(TWideStrings), nil,
+     '', TSynWideStringListProperty);
+{$ELSE}
+  RegisterPropertyEditor(TypeInfo(WideChar), nil,
+     '', TCharProperty);
+  RegisterPropertyEditor(TypeInfo(TWideStrings), nil,
+     '', TStringListProperty);
+{$ENDIF}
+
   RegisterPropertyEditor(TypeInfo(TFont), TCustomSynEdit,
      'Font', TSynEditFontProperty);
-  RegisterPropertyEditor(TypeInfo(TSynEditorCommand), TPersistent,
+  RegisterPropertyEditor(TypeInfo(TSynEditorCommand), nil,
      '', TSynEditCommandProperty);
-  RegisterPropertyEditor(TypeInfo(TSynEditKeystrokes), TPersistent,
+  RegisterPropertyEditor(TypeInfo(TSynEditKeystrokes), nil,
     '', TSynEditKeystrokesProperty);
   RegisterPropertyEditor(TypeInfo(TSynEditPrintMargins), TPersistent,
     '', TSynEditPrintMarginsProperty);
   RegisterPropertyEditor(TypeInfo(TStrings), TSynAutoCorrect,
     'Items', TAutoCorrectionProperty);
   RegisterComponentEditor(TSynAutoCorrect, TSynAutoCorrectComponentEditor);
-  {$IFDEF SYN_DELPHI_6_UP}
+  {$IFDEF SYN_DELPHI_6_UP} // TODO: shouldn't that be COMPILER_6_UP instead?
   RegisterPropertyEditor(TypeInfo(TShortCut), TSynCompletionProposal, '',
     TShortCutProperty);
   RegisterPropertyEditor(TypeInfo(TShortCut), TSynAutoComplete, '',

@@ -23,7 +23,8 @@ uses
   ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
-  VirtualTrees, createdatabase, tbl_properties, TntDBGrids, TntClasses;
+  VirtualTrees, createdatabase, tbl_properties, TntDBGrids, TntClasses,
+  SynUnicode;
 
 type
   TOrderCol = class(TObject)
@@ -348,11 +349,11 @@ type
     procedure FindDialogQueryFind(Sender: TObject);
     procedure btnQuerySaveSnippetClick(Sender: TObject);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
-      const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+      const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
-      var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
-    procedure SynCompletionProposal1Execute(Kind: TSynCompletionType;
-      Sender: TObject; var CurrentInput: String; var x, y: Integer;
+      var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
+    procedure SynCompletionProposal1Execute(Kind: SynCompletionType;
+      Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PerformConnect;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -432,7 +433,7 @@ type
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-      AFiles: TStrings);
+      AFiles: TWideStrings);
     procedure SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
@@ -3124,27 +3125,27 @@ end;
 
 { Proposal about to insert a String into synmemo }
 procedure TMDIChild.SynCompletionProposal1CodeCompletion(Sender: TObject;
-  var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+  var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
 begin
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
 end;
 
 
 procedure TMDIChild.SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
-  const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+  const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
 begin
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
 end;
 
 
 { Proposal-Combobox pops up }
-procedure TMDIChild.SynCompletionProposal1Execute(Kind: TSynCompletionType;
-  Sender: TObject; var CurrentInput: String; var x, y: Integer;
+procedure TMDIChild.SynCompletionProposal1Execute(Kind: SynCompletionType;
+  Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
   var CanExecute: Boolean);
 var
   i,j,c,t          : Integer;
   tn, child        : TTreeNode;
-  sql, tmpsql, kw  : String;
+  sql, kw          : String;
   keywords, tables : TStringList;
   tablename        : String;
 
@@ -4398,7 +4399,7 @@ end;
 
 
 procedure TMDIChild.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-  AFiles: TStrings);
+  AFiles: TWideStrings);
 var
   i        : Integer;
 begin
@@ -4464,7 +4465,6 @@ end;
 procedure TMDIChild.btnQuerySaveSnippetClick(Sender: TObject);
 var
   snippetname : String;
-  sfile       : Textfile;
   mayChange   : Boolean;
 begin
   // Save snippet
@@ -4480,15 +4480,12 @@ begin
         exit;
     end;
     Screen.Cursor := crHourglass;
-    AssignFile( sfile, snippetname );
-    Rewrite( sfile );
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TComponent).Tag of
-      0: Write( sfile, SynMemoQuery.Text );
-      1: Write( sfile, SynMemoQuery.SelText );
+      0: SaveToFile( SynMemoQuery.Text, snippetname, seUTF8 );
+      1: SaveToFile( SynMemoQuery.SelText, snippetname, seUTF8 );
     end;
-    CloseFile( sfile );
     FillPopupQueryLoad;
     if tabsetQueryHelpers.TabIndex = 3 then begin
       // SQL Snippets selected in query helper, refresh list
@@ -4562,22 +4559,17 @@ begin
 end;
 
 procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
-var
-  f : TextFile;
 begin
   // Save SQL
   if SaveDialogSQLFile.Execute then
   begin
     Screen.Cursor := crHourGlass;
-    AssignFile(f, SaveDialogSQLFile.FileName);
-    Rewrite(f);
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TComponent).Tag of
-      0: Write( f, SynMemoQuery.Text );
-      1: Write( f, SynMemoQuery.SelText );
+      0: SaveToFile( SynMemoQuery.Text, SaveDialogSQLFile.FileName, seUTF8 );
+      1: SaveToFile( SynMemoQuery.SelText, SaveDialogSQLFile.FileName, seUTF8 );
     end;
-    CloseFile(f);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -4675,9 +4667,9 @@ end;
 procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true );
 
 var
-  tmpstr, filecontent      : String;
-  f                        : TextFile;
-  msgtext                  : String;
+  filecontent      : WideString;
+  msgtext          : String;
+  WStrings         : TWideStringList;
 begin
   // Ask for action when loading a big file
   if _GetFileSize( filename ) > LOAD_SIZE then
@@ -4713,13 +4705,9 @@ begin
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
   try
-    AssignFile( f, filename );
-    Reset( f );
-    while not eof( f ) do
-    begin
-      Readln( f, tmpstr );
-      filecontent := filecontent + tmpstr + CRLF;
-    end;
+    WStrings := TWideStringList.Create;
+    LoadFromFile(WStrings, filename, seUTF8);
+    filecontent := WStrings.Text;
   except
     on E: Exception do
     begin
@@ -4730,7 +4718,6 @@ begin
       exit;
     end;
   end;
-  CloseFile( f );
 
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
   SynMemoQuery.BeginUpdate;

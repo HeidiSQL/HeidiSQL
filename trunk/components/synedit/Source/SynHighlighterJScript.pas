@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterJScript.pas, released 2000-04-14.
 The Original Code is based on the mwJScript.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Tony de Buys.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterJScript.pas,v 1.22 2005/01/28 16:53:23 maelh Exp $
+$Id: SynHighlighterJScript.pas,v 1.21.2.7 2005/12/16 16:10:37 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -70,24 +71,15 @@ type
 
   TRangeState = (rsUnknown, rsANSI);
 
-  TProcTableProc = procedure of object;
-
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
 type
   TSynJScriptSyn = class(TSynCustomHighLighter)
   private
     fRange: TRangeState;
-    fLine: PChar;
-    fLineNumber: Integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..252] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..5152] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
@@ -97,145 +89,395 @@ type
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: String): Boolean;
-    function Func5: TtkTokenKind;
-    function Func15: TtkTokenKind;
-    function Func17: TtkTokenKind;
-    function Func18: TtkTokenKind;
-    function Func19: TtkTokenKind;
-    function Func22: TtkTokenKind;
-    function Func23: TtkTokenKind;
-    function Func25: TtkTokenKind;
-    function Func26: TtkTokenKind;
-    function Func28: TtkTokenKind;
-    function Func29: TtkTokenKind;
-    function Func30: TtkTokenKind;
-    function Func33: TtkTokenKind;
-    function Func34: TtkTokenKind;
-    function Func35: TtkTokenKind;
-    function Func36: TtkTokenKind;
-    function Func37: TtkTokenKind;
-    function Func38: TtkTokenKind;
-    function Func39: TtkTokenKind;
-    function Func40: TtkTokenKind;
-    function Func41: TtkTokenKind;
-    function Func42: TtkTokenKind;
-    function Func43: TtkTokenKind;
-    function Func44: TtkTokenKind;
-    function Func45: TtkTokenKind;
-    function Func46: TtkTokenKind;
-    function Func47: TtkTokenKind;
-    function Func48: TtkTokenKind;
-    function Func49: TtkTokenKind;
-    function Func50: TtkTokenKind;
-    function Func51: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func53: TtkTokenKind;
-    function Func54: TtkTokenKind;
-    function Func55: TtkTokenKind;
-    function Func56: TtkTokenKind;
-    function Func57: TtkTokenKind;
-    function Func58: TtkTokenKind;
-    function Func59: TtkTokenKind;
-    function Func60: TtkTokenKind;
-    function Func61: TtkTokenKind;
-    function Func62: TtkTokenKind;
-    function Func63: TtkTokenKind;
-    function Func64: TtkTokenKind;
-    function Func65: TtkTokenKind;
-    function Func66: TtkTokenKind;
-    function Func67: TtkTokenKind;
-    function Func69: TtkTokenKind;
-    function Func70: TtkTokenKind;
-    function Func71: TtkTokenKind;
-    function Func72: TtkTokenKind;
-    function Func73: TtkTokenKind;
-    function Func74: TtkTokenKind;
-    function Func75: TtkTokenKind;
-    function Func76: TtkTokenKind;
-    function Func77: TtkTokenKind;
-    function Func78: TtkTokenKind;
-    function Func79: TtkTokenKind;
-    function Func80: TtkTokenKind;
-    function Func81: TtkTokenKind;
-    function Func82: TtkTokenKind;
-    function Func83: TtkTokenKind;
-    function Func84: TtkTokenKind;
-    function Func85: TtkTokenKind;
-    function Func86: TtkTokenKind;
-    function Func87: TtkTokenKind;
-    function Func88: TtkTokenKind;
-    function Func89: TtkTokenKind;
-    function Func90: TtkTokenKind;
-    function Func91: TtkTokenKind;
-    function Func92: TtkTokenKind;
-    function Func93: TtkTokenKind;
-    function Func94: TtkTokenKind;
-    function Func95: TtkTokenKind;
-    function Func96: TtkTokenKind;
-    function Func98: TtkTokenKind;
-    function Func99: TtkTokenKind;
-    function Func100: TtkTokenKind;
-    function Func101: TtkTokenKind;
-    function Func102: TtkTokenKind;
-    function Func103: TtkTokenKind;
-    function Func105: TtkTokenKind;
-    function Func106: TtkTokenKind;
-    function Func107: TtkTokenKind;
-    function Func108: TtkTokenKind;
-    function Func109: TtkTokenKind;
-    function Func110: TtkTokenKind;
-    function Func111: TtkTokenKind;
-    function Func113: TtkTokenKind;
-    function Func114: TtkTokenKind;
-    function Func115: TtkTokenKind;
-    function Func116: TtkTokenKind;
-    function Func117: TtkTokenKind;
-    function Func118: TtkTokenKind;
-    function Func119: TtkTokenKind;
-    function Func120: TtkTokenKind;
-    function Func121: TtkTokenKind;
-    function Func122: TtkTokenKind;
-    function Func123: TtkTokenKind;
-    function Func124: TtkTokenKind;
-    function Func125: TtkTokenKind;
-    function Func126: TtkTokenKind;
-    function Func128: TtkTokenKind;
-    function Func129: TtkTokenKind;
-    function Func130: TtkTokenKind;
-    function Func131: TtkTokenKind;
-    function Func132: TtkTokenKind;
-    function Func133: TtkTokenKind;
-    function Func135: TtkTokenKind;
-    function Func136: TtkTokenKind;
-    function Func139: TtkTokenKind;
-    function Func140: TtkTokenKind;
-    function Func142: TtkTokenKind;
-    function Func143: TtkTokenKind;
-    function Func144: TtkTokenKind;
-    function Func145: TtkTokenKind;
-    function Func146: TtkTokenKind;
-    function Func147: TtkTokenKind;
-    function Func150: TtkTokenKind;
-    function Func155: TtkTokenKind;
-    function Func157: TtkTokenKind;
-    function Func158: TtkTokenKind;
-    function Func160: TtkTokenKind;
-    function Func162: TtkTokenKind;
-    function Func166: TtkTokenKind;
-    function Func167: TtkTokenKind;
-    function Func169: TtkTokenKind;
-    function Func170: TtkTokenKind;
-    function Func176: TtkTokenKind;
-    function Func177: TtkTokenKind;
-    function Func178: TtkTokenKind;
-    function Func188: TtkTokenKind;
-    function Func189: TtkTokenKind;
-    function Func210: TtkTokenKind;
-    function Func220: TtkTokenKind;
-    function Func222: TtkTokenKind;
-    function Func252: TtkTokenKind;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function FuncAbs(Index: Integer): TtkTokenKind;
+    function FuncAbstract(Index: Integer): TtkTokenKind;
+    function FuncAcos(Index: Integer): TtkTokenKind;
+    function FuncAction(Index: Integer): TtkTokenKind;
+    function FuncAlert(Index: Integer): TtkTokenKind;
+    function FuncAlign(Index: Integer): TtkTokenKind;
+    function FuncAlinkcolor(Index: Integer): TtkTokenKind;
+    function FuncAll(Index: Integer): TtkTokenKind;
+    function FuncAnchor(Index: Integer): TtkTokenKind;
+    function FuncAnchors(Index: Integer): TtkTokenKind;
+    function FuncAppcodename(Index: Integer): TtkTokenKind;
+    function FuncApplet(Index: Integer): TtkTokenKind;
+    function FuncApplets(Index: Integer): TtkTokenKind;
+    function FuncAppname(Index: Integer): TtkTokenKind;
+    function FuncAppversion(Index: Integer): TtkTokenKind;
+    function FuncArea(Index: Integer): TtkTokenKind;
+    function FuncArguments(Index: Integer): TtkTokenKind;
+    function FuncArray(Index: Integer): TtkTokenKind;
+    function FuncAsin(Index: Integer): TtkTokenKind;
+    function FuncAtan(Index: Integer): TtkTokenKind;
+    function FuncAtan2(Index: Integer): TtkTokenKind;
+    function FuncBack(Index: Integer): TtkTokenKind;
+    function FuncBackground(Index: Integer): TtkTokenKind;
+    function FuncBgcolor(Index: Integer): TtkTokenKind;
+    function FuncBig(Index: Integer): TtkTokenKind;
+    function FuncBlink(Index: Integer): TtkTokenKind;
+    function FuncBlur(Index: Integer): TtkTokenKind;
+    function FuncBody(Index: Integer): TtkTokenKind;
+    function FuncBold(Index: Integer): TtkTokenKind;
+    function FuncBoolean(Index: Integer): TtkTokenKind;
+    function FuncBoolean2(Index: Integer): TtkTokenKind;
+    function FuncBorder(Index: Integer): TtkTokenKind;
+    function FuncBottom(Index: Integer): TtkTokenKind;
+    function FuncBreak(Index: Integer): TtkTokenKind;
+    function FuncButton(Index: Integer): TtkTokenKind;
+    function FuncByte(Index: Integer): TtkTokenKind;
+    function FuncCall(Index: Integer): TtkTokenKind;
+    function FuncCallee(Index: Integer): TtkTokenKind;
+    function FuncCaller(Index: Integer): TtkTokenKind;
+    function FuncCaptureevents(Index: Integer): TtkTokenKind;
+    function FuncCase(Index: Integer): TtkTokenKind;
+    function FuncCatch(Index: Integer): TtkTokenKind;
+    function FuncCeil(Index: Integer): TtkTokenKind;
+    function FuncChar(Index: Integer): TtkTokenKind;
+    function FuncCharat(Index: Integer): TtkTokenKind;
+    function FuncCharcodeat(Index: Integer): TtkTokenKind;
+    function FuncCheckbox(Index: Integer): TtkTokenKind;
+    function FuncChecked(Index: Integer): TtkTokenKind;
+    function FuncClass(Index: Integer): TtkTokenKind;
+    function FuncClear(Index: Integer): TtkTokenKind;
+    function FuncClearinterval(Index: Integer): TtkTokenKind;
+    function FuncCleartimeout(Index: Integer): TtkTokenKind;
+    function FuncClick(Index: Integer): TtkTokenKind;
+    function FuncClose(Index: Integer): TtkTokenKind;
+    function FuncClosed(Index: Integer): TtkTokenKind;
+    function FuncColor(Index: Integer): TtkTokenKind;
+    function FuncComplete(Index: Integer): TtkTokenKind;
+    function FuncConcat(Index: Integer): TtkTokenKind;
+    function FuncConfirm(Index: Integer): TtkTokenKind;
+    function FuncConst(Index: Integer): TtkTokenKind;
+    function FuncConstructor(Index: Integer): TtkTokenKind;
+    function FuncContinue(Index: Integer): TtkTokenKind;
+    function FuncCookie(Index: Integer): TtkTokenKind;
+    function FuncCos(Index: Integer): TtkTokenKind;
+    function FuncCurrent(Index: Integer): TtkTokenKind;
+    function FuncDate(Index: Integer): TtkTokenKind;
+    function FuncDebugger(Index: Integer): TtkTokenKind;
+    function FuncDefault(Index: Integer): TtkTokenKind;
+    function FuncDefaultchecked(Index: Integer): TtkTokenKind;
+    function FuncDefaultselected(Index: Integer): TtkTokenKind;
+    function FuncDefaultstatus(Index: Integer): TtkTokenKind;
+    function FuncDefaultvalue(Index: Integer): TtkTokenKind;
+    function FuncDelete(Index: Integer): TtkTokenKind;
+    function FuncDescription(Index: Integer): TtkTokenKind;
+    function FuncDisplay(Index: Integer): TtkTokenKind;
+    function FuncDo(Index: Integer): TtkTokenKind;
+    function FuncDocument(Index: Integer): TtkTokenKind;
+    function FuncDomain(Index: Integer): TtkTokenKind;
+    function FuncDouble(Index: Integer): TtkTokenKind;
+    function FuncE(Index: Integer): TtkTokenKind;
+    function FuncElements(Index: Integer): TtkTokenKind;
+    function FuncElse(Index: Integer): TtkTokenKind;
+    function FuncEmbed(Index: Integer): TtkTokenKind;
+    function FuncEmbeds(Index: Integer): TtkTokenKind;
+    function FuncEnabledplugin(Index: Integer): TtkTokenKind;
+    function FuncEncoding(Index: Integer): TtkTokenKind;
+    function FuncEnum(Index: Integer): TtkTokenKind;
+    function FuncEscape(Index: Integer): TtkTokenKind;
+    function FuncEval(Index: Integer): TtkTokenKind;
+    function FuncEvent(Index: Integer): TtkTokenKind;
+    function FuncExp(Index: Integer): TtkTokenKind;
+    function FuncExport(Index: Integer): TtkTokenKind;
+    function FuncExtends(Index: Integer): TtkTokenKind;
+    function FuncFalse(Index: Integer): TtkTokenKind;
+    function FuncFgcolor(Index: Integer): TtkTokenKind;
+    function FuncFilename(Index: Integer): TtkTokenKind;
+    function FuncFileupload(Index: Integer): TtkTokenKind;
+    function FuncFinal(Index: Integer): TtkTokenKind;
+    function FuncFinally(Index: Integer): TtkTokenKind;
+    function FuncFind(Index: Integer): TtkTokenKind;
+    function FuncFixed(Index: Integer): TtkTokenKind;
+    function FuncFloat(Index: Integer): TtkTokenKind;
+    function FuncFloat2(Index: Integer): TtkTokenKind;
+    function FuncFloor(Index: Integer): TtkTokenKind;
+    function FuncFocus(Index: Integer): TtkTokenKind;
+    function FuncFontcolor(Index: Integer): TtkTokenKind;
+    function FuncFontsize(Index: Integer): TtkTokenKind;
+    function FuncFor(Index: Integer): TtkTokenKind;
+    function FuncForm(Index: Integer): TtkTokenKind;
+    function FuncForms(Index: Integer): TtkTokenKind;
+    function FuncForward(Index: Integer): TtkTokenKind;
+    function FuncFrame(Index: Integer): TtkTokenKind;
+    function FuncFrames(Index: Integer): TtkTokenKind;
+    function FuncFromcharcode(Index: Integer): TtkTokenKind;
+    function FuncFunction(Index: Integer): TtkTokenKind;
+    function FuncFunction2(Index: Integer): TtkTokenKind;    
+    function FuncGetdate(Index: Integer): TtkTokenKind;
+    function FuncGetday(Index: Integer): TtkTokenKind;
+    function FuncGetelementbyid(Index: Integer): TtkTokenKind;
+    function FuncGetfullyear(Index: Integer): TtkTokenKind;
+    function FuncGethours(Index: Integer): TtkTokenKind;
+    function FuncGetmilliseconds(Index: Integer): TtkTokenKind;
+    function FuncGetminutes(Index: Integer): TtkTokenKind;
+    function FuncGetmonth(Index: Integer): TtkTokenKind;
+    function FuncGetseconds(Index: Integer): TtkTokenKind;
+    function FuncGettime(Index: Integer): TtkTokenKind;
+    function FuncGettimezoneoffset(Index: Integer): TtkTokenKind;
+    function FuncGetutcdate(Index: Integer): TtkTokenKind;
+    function FuncGetutcday(Index: Integer): TtkTokenKind;
+    function FuncGetutcfullyear(Index: Integer): TtkTokenKind;
+    function FuncGetutchours(Index: Integer): TtkTokenKind;
+    function FuncGetutcmilliseconds(Index: Integer): TtkTokenKind;
+    function FuncGetutcminutes(Index: Integer): TtkTokenKind;
+    function FuncGetutcmonth(Index: Integer): TtkTokenKind;
+    function FuncGetutcseconds(Index: Integer): TtkTokenKind;
+    function FuncGetyear(Index: Integer): TtkTokenKind;
+    function FuncGlobal(Index: Integer): TtkTokenKind;
+    function FuncGo(Index: Integer): TtkTokenKind;
+    function FuncGoto(Index: Integer): TtkTokenKind;
+    function FuncHandleevent(Index: Integer): TtkTokenKind;
+    function FuncHash(Index: Integer): TtkTokenKind;
+    function FuncHeight(Index: Integer): TtkTokenKind;
+    function FuncHidden(Index: Integer): TtkTokenKind;
+    function FuncHistory(Index: Integer): TtkTokenKind;
+    function FuncHome(Index: Integer): TtkTokenKind;
+    function FuncHost(Index: Integer): TtkTokenKind;
+    function FuncHostname(Index: Integer): TtkTokenKind;
+    function FuncHref(Index: Integer): TtkTokenKind;
+    function FuncHspace(Index: Integer): TtkTokenKind;
+    function FuncIf(Index: Integer): TtkTokenKind;
+    function FuncImage(Index: Integer): TtkTokenKind;
+    function FuncImages(Index: Integer): TtkTokenKind;
+    function FuncImplements(Index: Integer): TtkTokenKind;
+    function FuncImport(Index: Integer): TtkTokenKind;
+    function FuncIn(Index: Integer): TtkTokenKind;
+    function FuncIndex(Index: Integer): TtkTokenKind;
+    function FuncIndexof(Index: Integer): TtkTokenKind;
+    function FuncInfinity(Index: Integer): TtkTokenKind;
+    function FuncInnerheight(Index: Integer): TtkTokenKind;
+    function FuncInnerwidth(Index: Integer): TtkTokenKind;
+    function FuncInput(Index: Integer): TtkTokenKind;
+    function FuncInstanceof(Index: Integer): TtkTokenKind;
+    function FuncInt(Index: Integer): TtkTokenKind;
+    function FuncInterface(Index: Integer): TtkTokenKind;
+    function FuncIsfinite(Index: Integer): TtkTokenKind;
+    function FuncIsnan(Index: Integer): TtkTokenKind;
+    function FuncItalics(Index: Integer): TtkTokenKind;
+    function FuncJava(Index: Integer): TtkTokenKind;
+    function FuncJavaenabled(Index: Integer): TtkTokenKind;
+    function FuncJoin(Index: Integer): TtkTokenKind;
+    function FuncLastindexof(Index: Integer): TtkTokenKind;
+    function FuncLastmodified(Index: Integer): TtkTokenKind;
+    function FuncLayer(Index: Integer): TtkTokenKind;
+    function FuncLayers(Index: Integer): TtkTokenKind;
+    function FuncLeft(Index: Integer): TtkTokenKind;
+    function FuncLength(Index: Integer): TtkTokenKind;
+    function FuncLink(Index: Integer): TtkTokenKind;
+    function FuncLinkcolor(Index: Integer): TtkTokenKind;
+    function FuncLinks(Index: Integer): TtkTokenKind;
+    function FuncLn10(Index: Integer): TtkTokenKind;
+    function FuncLn2(Index: Integer): TtkTokenKind;
+    function FuncLocation(Index: Integer): TtkTokenKind;
+    function FuncLocationbar(Index: Integer): TtkTokenKind;
+    function FuncLog(Index: Integer): TtkTokenKind;
+    function FuncLog10e(Index: Integer): TtkTokenKind;
+    function FuncLog2e(Index: Integer): TtkTokenKind;
+    function FuncLogon(Index: Integer): TtkTokenKind;
+    function FuncLong(Index: Integer): TtkTokenKind;
+    function FuncLowsrc(Index: Integer): TtkTokenKind;
+    function FuncMatch(Index: Integer): TtkTokenKind;
+    function FuncMath(Index: Integer): TtkTokenKind;
+    function FuncMax(Index: Integer): TtkTokenKind;
+    function FuncMax_value(Index: Integer): TtkTokenKind;
+    function FuncMenubar(Index: Integer): TtkTokenKind;
+    function FuncMethod(Index: Integer): TtkTokenKind;
+    function FuncMimetype(Index: Integer): TtkTokenKind;
+    function FuncMimetypes(Index: Integer): TtkTokenKind;
+    function FuncMin(Index: Integer): TtkTokenKind;
+    function FuncMin_value(Index: Integer): TtkTokenKind;
+    function FuncMoveby(Index: Integer): TtkTokenKind;
+    function FuncMoveto(Index: Integer): TtkTokenKind;
+    function FuncName(Index: Integer): TtkTokenKind;
+    function FuncNan(Index: Integer): TtkTokenKind;
+    function FuncNative(Index: Integer): TtkTokenKind;
+    function FuncNavigator(Index: Integer): TtkTokenKind;
+    function FuncNegative_infinity(Index: Integer): TtkTokenKind;
+    function FuncNetscape(Index: Integer): TtkTokenKind;
+    function FuncNew(Index: Integer): TtkTokenKind;
+    function FuncNext(Index: Integer): TtkTokenKind;
+    function FuncNull(Index: Integer): TtkTokenKind;
+    function FuncNull2(Index: Integer): TtkTokenKind;
+    function FuncNumber(Index: Integer): TtkTokenKind;
+    function FuncObject(Index: Integer): TtkTokenKind;
+    function FuncOnabort(Index: Integer): TtkTokenKind;
+    function FuncOnblur(Index: Integer): TtkTokenKind;
+    function FuncOnchange(Index: Integer): TtkTokenKind;
+    function FuncOnclick(Index: Integer): TtkTokenKind;
+    function FuncOndblclick(Index: Integer): TtkTokenKind;
+    function FuncOnerror(Index: Integer): TtkTokenKind;
+    function FuncOnfocus(Index: Integer): TtkTokenKind;
+    function FuncOnkeydown(Index: Integer): TtkTokenKind;
+    function FuncOnkeypress(Index: Integer): TtkTokenKind;
+    function FuncOnkeyup(Index: Integer): TtkTokenKind;
+    function FuncOnload(Index: Integer): TtkTokenKind;
+    function FuncOnmousedown(Index: Integer): TtkTokenKind;
+    function FuncOnmousemove(Index: Integer): TtkTokenKind;
+    function FuncOnmouseout(Index: Integer): TtkTokenKind;
+    function FuncOnmouseover(Index: Integer): TtkTokenKind;
+    function FuncOnmouseup(Index: Integer): TtkTokenKind;
+    function FuncOnreset(Index: Integer): TtkTokenKind;
+    function FuncOnselect(Index: Integer): TtkTokenKind;
+    function FuncOnsubmit(Index: Integer): TtkTokenKind;
+    function FuncOnunload(Index: Integer): TtkTokenKind;
+    function FuncOpen(Index: Integer): TtkTokenKind;
+    function FuncOpener(Index: Integer): TtkTokenKind;
+    function FuncOption(Index: Integer): TtkTokenKind;
+    function FuncOptions(Index: Integer): TtkTokenKind;
+    function FuncOuterheight(Index: Integer): TtkTokenKind;
+    function FuncOuterwidth(Index: Integer): TtkTokenKind;
+    function FuncPackage(Index: Integer): TtkTokenKind;
+    function FuncPackages(Index: Integer): TtkTokenKind;
+    function FuncPagex(Index: Integer): TtkTokenKind;
+    function FuncPagexoffset(Index: Integer): TtkTokenKind;
+    function FuncPagey(Index: Integer): TtkTokenKind;
+    function FuncPageyoffset(Index: Integer): TtkTokenKind;
+    function FuncParent(Index: Integer): TtkTokenKind;
+    function FuncParse(Index: Integer): TtkTokenKind;
+    function FuncParsefloat(Index: Integer): TtkTokenKind;
+    function FuncParseint(Index: Integer): TtkTokenKind;
+    function FuncPassword(Index: Integer): TtkTokenKind;
+    function FuncPathname(Index: Integer): TtkTokenKind;
+    function FuncPersonalbar(Index: Integer): TtkTokenKind;
+    function FuncPi(Index: Integer): TtkTokenKind;
+    function FuncPlatform(Index: Integer): TtkTokenKind;
+    function FuncPlugin(Index: Integer): TtkTokenKind;
+    function FuncPlugins(Index: Integer): TtkTokenKind;
+    function FuncPort(Index: Integer): TtkTokenKind;
+    function FuncPositive_infinity(Index: Integer): TtkTokenKind;
+    function FuncPow(Index: Integer): TtkTokenKind;
+    function FuncPrevious(Index: Integer): TtkTokenKind;
+    function FuncPrint(Index: Integer): TtkTokenKind;
+    function FuncPrivate(Index: Integer): TtkTokenKind;
+    function FuncPrompt(Index: Integer): TtkTokenKind;
+    function FuncProtected(Index: Integer): TtkTokenKind;
+    function FuncProtocol(Index: Integer): TtkTokenKind;
+    function FuncPrototype(Index: Integer): TtkTokenKind;
+    function FuncPublic(Index: Integer): TtkTokenKind;
+    function FuncRadio(Index: Integer): TtkTokenKind;
+    function FuncRandom(Index: Integer): TtkTokenKind;
+    function FuncReferrer(Index: Integer): TtkTokenKind;
+    function FuncRefresh(Index: Integer): TtkTokenKind;
+    function FuncRegexp(Index: Integer): TtkTokenKind;
+    function FuncReleaseevents(Index: Integer): TtkTokenKind;
+    function FuncReload(Index: Integer): TtkTokenKind;
+    function FuncReplace(Index: Integer): TtkTokenKind;
+    function FuncReset(Index: Integer): TtkTokenKind;
+    function FuncResizeby(Index: Integer): TtkTokenKind;
+    function FuncResizeto(Index: Integer): TtkTokenKind;
+    function FuncReturn(Index: Integer): TtkTokenKind;
+    function FuncReverse(Index: Integer): TtkTokenKind;
+    function FuncRight(Index: Integer): TtkTokenKind;
+    function FuncRound(Index: Integer): TtkTokenKind;
+    function FuncRouteevent(Index: Integer): TtkTokenKind;
+    function FuncScreen(Index: Integer): TtkTokenKind;
+    function FuncScroll(Index: Integer): TtkTokenKind;
+    function FuncScrollbars(Index: Integer): TtkTokenKind;
+    function FuncScrollby(Index: Integer): TtkTokenKind;
+    function FuncScrollto(Index: Integer): TtkTokenKind;
+    function FuncSearch(Index: Integer): TtkTokenKind;
+    function FuncSelect(Index: Integer): TtkTokenKind;
+    function FuncSelected(Index: Integer): TtkTokenKind;
+    function FuncSelectedindex(Index: Integer): TtkTokenKind;
+    function FuncSelf(Index: Integer): TtkTokenKind;
+    function FuncSetdate(Index: Integer): TtkTokenKind;
+    function FuncSetfullyear(Index: Integer): TtkTokenKind;
+    function FuncSethours(Index: Integer): TtkTokenKind;
+    function FuncSetinterval(Index: Integer): TtkTokenKind;
+    function FuncSetmilliseconds(Index: Integer): TtkTokenKind;
+    function FuncSetminutes(Index: Integer): TtkTokenKind;
+    function FuncSetmonth(Index: Integer): TtkTokenKind;
+    function FuncSetseconds(Index: Integer): TtkTokenKind;
+    function FuncSettime(Index: Integer): TtkTokenKind;
+    function FuncSettimeout(Index: Integer): TtkTokenKind;
+    function FuncSetutcdate(Index: Integer): TtkTokenKind;
+    function FuncSetutcfullyear(Index: Integer): TtkTokenKind;
+    function FuncSetutchours(Index: Integer): TtkTokenKind;
+    function FuncSetutcmilliseconds(Index: Integer): TtkTokenKind;
+    function FuncSetutcminutes(Index: Integer): TtkTokenKind;
+    function FuncSetutcmonth(Index: Integer): TtkTokenKind;
+    function FuncSetutcseconds(Index: Integer): TtkTokenKind;
+    function FuncSetyear(Index: Integer): TtkTokenKind;
+    function FuncShort(Index: Integer): TtkTokenKind;
+    function FuncSin(Index: Integer): TtkTokenKind;
+    function FuncSlice(Index: Integer): TtkTokenKind;
+    function FuncSmall(Index: Integer): TtkTokenKind;
+    function FuncSort(Index: Integer): TtkTokenKind;
+    function FuncSplit(Index: Integer): TtkTokenKind;
+    function FuncSqrt(Index: Integer): TtkTokenKind;
+    function FuncSqrt1_2(Index: Integer): TtkTokenKind;
+    function FuncSqrt2(Index: Integer): TtkTokenKind;
+    function FuncSrc(Index: Integer): TtkTokenKind;
+    function FuncStart(Index: Integer): TtkTokenKind;
+    function FuncStatic(Index: Integer): TtkTokenKind;
+    function FuncStatus(Index: Integer): TtkTokenKind;
+    function FuncStatusbar(Index: Integer): TtkTokenKind;
+    function FuncStop(Index: Integer): TtkTokenKind;
+    function FuncStrike(Index: Integer): TtkTokenKind;
+    function FuncString(Index: Integer): TtkTokenKind;
+    function FuncStyle(Index: Integer): TtkTokenKind;
+    function FuncSub(Index: Integer): TtkTokenKind;
+    function FuncSubmit(Index: Integer): TtkTokenKind;
+    function FuncSubstr(Index: Integer): TtkTokenKind;
+    function FuncSubstring(Index: Integer): TtkTokenKind;
+    function FuncSuffixes(Index: Integer): TtkTokenKind;
+    function FuncSup(Index: Integer): TtkTokenKind;
+    function FuncSuper(Index: Integer): TtkTokenKind;
+    function FuncSwitch(Index: Integer): TtkTokenKind;
+    function FuncSynchronized(Index: Integer): TtkTokenKind;
+    function FuncTags(Index: Integer): TtkTokenKind;
+    function FuncTaint(Index: Integer): TtkTokenKind;
+    function FuncTaintenabled(Index: Integer): TtkTokenKind;
+    function FuncTan(Index: Integer): TtkTokenKind;
+    function FuncTarget(Index: Integer): TtkTokenKind;
+    function FuncText(Index: Integer): TtkTokenKind;
+    function FuncTextarea(Index: Integer): TtkTokenKind;
+    function FuncThis(Index: Integer): TtkTokenKind;
+    function FuncThrow(Index: Integer): TtkTokenKind;
+    function FuncThrows(Index: Integer): TtkTokenKind;
+    function FuncTitle(Index: Integer): TtkTokenKind;
+    function FuncTogmtstring(Index: Integer): TtkTokenKind;
+    function FuncTolocalestring(Index: Integer): TtkTokenKind;
+    function FuncTolowercase(Index: Integer): TtkTokenKind;
+    function FuncToolbar(Index: Integer): TtkTokenKind;
+    function FuncTop(Index: Integer): TtkTokenKind;
+    function FuncTosource(Index: Integer): TtkTokenKind;
+    function FuncTostring(Index: Integer): TtkTokenKind;
+    function FuncTouppercase(Index: Integer): TtkTokenKind;
+    function FuncToutcstring(Index: Integer): TtkTokenKind;
+    function FuncTransient(Index: Integer): TtkTokenKind;
+    function FuncTrue(Index: Integer): TtkTokenKind;
+    function FuncTry(Index: Integer): TtkTokenKind;
+    function FuncType(Index: Integer): TtkTokenKind;
+    function FuncTypeof(Index: Integer): TtkTokenKind;
+    function FuncUndefined(Index: Integer): TtkTokenKind;
+    function FuncUnescape(Index: Integer): TtkTokenKind;
+    function FuncUntaint(Index: Integer): TtkTokenKind;
+    function FuncUnwatch(Index: Integer): TtkTokenKind;
+    function FuncUrl(Index: Integer): TtkTokenKind;
+    function FuncUseragent(Index: Integer): TtkTokenKind;
+    function FuncUtc(Index: Integer): TtkTokenKind;
+    function FuncValue(Index: Integer): TtkTokenKind;
+    function FuncValueof(Index: Integer): TtkTokenKind;
+    function FuncVar(Index: Integer): TtkTokenKind;
+    function FuncVisibility(Index: Integer): TtkTokenKind;
+    function FuncVlinkcolor(Index: Integer): TtkTokenKind;
+    function FuncVoid(Index: Integer): TtkTokenKind;
+    function FuncVspace(Index: Integer): TtkTokenKind;
+    function FuncWatch(Index: Integer): TtkTokenKind;
+    function FuncWhile(Index: Integer): TtkTokenKind;
+    function FuncWidth(Index: Integer): TtkTokenKind;
+    function FuncWindow(Index: Integer): TtkTokenKind;
+    function FuncWith(Index: Integer): TtkTokenKind;
+    function FuncWrite(Index: Integer): TtkTokenKind;
+    function FuncWriteln(Index: Integer): TtkTokenKind;
+    function FuncZindex(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure InitIdent;
     procedure AndSymbolProc;
     procedure CommentProc;
     procedure CRProc;
@@ -254,16 +496,12 @@ type
     procedure StringProc;
     procedure SymbolProc;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: String; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -271,11 +509,8 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber: Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -301,1265 +536,3932 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynEditStrConst;
+  QSynEditStrConst, Variants;
 {$ELSE}
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
+const
+  KeyWords: array[0..398] of WideString = (
+    'abs', 'abstract', 'acos', 'action', 'alert', 'align', 'alinkColor', 'all',
+    'All', 'anchor', 'Anchor', 'anchors', 'appCodeName', 'Applet', 'applets',
+    'appName', 'appVersion', 'Area', 'arguments', 'Arguments', 'Array', 'asin',
+    'atan', 'atan2', 'back', 'background', 'bgColor', 'big', 'blink', 'blur',
+    'body', 'bold', 'boolean', 'Boolean', 'border', 'bottom', 'break', 'Button',
+    'byte', 'call', 'callee', 'caller', 'captureEvents', 'case', 'catch',
+    'ceil', 'char', 'charAt', 'charCodeAt', 'Checkbox', 'checked', 'class',
+    'clear', 'clearInterval', 'clearTimeout', 'click', 'close', 'closed',
+    'color', 'complete', 'concat', 'confirm', 'const', 'constructor',
+    'continue', 'cookie', 'cos', 'current', 'Date', 'debugger', 'default',
+    'defaultChecked', 'defaultSelected', 'defaultStatus', 'defaultValue',
+    'delete', 'description', 'display', 'do', 'document', 'domain', 'double',
+    'E', 'elements', 'else', 'Embed', 'embeds', 'enabledPlugin', 'encoding',
+    'enum', 'escape', 'eval', 'event', 'exp', 'export', 'extends', 'false',
+    'fgColor', 'filename', 'FileUpload', 'final', 'finally', 'find', 'fixed',
+    'float', 'Float', 'floor', 'focus', 'fontcolor', 'fontsize', 'for', 'form',
+    'Form', 'forms', 'forward', 'Frame', 'frames', 'fromCharCode', 'function',
+    'Function', 'getDate', 'getDay', 'getElementById', 'getFullYear',
+    'getHours', 'getMilliseconds', 'getMinutes', 'getMonth', 'getSeconds',
+    'getTime', 'getTimezoneOffset', 'getUTCDate', 'getUTCDay', 'getUTCFullYear',
+    'getUTCHours', 'getUTCMilliseconds', 'getUTCMinutes', 'getUTCMonth',
+    'getUTCSeconds', 'getYear', 'Global', 'go', 'goto', 'handleEvent', 'hash',
+    'height', 'Hidden', 'history', 'History', 'home', 'host', 'hostname',
+    'href', 'hspace', 'if', 'Image', 'images', 'implements', 'import', 'in',
+    'index', 'indexOf', 'Infinity', 'innerHeight', 'innerWidth', 'input',
+    'instanceof', 'int', 'interface', 'isFinite', 'isNaN', 'italics', 'java',
+    'javaEnabled', 'join', 'lastIndexOf', 'lastModified', 'Layer', 'layers',
+    'left', 'length', 'link', 'Link', 'linkColor', 'links', 'LN10', 'LN2',
+    'location', 'Location', 'locationbar', 'log', 'LOG10E', 'LOG2E', 'logon',
+    'long', 'lowsrc', 'match', 'Math', 'max', 'MAX_VALUE', 'menubar', 'method',
+    'MimeType', 'mimeTypes', 'min', 'MIN_VALUE', 'moveBy', 'moveTo', 'name',
+    'NaN', 'native', 'navigator', 'Navigator', 'NEGATIVE_INFINITY', 'netscape',
+    'new', 'next', 'null', 'Null', 'Number', 'Object', 'onAbort', 'onBlur',
+    'onChange', 'onClick', 'onDblClick', 'onError', 'onFocus', 'onKeyDown',
+    'onKeyPress', 'onKeyUp', 'onLoad', 'onMouseDown', 'onMouseMove',
+    'onMouseOut', 'onMouseOver', 'onMouseUp', 'onReset', 'onSelect', 'onSubmit',
+    'onUnload', 'open', 'opener', 'Option', 'options', 'outerHeight',
+    'outerWidth', 'package', 'Packages', 'pageX', 'pageXOffset', 'pageY',
+    'pageYOffset', 'parent', 'parse', 'parseFloat', 'parseInt', 'Password',
+    'pathname', 'personalbar', 'PI', 'platform', 'Plugin', 'plugins', 'port',
+    'POSITIVE_INFINITY', 'pow', 'previous', 'print', 'private', 'prompt',
+    'protected', 'protocol', 'prototype', 'public', 'Radio', 'random',
+    'referrer', 'refresh', 'RegExp', 'releaseEvents', 'reload', 'replace',
+    'reset', 'Reset', 'resizeBy', 'resizeTo', 'return', 'reverse', 'right',
+    'round', 'routeEvent', 'screen', 'scroll', 'scrollbars', 'scrollBy',
+    'scrollTo', 'search', 'select', 'Select', 'selected', 'selectedIndex',
+    'self', 'setDate', 'setFullYear', 'setHours', 'setInterval',
+    'setMilliseconds', 'setMinutes', 'setMonth', 'setSeconds', 'setTime',
+    'setTimeout', 'setUTCDate', 'setUTCFullYear', 'setUTCHours',
+    'setUTCMilliseconds', 'setUTCMinutes', 'setUTCMonth', 'setUTCSeconds',
+    'setYear', 'short', 'sin', 'slice', 'small', 'sort', 'split', 'sqrt',
+    'SQRT1_2', 'SQRT2', 'src', 'start', 'static', 'status', 'statusbar', 'stop',
+    'strike', 'String', 'style', 'sub', 'submit', 'Submit', 'substr',
+    'substring', 'suffixes', 'sup', 'super', 'switch', 'synchronized', 'tags',
+    'taint', 'taintEnabled', 'tan', 'target', 'text', 'Text', 'Textarea',
+    'this', 'throw', 'throws', 'title', 'toGMTString', 'toLocaleString',
+    'toLowerCase', 'toolbar', 'top', 'toSource', 'toString', 'toUpperCase',
+    'toUTCString', 'transient', 'true', 'try', 'type', 'typeof', 'undefined',
+    'Undefined', 'unescape', 'untaint', 'unwatch', 'URL', 'userAgent', 'UTC',
+    'value', 'valueOf', 'var', 'visibility', 'vlinkColor', 'void', 'vspace',
+    'watch', 'while', 'width', 'window', 'Window', 'with', 'write', 'writeln',
+    'zIndex'
+  );
 
-procedure MakeIdentTable;
-var
-  I, J: Char;
-begin
-  for I := #0 to #255 do
-  begin
-    Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-      else Identifiers[I] := False;
-    end;
-    J := UpCase(I);
-    Case I in ['_', 'A'..'Z', 'a'..'z'] of
-      True: mHashTable[I] := Ord(J) - 64
-      else mHashTable[I] := 0;
-    end;
-  end;
-end;
+  KeyIndices: array[0..5152] of Integer = (
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 231, -1, -1, -1, -1, -1, 296, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 55,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 292, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 168, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 208, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 200, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 295, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 75, 351, -1, -1, -1, -1, -1, -1, 315, 37, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 239, -1, -1, -1, -1, -1, 326, -1, -1, -1, 31,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 143, -1, 99, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 339, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 241, -1, -1, -1, -1, -1, -1, -1, -1, -1, 3,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 235, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 145, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 204, -1, -1, -1, -1, -1, -1, -1, -1, 110, -1, -1, -1, -1, -1, -1,
+    -1, -1, 16, 52, 389, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    259, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 331, 30, -1, -1, -1, -1, -1, -1,
+    -1, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 304, -1, 396, 2, -1, -1, 323, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 167,
+    -1, -1, -1, -1, -1, -1, -1, 122, -1, -1, -1, -1, -1, -1, -1, -1, -1, 34, -1,
+    -1, -1, -1, 203, -1, -1, -1, -1, -1, -1, 38, -1, -1, -1, -1, -1, 83, -1, -1,
+    -1, -1, -1, 101, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    268, -1, -1, -1, -1, -1, -1, -1, -1, 182, -1, -1, -1, -1, -1, 246, 18, -1,
+    -1, -1, -1, -1, 209, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 220, 161,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 134, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 332, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 229, -1, -1, -1, -1, -1, -1, -1, 157, 319, -1, 210, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 234, -1, -1, -1, -1, -1, -1, -1, -1, -1, 105,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 381, 78, -1,
+    -1, -1, -1, -1, -1, -1, 257, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 219, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 196, -1, -1, -1, -1, -1, 379, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 363, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 309, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 386, 146, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 103, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 269, -1, -1, -1, 199, 172, -1, 15, 123, -1, -1, -1, -1, -1, -1, -1, 136,
+    -1, -1, -1, 128, -1, -1, -1, -1, 366, -1, -1, 185, -1, -1, -1, -1, 153, -1,
+    -1, -1, -1, 388, -1, -1, 165, -1, -1, -1, -1, -1, -1, 338, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 360, -1, -1,
+    194, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 77, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 307, -1, -1, -1, -1, -1, -1, -1, 258, -1,
+    -1, -1, 96, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 180, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 69, -1, -1, -1, -1, -1, -1, 129, -1, -1,
+    -1, -1, -1, -1, -1, -1, 120, -1, -1, 95, -1, 233, -1, -1, -1, -1, -1, -1,
+    -1, -1, 40, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 160, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 90, 282, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 341, 232, 121, 155, -1,
+    -1, -1, -1, -1, 247, -1, -1, -1, -1, 67, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 327, -1, -1, -1, -1, -1, -1, -1, -1, -1, 74, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 170, -1, -1, -1, -1, 298, -1,
+    -1, -1, -1, -1, -1, -1, 114, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 94, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 271, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 324, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 70, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 197, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 91, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 106, -1, -1, 237, -1, -1, -1, -1, -1, 6,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 240, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 250, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 205, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 238, -1, -1, -1,
+    -1, -1, -1, -1, -1, 275, -1, -1, -1, -1, -1, -1, -1, -1, -1, 287, -1, -1,
+    -1, -1, -1, -1, -1, 227, -1, -1, 383, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    58, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 29, 148, 171, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 392, -1, -1, -1, -1, -1, 125, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 201, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 135, -1, -1, 212,
+    -1, -1, -1, -1, -1, -1, 14, -1, -1, -1, -1, -1, -1, -1, -1, -1, 272, -1, -1,
+    -1, -1, -1, -1, -1, -1, 27, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 334,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 289, -1, -1, -1, -1, 312, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 385, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 51, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 104, -1, -1, -1, -1, -1, -1, 371, 76,
+    -1, -1, 330, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 68, -1, -1, -1, -1, -1, -1, 225, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 119, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 13, -1, -1, -1, 156, -1, 23, -1, -1, -1, -1, -1, -1,
+    -1, -1, 280, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 178, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 277, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1, -1, -1, -1, -1, 93, -1,
+    -1, -1, -1, -1, -1, -1, 202, -1, 5, 343, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 255, -1, -1, -1, -1, -1, -1, -1,
+    -1, 43, -1, -1, -1, 44, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 333, -1, -1, -1, -1, -1, 12, -1, -1, -1, -1, 139,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 320, -1, -1, -1, -1, -1, -1,
+    214, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 152, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 278, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 302, 316, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 137, -1, -1, -1,
+    254, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 86, -1, -1, -1, -1, -1, -1, -1, -1, 345, -1, -1, 144, -1, -1, -1, 7,
+    -1, -1, 306, -1, -1, -1, -1, 113, -1, -1, -1, -1, -1, -1, 308, -1, -1, -1,
+    -1, 357, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 36, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 361, -1, -1, -1, -1, -1, -1, -1, 195, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 387, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 169, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 376, -1, -1, -1, -1, 188, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 359, 98, -1, -1, -1,
+    -1, -1, -1, -1, 11, -1, -1, -1, -1, -1, 116, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 299, -1, -1, -1, 369, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 54, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 147, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 118, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    356, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 8, -1, 300, -1, -1, 228, 59, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 213, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 179, -1, -1, -1, -1, -1,
+    -1, -1, 176, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 350, -1, -1, -1, -1,
+    -1, -1, 284, -1, -1, -1, 256, -1, -1, 276, -1, -1, -1, -1, -1, -1, -1, -1,
+    190, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 102, -1, 230, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 35, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 72, -1, 71, 26, -1, -1, -1, -1,
+    -1, -1, 60, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 322, -1, -1, 175, -1, -1, 393, -1, 124, 85, -1, -1, -1, -1,
+    -1, -1, -1, -1, 150, -1, 236, -1, -1, -1, -1, -1, -1, -1, -1, -1, 140, -1,
+    -1, -1, -1, -1, -1, 183, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 111, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    42, 244, -1, -1, -1, -1, -1, -1, -1, 47, 313, -1, 41, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 63, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 64,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    294, -1, -1, -1, -1, -1, -1, -1, -1, 374, -1, -1, -1, -1, -1, -1, -1, 245,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 177, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 347, -1, -1, -1, -1, -1, -1, -1, 391, -1, -1, -1, -1, -1, -1, -1,
+    217, -1, -1, -1, 87, -1, -1, -1, 329, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    39, -1, -1, -1, -1, -1, -1, -1, -1, 189, -1, -1, 222, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 174, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    274, -1, -1, -1, -1, 33, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    382, -1, -1, -1, 138, 226, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 192, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 24, -1, -1, -1, -1, -1, -1, -1, -1, 100, -1, -1, -1, -1, -1, -1,
+    -1, -1, 318, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 335,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 260, -1, -1, -1, -1, -1, -1, 191, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 288, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 342, -1, -1, -1, -1, -1, -1,
+    61, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 377, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 132, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 158, -1, -1, 166, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 73, -1, -1, -1, -1, -1, -1, -1, 57,
+    -1, -1, -1, 211, -1, -1, -1, -1, 243, -1, -1, -1, -1, -1, 264, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 321, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 207, -1, -1,
+    216, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    149, -1, -1, -1, -1, -1, 89, -1, -1, -1, -1, -1, -1, -1, 48, -1, -1, 293,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 117, -1, -1, -1, -1, 242, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 56,
+    -1, 154, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 92, 193, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    325, 126, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 206, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 372, -1, -1, -1, 380, -1, -1,
+    352, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 263, -1, -1, -1, -1, -1, -1, -1, 373, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 286, -1, 46, -1, -1, -1, -1, 184, -1, -1, -1, -1, -1, -1, 19,
+    -1, -1, -1, 25, -1, -1, -1, -1, -1, -1, -1, 367, -1, -1, -1, -1, -1, 270,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 283,
+    -1, -1, -1, -1, -1, -1, -1, -1, 151, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 65, -1, -1, -1,
+    -1, -1, -1, -1, 398, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 252,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 355, -1, -1, 365, -1, -1, -1,
+    -1, -1, -1, -1, -1, 28, -1, -1, 378, -1, -1, -1, -1, 354, -1, -1, -1, -1,
+    -1, -1, -1, -1, 349, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 97, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 107, -1, -1, -1, -1, 285,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 21, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 215, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 198, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 81, 394, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 32, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 358, -1, -1, -1, -1, -1, -1, -1, 173, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 224, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 181, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 375,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 9, -1, -1, -1, -1, -1, 305, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 141,
+    281, 115, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 84, -1, -1, -1, -1, -1,
+    -1, -1, 261, -1, -1, -1, -1, 265, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    273, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 362, -1, 290, -1, 66, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 112, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    131, -1, 279, -1, -1, -1, 249, -1, -1, -1, -1, -1, -1, 223, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 49, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 297, -1, -1, -1, -1,
+    127, -1, -1, 142, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 53, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 364, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 88, -1, -1, -1, -1, -1, -1, 248, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 395, 251, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 45, -1, -1, -1, -1, -1, -1, -1, -1, 80, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 310, -1, 218, -1, -1, -1, -1, -1, -1, 187, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 130, 390, -1, -1, -1, -1, -1, -1, -1,
+    328, -1, 221, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 336, -1, -1, -1, -1, -1, -1, 311, -1, -1, -1, -1,
+    -1, -1, -1, -1, 303, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 108, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 344, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 337, -1, -1, -1, -1, -1, 262, -1, -1, -1, -1,
+    -1, -1, -1, 267, -1, -1, -1, -1, -1, -1, -1, 253, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 397, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 162, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 109, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 346, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, 348, 159, -1, -1, -1, -1, -1, -1, -1,
+    368, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 370, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 164, -1, 314, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 291, -1, -1, -1, -1, -1, -1, 384, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 82, -1, -1, -1, -1, -1, -1, 340, -1, -1,
+    -1, -1, -1, -1, 317, -1, 79, -1, -1, -1, -1, 133, -1, -1, -1, -1, -1, -1,
+    353, -1, 301, -1, -1, -1, -1, -1, -1, 163, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 266, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 186, -1, -1, -1
+  );
 
-procedure TSynJScriptSyn.InitIdent;
-var
-  I: Integer;
-  pF: PIdentFuncTableFunc;
-begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[5] := Func5;
-  fIdentFuncTable[15] := Func15;
-  fIdentFuncTable[17] := Func17;
-  fIdentFuncTable[18] := Func18;
-  fIdentFuncTable[19] := Func19;
-  fIdentFuncTable[22] := Func22;
-  fIdentFuncTable[23] := Func23;
-  fIdentFuncTable[25] := Func25;
-  fIdentFuncTable[26] := Func26;
-  fIdentFuncTable[28] := Func28;
-  fIdentFuncTable[29] := Func29;
-  fIdentFuncTable[30] := Func30;
-  fIdentFuncTable[33] := Func33;
-  fIdentFuncTable[34] := Func34;
-  fIdentFuncTable[35] := Func35;
-  fIdentFuncTable[36] := Func36;
-  fIdentFuncTable[37] := Func37;
-  fIdentFuncTable[38] := Func38;
-  fIdentFuncTable[39] := Func39;
-  fIdentFuncTable[40] := Func40;
-  fIdentFuncTable[41] := Func41;
-  fIdentFuncTable[42] := Func42;
-  fIdentFuncTable[43] := Func43;
-  fIdentFuncTable[44] := Func44;
-  fIdentFuncTable[45] := Func45;
-  fIdentFuncTable[46] := Func46;
-  fIdentFuncTable[47] := Func47;
-  fIdentFuncTable[48] := Func48;
-  fIdentFuncTable[49] := Func49;
-  fIdentFuncTable[50] := Func50;
-  fIdentFuncTable[51] := Func51;
-  fIdentFuncTable[52] := Func52;
-  fIdentFuncTable[53] := Func53;
-  fIdentFuncTable[54] := Func54;
-  fIdentFuncTable[55] := Func55;
-  fIdentFuncTable[56] := Func56;
-  fIdentFuncTable[57] := Func57;
-  fIdentFuncTable[58] := Func58;
-  fIdentFuncTable[59] := Func59;
-  fIdentFuncTable[60] := Func60;
-  fIdentFuncTable[61] := Func61;
-  fIdentFuncTable[62] := Func62;
-  fIdentFuncTable[63] := Func63;
-  fIdentFuncTable[64] := Func64;
-  fIdentFuncTable[65] := Func65;
-  fIdentFuncTable[66] := Func66;
-  fIdentFuncTable[67] := Func67;
-  fIdentFuncTable[69] := Func69;
-  fIdentFuncTable[70] := Func70;
-  fIdentFuncTable[71] := Func71;
-  fIdentFuncTable[72] := Func72;
-  fIdentFuncTable[73] := Func73;
-  fIdentFuncTable[74] := Func74;
-  fIdentFuncTable[75] := Func75;
-  fIdentFuncTable[76] := Func76;
-  fIdentFuncTable[77] := Func77;
-  fIdentFuncTable[78] := Func78;
-  fIdentFuncTable[79] := Func79;
-  fIdentFuncTable[80] := Func80;
-  fIdentFuncTable[81] := Func81;
-  fIdentFuncTable[82] := Func82;
-  fIdentFuncTable[83] := Func83;
-  fIdentFuncTable[84] := Func84;
-  fIdentFuncTable[85] := Func85;
-  fIdentFuncTable[86] := Func86;
-  fIdentFuncTable[87] := Func87;
-  fIdentFuncTable[88] := Func88;
-  fIdentFuncTable[89] := Func89;
-  fIdentFuncTable[90] := Func90;
-  fIdentFuncTable[91] := Func91;
-  fIdentFuncTable[92] := Func92;
-  fIdentFuncTable[93] := Func93;
-  fIdentFuncTable[94] := Func94;
-  fIdentFuncTable[95] := Func95;
-  fIdentFuncTable[96] := Func96;
-  fIdentFuncTable[98] := Func98;
-  fIdentFuncTable[99] := Func99;
-  fIdentFuncTable[100] := Func100;
-  fIdentFuncTable[101] := Func101;
-  fIdentFuncTable[102] := Func102;
-  fIdentFuncTable[103] := Func103;
-  fIdentFuncTable[105] := Func105;
-  fIdentFuncTable[106] := Func106;
-  fIdentFuncTable[107] := Func107;
-  fIdentFuncTable[108] := Func108;
-  fIdentFuncTable[109] := Func109;
-  fIdentFuncTable[110] := Func110;
-  fIdentFuncTable[111] := Func111;
-  fIdentFuncTable[113] := Func113;
-  fIdentFuncTable[114] := Func114;
-  fIdentFuncTable[115] := Func115;
-  fIdentFuncTable[116] := Func116;
-  fIdentFuncTable[117] := Func117;
-  fIdentFuncTable[118] := Func118;
-  fIdentFuncTable[119] := Func119;
-  fIdentFuncTable[120] := Func120;
-  fIdentFuncTable[121] := Func121;
-  fIdentFuncTable[122] := Func122;
-  fIdentFuncTable[123] := Func123;
-  fIdentFuncTable[124] := Func124;
-  fIdentFuncTable[125] := Func125;
-  fIdentFuncTable[126] := Func126;
-  fIdentFuncTable[128] := Func128;
-  fIdentFuncTable[129] := Func129;
-  fIdentFuncTable[130] := Func130;
-  fIdentFuncTable[131] := Func131;
-  fIdentFuncTable[132] := Func132;
-  fIdentFuncTable[133] := Func133;
-  fIdentFuncTable[135] := Func135;
-  fIdentFuncTable[136] := Func136;
-  fIdentFuncTable[139] := Func139;
-  fIdentFuncTable[140] := Func140;
-  fIdentFuncTable[142] := Func142;
-  fIdentFuncTable[143] := Func143;
-  fIdentFuncTable[144] := Func144;
-  fIdentFuncTable[145] := Func145;
-  fIdentFuncTable[146] := Func146;
-  fIdentFuncTable[147] := Func147;
-  fIdentFuncTable[150] := Func150;
-  fIdentFuncTable[155] := Func155;
-  fIdentFuncTable[157] := Func157;
-  fIdentFuncTable[158] := Func158;
-  fIdentFuncTable[160] := Func160;
-  fIdentFuncTable[162] := Func162;
-  fIdentFuncTable[166] := Func166;
-  fIdentFuncTable[167] := Func167;
-  fIdentFuncTable[169] := Func169;
-  fIdentFuncTable[170] := Func170;
-  fIdentFuncTable[176] := Func176;
-  fIdentFuncTable[177] := Func177;
-  fIdentFuncTable[178] := Func178;
-  fIdentFuncTable[188] := Func188;
-  fIdentFuncTable[189] := Func189;
-  fIdentFuncTable[210] := Func210;
-  fIdentFuncTable[220] := Func220;
-  fIdentFuncTable[222] := Func222;
-  fIdentFuncTable[252] := Func252;
-end;
-
-function TSynJScriptSyn.KeyHash(ToHash: PChar): Integer;
+{$Q-}
+function TSynJScriptSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
-  while ToHash^ in ['_', '0'..'9', 'a'..'z', 'A'..'Z'] do
+  while IsIdentChar(Str^) do
   begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
+    Result := Result * 751 + Ord(Str^) * 148;
+    inc(Str);
   end;
-  fStringLen := ToHash - fToIdent;
+  Result := Result mod 5153;
+  fStringLen := Str - fToIdent;
 end;
+{$Q+}
 
-function TSynJScriptSyn.KeyComp(const aKey: String): Boolean;
+function TSynJScriptSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if Temp^ <> aKey[i] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end else Result := False;
-end;
-
-function TSynJScriptSyn.Func5: TtkTokenKind;
-begin
-  if KeyComp('E') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func15: TtkTokenKind;
-begin
-  if KeyComp('if') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('back') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func18: TtkTokenKind;
-begin
-  if KeyComp('big') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func19: TtkTokenKind;
-begin
-  if KeyComp('do') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func22: TtkTokenKind;
-begin
-  if KeyComp('abs') then Result := tkNonReservedKey else
-    if KeyComp('go') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func23: TtkTokenKind;
-begin
-  if KeyComp('in') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func25: TtkTokenKind;
-begin
-  if KeyComp('Area') then Result := tkNonReservedKey else
-    if KeyComp('PI') then Result := tkNonReservedKey else
-      if KeyComp('All') then Result := tkNonReservedKey else
-        if KeyComp('all') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func26: TtkTokenKind;
-begin
-  if KeyComp('LN10') then Result := tkNonReservedKey else
-    if KeyComp('LN2') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func28: TtkTokenKind;
-begin
-  if KeyComp('case') then Result := tkKey else
-    if KeyComp('call') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func29: TtkTokenKind;
-begin
-  if KeyComp('NaN') then Result := tkKey else
-    if KeyComp('Embed') then Result := tkNonReservedKey else
-      if KeyComp('ceil') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func30: TtkTokenKind;
-begin
-  if KeyComp('Date') then Result := tkNonReservedKey else
-    if KeyComp('char') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func33: TtkTokenKind;
-begin
-  if KeyComp('bold') then Result := tkNonReservedKey else
-    if KeyComp('name') then Result := tkNonReservedKey else
-      if KeyComp('find') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func34: TtkTokenKind;
-begin
-  if KeyComp('log') then Result := tkNonReservedKey else
-    if KeyComp('java') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func35: TtkTokenKind;
-begin
-  if KeyComp('Image') then Result := tkNonReservedKey else
-    if KeyComp('tan') then Result := tkNonReservedKey else
-      if KeyComp('catch') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func36: TtkTokenKind;
-begin
-  if KeyComp('min') then Result := tkNonReservedKey else
-    if KeyComp('hash') then Result := tkNonReservedKey else
-      if KeyComp('atan2') then Result := tkNonReservedKey else
-        if KeyComp('atan') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func37: TtkTokenKind;
-begin
-  if KeyComp('break') then Result := tkKey else
-    if KeyComp('href') then Result := tkNonReservedKey else
-      if KeyComp('cos') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func38: TtkTokenKind;
-begin
-  if KeyComp('click') then Result := tkNonReservedKey else
-    if KeyComp('acos') then Result := tkNonReservedKey else
-      if KeyComp('max') then Result := tkNonReservedKey else
-        if KeyComp('callee') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func39: TtkTokenKind;
-begin
-  if KeyComp('LOG10E') then Result := tkNonReservedKey else
-    if KeyComp('LOG2E') then Result := tkNonReservedKey else
-      if KeyComp('checked') then Result := tkNonReservedKey else
-        if KeyComp('clear') then Result := tkNonReservedKey else
-          if KeyComp('for') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func40: TtkTokenKind;
-begin
-  if KeyComp('eval') then Result := tkNonReservedKey else
-    if KeyComp('src') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func41: TtkTokenKind;
-begin
-  if KeyComp('else') then Result := tkKey else
-    if KeyComp('var') then Result := tkKey else
-      if KeyComp('home') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('self') then Result := tkNonReservedKey else
-    if KeyComp('Math') then Result := tkNonReservedKey else
-      if KeyComp('sin') then Result := tkNonReservedKey else
-        if KeyComp('new') then Result := tkKey else
-          if KeyComp('sub') then Result := tkNonReservedKey else
-            if KeyComp('final') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func43: TtkTokenKind;
-begin
-  if KeyComp('asin') then Result := tkNonReservedKey else
-    if KeyComp('Frame') then Result := tkNonReservedKey else
-      if KeyComp('false') then Result := tkKey else
-        if KeyComp('int') then Result := tkKey else
-          if KeyComp('left') then Result := tkNonReservedKey else
-            if KeyComp('align') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func44: TtkTokenKind;
-begin
-  if KeyComp('Hidden') then Result := tkNonReservedKey else
-    if KeyComp('UTC') then Result := tkNonReservedKey else
-      if KeyComp('package') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('exp') then Result := tkNonReservedKey else
-    if KeyComp('match') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func46: TtkTokenKind;
-begin
-  if KeyComp('Link') then Result := tkNonReservedKey else
-    if KeyComp('link') then Result := tkNonReservedKey else
-      if KeyComp('body') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func47: TtkTokenKind;
-begin
-  if KeyComp('Radio') then Result := tkNonReservedKey else
-    if KeyComp('tags') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('join') then Result := tkNonReservedKey else
-    if KeyComp('embeds') then Result := tkNonReservedKey else
-      if KeyComp('blink') then Result := tkNonReservedKey else
-        if KeyComp('fixed') then Result := tkNonReservedKey else
-          if KeyComp('slice') then Result := tkNonReservedKey else
-            if KeyComp('long') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func49: TtkTokenKind;
-begin
-  if KeyComp('escape') then Result := tkNonReservedKey else
-    if KeyComp('Global') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func50: TtkTokenKind;
-begin
-  if KeyComp('open') then Result := tkNonReservedKey else
-    if KeyComp('void') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func51: TtkTokenKind;
-begin
-  if KeyComp('charAt') then Result := tkNonReservedKey else
-    if KeyComp('top') then Result := tkNonReservedKey else
-      if KeyComp('URL') then Result := tkNonReservedKey else
-        if KeyComp('caller') then Result := tkNonReservedKey else
-          if KeyComp('delete') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('Form') then Result := tkNonReservedKey else
-    if KeyComp('form') then Result := tkNonReservedKey else
-      if KeyComp('hspace') then Result := tkNonReservedKey else
-        if KeyComp('byte') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func53: TtkTokenKind;
-begin
-  if KeyComp('blur') then Result := tkNonReservedKey else
-    if KeyComp('enum') then Result := tkKey else
-      if KeyComp('pageX') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func54: TtkTokenKind;
-begin
-  if KeyComp('pow') then Result := tkNonReservedKey else
-    if KeyComp('close') then Result := tkNonReservedKey else
-      if KeyComp('search') then Result := tkNonReservedKey else
-        if KeyComp('images') then Result := tkNonReservedKey else
-          if KeyComp('class') then Result := tkKey else
-            if KeyComp('float') then Result := tkKey else
-              if KeyComp('Float') then Result := tkNonReservedKey else
-                if KeyComp('pageY') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func55: TtkTokenKind;
-begin
-  if KeyComp('reload') then Result := tkNonReservedKey else
-    if KeyComp('Object') then Result := tkNonReservedKey else
-      if KeyComp('watch') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func56: TtkTokenKind;
-begin
-  if KeyComp('this') then Result := tkKey else
-    if KeyComp('alert') then Result := tkNonReservedKey else
-      if KeyComp('sup') then Result := tkNonReservedKey else
-        if KeyComp('domain') then Result := tkNonReservedKey else
-          if KeyComp('index') then Result := tkNonReservedKey else
-            if KeyComp('concat') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func57: TtkTokenKind;
-begin
-  if KeyComp('isNaN') then Result := tkNonReservedKey else
-    if KeyComp('small') then Result := tkNonReservedKey else
-      if KeyComp('while') then Result := tkKey else
-        if KeyComp('height') then Result := tkNonReservedKey else
-          if KeyComp('goto') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func58: TtkTokenKind;
-begin
-  if KeyComp('cookie') then Result := tkNonReservedKey else
-    if KeyComp('closed') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func59: TtkTokenKind;
-begin
-  if KeyComp('parse') then Result := tkNonReservedKey else
-    if KeyComp('Anchor') then Result := tkNonReservedKey else
-      if KeyComp('anchor') then Result := tkNonReservedKey else
-        if KeyComp('double') then Result := tkKey else
-          if KeyComp('Null') then Result := tkNonReservedKey else
-            if KeyComp('null') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func60: TtkTokenKind;
-begin
-  if KeyComp('with') then Result := tkKey else
-    if KeyComp('replace') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func61: TtkTokenKind;
-begin
-  if KeyComp('onLoad') then Result := tkEvent else
-    if KeyComp('value') then Result := tkNonReservedKey else
-        if KeyComp('Layer') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('action') then Result := tkNonReservedKey else
-    if KeyComp('getDate') then Result := tkNonReservedKey else
-      if KeyComp('getDay') then Result := tkNonReservedKey else
-        if KeyComp('border') then Result := tkNonReservedKey else
-          if KeyComp('host') then Result := tkNonReservedKey else
-            if KeyComp('frames') then Result := tkNonReservedKey else
-              if KeyComp('right') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func63: TtkTokenKind;
-begin
-  if KeyComp('Array') then Result := tkNonReservedKey else
-    if KeyComp('next') then Result := tkNonReservedKey else
-      if KeyComp('try') then Result := tkKey else
-        if KeyComp('public') then Result := tkKey else
-          if KeyComp('Packages') then Result := tkNonReservedKey else
-            if KeyComp('logon') then Result := tkNonReservedKey else
-              if KeyComp('color') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func64: TtkTokenKind;
-begin
-  if KeyComp('Boolean') then Result := tkNonReservedKey else
-    if KeyComp('Select') then Result := tkNonReservedKey else
-      if KeyComp('select') then Result := tkNonReservedKey else
-        if KeyComp('taint') then Result := tkNonReservedKey else
-          if KeyComp('focus') then Result := tkNonReservedKey else
-            if KeyComp('boolean') then Result := tkKey else
-              if KeyComp('width') then Result := tkNonReservedKey else
-                if KeyComp('true') then Result := tkKey else
-                  if KeyComp('screen') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func65: TtkTokenKind;
-begin
-  if KeyComp('filename') then Result := tkNonReservedKey else
-    if KeyComp('links') then Result := tkNonReservedKey else
-      if KeyComp('method') then Result := tkNonReservedKey else
-        if KeyComp('random') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func66: TtkTokenKind;
-begin
-  if KeyComp('vspace') then Result := tkNonReservedKey else
-    if KeyComp('length') then Result := tkNonReservedKey else
-      if KeyComp('title') then Result := tkNonReservedKey else
-        if KeyComp('type') then Result := tkNonReservedKey else
-          if KeyComp('appName') then Result := tkNonReservedKey else
-            if KeyComp('floor') then Result := tkNonReservedKey else
-              if KeyComp('event') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func67: TtkTokenKind;
-begin
-  if KeyComp('onClick') then Result := tkEvent else
-    if KeyComp('onChange') then Result := tkEvent else
-      if KeyComp('reset') then Result := tkNonReservedKey else
-        if KeyComp('Reset') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func69: TtkTokenKind;
-begin
-  if KeyComp('port') then Result := tkNonReservedKey else
-    if KeyComp('Text') then Result := tkNonReservedKey else
-      if KeyComp('text') then Result := tkNonReservedKey else
-        if KeyComp('default') then Result := tkKey else
-          if KeyComp('debugger') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func70: TtkTokenKind;
-begin
-  if KeyComp('Applet') then Result := tkNonReservedKey else
-    if KeyComp('stop') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func71: TtkTokenKind;
-begin
-  if KeyComp('target') then Result := tkNonReservedKey else
-    if KeyComp('Checkbox') then Result := tkNonReservedKey else
-      if KeyComp('encoding') then Result := tkNonReservedKey else
-        if KeyComp('forms') then Result := tkNonReservedKey else
-          if KeyComp('const') then Result := tkKey else
-            if KeyComp('native') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func72: TtkTokenKind;
-begin
-  if KeyComp('round') then Result := tkNonReservedKey else
-    if KeyComp('sort') then Result := tkNonReservedKey else
-      if KeyComp('bgColor') then Result := tkNonReservedKey else
-        if KeyComp('static') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func73: TtkTokenKind;
-begin
-  if KeyComp('italics') then Result := tkNonReservedKey else
-    if KeyComp('Number') then Result := tkNonReservedKey else
-      if KeyComp('opener') then Result := tkNonReservedKey else
-        if KeyComp('selected') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func74: TtkTokenKind;
-begin
-  if KeyComp('sqrt') then Result := tkNonReservedKey else
-    if KeyComp('SQRT2') then Result := tkNonReservedKey else
-      if KeyComp('parent') then Result := tkNonReservedKey else
-        if KeyComp('setDate') then Result := tkNonReservedKey else
-          if KeyComp('menubar') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func75: TtkTokenKind;
-begin
-  if KeyComp('write') then Result := tkNonReservedKey else
-    if KeyComp('RegExp') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func76: TtkTokenKind;
-begin
-  if KeyComp('fgColor') then Result := tkNonReservedKey else
-    if KeyComp('split') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func77: TtkTokenKind;
-begin
-  if KeyComp('javaEnabled') then Result := tkNonReservedKey else
-    if KeyComp('indexOf') then Result := tkNonReservedKey else
-      if KeyComp('print') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func78: TtkTokenKind;
-begin
-  if KeyComp('anchors') then Result := tkNonReservedKey else
-    if KeyComp('confirm') then Result := tkNonReservedKey else
-      if KeyComp('pathname') then Result := tkNonReservedKey else
-        if KeyComp('start') then Result := tkKey else
-          if KeyComp('charCodeAt') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func79: TtkTokenKind;
-begin
-  if KeyComp('Plugin') then Result := tkNonReservedKey else
-    if KeyComp('getTime') then Result := tkNonReservedKey else
-      if KeyComp('refresh') then Result := tkNonReservedKey else
-        if KeyComp('scroll') then Result := tkNonReservedKey else
-          if KeyComp('finally') then Result := tkKey else
-            if KeyComp('super') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func80: TtkTokenKind;
-begin
-  if KeyComp('short') then Result := tkKey else
-    if KeyComp('layers') then Result := tkNonReservedKey else
-      if KeyComp('input') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func81: TtkTokenKind;
-begin
-  if KeyComp('getYear') then Result := tkNonReservedKey else
-    if KeyComp('interface') then Result := tkKey else
-      if KeyComp('style') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func82: TtkTokenKind;
-begin
-  if KeyComp('onBlur') then Result := tkEvent else
-    if KeyComp('strike') then Result := tkNonReservedKey else
-      if KeyComp('valueOf') then Result := tkNonReservedKey else
-        if KeyComp('moveBy') then Result := tkNonReservedKey else
-          if KeyComp('switch') then Result := tkKey else
-            if KeyComp('zIndex') then Result := tkNonReservedKey else
-              if KeyComp('Undefined') then Result := tkNonReservedKey else
-                if KeyComp('undefined') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func83: TtkTokenKind;
-begin
-  if KeyComp('netscape') then Result := tkNonReservedKey else
-    if KeyComp('toolbar') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func84: TtkTokenKind;
-begin
-  if KeyComp('Submit') then Result := tkNonReservedKey else
-    if KeyComp('submit') then Result := tkNonReservedKey else
-      if KeyComp('unescape') then Result := tkNonReservedKey else
-        if KeyComp('throw') then Result := tkKey else
-          if KeyComp('abstract') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func85: TtkTokenKind;
-begin
-  if KeyComp('onAbort') then Result := tkEvent else
-    if KeyComp('forward') then Result := tkNonReservedKey else
-      if KeyComp('onDblClick') then Result := tkEvent else
-        if KeyComp('bottom') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func86: TtkTokenKind;
-begin
-  if KeyComp('display') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func87: TtkTokenKind;
-begin
-  if KeyComp('String') then Result := tkNonReservedKey else
-    if KeyComp('typeof') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func88: TtkTokenKind;
-begin
-  if KeyComp('Window') then Result := tkNonReservedKey else
-    if KeyComp('window') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func89: TtkTokenKind;
-begin
-  if KeyComp('Location') then Result := tkNonReservedKey else
-    if KeyComp('location') then Result := tkNonReservedKey else
-      if KeyComp('complete') then Result := tkNonReservedKey else
-        if KeyComp('applets') then Result := tkNonReservedKey else
-          if KeyComp('Option') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func90: TtkTokenKind;
-begin
-  if KeyComp('lowsrc') then Result := tkNonReservedKey else
-    if KeyComp('moveTo') then Result := tkNonReservedKey else
-      if KeyComp('unwatch') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func91: TtkTokenKind;
-begin
-  if KeyComp('setTime') then Result := tkNonReservedKey else
-    if KeyComp('import') then Result := tkKey else
-      if KeyComp('extends') then Result := tkKey else
-        if KeyComp('private') then Result := tkKey else
-          if KeyComp('isFinite') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func92: TtkTokenKind;
-begin
-  if KeyComp('Button') then Result := tkNonReservedKey else
-    if KeyComp('reverse') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func93: TtkTokenKind;
-begin
-  if KeyComp('appCodeName') then Result := tkNonReservedKey else
-    if KeyComp('setYear') then Result := tkNonReservedKey else
-      if KeyComp('referrer') then Result := tkNonReservedKey else
-          if KeyComp('elements') then Result := tkNonReservedKey else
-            if KeyComp('onFocus') then Result := tkEvent else
-              if KeyComp('onSelect') then Result := tkEvent else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func94: TtkTokenKind;
-begin
-  if KeyComp('Textarea') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func95: TtkTokenKind;
-begin
-  if KeyComp('hostname') then Result := tkNonReservedKey else
-    if KeyComp('document') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func96: TtkTokenKind;
-begin
-  if KeyComp('onUnload') then Result := tkEvent else
-    if KeyComp('return') then Result := tkKey else
-      if KeyComp('onReset') then Result := tkEvent else
-        if KeyComp('background') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func98: TtkTokenKind;
-begin
-  if KeyComp('prompt') then Result := tkNonReservedKey else
-    if KeyComp('plugins') then Result := tkNonReservedKey else
-      if KeyComp('export') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func99: TtkTokenKind;
-begin
-  if KeyComp('current') then Result := tkNonReservedKey else
-    if KeyComp('untaint') then Result := tkNonReservedKey else
-      if KeyComp('substr') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func100: TtkTokenKind;
-begin
-  if KeyComp('status') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func101: TtkTokenKind;
-begin
-  if KeyComp('FileUpload') then Result := tkNonReservedKey else
-    if KeyComp('writeln') then Result := tkNonReservedKey else
-      if KeyComp('continue') then Result := tkKey else
-        if KeyComp('platform') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func102: TtkTokenKind;
-begin
-  if KeyComp('getMonth') then Result := tkNonReservedKey else
-    if KeyComp('Function') then Result := tkNonReservedKey else
-      if KeyComp('function') then Result := tkKey else
-        if KeyComp('parseInt') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func103: TtkTokenKind;
-begin
-  if KeyComp('onError') then Result := tkEvent else
-    if KeyComp('throws') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func105: TtkTokenKind;
-begin
-  if KeyComp('SQRT1_2') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func106: TtkTokenKind;
-begin
-  if KeyComp('MimeType') then Result := tkNonReservedKey else
-    if KeyComp('instanceof') then Result := tkKey else
-      if KeyComp('protected') then Result := tkKey else
-        if KeyComp('Infinity') then Result := tkNonReservedKey else
-          if KeyComp('scrollBy') then Result := tkNonReservedKey else
-            if KeyComp('getUTCDate') then Result := tkNonReservedKey else
-              if KeyComp('getUTCDay') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func107: TtkTokenKind;
-begin
-  if KeyComp('taintEnabled') then Result := tkNonReservedKey else
-    if KeyComp('Navigator') then Result := tkNonReservedKey else
-      if KeyComp('navigator') then Result := tkNonReservedKey else
-        if KeyComp('onKeyUp') then Result := tkEvent else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func108: TtkTokenKind;
-begin
-  if KeyComp('defaultChecked') then Result := tkNonReservedKey else
-    if KeyComp('options') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func109: TtkTokenKind;
-begin
-  if KeyComp('suffixes') then Result := tkNonReservedKey else
-    if KeyComp('linkColor') then Result := tkNonReservedKey else
-      if KeyComp('resizeBy') then Result := tkNonReservedKey else
-        if KeyComp('fromCharCode') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func110: TtkTokenKind;
-begin
-  if KeyComp('userAgent') then Result := tkNonReservedKey else
-    if KeyComp('alinkColor') then Result := tkNonReservedKey else
-      if KeyComp('locationbar') then Result := tkNonReservedKey else
-        if KeyComp('handleEvent') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func111: TtkTokenKind;
-begin
-  if KeyComp('getSeconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func113: TtkTokenKind;
-begin
-  if KeyComp('onSubmit') then Result := tkEvent else
-    if KeyComp('parseFloat') then Result := tkNonReservedKey else
-      if KeyComp('getHours') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func114: TtkTokenKind;
-begin
-  if KeyComp('fontsize') then Result := tkNonReservedKey else
-    if KeyComp('History') then Result := tkNonReservedKey else
-      if KeyComp('history') then Result := tkNonReservedKey else
-        if KeyComp('setMonth') then Result := tkNonReservedKey else
-          if KeyComp('protocol') then Result := tkNonReservedKey else
-            if KeyComp('scrollTo') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func115: TtkTokenKind;
-begin
-  if KeyComp('Password') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func116: TtkTokenKind;
-begin
-  if KeyComp('toSource') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func117: TtkTokenKind;
-begin
-  if KeyComp('lastModified') then Result := tkNonReservedKey else
-    if KeyComp('resizeTo') then Result := tkNonReservedKey else
-      if KeyComp('innerHeight') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func118: TtkTokenKind;
-begin
-  if KeyComp('fontcolor') then Result := tkNonReservedKey else
-    if KeyComp('Arguments') then Result := tkNonReservedKey else
-      if KeyComp('arguments') then Result := tkNonReservedKey else
-        if KeyComp('setUTCDate') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func119: TtkTokenKind;
-begin
-  if KeyComp('scrollbars') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func120: TtkTokenKind;
-begin
-  if KeyComp('transient') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func121: TtkTokenKind;
-begin
-  if KeyComp('personalbar') then Result := tkNonReservedKey else
-    if KeyComp('statusbar') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func122: TtkTokenKind;
-begin
-  if KeyComp('toString') then Result := tkNonReservedKey else
-    if KeyComp('enabledPlugin') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func123: TtkTokenKind;
-begin
-  if KeyComp('setSeconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func124: TtkTokenKind;
-begin
-  if KeyComp('innerWidth') then Result := tkNonReservedKey else
-    if KeyComp('pageXOffset') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func125: TtkTokenKind;
-begin
-  if KeyComp('previous') then Result := tkNonReservedKey else
-    if KeyComp('setHours') then Result := tkNonReservedKey else
-      if KeyComp('mimeTypes') then Result := tkNonReservedKey else
-        if KeyComp('pageYOffset') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func126: TtkTokenKind;
-begin
-  if KeyComp('implements') then Result := tkKey else
-    if KeyComp('onKeyDown') then Result := tkEvent else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func128: TtkTokenKind;
-begin
-  if KeyComp('MIN_VALUE') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func129: TtkTokenKind;
-begin
-  if KeyComp('lastIndexOf') then Result := tkNonReservedKey else
-    if KeyComp('substring') then Result := tkNonReservedKey else
-      if KeyComp('selectedIndex') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func130: TtkTokenKind;
-begin
-  if KeyComp('defaultValue') then Result := tkNonReservedKey else
-    if KeyComp('MAX_VALUE') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func131: TtkTokenKind;
-begin
-  if KeyComp('vlinkColor') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func132: TtkTokenKind;
-begin
-  if KeyComp('description') then Result := tkNonReservedKey else
-    if KeyComp('getFullYear') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func133: TtkTokenKind;
-begin
-  if KeyComp('getMinutes') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func135: TtkTokenKind;
-begin
-  if KeyComp('appVersion') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func136: TtkTokenKind;
-begin
-  if KeyComp('toLowerCase') then Result := tkNonReservedKey else
-    if KeyComp('outerHeight') then Result := tkNonReservedKey else
-      if KeyComp('visibility') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func139: TtkTokenKind;
-begin
-  if KeyComp('toUpperCase') then Result := tkNonReservedKey else
-    if KeyComp('onMouseUp') then Result := tkEvent else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func140: TtkTokenKind;
-begin
-  if KeyComp('clearInterval') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func142: TtkTokenKind;
-begin
-  if KeyComp('defaultSelected') then Result := tkNonReservedKey else
-    if KeyComp('clearTimeout') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func143: TtkTokenKind;
-begin
-  if KeyComp('outerWidth') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func144: TtkTokenKind;
-begin
-  if KeyComp('setFullYear') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func145: TtkTokenKind;
-begin
-  if KeyComp('setMinutes') then Result := tkNonReservedKey else
-    if KeyComp('setInterval') then Result := tkNonReservedKey else
-      if KeyComp('routeEvent') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func146: TtkTokenKind;
-begin
-  if KeyComp('getUTCMonth') then Result := tkNonReservedKey else
-    if KeyComp('getElementById') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func147: TtkTokenKind;
-begin
-  if KeyComp('setTimeout') then Result := tkNonReservedKey else
-    if KeyComp('onKeyPress') then Result := tkEvent else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func150: TtkTokenKind;
-begin
-  if KeyComp('prototype') then Result := tkKey else
-    if KeyComp('releaseEvents') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func155: TtkTokenKind;
-begin
-  if KeyComp('getUTCSeconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func157: TtkTokenKind;
-begin
-  if KeyComp('onMouseMove') then Result := tkEvent else
-    if KeyComp('getUTCHours') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func158: TtkTokenKind;
-begin
-  if KeyComp('onMouseOut') then Result := tkEvent else
-    if KeyComp('onMouseDown') then Result := tkEvent else
-      if KeyComp('setUTCMonth') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func160: TtkTokenKind;
-begin
-  if KeyComp('synchronized') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func162: TtkTokenKind;
-begin
-  if KeyComp('toGMTString') then Result := tkNonReservedKey else
-    if KeyComp('onMouseOver') then Result := tkEvent else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func166: TtkTokenKind;
-begin
-  if KeyComp('constructor') then Result := tkKey else
-    if KeyComp('getMilliseconds') then Result := tkNonReservedKey else
-      if KeyComp('toUTCString') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func167: TtkTokenKind;
-begin
-  if KeyComp('setUTCSeconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func169: TtkTokenKind;
-begin
-  if KeyComp('defaultStatus') then Result := tkNonReservedKey else
-     if KeyComp('captureEvents') then Result := tkNonReservedKey else
-       if KeyComp('setUTCHours') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func170: TtkTokenKind;
-begin
-  if KeyComp('toLocaleString') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func176: TtkTokenKind;
-begin
-  if KeyComp('getUTCFullYear') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func177: TtkTokenKind;
-begin
-  if KeyComp('getUTCMinutes') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func178: TtkTokenKind;
-begin
-  if KeyComp('setMilliseconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func188: TtkTokenKind;
-begin
-  if KeyComp('setUTCFullYear') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func189: TtkTokenKind;
-begin
-  if KeyComp('setUTCMinutes') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func210: TtkTokenKind;
-begin
-  if KeyComp('getTimezoneOffset') then Result := tkNonReservedKey else
-    if KeyComp('getUTCMilliseconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func220: TtkTokenKind;
-begin
-  if KeyComp('NEGATIVE_INFINITY') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func222: TtkTokenKind;
-begin
-  if KeyComp('setUTCMilliseconds') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.Func252: TtkTokenKind;
-begin
-  if KeyComp('POSITIVE_INFINITY') then Result := tkNonReservedKey else Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier;
-end;
-
-function TSynJScriptSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  HashKey: Integer;
+  Key: Cardinal;
 begin
   fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey < 253 then
-    Result := fIdentFuncTable[HashKey]
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
 
-procedure TSynJScriptSyn.MakeMethodTables;
+procedure TSynJScriptSyn.InitIdent;
 var
-  I: Char;
+  i: Integer;
 begin
-  for I := #0 to #255 do
-    case I of
-      '&': fProcTable[I] := AndSymbolProc;
-      #13: fProcTable[I] := CRProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      '-': fProcTable[I] := MinusProc;
-      '%': fProcTable[I] := ModSymbolProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9': fProcTable[I] := NumberProc;
-      '|': fProcTable[I] := OrSymbolProc;
-      '+': fProcTable[I] := PlusProc;
-      '.': fProcTable[I] := PointProc;
-      '/': fProcTable[I] := SlashProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      '*': fProcTable[I] := StarProc;
-      '"', #39: fProcTable[I] := StringProc;
-      '~', '{', '}', ',', '(', ')', '[', ']', '<', '>', ':', '?', ';', '!', '=':
-        fProcTable[I] := SymbolProc;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  fIdentFuncTable[4966] := FuncAbs;
+  fIdentFuncTable[2170] := FuncAbstract;
+  fIdentFuncTable[520] := FuncAcos;
+  fIdentFuncTable[319] := FuncAction;
+  fIdentFuncTable[4368] := FuncAlert;
+  fIdentFuncTable[2070] := FuncAlign;
+  fIdentFuncTable[1500] := FuncAlinkcolor;
+  fIdentFuncTable[2362] := FuncAll;
+  fIdentFuncTable[2706] := FuncAll;
+  fIdentFuncTable[4383] := FuncAnchor;
+  fIdentFuncTable[491] := FuncAnchor;
+  fIdentFuncTable[2516] := FuncAnchors;
+  fIdentFuncTable[2207] := FuncAppcodename;
+  fIdentFuncTable[1993] := FuncApplet;
+  fIdentFuncTable[1805] := FuncApplets;
+  fIdentFuncTable[965] := FuncAppname;
+  fIdentFuncTable[416] := FuncAppversion;
+  fIdentFuncTable[2052] := FuncArea;
+  fIdentFuncTable[618] := FuncArguments;
+  fIdentFuncTable[3950] := FuncArguments;
+  fIdentFuncTable[2987] := FuncArray;
+  fIdentFuncTable[4131] := FuncAsin;
+  fIdentFuncTable[5117] := FuncAtan;
+  fIdentFuncTable[1999] := FuncAtan2;
+  fIdentFuncTable[3356] := FuncBack;
+  fIdentFuncTable[3954] := FuncBackground;
+  fIdentFuncTable[2882] := FuncBgcolor;
+  fIdentFuncTable[1824] := FuncBig;
+  fIdentFuncTable[4067] := FuncBlink;
+  fIdentFuncTable[1709] := FuncBlur;
+  fIdentFuncTable[483] := FuncBody;
+  fIdentFuncTable[243] := FuncBold;
+  fIdentFuncTable[4200] := FuncBoolean;
+  fIdentFuncTable[3265] := FuncBoolean2;
+  fIdentFuncTable[563] := FuncBorder;
+  fIdentFuncTable[2857] := FuncBottom;
+  fIdentFuncTable[2410] := FuncBreak;
+  fIdentFuncTable[223] := FuncButton;
+  fIdentFuncTable[575] := FuncByte;
+  fIdentFuncTable[3204] := FuncCall;
+  fIdentFuncTable[1125] := FuncCallee;
+  fIdentFuncTable[3049] := FuncCaller;
+  fIdentFuncTable[3037] := FuncCaptureevents;
+  fIdentFuncTable[2101] := FuncCase;
+  fIdentFuncTable[2105] := FuncCatch;
+  fIdentFuncTable[4662] := FuncCeil;
+  fIdentFuncTable[3938] := FuncChar;
+  fIdentFuncTable[3046] := FuncCharat;
+  fIdentFuncTable[3724] := FuncCharcodeat;
+  fIdentFuncTable[4522] := FuncCheckbox;
+  fIdentFuncTable[2127] := FuncChecked;
+  fIdentFuncTable[1908] := FuncClass;
+  fIdentFuncTable[417] := FuncClear;
+  fIdentFuncTable[4574] := FuncClearinterval;
+  fIdentFuncTable[2626] := FuncCleartimeout;
+  fIdentFuncTable[55] := FuncClick;
+  fIdentFuncTable[3783] := FuncClose;
+  fIdentFuncTable[3615] := FuncClosed;
+  fIdentFuncTable[1688] := FuncColor;
+  fIdentFuncTable[2712] := FuncComplete;
+  fIdentFuncTable[2889] := FuncConcat;
+  fIdentFuncTable[3503] := FuncConfirm;
+  fIdentFuncTable[820] := FuncConst;
+  fIdentFuncTable[3079] := FuncConstructor;
+  fIdentFuncTable[3092] := FuncContinue;
+  fIdentFuncTable[4022] := FuncCookie;
+  fIdentFuncTable[4452] := FuncCos;
+  fIdentFuncTable[1188] := FuncCurrent;
+  fIdentFuncTable[1955] := FuncDate;
+  fIdentFuncTable[1095] := FuncDebugger;
+  fIdentFuncTable[1389] := FuncDefault;
+  fIdentFuncTable[2881] := FuncDefaultchecked;
+  fIdentFuncTable[2879] := FuncDefaultselected;
+  fIdentFuncTable[3607] := FuncDefaultstatus;
+  fIdentFuncTable[1234] := FuncDefaultvalue;
+  fIdentFuncTable[214] := FuncDelete;
+  fIdentFuncTable[1929] := FuncDescription;
+  fIdentFuncTable[1046] := FuncDisplay;
+  fIdentFuncTable[748] := FuncDo;
+  fIdentFuncTable[5075] := FuncDocument;
+  fIdentFuncTable[4671] := FuncDomain;
+  fIdentFuncTable[4176] := FuncDouble;
+  fIdentFuncTable[5059] := FuncE;
+  fIdentFuncTable[581] := FuncElements;
+  fIdentFuncTable[4413] := FuncElse;
+  fIdentFuncTable[2919] := FuncEmbed;
+  fIdentFuncTable[2346] := FuncEmbeds;
+  fIdentFuncTable[3190] := FuncEnabledplugin;
+  fIdentFuncTable[4627] := FuncEncoding;
+  fIdentFuncTable[3716] := FuncEnum;
+  fIdentFuncTable[1147] := FuncEscape;
+  fIdentFuncTable[1465] := FuncEval;
+  fIdentFuncTable[3807] := FuncEvent;
+  fIdentFuncTable[2060] := FuncExp;
+  fIdentFuncTable[1298] := FuncExport;
+  fIdentFuncTable[1114] := FuncExtends;
+  fIdentFuncTable[1069] := FuncFalse;
+  fIdentFuncTable[4097] := FuncFgcolor;
+  fIdentFuncTable[2508] := FuncFilename;
+  fIdentFuncTable[271] := FuncFileupload;
+  fIdentFuncTable[3365] := FuncFinal;
+  fIdentFuncTable[587] := FuncFinally;
+  fIdentFuncTable[2843] := FuncFind;
+  fIdentFuncTable[931] := FuncFixed;
+  fIdentFuncTable[1921] := FuncFloat;
+  fIdentFuncTable[730] := FuncFloat2;
+  fIdentFuncTable[1491] := FuncFloor;
+  fIdentFuncTable[4111] := FuncFocus;
+  fIdentFuncTable[4774] := FuncFontcolor;
+  fIdentFuncTable[4932] := FuncFontsize;
+  fIdentFuncTable[407] := FuncFor;
+  fIdentFuncTable[2968] := FuncForm;
+  fIdentFuncTable[4469] := FuncForm;
+  fIdentFuncTable[2370] := FuncForms;
+  fIdentFuncTable[1279] := FuncForward;
+  fIdentFuncTable[4402] := FuncFrame;
+  fIdentFuncTable[2522] := FuncFrames;
+  fIdentFuncTable[3737] := FuncFromcharcode;
+  fIdentFuncTable[2666] := FuncFunction;
+  fIdentFuncTable[1982] := FuncFunction2;
+  fIdentFuncTable[1111] := FuncGetdate;
+  fIdentFuncTable[1176] := FuncGetday;
+  fIdentFuncTable[553] := FuncGetelementbyid;
+  fIdentFuncTable[966] := FuncGetfullyear;
+  fIdentFuncTable[2918] := FuncGethours;
+  fIdentFuncTable[1735] := FuncGetmilliseconds;
+  fIdentFuncTable[3823] := FuncGetminutes;
+  fIdentFuncTable[4549] := FuncGetmonth;
+  fIdentFuncTable[978] := FuncGetseconds;
+  fIdentFuncTable[1102] := FuncGettime;
+  fIdentFuncTable[4707] := FuncGettimezoneoffset;
+  fIdentFuncTable[4493] := FuncGetutcdate;
+  fIdentFuncTable[3536] := FuncGetutcday;
+  fIdentFuncTable[5080] := FuncGetutcfullyear;
+  fIdentFuncTable[671] := FuncGetutchours;
+  fIdentFuncTable[1795] := FuncGetutcmilliseconds;
+  fIdentFuncTable[974] := FuncGetutcminutes;
+  fIdentFuncTable[2302] := FuncGetutcmonth;
+  fIdentFuncTable[3282] := FuncGetutcseconds;
+  fIdentFuncTable[2212] := FuncGetyear;
+  fIdentFuncTable[2940] := FuncGlobal;
+  fIdentFuncTable[4400] := FuncGo;
+  fIdentFuncTable[4552] := FuncGoto;
+  fIdentFuncTable[269] := FuncHandleevent;
+  fIdentFuncTable[2358] := FuncHash;
+  fIdentFuncTable[380] := FuncHeight;
+  fIdentFuncTable[911] := FuncHidden;
+  fIdentFuncTable[2645] := FuncHistory;
+  fIdentFuncTable[1710] := FuncHistory;
+  fIdentFuncTable[3710] := FuncHome;
+  fIdentFuncTable[2928] := FuncHost;
+  fIdentFuncTable[3996] := FuncHostname;
+  fIdentFuncTable[2246] := FuncHref;
+  fIdentFuncTable[991] := FuncHspace;
+  fIdentFuncTable[3785] := FuncIf;
+  fIdentFuncTable[1177] := FuncImage;
+  fIdentFuncTable[1997] := FuncImages;
+  fIdentFuncTable[706] := FuncImplements;
+  fIdentFuncTable[3582] := FuncImport;
+  fIdentFuncTable[4969] := FuncIn;
+  fIdentFuncTable[1137] := FuncIndex;
+  fIdentFuncTable[656] := FuncIndexof;
+  fIdentFuncTable[4918] := FuncInfinity;
+  fIdentFuncTable[5096] := FuncInnerheight;
+  fIdentFuncTable[5008] := FuncInnerwidth;
+  fIdentFuncTable[999] := FuncInput;
+  fIdentFuncTable[3585] := FuncInstanceof;
+  fIdentFuncTable[545] := FuncInt;
+  fIdentFuncTable[124] := FuncInterface;
+  fIdentFuncTable[2465] := FuncIsfinite;
+  fIdentFuncTable[1266] := FuncIsnan;
+  fIdentFuncTable[1711] := FuncItalics;
+  fIdentFuncTable[963] := FuncJava;
+  fIdentFuncTable[4225] := FuncJavaenabled;
+  fIdentFuncTable[3229] := FuncJoin;
+  fIdentFuncTable[2913] := FuncLastindexof;
+  fIdentFuncTable[2778] := FuncLastmodified;
+  fIdentFuncTable[3139] := FuncLayer;
+  fIdentFuncTable[2021] := FuncLayers;
+  fIdentFuncTable[2770] := FuncLeft;
+  fIdentFuncTable[1083] := FuncLength;
+  fIdentFuncTable[4263] := FuncLink;
+  fIdentFuncTable[611] := FuncLink;
+  fIdentFuncTable[2947] := FuncLinkcolor;
+  fIdentFuncTable[3943] := FuncLinks;
+  fIdentFuncTable[986] := FuncLn10;
+  fIdentFuncTable[5149] := FuncLn2;
+  fIdentFuncTable[4694] := FuncLocation;
+  fIdentFuncTable[2489] := FuncLocation;
+  fIdentFuncTable[3213] := FuncLocationbar;
+  fIdentFuncTable[2812] := FuncLog;
+  fIdentFuncTable[3420] := FuncLog10e;
+  fIdentFuncTable[3346] := FuncLog2e;
+  fIdentFuncTable[3808] := FuncLogon;
+  fIdentFuncTable[1030] := FuncLong;
+  fIdentFuncTable[2430] := FuncLowsrc;
+  fIdentFuncTable[830] := FuncMatch;
+  fIdentFuncTable[1454] := FuncMath;
+  fIdentFuncTable[4163] := FuncMax;
+  fIdentFuncTable[962] := FuncMax_value;
+  fIdentFuncTable[165] := FuncMenubar;
+  fIdentFuncTable[1767] := FuncMethod;
+  fIdentFuncTable[2068] := FuncMimetype;
+  fIdentFuncTable[568] := FuncMimetypes;
+  fIdentFuncTable[398] := FuncMin;
+  fIdentFuncTable[1580] := FuncMin_value;
+  fIdentFuncTable[3868] := FuncMoveby;
+  fIdentFuncTable[3688] := FuncMoveto;
+  fIdentFuncTable[147] := FuncName;
+  fIdentFuncTable[624] := FuncNan;
+  fIdentFuncTable[709] := FuncNative;
+  fIdentFuncTable[3619] := FuncNavigator;
+  fIdentFuncTable[1798] := FuncNavigator;
+  fIdentFuncTable[2749] := FuncNegative_infinity;
+  fIdentFuncTable[2232] := FuncNetscape;
+  fIdentFuncTable[4150] := FuncNew;
+  fIdentFuncTable[3691] := FuncNext;
+  fIdentFuncTable[3186] := FuncNull;
+  fIdentFuncTable[4687] := FuncNull2;
+  fIdentFuncTable[811] := FuncNumber;
+  fIdentFuncTable[655] := FuncObject;
+  fIdentFuncTable[4718] := FuncOnabort;
+  fIdentFuncTable[3216] := FuncOnblur;
+  fIdentFuncTable[4506] := FuncOnchange;
+  fIdentFuncTable[4236] := FuncOnclick;
+  fIdentFuncTable[1962] := FuncOndblclick;
+  fIdentFuncTable[3283] := FuncOnerror;
+  fIdentFuncTable[1618] := FuncOnfocus;
+  fIdentFuncTable[2711] := FuncOnkeydown;
+  fIdentFuncTable[698] := FuncOnkeypress;
+  fIdentFuncTable[2845] := FuncOnkeyup;
+  fIdentFuncTable[9] := FuncOnload;
+  fIdentFuncTable[1175] := FuncOnmousedown;
+  fIdentFuncTable[1116] := FuncOnmousemove;
+  fIdentFuncTable[720] := FuncOnmouseout;
+  fIdentFuncTable[356] := FuncOnmouseover;
+  fIdentFuncTable[2930] := FuncOnmouseup;
+  fIdentFuncTable[1494] := FuncOnreset;
+  fIdentFuncTable[1591] := FuncOnselect;
+  fIdentFuncTable[233] := FuncOnsubmit;
+  fIdentFuncTable[1527] := FuncOnunload;
+  fIdentFuncTable[309] := FuncOpen;
+  fIdentFuncTable[3742] := FuncOpener;
+  fIdentFuncTable[3624] := FuncOption;
+  fIdentFuncTable[3038] := FuncOptions;
+  fIdentFuncTable[3129] := FuncOuterheight;
+  fIdentFuncTable[617] := FuncOuterwidth;
+  fIdentFuncTable[1183] := FuncPackage;
+  fIdentFuncTable[4634] := FuncPackages;
+  fIdentFuncTable[4499] := FuncPagex;
+  fIdentFuncTable[1543] := FuncPagexoffset;
+  fIdentFuncTable[4647] := FuncPagey;
+  fIdentFuncTable[4043] := FuncPageyoffset;
+  fIdentFuncTable[4818] := FuncParent;
+  fIdentFuncTable[2306] := FuncParse;
+  fIdentFuncTable[2092] := FuncParsefloat;
+  fIdentFuncTable[2800] := FuncParseint;
+  fIdentFuncTable[756] := FuncPassword;
+  fIdentFuncTable[1065] := FuncPathname;
+  fIdentFuncTable[433] := FuncPersonalbar;
+  fIdentFuncTable[3413] := FuncPi;
+  fIdentFuncTable[4421] := FuncPlatform;
+  fIdentFuncTable[4802] := FuncPlugin;
+  fIdentFuncTable[3917] := FuncPlugins;
+  fIdentFuncTable[3630] := FuncPort;
+  fIdentFuncTable[4426] := FuncPositive_infinity;
+  fIdentFuncTable[5137] := FuncPow;
+  fIdentFuncTable[4810] := FuncPrevious;
+  fIdentFuncTable[602] := FuncPrint;
+  fIdentFuncTable[958] := FuncPrivate;
+  fIdentFuncTable[3968] := FuncPrompt;
+  fIdentFuncTable[1326] := FuncProtected;
+  fIdentFuncTable[1815] := FuncProtocol;
+  fIdentFuncTable[4437] := FuncPrototype;
+  fIdentFuncTable[3260] := FuncPublic;
+  fIdentFuncTable[1600] := FuncRadio;
+  fIdentFuncTable[2803] := FuncRandom;
+  fIdentFuncTable[2045] := FuncReferrer;
+  fIdentFuncTable[2270] := FuncRefresh;
+  fIdentFuncTable[4495] := FuncRegexp;
+  fIdentFuncTable[2008] := FuncReleaseevents;
+  fIdentFuncTable[4401] := FuncReload;
+  fIdentFuncTable[1148] := FuncReplace;
+  fIdentFuncTable[3987] := FuncReset;
+  fIdentFuncTable[2796] := FuncReset;
+  fIdentFuncTable[4116] := FuncResizeby;
+  fIdentFuncTable[3936] := FuncResizeto;
+  fIdentFuncTable[1610] := FuncReturn;
+  fIdentFuncTable[3457] := FuncReverse;
+  fIdentFuncTable[1857] := FuncRight;
+  fIdentFuncTable[4450] := FuncRound;
+  fIdentFuncTable[5041] := FuncRouteevent;
+  fIdentFuncTable[100] := FuncScreen;
+  fIdentFuncTable[3727] := FuncScroll;
+  fIdentFuncTable[3112] := FuncScrollbars;
+  fIdentFuncTable[195] := FuncScrollby;
+  fIdentFuncTable[15] := FuncScrollto;
+  fIdentFuncTable[4544] := FuncSearch;
+  fIdentFuncTable[1271] := FuncSelect;
+  fIdentFuncTable[2532] := FuncSelect;
+  fIdentFuncTable[2708] := FuncSelected;
+  fIdentFuncTable[5089] := FuncSelectedindex;
+  fIdentFuncTable[2283] := FuncSelf;
+  fIdentFuncTable[4756] := FuncSetdate;
+  fIdentFuncTable[517] := FuncSetfullyear;
+  fIdentFuncTable[4389] := FuncSethours;
+  fIdentFuncTable[2365] := FuncSetinterval;
+  fIdentFuncTable[1057] := FuncSetmilliseconds;
+  fIdentFuncTable[2377] := FuncSetminutes;
+  fIdentFuncTable[867] := FuncSetmonth;
+  fIdentFuncTable[4685] := FuncSetseconds;
+  fIdentFuncTable[4747] := FuncSettime;
+  fIdentFuncTable[1862] := FuncSettimeout;
+  fIdentFuncTable[3047] := FuncSetutcdate;
+  fIdentFuncTable[5010] := FuncSetutcfullyear;
+  fIdentFuncTable[222] := FuncSetutchours;
+  fIdentFuncTable[2284] := FuncSetutcmilliseconds;
+  fIdentFuncTable[5073] := FuncSetutcminutes;
+  fIdentFuncTable[3374] := FuncSetutcmonth;
+  fIdentFuncTable[707] := FuncSetutcseconds;
+  fIdentFuncTable[2225] := FuncSetyear;
+  fIdentFuncTable[3661] := FuncShort;
+  fIdentFuncTable[2910] := FuncSin;
+  fIdentFuncTable[523] := FuncSlice;
+  fIdentFuncTable[1345] := FuncSmall;
+  fIdentFuncTable[3822] := FuncSort;
+  fIdentFuncTable[239] := FuncSplit;
+  fIdentFuncTable[1224] := FuncSqrt;
+  fIdentFuncTable[4716] := FuncSqrt1_2;
+  fIdentFuncTable[3194] := FuncSqrt2;
+  fIdentFuncTable[1932] := FuncSrc;
+  fIdentFuncTable[482] := FuncStart;
+  fIdentFuncTable[684] := FuncStatic;
+  fIdentFuncTable[2201] := FuncStatus;
+  fIdentFuncTable[1836] := FuncStatusbar;
+  fIdentFuncTable[3389] := FuncStop;
+  fIdentFuncTable[4740] := FuncStrike;
+  fIdentFuncTable[4796] := FuncString;
+  fIdentFuncTable[1006] := FuncStyle;
+  fIdentFuncTable[283] := FuncSub;
+  fIdentFuncTable[5066] := FuncSubmit;
+  fIdentFuncTable[1174] := FuncSubmit;
+  fIdentFuncTable[3496] := FuncSubstr;
+  fIdentFuncTable[2071] := FuncSubstring;
+  fIdentFuncTable[4785] := FuncSuffixes;
+  fIdentFuncTable[2355] := FuncSup;
+  fIdentFuncTable[4953] := FuncSuper;
+  fIdentFuncTable[3170] := FuncSwitch;
+  fIdentFuncTable[4968] := FuncSynchronized;
+  fIdentFuncTable[4084] := FuncTags;
+  fIdentFuncTable[2789] := FuncTaint;
+  fIdentFuncTable[215] := FuncTaintenabled;
+  fIdentFuncTable[3896] := FuncTan;
+  fIdentFuncTable[5087] := FuncTarget;
+  fIdentFuncTable[4075] := FuncText;
+  fIdentFuncTable[4055] := FuncText;
+  fIdentFuncTable[2681] := FuncTextarea;
+  fIdentFuncTable[2382] := FuncThis;
+  fIdentFuncTable[4217] := FuncThrow;
+  fIdentFuncTable[2507] := FuncThrows;
+  fIdentFuncTable[1027] := FuncTitle;
+  fIdentFuncTable[2422] := FuncTogmtstring;
+  fIdentFuncTable[4448] := FuncTolocalestring;
+  fIdentFuncTable[857] := FuncTolowercase;
+  fIdentFuncTable[4611] := FuncToolbar;
+  fIdentFuncTable[4058] := FuncTop;
+  fIdentFuncTable[983] := FuncTosource;
+  fIdentFuncTable[3962] := FuncTostring;
+  fIdentFuncTable[4977] := FuncTouppercase;
+  fIdentFuncTable[2536] := FuncToutcstring;
+  fIdentFuncTable[4990] := FuncTransient;
+  fIdentFuncTable[1928] := FuncTrue;
+  fIdentFuncTable[3889] := FuncTry;
+  fIdentFuncTable[3925] := FuncType;
+  fIdentFuncTable[3121] := FuncTypeof;
+  fIdentFuncTable[4305] := FuncUndefined;
+  fIdentFuncTable[2484] := FuncUndefined;
+  fIdentFuncTable[3518] := FuncUnescape;
+  fIdentFuncTable[4070] := FuncUntaint;
+  fIdentFuncTable[836] := FuncUnwatch;
+  fIdentFuncTable[3893] := FuncUrl;
+  fIdentFuncTable[747] := FuncUseragent;
+  fIdentFuncTable[3278] := FuncUtc;
+  fIdentFuncTable[1621] := FuncValue;
+  fIdentFuncTable[5048] := FuncValueof;
+  fIdentFuncTable[1890] := FuncVar;
+  fIdentFuncTable[910] := FuncVisibility;
+  fIdentFuncTable[2454] := FuncVlinkcolor;
+  fIdentFuncTable[996] := FuncVoid;
+  fIdentFuncTable[418] := FuncVspace;
+  fIdentFuncTable[4708] := FuncWatch;
+  fIdentFuncTable[3178] := FuncWhile;
+  fIdentFuncTable[1729] := FuncWidth;
+  fIdentFuncTable[2916] := FuncWindow;
+  fIdentFuncTable[4177] := FuncWindow;
+  fIdentFuncTable[4646] := FuncWith;
+  fIdentFuncTable[519] := FuncWrite;
+  fIdentFuncTable[4841] := FuncWriteln;
+  fIdentFuncTable[4030] := FuncZindex;
+end;
+
+function TSynJScriptSyn.AltFunc(Index: Integer): TtkTokenKind;
+begin
+  Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAbs(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAbstract(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAcos(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAction(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAlert(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAlign(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAlinkcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAll(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAnchor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAnchors(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAppcodename(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncApplet(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncApplets(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAppname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAppversion(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncArea(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncArguments(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncArray(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAsin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAtan(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncAtan2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBack(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBackground(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBgcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBig(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBlink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBlur(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBody(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBold(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBoolean(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBoolean2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+
+function TSynJScriptSyn.FuncBorder(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBottom(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncBreak(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncButton(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncByte(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCall(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCallee(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCaller(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCaptureevents(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCase(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCatch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCeil(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncChar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCharat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCharcodeat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCheckbox(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncChecked(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncClass(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncClear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncClearinterval(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCleartimeout(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncClick(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncClose(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncClosed(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncColor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncComplete(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncConcat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncConfirm(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncConst(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncConstructor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncContinue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCookie(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCos(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncCurrent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDebugger(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDefault(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDefaultchecked(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDefaultselected(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDefaultstatus(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDefaultvalue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDelete(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDescription(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDisplay(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDocument(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDomain(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncDouble(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncE(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncElements(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncElse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEmbed(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEmbeds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEnabledplugin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEncoding(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEnum(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEscape(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEval(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncEvent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncExp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncExport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncExtends(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFalse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFgcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFilename(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFileupload(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFinal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFinally(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFind(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFixed(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFloat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFloat2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFloor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFocus(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFontcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFontsize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncForm(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncForms(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncForward(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFrame(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFrames(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFromcharcode(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFunction(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncFunction2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetdate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetday(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetelementbyid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetfullyear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGethours(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetmilliseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetminutes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetmonth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGettime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGettimezoneoffset(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcdate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcday(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcfullyear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutchours(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcmilliseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcminutes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcmonth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetutcseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGetyear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGlobal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGo(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncGoto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHandleevent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHash(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHeight(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHidden(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHistory(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHome(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHost(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHostname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHref(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncHspace(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncIf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncImage(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncImages(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncImplements(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncImport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncIn(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncIndex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncIndexof(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInfinity(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInnerheight(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInnerwidth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInput(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInstanceof(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncInterface(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncIsfinite(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncIsnan(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncItalics(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncJava(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncJavaenabled(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncJoin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLastindexof(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLastmodified(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLayer(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLayers(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLeft(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLength(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLinkcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLinks(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLn10(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLn2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLocation(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLocationbar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLog(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLog10e(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLog2e(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLogon(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLong(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncLowsrc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMatch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMath(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMax(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMax_value(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMenubar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMethod(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMimetype(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMimetypes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMin_value(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMoveby(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncMoveto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncName(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNan(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNative(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNavigator(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNegative_infinity(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNetscape(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNew(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNext(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNull(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNull2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncNumber(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncObject(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnabort(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnblur(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnchange(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnclick(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOndblclick(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnerror(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnfocus(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnkeydown(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnkeypress(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnkeyup(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnload(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnmousedown(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnmousemove(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnmouseout(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnmouseover(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnmouseup(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnreset(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnselect(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnsubmit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOnunload(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkEvent
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOpen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOpener(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOption(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOptions(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOuterheight(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncOuterwidth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPackage(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPackages(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPagex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPagexoffset(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPagey(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPageyoffset(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncParent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncParse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncParsefloat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncParseint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPassword(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPathname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPersonalbar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPi(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPlatform(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPlugin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPlugins(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPort(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPositive_infinity(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPow(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPrevious(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPrint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPrivate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPrompt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncProtected(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncProtocol(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPrototype(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncPublic(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRadio(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRandom(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReferrer(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRefresh(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRegexp(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReleaseevents(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReload(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReplace(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReset(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncResizeby(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncResizeto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReturn(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncReverse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRight(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRound(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncRouteevent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncScreen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncScroll(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncScrollbars(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncScrollby(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncScrollto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSearch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSelect(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSelected(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSelectedindex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSelf(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetdate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetfullyear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSethours(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetinterval(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetmilliseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetminutes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetmonth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSettime(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSettimeout(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutcdate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutcfullyear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutchours(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutcmilliseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutcminutes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutcmonth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetutcseconds(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSetyear(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncShort(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSlice(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSmall(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSort(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSplit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSqrt(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSqrt1_2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSqrt2(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSrc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStart(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStatic(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStatus(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStatusbar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStop(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStrike(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncString(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncStyle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSub(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSubmit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSubstr(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSubstring(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSuffixes(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSup(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSuper(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSwitch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncSynchronized(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTags(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTaint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTaintenabled(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTan(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTarget(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncText(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTextarea(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncThis(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncThrow(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncThrows(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTitle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTogmtstring(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTolocalestring(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTolowercase(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncToolbar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTop(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTosource(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTostring(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTouppercase(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncToutcstring(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTransient(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTrue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTry(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncType(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncTypeof(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUndefined(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUnescape(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUntaint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUnwatch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUrl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUseragent(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncUtc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncValue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncValueof(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncVar(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncVisibility(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncVlinkcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncVoid(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncVspace(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWatch(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWhile(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWidth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWindow(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWith(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWrite(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncWriteln(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynJScriptSyn.FuncZindex(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkNonReservedKey
+  else
+    Result := tkIdentifier;
 end;
 
 constructor TSynJScriptSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := True;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
-  fNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword);
+  fNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
   AddAttribute(fNonReservedKeyAttri);
-  fEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent);
+  fEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
   AddAttribute(fEventAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterJScript;
   fRange := rsUnknown;
-end;
-
-procedure TSynJScriptSyn.SetLine(NewValue: String; LineNumber: Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
 end;
 
 procedure TSynJScriptSyn.AndSymbolProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in ['=', '&'] then inc(Run);
+  if fLine[Run] in [WideChar('='), WideChar('&')] then inc(Run);
 end;
 
 procedure TSynJScriptSyn.CommentProc;
 begin
   if fLine[Run] = #0 then
-    fTokenID := tkNull
-  else begin
+    NullProc
+  else
+  begin
     fTokenID := tkComment;
     repeat
-      if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then begin
+      if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then
+      begin
         fRange := rsUnKnown;
         inc(Run, 2);
         break;
       end;
       inc(Run);
-    until fLine[Run] in [#0, #10, #13];
+    until IsLineEnd(Run);
   end;
 end;
 
@@ -1574,7 +4476,7 @@ procedure TSynJScriptSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynJScriptSyn.LFProc;
@@ -1587,7 +4489,7 @@ procedure TSynJScriptSyn.MinusProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in ['=', '-', '>'] then inc(Run);
+  if fLine[Run] in [WideChar('='), WideChar('-'), WideChar('>')] then inc(Run);
 end;
 
 procedure TSynJScriptSyn.ModSymbolProc;
@@ -1600,9 +4502,31 @@ end;
 procedure TSynJScriptSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynJScriptSyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', '.', 'a'..'f', 'A'..'F', 'x', 'X':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
+  function IsHexChar(Run: Integer): Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', 'a'..'f', 'A'..'F':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 var
   idx1: Integer; // token[1]
   isHex: Boolean;
@@ -1611,7 +4535,7 @@ begin
   isHex := False;
   idx1 := Run;
   Inc(Run);
-  while FLine[Run] in ['0'..'9', '.', 'a'..'f', 'A'..'F', 'x', 'X'] do
+  while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
@@ -1624,7 +4548,7 @@ begin
         begin
           if (FLine[idx1] <> '0') or (Run > Succ(idx1)) then
             Break;
-          if not (FLine[Succ(Run)] in ['0'..'9', 'a'..'f', 'A'..'F']) then
+          if not IsHexChar(Succ(Run)) then
             Break;
           isHex := True;
         end;
@@ -1637,14 +4561,14 @@ procedure TSynJScriptSyn.OrSymbolProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in ['=', '|'] then inc(Run);
+  if fLine[Run] in [WideChar('='), WideChar('|')] then inc(Run);
 end;
 
 procedure TSynJScriptSyn.PlusProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in ['=', '+'] then inc(Run);
+  if fLine[Run] in [WideChar('='), WideChar('+')] then inc(Run);
 end;
 
 procedure TSynJScriptSyn.PointProc;
@@ -1662,7 +4586,7 @@ begin
            fTokenID := tkComment;
            repeat
              Inc(Run);
-           until fLine[Run] in [#0, #10, #13];
+           until IsLineEnd(Run);
          end;
     '*': begin
            fTokenID := tkComment;
@@ -1674,7 +4598,7 @@ begin
                Inc(Run, 2);
                break;
              end;
-           until fLine[Run] in [#0, #10, #13];
+           until IsLineEnd(Run);
          end;
     '=': begin
            Inc(Run);
@@ -1689,7 +4613,7 @@ procedure TSynJScriptSyn.SpaceProc;
 begin
   inc(Run);
   fTokenID := tkSpace;
-  while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynJScriptSyn.StarProc;
@@ -1701,18 +4625,16 @@ end;
 
 procedure TSynJScriptSyn.StringProc;
 var
-  l_strChar : String;
+  l_strChar: WideString;
 begin
   fTokenID := tkString;
   l_strChar := FLine[Run];   // We could have '"' or #39
   if (FLine[Run + 1] = l_strChar) and (FLine[Run + 2] = l_strChar) then inc(Run, 2);
   repeat
-    case FLine[Run] of
-      #0, #10, #13: break;
-    end;
+    if IsLineEnd(Run) then break;
     inc(Run);
   until (FLine[Run] = l_strChar) and (FLine[Pred(Run)] <> '\');
-  if FLine[Run] <> #0 then
+  if not IsLineEnd(Run) then
     Inc(Run);
 end;
 
@@ -1724,11 +4646,6 @@ end;
 
 procedure TSynJScriptSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -1739,7 +4656,27 @@ begin
   if fRange = rsANSI then
     CommentProc
   else
-    fProcTable[fLine[Run]];
+    case fLine[Run] of
+      '&': AndSymbolProc;
+      #13: CRProc;
+      'A'..'Z', 'a'..'z', '_': IdentProc;
+      #10: LFProc;
+      '-': MinusProc;
+      '%': ModSymbolProc;
+      #0: NullProc;
+      '0'..'9': NumberProc;
+      '|': OrSymbolProc;
+      '+': PlusProc;
+      '.': PointProc;
+      '/': SlashProc;
+      #1..#9, #11, #12, #14..#32: SpaceProc;
+      '*': StarProc;
+      '"', #39: StringProc;
+      '~', '{', '}', ',', '(', ')', '[', ']', '<', '>', ':', '?', ';', '!', '=':
+        SymbolProc;
+      else UnknownProc;
+    end;
+  inherited;
 end;
 
 function TSynJScriptSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -1758,20 +4695,12 @@ end;
 
 function TSynJScriptSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynJScriptSyn.GetRange: Pointer;
 begin
   Result := Pointer(fRange);
-end;
-
-function TSynJScriptSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynJScriptSyn.GetTokenID: TtkTokenKind;
@@ -1801,11 +4730,6 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynJScriptSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
 procedure TSynJScriptSyn.ResetRange;
 begin
   fRange := rsUnknown;
@@ -1814,11 +4738,6 @@ end;
 procedure TSynJScriptSyn.SetRange(Value: Pointer);
 begin
   fRange := TRangeState(Value);
-end;
-
-function TSynJScriptSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
 end;
 
 function TSynJScriptSyn.IsFilterStored: Boolean;
@@ -1831,7 +4750,7 @@ begin
   Result := SYNS_LangJScript;
 end;
 
-function TSynJScriptSyn.GetSampleSource: String;
+function TSynJScriptSyn.GetSampleSource: WideString;
 begin
   Result := '// Syntax highlighting'#13#10+
             'function printNumber()'#13#10+
@@ -1850,8 +4769,12 @@ begin
             'body.onLoad = printNumber;';
 end;
 
+class function TSynJScriptSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangJScript;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynJScriptSyn);
 {$ENDIF}

@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmdsEditor.pas,v 1.11 2004/11/25 14:06:27 maelh Exp $
+$Id: SynEditKeyCmdsEditor.pas,v 1.10.2.2 2004/12/10 15:31:05 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -102,7 +102,6 @@ type
     FExtended: Boolean;
     procedure SetKeystrokes(const Value: TSynEditKeyStrokes);
     procedure UpdateKeystrokesList;
-    {**************}
     {$IFNDEF SYN_CLX}
     procedure WMGetMinMaxInfo(var Msg: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
@@ -133,7 +132,7 @@ uses
 constructor TSynEditKeystrokesEditorForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FKeystrokes := NIL;
+  FKeystrokes := nil;
 end;
 
 destructor TSynEditKeystrokesEditorForm.Destroy;
@@ -145,7 +144,7 @@ end;
 procedure TSynEditKeystrokesEditorForm.SetKeystrokes(const Value:
   TSynEditKeyStrokes);
 begin
-  if FKeystrokes = NIL then
+  if FKeystrokes = nil then
     FKeystrokes := TSynEditKeyStrokes.Create(Self);
   FKeystrokes.Assign(Value);
   UpdateKeystrokesList;
@@ -211,7 +210,6 @@ begin
   lnlInfo2.Top := pnlCommands.Top + pnlCommands.Height + 27;
 end;
 
-{***************}
 {$IFNDEF SYN_CLX}
 procedure TSynEditKeystrokesEditorForm.WMGetMinMaxInfo(var Msg: TWMGetMinMaxInfo);
 begin
@@ -225,9 +223,10 @@ var
   NewStroke: TSynEditKeyStroke;
   AForm : TSynEditKeystrokeEditorForm;
 
-  Function AddKeyStroke: Boolean;
-  VAR KeyLoc : Integer;
-      TmpCommand: String;
+  function AddKeyStroke: Boolean;
+  var
+    KeyLoc: Integer;
+    TmpCommand: string;
   begin
     Result := False;
     KeyLoc := 0;
@@ -314,11 +313,12 @@ var
   SelItem: TListItem;
   OldShortcut: TShortcut;
   OldShortcut2: TShortcut;
-  AForm : TSynEditKeystrokeEditorForm;
+  AForm: TSynEditKeystrokeEditorForm;
 
   function EditKeyStroke: Boolean;
-  VAR KeyLoc : Integer;
-      TmpCommand: String;
+  var
+    KeyLoc: Integer;
+    TmpCommand: string;
   begin
     Result := False;
     KeyLoc := 0;
@@ -442,7 +442,7 @@ var
   SelItem: TListItem;
 begin
   SelItem := KeyCmdList.Selected;
-  if SelItem = NIL then
+  if SelItem = nil then
   begin
     {$IFDEF SYN_CLX}
     QControls.Beep;

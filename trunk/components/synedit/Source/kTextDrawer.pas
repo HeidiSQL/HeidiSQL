@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: kTextDrawer.pas,v 1.10 2004/05/02 15:50:11 maelh Exp $
+$Id: kTextDrawer.pas,v 1.10.2.2 2004/11/02 19:26:11 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -61,50 +61,47 @@ const
   SM_CXDRAG = 1;
   SM_CYDRAG = 2;
 
-// Clipboard formats
-  CF_TEXT = 'text/plain';
-
 type
   UINT = DWORD;
 
   // this is to get around some weirdness with the Kylix font code
   // where the style given by the font object isn't correct
   TFontHolder = class
-    style : TFontStyles;
-    font  : TFont;
+    style: TFontStyles;
+    font: TFont;
 
-    constructor Create(aFont : TFont; aStyle : TFontStyles);
+    constructor Create(aFont: TFont; aStyle: TFontStyles);
   end;
 
   TheTextDrawer = class(TObject)
   private
     // Font information
-    fBaseFont : TFont;
+    fBaseFont: TFont;
 
     // current font and properties
-    fCurrentStyle : TFontStyles;
-    fCurrentFont  : TFont;
-    fCurrentColor : TColor;
+    fCurrentStyle: TFontStyles;
+    fCurrentFont: TFont;
+    fCurrentColor: TColor;
 
     // current font attributes
     FBkColor: TColor;
-    fCharWidth : integer;
-    fCharHeight : integer;
-    fakeBold : boolean;  // true if the font can't be bold
+    fCharWidth: integer;
+    fCharHeight: integer;
+    fakeBold: boolean;  // true if the font can't be bold
 
     // Begin/EndDrawing calling count
     FDrawingCount: Integer;
     fCanvas: TCanvas;
 
-    fFontList : TList;
-    function getFont(index: integer): TFont;
-    function getFontCount: integer;
-    function getFontStyle(index: integer): TFontStyles;
-    function findFont(aStyle : TFontStyles; aColor : TColor):TFont;
+    fFontList: TList;
+    function GetFont(Index: integer): TFont;
+    function GetFontCount: integer;
+    function GetFontStyle(Index: integer): TFontStyles;
+    function FindFont(aStyle: TFontStyles; aColor: TColor): TFont;
 
-    property Fonts[index : integer] : TFont read getFont;
-    property FontCount:integer read getFontCount;
-    property FontStyle[index : integer] : TFontStyles read getFontStyle;
+    property Fonts[Index: integer]: TFont read getFont;
+    property FontCount: integer read getFontCount;
+    property FontStyle[Index: integer]: TFontStyles read GetFontStyle;
   protected
     procedure UpdateCurrentFont;
     procedure UpdateFontMetrics;
@@ -117,9 +114,9 @@ type
     procedure BeginDrawing(ACanvas : TCanvas); overload; virtual;
 
     procedure EndDrawing; virtual;
-    procedure TextOut(X, Y: Integer; Text: PChar; Length: Integer); virtual;
+    procedure TextOut(X, Y: Integer; Text: PWideChar; Length: Integer); virtual;
     procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; const ARect: TRect;
-      Text: PChar; Length: Integer); virtual;
+      Text: PWideChar; Length: Integer); virtual;
     procedure SetBaseFont(Value: TFont); virtual;
     procedure SetBaseStyle(const Value: TFontStyles); virtual;
     procedure SetStyle(Value: TFontStyles); virtual;
@@ -286,16 +283,16 @@ begin
     Caret.Hide;
 end;
 
-procedure InternalFillRect(canvas : TCanvas; rect : TRect);
+procedure InternalFillRect(canvas: TCanvas; rect: TRect);
 begin
   canvas.FillRect(rect);
 end;
 
-function GetSystemMetrics(metric : integer):integer;
+function GetSystemMetrics(metric: integer): integer;
 begin
   case metric of
-    SM_CXDRAG : result := 2;
-    SM_CYDRAG : result := 2;
+    SM_CXDRAG: result := 2;
+    SM_CYDRAG: result := 2;
   else
     result := -1;
   end;
@@ -305,28 +302,27 @@ end;
 
 procedure TheTextDrawer.BeginDrawing(ACanvas: TCanvas);
 begin
-  if fDrawingCount=0 then
-    begin
-      UpdateCurrentFont;
-      fCanvas := ACanvas;
-      fCanvas.Font:=fCurrentFont;
+  if fDrawingCount = 0 then
+  begin
+    UpdateCurrentFont;
+    fCanvas := ACanvas;
+    fCanvas.Font := fCurrentFont;
        
-      fCanvas.Brush.Color:=FBkColor;
-    end;
+    fCanvas.Brush.Color := FBkColor;
+  end;
 
   inc(FDrawingCount);
 end;
 
 procedure TheTextDrawer.ClearFontList;
 var
-  i : integer;
-
+  i: integer;
 begin
-  for i:=0 to FontCount-1 do
-    begin
-      Fonts[i].Free;
-      TFontHolder(fFontList[i]).Free;
-    end;
+  for i := 0 to FontCount - 1 do
+  begin
+    Fonts[i].Free;
+    TFontHolder(fFontList[i]).Free;
+  end;
 
   fFontList.Clear;
 end;
@@ -336,8 +332,8 @@ begin
   fBaseFont := TFont.Create;
   fFontList := TList.Create;
 
-  BaseFont:=ABaseFont;
-  BaseStyle:=CalcExtentBaseStyle;
+  BaseFont := ABaseFont;
+  BaseStyle := CalcExtentBaseStyle;
 end;
 
 destructor TheTextDrawer.Destroy;
@@ -351,85 +347,84 @@ end;
 
 procedure TheTextDrawer.EndDrawing;
 begin
-  if FDrawingCount>0 then
+  if FDrawingCount > 0 then
     dec(FDrawingCount);
 
-  if FDrawingCount=0 then
-    fCanvas:=nil;
+  if FDrawingCount = 0 then
+    fCanvas := nil;
 end;
 
 procedure TheTextDrawer.ExtTextOut(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PChar; Length: Integer);
+  const ARect: TRect; Text: PWideChar; Length: Integer);
 begin
-  if fCanvas<>nil then
+  if fCanvas <> nil then
     begin
 //      fCanvas.Brush.Color := random($ffffff);
       fCanvas.Brush.Style := bsSolid;
       fCanvas.FillRect(ARect);
 
-      if Text<>nil then
+      if Text <> nil then
         begin
-          if Length=-1 then
-            fCanvas.TextRect(ARect,X, Y, Text)
+          if Length = -1 then
+            fCanvas.TextRect(ARect, X, Y, Text)
           else
-            fCanvas.TextRect(ARect,X, Y, copy(Text,1,Length));
+            fCanvas.TextRect(ARect, X, Y, copy(Text, 1, Length));
 
           if fakeBold then
-            if Length=-1 then
-              fCanvas.TextRect(ARect,X+1, Y, Text)
+            if Length = -1 then
+              fCanvas.TextRect(ARect, X + 1, Y, Text)
             else
-              fCanvas.TextRect(ARect,X+1, Y, copy(Text,1,Length));
+              fCanvas.TextRect(ARect, X + 1, Y, copy(Text, 1, Length));
         end;
     end;
 end;
 
-function TheTextDrawer.findFont(aStyle: TFontStyles; aColor : TColor): TFont;
+function TheTextDrawer.FindFont(aStyle: TFontStyles; aColor: TColor): TFont;
 var
-  i : integer;
-
+  i: integer;
 begin
-  result:=nil;
+  Result := nil;
 
-  for i:=0 to FontCount-1 do
+  for i := 0 to FontCount - 1 do
     if (FontStyle[i] = aStyle) and (Fonts[i].Color = aColor) then
-      begin
-        result:=Fonts[i];
-        break;
-      end;
-
-  if result=nil then
     begin
-      result:=TFont.Create;
-      result.assign(fBaseFont);
-      result.style:=aStyle;
-      result.color:=aColor;
-      fFontList.Add(TFontHolder.Create(result,aStyle));
+      Result := Fonts[i];
+      break;
+    end;
+
+  if Result = nil then
+    begin
+      Result := TFont.Create;
+      Result.Assign(fBaseFont);
+      Result.Style := aStyle;
+      Result.Color := aColor;
+      fFontList.Add(TFontHolder.Create(Result, aStyle));
     end;
 end;
 
 function TheTextDrawer.GetCharHeight: Integer;
 begin
-  result := fCharHeight;
+  Result := fCharHeight;
 end;
 
 function TheTextDrawer.GetCharWidth: Integer;
 begin
-  result := fCharWidth;
+  Result := fCharWidth;
 end;
 
-function TheTextDrawer.getFont(index: integer): TFont;
+function TheTextDrawer.GetFont(Index: integer): TFont;
 begin
-  result:=TFontHolder(fFontList[index]).font;
+  Result := TFontHolder(fFontList[Index]).font;
 end;
 
-function TheTextDrawer.getFontCount: integer;
+function TheTextDrawer.GetFontCount: integer;
 begin
-  result:=fFontList.Count;
+  Result := fFontList.Count;
 end;
 
-function TheTextDrawer.getFontStyle(index: integer): TFontStyles;
+function TheTextDrawer.GetFontStyle(Index: integer): TFontStyles;
 begin
-  result:=TFontHolder(fFontList[index]).style;
+  Result := TFontHolder(fFontList[Index]).style;
 end;
 
 procedure TheTextDrawer.SetBackColor(Value: TColor);
@@ -438,19 +433,19 @@ begin
   begin
     FBkColor := Value;
 
-    if fCanvas<>nil then
-      fCanvas.Brush.Color:=Value;
+    if fCanvas <> nil then
+      fCanvas.Brush.Color := Value;
   end;
 end;
 
 procedure TheTextDrawer.SetBaseFont(Value: TFont);
 begin
-  if Value<>nil then
-    begin
-      fBaseFont.Assign(Value);
-      UpdateFontMetrics;
-      UpdateCurrentFont;
-    end;
+  if Value <> nil then
+  begin
+    fBaseFont.Assign(Value);
+    UpdateFontMetrics;
+    UpdateCurrentFont;
+  end;
 end;
 
 procedure TheTextDrawer.SetBaseStyle(const Value: TFontStyles);
@@ -466,7 +461,7 @@ end;
 
 procedure TheTextDrawer.SetForeColor(Value: TColor);
 begin
-  fCurrentColor:=Value;
+  fCurrentColor := Value;
   UpdateCurrentFont;
 end;
 
@@ -476,39 +471,37 @@ begin
   UpdateCurrentFont;
 end;
 
-procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PChar;
+procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PWideChar;
   Length: Integer);
 begin
-  if fCanvas<>nil then
+  if fCanvas <> nil then
     begin
       fCanvas.Brush.Style := bsSolid;
 
-      if Text<>nil then
+      if Text <> nil then
         begin
-          if Length=-1 then
+          if Length = -1 then
             fCanvas.TextOut(X, Y, Text)
           else
-            fCanvas.TextOut(X, Y, copy(Text,1,Length));
+            fCanvas.TextOut(X, Y, copy(Text, 1, Length));
 
 
           if fakeBold then
-            if Length=-1 then
-              fCanvas.TextOut(X+1, Y, Text)
+            if Length = -1 then
+              fCanvas.TextOut(X + 1, Y, Text)
             else
-              fCanvas.TextOut(X+1, Y, copy(Text,1,Length));
+              fCanvas.TextOut(X + 1, Y, copy(Text, 1, Length));
         end;
     end;
 end;
 
 procedure TheTextDrawer.UpdateCurrentFont;
 begin
-  fCurrentFont:=findFont(fCurrentStyle, fCurrentColor);
-  QFont_setFixedPitch(fCurrentFont.Handle, TRUE);
+  fCurrentFont := FindFont(fCurrentStyle, fCurrentColor);
+  QFont_setFixedPitch(fCurrentFont.Handle, True);
 
-  if fCanvas<>nil then
-    begin
-      fCanvas.Font.Assign(fCurrentFont);
-    end;
+  if fCanvas <> nil then
+    fCanvas.Font.Assign(fCurrentFont);
 
   // Make sure that we can draw bold text even if the current font
   // doesn't want to do it
@@ -517,12 +510,11 @@ end;
 
 procedure TheTextDrawer.UpdateFontMetrics;
 var
-  fm     : QFontMetricsH;
-  ch     : WideChar;
-  w      : integer;
-  fi     : QFontInfoH;
-  family : WideString;
-
+  fm: QFontMetricsH;
+  ch: WideChar;
+  w: Integer;
+  fi: QFontInfoH;
+  family: WideString;
 begin
   fi := QFontInfo_create(fBaseFont.Handle);
   try

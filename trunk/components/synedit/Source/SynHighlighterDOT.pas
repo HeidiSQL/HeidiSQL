@@ -12,6 +12,7 @@ Code template generated with SynGen.
 The original code is: SynHighlighterDOT.pas, released 2002-11-30.
 Description: DOT Syntax Parser/Highlighter
 The initial author of this file is nissl (nissl@tiscali.it, nissl@mammuth.it)
+Unicode translation by Maël Hörz.
 Copyright (c) 2002, all rights reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterDOT.pas,v 1.4 2005/01/28 16:53:21 maelh Exp $
+$Id: SynHighlighterDOT.pas,v 1.3.2.6 2005/11/27 22:22:44 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -84,27 +85,15 @@ type
 
   TRangeState = (rsUnKnown, rsCStyleComment, rsString);
 
-  TProcTableProc = procedure of object;
-
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function: TtkTokenKind of object;
-
-const
-  MaxKey = 174;
+  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
 type
   TSynDOTSyn = class(TSynCustomHighlighter)
   private
-    fLine: PChar;
-    fLineNumber: Integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
     fRange: TRangeState;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     fTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0 .. MaxKey] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..786] of TIdentFuncTableFunc;
     fArrowHeadAttri: TSynHighlighterAttributes;
     fAttributeAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
@@ -116,110 +105,158 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fValueAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: string): Boolean;
-    function Func5: TtkTokenKind;
-    function Func13: TtkTokenKind;
-    function Func14: TtkTokenKind;
-    function Func17: TtkTokenKind;
-    function Func19: TtkTokenKind;
-    function Func21: TtkTokenKind;
-    function Func23: TtkTokenKind;
-    function Func24: TtkTokenKind;
-    function Func25: TtkTokenKind;
-    function Func26: TtkTokenKind;
-    function Func29: TtkTokenKind;
-    function Func30: TtkTokenKind;
-    function Func31: TtkTokenKind;
-    function Func32: TtkTokenKind;
-    function Func33: TtkTokenKind;
-    function Func36: TtkTokenKind;
-    function Func37: TtkTokenKind;
-    function Func38: TtkTokenKind;
-    function Func39: TtkTokenKind;
-    function Func41: TtkTokenKind;
-    function Func42: TtkTokenKind;
-    function Func43: TtkTokenKind;
-    function Func44: TtkTokenKind;
-    function Func45: TtkTokenKind;
-    function Func48: TtkTokenKind;
-    function Func49: TtkTokenKind;
-    function Func50: TtkTokenKind;
-    function Func51: TtkTokenKind;
-    function Func52: TtkTokenKind;
-    function Func53: TtkTokenKind;
-    function Func54: TtkTokenKind;
-    function Func56: TtkTokenKind;
-    function Func57: TtkTokenKind;
-    function Func58: TtkTokenKind;
-    function Func59: TtkTokenKind;
-    function Func60: TtkTokenKind;
-    function Func61: TtkTokenKind;
-    function Func62: TtkTokenKind;
-    function Func63: TtkTokenKind;
-    function Func64: TtkTokenKind;
-    function Func65: TtkTokenKind;
-    function Func67: TtkTokenKind;
-    function Func68: TtkTokenKind;
-    function Func69: TtkTokenKind;
-    function Func71: TtkTokenKind;
-    function Func72: TtkTokenKind;
-    function Func73: TtkTokenKind;
-    function Func74: TtkTokenKind;
-    function Func75: TtkTokenKind;
-    function Func76: TtkTokenKind;
-    function Func77: TtkTokenKind;
-    function Func78: TtkTokenKind;
-    function Func79: TtkTokenKind;
-    function Func80: TtkTokenKind;
-    function Func81: TtkTokenKind;
-    function Func82: TtkTokenKind;
-    function Func83: TtkTokenKind;
-    function Func84: TtkTokenKind;
-    function Func85: TtkTokenKind;
-    function Func86: TtkTokenKind;
-    function Func87: TtkTokenKind;
-    function Func88: TtkTokenKind;
-    function Func89: TtkTokenKind;
-    function Func90: TtkTokenKind;
-    function Func92: TtkTokenKind;
-    function Func93: TtkTokenKind;
-    function Func94: TtkTokenKind;
-    function Func96: TtkTokenKind;
-    function Func99: TtkTokenKind;
-    function Func100: TtkTokenKind;
-    function Func101: TtkTokenKind;
-    function Func102: TtkTokenKind;
-    function Func104: TtkTokenKind;
-    function Func107: TtkTokenKind;
-    function Func109: TtkTokenKind;
-    function Func111: TtkTokenKind;
-    function Func113: TtkTokenKind;
-    function Func114: TtkTokenKind;
-    function Func117: TtkTokenKind;
-    function Func118: TtkTokenKind;
-    function Func120: TtkTokenKind;
-    function Func121: TtkTokenKind;
-    function Func127: TtkTokenKind;
-    function Func128: TtkTokenKind;
-    function Func129: TtkTokenKind;
-    function Func131: TtkTokenKind;
-    function Func133: TtkTokenKind;
-    function Func134: TtkTokenKind;
-    function Func140: TtkTokenKind;
-    function Func142: TtkTokenKind;
-    function Func143: TtkTokenKind;
-    function Func146: TtkTokenKind;
-    function Func150: TtkTokenKind;
-    function Func155: TtkTokenKind;
-    function Func159: TtkTokenKind;
-    function Func174: TtkTokenKind;
+    function AltFunc(Index: Integer): TtkTokenKind;
+    function FuncAll(Index: Integer): TtkTokenKind;
+    function FuncAppendix(Index: Integer): TtkTokenKind;
+    function FuncArrowhead(Index: Integer): TtkTokenKind;
+    function FuncArrowsize(Index: Integer): TtkTokenKind;
+    function FuncArrowtail(Index: Integer): TtkTokenKind;
+    function FuncAuto(Index: Integer): TtkTokenKind;
+    function FuncBack(Index: Integer): TtkTokenKind;
+    function FuncBgcolor(Index: Integer): TtkTokenKind;
+    function FuncBold(Index: Integer): TtkTokenKind;
+    function FuncBoth(Index: Integer): TtkTokenKind;
+    function FuncBottomlabel(Index: Integer): TtkTokenKind;
+    function FuncBox(Index: Integer): TtkTokenKind;
+    function FuncCenter(Index: Integer): TtkTokenKind;
+    function FuncCircle(Index: Integer): TtkTokenKind;
+    function FuncClusterrank(Index: Integer): TtkTokenKind;
+    function FuncColor(Index: Integer): TtkTokenKind;
+    function FuncComment(Index: Integer): TtkTokenKind;
+    function FuncCompound(Index: Integer): TtkTokenKind;
+    function FuncConcentrate(Index: Integer): TtkTokenKind;
+    function FuncConstraint(Index: Integer): TtkTokenKind;
+    function FuncDecorate(Index: Integer): TtkTokenKind;
+    function FuncDiamond(Index: Integer): TtkTokenKind;
+    function FuncDigraph(Index: Integer): TtkTokenKind;
+    function FuncDir(Index: Integer): TtkTokenKind;
+    function FuncDistortion(Index: Integer): TtkTokenKind;
+    function FuncDot(Index: Integer): TtkTokenKind;
+    function FuncDotted(Index: Integer): TtkTokenKind;
+    function FuncDoublecircle(Index: Integer): TtkTokenKind;
+    function FuncDoubleoctagon(Index: Integer): TtkTokenKind;
+    function FuncE(Index: Integer): TtkTokenKind;
+    function FuncEdge(Index: Integer): TtkTokenKind;
+    function FuncEgg(Index: Integer): TtkTokenKind;
+    function FuncEllipse(Index: Integer): TtkTokenKind;
+    function FuncFalse(Index: Integer): TtkTokenKind;
+    function FuncFill(Index: Integer): TtkTokenKind;
+    function FuncFillcolor(Index: Integer): TtkTokenKind;
+    function FuncFilled(Index: Integer): TtkTokenKind;
+    function FuncFixedsize(Index: Integer): TtkTokenKind;
+    function FuncFontcolor(Index: Integer): TtkTokenKind;
+    function FuncFontname(Index: Integer): TtkTokenKind;
+    function FuncFontpath(Index: Integer): TtkTokenKind;
+    function FuncFontsize(Index: Integer): TtkTokenKind;
+    function FuncForward(Index: Integer): TtkTokenKind;
+    function FuncGlobal(Index: Integer): TtkTokenKind;
+    function FuncGraph(Index: Integer): TtkTokenKind;
+    function FuncGroup(Index: Integer): TtkTokenKind;
+    function FuncHeadlabel(Index: Integer): TtkTokenKind;
+    function FuncHeadport(Index: Integer): TtkTokenKind;
+    function FuncHeadurl(Index: Integer): TtkTokenKind;
+    function FuncHeight(Index: Integer): TtkTokenKind;
+    function FuncHexagon(Index: Integer): TtkTokenKind;
+    function FuncHouse(Index: Integer): TtkTokenKind;
+    function FuncId(Index: Integer): TtkTokenKind;
+    function FuncInv(Index: Integer): TtkTokenKind;
+    function FuncInvdot(Index: Integer): TtkTokenKind;
+    function FuncInvhouse(Index: Integer): TtkTokenKind;
+    function FuncInvodot(Index: Integer): TtkTokenKind;
+    function FuncInvtrapezium(Index: Integer): TtkTokenKind;
+    function FuncInvtriangle(Index: Integer): TtkTokenKind;
+    function FuncLabel(Index: Integer): TtkTokenKind;
+    function FuncLabelangle(Index: Integer): TtkTokenKind;
+    function FuncLabeldistance(Index: Integer): TtkTokenKind;
+    function FuncLabelfloat(Index: Integer): TtkTokenKind;
+    function FuncLabelfontcolor(Index: Integer): TtkTokenKind;
+    function FuncLabelfontname(Index: Integer): TtkTokenKind;
+    function FuncLabelfontsize(Index: Integer): TtkTokenKind;
+    function FuncLabeljust(Index: Integer): TtkTokenKind;
+    function FuncLabelloc(Index: Integer): TtkTokenKind;
+    function FuncLayer(Index: Integer): TtkTokenKind;
+    function FuncLayers(Index: Integer): TtkTokenKind;
+    function FuncLhead(Index: Integer): TtkTokenKind;
+    function FuncLtail(Index: Integer): TtkTokenKind;
+    function FuncMargin(Index: Integer): TtkTokenKind;
+    function FuncMax(Index: Integer): TtkTokenKind;
+    function FuncMcircle(Index: Integer): TtkTokenKind;
+    function FuncMclimit(Index: Integer): TtkTokenKind;
+    function FuncMdiamond(Index: Integer): TtkTokenKind;
+    function FuncMerged(Index: Integer): TtkTokenKind;
+    function FuncMin(Index: Integer): TtkTokenKind;
+    function FuncMinimum(Index: Integer): TtkTokenKind;
+    function FuncMinlen(Index: Integer): TtkTokenKind;
+    function FuncMrecord(Index: Integer): TtkTokenKind;
+    function FuncMsquare(Index: Integer): TtkTokenKind;
+    function FuncMultiples(Index: Integer): TtkTokenKind;
+    function FuncN(Index: Integer): TtkTokenKind;
+    function FuncNe(Index: Integer): TtkTokenKind;
+    function FuncNode(Index: Integer): TtkTokenKind;
+    function FuncNodesep(Index: Integer): TtkTokenKind;
+    function FuncNone(Index: Integer): TtkTokenKind;
+    function FuncNormal(Index: Integer): TtkTokenKind;
+    function FuncNslimit(Index: Integer): TtkTokenKind;
+    function FuncNw(Index: Integer): TtkTokenKind;
+    function FuncOctagon(Index: Integer): TtkTokenKind;
+    function FuncOdot(Index: Integer): TtkTokenKind;
+    function FuncOnto(Index: Integer): TtkTokenKind;
+    function FuncOrdering(Index: Integer): TtkTokenKind;
+    function FuncOrientation(Index: Integer): TtkTokenKind;
+    function FuncPage(Index: Integer): TtkTokenKind;
+    function FuncPagedir(Index: Integer): TtkTokenKind;
+    function FuncParallelogram(Index: Integer): TtkTokenKind;
+    function FuncPeripheries(Index: Integer): TtkTokenKind;
+    function FuncPlaintext(Index: Integer): TtkTokenKind;
+    function FuncPoint(Index: Integer): TtkTokenKind;
+    function FuncPolygon(Index: Integer): TtkTokenKind;
+    function FuncQuantum(Index: Integer): TtkTokenKind;
+    function FuncRank(Index: Integer): TtkTokenKind;
+    function FuncRankdir(Index: Integer): TtkTokenKind;
+    function FuncRanksep(Index: Integer): TtkTokenKind;
+    function FuncRatio(Index: Integer): TtkTokenKind;
+    function FuncRecord(Index: Integer): TtkTokenKind;
+    function FuncRegular(Index: Integer): TtkTokenKind;
+    function FuncRemincross(Index: Integer): TtkTokenKind;
+    function FuncRotate(Index: Integer): TtkTokenKind;
+    function FuncS(Index: Integer): TtkTokenKind;
+    function FuncSame(Index: Integer): TtkTokenKind;
+    function FuncSamehead(Index: Integer): TtkTokenKind;
+    function FuncSametail(Index: Integer): TtkTokenKind;
+    function FuncSamplepoints(Index: Integer): TtkTokenKind;
+    function FuncSe(Index: Integer): TtkTokenKind;
+    function FuncSearchsize(Index: Integer): TtkTokenKind;
+    function FuncSection(Index: Integer): TtkTokenKind;
+    function FuncShape(Index: Integer): TtkTokenKind;
+    function FuncShapefile(Index: Integer): TtkTokenKind;
+    function FuncSides(Index: Integer): TtkTokenKind;
+    function FuncSink(Index: Integer): TtkTokenKind;
+    function FuncSize(Index: Integer): TtkTokenKind;
+    function FuncSkew(Index: Integer): TtkTokenKind;
+    function FuncSource(Index: Integer): TtkTokenKind;
+    function FuncStrict(Index: Integer): TtkTokenKind;
+    function FuncStyle(Index: Integer): TtkTokenKind;
+    function FuncSubgraph(Index: Integer): TtkTokenKind;
+    function FuncSw(Index: Integer): TtkTokenKind;
+    function FuncTaillabel(Index: Integer): TtkTokenKind;
+    function FuncTailport(Index: Integer): TtkTokenKind;
+    function FuncTailurl(Index: Integer): TtkTokenKind;
+    function FuncToplabel(Index: Integer): TtkTokenKind;
+    function FuncTrapezium(Index: Integer): TtkTokenKind;
+    function FuncTriangle(Index: Integer): TtkTokenKind;
+    function FuncTripleoctagon(Index: Integer): TtkTokenKind;
+    function FuncTrue(Index: Integer): TtkTokenKind;
+    function FuncUrl(Index: Integer): TtkTokenKind;
+    function FuncW(Index: Integer): TtkTokenKind;
+    function FuncWeight(Index: Integer): TtkTokenKind;
+    function FuncWhen(Index: Integer): TtkTokenKind;
+    function FuncWidth(Index: Integer): TtkTokenKind;
+    function FuncZ(Index: Integer): TtkTokenKind;
+    function HashKey(Str: PWideChar): Cardinal;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
+    procedure InitIdent;
     procedure IdentProc;
     procedure UnknownProc;
-    function AltFunc: TtkTokenKind;
-    procedure InitIdent;
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
     procedure NullProc;
     procedure SpaceProc;
     procedure CRProc;
@@ -231,24 +268,22 @@ type
     procedure SymbolProc;
     procedure DirectionsProc;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: string; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
-    function GetKeyWords: string;
+    function GetKeyWords(TokenKind: Integer): WideString; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber: Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
+     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
     property ArrowHeadAttri: TSynHighlighterAttributes read fArrowHeadAttri write fArrowHeadAttri;
@@ -273,760 +308,1449 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable : array[#0..#255] of Integer;
+const
+  KeyWords: array[0..145] of WideString = (
+    'all', 'appendix', 'arrowhead', 'arrowsize', 'arrowtail', 'auto', 'back', 
+    'bgcolor', 'bold', 'both', 'bottomlabel', 'box', 'center', 'circle', 
+    'clusterrank', 'color', 'comment', 'compound', 'concentrate', 'constraint', 
+    'decorate', 'diamond', 'digraph', 'dir', 'distortion', 'dot', 'dotted', 
+    'doublecircle', 'doubleoctagon', 'e', 'edge', 'egg', 'ellipse', 'false', 
+    'fill', 'fillcolor', 'filled', 'fixedsize', 'fontcolor', 'fontname', 
+    'fontpath', 'fontsize', 'forward', 'global', 'graph', 'group', 'headlabel', 
+    'headport', 'headurl', 'height', 'hexagon', 'house', 'id', 'inv', 'invdot', 
+    'invhouse', 'invodot', 'invtrapezium', 'invtriangle', 'label', 'labelangle', 
+    'labeldistance', 'labelfloat', 'labelfontcolor', 'labelfontname', 
+    'labelfontsize', 'labeljust', 'labelloc', 'layer', 'layers', 'lhead', 
+    'ltail', 'margin', 'max', 'mcircle', 'mclimit', 'mdiamond', 'merged', 'min', 
+    'minimum', 'minlen', 'mrecord', 'msquare', 'multiples', 'n', 'ne', 'node', 
+    'nodesep', 'none', 'normal', 'nslimit', 'nw', 'octagon', 'odot', 'onto', 
+    'ordering', 'orientation', 'page', 'pagedir', 'parallelogram', 
+    'peripheries', 'plaintext', 'point', 'polygon', 'quantum', 'rank', 
+    'rankdir', 'ranksep', 'ratio', 'record', 'regular', 'remincross', 'rotate', 
+    's', 'same', 'samehead', 'sametail', 'samplepoints', 'se', 'searchsize', 
+    'section', 'shape', 'shapefile', 'sides', 'sink', 'size', 'skew', 'source', 
+    'strict', 'style', 'subgraph', 'sw', 'taillabel', 'tailport', 'tailurl', 
+    'toplabel', 'trapezium', 'triangle', 'tripleoctagon', 'true', 'url', 'w', 
+    'weight', 'when', 'width', 'z' 
+  );
 
-procedure MakeIdentTable;
-var
-  I, J: Char;
-begin
-  for I := #0 to #255 do
-  begin
-    case I of
-      '_', 'a'..'z', 'A'..'Z': Identifiers[I] := True;
-    else
-      Identifiers[I] := False;
-    end;
-    J := UpCase(I);
-    case I in ['_', 'A'..'Z', 'a'..'z'] of
-      True: mHashTable[I] := Ord(J) - 64
-    else
-      mHashTable[I] := 0;
-    end;
-  end;
-end;
+  KeyIndices: array[0..786] of Integer = (
+    -1, -1, -1, -1, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 141, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 88, 50, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 40, -1, -1, -1, -1, 4, -1, -1, -1, -1, 90, -1, 3, -1, 110, 86, 
+    -1, -1, 49, 23, -1, 92, -1, -1, -1, 15, -1, 122, -1, -1, 28, -1, 78, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 85, -1, 27, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 140, -1, 103, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 142, -1, 7, -1, 0, 
+    -1, -1, 97, -1, -1, -1, -1, -1, 43, -1, -1, -1, 131, -1, -1, -1, 5, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 101, -1, 10, -1, 
+    47, 68, -1, 132, -1, -1, 52, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2, -1, 
+    -1, -1, 64, -1, -1, 124, -1, -1, -1, -1, -1, -1, 87, -1, -1, -1, 12, -1, 84, 
+    -1, -1, -1, 46, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, 42, -1, 38, -1, -1, -1, 143, -1, -1, -1, 145, 
+    106, -1, 127, -1, -1, -1, 99, 75, -1, -1, 102, -1, 58, -1, -1, 56, -1, -1, 
+    -1, -1, 9, -1, -1, -1, -1, -1, 22, -1, 73, -1, -1, -1, 17, -1, 54, 112, -1, 
+    -1, -1, -1, -1, -1, -1, 113, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 96, -1, 
+    21, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 69, 116, -1, -1, 32, -1, 
+    -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, -1, -1, 126, -1, -1, -1, -1, -1, -1, 
+    -1, 71, -1, -1, -1, -1, -1, -1, -1, -1, -1, 137, -1, -1, 117, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 111, 93, -1, -1, -1, -1, 108, -1, -1, 119, -1, -1, -1, 
+    -1, 29, -1, -1, -1, -1, -1, -1, -1, -1, 89, -1, -1, -1, -1, 76, -1, -1, -1, 
+    -1, -1, -1, -1, 77, -1, -1, 104, -1, -1, -1, -1, -1, -1, 33, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 26, -1, -1, -1, 79, -1, 19, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, 39, -1, -1, -1, 115, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, 109, 35, -1, -1, 70, -1, -1, 57, -1, 72, -1, 
+    -1, 83, -1, -1, -1, -1, 130, -1, -1, -1, 18, -1, 118, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, 81, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 61, 
+    37, 1, -1, -1, -1, -1, 138, -1, -1, -1, -1, -1, 129, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, 14, -1, -1, 8, -1, -1, -1, 125, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, 91, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1, -1, -1, 
+    95, -1, -1, -1, -1, 136, -1, -1, 20, -1, 62, -1, -1, -1, -1, 134, -1, -1, 
+    -1, 63, -1, -1, -1, 121, 80, -1, -1, -1, -1, -1, -1, 135, -1, -1, 120, -1, 
+    -1, -1, 53, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 31, -1, -1, -1, -1, -1, 
+    -1, 24, -1, -1, 139, 67, -1, -1, 59, -1, -1, 36, -1, -1, -1, -1, -1, -1, -1, 
+    -1, 128, 34, -1, -1, -1, -1, -1, -1, -1, -1, 65, -1, 114, -1, -1, -1, -1, 
+    -1, -1, -1, 55, -1, -1, 94, -1, -1, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 41, -1, -1, -1, -1, -1, -1, -1, 44, -1, 
+    -1, -1, -1, -1, 74, -1, 51, 144, -1, -1, 82, 98, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 100, 66, -1, 25, -1, -1, -1, 45, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 48, -1, -1, 
+    6, 105, -1, -1, 133, 123, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, 107, -1, -1, -1, -1, -1, -1, -1, -1, -1, 30, -1, -1, -1 
+  );
 
-procedure TSynDOTSyn.InitIdent;
-var
-  I: Integer;
-  pF: PIdentFuncTableFunc;
-begin
-  pF := PIdentFuncTableFunc(@fIdentFuncTable);
-  for I := Low(fIdentFuncTable) to High(fIdentFuncTable) do
-  begin
-    pF^ := AltFunc;
-    Inc(pF);
-  end;
-  fIdentFuncTable[5] := Func5;
-  fIdentFuncTable[13] := Func13;
-  fIdentFuncTable[14] := Func14;
-  fIdentFuncTable[17] := Func17;
-  fIdentFuncTable[19] := Func19;
-  fIdentFuncTable[21] := Func21;
-  fIdentFuncTable[23] := Func23;
-  fIdentFuncTable[24] := Func24;
-  fIdentFuncTable[25] := Func25;
-  fIdentFuncTable[26] := Func26;
-  fIdentFuncTable[29] := Func29;
-  fIdentFuncTable[30] := Func30;
-  fIdentFuncTable[31] := Func31;
-  fIdentFuncTable[32] := Func32;
-  fIdentFuncTable[33] := Func33;
-  fIdentFuncTable[36] := Func36;
-  fIdentFuncTable[37] := Func37;
-  fIdentFuncTable[38] := Func38;
-  fIdentFuncTable[39] := Func39;
-  fIdentFuncTable[41] := Func41;
-  fIdentFuncTable[42] := Func42;
-  fIdentFuncTable[43] := Func43;
-  fIdentFuncTable[44] := Func44;
-  fIdentFuncTable[45] := Func45;
-  fIdentFuncTable[48] := Func48;
-  fIdentFuncTable[49] := Func49;
-  fIdentFuncTable[50] := Func50;
-  fIdentFuncTable[51] := Func51;
-  fIdentFuncTable[52] := Func52;
-  fIdentFuncTable[53] := Func53;
-  fIdentFuncTable[54] := Func54;
-  fIdentFuncTable[56] := Func56;
-  fIdentFuncTable[57] := Func57;
-  fIdentFuncTable[58] := Func58;
-  fIdentFuncTable[59] := Func59;
-  fIdentFuncTable[60] := Func60;
-  fIdentFuncTable[61] := Func61;
-  fIdentFuncTable[62] := Func62;
-  fIdentFuncTable[63] := Func63;
-  fIdentFuncTable[64] := Func64;
-  fIdentFuncTable[65] := Func65;
-  fIdentFuncTable[67] := Func67;
-  fIdentFuncTable[68] := Func68;
-  fIdentFuncTable[69] := Func69;
-  fIdentFuncTable[71] := Func71;
-  fIdentFuncTable[72] := Func72;
-  fIdentFuncTable[73] := Func73;
-  fIdentFuncTable[74] := Func74;
-  fIdentFuncTable[75] := Func75;
-  fIdentFuncTable[76] := Func76;
-  fIdentFuncTable[77] := Func77;
-  fIdentFuncTable[78] := Func78;
-  fIdentFuncTable[79] := Func79;
-  fIdentFuncTable[80] := Func80;
-  fIdentFuncTable[81] := Func81;
-  fIdentFuncTable[82] := Func82;
-  fIdentFuncTable[83] := Func83;
-  fIdentFuncTable[84] := Func84;
-  fIdentFuncTable[85] := Func85;
-  fIdentFuncTable[86] := Func86;
-  fIdentFuncTable[87] := Func87;
-  fIdentFuncTable[88] := Func88;
-  fIdentFuncTable[89] := Func89;
-  fIdentFuncTable[90] := Func90;
-  fIdentFuncTable[92] := Func92;
-  fIdentFuncTable[93] := Func93;
-  fIdentFuncTable[94] := Func94;
-  fIdentFuncTable[96] := Func96;
-  fIdentFuncTable[99] := Func99;
-  fIdentFuncTable[100] := Func100;
-  fIdentFuncTable[101] := Func101;
-  fIdentFuncTable[102] := Func102;
-  fIdentFuncTable[104] := Func104;
-  fIdentFuncTable[107] := Func107;
-  fIdentFuncTable[109] := Func109;
-  fIdentFuncTable[111] := Func111;
-  fIdentFuncTable[113] := Func113;
-  fIdentFuncTable[114] := Func114;
-  fIdentFuncTable[117] := Func117;
-  fIdentFuncTable[118] := Func118;
-  fIdentFuncTable[120] := Func120;
-  fIdentFuncTable[121] := Func121;
-  fIdentFuncTable[127] := Func127;
-  fIdentFuncTable[128] := Func128;
-  fIdentFuncTable[129] := Func129;
-  fIdentFuncTable[131] := Func131;
-  fIdentFuncTable[133] := Func133;
-  fIdentFuncTable[134] := Func134;
-  fIdentFuncTable[140] := Func140;
-  fIdentFuncTable[142] := Func142;
-  fIdentFuncTable[143] := Func143;
-  fIdentFuncTable[146] := Func146;
-  fIdentFuncTable[150] := Func150;
-  fIdentFuncTable[155] := Func155;
-  fIdentFuncTable[159] := Func159;
-  fIdentFuncTable[174] := Func174;
-end;
-
-function TSynDOTSyn.KeyHash(ToHash: PChar): Integer;
+{$Q-}
+function TSynDOTSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
-  while ToHash^ in ['_', 'a'..'z', 'A'..'Z'] do
+  while IsIdentChar(Str^) do
   begin
-    inc(Result, mHashTable[ToHash^]);
-    inc(ToHash);
+    Result := Result * 63 + Ord(Str^) * 331;
+    inc(Str);
   end;
-  fStringLen := ToHash - fToIdent;
+  Result := Result mod 787;
+  fStringLen := Str - fToIdent;
 end;
+{$Q+}
 
-function TSynDOTSyn.KeyComp(const aKey: String): Boolean;
+function TSynDOTSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
-  I: Integer;
-  Temp: PChar;
-begin
-  Temp := fToIdent;
-  if Length(aKey) = fStringLen then
-  begin
-    Result := True;
-    for i := 1 to fStringLen do
-    begin
-      if mHashTable[Temp^] <> mHashTable[aKey[i]] then
-      begin
-        Result := False;
-        break;
-      end;
-      inc(Temp);
-    end;
-  end
-  else
-    Result := False;
-end;
-
-function TSynDOTSyn.Func5: TtkTokenKind;
-begin
-  if KeyComp('e') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func13: TtkTokenKind;
-begin
-  if KeyComp('id') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func14: TtkTokenKind;
-begin
-  if KeyComp('n') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func17: TtkTokenKind;
-begin
-  if KeyComp('back') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func19: TtkTokenKind;
-begin
-  if KeyComp('egg') then Result := tkShape else
-    if KeyComp('s') then Result := tkValue else
-      if KeyComp('ne') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func21: TtkTokenKind;
-begin
-  if KeyComp('edge') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func23: TtkTokenKind;
-begin
-  if KeyComp('w') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func24: TtkTokenKind;
-begin
-  if KeyComp('se') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func25: TtkTokenKind;
-begin
-  if KeyComp('all') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func26: TtkTokenKind;
-begin
-  if KeyComp('z') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func29: TtkTokenKind;
-begin
-  if KeyComp('page') then Result := tkAttribute else
-    if KeyComp('page') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func30: TtkTokenKind;
-begin
-  if KeyComp('lhead') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func31: TtkTokenKind;
-begin
-  if KeyComp('dir') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func32: TtkTokenKind;
-begin
-  if KeyComp('label') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func33: TtkTokenKind;
-begin
-  if KeyComp('bold') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func36: TtkTokenKind;
-begin
-  if KeyComp('min') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func37: TtkTokenKind;
-begin
-  if KeyComp('nw') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func38: TtkTokenKind;
-begin
-  if KeyComp('max') then Result := tkValue else
-    if KeyComp('same') then Result := tkValue else
-      if KeyComp('node') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func39: TtkTokenKind;
-begin
-  if KeyComp('dot') then Result := tkArrowHead else
-    if KeyComp('fill') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func41: TtkTokenKind;
-begin
-  if KeyComp('box') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func42: TtkTokenKind;
-begin
-  if KeyComp('sw') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func43: TtkTokenKind;
-begin
-  if KeyComp('false') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func44: TtkTokenKind;
-begin
-  if KeyComp('rank') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func45: TtkTokenKind;
-begin
-  if KeyComp('both') then Result := tkValue else
-    if KeyComp('inv') then Result := tkArrowHead else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func48: TtkTokenKind;
-begin
-  if KeyComp('none') then Result := tkValue else
-    if KeyComp('filled') then Result := tkValue else
-      if KeyComp('filled') then Result := tkAttribute else
-        if KeyComp('none') then Result := tkArrowHead else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func49: TtkTokenKind;
-begin
-  if KeyComp('shape') then Result := tkAttribute else
-    if KeyComp('global') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func50: TtkTokenKind;
-begin
-  if KeyComp('when') then Result := tkAttribute else
-    if KeyComp('when') then Result := tkAttribute else
-      if KeyComp('graph') then Result := tkKey else
-        if KeyComp('headlabel') then Result := tkAttribute else
-          if KeyComp('circle') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func51: TtkTokenKind;
-begin
-  if KeyComp('url') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func52: TtkTokenKind;
-begin
-  if KeyComp('merged') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func53: TtkTokenKind;
-begin
-  if KeyComp('sink') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func54: TtkTokenKind;
-begin
-  if KeyComp('ltail') then Result := tkAttribute else
-    if KeyComp('odot') then Result := tkArrowHead else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func56: TtkTokenKind;
-begin
-  if KeyComp('samehead') then Result := tkAttribute else
-    if KeyComp('sides') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func57: TtkTokenKind;
-begin
-  if KeyComp('height') then Result := tkAttribute else
-    if KeyComp('auto') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func58: TtkTokenKind;
-begin
-  if KeyComp('skew') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func59: TtkTokenKind;
-begin
-  if KeyComp('size') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func60: TtkTokenKind;
-begin
-  if KeyComp('pagedir') then Result := tkAttribute else
-    if KeyComp('diamond') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func61: TtkTokenKind;
-begin
-  if KeyComp('layer') then Result := tkAttribute else
-    if KeyComp('layer') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func62: TtkTokenKind;
-begin
-  if KeyComp('labelloc') then Result := tkAttribute else
-    if KeyComp('margin') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func63: TtkTokenKind;
-begin
-  if KeyComp('color') then Result := tkAttribute else
-    if KeyComp('ratio') then Result := tkAttribute else
-      if KeyComp('record') then Result := tkShape else
-        if KeyComp('mcircle') then Result := tkShape else
-          if KeyComp('digraph') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func64: TtkTokenKind;
-begin
-  if KeyComp('width') then Result := tkAttribute else
-    if KeyComp('onto') then Result := tkAttribute else
-      if KeyComp('true') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func65: TtkTokenKind;
-begin
-  if KeyComp('center') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func67: TtkTokenKind;
-begin
-  if KeyComp('minlen') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func68: TtkTokenKind;
-begin
-  if KeyComp('house') then Result := tkShape else
-    if KeyComp('dotted') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func69: TtkTokenKind;
-begin
-  if KeyComp('headURL') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func71: TtkTokenKind;
-begin
-  if KeyComp('labelangle') then Result := tkAttribute else
-    if KeyComp('decorate') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func72: TtkTokenKind;
-begin
-  if KeyComp('weight') then Result := tkAttribute else
-    if KeyComp('bgcolor') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func73: TtkTokenKind;
-begin
-  if KeyComp('mdiamond') then Result := tkShape else
-    if KeyComp('normal') then Result := tkArrowHead else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func74: TtkTokenKind;
-begin
-  if KeyComp('point') then Result := tkShape else
-    if KeyComp('taillabel') then Result := tkAttribute else
-      if KeyComp('hexagon') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func75: TtkTokenKind;
-begin
-  if KeyComp('octagon') then Result := tkShape else
-    if KeyComp('rankdir') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func76: TtkTokenKind;
-begin
-  if KeyComp('mrecord') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func77: TtkTokenKind;
-begin
-  if KeyComp('group') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func78: TtkTokenKind;
-begin
-  if KeyComp('ellipse') then Result := tkShape else
-    if KeyComp('nodesep') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func79: TtkTokenKind;
-begin
-  if KeyComp('mclimit') then Result := tkAttribute else
-    if KeyComp('rotate') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func80: TtkTokenKind;
-begin
-  if KeyComp('layers') then Result := tkAttribute else
-    if KeyComp('layers') then Result := tkKey else
-      if KeyComp('sametail') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func81: TtkTokenKind;
-begin
-  if KeyComp('shapefile') then Result := tkAttribute else
-    if KeyComp('style') then Result := tkAttribute else
-      if KeyComp('source') then Result := tkValue else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func82: TtkTokenKind;
-begin
-  if KeyComp('regular') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func83: TtkTokenKind;
-begin
-  if KeyComp('comment') then Result := tkAttribute else
-    if KeyComp('toplabel') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func84: TtkTokenKind;
-begin
-  if KeyComp('ranksep') then Result := tkAttribute else
-    if KeyComp('invdot') then Result := tkArrowHead else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func85: TtkTokenKind;
-begin
-  if KeyComp('forward') then Result := tkValue else
-    if KeyComp('section') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func86: TtkTokenKind;
-begin
-  if KeyComp('triangle') then Result := tkShape else
-    if KeyComp('labelfloat') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func87: TtkTokenKind;
-begin
-  if KeyComp('headport') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func88: TtkTokenKind;
-begin
-  if KeyComp('fontname') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func89: TtkTokenKind;
-begin
-  if KeyComp('strict') then Result := tkKey else
-    if KeyComp('appendix') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func90: TtkTokenKind;
-begin
-  if KeyComp('ordering') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func92: TtkTokenKind;
-begin
-  if KeyComp('minimum') then Result := tkAttribute else
-    if KeyComp('subgraph') then Result := tkKey else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func93: TtkTokenKind;
-begin
-  if KeyComp('tailURL') then Result := tkAttribute else
-    if KeyComp('arrowhead') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func94: TtkTokenKind;
-begin
-  if KeyComp('msquare') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func96: TtkTokenKind;
-begin
-  if KeyComp('nslimit') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func99: TtkTokenKind;
-begin
-  if KeyComp('invodot') then Result := tkArrowHead else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func100: TtkTokenKind;
-begin
-  if KeyComp('fontpath') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func101: TtkTokenKind;
-begin
-  if KeyComp('compound') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func102: TtkTokenKind;
-begin
-  if KeyComp('fillcolor') then Result := tkAttribute else
-    if KeyComp('labeljust') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func104: TtkTokenKind;
-begin
-  if KeyComp('polygon') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func107: TtkTokenKind;
-begin
-  if KeyComp('quantum') then Result := tkAttribute else
-    if KeyComp('fixedsize') then Result := tkAttribute else
-      if KeyComp('labeldistance') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func109: TtkTokenKind;
-begin
-  if KeyComp('doublecircle') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func111: TtkTokenKind;
-begin
-  if KeyComp('tailport') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func113: TtkTokenKind;
-begin
-  if KeyComp('searchsize') then Result := tkAttribute else
-    if KeyComp('invhouse') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func114: TtkTokenKind;
-begin
-  if KeyComp('fontsize') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func117: TtkTokenKind;
-begin
-  if KeyComp('arrowtail') then Result := tkAttribute else
-    if KeyComp('bottomlabel') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func118: TtkTokenKind;
-begin
-  if KeyComp('concentrate') then Result := tkAttribute else
-    if KeyComp('fontcolor') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func120: TtkTokenKind;
-begin
-  if KeyComp('labelfontname') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func121: TtkTokenKind;
-begin
-  if KeyComp('plaintext') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func127: TtkTokenKind;
-begin
-  if KeyComp('multiples') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func128: TtkTokenKind;
-begin
-  if KeyComp('peripheries') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func129: TtkTokenKind;
-begin
-  if KeyComp('trapezium') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func131: TtkTokenKind;
-begin
-  if KeyComp('invtriangle') then Result := tkShape else
-    if KeyComp('parallelogram') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func133: TtkTokenKind;
-begin
-  if KeyComp('constraint') then Result := tkAttribute else
-    if KeyComp('remincross') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func134: TtkTokenKind;
-begin
-  if KeyComp('arrowsize') then Result := tkAttribute else
-    if KeyComp('doubleoctagon') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func140: TtkTokenKind;
-begin
-  if KeyComp('orientation') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func142: TtkTokenKind;
-begin
-  if KeyComp('clusterrank') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func143: TtkTokenKind;
-begin
-  if KeyComp('distortion') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func146: TtkTokenKind;
-begin
-  if KeyComp('labelfontsize') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func150: TtkTokenKind;
-begin
-  if KeyComp('labelfontcolor') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func155: TtkTokenKind;
-begin
-  if KeyComp('tripleoctagon') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func159: TtkTokenKind;
-begin
-  if KeyComp('samplepoints') then Result := tkAttribute else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.Func174: TtkTokenKind;
-begin
-  if KeyComp('invtrapezium') then Result := tkShape else Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier;
-end;
-
-function TSynDOTSyn.IdentKind(MayBe: PChar): TtkTokenKind;
-var
-  HashKey: Integer;
+  Key: Cardinal;
 begin
   fToIdent := MayBe;
-  HashKey := KeyHash(MayBe);
-  if HashKey <= MaxKey then
-    Result := fIdentFuncTable[HashKey]
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
 
-procedure TSynDOTSyn.MakeMethodTables;
+procedure TSynDOTSyn.InitIdent;
 var
-  I: Char;
+  i: Integer;
 begin
-  for I := #0 to #255 do
-    case I of
-      #0: fProcTable[I] := NullProc;
-      #10: fProcTable[I] := LFProc;
-      #13: fProcTable[I] := CRProc;
-      '/': fProcTable[I] := CStyleCommentOpenProc;
-      '-': fProcTable[I] := DirectionsProc;
-      '''': fProcTable[I] := StringOpenProc;
-      #1..#9,
-      #11,
-      #12,
-      #14..#32 : fProcTable[I] := SpaceProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      '~', '{', '}', ',', '(', ')', '[', ']', '<', '>', ':', '?', ';', '!', '=': fProcTable[I] := SymbolProc;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if KeyIndices[i] = -1 then
+      fIdentFuncTable[i] := AltFunc;
+
+  fIdentFuncTable[132] := FuncAll;
+  fIdentFuncTable[509] := FuncAppendix;
+  fIdentFuncTable[188] := FuncArrowhead;
+  fIdentFuncTable[72] := FuncArrowsize;
+  fIdentFuncTable[65] := FuncArrowtail;
+  fIdentFuncTable[149] := FuncAuto;
+  fIdentFuncTable[752] := FuncBack;
+  fIdentFuncTable[130] := FuncBgcolor;
+  fIdentFuncTable[536] := FuncBold;
+  fIdentFuncTable[266] := FuncBoth;
+  fIdentFuncTable[169] := FuncBottomlabel;
+  fIdentFuncTable[4] := FuncBox;
+  fIdentFuncTable[206] := FuncCenter;
+  fIdentFuncTable[666] := FuncCircle;
+  fIdentFuncTable[533] := FuncClusterrank;
+  fIdentFuncTable[85] := FuncColor;
+  fIdentFuncTable[327] := FuncComment;
+  fIdentFuncTable[278] := FuncCompound;
+  fIdentFuncTable[481] := FuncConcentrate;
+  fIdentFuncTable[425] := FuncConstraint;
+  fIdentFuncTable[573] := FuncDecorate;
+  fIdentFuncTable[302] := FuncDiamond;
+  fIdentFuncTable[272] := FuncDigraph;
+  fIdentFuncTable[79] := FuncDir;
+  fIdentFuncTable[621] := FuncDistortion;
+  fIdentFuncTable[726] := FuncDot;
+  fIdentFuncTable[419] := FuncDotted;
+  fIdentFuncTable[104] := FuncDoublecircle;
+  fIdentFuncTable[90] := FuncDoubleoctagon;
+  fIdentFuncTable[377] := FuncE;
+  fIdentFuncTable[783] := FuncEdge;
+  fIdentFuncTable[614] := FuncEgg;
+  fIdentFuncTable[319] := FuncEllipse;
+  fIdentFuncTable[409] := FuncFalse;
+  fIdentFuncTable[641] := FuncFill;
+  fIdentFuncTable[461] := FuncFillcolor;
+  fIdentFuncTable[631] := FuncFilled;
+  fIdentFuncTable[508] := FuncFixedsize;
+  fIdentFuncTable[237] := FuncFontcolor;
+  fIdentFuncTable[435] := FuncFontname;
+  fIdentFuncTable[60] := FuncFontpath;
+  fIdentFuncTable[685] := FuncFontsize;
+  fIdentFuncTable[235] := FuncForward;
+  fIdentFuncTable[141] := FuncGlobal;
+  fIdentFuncTable[693] := FuncGraph;
+  fIdentFuncTable[730] := FuncGroup;
+  fIdentFuncTable[212] := FuncHeadlabel;
+  fIdentFuncTable[171] := FuncHeadport;
+  fIdentFuncTable[749] := FuncHeadurl;
+  fIdentFuncTable[78] := FuncHeight;
+  fIdentFuncTable[51] := FuncHexagon;
+  fIdentFuncTable[701] := FuncHouse;
+  fIdentFuncTable[177] := FuncId;
+  fIdentFuncTable[603] := FuncInv;
+  fIdentFuncTable[280] := FuncInvdot;
+  fIdentFuncTable[660] := FuncInvhouse;
+  fIdentFuncTable[261] := FuncInvodot;
+  fIdentFuncTable[467] := FuncInvtrapezium;
+  fIdentFuncTable[258] := FuncInvtriangle;
+  fIdentFuncTable[628] := FuncLabel;
+  fIdentFuncTable[557] := FuncLabelangle;
+  fIdentFuncTable[507] := FuncLabeldistance;
+  fIdentFuncTable[575] := FuncLabelfloat;
+  fIdentFuncTable[584] := FuncLabelfontcolor;
+  fIdentFuncTable[192] := FuncLabelfontname;
+  fIdentFuncTable[650] := FuncLabelfontsize;
+  fIdentFuncTable[724] := FuncLabeljust;
+  fIdentFuncTable[625] := FuncLabelloc;
+  fIdentFuncTable[172] := FuncLayer;
+  fIdentFuncTable[315] := FuncLayers;
+  fIdentFuncTable[464] := FuncLhead;
+  fIdentFuncTable[341] := FuncLtail;
+  fIdentFuncTable[469] := FuncMargin;
+  fIdentFuncTable[274] := FuncMax;
+  fIdentFuncTable[699] := FuncMcircle;
+  fIdentFuncTable[253] := FuncMclimit;
+  fIdentFuncTable[391] := FuncMdiamond;
+  fIdentFuncTable[399] := FuncMerged;
+  fIdentFuncTable[92] := FuncMin;
+  fIdentFuncTable[423] := FuncMinimum;
+  fIdentFuncTable[589] := FuncMinlen;
+  fIdentFuncTable[493] := FuncMrecord;
+  fIdentFuncTable[705] := FuncMsquare;
+  fIdentFuncTable[472] := FuncMultiples;
+  fIdentFuncTable[208] := FuncN;
+  fIdentFuncTable[102] := FuncNe;
+  fIdentFuncTable[75] := FuncNode;
+  fIdentFuncTable[202] := FuncNodesep;
+  fIdentFuncTable[50] := FuncNone;
+  fIdentFuncTable[386] := FuncNormal;
+  fIdentFuncTable[70] := FuncNslimit;
+  fIdentFuncTable[551] := FuncNw;
+  fIdentFuncTable[81] := FuncOctagon;
+  fIdentFuncTable[364] := FuncOdot;
+  fIdentFuncTable[663] := FuncOnto;
+  fIdentFuncTable[565] := FuncOrdering;
+  fIdentFuncTable[300] := FuncOrientation;
+  fIdentFuncTable[135] := FuncPage;
+  fIdentFuncTable[706] := FuncPagedir;
+  fIdentFuncTable[252] := FuncParallelogram;
+  fIdentFuncTable[723] := FuncPeripheries;
+  fIdentFuncTable[167] := FuncPlaintext;
+  fIdentFuncTable[256] := FuncPoint;
+  fIdentFuncTable[117] := FuncPolygon;
+  fIdentFuncTable[402] := FuncQuantum;
+  fIdentFuncTable[753] := FuncRank;
+  fIdentFuncTable[246] := FuncRankdir;
+  fIdentFuncTable[773] := FuncRanksep;
+  fIdentFuncTable[369] := FuncRatio;
+  fIdentFuncTable[460] := FuncRecord;
+  fIdentFuncTable[74] := FuncRegular;
+  fIdentFuncTable[363] := FuncRemincross;
+  fIdentFuncTable[281] := FuncRotate;
+  fIdentFuncTable[289] := FuncS;
+  fIdentFuncTable[652] := FuncSame;
+  fIdentFuncTable[439] := FuncSamehead;
+  fIdentFuncTable[316] := FuncSametail;
+  fIdentFuncTable[354] := FuncSamplepoints;
+  fIdentFuncTable[483] := FuncSe;
+  fIdentFuncTable[372] := FuncSearchsize;
+  fIdentFuncTable[599] := FuncSection;
+  fIdentFuncTable[588] := FuncShape;
+  fIdentFuncTable[87] := FuncShapefile;
+  fIdentFuncTable[757] := FuncSides;
+  fIdentFuncTable[195] := FuncSink;
+  fIdentFuncTable[540] := FuncSize;
+  fIdentFuncTable[333] := FuncSkew;
+  fIdentFuncTable[248] := FuncSource;
+  fIdentFuncTable[640] := FuncStrict;
+  fIdentFuncTable[520] := FuncStyle;
+  fIdentFuncTable[477] := FuncSubgraph;
+  fIdentFuncTable[145] := FuncSw;
+  fIdentFuncTable[174] := FuncTaillabel;
+  fIdentFuncTable[756] := FuncTailport;
+  fIdentFuncTable[580] := FuncTailurl;
+  fIdentFuncTable[596] := FuncToplabel;
+  fIdentFuncTable[570] := FuncTrapezium;
+  fIdentFuncTable[351] := FuncTriangle;
+  fIdentFuncTable[514] := FuncTripleoctagon;
+  fIdentFuncTable[624] := FuncTrue;
+  fIdentFuncTable[115] := FuncUrl;
+  fIdentFuncTable[39] := FuncW;
+  fIdentFuncTable[128] := FuncWeight;
+  fIdentFuncTable[241] := FuncWhen;
+  fIdentFuncTable[702] := FuncWidth;
+  fIdentFuncTable[245] := FuncZ;
+end;
+
+function TSynDOTSyn.AltFunc(Index: Integer): TtkTokenKind;
+begin
+  Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncAll(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncAppendix(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncArrowhead(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncArrowsize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncArrowtail(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncAuto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncBack(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncBgcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncBold(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncBoth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncBottomlabel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncBox(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncCenter(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncCircle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncClusterrank(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncColor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncComment(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncCompound(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncConcentrate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncConstraint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDecorate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDiamond(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDigraph(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDistortion(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDotted(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDoublecircle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncDoubleoctagon(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncE(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncEdge(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncEgg(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncEllipse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFalse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFill(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFillcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFilled(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue  // TODO: ANSI source isn't clear if tkValue or tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFixedsize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFontcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFontname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFontpath(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncFontsize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncForward(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncGlobal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncGraph(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncGroup(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncHeadlabel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncHeadport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncHeadurl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncHeight(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncHexagon(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncHouse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncId(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncInv(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncInvdot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncInvhouse(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncInvodot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncInvtrapezium(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncInvtriangle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabelangle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabeldistance(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabelfloat(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabelfontcolor(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabelfontname(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabelfontsize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabeljust(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLabelloc(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLayer(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute  // TODO: ANSI source isn't clear if tkAttribute or tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLayers(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute  // TODO: ANSI source isn't clear if tkAttribute or tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLhead(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncLtail(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMargin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMax(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMcircle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMclimit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMdiamond(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMerged(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMin(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMinimum(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMinlen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMrecord(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMsquare(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncMultiples(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncN(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNe(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNode(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNodesep(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNone(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNormal(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNslimit(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncNw(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncOctagon(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncOdot(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkArrowHead
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncOnto(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncOrdering(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncOrientation(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncPage(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncPagedir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncParallelogram(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncPeripheries(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncPlaintext(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncPoint(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncPolygon(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncQuantum(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRank(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRankdir(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRanksep(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRatio(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRecord(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRegular(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRemincross(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncRotate(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncS(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSame(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSamehead(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSametail(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSamplepoints(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSe(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSearchsize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSection(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncShape(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncShapefile(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSides(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSink(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSize(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSkew(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSource(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncStrict(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncStyle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSubgraph(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkKey
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncSw(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTaillabel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTailport(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTailurl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncToplabel(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTrapezium(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTriangle(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTripleoctagon(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkShape
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncTrue(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncUrl(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncW(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkValue
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncWeight(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncWhen(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncWidth(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynDOTSyn.FuncZ(Index: Integer): TtkTokenKind;
+begin
+  if IsCurrentToken(KeyWords[Index]) then
+    Result := tkAttribute
+  else
+    Result := tkIdentifier;
 end;
 
 procedure TSynDOTSyn.SpaceProc;
 begin
+  inc(Run);
   fTokenID := tkSpace;
-  repeat
-    inc(Run);
-  until not (fLine[Run] in [#1..#32]);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynDOTSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynDOTSyn.CRProc;
@@ -1058,14 +1782,14 @@ end;
 procedure TSynDOTSyn.CStyleCommentOpenProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '/') then
+  if fLine[Run] = '/' then
   begin
     fTokenID := tkComment;
     inc(Run, 2);
-    while not (fLine[Run] in [#0, #10, #13]) do Inc(Run);
+    while not IsLineEnd(Run) do Inc(Run);
     Exit;
   end;
-  if (fLine[Run] = '*') then
+  if fLine[Run] = '*' then
   begin
     fRange := rsCStyleComment;
     CStyleCommentProc;
@@ -1081,20 +1805,19 @@ begin
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
-  else
+    else
     begin
       fTokenID := tkComment;
       repeat
-        if (fLine[Run] = '*') and
-           (fLine[Run + 1] = '/') then
+        if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then
         begin
           Inc(Run, 2);
           fRange := rsUnKnown;
           Break;
         end;
-        if not (fLine[Run] in [#0, #10, #13]) then
+        if not IsLineEnd(Run) then
           Inc(Run);
-      until fLine[Run] in [#0, #10, #13];
+      until IsLineEnd(Run);
     end;
   end;
 end;
@@ -1111,95 +1834,84 @@ procedure TSynDOTSyn.StringProc;
 begin
   fTokenID := tkString;
   repeat
-    if (fLine[Run] = '''') then
+    if fLine[Run] = '''' then
     begin
       Inc(Run, 1);
       fRange := rsUnKnown;
       Break;
     end;
-    if not (fLine[Run] in [#0, #10, #13]) then
+    if not IsLineEnd(Run) then
       Inc(Run);
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 constructor TSynDOTSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fArrowHeadAttri := TSynHighLighterAttributes.Create(SYNS_AttrArrowHead);
+
+  fCaseSensitive := False;
+
+  fArrowHeadAttri := TSynHighLighterAttributes.Create(SYNS_AttrArrowHead, SYNS_FriendlyAttrArrowHead);
   fArrowHeadAttri.Foreground := clRed;
   AddAttribute(fArrowHeadAttri);
 
-  fAttributeAttri := TSynHighLighterAttributes.Create(SYNS_AttrAttribute);
+  fAttributeAttri := TSynHighLighterAttributes.Create(SYNS_AttrAttribute, SYNS_FriendlyAttrAttribute);
   AddAttribute(fAttributeAttri);
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment);
+  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   fCommentAttri.Foreground := clNavy;
   AddAttribute(fCommentAttri);
 
-  fDirectionsAttri := TSynHighLighterAttributes.Create(SYNS_AttrDirections);
+  fDirectionsAttri := TSynHighLighterAttributes.Create(SYNS_AttrDirections, SYNS_FriendlyAttrDirections);
   fDirectionsAttri.Style := [fsBold];
   fDirectionsAttri.Foreground := clYellow;
   AddAttribute(fDirectionsAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
 
-  fShapeAttri := TSynHighLighterAttributes.Create(SYNS_AttrShape);
+  fShapeAttri := TSynHighLighterAttributes.Create(SYNS_AttrShape, SYNS_FriendlyAttrShape);
   fShapeAttri.Style := [fsBold];
   fShapeAttri.Foreground := clRed;
   AddAttribute(fShapeAttri);
 
-  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
 
-  fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
 
-  fValueAttri := TSynHighLighterAttributes.Create(SYNS_AttrValue);
+  fValueAttri := TSynHighLighterAttributes.Create(SYNS_AttrValue, SYNS_FriendlyAttrValue);
   fValueAttri.Style := [fsItalic];
   fValueAttri.Foreground := clRed;
   AddAttribute(fValueAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   fSymbolAttri.Style := [fsBold];
   fSymbolAttri.Foreground := clGreen;
   AddAttribute(fSymbolAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterDOT;
   fRange := rsUnknown;
-end;
-
-procedure TSynDOTSyn.SetLine(NewValue: String; LineNumber: Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
 end;
 
 procedure TSynDOTSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do
+  while IsIdentChar(fLine[Run]) do
     Inc(Run);
 end;
 
 procedure TSynDOTSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -1218,19 +1930,31 @@ begin
   else
     begin
       fRange := rsUnknown;
-      fProcTable[fLine[Run]];
+      case fLine[Run] of
+        #0: NullProc;
+        #10: LFProc;
+        #13: CRProc;
+        '/': CStyleCommentOpenProc;
+        '-': DirectionsProc;
+        '''': StringOpenProc;
+        #1..#9, #11, #12, #14..#32: SpaceProc;
+        'A'..'Z', 'a'..'z', '_': IdentProc;
+        '~', '{', '}', ',', '(', ')', '[', ']', '<', '>', ':', '?', ';', '!', '=': SymbolProc;
+        else UnknownProc;
+      end;
     end;
   end;
+  inherited;
 end;
 
 function TSynDOTSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT    : Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER : Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD    : Result := fKeyAttri;
-    SYN_ATTR_STRING     : Result := fStringAttri;
-    SYN_ATTR_WHITESPACE : Result := fSpaceAttri;
+    SYN_ATTR_COMMENT: Result := fCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_STRING: Result := fStringAttri;
+    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
     SYN_ATTR_SYMBOL: Result := fSymbolAttri;
   else
     Result := nil;
@@ -1239,10 +1963,10 @@ end;
 
 function TSynDOTSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
-function TSynDOTSyn.GetKeyWords: string;
+function TSynDOTSyn.GetKeyWords(TokenKind: Integer): WideString;
 begin
   Result :=
     '--,->,all,appendix,arrowhead,arrowsize,arrowtail,auto,back,bgcolor,bo' +
@@ -1262,14 +1986,6 @@ begin
     'ink,size,skew,source,strict,style,subgraph,sw,taillabel,tailport,tailU' +
     'RL,toplabel,trapezium,triangle,tripleoctagon,true,url,w,weight,when,wi' +
     'dth,z';
-end;
-
-function TSynDOTSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynDOTSyn.GetTokenID: TtkTokenKind;
@@ -1302,17 +2018,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynDOTSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynDOTSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := ['_', 'a'..'z', 'A'..'Z'];
-end;
-
-function TSynDOTSyn.GetSampleSource: string;
+function TSynDOTSyn.GetSampleSource: WideString;
 begin
   Result :=
     '// ATT DOT Graphic description language'#13#10 +
@@ -1362,6 +2068,16 @@ begin
   Result := fDefaultFilter <> SYNS_FilterDOT;
 end;
 
+function TSynDOTSyn.IsIdentChar(AChar: WideChar): Boolean;
+begin
+  case AChar of
+    '_', 'A'..'Z', 'a'..'z':
+      Result := True;
+    else
+      Result := False;
+  end;
+end;
+
 class function TSynDOTSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangDOT;
@@ -1382,8 +2098,12 @@ begin
   Result := Pointer(fRange);
 end;
 
+class function TSynDOTSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangDOT;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynDOTSyn);
 {$ENDIF}

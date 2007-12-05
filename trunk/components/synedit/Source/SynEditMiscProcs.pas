@@ -12,6 +12,7 @@ The Original Code is: SynEditMiscProcs.pas, released 2000-04-07.
 The Original Code is based on the mwSupportProcs.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Hieke.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditMiscProcs.pas,v 1.38 2005/01/02 16:51:03 markonjezic Exp $
+$Id: SynEditMiscProcs.pas,v 1.35.2.6 2006/05/21 12:57:56 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -50,11 +51,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
 {$IFDEF SYN_COMPILER_4_UP}
   Math,
@@ -63,15 +66,15 @@ uses
 
 type
   PIntArray = ^TIntArray;
-  TIntArray = array[0..MaxListSize - 1] of integer;
+  TIntArray = array[0..MaxListSize - 1] of Integer;
 
 {$IFNDEF SYN_COMPILER_4_UP}
-function Max(x, y: integer): integer;
-function Min(x, y: integer): integer;
+function Max(x, y: Integer): Integer;
+function Min(x, y: Integer): Integer;
 {$ENDIF}
 
-function MinMax(x, mi, ma: integer): integer;
-procedure SwapInt(var l, r: integer);
+function MinMax(x, mi, ma: Integer): Integer;
+procedure SwapInt(var l, r: Integer);
 function MaxPoint(const P1, P2: TPoint): TPoint;
 function MinPoint(const P1, P2: TPoint): TPoint;
 
@@ -84,75 +87,44 @@ procedure InternalFillRect(dc: HDC; const rcPaint: TRect);
 // Converting tabs to spaces: To use the function several times it's better
 // to use a function pointer that is set to the fastest conversion function.
 type
-  TConvertTabsProc = function(const Line: AnsiString;
-    TabWidth: integer): AnsiString;
+  TConvertTabsProc = function(const Line: WideString;
+    TabWidth: Integer): WideString;
 
-function GetBestConvertTabsProc(TabWidth: integer): TConvertTabsProc;
+function GetBestConvertTabsProc(TabWidth: Integer): TConvertTabsProc;
 // This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabs(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs(const Line: WideString; TabWidth: Integer): WideString;
 
 type
-  TConvertTabsProcEx = function(const Line: AnsiString; TabWidth: integer;
-    var HasTabs: boolean): AnsiString;
+  TConvertTabsProcEx = function(const Line: WideString; TabWidth: Integer;
+    var HasTabs: Boolean): WideString;
 
-function GetBestConvertTabsProcEx(TabWidth: integer): TConvertTabsProcEx;
+function GetBestConvertTabsProcEx(TabWidth: Integer): TConvertTabsProcEx;
 // This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabsEx(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabsEx(const Line: WideString; TabWidth: Integer;
+  var HasTabs: Boolean): WideString;
 
-function GetExpandedLength(const aStr: string; aTabWidth: integer): integer;
+function GetExpandedLength(const aStr: WideString; aTabWidth: Integer): Integer;
 
-function CharIndex2CaretPos(Index, TabWidth: integer;
-  const Line: string): integer;
-function CaretPos2CharIndex(Position, TabWidth: integer; const Line: string;
-  var InsideTabChar: boolean): integer;
+function CharIndex2CaretPos(Index, TabWidth: Integer;
+  const Line: WideString): Integer;
+function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: WideString;
+  var InsideTabChar: Boolean): Integer;
 
 // search for the first char of set AChars in Line, starting at index Start
-function StrScanForCharInSet(const Line: string; Start: integer;
-  AChars: TSynIdentChars): integer;
+function StrScanForCharInCategory(const Line: WideString; Start: Integer;
+  IsOfCategory: TCategoryMethod): Integer;
 // the same, but searching backwards
-function StrRScanForCharInSet(const Line: string; Start: integer;
-  AChars: TSynIdentChars): integer;
+function StrRScanForCharInCategory(const Line: WideString; Start: Integer;
+  IsOfCategory: TCategoryMethod): Integer;
 
-{$IFDEF SYN_MBCSSUPPORT}
-type
-  TStringType = (stNone, stHalfNumAlpha, stHalfSymbol, stHalfKatakana,
-    stWideNumAlpha, stWideSymbol, stWideKatakana, stHiragana, stIdeograph,
-    stControl, stKashida);
-
-{$IFNDEF SYN_COMPILER_4_UP}
-const
-  C3_NONSPACING = 1; { nonspacing character }
-  C3_DIACRITIC = 2; { diacritic mark }
-  C3_VOWELMARK = 4; { vowel mark }
-  C3_SYMBOL = 8; { symbols }
-  C3_KATAKANA = $0010; { katakana character }
-  C3_HIRAGANA = $0020; { hiragana character }
-  C3_HALFWIDTH = $0040; { half width character }
-  C3_FULLWIDTH = $0080; { full width character }
-  C3_IDEOGRAPH = $0100; { ideographic character }
-  C3_KASHIDA = $0200; { Arabic kashida character }
-  C3_LEXICAL = $0400; { lexical character }
-  C3_ALPHA = $8000; { any linguistic char (C1_ALPHA) }
-  C3_NOTAPPLICABLE = 0; { ctype 3 is not applicable }
-{$ENDIF}
-
-// search for first multibyte char in Line, starting at index Start
-function StrScanForMultiByteChar(const Line: string; Start: Integer): Integer;
-// the same, but searching backwards
-function StrRScanForMultiByteChar(const Line: string; Start: Integer): Integer;
-// convert a type returned from GetStringTypeEx() to something friendlier 
-function IsStringType(Value: Word): TStringType;
-{$ENDIF}
-
-function GetEOL(Line: PChar): PChar;
+function GetEOL(Line: PWideChar): PWideChar;
 
 // Remove all '/' characters from string by changing them into '\.'.
 // Change all '\' characters into '\\' to allow for unique decoding.
-function EncodeString(s: string): string;
+function EncodeString(s: WideString): WideString;
 
 // Decodes string, encoded with EncodeString.
-function DecodeString(s: string): string;
+function DecodeString(s: WideString): WideString;
 
 {$IFNDEF SYN_COMPILER_5_UP}
 procedure FreeAndNil(var Obj);
@@ -163,15 +135,15 @@ procedure Assert(Expr: Boolean);  { stub for Delphi 2 }
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: string): Integer;
+function LastDelimiter(const Delimiters, S: WideString): Integer;
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_4_UP}
 type
   TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
 
-function StringReplace(const S, OldPattern, NewPattern: string;
-  Flags: TReplaceFlags): string;
+function StringReplace(const S, OldPattern, NewPattern: WideString;
+  Flags: TReplaceFlags): WideString;
 {$ENDIF}
 
 {$IFDEF SYN_CLX}
@@ -199,7 +171,7 @@ function CalcFCS(const ABuf; ABufSize: Cardinal): Word;
 {$ENDIF}
 
 procedure SynDrawGradient(const ACanvas: TCanvas; const AStartColor, AEndColor: TColor;
-  ASteps: integer; const ARect: TRect; const AHorizontal: boolean);
+  ASteps: Integer; const ARect: TRect; const AHorizontal: Boolean);
 
 implementation
 
@@ -211,29 +183,27 @@ uses
   SynHighlighterMulti;
   {$ENDIF}
 
-{***}
-
 {$IFNDEF SYN_COMPILER_4_UP}
-function Max(x, y: integer): integer;
+function Max(x, y: Integer): Integer;
 begin
   if x > y then Result := x else Result := y;
 end;
 
-function Min(x, y: integer): integer;
+function Min(x, y: Integer): Integer;
 begin
   if x < y then Result := x else Result := y;
 end;
 {$ENDIF}
 
-function MinMax(x, mi, ma: integer): integer;
+function MinMax(x, mi, ma: Integer): Integer;
 begin
-  x := Min( x, ma );
-  Result := Max( x, mi );
+  x := Min(x, ma);
+  Result := Max(x, mi);
 end;
 
-procedure SwapInt(var l, r: integer);
+procedure SwapInt(var l, r: Integer);
 var
-  tmp: integer;
+  tmp: Integer;
 begin
   tmp := r;
   r := l;
@@ -256,16 +226,16 @@ begin
     Result := P1;
 end;
 
-{***}
-
-function GetIntArray(Count: Cardinal; InitialValue: integer): PIntArray;
+function GetIntArray(Count: Cardinal; InitialValue: Integer): PIntArray;
 var
   p: PInteger;
 begin
-  Result := AllocMem(Count * SizeOf(integer));
-  if Assigned(Result) and (InitialValue <> 0) then begin
+  Result := AllocMem(Count * SizeOf(Integer));
+  if Assigned(Result) and (InitialValue <> 0) then
+  begin
     p := PInteger(Result);
-    while (Count > 0) do begin
+    while (Count > 0) do
+    begin
       p^ := InitialValue;
       Inc(p);
       Dec(Count);
@@ -280,32 +250,35 @@ begin
 end;
 {$ENDIF}
 
-{***}
-
-// Don't change this function; no stack frame and efficient register use.
-function GetHasTabs(pLine: PChar; var CharsBefore: integer): boolean;
+// Please don't change this function; no stack frame and efficient register use.
+function GetHasTabs(pLine: PWideChar; var CharsBefore: Integer): Boolean;
 begin
   CharsBefore := 0;
-  if Assigned(pLine) then begin
-    while (pLine^ <> #0) do begin
-      if (pLine^ = #9) then break;
+  if Assigned(pLine) then
+  begin
+    while pLine^ <> #0 do 
+    begin
+      if pLine^ = #9 then break;
       Inc(CharsBefore);
       Inc(pLine);
     end;
-    Result := (pLine^ = #9);
-  end else
-    Result := FALSE;
+    Result := pLine^ = #9;
+  end
+  else
+    Result := False;
 end;
 
-function ConvertTabs1Ex(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+
+function ConvertTabs1Ex(const Line: WideString; TabWidth: Integer;
+  var HasTabs: Boolean): WideString;
 var
-  pDest: PChar;
-  nBeforeTab: integer;
+  pDest: PWideChar;
+  nBeforeTab: Integer;
 begin
   Result := Line;  // increment reference count only
-  if GetHasTabs(pointer(Line), nBeforeTab) then begin
-    HasTabs := TRUE;
+  if GetHasTabs(pointer(Line), nBeforeTab) then
+  begin
+    HasTabs := True;
     pDest := @Result[nBeforeTab + 1]; // this will make a copy of Line
     // We have at least one tab in the string, and the tab width is 1.
     // pDest points to the first tab char. We overwrite all tabs with spaces.
@@ -313,26 +286,28 @@ begin
       if (pDest^ = #9) then pDest^ := ' ';
       Inc(pDest);
     until (pDest^ = #0);
-  end else
-    HasTabs := FALSE;
+  end
+  else
+    HasTabs := False;
 end;
 
-function ConvertTabs1(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs1(const Line: WideString; TabWidth: Integer): WideString;
 var
-  HasTabs: boolean;
+  HasTabs: Boolean;
 begin
   Result := ConvertTabs1Ex(Line, TabWidth, HasTabs);
 end;
 
-function ConvertTabs2nEx(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabs2nEx(const Line: WideString; TabWidth: Integer;
+  var HasTabs: Boolean): WideString;
 var
-  i, DestLen, TabCount, TabMask: integer;
-  pSrc, pDest: PChar;
+  i, DestLen, TabCount, TabMask: Integer;
+  pSrc, pDest: PWideChar;
 begin
   Result := Line;  // increment reference count only
-  if GetHasTabs(pointer(Line), DestLen) then begin
-    HasTabs := TRUE;
+  if GetHasTabs(pointer(Line), DestLen) then
+  begin
+    HasTabs := True;
     pSrc := @Line[1 + DestLen];
     // We have at least one tab in the string, and the tab width equals 2^n.
     // pSrc points to the first tab char in Line. We get the number of tabs
@@ -340,22 +315,25 @@ begin
     TabCount := 0;
     TabMask := (TabWidth - 1) xor $7FFFFFFF;
     repeat
-      if (pSrc^ = #9) then begin
+      if pSrc^ = #9 then
+      begin
         DestLen := (DestLen + TabWidth) and TabMask;
         Inc(TabCount);
-      end else
+      end
+      else
         Inc(DestLen);
       Inc(pSrc);
     until (pSrc^ = #0);
     // Set the length of the expanded string.
     SetLength(Result, DestLen);
     DestLen := 0;
-    pSrc := PChar(Line);
-    pDest := PChar(Result);
+    pSrc := PWideChar(Line);
+    pDest := PWideChar(Result);
     // We use another TabMask here to get the difference to 2^n.
     TabMask := TabWidth - 1;
     repeat
-      if (pSrc^ = #9) then begin
+      if pSrc^ = #9 then
+      begin
         i := TabWidth - (DestLen and TabMask);
         Inc(DestLen, i);
         //This is used for both drawing and other stuff and is meant to be #9 and not #32
@@ -365,7 +343,8 @@ begin
           Dec(i);
         until (i = 0);
         Dec(TabCount);
-        if (TabCount = 0) then begin
+        if TabCount = 0 then
+        begin
           repeat
             Inc(pSrc);
             pDest^ := pSrc^;
@@ -373,53 +352,60 @@ begin
           until (pSrc^ = #0);
           exit;
         end;
-      end else begin
+      end
+      else
+      begin
         pDest^ := pSrc^;
         Inc(pDest);
         Inc(DestLen);
       end;
       Inc(pSrc);
     until (pSrc^ = #0);
-  end else
-    HasTabs := FALSE;
+  end
+  else
+    HasTabs := False;
 end;
 
-function ConvertTabs2n(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs2n(const Line: WideString; TabWidth: Integer): WideString;
 var
-  HasTabs: boolean;
+  HasTabs: Boolean;
 begin
   Result := ConvertTabs2nEx(Line, TabWidth, HasTabs);
 end;
 
-function ConvertTabsEx(const Line: AnsiString; TabWidth: integer;
-  var HasTabs: boolean): AnsiString;
+function ConvertTabsEx(const Line: WideString; TabWidth: Integer;
+  var HasTabs: Boolean): WideString;
 var
-  i, DestLen, TabCount: integer;
-  pSrc, pDest: PChar;
+  i, DestLen, TabCount: Integer;
+  pSrc, pDest: PWideChar;
 begin
   Result := Line;  // increment reference count only
-  if GetHasTabs(pointer(Line), DestLen) then begin
-    HasTabs := TRUE;
+  if GetHasTabs(pointer(Line), DestLen) then
+  begin
+    HasTabs := True;
     pSrc := @Line[1 + DestLen];
     // We have at least one tab in the string, and the tab width is greater
     // than 1. pSrc points to the first tab char in Line. We get the number
     // of tabs and the length of the expanded string now.
     TabCount := 0;
     repeat
-      if (pSrc^ = #9) then begin
+      if pSrc^ = #9 then
+      begin
         DestLen := DestLen + TabWidth - DestLen mod TabWidth;
         Inc(TabCount);
-      end else
+      end
+      else
         Inc(DestLen);
       Inc(pSrc);
     until (pSrc^ = #0);
     // Set the length of the expanded string.
     SetLength(Result, DestLen);
     DestLen := 0;
-    pSrc := PChar(Line);
-    pDest := PChar(Result);
+    pSrc := PWideChar(Line);
+    pDest := PWideChar(Result);
     repeat
-      if (pSrc^ = #9) then begin
+      if pSrc^ = #9 then
+      begin
         i := TabWidth - (DestLen mod TabWidth);
         Inc(DestLen, i);
         repeat
@@ -428,7 +414,8 @@ begin
           Dec(i);
         until (i = 0);
         Dec(TabCount);
-        if (TabCount = 0) then begin
+        if TabCount = 0 then
+        begin
           repeat
             Inc(pSrc);
             pDest^ := pSrc^;
@@ -436,27 +423,30 @@ begin
           until (pSrc^ = #0);
           exit;
         end;
-      end else begin
+      end
+      else
+      begin
         pDest^ := pSrc^;
         Inc(pDest);
         Inc(DestLen);
       end;
       Inc(pSrc);
     until (pSrc^ = #0);
-  end else
-    HasTabs := FALSE;
+  end
+  else
+    HasTabs := False;
 end;
 
-function ConvertTabs(const Line: AnsiString; TabWidth: integer): AnsiString;
+function ConvertTabs(const Line: WideString; TabWidth: Integer): WideString;
 var
-  HasTabs: boolean;
+  HasTabs: Boolean;
 begin
   Result := ConvertTabsEx(Line, TabWidth, HasTabs);
 end;
 
-function IsPowerOfTwo(TabWidth: integer): boolean;
+function IsPowerOfTwo(TabWidth: Integer): Boolean;
 var
-  nW: integer;
+  nW: Integer;
 begin
   nW := 2;
   repeat
@@ -466,7 +456,7 @@ begin
   Result := (nW = TabWidth);
 end;
 
-function GetBestConvertTabsProc(TabWidth: integer): TConvertTabsProc;
+function GetBestConvertTabsProc(TabWidth: Integer): TConvertTabsProc;
 begin
   if (TabWidth < 2) then Result := TConvertTabsProc(@ConvertTabs1)
     else if IsPowerOfTwo(TabWidth) then
@@ -475,54 +465,56 @@ begin
       Result := TConvertTabsProc(@ConvertTabs);
 end;
 
-function GetBestConvertTabsProcEx(TabWidth: integer): TConvertTabsProcEx;
+function GetBestConvertTabsProcEx(TabWidth: Integer): TConvertTabsProcEx;
 begin
-  if (TabWidth < 2) then Result := TConvertTabsProcEx(@ConvertTabs1Ex)
+  if (TabWidth < 2) then Result := ConvertTabs1Ex
     else if IsPowerOfTwo(TabWidth) then
-      Result := TConvertTabsProcEx(@ConvertTabs2nEx)
+      Result := ConvertTabs2nEx
     else
-      Result := TConvertTabsProcEx(@ConvertTabsEx);
+      Result := ConvertTabsEx;
 end;
 
-function GetExpandedLength(const aStr: string; aTabWidth: integer): integer;
+function GetExpandedLength(const aStr: WideString; aTabWidth: Integer): Integer;
 var
-  iRun: PChar;
+  iRun: PWideChar;
 begin
   Result := 0;
-  iRun := PChar(aStr);
+  iRun := PWideChar(aStr);
   while iRun^ <> #0 do
   begin
     if iRun^ = #9 then
-      Inc( Result, aTabWidth - (Result mod aTabWidth) )
+      Inc(Result, aTabWidth - (Result mod aTabWidth))
     else
-      Inc( Result );
-    Inc( iRun );
+      Inc(Result);
+    Inc(iRun);
   end;
 end;
 
-{***}
-
-function CharIndex2CaretPos(Index, TabWidth: integer;
-  const Line: string): integer;
+function CharIndex2CaretPos(Index, TabWidth: Integer;
+  const Line: WideString): Integer;
 var
-  iChar: integer;
-  pNext: PChar;
+  iChar: Integer;
+  pNext: PWideChar;
 begin
 // possible sanity check here: Index := Max(Index, Length(Line));
-  if Index > 1 then begin
+  if Index > 1 then
+  begin
     if (TabWidth <= 1) or not GetHasTabs(pointer(Line), iChar) then
       Result := Index
-    else begin
+    else
+    begin
       if iChar + 1 >= Index then
         Result := Index
-      else begin
+      else
+      begin
         // iChar is number of chars before first #9
         Result := iChar;
         // Index is *not* zero-based
         Inc(iChar);
         Dec(Index, iChar);
         pNext := @Line[iChar];
-        while Index > 0 do begin
+        while Index > 0 do
+        begin
           case pNext^ of
             #0:
               begin
@@ -535,7 +527,8 @@ begin
                 Inc(Result, TabWidth);
                 Dec(Result, Result mod TabWidth);
               end;
-            else Inc(Result);
+            else
+              Inc(Result);
           end;
           Dec(Index);
           Inc(pNext);
@@ -544,84 +537,69 @@ begin
         Inc(Result);
       end;
     end;
-  end else
+  end
+  else
     Result := 1;
 end;
 
-function CaretPos2CharIndex(Position, TabWidth: integer; const Line: string;
-  var InsideTabChar: boolean): integer;
+function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: WideString;
+  var InsideTabChar: Boolean): Integer;
 var
-  iPos: integer;
-  pNext: PChar;
+  iPos: Integer;
+  pNext: PWideChar;
 begin
-  InsideTabChar := FALSE;
-  if Position > 1 then begin
+  InsideTabChar := False;
+  if Position > 1 then
+  begin
     if (TabWidth <= 1) or not GetHasTabs(pointer(Line), iPos) then
       Result := Position
-    else begin
+    else
+    begin
       if iPos + 1 >= Position then
         Result := Position
-      else begin
+      else
+      begin
         // iPos is number of chars before first #9
         Result := iPos + 1;
         pNext := @Line[Result];
         // for easier computation go zero-based (mod-operation)
         Dec(Position);
-        while iPos < Position do begin
+        while iPos < Position do
+        begin
           case pNext^ of
             #0: break;
             #9: begin
                   Inc(iPos, TabWidth);
                   Dec(iPos, iPos mod TabWidth);
-                  if iPos > Position then begin
-                    InsideTabChar := TRUE;
+                  if iPos > Position then
+                  begin
+                    InsideTabChar := True;
                     break;
                   end;
                 end;
-            else Inc(iPos);
+            else
+              Inc(iPos);
           end;
           Inc(Result);
           Inc(pNext);
         end;
       end;
     end;
-  end else
+  end
+  else
     Result := Position;
 end;
 
-function StrScanForCharInSet(const Line: string; Start: integer;
-  AChars: TSynIdentChars): integer;
+function StrScanForCharInCategory(const Line: WideString; Start: Integer;
+  IsOfCategory: TCategoryMethod): Integer;
 var
-  p: PChar;
+  p: PWideChar;
 begin
   if (Start > 0) and (Start <= Length(Line)) then
   begin
-{$IFDEF SYN_MBCSSUPPORT}
-    // don't start on a trail byte
-    if ByteType(Line, Start) = mbTrailByte then
-    begin
-      Inc(Start);
-      if Start > Length(Line) then
-      begin
-        Result := 0;
-        Exit;
-      end;
-    end;
-{$ENDIF}
-    p := PChar(@Line[Start]);
+    p := PWideChar(@Line[Start]);
     repeat
-{$IFDEF SYN_MBCSSUPPORT}
-      // skip over multibyte characters
-      if p^ in LeadBytes then
-      begin
-        Inc(p);
-        Inc(Start);
-        if p^ = #0 then
-          Break;
-      end
-      else
-{$ENDIF}
-      if p^ in AChars then
+      if IsOfCategory(p^) then
       begin
         Result := Start;
         exit;
@@ -633,127 +611,79 @@ begin
   Result := 0;
 end;
 
-function StrRScanForCharInSet(const Line: string; Start: integer;
-  AChars: TSynIdentChars): integer;
+function StrRScanForCharInCategory(const Line: WideString; Start: Integer;
+  IsOfCategory: TCategoryMethod): Integer;
 var
   I: Integer;
 begin
   Result := 0;
-  if (Start > 0) and (Start <= Length(Line)) then begin
-{$IFDEF SYN_MBCSSUPPORT}
-    if not SysLocale.FarEast then begin
-{$ENDIF}
-      for I := Start downto 1 do
-        if Line[I] in AChars then begin
-          Result := I;
-          Exit;
-        end;
-{$IFDEF SYN_MBCSSUPPORT}
-    end
-    else begin
-      // it's a lot faster to start from the beginning and go forward than to go
-      // backward and call ByteType on every character
-      I := 1;
-      while I <= Start do begin
-        if Line[I] in LeadBytes then
-          Inc(I)
-        else if Line[I] in AChars then
-          Result := I;
-        Inc(I);
-      end;
-    end;
-{$ENDIF}
-  end;
-end;
-
-{$IFDEF SYN_MBCSSUPPORT}
-function StrScanForMultiByteChar(const Line: string; Start: Integer): Integer;
-var
-  I: Integer;
-begin
-  if SysLocale.FarEast and (Start > 0) and (Start <= Length(Line)) then begin
-    // don't start on a trail byte
-    if ByteType(Line, Start) = mbTrailByte then
-      Inc(Start);
-    for I := Start to Length(Line) do
-      if Line[I] in LeadBytes then begin
+  if (Start > 0) and (Start <= Length(Line)) then
+  begin
+    for I := Start downto 1 do
+      if IsOfCategory(Line[I]) then
+      begin
         Result := I;
         Exit;
       end;
   end;
-  Result := 0;
 end;
-{$ENDIF}
 
-{$IFDEF SYN_MBCSSUPPORT}
-function StrRScanForMultiByteChar(const Line: string; Start: Integer): Integer;
-var
-  I: Integer;
-begin
-  Result := 0;
-  if SysLocale.FarEast and (Start > 0) and (Start <= Length(Line)) then begin
-    // it's a lot faster to start from the beginning and go forward than to go
-    // backward and call ByteType on every character
-    I := 1;
-    while I <= Start do begin
-      if Line[I] in LeadBytes then begin
-        Result := I;
-        Inc(I);
-      end;
-      Inc(I);
-    end;
-  end;
-end;
-{$ENDIF}
-
-function GetEOL(Line: PChar): PChar;
+function GetEOL(Line: PWideChar): PWideChar;
 begin
   Result := Line;
   if Assigned(Result) then
-    while not (Result^ in [#0, #10, #13]) do
+    while (Result^ <> #0) and (Result^ <> #10) and (Result^ <> #13) do
       Inc(Result);
 end;
 
 {$IFOPT R+}{$DEFINE RestoreRangeChecking}{$ELSE}{$UNDEF RestoreRangeChecking}{$ENDIF}
 {$R-}
-function EncodeString(s: string): string;
+function EncodeString(s: WideString): WideString;
 var
-  i, j: integer;
+  i, j: Integer;
 begin
   SetLength(Result, 2 * Length(s)); // worst case
   j := 0;
-  for i := 1 to Length(s) do begin
+  for i := 1 to Length(s) do
+  begin
     Inc(j);
-    if s[i] = '\' then begin
+    if s[i] = '\' then
+    begin
       Result[j] := '\';
       Result[j + 1] := '\';
       Inc(j);
-    end else if s[i] = '/' then begin
+    end
+    else if s[i] = '/' then
+    begin
       Result[j] := '\';
       Result[j + 1] := '.';
       Inc(j);
-    end else
+    end
+    else
       Result[j] := s[i];
   end; //for
   SetLength(Result, j);
 end; { EncodeString }
 
-function DecodeString(s: string): string;
+function DecodeString(s: WideString): WideString;
 var
-  i, j: integer;
+  i, j: Integer;
 begin
   SetLength(Result, Length(s)); // worst case
   j := 0;
   i := 1;
-  while i <= Length(s) do begin
+  while i <= Length(s) do
+  begin
     Inc(j);
-    if s[i] = '\' then begin
+    if s[i] = '\' then
+    begin
       Inc(i);
       if s[i] = '\' then
         Result[j] := '\'
       else
         Result[j] := '/';
-    end else
+    end
+    else
       Result[j] := s[i];
     Inc(i);
   end; //for
@@ -779,47 +709,34 @@ end;
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: string): Integer;
+function LastDelimiter(const Delimiters, S: WideString): Integer;
 var
-  P: PChar;
+  P: PWideChar;
 begin
   Result := Length(S);
-  P := PChar(Delimiters);
+  P := PWideChar(Delimiters);
   while Result > 0 do
   begin
     if (S[Result] <> #0) and (StrScan(P, S[Result]) <> nil) then
-{$IFDEF SYN_MBCSSUPPORT}
-      if (ByteType(S, Result) = mbTrailByte) then
-        Dec(Result)
-      else
-{$ENDIF}
-        Exit;
-{$IFDEF SYN_KYLIX}
-    begin
-      if (ByteType(S, Result) <> mbTrailByte) then
-        Exit;
-      Dec(Result);
-      while ByteType(S, Result) = mbTrailByte do
-        Dec(Result);
-    end;
-{$ENDIF}
+      exit;
     Dec(Result);
   end;
 end;
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_4_UP}
-function StringReplace(const S, OldPattern, NewPattern: string;
-  Flags: TReplaceFlags): string;
+function StringReplace(const S, OldPattern, NewPattern: WideString;
+  Flags: TReplaceFlags): WideString;
 var
-  SearchStr, Patt, NewStr: string;
+  SearchStr, Patt, NewStr: WideString;
   Offset: Integer;
 begin
   if rfIgnoreCase in Flags then
   begin
-    SearchStr := AnsiUpperCase(S);
-    Patt := AnsiUpperCase(OldPattern);
-  end else
+    SearchStr := SynWideUpperCase(S);
+    Patt := SynWideUpperCase(OldPattern);
+  end
+  else
   begin
     SearchStr := S;
     Patt := OldPattern;
@@ -828,11 +745,7 @@ begin
   Result := '';
   while SearchStr <> '' do
   begin
-    {$IFDEF SYN_COMPILER_3_UP}
-    Offset := AnsiPos(Patt, SearchStr);
-    {$ELSE}
-    Offset := Pos(Patt, SearchStr);     // Pos does not support MBCS
-    {$ENDIF}
+    Offset := Pos(Patt, SearchStr);
     if Offset = 0 then
     begin
       Result := Result + NewStr;
@@ -877,40 +790,6 @@ end;
 function RGB(r, g, b: Byte): Cardinal;
 begin
   Result := (r or (g shl 8) or (b shl 16));
-end;
-{$ENDIF}
-
-{$IFDEF SYN_MBCSSUPPORT}
-function IsStringType(Value: Word): TStringType;
-begin
-  Result := stNone;
-
-  (***  Controls  ***)
-  if (Value = C3_SYMBOL) then
-    Result := stControl
-  (*** singlebyte ***)
-  else if ((Value and C3_HALFWIDTH) <> 0) then
-  begin
-    if (Value = C3_HALFWIDTH) or (Value = (C3_ALPHA or C3_HALFWIDTH)) then
-      Result := stHalfNumAlpha { Number & Alphabet }
-    else if ((Value and C3_SYMBOL) <> 0) or ((Value and C3_LEXICAL) <> 0) then
-      Result := stHalfSymbol { Symbol }
-    else if ((Value and C3_KATAKANA) <> 0) then
-      Result := stHalfKatakana; { Japanese-KATAKANA }
-  end
-  (*** doublebyte ***)
-  else begin
-    if (Value = C3_FULLWIDTH) or (Value = (C3_ALPHA or C3_FULLWIDTH)) then
-      Result := stWideNumAlpha { Number & Alphabet }
-    else if ((Value and C3_SYMBOL) <> 0) or ((Value and C3_LEXICAL) <> 0) then
-      Result := stWideSymbol { Symbol }
-    else if ((Value and C3_KATAKANA) <> 0) then
-      Result := stWideKatakana { Japanese-KATAKANA }
-    else if ((Value and C3_HIRAGANA) <> 0) then
-      Result := stHiragana { Japanese-HIRAGANA }
-    else if ((Value and C3_IDEOGRAPH) <> 0) then
-      Result := stIdeograph; { Ideograph }
-  end;
 end;
 {$ENDIF}
 
@@ -1070,11 +949,11 @@ end;
 {$ENDIF}
 
 procedure SynDrawGradient(const ACanvas: TCanvas; const AStartColor, AEndColor: TColor;
-  ASteps: integer; const ARect: TRect; const AHorizontal: boolean);
+  ASteps: Integer; const ARect: TRect; const AHorizontal: Boolean);
 var
-  StartColorR, StartColorG, StartColorB : byte;
-  DiffColorR, DiffColorG, DiffColorB : integer;
-  i, Size : integer;
+  StartColorR, StartColorG, StartColorB: Byte;
+  DiffColorR, DiffColorG, DiffColorB: Integer;
+  i, Size: Integer;
   PaintRect: TRect;
 begin
   StartColorR := GetRValue(ColorToRGB(AStartColor));

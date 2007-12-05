@@ -13,6 +13,7 @@ The Original Code is: SynEditPrintPreview.pas, released 2000-06-01.
 The Initial Author of the Original Code is Morten J. Skovrup.
 Portions written by Morten J. Skovrup are copyright 2000 Morten J. Skovrup.
 Portions written by Michael Hieke are copyright 2000 Michael Hieke.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintPreview.pas,v 1.18 2003/12/27 22:18:43 markonjezic Exp $
+$Id: SynEditPrintPreview.pas,v 1.18.2.1 2004/08/31 12:55:18 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -696,8 +697,8 @@ begin
 {$IFDEF SYN_COMPILER_3_UP}
               rc := ScrollHint.CalcHintRect(200, s, nil);
 {$ELSE}
-              rc := Rect(0, 0, ScrollHint.Canvas.TextWidth(s) + 6,
-                ScrollHint.Canvas.TextHeight(s) + 4);
+              rc := Rect(0, 0, TextWidth(ScrollHint.Canvas, s) + 6,
+                TextHeight(ScrollHint.Canvas, s) + 4);
 {$ENDIF}
               pt := ClientToScreen(Point(ClientWidth - rc.Right - 4, 10));
               OffsetRect(rc, pt.x, pt.y);

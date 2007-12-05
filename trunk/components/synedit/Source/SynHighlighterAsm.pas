@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterASM.pas, released 2000-04-18.
 The Original Code is based on the nhAsmSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Nick Hoddinott.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterAsm.pas,v 1.15 2005/01/28 16:53:20 maelh Exp $
+$Id: SynHighlighterAsm.pas,v 1.14.2.5 2005/11/27 22:22:44 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -71,18 +72,9 @@ type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
     tkString, tkSymbol, tkUnknown);
 
-  TProcTableProc = procedure of object;
-
 type
   TSynAsmSyn = class(TSynCustomHighlighter)
   private
-    fLine: PChar;
-    fLineNumber: Integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     fTokenID: TtkTokenKind;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
@@ -92,8 +84,7 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
-    function KeyHash(ToHash: PChar): Integer;
-    function KeyComp(const aKey: String): Boolean;
+    function HashKey(Str: PWideChar): Cardinal;
     procedure CommentProc;
     procedure CRProc;
     procedure GreaterProc;
@@ -108,15 +99,14 @@ type
     procedure SingleQuoteStringProc;
     procedure SymbolProc;
     procedure UnknownProc;
-    procedure DoAddKeyword(AKeyword: string; AKind: integer);
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
+    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource: string; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;    
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -124,11 +114,8 @@ type
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber:Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -155,12 +142,9 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
-
 const
-  OpCodes: string = 'aaa,aad,aam,adc,add,and,arpl,bound,bsf,bsr,bswap,bt,btc,' +
+  Mnemonics: WideString =
+    'aaa,aad,aam,adc,add,and,arpl,bound,bsf,bsr,bswap,bt,btc,' +
     'btr,bts,call,cbw,cdq,clc,cld,cli,clts,cmc,cmp,cmps,cmpsb,cmpsd,cmpsw,' +
     'cmpxchg,cwd,cwde,daa,das,dec,div,emms,enter,f2xm1,fabs,fadd,faddp,fbld,' +
     'fbstp,fchs,fclex,fcmovb,fcmovbe,fcmove,fcmovnb,fcmovnbe,fcmovne,fcmovnu,' +
@@ -192,83 +176,41 @@ const
     'sldt,smsw,stc,std,sti,stos,stosb,stosd,stosw,str,sub,test,verr,verw,' +
     'wait,wbinvd,xadd,xchg,xlat,xlatb,xor';
 
-procedure MakeIdentTable;
+procedure TSynAsmSyn.DoAddKeyword(AKeyword: WideString; AKind: integer);
 var
-  c: char;
+  HashValue: Cardinal;
 begin
-  FillChar(Identifiers, SizeOf(Identifiers), 0);
-  for c := 'a' to 'z' do
-    Identifiers[c] := TRUE;
-  for c := 'A' to 'Z' do
-    Identifiers[c] := TRUE;
-  for c := '0' to '9' do
-    Identifiers[c] := TRUE;
-  Identifiers['_'] := TRUE;
-
-  FillChar(mHashTable, SizeOf(mHashTable), 0);
-  for c := 'a' to 'z' do
-    mHashTable[c] := 1 + Ord(c) - Ord('a');
-  for c := 'A' to 'Z' do
-    mHashTable[c] := 1 + Ord(c) - Ord('A');
-  for c := '0' to '9' do
-    mHashTable[c] := 27 + Ord(c) - Ord('0');
-end;
-
-function TSynAsmSyn.KeyHash(ToHash: PChar): Integer;
-begin
-  Result := 0;
-  while Identifiers[ToHash^] do begin
-{$IFOPT Q-}
-    Result := 7 * Result + mHashTable[ToHash^];
-{$ELSE}
-    Result := (7 * Result + mHashTable[ToHash^]) and $FFFFFF;
-{$ENDIF}
-    inc(ToHash);
-  end;
-  Result := Result and $3FF;
-  fStringLen := ToHash - fToIdent;
-end;
-
-function TSynAsmSyn.KeyComp(const aKey: String): Boolean;
-var
-  i: integer;
-  pKey1, pKey2: PChar;
-begin
-  pKey1 := fToIdent;
-  // Note: fStringLen is always > 0 !
-  pKey2 := pointer(aKey);
-  for i := 1 to fStringLen do
-  begin
-    if mHashTable[pKey1^] <> mHashTable[pKey2^] then
-    begin
-      Result := FALSE;
-      exit;
-    end;
-    Inc(pKey1);
-    Inc(pKey2);
-  end;
-  Result := TRUE;
-end;
-
-procedure TSynAsmSyn.DoAddKeyword(AKeyword: string; AKind: integer);
-var
-  HashValue: integer;
-begin
-  HashValue := KeyHash(PChar(AKeyword));
+  HashValue := HashKey(PWideChar(AKeyword));
   fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
-function TSynAsmSyn.IdentKind(MayBe: PChar): TtkTokenKind;
+{$Q-}
+function TSynAsmSyn.HashKey(Str: PWideChar): Cardinal;
+begin
+  Result := 0;
+  while IsIdentChar(Str^) do
+  begin
+    Result := Result * 197 + Ord(Str^) * 14;
+    inc(Str);
+  end;
+  Result := Result mod 4561;
+  fStringLen := Str - fToIdent;
+end;
+{$Q+}
+
+function TSynAsmSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Entry: TSynHashEntry;
 begin
   fToIdent := MayBe;
-  Entry := fKeywords[KeyHash(MayBe)];
-  while Assigned(Entry) do begin
+  Entry := fKeywords[HashKey(MayBe)];
+  while Assigned(Entry) do
+  begin
     if Entry.KeywordLen > fStringLen then
       break
     else if Entry.KeywordLen = fStringLen then
-      if KeyComp(Entry.Keyword) then begin
+      if IsCurrentToken(Entry.Keyword) then
+      begin
         Result := TtkTokenKind(Entry.Kind);
         exit;
       end;
@@ -277,60 +219,32 @@ begin
   Result := tkIdentifier;
 end;
 
-procedure TSynAsmSyn.MakeMethodTables;
-var
-  I: Char;
-begin
-  for I := #0 to #255 do
-    case I of
-       #0 : fProcTable[I] := NullProc;
-      #10 : fProcTable[I] := LFProc;
-      #13 : fProcTable[I] := CRProc;
-      #34 : fProcTable[I] := StringProc;
-      #39 : fProcTable[I] := SingleQuoteStringProc;
-      '>' : fProcTable[I] := GreaterProc;
-      '<' : fProcTable[I] := LowerProc;
-      '/' : fProcTable[I] := SlashProc;
-      
-      'A'..'Z', 'a'..'z', '_':
-        fProcTable[I] := IdentProc;
-      '0'..'9':
-        fProcTable[I] := NumberProc;
-      #1..#9, #11, #12, #14..#32:
-        fProcTable[I] := SpaceProc;
-      '#', ';':
-        fProcTable[I] := CommentProc;
-      '.', ':', '&', '{', '}', '=', '^', '-', '+', '(', ')', '*':
-        fProcTable[I] := SymbolProc;
-      else
-        fProcTable[I] := UnknownProc;
-    end;
-end;
-
 constructor TSynAsmSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  fCaseSensitive := False;
+
   fKeywords := TSynHashEntryList.Create;
 
-  fCommentAttri       := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+  fCommentAttri       := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
-  fIdentifierAttri    := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri    := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fKeyAttri           := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri           := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style     := [fsBold];
   AddAttribute(fKeyAttri);
-  fNumberAttri        := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri        := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
-  fSpaceAttri         := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri         := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fStringAttri        := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri        := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   AddAttribute(fStringAttri);
-  fSymbolAttri        := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri        := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
 
-  MakeMethodTables;
-  EnumerateKeywords(Ord(tkKey), OpCodes, IdentChars, DoAddKeyword);
+  EnumerateKeywords(Ord(tkKey), Mnemonics, IsIdentChar, DoAddKeyword);
   SetAttributesOnChange(DefHighlightChange);
   fDefaultFilter      := SYNS_FilterX86Assembly;
 end;
@@ -341,20 +255,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TSynAsmSyn.SetLine(NewValue: String; LineNumber:Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end;
-
 procedure TSynAsmSyn.CommentProc;
 begin
   fTokenID := tkComment;
   repeat
     Inc(Run);
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 procedure TSynAsmSyn.CRProc;
@@ -375,7 +281,7 @@ procedure TSynAsmSyn.IdentProc;
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do inc(Run);
+  while IsIdentChar(fLine[Run]) do inc(Run);
 end;
 
 procedure TSynAsmSyn.LFProc;
@@ -388,19 +294,31 @@ procedure TSynAsmSyn.LowerProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in ['=', '>'] then Inc(Run);
+  if fLine[Run] in [WideChar('='), WideChar('>')] then Inc(Run);
 end;
 
 procedure TSynAsmSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynAsmSyn.NumberProc;
+
+  function IsNumberChar: Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', '.', 'a'..'f', 'h', 'A'..'F', 'H':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in ['0'..'9', '.', 'a'..'f', 'h', 'A'..'F', 'H'] do
+  while IsNumberChar do
     Inc(Run);
 end;
 
@@ -411,7 +329,7 @@ begin
     fTokenID := tkComment;
     repeat
       Inc(Run);
-    until fLine[Run] in [#0, #10, #13];
+    until IsLineEnd(Run);
   end else
     fTokenID := tkSymbol;
 end;
@@ -421,7 +339,7 @@ begin
   fTokenID := tkSpace;
   repeat
     Inc(Run);
-  until (fLine[Run] > #32) or (fLine[Run] in [#0, #10, #13]);
+  until (fLine[Run] > #32) or IsLineEnd(Run);
 end;
 
 procedure TSynAsmSyn.StringProc;
@@ -460,11 +378,6 @@ end;
 
 procedure TSynAsmSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkIdentifier;
 end;
@@ -472,7 +385,30 @@ end;
 procedure TSynAsmSyn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case fLine[Run] of
+     #0: NullProc;
+    #10: LFProc;
+    #13: CRProc;
+    #34: StringProc;
+    #39: SingleQuoteStringProc;
+    '>': GreaterProc;
+    '<': LowerProc;
+    '/': SlashProc;
+
+    'A'..'Z', 'a'..'z', '_':
+      IdentProc;
+    '0'..'9':
+      NumberProc;
+    #1..#9, #11, #12, #14..#32:
+      SpaceProc;
+    '#', ';':
+      CommentProc;
+    '.', ':', '&', '{', '}', '=', '^', '-', '+', '(', ')', '*':
+      SymbolProc;
+    else
+      UnknownProc;
+  end;
+  inherited;
 end;
 
 function TSynAsmSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -491,15 +427,7 @@ end;
 
 function TSynAsmSyn.GetEol: Boolean;
 begin
-  Result := fTokenId = tkNull;
-end;
-
-function TSynAsmSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynAsmSyn.GetTokenAttribute: TSynHighlighterAttributes;
@@ -527,16 +455,6 @@ begin
   Result := fTokenId;
 end;
 
-function TSynAsmSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynAsmSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
-end;
-
 class function TSynAsmSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangX86Asm;
@@ -547,7 +465,7 @@ begin
   Result := fDefaultFilter <> SYNS_FilterX86Assembly;
 end;
 
-function TSynAsmSyn.GetSampleSource: string;
+function TSynAsmSyn.GetSampleSource: WideString;
 begin
   Result := '; x86 assembly sample source'#13#10 +
             '  CODE	SEGMENT	BYTE PUBLIC'#13#10 +
@@ -556,7 +474,7 @@ begin
             '    PUSH SS'#13#10 +
             '    POP DS'#13#10 +
             '    MOV AX, AABBh'#13#10 +
-	           '    MOV	BYTE PTR ES:[DI], 255'#13#10 +
+            '    MOV	BYTE PTR ES:[DI], 255'#13#10 +
             '    JMP SHORT AsmEnd'#13#10 +
             #13#10 +
             '  welcomeMsg DB ''Hello World'', 0'#13#10 +
@@ -568,9 +486,14 @@ begin
             'END';
 end;
 
+class function TSynAsmSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangX86Asm;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynAsmSyn);
 {$ENDIF}
 end.
+

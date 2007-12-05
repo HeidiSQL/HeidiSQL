@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrinterInfo.pas,v 1.5 2005/10/18 01:26:51 etrusco Exp $
+$Id: SynEditPrinterInfo.pas,v 1.4.2.2 2005/10/18 01:43:23 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -250,21 +250,18 @@ begin
     FillDefault;
     Exit;
   end;
-  {************}
 {$IFNDEF SYN_CLX}
   FPhysicalWidth := GetDeviceCaps(Printer.Handle, Windows.PhysicalWidth);
   FPhysicalHeight := GetDeviceCaps(Printer.Handle, Windows.PhysicalHeight);
 {$ENDIF}
   FPrintableWidth := Printer.PageWidth; {or GetDeviceCaps(Printer.Handle, HorzRes);}
   FPrintableHeight := Printer.PageHeight; {or GetDeviceCaps(Printer.Handle, VertRes);}
-  {************}
 {$IFNDEF SYN_CLX}
   FLeftGutter := GetDeviceCaps(Printer.Handle, PhysicalOffsetX);
   FTopGutter := GetDeviceCaps(Printer.Handle, PhysicalOffsetY);
 {$ENDIF}
   FRightGutter := FPhysicalWidth - FPrintableWidth - FLeftGutter;
   FBottomGutter := FPhysicalHeight - FPrintableHeight - FTopGutter;
-  {************}
 {$IFNDEF SYN_CLX}
   FXPixPrInch := GetDeviceCaps(Printer.Handle, LogPixelsX);
   FYPixPrInch := GetDeviceCaps(Printer.Handle, LogPixelsY);

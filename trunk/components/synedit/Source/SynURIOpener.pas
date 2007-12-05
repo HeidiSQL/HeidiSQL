@@ -10,6 +10,7 @@ the specific language governing rights and limitations under the License.
 
 The Original Code is: SynURIOpener.pas, released 2003-09-25.
 The Initial Author of this file is Maël Hörz.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -32,7 +33,7 @@ located at http://SynEdit.SourceForge.net
 @abstract(Plugin for SynEdit to make links (URIs) clickable)
 @author(Maël Hörz)
 @created(2003)
-@lastmod(2003-10-08)
+@lastmod(2004-03-19)
 The SynURIOpener unit extends SynEdit to make links highlighted by SynURISyn
 clickable.
 
@@ -108,7 +109,8 @@ type
     procedure SetURIHighlighter(const Value: TSynURISyn);
   public
     constructor Create(AOwner: TComponent); override;
-    function VisitedURI(URI: string): Boolean;
+    destructor Destroy; override;
+    function VisitedURI(URI: WideString): Boolean;
   published
     property CtrlActivatesLinks: Boolean read FCtrlActivatesLinks
       write FCtrlActivatesLinks default True;
@@ -171,6 +173,12 @@ begin
   FVisitedURIs.Sorted := True;
 end;
 
+destructor TSynURIOpener.Destroy;
+begin
+  FVisitedURIs.Free;
+  inherited;
+end;
+
 function TSynURIOpener.MouseInSynEdit: Boolean;
 var
   pt: TPoint;
@@ -221,7 +229,7 @@ procedure TSynURIOpener.NewMouseCursor(Sender: TObject;
   const aLineCharPos: TBufferCoord; var aCursor: TCursor);
 var
   TokenType, Start: Integer;
-  Token: string;
+  Token: WideString;
   Attri: TSynHighlighterAttributes;
 begin
   FControlDown := IsControlPressed;
@@ -254,7 +262,7 @@ procedure TSynURIOpener.NewMouseUp(Sender: TObject; Button: TMouseButton;
 var
   ptLineCol: TBufferCoord;
   TokenType, Start: Integer;
-  Token: string;
+  Token: WideString;
   Attri: TSynHighlighterAttributes;
 begin
   if (Button <> mbLeft) or (FCtrlActivatesLinks and not FControlDown) or
@@ -328,9 +336,9 @@ begin
     tkWebLink, tkHttpLink, tkHttpsLink:
       CmdLine := Format(FWebBrowserCmd, [URI]);
   end;
-  Libc.system(PChar(CmdLine + ' &')); // add an ampersand to return immediately
+  Libc.system(PAnsiChar(CmdLine + ' &')); // add an ampersand to return immediately
   {$ELSE}
-  ShellExecute(0, nil, PChar(URI), nil, nil, 1{SW_SHOWNORMAL});
+  ShellExecute(0, nil, PAnsiChar(URI), nil, nil, 1{SW_SHOWNORMAL});
   {$ENDIF}
 end;
 
@@ -377,7 +385,7 @@ begin
     TAccessSynURISyn(FURIHighlighter).SetAlreadyVisitedURIFunc(VisitedURI);
 end;
 
-function TSynURIOpener.VisitedURI(URI: string): Boolean;
+function TSynURIOpener.VisitedURI(URI: WideString): Boolean;
 var
   Dummy: Integer;
 begin

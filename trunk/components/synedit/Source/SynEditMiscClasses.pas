@@ -12,6 +12,7 @@ The Original Code is: SynEditMiscClasses.pas, released 2000-04-07.
 The Original Code is based on the mwSupportClasses.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Michael Hieke.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditMiscClasses.pas,v 1.40 2007/01/25 08:32:24 etrusco Exp $
+$Id: SynEditMiscClasses.pas,v 1.35.2.6 2006/05/21 11:59:34 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -59,6 +60,7 @@ uses
   kTextDrawer,
   QSynEditTypes,
   QSynEditKeyConst,
+  QSynUnicode,
 {$ELSE}
   Consts,
   Windows,
@@ -71,6 +73,7 @@ uses
   Registry,
   SynEditTypes,
   SynEditKeyConst,
+  SynUnicode,
 {$ENDIF}
 {$IFDEF SYN_COMPILER_4_UP}
   Math,
@@ -360,19 +363,19 @@ type
 
   TSynEditSearchCustom = class(TComponent)
   protected
-    function GetPattern: string; virtual; abstract;
-    procedure SetPattern(const Value: string); virtual; abstract;
-    function GetLength(aIndex: integer): integer; virtual; abstract;
-    function GetResult(aIndex: integer): integer; virtual; abstract;
-    function GetResultCount: integer; virtual; abstract;
+    function GetPattern: WideString; virtual; abstract;
+    procedure SetPattern(const Value: WideString); virtual; abstract;
+    function GetLength(Index: Integer): Integer; virtual; abstract;
+    function GetResult(Index: Integer): Integer; virtual; abstract;
+    function GetResultCount: Integer; virtual; abstract;
     procedure SetOptions(const Value: TSynSearchOptions); virtual; abstract;
   public
-    function FindAll(const NewText: string): integer; virtual; abstract;
-    function Replace(const aOccurrence, aReplacement: string): string; virtual; abstract;     
-    property Pattern: string read GetPattern write SetPattern;
-    property ResultCount: integer read GetResultCount;
-    property Results[aIndex: integer]: integer read GetResult;
-    property Lengths[aIndex: integer]: integer read GetLength;
+    function FindAll(const NewText: WideString): Integer; virtual; abstract;
+    function Replace(const aOccurrence, aReplacement: WideString): WideString; virtual; abstract;
+    property Pattern: WideString read GetPattern write SetPattern;
+    property ResultCount: Integer read GetResultCount;
+    property Results[Index: Integer]: Integer read GetResult;
+    property Lengths[Index: Integer]: Integer read GetLength;
     property Options: TSynSearchOptions write SetOptions;
   end;
 
@@ -385,60 +388,6 @@ type
   TBetterRegistry = TRegistry;
   {$ENDIF}
 {$ENDIF}
-
-  TSynEditMark = class
-  protected
-    fOnChange: TNotifyEvent;
-    fLine, fChar, fImage: Integer;
-    fVisible: boolean;
-    fInternalImage: boolean;
-    fBookmarkNum: integer;
-    procedure SetChar(const Value: Integer); virtual;
-    procedure SetImage(const Value: Integer); virtual;
-    procedure SetLine(const Value: Integer); virtual;
-    procedure SetVisible(const Value: boolean);
-    procedure SetInternalImage(const Value: boolean);
-    function GetIsBookmark: boolean;
-  public
-    constructor Create();
-    property Line: integer read fLine write SetLine;
-    property Char: integer read fChar write SetChar;
-    property ImageIndex: integer read fImage write SetImage;
-    property BookmarkNumber: integer read fBookmarkNum write fBookmarkNum;
-    property Visible: boolean read fVisible write SetVisible;
-    property InternalImage: boolean read fInternalImage write SetInternalImage;
-    property IsBookmark: boolean read GetIsBookmark;
-    property OnChange: TNotifyEvent read fOnChange write fOnChange;
-  end;
-
-  TSynEditLineMarks = array[0..16] of TSynEditMark;
-
-  { A list of mark objects. Each object cause a litle picture to be drawn in the
-    gutter. }
-
-  { TSynEditMarkList }
-
-  TSynEditMarkList = class(TObject)
-  private
-    fItems: TList;
-    fOnChange: TNotifyEvent;
-    procedure DoChange;
-    function GetItem(Index: Integer): TSynEditMark;
-    function GetCount: Integer;
-    procedure InternalDelete(Index: Integer);
-  public
-    constructor Create;
-    destructor Destroy; override;
-    function Add(Item: TSynEditMark): Integer;
-    function Remove(Item: TSynEditMark): Integer;
-    procedure ClearLine(line: integer);
-    procedure Clear;
-    procedure GetMarksForLine(line: integer; out Marks: TSynEditLineMarks);
-  public
-    property Items[Index: Integer]: TSynEditMark read GetItem; default;
-    property Count: Integer read GetCount;
-    property OnChange: TNotifyEvent read fOnChange write fOnChange;
-  end;
 
 implementation
 
@@ -526,7 +475,8 @@ procedure TSynGutter.Assign(Source: TPersistent);
 var
   Src: TSynGutter;
 begin
-  if Assigned(Source) and (Source is TSynGutter) then begin
+  if Assigned(Source) and (Source is TSynGutter) then 
+  begin
     Src := TSynGutter(Source);
     fFont.Assign(src.Font);
     fUseFontStyle := src.fUseFontStyle;
@@ -549,7 +499,8 @@ begin
     fGradientEndColor := Src.fGradientEndColor;
     fGradientSteps := Src.fGradientSteps;
     if Assigned(fOnChange) then fOnChange(Self);
-  end else
+  end 
+  else
     inherited;
 end;
 
@@ -1101,6 +1052,7 @@ begin
   inherited Remove(TMethod(AEvent));
 end;
 
+
 { TSynInternalImage }
 
 type
@@ -1141,8 +1093,8 @@ begin
 
   { Search the list for the needed resource }
   for idx := 0 to InternalResources.Count - 1 do
-    if (TInternalResource (InternalResources[idx]).Name = UpperCase (Name)) then
-      with TInternalResource (InternalResources[idx]) do begin
+    if (TInternalResource(InternalResources[idx]).Name = UpperCase(Name)) then
+      with TInternalResource(InternalResources[idx]) do begin
         UsageCount := UsageCount + 1;
         Result := Bitmap;
         exit;
@@ -1150,14 +1102,14 @@ begin
 
   { There is no loaded resource in the list so let's create a new one }
   Result := TBitmap.Create;
-  Result.LoadFromResourceName( aModule, Name );
+  Result.LoadFromResourceName(aModule, Name);
 
   { Add the new resource to our list }
   newIntRes:= TInternalResource.Create;
   newIntRes.UsageCount := 1;
-  newIntRes.Name := UpperCase (Name);
+  newIntRes.Name := UpperCase(Name);
   newIntRes.Bitmap := Result;
-  InternalResources.Add (newIntRes);
+  InternalResources.Add(newIntRes);
 end;
 
 procedure TSynInternalImage.FreeBitmapFromInternalList;
@@ -1361,8 +1313,8 @@ begin
     QEventType_FocusIn:
       begin
         Canvas.Font := Font;
-        CreateCaret(Self, 0, 1, Canvas.TextHeight('x') + 2);
-        SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
+        CreateCaret(Self, 0, 1, TextHeight(Canvas, 'x') + 2);
+        SetCaretPos(BorderWidth + 1 + TextWidth(Canvas, Text), BorderWidth + 1);
         ShowCaret(Self);
       end;
     QEventType_FocusOut:
@@ -1387,7 +1339,7 @@ begin
   begin
     Code := XKeysymToKeycode(Xlib.PDisplay(QtDisplay), Key);
     Key := XKeycodeToKeysym(Xlib.PDisplay(QtDisplay), Code, 0);
-    if Char(Key) in ['a'..'z'] then Key := Ord(UpCase(Char(Key)));
+    if AnsiChar(Key) in ['a'..'z'] then Key := Ord(UpCase(AnsiChar(Key)));
   end;
   {$ENDIF}
   
@@ -1416,7 +1368,7 @@ begin
   begin
     Text := ShortCutToTextEx(Key, Shift);
     Invalidate;
-    SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
+    SetCaretPos(BorderWidth + 1 + TextWidth(Canvas, Text), BorderWidth + 1);
   end;
 
   Key := SavedKey;
@@ -1434,7 +1386,7 @@ begin
   begin
     Code := XKeysymToKeycode(Xlib.PDisplay(QtDisplay), Key);
     Key := XKeycodeToKeysym(Xlib.PDisplay(QtDisplay), Code, 0);
-    if Char(Key) in ['a'..'z'] then Key := Ord(UpCase(Char(Key)));
+    if AnsiChar(Key) in ['a'..'z'] then Key := Ord(UpCase(AnsiChar(Key)));
   end;
   {$ENDIF}
   
@@ -1442,7 +1394,7 @@ begin
   begin
     Text := srNone;
     Invalidate;
-    SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
+    SetCaretPos(BorderWidth + 1 + TextWidth(Canvas, Text), BorderWidth + 1);
   end;
 end;
 
@@ -1468,7 +1420,7 @@ begin
   Canvas.Brush.Color := Color;
   InflateRect(r, -BorderWidth, -BorderWidth);
   Canvas.FillRect(r);
-  Canvas.TextRect(r, BorderWidth + 1, BorderWidth + 1, Text);
+  TextRect(Canvas, r, BorderWidth + 1, BorderWidth + 1, Text);
 end;
 
 procedure TSynHotKey.SetBorderStyle(const Value: TSynBorderStyle);
@@ -1501,7 +1453,7 @@ begin
   Text := ShortCutToTextEx(Key, Shift);
   Invalidate;
   if not Visible then
-    SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
+    SetCaretPos(BorderWidth + 1 + TextWidth(Canvas, Text), BorderWidth + 1);
 end;
 
 procedure TSynHotKey.SetInvalidKeys(const Value: THKInvalidKeys);
@@ -1538,10 +1490,11 @@ procedure TSynHotKey.WMSetFocus(var Msg: TWMSetFocus);
 begin
   Canvas.Font := Font;
   CreateCaret(Handle, 0, 1, -Canvas.Font.Height + 2);
-  SetCaretPos(BorderWidth + 1 + Canvas.TextWidth(Text), BorderWidth + 1);
+  SetCaretPos(BorderWidth + 1 + TextWidth(Canvas, Text), BorderWidth + 1);
   ShowCaret(Handle);
 end;
 {$ENDIF}
+
 
 {$IFNDEF SYN_CLX}
   {$IFNDEF SYN_COMPILER_4_UP}
@@ -1565,7 +1518,7 @@ begin
 
   if not Relative then Delete(S, 1, 1);
   TempKey := 0;
-  Result := RegOpenKeyEx(GetBaseKey(Relative), PChar(S), 0,
+  Result := RegOpenKeyEx(GetBaseKey(Relative), PAnsiChar(S), 0,
       KEY_READ, TempKey) = ERROR_SUCCESS;
   if Result then
   begin
@@ -1577,159 +1530,6 @@ end; { TBetterRegistry.OpenKeyReadOnly }
   {$ENDIF SYN_COMPILER_4_UP}
 {$ENDIF SYN_CLX}
 
-{ TSynEditMark }
-
-function TSynEditMark.GetIsBookmark: boolean;
 begin
-  Result := (fBookmarkNum >= 0);
-end;
-
-procedure TSynEditMark.SetChar(const Value: Integer);
-begin
-  FChar := Value;
-end;
-
-procedure TSynEditMark.SetImage(const Value: Integer);
-begin
-  FImage := Value;
-  if fVisible and Assigned(fOnChange) then
-    fOnChange(Self);
-//    fEdit.InvalidateGutterLines(fLine, fLine);
-end;
-
-procedure TSynEditMark.SetInternalImage(const Value: boolean);
-begin
-  fInternalImage := Value;
-  if fVisible and Assigned(fOnChange) then
-    fOnChange(Self);
-end;
-
-procedure TSynEditMark.SetLine(const Value: Integer);
-begin
-  if (fLine <> Value) and fVisible and Assigned(fOnChange) then
-  begin
-    if fLine > 0 then
-      fOnChange(Self);
-    fLine := Value;
-    if fLine > 0 then
-      fOnChange(Self);
-  end
-  else
-    fLine := Value;
-end;
-
-procedure TSynEditMark.SetVisible(const Value: boolean);
-begin
-  if fVisible <> Value then
-  begin
-    fVisible := Value;
-    if Assigned(fOnChange) then
-      fOnChange(Self);
-  end;
-end;
-
-constructor TSynEditMark.Create;
-begin
-  inherited Create;
-  fBookmarkNum := -1;
-end;
-
-{ TSynEditMarkList }
-
-function TSynEditMarkList.Add(Item: TSynEditMark): Integer;
-begin
-  Result := fItems.Add(Item);
-  DoChange;
-end;
-
-procedure TSynEditMarkList.ClearLine(Line: integer);
-var
-  i: integer;
-  v_Changed: Boolean;
-begin
-  v_Changed := False;
-  for i := fItems.Count -1 downto 0 do
-    if not Items[i].IsBookmark and (Items[i].Line = Line) then
-    begin
-      InternalDelete(i);
-      v_Changed := True;
-    end;
-  if v_Changed then
-    DoChange;
-end;
-
-constructor TSynEditMarkList.Create;
-begin
-  inherited Create;
-  fItems := TList.Create;
-end;
-
-destructor TSynEditMarkList.Destroy;
-begin
-  Clear;
-  fItems.Free;
-  inherited Destroy;
-end;
-
-procedure TSynEditMarkList.InternalDelete(Index: Integer);
-begin
-  TObject(fItems[Index]).Free;
-  fItems.Delete(Index);
-end;
-
-procedure TSynEditMarkList.DoChange;
-begin
-  if Assigned(FOnChange) then
-    FOnChange(Self);
-end;
-
-function TSynEditMarkList.GetItem(Index: Integer): TSynEditMark;
-begin
-  result := TSynEditMark(fItems[Index]);
-end;
-
-procedure TSynEditMarkList.GetMarksForLine(line: integer;
-  out marks: TSynEditLineMarks);
-//Returns up to maxMarks book/gutter marks for a chosen line.
-var
-  v_MarkCount: integer;
-  i: integer;
-begin
-  FillChar(marks, SizeOf(marks), 0);
-  v_MarkCount := 0;
-  for i := 0 to fItems.Count - 1 do
-  begin
-    if Items[i].Line = line then
-    begin
-      marks[v_MarkCount] := Items[i];
-      Inc(v_MarkCount);
-      if v_MarkCount = Length(marks) then
-        break;
-    end;
-  end;
-end;
-
-function TSynEditMarkList.GetCount: Integer;
-begin
-  Result := fItems.Count;
-end;
-
-procedure TSynEditMarkList.Clear;
-begin
-  while fItems.Count <> 0 do
-  begin
-    InternalDelete(0);
-  end;
-  DoChange;
-end;
-
-function TSynEditMarkList.Remove(Item: TSynEditMark): Integer;
-begin
-  Result := fItems.IndexOf(Item);
-  InternalDelete(Result);
-  DoChange;
-end;
-
-begin
-  InternalResources.Free;
+  InternalResources := nil;
 end.

@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterGalaxy.pas, released 2000-04-07.
 The Original Code is based on the mkGalaxySyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Martijn van der Kooij.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGalaxy.pas,v 1.13 2005/01/28 16:53:22 maelh Exp $
+$Id: SynHighlighterGalaxy.pas,v 1.12.2.7 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -41,7 +42,7 @@ Known Issues:
 @lastmod(2000-06-23)
 The SynHighlighterGalaxy unit provides SynEdit with a Galaxy highlighter.
 Galaxy is a PBEM game for 10 to 500+ players, to see it wokring goto: http://members.tripod.com/~erisande/kooij.html .
-The keywords in the string list KeyWords have to be in UPPERCASE and sorted.
+The keywords in the string list KeyWords have to be in lowercase and sorted.
 }
 
 {$IFNDEF QSYNHIGHLIGHTERGALAXY}
@@ -56,10 +57,12 @@ uses
 {$IFDEF SYN_CLX}
   QGraphics,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Graphics,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils, Classes;
 
@@ -69,25 +72,18 @@ type
 
   TRangeState = (rsUnKnown, rsMessageStyle);
 
-  TProcTableProc = procedure of object;
-
 type
   TSynGalaxySyn = class(TSynCustomHighlighter)
   private
     fRange: TRangeState;
-    fLine: PChar;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fTokenPos: Integer;
     FTokenID: TtkTokenKind;
-    fLineNumber : Integer;
     fMessageAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyWords: TStrings;
+    fKeyWords: TWideStrings;
     procedure PointCommaProc;
     procedure CRProc;
     procedure IdentProc;
@@ -96,13 +92,13 @@ type
     procedure SpaceProc;
     procedure StringProc;
     procedure UnknownProc;
-    procedure MakeMethodTables;
     procedure MessageStyleProc;
-    procedure SetKeyWords(const Value: TStrings);
+    procedure SetKeyWords(const Value: TWideStrings);
   protected
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -111,12 +107,10 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber:Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
-    function IsKeyword(const AKeyword: string): boolean; override;
+    function IsIdentChar(AChar: WideChar): Boolean; override;
+    function IsKeyword(const AKeyword: WideString): Boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -130,7 +124,7 @@ type
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
       write fIdentifierAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property KeyWords: TStrings read fKeyWords write SetKeyWords;
+    property KeyWords: TWideStrings read fKeyWords write SetKeyWords;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
       write fSpaceAttri;
     property MessageAttri: TSynHighlighterAttributes read fMessageAttri
@@ -146,41 +140,29 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
-
-procedure MakeIdentTable;
-var
-  I, J: Char;
+function TSynGalaxySyn.IsIdentChar(AChar: WideChar): Boolean;
 begin
-  for I := #0 to #255 do
-  begin
-    Case I of
-      '_', '0'..'9', 'a'..'z', 'A'..'Z', '#': Identifiers[I] := True;
-    else Identifiers[I] := False;
-    end;
-    J := UpperCase(I)[1];
-    Case I in ['_', 'a'..'z', 'A'..'Z'] of
-      True: mHashTable[I] := Ord(J) - 64
-    else mHashTable[I] := 0;
-    end;
+  case AChar of
+   '_', '0'..'9', 'a'..'z', 'A'..'Z', '#':
+      Result := True;
+    else
+      Result := False;
   end;
 end;
 
-function TSynGalaxySyn.IsKeyword(const AKeyword: string): boolean;
+function TSynGalaxySyn.IsKeyword(const AKeyword: WideString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: String;
+  Token: WideString;
 begin
   First := 0;
   Last := fKeywords.Count - 1;
   Result := False;
-  Token := UpperCase(AKeyword);
+  Token := SynWideUpperCase(AKeyword);
   while First <= Last do
   begin
     I := (First + Last) shr 1;
-    Compare := CompareStr(fKeywords[i], Token);
+    Compare := WideCompareStr(fKeywords[i], Token);
     if Compare = 0 then
     begin
       Result := True;
@@ -190,53 +172,37 @@ begin
   end;
 end; { IsKeyWord }
 
-procedure TSynGalaxySyn.MakeMethodTables;
-var
-  I: Char;
-begin
-  for I := #0 to #255 do
-    case I of
-      ';': fProcTable[I] := PointCommaProc;                                      
-      #13: fProcTable[I] := CRProc;
-      '#','A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      #0: fProcTable[I] := NullProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      '@': fProcTable[I] := StringProc;
-    else
-      fProcTable[I] := UnknownProc;
-    end;
-end;
-
 constructor TSynGalaxySyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fKeyWords := TStringList.Create;
-  TStringList(fKeyWords).Sorted := True;
-  TStringList(fKeyWords).Duplicates := dupIgnore;
-  TStringList(fKeyWords).CommaText :=
-    '#END,#GALAXY,A,ANONYMOUS,AUTOUNLOAD,B,BATTLEPROTOCOL,C,CAP,CARGO,COL,' +
-    'COMPRESS,D,DRIVE,E,EMP,F,FLEET,FLEETTABLES,G,GALAXYTV,GPLUS,GROUPFORECAST,' +
-    'H,I,J,L,M,MACHINEREPORT,MAT,N,NAMECASE,NO,O,OPTIONS,P,PLANETFORECAST,' +
-    'PRODTABLE,PRODUCE,Q,R,ROUTESFORECAST,S,SEND,SHIELDS,SHIPTYPEFORECAST,' +
-    'SORTGROUPS,T,TWOCOL,U,UNDERSCORES,V,W,WAR,WEAPONS,X,Y,Z';
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := False;
+
+  fKeyWords := TWideStringList.Create;
+  TWideStringList(fKeyWords).Sorted := True;
+  TWideStringList(fKeyWords).Duplicates := dupIgnore;
+  TWideStringList(fKeyWords).CommaText :=
+    '#end,#galaxy,a,anonymous,autounload,b,battleprotocol,c,cap,cargo,col,' +
+    'compress,d,drive,e,emp,f,fleet,fleettables,g,galaxytv,gplus,groupforecast,' +
+    'h,i,j,l,m,machinereport,mat,n,namecase,no,o,options,p,planetforecast,' +
+    'prodtable,produce,q,r,routesforecast,s,send,shields,shiptypeforecast,' +
+    'sortgroups,t,twocol,u,underscores,v,w,war,weapons,x,y,z';
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
-  fMessageAttri := TSynHighlighterAttributes.Create(SYNS_AttrMessage);
+  fMessageAttri := TSynHighlighterAttributes.Create(SYNS_AttrMessage, SYNS_FriendlyAttrMessage);
   AddAttribute(fMessageAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  MakeMethodTables;
   fRange := rsUnknown;
   fDefaultFilter := SYNS_FilterGalaxy;
 end; { Create }
@@ -246,14 +212,6 @@ begin
   fKeyWords.Free;
   inherited Destroy;
 end; { Destroy }
-
-procedure TSynGalaxySyn.SetLine(NewValue: String; LineNumber:Integer);          
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
-end; { SetLine }
 
 procedure TSynGalaxySyn.MessageStyleProc;
 begin
@@ -304,7 +262,7 @@ end;
 
 procedure TSynGalaxySyn.IdentProc;
 begin
-  while Identifiers[fLine[Run]] do
+  while IsIdentChar(fLine[Run]) do
     Inc(Run);
   if IsKeyWord(GetToken) then
     fTokenId := tkKey
@@ -321,13 +279,14 @@ end;
 procedure TSynGalaxySyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynGalaxySyn.SpaceProc;
 begin
   inc(Run);
   fTokenID := tkSpace;
-  while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 procedure TSynGalaxySyn.StringProc;
@@ -342,11 +301,6 @@ end;
 
 procedure TSynGalaxySyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnKnown;
 end;
@@ -357,7 +311,17 @@ begin
   if fRange = rsMessageStyle then
     MessageStyleProc
   else
-    fProcTable[fLine[Run]];
+    case fLine[Run] of
+      ';': PointCommaProc;                                      
+      #13: CRProc;
+      '#','A'..'Z', 'a'..'z', '_': IdentProc;
+      #10: LFProc;
+      #0: NullProc;
+      #1..#9, #11, #12, #14..#32: SpaceProc;
+      '@': StringProc;
+      else UnknownProc;
+    end;
+  inherited;
 end;
 
 function TSynGalaxySyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -375,20 +339,12 @@ end;
 
 function TSynGalaxySyn.GetEol: Boolean;
 begin
-  Result := fTokenId = tkNull;
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynGalaxySyn.GetRange: Pointer;
 begin
   Result := Pointer(fRange);
-end;
-
-function TSynGalaxySyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
 end;
 
 function TSynGalaxySyn.GetTokenID: TtkTokenKind;
@@ -415,11 +371,6 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynGalaxySyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
 procedure TSynGalaxySyn.ResetRange;
 begin
   fRange := rsUnknown;
@@ -430,7 +381,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynGalaxySyn.SetKeyWords(const Value: TStrings);
+procedure TSynGalaxySyn.SetKeyWords(const Value: TWideStrings);
 var
   i: Integer;
 begin
@@ -438,7 +389,7 @@ begin
     begin
       Value.BeginUpdate;
       for i := 0 to Value.Count - 1 do
-        Value[i] := UpperCase(Value[i]);
+        Value[i] := SynWideUpperCase(Value[i]);
       Value.EndUpdate;
     end;
   fKeyWords.Assign(Value);
@@ -463,12 +414,16 @@ begin
   r:= TBetterRegistry.Create;
   try
     r.RootKey := RootKey;
-    if r.OpenKeyReadOnly(Key) then begin
+    if r.OpenKeyReadOnly(Key) then
+    begin
       if r.ValueExists('KeyWords') then KeyWords.Text:= r.ReadString('KeyWords');
       Result := inherited LoadFromRegistry(RootKey, Key);
     end
-    else Result := false;
-  finally r.Free; end;
+    else
+      Result := False;
+  finally
+    r.Free;
+  end;
 end;
 
 function TSynGalaxySyn.SaveToRegistry(RootKey: HKEY; Key: string): boolean;
@@ -478,18 +433,26 @@ begin
   r:= TBetterRegistry.Create;
   try
     r.RootKey := RootKey;
-    if r.OpenKey(Key,true) then begin
+    if r.OpenKey(Key,true) then
+    begin
       Result := true;
       r.WriteString('KeyWords', KeyWords.Text);
       Result := inherited SaveToRegistry(RootKey, Key);
     end
-    else Result := false;
-  finally r.Free; end;
+    else
+      Result := false;
+  finally
+    r.Free;
+  end;
 end;
 {$ENDIF}
 
+class function TSynGalaxySyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangGalaxy;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynGalaxySyn);
 {$ENDIF}

@@ -11,6 +11,7 @@ the specific language governing rights and limitations under the License.
 The Original Code is: SynHighlighterInno.pas, released 2000-05-01.
 The Initial Author of this file is Satya.
 Portions created by Satya are Copyright 2000 Satya.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -25,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterInno.pas,v 1.23 2005/01/28 16:53:23 maelh Exp $
+$Id: SynHighlighterInno.pas,v 1.22.2.8 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -70,17 +71,8 @@ type
     tkNull, tkNumber, tkParameter, tkSection, tkSpace, tkString, tkSymbol,
     tkUnknown);
 
-  TProcTableProc = procedure of object;
-
   TSynInnoSyn = class(TSynCustomHighlighter)
   private
-    fLine: PChar;
-    fLineNumber: integer;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: LongInt;
-    fStringLen: Integer;
-    fToIdent: PChar;
-    fTokenPos: Integer;
     fTokenID: TtkTokenKind;
     fConstantAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
@@ -94,8 +86,8 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
-    function KeyHash(ToHash: PChar): integer;
-    function KeyComp(const aKey: string): Boolean;
+    function HashKey(Str: PWideChar): Integer;
+    function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure SymbolProc;
     procedure CRProc;
     procedure IdentProc;
@@ -109,28 +101,23 @@ type
     procedure SemiColonProc;
     procedure StringProc;
     procedure UnknownProc;
-
-    procedure DoAddKeyword(AKeyword: string; AKind: integer);
-    function IdentKind(MayBe: PChar): TtkTokenKind;
-    procedure MakeMethodTables;
+    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
   protected
-    function GetIdentChars: TSynIdentChars; override;
+    function IsCurrentToken(const Token: WideString): Boolean; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
-    function GetToken: string; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
-    procedure SetLine(NewValue: string; LineNumber:Integer); override;
   published
     property ConstantAttri: TSynHighlighterAttributes read fConstantAttri
       write fConstantAttri;
@@ -159,14 +146,12 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
+  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
+  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
-
-var
-  Identifiers: array[#0..#255] of ByteBool;
-  mHashTable: array[#0..#255] of Integer;
 
 const
   {Note: new 'Section names' and the new 'Constants' need not be added
@@ -175,36 +160,36 @@ const
   {Ref:  Keywords and Parameters are updated as they last appeared in
          Inno Setup / ISX version 1.3.26}
 
-  Keywords: string =
-    'AdminPrivilegesRequired,AllowNoIcons,AllowRootDirectory,AllowUNCPath,' +
-    'AlwaysCreateUninstallIcon,AlwaysRestart,AlwaysShowComponentsList,' +
-    'AlwaysShowDirOnReadyPage,AlwaysShowGroupOnReadyPage,' +
-    'AlwaysUsePersonalGroup,AppCopyright,AppId,AppMutex,AppName,AppPublisher,' +
-    'AppPublisherURL,AppSupportURL,AppUpdatesURL,AppVerName,AppVersion,' +
-    'Attribs,BackColor,BackColor2,BackColorDirection,BackSolid,Bits,' +
-    'ChangesAssociations,Check,CodeFile,Comment,Components,Compression,CompressLevel,CopyMode,'+
-    'CreateAppDir,CreateUninstallRegKey,DefaultDirName,DefaultGroupName,' +
-    'Description,DestDir,DestName,DirExistsWarning,DisableAppendDir,' +
-    'DisableDirExistsWarning,DisableDirPage,DisableFinishedPage,' +
-    'DisableProgramGroupPage,DisableReadyMemo,DisableReadyPage,' +
-    'DisableStartupPrompt,DiskClusterSize,DiskSize,DiskSpaceMBLabel,' +
-    'DiskSpanning,DontMergeDuplicateFiles,EnableDirDoesntExistWarning,' +
-    'ExtraDiskSpaceRequired,Filename,Flags,FlatComponentsList,FontInstall,' +
-    'GroupDescription,HotKey,IconFilename,IconIndex,InfoAfterFile,InfoBeforeFile,' +
-    'InstallMode,InternalCompressLevel,Key,LicenseFile,MessagesFile,MinVersion,Name,' +
-    'OnlyBelowVersion,OutputBaseFilename,OutputDir,OverwriteUninstRegEntries,' +
-    'Parameters,Password,ReserveBytes,Root,RunOnceId,Section,' +
-    'ShowComponentSizes,Source,SourceDir,StatusMsg,Subkey,Tasks,Type,Types,' +
-    'UninstallDisplayIcon,UninstallDisplayName,UninstallFilesDir,' +
-    'UninstallIconName,UninstallLogMode,UninstallStyle,Uninstallable,' +
-    'UpdateUninstallLogAppName,UsePreviousAppDir,UsePreviousGroup,' +
-    'UsePreviousTasks,UsePreviousSetupType,UseSetupLdr,ValueData,ValueName,' +
-    'ValueType,WindowResizable,WindowShowCaption,WindowStartMaximized,' +
-    'WindowVisible,WizardImageBackColor,WizardImageFile,WizardSmallImageFile,' +
-    'WizardStyle,WorkingDir';
+  Keywords: WideString =
+    'adminprivilegesrequired,allownoicons,allowrootdirectory,allowuncpath,' +
+    'alwayscreateuninstallicon,alwaysrestart,alwaysshowcomponentslist,' +
+    'alwaysshowdironreadypage,alwaysshowgrouponreadypage,' +
+    'alwaysusepersonalgroup,appcopyright,appid,appmutex,appname,apppublisher,' +
+    'apppublisherurl,appsupporturl,appupdatesurl,appvername,appversion,' +
+    'attribs,backcolor,backcolor2,backcolordirection,backsolid,bits,' +
+    'changesassociations,check,codefile,comment,components,compression,compresslevel,copymode,'+
+    'createappdir,createuninstallregkey,defaultdirname,defaultgroupname,' +
+    'description,destdir,destname,direxistswarning,disableappenddir,' +
+    'disabledirexistswarning,disabledirpage,disablefinishedpage,' +
+    'disableprogramgrouppage,disablereadymemo,disablereadypage,' +
+    'disablestartupprompt,diskclustersize,disksize,diskspacemblabel,' +
+    'diskspanning,dontmergeduplicatefiles,enabledirdoesntexistwarning,' +
+    'extradiskspacerequired,filename,flags,flatcomponentslist,fontinstall,' +
+    'groupdescription,hotkey,iconfilename,iconindex,infoafterfile,infobeforefile,' +
+    'installmode,internalcompresslevel,key,licensefile,messagesfile,minversion,name,' +
+    'onlybelowversion,outputbasefilename,outputdir,overwriteuninstregentries,' +
+    'parameters,password,reservebytes,root,runonceid,section,' +
+    'showcomponentsizes,source,sourcedir,statusmsg,subkey,tasks,type,types,' +
+    'uninstalldisplayicon,uninstalldisplayname,uninstallfilesdir,' +
+    'uninstalliconname,uninstalllogmode,uninstallstyle,uninstallable,' +
+    'updateuninstalllogappname,usepreviousappdir,usepreviousgroup,' +
+    'useprevioustasks,useprevioussetuptype,usesetupldr,valuedata,valuename,' +
+    'valuetype,windowresizable,windowshowcaption,windowstartmaximized,' +
+    'windowvisible,wizardimagebackcolor,wizardimagefile,wizardsmallimagefile,' +
+    'wizardstyle,workingdir';
 
-  Parameters: string =
-    'HKCC,HKCR,HKCU,HKLM,HKU,alwaysoverwrite,alwaysskipifsameorolder,append,' +
+  Parameters: WideString =
+    'hkcc,hkcr,hkcu,hklm,hku,alwaysoverwrite,alwaysskipifsameorolder,append,' +
     'binary,classic,closeonexit,comparetimestampalso,confirmoverwrite,' +
     'createkeyifdoesntexist,createonlyiffileexists,createvalueifdoesntexist,' +
     'deleteafterinstall,deletekey,deletevalue,dirifempty,dontcloseonexit,' +
@@ -220,76 +205,48 @@ const
     'uninsdeletesection,uninsdeletesectionifempty,uninsdeletevalue,' +
     'uninsneveruninstall,useapppaths,verysilent,waituntilidle';
 
-  KeyOrParameter: string = 'string';
+  KeyOrParameter: WideString = 'string';
 
-procedure MakeIdentTable;
-var
-  c: char;
-begin
-  FillChar(Identifiers, SizeOf(Identifiers), 0);
-  for c := 'a' to 'z' do
-    Identifiers[c] := TRUE;
-  for c := 'A' to 'Z' do
-    Identifiers[c] := TRUE;
-  for c := '0' to '9' do
-    Identifiers[c] := TRUE;
-  Identifiers['_'] := TRUE;
+function TSynInnoSyn.HashKey(Str: PWideChar): Integer;
 
-  FillChar(mHashTable, SizeOf(mHashTable), 0);
-  mHashTable['_'] := 1;
-  for c := 'a' to 'z' do
-    mHashTable[c] := 2 + Ord(c) - Ord('a');
-  for c := 'A' to 'Z' do
-    mHashTable[c] := 2 + Ord(c) - Ord('A');
-end;
+  function GetOrd: Integer;
+  begin
+     case Str^ of
+       '_': Result := 1;
+       'a'..'z': Result := 2 + Ord(Str^) - Ord('a');
+       'A'..'Z': Result := 2 + Ord(Str^) - Ord('A');
+       else Result := 0;
+     end;
+  end;
 
-function TSynInnoSyn.KeyHash(ToHash: PChar): integer;
 begin
   Result := 0;
-  while Identifiers[ToHash^] do begin
+  while IsIdentChar(Str^) do
+  begin
 {$IFOPT Q-}
-    Result := 7 * Result + mHashTable[ToHash^];
+    Result := 7 * Result + GetOrd;
 {$ELSE}
-    Result := (7 * Result + mHashTable[ToHash^]) and $FFFFFF;
+    Result := (7 * Result + GetOrd) and $FFFFFF;
 {$ENDIF}
-    inc(ToHash);
+    inc(Str);
   end;
   Result := Result and $1FF; // 511
-  fStringLen := ToHash - fToIdent;
+  fStringLen := Str - fToIdent;
 end;
 
-function TSynInnoSyn.KeyComp(const aKey: string): Boolean;
-var
-  i: integer;
-  pKey1, pKey2: PChar;
-begin
-  pKey1 := fToIdent;
-  // Note: fStringLen is always > 0 !
-  pKey2 := pointer(aKey);
-  for i := 1 to fStringLen do
-  begin
-    if mHashTable[pKey1^] <> mHashTable[pKey2^] then
-    begin
-      Result := FALSE;
-      exit;
-    end;
-    Inc(pKey1);
-    Inc(pKey2);
-  end;
-  Result := TRUE;
-end;
-
-function TSynInnoSyn.IdentKind(MayBe: PChar): TtkTokenKind;
+function TSynInnoSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Entry: TSynHashEntry;
 begin
   fToIdent := MayBe;
-  Entry := fKeywords[KeyHash(MayBe)];
-  while Assigned(Entry) do begin
+  Entry := fKeywords[HashKey(MayBe)];
+  while Assigned(Entry) do
+  begin
     if Entry.KeywordLen > fStringLen then
       break
     else if Entry.KeywordLen = fStringLen then
-      if KeyComp(Entry.Keyword) then begin
+      if IsCurrentToken(Entry.Keyword) then
+      begin
         Result := TtkTokenKind(Entry.Kind);
         exit;
       end;
@@ -298,86 +255,87 @@ begin
   Result := tkIdentifier;
 end;
 
-procedure TSynInnoSyn.MakeMethodTables;
-var
-  I: Char;
+function TSynInnoSyn.IsCurrentToken(const Token: WideString): Boolean;
+  var
+  I: Integer;
+  Temp: PWideChar;
 begin
-  for I := #0 to #255 do
-    case I of
-      #13: fProcTable[I] := CRProc;
-      'A'..'Z', 'a'..'z', '_': fProcTable[I] := IdentProc;
-      #10: fProcTable[I] := LFProc;
-      #0: fProcTable[I] := NullProc;
-      '0'..'9': fProcTable[I] := NumberProc;
-      #1..#9, #11, #12, #14..#32: fProcTable[I] := SpaceProc;
-      #59 {';'}: fProcTable[I] := SemiColonProc;
-      #61 {=} : fProcTable[I] := EqualProc;
-      #34: fProcTable[I] := StringProc;
-      '#', ':', ',', '(', ')': fProcTable[I] := SymbolProc;
-      '{': fProcTable[I] := ConstantProc;
-      #91 {[} : fProcTable[i] := SectionProc;
-    else
-      fProcTable[I] := UnknownProc;
+  Temp := fToIdent;
+  if Length(Token) = fStringLen then
+  begin
+    Result := True;
+    for i := 1 to fStringLen do
+    begin
+      if SynWideLowerCase(Temp^)[1] <> SynWideLowerCase(Token[i])[1] then
+      begin
+        Result := False;
+        break;
+      end;
+      inc(Temp);
     end;
+  end
+  else
+    Result := False;
 end;
 
 constructor TSynInnoSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  fCaseSensitive := False;
+
   fKeywords := TSynHashEntryList.Create;
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   fCommentAttri.Foreground := clGray;
   AddAttribute(fCommentAttri);
 
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
 
-  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar);
+  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
   AddAttribute(fInvalidAttri);
 
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Style := [fsBold];
   fKeyAttri.Foreground := clNavy;
   AddAttribute(fKeyAttri);
 
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   fNumberAttri.Foreground := clMaroon;
   AddAttribute(fNumberAttri);
 
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
 
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   fStringAttri.Foreground := clBlue;
   AddAttribute(fStringAttri);
 
-  fConstantAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective);
+  fConstantAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective, SYNS_FriendlyAttrDirective);
   fConstantAttri.Style := [fsBold, fsItalic];
   fConstantAttri.Foreground := clTeal;
   AddAttribute(fConstantAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
 
   //Parameters
-  fParamAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor);
+  fParamAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
   fParamAttri.Style := [fsBold];
   fParamAttri.Foreground := clOlive;
   AddAttribute(fParamAttri);
 
-  fSectionAttri := TSynHighlighterAttributes.Create(SYNS_AttrSection);
+  fSectionAttri := TSynHighlighterAttributes.Create(SYNS_AttrSection, SYNS_FriendlyAttrSection);
   fSectionAttri.Style := [fsBold];
   fSectionAttri.Foreground := clRed;
   AddAttribute(fSectionAttri);
 
   SetAttributesOnChange(DefHighlightChange);
-  EnumerateKeywords(Ord(tkKey), Keywords, IdentChars, DoAddKeyword);
-  EnumerateKeywords(Ord(tkParameter), Parameters, IdentChars, DoAddKeyword);
-  EnumerateKeywords(Ord(tkKeyOrParameter), KeyOrParameter, IdentChars,
+  EnumerateKeywords(Ord(tkKey), Keywords, IsIdentChar, DoAddKeyword);
+  EnumerateKeywords(Ord(tkParameter), Parameters, IsIdentChar, DoAddKeyword);
+  EnumerateKeywords(Ord(tkKeyOrParameter), KeyOrParameter, IsIdentChar,
     DoAddKeyword);
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterInno;
 end;
 
@@ -385,14 +343,6 @@ destructor TSynInnoSyn.Destroy;
 begin
   fKeywords.Free;
   inherited Destroy;
-end;
-
-procedure TSynInnoSyn.SetLine(NewValue: string; LineNumber: Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
 end;
 
 procedure TSynInnoSyn.SymbolProc;
@@ -416,11 +366,12 @@ begin
   fTokenID := tkString;
   repeat
     Inc(Run);
-    if fLine[Run] = ';' then begin
+    if fLine[Run] = ';' then
+    begin
       Inc(Run);
       break;
     end;
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 procedure TSynInnoSyn.IdentProc;
@@ -429,9 +380,10 @@ var
 begin
   fTokenID := IdentKind((fLine + Run));
   inc(Run, fStringLen);
-  if fTokenID = tkKeyOrParameter then begin
+  if fTokenID = tkKeyOrParameter then
+  begin
     LookAhead := Run;
-    while fLine[LookAhead] in [#9, ' '] do
+    while fLine[LookAhead] in [WideChar(#9), WideChar(' ')] do
       Inc(LookAhead);
     if fLine[LookAhead] = ':' then
       fTokenID := tkKey
@@ -459,7 +411,7 @@ begin
       Inc(Run);
       break;
     end;
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 procedure TSynInnoSyn.LFProc;
@@ -471,6 +423,7 @@ end;
 procedure TSynInnoSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynInnoSyn.NumberProc;
@@ -478,7 +431,7 @@ begin
   fTokenID := tkNumber;
   repeat
     Inc(Run);
-  until not (fLine[Run] in ['0'..'9']);
+  until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
 end;
 
 procedure TSynInnoSyn.ConstantProc;
@@ -487,7 +440,8 @@ var
 begin
   { Much of this is based on code from the SkipPastConst function in IS's
     CmnFunc2 unit. [jr] }
-  if fLine[Run + 1] = '{' then begin
+  if fLine[Run + 1] = '{' then
+  begin
     { '{{' is not a constant }
     fTokenID := tkUnknown;
     Inc(Run, 2);
@@ -500,7 +454,8 @@ begin
     Inc(Run);
     case fLine[Run] of
       '{': begin
-             if LastOpenBrace <> Run-1 then begin
+             if LastOpenBrace <> Run - 1 then
+             begin
                Inc(BraceLevel);
                LastOpenBrace := Run;
              end
@@ -510,18 +465,14 @@ begin
            end;
       '}': begin
              Dec (BraceLevel);
-             if BraceLevel = 0 then begin
+             if BraceLevel = 0 then
+             begin
                Inc(Run);
                Break;
              end;
            end;
-{$IFDEF SYN_MBCSSUPPORT}
-    else
-      if fLine[Run] in LeadBytes then
-        Inc(Run);
-{$ENDIF}
     end;
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 procedure TSynInnoSyn.SpaceProc;
@@ -529,7 +480,7 @@ begin
   fTokenID := tkSpace;
   repeat
     Inc(Run);
-  until (fLine[Run] > #32) or (fLine[Run] in [#0, #10, #13]);
+  until (fLine[Run] > #32) or IsLineEnd(Run);
 end;
 
 procedure TSynInnoSyn.SemiColonProc;
@@ -547,7 +498,7 @@ begin
   fTokenID := tkComment;
   repeat
     Inc(Run);
-  until (fLine[Run] in [#0, #10, #13]);
+  until IsLineEnd(Run);
 end;
 
 procedure TSynInnoSyn.StringProc;
@@ -560,16 +511,11 @@ begin
       if fLine[Run] <> '"' then // embedded "" does not end the string
         break;
     end;
-  until fLine[Run] in [#0, #10, #13];
+  until IsLineEnd(Run);
 end;
 
 procedure TSynInnoSyn.UnknownProc;
 begin
-{$IFDEF SYN_MBCSSUPPORT}
-  if FLine[Run] in LeadBytes then
-    Inc(Run, 2)
-  else
-{$ENDIF}
   inc(Run);
   fTokenID := tkUnknown;
 end;
@@ -577,7 +523,22 @@ end;
 procedure TSynInnoSyn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case fLine[Run] of
+    #13: CRProc;
+    'A'..'Z', 'a'..'z', '_': IdentProc;
+    #10: LFProc;
+    #0: NullProc;
+    '0'..'9': NumberProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    #59 {';'}: SemiColonProc;
+    #61 {'='}: EqualProc;
+    #34: StringProc;
+    '#', ':', ',', '(', ')': SymbolProc;
+    '{': ConstantProc;
+    #91 {'['} : SectionProc;
+    else UnknownProc;
+  end;
+  inherited;
 end;
 
 function TSynInnoSyn.GetDefaultAttribute(Index: integer):
@@ -597,15 +558,7 @@ end;
 
 function TSynInnoSyn.GetEol: Boolean;
 begin
-  Result := (fTokenId = tkNull);
-end;
-
-function TSynInnoSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynInnoSyn.GetTokenAttribute: TSynHighlighterAttributes;
@@ -637,16 +590,6 @@ begin
   Result := fTokenId;
 end;
 
-function TSynInnoSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynInnoSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := TSynValidStringChars;
-end;
-
 function TSynInnoSyn.IsFilterStored: Boolean;
 begin
   Result := fDefaultFilter <> SYNS_FilterInno;
@@ -657,16 +600,20 @@ begin
   Result := SYNS_LangInno;
 end;
 
-procedure TSynInnoSyn.DoAddKeyword(AKeyword: string; AKind: integer);
+procedure TSynInnoSyn.DoAddKeyword(AKeyword: WideString; AKind: integer);
 var
-  HashValue: integer;
+  HashValue: Integer;
 begin
-  HashValue := KeyHash(PChar(AKeyword));
+  HashValue := HashKey(PWideChar(AKeyword));
   fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
+class function TSynInnoSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangInno;
+end;
+
 initialization
-  MakeIdentTable;
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynInnoSyn);
 {$ENDIF}

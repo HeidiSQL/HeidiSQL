@@ -16,6 +16,7 @@ Author of this file is Michael Hieke.
 Portions created by Michael Hieke are Copyright 2000 Michael Hieke.
 Portions created by James D. Jacobson are Copyright 1999 Martin Waldenburg.
 Changes to emit XHTML 1.0 Strict complying code by Maël Hörz.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -30,7 +31,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynExportHTML.pas,v 1.21 2005/12/02 18:50:01 maelh Exp $
+$Id: SynExportHTML.pas,v 1.19.2.6 2006/05/21 11:59:34 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -52,18 +53,19 @@ uses
   QGraphics,
   QSynEditExport,
   QSynEditHighlighter,
+  QSynUnicode,  
 {$ELSE}
   Windows,
   Graphics,
   SynEditExport,
   SynEditHighlighter,
+  SynUnicode,    
 {$ENDIF}
   Classes;
 
 type
   TSynExporterHTML = class(TSynCustomExporter)
   private
-    fLastAttri: TSynHighlighterAttributes;
     function AttriToCSS(Attri: TSynHighlighterAttributes;
       UniqueAttriName: string): string;
     function AttriToCSSCallback(Highlighter: TSynCustomHighlighter;
@@ -86,17 +88,20 @@ type
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
       ForegroundChanged: boolean; FontStylesChanged: TFontStyles); override;
     procedure FormatNewLine; override;
-    function GetFooter: string; override;
+    function GetFooter: WideString; override;
     function GetFormatName: string; override;
-    function GetHeader: string; override;
-    procedure SetTokenAttribute(Attri: TSynHighlighterAttributes); override;
+    function GetHeader: WideString; override;
+    function ReplaceReservedChar(AChar: WideChar): WideString; override;
+    function UseBom: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
+    function SupportedEncodings: TSynEncodings; override;
   published
     property Color;
     property CreateHTMLFragment: boolean read fCreateHTMLFragment
-      write fCreateHTMLFragment default FALSE;
+      write fCreateHTMLFragment default False;
     property DefaultFilter;
+    property Encoding;
     property Font;
     property Highlighter;
     property Title;
@@ -125,111 +130,11 @@ const
   CF_HTML = 'HTML Format';
 begin
   inherited Create(AOwner);
-  {**************}
   {$IFNDEF SYN_CLX}
   fClipboardFormat := RegisterClipboardFormat(CF_HTML);
-  {$ENDIF}
+  {$ENDIF} // TODO: register for Kylix, too, see what Netscape Composer uses/accepts
   fDefaultFilter := SYNS_FilterHTML;
-  // setup array of chars to be replaced
-  fReplaceReserved['&'] := '&amp;';
-  fReplaceReserved['<'] := '&lt;';
-  fReplaceReserved['>'] := '&gt;';
-  fReplaceReserved['"'] := '&quot;';
-  fReplaceReserved['™'] := '&trade;';
-  fReplaceReserved['©'] := '&copy;';
-  fReplaceReserved['®'] := '&reg;';
-  fReplaceReserved['À'] := '&Agrave;';
-  fReplaceReserved['Á'] := '&Aacute;';
-  fReplaceReserved['Â'] := '&Acirc;';
-  fReplaceReserved['Ã'] := '&Atilde;';
-  fReplaceReserved['Ä'] := '&Auml;';
-  fReplaceReserved['Å'] := '&Aring;';
-  fReplaceReserved['Æ'] := '&AElig;';
-  fReplaceReserved['Ç'] := '&Ccedil;';
-  fReplaceReserved['È'] := '&Egrave;';
-  fReplaceReserved['É'] := '&Eacute;';
-  fReplaceReserved['Ê'] := '&Ecirc;';
-  fReplaceReserved['Ë'] := '&Euml;';
-  fReplaceReserved['Ì'] := '&Igrave;';
-  fReplaceReserved['Í'] := '&Iacute;';
-  fReplaceReserved['Î'] := '&Icirc;';
-  fReplaceReserved['Ï'] := '&Iuml;';
-  fReplaceReserved['Ð'] := '&ETH;';
-  fReplaceReserved['Ñ'] := '&Ntilde;';
-  fReplaceReserved['Ò'] := '&Ograve;';
-  fReplaceReserved['Ó'] := '&Oacute;';
-  fReplaceReserved['Ô'] := '&Ocirc;';
-  fReplaceReserved['Õ'] := '&Otilde;';
-  fReplaceReserved['Ö'] := '&Ouml;';
-  fReplaceReserved['Ø'] := '&Oslash;';
-  fReplaceReserved['Ù'] := '&Ugrave;';
-  fReplaceReserved['Ú'] := '&Uacute;';
-  fReplaceReserved['Û'] := '&Ucirc;';
-  fReplaceReserved['Ü'] := '&Uuml;';
-  fReplaceReserved['Ý'] := '&Yacute;';
-  fReplaceReserved['Þ'] := '&THORN;';
-  fReplaceReserved['ß'] := '&szlig;';
-  fReplaceReserved['à'] := '&agrave;';
-  fReplaceReserved['á'] := '&aacute;';
-  fReplaceReserved['â'] := '&acirc;';
-  fReplaceReserved['ã'] := '&atilde;';
-  fReplaceReserved['ä'] := '&auml;';
-  fReplaceReserved['å'] := '&aring;';
-  fReplaceReserved['æ'] := '&aelig;';
-  fReplaceReserved['ç'] := '&ccedil;';
-  fReplaceReserved['è'] := '&egrave;';
-  fReplaceReserved['é'] := '&eacute;';
-  fReplaceReserved['ê'] := '&ecirc;';
-  fReplaceReserved['ë'] := '&euml;';
-  fReplaceReserved['ì'] := '&igrave;';
-  fReplaceReserved['í'] := '&iacute;';
-  fReplaceReserved['î'] := '&icirc;';
-  fReplaceReserved['ï'] := '&iuml;';
-  fReplaceReserved['ð'] := '&eth;';
-  fReplaceReserved['ñ'] := '&ntilde;';
-  fReplaceReserved['ò'] := '&ograve;';
-  fReplaceReserved['ó'] := '&oacute;';
-  fReplaceReserved['ô'] := '&ocirc;';
-  fReplaceReserved['õ'] := '&otilde;';
-  fReplaceReserved['ö'] := '&ouml;';
-  fReplaceReserved['ø'] := '&oslash;';
-  fReplaceReserved['ù'] := '&ugrave;';
-  fReplaceReserved['ú'] := '&uacute;';
-  fReplaceReserved['û'] := '&ucirc;';
-  fReplaceReserved['ü'] := '&uuml;';
-  fReplaceReserved['ý'] := '&yacute;';
-  fReplaceReserved['þ'] := '&thorn;';
-  fReplaceReserved['ÿ'] := '&yuml;';
-  fReplaceReserved['¡'] := '&iexcl;';
-  fReplaceReserved['¢'] := '&cent;';
-  fReplaceReserved['£'] := '&pound;';
-  fReplaceReserved['¤'] := '&curren;';
-  fReplaceReserved['¥'] := '&yen;';
-  fReplaceReserved['¦'] := '&brvbar;';
-  fReplaceReserved['§'] := '&sect;';
-  fReplaceReserved['¨'] := '&uml;';
-  fReplaceReserved['ª'] := '&ordf;';
-  fReplaceReserved['«'] := '&laquo;';
-  fReplaceReserved['¬'] := '&shy;';
-  fReplaceReserved['¯'] := '&macr;';
-  fReplaceReserved['°'] := '&deg;';
-  fReplaceReserved['±'] := '&plusmn;';
-  fReplaceReserved['²'] := '&sup2;';
-  fReplaceReserved['³'] := '&sup3;';
-  fReplaceReserved['´'] := '&acute;';
-  fReplaceReserved['µ'] := '&micro;';
-  fReplaceReserved['·'] := '&middot;';
-  fReplaceReserved['¸'] := '&cedil;';
-  fReplaceReserved['¹'] := '&sup1;';
-  fReplaceReserved['º'] := '&ordm;';
-  fReplaceReserved['»'] := '&raquo;';
-  fReplaceReserved['¼'] := '&frac14;';
-  fReplaceReserved['½'] := '&frac12;';
-  fReplaceReserved['¾'] := '&frac34;';
-  fReplaceReserved['¿'] := '&iquest;';
-  fReplaceReserved['×'] := '&times;';
-  fReplaceReserved['÷'] := '&divide';
-  fReplaceReserved['€'] := '&euro;';
+  FEncoding := seUTF8;
 end;
 
 function TSynExporterHTML.AttriToCSS(Attri: TSynHighlighterAttributes;
@@ -273,22 +178,25 @@ var
   RGBColor: longint;
   RGBValue: byte;
 const
-  Digits: array[0..15] of char = '0123456789ABCDEF';
+  Digits: array[0..15] of AnsiChar = '0123456789ABCDEF';
 begin
   RGBColor := ColorToRGB(AColor);
   Result := '#000000';
   RGBValue := GetRValue(RGBColor);
-  if RGBValue > 0 then begin
+  if RGBValue > 0 then
+  begin
     Result[2] := Digits[RGBValue shr  4];
     Result[3] := Digits[RGBValue and 15];
   end;
   RGBValue := GetGValue(RGBColor);
-  if RGBValue > 0 then begin
+  if RGBValue > 0 then
+  begin
     Result[4] := Digits[RGBValue shr  4];
     Result[5] := Digits[RGBValue and 15];
   end;
   RGBValue := GetBValue(RGBColor);
-  if RGBValue > 0 then begin
+  if RGBValue > 0 then
+  begin
     Result[6] := Digits[RGBValue shr  4];
     Result[7] := Digits[RGBValue and 15];
   end;
@@ -310,7 +218,7 @@ procedure TSynExporterHTML.FormatAttributeInit(BackgroundChanged,
 var
   StyleName: string;
 begin
-  StyleName := GetStyleName(Highlighter, fLastAttri);
+  StyleName := GetStyleName(Highlighter, Highlighter.GetTokenAttribute);
   AddData(Format('<span class="%s">', [StyleName]));
 end;
 
@@ -319,7 +227,7 @@ procedure TSynExporterHTML.FormatBeforeFirstAttribute(BackgroundChanged,
 var
   StyleName: string;
 begin
-  StyleName := GetStyleName(Highlighter, fLastAttri);
+  StyleName := GetStyleName(Highlighter, Highlighter.GetTokenAttribute);
   AddData(Format('<span class="%s">', [StyleName]));
 end;
 
@@ -328,7 +236,7 @@ begin
   AddNewLine;
 end;
 
-function TSynExporterHTML.GetFooter: string;
+function TSynExporterHTML.GetFooter: WideString;
 begin
   Result := '';
   if fExportAsText then
@@ -344,7 +252,7 @@ begin
   Result := SYNS_ExporterFormatHTML;
 end;
 
-function TSynExporterHTML.GetHeader: string;
+function TSynExporterHTML.GetHeader: WideString;
 const
   DescriptionSize = 105;
   FooterSize1 = 47;
@@ -354,12 +262,11 @@ const
                  'EndHTML:%.10d'#13#10 +
                  'StartFragment:%.10d'#13#10 +
                  'EndFragment:%.10d'#13#10;
-  HTMLAsTextHeader = '<?xml version="1.0" encoding="iso-8859-1"?>'#13#10 +
+  HTMLAsTextHeader = '<?xml version="1.0" encoding="%s"?>'#13#10 +
                      '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'#13#10 +
                      '<html xmlns="http://www.w3.org/1999/xhtml">'#13#10 +
-                     '<head>'#13#10 +
-                     '<title>%s</title>'#13#10 +
-                     '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />'#13#10 +
+                     '<head>'#13#10;
+  HTMLAsTextHeader2 ='<meta http-equiv="Content-Type" content="text/html; charset=%s" />'#13#10 +
                      '<meta name="generator" content="SynEdit HTML exporter" />'#13#10 +
                      '<style type="text/css">'#13#10 +
                      '<!--'#13#10 +
@@ -369,13 +276,18 @@ const
                      '</style>'#13#10 +
                      '</head>'#13#10 +
                      '<body>'#13#10;
+  EncodingStrs: array[TSynEncoding] of string =
+    ('UTF-8', 'UTF-16', 'UTF-16', 'ANSI is Unsupported');
 var
-  Styles, Header, Header2: string;
+  EncodingStr, Styles, Header, Header2: string;
 begin
+  EncodingStr := EncodingStrs[Encoding];
   EnumHighlighterAttris(Highlighter, True, AttriToCSSCallback, [@Styles]);
 
-  Header := Format(HTMLAsTextHeader, [Title, ColorToHtml(fFont.Color),
-    ColorToHTML(fBackgroundColor), Styles]);
+  Header := Format(HTMLAsTextHeader, [EncodingStr]);
+  Header := Header + '<title>' + Title + '</title>'#13#10 +
+    Format(HTMLAsTextHeader2, [EncodingStr, ColorToHtml(fFont.Color),
+      ColorToHTML(fBackgroundColor), Styles]);
 
   Result := '';
   if fExportAsText then
@@ -416,10 +328,15 @@ begin
       Delete(Result, i, 1);
 end;
 
-procedure TSynExporterHTML.SetTokenAttribute(Attri: TSynHighlighterAttributes);
+function TSynExporterHTML.ReplaceReservedChar(AChar: WideChar): WideString;
 begin
-  fLastAttri := Attri;
-  inherited;
+  case AChar of
+    '&': Result := '&amp;';
+    '<': Result := '&lt;';
+    '>': Result := '&gt;';
+    '"': Result := '&quot;';
+    else Result := '';
+  end
 end;
 
 function TSynExporterHTML.StyleNameCallback(Highlighter: TSynCustomHighlighter;
@@ -441,5 +358,15 @@ begin
     Result := True;
 end;
 
-end.
+function TSynExporterHTML.UseBom: Boolean;
+begin
+  // do not include seUTF8 as some browsers have problems with UTF-8-BOM
+  Result := Encoding in [seUTF16LE, seUTF16BE];
+end;
 
+function TSynExporterHTML.SupportedEncodings: TSynEncodings;
+begin
+  Result := [seUTF8, seUTF16LE, seUTF16BE];
+end;
+
+end.

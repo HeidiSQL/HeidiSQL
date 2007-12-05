@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterAWK.pas, released 2000-06-18.
 The Original Code is based on the hkAWKSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Hideo Koiso.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -27,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterAWK.pas,v 1.10 2004/07/13 00:00:29 markonjezic Exp $
+$Id: SynHighlighterAWK.pas,v 1.10.2.5 2006/05/21 11:59:34 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -55,10 +56,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -67,15 +70,9 @@ type
   TtkTokenKind = (tkComment, tkIdentifier, tkInterFunc, tkKey, tkNull,
     tkNumber, tkSpace, tkString, tkSymbol, tkSysVar, tkUnknown);
 
-  TProcTableProc = procedure of object;
-
   TSynAWKSyn = class(TSynCustomHighLighter)
   private
-    AWKSyntaxList: TStringList;
-    fLine: PChar;
-    fProcTable: array[#0..#255] of TProcTableProc;
-    Run: Longint;
-    fTokenPos: Integer;
+    AWKSyntaxList: TWideStringList;
     FTokenID: TtkTokenKind;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
@@ -86,7 +83,6 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fSysVarAttri: TSynHighlighterAttributes;
-    fLineNumber: Integer;
     procedure AndProc;
     procedure CommentProc;
     procedure CRProc;
@@ -94,7 +90,6 @@ type
     procedure FieldRefProc;
     procedure IdentProc;
     procedure LFProc;
-    procedure MakeMethodTables;
     procedure MakeSyntaxList;
     procedure MinusProc;
     procedure NullProc;
@@ -108,10 +103,10 @@ type
     procedure NumberProc;
     procedure BraceProc;
   protected
-    function GetIdentChars: TSynIdentChars; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -119,12 +114,9 @@ type
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
-    function GetToken: string; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
-    procedure SetLine(NewValue: string; LineNumber: Integer); override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
@@ -156,7 +148,8 @@ uses
 
 procedure TSynAWKSyn.MakeSyntaxList;
 begin
-  with AWKSyntaxList do begin
+  with AWKSyntaxList do
+  begin
     Sorted := True;
 
     { *** Preferably sort and put previously. *** }
@@ -226,52 +219,6 @@ begin
   end;
 end;
 
-procedure TSynAWKSyn.MakeMethodTables;
-var
-  i: Char;
-begin
-  for i := #0 to #255 do begin
-    case i of
-      #0:
-        fProcTable[i] := NullProc;
-      #10:
-        fProcTable[i] := LFProc;
-      #13:
-        fProcTable[i] := CRProc;
-      #1..#9, #11, #12, #14..#32:
-        fProcTable[i] := SpaceProc;
-      '"', #$27:
-        fProcTable[i] := StringProc; { "..." }
-      '(', ')', '[', ']':
-        fProcTable[i] := BraceProc; { (, ), [ and ] }
-      '#':
-        fProcTable[i] := CommentProc; { # ... }
-      '$':
-        fProcTable[i] := FieldRefProc; { $0 .. $9 }
-      '+':
-        fProcTable[i] := PlusProc; { +, ++ and += }
-      '-':
-        fProcTable[i] := MinusProc; { -, -- and -= }
-      '!':
-        fProcTable[i] := ExclamProc; { ! and !~ }
-      '?':
-        fProcTable[i] := QuestionProc; { ?: }
-      '|':
-        fProcTable[i] := OrProc; { || }
-      '&':
-        fProcTable[i] := AndProc; { && }
-      '*', '/', '%', '^', '<', '=', '>':
-        fProcTable[i] := OpInputProc; { *=, /=, %= ... etc. }
-      'a'..'z', 'A'..'Z':
-        fProcTable[i] := IdentProc;
-      '0'..'9':
-        fProcTable[i] := NumberProc;
-    else
-      fProcTable[i] := SymbolProc;
-    end;
-  end;
-end;
-
 procedure TSynAWKSyn.BraceProc;
 begin
   fTokenID := tkIdentifier;
@@ -282,85 +229,116 @@ procedure TSynAWKSyn.NumberProc;
 begin
   fTokenID := tkNumber;
   Inc(Run);
-  while (fLine[Run] in ['0'..'9']) do begin
+  while (fLine[Run] in [WideChar('0')..WideChar('9')]) do
     Inc(Run);
-  end;
 end;
 
 procedure TSynAWKSyn.IdentProc;
 var
   i: Integer;
   idx: Integer;
-  s: string;
+  s: WideString;
 begin
   i := Run;
-  while (fLine[i] in ['a'..'z', 'A'..'Z']) do begin
+  while (fLine[i] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z')]) do
     Inc(i);
-  end;
-  SetLength(s, (i - Run));
-  StrLCopy(PChar(s), (fLine + Run), (i - Run));
+  SetLength(s, i - Run);
+  StrLCopyW(PWideChar(s), fLine + Run, i - Run);
   Run := i;
-  if AWKSyntaxList.Find(s, idx) and (AWKSyntaxList.Strings[idx] = s) then begin
+  if AWKSyntaxList.Find(s, idx) and (AWKSyntaxList.Strings[idx] = s) then
+  begin
     fTokenID := TtkTokenKind(AWKSyntaxList.Objects[idx]);
-    if (fTokenID = tkUnKnown) then begin
+    if (fTokenID = tkUnKnown) then
+    begin
       fTokenID := tkKey;
-      if (fLine[i] = ' ') then begin
-        while (fLine[i] = ' ') do begin
+      if (fLine[i] = ' ') then
+      begin
+        while (fLine[i] = ' ') do
           Inc(i);
-        end;
         if (fLine[i + 0] = 'f') and
           (fLine[i + 1] = 'i') and
           (fLine[i + 2] = 'l') and
           (fLine[i + 3] = 'e') and
-          (fLine[i + 4] in [#0..#32, ';']) then begin
+          (fLine[i + 4] in [WideChar(#0)..WideChar(#32), WideChar(';')]) then
+        begin
           Run := (i + 4);
         end;
       end;
     end;
   end
-  else begin
+  else
     fTokenID := tkIdentifier;
-  end;
 end;
 
 procedure TSynAWKSyn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case fLine[Run] of
+    #0: NullProc;
+    #10: LFProc;
+    #13: CRProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    '"', #$27: StringProc; { "..." }
+    '(', ')', '[', ']': BraceProc; { (, ), [ and ] }
+    '#': CommentProc; { # ... }
+    '$': FieldRefProc; { $0 .. $9 }
+    '+': PlusProc; { +, ++ and += }
+    '-': MinusProc; { -, -- and -= }
+    '!': ExclamProc; { ! and !~ }
+    '?': QuestionProc; { ?: }
+    '|': OrProc; { || }
+    '&': AndProc; { && }
+    '*', '/', '%', '^', '<', '=', '>': OpInputProc; { *=, /=, %= ... etc. }
+    'a'..'z', 'A'..'Z': IdentProc;
+    '0'..'9': NumberProc;
+    else SymbolProc;
+  end;
+  inherited;
 end;
 
 procedure TSynAWKSyn.StringProc;
 begin
   repeat
     Inc(Run);
-    if (fLine[Run] = '"') and (fLine[Run - 1] <> '\') then begin
+    if (fLine[Run] = '"') and (fLine[Run - 1] <> '\') then
+    begin
       fTokenID := tkString;
       Inc(Run);
       Exit;
     end;
-  until (fLine[Run] in [#0..#31]);
+  until (fLine[Run] in [WideChar(#0)..WideChar(#31)]);
   fTokenID := tkIdentifier;
 end;
 
 procedure TSynAWKSyn.CommentProc;
 begin
   fTokenID := tkComment;
-  while not (fLine[Run] in [#0, #10, #13]) do begin
+  while not IsLineEnd(Run) do
     Inc(Run);
-  end;
 end;
 
 procedure TSynAWKSyn.FieldRefProc;
+
+  function IsAlphaNumChar(Run: Integer): Boolean;
+  begin
+    case fLine[Run] of
+      '0'..'9', 'a'..'z', 'A'..'Z':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+
 begin
   Inc(Run);
-  if (fLine[Run] in ['0'..'9']) and
-    not (fLine[Run + 1] in ['0'..'9', 'a'..'z', 'A'..'Z']) then begin
+  if (fLine[Run] in [WideChar('0')..WideChar('9')]) and
+    not IsAlphaNumChar(Run + 1) then
+  begin
     fTokenID := tkSymbol;
     Inc(Run);
   end
-  else begin
+  else
     fTokenID := tkIdentifier;
-  end;
 end;
 
 procedure TSynAWKSyn.SymbolProc;
@@ -373,119 +351,117 @@ procedure TSynAWKSyn.PlusProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] in ['+', '=']) then begin
+  if (fLine[Run] in [WideChar('+'), WideChar('=')]) then
     Inc(Run);
-  end;
 end;
 
 procedure TSynAWKSyn.MinusProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] in ['-', '=']) then begin
+  if (fLine[Run] in [WideChar('-'), WideChar('=')]) then
     Inc(Run);
-  end;
 end;
 
 procedure TSynAWKSyn.OpInputProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] = '=') then begin
+  if (fLine[Run] = '=') then
     Inc(Run);
-  end;
 end;
 
 procedure TSynAWKSyn.ExclamProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] in ['=', '~']) then begin
+  if (fLine[Run] in [WideChar('='), WideChar('~')]) then
     Inc(Run);
-  end;
 end;
 
 procedure TSynAWKSyn.QuestionProc;
 begin
   Inc(Run);
-  if (fLine[Run] = ':') then begin
+  if (fLine[Run] = ':') then
+  begin
     fTokenID := tkSymbol;
     Inc(Run);
   end
-  else begin
+  else
     fTokenID := tkIdentifier;
-  end;
 end;
 
 procedure TSynAWKSyn.OrProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '|') then begin
+  if (fLine[Run] = '|') then
+  begin
     fTokenID := tkSymbol;
     Inc(Run);
   end
-  else begin
+  else
     fTokenID := tkIdentifier;
-  end;
 end;
 
 procedure TSynAWKSyn.AndProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '&') then begin
+  if (fLine[Run] = '&') then
+  begin
     fTokenID := tkSymbol;
     Inc(Run);
   end
-  else begin
+  else
     fTokenID := tkIdentifier;
-  end;
 end;
 
 constructor TSynAWKSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
+
+  fCaseSensitive := True;
+
+  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Foreground := clBlue;
   AddAttribute(fCommentAttri);
 
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
+  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
   AddAttribute(fIdentifierAttri);
 
-  fInterFuncAttri := TSynHighlighterAttributes.Create(SYNS_AttrInternalFunction);
+  fInterFuncAttri := TSynHighlighterAttributes.Create(SYNS_AttrInternalFunction, SYNS_FriendlyAttrInternalFunction);
   fInterFuncAttri.Foreground := $00408080;
   fInterFuncAttri.Style := [fsBold];
   AddAttribute(fInterFuncAttri);
 
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
   fKeyAttri.Foreground := $00FF0080;
   fKeyAttri.Style := [fsBold];
   AddAttribute(fKeyAttri);
 
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
+  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
   AddAttribute(fNumberAttri);
 
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
+  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
 
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
+  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
   fStringAttri.Foreground := clTeal;
   AddAttribute(fStringAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
+  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   fSymbolAttri.Style := [fsBold];
   AddAttribute(fSymbolAttri);
 
-  fSysVarAttri := TSynHighlighterAttributes.Create(SYNS_AttrSystemValue);
+  fSysVarAttri := TSynHighlighterAttributes.Create(SYNS_AttrSystemValue, SYNS_FriendlyAttrSystemValue);
   fSysVarAttri.Foreground := $000080FF;
   fSysVarAttri.Style := [fsBold];
   AddAttribute(fSysVarAttri);
 
   SetAttributesOnChange(DefHighlightChange);
 
-  AWKSyntaxList := TStringList.Create;
+  AWKSyntaxList := TWideStringList.Create;
   MakeSyntaxList;
 
-  MakeMethodTables;
   fDefaultFilter := SYNS_FilterAWK;
 end;
 
@@ -494,14 +470,6 @@ begin
   AWKSyntaxList.Free;
 
   inherited Destroy;
-end;
-
-procedure TSynAWKSyn.SetLine(NewValue: string; LineNumber: Integer);
-begin
-  fLine := PChar(NewValue);
-  Run := 0;
-  fLineNumber := LineNumber;
-  Next;
 end;
 
 procedure TSynAWKSyn.CRProc;
@@ -520,16 +488,14 @@ end;
 procedure TSynAWKSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;
 
 procedure TSynAWKSyn.SpaceProc;
 begin
-  Inc(Run);
+  inc(Run);
   fTokenID := tkSpace;
-
-  while (fLine[Run] in [#1..#9, #11, #12, #14..#32]) do begin
-    Inc(Run);
-  end;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;
 
 function TSynAWKSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -546,15 +512,7 @@ end;
 
 function TSynAWKSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
-end;
-
-function TSynAWKSyn.GetToken: string;
-var
-  len: Longint;
-begin
-  len := (Run - fTokenPos);
-  SetString(Result, (fLine + fTokenPos), len);
+  Result := Run = fLineLen + 1;
 end;
 
 function TSynAWKSyn.GetTokenID: TtkTokenKind;
@@ -584,16 +542,6 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynAWKSyn.GetTokenPos: Integer;
-begin
-  Result := fTokenPos;
-end;
-
-function TSynAWKSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := ['0'..'9', 'a'..'z', 'A'..'Z'] + TSynSpecialChars;
-end;
-
 function TSynAWKSyn.IsFilterStored: Boolean;
 begin
   Result := fDefaultFilter <> SYNS_FilterAWK;
@@ -602,6 +550,11 @@ end;
 class function TSynAWKSyn.GetLanguageName: string;
 begin
   Result := SYNS_LangAWK;
+end;
+
+class function TSynAWKSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangAWK;
 end;
 
 {$IFNDEF SYN_CPPB_1}

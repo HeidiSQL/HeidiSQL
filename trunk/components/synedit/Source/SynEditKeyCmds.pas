@@ -27,13 +27,14 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmds.pas,v 1.26 2007/01/23 07:19:38 etrusco Exp $
+$Id: SynEditKeyCmds.pas,v 1.23.2.3 2007/01/23 03:29:55 etrusco Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 Known Issues:
 -------------------------------------------------------------------------------}
+// TODO: introduce friendly Names for the Commands (EditorCommandStrs is not good enough for end-users)
 
 {$IFNDEF QSYNEDITKEYCMDS}
 unit SynEditKeyCmds;
@@ -118,7 +119,7 @@ const
   ecSelEditorBottom = ecEditorBottom + ecSelection;
   ecSelGotoXY       = ecGotoXY + ecSelection;  // Data = PPoint
 
-	ecSelWord         = 198;
+  ecSelWord         = 198;
   ecSelectAll       = 199;  // Select entire contents of editor, cursor to end
 
   ecCopy            = 201;  // Copy selection to clipboard
@@ -230,10 +231,8 @@ type
 {$ENDIF}
   public
     procedure Assign(Source: TPersistent); override;
-{begin}                                                                         //ac 2000-07-05
     procedure LoadFromStream(AStream: TStream);
     procedure SaveToStream(AStream: TStream);
-{end}                                                                           //ac 2000-07-05
     // No duplicate checking is done if assignment made via these properties!
     property Key: word read FKey write SetKey;
     property Key2: word read FKey2 write SetKey2;
@@ -242,9 +241,9 @@ type
   published
     property Command: TSynEditorCommand read FCommand write SetCommand;
     property ShortCut: TShortCut read GetShortCut write SetShortCut
-      default 0;                                                                //mh 2000-11-07
+      default 0;
     property ShortCut2: TShortCut read GetShortCut2 write SetShortCut2
-      default 0;                                                                //mh 2000-11-07
+      default 0;
   end;
 
   TSynEditKeyStrokes = class(TCollection)
@@ -268,9 +267,9 @@ type
       Code2: word; SS2: TShiftState): integer;
     function FindShortcut(SC: TShortcut): integer;
     function FindShortcut2(SC, SC2: TShortcut): integer;
-    procedure LoadFromStream(AStream: TStream);                                 //ac 2000-07-05
+    procedure LoadFromStream(AStream: TStream);
     procedure ResetDefaults;
-    procedure SaveToStream(AStream: TStream);                                   //ac 2000-07-05
+    procedure SaveToStream(AStream: TStream);
   public
     property Items[Index: Integer]: TSynEditKeyStroke read GetItem
       write SetItem; default;
@@ -282,13 +281,13 @@ function EditorCommandToDescrString(Cmd: TSynEditorCommand): string;
 function EditorCommandToCodeString(Cmd: TSynEditorCommand): string;
 procedure GetEditorCommandValues(Proc: TGetStrProc);
 procedure GetEditorCommandExtended(Proc: TGetStrProc);
-function IdentToEditorCommand(const Ident: string; var Cmd: longint): boolean;
-function EditorCommandToIdent(Cmd: longint; var Ident: string): boolean;
-function ConvertCodeStringToExtended(AString : String) : String;
-function ConvertExtendedToCodeString(AString : String) : String;
-function ConvertExtendedToCommand(AString : String) : TSynEditorCommand;
-function ConvertCodeStringToCommand(AString : String) : TSynEditorCommand;
-function IndexToEditorCommand(const AIndex: Integer) : Integer;
+function IdentToEditorCommand(const Ident: string; var Cmd: longint): Boolean;
+function EditorCommandToIdent(Cmd: longint; var Ident: string): Boolean;
+function ConvertCodeStringToExtended(AString: string): string;
+function ConvertExtendedToCodeString(AString: string): string;
+function ConvertExtendedToCommand(AString: string): TSynEditorCommand;
+function ConvertCodeStringToCommand(AString: string): TSynEditorCommand;
+function IndexToEditorCommand(const AIndex: Integer): Integer;
 
 implementation
 
@@ -390,7 +389,7 @@ const
     (Value: ecLineSelect; Name: 'ecLineSelect'),
     (Value: ecAutoCompletion; Name: 'ecAutoCompletion'),
     (Value: ecUserFirst; Name: 'ecUserFirst'),
-    (Value: ecContextHelp; Name: 'ecContextHelp'),				// jj 2001-07-19
+    (Value: ecContextHelp; Name: 'ecContextHelp'),
     (Value: ecGotoMarker0; Name: 'ecGotoMarker0'),
     (Value: ecGotoMarker1; Name: 'ecGotoMarker1'),
     (Value: ecGotoMarker2; Name: 'ecGotoMarker2'),
@@ -552,13 +551,13 @@ begin
   begin
     // Check for duplicate shortcut in the collection and disallow if there is.
     Dup := TSynEditKeyStrokes(Collection).FindShortcut2(Value, ShortCut2);
-    if (Dup <> -1) and (Collection.Items[Dup] <> Self) then
+    if (Dup <> -1) and (Dup <> Self.Index) then
       begin
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
       end;
   end;
 
-{$IFDEF SYN_CLX}  //js 06-04-2002 use qmenus, not menus in clx
+{$IFDEF SYN_CLX}
   QMenus.ShortCutToKey(Value, NewKey, NewShift);
 {$ELSE}
   Menus.ShortCutToKey(Value, NewKey, NewShift);
@@ -594,7 +593,7 @@ begin
   begin
     // Check for duplicate shortcut in the collection and disallow if there is.
     Dup := TSynEditKeyStrokes(Collection).FindShortcut2(ShortCut, Value);
-    if (Dup <> -1) and (Collection.Items[Dup] <> Self) then
+    if (Dup <> -1) and (Dup <> Self.Index) then
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
   end;
 
@@ -619,7 +618,6 @@ begin
 {$ENDIF}
 end;
 
-{begin}                                                                         //ac 2000-07-05
 procedure TSynEditKeyStroke.LoadFromStream(AStream: TStream);
 begin
   with AStream do begin
@@ -641,7 +639,7 @@ begin
     Write(fCommand, SizeOf(fCommand));
   end;
 end;
-{end}                                                                           //ac 2000-07-05
+
 
 { TSynEditKeyStrokes }
 
@@ -678,7 +676,8 @@ begin
       with Add do
         Assign(TSynEditKeyStrokes(Source)[x]);
     end;
-  end else
+  end
+  else
     inherited Assign(Source);
 end;
 
@@ -767,7 +766,6 @@ begin
 end;
 {$ENDIF}
 
-{begin}                                                                         //ac 2000-07-05
 procedure TSynEditKeyStrokes.LoadFromStream(AStream: TStream);
 var
   Num: integer;
@@ -780,7 +778,6 @@ begin
     Dec(Num);
   end;
 end;
-{end}                                                                           //ac 2000-07-05
 
 procedure TSynEditKeyStrokes.ResetDefaults;
 begin
@@ -876,7 +873,6 @@ begin
  inherited SetItem(Index, Value);
 end;
 
-{begin}                                                                         //ac 2000-07-05
 procedure TSynEditKeyStrokes.SaveToStream(AStream: TStream);
 var
   i, Num: integer;
@@ -886,16 +882,15 @@ begin
   for i := 0 to Num - 1 do
     Items[i].SaveToStream(AStream);
 end;
-{end}                                                                           //ac 2000-07-05
 
-{begin}                                                                         //ddh 10/16/01 "English" Code Strings
-Function ConvertCodeStringToExtended(AString : String) : String;
-VAR i : integer;
-    WorkStr : String;
+function ConvertCodeStringToExtended(AString: string): string;
+var
+  i: integer;
+  WorkStr: string;
 begin
   if pos('ec', AString) = 1 then
   begin
-    delete(AString,1,2);
+    Delete(AString, 1, 2);
     WorkStr := '';
 
     for i := length(AString) downto 1 do
@@ -903,33 +898,38 @@ begin
          not(AString[i - 1] in ['A'..'Z', '0'..'9']) then
       begin
         WorkStr := ' ' + AString[i] + WorkStr
-      end else WorkStr := AString[i] + WorkStr;
+      end
+      else
+        WorkStr := AString[i] + WorkStr;
 
     trim(WorkStr);
 
     i := pos('Sel ', WorkStr);
     while i <> 0 do
     begin
-      Delete(WorkStr,i,Length('Sel '));
-      Insert('Select ',WorkStr,i);
+      Delete(WorkStr, i, Length('Sel '));
+      Insert('Select ', WorkStr, i);
       i := pos('Sel ', WorkStr);
     end;
 
     i := pos('Marker ', WorkStr);
     while i <> 0 do
     begin
-      Delete(WorkStr,i,Length('Marker '));
-      Insert('Bookmark ',WorkStr,i);
+      Delete(WorkStr, i, Length('Marker '));
+      Insert('Bookmark ', WorkStr,i);
       i := pos('Marker ', WorkStr);
     end;
 
-    Result := trim(WorkStr);
-  end else Result := AString;
+    Result := Trim(WorkStr);
+  end
+  else
+    Result := AString;
 end;
 
-Function ConvertExtendedToCodeString(AString : String) : String;
-VAR i : integer;
-    WorkStr : String;
+function ConvertExtendedToCodeString(AString: string): string;
+var
+  i: Integer;
+  WorkStr: string;
 begin
   if pos('ec', AString) = 1 then
   begin
@@ -960,7 +960,7 @@ begin
   end;
 
   i := pos(' ', WorkStr);
-  While i <> 0 do
+  while i <> 0 do
   begin
     delete(WorkStr,i,1);
     i := pos(' ', WorkStr);
@@ -969,18 +969,19 @@ begin
   Result := 'ec' + WorkStr;
 end;
 
-function IndexToEditorCommand(const AIndex: Integer) : Integer;
+function IndexToEditorCommand(const AIndex: Integer): Integer;
 begin
   Result := EditorCommandStrs[AIndex].Value;
 end;
 
-function ConvertExtendedToCommand(AString : String) : TSynEditorCommand;
+function ConvertExtendedToCommand(AString: string): TSynEditorCommand;
 begin
   Result := ConvertCodeStringToCommand(ConvertExtendedToCodeString(AString));
 end;
 
-function ConvertCodeStringToCommand(AString : String) : TSynEditorCommand;
-var I: Integer;
+function ConvertCodeStringToCommand(AString: string): TSynEditorCommand;
+var
+  I: Integer;
 begin
   Result := ecNone;
 
@@ -993,8 +994,6 @@ begin
     end;
 end;
 
-
-{end}                                                                           //ddh 10/16/01 "English" code strings
 
 initialization
   RegisterIntegerConsts(TypeInfo(TSynEditorCommand), IdentToEditorCommand,

@@ -10,6 +10,7 @@ the specific language governing rights and limitations under the License.
 
 The Original Code is: SynHighlighterTex.pas, released 2002-09-18.
 Author of this file is Soeren Sproessig.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -25,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterTeX.pas,v 1.5 2004/07/13 00:00:32 markonjezic Exp $
+$Id: SynHighlighterTeX.pas,v 1.5.2.4 2005/11/27 22:22:45 maelh Exp $
 
 You may retrieve the latest version of this file from sproessig@bs-webdesign.de
 
@@ -58,31 +59,20 @@ type
   TtkTokenKind = (tkBrace, tkBracket, tkNull, tkSpace, tkText, tkComment,
                   tkControlSequence, tkMathMode);
 
-  TProcTableProc = procedure of object;
-
 type
   TSynTeXSyn = class(TSynCustomHighlighter)
   private
-    fLine:                  PChar;
-    fLineNumber:            Integer;
-    fProcTable:             array[#0..#255] of TProcTableProc;
-    Run:                    LongInt;
-    fTokenPos:              Integer;
-    fTokenID:               TtkTokenKind;
-    fTextAttri:             TSynHighlighterAttributes;
-    fControlSequenceAttri:  TSynHighlighterAttributes;
-    fMathmodeAttri:         TSynHighlighterAttributes;
-    fCommentAttri:          TSynHighlighterAttributes;
-    fSpaceAttri:            TSynHighlighterAttributes;
-    fBracketAttri:          TSynHighlighterAttributes;
-    fBraceAttri:            TSynHighlighterAttributes;
+    fTokenID: TtkTokenKind;
+    fTextAttri: TSynHighlighterAttributes;
+    fControlSequenceAttri: TSynHighlighterAttributes;
+    fMathmodeAttri: TSynHighlighterAttributes;
+    fCommentAttri: TSynHighlighterAttributes;
+    fSpaceAttri: TSynHighlighterAttributes;
+    fBracketAttri: TSynHighlighterAttributes;
+    fBraceAttri: TSynHighlighterAttributes;
 
-    function CreateHighlighterAttributes(Name:String; Foreground,
-                                         Background: TColor;
-                                         FontStyles: TFontStyles) :
-                                         TSynHighlighterAttributes;
-    //Procedures
-    procedure MakeMethodTables;
+    function CreateHighlighterAttributes(Name: string; FriendlyName: WideString;
+      Foreground, Background: TColor; FontStyles: TFontStyles): TSynHighlighterAttributes;
     procedure CRProc;
     procedure TextProc;
     procedure LFProc;
@@ -96,22 +86,19 @@ type
     procedure BracketCloseProc;
     procedure MathmodeProc;
   protected
-    function GetIdentChars: TSynIdentChars; override;
-    function GetSampleSource : String; override;
+    function GetSampleSource: WideString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
+    class function GetFriendlyLanguageName: WideString; override;    
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
-    procedure SetLine(NewValue: String; LineNumber:Integer); override;
-    function GetToken: String; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
-    function GetTokenPos: Integer; override;
     procedure Next; override;
   published
     property CommentAttri : TSynHighlighterAttributes read fCommentAttri
@@ -140,87 +127,59 @@ uses
   SynEditStrConst;
 {$ENDIF}
 
-procedure TSynTeXSyn.MakeMethodTables;
-var
-  i: Char;
-begin
-  for i := #0 to #255 do
-    case i of
-      #0                         : fProcTable[i] := NullProc;
-      #10                        : fProcTable[i] := LFProc;
-      #13                        : fProcTable[i] := CRProc;
-      #37                        : fProcTable[i] := CommentProc;
-      #92                        : fProcTable[i] := ControlSequenceProc;
-      #123                       : fProcTable[i] := BraceOpenProc;
-      #125                       : fProcTable[i] := BraceCloseProc;
-      #91                        : fProcTable[i] := BracketOpenProc;
-      #93                        : fProcTable[i] := BracketCloseProc;
-      #1..#9, #11, #12, #14..#32 : fProcTable[i] := SpaceProc;
-      #36                        : fProcTable[i] := MathmodeProc;
-    else
-      fProcTable[i] := TextProc;
-    end;
-end;
-
 constructor TSynTeXSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCommentAttri:=CreateHighlighterAttributes(SYNS_AttrComment,clTeal,clNone,[]);
+  fCommentAttri := CreateHighlighterAttributes(SYNS_AttrComment, SYNS_FriendlyAttrComment, clTeal, clNone, []);
   AddAttribute(fCommentAttri);
 
-  fTextAttri:= CreateHighlighterAttributes(SYNS_AttrText,clBlack,clNone,[]);
+  fTextAttri := CreateHighlighterAttributes(SYNS_AttrText, SYNS_FriendlyAttrText, clBlack, clNone, []);
   AddAttribute(fTextAttri);
 
-  fMathmodeAttri:=CreateHighlighterAttributes(SYNS_AttrMathmode,clOlive,clNone,[fsbold]);
+  fMathmodeAttri := CreateHighlighterAttributes(SYNS_AttrMathmode, SYNS_FriendlyAttrMathmode, clOlive, clNone,
+    [fsbold]);
   AddAttribute(fMathmodeAttri);
 
-  fSpaceAttri:=CreateHighlighterAttributes(SYNS_AttrSpace,clNone,clWhite,[]);
+  fSpaceAttri := CreateHighlighterAttributes(SYNS_AttrSpace, SYNS_FriendlyAttrSpace, clNone, clWhite, []);
   AddAttribute(fSpaceAttri);
 
-  fControlSequenceAttri:=CreateHighlighterAttributes(SYNS_AttrTexCommand,clBlue,clWhite,[fsBold]);
+  fControlSequenceAttri := CreateHighlighterAttributes(SYNS_AttrTexCommand, SYNS_FriendlyAttrTexCommand, clBlue,
+    clWhite, [fsBold]);
   AddAttribute(fControlSequenceAttri);
 
-  fBracketAttri:=CreateHighlighterAttributes(SYNS_AttrSquareBracket,clPurple,clNone,[]);
+  fBracketAttri := CreateHighlighterAttributes(SYNS_AttrSquareBracket, SYNS_FriendlyAttrSquareBracket, clPurple,
+    clNone, []);
   AddAttribute(fBracketAttri);
 
-  fBraceAttri:=
-  CreateHighlighterAttributes(SYNS_AttrRoundBracket,clRed,clNone,[fsBold]);
+  fBraceAttri:= CreateHighlighterAttributes(SYNS_AttrRoundBracket, SYNS_FriendlyAttrRoundBracket, clRed,
+    clNone, [fsBold]);
   AddAttribute(fBraceAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   fDefaultFilter := SYNS_FilterTeX;
-  MakeMethodTables;
 end;  { Create }
-
-procedure TSynTeXSyn.SetLine(NewValue: String; LineNumber:Integer);
-begin
-  fLine       := PChar(NewValue);
-  Run         := 0;
-  fLineNumber := LineNumber;
-  Next;
-end;  { SetLine }
 
 procedure TSynTeXSyn.CRProc;
 begin
   fTokenID := tkSpace;
-  Case FLine[Run + 1] of
+  case FLine[Run + 1] of
     #10: inc(Run, 2);
-  else inc(Run);
+    else inc(Run);
   end;
 end;  { CRProc }
 
 
 procedure TSynTeXSyn.SpaceProc;
 begin
-  fTokenID:=tkSpace;
+  fTokenID := tkSpace;
   inc(Run);
-   while FLine[Run] in [#1..#9, #11, #12, #14..#32] do inc(Run);
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
 end;  { SpaceProc }
 
 procedure TSynTeXSyn.TextProc;
 begin
-  fTokenID:=tkText;
+  fTokenID := tkText;
   inc(Run);
 end;  { TextProc }
 
@@ -257,6 +216,7 @@ end;  { BracketClose }
 procedure TSynTeXSyn.NullProc;
 begin
   fTokenID := tkNull;
+  inc(Run);
 end;  { NullProc }
 
 procedure TSynTeXSyn.CommentProc;
@@ -273,24 +233,25 @@ end;  { CommentProc }
 
 procedure TSynTeXSyn.MathModeProc;
 begin
- fTokenID:=tkMathMode;
+ fTokenID := tkMathMode;
  Inc(Run);
 end;  { MathModeProc }
 
 procedure TSynTeXSyn.ControlSequenceProc;
 begin
- fTokenID:=tkControlSequence;
+ fTokenID := tkControlSequence;
  repeat
    case fLine[Run] of
-     #0..#31                 : Break;  //No Control Chars !
-     #48..#57                : Break;  //No Numbers !
+     #0..#31: Break;  //No Control Chars !
+     #48..#57: Break;  //No Numbers !
      #33..#47, #58..#64,               //Just the Characters that
      #91, #93,#94, #123,              //only can follow to '\'
-     #125, #126              : begin
-                                if (fLine[Run-1]='\') then
-                                Inc(Run,1);
-                                Break;
-                               end;
+     #125, #126:
+       begin
+         if (fLine[Run-1]='\') then
+           Inc(Run,1);
+         Break;
+       end;
    end;
    Inc(Run);
  until fLine[Run] = #32;
@@ -300,11 +261,25 @@ end;  { ControlSequenceProc }
 procedure TSynTeXSyn.Next;
 begin
   fTokenPos := Run;
-  fProcTable[fLine[Run]];
+  case  fLine[Run] of
+    #0: NullProc;
+    #10: LFProc;
+    #13: CRProc;
+    #37: CommentProc;
+    #92: ControlSequenceProc;
+    #123: BraceOpenProc;
+    #125: BraceCloseProc;
+    #91: BracketOpenProc;
+    #93: BracketCloseProc;
+    #1..#9, #11, #12, #14..#32: SpaceProc;
+    #36: MathmodeProc;
+    else TextProc;
+  end;
+  inherited;
 end;  { Next }
 
 function TSynTeXSyn.GetDefaultAttribute(Index: integer):
-TSynHighlighterAttributes;
+  TSynHighlighterAttributes;
 begin
   case Index of
     SYN_ATTR_COMMENT: Result := fCommentAttri;
@@ -315,16 +290,8 @@ end;
 
 function TSynTeXSyn.GetEol: Boolean;
 begin
-  Result := fTokenId = tkNull;
+  Result := Run = fLineLen + 1;
 end;  { GetDefaultAttribute }
-
-function TSynTeXSyn.GetToken: String;
-var
-  Len: LongInt;
-begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
-end;  { GetToken }
 
 function TSynTeXSyn.GetTokenID: TtkTokenKind;
 begin
@@ -334,13 +301,13 @@ end;  { GetTokenID }
 function TSynTeXSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case fTokenID of
-    tkComment                      : Result := fCommentAttri;
-    tkText                         : Result := fTextAttri;
-    tkControlSequence              : Result := fControlSequenceAttri;
-    tkMathMode                     : Result := fMathmodeAttri;
-    tkSpace                        : Result := fSpaceAttri;
-    tkBrace                        : Result := fBraceAttri;
-    tkBracket                      : Result := fBracketAttri;
+    tkComment: Result := fCommentAttri;
+    tkText: Result := fTextAttri;
+    tkControlSequence: Result := fControlSequenceAttri;
+    tkMathMode: Result := fMathmodeAttri;
+    tkSpace: Result := fSpaceAttri;
+    tkBrace: Result := fBraceAttri;
+    tkBracket: Result := fBracketAttri;
   else
     Result := nil;
   end;
@@ -350,16 +317,6 @@ function TSynTeXSyn.GetTokenKind: integer;
 begin
   Result := Ord(fTokenId);
 end;  { GetTokenKind }
-
-function TSynTeXSyn.GetTokenPos: Integer;
-begin
- Result := fTokenPos;
-end;  { GetTokenPos }
-
-function TSynTeXSyn.GetIdentChars: TSynIdentChars;
-begin
-  Result := ['_', '0'..'9', 'a'..'z', 'A'..'Z'];
-end;  { GetIdentChars }
 
 function TSynTeXSyn.IsFilterStored: Boolean;
 begin
@@ -371,18 +328,16 @@ begin
   Result := SYNS_LangTeX;
 end;  { GetLanguageName }
 
-function TSynTeXSyn.CreateHighlighterAttributes(Name:String; Foreground,
-                                                Background: TColor;
-                                                FontStyles: TFontStyles) :
-TSynHighlighterAttributes;
+function TSynTeXSyn.CreateHighlighterAttributes(Name: string; FriendlyName: WideString;
+  Foreground, Background: TColor; FontStyles: TFontStyles): TSynHighlighterAttributes;
 begin
-  Result:=TSynHighlighterAttributes.Create(Name);
-  if Foreground<>clNone then Result.Foreground:=ForeGround;
-  if Background<>clNone then Result.Background:=Background;
-  Result.Style:=FontStyles;
+  Result := TSynHighlighterAttributes.Create(Name, FriendlyName);
+  if Foreground <> clNone then Result.Foreground := Foreground;
+  if Background <> clNone then Result.Background := Background;
+  Result.Style := FontStyles;
 end;
 
-function TSynTeXSyn.GetSampleSource: String;
+function TSynTeXSyn.GetSampleSource: WideString;
 begin
   Result:='\documentclass[a4paper]{article}'+#13#10+
           '% LaTeX sample source'+#13#10+
@@ -392,6 +347,11 @@ begin
 end;
 
 {$IFNDEF SYN_CPPB_1}
+class function TSynTeXSyn.GetFriendlyLanguageName: WideString;
+begin
+  Result := SYNS_FriendlyLangTeX;
+end;
+
 initialization
   RegisterPlaceableHighlighter(TSynTeXSyn);
 {$ENDIF}

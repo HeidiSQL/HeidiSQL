@@ -12,6 +12,7 @@ The Original Code is: SynHighlighterHashEntries.pas, released 2000-04-21.
 
 The Initial Author of this file is Michael Hieke.
 Portions created by Michael Hieke are Copyright 2000 Michael Hieke.
+Unicode translation by Maël Hörz.
 All Rights Reserved.
 
 Contributors to the SynEdit project are listed in the Contributors.txt file.
@@ -26,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHashEntries.pas,v 1.5 2004/07/09 13:03:55 markonjezic Exp $
+$Id: SynHighlighterHashEntries.pas,v 1.5.2.2 2006/05/21 11:59:35 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -54,8 +55,10 @@ interface
 uses
 {$IFDEF SYN_CLX}
   QSynEditTypes,
+  QSynUnicode,  
 {$ELSE}
   SynEditTypes,
+  SynUnicode,
 {$ENDIF}
   Classes;
 
@@ -71,7 +74,7 @@ type
     { Length of the keyword. }
     fKeyLen: integer;
     { The keyword itself. }
-    fKeyword: string;
+    fKeyword: WideString;
     { Keyword token kind, has to be typecasted to the real token kind type. }
     fKind: integer;
   public
@@ -81,12 +84,12 @@ type
       to Self. This way the order of keyword length is preserved. }
     function AddEntry(NewEntry: TSynHashEntry): TSynHashEntry; virtual;
     { Creates a keyword entry for the given keyword and token kind. }
-    constructor Create(const AKey: string; AKind: integer);
+    constructor Create(const AKey: WideString; AKind: integer);
     { Destroys the keyword entry and all other keyword entries Next points to. }
     destructor Destroy; override;
   public
     { The keyword itself. }
-    property Keyword: string read fKeyword;
+    property Keyword: WideString read fKeyword;
     { Length of the keyword. }
     property KeywordLen: integer read fKeyLen;
     { Keyword token kind, has to be typecasted to the real token kind type. }
@@ -130,37 +133,38 @@ type
 
   { Procedural type for adding keyword entries to a TSynHashEntryList when
     iterating over all the keywords contained in a string. }
-  TEnumerateKeywordEvent = procedure(AKeyword: string; AKind: integer)
+  TEnumerateKeywordEvent = procedure(AKeyword: WideString; AKind: integer)
     of object;
 
 { This procedure will call AKeywordProc for all keywords in KeywordList. A
   keyword is considered any number of successive chars that are contained in
   Identifiers, with chars not contained in Identifiers before and after them. }
-procedure EnumerateKeywords(AKind: integer; KeywordList: string;
-  Identifiers: TSynIdentChars; AKeywordProc: TEnumerateKeywordEvent);
+procedure EnumerateKeywords(AKind: integer; KeywordList: WideString;
+  IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 
 implementation
 
 uses
   SysUtils;
 
-procedure EnumerateKeywords(AKind: integer; KeywordList: string;
-  Identifiers: TSynIdentChars; AKeywordProc: TEnumerateKeywordEvent);
+procedure EnumerateKeywords(AKind: integer; KeywordList: WideString;
+  IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 var
-  pStart, pEnd: PChar;
-  Keyword: string;
+  pStart, pEnd: PWideChar;
+  Keyword: WideString;
 begin
-  if Assigned(AKeywordProc) and (KeywordList <> '') then begin
-    pEnd := PChar(KeywordList);
+  if Assigned(AKeywordProc) and (KeywordList <> '') then
+  begin
+    pEnd := PWideChar(KeywordList);
     pStart := pEnd;
     repeat
       // skip over chars that are not in Identifiers
-      while (pStart^ <> #0) and not (pStart^ in Identifiers) do
+      while (pStart^ <> #0) and not IsIdentChar(pStart^) do
         Inc(pStart);
       if pStart^ = #0 then break;
       // find the last char that is in Identifiers
       pEnd := pStart + 1;
-      while (pEnd^ <> #0) and (pEnd^ in Identifiers) do
+      while (pEnd^ <> #0) and IsIdentChar(pEnd^) do
         Inc(pEnd);
       // call the AKeywordProc with the keyword
       SetString(Keyword, pStart, pEnd - pStart);
@@ -174,7 +178,7 @@ end;
 
 { TSynHashEntry }
 
-constructor TSynHashEntry.Create(const AKey: string; AKind: integer);
+constructor TSynHashEntry.Create(const AKey: WideString; AKind: integer);
 begin
   inherited Create;
   fKeyLen := Length(AKey);
@@ -191,10 +195,12 @@ end;
 function TSynHashEntry.AddEntry(NewEntry: TSynHashEntry): TSynHashEntry;
 begin
   Result := Self;
-  if Assigned(NewEntry) then begin
-    if CompareText(NewEntry.Keyword, fKeyword) = 0 then
+  if Assigned(NewEntry) then
+  begin
+    if WideCompareText(NewEntry.Keyword, fKeyword) = 0 then
       raise Exception.CreateFmt('Keyword "%s" already in list', [fKeyword]);
-    if NewEntry.fKeyLen < fKeyLen then begin
+    if NewEntry.fKeyLen < fKeyLen then
+    begin
       NewEntry.fNext := Self;
       Result := NewEntry;
     end else if Assigned(fNext) then
