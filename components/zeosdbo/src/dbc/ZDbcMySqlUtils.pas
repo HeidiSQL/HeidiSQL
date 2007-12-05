@@ -367,12 +367,7 @@ begin
   else if TypeName = 'LONGTEXT' then
     Result := stAsciiStream
   else if TypeName = 'ENUM' then
-  begin
-    if (TypeNameFull = 'ENUM(''Y'',''N'')')
-      or (TypeNameFull = 'ENUM(''N'',''Y'')') then
-      Result := stBoolean
-    else Result := stString;
-  end
+    Result := stString
   else if TypeName = 'SET' then
     Result := stString
   else if TypeName = 'BIT' then
