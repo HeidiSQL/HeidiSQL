@@ -4920,9 +4920,12 @@ begin
   if (Grid.Fields[DataCol] <> nil) and Grid.Fields[DataCol].IsNull then
   begin
     Grid.Canvas.Font.Color := COLOR_NULLVALUE;
-    Grid.Canvas.TextOut(Rect.Left+2, Rect.Top+2, '(NULL)');
-    // Reset font color, so the focus rectangle in this cell displays as dotted rectangle 
-    Grid.Canvas.Font.Color := clWindowText;
+    // Just use the changed font color for (MEMO) and (BLOB) cells
+    if Grid.Fields[DataCol].DataType in [ftMemo, ftBlob] then
+      Grid.DefaultDrawColumnCell(Rect, DataCol, Grid.Columns[DataCol], State)
+    // ... while the natively displayed datatypes get a grey (NULL) 
+    else
+      Grid.Canvas.TextOut(Rect.Left+2, Rect.Top+2, '(NULL)');
   end;
 end;
 
