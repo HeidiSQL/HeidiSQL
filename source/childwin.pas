@@ -4921,6 +4921,8 @@ begin
   begin
     Grid.Canvas.Font.Color := COLOR_NULLVALUE;
     Grid.Canvas.TextOut(Rect.Left+2, Rect.Top+2, '(NULL)');
+    // Reset font color, so the focus rectangle in this cell displays as dotted rectangle 
+    Grid.Canvas.Font.Color := clWindowText;
   end;
 end;
 
