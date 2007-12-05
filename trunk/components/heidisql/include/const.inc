@@ -79,7 +79,7 @@ const
   // Used by ListViews and Grids
   COLOR_SORTCOLUMN_ASC = $00F7F7F7; // light grey
   COLOR_SORTCOLUMN_DESC = $00EEEEEE; // medium grey
-  COLOR_NULLVALUE = $00A0A0A0; // darker gray
+  COLOR_NULLVALUE = $00707070; // darker gray
   ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
   ORDER_DESC = 1;           // dito
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
