@@ -11,7 +11,7 @@
 
 unit TntRegistry;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

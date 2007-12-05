@@ -11,7 +11,7 @@
 
 unit TntMenus_Design;
 
-{$INCLUDE ..\Source\TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 {*******************************************************}
 {  Special Thanks to Francisco Leong for getting these  }

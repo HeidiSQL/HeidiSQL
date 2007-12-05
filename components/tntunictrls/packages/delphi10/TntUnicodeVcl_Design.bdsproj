@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<PersonalityInfo>
 		<Option>
@@ -50,7 +50,7 @@
 			<Compiler Name="DefaultNamespace" Type="String"></Compiler>
 			<Compiler Name="SymbolDeprecated" Type="Boolean">True</Compiler>
 			<Compiler Name="SymbolLibrary" Type="Boolean">True</Compiler>
-			<Compiler Name="SymbolPlatform" Type="Boolean">True</Compiler>
+			<Compiler Name="SymbolPlatform" Type="Boolean">False</Compiler>
 			<Compiler Name="SymbolExperimental" Type="Boolean">True</Compiler>
 			<Compiler Name="UnitLibrary" Type="Boolean">True</Compiler>
 			<Compiler Name="UnitPlatform" Type="Boolean">True</Compiler>
@@ -123,7 +123,7 @@
 			<Directories Name="UnitOutputDir" Type="String">..\..\build</Directories>
 			<Directories Name="PackageDLLOutputDir" Type="String">..\..\build</Directories>
 			<Directories Name="PackageDCPOutputDir" Type="String">..\..\build</Directories>
-			<Directories Name="SearchPath" Type="String"></Directories>
+			<Directories Name="SearchPath" Type="String">..\..\..\compilerdetection\include</Directories>
 			<Directories Name="Packages" Type="String"></Directories>
 			<Directories Name="Conditionals" Type="String"></Directories>
 			<Directories Name="DebugSourceDirs" Type="String"></Directories>

@@ -11,7 +11,7 @@
 
 unit TntWideStrings;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

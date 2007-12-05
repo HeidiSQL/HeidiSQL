@@ -11,7 +11,7 @@
 
 unit TntFileCtrl;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

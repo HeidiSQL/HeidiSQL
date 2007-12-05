@@ -11,7 +11,7 @@
 
 unit TntSysUtils;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

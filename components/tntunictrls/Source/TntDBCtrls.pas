@@ -11,7 +11,7 @@
 
 unit TntDBCtrls;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

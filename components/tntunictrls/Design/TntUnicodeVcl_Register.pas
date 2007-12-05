@@ -11,7 +11,7 @@
 
 unit TntUnicodeVcl_Register;
 
-{$INCLUDE ..\Source\TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

@@ -11,7 +11,7 @@
 
 unit TntClasses;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 

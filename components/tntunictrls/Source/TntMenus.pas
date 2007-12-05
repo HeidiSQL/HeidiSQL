@@ -11,7 +11,7 @@
 
 unit TntMenus;
 
-{$INCLUDE TntCompilers.inc}
+{$INCLUDE compilers.inc}
 
 interface
 
