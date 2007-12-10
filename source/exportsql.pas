@@ -94,6 +94,7 @@ type
     procedure SaveSettings;
   private
     { Private declarations }
+    function InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
   public
     { Public declarations }
   end;
@@ -134,6 +135,9 @@ const
 
   // Default output compatibility
   SQL_VERSION_DEFAULT = SQL_VERSION_ANSI;
+
+  // Pattern for use in creating destination files
+  TABLENAME_PATTERN = '<table>';
 
 var
   appHandles: array of THandle;
@@ -278,6 +282,9 @@ begin
 
   if EditFileName.Text = '' then
     EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
+
+  // Tell the user how to use the table pattern  
+  EditFileName.Hint := 'Usage for generating one file per table: c:\foo\bar_'+TABLENAME_PATTERN+'.sql';
 
   validateControls(Sender);
   generateExampleSQL;
@@ -426,6 +433,50 @@ begin
 end;
 
 
+{**
+  Parse destination filename for variables like %table% and create the file
+  If an existing filestream is passed, check if it should be reused, depending on the "Part"
+  @return TFileStream|Nil
+}
+function TExportSQLForm.InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
+var
+  ParsedFileName, FileName, FilePath : String;
+begin
+  Result := nil;
+
+  // Parse filename
+  FilePath := ExtractFilePath(EditFileName.Text);
+  FileName := ExtractFileName(EditFileName.Text);
+  FileName := StringReplace(FileName, TABLENAME_PATTERN, TableName, [rfIgnoreCase]);
+  ParsedFileName := FilePath + GoodFileName(FileName);
+
+  // Reuse the old stream if its filename has not changed
+  if (OldStream <> nil) and (OldStream.FileName = ParsedFileName) then
+  begin
+    Result := OldStream;
+    Exit;
+  end;
+
+  // Filename has changed, so close the old file.
+  if OldStream <> nil then
+    OldStream.Free;
+
+  // Warn about overwriting target file
+  if FileExists(ParsedFileName) then begin
+    if MessageDlg('Overwrite file "'+ParsedFileName+'" ?', mtConfirmation, [mbYes, mbCancel], 0 ) <> mrYes  then
+      Exit;
+  end;
+
+  // Create the file
+  try
+    Result := TFileStream.Create(ParsedFileName, fmCreate);
+  except
+    MessageDlg('File "'+ParsedFileName+'" could not be opened!' +  CRLF + 'Maybe in use by another application?', mterror, [mbOK], 0);
+    Result.Free;
+  end;
+end;
+
+
 procedure TExportSQLForm.btnExportClick(Sender: TObject);
 var
   f                         : TFileStream;
@@ -487,12 +538,6 @@ begin
   todb := radioOtherDatabase.Checked;
   tohost := radioOtherHost.Checked;
 
-  // Warn about overwriting target file
-  if tofile and FileExists(EditFileName.Text) then begin
-    if MessageDlg('Overwrite file "'+EditFileName.Text+'" ?', mtConfirmation, [mbYes, mbCancel], 0 ) <> mrYes  then
-      Exit;
-  end;
-
   // export!
   pageControl1.ActivePageIndex := 0;
   Screen.Cursor := crHourGlass;
@@ -523,13 +568,11 @@ begin
     // Extract name part of selected target version
     target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
     max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
-    try
-      f := TFileStream.Create(EditFileName.Text, fmCreate);
-    except
-      messagedlg('File "'+EditFileName.Text+'" could not be opened!' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-      f.free;
+    f := InitFileStream('header');
+    if f = nil then
+    begin
       Screen.Cursor := crDefault;
-      abort;
+      Abort;
     end;
     wfs(f, '# ' + APPNAME + ' Dump ');
     wfs(f, '#');
@@ -725,6 +768,16 @@ begin
 
       if exporttables then
       begin
+        if tofile then
+        begin
+          f := InitFileStream(checkListTables.Items[i], f);
+          if f = nil then
+          begin
+            Screen.Cursor := crDefault;
+            Abort;
+          end;
+        end;
+
         dropquery := '';
         if comboTables.ItemIndex = TAB_DROP_CREATE then begin
           if tofile then
@@ -1128,6 +1181,16 @@ begin
           end;
         end;
         barProgress.StepIt;
+      end;
+    end;
+
+    if tofile then
+    begin
+      f := InitFileStream('footer', f);
+      if f = nil then
+      begin
+        Screen.Cursor := crDefault;
+        Abort;
       end;
     end;
 

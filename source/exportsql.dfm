@@ -177,6 +177,8 @@ object ExportSQLForm: TExportSQLForm
           Width = 304
           Height = 21
           Anchors = [akLeft, akTop, akRight]
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 1
           OnDblClick = btnFileBrowseClick
         end
