@@ -46,6 +46,8 @@
     <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build</DCC_IncludePath>
     <DCC_Define>DEBUG</DCC_Define>
     <DCC_Description>HeidiSQL</DCC_Description>
+    <DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>
+    <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

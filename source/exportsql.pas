@@ -28,7 +28,8 @@ uses
   DB,
   SynEdit,
   SynMemo,
-  ZDataSet;
+  ZDataSet,
+  FileCtrl;
 
 type
   TExportSQLForm = class(TForm)
@@ -67,6 +68,9 @@ type
     cbxData: TCheckBox;
     comboData: TComboBox;
     comboTargetCompat: TComboBox;
+    radioDirectory: TRadioButton;
+    editDirectory: TEdit;
+    btnDirectoryBrowse: TBitBtn;
     procedure comboTargetCompatChange(Sender: TObject);
     procedure comboOtherHostSelect(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
@@ -75,13 +79,14 @@ type
     procedure cbxTablesClick(Sender: TObject);
     procedure cbxDatabaseClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure btnDirectoryBrowseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboSelectDatabaseChange(Sender: TObject);
     procedure CheckListToggle(Sender: TObject);
     procedure btnFileBrowseClick(Sender: TObject);
     procedure btnExportClick(Sender: TObject);
     procedure radioOtherDatabaseClick(Sender: TObject);
-    procedure radioFileClick(Sender: TObject);
+    procedure radioFileOrDirClick(Sender: TObject);
     procedure fillcombo_anotherdb(Sender: TObject);
     procedure generateExampleSQL;
     procedure validateRadioControls(Sender: TObject);
@@ -132,6 +137,7 @@ const
   OUTPUT_FILE       = 1;
   OUTPUT_DB         = 2;
   OUTPUT_HOST       = 3;
+  OUTPUT_DIR        = 4;
 
   // Default output compatibility
   SQL_VERSION_DEFAULT = SQL_VERSION_ANSI;
@@ -246,6 +252,7 @@ begin
     if Valueexists('CreateDataHow') then comboData.ItemIndex := ReadInteger('CreateDataHow');
     if Valueexists('Compatibility') then comboTargetCompat.ItemIndex := ReadInteger('Compatibility');
     if Valueexists('exportfilename') then editFileName.Text := ReadString('exportfilename');
+    if Valueexists('ExportDirectory') then editDirectory.Text := ReadString('ExportDirectory');
     if Valueexists('ExportSQL_OutputTo') then
     begin
       OutputTo := ReadInteger('ExportSQL_OutputTo');
@@ -266,11 +273,12 @@ begin
       CheckForCrashedWindows;
       // Fetch list of heidisql windows.
       list := GetWindowList;
-      if Length(list) < 2 then
+      if (Length(list) < 2) and (OutputTo = OUTPUT_HOST) then
         OutputTo := OUTPUT_FILE;
 
       case OutputTo of
         OUTPUT_FILE : radioFile.Checked := true;
+        OUTPUT_DIR  : radioDirectory.Checked := true;
         OUTPUT_DB   : radioOtherDatabase.Checked := true;
         OUTPUT_HOST : radioOtherHost.Checked := true;
       end;
@@ -440,13 +448,30 @@ end;
 }
 function TExportSQLForm.InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
 var
-  ParsedFileName, FileName, FilePath : String;
+  UnparsedFileName, ParsedFileName, FileName, FilePath : String;
 begin
   Result := nil;
 
+  // File or directory ?
+  if radioFile.Checked then
+    UnparsedFileName := EditFileName.Text
+  else if radioDirectory.Checked then begin
+    UnparsedFileName := EditDirectory.Text;
+    // Ensure directory ends with a slash.
+    // ExtractFilePath() expects a slash at the very end, otherwise the last segment
+    // will be identified as filename and therefore stripped from the return value
+    if UnparsedFileName[Length(UnparsedFileName)] <> '\' then
+      UnparsedFileName := UnparsedFileName + '\';
+    UnparsedFileName := ExtractFilePath(UnparsedFileName);
+    UnparsedFileName := UnparsedFileName + TABLENAME_PATTERN + '.sql';
+  end else begin
+    Screen.Cursor := crDefault;
+    Raise Exception.Create('Internal error: InitFileStream called in wrong context.');
+  end;
+
   // Parse filename
-  FilePath := ExtractFilePath(EditFileName.Text);
-  FileName := ExtractFileName(EditFileName.Text);
+  FilePath := ExtractFilePath(UnparsedFileName);
+  FileName := ExtractFileName(UnparsedFileName);
   FileName := StringReplace(FileName, TABLENAME_PATTERN, TableName, [rfIgnoreCase]);
   ParsedFileName := FilePath + GoodFileName(FileName);
 
@@ -533,8 +558,17 @@ begin
 end;
 
 begin
+  // Check for valid directory
+  if radioDirectory.Checked then begin
+    if not DirectoryExists(EditDirectory.Text) then begin
+      MessageDlg('The selected directory "'+EditDirectory.Text+'" does not exist.', mtError, [mbOk], 0);
+      EditDirectory.SetFocus;
+      Exit;
+    end;
+  end;
+
   // to where?
-  tofile := radioFile.Checked;
+  tofile := radioFile.Checked or radioDirectory.Checked;
   todb := radioOtherDatabase.Checked;
   tohost := radioOtherHost.Checked;
 
@@ -1239,7 +1273,7 @@ begin
   generateExampleSql;
 end;
 
-procedure TExportSQLForm.radioFileClick(Sender: TObject);
+procedure TExportSQLForm.radioFileOrDirClick(Sender: TObject);
 begin
   validateRadioControls(Sender);
   validateControls(Sender);
@@ -1313,48 +1347,61 @@ begin
 end;
 
 procedure TExportSQLForm.validateRadioControls(Sender: TObject);
+const
+  EnabledColor = clWindow;
+  DisabledColor = clBtnFace;
+var
+  ControlToFocus : TWinControl;
 begin
+  // Disable all controls ...
+  EditFileName.Enabled := False;
+  EditFileName.Color := DisabledColor;
+  btnFileBrowse.Enabled := False;
+  EditDirectory.Enabled := False;
+  EditDirectory.Color := DisabledColor;
+  btnDirectoryBrowse.Enabled := False;
+  comboOtherDatabase.Enabled := False;
+  comboOtherDatabase.Color := DisabledColor;
+  comboOtherHost.Enabled := False;
+  comboOtherHost.Color := DisabledColor;
+  comboOtherHostDatabase.Enabled := False;
+  comboOtherHostDatabase.Color := DisabledColor;
+
+  // Silence compiler warning
+  ControlToFocus := EditFileName;
+
+  // ... and re-enable the selected controlset
   if radioFile.Checked then begin
-    EditFileName.Enabled := true;
-    EditFileName.Color := clWindow;
-    btnFileBrowse.Enabled := true;
-    EditFileName.SetFocus;
-  end else begin
-    EditFileName.Enabled := false;
-    EditFileName.Color := clBtnFace;
-    btnFileBrowse.Enabled := false;
-  end;
-
-  if radioOtherDatabase.Checked then begin
-    comboOtherDatabase.Enabled := true;
-    comboOtherDatabase.Color := clWindow;
-    if comboOtherDatabase.CanFocus then comboOtherDatabase.SetFocus;
-  end else begin
-    comboOtherDatabase.Enabled := false;
-    comboOtherDatabase.Color := clBtnFace;
-  end;
-
-  if radioOtherHost.Checked then begin
-    comboOtherHost.Enabled := true;
-    comboOtherHost.Color := clWindow;
+    EditFileName.Enabled := True;
+    EditFileName.Color := EnabledColor;
+    btnFileBrowse.Enabled := True;
+  end else if radioDirectory.Checked then begin
+    EditDirectory.Enabled := True;
+    EditDirectory.Color := EnabledColor;
+    btnDirectoryBrowse.Enabled := True;
+    ControlToFocus := EditDirectory;
+  end else if radioOtherDatabase.Checked then begin
+    comboOtherDatabase.Enabled := True;
+    comboOtherDatabase.Color := EnabledColor;
+    ControlToFocus := comboOtherDatabase;
+  end else if radioOtherHost.Checked then begin
+    comboOtherHost.Enabled := True;
+    comboOtherHost.Color := EnabledColor;
     comboOtherHostDatabase.Enabled := not (cbxStructure.Checked and cbxDatabase.Checked);
-    comboOtherHostDatabase.Color := clWindow;
-    if comboOtherHost.CanFocus then comboOtherHost.SetFocus;
-  end else begin
-    comboOtherHost.Enabled := false;
-    comboOtherHost.Color := clBtnFace;
-    comboOtherHostDatabase.Enabled := false;
-    comboOtherHostDatabase.Color := clBtnFace;
+    comboOtherHostDatabase.Color := EnabledColor;
+    ControlToFocus := comboOtherHost;
   end;
+  if ControlToFocus.CanFocus then
+    ControlToFocus.SetFocus;
 
   // Disable target selection if exporting to known session.
-  comboTargetCompat.Enabled := radioFile.Checked;
+  comboTargetCompat.Enabled := radioFile.Checked or radioDirectory.Checked;
 end;
 
 procedure TExportSQLForm.validateControls(Sender: TObject);
 begin
-  cbxDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioOtherHost.Checked );
-  comboDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioOtherHost.Checked ) and cbxDatabase.Checked;
+  cbxDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioDirectory.Checked or radioOtherHost.Checked );
+  comboDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioDirectory.Checked or radioOtherHost.Checked ) and cbxDatabase.Checked;
   comboOtherHostDatabase.Enabled := not cbxDatabase.Checked;
 
   cbxTables.Enabled := cbxStructure.Checked;
@@ -1529,8 +1576,11 @@ begin
     WriteInteger('CreateDataHow',     comboData.ItemIndex);
     WriteInteger('Compatibility',     comboTargetCompat.ItemIndex);
     WriteString('exportfilename',     EditFileName.Text);
+    WriteString('ExportDirectory',    EditDirectory.Text);
     OutputTo := OUTPUT_FILE;
-    if radioOtherDatabase.checked then
+    if radioDirectory.checked then
+      OutputTo := OUTPUT_DIR
+    else if radioOtherDatabase.checked then
       OutputTo := OUTPUT_DB
     else if radioOtherHost.checked then
       OutputTo := OUTPUT_HOST;
@@ -1541,6 +1591,19 @@ begin
     Free;
   end;
 end;
+
+
+{**
+  Browse for a directory
+}
+procedure TExportSQLForm.btnDirectoryBrowseClick(Sender: TObject);
+var
+  chosenDirectory : String;
+begin
+  if SelectDirectory('Select output directory', EditDirectory.Text, chosenDirectory) then
+    EditDirectory.Text := chosenDirectory;
+end;
+
 
 end.
 

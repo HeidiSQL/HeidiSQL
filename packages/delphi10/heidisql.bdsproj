@@ -50,10 +50,10 @@
 			<Compiler Name="DefaultNamespace"></Compiler>
 			<Compiler Name="SymbolDeprecated">True</Compiler>
 			<Compiler Name="SymbolLibrary">True</Compiler>
-			<Compiler Name="SymbolPlatform">True</Compiler>
+			<Compiler Name="SymbolPlatform">False</Compiler>
 			<Compiler Name="SymbolExperimental">True</Compiler>
 			<Compiler Name="UnitLibrary">True</Compiler>
-			<Compiler Name="UnitPlatform">True</Compiler>
+			<Compiler Name="UnitPlatform">False</Compiler>
 			<Compiler Name="UnitDeprecated">True</Compiler>
 			<Compiler Name="UnitExperimental">True</Compiler>
 			<Compiler Name="HResultCompat">True</Compiler>

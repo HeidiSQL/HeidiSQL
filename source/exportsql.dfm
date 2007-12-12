@@ -146,16 +146,16 @@ object ExportSQLForm: TExportSQLForm
         Left = 235
         Top = 0
         Width = 376
-        Height = 169
+        Height = 200
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Output'
         TabOrder = 0
         DesignSize = (
           376
-          169)
+          200)
         object btnFileBrowse: TBitBtn
-          Left = 338
-          Top = 43
+          Left = 344
+          Top = 42
           Width = 22
           Height = 22
           Anchors = [akTop, akRight]
@@ -165,16 +165,16 @@ object ExportSQLForm: TExportSQLForm
             F6000000424DF600000000000000760000002800000010000000100000000100
             0400000000008000000000000000000000001000000010000000000000000000
             80000080000000808000800000008000800080800000C0C0C000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
-            777777777777777777777000000000007777700333333333077770B033333333
-            307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
-            777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
-            7700777777777077707077777777770007777777777777777777}
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDDDD
+            DDDDDDDDDDDDDDDDDDDD00000000000DDDDD003333333330DDDD0B0333333333
+            0DDD0FB03333333330DD0BFB03333333330D0FBFB000000000000BFBFBFBFB0D
+            DDDD0FBFBFBFBF0DDDDD0BFB0000000DDDDDD000DDDDDDDD000DDDDDDDDDDDDD
+            D00DDDDDDDDD0DDD0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDD}
         end
         object editFileName: TEdit
-          Left = 32
+          Left = 26
           Top = 42
-          Width = 304
+          Width = 318
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           ParentShowHint = False
@@ -183,62 +183,30 @@ object ExportSQLForm: TExportSQLForm
           OnDblClick = btnFileBrowseClick
         end
         object radioOtherDatabase: TRadioButton
-          Left = 16
-          Top = 69
+          Left = 9
+          Top = 110
           Width = 113
           Height = 17
           Caption = 'Another database:'
-          TabOrder = 3
+          TabOrder = 6
           OnClick = radioOtherDatabaseClick
         end
         object radioFile: TRadioButton
-          Left = 16
-          Top = 24
+          Left = 9
+          Top = 25
           Width = 49
           Height = 17
           Caption = 'File:'
           Checked = True
           TabOrder = 0
           TabStop = True
-          OnClick = radioFileClick
+          OnClick = radioFileOrDirClick
+          OnDblClick = btnFileBrowseClick
         end
         object comboOtherDatabase: TComboBox
-          Left = 32
-          Top = 87
-          Width = 328
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 4
-        end
-        object radioOtherHost: TRadioButton
-          Left = 16
-          Top = 116
-          Width = 161
-          Height = 17
-          Caption = 'Another host and database'
-          TabOrder = 5
-          OnClick = radioOtherHostClick
-        end
-        object comboOtherHost: TComboBox
-          Left = 32
-          Top = 131
-          Width = 137
-          Height = 21
-          Style = csDropDownList
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 6
-          OnSelect = comboOtherHostSelect
-        end
-        object comboOtherHostDatabase: TComboBox
-          Left = 175
-          Top = 131
-          Width = 183
+          Left = 26
+          Top = 127
+          Width = 340
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -247,12 +215,85 @@ object ExportSQLForm: TExportSQLForm
           ItemHeight = 13
           TabOrder = 7
         end
+        object radioOtherHost: TRadioButton
+          Left = 9
+          Top = 152
+          Width = 161
+          Height = 17
+          Caption = 'Another host and database'
+          TabOrder = 8
+          OnClick = radioOtherHostClick
+        end
+        object comboOtherHost: TComboBox
+          Left = 26
+          Top = 169
+          Width = 137
+          Height = 21
+          Style = csDropDownList
+          Color = clBtnFace
+          Enabled = False
+          ItemHeight = 13
+          TabOrder = 9
+          OnSelect = comboOtherHostSelect
+        end
+        object comboOtherHostDatabase: TComboBox
+          Left = 168
+          Top = 169
+          Width = 198
+          Height = 21
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          Color = clBtnFace
+          Enabled = False
+          ItemHeight = 13
+          TabOrder = 10
+        end
+        object radioDirectory: TRadioButton
+          Left = 9
+          Top = 67
+          Width = 352
+          Height = 17
+          Caption = 'Directory (one .sql-file per object)'
+          TabOrder = 3
+          OnClick = radioFileOrDirClick
+          OnDblClick = btnDirectoryBrowseClick
+        end
+        object editDirectory: TEdit
+          Left = 26
+          Top = 85
+          Width = 318
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Color = clBtnFace
+          Enabled = False
+          TabOrder = 4
+          OnDblClick = btnDirectoryBrowseClick
+        end
+        object btnDirectoryBrowse: TBitBtn
+          Left = 344
+          Top = 85
+          Width = 22
+          Height = 22
+          Anchors = [akTop, akRight]
+          Enabled = False
+          TabOrder = 5
+          OnClick = btnDirectoryBrowseClick
+          Glyph.Data = {
+            F6000000424DF600000000000000760000002800000010000000100000000100
+            0400000000008000000000000000000000001000000010000000000000000000
+            80000080000000808000800000008000800080800000C0C0C000808080000000
+            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDDDD
+            DDDDDDDDDDDDDDDDDDDD00000000000DDDDD003333333330DDDD0B0333333333
+            0DDD0FB03333333330DD0BFB03333333330D0FBFB000000000000BFBFBFBFB0D
+            DDDD0FBFBFBFBF0DDDDD0BFB0000000DDDDDD000DDDDDDDD000DDDDDDDDDDDDD
+            D00DDDDDDDDD0DDD0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDD}
+        end
       end
       object groupExampleSql: TGroupBox
         Left = 235
-        Top = 175
+        Top = 206
         Width = 376
-        Height = 138
+        Height = 107
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Example SQL'
         TabOrder = 1
@@ -260,7 +301,7 @@ object ExportSQLForm: TExportSQLForm
           Left = 2
           Top = 15
           Width = 372
-          Height = 121
+          Height = 90
           Align = alClient
           Color = clBtnFace
           Font.Charset = DEFAULT_CHARSET
