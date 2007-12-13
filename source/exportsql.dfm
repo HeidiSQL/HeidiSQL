@@ -253,7 +253,8 @@ object ExportSQLForm: TExportSQLForm
           Top = 67
           Width = 352
           Height = 17
-          Caption = 'Directory (one .sql-file per object)'
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Directory (one .sql-file per table)'
           TabOrder = 3
           OnClick = radioFileOrDirClick
           OnDblClick = btnDirectoryBrowseClick

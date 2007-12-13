@@ -1600,6 +1600,8 @@ procedure TExportSQLForm.btnDirectoryBrowseClick(Sender: TObject);
 var
   chosenDirectory : String;
 begin
+  // TODO: Find an alternative to SelectDirectory(), which causes
+  // a platform compiler warning because it needs the FileCtrl unit 
   if SelectDirectory('Select output directory', EditDirectory.Text, chosenDirectory) then
     EditDirectory.Text := chosenDirectory;
 end;
