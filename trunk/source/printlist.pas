@@ -107,17 +107,18 @@ begin
     chk.Caption := list.Header.Columns[i].Text;
     chk.Checked := True;
     chk.Enabled := False;
+    chk.Width := 125;
     if chkCount mod 2 = 0 then begin
       inc(chkTop);
-      chk.Left := 16;
+      chk.Left := 10;
     end else
-      chk.Left := 130;
+      chk.Left := 140;
     chk.Top := chkTop * chkHeight;
     chk.Tag := 1;
     inc(chkCount);
   end;
   Height := boxColumns.Top
-    + (3 * chkHeight) // "All columns checkbox + space
+    + (4 * chkHeight) // "All columns checkbox + space
     + (Height - boxColumns.Top - boxColumns.Height) // Bottom rest
     + (Ceil(chkCount/2) * chkHeight); // Height of generated checkboxes
   Screen.Cursor := crDefault;

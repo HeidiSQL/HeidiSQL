@@ -52,7 +52,7 @@ object printlistForm: TprintlistForm
     Caption = 'Print what...'
     TabOrder = 2
     object chkAllColumns: TCheckBox
-      Left = 16
+      Left = 10
       Top = 24
       Width = 97
       Height = 17
