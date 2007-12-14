@@ -3275,12 +3275,16 @@ begin
         tn := DBTree.Items[i];
         if tn.Text = SynCompletionProposal1.PreviousToken then
         begin
+          // Ensure the db-node has its tables fetched
+          PopulateTreeTableList(tn);
           child := tn.getFirstChild;
           for j:=0 to tn.Count-1 do
           begin
             addTable(child.Text);
             child := tn.getNextChild(child);
           end;
+          // We have found the matching node, no need to look further
+          Break;
         end;
       end;
       Screen.Cursor := crDefault;
