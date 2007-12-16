@@ -209,7 +209,8 @@ begin
     end;
   end;
 
-  if comboSelectDatabase.ItemIndex = -1 then
+  // Select first database if at least one is available.
+  if (comboSelectDatabase.ItemIndex = -1) and (comboSelectDatabase.Items.Count>0) then
     comboSelectDatabase.ItemIndex := 0;
 
   comboSelectDatabaseChange(self);
