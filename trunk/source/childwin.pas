@@ -1520,7 +1520,7 @@ procedure TMDIChild.DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
 begin
   debug('context menu; storing right click item so it won''t get lost');
   DBRightClickSelectedItem := DBtree.Selected;
-  popupTreeView.Popup(MousePos.X, MousePos.Y);
+  popupTreeView.Popup(DBtree.ClientOrigin.X + MousePos.X, DBtree.ClientOrigin.Y + MousePos.Y);
   PostMessage(MainForm.Handle, WM_CLEAR_RIGHTCLICK_POINTER, 0, 0);
 end;
 
