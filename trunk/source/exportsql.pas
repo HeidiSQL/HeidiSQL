@@ -840,6 +840,9 @@ begin
           spos := Pos('DEFAULT CHARSET', sql);
           if (spos > 0) then begin
             epos := Pos2(' ', sql, spos + 14);
+            // For cases in which no whitespace is following:
+            if epos = 0 then
+              epos := Length(sql)+1;
             Insert('*/', sql, epos);
             Insert('/*!40100 ', sql, spos);
           end;
