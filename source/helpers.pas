@@ -10,7 +10,7 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX, StrUtils, VirtualTrees;
+  shlobj, ActiveX, StrUtils, VirtualTrees, SynRegExpr;
 
 type
 
@@ -1171,9 +1171,7 @@ end;
 }
 function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
 var
-  p, i: Word;
-const
-  REMSTR : String = 'TOBEREMOVED';
+  rx : TRegExpr;
 begin
   result := sql;
   if sql_version > SQL_VERSION_ANSI then // For all MySQL-versions
@@ -1184,29 +1182,41 @@ begin
   // Detect if SQL is a CREATE TABLE statement
   if copy( result, 1, 12 ) = 'CREATE TABLE' then
   begin
-    // Strip COLLATE and CHARACTER SET for 4.0 and below servers
-    // see issue #1685835
-    if sql_version < 40100 then
-    begin
-      result := StringReplace(result, ' COLLATE ', ' '+REMSTR+' ', [rfReplaceAll, rfIgnoreCase]);
-      result := StringReplace(result, ' CHARACTER SET ', ' '+REMSTR+' ', [rfReplaceAll, rfIgnoreCase]);
-      result := StringReplace(result, ' CHARSET ', ' '+REMSTR+' ', [rfReplaceAll, rfIgnoreCase]);
-      while pos( ' '+REMSTR+' ', result ) > 0 do
-      begin
-        // Get position of placeholder-word (REMSTR)
-        p := pos( ' '+REMSTR+' ', result );
-        for i := p+Length(REMSTR)+2 to Length(result) do
-        begin
-          // delete both: placeholder-word + word after placeholder
-          if not (result[i] in ['a'..'z','A'..'Z','_','0'..'9']) then
-          begin
-            Delete( result, p, i-p );
-            break;
-          end;
-        end;
-      end;
+    rx := TRegExpr.Create;
+    // Greedy: take as many chars as I can get
+    rx.ModifierG := True;
+    // Case insensitive
+    rx.ModifierI := True;
 
-    end
+    if sql_version < 40100 then begin
+      // Strip charset definition
+      // see issue #1685835
+      rx.Expression := '\s+(DEFAULT\s+)?(CHARSET|CHARACTER SET)=\w+';
+      result := rx.Replace(result, '' );
+      // Strip collation part
+      rx.Expression := '\s+COLLATE=\w+';
+      result := rx.Replace(result, '' );
+    end;
+
+    if sql_version = SQL_VERSION_ANSI then begin
+      // Switch quoting char
+      result := StringReplace(result, '`', '"', [rfReplaceAll]);
+      // Strip ENGINE|TYPE
+      rx.Expression := '\s+(ENGINE|TYPE)=\w+';
+      result := rx.Replace(result, '' );
+    end;
+
+    // Turn ENGINE to TYPE
+    if sql_version < 40102 then
+      result := StringReplace(result, 'ENGINE=', 'TYPE=', [rfReplaceAll])
+    else
+      result := StringReplace(result, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
+
+    // Mask USING {BTREE,HASH,RTREE} from older servers.
+    rx.Expression := '\s(USING\s+\w+)';
+    result := rx.Replace(result, ' /*!50100 $1 */', True);
+
+    rx.Free;
   end;
 
 end;

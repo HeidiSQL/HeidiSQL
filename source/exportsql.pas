@@ -838,53 +838,6 @@ begin
           Query.Close;
           FreeAndNil(Query);
           sql := fixNewlines(sql);
-          spos := Pos('DEFAULT CHARSET', sql);
-          if (spos > 0) then begin
-            epos := Pos2(' ', sql, spos + 14);
-            // For cases in which no whitespace is following:
-            if epos = 0 then
-              epos := Length(sql)+1;
-            Insert('*/', sql, epos);
-            Insert('/*!40100 ', sql, spos);
-          end;
-          // Mask USING {BTREE,HASH,RTREE} from older servers.
-          spos := 1;
-          while true do begin
-            spos := Pos2('USING', sql, spos);
-            if spos = 0 then break;
-            epos := Pos2(' ', sql, spos + 6);
-            Insert('*/', sql, epos);
-            Insert('/*!50100 ', sql, spos);
-            spos := epos + 11;
-          end;
-          if target_version = SQL_VERSION_ANSI then
-          begin
-            sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
-            j := max(pos('TYPE=', sql), pos('ENGINE=', sql));
-            // Delphi's Pos() lacks a start-at parameter.  Admittedly very ugly hack to achieve said effect.
-            k := 0;
-            while k <= j do k := k + 1 + Pos(' ', Copy(sql, k + 1, Length(sql)));
-            Delete(sql, j, k - j);
-          end
-          else if target_version < 40102 then
-          begin
-            {***
-              @note ansgarbecker
-                The ENGINE and TYPE options specify the storage engine for the table.
-                ENGINE was added in MySQL 4.0.18 (for 4.0) and 4.1.2 (for 4.1).
-                It is the preferred option name as of those versions, and TYPE has
-                become deprecated. TYPE is supported throughout the 4.x series, but
-                likely will be removed in the future.
-                So we use "TYPE" on target versions below 4.1.2 and "ENGINE" on all other versions.
-              @see http://dev.mysql.com/doc/refman/4.1/en/create-table.html
-              @see http://www.heidisql.com/forum/viewtopic.php?p=1226#1226
-            }
-            sql := stringreplace(sql, 'ENGINE=', 'TYPE=', [rfReplaceAll]);
-          end
-          else
-          begin
-            sql := stringreplace(sql, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
-          end;
           sql := fixSQL( sql, target_version );
         end
         {***
