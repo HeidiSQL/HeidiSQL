@@ -1238,6 +1238,7 @@ object MDIChild: TMDIChild
             OnColEnter = DBGridColEnter
             OnDrawColumnCell = GridDrawColumnCell
             OnDblClick = DBGridDblClick
+            OnKeyUp = controlsKeyUp
             OnMouseDown = gridMouseDown
           end
           object ProgressBarQuery: TProgressBar
