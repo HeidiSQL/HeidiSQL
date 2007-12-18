@@ -66,6 +66,7 @@ begin
       FConn.Properties.Values['CLIENT_INTERACTIVE'] := PrpClientInteractive;
       // ZConn.Properties.Values['USE_RESULT'] := 'true'; // doesn't work
       // ZConn.Properties.Values['CLIENT_SSL'] := 'true'; // from an mdaems's example
+      FConn.Properties.Values['CLIENT_MULTI_STATEMENTS'] := '1';
     end;
 
   try
