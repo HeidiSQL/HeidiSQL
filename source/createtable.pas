@@ -243,12 +243,13 @@ begin
   // Execute CREATE statement and reload tablesList
   try
     Mainform.Childwin.ActiveDatabase := DBComboBox.Text;
-    Mainform.ChildWin.ExecUpdateQuery( createQuery );
+    Mainform.ChildWin.ExecUpdateQuery( createQuery, False, True );
     Mainform.ChildWin.MenuRefreshClick(sender);
     Mainform.ChildWin.SelectedTable := EditTablename.Text;
     Mainform.ChildWin.ShowTable(EditTablename.Text);
-    Close;
-  except on E: THandledSQLError do;
+  except on E: THandledSQLError do
+    // Keep the form open so the user can fix his faulty input
+    ModalResult := mrNone;
   end;
 end;
 
