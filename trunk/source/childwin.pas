@@ -315,6 +315,8 @@ type
     N25: TMenuItem;
     menuLogToFile: TMenuItem;
     menuOpenLogFolder: TMenuItem;
+    tabStatus: TTabSheet;
+    ListStatus: TVirtualStringTree;
     procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
@@ -587,6 +589,7 @@ type
       delimiter                  : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
       VTRowDataListVariables,
+      VTRowDataListStatus,
       VTRowDataListProcesses,
       VTRowDataListCommandStats,
       VTRowDataListTables,
@@ -1082,6 +1085,7 @@ begin
 
     // Restore width of columns of all VirtualTrees
     RestoreListSetup(ListVariables);
+    RestoreListSetup(ListStatus);
     RestoreListSetup(ListProcesses);
     RestoreListSetup(ListCommandStats);
     RestoreListSetup(ListTables);
@@ -1190,6 +1194,7 @@ begin
 
       // Save width of probably resized columns of all VirtualTrees
       SaveListSetup(ListVariables);
+      SaveListSetup(ListStatus);
       SaveListSetup(ListProcesses);
       SaveListSetup(ListCommandStats);
       SaveListSetup(ListTables);
@@ -2712,7 +2717,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
   end;
 
 var
-  i, rowindex : Integer;
+  i : Integer;
   questions : Int64;
   ds : TDataSet;
 begin
@@ -2734,34 +2739,36 @@ begin
   end;
   ds.Close;
   FreeAndNil(ds);
-
-  // STATUS
-  uptime := 1; // avoids division by zero :)
-  questions := 1;
-  ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
-  for i:=1 to ds.RecordCount do
-  begin
-    if LowerCase( Copy( ds.Fields[0].AsString, 1, 4 ) ) <> 'com_' then
-    begin
-      rowindex := Length(VTRowDataListVariables);
-      SetLength( VTRowDataListVariables, rowindex+1 );
-      VTRowDataListVariables[rowindex].ImageIndex := 87;
-      VTRowDataListVariables[rowindex].Captions := TStringList.Create;
-      VTRowDataListVariables[rowindex].Captions.Add( ds.Fields[0].AsString );
-      VTRowDataListVariables[rowindex].Captions.Add( ds.Fields[1].AsString );
-      if lowercase( ds.Fields[0].AsString ) = 'uptime' then
-        uptime := MakeInt(ds.Fields[1].AsString);
-      if lowercase( ds.Fields[0].AsString ) = 'questions' then
-        questions := MakeInt(ds.Fields[1].AsString);
-    end;
-    ds.Next;
-  end;
-
   // Tell VirtualTree the number of nodes it will display
   ListVariables.RootNodeCount := Length(VTRowDataListVariables);
   ListVariables.EndUpdate;
   // Display number of listed values on tab
   tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
+
+  // STATUS
+  uptime := 1; // avoids division by zero :)
+  questions := 1;
+  ListStatus.BeginUpdate;
+  ListStatus.Clear;
+  ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
+  SetLength( VTRowDataListStatus, ds.RecordCount );
+  for i:=1 to ds.RecordCount do
+  begin
+    VTRowDataListStatus[i-1].ImageIndex := 87;
+    VTRowDataListStatus[i-1].Captions := TStringList.Create;
+    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsString );
+    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[1].AsString );
+    if lowercase( ds.Fields[0].AsString ) = 'uptime' then
+      uptime := MakeInt(ds.Fields[1].AsString);
+    if lowercase( ds.Fields[0].AsString ) = 'questions' then
+      questions := MakeInt(ds.Fields[1].AsString);
+    ds.Next;
+  end;
+  // Tell VirtualTree the number of nodes it will display
+  ListStatus.RootNodeCount := Length(VTRowDataListStatus);
+  ListStatus.EndUpdate;
+  // Display number of listed values on tab
+  tabStatus.Caption := 'Status (' + IntToStr(ListStatus.RootNodeCount) + ')';
 
   // Command-Statistics
   ListCommandStats.BeginUpdate;
@@ -6224,6 +6231,8 @@ function TMDIChild.GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
 begin
   if VT = ListVariables then
     Result := @VTRowDataListVariables
+  else if VT = ListStatus then
+    Result := @VTRowDataListStatus
   else if VT = ListCommandStats then
     Result := @VTRowDataListCommandStats
   else if VT = ListProcesses then
@@ -6244,6 +6253,7 @@ end;
 procedure TMDIChild.TestVTreeDataArray( P: PVTreeDataArray );
 begin
   if P = @VTRowDataListVariables then Exit;
+  if P = @VTRowDataListStatus then Exit;
   if P = @VTRowDataListCommandStats then Exit;
   if P = @VTRowDataListProcesses then Exit;
   if P = @VTRowDataListTables then Exit;
