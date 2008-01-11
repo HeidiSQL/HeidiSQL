@@ -77,8 +77,9 @@ begin
   case cwin.PageControlMain.ActivePageIndex of
     0 : case cwin.PageControlHost.ActivePageIndex of
       0 : begin list := cwin.ListVariables; title := 'Server-Variables for ' + cwin.Conn.MysqlParams.Host; end;
-      1 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.Conn.MysqlParams.Host; end;
-      2 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.Conn.MysqlParams.Host; end;
+      1 : begin list := cwin.ListStatus; title := 'Server-Status for ' + cwin.Conn.MysqlParams.Host; end;
+      2 : begin list := cwin.ListProcesses; title := 'Processlist for ' + cwin.Conn.MysqlParams.Host; end;
+      3 : begin list := cwin.ListCommandStats; title := 'Command-statistics for ' + cwin.Conn.MysqlParams.Host; end;
       end;
     1 : begin list := cwin.ListTables; title := 'Tables-List for Database ' + cwin.ActiveDatabase; end;
     2 : begin list := cwin.ListColumns; title := 'Field-List for ' + cwin.ActiveDatabase + '/' + cwin.SelectedTable; end;

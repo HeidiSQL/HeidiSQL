@@ -158,6 +158,57 @@ object MDIChild: TMDIChild
                   end>
               end
             end
+            object tabStatus: TTabSheet
+              Caption = 'Status'
+              object ListStatus: TVirtualStringTree
+                Left = 0
+                Top = 0
+                Width = 488
+                Height = 175
+                Align = alClient
+                DragOperations = []
+                Header.AutoSizeIndex = 1
+                Header.Font.Charset = DEFAULT_CHARSET
+                Header.Font.Color = clWindowText
+                Header.Font.Height = -11
+                Header.Font.Name = 'Tahoma'
+                Header.Font.Style = []
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+                Header.SortColumn = 0
+                HintMode = hmTooltip
+                Images = MainForm.ImageList1
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
+                PopupMenu = popupHost
+                ShowHint = True
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+                TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+                OnBeforePaint = vstBeforePaint
+                OnCompareNodes = vstCompareNodes
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
+                Columns = <
+                  item
+                    Position = 0
+                    Width = 160
+                    WideText = 'Variable'
+                  end
+                  item
+                    Position = 1
+                    Width = 328
+                    WideText = 'Value'
+                  end>
+              end
+            end
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
