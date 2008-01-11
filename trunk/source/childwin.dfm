@@ -212,11 +212,20 @@ object MDIChild: TMDIChild
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
               ImageIndex = 1
+              object Splitter3: TSplitter
+                Left = 0
+                Top = 102
+                Width = 488
+                Height = 4
+                Cursor = crSizeNS
+                Align = alBottom
+                ResizeStyle = rsUpdate
+              end
               object ListProcesses: TVirtualStringTree
                 Left = 0
                 Top = 0
                 Width = 488
-                Height = 175
+                Height = 102
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.Font.Charset = DEFAULT_CHARSET
@@ -240,6 +249,7 @@ object MDIChild: TMDIChild
                 TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
                 TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
                 OnBeforePaint = vstBeforePaint
+                OnChange = ListProcessesChange
                 OnCompareNodes = vstCompareNodes
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
@@ -288,6 +298,50 @@ object MDIChild: TMDIChild
                     Width = 10
                     WideText = 'Info'
                   end>
+              end
+              object pnlProcessViewBox: TPanel
+                Left = 0
+                Top = 106
+                Width = 488
+                Height = 69
+                Align = alBottom
+                BevelOuter = bvNone
+                TabOrder = 1
+                object pnlProcessView: TPanel
+                  Left = 0
+                  Top = 0
+                  Width = 488
+                  Height = 15
+                  Align = alTop
+                  Alignment = taLeftJustify
+                  BevelOuter = bvNone
+                  Caption = 'Process SQL:'
+                  TabOrder = 0
+                end
+                object SynMemoProcessView: TSynMemo
+                  Left = 0
+                  Top = 15
+                  Width = 488
+                  Height = 54
+                  SingleLineMode = False
+                  Align = alClient
+                  Font.Charset = DEFAULT_CHARSET
+                  Font.Color = clWindowText
+                  Font.Height = -13
+                  Font.Name = 'Courier New'
+                  Font.Style = []
+                  TabOrder = 1
+                  Gutter.Font.Charset = DEFAULT_CHARSET
+                  Gutter.Font.Color = clWindowText
+                  Gutter.Font.Height = -11
+                  Gutter.Font.Name = 'Courier New'
+                  Gutter.Font.Style = []
+                  Gutter.LeftOffset = 0
+                  Gutter.ShowLineNumbers = True
+                  Highlighter = SynSQLSyn1
+                  Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+                  ReadOnly = True
+                end
               end
             end
             object tabCommandStats: TTabSheet
