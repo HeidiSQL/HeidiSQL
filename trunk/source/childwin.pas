@@ -23,7 +23,7 @@ uses
   ZSqlMonitor, EDBImage, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
-  VirtualTrees, createdatabase, tbl_properties, TntDBGrids, TntClasses,
+  VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
   SynUnicode;
 
 type
@@ -548,10 +548,13 @@ type
       QueryHelpersSelectedItems  : Array[0..3] of Integer;
       CreateDatabaseForm         : TCreateDatabaseForm;
       TablePropertiesForm        : Ttbl_properties_form;
+      CreateTableForm            : TCreateTableForm;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
       SqlMessages                : TStringList;
       SqlMessagesLock            : TRtlCriticalSection;
+      dsShowEngines,
+      dsHaveEngines              : TDataSet;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -633,6 +636,7 @@ type
       procedure TrimSQLLog;
       function HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
       function ComposeOrderClause( Cols: TOrderColArray ): String;
+      procedure TableEnginesCombo(var Combobox: TCombobox);
   end;
 
 type
@@ -647,7 +651,7 @@ implementation
 
 
 uses
-  Main, createtable, fieldeditor,
+  Main, fieldeditor,
   optimizetables, copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
   Registry;
@@ -3347,11 +3351,17 @@ end;
 
 
 procedure TMDIChild.CreateTable(Sender: TObject);
+var
+  db : String;
 begin
   if Sender = PopupMenuCreateTable then begin
-    if DBTree.Selected.Level = 2 then CreateTableWindow(Self, DBtree.Selected.Parent.Text);
-    if DBTree.Selected.Level = 1 then CreateTableWindow(Self, DBtree.Selected.Text);
-  end else CreateTableWindow(Self);
+    if DBTree.Selected.Level = 2 then db := DBtree.Selected.Parent.Text;
+    if DBTree.Selected.Level = 1 then db := DBtree.Selected.Text;
+  end else db := '';
+  if CreateTableForm = nil then
+    CreateTableForm := TCreateTableForm.Create(Self);
+  CreateTableForm.ShowModal;
+  CreateTableForm.DBComboBox.SelText := db;
 end;
 
 
@@ -6801,6 +6811,75 @@ begin
       sort := TXT_DESC;
     result := result + Mainform.Mask( Cols[i].ColumnName ) + ' ' + sort;
   end;
+end;
+
+
+{**
+  Fetch table engines from server
+  Currently used in tbl_properties and createtable
+}
+procedure TMDIChild.TableEnginesCombo(var Combobox: TCombobox);
+var
+  engineName, defaultEngine, engineSupport : String;
+  HaveEngineList : TStrings;
+begin
+  Combobox.Items.BeginUpdate;
+  Combobox.Items.Clear;
+
+  // Cache datasets
+  if (dsShowEngines = nil) and (dsHaveEngines = nil) then
+  begin
+    dsShowEngines := Mainform.Childwin.GetResults('SHOW ENGINES', True);
+    if dsShowEngines = nil then
+      dsHaveEngines := Mainform.Childwin.GetResults('SHOW VARIABLES LIKE ''have%''');
+  end;
+
+  if dsShowEngines <> nil then begin
+    dsShowEngines.First;
+    while not dsShowEngines.Eof do begin
+      engineName := dsShowEngines.FieldByName('Engine').AsString;
+      engineSupport := LowerCase(dsShowEngines.FieldByName('Support').AsString);
+      // Add to dropdown if supported
+      if engineSupport <> 'no' then
+        Combobox.Items.Add(engineName);
+      // Check if this is the default engine
+      if engineSupport = 'default' then
+        defaultEngine := engineName;
+      dsShowEngines.Next;
+    end;
+  end
+  else begin
+    // Manually fetch available engine types by analysing have_* options
+    // This is for servers below 4.1 or when the SHOW ENGINES statement has
+    // failed for some other reason
+
+    // Add default engines which will not show in a have_* variable:
+    Combobox.Items.CommaText := 'MyISAM,MRG_MyISAM,HEAP';
+    defaultEngine := 'MyISAM';
+    // Possible other engines:
+    HaveEngineList := TStringList.Create;
+    HaveEngineList.CommaText := 'ARCHIVE,BDB,BLACKHOLE,CSV,EXAMPLE,FEDERATED,INNODB,ISAM';
+    dsHaveEngines.First;
+    while not dsHaveEngines.Eof do begin
+      engineName := copy(dsHaveEngines.Fields[0].AsString, 6, Length(dsHaveEngines.Fields[0].AsString) );
+      // Strip additional "_engine" suffix, fx from "have_blackhole_engine"
+      if Pos('_', engineName) > 0 then
+        engineName := copy(engineName, 0, Pos('_', engineName)-1);
+      engineName := UpperCase(engineName);
+      // Add engine to dropdown if it's a) in HaveEngineList and b) activated
+      if (HaveEngineList.IndexOf(engineName) > -1)
+        and (LowerCase(dsHaveEngines.Fields[1].AsString) = 'yes') then
+        Combobox.Items.Add(engineName);
+      dsHaveEngines.Next;
+    end;
+  end;
+
+  Combobox.Sorted := True;
+
+  // Select default
+  Combobox.ItemIndex := Combobox.Items.IndexOf(defaultEngine);
+
+  Combobox.Items.EndUpdate;
 end;
 
 

@@ -44,7 +44,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure menuSelectAllClick(Sender: TObject);
   private
-    dsCollations, dsEngines : TDataSet;
+    dsCollations: TDataSet;
     currentName,
     currentComment,
     currentEngine,
@@ -72,11 +72,10 @@ var
   charset : String;
 begin
   try
-    dsEngines := Mainform.Childwin.GetResults('SHOW ENGINES');
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
   except
-    // Ignore it when the above statements don't work on pre 4.1 servers.
-    // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
+    // Ignore it when the above statement doesn't work on pre 4.1 servers.
+    // If the list is nil, disable the combobox, so we create the db without charset.
   end;
 
   // Create a list with charsets from collations dataset
@@ -102,22 +101,7 @@ begin
   lblCollation.Enabled := comboCollation.Enabled;
 
   // Display supported engines in pulldown
-  comboEngine.Enabled := dsEngines <> nil;
-  lblEngine.Enabled := comboEngine.Enabled;
-  if comboEngine.Enabled then
-  begin
-    comboEngine.Items.BeginUpdate;
-    comboEngine.Items.Clear;
-    dsEngines.First;
-    while not dsEngines.Eof do
-    begin
-      if LowerCase(dsEngines.FieldByName('Support').AsString) <> 'no' then
-        comboEngine.Items.Add(dsEngines.FieldByName('Engine').AsString);
-      dsEngines.Next;
-    end;
-    comboEngine.Sorted := True;
-    comboEngine.Items.EndUpdate;
-  end;
+  Mainform.Childwin.TableEnginesCombo( comboEngine );
 
   // Setup SynMemo
   SynMemoCreate.Highlighter := Mainform.Childwin.SynSQLSyn1;
@@ -128,8 +112,6 @@ end;
 
 procedure Ttbl_properties_form.FormDestroy(Sender: TObject);
 begin
-  if dsEngines <> nil then dsEngines.Close;
-  FreeAndNil(dsEngines);
   if dsCollations <> nil then dsCollations.Close;
   FreeAndNil(dsCollations);
 end;

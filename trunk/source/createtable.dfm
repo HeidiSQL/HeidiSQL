@@ -14,7 +14,6 @@ object CreateTableForm: TCreateTableForm
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     499
@@ -103,7 +102,6 @@ object CreateTableForm: TCreateTableForm
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 13
-    OnClick = ButtonCancelClick
   end
   object ButtonCreate: TButton
     Left = 312
@@ -112,6 +110,7 @@ object CreateTableForm: TCreateTableForm
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Create!'
+    Default = True
     Enabled = False
     ModalResult = 1
     TabOrder = 12
@@ -411,18 +410,9 @@ object CreateTableForm: TCreateTableForm
     Top = 14
     Width = 153
     Height = 21
+    Style = csDropDownList
     ItemHeight = 13
     TabOrder = 3
-    Text = '<Automatic>'
-    Items.Strings = (
-      '<Automatic>'
-      'ISAM'
-      'MyISAM'
-      'HEAP'
-      'MERGE'
-      'InnoDB'
-      'BDB'
-      'Gemini')
   end
   object comboCharset: TComboBox
     Left = 338

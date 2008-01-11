@@ -54,10 +54,8 @@ type
     lblCollation: TLabel;
     comboCharset: TComboBox;
     comboCollation: TComboBox;
-    procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure EditTablenameChange(Sender: TObject);
-    procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonCreateClick(Sender: TObject);
     procedure ButtonDeleteClick(Sender: TObject);
     procedure CheckBoxPrimaryClick(Sender: TObject);
@@ -94,8 +92,6 @@ type
     { Public declarations }
   end;
 
-  function CreateTableWindow (AOwner : TComponent; Database: string = '') : Boolean;
-
 {$I const.inc}
 
 implementation
@@ -110,30 +106,12 @@ var
 
 
 {**
-  Create form on demand
-  @param TComponent Owner of form (should be calling form)
-  @return Boolean Form closed using modalresult mrOK
-}
-function CreateTableWindow (AOwner : TComponent; Database: string) : Boolean;
-var
-  f : TCreateTableForm;
-begin
-  f := TCreateTableForm.Create(AOwner);
-  if Database <> '' then f.DBComboBox.SelText := Database;
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil (f);
-end;
-
-
-{**
   Fetch list with character sets and collations from the server
   @todo: share these lists with other forms, fx createdatabase
 }
 procedure TCreateTableForm.FormCreate(Sender: TObject);
 var
   charset : String;
-  dsEngines : TDataSet;
-  engineSupport : String;
 begin
   try
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
@@ -164,39 +142,8 @@ begin
   comboCollation.Enabled := dsCollations <> nil;
   lblCollation.Enabled := comboCollation.Enabled;
 
-  dsEngines := Mainform.Childwin.GetResults('SHOW ENGINES', True);
-  if dsEngines <> nil then
-  begin
-    ComboboxTableType.Style := csDropDownList; // No editing needed
-    ComboboxTableType.Items.BeginUpdate;
-    ComboboxTableType.Items.Clear;
-    while not dsEngines.Eof do
-    begin
-      engineSupport := LowerCase(dsEngines.FieldByName('Support').AsString);
-      if engineSupport <> 'no' then
-      begin
-        ComboboxTableType.Items.Add(dsEngines.FieldByName('Engine').AsString);
-        if engineSupport = 'default' then
-          ComboboxTableType.ItemIndex := ComboboxTableType.Items.Count-1;
-      end;
-      dsEngines.Next;
-    end;
-    ComboboxTableType.Items.EndUpdate;
-    dsEngines.Close;
-  end;
-  FreeAndNil(dsEngines);
-end;
-
-
-procedure TCreateTableForm.FormDestroy(Sender: TObject);
-begin
-  if dsCollations <> nil then dsCollations.Close;
-  FreeAndNil(dsCollations);
-end;
-
-procedure TCreateTableForm.ButtonCancelClick(Sender: TObject);
-begin
-  ModalResult := mrCancel;
+  // Display supported engines in pulldown
+  Mainform.Childwin.TableEnginesCombo( ComboBoxTableType );
 end;
 
 
@@ -283,7 +230,7 @@ begin
   if EditDescription.Text <> '' then
     createQuery := createQuery + ' COMMENT = "' + EditDescription.Text + '"';
 
-  if (ComboBoxTableType.Text <> '') and (ComboBoxTableType.Text <> TBLTYPE_AUTOMATIC) then
+  if ComboBoxTableType.Text <> '' then
     createQuery := createQuery + ' TYPE = ' + ComboBoxTableType.Text;
 
   if comboCharset.Enabled and (comboCharset.Text <> '') then
@@ -576,7 +523,6 @@ procedure TCreateTableForm.FormShow(Sender: TObject);
 var
   i         : Integer;
   tn        : TTreeNode;
-  menu      : TMenuItem;
 begin
   // FormShow!
 
@@ -606,21 +552,6 @@ begin
   begin
     EditDescription.Visible := false;
     Label3.Visible := false;
-  end;
-  // Add all table types detected at application start to ComboboxTableType
-  menu := Mainform.ChildWin.popupDbGrid.Items.Find('Change Type');
-  if menu <> nil then
-  begin
-    ComboboxTableType.Items.Clear;
-    ComboboxTableType.Items.Add( TBLTYPE_AUTOMATIC );
-    for i := 0 to menu.Count - 1 do
-    begin
-      if menu.Items[i].Caption = '-' then // End of list
-        break;
-      if not menu.Items[i].Enabled then  // Not supported engine
-        continue;
-      ComboboxTableType.Items.Add( menu.Items[i].Caption );
-    end;
   end;
 
   // Adds all datatypes for columns
