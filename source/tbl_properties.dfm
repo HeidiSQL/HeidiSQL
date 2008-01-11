@@ -159,7 +159,6 @@ object tbl_properties_form: Ttbl_properties_form
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    Enabled = False
     ItemHeight = 13
     TabOrder = 2
   end
