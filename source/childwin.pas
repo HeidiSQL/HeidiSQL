@@ -5322,6 +5322,9 @@ begin
       CheckConnection;
     except
       on E: Exception do begin
+        // Ensure auto-updating processlist is disabled, see bug #1865305
+        DisableAutoRefreshClick(self);
+        Screen.Cursor := crDefault;
         raise Exception.Create('Failed to reconnect, giving up. (' + E.Message + ')');
       end;
     end;
