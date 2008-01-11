@@ -37,7 +37,6 @@ type
   type TParseSQLProcessCommand = procedure(command: String; parameter: String) of object;
   function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
   function sstr(str: String; len: Integer) : String;
-  function notinlist(str: String; strlist: TStrings): Boolean;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
@@ -651,29 +650,6 @@ begin
     str := str + '...';
   end;
   result := str;
-end;
-
-
-
-{***
-  Check existance of a string in a TStrings
-
-  @param string Searched text
-  @param TStrings List of Strings
-  @return boolean
-}
-function notinlist(str: String; strlist: TStrings): Boolean;
-var i: Integer;
-begin
-  result := true;
-  for i:=0 to strlist.Count-1 do
-  begin
-    if str = strlist[i] then
-    begin
-      result := false;
-      break;
-    end;
-  end;
 end;
 
 

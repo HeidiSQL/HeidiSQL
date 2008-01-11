@@ -72,7 +72,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure refreshfields(Sender: TObject);
     procedure ButtonChangeClick(Sender: TObject);
-    procedure ButtonsChange(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
     procedure EditLengthSetChange(Sender: TObject);
     procedure EditDefaultChange(Sender: TObject);
@@ -476,20 +475,21 @@ end;
 
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
 var
-  colExists : Boolean;
+  colExists, colSelected : Boolean;
 begin
   // Field Name EditChange
-  colExists := notinlist(EditFieldName.Text, ListboxColumns.Items);
-  buttonAdd.Enabled := colExists;
-  buttonChange.Enabled := colExists;
-  ButtonAdd.Default := colExists;
+  colExists := ListboxColumns.Items.IndexOf(EditFieldName.Text) > -1;
+  colSelected := index > -1;
+  buttonAdd.Enabled := not colExists;
+  buttonChange.Enabled := (not colExists) and colSelected;
+  buttonDelete.Enabled := colSelected;
+  ButtonAdd.Default := not colExists;
   try
     ensureValidIdentifier(EditFieldName.Text);
   except
     buttonAdd.Enabled := false;
     buttonChange.Enabled := false;
   end;
-  ButtonsChange(self);
 end;
 
 procedure TCreateTableForm.ListboxColumnsClick(Sender: TObject);
@@ -499,24 +499,6 @@ begin
   if index > -1 then
     editfieldname.Text := fields[index].Name;
   refreshfields(self);
-end;
-
-
-procedure TCreateTableForm.ButtonsChange(Sender: TObject);
-begin
-  // look for name and change buttons
-  if index = -1 then
-  begin
-    buttonDelete.Enabled := false;
-    buttonChange.Enabled := false;
-  end else
-  begin
-    buttonDelete.Enabled := true;
-    if notinlist(EditFieldName.Text, ListboxColumns.Items) then
-      buttonChange.Enabled := true
-    else
-      buttonChange.Enabled := false;
-  end;
 end;
 
 procedure TCreateTableForm.FormShow(Sender: TObject);
