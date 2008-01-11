@@ -317,6 +317,10 @@ type
     menuOpenLogFolder: TMenuItem;
     tabStatus: TTabSheet;
     ListStatus: TVirtualStringTree;
+    Splitter3: TSplitter;
+    pnlProcessViewBox: TPanel;
+    pnlProcessView: TPanel;
+    SynMemoProcessView: TSynMemo;
     procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
@@ -527,6 +531,7 @@ type
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
         TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
         TRect);
+    procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 
     private
       methodStack                : TStack;
@@ -1026,8 +1031,10 @@ begin
     begin
       SynMemoQuery.Font.Name := reg.ReadString( 'FontName' );
       SynMemoSQLLog.Font.Name := reg.ReadString( 'FontName' );
+      SynMemoProcessView.Font.Name := reg.ReadString( 'FontName' );
       SynMemoQuery.Font.Size := reg.ReadInteger( 'FontSize' );
       SynMemoSQLLog.Font.Size := reg.ReadInteger( 'FontSize' );
+      SynMemoProcessView.Font.Size := reg.ReadInteger( 'FontSize' );
     end;
 
     // Data-Font:
@@ -6895,5 +6902,25 @@ begin
   Combobox.Items.EndUpdate;
 end;
 
+
+{**
+  A row in the process list was selected. Fill SynMemoProcessView with
+  the SQL of that row.
+}
+procedure TMDIChild.ListProcessesChange(Sender: TBaseVirtualTree; Node:
+    PVirtualNode);
+var
+  NodeData : PVTreeData;
+  enableSQLView : Boolean;
+begin
+  enableSQLView := Assigned(Node);
+  SynMemoProcessView.Enabled := enableSQLView;
+  pnlProcessView.Enabled := enableSQLView;
+  if enableSQLView then begin
+    NodeData := ListProcesses.GetNodeData(Node);
+    SynMemoProcessView.Text := NodeData.Captions[7];
+  end
+  else SynMemoProcessView.Clear;
+end;
 
 end.
