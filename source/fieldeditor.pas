@@ -59,7 +59,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
     procedure AddUpdateField(Sender: TObject);
-    procedure ButtonCancelClick(Sender: TObject);
     procedure pcChange(Sender: TObject);
     procedure OKClick(Sender: TObject);
     procedure UpdateKeys(Sender: TObject);
@@ -101,6 +100,7 @@ uses
 
 var
   klist : Array of TMysqlIndex;
+  FieldEditForm : TFieldEditForm;
 
 {$R *.DFM}
 
@@ -110,19 +110,17 @@ var
   Create form
 }
 function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
-var
-  f : TFieldEditForm;
 begin
-  f := TFieldEditForm.Create(AOwner);
-  f.FMode := AMode;
+  if FieldEditForm = nil then
+    FieldEditForm := TFieldEditForm.Create(AOwner);
+  FieldEditForm.FMode := AMode;
   // Also remember original mode for restoring when switching pagecontrol tabs
-  f.FModeWhenCalled := AMode;
-  f.FFieldName := AFieldName;
+  FieldEditForm.FModeWhenCalled := AMode;
+  FieldEditForm.FFieldName := AFieldName;
   // Init both editors
-  f.InitFieldEditor (nil);
-  f.InitIndexEditor (nil);
-  Result := (f.ShowModal = mrOK);
-  FreeAndNil (f);
+  FieldEditForm.InitFieldEditor (nil);
+  FieldEditForm.InitIndexEditor (nil);
+  Result := (FieldEditForm.ShowModal = mrOK);
 end;
 
 
@@ -387,67 +385,67 @@ begin
     end;
 
   Screen.Cursor := crSQLWait;
+  strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
+  strNull := '';
+  strDefault := '';
+  strAutoIncrement := '';
+
+  if CheckBoxBinary.Checked = true then
+    strAttributes := strAttributes + ' BINARY';
+
+  if CheckBoxUnsigned.Checked = true then
+    strAttributes := strAttributes + ' UNSIGNED';
+
+  if CheckBoxZerofill.Checked = true then
+    strAttributes := strAttributes + ' ZEROFILL';
+
+  if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
+  begin
+    strDefault := ' DEFAULT ';
+    // Don't escape certain default values
+    if (UpperCase(EditDefault.Text) = 'CURRENT_TIMESTAMP')
+      or (UpperCase(EditDefault.Text) = 'NULL') then
+      strDefault := strDefault + EditDefault.Text
+    else
+      strDefault := strDefault + esc(EditDefault.Text)
+  end;
+
+  if CheckBoxNotNull.Enabled then
+  begin
+    if CheckBoxNotNull.Checked then
+      strNull := ' NOT';
+    strNull := strNull + ' NULL';
+  end;
+
+  if CheckBoxAutoIncrement.Checked = True then
+    strAutoIncrement := ' AUTO_INCREMENT';
+
+  if (EditLength.text <> '') and EditLength.Enabled then
+    strLengthSet := '(' + EditLength.text + ') '
+  else
+    strLengthSet := '';
+
+  if EditComment.Enabled and (length(EditComment.Text) > 0) then
+    strComment := ' COMMENT ' + esc(EditComment.Text);
+
+  strPosition := '';
+  case ComboBoxPosition.ItemIndex of
+    0 : ;
+    1 : strPosition := ' FIRST';
+  else
+    strPosition := ' ' + ComboBoxPosition.Text;
+  end;
+
+  fielddef :=
+    ComboBoxType.Text +     // Type
+    strLengthSet +          // Length/Set
+    strAttributes +         // Attribute
+    strDefault +            // Default
+    strNull +               // [NOT] Null
+    strAutoIncrement +      // Auto_increment
+    strComment;             // Comment
+
   try
-    strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
-    strNull := '';
-    strDefault := '';
-    strAutoIncrement := '';
-
-    if CheckBoxBinary.Checked = true then
-      strAttributes := strAttributes + ' BINARY';
-
-    if CheckBoxUnsigned.Checked = true then
-      strAttributes := strAttributes + ' UNSIGNED';
-
-    if CheckBoxZerofill.Checked = true then
-      strAttributes := strAttributes + ' ZEROFILL';
-
-    if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
-    begin
-      strDefault := ' DEFAULT ';
-      // Don't escape certain default values
-      if (UpperCase(EditDefault.Text) = 'CURRENT_TIMESTAMP')
-        or (UpperCase(EditDefault.Text) = 'NULL') then
-        strDefault := strDefault + EditDefault.Text
-      else
-        strDefault := strDefault + esc(EditDefault.Text)
-    end;
-
-    if CheckBoxNotNull.Enabled then
-    begin
-      if CheckBoxNotNull.Checked then
-        strNull := ' NOT';
-      strNull := strNull + ' NULL';
-    end;
-
-    if CheckBoxAutoIncrement.Checked = True then
-      strAutoIncrement := ' AUTO_INCREMENT';
-
-    if (EditLength.text <> '') and EditLength.Enabled then
-      strLengthSet := '(' + EditLength.text + ') '
-    else
-      strLengthSet := '';
-
-    if EditComment.Enabled and (length(EditComment.Text) > 0) then
-      strComment := ' COMMENT ' + esc(EditComment.Text);
-
-    strPosition := '';
-    case ComboBoxPosition.ItemIndex of
-      0 : ;
-      1 : strPosition := ' FIRST';
-    else
-      strPosition := ' ' + ComboBoxPosition.Text;
-    end;
-
-    fielddef :=
-      ComboBoxType.Text +     // Type
-      strLengthSet +          // Length/Set
-      strAttributes +         // Attribute
-      strDefault +            // Default
-      strNull +               // [NOT] Null
-      strAutoIncrement +      // Auto_increment
-      strComment;             // Comment
-
     if (FMode = femFieldAdd) then begin
       cwin.ExecUpdateQuery(
         'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +  // table
@@ -495,7 +493,6 @@ begin
       end;
     end;
     cwin.ShowTableProperties(cwin.SelectedTable);
-    ModalResult := mrOK;
   except
     on E: THandledSQLError do
     begin
@@ -504,16 +501,6 @@ begin
     end;
   end;
   Screen.Cursor := crDefault;
-end;
-
-
-
-{***
-  Cancel Form
-}
-procedure TFieldEditForm.ButtonCancelClick(Sender: TObject);
-begin
-  ModalResult := mrCancel;
 end;
 
 
@@ -860,7 +847,6 @@ begin
       Mainform.ChildWin.ExecUpdateQuery(query);
       // Refresh listColumns to display correct field-icons
       Mainform.ChildWin.MenuRefreshClick(Self);
-      ModalResult := mrOK;
     except
       On E : Exception do
       begin
@@ -870,6 +856,8 @@ begin
           klist[i].Ready := False;
         for i := 0 to Length(modifiedKeys) - 1 do
           klist[modifiedKeys[i]].Modified := True;
+        // Keep form open
+        ModalResult := mrNone;
       end;
     end;
   end;

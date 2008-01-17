@@ -394,8 +394,8 @@ object FieldEditForm: TFieldEditForm
     Height = 25
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 2
-    OnClick = ButtonCancelClick
   end
   object ButtonOK: TButton
     Left = 111
@@ -404,6 +404,7 @@ object FieldEditForm: TFieldEditForm
     Height = 25
     Caption = 'OK'
     Default = True
+    ModalResult = 1
     TabOrder = 1
     OnClick = OKClick
   end
