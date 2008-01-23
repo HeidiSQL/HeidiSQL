@@ -111,9 +111,9 @@ object MDIChild: TMDIChild
               Caption = 'Variables'
               object ListVariables: TVirtualStringTree
                 Left = 0
-                Top = 0
+                Top = 25
                 Width = 488
-                Height = 175
+                Height = 150
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -153,18 +153,42 @@ object MDIChild: TMDIChild
                   end
                   item
                     Position = 1
-                    Width = 328
+                    Width = 324
                     WideText = 'Value'
                   end>
+              end
+              object pnlFilterVariables: TPanel
+                Left = 0
+                Top = 0
+                Width = 488
+                Height = 25
+                Align = alTop
+                BevelOuter = bvNone
+                TabOrder = 1
+                object lblFilterVariables: TLabel
+                  Left = 1
+                  Top = 4
+                  Width = 28
+                  Height = 13
+                  Caption = 'Filter:'
+                end
+                object editFilterVariables: TEdit
+                  Left = 34
+                  Top = 1
+                  Width = 154
+                  Height = 21
+                  TabOrder = 0
+                  OnChange = editFilterVTChange
+                end
               end
             end
             object tabStatus: TTabSheet
               Caption = 'Status'
               object ListStatus: TVirtualStringTree
                 Left = 0
-                Top = 0
+                Top = 25
                 Width = 488
-                Height = 175
+                Height = 150
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -204,9 +228,33 @@ object MDIChild: TMDIChild
                   end
                   item
                     Position = 1
-                    Width = 328
+                    Width = 324
                     WideText = 'Value'
                   end>
+              end
+              object pnlFilterStatus: TPanel
+                Left = 0
+                Top = 0
+                Width = 488
+                Height = 25
+                Align = alTop
+                BevelOuter = bvNone
+                TabOrder = 1
+                object lblFilterStatus: TLabel
+                  Left = 1
+                  Top = 4
+                  Width = 28
+                  Height = 13
+                  Caption = 'Filter:'
+                end
+                object editFilterStatus: TEdit
+                  Left = 34
+                  Top = 1
+                  Width = 154
+                  Height = 21
+                  TabOrder = 0
+                  OnChange = editFilterVTChange
+                end
               end
             end
             object tabProcessList: TTabSheet
@@ -223,9 +271,9 @@ object MDIChild: TMDIChild
               end
               object ListProcesses: TVirtualStringTree
                 Left = 0
-                Top = 0
+                Top = 25
                 Width = 488
-                Height = 102
+                Height = 77
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.Font.Charset = DEFAULT_CHARSET
@@ -343,6 +391,30 @@ object MDIChild: TMDIChild
                   ReadOnly = True
                 end
               end
+              object pnlFilterProcesses: TPanel
+                Left = 0
+                Top = 0
+                Width = 488
+                Height = 25
+                Align = alTop
+                BevelOuter = bvNone
+                TabOrder = 2
+                object lblFilterProcesses: TLabel
+                  Left = 1
+                  Top = 4
+                  Width = 28
+                  Height = 13
+                  Caption = 'Filter:'
+                end
+                object editFilterProcesses: TEdit
+                  Left = 34
+                  Top = 1
+                  Width = 154
+                  Height = 21
+                  TabOrder = 0
+                  OnChange = editFilterVTChange
+                end
+              end
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
@@ -410,7 +482,7 @@ object MDIChild: TMDIChild
                   end
                   item
                     Position = 4
-                    Width = 68
+                    Width = 64
                     WideText = 'Percentage'
                   end>
               end
@@ -1695,7 +1767,7 @@ object MDIChild: TMDIChild
     Images = MainForm.ImageList1
     OnPopup = popupTreeViewPopup
     Left = 8
-    Top = 48
+    Top = 16
     object NewDatabase1: TMenuItem
       Caption = 'Create database...'
       ImageIndex = 73
@@ -1744,7 +1816,7 @@ object MDIChild: TMDIChild
     AutoHotkeys = maManual
     Images = MainForm.ImageList1
     Left = 72
-    Top = 48
+    Top = 16
     object menuproperties: TMenuItem
       Caption = 'Properties'
       Default = True
@@ -1850,7 +1922,7 @@ object MDIChild: TMDIChild
     Images = MainForm.ImageList1
     OnPopup = popupHostPopup
     Left = 41
-    Top = 48
+    Top = 16
     object Kill1: TMenuItem
       Caption = 'Kill Process(es)...'
       Enabled = False
@@ -1921,7 +1993,7 @@ object MDIChild: TMDIChild
   object popupTableGrid: TPopupMenu
     Images = MainForm.ImageList1
     Left = 104
-    Top = 48
+    Top = 16
     object MenuEditField: TMenuItem
       Caption = 'Properties'
       Default = True
@@ -1976,7 +2048,7 @@ object MDIChild: TMDIChild
     AutoHotkeys = maManual
     Images = MainForm.ImageList1
     OnPopup = popupDataGridPopup
-    Left = 136
+    Left = 8
     Top = 48
     object Copy3: TMenuItem
       Action = MainForm.EditCopy1
@@ -2191,8 +2263,8 @@ object MDIChild: TMDIChild
   object popupResultGrid: TPopupMenu
     Images = MainForm.ImageList1
     OnPopup = popupResultGridPopup
-    Left = 8
-    Top = 80
+    Left = 40
+    Top = 48
     object Copy4: TMenuItem
       Action = MainForm.EditCopy1
     end
@@ -2225,8 +2297,8 @@ object MDIChild: TMDIChild
   end
   object popupSqlLog: TPopupMenu
     Images = MainForm.ImageList1
-    Left = 40
-    Top = 80
+    Left = 72
+    Top = 48
     object Copy1: TMenuItem
       Action = MainForm.EditCopy1
     end
@@ -2317,8 +2389,8 @@ object MDIChild: TMDIChild
   object popupDbGridHeader: TPopupMenu
     AutoHotkeys = maManual
     AutoLineReduction = maManual
-    Left = 72
-    Top = 80
+    Left = 104
+    Top = 48
   end
   object SynCompletionProposal1: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
@@ -2360,7 +2432,7 @@ object MDIChild: TMDIChild
     TriggerCharsW = '.'
   end
   object popupQueryLoad: TPopupMenu
-    Left = 104
+    Left = 8
     Top = 80
   end
   object OpenDialogSQLFile: TOpenDialog
@@ -2394,7 +2466,7 @@ object MDIChild: TMDIChild
   object popupQuery: TPopupMenu
     Images = MainForm.ImageList1
     OnPopup = popupQueryPopup
-    Left = 136
+    Left = 40
     Top = 80
     object MenuRun: TMenuItem
       Action = MainForm.ExecuteQuery
@@ -2489,7 +2561,7 @@ object MDIChild: TMDIChild
   end
   object popupQueryHelpers: TPopupMenu
     Images = MainForm.ImageList1
-    Left = 168
+    Left = 72
     Top = 80
     object menuInsertSnippetAtCursor: TMenuItem
       Caption = 'Insert at cursor'
