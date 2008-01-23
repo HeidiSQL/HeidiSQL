@@ -321,6 +321,15 @@ type
     pnlProcessViewBox: TPanel;
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
+    pnlFilterVariables: TPanel;
+    lblFilterVariables: TLabel;
+    editFilterVariables: TEdit;
+    pnlFilterStatus: TPanel;
+    lblFilterStatus: TLabel;
+    editFilterStatus: TEdit;
+    pnlFilterProcesses: TPanel;
+    lblFilterProcesses: TLabel;
+    editFilterProcesses: TEdit;
     procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
@@ -532,6 +541,7 @@ type
         TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
         TRect);
     procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure editFilterVTChange(Sender: TObject);
 
     private
       methodStack                : TStack;
@@ -2749,6 +2759,9 @@ begin
   // Tell VirtualTree the number of nodes it will display
   ListVariables.RootNodeCount := Length(VTRowDataListVariables);
   ListVariables.EndUpdate;
+  // Apply filter
+  if editFilterVariables.Text <> '' then
+    editFilterVTChange(editFilterVariables);
   // Display number of listed values on tab
   tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
 
@@ -2774,6 +2787,9 @@ begin
   // Tell VirtualTree the number of nodes it will display
   ListStatus.RootNodeCount := Length(VTRowDataListStatus);
   ListStatus.EndUpdate;
+  // Apply filter
+  if editFilterStatus.Text <> '' then
+    editFilterVTChange(editFilterStatus);
   // Display number of listed values on tab
   tabStatus.Caption := 'Status (' + IntToStr(ListStatus.RootNodeCount) + ')';
 
@@ -2847,6 +2863,9 @@ begin
   end;
   ListProcesses.RootNodeCount := Length(VTRowDataListProcesses);
   ListProcesses.EndUpdate;
+  // Apply filter
+  if editFilterProcesses.Text <> '' then
+    editFilterVTChange(editFilterProcesses);
   Screen.Cursor := crDefault;
 end;
 
@@ -6922,5 +6941,67 @@ begin
   end
   else SynMemoProcessView.Clear;
 end;
+
+
+{***
+  Apply a filter to a Virtual Tree.
+  Currently used for ListVariables, ListStatus and ListProcesses
+}
+procedure TMDIChild.editFilterVTChange(Sender: TObject);
+var
+  Node : PVirtualNode;
+  NodeData : PVTreeData;
+  VT : TVirtualStringTree;
+  Edit : TEdit;
+  i : Integer;
+  match : Boolean;
+  search : String;
+  somefiltered : Boolean;
+begin
+  // Find the correct VirtualTree that shall be filtered
+  if Sender = editFilterVariables then
+    VT := ListVariables
+  else if Sender = editFilterStatus then
+    VT := ListStatus
+  else if Sender = editFilterProcesses then
+    VT := ListProcesses
+  else
+    Raise Exception.Create('editFilterVTKeyUp() called with wrong sender control ('+(Sender as TControl).Name+')' );
+  Edit := Sender as TEdit;
+  // Loop through all nodes to adjust their vsVisible state
+  Node := VT.GetFirst;
+  search := LowerCase( Edit.Text );
+  somefiltered := False;
+  while Assigned(Node) do begin
+    NodeData := VT.GetNodeData(Node);
+    // Don't filter anything if the filter text is empty
+    match := search = '';
+    // Search for given text in node's captions
+    if not match then for i := 0 to NodeData.Captions.Count - 1 do begin
+      if Pos( search, LowerCase(NodeData.Captions[i]) ) > 0 then begin
+        match := True;
+        break;
+      end;
+    end;
+    if match then
+      Node.States := Node.States + [vsVisible]
+    else
+      Node.States := Node.States - [vsVisible];
+    if (not somefiltered) and (not match) then
+      somefiltered := True;
+    Node := VT.GetNext(Node);
+  end;
+  // Colorize TEdit with filter string to signalize that some nodes are hidden now
+  if somefiltered then begin
+    Edit.Font.Color := clRed;
+    Edit.Color := clYellow;
+  end else begin
+    Edit.Font.Color := clWindowText;
+    Edit.Color := clWindow;
+  end;
+  // Needs a refresh to apply visible states
+  VT.Refresh;
+end;
+
 
 end.
