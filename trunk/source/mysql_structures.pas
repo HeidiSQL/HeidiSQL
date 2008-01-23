@@ -399,7 +399,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpLINESTRING;
@@ -409,7 +409,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpPOLYGON;
@@ -419,7 +419,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpGEOMETRY;
@@ -429,7 +429,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpMULTIPOINT;
@@ -439,7 +439,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpMULTILINESTRING;
@@ -449,7 +449,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpMULTIPOLYGON;
@@ -459,7 +459,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     ),
     (
       Index:           tpGEOMETRYCOLLECTION;
@@ -469,7 +469,7 @@ var
       HasUnsigned:     False;
       HasZerofill:     False;
       HasBinary:       False;
-      HasDefault:      True;
+      HasDefault:      False;
     )
   );
 
