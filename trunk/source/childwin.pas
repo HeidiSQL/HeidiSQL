@@ -3387,14 +3387,14 @@ procedure TMDIChild.CreateTable(Sender: TObject);
 var
   db : String;
 begin
-  if Sender = PopupMenuCreateTable then begin
-    if DBTree.Selected.Level = 2 then db := DBtree.Selected.Parent.Text;
-    if DBTree.Selected.Level = 1 then db := DBtree.Selected.Text;
-  end else db := '';
+  if Assigned(DBRightClickSelectedItem) then begin
+    if DBRightClickSelectedItem.Level = 2 then db := DBRightClickSelectedItem.Parent.Text;
+    if DBRightClickSelectedItem.Level = 1 then db := DBRightClickSelectedItem.Text;
+  end else db := ActiveDatabase;
   if CreateTableForm = nil then
     CreateTableForm := TCreateTableForm.Create(Self);
+  CreateTableForm.SelectedDatabase := db;
   CreateTableForm.ShowModal;
-  CreateTableForm.DBComboBox.SelText := db;
 end;
 
 
