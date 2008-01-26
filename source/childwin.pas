@@ -6966,7 +6966,7 @@ begin
   else if Sender = editFilterProcesses then
     VT := ListProcesses
   else
-    Raise Exception.Create('editFilterVTKeyUp() called with wrong sender control ('+(Sender as TControl).Name+')' );
+    Raise Exception.Create('editFilterVTChange() called with wrong sender control ('+(Sender as TControl).Name+')' );
   Edit := Sender as TEdit;
   // Loop through all nodes to adjust their vsVisible state
   Node := VT.GetFirst;
