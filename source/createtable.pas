@@ -89,6 +89,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    SelectedDatabase : String;
   end;
 
 {$I const.inc}
@@ -517,13 +518,10 @@ begin
     if tn.Level = 1 then
       DBComboBox.Items.Add(tn.Text);
   end;
-  DBComboBox.ItemIndex := 0;
-  for i:=0 to DBComboBox.Items.Count-1 do
-  begin
-    if DBComboBox.Items[i] = Mainform.ChildWin.ActiveDatabase then
-      DBComboBox.ItemIndex := i;
-  end;
-  if DBComboBox.ItemIndex = -1 then
+  // Preselect relevant database in pulldown 
+  if SelectedDatabase <> '' then
+    DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( SelectedDatabase )
+  else if DBComboBox.Items.Count > 0 then
     DBComboBox.ItemIndex := 0;
 
   if Mainform.ChildWin.mysql_version >= 32300 then
