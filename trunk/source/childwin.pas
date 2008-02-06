@@ -807,7 +807,7 @@ var
   miFunction,
   miFilterFunction : TMenuItem;
   functioncats     : TStringList;
-  reg, reg2        : TRegistry;
+  reg              : TRegistry;
 begin
   QueryRunningInterlock := 0;
   UserQueryFired := False;
@@ -830,22 +830,14 @@ begin
 
   // Temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
-  AutoReconnect := false;
-  reg := TRegistry.Create();
-  with ( reg ) do
-  begin
-    OpenKey( REGPATH, true );
-    if ( Valueexists( 'Autoreconnect' ) ) then
-    begin
-      if ( ReadBool( 'AutoReconnect' ) ) then
-      begin
-        AutoReconnect := true;
-        WriteBool( 'AutoReconnect', false );
-      end;
-    end;
-    CloseKey();
+  AutoReconnect := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+  if AutoReconnect then begin
+    reg := TRegistry.Create();
+    reg.OpenKey( REGPATH, true );
+    reg.WriteBool( REGNAME_AUTORECONNECT, False );
+    reg.CloseKey;
+    FreeAndNil(reg);
   end;
-  FreeAndNil(reg);
 
   ReadWindowOptions();
 
@@ -871,16 +863,12 @@ begin
   ReadDatabasesAndTables( Self );
 
   // Re-enable AutoReconnect in Registry!
-  if ( AutoReconnect ) then
-  begin
-    reg2 := TRegistry.Create();
-    with ( reg2 )  do
-    begin
-      OpenKey( REGPATH, true );
-      WriteBool( 'AutoReconnect', true );
-      CloseKey();
-    end;
-    FreeAndNil(reg2);
+  if AutoReconnect then begin
+    reg := TRegistry.Create;
+    reg.OpenKey( REGPATH, true );
+    reg.WriteBool( REGNAME_AUTORECONNECT, true );
+    reg.CloseKey;
+    FreeAndNil(reg);
   end;
 
   // Define window properties
@@ -894,7 +882,7 @@ begin
   Application.Title := winName + ' - ' + APPNAME;
 
   // Reselect last used database
-  if ( ( MainForm.GetRegValue( 'RestoreLastUsedDB', true ) ) and ( lastUsedDB <> '' ) ) then
+  if MainForm.GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) and ( lastUsedDB <> '' ) then
   begin
     try
       ActiveDatabase := lastUsedDB;
@@ -969,166 +957,116 @@ var
   i           : Integer;
   menuitem    : Tmenuitem;
   reg         : TRegistry;
+  fontname, datafontname : String;
+  fontsize, datafontsize : Integer;
 
 begin
   // Initialize delimiter settings
   delimiter := DEFAULT_DELIMITER;
   ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( delimiter );
 
+  ws := Mainform.GetRegValue(REGNAME_CHILDWINSTATE, 'Normal');
+  if ws = 'Normal' then begin
+    WindowState := wsNormal;
+    Left := Mainform.GetRegValue(REGNAME_CHILDWINLEFT, Left);
+    Top := Mainform.GetRegValue(REGNAME_CHILDWINTOP, Top);
+    Width := Mainform.GetRegValue(REGNAME_CHILDWINWIDTH, Width );
+    Height := Mainform.GetRegValue(REGNAME_CHILDWINHEIGHT, Height );
+  end
+  else if ws = 'Minimized' then
+    WindowState := wsMinimized
+  else if ( ws = 'Maximized' ) then
+    WindowState := wsMaximized;
+
+  // Other values:
+  pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
+  pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
+  DBtree.Width := Mainform.GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
+  PageControlBottom.Height := Mainform.GetRegValue(REGNAME_SQLOUTHEIGHT, PageControlBottom.Height);
+  prefDefaultColWidth := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
+  prefLogsqlnum := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
+  prefLogSqlWidth := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
+  prefConvertHTMLEntities := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
+  prefCSVSeparator := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  prefCSVEncloser := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  prefCSVTerminator := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  prefRememberFilters := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
+
+  // SQL-Font:
+  fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
+  fontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  SynMemoQuery.Font.Name := fontname;
+  SynMemoSQLLog.Font.Name := fontname;
+  SynMemoProcessView.Font.Name := fontname;
+  SynMemoQuery.Font.Size := fontsize;
+  SynMemoSQLLog.Font.Size := fontsize;
+  SynMemoProcessView.Font.Size := fontsize;
+
+  // Data-Font:
+  datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
+  datafontsize := Mainform.GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
+  gridData.Font.Name := datafontname;
+  gridQuery.Font.Name := datafontname;
+  DBMemo1.Font.Name := datafontname;
+  gridData.Font.Size := datafontsize;
+  gridQuery.Font.Size := datafontsize;
+  DBMemo1.Font.Size := datafontsize;
+
+  // Color coding:
+  SynSQLSyn1.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
+  SynSQLSyn1.FunctionAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
+  SynSQLSyn1.DataTypeAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
+  SynSQLSyn1.NumberAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
+  SynSQLSyn1.StringAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
+  SynSQLSyn1.CommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  SynSQLSyn1.TablenameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  SynMemoQuery.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+
+  // SQLFiles-History
+  FillPopupQueryLoad();
+
   reg := TRegistry.Create;
-  if reg.OpenKey( REGPATH, true ) then
-  begin
-    ws := reg.ReadString( 'childwinstate' );
-    if ws = 'Normal' then
-    begin
-      WindowState := wsNormal;
-      if reg.ValueExists( 'childwinleft' ) then
-      begin
-        Left := reg.ReadInteger( 'childwinleft' );
-        Top := reg.ReadInteger( 'childwintop' );
-        Width := reg.ReadInteger( 'childwinwidth' );
-        Height := reg.ReadInteger( 'childwinheight' );
-      end;
-    end
-    else if ws = 'Minimized' then
-      WindowState := wsMinimized
-    else if ( ws = 'Maximized' ) then
-      WindowState := wsMaximized;
-
-    // Other values:
-    if reg.ValueExists( 'querymemoheight' ) then
-      pnlQueryMemo.Height := reg.ReadInteger('querymemoheight');
-    if reg.ValueExists( 'queryhelperswidth' ) then
-      pnlQueryHelpers.Width := reg.ReadInteger('queryhelperswidth');
-
-    if reg.ValueExists( 'dbtreewidth' ) then
-      DBtree.Width := reg.ReadInteger( 'dbtreewidth' );
-
-    if reg.ValueExists( 'sqloutheight' ) then
-      PageControlBottom.Height := reg.ReadInteger( 'sqloutheight' );
-
-    if reg.ValueExists( 'DefaultColWidth' ) then
-      prefDefaultColWidth := reg.ReadInteger( 'DefaultColWidth' )
-    else
-      prefDefaultColWidth := 100;
-
-    if reg.ValueExists('logsqlnum') then
-      prefLogsqlnum := reg.ReadInteger('logsqlnum')
-    else
-      prefLogsqlnum := 300;
-
-    if reg.ValueExists('logsqlwidth') then
-      prefLogSqlWidth := reg.ReadInteger('logsqlwidth')
-    else
-      prefLogSqlWidth := 2000;
-
-    prefConvertHTMLEntities := true;
-    if reg.Valueexists('ConvertHTMLEntities') then
-      prefConvertHTMLEntities := reg.ReadBool('ConvertHTMLEntities');
-
-    prefCSVSeparator := ',';
-    prefCSVEncloser := '';
-    prefCSVTerminator := '\r\n';
-    if reg.Valueexists('CSVSeparator') then
-      prefCSVSeparator := reg.ReadString('CSVSeparator');
-    if reg.Valueexists('CSVEncloser') then
-      prefCSVEncloser := reg.ReadString('CSVEncloser');
-    if reg.Valueexists('CSVTerminator') then
-      prefCSVTerminator := reg.ReadString('CSVTerminator');
-
-    // SQL-Font:
-    if reg.ValueExists( 'FontName' ) and reg.ValueExists('FontSize') then
-    begin
-      SynMemoQuery.Font.Name := reg.ReadString( 'FontName' );
-      SynMemoSQLLog.Font.Name := reg.ReadString( 'FontName' );
-      SynMemoProcessView.Font.Name := reg.ReadString( 'FontName' );
-      SynMemoQuery.Font.Size := reg.ReadInteger( 'FontSize' );
-      SynMemoSQLLog.Font.Size := reg.ReadInteger( 'FontSize' );
-      SynMemoProcessView.Font.Size := reg.ReadInteger( 'FontSize' );
-    end;
-
-    // Data-Font:
-    if reg.ValueExists( 'DataFontName' ) and reg.ValueExists( 'DataFontSize' ) then
-    begin
-      gridData.Font.Name := reg.ReadString( 'DataFontName' );
-      gridQuery.Font.Name := reg.ReadString( 'DataFontName' );
-      DBMemo1.Font.Name := reg.ReadString( 'DataFontName' );
-      gridData.Font.Size := reg.ReadInteger( 'DataFontSize' );
-      gridQuery.Font.Size := reg.ReadInteger( 'DataFontSize' );
-      DBMemo1.Font.Size := reg.ReadInteger( 'DataFontSize' );
-    end;
-
-    // Color coding:
-    if reg.ValueExists( 'SQLColKeyAttri' ) then
-      SynSQLSyn1.KeyAttri.Foreground := StringToColor( reg.ReadString( 'SQLColKeyAttri' ) );
-    if reg.ValueExists( 'SQLColFunctionAttri' ) then
-      SynSQLSyn1.FunctionAttri.Foreground := StringToColor( reg.ReadString( 'SQLColFunctionAttri' ) );
-    if reg.ValueExists( 'SQLColDataTypeAttri' ) then
-      SynSQLSyn1.DataTypeAttri.Foreground := StringToColor( reg.ReadString( 'SQLColDataTypeAttri' ) );
-    if reg.ValueExists( 'SQLColNumberAttri' ) then
-      SynSQLSyn1.NumberAttri.Foreground := StringToColor( reg.ReadString( 'SQLColNumberAttri' ) );
-    if reg.ValueExists( 'SQLColStringAttri' ) then
-      SynSQLSyn1.StringAttri.Foreground := StringToColor( reg.ReadString( 'SQLColStringAttri' ) );
-    if reg.ValueExists( 'SQLColCommentAttri' ) then
-      SynSQLSyn1.CommentAttri.Foreground := StringToColor( reg.ReadString( 'SQLColCommentAttri' ) );
-    if reg.ValueExists( 'SQLColTablenameAttri' ) then
-      SynSQLSyn1.TablenameAttri.Foreground := StringToColor( reg.ReadString( 'SQLColTablenameAttri' ) );
-    if reg.ValueExists( 'SQLColActiveLine' ) then
-      SynMemoQuery.ActiveLineColor := StringToColor( reg.ReadString('SQLColActiveLine') );
-
-    // SQLFiles-History
-    FillPopupQueryLoad();
-
+  if reg.OpenKey( REGPATH, true ) then begin
     // SQL-Filter-Files-History
     i := 1;
     popupFilterOpenFile.Items.Clear();
-    while ( reg.ValueExists( 'SQLWhereFile' + IntToStr(i) ) ) do
+    while ( reg.ValueExists( REGNAME_SQLWHEREFILE + IntToStr(i) ) ) do
     begin
       menuitem := Tmenuitem.Create(Self);
-      menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + reg.ReadString( 'SQLWhereFile' + IntToStr(i) );
+      menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + reg.ReadString( REGNAME_SQLWHEREFILE + IntToStr(i) );
       menuitem.OnClick := LoadSQLWhereFile;
       popupFilterOpenFile.Items.Add( menuitem );
       inc( i );
     end;
-
-    // Synchronize internal variables with defaults from DFM.
-    StopOnErrors := btnQueryStopOnErrors.Down;
-
-    // Says if the filters on the data tab shall be remembered
-    if reg.ValueExists( 'RememberFilters' ) then
-      prefRememberFilters := reg.ReadBool('RememberFilters')
-    else
-      prefRememberFilters := True;
-
-    // Restore width of columns of all VirtualTrees
-    RestoreListSetup(ListVariables);
-    RestoreListSetup(ListStatus);
-    RestoreListSetup(ListProcesses);
-    RestoreListSetup(ListCommandStats);
-    RestoreListSetup(ListTables);
-    RestoreListSetup(ListColumns);
-
-    // Read the delimiters
-    delimiters := Trim( reg.ReadString( 'delimiters' ) );
-    if ( delimiters <> EmptyStr ) then
-    begin
-      ComboBoxQueryDelimiter.Items.Text := delimiters;
-      ComboBoxQueryDelimiter.ItemIndex := reg.ReadInteger( 'delimiterselected' );
-    end;
-
-    // Activate logging
-    if reg.ValueExists( 'LogToFile' ) and reg.ReadBool('LogToFile') then
-      ActivateFileLogging;
-
-    // Open server-specific registry-folder.
-    // relative from already opened folder!
-    reg.OpenKey( 'Servers\' + FConn.Description, true );
-
-    // Set last used database, select it later in Init
-    lastUsedDB := reg.ReadString( 'lastUsedDB' );
+    reg.CloseKey;
   end;
-  reg.CloseKey;
   reg.Free;
+
+  // Read the delimiters
+  delimiters := Trim( Mainform.GetRegValue(REGNAME_DELIMITERS, '') );
+  if delimiters <> '' then
+  begin
+    ComboBoxQueryDelimiter.Items.Text := delimiters;
+    ComboBoxQueryDelimiter.ItemIndex := Mainform.GetRegValue( REGNAME_DELIMITERSELECTED, 0 );
+  end;
+
+  // Synchronize internal variables with defaults from DFM.
+  StopOnErrors := btnQueryStopOnErrors.Down;
+
+  // Restore width of columns of all VirtualTrees
+  RestoreListSetup(ListVariables);
+  RestoreListSetup(ListStatus);
+  RestoreListSetup(ListProcesses);
+  RestoreListSetup(ListCommandStats);
+  RestoreListSetup(ListTables);
+  RestoreListSetup(ListColumns);
+
+  // Activate logging
+  if Mainform.GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
+    ActivateFileLogging;
+
+  // Set last used database, select it later in Init
+  lastUsedDB := Mainform.GetRegValue(REGNAME_LASTUSEDDB, '', FConn.Description);
 
   // Generate menuitems for popupDbGridHeader (column selection for ListTables)
   popupDBGridHeader.Items.Clear;
@@ -1177,55 +1115,43 @@ begin
   LeaveCriticalSection(SqlMessagesLock);
 
   // Saving some vars into registry
-  case ( WindowState ) of
-    wsNormal :
-    begin
-      ws := 'Normal';
-    end;
-    wsMinimized :
-    begin
-      ws := 'Minimized';
-    end;
-    wsMaximized :
-    begin
-      ws := 'Maximized';
-    end;
+  case WindowState of
+    wsNormal    : ws := 'Normal';
+    wsMinimized : ws := 'Minimized';
+    wsMaximized : ws := 'Maximized';
   end;
 
   reg := TRegistry.Create();
-  with ( reg ) do
+  if reg.OpenKey( REGPATH, true ) then
   begin
-    if ( OpenKey( REGPATH, true ) ) then
-    begin
-      // Window state and position
-      WriteString( 'childwinstate', ws );
-      WriteInteger( 'childwinleft', left );
-      WriteInteger( 'childwintop', top );
-      WriteInteger( 'childwinwidth', width );
-      WriteInteger( 'childwinheight', height );
+    // Window state and position
+    reg.WriteString( REGNAME_CHILDWINSTATE, ws );
+    reg.WriteInteger( REGNAME_CHILDWINLEFT, Left );
+    reg.WriteInteger( REGNAME_CHILDWINTOP, Top );
+    reg.WriteInteger( REGNAME_CHILDWINWIDTH, Width );
+    reg.WriteInteger( REGNAME_CHILDWINHEIGHT, Height );
 
-      WriteInteger( 'querymemoheight', pnlQueryMemo.Height );
-      WriteInteger( 'queryhelperswidth', pnlQueryHelpers.Width );
-      WriteInteger( 'dbtreewidth', dbtree.width );
-      WriteInteger( 'sqloutheight', PageControlBottom.Height );
+    reg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
+    reg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
+    reg.WriteInteger( REGNAME_DBTREEWIDTH, dbtree.width );
+    reg.WriteInteger( REGNAME_SQLOUTHEIGHT, PageControlBottom.Height );
 
-      // Save width of probably resized columns of all VirtualTrees
-      SaveListSetup(ListVariables);
-      SaveListSetup(ListStatus);
-      SaveListSetup(ListProcesses);
-      SaveListSetup(ListCommandStats);
-      SaveListSetup(ListTables);
-      SaveListSetup(ListColumns);
+    // Save width of probably resized columns of all VirtualTrees
+    SaveListSetup(ListVariables);
+    SaveListSetup(ListStatus);
+    SaveListSetup(ListProcesses);
+    SaveListSetup(ListCommandStats);
+    SaveListSetup(ListTables);
+    SaveListSetup(ListColumns);
 
-      // Save the delimiters
-      WriteString( 'delimiters', ComboBoxQueryDelimiter.Items.Text );
-      WriteInteger( 'delimiterselected', ComboBoxQueryDelimiter.ItemIndex );
+    // Save the delimiters
+    reg.WriteString( REGNAME_DELIMITERS, ComboBoxQueryDelimiter.Items.Text );
+    reg.WriteInteger( REGNAME_DELIMITERSELECTED, ComboBoxQueryDelimiter.ItemIndex );
 
-      // Open server-specific registry-folder.
-      // relative from already opened folder!
-      OpenKey( 'Servers\' + FConn.Description, true );
-      WriteString( 'lastUsedDB', ActiveDatabase );
-    end;
+    // Open server-specific registry-folder.
+    // relative from already opened folder!
+    reg.OpenKey( REGKEY_SESSIONS + FConn.Description, true );
+    reg.WriteString( REGNAME_LASTUSEDDB, ActiveDatabase );
   end;
   FreeAndNil(reg);
 
@@ -1572,7 +1498,6 @@ var
   j                    : Integer;
   OrderColumns         : TOrderColArray;
   PrimaryKeyColumns    : TStringList;
-  reg, reg2            : TRegistry;
   reg_value            : String;
   select_base          : String;
   limit                : Int64;
@@ -1584,7 +1509,6 @@ var
   tmp                  : TDataSet;
 begin
   viewingdata := true;
-  reg := TRegistry.Create();
   sl_query := TStringList.Create();
   try
     // limit number of rows automatically if first time this table is shown
@@ -1632,16 +1556,13 @@ begin
     EDBImage1.DataField := '';
     EDBImage1.DataSource := DataSource1;
 
-    reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
-
     if not dataselected and prefRememberFilters then
     begin
       SynMemoFilter.Text := '';
       // Read cached WHERE-clause and set filter
-      reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
-      if ( reg.ValueExists( reg_value ) ) then
-      begin
-        SynMemoFilter.Text := reg.ReadString( reg_value );
+      reg_value := Mainform.GetRegValue( 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable, '', FConn.Description );
+      if reg_value <> '' then begin
+        SynMemoFilter.Text := reg_value;
         // Ensure the user can see its previous specified filter
         // in case of an SQL-error, it's important that he can delete it
         tabFilter.tabVisible := true;
@@ -1675,13 +1596,8 @@ begin
       MainForm.ShowStatus( 'Retrieving data...', 2, true );
 
       // Read columns to display from registry
-      reg2 := TRegistry.Create;
-      with ( reg2 ) do
-      begin
-        OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
-        DisplayedColumnsList := explode( '`', ReadString(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable));
-      end;
-      FreeAndNil(reg2);
+      reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '');
+      DisplayedColumnsList := explode( '`', reg_value);
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
@@ -1848,7 +1764,6 @@ begin
 
     Screen.Cursor := crDefault;
   finally
-    FreeAndNil(reg);
     FreeAndNil(sl_query);
     viewingdata := false;
   end;
@@ -2679,7 +2594,7 @@ begin
         OnlyDBs.Delete( OnlyDBs.IndexOf(tndb_.Text) );
         with TRegistry.Create do
         begin
-          if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
+          if OpenKey(REGPATH + REGKEY_SESSIONS + FConn.Description, false) then
           begin
             WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
             CloseKey;
@@ -3490,7 +3405,7 @@ begin
       OnlyDBs.Add( CreateDatabaseForm.editDBName.Text );
       with TRegistry.Create do
       begin
-        if OpenKey(REGPATH + '\Servers\' + FConn.Description, false) then
+        if OpenKey(REGPATH + REGKEY_SESSIONS + FConn.Description, false) then
         begin
           WriteString( 'OnlyDBs', ImplodeStr( ';', OnlyDBs ) );
           CloseKey;
@@ -4134,16 +4049,16 @@ begin
               break;
           end;
           while i > 1 do begin
-            WriteString('SQLWhereFile'+IntToStr(i), ReadString('SQLWhereFile'+IntToStr(i-1)));
+            WriteString(REGNAME_SQLWHEREFILE+IntToStr(i), ReadString(REGNAME_SQLWHEREFILE+IntToStr(i-1)));
             dec(i);
           end;
           WriteString('SQLWhereFile1', FileName);
 
           i := 1;
           popupTreeView.Items.Clear;
-          while ValueExists('SQLWhereFile'+IntToStr(i)) do begin
+          while ValueExists(REGNAME_SQLWHEREFILE+IntToStr(i)) do begin
             menuitem := Tmenuitem.Create(self);
-            menuitem.Caption := IntToStr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString('SQLWhereFile'+IntToStr(i));
+            menuitem.Caption := IntToStr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString(REGNAME_SQLWHEREFILE+IntToStr(i));
             menuitem.OnClick := LoadSQLWhereFile;
             popupFilterOpenFile.Items.Add(menuitem);
             Inc( i );
@@ -4186,7 +4101,7 @@ begin
   reg := TRegistry.Create;
   try
     if prefRememberFilters then begin
-      reg.openkey( REGPATH + '\Servers\' + FConn.Description, false );
+      reg.openkey( REGPATH + REGKEY_SESSIONS + FConn.Description, false );
       reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
       if where <> '' then reg.WriteString( reg_value, where )
       else if reg.ValueExists( reg_value ) then reg.DeleteValue( reg_value );
@@ -4816,22 +4731,16 @@ begin
   popupQueryLoad.Items.Add(menuitem);
 
   // Recent files
-  with TRegistry.Create do
-  begin
-    openkey(REGPATH, true);
-    j := 0;
-    for i:=0 to 19 do
-    begin
-      if not ValueExists('SQLFile'+IntToStr(i)) then
-        continue;
-      sqlFilename := ReadString( 'SQLFile'+IntToStr(i) );
-      inc(j);
-      menuitem := TMenuItem.Create( popupQueryLoad );
-      menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
-      menuitem.OnClick := popupQueryLoadClick;
-      popupQueryLoad.Items.Add(menuitem);
-    end;
-    Free;
+  j := 0;
+  for i:=0 to 19 do begin
+    sqlFilename := Mainform.GetRegValue( 'SQLFile'+IntToStr(i), '' );
+    if sqlFilename = '' then
+      continue;
+    inc(j);
+    menuitem := TMenuItem.Create( popupQueryLoad );
+    menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
+    menuitem.OnClick := popupQueryLoadClick;
+    popupQueryLoad.Items.Add(menuitem);
   end;
 
   // Separator + "Remove absent files"
@@ -6477,17 +6386,15 @@ procedure TMDIChild.RestoreListSetup( List: TVirtualStringTree );
 var
   i : Byte;
   colwidth, colpos : Integer;
+  Value : String;
   ValueList : TStringList;
-  reg : TRegistry;
 begin
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH, true );
   ValueList := TStringList.Create;
 
   // Column widths
-  if reg.ValueExists( REGPREFIX_COLWIDTHS + List.Name ) then
-  begin
-    ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLWIDTHS + List.Name ) );
+  Value := Mainform.GetRegValue(REGPREFIX_COLWIDTHS + List.Name, '');
+  if Value <> '' then begin
+    ValueList := Explode( ',', Value );
     for i := 0 to ValueList.Count - 1 do
     begin
       colwidth := MakeInt(ValueList[i]);
@@ -6498,16 +6405,16 @@ begin
   end;
 
   // Column visibility
-  if reg.ValueExists( REGPREFIX_COLSVISIBLE + List.Name ) then
-  begin
-    ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLSVISIBLE + List.Name ) );
+  Value := Mainform.GetRegValue(REGPREFIX_COLSVISIBLE + List.Name, '');
+  if Value <> '' then begin
+    ValueList := Explode( ',', Value );
     SetVisibleListColumns( List, ValueList );
   end;
 
   // Column position
-  if reg.ValueExists( REGPREFIX_COLPOS + List.Name ) then
-  begin
-    ValueList := Explode( ',', reg.ReadString( REGPREFIX_COLPOS + List.Name ) );
+  Value := Mainform.GetRegValue(REGPREFIX_COLPOS + List.Name, '');
+  if Value <> '' then begin
+    ValueList := Explode( ',', Value );
     for i := 0 to ValueList.Count - 1 do
     begin
       colpos := MakeInt(ValueList[i]);
@@ -6517,7 +6424,6 @@ begin
     end;
   end;
 
-  reg.Free;
   ValueList.Free;
 end;
 
@@ -6752,13 +6658,11 @@ begin
   SetLength( Result, 0 );
 
   // Read ORDER clause from registry
-  reg := TRegistry.Create();
-  reg.OpenKey( REGPATH + '\Servers\' + FConn.Description, true );
   reg_name := REGPREFIX_ORDERCLAUSE + ActiveDatabase + '.' + SelectedTable;
+  old_orderclause := Mainform.GetRegValue(reg_name, '', FConn.Description);
 
-  if reg.ValueExists(reg_name) then
+  if old_orderclause <> '' then
   begin
-    old_orderclause := reg.ReadString(reg_name);
     // Parse ORDER clause
     order_parts := explode( ',', old_orderclause );
     ValidColumns := GetVTCaptions( ListColumns );
@@ -6821,13 +6725,15 @@ begin
   new_orderclause := ComposeOrderClause(Result);
   if new_orderclause <> old_orderclause then
   begin
+    reg := TRegistry.Create();
+    reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
     if new_orderclause <> '' then
       reg.WriteString(reg_name , new_orderclause)
     else
       reg.DeleteValue(reg_name);
+    reg.Free;
   end;
 
-  reg.Free;
 end;
 
 

@@ -41,7 +41,6 @@ uses MAIN, helpers;
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
-  reg : TRegistry;
   reg_columns : TStringList;
 begin
   // Take column names from listColumns and add here
@@ -51,30 +50,17 @@ begin
   reg_name := REGNAME_DISPLAYEDCOLUMNS + '_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
 
   // Read reg value and check items!
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Conn.Description, true );
-  reg_columns := explode( '`', reg.ReadString( reg_name ) );
-  if reg_columns.Count = 0 then
-  begin
-    // Simply check all items
-    ToggleCheckListBox( chklistColumns, True );
-  end
-  else
-  begin
-    // Only check selected items
+  reg_columns := explode( '`', Mainform.GetRegValue( reg_name, '', Mainform.Childwin.Conn.Description ) );
+  if reg_columns.Count = 0 then // Simply check all items
+    ToggleCheckListBox( chklistColumns, True )
+  else // Only check selected items
     ToggleCheckListBox( chklistColumns, True, reg_columns );
-  end;
 
   // Call check-event to update state of "Select / Deselect all" checkbox
   chklistColumnsClickCheck( Sender );
 
   // Restore last used sorting state from registry
-  reg.OpenKey( REGPATH, false );
-  if (reg.ValueExists(REGNAME_SORTDISPLAYEDCOLUMNS)) then
-    chkSort.Checked := reg.ReadBool(REGNAME_SORTDISPLAYEDCOLUMNS);
-
-  reg.CloseKey;
-  FreeAndNil(reg);
+  chkSort.Checked := Mainform.GetRegValue(REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.Checked);
 end;
 
 
@@ -90,7 +76,7 @@ var
 begin
   // Open registry registry key
   reg := TRegistry.Create;
-  reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Conn.Description, true );
+  reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.Conn.Description, true );
 
   // Set initial values
   reg_oldvalue := '';

@@ -233,7 +233,7 @@ begin
   if CheckBoxCreateAccount.Checked then
   with TRegistry.Create do
   begin
-    OpenKey(REGPATH + '\Servers\', false);
+    OpenKey(REGPATH + REGKEY_SESSIONS, false);
     if KeyExists(EditDescription.Text) then
     begin
       MessageDlg('This Description (' + EditDescription.Text + ') is already used.' + CRLF + 'Please specify another description!', mtError, [mbOK], 0);
@@ -242,14 +242,14 @@ begin
     end
     else with TRegistry.Create do
     begin
-      OpenKey(REGPATH + '\Servers\' + EditDescription.Text, true);
-      WriteString('Host', Mainform.Childwin.Conn.MysqlParams.Host);
-      WriteString('User', EditUser.Text);
-      WriteString('Password', encrypt(EditPassword.Text));
-      WriteString('Port', IntToStr(Mainform.Childwin.Conn.MysqlParams.Port));
-      WriteString('Timeout', '30');
-      WriteBool('Compressed', false);
-      WriteString('OnlyDBs', '');
+      OpenKey(REGPATH + REGKEY_SESSIONS + EditDescription.Text, true);
+      WriteString(REGNAME_HOST, Mainform.Childwin.Conn.MysqlParams.Host);
+      WriteString(REGNAME_USER, EditUser.Text);
+      WriteString(REGNAME_PASSWORD, encrypt(EditPassword.Text));
+      WriteString(REGNAME_PORT, IntToStr(Mainform.Childwin.Conn.MysqlParams.Port));
+      WriteString(REGNAME_TIMEOUT, IntToStr(DEFAULT_TIMEOUT));
+      WriteBool(REGNAME_COMPRESSED, DEFAULT_COMPRESSED);
+      WriteString(REGNAME_ONLYDBS, '');
       CloseKey;
       Free;
     end;

@@ -199,14 +199,15 @@ type
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
     procedure HandleWMClearRightClickPointer(var msg: TMessage); message WM_CLEAR_RIGHTCLICK_POINTER;
   private
+    regMain : TRegistry;
     function GetChildwin: TMDIChild;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
   public
-    function GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer; Overload;
-    function GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean; Overload;
-    procedure SaveRegValue( valueName: String; value: Integer; key: String = '' ); Overload;
-    procedure SaveRegValue( valueName: String; value: Boolean; key: String = '' ); Overload;
+    procedure OpenRegistry(Session: String = '');
+    function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
+    function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
+    function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
     function CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: String): Boolean;
 
     // Reference to currently active childwindow:
@@ -382,16 +383,16 @@ begin
   begin
     if OpenKey(REGPATH, true) then
     begin
-      WriteString('windowstate', ws);
-      WriteInteger('windowleft', left);
-      WriteInteger('windowtop', top);
-      WriteInteger('windowwidth', width);
-      WriteInteger('windowheight', height);
+      WriteString(REGNAME_WINDOWSTATE, ws);
+      WriteInteger(REGNAME_WINDOWLEFT, left);
+      WriteInteger(REGNAME_WINDOWTOP, top);
+      WriteInteger(REGNAME_WINDOWWIDTH, width);
+      WriteInteger(REGNAME_WINDOWHEIGHT, height);
       // Position of Toolbars
-      WriteInteger('ToolBar2Left', ToolBarStandard.Left);
-      WriteInteger('ToolBarDataLeft', ToolBarData.Left);
-      WriteInteger('ToolBar2Top', ToolBarStandard.Top);
-      WriteInteger('ToolBarDataTop', ToolBarData.Top);
+      WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
+      WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
+      WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+      WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
     end;
     CloseKey;
     Free;
@@ -407,6 +408,10 @@ begin
     deletefile(filename+'gif');
   if FileExists(filename+'bmp') then
     deletefile(filename+'bmp');
+  if regMain <> nil then begin
+    regMain.CloseKey;
+    regMain.Free;
+  end;
 end;
 
 
@@ -424,36 +429,24 @@ begin
   caption := APPNAME;
   setLocales;
 
-  with TRegistry.Create do
-  begin
-    if OpenKey(REGPATH, true) then
-    begin
-      ws := ReadString('windowstate');
-      if ws = 'Minimized'
-        then windowstate := wsMinimized else
-      if ws = 'Normal' then begin
-        windowstate := wsNormal;
-        left := ReadInteger('windowleft');
-        top := ReadInteger('windowtop');
-        width := ReadInteger('windowwidth');
-        height := ReadInteger('windowheight');
-      end else
-      if ws = 'Maximized'
-        then windowstate := wsMaximized;
+  ws := GetRegValue('windowstate', 'Normal');
+  if ws = 'Minimized'
+    then windowstate := wsMinimized else
+  if ws = 'Normal' then begin
+    windowstate := wsNormal;
+    Left := GetRegValue(REGNAME_WINDOWLEFT, Left);
+    Top := GetRegValue(REGNAME_WINDOWTOP, Top);
+    Width := GetRegValue(REGNAME_WINDOWWIDTH, Width);
+    Height := GetRegValue(REGNAME_WINDOWHEIGHT, Height);
+  end else
+  if ws = 'Maximized'
+    then windowstate := wsMaximized;
 
-      // Position of Toolbars
-      if valueExists('ToolBar2Left') then
-        ToolBarStandard.Left := ReadInteger('ToolBar2Left');
-      if valueExists('ToolBarDataLeft') then
-        ToolBarData.Left := ReadInteger('ToolBarDataLeft');
-      if valueExists('ToolBar2Top') then
-        ToolBarStandard.Top := ReadInteger('ToolBar2Top');
-      if valueExists('ToolBarDataTop') then
-        ToolBarData.Top := ReadInteger('ToolBarDataTop');
-    end;
-    CloseKey;
-    Free;
-  end;
+  // Position of Toolbars
+  ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
+  ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
+  ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+  ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
 
   // Beautify appversion
   if Pos('$Rev: WC', appversion) < 1 then begin
@@ -538,16 +531,16 @@ begin
     begin
       // Save session parameters to registry
       reg := TRegistry.Create;
-      if reg.OpenKey(REGPATH + '\Servers\' + parDescription, true) then
+      if reg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, true) then
       begin
-        reg.WriteString('Host', parHost);
-        reg.WriteString('User', parUser);
-        reg.WriteString('Password', encrypt(parPass));
-        reg.WriteString('Port', parPort);
-        reg.WriteString('Timeout', parTimeout);
-        reg.WriteBool('Compressed', Boolean(StrToIntDef(parCompress, 0)) );
-        reg.WriteString('OnlyDBs', parDatabase);
-        reg.WriteBool('OnlyDBsSorted', Boolean(StrToIntDef(parSortDatabases, 0)) );
+        reg.WriteString(REGNAME_HOST, parHost);
+        reg.WriteString(REGNAME_USER, parUser);
+        reg.WriteString(REGNAME_PASSWORD, encrypt(parPass));
+        reg.WriteString(REGNAME_PORT, parPort);
+        reg.WriteString(REGNAME_TIMEOUT, parTimeout);
+        reg.WriteBool(REGNAME_COMPRESSED, Boolean(StrToIntDef(parCompress, 0)) );
+        reg.WriteString(REGNAME_ONLYDBS, parDatabase);
+        reg.WriteBool(REGNAME_ONLYDBSSORTED, Boolean(StrToIntDef(parSortDatabases, 0)) );
         reg.CloseKey;
         reg.Free;
       end;
@@ -616,14 +609,14 @@ begin
     Access := KEY_ALL_ACCESS;
     if OpenKey(REGPATH, false) then
     begin
-      DeleteValue('childwinstate');
-      DeleteValue('childwinleft');
-      DeleteValue('childwintop');
-      DeleteValue('childwinwidth');
-      DeleteValue('childwinheight');
-      DeleteValue('querymemoheight');
-      DeleteValue('dbtreewidth');
-      DeleteValue('sqloutheight');
+      DeleteValue(REGNAME_CHILDWINSTATE);
+      DeleteValue(REGNAME_CHILDWINLEFT);
+      DeleteValue(REGNAME_CHILDWINTOP);
+      DeleteValue(REGNAME_CHILDWINWIDTH);
+      DeleteValue(REGNAME_CHILDWINHEIGHT);
+      DeleteValue(REGNAME_QUERYMEMOHEIGHT);
+      DeleteValue(REGNAME_DBTREEWIDTH);
+      DeleteValue(REGNAME_SQLOUTHEIGHT);
 
       CloseKey;
       MessageDlg('All Window-Settings were reset to default values.', mtInformation, [mbok], 0);
@@ -874,7 +867,7 @@ procedure TMainForm.ExportSettings1Click(Sender: TObject);
 begin
   // Export settings to .reg-file
   if SaveDialog2.Execute then begin
-    if winexec(pchar('regedit.exe /e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER\'+REGPATH), SW_SHOW) = ERROR_FILE_NOT_FOUND then
+    if winexec(pchar('regedit.exe /e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER'+REGPATH), SW_SHOW) = ERROR_FILE_NOT_FOUND then
       MessageDlg('File not found: regedit.exe', mtError, [mbOK], 0);
   end;
 end;
@@ -958,10 +951,10 @@ begin
       with TRegistry.Create do
       begin
         openkey(REGPATH, true);
-        WriteBool('ConvertHTMLEntities', ConvertHTMLSpecialChars);
-        WriteString('CSVSeparator', FieldSep);
-        WriteString('CSVEncloser', FieldEncl);
-        WriteString('CSVTerminator', LineSep);
+        WriteBool(REGNAME_CONVERTHTMLENTITIES, ConvertHTMLSpecialChars);
+        WriteString(REGNAME_CSV_SEPARATOR, FieldSep);
+        WriteString(REGNAME_CSV_ENCLOSER, FieldEncl);
+        WriteString(REGNAME_CSV_TERMINATOR, LineSep);
         closekey();
         Free;
       end;
@@ -1098,112 +1091,62 @@ begin
 end;
 
 
-function TMainForm.GetRegValue( valueName: String; defaultValue: Integer; key: String = '' ) : Integer;
+{**
+  Init main registry object and open desired key
+  Outsoureced from GetRegValue() to avoid redundant code
+  in these 3 overloaded methods.
+}
+procedure TMainForm.OpenRegistry(Session: String = '');
 var
-  reg : TRegistry;
   folder : String;
 begin
-  result := defaultValue;
-  reg := TRegistry.Create;
+  if regMain = nil then
+    regMain := TRegistry.Create;
   folder := REGPATH;
-  if key <> '' then
-    folder := folder + '\' + key;
-  try
-    if reg.OpenKey(folder, false) then
-    begin
-      if reg.ValueExists( valueName ) then
-        result := reg.ReadInteger( valueName );
-      reg.CloseKey;
-    end;
-  finally
-    reg.Free;
-  end;
+  if Session <> '' then
+    folder := folder + REGKEY_SESSIONS + Session;
+  if regMain.CurrentPath <> folder then
+    regMain.OpenKey(folder, false);
 end;
 
 
+{**
+  Read a numeric preference value from registry
+}
+function TMainForm.GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer;
+begin
+  result := defaultValue;
+  OpenRegistry(Session);
+  if regMain.ValueExists( valueName ) then
+    result := regMain.ReadInteger( valueName );
+end;
+
 
 {***
-  Safely read a given valueName from the registry default-folder REGPATH
+  Read a boolean preference value from registry
   @param string Name of the value
   @param boolean Default-value to return if valueName was not found
   @param string Subkey of REGPATH where to search for the value
 }
-function TMainForm.GetRegValue( valueName: String; defaultValue: Boolean; key: String = '' ) : Boolean;
-var
-  reg : TRegistry;
-  folder : String;
+function TMainForm.GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean;
 begin
   result := defaultValue;
-  reg := TRegistry.Create;
-  folder := REGPATH;
-  if key <> '' then
-    folder := folder + '\' + key;
-  try
-    if reg.OpenKey(folder, false) then
-    begin
-      if reg.ValueExists( valueName ) then
-        result := reg.ReadBool( valueName );
-      reg.CloseKey;
-    end;
-  finally
-    reg.Free;
-  end;
+  OpenRegistry(Session);
+  if regMain.ValueExists( valueName ) then
+    result := regMain.ReadBool( valueName );
 end;
 
 
 
 {***
-  Saves a number-value into the predefined folder REGPATH
-  @param string Name for the value
-  @param integer Value-number
-  @param string Subkey of REGPATH where to store the value
+  Read a text preference value from registry
 }
-procedure TMainForm.SaveRegValue( valueName: String; value: Integer; key: String = '' );
-var
-  reg : TRegistry;
-  folder : String;
+function TMainForm.GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String;
 begin
-  reg := TRegistry.Create;
-  folder := REGPATH;
-  if key <> '' then
-    folder := folder + '\' + key;
-  try
-    if reg.OpenKey(folder, false) then
-    begin
-      reg.WriteInteger( valueName, value );
-      reg.CloseKey;
-    end;
-  finally
-    reg.Free;
-  end;
-end;
-
-
-
-{***
-  Saves a boolean-value into the predefined folder REGPATH
-  @param string Name for the value
-  @param boolean Value
-  @param string Subkey of REGPATH where to store the value
-}
-procedure TMainForm.SaveRegValue( valueName: String; value: Boolean; key: String = '' );
-var
-  reg : TRegistry;
-  folder : String;
-begin
-  reg := TRegistry.Create;
-  folder := REGPATH;
-  if key <> '' then
-    folder := folder + '\' + key;
-  try
-    if reg.OpenKey(folder, false) then
-    begin
-      reg.WriteBool( valueName, value );
-      reg.CloseKey;
-    end;
-  finally
-    reg.Free;
-  end;
+  result := defaultValue;
+  OpenRegistry(Session);
+  if regMain.ValueExists( valueName ) then
+    result := regMain.ReadString( valueName );
 end;
 
 

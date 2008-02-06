@@ -240,54 +240,49 @@ begin
   end;
 
   // Read options
-  with TRegistry.Create do
-    if OpenKey(REGPATH, true) then begin
-    // WithUseDB, UseBackticks, CompleteInserts: deprecated (hardcoded true now)
-    if Valueexists('ExportStructure') then cbxStructure.Checked := ReadBool('ExportStructure');
-    if Valueexists('WithCreateDatabase') then cbxDatabase.Checked := ReadBool('WithCreateDatabase');
-    if Valueexists('WithCreateTable') then cbxTables.Checked := ReadBool('WithCreateTable');
-    if Valueexists('ExportData') then cbxData.Checked := ReadBool('ExportData');
-    if Valueexists('CreateDatabaseHow') then comboDatabase.ItemIndex := ReadInteger('CreateDatabaseHow');
-    if Valueexists('CreateTablesHow') then comboTables.ItemIndex := ReadInteger('CreateTablesHow')
-    else if Valueexists('WithDropTable') and ReadBool('WithDropTable') then comboTables.ItemIndex := TAB_DROP_CREATE;
-    if Valueexists('CreateDataHow') then comboData.ItemIndex := ReadInteger('CreateDataHow');
-    if Valueexists('Compatibility') then comboTargetCompat.ItemIndex := ReadInteger('Compatibility');
-    if Valueexists('exportfilename') then editFileName.Text := ReadString('exportfilename');
-    if Valueexists('ExportDirectory') then editDirectory.Text := ReadString('ExportDirectory');
-    if Valueexists('ExportSQL_OutputTo') then
-    begin
-      OutputTo := ReadInteger('ExportSQL_OutputTo');
+  // WithUseDB, UseBackticks, CompleteInserts: deprecated (hardcoded true now)
+  cbxStructure.Checked := Mainform.GetRegValue(REGNAME_EXP_STRUCTURE, cbxStructure.Checked);
+  cbxDatabase.Checked := Mainform.GetRegValue(REGNAME_EXP_CREATEDB, cbxDatabase.Checked);
+  cbxTables.Checked := Mainform.GetRegValue(REGNAME_EXP_CREATETABLE, cbxTables.Checked);
+  cbxData.Checked := Mainform.GetRegValue(REGNAME_EXP_DATA, cbxData.Checked);
+  comboDatabase.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_DBHOW, comboDatabase.ItemIndex);
+  comboTables.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_TABLESHOW, comboTables.ItemIndex);
+  comboData.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_DATAHOW, comboData.ItemIndex);
+  comboTargetCompat.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_COMPAT, comboTargetCompat.ItemIndex);
+  editFileName.Text := Mainform.GetRegValue(REGNAME_EXP_OUTFILE, '');
+  editDirectory.Text := Mainform.GetRegValue(REGNAME_EXP_OUTDIR, '');
+  OutputTo := Mainform.GetRegValue(REGNAME_EXP_TARGET, -1);
+  if OutputTo > -1 then
+  begin
 
-      {***
-        @note ansgarbecker, 2007-02-24
-          If OutputTo is now OUTPUT_HOST and there are no other windows
-          to export to, reset OutputTo to OUTPUT_FILE to avoid the error-popup
-          "You need at least 2 windows...", which should not be fired in
-          FormShow rather than only when the user has really clicked that
-          radiobutton.
-          As a benefit, the OUTPUT_FILE won't be saved to registry here
-          so the OUTPUT_HOST is still enabled in registry and will be used
-          the next time if we have more than 1 window
-        @see bug #1666054
-      }
-      // Check if all the heidisql windows are still alive.
-      CheckForCrashedWindows;
-      // Fetch list of heidisql windows.
-      list := GetWindowList;
-      if (Length(list) < 2) and (OutputTo = OUTPUT_HOST) then
-        OutputTo := OUTPUT_FILE;
+    {***
+      @note ansgarbecker, 2007-02-24
+        If OutputTo is now OUTPUT_HOST and there are no other windows
+        to export to, reset OutputTo to OUTPUT_FILE to avoid the error-popup
+        "You need at least 2 windows...", which should not be fired in
+        FormShow rather than only when the user has really clicked that
+        radiobutton.
+        As a benefit, the OUTPUT_FILE won't be saved to registry here
+        so the OUTPUT_HOST is still enabled in registry and will be used
+        the next time if we have more than 1 window
+      @see bug #1666054
+    }
+    // Check if all the heidisql windows are still alive.
+    CheckForCrashedWindows;
+    // Fetch list of heidisql windows.
+    list := GetWindowList;
+    if (Length(list) < 2) and (OutputTo = OUTPUT_HOST) then
+      OutputTo := OUTPUT_FILE;
 
-      case OutputTo of
-        OUTPUT_FILE : radioFile.Checked := true;
-        OUTPUT_DIR  : radioDirectory.Checked := true;
-        OUTPUT_DB   : radioOtherDatabase.Checked := true;
-        OUTPUT_HOST : radioOtherHost.Checked := true;
-      end;
+    case OutputTo of
+      OUTPUT_FILE : radioFile.Checked := true;
+      OUTPUT_DIR  : radioDirectory.Checked := true;
+      OUTPUT_DB   : radioOtherDatabase.Checked := true;
+      OUTPUT_HOST : radioOtherHost.Checked := true;
     end;
-    if ValueExists('ExportSQL_WindowWidth') then Width := ReadInteger('ExportSQL_WindowWidth');
-    if ValueExists('ExportSQL_WindowHeight') then Height := ReadInteger('ExportSQL_WindowHeight');
-    Free;
   end;
+  Width := Mainform.GetRegValue(REGNAME_EXP_WINWIDTH, Width);
+  Height := Mainform.GetRegValue(REGNAME_EXP_WINHEIGHT, Height);
 
   if EditFileName.Text = '' then
     EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
@@ -1524,16 +1519,16 @@ begin
   begin
     OpenKey(REGPATH, true);
     // WithUseDB, UseBackticks, CompleteInserts, WithDropTable: deprecated (currently not automagically removed)
-    WriteBool('ExportStructure',      cbxStructure.Checked);
-    WriteBool('WithCreateDatabase',   cbxDatabase.Checked);
-    WriteBool('WithCreateTable',      cbxTables.Checked);
-    WriteBool('ExportData',           cbxData.Checked);
-    WriteInteger('CreateDatabaseHow', comboDatabase.ItemIndex);
-    WriteInteger('CreateTablesHow',   comboTables.ItemIndex);
-    WriteInteger('CreateDataHow',     comboData.ItemIndex);
-    WriteInteger('Compatibility',     comboTargetCompat.ItemIndex);
-    WriteString('exportfilename',     EditFileName.Text);
-    WriteString('ExportDirectory',    EditDirectory.Text);
+    WriteBool(REGNAME_EXP_STRUCTURE,     cbxStructure.Checked);
+    WriteBool(REGNAME_EXP_CREATEDB,      cbxDatabase.Checked);
+    WriteBool(REGNAME_EXP_CREATETABLE,   cbxTables.Checked);
+    WriteBool(REGNAME_EXP_DATA,          cbxData.Checked);
+    WriteInteger(REGNAME_EXP_DBHOW,      comboDatabase.ItemIndex);
+    WriteInteger(REGNAME_EXP_TABLESHOW,  comboTables.ItemIndex);
+    WriteInteger(REGNAME_EXP_DATAHOW,    comboData.ItemIndex);
+    WriteInteger(REGNAME_EXP_COMPAT,     comboTargetCompat.ItemIndex);
+    WriteString(REGNAME_EXP_OUTFILE,     EditFileName.Text);
+    WriteString(REGNAME_EXP_OUTDIR,      EditDirectory.Text);
     OutputTo := OUTPUT_FILE;
     if radioDirectory.checked then
       OutputTo := OUTPUT_DIR
@@ -1541,9 +1536,9 @@ begin
       OutputTo := OUTPUT_DB
     else if radioOtherHost.checked then
       OutputTo := OUTPUT_HOST;
-    WriteInteger('ExportSQL_OutputTo',     OutputTo );
-    WriteInteger('ExportSQL_WindowWidth',  Width );
-    WriteInteger('ExportSQL_WindowHeight', Height );
+    WriteInteger(REGNAME_EXP_TARGET,     OutputTo );
+    WriteInteger(REGNAME_EXP_WINWIDTH,   Width );
+    WriteInteger(REGNAME_EXP_WINHEIGHT,  Height );
     CloseKey();
     Free;
   end;

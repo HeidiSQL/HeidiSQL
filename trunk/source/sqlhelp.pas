@@ -87,12 +87,12 @@ begin
   m := Mainform.Childwin;
 
   // Set window-layout
-  Top := Mainform.GetRegValue( 'SQLHelp_WindowTop', Top );
-  Left := Mainform.GetRegValue( 'SQLHelp_WindowLeft', Left );
-  Width := Mainform.GetRegValue( 'SQLHelp_WindowWidth', Width );
-  Height := Mainform.GetRegValue( 'SQLHelp_WindowHeight', Height );
-  pnlLeft.Width := Mainform.GetRegValue( 'SQLHelp_PnlLeftWidth', pnlLeft.Width );
-  pnlRightTop.Height := Mainform.GetRegValue( 'SQLHelp_PnlRightTopHeight', pnlRightTop.Height );
+  Top := Mainform.GetRegValue( REGNAME_SQLHELPWINTOP, Top );
+  Left := Mainform.GetRegValue( REGNAME_SQLHELPWINLEFT, Left );
+  Width := Mainform.GetRegValue( REGNAME_SQLHELPWINWIDTH, Width );
+  Height := Mainform.GetRegValue( REGNAME_SQLHELPWINHEIGHT, Height );
+  pnlLeft.Width := Mainform.GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
+  pnlRightTop.Height := Mainform.GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
   Caption := DEFAULT_WINDOW_CAPTION;
 
   MemoDescription.Font.Name := m.SynMemoQuery.Font.Name;
@@ -308,14 +308,20 @@ end;
   Save layout and close window 
 }
 procedure TfrmSQLhelp.ButtonCloseClick(Sender: TObject);
+var
+  reg : TRegistry;
 begin
-  Mainform.SaveRegValue( 'SQLHelp_WindowLeft', Left );
-  Mainform.SaveRegValue( 'SQLHelp_WindowTop', Top );
-  Mainform.SaveRegValue( 'SQLHelp_WindowWidth', Width );
-  Mainform.SaveRegValue( 'SQLHelp_WindowHeight', Height );
-  Mainform.SaveRegValue( 'SQLHelp_PnlLeftWidth', pnlLeft.Width );
-  Mainform.SaveRegValue( 'SQLHelp_PnlRightTopHeight', PnlRightTop.Height );
-
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, False) then begin
+    reg.WriteInteger( REGNAME_SQLHELPWINLEFT, Left );
+    reg.WriteInteger( REGNAME_SQLHELPWINTOP, Top );
+    reg.WriteInteger( REGNAME_SQLHELPWINWIDTH, Width );
+    reg.WriteInteger( REGNAME_SQLHELPWINHEIGHT, Height );
+    reg.WriteInteger( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
+    reg.WriteInteger( REGNAME_SQLHELPPRHEIGHT, PnlRightTop.Height );
+    reg.CloseKey;
+  end;
+  reg.Free;
   Close;
 end;
 
