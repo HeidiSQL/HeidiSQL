@@ -1224,7 +1224,7 @@ begin
   begin
     MysqlParams.Protocol := 'mysql';
     MysqlParams.Host := Trim( parHost );
-    MysqlParams.Port := StrToIntDef(parPort, MYSQL_PORT);
+    MysqlParams.Port := StrToIntDef(parPort, DEFAULT_PORT);
     MysqlParams.Database := '';
     MysqlParams.User := parUser;
     MysqlParams.Pass := parPass;
