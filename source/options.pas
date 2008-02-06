@@ -112,13 +112,6 @@ type
 
   function OptionsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
-var
-  fontname : String = 'Courier New';
-  fontsize : Integer = 9;
-  datafontname : String = 'MS SANS SERIF';
-  datafontcharset : String = '';
-  datafontsize : Integer = 8;
-  AutoReconnect : Boolean = false;
 
 implementation
 uses childwin, main, helpers;
@@ -163,31 +156,31 @@ begin
   reg.OpenKey(REGPATH, true);
 
   // Save values
-  reg.WriteBool('AutoReconnect', CheckBoxAutoReconnect.Checked);
-  reg.WriteBool('ConvertHTMLEntities', CheckBoxConvertHTMLEntities.Checked);
-  reg.WriteBool('RestoreLastUsedDB', CheckBoxRestoreLastUsedDB.Checked);
-  reg.WriteString('FontName', ComboBoxFonts.Text);
-  reg.WriteInteger('FontSize', UpDownFontSize.Position);
-  reg.WriteInteger('logsqlnum', updownLogSQLNum.Position);
-  reg.WriteInteger('logsqlwidth', updownLogSnip.Position);
-  reg.WriteString('SQLColKeyAttri', colortostring(pnlKeywords.Color));
-  reg.WriteString('SQLColFunctionAttri', colortostring(pnlFunctions.Color));
-  reg.WriteString('SQLColDataTypeAttri', colortostring(pnlDatatypes.Color));
-  reg.WriteString('SQLColNumberAttri', colortostring(pnlNumeric.Color));
-  reg.WriteString('SQLColStringAttri', colortostring(pnlString.Color));
-  reg.WriteString('SQLColCommentAttri', colortostring(pnlComments.Color));
-  reg.WriteString('SQLColTablenameAttri', colortostring(pnlTablenames.Color));
-  reg.WriteString('SQLColActiveLine', ColorToString(pnlActiveLine.Color));
-  reg.WriteString('CSVSeparator', Edit1.Text);
-  reg.WriteString('CSVEncloser', Edit2.Text);
-  reg.WriteString('CSVTerminator', Edit3.Text);
-  reg.WriteInteger('DefaultColWidth', updownDefaultColWidth.Position);
-  reg.WriteBool('DataLimit', CheckBoxLimit.Checked);
-  reg.WriteInteger('DataLimitEnd', UpDownLimit.Position);
-  reg.WriteString('DataFontName', Panel8.Font.Name);
-  reg.WriteInteger('DataFontSize', UpDownDataFontSize.Position);
-  reg.WriteBool('RememberFilters', chkRememberFilters.Checked);
-  reg.WriteBool('LogToFile', chkLogToFile.Checked);
+  reg.WriteBool(REGNAME_AUTORECONNECT, CheckBoxAutoReconnect.Checked);
+  reg.WriteBool(REGNAME_CONVERTHTMLENTITIES, CheckBoxConvertHTMLEntities.Checked);
+  reg.WriteBool(REGNAME_RESTORELASTUSEDDB, CheckBoxRestoreLastUsedDB.Checked);
+  reg.WriteString(REGNAME_FONTNAME, ComboBoxFonts.Text);
+  reg.WriteInteger(REGNAME_FONTSIZE, UpDownFontSize.Position);
+  reg.WriteInteger(REGNAME_LOGSQLNUM, updownLogSQLNum.Position);
+  reg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
+  reg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(pnlKeywords.Color));
+  reg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(pnlFunctions.Color));
+  reg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(pnlDatatypes.Color));
+  reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(pnlNumeric.Color));
+  reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(pnlString.Color));
+  reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(pnlComments.Color));
+  reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(pnlTablenames.Color));
+  reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(pnlActiveLine.Color));
+  reg.WriteString(REGNAME_CSV_SEPARATOR, Edit1.Text);
+  reg.WriteString(REGNAME_CSV_ENCLOSER, Edit2.Text);
+  reg.WriteString(REGNAME_CSV_TERMINATOR, Edit3.Text);
+  reg.WriteInteger(REGNAME_DEFAULTCOLWIDTH, updownDefaultColWidth.Position);
+  reg.WriteBool(REGNAME_DATALIMIT, CheckBoxLimit.Checked);
+  reg.WriteInteger(REGNAME_DATALIMITEND, UpDownLimit.Position);
+  reg.WriteString(REGNAME_DATAFONTNAME, Panel8.Font.Name);
+  reg.WriteInteger(REGNAME_DATAFONTSIZE, UpDownDataFontSize.Position);
+  reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
+  reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
 
   // Close registry key
   reg.CloseKey;
@@ -255,106 +248,46 @@ begin
 end;
 
 var
-  reg : TRegistry;
+  fontname : String;
+  fontsize : Integer;
+  datafontname : String;
+  datafontsize : Integer;
 begin
   screen.Cursor := crHourGlass;
 
-  // Open registry key
-  reg := TRegistry.Create;
-  reg.OpenKey(REGPATH, true);
-
   // Read and display values
-  if reg.ValueExists('FontName') then
-    fontname := reg.ReadString('FontName');
-  if reg.ValueExists('FontSize') then
-    fontsize := reg.ReadInteger('FontSize');
-  if reg.ValueExists('DataFontName') then
-    datafontname := reg.ReadString('DataFontName');
-  if reg.ValueExists('DataFontCharset') then
-    datafontcharset := reg.ReadString('DataFontCharset');
-  if reg.ValueExists('DataFontSize') then
-    datafontsize := reg.ReadInteger('DataFontSize');
-  if reg.ValueExists('AutoReconnect') then
-    AutoReconnect := reg.ReadBool('AutoReconnect');
-  if reg.ValueExists('ConvertHTMLEntities') then
-    CheckBoxConvertHTMLEntities.Checked := reg.ReadBool('ConvertHTMLEntities');
-  if reg.ValueExists('RestoreLastUsedDB') then
-    CheckBoxRestoreLastUsedDB.Checked := reg.ReadBool('RestoreLastUsedDB');
-  if reg.ValueExists('DataLimit') then
-    CheckBoxLimit.Checked := reg.ReadBool('DataLimit');
-  if reg.ValueExists('DataLimitEnd') then
-    UpDownLimit.Position := reg.ReadInteger('DataLimitEnd');
+  fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
+  fontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
+  datafontsize := Mainform.GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
+  CheckBoxAutoReconnect.Checked := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+  CheckBoxConvertHTMLEntities.Checked := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
+  CheckBoxRestoreLastUsedDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
+  CheckBoxLimit.Checked := Mainform.GetRegValue(REGNAME_DATALIMIT, DEFAULT_DATALIMIT);
+  UpDownLimit.Position := Mainform.GetRegValue(REGNAME_DATALIMITEND, DEFAULT_DATALIMITEND);
   CheckBoxLimit.OnClick(self);
-  if reg.ValueExists('logsqlnum') then
-    updownLogSQLNum.Position := reg.ReadInteger('logsqlnum');
-  if reg.ValueExists('logsqlwidth') then
-    updownLogSnip.Position := reg.ReadInteger('logsqlwidth');
+  updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
+  updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   // Default Column-Width in DBGrids:
-  if reg.ValueExists('DefaultColWidth') then
-    updownDefaultColWidth.Position := reg.ReadInteger('DefaultColWidth');
-
+  updownDefaultColWidth.Position := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
   // Color-coding:
-  if reg.ValueExists('SQLColKeyAttri') then
-    pnlKeywords.Color := StringToColor(reg.readstring('SQLColKeyAttri'))
-  else
-    pnlKeywords.Color := clBlue;
-  if reg.ValueExists('SQLColFunctionAttri') then
-    pnlFunctions.Color := StringToColor(reg.readstring('SQLColFunctionAttri'))
-  else
-    pnlFunctions.Color := clNavy;
-  if reg.ValueExists('SQLColDataTypeAttri') then
-    pnlDatatypes.Color := StringToColor(reg.readstring('SQLColDataTypeAttri'))
-  else
-    pnlDatatypes.Color := clMaroon;
-  if reg.ValueExists('SQLColNumberAttri') then
-    pnlNumeric.Color := StringToColor(reg.readstring('SQLColNumberAttri'))
-  else
-    pnlNumeric.Color := clPurple;
-  if reg.ValueExists('SQLColStringAttri') then
-    pnlString.Color := StringToColor(reg.readstring('SQLColStringAttri'))
-  else
-    pnlString.Color := clGreen;
-  if reg.ValueExists('SQLColCommentAttri') then
-    pnlComments.Color := StringToColor(reg.readstring('SQLColCommentAttri'))
-  else
-    pnlComments.Color := clGray;
-  if reg.ValueExists('SQLColTablenameAttri') then
-    pnlTablenames.Color := StringToColor(reg.readstring('SQLColTablenameAttri'))
-  else
-    pnlTablenames.Color := clFuchsia;
-  if reg.ValueExists('SQLColActiveLine') then
-    pnlActiveLine.Color := StringToColor(reg.readstring('SQLColActiveLine'))
-  else
-    pnlActiveLine.Color := clWindow;
-
-
-  Edit1.Text := ',';
-  Edit2.Text := '';
-  Edit3.Text := '\r\n';
-
+  pnlKeywords.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
+  pnlFunctions.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
+  pnlDatatypes.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
+  pnlNumeric.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
+  pnlString.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
+  pnlComments.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  pnlTablenames.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  pnlActiveLine.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   // CSV-Options:
-  if reg.ValueExists('CSVSeparator') then
-    Edit1.Text := reg.ReadString('CSVSeparator');
-  if reg.ValueExists('CSVEncloser') then
-    Edit2.Text := reg.ReadString('CSVEncloser');
-  if reg.ValueExists('CSVTerminator') then
-    Edit3.Text := reg.ReadString('CSVTerminator');
-
+  Edit1.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  Edit2.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  Edit3.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   // Remember data pane filters across sessions
-  if reg.ValueExists('RememberFilters') then
-    chkRememberFilters.Checked := reg.ReadBool('RememberFilters');
-
+  chkRememberFilters.Checked := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   // Log to file
-  if reg.ValueExists('LogToFile') then
-    chkLogToFile.Checked := reg.ReadBool('LogToFile');
+  chkLogToFile.Checked := Mainform.GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
-
-  // Close registry key
-  reg.CloseKey;
-  reg.Free;
-
-  // Miscellaneous:
-  CheckBoxAutoReconnect.Checked := AutoReconnect;
 
   // SQL-Appearance:
   EnumFontFamilies(Canvas.Handle,  // HDC of Device-Context.

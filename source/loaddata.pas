@@ -101,7 +101,6 @@ procedure Tloaddataform.FormShow(Sender: TObject);
 var
   tn : TTreeNode;
   i : Integer;
-  reg : TRegistry;
 begin
   // read dbs and Tables from treeview
   comboDatabase.Items.Clear;
@@ -124,29 +123,19 @@ begin
     comboDatabase.ItemIndex := 0;
 
   comboDatabaseChange(self);
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, true) then
-  begin
-    // filename
-    editFilename.Text := reg.ReadString('loadfilename');
-    // Use options from CSV export
-    editFieldTerminator.Text := reg.ReadString('CSVSeparator');
-    editFieldEncloser.Text := reg.ReadString('CSVEncloser');
-    editLineTerminator.Text := reg.ReadString('CSVTerminator');
-    // Other options
-    if reg.ValueExists('CSVImportFieldsEnclosedOptionally') then
-      chkFieldsEnclosedOptionally.Checked := reg.ReadBool('CSVImportFieldsEnclosedOptionally');
-    editFieldEscaper.Text := reg.ReadString('CSVImportFieldEscaper');
-    if reg.ValueExists('CSVImportIgnoreLines') then
-      updownIgnoreLines.Position := reg.ReadInteger('CSVImportIgnoreLines');
-    if reg.ValueExists('CSVImportLowPriority') then
-      chkLowPriority.Checked := reg.ReadBool('CSVImportLowPriority');
-    if reg.ValueExists('CSVImportReplace') then
-      chkReplace.Checked := reg.ReadBool('CSVImportReplace');
-    if reg.ValueExists('CSVImportIgnore') then
-      chkIgnore.Checked := reg.ReadBool('CSVImportIgnore');
-  end;
-  FreeAndNil(reg);
+  // filename
+  editFilename.Text := Mainform.GetRegValue(REGNAME_CSV_FILENAME, '');
+  // Use options from CSV export
+  editFieldTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  editFieldEncloser.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  editLineTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  // Other options
+  chkFieldsEnclosedOptionally.Checked :=  Mainform.GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
+  editFieldEscaper.Text := Mainform.GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
+  updownIgnoreLines.Position := Mainform.GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
+  chkLowPriority.Checked := Mainform.GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
+  chkReplace.Checked := Mainform.GetRegValue(REGNAME_CSV_REPLACE, chkReplace.Checked);
+  chkIgnore.Checked := Mainform.GetRegValue(REGNAME_CSV_IGNORE, chkIgnore.Checked);
 end;
 
 
@@ -219,18 +208,18 @@ begin
   if reg.OpenKey(REGPATH, true) then
   begin
     // filename
-    reg.WriteString( 'loadfilename', editFilename.Text );
+    reg.WriteString( REGNAME_CSV_FILENAME, editFilename.Text );
     // Use options from CSV export
-    reg.WriteString( 'CSVSeparator', editFieldTerminator.Text );
-    reg.WriteString( 'CSVEncloser', editFieldEncloser.Text );
-    reg.WriteString( 'CSVTerminator', editLineTerminator.Text );
+    reg.WriteString( REGNAME_CSV_SEPARATOR, editFieldTerminator.Text );
+    reg.WriteString( REGNAME_CSV_ENCLOSER, editFieldEncloser.Text );
+    reg.WriteString( REGNAME_CSV_TERMINATOR, editLineTerminator.Text );
     // Other options
-    reg.WriteBool( 'CSVImportFieldsEnclosedOptionally', chkFieldsEnclosedOptionally.Checked );
-    reg.WriteString( 'CSVImportFieldEscaper', editFieldEscaper.Text );
-    reg.WriteInteger( 'CSVImportIgnoreLines', updownIgnoreLines.Position );
-    reg.WriteBool( 'CSVImportLowPriority', chkLowPriority.Checked );
-    reg.WriteBool( 'CSVImportReplace', chkReplace.Checked );
-    reg.WriteBool( 'CSVImportIgnore', chkIgnore.Checked );
+    reg.WriteBool( REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked );
+    reg.WriteString( REGNAME_CSV_ESCAPER, editFieldEscaper.Text );
+    reg.WriteInteger( REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position );
+    reg.WriteBool( REGNAME_CSV_LOWPRIO, chkLowPriority.Checked );
+    reg.WriteBool( REGNAME_CSV_REPLACE, chkReplace.Checked );
+    reg.WriteBool( REGNAME_CSV_IGNORE, chkIgnore.Checked );
   end;
   FreeAndNil(reg);
 

@@ -110,7 +110,7 @@ begin
     // Save last connection name to registry
     reg := TRegistry.Create;
     if reg.OpenKey(REGPATH, true) then
-      reg.WriteString('lastcon', ComboBoxDescription.Text);
+      reg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
     reg.CloseKey;
     reg.Free;
     Close;
@@ -132,27 +132,21 @@ var
   i       : Integer;
   lastcon : String;
   AutoReconnect : Boolean;
+  reg : TRegistry;
 begin
   Screen.Cursor := crHourglass;
 
   ComboBoxDescription.Items.Clear;
   ComboBoxDescription.Text := '';
-  with TRegistry.Create do
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
   begin
-    if OpenKey(REGPATH + '\Servers', true) then
-    begin
-      GetKeyNames(ComboBoxDescription.Items);
-      CloseKey;
-    end;
-    OpenKey(REGPATH, true);
-    lastcon := ReadString('lastcon');
-    if ValueExists('AutoReconnect') then
-      AutoReconnect := ReadBool('AutoReconnect')
-    else
-      AutoReconnect := false;
-    CloseKey;
-    Free;
+    reg.GetKeyNames(ComboBoxDescription.Items);
+    reg.Free;
   end;
+  lastcon := Mainform.GetRegValue(REGNAME_LASTSESSION, '');
+  AutoReconnect := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+
   if ComboBoxDescription.Items.Count > 0 then
   begin
     EnableDisable(true);
@@ -207,16 +201,16 @@ begin
   Screen.Cursor := crHourglass;
   with TRegistry.Create do
   begin
-    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text, true) then
     begin
-      WriteString('Host', EditHost.Text);
-      WriteString('User', EditUsername.Text);
-      WriteString('Password', encrypt(EditPassword.Text));
-      WriteString('Port', EditPort.Text);
-      WriteString('Timeout', EditTimeout.Text);
-      WriteBool('Compressed', CheckBoxCompressed.Checked);
-      WriteString('OnlyDBs', EditOnlyDBs.Text);
-      WriteBool('OnlyDBsSorted', CheckBoxSorted.Checked);
+      WriteString(REGNAME_HOST, EditHost.Text);
+      WriteString(REGNAME_USER, EditUsername.Text);
+      WriteString(REGNAME_PASSWORD, encrypt(EditPassword.Text));
+      WriteString(REGNAME_PORT, EditPort.Text);
+      WriteString(REGNAME_TIMEOUT, EditTimeout.Text);
+      WriteBool(REGNAME_COMPRESSED, CheckBoxCompressed.Checked);
+      WriteString(REGNAME_ONLYDBS, EditOnlyDBs.Text);
+      WriteBool(REGNAME_ONLYDBSSORTED, CheckBoxSorted.Checked);
       CloseKey;
     end;
     Free;
@@ -236,14 +230,14 @@ begin
   begin
     i := 0;
     description := 'New Connection';
-    while KeyExists(REGPATH + '\Servers\' + description) do
+    while KeyExists(REGPATH + REGKEY_SESSIONS + description) do
     begin
       inc(i);
       description := 'New Connection' + ' (' + inttostr(i) + ')';
     end;
     if not InputQuery('New Connection...', 'Description:', description) then
       exit;
-    if KeyExists(REGPATH + '\Servers\' + description) then
+    if KeyExists(REGPATH + REGKEY_SESSIONS + description) then
     begin
       MessageDlg('Entry "' + description + '" already exists!', mtError, [mbOK], 0);
       exit;
@@ -253,16 +247,16 @@ begin
     ComboBoxDescription.Items.Add(description);
     ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.Count - 1;
 
-    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
+    if OpenKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text, true) then
     begin
-      WriteString('Host', LOCAL_HOST);
-      WriteString('User', 'root');
-      WriteString('Password', encrypt(''));
-      WriteString('Port', inttostr(MYSQL_PORT));
-      WriteString('Timeout', inttostr(30));
-      WriteBool('Compressed', false);
-      WriteString('OnlyDBs', '');
-      WriteBool('OnlyDBsSorted', true);
+      WriteString(REGNAME_HOST, DEFAULT_HOST);
+      WriteString(REGNAME_USER, DEFAULT_USER);
+      WriteString(REGNAME_PASSWORD, encrypt(DEFAULT_PASSWORD));
+      WriteString(REGNAME_PORT, inttostr(DEFAULT_PORT));
+      WriteString(REGNAME_TIMEOUT, inttostr(DEFAULT_TIMEOUT));
+      WriteBool(REGNAME_COMPRESSED, DEFAULT_COMPRESSED);
+      WriteString(REGNAME_ONLYDBS, '');
+      WriteBool(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED);
       CloseKey;
     end;
     Free;
@@ -282,7 +276,7 @@ begin
   begin
     with TRegistry.Create do
     begin
-      if not DeleteKey(REGPATH + '\Servers\' + ComboBoxDescription.Text) then
+      if not DeleteKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text) then
         MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
       Free;
     end;
@@ -292,28 +286,20 @@ end;
 
 
 procedure Tconnform.ComboBoxDescriptionClick(Sender: TObject);
+var
+  sessname : String;
 begin
   // select one connection!
   Screen.Cursor := crHourglass;
-  with TRegistry.Create do
-  begin
-    if OpenKey(REGPATH + '\Servers\' + ComboBoxDescription.Text, true) then
-    begin
-      EditHost.Text := ReadString('Host');
-      EditUsername.Text := ReadString('User');
-      EditPassword.Text := decrypt(ReadString('Password'));
-      EditPort.Text := ReadString('Port');
-      EditTimeout.Text := ReadString('Timeout');
-      CheckBoxCompressed.Checked := ReadBool('Compressed');
-      EditOnlyDBs.Text := ReadString('OnlyDBs');
-      if ValueExists('OnlyDBsSorted') then
-        CheckBoxSorted.Checked := ReadBool('OnlyDBsSorted')
-      else
-        CheckBoxSorted.Checked := false; // for existing connections from older HS-versions always off
-      CloseKey;
-    end;
-    Free;
-  end;
+  sessname := ComboBoxDescription.Text;
+  EditHost.Text := Mainform.GetRegValue(REGNAME_HOST, '', sessname);
+  EditUsername.Text := Mainform.GetRegValue(REGNAME_USER, '', sessname);
+  EditPassword.Text := decrypt(Mainform.GetRegValue(REGNAME_PASSWORD, '', sessname));
+  EditPort.Text := Mainform.GetRegValue(REGNAME_PORT, '', sessname);
+  EditTimeout.Text := Mainform.GetRegValue(REGNAME_TIMEOUT, '', sessname);;
+  CheckBoxCompressed.Checked := Mainform.GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, sessname);
+  EditOnlyDBs.Text := Mainform.GetRegValue(REGNAME_ONLYDBS, '', sessname);
+  CheckBoxSorted.Checked := Mainform.GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, sessname);
   ButtonSave.Enabled := false;
   ButtonSaveAndConnect.Enabled := ButtonSave.Enabled;
   ButtonEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
@@ -383,7 +369,7 @@ begin
   with TRegistry.Create do begin
     idx := ComboBoxDescription.ItemIndex;
     try
-      MoveKey(REGPATH + '\Servers\' + olddesc, REGPATH + '\Servers\' + newdesc, true);
+      MoveKey(REGPATH + REGKEY_SESSIONS + olddesc, REGPATH + REGKEY_SESSIONS + newdesc, true);
       ComboBoxDescription.Items[ComboBoxDescription.ItemIndex] := newdesc;
       ComboBoxDescription.ItemIndex := idx;
       ComboBoxDescriptionClick(self);

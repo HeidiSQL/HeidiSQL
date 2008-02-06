@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls;
+  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, Registry;
 
 type
   TCopyTableForm = class(TForm)
@@ -180,6 +180,7 @@ var
   zq           : TDataSet;
   isFulltext   : Boolean;
   struc_data   : Byte;
+  reg          : TRegistry;
 begin
   // copy table!
 
@@ -188,9 +189,14 @@ begin
   if radioStructure.Checked then struc_data := OPTION_STRUCTURE;
   if radioStructureAndData.Checked then struc_data := OPTION_STRUCTURE_AND_DATA;
 
-  mainform.SaveRegValue( OPTION_REGNAME_STRUC_DATA, struc_data );
-  mainform.SaveRegValue( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
-  mainform.SaveRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, False) then begin
+    reg.WriteInteger( OPTION_REGNAME_STRUC_DATA, struc_data );
+    reg.WriteBool( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
+    reg.WriteBool( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
+    reg.CloseKey;
+  end;
+  reg.Free;
 
   strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
 

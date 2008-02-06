@@ -47,19 +47,13 @@ uses main, helpers;
   Initialization
 }
 procedure TDataSortingForm.FormShow(Sender: TObject);
-var
-  reg : TRegistry;
 begin
   // Take column names from listColumns and add here
   ColumnNames := GetVTCaptions( Mainform.Childwin.ListColumns );
 
   // Read original ORDER clause from registry
-  reg := TRegistry.Create();
-  reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
   reg_name := REGPREFIX_ORDERCLAUSE + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
-  OldOrderClause := reg.ReadString(reg_name);
-  reg.CloseKey;
-  FreeAndNil(reg);
+  OldOrderClause := Mainform.GetRegValue(reg_name, '', Mainform.Childwin.Description);
 
   OrderColumns := Mainform.Childwin.HandleOrderColumns;
 
@@ -304,7 +298,7 @@ var
   reg : TRegistry;
 begin
   reg := TRegistry.Create();
-  reg.OpenKey( REGPATH + '\Servers\' + Mainform.Childwin.Description, true );
+  reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.Description, true );
   reg.WriteString( reg_name, Mainform.Childwin.ComposeOrderClause(OrderColumns) );
   reg.CloseKey;
   FreeAndNil(reg);
