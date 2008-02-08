@@ -17,6 +17,7 @@ const
 
   // General things
   APPNAME          = 'HeidiSQL';
+  APPDOMAIN        = 'http://www.heidisql.com/';
   REGPATH          = '\Software\' + APPNAME + '\';
   REGKEY_SESSIONS  = 'Servers\';
   STATUS_MSG_READY = 'Ready.';

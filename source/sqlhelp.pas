@@ -333,7 +333,7 @@ end;
 }
 procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
-  ShellExec( 'http://www.heidisql.com/sqlhelp.php?mysqlversion='+inttostr(m.mysql_version)+
+  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(m.mysql_version)+
     '&keyword='+urlencode(keyword) );
 end;
 

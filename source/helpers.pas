@@ -842,7 +842,7 @@ begin
       // footer:
       buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
         '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
-        ' by <a href="http://www.heidisql.com/">' + Generator + '</a></em></p>' + crlf + crlf +
+        ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + crlf + crlf +
         '</body></html>';
       if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
       else begin
