@@ -562,6 +562,10 @@ object MainForm: TMainForm
       object N8: TMenuItem
         Caption = '-'
       end
+      object menuUpdateCheck: TMenuItem
+        Caption = 'Check for updates ...'
+        OnClick = menuUpdateCheckClick
+      end
       object menuWebsite: TMenuItem
         Tag = 56
         Caption = 'HeidiSQL Website'
