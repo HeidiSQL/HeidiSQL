@@ -141,6 +141,7 @@ type
     N8: TMenuItem;
     Import1: TMenuItem;
     ToolButton1: TToolButton;
+    menuUpdateCheck: TMenuItem;
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
@@ -198,6 +199,7 @@ type
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
     procedure HandleWMClearRightClickPointer(var msg: TMessage); message WM_CLEAR_RIGHTCLICK_POINTER;
+    procedure menuUpdateCheckClick(Sender: TObject);
   private
     regMain : TRegistry;
     function GetChildwin: TMDIChild;
@@ -221,7 +223,9 @@ var
   StatusText          : String = 'Initializing...';
   StatusIconIndex     : Integer = 43;
   loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
-  appversion          : String = 'x.y $Rev$';
+  AppVersion          : String = 'x.y';
+  AppRevision         : String = '$Rev$';
+  FullAppVersion      : String;
   DirnameCommonAppData,
   DirnameUserAppData,
   DIRNAME_SNIPPETS,
@@ -260,7 +264,8 @@ uses
   Helpers,
   Threading,
   mysql_structures,
-  MysqlConn;
+  MysqlConn,
+  UpdateCheck;
 
 {$R *.DFM}
 
@@ -448,14 +453,16 @@ begin
   ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
 
-  // Beautify appversion
-  if Pos('$Rev: WC', appversion) < 1 then begin
-    appversion := Copy(appversion, 1, Pos('$Rev', appversion) + 4);
-    appversion := appversion + ' unknown';
-  end else appversion := StringReplace(appversion, 'WC ', '', []);
-  appversion := StringReplace( appversion, '$Rev', 'Revision', [rfIgnoreCase] );
-  appversion := StringReplace( appversion, '$', '', [] );
-  appversion := Trim( appversion );
+  // Beautify AppRevision
+  if Pos('$Rev: WC', AppRevision) < 1 then
+    AppRevision := 'unknown'
+  else begin
+    AppRevision := StringReplace( AppRevision, '$Rev: WC', '', [rfIgnoreCase] );
+    AppRevision := StringReplace( AppRevision, '$', '', [] );
+    AppRevision := Trim( AppRevision );
+  end;
+  // Compose full version string
+  FullAppVersion := 'Version ' + AppVersion + ', Revision ' + AppRevision;
 
   // "All users" folder for HeidiSQL's data (All Users\Application Data)
   DirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
@@ -718,9 +725,9 @@ procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2html(ChildWin.GetVisualDataset(), TZQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + appversion )
+    dataset2html(ChildWin.GetVisualDataset(), TZQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion )
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2html(ChildWin.GetVisualDataset(), TZReadOnlyQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + appversion);
+    dataset2html(ChildWin.GetVisualDataset(), TZReadOnlyQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion);
 end;
 
 
@@ -941,7 +948,7 @@ begin
       Screen.Cursor := crHourGlass;
       case FilterIndex of
         1 : dataset2csv(query, FieldSep, FieldEncl, LineSep, Filename);
-        2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+appversion);
+        2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+FullAppVersion);
         3 : dataset2xml(query, FileName, FileName);
       end;
       ChildWin.prefCSVSeparator := FieldSep;
@@ -1266,5 +1273,13 @@ begin
   ShowStatus( STATUS_MSG_READY, 2 );
 end;
 
+procedure TMainForm.menuUpdateCheckClick(Sender: TObject);
+var
+  frm : TfrmUpdateCheck;
+begin
+  frm := TfrmUpdateCheck.Create(Self);
+  frm.ShowModal;
+  FreeAndNil(frm);
+end;
 
 end.

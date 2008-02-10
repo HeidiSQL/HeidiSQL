@@ -98,7 +98,7 @@ begin
   Screen.Cursor := crHourGlass;
 
   // App-Version
-  LabelVersion.Caption := 'Version ' + appversion;
+  LabelVersion.Caption := FullAppVersion;
 
   // Compile-date
   FileAge(ParamStr(0), Compiled);
