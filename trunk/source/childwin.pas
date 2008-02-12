@@ -4864,7 +4864,7 @@ begin
   if (Grid.Fields[DataCol] <> nil) and Grid.Fields[DataCol].IsNull then
   begin
     if (Grid.SelectedRows.IndexOf(Grid.DataSource.DataSet.Bookmark) <> -1) or (gdSelected in State) then
-      Grid.Canvas.Font.Color := clWindowText
+      Grid.Canvas.Font.Color := clHighLightText
     else
       Grid.Canvas.Font.Color := COLOR_NULLVALUE;
     // Just use the changed font color for (MEMO) and (BLOB) cells
