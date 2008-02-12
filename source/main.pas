@@ -218,7 +218,6 @@ end;
 
 var
   MainForm            : TMainForm;
-  highestcon          : Integer;                       // Remember last connection
   appstarted          : Boolean = false;               // see connections.pas
   StatusText          : String = 'Initializing...';
   StatusIconIndex     : Integer = 43;
