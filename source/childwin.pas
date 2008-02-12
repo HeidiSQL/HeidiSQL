@@ -4863,7 +4863,10 @@ begin
   Grid := Sender as TTntDBGrid;
   if (Grid.Fields[DataCol] <> nil) and Grid.Fields[DataCol].IsNull then
   begin
-    Grid.Canvas.Font.Color := COLOR_NULLVALUE;
+    if (Grid.SelectedRows.IndexOf(Grid.DataSource.DataSet.Bookmark) <> -1) or (gdSelected in State) then
+      Grid.Canvas.Font.Color := clWindowText
+    else
+      Grid.Canvas.Font.Color := COLOR_NULLVALUE;
     // Just use the changed font color for (MEMO) and (BLOB) cells
     if Grid.Fields[DataCol].DataType in [ftMemo, ftBlob] then
       Grid.DefaultDrawColumnCell(Rect, DataCol, Grid.Columns[DataCol], State)
