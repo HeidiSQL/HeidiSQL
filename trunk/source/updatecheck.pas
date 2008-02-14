@@ -120,7 +120,7 @@ begin
     // Enable the download button if the current version is outdated
     groupRelease.Enabled := ReleaseRevision > StrToIntDef(AppRevision, 0);
     btnRelease.Enabled := groupRelease.Enabled;
-    memoRelease.Enabled := groupBuild.Enabled;
+    memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then
       memoRelease.Font.Color := cl3DDkShadow
     else
