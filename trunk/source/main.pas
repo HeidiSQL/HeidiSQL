@@ -17,7 +17,7 @@ uses
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
-  StrUtils;
+  StrUtils, DateUtils;
 
 type
   TMainForm = class(TForm)
@@ -487,7 +487,28 @@ var
   parHost, parPort, parUser, parPass, parDatabase,
   parTimeout, parCompress, parSortDatabases, parDescription : String;
   reg : TRegistry;
+  LastUpdatecheck : TDateTime;
+  UpdatecheckInterval : Integer;
+  DefaultLastrunDate : String;
+  frm : TfrmUpdateCheck;
 begin
+  // Do an updatecheck if checked in settings
+  if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
+    DefaultLastrunDate := '2000-01-01';
+    try
+      LastUpdatecheck := StrToDateTime( GetRegValue(REGNAME_LAST_UPDATECHECK, DefaultLastrunDate) );
+    except
+      LastUpdatecheck := StrToDateTime( DefaultLastrunDate );
+    end;
+    UpdatecheckInterval := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+    if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
+      frm := TfrmUpdateCheck.Create(Self);
+      frm.AutoClose := True;
+      frm.ShowModal;
+      FreeAndNil(frm);
+    end;
+  end;
+
   // Check commandline if parameters were passed. Otherwise show connections windows
   curParam := 1;
   while curParam <= ParamCount do

@@ -4,7 +4,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   BorderStyle = bsDialog
   Caption = 'Check for updates ...'
   ClientHeight = 273
-  ClientWidth = 362
+  ClientWidth = 384
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,27 +13,30 @@ object frmUpdateCheck: TfrmUpdateCheck
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    362
+    384
     273)
   PixelsPerInch = 96
   TextHeight = 13
   object lblStatus: TLabel
     Left = 8
-    Top = 245
-    Width = 245
-    Height = 13
+    Top = 240
+    Width = 256
+    Height = 28
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'lblStatus'
+    Layout = tlCenter
+    WordWrap = True
   end
   object btnCancel: TButton
-    Left = 226
+    Left = 270
     Top = 240
-    Width = 128
+    Width = 106
     Height = 25
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     Default = True
@@ -43,18 +46,19 @@ object frmUpdateCheck: TfrmUpdateCheck
   object groupBuild: TGroupBox
     Left = 8
     Top = 123
-    Width = 346
+    Width = 368
     Height = 110
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Nightly build'
+    Enabled = False
     TabOrder = 1
     DesignSize = (
-      346
+      368
       110)
     object btnBuild: TButton
       Left = 6
       Top = 78
-      Width = 333
+      Width = 355
       Height = 25
       Anchors = [akLeft, akRight, akBottom]
       Caption = 'Download nightly build'
@@ -65,7 +69,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     object memoBuild: TMemo
       Left = 6
       Top = 16
-      Width = 333
+      Width = 355
       Height = 60
       Anchors = [akLeft, akTop, akRight, akBottom]
       BorderStyle = bsNone
@@ -80,18 +84,19 @@ object frmUpdateCheck: TfrmUpdateCheck
   object groupRelease: TGroupBox
     Left = 8
     Top = 8
-    Width = 346
+    Width = 368
     Height = 110
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Official release'
+    Enabled = False
     TabOrder = 2
     DesignSize = (
-      346
+      368
       110)
     object btnRelease: TButton
       Left = 6
       Top = 78
-      Width = 333
+      Width = 355
       Height = 25
       Anchors = [akLeft, akRight, akBottom]
       Caption = 'Download new release'
@@ -102,7 +107,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     object memoRelease: TMemo
       Left = 6
       Top = 16
-      Width = 333
+      Width = 355
       Height = 60
       Anchors = [akLeft, akTop, akRight, akBottom]
       BorderStyle = bsNone

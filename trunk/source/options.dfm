@@ -80,7 +80,7 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object updownLogSQLNum: TUpDown
-        Left = 120
+        Left = 114
         Top = 101
         Width = 17
         Height = 21
@@ -93,7 +93,7 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object editLogSQLNum: TEdit
-        Left = 67
+        Left = 61
         Top = 101
         Width = 53
         Height = 21
@@ -148,6 +148,37 @@ object optionsform: Toptionsform
         Max = 32767
         Position = 2000
         TabOrder = 8
+        OnChanging = anyUpDownLimitChanging
+      end
+      object chkUpdatecheck: TCheckBox
+        Left = 16
+        Top = 199
+        Width = 268
+        Height = 17
+        Caption = 'Automatically check for updates / Interval [days]:'
+        Checked = True
+        State = cbChecked
+        TabOrder = 9
+        OnClick = chkUpdatecheckClick
+      end
+      object editUpdatecheckInterval: TEdit
+        Left = 302
+        Top = 197
+        Width = 43
+        Height = 21
+        TabOrder = 10
+        Text = '0'
+      end
+      object updownUpdatecheckInterval: TUpDown
+        Left = 345
+        Top = 197
+        Width = 16
+        Height = 21
+        Associate = editUpdatecheckInterval
+        Min = 1
+        Max = 999
+        Position = 1
+        TabOrder = 11
         OnChanging = anyUpDownLimitChanging
       end
     end
@@ -674,7 +705,7 @@ object optionsform: Toptionsform
   end
   object ColorDialog1: TColorDialog
     Options = [cdFullOpen, cdSolidColor]
-    Left = 109
-    Top = 229
+    Left = 1
+    Top = 274
   end
 end

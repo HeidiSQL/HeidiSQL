@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms,
-  Dialogs, StdCtrls, ExtActns, IniFiles, Controls, Graphics;
+  Dialogs, StdCtrls, ExtActns, IniFiles, Controls, Graphics, Registry;
 
 type
   TfrmUpdateCheck = class(TForm)
@@ -16,6 +16,7 @@ type
     lblStatus: TLabel;
     memoRelease: TMemo;
     memoBuild: TMemo;
+    procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
     procedure btnReleaseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -27,6 +28,8 @@ type
     procedure ReadCheckFile;
   public
     { Public declarations }
+    AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
+    CurrentRevision: Integer; 
   end;
 
 implementation
@@ -38,6 +41,14 @@ uses helpers, main;
 {$I const.inc}
 
 
+{**
+  Set defaults
+}
+procedure TfrmUpdateCheck.FormCreate(Sender: TObject);
+begin
+  // Should be false by default. Callers can set this to True after Create()
+  AutoClose := False;
+end;
 
 {**
   Update status text
@@ -55,14 +66,15 @@ end;
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 var
   TempPath: array[0..MAX_PATH] of Char;
+  reg : TRegistry;
 begin
   Status('Initiating ... ');
   Caption := 'Check for '+APPNAME+' updates ...';
+  CurrentRevision := StrToIntDef(AppRevision, 0);
 
   // Init GUI controls
   btnRelease.Enabled := False;
   btnBuild.Enabled := False;
-  btnCancel.Enabled := False;
   memoRelease.Clear;
   memoBuild.Clear;
 
@@ -76,16 +88,41 @@ begin
 
   // Download the check file
   Screen.Cursor := crHourglass;
-  Status('Downloading check file ...');
   try
+    Status('Downloading check file ...');
     CheckfileDownload.ExecuteTarget(nil);
+    Status('Reading check file ...');
     ReadCheckFile;
-    DeleteFile(CheckfileDownload.Filename);
-  finally
-    FreeAndNil(CheckfileDownload);
-    Screen.Cursor := crDefault;
-    btnCancel.Enabled := True;
+    if (not groupRelease.Enabled) and (not groupBuild.Enabled) then begin
+      // Developer versions probably have "unknown" (0) as revision,
+      // which makes it impossible to compare the revisions.
+      if CurrentRevision = 0 then
+        Status('Error: Cannot determine current revision. Using a developer version?')
+      else
+        Status('Your '+APPNAME+' is up-to-date (no update available).');
+    end else
+      Status('Updates available.');
+    // Remember when we did the updatecheck to enable the automatic interval
+    reg := TRegistry.Create;
+    reg.OpenKey(REGPATH, true);
+    reg.WriteString(REGNAME_LAST_UPDATECHECK, DateTimeToStr(Now));
+    reg.CloseKey;
+    FreeAndNil(reg);
+  except
+    // Do not popup errors, just display them in the status label
+    On E:Exception do
+      Status(E.Message);
   end;
+  if FileExists(CheckfileDownload.Filename) then
+    DeleteFile(CheckfileDownload.Filename);
+  FreeAndNil(CheckfileDownload);
+  Screen.Cursor := crDefault;
+
+  // For automatic updatechecks this dialog should close if no updates are available.
+  // Using PostMessage, as Self.Close or ModalResult := mrCancel does not work
+  // as expected in FormShow
+  if AutoClose and (not groupRelease.Enabled) and (not groupBuild.Enabled) then
+    PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 end;
 
 
@@ -103,8 +140,6 @@ const
   INISECT_RELEASE = 'Release';
   INISECT_BUILD = 'Build';
 begin
-  Status('Reading check file ...');
-
   // Read [Release] section of check file
   Ini := TIniFile.Create(CheckfileDownload.Filename);
   if Ini.SectionExists(INISECT_RELEASE) then begin
@@ -118,7 +153,7 @@ begin
       memoRelease.Lines.Add( 'Note: ' + Note );
     btnRelease.Caption := 'Download version ' + ReleaseVersion;
     // Enable the download button if the current version is outdated
-    groupRelease.Enabled := ReleaseRevision > StrToIntDef(AppRevision, 0);
+    groupRelease.Enabled := (CurrentRevision > 0) and (ReleaseRevision > CurrentRevision);
     btnRelease.Enabled := groupRelease.Enabled;
     memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then
@@ -141,7 +176,7 @@ begin
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
-    groupBuild.Enabled := (BuildRevision > StrToIntDef(AppRevision, 0)) and (not btnRelease.Enabled);
+    groupBuild.Enabled := (CurrentRevision > 0) and (BuildRevision > CurrentRevision) and (not btnRelease.Enabled);
     btnBuild.Enabled := groupBuild.Enabled;
     memoBuild.Enabled := groupBuild.Enabled;
     if not memoBuild.Enabled then
@@ -149,9 +184,6 @@ begin
     else
       memoBuild.Font.Color := clWindowText;
   end;
-
-  // Clear status label
-  Status('');
 end;
 
 
