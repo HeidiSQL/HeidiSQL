@@ -92,6 +92,9 @@ type
     editLogSnip: TEdit;
     updownLogSnip: TUpDown;
     labelSqlSnipHint: TLabel;
+    chkUpdatecheck: TCheckBox;
+    editUpdatecheckInterval: TEdit;
+    updownUpdatecheckInterval: TUpDown;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -104,6 +107,7 @@ type
     procedure anyUpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
     procedure btnOpenLogFolderClick(Sender: TObject);
+    procedure chkUpdatecheckClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -181,6 +185,8 @@ begin
   reg.WriteInteger(REGNAME_DATAFONTSIZE, UpDownDataFontSize.Position);
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
   reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
+  reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
+  reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
 
   // Close registry key
   reg.CloseKey;
@@ -268,6 +274,9 @@ begin
   CheckBoxLimit.OnClick(self);
   updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
+  chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
+  updownUpdatecheckInterval.Position := Mainform.GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+
   // Default Column-Width in DBGrids:
   updownDefaultColWidth.Position := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
   // Color-coding:
@@ -376,6 +385,16 @@ end;
 procedure Toptionsform.btnOpenLogFolderClick(Sender: TObject);
 begin
   ShellExec( '', DirnameSessionLogs );
+end;
+
+{**
+  Updatecheck checkbox was clicked
+}
+procedure Toptionsform.chkUpdatecheckClick(Sender: TObject);
+begin
+  updownUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
+  editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
+  Modified(sender);
 end;
 
 end.
