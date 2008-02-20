@@ -24,7 +24,7 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynUnicode;
+  SynUnicode, SynRegExpr;
 
 type
   TOrderCol = class(TObject)
@@ -699,8 +699,9 @@ end;
 procedure TMDIChild.PerformConnect;
 var
   charset     : String;
-  v           : String[10];
-  versions    : TStringList;
+  v           : String[50];
+  v1, v2, v3  : String;
+  rx : TRegExpr;
 begin
   try
     time_connected := 0;
@@ -709,46 +710,44 @@ begin
       '" on port ' + IntToStr(FMysqlConn.Connection.Port) );
     LogSQL( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
 
-    {***
-      Detect server version
-    }
+    // Detect server version
+    // Be careful with version suffixes, for example: '4.0.31-20070605_Debian-5-log'
     v := GetVar( 'SELECT VERSION()' );
-    versions := explode( '.', v );
-    mysql_version := MakeInt( versions[0] ) * 10000 + MakeInt( versions[1] ) *
-      100 + MakeInt( versions[2] );
-    strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v +
-      ' / Uptime: %s';
+    rx := TRegExpr.Create;
+    rx.ModifierG := True;
+    rx.Expression := '^(\d+)\.(\d+)\.(\d+)';
+    if rx.Exec(v) then begin
+      v1 := rx.Match[1];
+      v2 := rx.Match[2];
+      v3 := rx.Match[3];
+    end;
+    rx.Free;
+    mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
+    strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: %s';
     strHostNotRunning := 'Disconnected from ' + FConn.MysqlParams.Host + '.';
-    // On Re-Connection, try to restore lost properties
+
     {***
       SET NAMES statement available since MySQL 4.1.0 .
       Older versions throw a SQL-error: "Unknown system variable 'NAMES'"
       @see http://lists.phpbar.de/pipermail/opengeodb/2005-September/002455.html
     }
-    if ( mysql_version >= 40100 ) then
-    begin
-      charset := ConvertWindowsCodepageToMysqlCharacterSet( GetACP() );
-      if ( charset = '' ) then
-      begin
+    if mysql_version >= 40100 then begin
+      charset := ConvertWindowsCodepageToMysqlCharacterSet(GetACP());
+      if charset = '' then begin
         LogSQL( 'Could not find a MySQL character set to match the current ' +
           'Windows ANSI codepage.', true );
         LogSQL( Format( 'Use SHOW CHARACTER SET to see MySQL character sets; ' +
           'if you can find one that you are certain matches %d, please report' +
           ' it via http://rfe.heidisql.com/.', [GetACP()] ), true );
-      end
-      else
-      begin
+      end else
         ExecuteNonQuery( 'SET NAMES ' + charset );
-      end;
     end;
 
-    if ( FMysqlConn.Connection.Database <> '' ) then
-    begin
+    // On Re-Connection, try to restore lost properties
+    if FMysqlConn.Connection.Database <> '' then
       ExecUseQuery( FMysqlConn.Connection.Database );
-    end;
   except
-    on E: Exception do
-    begin
+    on E: Exception do begin
       LogSQL( E.Message, true );
       Screen.Cursor := crDefault;
       MessageDlg( E.Message, mtError, [mbOK], 0 );
