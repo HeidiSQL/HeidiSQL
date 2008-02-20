@@ -37,6 +37,7 @@ DirExistsWarning=auto
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
 Name: "quicklaunchicon"; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4; Flags: unchecked
 Name: "associatesqlfiles"; Description: "Associate .&SQL-Files with HeidiSQL"; GroupDescription: "Options:";
+Name: "activate_updatechecks"; Description: "Automatically check heidisql.com for updates"; GroupDescription: "Options:";
 
 [InstallDelete]
 Type: files; Name: "{app}\libmysql40.dll"
@@ -70,6 +71,8 @@ Root: HKCR; Subkey: ".sql"; ValueType: string; ValueName: ""; ValueData: "SQLScr
 Root: HKCR; Subkey: "SQLScriptFile"; ValueType: string; ValueName: ""; ValueData: "SQL-Script"; Flags: uninsdeletekey; Tasks: associatesqlfiles
 Root: HKCR; Subkey: "SQLScriptFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\heidisql.exe,0"; Tasks: associatesqlfiles
 Root: HKCR; Subkey: "SQLScriptFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\heidisql.exe"" ""%1"""; Tasks: associatesqlfiles
+; Disable auto-updatechecks if this option was unchecked. Only save the value when it's unchecked, as the default in HeidiSQL is True (see const.inc)
+Root: HKCU; Subkey: "Software\HeidiSQL"; ValueType: dword; ValueName: "Updatecheck"; ValueData: 0; Tasks: not activate_updatechecks
 
 [Run]
 Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait postinstall skipifsilent
