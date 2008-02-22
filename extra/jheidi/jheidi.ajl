@@ -22,8 +22,8 @@
     .space(4)
     .text("Description:", 92).setTab()
     .space(0)
-    .combo("connProfiles", new String[] {"New Connection"}, 200).setTab()  /* again wtf is this happening is the baseline aligned or what? */
-    .button("Rename", 74)  /* what the fuck is wrong with this dropdown? */
+    .combo("connProfiles", new String[] {"New Connection"}, 200).setTab()  
+    .button("Rename", 74)  
     .nextRow()
     .tab(2)
     .text("Hostname/IP:")
