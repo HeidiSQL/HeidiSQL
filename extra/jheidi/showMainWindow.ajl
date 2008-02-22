@@ -2,7 +2,7 @@
   
   HashObject profile = argObj("profile");
   
-  Frame app = new Frame("mainWindow", "JHeidi [" + profile.get("name") + " - " + profile.get("user") + "@" + profile.get("host") + "]");
+  Frame app = new Frame("mainWindow", "jHeidi [" + profile.get("name") + " - " + profile.get("user") + "@" + profile.get("host") + "]");
   WindowContext context = app.getWindowContext();
   context.put("profile", profile);
   
