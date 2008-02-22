@@ -1,0 +1,43 @@
+
+  WindowContext context = argObj("windowContext");
+ 
+  DB db = context.get("db");
+ 
+  Table table = context.get("/mainTabs/Data/table");
+  
+  db.begin();
+  db.execute("use " + arg("dbName"));
+  DB.Result count = db.query("select count(*) from " + arg("tableName"));
+  DB.Result data = db.query("select * from " + arg("tableName") + " limit 50");
+  db.end();
+  
+  Text banner = context.get("/mainTabs/Data/toolbar/banner");
+  banner.setText(arg("dbName") + "." + arg("tableName") + ": " + count.first().get(0) + " total rows");
+  
+  TableUtils.populate(table, data);
+  
+  //let the refresh button know what to do
+  Panel tab = context.get("/mainTabs/Data");
+  tab.setProperty("refreshScript", "loadTableData");
+  tab.setProperty("refreshArgs", args());
+ 
+  
+  
+  
+  
+  
+  
+ 
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+

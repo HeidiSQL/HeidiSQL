@@ -1,0 +1,105 @@
+  import javax.swing.*;
+
+  WindowContext parentContext = argObj("windowContext");
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"), "indexDialog", "Manage Indexes");
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+  context.put("currentDB", parentContext.get("currentDB"));
+  context.put("currentTable", parentContext.get("currentTable"));
+  
+  dlg.events("indexEvents");
+  dlg.insets(10,10);
+  dlg.tabLayout();
+	 dlg.text("Index Name:", 89)
+    .setTab()
+    .combo("indexes", new String[] {"", "Hi"}, 243)
+    .setTab()
+    .nextRow()
+    .tab(2)
+    .button("Add Primary", LF.isLeopard?101:100)
+    .button("Add", 65)
+    .button("Delete", 65)
+    .nextRow()
+    .vspace(5)
+    .tab(1)
+    .checkbox("unique", "Unique", false, true)
+    .tab(2)
+    .checkbox("fullText", "FullText", false, true)
+    .nextRow()
+    .tab(1)
+    .text("Columns:", 183)
+    .setTab()
+    .text("Columns In Index:", 150)
+    .setTab()
+    .nextRow()
+    .tab(1)
+    .listbox("fields", new String[] {}, 150, 200 )
+    .vspace(50)
+    .space(-1)
+    .imageButton("right", "images/right.gif", 28)
+    .vspace(0)
+    .space(-35)
+    .vspace(90)
+    .imageButton("left", "images/left.gif", 28)
+    .vspace(0)
+    .tab(4)
+    .listbox("indexFields", new String[] {}, 150, 200 )
+    .nextRow()
+    .vspace(205)
+    .space(45)
+    .button("Update Indexes", LF.isMac?LF.isLeopard?123:122:120)
+    .space(5)
+    .button("Cancel", 110);
+
+    DB db = context.get("db");
+    db.begin();
+    db.execute("use " + (String)context.get("currentDB"));
+    DB.Result result = db.execute("show keys from " + (String) context.get("currentTable"));
+    DB.Result allColumns = db.execute("show columns from " + context.get("currentTable"));
+    db.end();
+   
+    Combo indexes = context.get("/indexes");
+    HashObject indexMap = new HashObject();
+    for (HashObject index: result)
+    {
+      if ( indexMap.getObject(index.get("key_name")) == null )
+      {
+          indexMap.put(index.get("key_name"), new HashObject());
+      }
+      ((HashObject)indexMap.getObject(index.get("key_name"))).put(index.get("column_name"), index);
+    }
+    
+    String[] allCols = new String[allColumns.size()];
+    for (int i=0; i < allColumns.size(); i++)
+    {
+        allCols[i] = ((HashObject)allColumns.get(i)).get("field");
+    }
+      
+    Object[] keys = indexMap.keySet().toArray();
+    
+    indexes.setModel(new DefaultComboBoxModel(keys));
+    indexes.setProperty("indexMap", indexMap);
+    indexes.setProperty("allColumns", allCols);
+    indexes.setProperty("storedValues", new HashObject());
+    
+    if ( keys.length > 0 )
+    {
+      indexes.select((String)keys[0]);
+    }
+    
+    if ( indexMap.getObject("PRIMARY") != null )
+    {
+      ((Button)context.get("/Add Primary")).setEnabled(false);
+    }
+    
+    if ( indexMap.size() == 0 )
+    {
+      ((Button)context.get("/Delete")).setEnabled(false);
+    }
+
+    dlg.visible();
+    
+    return context.get("dlgResult");
+    
+    

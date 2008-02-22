@@ -1,0 +1,27 @@
+import com.mysql.jdbc.jdbc2.optional.*;
+import javax.sql.DataSource;
+import com.rendion.editor.*;
+
+DB db = null;
+
+WindowContext context = argObj("windowContext");
+HashObject profile = context.get("profile");
+AjlEditor editor = context.get("/consoleTabs/SQL Log/outputWindow");
+
+try 
+{
+  MysqlDataSource ds = new MysqlDataSource();
+  String url = "jdbc:mysql://" + profile.get("host") + ":" + profile.get("port") + "/";
+
+  ds.setUrl(url);
+  ds.setUser(profile.get("user"));
+  ds.setPassword(profile.get("password"));
+
+  db = new SQLLoggingDB((DataSource)ds, editor);
+
+} catch (Exception e) {
+   throw new RuntimeException(e);
+}
+
+context.put("db", db);
+

@@ -1,0 +1,127 @@
+  import java.util.*;
+  import javax.swing.*;
+  
+  Frame app = new Frame("connectDialog", "Connection To MySQL");
+  WindowContext context = app.getWindowContext();
+  
+  app.events("connectDialogEvents");
+  app.tabLayout();
+  app.insets(10, 12);
+	app.image("logo", "images/mysql-logo.gif")		
+    .space(LF.isLeopard?2:5)
+    .vspace(-1)  
+    .button("New", 110)
+    .setTab()
+    .space(20)
+    .button("Save", 110)
+    .space(20)
+    .button("Delete", 110)
+    .nextRow()
+    .vspace(10)
+    .tab(1)
+    .space(4)
+    .text("Description:", 92).setTab()
+    .space(0)
+    .combo("connProfiles", new String[] {"New Connection"}, 200).setTab()  /* again wtf is this happening is the baseline aligned or what? */
+    .button("Rename", 74)  /* what the fuck is wrong with this dropdown? */
+    .nextRow()
+    .tab(2)
+    .text("Hostname/IP:")
+    .tab(3)
+    .field("host", 281)
+    .nextRow()
+    .tab(2)
+    .text("User:")
+    .tab(3)
+    .field("user", 281)
+    .nextRow()
+    .tab(2)
+    .text("Password:")
+    .tab(3)
+    .password("password", 281)
+    .nextRow()
+    .tab(2)
+    .text("Port:")
+    .tab(3)
+    .field("port", 50)
+    .space(10)
+    .text("Timeout:")
+    .space(5)
+    .field("timeout", 50)
+    .space(2)
+    .text("seconds")
+    .nextRow()
+    .tab(3)
+    .vspace(2)
+    .checkbox("compress", "Use compressed protocol", false)
+    .nextRow()
+    .tab(2)
+    .text("<html>Database(s):<br>(separated by<br> semicolon)</html>")
+    .tab(3)
+    .field("dbs", 281)
+    .nextRow()
+    .tab(3)
+    .checkbox("sort", "Sort databases A-Z", true)
+    .nextRow()
+    .vspace(10)
+    .line(513)
+    .nextRow()
+    .tab(1)
+    .vspace(7)
+    .button("Save/Connect", LF.isMac?112: 110)
+    .space(20)
+    .button("Connect", 110)
+    .space(20)
+    .button("Cancel", 110)
+    .setDefaultButton("Save/Connect"); 
+    
+           
+    Combo connProfiles = context.get("/connProfiles");
+    connProfiles.requestFocus();
+    HashObject profiles = new HashObject();
+    connProfiles.setProperty("profiles", profiles);
+    String[] names = null;
+    
+    try 
+    {
+      List<String> connections = (List<String>)FileUtil.toList(".connectionProfiles");
+      log.debug("connection profiles exist: " + connections.size());
+      names = new String[connections.size()];
+      int count = 0;
+      for (String profileString : connections )
+      {
+        String[] profileAttrs = profileString.split(":");
+        HashObject profile = new HashObject();
+        for (String attr : profileAttrs )
+        {
+           String[] keyValue = attr.split("=");
+           String value = "";
+           if ( keyValue.length == 2 )
+           {
+              value = keyValue[1];
+           }
+           if ( "name".equals(keyValue[0]) )
+           {
+              names[count] = value;
+           }
+           profile.put(keyValue[0], value);
+        }
+        if ( names[count] != null )
+        {
+          profiles.put(names[count++], profile);
+        }
+      }
+      
+    }
+    catch (Exception e)  { e.printStackTrace();/*no profiles i guess*/ }
+    
+    if ( profiles.size() > 0 )
+    {
+        connProfiles.setModel(new DefaultComboBoxModel(names));
+        connProfiles.select(names[0]);
+    }
+    
+    app.visible();
+    
+    
+

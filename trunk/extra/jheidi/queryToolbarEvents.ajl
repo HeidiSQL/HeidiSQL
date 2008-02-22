@@ -1,0 +1,85 @@
+
+String who = arg("source");
+
+WindowContext context = argObj("windowContext");
+Editor editor = context.get("/mainTabs/Query/editor");
+
+log.debug("Event received: " + who);
+
+if ("Run".equals(who) || "Run Selection".equals(who) )
+{
+  String editorText = who.startsWith("Run S") ? editor.getSelectedText() : editor.getText();
+  if ( editorText != null  )
+  {
+    StringBuilder query = new StringBuilder(1000);
+    HashObject queries = new HashObject();
+    String[] lines = StringUtils.toLines( editorText, true );
+    
+    log.debug("lines in query window: " + lines.length);
+    
+    for ( String line: lines )
+    {
+      if ( line.length() == 0 || line.startsWith("--") || line.startsWith("//") )
+      {
+        continue;
+      }
+      else 
+      {
+        query.append(line).append("\n");
+      }
+      if ( line.endsWith(";") )
+      {
+        String userQuery = query.toString();
+        if ( userQuery.length() > 0 )
+        {
+          log.debug("line terminated query: " + userQuery);
+          queries.add(userQuery);
+        }
+        query.delete(0, query.length());
+      }
+    }
+    String userQuery = query.toString();
+    if ( userQuery.length() > 0 )
+    {
+      log.debug("non-terminated query: *" + query.toString() + "*");
+      queries.add(userQuery);
+    }
+    if ( queries.size() > 0 )
+    {
+      args().put("userQueries", queries);
+      thread("runUserQueries", args(), true);
+    }
+  }
+}
+else if ("Open Script".equals(who))
+{
+  Frame f = context.get("/");
+  String file = f.openFile(null, "SQL Script Files", "sql");
+  if (file != null)
+  {
+    editor.setText(FileUtil.toString(file));
+    editor.setProperty("filePath", file);
+  }
+}
+else if ("Save".equals(who) || "Save As".equals(who))
+{
+  Frame f = context.get("/");
+  if ( editor.getProperty("filePath") != null && "Save".equals(who))
+  {
+    FileUtil.fromString((String)editor.getProperty("filePath"), editor.getText());
+  }
+  else
+  {
+    String file = f.saveFile(null, "SQL Script Files", "sql");
+    if (file != null)
+    {
+      FileUtil.fromString(file, editor.getText());
+      editor.setProperty("filePath", file);
+    }
+  }
+}
+else if ("Clear".equals(who))
+{
+  editor.setText("");
+}
+

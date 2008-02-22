@@ -1,0 +1,93 @@
+  import javax.swing.*;
+ 
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  log.debug("event received" + who);
+  
+  if ( "Add Field".equals(who) || "Update Field".equals(who) )
+  {
+     Dialog d = context.get("/");
+    
+     StringBuilder buffer = new StringBuilder(1000);
+
+     String fieldName = ((Field)context.get("/fieldName")).getText();
+     String dbName = (String)context.get("currentDB");
+     String tableName = (String)context.get("currentTable");
+     String position = ((Combo)context.get("/positions")).getText();
+     String lengthSet = ((Field)context.get("/lengthSet")).getText();
+     String defValue = ((Field)context.get("/defaultValue")).getText();
+     String comment = ((Field)context.get("/comment")).getText();
+
+     if ( fieldName == null || fieldName.trim().length() == 0 )
+     {
+        d.popupMessage(who, "Please provide a field name before saving.");
+	      return;
+     }
+
+
+     buffer.append("alter table ").append(tableName);
+     if ( who.startsWith("Add") )
+     {
+         buffer.append(" add ").append(fieldName);
+     }
+     else
+     {
+        buffer.append(" change ").append(context.get("fieldToEdit")).append(" ").append(fieldName);
+     }
+     buffer.append(" ").append(((Combo)context.get("/types")).getText());
+      if ( lengthSet != null && lengthSet.trim().length() > 0)
+      {
+        buffer.append("(").append(lengthSet.trim()).append(")");
+      }
+      if ( ((JCheckBox)context.get("/binary")).isSelected() )
+        buffer.append(" binary");
+      if ( ((JCheckBox)context.get("/unsigned")).isSelected() )
+        buffer.append(" unsigned");
+      if ( ((JCheckBox)context.get("/zeroFill")).isSelected() )
+        buffer.append(" zerofill");
+
+      if ( defValue != null && defValue.trim().length() > 0)
+      {
+        buffer.append(" default '").append(defValue.trim()).append("'");
+      }
+
+      if ( ((JCheckBox)context.get("/notNull")).isSelected() )
+        buffer.append(" not null");
+
+      if ( comment != null & comment.trim().length() > 0 )
+      {
+        buffer.append(" comment '").append(comment.trim()).append("'");
+      }
+
+      if ( !position.equals("Last") )
+      {
+        buffer.append(" ").append(position);
+      }
+
+      // ALTER TABLE `tablename` ADD `turd` TINYINT(5) UNSIGNED ZEROFILL DEFAULT 'wow' NOT NULL COMMENT 'comment'
+     log.debug("heres the statement: " + buffer.toString());
+      DB db = context.get("db");
+      db.begin();
+      db.execute("use " + context.get("currentDB"));
+      db.execute(buffer.toString());
+      db.end();
+    
+     
+     context.put("dlgResult", Boolean.TRUE);
+     
+     d.dispose();
+
+  }
+  else if ( "Cancel".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  
+  
+  
+  
+  
+    
+
+

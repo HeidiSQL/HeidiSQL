@@ -1,0 +1,73 @@
+
+String who = arg("source");
+
+WindowContext context = argObj("windowContext");
+Table table = context.get("/mainTabs/Table/table");
+boolean refreshTableTab = false;
+
+log.debug("Event received: " + who);
+
+if ( context.get("currentTable") == null )
+{
+  return;
+}
+
+if ("Delete Field".equals(who) )
+{
+  if ( table.getSelectedRow() != -1 )
+  {
+     Frame frame = context.get("/");
+     String tableName = context.get("currentTable");
+     String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
+     if (frame.popupConfirm("Confirm Delete!", "Are you sure you want to drop field '" + tableName + "." + fieldName + "'?"))
+     {
+        args().put("fieldToDrop", fieldName);
+        script("dropField", args());
+        refreshTableTab = true;
+     }
+  }
+  
+}
+else if ("New Field".equals(who))
+{
+  args().put("fieldMode", "Add");
+  if ( script("fieldDialog", args()) != null )
+  {
+      refreshTableTab = true;
+  }
+  
+}
+else if ("Edit Field".equals(who))
+{
+  if ( table.getSelectedRow() != -1 )
+  {
+    String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
+    args().put("fieldMode", "Edit");
+    args().put("fieldToEdit", fieldName);
+    if ( script("fieldDialog", args()) != null )
+    {
+       refreshTableTab = true;
+    }
+  }
+}
+else if ("Manage Indexes".equals(who))
+{
+  if ( script("indexDialog", args()) != null )
+  {
+      refreshTableTab = true;
+  }
+}
+else
+{
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+
+
+if ( refreshTableTab )
+{
+  Panel tab = context.get("/mainTabs/Table");
+  String script = tab.getProperty("refreshScript");
+  thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+}
+
+  

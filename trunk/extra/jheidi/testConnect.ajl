@@ -1,0 +1,28 @@
+import com.mysql.jdbc.jdbc2.optional.*;
+import javax.sql.DataSource;
+
+DB db = null;
+
+WindowContext context = argObj("windowContext");
+Frame f = context.get("/");
+HashObject profile = argObj("profile");
+
+try 
+{
+  MysqlDataSource ds = new MysqlDataSource();
+  String url = "jdbc:mysql://" + profile.get("host") + ":" + profile.get("port") + "/";
+
+  ds.setUrl(url);
+  ds.setUser(profile.get("user"));
+  ds.setPassword(profile.get("password"));
+
+  db = new DB((DataSource)ds);
+  db.execute("select 'abcdefg'");
+
+} catch (Exception e) {
+  f.popupMessage("Connection Failed!", e.getCause().toString());
+  db = null;
+}
+
+return db;
+
