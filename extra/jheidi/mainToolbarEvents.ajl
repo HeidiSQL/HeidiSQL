@@ -1,0 +1,114 @@
+import javax.swing.tree.*;
+
+String who = arg("source");
+
+WindowContext context = argObj("windowContext");
+
+log.debug("Event received: " + who);
+
+if ("Connect".equals(who) )
+{
+  script("jheidi");
+}
+else if ("Refresh".equals(who))
+{
+  
+  thread("initTree", args(), true);
+  
+  Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
+  String script = tab.getProperty("refreshScript");
+  if ( script != null )
+  {
+    thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+  }
+  
+}
+else if ("Cut".equals(who) || "Copy".equals(who) || "Paste".equals(who) )
+{
+  Editor editor = context.get("/mainTabs/Query/editor");
+  if ( editor.hasFocus() )
+  {
+     if ( "Cut".equals(who) )
+     {
+        editor.cut();
+     }
+     else if ("Copy".equals(who))
+     {
+        editor.copy();
+     }
+     else if ("Paste".equals(who))
+     {
+        editor.paste();
+     }
+  }
+}
+else if ("Drop Table".equals(who))
+{
+  Tree schemaTree = context.get("/schemaTree");
+  NodeInfo node = schemaTree.getSelectedNode();
+  if ( node != null && "table".equals(node.getType()) )
+  {
+     NodeInfo dbNode = node.getParent();
+     Frame f = context.get("/");
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?"))
+     {
+       args().put("tableToDrop", node.getText());
+       script("dropTable", args());
+       node.remove();
+       //force the tabs to refresh and the db info to reload
+       //schema tree events will be called by the tree itself
+       context.put("currentDB", null);
+       schemaTree.select(dbNode);
+     }
+  }
+  
+}
+else if ("Create Database".equals(who))
+{
+  if ( script("createDBDialog", args()) != null )
+  {
+    Tree schemaTree = context.get("/schemaTree");
+    thread("initTree", args(), true);
+  }
+  
+}
+else if ("Create Table".equals(who))
+{
+  if ( script("createTableDialog", args()) != null )
+  {
+    Tree schemaTree = context.get("/schemaTree");
+    thread("initTree", args(), true);
+  }
+  
+}
+else if ("Drop Database".equals(who))
+{
+  Tree schemaTree = context.get("/schemaTree");
+  NodeInfo node = schemaTree.getSelectedNode();
+  NodeInfo root = node.getParent();
+  if ( node != null && "db".equals(node.getType()) )
+  {
+     Frame f = context.get("/");
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop db '" + node.getText() + "'?"))
+     {
+      args().put("dbToDrop", node.getText());
+      DB db = context.get("db");
+      db.execute("drop database " + node.getText());
+      node.remove();
+      schemaTree.select(root);
+     }
+  }
+}
+else if ("Help".equals(who))
+{
+   BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
+}
+else if ("Close".equals(who) )
+{
+  Frame window = context.get("/");
+  window.dispose();
+}
+else {
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+

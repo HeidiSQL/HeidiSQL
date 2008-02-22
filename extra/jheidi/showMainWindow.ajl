@@ -1,0 +1,125 @@
+  import com.rendion.editor.*;
+  
+  HashObject profile = argObj("profile");
+  
+  Frame app = new Frame("mainWindow", "JHeidi [" + profile.get("name") + " - " + profile.get("user") + "@" + profile.get("host") + "]");
+  WindowContext context = app.getWindowContext();
+  context.put("profile", profile);
+  
+  app.events("mainWindowEvents");
+  
+  app.toolbarButtonInsets(100, 100, 100, 100);
+	
+	//set up the menus
+	app.menu("&File").item("Connection", "Close", "separator", "Reset Window-Options", "Export Settings...", "Import Settings...", "separator", "Exit");
+	app.menu("&Edit").item("Cut", "Copy", "Paste");
+	Menu m = app.menu("&Tools").item("Refresh", "separator", "Create Database", "Drop Database", "Create Table", "Drop Table" , "separator");
+	Menu flush = m.submenu("Flush");
+	flush.item("Hosts", "Logs", "Privledges", "Tables", "Tables with Read Lock", "Status" );
+	m.item("separator", "User-Manager", "Maintenance", "separator", "Preferences");
+	app.menu("&Import").item("Import CSV File", "Load SQL File", "Insert Files into Blob Fields");
+	app.menu("E&xport").item("Export Tables as SQL","separator", "Copy as CSV Data", "Copy as HTML Data", "Copy as XML Data","Export Data...");
+	app.menu("&Window").item("Connection 1");
+	app.menu("&Help").item("SQL Help", "separator", "Heidi SQL Website", "Download Page", "Support Forum", "Bug Tracker", "Feature Tracker", 
+				"separator", "About");
+	
+	app.toolbar("mainToolbar").events("mainToolbarEvents")
+    	.button("Connect", "images/connect.gif")
+    	.button("Close", "images/disconnect.gif")
+    	.separator()
+    	.button("Cut", "images/cut.gif")
+	    .button("Copy", "images/copy.gif")
+	    .button("Paste", "images/paste.gif")
+	    .button("Print", "images/print.gif")
+	    .separator()
+	    .button("Create Database", "images/db-center.gif")
+	    .button("Drop Database", "images/deletedb.gif")
+	    .button("Create Table", "images/table.gif")
+	    .button("Drop Table", "images/deletetable.gif")
+	    .separator()
+	    .button("Refresh", "images/refresh.gif")
+	    .separator()
+	    .button("Import", "images/import.gif")
+	    .button("Export", "images/export.gif")
+	    .separator()
+	    .button("Help", "images/help.gif");
+	    
+	app.statusBar("statusBar", "Ready");
+	
+	//set up the splitters and tabs
+	Split mainSplit = app.splitVertical("treeTabsOutput", 640);
+	mainSplit
+	  .splitHorizontal("splitSchemaQuery", 300)
+		  .tree("schemaTree")
+	    .tabs("mainTabs");
+	    
+	Tree schemaTree = app.get("schemaTree");
+	schemaTree.events("schemaTreeEvents");
+	    
+	Tabs consoleTabs = mainSplit.tabs("consoleTabs");
+	Panel consoleTab = consoleTabs.tab("SQL Log", LF.isWin? "images/vista/sqllog.gif" : "images/sqllog.gif")
+	          .editor("outputWindow");
+
+	Tabs tabs = app.get("mainTabs");
+	Panel host = tabs.tab("Host", LF.isWin? "images/vista/instance.gif" : "images/instance.gif");
+	host.toolbar("toolbar", 32)
+	    .text("banner", "MySQL version etc")
+	    .horizontalGlue();
+	    
+	Tabs hostTabs = host.tabs("tabs");
+	hostTabs.tab("Variables").table("table", new String[] {"\t"}, new String[][] {{""}});
+	hostTabs.tab("Processes").table("table", new String[] {"\t"}, new String[][] {{""}});
+	
+	Panel dbTab = tabs.tab("Database", "images/db-center.gif");
+	dbTab.toolbar("toolbar", 32)
+	    .text("banner", "No database selected")
+	    .horizontalGlue();  
+	dbTab.table("table", new String[] {"\t"}, new String[][] {{""}});
+	
+	Panel tableTab = tabs.tab("Table", "images/table.gif");
+	tableTab.toolbar("toolbar", 32).events("tableToolbarEvents")
+	    .text("banner", "No table selected")
+	    .horizontalGlue()
+	    .button("New Field", "images/newfield.gif")
+	    .button("Edit Field", "images/editfield.gif")
+	    .button("Delete Field", "images/deletefield.gif")
+ 	    .button("Manage Indexes", "images/manageindexes.gif");
+	tableTab.table("table", new String[] {"\t"}, new String[][] {{""}});
+	
+	Panel dataTab = tabs.tab("Data", "images/data.gif");
+	dataTab.toolbar("toolbar", 32)
+	    .text("banner", "No table selected")
+	    .horizontalGlue();
+	dataTab.table("table", new String[] {"\t"}, new String[][] {{""}});
+	
+	Panel queryTab = tabs.tab("Query", "images/query.gif");
+	queryTab.toolbar("toolbar").events("queryToolbarEvents")
+	   .text("banner", "SQL query for " + profile.get("user") + "@" + profile.get("host"))
+	   .horizontalGlue()
+     .button("Run", "images/run.gif")
+     .button("Run Selection", "images/runselection.gif")
+     .button("Stop", "images/stop.gif")
+     .separator()
+     .button("Search", "images/search.gif")
+     .button("Clear", "images/clear.gif")
+     .separator()
+     .button("Open Script", "images/folder.gif")
+     .button("Save", "images/save.gif")
+     .button("Save As", "images/saveas.gif");
+     
+  queryTab.splitVertical("queryResults", 180)
+     .editor("editor")
+     .table("results", new String[] {"\t"}, new String[][] {{""}});
+  
+	AjlEditor editor = consoleTab.get("outputWindow");
+  editor.setEditable(false);
+  
+	app.maximize();
+	app.visible();
+		
+  args().put("windowContext", context);
+  script("initDB", args());
+  script("initTree", args());
+  thread("loadHostInfo", args(), true);
+
+		

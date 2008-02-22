@@ -1,0 +1,35 @@
+
+  WindowContext context = argObj("windowContext");
+ 
+  DB db = context.get("db");
+  
+  db.begin();
+  db.execute("use " + arg("dbName"));
+  DB.Result tables = db.execute("show full columns from " + arg("tableName"));
+  db.end();
+  
+  Text banner = context.get("/mainTabs/Table/toolbar/banner");
+  banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") );
+
+  TableUtils.populate((Table)context.get("/mainTabs/Table/table"), tables);
+  
+  //let the refresh button know what to do
+  Panel tab = context.get("/mainTabs/Table");
+  tab.setProperty("refreshScript", "loadTableInfo");
+  tab.setProperty("refreshArgs", args());
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
