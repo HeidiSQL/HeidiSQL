@@ -61,8 +61,8 @@ end;
 }
 procedure TfrmUpdateDownload.DoDownload;
 var
-  BatchFile: Textfile;
-  BatchFilename, ExeName: String;
+  ScriptFile: Textfile;
+  ScriptFilename, ScriptContent: String;
 begin
   Show;
 
@@ -78,28 +78,63 @@ begin
   Download.ExecuteTarget(nil);
 
   // Check if downloaded file exists
-  if not FileExists(Download.Filename) then begin
+  if not FileExists(Download.Filename) then
     Raise Exception.Create('Downloaded file not found: '+Download.Filename);
-  end;
 
   if FilePath = Application.ExeName then begin
-    ExeName := ExtractFilename(FilePath);
-    BatchFilename := ExtractFilepath(Application.ExeName) + 'Update_' + ExeName + '.cmd';
-    AssignFile(BatchFile, BatchFilename);
-    Rewrite(BatchFile);
-    WriteLn(BatchFile, 'rem Killing task '+ExeName);
-    WriteLn(BatchFile, 'taskkill /im "'+ExeName+'" /f');
-    // TODO: find some sleep command, as we sometimes get "access denied"
-    // while trying to overwrite the just terminated exe. Seems like taskkill
-    // doesn't close all handles itself
-    WriteLn(BatchFile, 'rem Moving downloaded file to '+ExtractFilepath(FilePath));
-    WriteLn(BatchFile, 'move /Y "'+Download.Filename+'" "'+FilePath+'"');
-    WriteLn(BatchFile, 'rem Restarting '+APPNAME);
-    WriteLn(BatchFile, 'start /D"'+ExtractFilepath(FilePath)+'" '+ExeName);
-    WriteLn(Batchfile);
-    CloseFile(BatchFile);
-    // Calling the batchfile will now terminate the running exe...
-    WinExec(PAnsiChar(BatchFilename), 1);
+    // The Visual Basic Script code which kills this exe and moves the
+    // downloaded file to the application directory.
+    // This file moving can fail due to several reasons. Especially in Vista
+    // where users are normally not admins, they'll get a "Permission denied".
+    // However, the script does several write attempts and quits with a clear
+    // error message if it couldn't move the file.
+    // TODO: move this code to a seperate file for easier debugging
+    ScriptContent := ''' This is a temporary script which shall update your ' + APPNAME + CRLF +
+      ''' with a nightly build.' + CRLF +
+      CRLF +
+      'ExeName = "'+ExtractFilename(FilePath)+'"' + CRLF +
+      'DownloadFileName = "'+Download.Filename+'"' + CRLF +
+      'TargetFileName = "'+FilePath+'"' + CRLF +
+      CRLF +
+      'WScript.Echo "Terminating """&ExeName&""" ..."' + CRLF +
+      'Set Shell = WScript.CreateObject("WScript.Shell")' + CRLF +
+      'Shell.Run("taskkill /im """&ExeName&""" /f")' + CRLF +
+      CRLF +
+      'Set FileSystem = CreateObject("Scripting.FileSystemObject")' + CRLF +
+      'Set DownloadFile = FileSystem.GetFile(DownloadFileName)' + CRLF +
+      'Set TargetFile = FileSystem.GetFile(TargetFileName)' + CRLF +
+      'On Error Resume Next' + CRLF +
+      'MaxAttempts = 10' + CRLF +
+      'for x = 1 to MaxAttempts' + CRLF +
+      '  WScript.Echo "Deleting "&ExeName&" (attempt "&x&" of "&MaxAttempts&") ..."' + CRLF +
+      '  TargetFile.Delete' + CRLF +
+      '  If Err.Number = 0 Then' + CRLF +
+      '    Err.Clear' + CRLF +
+      '    Exit For' + CRLF +
+      '  End If' + CRLF +
+      '  Err.Clear' + CRLF +
+      '  WScript.Sleep(2000)' + CRLF +
+      'Next' + CRLF +
+      'If Err.Number <> 0 Then' + CRLF +
+      '  WScript.Echo "Error: Cannot delete file "&TargetFileName' + CRLF +
+      '  WScript.Sleep(10000)' + CRLF +
+      '  Wscript.Quit' + CRLF +
+      'End If' + CRLF +
+      'Err.Clear' + CRLF +
+      CRLF +
+      'WScript.Echo "Installing new build ..."' + CRLF +
+      'DownloadFile.Move TargetFileName' + CRLF +
+      CRLF +
+      'WScript.Echo "Restarting ..."' + CRLF +
+      'Shell.Run(""""&TargetFileName&"""")';
+    // Write script file to disk
+    ScriptFilename := GetTempDir + APPNAME + '_Update.vbs';
+    AssignFile(ScriptFile, ScriptFilename);
+    Rewrite(ScriptFile);
+    Write(Scriptfile, ScriptContent);
+    CloseFile(ScriptFile);
+    // Calling the script will now terminate the running exe...
+    WinExec(PAnsiChar('cscript.exe "'+ScriptFilename+'"'), 1);
   end else begin
     // We're not replacing the running exe, so just move file to destination
     MoveFile(PChar(Download.Filename), PChar(FilePath));
