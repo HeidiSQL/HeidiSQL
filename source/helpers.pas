@@ -85,6 +85,7 @@ type
   function TColorToHex( Color : TColor ): string;
   function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
+  function GetTempDir: String;
   procedure ExtractUpdater;
   procedure UpdateItWith(const _file: String);
 
@@ -2135,6 +2136,15 @@ begin
   NewHayStack := Copy(HayStack, StartPos, Length(HayStack));
   Result := Pos(Needle, NewHayStack);
   if Result > 0 then Result := Result + StartPos - 1;
+end;
+
+
+function GetTempDir: String;
+var
+  TempPath: array[0..MAX_PATH] of Char;
+begin
+  GetTempPath(MAX_PATH, @TempPath);
+  Result := StrPas(TempPath);
 end;
 
 

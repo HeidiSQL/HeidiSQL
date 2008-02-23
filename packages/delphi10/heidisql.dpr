@@ -35,7 +35,8 @@ uses
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
   runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm},
-  updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck};
+  updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck},
+  updatedownload in '..\..\source\updatedownload.pas' {frmUpdateDownload};
 
 {$R *.RES}
 

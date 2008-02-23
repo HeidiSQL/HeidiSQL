@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{53d02113-9bb2-4326-83eb-53734f07dae7}</ProjectGuid>
     <MainSource>heidisql.dpr</MainSource>
@@ -136,6 +136,9 @@
     <DCCReference Include="..\..\source\threading.pas" />
     <DCCReference Include="..\..\source\updatecheck.pas">
       <Form>frmUpdateCheck</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\updatedownload.pas">
+      <Form>frmUpdateDownload</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\usermanager.pas">
       <Form>UserManagerForm</Form>
