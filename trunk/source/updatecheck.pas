@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses helpers, main;
+uses helpers, main, UpdateDownload;
 
 {$R *.dfm}
 
@@ -65,7 +65,6 @@ end;
 }
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 var
-  TempPath: array[0..MAX_PATH] of Char;
   reg : TRegistry;
 begin
   Status('Initiating ... ');
@@ -78,13 +77,10 @@ begin
   memoRelease.Clear;
   memoBuild.Clear;
 
-  // Detect temp directory
-  GetTempPath(MAX_PATH, @TempPath);
-
   // Prepare download
   CheckfileDownload := TDownLoadURL.Create(Self);
   CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php';
-  CheckfileDownload.Filename := StrPas(TempPath) +  APPNAME + '_updatecheck.ini';
+  CheckfileDownload.Filename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
   Screen.Cursor := crHourglass;
@@ -172,7 +168,7 @@ begin
     Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
     if Note <> '' then
       memoBuild.Lines.Add( 'Note: ' + Note );
-    btnBuild.Caption := 'Download build ' + IntToStr(BuildRevision);
+    btnBuild.Caption := 'Download and install build ' + IntToStr(BuildRevision);
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
@@ -197,16 +193,11 @@ end;
 
 
 {**
-  Download latest build via web browser
-  TODO: internally replace heidisql.exe:
-    1. create a batch file which replaces heidisql.exe
-    2. quit Heidi
-    3. start the batch
-    4. start Heidi
+  Download latest build and replace running exe
 }
 procedure TfrmUpdateCheck.btnBuildClick(Sender: TObject);
 begin
-  ShellExec(BuildURL);
+  DoUpdateDownload(Self, BuildURL, Application.ExeName);
 end;
 
 end.
