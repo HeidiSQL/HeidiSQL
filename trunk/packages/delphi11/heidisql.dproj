@@ -137,9 +137,6 @@
     <DCCReference Include="..\..\source\updatecheck.pas">
       <Form>frmUpdateCheck</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\updatedownload.pas">
-      <Form>frmUpdateDownload</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\usermanager.pas">
       <Form>UserManagerForm</Form>
     </DCCReference>
