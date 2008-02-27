@@ -2109,21 +2109,27 @@ begin
       // Default visible columns
 
       // Records
-      ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsString ) );
+      if not ds.FieldByName('Rows').IsNull then
+        ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsString ) )
+      else
+        ListCaptions.Add(STR_NOTAVAILABLE);
       // Size: Data_length + Index_length
-      bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-      ListCaptions.Add( FormatByteNumber( FloatToStr(bytes) ) );
+      if not ds.FieldByName('Data_length').IsNull then begin
+        bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
+        ListCaptions.Add( FormatByteNumber( Trunc(bytes) ) );
+      end else
+        ListCaptions.Add(STR_NOTAVAILABLE);
       // Created:
       if not ds.FieldByName('Create_time').IsNull then
         ListCaptions.Add( ds.FieldByName('Create_time').AsString )
       else
-        ListCaptions.Add('N/A');
+        ListCaptions.Add(STR_NOTAVAILABLE);
 
       // Updated:
       if not ds.FieldByName('Update_time').IsNull then
         ListCaptions.Add( ds.FieldByName('Update_time').AsString )
       else
-        ListCaptions.Add('N/A');
+        ListCaptions.Add(STR_NOTAVAILABLE);
 
       // Type
       if ds.FindField('Type')<>nil then
@@ -6118,6 +6124,12 @@ begin
     CellText2 := NodeData2.Captions[Column]
   else
     CellText2 := '';
+
+  // Map value "0" to "N/A" strings
+  if CellText1 = STR_NOTAVAILABLE then
+    CellText1 := '0';
+  if CellText2 = STR_NOTAVAILABLE then
+    CellText2 := '0';
 
   // Apply different comparisons for numbers and text
   if StrToIntDef( copy(CellText1,0,1), -1 ) <> -1 then
