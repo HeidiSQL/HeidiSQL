@@ -84,6 +84,7 @@ type
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
   function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
+  procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
 
@@ -2124,6 +2125,29 @@ begin
       Result.Add( a[i].Captions[ Column ] );
   end;
 end;
+
+
+{**
+  The opposite of GetVTCaptions in "OnlySelected"-Mode:
+  Set selected nodes in a VirtualTree
+}
+procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
+var
+  Node: PVirtualNode;
+  NodeData: PVTreeData;
+begin
+  Node := VT.GetFirst;
+  while Assigned(Node) do begin
+    NodeData := VT.GetNodeData(Node);
+    if Selected.IndexOf(NodeData.Captions[0]) > -1 then begin
+      if not Assigned(VT.FocusedNode) then
+        VT.FocusedNode := Node;
+      VT.Selected[Node] := True;
+    end;
+    Node := VT.GetNext(Node);
+  end;
+end;
+
 
 function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
 var
