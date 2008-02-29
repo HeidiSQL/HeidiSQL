@@ -138,6 +138,7 @@ object MDIChild: TMDIChild
                 TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
                 OnBeforePaint = vstBeforePaint
                 OnCompareNodes = vstCompareNodes
+                OnDblClick = ListVariablesDblClick
                 OnFreeNode = vstFreeNode
                 OnGetText = vstGetText
                 OnGetImageIndex = vstGetImageIndex
@@ -1949,6 +1950,12 @@ object MDIChild: TMDIChild
         ShortCut = 27
         OnClick = DisableAutoRefreshClick
       end
+    end
+    object menuEditVariable: TMenuItem
+      Caption = 'Edit ...'
+      ImageIndex = 32
+      ShortCut = 13
+      OnClick = menuEditVariableClick
     end
     object N1: TMenuItem
       Caption = '-'
