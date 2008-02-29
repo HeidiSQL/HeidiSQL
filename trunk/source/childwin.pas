@@ -24,7 +24,7 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynUnicode, SynRegExpr;
+  SynUnicode, SynRegExpr, EditVar;
 
 type
   TOrderCol = class(TObject)
@@ -330,6 +330,7 @@ type
     pnlFilterProcesses: TPanel;
     lblFilterProcesses: TLabel;
     editFilterProcesses: TEdit;
+    menuEditVariable: TMenuItem;
     procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
@@ -542,6 +543,8 @@ type
         TRect);
     procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure editFilterVTChange(Sender: TObject);
+    procedure ListVariablesDblClick(Sender: TObject);
+    procedure menuEditVariableClick(Sender: TObject);
 
     private
       methodStack                : TStack;
@@ -566,6 +569,7 @@ type
       CreateDatabaseForm         : TCreateDatabaseForm;
       TablePropertiesForm        : Ttbl_properties_form;
       CreateTableForm            : TCreateTableForm;
+      EditVariableForm           : TfrmEditVariable;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
       SqlMessages                : TStringList;
@@ -4398,6 +4402,7 @@ end;
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
+  menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode);
 end;
 
 procedure TMDIChild.Saveastextfile1Click(Sender: TObject);
@@ -6921,6 +6926,29 @@ begin
   end;
   // Needs a refresh to apply visible states
   VT.Refresh;
+end;
+
+
+procedure TMDIChild.ListVariablesDblClick(Sender: TObject);
+begin
+  menuEditVariableClick(Sender);
+end;
+
+
+{**
+  Edit a server variable
+}
+procedure TMDIChild.menuEditVariableClick(Sender: TObject);
+var
+  NodeData: PVTreeData;
+begin
+  if EditVariableForm = nil then
+    EditVariableForm := TfrmEditVariable.Create(Self);
+  NodeData := ListVariables.GetNodeData(ListVariables.FocusedNode);
+  EditVariableForm.VarName := NodeData.Captions[0];
+  EditVariableForm.VarValue := NodeData.Captions[1];
+  if EditVariableForm.ShowModal = mrOK then
+    ShowVariablesAndProcesses(Sender);
 end;
 
 

@@ -88,6 +88,9 @@
     <DCCReference Include="..\..\source\edituser.pas">
       <Form>FormEditUser</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\editvar.pas">
+      <Form>frmEditVariable</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\exportsql.pas">
       <Form>ExportSQLForm</Form>
     </DCCReference>
