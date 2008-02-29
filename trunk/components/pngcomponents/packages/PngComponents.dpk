@@ -1,6 +1,5 @@
-package PngComponentsD7D;
+package PngComponents;
 
-{$R '..\Design\PngComponents.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -22,17 +21,22 @@ package PngComponentsD7D;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'Png components designtime'}
-{$DESIGNONLY}
+{$DESCRIPTION 'Png components'}
+{$RUNONLY}
 {$IMPLICITBUILD ON}
 
 requires
-  designide,
-  PngComponentsD7;
+  vclactnband,
+  vcl,
+  rtl,
+  PNG;
 
 contains
-  PngComponentsRegister in '..\Design\PngComponentsRegister.pas',
-  PngComponentEditors in '..\Design\PngComponentEditors.pas',
-  PngImageListEditor in '..\Design\PngImageListEditor.pas' {PngImageListEditorDlg};
+  PngSpeedButton in '..\source\PngSpeedButton.pas',
+  PngFunctions in '..\source\PngFunctions.pas',
+  PngImageList in '..\source\PngImageList.pas',
+  PngBitBtn in '..\source\PngBitBtn.pas',
+  PngButtonFunctions in '..\source\PngButtonFunctions.pas',
+  PngCheckListBox in '..\source\PngCheckListBox.pas';
 
 end.

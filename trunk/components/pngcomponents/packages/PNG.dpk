@@ -1,6 +1,6 @@
-package PNG_D5;
+package PNG;
 
-{$ALIGN ON}
+{$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -18,18 +18,19 @@ package PNG_D5;
 {$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
-{$WRITEABLECONST ON}
+{$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$IMPLICITBUILD OFF}
 {$DESCRIPTION 'PNG image runtime/designtime'}
 
 requires
-  vcl50;
+  vcl,
+  rtl;
 
 contains
-  pngimage in '..\Source\pngimage.pas',
-  pnglang in '..\Source\pnglang.pas',
-  pngzlib in '..\Source\pngzlib.pas';
+  pngimage in '..\source\pngimage.pas',
+  pnglang in '..\source\pnglang.pas',
+  pngzlib in '..\source\pngzlib.pas';
 
 end.
