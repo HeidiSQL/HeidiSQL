@@ -1,0 +1,40 @@
+package PngComponentsD5;
+
+{$ALIGN ON}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Png components'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  PNG_D5,
+  VCLX50;
+
+contains
+  PngSpeedButton in '..\Source\PngSpeedButton.pas',
+  PngFunctions in '..\Source\PngFunctions.pas',
+  PngImageList in '..\Source\PngImageList.pas',
+  PngBitBtn in '..\Source\PngBitBtn.pas',
+  PngButtonFunctions in '..\Source\PngButtonFunctions.pas',
+  PngCheckListBox in '..\Source\PngCheckListBox.pas';
+
+end.

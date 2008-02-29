@@ -1,0 +1,73 @@
+END-USER LICENSE AGREEMENT
+
+All files included in this archive are Copyright (C) 2002-2005 Martijn Saly.
+Use and/or distribution of them requires acceptance of the following License
+Agreement.
+
+--------------------------------------------------------------------------------
+
+- "Author" herein refers to Martijn Saly (the creator of this package and
+  containing files and software).
+- "Software" herein refers to all files bearing this notice, as well as any
+  other files and source code included with this package (typically extracted
+  from a .zip or .cab archive), and all content in them, regardless of whether
+  any modifications have been made.
+- "Compile" herein refers to the automatic process of translating the Software's
+  source code into executable machine code by a compiler such as the one
+  included with Borland's Delphi or C++Builder.
+
+Except where otherwise noted, all of the documentation and Software included in
+the this package is copyrighted by Martijn Saly (the Author).
+
+Copyright (C) 2002-2005 Martijn Saly. All rights reserved.
+
+
+Use and distribution of the software is permitted provided that all of the
+following terms are accepted. Terms 5 through 8 apply only to distributions
+which include source code that one can Compile.
+
+1) The Software is provided "as-is," without any express or implied warranty. In
+   no event shall the Author be held liable for any damages arising from the use
+   or Compile of the Software.
+
+2) All redistributions of the Software's files must be in their original,
+   unmodified form. Distributions of modified versions of the files is not
+   permitted without express written permission of the Author.
+
+3) All redistributions of the Software's files must retain all copyright notices
+   and web site addresses that are currently in place, and must include this
+   list of conditions in its original, unmodified form.
+
+4) None of the Software's files may be redistributed for profit or as part of
+   another software package without express written permission of the Author.
+
+5) If applicable, you are permitted to Compile the Software, in orginal or
+   modified form, into any kind of application, including commercial or
+   shareware applications, or any application you are profiting from.
+
+6) If applicable, redistribution of any of the Software's files in object form
+   (including but not limited to .DCU and .OBJ formats) is strictly prohibited
+   without express written permission of the Author.
+
+7) If applicable, distribution of the Software in compiled package format
+   (the BPL file) is permitted, as long as the Software is distributed as part
+   of an application.
+
+8) If applicable, distribution of the Software in compiled package format
+   (the BPL file) is prohibed if the distribution does not specifically belong
+   to an application, written by the same author as the application was written
+   by.
+
+9) Full backward compatibility in future versions of the Software is not
+   guaranteed. In no event shall the Author be held liable for any inconvenience
+   or damages arising from lack of backward compatibility.
+
+If you do not agree to all of the above terms, you are not permitted to use or
+Compile the Software in any way, and all copies of it must be deleted from your
+system(s).
+
+----------------------------------------------------------------------------
+
+Martijn Saly
+martijn@thany.org
+http://www.thany.org/

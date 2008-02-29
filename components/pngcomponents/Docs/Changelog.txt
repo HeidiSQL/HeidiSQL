@@ -1,0 +1,37 @@
+PngComponents 1.0 RC3:
+- Editor: Fixed "invalid header" exception when adding a PNG to the list.
+- Editor: Everything should now look good on "large fonts" setting.
+- PngBitBtn: Positioning and drawing of the glyph was sometimes a bit odd.
+- PngBitBtn: Removed the need to draw an empty TBitmap glyph, prior to drawing the PNG glyph.
+- PngSpeedButton: The image is now shifted down-right by 1 pixel, when the button is down but not pressed, to match the behavior of a normal SpeedButton.
+- PngImageList: Fixed range check errors in PngToIcon32.
+- PngImageList: Fixed possible AccessViolation in PngToIcon32.
+- PngImageList: Fixed AccessViolation in AddImages.
+- PngImageList: Fixed memory leak in CopyPngs.
+- PngImageList: Added BeginUpdate and EndUpdate methods, to temporarily prevent the internal imagelist from being updated.
+- PngImageList: The patched methods are more efficient, because they now manipulate the internal imagelist directly, rather than relying on CopyPngs.
+- PngImageList: Added calls to Change in the patched methods. 
+
+PngComponents 1.0 RC2:
+- Editor: Fixed endless loop when repetitively removing the last image in a list of at least 3 (thanks to Aleksander Oven).
+- Editor: Fixed possible out-of-bounds error when moving an image down using the Down button (thanks to Spiril).
+- Editor: Now using Graphics.GetColorValues to retrieve available color identifiers (thanks to LJ and Ryan Mills).
+- Editor: Rewritten ParseBackgroundColor and SelectBackgroundColor to use IdentToColor, StringToColor and ColorToIdent from Gaphics unit (thanks to LJ and Ryan Mills).
+- Editor: It is now possible to set the background color to more than 1 selected image.
+- Editor: Minor GUI fixes
+- PngBitBtn: When Margin <> -1 and the button is focused, the image must be shifted 1 pixel, to match the behavior of a normal BitBtn.
+- PngBitBtn: Fixed EPngHeaderNotPresent when assigning a nil to the PngImage property.
+- PngBitBtn: PngImage property now behaves correctly when assigning an action. Note that the image will not be stored in the DFM if it came from a TActionList.ImageList (thanks to robvdl)
+- PngSpeedButton: The same fixes that apply to PngBitBtn, applied to PngSpeedButton.
+- PngImageList: Adding a default action to an imagelist no longer results in out of bounds errors (thanks to robvdl).
+- PngImageList: 14 methods that couldn't be overridden are now patched (thanks to Vladimir Bochkarev). However, adding a default action to an imagelist still doesn't call the "new" Add method, but supposedly the legacy ImageList_Add() function, which cannot be patched.
+- PngImageList: Fixed memory leak in CopyPngs (thanks to M. Youssfi).
+- Common: Added Amount parameter to MakeImageBlended and MakeImageGrayscale.
+- Common: Added function ConvertToPNG, which converts a TGraphic to a PNG object, if not already.
+- Common: Added functions CreatePNG and CreatePNGMasked, which create a new PNG object based on a bitmap and a (color or bitmap) mask.
+- Common: Added function CopyImageFromImageList, which effectively copies an image from a normal imagelist or a PngImageList into a PNG.
+- Common: Added function SlicePNG for future use. This slices a large PNG object into smaller, equally-sized ones.
+- Common: Added zlib version 1.2.2 to the PNG package (thanks to Vladimir Bochkarev). 
+
+PngComponents 1.0 RC1:
+- Initial public release
