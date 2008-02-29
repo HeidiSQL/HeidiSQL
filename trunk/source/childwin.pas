@@ -2086,12 +2086,16 @@ var
   i               : Integer;
   bytes           : Extended;
   ds              : TDataSet;
-  ListCaptions    : TStringList;
+  ListCaptions,
+  SelectedCaptions: TStringList;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
   MainForm.ShowStatus( 'Reading from database ' + db + '...', 2, true );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + db + '...';
+
+  // Remember selected nodes
+  SelectedCaptions := GetVTCaptions(ListTables, True);
 
   try
     ds := FetchDbTableList(db);
@@ -2210,6 +2214,7 @@ begin
   finally
     ListTables.RootNodeCount := Length(VTRowDataListTables);
     ListTables.EndUpdate;
+    SetVTSelection(ListTables, SelectedCaptions);
     Mainform.showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)');
     Screen.Cursor := crDefault;
   end;
@@ -2241,6 +2246,7 @@ var
   ds : TDataSet;
   dummy: Boolean;
   hasCommentColumn: Boolean;
+  SelectedCaptions: TStringList;
 begin
   // Table-Properties
   dataselected := false;
@@ -2258,6 +2264,8 @@ begin
   pnlTableTop.Caption := 'Table-Properties for ' + ActiveDatabase + ': ' + table;
 
   MainForm.ShowStatus( 'Reading table properties...', 2, true );
+  // Remember selected nodes
+  SelectedCaptions := GetVTCaptions(ListColumns, True);
   ListColumns.BeginUpdate;
   ListColumns.Clear;
   Try
@@ -2371,6 +2379,8 @@ begin
   finally
 
     ListColumns.EndUpdate;
+    // Reselect previous selected nodes
+    SetVTSelection(ListColumns, SelectedCaptions);
     Screen.Cursor := crDefault;
   end;
 
@@ -2661,9 +2671,13 @@ var
   i : Integer;
   questions : Int64;
   ds : TDataSet;
+  SelectedCaptions: TStringList;
 begin
   // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
+
+  // Remember selected nodes
+  SelectedCaptions := GetVTCaptions(ListVariables, True);
 
   // VARIABLES
   ListVariables.BeginUpdate;
@@ -2683,6 +2697,7 @@ begin
   // Tell VirtualTree the number of nodes it will display
   ListVariables.RootNodeCount := Length(VTRowDataListVariables);
   ListVariables.EndUpdate;
+  SetVTSelection( ListVariables, SelectedCaptions );
   // Apply filter
   if editFilterVariables.Text <> '' then
     editFilterVTChange(editFilterVariables);
@@ -2692,6 +2707,8 @@ begin
   // STATUS
   uptime := 1; // avoids division by zero :)
   questions := 1;
+  // Remember selected nodes
+  SelectedCaptions := GetVTCaptions(ListStatus, True);
   ListStatus.BeginUpdate;
   ListStatus.Clear;
   ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
@@ -2711,6 +2728,7 @@ begin
   // Tell VirtualTree the number of nodes it will display
   ListStatus.RootNodeCount := Length(VTRowDataListStatus);
   ListStatus.EndUpdate;
+  SetVTSelection( ListStatus, SelectedCaptions );
   // Apply filter
   if editFilterStatus.Text <> '' then
     editFilterVTChange(editFilterStatus);
@@ -2718,6 +2736,7 @@ begin
   tabStatus.Caption := 'Status (' + IntToStr(ListStatus.RootNodeCount) + ')';
 
   // Command-Statistics
+  SelectedCaptions := GetVTCaptions(ListCommandStats, True);
   ListCommandStats.BeginUpdate;
   ListCommandStats.Clear;
   SetLength( VTRowDataListCommandStats, 0 );
@@ -2737,6 +2756,7 @@ begin
   // Tell VirtualTree the number of nodes it will display
   ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
   ListCommandStats.EndUpdate;
+  SetVTSelection( ListCommandStats, SelectedCaptions );
 
   TimerHostUptime.Enabled := true;
   TimerHostUptimeTimer(self);
@@ -2753,11 +2773,14 @@ procedure TMDIChild.ShowProcessList(sender: TObject);
 var
   i,j : Integer;
   ds  : TDataSet;
+  SelectedCaptions: TStringList;
 begin
   // No need to update if it's not visible.
   if PageControlMain.ActivePage <> tabHost then exit;
   if PageControlHost.ActivePage <> tabProcesslist then exit;
   Screen.Cursor := crSQLWait;
+  // Remember selected nodes
+  SelectedCaptions := GetVTCaptions(ListProcesses, True);
   try
     ListProcesses.BeginUpdate;
     ListProcesses.Clear;
@@ -2787,6 +2810,8 @@ begin
   end;
   ListProcesses.RootNodeCount := Length(VTRowDataListProcesses);
   ListProcesses.EndUpdate;
+  // Reselect previous selected nodes
+  SetVTSelection( ListProcesses, SelectedCaptions );
   // Apply filter
   if editFilterProcesses.Text <> '' then
     editFilterVTChange(editFilterProcesses);
