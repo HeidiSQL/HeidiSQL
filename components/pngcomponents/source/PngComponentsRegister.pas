@@ -1,11 +1,11 @@
 unit PngComponentsRegister;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
 uses
-  Classes, {$IFDEF THANY_COMPILER_6_UP} DesignIntf {$ELSE} DsgnIntf {$ENDIF},
+  Classes, {$IFDEF COMPILER_6_UP} DesignIntf {$ELSE} DsgnIntf {$ENDIF},
   PngSpeedButton, PngBitBtn, PngImageList, PngCheckListBox, PngComponentEditors,
   TypInfo;
 
@@ -13,7 +13,7 @@ procedure Register;
 
 implementation
 
-{$IFNDEF THANY_COMPILER_7_UP}
+{$IFNDEF COMPILER_7_UP}
 
 procedure UnlistPublishedProperty(ComponentClass: TClass; const PropertyName: string);
 var

@@ -1,11 +1,11 @@
 unit PngImageListEditor;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
 uses
-  Windows, Messages, SysUtils, {$IFDEF THANY_COMPILER_6_UP}Variants,{$ENDIF}
+  Windows, Messages, SysUtils, {$IFDEF COMPILER_6_UP}Variants,{$ENDIF}
   Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Buttons, PngBitBtn,
   ExtCtrls, PngImageList, ExtDlgs, pngimage;
 

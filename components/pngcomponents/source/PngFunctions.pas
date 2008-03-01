@@ -1,6 +1,6 @@
 unit PngFunctions;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
