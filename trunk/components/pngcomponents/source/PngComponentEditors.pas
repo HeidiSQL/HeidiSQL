@@ -1,15 +1,15 @@
 unit PngComponentEditors;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
 uses
   Windows, SysUtils, Forms, Classes, Controls, PngImageList, TypInfo,
-  {$IFDEF THANY_COMPILER_6_UP} DesignIntf, DesignEditors, ColnEdit {$ELSE} DsgnIntf {$ENDIF};
+  {$IFDEF COMPILER_6_UP} DesignIntf, DesignEditors, ColnEdit {$ELSE} DsgnIntf {$ENDIF};
 
 type
-  {$IFNDEF THANY_COMPILER_6_UP}
+  {$IFNDEF COMPILER_6_UP}
   IProperty = TPropertyEditor;
   IDesignerSelections = TDesignerSelectionList;
   IDesigner = IFormDesigner;
@@ -61,7 +61,7 @@ type
   TEditProperty = class
   private
     FPropery: string;
-    procedure EnumProperty({$IFDEF THANY_COMPILER_6_UP}const{$ENDIF} Prop: IProperty);
+    procedure EnumProperty({$IFDEF COMPILER_6_UP}const{$ENDIF} Prop: IProperty);
   public
     constructor Create(Component: TComponent; const Prop: string; Designer: IDesigner);
   end;
@@ -173,7 +173,7 @@ end;
 
 { TD5ComponentEditor }
 
-{$IFNDEF THANY_COMPILER_6_UP}
+{$IFNDEF COMPILER_6_UP}
 
 function TThanyComponentEditor.GetComponent: TComponent;
 begin
@@ -184,7 +184,7 @@ end;
 
 { TEditProperty }
 
-{$IFDEF THANY_COMPILER_6_UP}
+{$IFDEF COMPILER_6_UP}
 
 constructor TEditProperty.Create(Component: TComponent; const Prop: string; Designer: IDesigner);
 var
@@ -216,7 +216,7 @@ end;
 
 {$ENDIF}
 
-procedure TEditProperty.EnumProperty({$IFDEF THANY_COMPILER_6_UP}const{$ENDIF} Prop: IProperty);
+procedure TEditProperty.EnumProperty({$IFDEF COMPILER_6_UP}const{$ENDIF} Prop: IProperty);
 begin
 if Prop.GetName = FPropery
 then Prop.Edit;

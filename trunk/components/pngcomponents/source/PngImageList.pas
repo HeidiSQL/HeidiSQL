@@ -1,6 +1,6 @@
 unit PngImageList;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
@@ -20,7 +20,7 @@ type
     FPngOptions: TPngOptions;
     FLocked: Integer;
     procedure SetPngOptions(const Value: TPngOptions);
-    {$IFNDEF THANY_COMPILER_7_UP}
+    {$IFNDEF COMPILER_7_UP}
     procedure ReadLeft(Reader: TReader);
     procedure ReadTop(Reader: TReader);
     procedure WriteLeft(Writer: TWriter);
@@ -37,7 +37,7 @@ type
     function PngToIcon(const Png: TPNGObject; Background: TColor = clNone): HICON;
     procedure CopyPngs; virtual;
     procedure DoDraw(Index: Integer; Canvas: TCanvas; X, Y: Integer; Style: Cardinal; Enabled: Boolean = True); override;
-    {$IFDEF THANY_COMPILER_7_UP}
+    {$IFDEF COMPILER_7_UP}
     procedure ReadData(Stream: TStream); override;
     procedure WriteData(Stream: TStream); override;
     {$ELSE}
@@ -52,7 +52,7 @@ type
     //Patched methods
     function Add(Image, Mask: TBitmap): Integer; virtual;
     function AddIcon(Image: TIcon): Integer; virtual;
-    {$IFDEF THANY_COMPILER_7_UP}
+    {$IFDEF COMPILER_7_UP}
     function AddImage(Value: TCustomImageList; Index: Integer): Integer; virtual;
     {$ENDIF}
     procedure AddImages(Value: TCustomImageList); virtual;
@@ -207,7 +207,7 @@ then begin
      SetLength(Pointers, 14);
      Pointers[0]  := Combo(@TCustomImageList.Add,           @TPngImageList.Add,           'Add');
      Pointers[1]  := Combo(@TCustomImageList.AddIcon,       @TPngImageList.AddIcon,       'AddIcon');
-     {$IFDEF THANY_COMPILER_7_UP}
+     {$IFDEF COMPILER_7_UP}
      Pointers[2]  := Combo(@TCustomImageList.AddImage,      @TPngImageList.AddImage,      'AddImage');
      {$ELSE}
      Pointers[2]  := EmptyCombo;
@@ -438,7 +438,7 @@ type
   end;
 
 begin
-if {$IFDEF THANY_COMPILER_7_UP}
+if {$IFDEF COMPILER_7_UP}
   GetComCtlVersion >= ComCtlVersionIE6
   {$ELSE} False {$ENDIF} then
   //Windows XP or later, using the modern method: convert every PNG to
@@ -633,7 +633,7 @@ else begin
      end;
 end;
 
-{$IFDEF THANY_COMPILER_7_UP}
+{$IFDEF COMPILER_7_UP}
 function TPngImageList.AddImage(Value: TCustomImageList; Index: Integer): Integer;
 var
    Item: TPngImageCollectionItem;
@@ -1096,7 +1096,7 @@ then begin
      end;
 end;
 
-{$IFDEF THANY_COMPILER_7_UP}
+{$IFDEF COMPILER_7_UP}
 
 procedure TPngImageList.ReadData(Stream: TStream);
 begin
@@ -1145,7 +1145,7 @@ then begin
      end;
 end;
 
-{$IFNDEF THANY_COMPILER_7_UP}
+{$IFNDEF COMPILER_7_UP}
 
 procedure TPngImageList.ReadLeft(Reader: TReader);
 var
@@ -1229,9 +1229,9 @@ end;
 
 function TPngImageCollectionItems.Add(DontCreatePNG: Boolean = False): TPngImageCollectionItem;
 begin
-{$IFDEF THANY_COMPILER_6_UP}{$WARN SYMBOL_DEPRECATED OFF}{$ENDIF}
+{$IFDEF COMPILER_6_UP}{$WARN SYMBOL_DEPRECATED OFF}{$ENDIF}
 Result := TPngImageCollectionItem.Create(Self, DontCreatePNG);
-{$IFDEF THANY_COMPILER_6_UP}Added(TCollectionItem(Result));{$ENDIF}
+{$IFDEF COMPILER_6_UP}Added(TCollectionItem(Result));{$ENDIF}
 end;
 
 function TPngImageCollectionItems.Insert(Index: Integer; DontCreatePNG: Boolean = False): TPngImageCollectionItem;

@@ -1,6 +1,6 @@
 unit PngCheckListBox;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
@@ -90,7 +90,7 @@ procedure TPngCheckListBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDr
             then Inc(Rect.Left, 2)
             else Dec(Rect.Right, 2);
             Data := '';
-            {$IFDEF THANY_COMPILER_6_UP}
+            {$IFDEF COMPILER_6_UP}
             if (Style in [lbVirtual, lbVirtualOwnerDraw])
             then Data := DoGetData(Index)
             else Data := Items[Index];
@@ -116,7 +116,7 @@ else begin
      then begin
           R := Rect;
           Enable := Self.Enabled and ItemEnabled[Index];
-          if {$IFDEF THANY_COMPILER_6_UP} not Header[Index] {$ELSE} True {$ENDIF}
+          if {$IFDEF COMPILER_6_UP} not Header[Index] {$ELSE} True {$ENDIF}
           then begin
                if not UseRightToLeftAlignment
                then begin
@@ -130,7 +130,7 @@ else begin
                DrawCheck(R, Self.State[Index], Enable);
                end
           else begin
-               {$IFDEF THANY_COMPILER_6_UP}
+               {$IFDEF COMPILER_6_UP}
                Canvas.Font.Color := HeaderColor;
                Canvas.Brush.Color := HeaderBackgroundColor;
                {$ENDIF}

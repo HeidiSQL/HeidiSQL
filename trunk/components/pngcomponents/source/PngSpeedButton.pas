@@ -1,6 +1,6 @@
 unit PngSpeedButton;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 

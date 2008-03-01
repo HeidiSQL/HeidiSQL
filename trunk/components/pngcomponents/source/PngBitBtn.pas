@@ -1,6 +1,6 @@
 unit PngBitBtn;
 
-{$I ..\Include\Thany.inc}
+{$I compilers.inc}
 
 interface
 
