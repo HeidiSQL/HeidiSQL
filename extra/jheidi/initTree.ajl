@@ -10,6 +10,10 @@
     tree.setCellRenderer(new IconicCellRenderer("images/db.gif", "images/instance.gif", "images/table.gif"));
     root.setText(profile.get("user") + "@" + profile.get("host"));
     root.setIcon("instance");
+  } 
+  else 
+  {
+     tree.saveState();
   }
   root.removeAllChildren();
   
@@ -30,6 +34,7 @@
   db.end();
   
   tree.updateUI();
+  tree.restoreState();
  
   
   
