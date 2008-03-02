@@ -4427,7 +4427,11 @@ end;
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
-  menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode);
+  menuEditVariable.Enabled := (mysql_version >= 40003)
+    and (PageControlHost.ActivePage = tabVariables)
+    and Assigned(ListVariables.FocusedNode);
+  if not menuEditVariable.Enabled then
+    menuEditVariable.Hint := STR_NOTSUPPORTED;
 end;
 
 procedure TMDIChild.Saveastextfile1Click(Sender: TObject);
@@ -6956,7 +6960,7 @@ end;
 
 procedure TMDIChild.ListVariablesDblClick(Sender: TObject);
 begin
-  menuEditVariableClick(Sender);
+  menuEditVariable.Click;
 end;
 
 
