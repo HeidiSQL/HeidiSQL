@@ -6972,8 +6972,9 @@ begin
   NodeData := ListVariables.GetNodeData(ListVariables.FocusedNode);
   EditVariableForm.VarName := NodeData.Captions[0];
   EditVariableForm.VarValue := NodeData.Captions[1];
+  // Refresh relevant list node
   if EditVariableForm.ShowModal = mrOK then
-    ShowVariablesAndProcesses(Sender);
+    NodeData.Captions[1] := GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
 end;
 
 
