@@ -4427,10 +4427,10 @@ end;
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
-  menuEditVariable.Enabled := (mysql_version >= 40003)
-    and (PageControlHost.ActivePage = tabVariables)
-    and Assigned(ListVariables.FocusedNode);
-  if not menuEditVariable.Enabled then
+  menuEditVariable.Enabled := False;
+  if mysql_version >= 40003 then
+    menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
+  else
     menuEditVariable.Hint := STR_NOTSUPPORTED;
 end;
 
