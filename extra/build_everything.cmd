@@ -103,7 +103,7 @@ set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BD
 set params=%params% -B
 set params=%params% -i"%base_dir%\components\compilerdetection\include;%base_dir%\components\heidisql\include"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build;%base_dir%\components\tntunictrls\build"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build;%base_dir%\components\tntunictrls\build;%base_dir%\components\pngcomponents\build"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
@@ -219,6 +219,13 @@ rem Build TNT Unicode Controls
 call :compile tntunictrls TntUnicodeVcl
 if not %err% == 0 goto end
 call :compile tntunictrls TntUnicodeVcl_Design
+if not %err% == 0 goto end
+
+
+rem Build PNGComponents
+call :compile pngcomponents PngComponents
+if not %err% == 0 goto end
+call :compile pngcomponents PngComponentsD
 if not %err% == 0 goto end
 
 
