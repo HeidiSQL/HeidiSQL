@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons, Registry,
-  childwin;
+  childwin, PngBitBtn;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -24,7 +24,7 @@ type
     lblExample: TLabel;
     MemoExample: TMemo;
     ButtonClose: TButton;
-    ButtonSearchOnline: TBitBtn;
+    btnSearchOnline: TPngBitBtn;
     procedure treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure treeTopicsChange(Sender: TObject; Node: TTreeNode);
@@ -47,9 +47,9 @@ type
 
   const
     DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
-    ICONINDEX_CATEGORY_CLOSED   : Integer = 96;
-    ICONINDEX_CATEGORY_OPENED   : Integer = 97;
-    ICONINDEX_HELPITEM          : Integer = 98;
+    ICONINDEX_CATEGORY_CLOSED   : Integer = 66;
+    ICONINDEX_CATEGORY_OPENED   : Integer = 67;
+    ICONINDEX_HELPITEM          : Integer = 68;
 
   function SQLhelpWindow(AOwner: TComponent; Keyword: String = ''): Boolean;
 

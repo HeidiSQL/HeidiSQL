@@ -113,7 +113,7 @@ object ExportSQLForm: TExportSQLForm
         Caption = 'toolbarSelectTools'
         EdgeInner = esNone
         EdgeOuter = esNone
-        Images = MainForm.ImageList1
+        Images = MainForm.PngImageListMain
         ParentShowHint = False
         ShowHint = True
         TabOrder = 2
@@ -122,7 +122,7 @@ object ExportSQLForm: TExportSQLForm
           Top = 0
           Hint = 'Check none'
           Caption = 'ToolButton1'
-          ImageIndex = 35
+          ImageIndex = 65
           OnClick = CheckListToggle
         end
         object ToolButton2: TToolButton
@@ -131,7 +131,7 @@ object ExportSQLForm: TExportSQLForm
           Top = 0
           Hint = 'Check all'
           Caption = 'ToolButton2'
-          ImageIndex = 36
+          ImageIndex = 64
           OnClick = CheckListToggle
         end
       end

@@ -183,7 +183,7 @@ object tbl_properties_form: Ttbl_properties_form
     Text = 'editAutoincrement'
   end
   object popupSynMemo: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     Left = 16
     Top = 240
     object menuCopy: TMenuItem

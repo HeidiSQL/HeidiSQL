@@ -55,7 +55,7 @@ object MDIChild: TMDIChild
       Constraints.MinWidth = 40
       DragMode = dmAutomatic
       HotTrack = True
-      Images = MainForm.ImageList1
+      Images = MainForm.PngImageListMain
       Indent = 19
       ReadOnly = True
       RightClickSelect = True
@@ -88,7 +88,7 @@ object MDIChild: TMDIChild
         Font.Name = 'Tahoma'
         Font.Style = []
         HotTrack = True
-        Images = MainForm.ImageList1
+        Images = MainForm.PngImageListMain
         MultiLine = True
         ParentFont = False
         TabHeight = 22
@@ -96,7 +96,7 @@ object MDIChild: TMDIChild
         OnChange = pcChange
         object tabHost: TTabSheet
           Caption = 'Host'
-          ImageIndex = 41
+          ImageIndex = 1
           object PageControlHost: TPageControl
             Left = 0
             Top = 17
@@ -126,7 +126,7 @@ object MDIChild: TMDIChild
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
                 HintMode = hmTooltip
-                Images = MainForm.ImageList1
+                Images = MainForm.PngImageListMain
                 IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
                 PopupMenu = popupHost
@@ -202,7 +202,7 @@ object MDIChild: TMDIChild
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.SortColumn = 0
                 HintMode = hmTooltip
-                Images = MainForm.ImageList1
+                Images = MainForm.PngImageListMain
                 IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
                 PopupMenu = popupHost
@@ -287,7 +287,7 @@ object MDIChild: TMDIChild
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
                 HintMode = hmTooltip
-                Images = MainForm.ImageList1
+                Images = MainForm.PngImageListMain
                 IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
                 PopupMenu = popupHost
@@ -437,7 +437,7 @@ object MDIChild: TMDIChild
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
                 HintMode = hmTooltip
-                Images = MainForm.ImageList1
+                Images = MainForm.PngImageListMain
                 IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
                 PopupMenu = popupHost
@@ -510,7 +510,7 @@ object MDIChild: TMDIChild
         end
         object tabDatabase: TTabSheet
           Caption = 'Database'
-          ImageIndex = 38
+          ImageIndex = 5
           object pnlDatabaseTop: TPanel
             Left = 0
             Top = 0
@@ -547,7 +547,7 @@ object MDIChild: TMDIChild
             Header.PopupMenu = popupDbGridHeader
             Header.SortColumn = 0
             HintMode = hmTooltip
-            Images = MainForm.ImageList1
+            Images = MainForm.PngImageListMain
             IncrementalSearch = isInitializedOnly
             ParentShowHint = False
             PopupMenu = popupDbGrid
@@ -697,7 +697,7 @@ object MDIChild: TMDIChild
               Color = clBtnFace
               EdgeInner = esNone
               EdgeOuter = esNone
-              Images = MainForm.ImageList1
+              Images = MainForm.PngImageListMain
               ParentColor = False
               ParentShowHint = False
               ShowHint = True
@@ -709,7 +709,7 @@ object MDIChild: TMDIChild
                 Hint = 'View Data'
                 Caption = 'View Data'
                 Enabled = False
-                ImageIndex = 8
+                ImageIndex = 41
                 Wrap = True
                 OnClick = MenuViewDataClick
               end
@@ -719,7 +719,7 @@ object MDIChild: TMDIChild
                 Hint = 'Show Table-Properties'
                 Caption = 'Show Table-Properties'
                 Enabled = False
-                ImageIndex = 9
+                ImageIndex = 44
                 Wrap = True
                 OnClick = ListTablesDblClick
               end
@@ -729,7 +729,7 @@ object MDIChild: TMDIChild
                 Hint = 'Empty Table ...'
                 Caption = 'btnDbEmptyTable'
                 Enabled = False
-                ImageIndex = 31
+                ImageIndex = 46
                 Wrap = True
                 OnClick = EmptyTable
               end
@@ -754,7 +754,7 @@ object MDIChild: TMDIChild
               Caption = 'tlbDataLeft2'
               EdgeInner = esNone
               EdgeOuter = esNone
-              Images = MainForm.ImageList1
+              Images = MainForm.PngImageListMain
               ParentShowHint = False
               ShowHint = True
               TabOrder = 0
@@ -764,7 +764,7 @@ object MDIChild: TMDIChild
         end
         object tabTable: TTabSheet
           Caption = 'Table'
-          ImageIndex = 40
+          ImageIndex = 14
           object pnlTableTop: TPanel
             Left = 0
             Top = 0
@@ -801,7 +801,7 @@ object MDIChild: TMDIChild
               Caption = 'tlbTableLeft1'
               EdgeInner = esNone
               EdgeOuter = esNone
-              Images = MainForm.ImageList1
+              Images = MainForm.PngImageListMain
               ParentShowHint = False
               ShowHint = True
               TabOrder = 0
@@ -812,7 +812,7 @@ object MDIChild: TMDIChild
                 Top = 0
                 Hint = 'View Data'
                 Caption = 'btnTableViewData'
-                ImageIndex = 8
+                ImageIndex = 41
                 Wrap = True
                 OnClick = btnTableViewDataClick
               end
@@ -821,7 +821,7 @@ object MDIChild: TMDIChild
                 Top = 23
                 Hint = 'Edit Field...'
                 Caption = 'btnTableEditField'
-                ImageIndex = 9
+                ImageIndex = 44
                 Wrap = True
                 OnClick = UpdateField
               end
@@ -830,7 +830,7 @@ object MDIChild: TMDIChild
                 Top = 46
                 Hint = 'Add Field...'
                 Caption = 'btnTableAddField'
-                ImageIndex = 34
+                ImageIndex = 45
                 Wrap = True
                 OnClick = MenuAddFieldClick
               end
@@ -839,7 +839,7 @@ object MDIChild: TMDIChild
                 Top = 69
                 Hint = 'Drop Field ...'
                 Caption = 'btnTableDropField'
-                ImageIndex = 33
+                ImageIndex = 46
                 Wrap = True
                 OnClick = DropField
               end
@@ -848,7 +848,7 @@ object MDIChild: TMDIChild
                 Top = 92
                 Hint = 'Manages indexes'
                 Caption = 'btnTableManageIndexes'
-                ImageIndex = 76
+                ImageIndex = 13
                 OnClick = ManageIndexes1Click
               end
             end
@@ -861,7 +861,7 @@ object MDIChild: TMDIChild
               Caption = 'ToolBar2'
               EdgeInner = esNone
               EdgeOuter = esNone
-              Images = MainForm.ImageList1
+              Images = MainForm.PngImageListMain
               ParentShowHint = False
               ShowHint = True
               TabOrder = 1
@@ -885,7 +885,7 @@ object MDIChild: TMDIChild
             Header.Height = 20
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
             HintMode = hmTooltip
-            Images = MainForm.ImageList1
+            Images = MainForm.PngImageListMain
             IncrementalSearch = isInitializedOnly
             ParentShowHint = False
             PopupMenu = popupTableGrid
@@ -942,7 +942,7 @@ object MDIChild: TMDIChild
         end
         object tabData: TTabSheet
           Caption = 'Data'
-          ImageIndex = 39
+          ImageIndex = 41
           object pnlDataTop: TPanel
             Left = 0
             Top = 0
@@ -1098,7 +1098,7 @@ object MDIChild: TMDIChild
           Font.Height = -11
           Font.Name = 'Tahoma'
           Font.Style = []
-          ImageIndex = 57
+          ImageIndex = 35
           ParentFont = False
           object spltQuery: TSplitter
             Left = 0
@@ -1154,7 +1154,7 @@ object MDIChild: TMDIChild
                 DragKind = dkDock
                 EdgeInner = esNone
                 EdgeOuter = esNone
-                Images = MainForm.ImageList1
+                Images = MainForm.PngImageListMain
                 ParentColor = False
                 ParentShowHint = False
                 ShowHint = True
@@ -1177,7 +1177,7 @@ object MDIChild: TMDIChild
                   Hint = 'Load SQL from Textfile'
                   Caption = 'Load SQL...'
                   DropdownMenu = popupQueryLoad
-                  ImageIndex = 6
+                  ImageIndex = 52
                   Style = tbsDropDown
                   OnClick = btnQueryLoadClick
                 end
@@ -1187,7 +1187,7 @@ object MDIChild: TMDIChild
                   Hint = 'Save SQL to Textfile'
                   Caption = 'Save SQL...'
                   Enabled = False
-                  ImageIndex = 7
+                  ImageIndex = 10
                   OnClick = btnQuerySaveClick
                 end
                 object btnQuerySaveSnippet: TToolButton
@@ -1195,7 +1195,7 @@ object MDIChild: TMDIChild
                   Top = 0
                   Hint = 'Save SQL as snippet...'
                   Caption = 'btnQuerySaveSnippet'
-                  ImageIndex = 88
+                  ImageIndex = 54
                   OnClick = btnQuerySaveSnippetClick
                 end
                 object btnQueryFind: TToolButton
@@ -1203,7 +1203,7 @@ object MDIChild: TMDIChild
                   Top = 0
                   Hint = 'Find Text...'
                   Caption = 'Find...'
-                  ImageIndex = 50
+                  ImageIndex = 30
                   OnClick = btnQueryFindClick
                 end
                 object btnQueryReplace: TToolButton
@@ -1211,7 +1211,7 @@ object MDIChild: TMDIChild
                   Top = 0
                   Hint = 'Search and replace...'
                   Caption = 'Replace ...'
-                  ImageIndex = 51
+                  ImageIndex = 59
                   OnClick = btnQueryReplaceClick
                 end
                 object btnQueryStopOnErrors: TToolButton
@@ -1220,7 +1220,7 @@ object MDIChild: TMDIChild
                   Hint = 'Stop on MySQL-errors in batch-mode'
                   Caption = 'btnQueryStopOnErrors'
                   Down = True
-                  ImageIndex = 47
+                  ImageIndex = 63
                   Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
@@ -1441,12 +1441,12 @@ object MDIChild: TMDIChild
     ActivePage = tabSQLLog
     Align = alBottom
     HotTrack = True
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     TabHeight = 20
     TabOrder = 1
     object tabSQLLog: TTabSheet
       Caption = 'SQL Log'
-      ImageIndex = 79
+      ImageIndex = 56
       object SynMemoSQLLog: TSynMemo
         Left = 0
         Top = 0
@@ -1496,7 +1496,7 @@ object MDIChild: TMDIChild
     end
     object tabBlobEditor: TTabSheet
       Caption = 'BLOB-Editor'
-      ImageIndex = 80
+      ImageIndex = 47
       object ToolBar3: TToolBar
         Left = 0
         Top = 0
@@ -1507,7 +1507,7 @@ object MDIChild: TMDIChild
         Caption = 'ToolBar1'
         EdgeInner = esNone
         EdgeOuter = esNone
-        Images = MainForm.ImageList1
+        Images = MainForm.PngImageListMain
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
@@ -1517,7 +1517,7 @@ object MDIChild: TMDIChild
           Top = 0
           Caption = 'btnUnsafeEdit'
           Enabled = False
-          ImageIndex = 32
+          ImageIndex = 63
           Wrap = True
           OnClick = btnUnsafeEditClick
         end
@@ -1526,7 +1526,7 @@ object MDIChild: TMDIChild
           Top = 22
           Hint = 'Wordwrap'
           Caption = 'ToolButton1'
-          ImageIndex = 54
+          ImageIndex = 62
           Wrap = True
           Style = tbsCheck
           OnClick = btnBlobWordWrapClick
@@ -1536,7 +1536,7 @@ object MDIChild: TMDIChild
           Top = 44
           Hint = 'Open|Open file'
           Caption = 'ToolButton4'
-          ImageIndex = 6
+          ImageIndex = 52
           Wrap = True
           OnClick = btnBlobLoadClick
         end
@@ -1545,7 +1545,7 @@ object MDIChild: TMDIChild
           Top = 66
           Hint = 'Save|Save to File'
           Caption = 'ToolButton5'
-          ImageIndex = 7
+          ImageIndex = 9
           Wrap = True
           OnClick = btnBlobSaveClick
         end
@@ -1560,7 +1560,7 @@ object MDIChild: TMDIChild
           Top = 110
           Hint = 'Copy to clipboard'
           Caption = 'btnBlobCopy'
-          ImageIndex = 1
+          ImageIndex = 3
           OnClick = btnBlobCopyClick
         end
       end
@@ -1620,7 +1620,7 @@ object MDIChild: TMDIChild
     end
     object tabFilter: TTabSheet
       Caption = 'Filter'
-      ImageIndex = 81
+      ImageIndex = 53
       object SynMemoFilter: TSynMemo
         Left = 0
         Top = 29
@@ -1698,7 +1698,7 @@ object MDIChild: TMDIChild
           Caption = 'ToolBar1'
           EdgeInner = esNone
           EdgeOuter = esNone
-          Images = MainForm.ImageList1
+          Images = MainForm.PngImageListMain
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
@@ -1709,7 +1709,7 @@ object MDIChild: TMDIChild
             Top = 0
             Hint = 'Apply Filter'
             Caption = 'Apply Filter'
-            ImageIndex = 10
+            ImageIndex = 55
             OnClick = setFilter
           end
           object btnFilterLoad: TToolButton
@@ -1717,7 +1717,7 @@ object MDIChild: TMDIChild
             Top = 0
             Hint = 'Open File'
             DropdownMenu = popupFilterOpenFile
-            ImageIndex = 6
+            ImageIndex = 52
             Style = tbsDropDown
             OnClick = btnFilterLoadClick
           end
@@ -1725,7 +1725,7 @@ object MDIChild: TMDIChild
             Left = 59
             Top = 0
             Hint = 'Save|Save to File'
-            ImageIndex = 7
+            ImageIndex = 10
             OnClick = btnFilterSaveClick
           end
           object btnFilterClear: TToolButton
@@ -1733,7 +1733,7 @@ object MDIChild: TMDIChild
             Top = 0
             Hint = 'Clear Filter'
             Caption = 'Clear'
-            ImageIndex = 70
+            ImageIndex = 58
             OnClick = ClearFilter
           end
           object sepFilter1: TToolButton
@@ -1749,7 +1749,7 @@ object MDIChild: TMDIChild
             Top = 0
             Hint = 'Previous filter'
             Enabled = False
-            ImageIndex = 77
+            ImageIndex = 60
             OnClick = btnFilterPreviousClick
           end
           object btnFilterNext: TToolButton
@@ -1757,7 +1757,7 @@ object MDIChild: TMDIChild
             Top = 0
             Hint = 'Next filter'
             Enabled = False
-            ImageIndex = 78
+            ImageIndex = 61
             OnClick = btnFilterNextClick
           end
         end
@@ -1765,23 +1765,24 @@ object MDIChild: TMDIChild
     end
   end
   object popupTreeView: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     OnPopup = popupTreeViewPopup
     Left = 8
     Top = 16
     object NewDatabase1: TMenuItem
       Caption = 'Create database...'
-      ImageIndex = 73
+      ImageIndex = 6
       OnClick = CreateDatabase
     end
     object menuAlterdatabase: TMenuItem
       Caption = 'Alter database ...'
       Enabled = False
+      ImageIndex = 8
       OnClick = menuAlterdatabaseClick
     end
     object PopupmenuDropDatabase: TMenuItem
       Caption = 'Drop database...'
-      ImageIndex = 22
+      ImageIndex = 7
       OnClick = DropDB
     end
     object N17: TMenuItem
@@ -1789,12 +1790,13 @@ object MDIChild: TMDIChild
     end
     object PopupMenuCreateTable: TMenuItem
       Caption = 'Create table...'
-      ImageIndex = 72
+      ImageIndex = 15
       OnClick = CreateTable
     end
     object menuTreeAlterTable: TMenuItem
       Caption = 'Alter table ...'
       Enabled = False
+      ImageIndex = 17
       OnClick = menuAlterTableClick
     end
     object PopupMenuDropTable: TMenuItem
@@ -1808,32 +1810,33 @@ object MDIChild: TMDIChild
     end
     object Drop1: TMenuItem
       Caption = 'Refresh'
-      ImageIndex = 18
+      ImageIndex = 0
       ShortCut = 116
       OnClick = ReadDatabasesAndTables
     end
   end
   object popupDbGrid: TPopupMenu
     AutoHotkeys = maManual
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     Left = 72
     Top = 16
     object menuproperties: TMenuItem
       Caption = 'Properties'
       Default = True
       Enabled = False
-      ImageIndex = 9
+      ImageIndex = 44
       OnClick = ListTablesDblClick
     end
     object menuAlterTable: TMenuItem
       Caption = 'Alter table ...'
       Enabled = False
+      ImageIndex = 17
       OnClick = menuAlterTableClick
     end
     object menuviewdata: TMenuItem
       Caption = 'View Data'
       Enabled = False
-      ImageIndex = 8
+      ImageIndex = 41
       OnClick = MenuViewDataClick
     end
     object InsertfilesintoBLOBfields1: TMenuItem
@@ -1848,13 +1851,14 @@ object MDIChild: TMDIChild
     object menuemptytable: TMenuItem
       Caption = 'Empty ...'
       Enabled = False
-      ImageIndex = 31
+      ImageIndex = 46
       ShortCut = 8238
       OnClick = EmptyTable
     end
     object MenuRenameTable: TMenuItem
       Caption = 'Rename'
       Enabled = False
+      ImageIndex = 33
       ShortCut = 113
       OnClick = MenuRenameTableClick
     end
@@ -1882,6 +1886,7 @@ object MDIChild: TMDIChild
       end
       object More1: TMenuItem
         Caption = 'More Maintenance...'
+        ImageIndex = 39
         OnClick = More1Click
       end
     end
@@ -1893,7 +1898,7 @@ object MDIChild: TMDIChild
     end
     object menucreatetable: TMenuItem
       Caption = 'Create new Table...'
-      ImageIndex = 72
+      ImageIndex = 15
       OnClick = CreateTable
     end
     object Exporttables1: TMenuItem
@@ -1908,7 +1913,7 @@ object MDIChild: TMDIChild
     object menurefresh: TMenuItem
       Tag = 28
       Caption = 'Refresh'
-      ImageIndex = 18
+      ImageIndex = 0
       ShortCut = 116
       OnClick = MenuRefreshClick
     end
@@ -1920,14 +1925,14 @@ object MDIChild: TMDIChild
     end
   end
   object popupHost: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     OnPopup = popupHostPopup
     Left = 41
     Top = 16
     object Kill1: TMenuItem
       Caption = 'Kill Process(es)...'
       Enabled = False
-      ImageIndex = 83
+      ImageIndex = 26
       ShortCut = 46
       OnClick = KillProcess
     end
@@ -1953,7 +1958,7 @@ object MDIChild: TMDIChild
     end
     object menuEditVariable: TMenuItem
       Caption = 'Edit ...'
-      ImageIndex = 32
+      ImageIndex = 33
       ShortCut = 13
       OnClick = menuEditVariableClick
     end
@@ -1966,7 +1971,7 @@ object MDIChild: TMDIChild
     object Refresh1: TMenuItem
       Tag = 28
       Caption = 'Refresh'
-      ImageIndex = 18
+      ImageIndex = 0
       ShortCut = 116
       OnClick = ShowVariablesAndProcesses
     end
@@ -1998,31 +2003,32 @@ object MDIChild: TMDIChild
     Top = 157
   end
   object popupTableGrid: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     Left = 104
     Top = 16
     object MenuEditField: TMenuItem
       Caption = 'Properties'
       Default = True
-      ImageIndex = 9
+      ImageIndex = 44
       ShortCut = 32781
       OnClick = UpdateField
     end
     object MenuAddField: TMenuItem
       Caption = 'Add Field...'
-      ImageIndex = 34
+      ImageIndex = 45
       ShortCut = 16449
       OnClick = MenuAddFieldClick
     end
     object DropField1: TMenuItem
       Caption = 'Drop Field(s)...'
       Hint = 'Delete Field(s) from Table'
-      ImageIndex = 33
+      ImageIndex = 46
       ShortCut = 16430
       OnClick = DropField
     end
     object menuRenameColumn: TMenuItem
       Caption = 'Rename Field'
+      ImageIndex = 33
       ShortCut = 113
       OnClick = menuRenameColumnClick
     end
@@ -2031,6 +2037,7 @@ object MDIChild: TMDIChild
     end
     object ManageIndexes1: TMenuItem
       Caption = '&Manage Indexes...'
+      ImageIndex = 13
       OnClick = ManageIndexes1Click
     end
     object N3: TMenuItem
@@ -2046,14 +2053,14 @@ object MDIChild: TMDIChild
       Tag = 28
       Caption = 'Refresh'
       Hint = 'Refresh|Refresh Field-List'
-      ImageIndex = 18
+      ImageIndex = 0
       ShortCut = 116
       OnClick = RefreshFieldListClick
     end
   end
   object popupDataGrid: TPopupMenu
     AutoHotkeys = maManual
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     OnPopup = popupDataGridPopup
     Left = 8
     Top = 48
@@ -2073,7 +2080,7 @@ object MDIChild: TMDIChild
     end
     object Delete1: TMenuItem
       Caption = 'Delete record(s)'
-      ImageIndex = 23
+      ImageIndex = 26
       ShortCut = 16430
       OnClick = Delete1Click
     end
@@ -2255,20 +2262,20 @@ object MDIChild: TMDIChild
     end
     object menuSQLhelpData: TMenuItem
       Caption = 'Lookup field datatype in SQL help ...'
-      ImageIndex = 96
+      ImageIndex = 31
       ShortCut = 112
       OnClick = menuSQLhelpClick
     end
     object Refresh3: TMenuItem
       Tag = 28
       Caption = 'Refresh'
-      ImageIndex = 18
+      ImageIndex = 0
       ShortCut = 116
       OnClick = viewdata
     end
   end
   object popupResultGrid: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     OnPopup = popupResultGridPopup
     Left = 40
     Top = 48
@@ -2303,7 +2310,7 @@ object MDIChild: TMDIChild
     Top = 157
   end
   object popupSqlLog: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     Left = 72
     Top = 48
     object Copy1: TMenuItem
@@ -2311,6 +2318,7 @@ object MDIChild: TMDIChild
     end
     object Clear2: TMenuItem
       Caption = 'Clear'
+      ImageIndex = 58
       OnClick = Clear2Click
     end
     object N15: TMenuItem
@@ -2325,11 +2333,12 @@ object MDIChild: TMDIChild
     end
     object EditQuery1: TMenuItem
       Caption = 'Edit Selection'
+      ImageIndex = 33
       OnClick = EditQuery1Click
     end
     object Saveastextfile1: TMenuItem
       Caption = 'Save as textfile...'
-      ImageIndex = 7
+      ImageIndex = 10
       OnClick = Saveastextfile1Click
     end
     object menuLogToFile: TMenuItem
@@ -2339,6 +2348,7 @@ object MDIChild: TMDIChild
     object menuOpenLogFolder: TMenuItem
       Caption = 'Open log folder ...'
       Enabled = False
+      ImageIndex = 51
       OnClick = menuOpenLogFolderClick
     end
   end
@@ -2425,7 +2435,7 @@ object MDIChild: TMDIChild
         BiggestWordW = 'IHAVENOCLUEWHICHLENGTH'
       end>
     ItemHeight = 18
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     Margin = 1
     OnExecute = SynCompletionProposal1Execute
     ShortCut = 16416
@@ -2471,7 +2481,7 @@ object MDIChild: TMDIChild
     Top = 224
   end
   object popupQuery: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     OnPopup = popupQueryPopup
     Left = 40
     Top = 80
@@ -2495,6 +2505,7 @@ object MDIChild: TMDIChild
     end
     object menuclear: TMenuItem
       Caption = 'Clear'
+      ImageIndex = 58
       ShortCut = 16471
       OnClick = menuclearClick
     end
@@ -2503,14 +2514,14 @@ object MDIChild: TMDIChild
     end
     object MenuFind: TMenuItem
       Caption = 'Find...'
-      ImageIndex = 50
+      ImageIndex = 30
       ShortCut = 16454
       OnClick = btnQueryFindClick
     end
     object MenuReplace: TMenuItem
       Caption = 'Replace ...'
       Hint = 'Search and replace...'
-      ImageIndex = 51
+      ImageIndex = 59
       ShortCut = 16466
       OnClick = btnQueryReplaceClick
     end
@@ -2519,38 +2530,38 @@ object MDIChild: TMDIChild
     end
     object menuload: TMenuItem
       Caption = 'Load from file ...'
-      ImageIndex = 6
+      ImageIndex = 52
       ShortCut = 16463
       OnClick = btnQueryLoadClick
     end
     object menuInsertFileAtCursor: TMenuItem
       Caption = 'Insert file at cursor ...'
-      ImageIndex = 6
+      ImageIndex = 52
       ShortCut = 24655
       OnClick = menuInsertFileAtCursorClick
     end
     object menusave: TMenuItem
       Caption = 'Save to file ...'
-      ImageIndex = 7
+      ImageIndex = 10
       ShortCut = 16467
       OnClick = btnQuerySaveClick
     end
     object menuSaveSelectionToFile: TMenuItem
       Tag = 1
       Caption = 'Save selection to file ...'
-      ImageIndex = 7
+      ImageIndex = 10
       ShortCut = 24659
       OnClick = btnQuerySaveClick
     end
     object menuSaveAsSnippet: TMenuItem
       Caption = 'Save as snippet ...'
-      ImageIndex = 88
+      ImageIndex = 54
       OnClick = btnQuerySaveSnippetClick
     end
     object menuSaveSelectionAsSnippet: TMenuItem
       Tag = 1
       Caption = 'Save selection as snippet ...'
-      ImageIndex = 88
+      ImageIndex = 54
       OnClick = btnQuerySaveSnippetClick
     end
     object N23: TMenuItem
@@ -2558,7 +2569,7 @@ object MDIChild: TMDIChild
     end
     object menuSQLhelp: TMenuItem
       Caption = 'Lookup in SQL help ...'
-      ImageIndex = 96
+      ImageIndex = 31
       ShortCut = 112
       OnClick = menuSQLhelpClick
     end
@@ -2567,49 +2578,50 @@ object MDIChild: TMDIChild
     end
   end
   object popupQueryHelpers: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     Left = 72
     Top = 80
     object menuInsertSnippetAtCursor: TMenuItem
       Caption = 'Insert at cursor'
       Default = True
       Enabled = False
-      ImageIndex = 47
+      ImageIndex = 52
       OnClick = menuInsertSnippetAtCursorClick
     end
     object menuLoadSnippet: TMenuItem
       Caption = 'Load'
       Enabled = False
-      ImageIndex = 6
+      ImageIndex = 52
       OnClick = menuLoadSnippetClick
     end
     object menuDeleteSnippet: TMenuItem
       Caption = 'Delete ...'
       Enabled = False
-      ImageIndex = 23
+      ImageIndex = 26
       ShortCut = 46
       OnClick = menuDeleteSnippetClick
     end
     object menuExplore: TMenuItem
       Caption = 'Explore folder'
       Enabled = False
+      ImageIndex = 51
       OnClick = menuExploreClick
     end
     object menuHelp: TMenuItem
       Caption = 'Help'
-      ImageIndex = 96
+      ImageIndex = 31
       ShortCut = 112
       OnClick = CallSQLHelp
     end
   end
   object popupFilter: TPopupMenu
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     OnPopup = popupFilterPopup
     Left = 80
     Top = 318
     object menuApplyFilter: TMenuItem
       Caption = 'Appply filter ...'
-      ImageIndex = 10
+      ImageIndex = 55
       ShortCut = 120
       OnClick = setFilter
     end
@@ -2624,6 +2636,7 @@ object MDIChild: TMDIChild
     end
     object menuFilterClear: TMenuItem
       Caption = 'Clear'
+      ImageIndex = 58
       ShortCut = 16471
       OnClick = menuclearClick
     end
@@ -2632,7 +2645,7 @@ object MDIChild: TMDIChild
     end
     object menuFilterSQLhelp: TMenuItem
       Caption = 'Lookup in SQL help'
-      ImageIndex = 96
+      ImageIndex = 31
       OnClick = menuSQLhelpClick
     end
     object N25: TMenuItem

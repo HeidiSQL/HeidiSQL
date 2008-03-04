@@ -17,7 +17,7 @@ uses
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
-  StrUtils, DateUtils;
+  StrUtils, DateUtils, PngImageList;
 
 type
   TMainForm = class(TForm)
@@ -39,7 +39,6 @@ type
     FileNew1: TAction;
     FileExit1: TAction;
     FileClose1: TWindowClose;
-    ImageList1: TImageList;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
     MenuCopyCSV: TMenuItem;
@@ -142,6 +141,7 @@ type
     Import1: TMenuItem;
     ToolButton1: TToolButton;
     menuUpdateCheck: TMenuItem;
+    PngImageListMain: TPngImageList;
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
@@ -168,9 +168,7 @@ type
     procedure Copy2CSVExecute(Sender: TObject);
     procedure PrintListExecute(Sender: TObject);
     procedure CopyTableExecute(Sender: TObject);
-    procedure StatusBarDrawPanel(StatusBar: TStatusBar;
-      Panel: TStatusPanel; const Rect: TRect);
-    procedure showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
+    procedure showstatus(msg: string=''; panel: Integer=0);
     procedure ButtonOKClick(Sender: TObject);
     procedure CheckBoxLimitClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
@@ -219,8 +217,6 @@ end;
 var
   MainForm            : TMainForm;
   appstarted          : Boolean = false;               // see connections.pas
-  StatusText          : String = 'Initializing...';
-  StatusIconIndex     : Integer = 43;
   loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
   AppVersion          : String = 'x.y';
   AppRevision         : String = '$Rev$';
@@ -232,9 +228,9 @@ var
 
 const
   discname = 'not connected';
-  ICON_MYSELF_CONNECTED = 89;
-  ICON_MYSELF_DISCONNECTED = 92;
-  ICON_OTHER_CONNECTED = 91;
+  ICON_MYSELF_CONNECTED = 38;
+  ICON_MYSELF_DISCONNECTED = -1;
+  ICON_OTHER_CONNECTED = 36;
   ICON_OTHER_DISCONNECTED = -1;
 
 {$I const.inc}
@@ -326,18 +322,10 @@ begin
   ChildWin.ExecuteNonQuery(query);
 end;
 
-procedure TMainForm.showstatus(msg: string='';  panel : Integer=0; busy: Boolean=false);
+procedure TMainForm.showstatus(msg: string=''; panel: Integer=0);
 begin
   // show Message in statusbar
-  if panel = 2 then begin
-    StatusText := msg;
-    if busy then
-      StatusIconIndex := 43
-    else
-      StatusIconIndex := 42;
-  end
-  else
-    StatusBar.Panels[panel].Text := msg;
+  StatusBar.Panels[panel].Text := msg;
   StatusBar.Repaint;
 end;
 
@@ -777,19 +765,6 @@ begin
 end;
 
 
-procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar;
-  Panel: TStatusPanel; const Rect: TRect);
-begin
-  // clear panel
-  StatusBar.Canvas.Pen.Color := StatusBar.Canvas.Brush.Color;
-  StatusBar.Canvas.Rectangle(rect);
-  StatusBar.Canvas.Pen.Color := clWindowText;
-  // draw icon and message
-  ImageList1.Draw(StatusBar.Canvas, Rect.Left, Rect.Top, StatusIconIndex);
-  StatusBar.Canvas.TextOut(Rect.left + 17, Rect.top+1, StatusText);
-end;
-
-
 procedure TMainForm.ButtonOKClick(Sender: TObject);
 begin
   // Set Filter
@@ -1008,7 +983,7 @@ begin
     exit;
   end;
   Screen.Cursor := crHourGlass;
-  showstatus('Saving contents to file...', 2, true);
+  showstatus('Saving contents to file...', 2);
   GetTempPath(MAX_PATH, buffer);
   if g.SelectedField.IsBlob and (pos('JFIF', copy(g.SelectedField.AsString, 0, 20)) <> 0) then
     extension := 'jpg'

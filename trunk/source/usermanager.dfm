@@ -26,11 +26,13 @@ object UserManagerForm: TUserManagerForm
     Height = 343
     ActivePage = TabSheetAddUser
     Align = alClient
+    Images = MainForm.PngImageListMain
     TabHeight = 22
     TabOrder = 0
     OnChange = PageControl1Change
     object TabSheetAddUser: TTabSheet
       Caption = 'Add User'
+      ImageIndex = 21
       object Label4: TLabel
         Left = 16
         Top = 40
@@ -128,7 +130,7 @@ object UserManagerForm: TUserManagerForm
         Top = 40
         Width = 257
         Height = 193
-        Images = MainForm.ImageList1
+        Images = MainForm.PngImageListMain
         Indent = 19
         ReadOnly = True
         RowSelect = True
@@ -219,7 +221,7 @@ object UserManagerForm: TUserManagerForm
     end
     object TabSheetEditUsers: TTabSheet
       Caption = 'Edit Users'
-      ImageIndex = 1
+      ImageIndex = 12
       object Panel1: TPanel
         Left = 280
         Top = 0
@@ -438,7 +440,7 @@ object UserManagerForm: TUserManagerForm
           Anchors = [akLeft, akTop, akBottom]
           ChangeDelay = 50
           HotTrack = True
-          Images = MainForm.ImageList1
+          Images = MainForm.PngImageListMain
           Indent = 19
           ReadOnly = True
           TabOrder = 0

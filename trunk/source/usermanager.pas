@@ -183,7 +183,7 @@ begin
   CheckBoxCreateAccount.Caption := 'Create connection account for ' + APPNAME;
 
   tnu1 := DBUserTree.Items.Add(nil, 'Global Access');
-  tnu1.ImageIndex := 41;
+  tnu1.ImageIndex := 1;
   tnu1.SelectedIndex := tnu1.ImageIndex;
   tntop := Mainform.Childwin.tnodehost;  // tnodehost on childwin
   tn1 := tntop.GetFirstChild;
@@ -340,8 +340,8 @@ begin
         begin
           with TreeViewUsers.Items.AddChild( TreeViewUsers.Selected, TableNames[i] ) do
           begin
-            ImageIndex := 39;
-            SelectedIndex := 40;
+            ImageIndex := 14;
+            SelectedIndex := ImageIndex;
           end;
         end;
       end;
@@ -444,8 +444,8 @@ begin
     for i:=1 to ZQueryUsers.RecordCount do
     begin
       tn := TreeViewUsers.Items.AddChild(nil, ZQueryUsers.Fields[1].AsString + '@' + ZQueryUsers.Fields[0].AsString );
-      tn.ImageIndex := 61;
-      tn.SelectedIndex := 60;
+      tn.ImageIndex := 43;
+      tn.SelectedIndex := tn.ImageIndex;
       ZQueryUsers.Next;
     end;
   end;
@@ -859,8 +859,8 @@ begin
     begin
       with DBUserTree.Items.AddChild( Node, TableNames[i] ) do
       begin
-        ImageIndex := 39;
-        SelectedIndex := 40;
+        ImageIndex := 14;
+        SelectedIndex := ImageIndex;
       end;
     end;
 
