@@ -337,7 +337,7 @@ end;
 
 procedure Tconnform.Modified(Sender: TObject);
 begin
-  ButtonSave.Enabled := true;
+  btnSave.Enabled := true;
   ButtonSaveAndConnect.Enabled := true;
   CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
 end;
