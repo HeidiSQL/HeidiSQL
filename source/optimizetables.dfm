@@ -206,7 +206,7 @@ object optimize: Toptimize
     Caption = 'ToolBar1'
     EdgeInner = esNone
     EdgeOuter = esNone
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1
@@ -215,7 +215,7 @@ object optimize: Toptimize
       Top = 0
       Hint = 'Check none'
       Caption = 'ToolButton1'
-      ImageIndex = 35
+      ImageIndex = 65
       ParentShowHint = False
       ShowHint = True
       OnClick = CheckListToggle
@@ -226,7 +226,7 @@ object optimize: Toptimize
       Top = 0
       Hint = 'Check all'
       Caption = 'ToolButton2'
-      ImageIndex = 36
+      ImageIndex = 64
       ParentShowHint = False
       ShowHint = True
       OnClick = CheckListToggle

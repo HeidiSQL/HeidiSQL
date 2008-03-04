@@ -829,7 +829,7 @@ begin
   FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zConn)
 
   // Initialization: establish connection and read some vars from registry
-  MainForm.Showstatus( 'Creating window...', 2, true );
+  MainForm.Showstatus( 'Creating window...', 2 );
 
   // Temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
@@ -844,7 +844,7 @@ begin
 
   ReadWindowOptions();
 
-  MainForm.Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...', 2, true );
+  MainForm.Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...', 2 );
 
   try
     PerformConnect();
@@ -914,7 +914,7 @@ begin
         continue;
       miFunction := TMenuItem.Create(popupQuery);
       miFunction.Caption := MySqlFunctions[j].Name;
-      miFunction.ImageIndex := 86;
+      miFunction.ImageIndex := 13;
       // Prevent generating a hotkey
       miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
       // Prevent generating a seperator line
@@ -1290,7 +1290,7 @@ begin
   dataselected := false;
 
   Screen.Cursor := crSQLWait;
-  mainform.Showstatus( 'Reading Databases...', 2, true );
+  mainform.Showstatus( 'Reading Databases...', 2 );
   if ( OnlyDBs.Count = 0 ) then
   begin
     OnlyDBs2 := TStringList.Create();
@@ -1321,8 +1321,8 @@ begin
   newTree.Parent := self;
 
   tnodehost := newTree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
-  tnodehost.ImageIndex := 41;
-  tnodehost.SelectedIndex := 41;
+  tnodehost.ImageIndex := 1;
+  tnodehost.SelectedIndex := 1;
   select := 0;
 
   // Avoids excessive InitializeKeywordLists() calls.
@@ -1337,8 +1337,8 @@ begin
   for i := 0 to ( OnlyDBs2.Count - 1 ) do
   begin
     tnode := newTree.Items.AddChild( tnodehost, OnlyDBs2[i] );
-    tnode.ImageIndex := 37;
-    tnode.SelectedIndex := 38;
+    tnode.ImageIndex := 5;
+    tnode.SelectedIndex := 5;
     // Add dummy-node, will be replaced by real tables on expanding
     newTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
     if i = 0 then tnodehost.Expand(false);
@@ -1596,7 +1596,7 @@ begin
       // Switch to <Data>
       PageControlMain.ActivePage := tabData;
 
-      MainForm.ShowStatus( 'Retrieving data...', 2, true );
+      MainForm.ShowStatus( 'Retrieving data...', 2 );
 
       // Read columns to display from registry
       reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '');
@@ -1665,7 +1665,7 @@ begin
         SynMemoFilter.Color := clWindow;
         ds := GetResults(sl_query.Text, false);
 
-        MainForm.ShowStatus( 'Filling grid with record-data...', 2, true );
+        MainForm.ShowStatus( 'Filling grid with record-data...', 2 );
         ds.DisableControls();
         DataSource1.DataSet := ds;
 
@@ -1949,7 +1949,7 @@ begin
     // Not in cache, load table list.
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
-    MainForm.ShowStatus('Displaying tables from ' + db + '...', 2, true);
+    MainForm.ShowStatus('Displaying tables from ' + db + '...', 2);
     if mysql_version >= 32300 then begin
       ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
     end else begin
@@ -2053,8 +2053,8 @@ begin
       tmp := tndb.Owner.AddChild(tndb, s);
       with tmp do
       begin
-        ImageIndex := 39;
-        selectedIndex := 40;
+        ImageIndex := 14;
+        selectedIndex := 14;
         if Text = find then select := tmp;
       end;
       // Add tables to syntax highlighter
@@ -2091,7 +2091,7 @@ var
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
-  MainForm.ShowStatus( 'Reading from database ' + db + '...', 2, true );
+  MainForm.ShowStatus( 'Reading from database ' + db + '...', 2 );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + db + '...';
 
   // Remember selected nodes
@@ -2207,7 +2207,7 @@ begin
       else
         ListCaptions.Add('');
 
-      VTRowDataListTables[i-1].ImageIndex := 39;
+      VTRowDataListTables[i-1].ImageIndex := 14;
       VTRowDataListTables[i-1].Captions := ListCaptions;
       ds.Next;
     end;
@@ -2263,7 +2263,7 @@ begin
 
   pnlTableTop.Caption := 'Table-Properties for ' + ActiveDatabase + ': ' + table;
 
-  MainForm.ShowStatus( 'Reading table properties...', 2, true );
+  MainForm.ShowStatus( 'Reading table properties...', 2 );
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListColumns, True);
   ListColumns.BeginUpdate;
@@ -2385,7 +2385,7 @@ begin
   end;
 
   pcChange( Self );
-  MainForm.ShowStatus( STATUS_MSG_READY, 2, false );
+  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
   MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
   Screen.Cursor := crDefault;
 end;
@@ -2644,7 +2644,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
   begin
     SetLength( VTRowDataListCommandStats, Length(VTRowDataListCommandStats)+1 );
     i := Length(VTRowDataListCommandStats)-1;
-    VTRowDataListCommandStats[i].ImageIndex := 86;
+    VTRowDataListCommandStats[i].ImageIndex := 25;
     VTRowDataListCommandStats[i].Captions := TStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
@@ -2686,7 +2686,7 @@ begin
   SetLength( VTRowDataListVariables, ds.RecordCount );
   for i:=1 to ds.RecordCount do
   begin
-    VTRowDataListVariables[i-1].ImageIndex := 87;
+    VTRowDataListVariables[i-1].ImageIndex := 25;
     VTRowDataListVariables[i-1].Captions := TStringList.Create;
     VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsString );
     VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsString );
@@ -2715,7 +2715,7 @@ begin
   SetLength( VTRowDataListStatus, ds.RecordCount );
   for i:=1 to ds.RecordCount do
   begin
-    VTRowDataListStatus[i-1].ImageIndex := 87;
+    VTRowDataListStatus[i-1].ImageIndex := 25;
     VTRowDataListStatus[i-1].Captions := TStringList.Create;
     VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsString );
     VTRowDataListStatus[i-1].Captions.Add( ds.Fields[1].AsString );
@@ -2792,9 +2792,9 @@ begin
       VTRowDataListProcesses[i-1].Captions := TStringList.Create;
       VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsString );
       if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
-        VTRowDataListProcesses[i-1].ImageIndex := 83  // killed
+        VTRowDataListProcesses[i-1].ImageIndex := 26  // killed
       else
-        VTRowDataListProcesses[i-1].ImageIndex := 82; // running
+        VTRowDataListProcesses[i-1].ImageIndex := 55; // running
       for j := 1 to 7 do
         VTRowDataListProcesses[i-1].Captions.Add(ds.Fields[j].AsString);
       ds.Next;

@@ -24,12 +24,12 @@ object FieldEditForm: TFieldEditForm
     Height = 321
     ActivePage = tabField
     Align = alTop
-    Images = MainForm.ImageList1
+    Images = MainForm.PngImageListMain
     TabOrder = 0
     OnChange = pcChange
     object tabField: TTabSheet
       Caption = 'Field'
-      ImageIndex = 62
+      ImageIndex = 42
       object lblName: TLabel
         Left = 8
         Top = 40
@@ -188,7 +188,7 @@ object FieldEditForm: TFieldEditForm
     end
     object tabIndexes: TTabSheet
       Caption = 'Indexes'
-      ImageIndex = 76
+      ImageIndex = 13
       ParentShowHint = False
       ShowHint = True
       object lblIndexName: TLabel
@@ -223,7 +223,7 @@ object FieldEditForm: TFieldEditForm
         ItemHeight = 16
         TabOrder = 0
         OnChange = ComboBoxKeysChange
-        Images = MainForm.ImageList1
+        Images = MainForm.PngImageListMain
       end
       object CheckBoxUnique: TCheckBox
         Left = 8

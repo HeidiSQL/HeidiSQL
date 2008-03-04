@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver;
+  StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver, PngBitBtn;
 
 type
   Tconnform = class(TForm)
@@ -28,9 +28,6 @@ type
     ComboBoxDescription: TComboBox;
     Image1: TImage;
     lblDescription: TLabel;
-    ButtonSave: TBitBtn;
-    ButtonNew: TBitBtn;
-    ButtonDelete: TBitBtn;
     Bevel1: TBevel;
     ButtonCancel: TButton;
     ButtonConnect: TButton;
@@ -39,9 +36,12 @@ type
     lblOnlyDBs: TLabel;
     EditOnlyDBs: TEdit;
     TimerCloseFormReminder: TTimer;
-    ButtonEditDesc: TSpeedButton;
     CheckBoxSorted: TCheckBox;
     ButtonSaveAndConnect: TButton;
+    btnNew: TPngBitBtn;
+    btnSave: TPngBitBtn;
+    btnDelete: TPngBitBtn;
+    btnEditDesc: TPngBitBtn;
     procedure ButtonSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonCancelClick(Sender: TObject);
@@ -300,9 +300,9 @@ begin
   CheckBoxCompressed.Checked := Mainform.GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, sessname);
   EditOnlyDBs.Text := Mainform.GetRegValue(REGNAME_ONLYDBS, '', sessname);
   CheckBoxSorted.Checked := Mainform.GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, sessname);
-  ButtonSave.Enabled := false;
-  ButtonSaveAndConnect.Enabled := ButtonSave.Enabled;
-  ButtonEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
+  btnSave.Enabled := false;
+  ButtonSaveAndConnect.Enabled := btnSave.Enabled;
+  btnEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
   Screen.Cursor := crDefault;
 end;
 
@@ -311,10 +311,10 @@ begin
   // enable or disable all controls
   ComboBoxDescription.Enabled := Enable;
   ButtonConnect.Enabled := Enable;
-  ButtonSave.Enabled := Enable;
+  btnSave.Enabled := Enable;
   ButtonSaveAndConnect.Enabled := Enable;
-  ButtonDelete.Enabled := Enable;
-  ButtonEditDesc.Enabled := Enable;
+  btnDelete.Enabled := Enable;
+  btnEditDesc.Enabled := Enable;
 
   EditHost.Enabled := Enable;
   EditUsername.Enabled := Enable;
