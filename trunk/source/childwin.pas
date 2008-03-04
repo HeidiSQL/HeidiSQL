@@ -2906,7 +2906,7 @@ begin
 
   ds := nil;
   try
-    MainForm.showstatus( 'Initializing SQL...', 2, true );
+    MainForm.showstatus( 'Initializing SQL...', 2 );
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
 
@@ -2920,7 +2920,7 @@ begin
     ProgressBarQuery.Position := 0;
     ProgressBarQuery.Show();
 
-    MainForm.showstatus( 'Executing SQL...', 2, true );
+    MainForm.showstatus( 'Executing SQL...', 2 );
     for i := 0 to (SQL.Count - 1) do
     begin
       ProgressBarQuery.StepIt();
