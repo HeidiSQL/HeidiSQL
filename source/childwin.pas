@@ -1716,7 +1716,7 @@ begin
           for j := 0 to gridData.Columns.Count - 1 do
           begin
             if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
-              ( VTRowDataListColumns[i].ImageIndex = 26 ) then
+              ( VTRowDataListColumns[i].ImageIndex = ICONINDEX_PRIMARYKEY ) then
               PrimaryKeyColumns.Add( VTRowDataListColumns[i].Captions[0] );
           end;
         end;
