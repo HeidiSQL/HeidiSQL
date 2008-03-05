@@ -994,7 +994,7 @@ begin
     end;
 
   end;
-  Caption := Mainform.ChildWin.Description + ' - ' + ButtonOK.Caption;
+  Caption := Mainform.ChildWin.SessionName + ' - ' + ButtonOK.Caption;
 end;
 
 

@@ -53,7 +53,7 @@ begin
 
   // Read original ORDER clause from registry
   reg_name := REGPREFIX_ORDERCLAUSE + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
-  OldOrderClause := Mainform.GetRegValue(reg_name, '', Mainform.Childwin.Description);
+  OldOrderClause := Mainform.GetRegValue(reg_name, '', Mainform.Childwin.SessionName);
 
   OrderColumns := Mainform.Childwin.HandleOrderColumns;
 
@@ -298,7 +298,7 @@ var
   reg : TRegistry;
 begin
   reg := TRegistry.Create();
-  reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.Description, true );
+  reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.SessionName, true );
   reg.WriteString( reg_name, Mainform.Childwin.ComposeOrderClause(OrderColumns) );
   reg.CloseKey;
   FreeAndNil(reg);
