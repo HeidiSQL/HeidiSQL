@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<PersonalityInfo>
 		<Option>
@@ -24,9 +24,20 @@
       <Projects Name="VirtualTreesD100.bpl">..\..\components\virtualtreeview\packages\delphi10\VirtualTreesD.bdsproj</Projects>
       <Projects Name="TntUnicodeVcl100.bpl">..\..\components\tntunictrls\packages\delphi10\TntUnicodeVcl.bdsproj</Projects>
       <Projects Name="TntUnicodeVcl_Design100.bpl">..\..\components\tntunictrls\packages\delphi10\TntUnicodeVcl_Design.bdsproj</Projects>
+      <Projects Name="PNG.bpl">..\..\components\pngcomponents\packages\delphi10\PNG.bdsproj</Projects>
+      <Projects Name="PngComponents.bpl">..\..\components\pngcomponents\packages\delphi10\PngComponents.bdsproj</Projects>
+      <Projects Name="PngComponentsD.bpl">..\..\components\pngcomponents\packages\delphi10\PngComponentsD.bdsproj</Projects>
       <Projects Name="heidisql.exe">..\..\packages\delphi10\heidisql.bdsproj</Projects>
-      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl SynEditR100.bpl SynEditD100.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiComponents100.bpl VirtualTreesR100.bpl VirtualTreesD100.bpl TntUnicodeVcl100.bpl TntUnicodeVcl_Design100.bpl heidisql.exe</Projects>
+      <Projects Name="Targets">VCLser100.bpl DCLSer100.bpl SynEditR100.bpl SynEditD100.bpl ZCore100.bpl ZPlain100.bpl ZParseSql100.bpl ZDbc100.bpl ZComponent100.bpl ZComponentDesign100.bpl HeidiComponents100.bpl VirtualTreesR100.bpl VirtualTreesD100.bpl TntUnicodeVcl100.bpl TntUnicodeVcl_Design100.bpl PNG.bpl PngComponents.bpl PngComponentsD.bpl heidisql.exe</Projects>
     </Projects>
-    <Dependencies/>
+    <Dependencies>
+      <Dependency GUID="{CB62FAF1-EEF6-4C26-947E-8614ADEDF762}">
+        <Dependency GUID="{6C9BABE3-0318-4A6F-B7FD-799184E67C07}"/>
+      </Dependency>
+      <Dependency GUID="{9F02ABAA-F2A2-4938-9B82-78FCDCFA7B19}">
+        <Dependency GUID="{6C9BABE3-0318-4A6F-B7FD-799184E67C07}"/>
+        <Dependency GUID="{CB62FAF1-EEF6-4C26-947E-8614ADEDF762}"/>
+      </Dependency>
+    </Dependencies>
   </Default.Personality>
 </BorlandProject>
