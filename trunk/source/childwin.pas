@@ -1599,7 +1599,7 @@ begin
       MainForm.ShowStatus( 'Retrieving data...', 2 );
 
       // Read columns to display from registry
-      reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '');
+      reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '', Description);
       DisplayedColumnsList := explode( '`', reg_value);
 
       // Prepare SELECT statement
