@@ -28,8 +28,7 @@ package PngComponentsD;
 {$IMPLICITBUILD ON}
 
 requires
-  designide,
-  PngComponents;
+  designide;
 
 contains
   PngComponentsRegister in '..\..\source\PngComponentsRegister.pas',
