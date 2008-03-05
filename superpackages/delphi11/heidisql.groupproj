@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{9d2773a7-5199-4f9f-9b9a-ad4c0c48a953}</ProjectGuid>
   </PropertyGroup>
@@ -143,6 +143,33 @@
   <Target Name="TntUnicodeVcl_Design:Make">
     <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl_Design.dproj" Targets="Make" />
   </Target>
+  <Target Name="PNG">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PNG.dproj" Targets="" />
+  </Target>
+  <Target Name="PNG:Clean">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PNG.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PNG:Make">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PNG.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PngComponents">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponents.dproj" Targets="" />
+  </Target>
+  <Target Name="PngComponents:Clean">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponents.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PngComponents:Make">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponents.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PngComponentsD">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="" />
+  </Target>
+  <Target Name="PngComponentsD:Clean">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PngComponentsD:Make">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="Make" />
+  </Target>
   <Target Name="heidisql">
     <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="" />
   </Target>
@@ -153,12 +180,12 @@
     <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
-    <CallTarget Targets="VCLSer;DCLSer;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;VirtualTreesR;VirtualTreesD;TntUnicodeVcl;TntUnicodeVcl_Design;heidisql" />
+    <CallTarget Targets="VCLSer;DCLSer;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;VirtualTreesR;VirtualTreesD;TntUnicodeVcl;TntUnicodeVcl_Design;PNG;PngComponents;PngComponentsD;heidisql" />
   </Target>
   <Target Name="Clean">
-    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;heidisql:Clean" />
+    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;PNG:Clean;PngComponents:Clean;PngComponentsD:Clean;heidisql:Clean" />
   </Target>
   <Target Name="Make">
-    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;VirtualTreesR:Make;VirtualTreesD:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;heidisql:Make" />
+    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;VirtualTreesR:Make;VirtualTreesD:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;PNG:Make;PngComponents:Make;PngComponentsD:Make;heidisql:Make" />
   </Target>
 </Project>
