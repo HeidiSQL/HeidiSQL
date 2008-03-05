@@ -604,7 +604,7 @@ type
       editing                    : Boolean;
       mysql_version              : Integer;
       tnodehost                  : TTreeNode;
-      Description                : String;
+      SessionName                : String;
       delimiter                  : String;
       DBRightClickSelectedItem   : TTreeNode;    // TreeNode for dropping with right-click
       VTRowDataListVariables,
@@ -853,8 +853,8 @@ begin
     Exit;
   end;
 
-  Description := FMysqlConn.Description;;
-  Caption := Description;
+  SessionName := FMysqlConn.SessionName;
+  Caption := SessionName;
   OnlyDBs := explode( ';', FConn.DatabaseList );
   if ( FConn.DatabaseListSort ) then
   begin
@@ -876,8 +876,8 @@ begin
 
   // Define window properties
   SetWindowConnected( true );
-  i := SetWindowName( Description );
-  winName := Description;
+  i := SetWindowName( SessionName );
+  winName := SessionName;
   if ( i <> 0 ) then
   begin
     winName := winName + Format( ' (%d)', [i] );
@@ -1381,7 +1381,7 @@ begin
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
-  Caption := Description;
+  Caption := SessionName;
   pcChange( Self );
 end;
 
@@ -1399,7 +1399,7 @@ begin
   tabData.TabVisible := false;
 
   pnlTableTop.Caption := 'Table-Properties';
-  Caption := Description + ' - /' + db;
+  Caption := SessionName + ' - /' + db;
   try
     ShowDBProperties( db );
   except
@@ -1424,7 +1424,7 @@ begin
   if tab = nil then tab := tabTable; // Alternative default: tabData
   if tab = tabTable then ShowTableProperties( table );
   if tab = tabData then ShowTableData( table );
-  Caption := Description + ' - /' + ActiveDatabase + '/' + SelectedTable;
+  Caption := SessionName + ' - /' + ActiveDatabase + '/' + SelectedTable;
 end;
 
 
@@ -1599,7 +1599,7 @@ begin
       MainForm.ShowStatus( 'Retrieving data...', 2 );
 
       // Read columns to display from registry
-      reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '', Description);
+      reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '', SessionName);
       DisplayedColumnsList := explode( '`', reg_value);
 
       // Prepare SELECT statement

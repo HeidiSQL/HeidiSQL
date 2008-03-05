@@ -182,7 +182,7 @@ begin
 
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
-  Caption := Mainform.ChildWin.MysqlConn.Description + ' - Export Tables...';
+  Caption := Mainform.ChildWin.MysqlConn.SessionName + ' - Export Tables...';
   for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
   begin
     tn := Mainform.ChildWin.DBTree.Items[i];

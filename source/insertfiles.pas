@@ -96,7 +96,7 @@ var
   i : Integer;
 begin
   ComboBoxDBs.Items.Clear;
-  Caption := Mainform.ChildWin.MysqlConn.Description + ' - Insert files into table ...';
+  Caption := Mainform.ChildWin.MysqlConn.SessionName + ' - Insert files into table ...';
   for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
   begin
     tn := Mainform.ChildWin.DBTree.Items[i];
