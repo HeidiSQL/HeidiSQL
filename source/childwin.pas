@@ -2022,10 +2022,12 @@ begin
 
   // Find currently selected node if not specified, or exit.
   select := nil;
-  if tndb = nil then case DBTree.Selected.Level of
-    2: tndb := DBTree.Selected.Parent;
-    1: tndb := DBTree.Selected;
-    else Exit;
+  if tndb = nil then begin
+    case DBTree.Selected.Level of
+      2: tndb := DBTree.Selected.Parent;
+      1: tndb := DBTree.Selected;
+      else Exit;
+    end;
     if ActiveDatabase = tndb.Text then find := SelectedTable;
   end else begin
     // Looking for a subitem?
