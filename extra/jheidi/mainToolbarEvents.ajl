@@ -106,6 +106,7 @@ else if ("Help".equals(who))
 else if ("Close".equals(who) )
 {
   Frame window = context.get("/");
+  script("removeFromWindowMenu", args());
   window.dispose();
 }
 else {

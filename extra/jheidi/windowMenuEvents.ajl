@@ -1,0 +1,21 @@
+
+String who = arg("source");
+
+log.debug("Event received: " + who);
+
+WindowContext context = argObj("windowContext");
+
+HashObject windowList = Context.get("windowList");
+
+Frame f = windowList.getObject(who);
+
+if (f != (Frame)context.get("/"))
+{
+    f.toFront();
+}
+
+
+
+
+
+
