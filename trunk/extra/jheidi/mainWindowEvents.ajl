@@ -8,6 +8,7 @@ log.debug("Event received: " + who);
 if ("Close".equals(who) )
 {
   Frame window = context.get("/");
+  script("removeFromWindowMenu", args());
   window.dispose();
 }
 else if ("Connection".equals(who))
