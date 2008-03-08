@@ -106,6 +106,19 @@ else if ("Drop Database".equals(who))
      }
   }
 }
+else if ("Load SQL File".equals(who))
+{
+  Frame f = context.get("/");
+  Tabs tabs = context.get("/mainTabs");
+  tabs.select("Query");
+  String file = f.openFile(null, "SQL Script Files", "sql");
+  if (file != null)
+  {
+    Editor editor = context.get("/mainTabs/Query/editor");
+    editor.setText(FileUtil.toString(file));
+    editor.setProperty("filePath", file);
+  }
+}
 else if ( "Exit".equals(who) )
 {
   System.exit(0);
