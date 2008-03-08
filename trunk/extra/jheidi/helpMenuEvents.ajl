@@ -1,0 +1,45 @@
+
+String who = arg("source");
+
+WindowContext context = argObj("windowContext");
+
+log.debug("Event received: " + who);
+
+if ("Heidi SQL Website".equals(who))
+{
+   BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
+}
+else if ( "Downloads".equals(who) )
+{
+   BareBonesBrowserLaunch.openURL("http://www.heidisql.com/download.php");
+}
+else if ( "Support Forums".equals(who) )
+{
+   BareBonesBrowserLaunch.openURL("http://www.heidisql.com/forum/");
+}
+else if ( "Bug Tracker".equals(who) )
+{
+  BareBonesBrowserLaunch.openURL("http://sourceforge.net/tracker/?group_id=164593&atid=832347");
+}
+else if ( "Feature Tracker".equals(who) )
+{
+  BareBonesBrowserLaunch.openURL("http://sourceforge.net/tracker/?group_id=164593&atid=832350");
+}
+else if ("About".equals(who))
+{
+  ((Frame)context.get("/")).popupMessage("jHeidi Alpha - Developer Preview.");
+}
+else {
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+  
+    
+  
+  
+
+
+  
+
+
+
+

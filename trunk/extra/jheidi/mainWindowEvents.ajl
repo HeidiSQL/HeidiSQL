@@ -105,10 +105,6 @@ else if ("Drop Database".equals(who))
      }
   }
 }
-else if ("Heidi SQL Website".equals(who))
-{
-   BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
-}
 else if ( "Exit".equals(who) )
 {
   System.exit(0);
