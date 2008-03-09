@@ -44,7 +44,6 @@ object loaddataform: Tloaddataform
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1
-    OnClick = btnCancelClick
   end
   object PageControlMain: TPageControl
     Left = 0

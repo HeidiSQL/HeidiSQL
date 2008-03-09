@@ -27,7 +27,6 @@ object FormEditUser: TFormEditUser
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 0
-    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 154

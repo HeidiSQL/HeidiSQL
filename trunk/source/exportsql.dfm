@@ -49,8 +49,8 @@ object ExportSQLForm: TExportSQLForm
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 1
-    OnClick = btnCancelClick
   end
   object barProgress: TProgressBar
     Left = 3

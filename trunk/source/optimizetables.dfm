@@ -58,8 +58,8 @@ object optimize: Toptimize
     Cancel = True
     Caption = 'Close'
     Default = True
+    ModalResult = 2
     TabOrder = 12
-    OnClick = Button3Click
   end
   object CheckBoxQuickRepair: TCheckBox
     Left = 360

@@ -94,7 +94,6 @@ object CopyTableForm: TCopyTableForm
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 5
-    OnClick = ButtonCancelClick
   end
   object CheckBoxWithIndexes: TCheckBox
     Left = 16

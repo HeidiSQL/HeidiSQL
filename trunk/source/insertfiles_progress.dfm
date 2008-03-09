@@ -73,6 +73,7 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Width = 75
     Height = 25
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 1
     OnClick = Button1Click
   end

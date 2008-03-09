@@ -31,7 +31,6 @@ type
     procedure editNewTablenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonOKClick(Sender: TObject);
-    procedure ButtonCancelClick(Sender: TObject);
   private
     { Private declarations }
     oldTableName : String;
@@ -306,11 +305,6 @@ begin
   Mainform.Childwin.MenuRefreshClick(Self);
   close;
 
-end;
-
-procedure TCopyTableForm.ButtonCancelClick(Sender: TObject);
-begin
-  close;
 end;
 
 end.

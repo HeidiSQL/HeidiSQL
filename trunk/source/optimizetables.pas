@@ -31,7 +31,6 @@ type
     ToolButton2: TToolButton;
     cbxExtendedCheck: TCheckBox;
     cbxExtendedRepair: TCheckBox;
-    procedure Button3Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
     procedure CheckListToggle(Sender: TObject);
@@ -65,11 +64,6 @@ begin
   f.ShowModal;
   Result := True;
   FreeAndNil (f);
-end;
-
-procedure Toptimize.Button3Click(Sender: TObject);
-begin
-  close;
 end;
 
 procedure Toptimize.FormShow(Sender: TObject);

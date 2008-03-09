@@ -19,7 +19,6 @@ type
     EditHost: TEdit;
     EditPassword1: TEdit;
     EditPassword2: TEdit;
-    procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
@@ -51,11 +50,6 @@ begin
   FreeAndNil(f);
 end;
 
-
-procedure TFormEditUser.Button1Click(Sender: TObject);
-begin
-  close;
-end;
 
 procedure TFormEditUser.FormShow(Sender: TObject);
 begin
