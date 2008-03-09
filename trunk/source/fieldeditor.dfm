@@ -285,12 +285,6 @@ object FieldEditForm: TFieldEditForm
         Height = 25
         Hint = 'Add field to index'
         Flat = True
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Marlett'
-        Font.Style = []
-        ParentFont = False
         OnClick = AddField
       end
       object btnDeleteColumnFromIndex: TPngSpeedButton
@@ -301,12 +295,6 @@ object FieldEditForm: TFieldEditForm
         Height = 25
         Hint = 'Remove field from index'
         Flat = True
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Marlett'
-        Font.Style = []
-        ParentFont = False
         OnClick = RemoveField
       end
       object ButtonAddPrimary: TButton

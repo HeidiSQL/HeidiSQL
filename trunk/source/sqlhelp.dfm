@@ -137,14 +137,8 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Right = 0
         Margins.Bottom = 0
         Align = alClient
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = []
         Lines.Strings = (
           'memoDescription')
-        ParentFont = False
         ReadOnly = True
         ScrollBars = ssBoth
         TabOrder = 0

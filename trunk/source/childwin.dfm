@@ -952,12 +952,6 @@ object MDIChild: TMDIChild
             Alignment = taLeftJustify
             BevelOuter = bvNone
             BorderWidth = 1
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = [fsBold]
-            ParentFont = False
             TabOrder = 0
             DesignSize = (
               496
@@ -971,13 +965,7 @@ object MDIChild: TMDIChild
               Anchors = [akTop, akRight]
               GroupIndex = 10
               Caption = 'Columns'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
               Layout = blGlyphRight
-              ParentFont = False
               OnClick = btnDataClick
             end
             object lblDataTop: TLabel
@@ -989,6 +977,12 @@ object MDIChild: TMDIChild
               Anchors = [akLeft, akTop, akRight, akBottom]
               AutoSize = False
               Caption = 'Data'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clBlack
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = [fsBold]
+              ParentFont = False
               Layout = tlCenter
               WordWrap = True
             end
@@ -1001,13 +995,7 @@ object MDIChild: TMDIChild
               Anchors = [akTop, akRight]
               GroupIndex = 10
               Caption = 'Sorting'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
               Layout = blGlyphRight
-              ParentFont = False
               OnClick = btnDataClick
             end
             object EditDataSearch: TEdit
@@ -1016,12 +1004,6 @@ object MDIChild: TMDIChild
               Width = 121
               Height = 21
               Anchors = [akTop, akRight]
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
-              ParentFont = False
               TabOrder = 0
               OnEnter = EditDataSearchEnter
               OnExit = EditDataSearchExit
@@ -1034,12 +1016,6 @@ object MDIChild: TMDIChild
               Height = 21
               Anchors = [akTop, akRight]
               Caption = 'Search'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
-              ParentFont = False
               TabOrder = 1
               OnClick = ButtonDataSearchClick
             end
@@ -1050,12 +1026,6 @@ object MDIChild: TMDIChild
               Height = 17
               Anchors = [akTop, akRight]
               Caption = 'NOT'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
-              ParentFont = False
               TabOrder = 2
             end
           end
@@ -1085,13 +1055,7 @@ object MDIChild: TMDIChild
         end
         object tabQuery: TTabSheet
           Caption = 'Query'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
           ImageIndex = 35
-          ParentFont = False
           object spltQuery: TSplitter
             Left = 0
             Top = 125
@@ -1249,6 +1213,12 @@ object MDIChild: TMDIChild
                 Width = 55
                 Height = 13
                 Caption = 'Delimiter:'
+                Font.Charset = DEFAULT_CHARSET
+                Font.Color = clBlack
+                Font.Height = -11
+                Font.Name = 'Tahoma'
+                Font.Style = []
+                ParentFont = False
               end
               object ComboBoxQueryDelimiter: TComboBox
                 Left = 64
@@ -1391,13 +1361,7 @@ object MDIChild: TMDIChild
             Height = 61
             Align = alClient
             DataSource = DataSource2
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = []
             Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
-            ParentFont = False
             PopupMenu = popupResultGrid
             TabOrder = 2
             TitleFont.Charset = DEFAULT_CHARSET
@@ -1574,12 +1538,6 @@ object MDIChild: TMDIChild
             Height = 106
             Align = alClient
             DataSource = DataSource1
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = []
-            ParentFont = False
             ScrollBars = ssBoth
             TabOrder = 0
             OnExit = DBMemo1Exit

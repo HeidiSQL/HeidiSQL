@@ -40,12 +40,6 @@ object UserManagerForm: TUserManagerForm
         Height = 13
         Caption = '&Username:'
         FocusControl = EditUser
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
       end
       object Label5: TLabel
         Left = 16
