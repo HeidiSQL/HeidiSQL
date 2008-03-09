@@ -51,7 +51,7 @@ object frmEditVariable: TfrmEditVariable
     TabOrder = 1
   end
   object btnOK: TButton
-    Left = 154
+    Left = 73
     Top = 109
     Width = 75
     Height = 25
@@ -63,7 +63,7 @@ object frmEditVariable: TfrmEditVariable
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 73
+    Left = 154
     Top = 109
     Width = 75
     Height = 25
