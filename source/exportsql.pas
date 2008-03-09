@@ -1561,8 +1561,9 @@ var
   chosenDirectory : String;
 begin
   // TODO: Find an alternative to SelectDirectory(), which causes
-  // a platform compiler warning because it needs the FileCtrl unit 
-  if SelectDirectory('Select output directory', EditDirectory.Text, chosenDirectory) then
+  // a platform compiler warning because it needs the FileCtrl unit
+  chosenDirectory := EditDirectory.Text;
+  if SelectDirectory('Select output directory', '', chosenDirectory) then
     EditDirectory.Text := chosenDirectory;
 end;
 
