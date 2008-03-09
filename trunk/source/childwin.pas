@@ -24,7 +24,7 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynUnicode, SynRegExpr, EditVar;
+  SynUnicode, SynRegExpr, EditVar, PngSpeedButton;
 
 type
   TOrderCol = class(TObject)
@@ -247,7 +247,7 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
-    btnColumnSelection: TSpeedButton;
+    btnColumnSelection: TPngSpeedButton;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
     lboxQueryHelpers: TListBox;
@@ -265,7 +265,7 @@ type
     MenuReplace: TMenuItem;
     MenuItem2: TMenuItem;
     lblDataTop: TLabel;
-    btnDataSorting: TSpeedButton;
+    btnDataSorting: TPngSpeedButton;
     spltQueryHelpers: TSplitter;
     menuRenameColumn: TMenuItem;
     N22: TMenuItem;
@@ -1338,7 +1338,7 @@ begin
   begin
     tnode := newTree.Items.AddChild( tnodehost, OnlyDBs2[i] );
     tnode.ImageIndex := 5;
-    tnode.SelectedIndex := 5;
+    tnode.SelectedIndex := 70;
     // Add dummy-node, will be replaced by real tables on expanding
     newTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
     if i = 0 then tnodehost.Expand(false);
@@ -2056,7 +2056,7 @@ begin
       with tmp do
       begin
         ImageIndex := 14;
-        selectedIndex := 14;
+        selectedIndex := 71;
         if Text = find then select := tmp;
       end;
       // Add tables to syntax highlighter
@@ -3393,6 +3393,10 @@ begin
   except
     MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
   end;
+
+  // Assign images from main imagelist to speedbuttons
+  btnDataSorting.PngImage := Mainform.PngImageListMain.PngImages[73].PngImage;
+  btnColumnSelection.PngImage := Mainform.PngImageListMain.PngImages[73].PngImage;
 
   //TODO:
   //ds.DisableControls;

@@ -15,6 +15,7 @@ object ExportSQLForm: TExportSQLForm
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     634
@@ -153,23 +154,15 @@ object ExportSQLForm: TExportSQLForm
         DesignSize = (
           376
           200)
-        object btnFileBrowse: TBitBtn
+        object btnFileBrowse: TPngSpeedButton
           Left = 344
           Top = 42
           Width = 22
           Height = 22
           Anchors = [akTop, akRight]
-          TabOrder = 2
+          Flat = True
           OnClick = btnFileBrowseClick
-          Glyph.Data = {
-            F6000000424DF600000000000000760000002800000010000000100000000100
-            0400000000008000000000000000000000001000000010000000000000000000
-            80000080000000808000800000008000800080800000C0C0C000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDDDD
-            DDDDDDDDDDDDDDDDDDDD00000000000DDDDD003333333330DDDD0B0333333333
-            0DDD0FB03333333330DD0BFB03333333330D0FBFB000000000000BFBFBFBFB0D
-            DDDD0FBFBFBFBF0DDDDD0BFB0000000DDDDDD000DDDDDDDD000DDDDDDDDDDDDD
-            D00DDDDDDDDD0DDD0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDD}
+          PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
         end
         object editFileName: TEdit
           Left = 26
@@ -188,7 +181,7 @@ object ExportSQLForm: TExportSQLForm
           Width = 113
           Height = 17
           Caption = 'Another database:'
-          TabOrder = 6
+          TabOrder = 4
           OnClick = radioOtherDatabaseClick
         end
         object radioFile: TRadioButton
@@ -213,7 +206,7 @@ object ExportSQLForm: TExportSQLForm
           Color = clBtnFace
           Enabled = False
           ItemHeight = 13
-          TabOrder = 7
+          TabOrder = 6
         end
         object radioOtherHost: TRadioButton
           Left = 9
@@ -233,7 +226,7 @@ object ExportSQLForm: TExportSQLForm
           Color = clBtnFace
           Enabled = False
           ItemHeight = 13
-          TabOrder = 9
+          TabOrder = 5
           OnSelect = comboOtherHostSelect
         end
         object comboOtherHostDatabase: TComboBox
@@ -246,7 +239,7 @@ object ExportSQLForm: TExportSQLForm
           Color = clBtnFace
           Enabled = False
           ItemHeight = 13
-          TabOrder = 10
+          TabOrder = 7
         end
         object radioDirectory: TRadioButton
           Left = 9
@@ -255,7 +248,7 @@ object ExportSQLForm: TExportSQLForm
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Directory (one .sql-file per table)'
-          TabOrder = 3
+          TabOrder = 2
           OnClick = radioFileOrDirClick
           OnDblClick = btnDirectoryBrowseClick
         end
@@ -267,27 +260,18 @@ object ExportSQLForm: TExportSQLForm
           Anchors = [akLeft, akTop, akRight]
           Color = clBtnFace
           Enabled = False
-          TabOrder = 4
+          TabOrder = 3
           OnDblClick = btnDirectoryBrowseClick
         end
-        object btnDirectoryBrowse: TBitBtn
+        object btnDirectoryBrowse: TPngSpeedButton
           Left = 344
           Top = 85
           Width = 22
           Height = 22
           Anchors = [akTop, akRight]
-          Enabled = False
-          TabOrder = 5
+          Flat = True
           OnClick = btnDirectoryBrowseClick
-          Glyph.Data = {
-            F6000000424DF600000000000000760000002800000010000000100000000100
-            0400000000008000000000000000000000001000000010000000000000000000
-            80000080000000808000800000008000800080800000C0C0C000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00DDDDDDDDDDDD
-            DDDDDDDDDDDDDDDDDDDD00000000000DDDDD003333333330DDDD0B0333333333
-            0DDD0FB03333333330DD0BFB03333333330D0FBFB000000000000BFBFBFBFB0D
-            DDDD0FBFBFBFBF0DDDDD0BFB0000000DDDDDD000DDDDDDDD000DDDDDDDDDDDDD
-            D00DDDDDDDDD0DDD0D0DDDDDDDDDD000DDDDDDDDDDDDDDDDDDDD}
+          PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
         end
       end
       object groupExampleSql: TGroupBox

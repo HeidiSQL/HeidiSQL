@@ -113,7 +113,7 @@ object CreateTableForm: TCreateTableForm
     Default = True
     Enabled = False
     ModalResult = 1
-    TabOrder = 12
+    TabOrder = 11
     OnClick = ButtonCreateClick
   end
   object GroupBox1: TGroupBox
@@ -123,7 +123,7 @@ object CreateTableForm: TCreateTableForm
     Height = 185
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Column-Properties:'
-    TabOrder = 11
+    TabOrder = 9
     object lblFieldType: TLabel
       Left = 16
       Top = 24
@@ -315,43 +315,23 @@ object CreateTableForm: TCreateTableForm
     TabOrder = 5
     OnClick = ListboxColumnsClick
   end
-  object ButtonMoveUp: TBitBtn
+  object ButtonMoveUp: TPngSpeedButton
     Left = 160
-    Top = 263
+    Top = 262
     Width = 25
     Height = 25
     Anchors = [akLeft, akBottom]
-    Enabled = False
-    TabOrder = 9
+    Flat = True
     OnClick = ButtonMoveUpClick
-    Glyph.Data = {
-      F6000000424DF600000000000000760000002800000010000000100000000100
-      0400000000008000000000000000000000001000000010000000000000009410
-      00009C180000A5210000AD290000B5310000BD390000C6420000CE4A0000D652
-      00000000FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00AAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA00000AA
-      AAAAAAAAA04320AAAAAAA0000054300000AAAA09876543220AAAAAA098765430
-      AAAAAAAA0987650AAAAAAAAAA09870AAAAAAAAAAAA090AAAAAAAAAAAAAA0AAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
   end
-  object ButtonMoveDown: TBitBtn
+  object ButtonMoveDown: TPngSpeedButton
     Left = 160
     Top = 287
     Width = 25
     Height = 25
     Anchors = [akLeft, akBottom]
-    Enabled = False
-    TabOrder = 10
+    Flat = True
     OnClick = ButtonMoveDownClick
-    Glyph.Data = {
-      F6000000424DF600000000000000760000002800000010000000100000000100
-      040000000000800000000000000000000000100000001000000000000000A521
-      0000AD290000B5310000BD390000C6420000CE4A0000D6520000DE5A0000E763
-      00000000FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00AAAAAAAAAAAA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AAAA
-      AAAAAAAAAA010AAAAAAAAAAAA03210AAAAAAAAAA0543210AAAAAAAA076543210
-      AAAAAA09876543210AAAA0000076500000AAAAAAA08760AAAAAAAAAAA00000AA
-      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
   end
   object ButtonAdd: TButton
     Left = 160
@@ -422,7 +402,7 @@ object CreateTableForm: TCreateTableForm
     Style = csDropDownList
     ItemHeight = 13
     Sorted = True
-    TabOrder = 14
+    TabOrder = 10
     OnChange = comboCharsetChange
   end
   object comboCollation: TComboBox
@@ -433,6 +413,6 @@ object CreateTableForm: TCreateTableForm
     Style = csDropDownList
     ItemHeight = 13
     Sorted = True
-    TabOrder = 15
+    TabOrder = 12
   end
 end

@@ -20,10 +20,10 @@ type
     Button3: TButton;
     CheckBoxQuickRepair: TCheckBox;
     CheckBoxQuickCheck: TCheckBox;
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
-    BitBtn3: TBitBtn;
-    BitBtn4: TBitBtn;
+    btnOptimize: TButton;
+    btnCheck: TButton;
+    btnAnalyze: TButton;
+    btnRepair: TButton;
     Label3: TLabel;
     ListViewResults: TListView;
     ToolBar1: TToolBar;
@@ -236,10 +236,10 @@ begin
     end;
   end;
   // en-/disable buttons/checkboxes:
-  BitBtn1.Enabled := somechecked;
-  BitBtn2.Enabled := somechecked;
-  BitBtn3.Enabled := somechecked;
-  BitBtn4.Enabled := somechecked;
+  btnOptimize.Enabled := somechecked;
+  btnCheck.Enabled := somechecked;
+  btnAnalyze.Enabled := somechecked;
+  btnRepair.Enabled := somechecked;
 end;
 
 end.

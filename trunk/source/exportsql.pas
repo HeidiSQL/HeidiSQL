@@ -29,7 +29,7 @@ uses
   SynEdit,
   SynMemo,
   ZDataSet,
-  FileCtrl;
+  FileCtrl, PngSpeedButton;
 
 type
   TExportSQLForm = class(TForm)
@@ -48,7 +48,7 @@ type
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
     groupOutput: TGroupBox;
-    btnFileBrowse: TBitBtn;
+    btnFileBrowse: TPngSpeedButton;
     editFileName: TEdit;
     radioOtherDatabase: TRadioButton;
     radioFile: TRadioButton;
@@ -70,7 +70,8 @@ type
     comboTargetCompat: TComboBox;
     radioDirectory: TRadioButton;
     editDirectory: TEdit;
-    btnDirectoryBrowse: TBitBtn;
+    btnDirectoryBrowse: TPngSpeedButton;
+    procedure FormCreate(Sender: TObject);
     procedure comboTargetCompatChange(Sender: TObject);
     procedure comboOtherHostSelect(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
@@ -160,6 +161,13 @@ begin
   // todo: pass params if needed
   Result := (f.ShowModal = mrOK);
   FreeAndNil (f);
+end;
+
+procedure TExportSQLForm.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnFileBrowse.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
+  btnDirectoryBrowse.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
 end;
 
 procedure TExportSQLForm.btnCancelClick(Sender: TObject);

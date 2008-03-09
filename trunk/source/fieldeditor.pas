@@ -10,7 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons, VirtualTrees;
+  StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons, VirtualTrees,
+  PngSpeedButton;
 
 type
   TFieldEditorMode = (femFieldAdd,femFieldUpdate,femIndexEditor);
@@ -43,18 +44,19 @@ type
     lblColumnsUsed: TLabel;
     listColumnsUsed: TListBox;
     listColumnsAvailable: TListBox;
-    btnAddColumnToIndex: TBitBtn;
-    btnDeleteColumnFromIndex: TBitBtn;
+    btnAddColumnToIndex: TPngSpeedButton;
+    btnDeleteColumnFromIndex: TPngSpeedButton;
     lblColumnsAvailable: TLabel;
     ButtonAddPrimary: TButton;
     ComboBoxPosition: TComboBox;
     lblPosition: TLabel;
     CheckBoxFulltext: TCheckBox;
-    btnAddAllColumnsToIndex: TBitBtn;
-    btnDeleteAllColumnsFromIndex: TBitBtn;
+    btnAddAllColumnsToIndex: TPngSpeedButton;
+    btnDeleteAllColumnsFromIndex: TPngSpeedButton;
     btnDatatypeHelp: TButton;
     lblComment: TLabel;
     EditComment: TEdit;
+    procedure FormCreate(Sender: TObject);
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
@@ -123,6 +125,18 @@ begin
   Result := (FieldEditForm.ShowModal = mrOK);
 end;
 
+
+{**
+  FormCreate
+}
+procedure TFieldEditForm.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnAddAllColumnsToIndex.PngImage := Mainform.PngImageListMain.PngImages[78].PngImage;
+  btnAddColumnToIndex.PngImage := Mainform.PngImageListMain.PngImages[76].PngImage;
+  btnDeleteAllColumnsFromIndex.PngImage := Mainform.PngImageListMain.PngImages[79].PngImage;
+  btnDeleteColumnFromIndex.PngImage := Mainform.PngImageListMain.PngImages[77].PngImage;
+end;
 
 
 {***

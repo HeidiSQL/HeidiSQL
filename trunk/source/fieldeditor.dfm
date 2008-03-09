@@ -14,6 +14,7 @@ object FieldEditForm: TFieldEditForm
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -276,57 +277,37 @@ object FieldEditForm: TFieldEditForm
         OnClick = listClick
         OnDblClick = AddField
       end
-      object btnAddColumnToIndex: TBitBtn
+      object btnAddColumnToIndex: TPngSpeedButton
         Tag = 1
         Left = 133
         Top = 152
         Width = 25
         Height = 25
         Hint = 'Add field to index'
-        Enabled = False
+        Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
         Font.Name = 'Marlett'
         Font.Style = []
         ParentFont = False
-        TabOrder = 6
         OnClick = AddField
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000010000000000000000000
-          80000080000000808000800000008000800080800000C0C0C000808080000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
-          FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0FFFFFFFFFFFFFF00FFFFFFFFFFFFF0E0F
-          FFFFFFFFFFF0EE0FFFFFFFFFFF0EEE0FFFFFFFFFF0EEEE0FFFFFFFFF0EEEEE0F
-          FFFFFFFFF0EEEE0FFFFFFFFFFF0EEE0FFFFFFFFFFFF0EE0FFFFFFFFFFFFF0E0F
-          FFFFFFFFFFFFF00FFFFFFFFFFFFFFF0FFFFFFFFFFFFFFFFFFFFF}
       end
-      object btnDeleteColumnFromIndex: TBitBtn
+      object btnDeleteColumnFromIndex: TPngSpeedButton
         Tag = 2
         Left = 133
         Top = 184
         Width = 25
         Height = 25
         Hint = 'Remove field from index'
-        Enabled = False
+        Flat = True
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
         Font.Name = 'Marlett'
         Font.Style = []
         ParentFont = False
-        TabOrder = 7
         OnClick = RemoveField
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000010000000000000000000
-          80000080000000808000800000008000800080800000C0C0C000808080000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
-          FFFFFFFFFFFFFFFFFFFFFFFFF0FFFFFFFFFFFFFFF00FFFFFFFFFFFFFF0E0FFFF
-          FFFFFFFFF0EE0FFFFFFFFFFFF0EEE0FFFFFFFFFFF0EEEE0FFFFFFFFFF0EEEEE0
-          FFFFFFFFF0EEEE0FFFFFFFFFF0EEE0FFFFFFFFFFF0EE0FFFFFFFFFFFF0E0FFFF
-          FFFFFFFFF00FFFFFFFFFFFFFF0FFFFFFFFFFFFFFFFFFFFFFFFFF}
       end
       object ButtonAddPrimary: TButton
         Left = 72
@@ -335,7 +316,7 @@ object FieldEditForm: TFieldEditForm
         Height = 25
         Caption = 'Add Primary'
         Enabled = False
-        TabOrder = 8
+        TabOrder = 6
         OnClick = ButtonAddPrimaryClick
       end
       object CheckBoxFulltext: TCheckBox
@@ -344,46 +325,26 @@ object FieldEditForm: TFieldEditForm
         Width = 97
         Height = 17
         Caption = 'Fulltext'
-        TabOrder = 9
+        TabOrder = 7
         OnClick = CheckBoxFulltextClick
       end
-      object btnAddAllColumnsToIndex: TBitBtn
+      object btnAddAllColumnsToIndex: TPngSpeedButton
         Left = 133
         Top = 120
         Width = 25
         Height = 25
         Hint = 'Add all fields to index'
-        Enabled = False
-        TabOrder = 10
+        Flat = True
         OnClick = btnAddAllColumnsToIndexClick
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000010000000000000000000
-          80000080000000808000800000008000800080800000C0C0C000808080000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
-          FFFFFFFFFFFFFFFFFFFFFFFFFFFF0FF0FFFFFFFFFFF00F00FFFFFFFFFF0C00E0
-          FFFFFFFFF0CC0EE0FFFFFFFF0CC0EEE0FFFFFFF0CC0EEEE0FFFFFF0CC0EEEEE0
-          FFFFFFF0CC0EEEE0FFFFFFFF0CC0EEE0FFFFFFFFF0CC0EE0FFFFFFFFFF0C00E0
-          FFFFFFFFFFF00F00FFFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFF}
       end
-      object btnDeleteAllColumnsFromIndex: TBitBtn
+      object btnDeleteAllColumnsFromIndex: TPngSpeedButton
         Left = 133
         Top = 216
         Width = 25
         Height = 25
         Hint = 'Remove all fields from index'
-        Enabled = False
-        TabOrder = 11
+        Flat = True
         OnClick = btnDeleteAllColumnsFromIndexClick
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000010000000000000000000
-          80000080000000808000800000008000800080800000C0C0C000808080000000
-          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00FFFFFFFFFFFF
-          FFFFFFFFFFFFFFFFFFFFFFFF0FF0FFFFFFFFFFFF00F00FFFFFFFFFFF0E00C0FF
-          FFFFFFFF0EE0CC0FFFFFFFFF0EEE0CC0FFFFFFFF0EEEE0CC0FFFFFFF0EEEEE0C
-          C0FFFFFF0EEEE0CC0FFFFFFF0EEE0CC0FFFFFFFF0EE0CC0FFFFFFFFF0E00C0FF
-          FFFFFFFF00F00FFFFFFFFFFF0FF0FFFFFFFFFFFFFFFFFFFFFFFF}
       end
     end
   end
