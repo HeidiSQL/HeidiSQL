@@ -79,7 +79,6 @@ type
     procedure comboDatabaseChange(Sender: TObject);
     procedure cbxTablesClick(Sender: TObject);
     procedure cbxDatabaseClick(Sender: TObject);
-    procedure btnCancelClick(Sender: TObject);
     procedure btnDirectoryBrowseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboSelectDatabaseChange(Sender: TObject);
@@ -170,10 +169,6 @@ begin
   btnDirectoryBrowse.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
 end;
 
-procedure TExportSQLForm.btnCancelClick(Sender: TObject);
-begin
-  close;
-end;
 
 procedure TExportSQLForm.FormShow(Sender: TObject);
 var

@@ -3018,8 +3018,8 @@ object connform: Tconnform
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 10
-    OnClick = ButtonCancelClick
   end
   object ButtonConnect: TButton
     Tag = 15

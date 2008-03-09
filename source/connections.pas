@@ -46,7 +46,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure ButtonCancelClick(Sender: TObject);
     procedure ButtonConnectClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
@@ -93,13 +92,6 @@ begin
   btnSave.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
   btnDelete.PngImage := Mainform.PngImageListMain.PngImages[26].PngImage;
   btnEditDesc.PngImage := Mainform.PngImageListMain.PngImages[33].PngImage;
-end;
-
-
-// Cancel
-procedure Tconnform.ButtonCancelClick(Sender: TObject);
-begin
-  close;
 end;
 
 

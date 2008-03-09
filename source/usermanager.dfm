@@ -497,8 +497,8 @@ object UserManagerForm: TUserManagerForm
       Anchors = [akTop, akRight]
       Cancel = True
       Caption = 'Close'
+      ModalResult = 2
       TabOrder = 0
-      OnClick = ButtonCloseClick
     end
     object ButtonAddUser: TButton
       Left = 368

@@ -63,7 +63,6 @@ type
     Button1: TButton;
     procedure DBUserTreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
-    procedure ButtonCloseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure CheckBoxAllPrivilegesClick(Sender: TObject);
     procedure ButtonAddUserClick(Sender: TObject);
@@ -159,12 +158,6 @@ begin
     cwin.TemporaryDatabase := '';
   end;
 end;
-
-procedure TUserManagerForm.ButtonCloseClick(Sender: TObject);
-begin
-  close;
-end;
-
 
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var

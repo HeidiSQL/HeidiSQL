@@ -53,7 +53,6 @@ type
     lblIgnoreLines: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
-    procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
     procedure comboTableChange(Sender: TObject);
@@ -102,11 +101,6 @@ begin
   btnOpenFile.PngImage := Mainform.PngImageListMain.PngImages[52].PngImage;
   btnColUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
   btnColDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
-end;
-
-procedure Tloaddataform.btnCancelClick(Sender: TObject);
-begin
-  close;
 end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);

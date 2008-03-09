@@ -40,7 +40,6 @@ uses main, childwin, helpers,insertfiles,
 procedure TfrmInsertFilesProgress.Button1Click(Sender: TObject);
 begin
   canceled := true;
-  close;
 end;
 
 procedure TfrmInsertFilesProgress.ProcessFiles(Sender: TObject);
