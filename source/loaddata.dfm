@@ -14,6 +14,7 @@ object loaddataform: Tloaddataform
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     423
@@ -81,23 +82,14 @@ object loaddataform: Tloaddataform
           OnChange = editFilenameChange
           OnDblClick = btnOpenFileClick
         end
-        object btnOpenFile: TBitBtn
+        object btnOpenFile: TPngSpeedButton
           Left = 353
           Top = 24
           Width = 22
           Height = 22
           Anchors = [akTop, akRight]
-          TabOrder = 1
+          Flat = True
           OnClick = btnOpenFileClick
-          Glyph.Data = {
-            F6000000424DF600000000000000760000002800000010000000100000000100
-            0400000000008000000000000000000000001000000010000000000000000000
-            80000080000000808000800000008000800080800000C0C0C000808080000000
-            FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00777777777777
-            777777777777777777777000000000007777700333333333077770B033333333
-            307770FB03333333330770BFB0333333333070FBFB000000000070BFBFBFBFB0
-            777770FBFBFBFBF0777770BFB000000077777700077777777000777777777777
-            7700777777777077707077777777770007777777777777777777}
         end
       end
       object grpFields: TGroupBox
@@ -276,41 +268,23 @@ object loaddataform: Tloaddataform
         ItemHeight = 13
         TabOrder = 2
       end
-      object btnColUp: TBitBtn
+      object btnColUp: TPngSpeedButton
         Left = 150
         Top = 117
         Width = 25
         Height = 25
         Anchors = [akTop, akRight]
-        TabOrder = 3
+        Flat = True
         OnClick = btnColUpClick
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          0400000000008000000000000000000000001000000010000000000000009410
-          00009C180000A5210000AD290000B5310000BD390000C6420000CE4A0000D652
-          00000000FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00AAAAAAAAAAAA
-          AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA00000AA
-          AAAAAAAAA04320AAAAAAA0000054300000AAAA09876543220AAAAAA098765430
-          AAAAAAAA0987650AAAAAAAAAA09870AAAAAAAAAAAA090AAAAAAAAAAAAAA0AAAA
-          AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
       end
-      object btnColDown: TBitBtn
+      object btnColDown: TPngSpeedButton
         Left = 150
-        Top = 141
+        Top = 142
         Width = 25
         Height = 25
         Anchors = [akTop, akRight]
-        TabOrder = 4
+        Flat = True
         OnClick = btnColDownClick
-        Glyph.Data = {
-          F6000000424DF600000000000000760000002800000010000000100000000100
-          040000000000800000000000000000000000100000001000000000000000A521
-          0000AD290000B5310000BD390000C6420000CE4A0000D6520000DE5A0000E763
-          00000000FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00AAAAAAAAAAAA
-          AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AAAA
-          AAAAAAAAAA010AAAAAAAAAAAA03210AAAAAAAAAA0543210AAAAAAAA076543210
-          AAAAAA09876543210AAAA0000076500000AAAAAAA08760AAAAAAAAAAA00000AA
-          AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}
       end
       object grpOptions: TGroupBox
         Left = 196
@@ -319,7 +293,7 @@ object loaddataform: Tloaddataform
         Height = 105
         Anchors = [akTop, akRight]
         Caption = 'Options'
-        TabOrder = 5
+        TabOrder = 3
         object lblDuplicates: TLabel
           Left = 16
           Top = 54

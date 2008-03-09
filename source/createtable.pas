@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Buttons, ComCtrls, ImgList, ToolWin,
-  Menus, db;
+  Menus, db, PngSpeedButton;
 
 type
   TCreateTableForm = class(TForm)
@@ -37,8 +37,8 @@ type
     Label2: TLabel;
     EditDescription: TEdit;
     Label3: TLabel;
-    ButtonMoveUp: TBitBtn;
-    ButtonMoveDown: TBitBtn;
+    ButtonMoveUp: TPngSpeedButton;
+    ButtonMoveDown: TPngSpeedButton;
     ButtonAdd: TButton;
     ButtonDelete: TButton;
     ButtonChange: TButton;
@@ -113,6 +113,10 @@ procedure TCreateTableForm.FormCreate(Sender: TObject);
 var
   charset : String;
 begin
+  // Assign images from main imagelist to speedbuttons
+  ButtonMoveUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
+  ButtonMoveDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
+
   try
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
     // Detect servers default charset
@@ -551,6 +555,8 @@ begin
   Editdescription.Text := '';
   ButtonCreate.Enabled := false;
   ButtonAdd.Enabled := true;
+  ButtonMoveUp.Enabled := False;
+  ButtonMoveDown.Enabled := False;
 
   // Preselect charset item in pulldown
   if comboCharset.Items.Count > 0 then

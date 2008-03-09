@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons, Registry,
-  childwin, PngBitBtn;
+  childwin, PngSpeedButton;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -24,7 +24,8 @@ type
     lblExample: TLabel;
     MemoExample: TMemo;
     ButtonClose: TButton;
-    btnSearchOnline: TPngBitBtn;
+    btnSearchOnline: TPngSpeedButton;
+    procedure FormCreate(Sender: TObject);
     procedure treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure treeTopicsChange(Sender: TObject; Node: TTreeNode);
@@ -76,6 +77,16 @@ begin
   f.Keyword := Keyword;
   Result := (f.ShowModal=mrOK);
   FreeAndNil(f);
+end;
+
+
+{**
+  FormCreate
+}
+procedure TfrmSQLhelp.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnSearchOnline.PngImage := Mainform.PngImageListMain.PngImages[69].PngImage;
 end;
 
 

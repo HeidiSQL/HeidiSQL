@@ -10,7 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver, PngBitBtn;
+  StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver,
+  PngSpeedButton;
 
 type
   Tconnform = class(TForm)
@@ -38,10 +39,11 @@ type
     TimerCloseFormReminder: TTimer;
     CheckBoxSorted: TCheckBox;
     ButtonSaveAndConnect: TButton;
-    btnNew: TPngBitBtn;
-    btnSave: TPngBitBtn;
-    btnDelete: TPngBitBtn;
-    btnEditDesc: TPngBitBtn;
+    btnNew: TPngSpeedButton;
+    btnSave: TPngSpeedButton;
+    btnDelete: TPngSpeedButton;
+    btnEditDesc: TPngSpeedButton;
+    procedure FormCreate(Sender: TObject);
     procedure ButtonSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonCancelClick(Sender: TObject);
@@ -78,6 +80,19 @@ begin
   f := Tconnform.Create(AOwner);
   Result := (f.ShowModal = mrOK);
   FreeAndNil (f);
+end;
+
+
+{**
+  FormCreate
+}
+procedure Tconnform.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnNew.PngImage := Mainform.PngImageListMain.PngImages[72].PngImage;
+  btnSave.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
+  btnDelete.PngImage := Mainform.PngImageListMain.PngImages[26].PngImage;
+  btnEditDesc.PngImage := Mainform.PngImageListMain.PngImages[33].PngImage;
 end;
 
 

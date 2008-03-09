@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry;
+  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry, PngSpeedButton;
 
 type
   Tloaddataform = class(TForm)
@@ -26,8 +26,8 @@ type
     comboTable: TComboBox;
     lblColumns: TLabel;
     chklistColumns: TCheckListBox;
-    btnColUp: TBitBtn;
-    btnColDown: TBitBtn;
+    btnColUp: TPngSpeedButton;
+    btnColDown: TPngSpeedButton;
     grpOptions: TGroupBox;
     chkLowPriority: TCheckBox;
     chkReplace: TCheckBox;
@@ -35,7 +35,7 @@ type
     lblDuplicates: TLabel;
     grpFilename: TGroupBox;
     editFilename: TEdit;
-    btnOpenFile: TBitBtn;
+    btnOpenFile: TPngSpeedButton;
     grpFields: TGroupBox;
     lblFieldTerminater: TLabel;
     lblFieldEncloser: TLabel;
@@ -51,6 +51,7 @@ type
     editLineTerminator: TEdit;
     lblLineTerminator: TLabel;
     lblIgnoreLines: TLabel;
+    procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -91,6 +92,17 @@ begin
   FreeAndNil(f);
 end;
 
+
+{**
+  FormCreat
+}
+procedure Tloaddataform.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnOpenFile.PngImage := Mainform.PngImageListMain.PngImages[52].PngImage;
+  btnColUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
+  btnColDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
+end;
 
 procedure Tloaddataform.btnCancelClick(Sender: TObject);
 begin
