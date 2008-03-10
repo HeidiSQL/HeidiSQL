@@ -40,7 +40,7 @@
 	   .nextRow()
 	   .vspace(5)
 	   .space(481)
-	   .button("Search MySQL", 110) 
+	   .button("Search MySQL", LF.isMac?112: 110) 
 	   .space(5)
 	   .button("Close", 110)
 	   .setDefaultButton("Close");
