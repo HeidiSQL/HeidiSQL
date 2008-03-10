@@ -5,7 +5,11 @@ WindowContext context = argObj("windowContext");
 
 log.debug("Event received: " + who);
 
-if ("Heidi SQL Website".equals(who))
+if ("SQL Help".equals(who))
+{
+  script("helpDialog", args());
+}
+else if ("Heidi SQL Website".equals(who))
 {
    BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
 }

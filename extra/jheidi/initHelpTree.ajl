@@ -1,0 +1,76 @@
+  import java.util.*;
+  
+  WindowContext context = argObj("windowContext");
+  HashObject profile = context.get("profile");
+  Tree tree = context.get("/helpTree");
+  NodeInfo root = (NodeInfo)tree.getModel().getRoot();
+  
+  tree.setCellRenderer(new IconicCellRenderer("images/helptopic.gif", "images/helpitem.gif"));
+  
+  DB db = context.get("db");
+  db.begin();
+ 
+  List<HashObject> curItems = db.execute("help contents");
+  NodeInfo curNode = root;
+  
+  Stack<HashObject> stack = new Stack<HashObject>();
+  HashObject pointer = new HashObject();
+  pointer.put("node", curNode);
+  pointer.put("items", curItems);
+  stack.push(pointer);
+  
+  while (!stack.empty())
+  {
+    pointer = stack.pop();
+    curItems = pointer.getObject("items");
+    curNode = pointer.getObject("node");
+    
+    for ( HashObject item: curItems)
+    {
+      if ( "Y".equals(item.get("is_it_category")))
+      {
+        NodeInfo branch = new NodeInfo(item.get("name"));
+        //this if statement is needed because of bugs in some mysql help tables 
+        //causing infinite recursion. lazier loading in jheidi would also work.
+        if ( !branch.getText().equals(curNode.getText()))
+        {
+          branch.setType("helptopic");
+          branch.setIcon("helptopic");
+          HashObject newPointer = new HashObject();
+          newPointer.put("items", db.execute("help '" + item.get("name") + "'"));
+          newPointer.put("node", branch);
+          curNode.add(branch);
+          stack.push(newPointer);
+        }  
+      }
+      else 
+      {
+        NodeInfo leaf = new NodeInfo(item.get("name"));
+        leaf.setType("helpitem");
+        leaf.setIcon("helpitem");
+        curNode.add(leaf);
+      }
+    }
+   
+  }
+ 
+  db.end();
+  
+  tree.updateUI();
+ 
+    
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

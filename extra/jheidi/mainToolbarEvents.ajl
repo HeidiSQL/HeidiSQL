@@ -99,10 +99,6 @@ else if ("Drop Database".equals(who))
      }
   }
 }
-else if ("Help".equals(who))
-{
-   BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
-}
 else if ("Close".equals(who) )
 {
   Frame window = context.get("/");
