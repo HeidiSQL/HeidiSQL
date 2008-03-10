@@ -349,7 +349,8 @@ type
     procedure DBtreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ListColumnsStateChange(Sender: TBaseVirtualTree; Enter, Leave:
+        TVirtualTreeStates);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -3039,8 +3040,8 @@ end;
 {**
   Clicked somewhere in the field-list of the "Table"-tabsheet
 }
-procedure TMDIChild.ListColumnsChange(Sender: TBaseVirtualTree; Node:
-    PVirtualNode);
+procedure TMDIChild.ListColumnsStateChange(Sender: TBaseVirtualTree; Enter,
+    Leave: TVirtualTreeStates);
 var
   SomeSelected, OneFocused: Boolean;
 begin
@@ -3054,6 +3055,7 @@ begin
   MenuEditField.Enabled := OneFocused;
   btnTableEditField.enabled := OneFocused;
   menuRenameColumn.Enabled := OneFocused;
+  menuEditField.Enabled := OneFocused;
 end;
 
 
