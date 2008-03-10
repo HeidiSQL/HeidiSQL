@@ -895,7 +895,6 @@ object MDIChild: TMDIChild
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
             OnBeforePaint = vstBeforePaint
-            OnChange = ListColumnsChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = UpdateField
             OnFreeNode = vstFreeNode
@@ -907,6 +906,7 @@ object MDIChild: TMDIChild
             OnInitNode = vstInitNode
             OnKeyUp = controlsKeyUp
             OnNewText = ListColumnsNewText
+            OnStateChange = ListColumnsStateChange
             Columns = <
               item
                 Position = 0
