@@ -106,6 +106,46 @@ object connform: Tconnform
     FocusControl = EditOnlyDBs
     WordWrap = True
   end
+  object btnNew: TPngSpeedButton
+    Left = 152
+    Top = 17
+    Width = 89
+    Height = 25
+    Caption = 'New'
+    OnClick = ButtonNewClick
+    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
+  end
+  object btnSave: TPngSpeedButton
+    Left = 258
+    Top = 17
+    Width = 89
+    Height = 25
+    Caption = 'Save'
+    OnClick = ButtonSaveClick
+    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
+  end
+  object btnDelete: TPngSpeedButton
+    Left = 363
+    Top = 17
+    Width = 91
+    Height = 25
+    Caption = 'Delete'
+    OnClick = ButtonDeleteClick
+    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
+  end
+  object btnEditDesc: TPngSpeedButton
+    Left = 431
+    Top = 64
+    Width = 21
+    Height = 21
+    Hint = 'Edit description ...'
+    Anchors = [akTop, akRight]
+    Flat = True
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = ButtonEditDescClick
+    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
+  end
   object EditHost: TEdit
     Left = 232
     Top = 112
@@ -3072,46 +3112,6 @@ object connform: Tconnform
     Caption = 'Save + Connect'
     TabOrder = 12
     OnClick = ButtonSaveAndConnectClick
-  end
-  object btnNew: TPngSpeedButton
-    Left = 152
-    Top = 17
-    Width = 89
-    Height = 25
-    Caption = 'New'
-    OnClick = ButtonNewClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
-  object btnSave: TPngSpeedButton
-    Left = 258
-    Top = 17
-    Width = 89
-    Height = 25
-    Caption = 'Save'
-    OnClick = ButtonSaveClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
-  object btnDelete: TPngSpeedButton
-    Left = 363
-    Top = 17
-    Width = 91
-    Height = 25
-    Caption = 'Delete'
-    OnClick = ButtonDeleteClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
-  object btnEditDesc: TPngSpeedButton
-    Left = 431
-    Top = 64
-    Width = 21
-    Height = 21
-    Hint = 'Edit description ...'
-    Anchors = [akTop, akRight]
-    Flat = True
-    ParentShowHint = False
-    ShowHint = True
-    OnClick = ButtonEditDescClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
   end
   object TimerCloseFormReminder: TTimer
     Enabled = False

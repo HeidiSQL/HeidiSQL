@@ -214,6 +214,44 @@ object FieldEditForm: TFieldEditForm
         Height = 13
         Caption = 'Available Columns:'
       end
+      object btnAddColumnToIndex: TPngSpeedButton
+        Tag = 1
+        Left = 133
+        Top = 152
+        Width = 25
+        Height = 25
+        Hint = 'Add field to index'
+        Flat = True
+        OnClick = AddField
+      end
+      object btnDeleteColumnFromIndex: TPngSpeedButton
+        Tag = 2
+        Left = 133
+        Top = 184
+        Width = 25
+        Height = 25
+        Hint = 'Remove field from index'
+        Flat = True
+        OnClick = RemoveField
+      end
+      object btnAddAllColumnsToIndex: TPngSpeedButton
+        Left = 133
+        Top = 120
+        Width = 25
+        Height = 25
+        Hint = 'Add all fields to index'
+        Flat = True
+        OnClick = btnAddAllColumnsToIndexClick
+      end
+      object btnDeleteAllColumnsFromIndex: TPngSpeedButton
+        Left = 133
+        Top = 216
+        Width = 25
+        Height = 25
+        Hint = 'Remove all fields from index'
+        Flat = True
+        OnClick = btnDeleteAllColumnsFromIndexClick
+      end
       object ComboBoxKeys: TComboBoxEx
         Left = 72
         Top = 8
@@ -277,26 +315,6 @@ object FieldEditForm: TFieldEditForm
         OnClick = listClick
         OnDblClick = AddField
       end
-      object btnAddColumnToIndex: TPngSpeedButton
-        Tag = 1
-        Left = 133
-        Top = 152
-        Width = 25
-        Height = 25
-        Hint = 'Add field to index'
-        Flat = True
-        OnClick = AddField
-      end
-      object btnDeleteColumnFromIndex: TPngSpeedButton
-        Tag = 2
-        Left = 133
-        Top = 184
-        Width = 25
-        Height = 25
-        Hint = 'Remove field from index'
-        Flat = True
-        OnClick = RemoveField
-      end
       object ButtonAddPrimary: TButton
         Left = 72
         Top = 32
@@ -315,24 +333,6 @@ object FieldEditForm: TFieldEditForm
         Caption = 'Fulltext'
         TabOrder = 7
         OnClick = CheckBoxFulltextClick
-      end
-      object btnAddAllColumnsToIndex: TPngSpeedButton
-        Left = 133
-        Top = 120
-        Width = 25
-        Height = 25
-        Hint = 'Add all fields to index'
-        Flat = True
-        OnClick = btnAddAllColumnsToIndexClick
-      end
-      object btnDeleteAllColumnsFromIndex: TPngSpeedButton
-        Left = 133
-        Top = 216
-        Width = 25
-        Height = 25
-        Hint = 'Remove all fields from index'
-        Flat = True
-        OnClick = btnDeleteAllColumnsFromIndexClick
       end
     end
   end
