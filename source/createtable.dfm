@@ -92,6 +92,24 @@ object CreateTableForm: TCreateTableForm
     Height = 13
     Caption = 'Collation:'
   end
+  object ButtonMoveUp: TPngSpeedButton
+    Left = 160
+    Top = 262
+    Width = 25
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Flat = True
+    OnClick = ButtonMoveUpClick
+  end
+  object ButtonMoveDown: TPngSpeedButton
+    Left = 160
+    Top = 287
+    Width = 25
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Flat = True
+    OnClick = ButtonMoveDownClick
+  end
   object ButtonCancel: TButton
     Left = 408
     Top = 333
@@ -314,24 +332,6 @@ object CreateTableForm: TCreateTableForm
     ItemHeight = 13
     TabOrder = 5
     OnClick = ListboxColumnsClick
-  end
-  object ButtonMoveUp: TPngSpeedButton
-    Left = 160
-    Top = 262
-    Width = 25
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Flat = True
-    OnClick = ButtonMoveUpClick
-  end
-  object ButtonMoveDown: TPngSpeedButton
-    Left = 160
-    Top = 287
-    Width = 25
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Flat = True
-    OnClick = ButtonMoveDownClick
   end
   object ButtonAdd: TButton
     Left = 160

@@ -70,6 +70,15 @@ object loaddataform: Tloaddataform
         DesignSize = (
           394
           63)
+        object btnOpenFile: TPngSpeedButton
+          Left = 353
+          Top = 24
+          Width = 22
+          Height = 22
+          Anchors = [akTop, akRight]
+          Flat = True
+          OnClick = btnOpenFileClick
+        end
         object editFilename: TEdit
           Left = 16
           Top = 24
@@ -80,15 +89,6 @@ object loaddataform: Tloaddataform
           Text = 'editFilename'
           OnChange = editFilenameChange
           OnDblClick = btnOpenFileClick
-        end
-        object btnOpenFile: TPngSpeedButton
-          Left = 353
-          Top = 24
-          Width = 22
-          Height = 22
-          Anchors = [akTop, akRight]
-          Flat = True
-          OnClick = btnOpenFileClick
         end
       end
       object grpFields: TGroupBox
@@ -236,6 +236,24 @@ object loaddataform: Tloaddataform
         Height = 13
         Caption = 'Use Columns:'
       end
+      object btnColUp: TPngSpeedButton
+        Left = 150
+        Top = 117
+        Width = 25
+        Height = 25
+        Anchors = [akTop, akRight]
+        Flat = True
+        OnClick = btnColUpClick
+      end
+      object btnColDown: TPngSpeedButton
+        Left = 150
+        Top = 142
+        Width = 25
+        Height = 25
+        Anchors = [akTop, akRight]
+        Flat = True
+        OnClick = btnColDownClick
+      end
       object comboDatabase: TComboBox
         Left = 10
         Top = 26
@@ -266,24 +284,6 @@ object loaddataform: Tloaddataform
         Anchors = [akLeft, akTop, akRight, akBottom]
         ItemHeight = 13
         TabOrder = 2
-      end
-      object btnColUp: TPngSpeedButton
-        Left = 150
-        Top = 117
-        Width = 25
-        Height = 25
-        Anchors = [akTop, akRight]
-        Flat = True
-        OnClick = btnColUpClick
-      end
-      object btnColDown: TPngSpeedButton
-        Left = 150
-        Top = 142
-        Width = 25
-        Height = 25
-        Anchors = [akTop, akRight]
-        Flat = True
-        OnClick = btnColDownClick
       end
       object grpOptions: TGroupBox
         Left = 196

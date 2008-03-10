@@ -169,6 +169,15 @@ object frmSQLhelp: TfrmSQLhelp
         Align = alTop
         Caption = 'Example:'
       end
+      object btnSearchOnline: TPngSpeedButton
+        Left = 207
+        Top = 128
+        Width = 103
+        Height = 25
+        Anchors = [akRight, akBottom]
+        Caption = 'Search online'
+        OnClick = ButtonOnlinehelpClick
+      end
       object MemoExample: TMemo
         AlignWithMargins = True
         Left = 0
@@ -200,15 +209,6 @@ object frmSQLhelp: TfrmSQLhelp
         ModalResult = 1
         TabOrder = 1
         OnClick = ButtonCloseClick
-      end
-      object btnSearchOnline: TPngSpeedButton
-        Left = 207
-        Top = 128
-        Width = 103
-        Height = 25
-        Anchors = [akRight, akBottom]
-        Caption = 'Search online'
-        OnClick = ButtonOnlinehelpClick
       end
     end
   end

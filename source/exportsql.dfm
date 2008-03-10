@@ -164,6 +164,16 @@ object ExportSQLForm: TExportSQLForm
           OnClick = btnFileBrowseClick
           PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
         end
+        object btnDirectoryBrowse: TPngSpeedButton
+          Left = 344
+          Top = 85
+          Width = 22
+          Height = 22
+          Anchors = [akTop, akRight]
+          Flat = True
+          OnClick = btnDirectoryBrowseClick
+          PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
+        end
         object editFileName: TEdit
           Left = 26
           Top = 42
@@ -262,16 +272,6 @@ object ExportSQLForm: TExportSQLForm
           Enabled = False
           TabOrder = 3
           OnDblClick = btnDirectoryBrowseClick
-        end
-        object btnDirectoryBrowse: TPngSpeedButton
-          Left = 344
-          Top = 85
-          Width = 22
-          Height = 22
-          Anchors = [akTop, akRight]
-          Flat = True
-          OnClick = btnDirectoryBrowseClick
-          PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
         end
       end
       object groupExampleSql: TGroupBox
