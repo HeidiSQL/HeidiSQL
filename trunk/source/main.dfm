@@ -3332,6 +3332,7 @@ object MainForm: TMainForm
         Name = 'PngImage78'
         Background = clWindow
       end>
+    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 8
     Top = 120
     Bitmap = {}
