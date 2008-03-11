@@ -52,13 +52,15 @@
      .baseline(context.get("/Results"))
      .table("results", new String[] {"\t"}, new String[][] {{""}}, 550, 100)
      .nextRow()
-     .baseline(context.get("/resultsScrollPane"))
-     .vspace(133) //why this isnt automatic I have no idea the baseline should be reliable.
+     .baseline(context.get("/resultsScrollPane"), "South")
+     .vspace(5) //why this isnt automatic I have no idea the baseline should be reliable.
      .line(LF.isWin?553:555)
      .nextRow()
      .vspace(2)
      .space(LF.isWin?444:446)
      .button("Close", 110);
+     
+     System.out.println("results scroller:" + ((Object)context.get("/resultsScrollPane")).getClass().getName());
      
   ((Table)context.get("/results")).clear();
   
