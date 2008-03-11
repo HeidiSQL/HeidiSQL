@@ -123,6 +123,11 @@ else if ("Load SQL File".equals(who))
     editor.setProperty("filePath", file);
   }
 }
+else if ("Copy as CSV Data".equals(who))
+{
+  String csv = (String)script("resultsToCSV",args());
+  SystemUtil.copyToClipboard(csv);
+}
 else if ( "Exit".equals(who) )
 {
   System.exit(0);

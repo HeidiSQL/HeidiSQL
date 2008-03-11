@@ -1,0 +1,33 @@
+import java.awt.Toolkit;
+import java.awt.datatransfer.*;
+
+WindowContext context = argObj("windowContext");
+
+DB.Result results = context.get("lastQueryResults");
+StringBuilder buffer = null;
+
+if (results != null && !results.isEmpty())
+{
+  String[] colNames = results.getColumnNames();
+  buffer = new StringBuilder(1000);
+  String sep="";
+  for(String col:colNames)
+  {
+    buffer.append(sep).append(col);
+    sep=",";
+  }
+  buffer.append("\n");
+  for (HashObject row:results)
+  {
+    sep="";
+    for (String col:colNames)
+    {   
+      buffer.append(sep).append(row.get(col));
+      sep=",";
+    }
+    buffer.append("\n");
+  }
+
+}
+
+return buffer != null ? buffer.toString(): "";
