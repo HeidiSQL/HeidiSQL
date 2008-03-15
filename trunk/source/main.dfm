@@ -268,7 +268,6 @@ object MainForm: TMainForm
           Checked = True
           State = cbChecked
           TabOrder = 0
-          OnClick = CheckBoxLimitClick
           OnEnter = LimitPanelEnter
           OnExit = LimitPanelExit
         end

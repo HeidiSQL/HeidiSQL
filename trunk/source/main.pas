@@ -170,7 +170,6 @@ type
     procedure CopyTableExecute(Sender: TObject);
     procedure showstatus(msg: string=''; panel: Integer=0);
     procedure ButtonOKClick(Sender: TObject);
-    procedure CheckBoxLimitClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
     procedure LimitPanelExit(Sender: TObject);
     procedure OpenURL(Sender: TObject);
@@ -770,14 +769,6 @@ begin
   // Set Filter
   ChildWin.DBTree.SetFocus;
   ChildWin.viewdata(self);
-end;
-
-
-procedure TMainForm.CheckBoxLimitClick(Sender: TObject);
-begin
-  // Check/Uncheck popupmenu-item
-  if ChildWin <> nil then
-    ChildWin.MenuLimit.Checked := CheckBoxLimit.Checked;
 end;
 
 procedure TMainForm.LimitPanelEnter(Sender: TObject);

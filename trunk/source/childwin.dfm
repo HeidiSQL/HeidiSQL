@@ -2149,11 +2149,6 @@ object MDIChild: TMDIChild
       Caption = 'Filter...'
       OnClick = Filter1Click
     end
-    object MenuLimit: TMenuItem
-      Caption = 'Limit'
-      Checked = True
-      OnClick = MenuLimitClick
-    end
     object Find1: TMenuItem
       Action = MainForm.DataSearch
     end
@@ -2214,10 +2209,6 @@ object MDIChild: TMDIChild
         ImageIndex = 80
         OnClick = InsertDate
       end
-    end
-    object MenuViewBlob: TMenuItem
-      Caption = 'Edit Memo/BLOB'
-      OnClick = MenuViewBlobClick
     end
     object ViewasHTML1: TMenuItem
       Action = MainForm.HTMLview
