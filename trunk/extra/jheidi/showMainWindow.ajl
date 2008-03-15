@@ -93,6 +93,8 @@
 	    .horizontalGlue();
 	dataTab.table("table", new String[] {"\t"}, new String[][] {{""}});
 	
+	((Table)dataTab.get("table")).setColumnSelectionAllowed(true);
+	
 	Panel queryTab = tabs.tab("Query", "images/query.gif");
 	queryTab.toolbar("toolbar").events("queryToolbarEvents")
 	   .text("banner", "SQL query for " + profile.get("user") + "@" + profile.get("host"))
@@ -111,6 +113,8 @@
   queryTab.splitVertical("queryResults", 180)
      .editor("editor")
      .table("results", new String[] {"\t"}, new String[][] {{""}});
+  
+  ((Table)queryTab.get("results")).setColumnSelectionAllowed(true);
   
 	AjlEditor editor = consoleTab.get("outputWindow");
   editor.setEditable(false);
