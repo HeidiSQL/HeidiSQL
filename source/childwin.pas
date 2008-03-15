@@ -2795,8 +2795,12 @@ begin
       VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsString );
       if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
         VTRowDataListProcesses[i-1].ImageIndex := 26  // killed
-      else
-        VTRowDataListProcesses[i-1].ImageIndex := 55; // running
+      else begin
+        if ds.FindField('Info').AsString = '' then
+          VTRowDataListProcesses[i-1].ImageIndex := 55 // idle
+        else
+          VTRowDataListProcesses[i-1].ImageIndex := 57 // running query
+      end;
       for j := 1 to 7 do
         VTRowDataListProcesses[i-1].Captions.Add(ds.Fields[j].AsString);
       ds.Next;
