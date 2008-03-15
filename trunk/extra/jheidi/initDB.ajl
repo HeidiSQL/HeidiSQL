@@ -13,6 +13,10 @@ try
   MysqlDataSource ds = new MysqlDataSource();
   String url = "jdbc:mysql://" + profile.get("host") + ":" + profile.get("port") + "/";
 
+  if ( "true".equals(profile.get("compress")) )
+  {
+    url+="?useCompression=true";
+  }
   ds.setUrl(url);
   ds.setUser(profile.get("user"));
   ds.setPassword(profile.get("password"));
