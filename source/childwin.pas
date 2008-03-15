@@ -95,7 +95,6 @@ type
     menuAlterTable: TMenuItem;
     N10: TMenuItem;
     MenuRenameTable: TMenuItem;
-    MenuViewBlob: TMenuItem;
     TimerConnected: TTimer;
     N12: TMenuItem;
     popupSqlLog: TPopupMenu;
@@ -126,7 +125,6 @@ type
     DataSource2: TDataSource;
     Copytableas1: TMenuItem;
     Filter1: TMenuItem;
-    MenuLimit: TMenuItem;
     Delete1: TMenuItem;
     N6: TMenuItem;
     QF1: TMenuItem;
@@ -410,7 +408,6 @@ type
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
     procedure MenuRenameTableClick(Sender: TObject);
-    procedure MenuViewBlobClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
     procedure EditQuery1Click(Sender: TObject);
@@ -425,7 +422,6 @@ type
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
     procedure Filter1Click(Sender: TObject);
-    procedure MenuLimitClick(Sender: TObject);
     procedure Delete1Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure btnBlobWordWrapClick(Sender: TObject);
@@ -1586,7 +1582,6 @@ begin
     else
       btnDataSorting.Font.Color := clWindowText;
 
-    MenuLimit.Checked := Mainform.CheckBoxLimit.Checked;
     PrimaryKeyColumns := TStringList.Create();
 
     if ( ( SelectedTable <> '' ) and ( ActiveDatabase <> '' ) ) then
@@ -3535,12 +3530,6 @@ begin
 end;
 
 
-procedure TMDIChild.MenuViewBlobClick(Sender: TObject);
-begin
-  PageControlBottom.ActivePage := tabBlobEditor;
-end;
-
-
 procedure TMDIChild.TimerConnectedTimer(Sender: TObject);
 begin
   if not TimerConnected.Enabled then begin
@@ -3842,15 +3831,6 @@ begin
     SynMemoQuery.CaretXY := SynMemoQuery.BlockBegin;
   end;
 end;
-
-procedure TMDIChild.MenuLimitClick(Sender: TObject);
-begin
-  // limit or not limit
-  mainform.CheckBoxLimit.Checked := not mainform.CheckBoxLimit.Checked;
-  viewdata(self);
-end;
-
-
 
 procedure TMDIChild.Delete1Click(Sender: TObject);
 begin
@@ -5431,7 +5411,6 @@ begin
 
     // Ensure visibility of the Blob-Editor
     PageControlBottom.ActivePage := tabBlobEditor;
-    MenuViewBlob.Enabled := true;
 
     // Detect if we have picture-data in this BLOB and
     // if yes, bring the viewer in the BLOB-editor to the front
@@ -5455,7 +5434,6 @@ begin
     DBMemo1.ReadOnly := true;
     DBMemo1.DataField := '';
     EDBImage1.DataField := '';
-    MenuViewBlob.Enabled := false;
   end;
 
   // Indicate the ReadOnly-state of the BLOB to the user
