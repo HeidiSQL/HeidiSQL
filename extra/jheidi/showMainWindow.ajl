@@ -11,7 +11,7 @@
   app.toolbarButtonInsets(100, 100, 100, 100);
 	
 	//set up the menus
-	app.menu("&File").item("Connection", "Close", "separator", "Reset Window-Options", "Export Settings...", "Import Settings...", "separator", "Exit");
+	app.menu("&File").item("Connection", "Close", "separator", "Export Settings...", "Import Settings...", "separator", "Exit");
 	app.menu("&Edit").item("Cut", "Copy", "Paste");
 	Menu m = app.menu("&Tools").item("Refresh", "separator", "Create Database", "Drop Database", "Create Table", "Drop Table" , "separator");
 	Menu flush = m.submenu("Flush");
