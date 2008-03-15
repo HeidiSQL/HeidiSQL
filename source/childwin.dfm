@@ -574,13 +574,13 @@ object MDIChild: TMDIChild
               item
                 Position = 0
                 Width = 120
-                WideText = 'Table'
+                WideText = 'Name'
               end
               item
                 Alignment = taRightJustify
                 Position = 1
                 Width = 70
-                WideText = 'Records'
+                WideText = 'Rows'
               end
               item
                 Alignment = taRightJustify
@@ -601,7 +601,7 @@ object MDIChild: TMDIChild
               item
                 Position = 5
                 Width = 70
-                WideText = 'Type'
+                WideText = 'Engine'
               end
               item
                 Position = 6
