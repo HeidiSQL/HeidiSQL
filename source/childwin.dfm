@@ -1055,7 +1055,7 @@ object MDIChild: TMDIChild
         end
         object tabQuery: TTabSheet
           Caption = 'Query'
-          ImageIndex = 35
+          ImageIndex = 57
           object spltQuery: TSplitter
             Left = 0
             Top = 125
@@ -1683,7 +1683,7 @@ object MDIChild: TMDIChild
             Top = 0
             Hint = 'Clear Filter'
             Caption = 'Clear'
-            ImageIndex = 58
+            ImageIndex = 26
             OnClick = ClearFilter
           end
           object sepFilter1: TToolButton
@@ -2043,33 +2043,40 @@ object MDIChild: TMDIChild
       object QF1: TMenuItem
         AutoHotkeys = maManual
         Caption = 'Column = Value'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object QF2: TMenuItem
         AutoHotkeys = maManual
         Caption = 'Column != Value'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object QF3: TMenuItem
         AutoHotkeys = maManual
         Caption = 'Column > Value'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object QF4: TMenuItem
         AutoHotkeys = maManual
         Caption = 'Column < Value'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object QF5: TMenuItem
         Caption = 'Column LIKE Value%'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object QF6: TMenuItem
         Caption = 'Column LIKE %Value'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object QF7: TMenuItem
         Caption = 'Column LIKE %Value%'
+        ImageIndex = 61
         OnClick = QuickFilterClick
       end
       object N11: TMenuItem
@@ -2077,22 +2084,27 @@ object MDIChild: TMDIChild
       end
       object QF8: TMenuItem
         Caption = 'Column = ...'
+        ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF9: TMenuItem
         Caption = 'Column != ...'
+        ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF10: TMenuItem
         Caption = 'Column > ...'
+        ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF11: TMenuItem
         Caption = 'Column < ...'
+        ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF12: TMenuItem
         Caption = 'Column like ...'
+        ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object N7: TMenuItem
@@ -2101,27 +2113,27 @@ object MDIChild: TMDIChild
       end
       object QF13: TMenuItem
         Caption = 'Column = CLIPBOARD'
-        ImageIndex = 2
+        ImageIndex = 4
         OnClick = QuickFilterClick
       end
       object QF14: TMenuItem
         Caption = 'Column != CLIPBOARD'
-        ImageIndex = 2
+        ImageIndex = 4
         OnClick = QuickFilterClick
       end
       object QF15: TMenuItem
         Caption = 'Column > CLIPBOARD'
-        ImageIndex = 2
+        ImageIndex = 4
         OnClick = QuickFilterClick
       end
       object QF16: TMenuItem
         Caption = 'Column < CLIPBOARD'
-        ImageIndex = 2
+        ImageIndex = 4
         OnClick = QuickFilterClick
       end
       object QF17: TMenuItem
         Caption = 'Column LIKE %CLIPBOARD%'
-        ImageIndex = 2
+        ImageIndex = 4
         OnClick = QuickFilterClick
       end
       object N21: TMenuItem
@@ -2129,7 +2141,7 @@ object MDIChild: TMDIChild
       end
       object DropFilter1: TMenuItem
         Caption = 'Drop Filter'
-        ImageIndex = 70
+        ImageIndex = 26
         OnClick = DropFilter1Click
       end
     end
@@ -2171,29 +2183,35 @@ object MDIChild: TMDIChild
     end
     object DataInsertDateTime: TMenuItem
       Caption = 'Insert Date/Time'
+      ImageIndex = 80
       object DataDateTime: TMenuItem
         Caption = 'datetime'
         Hint = 'Insert datetime-value'
+        ImageIndex = 80
         OnClick = InsertDate
       end
       object DataDate: TMenuItem
         Caption = 'date'
         Hint = 'Insert date-value'
+        ImageIndex = 80
         OnClick = InsertDate
       end
       object DataTime: TMenuItem
         Caption = 'time'
         Hint = 'Insert time-value'
+        ImageIndex = 80
         OnClick = InsertDate
       end
       object DataTimestamp: TMenuItem
         Caption = 'timestamp'
         Hint = 'Insert timestamp-value'
+        ImageIndex = 80
         OnClick = InsertDate
       end
       object DataYear: TMenuItem
         Caption = 'year'
         Hint = 'Insert year-value'
+        ImageIndex = 80
         OnClick = InsertDate
       end
     end

@@ -2473,7 +2473,6 @@ begin
   with MainForm do
   begin
     ButtonRefresh.Enabled := FrmIsFocussed;
-    ButtonReload.Enabled := FrmIsFocussed;
     ExportTables.Enabled := FrmIsFocussed;
     ButtonCreateDatabase.Enabled := FrmIsFocussed;
     MenuRefresh.Enabled := FrmIsFocussed;
