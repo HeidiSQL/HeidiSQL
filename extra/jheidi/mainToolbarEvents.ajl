@@ -1,4 +1,5 @@
 import javax.swing.tree.*;
+import javax.swing.*;
 
 String who = arg("source");
 
@@ -98,6 +99,21 @@ else if ("Drop Database".equals(who))
       schemaTree.select(root);
      }
   }
+}
+else if ("Print".equals(who))
+{
+  //this is total shit - but it does work if you try to print something that might fit on 
+  //the page....omg this is bad.
+  DB.Result results = context.get("lastQueryResults");
+  if ( results != null && !results.isEmpty())
+  {
+    Table t = context.get("/mainTabs/Query/results");
+    try
+    {
+      t.print();
+    } catch (Exception e) {e.printStackTrace();}
+  }
+  
 }
 else if ("Help".equals(who) )
 {
