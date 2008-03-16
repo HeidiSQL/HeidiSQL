@@ -134,12 +134,12 @@ else if ("Copy as CSV Data".equals(who))
 }
 else if ("Copy as HTML Data".equals(who))
 {
-  String html = script("resultsToHTML",args());
+  String html = (String)script("resultsToHTML",args());
   SystemUtil.copyToClipboard(html);
 }
 else if ("Copy as XML Data".equals(who))
 {
-  String xml = script("resultsToXML",args());
+  String xml = (String)script("resultsToXML",args());
   SystemUtil.copyToClipboard(xml);
 }
 else if ("Export Data...".equals(who))
