@@ -99,6 +99,10 @@ else if ("Drop Database".equals(who))
      }
   }
 }
+else if ("Help".equals(who) )
+{
+  script("helpDialog", args());
+}
 else if ("Close".equals(who) )
 {
   Frame window = context.get("/");
