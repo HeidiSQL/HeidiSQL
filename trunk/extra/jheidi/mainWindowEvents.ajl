@@ -132,6 +132,11 @@ else if ("Copy as CSV Data".equals(who))
   String csv = (String)script("resultsToCSV",args());
   SystemUtil.copyToClipboard(csv);
 }
+else if ("Copy as HTML Data".equals(who))
+{
+  String html = script("resultsToHTML",args());
+  SystemUtil.copyToClipboard(html);
+}
 else if ( "Exit".equals(who) )
 {
   System.exit(0);
