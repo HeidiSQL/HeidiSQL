@@ -60,8 +60,6 @@
      .space(LF.isWin?444:446)
      .button("Close", 110);
      
-     System.out.println("results scroller:" + ((Object)context.get("/resultsScrollPane")).getClass().getName());
-     
   ((Table)context.get("/results")).clear();
   
     DB db = context.get("db");
