@@ -9,7 +9,7 @@ if (results != null && !results.isEmpty())
   
   buffer.append("<?xml version=\"1.0\"?>\n\n<SQL-query>\n");
   
-  String newRow="\t<row>\n\t\t";
+  String newRow="\t<row>\n";
   String closeRow="\t</row>\n";
 
   for (HashObject row:results)
