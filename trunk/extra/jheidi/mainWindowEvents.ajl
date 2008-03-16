@@ -142,6 +142,21 @@ else if ("Copy as XML Data".equals(who))
   String xml = script("resultsToXML",args());
   SystemUtil.copyToClipboard(xml);
 }
+else if ("Export Data...".equals(who))
+{
+  DB.Result results = context.get("lastQueryResults");
+  if ( results != null && !results.isEmpty())
+  {
+    Frame f = context.get("/");
+    args().put("source", "exportAsFile");
+    f.saveFileWithCallback("mainWindowEvents", args(), false, null, "CSV", "csv", "HTML", "html",  "XML", "xml" );
+  }
+}
+else if ("exportAsFile".equals(who))
+{
+   String output = (String)script("resultsTo" + arg("fileType"), args());
+   FileUtil.fromString(arg("filePath"), output);
+}
 else if ( "Exit".equals(who) )
 {
   System.exit(0);
