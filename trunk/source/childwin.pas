@@ -5635,14 +5635,16 @@ procedure TMDIChild.SetSelectedTable(table: string);
 var
   allnodes: TTreeNodes;
   i: integer;
+  db: String;
 begin
   DisableTreeEvents;
   allnodes := DBTree.Items;
+  db := ActiveDatabase;
   if allnodes.Count > 0 then begin
     // Round 1: Search case-sensitive.
     // Important after creating a table on servers with lower_case_table_names=0
     for i := 0 to allnodes.Count - 1 do begin
-      if (allnodes[i].Level = 2) and (allnodes[i].Text = table) then begin
+      if (allnodes[i].Level = 2) and (allnodes[i].Parent.Text=db) and (allnodes[i].Text = table) then begin
         allnodes[i].Selected := true;
         EnableTreeEvents;
         exit;
@@ -5651,7 +5653,7 @@ begin
     // Round 2: Search case-insensitive
     // Important after creating a table on servers with lower_case_table_names=1
     for i := 0 to allnodes.Count - 1 do begin
-      if (allnodes[i].Level = 2) and (AnsiCompareText(allnodes[i].Text, table) = 0) then begin
+      if (allnodes[i].Level = 2) and (allnodes[i].Parent.Text=db) and (AnsiCompareText(allnodes[i].Text, table) = 0) then begin
         allnodes[i].Selected := true;
         EnableTreeEvents;
         exit;
