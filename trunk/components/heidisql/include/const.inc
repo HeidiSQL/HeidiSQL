@@ -172,6 +172,10 @@ const
   ICONINDEX_INDEXKEY = 23;
   ICONINDEX_UNIQUEKEY = 24;
   ICONINDEX_FULLTEXTKEY = 22;
+  ICONINDEX_TABLE = 14;
+  ICONINDEX_TABLE_HIGHLIGHT = 71;
+  ICONINDEX_VIEW = 81;
+  ICONINDEX_VIEW_HIGHLIGHT = 82;
 
   // Size of byte units
   {KiloByte} SIZE_KB = 1024;
@@ -206,3 +210,7 @@ const
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
   TXT_DESC = 'DESC';        // dito
 
+  // Node types of Virtual Tree nodes
+  NODETYPE_DEFAULT = 0;
+  NODETYPE_BASETABLE = 1;
+  NODETYPE_VIEW = 2;

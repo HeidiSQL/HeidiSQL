@@ -124,7 +124,7 @@ type
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
     DataSearch: TAction;
-    DropTable: TAction;
+    DropTablesAndViews: TAction;
     LoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
@@ -187,7 +187,7 @@ type
     procedure InsertFilesExecute(Sender: TObject);
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
-    procedure DropTableExecute(Sender: TObject);
+    procedure DropTablesAndViewsExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
     function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
@@ -1016,57 +1016,100 @@ begin
 end;
 
 // Drop Table(s)
-procedure TMainForm.DropTableExecute(Sender: TObject);
+procedure TMainForm.DropTablesAndViewsExecute(Sender: TObject);
 var
   i : Integer;
   tndb : TTreeNode;
-  t : TStringList;
+  Objects, Tables, Views : TStringList;
   db, msg, sql, activeDB : String;
+  ds: TDataSet;
 begin
   debug('drop table activated');
-  t := TStringlist.Create;
   // Set default database name to to ActiveDatabase.
   // Can be overwritten when someone selects a table in dbtree from different database
   activeDB := Childwin.ActiveDatabase;
   db := activeDB;
   tndb := nil;
 
+  // Fill "Objects" and leave "Tables" and "Views" empty to postpone detection
+  // of views|tables to below this IF statement
+  Objects := TStringlist.Create;
+  Tables := TStringlist.Create;
+  Views := TStringlist.Create;
   if (Sender as TBasicAction).ActionComponent = Childwin.PopupMenuDropTable then begin
     // Invoked by tree menu popup.
     tndb := Childwin.DBRightClickSelectedItem.Parent;
     db := tndb.Text;
-    t.add( Childwin.DBRightClickSelectedItem.Text );
+    Objects.add( Childwin.DBRightClickSelectedItem.Text );
   end else if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
     // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
-    t := GetVTCaptions(Childwin.ListTables, True);
+    Tables := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_BASETABLE);
+    Views := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_VIEW);
   end else begin
     // Invoked from one of the various buttons, drop table selected in tree view.
-    t.add( Childwin.SelectedTable );
+    Objects.add( Childwin.SelectedTable );
+  end;
+
+  // Split Objects into Tables + Views if not already done
+  if (Tables.Count = 0) and (Views.Count = 0) and (Objects.Count > 0) then begin
+    ds := Childwin.GetResults('SHOW TABLE STATUS FROM '+Childwin.mask(db));
+    for i := 0 to Objects.Count - 1 do begin
+      while not ds.Eof do begin
+        case GetDBObjectType( ds.Fields ) of
+          NODETYPE_BASETABLE: begin Tables.Add(Objects[i]); break; end;
+          NODETYPE_VIEW:      begin Views.Add(Objects[i]);  break; end;
+        end;
+        ds.Next;
+      end;
+    end;
   end;
 
   // Fix actions temporarily enabled for popup menu.
   Childwin.ValidateControls;
 
   // Safety stop to avoid firing DROP TABLE without tablenames
-  if t.Count = 0 then
+  if (Tables.Count = 0) and (Views.Count = 0) then
     Exit;
 
-  // Ask user for confirmation to drop selected tables
-  msg := 'Drop ' + inttostr(t.count) + ' table(s) in database "'+db+'"?' + crlf + crlf + implodestr(', ', t);
+  // Ask user for confirmation to drop selected objects
+  Objects.Clear;
+  Objects.AddStrings(Tables);
+  Objects.AddStrings(Views);
+  msg := 'Drop ' + IntToStr(Objects.Count) + ' table(s) and/or view(s) in database "'+db+'"?'
+    + CRLF + CRLF + ImplodeStr(', ', Objects);
+  FreeAndNil(Objects);
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     Exit;
 
-  // Form and execute SQL
-  sql := 'DROP TABLE ';
-  for i := 0 to t.Count - 1 do
-  begin
-    if i > 0 then
-      sql := sql + ', ';
-    if db <> activeDB then
-      sql := sql + Childwin.mask(db) + '.';
-    sql := sql + Childwin.mask(t[i]);
+  // Compose and run DROP TABLE query
+  if Tables.Count > 0 then begin
+    sql := 'DROP TABLE ';
+    for i := 0 to Tables.Count - 1 do
+    begin
+      if i > 0 then
+        sql := sql + ', ';
+      if db <> activeDB then
+        sql := sql + Childwin.mask(db) + '.';
+      sql := sql + Childwin.mask(Tables[i]);
+    end;
+    Childwin.ExecUpdateQuery( sql );
   end;
-  Childwin.ExecUpdateQuery( sql );
+  FreeAndNil(Tables);
+
+  // Compose and run DROP VIEW query
+  if Views.Count > 0 then begin
+    sql := 'DROP VIEW ';
+    for i := 0 to Views.Count - 1 do
+    begin
+      if i > 0 then
+        sql := sql + ', ';
+      if db <> activeDB then
+        sql := sql + Childwin.mask(db) + '.';
+      sql := sql + Childwin.mask(Views[i]);
+    end;
+    Childwin.ExecUpdateQuery( sql );
+  end;
+  FreeAndNil(Views);
 
   // Refresh ListTables + dbtree so the dropped tables are gone:
   if db = activeDB then
