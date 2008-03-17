@@ -18,6 +18,7 @@ type
   TVTreeData = record
     Captions: TStringList;
     ImageIndex: Integer;
+    NodeType: Byte;
   end;
   PVTreedata = ^TVTreeData;
 
@@ -83,10 +84,11 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
-  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
+  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TStringList;
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
+  function GetDBObjectType( TableStatus: TFields ): Byte;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2100,10 +2102,10 @@ end;
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
-function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0 ): TStringList;
+function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TStringList;
 var
   SelectedNodes : TNodeArray;
-  Node : PVirtualNode;
+  NodeData: PVTreeData;
   i: Integer;
   a : TVTreeDataArray;
 begin
@@ -2114,15 +2116,20 @@ begin
     SelectedNodes := VT.GetSortedSelection(False);
     for i := 0 to Length(SelectedNodes) - 1 do
     begin
-      Node := SelectedNodes[i];
-      Result.Add( VT.Text[ Node, Column ] );
+      NodeData := VT.GetNodeData( SelectedNodes[i] );
+      if (OnlyNodeType = NODETYPE_DEFAULT) // Add all nodes, regardless of their types
+        or (NodeData.NodeType = OnlyNodeType) then // Node in loop is of specified type
+        Result.Add( NodeData.Captions[Column] );
     end;
   end
   else begin
     // Fetch all nodes
     a := Mainform.Childwin.GetVTreeDataArray( VT )^;
-    for i := 0 to High(a) do
-      Result.Add( a[i].Captions[ Column ] );
+    for i := 0 to High(a) do begin
+      if (OnlyNodeType = NODETYPE_DEFAULT)
+        or (a[i].NodeType = OnlyNodeType) then
+        Result.Add( a[i].Captions[ Column ] );
+    end;
   end;
 end;
 
@@ -2167,6 +2174,16 @@ begin
   Result := StrPas(TempPath);
 end;
 
+
+// Tell type of db object (table|view) by a given row from a SHOW TABLE STATUS result
+function GetDBObjectType( TableStatus: TFields ): Byte;
+begin
+  if TableStatus[1].IsNull // Engine column is NULL for views
+    and (LowerCase( TableStatus.FieldByName('Comment').AsString) = 'view') then
+    Result := NODETYPE_VIEW
+  else
+    Result := NODETYPE_BASETABLE;
+end;
 
 
 initialization

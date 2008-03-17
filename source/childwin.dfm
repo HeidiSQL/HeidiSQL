@@ -677,6 +677,10 @@ object MDIChild: TMDIChild
                 Position = 17
                 Width = 70
                 WideText = 'Create options'
+              end
+              item
+                Position = 18
+                WideText = 'Type'
               end>
           end
           object pnlDatabaseToolbar: TPanel
@@ -736,7 +740,7 @@ object MDIChild: TMDIChild
               object btnDbDropTable: TToolButton
                 Left = 0
                 Top = 66
-                Action = MainForm.DropTable
+                Action = MainForm.DropTablesAndViews
                 Wrap = True
               end
               object btnDbCopyTable: TToolButton
@@ -1750,7 +1754,7 @@ object MDIChild: TMDIChild
       OnClick = menuAlterTableClick
     end
     object PopupMenuDropTable: TMenuItem
-      Action = MainForm.DropTable
+      Action = MainForm.DropTablesAndViews
     end
     object Exporttables2: TMenuItem
       Action = MainForm.ExportTables
@@ -1796,7 +1800,7 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object menudroptable: TMenuItem
-      Action = MainForm.DropTable
+      Action = MainForm.DropTablesAndViews
     end
     object menuemptytable: TMenuItem
       Caption = 'Empty ...'

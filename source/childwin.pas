@@ -585,6 +585,7 @@ type
       procedure insertFunction(Sender: TObject);
       function GetActiveDatabase: string;
       function GetSelectedTable: string;
+      function GetSelectedTableType: Integer;
       procedure SetSelectedDatabase(db: string);
       procedure SetSelectedTable(table: string);
       procedure ProcessClientSQL(command: String; parameter: String);
@@ -640,6 +641,7 @@ type
 
       property ActiveDatabase : string read GetActiveDatabase write SetSelectedDatabase;
       property SelectedTable : string read GetSelectedTable write SetSelectedTable;
+      property SelectedTableType : Integer read GetSelectedTableType;
 
       function FetchActiveDbTableList: TDataSet;
       function RefreshActiveDbTableList: TDataSet;
@@ -1778,17 +1780,21 @@ var
   rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
 begin
-  if ( ActiveGrid = gridQuery ) then
-  begin
+  if ActiveGrid = gridQuery then
     Exit;
+
+  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
+
+  if SelectedTableType = NODETYPE_BASETABLE then begin
+    // Get rowcount from table
+    rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
+    lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' records total';
+  end else begin
+    // Don't fetch rowcount from views to fix bug #1844952
+    rows_total := -1;
+    lblDataTop.Caption := lblDataTop.Caption + ' [View]';
   end;
 
-  // Get rowcount
-  rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' +
-    mask( SelectedTable ), 0 ) );
-
-  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ' +
-    FormatNumber( rows_total ) + ' records total';
 
   {***
     @note: FOUND_ROWS() gives us a correct number, but this number
@@ -1808,44 +1814,24 @@ begin
   if Trim( SynMemoFilter.Text ) <> '' then
   begin
     if mysql_version >= 40000 then
-    begin
-      rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0);
-    end
+      rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0)
     else
-    begin
       rows_matching := ActiveGrid.DataSource.DataSet.RecordCount;
-    end;
   end
   else
-  begin
     rows_matching := rows_total;
-  end;
 
-  if (
-    ( rows_matching <> rows_total ) and
-    ( Trim( SynMemoFilter.Text ) <> '' )
-  ) then
-  begin
-    lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) +
-      ' matching to filter';
-  end;
+  if( rows_matching <> rows_total ) and
+    ( Trim( SynMemoFilter.Text ) <> '' ) then
+    lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
 
-  if (
-    ( rows_matching = rows_total ) and
-    ( Trim( SynMemoFilter.Text ) <> '')
-  ) then
-  begin
+  if ( rows_matching = rows_total ) and
+    ( Trim( SynMemoFilter.Text ) <> '') then
     lblDataTop.Caption := lblDataTop.Caption + ', filter matches all records';
-  end;
 
-  if (
-    ( mainform.CheckBoxLimit.Checked ) and
-    ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) )
-  ) then
-  begin
-    lblDataTop.Caption := lblDataTop.Caption + ', limited to ' +
-      FormatNumber( ds.RecordCount );
-  end;
+  if ( mainform.CheckBoxLimit.Checked ) and
+    ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) ) then
+    lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber( ds.RecordCount );
 end;
 
 
@@ -2049,12 +2035,18 @@ begin
     begin
       s := ds.Fields[0].AsString;
       tmp := tndb.Owner.AddChild(tndb, s);
-      with tmp do
-      begin
-        ImageIndex := 14;
-        selectedIndex := 71;
-        if Text = find then select := tmp;
+      // Assign different icons to tables and views
+      case GetDBObjectType(ds.Fields) of
+        NODETYPE_BASETABLE: begin
+          tmp.ImageIndex := ICONINDEX_TABLE;
+          tmp.selectedIndex := ICONINDEX_TABLE_HIGHLIGHT;
+        end;
+        NODETYPE_VIEW : begin
+          tmp.ImageIndex := ICONINDEX_VIEW;
+          tmp.selectedIndex := ICONINDEX_VIEW_HIGHLIGHT;
+        end;
       end;
+      if tmp.Text = find then select := tmp;
       // Add tables to syntax highlighter
       if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
       ds.Next;
@@ -2086,6 +2078,14 @@ var
   ds              : TDataSet;
   ListCaptions,
   SelectedCaptions: TStringList;
+  // Fetch content from a row cell, avoiding NULLs to cause AVs
+  function FieldContent(FieldName: String): String;
+  begin
+    Result := '';
+    if (ds.FindField(FieldName) <> nil)
+      and (not ds.FindField(FieldName).IsNull) then
+      Result := ds.FieldByName(FieldName).AsString;
+  end;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -2112,100 +2112,109 @@ begin
       if mysql_version < 32300 then
         continue;
 
-      // Default visible columns
+      // Treat tables slightly different than views
+      case GetDBObjectType( ds.Fields) of
+        NODETYPE_BASETABLE: // A normal table
+        begin
+          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
+          VTRowDataListTables[i-1].NodeType := NODETYPE_BASETABLE;
+          // Records
+          ListCaptions.Add( FormatNumber( FieldContent('Rows') ) );
+          // Size: Data_length + Index_length
+          if not ds.FieldByName('Data_length').IsNull then begin
+            bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
+            ListCaptions.Add( FormatByteNumber( Trunc(bytes) ) );
+          end else ListCaptions.Add(STR_NOTAVAILABLE);
+          // Created:
+          ListCaptions.Add( FieldContent('Create_time') );
+          // Updated:
+          ListCaptions.Add( FieldContent('Update_time') );
+          // Engine
+          if ds.FindField('Type') <> nil then
+            ListCaptions.Add( FieldContent('Type') )
+          else
+            ListCaptions.Add( FieldContent('Engine') );
+          // Comment
+          ListCaptions.Add( FieldContent('Comment') );
+          // Version
+          ListCaptions.Add( FieldContent('Version') );
+          // Row format
+          ListCaptions.Add( FieldContent('Row_format') );
+          // Avg row length
+          if (FieldContent('Avg_row_length') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent('Avg_row_length')) )
+          else ListCaptions.Add('');
+          // Max data length
+          if (FieldContent('Max_data_length') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent('Max_data_length')) )
+          else ListCaptions.Add('');
+          // Index length
+          if (FieldContent('Index_length') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent('Index_length')) )
+          else ListCaptions.Add('');
+          // Data free
+          if (FieldContent('Data_free') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent('Data_free')) )
+          else ListCaptions.Add('');
+          // Auto increment
+          if (FieldContent('Auto_increment') <> '') then
+            ListCaptions.Add( FormatNumber(FieldContent('Auto_increment')) )
+          else ListCaptions.Add('');
+          // Check time
+          ListCaptions.Add( FieldContent('Check_time') );
+          // Collation
+          ListCaptions.Add( FieldContent('Collation') );
+          // Checksum
+          ListCaptions.Add( FieldContent('Checksum') );
+          // Create_options
+          ListCaptions.Add( FieldContent('Create_options') );
+          // Object type
+          ListCaptions.Add('Base table');
+        end;
 
-      // Records
-      if not ds.FieldByName('Rows').IsNull then
-        ListCaptions.Add( FormatNumber( ds.FieldByName('Rows').AsString ) )
-      else
-        ListCaptions.Add(STR_NOTAVAILABLE);
-      // Size: Data_length + Index_length
-      if not ds.FieldByName('Data_length').IsNull then begin
-        bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-        ListCaptions.Add( FormatByteNumber( Trunc(bytes) ) );
-      end else
-        ListCaptions.Add(STR_NOTAVAILABLE);
-      // Created:
-      if not ds.FieldByName('Create_time').IsNull then
-        ListCaptions.Add( ds.FieldByName('Create_time').AsString )
-      else
-        ListCaptions.Add(STR_NOTAVAILABLE);
+        NODETYPE_VIEW:
+        begin // View
+          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_VIEW;
+          VTRowDataListTables[i-1].NodeType := NODETYPE_VIEW;
+          // Rows
+          ListCaptions.Add('');
+          // Size
+          ListCaptions.Add('');
+          // Created:
+          ListCaptions.Add('');
+          // Updated:
+          ListCaptions.Add('');
+          // Engine
+          ListCaptions.Add('');
+          // Comment
+          ListCaptions.Add('');
+          // Version
+          ListCaptions.Add('');
+          // Row_format
+          ListCaptions.Add('');
+          // Avg_row_length
+          ListCaptions.Add('');
+          // Max_data_length
+          ListCaptions.Add('');
+          // Index_length
+          ListCaptions.Add('');
+          // Data_free
+          ListCaptions.Add('');
+          // Auto_increment
+          ListCaptions.Add('');
+          // Check_time
+          ListCaptions.Add('');
+          // Collation
+          ListCaptions.Add('');
+          // Checksum
+          ListCaptions.Add('');
+          // Create_options
+          ListCaptions.Add('');
+          // Object Type
+          ListCaptions.Add('View');
+        end;
+      end;
 
-      // Updated:
-      if not ds.FieldByName('Update_time').IsNull then
-        ListCaptions.Add( ds.FieldByName('Update_time').AsString )
-      else
-        ListCaptions.Add(STR_NOTAVAILABLE);
-
-      // Type
-      if ds.FindField('Type')<>nil then
-        ListCaptions.Add( ds.FieldByName('Type').AsString )
-      else if ds.FindField('Engine')<>nil then
-        ListCaptions.Add( ds.FieldByName('Engine').AsString )
-      else
-        ListCaptions.Add('');
-
-      // Comment
-      ListCaptions.Add( ds.FieldByName('Comment').AsString );
-
-      // Add content from other columns which are not visible in ListTables by default
-
-      if ds.FindField('Version')<>nil then
-        ListCaptions.Add( ds.FieldByName('Version').AsString )
-      else
-        ListCaptions.Add('');
-
-      if ds.FindField('Row_format')<>nil then
-        ListCaptions.Add( ds.FieldByName('Row_format').AsString )
-      else
-        ListCaptions.Add('');
-
-      if (ds.FindField('Avg_row_length')<>nil) and (ds.FieldByName('Avg_row_length').AsString<>'') then
-        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Avg_row_length').AsString) )
-      else
-        ListCaptions.Add('');
-
-      if (ds.FindField('Max_data_length')<>nil) and (ds.FieldByName('Max_data_length').AsString<>'') then
-        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Max_data_length').AsString) )
-      else
-        ListCaptions.Add('');
-
-      if (ds.FindField('Index_length')<>nil) and (ds.FieldByName('Index_length').AsString<>'') then
-        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Index_length').AsString) )
-      else
-        ListCaptions.Add('');
-
-      if (ds.FindField('Data_free')<>nil) and (ds.FieldByName('Data_free').AsString<>'') then
-        ListCaptions.Add( FormatByteNumber(ds.FieldByName('Data_free').AsString) )
-      else
-        ListCaptions.Add('');
-
-      if (ds.FindField('Auto_increment')<>nil) and (ds.FieldByName('Auto_increment').AsString<>'') then
-        ListCaptions.Add( FormatNumber(ds.FieldByName('Auto_increment').AsString) )
-      else
-        ListCaptions.Add('');
-
-      if ds.FindField('Check_time')<>nil then
-        ListCaptions.Add( ds.FieldByName('Check_time').AsString )
-      else
-        ListCaptions.Add('');
-
-      if ds.FindField('Collation')<>nil then
-        ListCaptions.Add( ds.FieldByName('Collation').AsString )
-      else
-        ListCaptions.Add('');
-
-      if ds.FindField('Checksum')<>nil then
-        ListCaptions.Add( ds.FieldByName('Checksum').AsString )
-      else
-        ListCaptions.Add('');
-
-      if ds.FindField('Create_options')<>nil then
-        ListCaptions.Add( ds.FieldByName('Create_options').AsString )
-      else
-        ListCaptions.Add('');
-
-      VTRowDataListTables[i-1].ImageIndex := 14;
       VTRowDataListTables[i-1].Captions := ListCaptions;
       ds.Next;
     end;
@@ -2437,30 +2446,41 @@ end;
 }
 procedure TMDIChild.ValidateControls( FrmIsFocussed: Boolean = true );
 var
-  tableSelected : Boolean;
+  NodeSelected, tableSelected : Boolean;
   inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
+  NodeData: PVTreeData;
+  SelectedNodes: TNodeArray;
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
   if (PageControlMain.ActivePage <> tabDatabase) then ListTables.FocusedNode := nil;
 
-  tableSelected := (Length(ListTables.GetSortedSelection(False))>0) and FrmIsFocussed;
-  btnDbProperties.Enabled := tableSelected;
-  menuproperties.Enabled := tableSelected;
-  btnDbViewData.Enabled := tableSelected;
-  menuviewdata.Enabled := tableSelected;
+  SelectedNodes := ListTables.GetSortedSelection(False);
+  NodeSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
+  tableSelected := False;
+
+  // Check type of first selected node, to en-/disable certain menu items
+  if NodeSelected then begin
+    NodeData := ListTables.GetNodeData( SelectedNodes[0] );
+    tableSelected := NodeData.NodeType = NODETYPE_BASETABLE;
+  end;
+
+  btnDbProperties.Enabled := NodeSelected;
+  menuproperties.Enabled := NodeSelected;
+  btnDbViewData.Enabled := NodeSelected;
+  menuviewdata.Enabled := NodeSelected;
   btnDbEmptyTable.Enabled := tableSelected;
   menuemptytable.Enabled := tableSelected;
   menuAlterTable.Enabled := tableSelected;
-  MenuRenameTable.Enabled := tableSelected;
-  Mainform.CopyTable.Enabled := tableSelected;
+  MenuRenameTable.Enabled := NodeSelected;
+  Mainform.CopyTable.Enabled := NodeSelected;
   MenuOptimize.Enabled := tableSelected;
   MenuCheck.Enabled := tableSelected;
   MenuAnalyze.Enabled := tableSelected;
   MenuRepair.Enabled := tableSelected;
 
   MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  MainForm.DropTable.Enabled := tableSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
+  MainForm.DropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
   MainForm.ButtonCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.ButtonImportTextFile.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
   MainForm.MenuImportTextFile.Enabled := MainForm.ButtonImportTextFile.Enabled;
@@ -4441,6 +4461,8 @@ begin
 end;
 
 procedure TMDIChild.popupTreeViewPopup(Sender: TObject);
+var
+  IsLevel2: Boolean;
 begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
@@ -4450,8 +4472,9 @@ begin
     menuAlterDatabase.Hint := STR_NOTSUPPORTED
   else
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
-  menuTreeAlterTable.Enabled := DBtree.Selected.Level = 2;
-  MainForm.DropTable.Enabled := DBtree.Selected.Level = 2;
+  IsLevel2 := DBtree.Selected.Level = 2;
+  menuTreeAlterTable.Enabled := IsLevel2 and (DBtree.Selected.ImageIndex = ICONINDEX_TABLE);
+  MainForm.DropTablesAndViews.Enabled := IsLevel2;
 end;
 
 
@@ -5556,6 +5579,22 @@ begin
 end;
 
 
+function TMDIChild.GetSelectedTableType: Integer;
+begin
+  if DBTree.Selected = nil then Result := NODETYPE_DEFAULT
+  else case DBTree.Selected.Level of
+    2: begin
+      case DBTree.Selected.ImageIndex of
+        ICONINDEX_TABLE: Result := NODETYPE_BASETABLE;
+        ICONINDEX_VIEW: Result := NODETYPE_VIEW;
+        else Result := NODETYPE_DEFAULT;
+      end;
+    end
+    else Result := NODETYPE_DEFAULT;
+  end;
+end;
+
+
 procedure TMDIChild.DisableTreeEvents;
 var
   p: PMethod;
@@ -6028,6 +6067,7 @@ begin
   // Bind data to node
   NodeData.Captions := a[Node.Index].Captions;
   NodeData.ImageIndex := a[Node.Index].ImageIndex;
+  NodeData.NodeType := a[Node.Index].NodeType;
 end;
 
 
