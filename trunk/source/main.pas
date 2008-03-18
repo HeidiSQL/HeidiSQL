@@ -67,7 +67,7 @@ type
     UserManager: TAction;
     ShowAboutBox: TAction;
     Diagnostics: TAction;
-    OptimizeTables1: TMenuItem;
+    menuMaintenance: TMenuItem;
     ImExport1: TMenuItem;
     CopyContentsasHTMLTable1: TMenuItem;
     CopyHTMLtable: TAction;

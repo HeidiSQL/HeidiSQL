@@ -1816,33 +1816,10 @@ object MDIChild: TMDIChild
       ShortCut = 113
       OnClick = MenuRenameTableClick
     end
-    object Table1: TMenuItem
+    object menuMaintenance: TMenuItem
       Caption = 'Maintenance'
-      object MenuOptimize: TMenuItem
-        Caption = 'OPTIMIZE'
-        Enabled = False
-        OnClick = MenuOptimizeClick
-      end
-      object MenuCheck: TMenuItem
-        Caption = 'CHECK'
-        Enabled = False
-        OnClick = MenuCheckClick
-      end
-      object MenuAnalyze: TMenuItem
-        Caption = 'ANALYZE'
-        Enabled = False
-        OnClick = MenuAnalyzeClick
-      end
-      object MenuRepair: TMenuItem
-        Caption = 'REPAIR'
-        Enabled = False
-        OnClick = MenuRepairClick
-      end
-      object More1: TMenuItem
-        Caption = 'More Maintenance...'
-        ImageIndex = 39
-        OnClick = More1Click
-      end
+      ImageIndex = 39
+      OnClick = menuMaintenanceClick
     end
     object N18: TMenuItem
       Caption = '-'

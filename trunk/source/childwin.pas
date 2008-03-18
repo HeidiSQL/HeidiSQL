@@ -104,11 +104,7 @@ type
     EditQuery1: TMenuItem;
     Markall3: TMenuItem;
     N15: TMenuItem;
-    MenuOptimize: TMenuItem;
-    MenuCheck: TMenuItem;
-    MenuAnalyze: TMenuItem;
-    MenuRepair: TMenuItem;
-    More1: TMenuItem;
+    menuMaintenance: TMenuItem;
     TimerConnectErrorCloseWindow: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
@@ -134,7 +130,6 @@ type
     QF4: TMenuItem;
     N7: TMenuItem;
     DropFilter1: TMenuItem;
-    Table1: TMenuItem;
     popupFilterOpenFile: TPopupMenu;
     OpenDialog2: TOpenDialog;
     PrintList2: TMenuItem;
@@ -413,11 +408,7 @@ type
     procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
     procedure ReadWindowOptions;
-    procedure More1Click(Sender: TObject);
-    procedure MenuOptimizeClick(Sender: TObject);
-    procedure MenuCheckClick(Sender: TObject);
-    procedure MenuAnalyzeClick(Sender: TObject);
-    procedure MenuRepairClick(Sender: TObject);
+    procedure menuMaintenanceClick(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
@@ -2474,10 +2465,6 @@ begin
   menuAlterTable.Enabled := tableSelected;
   MenuRenameTable.Enabled := NodeSelected;
   Mainform.CopyTable.Enabled := NodeSelected;
-  MenuOptimize.Enabled := tableSelected;
-  MenuCheck.Enabled := tableSelected;
-  MenuAnalyze.Enabled := tableSelected;
-  MenuRepair.Enabled := tableSelected;
 
   MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.DropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
@@ -3594,56 +3581,9 @@ begin
 end;
 
 
-procedure TMDIChild.More1Click(Sender: TObject);
+procedure TMDIChild.menuMaintenanceClick(Sender: TObject);
 begin
   TableDiagnosticsWindow(Self);
-end;
-
-
-procedure TMDIChild.MenuOptimizeClick(Sender: TObject);
-var
-  i : Integer;
-  Selected : TStringList;
-begin
-  // Optimize tables
-  Screen.Cursor := crHourGlass;
-  Selected := GetVTCaptions( ListTables, True );
-  try
-    for i:=0 to Selected.Count-1 do
-    begin
-      ExecUpdateQuery( 'OPTIMIZE TABLE ' + mask(Selected[i]) );
-    end;
-    // Update ListTables because relevant table properties probably have changed
-    Mainform.Childwin.RefreshActiveDbTableList;
-  finally
-    Selected.Free;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
-procedure TMDIChild.MenuCheckClick(Sender: TObject);
-var
-  i : Integer;
-  tables : String;
-  Selected : TStringList;
-begin
-  // Check tables
-  Screen.Cursor := crHourGlass;
-  tables := '';
-  Selected := GetVTCaptions( ListTables, True );
-  try
-    for i:=0 to Selected.Count-1 do
-    begin
-      if tables <> '' then
-        tables := tables + ', ';
-      tables := tables + mask(Selected[i]);
-    end;
-    ExecUpdateQuery( 'CHECK TABLE ' + tables + ' QUICK' );
-  finally
-    Selected.Free;
-    Screen.Cursor := crDefault;
-  end;
 end;
 
 
@@ -3665,58 +3605,6 @@ begin
   memo.SelStart := 0;
   memo.SelEnd := 0;
 end;
-
-procedure TMDIChild.MenuAnalyzeClick(Sender: TObject);
-var
-  i : Integer;
-  tables : String;
-  Selected : TStringList;
-begin
-  // Analyze tables
-  Screen.Cursor := crHourGlass;
-  tables := '';
-  Selected := GetVTCaptions( ListTables, True );
-  try
-    for i:=0 to Selected.Count-1 do
-    begin
-      if tables <> '' then
-        tables := tables + ', ';
-      tables := tables + mask(Selected[i]);
-    end;
-    ExecUpdateQuery( 'ANALYZE TABLE ' + tables );
-  finally
-    Selected.Free;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
-procedure TMDIChild.MenuRepairClick(Sender: TObject);
-var
-  i : Integer;
-  tables : String;
-  Selected : TStringList;
-begin
-  // Repair tables
-  Screen.Cursor := crHourGlass;
-  tables := '';
-  Selected := GetVTCaptions( ListTables, True );
-  try
-    for i:=0 to Selected.Count - 1 do
-    begin
-      if tables <> '' then
-        tables := tables + ', ';
-      tables := tables + mask(Selected[i]);
-    end;
-    ExecUpdateQuery( 'REPAIR TABLE ' + tables + ' QUICK' );
-    // Update ListTables because relevant table properties probably have changed
-    Mainform.Childwin.RefreshActiveDbTableList;
-  finally
-    Selected.Free;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
 
 procedure TMDIChild.ListTablesDblClick(Sender: TObject);
 var

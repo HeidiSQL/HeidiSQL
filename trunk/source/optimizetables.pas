@@ -70,6 +70,7 @@ procedure Toptimize.FormShow(Sender: TObject);
 var
   i : Integer;
   tn : TTreeNode;
+  Selected: TStringList;
 begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
@@ -88,6 +89,13 @@ begin
   if DBComboBox.ItemIndex = -1 then
     DBComboBox.ItemIndex := 0;
   DBComboBox.OnChange(self);
+
+  // Fetch selected tables in list and preselect them in the checkboxlist
+  Selected := GetVTCaptions( Mainform.ChildWin.ListTables, True );
+  if Selected.Count > 0 then
+    ToggleCheckListBox(TablesCheckListBox, True, Selected)
+  else // Select all in checkboxlist if no table is preselected 
+    ToggleCheckListBox(TablesCheckListBox, True);
 end;
 
 procedure Toptimize.DBComboBoxChange(Sender: TObject);
