@@ -17,7 +17,7 @@ uses
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
-  StrUtils, DateUtils, PngImageList;
+  StrUtils, DateUtils, PngImageList, OptimizeTables;
 
 type
   TMainForm = class(TForm)
@@ -66,7 +66,7 @@ type
     menuReadme: TMenuItem;
     UserManager: TAction;
     ShowAboutBox: TAction;
-    Diagnostics: TAction;
+    actMaintenance: TAction;
     menuMaintenance: TMenuItem;
     ImExport1: TMenuItem;
     CopyContentsasHTMLTable1: TMenuItem;
@@ -163,7 +163,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure UserManagerExecute(Sender: TObject);
     procedure ShowAboutBoxExecute(Sender: TObject);
-    procedure DiagnosticsExecute(Sender: TObject);
+    procedure actMaintenanceExecute(Sender: TObject);
     procedure CopyHTMLtableExecute(Sender: TObject);
     procedure Copy2CSVExecute(Sender: TObject);
     procedure PrintListExecute(Sender: TObject);
@@ -203,6 +203,7 @@ type
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
   public
+    MaintenanceForm: TOptimize;
     procedure OpenRegistry(Session: String = '');
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
@@ -251,7 +252,6 @@ uses
   loaddata,
   usermanager,
   options,
-  optimizetables,
   printlist,
   copytable,
   insertfiles,
@@ -711,10 +711,12 @@ begin
   AboutWindow (Self);
 end;
 
-procedure TMainForm.DiagnosticsExecute(Sender: TObject);
+procedure TMainForm.actMaintenanceExecute(Sender: TObject);
 begin
   // optimize / repair... tables
-  TableDiagnosticsWindow (Self);
+  if MaintenanceForm = nil then
+    MaintenanceForm := TOptimize.Create(Self);
+  MaintenanceForm.ShowModal;
 end;
 
 

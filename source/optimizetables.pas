@@ -10,31 +10,33 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db;
+  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db, Registry;
 
 type
   Toptimize = class(TForm)
     TablesCheckListBox: TCheckListBox;
     DBComboBox: TComboBox;
-    Label1: TLabel;
-    Button3: TButton;
-    CheckBoxQuickRepair: TCheckBox;
-    CheckBoxQuickCheck: TCheckBox;
+    lblSelect: TLabel;
+    btnClose: TButton;
+    cbxQuickRepair: TCheckBox;
+    cbxQuickCheck: TCheckBox;
     btnOptimize: TButton;
     btnCheck: TButton;
     btnAnalyze: TButton;
     btnRepair: TButton;
-    Label3: TLabel;
-    ListViewResults: TListView;
-    ToolBar1: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
+    lblResults: TLabel;
+    ListResults: TListView;
+    tlbCheckToggle: TToolBar;
+    tlbCheckNone: TToolButton;
+    tlbCheckAll: TToolButton;
     cbxExtendedCheck: TCheckBox;
     cbxExtendedRepair: TCheckBox;
+    procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure DBComboBoxChange(Sender: TObject);
     procedure CheckListToggle(Sender: TObject);
-    procedure Optimze(Sender: TObject);
+    procedure Optimize(Sender: TObject);
     procedure Check(Sender: TObject);
     procedure Analyze(Sender: TObject);
     procedure Repair(Sender: TObject);
@@ -49,23 +51,45 @@ type
     { Public declarations }
   end;
 
-  function TableDiagnosticsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
-
 
 implementation
+
 uses childwin, helpers, main;
+
 {$R *.DFM}
 
-function TableDiagnosticsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
-var
-  f : Toptimize;
+
+{**
+  FormCreate: Restore GUI setup
+}
+procedure Toptimize.FormCreate(Sender: TObject);
 begin
-  f := Toptimize.Create(AOwner);
-  f.ShowModal;
-  Result := True;
-  FreeAndNil (f);
+  Width := Mainform.GetRegValue(REGNAME_MAINTWINWIDTH, Width);
+  Height := Mainform.GetRegValue(REGNAME_MAINTWINHEIGHT, Height);
 end;
 
+
+{**
+  FormDestroy: Save GUI setup
+}
+procedure Toptimize.FormDestroy(Sender: TObject);
+var
+  reg : TRegistry;
+begin
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, False) then begin
+    reg.WriteInteger( REGNAME_MAINTWINWIDTH, Width );
+    reg.WriteInteger( REGNAME_MAINTWINHEIGHT, Height );
+    reg.CloseKey;
+  end;
+  reg.Free;
+  Close;
+end;
+
+
+{**
+  FormShow: Fill DB combobox and tables list
+}
 procedure Toptimize.FormShow(Sender: TObject);
 var
   i : Integer;
@@ -94,14 +118,25 @@ begin
   Selected := GetVTCaptions( Mainform.ChildWin.ListTables, True );
   if Selected.Count > 0 then
     ToggleCheckListBox(TablesCheckListBox, True, Selected)
-  else // Select all in checkboxlist if no table is preselected 
+  else // Select all in checkboxlist if no table is preselected
     ToggleCheckListBox(TablesCheckListBox, True);
 end;
 
+
+{**
+  DB selected in pulldown
+}
 procedure Toptimize.DBComboBoxChange(Sender: TObject);
+var
+  ds: TDataset;
 begin
   // read tables from db
-  TablesCheckListBox.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(DBComboBox.Text) );
+  ds := Mainform.ChildWin.FetchDbTableList(DBComboBox.Text);
+  TablesCheckListBox.Items.Clear;
+  while not ds.Eof do begin
+    TablesCheckListBox.Items.Add(ds.Fields[0].AsString);
+    ds.Next;
+  end;
   // Check all
   ToggleCheckListBox( TablesCheckListBox, True );
   // Enable controls if there are tables in the database.
@@ -109,6 +144,9 @@ begin
 end;
 
 
+{**
+  Check all/none
+}
 procedure Toptimize.CheckListToggle(Sender: TObject);
 begin
   // select all/none
@@ -116,6 +154,10 @@ begin
   TablesCheckListBox.OnClickCheck(self);
 end;
 
+
+{**
+  Parse and run SQL template for all maintenance actions
+}
 procedure Toptimize.RunIterated(pseudoSql: string);
 var
   i: integer;
@@ -143,50 +185,74 @@ begin
   end;
 end;
 
-procedure Toptimize.Optimze(Sender: TObject);
+
+{**
+  Optimize tables
+}
+procedure Toptimize.Optimize(Sender: TObject);
 begin
   RunIterated('OPTIMIZE TABLE $table');
 end;
 
+
+{**
+  Check tables
+}
 procedure Toptimize.Check(Sender: TObject);
 var
   querystr  : String;
 begin
   querystr := 'CHECK TABLE $table';
-  if CheckBoxQuickCheck.Checked then
+  if cbxQuickCheck.Checked then
     querystr := querystr + ' QUICK';
   if cbxExtendedCheck.Checked then
     querystr := querystr + ' EXTENDED';
   RunIterated(querystr);
 end;
 
+
+{**
+  Analyze tables
+}
 procedure Toptimize.Analyze(Sender: TObject);
 begin
   RunIterated('ANALYZE TABLE $table');
 end;
 
+
+{**
+  Repair tables
+}
 procedure Toptimize.Repair(Sender: TObject);
 var
   querystr  : String;
 begin
   querystr := 'REPAIR TABLE $table';
-  if CheckBoxQuickRepair.Checked then
+  if cbxQuickRepair.Checked then
     querystr := querystr + ' QUICK';
   if cbxExtendedRepair.Checked then
     querystr := querystr + ' EXTENDED';
   RunIterated(querystr);
 end;
 
+
+{**
+  Clear ListResults
+}
 procedure Toptimize.ClearResults;
 begin
-  ListViewResults.Columns.BeginUpdate();
-  ListViewResults.Columns.Clear;
-  ListViewResults.Items.BeginUpdate();
-  ListViewResults.Items.Clear;
-  ListViewResults.Columns.EndUpdate();
-  ListViewResults.Items.EndUpdate();
+  ListResults.Columns.BeginUpdate;
+  ListResults.Columns.Clear;
+  ListResults.Items.BeginUpdate;
+  ListResults.Items.Clear;
+  ListResults.Columns.EndUpdate;
+  ListResults.Items.EndUpdate;
 end;
 
+
+{**
+  Add results from maintenance action
+}
 procedure Toptimize.AddResults(ds: TDataSet);
 var
   i,j,fieldcount : Integer;
@@ -194,37 +260,45 @@ var
   lc           : TListColumn;
 begin
   fieldcount := ds.FieldCount;
-  if fieldcount > ListViewResults.Columns.Count then begin
-    ListViewResults.Columns.BeginUpdate();
-    for i := ListViewResults.Columns.Count to fieldcount - 1 do begin
-      lc := ListViewResults.Columns.Add;
+  if fieldcount > ListResults.Columns.Count then begin
+    ListResults.Columns.BeginUpdate();
+    for i := ListResults.Columns.Count to fieldcount - 1 do begin
+      lc := ListResults.Columns.Add;
       lc.Caption := ds.Fields[i].Fieldname;
     end;
-    ListViewResults.Columns.EndUpdate();
+    ListResults.Columns.EndUpdate;
   end;
 
-  ListViewResults.Items.BeginUpdate();
+  ListResults.Items.BeginUpdate;
   for i:=1 to ds.RecordCount do
   begin
-    li := ListViewResults.Items.Add;
+    li := ListResults.Items.Add;
     li.Caption := ds.Fields[0].AsString;
     for j := 1 to fieldcount -1 do // fill cells
       li.SubItems.Add(ds.Fields[j].AsString);
     ds.Next;
   end;
 
-  for i := 0 to ListViewResults.Columns.Count-1 do
-    ListViewResults.Columns[i].Width := -2;
+  for i := 0 to ListResults.Columns.Count-1 do
+    ListResults.Columns[i].Width := -2;
 
-  ListViewResults.Items[ListViewResults.Items.Count - 1].MakeVisible(false);
-  ListViewResults.Items.EndUpdate();
+  ListResults.Items[ListResults.Items.Count - 1].MakeVisible(false);
+  ListResults.Items.EndUpdate;
 end;
 
+
+{**
+  Table was (un-)checked: ensure correct state of buttons
+}
 procedure Toptimize.TablesCheckListBoxClickCheck(Sender: TObject);
 begin
   ValidateControls;
 end;
 
+
+{**
+  Check if at least one table is checked and dis/enable the buttons
+}
 procedure Toptimize.ValidateControls;
 var
    i : Integer;
@@ -243,5 +317,6 @@ begin
   btnAnalyze.Enabled := somechecked;
   btnRepair.Enabled := somechecked;
 end;
+
 
 end.

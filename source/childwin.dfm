@@ -1817,9 +1817,7 @@ object MDIChild: TMDIChild
       OnClick = MenuRenameTableClick
     end
     object menuMaintenance: TMenuItem
-      Caption = 'Maintenance'
-      ImageIndex = 39
-      OnClick = menuMaintenanceClick
+      Action = MainForm.actMaintenance
     end
     object N18: TMenuItem
       Caption = '-'

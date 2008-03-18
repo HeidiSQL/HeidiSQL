@@ -482,8 +482,7 @@ object MainForm: TMainForm
         Action = UserManager
       end
       object menuMaintenance: TMenuItem
-        Action = Diagnostics
-        Caption = 'Maintenance'
+        Action = actMaintenance
       end
       object N7: TMenuItem
         Caption = '-'
@@ -659,13 +658,13 @@ object MainForm: TMainForm
       Hint = 'About MySQL-Front'
       OnExecute = ShowAboutBoxExecute
     end
-    object Diagnostics: TAction
+    object actMaintenance: TAction
       Tag = 35
-      Caption = 'Table-Diagnostics'
+      Caption = 'Maintenance'
       Enabled = False
       Hint = 'Optimize, repair and analyse tables'
       ImageIndex = 39
-      OnExecute = DiagnosticsExecute
+      OnExecute = actMaintenanceExecute
     end
     object CopyHTMLtable: TAction
       Tag = 49
