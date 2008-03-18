@@ -481,7 +481,7 @@ object MainForm: TMainForm
       object MenuUserManager: TMenuItem
         Action = UserManager
       end
-      object OptimizeTables1: TMenuItem
+      object menuMaintenance: TMenuItem
         Action = Diagnostics
         Caption = 'Maintenance'
       end

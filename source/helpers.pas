@@ -1231,12 +1231,11 @@ procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: T
 var
   i : Integer;
 begin
-  for i:=0 to list.Items.Count-1 do
-  begin
+  for i:=0 to list.Items.Count-1 do begin
     if list_toggle.IndexOf(list.Items[i]) > -1 then
-    begin
-      list.Checked[i] := state;
-    end;
+      list.Checked[i] := state
+    else
+      list.Checked[i] := not state;
   end;
 end;
 
