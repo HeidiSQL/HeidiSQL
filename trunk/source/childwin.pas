@@ -408,7 +408,6 @@ type
     procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
     procedure ReadWindowOptions;
-    procedure menuMaintenanceClick(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
@@ -664,7 +663,7 @@ implementation
 
 uses
   Main, fieldeditor,
-  optimizetables, copytable, sqlhelp, printlist,
+  copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
   Registry;
 
@@ -2490,7 +2489,7 @@ begin
     MenuFlushTableswithreadlock.Enabled := FrmIsFocussed;
     MenuFlushStatus.Enabled := FrmIsFocussed;
     UserManager.Enabled := FrmIsFocussed;
-    Diagnostics.Enabled := FrmIsFocussed;
+    actMaintenance.Enabled := FrmIsFocussed;
     InsertFiles.Enabled := FrmIsFocussed;
     {***
       Activate export-options if we're on Data- or Query-tab
@@ -3578,12 +3577,6 @@ procedure TMDIChild.Markall3Click(Sender: TObject);
 begin
   // select all in history
   SynMemoSQLLog.SelectAll;
-end;
-
-
-procedure TMDIChild.menuMaintenanceClick(Sender: TObject);
-begin
-  TableDiagnosticsWindow(Self);
 end;
 
 

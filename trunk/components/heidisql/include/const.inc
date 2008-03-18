@@ -155,6 +155,8 @@ const
   REGNAME_UPDATECHECK_INTERVAL = 'UpdatecheckInterval';
   DEFAULT_UPDATECHECK_INTERVAL = 3;
   REGNAME_LAST_UPDATECHECK = 'UpdatecheckLastrun';
+  REGNAME_MAINTWINWIDTH = 'Maintenance_WindowWidth';
+  REGNAME_MAINTWINHEIGHT = 'Maintenance_WindowHeight';
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
