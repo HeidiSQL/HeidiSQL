@@ -36,7 +36,8 @@ uses
   runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm},
   updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck},
-  editvar in '..\..\source\editvar.pas' {frmEditVariable};
+  editvar in '..\..\source\editvar.pas' {frmEditVariable},
+  view in '..\..\source\view.pas' {frmView};
 
 {$R *.RES}
 

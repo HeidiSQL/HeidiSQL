@@ -1753,6 +1753,12 @@ object MDIChild: TMDIChild
       ImageIndex = 17
       OnClick = menuAlterTableClick
     end
+    object menuTreeCreateView: TMenuItem
+      Action = MainForm.actCreateView
+    end
+    object menuTreeEditView: TMenuItem
+      Action = MainForm.actEditView
+    end
     object PopupMenuDropTable: TMenuItem
       Action = MainForm.DropTablesAndViews
     end
@@ -1786,6 +1792,9 @@ object MDIChild: TMDIChild
       Enabled = False
       ImageIndex = 17
       OnClick = menuAlterTableClick
+    end
+    object actView1: TMenuItem
+      Action = MainForm.actEditView
     end
     object menuviewdata: TMenuItem
       Caption = 'View Data'
@@ -1829,6 +1838,9 @@ object MDIChild: TMDIChild
       Caption = 'Create new Table...'
       ImageIndex = 15
       OnClick = CreateTable
+    end
+    object Createview1: TMenuItem
+      Action = MainForm.actCreateView
     end
     object Exporttables1: TMenuItem
       Action = MainForm.ExportTables
@@ -2018,7 +2030,7 @@ object MDIChild: TMDIChild
     end
     object QuickFilter1: TMenuItem
       Caption = 'Quick Filter'
-      ImageIndex = 81
+      ImageIndex = 53
       object QF1: TMenuItem
         AutoHotkeys = maManual
         Caption = 'Column = Value'

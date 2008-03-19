@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 426
+  ClientHeight = 446
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 407
+    Top = 427
     Width = 632
     Height = 19
     AutoHint = True
@@ -52,7 +52,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 406
+      Width = 437
       Height = 22
       Align = alNone
       AutoSize = True
@@ -160,8 +160,21 @@ object MainForm: TMainForm
         Action = DropTablesAndViews
         AutoSize = True
       end
-      object tlbSep4: TToolButton
+      object ToolButton2: TToolButton
         Left = 267
+        Top = 0
+        Width = 8
+        Caption = 'ToolButton2'
+        ImageIndex = 32
+        Style = tbsSeparator
+      end
+      object ToolButton1: TToolButton
+        Left = 275
+        Top = 0
+        Action = actCreateView
+      end
+      object tlbSep4: TToolButton
+        Left = 298
         Top = 0
         Width = 8
         Caption = 'tlbSep4'
@@ -169,7 +182,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 275
+        Left = 306
         Top = 0
         Hint = 'Refresh'
         AutoSize = True
@@ -179,7 +192,7 @@ object MainForm: TMainForm
         OnClick = ButtonRefreshClick
       end
       object tlbSep5: TToolButton
-        Left = 298
+        Left = 329
         Top = 0
         Width = 8
         Caption = 'tlbSep5'
@@ -187,13 +200,13 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonUserManager: TToolButton
-        Left = 306
+        Left = 337
         Top = 0
         Action = UserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 329
+        Left = 360
         Top = 0
         Hint = 'Import CSV file'
         AutoSize = True
@@ -203,14 +216,14 @@ object MainForm: TMainForm
         OnClick = ButtonImportTextfileClick
       end
       object ButtonExport: TToolButton
-        Left = 352
+        Left = 383
         Top = 0
         Hint = 'Export tables'
         Action = ExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 375
+        Left = 406
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -218,7 +231,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 383
+        Left = 414
         Top = 0
         Hint = 'SQL Help'
         Caption = 'btnSQLHelp'
@@ -414,6 +427,9 @@ object MainForm: TMainForm
         Enabled = False
         ImageIndex = 15
         OnClick = ButtonCreateTableClick
+      end
+      object Createview1: TMenuItem
+        Action = actCreateView
       end
       object MenuDropDatabase: TMenuItem
         Tag = 31
@@ -780,6 +796,18 @@ object MainForm: TMainForm
       Hint = 'Deletes tables and/or views'
       ImageIndex = 16
       OnExecute = DropTablesAndViewsExecute
+    end
+    object actEditView: TAction
+      Caption = 'Edit view ...'
+      Hint = 'Edit view ...'
+      ImageIndex = 81
+      OnExecute = actEditViewExecute
+    end
+    object actCreateView: TAction
+      Caption = 'Create view ...'
+      Hint = 'Create view ...'
+      ImageIndex = 81
+      OnExecute = actCreateViewExecute
     end
   end
   object SaveDialog2: TSaveDialog
