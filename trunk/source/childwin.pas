@@ -324,6 +324,10 @@ type
     lblFilterProcesses: TLabel;
     editFilterProcesses: TEdit;
     menuEditVariable: TMenuItem;
+    actView1: TMenuItem;
+    Createview1: TMenuItem;
+    menuTreeCreateView: TMenuItem;
+    menuTreeEditView: TMenuItem;
     procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
@@ -2436,7 +2440,7 @@ end;
 }
 procedure TMDIChild.ValidateControls( FrmIsFocussed: Boolean = true );
 var
-  NodeSelected, tableSelected : Boolean;
+  NodeSelected, tableSelected, ViewSelected : Boolean;
   inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
@@ -2448,11 +2452,13 @@ begin
   SelectedNodes := ListTables.GetSortedSelection(False);
   NodeSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
   tableSelected := False;
+  ViewSelected := False;
 
   // Check type of first selected node, to en-/disable certain menu items
   if NodeSelected then begin
     NodeData := ListTables.GetNodeData( SelectedNodes[0] );
     tableSelected := NodeData.NodeType = NODETYPE_BASETABLE;
+    ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
   btnDbProperties.Enabled := NodeSelected;
@@ -2464,6 +2470,8 @@ begin
   menuAlterTable.Enabled := tableSelected;
   MenuRenameTable.Enabled := NodeSelected;
   Mainform.CopyTable.Enabled := NodeSelected;
+  Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
+  Mainform.actCreateView.Enabled := FrmIsFocussed and (mysql_version >= 50001);
 
   MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.DropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
@@ -4348,6 +4356,8 @@ begin
   // toggle drop-items and remember right-clicked item
   PopupMenuDropDatabase.Enabled := DBtree.Selected.Level = 1;
   PopupMenuCreateTable.Enabled := DBtree.Selected.Level in [1,2];
+  Mainform.actCreateView.Enabled := (DBtree.Selected.Level in [1,2]) and (mysql_version >= 50001);
+  menuCreateTable.Enabled := DBtree.Selected.Level in [1,2];
   menuAlterDatabase.Enabled := (DBtree.Selected.Level = 1) and (mysql_version >= 50002);
   if mysql_version < 50002 then
     menuAlterDatabase.Hint := STR_NOTSUPPORTED
@@ -4355,6 +4365,7 @@ begin
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
   IsLevel2 := DBtree.Selected.Level = 2;
   menuTreeAlterTable.Enabled := IsLevel2 and (DBtree.Selected.ImageIndex = ICONINDEX_TABLE);
+  Mainform.actEditView.Enabled := IsLevel2 and (DBtree.Selected.ImageIndex = ICONINDEX_VIEW);
   MainForm.DropTablesAndViews.Enabled := IsLevel2;
 end;
 

@@ -157,6 +157,8 @@ const
   REGNAME_LAST_UPDATECHECK = 'UpdatecheckLastrun';
   REGNAME_MAINTWINWIDTH = 'Maintenance_WindowWidth';
   REGNAME_MAINTWINHEIGHT = 'Maintenance_WindowHeight';
+  REGNAME_VIEWWINWIDTH = 'View_WindowWidth';
+  REGNAME_VIEWWINHEIGHT = 'View_WindowHeight';
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';

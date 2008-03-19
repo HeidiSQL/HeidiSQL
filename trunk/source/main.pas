@@ -17,7 +17,7 @@ uses
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
-  StrUtils, DateUtils, PngImageList, OptimizeTables;
+  StrUtils, DateUtils, PngImageList, OptimizeTables, View;
 
 type
   TMainForm = class(TForm)
@@ -142,6 +142,12 @@ type
     menuUpdateCheck: TMenuItem;
     PngImageListMain: TPngImageList;
     tlbSep3: TToolButton;
+    actEditView: TAction;
+    actCreateView: TAction;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    Createview1: TMenuItem;
+    procedure actCreateViewExecute(Sender: TObject);
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
@@ -164,6 +170,7 @@ type
     procedure UserManagerExecute(Sender: TObject);
     procedure ShowAboutBoxExecute(Sender: TObject);
     procedure actMaintenanceExecute(Sender: TObject);
+    procedure actEditViewExecute(Sender: TObject);
     procedure CopyHTMLtableExecute(Sender: TObject);
     procedure Copy2CSVExecute(Sender: TObject);
     procedure PrintListExecute(Sender: TObject);
@@ -204,6 +211,7 @@ type
       string; var curIdx: Byte; out paramValue: string): Boolean;
   public
     MaintenanceForm: TOptimize;
+    ViewForm: TfrmView;
     procedure OpenRegistry(Session: String = '');
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
@@ -717,6 +725,50 @@ begin
   if MaintenanceForm = nil then
     MaintenanceForm := TOptimize.Create(Self);
   MaintenanceForm.ShowModal;
+end;
+
+
+{**
+  Create a view
+}
+procedure TMainForm.actCreateViewExecute(Sender: TObject);
+var
+  NodeData: PVTreeData;
+begin
+  if ViewForm = nil then
+    ViewForm := TfrmView.Create(Self);
+  ViewForm.EditViewName := '';
+  ViewForm.DBNode := nil;
+  if (Sender as TAction) = actEditView then begin
+    // Edit mode
+    if Assigned(Childwin.ListTables.FocusedNode) then begin
+      // "Edit view" was clicked in ListTables' context menu
+      NodeData := Childwin.ListTables.GetNodeData(Childwin.ListTables.FocusedNode);
+      ViewForm.EditViewName := NodeData.Captions[0];
+    end else if Assigned(Childwin.DBRightClickSelectedItem) then begin
+      // "Edit view" was clicked in DBTree's context menu
+      ViewForm.EditViewName := Childwin.DBRightClickSelectedItem.Text;
+      ViewForm.DBNode := Childwin.DBRightClickSelectedItem.Parent;
+    end else
+      // If we're here, there's a menu item "Edit/Create view" in an unknown location
+      raise Exception.Create('Internal error in actCreateViewExexute.');
+  end else begin
+    // Create mode
+    if Assigned(Childwin.DBRightClickSelectedItem) then case Childwin.DBRightClickSelectedItem.Level of
+      1: ViewForm.DBNode := Childwin.DBRightClickSelectedItem;
+      2: ViewForm.DBNode := Childwin.DBRightClickSelectedItem.Parent;
+    end;
+  end;
+  ViewForm.ShowModal;
+end;
+
+
+{**
+  Edit view
+}
+procedure TMainForm.actEditViewExecute(Sender: TObject);
+begin
+  actCreateViewExecute(Sender);
 end;
 
 

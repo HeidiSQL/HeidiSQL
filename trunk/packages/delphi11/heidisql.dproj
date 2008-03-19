@@ -143,5 +143,8 @@
     <DCCReference Include="..\..\source\usermanager.pas">
       <Form>UserManagerForm</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\view.pas">
+      <Form>frmView</Form>
+    </DCCReference>
   </ItemGroup>
 </Project>
