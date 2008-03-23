@@ -79,12 +79,8 @@ begin
   reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.Conn.Description, true );
 
   // Set initial values
-  reg_oldvalue := '';
+  reg_oldvalue := Mainform.GetRegValue(reg_name, '', Mainform.Childwin.Conn.Description);
   reg_newvalue := '';
-  if reg.ValueExists( reg_name ) then
-  begin
-    reg_oldvalue := reg.ReadString( reg_name );
-  end;
 
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
