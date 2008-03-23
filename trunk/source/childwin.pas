@@ -952,10 +952,9 @@ var
   delimiters  : String;
   i           : Integer;
   menuitem    : Tmenuitem;
-  reg         : TRegistry;
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
-
+  FilterFilename: String;
 begin
   // Initialize delimiter settings
   delimiter := DEFAULT_DELIMITER;
@@ -1021,22 +1020,17 @@ begin
   // SQLFiles-History
   FillPopupQueryLoad();
 
-  reg := TRegistry.Create;
-  if reg.OpenKey( REGPATH, true ) then begin
-    // SQL-Filter-Files-History
-    i := 1;
-    popupFilterOpenFile.Items.Clear();
-    while ( reg.ValueExists( REGNAME_SQLWHEREFILE + IntToStr(i) ) ) do
-    begin
-      menuitem := Tmenuitem.Create(Self);
-      menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + reg.ReadString( REGNAME_SQLWHEREFILE + IntToStr(i) );
-      menuitem.OnClick := LoadSQLWhereFile;
-      popupFilterOpenFile.Items.Add( menuitem );
-      inc( i );
-    end;
-    reg.CloseKey;
+  // SQL-Filter-Files-History
+  popupFilterOpenFile.Items.Clear;
+  for i := 1 to 100 do begin
+    FilterFilename := Mainform.GetRegValue(REGNAME_SQLWHEREFILE + IntToStr(i), '');
+    if FilterFilename = '' then
+      break;
+    menuitem := Tmenuitem.Create(Self);
+    menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + FilterFilename;
+    menuitem.OnClick := LoadSQLWhereFile;
+    popupFilterOpenFile.Items.Add( menuitem );
   end;
-  reg.Free;
 
   // Read the delimiters
   delimiters := Trim( Mainform.GetRegValue(REGNAME_DELIMITERS, '') );
@@ -1508,18 +1502,9 @@ begin
   sl_query := TStringList.Create();
   try
     // limit number of rows automatically if first time this table is shown
-    if ( not dataselected ) then begin
-      manualLimit := false;
-      manualLimitEnd := -1;
-      with TRegistry.Create do begin
-        if OpenKey(REGPATH, true) then begin
-          if Valueexists('DataLimitEnd') then begin
-            manualLimitEnd := ReadInteger('DataLimitEnd');
-            if Valueexists('DataLimit') then manualLimit := ReadBool('DataLimit');
-          end;
-        end;
-        Free;
-      end;
+    if not dataselected then begin
+      manualLimit := Mainform.GetRegValue(REGNAME_DATALIMIT, DEFAULT_DATALIMIT);
+      manualLimitEnd := Mainform.GetRegValue(REGNAME_DATALIMITEND, DEFAULT_DATALIMITEND);
 
       // limit number of rows fetched according to preferences
       if manualLimit then begin
@@ -1533,17 +1518,14 @@ begin
 
       // adjust limit in GUI
       mainform.ToolBarData.Visible := true;
-      if ( limit = -1 ) then
-      begin
-        mainform.CheckBoxLimit.Checked := false;
-      end
-      else
-      begin
+      if limit <= 0 then
+        mainform.CheckBoxLimit.Checked := false
+      else begin
         mainform.CheckBoxLimit.Checked := true;
         mainform.EditLimitStart.Text := '0';
         mainform.EditLimitEnd.Text := IntToStr( limit );
       end;
-      mainform.Repaint();
+      mainform.Repaint;
     end;
 
     // set db-aware-component's properties...
@@ -4552,7 +4534,7 @@ begin
   begin
     if Pos( 'SQLFile', Values[i] ) <> 1 then
       continue;
-    savedfilename := reg.ReadString( Values[i] );
+    savedfilename := Mainform.GetRegValue( Values[i], '' );
     reg.DeleteValue( Values[i] );
     if CheckIfFileExists and (not FileExists( savedfilename )) then
       continue;
