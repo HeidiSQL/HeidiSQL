@@ -2181,7 +2181,7 @@ begin
           // Engine
           ListCaptions.Add('');
           // Comment
-          ListCaptions.Add('');
+          ListCaptions.Add(FieldContent('Comment'));
           // Version
           ListCaptions.Add('');
           // Row_format

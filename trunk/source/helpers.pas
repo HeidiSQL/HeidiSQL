@@ -2177,8 +2177,16 @@ end;
 // Tell type of db object (table|view) by a given row from a SHOW TABLE STATUS result
 function GetDBObjectType( TableStatus: TFields ): Byte;
 begin
+  {**
+    @see http://dev.mysql.com/doc/refman/5.1/en/show-table-status.html
+      For views, all the fields displayed by SHOW TABLE STATUS are NULL except
+      that Name indicates the view name and Comment says view.
+    @note The "Comment" column can contain different content, normally "VIEW"
+      but for views which is missing its tables, it says
+      "Views bla references invalid..."
+  }
   if TableStatus[1].IsNull // Engine column is NULL for views
-    and (LowerCase( TableStatus.FieldByName('Comment').AsString) = 'view') then
+    and TableStatus[2].IsNull then
     Result := NODETYPE_VIEW
   else
     Result := NODETYPE_BASETABLE;
