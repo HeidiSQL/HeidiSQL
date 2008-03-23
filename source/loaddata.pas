@@ -147,18 +147,21 @@ end;
 
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
-  i : Integer;
+  count: Integer;
+  ds: TDataset;
+  seldb, seltable: String;
 begin
   // read tables from db
   comboTable.Items.Clear;
-  comboTable.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask( comboDatabase.Text ) );
-  for i:=0 to comboTable.Items.Count-1 do
-  begin
-    if comboTable.Items[i] = Mainform.ChildWin.SelectedTable then
-    begin
-      comboTable.ItemIndex := i;
-      break;
-    end;
+  seldb := Mainform.ChildWin.ActiveDatabase;
+  seltable := Mainform.ChildWin.SelectedTable;
+  ds := Mainform.ChildWin.FetchDbTableList(comboDatabase.Text);
+  while not ds.Eof do begin
+    comboTable.Items.Add(ds.Fields[0].AsString);
+    count := comboTable.Items.Count-1;
+    if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
+      comboTable.ItemIndex := count;
+    ds.Next;
   end;
   if comboTable.ItemIndex = -1 then
     comboTable.ItemIndex := 0;
