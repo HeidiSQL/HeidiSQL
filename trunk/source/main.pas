@@ -819,8 +819,15 @@ end;
 
 
 procedure TMainForm.ButtonOKClick(Sender: TObject);
+var
+  reg: TRegistry;
 begin
-  // Set Filter
+  // Set auto limit option after manual checking "Limit"
+  reg := TRegistry.Create;
+  if reg.OpenKey( REGPATH, true ) then begin
+    reg.WriteBool( REGNAME_DATALIMIT, CheckboxLimit.Checked );
+  end;
+  FreeAndNil(reg);
   ChildWin.DBTree.SetFocus;
   ChildWin.viewdata(self);
 end;
