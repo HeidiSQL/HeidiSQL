@@ -416,13 +416,6 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'Data-Appearance'
       ImageIndex = 4
-      object Label26: TLabel
-        Left = 257
-        Top = 40
-        Width = 36
-        Height = 13
-        Caption = 'records'
-      end
       object Label19: TLabel
         Left = 8
         Top = 68
@@ -446,7 +439,7 @@ object optionsform: Toptionsform
         Caption = 
           'Change this font in order to view special language characters in' +
           ' data-grids:'
-        TabOrder = 6
+        TabOrder = 4
         object Label21: TLabel
           Left = 20
           Top = 24
@@ -516,40 +509,20 @@ object optionsform: Toptionsform
       object CheckBoxlimit: TCheckBox
         Left = 8
         Top = 40
-        Width = 169
+        Width = 397
         Height = 17
-        Caption = 'View data by default limited to'
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Automatically calculate data limit to avoid huge net loads'
         Checked = True
         State = cbChecked
         TabOrder = 1
-        OnClick = CheckBoxlimitClick
-      end
-      object EditLimit: TEdit
-        Left = 189
-        Top = 37
-        Width = 41
-        Height = 21
-        TabOrder = 2
-        Text = '50'
-        OnChange = Modified
-      end
-      object UpDownLimit: TUpDown
-        Left = 230
-        Top = 37
-        Width = 16
-        Height = 21
-        Associate = EditLimit
-        Max = 32767
-        Position = 50
-        TabOrder = 3
-        OnChanging = anyUpDownLimitChanging
       end
       object editDefaultColWidth: TEdit
         Left = 188
         Top = 65
         Width = 42
         Height = 21
-        TabOrder = 4
+        TabOrder = 2
         Text = '0'
         OnChange = Modified
       end
@@ -560,7 +533,7 @@ object optionsform: Toptionsform
         Height = 21
         Associate = editDefaultColWidth
         Max = 1000
-        TabOrder = 5
+        TabOrder = 3
         OnChanging = anyUpDownLimitChanging
       end
       object chkRememberFilters: TCheckBox

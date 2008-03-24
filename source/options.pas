@@ -71,9 +71,6 @@ type
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
     CheckBoxlimit: TCheckBox;
-    EditLimit: TEdit;
-    UpDownLimit: TUpDown;
-    Label26: TLabel;
     Label19: TLabel;
     Label20: TLabel;
     Label28: TLabel;
@@ -103,7 +100,6 @@ type
     procedure FontsChange(Sender: TObject);
     procedure CallColorDialog(Sender: TObject);
     procedure DataFontsChange(Sender: TObject);
-    procedure CheckBoxlimitClick(Sender: TObject);
     procedure anyUpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
     procedure btnOpenLogFolderClick(Sender: TObject);
@@ -180,7 +176,6 @@ begin
   reg.WriteString(REGNAME_CSV_TERMINATOR, Edit3.Text);
   reg.WriteInteger(REGNAME_DEFAULTCOLWIDTH, updownDefaultColWidth.Position);
   reg.WriteBool(REGNAME_DATALIMIT, CheckBoxLimit.Checked);
-  reg.WriteInteger(REGNAME_DATALIMITEND, UpDownLimit.Position);
   reg.WriteString(REGNAME_DATAFONTNAME, Panel8.Font.Name);
   reg.WriteInteger(REGNAME_DATAFONTSIZE, UpDownDataFontSize.Position);
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
@@ -226,10 +221,6 @@ begin
     cwin.prefConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
   end;
 
-  // Set relevant properties in mainform
-  Mainform.CheckBoxLimit.Checked := CheckBoxLimit.Checked;
-  Mainform.UpDownLimitEnd.Position := UpDownLimit.Position;
-
   // Settings have been applied, send a signal to the user
   ButtonApply.Enabled := false;
 
@@ -270,8 +261,6 @@ begin
   CheckBoxConvertHTMLEntities.Checked := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
   CheckBoxRestoreLastUsedDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
   CheckBoxLimit.Checked := Mainform.GetRegValue(REGNAME_DATALIMIT, DEFAULT_DATALIMIT);
-  UpDownLimit.Position := Mainform.GetRegValue(REGNAME_DATALIMITEND, DEFAULT_DATALIMITEND);
-  CheckBoxLimit.OnClick(self);
   updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
@@ -363,13 +352,6 @@ begin
     Size := UpDownDataFontSize.Position;
   end;
   Modified(self);
-end;
-
-procedure Toptionsform.CheckBoxlimitClick(Sender: TObject);
-begin
-  UpDownLimit.Enabled := CheckBoxLimit.Checked;
-  EditLimit.Enabled := CheckBoxLimit.Checked;
-  Modified(sender);
 end;
 
 procedure Toptionsform.anyUpDownLimitChanging(Sender: TObject;
