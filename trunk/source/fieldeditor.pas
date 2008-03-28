@@ -860,7 +860,7 @@ begin
       // Send query
       Mainform.ChildWin.ExecUpdateQuery(query);
       // Refresh listColumns to display correct field-icons
-      Mainform.ChildWin.MenuRefreshClick(Self);
+      Mainform.ChildWin.ShowTableProperties(Mainform.ChildWin.SelectedTable);
     except
       On E : Exception do
       begin
