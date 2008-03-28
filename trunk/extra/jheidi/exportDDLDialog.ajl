@@ -1,0 +1,94 @@
+  import java.awt.Dimension; 
+  import javax.swing.*;
+  
+
+  WindowContext parentContext = argObj("windowContext");
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"exportDDLDialog", "Export Tables As SQL" );
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));  
+  context.put("profile", parentContext.get("profile"));
+  
+  dlg.events("exportDDLEvents");
+  dlg.insets(10, 10);
+
+  Tabs tabs = dlg.tabs("tabs");
+  Panel source = tabs.tab("Source");
+  source.tabLayout();
+  source.insets(10, 10);
+  source.text("Database:")
+        .nextRow()
+        .combo("dbs", new String[] {"Hi"}, 300)
+        .nextRow()
+        .text("Select Tables To Export:")
+        .nextRow()
+        .listbox("tables", new String[] {}, 206, LF.isWin?210:180)
+        .space(3)
+        .button("Select All",85)
+        .setTab()
+        .nextRow()
+        .tab(1)
+        .baseline(context.get("/tabs/Source/Select All"))           
+        .button("Deselect",85);
+  
+  Panel dest = tabs.tab("Destination");
+  dest.tabLayout();
+  dest.insets(10, 10);
+  dest.groupbox("Filename", 300, 70)
+      .space(5)
+      .nextRow()
+      .vspace(LF.isWin?22:20)
+      .space(15)
+      .field("fileName", 233)
+      .setTab()
+      .vspace(LF.isMac?19:20)
+      .imageButton("saveFile", "images/folder.gif", 32)
+      .nextRow()
+      .baseline(context.get("/tabs/Destination/gbFilename"), "South")
+      .groupbox("Export Options",300,212)
+      .nextRow()
+      .tab(1)
+      .vspace(LF.isWin?22:14)
+      .text("Database:")
+      .nextRow()
+      .tab(1)
+      .combo("database",new String[] {"Don't create","Create","Create if necesary","Recreate (remove tables)"},270)
+      .nextRow()
+      .tab(1)
+      .text("Tables:")
+      .nextRow()
+      .tab(1)
+      .combo("tables",new String[] {"Don't create","Create","Create if necesary","Recreate (remove data)"},270)
+      .nextRow()
+      .tab(1)
+      .text("Data:")
+      .nextRow()
+      .tab(1)
+      .combo("data",new String[] {"Don't create","Update Existing Data","Insert","Do Not Update Existing","Replace (truncate existing)"},270);
+            
+   Panel buttons = dlg.panel("buttonPanel", "South");
+   buttons.tabLayout();
+   buttons.insets(8, 10, 4, 10);
+   buttons.space(41)
+          .button("Export", 110)
+          .space(5)
+          .button("Cancel", 110);
+          
+  DB db = context.get("db");
+  db.begin();
+  DB.Result dbs = db.execute("show databases");
+  db.end();  
+  
+  Combo combo = context.get("/tabs/Source/dbs");
+  ComboUtils.populate(combo, dbs, 0);
+  if ( parentContext.get("currentDB") != null )
+  {
+    combo.select((String)parentContext.get("currentDB"));
+  }
+  
+  ((ListBox)context.get("/tabs/Source/tables")).setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+  ((Combo)context.get("/tabs/Destination/database")).select("Create if necesary");
+  ((Combo)context.get("/tabs/Destination/tables")).select("Create if necesary");
+  ((Combo)context.get("/tabs/Destination/data")).select("Do Not Update Existing");
+  
+  dlg.visible();
+
