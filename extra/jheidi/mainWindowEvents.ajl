@@ -161,6 +161,12 @@ else if ( "Exit".equals(who) )
 {
   System.exit(0);
 } 
+
+else if ( "Export Tables as SQL".equals(who) )
+{
+  script("exportDDLDialog",args());
+} 
+
 else {
   ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
 }
