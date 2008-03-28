@@ -2362,7 +2362,7 @@ object MDIChild: TMDIChild
   object SynCompletionProposal1: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     Width = 262
-    EndOfTokenChr = '()[]. ='
+    EndOfTokenChr = '()[]. ='#9
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -2395,7 +2395,7 @@ object MDIChild: TMDIChild
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
     Left = 40
     Top = 192
-    EndOfTokenChrW = '()[]. ='
+    EndOfTokenChrW = '()[]. ='#9
     TriggerCharsW = '.'
   end
   object popupQueryLoad: TPopupMenu
