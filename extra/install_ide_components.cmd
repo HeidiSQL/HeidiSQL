@@ -87,14 +87,13 @@ goto :start
 :install
 echo Installing component %1, package %2%package_suffix%.bpl.
 rem
-rem    Drop a copy of all BPLs in a directory which is in PATH.
-rem    This is a workaround for bug #23225 in BDS 2006.
+rem    There is a workaround for bug #23225 in IdeBplInstall.exe.
 rem    (technically a regression since Delphi 7 worked OK.)
 rem
-rem    see here: http://qc.borland.com/wc/qcmain.aspx?d=23225
+rem    see: http://qc.borland.com/wc/qcmain.aspx?d=23225
 rem
-copy /y "%base_dir%\components\%1\build\*.bpl" "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl\" >NUL:
-"%start_dir%\IdeBplInstall\IdeBplInstall.exe" "%base_dir%\components\%1\build\%2%package_suffix%.bpl" "%1"
+del /f /q "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl\%2%package_suffix%.bpl" 2>NUL:
+"%start_dir%\IdeBplInstall\IdeBplInstall.exe" "%base_dir%\components\%1\build" "%2%package_suffix%.bpl" "%1"
 set err=%errorlevel%
 echo.
 goto :eof
