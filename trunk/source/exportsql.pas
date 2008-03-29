@@ -1557,6 +1557,7 @@ var
 begin
   // TODO: Find an alternative to SelectDirectory(), which causes
   // a platform compiler warning because it needs the FileCtrl unit
+  // -> Q: What about using fx TOpenDialog for this purpose?
   chosenDirectory := EditDirectory.Text;
   if SelectDirectory('Select output directory', '', chosenDirectory) then
     EditDirectory.Text := chosenDirectory;
