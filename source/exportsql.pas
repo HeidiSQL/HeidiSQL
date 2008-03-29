@@ -29,7 +29,7 @@ uses
   SynEdit,
   SynMemo,
   ZDataSet,
-  FileCtrl, PngSpeedButton;
+  PngSpeedButton, StdActns;
 
 type
   TExportSQLForm = class(TForm)
@@ -1553,14 +1553,16 @@ end;
 }
 procedure TExportSQLForm.btnDirectoryBrowseClick(Sender: TObject);
 var
-  chosenDirectory : String;
+  Browse: TBrowseForFolder;
 begin
-  // TODO: Find an alternative to SelectDirectory(), which causes
-  // a platform compiler warning because it needs the FileCtrl unit
-  // -> Q: What about using fx TOpenDialog for this purpose?
-  chosenDirectory := EditDirectory.Text;
-  if SelectDirectory('Select output directory', '', chosenDirectory) then
-    EditDirectory.Text := chosenDirectory;
+  // Avoid using platform specific SelectDirectory()
+  Browse := TBrowseForFolder.Create(Self);
+  Browse.Folder := EditDirectory.Text;
+  Browse.DialogCaption := 'Select output directory';
+  // Enable "Create new folder" button
+  Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
+  if Browse.Execute then
+    EditDirectory.Text := Browse.Folder;
 end;
 
 
