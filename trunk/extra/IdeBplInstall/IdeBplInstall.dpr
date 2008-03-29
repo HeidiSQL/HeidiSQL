@@ -10,9 +10,11 @@ uses
 
 const
   baseKey = '\Software\Borland';
-  finalKey = 'Known Packages';
+  pkgKey = 'Known Packages';
+  envKey = 'Environment Variables';
 
 var
+  path: string;
   bpl: string;
   descr: string;
   reg: TRegistry;
@@ -22,17 +24,18 @@ var
   s: string;
 
 begin
-  if ParamCount <> 2 then begin
+  if ParamCount <> 3 then begin
     WriteLn('');
     WriteLn('Usage:');
-    WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <fully qualified bpl path + filename> <description>');
+    WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <fully qualified bpl path> <filename> <description>');
     WriteLn('');
     ExitCode := 1;
     Exit;
   end;
 
-  bpl := ParamStr(1);
-  descr := ParamStr(2);
+  path := ParamStr(1);
+  bpl := path + '\' + ParamStr(2);
+  descr := ParamStr(3);
   if
     ((bpl[1] = '"') and (bpl[Length(bpl)] = '"')) or
     ((bpl[1] = '''') and (bpl[Length(bpl)] = '''')) then begin
@@ -85,7 +88,8 @@ begin
           reg.GetKeyNames(versionKeys);
           reg.CloseKey;
           if versionKeys.Count > 0 then for j := 0 to versionKeys.Count - 1 do begin
-            s := baseKey + '\' + productKeys[i] + '\' + versionKeys[j] + '\' + finalKey;
+            // Install package in IDE.
+            s := baseKey + '\' + productKeys[i] + '\' + versionKeys[j] + '\' + pkgKey;
             reg.Access := KEY_WRITE;
             if reg.KeyExists(s) then begin
               if not reg.OpenKey(s, false) then begin
@@ -94,6 +98,24 @@ begin
                 Exit;
               end;
               reg.WriteString(bpl, descr);
+              reg.CloseKey;
+            end;
+            // Work around Delphi bug #23225.
+            s := baseKey + '\' + productKeys[i] + '\' + versionKeys[j] + '\' + envKey;
+            reg.Access := KEY_READ or KEY_WRITE;
+            if reg.KeyExists(s) then begin
+              if not reg.OpenKey(s, false) then begin
+                WriteLn('Error: Could not open key ' + s + '.');
+                ExitCode := 6;
+                Exit;
+              end;
+              s := reg.ReadString('Path');
+              s := StringReplace(s, path, '', [rfReplaceAll, rfIgnoreCase]);
+              s := s + ';' + path;
+              while Pos(';;', s) > 0 do s := StringReplace(s, ';;', ';', [rfReplaceAll]);
+              while (Length(s) > 0) and (s[1] = ';') do Delete(s, 1, 1);
+              while (Length(s) > 0) and (s[Length(s)] = ';') do Delete(s, 1, 1);
+              reg.WriteString('Path', s);
               reg.CloseKey;
             end;
           end;
