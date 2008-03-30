@@ -3122,11 +3122,12 @@ procedure TMDIChild.SynCompletionProposal1Execute(Kind: SynCompletionType;
   Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
   var CanExecute: Boolean);
 var
-  i,j,c,t          : Integer;
+  i,j              : Integer;
   tn, child        : TTreeNode;
-  sql, kw          : String;
-  keywords, tables : TStringList;
+  sql              : String;
+  Tables           : TStringList;
   tablename        : String;
+  rx               : TRegExpr;
 
   procedure addTable( name: String );
   begin
@@ -3146,9 +3147,10 @@ var
       dbname := Copy( tablename, 0, Pos( '.', tablename )-1 );
       tablename := Copy( tablename, Pos( '.', tablename )+1, Length(tablename) );
     end;
-    tablename := mask( tablename );
+    // Do not mask db and table name to avoid double masking.
+    // Rely on what the user typed is already a valid masked/quoted identifier.
     if dbname <> '' then
-      tablename := mask( dbname ) + '.' + tablename;
+      tablename := dbname + '.' + tablename;
     ds := getResults( 'SHOW COLUMNS FROM '+tablename, true, false );
     if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
@@ -3165,80 +3167,53 @@ begin
   SynCompletionProposal1.InsertList.Clear;
   SynCompletionProposal1.ItemList.Clear;
 
-  // Get column-names into the proposal (Daniel's Top1-wish...)
+  // Get column-names into the proposal pulldown
   // when we write sql like "SELECT t.|col FROM table [AS] t"
-  // This is at no means a perfect solution which catches all kind of
-  // SQL statements. But for simple SQL it should work fine.
+  // Current limitation: Identifiers (masked or not) containing
+  // spaces are not detected correctly.
 
   // 1. find the currently edited sql-statement around the cursor position in synmemo
   j := Length(SynCompletionProposal1.Editor.Text);
-  c := 1024;
   for i := SynCompletionProposal1.Editor.SelStart+1024 downto SynCompletionProposal1.Editor.SelStart-1024 do
   begin
     if i > j then
       continue;
     if i < 1 then
-    begin
-      c := SynCompletionProposal1.Editor.SelStart;
       break;
-    end;
     sql := SynCompletionProposal1.Editor.Text[i] + sql;
   end;
-  sql := StringReplace( sql, CRLF, ' ', [rfReplaceall] );
-  sql := StringReplace( sql, #10, ' ', [rfReplaceall] );
-  sql := StringReplace( sql, #13, ' ', [rfReplaceall] );
-  // 2. find the position of tablenames after the cursor-position (c)
-  keywords := TStringList.Create;
-  keywords.CommaText := 'FROM,INTO,UPDATE';
-  t := -1;
-  for i := c to Length(sql) do // forward from cursor-position
-  begin
-    kw := Copy( sql, i, Pos( ' ', Copy( sql, i, Length(sql) ) )-1 );
-    if keywords.IndexOf( kw ) > -1 then
-    begin
-      t := i + Length( kw );
-      break;
-    end;
-  end;
-  if t = -1 then
-  begin
-    for i := c downto 0 do  // and backwards from cursor-position
-    begin
-      kw := Copy( sql, i, Pos( ' ', Copy( sql, i, Length(sql) ) )-1 );
-      if keywords.IndexOf( kw ) > -1 then
-      begin
-        t := i + Length( kw );
-        break;
-      end;
-    end;
-  end;
-  // 3. find tablenames and aliases, compare them with previous token
-  tablename := '';
-  if t>-1 then
-  begin
-    tables := TStringList.Create;
-    tables.CommaText := StringReplace( Copy( sql, t, Length(sql)), ' ', ',', [rfReplaceall] );
-    for i := 0 to tables.Count - 1 do
-    begin
-      if (UpperCase(tables[i]) = 'AS') and (i > 0) and (i<tables.Count-1) then
-      begin
-        if (SynCompletionProposal1.PreviousToken = tables[i-1]) or
-          (SynCompletionProposal1.PreviousToken = tables[i+1]) then
-        begin
-          tablename := tables[i-1]; // Got it!
+
+  // 2. Parse FROM clause to detect relevant table/view, probably aliased
+  rx := TRegExpr.Create;
+  rx.ModifierG := True;
+  rx.ModifierI := True;
+  rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
+  if rx.Exec(sql) then begin
+    Tables := TStringList.Create;
+    // Split table clauses by commas
+    Tables.Delimiter := ',';
+    Tables.StrictDelimiter := true;
+    Tables.DelimitedText := rx.Match[2];
+    rx.Expression := '([^\s]+)(\s+(AS\s+)?([^\s]+))?';
+    for i := 0 to Tables.Count - 1 do begin
+      // If the just typed word equals the alias of this table or the
+      // tablename itself, set tablename var and break loop
+      if rx.Exec(Tables[i]) then begin
+        if (TrimC(SynCompletionProposal1.PreviousToken,'`') = TrimC(rx.Match[4],'`') )
+          or (SynCompletionProposal1.PreviousToken = rx.Match[1]) then begin
+          tablename := Trim(rx.Match[1]);
           break;
         end;
       end;
     end;
   end;
-  if (tablename <> '') then
-  begin
+  rx.Free;
+
+  if (tablename <> '') then begin
     // add columns to proposal
     addColumns( tablename );
-  end
-  else if SynCompletionProposal1.PreviousToken <> '' then
-  begin
-    // assuming that previoustoken itself is a table
+  end else if SynCompletionProposal1.PreviousToken <> '' then begin
+    // assuming previoustoken itself is a table
     addColumns( SynCompletionProposal1.PreviousToken );
   end;
 
