@@ -3124,7 +3124,7 @@ procedure TMDIChild.SynCompletionProposal1Execute(Kind: SynCompletionType;
 var
   i,j              : Integer;
   tn, child        : TTreeNode;
-  sql              : String;
+  sql, TableClauses: String;
   Tables           : TStringList;
   tablename        : String;
   rx               : TRegExpr;
@@ -3189,11 +3189,14 @@ begin
   rx.ModifierI := True;
   rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
   if rx.Exec(sql) then begin
-    Tables := TStringList.Create;
+    TableClauses := rx.Match[2];
+    // Ensure tables in JOIN clause(s) are splitted by comma
+    TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
     // Split table clauses by commas
+    Tables := TStringList.Create;
     Tables.Delimiter := ',';
     Tables.StrictDelimiter := true;
-    Tables.DelimitedText := rx.Match[2];
+    Tables.DelimitedText := TableClauses;
     rx.Expression := '([^\s]+)(\s+(AS\s+)?([^\s]+))?';
     for i := 0 to Tables.Count - 1 do begin
       // If the just typed word equals the alias of this table or the
