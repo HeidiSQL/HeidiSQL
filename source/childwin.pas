@@ -979,6 +979,10 @@ begin
   DBtree.Width := Mainform.GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
   PageControlBottom.Height := Mainform.GetRegValue(REGNAME_SQLOUTHEIGHT, PageControlBottom.Height);
   prefDefaultColWidth := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
+  // Fix registry entry from older versions which can have 0 here which makes no sense
+  // since the autosetting was removed
+  if prefDefaultColWidth <= 0 then
+    prefDefaultColWidth := DEFAULT_DEFAULTCOLWIDTH;
   prefLogsqlnum := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   prefLogSqlWidth := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   prefConvertHTMLEntities := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
@@ -1698,13 +1702,8 @@ begin
           ds.Fields[j].Required := false;
 
           // set column-width
-          if (
-            (prefDefaultColWidth <> 0) and
-            (gridData.Columns[j].Width > prefDefaultColWidth)
-          ) then
-          begin
+          if gridData.Columns[j].Width > prefDefaultColWidth then
             gridData.Columns[j].Width := prefDefaultColWidth;
-          end;
 
           // Colorize ordered columns
           for i := Low(OrderColumns) to High(OrderColumns) do
@@ -3002,15 +3001,9 @@ begin
       TZQuery(ds).EnableControls();
       TZQuery(ds).DisableControls();
       // resize all columns, if they are more wide than Mainform.DefaultColWidth
-      if ( prefDefaultColWidth <> 0 ) then
-      begin
-        for i:=0 to gridQuery.Columns.count-1 do
-        begin
-          if ( gridQuery.Columns[i].Width > prefDefaultColWidth ) then
-          begin
-            gridQuery.Columns[i].Width := prefDefaultColWidth;
-          end;
-        end;
+      for i:=0 to gridQuery.Columns.count-1 do begin
+        if gridQuery.Columns[i].Width > prefDefaultColWidth then
+          gridQuery.Columns[i].Width := prefDefaultColWidth;
       end;
     end;
     // Ensure controls are in a valid state

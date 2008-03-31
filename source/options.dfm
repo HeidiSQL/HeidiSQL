@@ -423,13 +423,6 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
-      object Label20: TLabel
-        Left = 256
-        Top = 68
-        Width = 75
-        Height = 13
-        Caption = '(0 = automatic)'
-      end
       object GroupBox2: TGroupBox
         Left = 0
         Top = 120
@@ -523,7 +516,7 @@ object optionsform: Toptionsform
         Width = 42
         Height = 21
         TabOrder = 2
-        Text = '0'
+        Text = '1'
         OnChange = Modified
       end
       object updownDefaultColWidth: TUpDown
@@ -532,7 +525,9 @@ object optionsform: Toptionsform
         Width = 16
         Height = 21
         Associate = editDefaultColWidth
+        Min = 1
         Max = 1000
+        Position = 1
         TabOrder = 3
         OnChanging = anyUpDownLimitChanging
       end
