@@ -72,7 +72,6 @@ type
     UpDownFontSize: TUpDown;
     CheckBoxlimit: TCheckBox;
     Label19: TLabel;
-    Label20: TLabel;
     Label28: TLabel;
     pnlTablenames: TPanel;
     updownLogSQLNum: TUpDown;
