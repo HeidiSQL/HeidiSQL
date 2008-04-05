@@ -188,7 +188,7 @@ begin
     if (not Assigned(DBNode)) or (DBNode.Text = Mainform.Childwin.ActiveDatabase) then
       Mainform.ChildWin.MenuRefreshClick( Sender )
     else
-      Mainform.ChildWin.PopulateTreeTableList( DBNode, '', True );
+      Mainform.ChildWin.PopulateTreeTableList( DBNode, True );
   except
     on E: THandledSQLError do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);

@@ -1176,7 +1176,7 @@ begin
   if db = activeDB then
     Childwin.MenuRefreshClick(Sender)
   else
-    Childwin.PopulateTreeTableList( tndb, '', True );
+    Childwin.PopulateTreeTableList( tndb, True );
 end;
 
 
