@@ -424,6 +424,9 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   ws : String;
+  Monitor: TMonitor;
+const
+  MoveWinThreshold: Byte = 80;
 begin
   caption := APPNAME;
   setLocales;
@@ -437,6 +440,14 @@ begin
     Top := GetRegValue(REGNAME_WINDOWTOP, Top);
     Width := GetRegValue(REGNAME_WINDOWWIDTH, Width);
     Height := GetRegValue(REGNAME_WINDOWHEIGHT, Height);
+    // Ensure main window (that means: the upper left corner) is placed inside
+    // current monitor resolution, important e.g. after having plugged off a second monitor
+    // Ensures a minimum visible area of 80x80 pixels, so the user can manually resize and move it
+    Monitor := Screen.MonitorFromWindow(Self.Handle);
+    if Left > Monitor.Left + Monitor.Width - MoveWinThreshold then
+      Left := Monitor.Left + Monitor.Width - MoveWinThreshold; // Set minimal visible width
+    if Top > Monitor.Top + Monitor.Height - MoveWinThreshold then
+      Top := Monitor.Top + Monitor.Height - MoveWinThreshold; // Set minimal visible height
   end else
   if ws = 'Maximized'
     then windowstate := wsMaximized;
