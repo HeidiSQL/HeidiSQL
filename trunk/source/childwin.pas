@@ -642,7 +642,7 @@ type
       function FetchDbTableList(db: string): TDataSet;
       function RefreshDbTableList(db: string): TDataSet;
       procedure ClearAllTableLists;
-      function PopulateTreeTableList(tndb: TTreeNode = nil; find: string = ''; ForceRefresh: Boolean = false): TTreeNode;
+      function PopulateTreeTableList(tndb: TTreeNode = nil; ForceRefresh: Boolean = false): TTreeNode;
       procedure EnsureDatabase;
       procedure TestVTreeDataArray( P: PVTreeDataArray );
       function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
@@ -1337,7 +1337,7 @@ begin
     if ( ActiveDatabase = OnlyDBs2[i] ) then
     begin
       select := newTree.Items.Count - 2;
-      found := PopulateTreeTableList(tnode, SelectedTable);
+      found := PopulateTreeTableList(tnode);
       if found <> nil then select := FindTreeViewAbsoluteIndex(found);
       tnode.Expand(false);
     end;
@@ -1962,49 +1962,45 @@ end;
 
 {***
   Updates tree with table list for currently selected database (or table).
+  @param TTreeNode Database node which should be refreshed
+  @param Boolean Refresh the table cache of the selected database node?
 }
-function TMDIChild.PopulateTreeTableList(tndb: TTreeNode; find: string; ForceRefresh: Boolean): TTreeNode;
+function TMDIChild.PopulateTreeTableList(tndb: TTreeNode; ForceRefresh: Boolean): TTreeNode;
 var
   ds: TDataSet;
-  s: string;
-  t, u: Integer;
-  select, tmp: TTreeNode;
+  Tablename, PrevSelected: string;
+  i: Integer;
+  tmp, ReSelect: TTreeNode;
 begin
   result := nil;
 
   // Find currently selected node if not specified, or exit.
-  select := nil;
-  if tndb = nil then begin
-    case DBTree.Selected.Level of
-      2: tndb := DBTree.Selected.Parent;
-      1: tndb := DBTree.Selected;
-      else Exit;
-    end;
-    if ActiveDatabase = tndb.Text then find := SelectedTable;
-  end else begin
-    // Looking for a subitem?
-    // Select the parent if it cannot be found after populating tndb.
-    if find <> '' then select := tndb;
+  if tndb = nil then case DBTree.Selected.Level of
+    2: tndb := DBTree.Selected.Parent;
+    1: tndb := DBTree.Selected;
+    else Exit;
   end;
+
+  // Remember table to re-select in the end if it's the current DB we're now refreshing
+  PrevSelected := '';
+  if tndb.Text = ActiveDatabase then
+    PrevSelected := SelectedTable;
+  ReSelect := nil;
 
   // Postpone change event handling in tree
   DisableTreeEvents;
   SynSQLSyn1.TableNames.BeginUpdate;
+  tndb.Owner.BeginUpdate;
   try
     // Clear children and populate tree with table names.
-    if tndb.Count > 0 then for u:=tndb.Count-1 downto 0 do begin
-      if (select = nil) and (tndb.Item[u] = tndb.TreeView.Selected) then begin
-        select := tndb;
-        tndb.TreeView.Deselect(tndb.Item[u]);
-      end;
-      tndb.Item[u].delete;
-    end;
+    if tndb.Count > 0 then
+      tndb.DeleteChildren;
     if ForceRefresh then ds := RefreshDbTableList(tndb.Text)
     else ds := FetchDbTableList(tndb.Text);
-    for t:=0 to ds.RecordCount-1 do
+    for i:=0 to ds.RecordCount-1 do
     begin
-      s := ds.Fields[0].AsString;
-      tmp := tndb.Owner.AddChild(tndb, s);
+      Tablename := ds.Fields[0].AsString;
+      tmp := tndb.Owner.AddChild(tndb, Tablename);
       // Assign different icons to tables and views
       case GetDBObjectType(ds.Fields) of
         NODETYPE_BASETABLE: begin
@@ -2016,18 +2012,24 @@ begin
           tmp.selectedIndex := ICONINDEX_VIEW_HIGHLIGHT;
         end;
       end;
-      if tmp.Text = find then select := tmp;
+      if Tablename = PrevSelected then
+        ReSelect := tmp;
       // Add tables to syntax highlighter
-      if SynSQLSyn1.TableNames.IndexOf(s) = -1 then SynSQLSyn1.TableNames.Add(s);
+      if SynSQLSyn1.TableNames.IndexOf(Tablename) = -1 then SynSQLSyn1.TableNames.Add(Tablename);
       ds.Next;
     end;
-    if select <> nil then begin
-      result := select;
-      tndb.TreeView.Selected := select;
+    // Select the parent if it cannot be found after populating tndb.
+    if (not Assigned(ReSelect)) and (tndb.Text = ActiveDatabase) then
+      ReSelect := tndb;
+    // Do the selection
+    if ReSelect <> nil then begin
+      Result := ReSelect;
+      tndb.TreeView.Selected := ReSelect;
     end;
   finally
     // Restore change event handlers
     EnableTreeEvents;
+    tndb.Owner.EndUpdate;
     SynSQLSyn1.TableNames.EndUpdate;
   end;
 end;

@@ -313,7 +313,7 @@ begin
         if DatabaseName = '' then
           Mainform.ChildWin.MenuRefreshClick( Sender )
         else
-          Mainform.ChildWin.PopulateTreeTableList( Mainform.ChildWin.DBRightClickSelectedItem.Parent, '', True );
+          Mainform.ChildWin.PopulateTreeTableList( Mainform.ChildWin.DBRightClickSelectedItem.Parent, True );
       except
         On E:Exception do
         begin
