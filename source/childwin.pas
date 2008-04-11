@@ -617,7 +617,8 @@ type
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
-      prefLogToFile              : Boolean;
+      prefLogToFile,
+      prefPreferShowTables       : Boolean;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -990,6 +991,7 @@ begin
   prefCSVEncloser := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   prefCSVTerminator := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefRememberFilters := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
+  prefPreferShowTables := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // SQL-Font:
   fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
@@ -1902,11 +1904,11 @@ begin
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
     MainForm.ShowStatus('Displaying tables from ' + db + '...', 2);
-    if mysql_version >= 32300 then begin
+    if (mysql_version >= 32300) and (not prefPreferShowTables) then begin
       ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
     end else begin
       // contains table names, nothing else.
-      ds := GetResults('SHOW TABLES FROM ' + mask(db), false, false);
+      ds := GetResults('SHOW /*!50002 FULL */ TABLES FROM ' + mask(db), false, false);
       // could clean up data (rename first column to 'Name') and
       // and add row counters to data set as a new field by using
       // SELECT COUNT(*), but that would potentially be rather slow.
@@ -2080,10 +2082,6 @@ begin
       // Table
       ListCaptions.Add( ds.Fields[0].AsString );
 
-      // SHOW TABLE STATUS only available on 3.23.0 + servers
-      if mysql_version < 32300 then
-        continue;
-
       // Treat tables slightly different than views
       case GetDBObjectType( ds.Fields) of
         NODETYPE_BASETABLE: // A normal table
@@ -2091,9 +2089,12 @@ begin
           VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
           VTRowDataListTables[i-1].NodeType := NODETYPE_BASETABLE;
           // Records
-          ListCaptions.Add( FormatNumber( FieldContent('Rows') ) );
+          if ds.FindField('Rows') <> nil then
+            ListCaptions.Add( FormatNumber( FieldContent('Rows') ) )
+          else
+            ListCaptions.Add('');
           // Size: Data_length + Index_length
-          if not ds.FieldByName('Data_length').IsNull then begin
+          if FieldContent('Data_length') <> '' then begin
             bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
             ListCaptions.Add( FormatByteNumber( Trunc(bytes) ) );
           end else ListCaptions.Add(STR_NOTAVAILABLE);

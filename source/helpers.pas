@@ -2185,11 +2185,14 @@ begin
       but for views which is missing its tables, it says
       "Views bla references invalid..."
   }
-  if TableStatus[1].IsNull // Engine column is NULL for views
+  Result := NODETYPE_BASETABLE;
+  if (TableStatus.Count>=3)     // Result from SHOW TABLE STATUS
+    and TableStatus[1].IsNull   // Engine column is NULL for views
     and TableStatus[2].IsNull then
     Result := NODETYPE_VIEW
-  else
-    Result := NODETYPE_BASETABLE;
+  else if (TableStatus.Count=2) // Result from SHOW FULL TABLES
+    and (UpperCase(TableStatus[1].AsString) = 'VIEW') then
+    Result := NODETYPE_VIEW;
 end;
 
 
