@@ -22,7 +22,6 @@ const
   REGKEY_SESSIONS  = 'Servers\';
   STATUS_MSG_READY = 'Ready.';
   STR_NOTSUPPORTED = 'Not supported by this server';
-  STR_NOTAVAILABLE = 'N/A';
 
   // Used by maskSQL and fixSQL:
   SQL_VERSION_ANSI = -1;

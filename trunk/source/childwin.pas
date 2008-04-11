@@ -2097,7 +2097,7 @@ begin
           if FieldContent('Data_length') <> '' then begin
             bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
             ListCaptions.Add( FormatByteNumber( Trunc(bytes) ) );
-          end else ListCaptions.Add(STR_NOTAVAILABLE);
+          end else ListCaptions.Add('');
           // Created:
           ListCaptions.Add( FieldContent('Create_time') );
           // Updated:
@@ -6034,9 +6034,9 @@ begin
     CellText2 := '';
 
   // Map value "0" to "N/A" strings
-  if CellText1 = STR_NOTAVAILABLE then
+  if CellText1 = '' then
     CellText1 := '0';
-  if CellText2 = STR_NOTAVAILABLE then
+  if CellText2 = '' then
     CellText2 := '0';
 
   // Apply different comparisons for numbers and text
