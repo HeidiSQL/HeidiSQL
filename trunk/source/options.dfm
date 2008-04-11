@@ -33,28 +33,28 @@ object optionsform: Toptionsform
       Caption = 'Miscellaneous'
       object Label4: TLabel
         Left = 16
-        Top = 104
+        Top = 82
         Width = 37
         Height = 13
         Caption = 'Log last'
       end
       object Label5: TLabel
         Left = 142
-        Top = 104
+        Top = 82
         Width = 95
         Height = 13
         Caption = 'Lines in SQL-History'
       end
       object labelLogSnip: TLabel
         Left = 16
-        Top = 136
+        Top = 112
         Width = 96
         Height = 13
         Caption = 'Snip SQL log lines to'
       end
       object labelSqlSnipHint: TLabel
         Left = 218
-        Top = 134
+        Top = 110
         Width = 139
         Height = 13
         Caption = 'characters  (0 = no snipping)'
@@ -70,7 +70,7 @@ object optionsform: Toptionsform
       end
       object CheckBoxConvertHTMLEntities: TCheckBox
         Left = 16
-        Top = 70
+        Top = 57
         Width = 305
         Height = 17
         Caption = 'Convert HTML-entities when copying/saving data (<, >)'
@@ -81,7 +81,7 @@ object optionsform: Toptionsform
       end
       object updownLogSQLNum: TUpDown
         Left = 114
-        Top = 101
+        Top = 79
         Width = 17
         Height = 21
         Associate = editLogSQLNum
@@ -94,7 +94,7 @@ object optionsform: Toptionsform
       end
       object editLogSQLNum: TEdit
         Left = 61
-        Top = 101
+        Top = 79
         Width = 53
         Height = 21
         TabOrder = 3
@@ -103,7 +103,7 @@ object optionsform: Toptionsform
       end
       object CheckBoxRestoreLastUsedDB: TCheckBox
         Left = 16
-        Top = 42
+        Top = 36
         Width = 297
         Height = 17
         Caption = 'Restore last used database on startup'
@@ -114,7 +114,7 @@ object optionsform: Toptionsform
       end
       object chkLogToFile: TCheckBox
         Left = 16
-        Top = 169
+        Top = 138
         Width = 145
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -124,7 +124,7 @@ object optionsform: Toptionsform
       end
       object btnOpenLogFolder: TButton
         Left = 167
-        Top = 166
+        Top = 135
         Width = 106
         Height = 20
         Caption = 'Open log folder ...'
@@ -133,7 +133,7 @@ object optionsform: Toptionsform
       end
       object editLogSnip: TEdit
         Left = 121
-        Top = 131
+        Top = 107
         Width = 72
         Height = 21
         TabOrder = 7
@@ -141,7 +141,7 @@ object optionsform: Toptionsform
       end
       object updownLogSnip: TUpDown
         Left = 193
-        Top = 131
+        Top = 107
         Width = 15
         Height = 21
         Associate = editLogSnip
@@ -152,7 +152,7 @@ object optionsform: Toptionsform
       end
       object chkUpdatecheck: TCheckBox
         Left = 16
-        Top = 199
+        Top = 162
         Width = 268
         Height = 17
         Caption = 'Automatically check for updates / Interval [days]:'
@@ -163,7 +163,7 @@ object optionsform: Toptionsform
       end
       object editUpdatecheckInterval: TEdit
         Left = 302
-        Top = 197
+        Top = 160
         Width = 43
         Height = 21
         TabOrder = 10
@@ -171,7 +171,7 @@ object optionsform: Toptionsform
       end
       object updownUpdatecheckInterval: TUpDown
         Left = 345
-        Top = 197
+        Top = 160
         Width = 16
         Height = 21
         Associate = editUpdatecheckInterval
@@ -180,6 +180,19 @@ object optionsform: Toptionsform
         Position = 1
         TabOrder = 11
         OnChanging = anyUpDownLimitChanging
+      end
+      object chkPreferShowTables: TCheckBox
+        Left = 16
+        Top = 185
+        Width = 377
+        Height = 24
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 
+          'Use SHOW TABLES instead of SHOW TABLE STATUS (faster for large d' +
+          'atabases, but disables certain functionalities)'
+        TabOrder = 12
+        WordWrap = True
+        OnClick = Modified
       end
     end
     object TabSheet2: TTabSheet

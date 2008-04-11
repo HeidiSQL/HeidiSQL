@@ -157,6 +157,8 @@ const
   REGNAME_MAINTWINHEIGHT = 'Maintenance_WindowHeight';
   REGNAME_VIEWWINWIDTH = 'View_WindowWidth';
   REGNAME_VIEWWINHEIGHT = 'View_WindowHeight';
+  REGNAME_PREFER_SHOWTABLES = 'PreferShowTables';
+  DEFAULT_PREFER_SHOWTABLES = False;
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';

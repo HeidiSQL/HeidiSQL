@@ -91,6 +91,7 @@ type
     chkUpdatecheck: TCheckBox;
     editUpdatecheckInterval: TEdit;
     updownUpdatecheckInterval: TUpDown;
+    chkPreferShowTables: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -181,6 +182,7 @@ begin
   reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
   reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
   reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
+  reg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
 
   // Close registry key
   reg.CloseKey;
@@ -218,6 +220,7 @@ begin
     cwin.prefCSVEncloser := self.Edit2.text;
     cwin.prefCSVTerminator := self.Edit3.text;
     cwin.prefConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
+    cwin.prefPreferShowTables := chkPreferShowTables.Checked;
   end;
 
   // Settings have been applied, send a signal to the user
@@ -264,6 +267,7 @@ begin
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
   updownUpdatecheckInterval.Position := Mainform.GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+  chkPreferShowTables.Checked := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // Default Column-Width in DBGrids:
   updownDefaultColWidth.Position := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
