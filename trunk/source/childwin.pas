@@ -1903,7 +1903,7 @@ begin
     // Not in cache, load table list.
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
-    MainForm.ShowStatus('Displaying tables from ' + db + '...', 2);
+    MainForm.ShowStatus('Fetching tables from "' + db + '" ...', 2);
     if (mysql_version >= 32300) and (not prefPreferShowTables) then begin
       ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
     end else begin
@@ -1914,6 +1914,7 @@ begin
       // SELECT COUNT(*), but that would potentially be rather slow.
     end;
     CachedTableLists.AddObject(db, ds);
+    MainForm.ShowStatus(STATUS_MSG_READY, 2);
     Screen.Cursor := OldCursor;
   end;
   Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
@@ -2063,7 +2064,6 @@ var
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
-  MainForm.ShowStatus( 'Reading from database ' + db + '...', 2 );
   Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + db + '...';
 
   // Remember selected nodes
@@ -2071,6 +2071,7 @@ begin
 
   try
     ds := FetchDbTableList(db);
+    MainForm.ShowStatus( 'Displaying tables from "' + db + '" ...', 2 );
 
     ListTables.BeginUpdate;
     ListTables.Clear;
@@ -2196,6 +2197,7 @@ begin
     ListTables.EndUpdate;
     SetVTSelection(ListTables, SelectedCaptions);
     Mainform.showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)');
+    MainForm.ShowStatus(STATUS_MSG_READY, 2);
     Screen.Cursor := crDefault;
   end;
 end;
