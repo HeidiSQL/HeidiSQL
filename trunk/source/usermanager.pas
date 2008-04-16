@@ -61,6 +61,7 @@ type
     Panel4: TPanel;
     ButtonEditUser: TButton;
     Button1: TButton;
+    procedure FormCreate(Sender: TObject);
     procedure DBUserTreeExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure FormShow(Sender: TObject);
@@ -1016,6 +1017,30 @@ begin
   if Assigned(result) then
     result.First;
 
+end;
+
+
+{**
+  Fetch names of privileges from mysql.users to use them in the checklistbox
+  on the "Add user" page.
+}
+procedure TUserManagerForm.FormCreate(Sender: TObject);
+var
+  Privs: TDataset;
+  PrivName: String;
+begin
+  Privs := getPrivColumns(PRIVTABLE_USERS);
+  // Add to listbox and cut off "_priv" suffixes
+  CheckListBoxPrivileges.Items.BeginUpdate;
+  CheckListBoxPrivileges.Items.Clear;
+  while not Privs.Eof do begin
+    PrivName := Privs.FieldByName('Field').AsString;
+    // Only add relevant columns
+    if Pos('_priv', PrivName) > 0 then
+      CheckListBoxPrivileges.Items.Add( Copy(PrivName, 1, Length(PrivName)-5) );
+    Privs.Next;
+  end;
+  CheckListBoxPrivileges.Items.EndUpdate;
 end;
 
 end.

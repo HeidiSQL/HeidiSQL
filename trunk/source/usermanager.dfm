@@ -16,6 +16,7 @@ object UserManagerForm: TUserManagerForm
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -166,16 +167,7 @@ object UserManagerForm: TUserManagerForm
           'Select'
           'Insert'
           'Update'
-          'Delete'
-          'Index'
-          'Alter'
-          'Create'
-          'Drop'
-          'References'
-          'Reload'
-          'Shutdown'
-          'Process'
-          'File')
+          '...')
         TabOrder = 5
       end
       object CheckBoxAllPrivileges: TCheckBox
