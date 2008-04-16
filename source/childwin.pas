@@ -1991,6 +1991,7 @@ begin
   ReSelect := nil;
 
   // Postpone change event handling in tree
+  Mainform.ShowStatus('Populating database tree ...', 2);
   DisableTreeEvents;
   SynSQLSyn1.TableNames.BeginUpdate;
   tndb.Owner.BeginUpdate;
@@ -2034,6 +2035,7 @@ begin
     EnableTreeEvents;
     tndb.Owner.EndUpdate;
     SynSQLSyn1.TableNames.EndUpdate;
+    Mainform.ShowStatus(STATUS_MSG_READY, 2);
   end;
 end;
 
