@@ -23,6 +23,7 @@ package PngComponentsD;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'Png components designtime'}
+{$LIBSUFFIX '100'}
 {$DESIGNONLY}
 {$IMPLICITBUILD ON}
 

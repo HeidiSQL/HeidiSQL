@@ -131,6 +131,11 @@ call :install tntunictrls TntUnicodeVcl_Design
 if not %err% == 0 goto end
 
 
+rem Install PNGComponents
+call :install pngcomponents PngComponentsD
+if not %err% == 0 goto end
+
+
 echo.
 echo Finished.
 echo.
