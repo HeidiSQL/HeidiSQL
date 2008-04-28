@@ -101,6 +101,8 @@ begin
               reg.CloseKey;
             end;
             // Work around Delphi bug #23225.
+            // TODO: Sometimes envKey does not exist yet.  pkgKey always
+            //       does though, so create envKey if pkgKey was found.
             s := baseKey + '\' + productKeys[i] + '\' + versionKeys[j] + '\' + envKey;
             reg.Access := KEY_READ or KEY_WRITE;
             if reg.KeyExists(s) then begin
