@@ -20,6 +20,7 @@ var
   reg: TRegistry;
   productKeys: TStrings;
   versionKeys: TStrings;
+  found: boolean;
   i, j: integer;
   s: string;
 
@@ -91,7 +92,8 @@ begin
             // Install package in IDE.
             s := baseKey + '\' + productKeys[i] + '\' + versionKeys[j] + '\' + pkgKey;
             reg.Access := KEY_WRITE;
-            if reg.KeyExists(s) then begin
+            found := reg.KeyExists(s);
+            if found then begin
               if not reg.OpenKey(s, false) then begin
                 WriteLn('Error: Could not open key ' + s + '.');
                 ExitCode := 5;
@@ -101,10 +103,9 @@ begin
               reg.CloseKey;
             end;
             // Work around Delphi bug #23225.
-            // TODO: Sometimes envKey does not exist yet.  pkgKey always
-            //       does though, so create envKey if pkgKey was found.
             s := baseKey + '\' + productKeys[i] + '\' + versionKeys[j] + '\' + envKey;
             reg.Access := KEY_READ or KEY_WRITE;
+            if found and not reg.KeyExists(s) then reg.CreateKey(s);
             if reg.KeyExists(s) then begin
               if not reg.OpenKey(s, false) then begin
                 WriteLn('Error: Could not open key ' + s + '.');
