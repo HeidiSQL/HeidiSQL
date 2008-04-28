@@ -1,6 +1,5 @@
 package PngComponentsD;
 
-{$R *.res}
 {$R '..\..\source\PngComponents.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
