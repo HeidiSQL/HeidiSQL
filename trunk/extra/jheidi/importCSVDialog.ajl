@@ -10,6 +10,7 @@
 
   dlg.events("importCSVEvents");
   dlg.insets(10, 10);
+  dlg.icon("images/import.gif");
   
   Tabs tabs = dlg.tabs("tabs");
 	Panel source = tabs.tab("Source");
