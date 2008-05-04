@@ -17,10 +17,7 @@
   }
   else if ( "Select All".equals(who) )
   {
-     if (tables.getModel().getSize() > 0)
-     {
-       tables.setSelectionInterval(0, tables.getModel().getSize()-1);
-     }
+      tables.selectAll();
   }
   else if ( "Deselect".equals(who) )
   {
