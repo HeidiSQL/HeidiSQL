@@ -110,6 +110,10 @@ else if ("Maintenance".equals(who))
 {
   script("maintenanceDialog", args());
 }
+else if ("User Manager".equals(who))
+{
+  script ("userManagerDialog", args());
+}
 else if ("Load SQL File".equals(who))
 {
   Frame f = context.get("/");

@@ -16,7 +16,7 @@
 	Menu m = app.menu("&Tools").item("Refresh", "separator", "Create Database", "Drop Database", "Create Table", "Drop Table" , "separator");
 	Menu flush = m.submenu("Flush");
 	flush.events("flushEvents").item("Hosts", "Logs", "Privileges", "Tables", "Tables with Read Lock", "Status" );
-	m.item("separator", "User-Manager", "Maintenance", "separator", "Preferences");
+	m.item("separator", "User Manager", "Maintenance", "separator", "Preferences");
 	app.menu("&Import").item("Import CSV File", "Load SQL File", "Insert Files into Blob Fields");
 	app.menu("E&xport").item("Export Tables as SQL","separator", "Copy as CSV Data", "Copy as HTML Data", "Copy as XML Data","Export Data...");
 	app.menu("&Window").events("windowMenuEvents");
@@ -43,6 +43,7 @@
 	    .button("Import", "images/import.gif")
 	    .button("Export", "images/export.gif")
 	    .separator()
+	    .button("User Manager", "images/usermgr.gif")
         .button("Maintenance", "images/optimize.gif")
 	    .separator()
 	    .button("Help", "images/help.gif");
