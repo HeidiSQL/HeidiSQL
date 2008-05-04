@@ -115,6 +115,18 @@ else if ("Print".equals(who))
   }
   
 }
+else if ("Import".equals(who))
+{
+  script("importCSVDialog",args());
+}
+else if ("Export".equals(who))
+{
+  script("exportDDLDialog",args());
+}
+else if ("Maintenance".equals(who))
+{
+  script("maintenanceDialog", args());
+}
 else if ("Help".equals(who) )
 {
   script("helpDialog", args());
