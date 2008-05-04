@@ -46,6 +46,7 @@
 	    .button("Help", "images/help.gif");
 	    
 	app.statusBar("statusBar", "Ready");
+	app.icon("images/heidi.png");
 	
 	//set up the splitters and tabs
 	Split mainSplit = app.splitVertical("treeTabsOutput", 640);
