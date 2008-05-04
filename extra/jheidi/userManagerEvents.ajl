@@ -207,7 +207,7 @@
 	    db.query("delete from mysql.db where user=? and host=?",  userHost[0], userHost[1]);
 	    db.query("delete from mysql.tables_priv where user=? and host=?", userHost[0], userHost[1]);
 	    db.query("delete from mysql.columns_priv where user=? and host=?", userHost[0], userHost[1]);
-      db.query("flush privileges");
+      db.execute("flush privileges");
 	    db.end();
 
 	    Tree tree = context.get("/tabs/Edit User/userTree");
@@ -246,7 +246,7 @@
 	    db.query("update mysql.db " + sql);
 	    db.query("update mysql.tables_priv " + sql);
 	    db.query("update mysql.columns_priv " + sql);
-      db.query("flush privileges");
+      db.execute("flush privileges");
 	    db.end();
 	    userNode.setText(user + "@" + host);
 	    ((Tree)editTab.get("userTree")).updateUI();
@@ -291,6 +291,7 @@
 	
 	  log.debug("heres the stmt: " + buffer.toString());
 	  db.execute(buffer.toString());
+	  db.execute("flush privileges");
 	
 	  ((Password)editTab.get("password")).setText("");
   }
