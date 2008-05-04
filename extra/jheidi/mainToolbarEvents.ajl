@@ -51,7 +51,7 @@ else if ("Drop Table".equals(who))
   {
      NodeInfo dbNode = node.getParent();
      Frame f = context.get("/");
-     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?"))
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?", "images/deletetable.gif"))
      {
        args().put("tableToDrop", node.getText());
        script("dropTable", args());
@@ -90,7 +90,7 @@ else if ("Drop Database".equals(who))
   if ( node != null && "db".equals(node.getType()) )
   {
      Frame f = context.get("/");
-     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop db '" + node.getText() + "'?"))
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop db '" + node.getText() + "'?", "images/deletedb.gif"))
      {
       args().put("dbToDrop", node.getText());
       DB db = context.get("db");
