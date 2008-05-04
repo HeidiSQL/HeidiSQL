@@ -43,6 +43,8 @@
 	    .button("Import", "images/import.gif")
 	    .button("Export", "images/export.gif")
 	    .separator()
+        .button("Maintenance", "images/optimize.gif")
+	    .separator()
 	    .button("Help", "images/help.gif");
 	    
 	app.statusBar("statusBar", "Ready");
