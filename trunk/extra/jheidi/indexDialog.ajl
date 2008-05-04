@@ -8,10 +8,11 @@
   context.put("currentDB", parentContext.get("currentDB"));
   context.put("currentTable", parentContext.get("currentTable"));
   
-  dlg.events("indexEvents");
-  dlg.insets(10,10);
-  dlg.tabLayout();
-	 dlg.text("Index Name:", 89)
+  dlg.events("indexEvents")
+    .insets(10,10)
+    .tabLayout()
+    .icon("images/manageindexes.gif")
+	  .text("Index Name:", 89)
     .setTab()
     .combo("indexes", new String[] {"", "Hi"}, 243)
     .setTab()
