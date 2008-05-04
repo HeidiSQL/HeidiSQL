@@ -19,7 +19,7 @@ if ("Delete Field".equals(who) )
      Frame frame = context.get("/");
      String tableName = context.get("currentTable");
      String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
-     if (frame.popupConfirm("Confirm Delete!", "Are you sure you want to drop field '" + tableName + "." + fieldName + "'?"))
+     if (frame.popupConfirm("Confirm Delete!", "Are you sure you want to drop field '" + tableName + "." + fieldName + "'?", "images/deletefield.gif"))
      {
         args().put("fieldToDrop", fieldName);
         script("dropField", args());
