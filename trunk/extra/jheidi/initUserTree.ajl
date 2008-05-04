@@ -1,0 +1,43 @@
+  import java.util.*;
+  
+  WindowContext context = argObj("windowContext");
+  Tree tree = context.get("/tabs/Edit User/userTree");
+  NodeInfo root = (NodeInfo)tree.getModel().getRoot();
+
+  root.removeAllChildren();
+  tree.setRootVisible(false);
+  tree.setShowsRootHandles(true);
+  tree.setCellRenderer(new IconicCellRenderer("images/user.gif"));
+  
+  DB db = context.get("db");
+  db.begin();
+  db.execute("use mysql");
+  DB.Result users = db.execute("select * from user order by user, host");
+  db.end();
+  
+  List userList = new ArrayList(users.size());
+  
+  for (HashObject ho: users)
+  {
+     userList.add(ho.get("user") + "@" + ho.get("host"));
+  }
+  
+  TreeUtils.populateList(root, userList, "user");
+  tree.updateUI();
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

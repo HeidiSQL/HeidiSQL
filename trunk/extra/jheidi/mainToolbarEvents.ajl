@@ -123,6 +123,10 @@ else if ("Export".equals(who))
 {
   script("exportDDLDialog",args());
 }
+else if ("User Manager".equals(who))
+{
+  script ("userManagerDialog", args());
+}
 else if ("Maintenance".equals(who))
 {
   script("maintenanceDialog", args());
