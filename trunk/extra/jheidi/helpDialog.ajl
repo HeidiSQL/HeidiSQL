@@ -7,9 +7,10 @@
   context.put("db", parentContext.get("db"));
    
   dlg.events("helpDialogEvents");
-  dlg.tabLayout();
-  dlg.insets(10, 10);
-	dlg.tree("helpTree", new Object[] {"A Tree"}, 250, 400);
+  dlg.tabLayout()
+     .insets(10, 10)
+     .icon("images/helptopic.gif")
+	   .tree("helpTree", new Object[] {"A Tree"}, 250, 400);
 	
 	//this is the only reliable component in terms of vsize to align on
 	Component tree = dlg.get("helpTreeScrollPane");
