@@ -9,9 +9,10 @@
   context.put("db", parentContext.get("db"));
   
   dlg.events("createTableEvents");
-  dlg.tabLayout();
-  dlg.insets(10, 10);
-  dlg.text("Name:", 73)
+  dlg.tabLayout()
+    .icon("images/table.gif")
+    .insets(10, 10)
+    .text("Name:", 73)
     .setTab()
     .field("tableName", 200)
     .setTab()
