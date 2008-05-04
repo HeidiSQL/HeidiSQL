@@ -10,6 +10,7 @@
   
   dlg.events("exportDDLEvents");
   dlg.insets(10, 10);
+  dlg.icon("images/export.gif");
 
   Tabs tabs = dlg.tabs("tabs");
   Panel source = tabs.tab("Source");
