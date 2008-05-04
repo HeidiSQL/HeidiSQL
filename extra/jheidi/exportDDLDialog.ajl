@@ -52,19 +52,19 @@
       .text("Database:")
       .nextRow()
       .tab(1)
-      .combo("database",new String[] {"Don't create","Create","Create if necesary","Recreate (remove tables)"},270)
+      .combo("database",new String[] {"Don't create","Create","Create if necessary","Recreate (remove tables)"},270)
       .nextRow()
       .tab(1)
       .text("Tables:")
       .nextRow()
       .tab(1)
-      .combo("tables",new String[] {"Don't create","Create","Create if necesary","Recreate (remove data)"},270)
+      .combo("tables",new String[] {"Don't create","Create","Create if necessary","Recreate (remove data)"},270)
       .nextRow()
       .tab(1)
       .text("Data:")
       .nextRow()
       .tab(1)
-      .combo("data",new String[] {"Don't create","Update Existing Data","Insert","Do Not Update Existing","Replace (truncate existing)"},270);
+      .combo("data",new String[] {"Don't create","Update existing data","Insert","Do not update existing","Replace (truncate existing)"},270);
             
    Panel buttons = dlg.panel("buttonPanel", "South");
    buttons.tabLayout();
@@ -87,9 +87,9 @@
   }
   
   ((ListBox)context.get("/tabs/Source/tables")).setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-  ((Combo)context.get("/tabs/Destination/database")).select("Create if necesary");
-  ((Combo)context.get("/tabs/Destination/tables")).select("Create if necesary");
-  ((Combo)context.get("/tabs/Destination/data")).select("Do Not Update Existing");
+  ((Combo)context.get("/tabs/Destination/database")).select("Create if necessary");
+  ((Combo)context.get("/tabs/Destination/tables")).select("Create if necessary");
+  ((Combo)context.get("/tabs/Destination/data")).select("Do not update existing");
   
   dlg.visible();
 

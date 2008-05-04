@@ -97,7 +97,7 @@
       return;
     }    
     
-    if ( "Don't Create".equals(databaseOption) && "Don't Create".equals(tableOption) && "Don't Create".equals(dataOption) ) 
+    if ( "Don't create".equals(databaseOption) && "Don't create".equals(tableOption) && "Don't create".equals(dataOption) ) 
     {
       dlg.popupMessage("Export Tables as SQL","No valid creation options set.\nPlease select creation options from the destination tab.");
       ((Combo)dest.get("database")).requestFocus();
@@ -150,7 +150,7 @@
           .append("# Database structure for database '").append(selection).append("'").append(lineSep)
           .append("#").append(doubleSep);
       
-    if ( "Create if necesary".equals(databaseOption) ) 
+    if ( "Create if necessary".equals(databaseOption) ) 
     {  
       dbCreate = dbCreate.replace("CREATE DATABASE","CREATE DATABASE IF NOT EXISTS");
     }
@@ -162,7 +162,7 @@
     buffer.append(dbCreate).append(endBlock)
           .append("USE `").append(selection).append("`").append(endBlock);
           
-    if ( !"Don't Create".equals(tableOption)) 
+    if ( !"Don't create".equals(tableOption)) 
     {
       for ( String table : (List<String>) tableList ) 
       {
@@ -173,18 +173,18 @@
               .append("# Creating table structure for '").append(table).append("'").append(lineSep)
               .append("#").append(doubleSep);
 
-        if ( "Create if necesary".equals(tableOption) ) 
+        if ( "Create if necessary".equals(tableOption) ) 
         {
           tableCreate = tableCreate.replace("CREATE TABLE","CREATE TABLE IF NOT EXISTS");              
         }
-        else if ( "Recreate tables (Remove Data)".equals(tableOption) ) 
+        else if ( "Recreate tables (remove data)".equals(tableOption) ) 
         {
           buffer.append("DROP TABLE ").append(table).append(endStmt);                
         }
         
         buffer.append(tableCreate).append(endBlock);
         
-        if ( !"Don't Create".equals(dataOption) )
+        if ( !"Don't create".equals(dataOption) )
         {
           DB.Result tableValues = db.execute("select * from " + table);
           DB.Result showFields = db.execute("show fields from " + table);          
@@ -201,7 +201,7 @@
           {
             buffer.append("LOCK TABLES `").append(table).append("` WRITE;").append(lineSep)
                   .append("ALTER TABLE `").append(table).append("` DISABLE KEYS;").append(lineSep);
-            if ( "Update Existing Data".equals(dataOption) ) 
+            if ( "Update existing data".equals(dataOption) ) 
             {
               buffer.append("REPLACE INTO `");
             }
@@ -209,7 +209,7 @@
             {
               buffer.append("INSERT INTO `");
             }
-            else if ( "Do Not Update Existing".equals(dataOption) ) 
+            else if ( "Do not update existing".equals(dataOption) ) 
             {
               buffer.append("INSERT IGNORE INTO `");
             }
