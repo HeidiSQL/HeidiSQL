@@ -97,6 +97,9 @@ begin
   // Define the current cursor like a clock
   Screen.Cursor := crHourGlass;
 
+  // Avoid scroll by removing blank line outside visible area in Authors text box
+  MemoAuthors.Text := TrimRight(MemoAuthors.Text);
+
   // App-Version
   LabelVersion.Caption := FullAppVersion;
 
