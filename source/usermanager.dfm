@@ -1,13 +1,13 @@
 object UserManagerForm: TUserManagerForm
   Left = 252
   Top = 131
-  BorderWidth = 5
-  Caption = 'User-Manager'
-  ClientHeight = 380
-  ClientWidth = 533
+  BorderIcons = [biSystemMenu, biMaximize]
+  Caption = 'User Manager'
+  ClientHeight = 446
+  ClientWidth = 352
   Color = clBtnFace
-  Constraints.MinHeight = 417
-  Constraints.MinWidth = 551
+  Constraints.MinHeight = 473
+  Constraints.MinWidth = 360
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -17,485 +17,459 @@ object UserManagerForm: TUserManagerForm
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
+  DesignSize = (
+    352
+    446)
   PixelsPerInch = 96
   TextHeight = 13
-  object PageControl1: TPageControl
-    Left = 0
-    Top = 0
-    Width = 533
-    Height = 343
-    ActivePage = TabSheetAddUser
-    Align = alClient
-    Images = MainForm.PngImageListMain
-    TabHeight = 22
+  object lblUser: TLabel
+    Left = 8
+    Top = 11
+    Width = 29
+    Height = 13
+    Caption = '&User:'
+    FocusControl = comboUsers
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object comboUsers: TComboBoxEx
+    Left = 56
+    Top = 8
+    Width = 235
+    Height = 22
+    ItemsEx = <>
+    Style = csExDropDownList
+    Anchors = [akLeft, akTop, akRight]
+    ItemHeight = 16
     TabOrder = 0
-    OnChange = PageControl1Change
-    object TabSheetAddUser: TTabSheet
-      Caption = 'Add User'
-      ImageIndex = 21
-      object Label4: TLabel
-        Left = 16
-        Top = 40
+    OnChange = comboUsersChange
+    Images = MainForm.PngImageListMain
+  end
+  object btnCancel: TButton
+    Left = 269
+    Top = 413
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object btnOK: TButton
+    Left = 187
+    Top = 413
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 2
+    OnClick = btnOKClick
+  end
+  object comboObjects: TComboBoxEx
+    Left = 8
+    Top = 232
+    Width = 283
+    Height = 22
+    ItemsEx = <>
+    Style = csExDropDownList
+    Anchors = [akLeft, akTop, akRight]
+    ItemHeight = 16
+    TabOrder = 3
+    OnChange = comboObjectsChange
+    Images = MainForm.PngImageListMain
+  end
+  object boxPrivs: TCheckListBox
+    Left = 8
+    Top = 260
+    Width = 336
+    Height = 147
+    OnClickCheck = boxPrivsClickCheck
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Columns = 3
+    ItemHeight = 13
+    TabOrder = 4
+  end
+  object tlbObjects: TToolBar
+    Left = 297
+    Top = 232
+    Width = 46
+    Height = 22
+    Align = alNone
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    Caption = 'tlbObjects'
+    Images = MainForm.PngImageListMain
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 5
+    object btnAddObject: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Add object ...'
+      ImageIndex = 45
+      OnClick = btnAddObjectClick
+    end
+    object btnDeleteObject: TToolButton
+      Left = 23
+      Top = 0
+      Hint = 'Remove access to object ...'
+      ImageIndex = 46
+      OnClick = btnDeleteObjectClick
+    end
+  end
+  object tlbUsers: TToolBar
+    Left = 297
+    Top = 8
+    Width = 46
+    Height = 22
+    Align = alNone
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    Caption = 'tlbUsers'
+    Images = MainForm.PngImageListMain
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 6
+    object btnAddUser: TToolButton
+      Left = 0
+      Top = 0
+      Hint = 'Create user ...'
+      ImageIndex = 45
+      OnClick = btnAddUserClick
+    end
+    object btnDeleteUser: TToolButton
+      Left = 23
+      Top = 0
+      Hint = 'Delete user ...'
+      ImageIndex = 46
+      OnClick = btnDeleteUserClick
+    end
+  end
+  object chkTogglePrivs: TCheckBox
+    Left = 8
+    Top = 417
+    Width = 129
+    Height = 17
+    Anchors = [akLeft, akBottom]
+    Caption = 'Select / Deselect all'
+    TabOrder = 7
+    OnClick = chkTogglePrivsClick
+  end
+  object PageControlUser: TPageControl
+    Left = 8
+    Top = 36
+    Width = 335
+    Height = 190
+    ActivePage = tabSettings
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 8
+    object tabSettings: TTabSheet
+      Caption = 'Settings'
+      DesignSize = (
+        327
+        162)
+      object lblFromHost: TLabel
+        Left = 10
+        Top = 62
         Width = 52
         Height = 13
-        Caption = '&Username:'
-        FocusControl = EditUser
+        Caption = 'From &host:'
+        FocusControl = editFromHost
       end
-      object Label5: TLabel
-        Left = 16
-        Top = 88
+      object lblPassword: TLabel
+        Left = 10
+        Top = 36
         Width = 50
         Height = 13
         Caption = '&Password:'
-        FocusControl = EditPassword
+        FocusControl = editPassword
       end
-      object Label6: TLabel
-        Left = 16
-        Top = 64
-        Width = 53
+      object lblUsername: TLabel
+        Left = 10
+        Top = 10
+        Width = 55
         Height = 13
-        Caption = 'From &Host:'
-        FocusControl = EditHost
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
+        Caption = 'User &name:'
       end
-      object Label7: TLabel
-        Left = 256
-        Top = 16
-        Width = 89
+      object lblHostHint: TLabel
+        Left = 100
+        Top = 84
+        Width = 164
         Height = 13
-        Caption = 'Allow a&ccess to:'
-        FocusControl = DBUserTree
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
+        Caption = '(Host: % and _ wildcards allowed)'
       end
-      object Label8: TLabel
-        Left = 16
-        Top = 128
-        Width = 58
-        Height = 13
-        Caption = 'Privileges:'
+      object lblWarning: TLabel
+        Left = 10
+        Top = 136
+        Width = 314
+        Height = 23
+        Anchors = [akLeft, akTop, akRight]
+        AutoSize = False
+        Caption = 'Security warning'
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
+        Font.Color = clRed
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
+        WordWrap = True
       end
-      object Label9: TLabel
-        Left = 16
-        Top = 16
-        Width = 67
+      object editPassword: TEdit
+        Left = 100
+        Top = 33
+        Width = 220
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 1
+        Text = 'editPassword'
+        OnChange = editPasswordChange
+        OnEnter = editPasswordEnter
+        OnExit = editPasswordExit
+      end
+      object editFromHost: TEdit
+        Left = 100
+        Top = 59
+        Width = 220
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 2
+        Text = 'editFromHost'
+        OnChange = editFromHostChange
+      end
+      object chkDisabled: TCheckBox
+        Left = 10
+        Top = 105
+        Width = 103
+        Height = 17
+        Alignment = taLeftJustify
+        Caption = '&Disable account:'
+        TabOrder = 3
+        OnClick = chkDisabledClick
+      end
+      object editUsername: TEdit
+        Left = 100
+        Top = 7
+        Width = 220
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 0
+        Text = 'editUsername'
+        OnChange = editUsernameChange
+      end
+    end
+    object tabLimitations: TTabSheet
+      Caption = 'Limitations'
+      ImageIndex = 1
+      DesignSize = (
+        327
+        162)
+      object lblMaxQuestions: TLabel
+        Left = 10
+        Top = 10
+        Width = 182
         Height = 13
-        Caption = 'Credentials:'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
+        Caption = 'Maximum number of &queries per hour:'
+        FocusControl = editMaxQuestions
       end
-      object Bevel1: TBevel
-        Left = 16
-        Top = 120
-        Width = 209
-        Height = 9
-        Shape = bsTopLine
+      object lblMaxUpdates: TLabel
+        Left = 10
+        Top = 34
+        Width = 186
+        Height = 13
+        Caption = 'Maximum number of &updates per hour:'
+        FocusControl = editMaxUpdates
       end
-      object Label1: TLabel
-        Left = 274
-        Top = 272
+      object lblMaxConnections: TLabel
+        Left = 10
+        Top = 58
+        Width = 204
+        Height = 13
+        Caption = 'Maximum number of &connections per hour:'
+        FocusControl = editMaxConnections
+      end
+      object lblMaxUserConnections: TLabel
+        Left = 10
+        Top = 82
+        Width = 225
+        Height = 13
+        Caption = 'Maximum number of &simultaneous connections:'
+        FocusControl = editMaxUserConnections
+      end
+      object lblLimitHint: TLabel
+        Left = 184
+        Top = 138
+        Width = 133
+        Height = 13
+        Caption = '(Use 0 to indicate unlimited)'
+      end
+      object editMaxUserConnections: TEdit
+        Left = 240
+        Top = 79
+        Width = 64
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 6
+        Text = '0'
+      end
+      object editMaxConnections: TEdit
+        Left = 240
+        Top = 55
+        Width = 64
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 4
+        Text = '0'
+      end
+      object editMaxUpdates: TEdit
+        Left = 240
+        Top = 31
+        Width = 64
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 2
+        Text = '0'
+      end
+      object editMaxQuestions: TEdit
+        Left = 240
+        Top = 7
+        Width = 64
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 0
+        Text = '0'
+      end
+      object udMaxQuestions: TUpDown
+        Left = 304
+        Top = 7
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editMaxQuestions
+        Max = 32767
+        TabOrder = 1
+        Wrap = True
+      end
+      object udMaxUpdates: TUpDown
+        Left = 304
+        Top = 31
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editMaxUpdates
+        Max = 32767
+        TabOrder = 3
+        Wrap = True
+      end
+      object udMaxConnections: TUpDown
+        Left = 304
+        Top = 55
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editMaxConnections
+        Max = 32767
+        TabOrder = 5
+        Wrap = True
+      end
+      object udMaxUserConnections: TUpDown
+        Left = 304
+        Top = 79
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editMaxUserConnections
+        Max = 32767
+        TabOrder = 7
+        Wrap = True
+      end
+    end
+    object tabUserInfo: TTabSheet
+      Caption = 'User info'
+      ImageIndex = 2
+      TabVisible = False
+      DesignSize = (
+        327
+        162)
+      object lblFullName: TLabel
+        Left = 10
+        Top = 10
+        Width = 49
+        Height = 13
+        Caption = '&Full name:'
+      end
+      object lblDescription: TLabel
+        Left = 10
+        Top = 36
         Width = 57
         Height = 13
         Caption = '&Description:'
-        Enabled = False
-        FocusControl = EditDescription
       end
-      object DBUserTree: TTreeView
-        Left = 256
-        Top = 40
-        Width = 257
-        Height = 193
-        Images = MainForm.PngImageListMain
-        Indent = 19
-        ReadOnly = True
-        RowSelect = True
-        ShowLines = False
-        ShowRoot = False
-        TabOrder = 3
-        OnExpanding = DBUserTreeExpanding
+      object lblEmail: TLabel
+        Left = 10
+        Top = 62
+        Width = 28
+        Height = 13
+        Caption = '&Email:'
       end
-      object EditUser: TEdit
-        Left = 96
-        Top = 40
-        Width = 129
-        Height = 21
-        TabOrder = 0
-      end
-      object EditPassword: TEdit
-        Left = 96
+      object lblContactInfo: TLabel
+        Left = 10
         Top = 88
-        Width = 129
+        Width = 63
+        Height = 13
+        Caption = '&Contact info:'
+      end
+      object editFullName: TEdit
+        Left = 100
+        Top = 7
+        Width = 220
         Height = 21
-        PasswordChar = '*'
-        TabOrder = 2
-      end
-      object EditHost: TEdit
-        Left = 96
-        Top = 64
-        Width = 129
-        Height = 21
-        TabOrder = 1
-        Text = '%'
-      end
-      object CheckListBoxPrivileges: TCheckListBox
-        Left = 96
-        Top = 152
-        Width = 129
-        Height = 113
-        ItemHeight = 13
-        Items.Strings = (
-          'Select'
-          'Insert'
-          'Update'
-          '...')
-        TabOrder = 5
-      end
-      object CheckBoxAllPrivileges: TCheckBox
-        Left = 96
-        Top = 128
-        Width = 105
-        Height = 17
-        Caption = '&All Privileges'
-        TabOrder = 4
-        OnClick = CheckBoxAllPrivilegesClick
-      end
-      object CheckBoxWithGrant: TCheckBox
-        Left = 96
-        Top = 272
-        Width = 105
-        Height = 17
-        Caption = '&With Grant Option'
-        TabOrder = 6
-      end
-      object CheckBoxCreateAccount: TCheckBox
-        Left = 256
-        Top = 248
-        Width = 249
-        Height = 17
-        Caption = 'Create Connection-Account for appname'
-        TabOrder = 7
-        OnClick = CheckBoxCreateAccountClick
-      end
-      object EditDescription: TEdit
-        Left = 336
-        Top = 270
-        Width = 177
-        Height = 21
-        Enabled = False
-        TabOrder = 8
-      end
-    end
-    object TabSheetEditUsers: TTabSheet
-      Caption = 'Edit Users'
-      ImageIndex = 12
-      object Panel1: TPanel
-        Left = 280
-        Top = 0
-        Width = 245
-        Height = 311
-        Align = alRight
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        BevelOuter = bvNone
+        Anchors = [akLeft, akTop, akRight]
+        MaxLength = 60
         TabOrder = 0
-        DesignSize = (
-          245
-          311)
-        object Label13: TLabel
-          Left = 14
-          Top = 82
-          Width = 39
-          Height = 13
-          Caption = 'Column:'
-          Visible = False
-        end
-        object LabelColumn: TLabel
-          Left = 84
-          Top = 82
-          Width = 60
-          Height = 13
-          Caption = 'LabelColumn'
-          Visible = False
-        end
-        object LabelTable: TLabel
-          Left = 84
-          Top = 66
-          Width = 51
-          Height = 13
-          Caption = 'LabelTable'
-          Visible = False
-        end
-        object LabelDB: TLabel
-          Left = 84
-          Top = 50
-          Width = 38
-          Height = 13
-          Caption = 'LabelDB'
-          Visible = False
-        end
-        object Label12: TLabel
-          Left = 14
-          Top = 66
-          Width = 30
-          Height = 13
-          Caption = 'Table:'
-          Visible = False
-        end
-        object Label11: TLabel
-          Left = 14
-          Top = 50
-          Width = 50
-          Height = 13
-          Caption = 'Database:'
-          Visible = False
-        end
-        object LabelPrivileges: TLabel
-          Left = 14
-          Top = 8
-          Width = 58
-          Height = 13
-          Caption = 'Privileges:'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          Visible = False
-          WordWrap = True
-        end
-        object LabelPleaseSelect: TLabel
-          Left = 40
-          Top = 96
-          Width = 136
-          Height = 39
-          Caption = 
-            'Please select a user or doubleclick on a user to access items be' +
-            'low him.'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-          WordWrap = True
-        end
-        object LabelNoPrivs: TLabel
-          Left = 24
-          Top = 120
-          Width = 200
-          Height = 13
-          Caption = 'No Privileges are set for the selected item'
-          Visible = False
-        end
-        object LabelUser: TLabel
-          Left = 14
-          Top = 32
-          Width = 3
-          Height = 13
-        end
-        object CheckListBoxPrivs: TCheckListBox
-          Left = 14
-          Top = 106
-          Width = 107
-          Height = 193
-          OnClickCheck = CheckListBoxPrivsClickCheck
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          ItemHeight = 13
-          Items.Strings = (
-            'Select'
-            'Insert'
-            'Update'
-            'Delete'
-            'Create'
-            'Drop'
-            'Reload'
-            'Shutdown'
-            'Process'
-            'File'
-            'Grant'
-            'References'
-            'Index'
-            'Alter')
-          TabOrder = 0
-          Visible = False
-        end
-        object ButtonSelectAll: TButton
-          Left = 136
-          Top = 172
-          Width = 100
-          Height = 25
-          Anchors = [akRight, akBottom]
-          Caption = 'Select all'
-          TabOrder = 1
-          Visible = False
-          OnClick = ButtonSelectAllClick
-        end
-        object ButtonSelectNone: TButton
-          Left = 136
-          Top = 204
-          Width = 100
-          Height = 25
-          Anchors = [akRight, akBottom]
-          Caption = 'Select none'
-          TabOrder = 2
-          Visible = False
-          OnClick = ButtonSelectNoneClick
-        end
-        object ButtonSet: TButton
-          Left = 136
-          Top = 244
-          Width = 100
-          Height = 25
-          Anchors = [akRight, akBottom]
-          Caption = 'Grant Privileges'
-          Enabled = False
-          TabOrder = 3
-          Visible = False
-          OnClick = ButtonSetClick
-        end
-        object ButtonSelectPrivileges: TButton
-          Left = 72
-          Top = 136
-          Width = 113
-          Height = 25
-          Caption = 'Specify Privileges'
-          TabOrder = 4
-          OnClick = ButtonSelectPrivilegesClick
-        end
-        object ButtonRevoke: TButton
-          Left = 136
-          Top = 274
-          Width = 100
-          Height = 25
-          Anchors = [akRight, akBottom]
-          Caption = 'Revoke Privileges'
-          TabOrder = 5
-          OnClick = ButtonRevokeClick
-        end
+        Text = 'editFullName'
       end
-      object Panel2: TPanel
-        Left = 0
-        Top = 0
-        Width = 280
-        Height = 311
-        Align = alClient
-        BevelOuter = bvNone
-        BorderWidth = 5
-        Caption = 'Panel2'
+      object editDescription: TEdit
+        Left = 100
+        Top = 33
+        Width = 220
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        MaxLength = 255
         TabOrder = 1
-        object Label2: TLabel
-          Left = 5
-          Top = 5
-          Width = 270
-          Height = 13
-          Align = alTop
-          Caption = 'Registered users:'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
-        end
-        object TreeViewUsers: TTreeView
-          Left = 5
-          Top = 18
-          Width = 270
-          Height = 253
-          Align = alClient
-          Anchors = [akLeft, akTop, akBottom]
-          ChangeDelay = 50
-          HotTrack = True
-          Images = MainForm.PngImageListMain
-          Indent = 19
-          ReadOnly = True
-          TabOrder = 0
-          OnChange = TreeViewUsersChange
-          OnDblClick = TreeViewUsersDblClick
-        end
-        object Panel4: TPanel
-          Left = 5
-          Top = 271
-          Width = 270
-          Height = 35
-          Align = alBottom
-          BevelOuter = bvNone
-          TabOrder = 1
-          object ButtonEditUser: TButton
-            Left = 0
-            Top = 8
-            Width = 105
-            Height = 25
-            Caption = 'Edit User...'
-            Enabled = False
-            TabOrder = 0
-            OnClick = ButtonEditUserClick
-          end
-          object Button1: TButton
-            Left = 112
-            Top = 8
-            Width = 105
-            Height = 25
-            Caption = 'Refresh'
-            TabOrder = 1
-            OnClick = Button1Click
-          end
-        end
+        Text = 'editDescription'
       end
-    end
-  end
-  object Panel3: TPanel
-    Left = 0
-    Top = 343
-    Width = 533
-    Height = 37
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 1
-    DesignSize = (
-      533
-      37)
-    object ButtonClose: TButton
-      Left = 456
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
-      Cancel = True
-      Caption = 'Close'
-      ModalResult = 2
-      TabOrder = 0
-    end
-    object ButtonAddUser: TButton
-      Left = 368
-      Top = 8
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = 'Add User'
-      Default = True
-      TabOrder = 1
-      OnClick = ButtonAddUserClick
+      object editEmail: TEdit
+        Left = 100
+        Top = 59
+        Width = 220
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        MaxLength = 80
+        TabOrder = 2
+        Text = 'editEmail'
+      end
+      object memoContactInfo: TMemo
+        Left = 100
+        Top = 86
+        Width = 220
+        Height = 67
+        Anchors = [akLeft, akTop, akRight]
+        Lines.Strings = (
+          'memoContactInfo')
+        MaxLength = 65535
+        ScrollBars = ssVertical
+        TabOrder = 3
+      end
     end
   end
 end

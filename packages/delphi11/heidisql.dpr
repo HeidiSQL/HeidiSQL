@@ -18,7 +18,6 @@ uses
   optimizetables in '..\..\source\optimizetables.pas' {optimize},
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},
-  edituser in '..\..\source\edituser.pas' {FormEditUser},
   insertfiles in '..\..\source\insertfiles.pas' {frmInsertFiles},
   insertfiles_progress in '..\..\source\insertfiles_progress.pas' {frmInsertFilesProgress},
   helpers in '..\..\source\helpers.pas',
@@ -37,7 +36,8 @@ uses
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm},
   updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck},
   editvar in '..\..\source\editvar.pas' {frmEditVariable},
-  view in '..\..\source\view.pas' {frmView};
+  view in '..\..\source\view.pas' {frmView},
+  selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject};
 
 {$R *.RES}
 
