@@ -7,6 +7,7 @@ const
   // Names of the system tables and system databases
   PRIVTABLE_USERS           = 'user';
   PRIVTABLE_DB              = 'db';
+  PRIVTABLE_HOST            = 'host';
   PRIVTABLE_TABLES          = 'tables_priv';
   PRIVTABLE_COLUMNS         = 'columns_priv';
   DBNAME_INFORMATION_SCHEMA = 'information_schema';
@@ -158,6 +159,10 @@ const
   REGNAME_VIEWWINHEIGHT = 'View_WindowHeight';
   REGNAME_PREFER_SHOWTABLES = 'PreferShowTables';
   DEFAULT_PREFER_SHOWTABLES = False;
+  REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
+  REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
+  REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';
+  REGNAME_SELECTDBO_WINHEIGHT = 'SelectDBO_WindowHeight';
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
@@ -175,6 +180,9 @@ const
   ICONINDEX_INDEXKEY = 23;
   ICONINDEX_UNIQUEKEY = 24;
   ICONINDEX_FULLTEXTKEY = 22;
+  ICONINDEX_SERVER = 1;
+  ICONINDEX_DB = 5;
+  ICONINDEX_DB_HIGHLIGHT = 70;
   ICONINDEX_TABLE = 14;
   ICONINDEX_TABLE_HIGHLIGHT = 71;
   ICONINDEX_VIEW = 81;
@@ -217,3 +225,5 @@ const
   NODETYPE_DEFAULT = 0;
   NODETYPE_BASETABLE = 1;
   NODETYPE_VIEW = 2;
+  NODETYPE_DB = 3;
+  NODETYPE_COLUMN = 4;

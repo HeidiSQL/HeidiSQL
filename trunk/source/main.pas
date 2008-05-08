@@ -17,7 +17,8 @@ uses
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
-  StrUtils, DateUtils, PngImageList, OptimizeTables, View;
+  StrUtils, DateUtils, PngImageList, OptimizeTables, View, Usermanager,
+  SelectDBObject;
 
 type
   TMainForm = class(TForm)
@@ -212,6 +213,8 @@ type
   public
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
+    UserManagerForm: TUserManagerForm;
+    SelectDBObjectForm: TfrmSelectDBObject;
     procedure OpenRegistry(Session: String = '');
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
@@ -258,7 +261,6 @@ uses
   exportsql,
   tbl_properties,
   loaddata,
-  usermanager,
   options,
   printlist,
   copytable,
@@ -684,7 +686,9 @@ end;
 
 procedure TMainForm.UserManagerExecute(Sender: TObject);
 begin
-  UserManagerWindow (Self);
+  if UserManagerForm = nil then
+    UserManagerForm := TUserManagerForm.Create(Self);
+  UserManagerForm.ShowModal;
 end;
 
 procedure TMainForm.menuWindowClick(Sender: TObject);

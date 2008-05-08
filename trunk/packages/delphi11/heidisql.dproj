@@ -85,9 +85,6 @@
     <DCCReference Include="..\..\source\data_sorting.pas">
       <Form>DataSortingForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\edituser.pas">
-      <Form>FormEditUser</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\editvar.pas">
       <Form>frmEditVariable</Form>
     </DCCReference>
@@ -128,6 +125,9 @@
     </DCCReference>
     <DCCReference Include="..\..\source\runsqlfile.pas">
       <Form>RunSQLFileForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\selectdbobject.pas">
+      <Form>frmSelectDBObject</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\sqlhelp.pas">
       <Form>frmSQLhelp</Form>

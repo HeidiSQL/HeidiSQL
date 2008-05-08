@@ -1314,8 +1314,8 @@ begin
   newTree.Parent := self;
 
   tnodehost := newTree.Items.Add( nil, FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host );  // Host or Root
-  tnodehost.ImageIndex := 1;
-  tnodehost.SelectedIndex := 1;
+  tnodehost.ImageIndex := ICONINDEX_SERVER;
+  tnodehost.SelectedIndex := ICONINDEX_SERVER;
   select := 0;
 
   // Avoids excessive InitializeKeywordLists() calls.
@@ -1330,8 +1330,8 @@ begin
   for i := 0 to ( OnlyDBs2.Count - 1 ) do
   begin
     tnode := newTree.Items.AddChild( tnodehost, OnlyDBs2[i] );
-    tnode.ImageIndex := 5;
-    tnode.SelectedIndex := 70;
+    tnode.ImageIndex := ICONINDEX_DB;
+    tnode.SelectedIndex := ICONINDEX_DB_HIGHLIGHT;
     // Add dummy-node, will be replaced by real tables on expanding
     newTree.Items.AddChild( tnode, DUMMY_NODE_TEXT );
     if i = 0 then tnodehost.Expand(false);
@@ -5983,8 +5983,8 @@ procedure TMDIChild.vstGetImageIndex(Sender: TBaseVirtualTree; Node:
 var
   NodeData : PVTreeData;
 begin
-  // Display icon only for leftmost cell
-  if Column <> 0 then
+  // Display icon only for leftmost cell (0) or for tree nodes (-1)
+  if Column > 0 then
     exit;
   // Get pointer to node which gets displayed
   NodeData := Sender.GetNodeData(Node);
