@@ -210,7 +210,7 @@
             }
             else
             {
-              buffer.append(ndx);
+              buffer.append("index ").append(ndx);
             }  
             buffer.append(" (");
             
