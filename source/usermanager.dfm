@@ -283,7 +283,7 @@ object UserManagerForm: TUserManagerForm
       end
       object lblMaxUpdates: TLabel
         Left = 10
-        Top = 34
+        Top = 38
         Width = 186
         Height = 13
         Caption = 'Maximum number of &updates per hour:'
@@ -291,7 +291,7 @@ object UserManagerForm: TUserManagerForm
       end
       object lblMaxConnections: TLabel
         Left = 10
-        Top = 58
+        Top = 66
         Width = 204
         Height = 13
         Caption = 'Maximum number of &connections per hour:'
@@ -299,7 +299,7 @@ object UserManagerForm: TUserManagerForm
       end
       object lblMaxUserConnections: TLabel
         Left = 10
-        Top = 82
+        Top = 94
         Width = 225
         Height = 13
         Caption = 'Maximum number of &simultaneous connections:'
@@ -315,7 +315,7 @@ object UserManagerForm: TUserManagerForm
       end
       object editMaxUserConnections: TEdit
         Left = 240
-        Top = 79
+        Top = 91
         Width = 64
         Height = 21
         Anchors = [akTop, akRight]
@@ -324,7 +324,7 @@ object UserManagerForm: TUserManagerForm
       end
       object editMaxConnections: TEdit
         Left = 240
-        Top = 55
+        Top = 63
         Width = 64
         Height = 21
         Anchors = [akTop, akRight]
@@ -333,7 +333,7 @@ object UserManagerForm: TUserManagerForm
       end
       object editMaxUpdates: TEdit
         Left = 240
-        Top = 31
+        Top = 35
         Width = 64
         Height = 21
         Anchors = [akTop, akRight]
@@ -362,7 +362,7 @@ object UserManagerForm: TUserManagerForm
       end
       object udMaxUpdates: TUpDown
         Left = 304
-        Top = 31
+        Top = 35
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
@@ -373,7 +373,7 @@ object UserManagerForm: TUserManagerForm
       end
       object udMaxConnections: TUpDown
         Left = 304
-        Top = 55
+        Top = 63
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
@@ -384,7 +384,7 @@ object UserManagerForm: TUserManagerForm
       end
       object udMaxUserConnections: TUpDown
         Left = 304
-        Top = 79
+        Top = 91
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
