@@ -848,6 +848,16 @@ var
       Result := Result + list[i];
     end;
   end;
+  function AccountSqlClause(name: String; host: String; canon: Boolean = False): String;
+  begin
+    Result := ' WHERE ' + mask('User') + '=' + esc(name) + ' AND (';
+    Result := Result + mask('Host') + '=' + esc(host);
+    if canon and (host = '%') then begin
+      // Canonicalization: both '%' and '' means any host.
+      Result := Result + ' OR ' + mask('Host') + '=' + esc('');
+    end;
+    Result := Result + ')';
+  end;
 begin
   LogSQL('Removing accounts marked for deletion...');
   for i := 0 to Users.Count - 1 do begin
@@ -858,7 +868,7 @@ begin
     if u.Added then Continue;
     // Go.
     LogSQL('Deleting account ' + u.FOldName + '@' + u.FOldHost + '.');
-    AcctWhere := ' WHERE ' + mask('User') + '=' + esc(u.FOldName) + ' AND ' + mask('Host') + '=' + esc(u.FOldHost);
+    AcctWhere := AccountSqlClause(u.FOldName, u.FOldHost, True);
     sql := 'DELETE FROM ' + db + '.';
     Exec(sql + mask(PRIVTABLE_COLUMNS) + AcctWhere);
     Exec(sql + mask(PRIVTABLE_TABLES) + AcctWhere);
@@ -886,7 +896,7 @@ begin
     if AcctUpdates.Count = 0 then Continue;
     // Go.
     LogSQL('Renaming/redesignating account ' + u.FOldName + '@' + u.FOldHost + '.');
-    AcctWhere := ' WHERE ' + mask('User') + '=' + esc(u.FOldName) + ' AND ' + mask('Host') + '=' + esc(u.FOldHost);
+    AcctWhere := AccountSqlClause(u.FOldName, u.FOldHost);
     AcctValues := ' SET ' + Delim(AcctUpdates);
     sql := 'UPDATE ' + db + '.';
     // Todo: Allow concurrency by skipping this account and removing from Users array if changing key in mysql.user fails.
@@ -926,7 +936,7 @@ begin
     if AcctUpdates.Count = 0 then Continue;
     // Go.
     LogSQL('Updating account ' + u.Name + '@' + u.Host + '.');
-    AcctWhere := ' WHERE ' + mask('User') + '=' + esc(u.Name) + ' AND ' + mask('Host') + '=' + esc(u.Host);
+    AcctWhere := AccountSqlClause(u.Name, u.Host);
     AcctValues := ' SET ' + Delim(AcctUpdates);
     sql := 'UPDATE ' + db + '.';
     Exec(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
@@ -974,7 +984,7 @@ begin
   PrivValues.Delimiter := ',';
   for i := 0 to Users.Count - 1 do begin
     u := Users[i];
-    AcctWhere := ' WHERE ' + mask('User') + '=' + esc(u.Name) + ' AND ' + mask('Host') + '=' + esc(u.Host);
+    AcctWhere := AccountSqlClause(u.Name, u.Host, True);
     PrivUpdates.Clear;
     // Traverse the privilege definitions.
     for j := 0 to u.Privileges.Count - 1 do begin
@@ -1347,6 +1357,8 @@ var
     while not ds.Eof do begin
       if hasUserField then user := ds.FieldByName('User').AsString;
       host := ds.FieldByName('Host').AsString;
+      // Canonicalize: Host='' and Host='%' means the same.
+      if host = '' then host := '%';
       if (host = FOwner.FOldHost) and (user = FOwner.FOldName) then begin
         // Find existing privilege, or create + add new one.
         p := FindPrivilege(ds.Fields, simulateDb);
