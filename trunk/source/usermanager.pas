@@ -58,6 +58,7 @@ type
     private
       FOldName: String;
       FNewName: String;
+      FNameChanged: Boolean;
       FPassword: String;
       FOldPasswordHashed: String;
       FOldHost: String;
@@ -331,21 +332,31 @@ procedure TUserManagerForm.RefreshUserPulldown;
 var
   i, Selected, IconIndex: Integer;
   Username: String;
+  NoUser: Boolean;
 begin
   Selected := comboUsers.ItemIndex;
   comboUsers.ItemsEx.Clear;
   for i:=0 to Users.Count-1 do begin
+    NoUser := Users[i].Name = '';
 
     // Compose displayed username
     Username := Users[i].Name;
-    if (Users[i].Host <> '%') and (Users[i].Host <> '') then
+    if NoUser then Username := 'Everybody';
+    if (Users[i].Host <> '%') then
       Username := Username + '@' + Users[i].Host;
 
     // Detect modified status of the user object itself
-    if Users[i].Deleted then IconIndex := 83
-    else if Users[i].Added then IconIndex := 21
-    else if Users[i].Modified then IconIndex := 12
-    else IconIndex := 43;
+    if NoUser then begin
+      if Users[i].Deleted then IconIndex := 86
+      else if Users[i].Added then IconIndex := 85
+      else if Users[i].Modified then IconIndex := 84
+      else IconIndex := 11;
+    end else begin
+      if Users[i].Deleted then IconIndex := 83
+      else if Users[i].Added then IconIndex := 21
+      else if Users[i].Modified then IconIndex := 12
+      else IconIndex := 43;
+    end;
 
     comboUsers.ItemsEx.AddItem(Username, IconIndex, IconIndex, -1, 0, nil);
   end;
@@ -379,6 +390,7 @@ begin
     t := editUsername.OnChange;
     editUsername.OnChange := nil;
     editUsername.Text := u.Name;
+    if u.Name = '' then editUsername.Text := '%';
     editUsername.OnChange := t;
 
     editPasswordExit(Sender);
@@ -672,19 +684,26 @@ end;
 }
 procedure TUserManagerForm.editUsernameChange(Sender: TObject);
 var
-  u: TUser;
+  u, f: TUser;
   t: TNotifyEvent;
 begin
   u := Users[comboUsers.ItemIndex];
   // Check if user/host combination already exists
-  if Users.FindUser(editUsername.Text, u.Host) = nil then
+  f := Users.FindUser(editUsername.Text, u.Host);
+  if (f = nil) or (f = u) then
     u.Name := editUsername.Text
   else
     MessageDlg('User/host combination "'+editUsername.Text+'@'+u.Host+'" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
   // User edit probably has to be reset to the previous value
   t := editUsername.OnChange;
   editUsername.OnChange := nil;
-  editUsername.Text := u.Name;
+  // Blank user field means:
+  // - this user is used for authentication failures
+  // - privileges for this user applies to everyone
+  // In effect, User='' means the same as User='%', except
+  // that the latter syntax is not allowed (in the database).
+  if u.Name = '' then editUserName.Text := '%'
+  else editUsername.Text := u.Name;
   editUsername.OnChange := t;
   RefreshUserPulldown;
 end;
@@ -1221,6 +1240,7 @@ var
   i: Integer;
 begin
   Result := nil;
+  // Host='' is canonicalized to Host='%' on load, so search for that instead.
   if Host = '' then Host := '%';
   for i := 0 to Length(FUserItems) - 1 do begin
     if (FUserItems[i].Name = Name) and (FUserItems[i].Host = Host) then begin
@@ -1241,6 +1261,7 @@ begin
   FPasswordModified := False;
   FDisabled := True;
   FOldPasswordHashed := '';
+  FNameChanged := False;
   FOldName := Name;
   FOldHost := Host;
   if FOldHost = '' then begin
@@ -1261,6 +1282,7 @@ begin
   FOtherModified := False;
   FPasswordModified := False;
   FDisabled := False;
+  FNameChanged := False;
   FOldName := Fields.FieldByName('User').AsString;
   FOldHost := Fields.FieldByName('Host').AsString;
   if FOldHost = '' then begin
@@ -1299,13 +1321,13 @@ end;
 function TUser.GetName: String;
 begin
   Result := FOldName;
-  if FNewName <> '' then
-    Result := FNewName;
+  if FNameChanged then Result := FNewName;
 end;
 
 procedure TUser.SetName(str: String);
 begin
   FOtherModified := FOtherModified or (Name <> str);
+  FNameChanged := True;
   FNewName := str;
 end;
 
