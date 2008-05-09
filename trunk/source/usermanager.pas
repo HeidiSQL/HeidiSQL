@@ -164,8 +164,8 @@ type
     lblUsername: TLabel;
     editUsername: TEdit;
     lblLimitHint: TLabel;
-    lblHostHint: TLabel;
     lblWarning: TLabel;
+    memoHints: TMemo;
     procedure boxPrivsClickCheck(Sender: TObject);
     procedure btnAddObjectClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -223,10 +223,15 @@ var
   FormCreate: Restore GUI setup
 }
 procedure TUserManagerForm.FormCreate(Sender: TObject);
+var
+  snr: String;
 begin
   Width := Mainform.GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   db := Mainform.Mask(DBNAME_MYSQL);
+  snr := Mainform.Childwin.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
+  if snr = '' then snr := 'Unknown';
+  memoHints.Text := TrimRight(StringReplace(memoHints.Text, '$SNR', snr, []));
 end;
 
 
@@ -462,7 +467,7 @@ begin
   editPassword.Enabled := Enable;
   lblFromHost.Enabled := Enable;
   editFromHost.Enabled := Enable;
-  lblHostHint.Enabled := Enable;
+  memoHints.Enabled := Enable;
   chkDisabled.Enabled := Enable;
   // Update controls in Limitations tab
   lblMaxQuestions.Enabled := Enable;

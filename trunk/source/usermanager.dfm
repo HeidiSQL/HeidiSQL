@@ -4,7 +4,7 @@ object UserManagerForm: TUserManagerForm
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'User Manager'
   ClientHeight = 446
-  ClientWidth = 352
+  ClientWidth = 383
   Color = clBtnFace
   Constraints.MinHeight = 473
   Constraints.MinWidth = 360
@@ -21,7 +21,7 @@ object UserManagerForm: TUserManagerForm
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    352
+    383
     446)
   PixelsPerInch = 96
   TextHeight = 13
@@ -42,7 +42,7 @@ object UserManagerForm: TUserManagerForm
   object comboUsers: TComboBoxEx
     Left = 56
     Top = 8
-    Width = 235
+    Width = 266
     Height = 22
     ItemsEx = <>
     Style = csExDropDownList
@@ -53,7 +53,7 @@ object UserManagerForm: TUserManagerForm
     Images = MainForm.PngImageListMain
   end
   object btnCancel: TButton
-    Left = 269
+    Left = 300
     Top = 413
     Width = 75
     Height = 25
@@ -64,7 +64,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 1
   end
   object btnOK: TButton
-    Left = 187
+    Left = 218
     Top = 413
     Width = 75
     Height = 25
@@ -78,7 +78,7 @@ object UserManagerForm: TUserManagerForm
   object comboObjects: TComboBoxEx
     Left = 8
     Top = 232
-    Width = 283
+    Width = 314
     Height = 22
     ItemsEx = <>
     Style = csExDropDownList
@@ -91,7 +91,7 @@ object UserManagerForm: TUserManagerForm
   object boxPrivs: TCheckListBox
     Left = 8
     Top = 260
-    Width = 336
+    Width = 367
     Height = 147
     OnClickCheck = boxPrivsClickCheck
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -100,7 +100,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 4
   end
   object tlbObjects: TToolBar
-    Left = 297
+    Left = 328
     Top = 232
     Width = 46
     Height = 22
@@ -128,7 +128,7 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object tlbUsers: TToolBar
-    Left = 297
+    Left = 328
     Top = 8
     Width = 46
     Height = 22
@@ -168,7 +168,7 @@ object UserManagerForm: TUserManagerForm
   object PageControlUser: TPageControl
     Left = 8
     Top = 36
-    Width = 335
+    Width = 366
     Height = 190
     ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight]
@@ -176,7 +176,7 @@ object UserManagerForm: TUserManagerForm
     object tabSettings: TTabSheet
       Caption = 'Settings'
       DesignSize = (
-        327
+        358
         162)
       object lblFromHost: TLabel
         Left = 10
@@ -201,17 +201,10 @@ object UserManagerForm: TUserManagerForm
         Height = 13
         Caption = 'User &name:'
       end
-      object lblHostHint: TLabel
-        Left = 100
-        Top = 84
-        Width = 164
-        Height = 13
-        Caption = '(Host: % and _ wildcards allowed)'
-      end
       object lblWarning: TLabel
         Left = 10
         Top = 136
-        Width = 314
+        Width = 345
         Height = 23
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -227,7 +220,7 @@ object UserManagerForm: TUserManagerForm
       object editPassword: TEdit
         Left = 100
         Top = 33
-        Width = 220
+        Width = 251
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -239,7 +232,7 @@ object UserManagerForm: TUserManagerForm
       object editFromHost: TEdit
         Left = 100
         Top = 59
-        Width = 220
+        Width = 251
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 2
@@ -247,9 +240,9 @@ object UserManagerForm: TUserManagerForm
         OnChange = editFromHostChange
       end
       object chkDisabled: TCheckBox
-        Left = 10
-        Top = 105
-        Width = 103
+        Left = 8
+        Top = 83
+        Width = 105
         Height = 17
         Alignment = taLeftJustify
         Caption = '&Disable account:'
@@ -259,19 +252,38 @@ object UserManagerForm: TUserManagerForm
       object editUsername: TEdit
         Left = 100
         Top = 7
-        Width = 220
+        Width = 251
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         Text = 'editUsername'
         OnChange = editUsernameChange
       end
+      object memoHints: TMemo
+        Left = 119
+        Top = 86
+        Width = 232
+        Height = 46
+        Alignment = taRightJustify
+        Anchors = [akLeft, akTop, akRight]
+        BevelInner = bvNone
+        BevelOuter = bvNone
+        BorderStyle = bsNone
+        Color = clBtnFace
+        Enabled = False
+        Lines.Strings = (
+          '(Host: % and _ wildcards allowed)'
+          '(Host: <ip>/<full netmask> allowed)'
+          '(Host: server skips name resolve?: $SNR)')
+        ReadOnly = True
+        TabOrder = 4
+      end
     end
     object tabLimitations: TTabSheet
       Caption = 'Limitations'
       ImageIndex = 1
       DesignSize = (
-        327
+        358
         162)
       object lblMaxQuestions: TLabel
         Left = 10
@@ -306,7 +318,7 @@ object UserManagerForm: TUserManagerForm
         FocusControl = editMaxUserConnections
       end
       object lblLimitHint: TLabel
-        Left = 184
+        Left = 215
         Top = 138
         Width = 133
         Height = 13
@@ -314,7 +326,7 @@ object UserManagerForm: TUserManagerForm
         Caption = '(Use 0 to indicate unlimited)'
       end
       object editMaxUserConnections: TEdit
-        Left = 240
+        Left = 271
         Top = 91
         Width = 64
         Height = 21
@@ -324,7 +336,7 @@ object UserManagerForm: TUserManagerForm
         OnChange = editLimitations
       end
       object editMaxConnections: TEdit
-        Left = 240
+        Left = 271
         Top = 63
         Width = 64
         Height = 21
@@ -334,7 +346,7 @@ object UserManagerForm: TUserManagerForm
         OnChange = editLimitations
       end
       object editMaxUpdates: TEdit
-        Left = 240
+        Left = 271
         Top = 35
         Width = 64
         Height = 21
@@ -344,7 +356,7 @@ object UserManagerForm: TUserManagerForm
         OnChange = editLimitations
       end
       object editMaxQuestions: TEdit
-        Left = 240
+        Left = 271
         Top = 7
         Width = 64
         Height = 21
@@ -354,7 +366,7 @@ object UserManagerForm: TUserManagerForm
         OnChange = editLimitations
       end
       object udMaxQuestions: TUpDown
-        Left = 304
+        Left = 335
         Top = 7
         Width = 16
         Height = 21
@@ -365,7 +377,7 @@ object UserManagerForm: TUserManagerForm
         Wrap = True
       end
       object udMaxUpdates: TUpDown
-        Left = 304
+        Left = 335
         Top = 35
         Width = 16
         Height = 21
@@ -376,7 +388,7 @@ object UserManagerForm: TUserManagerForm
         Wrap = True
       end
       object udMaxConnections: TUpDown
-        Left = 304
+        Left = 335
         Top = 63
         Width = 16
         Height = 21
@@ -387,7 +399,7 @@ object UserManagerForm: TUserManagerForm
         Wrap = True
       end
       object udMaxUserConnections: TUpDown
-        Left = 304
+        Left = 335
         Top = 91
         Width = 16
         Height = 21
@@ -403,7 +415,7 @@ object UserManagerForm: TUserManagerForm
       ImageIndex = 2
       TabVisible = False
       DesignSize = (
-        327
+        358
         162)
       object lblFullName: TLabel
         Left = 10
@@ -436,7 +448,7 @@ object UserManagerForm: TUserManagerForm
       object editFullName: TEdit
         Left = 100
         Top = 7
-        Width = 220
+        Width = 251
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         MaxLength = 60
@@ -446,7 +458,7 @@ object UserManagerForm: TUserManagerForm
       object editDescription: TEdit
         Left = 100
         Top = 33
-        Width = 220
+        Width = 251
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         MaxLength = 255
@@ -456,7 +468,7 @@ object UserManagerForm: TUserManagerForm
       object editEmail: TEdit
         Left = 100
         Top = 59
-        Width = 220
+        Width = 251
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         MaxLength = 80
@@ -466,7 +478,7 @@ object UserManagerForm: TUserManagerForm
       object memoContactInfo: TMemo
         Left = 100
         Top = 86
-        Width = 220
+        Width = 251
         Height = 67
         Anchors = [akLeft, akTop, akRight]
         Lines.Strings = (
