@@ -177,7 +177,6 @@ type
     procedure comboObjectsChange(Sender: TObject);
     procedure comboUsersChange(Sender: TObject);
     procedure editFromHostChange(Sender: TObject);
-    procedure clickLimitations(Sender: TObject; Button: TUDBtnType);
     procedure editLimitations(Sender: TObject);
     procedure editPasswordChange(Sender: TObject);
     procedure editPasswordEnter(Sender: TObject);
@@ -366,8 +365,7 @@ var
   uid, i, Icon: Integer;
   u: TUser;
   OneSelected, Enable: Boolean;
-  t, evEd: TNotifyEvent;
-  evUd: TUDClickEvent;
+  t: TNotifyEvent;
 begin
   lblWarning.Visible := False;
   uid := comboUsers.ItemIndex;
@@ -402,10 +400,19 @@ begin
     end;
 
     // Limitations
+    t := editMaxQuestions.OnChange;
+    editMaxQuestions.OnChange := nil;
+    editMaxUpdates.OnChange := nil;
+    editMaxConnections.OnChange := nil;
+    editMaxUserConnections.OnChange := nil;
     udMaxQuestions.Position := u.MaxQuestions;
     udMaxUpdates.Position := u.MaxUpdates;
     udMaxConnections.Position := u.MaxConnections;
     udMaxUserConnections.Position := u.MaxUserConnections;
+    editMaxQuestions.OnChange := t;
+    editMaxUpdates.OnChange := t;
+    editMaxConnections.OnChange := t;
+    editMaxUserConnections.OnChange := t;
 
     // Display priv objects
     for i := 0 to u.Privileges.Count - 1 do begin
@@ -425,8 +432,6 @@ begin
     if comboObjects.ItemsEx.Count > 0 then
       comboObjects.ItemIndex := 0;
     comboObjectsChange(Sender);
-    evEd := editLimitations;
-    evUd := clickLimitations;
   end else begin
     editUsername.Text := '';
     editPassword.Text := '';
@@ -435,8 +440,6 @@ begin
     udMaxUpdates.Position := 0;
     udMaxConnections.Position := 0;
     udMaxUserConnections.Position := 0;
-    evEd := nil;
-    evUd := nil;
   end;
   // Update top buttons
   btnDeleteUser.Enabled := Enable;
@@ -462,14 +465,6 @@ begin
   lblMaxUserConnections.Enabled := Enable;
   editMaxUserConnections.Enabled := Enable;
   udMaxUserConnections.Enabled := Enable;
-  udMaxQuestions.OnClick := evUd;
-  udMaxUpdates.OnClick := evUd;
-  udMaxConnections.OnClick := evUd;
-  udMaxUserConnections.OnClick := evUd;
-  editMaxQuestions.OnClick := evEd;
-  editMaxUpdates.OnClick := evEd;
-  editMaxConnections.OnClick := evEd;
-  editMaxUserConnections.OnClick := evEd;
   // Update controls for privileges
   comboObjects.Enabled := Enable;
   btnAddObject.Enabled := Enable;
@@ -799,22 +794,19 @@ begin
 end;
 
 
-procedure TUserManagerForm.clickLimitations(Sender: TObject; Button: TUDBtnType);
-begin
-  editLimitations(Sender);
-end;
-
-
 procedure TUserManagerForm.editLimitations(Sender: TObject);
 var
   u: TUser;
 begin
+  // OnChange is called during form construction, avoid that.
+  if comboUsers.ItemIndex = -1 then Exit;
   u := Users[comboUsers.ItemIndex];
   u.MaxQuestions := udMaxQuestions.Position;
   u.MaxUpdates := udMaxUpdates.Position;
   u.MaxConnections := udMaxConnections.Position;
   u.MaxUserConnections := udMaxUserConnections.Position;
   u.Modified := True;
+  RefreshUserPulldown;
 end;
 
 
@@ -1121,7 +1113,6 @@ begin
   end;
   Exec('FLUSH PRIVILEGES');
 end;
-
 
 
 { *** TUsers *** }
