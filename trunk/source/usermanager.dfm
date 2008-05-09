@@ -321,6 +321,7 @@ object UserManagerForm: TUserManagerForm
         Anchors = [akTop, akRight]
         TabOrder = 6
         Text = '0'
+        OnChange = editLimitations
       end
       object editMaxConnections: TEdit
         Left = 240
@@ -330,6 +331,7 @@ object UserManagerForm: TUserManagerForm
         Anchors = [akTop, akRight]
         TabOrder = 4
         Text = '0'
+        OnChange = editLimitations
       end
       object editMaxUpdates: TEdit
         Left = 240
@@ -339,6 +341,7 @@ object UserManagerForm: TUserManagerForm
         Anchors = [akTop, akRight]
         TabOrder = 2
         Text = '0'
+        OnChange = editLimitations
       end
       object editMaxQuestions: TEdit
         Left = 240
@@ -348,6 +351,7 @@ object UserManagerForm: TUserManagerForm
         Anchors = [akTop, akRight]
         TabOrder = 0
         Text = '0'
+        OnChange = editLimitations
       end
       object udMaxQuestions: TUpDown
         Left = 304
