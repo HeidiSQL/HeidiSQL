@@ -310,6 +310,7 @@ object UserManagerForm: TUserManagerForm
         Top = 138
         Width = 133
         Height = 13
+        Anchors = [akTop, akRight]
         Caption = '(Use 0 to indicate unlimited)'
       end
       object editMaxUserConnections: TEdit
