@@ -1119,6 +1119,7 @@ begin
       end;
     end;
   end;
+  Exec('FLUSH PRIVILEGES');
 end;
 
 
