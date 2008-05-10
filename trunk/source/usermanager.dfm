@@ -189,7 +189,7 @@ object UserManagerForm: TUserManagerForm
         Width = 105
         Height = 17
         Alignment = taLeftJustify
-        Caption = '&Disable account:'
+        Caption = '&Disable login:'
         TabOrder = 3
         OnClick = chkDisabledClick
       end
