@@ -694,6 +694,13 @@ var
   u, f: TUser;
   t: TNotifyEvent;
 begin
+  // User edit probably has to be reset to the previous value
+  t := editUsername.OnChange;
+  editUsername.OnChange := nil;
+  // In case the user field contains '%', it's sort of a visual hoax.
+  // The TUser.Name and mysql database contents of a match-all user is ''.
+  // Allow entering '%' too, changing it to '' automatically.
+  if editUsername.Text = '%' then editUsername.Text := '';
   u := Users[comboUsers.ItemIndex];
   // Check if user/host combination already exists
   f := Users.FindUser(editUsername.Text, u.Host);
@@ -701,9 +708,6 @@ begin
     u.Name := editUsername.Text
   else
     MessageDlg('User/host combination "'+editUsername.Text+'@'+u.Host+'" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
-  // User edit probably has to be reset to the previous value
-  t := editUsername.OnChange;
-  editUsername.OnChange := nil;
   // Blank user field means:
   // - this user is used for authentication failures
   // - privileges for this user applies to everyone
