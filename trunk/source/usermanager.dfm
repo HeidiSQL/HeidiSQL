@@ -99,62 +99,6 @@ object UserManagerForm: TUserManagerForm
     ItemHeight = 13
     TabOrder = 4
   end
-  object tlbObjects: TToolBar
-    Left = 336
-    Top = 232
-    Width = 46
-    Height = 22
-    Align = alNone
-    Anchors = [akTop, akRight]
-    AutoSize = True
-    Caption = 'tlbObjects'
-    Images = MainForm.PngImageListMain
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 5
-    object btnAddObject: TToolButton
-      Left = 0
-      Top = 0
-      Hint = 'Add object ...'
-      ImageIndex = 45
-      OnClick = btnAddObjectClick
-    end
-    object btnDeleteObject: TToolButton
-      Left = 23
-      Top = 0
-      Hint = 'Remove access to object ...'
-      ImageIndex = 46
-      OnClick = btnDeleteObjectClick
-    end
-  end
-  object tlbUsers: TToolBar
-    Left = 336
-    Top = 8
-    Width = 46
-    Height = 22
-    Align = alNone
-    Anchors = [akTop, akRight]
-    AutoSize = True
-    Caption = 'tlbUsers'
-    Images = MainForm.PngImageListMain
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 6
-    object btnAddUser: TToolButton
-      Left = 0
-      Top = 0
-      Hint = 'Create user ...'
-      ImageIndex = 45
-      OnClick = btnAddUserClick
-    end
-    object btnDeleteUser: TToolButton
-      Left = 23
-      Top = 0
-      Hint = 'Delete user ...'
-      ImageIndex = 46
-      OnClick = btnDeleteUserClick
-    end
-  end
   object chkTogglePrivs: TCheckBox
     Left = 8
     Top = 417
@@ -162,7 +106,7 @@ object UserManagerForm: TUserManagerForm
     Height = 17
     Anchors = [akLeft, akBottom]
     Caption = 'Select / Deselect all'
-    TabOrder = 7
+    TabOrder = 5
     OnClick = chkTogglePrivsClick
   end
   object PageControlUser: TPageControl
@@ -172,7 +116,7 @@ object UserManagerForm: TUserManagerForm
     Height = 190
     ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 8
+    TabOrder = 6
     object tabSettings: TTabSheet
       Caption = 'Settings'
       DesignSize = (
@@ -487,6 +431,84 @@ object UserManagerForm: TUserManagerForm
         MaxLength = 65535
         ScrollBars = ssVertical
         TabOrder = 3
+      end
+    end
+  end
+  object panelVista1: TPanel
+    Left = 336
+    Top = 8
+    Width = 48
+    Height = 24
+    BevelOuter = bvNone
+    TabOrder = 7
+    DesignSize = (
+      48
+      24)
+    object tlbUsers: TToolBar
+      Left = 0
+      Top = 0
+      Width = 46
+      Height = 22
+      Align = alNone
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      Caption = 'tlbUsers'
+      Images = MainForm.PngImageListMain
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      object btnAddUser: TToolButton
+        Left = 0
+        Top = 0
+        Hint = 'Create user ...'
+        ImageIndex = 45
+        OnClick = btnAddUserClick
+      end
+      object btnDeleteUser: TToolButton
+        Left = 23
+        Top = 0
+        Hint = 'Delete user ...'
+        ImageIndex = 46
+        OnClick = btnDeleteUserClick
+      end
+    end
+  end
+  object panelVista2: TPanel
+    Left = 336
+    Top = 232
+    Width = 48
+    Height = 24
+    BevelOuter = bvNone
+    TabOrder = 8
+    DesignSize = (
+      48
+      24)
+    object tlbObjects: TToolBar
+      Left = 0
+      Top = 0
+      Width = 46
+      Height = 22
+      Align = alNone
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      Caption = 'tlbObjects'
+      Images = MainForm.PngImageListMain
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      object btnAddObject: TToolButton
+        Left = 0
+        Top = 0
+        Hint = 'Add object ...'
+        ImageIndex = 45
+        OnClick = btnAddObjectClick
+      end
+      object btnDeleteObject: TToolButton
+        Left = 23
+        Top = 0
+        Hint = 'Remove access to object ...'
+        ImageIndex = 46
+        OnClick = btnDeleteObjectClick
       end
     end
   end
