@@ -128,9 +128,6 @@ type
     tlbObjects: TToolBar;
     btnAddObject: TToolButton;
     btnDeleteObject: TToolButton;
-    tlbUsers: TToolBar;
-    btnAddUser: TToolButton;
-    btnDeleteUser: TToolButton;
     chkTogglePrivs: TCheckBox;
     PageControlUser: TPageControl;
     tabSettings: TTabSheet;
@@ -166,6 +163,11 @@ type
     lblLimitHint: TLabel;
     lblWarning: TLabel;
     memoHints: TMemo;
+    panelVista1: TPanel;
+    tlbUsers: TToolBar;
+    btnAddUser: TToolButton;
+    btnDeleteUser: TToolButton;
+    panelVista2: TPanel;
     procedure boxPrivsClickCheck(Sender: TObject);
     procedure btnAddObjectClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
