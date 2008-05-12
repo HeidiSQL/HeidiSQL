@@ -225,21 +225,10 @@ var
   FormCreate: Restore GUI setup
 }
 procedure TUserManagerForm.FormCreate(Sender: TObject);
-var
-  snr, Hints: String;
 begin
   Width := Mainform.GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   db := Mainform.Mask(DBNAME_MYSQL);
-  Hints := '(Host: % and _ wildcards allowed)'+CRLF+
-    '(Host: <ip>/<full netmask> syntax ok)'+CRLF+
-    '(Host: server skips name resolve?: $SNR)'+CRLF+
-    '(Note: When no account match during login, the Everybody account is tried.)'+CRLF+
-    '(Note: If multiple accounts match, the first account in sorted order is tried.)'+CRLF+
-    '(Note: After login, privileges are given based on ALL accounts that match.)';
-  snr := Mainform.Childwin.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
-  if snr = '' then snr := 'Unknown';
-  lblHints.Caption := StringReplace(Hints, '$SNR', snr, []);
 end;
 
 
@@ -274,7 +263,7 @@ end;
 }
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
-  test_result: String;
+  test_result, snr, Hints: String;
 begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
@@ -293,6 +282,17 @@ begin
     ModalResult := mrCancel;
     Exit;
   end;
+
+  // Set hints text
+  Hints := '(Host: % and _ wildcards allowed)'+CRLF+
+    '(Host: <ip>/<full netmask> syntax ok)'+CRLF+
+    '(Host: server skips name resolve?: $SNR)'+CRLF+
+    '(Note: When no account match during login, the Everybody account is tried.)'+CRLF+
+    '(Note: If multiple accounts match, the first account in sorted order is tried.)'+CRLF+
+    '(Note: After login, privileges are given based on ALL accounts that match.)';
+  snr := Mainform.Childwin.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
+  if snr = '' then snr := 'Unknown';
+  lblHints.Caption := StringReplace(Hints, '$SNR', snr, []);
 
   // Load users into memory
   Users := TUsers.Create;
