@@ -161,6 +161,18 @@ object UserManagerForm: TUserManagerForm
         ParentFont = False
         WordWrap = True
       end
+      object lblHints: TLabel
+        Left = 10
+        Top = 86
+        Width = 382
+        Height = 78
+        Alignment = taRightJustify
+        Anchors = [akLeft, akTop, akRight]
+        AutoSize = False
+        Caption = 'lblHints'
+        Enabled = False
+        WordWrap = True
+      end
       object editPassword: TEdit
         Left = 100
         Top = 33
@@ -192,35 +204,6 @@ object UserManagerForm: TUserManagerForm
         TabOrder = 0
         Text = 'editUsername'
         OnChange = editUsernameChange
-      end
-      object memoHints: TMemo
-        Left = 10
-        Top = 86
-        Width = 382
-        Height = 78
-        Alignment = taRightJustify
-        Anchors = [akLeft, akTop, akRight]
-        BevelInner = bvNone
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        Color = clBtnFace
-        Enabled = False
-        Lines.Strings = (
-          '(Host: % and _ wildcards allowed)'
-          '(Host: <ip>/<full netmask> syntax ok)'
-          '(Host: server skips name resolve?: $SNR)'
-          
-            '(Note: When no account match during login, the Everybody account' +
-            ' is tried.)'
-          
-            '(Note: If multiple accounts match, the first account in sorted o' +
-            'rder is tried.)'
-          
-            '(Note: After login, privileges are given based on ALL accounts t' +
-            'hat match.)')
-        ReadOnly = True
-        TabOrder = 4
-        WordWrap = False
       end
       object chkDisabled: TCheckBox
         Left = 8

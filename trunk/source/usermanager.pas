@@ -162,7 +162,7 @@ type
     editUsername: TEdit;
     lblLimitHint: TLabel;
     lblWarning: TLabel;
-    memoHints: TMemo;
+    lblHints: TLabel;
     panelVista1: TPanel;
     tlbUsers: TToolBar;
     btnAddUser: TToolButton;
@@ -226,14 +226,20 @@ var
 }
 procedure TUserManagerForm.FormCreate(Sender: TObject);
 var
-  snr: String;
+  snr, Hints: String;
 begin
   Width := Mainform.GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   db := Mainform.Mask(DBNAME_MYSQL);
+  Hints := '(Host: % and _ wildcards allowed)'+CRLF+
+    '(Host: <ip>/<full netmask> syntax ok)'+CRLF+
+    '(Host: server skips name resolve?: $SNR)'+CRLF+
+    '(Note: When no account match during login, the Everybody account is tried.)'+CRLF+
+    '(Note: If multiple accounts match, the first account in sorted order is tried.)'+CRLF+
+    '(Note: After login, privileges are given based on ALL accounts that match.)';
   snr := Mainform.Childwin.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
   if snr = '' then snr := 'Unknown';
-  memoHints.Text := TrimRight(StringReplace(memoHints.Text, '$SNR', snr, []));
+  lblHints.Caption := StringReplace(Hints, '$SNR', snr, []);
 end;
 
 
@@ -469,7 +475,7 @@ begin
   editPassword.Enabled := Enable;
   lblFromHost.Enabled := Enable;
   editFromHost.Enabled := Enable;
-  memoHints.Enabled := Enable;
+  lblHints.Enabled := Enable;
   chkDisabled.Enabled := Enable;
   // Update controls in Limitations tab
   lblMaxQuestions.Enabled := Enable;
