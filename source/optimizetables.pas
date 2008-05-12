@@ -31,6 +31,7 @@ type
     tlbCheckAll: TToolButton;
     cbxExtendedCheck: TCheckBox;
     cbxExtendedRepair: TCheckBox;
+    btnHelp: TButton;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -42,6 +43,7 @@ type
     procedure Repair(Sender: TObject);
     procedure ClearResults;
     procedure AddResults(ds: TDataSet);
+    procedure btnHelpClick(Sender: TObject);
     procedure TablesCheckListBoxClickCheck(Sender: TObject);
     procedure RunIterated(pseudoSql: string);
     procedure ValidateControls;
@@ -285,6 +287,11 @@ begin
 
   ListResults.Items[ListResults.Items.Count - 1].MakeVisible(false);
   ListResults.Items.EndUpdate;
+end;
+
+procedure Toptimize.btnHelpClick(Sender: TObject);
+begin
+  Mainform.Childwin.CallSQLHelpWithKeyword('OPTIMIZE');
 end;
 
 

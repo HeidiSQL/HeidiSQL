@@ -58,9 +58,9 @@ object optimize: Toptimize
     OnChange = DBComboBoxChange
   end
   object btnClose: TButton
-    Left = 326
-    Top = 378
-    Width = 99
+    Left = 348
+    Top = 376
+    Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -92,6 +92,7 @@ object optimize: Toptimize
     Top = 50
     Width = 99
     Height = 25
+    HelpContext = 7
     Anchors = [akTop, akRight]
     Caption = 'Optimize'
     TabOrder = 3
@@ -130,8 +131,8 @@ object optimize: Toptimize
   object ListResults: TListView
     Left = 8
     Top = 230
-    Width = 417
-    Height = 142
+    Width = 415
+    Height = 140
     Anchors = [akLeft, akTop, akRight, akBottom]
     Columns = <>
     ColumnClick = False
@@ -180,7 +181,7 @@ object optimize: Toptimize
   object cbxExtendedCheck: TCheckBox
     Left = 358
     Top = 108
-    Width = 70
+    Width = 65
     Height = 17
     Anchors = [akTop, akRight]
     Caption = 'Extended'
@@ -189,10 +190,20 @@ object optimize: Toptimize
   object cbxExtendedRepair: TCheckBox
     Left = 358
     Top = 188
-    Width = 70
+    Width = 65
     Height = 17
     Anchors = [akTop, akRight]
     Caption = 'Extended'
     TabOrder = 10
+  end
+  object btnHelp: TButton
+    Left = 267
+    Top = 376
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'Help'
+    TabOrder = 13
+    OnClick = btnHelpClick
   end
 end
