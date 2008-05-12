@@ -10,7 +10,7 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX, StrUtils, VirtualTrees, SynRegExpr;
+  shlobj, ActiveX, StrUtils, VirtualTrees, SynRegExpr, Messages;
 
 type
 
@@ -89,6 +89,7 @@ type
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
   function GetDBObjectType( TableStatus: TFields ): Byte;
+  procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -104,6 +105,15 @@ type
     charset: string;
   end;
 
+  TWndProc = function (hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+
+  PGripInfo = ^TGripInfo;
+  TGripInfo = record
+    OldWndProc: TWndProc;
+    Enabled: boolean;
+    GripRect: TRect;
+  end;
+
 const
   charset_conv_table: array[0..4] of CharacterSet = (
     (codepage: 1250; charset: 'cp1250'), // ANSI Central European; Central European (Windows)
@@ -112,6 +122,7 @@ const
     (codepage: 1256; charset: 'cp1256'), // ANSI Arabic; Arabic (Windows)
     (codepage: 1257; charset: 'cp1257')  // ANSI Baltic; Baltic (Windows)
   );
+  SizeGripProp = 'SizeGrip';
 
 var
   dbgCounter: Integer = 0;
@@ -2193,6 +2204,142 @@ begin
   else if (TableStatus.Count=2) // Result from SHOW FULL TABLES
     and (UpperCase(TableStatus[1].AsString) = 'VIEW') then
     Result := NODETYPE_VIEW;
+end;
+
+
+{
+  Code taken from SizeGripHWND.pas:
+  Copyright (C) 2005, 2006 Volker Siebert <flocke@vssd.de>
+  Alle Rechte vorbehalten.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+}
+function SizeGripWndProc(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  Info: PGripInfo;
+  dc: HDC;
+  pt: TPoint;
+
+  // Invalidate the current grip rectangle
+  procedure InvalidateGrip;
+  begin
+    with Info^ do
+      if (GripRect.Right > GripRect.Left) and
+         (GripRect.Bottom > GripRect.Top) then
+        InvalidateRect(hWnd, @GripRect, true);
+  end;
+
+  // Update (and invalidate) the current grip rectangle
+  procedure UpdateGrip;
+  begin
+    with Info^ do
+    begin
+      GetClientRect(hWnd, GripRect);
+      GripRect.Left := GripRect.Right - GetSystemMetrics(SM_CXHSCROLL);
+      GripRect.Top := GripRect.Bottom - GetSystemMetrics(SM_CYVSCROLL);
+    end;
+
+    InvalidateGrip;
+  end;
+
+  function CallOld: LRESULT;
+  begin
+    Result := CallWindowProc(@Info^.OldWndProc, hWnd, Msg, wParam, lParam);
+  end;
+
+begin
+  Info := PGripInfo(GetProp(hWnd, SizeGripProp));
+  if Info = nil then
+    Result := DefWindowProc(hWnd, Msg, wParam, lParam)
+  else if not Info^.Enabled then
+    Result := CallOld
+  else
+  begin
+    case Msg of
+      WM_NCDESTROY: begin
+        Result := CallOld;
+
+        SetWindowLong(hWnd, GWL_WNDPROC, LongInt(@Info^.OldWndProc));
+        RemoveProp(hWnd, SizeGripProp);
+        Dispose(Info);
+      end;
+
+      WM_PAINT: begin
+        Result := CallOld;
+        if wParam = 0 then
+        begin
+          dc := GetDC(hWnd);
+          DrawFrameControl(dc, Info^.GripRect, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+          ReleaseDC(hWnd, dc);
+        end;
+      end;
+
+      WM_NCHITTEST: begin
+        pt.x := TSmallPoint(lParam).x;
+        pt.y := TSmallPoint(lParam).y;
+        ScreenToClient(hWnd, pt);
+        if PtInRect(Info^.GripRect, pt) then
+          Result := HTBOTTOMRIGHT
+        else
+          Result := CallOld;
+      end;
+
+      WM_SIZE: begin
+        InvalidateGrip;
+        Result := CallOld;
+        UpdateGrip;
+      end;
+
+      else
+        Result := CallOld;
+    end;
+  end;
+end;
+
+{ Note that SetWindowSizeGrip(..., false) does not really remove the hook -
+  it just sets "Enabled" to false. The hook plus all data is removed when
+  the window is destroyed.
+}
+procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
+var
+  Info: PGripInfo;
+begin
+  Info := PGripInfo(GetProp(hWnd, SizeGripProp));
+  if (Info = nil) and Enable then
+  begin
+    New(Info);
+    FillChar(Info^, SizeOf(TGripInfo), 0);
+
+    with Info^ do
+    begin
+      Info^.OldWndProc := TWndProc(Pointer(GetWindowLong(hWnd, GWL_WNDPROC)));
+
+      GetClientRect(hWnd, GripRect);
+      GripRect.Left := GripRect.Right - GetSystemMetrics(SM_CXHSCROLL);
+      GripRect.Top := GripRect.Bottom - GetSystemMetrics(SM_CYVSCROLL);
+    end;
+
+    SetProp(hWnd, SizeGripProp, Cardinal(Info));
+    SetWindowLong(hWnd, GWL_WNDPROC, LongInt(@SizeGripWndProc));
+  end;
+
+  if (Info <> nil) then
+    if Enable <> Info^.Enabled then
+      with Info^ do
+      begin
+        Enabled := Enable;
+        if (GripRect.Right > GripRect.Left) and
+           (GripRect.Bottom > GripRect.Top) then
+          InvalidateRect(hWnd, @GripRect, true);
+      end;
 end;
 
 

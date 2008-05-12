@@ -307,6 +307,7 @@ begin
   ListViewFiles.LargeImages:=LargeImages;
   ListViewFiles.SmallImages:=SmallImages;
   DragAcceptFiles( Handle , True );
+  SetWindowSizeGrip( Self.Handle, True );
 end;
 
 

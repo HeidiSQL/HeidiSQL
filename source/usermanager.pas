@@ -229,6 +229,7 @@ begin
   Width := Mainform.GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   db := Mainform.Mask(DBNAME_MYSQL);
+  SetWindowSizeGrip( Self.Handle, True );
 end;
 
 
