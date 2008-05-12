@@ -270,7 +270,7 @@ begin
   // A. Using the mysql-DB
   CWin := Mainform.Childwin;
   try
-    CWin.ExecuteNonQuery('USE ' + db);
+    CWin.ExecUseQuery(DBNAME_MYSQL);
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
     ModalResult := mrCancel;
