@@ -167,6 +167,7 @@ begin
   // Assign images from main imagelist to speedbuttons
   btnFileBrowse.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
   btnDirectoryBrowse.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
+  SetWindowSizeGrip( Self.Handle, True );
 end;
 
 

@@ -107,6 +107,8 @@ begin
   SynMemoCreate.Highlighter := Mainform.Childwin.SynSQLSyn1;
   SynMemoCreate.Font.Name := Mainform.Childwin.SynMemoQuery.Font.Name;
   SynMemoCreate.Font.Size := Mainform.Childwin.SynMemoQuery.Font.Size;
+
+  SetWindowSizeGrip( Self.Handle, True );
 end;
 
 

@@ -72,6 +72,7 @@ procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
   Width := Mainform.GetRegValue(REGNAME_SELECTDBO_WINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_SELECTDBO_WINHEIGHT, Height);
+  SetWindowSizeGrip( Self.Handle, True );
 end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);

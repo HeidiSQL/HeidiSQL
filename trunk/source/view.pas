@@ -48,6 +48,7 @@ begin
   Height := Mainform.GetRegValue(REGNAME_VIEWWINHEIGHT, Height);
   SynMemoSelect.Highlighter := Mainform.ChildWin.SynSQLSyn1;
   SynMemoSelect.Font := Mainform.ChildWin.SynMemoQuery.Font;
+  SetWindowSizeGrip( Self.Handle, True );
 end;
 
 
