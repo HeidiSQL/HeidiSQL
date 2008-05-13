@@ -188,6 +188,7 @@ type
 
     function GetAffectedRows(Handle: PZMySQLConnect): Int64;
     // char_set_name
+    procedure SetCharacterSet(Handle: PZMySQLConnect; const CharSet: PChar);
     procedure Close(Handle: PZMySQLConnect);
     function Connect(Handle: PZMySQLConnect; const Host, User, Password: PChar): PZMySQLConnect;
     function CreateDatabase(Handle: PZMySQLConnect; const Database: PChar): Integer;
@@ -786,6 +787,7 @@ type
     function StoreResult(Handle: PZMySQLConnect): PZMySQLResult;
     function UseResult(Handle: PZMySQLConnect): PZMySQLResult;
     procedure FreeResult(Res: PZMySQLResult);
+    procedure SetCharacterSet(Handle: PZMySQLConnect; const CharSet: PChar);
     function GetAffectedRows(Handle: PZMySQLConnect): Int64;
 
     function FetchRow(Res: PZMySQLResult): PZMySQLRow;
@@ -869,6 +871,7 @@ type
     function Rollback (Handle: PZMySQLConnect): Boolean;
     function GetSQLState (Handle: PZMySQLConnect): AnsiString;
 
+    procedure SetCharacterSet(Handle: PZMySQLConnect; const CharSet: PChar);
     function GetPreparedAffectedRows (Handle: PZMySqlPrepStmt): Int64;
     function BindParameters (Handle: PZMySqlPrepStmt; bindArray: PZMysqlBindArray): Byte;
     function BindResult (Handle: PZMySqlPrepStmt;  bindArray: PZMysqlBindArray): Byte;
@@ -2583,6 +2586,11 @@ begin
   MYSQL_API.mysql_free_result(Res);
 end;
 
+procedure TZMySQL41PlainDriver.SetCharacterSet(Handle: PZMySQLConnect; const CharSet: PChar);
+begin
+  MYSQL_API.mysql_set_character_set(Handle, CharSet);
+end;
+
 function TZMySQL41PlainDriver.GetAffectedRows(Handle: PZMySQLConnect): Int64;
 begin
   Result := MYSQL_API.mysql_affected_rows(Handle);
@@ -3106,6 +3114,11 @@ end;
 procedure TZMySQL5PlainDriver.FreeResult(Res: PZMySQLResult);
 begin
   MYSQL_API.mysql_free_result(Res);
+end;
+
+procedure TZMySQL5PlainDriver.SetCharacterSet(Handle: PZMySQLConnect; const CharSet: PChar);
+begin
+  MYSQL_API.mysql_set_character_set(Handle, CharSet);
 end;
 
 function TZMySQL5PlainDriver.GetAffectedRows(Handle: PZMySQLConnect): Int64;

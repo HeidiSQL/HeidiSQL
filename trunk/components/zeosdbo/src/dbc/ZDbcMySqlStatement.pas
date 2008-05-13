@@ -97,7 +97,7 @@ type
     FPlainDriver: IZMySQLPlainDriver;
   protected
     function CreateExecStatement: IZStatement; override;
-    function GetEscapeString(const Value: string): string;
+    function GetEscapeString(const Value: WideString): WideString;
     function PrepareSQLParam(ParamIndex: Integer): string; override;
   public
     constructor Create(PlainDriver: IZMySQLPlainDriver;
@@ -329,15 +329,15 @@ end;
   @param Value a regular string.
   @return a string in MySQL escape format.
 }
-function TZMySQLPreparedStatement.GetEscapeString(const Value: string): string;
+function TZMySQLPreparedStatement.GetEscapeString(const Value: WideString): WideString;
 var
   BufferLen: Integer;
   Buffer: PChar;
 begin
   BufferLen := Length(Value) * 2 + 1;
   GetMem(Buffer, BufferLen);
-  BufferLen := FPlainDriver.GetEscapeString(FHandle, Buffer, PChar(Value), Length(Value));
-  Result := '''' + BufferToStr(Buffer, BufferLen) + '''';
+  BufferLen := FPlainDriver.GetEscapeString(FHandle, Buffer, PChar(UTF8Encode(Value)), Length(Value));
+  Result := '''' + UTF8Decode(BufferToStr(Buffer, BufferLen)) + '''';
   FreeMem(Buffer);
 end;
 
@@ -374,6 +374,8 @@ begin
         Result := SoftVarManager.GetAsString(Value);
       stString, stBytes:
         Result := GetEscapeString(SoftVarManager.GetAsString(Value));
+      stUnicodeString:
+        Result := GetEscapeString(SoftVarManager.GetAsUnicodeString(Value));
       stDate:
       begin
         {$IFNDEF VER130BELOW}

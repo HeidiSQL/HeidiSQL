@@ -92,6 +92,7 @@ type
     function IsNull(ColumnIndex: Integer): Boolean; override;
     function GetPChar(ColumnIndex: Integer): PChar; override;
     function GetString(ColumnIndex: Integer): string; override;
+    function GetUnicodeString(ColumnIndex: Integer): WideString; override;
     function GetBoolean(ColumnIndex: Integer): Boolean; override;
     function GetByte(ColumnIndex: Integer): ShortInt; override;
     function GetShort(ColumnIndex: Integer): SmallInt; override;
@@ -386,6 +387,11 @@ begin
   Result := '';
   if not LastWasNull then
     SetString(Result, Buffer, Length);
+end;
+
+function TZMySQLResultSet.GetUnicodeString(ColumnIndex: Integer): WideString;
+begin
+  Result := UTF8Decode(GetString(ColumnIndex));
 end;
 
 {**
@@ -693,11 +699,15 @@ end;
     <code>NULL</code>, the value returned is <code>null</code>
 }
 function TZMySQLResultSet.GetUnicodeStream(ColumnIndex: Integer): TStream;
+var
+  s: WideString;
 begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stUnicodeStream);
 {$ENDIF}
-  Result := nil;
+  s := GetUnicodeString(ColumnIndex);
+  Result := TMemoryStream.Create;
+  Result.WriteBuffer(s[1], Length(s) * SizeOf(s[1]));
 end;
 
 {**
