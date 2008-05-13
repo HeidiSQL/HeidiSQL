@@ -381,7 +381,6 @@ var
   OldLevel: TZTransactIsolationLevel;
   OldAutoCommit: Boolean;
   ConnectTimeout: Integer;
-  SQL: PChar;
   ClientFlag : Cardinal;
 begin
   if not Closed then Exit;
