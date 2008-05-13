@@ -162,12 +162,14 @@ type
     editUsername: TEdit;
     lblLimitHint: TLabel;
     lblWarning: TLabel;
-    lblHints: TLabel;
+    lblHostHints: TLabel;
     panelVista1: TPanel;
     tlbUsers: TToolBar;
     btnAddUser: TToolButton;
     btnDeleteUser: TToolButton;
     panelVista2: TPanel;
+    tabHints: TTabSheet;
+    lblHints: TLabel;
     procedure boxPrivsClickCheck(Sender: TObject);
     procedure btnAddObjectClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -264,7 +266,7 @@ end;
 }
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
-  test_result, snr, Hints: String;
+  test_result, snr: String;
 begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
@@ -285,15 +287,9 @@ begin
   end;
 
   // Set hints text
-  Hints := '(Host: % and _ wildcards allowed)'+CRLF+
-    '(Host: <ip>/<full netmask> syntax ok)'+CRLF+
-    '(Host: server skips name resolve?: $SNR)'+CRLF+
-    '(Note: When no account match during login, the Everybody account is tried.)'+CRLF+
-    '(Note: If multiple accounts match, the first account in sorted order is tried.)'+CRLF+
-    '(Note: After login, privileges are given based on ALL accounts that match.)';
   snr := Mainform.Childwin.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
   if snr = '' then snr := 'Unknown';
-  lblHints.Caption := StringReplace(Hints, '$SNR', snr, []);
+  lblHostHints.Caption := StringReplace(lblHostHints.Caption, '$SNR', snr, []);
 
   // Load users into memory
   Users := TUsers.Create;
@@ -476,7 +472,7 @@ begin
   editPassword.Enabled := Enable;
   lblFromHost.Enabled := Enable;
   editFromHost.Enabled := Enable;
-  lblHints.Enabled := Enable;
+  lblHostHints.Enabled := Enable;
   chkDisabled.Enabled := Enable;
   // Update controls in Limitations tab
   lblMaxQuestions.Enabled := Enable;
