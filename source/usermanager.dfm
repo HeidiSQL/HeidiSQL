@@ -77,7 +77,7 @@ object UserManagerForm: TUserManagerForm
   end
   object comboObjects: TComboBoxEx
     Left = 8
-    Top = 260
+    Top = 231
     Width = 355
     Height = 22
     ItemsEx = <>
@@ -90,9 +90,9 @@ object UserManagerForm: TUserManagerForm
   end
   object boxPrivs: TCheckListBox
     Left = 8
-    Top = 289
+    Top = 261
     Width = 408
-    Height = 157
+    Height = 185
     OnClickCheck = boxPrivsClickCheck
     Anchors = [akLeft, akTop, akRight, akBottom]
     Columns = 3
@@ -113,7 +113,7 @@ object UserManagerForm: TUserManagerForm
     Left = 8
     Top = 36
     Width = 407
-    Height = 217
+    Height = 189
     ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 6
@@ -121,7 +121,7 @@ object UserManagerForm: TUserManagerForm
       Caption = 'Settings'
       DesignSize = (
         399
-        189)
+        161)
       object lblFromHost: TLabel
         Left = 10
         Top = 62
@@ -147,10 +147,10 @@ object UserManagerForm: TUserManagerForm
       end
       object lblWarning: TLabel
         Left = 10
-        Top = 168
+        Top = 140
         Width = 386
         Height = 20
-        Anchors = [akLeft, akTop, akRight]
+        Anchors = [akLeft, akRight, akBottom]
         AutoSize = False
         Caption = 'Security warning'
         Font.Charset = DEFAULT_CHARSET
@@ -161,15 +161,17 @@ object UserManagerForm: TUserManagerForm
         ParentFont = False
         WordWrap = True
       end
-      object lblHints: TLabel
+      object lblHostHints: TLabel
         Left = 10
         Top = 86
         Width = 382
-        Height = 78
+        Height = 51
         Alignment = taRightJustify
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
-        Caption = 'lblHints'
+        Caption = 
+          '(Host: % and _ wildcards allowed)'#10'(Host: <ip>/<full netmask> syn' +
+          'tax ok)'#10'(Host: server skips name resolve?: $SNR)'
         Enabled = False
         WordWrap = True
       end
@@ -221,7 +223,7 @@ object UserManagerForm: TUserManagerForm
       ImageIndex = 1
       DesignSize = (
         399
-        189)
+        161)
       object lblMaxQuestions: TLabel
         Left = 10
         Top = 10
@@ -353,7 +355,7 @@ object UserManagerForm: TUserManagerForm
       TabVisible = False
       DesignSize = (
         399
-        189)
+        161)
       object lblFullName: TLabel
         Left = 10
         Top = 10
@@ -425,6 +427,31 @@ object UserManagerForm: TUserManagerForm
         TabOrder = 3
       end
     end
+    object tabHints: TTabSheet
+      Caption = 'Hints'
+      ImageIndex = 3
+      object lblHints: TLabel
+        AlignWithMargins = True
+        Left = 5
+        Top = 10
+        Width = 389
+        Height = 146
+        Margins.Left = 5
+        Margins.Top = 10
+        Margins.Right = 5
+        Margins.Bottom = 5
+        Align = alClient
+        AutoSize = False
+        Caption = 
+          'When no account match during login, the Everybody account is tri' +
+          'ed with the user name ignored, if the account exists.'#10#10'If multip' +
+          'le accounts match host+user during login, the first account in s' +
+          'orted order is tried.'#10#10'After login, privileges are given based o' +
+          'n ALL accounts that match host+user, rather than just those priv' +
+          'ileges that apply to the authenticated account.'
+        WordWrap = True
+      end
+    end
   end
   object panelVista1: TPanel
     Left = 369
@@ -468,7 +495,7 @@ object UserManagerForm: TUserManagerForm
   end
   object panelVista2: TPanel
     Left = 369
-    Top = 259
+    Top = 231
     Width = 48
     Height = 24
     Anchors = [akTop, akRight]
