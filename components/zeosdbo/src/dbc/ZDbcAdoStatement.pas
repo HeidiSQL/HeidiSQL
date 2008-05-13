@@ -80,9 +80,9 @@ type
     destructor Destroy; override;
     procedure Close; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
     function GetMoreResults: Boolean; override;
   end;
 
@@ -147,7 +147,7 @@ begin
   Result := Uppercase(Copy(TrimLeft(Sql), 1, 6)) = 'SELECT';
 end;
 
-function TZAdoStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZAdoStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Result := nil;
   LastResultSet := nil;
@@ -157,7 +157,7 @@ begin
   Result := LastResultSet
 end;
 
-function TZAdoStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZAdoStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Result := -1;
   LastResultSet := nil;
@@ -166,7 +166,7 @@ begin
     Result := LastUpdateCount;
 end;
 
-function TZAdoStatement.Execute(const SQL: string): Boolean;
+function TZAdoStatement.Execute(const SQL: WideString): Boolean;
 var
   RC: OleVariant;
 begin

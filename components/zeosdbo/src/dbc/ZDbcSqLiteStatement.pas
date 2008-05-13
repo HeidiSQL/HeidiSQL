@@ -76,9 +76,9 @@ type
     constructor Create(PlainDriver: IZSQLitePlainDriver;
       Connection: IZConnection; Info: TStrings; Handle: Psqlite);
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. }
@@ -89,7 +89,7 @@ type
   protected
     function CreateExecStatement: IZStatement; override;
     function GetEscapeString(const Value: string): string;
-    function PrepareSQLParam(ParamIndex: Integer): string; override;
+    function PrepareSQLParam(ParamIndex: Integer): WideString; override;
   public
     constructor Create(PlainDriver: IZSQLitePlainDriver;
       Connection: IZConnection; const SQL: string; Info: TStrings;
@@ -157,7 +157,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZSQLiteStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZSQLiteStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 var
   ErrorCode: Integer;
   ErrorMessage: PChar;
@@ -167,7 +167,7 @@ var
   ColumnValues: PPChar;
   ColumnNames: PPChar;
 begin
-  ErrorCode := FPlainDriver.Compile(FHandle, PChar(SQL), Length(SQL), SQLTail,
+  ErrorCode := FPlainDriver.Compile(FHandle, PChar(String(SQL)), Length(SQL), SQLTail,
     StmtHandle, ErrorMessage);
   CheckSQLiteError(FPlainDriver, ErrorCode, ErrorMessage, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
@@ -196,12 +196,12 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZSQLiteStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZSQLiteStatement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   ErrorCode: Integer;
   ErrorMessage: PChar;
 begin
-  ErrorCode := FPlainDriver.Execute(FHandle, PChar(SQL), nil, nil,
+  ErrorCode := FPlainDriver.Execute(FHandle, PChar(String(SQL)), nil, nil,
     ErrorMessage);
   CheckSQLiteError(FPlainDriver, ErrorCode, ErrorMessage, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
@@ -229,7 +229,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZSQLiteStatement.Execute(const SQL: string): Boolean;
+function TZSQLiteStatement.Execute(const SQL: WideString): Boolean;
 var
   ErrorCode: Integer;
   ErrorMessage: PChar;
@@ -239,7 +239,7 @@ var
   ColumnValues: PPChar;
   ColumnNames: PPChar;
 begin
-  ErrorCode := FPlainDriver.Compile(FHandle, PChar(SQL), Length(SQL), SQLTail,
+  ErrorCode := FPlainDriver.Compile(FHandle, PChar(String(SQL)), Length(SQL), SQLTail,
     StmtHandle, ErrorMessage);
   CheckSQLiteError(FPlainDriver, ErrorCode, ErrorMessage, lcExecute, SQL);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
@@ -314,7 +314,7 @@ end;
   @param ParameterIndex the first parameter is 1, the second is 2, ...
   @return a string representation of the parameter.
 }
-function TZSQLitePreparedStatement.PrepareSQLParam(ParamIndex: Integer): string;
+function TZSQLitePreparedStatement.PrepareSQLParam(ParamIndex: Integer): WideString;
 var
   Value: TZVariant;
   TempBytes: TByteDynArray;

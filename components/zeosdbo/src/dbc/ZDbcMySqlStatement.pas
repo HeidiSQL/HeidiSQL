@@ -78,14 +78,14 @@ type
     FPlainDriver: IZMySQLPlainDriver;
     FUseResult: Boolean;
 
-    function CreateResultSet(const SQL: string): IZResultSet;
+    function CreateResultSet(const SQL: WideString): IZResultSet;
   public
     constructor Create(PlainDriver: IZMySQLPlainDriver;
       Connection: IZConnection; Info: TStrings; Handle: PZMySQLConnect);
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function IsUseResult: Boolean;
   end;
@@ -98,10 +98,10 @@ type
   protected
     function CreateExecStatement: IZStatement; override;
     function GetEscapeString(const Value: WideString): WideString;
-    function PrepareSQLParam(ParamIndex: Integer): string; override;
+    function PrepareSQLParam(ParamIndex: Integer): WideString; override;
   public
     constructor Create(PlainDriver: IZMySQLPlainDriver;
-      Connection: IZConnection; const SQL: string; Info: TStrings;
+      Connection: IZConnection; const SQL: WideString; Info: TStrings;
       Handle: PZMySQLConnect);
   end;
 
@@ -148,7 +148,7 @@ end;
   Creates a result set based on the current settings.
   @return a created result set object.
 }
-function TZMySQLStatement.CreateResultSet(const SQL: string): IZResultSet;
+function TZMySQLStatement.CreateResultSet(const SQL: WideString): IZResultSet;
 var
   CachedResolver: TZMySQLCachedResolver;
   NativeResultSet: TZMySQLResultSet;
@@ -176,10 +176,10 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZMySQLStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZMySQLStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Result := nil;
-  if FPlainDriver.ExecQuery(FHandle, PChar(SQL)) = 0 then
+  if FPlainDriver.ExecQuery(FHandle, PChar(UTF8Encode(SQL))) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
@@ -209,13 +209,13 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZMySQLStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZMySQLStatement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   QueryHandle: PZMySQLResult;
   HasResultset : Boolean;
 begin
   Result := -1;
-  if FPlainDriver.ExecQuery(FHandle, PChar(SQL)) = 0 then
+  if FPlainDriver.ExecQuery(FHandle, PChar(UTF8Encode(SQL))) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
@@ -264,12 +264,12 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZMySQLStatement.Execute(const SQL: string): Boolean;
+function TZMySQLStatement.Execute(const SQL: WideString): Boolean;
 var
   HasResultset : Boolean;
 begin
   Result := False;
-  if FPlainDriver.ExecQuery(FHandle, PChar(SQL)) = 0 then
+  if FPlainDriver.ExecQuery(FHandle, PChar(UTF8Encode(SQL))) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
@@ -306,7 +306,7 @@ end;
   @param Handle a connection handle pointer.
 }
 constructor TZMySQLPreparedStatement.Create(PlainDriver: IZMySQLPlainDriver;
-  Connection: IZConnection; const SQL: string; Info: TStrings; Handle: PZMySQLConnect);
+  Connection: IZConnection; const SQL: WideString; Info: TStrings; Handle: PZMySQLConnect);
 begin
   inherited Create(Connection, SQL, Info);
   FHandle := Handle;
@@ -372,7 +372,7 @@ end;
   @param ParameterIndex the first parameter is 1, the second is 2, ...
   @return a string representation of the parameter.
 }
-function TZMySQLPreparedStatement.PrepareSQLParam(ParamIndex: Integer): string;
+function TZMySQLPreparedStatement.PrepareSQLParam(ParamIndex: Integer): WideString;
 var
   Value: TZVariant;
   TempBytes: TByteDynArray;

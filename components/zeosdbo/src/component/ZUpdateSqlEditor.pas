@@ -79,7 +79,8 @@ uses
     QMenus, QTypes, QExtCtrls, QStdCtrls, QControls, QComCtrls,
   {$ENDIF}
 {$ENDIF}
-  ZSqlUpdate;
+  ZSqlUpdate,
+  WideStrings;
 
 type
 
@@ -138,14 +139,14 @@ type
     UpdateSQL: TZUpdateSQL;
     FSettingsChanged: Boolean;
     FDatasetDefaults: Boolean;
-    SQLText: array[TUpdateKind] of TStrings;
+    SQLText: array[TUpdateKind] of TWideStrings;
     function GetTableRef(const TabName: string): string;
     function Edit: Boolean;
-    procedure GenWhereClause(const TabAlias: string; KeyFields, SQL: TStrings);
-    procedure GenDeleteSQL(const TableName: string; KeyFields, SQL: TStrings);
-    procedure GenInsertSQL(const TableName: string; UpdateFields, SQL: TStrings);
+    procedure GenWhereClause(const TabAlias: string; KeyFields, SQL: TWideStrings);
+    procedure GenDeleteSQL(const TableName: string; KeyFields, SQL: TWideStrings);
+    procedure GenInsertSQL(const TableName: string; UpdateFields, SQL: TWideStrings);
     procedure GenModifySQL(const TableName: string; KeyFields, UpdateFields,
-      SQL: TStrings);
+      SQL: TWideStrings);
     procedure GenerateSQL;
     procedure GetDataSetFieldNames;
     procedure GetTableFieldNames;
@@ -254,7 +255,7 @@ end;
 
 { Utility Routines }
 
-procedure GetSelectedItems(ListBox: TListBox; List: TStrings);
+procedure GetSelectedItems(ListBox: TListBox; List: TWideStrings);
 var
   I: Integer;
 begin
@@ -629,7 +630,7 @@ begin
   try
     for Index := Low(TUpdateKind) to High(TUpdateKind) do
     begin
-      SQLText[Index] := TStringList.Create;
+      SQLText[Index] := TWideStringList.Create;
       SQLText[Index].Assign(UpdateSQL.SQL[Index]);
     end;
     StatementType.ItemIndex := 0;
@@ -650,7 +651,7 @@ begin
 end;
 
 procedure TZUpdateSQLEditForm.GenWhereClause(const TabAlias: string;
-  KeyFields, SQL: TStrings);
+  KeyFields, SQL: TWideStrings);
 var
   I: Integer;
   BindText: string;
@@ -677,14 +678,14 @@ begin
 end;
 
 procedure TZUpdateSQLEditForm.GenDeleteSQL(const TableName: string;
-  KeyFields, SQL: TStrings);
+  KeyFields, SQL: TWideStrings);
 begin
   SQL.Add(Format('DELETE FROM %s', [TableName])); { Do not localize }
   GenWhereClause(GetTableRef(TableName), KeyFields, SQL);
 end;
 
 procedure TZUpdateSQLEditForm.GenInsertSQL(const TableName: string;
-  UpdateFields, SQL: TStrings);
+  UpdateFields, SQL: TWideStrings);
 
   procedure GenFieldList(const TabName, ParamChar: String);
   var
@@ -720,7 +721,7 @@ begin
 end;
 
 procedure TZUpdateSQLEditForm.GenModifySQL(const TableName: string;
-  KeyFields, UpdateFields, SQL: TStrings);
+  KeyFields, UpdateFields, SQL: TWideStrings);
 var
   I: integer;
   Comma: string;
@@ -753,16 +754,16 @@ procedure TZUpdateSQLEditForm.GenerateSQL;
   end;
 
 var
-  KeyFields: TStringList;
-  UpdateFields: TStringList;
+  KeyFields: TWideStringList;
+  UpdateFields: TWideStringList;
   TableName: string;
 begin
   if (KeyFieldList.SelCount = 0) or (UpdateFieldList.SelCount = 0) then
     raise Exception.Create(SSQLGenSelect);
-  KeyFields := TStringList.Create;
+  KeyFields := TWideStringList.Create;
   try
     GetSelectedItems(KeyFieldList, KeyFields);
-    UpdateFields := TStringList.Create;
+    UpdateFields := TWideStringList.Create;
     try
       GetSelectedItems(UpdateFieldList, UpdateFields);
       TableName := QuotedTableName(UpdateTableName.Text);

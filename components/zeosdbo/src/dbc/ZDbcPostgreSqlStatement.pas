@@ -85,9 +85,9 @@ type
       Connection: IZConnection; Info: TStrings; Handle: PZPostgreSQLConnect);
     destructor Destroy; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function IsOidAsBlob: Boolean;
   end;
@@ -100,7 +100,7 @@ type
     FCharactersetCode : TZPgCharactersetType;
   protected
     function CreateExecStatement: IZStatement; override;
-    function PrepareSQLParam(ParamIndex: Integer): string; override;
+    function PrepareSQLParam(ParamIndex: Integer): WideString; override;
   public
     constructor Create(PlainDriver: IZPostgreSQLPlainDriver;
       Connection: IZConnection; const SQL: string; Info: TStrings;
@@ -190,12 +190,12 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZPostgreSQLStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZPostgreSQLStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 var
   QueryHandle: PZPostgreSQLResult;
 begin
   Result := nil;
-  QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(SQL));
+  QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(String(SQL)));
   CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
   if QueryHandle <> nil then
@@ -214,12 +214,12 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZPostgreSQLStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZPostgreSQLStatement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   QueryHandle: PZPostgreSQLResult;
 begin
   Result := -1;
-  QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(SQL));
+  QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(String(SQL)));
   CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
@@ -254,12 +254,12 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZPostgreSQLStatement.Execute(const SQL: string): Boolean;
+function TZPostgreSQLStatement.Execute(const SQL: WideString): Boolean;
 var
   QueryHandle: PZPostgreSQLResult;
   ResultStatus: TZPostgreSQLExecStatusType;
 begin
-  QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(SQL));
+  QueryHandle := FPlainDriver.ExecuteQuery(FHandle, PChar(String(SQL)));
   CheckPostgreSQLError(Connection, FPlainDriver, FHandle, lcExecute, SQL,QueryHandle);
   DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 
@@ -328,7 +328,7 @@ end;
   @return a string representation of the parameter.
 }
 function TZPostgreSQLPreparedStatement.PrepareSQLParam(
-  ParamIndex: Integer): string;
+  ParamIndex: Integer): WideString;
 var
   Value: TZVariant;
   TempBytes: TByteDynArray;

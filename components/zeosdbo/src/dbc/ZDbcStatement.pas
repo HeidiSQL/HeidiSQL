@@ -118,8 +118,8 @@ type
   public
     destructor Destroy; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; virtual;
-    function ExecuteUpdate(const SQL: string): Integer; virtual;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; virtual;
+    function ExecuteUpdate(const SQL: WideString): Integer; virtual;
     procedure Close; virtual;
 
     function GetMaxFieldSize: Integer; virtual;
@@ -132,7 +132,7 @@ type
     procedure Cancel; virtual;
     procedure SetCursorName(const Value: string); virtual;
 
-    function Execute(const SQL: string): Boolean; virtual;
+    function Execute(const SQL: WideString): Boolean; virtual;
     function GetResultSet: IZResultSet; virtual;
     function GetUpdateCount: Integer; virtual;
     function GetMoreResults: Boolean; virtual;
@@ -166,18 +166,18 @@ type
   {** Implements Abstract Prepared SQL Statement. }
   TZAbstractPreparedStatement = class(TZAbstractStatement, IZPreparedStatement)
   private
-    FSQL: string;
+    FSQL: WideString;
     FInParamValues: TZVariantDynArray;
     FInParamTypes: TZSQLTypeArray;
     FInParamDefaultValues: TStringDynArray;
     FInParamCount: Integer;
   protected
-    constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; const SQL: WideString; Info: TStrings);
     procedure SetInParamCount(NewParamCount: Integer); virtual;
     procedure SetInParam(ParameterIndex: Integer; SQLType: TZSQLType;
       const Value: TZVariant); virtual;
 
-    property SQL: string read FSQL write FSQL;
+    property SQL: WideString read FSQL write FSQL;
     property InParamValues: TZVariantDynArray
       read FInParamValues write FInParamValues;
     property InParamTypes: TZSQLTypeArray
@@ -284,19 +284,19 @@ type
     property LastStatement: IZStatement read FLastStatement write SetLastStatement;
 
     function CreateExecStatement: IZStatement; virtual; abstract;
-    function PrepareSQLParam(ParamIndex: Integer): string; virtual; abstract;
+    function PrepareSQLParam(ParamIndex: Integer): WideString; virtual; abstract;
     function GetExecStatement: IZStatement;
     function TokenizeSQLQuery: TStrings;
-    function PrepareSQLQuery: string; virtual;
+    function PrepareSQLQuery: WideString; virtual;
 
   public
     destructor Destroy; override;
 
     procedure Close; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -378,7 +378,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZAbstractStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZAbstractStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Result := nil;
   RaiseUnsupportedException;
@@ -395,7 +395,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZAbstractStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZAbstractStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Result := 0;
   RaiseUnsupportedException;
@@ -607,7 +607,7 @@ end;
   @see #getUpdateCount
   @see #getMoreResults
 }
-function TZAbstractStatement.Execute(const SQL: string): Boolean;
+function TZAbstractStatement.Execute(const SQL: WideString): Boolean;
 begin
   Result := False;
   LastResultSet := nil;
@@ -912,7 +912,7 @@ end;
   @param Info a statement parameters.
 }
 constructor TZAbstractPreparedStatement.Create(Connection: IZConnection;
-  const SQL: string; Info: TStrings);
+  const SQL: WideString; Info: TStrings);
 begin
   inherited Create(Connection, Info);
   FSQL := SQL;
@@ -1902,7 +1902,7 @@ end;
   Prepares an SQL statement and inserts all data values.
   @return a prepared SQL statement.
 }
-function TZEmulatedPreparedStatement.PrepareSQLQuery: string;
+function TZEmulatedPreparedStatement.PrepareSQLQuery: WideString;
 var
   I: Integer;
   ParamIndex: Integer;
@@ -1956,7 +1956,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZEmulatedPreparedStatement.Execute(const SQL: string): Boolean;
+function TZEmulatedPreparedStatement.Execute(const SQL: WideString): Boolean;
 begin
   LastStatement := GetExecStatement;
   Result := LastStatement.Execute(SQL);
@@ -1972,7 +1972,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZEmulatedPreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZEmulatedPreparedStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Result := GetExecStatement.ExecuteQuery(SQL);
 end;
@@ -1988,7 +1988,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZEmulatedPreparedStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZEmulatedPreparedStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Result := GetExecStatement.ExecuteUpdate(SQL);
   LastUpdateCount := Result;
