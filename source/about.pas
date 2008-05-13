@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Menus, Classes, Graphics, Forms, Controls, StdCtrls,
-  Buttons, ExtCtrls, ShellApi, SysUtils, dialogs, ComCtrls;
+  Buttons, ExtCtrls, ShellApi, SysUtils, dialogs, ComCtrls, GIFImg;
 
 
 type
@@ -24,12 +24,14 @@ type
     LabelCompiled: TLabel;
     LabelWebpage: TLabel;
     LabelAuthors: TLabel;
-    ButtonDonate: TButton;
     ButtonBoard: TButton;
     ImageHeidisql: TImage;
     MemoThanks: TMemo;
     LabelThanks: TLabel;
     MemoAuthors: TMemo;
+    ImageDonate: TImage;
+    btnUpdateCheck: TButton;
+    procedure btnUpdateCheckClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     procedure ButtonCloseClick(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -65,6 +67,11 @@ begin
   FreeAndNil(f);
 end;
 
+
+procedure TAboutBox.btnUpdateCheckClick(Sender: TObject);
+begin
+  Mainform.menuUpdateCheckClick(Sender);
+end;
 
 procedure TAboutBox.OpenURL(Sender: TObject);
 begin
