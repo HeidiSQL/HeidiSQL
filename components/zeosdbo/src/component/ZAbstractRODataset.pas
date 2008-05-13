@@ -1296,7 +1296,7 @@ begin
       { Processes widestring fields. }
       else if Field.DataType = ftWideString then
       begin
-        RowAccessor.SetUnicodeString(ColumnIndex, PWideString(Buffer)^);
+        RowAccessor.SetUnicodeString(ColumnIndex, PWideChar(Buffer));
       end
       { Processes all other fields. }
       else if (Field.FieldKind = fkData) and (Field.DataType = ftString) and
