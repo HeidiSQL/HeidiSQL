@@ -2130,9 +2130,9 @@ const
   TypeCodes: array[1..MaxTypeCount] of TZSQLType = (
     stBinaryStream, stBoolean, stShort, stLong, stBinaryStream, stBinaryStream,
     stBinaryStream, stBinaryStream, stBinaryStream, stBytes, stBytes,
-    stString, stAsciiStream, stAsciiStream, stAsciiStream, stAsciiStream,
-    stString, stString, stBigDecimal, stBigDecimal, stInteger, stInteger,
-    stInteger, stShort, stDouble, stFloat, stFloat, stString, stString,
+    stUnicodeString, stUnicodeStream, stUnicodeStream, stUnicodeStream, stUnicodeStream,
+    stUnicodeString, stUnicodeString, stBigDecimal, stBigDecimal, stInteger, stInteger,
+    stInteger, stShort, stDouble, stFloat, stFloat, stUnicodeString, stUnicodeString,
     stDate, stTime, stTimestamp, stTimestamp);
   TypePrecision: array[1..MaxTypeCount] of Integer = (
     64, -1, 4, 16, 16777215, 16777215, MAXBUF, 65535, 255, 255, 255,

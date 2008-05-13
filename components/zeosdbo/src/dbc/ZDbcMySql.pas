@@ -440,13 +440,9 @@ begin
     DriverManager.LogMessage(lcConnect, FPlainDriver.GetProtocol, LogMessage);
 
     { Sets a client codepage. }
-    if FClientCodePage <> '' then
-    begin
-      SQL := PChar(Format('SET CHARACTER SET %s', [FClientCodePage]));
-      FPlainDriver.ExecQuery(FHandle, SQL);
-      CheckMySQLError(FPlainDriver, FHandle, lcExecute, SQL);
-      DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
-    end;
+    FPlainDriver.SetCharacterSet(FHandle, 'utf8');
+    CheckMySQLError(FPlainDriver, FHandle, lcExecute, LogMessage);
+    DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, LogMessage);
 
     { Sets transaction isolation level. }
     OldLevel := TransactIsolationLevel;

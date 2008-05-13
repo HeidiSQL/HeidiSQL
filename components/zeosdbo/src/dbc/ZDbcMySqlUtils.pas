@@ -192,7 +192,7 @@ begin
       begin
         if Signed then Result := stLong
         //else Result := stBigDecimal;
-        else Result := stString;
+        else Result := stUnicodeString;
       end;
     FIELD_TYPE_FLOAT:
 //      Result := stFloat;
@@ -211,34 +211,34 @@ begin
       Result := stDouble;
     FIELD_TYPE_DATE, FIELD_TYPE_NEWDATE:
       //Result := stDate;
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_TIME:
       //Result := stTime;
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_DATETIME, FIELD_TYPE_TIMESTAMP:
       //Result := stTimestamp;
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_TINY_BLOB, FIELD_TYPE_MEDIUM_BLOB,
     FIELD_TYPE_LONG_BLOB, FIELD_TYPE_BLOB:
       if (FieldFlags and BINARY_FLAG) = 0 then
-        Result := stAsciiStream
+        Result := stUnicodeStream
       else Result := stBinaryStream;
     FIELD_TYPE_BIT:
       Result := stBinaryStream;
     FIELD_TYPE_VARCHAR:
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_VAR_STRING:
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_STRING:
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_ENUM:
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_SET:
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_NULL:
       // Example: SELECT NULL FROM DUAL
       // Todo: Find out if it is possible to get real data in a TYPE_NULL field, perhaps adjust to binary or some such?
-      Result := stString;
+      Result := stUnicodeString;
     FIELD_TYPE_GEOMETRY:
       // Todo: Would be nice to show as WKT.
       Result := stBinaryStream;
@@ -246,7 +246,7 @@ begin
       raise Exception.Create('Unknown MySQL data type!');
   end;
   { SHOW FULL PROCESSLIST on 4.x servers can return veeery long FIELD_TYPE_VAR_STRINGs. The following helps avoid excessive row buffer allocation later on. }
-  if (Result = stString) and (PlainDriver.GetFieldLength(FieldHandle) > 8192) then Result := stAsciiStream;
+  if (Result = stUnicodeString) and (PlainDriver.GetFieldLength(FieldHandle) > 8192) then Result := stUnicodeStream;
 end;
 
 {**
@@ -304,7 +304,7 @@ begin
   begin
     // Zeos uses a floating point type for unsigned int64..
     //if IsUnsigned then Result := stBigDecimal
-    if IsUnsigned then Result := stString
+    if IsUnsigned then Result := stUnicodeString
     else Result := stLong;
   end
   else if TypeName = 'INT24' then
@@ -335,21 +335,21 @@ begin
   else if TypeName = 'DOUBLE' then
     Result := stDouble
   else if TypeName = 'CHAR' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'VARCHAR' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'VARBINARY' then
     Result := stBytes
   else if TypeName = 'BINARY' then
     Result := stBytes
   else if TypeName = 'DATE' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'TIME' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'TIMESTAMP' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'DATETIME' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'TINYBLOB' then
     Result := stBinaryStream
   else if TypeName = 'BLOB' then
@@ -359,17 +359,17 @@ begin
   else if TypeName = 'LONGBLOB' then
     Result := stBinaryStream
   else if TypeName = 'TINYTEXT' then
-    Result := stAsciiStream
+    Result := stUnicodeStream
   else if TypeName = 'TEXT' then
-    Result := stAsciiStream
+    Result := stUnicodeStream
   else if TypeName = 'MEDIUMTEXT' then
-    Result := stAsciiStream
+    Result := stUnicodeStream
   else if TypeName = 'LONGTEXT' then
-    Result := stAsciiStream
+    Result := stUnicodeStream
   else if TypeName = 'ENUM' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'SET' then
-    Result := stString
+    Result := stUnicodeString
   else if TypeName = 'BIT' then
     Result := stBinaryStream
   else for i := 0 to Length(GeoTypes)-1 do if GeoTypes[i] = TypeName then Result := stBinaryStream;
