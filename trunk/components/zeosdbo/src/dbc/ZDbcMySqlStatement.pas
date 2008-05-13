@@ -331,14 +331,40 @@ end;
 }
 function TZMySQLPreparedStatement.GetEscapeString(const Value: WideString): WideString;
 var
-  BufferLen: Integer;
+  Bytes: Integer;
+  Input: PChar;
   Buffer: PChar;
+  Output: PWideChar;
 begin
-  BufferLen := Length(Value) * 2 + 1;
-  GetMem(Buffer, BufferLen);
-  BufferLen := FPlainDriver.GetEscapeString(FHandle, Buffer, PChar(UTF8Encode(Value)), Length(Value));
-  Result := '''' + UTF8Decode(BufferToStr(Buffer, BufferLen)) + '''';
+  // UTF-8 strings are at most 4 bytes per character.
+  // Include room for a null terminator.
+  Bytes := Length(Value) * 4 + 1;
+  GetMem(Input, Bytes);
+
+  // Convert WideString input to UTF-8 PChar.
+  Bytes := UnicodeToUtf8(Input, Bytes, PWideChar(Value), Length(Value)) - 1;
+
+  // Make room for escaped UTF-8 string.
+  GetMem(Buffer, Bytes * 2 + 1);
+
+  // According to the documentation, mysql_real_escape string
+  // expects a byte count as input, but returns a length of
+  // characters as output.  This is not true, the function
+  // actually returns a byte count as output too.  NUL
+  // characters are converted to '\0'.
+  Bytes := FPlainDriver.GetEscapeString(FHandle, Buffer, Input, Bytes);
+
+  // Make room for wide version of escaped string.
+  GetMem(Output, Length(Value) * 4 + 2);
+
+  // Convert back to WideChars, then compose result.
+  Utf8ToUnicode(Output, Length(Value) * 2, Buffer, Bytes + 1);
+  Result := '''' + WideString(Output) + '''';
+
+  // Free temporary buffers.
+  FreeMem(Input);
   FreeMem(Buffer);
+  FreeMem(Output);
 end;
 
 {**
