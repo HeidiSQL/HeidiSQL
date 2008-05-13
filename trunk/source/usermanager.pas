@@ -754,13 +754,12 @@ procedure TUserManagerForm.editPasswordEnter(Sender: TObject);
 var
   e: TNotifyEvent;
 begin
-  if Users[comboUsers.ItemIndex].Password = '' then begin
-    e := editPassword.OnChange;
-    editPassword.OnChange := nil;
-    editPassword.Clear;
-    editPassword.PasswordChar := '*';
-    editPassword.OnChange := e;
-  end;
+  e := editPassword.OnChange;
+  editPassword.OnChange := nil;
+  editPassword.Text := Users[comboUsers.ItemIndex].Password;
+  editPassword.PasswordChar := '*';
+  editPassword.Font.Color := clWindowText;
+  editPassword.OnChange := e;
 end;
 
 
@@ -797,11 +796,14 @@ begin
   e := editPassword.OnChange;
   editPassword.OnChange := nil;
   editPassword.PasswordChar := #0;
-  if u.Disabled then
+  if u.Disabled then begin
+    editPassword.Font.Color := clSilver;
     editPassword.Text := '!'
-  else if not u.PasswordModified then
+  end else if not u.PasswordModified then begin
+    editPassword.Font.Color := clSilver;
     editPassword.Text := u.OldPasswordHashed
-  else begin
+  end else begin
+    editPassword.Font.Color := clWindowText;
     editPassword.PasswordChar := '*';
     editPassword.Text := u.Password;
   end;
