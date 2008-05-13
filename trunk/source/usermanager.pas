@@ -1643,8 +1643,6 @@ begin
   for i := 0 to PrivNames.Count - 1 do begin
     // Fetch original name
     p := PrivNames[i];
-    if Pos('_priv', p) = Length(p)-4 then
-      p := Copy(p, 0, Length(p)-4);
     p := StringReplace(p, '_', ' ', [rfReplaceAll]);
     p := Trim(p);
     Result.Add(p);
