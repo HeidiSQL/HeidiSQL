@@ -696,7 +696,6 @@ end;
 
 procedure TMDIChild.PerformConnect;
 var
-  charset     : String;
   v           : String[50];
   v1, v2, v3  : String;
   rx : TRegExpr;
@@ -723,23 +722,6 @@ begin
     mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
     strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: %s';
     strHostNotRunning := 'Disconnected from ' + FConn.MysqlParams.Host + '.';
-
-    {***
-      SET NAMES statement available since MySQL 4.1.0 .
-      Older versions throw a SQL-error: "Unknown system variable 'NAMES'"
-      @see http://lists.phpbar.de/pipermail/opengeodb/2005-September/002455.html
-    }
-    if mysql_version >= 40100 then begin
-      charset := ConvertWindowsCodepageToMysqlCharacterSet(GetACP());
-      if charset = '' then begin
-        LogSQL( 'Could not find a MySQL character set to match the current ' +
-          'Windows ANSI codepage.', true );
-        LogSQL( Format( 'Use SHOW CHARACTER SET to see MySQL character sets; ' +
-          'if you can find one that you are certain matches %d, please report' +
-          ' it via http://rfe.heidisql.com/.', [GetACP()] ), true );
-      end else
-        ExecuteNonQuery( 'SET NAMES ' + charset );
-    end;
 
     // On Re-Connection, try to restore lost properties
     if FMysqlConn.Connection.Database <> '' then
