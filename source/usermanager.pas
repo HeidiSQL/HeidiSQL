@@ -969,16 +969,18 @@ begin
     end else if u.PasswordModified then
       AcctUpdates.Add(mask('Password') + '= PASSWORD(' + esc(u.Password) + ')');
     // Apply limitation updates.
-    if dsUser.FindField('max_questions') <> nil then begin
+    if dsUser.FindField('max_questions') <> nil then
       if u.FOldMaxQuestions <> u.MaxQuestions then
         AcctUpdates.Add(mask('max_questions') + '=' + IntToStr(u.MaxQuestions));
+    if dsUser.FindField('max_updates') <> nil then
       if u.FOldMaxUpdates <> u.MaxUpdates then
         AcctUpdates.Add(mask('max_updates') + '=' + IntToStr(u.MaxUpdates));
+    if dsUser.FindField('max_connections') <> nil then
       if u.FOldMaxConnections <> u.MaxConnections then
         AcctUpdates.Add(mask('max_connections') + '=' + IntToStr(u.MaxConnections));
+    if dsUser.FindField('max_user_connections') <> nil then
       if u.FOldMaxUserConnections <> u.MaxUserConnections then
         AcctUpdates.Add(mask('max_user_connections') + '=' + IntToStr(u.MaxUserConnections));
-    end;
     // Skip accounts with fx only username / host changes, they've already been processed.
     if AcctUpdates.Count = 0 then Continue;
     // Go.
@@ -1006,18 +1008,21 @@ begin
     else
       AcctUpdates.Add(mask('Password') + '=PASSWORD(' + esc(u.Password) + ')');
     // Apply limits.
-    if dsUser.FindField('max_questions') <> nil then begin
+    if dsUser.FindField('max_questions') <> nil then
       AcctUpdates.Add(mask('max_questions') + '=' + IntToStr(u.MaxQuestions));
+    if dsUser.FindField('max_updates') <> nil then
       AcctUpdates.Add(mask('max_updates') + '=' + IntToStr(u.MaxUpdates));
+    if dsUser.FindField('max_connections') <> nil then
       AcctUpdates.Add(mask('max_connections') + '=' + IntToStr(u.MaxConnections));
+    if dsUser.FindField('max_user_connections') <> nil then
       AcctUpdates.Add(mask('max_user_connections') + '=' + IntToStr(u.MaxUserConnections));
-    end;
     // Special case: work around missing default values (bug) in MySQL.
-    if dsUser.FindField('ssl_cipher') <> nil then begin
+    if dsUser.FindField('ssl_cipher') <> nil then
       AcctUpdates.Add(mask('ssl_cipher') + '=' + esc(''));
+    if dsUser.FindField('x509_issuer') <> nil then
       AcctUpdates.Add(mask('x509_issuer') + '=' + esc(''));
+    if dsUser.FindField('x509_subject') <> nil then
       AcctUpdates.Add(mask('x509_subject') + '=' + esc(''));
-    end;
     sql := 'INSERT INTO ' + db + '.' + mask(PRIVTABLE_USERS);
     sql := sql + ' SET ' + Delim(AcctUpdates);
     // Todo: Allow concurrency by skipping this account and removing from Users array if inserting key in mysql.user fails.
@@ -1134,13 +1139,15 @@ begin
       // Special case: UPDATE instead of INSERT for server-level privileges (see further above).
       if (p.DBOType = NODETYPE_DEFAULT) then begin
         // Server barfs if we do not set missing defaults, sigh.
-        if dsUser.FindField('ssl_cipher') <> nil then begin
-          PrivValues.Clear;
+        PrivValues.Clear;
+        if dsUser.FindField('ssl_cipher') <> nil then
           PrivValues.Add(mask('ssl_cipher') + '=' + esc(''));
+        if dsUser.FindField('x509_issuer') <> nil then
           PrivValues.Add(mask('x509_issuer') + '=' + esc(''));
+        if dsUser.FindField('x509_subject') <> nil then
           PrivValues.Add(mask('x509_subject') + '=' + esc(''));
+        if PrivValues.Count > 0 then
           sql := sql + ', ' + Delim(PrivValues);
-        end;
         sql := sql + ' ON DUPLICATE KEY UPDATE';
         sql := sql + ' ' + Delim(PrivUpdates);
       end;
