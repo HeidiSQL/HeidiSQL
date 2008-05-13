@@ -830,16 +830,28 @@ end;
 procedure TUserManagerForm.editLimitations(Sender: TObject);
 var
   u: TUser;
+  isModified: Boolean;
 begin
   // OnChange is called during form construction, avoid that.
   if comboUsers.ItemIndex = -1 then Exit;
   u := Users[comboUsers.ItemIndex];
+  isModified :=
+    Cardinal(u.MaxQuestions) +
+    Cardinal(u.MaxUpdates) +
+    Cardinal(u.MaxConnections) +
+    Cardinal(u.MaxUserConnections) <>
+    Cardinal(udMaxQuestions.Position) +
+    Cardinal(udMaxUpdates.Position) +
+    Cardinal(udMaxConnections.Position) +
+    Cardinal(udMaxUserConnections.Position);
   u.MaxQuestions := udMaxQuestions.Position;
   u.MaxUpdates := udMaxUpdates.Position;
   u.MaxConnections := udMaxConnections.Position;
   u.MaxUserConnections := udMaxUserConnections.Position;
-  u.Modified := True;
-  RefreshUserPulldown;
+  if isModified then begin
+    u.Modified := True;
+    RefreshUserPulldown;
+  end;
 end;
 
 
