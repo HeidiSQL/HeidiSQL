@@ -92,7 +92,7 @@ type
 
     procedure SetMetadataType(Value: TZMetadataType);
   protected
-    function CreateResultSet(const SQL: string; MaxRows: Integer): IZResultSet;
+    function CreateResultSet(const SQL: WideString; MaxRows: Integer): IZResultSet;
       override;
   published
     property MetadataType: TZMetadataType read FMetadataType write SetMetadataType;
@@ -140,7 +140,7 @@ end;
   @param MaxRows a maximum rows number (-1 for all).
   @returns a created DBC resultset.
 }
-function TZSQLMetadata.CreateResultSet(const SQL: string; MaxRows: Integer):
+function TZSQLMetadata.CreateResultSet(const SQL: WideString; MaxRows: Integer):
   IZResultSet;
 var
   Metadata: IZDatabaseMetadata;

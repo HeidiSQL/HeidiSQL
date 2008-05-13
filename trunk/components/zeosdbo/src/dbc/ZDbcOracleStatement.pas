@@ -81,9 +81,9 @@ type
       Connection: IZConnection; Info: TStrings);
     destructor Destroy; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function GetStatementHandle: POCIStmt;
   end;
@@ -122,9 +122,9 @@ type
 
     procedure Close; override;
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -169,7 +169,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZOracleStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZOracleStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 var
   Handle: POCIStmt;
   ErrorHandle: POCIError;
@@ -199,7 +199,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZOracleStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZOracleStatement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   Handle: POCIStmt;
   ErrorHandle: POCIError;
@@ -241,7 +241,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZOracleStatement.Execute(const SQL: string): Boolean;
+function TZOracleStatement.Execute(const SQL: WideString): Boolean;
 var
   Handle: POCIStmt;
   ErrorHandle: POCIError;
@@ -425,7 +425,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZOraclePreparedStatement.Execute(const SQL: string): Boolean;
+function TZOraclePreparedStatement.Execute(const SQL: WideString): Boolean;
 begin
   LastStatement := GetExecStatement;
   Result := LastStatement.Execute(SQL);
@@ -441,7 +441,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZOraclePreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZOraclePreparedStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Result := GetExecStatement.ExecuteQuery(SQL);
 end;
@@ -457,7 +457,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZOraclePreparedStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZOraclePreparedStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Result := GetExecStatement.ExecuteUpdate(SQL);
   LastUpdateCount := Result;

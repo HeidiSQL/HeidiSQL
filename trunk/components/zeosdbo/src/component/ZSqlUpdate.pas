@@ -58,7 +58,7 @@ interface
 {$I ZComponent.inc}
 
 uses
-  SysUtils, Classes, DB, ZDbcIntfs, ZDbcCachedResultSet, ZDbcCache, ZSqlStrings;
+  SysUtils, Classes, DB, ZDbcIntfs, ZDbcCachedResultSet, ZDbcCache, ZSqlStrings, WideStrings;
 
 type
   {ADDED BY fduenas}
@@ -105,23 +105,23 @@ type
 
     procedure SetUseSequenceFieldForRefreshSQL(const Value: Boolean);
     procedure SetDataset(Value: TDataset);
-    function GetSQL(UpdateKind: TUpdateKind): TStrings;
-    procedure SetSQL(UpdateKind: TUpdateKind; Value: TStrings);
+    function GetSQL(UpdateKind: TUpdateKind): TWideStrings;
+    procedure SetSQL(UpdateKind: TUpdateKind; Value: TWideStrings);
     function GetParamsCount: Word;
     procedure SetParamsList(Value: TParams);
     procedure SetParamCheck(Value: Boolean);
     procedure SetMultiStatements(Value: Boolean);
 
-    function GetDeleteSQL: TStrings;
-    procedure SetDeleteSQL(Value: TStrings);
-    function GetInsertSQL: TStrings;
-    procedure SetInsertSQL(Value: TStrings);
-    function GetModifySQL: TStrings;
-    procedure SetModifySQL(Value: TStrings);
+    function GetDeleteSQL: TWideStrings;
+    procedure SetDeleteSQL(Value: TWideStrings);
+    function GetInsertSQL: TWideStrings;
+    procedure SetInsertSQL(Value: TWideStrings);
+    function GetModifySQL: TWideStrings;
+    procedure SetModifySQL(Value: TWideStrings);
 
     //FOSPATCH
-    function GetRefreshSQL: TStrings;
-    procedure SetRefreshSQL(Value: TStrings);
+    function GetRefreshSQL: TWideStrings;
+    procedure SetRefreshSQL(Value: TWideStrings);
     //FOSPATCH
 
     procedure ReadParamData(Reader: TReader);
@@ -167,16 +167,16 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property SQL[UpdateKind: TUpdateKind]: TStrings read GetSQL write SetSQL;
+    property SQL[UpdateKind: TUpdateKind]: TWideStrings read GetSQL write SetSQL;
     property ParamCount: Word read GetParamsCount;
     property DataSet: TDataSet read FDataSet write SetDataSet;
 
   published
-    property DeleteSQL: TStrings read GetDeleteSQL write SetDeleteSQL;
-    property InsertSQL: TStrings read GetInsertSQL write SetInsertSQL;
-    property ModifySQL: TStrings read GetModifySQL write SetModifySQL;
+    property DeleteSQL: TWideStrings read GetDeleteSQL write SetDeleteSQL;
+    property InsertSQL: TWideStrings read GetInsertSQL write SetInsertSQL;
+    property ModifySQL: TWideStrings read GetModifySQL write SetModifySQL;
     //FOSPATCH
-    property RefreshSQL: TStrings read GetRefreshSQL write SetRefreshSQL;
+    property RefreshSQL: TWideStrings read GetRefreshSQL write SetRefreshSQL;
     //FOSPATCH
     property UseSequenceFieldForRefreshSQL:Boolean read FUseSequenceFieldForRefreshSQL write SetUseSequenceFieldForRefreshSQL;
 
@@ -275,7 +275,7 @@ end;
   @param UpdateKind a type of the DML statements.
   @return a stored DML statement.
 }
-function TZUpdateSQL.GetSQL(UpdateKind: TUpdateKind): TStrings;
+function TZUpdateSQL.GetSQL(UpdateKind: TUpdateKind): TWideStrings;
 begin
   case UpdateKind of
     ukModify: Result := FModifySQL;
@@ -289,7 +289,7 @@ end;
   @param UpdateKind a type of the DML statements.
   @param Value a DML statements to be set.
 }
-procedure TZUpdateSQL.SetSQL(UpdateKind: TUpdateKind; Value: TStrings);
+procedure TZUpdateSQL.SetSQL(UpdateKind: TUpdateKind; Value: TWideStrings);
 begin
   case UpdateKind of
     ukModify: FModifySQL.Assign(Value);
@@ -307,7 +307,7 @@ begin
   Result := FParams.Count;
 end;
 
-function TZUpdateSQL.GetRefreshSQL: TStrings;
+function TZUpdateSQL.GetRefreshSQL: TWideStrings;
 begin
   Result := FRefreshSQL;
 end;
@@ -353,7 +353,7 @@ begin
   FParams.AssignValues(Value);
 end;
 
-procedure TZUpdateSQL.SetRefreshSQL(Value: TStrings);
+procedure TZUpdateSQL.SetRefreshSQL(Value: TWideStrings);
 begin
   FRefreshSQL.Assign(Value);
 end;
@@ -404,7 +404,7 @@ end;
   Gets strings with Delete statements.
   @return strings with Delete statements.
 }
-function TZUpdateSQL.GetDeleteSQL: TStrings;
+function TZUpdateSQL.GetDeleteSQL: TWideStrings;
 begin
   Result := FDeleteSQL;
 end;
@@ -413,7 +413,7 @@ end;
   Sets a new Delete SQL statement.
   @param Value a new Delete SQL statement.
 }
-procedure TZUpdateSQL.SetDeleteSQL(Value: TStrings);
+procedure TZUpdateSQL.SetDeleteSQL(Value: TWideStrings);
 begin
   FDeleteSQL.Assign(Value);
 end;
@@ -422,7 +422,7 @@ end;
   Gets strings with Insert statements.
   @return strings with Insert statements.
 }
-function TZUpdateSQL.GetInsertSQL: TStrings;
+function TZUpdateSQL.GetInsertSQL: TWideStrings;
 begin
   Result := FInsertSQL;
 end;
@@ -431,7 +431,7 @@ end;
   Sets a new Insert SQL statement.
   @param Value a new Insert SQL statement.
 }
-procedure TZUpdateSQL.SetInsertSQL(Value: TStrings);
+procedure TZUpdateSQL.SetInsertSQL(Value: TWideStrings);
 begin
   FInsertSQL.Assign(Value);
 end;
@@ -440,7 +440,7 @@ end;
   Gets strings with Modify statements.
   @return strings with Modify statements.
 }
-function TZUpdateSQL.GetModifySQL: TStrings;
+function TZUpdateSQL.GetModifySQL: TWideStrings;
 begin
   Result := FModifySQL;
 end;
@@ -449,7 +449,7 @@ end;
   Sets a new  Modify SQL statement.
   @param Value a new Modify SQL statement.
 }
-procedure TZUpdateSQL.SetModifySQL(Value: TStrings);
+procedure TZUpdateSQL.SetModifySQL(Value: TWideStrings);
 begin
   FModifySQL.Assign(Value);
 end;

@@ -62,24 +62,24 @@ uses
   Types,
 {$ENDIF}
   Classes, SysUtils, DB, ZSysUtils, ZDbcIntfs, ZTokenizer, ZGenericSqlToken,
-  Contnrs, ZCompatibility;
+  Contnrs, ZCompatibility, WideStrings;
 
 type
   {** Represents a SQL statement description object. }
   TZSQLStatement = class (TObject)
   private
-    FSQL: string;
+    FSQL: WideString;
     FParamIndices: TIntegerDynArray;
-    FParams: TStrings;
+    FParams: TWideStrings;
 
     function GetParamCount: Integer;
     function GetParamName(Index: Integer): string;
     function GetParamNamesArray: TStringDynArray;
   protected
-    constructor Create(const SQL: string; const ParamIndices: TIntegerDynArray;
-      Params: TStrings);
+    constructor Create(const SQL: WideString; const ParamIndices: TIntegerDynArray;
+      Params: TWideStrings);
   public
-    property SQL: string read FSQL;
+    property SQL: WideString read FSQL;
     property ParamCount: Integer read GetParamCount;
     property ParamNames[Index: Integer]: string read GetParamName;
     property ParamIndices: TIntegerDynArray read FParamIndices;
@@ -87,12 +87,12 @@ type
   end;
 
   {** Imlements a string list with SQL statements. }
-  TZSQLStrings = class (TStringList)
+  TZSQLStrings = class (TWideStringList)
   private
     FDataset: TObject;
     FParamCheck: Boolean;
     FStatements: TObjectList;
-    FParams: TStringList;
+    FParams: TWideStringList;
     FMultiStatements: Boolean;
 
     function GetParamCount: Integer;
@@ -132,8 +132,8 @@ uses ZMessages, ZAbstractRODataset, ZDatasetUtils;
   @param ParamIndices a parameter indices.
   @param Params a list with all parameter names.
 }
-constructor TZSQLStatement.Create(const SQL: string;
-  const ParamIndices: TIntegerDynArray; Params: TStrings);
+constructor TZSQLStatement.Create(const SQL: WideString;
+  const ParamIndices: TIntegerDynArray; Params: TWideStrings);
 begin
   FSQL := SQL;
   FParamIndices := ParamIndices;
@@ -182,7 +182,7 @@ end;
 }
 constructor TZSQLStrings.Create;
 begin
-  FParams := TStringList.Create;
+  FParams := TWideStringList.Create;
   FParamCheck := True;
   FStatements := TObjectList.Create;
   FMultiStatements := True;

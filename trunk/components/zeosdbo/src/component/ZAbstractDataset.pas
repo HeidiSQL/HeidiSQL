@@ -132,7 +132,7 @@ type
 
     function CreateStatement(const SQL: string; Properties: TStrings):
       IZPreparedStatement; override;
-    function CreateResultSet(const SQL: string; MaxRows: Integer):
+    function CreateResultSet(const SQL: WideString; MaxRows: Integer):
       IZResultSet; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
@@ -322,7 +322,7 @@ end;
   @param MaxRows a maximum rows number (-1 for all).
   @returns a created DBC resultset.
 }
-function TZAbstractDataset.CreateResultSet(const SQL: string; MaxRows: Integer):
+function TZAbstractDataset.CreateResultSet(const SQL: WideString; MaxRows: Integer):
   IZResultSet;
 begin
   Result := inherited CreateResultSet(SQL, MaxRows);

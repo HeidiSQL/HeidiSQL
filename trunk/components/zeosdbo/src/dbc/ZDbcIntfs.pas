@@ -454,8 +454,8 @@ type
   IZStatement = interface(IZInterface)
     ['{22CEFA7E-6A6D-48EC-BB9B-EE66056E90F1}']
 
-    function ExecuteQuery(const SQL: string): IZResultSet;
-    function ExecuteUpdate(const SQL: string): Integer;
+    function ExecuteQuery(const SQL: WideString): IZResultSet;
+    function ExecuteUpdate(const SQL: WideString): Integer;
     procedure Close;
 
     function GetMaxFieldSize: Integer;
@@ -468,7 +468,7 @@ type
     procedure Cancel;
     procedure SetCursorName(const Value: string);
 
-    function Execute(const SQL: string): Boolean;
+    function Execute(const SQL: WideString): Boolean;
     function GetResultSet: IZResultSet;
     function GetUpdateCount: Integer;
     function GetMoreResults: Boolean;

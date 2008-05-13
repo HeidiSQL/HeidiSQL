@@ -80,9 +80,9 @@ type
     function GetWarnings: EZSQLWarning; override;
     procedure ClearWarnings; override;
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. }
@@ -104,9 +104,9 @@ type
     function GetWarnings: EZSQLWarning; override;
     procedure ClearWarnings; override;
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -135,9 +135,9 @@ type
     function GetWarnings: EZSQLWarning; override;
     procedure ClearWarnings; override;
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -242,7 +242,7 @@ end;
     given query; never <code>null</code>
 }
 {$HINTS OFF}
-function TZASAStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZASAStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 var
   Cursor: string;
   CursorOptions: SmallInt;
@@ -253,7 +253,7 @@ begin
   begin
     try
       GetPlainDriver.db_prepare_describe( GetDBHandle, nil, @FStmtNum,
-        PChar( SQL), FSQLData.GetData, SQL_PREPARE_DESCRIBE_STMTNUM +
+        PChar(String(SQL)), FSQLData.GetData, SQL_PREPARE_DESCRIBE_STMTNUM +
         SQL_PREPARE_DESCRIBE_OUTPUT + SQL_PREPARE_DESCRIBE_VARRESULT, 0);
       ZDbcASAUtils.CheckASAError( GetPlainDriver, GetDBHandle, lcExecute, SQL);
 
@@ -317,14 +317,14 @@ end;
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
 {$HINTS OFF}
-function TZASAStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZASAStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Close;
   Result := -1;
   with FASAConnection do
   begin
 
-    GetPlainDriver.db_execute_imm( GetDBHandle, PChar( SQL));
+    GetPlainDriver.db_execute_imm( GetDBHandle, PChar(String(SQL)));
     ZDbcASAUtils.CheckASAError( GetPlainDriver, GetDBHandle, lcExecute, SQL);
 
     Result := GetDBHandle.sqlErrd[2];
@@ -359,7 +359,7 @@ end;
   @see #getUpdateCount
   @see #getMoreResults
 }
-function TZASAStatement.Execute(const SQL: string): Boolean;
+function TZASAStatement.Execute(const SQL: WideString): Boolean;
 begin
   try
     LastResultSet := ExecuteQuery( SQL);
@@ -482,7 +482,7 @@ end;
   @see #getMoreResults
 }
 
-function TZASAPreparedStatement.Execute(const SQL: string): Boolean;
+function TZASAPreparedStatement.Execute(const SQL: WideString): Boolean;
 begin
   if Self.SQL <> SQL then
   begin
@@ -520,7 +520,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZASAPreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZASAPreparedStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   if Self.SQL <> SQL then
   begin
@@ -594,7 +594,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZASAPreparedStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZASAPreparedStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   if Self.SQL <> SQL then
   begin
@@ -749,7 +749,7 @@ end;
   @see #getMoreResults
 }
 
-function TZASACallableStatement.Execute(const SQL: string): Boolean;
+function TZASACallableStatement.Execute(const SQL: WideString): Boolean;
 var
   ProcSQL: string;
 begin
@@ -797,7 +797,7 @@ end;
     given query; never <code>null</code>
 }
 function TZASACallableStatement.ExecuteQuery(
-  const SQL: string): IZResultSet;
+  const SQL: WideString): IZResultSet;
 var
   ProcSQL: string;
 begin
@@ -879,7 +879,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZASACallableStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZASACallableStatement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   ProcSQL: string;
 begin

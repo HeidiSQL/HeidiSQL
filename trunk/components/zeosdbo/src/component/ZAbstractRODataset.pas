@@ -66,7 +66,7 @@ uses
   Variants,
 {$ENDIF}
   SysUtils, DB, Classes, ZSysUtils, ZConnection, ZDbcIntfs, ZSqlStrings,
-  Contnrs, ZDbcCache, ZDbcCachedResultSet, ZCompatibility, ZExpression;
+  Contnrs, ZDbcCache, ZDbcCachedResultSet, ZCompatibility, ZExpression, WideStrings;
 
 type
   {$IFDEF FPC}
@@ -166,8 +166,8 @@ type
   private
     function GetReadOnly: Boolean;
     procedure SetReadOnly(Value: Boolean);
-    function GetSQL: TStrings;
-    procedure SetSQL(Value: TStrings);
+    function GetSQL: TWideStrings;
+    procedure SetSQL(Value: TWideStrings);
     function GetParamCheck: Boolean;
     procedure SetParamCheck(Value: Boolean);
     procedure SetParams(Value: TParams);
@@ -244,7 +244,7 @@ type
     { External protected properties. }
     property RequestLive: Boolean read FRequestLive write FRequestLive
       default False;
-    property SQL: TStrings read GetSQL write SetSQL;
+    property SQL: TWideStrings read GetSQL write SetSQL;
     property ParamCheck: Boolean read GetParamCheck write SetParamCheck
       default True;
     property Params: TParams read FParams write SetParams;
@@ -288,7 +288,7 @@ type
     procedure CloseBlob(Field: TField); override;
     function CreateStatement(const SQL: string; Properties: TStrings):
       IZPreparedStatement; virtual;
-    function CreateResultSet(const SQL: string; MaxRows: Integer):
+    function CreateResultSet(const SQL: WideString; MaxRows: Integer):
       IZResultSet; virtual;
 
     procedure CheckFieldCompatibility(Field: TField; FieldDef: TFieldDef);
@@ -565,7 +565,7 @@ end;
   @return the SQL query strings.
 }
 
-function TZAbstractRODataset.GetSQL: TStrings;
+function TZAbstractRODataset.GetSQL: TWideStrings;
 begin
   Result := FSQL;
 end;
@@ -574,7 +574,7 @@ end;
   Sets a new SQL query.
   @param Value a new SQL query.
 }
-procedure TZAbstractRODataset.SetSQL(Value: TStrings);
+procedure TZAbstractRODataset.SetSQL(Value: TWideStrings);
 begin
   FSQL.Assign(Value);
 end;
@@ -1512,7 +1512,7 @@ end;
   @param MaxRows a maximum rows number (-1 for all).
   @returns a created DBC resultset.
 }
-function TZAbstractRODataset.CreateResultSet(const SQL: string;
+function TZAbstractRODataset.CreateResultSet(const SQL: WideString;
   MaxRows: Integer): IZResultSet;
 begin
   Connection.ShowSQLHourGlass;

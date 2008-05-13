@@ -58,7 +58,7 @@ interface
 {$I ZComponent.inc}
 
 uses ZCompatibility, Classes, SysUtils, DB, ZDbcIntfs, ZConnection, ZTokenizer,
-  ZScriptParser, ZSqlStrings{$IFNDEF VER130BELOW}, Types{$ENDIF};
+  ZScriptParser, ZSqlStrings{$IFNDEF VER130BELOW}, Types{$ENDIF}, WideStrings;
 
 type
 
@@ -91,8 +91,8 @@ type
     FOnError: TZProcessorErrorEvent;
 
     procedure SetParams(Value: TParams);
-    function GetScript: TStrings;
-    procedure SetScript(Value: TStrings);
+    function GetScript: TWideStrings;
+    procedure SetScript(Value: TWideStrings);
     function GetStatementCount: Integer;
     function GetStatement(Index: Integer): string;
     procedure SetConnection(Value: TZConnection);
@@ -136,7 +136,7 @@ type
     property ParamCheck: Boolean read GetParamCheck write SetParamCheck
       default True;
     property Params: TParams read FParams write SetParams;
-    property Script: TStrings read GetScript write SetScript;
+    property Script: TWideStrings read GetScript write SetScript;
     property Connection: TZConnection read FConnection write SetConnection;
     property DelimiterType: TZDelimiterType read GetDelimiterType
       write SetDelimiterType default dtDefault;
@@ -273,7 +273,7 @@ end;
   Sets a new SQL script.
   @param Value a new SQL script.
 }
-procedure TZSQLProcessor.SetScript(Value: TStrings);
+procedure TZSQLProcessor.SetScript(Value: TWideStrings);
 begin
   FScript.Assign(Value);
   FScriptParser.ClearUncompleted;
@@ -524,7 +524,7 @@ end;
   Gets the SQL script.
   @return the SQL script strings.
 }
-function TZSQLProcessor.GetScript: TStrings;
+function TZSQLProcessor.GetScript: TWideStrings;
 begin
   Result := FScript;
 end;

@@ -72,7 +72,7 @@ type
     FRetrievedResultSet: IZResultSet;
     FRetrievedUpdateCount: Integer;
 
-    procedure InternalExecuteStatement(SQL: string); virtual;
+    procedure InternalExecuteStatement(SQL: WideString); virtual;
     procedure FetchResults; virtual;
 
   public
@@ -80,19 +80,19 @@ type
     destructor Destroy; override;
 
     function GetMoreResults: Boolean; override;
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. With emulation}
   TZDBLibPreparedStatementEmulated = class(TZEmulatedPreparedStatement)
   protected
-    function GetEscapeString(Value: string): string;
-    function PrepareSQLParam(ParamIndex: Integer): string; override;
+    function GetEscapeString(Value: WideString): WideString;
+    function PrepareSQLParam(ParamIndex: Integer): WideString; override;
     function CreateExecStatement: IZStatement; override;
   public
-    constructor Create(Connection: IZConnection; SQL: string; Info: TStrings);
+    constructor Create(Connection: IZConnection; SQL: WideString; Info: TStrings);
     function GetMetaData: IZResultSetMetaData; override;
   end;
 
@@ -147,7 +147,7 @@ implementation
 
 uses
   ZDbcLogging, ZDbcCachedResultSet, ZDbcDbLibUtils, ZDbcDbLibResultSet,
-  ZSybaseToken, ZVariant;
+  ZSybaseToken, ZVariant, WideStrUtils;
 
 constructor TZUpdateCount.Create(ACount: Integer);
 begin
@@ -196,7 +196,7 @@ end;
   @param Handle a DBLib connection handle.
   @sql string containing the statements to execute
 }
-procedure TZDBLibStatement.InternalExecuteStatement(SQL: string);
+procedure TZDBLibStatement.InternalExecuteStatement(SQL: WideString);
 begin
   FHandle := FDBLibConnection.GetConnectionHandle;
   FPlainDriver := FDBLibConnection.GetPlainDriver;
@@ -204,11 +204,11 @@ begin
     FDBLibConnection.CheckDBLibError(lcExecute, SQL);
 //This one is to avoid a bug in dblib interface as it drops a single backslash before line end
   if FPlainDriver.GetProtocol = 'mssql' then
-    SQL := StringReplace(Sql, '\'#13, '\\'#13, [rfReplaceAll]);
+    SQL := WideStringReplace(Sql, '\'#13, '\\'#13, [rfReplaceAll]);
 //This one is to avoid sybase error: Invalid operator for datatype op: is null type: VOID TYPE
   if FPlainDriver.GetProtocol = 'sybase' then
-    SQL := StringReplace(Sql, ' AND NULL IS NULL', '', [rfReplaceAll]);
-  if FPlainDriver.dbcmd(FHandle, PChar(SQL)) <> DBSUCCEED then
+    SQL := WideStringReplace(Sql, ' AND NULL IS NULL', '', [rfReplaceAll]);
+  if FPlainDriver.dbcmd(FHandle, PChar(String(SQL))) <> DBSUCCEED then
     FDBLibConnection.CheckDBLibError(lcExecute, SQL);
   if FPlainDriver.dbsqlexec(FHandle) <> DBSUCCEED then
     FDBLibConnection.CheckDBLibError(lcExecute, SQL);
@@ -320,7 +320,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZDBLibStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZDBLibStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Result := nil;
   FSQL := SQL;
@@ -349,7 +349,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZDBLibStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZDBLibStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   FSQL := SQL;
   InternalExecuteStatement(SQL);
@@ -379,7 +379,7 @@ end;
   @return <code>true</code> if the next result is a <code>ResultSet</code> object;
   <code>false</code> if it is an update count or there are no more results
 }
-function TZDBLibStatement.Execute(const SQL: string): Boolean;
+function TZDBLibStatement.Execute(const SQL: WideString): Boolean;
 begin
   FSQL := SQL;
   InternalExecuteStatement(SQL);
@@ -399,7 +399,7 @@ end;
   @param Handle a connection handle pointer.
 }
 constructor TZDBLibPreparedStatementEmulated.Create(Connection: IZConnection;
-  SQL: string; Info: TStrings);
+  SQL: WideString; Info: TStrings);
 begin
   inherited Create(Connection, SQL, Info);
   ResultSetType := rtScrollInsensitive;
@@ -410,9 +410,9 @@ end;
   @param Value a regular string.
   @return a string in DBLib escape format.
 }
-function TZDBLibPreparedStatementEmulated.GetEscapeString(Value: string): string;
+function TZDBLibPreparedStatementEmulated.GetEscapeString(Value: WideString): WideString;
 begin
-  Result := AnsiQuotedStr(Value, '''');
+  Result := WideQuotedStr(Value, '''');
 end;
 
 {**
@@ -421,7 +421,7 @@ end;
   @return a string representation of the parameter.
 }
 function TZDBLibPreparedStatementEmulated.PrepareSQLParam(
-  ParamIndex: Integer): string;
+  ParamIndex: Integer): WideString;
 begin
   if InParamCount <= ParamIndex then
     Result := 'NULL'

@@ -75,9 +75,9 @@ type
   public
     constructor Create(Connection: IZConnection; Info: TStrings);
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
   end;
 
   {** Implements Prepared SQL Statement. }
@@ -92,9 +92,9 @@ type
   public
     constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -115,9 +115,9 @@ type
   public
     constructor Create(Connection: IZConnection; const SQL: string; Info: TStrings);
 
-    function ExecuteQuery(const SQL: string): IZResultSet; override;
-    function ExecuteUpdate(const SQL: string): Integer; override;
-    function Execute(const SQL: string): Boolean; override;
+    function ExecuteQuery(const SQL: WideString): IZResultSet; override;
+    function ExecuteUpdate(const SQL: WideString): Integer; override;
+    function Execute(const SQL: WideString): Boolean; override;
 
     function ExecuteQueryPrepared: IZResultSet; override;
     function ExecuteUpdatePrepared: Integer; override;
@@ -168,7 +168,7 @@ end;
     given query; never <code>null</code>
 }
 {$HINTS OFF}
-function TZInterbase6Statement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZInterbase6Statement.ExecuteQuery(const SQL: WideString): IZResultSet;
 var
   Cursor: string;
   SQLData: IZResultSQLDA;
@@ -236,7 +236,7 @@ end;
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
 {$HINTS OFF}
-function TZInterbase6Statement.ExecuteUpdate(const SQL: string): Integer;
+function TZInterbase6Statement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   StmtHandle: TISC_STMT_HANDLE;
   StatementType: TZIbSqlStatementType;
@@ -300,7 +300,7 @@ end;
   @see #getMoreResults
 }
 {$HINTS OFF}
-function TZInterbase6Statement.Execute(const SQL: string): Boolean;
+function TZInterbase6Statement.Execute(const SQL: WideString): Boolean;
 var
   Cursor: string;
   SQLData: IZResultSQLDA;
@@ -430,7 +430,7 @@ end;
   @see #getMoreResults
 }
 
-function TZInterbase6PreparedStatement.Execute(const SQL: string): Boolean;
+function TZInterbase6PreparedStatement.Execute(const SQL: WideString): Boolean;
 begin
   Self.SQL := SQL;
   Result := ExecutePrepared;
@@ -520,7 +520,7 @@ end;
   @return a <code>ResultSet</code> object that contains the data produced by the
     given query; never <code>null</code>
 }
-function TZInterbase6PreparedStatement.ExecuteQuery(const SQL: string): IZResultSet;
+function TZInterbase6PreparedStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 begin
   Self.SQL := SQL;
   Result := ExecuteQueryPrepared;
@@ -602,7 +602,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZInterbase6PreparedStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZInterbase6PreparedStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Self.SQL := SQL;
   Result := ExecuteUpdatePrepared;
@@ -718,7 +718,7 @@ end;
   @see #getMoreResults
 }
 
-function TZInterbase6CallableStatement.Execute(const SQL: string): Boolean;
+function TZInterbase6CallableStatement.Execute(const SQL: WideString): Boolean;
 begin
   Self.SQL := SQL;
   Result := ExecutePrepared;
@@ -805,7 +805,7 @@ end;
     given query; never <code>null</code>
 }
 function TZInterbase6CallableStatement.ExecuteQuery(
-  const SQL: string): IZResultSet;
+  const SQL: WideString): IZResultSet;
 begin
   Self.SQL := SQL;
   Result := ExecuteQueryPrepared;
@@ -888,7 +888,7 @@ end;
   @return either the row count for <code>INSERT</code>, <code>UPDATE</code>
     or <code>DELETE</code> statements, or 0 for SQL statements that return nothing
 }
-function TZInterbase6CallableStatement.ExecuteUpdate(const SQL: string): Integer;
+function TZInterbase6CallableStatement.ExecuteUpdate(const SQL: WideString): Integer;
 begin
   Self.SQL := SQL;
   Result := ExecuteUpdatePrepared;
