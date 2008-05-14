@@ -118,7 +118,7 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 6
     object tabSettings: TTabSheet
-      Caption = 'Settings'
+      Caption = 'Authentication'
       DesignSize = (
         327
         161)
