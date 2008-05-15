@@ -4551,7 +4551,7 @@ begin
   Screen.Cursor := crHourGlass;
   try
     WStrings := TWideStringList.Create;
-    LoadFromFile(WStrings, filename, seUTF8);
+    LoadFromFile(WStrings, filename);
     filecontent := WStrings.Text;
   except
     on E: Exception do
