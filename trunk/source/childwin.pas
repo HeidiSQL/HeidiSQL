@@ -536,6 +536,8 @@ type
     procedure editFilterVTChange(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
+    procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
+        var ImageIndex: Integer);
 
     private
       methodStack                : TStack;
@@ -6839,6 +6841,21 @@ begin
   // Refresh relevant list node
   if EditVariableForm.ShowModal = mrOK then
     NodeData.Captions[1] := GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
+end;
+
+
+{**
+  Apply icons to tabs of query helpers box 
+}
+procedure TMDIChild.tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex:
+    Integer; var ImageIndex: Integer);
+begin
+  case TabIndex of
+    0: ImageIndex := 42;
+    1: ImageIndex := 13;
+    2: ImageIndex := 25;
+    3: ImageIndex := 35;
+  end;
 end;
 
 
