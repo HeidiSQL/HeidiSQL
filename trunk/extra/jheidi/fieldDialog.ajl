@@ -110,7 +110,8 @@
       ((Field)context.get("/fieldName")).setText(selectField.get("field"));
       String type = selectField.get("type");
       int paren = type.indexOf("(");
-      String typeOnly = paren !=-1 ? type.substring(0, paren) : type.substring(0, type.indexOf(" "));
+      int space = type.indexOf(" ");
+      String typeOnly = paren !=-1 ? type.substring(0, paren) : (space != -1 ? type.substring(0, type.indexOf(" ")) : type);
       ((Combo)context.get("/types")).select(typeOnly);
       if ( paren != -1 )
       {
