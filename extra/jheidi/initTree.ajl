@@ -19,7 +19,27 @@
   
   DB db = context.get("db");
   db.begin();
-  DB.Result databases = db.execute("show databases");
+  String dbs = profile.get("dbs");
+
+  DB.Result databases = null;
+  if ( dbs == null || dbs.length() == 0 )
+  {
+     databases = db.execute("show databases");
+  }
+  else
+  {
+     String[] dbArray = dbs.split(";");
+     String sql = "show databases where `database` in (";
+     String sep="";
+     for (String aDb: dbArray)
+     {
+        sql+=sep+"'"+aDb + "'";
+        sep=",";
+     }
+     sql+=")";
+     databases = db.execute(sql);
+  }
+        
   log.debug("database count:" + databases.size());
   HashObject dbNodes = TreeUtils.populateList(root, databases, 0, "db");
   
