@@ -3135,7 +3135,7 @@ var
     // Rely on what the user typed is already a valid masked/quoted identifier.
     if dbname <> '' then
       tablename := dbname + '.' + tablename;
-    ds := getResults( 'SHOW COLUMNS FROM '+tablename, true, false );
+    ds := getResults( 'SHOW COLUMNS FROM '+Mask(tablename), true, false );
     if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
     begin
@@ -3181,7 +3181,7 @@ begin
     Tables.Delimiter := ',';
     Tables.StrictDelimiter := true;
     Tables.DelimitedText := TableClauses;
-    rx.Expression := '([^\s]+)(\s+(AS\s+)?([^\s]+))?';
+    rx.Expression := '`?(\w+)`?(\s+(AS\s+)?`?(\w+)`?)?';
     for i := 0 to Tables.Count - 1 do begin
       // If the just typed word equals the alias of this table or the
       // tablename itself, set tablename var and break loop
