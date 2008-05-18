@@ -42,6 +42,7 @@ Name: "activate_updatechecks"; Description: "Automatically check heidisql.com fo
 [InstallDelete]
 Type: files; Name: "{app}\libmysql40.dll"
 Type: files; Name: "{app}\libmysql41.dll"
+Type: files; Name: "{app}\heidisql.exe.manifest"
 
 [Files]
 Source: "heidisql.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -49,7 +50,6 @@ Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "heidisql.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{commonappdata}\HeidiSQL\Snippets";
 
 [INI]
