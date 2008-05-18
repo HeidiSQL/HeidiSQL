@@ -78,7 +78,7 @@ else if ("Save".equals(who) || "Save As".equals(who))
     }
   }
 }
-else if ("Search".equals(who))
+else if ("Search".equals(who) && !LF.isWin)
 {
   Frame f = context.get("/");
   String txt = f.popupQuestion("Search", "Enter text to search for:");
