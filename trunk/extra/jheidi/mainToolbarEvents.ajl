@@ -104,16 +104,27 @@ else if ("Print".equals(who))
 {
   //this is total shit - but it does work if you try to print something that might fit on 
   //the page....omg this is bad.
-  DB.Result results = context.get("lastQueryResults");
-  if ( results != null && !results.isEmpty())
+  Table table = null;
+  String selectedTab = ((Tabs)context.get("/mainTabs")).selected();
+
+  if (!"Host".equals(selectedTab) && !"Query".equals(selectedTab))
   {
-    Table t = context.get("/mainTabs/Query/results");
-    try
+     table = context.get("/mainTabs/"+selectedTab+"/table");
+  }
+  else if ("Host".equals(selectedTab))
     {
-      t.print();
-    } catch (Exception e) {e.printStackTrace();}
+     String subTab = ((Tabs)context.get("/mainTabs/Host/tabs")).selected();
+     table = context.get("/mainTabs/Host/tabs/"+subTab+"/table");
+  }
+  else if ("Query".equals(selectedTab))
+  {
+     table = context.get("/mainTabs/Query/results");
   }
   
+  try
+  {
+      table.print();
+  } catch (Exception e) {e.printStackTrace();}
 }
 else if ("Import".equals(who))
 {
