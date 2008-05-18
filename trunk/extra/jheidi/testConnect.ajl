@@ -22,7 +22,7 @@ try
 
   db = new DB((DataSource)ds);
   db.execute("select 'abcdefg'");
-
+}
 catch (Exception e)
 {
   Throwable cause = e.getCause();
