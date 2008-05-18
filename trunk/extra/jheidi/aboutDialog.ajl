@@ -1,0 +1,36 @@
+
+  WindowContext parentContext = argObj("windowContext");
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"aboutDialog", "About jHeidi - Alpha 3" );
+  WindowContext context = dlg.getWindowContext();
+ 
+  dlg.events("aboutDialogEvents");
+  dlg.tabLayout()
+     .insets(10, 10)
+    .icon("images/heidi.png")
+	  .image("logo", "images/heidi.png")		
+	  .space(5)
+	  .vspace(5)
+	  .textArea("credits", 225, 120)
+    .nextRow()
+    .baseline(context.get("/logo"))
+    .space(LF.isWin?25:17)
+    .text("Version: Alpha 3", 100)
+    .baseline(context.get("/creditsScrollPane"), "South")
+    .vspace(7)
+    .space(LF.isWin?124:132)
+    .button("Close", 110)
+    .setDefaultButton((Button)context.get("/Close"));
+    
+    TextArea text = context.get("/credits");
+    text.setEditable(false);
+    text.setLineWrap(true);
+    text.setWrapStyleWord(true);
+    text.setText("Project Lead: Bill Culp\n\nTeam: Scott Gorlick, Jeremy Unruh\n\nThanks To: Ansgar Becker, The HeidiSQL Team, Werner Randelshofer, Josh Fleming");
+    
+    dlg.visible();
+     
+
+    
+    
+    
+
