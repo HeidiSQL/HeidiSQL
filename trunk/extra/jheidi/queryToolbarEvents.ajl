@@ -78,6 +78,17 @@ else if ("Save".equals(who) || "Save As".equals(who))
     }
   }
 }
+else if ("Search".equals(who))
+{
+  Frame f = context.get("/");
+  String txt = f.popupQuestion("Search", "Enter text to search for:");
+  if (txt != null)
+  {
+     args().put("searchText", txt);
+     script("searchText", args());
+  } 
+  
+}
 else if ("Clear".equals(who))
 {
   editor.setText("");
