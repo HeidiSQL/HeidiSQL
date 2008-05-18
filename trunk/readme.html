@@ -57,7 +57,7 @@
 	<h2 id="contents">Table of contents</h2>
 	<ol>
 		<li><a href="#requirements">Prerequisites</a></li>
-		<li><a href="#compiler">What is Borland Developer Studio / Delphi?</a></li>
+		<li><a href="#compiler">What is Delphi?</a></li>
 		<li><a href="#downloading">Downloading the source code</a></li>
 		<li><a href="#quickstart">Quick-start tutorial</a></li>
 		<li><a href="#gettingstarted">Manual build</a></li>
@@ -77,7 +77,7 @@
 	</p>
 	<p>
 		You will need the following software for building HeidiSQL.  Install in any order you prefer.
-		<ul><li><a href='http://www.codegear.com/downloads/free/delphi'>CodeGear Delphi 2007</a> or Borland Developer Studio 2006</li></ul>
+		<ul><li><a href='http://www.codegear.com/downloads/free/delphi'>CodeGear Delphi 2007</a></li></ul>
 		<ul><li><a href='http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=91&amp;filter=setup.exe'>Subversion</a> command line tools</li></ul>
 		<ul><li><a href='http://tortoisesvn.net/downloads'>TortoiseSVN</a> graphical Subversion client</li></ul>
 	</p>
@@ -94,9 +94,9 @@
 	<hr />
 
 
-	<h2 id="compiler">What is Borland Developer Studio / Delphi?</h2>
+	<h2 id="compiler">What is Delphi?</h2>
 	<p>
-		Borland Developer Studio is a graphical user interface for developing code, also known as an IDE.
+		Delphi is a graphical user interface for developing code, also known as an IDE.
 		Delphi was the original name for Borland's IDE products, but nowadays refer to the part of the IDE
 		that deals with code in the Pascal language.  You don't need the full-fledged Developer Studio, a
 		plain Delphi IDE is enough to build HeidiSQL.
@@ -186,8 +186,7 @@
 	</p>
 
 	<p>
-		Open these projects in Delphi 2006 and perform the action listed.<br />
-		Note: Delphi 2007 users will have to open the *.groupproj files instead of *.bdsproj or *.bdsgroup.<br />
+		Open these projects in Delphi 2007 and perform the action listed.<br />
 		Note: Before you can install components into the IDE, you will also need to either (a) copy the generated BPL files from the build folders to somewhere in your path, or (b) add the build folders to your Delphi PATH environment variable override.  The override can be found under Tools --> Options --> Environment Options --> Environment Variables.
 	</p>
 	<table>
@@ -196,27 +195,27 @@
 			<th>Action</th>
 		</tr>
 		<tr>
-			<td>components/edbimage/packages/delphi10/EDBImage.bds<u>group</u></td>
+			<td>components/edbimage/packages/delphi11/EDBImage.groupproj</td>
 			<td>Build All + Install "DCLSer"</td>
 		</tr>
 		<tr>
-			<td>components/tntunictrls/packages/delphi10/TntUnicodeVcl.bdsgroup</td>
+			<td>components/tntunictrls/packages/delphi11/TntUnicodeVcl.groupproj</td>
 			<td>Build All + Install "TntUnicodeVcl_Design"</td>
 		</tr>
 		<tr>
-			<td>components/synedit/packages/delphi10/SynEdit.bds<u>group</u></td>
+			<td>components/synedit/packages/delphi11/SynEdit.groupproj</td>
 			<td>Build All + Install "SynEditD"</td>
 		</tr>
 		<tr>
-			<td>components/zeosdbo/packages/delphi10/ZeosDbo.bds<u>group</u></td>
+			<td>components/zeosdbo/packages/delphi11/ZeosDbo.groupproj</td>
 			<td>Build All + Install "ZComponentDesign"</td>
 		</tr>
 		<tr>
-			<td>components/heidisql/packages/delphi10/HeidiComponents.bdsproj</td>
+			<td>components/heidisql/packages/delphi11/HeidiComponents.groupproj</td>
 			<td>Build All + Install "HeidiComponents"</td>
 		</tr>
 		<tr>
-			<td>components/virtualtreeview/packages/delphi10/VirtualTrees.bds<u>group</u></td>
+			<td>components/virtualtreeview/packages/delphi11/VirtualTrees.groupproj</td>
 			<td>Build All + Install "VirtualTreesD"</td>
 		</tr>
 	</table>
@@ -230,7 +229,7 @@
 			<th>Action</th>
 		</tr>
 		<tr>
-			<td>packages/delphi10/heidisql.bdsproj</td>
+			<td>packages/delphi11/heidisql.dproj</td>
 			<td>Build All</td>
 		</tr>
 	</table>
@@ -256,8 +255,7 @@
 		Thus the "Install" step is no longer necessary, "Build" is all that is needed!
 	</p>
 	<p>
-		For your convenience, there is a project group under <em>superpackages/delphi10/heidisql.bdsgroup</em>
-		(Delphi 2007: <em>superpackages/delphi11/heidisql.groupproj</em>)
+		For your convenience, there is a project group under <em>superpackages/delphi11/heidisql.groupproj</em>
 		which includes both HeidiSQL and all of it's dependencies.
 	</p>
 	<p>
@@ -317,7 +315,7 @@
 	<h3>Component installation seemed to work, but components are still missing</h3>
 	<p>
 		Nuke all files in your package output directory, eg.
-		"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".
+		"%ALLUSERSPROFILE%\Documents\RAD Studio\5.0\Bpl"
 	</p>
 	<p>
 		Then repeat the <a href='#troubleshooting_1'>above step</a>.
@@ -349,7 +347,7 @@
 				</ul>
 			</li>
 			<li>Nuke all files in your package output directory, eg.
-				"%USERPROFILE%\My Documents\Borland Studio Projects\Bpl".</li>
+				"%ALLUSERSPROFILE%\Documents\RAD Studio\5.0\Bpl".</li>
 			<li>Nuke all files from all HeidiSQL "build" directories, for
 				example by performing a fresh checkout.</li>
 		</ul>
@@ -388,7 +386,7 @@
 		<ol>
 			<li>Go to Tools &gt; Options &gt; Editor Options &gt; Code Insight</li>
 			<li>Uncheck at least "Error Insight"</li>
-			<li>Restart Borland Developer Studio</li>
+			<li>Restart Delphi</li>
 		</ol>  
 	</p>
 	
