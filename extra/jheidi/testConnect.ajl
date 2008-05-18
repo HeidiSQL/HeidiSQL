@@ -23,8 +23,22 @@ try
   db = new DB((DataSource)ds);
   db.execute("select 'abcdefg'");
 
-} catch (Exception e) {
-  f.popupMessage("Connection Failed!", e.getCause().toString());
+catch (Exception e)
+{
+  Throwable cause = e.getCause();
+  String message = cause.getMessage();
+
+  if (message.indexOf("\n") != -1)
+  {
+    int startMessage = message.indexOf("MESSAGE:");
+    if ( startMessage != -1)
+    {
+      startMessage+=8;
+      message = message.substring(startMessage, message.indexOf("\n", startMessage));
+    }
+  }
+
+  f.popupMessage("Connection Failed!", message);
   db = null;
 }
 
