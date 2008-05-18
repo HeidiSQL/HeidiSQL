@@ -40,6 +40,11 @@
      databases = db.execute(sql);
   }
         
+  if ( "true".equals(profile.get("sort")))
+  {
+     Collections.sort(databases, databases.getComparator(0));
+  }
+      
   log.debug("database count:" + databases.size());
   HashObject dbNodes = TreeUtils.populateList(root, databases, 0, "db");
   
