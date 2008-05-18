@@ -31,9 +31,10 @@ else if ( "Feature Tracker".equals(who) )
 }
 else if ("About".equals(who))
 {
-  ((Frame)context.get("/")).popupMessage("jHeidi Alpha - Developer Preview.");
+   script("aboutDialog", args());
 }
-else {
+else
+{
   ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
 }
   
