@@ -20,6 +20,7 @@ try
   ds.setUrl(url);
   ds.setUser(profile.get("user"));
   ds.setPassword(profile.get("password"));
+  ds.setLoginTimeout(Integer.parseInt(profile.get("timeout")));
 
   db = new SQLLoggingDB((DataSource)ds, editor);
 

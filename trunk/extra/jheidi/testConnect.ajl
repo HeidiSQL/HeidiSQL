@@ -19,6 +19,7 @@ try
   ds.setUrl(url);
   ds.setUser(profile.get("user"));
   ds.setPassword(profile.get("password"));
+  ds.setLoginTimeout(Integer.parseInt(profile.get("timeout")));
 
   db = new DB((DataSource)ds);
   db.execute("select 'abcdefg'");
