@@ -82,7 +82,7 @@ else if ("Search".equals(who))
 {
   Frame f = context.get("/");
   String txt = f.popupQuestion("Search", "Enter text to search for:");
-  if (txt != null)
+  if (txt != null && txt.trim().length()>0)
   {
      args().put("searchText", txt);
      script("searchText", args());
