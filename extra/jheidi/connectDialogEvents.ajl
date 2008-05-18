@@ -83,6 +83,18 @@ else if ("New".equals(who) )
 }
 else if ("Save".equals(who) || "Save/Connect".equals(who) || "Connect".equals(who))
 {
+  //do some validation
+  try
+  {
+    String value = ((Field)context.get("/timeout")).getText();
+    int timeout = Integer.parseInt(value);
+  }
+  catch(Exception e)
+  {
+    dialog.popupMessage("Invalid Entry", "Please enter a valid timeout value in seconds");
+    return;
+  }
+    
   args().put("stateCmd", "flush");
   args().put("profileKey", connProfiles.getText());
   script("connectDialogState", args());
