@@ -71,8 +71,8 @@ Root: HKCR; Subkey: ".sql"; ValueType: string; ValueName: ""; ValueData: "SQLScr
 Root: HKCR; Subkey: "SQLScriptFile"; ValueType: string; ValueName: ""; ValueData: "SQL-Script"; Flags: uninsdeletekey; Tasks: associatesqlfiles
 Root: HKCR; Subkey: "SQLScriptFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\heidisql.exe,0"; Tasks: associatesqlfiles
 Root: HKCR; Subkey: "SQLScriptFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\heidisql.exe"" ""%1"""; Tasks: associatesqlfiles
-; Disable auto-updatechecks if this option was unchecked. Only save the value when it's unchecked, as the default in HeidiSQL is True (see const.inc)
-Root: HKCU; Subkey: "Software\HeidiSQL"; ValueType: dword; ValueName: "Updatecheck"; ValueData: 0; Tasks: not activate_updatechecks
+; Enable auto-updatechecks if this option was checked. Only save the value when it's checked, as the default in HeidiSQL is False (see const.inc)
+Root: HKCU; Subkey: "Software\HeidiSQL"; ValueType: dword; ValueName: "Updatecheck"; ValueData: 1; Tasks: activate_updatechecks
 
 [Run]
 Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait postinstall skipifsilent
