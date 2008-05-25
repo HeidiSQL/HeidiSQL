@@ -92,6 +92,7 @@ type
     editUpdatecheckInterval: TEdit;
     updownUpdatecheckInterval: TUpDown;
     chkPreferShowTables: TCheckBox;
+    chkUpdateCheckBuilds: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -181,6 +182,7 @@ begin
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
   reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
   reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
+  reg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
   reg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
 
@@ -266,7 +268,9 @@ begin
   updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
+  chkUpdatecheckBuilds.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
   updownUpdatecheckInterval.Position := Mainform.GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+  chkUpdatecheckClick(Sender);
   chkPreferShowTables.Checked := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // Default Column-Width in DBGrids:
@@ -379,6 +383,7 @@ procedure Toptionsform.chkUpdatecheckClick(Sender: TObject);
 begin
   updownUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
+  chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
   Modified(sender);
 end;
 

@@ -31,7 +31,8 @@ type
   public
     { Public declarations }
     AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
-    CurrentRevision: Integer; 
+    CurrentRevision: Integer;
+    CheckForBuildsInAutoMode: Boolean;
   end;
 
 implementation
@@ -119,7 +120,9 @@ begin
   // For automatic updatechecks this dialog should close if no updates are available.
   // Using PostMessage, as Self.Close or ModalResult := mrCancel does not work
   // as expected in FormShow
-  if AutoClose and (not groupRelease.Enabled) and (not groupBuild.Enabled) then
+  if AutoClose
+    and (not groupRelease.Enabled)
+    and ((not CheckForBuildsInAutoMode) or (not groupBuild.Enabled)) then
     PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 end;
 

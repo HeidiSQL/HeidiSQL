@@ -512,6 +512,7 @@ begin
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
       frm := TfrmUpdateCheck.Create(Self);
       frm.AutoClose := True;
+      frm.CheckForBuildsInAutoMode := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
       frm.ShowModal;
       FreeAndNil(frm);
     end;
