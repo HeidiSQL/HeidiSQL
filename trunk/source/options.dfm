@@ -156,8 +156,6 @@ object optionsform: Toptionsform
         Width = 268
         Height = 17
         Caption = 'Automatically check for updates / Interval [days]:'
-        Checked = True
-        State = cbChecked
         TabOrder = 9
         OnClick = chkUpdatecheckClick
       end
@@ -166,8 +164,9 @@ object optionsform: Toptionsform
         Top = 160
         Width = 43
         Height = 21
+        Enabled = False
         TabOrder = 10
-        Text = '0'
+        Text = '1'
       end
       object updownUpdatecheckInterval: TUpDown
         Left = 345
@@ -175,6 +174,7 @@ object optionsform: Toptionsform
         Width = 16
         Height = 21
         Associate = editUpdatecheckInterval
+        Enabled = False
         Min = 1
         Max = 999
         Position = 1
@@ -183,7 +183,7 @@ object optionsform: Toptionsform
       end
       object chkPreferShowTables: TCheckBox
         Left = 16
-        Top = 185
+        Top = 207
         Width = 377
         Height = 24
         Anchors = [akLeft, akTop, akRight]
@@ -193,6 +193,15 @@ object optionsform: Toptionsform
         TabOrder = 12
         WordWrap = True
         OnClick = Modified
+      end
+      object chkUpdateCheckBuilds: TCheckBox
+        Left = 34
+        Top = 182
+        Width = 203
+        Height = 17
+        Caption = 'Also check for updated nightly builds'
+        Enabled = False
+        TabOrder = 13
       end
     end
     object TabSheet2: TTabSheet
