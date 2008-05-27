@@ -485,7 +485,10 @@ begin
           ftCurrency:
             Statement.SetBigDecimal(I + 1, Param.AsCurrency);
           ftString:
-            Statement.SetString(I + 1, Param.AsString);
+            raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+            //Statement.SetString(I + 1, Param.AsString);
+          ftWideString:
+            Statement.SetUnicodeString(I + 1, Param.AsWideString);
           ftBytes:
             Statement.SetString(I + 1, Param.AsString);
           ftDate:
@@ -495,14 +498,19 @@ begin
           ftDateTime{$IFNDEF VER130}, ftTimestamp{$ENDIF}:
             Statement.SetTimestamp(I + 1, Param.AsDateTime);
           ftMemo:
-            begin
+            raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+            {*begin
               Stream := TStringStream.Create(Param.AsMemo);
               try
                 Statement.SetAsciiStream(I + 1, Stream);
               finally
                 Stream.Free;
               end;
-            end;
+            end;*}
+          ftWideMemo:
+          begin
+            Statement.SetUnicodeStream(I + 1, CopyParamToStream(Param));
+          end;
           ftBlob, ftGraphic:
             begin
               Stream := TStringStream.Create(Param.AsBlob);

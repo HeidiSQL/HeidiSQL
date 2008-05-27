@@ -1001,7 +1001,10 @@ begin
           ftCurrency:
             Statement.SetBigDecimal(I + 1, Param.AsCurrency);
           ftString:
-            Statement.SetString(I + 1, Param.AsString);
+            raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+            //Statement.SetString(I + 1, Param.AsString);
+          ftWideString:
+            Statement.SetUnicodeString(I + 1, Param.AsWideString);
           ftBytes:
             Statement.SetString(I + 1, Param.AsString);
           ftDate:
@@ -1011,14 +1014,17 @@ begin
           ftDateTime{$IFNDEF VER130}, ftTimestamp{$ENDIF}:
             Statement.SetTimestamp(I + 1, Param.AsDateTime);
           ftMemo:
-            begin
+            raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+            {*begin
               Stream := TStringStream.Create(Param.AsMemo);
               try
                 Statement.SetAsciiStream(I + 1, Stream);
               finally
                 Stream.Free;
               end;
-            end;
+            end;*}
+          ftWideMemo:
+            Statement.SetUnicodeStream(I + 1, CopyParamToStream(Param));
           ftBlob, ftGraphic:
             begin
               Stream := TStringStream.Create(Param.AsBlob);
@@ -1200,8 +1206,12 @@ begin
               RowAccessor.GetColumnDataSize(ColumnIndex)-2);
             Result := not Result;
           end;
+        ftMemo:
+          raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+        ftFmtMemo:
+          raise Exception.Create('Internal error: What the heck is a ftFmtMemo?');
         { Processes blob fields. }
-        ftBlob, ftMemo, ftGraphic, ftFmtMemo:
+        ftWideMemo, ftBlob, ftGraphic:
           begin
             Result := not RowAccessor.GetBlob(ColumnIndex, Result).IsEmpty;
           end;
@@ -1225,7 +1235,11 @@ begin
     end
     else
     begin
-      if Field.DataType in [ftBlob, ftMemo, ftGraphic, ftFmtMemo] then
+      if Field.DataType = ftMemo then
+        raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+      if Field.DataType = ftFmtMemo then
+        raise Exception.Create('Internal error: What the heck is a ftFmtMemo?');
+      if Field.DataType in [ftWideMemo, ftBlob, ftGraphic] then
         Result := not RowAccessor.GetBlob(ColumnIndex, Result).IsEmpty
       else Result := not RowAccessor.IsNull(ColumnIndex);
     end;
@@ -2547,7 +2561,11 @@ begin
   CheckActive;
 
   Result := nil;
-  if (Field.DataType in [ftBlob, ftMemo, ftGraphic, ftFmtMemo])
+  if Field.DataType = ftMemo then
+    raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+  if Field.DataType = ftFmtMemo then
+    raise Exception.Create('Internal error: What the heck is a ftFmtMemo?');
+  if (Field.DataType in [ftBlob, ftWideMemo, ftGraphic])
     and GetActiveBuffer(RowBuffer) then
   begin
     ColumnIndex := DefineFieldIndex(FieldsLookupTable, Field);
@@ -2555,8 +2573,8 @@ begin
 
     if Mode = bmRead then
     begin
-      if Field.DataType in [ftMemo, ftFmtMemo] then
-        Result := RowAccessor.GetAsciiStream(ColumnIndex, WasNull)
+      if Field.DataType = ftWideMemo then
+        Result := RowAccessor.GetUnicodeStream(ColumnIndex, WasNull)
       else Result := RowAccessor.GetBinaryStream(ColumnIndex, WasNull);
     end
     else
@@ -2955,7 +2973,10 @@ begin
             ftLargeInt:
               Statement.SetInt(I + 1, ParamValue.AsInteger);
             ftString:
-              Statement.SetString(I + 1, ParamValue.AsString);
+              raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+              //Statement.SetString(I + 1, ParamValue.AsString);
+            ftWideString:
+              Statement.SetUnicodeString(I + 1, ParamValue.AsWideString);
             ftBytes:
               Statement.SetString(I + 1, ParamValue.AsString);
             ftDate:
@@ -2965,14 +2986,17 @@ begin
             ftDateTime:
               Statement.SetTimestamp(I + 1, ParamValue.AsDateTime);
             ftMemo:
-              begin
+              raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+              {*begin
                 Stream := TStringStream.Create(ParamValue.AsMemo);
                 try
                   Statement.SetAsciiStream(I + 1, Stream);
                 finally
                   Stream.Free;
                 end;
-              end;
+              end;*}
+            ftWideMemo:
+              Statement.SetUnicodeStream(I + 1, CopyParamToStream(ParamValue));
             ftBlob, ftGraphic:
               begin
                 Stream := TStringStream.Create(ParamValue.AsBlob);

@@ -233,7 +233,7 @@ begin
     Inc(FColumnsSize, FColumnLengths[I] + 1);
     // 32768 is the length of a TByteArray.
     if FColumnsSize > 32767 then begin
-      raise Exception.Create('Zeos: Row buffer width exceeded.\nTry using fewer or longer columns in SQL query.');
+      raise Exception.Create('Zeos: Row buffer width exceeded.'#10'Try using fewer or longer columns in SQL query.');
     end;
     FHasBlobs := FHasBlobs
       or (FColumnTypes[I] in [stAsciiStream, stUnicodeStream, stBinaryStream]);

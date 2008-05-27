@@ -2831,7 +2831,12 @@ end;
 }
 function TZAbstractBlob.GetUnicodeString: WideString;
 begin
-  Result := GetString;
+  // What... The... Fuck....
+  //Result := GetString;
+  if (FBlobSize > 0) and Assigned(FBlobData) then
+    // Note: SetString has a WideString overload.  There is no SetWideString.
+    System.SetString(Result, PChar(FBlobData), FBlobSize)
+  else Result := '';
 end;
 
 {**
@@ -2840,7 +2845,16 @@ end;
 }
 procedure TZAbstractBlob.SetUnicodeString(const Value: WideString);
 begin
-  SetString(Value);
+  // What... The... Fuck....
+  //SetString(Value);
+  Clear;
+  FBlobSize := System.Length(Value) * 2;
+  if FBlobSize > 0 then
+  begin
+    GetMem(FBlobData, FBlobSize);
+    System.Move(PWideChar(Value)^, FBlobData^, FBlobSize);
+  end;
+  FUpdated := True;
 end;
 
 {**

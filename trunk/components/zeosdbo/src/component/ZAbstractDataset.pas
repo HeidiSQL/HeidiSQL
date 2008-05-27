@@ -716,6 +716,9 @@ var
         Continue;
       end;
 
+      if SrcField.DataType = ftMemo then
+        raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+
       case DestField.DataType of
         ftLargeInt:
           begin
@@ -726,9 +729,11 @@ var
             end else
               DestField.AsInteger := SrcField.AsInteger;
           end;
-        ftBlob, ftMemo:
+        ftMemo:
+          raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+        ftBlob, ftWideMemo:
           begin
-            if SrcField.DataType in [ftBlob, ftMemo] then
+            if SrcField.DataType in [ftBlob, ftWideMemo] then
             begin
               SrcStream := SrcDataset.CreateBlobStream(SrcField, bmRead);
               try
