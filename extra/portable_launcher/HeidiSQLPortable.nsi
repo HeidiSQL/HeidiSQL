@@ -30,7 +30,7 @@
 !define APPVER "3.2 Revision 1129"
 !define EXE "heidisql.exe"
 !define PNAME "${App}Portable"
-!define ICON "HeidiSQLPortable.ico"
+!define ICON "..\..\res\mainicon.ico"
 !define SPLASHIMAGE "${PNAME}.jpg"
 !define REGKEYS "HKEY_CURRENT_USER\Software\HeidiSQL"
 !define INI "${PNAME}.ini"
