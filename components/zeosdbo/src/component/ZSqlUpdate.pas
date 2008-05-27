@@ -565,8 +565,11 @@ begin
         stBigDecimal:
           Statement.SetBigDecimal(I + 1,
             RowAccessor.GetBigDecimal(ColumnIndex, WasNull));
-        stString, stUnicodeString:
-          Statement.SetString(I + 1, RowAccessor.GetString(ColumnIndex, WasNull));
+        stString:
+          raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+          //Statement.SetString(I + 1, RowAccessor.GetString(ColumnIndex, WasNull));
+        stUnicodeString:
+          Statement.SetUnicodeString(I + 1, RowAccessor.GetUnicodeString(ColumnIndex, WasNull));
         stBytes:
           Statement.SetBytes(I + 1, RowAccessor.GetBytes(ColumnIndex, WasNull));
         stDate:
@@ -577,13 +580,14 @@ begin
           Statement.SetTimestamp(I + 1,
             RowAccessor.GetTimestamp(ColumnIndex, WasNull));
         stAsciiStream:
-          begin
+          raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+          {*begin
             TempBlob := RowAccessor.GetBlob(ColumnIndex, WasNull);
             if not TempBlob.IsEmpty then
               Statement.SetBlob(I + 1, stAsciiStream, TempBlob)
             else
               Statement.SetNull(I + 1, stAsciiStream);
-          end;
+          end;*}
         stUnicodeStream:
           begin
             TempBlob := RowAccessor.GetBlob(ColumnIndex, WasNull);
@@ -622,9 +626,12 @@ begin
           ftLargeInt:
             Statement.SetInt(I + 1, ParamValue.AsInteger);
           ftString:
-            Statement.SetString(I + 1, ParamValue.AsString);
+            raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+//            Statement.SetString(I + 1, ParamValue.AsString);
+          ftWideString:
+            Statement.SetUnicodeString(I + 1, ParamValue.AsWideString);
           ftBytes:
-            Statement.SetString(I + 1, ParamValue.AsString);
+            Statement.SetString(I + 1, ParamValue.AsBlob);
           ftDate:
             Statement.SetDate(I + 1, ParamValue.AsDate);
           ftTime:
@@ -632,14 +639,17 @@ begin
           ftDateTime:
             Statement.SetTimestamp(I + 1, ParamValue.AsDateTime);
           ftMemo:
-            begin
+            raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+            {*begin
               Stream := TStringStream.Create(ParamValue.AsMemo);
               try
                 Statement.SetAsciiStream(I + 1, Stream);
               finally
                 Stream.Free;
               end;
-            end;
+            end;*}
+          ftWideMemo:
+            Statement.SetUnicodeStream(I + 1, CopyParamToStream(ParamValue));
           ftBlob, ftGraphic:
             begin
               Stream := TStringStream.Create(ParamValue.AsBlob);

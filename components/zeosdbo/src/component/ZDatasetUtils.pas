@@ -270,6 +270,8 @@ function DefineFieldIndices(const FieldsLookupTable: TIntegerDynArray;
 procedure SplitQualifiedObjectName(QualifiedName: string;
   var Catalog, Schema, ObjectName: string);
 
+function CopyParamToStream(Input: TParam): TMemoryStream;
+
 {** Common variables. }
 var
   CommonTokenizer: IZTokenizer;
@@ -300,7 +302,10 @@ begin
     stFloat, stDouble, stBigDecimal:
       Result := ftFloat;
     stString:
-      Result := ftString;
+      raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+      //Result := ftString;
+    stUnicodeString:
+      Result := ftWideString;
     stBytes:
       Result := ftBytes;
     stDate:
@@ -310,11 +315,12 @@ begin
     stTimestamp:
       Result := ftDateTime;
     stAsciiStream:
-      Result := ftMemo;
+      raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+      //Result := ftMemo;
+    stUnicodeStream:
+      Result := ftWideMemo;
     stBinaryStream:
       Result := ftBlob;
-    stUnicodeString, stUnicodeStream:
-      Result := ftWideString;
     else begin
       Result := ftUnknown;
       DriverManager.LogError(lcOther, '', Format('Error: Unknown DBC field type ''%d'' encountered.', [Integer(Value)]), 0, SUnknownError);
@@ -343,7 +349,10 @@ begin
     ftCurrency:
       Result := stBigDecimal;
     ftString:
-      Result := stString;
+      raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+      //Result := stString;
+    ftWideString:
+      Result := stUnicodeString;
     ftBytes:
       Result := stBytes;
     ftDate:
@@ -353,11 +362,12 @@ begin
     ftDateTime:
       Result := stTimestamp;
     ftMemo:
-      Result := stAsciiStream;
+      raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+      //Result := stAsciiStream;
+    ftWideMemo:
+      Result := stUnicodeStream;
     ftBlob:
       Result := stBinaryStream;
-    ftWideString:
-      Result := stUnicodeString;//!!!I do not know if it is a stUnicodeString or stUnicodeStream
     else begin
       DriverManager.LogError(lcOther, '', Format('Error: Unknown TDataset field type ''%d'' encountered.', [Integer(Value)]), 0, SUnknownError);
       Result := stUnknown;
@@ -385,10 +395,6 @@ begin
     ColumnInfo.ColumnType := ConvertDatasetToDbcType(Current.DataType);
     ColumnInfo.ColumnName := Current.FieldName;
     ColumnInfo.Precision := Current.Size;
-//This is a hack for stUnicodeStream because there is only ftWideString for both type
-    if ColumnInfo.ColumnType = stUnicodeString then
-      if Current.Size > 10240 then
-        ColumnInfo.ColumnType := stUnicodeStream;
     ColumnInfo.Scale := 0;
     ColumnInfo.ColumnLabel := Current.DisplayName;
 
@@ -439,7 +445,8 @@ begin
       ftCurrency:
         RowAccessor.SetBigDecimal(FieldIndex, ResultSet.GetBigDecimal(ColumnIndex));
       ftString:
-        RowAccessor.SetPChar(FieldIndex, ResultSet.GetPChar(ColumnIndex));
+        raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+        //RowAccessor.SetPChar(FieldIndex, ResultSet.GetPChar(ColumnIndex));
       ftWidestring:
         RowAccessor.SetUnicodeString(FieldIndex, ResultSet.GetUnicodeString(ColumnIndex));
       ftBytes:
@@ -450,7 +457,9 @@ begin
         RowAccessor.SetTime(FieldIndex, ResultSet.GetTime(ColumnIndex));
       ftDateTime:
         RowAccessor.SetTimestamp(FieldIndex, ResultSet.GetTimestamp(ColumnIndex));
-      ftMemo, ftBlob:
+      ftMemo:
+          raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+      ftWideMemo, ftBlob:
         RowAccessor.SetBlob(FieldIndex, ResultSet.GetBlob(ColumnIndex));
     end;
 
@@ -508,7 +517,8 @@ begin
         ResultSet.UpdateBigDecimal(ColumnIndex,
           RowAccessor.GetBigDecimal(FieldIndex, WasNull));
       ftString:
-        ResultSet.UpdatePChar(ColumnIndex, RowAccessor.GetPChar(FieldIndex, WasNull));
+        raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+        //ResultSet.UpdatePChar(ColumnIndex, RowAccessor.GetPChar(FieldIndex, WasNull));
       ftWidestring:
         ResultSet.UpdateUnicodeString(ColumnIndex,
           RowAccessor.GetUnicodeString(FieldIndex, WasNull));
@@ -522,10 +532,20 @@ begin
         ResultSet.UpdateTimestamp(ColumnIndex,
           RowAccessor.GetTimestamp(FieldIndex, WasNull));
       ftMemo:
-        begin
+        raise Exception.Create('Internal error: How did this happen in Unicode mode?');
+        {*begin
           Stream := RowAccessor.GetAsciiStream(FieldIndex, WasNull);
           try
             ResultSet.UpdateAsciiStream(ColumnIndex, Stream);
+          finally
+            Stream.Free;
+          end;
+        end;*}
+      ftWideMemo:
+        begin
+          Stream := RowAccessor.GetUnicodeStream(FieldIndex, WasNull);
+          try
+            ResultSet.UpdateUnicodeStream(ColumnIndex, Stream);
           finally
             Stream.Free;
           end;
@@ -1082,7 +1102,7 @@ begin
   for I := 0 to Fields.Count - 1 do
   begin
     if (Fields[I].FieldKind = fkData)
-      and not (Fields[I].DataType in [ftBlob, ftMemo, ftBytes]) then
+      and not (Fields[I].DataType in [ftBlob, ftWideMemo, ftBytes]) then
     begin
       if Result <> '' then
         Result := Result + ',';
@@ -1425,6 +1445,17 @@ begin
   finally
     SL.Free;
   end;
+end;
+
+function CopyParamToStream(Input: TParam): TMemoryStream;
+var
+  Buffer: Pointer;
+begin
+  GetMem(Buffer, Input.GetDataSize);
+  Input.GetData(Buffer);
+  Result := TMemoryStream.Create;
+  Result.WriteBuffer(Buffer, Input.GetDataSize);
+  FreeMem(Buffer);
 end;
 
 initialization

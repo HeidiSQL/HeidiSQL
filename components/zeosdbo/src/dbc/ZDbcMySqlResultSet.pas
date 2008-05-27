@@ -91,6 +91,7 @@ type
 
     function IsNull(ColumnIndex: Integer): Boolean; override;
     function GetPChar(ColumnIndex: Integer): PChar; override;
+    function GetRawData(ColumnIndex: Integer): string;
     function GetString(ColumnIndex: Integer): string; override;
     function GetUnicodeString(ColumnIndex: Integer): WideString; override;
     function GetBoolean(ColumnIndex: Integer): Boolean; override;
@@ -365,7 +366,7 @@ end;
   @return the column value; if the value is SQL <code>NULL</code>, the
     value returned is <code>null</code>
 }
-function TZMySQLResultSet.GetString(ColumnIndex: Integer): string;
+function TZMySQLResultSet.GetRawData(ColumnIndex: Integer): string;
 var
   LengthPointer: PLongInt;
   Length: LongInt;
@@ -389,9 +390,15 @@ begin
     SetString(Result, Buffer, Length);
 end;
 
+function TZMySQLResultSet.GetString(ColumnIndex: Integer): string;
+begin
+  //raise Exception.Create('Internal error: lossy conversion of UTF-8 disabled.');
+  Result := GetUnicodeString(ColumnIndex);
+end;
+
 function TZMySQLResultSet.GetUnicodeString(ColumnIndex: Integer): WideString;
 begin
-  Result := UTF8Decode(GetString(ColumnIndex));
+  Result := UTF8Decode(GetRawData(ColumnIndex));
 end;
 
 {**
@@ -550,7 +557,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stBytes);
 {$ENDIF}
-  Result := StrToBytes(GetString(ColumnIndex));
+  Result := StrToBytes(GetRawData(ColumnIndex));
 end;
 
 {**
@@ -707,6 +714,7 @@ begin
 {$ENDIF}
   s := GetUnicodeString(ColumnIndex);
   Result := TMemoryStream.Create;
+  if Length(s) = 0 then Exit;
   Result.WriteBuffer(s[1], Length(s) * SizeOf(s[1]));
 end;
 
@@ -735,7 +743,7 @@ begin
 {$IFNDEF DISABLE_CHECKING}
   CheckColumnConvertion(ColumnIndex, stBinaryStream);
 {$ENDIF}
-  Result := TStringStream.Create(GetString(ColumnIndex));
+  Result := TStringStream.Create(GetRawData(ColumnIndex));
 end;
 
 {**
@@ -750,15 +758,20 @@ end;
 function TZMySQLResultSet.GetBlob(ColumnIndex: Integer): IZBlob;
 var
   Stream: TStream;
+  Meta: TZAbstractResultSetMetadata;
 begin
 {$IFNDEF DISABLE_CHECKING}
   CheckBlobColumn(ColumnIndex);
 {$ENDIF}
+  Meta := TZAbstractResultSetMetadata(Metadata);
   Stream := nil;
   try
     if not IsNull(ColumnIndex) then
     begin
-      Stream := TStringStream.Create(GetString(ColumnIndex));
+      if Meta.GetColumnType(ColumnIndex) = stUnicodeStream then
+        Stream := GetUnicodeStream(ColumnIndex)
+      else
+        Stream := TStringStream.Create(GetRawData(ColumnIndex));
       Result := TZAbstractBlob.CreateWithStream(Stream)
     end else
       Result := TZAbstractBlob.CreateWithStream(nil);
