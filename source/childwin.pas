@@ -4752,7 +4752,7 @@ begin
     else
       Grid.Canvas.Font.Color := COLOR_NULLVALUE;
     // Just use the changed font color for (MEMO) and (BLOB) cells
-    if Grid.Fields[DataCol].DataType in [ftMemo, ftBlob] then
+    if Grid.Fields[DataCol].DataType in [ftWideMemo, ftBlob] then
       Grid.DefaultDrawColumnCell(Rect, DataCol, Grid.Columns[DataCol], State)
     // ... while the natively displayed datatypes get a grey (NULL) 
     else
