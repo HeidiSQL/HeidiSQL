@@ -1095,9 +1095,9 @@ object MDIChild: TMDIChild
             ParentFont = False
             TabOrder = 1
             object pnlQueryToolbar: TPanel
-              Left = 175
+              Left = 152
               Top = 1
-              Width = 199
+              Width = 222
               Height = 27
               Align = alRight
               BevelOuter = bvNone
@@ -1106,7 +1106,7 @@ object MDIChild: TMDIChild
               object ToolBarQuery: TToolBar
                 Left = 1
                 Top = 1
-                Width = 197
+                Width = 220
                 Height = 25
                 Align = alClient
                 ButtonHeight = 25
@@ -1185,10 +1185,18 @@ object MDIChild: TMDIChild
                   Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
+                object btnQueryWordWrap: TToolButton
+                  Left = 197
+                  Top = 0
+                  Hint = 'Wrap long lines'
+                  Caption = 'Wrap long lines'
+                  ImageIndex = 62
+                  OnClick = btnQueryWordWrapClick
+                end
               end
             end
             object PanelCharsInQueryWindow: TPanel
-              Left = 103
+              Left = 80
               Top = 1
               Width = 72
               Height = 27
@@ -1215,7 +1223,7 @@ object MDIChild: TMDIChild
               object LabelQueryDelimiter: TLabel
                 Left = 6
                 Top = 7
-                Width = 55
+                Width = 45
                 Height = 13
                 Caption = 'Delimiter:'
                 Font.Charset = DEFAULT_CHARSET
