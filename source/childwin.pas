@@ -328,6 +328,7 @@ type
     Createview1: TMenuItem;
     menuTreeCreateView: TMenuItem;
     menuTreeEditView: TMenuItem;
+    btnQueryWordWrap: TToolButton;
     procedure DBtreeContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DBtreeChanging(Sender: TObject; Node: TTreeNode;
@@ -487,6 +488,7 @@ type
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
     procedure AddOrRemoveFromQueryLoadHistory( filename: String;
       AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+    procedure btnQueryWordWrapClick(Sender: TObject);
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
@@ -6866,6 +6868,16 @@ begin
     2: ImageIndex := 25;
     3: ImageIndex := 35;
   end;
+end;
+
+
+{**
+  Toggle wordwrap mode in query editor
+}
+procedure TMDIChild.btnQueryWordWrapClick(Sender: TObject);
+begin
+  SynMemoQuery.WordWrap := not SynMemoQuery.WordWrap;
+  btnQueryWordWrap.Down := SynMemoQuery.WordWrap;
 end;
 
 
