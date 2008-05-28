@@ -1361,6 +1361,7 @@ object MDIChild: TMDIChild
                 Align = alClient
                 DragMode = dmAutomatic
                 ItemHeight = 13
+                MultiSelect = True
                 PopupMenu = popupQueryHelpers
                 TabOrder = 1
                 OnClick = lboxQueryHelpersClick
