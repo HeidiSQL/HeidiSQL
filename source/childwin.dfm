@@ -65,6 +65,7 @@ object MDIChild: TMDIChild
       OnChange = DBtreeChange
       OnChanging = DBtreeChanging
       OnContextPopup = DBtreeContextPopup
+      OnDblClick = DBtreeDblClick
       OnExpanding = DBtreeExpanding
     end
     object TableShow: TPanel

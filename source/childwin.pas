@@ -522,6 +522,7 @@ type
         DropPosition: TPoint);
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure ComboBoxQueryDelimiterAdd(delimiter: String);
+    procedure DBtreeDblClick(Sender: TObject);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -6668,6 +6669,15 @@ begin
   end;
 end;
 
+procedure TMDIChild.DBtreeDblClick(Sender: TObject);
+begin
+  // Paste DB or table name into query window on treeview double click.
+  if DBTree.Selected = nil then Exit;
+  if DBTree.Selected.Level = 0 then Exit;
+  if PageControlMain.ActivePage <> tabQuery then Exit;
+  SynMemoQuery.SelText := DBTree.Selected.Text;
+  SynMemoQuery.SetFocus;
+end;
 
 {**
   Fetch table engines from server
