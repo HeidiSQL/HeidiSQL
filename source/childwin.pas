@@ -561,7 +561,7 @@ type
       UserQueryFired             : Boolean;
       UserQueryFiring            : Boolean;
       CachedTableLists           : TStringList;
-      QueryHelpersSelectedItems  : Array[0..3] of Integer;
+      QueryHelpersSelectedItems  : Array[0..3] of Array of Integer;
       CreateDatabaseForm         : TCreateDatabaseForm;
       TablePropertiesForm        : Ttbl_properties_form;
       CreateTableForm            : TCreateTableForm;
@@ -4207,6 +4207,7 @@ var
   src : TControl;
   Text : String;
   LoadText : Boolean;
+  i: Integer;
 begin
   // dropping a TTreeNode into the query-memo
   SynMemoQuery.UndoList.AddGroupBreak;
@@ -4216,16 +4217,20 @@ begin
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src is TTreeView then
-  begin
-    Text := (src as TTreeView).Selected.Text;
-  end
-  else if (src = lboxQueryHelpers) and ((src as TListBox).ItemIndex > -1) then
-  begin
-    Text := (src as TListBox).Items[(src as TListBox).ItemIndex];
-    if tabsetQueryHelpers.TabIndex = 3 then
-    begin
-      QueryLoad( DIRNAME_SNIPPETS + Text + '.sql', False );
+    Text := (src as TTreeView).Selected.Text
+  else if (src = lboxQueryHelpers) and ((src as TListBox).ItemIndex > -1) then begin
+    // Snippets tab
+    if tabsetQueryHelpers.TabIndex = 3 then begin
+      QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
       LoadText := False;
+    // All other tabs
+    end else begin
+      Text := '';
+      for i := 0 to lboxQueryHelpers.Items.Count - 1 do begin
+        if lboxQueryHelpers.Selected[i] then
+          Text := Text + lboxQueryHelpers.Items[i] + ', ';
+      end;
+      Delete(Text, Length(Text)-1, 2);
     end;
   end;
   // Only insert text if no previous action did the job.
@@ -5615,6 +5620,7 @@ begin
   menuDeleteSnippet.Enabled := False;
   menuExplore.Enabled := False;
   menuHelp.Enabled := False;
+  lboxQueryHelpers.MultiSelect := True;
 
   case NewTab of
     0: // Cols
@@ -5649,8 +5655,9 @@ begin
 
     3: // SQL Snippets
     begin
-      // State of items in popupmenu
+      lboxQueryHelpers.MultiSelect := False;
       lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+      // State of items in popupmenu
       SnippetsAccessible := lboxQueryHelpers.Items.Count > 0;
       menuDeleteSnippet.Enabled := SnippetsAccessible;
       menuInsertSnippetAtCursor.Enabled := SnippetsAccessible;
@@ -5661,10 +5668,12 @@ begin
   end;
 
   // Restore last selected item in tab
-  if (QueryHelpersSelectedItems[NewTab] > -1)
-    and (QueryHelpersSelectedItems[NewTab] < lboxQueryHelpers.Count) then
+  if (Length(QueryHelpersSelectedItems[NewTab]) > 0)
+    and (Length(QueryHelpersSelectedItems[NewTab]) < lboxQueryHelpers.Count) then
   begin
-    lboxQueryHelpers.ItemIndex := QueryHelpersSelectedItems[NewTab];
+    for i := 0 to Length(QueryHelpersSelectedItems[NewTab]) - 1 do begin
+      lboxQueryHelpers.Selected[QueryHelpersSelectedItems[NewTab][i]] := True;
+    end;
   end;
 
   lboxQueryHelpers.Items.EndUpdate;
@@ -5679,15 +5688,20 @@ end;
 }
 procedure TMDIChild.lboxQueryHelpersDblClick(Sender: TObject);
 var
-  itemtext : String;
+  text: String;
+  i: Integer;
 begin
-  itemtext := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+  for i := 0 to lboxQueryHelpers.Items.Count - 1 do begin
+    if lboxQueryHelpers.Selected[i] then
+      text := text + lboxQueryHelpers.Items[i] + ', ';
+  end;
+  Delete(text, Length(text)-1, 2);
 
   case tabsetQueryHelpers.TabIndex of
     3: // Load snippet file ínto query-memo
-      QueryLoad( DIRNAME_SNIPPETS + itemtext + '.sql', False );
+      QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
     else // For all other tabs just insert the item from the list
-      SynMemoQuery.SelText := itemtext;
+      SynMemoQuery.SelText := text;
   end;
 
   SynMemoQuery.SetFocus;
@@ -5698,8 +5712,16 @@ end;
   Remember last used items in query helper tabs
 }
 procedure TMDIChild.lboxQueryHelpersClick(Sender: TObject);
+var
+  i, s, idx: Integer;
 begin
-  QueryHelpersSelectedItems[tabsetQueryHelpers.TabIndex] := lboxQueryHelpers.ItemIndex;
+  s := tabsetQueryHelpers.TabIndex;
+  SetLength(QueryHelpersSelectedItems[s], 0);
+  for i := 0 to lboxQueryHelpers.Count - 1 do if lboxQueryHelpers.Selected[i] then begin
+    idx := Length(QueryHelpersSelectedItems[s]);
+    SetLength(QueryHelpersSelectedItems[s], idx+1);
+    QueryHelpersSelectedItems[s][idx] := i;
+  end;
 end;
 
 
