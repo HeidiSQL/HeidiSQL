@@ -5669,7 +5669,7 @@ begin
 
   // Restore last selected item in tab
   if (Length(QueryHelpersSelectedItems[NewTab]) > 0)
-    and (Length(QueryHelpersSelectedItems[NewTab]) < lboxQueryHelpers.Count) then
+    and (Length(QueryHelpersSelectedItems[NewTab]) <= lboxQueryHelpers.Count) then
   begin
     for i := 0 to Length(QueryHelpersSelectedItems[NewTab]) - 1 do begin
       lboxQueryHelpers.Selected[QueryHelpersSelectedItems[NewTab][i]] := True;
