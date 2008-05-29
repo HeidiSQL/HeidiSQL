@@ -1609,7 +1609,7 @@ object MDIChild: TMDIChild
         Gutter.RightOffset = 0
         Gutter.ShowLineNumbers = True
         Highlighter = SynSQLSyn1
-        Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoTabIndent]
+        Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint, eoTabIndent]
         RightEdge = 40
         WantTabs = True
         RemovedKeystrokes = <
