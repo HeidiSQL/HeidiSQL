@@ -1182,7 +1182,6 @@ object MDIChild: TMDIChild
                   Caption = 'btnQueryStopOnErrors'
                   Down = True
                   ImageIndex = 63
-                  Style = tbsCheck
                   OnClick = btnQueryStopOnErrorsClick
                 end
                 object btnQueryWordWrap: TToolButton
