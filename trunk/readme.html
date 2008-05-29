@@ -40,6 +40,9 @@
 			display: block;
 			margin: 1em;
 		}
+		code {
+			background-color: lightsteelblue;
+		}
 	</style>
 </head>
 
@@ -124,9 +127,10 @@
 		Preferably, use Subversion to check out a working copy.
 	</p>
 	<p>
-		You can use TortoiseSVN, or the command line Subversion client like so:
+		To check out the latest source code anonymously for <strong>read only</strong>
+		purposes, you can use TortoiseSVN, or the command line Subversion client like so:
 		<div>
-			<code>svn co https://heidisql.svn.sourceforge.net/svnroot/heidisql/trunk heidisql</code>
+			<code>svn co <strong>http</strong>://heidisql.googlecode.com/svn/trunk/ heidisql</code>
 		</div>
 	</p>
 	<p>
@@ -134,6 +138,17 @@
 		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>
 			HeidiSQL file area on SourceForge
 		</a>
+	</p>
+	<p>
+		If you are a project member and <strong>plan to make changes</strong>, use this
+		command to check out the code as yourself using HTTPS:
+		<div>
+			<code>svn co <strong>https</strong>://heidisql.googlecode.com/svn/trunk/ heidisql --username john.doe</code>
+		</div>
+	</p>
+	<p>
+		See <a href="http://code.google.com/p/heidisql/source/checkout">here</a> for detailed
+		instructions on SVN and for your SVN password (it's not your usual Google password).
 	</p>
 
 	<p>
@@ -388,38 +403,6 @@
 			<li>Uncheck at least "Error Insight"</li>
 			<li>Restart Delphi</li>
 		</ol>  
-	</p>
-	
-	
-	<h3>SVN commit error: 403 or 500 Forbidden (https://svn.sourceforge.net)</h3>
-	<p>
-		If you get this error while committing the source code:<br />
-		<cite>
-			Error: COPY of &lt;some_file&gt;: 403 Forbidden (https://svn.sourceforge.net)
-		</cite>
-	</p>
-	
-	<p>
-		Solution: Just <strong>relocate</strong> the repository URL to this one:
-		<cite>
-			https://heidisql.svn.sourceforge.net/svnroot/heidisql
-		</cite>
-
-		Via commandline:
-		<cite>
-			svn switch --relocate https://svn.sourceforge.net/svnroot/heidisql TO
-			https://heidisql.svn.sourceforge.net/svnroot/heidisql
-		</cite>
-		Via TortoiseSVN:
-		<cite>
-			<ol>
-				<li>Open the folder where you checked out HeidiSQL</li>
-				<li>Rightclick root-folder</li>
-				<li>"TortoiseSVN" submenu</li>
-				<li>"Relocate"</li>
-				<li>[type in the new URL from above]</li>
-			</ol>
-		</cite>
 	</p>
 
 	<p>
