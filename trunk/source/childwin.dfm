@@ -1294,7 +1294,7 @@ object MDIChild: TMDIChild
               Gutter.RightOffset = 0
               Gutter.ShowLineNumbers = True
               Highlighter = SynSQLSyn1
-              Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint]
+              Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint, eoTabIndent]
               RightEdge = 40
               SearchEngine = SynEditSearch1
               TabWidth = 2
@@ -1609,8 +1609,9 @@ object MDIChild: TMDIChild
         Gutter.RightOffset = 0
         Gutter.ShowLineNumbers = True
         Highlighter = SynSQLSyn1
-        Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
+        Options = [eoAutoIndent, eoDragDropEditing, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoTabIndent]
         RightEdge = 40
+        WantTabs = True
         RemovedKeystrokes = <
           item
             Command = ecDeleteLastChar
