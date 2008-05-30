@@ -986,9 +986,11 @@ begin
   SynMemoQuery.Font.Name := fontname;
   SynMemoSQLLog.Font.Name := fontname;
   SynMemoProcessView.Font.Name := fontname;
+  SynMemoFilter.Font.Name := fontname;
   SynMemoQuery.Font.Size := fontsize;
   SynMemoSQLLog.Font.Size := fontsize;
   SynMemoProcessView.Font.Size := fontsize;
+  SynMemoFilter.Font.Size := fontsize;
 
   // Data-Font:
   datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);

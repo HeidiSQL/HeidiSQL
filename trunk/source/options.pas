@@ -196,6 +196,8 @@ begin
   begin
     cwin.SynMemoQuery.Font := self.Panel1.Font;
     cwin.SynMemoSQLLog.Font := self.Panel1.Font;
+    cwin.SynMemoProcessView.Font := self.Panel1.Font;
+    cwin.SynMemoFilter.Font := self.Panel1.Font;
     cwin.SynSQLSyn1.KeyAttri.Foreground := self.pnlKeywords.Color;
     cwin.SynSQLSyn1.FunctionAttri.Foreground := self.pnlFunctions.Color;
     cwin.SynSQLSyn1.DataTypeAttri.Foreground := self.pnlDatatypes.Color;
