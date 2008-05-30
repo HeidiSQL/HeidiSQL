@@ -1612,6 +1612,7 @@ object MDIChild: TMDIChild
         Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
         RightEdge = 40
         WantTabs = True
+        OnDropFiles = SynMemoFilterDropFiles
         RemovedKeystrokes = <
           item
             Command = ecDeleteLastChar
