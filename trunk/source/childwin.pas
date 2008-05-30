@@ -539,6 +539,8 @@ type
     procedure editFilterVTChange(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
+    procedure SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer; AFiles:
+        TWideStrings);
     procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
         var ImageIndex: Integer);
 
@@ -6902,6 +6904,29 @@ procedure TMDIChild.btnQueryWordWrapClick(Sender: TObject);
 begin
   SynMemoQuery.WordWrap := not SynMemoQuery.WordWrap;
   btnQueryWordWrap.Down := SynMemoQuery.WordWrap;
+end;
+
+
+{**
+  One or more files from explorer or somewhere else were dropped onto the
+  filter editor - load the contents of the first file
+}
+procedure TMDIChild.SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer;
+    AFiles: TWideStrings);
+var
+  WStrings: TWideStrings;
+begin
+  if fileExists(AFiles[0]) then begin
+    Screen.Cursor := crHourGlass;
+    try
+      WStrings := TWideStringList.Create;
+      LoadFromFile(WStrings, AFiles[0]);
+      SynMemoFilter.Lines.Assign( WStrings );
+    except on E: Exception do
+      MessageDLG( 'Error while reading file ' + AFiles[0] + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
+    end;
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
