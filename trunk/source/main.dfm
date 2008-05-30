@@ -799,12 +799,14 @@ object MainForm: TMainForm
     end
     object actEditView: TAction
       Caption = 'Edit view ...'
+      Enabled = False
       Hint = 'Edit view ...'
       ImageIndex = 81
       OnExecute = actEditViewExecute
     end
     object actCreateView: TAction
       Caption = 'Create view ...'
+      Enabled = False
       Hint = 'Create view ...'
       ImageIndex = 81
       OnExecute = actCreateViewExecute
