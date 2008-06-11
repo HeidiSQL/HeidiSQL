@@ -2,12 +2,14 @@
   WindowContext parentContext = argObj("windowContext");
   AutoUpdater updater = (AutoUpdater)env("updater");
   
-  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"aboutDialog", "About jHeidi " + updater.appProps.version);
+  System.out.println("AUTOUP is " + updater);
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"updateDialog", "Update Available - " + updater.updateProps.version);
   WindowContext context = dlg.getWindowContext();
  
-  dlg.events("aboutDialogEvents");
+  dlg.events("updateDialogEvents");
   dlg.tabLayout()
-     .insets(10, 10)
+    .insets(10, 10)
     .space(10)
     .icon("images/heidi.png")
 	  .image("logo", "images/heidi.png")		
@@ -19,14 +21,14 @@
     .text(updater.appProps.version, 150, Text.CENTER)
     .baseline(context.get("/notesScrollPane"), "South")
     .vspace(7)
-    .space(LF.isWin?294:295)
-    .button("Close", 110)
-    .setDefaultButton("Close");
+    .space(177)
+    .button("Install", 110)
+    .button("Cancel", 110);
     
     TextArea text = context.get("/notes");
     text.setEditable(false);
-    text.setText("Project Lead: Bill Culp\n\nTeam: Scott Gorlick, Jeremy Unruh\n\nThanks To: Ansgar Becker, The HeidiSQL Team,\nWerner Randelshofer, Josh Fleming"
-             + "\n\n" + ((updater.appProps.releaseNotes == null) ? "" :updater.appProps.releaseNotes));
+    text.setText("A newer version of jHeidi is available!\n\nYour version is:" + updater.appProps.version + "\n\njHeidi "
+         + updater.updateProps.version + " is now available!" + "\n\n" + updater.updateProps.releaseNotes);
     
     text.setCaretPosition(0);
     

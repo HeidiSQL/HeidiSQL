@@ -24,7 +24,7 @@
 	app.menu("E&xport").item("Export Tables as SQL","images/export.gif").item("separator", "Copy as CSV Data", "Copy as HTML Data", "Copy as XML Data","Export Data...");
 	app.menu("&Window").events("windowMenuEvents");
 	Menu help = app.menu("&Help");
-	help.events("helpMenuEvents").item("SQL Help", "images/helptopic.gif").item("separator", "Heidi SQL Website", "Downloads", "Support Forums", "Bug Tracker", "Feature Tracker", 
+	help.events("helpMenuEvents").item("SQL Help", "images/helptopic.gif").item("separator", "Check For Updates", "separator", "Heidi SQL Website", "Downloads", "Support Forums", "Bug Tracker", "Feature Tracker", 
 				"separator", "About");
 	
 	app.toolbar("mainToolbar").events("mainToolbarEvents")
