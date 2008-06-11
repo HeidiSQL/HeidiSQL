@@ -33,6 +33,20 @@ else if ("About".equals(who))
 {
    script("aboutDialog", args());
 }
+else if ("Check For Updates".equals(who))
+{
+   AutoUpdater updater = (AutoUpdater)env("updater");
+   if ( updater.updateExists() )
+   {
+      Frame f = context.get("/");
+      script("updateDialog", args());
+   }
+   else
+   {
+      ((Frame)context.get("/")).popupMessage("Auto Update", "No updates for jHeidi are currently available");
+   }
+
+}
 else
 {
   ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");

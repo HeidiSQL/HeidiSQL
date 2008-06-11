@@ -3,6 +3,7 @@
   
   Frame app = new Frame("connectDialog", "Connection To MySQL");
   WindowContext context = app.getWindowContext();
+  env("updater", new AutoUpdater());
   
   app.events("connectDialogEvents");
   app.tabLayout()
@@ -125,4 +126,3 @@
     app.visible();
     
     
-
