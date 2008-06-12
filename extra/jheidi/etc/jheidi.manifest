@@ -1,0 +1,3 @@
+Main-Class: LaunchJHeidi
+Class-Path: lib/ajl.jar lib/editor.jar lib/swing-worker-1.1 lib/mysql-connector-java-5.0.7-bin.jar lib/log4j-1.2.13.jar
+
