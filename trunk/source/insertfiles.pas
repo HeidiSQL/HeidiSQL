@@ -91,32 +91,13 @@ end;
 
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
-var
-  tn : TTreeNode;
-  i : Integer;
 begin
-  ComboBoxDBs.Items.Clear;
   Caption := Mainform.ChildWin.MysqlConn.SessionName + ' - Insert files into table ...';
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      ComboBoxDBs.Items.Add(tn.Text);
-  end;
-
-  for i:=0 to ComboBoxDBs.Items.Count-1 do
-  begin
-    if ComboBoxDBs.Items[i] = Mainform.ChildWin.ActiveDatabase then
-    begin
-      ComboBoxDBs.ItemIndex := i;
-    end;
-  end;
-
+  ComboBoxDBs.Items.Clear;
+  ComboBoxDBs.Items.Assign(Mainform.ChildWin.Databases);
+  ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
   if ComboBoxDBs.ItemIndex = -1 then
-  begin
     ComboBoxDBs.ItemIndex := 0;
-  end;
-
   ComboBoxDBsChange(self);
 end;
 

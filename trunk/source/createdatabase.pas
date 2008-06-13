@@ -221,12 +221,14 @@ end;
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : String;
+  cwin: TMDIChild;
 begin
+  cwin := Mainform.Childwin;
   if modifyDB = '' then
   begin
     sql := GetCreateStatement;
     Try
-      Mainform.Childwin.ExecUpdateQuery( sql );
+      cwin.ExecUpdateQuery( sql );
       // Close form
       ModalResult := mrOK;
     except
@@ -236,7 +238,7 @@ begin
     end;
   end
   else begin
-    sql := 'ALTER DATABASE ' + Mainform.Childwin.mask( modifyDB );
+    sql := 'ALTER DATABASE ' + cwin.mask( modifyDB );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
     begin
       sql := sql + ' CHARACTER SET ' + comboCharset.Text;
@@ -244,12 +246,12 @@ begin
         sql := sql + ' COLLATE ' + comboCollation.Text;
     end;
     Try
-      Mainform.Childwin.ExecUpdateQuery( sql );
+      cwin.ExecUpdateQuery( sql );
       if modifyDB <> editDBName.Text then
       begin
-        Mainform.Childwin.ExecUpdateQuery( 'RENAME DATABASE ' + Mainform.Childwin.mask( modifyDB )
-          + ' TO ' + Mainform.Childwin.mask( editDBName.Text ) );
-        Mainform.Childwin.ReadDatabasesAndTables( Sender );
+        cwin.ExecUpdateQuery( 'RENAME DATABASE ' + cwin.mask( modifyDB )
+          + ' TO ' + cwin.mask( editDBName.Text ) );
+        cwin.DBtree.ResetNode(cwin.DBtree.GetFirst);
       end;
       // Close form
       ModalResult := mrOK;

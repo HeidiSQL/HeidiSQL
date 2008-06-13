@@ -173,50 +173,25 @@ end;
 
 procedure TExportSQLForm.FormShow(Sender: TObject);
 var
-  tn : TTreeNode;
   i, OutputTo : Integer;
-  dbtree_db : String;
   list: TWindowDataArray;
+  CWin: TMDIChild;
 begin
+  CWin := Mainform.ChildWin;
   barProgress.Position := 0;
   lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
-  SynMemoExampleSQL.Highlighter := Mainform.ChildWin.SynSQLSyn1;
-  SynMemoExampleSQL.Font := Mainform.ChildWin.SynMemoQuery.Font;
+  SynMemoExampleSQL.Highlighter := CWin.SynSQLSyn1;
+  SynMemoExampleSQL.Font := CWin.SynMemoQuery.Font;
 
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
-  Caption := Mainform.ChildWin.MysqlConn.SessionName + ' - Export Tables...';
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      comboSelectDatabase.Items.Add(tn.Text);
-  end;
-
-  if Mainform.ChildWin.DBRightClickSelectedItem <> nil then
-  begin
-    case Mainform.ChildWin.DBRightClickSelectedItem.Level of
-      1 : dbtree_db := Mainform.ChildWin.DBRightClickSelectedItem.Text;
-      2 : dbtree_db := Mainform.ChildWin.DBRightClickSelectedItem.Parent.Text;
-      3 : dbtree_db := Mainform.ChildWin.DBRightClickSelectedItem.Parent.Parent.Text;
-    end;
-  end;
-
-  for i:=0 to comboSelectDatabase.Items.Count-1 do
-  begin
-    if ((dbtree_db = '') and (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActiveDatabase))
-      or ((dbtree_db <> '') and (comboSelectDatabase.Items[i] = dbtree_db)) then
-    begin
-      comboSelectDatabase.ItemIndex := i;
-      break;
-    end;
-  end;
-
+  Caption := CWin.MysqlConn.SessionName + ' - Export Tables...';
+  comboSelectDatabase.Items.Assign(CWin.Databases);
+  comboSelectDatabase.ItemIndex := comboSelectDatabase.Items.IndexOf(CWin.ActiveDatabase);
   // Select first database if at least one is available.
   if (comboSelectDatabase.ItemIndex = -1) and (comboSelectDatabase.Items.Count>0) then
     comboSelectDatabase.ItemIndex := 0;
-
   comboSelectDatabaseChange(self);
 
   // Initialize and fill list with target versions
@@ -229,7 +204,7 @@ begin
     Add( '40100=MySQL 4.1' );
     Add( '50000=MySQL 5.0' );
     Add( '50100=MySQL 5.1' );
-    Add( IntToStr( Mainform.ChildWin.mysql_version ) + '=Same as source server (MySQL '+Mainform.ChildWin.GetVar('SELECT VERSION()') +')' );
+    Add( IntToStr( CWin.mysql_version ) + '=Same as source server (MySQL '+CWin.GetVar('SELECT VERSION()') +')' );
   end;
 
   // Add all target versions to combobox and set default option
@@ -371,42 +346,33 @@ end;
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
-  dbtree_table : String;
   Selected : TStringList;
   sql: string;
+  CWin: TMDIChild;
+  CheckThisItem: Boolean;
 begin
+  CWin := Mainform.Childwin;
   // read tables from db
   checkListTables.Items.Clear;
 
   // Fetch tables from DB
   sql := 'FROM ' + MainForm.mask(comboSelectDatabase.Text);
-  if Mainform.ChildWin.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
+  if CWin.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
   else sql := 'SHOW TABLES ' + sql;
-  checkListTables.Items := Mainform.ChildWin.GetCol( sql );
+  checkListTables.Items := CWin.GetCol( sql );
 
   // Fetch selected tables in list
-  Selected := GetVTCaptions( Mainform.ChildWin.ListTables, True );
+  Selected := GetVTCaptions( CWin.ListTables, True );
 
   // select all/some:
   for i:=0 to checkListTables.Items.Count-1 do
   begin
-    if Mainform.ChildWin.DBRightClickSelectedItem <> nil then
-    begin
-      case Mainform.ChildWin.DBRightClickSelectedItem.Level of
-        2 : dbtree_table := Mainform.ChildWin.DBRightClickSelectedItem.Text;
-        3 : dbtree_table := Mainform.ChildWin.DBRightClickSelectedItem.Parent.Text;
-      end;
-      case Mainform.ChildWin.DBRightClickSelectedItem.Level of
-        1 : checkListTables.checked[i] := true;
-        2,3 : checkListTables.checked[i] := dbtree_table = checkListTables.Items[i];
-      end;
-    end
-    else if Mainform.ChildWin.ActiveDatabase = comboSelectDatabase.Text then
-      checkListTables.checked[i] := Selected.IndexOf( checkListTables.Items[i] ) > -1
+    if CWin.ActiveDatabase = comboSelectDatabase.Text then
+      CheckThisItem := Selected.IndexOf( checkListTables.Items[i] ) > -1
     else
-      checkListTables.checked[i] := true;
+      CheckThisItem := true;
+    checkListTables.checked[i] := CheckThisItem;
   end;
-  Mainform.ChildWin.DBRightClickSelectedItem := nil;
 
   // write items for "Another Databases":
   fillcombo_anotherdb(self);

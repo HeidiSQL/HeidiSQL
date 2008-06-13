@@ -52,7 +52,6 @@ type
     currentCollation,
     currentAutoincrement : String;
   public
-    DatabaseName,
     TableName : String;
   end;
 
@@ -128,8 +127,6 @@ var
 begin
   // Fetch table properties
   sql := 'SHOW TABLE STATUS ';
-  if DatabaseName <> '' then
-    sql := sql + ' FROM ' + Mainform.mask(DatabaseName)+' ';
   sql := sql + 'LIKE '+esc(TableName);
   ds := Mainform.Childwin.GetResults(sql);
 
@@ -183,8 +180,6 @@ begin
 
   // SQL preview
   sql := 'SHOW CREATE TABLE ';
-  if DatabaseName <> '' then
-    sql := sql + Mainform.mask(DatabaseName)+'.';
   sql := sql + Mainform.Childwin.mask(currentName);
   SynMemoCreate.Lines.Text := Mainform.Childwin.GetVar( sql, 1 );
 
@@ -278,8 +273,6 @@ begin
     if currentName <> editName.Text then
     begin
       tmp := 'RENAME ';
-      if DatabaseName <> '' then
-        tmp := tmp + Mainform.mask(DatabaseName)+'.';
       tmp := tmp + Mainform.mask(editName.Text);
       AlterSpecs.Add( tmp );
     end;
@@ -306,16 +299,9 @@ begin
 
     if AlterSpecs.Count > 0 then
     begin
-      sql := 'ALTER TABLE ';
-      if DatabaseName <> '' then
-        sql := sql + Mainform.mask(DatabaseName)+'.';
-      sql := sql + Mainform.Childwin.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
+      sql := 'ALTER TABLE ' + Mainform.Childwin.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
       try
         Mainform.ChildWin.ExecUpdateQuery( sql );
-        if DatabaseName = '' then
-          Mainform.ChildWin.MenuRefreshClick( Sender )
-        else
-          Mainform.ChildWin.PopulateTreeTableList( Mainform.ChildWin.DBRightClickSelectedItem.Parent, True );
       except
         On E:Exception do
         begin
@@ -324,6 +310,7 @@ begin
           ModalResult := mrNone;
         end;
       end;
+      Mainform.ChildWin.MenuRefreshClick( Sender )
     end;
 
   end;
