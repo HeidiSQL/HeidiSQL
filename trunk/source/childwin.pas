@@ -471,7 +471,7 @@ type
     function GetVar( SQLQuery: String; x: Integer = 0;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
     function GetResults( SQLQuery: String;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ): TDataSet;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
     function GetCol( SQLQuery: String; x: Integer = 0;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
@@ -580,8 +580,8 @@ type
       procedure GridHighlightChanged(Sender: TObject);
       procedure SaveBlob;
       function GetActiveGrid: TTntDBGrid;
-      procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery);
-      function RunThreadedQuery(AQuery : String) : TMysqlQuery;
+      procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
+      function RunThreadedQuery(AQuery: String; ForceDialog: Boolean): TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
       function GetActiveDatabase: string;
@@ -633,7 +633,7 @@ type
       function GetVisualDataset() : TDataSet;
 
       function ExecUpdateQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
-      function ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): TDataSet;
+      function ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
       procedure ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
@@ -1798,16 +1798,21 @@ begin
 end;
 
 
-procedure TMDIChild.WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery);
+procedure TMDIChild.WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
 var
   signal: Cardinal;
 begin
   debug( 'Waiting for query to complete.' );
-  signal := WaitForSingleObject(query.EventHandle, 300);
-  if signal = 0 then debug( 'Query completed within 300msec.' )
-  else begin
-    debug( '300msec passed, showing progress form.' ); 
+  if ForceDialog then begin
+    debug( 'Showing progress form.' );
     WaitForm.ShowModal();
+  end else begin
+    signal := WaitForSingleObject(query.EventHandle, 300);
+    if signal = 0 then debug( 'Query completed within 300msec.' )
+    else begin
+      debug( '300msec passed, showing progress form.' );
+      WaitForm.ShowModal();
+    end;
   end;
   CloseHandle(query.EventHandle);
   debug( 'Query complete.' );
@@ -2852,6 +2857,8 @@ var
   SQLscriptstart    : Integer;
   SQLscriptend      : Integer;
   SQLTime           : Double;
+  LastVistaCheck    : Cardinal;
+  VistaCheck        : Boolean; 
   fieldcount        : Integer;
   recordcount       : Integer;
   ds                : TDataSet;
@@ -2891,6 +2898,7 @@ begin
   EDBImage1.DataSource := DataSource2;
 
   SQLscriptstart := GetTickCount();
+  LastVistaCheck := GetTickCount();
   LabelResultinfo.Caption := EmptyStr;
 
   ds := nil;
@@ -2923,7 +2931,12 @@ begin
       // ok, let's rock
       SQLstart := GetTickCount();
       try
-        ds := GetResults( SQL[i], false, false );
+        VistaCheck := false;
+        if GetTickCount() - LastVistaCheck > 2500 then begin
+          VistaCheck := true;
+          LastVistaCheck := GetTickCount();
+        end;
+        ds := GetResults( SQL[i], false, false, VistaCheck );
         gridQuery.DataSource.DataSet := ds;
         if ( ds <> nil ) then
         begin
@@ -4940,7 +4953,7 @@ begin
   try
     try
       // Start query execution
-      MysqlQuery := RunThreadedQuery(sql);
+      MysqlQuery := RunThreadedQuery(sql, false);
       Result := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
       // Inspect query result code and log / notify user on failure
       if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
@@ -4978,7 +4991,7 @@ end;
   @param String The single SQL-query to be executed on the server
   @return TMysqlQuery Containing the dataset and info data availability
 }
-function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): TDataSet;
+function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
 var
   res: TMysqlQuery;
 begin
@@ -4987,7 +5000,7 @@ begin
   try
     try
       // Start query execution
-      res := RunThreadedQuery(sql);
+      res := RunThreadedQuery(sql, ForceDialog);
       result := res.MysqlDataset;
       // Inspect query result code and log / notify user on failure
       if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
@@ -5011,9 +5024,9 @@ end;
 {***
   Executes a query.
 }
-function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ): TDataSet;
+function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
 begin
-  result := ExecSelectQuery(SQLQuery, HandleErrors, DisplayErrors);
+  result := ExecSelectQuery(SQLQuery, HandleErrors, DisplayErrors, ForceDialog);
 end;
 
 
@@ -5137,7 +5150,7 @@ begin
     FProgressForm := TFrmQueryProgress.Create(Self);
     debug('RunThreadedQuery(): Launching asynchronous query.');
     res := ExecPostAsync(FConn,nil,FProgressForm.Handle,ds);
-    WaitForQueryCompletion(FProgressForm, res);
+    WaitForQueryCompletion(FProgressForm, res, false);
     if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
       raise Exception.Create(res.Comment);
@@ -5150,7 +5163,7 @@ end;
 {***
   Run a query in a separate thread of execution on the current connection.
 }
-function TMDIChild.RunThreadedQuery(AQuery: String): TMysqlQuery;
+function TMDIChild.RunThreadedQuery(AQuery: String; ForceDialog: Boolean): TMysqlQuery;
 begin
   Result := nil;
   if (Copy(AQuery, 1, 3) <> 'USE') then EnsureDatabase;
@@ -5189,7 +5202,7 @@ begin
     { Repeatedly check if the query has finished by inspecting FQueryRunning
       Allow repainting of user interface
     }
-    WaitForQueryCompletion(FProgressForm, Result);
+    WaitForQueryCompletion(FProgressForm, Result, ForceDialog);
   finally
     FQueryRunning := false;
   end;
