@@ -6048,7 +6048,9 @@ var
 begin
   for i := 0 to List.Header.Columns.Count - 1 do
   begin
-    if Columns.IndexOf( IntToStr(i) ) > -1 then
+    // Only ListTables' column visibility is currently customizable
+    // so, make sure to unhide the newer "Comment" column in ListColumns for some users 
+    if (Columns.IndexOf( IntToStr(i) ) > -1) or (List <> ListTables) then
       List.Header.Columns[i].Options := List.Header.Columns[i].Options + [coVisible]
     else
       List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
