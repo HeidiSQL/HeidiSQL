@@ -338,11 +338,11 @@ var
 begin
   // UTF-8 strings are at most 4 bytes per character.
   // Include room for a null terminator.
-  Bytes := Length(Value) * 4 + 1;
-  GetMem(Input, Bytes);
+  Bytes := Length(Value) * 4;
+  GetMem(Input, Bytes + 1);
 
   // Convert WideString input to UTF-8 PChar.
-  Bytes := UnicodeToUtf8(Input, Bytes, PWideChar(Value), Length(Value)) - 1;
+  Bytes := UnicodeToUtf8(Input, Bytes + 1, PWideChar(Value), Length(Value)) - 1;
 
   // Make room for escaped UTF-8 string.
   GetMem(Buffer, Bytes * 2 + 1);
@@ -355,10 +355,22 @@ begin
   Bytes := FPlainDriver.GetEscapeString(FHandle, Buffer, Input, Bytes);
 
   // Make room for wide version of escaped string.
-  GetMem(Output, Length(Value) * 4 + 2);
+  GetMem(Output, Length(Value) * 2 * 2 + 2);
 
-  // Convert back to WideChars, then compose result.
-  Utf8ToUnicode(Output, Length(Value) * 2, Buffer, Bytes + 1);
+  // There's a big nasty BUG in Utf8ToUnicode:
+  // ------------------------------------------
+  // If it is called with parameters: (2-byte buf), (0 chars), (1-byte buf), (1 byte),
+  // the function will skip a loop, then decrease an unsigned counter from 0 to 4294967295,
+  // then use that variable to access the 2-byte buffer way out of bounds.  Workaround here:
+  if Length(Value) = 0 then begin
+    // Skip Utf8ToUnicode() to avoid bug.
+    Output[0] := #0;
+    Output[1] := #0;
+  end else begin
+    // Convert back to WideChars, then compose result.
+    Utf8ToUnicode(Output, Length(Value) * 2, Buffer, Bytes + 1);
+  end;
+
   Result := '''' + WideString(Output) + '''';
 
   // Free temporary buffers.
