@@ -28,7 +28,6 @@ type
   public
     { Public declarations }
     EditViewName: String;
-    DBNode: TTreeNode;
   end;
 
   
@@ -83,10 +82,7 @@ begin
     // Edit mode
     Caption := 'Edit view ...';
     editName.Text := EditViewName;
-    if not Assigned(DBNode) then
-      db := Mainform.ChildWin.ActiveDatabase
-    else
-      db := DBNode.Text;
+    db := Mainform.ChildWin.ActiveDatabase;
     ds := Mainform.ChildWin.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
       'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(EditViewName));
     if ds.RecordCount = 0 then
@@ -167,8 +163,6 @@ begin
     viewname := EditViewName;
   end;
   viewname := Mainform.mask(viewname);
-  if Assigned(DBNode) then
-    viewname := Mainform.mask(DBNode.Text) + '.' + viewname;
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
     sql := sql + 'ALGORITHM = '+Uppercase(rgAlgorithm.Items[rgAlgorithm.ItemIndex])+' ';
   sql := sql + 'VIEW ' + viewname+' AS '+SynMemoSelect.Text+' ';
@@ -181,15 +175,10 @@ begin
     // Probably rename view
     if (EditViewName <> '') and (EditViewName <> editName.Text) then begin
       renamed := Mainform.mask(editName.Text);
-      if Assigned(DBNode) then
-        renamed := Mainform.mask(DBNode.Text) + '.' + renamed;
       Mainform.Childwin.ExecUpdateQuery('ALTER TABLE '+viewname
         + ' RENAME '+renamed);
     end;
-    if (not Assigned(DBNode)) or (DBNode.Text = Mainform.Childwin.ActiveDatabase) then
-      Mainform.ChildWin.MenuRefreshClick( Sender )
-    else
-      Mainform.ChildWin.PopulateTreeTableList( DBNode, True );
+    Mainform.ChildWin.RefreshTreeDB(Mainform.ChildWin.ActiveDatabase);
   except
     on E: THandledSQLError do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);

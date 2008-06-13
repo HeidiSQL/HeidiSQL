@@ -46,7 +46,7 @@ object MDIChild: TMDIChild
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
-    object DBtree: TTreeView
+    object DBtree: TVirtualStringTree
       Left = 0
       Top = 0
       Width = 169
@@ -54,19 +54,33 @@ object MDIChild: TMDIChild
       Align = alLeft
       Constraints.MinWidth = 40
       DragMode = dmAutomatic
-      HotTrack = True
+      DragType = dtVCL
+      Header.AutoSizeIndex = 0
+      Header.Font.Charset = DEFAULT_CHARSET
+      Header.Font.Color = clWindowText
+      Header.Font.Height = -11
+      Header.Font.Name = 'Tahoma'
+      Header.Font.Style = []
+      Header.MainColumn = -1
+      Header.Options = [hoColumnResize, hoDrag]
+      HotCursor = crHandPoint
       Images = MainForm.PngImageListMain
-      Indent = 19
-      ReadOnly = True
-      RightClickSelect = True
-      RowSelect = True
-      ShowRoot = False
+      Indent = 16
+      Margin = 2
+      PopupMenu = popupTreeView
       TabOrder = 0
+      TextMargin = 2
+      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
+      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
+      TreeOptions.SelectionOptions = [toRightClickSelect]
       OnChange = DBtreeChange
-      OnChanging = DBtreeChanging
-      OnContextPopup = DBtreeContextPopup
       OnDblClick = DBtreeDblClick
-      OnExpanding = DBtreeExpanding
+      OnGetText = DBtreeGetText
+      OnGetImageIndex = DBtreeGetImageIndex
+      OnGetNodeDataSize = DBtreeGetNodeDataSize
+      OnInitChildren = DBtreeInitChildren
+      OnInitNode = DBtreeInitNode
+      Columns = <>
     end
     object TableShow: TPanel
       Left = 173
@@ -562,6 +576,7 @@ object MDIChild: TMDIChild
             OnChange = ListTablesChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = ListTablesDblClick
+            OnEdited = ListTablesEdited
             OnFreeNode = vstFreeNode
             OnGetText = vstGetText
             OnGetImageIndex = vstGetImageIndex
@@ -1781,11 +1796,11 @@ object MDIChild: TMDIChild
     object N5: TMenuItem
       Caption = '-'
     end
-    object Drop1: TMenuItem
+    object menuRefreshDBTree: TMenuItem
       Caption = 'Refresh'
       ImageIndex = 0
       ShortCut = 116
-      OnClick = ReadDatabasesAndTables
+      OnClick = menuRefreshDBTreeClick
     end
   end
   object popupDbGrid: TPopupMenu

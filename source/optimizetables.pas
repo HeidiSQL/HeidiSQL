@@ -95,24 +95,12 @@ end;
 }
 procedure Toptimize.FormShow(Sender: TObject);
 var
-  i : Integer;
-  tn : TTreeNode;
   Selected: TStringList;
 begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
-  end;
-  DBComboBox.ItemIndex := 0;
-  for i:=0 to DBComboBox.Items.Count-1 do
-  begin
-    if DBComboBox.Items[i] = Mainform.ChildWin.ActiveDatabase then
-      DBComboBox.ItemIndex := i;
-  end;
+  DBComboBox.Items.Assign(Mainform.ChildWin.Databases);
+  DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
   if DBComboBox.ItemIndex = -1 then
     DBComboBox.ItemIndex := 0;
   DBComboBox.OnChange(self);

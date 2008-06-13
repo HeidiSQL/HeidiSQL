@@ -203,7 +203,6 @@ type
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
-    procedure HandleWMClearRightClickPointer(var msg: TMessage); message WM_CLEAR_RIGHTCLICK_POINTER;
     procedure menuUpdateCheckClick(Sender: TObject);
   private
     regMain : TRegistry;
@@ -296,12 +295,6 @@ end;
 procedure TMainForm.HandleWMProcessLog(var msg: TMessage);
 begin
   ChildWin.ProcessSqlLog;
-end;
-
-procedure TMainForm.HandleWMClearRightClickPointer(var msg: TMessage);
-begin
-  debug('clearing stored right click item');
-  ChildWin.DBRightClickSelectedItem := nil;
 end;
 
 procedure TMainForm.EnsureConnected;
@@ -590,6 +583,8 @@ end;
 procedure TMainForm.ButtonRefreshClick(Sender: TObject);
 begin
   // Refresh
+  // Force data tab update when appropriate.
+  Childwin.dataselected := false;
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabHost then
     ChildWin.ShowVariablesAndProcesses(self)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
@@ -598,7 +593,8 @@ begin
     ChildWin.ShowTableProperties(ChildWin.SelectedTable)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
     ChildWin.viewdata(self)
-  else ChildWin.ReadDatabasesAndTables(self);
+  else
+    ChildWin.RefreshTree(True);
 end;
 
 procedure TMainForm.ButtonCreateDatabaseClick(Sender: TObject);
@@ -750,30 +746,27 @@ end;
 procedure TMainForm.actCreateViewExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
+  ds: TDataset;
 begin
   if ViewForm = nil then
     ViewForm := TfrmView.Create(Self);
   ViewForm.EditViewName := '';
-  ViewForm.DBNode := nil;
   if (Sender as TAction) = actEditView then begin
     // Edit mode
     if Assigned(Childwin.ListTables.FocusedNode) then begin
       // "Edit view" was clicked in ListTables' context menu
       NodeData := Childwin.ListTables.GetNodeData(Childwin.ListTables.FocusedNode);
       ViewForm.EditViewName := NodeData.Captions[0];
-    end else if Assigned(Childwin.DBRightClickSelectedItem) then begin
+    end else if Childwin.DBtree.GetFirstSelected <> nil then begin
       // "Edit view" was clicked in DBTree's context menu
-      ViewForm.EditViewName := Childwin.DBRightClickSelectedItem.Text;
-      ViewForm.DBNode := Childwin.DBRightClickSelectedItem.Parent;
+      ds := Childwin.FetchDbTableList(Childwin.ActiveDatabase);
+      ds.RecNo := Childwin.DBtree.GetFirstSelected.Index+1;
+      ViewForm.EditViewName := ds.Fields[0].AsString;
     end else
       // If we're here, there's a menu item "Edit/Create view" in an unknown location
       raise Exception.Create('Internal error in actCreateViewExexute.');
   end else begin
-    // Create mode
-    if Assigned(Childwin.DBRightClickSelectedItem) then case Childwin.DBRightClickSelectedItem.Level of
-      1: ViewForm.DBNode := Childwin.DBRightClickSelectedItem;
-      2: ViewForm.DBNode := Childwin.DBRightClickSelectedItem.Parent;
-    end;
+    // Create mode. Nothing special here.
   end;
   ViewForm.ShowModal;
 end;
@@ -1096,48 +1089,25 @@ end;
 procedure TMainForm.DropTablesAndViewsExecute(Sender: TObject);
 var
   i : Integer;
-  tndb : TTreeNode;
-  Objects, Tables, Views : TStringList;
-  db, msg, sql, activeDB : String;
-  ds: TDataSet;
+  Tables, Views : TStringList;
+  msg, sql, activeDB : String;
 begin
   debug('drop table activated');
   // Set default database name to to ActiveDatabase.
   // Can be overwritten when someone selects a table in dbtree from different database
   activeDB := Childwin.ActiveDatabase;
-  db := activeDB;
-  tndb := nil;
 
-  // Fill "Objects" and leave "Tables" and "Views" empty to postpone detection
-  // of views|tables to below this IF statement
-  Objects := TStringlist.Create;
   Tables := TStringlist.Create;
   Views := TStringlist.Create;
-  if (Sender as TBasicAction).ActionComponent = Childwin.PopupMenuDropTable then begin
-    // Invoked by tree menu popup.
-    tndb := Childwin.DBRightClickSelectedItem.Parent;
-    db := tndb.Text;
-    Objects.add( Childwin.DBRightClickSelectedItem.Text );
-  end else if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
+  if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
     // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
     Tables := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_BASETABLE);
     Views := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_VIEW);
   end else begin
     // Invoked from one of the various buttons, drop table selected in tree view.
-    Objects.add( Childwin.SelectedTable );
-  end;
-
-  // Split Objects into Tables + Views if not already done
-  if (Tables.Count = 0) and (Views.Count = 0) and (Objects.Count > 0) then begin
-    ds := Childwin.GetResults('SHOW TABLE STATUS FROM '+Childwin.mask(db));
-    for i := 0 to Objects.Count - 1 do begin
-      while not ds.Eof do begin
-        case GetDBObjectType( ds.Fields ) of
-          NODETYPE_BASETABLE: begin Tables.Add(Objects[i]); break; end;
-          NODETYPE_VIEW:      begin Views.Add(Objects[i]);  break; end;
-        end;
-        ds.Next;
-      end;
+    case Childwin.GetSelectedNodeType of
+      NODETYPE_BASETABLE: Tables.Add(Childwin.SelectedTable);
+      NODETYPE_VIEW: Views.Add(Childwin.SelectedTable)
     end;
   end;
 
@@ -1149,12 +1119,10 @@ begin
     Exit;
 
   // Ask user for confirmation to drop selected objects
-  Objects.Clear;
-  Objects.AddStrings(Tables);
-  Objects.AddStrings(Views);
-  msg := 'Drop ' + IntToStr(Objects.Count) + ' table(s) and/or view(s) in database "'+db+'"?'
-    + CRLF + CRLF + ImplodeStr(', ', Objects);
-  FreeAndNil(Objects);
+  msg := 'Drop ' + IntToStr(Tables.Count+Views.Count) + ' table(s) and/or view(s) in database "'+activeDB+'"?'
+    + CRLF;
+  if Tables.Count > 0 then msg := msg + CRLF + 'Tables: ' + ImplodeStr(', ', Tables);
+  if Views.Count > 0 then msg := msg + CRLF + 'Views: ' + ImplodeStr(', ', Views);
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     Exit;
 
@@ -1165,8 +1133,6 @@ begin
     begin
       if i > 0 then
         sql := sql + ', ';
-      if db <> activeDB then
-        sql := sql + Childwin.mask(db) + '.';
       sql := sql + Childwin.mask(Tables[i]);
     end;
     Childwin.ExecUpdateQuery( sql );
@@ -1180,8 +1146,6 @@ begin
     begin
       if i > 0 then
         sql := sql + ', ';
-      if db <> activeDB then
-        sql := sql + Childwin.mask(db) + '.';
       sql := sql + Childwin.mask(Views[i]);
     end;
     Childwin.ExecUpdateQuery( sql );
@@ -1189,10 +1153,7 @@ begin
   FreeAndNil(Views);
 
   // Refresh ListTables + dbtree so the dropped tables are gone:
-  if db = activeDB then
-    Childwin.MenuRefreshClick(Sender)
-  else
-    Childwin.PopulateTreeTableList( tndb, True );
+  Childwin.MenuRefreshClick(Sender)
 end;
 
 

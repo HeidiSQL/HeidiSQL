@@ -39,7 +39,6 @@ type
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
   private
     { Private declarations }
-    FDatabases: TStringList;
     FColumns: Array of Array of TStringList;
     function GetSelectedObject: TStringList;
   public
@@ -111,19 +110,11 @@ begin
 end;
 
 procedure TfrmSelectDBObject.FormShow(Sender: TObject);
-var
-  i: Integer;
 begin
   CWin := Mainform.Childwin;
   TreeDBO.Clear;
-  FDatabases := TStringList.Create;
-  for i := 0 to CWin.DBtree.Items.Count - 1 do begin
-    if CWin.DBtree.Items[i].Level <> 1 then
-      continue;
-    FDatabases.Add(CWin.DBtree.Items[i].Text);
-  end;
-  TreeDBO.RootNodeCount := FDatabases.Count;
-  SetLength(FColumns, FDatabases.Count);
+  TreeDBO.RootNodeCount := CWin.Databases.Count;
+  SetLength(FColumns, CWin.Databases.Count);
 //  TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
   editDB.Clear;
   editTable.Clear;
@@ -186,7 +177,7 @@ begin
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_DB;
     1: begin
-        ds := CWin.FetchDbTableList(FDatabases[Node.Parent.Index]);
+        ds := CWin.FetchDbTableList(CWin.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         case GetDBObjectType(ds.Fields) of
           NODETYPE_BASETABLE: ImageIndex := ICONINDEX_TABLE;
@@ -214,15 +205,15 @@ begin
   // Fetch sub nodes
   case Sender.GetNodeLevel(Node) of
     0: begin // DB expanding
-        ds := CWin.FetchDbTableList(FDatabases[Node.Index]);
+        ds := CWin.FetchDbTableList(CWin.Databases[Node.Index]);
         ChildCount := ds.RecordCount;
         SetLength(FColumns[Node.Index], ds.RecordCount);
       end;
     1: begin // Table expanding
-        ds := CWin.FetchDbTableList(FDatabases[Node.Parent.Index]);
+        ds := CWin.FetchDbTableList(CWin.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         cols := CWin.GetCol('SHOW COLUMNS FROM '
-          + Mainform.mask(FDatabases[Node.Parent.Index])+'.'
+          + Mainform.mask(CWin.Databases[Node.Parent.Index])+'.'
           + Mainform.Mask(ds.Fields[0].AsString));
         FColumns[Node.Parent.Index][Node.Index] := cols;
         ChildCount := cols.Count;
@@ -239,9 +230,9 @@ var
   ds: TDataset;
 begin
   case Sender.GetNodeLevel(Node) of
-    0: CellText := FDatabases[Node.Index];
+    0: CellText := CWin.Databases[Node.Index];
     1: begin
-        ds := CWin.FetchDbTableList(FDatabases[Node.Parent.Index]);
+        ds := CWin.FetchDbTableList(CWin.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         CellText := ds.Fields[0].AsString;
       end;

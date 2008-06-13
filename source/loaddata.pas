@@ -104,27 +104,11 @@ begin
 end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);
-var
-  tn : TTreeNode;
-  i : Integer;
 begin
   // read dbs and Tables from treeview
   comboDatabase.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      comboDatabase.Items.Add(tn.Text);
-  end;
-
-  for i:=0 to comboDatabase.Items.Count-1 do
-  begin
-    if comboDatabase.Items[i] = Mainform.ChildWin.ActiveDatabase then
-    begin
-      comboDatabase.ItemIndex := i;
-      break;
-    end;
-  end;
+  comboDatabase.Items.Assign(Mainform.ChildWin.Databases);
+  comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
 

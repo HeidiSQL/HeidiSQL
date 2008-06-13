@@ -105,7 +105,6 @@ end;
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   i : Integer;
-  tn : TTreeNode;
   struc_data : Byte;
   ds: TDataSet;
   NodeData: PVTreeData;
@@ -118,24 +117,10 @@ begin
 
 	// Select TargetDatabase
   ComboSelectDatabase.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      comboSelectDatabase.Items.Add(tn.Text);
-  end;
-
-  for i:=0 to comboSelectDatabase.Items.Count-1 do
-  begin
-    if (comboSelectDatabase.Items[i] = Mainform.ChildWin.ActiveDatabase) then
-    begin
-      comboSelectDatabase.ItemIndex := i;
-      break;
-    end;
-  end;
+  ComboSelectDatabase.Items.Assign(Mainform.ChildWin.Databases);
+  ComboSelectDatabase.ItemIndex := ComboSelectDatabase.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
   if comboSelectDatabase.ItemIndex = -1 then
     comboSelectDatabase.ItemIndex := 0;
-
 
   // fill columns:
   CheckListBoxFields.Items.Clear;

@@ -89,7 +89,6 @@ type
     { Private declarations }
   public
     { Public declarations }
-    SelectedDatabase : String;
   end;
 
 {$I const.inc}
@@ -251,7 +250,6 @@ begin
     Mainform.ChildWin.ExecUpdateQuery( createQuery, False, True );
     Mainform.ChildWin.MenuRefreshClick(sender);
     Mainform.ChildWin.SelectedTable := EditTablename.Text;
-    Mainform.ChildWin.ShowTable(EditTablename.Text);
   except on E: THandledSQLError do
     // Keep the form open so the user can fix his faulty input
     ModalResult := mrNone;
@@ -509,23 +507,16 @@ end;
 
 procedure TCreateTableForm.FormShow(Sender: TObject);
 var
-  i         : Integer;
-  tn        : TTreeNode;
+  i: Integer;
 begin
   // FormShow!
 
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  for i:=0 to Mainform.ChildWin.DBTree.Items.Count-1 do
-  begin
-    tn := Mainform.ChildWin.DBTree.Items[i];
-    if tn.Level = 1 then
-      DBComboBox.Items.Add(tn.Text);
-  end;
+  DBComboBox.Items.Assign(Mainform.ChildWin.Databases);
   // Preselect relevant database in pulldown 
-  if SelectedDatabase <> '' then
-    DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( SelectedDatabase )
-  else if DBComboBox.Items.Count > 0 then
+  DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
+  if (DBComboBox.ItemIndex = -1) and (DBComboBox.Items.Count > 0) then
     DBComboBox.ItemIndex := 0;
 
   if Mainform.ChildWin.mysql_version >= 32300 then
