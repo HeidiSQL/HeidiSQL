@@ -79,12 +79,12 @@ type
     FRowHandle: PZMySQLRow;
     FPlainDriver: IZMySQLPlainDriver;
     FUseResult: Boolean;
-    FSQL : String;
+    FSQL : WideString;
   protected
     procedure Open; override;
   public
     constructor Create(PlainDriver: IZMySQLPlainDriver; Statement: IZStatement;
-      SQL: string; Handle: PZMySQLConnect; UseResult: Boolean);
+      SQL: WideString; Handle: PZMySQLConnect; UseResult: Boolean);
     destructor Destroy; override;
 
     procedure Close; override;
@@ -181,7 +181,7 @@ end;
     <code>False</code> to store result.
 }
 constructor TZMySQLResultSet.Create(PlainDriver: IZMySQLPlainDriver;
-  Statement: IZStatement; SQL: string; Handle: PZMySQLConnect;
+  Statement: IZStatement; SQL: WideString; Handle: PZMySQLConnect;
   UseResult: Boolean);
 begin
   inherited Create(Statement, SQL, TZMySQLResultSetMetadata.Create(
@@ -212,6 +212,8 @@ end;
 procedure TZMySQLResultSet.Open;
 var
   I: Integer;
+  FieldWidthMax: Int64;
+  ColMaxWidth: Int64;
   ColumnInfo: TZColumnInfo;
   FieldHandle: PZMySQLField;
   FieldFlags: Integer;
@@ -261,11 +263,20 @@ begin
       ColumnLabel := FPlainDriver.GetFieldName(FieldHandle);
       TableName := FPlainDriver.GetFieldTable(FieldHandle);
       ReadOnly := (FPlainDriver.GetFieldTable(FieldHandle) = '');
-      ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver,
-        FieldHandle, FieldFlags);
-      ColumnDisplaySize := FPlainDriver.GetFieldLength(FieldHandle);
-      Precision := Max(FPlainDriver.GetFieldMaxLength(FieldHandle),
-        FPlainDriver.GetFieldLength(FieldHandle));
+      ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver, FieldHandle, FieldFlags);
+      ColMaxWidth := FPlainDriver.GetFieldLength(FieldHandle);
+      FieldWidthMax := FPlainDriver.GetFieldMaxLength(FieldHandle);
+      if ColumnType in [stUnicodeString, stUnicodeStream] then begin
+        // Results are always utf-8, the MySQL utf-8 encoder can produce sequences that
+        // consist of up to 3 bytes per character.  That's the number which the MySQL
+        // C API will return when queried.  Internally, Zeos needs to know the number
+        // of characters (which will later be doubled to obtain number of UCS2 bytes).
+        ColMaxWidth := ColMaxWidth div 3;
+        FieldWidthMax := FieldWidthMax div 3;
+      end;
+      ColumnDisplaySize := ColMaxWidth;
+      // Does the server ever allow a field to exceed the display size?
+      Precision := Max(ColMaxWidth, FieldWidthMax);
       Scale := FPlainDriver.GetFieldDecimals(FieldHandle);
       if (AUTO_INCREMENT_FLAG and FieldFlags <> 0)
         or (TIMESTAMP_FLAG and FieldFlags <> 0) then
