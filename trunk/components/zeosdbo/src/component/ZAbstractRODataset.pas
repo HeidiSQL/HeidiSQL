@@ -1459,6 +1459,11 @@ begin
           FName := Format('%s_%d', [FieldName, J]);
         end;
 
+        // Workaround for bug in DB.pas:
+        // Don't crash when a field name like 'FIELD2' is used.
+        // Test case: http://code.google.com/p/heidisql/issues/detail?id=545#c3
+        FieldDefs.DataSet.Name := 'ZEOS_RESERVED';
+
         with TFieldDef.Create(FieldDefs, FName, FieldType,
           Size, False, I) do
         begin
