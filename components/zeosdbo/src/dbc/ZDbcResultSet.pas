@@ -93,7 +93,7 @@ type
   protected
     LastWasNull: Boolean;
 
-    constructor Create(Statement: IZStatement; SQL: string;
+    constructor Create(Statement: IZStatement; SQL: WideString;
       Metadata: TContainedObject);
 
     procedure RaiseUnsupportedException;
@@ -340,7 +340,7 @@ uses ZMessages, ZDbcUtils, ZDbcResultSetMetadata;
   @param SQL an SQL query string.
   @param Metadata a resultset metadata object.
 }
-constructor TZAbstractResultSet.Create(Statement: IZStatement; SQL: string;
+constructor TZAbstractResultSet.Create(Statement: IZStatement; SQL: WideString;
   Metadata: TContainedObject);
 var
   DatabaseMetadata: IZDatabaseMetadata;

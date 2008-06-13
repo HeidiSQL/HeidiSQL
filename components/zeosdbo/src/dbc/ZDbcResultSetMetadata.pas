@@ -125,7 +125,7 @@ type
     FLoaded: Boolean;
     FMetadata: IZDatabaseMetadata;
     FColumnsLabels: TStrings;
-    FSQL: string;
+    FSQL: WideString;
     FTableColumns: TZHashMap;
     FIdentifierConvertor: IZIdentifierConvertor;
     FResultSet: TZAbstractResultSet;
@@ -144,13 +144,13 @@ type
 
     property MetaData: IZDatabaseMetadata read FMetadata write FMetadata;
     property ColumnsLabels: TStrings read FColumnsLabels write FColumnsLabels;
-    property SQL: string read FSQL write FSQL;
+    property SQL: WideString read FSQL write FSQL;
     property IdentifierConvertor: IZIdentifierConvertor
       read FIdentifierConvertor write FIdentifierConvertor;
     property Loaded: Boolean read FLoaded write FLoaded;
     property ResultSet: TZAbstractResultSet read FResultSet write FResultSet;
   public
-    constructor Create(Metadata: IZDatabaseMetadata; SQL: string;
+    constructor Create(Metadata: IZDatabaseMetadata; SQL: WideString;
       ParentResultSet: TZAbstractResultSet);
     destructor Destroy; override;
 
@@ -230,7 +230,7 @@ end;
   @param ColumnsInfo a collection of columns info.
 }
 constructor TZAbstractResultSetMetadata.Create(Metadata: IZDatabaseMetadata;
-  SQL: string; ParentResultSet: TZAbstractResultSet);
+  SQL: WideString; ParentResultSet: TZAbstractResultSet);
 begin
   inherited Create(ParentResultSet);
 
