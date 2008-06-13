@@ -1796,6 +1796,16 @@ object MDIChild: TMDIChild
     object N5: TMenuItem
       Caption = '-'
     end
+    object menuTreeExpandAll: TMenuItem
+      Caption = 'Expand all'
+      ImageIndex = 87
+      OnClick = menuTreeExpandAllClick
+    end
+    object menuTreeCollapseAll: TMenuItem
+      Caption = 'Collapse all'
+      ImageIndex = 88
+      OnClick = menuTreeCollapseAllClick
+    end
     object menuRefreshDBTree: TMenuItem
       Caption = 'Refresh'
       ImageIndex = 0

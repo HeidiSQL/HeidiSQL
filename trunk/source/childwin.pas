@@ -329,6 +329,8 @@ type
     menuTreeCreateView: TMenuItem;
     menuTreeEditView: TMenuItem;
     btnQueryWordWrap: TToolButton;
+    menuTreeExpandAll: TMenuItem;
+    menuTreeCollapseAll: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -546,6 +548,8 @@ type
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
     procedure menuRefreshDBTreeClick(Sender: TObject);
+    procedure menuTreeCollapseAllClick(Sender: TObject);
+    procedure menuTreeExpandAllClick(Sender: TObject);
     procedure SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer; AFiles:
         TWideStrings);
     procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
@@ -6891,6 +6895,33 @@ begin
     end;
   end;
 end;
+
+
+{**
+  Expand all db nodes
+}
+procedure TMDIChild.menuTreeExpandAllClick(Sender: TObject);
+begin
+  DBtree.FullExpand;
+  DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
+end;
+
+{**
+  Collapse all db nodes
+}
+procedure TMDIChild.menuTreeCollapseAllClick(Sender: TObject);
+var
+  n: PVirtualNode;
+  i: Integer;
+begin
+  n := DBtree.GetFirstChild(DBtree.GetFirst);
+  for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
+    DBtree.FullCollapse(n);
+    n := DBtree.GetNextSibling(n);
+  end;
+  DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
+end;
+
 
 
 end.
