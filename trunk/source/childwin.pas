@@ -6632,7 +6632,7 @@ var
 begin
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_SERVER;
-    1: if Kind = ikSelected then
+    1: if (Kind = ikSelected) or ((Sender.GetFirstSelected<>nil) and (Node=Sender.GetFirstSelected.Parent)) then
          ImageIndex := ICONINDEX_DB_HIGHLIGHT
          else ImageIndex := ICONINDEX_DB;
     2: begin
