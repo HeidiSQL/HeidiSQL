@@ -8,6 +8,7 @@
     <property name="project.version" value="Alpha 3 Update 4"/>
     <property name="project.version.short" value="Alpha"/>
     <property name="ftp.password" value="****"/>
+    <property name="java.target" value="1.5"/> 
     <!-- end -->
 
     <!-- common symbols -->    
@@ -17,6 +18,7 @@
     <property name="images" value="images"/>
     <property name="etc" value="etc"/>
     <property name="bin" value="bin"/>
+    <property name="logs" value="logs"/>
         
     <!-- output directories -->    
     <property name="dist.dir" value="output"/>
@@ -27,6 +29,7 @@
     <property name="ajl.src" value="${ajl}/${src}"/>
     <property name="ajl.lib" value="${ajl}/${lib}"/>
     <property name="ajl.jar" value="ajl.jar"/>
+    <property name="tools.jar" value="${ajl.lib}/tools.jar"/>
     
     <!-- autoupdater project locations -->    
     <property name="autoupdater.src" value="${autoupdater}/${src}"/>
@@ -50,19 +53,19 @@
     <property name="osx.client.autoupdater" value="${etc}/osx-client-autoupdater"/>
   
     <!-- osx deploy locations and files -->
-    <property name="osx.jheidi" value="${dist}/jHeidi"/>    
+    <property name="osx.jheidi" value="${dist.dir}/jHeidi"/>    
     <property name="osx.jheidi.app" value="${osx.jheidi}/jHeidi.app"/>
     <property name="osx.contents" value="${osx.jheidi.app}/Contents"/>
     <property name="osx.macos" value="${osx.contents}/MacOS"/>
     <property name="osx.resources" value="${osx.contents}/Resources"/>
     <property name="osx.java" value="${osx.resources}/Java"/>
-    <property name="osx.plist" value="${etc}/info.plist"/>
+    <property name="osx.plist" value="${etc}/Info.plist"/>
     <property name="osx.pkginfo" value="${etc}/PkgInfo"/>
     <property name="osx.dsstore" value="${etc}/.DS_Store"/>
-    <property name="osx.icons" value="${etc}/icons.icns"/>
+    <property name="osx.icons" value="${etc}/icon.icns"/>
     
     <!-- final output properties -->    
-    <property name="upload" value="upload"/>
+    <property name="upload.dir" value="upload"/>
     <property name="jheidi.bin.name" value="jheidi-bin"/>
     <property name="jheidi.osx.name" value="jheidi-osx"/>
     <property name="jheidi.win.name" value="jheidi-win"/>
@@ -81,18 +84,29 @@
     <path id="jheidi.libs">    
       <fileset dir="${ajl.lib}">
         <include name="editor.jar"/>
-        <include name="libquaqua.jar"/>
+        <include name="quaqua.jar"/>
         <include name="swing-worker-1.1.jar"/>
         <include name="log4j-1.2.13.jar"/>
       </fileset>
-      <fileset dir="${jheidi.lib}">      
+      <fileset dir="${lib}">      
         <include name="mysql-connector-java-5.0.7-bin.jar"/>
+      </fileset>
+      <fileset file="${components.dir}/${ajl.jar}"/>
+    </path><path refid="jheidi.libs.osx"/>
+    
+    <path id="compile.libs">
+      <fileset dir="${lib}">
+        <include name="quaqua.jar"/>
+        <include name="swing-worker-1.1.jar"/>
+        <include name="log4j-1.2.13.jar"/>
+        <include name="ajl.jar"/>        
+        <include name="tools.jar"/>
       </fileset>
     </path>
     
     <path id="jheidi.libs.osx">    
       <fileset dir="${ajl.lib}">
-        <include name="libquaqua.jar"/>
+        <include name="quaqua.jar"/>
         <include name="libquaqua.jnilib"/>
       </fileset>
     </path>
@@ -102,7 +116,7 @@
         <include name="jheidi"/>
         <include name="jheidi.cmd"/>
         <include name="jheidi-osx"/>
-      </fileset><property name="osx.java" value="${osx.resources}/Java"/>
+      </fileset>
     </path>
     
     <path id="win.bin">    
@@ -120,34 +134,59 @@
     
     
   <!-- compile tasks -->
+  
+  <!-- not that clean tasks are not in the 'depends' attribute
+       because we need to reuse these dirs for each subsequent builds
+       so antcall is used to guarantee that clean is done on every target that needs it -->
+       
+  <!-- the extra 'echo' tasks are to show the return from clean since ant has a lovely feature
+       of showing the ant call target and making it look like that target took over in the output -->
     
-  <target name="clean.compile"/>
+  <target name="clean.compile">
     <delete dir="${classes}"/>     
   </target> 
   
-  <target name="compile.ajl" depends="clean.compile"/>
+  <target name="compile.ajl">
+    <antcall target="clean.compile"/> 
+    <echo message="compile.ajl--------------------------------------------------"/>  
     <mkdir dir="${classes}"/>  
-    <javac srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
-    <javac srcdir="${ajl.src}" destdir="${classes}" 
+    <javac target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
+    <javac target="${java.target}" nowarn="on" srcdir="${ajl.src}" destdir="${classes}" 
       includes="com/rendion/ajl/**, com/rendion/ajl/gui/**, com/rendion/ajl/servlet/**">
-       <classpath refid="ajl.classpath"/>      
-    </javac> 
+       <classpath refid="ajl.classpath"/>     
+    </javac>  
   </target>
   
-  <target name="compile.autoupdater" depends="clean.compile"/>
+  <target name="compile.autoupdater">
+    <antcall target="clean.compile"/>  
+    <echo message="compile.autoupdater------------------------------------------"/>      
     <mkdir dir="${classes}"/>  
-    <javac srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
+    <javac target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
     <copy todir="${classes}">
       <fileset dir="${autoupdater.swingworker}"/>
     </copy>
   </target>
   
-  <target name="compile" depends="clean.compile"/>
+  <target name="compile">
+    <antcall target="clean.compile"/> 
+    <echo message="compile----------------------------------------------------"/>   
+    <copy todir="${lib}">
+       <path refid="jheidi.libs"/> 
+       <fileset file="${tools.jar}"/>   
+    </copy>    
     <mkdir dir="${classes}"/>  
-    <exec executable="ajl">
+    <exec executable="./ajl">
       <arg value="-c"/>
     </exec>
-    <javac srcdir="${src}" destdir="${classes}" includes="${jheidi.launcher}"/>
+    <javac target="${java.target}" srcdir="${src}" destdir="${classes}" classpath="${lib}/${ajl.jar}" includes="${jheidi.launcher}"/>
+    <delete>
+      <path refid="compile.libs"/>    
+    </delete>
+    <delete>
+      <fileset dir="${classes}">
+        <include name="**/*.java"/>
+      </fileset>   
+    </delete>
   </target>
   
   
@@ -157,117 +196,116 @@
     <delete dir="${build.dir}"/>
   </target>
   
-   <target name="ajl.jar" depends="compile.ajl, clean.build">
-    <delete file="${components}/${ajl.jar}"/>
-    <mkdir dir="${components}"/>
-    <mkdir dir="${build.dir}"/>
-    <mkdir dir="${build.classes}"/>
+   <target name="ajl.jar" depends="compile.ajl">
+    <antcall target="clean.build"/> 
+    <echo message="ajl.jar------------------------------------------------------"/>    
+    <delete file="${components.dir}/${ajl.jar}"/>
+    <mkdir dir="${components.dir}"/>
     <mkdir dir="${build.meta-inf}"/>
      
     <copy todir="${build.classes}">
       <fileset dir="${classes}"/>
     </copy>
-    <zip destfile="${components}/${ajl.jar}" basedir="${build.classes}"/>
+    <zip destfile="${components.dir}/${ajl.jar}" basedir="${build.classes}"/>
   </target>
   
-  <target name="autoupdater.jar" depends="compile.autoupdater, clean.build">
-    <delete file="${components}/${autoupdater.jar}"/>
-    <mkdir dir="${components}"/>
-    <mkdir dir="${build.dir}"/>
-    <mkdir dir="${build.classes}"/>
+  <target name="autoupdater.jar" depends="compile.autoupdater">
+    <antcall target="clean.build"/>
+    <echo message="autoupdater.jar---------------------------------------------"/> 
+    <delete file="${components.dir}/${autoupdater.jar}"/>
+    <mkdir dir="${components.dir}"/>
     <mkdir dir="${build.meta-inf}"/>
      
     <copy todir="${build.classes}">
       <fileset dir="${classes}"/>
     </copy>
     <copy file="${autoupdater.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
-    <zip destfile="${components}/${autoupdater.jar}" basedir="${build.classes}"/>
+    <zip destfile="${components.dir}/${autoupdater.jar}" basedir="${build.classes}"/>
   </target>
   
-  <target name="jheidi.jar" depends="compile, clean.build">
-    <delete file="${components}/${jheidi.jar}"/>
-    <mkdir dir="${components}"/>
-    <mkdir dir="${build.dir}"/>
-    <mkdir dir="${build.classes}"/>
+  <target name="jheidi.jar" depends="compile">
+    <antcall target="clean.build"/>
+    <echo message="jheidi.jar-------------------------------------------------"/>  
+    <delete file="${components.dir}/${jheidi.jar}"/>
+    <mkdir dir="${components.dir}"/>
     <mkdir dir="${build.meta-inf}"/>
      
     <copy todir="${build.classes}">
       <fileset dir="${classes}"/>
     </copy>
     <copy file="${jheidi.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
-    <zip destfile="${components}/${jheidi.jar}" basedir="${build.classes}"/>
+    <zip destfile="${components.dir}/${jheidi.jar}" basedir="${build.classes}"/>
   </target>
   
   <!-- deploy tasks -->
+  <target name="clean.dist">
+    <delete dir="${dist.dir}"/>
+  </target>  
   
-  <target name="deploy-bin" depends="ajl.jar,autoupdater.jar, jheidi.jar, clean.dist">
-     <mkdir dir="${upload}"/>
-     <delete file="${upload}/${jheidi.bin.name}.zip"/>    
+  <target name="deploy.bin" depends="ajl.jar, autoupdater.jar, jheidi.jar">
+     <antcall target="clean.dist"/>   
+     <echo message="deploy.bin-------------------------------------------------"/>  
+     <mkdir dir="${upload.dir}"/>
+     <delete file="${upload.dir}/${jheidi.bin.name}.zip"/>    
      <mkdir dir="${bin.dist}/${lib}"/>
      <mkdir dir="${bin.dist}/${images}"/>
-     <mkdir dir="${bin.dist}/${etc}"/>
      <mkdir dir="${bin.dist}/${logs}"/>
           
     <copy todir="${bin.dist}/${lib}">
       <path refid="jheidi.libs"/>
+      <path refid="jheidi.libs.osx"/>
     </copy>
     
     <copy todir="${bin.dist}/${images}">
      <fileset dir="${images}"/>
     </copy>
     
-    <copy todir="${bin.dist}/${etc}">
+    <copy todir="${bin.dist}/${logs}">
      <fileset dir="${etc}">
        <include name="log4jconfig.xml"/>
      </fileset>
     </copy>
   
-    <copy todir="${bin.dist}/${lib}">
-     <fileset file="${components}/${ajl.jar}"/>
-    </copy>
-    
     <copy todir="${bin.dist}">
-     <fileset file="${components}/${jheidi.jar}"/>
+     <fileset file="${components.dir}/${jheidi.jar}"/>
     </copy>
-    
+
     <copy todir="${bin.dist}">
      <path refid="bin.bin"/>
     </copy>
     
-    <copy file="${.connectionProfiles}" tofile="${bin.dist}/${.connectionProfiles}"/>
+    <copy file="${etc}/${.connectionProfiles}" tofile="${bin.dist}/${.connectionProfiles}"/>
     <copy file="${bin.client.autoupdater}" tofile="${bin.dist}/${.autoupdater}"/>
-    <zip destfile="${upload}/${jheidi.bin.name}.zip" basedir="${dist.dir}"/>
+    <zip destfile="${upload.dir}/${jheidi.bin.name}.zip" basedir="${dist.dir}"/>
   </target>
   
-  <target name="deploy-osx" depends="ajl.jar,autoupdater.jar, jheidi.jar, clean.dist">
-     <mkdir dir="${upload}"/>
-     <delete file="${upload}/${jheidi.osx.name}.zip"/>    
-     <mkdir dir="${osx.java}/${lib}/>
+  <target name="deploy.osx" depends="ajl.jar, autoupdater.jar, jheidi.jar">
+     <antcall target="clean.dist"/> 
+     <echo message="deploy.osx------------------------------------------------------"/>   
+     <mkdir dir="${upload.dir}"/>
+     <delete file="${upload.dir}/${jheidi.osx.name}.zip"/>    
+     <mkdir dir="${osx.java}/${lib}"/>
      <mkdir dir="${osx.java}/${images}"/>
-     <mkdir dir="${osx.java}/${etc}"/>
      <mkdir dir="${osx.java}/${logs}"/>
      <mkdir dir="${osx.macos}"/>
           
     <copy todir="${osx.java}/${lib}">
       <path refid="jheidi.libs"/>
+      <path refid="jheidi.libs.osx"/>
     </copy>
     
     <copy todir="${osx.java}/${images}">
      <fileset dir="${images}"/>
     </copy>
     
-    <copy todir="${osx.java}/${etc}">
+    <copy todir="${osx.java}/${logs}">
      <fileset dir="${etc}">
        <include name="log4jconfig.xml"/>
      </fileset>
     </copy>
   
-    <copy todir="${osx.java}/${lib}">
-     <fileset file="${components}/${ajl.jar}"/>
-    </copy>
-    
     <copy todir="${osx.java}">
-     <fileset file="${components}/${jheidi.jar}"/>
+     <fileset file="${components.dir}/${jheidi.jar}"/>
     </copy>
     
     <copy todir="${osx.macos}">
@@ -295,9 +333,17 @@
       <fileset file="${osx.icons}"/>
     </copy>
     
-    <copy file="${.connectionProfiles}" tofile="${osx.java}/${.connectionProfiles}"/>
+    <copy file="${etc}/${.connectionProfiles}" tofile="${osx.java}/${.connectionProfiles}"/>
     <copy file="${win.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
-    <zip destfile="${upload}/${jheidi.osx.name}.zip" basedir="${dist.dir}"/>
+    <zip destfile="${upload.dir}/${jheidi.osx.name}.zip" basedir="${dist.dir}"/>
+  </target>
+  
+  <target name="cleanup">
+     <delete dir="${classes}"/>  
+     <delete dir="${build.dir}"/>
+     <delete dir="${components.dir}"/>
+     <delete dir="${dist.dir}"/>
+     <delete dir="${upload.dir}"/>
   </target>
   
   <!-- upload tasks -->
@@ -308,7 +354,7 @@
        remoteDir="/www/jheidi/files/"
        password="${ftp.password}"
        passive="no">
-      <fileset file="${upload}/${jheidi.bin.name}.zip"/>
+      <fileset file="${upload.dir}/${jheidi.bin.name}.zip"/>
     </ftp>
   </target>
   
@@ -322,7 +368,7 @@
        remoteDir="/www/jheidi/files/"
        password="${ftp.password}"
        passive="no">
-      <fileset file="${upload}/${jheidi.osx.name}.zip"/>
+      <fileset file="${upload.dir}/${jheidi.osx.name}.zip"/>
     </ftp>
   </target>
   
