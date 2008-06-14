@@ -225,7 +225,7 @@ const
 
   // Node types of Virtual Tree nodes
   NODETYPE_DEFAULT = 0;
-  NODETYPE_BASETABLE = 1;
+  NODETYPE_TABLE = 1;
   NODETYPE_VIEW = 2;
   NODETYPE_DB = 3;
   NODETYPE_COLUMN = 4;
