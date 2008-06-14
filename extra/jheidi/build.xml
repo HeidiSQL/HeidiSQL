@@ -7,6 +7,7 @@
     <property name="autoupdater" value="../autoupdater"/> 
     <property name="project.version" value="Alpha 3 Update 4"/>
     <property name="project.version.short" value="Alpha"/>
+    <property name="ftp.password" value="****"/>
     <!-- end -->
 
     <!-- common symbols -->    
@@ -305,7 +306,7 @@
      <ftp server="heidisql.com"
        userid="servertude"
        remoteDir="/www/jheidi/files/"
-       password="Gi3k5m"
+       password="${ftp.password}"
        passive="no">
       <fileset file="${upload}/${jheidi.bin.name}.zip"/>
     </ftp>
@@ -319,7 +320,7 @@
     <ftp server="heidisql.com"
        userid="servertude"
        remoteDir="/www/jheidi/files/"
-       password="Gi3k5m"
+       password="${ftp.password}"
        passive="no">
       <fileset file="${upload}/${jheidi.osx.name}.zip"/>
     </ftp>
