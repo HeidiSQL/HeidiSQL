@@ -9,6 +9,7 @@
     <property name="project.version.short" value="Alpha"/>
     <property name="ftp.password" value="****"/>
     <property name="java.target" value="1.5"/> 
+	<property name="ajl.cmd" value="./ajl"/> 
     <!-- end -->
 
     <!-- common symbols -->    
@@ -175,7 +176,7 @@
        <fileset file="${tools.jar}"/>   
     </copy>    
     <mkdir dir="${classes}"/>  
-    <exec executable="./ajl">
+    <exec executable="ajl.cmd">
       <arg value="-c"/>
     </exec>
     <javac target="${java.target}" srcdir="${src}" destdir="${classes}" classpath="${lib}/${ajl.jar}" includes="${jheidi.launcher}"/>
