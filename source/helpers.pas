@@ -74,6 +74,8 @@ type
   procedure setLocales;
   function maskSql(sql_version: integer; str: String) : String;
   procedure ActivateWindow(Window : HWnd);
+  function GetApplication(MainForm: HWnd): HWnd;
+  procedure ActivateMainForm(MainForm: HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;

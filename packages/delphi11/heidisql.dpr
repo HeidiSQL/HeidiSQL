@@ -60,6 +60,7 @@ begin
       );
       debug('perf: Running.');
       Application.Run;
+      ActivateMainform(Mainform.Handle);
     finally
       DeInitializeSync;
     end;
