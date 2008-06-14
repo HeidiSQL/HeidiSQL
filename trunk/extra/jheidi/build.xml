@@ -338,6 +338,15 @@
     <copy file="${win.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
     <zip destfile="${upload.dir}/${jheidi.osx.name}.zip" basedir="${dist.dir}"/>
   </target>
+
+  <target name="jheidi.exe" if="nsis.cmd">
+    <exec executable="${nsis.cmd}" dir="${etc}/nsis">
+      <arg value="jheidi.nsi"/>
+    </exec>
+  </target>
+
+  <target name="make.setup.exe" if="innosetup.cmd">
+  </target>
   
   <target name="cleanup">
      <delete dir="${classes}"/>  
