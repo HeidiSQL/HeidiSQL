@@ -1,0 +1,331 @@
+  <project name="jheidi" basedir=".">
+  
+    <property file="build.properties"/>
+    
+    <!-- properties to override for basepaths -->
+    <property name="ajl" value="../ajl"/>  
+    <property name="autoupdater" value="../autoupdater"/> 
+    <property name="project.version" value="Alpha 3 Update 4"/>
+    <property name="project.version.short" value="Alpha"/>
+    <!-- end -->
+
+    <!-- common symbols -->    
+    <property name="classes" value="classes"/>
+    <property name="src" value="src"/>
+    <property name="lib" value="lib"/>
+    <property name="images" value="images"/>
+    <property name="etc" value="etc"/>
+    <property name="bin" value="bin"/>
+        
+    <!-- output directories -->    
+    <property name="dist.dir" value="output"/>
+    <property name="components.dir" value="components"/>
+    <property name="build.dir" value="build"/>
+    
+    <!-- ajl project locations -->    
+    <property name="ajl.src" value="${ajl}/${src}"/>
+    <property name="ajl.lib" value="${ajl}/${lib}"/>
+    <property name="ajl.jar" value="ajl.jar"/>
+    
+    <!-- autoupdater project locations -->    
+    <property name="autoupdater.src" value="${autoupdater}/${src}"/>
+    <property name="autoupdater.etc" value="${autoupdater}/${etc}"/>
+    <property name="autoupdater.swingworker" value="${autoupdater}/swing-worker-1.1"/>
+    <property name="autoupdater.manifest" value="${autoupdater.etc}/autoupdater.manifest"/> 
+    <property name="autoupdater.jar" value="autoupdater.jar"/>
+    
+    <!-- build locations -->
+    <property name="build.classes" value="${build.dir}/classes"/>
+    <property name="build.meta-inf" value="${build.classes}/META-INF"/>
+    
+    <!-- jheidi locations and files-->  
+    <property name="jheidi.manifest" value="${etc}/jheidi.manifest"/>
+    <property name="jheidi.launcher" value="LaunchJHeidi.java"/>
+    <property name="jheidi.jar" value="jheidi.jar"/>  
+    <property name=".autoupdater" value=".autoupdater"/>  
+    <property name=".connectionProfiles" value=".connectionProfiles"/>
+    <property name="bin.client.autoupdater" value="${etc}/bin-client-autoupdater"/>
+    <property name="win.client.autoupdater" value="${etc}/win-client-autoupdater"/>
+    <property name="osx.client.autoupdater" value="${etc}/osx-client-autoupdater"/>
+  
+    <!-- osx deploy locations and files -->
+    <property name="osx.jheidi" value="${dist}/jHeidi"/>    
+    <property name="osx.jheidi.app" value="${osx.jheidi}/jHeidi.app"/>
+    <property name="osx.contents" value="${osx.jheidi.app}/Contents"/>
+    <property name="osx.macos" value="${osx.contents}/MacOS"/>
+    <property name="osx.resources" value="${osx.contents}/Resources"/>
+    <property name="osx.java" value="${osx.resources}/Java"/>
+    <property name="osx.plist" value="${etc}/info.plist"/>
+    <property name="osx.pkginfo" value="${etc}/PkgInfo"/>
+    <property name="osx.dsstore" value="${etc}/.DS_Store"/>
+    <property name="osx.icons" value="${etc}/icons.icns"/>
+    
+    <!-- final output properties -->    
+    <property name="upload" value="upload"/>
+    <property name="jheidi.bin.name" value="jheidi-bin"/>
+    <property name="jheidi.osx.name" value="jheidi-osx"/>
+    <property name="jheidi.win.name" value="jheidi-win"/>
+    <property name="bin.dist" value="${dist.dir}/${jheidi.bin.name}"/>
+    <property name="win.dist" value="${dist.dir}/${jheidi.win.name}"/>
+    <property name="osx.dist" value="${osx.java}/${jheidi.osx.name}"/>
+    
+
+    <!-- path collections -->    
+    <path id="ajl.classpath">
+      <fileset dir="${ajl.lib}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </path>
+    
+    <path id="jheidi.libs">    
+      <fileset dir="${ajl.lib}">
+        <include name="editor.jar"/>
+        <include name="libquaqua.jar"/>
+        <include name="swing-worker-1.1.jar"/>
+        <include name="log4j-1.2.13.jar"/>
+      </fileset>
+      <fileset dir="${jheidi.lib}">      
+        <include name="mysql-connector-java-5.0.7-bin.jar"/>
+      </fileset>
+    </path>
+    
+    <path id="jheidi.libs.osx">    
+      <fileset dir="${ajl.lib}">
+        <include name="libquaqua.jar"/>
+        <include name="libquaqua.jnilib"/>
+      </fileset>
+    </path>
+    
+    <path id="bin.bin">    
+      <fileset dir="${bin}">
+        <include name="jheidi"/>
+        <include name="jheidi.cmd"/>
+        <include name="jheidi-osx"/>
+      </fileset><property name="osx.java" value="${osx.resources}/Java"/>
+    </path>
+    
+    <path id="win.bin">    
+      <fileset dir="${bin}">
+        <include name="jheidi.cmd"/>
+        <include name="jheidi.exe"/>
+      </fileset>
+    </path>
+    
+    <path id="osx.bin">    
+      <fileset dir="${bin}">
+        <include name="JavaApplicationStub"/>
+      </fileset>
+    </path>
+    
+    
+  <!-- compile tasks -->
+    
+  <target name="clean.compile"/>
+    <delete dir="${classes}"/>     
+  </target> 
+  
+  <target name="compile.ajl" depends="clean.compile"/>
+    <mkdir dir="${classes}"/>  
+    <javac srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
+    <javac srcdir="${ajl.src}" destdir="${classes}" 
+      includes="com/rendion/ajl/**, com/rendion/ajl/gui/**, com/rendion/ajl/servlet/**">
+       <classpath refid="ajl.classpath"/>      
+    </javac> 
+  </target>
+  
+  <target name="compile.autoupdater" depends="clean.compile"/>
+    <mkdir dir="${classes}"/>  
+    <javac srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
+    <copy todir="${classes}">
+      <fileset dir="${autoupdater.swingworker}"/>
+    </copy>
+  </target>
+  
+  <target name="compile" depends="clean.compile"/>
+    <mkdir dir="${classes}"/>  
+    <exec executable="ajl">
+      <arg value="-c"/>
+    </exec>
+    <javac srcdir="${src}" destdir="${classes}" includes="${jheidi.launcher}"/>
+  </target>
+  
+  
+  <!-- build tasks -->
+  
+  <target name="clean.build">
+    <delete dir="${build.dir}"/>
+  </target>
+  
+   <target name="ajl.jar" depends="compile.ajl, clean.build">
+    <delete file="${components}/${ajl.jar}"/>
+    <mkdir dir="${components}"/>
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.classes}"/>
+    <mkdir dir="${build.meta-inf}"/>
+     
+    <copy todir="${build.classes}">
+      <fileset dir="${classes}"/>
+    </copy>
+    <zip destfile="${components}/${ajl.jar}" basedir="${build.classes}"/>
+  </target>
+  
+  <target name="autoupdater.jar" depends="compile.autoupdater, clean.build">
+    <delete file="${components}/${autoupdater.jar}"/>
+    <mkdir dir="${components}"/>
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.classes}"/>
+    <mkdir dir="${build.meta-inf}"/>
+     
+    <copy todir="${build.classes}">
+      <fileset dir="${classes}"/>
+    </copy>
+    <copy file="${autoupdater.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
+    <zip destfile="${components}/${autoupdater.jar}" basedir="${build.classes}"/>
+  </target>
+  
+  <target name="jheidi.jar" depends="compile, clean.build">
+    <delete file="${components}/${jheidi.jar}"/>
+    <mkdir dir="${components}"/>
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.classes}"/>
+    <mkdir dir="${build.meta-inf}"/>
+     
+    <copy todir="${build.classes}">
+      <fileset dir="${classes}"/>
+    </copy>
+    <copy file="${jheidi.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
+    <zip destfile="${components}/${jheidi.jar}" basedir="${build.classes}"/>
+  </target>
+  
+  <!-- deploy tasks -->
+  
+  <target name="deploy-bin" depends="ajl.jar,autoupdater.jar, jheidi.jar, clean.dist">
+     <mkdir dir="${upload}"/>
+     <delete file="${upload}/${jheidi.bin.name}.zip"/>    
+     <mkdir dir="${bin.dist}/${lib}"/>
+     <mkdir dir="${bin.dist}/${images}"/>
+     <mkdir dir="${bin.dist}/${etc}"/>
+     <mkdir dir="${bin.dist}/${logs}"/>
+          
+    <copy todir="${bin.dist}/${lib}">
+      <path refid="jheidi.libs"/>
+    </copy>
+    
+    <copy todir="${bin.dist}/${images}">
+     <fileset dir="${images}"/>
+    </copy>
+    
+    <copy todir="${bin.dist}/${etc}">
+     <fileset dir="${etc}">
+       <include name="log4jconfig.xml"/>
+     </fileset>
+    </copy>
+  
+    <copy todir="${bin.dist}/${lib}">
+     <fileset file="${components}/${ajl.jar}"/>
+    </copy>
+    
+    <copy todir="${bin.dist}">
+     <fileset file="${components}/${jheidi.jar}"/>
+    </copy>
+    
+    <copy todir="${bin.dist}">
+     <path refid="bin.bin"/>
+    </copy>
+    
+    <copy file="${.connectionProfiles}" tofile="${bin.dist}/${.connectionProfiles}"/>
+    <copy file="${bin.client.autoupdater}" tofile="${bin.dist}/${.autoupdater}"/>
+    <zip destfile="${upload}/${jheidi.bin.name}.zip" basedir="${dist.dir}"/>
+  </target>
+  
+  <target name="deploy-osx" depends="ajl.jar,autoupdater.jar, jheidi.jar, clean.dist">
+     <mkdir dir="${upload}"/>
+     <delete file="${upload}/${jheidi.osx.name}.zip"/>    
+     <mkdir dir="${osx.java}/${lib}/>
+     <mkdir dir="${osx.java}/${images}"/>
+     <mkdir dir="${osx.java}/${etc}"/>
+     <mkdir dir="${osx.java}/${logs}"/>
+     <mkdir dir="${osx.macos}"/>
+          
+    <copy todir="${osx.java}/${lib}">
+      <path refid="jheidi.libs"/>
+    </copy>
+    
+    <copy todir="${osx.java}/${images}">
+     <fileset dir="${images}"/>
+    </copy>
+    
+    <copy todir="${osx.java}/${etc}">
+     <fileset dir="${etc}">
+       <include name="log4jconfig.xml"/>
+     </fileset>
+    </copy>
+  
+    <copy todir="${osx.java}/${lib}">
+     <fileset file="${components}/${ajl.jar}"/>
+    </copy>
+    
+    <copy todir="${osx.java}">
+     <fileset file="${components}/${jheidi.jar}"/>
+    </copy>
+    
+    <copy todir="${osx.macos}">
+      <path refid="osx.bin"/>
+    </copy>
+    
+    <copy todir="${osx.jheidi.app}">
+      <fileset file="${ajl.lib}/libquaqua.jnilib"/>
+    </copy>
+    
+    <copy todir="${osx.jheidi}">
+      <fileset file="${osx.dsStore}"/>
+    </copy>
+    
+    <copy todir="${osx.jheidi}">
+      <fileset file="${osx.dsStore}"/>
+    </copy>
+    
+    <copy todir="${osx.contents}">
+      <fileset file="${osx.plist}"/>
+      <fileset file="${osx.pkginfo}"/>
+    </copy>
+    
+    <copy todir="${osx.resources}">
+      <fileset file="${osx.icons}"/>
+    </copy>
+    
+    <copy file="${.connectionProfiles}" tofile="${osx.java}/${.connectionProfiles}"/>
+    <copy file="${win.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
+    <zip destfile="${upload}/${jheidi.osx.name}.zip" basedir="${dist.dir}"/>
+  </target>
+  
+  <!-- upload tasks -->
+  
+  <target name="upload.bin">
+     <ftp server="heidisql.com"
+       userid="servertude"
+       remoteDir="/www/jheidi/files/"
+       password="Gi3k5m"
+       passive="no">
+      <fileset file="${upload}/${jheidi.bin.name}.zip"/>
+    </ftp>
+  </target>
+  
+  <target name="upload.win">
+  
+  </target>
+  
+  <target name="upload.osx">
+    <ftp server="heidisql.com"
+       userid="servertude"
+       remoteDir="/www/jheidi/files/"
+       password="Gi3k5m"
+       passive="no">
+      <fileset file="${upload}/${jheidi.osx.name}.zip"/>
+    </ftp>
+  </target>
+  
+  <target name="upload.all" depends="upload.bin, upload.win, upload.osx"/>
+  
+  </project>
+
