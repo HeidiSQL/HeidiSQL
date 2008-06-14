@@ -104,17 +104,18 @@ end;
 
 { Read tables from selected DB }
 procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
+var
+  ds: TDataset;
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-
-  // Fetch tables from DB
-  ComboBoxTables.Items := Mainform.ChildWin.GetCol( 'SHOW TABLES FROM ' + MainForm.mask(ComboBoxDBs.Text) );
-
-  if ComboBoxTables.Items.Count > 0 then
-  begin
-    ComboBoxTables.ItemIndex := 0;
+  ds := Mainform.ChildWin.FetchDbTableList(ComboBoxDBs.Text);
+  while not ds.Eof do begin
+    ComboBoxTables.Items.Add(ds.Fields[0].AsString);
+    ds.Next;
   end;
+  if ComboBoxTables.Items.Count > 0 then
+    ComboBoxTables.ItemIndex := 0;
   ComboBoxTablesChange(self);
 end;
 
