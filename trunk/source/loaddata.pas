@@ -142,7 +142,7 @@ begin
   ds := Mainform.ChildWin.FetchDbTableList(comboDatabase.Text);
   while not ds.Eof do begin
     // Only display tables, skip views etc. 
-    if GetDBObjectType(ds.Fields) = NODETYPE_BASETABLE then begin
+    if GetDBObjectType(ds.Fields) = NODETYPE_TABLE then begin
       comboTable.Items.Add(ds.Fields[0].AsString);
       count := comboTable.Items.Count-1;
       if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then

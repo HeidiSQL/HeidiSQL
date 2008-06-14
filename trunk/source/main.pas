@@ -1101,12 +1101,12 @@ begin
   Views := TStringlist.Create;
   if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
     // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
-    Tables := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_BASETABLE);
+    Tables := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_TABLE);
     Views := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_VIEW);
   end else begin
     // Invoked from one of the various buttons, drop table selected in tree view.
     case Childwin.GetSelectedNodeType of
-      NODETYPE_BASETABLE: Tables.Add(Childwin.SelectedTable);
+      NODETYPE_TABLE: Tables.Add(Childwin.SelectedTable);
       NODETYPE_VIEW: Views.Add(Childwin.SelectedTable)
     end;
   end;

@@ -445,7 +445,7 @@ begin
       case u.Privileges[i].DBOType of
         NODETYPE_DEFAULT:   Icon := ICONINDEX_SERVER;
         NODETYPE_DB:        Icon := ICONINDEX_DB;
-        NODETYPE_BASETABLE: Icon := ICONINDEX_TABLE;
+        NODETYPE_TABLE:     Icon := ICONINDEX_TABLE;
         NODETYPE_VIEW:      Icon := ICONINDEX_VIEW;
         NODETYPE_COLUMN:    Icon := ICONINDEX_FIELD;
       end;
@@ -1056,7 +1056,7 @@ begin
           TableName := mask(PRIVTABLE_DB);
           SetFieldName := '';
         end;
-        NODETYPE_BASETABLE: begin
+        NODETYPE_TABLE: begin
           TableSet := dsTables;
           TableName := mask(PRIVTABLE_TABLES);
           SetFieldName := 'table_priv';
@@ -1618,7 +1618,7 @@ begin
   case FDBOType of
     NODETYPE_DEFAULT:   Result := Result + 'Server privileges';
     NODETYPE_DB:        Result := Result + 'Database: ';
-    NODETYPE_BASETABLE: Result := Result + 'Table: ';
+    NODETYPE_TABLE:     Result := Result + 'Table: ';
     NODETYPE_COLUMN:    Result := Result + 'Column: ';
   end;
   Result := Result + GetDBOKey;
@@ -1664,7 +1664,7 @@ begin
     DBONames.Add(Fields.FieldByName('Db').AsString);
   end;
   if Fields.FindField('Table_name') <> nil then begin
-    DBOType := NODETYPE_BASETABLE;
+    DBOType := NODETYPE_TABLE;
     DBONames.Add(Fields.FieldByName('Table_name').AsString);
   end;
   if Fields.FindField('Column_name') <> nil then begin

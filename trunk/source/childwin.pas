@@ -1572,7 +1572,7 @@ begin
 
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
 
-  if GetSelectedNodeType = NODETYPE_BASETABLE then begin
+  if GetSelectedNodeType = NODETYPE_TABLE then begin
     // Get rowcount from table
     rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
     lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' records total';
@@ -1822,10 +1822,10 @@ begin
 
       // Treat tables slightly different than views
       case GetDBObjectType( ds.Fields) of
-        NODETYPE_BASETABLE: // A normal table
+        NODETYPE_TABLE: // A normal table
         begin
           VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
-          VTRowDataListTables[i-1].NodeType := NODETYPE_BASETABLE;
+          VTRowDataListTables[i-1].NodeType := NODETYPE_TABLE;
           // Records
           if ds.FindField('Rows') <> nil then
             ListCaptions.Add( FormatNumber( FieldContent('Rows') ) )
@@ -2160,7 +2160,7 @@ begin
   // Check type of first selected node, to en-/disable certain menu items
   if NodeSelected then begin
     NodeData := ListTables.GetNodeData( SelectedNodes[0] );
-    tableSelected := NodeData.NodeType = NODETYPE_BASETABLE;
+    tableSelected := NodeData.NodeType = NODETYPE_TABLE;
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
@@ -2838,7 +2838,7 @@ var
   begin
     ObjName := Fields[0].AsString;
     case GetDBObjectType(Fields) of
-      NODETYPE_BASETABLE: ObjType := 'table';
+      NODETYPE_TABLE: ObjType := 'table';
       NODETYPE_VIEW: ObjType := 'view';
       else ObjType := 'unknown';
     end;
@@ -4024,7 +4024,7 @@ begin
     menuAlterDatabase.Hint := STR_NOTSUPPORTED
   else
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
-  menuTreeAlterTable.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_BASETABLE);
+  menuTreeAlterTable.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
   Mainform.actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
   MainForm.DropTablesAndViews.Enabled := (L = 2);
 end;
@@ -6645,7 +6645,7 @@ begin
         ds := FetchDbTableList(Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         case GetDBObjectType(ds.Fields) of
-          NODETYPE_BASETABLE:
+          NODETYPE_TABLE:
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_TABLE_HIGHLIGHT
               else ImageIndex := ICONINDEX_TABLE;
