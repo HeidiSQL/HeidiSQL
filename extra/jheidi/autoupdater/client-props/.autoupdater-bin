@@ -1,9 +1,0 @@
-app=jHeidi
-version=Alpha 3 Update 4
-timestamp=20070523000000
-url=http://heidisql.com/jheidi/files/autoupdater/bin/jheidi-bin-autoupdater
-processKey=jheidi
-libPath=lib
-propPath=.
-releaseNotes=jHeidi Alpha 3 Update 4 Release Notes\n=====================================\n\nNew in this release is the Auto Update functionality\nallowing you to check for updates and install newer versions\nof jHeidi.\n\nNo bugs have been addressed in this release
-jar=autoupdater.jar

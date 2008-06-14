@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Created-By: 1.6.0_03 (Sun Microsystems Inc.)
-Main-Class: com.rendion.ajl.AutoUpdater
-
