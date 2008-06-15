@@ -531,6 +531,8 @@ type
         ChildCount: Cardinal);
     procedure DBtreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure DBtreePaintText(Sender: TBaseVirtualTree; const TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -600,6 +602,7 @@ type
       procedure SaveListSetup( List: TVirtualStringTree );
       procedure RestoreListSetup( List: TVirtualStringTree );
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
+      function GetTableSize(Fields: TFields): Int64;
 
     public
       DatabasesWanted,
@@ -652,6 +655,7 @@ type
       function RefreshActiveDbTableList: TDataSet;
       function FetchDbTableList(db: string): TDataSet;
       function RefreshDbTableList(db: string): TDataSet;
+      function DbTableListCached(db: String): Boolean;
       procedure ClearAllTableLists;
       procedure EnsureDatabase;
       procedure TestVTreeDataArray( P: PVTreeDataArray );
@@ -662,6 +666,7 @@ type
       function HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
       function ComposeOrderClause( Cols: TOrderColArray ): String;
       procedure TableEnginesCombo(var Combobox: TCombobox);
+      function GetNodeType(Node: PVirtualNode): Byte;
       function GetSelectedNodeType: Byte;
       procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
       procedure RefreshTreeDB(db: String);
@@ -1719,7 +1724,7 @@ var
   ds: TDataSet;
   OldCursor: TCursor;
 begin
-  if CachedTableLists.IndexOf(db) = -1 then begin
+  if not DbTableListCached(db) then begin
     // Not in cache, load table list.
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
@@ -1786,7 +1791,7 @@ end;
 procedure TMDIChild.LoadDatabaseProperties(db: string);
 var
   i               : Integer;
-  bytes           : Extended;
+  bytes           : Int64;
   ds              : TDataSet;
   ListCaptions,
   SelectedCaptions: TStringList;
@@ -1832,10 +1837,9 @@ begin
           else
             ListCaptions.Add('');
           // Size: Data_length + Index_length
-          if FieldContent('Data_length') <> '' then begin
-            bytes := ds.FieldByName('Data_length').AsFloat + ds.FieldByName('Index_length').AsFloat;
-            ListCaptions.Add( FormatByteNumber( Trunc(bytes) ) );
-          end else ListCaptions.Add('');
+          bytes := GetTableSize(ds.Fields);
+          if bytes >= 0 then ListCaptions.Add(FormatByteNumber(bytes))
+          else ListCaptions.Add('');
           // Created:
           ListCaptions.Add( FieldContent('Create_time') );
           // Updated:
@@ -3927,7 +3931,7 @@ begin
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then
-    Text := DBtree.Text[DBtree.GetFirstSelected, -1]
+    Text := DBtree.Text[DBtree.GetFirstSelected, 0]
   else if (src = lboxQueryHelpers) and ((src as TListBox).ItemIndex > -1) then begin
     // Snippets tab
     if tabsetQueryHelpers.TabIndex = 3 then begin
@@ -5128,27 +5132,30 @@ function TMDIChild.GetSelectedTable: string;
 begin
   if DBtree.GetFirstSelected = nil then Result := ''
   else case DBtree.GetNodeLevel(DBtree.GetFirstSelected) of
-      2: Result := DBtree.Text[DBtree.GetFirstSelected, -1];
+      2: Result := DBtree.Text[DBtree.GetFirstSelected, 0];
     else Result := '';
   end;
 end;
 
 
-function TMDIChild.GetSelectedNodeType: Byte;
+function TMDIChild.GetNodeType(Node: PVirtualNode): Byte;
 var
-  Node: PVirtualNode;
   ds: TDataset;
 begin
-  Node := DBtree.GetFirstSelected;
   Result := NODETYPE_DEFAULT;
   if Assigned(Node) then case DBtree.GetNodeLevel(Node) of
     1: Result := NODETYPE_DB;
     2: begin
-      ds := FetchActiveDbTableList;
-      ds.RecNo := DBtree.GetFirstSelected.Index+1;
+      ds := FetchDbTableList(DBTree.Text[Node.Parent, 0]);
+      ds.RecNo := Node.Index+1;
       Result := GetDBObjectType(ds.Fields);
     end;
   end;
+end;
+
+function TMDIChild.GetSelectedNodeType: Byte;
+begin
+  Result := GetNodeType(DBtree.GetFirstSelected);
 end;
 
 
@@ -5168,7 +5175,7 @@ begin
   tnode := DBtree.GetFirstChild(dbnode);
   for i := 0 to dbnode.ChildCount - 1 do begin
     // Select table node if it has the wanted caption
-    if DBtree.Text[tnode, -1] = table then begin
+    if DBtree.Text[tnode, 0] = table then begin
       snode := tnode;
       break;
     end;
@@ -5179,7 +5186,7 @@ begin
     tnode := DBtree.GetFirstChild(dbnode);
     for i := 0 to dbnode.ChildCount - 1 do begin
       // Select table node if it has the wanted caption
-      if AnsiCompareText(DBtree.Text[tnode, -1], table) = 0 then begin
+      if AnsiCompareText(DBtree.Text[tnode, 0], table) = 0 then begin
         snode := tnode;
         break;
       end;
@@ -6149,20 +6156,17 @@ procedure TMDIChild.vstGetHint(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var LineBreakStyle:
     TVTTooltipLineBreakStyle; var HintText: WideString);
 var
-  NodeData : PVTreeData;
   r : TRect;
   DisplayedWidth,
   NeededWidth : Integer;
+  Tree: TVirtualStringTree;
 begin
-  NodeData := Sender.GetNodeData( Node );
-  if NodeData.Captions.Count > Column then
-    HintText := NodeData.Captions[Column]
-  else
-    Exit;
+  Tree := TVirtualStringTree(Sender);
+  HintText := Tree.Text[Node, Column];
   // Check if the list has shortened the text
-  r := Sender.GetDisplayRect(Node, Column, True);
+  r := Tree.GetDisplayRect(Node, Column, True);
   DisplayedWidth := r.Right-r.Left;
-  NeededWidth := Canvas.TextWidth(HintText) + TVirtualStringTree(Sender).TextMargin*2;
+  NeededWidth := Canvas.TextWidth(HintText) + Tree.TextMargin*2;
   //debug(format('need: %d, given: %d, font: %s %d', [NeededWidth, DisplayedWidth, canvas.Font.Name, canvas.Font.Size]));
   // Disable displaying hint if text is displayed completely in list
   if NeededWidth <= DisplayedWidth then
@@ -6614,14 +6618,60 @@ procedure TMDIChild.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     WideString);
 var
   ds: TDataset;
+  db: String;
+  i: Integer;
+  Bytes: Int64;
+  AllListsCached: Boolean;
 begin
-  case Sender.GetNodeLevel(Node) of
-    0: CellText := FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host;
-    1: CellText := Databases[Node.Index];
-    2: begin
-        ds := FetchDbTableList(Databases[Node.Parent.Index]);
-        ds.RecNo := Node.Index+1;
-        CellText := ds.Fields[0].AsString;
+  case Column of
+    0: case Sender.GetNodeLevel(Node) of
+        0: CellText := FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host;
+        1: CellText := Databases[Node.Index];
+        2: begin
+            ds := FetchDbTableList(Databases[Node.Parent.Index]);
+            ds.RecNo := Node.Index+1;
+            CellText := ds.Fields[0].AsString;
+          end;
+      end;
+    1: case GetNodeType(Node) of
+        // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
+        NODETYPE_DEFAULT: begin
+            AllListsCached := true;
+            for i := 0 to Databases.Count - 1 do begin
+              if not DbTableListCached(Databases[i]) then begin
+                AllListsCached := false;
+                break;
+              end;
+            end;
+            if AllListsCached then begin
+              Bytes := 0;
+              for i := 0 to Databases.Count - 1 do begin
+                ds := FetchDbTableList(Databases[i]);
+                while not ds.Eof do begin
+                  Bytes := Bytes + GetTableSize(ds.Fields);
+                  ds.Next;
+                end;
+              end;
+              CellText := FormatByteNumber(Bytes);
+            end else
+              CellText := '';
+          end;
+        // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
+        NODETYPE_DB: begin
+            db := DBtree.Text[Node, 0];
+            if not DbTableListCached(db) then
+              CellText := ''
+            else begin
+              Bytes := 0;
+              ds := FetchDbTableList(db);
+              while not ds.Eof do begin
+                Bytes := Bytes + GetTableSize(ds.Fields);
+                ds.Next;
+              end;
+              CellText := FormatByteNumber(Bytes);
+            end;
+          end;
+        else CellText := ''; // Applies for tables and views
       end;
   end;
 end;
@@ -6636,6 +6686,8 @@ procedure TMDIChild.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
 var
   ds: TDataset;
 begin
+  if Column > 0 then
+    Exit;
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_SERVER;
     1: if (Kind = ikSelected) or ((Sender.GetFirstSelected<>nil) and (Node=Sender.GetFirstSelected.Parent)) then
@@ -6750,7 +6802,7 @@ begin
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
-        ShowTable( (Sender as TVirtualStringTree).Text[Node, -1] );
+        ShowTable( (Sender as TVirtualStringTree).Text[Node, 0] );
       end;
   end;
   if newDb <> '' then
@@ -6767,8 +6819,18 @@ begin
   if not Assigned(Node) then Exit;
   if DBtree.GetNodeLevel(Node) = 0 then Exit;
   if PageControlMain.ActivePage <> tabQuery then Exit;
-  SynMemoQuery.SelText := DBtree.Text[Node, -1];
+  SynMemoQuery.SelText := DBtree.Text[Node, 0];
   SynMemoQuery.SetFocus;
+end;
+
+
+procedure TMDIChild.DBtreePaintText(Sender: TBaseVirtualTree; const
+    TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
+    TVSTTextType);
+begin
+  // Grey out rather unimportant "Size" column
+  if Column = 1 then
+    TargetCanvas.Font.Color := clSilver;
 end;
 
 
@@ -6813,7 +6875,7 @@ begin
   TablesFetched := TStringList.Create;
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
-    db := DBtree.Text[Node, -1];
+    db := DBtree.Text[Node, 0];
     if DBtree.ChildrenInitialized[Node] then
       TablesFetched.Add(db);
     if vsExpanded in Node.States then
@@ -6836,7 +6898,7 @@ begin
   // Expand nodes which were previously expanded
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
-    db := DBtree.Text[Node, -1];
+    db := DBtree.Text[Node, 0];
     if TablesFetched.IndexOf(db) > -1 then
       DBtree.ReinitChildren(Node, False);
     DBtree.Expanded[Node] := ExpandedDBs.IndexOf(db) > -1;
@@ -6878,6 +6940,9 @@ var
   n: PVirtualNode;
 begin
   Result := nil;
+  // Ensure Databases list is instantiated (by DBtree.InitChildren)
+  if Databases = nil then
+    DBtree.ReinitNode(DBtree.GetFirst, False);
   // TStringList.CaseSensitive= True|False is only used in .IndexOf and .Sort procs,
   // it does not avoid or remove duplicate items
   Databases.CaseSensitive := True;
@@ -6924,6 +6989,21 @@ begin
   DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
 end;
 
+
+function TMDIChild.GetTableSize(Fields: TFields): Int64;
+begin
+  try
+    Result := MakeInt(Fields.FieldByName('Data_length').AsString) + MakeInt(Fields.FieldByName('Index_length').AsString);
+  except
+    Result := -1
+  end;
+end;
+
+
+function TMDIChild.DbTableListCached(db: String): Boolean;
+begin
+  Result := CachedTableLists.IndexOf(db) > -1;
+end;
 
 
 end.
