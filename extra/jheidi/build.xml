@@ -70,6 +70,10 @@
     <property name="jheidi.bin.name" value="jheidi-bin"/>
     <property name="jheidi.osx.name" value="jheidi-osx"/>
     <property name="jheidi.win.name" value="jheidi-win"/>
+	<property name="jheidi.exe" value="jheidi.exe"/>
+	<property name="jheidi-setup.exe" value="jheidi-setup.exe"/>
+	<property name="innosetup" value="innosetup"/>
+	<property name="nsis" value="nsis"/>
     <property name="bin.dist" value="${dist.dir}/${jheidi.bin.name}"/>
     <property name="win.dist" value="${dist.dir}/${jheidi.win.name}"/>
     <property name="osx.dist" value="${osx.java}/${jheidi.osx.name}"/>
@@ -85,7 +89,6 @@
     <path id="jheidi.libs">    
       <fileset dir="${ajl.lib}">
         <include name="editor.jar"/>
-        <include name="quaqua.jar"/>
         <include name="swing-worker-1.1.jar"/>
         <include name="log4j-1.2.13.jar"/>
       </fileset>
@@ -93,7 +96,7 @@
         <include name="mysql-connector-java-5.0.7-bin.jar"/>
       </fileset>
       <fileset file="${components.dir}/${ajl.jar}"/>
-    </path><path refid="jheidi.libs.osx"/>
+    </path>
     
     <path id="compile.libs">
       <fileset dir="${lib}">
@@ -123,7 +126,6 @@
     <path id="win.bin">    
       <fileset dir="${bin}">
         <include name="jheidi.cmd"/>
-        <include name="jheidi.exe"/>
       </fileset>
     </path>
     
@@ -151,8 +153,8 @@
     <antcall target="clean.compile"/> 
     <echo message="compile.ajl--------------------------------------------------"/>  
     <mkdir dir="${classes}"/>  
-    <javac target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
-    <javac target="${java.target}" nowarn="on" srcdir="${ajl.src}" destdir="${classes}" 
+    <javac fork="true" target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
+    <javac fork="true" target="${java.target}" nowarn="on" srcdir="${ajl.src}" destdir="${classes}" 
       includes="com/rendion/ajl/**, com/rendion/ajl/gui/**, com/rendion/ajl/servlet/**">
        <classpath refid="ajl.classpath"/>     
     </javac>  
@@ -162,7 +164,7 @@
     <antcall target="clean.compile"/>  
     <echo message="compile.autoupdater------------------------------------------"/>      
     <mkdir dir="${classes}"/>  
-    <javac target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
+    <javac fork="true" target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
     <copy todir="${classes}">
       <fileset dir="${autoupdater.swingworker}"/>
     </copy>
@@ -179,8 +181,9 @@
     <exec executable="ajl.cmd">
       <arg value="-c"/>
     </exec>
-    <javac target="${java.target}" srcdir="${src}" destdir="${classes}" classpath="${lib}/${ajl.jar}" includes="${jheidi.launcher}"/>
-    <delete>
+    <javac fork="true" target="${java.target}" srcdir="${src}" destdir="${classes}" classpath="${lib}/${ajl.jar}" includes="${jheidi.launcher}"/>
+	<sleep seconds="2"/>
+	<delete>
       <path refid="compile.libs"/>    
     </delete>
     <delete>
@@ -340,13 +343,58 @@
   </target>
 
   <target name="jheidi.exe" if="nsis.cmd">
-    <exec executable="${nsis.cmd}" dir="${etc}/nsis">
+    <delete file="${components.dir}/${jheidi.exe}"/>
+    <delete file="${etc}/${nsis}/${jheidi.exe}"/>
+    <exec executable="${nsis.cmd}" dir="${etc}/${nsis}">
       <arg value="jheidi.nsi"/>
     </exec>
+	<copy file="${etc}/${nsis}/${jheidi.exe}" tofile="${components.dir}/${jheidi.exe}"/>
   </target>
 
-  <target name="make.setup.exe" if="innosetup.cmd">
+  <target name="deploy.win" depends="ajl.jar, autoupdater.jar, jheidi.jar, jheidi.exe" if="innosetup.cmd">
+     <antcall target="clean.dist"/>   
+     <echo message="deploy.win-------------------------------------------------"/>  
+     <mkdir dir="${upload.dir}"/>
+     <delete file="${upload.dir}/${jheidi-setup.exe}"/> 
+     <mkdir dir="${win.dist}/${lib}"/>
+     <mkdir dir="${win.dist}/${images}"/>
+     <mkdir dir="${win.dist}/${logs}"/>
+	 <mkdir dir="${win.dist}/${innosetup}"/>
+          
+    <copy todir="${win.dist}/${lib}">
+      <path refid="jheidi.libs"/>
+    </copy>
+    
+    <copy todir="${win.dist}/${images}">
+     <fileset dir="${images}"/>
+    </copy>
+    
+    <copy todir="${win.dist}/${logs}">
+     <fileset file="${etc}/log4jconfig.xml"/>
+    </copy>
+  
+    <copy todir="${win.dist}">
+     <fileset file="${components.dir}/${jheidi.jar}"/>
+     <fileset file="${components.dir}/${jheidi.exe}"/>
+    </copy>
+
+    <copy todir="${win.dist}">
+     <path refid="win.bin"/>
+    </copy>
+    
+    <copy file="${etc}/${.connectionProfiles}" tofile="${win.dist}/${.connectionProfiles}"/>
+    <copy file="${win.client.autoupdater}" tofile="${win.dist}/${.autoupdater}"/>
+    <copy todir="${win.dist}/${innosetup}">
+	  <fileset dir="${etc}/${innosetup}"/>
+	</copy>
+
+	<exec executable="${innosetup.cmd}" dir="${win.dist}/${innosetup}">
+      <arg value="jheidi.iss"/>
+    </exec>
+	<copy file="${win.dist}/${innosetup}/Output/${jheidi-setup.exe}" tofile="${upload.dir}/${jheidi-setup.exe}"/>
   </target>
+
+  <target name="deploy.all" depends="deploy.bin, deploy.osx, deploy.win"/>
   
   <target name="cleanup">
      <delete dir="${classes}"/>  
