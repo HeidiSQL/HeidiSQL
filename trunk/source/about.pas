@@ -33,7 +33,6 @@ type
     btnUpdateCheck: TButton;
     procedure btnUpdateCheckClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
-    procedure ButtonCloseClick(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
 
@@ -76,12 +75,6 @@ end;
 procedure TAboutBox.OpenURL(Sender: TObject);
 begin
   ShellExec( TControl(Sender).Hint );
-end;
-
-
-procedure TAboutBox.ButtonCloseClick(Sender: TObject);
-begin
-  Close();
 end;
 
 
