@@ -77,7 +77,15 @@
     <property name="bin.dist" value="${dist.dir}/${jheidi.bin.name}"/>
     <property name="win.dist" value="${dist.dir}/${jheidi.win.name}"/>
     <property name="osx.dist" value="${osx.java}/${jheidi.osx.name}"/>
-    
+
+	<!-- auto update properties --> 
+	<property name="autoupdater.dir" value="${upload.dir}/autoupdater"/>
+	<property name="autoupdater.win.dir" value="${autoupdater.dir}/win"/>
+	<property name="autoupdater.bin.dir" value="${autoupdater.dir}/bin"/>
+	<property name="autoupdater.osx.dir" value="${autoupdater.dir}/osx"/>
+	<property name="osx.server.autoupdater" value="${etc}/osx-server-autoupdater"/>
+	<property name="win.server.autoupdater" value="${etc}/win-server-autoupdater"/>
+	<property name="bin.server.autoupdater" value="${etc}/bin-server-autoupdater"/>
 
     <!-- path collections -->    
     <path id="ajl.classpath">
@@ -411,7 +419,111 @@
       <fileset file="${upload.dir}/${jheidi-setup.exe}"/>
     </ftp>
   </target>
-  
+
+  <!-- autoupdate tasks -->
+
+  <target name="autoupdate.dirs">
+     <mkdir dir="${autoupdater.win.dir}"/>
+	 <mkdir dir="${autoupdater.bin.dir}"/>
+	 <mkdir dir="${autoupdater.osx.dir}"/>
+     <copy file="${win.server.autoupdater}" tofile="${autoupdater.win.dir}/jheidi-win-autoupdater"/>
+	 <copy file="${bin.server.autoupdater}" tofile="${autoupdater.bin.dir}/jheidi-bin-autoupdater"/>
+	 <copy file="${osx.server.autoupdater}" tofile="${autoupdater.osx.dir}/jheidi-osx-autoupdater"/>
+	 <copy todir="${autoupdater.win.dir}">
+	   <fileset dir="${etc}">
+	     <include name="readme*.txt"/>
+	   </fileset>
+	   <fileset file="${lib}/autoupdater.jar"/>
+	 </copy>
+	 <copy todir="${autoupdater.bin.dir}">
+	   <fileset dir="${etc}">
+	     <include name="readme*.txt"/>
+	   </fileset>
+	   <fileset file="${lib}/autoupdater.jar"/>
+	 </copy>
+	 <copy todir="${autoupdater.osx.dir}">
+	   <fileset dir="${etc}">
+	     <include name="readme*.txt"/>
+	   </fileset>
+	   <fileset file="${lib}/autoupdater.jar"/>
+	 </copy>
+  </target>
+
+  <!-- use -D to pass the file path to copy to the upload dirs -->
+  <target name="autoupdate.copy">
+    <copy todir="${autoupdater.win.dir}">
+      <fileset dir=".">
+	    <include name="${file}"/>
+      </fileset>
+    </copy>
+    <copy todir="${autoupdater.bin.dir}">
+      <fileset dir=".">
+	    <include name="${file}"/>
+      </fileset>
+    </copy>
+    <copy todir="${autoupdater.osx.dir}">
+      <fileset dir=".">
+	    <include name="${file}"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="autoupdate.jheidi.jar">
+    <copy todir="${autoupdater.win.dir}">
+      <fileset dir="${components.dir}">
+	    <include name="${jheidi.jar}"/>
+      </fileset>
+    </copy>
+    <copy todir="${autoupdater.bin.dir}">
+      <fileset dir="${components.dir}">
+	    <include name="${jheidi.jar}"/>
+      </fileset>
+    </copy>
+    <copy todir="${autoupdater.osx.dir}">
+      <fileset dir="${components.dir}">
+	    <include name="${jheidi.jar}"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="upload.autoupdater.win">
+    <ftp server="heidisql.com"
+       userid="servertude"
+       remoteDir="/www/jheidi/files/autoupdater/win"
+       password="${ftp.password}"
+       passive="no">
+      <fileset dir="${upload.dir}/autoupdater/win">
+	    <include name="**/*"/>
+      </fileset>
+    </ftp>
+  </target>
+
+  <target name="upload.autoupdater.bin">
+    <ftp server="heidisql.com"
+       userid="servertude"
+       remoteDir="/www/jheidi/files/autoupdater/bin"
+       password="${ftp.password}"
+       passive="no">
+      <fileset dir="${upload.dir}/autoupdater/bin">
+	    <include name="**/*"/>
+      </fileset>
+    </ftp>
+  </target>
+
+  <target name="upload.autoupdater.osx">
+    <ftp server="heidisql.com"
+       userid="servertude"
+       remoteDir="/www/jheidi/files/autoupdater/osx"
+       password="${ftp.password}"
+       passive="no">
+      <fileset dir="${upload.dir}/autoupdater/osx">
+	    <include name="**/*"/>
+      </fileset>
+    </ftp>
+  </target>
+
+  <target name="upload.autoupdater.all" depends="upload.autoupdater.win, upload.autoupdater.bin, upload.autoupdater.osx"/>
+
   <target name="upload.all" depends="upload.bin, upload.win, upload.osx"/>
   
   </project>
