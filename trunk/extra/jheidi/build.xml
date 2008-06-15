@@ -346,7 +346,7 @@
     </copy>
     
     <copy todir="${win.dist}/${logs}">
-     <fileset file="${etc}/log4jconfig.xml"/>
+     <fileset dir="${logs}"/>
     </copy>
   
     <copy todir="${win.dist}">
@@ -392,10 +392,6 @@
     </ftp>
   </target>
   
-  <target name="upload.win">
-  
-  </target>
-  
   <target name="upload.osx">
     <ftp server="heidisql.com"
        userid="servertude"
@@ -403,6 +399,16 @@
        password="${ftp.password}"
        passive="no">
       <fileset file="${upload.dir}/${jheidi.osx.name}.zip"/>
+    </ftp>
+  </target>
+
+  <target name="upload.win">
+    <ftp server="heidisql.com"
+       userid="servertude"
+       remoteDir="/www/jheidi/files/"
+       password="${ftp.password}"
+       passive="no">
+      <fileset file="${upload.dir}/${jheidi-setup.exe}"/>
     </ftp>
   </target>
   
