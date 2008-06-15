@@ -87,29 +87,17 @@
     </path>
     
     <path id="jheidi.libs">    
-      <fileset dir="${ajl.lib}">
+      <fileset dir="${lib}">
         <include name="editor.jar"/>
         <include name="swing-worker-1.1.jar"/>
         <include name="log4j-1.2.13.jar"/>
-      </fileset>
-      <fileset dir="${lib}">      
         <include name="mysql-connector-java-5.0.7-bin.jar"/>
-      </fileset>
-      <fileset file="${components.dir}/${ajl.jar}"/>
-    </path>
-    
-    <path id="compile.libs">
-      <fileset dir="${lib}">
-        <include name="quaqua.jar"/>
-        <include name="swing-worker-1.1.jar"/>
-        <include name="log4j-1.2.13.jar"/>
-        <include name="ajl.jar"/>        
-        <include name="tools.jar"/>
-      </fileset>
+        <include name="ajl.jar"/>
+	  </fileset>
     </path>
     
     <path id="jheidi.libs.osx">    
-      <fileset dir="${ajl.lib}">
+      <fileset dir="${lib}">
         <include name="quaqua.jar"/>
         <include name="libquaqua.jnilib"/>
       </fileset>
@@ -173,19 +161,12 @@
   <target name="compile">
     <antcall target="clean.compile"/> 
     <echo message="compile----------------------------------------------------"/>   
-    <copy todir="${lib}">
-       <path refid="jheidi.libs"/> 
-       <fileset file="${tools.jar}"/>   
-    </copy>    
     <mkdir dir="${classes}"/>  
     <exec executable="ajl.cmd">
       <arg value="-c"/>
     </exec>
     <javac fork="true" target="${java.target}" srcdir="${src}" destdir="${classes}" classpath="${lib}/${ajl.jar}" includes="${jheidi.launcher}"/>
 	<sleep seconds="2"/>
-	<delete>
-      <path refid="compile.libs"/>    
-    </delete>
     <delete>
       <fileset dir="${classes}">
         <include name="**/*.java"/>
@@ -200,31 +181,28 @@
     <delete dir="${build.dir}"/>
   </target>
   
-   <target name="ajl.jar" depends="compile.ajl">
+  <target name="ajl.jar" depends="compile.ajl">
     <antcall target="clean.build"/> 
     <echo message="ajl.jar------------------------------------------------------"/>    
-    <delete file="${components.dir}/${ajl.jar}"/>
-    <mkdir dir="${components.dir}"/>
+    <delete file="${lib}/${ajl.jar}"/>
     <mkdir dir="${build.meta-inf}"/>
-     
     <copy todir="${build.classes}">
       <fileset dir="${classes}"/>
     </copy>
-    <zip destfile="${components.dir}/${ajl.jar}" basedir="${build.classes}"/>
+    <zip destfile="${lib}/${ajl.jar}" basedir="${build.classes}"/>
   </target>
   
   <target name="autoupdater.jar" depends="compile.autoupdater">
     <antcall target="clean.build"/>
     <echo message="autoupdater.jar---------------------------------------------"/> 
-    <delete file="${components.dir}/${autoupdater.jar}"/>
-    <mkdir dir="${components.dir}"/>
+    <delete file="${lib}/${autoupdater.jar}"/>
     <mkdir dir="${build.meta-inf}"/>
      
     <copy todir="${build.classes}">
       <fileset dir="${classes}"/>
     </copy>
     <copy file="${autoupdater.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
-    <zip destfile="${components.dir}/${autoupdater.jar}" basedir="${build.classes}"/>
+    <zip destfile="${lib}/${autoupdater.jar}" basedir="${build.classes}"/>
   </target>
   
   <target name="jheidi.jar" depends="compile">
@@ -240,13 +218,15 @@
     <copy file="${jheidi.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
     <zip destfile="${components.dir}/${jheidi.jar}" basedir="${build.classes}"/>
   </target>
+
+  <target name="refresh.jars" depends="ajl.jar, autoupdater.jar"/>
   
   <!-- deploy tasks -->
   <target name="clean.dist">
     <delete dir="${dist.dir}"/>
   </target>  
   
-  <target name="deploy.bin" depends="ajl.jar, autoupdater.jar, jheidi.jar">
+  <target name="deploy.bin" depends="jheidi.jar">
      <antcall target="clean.dist"/>   
      <echo message="deploy.bin-------------------------------------------------"/>  
      <mkdir dir="${upload.dir}"/>
@@ -265,9 +245,7 @@
     </copy>
     
     <copy todir="${bin.dist}/${logs}">
-     <fileset dir="${etc}">
-       <include name="log4jconfig.xml"/>
-     </fileset>
+     <fileset dir="${logs}"/>
     </copy>
   
     <copy todir="${bin.dist}">
@@ -283,7 +261,7 @@
     <zip destfile="${upload.dir}/${jheidi.bin.name}.zip" basedir="${dist.dir}"/>
   </target>
   
-  <target name="deploy.osx" depends="ajl.jar, autoupdater.jar, jheidi.jar">
+  <target name="deploy.osx" depends="jheidi.jar">
      <antcall target="clean.dist"/> 
      <echo message="deploy.osx------------------------------------------------------"/>   
      <mkdir dir="${upload.dir}"/>
@@ -303,9 +281,7 @@
     </copy>
     
     <copy todir="${osx.java}/${logs}">
-     <fileset dir="${etc}">
-       <include name="log4jconfig.xml"/>
-     </fileset>
+     <fileset dir="${logs}"/>
     </copy>
   
     <copy todir="${osx.java}">
@@ -317,7 +293,7 @@
     </copy>
     
     <copy todir="${osx.jheidi.app}">
-      <fileset file="${ajl.lib}/libquaqua.jnilib"/>
+      <fileset file="${lib}/libquaqua.jnilib"/>
     </copy>
     
     <copy todir="${osx.jheidi}">
@@ -351,7 +327,7 @@
 	<copy file="${etc}/${nsis}/${jheidi.exe}" tofile="${components.dir}/${jheidi.exe}"/>
   </target>
 
-  <target name="deploy.win" depends="ajl.jar, autoupdater.jar, jheidi.jar, jheidi.exe" if="innosetup.cmd">
+  <target name="deploy.win" depends="jheidi.jar, jheidi.exe" if="innosetup.cmd">
      <antcall target="clean.dist"/>   
      <echo message="deploy.win-------------------------------------------------"/>  
      <mkdir dir="${upload.dir}"/>
