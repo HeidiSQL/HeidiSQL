@@ -61,13 +61,15 @@ object MDIChild: TMDIChild
       Header.Font.Height = -11
       Header.Font.Name = 'Tahoma'
       Header.Font.Style = []
-      Header.MainColumn = -1
-      Header.Options = [hoColumnResize, hoDrag]
+      Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
+      HintMode = hmTooltip
       HotCursor = crHandPoint
       Images = MainForm.PngImageListMain
       Indent = 16
       Margin = 2
+      ParentShowHint = False
       PopupMenu = popupTreeView
+      ShowHint = True
       TabOrder = 0
       TextMargin = 2
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
@@ -76,11 +78,24 @@ object MDIChild: TMDIChild
       OnChange = DBtreeChange
       OnDblClick = DBtreeDblClick
       OnGetText = DBtreeGetText
+      OnPaintText = DBtreePaintText
       OnGetImageIndex = DBtreeGetImageIndex
+      OnGetHint = vstGetHint
       OnGetNodeDataSize = DBtreeGetNodeDataSize
       OnInitChildren = DBtreeInitChildren
       OnInitNode = DBtreeInitNode
-      Columns = <>
+      Columns = <
+        item
+          Position = 0
+          Width = 115
+          WideText = 'Name'
+        end
+        item
+          Alignment = taRightJustify
+          MinWidth = 0
+          Position = 1
+          WideText = 'Size'
+        end>
     end
     object TableShow: TPanel
       Left = 173
