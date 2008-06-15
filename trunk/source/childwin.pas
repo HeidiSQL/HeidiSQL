@@ -6643,6 +6643,8 @@ begin
                 break;
               end;
             end;
+            // Will be also set to a negative value by GetTableSize and results of SHOW TABLES
+            Bytes := -1;
             if AllListsCached then begin
               Bytes := 0;
               for i := 0 to Databases.Count - 1 do begin
@@ -6652,9 +6654,9 @@ begin
                   ds.Next;
                 end;
               end;
-              CellText := FormatByteNumber(Bytes);
-            end else
-              CellText := '';
+            end;
+            if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
+            else CellText := '';
           end;
         // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
         NODETYPE_DB: begin
@@ -6668,7 +6670,8 @@ begin
                 Bytes := Bytes + GetTableSize(ds.Fields);
                 ds.Next;
               end;
-              CellText := FormatByteNumber(Bytes);
+              if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
+              else CellText := '';
             end;
           end;
         else CellText := ''; // Applies for tables and views
