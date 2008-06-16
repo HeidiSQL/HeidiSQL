@@ -269,7 +269,10 @@ begin
       //       thus the value returned below will always be 0.  Same goes for prepared
       //       statements, unless STMT_ATTR_UPDATE_MAX_LENGTH is specified.
       FieldWidthMax := FPlainDriver.GetFieldMaxLength(FieldHandle);
-      if FPlainDriver.GetFieldCollationId(FieldHandle) <> COLLATION_BINARY then begin
+      if
+        (FPlainDriver.GetFieldCollationId(FieldHandle) <> COLLATION_BINARY) and
+        (FPlainDriver.GetFieldCollationId(FieldHandle) <> COLLATION_NONE)
+      then begin
         // Results are always utf-8.  The MySQL utf-8 encoder can produce sequences that
         // consist of up to 3 bytes per character.  That's the number which the MySQL
         // C API will return when queried, since the server (and the driver) returns
@@ -419,7 +422,10 @@ end;
 
 function TZMySQLResultSet.GetUnicodeString(ColumnIndex: Integer): WideString;
 begin
-  Result := UTF8Decode(GetRawData(ColumnIndex));
+  if not ((Statement.GetConnection) as IZMySQLConnection).GetAnsiMode then
+    Result := UTF8Decode(GetRawData(ColumnIndex))
+  else
+    Result := WideString(GetRawData(ColumnIndex));
 end;
 
 {**

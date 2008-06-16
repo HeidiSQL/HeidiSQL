@@ -99,6 +99,7 @@ type
 
     function GetPlainDriver: IZMySQLPlainDriver;
     function GetConnectionHandle: PZMySQLConnect;
+    function GetAnsiMode: Boolean;
   end;
 
   {** Implements MySQL Database Connection. }
@@ -107,7 +108,7 @@ type
     FCatalog: string;
     FPlainDriver: IZMySQLPlainDriver;
     FHandle: PZMySQLConnect;
-    FClientCodePage: string;
+    FAnsiMode: Boolean;
   public
     constructor Create(Driver: IZDriver; const Url: string;
       PlainDriver: IZMySQLPlainDriver; const HostName: string; Port: Integer;
@@ -141,6 +142,7 @@ type
     function GetPlainDriver: IZMySQLPlainDriver;
     function GetConnectionHandle: PZMySQLConnect;
     function GetDescription: AnsiString;
+    function GetAnsiMode: Boolean;
   end;
 
 
@@ -358,9 +360,6 @@ begin
   AutoCommit := True;
   TransactIsolationLevel := tiNone;
 
-  { Processes connection properties. }
-  FClientCodePage := Trim(Info.Values['codepage']);
-
   Open;
 end;
 
@@ -438,10 +437,14 @@ begin
     end;
     DriverManager.LogMessage(lcConnect, FPlainDriver.GetProtocol, LogMessage);
 
+    FAnsiMode := FPlainDriver.GetServerVersion(FHandle) < 40100;
+
     { Sets a client codepage. }
-    FPlainDriver.SetCharacterSet(FHandle, 'utf8');
-    CheckMySQLError(FPlainDriver, FHandle, lcExecute, LogMessage);
-    DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, LogMessage);
+    if not FAnsiMode then begin
+      FPlainDriver.SetCharacterSet(FHandle, 'utf8');
+      CheckMySQLError(FPlainDriver, FHandle, lcExecute, LogMessage);
+      DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, LogMessage);
+    end;
 
     { Sets transaction isolation level. }
     OldLevel := TransactIsolationLevel;
@@ -779,6 +782,11 @@ End;
 function TZMySQLConnection.GetDescription: AnsiString;
 begin
     Result := self.FPlainDriver.GetDescription;
+end;
+
+function TZMySQLConnection.GetAnsiMode: Boolean;
+begin
+  Result := FAnsiMode;
 end;
 
 initialization
