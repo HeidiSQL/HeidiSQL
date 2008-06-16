@@ -105,6 +105,7 @@ begin
   if modifyDB = '' then
   begin
     Caption := 'Create database ...';
+    editDBName.Enabled := True;
     editDBName.Text := '';
     editDBName.SetFocus;
     selectCharset := defaultCharset;
