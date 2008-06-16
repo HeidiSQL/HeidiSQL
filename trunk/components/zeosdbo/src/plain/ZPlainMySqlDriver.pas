@@ -153,6 +153,9 @@ const
   _CLIENT_REMEMBER_OPTIONS = 2147483648; {Enable/disable multi-results }
 
   COLLATION_BINARY = 63;
+  // Equivalent to COLLATION_BINARY, this is what
+  // a new driver returns when connected to a pre-4.1 server.
+  COLLATION_NONE   =  0;
 
 type
   PZMySQLConnect = Pointer;

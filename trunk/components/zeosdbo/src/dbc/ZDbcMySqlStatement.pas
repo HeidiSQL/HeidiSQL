@@ -177,9 +177,13 @@ end;
     given query; never <code>null</code>
 }
 function TZMySQLStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
+var
+  nativeSql: string;
 begin
   Result := nil;
-  if FPlainDriver.ExecQuery(FHandle, PChar(UTF8Encode(SQL))) = 0 then
+  if not (Connection as IZMySQLConnection).GetAnsiMode then nativeSql := UTF8Encode(SQL)
+  else nativeSql := String(SQL);
+  if FPlainDriver.ExecQuery(FHandle, PChar(nativeSql)) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
