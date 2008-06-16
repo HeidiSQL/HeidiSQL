@@ -152,6 +152,8 @@ const
   _CLIENT_MULTI_RESULTS   = 131072; { Enable/disable multi-results }
   _CLIENT_REMEMBER_OPTIONS = 2147483648; {Enable/disable multi-results }
 
+  COLLATION_BINARY = 63;
+
 type
   PZMySQLConnect = Pointer;
   PZMySQLResult = Pointer;
@@ -308,6 +310,7 @@ type
     function GetFieldLength(Field: PZMySQLField): Integer;
     function GetFieldMaxLength(Field: PZMySQLField): Integer;
     function GetFieldDecimals(Field: PZMySQLField): Integer;
+    function GetFieldCollationId(Field: PZMySQLField): LongWord;
     function GetFieldData(Row: PZMySQLRow; Offset: Cardinal): PChar;
     procedure BuildArguments(Options: TStrings);
 
@@ -439,6 +442,7 @@ type
     function GetFieldLength(Field: PZMySQLField): Integer;
     function GetFieldMaxLength(Field: PZMySQLField): Integer;
     function GetFieldDecimals(Field: PZMySQLField): Integer;
+    function GetFieldCollationId(Field: PZMySQLField): LongWord;
     function GetFieldData(Row: PZMySQLRow; Offset: Cardinal): PChar;
     procedure BuildArguments(Options: TStrings);
   end;
@@ -559,6 +563,7 @@ type
     function GetFieldLength(Field: PZMySQLField): Integer;
     function GetFieldMaxLength(Field: PZMySQLField): Integer;
     function GetFieldDecimals(Field: PZMySQLField): Integer;
+    function GetFieldCollationId(Field: PZMySQLField): LongWord;
     function GetFieldData(Row: PZMySQLRow; Offset: Cardinal): PChar;
     procedure BuildArguments(Options: TStrings);
   end;
@@ -679,6 +684,7 @@ type
     function GetFieldLength(Field: PZMySQLField): Integer;
     function GetFieldMaxLength(Field: PZMySQLField): Integer;
     function GetFieldDecimals(Field: PZMySQLField): Integer;
+    function GetFieldCollationId(Field: PZMySQLField): LongWord;
     function GetFieldData(Row: PZMySQLRow; Offset: Cardinal): PChar;
     procedure BuildArguments(Options: TStrings); virtual;
   end;
@@ -812,6 +818,7 @@ type
     function GetFieldLength(Field: PZMySQLField): Integer;
     function GetFieldMaxLength(Field: PZMySQLField): Integer;
     function GetFieldDecimals(Field: PZMySQLField): Integer;
+    function GetFieldCollationId(Field: PZMySQLField): LongWord;
     function GetFieldData(Row: PZMySQLRow; Offset: Cardinal): PChar;
     procedure BuildArguments(Options: TStrings); virtual;
   end;
@@ -943,6 +950,7 @@ type
     function GetFieldLength(Field: PZMySQLField): Integer;
     function GetFieldMaxLength(Field: PZMySQLField): Integer;
     function GetFieldDecimals(Field: PZMySQLField): Integer;
+    function GetFieldCollationId(Field: PZMySQLField): LongWord;
     function GetFieldData(Row: PZMySQLRow; Offset: Cardinal): PChar;
     procedure BuildArguments(Options: TStrings); virtual;
   end;
@@ -1437,6 +1445,11 @@ begin
   Result := ZPlainMySql320.PMYSQL_FIELD(Field)^.decimals;
 end;
 
+function TZMySQL320PlainDriver.GetFieldCollationId(Field: PZMySQLField): LongWord;
+begin
+  Result := COLLATION_BINARY;
+end;
+
 function TZMySQL320PlainDriver.GetFieldLength(Field: PZMySQLField): Integer;
 begin
   Result := ZPlainMySql320.PMYSQL_FIELD(Field)^.length;
@@ -1928,6 +1941,11 @@ begin
   Result := ZPlainMySql323.PMYSQL_FIELD(Field)^.decimals;
 end;
 
+function TZMySQL323PlainDriver.GetFieldCollationId(Field: PZMySQLField): LongWord;
+begin
+  Result := COLLATION_BINARY;
+end;
+
 function TZMySQL323PlainDriver.GetFieldLength(Field: PZMySQLField): Integer;
 begin
   Result := ZPlainMySql323.PMYSQL_FIELD(Field)^.length;
@@ -2416,6 +2434,11 @@ end;
 function TZMySQL40PlainDriver.GetFieldDecimals(Field: PZMySQLField): Integer;
 begin
   Result := ZPlainMySql40.PMYSQL_FIELD(Field)^.decimals;
+end;
+
+function TZMySQL40PlainDriver.GetFieldCollationId(Field: PZMySQLField): LongWord;
+begin
+  Result := COLLATION_BINARY;
 end;
 
 function TZMySQL40PlainDriver.GetFieldLength(Field: PZMySQLField): Integer;
@@ -2949,6 +2972,11 @@ begin
   Result := ZPlainMySql41.PMYSQL_FIELD(Field)^.decimals;
 end;
 
+function TZMySQL41PlainDriver.GetFieldCollationId(Field: PZMySQLField): LongWord;
+begin
+  Result := ZPlainMySql41.PMYSQL_FIELD(Field)^.charsetnr;
+end;
+
 function TZMySQL41PlainDriver.GetFieldLength(Field: PZMySQLField): Integer;
 begin
   Result := ZPlainMySql41.PMYSQL_FIELD(Field)^.length;
@@ -3468,6 +3496,11 @@ end;
 function TZMySQL5PlainDriver.GetFieldDecimals(Field: PZMySQLField): Integer;
 begin
   Result := ZPlainMySql5.PMYSQL_FIELD(Field)^.decimals;
+end;
+
+function TZMySQL5PlainDriver.GetFieldCollationId(Field: PZMySQLField): LongWord;
+begin
+  Result := ZPlainMySql5.PMYSQL_FIELD(Field)^.charsetnr;
 end;
 
 function TZMySQL5PlainDriver.GetFieldLength(Field: PZMySQLField): Integer;
