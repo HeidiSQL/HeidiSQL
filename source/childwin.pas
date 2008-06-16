@@ -5235,8 +5235,14 @@ begin
   try
     ds := GetResults('SHOW TABLE STATUS LIKE ' + esc(Table));
     if ds = nil then exit;
-    AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
-    RecordCount := MakeInt( ds.FieldByName( 'Rows' ).AsString );
+    if ds.FieldByName('Avg_row_length').IsNull then begin
+      // Guessing row size and count for views, fixes bug #346
+      AvgRowSize := ROW_SIZE_GUESS + ROW_SIZE_OVERHEAD;
+      RecordCount := MaxInt;
+    end else begin
+      AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
+      RecordCount := MakeInt( ds.FieldByName( 'Rows' ).AsString );
+    end;
     if AvgRowSize * RecordCount > LOAD_SIZE then
     begin
       result := Trunc( LOAD_SIZE / AvgRowSize );
