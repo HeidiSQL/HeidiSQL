@@ -7001,11 +7001,11 @@ end;
 
 function TMDIChild.GetTableSize(Fields: TFields): Int64;
 begin
-  try
-    Result := MakeInt(Fields.FieldByName('Data_length').AsString) + MakeInt(Fields.FieldByName('Index_length').AsString);
-  except
-    Result := -1
+  if (Fields.FieldByName('Data_length').AsString = '') or (Fields.FieldByName('Index_length').AsString = '') then begin
+    Result := -1;
+    Exit;
   end;
+  Result := MakeInt(Fields.FieldByName('Data_length').AsString) + MakeInt(Fields.FieldByName('Index_length').AsString);
 end;
 
 
