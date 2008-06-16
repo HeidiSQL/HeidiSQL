@@ -265,14 +265,19 @@ begin
       ReadOnly := (FPlainDriver.GetFieldTable(FieldHandle) = '');
       ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver, FieldHandle, FieldFlags);
       ColMaxWidth := FPlainDriver.GetFieldLength(FieldHandle);
+      // Note: In USE_RESULT mode, the driver does not know the length of the widest field,
+      //       thus the value returned below will always be 0.
       FieldWidthMax := FPlainDriver.GetFieldMaxLength(FieldHandle);
       if ColumnType in [stUnicodeString, stUnicodeStream] then begin
-        // Results are always utf-8, the MySQL utf-8 encoder can produce sequences that
+        // Results are always utf-8.  The MySQL utf-8 encoder can produce sequences that
         // consist of up to 3 bytes per character.  That's the number which the MySQL
-        // C API will return when queried.  Internally, Zeos needs to know the number
-        // of characters (which will later be doubled to obtain number of UCS2 bytes).
+        // C API will return when queried, since the server (and thus the driver) returns
+        // the maxlength of a column in 'number of bytes'.  Internally, Zeos needs to know
+        // the number of characters (which will later be doubled to obtain number of UCS2 bytes).
         ColMaxWidth := ColMaxWidth div 3;
-        FieldWidthMax := FieldWidthMax div 3;
+        // Note that while the june 2008 manual for the MySQL C API states that the maximum
+        // field width is also returned in 'number of bytes', this seems to be untrue - limited
+        // testing shows that it is returned as 'number of characters'.
       end;
       ColumnDisplaySize := ColMaxWidth;
       // Does the server ever allow a field to exceed the display size?
