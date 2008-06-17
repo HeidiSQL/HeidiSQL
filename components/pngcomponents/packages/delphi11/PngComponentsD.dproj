@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{86eae7f6-8975-4793-8cd9-a56637d060d5}</ProjectGuid>
@@ -6,7 +6,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-    <DCC_DependencyCheckOutputName>..\..\build\PngComponentsD.bpl</DCC_DependencyCheckOutputName>
+    <DCC_DependencyCheckOutputName>..\..\build\PngComponentsD110.bpl</DCC_DependencyCheckOutputName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
@@ -38,13 +38,22 @@
     <DelphiCompile Include="PngComponentsD.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\source\PngBitBtn.pas" />
+    <DCCReference Include="..\..\source\PngButtonFunctions.pas" />
+    <DCCReference Include="..\..\source\PngCheckListBox.pas" />
     <DCCReference Include="..\..\source\PngComponentEditors.pas" />
     <DCCReference Include="..\..\source\PngComponents.dcr" />
     <DCCReference Include="..\..\source\PngComponents.dcr" />
     <DCCReference Include="..\..\source\PngComponentsRegister.pas" />
+    <DCCReference Include="..\..\source\PngFunctions.pas" />
+    <DCCReference Include="..\..\source\pngimage.pas" />
+    <DCCReference Include="..\..\source\PngImageList.pas" />
     <DCCReference Include="..\..\source\PngImageListEditor.pas">
       <Form>PngImageListEditorDlg</Form>
     </DCCReference>
     <DCCReference Include="designide.dcp" />
+    <DCCReference Include="..\..\source\pnglang.pas" />
+    <DCCReference Include="..\..\source\PngSpeedButton.pas" />
+    <DCCReference Include="..\..\source\pngzlib.pas" />
   </ItemGroup>
 </Project>

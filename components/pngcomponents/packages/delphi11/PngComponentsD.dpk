@@ -31,6 +31,15 @@ requires
   designide;
 
 contains
+  PngSpeedButton in '..\..\source\PngSpeedButton.pas',
+  PngCheckListBox in '..\..\source\PngCheckListBox.pas',
+  PngButtonFunctions in '..\..\source\PngButtonFunctions.pas',
+  PngBitBtn in '..\..\source\PngBitBtn.pas',
+  pngzlib in '..\..\source\pngzlib.pas',
+  pnglang in '..\..\source\pnglang.pas',
+  PngFunctions in '..\..\source\PngFunctions.pas',
+  PngImageList in '..\..\source\PngImageList.pas',
+  pngimage in '..\..\source\pngimage.pas',
   PngComponentsRegister in '..\..\source\PngComponentsRegister.pas',
   PngComponentEditors in '..\..\source\PngComponentEditors.pas',
   PngImageListEditor in '..\..\source\PngImageListEditor.pas' {PngImageListEditorDlg};
