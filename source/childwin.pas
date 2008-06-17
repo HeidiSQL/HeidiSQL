@@ -27,6 +27,10 @@ uses
   SynUnicode, SynRegExpr, EditVar, PngSpeedButton;
 
 type
+  TSynWideStringList = class(TWideStringList);
+  TSynWideStrings = class(TWideStrings);
+
+type
   TOrderCol = class(TObject)
     ColumnName: String;
     SortDirection: Byte;
@@ -435,7 +439,7 @@ type
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-      AFiles: TWideStrings);
+      AFiles: TSynWideStrings);
     procedure SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
@@ -517,7 +521,7 @@ type
     procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
         DropPosition: TPoint);
     procedure ComboBoxQueryDelimiterExit(Sender: TObject);
-    procedure ComboBoxQueryDelimiterAdd(delimiter: String);
+    procedure ComboBoxQueryDelimiterAdd(delimiter: WideString);
     procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DBtreeDblClick(Sender: TObject);
     procedure DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -553,7 +557,7 @@ type
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
     procedure SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer; AFiles:
-        TWideStrings);
+        TSynWideStrings);
     procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
         var ImageIndex: Integer);
 
@@ -598,7 +602,7 @@ type
       function GetSelectedTable: string;
       procedure SetSelectedDatabase(db: string);
       procedure SetSelectedTable(table: string);
-      procedure ProcessClientSQL(command: String; parameter: String);
+      procedure ProcessClientSQL(command: WideString; parameter: WideString);
       procedure SaveListSetup( List: TVirtualStringTree );
       procedure RestoreListSetup( List: TVirtualStringTree );
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
@@ -688,6 +692,7 @@ uses
   Main, fieldeditor,
   copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
+  WideStrings,
   Registry;
 
 
@@ -2567,7 +2572,7 @@ end;
 
 procedure TMDIChild.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
 var
-  SQL               : TStringList;
+  SQL               : TWideStringList;
   i                 : Integer;
   rowsaffected      : Integer;
   SQLstart          : Integer;
@@ -3957,7 +3962,7 @@ end;
 
 
 procedure TMDIChild.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-  AFiles: TWideStrings);
+  AFiles: TSynWideStrings);
 var
   i        : Integer;
 begin
@@ -4241,7 +4246,7 @@ procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true 
 var
   filecontent      : WideString;
   msgtext          : String;
-  WStrings         : TWideStringList;
+  WStrings         : TSynWideStringList;
 begin
   // Ask for action when loading a big file
   if _GetFileSize( filename ) > LOAD_SIZE then
@@ -4277,7 +4282,7 @@ begin
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
   try
-    WStrings := TWideStringList.Create;
+    WStrings := TSynWideStringList.Create;
     LoadFromFile(WStrings, filename);
     filecontent := WStrings.Text;
   except
@@ -5868,7 +5873,7 @@ end;
   Add a new query delimiter and select it
   @param term The delimiter to add and/or select
 }
-procedure TMDIChild.ComboBoxQueryDelimiterAdd( delimiter: String );
+procedure TMDIChild.ComboBoxQueryDelimiterAdd( delimiter: WideString );
 var
   index: Integer;
   found: Boolean;
@@ -5944,7 +5949,7 @@ end;
   @param command The command/option to be called
   @param parameter The parameter of command
 }
-procedure TMDIChild.ProcessClientSQL(command: String; parameter: String);
+procedure TMDIChild.ProcessClientSQL(command: WideString; parameter: WideString);
 begin
   if ( command = 'DELIMITER' ) then
   begin
@@ -6587,14 +6592,14 @@ end;
   filter editor - load the contents of the first file
 }
 procedure TMDIChild.SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer;
-    AFiles: TWideStrings);
+    AFiles: TSynWideStrings);
 var
-  WStrings: TWideStrings;
+  WStrings: TSynWideStringList;
 begin
   if fileExists(AFiles[0]) then begin
     Screen.Cursor := crHourGlass;
     try
-      WStrings := TWideStringList.Create;
+      WStrings := TSynWideStringList.Create;
       LoadFromFile(WStrings, AFiles[0]);
       SynMemoFilter.Lines.Assign( WStrings );
     except on E: Exception do
