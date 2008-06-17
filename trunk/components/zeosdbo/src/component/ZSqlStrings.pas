@@ -293,7 +293,7 @@ end;
 }
 procedure TZSQLStrings.RebuildAll;
 var
-  Tokens: TStrings;
+  Tokens: TWideStrings;
   TokenValue: string;
   TokenType: TZTokenType;
   TokenIndex: Integer;

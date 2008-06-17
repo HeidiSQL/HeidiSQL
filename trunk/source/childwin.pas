@@ -387,7 +387,7 @@ type
     procedure MenuRefreshClick(Sender: TObject);
     procedure EmptyTable(Sender: TObject);
     procedure DropDB(Sender: TObject);
-    procedure LogSQL(msg: String = ''; comment: Boolean = true );
+    procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
@@ -464,13 +464,13 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
-    function GetNamedVar( SQLQuery: String; x: String;
+    function GetNamedVar( SQLQuery: WideString; x: String;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
-    function GetVar( SQLQuery: String; x: Integer = 0;
+    function GetVar( SQLQuery: WideString; x: Integer = 0;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
-    function GetResults( SQLQuery: String;
+    function GetResults( SQLQuery: WideString;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
-    function GetCol( SQLQuery: String; x: Integer = 0;
+    function GetCol( SQLQuery: WideString; x: Integer = 0;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
@@ -481,7 +481,7 @@ type
     procedure EditDataSearchEnter(Sender: TObject);
     procedure EditDataSearchExit(Sender: TObject);
     procedure MenuTablelistColumnsClick(Sender: TObject);
-    function mask(str: String) : String;
+    function mask(str: WideString) : WideString;
     procedure CheckConnection();
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
     procedure AddOrRemoveFromQueryLoadHistory( filename: String;
@@ -584,7 +584,7 @@ type
       EditVariableForm           : TfrmEditVariable;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
-      SqlMessages                : TStringList;
+      SqlMessages                : TWideStringList;
       SqlMessagesLock            : TRtlCriticalSection;
       dsShowEngines,
       dsHaveEngines              : TDataSet;
@@ -595,7 +595,7 @@ type
       procedure SaveBlob;
       function GetActiveGrid: TTntDBGrid;
       procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
-      function RunThreadedQuery(AQuery: String; ForceDialog: Boolean): TMysqlQuery;
+      function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
       function GetActiveDatabase: string;
@@ -643,9 +643,9 @@ type
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
       function GetVisualDataset() : TDataSet;
 
-      function ExecUpdateQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
-      function ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
-      procedure ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
+      function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
+      function ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
+      procedure ExecUseQuery(db: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TTntDBGrid read GetActiveGrid;
@@ -818,7 +818,7 @@ begin
   CachedTableLists := TStringList.Create;
   InitializeCriticalSection(SqlMessagesLock);
   EnterCriticalSection(SqlMessagesLock);
-  SqlMessages := TStringList.Create;
+  SqlMessages := TSynWideStringList.Create;
   LeaveCriticalSection(SqlMessagesLock);
 
   FConn := AConn^;
@@ -1180,7 +1180,7 @@ end;
 {**
   Add a SQL-command or comment to SynMemoSQLLog
 }
-procedure TMDIChild.LogSQL(msg: String = ''; comment: Boolean = true);
+procedure TMDIChild.LogSQL(msg: WideString = ''; comment: Boolean = true);
 var
   snip : boolean;
 begin
@@ -1194,10 +1194,10 @@ begin
       FormatNumber( prefLogSqlWidth ) +
       ' characters */';
   end;
-  msg := StringReplace( msg, #9, ' ', [rfReplaceAll] );
-  msg := StringReplace( msg, #10, ' ', [rfReplaceAll] );
-  msg := StringReplace( msg, #13, ' ', [rfReplaceAll] );
-  msg := StringReplace( msg, '  ', ' ', [rfReplaceAll] );
+  msg := WideStringReplace( msg, #9, ' ', [rfReplaceAll] );
+  msg := WideStringReplace( msg, #10, ' ', [rfReplaceAll] );
+  msg := WideStringReplace( msg, #13, ' ', [rfReplaceAll] );
+  msg := WideStringReplace( msg, '  ', ' ', [rfReplaceAll] );
   if ( comment ) then
   begin
     msg := '/* ' + msg + ' */';
@@ -1214,7 +1214,7 @@ end;
 
 procedure TMDIChild.ProcessSqlLog;
 var
-  msg: string;
+  msg: WideString;
 begin
   EnterCriticalSection(SqlMessagesLock);
   try
@@ -1226,7 +1226,7 @@ begin
     LeaveCriticalSection(SqlMessagesLock);
   end;
 
-  SynMemoSQLLog.Lines.Add( String(msg) );
+  SynMemoSQLLog.Lines.Add( msg );
 
   TrimSQLLog;
 
@@ -4635,7 +4635,7 @@ begin
 end;
 
 
-procedure TMDIChild.ExecUseQuery(db: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
+procedure TMDIChild.ExecUseQuery(db: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 begin
   ExecUpdateQuery('USE ' + mask(db), HandleErrors, DisplayErrors);
   FConn.MysqlParams.Database := db;
@@ -4648,7 +4648,7 @@ end;
 
   @param String The single SQL-query to be executed on the server
 }
-function TMDIChild.ExecUpdateQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
+function TMDIChild.ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
 var
   MysqlQuery : TMysqlQuery;
   ds: TDataSet;
@@ -4696,7 +4696,7 @@ end;
   @param String The single SQL-query to be executed on the server
   @return TMysqlQuery Containing the dataset and info data availability
 }
-function TMDIChild.ExecSelectQuery(sql: string; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
+function TMDIChild.ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
 var
   res: TMysqlQuery;
 begin
@@ -4729,7 +4729,7 @@ end;
 {***
   Executes a query.
 }
-function TMDIChild.GetResults( SQLQuery: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
+function TMDIChild.GetResults( SQLQuery: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
 begin
   result := ExecSelectQuery(SQLQuery, HandleErrors, DisplayErrors, ForceDialog);
 end;
@@ -4738,7 +4738,7 @@ end;
 {***
   Execute a query and return String from column x
 }
-function TMDIChild.GetVar( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
+function TMDIChild.GetVar( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
 var
   ds: TDataSet;
 begin
@@ -4750,7 +4750,7 @@ begin
 end;
 
 
-function TMDIChild.GetNamedVar( SQLQuery: String; x: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
+function TMDIChild.GetNamedVar( SQLQuery: WideString; x: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
 var
   ds: TDataSet;
 begin
@@ -4786,7 +4786,7 @@ end;
   @param  Integer 0-based column index in the resultset to return
   @return TStringList
 }
-function TMDIChild.GetCol( SQLQuery: String; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
+function TMDIChild.GetCol( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
 var
   i: Integer;
   ds: TDataSet;
@@ -4810,7 +4810,7 @@ end;
 procedure TMDIChild.ZSQLMonitor1LogTrace(Sender: TObject;
   Event: TZLoggingEvent);
 begin
-  LogSQL( Trim( Event.Message ), (Event.Category <> lcExecute) );
+  LogSQL( Event.Message, (Event.Category <> lcExecute) );
 end;
 
 
@@ -4868,7 +4868,7 @@ end;
 {***
   Run a query in a separate thread of execution on the current connection.
 }
-function TMDIChild.RunThreadedQuery(AQuery: String; ForceDialog: Boolean): TMysqlQuery;
+function TMDIChild.RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
 begin
   Result := nil;
   if (Copy(AQuery, 1, 3) <> 'USE') then EnsureDatabase;
@@ -5075,7 +5075,7 @@ end;
 
 
 
-function TMDIChild.mask(str: String) : String;
+function TMDIChild.mask(str: WideString) : WideString;
 begin
   result := maskSql(mysql_version, str);
 end;

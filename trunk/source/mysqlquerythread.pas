@@ -51,7 +51,7 @@ type
     ThreadID : Integer;
     ConnectionID : Cardinal;
     Action : Integer;
-    Sql : String;
+    Sql : WideString;
     Result : Integer;
     Comment : String;
   end;
@@ -67,7 +67,7 @@ type
       FMysqlConn : TZConnection;
       FConn : TOpenConnProf;
       FOwner : TObject; // TMysqlQuery object
-      FSql : String;
+      FSql : WideString;
       FCallback: TAsyncPostRunner;
       FPostDataSet: TDeferDataSet;
       FResult : Integer;
@@ -87,11 +87,11 @@ type
       procedure NotifyStatusViaEventProc (AEvent : Integer);
       procedure NotifyStatusViaWinMessage (AEvent : Integer);
       function AssembleResult () : TThreadResult;
-      function RunDataQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner) : Boolean;
-      function RunUpdateQuery (ASql : String; var ADataset : TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner) : Boolean;
-      function QuerySingleCellAsInteger (ASql : String) : Integer;
+      function RunDataQuery (ASql : WideString; var ADataset : TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner) : Boolean;
+      function RunUpdateQuery (ASql : WideString; var ADataset : TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner) : Boolean;
+      function QuerySingleCellAsInteger (ASql : WideString) : Integer;
     public
-      constructor Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer; Callback: TAsyncPostRunner; APostDataSet: TDeferDataSet);
+      constructor Create (AOwner : TObject; AConn : TOpenConnProf; ASql : WideString; ASyncMode : Integer; Callback: TAsyncPostRunner; APostDataSet: TDeferDataSet);
       destructor Destroy; override;
       property NotifyWndHandle : THandle read FNotifyWndHandle write SetNotifyWndHandle;
   end;
@@ -120,7 +120,7 @@ begin
   Result.Comment := FComment;
 end;
 
-constructor TMysqlQueryThread.Create (AOwner : TObject; AConn : TOpenConnProf; ASql : String; ASyncMode : Integer; Callback: TAsyncPostRunner; APostDataSet: TDeferDataSet);
+constructor TMysqlQueryThread.Create (AOwner : TObject; AConn : TOpenConnProf; ASql : WideString; ASyncMode : Integer; Callback: TAsyncPostRunner; APostDataSet: TDeferDataSet);
 var
   mc : TZConnection;
 begin
@@ -265,7 +265,7 @@ begin
   Result.HelpContext := AException.HelpContext;
 end;
 
-function TMysqlQueryThread.QuerySingleCellAsInteger(ASql: String): Integer;
+function TMysqlQueryThread.QuerySingleCellAsInteger(ASql: WideString): Integer;
 var
   ds : TDataSet;
   e : TExceptionData;
@@ -320,7 +320,7 @@ begin
     TMysqlQuery (FOwner).PostNotification(qr,MQE_FREED);
 end;
 
-function TMysqlQueryThread.RunDataQuery(ASql: String;
+function TMysqlQueryThread.RunDataQuery(ASql: WideString;
   var ADataset: TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner): Boolean;
 var
   q : TDeferDataSet;
@@ -346,7 +346,7 @@ begin
   end;
 end;
 
-function TMysqlQueryThread.RunUpdateQuery(ASql: String; var ADataset: TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner): Boolean;
+function TMysqlQueryThread.RunUpdateQuery(ASql: WideString; var ADataset: TDataset; out AExceptionData : TExceptionData; callback: TAsyncPostRunner): Boolean;
 var
   q : TDeferDataSet;
 begin

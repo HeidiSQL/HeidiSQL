@@ -60,7 +60,7 @@ interface
 uses
   Classes, SysUtils, ZSysUtils, ZDbcIntfs, ZDbcStatement, ZDbcLogging,
   ZPlainOracleDriver, ZCompatibility, ZVariant, ZDbcGenericResolver,
-  ZDbcCachedResultSet, ZDbcOracleUtils;
+  ZDbcCachedResultSet, ZDbcOracleUtils, WideStrings;
 
 type
 
@@ -365,7 +365,7 @@ end;
 function TZOraclePreparedStatement.ConvertToOracleSQLQuery(SQL: string): string;
 var
   I, N: Integer;
-  Tokens: TStrings;
+  Tokens: TWideStrings;
 begin
   if Pos('?', SQL) > 0 then
   begin

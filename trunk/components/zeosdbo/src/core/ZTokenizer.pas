@@ -58,7 +58,7 @@ interface
 {$I ZCore.inc}
 
 uses
-  Classes, SysUtils, ZClasses;
+  Classes, SysUtils, ZClasses, WideStrings;
 
 type
 
@@ -393,10 +393,10 @@ type
   IZTokenizer = interface (IZInterface)
     ['{C7CF190B-C45B-4AB4-A406-5999643DF6A0}']
 
-    function TokenizeBufferToList(const Buffer: string; Options: TZTokenOptions):
-      TStrings;
+    function TokenizeBufferToList(const Buffer: WideString; Options: TZTokenOptions):
+      TWideStrings;
     function TokenizeStreamToList(Stream: TStream; Options: TZTokenOptions):
-      TStrings;
+      TWideStrings;
 
     function TokenizeBuffer(const Buffer: string; Options: TZTokenOptions):
       TZTokenDynArray;
@@ -425,10 +425,10 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TokenizeBufferToList(const Buffer: string; Options: TZTokenOptions):
-      TStrings;
+    function TokenizeBufferToList(const Buffer: WideString; Options: TZTokenOptions):
+      TWideStrings;
     function TokenizeStreamToList(Stream: TStream; Options: TZTokenOptions):
-      TStrings;
+      TWideStrings;
 
     function TokenizeBuffer(const Buffer: string; Options: TZTokenOptions):
       TZTokenDynArray;
@@ -1217,8 +1217,8 @@ end;
   @returns a string list where Items are tokens and
     Objects are token types.
 }
-function TZTokenizer.TokenizeBufferToList(const Buffer: string;
-  Options: TZTokenOptions): TStrings;
+function TZTokenizer.TokenizeBufferToList(const Buffer: WideString;
+  Options: TZTokenOptions): TWideStrings;
 var
   Stream: TStream;
 begin
@@ -1240,7 +1240,7 @@ function TZTokenizer.TokenizeStream(Stream: TStream;
   Options: TZTokenOptions): TZTokenDynArray;
 var
   I: Integer;
-  List: TStrings;
+  List: TWideStrings;
 begin
   List := TokenizeStreamToList(Stream, Options);
   try
@@ -1264,14 +1264,14 @@ end;
     Objects are token types.
 }
 function TZTokenizer.TokenizeStreamToList(Stream: TStream;
-  Options: TZTokenOptions): TStrings;
+  Options: TZTokenOptions): TWideStrings;
 var
   FirstChar: Char;
   Token: TZToken;
   LastTokenType: TZTokenType;
   State: TZTokenizerState;
 begin
-  Result := TStringList.Create;
+  Result := TWideStringList.Create;
   LastTokenType := ttUnknown;
 
   while Stream.Read(FirstChar, 1) > 0 do

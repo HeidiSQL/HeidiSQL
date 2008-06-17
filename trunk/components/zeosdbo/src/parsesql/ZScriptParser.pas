@@ -57,7 +57,7 @@ interface
 
 {$I ZParseSql.inc}
 
-uses Classes, SysUtils, ZTokenizer;
+uses Classes, SysUtils, ZTokenizer, WideStrings;
 
 type
   {** Defines a SQL delimiter type. }
@@ -197,7 +197,7 @@ end;
 }
 procedure TZSQLScriptParser.ParseText(const Text: string);
 var
-  Tokens: TStrings;
+  Tokens: TWideStrings;
   TokenType: TZTokenType;
   TokenValue: string;
   TokenIndex: Integer;

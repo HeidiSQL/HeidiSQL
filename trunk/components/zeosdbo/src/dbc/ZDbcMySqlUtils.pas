@@ -100,7 +100,7 @@ function MySQLTimestampToDateTime(const Value: string): TDateTime;
   @param LogMessage a logging message.
 }
 procedure CheckMySQLError(PlainDriver: IZMySQLPlainDriver;
-  Handle: PZMySQLConnect; LogCategory: TZLoggingCategory; const LogMessage: string);
+  Handle: PZMySQLConnect; LogCategory: TZLoggingCategory; const LogMessage: WideString);
 
 procedure EnterSilentMySQLError;
 procedure LeaveSilentMySQLError;
@@ -447,9 +447,9 @@ end;
   @param LogMessage a logging message.
 }
 procedure CheckMySQLError(PlainDriver: IZMySQLPlainDriver;
-  Handle: PZMySQLConnect; LogCategory: TZLoggingCategory; const LogMessage: string);
+  Handle: PZMySQLConnect; LogCategory: TZLoggingCategory; const LogMessage: WideString);
 var
-  ErrorMessage: string;
+  ErrorMessage: WideString;
   ErrorCode: Integer;
 begin
   ErrorMessage := Trim(StrPas(PlainDriver.GetLastError(Handle)));

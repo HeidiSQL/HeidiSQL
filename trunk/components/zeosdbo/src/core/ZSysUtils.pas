@@ -65,7 +65,7 @@ uses
     Variants,
   {$ENDIF}
 {$ENDIF}
-  ZMessages, ZCompatibility, Classes, Math, SysUtils;
+  ZMessages, ZCompatibility, Classes, Math, SysUtils, WideStrings;
 
 type
   {** Modified comaprison function. }
@@ -202,7 +202,7 @@ procedure AppendSplitString(List: TStrings; const Str, Delimiters: string);
   @param Delimiter a delimiter string.
   @return a composed string from the list.
 }
-function ComposeString(List: TStrings; const Delimiter: string): string;
+function ComposeString(List: TWideStrings; const Delimiter: string): string;
 
 {**
   Converts a float value into SQL string with '.' delimiter.
@@ -649,7 +649,7 @@ end;
   @param Delimiter a delimiter string.
   @return a composed string from the list.
 }
-function ComposeString(List: TStrings; const Delimiter: string): string;
+function ComposeString(List: TWideStrings; const Delimiter: string): string;
 var
   i, Len, DelimLen: Integer;
   S: string;

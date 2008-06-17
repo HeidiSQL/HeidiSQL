@@ -183,9 +183,9 @@ type
     procedure RemoveLoggingListener(Listener: IZLoggingListener);
 
     procedure LogMessage(Category: TZLoggingCategory; const Protocol: string;
-      const Msg: string);
+      const Msg: WideString);
     procedure LogError(Category: TZLoggingCategory; const Protocol: string;
-      const Msg: string; ErrorCode: Integer; const Error: string);
+      const Msg: WideString; ErrorCode: Integer; const Error: WideString);
   end;
 
   {** Database Driver interface. }
@@ -855,9 +855,9 @@ type
     procedure RemoveLoggingListener(Listener: IZLoggingListener);
 
     procedure LogMessage(Category: TZLoggingCategory; const Protocol: string;
-      const Msg: string);
+      const Msg: WideString);
     procedure LogError(Category: TZLoggingCategory; const Protocol: string;
-      const Msg: string; ErrorCode: Integer; const Error: string);
+      const Msg: WideString; ErrorCode: Integer; const Error: WideString);
   end;
 
   {** Stores information about registered drivers *}
@@ -1034,7 +1034,7 @@ end;
   @param Error an error message.
 }
 procedure TZDriverManager.LogError(Category: TZLoggingCategory;
-  const Protocol: string; const Msg: string; ErrorCode: Integer; const Error: string);
+  const Protocol: string; const Msg: WideString; ErrorCode: Integer; const Error: WideString);
 var
   I: Integer;
   Listener: IZLoggingListener;
@@ -1063,7 +1063,7 @@ end;
   @param Msg a description message.
 }
 procedure TZDriverManager.LogMessage(Category: TZLoggingCategory;
-  const Protocol: string; const Msg: string);
+  const Protocol: string; const Msg: WideString);
 begin
   if FLoggingListeners.Count = 0 then Exit;
   LogError(Category, Protocol, Msg, 0, '');
