@@ -93,6 +93,7 @@ type
   function GetDBObjectType( TableStatus: TFields ): Byte;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
+  function ReadUnicodeFile(Filename: String): WideString;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2370,6 +2371,90 @@ begin
   finally
     f.Free;
   end;
+end;
+
+
+{**
+  Read a unicode or ansi file into memory
+}
+function ReadUnicodeFile(Filename: String): WideString;
+var
+  Stream: TFileStream;
+  ByteOrderMark: WideChar;
+  BytesRead: Integer;
+  Utf8Test: array[0..2] of AnsiChar;
+  DataLeft: Integer;
+  StreamCharSet: Byte;
+  SA: AnsiString;
+  P: PWord;
+const
+  UNICODE_BOM = WideChar($FEFF);
+  UNICODE_BOM_SWAPPED = WideChar($FFFE);
+  UTF8_BOM = AnsiString(#$EF#$BB#$BF);
+  sscAnsi = 0;
+  sscUnicode = 1;
+  sscUnicodeSwapped = 2;
+  sscUtf8 = 3;
+begin
+  Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyWrite);
+  try
+    Stream.Position := 0;
+
+    // Byte Order Mark
+    ByteOrderMark := #0;
+    if (Stream.Size - Stream.Position) >= SizeOf(ByteOrderMark) then begin
+      BytesRead := Stream.Read(ByteOrderMark, SizeOf(ByteOrderMark));
+      if (ByteOrderMark <> UNICODE_BOM) and (ByteOrderMark <> UNICODE_BOM_SWAPPED) then begin
+        ByteOrderMark := #0;
+        Stream.Seek(-BytesRead, soFromCurrent);
+        if (Stream.Size - Stream.Position) >= Length(Utf8Test) * SizeOf(AnsiChar) then begin
+          BytesRead := Stream.Read(Utf8Test[0], Length(Utf8Test) * SizeOf(AnsiChar));
+          if Utf8Test <> UTF8_BOM then
+            Stream.Seek(-BytesRead, soFromCurrent);
+        end;
+      end;
+    end;
+    // Test Byte Order Mark
+    if ByteOrderMark = UNICODE_BOM then
+      StreamCharSet := sscUnicode
+    else if ByteOrderMark = UNICODE_BOM_SWAPPED then
+      StreamCharSet := sscUnicodeSwapped
+    else if Utf8Test = UTF8_BOM then
+      StreamCharSet := sscUtf8
+    else
+      StreamCharSet := sscAnsi;
+
+    DataLeft := Stream.Size - Stream.Position;
+    if (StreamCharSet in [sscUnicode, sscUnicodeSwapped]) then begin
+      // BOM indicates Unicode text stream
+      if DataLeft < SizeOf(WideChar) then
+        Result := ''
+      else begin
+        SetLength(Result, DataLeft div SizeOf(WideChar));
+        Stream.Read(PWideChar(Result)^, DataLeft);
+        if StreamCharSet = sscUnicodeSwapped then begin
+          P := PWord(PWideChar(Result));
+          While (P^ <> 0) do begin
+            P^ := MakeWord(HiByte(P^), LoByte(P^));
+            Inc(P);
+          end;
+        end;
+      end;
+    end else if StreamCharSet = sscUtf8 then begin
+      // BOM indicates UTF-8 text stream
+      SetLength(SA, DataLeft div SizeOf(AnsiChar));
+      Stream.Read(PAnsiChar(SA)^, DataLeft);
+      Result := UTF8Decode(SA);
+    end else begin
+      // without byte order mark it is assumed that we are loading ANSI text
+      SetLength(SA, DataLeft div SizeOf(AnsiChar));
+      Stream.Read(PAnsiChar(SA)^, DataLeft);
+      Result := SA;
+    end;
+  finally
+    Stream.Free;
+  end;
+
 end;
 
 
