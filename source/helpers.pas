@@ -10,7 +10,7 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX, StrUtils, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings;
+  shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings;
 
 type
 
@@ -80,7 +80,7 @@ type
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
   function GetFieldValue( Field: TField ): String;
-  function LastPos( substr: WideString; str: WideString): Integer;
+  function LastPos(needle: WideChar; haystack: WideString): Integer;
   function ConvertServerVersion( Version: Integer ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
@@ -2021,12 +2021,19 @@ end;
   @param string Text
   @return Integer Last position
 }
-function LastPos( substr: WideString; str: WideString): Integer;
+function LastPos(needle: WideChar; haystack: WideString): Integer;
+var
+  reverse: WideString;
+  i, len, w: Integer;
 begin
+  // Reverse string.
+  len := Length(haystack);
+  SetLength(reverse, len);
+  for i := 1 to len do reverse[i] := haystack[len - i + 1];
+  // Look for needle.
   Result := 0;
-  str := ReverseString( str );
-  if Pos( substr, str ) > 0 then
-    Result := Length(str) - Pos( substr, str ) + 1;
+  w := Pos(needle, reverse);
+  if w > 0 then Result := len - w + 1;
 end;
 
 

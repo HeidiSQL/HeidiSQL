@@ -17,7 +17,7 @@ uses
   ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
-  StrUtils, DateUtils, PngImageList, OptimizeTables, View, Usermanager,
+  DateUtils, PngImageList, OptimizeTables, View, Usermanager,
   SelectDBObject;
 
 type
@@ -1248,30 +1248,30 @@ begin
   paramValue := '';
   param := ParamStr(curIdx);
   // Example: --user=root --session="My session name" --password
-  if AnsiStartsStr('--'+paramName, param) then
+  if Pos('--' + paramName, param) = 1 then
   begin
-    i := Length('--'+paramName) + 1;
+    i := Length('--' + paramName) + 1;
     if param[i] = '=' then
-      paramValue := MidStr(param, i+1, Length(param)+1);
-      if (AnsiLeftStr(paramValue, 1) = '"') and (AnsiRightStr(paramValue, 1) = '"') then
-        paramValue := MidStr(paramValue, 2, Length(paramValue));
+      paramValue := Copy(param, i + 1, Length(param) - i);
+      if (Copy(paramValue, 1, 1) = '"') and (Copy(paramValue, Length(paramValue), 1) = '"') then
+        paramValue := Copy(paramValue, 2, Length(paramValue) - 2);
     result := True;
 
-  end else if AnsiStartsStr('-'+paramChar, param) then
+  end else if Pos('-' + paramChar, param) = 1 then
   begin
     if Length(param) > 2 then
     begin
       // Example: -uroot -s"My session name"
-      paramValue := MidStr(param, 3, Length(param)+1);
-      if (AnsiLeftStr(paramValue, 1) = '"') and (AnsiRightStr(paramValue, 1) = '"') then
-        paramValue := MidStr(paramValue, 2, Length(paramValue));
+      paramValue := Copy(param, 3, Length(param) - 2);
+      if (Copy(paramValue, 1, 1) = '"') and (Copy(paramValue, Length(paramValue), 1) = '"') then
+        paramValue := Copy(paramValue, 2, Length(paramValue) - 2);
     end else
     begin
       // Example: -u root -s "My session name" -p
       nextIdx := curIdx + 1;
       if nextIdx <= ParamCount then begin
         nextParam := ParamStr(nextIdx);
-        if not AnsiStartsStr('-', nextParam) then
+        if not Pos('-', nextParam) = 1 then
           paramValue := nextParam;
       end;
     end;
