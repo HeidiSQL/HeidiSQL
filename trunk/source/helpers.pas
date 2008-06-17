@@ -10,7 +10,7 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX, StrUtils, VirtualTrees, SynRegExpr, Messages;
+  shlobj, ActiveX, StrUtils, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings;
 
 type
 
@@ -34,9 +34,9 @@ type
   function explode(separator, a: String) :TStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
-  function IsValidDelimiter(var s: string): string;
-  type TParseSQLProcessCommand = procedure(command: String; parameter: String) of object;
-  function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
+  function IsValidDelimiter(var s: WideString): WideString;
+  type TParseSQLProcessCommand = procedure(command: WideString; parameter: WideString) of object;
+  function parsesql(sql: WideString; delimiter: WideString; processcommand: TParseSQLProcessCommand = nil) : TWideStringList;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -325,11 +325,11 @@ end;
   @param string to enclose added string in (use %s)
   @return void
 }
-procedure addResult(list: TStringList; s: string; enclose: string = '');
+procedure addResult(list: TWideStringList; s: WideString; enclose: WideString = '');
 begin
   s := trim(s);
   if length(s) > 0 then begin
-    if enclose <> '' then s := Format(enclose, [s]);
+    if enclose <> '' then s := WideFormat(enclose, [s]);
     list.Add(s);
   end;
   // Avoid memory leak
@@ -344,7 +344,7 @@ end;
   @param s a string to be trimmed and tested.
   @return s an error message if validation fails, a nil string if it succeeds.
 }
-function IsValidDelimiter(var s: string): string;
+function IsValidDelimiter(var s: WideString): WideString;
 begin
   result := '';
   s := Trim(s);
@@ -367,7 +367,7 @@ begin
   then result := 'String literal markers disallowed in DELIMITER (because it would be ignored)';
 
   if result <> '' then begin
-    result := Format('Invalid delimiter %s: %s.', [s, result]);
+    result := WideFormat('Invalid delimiter %s: %s.', [s, result]);
   end;
 end;
 
@@ -378,7 +378,7 @@ end;
   Limitations: only recognizes ANSI whitespace.
   Eligible for inlining, hope the compiler does this automatically.
 }
-function isWhitespace(const c: char): boolean;
+function isWhitespace(const c: WideChar): boolean;
 begin
   result :=
     (c = #9) or
@@ -395,9 +395,9 @@ end;
   Limitations: only recognizes ANSI numerals.
   Eligible for inlining, hope the compiler does this automatically.
 }
-function isNumber(const c: char): boolean;
+function isNumber(const c: WideChar): boolean;
 var
-  b: byte;
+  b: word;
 begin
   b := ord(c);
   result :=
@@ -413,17 +413,17 @@ end;
   Limitations: in case insensitive mode, input must be ANSI and lower case (for speed).
   Eligible for inlining, hope the compiler does this automatically.
 }
-function scanReverse(const haystack: string; hayIndex: integer; const needle: string; needleEnd: integer; insensitive: boolean): boolean;
+function scanReverse(const haystack: WideString; hayIndex: integer; const needle: WideString; needleEnd: integer; insensitive: boolean): boolean;
 var
-  b: byte;
-  c: char;
+  b: word;
+  c: widechar;
 begin
   while (hayIndex > 0) and (needleEnd > 0) do begin
     // Lowercase ANSI A-Z if requested.
     if insensitive then begin
       b := Ord(haystack[hayIndex]);
       if (b > 64) and (b < 91) then b := b - 65 + 97;
-      c := Chr(b);
+      c := WideChar(b);
     end else c := haystack[hayIndex];
     if c <> needle[needleEnd] then begin
       result := false;
@@ -445,22 +445,22 @@ end;
   @param TParseSQLProcessCommand Method that execute actions relative to an object
   @return TStringList Separated statements
 }
-function parsesql(sql: String; delimiter: String; processcommand: TParseSQLProcessCommand = nil) : TStringList;
+function parsesql(sql: WideString; delimiter: WideString; processcommand: TParseSQLProcessCommand = nil) : TWideStringList;
 var
   i, j, start, len                  : Integer;
-  tmp                               : String;
+  tmp                               : WideString;
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
   inbigcomment, indelimiter         : Boolean;
   delimiter_length                  : Integer;
-  encloser, secchar, thdchar        : Char;
-  conditional                       : String;
-  msg                               : String;
+  encloser, secchar, thdchar        : WideChar;
+  conditional                       : WideString;
+  msg                               : WideString;
 
 {***
   If a callback for processing client SQL etc was given, invoke it.
 }
-procedure CallProcessCommand(command: String; parameter: String);
+procedure CallProcessCommand(command: WideString; parameter: WideString);
 begin
   if Assigned(processcommand) then processcommand(command, parameter);
 end;
@@ -476,7 +476,7 @@ begin
 end;
 
 begin
-  result := TStringList.Create;
+  result := TWideStringList.Create;
   sql := trim(sql);
   instring := false;
   start := 1;
@@ -519,7 +519,7 @@ begin
       if start = i then start := start + 1;
       i := i + 1;
     end;
-    if incomment and (not inbigcomment) and (sql[i] in [#13, #10]) then begin
+    if incomment and (not inbigcomment) and (sql[i] in [WideChar(#13), WideChar(#10)]) then begin
       incomment := false;
     end;
     if inbigcomment and (sql[i] + secchar = '*/') then begin
@@ -541,7 +541,7 @@ begin
     end;
 
     // Avoid parsing stuff inside string literals.
-    if (sql[i] in ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) and (not indelimiter) then begin
+    if (sql[i] in [WideChar(''''), WideChar('"'), WideChar('`')]) and (not (backslash and instring)) and (not incomment) and (not indelimiter) then begin
       if instring and (sql[i] = encloser) then begin
         if secchar = encloser then
           i := i + 1                            // encoded encloser-char
@@ -570,7 +570,7 @@ begin
     end;
 
     if indelimiter then begin
-      if (sql[i] in [#13, #10]) or (i = len) then begin
+      if (sql[i] in [WideChar(#13), WideChar(#10)]) or (i = len) then begin
         if (i = len) then j := 1 else j := 0;
         tmp := copy(sql, start + 10, i + j - (start + 10));
         msg := IsValidDelimiter(tmp);
