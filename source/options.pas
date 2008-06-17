@@ -70,7 +70,6 @@ type
     Label22: TLabel;
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
-    CheckBoxlimit: TCheckBox;
     Label19: TLabel;
     Label28: TLabel;
     pnlTablenames: TPanel;
@@ -176,7 +175,6 @@ begin
   reg.WriteString(REGNAME_CSV_ENCLOSER, Edit2.Text);
   reg.WriteString(REGNAME_CSV_TERMINATOR, Edit3.Text);
   reg.WriteInteger(REGNAME_DEFAULTCOLWIDTH, updownDefaultColWidth.Position);
-  reg.WriteBool(REGNAME_DATALIMIT, CheckBoxLimit.Checked);
   reg.WriteString(REGNAME_DATAFONTNAME, Panel8.Font.Name);
   reg.WriteInteger(REGNAME_DATAFONTSIZE, UpDownDataFontSize.Position);
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
@@ -266,7 +264,6 @@ begin
   CheckBoxAutoReconnect.Checked := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
   CheckBoxConvertHTMLEntities.Checked := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
   CheckBoxRestoreLastUsedDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-  CheckBoxLimit.Checked := Mainform.GetRegValue(REGNAME_DATALIMIT, DEFAULT_DATALIMIT);
   updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);

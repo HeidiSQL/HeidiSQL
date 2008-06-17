@@ -440,21 +440,21 @@ object optionsform: Toptionsform
       ImageIndex = 4
       object Label19: TLabel
         Left = 8
-        Top = 68
+        Top = 44
         Width = 177
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
       object GroupBox2: TGroupBox
         Left = 0
-        Top = 120
+        Top = 80
         Width = 403
-        Height = 113
+        Height = 153
         Align = alBottom
         Caption = 
           'Change this font in order to view special language characters in' +
           ' data-grids:'
-        TabOrder = 4
+        TabOrder = 3
         object Label21: TLabel
           Left = 20
           Top = 24
@@ -521,36 +521,25 @@ object optionsform: Toptionsform
           TabOrder = 3
         end
       end
-      object CheckBoxlimit: TCheckBox
-        Left = 8
-        Top = 40
-        Width = 397
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Automatically calculate data limit to avoid huge net loads'
-        Checked = True
-        State = cbChecked
-        TabOrder = 1
-      end
       object editDefaultColWidth: TEdit
         Left = 188
-        Top = 65
+        Top = 41
         Width = 42
         Height = 21
-        TabOrder = 2
+        TabOrder = 1
         Text = '1'
         OnChange = Modified
       end
       object updownDefaultColWidth: TUpDown
         Left = 230
-        Top = 65
+        Top = 41
         Width = 16
         Height = 21
         Associate = editDefaultColWidth
         Min = 1
         Max = 1000
         Position = 1
-        TabOrder = 3
+        TabOrder = 2
         OnChanging = anyUpDownLimitChanging
       end
       object chkRememberFilters: TCheckBox
