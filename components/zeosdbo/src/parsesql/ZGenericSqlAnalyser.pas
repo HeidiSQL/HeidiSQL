@@ -57,7 +57,7 @@ interface
 
 {$I ZParseSql.inc}
 
-uses Classes, Contnrs, ZClasses, ZTokenizer, ZSelectSchema, ZCompatibility;
+uses Classes, Contnrs, ZClasses, ZTokenizer, ZSelectSchema, ZCompatibility, WideStrings;
 
 type
 
@@ -65,26 +65,26 @@ type
   TZStatementSection = class (TObject)
   private
     FName: string;
-    FTokens: TStrings;
+    FTokens: TWideStrings;
   public
-    constructor Create(const Name: string; Tokens: TStrings);
+    constructor Create(const Name: string; Tokens: TWideStrings);
     destructor Destroy; override;
 
     function Clone: TZStatementSection;
 
     property Name: string read FName write FName;
-    property Tokens: TStrings read FTokens;
+    property Tokens: TWideStrings read FTokens;
   end;
 
   {** Implements a publicly available interface to statement analyser. }
   IZStatementAnalyser = interface(IZInterface)
     ['{967635B6-411B-4DEF-990C-9C6C01F3DC0A}']
 
-    function TokenizeQuery(Tokenizer: IZTokenizer; const SQL: string;
-      Cleanup: Boolean): TStrings;
-    function SplitSections(Tokens: TStrings): TObjectList;
+    function TokenizeQuery(Tokenizer: IZTokenizer; const SQL: WideString;
+      Cleanup: Boolean): TWideStrings;
+    function SplitSections(Tokens: TWideStrings): TObjectList;
 
-    function ComposeTokens(Tokens: TStrings): string;
+    function ComposeTokens(Tokens: TWideStrings): string;
     function ComposeSections(Sections: TObjectList): string;
 
     function DefineSelectSchemaFromSections(
@@ -102,16 +102,16 @@ type
     FFromClauses: TStrings;
   protected
     function ArrayToStrings(const Value: array of string): TStrings;
-    function CheckForKeyword(Tokens: TStrings; TokenIndex: Integer;
+    function CheckForKeyword(Tokens: TWideStrings; TokenIndex: Integer;
       Keywords: TStrings; var Keyword: string; var WordCount: Integer): Boolean;
-    function FindSectionTokens(Sections: TObjectList; const Name: string): TStrings;
+    function FindSectionTokens(Sections: TObjectList; const Name: string): TWideStrings;
 
-    procedure FillFieldRefs(SelectSchema: IZSelectSchema; SelectTokens: TStrings);
-    procedure FillTableRefs(SelectSchema: IZSelectSchema; FromTokens: TStrings);
+    procedure FillFieldRefs(SelectSchema: IZSelectSchema; SelectTokens: TWideStrings);
+    procedure FillTableRefs(SelectSchema: IZSelectSchema; FromTokens: TWideStrings);
 
-    function SkipOptionTokens(Tokens: TStrings; var TokenIndex: Integer;
+    function SkipOptionTokens(Tokens: TWideStrings; var TokenIndex: Integer;
       Options: TStrings): Boolean;
-    function SkipBracketTokens(Tokens: TStrings; var TokenIndex: Integer):
+    function SkipBracketTokens(Tokens: TWideStrings; var TokenIndex: Integer):
       Boolean;
 
     property SectionNames: TStrings read FSectionNames write FSectionNames;
@@ -122,11 +122,11 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TokenizeQuery(Tokenizer: IZTokenizer; const SQL: string;
-      Cleanup: Boolean): TStrings;
-    function SplitSections(Tokens: TStrings): TObjectList;
+    function TokenizeQuery(Tokenizer: IZTokenizer; const SQL: WideString;
+      Cleanup: Boolean): TWideStrings;
+    function SplitSections(Tokens: TWideStrings): TObjectList;
 
-    function ComposeTokens(Tokens: TStrings): string;
+    function ComposeTokens(Tokens: TWideStrings): string;
     function ComposeSections(Sections: TObjectList): string;
 
     function DefineSelectSchemaFromSections(
@@ -144,7 +144,7 @@ uses SysUtils, ZSysUtils;
 {**
   Create SQL statement section object.
 }
-constructor TZStatementSection.Create(const Name: string; Tokens: TStrings);
+constructor TZStatementSection.Create(const Name: string; Tokens: TWideStrings);
 begin
   FName := Name;
   FTokens := Tokens;
@@ -165,9 +165,9 @@ end;
 }
 function TZStatementSection.Clone: TZStatementSection;
 var
-  Temp: TStrings;
+  Temp: TWideStrings;
 begin
-  Temp := TStringList.Create;
+  Temp := TWideStringList.Create;
   Temp.AddStrings(FTokens);
   Result := TZStatementSection.Create(FName, Temp);
 end;
@@ -237,7 +237,7 @@ end;
   @param Keyword an out parameter with found keyword.
   @param WordCount a count of words in the found keyword.
 }
-function TZGenericStatementAnalyser.CheckForKeyword(Tokens: TStrings;
+function TZGenericStatementAnalyser.CheckForKeyword(Tokens: TWideStrings;
   TokenIndex: Integer; Keywords: TStrings; var Keyword: string;
   var WordCount: Integer): Boolean;
 var
@@ -291,7 +291,7 @@ end;
     if section is was not found.
 }
 function TZGenericStatementAnalyser.FindSectionTokens(
-  Sections: TObjectList; const Name: string): TStrings;
+  Sections: TObjectList; const Name: string): TWideStrings;
 var
   I: Integer;
   Current: TZStatementSection;
@@ -315,7 +315,7 @@ end;
   @return a list with tokens.
 }
 function TZGenericStatementAnalyser.TokenizeQuery(
-  Tokenizer: IZTokenizer; const SQL: string; Cleanup: Boolean): TStrings;
+  Tokenizer: IZTokenizer; const SQL: WideString; Cleanup: Boolean): TWideStrings;
 begin
   if Cleanup then
   begin
@@ -332,13 +332,13 @@ end;
     a list of tokens in the section. It initial list is not started
     with a section name the first section is unnamed ('').
 }
-function TZGenericStatementAnalyser.SplitSections(Tokens: TStrings): TObjectList;
+function TZGenericStatementAnalyser.SplitSections(Tokens: TWideStrings): TObjectList;
 var
   I: Integer;
   Keyword: string;
   WordCount: Integer;
   TokenIndex: Integer;
-  Elements: TStrings;
+  Elements: TWideStrings;
   FoundSection: Boolean;
   BracketCount: Integer;
 begin
@@ -352,7 +352,7 @@ begin
   begin
     if FoundSection then
     begin
-      Elements := TStringList.Create;
+      Elements := TWideStringList.Create;
       for I := 0 to WordCount - 1 do
       begin
         Elements.AddObject(Tokens[TokenIndex + I],
@@ -383,7 +383,7 @@ end;
   @param Tokens a list of tokens.
   @returns a composes string.
 }
-function TZGenericStatementAnalyser.ComposeTokens(Tokens: TStrings): string;
+function TZGenericStatementAnalyser.ComposeTokens(Tokens: TWideStrings): string;
 begin
   Result := ComposeString(Tokens, '');
 end;
@@ -408,7 +408,7 @@ end;
   @param TokenIndex the index of the current token.
   @return <code>true</code> if some tokens were skipped.
 }
-function TZGenericStatementAnalyser.SkipBracketTokens(Tokens: TStrings;
+function TZGenericStatementAnalyser.SkipBracketTokens(Tokens: TWideStrings;
   var TokenIndex: Integer): Boolean;
 var
   BracketCount: Integer;
@@ -443,7 +443,7 @@ end;
   @param Options a list of option keyword strings in the upper case.
   @return <code>true</code> if some tokens were skipped.
 }
-function TZGenericStatementAnalyser.SkipOptionTokens(Tokens: TStrings;
+function TZGenericStatementAnalyser.SkipOptionTokens(Tokens: TWideStrings;
   var TokenIndex: Integer; Options: TStrings): Boolean;
 begin
   Result := False;
@@ -467,7 +467,7 @@ end;
   @param SelectTokens a list of tokens in select section.
 }
 procedure TZGenericStatementAnalyser.FillFieldRefs(
-  SelectSchema: IZSelectSchema; SelectTokens: TStrings);
+  SelectSchema: IZSelectSchema; SelectTokens: TWideStrings);
 var
   TokenIndex: Integer;
   Catalog: string;
@@ -581,7 +581,7 @@ end;
   @param FromTokens a list of tokens in from section.
 }
 procedure TZGenericStatementAnalyser.FillTableRefs(
-  SelectSchema: IZSelectSchema; FromTokens: TStrings);
+  SelectSchema: IZSelectSchema; FromTokens: TWideStrings);
 var
   TokenIndex: Integer;
   Catalog: string;
@@ -696,8 +696,8 @@ end;
 function TZGenericStatementAnalyser.DefineSelectSchemaFromSections(
   Sections: TObjectList): IZSelectSchema;
 var
-  SelectTokens: TStrings;
-  FromTokens: TStrings;
+  SelectTokens: TWideStrings;
+  FromTokens: TWideStrings;
 begin
   Result := nil;
   { Checks for the correct select statement. }
@@ -728,7 +728,7 @@ end;
 function TZGenericStatementAnalyser.DefineSelectSchemaFromQuery(
   Tokenizer: IZTokenizer; const SQL: string): IZSelectSchema;
 var
-  Tokens: TStrings;
+  Tokens: TWideStrings;
   Sections: TObjectList;
 begin
   Tokens := TokenizeQuery(Tokenizer, SQL, True);

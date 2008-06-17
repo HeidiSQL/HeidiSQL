@@ -262,7 +262,7 @@ procedure TZSQLMonitor.LogEvent(Event: TZLoggingEvent);
 var
   LogTrace: Boolean;
   Stream: TFileStream;
-  Temp: string;
+  Temp: WideString;
   Buffer: PChar;
 begin
   LogTrace := True;

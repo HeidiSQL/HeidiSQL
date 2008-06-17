@@ -376,7 +376,7 @@ end;
 }
 procedure TZMySQLConnection.Open;
 var
-  LogMessage: string;
+  LogMessage: WideString;
   OldLevel: TZTransactIsolationLevel;
   OldAutoCommit: Boolean;
   ConnectTimeout: Integer;

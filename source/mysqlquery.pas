@@ -46,7 +46,7 @@ type
       FQueryThread : TMysqlQueryThread;
       FEventName : String;
       FEventHandle : THandle;
-      FSql : String;
+      FSql : WideString;
       FOnNotify : TMysqlQueryNotificationEvent;
       function GetNotificationMode: Integer;
       function GetConnectionID: Integer;
@@ -58,7 +58,7 @@ type
     public
       constructor Create (AOwner : TComponent; AConn : POpenConnProf); overload;
       destructor Destroy (); override;
-      procedure Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle; Callback: TAsyncPostRunner; ds: TDeferDataSet);
+      procedure Query(ASql: WideString; AMode: Integer; ANotifyWndHandle : THandle; Callback: TAsyncPostRunner; ds: TDeferDataSet);
       procedure SetMysqlDataset(ADataset : TDataset);
       procedure PostNotification (AQueryResult : TThreadResult; AEvent : Integer);
       procedure SetThreadResult(AResult : TThreadResult);
@@ -70,15 +70,15 @@ type
       property MysqlDataset : TDataset read FMysqlDataset;      // Resultset
       property HasResultset : Boolean read GetHasresultSet;     // Indicator of resultset availability
       property ThreadID : Integer read FThreadID;               // Mysql query thread ID (on the clients os)
-      property Sql : String read FSql;                          // Query string
+      property Sql : WideString read FSql;                          // Query string
       property EventName : String read FEventName;              // Operating system event name used for blocking mode
       property EventHandle : THandle read FEventHandle;
       property NotificationMode : Integer read GetNotificationMode;
       property OnNotify : TMysqlQueryNotificationEvent read FOnNotify write FOnNotify; // Event procedure used in MQN_EVENTPROC notification mode
   end;
 
-  function ExecMysqlStatementAsync(ASql : String; AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; Callback: TAsyncPostRunner) : TMysqlQuery;
-  function ExecMysqlStatementBlocking(ASql : String; AConn : TOpenConnProf; AWndHandle : THandle) : TMysqlQuery;
+  function ExecMysqlStatementAsync(ASql : WideString; AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; Callback: TAsyncPostRunner) : TMysqlQuery;
+  function ExecMysqlStatementBlocking(ASql : WideString; AConn : TOpenConnProf; AWndHandle : THandle) : TMysqlQuery;
   function ExecPostAsync(AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; ds: TDeferDataSet): TMysqlQuery;
 
 
@@ -105,7 +105,7 @@ uses
   @param TMysqlQueryNotificationEvent Notify procedure
   @param THandle Window handle to post thread status messages to
 }
-function ExecMysqlStatementAsync(ASql : String; AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; Callback: TAsyncPostRunner) : TMysqlQuery;
+function ExecMysqlStatementAsync(ASql : WideString; AConn : TOpenConnProf; ANotifyProc : TMysqlQueryNotificationEvent; AWndHandle : THandle; Callback: TAsyncPostRunner) : TMysqlQuery;
 begin
   Result := TMysqlQuery.Create(nil,@AConn);
   Result.OnNotify := ANotifyProc;
@@ -131,7 +131,7 @@ end;
   @return TMysqlQuery Query object returned to resolve status info and the data
 }
 
-function ExecMysqlStatementBlocking(ASql : String; AConn : TOpenConnProf; AWndHandle : THandle) : TMysqlQuery;
+function ExecMysqlStatementBlocking(ASql : WideString; AConn : TOpenConnProf; AWndHandle : THandle) : TMysqlQuery;
 begin
   Result := TMysqlQuery.Create(nil,@AConn);
   Result.Query(ASql,MQM_SYNC,AWndHandle,nil,nil);
@@ -232,7 +232,7 @@ begin
     end;
 end;
 
-procedure TMysqlQuery.Query(ASql: String; AMode: Integer; ANotifyWndHandle : THandle; Callback: TAsyncPostRunner; ds: TDeferDataSet);
+procedure TMysqlQuery.Query(ASql: WideString; AMode: Integer; ANotifyWndHandle : THandle; Callback: TAsyncPostRunner; ds: TDeferDataSet);
 begin
 
   // create thread object

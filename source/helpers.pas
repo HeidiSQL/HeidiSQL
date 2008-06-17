@@ -72,7 +72,7 @@ type
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
-  function maskSql(sql_version: integer; str: String) : String;
+  function maskSql(sql_version: integer; str: WideString) : WideString;
   procedure ActivateWindow(Window : HWnd);
   function GetApplication(MainForm: HWnd): HWnd;
   procedure ActivateMainForm(MainForm: HWnd);
@@ -1815,18 +1815,18 @@ end;
   @return string (not) quoted identifier
   @see http://www.heidisql.com/forum/viewtopic.php?t=161
 }
-function maskSql(sql_version: integer; str: String) : String;
+function maskSql(sql_version: integer; str: WideString) : WideString;
 begin
   // Quote ANSI-compatible (but not MySQL-compatible)?
   if sql_version = SQL_VERSION_ANSI then
   begin
-    result := StringReplace(str, '"', '""', [rfReplaceAll]);
+    result := WideStringReplace(str, '"', '""', [rfReplaceAll]);
     result := '"' + result + '"';
   end
   // Quote MySQL-compatible
   else if sql_version >= 32300 then
   begin
-    result := StringReplace(str, '`', '``', [rfReplaceAll]);
+    result := WideStringReplace(str, '`', '``', [rfReplaceAll]);
     result := '`' + result + '`';
   end
   else

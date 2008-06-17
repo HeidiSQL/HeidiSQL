@@ -61,7 +61,7 @@ uses
 {$IFNDEF VER130BELOW}
   Types,
 {$ENDIF}
-  Classes, SysUtils, ZDbcIntfs, ZTokenizer, ZCompatibility, ZVariant;
+  Classes, SysUtils, ZDbcIntfs, ZTokenizer, ZCompatibility, ZVariant, WideStrings;
 
 type
   TZSQLTypeArray = array of TZSQLType;
@@ -273,20 +273,20 @@ type
   TZEmulatedPreparedStatement = class(TZAbstractPreparedStatement)
   private
     FExecStatement: IZStatement;
-    FCachedQuery: TStrings;
+    FCachedQuery: TWideStrings;
     FLastStatement: IZStatement;
 
     procedure SetLastStatement(LastStatement: IZStatement);
 
   protected
     property ExecStatement: IZStatement read FExecStatement write FExecStatement;
-    property CachedQuery: TStrings read FCachedQuery write FCachedQuery;
+    property CachedQuery: TWideStrings read FCachedQuery write FCachedQuery;
     property LastStatement: IZStatement read FLastStatement write SetLastStatement;
 
     function CreateExecStatement: IZStatement; virtual; abstract;
     function PrepareSQLParam(ParamIndex: Integer): WideString; virtual; abstract;
     function GetExecStatement: IZStatement;
-    function TokenizeSQLQuery: TStrings;
+    function TokenizeSQLQuery: TWideStrings;
     function PrepareSQLQuery: WideString; virtual;
 
   public
@@ -1862,15 +1862,15 @@ end;
   Splits a SQL query into a list of sections.
   @returns a list of splitted sections.
 }
-function TZEmulatedPreparedStatement.TokenizeSQLQuery: TStrings;
+function TZEmulatedPreparedStatement.TokenizeSQLQuery: TWideStrings;
 var
   I: Integer;
-  Tokens: TStrings;
-  Temp: string;
+  Tokens: TWideStrings;
+  Temp: WideString;
 begin
   if FCachedQuery = nil then
   begin
-    FCachedQuery := TStringList.Create;
+    FCachedQuery := TWideStringList.Create;
     if Pos('?', SQL) > 0 then
     begin
       Tokens := Connection.GetDriver.GetTokenizer.
@@ -1906,7 +1906,7 @@ function TZEmulatedPreparedStatement.PrepareSQLQuery: WideString;
 var
   I: Integer;
   ParamIndex: Integer;
-  Tokens: TStrings;
+  Tokens: TWideStrings;
 begin
   ParamIndex := 0;
   Result := '';

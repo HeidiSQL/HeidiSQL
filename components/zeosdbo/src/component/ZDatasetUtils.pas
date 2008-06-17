@@ -62,7 +62,7 @@ uses
   Types,
 {$ENDIF}
   Classes, SysUtils, Db, ZSysUtils, ZDbcIntfs, ZClasses, ZDbcCache,
-  Contnrs, ZCompatibility, ZExpression, ZVariant, ZTokenizer;
+  Contnrs, ZCompatibility, ZExpression, ZVariant, ZTokenizer, WideStrings;
 
 {**
   Converts DBC Field Type to TDataset Field Type.
@@ -576,7 +576,7 @@ function DefineFields(DataSet: TDataset; const FieldNames: string;
   var OnlyDataFields: Boolean): TObjectDynArray;
 var
   I: Integer;
-  Tokens: TStrings;
+  Tokens: TWideStrings;
   TokenType: TZTokenType;
   TokenValue: string;
   Field: TField;
@@ -1238,7 +1238,7 @@ procedure DefineSortedFields(DataSet: TDataset;
   var FieldDirs: TBooleanDynArray; var OnlyDataFields: Boolean);
 var
   I: Integer;
-  Tokens: TStrings;
+  Tokens: TWideStrings;
   TokenType: TZTokenType;
   TokenValue: string;
   Field: TField;

@@ -58,7 +58,7 @@ interface
 {$I ZCore.inc}
 
 uses SysUtils, Classes, Contnrs, ZClasses, ZCompatibility, ZVariant,
-  ZTokenizer;
+  ZTokenizer, WideStrings;
 
 type
   {** Define types of expression tokens. }
@@ -295,7 +295,7 @@ var
   I: Integer;
   TokenIndex: Integer;
   Temp: string;
-  Tokens: TStrings;
+  Tokens: TWideStrings;
   TokenType: TZExpressionTokenType;
   TokenValue: TZVariant;
 begin

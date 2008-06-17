@@ -69,21 +69,21 @@ type
   private
     FCategory: TZLoggingCategory;
     FProtocol: string;
-    FMessage: string;
+    FMessage: WideString;
     FErrorCode: Integer;
-    FError: string;
+    FError: WideString;
     FTimestamp: TDateTime;
   public
     constructor Create(Category: TZLoggingCategory; Protocol: string;
-      Msg: string; ErrorCode: Integer; Error: string);
+      Msg: WideString; ErrorCode: Integer; Error: WideString);
 
-    function AsString: string;
+    function AsString: WideString;
 
     property Category: TZLoggingCategory read FCategory;
     property Protocol: string read FProtocol;
-    property Message: string read FMessage;
+    property Message: WideString read FMessage;
     property ErrorCode: Integer read FErrorCode;
-    property Error: string read FError;
+    property Error: WideString read FError;
     property Timestamp: TDateTime read FTimestamp;
   end;
 
@@ -106,7 +106,7 @@ implementation
   @param Error an error message.
 }
 constructor TZLoggingEvent.Create(Category: TZLoggingCategory;
-  Protocol: string; Msg: string; ErrorCode: Integer; Error: string);
+  Protocol: string; Msg: WideString; ErrorCode: Integer; Error: WideString);
 begin
   FCategory := Category;
   FProtocol := Protocol;
@@ -120,7 +120,7 @@ end;
   Gets a string representation for this event.
   @returns a string representation.
 }
-function TZLoggingEvent.AsString: string;
+function TZLoggingEvent.AsString: WideString;
 begin
   Result := FormatDateTime('yyyy-mm-dd hh:mm:ss', FTimestamp) + ' cat: ';
   case FCategory of
