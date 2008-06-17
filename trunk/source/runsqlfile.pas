@@ -35,7 +35,10 @@ type
 
 implementation
 
-uses helpers, main;
+uses
+  helpers,
+  main,
+  WideStrings;
 
 {$R *.dfm}
 
@@ -71,7 +74,7 @@ var
   lastRepaintTime,
   time,
   starttime           : Cardinal;
-  SQL                 : TStringList;
+  SQL                 : TWideStringList;
   i                   : Integer;
   lines_remaining     : String;
 begin
