@@ -92,6 +92,7 @@ type
   function GetTempDir: String;
   function GetDBObjectType( TableStatus: TFields ): Byte;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
+  procedure SaveUnicodeFile(Filename: String; Text: WideString);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2349,6 +2350,26 @@ begin
            (GripRect.Bottom > GripRect.Top) then
           InvalidateRect(hWnd, @GripRect, true);
       end;
+end;
+
+
+{**
+  Save a textfile with unicode
+}
+procedure SaveUnicodeFile(Filename: String; Text: WideString);
+var
+  f: TFileStream;
+  header: array[0..1] of Byte;
+begin
+  header[0] := $FF;
+  header[1] := $FE;
+  f := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
+  try
+    f.WriteBuffer(header, 2);
+    f.WriteBuffer(Pointer(Text)^, Length(Text) * 2);
+  finally
+    f.Free;
+  end;
 end;
 
 
