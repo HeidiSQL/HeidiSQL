@@ -24,11 +24,7 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynUnicode, SynRegExpr, EditVar, PngSpeedButton;
-
-type
-  TSynWideStringList = class(TWideStringList);
-  TSynWideStrings = class(TWideStrings);
+  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils;
 
 type
   TOrderCol = class(TObject)
@@ -439,7 +435,7 @@ type
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-      AFiles: TSynWideStrings);
+      AFiles: TWideStrings);
     procedure SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
@@ -557,7 +553,7 @@ type
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
     procedure SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer; AFiles:
-        TSynWideStrings);
+        TWideStrings);
     procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
         var ImageIndex: Integer);
 
@@ -692,7 +688,6 @@ uses
   Main, fieldeditor,
   copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
-  WideStrings,
   Registry;
 
 
@@ -818,7 +813,7 @@ begin
   CachedTableLists := TStringList.Create;
   InitializeCriticalSection(SqlMessagesLock);
   EnterCriticalSection(SqlMessagesLock);
-  SqlMessages := TSynWideStringList.Create;
+  SqlMessages := TWideStringList.Create;
   LeaveCriticalSection(SqlMessagesLock);
 
   FConn := AConn^;
@@ -3962,7 +3957,7 @@ end;
 
 
 procedure TMDIChild.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-  AFiles: TSynWideStrings);
+  AFiles: TWideStrings);
 var
   i        : Integer;
 begin
@@ -4060,8 +4055,8 @@ begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TComponent).Tag of
-      0: SaveToFile( SynMemoQuery.Text, snippetname, seUTF8 );
-      1: SaveToFile( SynMemoQuery.SelText, snippetname, seUTF8 );
+      0: SaveUnicodeFile(snippetname, SynMemoQuery.Text);
+      1: SaveUnicodeFile(snippetname, SynMemoQuery.SelText);
     end;
     FillPopupQueryLoad;
     if tabsetQueryHelpers.TabIndex = 3 then begin
@@ -4144,8 +4139,8 @@ begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TComponent).Tag of
-      0: SaveToFile( SynMemoQuery.Text, SaveDialogSQLFile.FileName, seUTF8 );
-      1: SaveToFile( SynMemoQuery.SelText, SaveDialogSQLFile.FileName, seUTF8 );
+      0: SaveUnicodeFile( SaveDialogSQLFile.FileName, SynMemoQuery.Text );
+      1: SaveUnicodeFile( SaveDialogSQLFile.FileName, SynMemoQuery.SelText );
     end;
     Screen.Cursor := crDefault;
   end;
@@ -4246,7 +4241,6 @@ procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true 
 var
   filecontent      : WideString;
   msgtext          : String;
-  WStrings         : TSynWideStringList;
 begin
   // Ask for action when loading a big file
   if _GetFileSize( filename ) > LOAD_SIZE then
@@ -4282,9 +4276,7 @@ begin
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
   try
-    WStrings := TSynWideStringList.Create;
-    LoadFromFile(WStrings, filename);
-    filecontent := WStrings.Text;
+    filecontent := ReadUnicodeFile(filename);
   except
     on E: Exception do
     begin
@@ -6592,16 +6584,12 @@ end;
   filter editor - load the contents of the first file
 }
 procedure TMDIChild.SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer;
-    AFiles: TSynWideStrings);
-var
-  WStrings: TSynWideStringList;
+    AFiles: TWideStrings);
 begin
   if fileExists(AFiles[0]) then begin
     Screen.Cursor := crHourGlass;
     try
-      WStrings := TSynWideStringList.Create;
-      LoadFromFile(WStrings, AFiles[0]);
-      SynMemoFilter.Lines.Assign( WStrings );
+      SynMemoFilter.Lines.LoadFromFile(AFiles[0]);
     except on E: Exception do
       MessageDLG( 'Error while reading file ' + AFiles[0] + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
     end;
