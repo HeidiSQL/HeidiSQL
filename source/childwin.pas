@@ -4276,7 +4276,7 @@ begin
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
   try
-    filecontent := ReadUnicodeFile(filename);
+    filecontent := ReadTextfile(filename);
   except
     on E: Exception do
     begin
