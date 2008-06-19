@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls;
+  Dialogs, ComCtrls, StdCtrls, TntStdCtrls;
 
 type
   TRunSQLFileForm = class(TForm)
@@ -15,7 +15,7 @@ type
     lblPositionName: TLabel;
     lblPositionValue: TLabel;
     prbarRun: TProgressBar;
-    memoQueryValue: TMemo;
+    memoQueryValue: TTNTMemo;
     lblQueryCountName: TLabel;
     lblQueryCountValue: TLabel;
     lblTimeName: TLabel;
@@ -64,19 +64,16 @@ end;
 }
 procedure TRunSQLFileForm.FormActivate(Sender: TObject);
 var
-  f                   : Textfile;
-  tmpstr,
-  lines               : String;
+  Stream              : TFileStream;
+  FileCharset         : TFileCharset;
+  lines               : WideString;
   filesize,
-  fileoffset,
   querycount,
   rowsaffected        : Int64;
-  lastRepaintTime,
-  time,
   starttime           : Cardinal;
   SQL                 : TWideStringList;
   i                   : Integer;
-  lines_remaining     : String;
+  lines_remaining     : WideString;
 begin
   if Running then
     abort;
@@ -87,9 +84,7 @@ begin
   lblTimeValue.Caption := FormatTimeNumber( 0 );
   memoQueryValue.Lines.Clear;
   lines := '';
-  fileoffset := 0;
   querycount := 0;
-  lastRepaintTime := 0;
   rowsaffected := 0;
   lines_remaining := '';
   starttime := GetTickCount;
@@ -100,44 +95,26 @@ begin
     // Start file operations
     filesize := _GetFileSize( SQLFileName );
 
-    lblPositionValue.Caption := FormatNumber( fileoffset ) + ' / ' + FormatNumber( filesize );
+    OpenTextfile(SQLFileName, Stream, FileCharset );
+    lblPositionValue.Caption := FormatNumber( Stream.Position ) + ' / ' + FormatNumber( filesize );
     Repaint;
 
-    AssignFile( f, SQLFileName );
-    Reset( f );
-    while not eof( f ) do
+    while Stream.Position < Stream.Size do
     begin
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      while ( not eof( f ) ) and ( Length(lines) < LOAD_SIZE ) do
-      begin
-        Readln( f, tmpstr );
-        // Append line to buffer
-        lines := lines + tmpstr + CRLF;
+      lines := ReadTextfileChunk(Stream, FileCharset, 50);
 
-        // Calculate current position in file
-        fileoffset := fileoffset + Length(tmpstr) + 2;
+      // Display position in file
+      lblPositionValue.Caption := FormatByteNumber( Stream.Position ) + ' / ' + FormatByteNumber( filesize );
 
-        // Avoids memory leak
-        tmpstr := '';
+      // Time
+      lblTimeValue.Caption := FormatTimeNumber( (GetTickCount - starttime) DIV 1000 );
 
-        time := GetTickCount;
-        if (time - lastRepaintTime > 200) or eof(f) or ( Length(lines) >= LOAD_SIZE ) then
-        begin
-          // Display position in file
-          lblPositionValue.Caption := FormatByteNumber( fileoffset ) + ' / ' + FormatByteNumber( filesize );
+      // Step progressbar's position
+      prbarRun.Position := Trunc( prbarRun.Max / filesize * Stream.Position );
 
-          // Time
-          lblTimeValue.Caption := FormatTimeNumber( (time - starttime) DIV 1000 );
-
-          // Step progressbar's position
-          prbarRun.Position := Trunc( prbarRun.Max / filesize * fileoffset );
-
-          // Remember last repaint-time
-          lastRepaintTime := time;
-          Repaint;
-        end;
-      end;
+      Repaint;
 
       // Split buffer into single queries
       SQL := parseSQL( lines_remaining + lines, ';' );
@@ -148,7 +125,7 @@ begin
       for i := 0 to SQL.Count - 1 do
       begin
         // Last line has to be processed in next loop if end of file is not reached
-        if (i = SQL.Count-1) and (not eof(f)) then
+        if (i = SQL.Count-1) and (Stream.Position < Stream.Size) then
         begin
           lines_remaining := SQL[i];
           break;
@@ -173,7 +150,7 @@ begin
       SQL.Free;
 
     end;
-    CloseFile( f );
+    Stream.Free;
   except
     on E: Exception do
     begin
