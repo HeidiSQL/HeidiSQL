@@ -96,7 +96,7 @@ type
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
-  function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Cardinal = 0): WideString;
+  function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
   function ReadTextfile(Filename: String): WideString;
 
 var
@@ -2423,13 +2423,15 @@ end;
 {**
   Read a chunk out of a textfile unicode safe by passing a stream and its charset
 }
-function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Cardinal = 0): WideString;
+function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
 var
   SA: AnsiString;
   P: PWord;
+  DataLeft: Int64;
 begin
-  if ChunkSize = 0 then
-    ChunkSize := Stream.Size - Stream.Position;
+  DataLeft := Stream.Size - Stream.Position;
+  if (ChunkSize = 0) or (ChunkSize > DataLeft) then
+    ChunkSize := DataLeft;
   if (FileCharset in [fcsUnicode, fcsUnicodeSwapped]) then begin
     // BOM indicates Unicode text stream
     if ChunkSize < SizeOf(WideChar) then
