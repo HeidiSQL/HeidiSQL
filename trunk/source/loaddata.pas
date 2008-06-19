@@ -141,13 +141,10 @@ begin
   seltable := Mainform.ChildWin.SelectedTable;
   ds := Mainform.ChildWin.FetchDbTableList(comboDatabase.Text);
   while not ds.Eof do begin
-    // Only display tables, skip views etc. 
-    if GetDBObjectType(ds.Fields) = NODETYPE_TABLE then begin
-      comboTable.Items.Add(ds.Fields[0].AsString);
-      count := comboTable.Items.Count-1;
-      if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
-        comboTable.ItemIndex := count;
-    end;
+    comboTable.Items.Add(ds.Fields[0].AsString);
+    count := comboTable.Items.Count-1;
+    if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
+      comboTable.ItemIndex := count;
     ds.Next;
   end;
   if comboTable.ItemIndex = -1 then
