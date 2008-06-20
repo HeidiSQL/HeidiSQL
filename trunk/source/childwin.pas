@@ -3273,6 +3273,7 @@ begin
   if Assigned(ListTables.FocusedNode) then begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
     SelectedTable := NodeData.Captions[0];
+    PageControlMain.ActivePage := tabTable;
   end;
 end;
 
