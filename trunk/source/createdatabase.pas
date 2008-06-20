@@ -199,15 +199,18 @@ end;
 }
 procedure TCreateDatabaseForm.editDBNameChange(Sender: TObject);
 begin
+  editDBName.Font.Color := clWindowText;
+  editDBName.Color := clWindow;
+  // Enable "OK"-Button by default
+  btnOK.Enabled := True;
   try
     ensureValidIdentifier( editDBName.Text );
-    editDBName.Font.Color := clWindowText;
-    editDBName.Color := clWindow;
-    // Enable "OK"-Button if we have a valid name
-    btnOK.Enabled := True;
   except
-    editDBName.Font.Color := clRed;
-    editDBName.Color := clYellow;
+    // Invalid database name
+    if editDBName.Text <> '' then begin
+      editDBName.Font.Color := clRed;
+      editDBName.Color := clYellow;
+    end;
     btnOK.Enabled := False;
   end;
 
