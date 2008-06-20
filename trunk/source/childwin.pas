@@ -6730,9 +6730,9 @@ begin
     0: begin
         Screen.Cursor := crSQLWait;
         mainform.Showstatus( 'Reading Databases...', 2 );
+        Databases := TStringList.Create;
         if DatabasesWanted.Count = 0 then begin
           ds := GetResults( 'SHOW DATABASES' );
-          Databases := TStringList.Create;
           specialDbs := TStringList.Create;
           for i:=1 to ds.RecordCount do begin
             dbName := ds.FieldByName('Database').AsString;
@@ -6747,7 +6747,7 @@ begin
           for i := specialDbs.Count - 1 downto 0 do
             Databases.Insert( 0, specialDbs[i] );
         end else
-          Databases := DatabasesWanted;
+          Databases.AddStrings(DatabasesWanted);
         Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases' );
         ChildCount := Databases.Count;
         // Avoids excessive InitializeKeywordLists() calls.
