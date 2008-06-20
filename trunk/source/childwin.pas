@@ -2763,10 +2763,10 @@ begin
   // Toggle state of menuitems and buttons
   btnTableDropField.Enabled := SomeSelected;
   DropField1.Enabled := SomeSelected;
-  MenuEditField.Enabled := OneFocused;
-  btnTableEditField.enabled := OneFocused;
-  menuRenameColumn.Enabled := OneFocused;
-  menuEditField.Enabled := OneFocused;
+  MenuEditField.Enabled := OneFocused and SomeSelected;
+  btnTableEditField.enabled := OneFocused and SomeSelected;
+  menuRenameColumn.Enabled := OneFocused and SomeSelected;
+  menuEditField.Enabled := OneFocused and SomeSelected;
 end;
 
 
@@ -3077,7 +3077,7 @@ begin
   fn := '';
   fem := femFieldAdd;
 
-  if Assigned(ListColumns.FocusedNode) then
+  if Assigned(ListColumns.FocusedNode) and (vsSelected in ListColumns.FocusedNode.States) then
     fn := ListColumns.Text[ListColumns.FocusedNode, 0];
 
   if fn<>'' then
