@@ -6928,7 +6928,7 @@ begin
   DBtree.ClearSelection;
   DBNode := FindDBNode(db);
   RefreshDbTableList(db);
-  DBtree.ReinitChildren(dbnode, false);
+  DBTree.ReinitNode(dbnode, true);
   DBtree.InvalidateChildren(dbnode, false);
   ActiveDatabase := oldActiveDatabase;
 end;
