@@ -376,6 +376,7 @@ var
   fielddef,
   sql_alterfield   : String;
   cwin : TMDIChild;
+  i: Integer;
 begin
   // Apply Changes to field-definition
 
@@ -444,7 +445,12 @@ begin
 
   strPosition := '';
   case ComboBoxPosition.ItemIndex of
-    0 : ;
+    0 : for i:=High(Mainform.Childwin.VTRowDataListColumns) downto 0 do begin
+          if Mainform.Childwin.VTRowDataListColumns[i].Captions[0] <> FFieldName then begin
+            strPosition := ' AFTER ' + Mainform.Mask(Mainform.Childwin.VTRowDataListColumns[i].Captions[0]);
+            break;
+          end;
+        end;
     1 : strPosition := ' FIRST';
   else
     strPosition := ' ' + ComboBoxPosition.Text;
