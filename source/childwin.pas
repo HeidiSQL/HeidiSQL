@@ -6674,7 +6674,14 @@ begin
               else CellText := '';
             end;
           end;
-        else CellText := ''; // Applies for tables and views
+        NODETYPE_TABLE: begin
+          db := DBtree.Text[Node.Parent, 0];
+          ds := FetchDbTableList(db);
+          ds.RecNo := Node.Index;
+          Bytes := GetTableSize(ds.Fields);
+          CellText := FormatByteNumber(Bytes);
+        end
+        else CellText := ''; // Applies for views
       end;
   end;
 end;
@@ -6832,8 +6839,13 @@ procedure TMDIChild.DBtreePaintText(Sender: TBaseVirtualTree; const
     TVSTTextType);
 begin
   // Grey out rather unimportant "Size" column
-  if Column = 1 then
-    TargetCanvas.Font.Color := clSilver;
+  if Column <> 1 then
+    Exit;
+  case DBtree.GetNodeLevel(Node) of
+    0: TargetCanvas.Font.Color := clWindowText;
+    1: TargetCanvas.Font.Color := $008f8f8f;
+    2: TargetCanvas.Font.Color := $00cfcfcf;
+  end;
 end;
 
 
