@@ -190,8 +190,8 @@ begin
       EditComment.Text := '';
       CheckBoxUnsigned.Checked := true;
 
-      if Assigned(ListColumns.FocusedNode) then
-        ComboBoxPosition.ItemIndex := ListColumns.FocusedNode.Index+2
+      if ListColumns.GetFirstSelected <> nil then
+        ComboBoxPosition.ItemIndex := ListColumns.GetFirstSelected.Index+2
       else
         ComboBoxPosition.ItemIndex := 0;
     end;
@@ -199,7 +199,7 @@ begin
     // "Field" tab in Update-mode
     femFieldUpdate:
     begin
-      NodeData := ListColumns.GetNodeData(ListColumns.FocusedNode);
+      NodeData := ListColumns.GetNodeData(ListColumns.GetFirstSelected);
       EditFieldname.Text := FFieldName;
       EditLength.Text := getEnumValues( NodeData.Captions[1] );
       EditDefault.Text := NodeData.Captions[3];
