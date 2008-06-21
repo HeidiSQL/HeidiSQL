@@ -6677,7 +6677,7 @@ begin
         NODETYPE_TABLE: begin
           db := DBtree.Text[Node.Parent, 0];
           ds := FetchDbTableList(db);
-          ds.RecNo := Node.Index;
+          ds.RecNo := Node.Index + 1;
           Bytes := GetTableSize(ds.Fields);
           CellText := FormatByteNumber(Bytes);
         end
