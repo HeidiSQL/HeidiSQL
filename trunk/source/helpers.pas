@@ -2402,7 +2402,7 @@ function GetFileCharset(Stream: TFileStream): TFileCharset;
 var
   ByteOrderMark: WideChar;
   BytesRead: Integer;
-  Utf8Test: AnsiString; //array[0..2] of AnsiChar;
+  Utf8Test: array[0..2] of AnsiChar;
   Buffer: array of Byte;
   BufferSize, i, FoundUTF8Strings: Integer;
 const
