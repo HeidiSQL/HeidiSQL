@@ -107,11 +107,12 @@ object FieldEditForm: TFieldEditForm
         Left = 88
         Top = 61
         Width = 165
-        Height = 21
-        Style = csDropDownList
+        Height = 19
+        Style = csOwnerDrawFixed
         ItemHeight = 13
         TabOrder = 2
         OnChange = ComboBoxTypeChange
+        OnDrawItem = ComboBoxTypeDrawItem
       end
       object EditFieldname: TEdit
         Left = 88
