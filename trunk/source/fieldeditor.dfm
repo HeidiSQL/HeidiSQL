@@ -311,7 +311,6 @@ object FieldEditForm: TFieldEditForm
         Height = 161
         Enabled = False
         ItemHeight = 13
-        Sorted = True
         TabOrder = 5
         OnClick = listClick
         OnDblClick = AddField
