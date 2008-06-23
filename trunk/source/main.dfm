@@ -302,7 +302,7 @@ object MainForm: TMainForm
           Height = 21
           AutoSelect = False
           TabOrder = 2
-          Text = '50'
+          Text = '5000'
           OnEnter = LimitPanelEnter
           OnExit = LimitPanelExit
         end
@@ -326,7 +326,7 @@ object MainForm: TMainForm
           Height = 21
           Associate = EditLimitEnd
           Max = 32767
-          Position = 50
+          Position = 5000
           TabOrder = 4
           Thousands = False
           Wrap = True
