@@ -1320,7 +1320,6 @@ var
   limit                : Int64;
   ds                   : TDataSet;
   sl_query             : TStringList;
-  DoAutoLimit          : Boolean;
   DisplayedColumnsList : TStringList;
   tmp                  : TDataSet;
 begin
@@ -1329,14 +1328,8 @@ begin
   try
     // limit number of rows automatically if first time this table is shown
     if not dataselected then begin
-      limit := -1;
-      DoAutoLimit := Mainform.GetRegValue(REGNAME_DATALIMIT, DEFAULT_DATALIMIT);
-      // limit number of rows fetched according to preferences
-      if DoAutoLimit then begin
-        // tick in preferences check box - auto-limit:
-        // limit number of rows fetched if more than ~ 5 MB of data
-        limit := GetCalculatedLimit( SelectedTable );
-      end;
+      // limit number of rows fetched if more than ~ 5 MB of data
+      limit := GetCalculatedLimit( SelectedTable );
 
       // adjust limit in GUI
       mainform.ToolBarData.Visible := true;
