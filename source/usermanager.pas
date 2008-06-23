@@ -863,6 +863,7 @@ end;
 procedure TUserManagerForm.btnOKClick(Sender: TObject);
 var
   i, j, k: Integer;
+  c: Char;
   u: TUser;
   p: TPrivilege;
   sql, TableName, SetFieldName: String;
@@ -1123,13 +1124,14 @@ begin
       PrivUpdates.Clear;
       PrivValues.Clear;
       // Assemble values of new privilege definition.
-      for k := 0 to p.SelectedPrivNames.Count - 1 do begin
-        if TableSet.FindField(p.SelectedPrivNames[k] + '_priv') <> nil then begin
+      for k := 0 to p.PrivNames.Count - 1 do begin
+        if p.SelectedPrivNames.IndexOf(p.PrivNames[k]) > -1 then c := 'Y' else c := 'N';
+        if TableSet.FindField(p.PrivNames[k] + '_priv') <> nil then begin
           // There's an ENUM field matching the privilege name.
-          PrivUpdates.Add(mask(p.SelectedPrivNames[k] + '_priv') + '=' + esc('Y'));
+          PrivUpdates.Add(mask(p.PrivNames[k] + '_priv') + '=' + esc(c));
         end else
           // It must be part of a SET field, then.
-          PrivValues.Add(p.SelectedPrivNames[k]);
+          if c = 'Y' then PrivValues.Add(p.PrivNames[k]);
       end;
       // Insert new privilege definition.
       sql := 'INSERT INTO ' + db + '.' + TableName;
