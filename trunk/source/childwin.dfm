@@ -18,7 +18,7 @@ object MDIChild: TMDIChild
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Splitter2: TSplitter
+  object splitterTopBottom: TSplitter
     Left = 0
     Top = 252
     Width = 677
@@ -27,9 +27,9 @@ object MDIChild: TMDIChild
     Align = alBottom
     AutoSnap = False
     ResizeStyle = rsUpdate
-    OnMoved = Splitter2Moved
+    OnMoved = splitterTopBottomMoved
   end
-  object Panel1: TPanel
+  object panelTop: TPanel
     Left = 0
     Top = 0
     Width = 677
@@ -891,6 +891,7 @@ object MDIChild: TMDIChild
               Left = 2
               Top = 129
               Width = 23
+              Height = 29
               Align = alNone
               ButtonHeight = 23
               Caption = 'ToolBar2'
@@ -1434,19 +1435,19 @@ object MDIChild: TMDIChild
       end
     end
   end
-  object PageControlBottom: TPageControl
+  object pageCtlBottom: TPageControl
     Left = 0
     Top = 256
     Width = 677
     Height = 164
-    ActivePage = tabSQLLog
+    ActivePage = tabLog
     Align = alBottom
     HotTrack = True
     Images = MainForm.PngImageListMain
     TabHeight = 20
     TabOrder = 1
-    object tabSQLLog: TTabSheet
-      Caption = 'SQL Log'
+    object tabLog: TTabSheet
+      Caption = 'Log'
       ImageIndex = 56
       object SynMemoSQLLog: TSynMemo
         Left = 0
@@ -1495,10 +1496,10 @@ object MDIChild: TMDIChild
         AddedKeystrokes = <>
       end
     end
-    object tabBlobEditor: TTabSheet
-      Caption = 'BLOB-Editor'
+    object tabEditors: TTabSheet
+      Caption = 'Editors'
       ImageIndex = 47
-      object ToolBar3: TToolBar
+      object toolbarEditors: TToolBar
         Left = 0
         Top = 0
         Width = 23
@@ -1565,16 +1566,16 @@ object MDIChild: TMDIChild
           OnClick = btnBlobCopyClick
         end
       end
-      object PageControlBlobEditors: TPageControl
+      object pageCtlEditors: TPageControl
         Left = 23
         Top = 0
         Width = 646
         Height = 134
-        ActivePage = tabBlobEditorText
+        ActivePage = tabEditorText
         Align = alClient
         TabOrder = 1
-        OnChange = PageControlBlobEditorsChange
-        object tabBlobEditorText: TTabSheet
+        OnChange = pageCtlEditorsChange
+        object tabEditorText: TTabSheet
           Caption = 'Text'
           object DBMemo1: TDBMemo
             Left = 0
@@ -1589,7 +1590,7 @@ object MDIChild: TMDIChild
             OnKeyUp = controlsKeyUp
           end
         end
-        object tabBlobEditorImage: TTabSheet
+        object tabEditorImage: TTabSheet
           Caption = 'Image'
           ImageIndex = 1
           object ScrollBox1: TScrollBox

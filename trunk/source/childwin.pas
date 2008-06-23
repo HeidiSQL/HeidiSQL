@@ -35,14 +35,14 @@ type
 
 type
   TMDIChild = class(TForm)
-    Panel1: TPanel;
+    panelTop: TPanel;
     DBtree: TVirtualStringTree;
     Splitter1: TSplitter;
     TableShow: TPanel;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
     tabDatabase: TTabSheet;
-    Splitter2: TSplitter;
+    splitterTopBottom: TSplitter;
     tabQuery: TTabSheet;
     popupTreeView: TPopupMenu;
     menuRefreshDBTree: TMenuItem;
@@ -137,19 +137,19 @@ type
     PrintList4: TMenuItem;
     N1: TMenuItem;
     MenuCopyTable: TMenuItem;
-    PageControlBottom: TPageControl;
-    tabSQLLog: TTabSheet;
-    tabBlobEditor: TTabSheet;
+    pageCtlBottom: TPageControl;
+    tabLog: TTabSheet;
+    tabEditors: TTabSheet;
     tabFilter: TTabSheet;
     SynMemoSQLLog: TSynMemo;
-    ToolBar3: TToolBar;
+    toolbarEditors: TToolBar;
     btnBlobWordWrap: TToolButton;
     btnBlobLoad: TToolButton;
     btnBlobSave: TToolButton;
-    PageControlBlobEditors: TPageControl;
-    tabBlobEditorText: TTabSheet;
+    pageCtlEditors: TPageControl;
+    tabEditorText: TTabSheet;
     DBMemo1: TDBMemo;
-    tabBlobEditorImage: TTabSheet;
+    tabEditorImage: TTabSheet;
     SynMemoFilter: TSynMemo;
     N18: TMenuItem;
     selectall1: TMenuItem;
@@ -414,7 +414,7 @@ type
     procedure Delete1Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure btnBlobWordWrapClick(Sender: TObject);
-    procedure PageControlBlobEditorsChange(Sender: TObject);
+    procedure pageCtlEditorsChange(Sender: TObject);
     procedure btnBlobSaveClick(Sender: TObject);
     procedure btnBlobLoadClick(Sender: TObject);
     procedure btnFilterLoadClick(Sender: TObject);
@@ -470,7 +470,7 @@ type
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure ResizeImageToFit;
-    procedure Splitter2Moved(Sender: TObject);
+    procedure splitterTopBottomMoved(Sender: TObject);
     procedure DataSourceDataChange(Sender: TObject; Field: TField);
     procedure DBGridColEnter(Sender: TObject);
     procedure ButtonDataSearchClick(Sender: TObject);
@@ -3498,7 +3498,7 @@ begin
     DBMemo1.Scrollbars := ssBoth;
 end;
 
-procedure TMDIChild.PageControlBlobEditorsChange(Sender: TObject);
+procedure TMDIChild.pageCtlEditorsChange(Sender: TObject);
 begin
   btnBlobCopy.Enabled := true;
   btnBlobLoad.Enabled := not DBMemo1.ReadOnly;
@@ -4906,7 +4906,7 @@ begin
   end;
 end;
 
-procedure TMDIChild.Splitter2Moved(Sender: TObject);
+procedure TMDIChild.splitterTopBottomMoved(Sender: TObject);
 begin
   ResizeImageToFit;
 end;
