@@ -14,11 +14,14 @@ type
     chkSelectAll: TCheckBox;
     chklistColumns: TCheckListBox;
     chkSort: TCheckBox;
+    procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure chklistColumnsClickCheck(Sender: TObject);
     procedure chkSelectAllClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure chkSortClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDeactivate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -122,10 +125,9 @@ begin
 
   // Signalizes childwin to refresh grid-data
   if reg_oldvalue <> reg_newvalue then
-    ModalResult := mrOk
-  else
-    ModalResult := mrCancel;
+    Mainform.Childwin.viewdata(Sender);
 
+  btnCancel.OnClick(Sender);
 end;
 
 
@@ -205,6 +207,32 @@ begin
     end;
     chklistColumns.Items.EndUpdate;
   end;
+end;
+
+
+procedure TColumnSelectionForm.btnCancelClick(Sender: TObject);
+begin
+  Mainform.Childwin.btnColumnSelection.Down := False;
+  Close;
+end;
+
+
+{**
+  Cancel this dialog if the user clicks elsewhere on childwin
+}
+procedure TColumnSelectionForm.FormDeactivate(Sender: TObject);
+begin
+  btnCancel.OnClick(Sender);
+end;
+
+
+{**
+  Be sure the form is destroyed after closing.
+}
+procedure TColumnSelectionForm.FormClose(Sender: TObject; var Action:
+    TCloseAction);
+begin
+  Action := caFree;
 end;
 
 

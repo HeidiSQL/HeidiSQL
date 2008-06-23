@@ -14,7 +14,10 @@ type
     btnCancel: TButton;
     btnAddCol: TButton;
     procedure btnAddColClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
@@ -302,6 +305,33 @@ begin
   reg.WriteString( reg_name, Mainform.Childwin.ComposeOrderClause(OrderColumns) );
   reg.CloseKey;
   FreeAndNil(reg);
+  Mainform.Childwin.viewdata(Sender);
+  btnCancel.OnClick(Sender);
+end;
+
+
+procedure TDataSortingForm.btnCancelClick(Sender: TObject);
+begin
+  Mainform.Childwin.btnDataSorting.Down := False;
+  Close;
+end;
+
+
+{**
+  Be sure the form is destroyed after closing.
+}
+procedure TDataSortingForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
+
+{**
+  Cancel this dialog if the user clicks elsewhere on childwin
+}
+procedure TDataSortingForm.FormDeactivate(Sender: TObject);
+begin
+  btnCancel.OnClick(Sender);
 end;
 
 

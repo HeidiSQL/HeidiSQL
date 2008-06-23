@@ -12,6 +12,8 @@ object DataSortingForm: TDataSortingForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnClose = FormClose
+  OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -49,6 +51,7 @@ object DataSortingForm: TDataSortingForm
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 1
+      OnClick = btnCancelClick
     end
     object btnAddCol: TButton
       Left = 134

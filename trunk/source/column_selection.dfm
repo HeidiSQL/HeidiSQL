@@ -12,6 +12,8 @@ object ColumnSelectionForm: TColumnSelectionForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnClose = FormClose
+  OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -32,6 +34,7 @@ object ColumnSelectionForm: TColumnSelectionForm
       Caption = 'Cancel'
       ModalResult = 2
       TabOrder = 3
+      OnClick = btnCancelClick
     end
     object btnOK: TButton
       Left = 4
