@@ -39,7 +39,7 @@ type
   // MySQL Data Type category structure
   TMysqlDataTypeCategory = record
     Index:           Integer;
-    Name:            String[18];
+    Name:            String[32];
   end;
 
   // MySQL Field structure
@@ -128,6 +128,10 @@ var
       Name:            'Integer'
     ),
     (
+      Index:           catIntegerNamed;
+      Name:            'Integer, named (nonstandard)'
+    ),
+    (
       Index:           catReal;
       Name:            'Real'
     ),
@@ -148,16 +152,12 @@ var
       Name:            'Spatial (geometry)'
     ),
     (
-      Index:           catIntegerNamed;
-      Name:            'Integer, Named'
-    ),
-    (
       Index:           catSet;
-      Name:            'Set of Bits'
+      Name:            'Set of Bits (nonstandard)'
     ),
     (
       Index:           catSetNamed;
-      Name:            'Set of Bits, Named'
+      Name:            'Set of Bits, named (nonstandard)'
     )
   );
 
