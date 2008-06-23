@@ -1341,10 +1341,8 @@ begin
         mainform.CheckBoxLimit.Checked := true;
         tmpLimitStart := MakeInt(mainform.EditLimitStart.Text);
         tmpLimitEnd := MakeInt(mainform.EditLimitEnd.Text);
-        if (tmpLimitEnd - tmpLimitStart) > limit then begin
-          mainform.EditLimitStart.Text := '0';
-          mainform.EditLimitEnd.Text := IntToStr( limit );
-        end;
+        if (tmpLimitEnd - tmpLimitStart) > limit then
+          mainform.EditLimitEnd.Text := IntToStr( tmpLimitStart + limit );
       end;
       mainform.Repaint;
     end;
