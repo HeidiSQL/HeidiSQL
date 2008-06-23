@@ -1099,12 +1099,12 @@ var
 begin
   with Control as TComboBox,Canvas do begin
     // decide colors
-    Brush.Color := clWhite;
-    Font.Color := clBlack;
+    Brush.Color := clWindow;
+    Font.Color := clWindowText;
     if IsCategory(Index) or (odSelected in State) then begin
-      Font.Color := clWhite;
-      if IsCategory(Index) then Brush.Color := clBlack
-      else if odSelected in State then Brush.Color := clBlue
+      Font.Color := clWindow;
+      if IsCategory(Index) then Brush.Color := clWindowText
+      else if odSelected in State then Brush.Color := clHighlight;
     end;
     // fill the rectangle first
     FillRect(Rect);
