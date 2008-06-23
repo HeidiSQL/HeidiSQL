@@ -1317,7 +1317,9 @@ var
   PrimaryKeyColumns    : TStringList;
   reg_value            : String;
   select_base          : String;
-  limit                : Int64;
+  limit,
+  tmpLimitStart,
+  tmpLimitEnd          : Int64;
   ds                   : TDataSet;
   sl_query             : TStringList;
   DisplayedColumnsList : TStringList;
@@ -1337,8 +1339,12 @@ begin
         mainform.CheckBoxLimit.Checked := false
       else begin
         mainform.CheckBoxLimit.Checked := true;
-        mainform.EditLimitStart.Text := '0';
-        mainform.EditLimitEnd.Text := IntToStr( limit );
+        tmpLimitStart := MakeInt(mainform.EditLimitStart.Text);
+        tmpLimitEnd := MakeInt(mainform.EditLimitEnd.Text);
+        if (tmpLimitEnd - tmpLimitStart) > limit then begin
+          mainform.EditLimitStart.Text := '0';
+          mainform.EditLimitEnd.Text := IntToStr( limit );
+        end;
       end;
       mainform.Repaint;
     end;
