@@ -504,6 +504,7 @@ const
 var
   u: TUser;
 begin
+  PageControlUser.ActivePage := tabSettings;
   // Avoid duplicates.
   u := Users.FindUser(name, '%');
   if u <> nil then begin
