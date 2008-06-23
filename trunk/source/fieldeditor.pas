@@ -1101,10 +1101,13 @@ begin
     // decide colors
     Brush.Color := clWindow;
     Font.Color := clWindowText;
-    if IsCategory(Index) or (odSelected in State) then begin
+    if IsCategory(Index) then begin
       Font.Color := clWindow;
-      if IsCategory(Index) then Brush.Color := clWindowText
-      else if odSelected in State then Brush.Color := clHighlight;
+      Brush.Color := clWindowText
+    end
+    else if odSelected in State then begin
+      Font.Color := clHighlightText;
+      Brush.Color := clHighlight;
     end;
     // fill the rectangle first
     FillRect(Rect);
