@@ -87,13 +87,14 @@ object MDIChild: TMDIChild
       Columns = <
         item
           Position = 0
-          Width = 115
+          Width = 110
           WideText = 'Name'
         end
         item
           Alignment = taRightJustify
           MinWidth = 0
           Position = 1
+          Width = 55
           WideText = 'Size'
         end>
     end
