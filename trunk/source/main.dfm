@@ -52,7 +52,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 437
+      Width = 443
       Height = 22
       Align = alNone
       AutoSize = True
@@ -72,13 +72,13 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object FileCloseItem2: TToolButton
-        Left = 36
+        Left = 42
         Top = 0
         Action = FileClose1
         AutoSize = True
       end
       object tlbSep1: TToolButton
-        Left = 59
+        Left = 65
         Top = 0
         Width = 8
         Caption = 'tlbSep1'
@@ -86,30 +86,30 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
-        Left = 67
+        Left = 73
         Top = 0
         Action = EditCopy1
         AutoSize = True
       end
       object ToolButton6: TToolButton
-        Left = 90
+        Left = 96
         Top = 0
         Action = EditPaste1
         AutoSize = True
       end
       object ToolButton14: TToolButton
-        Left = 113
+        Left = 119
         Top = 0
         Hint = 'Undo'
         Action = EditUndo1
       end
       object ToolButton12: TToolButton
-        Left = 136
+        Left = 142
         Top = 0
         Action = PrintList
       end
       object tlbSep2: TToolButton
-        Left = 159
+        Left = 165
         Top = 0
         Width = 8
         Caption = 'tlbSep2'
@@ -117,7 +117,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonCreateDatabase: TToolButton
-        Left = 167
+        Left = 173
         Top = 0
         Hint = 'Create Database'
         AutoSize = True
@@ -127,7 +127,7 @@ object MainForm: TMainForm
         OnClick = ButtonCreateDatabaseClick
       end
       object ButtonDropDatabase: TToolButton
-        Left = 190
+        Left = 196
         Top = 0
         Hint = 'Drop Database...'
         AutoSize = True
@@ -137,7 +137,7 @@ object MainForm: TMainForm
         OnClick = ButtonDropDatabaseClick
       end
       object tlbSep3: TToolButton
-        Left = 213
+        Left = 219
         Top = 0
         Width = 8
         Caption = 'tlbSep3'
@@ -145,7 +145,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonCreateTable: TToolButton
-        Left = 221
+        Left = 227
         Top = 0
         Hint = 'Create Table'
         AutoSize = True
@@ -155,13 +155,13 @@ object MainForm: TMainForm
         OnClick = ButtonCreateTableClick
       end
       object ButtonDropTable: TToolButton
-        Left = 244
+        Left = 250
         Top = 0
         Action = DropTablesAndViews
         AutoSize = True
       end
       object ToolButton2: TToolButton
-        Left = 267
+        Left = 273
         Top = 0
         Width = 8
         Caption = 'ToolButton2'
@@ -169,12 +169,12 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton1: TToolButton
-        Left = 275
+        Left = 281
         Top = 0
         Action = actCreateView
       end
       object tlbSep4: TToolButton
-        Left = 298
+        Left = 304
         Top = 0
         Width = 8
         Caption = 'tlbSep4'
@@ -182,7 +182,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 306
+        Left = 312
         Top = 0
         Hint = 'Refresh'
         AutoSize = True
@@ -192,7 +192,7 @@ object MainForm: TMainForm
         OnClick = ButtonRefreshClick
       end
       object tlbSep5: TToolButton
-        Left = 329
+        Left = 335
         Top = 0
         Width = 8
         Caption = 'tlbSep5'
@@ -200,13 +200,13 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonUserManager: TToolButton
-        Left = 337
+        Left = 343
         Top = 0
         Action = UserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 360
+        Left = 366
         Top = 0
         Hint = 'Import CSV file'
         AutoSize = True
@@ -216,14 +216,14 @@ object MainForm: TMainForm
         OnClick = ButtonImportTextfileClick
       end
       object ButtonExport: TToolButton
-        Left = 383
+        Left = 389
         Top = 0
         Hint = 'Export tables'
         Action = ExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 406
+        Left = 412
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -231,7 +231,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 414
+        Left = 420
         Top = 0
         Hint = 'SQL Help'
         Caption = 'btnSQLHelp'
@@ -243,7 +243,7 @@ object MainForm: TMainForm
     object ToolBarData: TToolBar
       Left = 11
       Top = 28
-      Width = 489
+      Width = 374
       Height = 22
       Align = alNone
       AutoSize = True
@@ -251,27 +251,43 @@ object MainForm: TMainForm
       DragKind = dkDock
       EdgeInner = esNone
       EdgeOuter = esNone
+      Images = PngImageListMain
       TabOrder = 1
       Visible = False
       Wrapable = False
-      object DBNavigator1: TDBNavigator
+      object ToolButton3: TToolButton
         Left = 0
         Top = 0
-        Width = 230
-        Height = 22
-        Flat = True
-        ConfirmDelete = False
-        TabOrder = 0
-        BeforeAction = DBNavigator1BeforeAction
+        Action = actDataSetFirst
+      end
+      object ToolButton4: TToolButton
+        Left = 23
+        Top = 0
+        Action = actDataSetLast
+      end
+      object ToolButton7: TToolButton
+        Left = 46
+        Top = 0
+        Action = actDataSetInsert
+      end
+      object ToolButton8: TToolButton
+        Left = 69
+        Top = 0
+        Action = actDataSetDelete
+      end
+      object ToolButton10: TToolButton
+        Left = 92
+        Top = 0
+        Action = actDataSetPost
       end
       object PanelLimit: TPanel
-        Left = 230
+        Left = 115
         Top = 0
         Width = 225
         Height = 22
         BevelOuter = bvNone
         ParentBackground = False
-        TabOrder = 1
+        TabOrder = 0
         object CheckBoxLimit: TCheckBox
           Left = 7
           Top = 3
@@ -335,12 +351,12 @@ object MainForm: TMainForm
         end
       end
       object ButtonOK: TButton
-        Left = 455
+        Left = 340
         Top = 0
         Width = 34
         Height = 22
         Caption = 'OK'
-        TabOrder = 2
+        TabOrder = 1
         OnClick = ButtonOKClick
         OnEnter = LimitPanelEnter
         OnExit = LimitPanelExit
@@ -810,6 +826,37 @@ object MainForm: TMainForm
       Hint = 'Create view ...'
       ImageIndex = 81
       OnExecute = actCreateViewExecute
+    end
+    object actDataSetFirst: TDataSetFirst
+      Category = 'Dataset'
+      Caption = '&First'
+      Hint = 'First'
+      ImageIndex = 89
+    end
+    object actDataSetLast: TDataSetLast
+      Category = 'Dataset'
+      Caption = '&Last'
+      Hint = 'Last'
+      ImageIndex = 90
+    end
+    object actDataSetInsert: TDataSetInsert
+      Category = 'Dataset'
+      Caption = '&Insert'
+      Hint = 'Insert'
+      ImageIndex = 45
+    end
+    object actDataSetDelete: TDataSetDelete
+      Category = 'Dataset'
+      Caption = '&Delete'
+      Hint = 'Delete'
+      ImageIndex = 46
+      OnExecute = actDataSetDeleteExecute
+    end
+    object actDataSetPost: TDataSetPost
+      Category = 'Dataset'
+      Caption = 'P&ost'
+      Hint = 'Post'
+      ImageIndex = 55
     end
   end
   object SaveDialog2: TSaveDialog
@@ -3584,6 +3631,56 @@ object MainForm: TMainForm
           54B0E4BF3CDC84BD0C0D980A66FFD780BB610B4327A68289EB7E0542FCF09BE1
           F7FA0941031192642B0000194B34014AEFE10F0000000049454E44AE426082}
         Name = 'PngImage88'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C0000021E4944415478DAADD35D4853611807F0FF62E9665B4C36
+          D4256E95321BAD58269645E10A8B8637251458D20779154541B08BBAE84211E9
+          8308BA88858944628BCAC25D18D5B1A44D842114AC09D1DC68763C3BD3D9666E
+          E7E3EDB00B2978BBC99EBB075E7E0F7FDEE7511142B09252FD57E09A8F2B34B2
+          2C2327C94C4F9BD9F5FBE3D69B53DD9288F3CF3D36DD5F0096D4D79420B52022
+          F435C3DC3E55B50CB4F444BA65A83C824054AFAED6AAA880E7D10C69B4958057
+          80E0972CE3EDB014007757F896B5427BA9B65C83C1008740D7163A70B12F4E76
+          DBF5E0E6057C8864998717D6BB0E76867BAD65DAD3F64A0D6489E0C13B169F6E
+          38E9408737469AEC3ACC2AC0FB709A99CB0ADFAACBB5C71D162D521911C5EA55
+          B8F78645EC6E1D1D3871274AF66DD5212FC8F08DF339A7654D7165E96A701901
+          0B5911469D1AF7476690E8DD41078E5C9F22079C062C2E49F005937C7DB5CE68
+          361481FB2120BD28C2A400FDFE04BE0FECA203CD9D11D25267402295C3F0646A
+          54999AB455685A1B6C7AB0F379E8356A0CBC9C06FBB4890E345EF9480E371811
+          4FE630149A6394AC2E73DBD8604D95FEE8B64D7A8822C1936751CCFAF7D301C7
+          E549726CA709316E09C3133CA3642D7C6399FB75FFC60D6BDB373B0C187A1C45
+          F26D331DB09C0B91F63D26C4D99F1809F28C927579914C7BFD7D569BE1E4F4E7
+          34926387E8C0BA33E384E425909C0C22898C92F58F55366E7FE14591FA2C1F70
+          D381151FD3BFD42F23AE17F064CBF3E20000000049454E44AE426082}
+        Name = 'PngImage90'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C0000021C4944415478DA63FCFFFF3F03258091AA0634AC7EF9E5
+          DF3F86C94DE1E295C88A52673FDAFFFBD73F879FBFFF31FCFCFD87615DA91A23
+          2E03FE03E5FF7FFFFDABB32F4E166E48CCA407FBF515391CF8399919569F78C7
+          B0BB461DBB01E5CB9EFF3753E664B8FDFC27C3ADE7DFFBE7652A1481C483BA6F
+          ED3752E67610E06461587AE415C3F1565DEC06142C78FCDF5A9397E1F7AFFF0C
+          571E7F07E2CFF33795AB27B9B6DCDC6FA6C2ED20C4C5CC30FFD04B862B3D06D8
+          0D00FAF5BF83260FC3A76F7F19D85918184EDFFFCA70E1DEA7A54065D256EA7C
+          0E42DC2C0C33F7BD647834D508BB0140BFFE77D2E36178F9E13703135009271B
+          13C39D67DF19F65CFDF033DC5298FDEFDFFF0C73763D677836CF1CBB0140BFFE
+          7733106078FEFE170333C80076266078FC60D871E9C3DB300B216126A09A45DB
+          9E31BC586E85DD00A05FFFFB180930BCFBFC9B818B8391E1D0B54F0CE7EF7C5A
+          CBF09F41C4C540D05E88979561F9E6870C2FD7396037C0B2FAF2FF403361863F
+          40A71EB8FE89E1CAEDF7AB9E2DB00A97883CB6DFDE48D04158808D61CDFA070C
+          AFB639633740A7E4C2FF700B118683573F305CBDFD69F1F32556712071F1A003
+          FB6D8C451D0484D81836AE7AC0F066BF2B7603E4B2CFFD57116363B87EE3C3C2
+          E7CB6D1260E2625E7BF75B9889390888B0316C5B718FE1CD114FEC0648259DFC
+          FFEFF3F7392F563BA422276511C7DDFB19FEFE7360F8F38F01A4FEED712FEC06
+          509C99C801005B260DF0DF9EE51F0000000049454E44AE426082}
+        Name = 'PngImage89'
         Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
