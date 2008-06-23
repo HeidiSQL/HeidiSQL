@@ -592,7 +592,7 @@ begin
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
     ChildWin.ShowTableProperties(ChildWin.SelectedTable)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    ChildWin.viewdata(self)
+    ChildWin.viewdata(Sender)
   else
     ChildWin.RefreshTree(True);
 end;
@@ -830,7 +830,7 @@ end;
 procedure TMainForm.ButtonOKClick(Sender: TObject);
 begin
   ChildWin.DBTree.SetFocus;
-  ChildWin.viewdata(self);
+  ChildWin.viewdata(Sender);
 end;
 
 procedure TMainForm.LimitPanelEnter(Sender: TObject);
