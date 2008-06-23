@@ -370,6 +370,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
+    function FieldContent(ds: TDataSet; FieldName: String): String;
     procedure LoadDatabaseProperties(db: string);
     procedure ShowHost;
     procedure ShowDatabase(db: String);
@@ -602,7 +603,7 @@ type
       procedure SaveListSetup( List: TVirtualStringTree );
       procedure RestoreListSetup( List: TVirtualStringTree );
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
-      function GetTableSize(Fields: TFields): Int64;
+      function GetTableSize(ds: TDataSet): Int64;
 
     public
       DatabasesWanted,
@@ -1788,6 +1789,18 @@ begin
 end;
 
 
+// Fetch content from a row cell, avoiding NULLs to cause AVs
+function TMDIChild.FieldContent(ds: TDataSet; FieldName: String): String;
+begin
+  Result := '';
+  if
+    (ds.FindField(FieldName) <> nil) and
+    (not ds.FindField(FieldName).IsNull)
+  then
+    Result := ds.FieldByName(FieldName).AsString;
+end;
+
+
 procedure TMDIChild.LoadDatabaseProperties(db: string);
 var
   i               : Integer;
@@ -1795,14 +1808,6 @@ var
   ds              : TDataSet;
   ListCaptions,
   SelectedCaptions: TStringList;
-  // Fetch content from a row cell, avoiding NULLs to cause AVs
-  function FieldContent(FieldName: String): String;
-  begin
-    Result := '';
-    if (ds.FindField(FieldName) <> nil)
-      and (not ds.FindField(FieldName).IsNull) then
-      Result := ds.FieldByName(FieldName).AsString;
-  end;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -1833,56 +1838,56 @@ begin
           VTRowDataListTables[i-1].NodeType := NODETYPE_TABLE;
           // Records
           if ds.FindField('Rows') <> nil then
-            ListCaptions.Add( FormatNumber( FieldContent('Rows') ) )
+            ListCaptions.Add( FormatNumber( FieldContent(ds, 'Rows') ) )
           else
             ListCaptions.Add('');
           // Size: Data_length + Index_length
-          bytes := GetTableSize(ds.Fields);
+          bytes := GetTableSize(ds);
           if bytes >= 0 then ListCaptions.Add(FormatByteNumber(bytes))
           else ListCaptions.Add('');
           // Created:
-          ListCaptions.Add( FieldContent('Create_time') );
+          ListCaptions.Add( FieldContent(ds, 'Create_time') );
           // Updated:
-          ListCaptions.Add( FieldContent('Update_time') );
+          ListCaptions.Add( FieldContent(ds, 'Update_time') );
           // Engine
           if ds.FindField('Type') <> nil then
-            ListCaptions.Add( FieldContent('Type') )
+            ListCaptions.Add( FieldContent(ds, 'Type') )
           else
-            ListCaptions.Add( FieldContent('Engine') );
+            ListCaptions.Add( FieldContent(ds, 'Engine') );
           // Comment
-          ListCaptions.Add( FieldContent('Comment') );
+          ListCaptions.Add( FieldContent(ds, 'Comment') );
           // Version
-          ListCaptions.Add( FieldContent('Version') );
+          ListCaptions.Add( FieldContent(ds, 'Version') );
           // Row format
-          ListCaptions.Add( FieldContent('Row_format') );
+          ListCaptions.Add( FieldContent(ds, 'Row_format') );
           // Avg row length
-          if (FieldContent('Avg_row_length') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent('Avg_row_length')) )
+          if (FieldContent(ds, 'Avg_row_length') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Avg_row_length')) )
           else ListCaptions.Add('');
           // Max data length
-          if (FieldContent('Max_data_length') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent('Max_data_length')) )
+          if (FieldContent(ds, 'Max_data_length') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Max_data_length')) )
           else ListCaptions.Add('');
           // Index length
-          if (FieldContent('Index_length') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent('Index_length')) )
+          if (FieldContent(ds, 'Index_length') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Index_length')) )
           else ListCaptions.Add('');
           // Data free
-          if (FieldContent('Data_free') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent('Data_free')) )
+          if (FieldContent(ds, 'Data_free') <> '') then
+            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Data_free')) )
           else ListCaptions.Add('');
           // Auto increment
-          if (FieldContent('Auto_increment') <> '') then
-            ListCaptions.Add( FormatNumber(FieldContent('Auto_increment')) )
+          if (FieldContent(ds, 'Auto_increment') <> '') then
+            ListCaptions.Add( FormatNumber(FieldContent(ds, 'Auto_increment')) )
           else ListCaptions.Add('');
           // Check time
-          ListCaptions.Add( FieldContent('Check_time') );
+          ListCaptions.Add( FieldContent(ds, 'Check_time') );
           // Collation
-          ListCaptions.Add( FieldContent('Collation') );
+          ListCaptions.Add( FieldContent(ds, 'Collation') );
           // Checksum
-          ListCaptions.Add( FieldContent('Checksum') );
+          ListCaptions.Add( FieldContent(ds, 'Checksum') );
           // Create_options
-          ListCaptions.Add( FieldContent('Create_options') );
+          ListCaptions.Add( FieldContent(ds, 'Create_options') );
           // Object type
           ListCaptions.Add('Base table');
         end;
@@ -1902,7 +1907,7 @@ begin
           // Engine
           ListCaptions.Add('');
           // Comment
-          ListCaptions.Add(FieldContent('Comment'));
+          ListCaptions.Add(FieldContent(ds, 'Comment'));
           // Version
           ListCaptions.Add('');
           // Row_format
@@ -6647,7 +6652,7 @@ begin
               for i := 0 to Databases.Count - 1 do begin
                 ds := FetchDbTableList(Databases[i]);
                 while not ds.Eof do begin
-                  Bytes := Bytes + GetTableSize(ds.Fields);
+                  Bytes := Bytes + GetTableSize(ds);
                   ds.Next;
                 end;
               end;
@@ -6664,7 +6669,7 @@ begin
               Bytes := 0;
               ds := FetchDbTableList(db);
               while not ds.Eof do begin
-                Bytes := Bytes + GetTableSize(ds.Fields);
+                Bytes := Bytes + GetTableSize(ds);
                 ds.Next;
               end;
               if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
@@ -6675,7 +6680,7 @@ begin
           db := DBtree.Text[Node.Parent, 0];
           ds := FetchDbTableList(db);
           ds.RecNo := Node.Index + 1;
-          Bytes := GetTableSize(ds.Fields);
+          Bytes := GetTableSize(ds);
           CellText := FormatByteNumber(Bytes);
         end
         else CellText := ''; // Applies for views
@@ -7002,13 +7007,14 @@ begin
 end;
 
 
-function TMDIChild.GetTableSize(Fields: TFields): Int64;
+function TMDIChild.GetTableSize(ds: TDataSet): Int64;
+var
+  d, i: String;
 begin
-  if (Fields.FieldByName('Data_length').AsString = '') or (Fields.FieldByName('Index_length').AsString = '') then begin
-    Result := -1;
-    Exit;
-  end;
-  Result := MakeInt(Fields.FieldByName('Data_length').AsString) + MakeInt(Fields.FieldByName('Index_length').AsString);
+  d := FieldContent(ds, 'Data_length');
+  i := FieldContent(ds, 'Index_length');
+  if (d = '') or (i = '') then Result := -1
+  else Result := MakeInt(d) + MakeInt(i);
 end;
 
 
