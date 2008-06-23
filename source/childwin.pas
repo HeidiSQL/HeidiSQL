@@ -1328,13 +1328,13 @@ begin
   viewingdata := true;
   sl_query := TStringList.Create();
   try
-    // limit number of rows automatically if first time this table is shown
-    if not dataselected then begin
+    // Limit the number of rows automatically if first time this table is shown
+    // and the user did not explicitely set the limits and pressed OK in mainform
+    if (Sender <> Mainform.ButtonOK) and (not dataselected) then begin
       // limit number of rows fetched if more than ~ 5 MB of data
       limit := GetCalculatedLimit( SelectedTable );
 
       // adjust limit in GUI
-      mainform.ToolBarData.Visible := true;
       if limit <= 0 then
         mainform.CheckBoxLimit.Checked := false
       else begin
@@ -1654,12 +1654,13 @@ var
   dummy : Boolean;
 begin
   tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
+  Mainform.DBNavigator1.Enabled := (PageControlMain.ActivePage = tabData);
 
   Mainform.ExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
   Mainform.ExecuteSelection.Enabled := PageControlMain.ActivePage = tabQuery;
   Mainform.ExecuteLine.Enabled := PageControlMain.ActivePage = tabQuery;
   if (PageControlMain.ActivePage = tabData) and (not dataselected) then
-    viewdata(self);
+    viewdata(Sender);
   if PageControlMain.ActivePage = tabQuery then
   begin
     if ActiveDatabase <> '' then
@@ -2230,7 +2231,7 @@ begin
     ExportData.Enabled := inDataOrQueryTabNotEmpty;
     HTMLView.Enabled := inDataOrQueryTabNotEmpty;
     Self.Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
-    ToolBarData.visible := (PageControlMain.ActivePage = tabData);
+    ToolBarData.visible := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
     if FrmIsFocussed then
       DBNavigator1.DataSource := DataSource1;
     btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
@@ -3300,7 +3301,7 @@ begin
   c := TOrderCol.Create;
   c.ColumnName := Column.FieldName;
   HandleOrderColumns(c);
-  ViewData(self);
+  ViewData(Column.Grid);
 end;
 
 
@@ -3721,7 +3722,7 @@ begin
   end;
   Filter1.checked := where <> '';
 
-  viewdata(self);
+  viewdata(Sender);
 end;
 
 procedure TMDIChild.ClearFilter(Sender: TObject);
@@ -3757,7 +3758,7 @@ procedure TMDIChild.DropFilter1Click(Sender: TObject);
 begin
   // Drop Filter
   ClearFilter(Self);
-  viewdata(self);
+  viewdata(Sender);
 end;
 
 
