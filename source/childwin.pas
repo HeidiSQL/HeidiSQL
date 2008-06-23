@@ -1651,10 +1651,15 @@ end;
 }
 procedure TMDIChild.pcChange(Sender: TObject);
 var
-  dummy : Boolean;
+  dummy, inDataTab: Boolean;
 begin
-  tabFilter.tabVisible := (PageControlMain.ActivePage = tabData);
-  Mainform.DBNavigator1.Enabled := (PageControlMain.ActivePage = tabData);
+  inDataTab := PageControlMain.ActivePage = tabData;
+  tabFilter.tabVisible := inDataTab;
+  Mainform.actDatasetFirst.Enabled := inDataTab;
+  Mainform.actDatasetLast.Enabled := inDataTab;
+  Mainform.actDatasetInsert.Enabled := inDataTab;
+  Mainform.actDatasetDelete.Enabled := inDataTab;
+  Mainform.actDatasetPost.Enabled := inDataTab;
 
   Mainform.ExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
   Mainform.ExecuteSelection.Enabled := PageControlMain.ActivePage = tabQuery;
@@ -2232,8 +2237,13 @@ begin
     HTMLView.Enabled := inDataOrQueryTabNotEmpty;
     Self.Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
     ToolBarData.visible := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
-    if FrmIsFocussed then
-      DBNavigator1.DataSource := DataSource1;
+    if FrmIsFocussed then begin
+      actDatasetFirst.DataSource := DataSource1;
+      actDatasetLast.DataSource := DataSource1;
+      actDatasetInsert.DataSource := DataSource1;
+      actDatasetDelete.DataSource := DataSource1;
+      actDatasetPost.DataSource := DataSource1;
+    end;
     btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
     menuSQLHelp.Enabled := btnSQLHelp.Enabled and FrmIsFocussed;
 

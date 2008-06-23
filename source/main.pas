@@ -18,7 +18,7 @@ uses
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
-  SelectDBObject;
+  SelectDBObject, DBActns;
 
 type
   TMainForm = class(TForm)
@@ -98,7 +98,6 @@ type
     ButtonExport: TToolButton;
     ButtonUserManager: TToolButton;
     ToolBarData: TToolBar;
-    DBNavigator1: TDBNavigator;
     PanelLimit: TPanel;
     CheckBoxLimit: TCheckBox;
     EditLimitStart: TEdit;
@@ -148,6 +147,16 @@ type
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
     Createview1: TMenuItem;
+    ToolButton3: TToolButton;
+    actDataSetFirst: TDataSetFirst;
+    actDataSetLast: TDataSetLast;
+    actDataSetInsert: TDataSetInsert;
+    actDataSetDelete: TDataSetDelete;
+    actDataSetPost: TDataSetPost;
+    ToolButton4: TToolButton;
+    ToolButton7: TToolButton;
+    ToolButton8: TToolButton;
+    ToolButton10: TToolButton;
     procedure actCreateViewExecute(Sender: TObject);
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
@@ -187,14 +196,13 @@ type
     procedure ExecuteQueryExecute(Sender: TObject);
     procedure ExecuteSelectionExecute(Sender: TObject);
     procedure Copy2XMLExecute(Sender: TObject);
-    procedure DBNavigator1BeforeAction(Sender: TObject;
-      Button: TNavigateBtn);
     procedure ExportDataExecute(Sender: TObject);
     procedure ExecuteLineExecute(Sender: TObject);
     procedure HTMLviewExecute(Sender: TObject);
     procedure InsertFilesExecute(Sender: TObject);
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
+    procedure actDataSetDeleteExecute(Sender: TObject);
     procedure DropTablesAndViewsExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
@@ -960,15 +968,6 @@ begin
     dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query');
 end;
 
-procedure TMainForm.DBNavigator1BeforeAction(Sender: TObject;
-  Button: TNavigateBtn);
-begin
-  if Button = nbdelete then begin
-    ChildWin.Delete1Click(sender);
-    abort;
-  end;
-end;
-
 procedure TMainForm.ExportDataExecute(Sender: TObject);
 var
   query : TDataSet;
@@ -1331,6 +1330,13 @@ begin
 
   ShowStatus( STATUS_MSG_READY, 2 );
 end;
+
+procedure TMainForm.actDataSetDeleteExecute(Sender: TObject);
+begin
+  ChildWin.Delete1Click(sender);
+  abort;
+end;
+
 
 procedure TMainForm.menuUpdateCheckClick(Sender: TObject);
 var
