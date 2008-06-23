@@ -33,6 +33,13 @@ type
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     DefLengthSet:    String;  // Should be set for types which require a length/set
+    Category:        Integer;
+  end;
+
+  // MySQL Data Type category structure
+  TMysqlDataTypeCategory = record
+    Index:           Integer;
+    Name:            String[18];
   end;
 
   // MySQL Field structure
@@ -101,7 +108,59 @@ const
   tpMULTIPOLYGON       = 34;
   tpGEOMETRYCOLLECTION = 35;
 
+  // MySQL field type categorization
+const
+  catInteger       = 0;
+  catReal          = 1;
+  catTemporal      = 2;
+  catText          = 3;
+  catBinary        = 4;
+  catIntegerNamed  = 5;
+  catSet           = 6;
+  catSetNamed      = 7;
+  catSpatial       = 8;
+
 var
+  // MySQL data type categories
+  MySqlDataTypeCategories: array[0..8] of TMysqlDataTypeCategory = (
+    (
+      Index:           catInteger;
+      Name:            'Integer'
+    ),
+    (
+      Index:           catReal;
+      Name:            'Real'
+    ),
+    (
+      Index:           catText;
+      Name:            'Text'
+    ),
+    (
+      Index:           catBinary;
+      Name:            'Binary'
+    ),
+    (
+      Index:           catTemporal;
+      Name:            'Temporal (time)'
+    ),
+    (
+      Index:           catSpatial;
+      Name:            'Spatial (geometry)'
+    ),
+    (
+      Index:           catIntegerNamed;
+      Name:            'Integer, Named'
+    ),
+    (
+      Index:           catSet;
+      Name:            'Set of Bits'
+    ),
+    (
+      Index:           catSetNamed;
+      Name:            'Set of Bits, Named'
+    )
+  );
+
   // MySQL Data Type List and Properties
   MySqlDataTypeArray: array [0..35] of TMysqlDataTypeRecord =
   (
@@ -114,6 +173,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catInteger;
     ),
     (
       Index:           tpSMALLINT;
@@ -124,6 +184,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catInteger;
     ),
     (
       Index:           tpMEDIUMINT;
@@ -134,6 +195,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catInteger;
     ),
     (
       Index:           tpINT;
@@ -144,6 +206,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catInteger;
     ),
     (
       Index:           tpBIGINT;
@@ -154,6 +217,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catInteger;
     ),
     (
       Index:           tpFLOAT;
@@ -164,6 +228,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catReal;
     ),
     (
       Index:           tpDOUBLE;
@@ -174,6 +239,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catReal;
     ),
     (
       Index:           tpDECIMAL;
@@ -184,6 +250,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catReal;
     ),
     (
       Index:           tpDATE;
@@ -194,6 +261,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catTemporal;
     ),
     (
       Index:           tpTIME;
@@ -204,6 +272,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catTemporal;
     ),
     (
       Index:           tpYEAR;
@@ -214,6 +283,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catTemporal;
     ),
     (
       Index:           tpDATETIME;
@@ -224,6 +294,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catTemporal;
     ),
     (
       Index:           tpTIMESTAMP;
@@ -234,6 +305,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catTemporal;
     ),
     (
       Index:           tpCHAR;
@@ -245,6 +317,7 @@ var
       HasBinary:       True;
       HasDefault:      True;
       DefLengthSet:    '50';
+      Category:        catText;
     ),
     (
       Index:           tpVARCHAR;
@@ -256,6 +329,7 @@ var
       HasBinary:       True; // MySQL-Help says the opposite but it's valid for older versions at least.
       HasDefault:      True;
       DefLengthSet:    '50';
+      Category:        catText;
     ),
     (
       Index:           tpTINYTEXT;
@@ -266,6 +340,7 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
+      Category:        catText;
     ),
     (
       Index:           tpMEDIUMTEXT;
@@ -276,6 +351,7 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
+      Category:        catText;
     ),
     (
       Index:           tpTEXT;
@@ -286,6 +362,7 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
+      Category:        catText;
     ),
     (
       Index:           tpLONGTEXT;
@@ -296,6 +373,7 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
+      Category:        catText;
     ),
     (
       Index:           tpBINARY;
@@ -307,6 +385,7 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '50';
+      Category:        catBinary;
     ),
     (
       Index:           tpVARBINARY;
@@ -318,6 +397,7 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '50';
+      Category:        catBinary;
     ),
     (
       Index:           tpTINYBLOB;
@@ -328,6 +408,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catBinary;
     ),
     (
       Index:           tpBLOB;
@@ -338,6 +419,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catBinary;
     ),
     (
       Index:           tpMEDIUMBLOB;
@@ -348,6 +430,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catBinary;
     ),
     (
       Index:           tpLONGBLOB;
@@ -358,6 +441,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catBinary;
     ),
     (
       Index:           tpENUM;
@@ -369,6 +453,7 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Y'',''N''';
+      Category:        catIntegerNamed;
     ),
     (
       Index:           tpSET;
@@ -380,6 +465,7 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Value A'',''Value B''';
+      Category:        catSetNamed;
     ),
     (
       Index:           tpBIT;
@@ -390,6 +476,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
+      Category:        catSet;
     ),
     (
       Index:           tpPOINT;
@@ -400,6 +487,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpLINESTRING;
@@ -410,6 +498,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpPOLYGON;
@@ -420,6 +509,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpGEOMETRY;
@@ -430,6 +520,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpMULTIPOINT;
@@ -440,6 +531,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpMULTILINESTRING;
@@ -450,6 +542,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpMULTIPOLYGON;
@@ -460,6 +553,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     ),
     (
       Index:           tpGEOMETRYCOLLECTION;
@@ -470,6 +564,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        catSpatial;
     )
   );
 

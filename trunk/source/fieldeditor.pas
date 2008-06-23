@@ -79,6 +79,8 @@ type
     procedure btnDeleteAllColumnsFromIndexClick(Sender: TObject);
     procedure CheckBoxUnsignedClick(Sender: TObject);
     procedure CheckBoxZerofillClick(Sender: TObject);
+    procedure ComboBoxTypeDrawItem(Control: TWinControl; Index: Integer; Rect:
+        TRect; State: TOwnerDrawState);
     procedure listClick(Sender: TObject);
   private
     { Private declarations }
@@ -87,6 +89,9 @@ type
     FModeWhenCalled : TFieldEditorMode;
     FFieldName : String;
     procedure ValidateControls;
+    function IsCategory(index: Integer): Boolean;
+    function IndexToType(index: Integer): Integer;
+    function TypeToIndex(t: Integer): Integer;
   public
     { Public declarations }
   end;
@@ -145,7 +150,7 @@ end;
 procedure TFieldEditForm.InitFieldEditor(Sender: TObject);
 var
   strtype        : String;
-  i              : Integer;
+  i, j           : Integer;
   ListColumns    : TVirtualStringTree;
   NodeData       : PVTreeData;
 begin
@@ -167,9 +172,13 @@ begin
 
   // re-fill datatypes-combobox
   ComboBoxType.Items.Clear;
-  for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
-  begin
-    ComboBoxType.Items.Add( MySqlDataTypeArray[i].Name );
+  for j := Low(MySqlDataTypeCategories) to High(MySqlDataTypeCategories) do begin
+    ComboBoxType.Items.Add('   ' + MySqlDataTypeCategories[j].Name);
+    for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do begin
+      if MySqlDataTypeArray[i].Category = MySqlDataTypeCategories[j].Index then begin
+        ComboBoxType.Items.Add(MySqlDataTypeArray[i].Name);
+      end;
+    end;
   end;
 
   CheckBoxAutoIncrement.Enabled := true;
@@ -184,7 +193,7 @@ begin
     begin
       CheckBoxAutoIncrement.Enabled := false;
       EditFieldName.Text := 'FieldName';
-      ComboBoxType.ItemIndex := 0;
+      ComboBoxType.ItemIndex := 1;
       EditLength.Text := '';
       EditDefault.Text := '';
       EditComment.Text := '';
@@ -218,7 +227,7 @@ begin
             // enable / disable length field
             // get default length ..
           end;
-          ComboBoxType.ItemIndex := MySqlDataTypeArray[i].Index;
+          ComboBoxType.ItemIndex := TypeToIndex(MySqlDataTypeArray[i].Index);
           Break;
         end;
       end;
@@ -304,7 +313,36 @@ begin
   ValidateControls;
 end;
 
+function TFieldEditForm.IsCategory(index: Integer): Boolean;
+begin
+  Result := Copy(ComboBoxType.Items[index], 1, 2) = '  ';
+end;
 
+function TFieldEditForm.IndexToType(index: Integer): Integer;
+var
+  i: Integer;
+begin
+  for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do begin
+    if ComboBoxType.Items[index] = MySqlDataTypeArray[i].Name then begin
+      Result := MySqlDataTypeArray[i].Index;
+      Exit;
+    end;
+  end;
+  raise Exception.Create('Internal error: invalid index ' + IntToStr(index) + '.');
+end;
+
+function TFieldEditForm.TypeToIndex(t: Integer): Integer;
+var
+  i: Integer;
+begin
+  for i := 0 to ComboBoxType.Items.Count - 1 do begin
+    if ComboBoxType.Items[i] = MySqlDataTypeArray[t].Name then begin
+      Result := i;
+      Exit;
+    end;
+  end;
+  raise Exception.Create('Internal error: invalid type ' + IntToStr(t) + '.');
+end;
 
 {***
   User selected a new datatype for the selected field.
@@ -317,8 +355,13 @@ var
 begin
   // Attributes
 
+  // Skip column type categories
+  if IsCategory(ComboBoxType.ItemIndex) then begin
+    ComboBoxType.ItemIndex := ComboBoxType.ItemIndex + 1;
+  end;
+
   // Detect column-type
-  FieldType := MySqlDataTypeArray[ComboBoxType.ItemIndex];
+  FieldType := MySqlDataTypeArray[IndexToType(ComboBoxType.ItemIndex)];
 
   // BINARY
   CheckBoxBinary.Enabled := FieldType.HasBinary;
@@ -1046,6 +1089,32 @@ procedure TFieldEditForm.CheckBoxZerofillClick(Sender: TObject);
 begin
   if CheckBoxZerofill.Checked then
     CheckboxUnsigned.Checked := True;
+end;
+
+
+procedure TFieldEditForm.ComboBoxTypeDrawItem(Control: TWinControl; Index:
+    Integer; Rect: TRect; State: TOwnerDrawState);
+var
+  s: string;
+begin
+  with Control as TComboBox,Canvas do begin
+    // decide colors
+    Brush.Color := clWhite;
+    Font.Color := clBlack;
+    if IsCategory(Index) or (odSelected in State) then begin
+      Font.Color := clWhite;
+      if IsCategory(Index) then Brush.Color := clBlack
+      else if odSelected in State then Brush.Color := clBlue
+    end;
+    // fill the rectangle first
+    FillRect(Rect);
+    // categories start with spaces to avoid hotkeys hitting them, reverse that
+    s := Items[Index];
+    if IsCategory(Index) then s := Copy(s, 4)
+    else s := '   ' + s;
+    // then print text
+    TextOut(Rect.Left, Rect.Top, s);
+  end;
 end;
 
 
