@@ -209,7 +209,7 @@ type
     ['{8EEBBD1A-56D1-4EC0-B3BD-42B60591457F}']
 
     function CreateStatement: IZStatement;
-    function PrepareStatement(const SQL: string): IZPreparedStatement;
+    function PrepareStatement(const SQL: WideString): IZPreparedStatement;
     function PrepareCall(const SQL: string): IZCallableStatement;
 
     function CreateStatementWithParams(Info: TStrings): IZStatement;
