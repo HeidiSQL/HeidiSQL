@@ -2623,14 +2623,14 @@ begin
   if ds <> nil then ds.Close;
   FreeAndNil( ds );
   // set db-aware-component's properties..
-  DBMemo1.DataField := EmptyStr;
+  DBMemo1.DataField := '';
   DBMemo1.DataSource := DataSource2;
-  EDBImage1.DataField := EmptyStr;
+  EDBImage1.DataField := '';
   EDBImage1.DataSource := DataSource2;
 
   SQLscriptstart := GetTickCount();
   LastVistaCheck := GetTickCount();
-  LabelResultinfo.Caption := EmptyStr;
+  LabelResultinfo.Caption := '';
 
   ds := nil;
   try
@@ -2653,12 +2653,12 @@ begin
     begin
       ProgressBarQuery.StepIt();
       ProgressBarQuery.Repaint;
-      if ( sql[i] = EmptyStr ) then
+      if ( sql[i] = '' ) then
       begin
         continue;
       end;
       // open last query with data-aware:
-      LabelResultinfo.Caption := EmptyStr;
+      LabelResultinfo.Caption := '';
       // ok, let's rock
       SQLstart := GetTickCount();
       try
@@ -5929,7 +5929,7 @@ begin
   ComboBoxQueryDelimiter.Text := Trim( ComboBoxQueryDelimiter.Text );
 
   // verify if the delimiter combobox isn't empty
-  if ( ComboBoxQueryDelimiter.Text = EmptyStr ) then
+  if ( ComboBoxQueryDelimiter.Text = '' ) then
   begin
     msg := 'A delimiter is needed.';
     MessageDlg( msg, mtWarning, [mbOK], 0);
