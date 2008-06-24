@@ -81,6 +81,9 @@ type
     procedure CheckBoxZerofillClick(Sender: TObject);
     procedure ComboBoxTypeDrawItem(Control: TWinControl; Index: Integer; Rect:
         TRect; State: TOwnerDrawState);
+    procedure ComboBoxTypeKeyDown(Sender: TObject; var Key: Word; Shift:
+        TShiftState);
+    procedure ComboBoxTypeKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure listClick(Sender: TObject);
   private
     { Private declarations }
@@ -88,6 +91,7 @@ type
     FMode : TFieldEditorMode;
     FModeWhenCalled : TFieldEditorMode;
     FFieldName : String;
+    FLastKey: Word;
     procedure ValidateControls;
     function IsCategory(index: Integer): Boolean;
     function IndexToType(index: Integer): Integer;
@@ -352,12 +356,18 @@ end;
 procedure TFieldEditForm.ComboBoxTypeChange(Sender: TObject);
 var
   FieldType : TMysqlDataTypeRecord;
+  idx: Integer;
 begin
   // Attributes
 
   // Skip column type categories
   if IsCategory(ComboBoxType.ItemIndex) then begin
-    ComboBoxType.ItemIndex := ComboBoxType.ItemIndex + 1;
+    idx := ComboBoxType.ItemIndex;
+    if FLastKey = VK_UP then idx := idx - 1
+    else idx := idx + 1;
+    if idx < 0 then idx := idx + 2;
+    if idx >= ComboBoxType.Items.Count then idx := idx - 2;
+    ComboBoxType.ItemIndex := idx;
   end;
 
   // Detect column-type
@@ -1118,6 +1128,18 @@ begin
     // then print text
     TextOut(Rect.Left, Rect.Top, s);
   end;
+end;
+
+procedure TFieldEditForm.ComboBoxTypeKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  FLastKey := Key;
+end;
+
+procedure TFieldEditForm.ComboBoxTypeKeyUp(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+begin
+  FLastKey := 0;
 end;
 
 

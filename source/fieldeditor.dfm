@@ -113,6 +113,8 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 2
         OnChange = ComboBoxTypeChange
         OnDrawItem = ComboBoxTypeDrawItem
+        OnKeyDown = ComboBoxTypeKeyDown
+        OnKeyUp = ComboBoxTypeKeyUp
       end
       object EditFieldname: TEdit
         Left = 88
