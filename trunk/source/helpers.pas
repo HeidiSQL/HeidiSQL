@@ -39,7 +39,7 @@ type
   function IsValidDelimiter(var s: WideString): WideString;
   type TParseSQLProcessCommand = procedure(command: WideString; parameter: WideString) of object;
   function parsesql(sql: WideString; delimiter: WideString; processcommand: TParseSQLProcessCommand = nil) : TWideStringList;
-  function sstr(str: String; len: Integer) : String;
+  function sstr(str: WideString; len: Integer) : WideString;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
@@ -666,7 +666,7 @@ end;
   @param integer Wished Length of string
   @return string
 }
-function sstr(str: String; len: Integer) : String;
+function sstr(str: WideString; len: Integer) : WideString;
 begin
   if length(str) >= len then
   begin
