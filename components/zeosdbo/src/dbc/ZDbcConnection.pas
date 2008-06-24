@@ -141,7 +141,7 @@ type
     destructor Destroy; override;
 
     function CreateStatement: IZStatement;
-    function PrepareStatement(const SQL: string): IZPreparedStatement;
+    function PrepareStatement(const SQL: WideString): IZPreparedStatement;
     function PrepareCall(const SQL: string): IZCallableStatement;
 
     function CreateStatementWithParams(Info: TStrings): IZStatement;
@@ -532,7 +532,7 @@ end;
   @return a new PreparedStatement object containing the
     pre-compiled statement
 }
-function TZAbstractConnection.PrepareStatement(const SQL: string): IZPreparedStatement;
+function TZAbstractConnection.PrepareStatement(const SQL: WideString): IZPreparedStatement;
 begin
   Result := CreatePreparedStatement(SQL, nil);
 end;

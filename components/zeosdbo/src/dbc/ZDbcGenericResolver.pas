@@ -738,7 +738,7 @@ procedure TZGenericCachedResolver.PostUpdates(Sender: IZCachedResultSet;
   UpdateType: TZRowUpdateType; OldRowAccessor, NewRowAccessor: TZRowAccessor);
 var
   Statement: IZPreparedStatement;
-  SQL: string;
+  SQL: WideString;
   SQLParams: TObjectList;
 begin
   if (UpdateType = utDeleted)
