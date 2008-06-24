@@ -3557,7 +3557,6 @@ end;
 
 procedure TMDIChild.btnBlobSaveClick(Sender: TObject);
 var
-  bf: Textfile;
   grid: TTntDBGrid;
 begin
   // Todo: Weird fix, we probably shouldn't even be showing the button in the first place.
@@ -3586,12 +3585,7 @@ begin
     if execute then try
       Screen.Cursor := crHourGlass;
       case pageCtlEditors.ActivePageIndex of
-        0 : begin
-            AssignFile(bf, filename);
-            Rewrite(bf);
-            Write(bf, GetVisualDataset().FieldByName(DBMemo1.DataField).AsString);
-            CloseFile(bf);
-          end;
+        0 : SaveUnicodeFile(filename, GetVisualDataset.FieldByName(DBMemo1.DataField).AsWideString );
         1 : EDBImage1.Picture.SaveToFile(filename);
       end;
       Screen.Cursor := crDefault;
