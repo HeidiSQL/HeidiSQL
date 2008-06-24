@@ -470,12 +470,7 @@ begin
   if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
   begin
     strDefault := ' DEFAULT ';
-    // Don't escape certain default values
-    if (UpperCase(EditDefault.Text) = 'CURRENT_TIMESTAMP')
-      or (UpperCase(EditDefault.Text) = 'NULL') then
-      strDefault := strDefault + EditDefault.Text
-    else
-      strDefault := strDefault + esc(EditDefault.Text)
+    strDefault := strDefault + EditDefault.Text
   end;
 
   if CheckBoxNotNull.Enabled then
