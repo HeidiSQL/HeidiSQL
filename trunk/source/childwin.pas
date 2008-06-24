@@ -24,7 +24,7 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils;
+  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode;
 
 type
   TOrderCol = class(TObject)
@@ -2595,7 +2595,7 @@ end;
 
 procedure TMDIChild.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
 var
-  SQL               : TWideStringList;
+  SQL               : WideStrings.TWideStringList;
   i                 : Integer;
   rowsaffected      : Integer;
   SQLstart          : Integer;
