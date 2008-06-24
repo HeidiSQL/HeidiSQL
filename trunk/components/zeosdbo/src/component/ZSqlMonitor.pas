@@ -263,7 +263,7 @@ var
   LogTrace: Boolean;
   Stream: TFileStream;
   Temp: WideString;
-  Buffer: PChar;
+  Buffer: PWideChar;
 begin
   LogTrace := True;
   DoTrace(Event, LogTrace);
@@ -288,8 +288,8 @@ begin
     try
       Stream.Seek(0, soFromEnd);
       Temp := Event.AsString + #13#10;
-      Buffer := PChar(Temp);
-      Stream.Write(Buffer^, StrLen(Buffer));
+      Buffer := PWideChar(Temp);
+      Stream.Write(Buffer^, Length(Temp));
     finally
       Stream.Free;
     end;
