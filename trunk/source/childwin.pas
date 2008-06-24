@@ -2019,7 +2019,22 @@ begin
       if lowercase( ds.FieldByName('Null').AsString ) = 'yes' then
         VTRowDataListColumns[i-1].Captions.Add('Yes')
         else VTRowDataListColumns[i-1].Captions.Add('No');
-      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Default').AsString );
+
+      if ds.FieldByName('Default').IsNull then
+        // In MySQL, it is not possible to use fx NOW() as a column default.
+        // Also, if default is NULL, then the actual default is either NULL
+        // or nothing at all.  Looking at another column, "Null", can help
+        // determine which one it really is, as can a SHOW CREATE TABLE.
+        // According with the above, it is not possible in MySQL to create
+        // a column which may be NULL but which has no default value.
+        if LowerCase(ds.FieldByName('Null').AsString) = 'yes' then
+          VTRowDataListColumns[i-1].Captions.Add('NULL')
+        else
+          // No default value.
+          VTRowDataListColumns[i-1].Captions.Add('')
+      else
+        VTRowDataListColumns[i-1].Captions.Add('''' + ds.FieldByName('Default').AsString + '''');
+
       VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Extra').AsString );
       if hasCommentColumn then
         VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Comment').AsString )
