@@ -130,7 +130,7 @@ type
     procedure DOAfterApplyUpdates; {bangfauzan addition}
 
 
-    function CreateStatement(const SQL: string; Properties: TStrings):
+    function CreateStatement(const SQL: WideString; Properties: TStrings):
       IZPreparedStatement; override;
     function CreateResultSet(const SQL: WideString; MaxRows: Integer):
       IZResultSet; override;
@@ -291,7 +291,7 @@ end;
   @returns a created DBC statement.
 }
 function TZAbstractDataset.CreateStatement(
-  const SQL: string; Properties: TStrings): IZPreparedStatement;
+  const SQL: WideString; Properties: TStrings): IZPreparedStatement;
 var
   Temp: TStrings;
 begin

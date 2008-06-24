@@ -286,7 +286,7 @@ type
     function AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure CloseBlob(Field: TField); override;
-    function CreateStatement(const SQL: string; Properties: TStrings):
+    function CreateStatement(const SQL: WideString; Properties: TStrings):
       IZPreparedStatement; virtual;
     function CreateResultSet(const SQL: WideString; MaxRows: Integer):
       IZResultSet; virtual;
@@ -1505,7 +1505,7 @@ end;
   @param Properties a statement specific properties.
   @returns a created DBC statement.
 }
-function TZAbstractRODataset.CreateStatement(const SQL: string; Properties: TStrings):
+function TZAbstractRODataset.CreateStatement(const SQL: WideString; Properties: TStrings):
   IZPreparedStatement;
 var
   Temp: TStrings;

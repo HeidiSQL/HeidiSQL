@@ -164,7 +164,7 @@ TZPgCharactersetType = (
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; override;
 
     function CreateSequence(const Sequence: string; BlockSize: Integer): IZSequence; override;
@@ -568,11 +568,11 @@ end;
     pre-compiled statement
 }
 function TZPostgreSQLConnection.CreatePreparedStatement(
-  const SQL: string; Info: TStrings): IZPreparedStatement;
+  const SQL: WideString; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
   Result := TZPostgreSQLPreparedStatement.Create(FPlainDriver,
-    Self, SQL, Info, FHandle);
+    Self, String(SQL), Info, FHandle);
 end;
 
 {**

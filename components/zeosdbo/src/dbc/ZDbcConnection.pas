@@ -120,9 +120,9 @@ type
 
     function CreateRegularStatement(Info: TStrings): IZStatement;
       virtual;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; virtual;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(const SQL: WideString; Info: TStrings):
       IZCallableStatement; virtual;
 
     property Driver: IZDriver read FDriver write FDriver;
@@ -145,9 +145,9 @@ type
     function PrepareCall(const SQL: string): IZCallableStatement;
 
     function CreateStatementWithParams(Info: TStrings): IZStatement;
-    function PrepareStatementWithParams(const SQL: string; Info: TStrings):
+    function PrepareStatementWithParams(const SQL: WideString; Info: TStrings):
       IZPreparedStatement;
-    function PrepareCallWithParams(const SQL: string; Info: TStrings):
+    function PrepareCallWithParams(const SQL: WideString; Info: TStrings):
       IZCallableStatement;
 
     function CreateNotification(const Event: string): IZNotification; virtual;
@@ -547,7 +547,7 @@ end;
   @return a new PreparedStatement object containing the
     pre-compiled statement
 }
-function TZAbstractConnection.PrepareStatementWithParams(const SQL: string;
+function TZAbstractConnection.PrepareStatementWithParams(const SQL: WideString;
   Info: TStrings): IZPreparedStatement;
 begin
   Result := CreatePreparedStatement(SQL, Info);
@@ -564,7 +564,7 @@ end;
   @param Info a statement parameters.
   @returns a created statement.
 }
-function TZAbstractConnection.CreatePreparedStatement(const SQL: string;
+function TZAbstractConnection.CreatePreparedStatement(const SQL: WideString;
   Info: TStrings): IZPreparedStatement;
 begin
   Result := nil;
@@ -617,7 +617,7 @@ end;
   @return a new CallableStatement object containing the
     pre-compiled SQL statement
 }
-function TZAbstractConnection.PrepareCallWithParams(const SQL: string;
+function TZAbstractConnection.PrepareCallWithParams(const SQL: WideString;
   Info: TStrings): IZCallableStatement;
 begin
   Result := CreateCallableStatement(SQL, Info);
@@ -629,7 +629,7 @@ end;
   @param Info a statement parameters.
   @returns a created statement.
 }
-function TZAbstractConnection.CreateCallableStatement(const SQL: string;
+function TZAbstractConnection.CreateCallableStatement(const SQL: WideString;
   Info: TStrings): IZCallableStatement;
 begin
   Result := nil;

@@ -119,9 +119,9 @@ type
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(const SQL: WideString; Info: TStrings):
       IZCallableStatement; override;
 
     function NativeSQL(const SQL: string): string; override;
@@ -497,10 +497,10 @@ end;
     pre-compiled statement
 }
 function TZDBLibConnection.CreatePreparedStatement(
-  const SQL: string; Info: TStrings): IZPreparedStatement;
+  const SQL: WideString; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
-  Result := TZDBLibPreparedStatementEmulated.Create(Self, SQL, Info);
+  Result := TZDBLibPreparedStatementEmulated.Create(Self, String(SQL), Info);
 end;
 
 {**
@@ -530,10 +530,10 @@ end;
     pre-compiled SQL statement
 }
 function TZDBLibConnection.CreateCallableStatement(
-  const SQL: string; Info: TStrings): IZCallableStatement;
+  const SQL: WideString; Info: TStrings): IZCallableStatement;
 begin
   if IsClosed then Open;
-  Result := TZDBLibCallableStatement.Create(Self, SQL, Info);
+  Result := TZDBLibCallableStatement.Create(Self, String(SQL), Info);
 end;
 
 {**

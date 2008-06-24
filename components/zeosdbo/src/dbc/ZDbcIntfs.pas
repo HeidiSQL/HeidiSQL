@@ -213,9 +213,9 @@ type
     function PrepareCall(const SQL: string): IZCallableStatement;
 
     function CreateStatementWithParams(Info: TStrings): IZStatement;
-    function PrepareStatementWithParams(const SQL: string; Info: TStrings):
+    function PrepareStatementWithParams(const SQL: WideString; Info: TStrings):
       IZPreparedStatement;
-    function PrepareCallWithParams(const SQL: string; Info: TStrings):
+    function PrepareCallWithParams(const SQL: WideString; Info: TStrings):
       IZCallableStatement;
 
     function CreateNotification(const Event: string): IZNotification;
