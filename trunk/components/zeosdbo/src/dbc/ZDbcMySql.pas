@@ -116,7 +116,7 @@ type
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; override;
 
     procedure Commit; override;
@@ -533,7 +533,7 @@ end;
   @return a new PreparedStatement object containing the
     pre-compiled statement
 }
-function TZMySQLConnection.CreatePreparedStatement(const SQL: string;
+function TZMySQLConnection.CreatePreparedStatement(const SQL: WideString;
   Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;

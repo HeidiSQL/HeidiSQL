@@ -107,9 +107,9 @@ type
     destructor Destroy; override;
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(const SQL: WideString; Info: TStrings):
       IZCallableStatement; override;
 
     function NativeSQL(const SQL: string): string; override;
@@ -366,10 +366,10 @@ end;
     pre-compiled statement
 }
 function TZAdoConnection.CreatePreparedStatement(
-  const SQL: string; Info: TStrings): IZPreparedStatement;
+  const SQL: WideString; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
-  Result := TZAdoPreparedStatement.Create(FPLainDriver, Self, SQL, Info);
+  Result := TZAdoPreparedStatement.Create(FPLainDriver, Self, String(SQL), Info);
 end;
 
 {**
@@ -398,11 +398,11 @@ end;
   @return a new CallableStatement object containing the
     pre-compiled SQL statement
 }
-function TZAdoConnection.CreateCallableStatement(const SQL: string; Info: TStrings):
+function TZAdoConnection.CreateCallableStatement(const SQL: WideString; Info: TStrings):
   IZCallableStatement;
 begin
   if IsClosed then Open;
-  Result := TZAdoCallableStatement.Create(FPlainDriver, Self, SQL, Info);
+  Result := TZAdoCallableStatement.Create(FPlainDriver, Self, String(SQL), Info);
 end;
 
 {**

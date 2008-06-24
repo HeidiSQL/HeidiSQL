@@ -128,9 +128,9 @@ type
     procedure CreateNewDatabase(const SQL: String);
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(const SQL: WideString; Info: TStrings):
       IZCallableStatement; override;
 
     function CreateSequence(const Sequence: string; BlockSize: Integer):
@@ -581,10 +581,10 @@ end;
     pre-compiled statement
 }
 function TZInterbase6Connection.CreatePreparedStatement(
-  const SQL: string; Info: TStrings): IZPreparedStatement;
+  const SQL: WideString; Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
-  Result := TZInterbase6PreparedStatement.Create(Self, SQL, Info);
+  Result := TZInterbase6PreparedStatement.Create(Self, String(SQL), Info);
 end;
 
 {**
@@ -613,11 +613,11 @@ end;
   @return a new CallableStatement object containing the
     pre-compiled SQL statement
 }
-function TZInterbase6Connection.CreateCallableStatement(const SQL: string;
+function TZInterbase6Connection.CreateCallableStatement(const SQL: WideString;
   Info: TStrings): IZCallableStatement;
 begin
  if IsClosed then Open;
- Result := TZInterbase6CallableStatement.Create(Self, SQL, Info);
+ Result := TZInterbase6CallableStatement.Create(Self, String(SQL), Info);
 end;
 
 {**

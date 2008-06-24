@@ -111,9 +111,9 @@ type
 //    procedure CreateNewDatabase(SQL: String);
 
     function CreateRegularStatement(Info: TStrings): IZStatement; override;
-    function CreatePreparedStatement(const SQL: string; Info: TStrings):
+    function CreatePreparedStatement(const SQL: WideString; Info: TStrings):
       IZPreparedStatement; override;
-    function CreateCallableStatement(const SQL: string; Info: TStrings):
+    function CreateCallableStatement(const SQL: WideString; Info: TStrings):
       IZCallableStatement; override;
 
     procedure Commit; override;
@@ -369,11 +369,11 @@ end;
   @return a new CallableStatement object containing the
     pre-compiled SQL statement
 }
-function TZASAConnection.CreateCallableStatement(const SQL: string;
+function TZASAConnection.CreateCallableStatement(const SQL: WideString;
   Info: TStrings): IZCallableStatement;
 begin
   if IsClosed then Open;
-  Result := TZASACallableStatement.Create(Self, SQL, Info);
+  Result := TZASACallableStatement.Create(Self, String(SQL), Info);
 end;
 
 {**
@@ -403,11 +403,11 @@ end;
   @return a new PreparedStatement object containing the
     pre-compiled statement
 }
-function TZASAConnection.CreatePreparedStatement(const SQL: string;
+function TZASAConnection.CreatePreparedStatement(const SQL: WideString;
   Info: TStrings): IZPreparedStatement;
 begin
   if IsClosed then Open;
-  Result := TZASAPreparedStatement.Create(Self, SQL, Info);
+  Result := TZASAPreparedStatement.Create(Self, String(SQL), Info);
 end;
 
 {**
