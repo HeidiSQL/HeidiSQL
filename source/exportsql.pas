@@ -663,7 +663,7 @@ begin
       // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL
       if target_version = SQL_VERSION_ANSI then
       begin
-        sql := makeConditionalStmt('SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI''', 40101, tofile);
+        sql := makeConditionalStmt('SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI,NO_BACKSLASH_ESCAPES''', 40101, tofile);
         sql := fixSQL( sql, target_version );
         if tofile then
           wfs(f, sql)
