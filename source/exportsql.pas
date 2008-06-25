@@ -199,12 +199,17 @@ begin
   with target_versions do
   begin
     Add( IntToStr( SQL_VERSION_ANSI ) + '=Standard ANSI SQL' );
-    Add( '32300=MySQL 3.23' );
-    Add( '40000=MySQL 4.0' );
-    Add( '40100=MySQL 4.1' );
-    Add( '50000=MySQL 5.0' );
-    Add( '50100=MySQL 5.1' );
-    Add( IntToStr( CWin.mysql_version ) + '=Same as source server (MySQL '+CWin.GetVar('SELECT VERSION()') +')' );
+    Add( IntToStr( CWin.mysql_version ) + '=Same as source ('+CWin.GetVar('SELECT VERSION()') +')' );
+    Add( '50100=HeidiSQL w/ MySQL Server 5.1' );
+    Add( '50000=HeidiSQL w/ MySQL Server 5.0' );
+    Add( '40100=HeidiSQL w/ MySQL Server 4.1' );
+    Add( '40000=HeidiSQL w/ MySQL Server 4.0' );
+    Add( '32300=HeidiSQL w/ MySQL Server 3.23' );
+    Add( '50100_mysqldump=mysqldump+mysqlcli 5.1' );
+    Add( '50000_mysqldump=mysqldump+mysqlcli 5.0' );
+    Add( '40100_mysqldump=mysqldump+mysqlcli 4.1' );
+    Add( '40000_mysqldump=mysqldump+mysqlcli 4.0' );
+    Add( '32300_mysqldump=mysqldump+mysqlcli 3.23' );
   end;
 
   // Add all target versions to combobox and set default option
@@ -494,7 +499,9 @@ var
   donext                    : Boolean;
   PBuffer                   : PChar;
   sql, current_characterset : String;
-  target_version, loopnumber: Integer;
+  loopnumber                : Integer;
+  target_version            : Integer;
+  target_cliwa              : Boolean;
   ansi                      : Boolean;
   RecordCount_all, RecordCount_one, RecordNo_all,
   offset                    : Int64;
@@ -567,6 +574,7 @@ begin
   if tofile then begin
     // Extract name part of selected target version
     target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
+    target_cliwa := Pos('mysqldump', target_versions.Names[comboTargetCompat.ItemIndex]) > 0;
     max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     f := InitFileStream('header');
     if f = nil then
@@ -621,7 +629,7 @@ begin
       wfs(f, '# Database:             ' + sourceDb );
       wfs(f, '# Server version:       ' + cwin.GetVar( 'SELECT VERSION()' ) );
       wfs(f, '# Server OS:            ' + cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1 ) );
-      wfs(f, '# Target-Compatibility: ' + comboTargetCompat.Text );
+      wfs(f, '# Target compatibility: ' + comboTargetCompat.Text );
       if extended_insert then
       begin
         wfs(f, '# max_allowed_packet:   ' + inttostr(max_allowed_packet) );
@@ -652,7 +660,7 @@ begin
       if current_characterset <> '' then
       begin
         sql := makeConditionalStmt('SET CHARACTER SET ' + current_characterset, 40100, tofile);
-        sql := fixSQL( sql, target_version );
+        sql := fixSQL( sql, target_version, target_cliwa );
         if tofile then begin
           wfs(f, sql)
         end else if tohost then begin
@@ -664,7 +672,7 @@ begin
       if target_version = SQL_VERSION_ANSI then
       begin
         sql := makeConditionalStmt('SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI,NO_BACKSLASH_ESCAPES''', 40101, tofile);
-        sql := fixSQL( sql, target_version );
+        sql := fixSQL( sql, target_version, target_cliwa );
         if tofile then
           wfs(f, sql)
         else if tohost then
@@ -676,7 +684,7 @@ begin
         Based on mysqldump output file
       }
       sql := makeConditionalStmt('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0', 40014, tofile);
-      sql := fixSQL( sql, target_version );
+      sql := fixSQL( sql, target_version, target_cliwa );
       if tofile then
         wfs(f, sql)
       else if tohost then
@@ -728,7 +736,7 @@ begin
             Insert('/*!32312 IF NOT EXISTS*/ ', sql, Pos('DATABASE', sql) + 9);
           end;
         end;
-        sql := fixSQL( sql, target_version);
+        sql := fixSQL( sql, target_version, target_cliwa );
         if tofile then
           wfs(f, sql + ';')
         else if tohost then
@@ -803,7 +811,7 @@ begin
           Query.Close;
           FreeAndNil(Query);
           sql := fixNewlines(sql);
-          sql := fixSQL( sql, target_version );
+          sql := fixSQL( sql, target_version, target_cliwa );
         end
         {***
           Generate CREATE TABLE statement by hand on old servers
@@ -983,7 +991,7 @@ begin
           if tofile then
           begin
             wfs(f, 'LOCK TABLES '+ destMask(checkListTables.Items[i]) +' WRITE;' );
-            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ destMask(checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version) );
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+ destMask(checkListTables.Items[i]) +' DISABLE KEYS;*/', target_version, target_cliwa) );
           end
           else if todb then
           begin
@@ -1120,7 +1128,7 @@ begin
         if RecordCount_all > 0 then begin
           if tofile then
           begin
-            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+destMask(checkListTables.Items[i])+' ENABLE KEYS;*/', target_version) );
+            wfs(f, fixSQL( '/*!40000 ALTER TABLE '+destMask(checkListTables.Items[i])+' ENABLE KEYS;*/', target_version, target_cliwa) );
             wfs(f, 'UNLOCK TABLES;' );
           end
           else if todb then
@@ -1154,7 +1162,7 @@ begin
     if (tofile or tohost) and (target_version = SQL_VERSION_ANSI) then
     begin
       sql := makeConditionalStmt('SET SQL_MODE=@OLD_SQL_MODE', 40101, tofile);
-      sql := fixSql(sql, target_version);
+      sql := fixSql(sql, target_version, target_cliwa);
       if tofile then
         wfs(f, sql)
       else if tohost then
@@ -1166,7 +1174,7 @@ begin
       Based on mysqldump output file
     }
     sql := makeConditionalStmt('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS', 40014, tofile);
-    sql := fixSQL( sql, target_version );
+    sql := fixSQL( sql, target_version, target_cliwa );
     if tofile then
       wfs(f, sql)
     else if tohost then

@@ -52,7 +52,7 @@ type
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
   procedure wfs( var s: TFileStream; str: String = '');
-  function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
+  function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(filename: String): Int64;
@@ -1170,12 +1170,14 @@ end;
   @param integer MySQL-version or SQL_VERSION_ANSI
   @return string SQL
 }
-function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI ): String;
+function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
 var
   rx : TRegExpr;
 begin
   result := sql;
-  if sql_version > SQL_VERSION_ANSI then // For all MySQL-versions
+
+  // For mysqldump and mysql.exe CLI compatibility
+  if cli_workarounds then
   begin
     result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
   end;
