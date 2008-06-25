@@ -4603,7 +4603,7 @@ procedure TMDIChild.setNULL1Click(Sender: TObject);
 begin
   if not (DataSource1.State in [dsEdit, dsInsert]) then
     DataSource1.Edit;
-  gridData.SelectedField.Clear;
+  TZQuery(DataSource1.DataSet).SetFieldData(gridData.SelectedField, nil);
 end;
 
 

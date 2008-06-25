@@ -274,9 +274,6 @@ type
     procedure InternalDelete; override;
     procedure InternalPost; override;
 
-    procedure SetFieldData(Field: TField; Buffer: Pointer;
-      NativeFormat: Boolean); override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     procedure DefineProperties(Filer: TFiler); override;
 
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean):
@@ -378,6 +375,9 @@ type
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     function GetFieldData(Field: TField; Buffer: Pointer;
       NativeFormat: Boolean): Boolean; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer;
+      NativeFormat: Boolean); override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
       override;
     function UpdateStatus: TUpdateStatus; override;
