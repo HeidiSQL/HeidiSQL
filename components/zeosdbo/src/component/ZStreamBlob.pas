@@ -115,7 +115,7 @@ begin
   begin
     if Assigned(Self.Memory) then
       Blob.SetStream(Self)
-    else Blob.SetStream(nil);
+    else Blob.SetString('');
     try
       if Assigned(FField.Dataset) then
         THackedDataset(FField.DataSet).DataEvent(deFieldChange, LongInt(FField));
