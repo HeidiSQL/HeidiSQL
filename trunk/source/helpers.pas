@@ -124,12 +124,13 @@ type
   end;
 
 const
-  charset_conv_table: array[0..4] of CharacterSet = (
+  charset_conv_table: array[0..5] of CharacterSet = (
     (codepage: 1250; charset: 'cp1250'), // ANSI Central European; Central European (Windows)
     (codepage: 1251; charset: 'cp1251'), // ANSI Cyrillic; Cyrillic (Windows)
     (codepage: 1252; charset: 'latin1'), // ANSI Latin 1; Western European (Windows)
     (codepage: 1256; charset: 'cp1256'), // ANSI Arabic; Arabic (Windows)
-    (codepage: 1257; charset: 'cp1257')  // ANSI Baltic; Baltic (Windows)
+    (codepage: 1257; charset: 'cp1257'), // ANSI Baltic; Baltic (Windows)
+    (codepage: 936; charset: 'gbk')      // Windows Simplified Chinese GBK
   );
   SizeGripProp = 'SizeGrip';
 
