@@ -464,7 +464,7 @@ begin
         begin
           TempBlob := DefVarManager.GetAsInterface(Value) as IZBlob;
           if not TempBlob.IsEmpty then
-            Result := GetEscapeString(TempBlob.GetString)
+            Result := GetEscapeString(TempBlob.GetUnicodeString)
           else Result := 'NULL';
         end;
     end;
