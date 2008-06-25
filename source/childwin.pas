@@ -24,7 +24,8 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode;
+  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode,
+  TntStdCtrls, TntDBCtrls;
 
 type
   TOrderCol = class(TObject)
@@ -148,7 +149,7 @@ type
     btnBlobSave: TToolButton;
     pageCtlEditors: TPageControl;
     tabEditorText: TTabSheet;
-    DBMemo1: TDBMemo;
+    DBMemo1: TTntDBMemo;
     tabEditorImage: TTabSheet;
     SynMemoFilter: TSynMemo;
     N18: TMenuItem;
