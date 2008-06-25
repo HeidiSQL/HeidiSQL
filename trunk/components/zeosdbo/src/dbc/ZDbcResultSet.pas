@@ -2835,7 +2835,7 @@ begin
   //Result := GetString;
   if (FBlobSize > 0) and Assigned(FBlobData) then
     // Note: SetString has a WideString overload.  There is no SetWideString.
-    System.SetString(Result, PChar(FBlobData), FBlobSize)
+    System.SetString(Result, PWideChar(FBlobData), FBlobSize div 2)
   else Result := '';
 end;
 
