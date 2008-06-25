@@ -1578,7 +1578,7 @@ object MDIChild: TMDIChild
         OnChange = pageCtlEditorsChange
         object tabEditorText: TTabSheet
           Caption = 'Text'
-          object DBMemo1: TDBMemo
+          object DBMemo1: TTntDBMemo
             Left = 0
             Top = 0
             Width = 638
