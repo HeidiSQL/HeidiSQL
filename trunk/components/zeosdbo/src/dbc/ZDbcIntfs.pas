@@ -773,7 +773,7 @@ type
   {** External or internal blob wrapper object. }
   IZBlob = interface(IZInterface)
     ['{47D209F1-D065-49DD-A156-EFD1E523F6BF}']
-
+    // IsEmpty means BLOB field is NULL, internally noted by setting DataSize (see implementation) to -1.
     function IsEmpty: Boolean;
     function IsUpdated: Boolean;
     function Length: LongInt;
