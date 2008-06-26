@@ -185,7 +185,7 @@ type
     procedure Copy2CSVExecute(Sender: TObject);
     procedure PrintListExecute(Sender: TObject);
     procedure CopyTableExecute(Sender: TObject);
-    procedure showstatus(msg: string=''; panel: Integer=0);
+    procedure showstatus(msg: string=''; panel: Integer=4);
     procedure ButtonOKClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
     procedure LimitPanelExit(Sender: TObject);
@@ -332,7 +332,7 @@ begin
   ChildWin.ExecuteNonQuery(query);
 end;
 
-procedure TMainForm.showstatus(msg: string=''; panel: Integer=0);
+procedure TMainForm.showstatus(msg: string=''; panel: Integer=4);
 begin
   // show Message in statusbar
   StatusBar.Panels[panel].Text := msg;
@@ -685,8 +685,13 @@ begin
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);
+var
+  i, room: Integer;
 begin
-  StatusBar.Panels[0].Width := (width - StatusBar.Panels[1].Width) - StatusBar.Panels[2].Width;
+  room := 0;
+  for i := 1 to Statusbar.Panels.Count - 1 do
+    inc(room, Statusbar.Panels[i].Width);
+  StatusBar.Panels[0].Width := Statusbar.Width - room;
 end;
 
 procedure TMainForm.UserManagerExecute(Sender: TObject);
@@ -1035,7 +1040,7 @@ begin
     exit;
   end;
   Screen.Cursor := crHourGlass;
-  showstatus('Saving contents to file...', 2);
+  showstatus('Saving contents to file...');
   GetTempPath(MAX_PATH, buffer);
   if g.SelectedField.IsBlob and (pos('JFIF', copy(g.SelectedField.AsString, 0, 20)) <> 0) then
     extension := 'jpg'
@@ -1051,7 +1056,7 @@ begin
   Rewrite(f);
   Write(f, g.SelectedField.AsString);
   CloseFile(f);
-  ShowStatus( STATUS_MSG_READY, 2 );
+  ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
   ShellExec( filename );
 end;
@@ -1328,7 +1333,7 @@ begin
     FreeAndNil (mysqlconn);
   end;
 
-  ShowStatus( STATUS_MSG_READY, 2 );
+  ShowStatus( STATUS_MSG_READY );
 end;
 
 procedure TMainForm.actDataSetDeleteExecute(Sender: TObject);

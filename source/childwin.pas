@@ -47,9 +47,7 @@ type
     tabQuery: TTabSheet;
     popupTreeView: TPopupMenu;
     menuRefreshDBTree: TMenuItem;
-    pnlDatabaseTop: TPanel;
     tabTable: TTabSheet;
-    pnlTableTop: TPanel;
     popupDbGrid: TPopupMenu;
     menuviewdata: TMenuItem;
     menuproperties: TMenuItem;
@@ -66,7 +64,6 @@ type
     NewDatabase1: TMenuItem;
     ListTables: TVirtualStringTree;
     Refresh1: TMenuItem;
-    Panel4: TPanel;
     pnlDataTop: TPanel;
     pnlQueryTop: TPanel;
     menurefresh: TMenuItem;
@@ -560,8 +557,6 @@ type
         var ImageIndex: Integer);
 
     private
-      strHostRunning             : String;
-      strHostNotRunning          : String;
       uptime                     : Integer;
       time_connected             : Cardinal;
       viewingdata                : Boolean;
@@ -740,8 +735,8 @@ begin
     end;
     rx.Free;
     mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
-    strHostRunning := FConn.MysqlParams.Host + ' running MySQL-Version ' + v + ' / Uptime: %s';
-    strHostNotRunning := 'Disconnected from ' + FConn.MysqlParams.Host + '.';
+    tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
+    Mainform.showstatus('MySQL '+v1+'.'+v2+'.'+v3, 2);
 
     // On Re-Connection, try to restore lost properties
     if FMysqlConn.Connection.Database <> '' then
@@ -824,7 +819,7 @@ begin
   FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zConn)
 
   // Initialization: establish connection and read some vars from registry
-  MainForm.Showstatus( 'Creating window...', 2 );
+  MainForm.Showstatus( 'Creating window...' );
 
   // Temporarily disable AutoReconnect in Registry
   // in case of unexpected application-termination
@@ -839,7 +834,7 @@ begin
 
   ReadWindowOptions();
 
-  MainForm.Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...', 2 );
+  MainForm.Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...' );
 
   try
     PerformConnect();
@@ -1291,7 +1286,6 @@ begin
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
-  pnlTableTop.Caption := 'Table-Properties';
   Caption := SessionName + ' - /' + db;
   ShowDBProperties( db );
 end;
@@ -1390,7 +1384,7 @@ begin
       // Switch to <Data>
       PageControlMain.ActivePage := tabData;
 
-      MainForm.ShowStatus( 'Retrieving data...', 2 );
+      MainForm.ShowStatus( 'Retrieving data...' );
 
       // Read columns to display from registry
       reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '', SessionName);
@@ -1459,7 +1453,7 @@ begin
         SynMemoFilter.Color := clWindow;
         ds := GetResults(sl_query.Text, false);
 
-        MainForm.ShowStatus( 'Filling grid with record-data...', 2 );
+        MainForm.ShowStatus( 'Filling grid with record-data...' );
         ds.DisableControls();
         DataSource1.DataSet := ds;
 
@@ -1481,13 +1475,13 @@ begin
           end;
           SynMemoFilter.Color := $008080FF; // light pink
           MessageDlg( E.Message, mtError, [mbOK], 0 );
-          MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+          MainForm.ShowStatus( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
           Exit;
         end;
       end;
 
-      MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+      MainForm.ShowStatus( STATUS_MSG_READY );
 
       if DataSource1.DataSet <> nil then begin
         for i := 0 to Length(VTRowDataListColumns) - 1 do
@@ -1669,10 +1663,6 @@ begin
     viewdata(Sender);
   if PageControlMain.ActivePage = tabQuery then
   begin
-    if ActiveDatabase <> '' then
-      pnlQueryTop.Caption := 'SQL-Query on Database ' + ActiveDatabase + ':'
-    else
-      pnlQueryTop.Caption := 'SQL-Query on Host ' + FConn.MysqlParams.Host + ':';
     // Manually invoke OnChange event of tabset to fill helper list with data
     tabsetQueryHelpers.OnChange( Sender, tabsetQueryHelpers.TabIndex, dummy);
   end;
@@ -1733,7 +1723,7 @@ begin
     // Not in cache, load table list.
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
-    MainForm.ShowStatus('Fetching tables from "' + db + '" ...', 2);
+    MainForm.ShowStatus('Fetching tables from "' + db + '" ...');
     if (mysql_version >= 32300) and (not prefPreferShowTables) then begin
       ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
     end else begin
@@ -1744,7 +1734,7 @@ begin
       // SELECT COUNT(*), but that would potentially be rather slow.
     end;
     CachedTableLists.AddObject(db, ds);
-    MainForm.ShowStatus(STATUS_MSG_READY, 2);
+    MainForm.ShowStatus(STATUS_MSG_READY);
     Screen.Cursor := OldCursor;
   end;
   Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
@@ -1822,7 +1812,7 @@ begin
 
   try
     ds := FetchDbTableList(db);
-    MainForm.ShowStatus( 'Displaying tables from "' + db + '" ...', 2 );
+    MainForm.ShowStatus( 'Displaying tables from "' + db + '" ...' );
 
     ListTables.BeginUpdate;
     ListTables.Clear;
@@ -1946,11 +1936,11 @@ begin
     ListTables.RootNodeCount := Length(VTRowDataListTables);
     ListTables.EndUpdate;
     SetVTSelection(ListTables, SelectedCaptions);
-    Mainform.showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)');
-    pnlDatabaseTop.Caption := 'Database ' + db + ': ' + IntToStr(ListTables.RootNodeCount) + ' table(s)';
+    Mainform.showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)', 0);
+    tabDatabase.Caption := sstr('Database: ' + db, 30);
     // Ensure tree db node displays its chidren initialized
     DBtree.ReinitChildren(FindDBNode(db), False);
-    MainForm.ShowStatus(STATUS_MSG_READY, 2);
+    MainForm.ShowStatus(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -1961,7 +1951,7 @@ procedure TMDIChild.ShowDBProperties(db: string);
 begin
   Screen.Cursor := crHourglass;
   pcChange( Self );
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+  MainForm.ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
 end;
 
@@ -1995,9 +1985,9 @@ begin
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
 
-  pnlTableTop.Caption := 'Table-Properties for ' + ActiveDatabase + ': ' + table;
+  tabTable.Caption := sstr('Table: ' + table, 30);
 
-  MainForm.ShowStatus( 'Reading table properties...', 2 );
+  MainForm.ShowStatus( 'Reading table properties...' );
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListColumns, True);
   ListColumns.BeginUpdate;
@@ -2117,8 +2107,8 @@ begin
   end;
 
   pcChange( Self );
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
-  MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)');
+  MainForm.ShowStatus( STATUS_MSG_READY );
+  MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)', 0);
   Screen.Cursor := crDefault;
 end;
 
@@ -2263,9 +2253,11 @@ begin
     btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
     menuSQLHelp.Enabled := btnSQLHelp.Enabled and FrmIsFocussed;
 
-    if not FrmIsFocussed then
-    begin
-      MainForm.showstatus('', 1); // empty connected_time
+    if not FrmIsFocussed then begin
+      // Empty "connected" and "uptime"
+      MainForm.showstatus('', 1);
+      MainForm.showstatus('', 2);
+      MainForm.showstatus('', 3);
     end;
     tabEditors.tabVisible := inDataOrQueryTab;
   end;
@@ -2650,7 +2642,7 @@ begin
 
   ds := nil;
   try
-    MainForm.showstatus( 'Initializing SQL...', 2 );
+    MainForm.showstatus( 'Initializing SQL...' );
     Mainform.ExecuteQuery.Enabled := false;
     Mainform.ExecuteSelection.Enabled := false;
 
@@ -2664,7 +2656,7 @@ begin
     ProgressBarQuery.Position := 0;
     ProgressBarQuery.Show();
 
-    MainForm.showstatus( 'Executing SQL...', 2 );
+    MainForm.showstatus( 'Executing SQL...' );
     for i := 0 to (SQL.Count - 1) do
     begin
       ProgressBarQuery.StepIt();
@@ -2772,7 +2764,7 @@ begin
       TZQuery(ds).EnableControls();
     end;
     Screen.Cursor := crDefault;
-    MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+    MainForm.ShowStatus( STATUS_MSG_READY );
   end;
 end;
 
@@ -3058,9 +3050,9 @@ begin
 
   inc(uptime);
   msg := Format('%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]);
-  if TimerHostUptime.Enabled then msg := Format(strHostRunning, [msg])
-  else msg := Format(strHostNotRunning, [msg]);
-  Panel4.Caption := msg;
+  if TimerHostUptime.Enabled then msg := Format('Uptime: %s', [msg])
+  else msg := '';
+  Mainform.showstatus(msg, 3);
 end;
 
 
@@ -3312,7 +3304,7 @@ begin
   // can't connect -> close MDI-Child
   TimerConnectErrorCloseWindow.Enabled := false;
   Mainform.Showstatus('', 1);
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+  MainForm.ShowStatus( STATUS_MSG_READY );
   close;
 end;
 
@@ -4851,7 +4843,8 @@ begin
 
   MainForm.showstatus('Image: ' + IntToStr( EDBImage1.Picture.width)
     + ' x ' + IntToStr( EDBImage1.Picture.Height ) + ' pixel, '
-    + 'zoomed to ' + IntToStr(Round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%'
+    + 'zoomed to ' + IntToStr(Round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%',
+    0
   );
 end;
 
@@ -6753,7 +6746,7 @@ begin
     // Root node has only one single child (user@host)
     0: begin
         Screen.Cursor := crSQLWait;
-        mainform.Showstatus( 'Reading Databases...', 2 );
+        mainform.Showstatus( 'Reading Databases...' );
         Databases := TStringList.Create;
         if DatabasesWanted.Count = 0 then begin
           ds := GetResults( 'SHOW DATABASES' );
@@ -6772,7 +6765,7 @@ begin
             Databases.Insert( 0, specialDbs[i] );
         end else
           Databases.AddStrings(DatabasesWanted);
-        Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases' );
+        Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
         ChildCount := Databases.Count;
         // Avoids excessive InitializeKeywordLists() calls.
         SynSQLSyn1.TableNames.BeginUpdate;
@@ -6781,7 +6774,7 @@ begin
         // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
         SynSQLSyn1.TableNames.AddStrings( Databases );
         SynSQLSyn1.TableNames.EndUpdate;
-        MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+        MainForm.ShowStatus( STATUS_MSG_READY );
         Screen.Cursor := crDefault;
       end;
     // DB node expanding
