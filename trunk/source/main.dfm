@@ -32,7 +32,13 @@ object MainForm: TMainForm
         Width = 130
       end
       item
-        Width = 280
+        Width = 90
+      end
+      item
+        Width = 150
+      end
+      item
+        Width = 250
       end>
   end
   object ControlBar1: TControlBar

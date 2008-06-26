@@ -192,7 +192,7 @@ begin
       TimerCloseFormReminder.Enabled := true;
     end;
   end;
-  MainForm.ShowStatus( STATUS_MSG_READY, 2 );
+  MainForm.ShowStatus( STATUS_MSG_READY );
 end;
 
 

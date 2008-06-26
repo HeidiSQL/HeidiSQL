@@ -130,9 +130,9 @@ object MDIChild: TMDIChild
           ImageIndex = 1
           object PageControlHost: TPageControl
             Left = 0
-            Top = 17
+            Top = 0
             Width = 496
-            Height = 203
+            Height = 220
             ActivePage = tabVariables
             Align = alClient
             HotTrack = True
@@ -144,7 +144,7 @@ object MDIChild: TMDIChild
                 Left = 0
                 Top = 25
                 Width = 488
-                Height = 150
+                Height = 167
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -220,7 +220,7 @@ object MDIChild: TMDIChild
                 Left = 0
                 Top = 25
                 Width = 488
-                Height = 150
+                Height = 167
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -294,7 +294,7 @@ object MDIChild: TMDIChild
               ImageIndex = 1
               object Splitter3: TSplitter
                 Left = 0
-                Top = 102
+                Top = 119
                 Width = 488
                 Height = 4
                 Cursor = crSizeNS
@@ -305,7 +305,7 @@ object MDIChild: TMDIChild
                 Left = 0
                 Top = 25
                 Width = 488
-                Height = 77
+                Height = 94
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.Font.Charset = DEFAULT_CHARSET
@@ -381,7 +381,7 @@ object MDIChild: TMDIChild
               end
               object pnlProcessViewBox: TPanel
                 Left = 0
-                Top = 106
+                Top = 123
                 Width = 488
                 Height = 69
                 Align = alBottom
@@ -455,7 +455,7 @@ object MDIChild: TMDIChild
                 Left = 0
                 Top = 0
                 Width = 488
-                Height = 175
+                Height = 192
                 Align = alClient
                 Header.AutoSizeIndex = 4
                 Header.Font.Charset = DEFAULT_CHARSET
@@ -520,51 +520,15 @@ object MDIChild: TMDIChild
               end
             end
           end
-          object Panel4: TPanel
-            Left = 0
-            Top = 0
-            Width = 496
-            Height = 17
-            Align = alTop
-            Alignment = taLeftJustify
-            BevelOuter = bvNone
-            BorderWidth = 1
-            Caption = 'Host'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = [fsBold]
-            ParentFont = False
-            TabOrder = 1
-          end
         end
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 5
-          object pnlDatabaseTop: TPanel
-            Left = 0
-            Top = 0
-            Width = 496
-            Height = 17
-            Align = alTop
-            Alignment = taLeftJustify
-            BevelOuter = bvNone
-            BorderWidth = 1
-            Caption = 'Database'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = [fsBold]
-            ParentFont = False
-            TabOrder = 0
-          end
           object ListTables: TVirtualStringTree
             Left = 28
-            Top = 17
+            Top = 0
             Width = 468
-            Height = 203
+            Height = 220
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
@@ -583,7 +547,7 @@ object MDIChild: TMDIChild
             ParentShowHint = False
             PopupMenu = popupDbGrid
             ShowHint = True
-            TabOrder = 1
+            TabOrder = 0
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
             TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
@@ -717,12 +681,12 @@ object MDIChild: TMDIChild
           end
           object pnlDatabaseToolbar: TPanel
             Left = 0
-            Top = 17
+            Top = 0
             Width = 28
-            Height = 203
+            Height = 220
             Align = alLeft
             BevelOuter = bvNone
-            TabOrder = 2
+            TabOrder = 1
             object tlbDataLeft1: TToolBar
               Left = 2
               Top = 1
@@ -801,32 +765,14 @@ object MDIChild: TMDIChild
         object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
-          object pnlTableTop: TPanel
-            Left = 0
-            Top = 0
-            Width = 496
-            Height = 17
-            Align = alTop
-            Alignment = taLeftJustify
-            BevelOuter = bvNone
-            BorderWidth = 1
-            Caption = 'Table-Properties'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = [fsBold]
-            ParentFont = False
-            TabOrder = 0
-          end
           object pnlTableToolbar: TPanel
             Left = 0
-            Top = 17
+            Top = 0
             Width = 28
-            Height = 203
+            Height = 220
             Align = alLeft
             BevelOuter = bvNone
-            TabOrder = 1
+            TabOrder = 0
             object tlbTableLeft1: TToolBar
               Left = 2
               Top = 1
@@ -908,9 +854,9 @@ object MDIChild: TMDIChild
           end
           object ListColumns: TVirtualStringTree
             Left = 28
-            Top = 17
+            Top = 0
             Width = 468
-            Height = 203
+            Height = 220
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
@@ -927,7 +873,7 @@ object MDIChild: TMDIChild
             ParentShowHint = False
             PopupMenu = popupTableGrid
             ShowHint = True
-            TabOrder = 2
+            TabOrder = 1
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
@@ -1118,7 +1064,6 @@ object MDIChild: TMDIChild
             Alignment = taLeftJustify
             BevelOuter = bvNone
             BorderWidth = 1
-            Caption = 'SQL-Query:'
             Font.Charset = DEFAULT_CHARSET
             Font.Color = clBlack
             Font.Height = -11
