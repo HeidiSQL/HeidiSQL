@@ -380,16 +380,18 @@ end;
 procedure TCreateTableForm.EditTablenameChange(Sender: TObject);
 begin
   ButtonCreate.Enabled := false;
+  EditTablename.Font.Color := clWindowText;
+  EditTablename.Color := clWindow;
   try
     ensureValidIdentifier( EditTablename.Text );
-    EditTablename.Font.Color := clWindowText;
-    EditTablename.Color := clWindow;
     // Enable "OK"-Button if we have a valid name AND there
     // is at least 1 column
     ButtonCreate.Enabled := (ListBoxColumns.Items.Count > 0);
   except
-    EditTablename.Font.Color := clRed;
-    EditTablename.Color := clYellow;
+    if EditTablename.Text <> '' then begin
+      EditTablename.Font.Color := clRed;
+      EditTablename.Color := clYellow;
+    end;
   end;
 end;
 
