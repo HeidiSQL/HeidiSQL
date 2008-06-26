@@ -58,7 +58,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 443
+      Width = 358
       Height = 22
       Align = alNone
       AutoSize = True
@@ -142,53 +142,16 @@ object MainForm: TMainForm
         ImageIndex = 7
         OnClick = ButtonDropDatabaseClick
       end
-      object tlbSep3: TToolButton
-        Left = 219
-        Top = 0
-        Width = 8
-        Caption = 'tlbSep3'
-        ImageIndex = 32
-        Style = tbsSeparator
-      end
-      object ButtonCreateTable: TToolButton
-        Left = 227
-        Top = 0
-        Hint = 'Create Table'
-        AutoSize = True
-        Caption = 'Create Table'
-        Enabled = False
-        ImageIndex = 15
-        OnClick = ButtonCreateTableClick
-      end
-      object ButtonDropTable: TToolButton
-        Left = 250
-        Top = 0
-        Action = DropTablesAndViews
-        AutoSize = True
-      end
       object ToolButton2: TToolButton
-        Left = 273
+        Left = 219
         Top = 0
         Width = 8
         Caption = 'ToolButton2'
         ImageIndex = 32
         Style = tbsSeparator
       end
-      object ToolButton1: TToolButton
-        Left = 281
-        Top = 0
-        Action = actCreateView
-      end
-      object tlbSep4: TToolButton
-        Left = 304
-        Top = 0
-        Width = 8
-        Caption = 'tlbSep4'
-        ImageIndex = 19
-        Style = tbsSeparator
-      end
       object ButtonRefresh: TToolButton
-        Left = 312
+        Left = 227
         Top = 0
         Hint = 'Refresh'
         AutoSize = True
@@ -198,7 +161,7 @@ object MainForm: TMainForm
         OnClick = ButtonRefreshClick
       end
       object tlbSep5: TToolButton
-        Left = 335
+        Left = 250
         Top = 0
         Width = 8
         Caption = 'tlbSep5'
@@ -206,13 +169,13 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonUserManager: TToolButton
-        Left = 343
+        Left = 258
         Top = 0
         Action = UserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 366
+        Left = 281
         Top = 0
         Hint = 'Import CSV file'
         AutoSize = True
@@ -222,14 +185,14 @@ object MainForm: TMainForm
         OnClick = ButtonImportTextfileClick
       end
       object ButtonExport: TToolButton
-        Left = 389
+        Left = 304
         Top = 0
         Hint = 'Export tables'
         Action = ExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 412
+        Left = 327
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -237,7 +200,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 420
+        Left = 335
         Top = 0
         Hint = 'SQL Help'
         Caption = 'btnSQLHelp'
@@ -366,6 +329,49 @@ object MainForm: TMainForm
         OnClick = ButtonOKClick
         OnEnter = LimitPanelEnter
         OnExit = LimitPanelExit
+      end
+    end
+    object ToolBarDatabase: TToolBar
+      Left = 382
+      Top = 2
+      Width = 115
+      Height = 22
+      Align = alNone
+      AutoSize = True
+      Caption = 'ToolBarDatabase'
+      Images = PngImageListMain
+      TabOrder = 2
+      Visible = False
+      Wrapable = False
+      object btnCreateTable: TToolButton
+        Left = 0
+        Top = 0
+        Caption = 'Create Table'
+        Enabled = False
+        ImageIndex = 15
+        OnClick = ButtonCreateTableClick
+      end
+      object btnDBDropTable: TToolButton
+        Left = 23
+        Top = 0
+        Action = DropTablesAndViews
+      end
+      object btnDBEmptyTable: TToolButton
+        Left = 46
+        Top = 0
+        Caption = 'btnDBEmptyTable'
+        ImageIndex = 46
+        OnClick = btnDBEmptyTableClick
+      end
+      object btnDBCopyTable: TToolButton
+        Left = 69
+        Top = 0
+        Action = CopyTable
+      end
+      object ToolButton11: TToolButton
+        Left = 92
+        Top = 0
+        Action = actCreateView
       end
     end
   end

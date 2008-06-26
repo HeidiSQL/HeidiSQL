@@ -272,14 +272,6 @@ type
     menuInsertSnippetAtCursor: TMenuItem;
     menuExplore: TMenuItem;
     PopupMenuCreateTable: TMenuItem;
-    pnlDatabaseToolbar: TPanel;
-    tlbDataLeft2: TToolBar;
-    tlbDataLeft1: TToolBar;
-    btnDbViewData: TToolButton;
-    btnDbProperties: TToolButton;
-    btnDbEmptyTable: TToolButton;
-    btnDbDropTable: TToolButton;
-    btnDbCopyTable: TToolButton;
     tlbTableLeft1: TToolBar;
     btnTableViewData: TToolButton;
     btnTableEditField: TToolButton;
@@ -1158,6 +1150,7 @@ begin
 
   FormDeactivate( Sender );
   mainform.ToolBarData.Visible := false;
+  Mainform.ToolBarDatabase.Visible := False;
   Action := caFree;
 
   SetWindowConnected( false );
@@ -2165,6 +2158,7 @@ var
   inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
+  ShowDataTlb, ShowDBTlb : Boolean;
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
@@ -2182,11 +2176,9 @@ begin
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
-  btnDbProperties.Enabled := NodeSelected;
   menuproperties.Enabled := NodeSelected;
-  btnDbViewData.Enabled := NodeSelected;
   menuviewdata.Enabled := NodeSelected;
-  btnDbEmptyTable.Enabled := tableSelected;
+  Mainform.btnDbEmptyTable.Enabled := tableSelected;
   menuemptytable.Enabled := tableSelected;
   menuAlterTable.Enabled := tableSelected;
   MenuRenameTable.Enabled := NodeSelected;
@@ -2196,7 +2188,7 @@ begin
 
   MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.DropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
-  MainForm.ButtonCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  MainForm.btnCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.ButtonImportTextFile.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
   MainForm.MenuImportTextFile.Enabled := MainForm.ButtonImportTextFile.Enabled;
 
@@ -2242,7 +2234,15 @@ begin
     ExportData.Enabled := inDataOrQueryTabNotEmpty;
     HTMLView.Enabled := inDataOrQueryTabNotEmpty;
     Self.Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
-    ToolBarData.visible := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
+    // Hide irrelevant toolbars
+    ShowDbTlb := PageControlMain.ActivePage = tabDatabase;
+    if not ShowDbTlb then ToolBarDatabase.Visible := False;
+    ShowDataTlb := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
+    if not ShowDataTlb then ToolBarData.Visible := False;
+    // Unhide relevant toolbar
+    ToolBarDatabase.Visible := ShowDbTlb;
+    ToolBarData.Visible := ShowDataTlb;
+
     if FrmIsFocussed then begin
       actDatasetFirst.DataSource := DataSource1;
       actDatasetLast.DataSource := DataSource1;

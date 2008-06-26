@@ -88,10 +88,7 @@ type
     ToolButton12: TToolButton;
     tlbSep2: TToolButton;
     ButtonCreateDatabase: TToolButton;
-    ButtonCreateTable: TToolButton;
     ButtonDropDatabase: TToolButton;
-    ButtonDropTable: TToolButton;
-    tlbSep4: TToolButton;
     ButtonRefresh: TToolButton;
     tlbSep5: TToolButton;
     ButtonImportTextfile: TToolButton;
@@ -141,10 +138,8 @@ type
     tlbSep6: TToolButton;
     menuUpdateCheck: TMenuItem;
     PngImageListMain: TPngImageList;
-    tlbSep3: TToolButton;
     actEditView: TAction;
     actCreateView: TAction;
-    ToolButton1: TToolButton;
     ToolButton2: TToolButton;
     Createview1: TMenuItem;
     ToolButton3: TToolButton;
@@ -157,6 +152,12 @@ type
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
     ToolButton10: TToolButton;
+    ToolBarDatabase: TToolBar;
+    btnDBEmptyTable: TToolButton;
+    btnDBDropTable: TToolButton;
+    btnDBCopyTable: TToolButton;
+    btnCreateTable: TToolButton;
+    ToolButton11: TToolButton;
     procedure actCreateViewExecute(Sender: TObject);
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
@@ -203,6 +204,7 @@ type
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
     procedure actDataSetDeleteExecute(Sender: TObject);
+    procedure btnDBEmptyTableClick(Sender: TObject);
     procedure DropTablesAndViewsExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
@@ -392,8 +394,10 @@ begin
       WriteInteger(REGNAME_WINDOWHEIGHT, height);
       // Position of Toolbars
       WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
+      WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
       WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
       WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+      WriteInteger(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
       WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
     end;
     CloseKey;
@@ -457,8 +461,10 @@ begin
 
   // Position of Toolbars
   ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
+  ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
   ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+  ToolBarDatabase.Top := GetRegValue(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
 
   // Beautify AppRevision
@@ -1350,6 +1356,11 @@ begin
   frm := TfrmUpdateCheck.Create(Self);
   frm.ShowModal;
   FreeAndNil(frm);
+end;
+
+procedure TMainForm.btnDBEmptyTableClick(Sender: TObject);
+begin
+  Childwin.EmptyTable(Sender);
 end;
 
 end.

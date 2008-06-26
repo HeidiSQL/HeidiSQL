@@ -525,9 +525,9 @@ object MDIChild: TMDIChild
           Caption = 'Database'
           ImageIndex = 5
           object ListTables: TVirtualStringTree
-            Left = 28
+            Left = 0
             Top = 0
-            Width = 468
+            Width = 496
             Height = 220
             Align = alClient
             EditDelay = 500
@@ -678,88 +678,6 @@ object MDIChild: TMDIChild
                 Position = 18
                 WideText = 'Type'
               end>
-          end
-          object pnlDatabaseToolbar: TPanel
-            Left = 0
-            Top = 0
-            Width = 28
-            Height = 220
-            Align = alLeft
-            BevelOuter = bvNone
-            TabOrder = 1
-            object tlbDataLeft1: TToolBar
-              Left = 2
-              Top = 1
-              Width = 25
-              Height = 123
-              Align = alNone
-              Caption = 'tlbDataLeft1'
-              Color = clBtnFace
-              EdgeInner = esNone
-              EdgeOuter = esNone
-              Images = MainForm.PngImageListMain
-              ParentColor = False
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 1
-              Transparent = True
-              object btnDbViewData: TToolButton
-                Left = 0
-                Top = 0
-                Hint = 'View Data'
-                Caption = 'View Data'
-                Enabled = False
-                ImageIndex = 41
-                Wrap = True
-                OnClick = MenuViewDataClick
-              end
-              object btnDbProperties: TToolButton
-                Left = 0
-                Top = 22
-                Hint = 'Show Table-Properties'
-                Caption = 'Show Table-Properties'
-                Enabled = False
-                ImageIndex = 44
-                Wrap = True
-                OnClick = ListTablesDblClick
-              end
-              object btnDbEmptyTable: TToolButton
-                Left = 0
-                Top = 44
-                Hint = 'Empty Table ...'
-                Caption = 'btnDbEmptyTable'
-                Enabled = False
-                ImageIndex = 46
-                Wrap = True
-                OnClick = EmptyTable
-              end
-              object btnDbDropTable: TToolButton
-                Left = 0
-                Top = 66
-                Action = MainForm.DropTablesAndViews
-                Wrap = True
-              end
-              object btnDbCopyTable: TToolButton
-                Left = 0
-                Top = 88
-                Action = MainForm.CopyTable
-              end
-            end
-            object tlbDataLeft2: TToolBar
-              Left = 2
-              Top = 126
-              Width = 23
-              Height = 29
-              Align = alNone
-              Caption = 'tlbDataLeft2'
-              EdgeInner = esNone
-              EdgeOuter = esNone
-              Images = MainForm.PngImageListMain
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 0
-              Transparent = True
-            end
           end
         end
         object tabTable: TTabSheet
