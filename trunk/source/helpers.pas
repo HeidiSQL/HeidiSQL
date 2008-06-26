@@ -29,6 +29,14 @@ type
 
   TFileCharset = (fcsAnsi, fcsUnicode, fcsUnicodeSwapped, fcsUtf8);
 
+  TUniClipboard = class(TClipboard)
+  private
+    procedure SetAsWideString(Value: WideString);
+    function GetAsWideString:WideString;
+  public
+    property AsWideString: WideString read GetAsWideString write SetAsWideString;
+  end;
+
 {$I const.inc}
 
   function trimc(s: String; c: Char) : String;
@@ -42,10 +50,10 @@ type
   function sstr(str: WideString; len: Integer) : WideString;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
-  function htmlentities(str: String): String;
-  function dataset2html(ds: TDataset; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+  function htmlentities(str: WideString): WideString;
+  function dataset2html(ds: TDataset; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
   function dataset2csv(ds: TDataset; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
-  function dataset2xml(ds: TDataset; title: String; filename: String = ''): Boolean;
+  function dataset2xml(ds: TDataset; title: WideString; filename: String = ''): Boolean;
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -81,7 +89,7 @@ type
   procedure ShellExec( cmd: String; path: String = '' );
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
-  function GetFieldValue( Field: TField ): String;
+  function GetFieldValue( Field: TField ): WideString;
   function LastPos(needle: WideChar; haystack: WideString): Integer;
   function ConvertServerVersion( Version: Integer ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
@@ -99,6 +107,7 @@ type
   function GetFileCharset(Stream: TFileStream): TFileCharset;
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
   function ReadTextfile(Filename: String): WideString;
+  procedure CopyToClipboard(Value: WideString);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -739,11 +748,11 @@ end;
   @param string Text used for search+replace
   @return string Text with entities
 }
-function htmlentities(str: String) : String;
+function htmlentities(str: WideString) : WideString;
 begin
-  result := stringreplace(str, '&', '&amp;', [rfReplaceAll]);
-  result := stringreplace(result, '<', '&lt;', [rfReplaceAll]);
-  result := stringreplace(result, '>', '&gt;', [rfReplaceAll]);
+  result := WideStringReplace(str, '&', '&amp;', [rfReplaceAll]);
+  result := WideStringReplace(result, '<', '&lt;', [rfReplaceAll]);
+  result := WideStringReplace(result, '>', '&gt;', [rfReplaceAll]);
 end;
 
 
@@ -759,136 +768,114 @@ end;
   @param string Generator, used for meta-tag in HTML-head
   @return boolean True on access, False in case of any error
 }
-function dataset2html(ds: TDataset; htmltitle: String; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+function dataset2html(ds: TDataset; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
 var
   I, J                      : Integer;
-  Buffer, cbuffer, data     : string;
-  FStream                   : TFileStream;
-  blobfilename, extension   : String;
+  Buffer, cbuffer, data     : Widestring;
+  blobfilename, extension   : WideString;
   bf                        : Textfile;
-  header, attribs           : String;
+  header, attribs           : WideString;
   cursorpos                 : Integer;
+  tofile                    : Boolean;
 begin
-  FStream := nil;
-  if filename <> '' then try
-    FStream := TFileStream.Create(FileName, fmCreate)
-  except
-    messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-    dataset2html := false;
-    exit;
-  end;
+  tofile := filename <> '';
   try
-    try
-      if FStream = nil then clipboard.astext := '';
-      buffer := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + crlf + crlf +
-        '<html>' + crlf +
-        '<head>' + crlf +
-        '  <title>' + htmltitle + '</title>' + crlf +
-        '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
-        '  <style type="text/css">' + crlf +
-        '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
-        '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.ActiveGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.ActiveGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
-        '    table, td {border: 1px solid silver;}' + crlf +
-        '    table {border-collapse: collapse;}' + crlf +
-        '    td.isnull {background-color: '+TColorToHex(COLOR_NULLVALUE) +'}' + crlf +
-        '    td.pk {background-color: #EEEEEE; font-weight: bold;}' + crlf +
-        '  </style>' + crlf +
-        '</head>' + crlf + crlf +
-        '<body>' + crlf + crlf +
-        '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
-        '<table >' + crlf +
-        '  <tr id="header">' + crlf;
+    buffer := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + crlf + crlf +
+      '<html>' + crlf +
+      '<head>' + crlf +
+      '  <title>' + htmltitle + '</title>' + crlf +
+      '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
+      '  <style type="text/css">' + crlf +
+      '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
+      '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.ActiveGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.ActiveGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
+      '    table, td {border: 1px solid silver;}' + crlf +
+      '    table {border-collapse: collapse;}' + crlf +
+      '    td.isnull {background-color: '+TColorToHex(COLOR_NULLVALUE) +'}' + crlf +
+      '    td.pk {background-color: #EEEEEE; font-weight: bold;}' + crlf +
+      '  </style>' + crlf +
+      '</head>' + crlf + crlf +
+      '<body>' + crlf + crlf +
+      '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
+      '<table >' + crlf +
+      '  <tr id="header">' + crlf;
+    for j:=0 to ds.FieldCount-1 do
+      buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
+    buffer := buffer + '  </tr>' + crlf;
+
+    cbuffer := buffer;
+
+    cursorpos := ds.RecNo;
+    ds.DisableControls;
+    ds.First;
+    for I := 0 to ds.RecordCount-1 do
+    begin
+      Buffer := '  <tr>' + crlf;
+      // collect data:
       for j:=0 to ds.FieldCount-1 do
-        buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
-      buffer := buffer + '  </tr>' + crlf;
-
-      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-      else cbuffer := buffer;
-
-      cursorpos := ds.RecNo;
-      ds.DisableControls;
-      ds.First;
-      for I := 0 to ds.RecordCount-1 do
       begin
-        Buffer := '  <tr>' + crlf;
-        // collect data:
-        for j:=0 to ds.FieldCount-1 do
-        begin
-          data := GetFieldValue( ds.Fields[j] );
-          if (filename <> '') and ds.Fields[j].IsBlob then
-          begin
-            header := copy(data, 0, 20);
-            extension := '';
-            if pos('JFIF', header) <> 0 then
-              extension := 'jpg'
-            else if StrCmpBegin('GIF', header) then
-              extension := 'gif'
-            else if StrCmpBegin('BM', header) then
-              extension := 'bmp';
-            if extension <> '' then begin
-              blobfilename := 'rec'+inttostr(i)+'fld'+inttostr(j)+'.'+extension;
-              AssignFile(bf, blobfilename);
-              Rewrite(bf);
-              Write(bf, data);
-              CloseFile(bf);
-              data := '<a href="'+blobfilename+'"><img border="0" src="'+blobfilename+'" alt="'+blobfilename+' ('+floattostr(length(data) div 1024)+' KB)" width="100" /></a>';
-            end
-            else
-            begin
-              if ConvertHTMLEntities then data := htmlentities(data);
-              data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
-            end;
-          end
-          else
-          begin
-            if ConvertHTMLEntities then
-              data := htmlentities(data);
-            data := stringreplace(data, #10, #10+'<br>', [rfReplaceAll]);
+        data := GetFieldValue( ds.Fields[j] );
+        if tofile and ds.Fields[j].IsBlob then begin
+          header := copy(data, 0, 20);
+          extension := '';
+          if pos('JFIF', header) <> 0 then
+            extension := 'jpg'
+          else if StrCmpBegin('GIF', header) then
+            extension := 'gif'
+          else if StrCmpBegin('BM', header) then
+            extension := 'bmp';
+          if extension <> '' then begin
+            blobfilename := 'rec'+inttostr(i)+'fld'+inttostr(j)+'.'+extension;
+            AssignFile(bf, blobfilename);
+            Rewrite(bf);
+            Write(bf, data);
+            CloseFile(bf);
+            data := '<a href="'+blobfilename+'"><img border="0" src="'+blobfilename+'" alt="'+blobfilename+' ('+floattostr(length(data) div 1024)+' KB)" width="100" /></a>';
+          end else begin
+            if ConvertHTMLEntities then data := htmlentities(data);
+            data := WideStringReplace(data, #10, #10+'<br>', [rfReplaceAll]);
           end;
-          if ds.Fields[j].IsNull then
-            attribs := ' class="isnull"'
-          else
-          begin
-            // Primary key field
-            attribs := '';
-            if fsBold in Mainform.Childwin.ActiveGrid.Columns[j].Font.Style then
-              attribs := ' class="pk"';
-          end;
-          Buffer := Buffer + '    <td'+attribs+'>' + data + '</td>' + crlf;
+        end else begin
+          if ConvertHTMLEntities then
+            data := htmlentities(data);
+          data := WideStringReplace(data, #10, #10+'<br>', [rfReplaceAll]);
         end;
-        buffer := buffer + '  </tr>' + crlf;
-        // write buffer:
-        if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-        else cbuffer := cbuffer + buffer;
-        ds.Next;
+        if ds.Fields[j].IsNull then
+          attribs := ' class="isnull"'
+        else begin
+          // Primary key field
+          attribs := '';
+          if fsBold in Mainform.Childwin.ActiveGrid.Columns[j].Font.Style then
+            attribs := ' class="pk"';
+        end;
+        Buffer := Buffer + '    <td'+attribs+'>' + data + '</td>' + crlf;
       end;
-      ds.RecNo := cursorpos;
-      ds.EnableControls;
-      // footer:
-      buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
-        '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
-        ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + crlf + crlf +
-        '</body></html>';
-      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-      else begin
-        cbuffer := cbuffer + buffer;
-        clipboard.astext := cbuffer;
-      end;
-    except
-      on e: Exception do begin
-        MessageDlg(e.Message, mtError, [mbOK], 0);
-        result := false;
-       exit;
-      end;
+      buffer := buffer + '  </tr>' + crlf;
+      cbuffer := cbuffer + buffer;
+      ds.Next;
     end;
-  finally
-    if FStream <> nil then FStream.Free;
-    Screen.Cursor := crDefault;
+    ds.RecNo := cursorpos;
+    ds.EnableControls;
+    // footer:
+    buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
+      '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
+      ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + crlf + crlf +
+      '</body></html>';
+    cbuffer := cbuffer + buffer;
+    if tofile then
+      SaveUnicodeFile(filename, cbuffer)
+    else
+      CopyToClipboard(cbuffer);
+    result := true;
+  except
+    on e: Exception do begin
+      MessageDlg(e.Message, mtError, [mbOK], 0);
+      result := false;
+    end;
   end;
+  Screen.Cursor := crDefault;
   // open file:
-  if filename <> '' then
+  if tofile and FileExists(filename) then
     ShellExec( filename );
-  result := true;
 end;
 
 
@@ -907,9 +894,9 @@ end;
 function dataset2csv(ds: TDataSet; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
-  Buffer, cbuffer           : string;
-  FStream                   : TFileStream;
+  Buffer, cbuffer           : WideString;
   cursorpos                 : Integer;
+  tofile                    : Boolean;
 begin
   if ds=nil then
     MessageDlg ('Invalid dataset!',mterror, [mbOK], 0);
@@ -917,66 +904,50 @@ begin
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
-
-  FStream := nil;
-  if filename <> '' then
-  try
-    FStream := TFileStream.Create(FileName, fmCreate)
-  except
-    messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-    result := false;
-    exit;
-  end;
+  tofile := filename <> '';
 
   try
-    try
+    Buffer := '';
+    // collect fields:
+    for j:=0 to ds.FieldCount-1 do begin
+      if j > 0 then
+        Buffer := Buffer + Separator;
+      Buffer := Buffer + Encloser + ds.Fields[J].FieldName + Encloser;
+    end;
+    cbuffer := cbuffer + buffer;
+
+    // collect data:
+    cursorpos := ds.RecNo;
+    ds.DisableControls;
+    ds.First;
+    for i:=0 to ds.RecordCount-1 do
+    begin
       Buffer := '';
-      if FStream = nil then clipboard.astext := '';
-
-      // collect fields:
-      for j:=0 to ds.FieldCount-1 do begin
-        if j > 0 then
+      Buffer := Buffer + Terminator;
+      for j:=0 to ds.FieldCount-1 do
+      begin
+        if j>0 then
           Buffer := Buffer + Separator;
-        Buffer := Buffer + Encloser + ds.Fields[J].FieldName + Encloser;
+        Buffer := Buffer + Encloser + GetFieldValue( ds.Fields[j] ) + Encloser;
       end;
       // write buffer:
-      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-      else cbuffer := cbuffer + buffer;
-
-      // collect data:
-      cursorpos := ds.RecNo;
-      ds.DisableControls;
-      ds.First;
-      for i:=0 to ds.RecordCount-1 do
-      begin
-        Buffer := '';
-        Buffer := Buffer + Terminator;
-        for j:=0 to ds.FieldCount-1 do
-        begin
-          if j>0 then
-            Buffer := Buffer + Separator;
-          Buffer := Buffer + Encloser + GetFieldValue( ds.Fields[j] ) + Encloser;
-        end;
-        // write buffer:
-        if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-        else cbuffer := cbuffer + buffer;
-        ds.Next;
-      end;
-      ds.RecNo := cursorpos;
-      ds.EnableControls;
-      if FStream = nil then clipboard.astext := cbuffer;
-    except
-      on e: Exception do begin
-        MessageDlg(e.Message, mtError, [mbOK], 0);
-        result := false;
-       exit;
-      end;
+      cbuffer := cbuffer + buffer;
+      ds.Next;
     end;
-  finally
-    if FStream <> nil then FStream.Free;
-    Screen.Cursor := crDefault;
+    ds.RecNo := cursorpos;
+    ds.EnableControls;
+    if tofile then
+      SaveUnicodeFile(filename, cbuffer)
+    else
+      CopyToClipboard(cbuffer);
+    result := true;
+  except
+    on e: Exception do begin
+      MessageDlg(e.Message, mtError, [mbOK], 0);
+      result := false;
+    end;
   end;
-  result := true;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -990,71 +961,52 @@ end;
   @param string Filename to use for saving. If not given, copy to clipboard.
   @return boolean True on access, False in case of any error
 }
-function dataset2xml(ds: TDataset; title: String; filename: String = ''): Boolean;
+function dataset2xml(ds: TDataset; title: WideString; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
-  Buffer, cbuffer, data     : string;
-  FStream                   : TFileStream;
+  Buffer, cbuffer, data     : WideString;
   cursorpos                 : Integer;
+  tofile                    : Boolean;
 begin
-  FStream := nil;
-  if filename <> '' then
   try
-    FStream := TFileStream.Create(FileName, fmCreate)
-  except
-    messagedlg('File could not be opened.' +  crlf + 'Maybe in use by another application?', mterror, [mbOK], 0);
-    result := false;
-    exit;
-  end;
+    tofile := filename <> '';
+    buffer := '<?xml version="1.0"?>' + crlf + crlf +
+      '<'+title+'>' + crlf;
+    cbuffer := buffer;
 
-  try
-    try
-      if FStream = nil then clipboard.astext := '';
-      buffer := '<?xml version="1.0"?>' + crlf + crlf +
-        '<'+title+'>' + crlf;
-      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-      else cbuffer := buffer;
-
-      cursorpos := ds.RecNo;
-      ds.DisableControls;
-      ds.First;
-      for i:=0 to ds.RecordCount-1 do
+    cursorpos := ds.RecNo;
+    ds.DisableControls;
+    ds.First;
+    for i:=0 to ds.RecordCount-1 do
+    begin
+      Buffer := #9'<row>' + crlf;
+      // collect data:
+      for j:=0 to ds.FieldCount-1 do
       begin
-        Buffer := #9'<row>' + crlf;
-        // collect data:
-        for j:=0 to ds.FieldCount-1 do
-        begin
-          data := GetFieldValue( ds.Fields[j] );
-          data := htmlentities(data);
-          Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
-        end;
-        buffer := buffer + #9'</row>' + crlf;
-        // write buffer:
-        if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-        else cbuffer := cbuffer + buffer;
-        ds.Next;
+        data := GetFieldValue( ds.Fields[j] );
+        data := htmlentities(data);
+        Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
       end;
-      ds.RecNo := cursorpos;
-      ds.EnableControls;
-      // footer:
-      buffer := '</'+title+'>' + crlf;
-      if FStream <> nil then FStream.Write(pchar(buffer)^, length(buffer))
-      else begin
-        cbuffer := cbuffer + buffer;
-        clipboard.astext := cbuffer;
-      end;
-    except
-      on e: Exception do begin
-        MessageDlg(e.Message, mtError, [mbOK], 0);
-        result := false;
-       exit;
-      end;
+      buffer := buffer + #9'</row>' + crlf;
+      cbuffer := cbuffer + buffer;
+      ds.Next;
     end;
-  finally
-    if FStream <> nil then FStream.Free;
-    Screen.Cursor := crDefault;
+    ds.RecNo := cursorpos;
+    ds.EnableControls;
+    // footer:
+    cbuffer := cbuffer + '</'+title+'>' + crlf;
+    if tofile then
+      SaveUnicodeFile(filename, cbuffer)
+    else
+      CopyToClipboard(cbuffer);
+    result := true;
+  except
+    on e: Exception do begin
+      MessageDlg(e.Message, mtError, [mbOK], 0);
+      result := false;
+    end;
   end;
-  result := true;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -2013,14 +1965,14 @@ end;
   @param TField Field object which holds a value
   @return String Field value
 }
-function GetFieldValue( Field: TField ): String;
+function GetFieldValue( Field: TField ): WideString;
 begin
   Result := '';
   case Field.DataType of
     ftBoolean:
       Result := Bool2Str( Field.AsBoolean );
     else
-      Result := Field.AsString;
+      Result := Field.AsWideString;
   end;
 end;
 
@@ -2601,6 +2553,37 @@ begin
   end;
 end;
 
+
+{ TUniClipboard }
+
+function TUniClipboard.GetAsWideString: WideString;
+var Data: THandle;
+begin
+  Open;
+  Data := GetClipboardData(CF_UNICODETEXT);
+  try
+    if Data <> 0 then
+      Result := PWideChar(GlobalLock(Data))
+    else
+      Result := '';
+  finally
+    if Data <> 0 then GlobalUnlock(Data);
+    Close;
+  end;
+end;
+
+procedure TUniClipboard.SetAsWideString(Value: WideString);
+begin
+  SetBuffer(CF_UNICODETEXT, PWideChar(Value)^, 2 * (Length(Value) + 1));
+end;
+
+procedure CopyToClipboard(Value: WideString);
+var
+  CB: TUniClipboard;
+begin
+  CB := TUniClipboard.Create;
+  CB.AsWideString := Value;
+end;
 
 initialization
 

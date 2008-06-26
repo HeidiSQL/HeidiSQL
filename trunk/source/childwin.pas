@@ -3838,6 +3838,7 @@ procedure TMDIChild.controlsKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
   Grid : TTNTDBGrid;
+  CB: TUniClipboard;
 begin
   // Check for F1-pressed
   if Key = VK_F1 then
@@ -3858,17 +3859,18 @@ begin
     Grid := Sender as TTNTDBGrid;
     // TODO: Clipboard.AsText is not Unicode safe!
     if Key = Ord('C') then
-      Clipboard.AsText := Grid.SelectedField.AsWideString
+      CopyToClipboard(Grid.SelectedField.AsWideString)
     else if Key = Ord('V') then begin
       // Ensure dataset is in editing mode, otherwise we'll get an exception while
       // trying to insert content into a cell.
       // Hint: Dataset.Edit is not the same as Grid.EditorMode=True, it just enables
       // internal editing of the record. The grid's editing mode is not activated here.
       Grid.DataSource.DataSet.Edit;
-      Grid.SelectedField.Text := Clipboard.AsText;
+      CB := TUniClipboard.Create;
+      Grid.SelectedField.AsWideString := CB.AsWideString;
     end
     else if Key = Ord('X') then begin
-      Clipboard.AsText := Grid.SelectedField.AsWideString;
+      CopyToClipboard(Grid.SelectedField.AsWideString);
       Grid.DataSource.DataSet.Edit;
       Grid.SelectedField.Text := '';
     end;
@@ -4587,7 +4589,7 @@ begin
   if dbmemo1.DataField = '' then exit;
   SaveBlob;
   case pageCtlEditors.ActivePageIndex of
-    0 : clipboard.astext := GetVisualDataset().FieldByName(DBMemo1.DataField).AsString;
+    0 : CopyToClipboard(GetVisualDataset.FieldByName(DBMemo1.DataField).AsWideString);
     1 : EDBImage1.CopyToClipboard;
   end;
 end;
