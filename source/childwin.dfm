@@ -65,6 +65,7 @@ object MDIChild: TMDIChild
       HintMode = hmTooltip
       HotCursor = crHandPoint
       Images = MainForm.PngImageListMain
+      IncrementalSearch = isInitializedOnly
       Indent = 16
       Margin = 2
       ParentShowHint = False
