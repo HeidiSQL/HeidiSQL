@@ -1661,10 +1661,13 @@ begin
   end;
 
   // Move focus to relevant controls in order for them to receive keyboard events.
-  if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
-  if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
-  if PageControlMain.ActivePage = tabData then gridData.SetFocus;
-  if PageControlMain.ActivePage = tabQuery then SynMemoQuery.SetFocus;
+  // Do this only if the user clicked the new tab. Not on automatic tab changes. 
+  if Sender = PageControlMain then begin
+    if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
+    if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
+    if PageControlMain.ActivePage = tabData then gridData.SetFocus;
+    if PageControlMain.ActivePage = tabQuery then SynMemoQuery.SetFocus;
+  end;
 
   // Ensure controls are in a valid state
   ValidateControls;
