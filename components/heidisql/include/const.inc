@@ -84,10 +84,12 @@ const
   REGNAME_WINDOWWIDTH = 'windowwidth';
   REGNAME_WINDOWHEIGHT = 'windowheight';
   REGNAME_TOOLBAR2LEFT = 'ToolBar2Left';
-  REGNAME_TOOLBARDBLEFT = 'ToolBarDatabaseLeft';
-  REGNAME_TOOLBARDATALEFT = 'ToolBarDataLeft';
   REGNAME_TOOLBAR2TOP = 'ToolBar2Top';
+  REGNAME_TOOLBARDBLEFT = 'ToolBarDatabaseLeft';
   REGNAME_TOOLBARDBTOP = 'ToolBarDatabaseTop';
+  REGNAME_TOOLBARTABLELEFT = 'ToolBarTableLeft';
+  REGNAME_TOOLBARTABLETOP = 'ToolBarTableTop';
+  REGNAME_TOOLBARDATALEFT = 'ToolBarDataLeft';
   REGNAME_TOOLBARDATATOP = 'ToolBarDataTop';
   REGNAME_CHILDWINSTATE = 'childwinstate';
   REGNAME_CHILDWINLEFT = 'childwinleft';

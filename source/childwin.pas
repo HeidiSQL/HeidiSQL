@@ -106,7 +106,6 @@ type
     TimerConnectErrorCloseWindow: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
-    pnlTableToolbar: TPanel;
     ListColumns: TVirtualStringTree;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
@@ -272,13 +271,6 @@ type
     menuInsertSnippetAtCursor: TMenuItem;
     menuExplore: TMenuItem;
     PopupMenuCreateTable: TMenuItem;
-    tlbTableLeft1: TToolBar;
-    btnTableViewData: TToolButton;
-    btnTableEditField: TToolButton;
-    btnTableAddField: TToolButton;
-    btnTableDropField: TToolButton;
-    btnTableManageIndexes: TToolButton;
-    tlbTableLeft2: TToolBar;
     menuSQLhelp: TMenuItem;
     N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
@@ -330,7 +322,6 @@ type
     procedure lboxQueryHelpersDblClick(Sender: TObject);
     procedure tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
       var AllowChange: Boolean);
-    procedure btnTableViewDataClick(Sender: TObject);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ListColumnsStateChange(Sender: TBaseVirtualTree; Enter, Leave:
@@ -1151,6 +1142,7 @@ begin
   FormDeactivate( Sender );
   mainform.ToolBarData.Visible := false;
   Mainform.ToolBarDatabase.Visible := False;
+  Mainform.ToolBarTable.Visible := False;
   Action := caFree;
 
   SetWindowConnected( false );
@@ -2161,7 +2153,7 @@ var
   inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
-  ShowDataTlb, ShowDBTlb : Boolean;
+  ShowDBTlb, ShowTableTlb, ShowDataTlb: Boolean;
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
@@ -2240,10 +2232,13 @@ begin
     // Hide irrelevant toolbars
     ShowDbTlb := PageControlMain.ActivePage = tabDatabase;
     if not ShowDbTlb then ToolBarDatabase.Visible := False;
+    ShowTableTlb := PageControlMain.ActivePage = tabTable;
+    if not ShowTableTlb then ToolBarTable.Visible := False;
     ShowDataTlb := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
     if not ShowDataTlb then ToolBarData.Visible := False;
     // Unhide relevant toolbar
     ToolBarDatabase.Visible := ShowDbTlb;
+    ToolBarTable.Visible := ShowTableTlb;
     ToolBarData.Visible := ShowDataTlb;
 
     if FrmIsFocussed then begin
@@ -2785,10 +2780,10 @@ begin
   SomeSelected := Length(Sender.GetSortedSelection(False))>0;
 
   // Toggle state of menuitems and buttons
-  btnTableDropField.Enabled := SomeSelected;
+  Mainform.btnTableDropField.Enabled := SomeSelected;
   DropField1.Enabled := SomeSelected;
   MenuEditField.Enabled := OneFocused and SomeSelected;
-  btnTableEditField.enabled := OneFocused and SomeSelected;
+  Mainform.btnTableEditField.enabled := OneFocused and SomeSelected;
   menuRenameColumn.Enabled := OneFocused and SomeSelected;
   menuEditField.Enabled := OneFocused and SomeSelected;
 end;
@@ -4419,11 +4414,6 @@ procedure TMDIChild.btnQueryStopOnErrorsClick(Sender: TObject);
 begin
   StopOnErrors := not StopOnErrors;
   btnQueryStopOnErrors.Down := StopOnErrors;
-end;
-
-procedure TMDIChild.btnTableViewDataClick(Sender: TObject);
-begin
-  ShowTableData(SelectedTable);
 end;
 
 procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
