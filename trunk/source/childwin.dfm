@@ -683,97 +683,10 @@ object MDIChild: TMDIChild
         object tabTable: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
-          object pnlTableToolbar: TPanel
+          object ListColumns: TVirtualStringTree
             Left = 0
             Top = 0
-            Width = 28
-            Height = 220
-            Align = alLeft
-            BevelOuter = bvNone
-            TabOrder = 0
-            object tlbTableLeft1: TToolBar
-              Left = 2
-              Top = 1
-              Width = 25
-              Height = 123
-              Align = alNone
-              ButtonHeight = 23
-              Caption = 'tlbTableLeft1'
-              EdgeInner = esNone
-              EdgeOuter = esNone
-              Images = MainForm.PngImageListMain
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 0
-              Transparent = True
-              Wrapable = False
-              object btnTableViewData: TToolButton
-                Left = 0
-                Top = 0
-                Hint = 'View Data'
-                Caption = 'btnTableViewData'
-                ImageIndex = 41
-                Wrap = True
-                OnClick = btnTableViewDataClick
-              end
-              object btnTableEditField: TToolButton
-                Left = 0
-                Top = 23
-                Hint = 'Edit Field...'
-                Caption = 'btnTableEditField'
-                ImageIndex = 44
-                Wrap = True
-                OnClick = UpdateField
-              end
-              object btnTableAddField: TToolButton
-                Left = 0
-                Top = 46
-                Hint = 'Add Field...'
-                Caption = 'btnTableAddField'
-                ImageIndex = 45
-                Wrap = True
-                OnClick = MenuAddFieldClick
-              end
-              object btnTableDropField: TToolButton
-                Left = 0
-                Top = 69
-                Hint = 'Drop Field ...'
-                Caption = 'btnTableDropField'
-                ImageIndex = 46
-                Wrap = True
-                OnClick = DropField
-              end
-              object btnTableManageIndexes: TToolButton
-                Left = 0
-                Top = 92
-                Hint = 'Manages indexes'
-                Caption = 'btnTableManageIndexes'
-                ImageIndex = 13
-                OnClick = ManageIndexes1Click
-              end
-            end
-            object tlbTableLeft2: TToolBar
-              Left = 2
-              Top = 129
-              Width = 23
-              Height = 29
-              Align = alNone
-              ButtonHeight = 23
-              Caption = 'ToolBar2'
-              EdgeInner = esNone
-              EdgeOuter = esNone
-              Images = MainForm.PngImageListMain
-              ParentShowHint = False
-              ShowHint = True
-              TabOrder = 1
-              Transparent = True
-              Wrapable = False
-            end
-          end
-          object ListColumns: TVirtualStringTree
-            Left = 28
-            Top = 0
-            Width = 468
+            Width = 496
             Height = 220
             Align = alClient
             EditDelay = 500
@@ -791,7 +704,7 @@ object MDIChild: TMDIChild
             ParentShowHint = False
             PopupMenu = popupTableGrid
             ShowHint = True
-            TabOrder = 1
+            TabOrder = 0
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]

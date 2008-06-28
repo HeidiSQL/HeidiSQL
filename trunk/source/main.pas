@@ -158,6 +158,11 @@ type
     btnDBCopyTable: TToolButton;
     btnCreateTable: TToolButton;
     ToolButton11: TToolButton;
+    ToolbarTable: TToolBar;
+    btnTableEditField: TToolButton;
+    btnTableAddField: TToolButton;
+    btnTableDropField: TToolButton;
+    btnTableManageIndexes: TToolButton;
     procedure actCreateViewExecute(Sender: TObject);
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
@@ -205,6 +210,8 @@ type
     procedure DataSearchExecute(Sender: TObject);
     procedure actDataSetDeleteExecute(Sender: TObject);
     procedure btnDBEmptyTableClick(Sender: TObject);
+    procedure btnTableAddFieldClick(Sender: TObject);
+    procedure btnTableEditFieldClick(Sender: TObject);
     procedure DropTablesAndViewsExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
@@ -214,6 +221,8 @@ type
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
     procedure menuUpdateCheckClick(Sender: TObject);
+    procedure btnTableDropFieldClick(Sender: TObject);
+    procedure btnTableManageIndexesClick(Sender: TObject);
   private
     regMain : TRegistry;
     function GetChildwin: TMDIChild;
@@ -278,7 +287,8 @@ uses
   Threading,
   mysql_structures,
   MysqlConn,
-  UpdateCheck;
+  UpdateCheck,
+  fieldeditor;
 
 {$R *.DFM}
 
@@ -394,10 +404,12 @@ begin
       WriteInteger(REGNAME_WINDOWHEIGHT, height);
       // Position of Toolbars
       WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
-      WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
-      WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
       WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+      WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
       WriteInteger(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
+      WriteInteger(REGNAME_TOOLBARTABLELEFT, ToolBarTable.Left);
+      WriteInteger(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
+      WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
       WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
     end;
     CloseKey;
@@ -461,10 +473,12 @@ begin
 
   // Position of Toolbars
   ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
-  ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
-  ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+  ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
   ToolBarDatabase.Top := GetRegValue(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
+  ToolBarTable.Left := GetRegValue(REGNAME_TOOLBARTABLELEFT, ToolBarTable.Left);
+  ToolBarTable.Top := GetRegValue(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
+  ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
 
   // Beautify AppRevision
@@ -1361,6 +1375,26 @@ end;
 procedure TMainForm.btnDBEmptyTableClick(Sender: TObject);
 begin
   Childwin.EmptyTable(Sender);
+end;
+
+procedure TMainForm.btnTableAddFieldClick(Sender: TObject);
+begin
+  FieldEditorWindow(Childwin, femFieldAdd);
+end;
+
+procedure TMainForm.btnTableEditFieldClick(Sender: TObject);
+begin
+  Childwin.UpdateField(Sender);
+end;
+
+procedure TMainForm.btnTableDropFieldClick(Sender: TObject);
+begin
+  Childwin.DropField(Sender);
+end;
+
+procedure TMainForm.btnTableManageIndexesClick(Sender: TObject);
+begin
+  FieldEditorWindow(Childwin, femIndexEditor);
 end;
 
 end.

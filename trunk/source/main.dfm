@@ -374,6 +374,51 @@ object MainForm: TMainForm
         Action = actCreateView
       end
     end
+    object ToolbarTable: TToolBar
+      Left = 510
+      Top = 2
+      Width = 92
+      Height = 22
+      Align = alNone
+      AutoSize = True
+      Caption = 'ToolbarTable'
+      Images = PngImageListMain
+      TabOrder = 3
+      Visible = False
+      Wrapable = False
+      object btnTableEditField: TToolButton
+        Left = 0
+        Top = 0
+        Hint = 'Edit field ...'
+        Caption = 'btnTableEditField'
+        ImageIndex = 44
+        OnClick = btnTableEditFieldClick
+      end
+      object btnTableAddField: TToolButton
+        Left = 23
+        Top = 0
+        Hint = 'Add field'
+        Caption = 'btnTableAddField'
+        ImageIndex = 45
+        OnClick = btnTableAddFieldClick
+      end
+      object btnTableDropField: TToolButton
+        Left = 46
+        Top = 0
+        Hint = 'Delete field...'
+        Caption = 'btnTableDropField'
+        ImageIndex = 46
+        OnClick = btnTableDropFieldClick
+      end
+      object btnTableManageIndexes: TToolButton
+        Left = 69
+        Top = 0
+        Hint = 'Edit indexes...'
+        Caption = 'btnTableManageIndexes'
+        ImageIndex = 13
+        OnClick = btnTableManageIndexesClick
+      end
+    end
   end
   object MainMenu1: TMainMenu
     Images = PngImageListMain
