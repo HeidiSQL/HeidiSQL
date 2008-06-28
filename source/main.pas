@@ -77,7 +77,7 @@ type
     N9: TMenuItem;
     N11: TMenuItem;
     PrintList: TAction;
-    CopyTable: TAction;
+    actCopyTable: TAction;
     ControlBar1: TControlBar;
     ToolBarStandard: TToolBar;
     ToolButton9: TToolButton;
@@ -121,7 +121,7 @@ type
     InsertfilesintoBLOBfields1: TMenuItem;
     ExportTables: TAction;
     DataSearch: TAction;
-    DropTablesAndViews: TAction;
+    actDropTablesAndViews: TAction;
     LoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
@@ -163,6 +163,9 @@ type
     btnTableAddField: TToolButton;
     btnTableDropField: TToolButton;
     btnTableManageIndexes: TToolButton;
+    actCreateTable: TAction;
+    actEmptyTables: TAction;
+    procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
     procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
@@ -176,7 +179,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure ButtonRefreshClick(Sender: TObject);
     procedure ButtonCreateDatabaseClick(Sender: TObject);
-    procedure ButtonCreateTableClick(Sender: TObject);
     procedure ButtonDropDatabaseClick(Sender: TObject);
     procedure ResetWindowOptions1Click(Sender: TObject);
     procedure ButtonImportTextfileClick(Sender: TObject);
@@ -190,7 +192,7 @@ type
     procedure CopyHTMLtableExecute(Sender: TObject);
     procedure Copy2CSVExecute(Sender: TObject);
     procedure PrintListExecute(Sender: TObject);
-    procedure CopyTableExecute(Sender: TObject);
+    procedure actCopyTableExecute(Sender: TObject);
     procedure showstatus(msg: string=''; panel: Integer=4);
     procedure ButtonOKClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
@@ -209,10 +211,10 @@ type
     procedure ExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
     procedure actDataSetDeleteExecute(Sender: TObject);
-    procedure btnDBEmptyTableClick(Sender: TObject);
     procedure btnTableAddFieldClick(Sender: TObject);
     procedure btnTableEditFieldClick(Sender: TObject);
-    procedure DropTablesAndViewsExecute(Sender: TObject);
+    procedure actDropTablesAndViewsExecute(Sender: TObject);
+    procedure actEmptyTablesExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
     function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
@@ -288,7 +290,8 @@ uses
   mysql_structures,
   MysqlConn,
   UpdateCheck,
-  fieldeditor;
+  fieldeditor,
+  createtable;
 
 {$R *.DFM}
 
@@ -631,12 +634,6 @@ begin
   ChildWin.CreateDatabase(self);
 end;
 
-procedure TMainForm.ButtonCreateTableClick(Sender: TObject);
-begin
-  // create table
-  ChildWin.CreateTable(self);
-end;
-
 procedure TMainForm.ButtonDropDatabaseClick(Sender: TObject);
 begin
   // drop db
@@ -853,7 +850,7 @@ begin
 end;
 
 
-procedure TMainForm.CopyTableExecute(Sender: TObject);
+procedure TMainForm.actCopyTableExecute(Sender: TObject);
 begin
   // copy table
   CopyTableWindow(self);
@@ -1102,7 +1099,7 @@ begin
 end;
 
 // Drop Table(s)
-procedure TMainForm.DropTablesAndViewsExecute(Sender: TObject);
+procedure TMainForm.actDropTablesAndViewsExecute(Sender: TObject);
 var
   i : Integer;
   Tables, Views : TStringList;
@@ -1372,11 +1369,6 @@ begin
   FreeAndNil(frm);
 end;
 
-procedure TMainForm.btnDBEmptyTableClick(Sender: TObject);
-begin
-  Childwin.EmptyTable(Sender);
-end;
-
 procedure TMainForm.btnTableAddFieldClick(Sender: TObject);
 begin
   FieldEditorWindow(Childwin, femFieldAdd);
@@ -1395,6 +1387,45 @@ end;
 procedure TMainForm.btnTableManageIndexesClick(Sender: TObject);
 begin
   FieldEditorWindow(Childwin, femIndexEditor);
+end;
+
+procedure TMainForm.actCreateTableExecute(Sender: TObject);
+begin
+  if Childwin.CreateTableForm = nil then
+    Childwin.CreateTableForm := TCreateTableForm.Create(Childwin);
+  Childwin.CreateTableForm.ShowModal;
+end;
+
+procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
+var
+  t: TStringList;
+  i: Integer;
+  sql_pattern: String;
+begin
+  if Childwin.ListTables.SelectedCount = 0 then
+    exit;
+  // Add selected items/tables to helper list
+  t := GetVTCaptions(Childwin.ListTables, True);
+  if MessageDlg('Empty ' + IntToStr(t.count) + ' table(s) ?' + CRLF + '(' + implodestr(', ', t) + ')',
+    mtConfirmation, [mbOk, mbCancel], 0) <> mrOk then
+    exit;
+
+  Screen.Cursor := crHourglass;
+  {**
+    @note ansgarbecker: Empty table using faster TRUNCATE statement on newer servers
+    @see http://dev.mysql.com/doc/refman/5.0/en/truncate.html
+    @see https://sourceforge.net/tracker/index.php?func=detail&aid=1644143&group_id=164593&atid=832350
+  }
+  if Childwin.mysql_version < 50003 then
+    sql_pattern := 'DELETE FROM '
+  else
+    sql_pattern := 'TRUNCATE ';
+
+  for i:=0 to t.count-1 do
+    Childwin.ExecUpdateQuery( sql_pattern + mask(t[i]) );
+  t.Free;
+  Childwin.MenuRefreshClick(Sender);
+  Screen.Cursor := crDefault;
 end;
 
 end.
