@@ -363,7 +363,6 @@ type
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuViewDataClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
-    procedure EmptyTable(Sender: TObject);
     procedure DropDB(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
@@ -374,7 +373,6 @@ type
       CurrentLine: Boolean=false);
     procedure DropField(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
-    procedure CreateTable(Sender: TObject);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
@@ -556,7 +554,6 @@ type
       QueryHelpersSelectedItems  : Array[0..3] of Array of Integer;
       CreateDatabaseForm         : TCreateDatabaseForm;
       TablePropertiesForm        : Ttbl_properties_form;
-      CreateTableForm            : TCreateTableForm;
       EditVariableForm           : TfrmEditVariable;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
@@ -613,6 +610,7 @@ type
       prefCSVTerminator          : String[10];
       prefLogToFile,
       prefPreferShowTables       : Boolean;
+      CreateTableForm            : TCreateTableForm;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -2173,17 +2171,16 @@ begin
 
   menuproperties.Enabled := NodeSelected;
   menuviewdata.Enabled := NodeSelected;
-  Mainform.btnDbEmptyTable.Enabled := tableSelected;
-  menuemptytable.Enabled := tableSelected;
+  Mainform.actEmptyTables.Enabled := tableSelected;
   menuAlterTable.Enabled := tableSelected;
   MenuRenameTable.Enabled := NodeSelected;
-  Mainform.CopyTable.Enabled := NodeSelected;
+  Mainform.actCopyTable.Enabled := NodeSelected;
   Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
   Mainform.actCreateView.Enabled := FrmIsFocussed and (mysql_version >= 50001);
 
   MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  MainForm.DropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
-  MainForm.btnCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  MainForm.actDropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
+  MainForm.actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.ButtonImportTextFile.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
   MainForm.MenuImportTextFile.Enabled := MainForm.ButtonImportTextFile.Enabled;
 
@@ -2194,7 +2191,6 @@ begin
     ButtonCreateDatabase.Enabled := FrmIsFocussed;
     MenuRefresh.Enabled := FrmIsFocussed;
     MenuExport.Enabled := FrmIsFocussed;
-    MenuCreateTable.Enabled := FrmIsFocussed;
     MenuCreateDatabase.Enabled := FrmIsFocussed;
     MenuDropDatabase.Enabled := FrmIsFocussed;
     LoadSQL.Enabled := FrmIsFocussed;
@@ -2281,42 +2277,6 @@ begin
     ShowTable(SelectedTable);
     ShowTableData(SelectedTable);
   end;
-end;
-
-
-procedure TMDIChild.EmptyTable(Sender: TObject);
-var
-  t : TStringList;
-  i : Integer;
-  sql_pattern : String;
-begin
-  // Empty Table(s)
-  if ListTables.SelectedCount = 0 then
-    exit;
-
-  // Add selected items/tables to helper list
-  t := GetVTCaptions(ListTables, True);
-
-  if MessageDlg('Empty ' + IntToStr(t.count) + ' Table(s) ?' + crlf + '(' + implodestr(', ', t) + ')', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
-    exit;
-
-  Screen.Cursor := crSQLWait;
-
-  {**
-    @note ansgarbecker: Empty table using faster TRUNCATE statement on newer servers
-    @see http://dev.mysql.com/doc/refman/5.0/en/truncate.html
-    @see https://sourceforge.net/tracker/index.php?func=detail&aid=1644143&group_id=164593&atid=832350
-  }
-  if mysql_version < 50003 then
-    sql_pattern := 'DELETE FROM '
-  else
-    sql_pattern := 'TRUNCATE ';
-
-  for i:=0 to t.count-1 do
-    ExecUpdateQuery( sql_pattern + mask(t[i]) );
-  t.Free;
-  MenuRefreshClick(self);
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -3023,14 +2983,6 @@ begin
   btnQuerySaveSnippet.Enabled := somechars;
 end;
 
-
-
-procedure TMDIChild.CreateTable(Sender: TObject);
-begin
-  if CreateTableForm = nil then
-    CreateTableForm := TCreateTableForm.Create(Self);
-  CreateTableForm.ShowModal;
-end;
 
 
 procedure TMDIChild.TimerHostUptimeTimer(Sender: TObject);
@@ -4036,9 +3988,8 @@ begin
   else
     L := DBtree.GetNodeLevel(DBtree.GetFirstSelected);
   PopupMenuDropDatabase.Enabled := L = 1;
-  PopupMenuCreateTable.Enabled := L in [1,2];
+  Mainform.actCreateTable.Enabled := L in [1,2];
   Mainform.actCreateView.Enabled := (L in [1,2]) and (mysql_version >= 50001);
-  menuCreateTable.Enabled := L in [1,2];
   menuAlterDatabase.Enabled := (L = 1) and (mysql_version >= 50002);
   if mysql_version < 50002 then
     menuAlterDatabase.Hint := STR_NOTSUPPORTED
@@ -4046,7 +3997,7 @@ begin
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
   menuTreeAlterTable.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
   Mainform.actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
-  MainForm.DropTablesAndViews.Enabled := (L = 2);
+  MainForm.actDropTablesAndViews.Enabled := (L = 2);
 end;
 
 

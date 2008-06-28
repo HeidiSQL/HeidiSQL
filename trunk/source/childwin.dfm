@@ -1565,9 +1565,7 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object PopupMenuCreateTable: TMenuItem
-      Caption = 'Create table...'
-      ImageIndex = 15
-      OnClick = CreateTable
+      Action = MainForm.actCreateTable
     end
     object menuTreeAlterTable: TMenuItem
       Caption = 'Alter table ...'
@@ -1582,7 +1580,7 @@ object MDIChild: TMDIChild
       Action = MainForm.actEditView
     end
     object PopupMenuDropTable: TMenuItem
-      Action = MainForm.DropTablesAndViews
+      Action = MainForm.actDropTablesAndViews
     end
     object Exporttables2: TMenuItem
       Action = MainForm.ExportTables
@@ -1641,14 +1639,10 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object menudroptable: TMenuItem
-      Action = MainForm.DropTablesAndViews
+      Action = MainForm.actDropTablesAndViews
     end
     object menuemptytable: TMenuItem
-      Caption = 'Empty ...'
-      Enabled = False
-      ImageIndex = 46
-      ShortCut = 8238
-      OnClick = EmptyTable
+      Action = MainForm.actEmptyTables
     end
     object MenuRenameTable: TMenuItem
       Caption = 'Rename'
@@ -1664,12 +1658,10 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object MenuCopyTable: TMenuItem
-      Action = MainForm.CopyTable
+      Action = MainForm.actCopyTable
     end
     object menucreatetable: TMenuItem
-      Caption = 'Create new Table...'
-      ImageIndex = 15
-      OnClick = CreateTable
+      Action = MainForm.actCreateTable
     end
     object Createview1: TMenuItem
       Action = MainForm.actCreateView

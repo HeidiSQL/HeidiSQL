@@ -346,27 +346,22 @@ object MainForm: TMainForm
       object btnCreateTable: TToolButton
         Left = 0
         Top = 0
-        Caption = 'Create Table'
-        Enabled = False
-        ImageIndex = 15
-        OnClick = ButtonCreateTableClick
+        Action = actCreateTable
       end
       object btnDBDropTable: TToolButton
         Left = 23
         Top = 0
-        Action = DropTablesAndViews
+        Action = actDropTablesAndViews
       end
       object btnDBEmptyTable: TToolButton
         Left = 46
         Top = 0
-        Caption = 'btnDBEmptyTable'
-        ImageIndex = 46
-        OnClick = btnDBEmptyTableClick
+        Action = actEmptyTables
       end
       object btnDBCopyTable: TToolButton
         Left = 69
         Top = 0
-        Action = CopyTable
+        Action = actCopyTable
       end
       object ToolButton11: TToolButton
         Left = 92
@@ -496,10 +491,7 @@ object MainForm: TMainForm
       end
       object MenuCreateTable: TMenuItem
         Tag = 30
-        Caption = 'Create Table...'
-        Enabled = False
-        ImageIndex = 15
-        OnClick = ButtonCreateTableClick
+        Action = actCreateTable
       end
       object Createview1: TMenuItem
         Action = actCreateView
@@ -513,7 +505,7 @@ object MainForm: TMainForm
       end
       object MenuDropTable: TMenuItem
         Tag = 32
-        Action = DropTablesAndViews
+        Action = actDropTablesAndViews
       end
       object N4: TMenuItem
         Caption = '-'
@@ -794,13 +786,13 @@ object MainForm: TMainForm
       ShortCut = 16464
       OnExecute = PrintListExecute
     end
-    object CopyTable: TAction
+    object actCopyTable: TAction
       Tag = 62
       Caption = 'Create table copy ...'
       Enabled = False
       Hint = 'Create a base table copy of this table or view'
       ImageIndex = 19
-      OnExecute = CopyTableExecute
+      OnExecute = actCopyTableExecute
     end
     object EditUndo1: TEditUndo
       Category = 'Edit'
@@ -863,12 +855,12 @@ object MainForm: TMainForm
       ShortCut = 16454
       OnExecute = DataSearchExecute
     end
-    object DropTablesAndViews: TAction
+    object actDropTablesAndViews: TAction
       Caption = 'Drop table/view ...'
       Enabled = False
       Hint = 'Deletes tables and/or views'
       ImageIndex = 16
-      OnExecute = DropTablesAndViewsExecute
+      OnExecute = actDropTablesAndViewsExecute
     end
     object actEditView: TAction
       Caption = 'Edit view ...'
@@ -914,6 +906,18 @@ object MainForm: TMainForm
       Caption = 'P&ost'
       Hint = 'Post'
       ImageIndex = 55
+    end
+    object actCreateTable: TAction
+      Caption = 'Create new table'
+      Hint = 'Create new table in selected database'
+      ImageIndex = 15
+      OnExecute = actCreateTableExecute
+    end
+    object actEmptyTables: TAction
+      Caption = 'Empty table(s) ...'
+      Hint = 'Delete all rows in selected table(s)'
+      ImageIndex = 46
+      OnExecute = actEmptyTablesExecute
     end
   end
   object SaveDialog2: TSaveDialog
