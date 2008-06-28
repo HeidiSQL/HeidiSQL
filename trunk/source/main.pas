@@ -76,7 +76,7 @@ type
     menuWebsite: TMenuItem;
     N9: TMenuItem;
     N11: TMenuItem;
-    PrintList: TAction;
+    actPrintList: TAction;
     actCopyTable: TAction;
     ControlBar1: TControlBar;
     ToolBarStandard: TToolBar;
@@ -117,9 +117,9 @@ type
     CopyasXMLdata1: TMenuItem;
     ExecuteLine: TAction;
     HTMLview: TAction;
-    InsertFiles: TAction;
+    actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
-    ExportTables: TAction;
+    actExportTables: TAction;
     DataSearch: TAction;
     actDropTablesAndViews: TAction;
     LoadSQL: TAction;
@@ -165,6 +165,9 @@ type
     btnTableManageIndexes: TToolButton;
     actCreateTable: TAction;
     actEmptyTables: TAction;
+    actTableProperties: TAction;
+    actAlterTable: TAction;
+    procedure actAlterTableExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
     procedure btnSQLHelpClick(Sender: TObject);
@@ -191,7 +194,7 @@ type
     procedure actEditViewExecute(Sender: TObject);
     procedure CopyHTMLtableExecute(Sender: TObject);
     procedure Copy2CSVExecute(Sender: TObject);
-    procedure PrintListExecute(Sender: TObject);
+    procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure showstatus(msg: string=''; panel: Integer=4);
     procedure ButtonOKClick(Sender: TObject);
@@ -207,14 +210,15 @@ type
     procedure ExportDataExecute(Sender: TObject);
     procedure ExecuteLineExecute(Sender: TObject);
     procedure HTMLviewExecute(Sender: TObject);
-    procedure InsertFilesExecute(Sender: TObject);
-    procedure ExportTablesExecute(Sender: TObject);
+    procedure actInsertFilesExecute(Sender: TObject);
+    procedure actExportTablesExecute(Sender: TObject);
     procedure DataSearchExecute(Sender: TObject);
     procedure actDataSetDeleteExecute(Sender: TObject);
     procedure btnTableAddFieldClick(Sender: TObject);
     procedure btnTableEditFieldClick(Sender: TObject);
     procedure actDropTablesAndViewsExecute(Sender: TObject);
     procedure actEmptyTablesExecute(Sender: TObject);
+    procedure actTablePropertiesExecute(Sender: TObject);
     procedure LoadSQLExecute(Sender: TObject);
     procedure EnsureConnected;
     function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
@@ -831,7 +835,7 @@ begin
 end;
 
 
-procedure TMainForm.PrintListExecute(Sender: TObject);
+procedure TMainForm.actPrintListExecute(Sender: TObject);
 var
   page : TTabSheet;
 begin
@@ -1078,12 +1082,12 @@ begin
   ShellExec( filename );
 end;
 
-procedure TMainForm.InsertFilesExecute(Sender: TObject);
+procedure TMainForm.actInsertFilesExecute(Sender: TObject);
 begin
   InsertFilesWindow(Self);
 end;
 
-procedure TMainForm.ExportTablesExecute(Sender: TObject);
+procedure TMainForm.actExportTablesExecute(Sender: TObject);
 begin
   // Export SQL
   ExportTablesWindow (Self);
@@ -1426,6 +1430,37 @@ begin
   t.Free;
   Childwin.MenuRefreshClick(Sender);
   Screen.Cursor := crDefault;
+end;
+
+procedure TMainForm.actTablePropertiesExecute(Sender: TObject);
+var
+  NodeData: PVTreeData;
+begin
+  // table-doubleclick
+  if Assigned(Childwin.ListTables.FocusedNode) then begin
+    NodeData := Childwin.ListTables.GetNodeData(Childwin.ListTables.FocusedNode);
+    Childwin.SelectedTable := NodeData.Captions[0];
+    Childwin.PageControlMain.ActivePage := Childwin.tabTable;
+  end;
+end;
+
+procedure TMainForm.actAlterTableExecute(Sender: TObject);
+var
+  NodeData: PVTreeData;
+  caller: TComponent;
+begin
+  if Childwin.TablePropertiesForm = nil then
+    Childwin.TablePropertiesForm := Ttbl_properties_form.Create(Self);
+
+  caller := TAction(Sender).ActionComponent;
+  if caller = Childwin.menuTreeAlterTable then
+    Childwin.TablePropertiesForm.TableName := Childwin.SelectedTable
+  else begin
+    NodeData := Childwin.ListTables.GetNodeData( Childwin.ListTables.FocusedNode );
+    Childwin.TablePropertiesForm.TableName := NodeData.Captions[0];
+  end;
+
+  Childwin.TablePropertiesForm.ShowModal;
 end;
 
 end.
