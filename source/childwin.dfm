@@ -1568,10 +1568,7 @@ object MDIChild: TMDIChild
       Action = MainForm.actCreateTable
     end
     object menuTreeAlterTable: TMenuItem
-      Caption = 'Alter table ...'
-      Enabled = False
-      ImageIndex = 17
-      OnClick = menuAlterTableClick
+      Action = MainForm.actAlterTable
     end
     object menuTreeCreateView: TMenuItem
       Action = MainForm.actCreateView
@@ -1583,7 +1580,7 @@ object MDIChild: TMDIChild
       Action = MainForm.actDropTablesAndViews
     end
     object Exporttables2: TMenuItem
-      Action = MainForm.ExportTables
+      Action = MainForm.actExportTables
     end
     object N5: TMenuItem
       Caption = '-'
@@ -1611,29 +1608,17 @@ object MDIChild: TMDIChild
     Left = 72
     Top = 16
     object menuproperties: TMenuItem
-      Caption = 'Properties'
+      Action = MainForm.actTableProperties
       Default = True
-      Enabled = False
-      ImageIndex = 44
-      OnClick = ListTablesDblClick
     end
     object menuAlterTable: TMenuItem
-      Caption = 'Alter table ...'
-      Enabled = False
-      ImageIndex = 17
-      OnClick = menuAlterTableClick
+      Action = MainForm.actAlterTable
     end
     object actView1: TMenuItem
       Action = MainForm.actEditView
     end
-    object menuviewdata: TMenuItem
-      Caption = 'View Data'
-      Enabled = False
-      ImageIndex = 41
-      OnClick = MenuViewDataClick
-    end
     object InsertfilesintoBLOBfields1: TMenuItem
-      Action = MainForm.InsertFiles
+      Action = MainForm.actInsertFiles
     end
     object N2: TMenuItem
       Caption = '-'
@@ -1667,13 +1652,13 @@ object MDIChild: TMDIChild
       Action = MainForm.actCreateView
     end
     object Exporttables1: TMenuItem
-      Action = MainForm.ExportTables
+      Action = MainForm.actExportTables
     end
     object N10: TMenuItem
       Caption = '-'
     end
     object PrintList3: TMenuItem
-      Action = MainForm.PrintList
+      Action = MainForm.actPrintList
     end
     object menurefresh: TMenuItem
       Tag = 28
@@ -1731,7 +1716,7 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object PrintList2: TMenuItem
-      Action = MainForm.PrintList
+      Action = MainForm.actPrintList
     end
     object Refresh1: TMenuItem
       Tag = 28
@@ -1809,10 +1794,10 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object InsertfilesintoBLOBfields2: TMenuItem
-      Action = MainForm.InsertFiles
+      Action = MainForm.actInsertFiles
     end
     object PrintList4: TMenuItem
-      Action = MainForm.PrintList
+      Action = MainForm.actPrintList
     end
     object Refresh2: TMenuItem
       Tag = 28
@@ -2029,7 +2014,7 @@ object MDIChild: TMDIChild
       Action = MainForm.HTMLview
     end
     object InsertfilesintoBLOBfields3: TMenuItem
-      Action = MainForm.InsertFiles
+      Action = MainForm.actInsertFiles
     end
     object N19: TMenuItem
       Caption = '-'

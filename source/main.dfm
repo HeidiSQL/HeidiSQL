@@ -112,7 +112,7 @@ object MainForm: TMainForm
       object ToolButton12: TToolButton
         Left = 142
         Top = 0
-        Action = PrintList
+        Action = actPrintList
       end
       object tlbSep2: TToolButton
         Left = 165
@@ -188,7 +188,7 @@ object MainForm: TMainForm
         Left = 304
         Top = 0
         Hint = 'Export tables'
-        Action = ExportTables
+        Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
@@ -587,7 +587,7 @@ object MainForm: TMainForm
         Action = LoadSQL
       end
       object InsertfilesintoBLOBfields1: TMenuItem
-        Action = InsertFiles
+        Action = actInsertFiles
       end
     end
     object ImExport1: TMenuItem
@@ -595,7 +595,7 @@ object MainForm: TMainForm
       Caption = 'E&xport'
       object MenuExport: TMenuItem
         Tag = 45
-        Action = ExportTables
+        Action = actExportTables
       end
       object N11: TMenuItem
         Caption = '-'
@@ -777,14 +777,14 @@ object MainForm: TMainForm
       ImageIndex = 20
       OnExecute = ExportDataExecute
     end
-    object PrintList: TAction
+    object actPrintList: TAction
       Tag = 61
       Caption = 'Print...'
       Enabled = False
       Hint = 'Print List or Data'
       ImageIndex = 34
       ShortCut = 16464
-      OnExecute = PrintListExecute
+      OnExecute = actPrintListExecute
     end
     object actCopyTable: TAction
       Tag = 62
@@ -830,17 +830,17 @@ object MainForm: TMainForm
       ImageIndex = 32
       OnExecute = HTMLviewExecute
     end
-    object InsertFiles: TAction
+    object actInsertFiles: TAction
       Caption = 'Insert files into BLOB-fields...'
       Enabled = False
       ImageIndex = 47
-      OnExecute = InsertFilesExecute
+      OnExecute = actInsertFilesExecute
     end
-    object ExportTables: TAction
+    object actExportTables: TAction
       Caption = 'Export tables as SQL'
       Enabled = False
       ImageIndex = 20
-      OnExecute = ExportTablesExecute
+      OnExecute = actExportTablesExecute
     end
     object LoadSQL: TAction
       Caption = 'Load SQL-file ...'
@@ -917,7 +917,19 @@ object MainForm: TMainForm
       Caption = 'Empty table(s) ...'
       Hint = 'Delete all rows in selected table(s)'
       ImageIndex = 46
+      ShortCut = 8238
       OnExecute = actEmptyTablesExecute
+    end
+    object actTableProperties: TAction
+      Caption = 'Table properties'
+      ImageIndex = 44
+      OnExecute = actTablePropertiesExecute
+    end
+    object actAlterTable: TAction
+      Caption = 'Alter table ...'
+      Hint = 'Edit table engine, charset, auto increment etc.'
+      ImageIndex = 17
+      OnExecute = actAlterTableExecute
     end
   end
   object SaveDialog2: TSaveDialog

@@ -49,7 +49,6 @@ type
     menuRefreshDBTree: TMenuItem;
     tabTable: TTabSheet;
     popupDbGrid: TPopupMenu;
-    menuviewdata: TMenuItem;
     menuproperties: TMenuItem;
     menudroptable: TMenuItem;
     menuemptytable: TMenuItem;
@@ -361,7 +360,6 @@ type
     procedure ShowTableData(table: string);
     procedure viewdata(Sender: TObject);
     procedure RefreshFieldListClick(Sender: TObject);
-    procedure MenuViewDataClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
     procedure DropDB(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
@@ -378,7 +376,6 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure UpdateField(Sender: TObject);
-    procedure menuAlterTableClick(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
     procedure MenuRenameTableClick(Sender: TObject);
@@ -553,7 +550,6 @@ type
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Array of Integer;
       CreateDatabaseForm         : TCreateDatabaseForm;
-      TablePropertiesForm        : Ttbl_properties_form;
       EditVariableForm           : TfrmEditVariable;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
@@ -611,6 +607,7 @@ type
       prefLogToFile,
       prefPreferShowTables       : Boolean;
       CreateTableForm            : TCreateTableForm;
+      TablePropertiesForm        : Ttbl_properties_form;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -2169,10 +2166,9 @@ begin
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
-  menuproperties.Enabled := NodeSelected;
-  menuviewdata.Enabled := NodeSelected;
+  Mainform.actTableProperties.Enabled := NodeSelected;
   Mainform.actEmptyTables.Enabled := tableSelected;
-  menuAlterTable.Enabled := tableSelected;
+  Mainform.actAlterTable.Enabled := tableSelected;
   MenuRenameTable.Enabled := NodeSelected;
   Mainform.actCopyTable.Enabled := NodeSelected;
   Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
@@ -2187,10 +2183,9 @@ begin
   with MainForm do
   begin
     ButtonRefresh.Enabled := FrmIsFocussed;
-    ExportTables.Enabled := FrmIsFocussed;
+    actExportTables.Enabled := FrmIsFocussed;
     ButtonCreateDatabase.Enabled := FrmIsFocussed;
     MenuRefresh.Enabled := FrmIsFocussed;
-    MenuExport.Enabled := FrmIsFocussed;
     MenuCreateDatabase.Enabled := FrmIsFocussed;
     MenuDropDatabase.Enabled := FrmIsFocussed;
     LoadSQL.Enabled := FrmIsFocussed;
@@ -2202,7 +2197,7 @@ begin
     MenuFlushStatus.Enabled := FrmIsFocussed;
     UserManager.Enabled := FrmIsFocussed;
     actMaintenance.Enabled := FrmIsFocussed;
-    InsertFiles.Enabled := FrmIsFocussed;
+    actInsertFiles.Enabled := FrmIsFocussed;
     {***
       Activate export-options if we're on Data- or Query-tab
       PrintList should only be active if we're focussing one of the ListViews,
@@ -2210,7 +2205,7 @@ begin
       @see Issue 1686582
     }
     inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
-    PrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
+    actPrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
     // Both the Query and the Data grid may have a nil DataSet reference,
     // either in case the relevant grid has not been used yet, or when
     // an error has occurred.
@@ -2264,19 +2259,6 @@ begin
   PageControlMain.ActivePage := tabData;
   viewdata(self);
   pcChange( Self );
-end;
-
-
-procedure TMDIChild.MenuViewDataClick(Sender: TObject);
-var
-  NodeData: PVTreeData;
-begin
-  if Assigned(ListTables.FocusedNode) then begin
-    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    SelectedTable := NodeData.Captions[0];
-    ShowTable(SelectedTable);
-    ShowTableData(SelectedTable);
-  end;
 end;
 
 
@@ -3098,30 +3080,6 @@ begin
 end;
 
 
-{**
-  "Alter table ..."
-  called by popupTreeView or popupDbGrid
-}
-procedure TMDIChild.menuAlterTableClick(Sender: TObject);
-var
-  NodeData: PVTreeData;
-  caller : TPopupMenu;
-begin
-  if TablePropertiesForm = nil then
-    TablePropertiesForm := Ttbl_properties_form.Create(Self);
-
-  caller := TPopupMenu( TMenuItem( Sender ).GetParentMenu );
-  if caller = popupTreeView then
-    TablePropertiesForm.TableName := SelectedTable
-  else begin
-    NodeData := ListTables.GetNodeData( ListTables.FocusedNode );
-    TablePropertiesForm.TableName := NodeData.Captions[0];
-  end;
-
-  TablePropertiesForm.ShowModal;
-end;
-
-
 {***
   Rename table after checking the new name for invalid characters
 }
@@ -3237,15 +3195,8 @@ begin
 end;
 
 procedure TMDIChild.ListTablesDblClick(Sender: TObject);
-var
-  NodeData : PVTreeData;
 begin
-  // table-doubleclick
-  if Assigned(ListTables.FocusedNode) then begin
-    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    SelectedTable := NodeData.Captions[0];
-    PageControlMain.ActivePage := tabTable;
-  end;
+  Mainform.actTableProperties.Execute;
 end;
 
 
@@ -3995,7 +3946,7 @@ begin
     menuAlterDatabase.Hint := STR_NOTSUPPORTED
   else
     menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
-  menuTreeAlterTable.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
+  Mainform.actAlterTable.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
   Mainform.actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
   MainForm.actDropTablesAndViews.Enabled := (L = 2);
 end;
