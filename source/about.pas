@@ -31,7 +31,6 @@ type
     MemoAuthors: TMemo;
     ImageDonate: TImage;
     btnUpdateCheck: TButton;
-    procedure btnUpdateCheckClick(Sender: TObject);
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -66,11 +65,6 @@ begin
   FreeAndNil(f);
 end;
 
-
-procedure TAboutBox.btnUpdateCheckClick(Sender: TObject);
-begin
-  Mainform.menuUpdateCheckClick(Sender);
-end;
 
 procedure TAboutBox.OpenURL(Sender: TObject);
 begin

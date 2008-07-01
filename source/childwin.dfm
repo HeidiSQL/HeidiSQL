@@ -711,7 +711,7 @@ object MDIChild: TMDIChild
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
             OnBeforePaint = vstBeforePaint
             OnCompareNodes = vstCompareNodes
-            OnDblClick = UpdateField
+            OnDblClick = ListColumnsDblClick
             OnFreeNode = vstFreeNode
             OnGetText = vstGetText
             OnGetImageIndex = vstGetImageIndex
@@ -934,72 +934,49 @@ object MDIChild: TMDIChild
                 object btnQueryRun: TToolButton
                   Left = 0
                   Top = 0
-                  Action = MainForm.ExecuteQuery
+                  Action = MainForm.actExecuteQuery
                 end
                 object btnQueryRunSelected: TToolButton
                   Left = 23
                   Top = 0
-                  Action = MainForm.ExecuteSelection
+                  Action = MainForm.actExecuteSelection
                 end
                 object btnQueryLoad: TToolButton
                   Left = 46
                   Top = 0
-                  Hint = 'Load SQL from Textfile'
-                  Caption = 'Load SQL...'
+                  Action = MainForm.actLoadSQL
                   DropdownMenu = popupQueryLoad
-                  ImageIndex = 52
                   Style = tbsDropDown
-                  OnClick = btnQueryLoadClick
                 end
                 object btnQuerySave: TToolButton
                   Left = 82
                   Top = 0
-                  Hint = 'Save SQL to Textfile'
-                  Caption = 'Save SQL...'
-                  Enabled = False
-                  ImageIndex = 10
-                  OnClick = btnQuerySaveClick
+                  Action = MainForm.actSaveSQL
                 end
                 object btnQuerySaveSnippet: TToolButton
                   Left = 105
                   Top = 0
-                  Hint = 'Save SQL as snippet...'
-                  Caption = 'btnQuerySaveSnippet'
-                  ImageIndex = 54
-                  OnClick = btnQuerySaveSnippetClick
+                  Action = MainForm.actSaveSQLSnippet
                 end
                 object btnQueryFind: TToolButton
                   Left = 128
                   Top = 0
-                  Hint = 'Find Text...'
-                  Caption = 'Find...'
-                  ImageIndex = 30
-                  OnClick = btnQueryFindClick
+                  Action = MainForm.actQueryFind
                 end
                 object btnQueryReplace: TToolButton
                   Left = 151
                   Top = 0
-                  Hint = 'Search and replace...'
-                  Caption = 'Replace ...'
-                  ImageIndex = 59
-                  OnClick = btnQueryReplaceClick
+                  Action = MainForm.actQueryReplace
                 end
                 object btnQueryStopOnErrors: TToolButton
                   Left = 174
                   Top = 0
-                  Hint = 'Stop on MySQL-errors in batch-mode'
-                  Caption = 'btnQueryStopOnErrors'
-                  Down = True
-                  ImageIndex = 63
-                  OnClick = btnQueryStopOnErrorsClick
+                  Action = MainForm.actQueryStopOnErrors
                 end
                 object btnQueryWordWrap: TToolButton
                   Left = 197
                   Top = 0
-                  Hint = 'Wrap long lines'
-                  Caption = 'Wrap long lines'
-                  ImageIndex = 62
-                  OnClick = btnQueryWordWrapClick
+                  Action = MainForm.actQueryWordWrap
                 end
               end
             end
@@ -1332,7 +1309,7 @@ object MDIChild: TMDIChild
         object btnBlobViewAsHtml: TToolButton
           Left = 0
           Top = 88
-          Action = MainForm.HTMLview
+          Action = MainForm.actHTMLview
           Wrap = True
         end
         object btnBlobCopy: TToolButton
@@ -1546,20 +1523,13 @@ object MDIChild: TMDIChild
     Left = 8
     Top = 16
     object NewDatabase1: TMenuItem
-      Caption = 'Create database...'
-      ImageIndex = 6
-      OnClick = CreateDatabase
+      Action = MainForm.actCreateDatabase
     end
     object menuAlterdatabase: TMenuItem
-      Caption = 'Alter database ...'
-      Enabled = False
-      ImageIndex = 8
-      OnClick = menuAlterdatabaseClick
+      Action = MainForm.actEditDatabase
     end
     object PopupmenuDropDatabase: TMenuItem
-      Caption = 'Drop database...'
-      ImageIndex = 7
-      OnClick = DropDB
+      Action = MainForm.actDropDatabase
     end
     object N17: TMenuItem
       Caption = '-'
@@ -1568,7 +1538,7 @@ object MDIChild: TMDIChild
       Action = MainForm.actCreateTable
     end
     object menuTreeAlterTable: TMenuItem
-      Action = MainForm.actAlterTable
+      Action = MainForm.actEditTableProperties
     end
     object menuTreeCreateView: TMenuItem
       Action = MainForm.actCreateView
@@ -1608,11 +1578,11 @@ object MDIChild: TMDIChild
     Left = 72
     Top = 16
     object menuproperties: TMenuItem
-      Action = MainForm.actTableProperties
+      Action = MainForm.actEditTableFields
       Default = True
     end
     object menuAlterTable: TMenuItem
-      Action = MainForm.actAlterTable
+      Action = MainForm.actEditTableProperties
     end
     object actView1: TMenuItem
       Action = MainForm.actEditView
@@ -1757,24 +1727,14 @@ object MDIChild: TMDIChild
     Left = 104
     Top = 16
     object MenuEditField: TMenuItem
-      Caption = 'Properties'
+      Action = MainForm.actEditField
       Default = True
-      ImageIndex = 44
-      ShortCut = 32781
-      OnClick = UpdateField
     end
     object MenuAddField: TMenuItem
-      Caption = 'Add Field...'
-      ImageIndex = 45
-      ShortCut = 16449
-      OnClick = MenuAddFieldClick
+      Action = MainForm.actCreateField
     end
     object DropField1: TMenuItem
-      Caption = 'Drop Field(s)...'
-      Hint = 'Delete Field(s) from Table'
-      ImageIndex = 46
-      ShortCut = 16430
-      OnClick = DropField
+      Action = MainForm.actDropFields
     end
     object menuRenameColumn: TMenuItem
       Caption = 'Rename Field'
@@ -1786,9 +1746,7 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object ManageIndexes1: TMenuItem
-      Caption = '&Manage Indexes...'
-      ImageIndex = 13
-      OnClick = ManageIndexes1Click
+      Action = MainForm.actEditIndexes
     end
     object N3: TMenuItem
       Caption = '-'
@@ -1815,10 +1773,10 @@ object MDIChild: TMDIChild
     Left = 8
     Top = 48
     object Copy3: TMenuItem
-      Action = MainForm.EditCopy1
+      Action = MainForm.actCopy
     end
     object Paste2: TMenuItem
-      Action = MainForm.EditPaste1
+      Action = MainForm.actPaste
     end
     object setNULL1: TMenuItem
       Caption = 'Set NULL'
@@ -1829,10 +1787,7 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object Delete1: TMenuItem
-      Caption = 'Delete record(s)'
-      ImageIndex = 26
-      ShortCut = 16430
-      OnClick = Delete1Click
+      Action = MainForm.actDataSetDelete
     end
     object N6: TMenuItem
       Caption = '-'
@@ -1950,7 +1905,7 @@ object MDIChild: TMDIChild
       OnClick = Filter1Click
     end
     object Find1: TMenuItem
-      Action = MainForm.DataSearch
+      Action = MainForm.actDataSearch
     end
     object N9: TMenuItem
       Caption = '-'
@@ -1960,18 +1915,18 @@ object MDIChild: TMDIChild
       Caption = 'Copy data'
       object CopyasCSVData1: TMenuItem
         Tag = 48
-        Action = MainForm.Copy2CSV
+        Action = MainForm.actCopyAsCSV
       end
       object CopycontentsasHTML1: TMenuItem
         Tag = 49
-        Action = MainForm.CopyHTMLtable
+        Action = MainForm.actCopyAsHTML
       end
       object CopyasXMLdata1: TMenuItem
-        Action = MainForm.Copy2XML
+        Action = MainForm.actCopyAsXML
       end
     end
     object Exportdata2: TMenuItem
-      Action = MainForm.ExportData
+      Action = MainForm.actExportData
     end
     object N12: TMenuItem
       Caption = '-'
@@ -2011,7 +1966,7 @@ object MDIChild: TMDIChild
       end
     end
     object ViewasHTML1: TMenuItem
-      Action = MainForm.HTMLview
+      Action = MainForm.actHTMLview
     end
     object InsertfilesintoBLOBfields3: TMenuItem
       Action = MainForm.actInsertFiles
@@ -2020,10 +1975,7 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object menuSQLhelpData: TMenuItem
-      Caption = 'Lookup field datatype in SQL help ...'
-      ImageIndex = 31
-      ShortCut = 112
-      OnClick = menuSQLhelpClick
+      Action = MainForm.actSQLhelp
     end
     object Refresh3: TMenuItem
       Tag = 28
@@ -2039,27 +1991,27 @@ object MDIChild: TMDIChild
     Left = 40
     Top = 48
     object Copy4: TMenuItem
-      Action = MainForm.EditCopy1
+      Action = MainForm.actCopy
     end
     object HTMLview1: TMenuItem
-      Action = MainForm.HTMLview
+      Action = MainForm.actHTMLview
     end
     object N14: TMenuItem
       Caption = '-'
     end
     object Copyrecords1: TMenuItem
       Tag = 48
-      Action = MainForm.Copy2CSV
+      Action = MainForm.actCopyAsCSV
     end
     object CopycontentsasHTML2: TMenuItem
       Tag = 49
-      Action = MainForm.CopyHTMLtable
+      Action = MainForm.actCopyAsHTML
     end
     object CopyasXMLdata2: TMenuItem
-      Action = MainForm.Copy2XML
+      Action = MainForm.actCopyAsXML
     end
     object Exportdata1: TMenuItem
-      Action = MainForm.ExportData
+      Action = MainForm.actExportData
     end
   end
   object TimerConnected: TTimer
@@ -2073,7 +2025,7 @@ object MDIChild: TMDIChild
     Left = 72
     Top = 48
     object Copy1: TMenuItem
-      Action = MainForm.EditCopy1
+      Action = MainForm.actCopy
     end
     object Clear2: TMenuItem
       Caption = 'Clear'
@@ -2224,20 +2176,9 @@ object MDIChild: TMDIChild
     Left = 104
     Top = 120
   end
-  object FindDialogQuery: TFindDialog
-    OnFind = FindDialogQueryFind
-    Left = 8
-    Top = 224
-  end
   object SynEditSearch1: TSynEditSearch
     Left = 72
     Top = 192
-  end
-  object ReplaceDialogQuery: TReplaceDialog
-    OnFind = ReplaceDialogQueryFind
-    OnReplace = ReplaceDialogQueryReplace
-    Left = 40
-    Top = 224
   end
   object popupQuery: TPopupMenu
     Images = MainForm.PngImageListMain
@@ -2245,92 +2186,60 @@ object MDIChild: TMDIChild
     Left = 40
     Top = 80
     object MenuRun: TMenuItem
-      Action = MainForm.ExecuteQuery
+      Action = MainForm.actExecuteQuery
     end
     object MenuRunSelection: TMenuItem
-      Action = MainForm.ExecuteSelection
+      Action = MainForm.actExecuteSelection
     end
     object MenuRunLine: TMenuItem
-      Action = MainForm.ExecuteLine
+      Action = MainForm.actExecuteLine
     end
     object MenuItem1: TMenuItem
       Caption = '-'
     end
     object menucopy: TMenuItem
-      Action = MainForm.EditCopy1
+      Action = MainForm.actCopy
     end
     object menupaste: TMenuItem
-      Action = MainForm.EditPaste1
+      Action = MainForm.actPaste
     end
     object menuclear: TMenuItem
-      Caption = 'Clear'
-      ImageIndex = 58
-      ShortCut = 16471
-      OnClick = menuclearClick
+      Action = MainForm.actClearQueryEditor
     end
     object N22: TMenuItem
       Caption = '-'
     end
     object MenuFind: TMenuItem
-      Caption = 'Find...'
-      ImageIndex = 30
-      ShortCut = 16454
-      OnClick = btnQueryFindClick
+      Action = MainForm.actQueryFind
     end
     object MenuReplace: TMenuItem
-      Caption = 'Replace ...'
-      Hint = 'Search and replace...'
-      ImageIndex = 59
-      ShortCut = 16466
-      OnClick = btnQueryReplaceClick
+      Action = MainForm.actQueryReplace
     end
     object MenuItem2: TMenuItem
       Caption = '-'
     end
     object menuload: TMenuItem
-      Caption = 'Load from file ...'
-      ImageIndex = 52
-      ShortCut = 16463
-      OnClick = btnQueryLoadClick
-    end
-    object menuInsertFileAtCursor: TMenuItem
-      Caption = 'Insert file at cursor ...'
-      ImageIndex = 52
-      ShortCut = 24655
-      OnClick = menuInsertFileAtCursorClick
+      Action = MainForm.actLoadSQL
     end
     object menusave: TMenuItem
-      Caption = 'Save to file ...'
-      ImageIndex = 10
-      ShortCut = 16467
-      OnClick = btnQuerySaveClick
+      Action = MainForm.actSaveSQL
     end
     object menuSaveSelectionToFile: TMenuItem
       Tag = 1
-      Caption = 'Save selection to file ...'
-      ImageIndex = 10
-      ShortCut = 24659
-      OnClick = btnQuerySaveClick
+      Action = MainForm.actSaveSQLselection
     end
     object menuSaveAsSnippet: TMenuItem
-      Caption = 'Save as snippet ...'
-      ImageIndex = 54
-      OnClick = btnQuerySaveSnippetClick
+      Action = MainForm.actSaveSQLSnippet
     end
     object menuSaveSelectionAsSnippet: TMenuItem
       Tag = 1
-      Caption = 'Save selection as snippet ...'
-      ImageIndex = 54
-      OnClick = btnQuerySaveSnippetClick
+      Action = MainForm.actSaveSQLSelectionSnippet
     end
     object N23: TMenuItem
       Caption = '-'
     end
     object menuSQLhelp: TMenuItem
-      Caption = 'Lookup in SQL help ...'
-      ImageIndex = 31
-      ShortCut = 112
-      OnClick = menuSQLhelpClick
+      Action = MainForm.actSQLhelp
     end
     object N24: TMenuItem
       Caption = '-'
@@ -2367,10 +2276,7 @@ object MDIChild: TMDIChild
       OnClick = menuExploreClick
     end
     object menuHelp: TMenuItem
-      Caption = 'Help'
-      ImageIndex = 31
-      ShortCut = 112
-      OnClick = CallSQLHelp
+      Action = MainForm.actSQLhelp
     end
   end
   object popupFilter: TPopupMenu
@@ -2388,24 +2294,19 @@ object MDIChild: TMDIChild
       Caption = '-'
     end
     object menuFilterCopy: TMenuItem
-      Action = MainForm.EditCopy1
+      Action = MainForm.actCopy
     end
     object menuFilterPaste: TMenuItem
-      Action = MainForm.EditPaste1
+      Action = MainForm.actPaste
     end
     object menuFilterClear: TMenuItem
-      Caption = 'Clear'
-      ImageIndex = 58
-      ShortCut = 16471
-      OnClick = menuclearClick
+      Action = MainForm.actClearFilterEditor
     end
     object N8: TMenuItem
       Caption = '-'
     end
     object menuFilterSQLhelp: TMenuItem
-      Caption = 'Lookup in SQL help'
-      ImageIndex = 31
-      OnClick = menuSQLhelpClick
+      Action = MainForm.actSQLhelp
     end
     object N25: TMenuItem
       Caption = '-'
