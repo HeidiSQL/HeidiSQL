@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 506
-  ClientWidth = 632
+  ClientHeight = 261
+  ClientWidth = 754
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack
@@ -20,8 +20,8 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 487
-    Width = 632
+    Top = 242
+    Width = 754
     Height = 19
     AutoHint = True
     Panels = <
@@ -44,7 +44,7 @@ object MainForm: TMainForm
   object ControlBar1: TControlBar
     Left = 0
     Top = 0
-    Width = 632
+    Width = 754
     Height = 52
     Align = alTop
     AutoSize = True
@@ -58,7 +58,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 358
+      Width = 381
       Height = 22
       Align = alNone
       AutoSize = True
@@ -128,14 +128,19 @@ object MainForm: TMainForm
         Action = actCreateDatabase
         AutoSize = True
       end
-      object ButtonDropDatabase: TToolButton
+      object btnEditDatabase: TToolButton
         Left = 196
+        Top = 0
+        Action = actEditDatabase
+      end
+      object ButtonDropDatabase: TToolButton
+        Left = 219
         Top = 0
         Action = actDropDatabase
         AutoSize = True
       end
       object ToolButton2: TToolButton
-        Left = 219
+        Left = 242
         Top = 0
         Width = 8
         Caption = 'ToolButton2'
@@ -143,13 +148,13 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 227
+        Left = 250
         Top = 0
         Action = actRefresh
         AutoSize = True
       end
       object tlbSep5: TToolButton
-        Left = 250
+        Left = 273
         Top = 0
         Width = 8
         Caption = 'tlbSep5'
@@ -157,26 +162,26 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonUserManager: TToolButton
-        Left = 258
+        Left = 281
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 281
+        Left = 304
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 304
+        Left = 327
         Top = 0
         Hint = 'Export tables'
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 327
+        Left = 350
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -184,7 +189,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 335
+        Left = 358
         Top = 0
         Action = actSQLhelp
       end
@@ -312,9 +317,9 @@ object MainForm: TMainForm
       end
     end
     object ToolBarDatabase: TToolBar
-      Left = 382
+      Left = 405
       Top = 2
-      Width = 115
+      Width = 138
       Height = 22
       Align = alNone
       AutoSize = True
@@ -328,29 +333,34 @@ object MainForm: TMainForm
         Top = 0
         Action = actCreateTable
       end
-      object btnDBDropTable: TToolButton
+      object btnEditTableProperties: TToolButton
         Left = 23
+        Top = 0
+        Action = actEditTableProperties
+      end
+      object btnDBDropTable: TToolButton
+        Left = 46
         Top = 0
         Action = actDropTablesAndViews
       end
       object btnDBEmptyTable: TToolButton
-        Left = 46
+        Left = 69
         Top = 0
         Action = actEmptyTables
       end
       object btnDBCopyTable: TToolButton
-        Left = 69
+        Left = 92
         Top = 0
         Action = actCopyTable
       end
       object ToolButton11: TToolButton
-        Left = 92
+        Left = 115
         Top = 0
         Action = actCreateView
       end
     end
     object ToolbarTable: TToolBar
-      Left = 510
+      Left = 556
       Top = 2
       Width = 92
       Height = 22

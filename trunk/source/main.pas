@@ -207,6 +207,8 @@ type
     actQueryReplace: TAction;
     FindDialogQuery: TFindDialog;
     ReplaceDialogQuery: TReplaceDialog;
+    btnEditTableProperties: TToolButton;
+    btnEditDatabase: TToolButton;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
