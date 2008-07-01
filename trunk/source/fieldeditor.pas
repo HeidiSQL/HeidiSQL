@@ -1012,7 +1012,7 @@ end;
 }
 procedure TFieldEditForm.btnDatatypeHelpClick(Sender: TObject);
 begin
-  Mainform.ChildWin.CallSQLHelpWithKeyword(ComboBoxType.Text);
+  Mainform.CallSQLHelpWithKeyword(ComboBoxType.Text);
 end;
 
 

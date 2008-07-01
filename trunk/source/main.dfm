@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 446
+  ClientHeight = 506
   ClientWidth = 632
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 427
+    Top = 487
     Width = 632
     Height = 19
     AutoHint = True
@@ -72,7 +72,7 @@ object MainForm: TMainForm
       object ToolButton9: TToolButton
         Left = 0
         Top = 0
-        Action = FileNew1
+        Action = actOpenSession
         AutoSize = True
         DropdownMenu = menuConnections
         Style = tbsDropDown
@@ -80,7 +80,7 @@ object MainForm: TMainForm
       object FileCloseItem2: TToolButton
         Left = 42
         Top = 0
-        Action = FileClose1
+        Action = actCloseSession
         AutoSize = True
       end
       object tlbSep1: TToolButton
@@ -94,20 +94,20 @@ object MainForm: TMainForm
       object ToolButton5: TToolButton
         Left = 73
         Top = 0
-        Action = EditCopy1
+        Action = actCopy
         AutoSize = True
       end
       object ToolButton6: TToolButton
         Left = 96
         Top = 0
-        Action = EditPaste1
+        Action = actPaste
         AutoSize = True
       end
       object ToolButton14: TToolButton
         Left = 119
         Top = 0
         Hint = 'Undo'
-        Action = EditUndo1
+        Action = actUndo
       end
       object ToolButton12: TToolButton
         Left = 142
@@ -125,22 +125,14 @@ object MainForm: TMainForm
       object ButtonCreateDatabase: TToolButton
         Left = 173
         Top = 0
-        Hint = 'Create Database'
+        Action = actCreateDatabase
         AutoSize = True
-        Caption = 'Create Database'
-        Enabled = False
-        ImageIndex = 6
-        OnClick = ButtonCreateDatabaseClick
       end
       object ButtonDropDatabase: TToolButton
         Left = 196
         Top = 0
-        Hint = 'Drop Database...'
+        Action = actDropDatabase
         AutoSize = True
-        Caption = 'Drop Database'
-        Enabled = False
-        ImageIndex = 7
-        OnClick = ButtonDropDatabaseClick
       end
       object ToolButton2: TToolButton
         Left = 219
@@ -153,12 +145,8 @@ object MainForm: TMainForm
       object ButtonRefresh: TToolButton
         Left = 227
         Top = 0
-        Hint = 'Refresh'
+        Action = actRefresh
         AutoSize = True
-        Caption = 'Refresh'
-        Enabled = False
-        ImageIndex = 0
-        OnClick = ButtonRefreshClick
       end
       object tlbSep5: TToolButton
         Left = 250
@@ -171,18 +159,14 @@ object MainForm: TMainForm
       object ButtonUserManager: TToolButton
         Left = 258
         Top = 0
-        Action = UserManager
+        Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
         Left = 281
         Top = 0
-        Hint = 'Import CSV file'
+        Action = actImportCSV
         AutoSize = True
-        Caption = 'Import CSV file'
-        Enabled = False
-        ImageIndex = 50
-        OnClick = ButtonImportTextfileClick
       end
       object ButtonExport: TToolButton
         Left = 304
@@ -202,11 +186,7 @@ object MainForm: TMainForm
       object btnSQLHelp: TToolButton
         Left = 335
         Top = 0
-        Hint = 'SQL Help'
-        Caption = 'btnSQLHelp'
-        Enabled = False
-        ImageIndex = 31
-        OnClick = btnSQLHelpClick
+        Action = actSQLhelp
       end
     end
     object ToolBarData: TToolBar
@@ -384,34 +364,22 @@ object MainForm: TMainForm
       object btnTableEditField: TToolButton
         Left = 0
         Top = 0
-        Hint = 'Edit field ...'
-        Caption = 'btnTableEditField'
-        ImageIndex = 44
-        OnClick = btnTableEditFieldClick
+        Action = actEditField
       end
       object btnTableAddField: TToolButton
         Left = 23
         Top = 0
-        Hint = 'Add field'
-        Caption = 'btnTableAddField'
-        ImageIndex = 45
-        OnClick = btnTableAddFieldClick
+        Action = actCreateField
       end
       object btnTableDropField: TToolButton
         Left = 46
         Top = 0
-        Hint = 'Delete field...'
-        Caption = 'btnTableDropField'
-        ImageIndex = 46
-        OnClick = btnTableDropFieldClick
+        Action = actDropFields
       end
       object btnTableManageIndexes: TToolButton
         Left = 69
         Top = 0
-        Hint = 'Edit indexes...'
-        Caption = 'btnTableManageIndexes'
-        ImageIndex = 13
-        OnClick = btnTableManageIndexesClick
+        Action = actEditIndexes
       end
     end
   end
@@ -425,36 +393,29 @@ object MainForm: TMainForm
       Hint = 'File related commands'
       object FileNewItem: TMenuItem
         Tag = 23
-        Action = FileNew1
+        Action = actOpenSession
         Caption = '&Connection...'
         Hint = 'Connection...|Establish connection with MySQL-Host'
       end
       object FileCloseItem: TMenuItem
         Tag = 24
-        Action = FileClose1
+        Action = actCloseSession
       end
       object N1: TMenuItem
         Caption = '-'
       end
-      object ResetWindowOptions1: TMenuItem
-        Tag = 25
-        Caption = 'Reset Window-Options'
-        OnClick = ResetWindowOptions1Click
-      end
       object ExportSettings1: TMenuItem
-        Caption = 'Export settings...'
-        OnClick = ExportSettings1Click
+        Action = actExportSettings
       end
       object Importsettings1: TMenuItem
-        Caption = 'Import settings...'
-        OnClick = Importsettings1Click
+        Action = actImportSettings
       end
       object N5: TMenuItem
         Caption = '-'
       end
       object FileExitItem: TMenuItem
         Tag = 26
-        Action = FileExit1
+        Action = actExitApplication
         ShortCut = 32883
       end
     end
@@ -463,10 +424,13 @@ object MainForm: TMainForm
       Caption = '&Edit'
       Hint = 'Edit commands'
       object CopyItem: TMenuItem
-        Action = EditCopy1
+        Action = actCopy
       end
       object PasteItem: TMenuItem
-        Action = EditPaste1
+        Action = actPaste
+      end
+      object Cut1: TMenuItem
+        Action = actCut
       end
     end
     object Extra1: TMenuItem
@@ -474,20 +438,14 @@ object MainForm: TMainForm
       Caption = '&Tools'
       object MenuRefresh: TMenuItem
         Tag = 28
-        Caption = 'Refresh'
-        Enabled = False
-        ImageIndex = 0
-        OnClick = ButtonRefreshClick
+        Action = actRefresh
       end
       object N3: TMenuItem
         Caption = '-'
       end
       object MenuCreateDatabase: TMenuItem
         Tag = 29
-        Caption = 'Create Database...'
-        Enabled = False
-        ImageIndex = 6
-        OnClick = ButtonCreateDatabaseClick
+        Action = actCreateDatabase
       end
       object MenuCreateTable: TMenuItem
         Tag = 30
@@ -498,10 +456,7 @@ object MainForm: TMainForm
       end
       object MenuDropDatabase: TMenuItem
         Tag = 31
-        Caption = 'Drop Database...'
-        Enabled = False
-        ImageIndex = 7
-        OnClick = ButtonDropDatabaseClick
+        Action = actDropDatabase
       end
       object MenuDropTable: TMenuItem
         Tag = 32
@@ -515,52 +470,34 @@ object MainForm: TMainForm
         Caption = 'Flush'
         object MenuFlushHosts: TMenuItem
           Tag = 37
-          Caption = 'Hosts'
-          Enabled = False
-          Hint = 'Flush Privileges|Flush Hosts'
-          OnClick = FlushClick
+          Action = actFlushHosts
         end
         object MenuFlushLogs: TMenuItem
           Tag = 38
-          Caption = 'Logs'
-          Enabled = False
-          Hint = 'Flush Logs'
-          OnClick = FlushClick
+          Action = actFlushLogs
         end
         object FlushUserPrivileges1: TMenuItem
           Tag = 39
-          Caption = 'Privileges'
-          Enabled = False
-          Hint = 'Flush Privileges|Flush User-Privileges'
-          OnClick = FlushClick
+          Action = actFlushPrivileges
         end
         object MenuFlushTables: TMenuItem
           Tag = 40
-          Caption = 'Tables'
-          Enabled = False
-          Hint = 'Flush Privileges|Flush Tables'
-          OnClick = FlushClick
+          Action = actFlushTables
         end
         object MenuFlushTableswithreadlock: TMenuItem
           Tag = 41
-          Caption = 'Tables with read lock'
-          Enabled = False
-          Hint = 'Flush Privileges|Flush Tables with read lock'
-          OnClick = FlushClick
+          Action = actFlushTableswithreadlock
         end
         object MenuFlushStatus: TMenuItem
           Tag = 42
-          Caption = 'Status'
-          Enabled = False
-          Hint = 'Flush Status'
-          OnClick = FlushClick
+          Action = actFlushStatus
         end
       end
       object N6: TMenuItem
         Caption = '-'
       end
       object MenuUserManager: TMenuItem
-        Action = UserManager
+        Action = actUserManager
       end
       object menuMaintenance: TMenuItem
         Action = actMaintenance
@@ -570,21 +507,17 @@ object MainForm: TMainForm
       end
       object MenuPreferences: TMenuItem
         Tag = 36
-        Caption = 'Preferences'
-        OnClick = MenuPreferencesClick
+        Action = actPreferences
       end
     end
     object Import1: TMenuItem
       Caption = '&Import'
       object MenuImportTextFile: TMenuItem
         Tag = 43
-        Caption = 'Import CSV file...'
-        Enabled = False
-        ImageIndex = 50
-        OnClick = ButtonImportTextfileClick
+        Action = actImportCSV
       end
       object ImportSQL1: TMenuItem
-        Action = LoadSQL
+        Action = actLoadSQL
       end
       object InsertfilesintoBLOBfields1: TMenuItem
         Action = actInsertFiles
@@ -602,17 +535,17 @@ object MainForm: TMainForm
       end
       object MenuCopyCSV: TMenuItem
         Tag = 48
-        Action = Copy2CSV
+        Action = actCopyAsCSV
       end
       object CopyContentsasHTMLTable1: TMenuItem
         Tag = 49
-        Action = CopyHTMLtable
+        Action = actCopyAsHTML
       end
       object CopyasXMLdata1: TMenuItem
-        Action = Copy2XML
+        Action = actCopyAsXML
       end
       object Exportdata1: TMenuItem
-        Action = ExportData
+        Action = actExportData
       end
     end
     object menuWindow: TMenuItem
@@ -627,60 +560,39 @@ object MainForm: TMainForm
       Caption = '&Help'
       Hint = 'Help topics'
       object menuSQLHelp: TMenuItem
-        Caption = 'SQL Help'
-        Enabled = False
-        ImageIndex = 31
-        ShortCut = 112
-        OnClick = btnSQLHelpClick
+        Action = actSQLhelp
       end
       object N8: TMenuItem
         Caption = '-'
       end
       object menuUpdateCheck: TMenuItem
-        Caption = 'Check for updates ...'
-        ImageIndex = 0
-        OnClick = menuUpdateCheckClick
+        Action = actUpdateCheck
       end
       object menuWebsite: TMenuItem
         Tag = 56
-        Caption = 'HeidiSQL Website'
-        Hint = 'http://www.heidisql.com/'
-        ImageIndex = 69
-        OnClick = OpenURL
+        Action = actWebMainsite
       end
       object menuDownload: TMenuItem
-        Caption = 'Download-Page'
-        Hint = 'http://download.heidisql.com/'
-        ImageIndex = 69
-        OnClick = OpenURL
+        Action = actWebDownloadpage
       end
       object menuSupportForum: TMenuItem
-        Caption = 'Support-Forum'
-        Hint = 'http://www.heidisql.com/forum/'
-        ImageIndex = 69
-        OnClick = OpenURL
+        Action = actWebForum
       end
       object menuBugtracker: TMenuItem
-        Caption = 'Bugtracker'
-        Hint = 'http://bugs.heidisql.com/'
-        OnClick = OpenURL
+        Action = actWebBugtracker
       end
       object menuFeaturetracker: TMenuItem
-        Caption = 'Featuretracker'
-        Hint = 'http://rfe.heidisql.com/'
-        OnClick = OpenURL
+        Action = actWebFeaturetracker
       end
       object N9: TMenuItem
         Caption = '-'
       end
       object menuReadme: TMenuItem
         Tag = 55
-        Caption = 'Readme'
-        ImageIndex = 68
-        OnClick = menuReadmeClick
+        Action = actReadme
       end
       object menuAbout: TMenuItem
-        Action = ShowAboutBox
+        Action = actAboutBox
         Hint = 'About HeidiSQL'
       end
     end
@@ -689,96 +601,124 @@ object MainForm: TMainForm
     Images = PngImageListMain
     Left = 72
     Top = 120
-    object FileNew1: TAction
+    object actOpenSession: TAction
       Category = 'File'
-      Caption = '&Connection'
+      Caption = 'New &connection'
       Hint = 'Connection...|Establish Connection with MySQL-Host'
       ImageIndex = 37
       ShortCut = 16462
-      OnExecute = ShowConnections
+      OnExecute = actOpenSessionExecute
     end
-    object FileClose1: TWindowClose
+    object actCloseSession: TWindowClose
       Category = 'File'
       Caption = '&Close'
       Hint = 'Close|Close Connection'
       ImageIndex = 29
     end
-    object FileExit1: TAction
+    object actExitApplication: TAction
       Category = 'File'
       Caption = 'E&xit'
       Hint = 'Exit|Exit application'
       ImageIndex = 26
-      OnExecute = FileExit1Execute
+      OnExecute = actExitApplicationExecute
     end
-    object EditCopy1: TEditCopy
+    object actCopy: TEditCopy
       Tag = 27
-      Category = 'Edit'
+      Category = 'Various'
       Caption = '&Copy'
       Enabled = False
       Hint = 'Copy|Copy to Clipboard'
       ImageIndex = 3
     end
-    object EditPaste1: TEditPaste
+    object actPaste: TEditPaste
       Tag = 58
-      Category = 'Edit'
+      Category = 'Various'
       Caption = '&Paste'
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 4
     end
-    object UserManager: TAction
+    object actUserManager: TAction
       Tag = 34
+      Category = 'Tools'
       Caption = 'User-Manager'
       Enabled = False
       Hint = 'User-Manager'
       ImageIndex = 11
-      OnExecute = UserManagerExecute
+      OnExecute = actUserManagerExecute
     end
-    object ShowAboutBox: TAction
+    object actCut: TEditCut
+      Category = 'Various'
+      Caption = 'Cu&t'
+      Hint = 'Cut|Cuts the selection and puts it on the Clipboard'
+      ImageIndex = 2
+      ShortCut = 16472
+    end
+    object actUndo: TEditUndo
+      Category = 'Various'
+      Caption = '&Undo'
+      Enabled = False
+      ImageIndex = 40
+      ShortCut = 32776
+    end
+    object actSelectAll: TEditSelectAll
+      Category = 'Various'
+      Caption = 'Select &All'
+      Hint = 'Select All|Selects the entire document'
+      ShortCut = 16449
+    end
+    object actAboutBox: TAction
       Tag = 57
+      Category = 'Various'
       Caption = 'About...'
       Hint = 'About MySQL-Front'
-      OnExecute = ShowAboutBoxExecute
+      OnExecute = actAboutBoxExecute
     end
     object actMaintenance: TAction
       Tag = 35
+      Category = 'Tools'
       Caption = 'Maintenance'
       Enabled = False
       Hint = 'Optimize, repair and analyse tables'
       ImageIndex = 39
       OnExecute = actMaintenanceExecute
     end
-    object CopyHTMLtable: TAction
+    object actCopyAsHTML: TAction
       Tag = 49
+      Category = 'Export/Import'
       Caption = 'Copy as HTML-table'
       Enabled = False
       Hint = 'Copy data as HTML-table'
       ImageIndex = 32
-      OnExecute = CopyHTMLtableExecute
+      OnExecute = actCopyAsHTMLExecute
     end
-    object Copy2CSV: TAction
+    object actCopyAsCSV: TAction
       Tag = 48
+      Category = 'Export/Import'
       Caption = 'Copy as CSV-data'
       Enabled = False
       Hint = 'Copy data as CSV-data'
       ImageIndex = 49
-      OnExecute = Copy2CSVExecute
+      OnExecute = actCopyAsCSVExecute
     end
-    object Copy2XML: TAction
+    object actCopyAsXML: TAction
+      Category = 'Export/Import'
       Caption = 'Copy as XML-data'
       Enabled = False
       Hint = 'Copy data as XML-data'
       ImageIndex = 48
-      OnExecute = Copy2XMLExecute
+      OnExecute = actCopyAsXMLExecute
     end
-    object ExportData: TAction
+    object actExportData: TAction
+      Category = 'Export/Import'
       Caption = 'Export data ...'
       Enabled = False
       Hint = 'Save table-data to file ...'
       ImageIndex = 20
-      OnExecute = ExportDataExecute
+      OnExecute = actExportDataExecute
     end
     object actPrintList: TAction
       Tag = 61
+      Category = 'Various'
       Caption = 'Print...'
       Enabled = False
       Hint = 'Print List or Data'
@@ -788,74 +728,78 @@ object MainForm: TMainForm
     end
     object actCopyTable: TAction
       Tag = 62
+      Category = 'Tools'
       Caption = 'Create table copy ...'
       Enabled = False
       Hint = 'Create a base table copy of this table or view'
       ImageIndex = 19
       OnExecute = actCopyTableExecute
     end
-    object EditUndo1: TEditUndo
-      Category = 'Edit'
-      Caption = '&Undo'
-      Enabled = False
-      ImageIndex = 40
-      ShortCut = 32776
-    end
-    object ExecuteQuery: TAction
+    object actExecuteQuery: TAction
+      Category = 'SQL'
       Caption = 'Run'
       Enabled = False
       Hint = 'Execute SQL...|Execute SQL-query/queries...'
       ImageIndex = 57
       ShortCut = 120
-      OnExecute = ExecuteQueryExecute
+      OnExecute = actExecuteQueryExecute
     end
-    object ExecuteSelection: TAction
+    object actExecuteSelection: TAction
+      Category = 'SQL'
       Caption = 'Run Selection'
       Enabled = False
       Hint = 'Execute selected SQL...|Execute selected SQL-query/queries...'
       ImageIndex = 61
       ShortCut = 16504
-      OnExecute = ExecuteSelectionExecute
+      OnExecute = actExecuteSelectionExecute
     end
-    object ExecuteLine: TAction
+    object actExecuteLine: TAction
+      Category = 'SQL'
       Caption = 'Run current line'
       Hint = 'Execute Line|Executes the current line of SQL'
       ImageIndex = 61
       ShortCut = 24696
-      OnExecute = ExecuteLineExecute
+      OnExecute = actExecuteLineExecute
     end
-    object HTMLview: TAction
+    object actHTMLview: TAction
+      Category = 'Export/Import'
       Caption = 'HTML-view'
       Hint = 'View contents as HTML-file'
       ImageIndex = 32
-      OnExecute = HTMLviewExecute
+      OnExecute = actHTMLviewExecute
     end
     object actInsertFiles: TAction
+      Category = 'Export/Import'
       Caption = 'Insert files into BLOB-fields...'
       Enabled = False
       ImageIndex = 47
       OnExecute = actInsertFilesExecute
     end
     object actExportTables: TAction
+      Category = 'Export/Import'
       Caption = 'Export tables as SQL'
       Enabled = False
       ImageIndex = 20
       OnExecute = actExportTablesExecute
     end
-    object LoadSQL: TAction
+    object actLoadSQL: TAction
+      Category = 'SQL'
       Caption = 'Load SQL-file ...'
       Enabled = False
       Hint = 'Load SQL-file ...'
       ImageIndex = 52
-      OnExecute = LoadSQLExecute
+      ShortCut = 16463
+      OnExecute = actLoadSQLExecute
     end
-    object DataSearch: TAction
+    object actDataSearch: TAction
+      Category = 'Data'
       Caption = 'Find...'
       ImageIndex = 30
       ShortCut = 16454
-      OnExecute = DataSearchExecute
+      OnExecute = actDataSearchExecute
     end
     object actDropTablesAndViews: TAction
+      Category = 'Database'
       Caption = 'Drop table/view ...'
       Enabled = False
       Hint = 'Deletes tables and/or views'
@@ -863,6 +807,7 @@ object MainForm: TMainForm
       OnExecute = actDropTablesAndViewsExecute
     end
     object actEditView: TAction
+      Category = 'Database'
       Caption = 'Edit view ...'
       Enabled = False
       Hint = 'Edit view ...'
@@ -870,6 +815,7 @@ object MainForm: TMainForm
       OnExecute = actEditViewExecute
     end
     object actCreateView: TAction
+      Category = 'Database'
       Caption = 'Create view ...'
       Enabled = False
       Hint = 'Create view ...'
@@ -877,59 +823,307 @@ object MainForm: TMainForm
       OnExecute = actCreateViewExecute
     end
     object actDataSetFirst: TDataSetFirst
-      Category = 'Dataset'
+      Category = 'Data'
       Caption = '&First'
       Hint = 'First'
       ImageIndex = 89
     end
     object actDataSetLast: TDataSetLast
-      Category = 'Dataset'
+      Category = 'Data'
       Caption = '&Last'
       Hint = 'Last'
       ImageIndex = 90
     end
     object actDataSetInsert: TDataSetInsert
-      Category = 'Dataset'
+      Category = 'Data'
       Caption = '&Insert'
       Hint = 'Insert'
       ImageIndex = 45
     end
     object actDataSetDelete: TDataSetDelete
-      Category = 'Dataset'
+      Category = 'Data'
       Caption = '&Delete'
       Hint = 'Delete'
       ImageIndex = 46
+      ShortCut = 16430
       OnExecute = actDataSetDeleteExecute
     end
     object actDataSetPost: TDataSetPost
-      Category = 'Dataset'
+      Category = 'Data'
       Caption = 'P&ost'
       Hint = 'Post'
       ImageIndex = 55
     end
     object actCreateTable: TAction
+      Category = 'Database'
       Caption = 'Create new table'
       Hint = 'Create new table in selected database'
       ImageIndex = 15
       OnExecute = actCreateTableExecute
     end
     object actEmptyTables: TAction
+      Category = 'Database'
       Caption = 'Empty table(s) ...'
       Hint = 'Delete all rows in selected table(s)'
       ImageIndex = 46
       ShortCut = 8238
       OnExecute = actEmptyTablesExecute
     end
-    object actTableProperties: TAction
+    object actEditTableFields: TAction
+      Category = 'Database'
       Caption = 'Table properties'
       ImageIndex = 44
-      OnExecute = actTablePropertiesExecute
+      OnExecute = actEditTableFieldsExecute
     end
-    object actAlterTable: TAction
+    object actEditTableProperties: TAction
+      Category = 'Database'
       Caption = 'Alter table ...'
       Hint = 'Edit table engine, charset, auto increment etc.'
       ImageIndex = 17
-      OnExecute = actAlterTableExecute
+      OnExecute = actEditTablePropertiesExecute
+    end
+    object actEditField: TAction
+      Category = 'Table'
+      Caption = 'Edit field'
+      Hint = 'Edit field properties'
+      ImageIndex = 44
+      OnExecute = actEditFieldExecute
+    end
+    object actCreateField: TAction
+      Category = 'Table'
+      Caption = 'Add field'
+      Hint = 'Create new field in selected table'
+      ImageIndex = 45
+      OnExecute = actCreateFieldExecute
+    end
+    object actDropFields: TAction
+      Category = 'Table'
+      Caption = 'Delete selected field(s) ...'
+      Hint = 'Delete selected field(s)'
+      ImageIndex = 46
+      OnExecute = actDropFieldsExecute
+    end
+    object actEditIndexes: TAction
+      Category = 'Table'
+      Caption = 'Edit indexes'
+      Hint = 'Create and edit indexes for the selected table'
+      ImageIndex = 13
+      OnExecute = actEditIndexesExecute
+    end
+    object actDropDatabase: TAction
+      Category = 'Database'
+      Caption = 'Drop Database'
+      Hint = 'Delete database and all contained tables and objects'
+      ImageIndex = 7
+      OnExecute = actDropDatabaseExecute
+    end
+    object actCreateDatabase: TAction
+      Category = 'Database'
+      Caption = 'Create database'
+      Hint = 'Create a new, blank database'
+      ImageIndex = 6
+      OnExecute = actCreateDatabaseExecute
+    end
+    object actEditDatabase: TAction
+      Category = 'Database'
+      Caption = 'Edit database'
+      Hint = 'Edit database properties'
+      ImageIndex = 8
+      OnExecute = actEditDatabaseExecute
+    end
+    object actSQLhelp: TAction
+      Category = 'Tools'
+      Caption = 'SQL help'
+      ImageIndex = 31
+      ShortCut = 112
+      OnExecute = actSQLhelpExecute
+    end
+    object actRefresh: TAction
+      Category = 'Various'
+      Caption = 'Refresh'
+      Hint = 'Refresh'
+      ImageIndex = 0
+      OnExecute = actRefreshExecute
+    end
+    object actImportCSV: TAction
+      Category = 'Export/Import'
+      Caption = 'Import CSV file'
+      ImageIndex = 50
+      OnExecute = actImportCSVExecute
+    end
+    object actExportSettings: TAction
+      Category = 'Export/Import'
+      Caption = 'Export settings ...'
+      OnExecute = actExportSettingsExecute
+    end
+    object actImportSettings: TAction
+      Category = 'Export/Import'
+      Caption = 'Import settings ...'
+      OnExecute = actImportSettingsExecute
+    end
+    object actPreferences: TAction
+      Category = 'Tools'
+      Caption = 'Preferences'
+      OnExecute = actPreferencesExecute
+    end
+    object actFlushHosts: TAction
+      Category = 'Tools'
+      Caption = 'Hosts'
+      OnExecute = actFlushExecute
+    end
+    object actFlushLogs: TAction
+      Category = 'Tools'
+      Caption = 'Logs'
+      OnExecute = actFlushExecute
+    end
+    object actFlushPrivileges: TAction
+      Category = 'Tools'
+      Caption = 'Privileges'
+      OnExecute = actFlushExecute
+    end
+    object actFlushTables: TAction
+      Category = 'Tools'
+      Caption = 'Tables'
+      OnExecute = actFlushExecute
+    end
+    object actFlushTableswithreadlock: TAction
+      Category = 'Tools'
+      Caption = 'Tables with read lock'
+      OnExecute = actFlushExecute
+    end
+    object actFlushStatus: TAction
+      Category = 'Tools'
+      Caption = 'Status'
+      OnExecute = actFlushExecute
+    end
+    object actUpdateCheck: TAction
+      Category = 'Tools'
+      Caption = 'Check for updates ...'
+      ImageIndex = 0
+      OnExecute = actUpdateCheckExecute
+    end
+    object actWebMainsite: TAction
+      Category = 'Various'
+      Caption = 'HeidiSQL website'
+      Hint = 'http://www.heidisql.com/'
+      ImageIndex = 69
+      OnExecute = actWebbrowse
+    end
+    object actWebDownloadpage: TAction
+      Category = 'Various'
+      Caption = 'Download page'
+      Hint = 'http://www.heidisql.com/download.php'
+      ImageIndex = 69
+      OnExecute = actWebbrowse
+    end
+    object actWebForum: TAction
+      Category = 'Various'
+      Caption = 'User to user forum'
+      Hint = 'http://www.heidisql.com/forum/'
+      ImageIndex = 69
+      OnExecute = actWebbrowse
+    end
+    object actWebBugtracker: TAction
+      Category = 'Various'
+      Caption = 'Bug tracker'
+      Hint = 'http://bugs.heidisql.com/'
+      ImageIndex = 69
+      OnExecute = actWebbrowse
+    end
+    object actWebFeaturetracker: TAction
+      Category = 'Various'
+      Caption = 'Feature tracker'
+      Hint = 'http://rfe.heidisql.com/'
+      ImageIndex = 69
+      OnExecute = actWebbrowse
+    end
+    object actReadme: TAction
+      Category = 'Various'
+      Caption = 'Readme'
+      Hint = 'Open readme file'
+      ImageIndex = 68
+      OnExecute = actReadmeExecute
+    end
+    object actSaveSQL: TAction
+      Category = 'SQL'
+      Caption = 'Save to file ...'
+      Hint = 'Save SQL to a textfile'
+      ImageIndex = 10
+      ShortCut = 16467
+      OnExecute = actSaveSQLExecute
+    end
+    object actSaveSQLselection: TAction
+      Tag = 1
+      Category = 'SQL'
+      Caption = 'Save selection to file ...'
+      Hint = 'Save selected text to a file'
+      ImageIndex = 10
+      ShortCut = 24659
+      OnExecute = actSaveSQLExecute
+    end
+    object actSaveSQLSnippet: TAction
+      Category = 'SQL'
+      Caption = 'Save as snippet ...'
+      Hint = 'Save as snippet ...'
+      ImageIndex = 54
+      OnExecute = actSaveSQLSnippetExecute
+    end
+    object actSaveSQLSelectionSnippet: TAction
+      Tag = 1
+      Category = 'SQL'
+      Caption = 'Save selection as snippet ...'
+      Hint = 'Save selected text as snippet ...'
+      ImageIndex = 54
+      OnExecute = actSaveSQLSnippetExecute
+    end
+    object actClearQueryEditor: TAction
+      Category = 'SQL'
+      Caption = 'Clear'
+      Hint = 'Clear query editor'
+      ImageIndex = 58
+      ShortCut = 16471
+      OnExecute = actClearEditorExecute
+    end
+    object actClearFilterEditor: TAction
+      Category = 'SQL'
+      Caption = 'Clear'
+      Hint = 'Clear filter editor'
+      ImageIndex = 58
+      ShortCut = 16471
+      OnExecute = actClearEditorExecute
+    end
+    object actQueryStopOnErrors: TAction
+      Category = 'SQL'
+      AutoCheck = True
+      Caption = 'Stop on errors in batch mode'
+      Checked = True
+      Hint = 'Stop on errors in batch mode'
+      ImageIndex = 63
+      OnExecute = actQueryStopOnErrorsExecute
+    end
+    object actQueryWordWrap: TAction
+      Category = 'SQL'
+      AutoCheck = True
+      Caption = 'Wrap long lines'
+      Hint = 'Wrap long lines'
+      ImageIndex = 62
+      OnExecute = actQueryWordWrapExecute
+    end
+    object actQueryFind: TAction
+      Category = 'SQL'
+      Caption = 'Find text ...'
+      Hint = 'Find text ...'
+      ImageIndex = 30
+      ShortCut = 16454
+      OnExecute = actQueryFindExecute
+    end
+    object actQueryReplace: TAction
+      Category = 'SQL'
+      Caption = 'Replace text ...'
+      Hint = 'Replace text ...'
+      ImageIndex = 59
+      ShortCut = 16466
+      OnExecute = actQueryReplaceExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -953,11 +1147,9 @@ object MainForm: TMainForm
     Left = 72
     Top = 88
     object miNewConnection: TMenuItem
-      Caption = 'New Connection...'
+      Action = actOpenSession
       SubMenuImages = PngImageListMain
       Default = True
-      ImageIndex = 37
-      OnClick = ShowConnections
     end
   end
   object PngImageListMain: TPngImageList
@@ -3760,5 +3952,16 @@ object MainForm: TMainForm
     Left = 8
     Top = 120
     Bitmap = {}
+  end
+  object FindDialogQuery: TFindDialog
+    OnFind = FindDialogQueryFind
+    Left = 8
+    Top = 160
+  end
+  object ReplaceDialogQuery: TReplaceDialog
+    OnFind = ReplaceDialogQueryFind
+    OnReplace = ReplaceDialogQueryReplace
+    Left = 40
+    Top = 160
   end
 end

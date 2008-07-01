@@ -221,9 +221,7 @@ type
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
     btnQuerySaveSnippet: TToolButton;
-    FindDialogQuery: TFindDialog;
     SynEditSearch1: TSynEditSearch;
-    ReplaceDialogQuery: TReplaceDialog;
     N16: TMenuItem;
     ManageIndexes1: TMenuItem;
     tabCommandStats: TTabSheet;
@@ -259,7 +257,6 @@ type
     menuRenameColumn: TMenuItem;
     N22: TMenuItem;
     N23: TMenuItem;
-    menuInsertFileAtCursor: TMenuItem;
     menuSaveSelectionToFile: TMenuItem;
     menuSaveAsSnippet: TMenuItem;
     menuSaveSelectionAsSnippet: TMenuItem;
@@ -315,7 +312,6 @@ type
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
-    procedure menuclearClick(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
     procedure lboxQueryHelpersDblClick(Sender: TObject);
@@ -330,15 +326,7 @@ type
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure CallSQLHelp(Sender: TObject);
-    procedure CallSQLHelpWithKeyword(keyword: String);
-    procedure ManageIndexes1Click(Sender: TObject);
     procedure ZQueryGridAfterPost(DataSet: TDataSet);
-    procedure btnQueryReplaceClick(Sender: TObject);
-    procedure ReplaceDialogQueryReplace(Sender: TObject);
-    procedure ReplaceDialogQueryFind(Sender: TObject);
-    procedure FindDialogQueryFind(Sender: TObject);
-    procedure btnQuerySaveSnippetClick(Sender: TObject);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
@@ -361,21 +349,17 @@ type
     procedure viewdata(Sender: TObject);
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
-    procedure DropDB(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
     procedure ShowVariablesAndProcesses(Sender: TObject);
-    procedure CreateDatabase(Sender: TObject);
     procedure KillProcess(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
       CurrentLine: Boolean=false);
-    procedure DropField(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure UpdateField(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
     procedure MenuRenameTableClick(Sender: TObject);
@@ -388,7 +372,6 @@ type
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
     procedure Filter1Click(Sender: TObject);
-    procedure Delete1Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure btnBlobWordWrapClick(Sender: TObject);
     procedure pageCtlEditorsChange(Sender: TObject);
@@ -420,13 +403,9 @@ type
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
-    procedure btnQueryFindClick(Sender: TObject);
-    procedure btnQuerySaveClick(Sender: TObject);
-    procedure btnQueryLoadClick(Sender: TObject);
     procedure btnFilterPreviousClick(Sender: TObject);
     procedure btnFilterNextClick(Sender: TObject);
     procedure ComboBoxWhereFiltersChange(Sender: TObject);
-    procedure btnQueryStopOnErrorsClick(Sender: TObject);
     procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure GridDrawColumnCell(Sender: TObject; const Rect: TRect; DataCol:
@@ -435,7 +414,6 @@ type
     procedure InsertDate(Sender: TObject);
     procedure btnBlobCopyClick(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
-    procedure MenuAddFieldClick(Sender: TObject);
     procedure ZQueryGridBeforeClose(DataSet: TDataSet);
     function GetNamedVar( SQLQuery: WideString; x: String;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
@@ -459,7 +437,6 @@ type
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
     procedure AddOrRemoveFromQueryLoadHistory( filename: String;
       AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
-    procedure btnQueryWordWrapClick(Sender: TObject);
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
@@ -469,11 +446,8 @@ type
     procedure menuDeleteSnippetClick(Sender: TObject);
     function GetCalculatedLimit( Table: String ): Int64;
     procedure menuExploreClick(Sender: TObject);
-    procedure menuInsertFileAtCursorClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
-    procedure menuAlterdatabaseClick(Sender: TObject);
-    procedure menuSQLhelpClick(Sender: TObject);
     procedure RunAsyncPost(ds: TDeferDataSet);
     procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
         NodeDataSize: Integer);
@@ -522,6 +496,7 @@ type
         TRect);
     procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure editFilterVTChange(Sender: TObject);
+    procedure ListColumnsDblClick(Sender: TObject);
     procedure ListTablesEdited(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex);
     procedure ListVariablesDblClick(Sender: TObject);
@@ -540,7 +515,7 @@ type
       viewingdata                : Boolean;
       WhereFilters               : TStringList;
       WhereFiltersIndex          : Integer;
-      StopOnErrors, WordWrap     : Boolean;
+      WordWrap                   : Boolean;
       FMysqlConn                 : TMysqlConn;
       FConn                      : TOpenConnProf;
       QueryRunningInterlock      : Integer;
@@ -549,7 +524,6 @@ type
       UserQueryFiring            : Boolean;
       CachedTableLists           : TStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Array of Integer;
-      CreateDatabaseForm         : TCreateDatabaseForm;
       EditVariableForm           : TfrmEditVariable;
       FileNameSessionLog         : String;
       FileHandleSessionLog       : Textfile;
@@ -606,6 +580,7 @@ type
       prefCSVTerminator          : String[10];
       prefLogToFile,
       prefPreferShowTables       : Boolean;
+      CreateDatabaseForm         : TCreateDatabaseForm;
       CreateTableForm            : TCreateTableForm;
       TablePropertiesForm        : Ttbl_properties_form;
 
@@ -1024,9 +999,6 @@ begin
     ComboBoxQueryDelimiter.Items.Text := delimiters;
     ComboBoxQueryDelimiter.ItemIndex := Mainform.GetRegValue( REGNAME_DELIMITERSELECTED, 0 );
   end;
-
-  // Synchronize internal variables with defaults from DFM.
-  StopOnErrors := btnQueryStopOnErrors.Down;
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListVariables);
@@ -1635,10 +1607,9 @@ begin
   Mainform.actDatasetInsert.Enabled := inDataTab;
   Mainform.actDatasetDelete.Enabled := inDataTab;
   Mainform.actDatasetPost.Enabled := inDataTab;
-
-  Mainform.ExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
-  Mainform.ExecuteSelection.Enabled := PageControlMain.ActivePage = tabQuery;
-  Mainform.ExecuteLine.Enabled := PageControlMain.ActivePage = tabQuery;
+  Mainform.actExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
+  Mainform.actExecuteSelection.Enabled := PageControlMain.ActivePage = tabQuery;
+  Mainform.actExecuteLine.Enabled := PageControlMain.ActivePage = tabQuery;
   if (PageControlMain.ActivePage = tabData) and (not dataselected) then
     viewdata(Sender);
   if PageControlMain.ActivePage = tabQuery then
@@ -1788,7 +1759,6 @@ var
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
-  Mainform.ButtonDropDatabase.Hint := 'Drop Database...|Drop Database ' + db + '...';
 
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListTables, True);
@@ -2166,90 +2136,85 @@ begin
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
-  Mainform.actTableProperties.Enabled := NodeSelected;
+  Mainform.actEditTableFields.Enabled := NodeSelected;
   Mainform.actEmptyTables.Enabled := tableSelected;
-  Mainform.actAlterTable.Enabled := tableSelected;
+  Mainform.actEditTableProperties.Enabled := tableSelected;
   MenuRenameTable.Enabled := NodeSelected;
   Mainform.actCopyTable.Enabled := NodeSelected;
   Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
   Mainform.actCreateView.Enabled := FrmIsFocussed and (mysql_version >= 50001);
-
-  MainForm.ButtonDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  MainForm.actCreateDatabase.Enabled := FrmIsFocussed;
+  MainForm.actDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  MainForm.actEditDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed and (mysql_version >= 50002);
+  if mysql_version < 50002 then
+    MainForm.actEditDatabase.Hint := STR_NOTSUPPORTED
+  else
+    MainForm.actEditDatabase.Hint := 'Rename and/or modify character set of database';
   MainForm.actDropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
   MainForm.actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  MainForm.ButtonImportTextFile.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
-  MainForm.MenuImportTextFile.Enabled := MainForm.ButtonImportTextFile.Enabled;
+  MainForm.actImportCSV.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
+  MainForm.actExportTables.Enabled := FrmIsFocussed;
+  MainForm.actRefresh.Enabled := FrmIsFocussed;
+  MainForm.actLoadSQL.Enabled := FrmIsFocussed;
+  MainForm.actFlushHosts.Enabled := FrmIsFocussed;
+  MainForm.actFlushLogs.Enabled := FrmIsFocussed;
+  MainForm.actFlushPrivileges.Enabled := FrmIsFocussed;
+  MainForm.actFlushTables.Enabled := FrmIsFocussed;
+  MainForm.actFlushTableswithreadlock.Enabled := FrmIsFocussed;
+  MainForm.actFlushStatus.Enabled := FrmIsFocussed;
+  MainForm.actUserManager.Enabled := FrmIsFocussed;
+  MainForm.actMaintenance.Enabled := FrmIsFocussed;
+  MainForm.actInsertFiles.Enabled := FrmIsFocussed;
+  {***
+    Activate export-options if we're on Data- or Query-tab
+    PrintList should only be active if we're focussing one of the ListViews,
+    at least as long we are not able to print DBGrids
+    @see Issue 1686582
+  }
+  inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
+  MainForm.actPrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
+  // Both the Query and the Data grid may have a nil DataSet reference,
+  // either in case the relevant grid has not been used yet, or when
+  // an error has occurred.
+  inDataOrQueryTabNotEmpty := inDataOrQueryTab and
+    not (
+      (getActiveGrid.DataSource.DataSet = nil)
+      or getActiveGrid.DataSource.DataSet.IsEmpty
+    );
+  MainForm.actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
+  MainForm.actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
+  MainForm.actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
+  MainForm.actExportData.Enabled := inDataOrQueryTabNotEmpty;
+  MainForm.actHTMLView.Enabled := inDataOrQueryTabNotEmpty;
+  Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
+  // Hide irrelevant toolbars
+  ShowDbTlb := PageControlMain.ActivePage = tabDatabase;
+  if not ShowDbTlb then MainForm.ToolBarDatabase.Visible := False;
+  ShowTableTlb := PageControlMain.ActivePage = tabTable;
+  if not ShowTableTlb then MainForm.ToolBarTable.Visible := False;
+  ShowDataTlb := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
+  if not ShowDataTlb then MainForm.ToolBarData.Visible := False;
+  // Unhide relevant toolbar
+  MainForm.ToolBarDatabase.Visible := ShowDbTlb;
+  MainForm.ToolBarTable.Visible := ShowTableTlb;
+  MainForm.ToolBarData.Visible := ShowDataTlb;
 
-  with MainForm do
-  begin
-    ButtonRefresh.Enabled := FrmIsFocussed;
-    actExportTables.Enabled := FrmIsFocussed;
-    ButtonCreateDatabase.Enabled := FrmIsFocussed;
-    MenuRefresh.Enabled := FrmIsFocussed;
-    MenuCreateDatabase.Enabled := FrmIsFocussed;
-    MenuDropDatabase.Enabled := FrmIsFocussed;
-    LoadSQL.Enabled := FrmIsFocussed;
-    MenuFlushHosts.Enabled := FrmIsFocussed;
-    MenuFlushLogs.Enabled := FrmIsFocussed;
-    FlushUserPrivileges1.Enabled := FrmIsFocussed;
-    MenuFlushTables.Enabled := FrmIsFocussed;
-    MenuFlushTableswithreadlock.Enabled := FrmIsFocussed;
-    MenuFlushStatus.Enabled := FrmIsFocussed;
-    UserManager.Enabled := FrmIsFocussed;
-    actMaintenance.Enabled := FrmIsFocussed;
-    actInsertFiles.Enabled := FrmIsFocussed;
-    {***
-      Activate export-options if we're on Data- or Query-tab
-      PrintList should only be active if we're focussing one of the ListViews,
-      at least as long we are not able to print DBGrids
-      @see Issue 1686582
-    }
-    inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
-    actPrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
-    // Both the Query and the Data grid may have a nil DataSet reference,
-    // either in case the relevant grid has not been used yet, or when
-    // an error has occurred.
-    inDataOrQueryTabNotEmpty := inDataOrQueryTab and
-      not (
-        (getActiveGrid.DataSource.DataSet = nil)
-        or getActiveGrid.DataSource.DataSet.IsEmpty
-      );
-    Copy2CSV.Enabled := inDataOrQueryTabNotEmpty;
-    CopyHTMLtable.Enabled := inDataOrQueryTabNotEmpty;
-    Copy2XML.Enabled := inDataOrQueryTabNotEmpty;
-    ExportData.Enabled := inDataOrQueryTabNotEmpty;
-    HTMLView.Enabled := inDataOrQueryTabNotEmpty;
-    Self.Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
-    // Hide irrelevant toolbars
-    ShowDbTlb := PageControlMain.ActivePage = tabDatabase;
-    if not ShowDbTlb then ToolBarDatabase.Visible := False;
-    ShowTableTlb := PageControlMain.ActivePage = tabTable;
-    if not ShowTableTlb then ToolBarTable.Visible := False;
-    ShowDataTlb := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
-    if not ShowDataTlb then ToolBarData.Visible := False;
-    // Unhide relevant toolbar
-    ToolBarDatabase.Visible := ShowDbTlb;
-    ToolBarTable.Visible := ShowTableTlb;
-    ToolBarData.Visible := ShowDataTlb;
-
-    if FrmIsFocussed then begin
-      actDatasetFirst.DataSource := DataSource1;
-      actDatasetLast.DataSource := DataSource1;
-      actDatasetInsert.DataSource := DataSource1;
-      actDatasetDelete.DataSource := DataSource1;
-      actDatasetPost.DataSource := DataSource1;
-    end;
-    btnSQLHelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
-    menuSQLHelp.Enabled := btnSQLHelp.Enabled and FrmIsFocussed;
-
-    if not FrmIsFocussed then begin
-      // Empty "connected" and "uptime"
-      MainForm.showstatus('', 1);
-      MainForm.showstatus('', 2);
-      MainForm.showstatus('', 3);
-    end;
-    tabEditors.tabVisible := inDataOrQueryTab;
+  if FrmIsFocussed then begin
+    MainForm.actDatasetFirst.DataSource := DataSource1;
+    MainForm.actDatasetLast.DataSource := DataSource1;
+    MainForm.actDatasetInsert.DataSource := DataSource1;
+    MainForm.actDatasetDelete.DataSource := DataSource1;
+    MainForm.actDatasetPost.DataSource := DataSource1;
   end;
+  MainForm.actSQLhelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
+
+  if not FrmIsFocussed then begin
+    // Empty "connected" and "uptime"
+    MainForm.showstatus('', 1);
+    MainForm.showstatus('', 2);
+    MainForm.showstatus('', 3);
+  end;
+  tabEditors.tabVisible := inDataOrQueryTab;
 end;
 
 
@@ -2260,48 +2225,6 @@ begin
   viewdata(self);
   pcChange( Self );
 end;
-
-
-procedure TMDIChild.DropDB(Sender: TObject);
-var
-  tndb_ : PVirtualNode;
-  db: String;
-begin
-  // Drop DB.
-  case DBtree.GetNodeLevel(DBtree.GetFirstSelected) of
-    1: tndb_ := DBtree.GetFirstSelected;
-    2: tndb_ := DBtree.GetFirstSelected.Parent;
-    else Exit;
-  end;
-
-  if not Assigned(tndb_) then raise Exception.Create('Internal error: Cannot drop NIL database.');
-
-  db := Databases[tndb_.Index];
-
-  if MessageDlg('Drop Database "'+db+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+db+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
-    abort;
-
-  Screen.Cursor := crSQLWait;
-  try
-    ExecUpdateQuery( 'DROP DATABASE ' + mask(db) );
-    if DatabasesWanted.IndexOf(db) > -1 then begin
-      DatabasesWanted.Delete( DatabasesWanted.IndexOf(db) );
-      with TRegistry.Create do begin
-        if OpenKey(REGPATH + REGKEY_SESSIONS + FConn.Description, false) then begin
-          WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
-          CloseKey;
-        end;
-        Free;
-      end;
-    end;
-    DBtree.Selected[DBtree.GetFirst] := true;
-    RefreshTree(False);
-  except
-    MessageDLG('Dropping failed.'+crlf+'Maybe '''+db+''' is not a valid database-name.', mtError, [mbOK], 0)
-  end;
-  Screen.Cursor := crDefault;
-end;
-
 
 
 procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
@@ -2583,8 +2506,8 @@ begin
   ds := nil;
   try
     MainForm.showstatus( 'Initializing SQL...' );
-    Mainform.ExecuteQuery.Enabled := false;
-    Mainform.ExecuteSelection.Enabled := false;
+    Mainform.actExecuteQuery.Enabled := false;
+    Mainform.actExecuteSelection.Enabled := false;
 
     // Let EnsureActiveDatabase know that we've fired user queries.
     UserQueryFiring := true;
@@ -2632,16 +2555,12 @@ begin
       except
         on E:Exception do
         begin
-          if (
-            ( btnQueryStopOnErrors.Down ) or
-            ( i = (SQL.Count - 1) )
-          ) then
-          begin
+          if Mainform.actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
             Screen.Cursor := crDefault;
             MessageDlg( E.Message, mtError, [mbOK], 0 );
             ProgressBarQuery.Hide();
-            Mainform.ExecuteQuery.Enabled := true;
-            Mainform.ExecuteSelection.Enabled := true;
+            Mainform.actExecuteQuery.Enabled := true;
+            Mainform.actExecuteSelection.Enabled := true;
             Break;
           end;
         end;
@@ -2662,8 +2581,8 @@ begin
     end;
 
     ProgressBarQuery.Hide();
-    Mainform.ExecuteQuery.Enabled := true;
-    Mainform.ExecuteSelection.Enabled := true;
+    Mainform.actExecuteQuery.Enabled := true;
+    Mainform.actExecuteSelection.Enabled := true;
     // count chars:
     SynMemoQuery.OnChange( Self );
 
@@ -2722,52 +2641,9 @@ begin
   SomeSelected := Length(Sender.GetSortedSelection(False))>0;
 
   // Toggle state of menuitems and buttons
-  Mainform.btnTableDropField.Enabled := SomeSelected;
-  DropField1.Enabled := SomeSelected;
-  MenuEditField.Enabled := OneFocused and SomeSelected;
-  Mainform.btnTableEditField.enabled := OneFocused and SomeSelected;
+  Mainform.actDropFields.Enabled := SomeSelected;
+  Mainform.actEditField.enabled := OneFocused and SomeSelected;
   menuRenameColumn.Enabled := OneFocused and SomeSelected;
-  menuEditField.Enabled := OneFocused and SomeSelected;
-end;
-
-
-procedure TMDIChild.DropField(Sender: TObject);
-var
-  i : Integer;
-  dropCmd : String;
-  dropList : TStringList;
-begin
-  // Drop Columns
-
-  // We allow the user to select and delete multiple listItems
-  dropList := GetVTCaptions( ListColumns, True );
-
-  // User confirmation
-  if MessageDlg('Drop ' + IntToStr(dropList.Count) + ' field(s): ' + ImplodeStr( ', ', dropList ) + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
-  try
-    // Concat fields for ALTER query
-    for i := 0 to dropList.Count - 1 do
-      dropCmd := dropCmd + 'DROP ' + mask(dropList[i]) + ', ';
-    // Remove trailing comma
-    delete(dropCmd, Length(dropCmd)-1, 2);
-
-    // Execute field dropping
-    ExecUpdateQuery( 'ALTER TABLE '+mask(SelectedTable)+' ' + dropCmd );
-
-    // Rely on the server respective ExecUpdateQuery has raised an exception so the
-    // following code will be skipped on any error
-    ListColumns.BeginUpdate;
-    ListColumns.DeleteSelectedNodes;
-    ListColumns.EndUpdate;
-
-    // Set focus on first item
-    ListColumns.FocusedNode := ListColumns.GetFirstVisible;
-  except
-    On E : Exception do
-    begin
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
-    end;
-  end;
 end;
 
 
@@ -2957,12 +2833,16 @@ procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
   PanelCharsInQueryWindow.Caption := FormatByteNumber( SynMemoQuery.GetTextLen );
-  somechars := Length(SynMemoQuery.Text) > 0;
-  Mainform.ExecuteQuery.Enabled := somechars;
-  Mainform.ExecuteSelection.Enabled := SynMemoQuery.SelAvail;
-  Mainform.ExecuteLine.Enabled := SynMemoQuery.LineText <> '';
-  btnQuerySave.Enabled := somechars;
-  btnQuerySaveSnippet.Enabled := somechars;
+  somechars := SynMemoQuery.GetTextLen > 0;
+  Mainform.actExecuteQuery.Enabled := somechars;
+  Mainform.actExecuteSelection.Enabled := SynMemoQuery.SelAvail;
+  Mainform.actExecuteLine.Enabled := SynMemoQuery.LineText <> '';
+  Mainform.actSaveSQL.Enabled := somechars;
+  // Inserting file at cursor only makes sense with content
+  Mainform.actSaveSQLselection.Enabled := SynMemoQuery.SelAvail;
+  Mainform.actSaveSQLSnippet.Enabled := somechars;
+  Mainform.actSaveSQLSelectionSnippet.Enabled := SynMemoQuery.SelAvail;
+  Mainform.actClearQueryEditor.Enabled := somechars;
 end;
 
 
@@ -3018,65 +2898,6 @@ begin
 
   //TODO:
   //ds.DisableControls;
-end;
-
-
-{ Edit field }
-procedure TMDIChild.UpdateField(Sender: TObject);
-var
-  fn : String;
-  fem : TFieldEditorMode;
-begin
-  fn := '';
-  fem := femFieldAdd;
-
-  if Assigned(ListColumns.FocusedNode) and (vsSelected in ListColumns.FocusedNode.States) then
-    fn := ListColumns.Text[ListColumns.FocusedNode, 0];
-
-  if fn<>'' then
-    fem := femFieldUpdate;
-
-  FieldEditorWindow (Self,fem,fn);
-end;
-
-
-{ Add new field }
-procedure TMDIChild.MenuAddFieldClick(Sender: TObject);
-begin
-  FieldEditorWindow (Self,femFieldAdd);
-end;
-
-
-procedure TMDIChild.CreateDatabase(Sender: TObject);
-var
-  newdb: String;
-begin
-  // Create database:
-  // Create modal form once on demand
-  if CreateDatabaseForm = nil then
-    CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-
-  // Rely on the modalresult being set correctly
-  if CreateDatabaseForm.ShowModal = mrOK then
-  begin
-    newdb := CreateDatabaseForm.editDBName.Text;
-    // Add DB to OnlyDBs-regkey if this is not empty
-    if DatabasesWanted.Count > 0 then
-    begin
-      DatabasesWanted.Add( newdb );
-      with TRegistry.Create do
-      begin
-        if OpenKey(REGPATH + REGKEY_SESSIONS + FConn.Description, false) then
-        begin
-          WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
-          CloseKey;
-        end;
-        Free;
-      end;
-    end;
-    // reload db nodes and switch to new one
-    RefreshTree(False, newdb);
-  end;
 end;
 
 
@@ -3163,11 +2984,6 @@ begin
 end;
 
 
-procedure TMDIChild.ManageIndexes1Click(Sender: TObject);
-begin
-  FieldEditorWindow (Self,femIndexEditor);
-end;
-
 procedure TMDIChild.Markall3Click(Sender: TObject);
 begin
   // select all in history
@@ -3175,28 +2991,9 @@ begin
 end;
 
 
-{**
-  Clear Query memo
-}
-procedure TMDIChild.menuclearClick(Sender: TObject);
-var
-  memo : TSynMemo;
-begin
-  // Clear SynMemo
-  if SynMemoFilter.Focused then
-    memo := SynMemoFilter
-  else
-    memo := SynMemoQuery;
-  // Make sure to add this step to SynMemo's undo history
-  memo.SelectAll;
-  memo.SelText := '';
-  memo.SelStart := 0;
-  memo.SelEnd := 0;
-end;
-
 procedure TMDIChild.ListTablesDblClick(Sender: TObject);
 begin
-  Mainform.actTableProperties.Execute;
+  Mainform.actEditTableFields.Execute;
 end;
 
 
@@ -3224,111 +3021,11 @@ begin
 end;
 
 
-
 procedure TMDIChild.Filter1Click(Sender: TObject);
 begin
   // Set WHERE-Filter
   pageCtlBottom.ActivePage := tabFilter;
   SynMemoFilter.SetFocus;
-end;
-
-
-
-// open Find-Dialog
-procedure TMDIChild.btnQueryFindClick(Sender: TObject);
-begin
-  FindDialogQuery.execute;
-  // if something is selected search for that text
-  if SynMemoQuery.SelAvail and (SynMemoQuery.BlockBegin.Line = SynMemoQuery.BlockEnd.Line)
-  then
-    FindDialogQuery.FindText := SynMemoQuery.SelText
-  else
-    FindDialogQuery.FindText := SynMemoQuery.GetWordAtRowCol(SynMemoQuery.CaretXY);
-end;
-
-// open Replace-Dialog
-procedure TMDIChild.btnQueryReplaceClick(Sender: TObject);
-begin
-  ReplaceDialogQuery.execute;
-  // if something is selected search for that text
-  if SynMemoQuery.SelAvail and (SynMemoQuery.BlockBegin.Line = SynMemoQuery.BlockEnd.Line)
-  then
-    ReplaceDialogQuery.FindText := SynMemoQuery.SelText
-  else
-    ReplaceDialogQuery.FindText := SynMemoQuery.GetWordAtRowCol(SynMemoQuery.CaretXY);
-end;
-
-// Search-Dialog is searching...
-procedure TMDIChild.FindDialogQueryFind(Sender: TObject);
-var
-  Options: TSynSearchOptions;
-  Search: String;
-begin
-  Search := FindDialogQuery.FindText;
-  Options := [];
-  if Sender is TReplaceDialog then
-    Include(Options, ssoEntireScope);
-  if not (frDown in FindDialogQuery.Options) then
-    Include(Options, ssoBackwards);
-  if frMatchCase in FindDialogQuery.Options then
-    Include(Options, ssoMatchCase);
-  if frWholeWord in FindDialogQuery.Options then
-    Include(Options, ssoWholeWord);
-  if SynMemoQuery.SearchReplace(Search, '', Options) = 0 then
-  begin
-    MessageBeep(MB_ICONASTERISK);
-    Mainform.ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
-  end;
-end;
-
-{ Find Text for replace-dialog }
-procedure TMDIChild.ReplaceDialogQueryFind(Sender: TObject);
-begin
-  FindDialogQuery.FindText := ReplaceDialogQuery.FindText;
-  FindDialogQueryFind( ReplaceDialogQuery );
-end;
-
-{ Replace Text with replace-dialog }
-procedure TMDIChild.ReplaceDialogQueryReplace(Sender: TObject);
-var
-  Options: TSynSearchOptions;
-  Search: String;
-begin
-  Search := ReplaceDialogQuery.FindText;
-  Options := [ssoEntireScope];  // Do replaces always on entire scope, because the standard-dialog lacks of a down/up-option
-  if frReplaceAll in ReplaceDialogQuery.Options then
-    Include( Options, ssoReplaceAll );
-  if not (frDown in ReplaceDialogQuery.Options) then
-    Include(Options, ssoBackwards);
-  if frMatchCase in ReplaceDialogQuery.Options then
-    Include(Options, ssoMatchCase);
-  if frWholeWord in ReplaceDialogQuery.Options then
-    Include(Options, ssoWholeWord);
-  if frReplace in ReplaceDialogQuery.Options then // Replace instead of ReplaceAll is pressed
-    Include(Options, ssoReplace)
-  else
-    Include(Options, ssoReplaceAll);
-  if SynMemoQuery.SearchReplace( Search, ReplaceDialogQuery.ReplaceText, Options) = 0 then
-  begin
-    MessageBeep(MB_ICONASTERISK);
-    Mainform.ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
-    if ssoBackwards in Options then
-      SynMemoQuery.BlockEnd := SynMemoQuery.BlockBegin
-    else
-      SynMemoQuery.BlockBegin := SynMemoQuery.BlockEnd;
-    SynMemoQuery.CaretXY := SynMemoQuery.BlockBegin;
-  end;
-end;
-
-procedure TMDIChild.Delete1Click(Sender: TObject);
-begin
-  // Delete record(s)
-  if gridData.SelectedRows.Count = 0 then begin
-    if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-      GetVisualDataSet().Delete(); // unsafe ...
-  end else
-  if MessageDLG('Delete '+IntToStr(gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-    gridData.SelectedRows.Delete;
 end;
 
 
@@ -3682,22 +3379,9 @@ begin
 end;
 
 procedure TMDIChild.popupQueryPopup(Sender: TObject);
-var
-  somechars         : Boolean;
 begin
   // Sets cursor into memo and activates TAction(s) like paste
   SynMemoQuery.SetFocus;
-  somechars := SynMemoQuery.GetTextLen > 0;
-  // Inserting file at cursor only makes sense with content
-  MenuInsertFileAtCursor.Enabled := somechars;
-  Menusave.Enabled := somechars;
-  MenuSaveSelectionToFile.Enabled := SynMemoQuery.SelAvail;
-  MenuSaveAsSnippet.Enabled := somechars;
-  MenuSaveSelectionAsSnippet.Enabled := SynMemoQuery.SelAvail;
-  MenuClear.Enabled := somechars;
-  menuSQLHelp.Enabled := (mysql_version >= 40100) and (SynMemoQuery.WordAtCursor <> '');
-  // Insert keyword into menuitem, so it's very clear what the menuitem does
-  menuSQLHelp.Caption := 'Lookup "'+sstr(SynMemoQuery.WordAtCursor,50)+'" in SQL help ...';
 end;
 
 procedure TMDIChild.popupResultGridPopup(Sender: TObject);
@@ -3743,7 +3427,7 @@ var
 begin
   // Check for F1-pressed
   if Key = VK_F1 then
-    CallSQLHelp( self )
+    Mainform.actSQLhelp.Execute
 
   // Simulate Ctrl+A-behaviour of common editors
   else if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
@@ -3938,130 +3622,11 @@ begin
     L := 0
   else
     L := DBtree.GetNodeLevel(DBtree.GetFirstSelected);
-  PopupMenuDropDatabase.Enabled := L = 1;
   Mainform.actCreateTable.Enabled := L in [1,2];
   Mainform.actCreateView.Enabled := (L in [1,2]) and (mysql_version >= 50001);
-  menuAlterDatabase.Enabled := (L = 1) and (mysql_version >= 50002);
-  if mysql_version < 50002 then
-    menuAlterDatabase.Hint := STR_NOTSUPPORTED
-  else
-    menuAlterDatabase.Hint := 'Rename and/or modify character set of database';
-  Mainform.actAlterTable.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
+  Mainform.actEditTableProperties.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
   Mainform.actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
   MainForm.actDropTablesAndViews.Enabled := (L = 2);
-end;
-
-
-procedure TMDIChild.btnQuerySaveSnippetClick(Sender: TObject);
-var
-  snippetname : String;
-  mayChange   : Boolean;
-begin
-  // Save snippet
-  if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
-  begin
-    if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
-      snippetname := snippetname + '.sql';
-    // cleanup snippetname from special characters
-    snippetname := DIRNAME_SNIPPETS + goodfilename(snippetname);
-    if FileExists( snippetname ) then
-    begin
-      if MessageDlg( 'Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel], 0 ) <> mrOK then
-        exit;
-    end;
-    Screen.Cursor := crHourglass;
-    // Save complete content or just the selected text,
-    // depending on the tag of calling control
-    case (Sender as TComponent).Tag of
-      0: SaveUnicodeFile(snippetname, SynMemoQuery.Text);
-      1: SaveUnicodeFile(snippetname, SynMemoQuery.SelText);
-    end;
-    FillPopupQueryLoad;
-    if tabsetQueryHelpers.TabIndex = 3 then begin
-      // SQL Snippets selected in query helper, refresh list
-      mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
-      tabsetQueryHelpersChange(Sender, 3, mayChange);
-    end;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-procedure TMDIChild.CallSQLHelp(Sender: TObject);
-var
-  keyword : String;
-begin
-  // Call SQL Help from various places
-  if mysql_version < 40100 then
-    exit;
-  
-  keyword := '';
-  // Query-Tab
-  if SynMemoQuery.Focused then
-    keyword := SynMemoQuery.WordAtCursor
-  // LogSQL-Tab
-  else if SynMemoSQLLog.Focused then
-    keyword := SynMemoSQLLog.WordAtCursor
-  // Filter-Tab
-  else if SynMemoFilter.Focused then
-    keyword := SynMemoFilter.WordAtCursor
-  // Data-Tab
-  else if (PageControlMain.ActivePage = tabData)
-    and (-1 < gridData.SelectedField.Index)
-    and (gridData.SelectedField.Index <= Length(VTRowDataListColumns)) then
-  begin
-    keyword := VTRowDataListColumns[gridData.SelectedField.Index].Captions[1];
-  end
-  // Table-Tab
-  else if ListColumns.Focused and Assigned(ListColumns.FocusedNode) then
-  begin
-    keyword := ListColumns.Text[ListColumns.FocusedNode, 1];
-  end
-  else if lboxQueryHelpers.Focused then
-  begin
-    // Makes only sense if one of the tabs "SQL fn" or "SQL kw" was selected
-    if tabsetQueryHelpers.TabIndex in [1,2] then
-    begin
-      keyword := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
-    end;
-  end;
-
-  // Clean existing paranthesis, fx: char(64)
-  if Pos( '(', keyword ) > 0 then
-  begin
-    keyword := Copy( keyword, 1, Pos( '(', keyword )-1 );
-  end;
-
-  // Show the window
-  CallSQLHelpWithKeyword( keyword );
-end;
-
-
-
-{***
-  Show SQL Help window directly using a keyword
-  @param String SQL-keyword
-  @see FieldeditForm.btnDatatypeHelp
-}
-procedure TMDIChild.CallSQLHelpWithKeyword( keyword: String );
-begin
-  // Set help-keyword and show window
-  SQLhelpWindow(self, keyword);
-end;
-
-procedure TMDIChild.btnQuerySaveClick(Sender: TObject);
-begin
-  // Save SQL
-  if SaveDialogSQLFile.Execute then
-  begin
-    Screen.Cursor := crHourGlass;
-    // Save complete content or just the selected text,
-    // depending on the tag of calling control
-    case (Sender as TComponent).Tag of
-      0: SaveUnicodeFile( SaveDialogSQLFile.FileName, SynMemoQuery.Text );
-      1: SaveUnicodeFile( SaveDialogSQLFile.FileName, SynMemoQuery.SelText );
-    end;
-    Screen.Cursor := crDefault;
-  end;
 end;
 
 
@@ -4083,28 +3648,6 @@ begin
   end;
   filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
   QueryLoad( filename );
-end;
-
-
-procedure TMDIChild.btnQueryLoadClick(Sender: TObject);
-begin
-  // Click on the btnQueryLoad
-  if OpenDialogSQLfile.Execute then
-  begin
-    QueryLoad( OpenDialogSQLfile.FileName );
-  end;
-end;
-
-
-{**
-  Insert SQL file at cursor
-}
-procedure TMDIChild.menuInsertFileAtCursorClick(Sender: TObject);
-begin
-  if OpenDialogSQLfile.Execute then
-  begin
-    QueryLoad( OpenDialogSQLfile.FileName, False );
-  end;
 end;
 
 
@@ -4310,12 +3853,6 @@ procedure TMDIChild.ComboBoxWhereFiltersChange(Sender: TObject);
 begin
   WhereFiltersIndex := ComboBoxWhereFilters.ItemIndex;
   SynMemoFilter.Text := ComboBoxWhereFilters.Items[ComboBoxWhereFilters.ItemIndex];
-end;
-
-procedure TMDIChild.btnQueryStopOnErrorsClick(Sender: TObject);
-begin
-  StopOnErrors := not StopOnErrors;
-  btnQueryStopOnErrors.Down := StopOnErrors;
 end;
 
 procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
@@ -5747,28 +5284,6 @@ begin
 end;
 
 
-{**
-  Call context sensitive help from popupmenu (fx popupQuery)
-}
-procedure TMDIChild.menuSQLhelpClick(Sender: TObject);
-begin
-  CallSQLHelp( Sender );
-end;
-
-
-{**
-  Modify existing database properties
-}
-procedure TMDIChild.menuAlterdatabaseClick(Sender: TObject);
-begin
-  if CreateDatabaseForm = nil then
-    CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-
-  CreateDatabaseForm.modifyDB := ActiveDatabase;
-  CreateDatabaseForm.ShowModal;
-end;
-
-
 {***
   Add a new query delimiter and select it
   @param term The delimiter to add and/or select
@@ -5859,7 +5374,7 @@ begin
   if ( command = 'CLIENTSQL_ERROR' ) then
   begin
     LogSQL( parameter, True );
-    if ( StopOnErrors ) then
+    if Mainform.actQueryStopOnErrors.Checked then
       raise Exception.Create( parameter );
   end;
 end;
@@ -6047,16 +5562,13 @@ end;
 }
 procedure TMDIChild.popupFilterPopup(Sender: TObject);
 var
-  somechars         : Boolean;
+  somechars: Boolean;
 begin
   // Sets cursor into memo and activates TAction(s) like paste
   SynMemoFilter.SetFocus;
   somechars := SynMemoFilter.GetTextLen > 0;
   // Inserting file at cursor only makes sense with content
-  MenuFilterClear.Enabled := somechars;
-  menuFilterSQLHelp.Enabled := (mysql_version >= 40100) and (SynMemoFilter.WordAtCursor <> '');
-  // Insert keyword into menuitem, so it's very clear what the menuitem does
-  menuFilterSQLHelp.Caption := 'Lookup "'+sstr(SynMemoFilter.WordAtCursor,50)+'" in SQL help ...';
+  Mainform.actClearFilterEditor.Enabled := somechars;
 end;
 
 
@@ -6474,16 +5986,6 @@ begin
     2: ImageIndex := 25;
     3: ImageIndex := 35;
   end;
-end;
-
-
-{**
-  Toggle wordwrap mode in query editor
-}
-procedure TMDIChild.btnQueryWordWrapClick(Sender: TObject);
-begin
-  SynMemoQuery.WordWrap := not SynMemoQuery.WordWrap;
-  btnQueryWordWrap.Down := SynMemoQuery.WordWrap;
 end;
 
 
@@ -6928,5 +6430,9 @@ begin
   Result := CachedTableLists.IndexOf(db) > -1;
 end;
 
+procedure TMDIChild.ListColumnsDblClick(Sender: TObject);
+begin
+  Mainform.actEditField.Execute;
+end;
 
 end.

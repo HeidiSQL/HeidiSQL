@@ -1579,9 +1579,8 @@ object AboutBox: TAboutBox
       Top = 36
       Width = 122
       Height = 22
-      Caption = 'Check for updates ...'
+      Action = MainForm.actUpdateCheck
       TabOrder = 2
-      OnClick = btnUpdateCheckClick
     end
   end
   object ButtonBoard: TButton

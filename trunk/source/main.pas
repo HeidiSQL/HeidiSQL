@@ -35,11 +35,11 @@ type
     PasteItem: TMenuItem;
     StatusBar: TStatusBar;
     ActionList1: TActionList;
-    EditCopy1: TEditCopy;
-    EditPaste1: TEditPaste;
-    FileNew1: TAction;
-    FileExit1: TAction;
-    FileClose1: TWindowClose;
+    actCopy: TEditCopy;
+    actPaste: TEditPaste;
+    actOpenSession: TAction;
+    actExitApplication: TAction;
+    actCloseSession: TWindowClose;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
     MenuCopyCSV: TMenuItem;
@@ -51,7 +51,6 @@ type
     N4: TMenuItem;
     MenuDropDatabase: TMenuItem;
     MenuDropTable: TMenuItem;
-    ResetWindowOptions1: TMenuItem;
     N5: TMenuItem;
     MenuImportTextFile: TMenuItem;
     Flush1: TMenuItem;
@@ -65,14 +64,14 @@ type
     MenuPreferences: TMenuItem;
     N7: TMenuItem;
     menuReadme: TMenuItem;
-    UserManager: TAction;
-    ShowAboutBox: TAction;
+    actUserManager: TAction;
+    actAboutBox: TAction;
     actMaintenance: TAction;
     menuMaintenance: TMenuItem;
     ImExport1: TMenuItem;
     CopyContentsasHTMLTable1: TMenuItem;
-    CopyHTMLtable: TAction;
-    Copy2CSV: TAction;
+    actCopyAsHTML: TAction;
+    actCopyAsCSV: TAction;
     menuWebsite: TMenuItem;
     N9: TMenuItem;
     N11: TMenuItem;
@@ -102,27 +101,27 @@ type
     ButtonOK: TButton;
     UpDownLimitStart: TUpDown;
     UpDownLimitEnd: TUpDown;
-    EditUndo1: TEditUndo;
+    actUndo: TEditUndo;
     ToolButton14: TToolButton;
-    ExecuteQuery: TAction;
-    ExecuteSelection: TAction;
+    actExecuteQuery: TAction;
+    actExecuteSelection: TAction;
     SaveDialog2: TSaveDialog;
     ExportSettings1: TMenuItem;
     Importsettings1: TMenuItem;
     OpenDialog2: TOpenDialog;
     menuSupportForum: TMenuItem;
-    Copy2XML: TAction;
-    ExportData: TAction;
+    actCopyAsXML: TAction;
+    actExportData: TAction;
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
-    ExecuteLine: TAction;
-    HTMLview: TAction;
+    actExecuteLine: TAction;
+    actHTMLview: TAction;
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     actExportTables: TAction;
-    DataSearch: TAction;
+    actDataSearch: TAction;
     actDropTablesAndViews: TAction;
-    LoadSQL: TAction;
+    actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
     miNewConnection: TMenuItem;
@@ -165,70 +164,121 @@ type
     btnTableManageIndexes: TToolButton;
     actCreateTable: TAction;
     actEmptyTables: TAction;
-    actTableProperties: TAction;
-    actAlterTable: TAction;
-    procedure actAlterTableExecute(Sender: TObject);
+    actEditTableFields: TAction;
+    actEditTableProperties: TAction;
+    actEditField: TAction;
+    actCreateField: TAction;
+    actDropFields: TAction;
+    actEditIndexes: TAction;
+    actDropDatabase: TAction;
+    actCreateDatabase: TAction;
+    actEditDatabase: TAction;
+    actSQLhelp: TAction;
+    actRefresh: TAction;
+    actImportCSV: TAction;
+    actCut: TEditCut;
+    actSelectAll: TEditSelectAll;
+    Cut1: TMenuItem;
+    actExportSettings: TAction;
+    actImportSettings: TAction;
+    actPreferences: TAction;
+    actFlushHosts: TAction;
+    actFlushLogs: TAction;
+    actFlushPrivileges: TAction;
+    actFlushTables: TAction;
+    actFlushTableswithreadlock: TAction;
+    actFlushStatus: TAction;
+    actUpdateCheck: TAction;
+    actWebMainsite: TAction;
+    actWebDownloadpage: TAction;
+    actWebForum: TAction;
+    actWebBugtracker: TAction;
+    actWebFeaturetracker: TAction;
+    actReadme: TAction;
+    actSaveSQL: TAction;
+    actSaveSQLselection: TAction;
+    actSaveSQLSnippet: TAction;
+    actSaveSQLSelectionSnippet: TAction;
+    actClearQueryEditor: TAction;
+    actClearFilterEditor: TAction;
+    actQueryStopOnErrors: TAction;
+    actQueryWordWrap: TAction;
+    actQueryFind: TAction;
+    actQueryReplace: TAction;
+    FindDialogQuery: TFindDialog;
+    ReplaceDialogQuery: TReplaceDialog;
+    procedure actCreateFieldExecute(Sender: TObject);
+    procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
-    procedure btnSQLHelpClick(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
-    procedure ShowConnections(Sender: TObject);
-    procedure FileExit1Execute(Sender: TObject);
-    procedure FlushClick(Sender: TObject);
+    procedure actExitApplicationExecute(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure ButtonRefreshClick(Sender: TObject);
-    procedure ButtonCreateDatabaseClick(Sender: TObject);
-    procedure ButtonDropDatabaseClick(Sender: TObject);
-    procedure ResetWindowOptions1Click(Sender: TObject);
-    procedure ButtonImportTextfileClick(Sender: TObject);
-    procedure MenuPreferencesClick(Sender: TObject);
-    procedure menuReadmeClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure UserManagerExecute(Sender: TObject);
-    procedure ShowAboutBoxExecute(Sender: TObject);
+    procedure actUserManagerExecute(Sender: TObject);
+    procedure actAboutBoxExecute(Sender: TObject);
+    procedure actClearEditorExecute(Sender: TObject);
     procedure actMaintenanceExecute(Sender: TObject);
     procedure actEditViewExecute(Sender: TObject);
-    procedure CopyHTMLtableExecute(Sender: TObject);
-    procedure Copy2CSVExecute(Sender: TObject);
+    procedure actCopyAsHTMLExecute(Sender: TObject);
+    procedure actCopyAsCSVExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure showstatus(msg: string=''; panel: Integer=4);
     procedure ButtonOKClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
     procedure LimitPanelExit(Sender: TObject);
-    procedure OpenURL(Sender: TObject);
     function mask(str: String) : String;
-    procedure ExportSettings1Click(Sender: TObject);
-    procedure Importsettings1Click(Sender: TObject);
-    procedure ExecuteQueryExecute(Sender: TObject);
-    procedure ExecuteSelectionExecute(Sender: TObject);
-    procedure Copy2XMLExecute(Sender: TObject);
-    procedure ExportDataExecute(Sender: TObject);
-    procedure ExecuteLineExecute(Sender: TObject);
-    procedure HTMLviewExecute(Sender: TObject);
+    procedure actExecuteQueryExecute(Sender: TObject);
+    procedure actExecuteSelectionExecute(Sender: TObject);
+    procedure actCopyAsXMLExecute(Sender: TObject);
+    procedure actCreateDatabaseExecute(Sender: TObject);
+    procedure actExportDataExecute(Sender: TObject);
+    procedure actExecuteLineExecute(Sender: TObject);
+    procedure actHTMLviewExecute(Sender: TObject);
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actExportTablesExecute(Sender: TObject);
-    procedure DataSearchExecute(Sender: TObject);
+    procedure actDataSearchExecute(Sender: TObject);
     procedure actDataSetDeleteExecute(Sender: TObject);
-    procedure btnTableAddFieldClick(Sender: TObject);
-    procedure btnTableEditFieldClick(Sender: TObject);
+    procedure actDropDatabaseExecute(Sender: TObject);
+    procedure actDropFieldsExecute(Sender: TObject);
     procedure actDropTablesAndViewsExecute(Sender: TObject);
+    procedure actEditDatabaseExecute(Sender: TObject);
+    procedure actEditIndexesExecute(Sender: TObject);
     procedure actEmptyTablesExecute(Sender: TObject);
-    procedure actTablePropertiesExecute(Sender: TObject);
-    procedure LoadSQLExecute(Sender: TObject);
+    procedure actEditFieldExecute(Sender: TObject);
+    procedure actEditTableFieldsExecute(Sender: TObject);
+    procedure actExportSettingsExecute(Sender: TObject);
+    procedure actFlushExecute(Sender: TObject);
+    procedure actImportCSVExecute(Sender: TObject);
+    procedure actImportSettingsExecute(Sender: TObject);
+    procedure actLoadSQLExecute(Sender: TObject);
+    procedure actOpenSessionExecute(Sender: TObject);
+    procedure actPreferencesExecute(Sender: TObject);
+    procedure actQueryFindExecute(Sender: TObject);
+    procedure actQueryReplaceExecute(Sender: TObject);
+    procedure actQueryStopOnErrorsExecute(Sender: TObject);
+    procedure actQueryWordWrapExecute(Sender: TObject);
+    procedure actReadmeExecute(Sender: TObject);
+    procedure actRefreshExecute(Sender: TObject);
+    procedure actSaveSQLExecute(Sender: TObject);
+    procedure actSaveSQLSnippetExecute(Sender: TObject);
+    procedure actSQLhelpExecute(Sender: TObject);
+    procedure actUpdateCheckExecute(Sender: TObject);
+    procedure actWebbrowse(Sender: TObject);
     procedure EnsureConnected;
     function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
     procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
+    procedure FindDialogQueryFind(Sender: TObject);
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
-    procedure menuUpdateCheckClick(Sender: TObject);
-    procedure btnTableDropFieldClick(Sender: TObject);
-    procedure btnTableManageIndexesClick(Sender: TObject);
+    procedure ReplaceDialogQueryFind(Sender: TObject);
+    procedure ReplaceDialogQueryReplace(Sender: TObject);
   private
     regMain : TRegistry;
     function GetChildwin: TMDIChild;
@@ -240,6 +290,7 @@ type
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
     procedure OpenRegistry(Session: String = '');
+    procedure CallSQLHelpWithKeyword( keyword: String );
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
     function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
@@ -295,19 +346,11 @@ uses
   MysqlConn,
   UpdateCheck,
   fieldeditor,
+  createdatabase,
   createtable;
 
 {$R *.DFM}
 
-procedure TMainForm.ShowConnections(Sender: TObject);
-begin
-  if ActiveMDIChild = nil then
-    ConnectionWindow(Self)
-  else begin
-    debug('perf: new connection clicked.');
-    ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
-  end;
-end;
 
 procedure TMainForm.HandleWMComplete(var msg: TMessage);
 begin
@@ -358,22 +401,19 @@ begin
   StatusBar.Repaint;
 end;
 
-procedure TMainForm.FileExit1Execute(Sender: TObject);
+procedure TMainForm.actExitApplicationExecute(Sender: TObject);
 begin
   Close;
 end;
 
-procedure TMainForm.FlushClick(Sender: TObject);
+procedure TMainForm.actFlushExecute(Sender: TObject);
 var
-  flushwhat : String;
+  flushwhat: String;
 begin
-  if sender is TMenuItem then
-    flushwhat := UpperCase((sender as TMenuItem).Caption)
-  else if sender is TToolButton then
-    flushwhat := 'PRIVILEGES';
+  flushwhat := UpperCase(TAction(Sender).Caption);
   delete(flushwhat, pos('&', flushwhat), 1);
   ChildWin.ExecUpdateQuery('FLUSH ' + flushwhat);
-  if sender = MenuFlushTableswithreadlock then begin
+  if Sender = actFlushTableswithreadlock then begin
     MessageDlg(
       'Tables have been flushed and read lock acquired.'#10 +
       'Perform backup or snapshot of table data files now.'#10 +
@@ -611,95 +651,61 @@ begin
     end;
   end else
     // Cannot be done in OnCreate because we need ready forms here:
-    ShowConnections(self);
+    actOpenSession.Execute;
 end;
 
 
-procedure TMainForm.ButtonRefreshClick(Sender: TObject);
-begin
-  // Refresh
-  // Force data tab update when appropriate.
-  Childwin.dataselected := false;
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabHost then
-    ChildWin.ShowVariablesAndProcesses(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
-    ChildWin.MenuRefreshClick(self)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
-    ChildWin.ShowTableProperties(ChildWin.SelectedTable)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    ChildWin.viewdata(Sender)
-  else
-    ChildWin.RefreshTree(True);
-end;
 
-procedure TMainForm.ButtonCreateDatabaseClick(Sender: TObject);
-begin
-  // create database
-  ChildWin.CreateDatabase(self);
-end;
-
-procedure TMainForm.ButtonDropDatabaseClick(Sender: TObject);
-begin
-  // drop db
-  if ChildWin.ActiveDatabase <> '' then
-    ChildWin.DropDB(self);
-end;
-
-procedure TMainForm.btnSQLHelpClick(Sender: TObject);
-begin
-  // SQL help
-  ChildWin.CallSQLHelp( Sender );
-end;
-
-
-procedure TMainForm.ResetWindowOptions1Click(Sender: TObject);
+procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
 var
-  reg : TRegistry;
+  newdb: String;
 begin
-  // reset all options for window-size, height ...
+  // Create database:
+  // Create modal form once on demand
+  if Childwin.CreateDatabaseForm = nil then
+    Childwin.CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
 
-  if ActiveMDIChild <> nil then
+  // Rely on the modalresult being set correctly
+  if Childwin.CreateDatabaseForm.ShowModal = mrOK then
   begin
-    MessageDlg('Close all open windows before you do this.', mtError, [mbok], 0);
-    exit;
-  end;
-
-  reg := TRegistry.Create;
-  with reg do
-  begin
-    Access := KEY_ALL_ACCESS;
-    if OpenKey(REGPATH, false) then
+    newdb := Childwin.CreateDatabaseForm.editDBName.Text;
+    // Add DB to OnlyDBs-regkey if this is not empty
+    if Childwin.DatabasesWanted.Count > 0 then
     begin
-      DeleteValue(REGNAME_CHILDWINSTATE);
-      DeleteValue(REGNAME_CHILDWINLEFT);
-      DeleteValue(REGNAME_CHILDWINTOP);
-      DeleteValue(REGNAME_CHILDWINWIDTH);
-      DeleteValue(REGNAME_CHILDWINHEIGHT);
-      DeleteValue(REGNAME_QUERYMEMOHEIGHT);
-      DeleteValue(REGNAME_DBTREEWIDTH);
-      DeleteValue(REGNAME_SQLOUTHEIGHT);
-
-      CloseKey;
-      MessageDlg('All Window-Settings were reset to default values.', mtInformation, [mbok], 0);
+      Childwin.DatabasesWanted.Add( newdb );
+      with TRegistry.Create do
+      begin
+        if OpenKey(REGPATH + REGKEY_SESSIONS + Childwin.Conn.Description, false) then
+        begin
+          WriteString( 'OnlyDBs', ImplodeStr( ';', Childwin.DatabasesWanted ) );
+          CloseKey;
+        end;
+        Free;
+      end;
     end;
-    Free;
+    // reload db nodes and switch to new one
+    Childwin.RefreshTree(False, newdb);
   end;
-
 end;
 
-procedure TMainForm.ButtonImportTextfileClick(Sender: TObject);
+
+procedure TMainForm.actImportCSVExecute(Sender: TObject);
 begin
   // Import Textfile
   loaddataWindow(self);
 end;
 
-procedure TMainForm.MenuPreferencesClick(Sender: TObject);
+procedure TMainForm.actPreferencesExecute(Sender: TObject);
+var
+  f: Toptionsform;
 begin
   // Preferences
-  OptionsWindow (Self);
+  f := Toptionsform.Create(Self);
+  f.ShowModal;
+  FreeAndNil(f);
 end;
 
-procedure TMainForm.menuReadmeClick(Sender: TObject);
+procedure TMainForm.actReadmeExecute(Sender: TObject);
 begin
   // show readme.txt
   ShellExec( 'readme.txt', ExtractFilePath(paramstr(0)) );
@@ -715,7 +721,7 @@ begin
   StatusBar.Panels[0].Width := Statusbar.Width - room;
 end;
 
-procedure TMainForm.UserManagerExecute(Sender: TObject);
+procedure TMainForm.actUserManagerExecute(Sender: TObject);
 begin
   if UserManagerForm = nil then
     UserManagerForm := TUserManagerForm.Create(Self);
@@ -759,10 +765,24 @@ begin
   menuWindow.Delete(0);
 end;
 
-procedure TMainForm.ShowAboutBoxExecute(Sender: TObject);
+procedure TMainForm.actAboutBoxExecute(Sender: TObject);
 begin
   // Info-Box
   AboutWindow (Self);
+end;
+
+procedure TMainForm.actClearEditorExecute(Sender: TObject);
+var
+  m: TSynMemo;
+begin
+  if Sender = actClearQueryEditor then
+    m := Childwin.SynMemoQuery
+  else
+    m := Childwin.SynMemoFilter;
+  m.SelectAll;
+  m.SelText := '';
+  m.SelStart := 0;
+  m.SelEnd := 0;
 end;
 
 procedure TMainForm.actMaintenanceExecute(Sender: TObject);
@@ -815,7 +835,7 @@ begin
 end;
 
 
-procedure TMainForm.Copy2CSVExecute(Sender: TObject);
+procedure TMainForm.actCopyAsCSVExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as CSV
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
@@ -825,7 +845,7 @@ begin
 end;
 
 
-procedure TMainForm.CopyHTMLtableExecute(Sender: TObject);
+procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
@@ -933,13 +953,11 @@ begin
 end;
 
 
-procedure TMainForm.OpenURL(Sender: TObject);
+
+procedure TMainForm.actWebbrowse(Sender: TObject);
 begin
-  // open url (hint)
-  if sender is TMenuItem then
-    ShellExec( TMenuItem(Sender).Hint )
-  else
-    ShellExec( TControl(Sender).Hint );
+  // Browse to URL (hint)
+  ShellExec( TAction(Sender).Hint );
 end;
 
 
@@ -952,7 +970,7 @@ begin
 end;
 
 
-procedure TMainForm.ExportSettings1Click(Sender: TObject);
+procedure TMainForm.actExportSettingsExecute(Sender: TObject);
 begin
   // Export settings to .reg-file
   if SaveDialog2.Execute then begin
@@ -961,7 +979,7 @@ begin
   end;
 end;
 
-procedure TMainForm.Importsettings1Click(Sender: TObject);
+procedure TMainForm.actImportSettingsExecute(Sender: TObject);
 begin
   // Import settings from .reg-file
   if OpenDialog2.Execute then begin
@@ -970,22 +988,22 @@ begin
   end;
 end;
 
-procedure TMainForm.ExecuteQueryExecute(Sender: TObject);
+procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 begin
   ChildWin.ExecSqlClick(sender, false);
 end;
 
-procedure TMainForm.ExecuteSelectionExecute(Sender: TObject);
+procedure TMainForm.actExecuteSelectionExecute(Sender: TObject);
 begin
   ChildWin.ExecSqlClick(sender, true);
 end;
 
-procedure TMainForm.ExecuteLineExecute(Sender: TObject);
+procedure TMainForm.actExecuteLineExecute(Sender: TObject);
 begin
   ChildWin.ExecSqlClick(sender, false, true);
 end;
 
-procedure TMainForm.Copy2XMLExecute(Sender: TObject);
+procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as XML
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
@@ -994,7 +1012,8 @@ begin
     dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query');
 end;
 
-procedure TMainForm.ExportDataExecute(Sender: TObject);
+
+procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   query : TDataSet;
 begin
@@ -1047,7 +1066,7 @@ end;
 
 
 // view HTML
-procedure TMainForm.HTMLviewExecute(Sender: TObject);
+procedure TMainForm.actHTMLviewExecute(Sender: TObject);
 var
   g              : TTntDBGrid;
   filename,extension   : String;
@@ -1093,7 +1112,7 @@ begin
   ExportTablesWindow (Self);
 end;
 
-procedure TMainForm.DataSearchExecute(Sender: TObject);
+procedure TMainForm.actDataSearchExecute(Sender: TObject);
 begin
   with ChildWin.EditDataSearch do
   begin
@@ -1175,10 +1194,11 @@ end;
 
 
 // Load SQL-file, make sure that SheetQuery is activated
-procedure TMainForm.LoadSQLExecute(Sender: TObject);
+procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 begin
   ChildWin.PageControlMain.ActivePage := ChildWin.tabQuery;
-  ChildWin.btnQueryLoadClick( sender );
+  if ChildWin.OpenDialogSQLfile.Execute then
+    ChildWin.QueryLoad( ChildWin.OpenDialogSQLfile.FileName );
 end;
 
 
@@ -1357,14 +1377,21 @@ begin
   ShowStatus( STATUS_MSG_READY );
 end;
 
+
 procedure TMainForm.actDataSetDeleteExecute(Sender: TObject);
 begin
-  ChildWin.Delete1Click(sender);
-  abort;
+  // Delete record(s)
+  if Childwin.gridData.SelectedRows.Count = 0 then begin
+    if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+      Childwin.GetVisualDataSet.Delete; // unsafe ...
+  end else
+  if MessageDLG('Delete '+IntToStr(Childwin.gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+    Childwin.gridData.SelectedRows.Delete;
+  abort; // TOTO: is this right?
 end;
 
 
-procedure TMainForm.menuUpdateCheckClick(Sender: TObject);
+procedure TMainForm.actUpdateCheckExecute(Sender: TObject);
 var
   frm : TfrmUpdateCheck;
 begin
@@ -1373,25 +1400,66 @@ begin
   FreeAndNil(frm);
 end;
 
-procedure TMainForm.btnTableAddFieldClick(Sender: TObject);
+
+procedure TMainForm.actCreateFieldExecute(Sender: TObject);
 begin
   FieldEditorWindow(Childwin, femFieldAdd);
 end;
 
-procedure TMainForm.btnTableEditFieldClick(Sender: TObject);
+
+procedure TMainForm.actEditFieldExecute(Sender: TObject);
+var
+  fieldname: WideString;
+  fem: TFieldEditorMode;
 begin
-  Childwin.UpdateField(Sender);
+  fieldname := '';
+  fem := femFieldAdd;
+  if Assigned(Childwin.ListColumns.FocusedNode) and (vsSelected in Childwin.ListColumns.FocusedNode.States) then
+    fieldname := Childwin.ListColumns.Text[Childwin.ListColumns.FocusedNode, 0];
+  if fieldname <> '' then
+    fem := femFieldUpdate;
+  FieldEditorWindow(Childwin, fem, fieldname);
 end;
 
-procedure TMainForm.btnTableDropFieldClick(Sender: TObject);
+
+procedure TMainForm.actDropFieldsExecute(Sender: TObject);
+var
+  i: Integer;
+  dropCmd: String;
+  dropList: TStringList;
 begin
-  Childwin.DropField(Sender);
+  // We allow the user to select and delete multiple listItems
+  dropList := GetVTCaptions( Childwin.ListColumns, True );
+  // User confirmation
+  if MessageDlg('Delete ' + IntToStr(dropList.Count) + ' field(s): ' + ImplodeStr( ', ', dropList ) + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  try
+    // Concat fields for ALTER query
+    for i := 0 to dropList.Count - 1 do
+      dropCmd := dropCmd + 'DROP ' + mask(dropList[i]) + ', ';
+    // Remove trailing comma
+    delete(dropCmd, Length(dropCmd)-1, 2);
+    // Execute field dropping
+    Childwin.ExecUpdateQuery( 'ALTER TABLE '+mask(Childwin.SelectedTable)+' ' + dropCmd );
+    // Rely on the server respective ExecUpdateQuery has raised an exception so the
+    // following code will be skipped on any error
+    Childwin.ListColumns.BeginUpdate;
+    Childwin.ListColumns.DeleteSelectedNodes;
+    Childwin.ListColumns.EndUpdate;
+    // Set focus on first item
+    Childwin.ListColumns.FocusedNode := Childwin.ListColumns.GetFirstVisible;
+  except
+    On E : Exception do begin
+      MessageDlg( E.Message, mtError, [mbOK], 0 );
+    end;
+  end;
 end;
 
-procedure TMainForm.btnTableManageIndexesClick(Sender: TObject);
+
+procedure TMainForm.actEditIndexesExecute(Sender: TObject);
 begin
   FieldEditorWindow(Childwin, femIndexEditor);
 end;
+
 
 procedure TMainForm.actCreateTableExecute(Sender: TObject);
 begin
@@ -1399,6 +1467,7 @@ begin
     Childwin.CreateTableForm := TCreateTableForm.Create(Childwin);
   Childwin.CreateTableForm.ShowModal;
 end;
+
 
 procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
@@ -1432,7 +1501,8 @@ begin
   Screen.Cursor := crDefault;
 end;
 
-procedure TMainForm.actTablePropertiesExecute(Sender: TObject);
+
+procedure TMainForm.actEditTableFieldsExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
 begin
@@ -1444,7 +1514,8 @@ begin
   end;
 end;
 
-procedure TMainForm.actAlterTableExecute(Sender: TObject);
+
+procedure TMainForm.actEditTablePropertiesExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
   caller: TComponent;
@@ -1462,5 +1533,301 @@ begin
 
   Childwin.TablePropertiesForm.ShowModal;
 end;
+
+
+procedure TMainForm.actDropDatabaseExecute(Sender: TObject);
+var
+  tndb: PVirtualNode;
+  db: String;
+begin
+  // Drop DB.
+  case Childwin.DBtree.GetNodeLevel(Childwin.DBtree.GetFirstSelected) of
+    1: tndb := Childwin.DBtree.GetFirstSelected;
+    2: tndb := Childwin.DBtree.GetFirstSelected.Parent;
+    else Exit;
+  end;
+  if not Assigned(tndb) then raise Exception.Create('Internal error: Cannot drop NIL database.');
+  db := Childwin.Databases[tndb.Index];
+
+  if MessageDlg('Drop Database "'+db+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+db+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+    Abort;
+
+  Screen.Cursor := crHourglass;
+  try
+    Childwin.ExecUpdateQuery( 'DROP DATABASE ' + mask(db) );
+    if Childwin.DatabasesWanted.IndexOf(db) > -1 then begin
+      Childwin.DatabasesWanted.Delete( Childwin.DatabasesWanted.IndexOf(db) );
+      with TRegistry.Create do begin
+        if OpenKey(REGPATH + REGKEY_SESSIONS + Childwin.Conn.Description, false) then begin
+          WriteString( 'OnlyDBs', ImplodeStr( ';', Childwin.DatabasesWanted ) );
+          CloseKey;
+        end;
+        Free;
+      end;
+    end;
+    Childwin.DBtree.Selected[Childwin.DBtree.GetFirst] := true;
+    Childwin.RefreshTree(False);
+  except
+    MessageDLG('Dropping failed.'+crlf+'Maybe '''+db+''' is not a valid database-name.', mtError, [mbOK], 0)
+  end;
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.actEditDatabaseExecute(Sender: TObject);
+begin
+  if Childwin.CreateDatabaseForm = nil then
+    Childwin.CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
+  Childwin.CreateDatabaseForm.modifyDB := Childwin.ActiveDatabase;
+  Childwin.CreateDatabaseForm.ShowModal;
+end;
+
+
+procedure TMainForm.actOpenSessionExecute(Sender: TObject);
+begin
+  if ActiveMDIChild = nil then
+    ConnectionWindow(Self)
+  else begin
+    debug('perf: new connection clicked.');
+    ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
+  end;
+end;
+
+
+procedure TMainForm.actQueryFindExecute(Sender: TObject);
+var
+  m: TSynMemo;
+begin
+  FindDialogQuery.execute;
+  m := Childwin.SynMemoQuery;
+  // if something is selected search for that text
+  if m.SelAvail and (m.BlockBegin.Line = m.BlockEnd.Line)
+  then
+    FindDialogQuery.FindText := m.SelText
+  else
+    FindDialogQuery.FindText := m.GetWordAtRowCol(m.CaretXY);
+end;
+
+
+procedure TMainForm.actQueryReplaceExecute(Sender: TObject);
+var
+  m: TSynMemo;
+begin
+  ReplaceDialogQuery.execute;
+  m := Childwin.SynMemoQuery;
+  // if something is selected search for that text
+  if m.SelAvail and (m.BlockBegin.Line = m.BlockEnd.Line)
+  then
+    ReplaceDialogQuery.FindText := m.SelText
+  else
+    ReplaceDialogQuery.FindText := m.GetWordAtRowCol(m.CaretXY);
+end;
+
+
+procedure TMainForm.actRefreshExecute(Sender: TObject);
+begin
+  // Refresh
+  // Force data tab update when appropriate.
+  Childwin.dataselected := false;
+  if ChildWin.PageControlMain.ActivePage = ChildWin.tabHost then
+    ChildWin.ShowVariablesAndProcesses(self)
+  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
+    ChildWin.MenuRefreshClick(self)
+  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
+    ChildWin.ShowTableProperties(ChildWin.SelectedTable)
+  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
+    ChildWin.viewdata(Sender)
+  else
+    ChildWin.RefreshTree(True);
+end;
+
+
+procedure TMainForm.actSQLhelpExecute(Sender: TObject);
+var
+  keyword : String;
+begin
+  // Call SQL Help from various places
+  if Childwin.mysql_version < 40100 then
+    exit;
+
+  keyword := '';
+  // Query-Tab
+  if Childwin.SynMemoQuery.Focused then
+    keyword := Childwin.SynMemoQuery.WordAtCursor
+  // LogSQL-Tab
+  else if Childwin.SynMemoSQLLog.Focused then
+    keyword := Childwin.SynMemoSQLLog.WordAtCursor
+  // Filter-Tab
+  else if Childwin.SynMemoFilter.Focused then
+    keyword := Childwin.SynMemoFilter.WordAtCursor
+  // Data-Tab
+  else if (Childwin.PageControlMain.ActivePage = Childwin.tabData)
+    and (-1 < Childwin.gridData.SelectedField.Index)
+    and (Childwin.gridData.SelectedField.Index <= Length(Childwin.VTRowDataListColumns)) then
+  begin
+    keyword := Childwin.VTRowDataListColumns[Childwin.gridData.SelectedField.Index].Captions[1];
+  end
+  // Table-Tab
+  else if Childwin.ListColumns.Focused and Assigned(Childwin.ListColumns.FocusedNode) then
+  begin
+    keyword := Childwin.ListColumns.Text[Childwin.ListColumns.FocusedNode, 1];
+  end
+  else if Childwin.lboxQueryHelpers.Focused then
+  begin
+    // Makes only sense if one of the tabs "SQL fn" or "SQL kw" was selected
+    if Childwin.tabsetQueryHelpers.TabIndex in [1,2] then
+    begin
+      keyword := Childwin.lboxQueryHelpers.Items[Childwin.lboxQueryHelpers.ItemIndex];
+    end;
+  end;
+
+  // Clean existing paranthesis, fx: char(64)
+  if Pos( '(', keyword ) > 0 then
+  begin
+    keyword := Copy( keyword, 1, Pos( '(', keyword )-1 );
+  end;
+
+  // Show the window
+  CallSQLHelpWithKeyword( keyword );
+end;
+
+
+{***
+  Show SQL Help window directly using a keyword
+  @param String SQL-keyword
+  @see FieldeditForm.btnDatatypeHelp
+}
+procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
+begin
+  // Set help-keyword and show window
+  SQLhelpWindow(Self, keyword);
+end;
+
+
+procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+begin
+  // Save SQL
+  if Childwin.SaveDialogSQLFile.Execute then
+  begin
+    Screen.Cursor := crHourGlass;
+    // Save complete content or just the selected text,
+    // depending on the tag of calling control
+    case (Sender as TAction).Tag of
+      0: SaveUnicodeFile( Childwin.SaveDialogSQLFile.FileName, Childwin.SynMemoQuery.Text );
+      1: SaveUnicodeFile( Childwin.SaveDialogSQLFile.FileName, Childwin.SynMemoQuery.SelText );
+    end;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMainForm.actSaveSQLSnippetExecute(Sender: TObject);
+var
+  snippetname : String;
+  mayChange   : Boolean;
+begin
+  // Save snippet
+  if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
+  begin
+    if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
+      snippetname := snippetname + '.sql';
+    // cleanup snippetname from special characters
+    snippetname := DIRNAME_SNIPPETS + goodfilename(snippetname);
+    if FileExists( snippetname ) then
+    begin
+      if MessageDlg( 'Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel], 0 ) <> mrOK then
+        exit;
+    end;
+    Screen.Cursor := crHourglass;
+    // Save complete content or just the selected text,
+    // depending on the tag of calling control
+    case (Sender as TComponent).Tag of
+      0: SaveUnicodeFile(snippetname, Childwin.SynMemoQuery.Text);
+      1: SaveUnicodeFile(snippetname, Childwin.SynMemoQuery.SelText);
+    end;
+    Childwin.FillPopupQueryLoad;
+    if Childwin.tabsetQueryHelpers.TabIndex = 3 then begin
+      // SQL Snippets selected in query helper, refresh list
+      mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
+      Childwin.tabsetQueryHelpersChange(Sender, 3, mayChange);
+    end;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMainForm.actQueryStopOnErrorsExecute(Sender: TObject);
+begin
+  // Weird fix: dummy routine to avoid the sending action getting disabled
+end;
+
+
+procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
+begin
+  Childwin.SynMemoQuery.WordWrap := TAction(Sender).Checked;
+end;
+
+
+procedure TMainForm.FindDialogQueryFind(Sender: TObject);
+var
+  Options: TSynSearchOptions;
+  Search: String;
+begin
+  Search := FindDialogQuery.FindText;
+  Options := [];
+  if Sender is TReplaceDialog then
+    Include(Options, ssoEntireScope);
+  if not (frDown in FindDialogQuery.Options) then
+    Include(Options, ssoBackwards);
+  if frMatchCase in FindDialogQuery.Options then
+    Include(Options, ssoMatchCase);
+  if frWholeWord in FindDialogQuery.Options then
+    Include(Options, ssoWholeWord);
+  if Childwin.SynMemoQuery.SearchReplace(Search, '', Options) = 0 then
+  begin
+    MessageBeep(MB_ICONASTERISK);
+    ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
+  end;
+end;
+
+
+procedure TMainForm.ReplaceDialogQueryFind(Sender: TObject);
+begin
+  FindDialogQuery.FindText := ReplaceDialogQuery.FindText;
+  FindDialogQueryFind( ReplaceDialogQuery );
+end;
+
+
+procedure TMainForm.ReplaceDialogQueryReplace(Sender: TObject);
+var
+  Options: TSynSearchOptions;
+  Search: String;
+begin
+  Search := ReplaceDialogQuery.FindText;
+  Options := [ssoEntireScope];  // Do replaces always on entire scope, because the standard-dialog lacks of a down/up-option
+  if frReplaceAll in ReplaceDialogQuery.Options then
+    Include( Options, ssoReplaceAll );
+  if not (frDown in ReplaceDialogQuery.Options) then
+    Include(Options, ssoBackwards);
+  if frMatchCase in ReplaceDialogQuery.Options then
+    Include(Options, ssoMatchCase);
+  if frWholeWord in ReplaceDialogQuery.Options then
+    Include(Options, ssoWholeWord);
+  if frReplace in ReplaceDialogQuery.Options then // Replace instead of ReplaceAll is pressed
+    Include(Options, ssoReplace)
+  else
+    Include(Options, ssoReplaceAll);
+  if Childwin.SynMemoQuery.SearchReplace( Search, ReplaceDialogQuery.ReplaceText, Options) = 0 then
+  begin
+    MessageBeep(MB_ICONASTERISK);
+    ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
+    if ssoBackwards in Options then
+      Childwin.SynMemoQuery.BlockEnd := Childwin.SynMemoQuery.BlockBegin
+    else
+      Childwin.SynMemoQuery.BlockBegin := Childwin.SynMemoQuery.BlockEnd;
+    Childwin.SynMemoQuery.CaretXY := Childwin.SynMemoQuery.BlockBegin;
+  end;
+end;
+
 
 end.

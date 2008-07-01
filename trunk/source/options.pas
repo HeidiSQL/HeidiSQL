@@ -110,22 +110,10 @@ type
     { Public declarations }
   end;
 
-  function OptionsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
-
 
 implementation
 uses childwin, main, helpers;
 {$R *.DFM}
-
-
-function OptionsWindow (AOwner : TComponent; Flags : String = '') : Boolean;
-var
-  f : Toptionsform;
-begin
-  f := Toptionsform.Create(AOwner);
-  Result := (f.ShowModal=mrOK); 
-  FreeAndNil (f);
-end;
 
 
 procedure Toptionsform.ButtonCancelClick(Sender: TObject);

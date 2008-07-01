@@ -143,7 +143,7 @@ begin
     keyword := 'CREATE VIEW'
   else
     keyword := 'ALTER VIEW';
-  Mainform.ChildWin.CallSQLHelpWithKeyword(keyword);
+  Mainform.CallSQLHelpWithKeyword(keyword);
 end;
 
 

@@ -279,7 +279,7 @@ end;
 
 procedure Toptimize.btnHelpClick(Sender: TObject);
 begin
-  Mainform.Childwin.CallSQLHelpWithKeyword('OPTIMIZE');
+  Mainform.CallSQLHelpWithKeyword('OPTIMIZE');
 end;
 
 
