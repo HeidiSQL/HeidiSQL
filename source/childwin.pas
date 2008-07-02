@@ -64,7 +64,6 @@ type
     ListTables: TVirtualStringTree;
     Refresh1: TMenuItem;
     pnlDataTop: TPanel;
-    pnlQueryTop: TPanel;
     menurefresh: TMenuItem;
     N2: TMenuItem;
     pnlQueryMemo: TPanel;
@@ -158,15 +157,6 @@ type
     QF7: TMenuItem;
     QF5: TMenuItem;
     QF6: TMenuItem;
-    pnlQueryToolbar: TPanel;
-    ToolBarQuery: TToolBar;
-    btnQueryRun: TToolButton;
-    btnQueryRunSelected: TToolButton;
-    btnQueryLoad: TToolButton;
-    btnQuerySave: TToolButton;
-    btnQueryFind: TToolButton;
-    PanelCharsInQueryWindow: TPanel;
-    btnQueryStopOnErrors: TToolButton;
     Panel10: TPanel;
     ComboBoxWhereFilters: TComboBox;
     ToolBar4: TToolBar;
@@ -189,7 +179,6 @@ type
     SaveDialogExportData: TExportSaveDialog;
     N11: TMenuItem;
     ProgressBarQuery: TProgressBar;
-    btnQueryReplace: TToolButton;
     Copy4: TMenuItem;
     N14: TMenuItem;
     DataInsertDateTime: TMenuItem;
@@ -217,10 +206,8 @@ type
     Find1: TMenuItem;
     popupDbGridHeader: TPopupMenu;
     SynCompletionProposal1: TSynCompletionProposal;
-    popupQueryLoad: TPopupMenu;
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
-    btnQuerySaveSnippet: TToolButton;
     SynEditSearch1: TSynEditSearch;
     N16: TMenuItem;
     ManageIndexes1: TMenuItem;
@@ -271,9 +258,6 @@ type
     N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
     menuAlterdatabase: TMenuItem;
-    PanelQueryDelimiter: TPanel;
-    LabelQueryDelimiter: TLabel;
-    ComboBoxQueryDelimiter: TComboBox;
     menuTreeAlterTable: TMenuItem;
     popupFilter: TPopupMenu;
     menuApplyFilter: TMenuItem;
@@ -306,7 +290,6 @@ type
     Createview1: TMenuItem;
     menuTreeCreateView: TMenuItem;
     menuTreeEditView: TMenuItem;
-    btnQueryWordWrap: TToolButton;
     menuTreeExpandAll: TMenuItem;
     menuTreeCollapseAll: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
@@ -435,11 +418,6 @@ type
     function mask(str: WideString) : WideString;
     procedure CheckConnection();
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
-    procedure AddOrRemoveFromQueryLoadHistory( filename: String;
-      AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
-    procedure popupQueryLoadClick( sender: TObject );
-    procedure FillPopupQueryLoad;
-    procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure ExecuteNonQuery(SQLQuery: String);
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
@@ -467,8 +445,6 @@ type
         TCanvas);
     procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
         DropPosition: TPoint);
-    procedure ComboBoxQueryDelimiterExit(Sender: TObject);
-    procedure ComboBoxQueryDelimiterAdd(delimiter: WideString);
     procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DBtreeDblClick(Sender: TObject);
     procedure DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -559,7 +535,6 @@ type
       editing                    : Boolean;
       mysql_version              : Integer;
       SessionName                : String;
-      delimiter                  : String;
       VTRowDataListVariables,
       VTRowDataListStatus,
       VTRowDataListProcesses,
@@ -902,17 +877,12 @@ end;
 procedure TMDIChild.ReadWindowOptions;
 var
   ws          : String;
-  delimiters  : String;
   i           : Integer;
   menuitem    : Tmenuitem;
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
   FilterFilename: String;
 begin
-  // Initialize delimiter settings
-  delimiter := DEFAULT_DELIMITER;
-  ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( delimiter );
-
   ws := Mainform.GetRegValue(REGNAME_CHILDWINSTATE, 'Normal');
   if ws = 'Normal' then begin
     WindowState := wsNormal;
@@ -977,9 +947,6 @@ begin
   SynSQLSyn1.TablenameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
   SynMemoQuery.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
 
-  // SQLFiles-History
-  FillPopupQueryLoad();
-
   // SQL-Filter-Files-History
   popupFilterOpenFile.Items.Clear;
   for i := 1 to 100 do begin
@@ -990,14 +957,6 @@ begin
     menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + FilterFilename;
     menuitem.OnClick := LoadSQLWhereFile;
     popupFilterOpenFile.Items.Add( menuitem );
-  end;
-
-  // Read the delimiters
-  delimiters := Trim( Mainform.GetRegValue(REGNAME_DELIMITERS, '') );
-  if delimiters <> '' then
-  begin
-    ComboBoxQueryDelimiter.Items.Text := delimiters;
-    ComboBoxQueryDelimiter.ItemIndex := Mainform.GetRegValue( REGNAME_DELIMITERSELECTED, 0 );
   end;
 
   // Restore width of columns of all VirtualTrees
@@ -1088,10 +1047,6 @@ begin
     SaveListSetup(ListTables);
     SaveListSetup(ListColumns);
 
-    // Save the delimiters
-    reg.WriteString( REGNAME_DELIMITERS, ComboBoxQueryDelimiter.Items.Text );
-    reg.WriteInteger( REGNAME_DELIMITERSELECTED, ComboBoxQueryDelimiter.ItemIndex );
-
     // Open server-specific registry-folder.
     // relative from already opened folder!
     reg.OpenKey( REGKEY_SESSIONS + FConn.Description, true );
@@ -1107,9 +1062,10 @@ begin
   FreeAndNil(CachedTableLists);
 
   FormDeactivate( Sender );
-  mainform.ToolBarData.Visible := false;
   Mainform.ToolBarDatabase.Visible := False;
   Mainform.ToolBarTable.Visible := False;
+  Mainform.ToolBarData.Visible := false;
+  Mainform.ToolBarQuery.Visible := False;
   Action := caFree;
 
   SetWindowConnected( false );
@@ -2118,7 +2074,7 @@ var
   inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
-  ShowDBTlb, ShowTableTlb, ShowDataTlb: Boolean;
+  ShowDBTlb, ShowTableTlb, ShowDataTlb, ShowQueryTlb: Boolean;
 begin
   // Make sure that main menu "drop table" affects table selected in tree view,
   // not table (now invisibly) selected on the database grid.
@@ -2194,10 +2150,13 @@ begin
   if not ShowTableTlb then MainForm.ToolBarTable.Visible := False;
   ShowDataTlb := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
   if not ShowDataTlb then MainForm.ToolBarData.Visible := False;
+  ShowQueryTlb := PageControlMain.ActivePage = tabQuery;
+  if not ShowQueryTlb then MainForm.ToolBarQuery.Visible := False;
   // Unhide relevant toolbar
   MainForm.ToolBarDatabase.Visible := ShowDbTlb;
   MainForm.ToolBarTable.Visible := ShowTableTlb;
   MainForm.ToolBarData.Visible := ShowDataTlb;
+  MainForm.ToolBarQuery.Visible := ShowQueryTlb;
 
   if FrmIsFocussed then begin
     MainForm.actDatasetFirst.DataSource := DataSource1;
@@ -2468,18 +2427,18 @@ begin
   if ( CurrentLine ) then
   begin
     // Run current line
-    SQL := parseSQL( SynMemoQuery.LineText, delimiter, ProcessClientSQL );
+    SQL := parseSQL( SynMemoQuery.LineText, Mainform.Delimiter, ProcessClientSQL );
   end
   else
   if ( Selection ) then
   begin
     // Run selection
-    SQL := parseSQL( SynMemoQuery.SelText, delimiter, ProcessClientSQL );
+    SQL := parseSQL( SynMemoQuery.SelText, Mainform.Delimiter, ProcessClientSQL );
   end
   else
   begin
     // Run all
-    SQL := parseSQL( SynMemoQuery.Text, delimiter, ProcessClientSQL );
+    SQL := parseSQL( SynMemoQuery.Text, Mainform.Delimiter, ProcessClientSQL );
   end;
 
   if ( SQL.Count = 0 ) then
@@ -2832,7 +2791,6 @@ end;
 procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
 var somechars : Boolean;
 begin
-  PanelCharsInQueryWindow.Caption := FormatByteNumber( SynMemoQuery.GetTextLen );
   somechars := SynMemoQuery.GetTextLen > 0;
   Mainform.actExecuteQuery.Enabled := somechars;
   Mainform.actExecuteSelection.Enabled := SynMemoQuery.SelAvail;
@@ -3630,71 +3588,6 @@ begin
 end;
 
 
-procedure TMDIChild.popupQueryLoadClick( sender: TObject );
-var
-  filename : String;
-  p        : Integer;
-begin
-  // Click on the popupQueryLoad
-  filename := (Sender as TMenuItem).Caption;
-  if Pos( '\', filename ) = 0 then
-  begin // assuming we load a snippet
-    filename := DIRNAME_SNIPPETS + filename + '.sql';
-  end
-  else
-  begin // assuming we load a file from the recent-list
-    p := Pos( ' ', filename ) + 1;
-    filename := Copy(filename, p, Length(filename));
-  end;
-  filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
-  QueryLoad( filename );
-end;
-
-
-procedure TMDIChild.AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
-var
-  i                     : Integer;
-  Values, newfilelist   : TStringList;
-  reg                   : TRegistry;
-  savedfilename         : String;
-begin
-  // Add or remove filename to/from history, avoiding duplicates
-
-  reg := TRegistry.Create;
-  reg.openkey(REGPATH, true);
-  newfilelist := TStringList.create;
-  Values := TStringList.create;
-  reg.GetValueNames( Values );
-
-  // Add new filename
-  if AddIt then
-  begin
-    newfilelist.Add( filename );
-  end;
-
-  // Add all other filenames
-  for i:=0 to Values.Count-1 do
-  begin
-    if Pos( 'SQLFile', Values[i] ) <> 1 then
-      continue;
-    savedfilename := Mainform.GetRegValue( Values[i], '' );
-    reg.DeleteValue( Values[i] );
-    if CheckIfFileExists and (not FileExists( savedfilename )) then
-      continue;
-    if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
-      newfilelist.add( savedfilename );
-  end;
-
-  // Save new list
-  for i := 0 to newfilelist.Count-1 do
-  begin
-    if i >= 20 then
-      break;
-    reg.WriteString( 'SQLFile'+IntToStr(i), newfilelist[i] );
-  end;
-
-  reg.Free;
-end;
 
 
 procedure TMDIChild.QueryLoad( filename: String; ReplaceContent: Boolean = true );
@@ -3718,7 +3611,7 @@ begin
           RunSQLFileWindow( Self, filename );
           // Add filename to history menu
           if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
-            AddOrRemoveFromQueryLoadHistory( filename, true );
+            Mainform.AddOrRemoveFromQueryLoadHistory( filename, true );
           // Don't load into editor
           abort;
         end;
@@ -3742,8 +3635,8 @@ begin
     on E: Exception do
     begin
       MessageDLG( 'Error while reading file ' + filename + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
-      AddOrRemoveFromQueryLoadHistory( filename, false );
-      FillPopupQueryLoad;
+      Mainform.AddOrRemoveFromQueryLoadHistory( filename, false );
+      Mainform.FillPopupQueryLoad;
       Screen.Cursor := crDefault;
       exit;
     end;
@@ -3761,71 +3654,12 @@ begin
   SynMemoQueryChange( self );
 
   if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
-    AddOrRemoveFromQueryLoadHistory( filename, true );
-  FillPopupQueryLoad;
+    Mainform.AddOrRemoveFromQueryLoadHistory( filename, true );
+  Mainform.FillPopupQueryLoad;
 
   Screen.Cursor := crDefault;
 end;
 
-
-procedure TMDIChild.FillPopupQueryLoad;
-var
-  i, j                       : Integer;
-  menuitem, snippetsfolder   : TMenuItem;
-  snippets                   : TStringList;
-  sqlFilename                : String;
-begin
-  // Fill the popupQueryLoad menu
-
-  popupQueryLoad.Items.Clear;
-
-  // Snippets
-  snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
-  snippetsfolder := TMenuItem.Create( popupQueryLoad );
-  snippetsfolder.Caption := 'Snippets';
-  popupQueryLoad.Items.Add(snippetsfolder);
-  for i := 0 to snippets.Count - 1 do
-  begin
-    menuitem := TMenuItem.Create( snippetsfolder );
-    menuitem.Caption := snippets[i];
-    menuitem.OnClick := popupQueryLoadClick;
-    snippetsfolder.Add(menuitem);
-  end;
-
-  // Separator
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := '-';
-  popupQueryLoad.Items.Add(menuitem);
-
-  // Recent files
-  j := 0;
-  for i:=0 to 19 do begin
-    sqlFilename := Mainform.GetRegValue( 'SQLFile'+IntToStr(i), '' );
-    if sqlFilename = '' then
-      continue;
-    inc(j);
-    menuitem := TMenuItem.Create( popupQueryLoad );
-    menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
-    menuitem.OnClick := popupQueryLoadClick;
-    popupQueryLoad.Items.Add(menuitem);
-  end;
-
-  // Separator + "Remove absent files"
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := '-';
-  popupQueryLoad.Items.Add(menuitem);
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := 'Remove absent files';
-  menuitem.OnClick := PopupQueryLoadRemoveAbsentFiles;
-  popupQueryLoad.Items.Add(menuitem);
-
-end;
-
-procedure TMDIChild.PopupQueryLoadRemoveAbsentFiles( sender: TObject );
-begin
-  AddOrRemoveFromQueryLoadHistory( '', false, true );
-  FillPopupQueryLoad;
-end;
 
 
 
@@ -4977,7 +4811,7 @@ begin
       // Refresh list with snippets
       mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
       tabsetQueryHelpersChange( Sender, tabsetQueryHelpers.TabIndex, mayChange );
-      FillPopupQueryLoad;
+      Mainform.FillPopupQueryLoad;
     end
     else
     begin
@@ -5285,80 +5119,6 @@ end;
 
 
 {***
-  Add a new query delimiter and select it
-  @param term The delimiter to add and/or select
-}
-procedure TMDIChild.ComboBoxQueryDelimiterAdd( delimiter: WideString );
-var
-  index: Integer;
-  found: Boolean;
-  msg: String;
-begin
-  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 824
-  // Check that delimiter does not contain a backslash
-  msg := IsValidDelimiter( delimiter );
-  if ( msg <> '' ) then
-  begin
-    // rollback the delimiter
-    ComboBoxQueryDelimiter.Text := Self.delimiter;
-    // notify the user
-    raise Exception.Create( msg );
-  end
-  else
-  begin
-    // the delimiter is case-sensitive, following the implementation
-    // in the MySQL CLI, so we must locate it by hand
-    found := False;
-    for index := 0 to ( ComboBoxQueryDelimiter.Items.Count - 1 ) do
-    begin
-      if ( ComboBoxQueryDelimiter.Items[index] = delimiter ) then
-      begin
-        ComboBoxQueryDelimiter.ItemIndex := index;
-        found := True;
-        break;
-      end;
-    end;
-
-    if ( not found ) then
-    begin
-      ComboBoxQueryDelimiter.Items.Add( delimiter );
-      ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.Count - 1;
-    end;
-
-    Self.delimiter := ComboBoxQueryDelimiter.Text;
-    LogSQL( Format( 'Delimiter changed to %s.', [delimiter] ));
-  end;
-end;
-
-
-{***
-  When ComboBoxQueryDelimiter lose the focus, defines the query delimiter
-
-  @param Sender A object
-}
-procedure TMDIChild.ComboBoxQueryDelimiterExit(Sender: TObject);
-var
-  msg: String;
-begin
-  // a delimiter couldn't be empty
-  ComboBoxQueryDelimiter.Text := Trim( ComboBoxQueryDelimiter.Text );
-
-  // verify if the delimiter combobox isn't empty
-  if ( ComboBoxQueryDelimiter.Text = '' ) then
-  begin
-    msg := 'A delimiter is needed.';
-    MessageDlg( msg, mtWarning, [mbOK], 0);
-    ComboBoxQueryDelimiter.SetFocus();
-  end
-  else
-  // add the new delimiter to combobox
-  begin
-    ComboBoxQueryDelimiterAdd( ComboBoxQueryDelimiter.Text );
-  end;
-end;
-
-
-{***
   Callback procedure able to handle client-side SQL statements such as DELIMITER
 
   @param command The command/option to be called
@@ -5366,16 +5126,12 @@ end;
 }
 procedure TMDIChild.ProcessClientSQL(command: WideString; parameter: WideString);
 begin
-  if ( command = 'DELIMITER' ) then
-  begin
-    ComboBoxQueryDelimiterAdd( parameter );
-  end
-  else
-  if ( command = 'CLIENTSQL_ERROR' ) then
-  begin
+  if command = 'DELIMITER' then
+    Mainform.ComboBoxQueryDelimiterAdd(parameter)
+  else if command = 'CLIENTSQL_ERROR' then begin
     LogSQL( parameter, True );
     if Mainform.actQueryStopOnErrors.Checked then
-      raise Exception.Create( parameter );
+      raise Exception.Create(parameter);
   end;
 end;
 

@@ -873,7 +873,7 @@ object MDIChild: TMDIChild
           ImageIndex = 57
           object spltQuery: TSplitter
             Left = 0
-            Top = 125
+            Top = 96
             Width = 496
             Height = 4
             Cursor = crSizeNS
@@ -882,160 +882,14 @@ object MDIChild: TMDIChild
           end
           object LabelResultinfo: TLabel
             Left = 0
-            Top = 146
+            Top = 117
             Width = 496
             Height = 13
             Align = alTop
           end
-          object pnlQueryTop: TPanel
-            Left = 0
-            Top = 0
-            Width = 496
-            Height = 29
-            Align = alTop
-            Alignment = taLeftJustify
-            BevelOuter = bvNone
-            BorderWidth = 1
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = [fsBold]
-            ParentFont = False
-            TabOrder = 1
-            object pnlQueryToolbar: TPanel
-              Left = 152
-              Top = 1
-              Width = 222
-              Height = 27
-              Align = alRight
-              BevelOuter = bvNone
-              BorderWidth = 1
-              TabOrder = 0
-              object ToolBarQuery: TToolBar
-                Left = 1
-                Top = 1
-                Width = 220
-                Height = 25
-                Align = alClient
-                ButtonHeight = 25
-                Caption = 'Query'
-                Color = clBtnFace
-                DragKind = dkDock
-                EdgeInner = esNone
-                EdgeOuter = esNone
-                Images = MainForm.PngImageListMain
-                ParentColor = False
-                ParentShowHint = False
-                ShowHint = True
-                TabOrder = 0
-                Transparent = True
-                Wrapable = False
-                object btnQueryRun: TToolButton
-                  Left = 0
-                  Top = 0
-                  Action = MainForm.actExecuteQuery
-                end
-                object btnQueryRunSelected: TToolButton
-                  Left = 23
-                  Top = 0
-                  Action = MainForm.actExecuteSelection
-                end
-                object btnQueryLoad: TToolButton
-                  Left = 46
-                  Top = 0
-                  Action = MainForm.actLoadSQL
-                  DropdownMenu = popupQueryLoad
-                  Style = tbsDropDown
-                end
-                object btnQuerySave: TToolButton
-                  Left = 82
-                  Top = 0
-                  Action = MainForm.actSaveSQL
-                end
-                object btnQuerySaveSnippet: TToolButton
-                  Left = 105
-                  Top = 0
-                  Action = MainForm.actSaveSQLSnippet
-                end
-                object btnQueryFind: TToolButton
-                  Left = 128
-                  Top = 0
-                  Action = MainForm.actQueryFind
-                end
-                object btnQueryReplace: TToolButton
-                  Left = 151
-                  Top = 0
-                  Action = MainForm.actQueryReplace
-                end
-                object btnQueryStopOnErrors: TToolButton
-                  Left = 174
-                  Top = 0
-                  Action = MainForm.actQueryStopOnErrors
-                end
-                object btnQueryWordWrap: TToolButton
-                  Left = 197
-                  Top = 0
-                  Action = MainForm.actQueryWordWrap
-                end
-              end
-            end
-            object PanelCharsInQueryWindow: TPanel
-              Left = 80
-              Top = 1
-              Width = 72
-              Height = 27
-              Align = alRight
-              Alignment = taRightJustify
-              BevelOuter = bvNone
-              BorderWidth = 2
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlack
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
-              ParentFont = False
-              TabOrder = 1
-            end
-            object PanelQueryDelimiter: TPanel
-              Left = 374
-              Top = 1
-              Width = 121
-              Height = 27
-              Align = alRight
-              BevelOuter = bvNone
-              TabOrder = 2
-              object LabelQueryDelimiter: TLabel
-                Left = 6
-                Top = 7
-                Width = 45
-                Height = 13
-                Caption = 'Delimiter:'
-                Font.Charset = DEFAULT_CHARSET
-                Font.Color = clBlack
-                Font.Height = -11
-                Font.Name = 'Tahoma'
-                Font.Style = []
-                ParentFont = False
-              end
-              object ComboBoxQueryDelimiter: TComboBox
-                Left = 64
-                Top = 4
-                Width = 55
-                Height = 21
-                ItemHeight = 13
-                TabOrder = 0
-                OnExit = ComboBoxQueryDelimiterExit
-                Items.Strings = (
-                  ';'
-                  ';;'
-                  '//')
-              end
-            end
-          end
           object pnlQueryMemo: TPanel
             Left = 0
-            Top = 29
+            Top = 0
             Width = 496
             Height = 96
             Align = alTop
@@ -1157,14 +1011,14 @@ object MDIChild: TMDIChild
           end
           object gridQuery: TTntDBGrid
             Left = 0
-            Top = 159
+            Top = 130
             Width = 496
-            Height = 61
+            Height = 90
             Align = alClient
             DataSource = DataSource2
             Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
             PopupMenu = popupResultGrid
-            TabOrder = 2
+            TabOrder = 1
             TitleFont.Charset = DEFAULT_CHARSET
             TitleFont.Color = clWindowText
             TitleFont.Height = -11
@@ -1178,12 +1032,12 @@ object MDIChild: TMDIChild
           end
           object ProgressBarQuery: TProgressBar
             Left = 0
-            Top = 129
+            Top = 100
             Width = 496
             Height = 17
             Align = alTop
             Step = 1
-            TabOrder = 3
+            TabOrder = 2
             Visible = False
           end
         end
@@ -2158,10 +2012,6 @@ object MDIChild: TMDIChild
     Top = 192
     EndOfTokenChrW = '()[]. ='#9
     TriggerCharsW = '.'
-  end
-  object popupQueryLoad: TPopupMenu
-    Left = 8
-    Top = 80
   end
   object OpenDialogSQLFile: TOpenDialog
     DefaultExt = 'sql'

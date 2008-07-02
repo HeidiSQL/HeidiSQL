@@ -2,7 +2,7 @@ object MainForm: TMainForm
   Left = 241
   Top = 114
   ClientHeight = 261
-  ClientWidth = 754
+  ClientWidth = 811
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack
@@ -21,7 +21,7 @@ object MainForm: TMainForm
   object StatusBar: TStatusBar
     Left = 0
     Top = 242
-    Width = 754
+    Width = 811
     Height = 19
     AutoHint = True
     Panels = <
@@ -44,7 +44,7 @@ object MainForm: TMainForm
   object ControlBar1: TControlBar
     Left = 0
     Top = 0
-    Width = 754
+    Width = 811
     Height = 52
     Align = alTop
     AutoSize = True
@@ -390,6 +390,106 @@ object MainForm: TMainForm
         Left = 69
         Top = 0
         Action = actEditIndexes
+      end
+    end
+    object ToolBarQuery: TToolBar
+      Left = 398
+      Top = 28
+      Width = 330
+      Height = 22
+      Align = alNone
+      AutoSize = True
+      Caption = 'ToolBarQuery'
+      DragKind = dkDock
+      EdgeInner = esNone
+      EdgeOuter = esNone
+      Images = PngImageListMain
+      TabOrder = 4
+      Visible = False
+      object btnExecuteQuery: TToolButton
+        Left = 0
+        Top = 0
+        Action = actExecuteQuery
+      end
+      object btnExecuteSelection: TToolButton
+        Left = 23
+        Top = 0
+        Action = actExecuteSelection
+      end
+      object btnLoadSQL: TToolButton
+        Left = 46
+        Top = 0
+        Action = actLoadSQL
+        DropdownMenu = PopupQueryLoad
+        Style = tbsDropDown
+      end
+      object btnSaveSQL: TToolButton
+        Left = 82
+        Top = 0
+        Action = actSaveSQL
+        Enabled = False
+      end
+      object btnSaveSQLSnippet: TToolButton
+        Left = 105
+        Top = 0
+        Action = actSaveSQLSnippet
+        Enabled = False
+      end
+      object btnQueryFind: TToolButton
+        Left = 128
+        Top = 0
+        Action = actQueryFind
+      end
+      object btnQueryReplace: TToolButton
+        Left = 151
+        Top = 0
+        Action = actQueryReplace
+      end
+      object btnStopOnErrors: TToolButton
+        Left = 174
+        Top = 0
+        Action = actQueryStopOnErrors
+      end
+      object btnQueryWordwrap: TToolButton
+        Left = 197
+        Top = 0
+        Action = actQueryWordWrap
+      end
+      object Panel1: TPanel
+        Left = 220
+        Top = 0
+        Width = 110
+        Height = 22
+        BevelOuter = bvNone
+        UseDockManager = False
+        ParentBackground = False
+        TabOrder = 0
+        object LabelQueryDelimiter: TLabel
+          Left = 6
+          Top = 4
+          Width = 45
+          Height = 13
+          Caption = 'Delimiter:'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+        object ComboBoxQueryDelimiter: TComboBox
+          Left = 55
+          Top = 0
+          Width = 45
+          Height = 21
+          ItemHeight = 13
+          TabOrder = 0
+          OnExit = ComboBoxQueryDelimiterExit
+          Items.Strings = (
+            ';'
+            ';;'
+            '//')
+        end
       end
     end
   end
@@ -3973,5 +4073,9 @@ object MainForm: TMainForm
     OnReplace = ReplaceDialogQueryReplace
     Left = 40
     Top = 160
+  end
+  object PopupQueryLoad: TPopupMenu
+    Left = 104
+    Top = 88
   end
 end

@@ -209,6 +209,20 @@ type
     ReplaceDialogQuery: TReplaceDialog;
     btnEditTableProperties: TToolButton;
     btnEditDatabase: TToolButton;
+    ToolBarQuery: TToolBar;
+    btnExecuteQuery: TToolButton;
+    btnExecuteSelection: TToolButton;
+    btnLoadSQL: TToolButton;
+    btnSaveSQL: TToolButton;
+    btnSaveSQLSnippet: TToolButton;
+    btnQueryFind: TToolButton;
+    btnQueryReplace: TToolButton;
+    btnStopOnErrors: TToolButton;
+    btnQueryWordwrap: TToolButton;
+    Panel1: TPanel;
+    ComboBoxQueryDelimiter: TComboBox;
+    LabelQueryDelimiter: TLabel;
+    PopupQueryLoad: TPopupMenu;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
@@ -272,6 +286,7 @@ type
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
     procedure actWebbrowse(Sender: TObject);
+    procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure EnsureConnected;
     function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
     procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
@@ -291,8 +306,15 @@ type
     ViewForm: TfrmView;
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
+    Delimiter: String;
     procedure OpenRegistry(Session: String = '');
     procedure CallSQLHelpWithKeyword( keyword: String );
+    procedure AddOrRemoveFromQueryLoadHistory( filename: String;
+      AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+    procedure popupQueryLoadClick( sender: TObject );
+    procedure FillPopupQueryLoad;
+    procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+    procedure ComboBoxQueryDelimiterAdd( delimiter: WideString );
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
     function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
@@ -460,6 +482,12 @@ begin
       WriteInteger(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
       WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
       WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
+      WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
+      WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
+
+      // Save the delimiters
+      WriteString( REGNAME_DELIMITERS, ComboBoxQueryDelimiter.Items.Text );
+      WriteInteger( REGNAME_DELIMITERSELECTED, ComboBoxQueryDelimiter.ItemIndex );
     end;
     CloseKey;
     Free;
@@ -493,6 +521,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   ws : String;
   Monitor: TMonitor;
+  delimiters: String;
 const
   MoveWinThreshold: Byte = 80;
 begin
@@ -529,6 +558,17 @@ begin
   ToolBarTable.Top := GetRegValue(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
   ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
+  ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, 410);
+  ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, 0);
+
+  // Delimiter stuff
+  delimiters := Trim( Mainform.GetRegValue(REGNAME_DELIMITERS, '') );
+  if delimiters <> '' then begin
+    ComboBoxQueryDelimiter.Items.Text := delimiters;
+    ComboBoxQueryDelimiter.ItemIndex := GetRegValue( REGNAME_DELIMITERSELECTED, 0 );
+  end else
+    ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( DEFAULT_DELIMITER );
+  Delimiter := ComboBoxQueryDelimiter.Text;
 
   // Beautify AppRevision
   if Pos('$Rev: WC', AppRevision) < 1 then
@@ -552,6 +592,9 @@ begin
 
   // Folder for session logfiles
   DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
+
+  // SQLFiles-History
+  FillPopupQueryLoad;
 end;
 
 
@@ -1747,7 +1790,7 @@ begin
       0: SaveUnicodeFile(snippetname, Childwin.SynMemoQuery.Text);
       1: SaveUnicodeFile(snippetname, Childwin.SynMemoQuery.SelText);
     end;
-    Childwin.FillPopupQueryLoad;
+    FillPopupQueryLoad;
     if Childwin.tabsetQueryHelpers.TabIndex = 3 then begin
       // SQL Snippets selected in query helper, refresh list
       mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
@@ -1767,6 +1810,61 @@ end;
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
   Childwin.SynMemoQuery.WordWrap := TAction(Sender).Checked;
+end;
+
+procedure TMainForm.ComboBoxQueryDelimiterExit(Sender: TObject);
+begin
+  // a delimiter couldn't be empty
+  ComboBoxQueryDelimiter.Text := Trim(ComboBoxQueryDelimiter.Text);
+  // verify if the delimiter combobox isn't empty
+  if ComboBoxQueryDelimiter.Text = '' then begin
+    MessageDlg( 'A delimiter is needed.', mtWarning, [mbOK], 0);
+    ComboBoxQueryDelimiter.SetFocus;
+  end else begin
+    // add the new delimiter to combobox
+    ComboBoxQueryDelimiterAdd(ComboBoxQueryDelimiter.Text);
+  end;
+end;
+
+
+{***
+  Add a new query delimiter and select it
+  @param term The delimiter to add and/or select
+}
+procedure TMainform.ComboBoxQueryDelimiterAdd( delimiter: WideString );
+var
+  index: Integer;
+  found: Boolean;
+  msg: String;
+begin
+  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 824
+  // Check that delimiter does not contain a backslash
+  msg := IsValidDelimiter( delimiter );
+  if msg <> '' then begin
+    // rollback the delimiter
+    ComboBoxQueryDelimiter.Text := Delimiter;
+    // notify the user
+    raise Exception.Create( msg );
+  end else begin
+    // the delimiter is case-sensitive, following the implementation
+    // in the MySQL CLI, so we must locate it by hand
+    found := False;
+    for index := 0 to ComboBoxQueryDelimiter.Items.Count - 1 do begin
+      if ComboBoxQueryDelimiter.Items[index] = Delimiter then begin
+        ComboBoxQueryDelimiter.ItemIndex := index;
+        found := True;
+        break;
+      end;
+    end;
+
+    if not found then begin
+      ComboBoxQueryDelimiter.Items.Add( Delimiter );
+      ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.Count - 1;
+    end;
+
+    Delimiter := ComboBoxQueryDelimiter.Text;
+    Childwin.LogSQL( Format( 'Delimiter changed to %s.', [Delimiter] ));
+  end;
 end;
 
 
@@ -1829,6 +1927,127 @@ begin
       Childwin.SynMemoQuery.BlockBegin := Childwin.SynMemoQuery.BlockEnd;
     Childwin.SynMemoQuery.CaretXY := Childwin.SynMemoQuery.BlockBegin;
   end;
+end;
+
+
+procedure TMainform.FillPopupQueryLoad;
+var
+  i, j: Integer;
+  menuitem, snippetsfolder: TMenuItem;
+  snippets: TStringList;
+  sqlFilename: String;
+begin
+  // Fill the popupQueryLoad menu
+  popupQueryLoad.Items.Clear;
+
+  // Snippets
+  snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+  snippetsfolder := TMenuItem.Create( popupQueryLoad );
+  snippetsfolder.Caption := 'Snippets';
+  popupQueryLoad.Items.Add(snippetsfolder);
+  for i := 0 to snippets.Count - 1 do begin
+    menuitem := TMenuItem.Create( snippetsfolder );
+    menuitem.Caption := snippets[i];
+    menuitem.OnClick := popupQueryLoadClick;
+    snippetsfolder.Add(menuitem);
+  end;
+
+  // Separator
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := '-';
+  popupQueryLoad.Items.Add(menuitem);
+
+  // Recent files
+  j := 0;
+  for i:=0 to 19 do begin
+    sqlFilename := GetRegValue( 'SQLFile'+IntToStr(i), '' );
+    if sqlFilename = '' then
+      continue;
+    inc(j);
+    menuitem := TMenuItem.Create( popupQueryLoad );
+    menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
+    menuitem.OnClick := popupQueryLoadClick;
+    popupQueryLoad.Items.Add(menuitem);
+  end;
+
+  // Separator + "Remove absent files"
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := '-';
+  popupQueryLoad.Items.Add(menuitem);
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := 'Remove absent files';
+  menuitem.OnClick := PopupQueryLoadRemoveAbsentFiles;
+  popupQueryLoad.Items.Add(menuitem);
+
+end;
+
+
+procedure TMainform.PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+begin
+  AddOrRemoveFromQueryLoadHistory( '', false, true );
+  FillPopupQueryLoad;
+end;
+
+procedure TMainform.popupQueryLoadClick( sender: TObject );
+var
+  filename : String;
+  p        : Integer;
+begin
+  // Click on the popupQueryLoad
+  filename := (Sender as TMenuItem).Caption;
+  if Pos( '\', filename ) = 0 then
+  begin // assuming we load a snippet
+    filename := DIRNAME_SNIPPETS + filename + '.sql';
+  end
+  else
+  begin // assuming we load a file from the recent-list
+    p := Pos( ' ', filename ) + 1;
+    filename := Copy(filename, p, Length(filename));
+  end;
+  filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
+  Childwin.QueryLoad( filename );
+end;
+
+
+procedure TMainform.AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+var
+  i                     : Integer;
+  Values, newfilelist   : TStringList;
+  reg                   : TRegistry;
+  savedfilename         : String;
+begin
+  // Add or remove filename to/from history, avoiding duplicates
+
+  reg := TRegistry.Create;
+  reg.openkey(REGPATH, true);
+  newfilelist := TStringList.create;
+  Values := TStringList.create;
+  reg.GetValueNames( Values );
+
+  // Add new filename
+  if AddIt then
+    newfilelist.Add( filename );
+
+  // Add all other filenames
+  for i:=0 to Values.Count-1 do begin
+    if Pos( 'SQLFile', Values[i] ) <> 1 then
+      continue;
+    savedfilename := Mainform.GetRegValue( Values[i], '' );
+    reg.DeleteValue( Values[i] );
+    if CheckIfFileExists and (not FileExists( savedfilename )) then
+      continue;
+    if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
+      newfilelist.add( savedfilename );
+  end;
+
+  // Save new list
+  for i := 0 to newfilelist.Count-1 do begin
+    if i >= 20 then
+      break;
+    reg.WriteString( 'SQLFile'+IntToStr(i), newfilelist[i] );
+  end;
+
+  reg.Free;
 end;
 
 

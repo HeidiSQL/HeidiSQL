@@ -91,6 +91,8 @@ const
   REGNAME_TOOLBARTABLETOP = 'ToolBarTableTop';
   REGNAME_TOOLBARDATALEFT = 'ToolBarDataLeft';
   REGNAME_TOOLBARDATATOP = 'ToolBarDataTop';
+  REGNAME_TOOLBARQUERYLEFT = 'ToolBarQueryLeft';
+  REGNAME_TOOLBARQUERYTOP = 'ToolBarQueryTop';
   REGNAME_CHILDWINSTATE = 'childwinstate';
   REGNAME_CHILDWINLEFT = 'childwinleft';
   REGNAME_CHILDWINTOP = 'childwintop';
