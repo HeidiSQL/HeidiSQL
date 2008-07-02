@@ -51,6 +51,7 @@ type
     editLineTerminator: TEdit;
     lblLineTerminator: TLabel;
     lblIgnoreLines: TLabel;
+    procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
@@ -90,6 +91,17 @@ begin
   FreeAndNil(f);
 end;
 
+
+{**
+  FormCreat
+}
+procedure Tloaddataform.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnOpenFile.PngImage := Mainform.PngImageListMain.PngImages[52].PngImage;
+  btnColUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
+  btnColDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
+end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);
 begin

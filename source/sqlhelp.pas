@@ -25,6 +25,7 @@ type
     MemoExample: TMemo;
     ButtonClose: TButton;
     btnSearchOnline: TPngSpeedButton;
+    procedure FormCreate(Sender: TObject);
     procedure treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
     procedure treeTopicsChange(Sender: TObject; Node: TTreeNode);
@@ -58,6 +59,16 @@ uses ZDataset, helpers, main, db;
 {$I const.inc}
 
 {$R *.dfm}
+
+
+{**
+  FormCreate
+}
+procedure TfrmSQLhelp.FormCreate(Sender: TObject);
+begin
+  // Assign images from main imagelist to speedbuttons
+  btnSearchOnline.PngImage := Mainform.PngImageListMain.PngImages[69].PngImage;
+end;
 
 
 {***
