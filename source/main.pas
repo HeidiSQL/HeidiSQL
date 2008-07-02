@@ -305,6 +305,7 @@ type
     ViewForm: TfrmView;
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
+    SQLHelpForm: TfrmSQLhelp;
     Delimiter: String;
     procedure OpenRegistry(Session: String = '');
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -1743,8 +1744,10 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  // Set help-keyword and show window
-  SQLhelpWindow(Self, keyword);
+  if SQLHelpForm = nil then
+    SQLHelpForm := TfrmSQLhelp.Create(Self);
+  SQLHelpForm.Keyword := keyword;
+  SQLHelpForm.ShowModal;
 end;
 
 
