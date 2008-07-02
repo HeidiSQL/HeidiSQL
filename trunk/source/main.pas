@@ -177,7 +177,6 @@ type
     actRefresh: TAction;
     actImportCSV: TAction;
     actCut: TEditCut;
-    actSelectAll: TEditSelectAll;
     Cut1: TMenuItem;
     actExportSettings: TAction;
     actImportSettings: TAction;

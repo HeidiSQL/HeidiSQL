@@ -770,12 +770,6 @@ object MainForm: TMainForm
       ImageIndex = 40
       ShortCut = 32776
     end
-    object actSelectAll: TEditSelectAll
-      Category = 'Various'
-      Caption = 'Select &All'
-      Hint = 'Select All|Selects the entire document'
-      ShortCut = 16449
-    end
     object actAboutBox: TAction
       Tag = 57
       Category = 'Various'
