@@ -155,8 +155,8 @@ begin
     on E: Exception do
     begin
       MessageDLG( 'Error while reading file ' + SQLFileName + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
-      Mainform.Childwin.AddOrRemoveFromQueryLoadHistory( SQLFileName, false );
-      Mainform.Childwin.FillPopupQueryLoad;
+      Mainform.AddOrRemoveFromQueryLoadHistory( SQLFileName, false );
+      Mainform.FillPopupQueryLoad;
     end;
   end;
   Screen.Cursor := crDefault;
