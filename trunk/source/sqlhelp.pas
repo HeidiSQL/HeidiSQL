@@ -41,9 +41,9 @@ type
   private
     { Private declarations }
     m : TMDIChild;
-    Keyword: String;
   public
     { Public declarations }
+    Keyword: String;
   end;
 
   const
@@ -52,8 +52,6 @@ type
     ICONINDEX_CATEGORY_OPENED   : Integer = 67;
     ICONINDEX_HELPITEM          : Integer = 68;
 
-  function SQLhelpWindow(AOwner: TComponent; Keyword: String = ''): Boolean;
-
 implementation
 
 uses ZDataset, helpers, main, db;
@@ -61,23 +59,6 @@ uses ZDataset, helpers, main, db;
 {$I const.inc}
 
 {$R *.dfm}
-
-
-
-{**
-  Create form on demand
-  @param TComponent Owner of form (should be calling form)
-  @return Boolean Form closed using modalresult mrOK
-}
-function SQLhelpWindow(AOwner: TComponent; Keyword: String = ''): Boolean;
-var
-  f : TfrmSQLhelp;
-begin
-  f := TfrmSQLhelp.Create(AOwner);
-  f.Keyword := Keyword;
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil(f);
-end;
 
 
 {**
