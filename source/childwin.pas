@@ -2850,10 +2850,6 @@ begin
     MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
   end;
 
-  // Assign images from main imagelist to speedbuttons
-  btnDataSorting.PngImage := Mainform.PngImageListMain.PngImages[73].PngImage;
-  btnColumnSelection.PngImage := Mainform.PngImageListMain.PngImages[73].PngImage;
-
   //TODO:
   //ds.DisableControls;
 end;

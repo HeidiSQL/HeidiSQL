@@ -43,7 +43,6 @@ type
     btnSave: TPngSpeedButton;
     btnDelete: TPngSpeedButton;
     btnEditDesc: TPngSpeedButton;
-    procedure FormCreate(Sender: TObject);
     procedure ButtonSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonConnectClick(Sender: TObject);
@@ -79,19 +78,6 @@ begin
   f := Tconnform.Create(AOwner);
   Result := (f.ShowModal = mrOK);
   FreeAndNil (f);
-end;
-
-
-{**
-  FormCreate
-}
-procedure Tconnform.FormCreate(Sender: TObject);
-begin
-  // Assign images from main imagelist to speedbuttons
-  btnNew.PngImage := Mainform.PngImageListMain.PngImages[72].PngImage;
-  btnSave.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
-  btnDelete.PngImage := Mainform.PngImageListMain.PngImages[26].PngImage;
-  btnEditDesc.PngImage := Mainform.PngImageListMain.PngImages[33].PngImage;
 end;
 
 
