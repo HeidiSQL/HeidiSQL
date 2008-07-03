@@ -722,6 +722,7 @@ object MainForm: TMainForm
     object actCloseSession: TWindowClose
       Category = 'File'
       Caption = '&Close'
+      Enabled = False
       Hint = 'Close|Close Connection'
       ImageIndex = 29
     end
@@ -961,6 +962,7 @@ object MainForm: TMainForm
     object actCreateTable: TAction
       Category = 'Database'
       Caption = 'Create new table'
+      Enabled = False
       Hint = 'Create new table in selected database'
       ImageIndex = 15
       OnExecute = actCreateTableExecute
@@ -968,6 +970,7 @@ object MainForm: TMainForm
     object actEmptyTables: TAction
       Category = 'Database'
       Caption = 'Empty table(s) ...'
+      Enabled = False
       Hint = 'Delete all rows in selected table(s)'
       ImageIndex = 46
       ShortCut = 8238
@@ -976,12 +979,14 @@ object MainForm: TMainForm
     object actEditTableFields: TAction
       Category = 'Database'
       Caption = 'Table properties'
+      Enabled = False
       ImageIndex = 44
       OnExecute = actEditTableFieldsExecute
     end
     object actEditTableProperties: TAction
       Category = 'Database'
       Caption = 'Alter table ...'
+      Enabled = False
       Hint = 'Edit table engine, charset, auto increment etc.'
       ImageIndex = 17
       OnExecute = actEditTablePropertiesExecute
@@ -1017,6 +1022,7 @@ object MainForm: TMainForm
     object actDropDatabase: TAction
       Category = 'Database'
       Caption = 'Drop Database'
+      Enabled = False
       Hint = 'Delete database and all contained tables and objects'
       ImageIndex = 7
       OnExecute = actDropDatabaseExecute
@@ -1024,6 +1030,7 @@ object MainForm: TMainForm
     object actCreateDatabase: TAction
       Category = 'Database'
       Caption = 'Create database'
+      Enabled = False
       Hint = 'Create a new, blank database'
       ImageIndex = 6
       OnExecute = actCreateDatabaseExecute
@@ -1031,6 +1038,7 @@ object MainForm: TMainForm
     object actEditDatabase: TAction
       Category = 'Database'
       Caption = 'Edit database'
+      Enabled = False
       Hint = 'Edit database properties'
       ImageIndex = 8
       OnExecute = actEditDatabaseExecute
@@ -1038,6 +1046,7 @@ object MainForm: TMainForm
     object actSQLhelp: TAction
       Category = 'Tools'
       Caption = 'SQL help'
+      Enabled = False
       ImageIndex = 31
       ShortCut = 112
       OnExecute = actSQLhelpExecute
@@ -1045,6 +1054,7 @@ object MainForm: TMainForm
     object actRefresh: TAction
       Category = 'Various'
       Caption = 'Refresh'
+      Enabled = False
       Hint = 'Refresh'
       ImageIndex = 0
       OnExecute = actRefreshExecute
@@ -1052,6 +1062,7 @@ object MainForm: TMainForm
     object actImportCSV: TAction
       Category = 'Export/Import'
       Caption = 'Import CSV file'
+      Enabled = False
       ImageIndex = 50
       OnExecute = actImportCSVExecute
     end
@@ -1073,31 +1084,37 @@ object MainForm: TMainForm
     object actFlushHosts: TAction
       Category = 'Tools'
       Caption = 'Hosts'
+      Enabled = False
       OnExecute = actFlushExecute
     end
     object actFlushLogs: TAction
       Category = 'Tools'
       Caption = 'Logs'
+      Enabled = False
       OnExecute = actFlushExecute
     end
     object actFlushPrivileges: TAction
       Category = 'Tools'
       Caption = 'Privileges'
+      Enabled = False
       OnExecute = actFlushExecute
     end
     object actFlushTables: TAction
       Category = 'Tools'
       Caption = 'Tables'
+      Enabled = False
       OnExecute = actFlushExecute
     end
     object actFlushTableswithreadlock: TAction
       Category = 'Tools'
       Caption = 'Tables with read lock'
+      Enabled = False
       OnExecute = actFlushExecute
     end
     object actFlushStatus: TAction
       Category = 'Tools'
       Caption = 'Status'
+      Enabled = False
       OnExecute = actFlushExecute
     end
     object actUpdateCheck: TAction
