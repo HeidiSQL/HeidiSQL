@@ -2339,7 +2339,7 @@ end;
 }
 procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
 begin
-  Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyWrite);
+  Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
   Stream.Position := 0;
   FileCharset := GetFileCharset(Stream);
 end;
@@ -2545,12 +2545,9 @@ var
   Stream: TFileStream;
   FileCharset: TFileCharset;
 begin
-  try
-    OpenTextfile(Filename, Stream, FileCharset);
-    Result := ReadTextfileChunk(Stream, FileCharset);
-  finally
-    Stream.Free;
-  end;
+  OpenTextfile(Filename, Stream, FileCharset);
+  Result := ReadTextfileChunk(Stream, FileCharset);
+  Stream.Free;
 end;
 
 

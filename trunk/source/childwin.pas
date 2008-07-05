@@ -3567,7 +3567,7 @@ var
   msgtext          : String;
 begin
   // Ask for action when loading a big file
-  if _GetFileSize( filename ) > LOAD_SIZE then
+  if FileExists(filename) and (_GetFileSize( filename ) > LOAD_SIZE) then
   begin
     msgtext := 'The file you are about to load is bigger than '+FormatByteNumber(LOAD_SIZE, 0)+'.' + CRLF + CRLF +
       'Do you want to just run the file to avoid loading it completely into the query-editor ( = memory ) ?' + CRLF + CRLF +
@@ -3576,21 +3576,20 @@ begin
       '  [No] to load the file into the query editor' + CRLF +
       '  [Cancel] to cancel file opening.';
     case MessageDlg( msgtext, mtWarning, [mbYes, mbNo, mbCancel], 0 ) of
-      mrYes: // Run the file, don't load it into the editor
+      // Run the file, don't load it into the editor
+      mrYes:
         begin
           RunSQLFileWindow( Self, filename );
           // Add filename to history menu
           if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
             Mainform.AddOrRemoveFromQueryLoadHistory( filename, true );
           // Don't load into editor
-          abort;
+          Abort;
         end;
-
-      mrNo:; // Do nothing, just load the file normally into the editor
-
-      mrCancel: // Cancel opening file
-        abort;
-
+      // Do nothing here, go ahead and load the file normally into the editor
+      mrNo:;
+      // Cancel opening file
+      mrCancel: Abort;
     end;
   end;
 
@@ -3601,33 +3600,21 @@ begin
   Screen.Cursor := crHourGlass;
   try
     filecontent := ReadTextfile(filename);
-  except
-    on E: Exception do
-    begin
-      MessageDLG( 'Error while reading file ' + filename + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
-      Mainform.AddOrRemoveFromQueryLoadHistory( filename, false );
-      Mainform.FillPopupQueryLoad;
-      Screen.Cursor := crDefault;
-      exit;
-    end;
+    if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
+      Mainform.AddOrRemoveFromQueryLoadHistory( filename, true );
+    Mainform.FillPopupQueryLoad;
+    PagecontrolMain.ActivePage := tabQuery;
+    SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+    SynMemoQuery.BeginUpdate;
+    if ReplaceContent then
+      SynMemoQuery.SelectAll;
+    SynMemoQuery.SelText := filecontent;
+    SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
+    SynMemoQuery.EndUpdate;
+  except on E:Exception do
+    // File does not exist, is locked or broken
+    MessageDlg(E.message, mtError, [mbOK], 0);
   end;
-
-  PagecontrolMain.ActivePage := tabQuery;
-  SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
-  SynMemoQuery.BeginUpdate;
-  if ReplaceContent then
-  begin
-    SynMemoQuery.SelectAll;
-  end;
-  SynMemoQuery.SelText := filecontent;
-  SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
-  SynMemoQuery.EndUpdate;
-  ValidateQueryControls;
-
-  if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
-    Mainform.AddOrRemoveFromQueryLoadHistory( filename, true );
-  Mainform.FillPopupQueryLoad;
-
   Screen.Cursor := crDefault;
 end;
 
