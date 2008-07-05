@@ -948,6 +948,7 @@ object MainForm: TMainForm
     object actDataSetDelete: TDataSetDelete
       Category = 'Data'
       Caption = '&Delete'
+      Enabled = False
       Hint = 'Delete'
       ImageIndex = 46
       ShortCut = 16430
