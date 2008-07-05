@@ -156,7 +156,7 @@ type
     btnDBDropTable: TToolButton;
     btnDBCopyTable: TToolButton;
     btnCreateTable: TToolButton;
-    ToolButton11: TToolButton;
+    btnCreateView: TToolButton;
     ToolbarTable: TToolBar;
     btnTableEditField: TToolButton;
     btnTableAddField: TToolButton;
@@ -222,6 +222,7 @@ type
     ComboBoxQueryDelimiter: TComboBox;
     LabelQueryDelimiter: TLabel;
     PopupQueryLoad: TPopupMenu;
+    btnEditView: TToolButton;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
