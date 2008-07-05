@@ -2181,8 +2181,8 @@ begin
   MainForm.actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
   MainForm.actQueryFind.Enabled := InQueryTab and NotEmpty;
   MainForm.actQueryReplace.Enabled := InQueryTab and NotEmpty;
-  MainForm.actQueryStopOnErrors.Enabled := InQueryTab and NotEmpty;
-  MainForm.actQueryWordWrap.Enabled := InQueryTab and NotEmpty;
+  MainForm.actQueryStopOnErrors.Enabled := InQueryTab;
+  MainForm.actQueryWordWrap.Enabled := InQueryTab;
   Mainform.actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   Mainform.ComboBoxQueryDelimiter.Enabled := InQueryTab;
 end;
