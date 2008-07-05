@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 261
+  ClientHeight = 281
   ClientWidth = 811
   Color = clAppWorkSpace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object StatusBar: TStatusBar
     Left = 0
-    Top = 242
+    Top = 262
     Width = 811
     Height = 19
     AutoHint = True
@@ -63,7 +63,6 @@ object MainForm: TMainForm
       Align = alNone
       AutoSize = True
       Caption = 'Main'
-      DragKind = dkDock
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = PngImageListMain
@@ -202,12 +201,10 @@ object MainForm: TMainForm
       Align = alNone
       AutoSize = True
       Caption = 'Data'
-      DragKind = dkDock
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = PngImageListMain
       TabOrder = 1
-      Visible = False
       Wrapable = False
       object ToolButton3: TToolButton
         Left = 0
@@ -249,6 +246,7 @@ object MainForm: TMainForm
           Height = 17
           Caption = 'Limit:'
           Checked = True
+          Enabled = False
           State = cbChecked
           TabOrder = 0
           OnEnter = LimitPanelEnter
@@ -260,6 +258,7 @@ object MainForm: TMainForm
           Width = 57
           Height = 21
           AutoSelect = False
+          Enabled = False
           TabOrder = 1
           Text = '0'
           OnEnter = LimitPanelEnter
@@ -271,6 +270,7 @@ object MainForm: TMainForm
           Width = 57
           Height = 21
           AutoSelect = False
+          Enabled = False
           TabOrder = 2
           Text = '5000'
           OnEnter = LimitPanelEnter
@@ -282,6 +282,7 @@ object MainForm: TMainForm
           Width = 17
           Height = 21
           Associate = EditLimitStart
+          Enabled = False
           Max = 32767
           TabOrder = 3
           Thousands = False
@@ -295,6 +296,7 @@ object MainForm: TMainForm
           Width = 17
           Height = 21
           Associate = EditLimitEnd
+          Enabled = False
           Max = 32767
           Position = 5000
           TabOrder = 4
@@ -310,6 +312,7 @@ object MainForm: TMainForm
         Width = 34
         Height = 22
         Caption = 'OK'
+        Enabled = False
         TabOrder = 1
         OnClick = ButtonOKClick
         OnEnter = LimitPanelEnter
@@ -326,7 +329,6 @@ object MainForm: TMainForm
       Caption = 'ToolBarDatabase'
       Images = PngImageListMain
       TabOrder = 2
-      Visible = False
       Wrapable = False
       object btnCreateTable: TToolButton
         Left = 0
@@ -369,7 +371,6 @@ object MainForm: TMainForm
       Caption = 'ToolbarTable'
       Images = PngImageListMain
       TabOrder = 3
-      Visible = False
       Wrapable = False
       object btnTableEditField: TToolButton
         Left = 0
@@ -400,12 +401,11 @@ object MainForm: TMainForm
       Align = alNone
       AutoSize = True
       Caption = 'ToolBarQuery'
-      DragKind = dkDock
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = PngImageListMain
       TabOrder = 4
-      Visible = False
+      Wrapable = False
       object btnExecuteQuery: TToolButton
         Left = 0
         Top = 0
@@ -427,13 +427,11 @@ object MainForm: TMainForm
         Left = 82
         Top = 0
         Action = actSaveSQL
-        Enabled = False
       end
       object btnSaveSQLSnippet: TToolButton
         Left = 105
         Top = 0
         Action = actSaveSQLSnippet
-        Enabled = False
       end
       object btnQueryFind: TToolButton
         Left = 128
@@ -482,6 +480,7 @@ object MainForm: TMainForm
           Top = 0
           Width = 45
           Height = 21
+          Enabled = False
           ItemHeight = 13
           TabOrder = 0
           OnExit = ComboBoxQueryDelimiterExit
@@ -861,6 +860,7 @@ object MainForm: TMainForm
     object actExecuteLine: TAction
       Category = 'SQL'
       Caption = 'Run current line'
+      Enabled = False
       Hint = 'Execute Line|Executes the current line of SQL'
       ImageIndex = 61
       ShortCut = 24696
@@ -994,6 +994,7 @@ object MainForm: TMainForm
     object actEditField: TAction
       Category = 'Table'
       Caption = 'Edit field'
+      Enabled = False
       Hint = 'Edit field properties'
       ImageIndex = 44
       OnExecute = actEditFieldExecute
@@ -1001,6 +1002,7 @@ object MainForm: TMainForm
     object actCreateField: TAction
       Category = 'Table'
       Caption = 'Add field'
+      Enabled = False
       Hint = 'Create new field in selected table'
       ImageIndex = 45
       OnExecute = actCreateFieldExecute
@@ -1008,6 +1010,7 @@ object MainForm: TMainForm
     object actDropFields: TAction
       Category = 'Table'
       Caption = 'Delete selected field(s) ...'
+      Enabled = False
       Hint = 'Delete selected field(s)'
       ImageIndex = 46
       OnExecute = actDropFieldsExecute
@@ -1015,6 +1018,7 @@ object MainForm: TMainForm
     object actEditIndexes: TAction
       Category = 'Table'
       Caption = 'Edit indexes'
+      Enabled = False
       Hint = 'Create and edit indexes for the selected table'
       ImageIndex = 13
       OnExecute = actEditIndexesExecute
@@ -1168,6 +1172,7 @@ object MainForm: TMainForm
     object actSaveSQL: TAction
       Category = 'SQL'
       Caption = 'Save to file ...'
+      Enabled = False
       Hint = 'Save SQL to a textfile'
       ImageIndex = 10
       ShortCut = 16467
@@ -1177,6 +1182,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'SQL'
       Caption = 'Save selection to file ...'
+      Enabled = False
       Hint = 'Save selected text to a file'
       ImageIndex = 10
       ShortCut = 24659
@@ -1185,6 +1191,7 @@ object MainForm: TMainForm
     object actSaveSQLSnippet: TAction
       Category = 'SQL'
       Caption = 'Save as snippet ...'
+      Enabled = False
       Hint = 'Save as snippet ...'
       ImageIndex = 54
       OnExecute = actSaveSQLSnippetExecute
@@ -1193,6 +1200,7 @@ object MainForm: TMainForm
       Tag = 1
       Category = 'SQL'
       Caption = 'Save selection as snippet ...'
+      Enabled = False
       Hint = 'Save selected text as snippet ...'
       ImageIndex = 54
       OnExecute = actSaveSQLSnippetExecute
@@ -1200,6 +1208,7 @@ object MainForm: TMainForm
     object actClearQueryEditor: TAction
       Category = 'SQL'
       Caption = 'Clear'
+      Enabled = False
       Hint = 'Clear query editor'
       ImageIndex = 58
       ShortCut = 16471
@@ -1218,6 +1227,7 @@ object MainForm: TMainForm
       AutoCheck = True
       Caption = 'Stop on errors in batch mode'
       Checked = True
+      Enabled = False
       Hint = 'Stop on errors in batch mode'
       ImageIndex = 63
       OnExecute = actQueryStopOnErrorsExecute
@@ -1226,6 +1236,7 @@ object MainForm: TMainForm
       Category = 'SQL'
       AutoCheck = True
       Caption = 'Wrap long lines'
+      Enabled = False
       Hint = 'Wrap long lines'
       ImageIndex = 62
       OnExecute = actQueryWordWrapExecute
@@ -1233,6 +1244,7 @@ object MainForm: TMainForm
     object actQueryFind: TAction
       Category = 'SQL'
       Caption = 'Find text ...'
+      Enabled = False
       Hint = 'Find text ...'
       ImageIndex = 30
       ShortCut = 16454
@@ -1241,6 +1253,7 @@ object MainForm: TMainForm
     object actQueryReplace: TAction
       Category = 'SQL'
       Caption = 'Replace text ...'
+      Enabled = False
       Hint = 'Replace text ...'
       ImageIndex = 59
       ShortCut = 16466

@@ -302,8 +302,7 @@ type
       var AllowChange: Boolean);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure ListColumnsStateChange(Sender: TBaseVirtualTree; Enter, Leave:
-        TVirtualTreeStates);
+    procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DBMemo1Exit(Sender: TObject);
     procedure btnUnsafeEditClick(Sender: TObject);
     procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
@@ -321,6 +320,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
+    procedure ValidateQueryControls;
     function FieldContent(ds: TDataSet; FieldName: String): String;
     procedure LoadDatabaseProperties(db: string);
     procedure ShowHost;
@@ -341,7 +341,6 @@ type
     procedure SynMemoQueryChange(Sender: TObject);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -379,10 +378,6 @@ type
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
       AFiles: TWideStrings);
-    procedure SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
@@ -1061,11 +1056,7 @@ begin
   FreeAndNil(Databases);
   FreeAndNil(CachedTableLists);
 
-  FormDeactivate( Sender );
-  Mainform.ToolBarDatabase.Visible := False;
-  Mainform.ToolBarTable.Visible := False;
-  Mainform.ToolBarData.Visible := false;
-  Mainform.ToolBarQuery.Visible := False;
+  ValidateControls(False);
   Action := caFree;
 
   SetWindowConnected( false );
@@ -1553,26 +1544,9 @@ end;
   Occurs when active tab has changed.
 }
 procedure TMDIChild.pcChange(Sender: TObject);
-var
-  dummy, inDataTab: Boolean;
 begin
-  inDataTab := PageControlMain.ActivePage = tabData;
-  tabFilter.tabVisible := inDataTab;
-  Mainform.actDatasetFirst.Enabled := inDataTab;
-  Mainform.actDatasetLast.Enabled := inDataTab;
-  Mainform.actDatasetInsert.Enabled := inDataTab;
-  Mainform.actDatasetDelete.Enabled := inDataTab;
-  Mainform.actDatasetPost.Enabled := inDataTab;
-  Mainform.actExecuteQuery.Enabled := PageControlMain.ActivePage = tabQuery;
-  Mainform.actExecuteSelection.Enabled := PageControlMain.ActivePage = tabQuery;
-  Mainform.actExecuteLine.Enabled := PageControlMain.ActivePage = tabQuery;
   if (PageControlMain.ActivePage = tabData) and (not dataselected) then
     viewdata(Sender);
-  if PageControlMain.ActivePage = tabQuery then
-  begin
-    // Manually invoke OnChange event of tabset to fill helper list with data
-    tabsetQueryHelpers.OnChange( Sender, tabsetQueryHelpers.TabIndex, dummy);
-  end;
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes. 
@@ -2070,48 +2044,39 @@ end;
 }
 procedure TMDIChild.ValidateControls( FrmIsFocussed: Boolean = true );
 var
-  NodeSelected, tableSelected, ViewSelected : Boolean;
-  inDataOrQueryTab, inDataOrQueryTabNotEmpty : Boolean;
+  DBObjectSelected, TableSelected, ViewSelected,
+  inTableTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
+  FieldsSelected, FieldFocused, dummy : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
-  ShowDBTlb, ShowTableTlb, ShowDataTlb, ShowQueryTlb: Boolean;
 begin
-  // Make sure that main menu "drop table" affects table selected in tree view,
-  // not table (now invisibly) selected on the database grid.
-  if (PageControlMain.ActivePage <> tabDatabase) then ListTables.FocusedNode := nil;
+  inTableTab := FrmIsFocussed and (PageControlMain.ActivePage = tabTable);
+  inDataTab := FrmIsFocussed and (PageControlMain.ActivePage = tabData);
+  inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
+  // Both the Query and the Data grid may have a nil DataSet reference,
+  // either in case the relevant grid has not been used yet, or when
+  // an error has occurred.
+  inDataOrQueryTabNotEmpty := inDataOrQueryTab and
+    not (
+      (getActiveGrid.DataSource.DataSet = nil)
+      or getActiveGrid.DataSource.DataSet.IsEmpty
+    );
+  inQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
 
   SelectedNodes := ListTables.GetSortedSelection(False);
-  NodeSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
-  tableSelected := False;
+  DBObjectSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
+  TableSelected := False;
   ViewSelected := False;
 
   // Check type of first selected node, to en-/disable certain menu items
-  if NodeSelected then begin
+  if DBObjectSelected then begin
     NodeData := ListTables.GetNodeData( SelectedNodes[0] );
-    tableSelected := NodeData.NodeType = NODETYPE_TABLE;
+    TableSelected := NodeData.NodeType = NODETYPE_TABLE;
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
-  Mainform.actEditTableFields.Enabled := NodeSelected;
-  Mainform.actEmptyTables.Enabled := tableSelected;
-  Mainform.actEditTableProperties.Enabled := tableSelected;
-  MenuRenameTable.Enabled := NodeSelected;
-  Mainform.actCopyTable.Enabled := NodeSelected;
-  Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
-  Mainform.actCreateView.Enabled := FrmIsFocussed and (mysql_version >= 50001);
-  MainForm.actCreateDatabase.Enabled := FrmIsFocussed;
-  MainForm.actDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  MainForm.actEditDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed and (mysql_version >= 50002);
-  if mysql_version < 50002 then
-    MainForm.actEditDatabase.Hint := STR_NOTSUPPORTED
-  else
-    MainForm.actEditDatabase.Hint := 'Rename and/or modify character set of database';
-  MainForm.actDropTablesAndViews.Enabled := NodeSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
-  MainForm.actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  MainForm.actImportCSV.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
-  MainForm.actExportTables.Enabled := FrmIsFocussed;
+  // Standard toolbar and main menu
   MainForm.actRefresh.Enabled := FrmIsFocussed;
-  MainForm.actLoadSQL.Enabled := FrmIsFocussed;
   MainForm.actFlushHosts.Enabled := FrmIsFocussed;
   MainForm.actFlushLogs.Enabled := FrmIsFocussed;
   MainForm.actFlushPrivileges.Enabled := FrmIsFocussed;
@@ -2121,43 +2086,60 @@ begin
   MainForm.actUserManager.Enabled := FrmIsFocussed;
   MainForm.actMaintenance.Enabled := FrmIsFocussed;
   MainForm.actInsertFiles.Enabled := FrmIsFocussed;
-  {***
-    Activate export-options if we're on Data- or Query-tab
-    PrintList should only be active if we're focussing one of the ListViews,
-    at least as long we are not able to print DBGrids
-    @see Issue 1686582
-  }
-  inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
+  // PrintList should only be active if we're focussing one of the ListViews,
+  // at least as long we are not able to print DBGrids
   MainForm.actPrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
-  // Both the Query and the Data grid may have a nil DataSet reference,
-  // either in case the relevant grid has not been used yet, or when
-  // an error has occurred.
-  inDataOrQueryTabNotEmpty := inDataOrQueryTab and
-    not (
-      (getActiveGrid.DataSource.DataSet = nil)
-      or getActiveGrid.DataSource.DataSet.IsEmpty
-    );
+  MainForm.actSQLhelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
+  MainForm.actImportCSV.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
+  MainForm.actExportTables.Enabled := FrmIsFocussed;
+
+  // Database tab
+  Mainform.actEmptyTables.Enabled := TableSelected;
+  Mainform.actEditTableProperties.Enabled := TableSelected;
+  MenuRenameTable.Enabled := DBObjectSelected;
+  Mainform.actCopyTable.Enabled := DBObjectSelected;
+  Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
+  Mainform.actCreateView.Enabled := FrmIsFocussed and (mysql_version >= 50001);
+  MainForm.actCreateDatabase.Enabled := FrmIsFocussed;
+  MainForm.actDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  MainForm.actEditDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed and (mysql_version >= 50002);
+  if mysql_version < 50002 then
+    MainForm.actEditDatabase.Hint := STR_NOTSUPPORTED
+  else
+    MainForm.actEditDatabase.Hint := 'Rename and/or modify character set of database';
+  MainForm.actDropTablesAndViews.Enabled := DBObjectSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
+  MainForm.actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
+  Mainform.actEditTableFields.Enabled := DBObjectSelected;
+
+  // Table tab
+  FieldFocused := inTableTab and Assigned(ListColumns.FocusedNode);
+  FieldsSelected := inTableTab and (Length(ListColumns.GetSortedSelection(False))>0);
+  // Toggle state of menuitems and buttons
+  Mainform.actEditField.Enabled := FieldFocused and FieldsSelected;
+  Mainform.actCreateField.Enabled := inTableTab;
+  Mainform.actDropFields.Enabled := FieldsSelected;
+  Mainform.actEditIndexes.Enabled := inTableTab;
+  menuRenameColumn.Enabled := FieldFocused and FieldsSelected;
+
+  // Data tab
+  if FrmIsFocussed then tabFilter.tabVisible := inDataTab;
+  Mainform.actDatasetFirst.Enabled := inDataTab;
+  Mainform.actDatasetLast.Enabled := inDataTab;
+  Mainform.actDatasetInsert.Enabled := inDataTab;
+  Mainform.actDatasetDelete.Enabled := inDataTab;
+  Mainform.actDatasetPost.Enabled := inDataTab;
+  Mainform.CheckBoxLimit.Enabled := inTableTab or inDataTab;
+  Mainform.EditLimitStart.Enabled := inTableTab or inDataTab;
+  Mainform.UpDownLimitStart.Enabled := inTableTab or inDataTab;
+  Mainform.EditLimitEnd.Enabled := inTableTab or inDataTab;
+  Mainform.UpDownLimitEnd.Enabled := inTableTab or inDataTab;
+  Mainform.ButtonOK.Enabled := inTableTab or inDataTab;
+  // Activate export-options if we're on Data- or Query-tab
   MainForm.actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actExportData.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actHTMLView.Enabled := inDataOrQueryTabNotEmpty;
-  Delete1.Enabled := inDataOrQueryTabNotEmpty; // Menuitem in popupDataGrid ("Delete record(s)")
-  // Hide irrelevant toolbars
-  ShowDbTlb := PageControlMain.ActivePage = tabDatabase;
-  if not ShowDbTlb then MainForm.ToolBarDatabase.Visible := False;
-  ShowTableTlb := PageControlMain.ActivePage = tabTable;
-  if not ShowTableTlb then MainForm.ToolBarTable.Visible := False;
-  ShowDataTlb := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabTable);
-  if not ShowDataTlb then MainForm.ToolBarData.Visible := False;
-  ShowQueryTlb := PageControlMain.ActivePage = tabQuery;
-  if not ShowQueryTlb then MainForm.ToolBarQuery.Visible := False;
-  // Unhide relevant toolbar
-  MainForm.ToolBarDatabase.Visible := ShowDbTlb;
-  MainForm.ToolBarTable.Visible := ShowTableTlb;
-  MainForm.ToolBarData.Visible := ShowDataTlb;
-  MainForm.ToolBarQuery.Visible := ShowQueryTlb;
-
   if FrmIsFocussed then begin
     MainForm.actDatasetFirst.DataSource := DataSource1;
     MainForm.actDatasetLast.DataSource := DataSource1;
@@ -2165,7 +2147,13 @@ begin
     MainForm.actDatasetDelete.DataSource := DataSource1;
     MainForm.actDatasetPost.DataSource := DataSource1;
   end;
-  MainForm.actSQLhelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
+
+  // Query tab
+  MainForm.actLoadSQL.Enabled := FrmIsFocussed;
+  // Manually invoke OnChange event of tabset to fill helper list with data
+  if inQueryTab and FrmIsFocussed then
+    tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
+  ValidateQueryControls;
 
   if not FrmIsFocussed then begin
     // Empty "connected" and "uptime"
@@ -2173,7 +2161,30 @@ begin
     MainForm.showstatus('', 2);
     MainForm.showstatus('', 3);
   end;
+
   tabEditors.tabVisible := inDataOrQueryTab;
+end;
+
+procedure TMDIChild.ValidateQueryControls;
+var
+  InQueryTab, NotEmpty, HasSelection: Boolean;
+begin
+  InQueryTab := PageControlMain.ActivePage = tabQuery;
+  NotEmpty := SynMemoQuery.GetTextLen > 0;
+  HasSelection := SynMemoQuery.SelAvail;
+  Mainform.actExecuteQuery.Enabled := InQueryTab and NotEmpty;
+  Mainform.actExecuteSelection.Enabled := InQueryTab and HasSelection;
+  Mainform.actExecuteLine.Enabled := InQueryTab and (SynMemoQuery.LineText <> '');
+  MainForm.actSaveSQL.Enabled := InQueryTab and NotEmpty;
+  MainForm.actSaveSQLselection.Enabled := InQueryTab and HasSelection;
+  MainForm.actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
+  MainForm.actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
+  MainForm.actQueryFind.Enabled := InQueryTab and NotEmpty;
+  MainForm.actQueryReplace.Enabled := InQueryTab and NotEmpty;
+  MainForm.actQueryStopOnErrors.Enabled := InQueryTab and NotEmpty;
+  MainForm.actQueryWordWrap.Enabled := InQueryTab and NotEmpty;
+  Mainform.actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
+  Mainform.ComboBoxQueryDelimiter.Enabled := InQueryTab;
 end;
 
 
@@ -2540,10 +2551,7 @@ begin
     end;
 
     ProgressBarQuery.Hide();
-    Mainform.actExecuteQuery.Enabled := true;
-    Mainform.actExecuteSelection.Enabled := true;
-    // count chars:
-    SynMemoQuery.OnChange( Self );
+    ValidateQueryControls;
 
     if ( SQL.Count > 1 ) then
     begin
@@ -2575,7 +2583,7 @@ begin
       end;
     end;
     // Ensure controls are in a valid state
-    ValidateControls();
+    ValidateControls;
     viewingdata := false;
     if ( ds <> nil ) then
     begin
@@ -2590,19 +2598,10 @@ end;
 {**
   Clicked somewhere in the field-list of the "Table"-tabsheet
 }
-procedure TMDIChild.ListColumnsStateChange(Sender: TBaseVirtualTree; Enter,
-    Leave: TVirtualTreeStates);
-var
-  SomeSelected, OneFocused: Boolean;
+procedure TMDIChild.ListColumnsChange(Sender: TBaseVirtualTree; Node:
+    PVirtualNode);
 begin
-  // some columns selected ?
-  OneFocused := Assigned(Sender.FocusedNode);
-  SomeSelected := Length(Sender.GetSortedSelection(False))>0;
-
-  // Toggle state of menuitems and buttons
-  Mainform.actDropFields.Enabled := SomeSelected;
-  Mainform.actEditField.enabled := OneFocused and SomeSelected;
-  menuRenameColumn.Enabled := OneFocused and SomeSelected;
+  ValidateControls;
 end;
 
 
@@ -2789,18 +2788,8 @@ end;
 
 
 procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
-var somechars : Boolean;
 begin
-  somechars := SynMemoQuery.GetTextLen > 0;
-  Mainform.actExecuteQuery.Enabled := somechars;
-  Mainform.actExecuteSelection.Enabled := SynMemoQuery.SelAvail;
-  Mainform.actExecuteLine.Enabled := SynMemoQuery.LineText <> '';
-  Mainform.actSaveSQL.Enabled := somechars;
-  // Inserting file at cursor only makes sense with content
-  Mainform.actSaveSQLselection.Enabled := SynMemoQuery.SelAvail;
-  Mainform.actSaveSQLSnippet.Enabled := somechars;
-  Mainform.actSaveSQLSelectionSnippet.Enabled := SynMemoQuery.SelAvail;
-  Mainform.actClearQueryEditor.Enabled := somechars;
+  ValidateQueryControls;
 end;
 
 
@@ -2829,14 +2818,7 @@ end;
 procedure TMDIChild.FormActivate(Sender: TObject);
 begin
   TimerConnected.OnTimer(self);
-  ValidateControls;
 end;
-
-procedure TMDIChild.FormDeactivate(Sender: TObject);
-begin
-  ValidateControls( False );
-end;
-
 
 procedure TMDIChild.FormShow(Sender: TObject);
 begin
@@ -3533,18 +3515,6 @@ begin
   end;
 end;
 
-procedure TMDIChild.SynMemoQueryKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  SynMemoQuery.OnChange(self);
-  controlsKeyUp( Sender, Key, Shift );
-end;
-
-procedure TMDIChild.SynMemoQueryMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  SynMemoQuery.OnChange(Self);
-end;
 
 procedure TMDIChild.popupHostPopup(Sender: TObject);
 begin
@@ -3642,6 +3612,7 @@ begin
     end;
   end;
 
+  PagecontrolMain.ActivePage := tabQuery;
   SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
   SynMemoQuery.BeginUpdate;
   if ReplaceContent then
@@ -3651,7 +3622,7 @@ begin
   SynMemoQuery.SelText := filecontent;
   SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
   SynMemoQuery.EndUpdate;
-  SynMemoQueryChange( self );
+  ValidateQueryControls;
 
   if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
     Mainform.AddOrRemoveFromQueryLoadHistory( filename, true );
@@ -4710,7 +4681,7 @@ begin
   sm.SelText := f;
   sm.UndoList.AddGroupBreak;
   if not SynMemoFilter.Focused then
-    SynMemoQueryChange(self);
+    ValidateQueryControls;
 end;
 
 

@@ -558,8 +558,8 @@ begin
   ToolBarTable.Top := GetRegValue(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
   ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
-  ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, 410);
-  ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, 0);
+  ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
+  ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
   // Delimiter stuff
   delimiters := Trim( Mainform.GetRegValue(REGNAME_DELIMITERS, '') );

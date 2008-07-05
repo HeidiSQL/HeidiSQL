@@ -14,7 +14,6 @@ object MDIChild: TMDIChild
   Visible = True
   OnActivate = FormActivate
   OnClose = FormClose
-  OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -710,6 +709,7 @@ object MDIChild: TMDIChild
             TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
             OnBeforePaint = vstBeforePaint
+            OnChange = ListColumnsChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = ListColumnsDblClick
             OnFreeNode = vstFreeNode
@@ -721,7 +721,6 @@ object MDIChild: TMDIChild
             OnInitNode = vstInitNode
             OnKeyUp = controlsKeyUp
             OnNewText = ListColumnsNewText
-            OnStateChange = ListColumnsStateChange
             Columns = <
               item
                 Position = 0
@@ -922,8 +921,7 @@ object MDIChild: TMDIChild
               TabOrder = 0
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
-              OnKeyUp = SynMemoQueryKeyUp
-              OnMouseUp = SynMemoQueryMouseUp
+              OnKeyUp = controlsKeyUp
               Gutter.AutoSize = True
               Gutter.Font.Charset = DEFAULT_CHARSET
               Gutter.Font.Color = clWindowText
