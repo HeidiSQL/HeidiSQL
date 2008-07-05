@@ -320,7 +320,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
-    procedure ValidateQueryControls;
+    procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
     function FieldContent(ds: TDataSet; FieldName: String): String;
     procedure LoadDatabaseProperties(db: string);
     procedure ShowHost;
@@ -2153,7 +2153,7 @@ begin
   // Manually invoke OnChange event of tabset to fill helper list with data
   if inQueryTab and FrmIsFocussed then
     tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
-  ValidateQueryControls;
+  ValidateQueryControls(FrmIsFocussed);
 
   if not FrmIsFocussed then begin
     // Empty "connected" and "uptime"
@@ -2165,13 +2165,13 @@ begin
   tabEditors.tabVisible := inDataOrQueryTab;
 end;
 
-procedure TMDIChild.ValidateQueryControls;
+procedure TMDIChild.ValidateQueryControls(FrmIsFocussed: Boolean = true);
 var
   InQueryTab, NotEmpty, HasSelection: Boolean;
 begin
-  InQueryTab := PageControlMain.ActivePage = tabQuery;
-  NotEmpty := SynMemoQuery.GetTextLen > 0;
-  HasSelection := SynMemoQuery.SelAvail;
+  InQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
+  NotEmpty := FrmIsFocussed and (SynMemoQuery.GetTextLen > 0);
+  HasSelection := FrmIsFocussed and SynMemoQuery.SelAvail;
   Mainform.actExecuteQuery.Enabled := InQueryTab and NotEmpty;
   Mainform.actExecuteSelection.Enabled := InQueryTab and HasSelection;
   Mainform.actExecuteLine.Enabled := InQueryTab and (SynMemoQuery.LineText <> '');
