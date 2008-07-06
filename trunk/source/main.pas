@@ -223,6 +223,7 @@ type
     LabelQueryDelimiter: TLabel;
     PopupQueryLoad: TPopupMenu;
     btnEditView: TToolButton;
+    btnExecuteLine: TToolButton;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);

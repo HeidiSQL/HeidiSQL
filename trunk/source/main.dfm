@@ -401,7 +401,7 @@ object MainForm: TMainForm
     object ToolBarQuery: TToolBar
       Left = 398
       Top = 28
-      Width = 330
+      Width = 353
       Height = 22
       Align = alNone
       AutoSize = True
@@ -421,45 +421,50 @@ object MainForm: TMainForm
         Top = 0
         Action = actExecuteSelection
       end
-      object btnLoadSQL: TToolButton
+      object btnExecuteLine: TToolButton
         Left = 46
+        Top = 0
+        Action = actExecuteLine
+      end
+      object btnLoadSQL: TToolButton
+        Left = 69
         Top = 0
         Action = actLoadSQL
         DropdownMenu = PopupQueryLoad
         Style = tbsDropDown
       end
       object btnSaveSQL: TToolButton
-        Left = 82
+        Left = 105
         Top = 0
         Action = actSaveSQL
       end
       object btnSaveSQLSnippet: TToolButton
-        Left = 105
+        Left = 128
         Top = 0
         Action = actSaveSQLSnippet
       end
       object btnQueryFind: TToolButton
-        Left = 128
+        Left = 151
         Top = 0
         Action = actQueryFind
       end
       object btnQueryReplace: TToolButton
-        Left = 151
+        Left = 174
         Top = 0
         Action = actQueryReplace
       end
       object btnStopOnErrors: TToolButton
-        Left = 174
+        Left = 197
         Top = 0
         Action = actQueryStopOnErrors
       end
       object btnQueryWordwrap: TToolButton
-        Left = 197
+        Left = 220
         Top = 0
         Action = actQueryWordWrap
       end
       object Panel1: TPanel
-        Left = 220
+        Left = 243
         Top = 0
         Width = 110
         Height = 22
@@ -858,7 +863,7 @@ object MainForm: TMainForm
       Caption = 'Run Selection'
       Enabled = False
       Hint = 'Execute selected SQL...|Execute selected SQL-query/queries...'
-      ImageIndex = 61
+      ImageIndex = 104
       ShortCut = 16504
       OnExecute = actExecuteSelectionExecute
     end
@@ -867,7 +872,7 @@ object MainForm: TMainForm
       Caption = 'Run current line'
       Enabled = False
       Hint = 'Execute Line|Executes the current line of SQL'
-      ImageIndex = 61
+      ImageIndex = 105
       ShortCut = 24696
       OnExecute = actExecuteLineExecute
     end
@@ -4367,6 +4372,46 @@ object MainForm: TMainForm
           2B259C38B5028B5CA731E56AFB91ADC6F937C62B0A5B8A5A038F000000004945
           4E44AE426082}
         Name = 'PngImage102'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001874455874536F667477617265005061696E742E4E45542076332E31
+          3072B22592000001674944415478DA6364A01030D2DC80FA552FBEFCFBC730B9
+          3942A2924C035EFDFFF3EFDFFF1F3F7F75F6C6CB55926C40C5B267FF4D943819
+          6E3DFFC970F3E9D7FE8539CA451806D8DBDBEF07520E687A0F1C3C78D03177FE
+          A3FF561A3C0CBF7FFD67B8F4E81BC3A5079FE7EFAAD54A22DA0589D31EFEB7D7
+          E266F8F8ED0F033B0B23C3893B5F184EDFFEB0F46ABF710CC200D57F401730A2
+          B9E0FF0186DB4C8E41BDB7FFBBE9F2333C7FFF938111A89A938D91E1E0F54F0C
+          E76FBD7FFC7CBEB51C411738355FFBEF6B28C8F0E4DD4F0666A06A2E76268643
+          573E325CBBF569CB8B15D6BE045D605276E97F908510C3EB4FBF19B83898180E
+          5F7CCF70F3E6FBB57F3F7D8F78B3C7EB0F411728E59EFD1F6D25C2F0FBDF7F86
+          23173F30DCBAF966D5AB8D2EE144C78264E2C9FFD18E620CC7419AAFBD5DFC7A
+          BB4B1C49E9403CE2F07F6509603AB8F266E19B3D1E09E8F2040D10F5DDFFFFDF
+          E7EF73DE1EF04AC5264FFBCC4408000047A4A511D43B843E0000000049454E44
+          AE426082}
+        Name = 'PngImage104'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001874455874536F667477617265005061696E742E4E45542076332E31
+          3072B22592000001684944415478DA6364A01030D2DC80FA552FBEFCFBC730B9
+          3942A2924C035EFDFFF3EFDFFF1F3F7F75F6C6CB55926C40C5B267FF4D943819
+          6E3DFFC970F3E9D7FE8539CA451806D8DBDBEF07520E687A0F1C3C78D03177FE
+          A3FF561A3C0CBF7FFD67B8F4E81BC3A5079FE7EFAAD54A22DA0589D31EFEB7D7
+          E266F8F8ED0F033B0B23C3893B5F184EDFFEB0F46ABF710CDC807F0C0CFB19D1
+          5CF01FE802260606C7A0DEDBFFDD74F9199EBFFFC9C00854C4C9C6C870F0FA27
+          86F3B7DE3F7E3EDF5A8EA00B9C9AAFFDF735146478F2EE2703335035173B13C3
+          A12B1F19AEDDFAB4E5C50A6B5F8261605276E97F908510C3EB4FBF19B8389818
+          0E5F7CCF70F3E6FBB57F3F7D8F78B3C7EB0F411728E59EFD1F6D25C2F0FBDF7F
+          8623173F30DCBAF966D5AB8D2EE144C78264E2C9FFD18E620CC7419AAFBD5DFC
+          7ABB4B1C49E9403CE2F07F6509603AB8F266E19B3D1E09E8F2040D10F5DDFFFF
+          DFE7EF73DE1EF04AC5264FFBCC44080000116EA4116339DE180000000049454E
+          44AE426082}
+        Name = 'PngImage105'
         Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
