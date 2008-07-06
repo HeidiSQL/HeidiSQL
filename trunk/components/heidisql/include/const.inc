@@ -103,8 +103,8 @@ const
   REGNAME_SQLOUTHEIGHT = 'sqloutheight';
   REGNAME_QUERYHELPERSWIDTH = 'queryhelperswidth';
   REGNAME_SQLWHEREFILE = 'SQLWhereFile';
-  REGNAME_DELIMITERS = 'delimiters';
-  REGNAME_DELIMITERSELECTED = 'delimiterselected';
+  REGNAME_DELIMITER = 'Delimiter';
+  DEFAULT_DELIMITER = ';';
   REGNAME_SQLHELPWINLEFT = 'SQLHelp_WindowLeft';
   REGNAME_SQLHELPWINTOP = 'SQLHelp_WindowTop';
   REGNAME_SQLHELPWINWIDTH = 'SQLHelp_WindowWidth';
@@ -208,9 +208,6 @@ const
   {GigaByte} NAME_GB = ' GB';
   {TeraByte} NAME_TB = ' TB';
   {PetaByte} NAME_PB = ' PB';
-
-  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 112
-  DEFAULT_DELIMITER = ';';
 
   // Copied constants from [delphi11]\source\win32\rtl\win\ShlObj.pas to make them
   // available in Delphi 10. We don't use the constants from ShlObj until delphi 10

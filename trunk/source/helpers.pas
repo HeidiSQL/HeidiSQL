@@ -44,9 +44,7 @@ type
   function explode(separator, a: String) :TStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
-  function IsValidDelimiter(var s: WideString): WideString;
-  type TParseSQLProcessCommand = procedure(command: WideString; parameter: WideString) of object;
-  function parsesql(sql: WideString; delimiter: WideString; processcommand: TParseSQLProcessCommand = nil) : TWideStringList;
+  function parsesql(sql: WideString; delimiter: WideString) : TWideStringList;
   function sstr(str: WideString; len: Integer) : WideString;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -356,41 +354,6 @@ end;
 
 
 {***
-  Test that a delimiter looks reasonable.
-
-  @param s a string to be trimmed and tested.
-  @return s an error message if validation fails, a nil string if it succeeds.
-}
-function IsValidDelimiter(var s: WideString): WideString;
-begin
-  result := '';
-  s := Trim(s);
-  // Test for empty delimiter.
-  if s = '' then result := 'DELIMITER must be followed by a non-comment character or string';
-  // Disallow backslash, because the MySQL CLI does so for some reason.
-  // Then again, is there any reason to be bug-per-bug compatible with some random SQL parser?
-  if Pos('\', s) > 0 then result := 'Backslash disallowed in DELIMITER (because the MySQL CLI does not accept it)';
-  // Disallow stuff which would be negated by the comment parsing logic.
-  if
-    (Pos('/*', s) > 0) or
-    (Pos('--', s) > 0) or
-    (Pos('#', s) > 0)
-  then result := 'Start-of-comment tokens disallowed in DELIMITER (because it would be ignored)';
-  // Disallow stuff which would be negated by the SQL parser (and could slightly confuse it, if at end-of-string).
-  if
-    (Pos('''', s) > 0) or
-    (Pos('`', s) > 0) or
-    (Pos('"', s) > 0)
-  then result := 'String literal markers disallowed in DELIMITER (because it would be ignored)';
-
-  if result <> '' then begin
-    result := WideFormat('Invalid delimiter %s: %s.', [s, result]);
-  end;
-end;
-
-
-
-{***
   Return true if given character represents whitespace.
   Limitations: only recognizes ANSI whitespace.
   Eligible for inlining, hope the compiler does this automatically.
@@ -459,10 +422,9 @@ end;
 
   @param String (possibly large) bunch of SQL-statements, separated by semicolon
   @param String SQL start delimiter
-  @param TParseSQLProcessCommand Method that execute actions relative to an object
   @return TStringList Separated statements
 }
-function parsesql(sql: WideString; delimiter: WideString; processcommand: TParseSQLProcessCommand = nil) : TWideStringList;
+function parsesql(sql: WideString; delimiter: WideString) : TWideStringList;
 var
   i, j, start, len                  : Integer;
   tmp                               : WideString;
@@ -472,26 +434,6 @@ var
   delimiter_length                  : Integer;
   encloser, secchar, thdchar        : WideChar;
   conditional                       : WideString;
-  msg                               : WideString;
-
-{***
-  If a callback for processing client SQL etc was given, invoke it.
-}
-procedure CallProcessCommand(command: WideString; parameter: WideString);
-begin
-  if Assigned(processcommand) then processcommand(command, parameter);
-end;
-
-{***
-  Updates the delimiter in the GUI from the one specified via pseudo-SQL.
-}
-procedure UpdateDelimiterData(execute_callback: Boolean = true);
-begin
-  if (execute_callback) then CallProcessCommand('DELIMITER', delimiter);
-  // update the delimiter variables helper
-  delimiter_length := Length(delimiter);
-end;
-
 begin
   result := TWideStringList.Create;
   sql := trim(sql);
@@ -506,8 +448,6 @@ begin
   indelimiter := false;
   encloser := ' ';
   conditional := '';
-
-  UpdateDelimiterData(false);
 
   i := 0;
   while i < len do begin
@@ -589,14 +529,7 @@ begin
     if indelimiter then begin
       if (sql[i] in [WideChar(#13), WideChar(#10)]) or (i = len) then begin
         if (i = len) then j := 1 else j := 0;
-        tmp := copy(sql, start + 10, i + j - (start + 10));
-        msg := IsValidDelimiter(tmp);
-        if msg = '' then begin
-          delimiter := tmp;
-          UpdateDelimiterData(true);
-        end else begin
-          CallProcessCommand('CLIENTSQL_ERROR', msg);
-        end;
+        delimiter := copy(sql, start + 10, i + j - (start + 10));
         indelimiter := false;
         start := i + 1;
       end;
@@ -648,6 +581,7 @@ begin
     end;
 
     // Add sql sentence.
+    delimiter_length := Length(delimiter);
     if ((not instring) and (scanReverse(sql, i, delimiter, delimiter_length, false)) or (i = len)) then begin
       if (i < len) then j := delimiter_length else begin
         // end of string, add sql sentence but only remove delimiter if it's there
