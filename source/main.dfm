@@ -779,7 +779,7 @@ object MainForm: TMainForm
       Tag = 57
       Category = 'Various'
       Caption = 'About...'
-      Hint = 'About MySQL-Front'
+      Hint = 'About this application'
       ImageIndex = 99
       OnExecute = actAboutBoxExecute
     end
@@ -1280,14 +1280,14 @@ object MainForm: TMainForm
     DefaultExt = 'reg'
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Title = 'Export MySQL-Front settings...'
+    Title = 'Export settings from registry...'
     Left = 8
     Top = 56
   end
   object OpenDialog2: TOpenDialog
     DefaultExt = 'reg'
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
-    Title = 'Import MySQL-Front settings...'
+    Title = 'Import settings to registry...'
     Left = 40
     Top = 56
   end
