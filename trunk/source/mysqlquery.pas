@@ -283,7 +283,12 @@ end;
 
 procedure TMysqlQuery.SetThreadResult(AResult: TThreadResult);
 begin
-  FQueryResult := AResult;
+  try
+    FQueryResult := AResult;
+  except
+    // Todo: Find cause of sporadical AV here. Avoid annoyance in the meantime by
+    // suppressing AVs here which doesn't seem to have any (visible) problematic consequences.
+  end;
 end;
 
 end.
