@@ -707,7 +707,6 @@ object MainForm: TMainForm
       end
       object menuAbout: TMenuItem
         Action = actAboutBox
-        Hint = 'About HeidiSQL'
       end
     end
   end
