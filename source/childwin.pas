@@ -516,7 +516,6 @@ type
       function GetSelectedTable: string;
       procedure SetSelectedDatabase(db: string);
       procedure SetSelectedTable(table: string);
-      procedure ProcessClientSQL(command: WideString; parameter: WideString);
       procedure SaveListSetup( List: TVirtualStringTree );
       procedure RestoreListSetup( List: TVirtualStringTree );
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
@@ -2184,7 +2183,7 @@ begin
   MainForm.actQueryStopOnErrors.Enabled := InQueryTab;
   MainForm.actQueryWordWrap.Enabled := InQueryTab;
   Mainform.actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
-  Mainform.ComboBoxQueryDelimiter.Enabled := InQueryTab;
+  Mainform.actSetDelimiter.Enabled := InQueryTab;
 end;
 
 
@@ -2435,22 +2434,9 @@ var
   recordcount       : Integer;
   ds                : TDataSet;
 begin
-  if ( CurrentLine ) then
-  begin
-    // Run current line
-    SQL := parseSQL( SynMemoQuery.LineText, Mainform.Delimiter, ProcessClientSQL );
-  end
-  else
-  if ( Selection ) then
-  begin
-    // Run selection
-    SQL := parseSQL( SynMemoQuery.SelText, Mainform.Delimiter, ProcessClientSQL );
-  end
-  else
-  begin
-    // Run all
-    SQL := parseSQL( SynMemoQuery.Text, Mainform.Delimiter, ProcessClientSQL );
-  end;
+  if CurrentLine then SQL := parseSQL(SynMemoQuery.LineText, Mainform.Delimiter)
+  else if Selection then SQL := parseSQL(SynMemoQuery.SelText, Mainform.Delimiter)
+  else SQL := parseSQL(SynMemoQuery.Text, Mainform.Delimiter);
 
   if ( SQL.Count = 0 ) then
   begin
@@ -5074,24 +5060,6 @@ begin
       VisibleColumns.Add(IntToStr(i));
   end;
   SetVisibleListColumns( ListTables, VisibleColumns );
-end;
-
-
-{***
-  Callback procedure able to handle client-side SQL statements such as DELIMITER
-
-  @param command The command/option to be called
-  @param parameter The parameter of command
-}
-procedure TMDIChild.ProcessClientSQL(command: WideString; parameter: WideString);
-begin
-  if command = 'DELIMITER' then
-    Mainform.ComboBoxQueryDelimiterAdd(parameter)
-  else if command = 'CLIENTSQL_ERROR' then begin
-    LogSQL( parameter, True );
-    if Mainform.actQueryStopOnErrors.Checked then
-      raise Exception.Create(parameter);
-  end;
 end;
 
 

@@ -218,12 +218,11 @@ type
     btnQueryReplace: TToolButton;
     btnStopOnErrors: TToolButton;
     btnQueryWordwrap: TToolButton;
-    Panel1: TPanel;
-    ComboBoxQueryDelimiter: TComboBox;
-    LabelQueryDelimiter: TLabel;
     PopupQueryLoad: TPopupMenu;
     btnEditView: TToolButton;
     btnExecuteLine: TToolButton;
+    actSetDelimiter: TAction;
+    btnSetDelimiter: TToolButton;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
@@ -284,10 +283,10 @@ type
     procedure actRefreshExecute(Sender: TObject);
     procedure actSaveSQLExecute(Sender: TObject);
     procedure actSaveSQLSnippetExecute(Sender: TObject);
+    procedure actSetDelimiterExecute(Sender: TObject);
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
     procedure actWebbrowse(Sender: TObject);
-    procedure ComboBoxQueryDelimiterExit(Sender: TObject);
     procedure EnsureConnected;
     function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
     procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
@@ -302,6 +301,7 @@ type
     function GetChildwin: TMDIChild;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
+    procedure UpdateDelimiterHint;
   public
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
@@ -316,7 +316,6 @@ type
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
-    procedure ComboBoxQueryDelimiterAdd( delimiter: WideString );
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
     function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
@@ -487,9 +486,8 @@ begin
       WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
       WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
-      // Save the delimiters
-      WriteString( REGNAME_DELIMITERS, ComboBoxQueryDelimiter.Items.Text );
-      WriteInteger( REGNAME_DELIMITERSELECTED, ComboBoxQueryDelimiter.ItemIndex );
+      // Save delimiter
+      WriteString( REGNAME_DELIMITER, Delimiter );
     end;
     CloseKey;
     Free;
@@ -523,7 +521,6 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   ws : String;
   Monitor: TMonitor;
-  delimiters: String;
 const
   MoveWinThreshold: Byte = 80;
 begin
@@ -563,14 +560,9 @@ begin
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
-  // Delimiter stuff
-  delimiters := Trim( Mainform.GetRegValue(REGNAME_DELIMITERS, '') );
-  if delimiters <> '' then begin
-    ComboBoxQueryDelimiter.Items.Text := delimiters;
-    ComboBoxQueryDelimiter.ItemIndex := GetRegValue( REGNAME_DELIMITERSELECTED, 0 );
-  end else
-    ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.IndexOf( DEFAULT_DELIMITER );
-  Delimiter := ComboBoxQueryDelimiter.Text;
+  // Delimiter
+  Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
+  UpdateDelimiterHint;
 
   // Beautify AppRevision
   if Pos('$Rev: WC', AppRevision) < 1 then
@@ -1816,61 +1808,6 @@ begin
   Childwin.SynMemoQuery.WordWrap := TAction(Sender).Checked;
 end;
 
-procedure TMainForm.ComboBoxQueryDelimiterExit(Sender: TObject);
-begin
-  // a delimiter couldn't be empty
-  ComboBoxQueryDelimiter.Text := Trim(ComboBoxQueryDelimiter.Text);
-  // verify if the delimiter combobox isn't empty
-  if ComboBoxQueryDelimiter.Text = '' then begin
-    MessageDlg( 'A delimiter is needed.', mtWarning, [mbOK], 0);
-    ComboBoxQueryDelimiter.SetFocus;
-  end else begin
-    // add the new delimiter to combobox
-    ComboBoxQueryDelimiterAdd(ComboBoxQueryDelimiter.Text);
-  end;
-end;
-
-
-{***
-  Add a new query delimiter and select it
-  @param term The delimiter to add and/or select
-}
-procedure TMainform.ComboBoxQueryDelimiterAdd( delimiter: WideString );
-var
-  index: Integer;
-  found: Boolean;
-  msg: String;
-begin
-  // See reference: mysql.cpp Ver 14.12 Distrib 5.0.45, for Win32 (ia32): Line 824
-  // Check that delimiter does not contain a backslash
-  msg := IsValidDelimiter( delimiter );
-  if msg <> '' then begin
-    // rollback the delimiter
-    ComboBoxQueryDelimiter.Text := Delimiter;
-    // notify the user
-    raise Exception.Create( msg );
-  end else begin
-    // the delimiter is case-sensitive, following the implementation
-    // in the MySQL CLI, so we must locate it by hand
-    found := False;
-    for index := 0 to ComboBoxQueryDelimiter.Items.Count - 1 do begin
-      if ComboBoxQueryDelimiter.Items[index] = Delimiter then begin
-        ComboBoxQueryDelimiter.ItemIndex := index;
-        found := True;
-        break;
-      end;
-    end;
-
-    if not found then begin
-      ComboBoxQueryDelimiter.Items.Add( Delimiter );
-      ComboBoxQueryDelimiter.ItemIndex := ComboBoxQueryDelimiter.Items.Count - 1;
-    end;
-
-    Delimiter := ComboBoxQueryDelimiter.Text;
-    Childwin.LogSQL( Format( 'Delimiter changed to %s.', [Delimiter] ));
-  end;
-end;
-
 
 procedure TMainForm.FindDialogQueryFind(Sender: TObject);
 var
@@ -2054,5 +1991,51 @@ begin
   reg.Free;
 end;
 
+
+{**
+  Change default delimiter for SQL execution
+}
+procedure TMainForm.actSetDelimiterExecute(Sender: TObject);
+var
+  newVal: String;
+  ok: Boolean;
+begin
+  // Use a while loop to redisplay the input dialog after setting an invalid value
+  ok := False;
+  while not ok do begin
+    newVal := delimiter;
+    if InputQuery('Set delimiter', 'Delimiter used within SQL execution:', newVal) then begin
+      // Validate new value
+      newVal := Trim(newVal);
+      if (newVal = '')
+        or (Pos('\', newVal) > 0)
+        or (Pos('/*', newVal) > 0)
+        or (Pos('--', newVal) > 0)
+        or (Pos('#', newVal) > 0)
+        or (Pos('''', newVal) > 0)
+        or (Pos('`', newVal) > 0)
+        or (Pos('"', newVal) > 0)
+        then begin
+        MessageDlg('Invalid value: The delimiter must not be empty or contain comment or quoting characters.',
+          mtError, [mbOK], 0);
+      end else begin
+        Delimiter := newVal;
+        UpdateDelimiterHint;
+        ok := True;
+      end;
+    end else // Cancel clicked
+      ok := True;
+  end;
+end;
+
+
+{**
+  Sets the hint of the SetDelimiter TAction so it includes the delimiter itself
+  and the user has just to move the mouse over it to see it.
+}
+procedure TMainForm.UpdateDelimiterHint;
+begin
+  actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+delimiter+')';
+end;
 
 end.

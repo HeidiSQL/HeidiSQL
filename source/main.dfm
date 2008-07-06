@@ -401,7 +401,7 @@ object MainForm: TMainForm
     object ToolBarQuery: TToolBar
       Left = 398
       Top = 28
-      Width = 353
+      Width = 266
       Height = 22
       Align = alNone
       AutoSize = True
@@ -463,42 +463,10 @@ object MainForm: TMainForm
         Top = 0
         Action = actQueryWordWrap
       end
-      object Panel1: TPanel
+      object btnSetDelimiter: TToolButton
         Left = 243
         Top = 0
-        Width = 110
-        Height = 22
-        BevelOuter = bvNone
-        UseDockManager = False
-        ParentBackground = False
-        TabOrder = 0
-        object LabelQueryDelimiter: TLabel
-          Left = 6
-          Top = 4
-          Width = 45
-          Height = 13
-          Caption = 'Delimiter:'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clBlack
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = []
-          ParentFont = False
-        end
-        object ComboBoxQueryDelimiter: TComboBox
-          Left = 55
-          Top = 0
-          Width = 45
-          Height = 21
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 0
-          OnExit = ComboBoxQueryDelimiterExit
-          Items.Strings = (
-            ';'
-            ';;'
-            '//')
-        end
+        Action = actSetDelimiter
       end
     end
   end
@@ -1278,6 +1246,14 @@ object MainForm: TMainForm
       ImageIndex = 59
       ShortCut = 16466
       OnExecute = actQueryReplaceExecute
+    end
+    object actSetDelimiter: TAction
+      Category = 'SQL'
+      Caption = 'Set delimiter used in SQL execution'
+      Enabled = False
+      Hint = 'Set delimiter used in SQL execution'
+      ImageIndex = 106
+      OnExecute = actSetDelimiterExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -4412,6 +4388,19 @@ object MainForm: TMainForm
           DFE7EF73DE1EF04AC5264FFBCC44080000116EA4116339DE180000000049454E
           44AE426082}
         Name = 'PngImage105'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          61000000017352474200AECE1CE90000001874455874536F6674776172650050
+          61696E742E4E45542076332E313072B225920000007D4944415478DA6364A010
+          30E2927861CE700B89BB40E224431B3906A842B9D50362401512F718D0800324
+          19407120526C00D00BEB80942894BB02E885A9A41A30F0B100F2820ED4901C92
+          BD0035640E904A066213A00167C931009C9C819AD570A9C1E785C3404A1C884B
+          80066C22C700504A9C0FD4FC1C9F2B294E480072902F11D735460A0000000049
+          454E44AE426082}
+        Name = 'PngImage106'
         Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
