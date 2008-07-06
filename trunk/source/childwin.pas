@@ -338,7 +338,7 @@ type
     procedure PageControlHostChange(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
       CurrentLine: Boolean=false);
-    procedure SynMemoQueryChange(Sender: TObject);
+    procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -2787,7 +2787,8 @@ begin
 end;
 
 
-procedure TMDIChild.SynMemoQueryChange(Sender: TObject);
+procedure TMDIChild.SynMemoQueryStatusChange(Sender: TObject; Changes:
+    TSynStatusChanges);
 begin
   ValidateQueryControls;
 end;

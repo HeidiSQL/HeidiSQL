@@ -937,8 +937,8 @@ object MDIChild: TMDIChild
               SearchEngine = SynEditSearch1
               TabWidth = 2
               WantTabs = True
-              OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
+              OnStatusChange = SynMemoQueryStatusChange
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteLastChar
