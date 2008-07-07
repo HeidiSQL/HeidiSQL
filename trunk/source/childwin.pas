@@ -5710,7 +5710,7 @@ procedure TMDIChild.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     WideString);
 var
   ds: TDataset;
-  db: String;
+  db, eng: String;
   i: Integer;
   Bytes: Int64;
   AllListsCached: Boolean;
@@ -5759,7 +5759,10 @@ begin
               Bytes := 0;
               ds := FetchDbTableList(db);
               while not ds.Eof do begin
-                Bytes := Bytes + GetTableSize(ds);
+                if ds.FindField('Type') <> nil then eng := FieldContent(ds, 'Type')
+                else eng := FieldContent(ds, 'Engine');
+                if UpperCase(eng) <> 'MRG_MYISAM' then
+                  Bytes := Bytes + GetTableSize(ds);
                 ds.Next;
               end;
               if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
