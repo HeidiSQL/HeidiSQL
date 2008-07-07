@@ -44,7 +44,7 @@ type
   function explode(separator, a: String) :TStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
-  function parsesql(sql: WideString; delimiter: WideString) : TWideStringList;
+  function parsesql(sql: WideString) : TWideStringList;
   function sstr(str: WideString; len: Integer) : WideString;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -424,7 +424,7 @@ end;
   @param String SQL start delimiter
   @return TStringList Separated statements
 }
-function parsesql(sql: WideString; delimiter: WideString) : TWideStringList;
+function parsesql(sql: WideString) : TWideStringList;
 var
   i, j, start, len                  : Integer;
   tmp                               : WideString;
@@ -529,7 +529,7 @@ begin
     if indelimiter then begin
       if (sql[i] in [WideChar(#13), WideChar(#10)]) or (i = len) then begin
         if (i = len) then j := 1 else j := 0;
-        delimiter := copy(sql, start + 10, i + j - (start + 10));
+        Mainform.Delimiter := copy(sql, start + 10, i + j - (start + 10));
         indelimiter := false;
         start := i + 1;
       end;
@@ -581,11 +581,11 @@ begin
     end;
 
     // Add sql sentence.
-    delimiter_length := Length(delimiter);
-    if ((not instring) and (scanReverse(sql, i, delimiter, delimiter_length, false)) or (i = len)) then begin
+    delimiter_length := Length(Mainform.Delimiter);
+    if ((not instring) and (scanReverse(sql, i, Mainform.Delimiter, delimiter_length, false)) or (i = len)) then begin
       if (i < len) then j := delimiter_length else begin
         // end of string, add sql sentence but only remove delimiter if it's there
-        if scanReverse(sql, i, delimiter, delimiter_length, false) then j := delimiter_length else j := 0;
+        if scanReverse(sql, i, Mainform.Delimiter, delimiter_length, false) then j := delimiter_length else j := 0;
       end;
       if inconditional then begin
         addResult(result, copy(sql, start, i - start - j + 1), '%s */');

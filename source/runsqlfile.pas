@@ -117,7 +117,7 @@ begin
       Repaint;
 
       // Split buffer into single queries
-      SQL := parseSQL( lines_remaining + lines, ';' );
+      SQL := parseSQL( lines_remaining + lines );
       lines := '';
       lines_remaining := '';
 

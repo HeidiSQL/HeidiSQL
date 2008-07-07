@@ -2434,9 +2434,9 @@ var
   recordcount       : Integer;
   ds                : TDataSet;
 begin
-  if CurrentLine then SQL := parseSQL(SynMemoQuery.LineText, Mainform.Delimiter)
-  else if Selection then SQL := parseSQL(SynMemoQuery.SelText, Mainform.Delimiter)
-  else SQL := parseSQL(SynMemoQuery.Text, Mainform.Delimiter);
+  if CurrentLine then SQL := parseSQL(SynMemoQuery.LineText)
+  else if Selection then SQL := parseSQL(SynMemoQuery.SelText)
+  else SQL := parseSQL(SynMemoQuery.Text);
 
   if ( SQL.Count = 0 ) then
   begin
