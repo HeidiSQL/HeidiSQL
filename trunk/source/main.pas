@@ -298,17 +298,18 @@ type
     procedure ReplaceDialogQueryReplace(Sender: TObject);
   private
     regMain : TRegistry;
+    FDelimiter: String;
     function GetChildwin: TMDIChild;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
-    procedure UpdateDelimiterHint;
+    procedure SetDelimiter(Value: String);
   public
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
     SQLHelpForm: TfrmSQLhelp;
-    Delimiter: String;
+    property Delimiter: String read FDelimiter write SetDelimiter;
     procedure OpenRegistry(Session: String = '');
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory( filename: String;
@@ -562,7 +563,6 @@ begin
 
   // Delimiter
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
-  UpdateDelimiterHint;
 
   // Beautify AppRevision
   if Pos('$Rev: WC', AppRevision) < 1 then
@@ -2020,7 +2020,6 @@ begin
           mtError, [mbOK], 0);
       end else begin
         Delimiter := newVal;
-        UpdateDelimiterHint;
         ok := True;
       end;
     end else // Cancel clicked
@@ -2030,12 +2029,14 @@ end;
 
 
 {**
-  Sets the hint of the SetDelimiter TAction so it includes the delimiter itself
-  and the user has just to move the mouse over it to see it.
+  Sets the Delimiter property and updates the hint on actSetDelimiter
 }
-procedure TMainForm.UpdateDelimiterHint;
+procedure TMainForm.SetDelimiter(Value: String);
 begin
-  actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+delimiter+')';
+  if Value <> FDelimiter then begin
+    FDelimiter := Value;
+    actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+Delimiter+')';
+  end;
 end;
 
 end.
