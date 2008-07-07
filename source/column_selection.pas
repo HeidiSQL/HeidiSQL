@@ -212,7 +212,7 @@ end;
 
 procedure TColumnSelectionForm.btnCancelClick(Sender: TObject);
 begin
-  Mainform.Childwin.btnColumnSelection.Down := False;
+  Mainform.Childwin.tbtnDataColumns.Down := False;
   Close;
 end;
 

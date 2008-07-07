@@ -312,7 +312,7 @@ end;
 
 procedure TDataSortingForm.btnCancelClick(Sender: TObject);
 begin
-  Mainform.Childwin.btnDataSorting.Down := False;
+  Mainform.Childwin.tbtnDataSorting.Down := False;
   Close;
 end;
 

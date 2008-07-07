@@ -221,7 +221,6 @@ type
     QF17: TMenuItem;
     N21: TMenuItem;
     btnUnsafeEdit: TToolButton;
-    btnColumnSelection: TPngSpeedButton;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
     lboxQueryHelpers: TListBox;
@@ -239,7 +238,6 @@ type
     MenuReplace: TMenuItem;
     MenuItem2: TMenuItem;
     lblDataTop: TLabel;
-    btnDataSorting: TPngSpeedButton;
     spltQueryHelpers: TSplitter;
     menuRenameColumn: TMenuItem;
     N22: TMenuItem;
@@ -292,6 +290,9 @@ type
     menuTreeEditView: TMenuItem;
     menuTreeExpandAll: TMenuItem;
     menuTreeCollapseAll: TMenuItem;
+    tlbDataButtons: TToolBar;
+    tbtnDataSorting: TToolButton;
+    tbtnDataColumns: TToolButton;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -1267,10 +1268,10 @@ begin
     begin
       sorting := 'ORDER BY ' + ComposeOrderClause(OrderColumns);
       // Signal for the user that we applied an ORDER-clause
-      btnDataSorting.Font.Color := clRed;
+      tbtnDataSorting.ImageIndex := 108;
     end
     else
-      btnDataSorting.Font.Color := clWindowText;
+      tbtnDataSorting.ImageIndex := 107;
 
     PrimaryKeyColumns := TStringList.Create();
 
@@ -1303,7 +1304,7 @@ begin
       if DisplayedColumnsList.Count = 0 then
       begin
         select_base := select_base + ' *';
-        btnColumnSelection.Font.Color := clBtnText;
+        tbtnDataColumns.ImageIndex := 107;
       end
       else
       begin
@@ -1314,7 +1315,7 @@ begin
         // Cut last comma
         select_base := copy( select_base, 1, Length(select_base)-1 );
         // Signal for the user that we now hide some fields
-        btnColumnSelection.Font.Color := clRed;
+        tbtnDataColumns.ImageIndex := 108;
       end;
       select_base := select_base + ' FROM ' + mask( SelectedTable );
       sl_query.Add( select_base );
@@ -2818,10 +2819,6 @@ begin
   except
     MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
   end;
-
-  // Assign images from main imagelist to speedbuttons
-  btnDataSorting.PngImage := Mainform.PngImageListMain.PngImages[73].PngImage;
-  btnColumnSelection.PngImage := Mainform.PngImageListMain.PngImages[73].PngImage;
 
   //TODO:
   //ds.DisableControls;
@@ -4486,17 +4483,18 @@ end;
 }
 procedure TMDIChild.btnDataClick(Sender: TObject);
 var
-  btn : TSpeedButton;
+  btn : TToolButton;
   frm : TForm;
 begin
-  btn := (Sender as TSpeedButton);
+  btn := (Sender as TToolButton);
+  btn.Down := not btn.Down;
 
   if btn.Down then
   begin
     // Create the desired form
-    if btn = btnColumnSelection then
+    if btn = tbtnDataColumns then
       frm := TColumnSelectionForm.Create(self)
-    else if btn = btnDataSorting then
+    else if btn = tbtnDataSorting then
       frm := TDataSortingForm.Create(self)
     else
       frm := TForm.Create(self); // Dummy fallback, should never get created

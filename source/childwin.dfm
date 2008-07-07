@@ -770,18 +770,6 @@ object MDIChild: TMDIChild
             DesignSize = (
               496
               31)
-            object btnColumnSelection: TPngSpeedButton
-              Left = 187
-              Top = 4
-              Width = 70
-              Height = 21
-              AllowAllUp = True
-              Anchors = [akTop, akRight]
-              GroupIndex = 10
-              Caption = 'Columns'
-              Layout = blGlyphRight
-              OnClick = btnDataClick
-            end
             object lblDataTop: TLabel
               Left = 1
               Top = 1
@@ -799,18 +787,6 @@ object MDIChild: TMDIChild
               ParentFont = False
               Layout = tlCenter
               WordWrap = True
-            end
-            object btnDataSorting: TPngSpeedButton
-              Left = 111
-              Top = 4
-              Width = 70
-              Height = 21
-              AllowAllUp = True
-              Anchors = [akTop, akRight]
-              GroupIndex = 10
-              Caption = 'Sorting'
-              Layout = blGlyphRight
-              OnClick = btnDataClick
             end
             object EditDataSearch: TEdit
               Left = 317
@@ -841,6 +817,38 @@ object MDIChild: TMDIChild
               Anchors = [akTop, akRight]
               Caption = 'NOT'
               TabOrder = 2
+            end
+            object tlbDataButtons: TToolBar
+              Left = 111
+              Top = 3
+              Width = 147
+              Height = 22
+              Align = alNone
+              Anchors = [akTop, akRight]
+              ButtonWidth = 67
+              Caption = 'tlbDataButtons'
+              Color = clBtnFace
+              Images = MainForm.PngImageListMain
+              List = True
+              AllowTextButtons = True
+              TabOrder = 3
+              Wrapable = False
+              object tbtnDataSorting: TToolButton
+                Left = 0
+                Top = 0
+                Caption = 'Sorting'
+                ImageIndex = 73
+                Style = tbsTextButton
+                OnClick = btnDataClick
+              end
+              object tbtnDataColumns: TToolButton
+                Left = 65
+                Top = 0
+                Caption = 'Columns'
+                ImageIndex = 73
+                Style = tbsTextButton
+                OnClick = btnDataClick
+              end
             end
           end
           object gridData: TTntDBGrid
