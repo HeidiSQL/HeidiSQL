@@ -4073,7 +4073,7 @@ begin
     end;
     FProgressForm := TFrmQueryProgress.Create(Self);
     debug('RunThreadedQuery(): Launching asynchronous query.');
-    res := ExecPostAsync(FConn,nil,FProgressForm.Handle,ds);
+    res := ExecPostAsync(FConn,FProgressForm.Handle,ds);
     WaitForQueryCompletion(FProgressForm, res, false);
     if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
     begin
@@ -4121,7 +4121,7 @@ begin
       * Set FQueryRunning to false
     }
     debug('RunThreadedQuery(): Launching asynchronous query.');
-    Result := ExecMysqlStatementAsync (AQuery,FConn,nil,FProgressForm.Handle,RunAsyncPost);
+    Result := ExecMysqlStatementAsync (AQuery,FConn,FProgressForm.Handle,RunAsyncPost);
 
     { Repeatedly check if the query has finished by inspecting FQueryRunning
       Allow repainting of user interface
