@@ -2004,24 +2004,12 @@ begin
   ok := False;
   while not ok do begin
     newVal := delimiter;
-    if InputQuery('Set delimiter', 'Delimiter used within SQL execution:', newVal) then begin
-      // Validate new value
-      newVal := Trim(newVal);
-      if (newVal = '')
-        or (Pos('\', newVal) > 0)
-        or (Pos('/*', newVal) > 0)
-        or (Pos('--', newVal) > 0)
-        or (Pos('#', newVal) > 0)
-        or (Pos('''', newVal) > 0)
-        or (Pos('`', newVal) > 0)
-        or (Pos('"', newVal) > 0)
-        then begin
-        MessageDlg('Invalid value: The delimiter must not be empty or contain comment or quoting characters.',
-          mtError, [mbOK], 0);
-      end else begin
-        Delimiter := newVal;
-        ok := True;
-      end;
+    if InputQuery('Set delimiter', 'Delimiter used within SQL execution:', newVal) then try
+      // Set new value
+      Delimiter := newVal;
+      ok := True;
+    except on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
     end else // Cancel clicked
       ok := True;
   end;
@@ -2029,12 +2017,47 @@ end;
 
 
 {**
-  Sets the Delimiter property and updates the hint on actSetDelimiter
+  Validates and sets the Delimiter property plus updates the hint on actSetDelimiter
 }
 procedure TMainForm.SetDelimiter(Value: String);
+var
+  ErrMsg: String;
 begin
-  if Value <> FDelimiter then begin
+  if Value = FDelimiter then
+    Exit;
+  ErrMsg := '';
+  Value := Trim(Value);
+  // Test for empty delimiter.
+  if Value = '' then ErrMsg := 'DELIMITER must be followed by a non-comment character or string';
+  // Disallow backslash, because the MySQL CLI does so for some reason.
+  // Then again, is there any reason to be bug-per-bug compatible with some random SQL parser?
+  if Pos('\', Value) > 0 then ErrMsg := 'Backslash disallowed in DELIMITER (because the MySQL CLI does not accept it)';
+  // Disallow stuff which would be negated by the comment parsing logic.
+  if
+    (Pos('/*', Value) > 0) or
+    (Pos('--', Value) > 0) or
+    (Pos('#', Value) > 0)
+  then ErrMsg := 'Start-of-comment tokens disallowed in DELIMITER (because it would be ignored)';
+  // Disallow stuff which would be negated by the SQL parser (and could slightly confuse it, if at end-of-string).
+  if
+    (Pos('''', Value) > 0) or
+    (Pos('`', Value) > 0) or
+    (Pos('"', Value) > 0)
+  then ErrMsg := 'String literal markers disallowed in DELIMITER (because it would be ignored)';
+
+  // Reset an invalid delimiter loaded from registry at startup to the default value
+  if (ErrMsg <> '') and (Delimiter = '') then begin
+    Value := DEFAULT_DELIMITER;
+    ErrMsg := '';
+  end;
+  // Raise or set it
+  if ErrMsg <> '' then begin
+    ErrMsg := Format('Invalid delimiter %s: %s.', [Value, ErrMsg]);
+    if Assigned(Childwin) then Childwin.LogSQL(ErrMsg);
+    Raise Exception.Create(ErrMsg);
+  end else begin
     FDelimiter := Value;
+    if Assigned(Childwin) then Childwin.LogSQL(Format('Delimiter changed to %s.', [Delimiter]));
     actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+Delimiter+')';
   end;
 end;
