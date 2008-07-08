@@ -4456,7 +4456,7 @@ begin
   try
     ds := GetResults('SHOW TABLE STATUS LIKE ' + esc(Table));
     if ds = nil then exit;
-    if ds.FieldByName('Avg_row_length').IsNull then begin
+    if ds.FieldByName('Avg_row_length').IsNull or ds.FieldByName('Rows').IsNull then begin
       // Guessing row size and count for views, fixes bug #346
       AvgRowSize := ROW_SIZE_GUESS + ROW_SIZE_OVERHEAD;
       RecordCount := MaxInt;
