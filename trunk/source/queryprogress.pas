@@ -58,15 +58,11 @@ begin
       begin
         debug('qry: Setting running flag to ''true''.');
       end;
-    MQE_STARTED:
-      begin
-      end;
     MQE_FINISHED:
       begin
         debug('qry: Setting running flag to ''false'' and closing dialog.');
         Close();
       end;
-    MQE_FREED:;
   end;
 end;
 
