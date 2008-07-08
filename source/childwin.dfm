@@ -827,7 +827,6 @@ object MDIChild: TMDIChild
               Anchors = [akTop, akRight]
               ButtonWidth = 67
               Caption = 'tlbDataButtons'
-              Color = clBtnFace
               Images = MainForm.PngImageListMain
               List = True
               AllowTextButtons = True
@@ -837,7 +836,7 @@ object MDIChild: TMDIChild
                 Left = 0
                 Top = 0
                 Caption = 'Sorting'
-                ImageIndex = 73
+                ImageIndex = 107
                 Style = tbsTextButton
                 OnClick = btnDataClick
               end
@@ -845,7 +844,7 @@ object MDIChild: TMDIChild
                 Left = 65
                 Top = 0
                 Caption = 'Columns'
-                ImageIndex = 73
+                ImageIndex = 107
                 Style = tbsTextButton
                 OnClick = btnDataClick
               end
