@@ -469,8 +469,6 @@ type
     procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure editFilterVTChange(Sender: TObject);
     procedure ListColumnsDblClick(Sender: TObject);
-    procedure ListTablesEdited(Sender: TBaseVirtualTree; Node: PVirtualNode;
-        Column: TColumnIndex);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
     procedure menuRefreshDBTreeClick(Sender: TObject);
@@ -2848,8 +2846,9 @@ begin
     // Update nodedata
     NodeData.Captions[0] := NewText;
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
-    // because it also calls LoadDatabaseProperties and removes the node we're just editing
-    // So, refreshing the DB has to be done in the seperate event Tree.OnEdited
+    // so we do it manually here
+    RefreshActiveDbTableList;
+    DBTree.InvalidateChildren(FindDBNode(ActiveDatabase), True);
   except
     On E : Exception do
     begin
@@ -2857,17 +2856,6 @@ begin
     end;
   end;
 end;
-
-{**
-  Refresh the active db tree node after a table has been renamed
-  See ListTablesNewText for comments
-}
-procedure TMDIChild.ListTablesEdited(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex);
-begin
-  RefreshTreeDB(ActiveDatabase);
-end;
-
 
 procedure TMDIChild.MenuRenameTableClick(Sender: TObject);
 begin
