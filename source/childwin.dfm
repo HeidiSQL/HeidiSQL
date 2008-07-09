@@ -556,7 +556,6 @@ object MDIChild: TMDIChild
             OnChange = ListTablesChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = ListTablesDblClick
-            OnEdited = ListTablesEdited
             OnFreeNode = vstFreeNode
             OnGetText = vstGetText
             OnGetImageIndex = vstGetImageIndex
