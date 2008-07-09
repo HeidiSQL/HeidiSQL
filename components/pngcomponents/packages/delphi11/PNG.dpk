@@ -22,6 +22,7 @@ package PNG;
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'PNG image runtime/designtime'}
+{$LIBSUFFIX '110'}
 {$IMPLICITBUILD OFF}
 
 requires
