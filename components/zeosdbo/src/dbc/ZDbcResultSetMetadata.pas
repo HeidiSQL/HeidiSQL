@@ -736,6 +736,11 @@ var
   SelectSchema: IZSelectSchema;
   FillByIndices: Boolean;
 begin
+  if (FResultSet <> nil) and (FResultSet.ColumnsInfo <> nil) then begin
+    Loaded := true;
+    Exit;
+  end;
+
   { Parses the Select statement and retrieves a schema object. }
   Driver := Metadata.GetConnection.GetDriver;
   Tokenizer := Driver.GetTokenizer;
