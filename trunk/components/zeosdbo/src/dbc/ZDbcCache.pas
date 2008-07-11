@@ -622,7 +622,7 @@ begin
             Result := Integer(Blob1.GetString <> Blob2.GetString)
           else if FColumnTypes[ColumnIndex] = stBinaryStream then
             Result := CompareStr(Blob1.GetString, Blob2.GetString)
-          else if FColumnTypes[ColumnIndex] = stAsciiStream then
+          else if FColumnTypes[ColumnIndex] = stUnicodeStream then
           {$IFNDEF VER130BELOW}
             Result := WideCompareStr(Blob1.GetUnicodeString, Blob2.GetUnicodeString);
           {$ELSE}
