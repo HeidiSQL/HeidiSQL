@@ -261,8 +261,10 @@ begin
       FieldFlags := FPlainDriver.GetFieldFlags(FieldHandle);
 
       ColumnLabel := FPlainDriver.GetFieldName(FieldHandle);
+      ColumnName := FPlainDriver.GetFieldOrigName(FieldHandle);
       TableName := FPlainDriver.GetFieldTable(FieldHandle);
       ReadOnly := (FPlainDriver.GetFieldTable(FieldHandle) = '');
+      Writable := not ReadOnly;
       ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver, FieldHandle, FieldFlags);
       ColMaxWidth := FPlainDriver.GetFieldLength(FieldHandle);
       // Note: In USE_RESULT mode, the driver does not know the length of the widest field,
