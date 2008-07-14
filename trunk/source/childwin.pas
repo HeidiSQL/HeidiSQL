@@ -1986,11 +1986,12 @@ end;
 procedure TMDIChild.ValidateControls( FrmIsFocussed: Boolean = true );
 var
   DBObjectSelected, TableSelected, ViewSelected,
-  inTableTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
+  inDbTab, inTableTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
   FieldsSelected, FieldFocused, dummy : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
 begin
+  inDbTab := FrmIsFocussed and (PageControlMain.ActivePage = tabDatabase);
   inTableTab := FrmIsFocussed and (PageControlMain.ActivePage = tabTable);
   inDataTab := FrmIsFocussed and (PageControlMain.ActivePage = tabData);
   inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
@@ -2035,12 +2036,12 @@ begin
   MainForm.actExportTables.Enabled := FrmIsFocussed;
 
   // Database tab
-  Mainform.actEmptyTables.Enabled := TableSelected;
-  Mainform.actEditTableProperties.Enabled := TableSelected;
-  MenuRenameTable.Enabled := DBObjectSelected;
-  Mainform.actCopyTable.Enabled := DBObjectSelected;
-  Mainform.actEditView.Enabled := ViewSelected and (mysql_version >= 50001);
-  Mainform.actCreateView.Enabled := FrmIsFocussed and (mysql_version >= 50001);
+  Mainform.actEmptyTables.Enabled := inDbTab and TableSelected;
+  Mainform.actEditTableProperties.Enabled := inDbTab and TableSelected;
+  MenuRenameTable.Enabled := inDbTab and DBObjectSelected;
+  Mainform.actCopyTable.Enabled := inDbTab and DBObjectSelected;
+  Mainform.actEditView.Enabled := inDbTab and ViewSelected and (mysql_version >= 50001);
+  Mainform.actCreateView.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50001);
   MainForm.actCreateDatabase.Enabled := FrmIsFocussed;
   MainForm.actDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   MainForm.actEditDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed and (mysql_version >= 50002);
@@ -2048,9 +2049,9 @@ begin
     MainForm.actEditDatabase.Hint := STR_NOTSUPPORTED
   else
     MainForm.actEditDatabase.Hint := 'Rename and/or modify character set of database';
-  MainForm.actDropTablesAndViews.Enabled := DBObjectSelected or ((PageControlMain.ActivePage <> tabDatabase) and (SelectedTable <> '') and FrmIsFocussed);
+  MainForm.actDropTablesAndViews.Enabled := (DBObjectSelected and inDbTab) or ((not inQueryTab) and (SelectedTable <> '') and FrmIsFocussed);
   MainForm.actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  Mainform.actEditTableFields.Enabled := DBObjectSelected;
+  Mainform.actEditTableFields.Enabled := DBObjectSelected and inDbTab;
 
   // Table tab
   FieldFocused := inTableTab and Assigned(ListColumns.FocusedNode);
