@@ -760,20 +760,17 @@ object MDIChild: TMDIChild
             Left = 0
             Top = 0
             Width = 496
-            Height = 31
+            Height = 25
             Align = alTop
             Alignment = taLeftJustify
             BevelOuter = bvNone
             BorderWidth = 1
             TabOrder = 0
-            DesignSize = (
-              496
-              31)
             object lblDataTop: TLabel
               Left = 1
               Top = 1
-              Width = 104
-              Height = 29
+              Width = 287
+              Height = 23
               Align = alLeft
               Anchors = [akLeft, akTop, akRight, akBottom]
               AutoSize = False
@@ -787,73 +784,53 @@ object MDIChild: TMDIChild
               Layout = tlCenter
               WordWrap = True
             end
-            object EditDataSearch: TEdit
-              Left = 317
-              Top = 4
-              Width = 121
-              Height = 21
-              Anchors = [akTop, akRight]
-              TabOrder = 0
-              OnEnter = EditDataSearchEnter
-              OnExit = EditDataSearchExit
-              OnKeyUp = controlsKeyUp
-            end
-            object ButtonDataSearch: TButton
-              Left = 440
-              Top = 4
-              Width = 51
-              Height = 21
-              Anchors = [akTop, akRight]
-              Caption = 'Search'
-              TabOrder = 1
-              OnClick = ButtonDataSearchClick
-            end
-            object CheckBoxDataSearch: TCheckBox
-              Left = 264
-              Top = 6
-              Width = 49
-              Height = 17
-              Anchors = [akTop, akRight]
-              Caption = 'NOT'
-              TabOrder = 2
-            end
             object tlbDataButtons: TToolBar
-              Left = 111
-              Top = 3
-              Width = 147
-              Height = 22
-              Align = alNone
-              Anchors = [akTop, akRight]
+              Left = 294
+              Top = 1
+              Width = 201
+              Height = 23
+              Align = alRight
+              AutoSize = True
               ButtonWidth = 67
               Caption = 'tlbDataButtons'
               Images = MainForm.PngImageListMain
               List = True
-              AllowTextButtons = True
-              TabOrder = 3
+              ShowCaptions = True
+              TabOrder = 0
               Wrapable = False
               object tbtnDataSorting: TToolButton
                 Left = 0
                 Top = 0
+                AllowAllUp = True
                 Caption = 'Sorting'
                 ImageIndex = 107
                 Style = tbsTextButton
                 OnClick = btnDataClick
               end
               object tbtnDataColumns: TToolButton
-                Left = 65
+                Left = 67
                 Top = 0
+                AllowAllUp = True
                 Caption = 'Columns'
                 ImageIndex = 107
                 Style = tbsTextButton
+                OnClick = btnDataClick
+              end
+              object tbtnDataFilter: TToolButton
+                Left = 134
+                Top = 0
+                AllowAllUp = True
+                Caption = 'Filter'
+                ImageIndex = 107
                 OnClick = btnDataClick
               end
             end
           end
           object gridData: TTntDBGrid
             Left = 0
-            Top = 31
+            Top = 91
             Width = 496
-            Height = 189
+            Height = 129
             Align = alClient
             DataSource = DataSource1
             Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
@@ -871,6 +848,104 @@ object MDIChild: TMDIChild
             OnKeyUp = controlsKeyUp
             OnMouseDown = gridMouseDown
             OnTitleClick = gridDataTitleClick
+          end
+          object pnlFilter: TPanel
+            Left = 0
+            Top = 25
+            Width = 496
+            Height = 66
+            Align = alTop
+            BevelOuter = bvNone
+            TabOrder = 2
+            Visible = False
+            DesignSize = (
+              496
+              66)
+            object lblTableFilter: TLabel
+              Left = 339
+              Top = 0
+              Width = 114
+              Height = 13
+              Anchors = [akTop, akRight]
+              Caption = 'Create table wide filter:'
+            end
+            object btnFilterApply: TButton
+              Left = 339
+              Top = 41
+              Width = 76
+              Height = 22
+              Action = MainForm.actApplyFilter
+              Anchors = [akTop, akRight]
+              TabOrder = 2
+            end
+            object btnFilterClear: TButton
+              Left = 419
+              Top = 41
+              Width = 76
+              Height = 22
+              Action = MainForm.actRemoveFilter
+              Anchors = [akTop, akRight]
+              TabOrder = 3
+            end
+            object SynMemoFilter: TSynMemo
+              Left = 0
+              Top = 0
+              Width = 335
+              Height = 63
+              SingleLineMode = False
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -13
+              Font.Name = 'Courier New'
+              Font.Style = []
+              PopupMenu = popupFilter
+              TabOrder = 0
+              OnKeyUp = controlsKeyUp
+              Gutter.Font.Charset = DEFAULT_CHARSET
+              Gutter.Font.Color = clWindowText
+              Gutter.Font.Height = -11
+              Gutter.Font.Name = 'Terminal'
+              Gutter.Font.Style = []
+              Gutter.LeftOffset = 10
+              Gutter.RightOffset = 0
+              Gutter.ShowLineNumbers = True
+              Gutter.Visible = False
+              Highlighter = SynSQLSyn1
+              Options = [eoAutoIndent, eoDragDropEditing, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
+              RightEdge = 0
+              ScrollBars = ssVertical
+              WantTabs = True
+              WordWrap = True
+              OnChange = SynMemoFilterChange
+              RemovedKeystrokes = <
+                item
+                  Command = ecDeleteLastChar
+                  ShortCut = 8200
+                end
+                item
+                  Command = ecLineBreak
+                  ShortCut = 8205
+                end
+                item
+                  Command = ecContextHelp
+                  ShortCut = 112
+                end
+                item
+                  Command = ecDeleteLine
+                  ShortCut = 16473
+                end>
+              AddedKeystrokes = <>
+            end
+            object editFilterSearch: TEdit
+              Left = 339
+              Top = 15
+              Width = 156
+              Height = 21
+              Anchors = [akTop, akRight]
+              TabOrder = 1
+              OnChange = editFilterSearchChange
+            end
           end
         end
         object tabQuery: TTabSheet
@@ -1223,153 +1298,6 @@ object MDIChild: TMDIChild
               Stretch = True
               TabOrder = 0
             end
-          end
-        end
-      end
-    end
-    object tabFilter: TTabSheet
-      Caption = 'Filter'
-      ImageIndex = 53
-      object SynMemoFilter: TSynMemo
-        Left = 0
-        Top = 29
-        Width = 669
-        Height = 105
-        SingleLineMode = False
-        Align = alClient
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Courier New'
-        Font.Style = []
-        PopupMenu = popupFilter
-        TabOrder = 0
-        Gutter.Font.Charset = DEFAULT_CHARSET
-        Gutter.Font.Color = clWindowText
-        Gutter.Font.Height = -11
-        Gutter.Font.Name = 'Terminal'
-        Gutter.Font.Style = []
-        Gutter.LeftOffset = 10
-        Gutter.RightOffset = 0
-        Gutter.ShowLineNumbers = True
-        Highlighter = SynSQLSyn1
-        Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
-        RightEdge = 40
-        WantTabs = True
-        OnDropFiles = SynMemoFilterDropFiles
-        RemovedKeystrokes = <
-          item
-            Command = ecDeleteLastChar
-            ShortCut = 8200
-          end
-          item
-            Command = ecLineBreak
-            ShortCut = 8205
-          end
-          item
-            Command = ecContextHelp
-            ShortCut = 112
-          end
-          item
-            Command = ecDeleteLine
-            ShortCut = 16473
-          end>
-        AddedKeystrokes = <>
-      end
-      object Panel10: TPanel
-        Left = 0
-        Top = 0
-        Width = 669
-        Height = 29
-        Align = alTop
-        AutoSize = True
-        BevelOuter = bvNone
-        TabOrder = 1
-        DesignSize = (
-          669
-          29)
-        object ComboBoxWhereFilters: TComboBox
-          Left = 168
-          Top = 2
-          Width = 498
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          ItemHeight = 13
-          TabOrder = 0
-          OnChange = ComboBoxWhereFiltersChange
-        end
-        object ToolBar4: TToolBar
-          Left = 0
-          Top = 0
-          Width = 159
-          Height = 29
-          Align = alLeft
-          AutoSize = True
-          Caption = 'ToolBar1'
-          EdgeInner = esNone
-          EdgeOuter = esNone
-          Images = MainForm.PngImageListMain
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 1
-          Transparent = True
-          Wrapable = False
-          object btnFilterSet: TToolButton
-            Left = 0
-            Top = 0
-            Hint = 'Apply Filter'
-            Caption = 'Apply Filter'
-            ImageIndex = 55
-            OnClick = setFilter
-          end
-          object btnFilterLoad: TToolButton
-            Left = 23
-            Top = 0
-            Hint = 'Open File'
-            DropdownMenu = popupFilterOpenFile
-            ImageIndex = 52
-            Style = tbsDropDown
-            OnClick = btnFilterLoadClick
-          end
-          object btnFilterSave: TToolButton
-            Left = 59
-            Top = 0
-            Hint = 'Save|Save to File'
-            ImageIndex = 10
-            OnClick = btnFilterSaveClick
-          end
-          object btnFilterClear: TToolButton
-            Left = 82
-            Top = 0
-            Hint = 'Clear Filter'
-            Caption = 'Clear'
-            ImageIndex = 26
-            OnClick = ClearFilter
-          end
-          object sepFilter1: TToolButton
-            Left = 105
-            Top = 0
-            Width = 8
-            Caption = 'sepFilter1'
-            ImageIndex = 9
-            Style = tbsSeparator
-          end
-          object btnFilterPrevious: TToolButton
-            Left = 113
-            Top = 0
-            Hint = 'Previous filter'
-            Enabled = False
-            ImageIndex = 60
-            OnClick = btnFilterPreviousClick
-          end
-          object btnFilterNext: TToolButton
-            Left = 136
-            Top = 0
-            Hint = 'Next filter'
-            Enabled = False
-            ImageIndex = 61
-            OnClick = btnFilterNextClick
           end
         end
       end
@@ -1758,13 +1686,6 @@ object MDIChild: TMDIChild
         OnClick = DropFilter1Click
       end
     end
-    object Filter1: TMenuItem
-      Caption = 'Filter...'
-      OnClick = Filter1Click
-    end
-    object Find1: TMenuItem
-      Action = MainForm.actDataSearch
-    end
     object N9: TMenuItem
       Caption = '-'
     end
@@ -1937,10 +1858,6 @@ object MDIChild: TMDIChild
     OnDataChange = DataSourceDataChange
     Left = 304
     Top = 168
-  end
-  object popupFilterOpenFile: TPopupMenu
-    Left = 48
-    Top = 318
   end
   object OpenDialog2: TOpenDialog
     Left = 48
@@ -2135,18 +2052,8 @@ object MDIChild: TMDIChild
   end
   object popupFilter: TPopupMenu
     Images = MainForm.PngImageListMain
-    OnPopup = popupFilterPopup
-    Left = 80
-    Top = 318
-    object menuApplyFilter: TMenuItem
-      Caption = 'Appply filter ...'
-      ImageIndex = 55
-      ShortCut = 120
-      OnClick = setFilter
-    end
-    object N20: TMenuItem
-      Caption = '-'
-    end
+    Left = 8
+    Top = 80
     object menuFilterCopy: TMenuItem
       Action = MainForm.actCopy
     end
@@ -2159,10 +2066,13 @@ object MDIChild: TMDIChild
     object N8: TMenuItem
       Caption = '-'
     end
-    object menuFilterSQLhelp: TMenuItem
-      Action = MainForm.actSQLhelp
+    object menuFilterApply: TMenuItem
+      Action = MainForm.actApplyFilter
     end
-    object N25: TMenuItem
+    object menuFilterRemove: TMenuItem
+      Action = MainForm.actRemoveFilter
+    end
+    object N20: TMenuItem
       Caption = '-'
     end
   end

@@ -874,13 +874,6 @@ object MainForm: TMainForm
       ShortCut = 16463
       OnExecute = actLoadSQLExecute
     end
-    object actDataSearch: TAction
-      Category = 'Data'
-      Caption = 'Find...'
-      ImageIndex = 30
-      ShortCut = 16454
-      OnExecute = actDataSearchExecute
-    end
     object actDropTablesAndViews: TAction
       Category = 'Database'
       Caption = 'Drop table/view ...'
@@ -1203,7 +1196,7 @@ object MainForm: TMainForm
       OnExecute = actClearEditorExecute
     end
     object actClearFilterEditor: TAction
-      Category = 'SQL'
+      Category = 'Data'
       Caption = 'Clear'
       Hint = 'Clear filter editor'
       ImageIndex = 58
@@ -1254,6 +1247,21 @@ object MainForm: TMainForm
       Hint = 'Set delimiter used in SQL execution'
       ImageIndex = 106
       OnExecute = actSetDelimiterExecute
+    end
+    object actApplyFilter: TAction
+      Category = 'Data'
+      Caption = 'Apply filter'
+      ImageIndex = 55
+      ShortCut = 120
+      OnExecute = actApplyFilterExecute
+    end
+    object actRemoveFilter: TAction
+      Category = 'Data'
+      Caption = 'Remove filter'
+      Hint = 'Clear filter and refresh grid'
+      ImageIndex = 26
+      ShortCut = 16430
+      OnExecute = actRemoveFilterExecute
     end
   end
   object SaveDialog2: TSaveDialog

@@ -115,7 +115,6 @@ type
     gridQuery: TTntDBGrid;
     DataSource2: TDataSource;
     Copytableas1: TMenuItem;
-    Filter1: TMenuItem;
     Delete1: TMenuItem;
     N6: TMenuItem;
     QF1: TMenuItem;
@@ -125,7 +124,6 @@ type
     QF4: TMenuItem;
     N7: TMenuItem;
     DropFilter1: TMenuItem;
-    popupFilterOpenFile: TPopupMenu;
     OpenDialog2: TOpenDialog;
     PrintList2: TMenuItem;
     PrintList3: TMenuItem;
@@ -135,7 +133,6 @@ type
     pageCtlBottom: TPageControl;
     tabLog: TTabSheet;
     tabEditors: TTabSheet;
-    tabFilter: TTabSheet;
     SynMemoSQLLog: TSynMemo;
     toolbarEditors: TToolBar;
     btnBlobWordWrap: TToolButton;
@@ -157,16 +154,6 @@ type
     QF7: TMenuItem;
     QF5: TMenuItem;
     QF6: TMenuItem;
-    Panel10: TPanel;
-    ComboBoxWhereFilters: TComboBox;
-    ToolBar4: TToolBar;
-    btnFilterSet: TToolButton;
-    btnFilterLoad: TToolButton;
-    btnFilterSave: TToolButton;
-    btnFilterClear: TToolButton;
-    sepFilter1: TToolButton;
-    btnFilterPrevious: TToolButton;
-    btnFilterNext: TToolButton;
     QF8: TMenuItem;
     QF10: TMenuItem;
     QF11: TMenuItem;
@@ -201,9 +188,6 @@ type
     EDBImage1: TEDBImage;
     Exporttables1: TMenuItem;
     Exporttables2: TMenuItem;
-    EditDataSearch: TEdit;
-    ButtonDataSearch: TButton;
-    Find1: TMenuItem;
     popupDbGridHeader: TPopupMenu;
     SynCompletionProposal1: TSynCompletionProposal;
     OpenDialogSQLFile: TOpenDialog;
@@ -213,7 +197,6 @@ type
     ManageIndexes1: TMenuItem;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
-    CheckBoxDataSearch: TCheckBox;
     QF13: TMenuItem;
     QF14: TMenuItem;
     QF15: TMenuItem;
@@ -257,15 +240,6 @@ type
     menuSQLhelpData: TMenuItem;
     menuAlterdatabase: TMenuItem;
     menuTreeAlterTable: TMenuItem;
-    popupFilter: TPopupMenu;
-    menuApplyFilter: TMenuItem;
-    menuFilterCopy: TMenuItem;
-    menuFilterPaste: TMenuItem;
-    menuFilterClear: TMenuItem;
-    N8: TMenuItem;
-    N20: TMenuItem;
-    menuFilterSQLhelp: TMenuItem;
-    N25: TMenuItem;
     menuLogToFile: TMenuItem;
     menuOpenLogFolder: TMenuItem;
     tabStatus: TTabSheet;
@@ -293,6 +267,20 @@ type
     tlbDataButtons: TToolBar;
     tbtnDataSorting: TToolButton;
     tbtnDataColumns: TToolButton;
+    tbtnDataFilter: TToolButton;
+    pnlFilter: TPanel;
+    btnFilterApply: TButton;
+    lblTableFilter: TLabel;
+    editFilterSearch: TEdit;
+    btnFilterClear: TButton;
+    popupFilter: TPopupMenu;
+    menuFilterCopy: TMenuItem;
+    menuFilterPaste: TMenuItem;
+    N8: TMenuItem;
+    menuFilterApply: TMenuItem;
+    menuFilterRemove: TMenuItem;
+    menuFilterClear: TMenuItem;
+    N20: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -354,17 +342,13 @@ type
     procedure ListTablesDblClick(Sender: TObject);
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure gridDataTitleClick(Column: TColumn);
-    procedure Filter1Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure btnBlobWordWrapClick(Sender: TObject);
     procedure pageCtlEditorsChange(Sender: TObject);
     procedure btnBlobSaveClick(Sender: TObject);
     procedure btnBlobLoadClick(Sender: TObject);
-    procedure btnFilterLoadClick(Sender: TObject);
-    procedure btnFilterSaveClick(Sender: TObject);
-    procedure setFilter(Sender: TObject);
-    procedure ClearFilter(Sender: TObject);
-    procedure LoadSQLWhereFile(Sender: TObject);
+    function GetFilter: WideString;
+    procedure SaveFilter(Clause: WideString = '');
     procedure DropFilter1Click(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
@@ -382,9 +366,6 @@ type
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
-    procedure btnFilterPreviousClick(Sender: TObject);
-    procedure btnFilterNextClick(Sender: TObject);
-    procedure ComboBoxWhereFiltersChange(Sender: TObject);
     procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure GridDrawColumnCell(Sender: TObject; const Rect: TRect; DataCol:
@@ -407,9 +388,6 @@ type
     procedure splitterTopBottomMoved(Sender: TObject);
     procedure DataSourceDataChange(Sender: TObject; Field: TField);
     procedure DBGridColEnter(Sender: TObject);
-    procedure ButtonDataSearchClick(Sender: TObject);
-    procedure EditDataSearchEnter(Sender: TObject);
-    procedure EditDataSearchExit(Sender: TObject);
     procedure MenuTablelistColumnsClick(Sender: TObject);
     function mask(str: WideString) : WideString;
     procedure CheckConnection();
@@ -456,12 +434,12 @@ type
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure DBtreePaintText(Sender: TBaseVirtualTree; const TargetCanvas:
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure editFilterSearchChange(Sender: TObject);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
         HintText: WideString);
-    procedure popupFilterPopup(Sender: TObject);
     procedure ProcessSqlLog;
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
         TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
@@ -474,8 +452,7 @@ type
     procedure menuRefreshDBTreeClick(Sender: TObject);
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
-    procedure SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer; AFiles:
-        TWideStrings);
+    procedure SynMemoFilterChange(Sender: TObject);
     procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
         var ImageIndex: Integer);
 
@@ -483,8 +460,6 @@ type
       uptime                     : Integer;
       time_connected             : Cardinal;
       viewingdata                : Boolean;
-      WhereFilters               : TStringList;
-      WhereFiltersIndex          : Integer;
       WordWrap                   : Boolean;
       FMysqlConn                 : TMysqlConn;
       FConn                      : TOpenConnProf;
@@ -501,6 +476,7 @@ type
       SqlMessagesLock            : TRtlCriticalSection;
       dsShowEngines,
       dsHaveEngines              : TDataSet;
+      FilterPanelManuallyOpened  : Boolean;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -519,6 +495,7 @@ type
       procedure RestoreListSetup( List: TVirtualStringTree );
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
       function GetTableSize(ds: TDataSet): Int64;
+      procedure ToggleFilterPanel(ForceVisible: Boolean = False);
 
     public
       DatabasesWanted,
@@ -874,7 +851,6 @@ var
   menuitem    : Tmenuitem;
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
-  FilterFilename: String;
 begin
   ws := Mainform.GetRegValue(REGNAME_CHILDWINSTATE, 'Normal');
   if ws = 'Normal' then begin
@@ -912,13 +888,13 @@ begin
   fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   fontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
   SynMemoQuery.Font.Name := fontname;
-  SynMemoSQLLog.Font.Name := fontname;
-  SynMemoProcessView.Font.Name := fontname;
-  SynMemoFilter.Font.Name := fontname;
   SynMemoQuery.Font.Size := fontsize;
-  SynMemoSQLLog.Font.Size := fontsize;
-  SynMemoProcessView.Font.Size := fontsize;
+  SynMemoFilter.Font.Name := fontname;
   SynMemoFilter.Font.Size := fontsize;
+  SynMemoSQLLog.Font.Name := fontname;
+  SynMemoSQLLog.Font.Size := fontsize;
+  SynMemoProcessView.Font.Name := fontname;
+  SynMemoProcessView.Font.Size := fontsize;
 
   // Data-Font:
   datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
@@ -939,18 +915,6 @@ begin
   SynSQLSyn1.CommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
   SynSQLSyn1.TablenameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
   SynMemoQuery.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
-
-  // SQL-Filter-Files-History
-  popupFilterOpenFile.Items.Clear;
-  for i := 1 to 100 do begin
-    FilterFilename := Mainform.GetRegValue(REGNAME_SQLWHEREFILE + IntToStr(i), '');
-    if FilterFilename = '' then
-      break;
-    menuitem := Tmenuitem.Create(Self);
-    menuitem.Caption := IntToStr( popupFilterOpenFile.Items.count + 1) + ' ' + FilterFilename;
-    menuitem.OnClick := LoadSQLWhereFile;
-    popupFilterOpenFile.Items.Add( menuitem );
-  end;
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListVariables);
@@ -1216,6 +1180,7 @@ var
   sl_query             : TStringList;
   DisplayedColumnsList : TStringList;
   tmp                  : TDataSet;
+  Filter               : WideString;
 begin
   viewingdata := true;
   sl_query := TStringList.Create();
@@ -1244,20 +1209,6 @@ begin
     DBMemo1.DataSource := DataSource1;
     EDBImage1.DataField := '';
     EDBImage1.DataSource := DataSource1;
-
-    if not dataselected and prefRememberFilters then
-    begin
-      SynMemoFilter.Text := '';
-      // Read cached WHERE-clause and set filter
-      reg_value := Mainform.GetRegValue( 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable, '', FConn.Description );
-      if reg_value <> '' then begin
-        SynMemoFilter.Text := reg_value;
-        // Ensure the user can see its previous specified filter
-        // in case of an SQL-error, it's important that he can delete it
-        tabFilter.tabVisible := true;
-        pageCtlBottom.ActivePage := tabFilter;
-      end;
-    end;
 
     // Read cached ORDER-clause and set Grid.Sortcolumns
     sorting := '';
@@ -1291,13 +1242,9 @@ begin
       select_base := 'SELECT ';
       // Try to calc the rowcount regardless of a given LIMIT
       // Only needed if the user specified a WHERE-clause
-      if (
-        ( mysql_version >= 40000 ) and
-        ( Trim( Self.SynMemoFilter.Text ) <> '' )
-      ) then
-      begin
+      Filter := GetFilter;
+      if (mysql_version >= 40000) and (Filter <> '') then
         select_base := select_base + ' SQL_CALC_FOUND_ROWS';
-      end;
       // Selected columns
       if DisplayedColumnsList.Count = 0 then
       begin
@@ -1318,10 +1265,8 @@ begin
       select_base := select_base + ' FROM ' + mask( SelectedTable );
       sl_query.Add( select_base );
       // Apply custom WHERE filter
-      if ( Trim( Self.SynMemoFilter.Text ) <> '' ) then
-      begin
-        sl_query.Add( 'WHERE ' + Trim( Self.SynMemoFilter.Text ) );
-      end;
+      if Filter <> '' then
+        sl_query.Add('WHERE ' + Filter);
       // Apply custom ORDER BY if detected in registry
       if ( sorting <> '' ) then
       begin
@@ -1362,14 +1307,10 @@ begin
         on E:Exception do
         begin
           // Most likely we have a wrong filter-clause when this happens
-          LogSQL( E.Message, True );
           // Put the user with his nose onto the wrong filter
           // either specified by user or
           // created by HeidiSQL by using the search box
-          if ( SynMemoFilter.CanFocus ) then
-          begin
-            SynMemoFilter.SetFocus();
-          end;
+          ToggleFilterPanel(True);
           SynMemoFilter.Color := $008080FF; // light pink
           MessageDlg( E.Message, mtError, [mbOK], 0 );
           MainForm.ShowStatus( STATUS_MSG_READY );
@@ -1461,6 +1402,7 @@ procedure TMDIChild.DisplayRowCountStats(ds: TDataSet);
 var
   rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
+  filter           : WideString;
 begin
   if ActiveGrid = gridQuery then
     Exit;
@@ -1493,7 +1435,8 @@ begin
     @see TZMySQLResultSet:Create
     @see TZMySQLResultSet:Open
   }
-  if Trim( SynMemoFilter.Text ) <> '' then
+  Filter := GetFilter;
+  if Filter <> '' then
   begin
     if mysql_version >= 40000 then
       rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0)
@@ -1504,11 +1447,11 @@ begin
     rows_matching := rows_total;
 
   if( rows_matching <> rows_total ) and
-    ( Trim( SynMemoFilter.Text ) <> '' ) then
+    (Filter <> '') then
     lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
 
   if ( rows_matching = rows_total ) and
-    ( Trim( SynMemoFilter.Text ) <> '') then
+    (Filter <> '') then
     lblDataTop.Caption := lblDataTop.Caption + ', filter matches all records';
 
   if ( mainform.CheckBoxLimit.Checked ) and
@@ -2120,7 +2063,6 @@ begin
   menuRenameColumn.Enabled := FieldFocused and FieldsSelected;
 
   // Data tab
-  if FrmIsFocussed then tabFilter.tabVisible := inDataTab;
   Mainform.actDatasetFirst.Enabled := inDataTab;
   Mainform.actDatasetLast.Enabled := inDataTab;
   Mainform.actDatasetInsert.Enabled := inDataTab;
@@ -2933,14 +2875,6 @@ begin
 end;
 
 
-procedure TMDIChild.Filter1Click(Sender: TObject);
-begin
-  // Set WHERE-Filter
-  pageCtlBottom.ActivePage := tabFilter;
-  SynMemoFilter.SetFocus;
-end;
-
-
 procedure TMDIChild.QuickFilterClick(Sender: TObject);
 var
   filter,value,column : String;
@@ -3011,10 +2945,9 @@ begin
     filter := menuitem.Caption;
   end;
 
-  SynMemoFilter.Text := filter;
-  pageCtlBottom.ActivePage := tabFilter;
-  SynMemoFilter.SetFocus;
-  SetFilter(self);
+  SynmemoFilter.Text := filter;
+  SaveFilter(filter);
+  viewdata(Sender);
 end;
 
 
@@ -3125,161 +3058,47 @@ begin
 end;
 
 
-procedure TMDIChild.btnFilterLoadClick(Sender: TObject);
+function TMDIChild.GetFilter: WideString;
 var
-  menuitem : Tmenuitem;
-  m,i : Integer;
-  _filename : String;
-  dontadd : Boolean;
+  SomeFilter: Boolean;
 begin
-  // open where-filter
-  With TOpenDialog.Create(self) do begin
-    Filter := 'Textfiles (*.txt)|*.txt|SQL-Files (*.sql)|*.sql|All files (*.*)|*.*';
-    if Execute and (Filename <> '') then begin
-      Screen.Cursor := crHourGlass;
-      try
-        SynMemoFilter.Lines.LoadFromFile(FileName);
-      except
-        MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
-      end;
-      Screen.Cursor := crDefault;
-
-      // don't get one filename more than one time
-      dontadd := false;
-      for m:=0 to popupFilterOpenFile.Items.Count-1 do begin
-        _filename := popupFilterOpenFile.Items[m].Caption;
-        i := 0;
-        while _filename[i] <> ' ' do
-          Inc( i );
-        _filename := Copy(_filename, i+1, Length(_filename));
-        _filename := Stringreplace(_filename, '&', '', [rfReplaceAll]);
-        if _filename = FileName then
-          dontadd := true;
-      end;
-
-      if not dontadd then begin
-        with TRegistry.Create do begin
-          openkey(REGPATH, true);
-          for i:=1 to 10 do begin
-            if not ValueExists('SQLWhereFile'+IntToStr(i)) then
-              break;
-          end;
-          while i > 1 do begin
-            WriteString(REGNAME_SQLWHEREFILE+IntToStr(i), ReadString(REGNAME_SQLWHEREFILE+IntToStr(i-1)));
-            dec(i);
-          end;
-          WriteString('SQLWhereFile1', FileName);
-
-          i := 1;
-          popupTreeView.Items.Clear;
-          while ValueExists(REGNAME_SQLWHEREFILE+IntToStr(i)) do begin
-            menuitem := Tmenuitem.Create(self);
-            menuitem.Caption := IntToStr(popupFilterOpenFile.Items.count+1) + ' ' + ReadString(REGNAME_SQLWHEREFILE+IntToStr(i));
-            menuitem.OnClick := LoadSQLWhereFile;
-            popupFilterOpenFile.Items.Add(menuitem);
-            Inc( i );
-          end;
-          Free;
-        end;
-      end;
-
-    end;
-  end;
+  // Read cached WHERE-clause and set filter
+  if prefRememberFilters then
+    Result := Mainform.GetRegValue( REGPREFIX_WHERECLAUSE + ActiveDatabase + '.' + SelectedTable, '', FConn.Description )
+  else
+    Result := SynMemoFilter.Text;
+  SomeFilter := Result <> '';
+  if SomeFilter then tbtnDataFilter.ImageIndex := 108
+  else tbtnDataFilter.ImageIndex := 107;
+  // Ensure filter panel is visible
+  if SomeFilter then
+    ToggleFilterPanel(True);
+  // Hide it if it was auto opened previously
+  if (not SomeFilter) and pnlFilter.Visible and (not FilterPanelManuallyOpened) then
+    ToggleFilterPanel;
+  SynMemoFilter.Text := Result;
+  SynMemoFilterChange(Self);
 end;
 
-procedure TMDIChild.btnFilterSaveClick(Sender: TObject);
-begin
-  // save where-filter
-  With TSaveDialog.Create(self) do begin
-    Filter := 'Textfiles (*.txt)|*.txt|SQL-Files (*.sql)|*.sql|All files (*.*)|*.*';
-    FileName := SelectedTable;
-    Options := [ofOverwritePrompt,ofEnableSizing];
-    DefaultExt := 'txt';
-    if Execute and (Filename <> '') then
-      try
-        SynMemoFilter.Lines.SaveToFile(FileName);
-      except
-        MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
-      end;
-  end;
-end;
 
-procedure TMDIChild.SetFilter(Sender: TObject);
+procedure TMDIChild.SaveFilter(Clause: WideString = '');
 var
-  where : String;
-  reg : TRegistry;
-  reg_value : String;
+  regname: String;
 begin
-  // set filter for data-tab
-  where := trim(self.SynMemoFilter.Text);
-
   // Store whereclause in Registry
-  reg := TRegistry.Create;
-  try
-    if prefRememberFilters then begin
-      reg.openkey( REGPATH + REGKEY_SESSIONS + FConn.Description, false );
-      reg_value := 'WHERECLAUSE_' + ActiveDatabase + '.' + SelectedTable;
-      if where <> '' then reg.WriteString( reg_value, where )
-      else if reg.ValueExists( reg_value ) then reg.DeleteValue( reg_value );
-    end;
-  finally
-    reg.Free;
-  end;
-
-  // store filter for browsing purpose:
-  if where <> '' then begin
-    if WhereFilters = nil then begin // Create filters-list
-      WhereFilters := TStringList.Create;
-      btnFilterPrevious.Enabled := true;
-      btnFilterNext.Enabled := true;
-    end;
-    if WhereFilters.IndexOf(where) > -1 then // Filter was previously used:
-      WhereFiltersIndex := WhereFilters.IndexOf(where)
-    else begin // New Filter:
-      WhereFilters.add(where);
-      WhereFiltersIndex := WhereFilters.count-1;
-    end;
-    ComboBoxWhereFilters.Items := WhereFilters;
-    ComboBoxWhereFilters.ItemIndex := WhereFiltersIndex;
-  end;
-  Filter1.checked := where <> '';
-
-  viewdata(Sender);
+  if prefRememberFilters then begin
+    Mainform.regMain.openkey( REGPATH + REGKEY_SESSIONS + FConn.Description, false );
+    regname := REGPREFIX_WHERECLAUSE + ActiveDatabase + '.' + SelectedTable;
+    if Clause <> '' then Mainform.regMain.WriteString( regname, Clause )
+    else if Mainform.regMain.ValueExists( regname ) then Mainform.regMain.DeleteValue( regname );
+  end
 end;
 
-procedure TMDIChild.ClearFilter(Sender: TObject);
-begin
-  SynMemoFilter.Lines.Clear;
-  SetFilter(self);
-end;
-
-
-procedure TMDIChild.LoadSQLWhereFile(Sender: TObject);
-var
-  filename : String;
-  i : Integer;
-begin
-  // Load SQLWhere File from Menuitem
-  Screen.Cursor := crHourGlass;
-  filename := (sender as TMenuItem).Caption;
-  i := 0;
-  while filename[i] <> ' ' do
-    Inc( i );
-  filename := Copy(filename, i+1, Length(filename));
-  filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
-
-  try
-    SynMemoFilter.Lines.LoadFromFile(filename);
-  except
-    MessageDLG('Error while reading file ''' + filename + '''', mtError, [mbOK], 0);
-  end;
-  Screen.Cursor := crDefault;
-end;
 
 procedure TMDIChild.DropFilter1Click(Sender: TObject);
 begin
   // Drop Filter
-  ClearFilter(Self);
+  SaveFilter;
   viewdata(Sender);
 end;
 
@@ -3344,10 +3163,8 @@ begin
   // Simulate Ctrl+A-behaviour of common editors
   else if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
   begin
-    if Sender = DBMemo1 then
-      DBMemo1.SelectAll
-    else if Sender = EditDataSearch then
-      EditDataSearch.SelectAll;
+    if Sender is TCustomEdit then
+      TCustomEdit(Sender).SelectAll;
   end
 
   // Enable copy + paste shortcuts in dbgrids
@@ -3592,32 +3409,6 @@ end;
 
 
 
-
-procedure TMDIChild.btnFilterPreviousClick(Sender: TObject);
-begin
-  // Go to previous filter
-  if WhereFiltersIndex > 0 then begin
-    dec(WhereFiltersIndex);
-    ComboBoxWhereFilters.ItemIndex := WhereFiltersIndex;
-    SynMemoFilter.Text := WhereFilters[WhereFiltersIndex];
-  end;
-end;
-
-procedure TMDIChild.btnFilterNextClick(Sender: TObject);
-begin
-  // Go to next filter
-  if WhereFiltersIndex < WhereFilters.count-1 then begin
-    inc(WhereFiltersIndex);
-    ComboBoxWhereFilters.ItemIndex := WhereFiltersIndex;
-    SynMemoFilter.Text := WhereFilters[WhereFiltersIndex];
-  end;
-end;
-
-procedure TMDIChild.ComboBoxWhereFiltersChange(Sender: TObject);
-begin
-  WhereFiltersIndex := ComboBoxWhereFilters.ItemIndex;
-  SynMemoFilter.Text := ComboBoxWhereFilters.Items[ComboBoxWhereFilters.ItemIndex];
-end;
 
 procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
 var
@@ -4238,47 +4029,8 @@ begin
 end;
 
 
-// Search with searchbox
-procedure TMDIChild.ButtonDataSearchClick(Sender: TObject);
-var
-  i : Integer;
-  where : String;
-begin
-  if gridData.DataSource.DataSet = nil then Exit;
-  if not gridData.DataSource.DataSet.Active then Exit;
-  where := '';
-  if EditDataSearch.text <> '' then
-  begin
-    for i:=0 to gridData.FieldCount-1 do
-    begin
-      if where <> '' then
-        where := where + CRLF + ' OR ';
-      where := where + mask(gridData.Fields[i].FieldName) + ' LIKE ''%' + esc( EditDataSearch.text, true ) + '%''';
-    end;
-    if CheckBoxDataSearch.Checked then
-      where := 'NOT (' + where + ')';
-  end;
-
-  SynMemoFilter.Text := where;
-
-  SetFilter(self);
-end;
-
-// Searchbox focused
-procedure TMDIChild.EditDataSearchEnter(Sender: TObject);
-begin
-  ButtonDataSearch.Default := true;
-  EditDataSearch.SelectAll;
-end;
 
 // Searchbox unfocused
-procedure TMDIChild.EditDataSearchExit(Sender: TObject);
-begin
-  ButtonDataSearch.Default := false;
-end;
-
-
-
 function TMDIChild.mask(str: WideString) : WideString;
 begin
   result := maskSql(mysql_version, str);
@@ -4475,24 +4227,26 @@ var
   frm : TForm;
 begin
   btn := (Sender as TToolButton);
-  btn.Down := not btn.Down;
 
-  if btn.Down then
-  begin
-    // Create the desired form
+  if (btn = tbtnDataColumns) or (btn = tbtnDataSorting) then begin
+    // Create desired form for SELECT and ORDER buttons
+    btn.Down := not btn.Down;
+    if not btn.Down then Exit;
     if btn = tbtnDataColumns then
       frm := TColumnSelectionForm.Create(self)
     else if btn = tbtnDataSorting then
       frm := TDataSortingForm.Create(self)
     else
       frm := TForm.Create(self); // Dummy fallback, should never get created
-
     // Position new form relative to btn's position
     frm.Top := btn.ClientOrigin.Y + btn.Height;
-    frm.Left := btn.ClientOrigin.X;
-
+    frm.Left := btn.ClientOrigin.X + btn.Width - frm.Width;
     // Display form
     frm.Show;
+  end else if btn = tbtnDataFilter then begin
+    // Unhide inline filter panel
+    ToggleFilterPanel;
+    FilterPanelManuallyOpened := pnlFilter.Visible;
   end;
 end;
 
@@ -5226,22 +4980,6 @@ end;
 
 
 {**
-  popupFilter displays or a key was pressed which is assigned to
-  it as a shortcut 
-}
-procedure TMDIChild.popupFilterPopup(Sender: TObject);
-var
-  somechars: Boolean;
-begin
-  // Sets cursor into memo and activates TAction(s) like paste
-  SynMemoFilter.SetFocus;
-  somechars := SynMemoFilter.GetTextLen > 0;
-  // Inserting file at cursor only makes sense with content
-  Mainform.actClearFilterEditor.Enabled := somechars;
-end;
-
-
-{**
   Display tooltips in VirtualTrees. Imitates default behaviour of TListView.
 }
 procedure TMDIChild.vstGetHint(Sender: TBaseVirtualTree; Node:
@@ -5656,26 +5394,6 @@ begin
     3: ImageIndex := 35;
   end;
 end;
-
-
-{**
-  One or more files from explorer or somewhere else were dropped onto the
-  filter editor - load the contents of the first file
-}
-procedure TMDIChild.SynMemoFilterDropFiles(Sender: TObject; X, Y: Integer;
-    AFiles: TWideStrings);
-begin
-  if fileExists(AFiles[0]) then begin
-    Screen.Cursor := crHourGlass;
-    try
-      SynMemoFilter.Lines.LoadFromFile(AFiles[0]);
-    except on E: Exception do
-      MessageDLG( 'Error while reading file ' + AFiles[0] + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
-    end;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
 
 
 {**
@@ -6102,9 +5820,59 @@ begin
   Result := CachedTableLists.IndexOf(db) > -1;
 end;
 
+procedure TMDIChild.editFilterSearchChange(Sender: TObject);
+var
+  Add, Clause: WideString;
+  i: Integer;
+  ed: TEdit;
+begin
+  ed := TEdit(Sender);
+  Clause := '';
+  Add := '';
+  if ed.Text <> '' then begin
+    for i := 0 to Length(VTRowDataListColumns) - 1 do begin
+      if i > 0 then
+        Add := Add + ' OR ';
+      Add := Add + mask(VTRowDataListColumns[i].Captions[0]) + ' LIKE ' + esc('%'+ed.Text+'%');
+      if Length(Add) > 45 then begin
+        Clause := Clause + Add + CRLF;
+        Add := '';
+      end;
+    end;
+    if Add <> '' then
+      Clause := Clause + Add;
+  end;
+  SynMemoFilter.Text := Clause;
+  SynMemoFilterChange(Sender);
+end;
+
+
 procedure TMDIChild.ListColumnsDblClick(Sender: TObject);
 begin
   Mainform.actEditField.Execute;
+end;
+
+
+procedure TMDIChild.SynMemoFilterChange(Sender: TObject);
+var
+  SomeText: Boolean;
+begin
+  SomeText := SynMemoFilter.GetTextLen > 0;
+  Mainform.actClearFilterEditor.Enabled := SomeText;
+  Mainform.actApplyFilter.Enabled := SomeText;
+  Mainform.actRemoveFilter.Enabled := SomeText;
+end;
+
+
+procedure TMDIChild.ToggleFilterPanel(ForceVisible: Boolean = False);
+var
+  ShowIt: Boolean;
+begin
+  ShowIt := ForceVisible or (not pnlFilter.Visible);
+  tbtnDataFilter.Down := ShowIt;
+  pnlFilter.Visible := ShowIt;
+  if ShowIt and SynMemoFilter.CanFocus and (not SynMemoFilter.Focused) then
+    SynMemoFilter.SetFocus;
 end;
 
 end.

@@ -119,7 +119,6 @@ type
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     actExportTables: TAction;
-    actDataSearch: TAction;
     actDropTablesAndViews: TAction;
     actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
@@ -200,6 +199,8 @@ type
     actSaveSQLSelectionSnippet: TAction;
     actClearQueryEditor: TAction;
     actClearFilterEditor: TAction;
+    actApplyFilter: TAction;
+    actRemoveFilter: TAction;
     actQueryStopOnErrors: TAction;
     actQueryWordWrap: TAction;
     actQueryFind: TAction;
@@ -237,6 +238,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
+    procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
     procedure actMaintenanceExecute(Sender: TObject);
     procedure actEditViewExecute(Sender: TObject);
@@ -258,7 +260,6 @@ type
     procedure actHTMLviewExecute(Sender: TObject);
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actExportTablesExecute(Sender: TObject);
-    procedure actDataSearchExecute(Sender: TObject);
     procedure actDataSetDeleteExecute(Sender: TObject);
     procedure actDropDatabaseExecute(Sender: TObject);
     procedure actDropFieldsExecute(Sender: TObject);
@@ -281,6 +282,7 @@ type
     procedure actQueryWordWrapExecute(Sender: TObject);
     procedure actReadmeExecute(Sender: TObject);
     procedure actRefreshExecute(Sender: TObject);
+    procedure actRemoveFilterExecute(Sender: TObject);
     procedure actSaveSQLExecute(Sender: TObject);
     procedure actSaveSQLSnippetExecute(Sender: TObject);
     procedure actSetDelimiterExecute(Sender: TObject);
@@ -297,13 +299,13 @@ type
     procedure ReplaceDialogQueryFind(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
   private
-    regMain : TRegistry;
     FDelimiter: String;
     function GetChildwin: TMDIChild;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
   public
+    regMain : TRegistry;
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
     UserManagerForm: TUserManagerForm;
@@ -1151,15 +1153,6 @@ begin
   ExportTablesWindow (Self);
 end;
 
-procedure TMainForm.actDataSearchExecute(Sender: TObject);
-begin
-  with ChildWin.EditDataSearch do
-  begin
-    SetFocus;
-    SelectAll;
-  end;
-end;
-
 // Drop Table(s)
 procedure TMainForm.actDropTablesAndViewsExecute(Sender: TObject);
 var
@@ -1691,14 +1684,8 @@ begin
 
   keyword := '';
   // Query-Tab
-  if Childwin.SynMemoQuery.Focused then
-    keyword := Childwin.SynMemoQuery.WordAtCursor
-  // LogSQL-Tab
-  else if Childwin.SynMemoSQLLog.Focused then
-    keyword := Childwin.SynMemoSQLLog.WordAtCursor
-  // Filter-Tab
-  else if Childwin.SynMemoFilter.Focused then
-    keyword := Childwin.SynMemoFilter.WordAtCursor
+  if Childwin.ActiveControl is TSynMemo then
+    keyword := TSynMemo(Childwin.ActiveControl).WordAtCursor
   // Data-Tab
   else if (Childwin.PageControlMain.ActivePage = Childwin.tabData)
     and (-1 < Childwin.gridData.SelectedField.Index)
@@ -2061,5 +2048,21 @@ begin
     actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+Delimiter+')';
   end;
 end;
+
+
+procedure TMainForm.actApplyFilterExecute(Sender: TObject);
+begin
+  Childwin.SaveFilter(Childwin.SynMemoFilter.Text);
+  Childwin.viewdata(Sender);
+end;
+
+
+procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
+begin
+  Childwin.SynmemoFilter.Clear;
+  Childwin.SaveFilter;
+  Childwin.viewdata(Sender);
+end;
+
 
 end.
