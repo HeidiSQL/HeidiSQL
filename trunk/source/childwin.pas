@@ -477,6 +477,7 @@ type
       dsShowEngines,
       dsHaveEngines              : TDataSet;
       FilterPanelManuallyOpened  : Boolean;
+      winName                    : String;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -692,7 +693,6 @@ end;
 procedure TMDIChild.Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
 var
   AutoReconnect    : Boolean;
-  winName          : String;
   i, j             : Integer;
   miGroup,
   miFilterGroup,
@@ -742,7 +742,6 @@ begin
   end;
 
   SessionName := FMysqlConn.SessionName;
-  Caption := SessionName;
   DatabasesWanted := explode( ';', FConn.DatabaseList );
   if ( FConn.DatabaseListSort ) then
   begin
@@ -773,6 +772,7 @@ begin
     winName := winName + Format( ' (%d)', [i] );
   end;
   Application.Title := winName + ' - ' + APPNAME;
+  Caption := winName;
 
   // Reselect last used database
   if MainForm.GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) and ( lastUsedDB <> '' ) then
@@ -1130,7 +1130,7 @@ begin
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
-  Caption := SessionName;
+  Caption := winName;
   pcChange( Self );
 end;
 
@@ -1147,7 +1147,7 @@ begin
   tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
-  Caption := SessionName + ' - /' + db;
+  Caption := winName + ' - /' + db;
   ShowDBProperties( db );
 end;
 
@@ -1160,7 +1160,7 @@ begin
   if tab = nil then tab := tabTable; // Alternative default: tabData
   if tab = tabTable then ShowTableProperties( table );
   if tab = tabData then ShowTableData( table );
-  Caption := SessionName + ' - /' + ActiveDatabase + '/' + SelectedTable;
+  Caption := winName + ' - /' + ActiveDatabase + '/' + SelectedTable;
 end;
 
 procedure TMDIChild.viewdata(Sender: TObject);
