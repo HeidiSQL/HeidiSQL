@@ -136,6 +136,8 @@ procedure Toptionsform.Apply(Sender: TObject);
 var
   cwin : TMDIChild;
   reg  : TRegistry;
+  ServerKeys, ValueNames: TStringList;
+  i, j: Integer;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -171,6 +173,24 @@ begin
   reg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
   reg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
+
+  // Clean registry from unwanted WHERE clauses if "Remember WHERE filters" was unchecked
+  if not chkRememberFilters.Checked then begin
+    reg.OpenKey(REGKEY_SESSIONS, True);
+    ServerKeys := TStringList.Create;
+    reg.GetKeyNames(ServerKeys);
+    for i := 0 to ServerKeys.Count - 1 do begin
+      reg.OpenKey(REGPATH + REGKEY_SESSIONS + ServerKeys[i], True);
+      ValueNames := TStringList.Create;
+      reg.GetValueNames(ValueNames);
+      for j := 0 to ValueNames.Count - 1 do begin
+        if Pos(REGPREFIX_WHERECLAUSE, ValueNames[j]) = 1 then
+          reg.DeleteValue(ValueNames[j]);
+      end;
+      ValueNames.Free;
+    end;
+    ServerKeys.Free;
+  end;
 
   // Close registry key
   reg.CloseKey;
