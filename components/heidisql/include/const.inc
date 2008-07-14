@@ -173,6 +173,7 @@ const
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
+  REGPREFIX_WHERECLAUSE = 'WHERECLAUSE_';
   REGPREFIX_ORDERCLAUSE = 'ORDERCLAUSE_';
 
   // how much memory we're aiming to use for the
