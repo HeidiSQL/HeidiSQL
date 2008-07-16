@@ -489,6 +489,9 @@ begin
       WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
       WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
+      WriteInteger(REGNAME_DATALIMITSTART, UpdownLimitStart.Position);
+      WriteInteger(REGNAME_DATALIMITEND, UpdownLimitEnd.Position);
+
       // Save delimiter
       WriteString( REGNAME_DELIMITER, Delimiter );
     end;
@@ -562,6 +565,9 @@ begin
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
+
+  UpdownLimitStart.Position := GetRegValue(REGNAME_DATALIMITSTART, DEFAULT_DATALIMITSTART);
+  UpdownLimitEnd.Position := GetRegValue(REGNAME_DATALIMITEND, DEFAULT_DATALIMITEND);
 
   // Delimiter
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
