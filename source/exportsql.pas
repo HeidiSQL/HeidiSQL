@@ -495,7 +495,7 @@ var
   extended_insert           : Boolean;
   max_allowed_packet        : Int64;
   thesevalues               : String;
-  valuescount, limit        : Integer;
+  valuescount               : Integer;
   donext                    : Boolean;
   PBuffer                   : PChar;
   sql, current_characterset : String;
@@ -504,7 +504,7 @@ var
   target_cliwa              : Boolean;
   ansi                      : Boolean;
   RecordCount_all, RecordCount_one, RecordNo_all,
-  offset                    : Int64;
+  offset, limit             : Int64;
   sql_select                : String;
   cwin                      : TMDIChild;
   query                     : TDataSet;
@@ -976,8 +976,7 @@ begin
           once if more than ~ 5 MB of data
           Be sure to do this step before the table is locked!
         }
-        RecordCount_all := MakeInt( cwin.GetVar( 'SELECT COUNT(*) FROM ' + sourceMask(checkListTables.Items[i]) ) );
-        limit := cwin.GetCalculatedLimit( checkListTables.Items[i] );
+        cwin.GetCalculatedLimit( checkListTables.Items[i], limit, RecordCount_all);
 
         if RecordCount_all = 0 then begin
           if tofile then
