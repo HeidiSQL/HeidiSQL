@@ -396,7 +396,7 @@ type
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     procedure menuDeleteSnippetClick(Sender: TObject);
-    function GetCalculatedLimit( Table: String ): Int64;
+    procedure GetCalculatedLimit(Table: String; out Limit, AllRows: Int64);
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
@@ -1175,9 +1175,7 @@ var
   PrimaryKeyColumns    : TStringList;
   reg_value            : String;
   select_base          : String;
-  limit,
-  tmpLimitStart,
-  tmpLimitEnd          : Int64;
+  limit, allrows       : Int64;
   ds                   : TDataSet;
   sl_query             : TStringList;
   DisplayedColumnsList : TStringList;
@@ -1191,17 +1189,15 @@ begin
     // and the user did not explicitely set the limits and pressed OK in mainform
     if (Sender <> Mainform.ButtonOK) and (not dataselected) then begin
       // limit number of rows fetched if more than ~ 5 MB of data
-      limit := GetCalculatedLimit( SelectedTable );
+      GetCalculatedLimit( SelectedTable, limit, allrows );
 
-      // adjust limit in GUI
-      if limit <= 0 then
-        mainform.CheckBoxLimit.Checked := false
-      else begin
+      // adjust limit in GUI:
+      // Uncheck checkbox if calculated limit is larger than wanted rowcount
+      if (limit <= 0) and (AllRows > MakeInt(mainform.EditLimitEnd.Text)) then
+        mainform.CheckBoxLimit.Checked := false;
+      if limit > 0 then begin
         mainform.CheckBoxLimit.Checked := true;
-        tmpLimitStart := MakeInt(mainform.EditLimitStart.Text);
-        tmpLimitEnd := MakeInt(mainform.EditLimitEnd.Text);
-        if tmpLimitEnd > limit then
-          mainform.EditLimitEnd.Text := IntToStr(limit);
+        mainform.EditLimitEnd.Text := IntToStr(limit);
       end;
       mainform.Repaint;
     end;
@@ -4183,9 +4179,9 @@ end;
   Detect average row size and limit the number of rows fetched at
   once if more than ~ 5 MB of data
 }
-function TMDIChild.GetCalculatedLimit( Table: String ): Int64;
+procedure TMDIChild.GetCalculatedLimit(Table: String; out Limit, AllRows: Int64);
 var
-  AvgRowSize, RecordCount : Int64;
+  AvgRowSize : Int64;
   ds: TDataSet;
 const
   // how much overhead this application has per row
@@ -4193,27 +4189,27 @@ const
   // average row size guess for mysql server < 5.0
   ROW_SIZE_GUESS: Integer = 2048;
 begin
-  result := -1;
+  Limit := -1;
   try
     ds := GetResults('SHOW TABLE STATUS LIKE ' + esc(Table));
     if ds = nil then exit;
     if ds.FieldByName('Avg_row_length').IsNull or ds.FieldByName('Rows').IsNull then begin
       // Guessing row size and count for views, fixes bug #346
       AvgRowSize := ROW_SIZE_GUESS + ROW_SIZE_OVERHEAD;
-      RecordCount := MaxInt;
+      AllRows := MaxInt;
     end else begin
       AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
-      RecordCount := MakeInt( ds.FieldByName( 'Rows' ).AsString );
+      AllRows := MakeInt( ds.FieldByName( 'Rows' ).AsString );
     end;
-    if AvgRowSize * RecordCount > prefLoadSize then
+    if AvgRowSize * AllRows > prefLoadSize then
     begin
-      result := Trunc( prefLoadSize / AvgRowSize );
-      if result >= RecordCount then result := -1;
+      Limit := Trunc( prefLoadSize / AvgRowSize );
+      if Limit >= AllRows then Limit := -1;
     end;
     ds.Close;
     FreeAndNil(ds);
   finally
-    debug( 'GetCalculatedLimit: ' + formatnumber(result) );
+    debug( 'GetCalculatedLimit: ' + formatnumber(Limit) );
   end;
 end;
 
