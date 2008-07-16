@@ -440,10 +440,17 @@ object optionsform: Toptionsform
       ImageIndex = 4
       object Label19: TLabel
         Left = 8
-        Top = 44
+        Top = 33
         Width = 177
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
+      end
+      object lblLoadSize: TLabel
+        Left = 8
+        Top = 58
+        Width = 196
+        Height = 13
+        Caption = 'Data size for auto calculating LIMIT [KB]:'
       end
       object GroupBox2: TGroupBox
         Left = 0
@@ -522,8 +529,8 @@ object optionsform: Toptionsform
         end
       end
       object editDefaultColWidth: TEdit
-        Left = 188
-        Top = 41
+        Left = 219
+        Top = 30
         Width = 42
         Height = 21
         TabOrder = 1
@@ -531,8 +538,8 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownDefaultColWidth: TUpDown
-        Left = 230
-        Top = 41
+        Left = 261
+        Top = 30
         Width = 16
         Height = 21
         Associate = editDefaultColWidth
@@ -544,7 +551,7 @@ object optionsform: Toptionsform
       end
       object chkRememberFilters: TCheckBox
         Left = 8
-        Top = 12
+        Top = 6
         Width = 391
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -553,6 +560,26 @@ object optionsform: Toptionsform
         State = cbChecked
         TabOrder = 0
         OnClick = Modified
+      end
+      object editLoadSize: TEdit
+        Left = 219
+        Top = 55
+        Width = 42
+        Height = 21
+        TabOrder = 4
+        Text = '1'
+      end
+      object updownLoadSize: TUpDown
+        Left = 261
+        Top = 55
+        Width = 17
+        Height = 21
+        Associate = editLoadSize
+        Min = 1
+        Max = 32767
+        Position = 1
+        TabOrder = 5
+        Wrap = True
       end
     end
     object TabSheet5: TTabSheet
