@@ -56,6 +56,10 @@ const
   DEFAULT_DATALIMITSTART = 0;
   REGNAME_DATALIMITEND = 'DataLimitEnd';
   DEFAULT_DATALIMITEND = 5000;
+  // how much memory we're aiming to use for the
+  // data grid and it's automatic limit function
+  REGNAME_LOADSIZE = 'DataLoadSize';
+  DEFAULT_LOADSIZE = 5*1024*1024;
   REGNAME_LOGSQLNUM = 'logsqlnum';
   DEFAULT_LOGSQLNUM = 300;
   REGNAME_LOGSQLWIDTH = 'logsqlwidth';
@@ -179,11 +183,6 @@ const
   REGPREFIX_COLPOS = 'ColPositions_';
   REGPREFIX_WHERECLAUSE = 'WHERECLAUSE_';
   REGPREFIX_ORDERCLAUSE = 'ORDERCLAUSE_';
-
-  // how much memory we're aiming to use for the
-  // data grid and it's automatic limit function
-  // this value should probably be user configurable
-  LOAD_SIZE = 5*1024*1024;
 
   // Various iconindexes
   ICONINDEX_PRIMARYKEY = 25;

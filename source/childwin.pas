@@ -520,7 +520,8 @@ type
       prefConvertHTMLEntities    : Boolean;
       prefLogsqlnum,
       prefLogSqlWidth,
-      prefDefaultColWidth        : Integer;
+      prefDefaultColWidth,
+      prefLoadSize               : Integer;
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
@@ -883,6 +884,7 @@ begin
   prefCSVTerminator := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefRememberFilters := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   prefPreferShowTables := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
+  prefLoadSize := Mainform.GetRegValue(REGNAME_LOADSIZE, DEFAULT_LOADSIZE);
 
   // SQL-Font:
   fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
@@ -1198,8 +1200,8 @@ begin
         mainform.CheckBoxLimit.Checked := true;
         tmpLimitStart := MakeInt(mainform.EditLimitStart.Text);
         tmpLimitEnd := MakeInt(mainform.EditLimitEnd.Text);
-        if (tmpLimitEnd - tmpLimitStart) > limit then
-          mainform.EditLimitEnd.Text := IntToStr( tmpLimitStart + limit );
+        if tmpLimitEnd > limit then
+          mainform.EditLimitEnd.Text := IntToStr(limit);
       end;
       mainform.Repaint;
     end;
@@ -3357,9 +3359,9 @@ var
   msgtext          : String;
 begin
   // Ask for action when loading a big file
-  if FileExists(filename) and (_GetFileSize( filename ) > LOAD_SIZE) then
+  if FileExists(filename) and (_GetFileSize( filename ) > 5*SIZE_MB) then
   begin
-    msgtext := 'The file you are about to load is bigger than '+FormatByteNumber(LOAD_SIZE, 0)+'.' + CRLF + CRLF +
+    msgtext := 'The file you are about to load is bigger than '+FormatByteNumber(5*SIZE_MB, 0)+'.' + CRLF + CRLF +
       'Do you want to just run the file to avoid loading it completely into the query-editor ( = memory ) ?' + CRLF + CRLF +
       'Press' + CRLF +
       '  [Yes] to run the file without loading it into the editor' + CRLF +
@@ -4190,8 +4192,6 @@ const
   ROW_SIZE_OVERHEAD : Integer = 1150;
   // average row size guess for mysql server < 5.0
   ROW_SIZE_GUESS: Integer = 2048;
-  // round to nearest value when deciding limit
-  ROUNDING: Integer = 1000;
 begin
   result := -1;
   try
@@ -4205,10 +4205,9 @@ begin
       AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
       RecordCount := MakeInt( ds.FieldByName( 'Rows' ).AsString );
     end;
-    if AvgRowSize * RecordCount > LOAD_SIZE then
+    if AvgRowSize * RecordCount > prefLoadSize then
     begin
-      result := Trunc( LOAD_SIZE / AvgRowSize );
-      result := (Trunc(result / ROUNDING) + 1) * ROUNDING;
+      result := Trunc( prefLoadSize / AvgRowSize );
       if result >= RecordCount then result := -1;
     end;
     ds.Close;
