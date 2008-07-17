@@ -1257,14 +1257,6 @@ object MainForm: TMainForm
       ShortCut = 120
       OnExecute = actApplyFilterExecute
     end
-    object actRemoveFilter: TAction
-      Category = 'Data'
-      Caption = 'Remove filter'
-      Hint = 'Clear filter and refresh grid'
-      ImageIndex = 26
-      ShortCut = 16430
-      OnExecute = actRemoveFilterExecute
-    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'

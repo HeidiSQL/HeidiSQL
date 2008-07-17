@@ -883,7 +883,7 @@ object MDIChild: TMDIChild
               Top = 41
               Width = 76
               Height = 22
-              Action = MainForm.actRemoveFilter
+              Action = MainForm.actClearFilterEditor
               Anchors = [akTop, akRight]
               TabOrder = 3
             end
@@ -945,6 +945,8 @@ object MDIChild: TMDIChild
               Anchors = [akTop, akRight]
               TabOrder = 1
               OnChange = editFilterSearchChange
+              OnEnter = editFilterSearchEnter
+              OnExit = editFilterSearchExit
             end
           end
         end
@@ -2068,9 +2070,6 @@ object MDIChild: TMDIChild
     end
     object menuFilterApply: TMenuItem
       Action = MainForm.actApplyFilter
-    end
-    object menuFilterRemove: TMenuItem
-      Action = MainForm.actRemoveFilter
     end
     object N20: TMenuItem
       Caption = '-'
