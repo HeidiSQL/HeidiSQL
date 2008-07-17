@@ -278,7 +278,6 @@ type
     menuFilterPaste: TMenuItem;
     N8: TMenuItem;
     menuFilterApply: TMenuItem;
-    menuFilterRemove: TMenuItem;
     menuFilterClear: TMenuItem;
     N20: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
@@ -435,6 +434,8 @@ type
     procedure DBtreePaintText(Sender: TBaseVirtualTree; const TargetCanvas:
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure editFilterSearchChange(Sender: TObject);
+    procedure editFilterSearchEnter(Sender: TObject);
+    procedure editFilterSearchExit(Sender: TObject);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -5853,10 +5854,8 @@ procedure TMDIChild.SynMemoFilterChange(Sender: TObject);
 var
   SomeText: Boolean;
 begin
-  SomeText := SynMemoFilter.GetTextLen > 0;
+  SomeText := (SynMemoFilter.GetTextLen > 0) or (editFilterSearch.Text <> '');
   Mainform.actClearFilterEditor.Enabled := SomeText;
-  Mainform.actApplyFilter.Enabled := SomeText;
-  Mainform.actRemoveFilter.Enabled := SomeText;
 end;
 
 
@@ -5870,5 +5869,19 @@ begin
   if ShowIt and SynMemoFilter.CanFocus and (not SynMemoFilter.Focused) then
     SynMemoFilter.SetFocus;
 end;
+
+
+procedure TMDIChild.editFilterSearchEnter(Sender: TObject);
+begin
+  // Enables triggering apply button with Enter
+  btnFilterApply.Default := True;
+end;
+
+
+procedure TMDIChild.editFilterSearchExit(Sender: TObject);
+begin
+  btnFilterApply.Default := False;
+end;
+
 
 end.

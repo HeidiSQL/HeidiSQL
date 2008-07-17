@@ -200,7 +200,6 @@ type
     actClearQueryEditor: TAction;
     actClearFilterEditor: TAction;
     actApplyFilter: TAction;
-    actRemoveFilter: TAction;
     actQueryStopOnErrors: TAction;
     actQueryWordWrap: TAction;
     actQueryFind: TAction;
@@ -824,8 +823,10 @@ var
 begin
   if Sender = actClearQueryEditor then
     m := Childwin.SynMemoQuery
-  else
+  else begin
     m := Childwin.SynMemoFilter;
+    Childwin.editFilterSearch.Clear;
+  end;
   m.SelectAll;
   m.SelText := '';
   m.SelStart := 0;
