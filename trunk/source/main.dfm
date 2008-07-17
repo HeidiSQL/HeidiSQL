@@ -175,7 +175,6 @@ object MainForm: TMainForm
       object ButtonExport: TToolButton
         Left = 327
         Top = 0
-        Hint = 'Export tables'
         Action = actExportTables
         AutoSize = True
       end
@@ -862,6 +861,7 @@ object MainForm: TMainForm
       Category = 'Export/Import'
       Caption = 'Export tables as SQL'
       Enabled = False
+      Hint = 'Dump tables to an SQL file'
       ImageIndex = 20
       OnExecute = actExportTablesExecute
     end
@@ -1023,6 +1023,7 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = 'SQL help'
       Enabled = False
+      Hint = 'SQL help browser'
       ImageIndex = 31
       ShortCut = 112
       OnExecute = actSQLhelpExecute
@@ -1039,6 +1040,7 @@ object MainForm: TMainForm
       Category = 'Export/Import'
       Caption = 'Import CSV file'
       Enabled = False
+      Hint = 'Import a CSV or tab delimited file'
       ImageIndex = 50
       OnExecute = actImportCSVExecute
     end
