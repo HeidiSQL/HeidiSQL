@@ -39,7 +39,6 @@ type
     panelTop: TPanel;
     DBtree: TVirtualStringTree;
     Splitter1: TSplitter;
-    TableShow: TPanel;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
     tabDatabase: TTabSheet;
