@@ -1007,7 +1007,7 @@ object MDIChild: TMDIChild
             Gutter.RightOffset = 0
             Gutter.ShowLineNumbers = True
             Highlighter = SynSQLSyn1
-            Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoScrollPastEol, eoShowScrollHint, eoTabIndent]
+            Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
             RightEdge = 40
             SearchEngine = SynEditSearch1
             TabWidth = 2
