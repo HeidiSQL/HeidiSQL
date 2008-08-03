@@ -3434,7 +3434,6 @@ begin
   case PageControlMain.ActivePageIndex of
     3: Result := FDataGridResult;
     4: Result := FQueryGridResult;
-    else Result := nil;
   end;
 end;
 
