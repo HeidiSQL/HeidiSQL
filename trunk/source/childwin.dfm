@@ -19,20 +19,19 @@ object MDIChild: TMDIChild
   TextHeight = 13
   object splitterTopBottom: TSplitter
     Left = 0
-    Top = 252
+    Top = 336
     Width = 677
     Height = 4
     Cursor = crSizeNS
     Align = alBottom
     AutoSnap = False
     ResizeStyle = rsUpdate
-    OnMoved = splitterTopBottomMoved
   end
   object panelTop: TPanel
     Left = 0
     Top = 0
     Width = 677
-    Height = 252
+    Height = 336
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
@@ -41,7 +40,7 @@ object MDIChild: TMDIChild
       Left = 169
       Top = 0
       Width = 4
-      Height = 252
+      Height = 336
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
@@ -49,7 +48,7 @@ object MDIChild: TMDIChild
       Left = 0
       Top = 0
       Width = 169
-      Height = 252
+      Height = 336
       Align = alLeft
       Constraints.MinWidth = 40
       DragMode = dmAutomatic
@@ -102,7 +101,7 @@ object MDIChild: TMDIChild
       Left = 173
       Top = 0
       Width = 504
-      Height = 252
+      Height = 336
       ActivePage = tabHost
       Align = alClient
       Font.Charset = DEFAULT_CHARSET
@@ -124,7 +123,7 @@ object MDIChild: TMDIChild
           Left = 0
           Top = 0
           Width = 496
-          Height = 220
+          Height = 304
           ActivePage = tabVariables
           Align = alClient
           HotTrack = True
@@ -136,7 +135,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 25
               Width = 488
-              Height = 167
+              Height = 251
               Align = alClient
               DragOperations = []
               Header.AutoSizeIndex = 1
@@ -212,7 +211,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 25
               Width = 488
-              Height = 167
+              Height = 251
               Align = alClient
               DragOperations = []
               Header.AutoSizeIndex = 1
@@ -286,7 +285,7 @@ object MDIChild: TMDIChild
             ImageIndex = 1
             object Splitter3: TSplitter
               Left = 0
-              Top = 119
+              Top = 203
               Width = 488
               Height = 4
               Cursor = crSizeNS
@@ -297,7 +296,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 25
               Width = 488
-              Height = 94
+              Height = 178
               Align = alClient
               Header.AutoSizeIndex = 7
               Header.Font.Charset = DEFAULT_CHARSET
@@ -373,7 +372,7 @@ object MDIChild: TMDIChild
             end
             object pnlProcessViewBox: TPanel
               Left = 0
-              Top = 123
+              Top = 207
               Width = 488
               Height = 69
               Align = alBottom
@@ -447,7 +446,7 @@ object MDIChild: TMDIChild
               Left = 0
               Top = 0
               Width = 488
-              Height = 192
+              Height = 276
               Align = alClient
               Header.AutoSizeIndex = 4
               Header.Font.Charset = DEFAULT_CHARSET
@@ -520,7 +519,7 @@ object MDIChild: TMDIChild
           Left = 0
           Top = 0
           Width = 496
-          Height = 220
+          Height = 304
           Align = alClient
           EditDelay = 500
           Header.AutoSizeIndex = -1
@@ -678,7 +677,7 @@ object MDIChild: TMDIChild
           Left = 0
           Top = 0
           Width = 496
-          Height = 220
+          Height = 304
           Align = alClient
           EditDelay = 500
           Header.AutoSizeIndex = -1
@@ -818,29 +817,6 @@ object MDIChild: TMDIChild
             end
           end
         end
-        object gridData: TTntDBGrid
-          Left = 0
-          Top = 91
-          Width = 496
-          Height = 129
-          Align = alClient
-          DataSource = DataSource1
-          Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
-          PopupMenu = popupDataGrid
-          TabOrder = 1
-          TitleFont.Charset = DEFAULT_CHARSET
-          TitleFont.Color = clWindowText
-          TitleFont.Height = -11
-          TitleFont.Name = 'Tahoma'
-          TitleFont.Style = []
-          OnColEnter = DBGridColEnter
-          OnColumnMoved = gridDataColumnMoved
-          OnDrawColumnCell = GridDrawColumnCell
-          OnDblClick = DBGridDblClick
-          OnKeyUp = controlsKeyUp
-          OnMouseDown = gridMouseDown
-          OnTitleClick = gridDataTitleClick
-        end
         object pnlFilter: TPanel
           Left = 0
           Top = 25
@@ -848,7 +824,7 @@ object MDIChild: TMDIChild
           Height = 66
           Align = alTop
           BevelOuter = bvNone
-          TabOrder = 2
+          TabOrder = 1
           Visible = False
           DesignSize = (
             496
@@ -940,6 +916,40 @@ object MDIChild: TMDIChild
             OnEnter = editFilterSearchEnter
             OnExit = editFilterSearchExit
           end
+        end
+        object DataGrid: TVirtualStringTree
+          Left = 0
+          Top = 91
+          Width = 496
+          Height = 213
+          Align = alClient
+          EditDelay = 0
+          Header.AutoSizeIndex = -1
+          Header.Font.Charset = DEFAULT_CHARSET
+          Header.Font.Color = clWindowText
+          Header.Font.Height = -11
+          Header.Font.Name = 'Tahoma'
+          Header.Font.Style = []
+          Header.Height = 20
+          Header.Images = MainForm.PngImageListMain
+          Header.MainColumn = -1
+          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
+          IncrementalSearch = isAll
+          LineStyle = lsSolid
+          PopupMenu = popupDataGrid
+          TabOrder = 2
+          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+          TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+          WantTabs = True
+          OnChange = DataGridChange
+          OnFocusChanging = DataGridFocusChanging
+          OnGetText = GridGetText
+          OnPaintText = GridPaintText
+          OnHeaderClick = DataGridHeaderClick
+          OnKeyUp = controlsKeyUp
+          OnNewText = DataGridNewText
+          Columns = <>
         end
       end
       object tabQuery: TTabSheet
@@ -1082,27 +1092,6 @@ object MDIChild: TMDIChild
             end
           end
         end
-        object gridQuery: TTntDBGrid
-          Left = 0
-          Top = 130
-          Width = 496
-          Height = 90
-          Align = alClient
-          DataSource = DataSource2
-          Options = [dgEditing, dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgAlwaysShowSelection, dgConfirmDelete, dgMultiSelect]
-          PopupMenu = popupResultGrid
-          TabOrder = 1
-          TitleFont.Charset = DEFAULT_CHARSET
-          TitleFont.Color = clWindowText
-          TitleFont.Height = -11
-          TitleFont.Name = 'Tahoma'
-          TitleFont.Style = []
-          OnColEnter = DBGridColEnter
-          OnDrawColumnCell = GridDrawColumnCell
-          OnDblClick = DBGridDblClick
-          OnKeyUp = controlsKeyUp
-          OnMouseDown = gridMouseDown
-        end
         object ProgressBarQuery: TProgressBar
           Left = 0
           Top = 100
@@ -1110,191 +1099,86 @@ object MDIChild: TMDIChild
           Height = 17
           Align = alTop
           Step = 1
-          TabOrder = 2
+          TabOrder = 1
           Visible = False
+        end
+        object QueryGrid: TVirtualStringTree
+          Left = 0
+          Top = 130
+          Width = 496
+          Height = 174
+          Align = alClient
+          EditDelay = 0
+          Header.AutoSizeIndex = -1
+          Header.Font.Charset = DEFAULT_CHARSET
+          Header.Font.Color = clWindowText
+          Header.Font.Height = -11
+          Header.Font.Name = 'Tahoma'
+          Header.Font.Style = []
+          Header.Height = 20
+          Header.MainColumn = -1
+          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint]
+          IncrementalSearch = isAll
+          LineStyle = lsSolid
+          PopupMenu = popupResultGrid
+          TabOrder = 2
+          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+          TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+          WantTabs = True
+          OnGetText = GridGetText
+          OnPaintText = GridPaintText
+          OnKeyUp = controlsKeyUp
+          Columns = <>
         end
       end
     end
   end
-  object pageCtlBottom: TPageControl
+  object SynMemoSQLLog: TSynMemo
     Left = 0
-    Top = 256
+    Top = 340
     Width = 677
-    Height = 164
-    ActivePage = tabLog
+    Height = 80
+    SingleLineMode = True
     Align = alBottom
-    HotTrack = True
-    Images = MainForm.PngImageListMain
-    TabHeight = 20
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Courier New'
+    Font.Style = []
+    PopupMenu = popupSqlLog
     TabOrder = 1
-    object tabLog: TTabSheet
-      Caption = 'Log'
-      ImageIndex = 56
-      object SynMemoSQLLog: TSynMemo
-        Left = 0
-        Top = 0
-        Width = 669
-        Height = 134
-        SingleLineMode = True
-        Align = alClient
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -12
-        Font.Name = 'Courier New'
-        Font.Style = []
-        PopupMenu = popupSqlLog
-        TabOrder = 0
-        OnKeyUp = controlsKeyUp
-        Gutter.AutoSize = True
-        Gutter.DigitCount = 2
-        Gutter.Font.Charset = DEFAULT_CHARSET
-        Gutter.Font.Color = clWindowText
-        Gutter.Font.Height = -11
-        Gutter.Font.Name = 'Terminal'
-        Gutter.Font.Style = []
-        Gutter.ShowLineNumbers = True
-        Highlighter = SynSQLSyn1
-        Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
-        ReadOnly = True
-        RightEdge = 40
-        RemovedKeystrokes = <
-          item
-            Command = ecDeleteLastChar
-            ShortCut = 8200
-          end
-          item
-            Command = ecLineBreak
-            ShortCut = 8205
-          end
-          item
-            Command = ecContextHelp
-            ShortCut = 112
-          end
-          item
-            Command = ecDeleteLine
-            ShortCut = 16473
-          end>
-        AddedKeystrokes = <>
+    OnKeyUp = controlsKeyUp
+    Gutter.AutoSize = True
+    Gutter.DigitCount = 2
+    Gutter.Font.Charset = DEFAULT_CHARSET
+    Gutter.Font.Color = clWindowText
+    Gutter.Font.Height = -11
+    Gutter.Font.Name = 'Terminal'
+    Gutter.Font.Style = []
+    Gutter.ShowLineNumbers = True
+    Highlighter = SynSQLSyn1
+    Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
+    ReadOnly = True
+    RightEdge = 40
+    RemovedKeystrokes = <
+      item
+        Command = ecDeleteLastChar
+        ShortCut = 8200
       end
-    end
-    object tabEditors: TTabSheet
-      Caption = 'Editors'
-      ImageIndex = 47
-      object toolbarEditors: TToolBar
-        Left = 0
-        Top = 0
-        Width = 23
-        Height = 134
-        Align = alLeft
-        AutoSize = True
-        Caption = 'ToolBar1'
-        EdgeInner = esNone
-        EdgeOuter = esNone
-        Images = MainForm.PngImageListMain
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
-        Transparent = True
-        object btnUnsafeEdit: TToolButton
-          Left = 0
-          Top = 0
-          Caption = 'btnUnsafeEdit'
-          Enabled = False
-          ImageIndex = 63
-          Wrap = True
-          OnClick = btnUnsafeEditClick
-        end
-        object btnBlobWordWrap: TToolButton
-          Left = 0
-          Top = 22
-          Hint = 'Wordwrap'
-          Caption = 'ToolButton1'
-          ImageIndex = 62
-          Wrap = True
-          Style = tbsCheck
-          OnClick = btnBlobWordWrapClick
-        end
-        object btnBlobLoad: TToolButton
-          Left = 0
-          Top = 44
-          Hint = 'Open|Open file'
-          Caption = 'ToolButton4'
-          ImageIndex = 52
-          Wrap = True
-          OnClick = btnBlobLoadClick
-        end
-        object btnBlobSave: TToolButton
-          Left = 0
-          Top = 66
-          Hint = 'Save|Save to File'
-          Caption = 'ToolButton5'
-          ImageIndex = 9
-          Wrap = True
-          OnClick = btnBlobSaveClick
-        end
-        object btnBlobViewAsHtml: TToolButton
-          Left = 0
-          Top = 88
-          Action = MainForm.actHTMLview
-          Wrap = True
-        end
-        object btnBlobCopy: TToolButton
-          Left = 0
-          Top = 110
-          Hint = 'Copy to clipboard'
-          Caption = 'btnBlobCopy'
-          ImageIndex = 3
-          OnClick = btnBlobCopyClick
-        end
+      item
+        Command = ecLineBreak
+        ShortCut = 8205
       end
-      object pageCtlEditors: TPageControl
-        Left = 23
-        Top = 0
-        Width = 646
-        Height = 134
-        ActivePage = tabEditorText
-        Align = alClient
-        TabOrder = 1
-        OnChange = pageCtlEditorsChange
-        object tabEditorText: TTabSheet
-          Caption = 'Text'
-          object DBMemo1: TTntDBMemo
-            Left = 0
-            Top = 0
-            Width = 638
-            Height = 106
-            Align = alClient
-            DataSource = DataSource1
-            ScrollBars = ssBoth
-            TabOrder = 0
-            OnExit = DBMemo1Exit
-            OnKeyUp = controlsKeyUp
-          end
-        end
-        object tabEditorImage: TTabSheet
-          Caption = 'Image'
-          ImageIndex = 1
-          object ScrollBox1: TScrollBox
-            Left = 0
-            Top = 0
-            Width = 638
-            Height = 106
-            Align = alClient
-            TabOrder = 0
-            object EDBImage1: TEDBImage
-              Left = 0
-              Top = 0
-              Width = 89
-              Height = 102
-              BorderStyle = bsNone
-              Color = clBtnFace
-              Stretch = True
-              TabOrder = 0
-            end
-          end
-        end
+      item
+        Command = ecContextHelp
+        ShortCut = 112
       end
-    end
+      item
+        Command = ecDeleteLine
+        ShortCut = 16473
+      end>
+    AddedKeystrokes = <>
   end
   object popupTreeView: TPopupMenu
     Images = MainForm.PngImageListMain
@@ -1565,8 +1449,14 @@ object MDIChild: TMDIChild
     object N4: TMenuItem
       Caption = '-'
     end
+    object Insert1: TMenuItem
+      Action = MainForm.actDataInsert
+    end
+    object Cancelediting1: TMenuItem
+      Action = MainForm.actDataCancelEdit
+    end
     object Delete1: TMenuItem
-      Action = MainForm.actDataSetDelete
+      Action = MainForm.actDataDelete
     end
     object N6: TMenuItem
       Caption = '-'
@@ -1841,20 +1731,6 @@ object MDIChild: TMDIChild
     OnTimer = TimerConnectErrorCloseWindowTimer
     Left = 39
     Top = 157
-  end
-  object DataSource1: TDataSource
-    OnDataChange = DataSourceDataChange
-    Left = 304
-    Top = 136
-  end
-  object DataSource2: TDataSource
-    OnDataChange = DataSourceDataChange
-    Left = 304
-    Top = 168
-  end
-  object OpenDialog2: TOpenDialog
-    Left = 48
-    Top = 350
   end
   object TimerHost: TTimer
     Enabled = False

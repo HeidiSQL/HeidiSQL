@@ -14,11 +14,11 @@ uses
   Communication,
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
-  ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db, DBCtrls,
+  ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees, TntDBGrids,
+  HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
-  SelectDBObject, DBActns;
+  SelectDBObject;
 
 type
   TMainForm = class(TForm)
@@ -141,11 +141,11 @@ type
     ToolButton2: TToolButton;
     Createview1: TMenuItem;
     ToolButton3: TToolButton;
-    actDataSetFirst: TDataSetFirst;
-    actDataSetLast: TDataSetLast;
-    actDataSetInsert: TDataSetInsert;
-    actDataSetDelete: TDataSetDelete;
-    actDataSetPost: TDataSetPost;
+    actDataFirst: TAction;
+    actDataLast: TAction;
+    actDataInsert: TAction;
+    actDataDelete: TAction;
+    actDataPost: TAction;
     ToolButton4: TToolButton;
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
@@ -223,6 +223,7 @@ type
     btnExecuteLine: TToolButton;
     actSetDelimiter: TAction;
     btnSetDelimiter: TToolButton;
+    actDataCancelEdit: TAction;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
@@ -254,12 +255,17 @@ type
     procedure actExecuteSelectionExecute(Sender: TObject);
     procedure actCopyAsXMLExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
+    procedure actDataCancelEditExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
     procedure actExecuteLineExecute(Sender: TObject);
     procedure actHTMLviewExecute(Sender: TObject);
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actExportTablesExecute(Sender: TObject);
-    procedure actDataSetDeleteExecute(Sender: TObject);
+    procedure actDataDeleteExecute(Sender: TObject);
+    procedure actDataFirstExecute(Sender: TObject);
+    procedure actDataInsertExecute(Sender: TObject);
+    procedure actDataLastExecute(Sender: TObject);
+    procedure actDataPostExecute(Sender: TObject);
     procedure actDropDatabaseExecute(Sender: TObject);
     procedure actDropFieldsExecute(Sender: TObject);
     procedure actDropTablesAndViewsExecute(Sender: TObject);
@@ -897,9 +903,9 @@ procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
 begin
   // Copy data in actual dataset as HTML
   if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2html(ChildWin.GetVisualDataset(), TZQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion )
+    dataset2html(ChildWin.GetVisualDataset(), 'Result', '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion )
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2html(ChildWin.GetVisualDataset(), TZReadOnlyQuery(ChildWin.GetVisualDataset()).Sql.Text, '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion);
+    dataset2html(ChildWin.GetVisualDataset(), 'Result', '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion);
 end;
 
 
@@ -1063,7 +1069,7 @@ end;
 
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
-  query : TDataSet;
+  query : TGridResult;
 begin
   // Save data in current dataset as CSV, HTML or XML
 
@@ -1116,34 +1122,44 @@ end;
 // view HTML
 procedure TMainForm.actHTMLviewExecute(Sender: TObject);
 var
-  g              : TTntDBGrid;
-  filename,extension   : String;
+  g              : TVirtualStringTree;
+  filename       : String;
   f              : Textfile;
-  buffer         : array[0..MAX_PATH] of char;
+  tmppath        : array[0..MAX_PATH] of char;
+  Content        : WideString;
+  IsBlob         : Boolean;
 begin
   g := ChildWin.ActiveGrid;
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
-  if g.datasource.State = dsInactive then begin
-    messagebeep(MB_ICONASTERISK);
-    exit;
-  end;
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
-  GetTempPath(MAX_PATH, buffer);
-  if g.SelectedField.IsBlob and (pos('JFIF', copy(g.SelectedField.AsString, 0, 20)) <> 0) then
-    extension := 'jpg'
-  else if g.SelectedField.IsBlob and StrCmpBegin('GIF', g.SelectedField.AsString) then
-    extension := 'gif'
-  else if g.SelectedField.IsBlob and StrCmpBegin('BM', g.SelectedField.AsString) then
-    extension := 'bmp'
-  else
-    extension := 'html';
-  filename := buffer;
-  filename := filename+'\'+APPNAME+'-preview.'+extension;
-  AssignFile(f, filename);
-  Rewrite(f);
-  Write(f, g.SelectedField.AsString);
-  CloseFile(f);
+  if g = Childwin.DataGrid then begin
+    Content := Childwin.FDataGridResult.Rows[Childwin.DataGrid.FocusedNode.Index].Cells[Childwin.DataGrid.FocusedColumn].Text;
+    IsBlob := Childwin.FDataGridResult.Columns[Childwin.DataGrid.FocusedColumn].IsBlob;
+  end else begin
+    Content := Childwin.FQueryGridResult.Rows[Childwin.QueryGrid.FocusedNode.Index].Cells[Childwin.QueryGrid.FocusedColumn].Text;
+    IsBlob := Childwin.FQueryGridResult.Columns[Childwin.QueryGrid.FocusedColumn].IsBlob;
+  end;
+  childwin.logsql(g.Name);
+
+  GetTempPath(MAX_PATH, tmppath);
+  filename := tmppath;
+  filename := filename+'\'+APPNAME+'-preview.';
+  if IsBlob then begin
+    if pos('JFIF', copy(Content, 0, 20)) <> 0 then
+      filename := filename + 'jpg'
+    else if StrCmpBegin('GIF', Content) then
+      filename := filename + 'gif'
+    else if StrCmpBegin('BM', Content) then
+      filename := filename + 'bmp';
+    AssignFile(f, filename);
+    Rewrite(f);
+    Write(f, Content);
+    CloseFile(f);
+  end else begin
+    filename := filename + 'html';
+    SaveUnicodeFile(filename, Content);
+  end;
   ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
   ShellExec( filename );
@@ -1417,16 +1433,17 @@ begin
 end;
 
 
-procedure TMainForm.actDataSetDeleteExecute(Sender: TObject);
+procedure TMainForm.actDataDeleteExecute(Sender: TObject);
 begin
   // Delete record(s)
-  if Childwin.gridData.SelectedRows.Count = 0 then begin
-    if MessageDLG('Delete 1 Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-      Childwin.GetVisualDataSet.Delete; // unsafe ...
-  end else
-  if MessageDLG('Delete '+IntToStr(Childwin.gridData.SelectedRows.count)+' Record(s)?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-    Childwin.gridData.SelectedRows.Delete;
-  abort; // TOTO: is this right?
+  if not Childwin.CheckUniqueKeyClause then
+    Exit;
+  if Childwin.DataGrid.SelectedCount = 0 then
+    MessageDLG('Please select one or more rows to delete them.', mtError, [mbOK], 0)
+  else if MessageDLG('Delete '+inttostr(Childwin.DataGrid.SelectedCount)+' row(s)?',
+      mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
+    Childwin.GridPostDelete(Childwin.DataGrid);
+  end;
 end;
 
 
@@ -1695,10 +1712,8 @@ begin
     keyword := TSynMemo(Childwin.ActiveControl).WordAtCursor
   // Data-Tab
   else if (Childwin.PageControlMain.ActivePage = Childwin.tabData)
-    and (-1 < Childwin.gridData.SelectedField.Index)
-    and (Childwin.gridData.SelectedField.Index <= Length(Childwin.VTRowDataListColumns)) then
-  begin
-    keyword := Childwin.VTRowDataListColumns[Childwin.gridData.SelectedField.Index].Captions[1];
+    and Assigned(Childwin.DataGrid.FocusedNode) then begin
+    keyword := Childwin.VTRowDataListColumns[Childwin.DataGrid.FocusedColumn].Captions[1];
   end
   // Table-Tab
   else if Childwin.ListColumns.Focused and Assigned(Childwin.ListColumns.FocusedNode) then
@@ -2064,11 +2079,51 @@ begin
 end;
 
 
+procedure TMainForm.actDataFirstExecute(Sender: TObject);
+var
+  Node: PVirtualNode;
+begin
+  Node := Childwin.DataGrid.GetFirst;
+  if Assigned(Node) then begin
+    Childwin.DataGrid.ClearSelection;
+    Childwin.DataGrid.FocusedNode := Node;
+    Childwin.DataGrid.Selected[Node] := True;
+  end;
+end;
+
+procedure TMainForm.actDataInsertExecute(Sender: TObject);
+begin
+  Childwin.DataGridInsertRow;
+end;
+
+procedure TMainForm.actDataLastExecute(Sender: TObject);
+var
+  Node: PVirtualNode;
+begin
+  Node := Childwin.DataGrid.GetLast;
+  if Assigned(Node) then begin
+    Childwin.DataGrid.ClearSelection;
+    Childwin.DataGrid.FocusedNode := Node;
+    Childwin.DataGrid.Selected[Node] := True;
+  end;
+end;
+
+procedure TMainForm.actDataPostExecute(Sender: TObject);
+begin
+  Childwin.DataGridPostUpdateOrInsert(Childwin.Datagrid.FocusedNode);
+end;
+
 procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
 begin
   Childwin.SynmemoFilter.Clear;
   Childwin.SaveFilter;
   Childwin.viewdata(Sender);
+end;
+
+
+procedure TMainForm.actDataCancelEditExecute(Sender: TObject);
+begin
+  Childwin.DataGridCancelEdit(Sender);
 end;
 
 
