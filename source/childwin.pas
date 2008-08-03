@@ -16,16 +16,15 @@ uses
   ExtCtrls, ComCtrls, ImgList, SysUtils, Dialogs, Menus,
   SynEdit, SynMemo, SynEditHighlighter, SynHighlighterSQL, SynEditSearch,
   SynEditTypes, Clipbrd,
-  Buttons, CheckLst, ToolWin, Db, DBGrids,
-  DBCtrls, helpers,
-  Grids, ZDataset,
+  Buttons, CheckLst, ToolWin, Db,
+  helpers,
+  ZDataset,
   ZAbstractRODataset, ZConnection,
-  ZSqlMonitor, EDBImage, ZDbcLogging,
+  ZSqlMonitor, ZDbcLogging,
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
-  VirtualTrees, createdatabase, tbl_properties, createtable, TntDBGrids, TntClasses,
-  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode,
-  TntStdCtrls, TntDBCtrls;
+  VirtualTrees, createdatabase, tbl_properties, createtable,
+  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode;
 
 type
   TOrderCol = class(TObject)
@@ -109,10 +108,8 @@ type
     Copy3: TMenuItem;
     Paste2: TMenuItem;
     N4: TMenuItem;
-    gridData: TTntDBGrid;
-    DataSource1: TDataSource;
-    gridQuery: TTntDBGrid;
-    DataSource2: TDataSource;
+    DataGrid: TVirtualStringTree;
+    QueryGrid: TVirtualStringTree;
     Copytableas1: TMenuItem;
     Delete1: TMenuItem;
     N6: TMenuItem;
@@ -123,24 +120,11 @@ type
     QF4: TMenuItem;
     N7: TMenuItem;
     DropFilter1: TMenuItem;
-    OpenDialog2: TOpenDialog;
     PrintList2: TMenuItem;
     PrintList3: TMenuItem;
     PrintList4: TMenuItem;
     N1: TMenuItem;
     MenuCopyTable: TMenuItem;
-    pageCtlBottom: TPageControl;
-    tabLog: TTabSheet;
-    tabEditors: TTabSheet;
-    SynMemoSQLLog: TSynMemo;
-    toolbarEditors: TToolBar;
-    btnBlobWordWrap: TToolButton;
-    btnBlobLoad: TToolButton;
-    btnBlobSave: TToolButton;
-    pageCtlEditors: TPageControl;
-    tabEditorText: TTabSheet;
-    DBMemo1: TTntDBMemo;
-    tabEditorImage: TTabSheet;
     SynMemoFilter: TSynMemo;
     N18: TMenuItem;
     selectall1: TMenuItem;
@@ -174,17 +158,13 @@ type
     DataDate: TMenuItem;
     DataYear: TMenuItem;
     ViewasHTML1: TMenuItem;
-    btnBlobViewAsHtml: TToolButton;
     HTMLview1: TMenuItem;
-    btnBlobCopy: TToolButton;
-    ScrollBox1: TScrollBox;
     InsertfilesintoBLOBfields1: TMenuItem;
     InsertfilesintoBLOBfields2: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
     ZSQLMonitor1: TZSQLMonitor;
-    EDBImage1: TEDBImage;
     Exporttables1: TMenuItem;
     Exporttables2: TMenuItem;
     popupDbGridHeader: TPopupMenu;
@@ -202,7 +182,6 @@ type
     QF16: TMenuItem;
     QF17: TMenuItem;
     N21: TMenuItem;
-    btnUnsafeEdit: TToolButton;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
     lboxQueryHelpers: TListBox;
@@ -279,6 +258,9 @@ type
     menuFilterApply: TMenuItem;
     menuFilterClear: TMenuItem;
     N20: TMenuItem;
+    SynMemoSQLLog: TSynMemo;
+    Insert1: TMenuItem;
+    Cancelediting1: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -290,12 +272,7 @@ type
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure DBMemo1Exit(Sender: TObject);
-    procedure btnUnsafeEditClick(Sender: TObject);
-    procedure gridMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure ZQueryGridAfterPost(DataSet: TDataSet);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
@@ -339,19 +316,12 @@ type
     procedure ReadWindowOptions;
     procedure ListTablesDblClick(Sender: TObject);
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
-    procedure gridDataTitleClick(Column: TColumn);
     procedure QuickFilterClick(Sender: TObject);
-    procedure btnBlobWordWrapClick(Sender: TObject);
-    procedure pageCtlEditorsChange(Sender: TObject);
-    procedure btnBlobSaveClick(Sender: TObject);
-    procedure btnBlobLoadClick(Sender: TObject);
     function GetFilter: WideString;
     procedure SaveFilter(Clause: WideString = '');
     procedure DropFilter1Click(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
-    procedure gridDataColumnMoved(Sender: TObject; FromIndex,
-      ToIndex: Integer);
     procedure Autoupdate1Click(Sender: TObject);
     procedure EnableAutoRefreshClick(Sender: TObject);
     procedure ShowProcessList(sender: TObject);
@@ -364,15 +334,10 @@ type
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
-    procedure DBGridDblClick(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
-    procedure GridDrawColumnCell(Sender: TObject; const Rect: TRect; DataCol:
-        Integer; Column: TColumn; State: TGridDrawState);
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
-    procedure btnBlobCopyClick(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
-    procedure ZQueryGridBeforeClose(DataSet: TDataSet);
     function GetNamedVar( SQLQuery: WideString; x: String;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
     function GetVar( SQLQuery: WideString; x: Integer = 0;
@@ -382,10 +347,6 @@ type
     function GetCol( SQLQuery: WideString; x: Integer = 0;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
-    procedure ResizeImageToFit;
-    procedure splitterTopBottomMoved(Sender: TObject);
-    procedure DataSourceDataChange(Sender: TObject; Field: TField);
-    procedure DBGridColEnter(Sender: TObject);
     procedure MenuTablelistColumnsClick(Sender: TObject);
     function mask(str: WideString) : WideString;
     procedure CheckConnection();
@@ -393,6 +354,17 @@ type
     procedure ExecuteNonQuery(SQLQuery: String);
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
+    procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DataGridFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
+        PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+    procedure GridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+    procedure DataGridHeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button:
+        TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DataGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex; NewText: WideString);
+    procedure GridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuDeleteSnippetClick(Sender: TObject);
     procedure GetCalculatedLimit(Table: String; out Limit, AllRows: Int64);
     procedure menuExploreClick(Sender: TObject);
@@ -460,7 +432,6 @@ type
       uptime                     : Integer;
       time_connected             : Cardinal;
       viewingdata                : Boolean;
-      WordWrap                   : Boolean;
       FMysqlConn                 : TMysqlConn;
       FConn                      : TOpenConnProf;
       QueryRunningInterlock      : Integer;
@@ -478,12 +449,12 @@ type
       dsHaveEngines              : TDataSet;
       FilterPanelManuallyOpened  : Boolean;
       winName                    : String;
+      FSelectedTableColumns,
+      FSelectedTableKeys         : TDataset;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
-      procedure GridHighlightChanged(Sender: TObject);
-      procedure SaveBlob;
-      function GetActiveGrid: TTntDBGrid;
+      function GetActiveGrid: TVirtualStringTree;
       procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
       function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
@@ -530,18 +501,20 @@ type
       CreateDatabaseForm         : TCreateDatabaseForm;
       CreateTableForm            : TCreateTableForm;
       TablePropertiesForm        : Ttbl_properties_form;
+      FDataGridResult,
+      FQueryGridResult           : TGridResult;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
-      function GetVisualDataset() : TDataSet;
+      function GetVisualDataset: TGridResult;
 
       function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
       function ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
       procedure ExecUseQuery(db: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
-      property ActiveGrid: TTntDBGrid read GetActiveGrid;
+      property ActiveGrid: TVirtualStringTree read GetActiveGrid;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property Conn : TOpenConnProf read FConn;
 
@@ -568,6 +541,16 @@ type
       procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
       procedure RefreshTreeDB(db: String);
       function FindDBNode(db: String): PVirtualNode;
+      function GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
+      function GridPostInsert(Sender: TBaseVirtualTree): Boolean;
+      function GridPostDelete(Sender: TBaseVirtualTree): Boolean;
+      function DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
+      procedure GridFinalizeEditing(Sender: TBaseVirtualTree);
+      function GetWhereClause(Row: TGridRow; Columns: TGridColumns; KeyList: TDataSet): WideString;
+      function GetKeyColumns(KeyList: TDataset): WideStrings.TWideStringlist;
+      function CheckUniqueKeyClause: Boolean;
+      procedure DataGridInsertRow;
+      procedure DataGridCancelEdit(Sender: TObject);
   end;
 
 type
@@ -870,7 +853,7 @@ begin
   pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
   DBtree.Width := Mainform.GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
-  pageCtlBottom.Height := Mainform.GetRegValue(REGNAME_SQLOUTHEIGHT, pageCtlBottom.Height);
+  SynMemoSQLLog.Height := Mainform.GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
   prefDefaultColWidth := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
@@ -901,12 +884,10 @@ begin
   // Data-Font:
   datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
   datafontsize := Mainform.GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
-  gridData.Font.Name := datafontname;
-  gridQuery.Font.Name := datafontname;
-  DBMemo1.Font.Name := datafontname;
-  gridData.Font.Size := datafontsize;
-  gridQuery.Font.Size := datafontsize;
-  DBMemo1.Font.Size := datafontsize;
+  DataGrid.Font.Name := datafontname;
+  QueryGrid.Font.Name := datafontname;
+  DataGrid.Font.Size := datafontsize;
+  QueryGrid.Font.Size := datafontsize;
 
   // Color coding:
   SynSQLSyn1.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
@@ -953,20 +934,13 @@ procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   ws    : String;
   reg   : TRegistry;
-  ds    : TDataSet;
 begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
 
-  ds := DataSource1.DataSet;
-  DataSource1.DataSet := nil;
-  if ds <> nil then ds.Close;
-  FreeAndNil(ds);
-  ds := DataSource2.DataSet;
-  DataSource2.DataSet := nil;
-  if ds <> nil then ds.Close;
-  FreeAndNil(ds);
+  SetLength(FDataGridResult.Rows, 0);
+  SetLength(FQueryGridResult.Rows, 0);
 
   // Closing connection
   FMysqlConn.Disconnect;
@@ -996,7 +970,7 @@ begin
     reg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
     reg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
     reg.WriteInteger( REGNAME_DBTREEWIDTH, DBtree.width );
-    reg.WriteInteger( REGNAME_SQLOUTHEIGHT, pageCtlBottom.Height );
+    reg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
 
     // Save width of probably resized columns of all VirtualTrees
     SaveListSetup(ListVariables);
@@ -1168,20 +1142,24 @@ end;
 procedure TMDIChild.viewdata(Sender: TObject);
 var
   sorting              : String;
-  DropDown             : TTntStringList;
-  i                    : Integer;
-  j                    : Integer;
+  i, j                 : Integer;
   OrderColumns         : TOrderColArray;
-  PrimaryKeyColumns    : TStringList;
   reg_value            : String;
   select_base          : String;
   limit, allrows       : Int64;
-  ds                   : TDataSet;
   sl_query             : TStringList;
-  DisplayedColumnsList : TStringList;
-  tmp                  : TDataSet;
-  Filter               : WideString;
+  DisplayedColumnsList,
+  HiddenKeyCols,
+  KeyCols              : WideStrings.TWideStringList;
+  Filter, FieldName    : WideString;
+  col                  : TVirtualTreeColumn;
+  rx                   : TRegExpr;
+  ds                   : TDataSet;
 begin
+  Screen.Cursor := crHourglass;
+  // Post pending UPDATE
+  if dataselected and Mainform.actDataPost.Enabled then
+    Mainform.actDataPostExecute(Sender);
   viewingdata := true;
   sl_query := TStringList.Create();
   try
@@ -1201,40 +1179,29 @@ begin
       end;
       mainform.Repaint;
     end;
-
-    // set db-aware-component's properties...
-    DBMemo1.DataField := '';
-    DBMemo1.DataSource := DataSource1;
-    EDBImage1.DataField := '';
-    EDBImage1.DataSource := DataSource1;
-
     // Read cached ORDER-clause and set Grid.Sortcolumns
     sorting := '';
     OrderColumns := HandleOrderColumns;
-    if Length(OrderColumns) > 0 then
-    begin
+    if Length(OrderColumns) > 0 then begin
       sorting := 'ORDER BY ' + ComposeOrderClause(OrderColumns);
       // Signal for the user that we applied an ORDER-clause
       tbtnDataSorting.ImageIndex := 108;
-    end
-    else
+    end else
       tbtnDataSorting.ImageIndex := 107;
 
-    PrimaryKeyColumns := TStringList.Create();
-
-    if ( ( SelectedTable <> '' ) and ( ActiveDatabase <> '' ) ) then
-    begin
+    if (SelectedTable <> '') and (ActiveDatabase <> '') then begin
       // Ensure <Table> and <Data> are visible
       tabTable.TabVisible := true;
       tabData.TabVisible := true;
       // Switch to <Data>
       PageControlMain.ActivePage := tabData;
 
-      MainForm.ShowStatus( 'Retrieving data...' );
-
       // Read columns to display from registry
       reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '', SessionName);
-      DisplayedColumnsList := explode( '`', reg_value);
+      DisplayedColumnsList := WideStrings.TWideStringlist.Create;
+      DisplayedColumnsList.Delimiter := '`';
+      DisplayedColumnsList.DelimitedText := reg_value;
+      HiddenKeyCols := WideStrings.TWideStringlist.Create;
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
@@ -1244,15 +1211,18 @@ begin
       if (mysql_version >= 40000) and (Filter <> '') then
         select_base := select_base + ' SQL_CALC_FOUND_ROWS';
       // Selected columns
-      if DisplayedColumnsList.Count = 0 then
-      begin
+      if DisplayedColumnsList.Count = 0 then begin
         select_base := select_base + ' *';
         tbtnDataColumns.ImageIndex := 107;
-      end
-      else
-      begin
-        for i := 0 to DisplayedColumnsList.Count - 1 do
-        begin
+      end else begin
+        // Ensure key columns are included to enable editing
+        KeyCols := GetKeyColumns(FSelectedTableKeys);
+        for i := 0 to KeyCols.Count - 1 do
+          if DisplayedColumnsList.IndexOf(KeyCols[i]) = -1 then begin
+            DisplayedColumnsList.Add(KeyCols[i]);
+            HiddenKeyCols.Add(KeyCols[i]);
+          end;
+        for i := 0 to DisplayedColumnsList.Count - 1 do begin
           select_base := select_base + ' ' + mask(DisplayedColumnsList[i]) + ',';
         end;
         // Cut last comma
@@ -1266,128 +1236,112 @@ begin
       if Filter <> '' then
         sl_query.Add('WHERE ' + Filter);
       // Apply custom ORDER BY if detected in registry
-      if ( sorting <> '' ) then
-      begin
+      if sorting <> '' then
         sl_query.Add( sorting );
-      end;
       // Apply LIMIT
-      if ( mainform.CheckBoxLimit.Checked ) then
-      begin
+      if mainform.CheckBoxLimit.Checked then
         sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
-      end;
 
       try
-        // Avoid excessive GUI updates.
-        if ( DataSource1.DataSet <> nil ) then
-        begin
-          DataSource1.DataSet.DisableControls();
-        end;
-
-        // free previous resultset
-        tmp := DataSource1.DataSet;
-        DataSource1.DataSet := nil;
-        if tmp <> nil then tmp.Close;
-        FreeAndNil(tmp);
-
-        // start query (with wait dialog)
         SynMemoFilter.Color := clWindow;
+        MainForm.ShowStatus('Freeing data...');
+        DataGrid.BeginUpdate;
+        DataGrid.Header.Columns.BeginUpdate;
+        DataGrid.RootNodeCount := 0;
+        DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
+        DataGrid.Header.Columns.Clear;
+        SetLength(FDataGridResult.Columns, 0);
+        SetLength(FDataGridResult.Rows, 0);
+        // start query (with wait dialog)
+        MainForm.ShowStatus('Retrieving data...');
         ds := GetResults(sl_query.Text, false);
+        MainForm.ShowStatus('Filling grid with record-data...');
+        SetLength(FDataGridResult.Columns, ds.FieldCount);
+        for i:=0 to ds.FieldCount-1 do begin
+          FieldName := ds.Fields[i].FieldName;
+          FDataGridResult.Columns[i].Name := FieldName;
+          col := DataGrid.Header.Columns.Add;
+          col.Text := FieldName;
+          if HiddenKeyCols.IndexOf(FieldName) > -1 then
+            col.Options := col.Options - [coVisible];
+          col.Width := prefDefaultColWidth;
+          // Sorting color and title image
+          for j:=0 to Length(OrderColumns)-1 do begin
+            if OrderColumns[j].ColumnName = ds.Fields[i].FieldName then begin
+              case OrderColumns[j].SortDirection of
+                ORDER_ASC:  begin col.Color := COLOR_SORTCOLUMN_ASC;  col.ImageIndex := 109; end;
+                ORDER_DESC: begin col.Color := COLOR_SORTCOLUMN_DESC; col.ImageIndex := 110; end;
+              end;
+            end;
+          end;
+          // Right alignment for numeric columns
+          FSelectedTableColumns.First;
+          while not FSelectedTableColumns.Eof do begin
+            if FSelectedTableColumns.FieldByName('Field').AsWideString = FieldName then begin
+              rx := TRegExpr.Create;
+              rx.Expression := '^((tiny|small|medium|big)?int|float|double|decimal)\b';
+              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then begin
+                col.Alignment := taRightJustify;
+                FDataGridResult.Columns[i].IsNumeric := True;
+              end;
+              rx.Expression := '^(date|datetime|time(stamp)?)\b';
+              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
+                FDataGridResult.Columns[i].IsDate := True;
+              rx.Expression := '^(tiny|medium|long)?text\b';
+              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
+                FDataGridResult.Columns[i].IsMemo := True;
+              rx.Expression := '^((tiny|medium|long)?blob|(var)?binary)\b';
+              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
+                FDataGridResult.Columns[i].IsBlob := True;
+            end;
+            FSelectedTableColumns.Next;
+          end;
 
-        MainForm.ShowStatus( 'Filling grid with record-data...' );
-        ds.DisableControls();
-        DataSource1.DataSet := ds;
-
-        // Attach After- and Before-Events to the new dataset
-        ds.AfterPost := ZQueryGridAfterPost;
-        ds.AfterDelete := ZQueryGridAfterPost;
-        ds.BeforeClose := ZQueryGridBeforeClose;
-      except
-        on E:Exception do
-        begin
+          FSelectedTableKeys.First;
+          for j := 0 to FSelectedTableKeys.RecordCount - 1 do begin
+            if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
+              and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = FieldName) then begin
+              FDataGridResult.Columns[i].IsPK := True;
+              break;
+            end;
+            FSelectedTableKeys.Next;
+          end;
+        end;
+        SetLength(FDataGridResult.Rows, ds.RecordCount);
+        ds.First;
+        for i:=0 to ds.RecordCount-1 do begin
+          SetLength(FDataGridResult.Rows[i].Cells, ds.FieldCount);
+          for j:=0 to ds.FieldCount-1 do begin
+            FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+            FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+          end;
+          ds.Next;
+        end;
+        DataGrid.RootNodeCount := Length(FDataGridResult.Rows);
+        DisplayRowCountStats(ds);
+        dataselected := true;
+      except on E:Exception do begin
           // Most likely we have a wrong filter-clause when this happens
           // Put the user with his nose onto the wrong filter
           // either specified by user or
           // created by HeidiSQL by using the search box
           ToggleFilterPanel(True);
           SynMemoFilter.Color := $008080FF; // light pink
+          DataGrid.Header.Options := DataGrid.Header.Options - [hoVisible];
           MessageDlg( E.Message, mtError, [mbOK], 0 );
-          MainForm.ShowStatus( STATUS_MSG_READY );
-          Screen.Cursor := crDefault;
-          Exit;
         end;
       end;
 
       MainForm.ShowStatus( STATUS_MSG_READY );
-
-      if DataSource1.DataSet <> nil then begin
-        for i := 0 to Length(VTRowDataListColumns) - 1 do
-        begin
-          // give all enum-fields a PickList with its Items
-          if StrCmpBegin( 'enum', VTRowDataListColumns[i].Captions[1]) then
-          begin
-            DropDown := TTntStringList.Create;
-            DropDown.QuoteChar := '''';
-            DropDown.DelimitedText := getEnumValues( VTRowDataListColumns[i].Captions[1] );
-
-            for j := 0 to gridData.Columns.Count - 1 do
-            begin
-              if gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] then
-                gridData.Columns[j].WidePickList := DropDown;
-            end;
-          end;
-
-          // make PK-columns = fsBold
-          for j := 0 to gridData.Columns.Count - 1 do
-          begin
-            if ( gridData.Columns[j].FieldName = VTRowDataListColumns[i].Captions[0] ) and
-              ( VTRowDataListColumns[i].ImageIndex = ICONINDEX_PRIMARYKEY ) then
-              PrimaryKeyColumns.Add( VTRowDataListColumns[i].Captions[0] );
-          end;
-        end;
-
-        for j := 0 to gridData.Columns.Count - 1 do
-        begin
-          // for letting NULLs being inserted into "NOT NULL" fields
-          // in mysql5+, the server rejects inserts with NULLs in NOT NULL-fields,
-          // so the Required-check on client-side is not needed at any time
-          ds.Fields[j].Required := false;
-
-          // set column-width
-          if gridData.Columns[j].Width > prefDefaultColWidth then
-            gridData.Columns[j].Width := prefDefaultColWidth;
-
-          // Colorize ordered columns
-          for i := Low(OrderColumns) to High(OrderColumns) do
-          begin
-            if OrderColumns[i].ColumnName = gridData.Columns[j].Fieldname then
-            begin
-              if OrderColumns[i].SortDirection = ORDER_ASC then
-                gridData.Columns[j].Color := COLOR_SORTCOLUMN_ASC
-              else
-                gridData.Columns[j].Color := COLOR_SORTCOLUMN_DESC
-            end;
-          end;
-
-          // make PK-columns = fsBold
-          for i := 0 to PrimaryKeyColumns.Count - 1 do
-          begin
-            if PrimaryKeyColumns[i] = gridData.Columns[j].Fieldname then
-              gridData.Columns[j].Font.Style := gridData.Columns[j].Font.Style + [fsBold];
-          end;
-        end;
-
-        DisplayRowCountStats(ds);
-        dataselected := true;
-        viewingdata := false;
-      end;
-      ds.EnableControls();
       pcChange(self);
     end;
-
-    Screen.Cursor := crDefault;
   finally
+    DataGrid.Header.Columns.EndUpdate;
+    DataGrid.EndUpdate;
     FreeAndNil(sl_query);
+    FreeAndNil(ds);
     viewingdata := false;
+    Screen.Cursor := crDefault;
   end;
 end;
 
@@ -1402,9 +1356,6 @@ var
   rows_total       : Int64; // total rowcount
   filter           : WideString;
 begin
-  if ActiveGrid = gridQuery then
-    Exit;
-
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
 
   if GetSelectedNodeType = NODETYPE_TABLE then begin
@@ -1439,7 +1390,7 @@ begin
     if mysql_version >= 40000 then
       rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0)
     else
-      rows_matching := ActiveGrid.DataSource.DataSet.RecordCount;
+      rows_matching := ds.RecordCount;
   end
   else
     rows_matching := rows_total;
@@ -1492,7 +1443,7 @@ begin
   if Sender = PageControlMain then begin
     if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
     if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
-    if PageControlMain.ActivePage = tabData then gridData.SetFocus;
+    if PageControlMain.ActivePage = tabData then DataGrid.SetFocus;
     if PageControlMain.ActivePage = tabQuery then SynMemoQuery.SetFocus;
   end;
 
@@ -1789,7 +1740,6 @@ procedure TMDIChild.ShowTableProperties(table: string);
 var
   i,j : Integer;
   isFulltext : Boolean;
-  ds : TDataSet;
   dummy: Boolean;
   hasCommentColumn: Boolean;
   SelectedCaptions: TStringList;
@@ -1815,46 +1765,46 @@ begin
   ListColumns.BeginUpdate;
   ListColumns.Clear;
   Try
-    ds := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(table), false );
+    FSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(table), false );
 
     // Hide column "Comment" on old servers.
-    hasCommentColumn := ds.FindField('Comment') <> nil;
+    hasCommentColumn := FSelectedTableColumns.FindField('Comment') <> nil;
     if not hasCommentColumn then
       ListColumns.Header.Columns[5].Options := ListColumns.Header.Columns[5].Options - [coVisible];
 
-    SetLength(VTRowDataListColumns, ds.RecordCount);
-    for i:=1 to ds.RecordCount do
+    SetLength(VTRowDataListColumns, FSelectedTableColumns.RecordCount);
+    for i:=1 to FSelectedTableColumns.RecordCount do
     begin
       VTRowDataListColumns[i-1].ImageIndex := ICONINDEX_FIELD;
       VTRowDataListColumns[i-1].Captions := TStringList.Create;
-      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Field').AsString );
-      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Type').AsString );
-      if lowercase( ds.FieldByName('Null').AsString ) = 'yes' then
+      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Field').AsString );
+      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Type').AsString );
+      if lowercase( FSelectedTableColumns.FieldByName('Null').AsString ) = 'yes' then
         VTRowDataListColumns[i-1].Captions.Add('Yes')
         else VTRowDataListColumns[i-1].Captions.Add('No');
 
-      if ds.FieldByName('Default').IsNull then
+      if FSelectedTableColumns.FieldByName('Default').IsNull then
         // In MySQL, it is not possible to use fx NOW() as a column default.
         // Also, if default is NULL, then the actual default is either NULL
         // or nothing at all.  Looking at another column, "Null", can help
         // determine which one it really is, as can a SHOW CREATE TABLE.
         // According with the above, it is not possible in MySQL to create
         // a column which may be NULL but which has no default value.
-        if LowerCase(ds.FieldByName('Null').AsString) = 'yes' then
+        if LowerCase(FSelectedTableColumns.FieldByName('Null').AsString) = 'yes' then
           VTRowDataListColumns[i-1].Captions.Add('NULL')
         else
           // No default value.
           VTRowDataListColumns[i-1].Captions.Add('')
       else
-        VTRowDataListColumns[i-1].Captions.Add('''' + ds.FieldByName('Default').AsString + '''');
+        VTRowDataListColumns[i-1].Captions.Add('''' + FSelectedTableColumns.FieldByName('Default').AsString + '''');
 
-      VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Extra').AsString );
+      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Extra').AsString );
       if hasCommentColumn then
-        VTRowDataListColumns[i-1].Captions.Add( ds.FieldByName('Comment').AsString )
+        VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Comment').AsString )
       else
         VTRowDataListColumns[i-1].Captions.Add('');
 
-      ds.Next;
+      FSelectedTableColumns.Next;
     end;
 
     ListColumns.RootNodeCount := Length(VTRowDataListColumns);
@@ -1863,17 +1813,14 @@ begin
     if tabsetQueryHelpers.TabIndex = 0 then
       tabsetQueryHelpers.OnChange( Self, tabsetQueryHelpers.TabIndex, dummy);
 
-    ds.Close;
-    FreeAndNil(ds);
-
     Screen.Cursor := crHourglass;
-    ds := GetResults( 'SHOW KEYS FROM ' + mask(table) );
-    for i:=1 to ds.RecordCount do
+    FSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(table) );
+    for i:=1 to FSelectedTableKeys.RecordCount do
     begin
       // Search for the column name in listColumns
       for j:=0 to Length(VTRowDataListColumns)-1 do
       begin
-        if ds.FieldByName('Column_name').AsString = VTRowDataListColumns[j].Captions[0] then
+        if FSelectedTableKeys.FieldByName('Column_name').AsString = VTRowDataListColumns[j].Captions[0] then
         begin
           // Only apply a new icon if it was not already changed
           if VTRowDataListColumns[j].ImageIndex <> ICONINDEX_FIELD then
@@ -1881,18 +1828,18 @@ begin
 
           // Check if column is part of a fulltext key
           if mysql_version < 40002 then
-            isFulltext := (ds.FieldByName('Comment').AsString = 'FULLTEXT')
+            isFulltext := (FSelectedTableKeys.FieldByName('Comment').AsString = 'FULLTEXT')
           else
-            isFulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT');
+            isFulltext := (FSelectedTableKeys.FieldByName('Index_type').AsString = 'FULLTEXT');
 
           // Primary key
-          if ds.FieldByName('Key_name').AsString = 'PRIMARY' then
+          if FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY' then
             VTRowDataListColumns[j].ImageIndex := ICONINDEX_PRIMARYKEY
           // Fulltext index
           else if isFullText then
             VTRowDataListColumns[j].ImageIndex := ICONINDEX_FULLTEXTKEY
           // Unique index
-          else if ds.FieldByName('Non_unique').AsString = '0' then
+          else if FSelectedTableKeys.FieldByName('Non_unique').AsString = '0' then
             VTRowDataListColumns[j].ImageIndex := ICONINDEX_UNIQUEKEY
           // Normal index
           else
@@ -1902,10 +1849,8 @@ begin
           break;
         end;
       end;
-      ds.Next;
+      FSelectedTableKeys.Next;
     end;
-    ds.Close;
-    FreeAndNil(ds);
     {
       ** note, ansgarbecker, 2007-08-26
       VT has a pretty autosorting feature, which keeps the sorting even after having
@@ -1998,8 +1943,8 @@ begin
   // an error has occurred.
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and
     not (
-      (getActiveGrid.DataSource.DataSet = nil)
-      or getActiveGrid.DataSource.DataSet.IsEmpty
+      (GetVisualDataset.Rows = nil)
+      or (Length(GetVisualDataset.Rows) = 0)
     );
   inQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
 
@@ -2062,11 +2007,7 @@ begin
   menuRenameColumn.Enabled := FieldFocused and FieldsSelected;
 
   // Data tab
-  Mainform.actDatasetFirst.Enabled := inDataTab;
-  Mainform.actDatasetLast.Enabled := inDataTab;
-  Mainform.actDatasetInsert.Enabled := inDataTab;
-  Mainform.actDatasetDelete.Enabled := inDataTab;
-  Mainform.actDatasetPost.Enabled := inDataTab;
+  Mainform.actDataInsert.Enabled := inDataTab;
   Mainform.CheckBoxLimit.Enabled := inTableTab or inDataTab;
   Mainform.EditLimitStart.Enabled := inTableTab or inDataTab;
   Mainform.UpDownLimitStart.Enabled := inTableTab or inDataTab;
@@ -2079,13 +2020,6 @@ begin
   MainForm.actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actExportData.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actHTMLView.Enabled := inDataOrQueryTabNotEmpty;
-  if FrmIsFocussed then begin
-    MainForm.actDatasetFirst.DataSource := DataSource1;
-    MainForm.actDatasetLast.DataSource := DataSource1;
-    MainForm.actDatasetInsert.DataSource := DataSource1;
-    MainForm.actDatasetDelete.DataSource := DataSource1;
-    MainForm.actDatasetPost.DataSource := DataSource1;
-  end;
 
   // Query tab
   MainForm.actLoadSQL.Enabled := FrmIsFocussed;
@@ -2100,8 +2034,6 @@ begin
     MainForm.showstatus('', 2);
     MainForm.showstatus('', 3);
   end;
-
-  tabEditors.tabVisible := inDataOrQueryTab;
 end;
 
 procedure TMDIChild.ValidateQueryControls(FrmIsFocussed: Boolean = true);
@@ -2361,7 +2293,7 @@ end;
 procedure TMDIChild.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
 var
   SQL               : WideStrings.TWideStringList;
-  i                 : Integer;
+  i, j              : Integer;
   rowsaffected      : Integer;
   SQLstart          : Integer;
   SQLend            : Integer;
@@ -2373,6 +2305,8 @@ var
   fieldcount        : Integer;
   recordcount       : Integer;
   ds                : TDataSet;
+  FieldName         : WideString;
+  col               : TVirtualTreeColumn;
 begin
   if CurrentLine then SQL := parseSQL(SynMemoQuery.LineText)
   else if Selection then SQL := parseSQL(SynMemoQuery.SelText)
@@ -2383,17 +2317,6 @@ begin
     LabelResultinfo.Caption := '(nothing to do)';
     Exit;
   end;
-
-  // Destroy old data set.
-  ds := DataSource2.DataSet;
-  DataSource2.DataSet := nil;
-  if ds <> nil then ds.Close;
-  FreeAndNil( ds );
-  // set db-aware-component's properties..
-  DBMemo1.DataField := '';
-  DBMemo1.DataSource := DataSource2;
-  EDBImage1.DataField := '';
-  EDBImage1.DataSource := DataSource2;
 
   SQLscriptstart := GetTickCount();
   LastVistaCheck := GetTickCount();
@@ -2435,7 +2358,6 @@ begin
           LastVistaCheck := GetTickCount();
         end;
         ds := GetResults( SQL[i], false, false, VistaCheck );
-        gridQuery.DataSource.DataSet := ds;
         if ( ds <> nil ) then
         begin
           fieldcount := ds.Fieldcount;
@@ -2495,26 +2417,46 @@ begin
     // Avoid excessive GridHighlightChanged() when flicking controls.
     viewingdata := true;
 
-    if ( ds <> nil ) then
-    begin
-      // Re-link to datasource
-      DataSource2.DataSet := ds;
-      // Flick controls so that column resizing will work (?)
-      TZQuery(ds).EnableControls();
-      TZQuery(ds).DisableControls();
-      // resize all columns, if they are more wide than Mainform.DefaultColWidth
-      for i:=0 to gridQuery.Columns.count-1 do begin
-        if gridQuery.Columns[i].Width > prefDefaultColWidth then
-          gridQuery.Columns[i].Width := prefDefaultColWidth;
+    if ds <> nil then begin
+      QueryGrid.Header.Options := QueryGrid.Header.Options + [hoVisible];
+      QueryGrid.Header.Columns.Clear;
+      SetLength(FQueryGridResult.Columns, 0);
+      SetLength(FQueryGridResult.Columns, ds.FieldCount);
+      for i:=0 to ds.FieldCount-1 do begin
+        FieldName := ds.Fields[i].FieldName;
+        col := QueryGrid.Header.Columns.Add;
+        col.Text := FieldName;
+        col.Width := prefDefaultColWidth;
+        col.Options := col.Options - [coAllowClick];
+        FQueryGridResult.Columns[i].Name := FieldName;
+        if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftFloat, ftLargeint] then begin
+          FQueryGridResult.Columns[i].IsNumeric := True;
+          col.Alignment := taRightJustify;
+        end else if ds.Fields[i].DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp] then
+          FQueryGridResult.Columns[i].IsDate := True
+        else if ds.Fields[i].DataType in [ftMemo, ftWideMemo] then
+          FQueryGridResult.Columns[i].IsMemo := True
+        else if ds.Fields[i].DataType in [ftBlob] then
+          FQueryGridResult.Columns[i].IsBlob := True;
       end;
+      SetLength(FQueryGridResult.Rows, 0);
+      SetLength(FQueryGridResult.Rows, ds.RecordCount);
+      ds.First;
+      for i:=0 to ds.RecordCount-1 do begin
+        SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
+        for j:=0 to ds.FieldCount-1 do begin
+          FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+          FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+        end;
+        ds.Next;
+      end;
+      ds.Free;
+      QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
+      QueryGrid.EndUpdate;
     end;
     // Ensure controls are in a valid state
     ValidateControls;
     viewingdata := false;
-    if ( ds <> nil ) then
-    begin
-      TZQuery(ds).EnableControls();
-    end;
     Screen.Cursor := crDefault;
     MainForm.ShowStatus( STATUS_MSG_READY );
   end;
@@ -2863,26 +2805,15 @@ end;
 {**
   Column-title clicked -> generate "ORDER BY"
 }
-procedure TMDIChild.gridDataTitleClick(Column: TColumn);
-var
-  c : TOrderCol;
-begin
-  c := TOrderCol.Create;
-  c.ColumnName := Column.FieldName;
-  HandleOrderColumns(c);
-  ViewData(Column.Grid);
-end;
-
-
 procedure TMDIChild.QuickFilterClick(Sender: TObject);
 var
-  filter,value,column : String;
+  filter,value,column : WideString;
   menuitem : TMenuItem;
 begin
   // Set filter for "where..."-clause
-  value := GetFieldValue(gridData.SelectedField);
+  value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
   menuitem := (Sender as TMenuItem);
-  column := mask(gridData.SelectedField.FieldName);
+  column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
   if menuitem = QF1 then
     filter := column + ' =' + ' ' + esc( value )
   else if menuitem = QF2 then
@@ -2950,113 +2881,6 @@ begin
 end;
 
 
-procedure TMDIChild.btnBlobWordWrapClick(Sender: TObject);
-begin
-  // linebreaks
-  WordWrap := not WordWrap;
-  btnBlobWordWrap.Down := WordWrap;
-  if btnBlobWordWrap.Down then
-    DBMemo1.Scrollbars := ssVertical
-  else
-    DBMemo1.Scrollbars := ssBoth;
-end;
-
-procedure TMDIChild.pageCtlEditorsChange(Sender: TObject);
-begin
-  btnBlobCopy.Enabled := true;
-  btnBlobLoad.Enabled := not DBMemo1.ReadOnly;
-  btnBlobSave.Enabled := true;
-  if pageCtlEditors.ActivePage = tabEditorText then
-  begin
-    // MEMO tab activated.
-    btnBlobWordWrap.Enabled := true;
-  end;
-  if pageCtlEditors.ActivePage = tabEditorImage then
-  begin
-    // Image tab activated.
-    btnBlobWordWrap.Enabled := false;
-  end
-end;
-
-
-// Force a save of the user-edited contents of the BLOB editor.
-procedure TMDIChild.SaveBlob;
-begin
-  if not DBMemo1.Modified then exit;
-  if DBMemo1.ReadOnly then exit;
-  if Length(DBMemo1.DataField) = 0 then exit;
-  DBMemo1.DataSource.DataSet.Post;
-  //SendMessage(DBMemo1.Handle, CM_EXIT, 0, 0);
-end;
-
-
-procedure TMDIChild.btnBlobSaveClick(Sender: TObject);
-var
-  grid: TTntDBGrid;
-begin
-  // Todo: Weird fix, we probably shouldn't even be showing the button in the first place.
-  if Length(DBMemo1.DataField) = 0 then
-  begin
-    ShowMessage('Please choose a BLOB field in the data grid before using the "Save BLOB" function.');
-    exit;
-  end;
-
-  SaveBlob();
-  grid := ActiveGrid;
-
-  with TSaveDialog.Create(self) do begin
-    case pageCtlEditors.ActivePageIndex of
-      0 : begin
-            Filter := 'Text files (*.txt)|*.txt|All files (*.*)|*.*';
-            DefaultExt := 'txt';
-          end;
-      1 : begin
-            Filter := 'Bitmaps (*.bmp)|*.bmp|All files (*.*)|*.*';
-            DefaultExt := 'bmp';
-          end;
-    end;
-    FileName := grid.SelectedField.FieldName;
-    Options := [ofOverwritePrompt,ofEnableSizing];
-    if execute then try
-      Screen.Cursor := crHourGlass;
-      case pageCtlEditors.ActivePageIndex of
-        0 : SaveUnicodeFile(filename, GetVisualDataset.FieldByName(DBMemo1.DataField).AsWideString );
-        1 : EDBImage1.Picture.SaveToFile(filename);
-      end;
-      Screen.Cursor := crDefault;
-    except
-      Screen.Cursor := crDefault;
-      messagedlg('File could not be saved', mterror, [mbok], 0);
-    end;
-  end;
-end;
-
-procedure TMDIChild.btnBlobLoadClick(Sender: TObject);
-begin
-  // Open BLOB-File
-  if not (DataSource1.State in [dsEdit, dsInsert]) then
-  try
-    DataSource1.Edit;
-  except
-    exit;
-  end;
-
-  with OpenDialog2 do begin
-    case pageCtlEditors.ActivePageIndex of
-      0 : Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
-      1 : Filter := 'All Images (*.jpg, *.jpeg, *.bmp)|*.jpg;*.jpeg;*.bmp|JPEG (*.jpg, *.jpeg)|*.jpg;*.jpeg|Bitmap (*.bmp)|*.bmp|All files (*.*)|*.*';
-    end;
-
-    if execute then
-    case pageCtlEditors.ActivePageIndex of
-      0 : DBMemo1.Lines.LoadFromFile(filename);
-      1 : EDBImage1.Picture.LoadFromFile(filename);
-    end;
-
-  end;
-end;
-
-
 function TMDIChild.GetFilter: WideString;
 var
   SomeFilter: Boolean;
@@ -3120,39 +2944,10 @@ begin
   // MainForm.Save2CSV.enabled :=
 end;
 
-procedure TMDIChild.gridDataColumnMoved(Sender: TObject; FromIndex,
-  ToIndex: Integer);
-begin
-  // prevent OnTitleClick from being executed:
-  abort;
-end;
-
-procedure TMDIChild.gridMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  ed: TCustomEdit;
-begin
-  if Button = mbRight then begin
-    // Select text in in-place editor to make popup menu copy and paste work.
-    (Sender as TDBGrid).EditorMode := true;
-    ed := TCustomEdit(FindControl(GetFocus()));
-    ed.SelectAll;
-    //debug('right-click catched, selected all text ''' + ed.SelText + '''.');
-    // Popup menu manually, mucking about with the grid causes it to stop doing it by itself.
-    if sender = gridData then begin
-      popupDataGrid.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
-    end else if sender = gridQuery then begin
-      popupResultGrid.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
-    end;
-  end else begin
-    inherited MouseDown(Button, Shift, X, Y);
-  end;
-end;
-
 procedure TMDIChild.controlsKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var
-  Grid : TTNTDBGrid;
+  Grid : TVirtualStringTree;
   CB: TUniClipboard;
 begin
   // Check for F1-pressed
@@ -3167,25 +2962,20 @@ begin
   end
 
   // Enable copy + paste shortcuts in dbgrids
-  else if (Sender is TTNTDBGrid) and (not TTNTDBGrid(Sender).EditorMode) and (Shift = [ssCtrl]) then
-  begin
-    Grid := Sender as TTNTDBGrid;
+  else if (Sender is TVirtualStringTree) and (not TVirtualStringTree(Sender).IsEditing)
+    and (Shift = [ssCtrl]) and (Assigned(TVirtualStringTree(Sender).FocusedNode))
+    then begin
+    Grid := Sender as TVirtualStringTree;
     // TODO: Clipboard.AsText is not Unicode safe!
     if Key = Ord('C') then
-      CopyToClipboard(Grid.SelectedField.AsWideString)
+      CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn])
     else if Key = Ord('V') then begin
-      // Ensure dataset is in editing mode, otherwise we'll get an exception while
-      // trying to insert content into a cell.
-      // Hint: Dataset.Edit is not the same as Grid.EditorMode=True, it just enables
-      // internal editing of the record. The grid's editing mode is not activated here.
-      Grid.DataSource.DataSet.Edit;
       CB := TUniClipboard.Create;
-      Grid.SelectedField.AsWideString := CB.AsWideString;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := CB.AsWideString;
     end
     else if Key = Ord('X') then begin
-      CopyToClipboard(Grid.SelectedField.AsWideString);
-      Grid.DataSource.DataSet.Edit;
-      Grid.SelectedField.Text := '';
+      CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
     end;
   end;
 end;
@@ -3409,37 +3199,6 @@ end;
 
 
 
-procedure TMDIChild.btnUnsafeEditClick(Sender: TObject);
-var
-  confirmed: Boolean;
-  msg: String;
-begin
-  msg :=
-    'This will remove the first NUL character _and all text following it_.' + #13#10 +
-    'All newlines will be converted to CRLF format.' + #13#10 +
-    'Are you sure?';
-  confirmed := MessageDlg(msg, mtConfirmation, mbYesNo, 0) = mrYes;
-  if not confirmed then exit;
-  DBMemo1.ReadOnly := false;
-  DBMemo1.Color := clWindow;
-  btnUnsafeEdit.Enabled := false;
-  DBMemo1.SetFocus;
-  // Sets the grid in edit-state so posting won't ignore changes
-  gridData.DataSource.Edit;
-end;
-
-procedure TMDIChild.DBGridDblClick(Sender: TObject);
-begin
-  // If grid is not empty...
-  if (Sender as TTntDBGrid).SelectedField <> nil then begin
-    // Set focus on DBMemo when user doubleclicks a (MEMO)-cell
-    if (sender as TTntDBGrid).SelectedField.IsBlob and (pageCtlEditors.ActivePage = tabEditorText) then begin
-      pageCtlBottom.ActivePage := tabEditors;
-      DBMemo1.SetFocus;
-    end;
-  end;
-end;
-
 procedure TMDIChild.SaveDialogExportDataTypeChange(Sender: TObject);
 begin
   // Set default file-extension of saved file and options on the dialog to show
@@ -3465,39 +3224,6 @@ end;
 {**
   A cell in a DBGrid is painted. Sets custom background color NULL fields.
 }
-procedure TMDIChild.GridDrawColumnCell(Sender: TObject; const Rect: TRect;
-    DataCol: Integer; Column: TColumn; State: TGridDrawState);
-var
-  Grid : TTntDBGrid;
-begin
-  Grid := Sender as TTntDBGrid;
-  if (Grid.Fields[DataCol] <> nil) and Grid.Fields[DataCol].IsNull then
-  begin
-    if (Grid.SelectedRows.IndexOf(Grid.DataSource.DataSet.Bookmark) <> -1) or (gdSelected in State) then
-      Grid.Canvas.Font.Color := clHighLightText
-    else
-      Grid.Canvas.Font.Color := COLOR_NULLVALUE;
-    // Just use the changed font color for (MEMO) and (BLOB) cells
-    if Grid.Fields[DataCol].DataType in [ftWideMemo, ftBlob] then
-      Grid.DefaultDrawColumnCell(Rect, DataCol, Grid.Columns[DataCol], State)
-    // ... while the natively displayed datatypes get a grey (NULL) 
-    else
-      Grid.Canvas.TextOut(Rect.Left+2, Rect.Top+2, '(NULL)');
-  end;
-end;
-
-
-procedure TMDIChild.DBMemo1Exit(Sender: TObject);
-var
-  ds: TDataSource;
-begin
-  // Save changes.  Fixes issue #1538021.
-  ds := DBMemo1.DataSource;
-  if ds.State in [dsEdit, dsInsert] then begin
-    ds.DataSet.Post;
-  end;
-end;
-
 procedure TMDIChild.popupDataGridPopup(Sender: TObject);
 var
   y,m,d,h,i,s,ms : Word;
@@ -3506,9 +3232,9 @@ const
   CLPBRD : String = 'CLIPBOARD';
 begin
   {DONE  -oFrancisco -cData-browsing:Bugfix: [1650528] Access violation with F5}
-  if (gridData.SelectedField <> nil) then
+  if Assigned(DataGrid.FocusedNode) and (DataGrid.FocusedColumn > -1) then
   begin
-    DataInsertDateTime.Enabled := gridData.SelectedField.DataType in [ftString, ftDatetime, ftDate, ftTime];
+    DataInsertDateTime.Enabled := FDataGridResult.Columns[DataGrid.FocusedColumn].IsDate;
     if DataInsertDateTime.Enabled then
     begin
       decodedate(now, y, m, d);
@@ -3521,9 +3247,9 @@ begin
     end;
 
     // Manipulate the Quick-filter menuitems
-    selectedColumn := mask(gridData.SelectedField.FieldName);
+    selectedColumn := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
     // 1. block: include selected columnname and value from datagrid in caption
-    value := sstr(GetFieldValue(gridData.SelectedField), 100);
+    value := sstr(DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn], 100);
     QF1.Caption := selectedColumn + ' = ' + esc( value );
     QF2.Caption := selectedColumn + ' != ' + esc( value );
     QF3.Caption := selectedColumn + ' > ' + esc( value );
@@ -3566,68 +3292,7 @@ begin
   // Insert date/time-value into table
   d := (sender as TMenuItem).Caption;
   delete(d, Pos('&', d), 1);
-  DataSource1.Edit;
-  gridData.SelectedField.AsString := d;
-end;
-
-procedure TMDIChild.btnBlobCopyClick(Sender: TObject);
-begin
-  if dbmemo1.DataField = '' then exit;
-  SaveBlob;
-  case pageCtlEditors.ActivePageIndex of
-    0 : CopyToClipboard(GetVisualDataset.FieldByName(DBMemo1.DataField).AsWideString);
-    1 : EDBImage1.CopyToClipboard;
-  end;
-end;
-
-procedure TMDIChild.setNULL1Click(Sender: TObject);
-begin
-  if not (DataSource1.State in [dsEdit, dsInsert]) then
-    DataSource1.Edit;
-  TZQuery(DataSource1.DataSet).SetFieldData(gridData.SelectedField, nil);
-end;
-
-
-procedure TMDIChild.ZQueryGridAfterPost(DataSet: TDataSet);
-var
-  affected_rows_str, msg  : String;
-  affected_rows_int       : Int64;
-begin
-  affected_rows_int := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
-  affected_rows_str := FormatNumber( affected_rows_int );
-  if affected_rows_int = 0 then
-  begin
-    LogSQL( 'Affected rows: ' + affected_rows_str );
-    // Refresh grid to show the user that no change has been applied
-    GetVisualDataset().Refresh;
-    msg := 'Warning: No row was affected by the last update.' + CRLF + CRLF
-      + 'This is most likely caused by entering data which the MySQL-server has converted silently.' + CRLF
-      + 'For example when you enter a date like "0000-01-01" (applies only to newer MySQL-versions).';
-    LogSQL( msg );
-    MessageDlg( msg, mtWarning, [mbOK], 0);
-  end;
-  if affected_rows_int > 1 then
-  begin
-    LogSQL( 'Affected rows: ' + affected_rows_str );
-    // Refresh grid to show the user which values the other records got
-    GetVisualDataset().Refresh;
-    msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
-      + 'The last query affected ' + affected_rows_str + ' rows, when it should have touched only 1 row!'
-      + CRLF + CRLF
-      + 'This is most likely caused by not having a primary key in the table''s definition.';
-    LogSQL( msg );
-    MessageDlg( msg, mtWarning, [mbOK], 0);
-  end;
-
-  // Display row count and filter-matchings above dbgrid
-  DisplayRowCountStats(DataSet);
-end;
-
-procedure TMDIChild.ZQueryGridBeforeClose(DataSet: TDataSet);
-begin
-  // unassign data-aware controls
-  DBMemo1.DataField := '';
-  EDBImage1.DataField := '';
+  DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := d;
 end;
 
 
@@ -3763,14 +3428,13 @@ end;
 
   @return TDataset if data/query tab is active, nil otherwise.
 }
-function TMDIChild.GetVisualDataset: TDataSet;
+function TMDIChild.GetVisualDataset: TGridResult;
 begin
 
   case PageControlMain.ActivePageIndex of
-    3: Result := gridData.DataSource.DataSet;
-    4: Result := gridQuery.DataSource.DataSet;
-  else
-    Result := nil;
+    3: Result := FDataGridResult;
+    4: Result := FQueryGridResult;
+    else Result := nil;
   end;
 end;
 
@@ -3809,32 +3473,6 @@ begin
   LogSQL( Event.Message, (Event.Category <> lcExecute) );
 end;
 
-
-// Resize image to fit
-procedure TMDIChild.ResizeImageToFit;
-var
-  height_needed : Cardinal;
-begin
-  // Abort zooming if it's not an image or image-tab is sized to minimum size
-  if (EDBImage1.Picture.Width < 1) or (ScrollBox1.Height < 1) then
-    exit;
-
-  // Use all height we can get, but only as much we need to display without zooming
-  if EDBImage1.Picture.Height > Scrollbox1.Height then
-    height_needed := Scrollbox1.Height
-  else
-    height_needed := EDBImage1.Picture.Height;
-
-  // Set size
-  EDBImage1.Height := height_needed;
-  EDBImage1.Width := MulDiv(height_needed, EDBImage1.Picture.Width, EDBImage1.Picture.Height);
-
-  MainForm.showstatus('Image: ' + IntToStr( EDBImage1.Picture.width)
-    + ' x ' + IntToStr( EDBImage1.Picture.Height ) + ' pixel, '
-    + 'zoomed to ' + IntToStr(Round( 100 / EDBImage1.Picture.Height * EDBImage1.Height )) + '%',
-    0
-  );
-end;
 
 procedure TMDIChild.RunAsyncPost(ds: TDeferDataSet);
 var
@@ -3910,124 +3548,6 @@ begin
   end;
 end;
 
-procedure TMDIChild.splitterTopBottomMoved(Sender: TObject);
-begin
-  ResizeImageToFit;
-end;
-
-{***
-  Used to catch when the highlighted row in a grid changes.
-  Possibly the AfterScroll event would be better suited for the purpose?
-*}
-procedure TMDIChild.DataSourceDataChange(Sender: TObject; Field: TField);
-begin
-  //debug('DataSourceDataChange()');
-  // Avoid calling when switching data source to another TDataset.
-  if not viewingdata then GridHighlightChanged(Sender);
-end;
-
-procedure TMDIChild.DBGridColEnter(Sender: TObject);
-begin
-  //debug('DBGridColEnter()');
-  GridHighlightChanged(Sender);
-end;
-
-procedure TMDIChild.GridHighlightChanged(Sender: TObject);
-var
-  grid: TTntDBGrid;
-  ds: TDataSource;
-  hasNull: Boolean;
-  hasOddNewlines: Boolean;
-  s: String;
-begin
-  // Current highlighted row or column in a grid has changed.
-  // Happens twice (row, then column) if neither row nor column match previously selected field.
-  grid := ActiveGrid;
-  ds := grid.DataSource;
-  if grid.SelectedField = nil then exit;
-  debug('GridHighlightChanged');
-
-  if DBMemo1.DataSource <> ds then
-  begin
-    DBMemo1.DataField := '';
-    DBMemo1.DataSource := ds;
-    EDBImage1.DataField := '';
-    EDBImage1.DataSource := ds;
-  end;
-
-  if grid.SelectedField.IsBlob then
-  begin
-    // Connect the BLOB-components to this field
-    DBMemo1.DataField := grid.SelectedField.FieldName;
-    // Hack: If 8 bytes or less, don't try to interpret as an image.
-    // Fixes BIT fields, which EDBImage otherwise think contains icons.
-    if Length(grid.SelectedField.AsString) > 8 then begin
-      EDBImage1.DataField := grid.SelectedField.FieldName;
-    end;
-
-    // If user is already editing then we're here by accident.
-    if not DBMemo1.Focused then begin
-      // Disable text editor if there's binary data or odd newlines in the field,
-      // since the text editor may/will silently corrupt it if used.
-      hasNull := hasNullChar(DBMemo1.Field.AsString);
-      hasOddNewlines := hasIrregularNewlines(DBMemo1.Field.AsString);
-      DBMemo1.ReadOnly := hasNull or hasOddNewlines;
-      btnUnsafeEdit.Enabled := hasNull or hasOddNewlines;
-      if btnUnsafeEdit.Enabled then
-      begin
-        s := 'Cannot edit text because BLOB contains ';
-        if hasNull then s := s + 'NUL characters';
-        if hasOddNewlines then begin
-          if hasNull then s := s + ' and ';
-          s := s + 'non-CRLF newlines';
-        end;
-        s := s + '. Click here to remove NUL plus following text and convert all newlines to CRLF format.';
-      end
-      else
-      begin
-        s := 'No irregular characters found in BLOB. It is safe to edit this text.';
-      end;
-      btnUnsafeEdit.Hint := s;
-    end;
-
-    // Ensure visibility of the editors
-    pageCtlBottom.ActivePage := tabEditors;
-
-    // Detect if we have picture-data in this BLOB and
-    // if yes, bring the viewer in the BLOB-editor to the front
-    if grid.Focused then begin
-      if EDBImage1.Picture.Height > 0 then begin
-        pageCtlEditors.ActivePage := tabEditorImage
-      end else begin
-        pageCtlEditors.ActivePage := tabEditorText;
-      end;
-    end;
-    ResizeImageToFit;
-
-  end
-  else
-  begin
-    // No BLOB selected, so disconnect the Blob-components
-    // from any field
-    DBMemo1.ReadOnly := true;
-    DBMemo1.DataField := '';
-    EDBImage1.DataField := '';
-  end;
-
-  // Indicate the ReadOnly-state of the BLOB to the user
-  if DBMemo1.ReadOnly then
-  begin
-    DBMemo1.Color := clInactiveCaptionText;
-  end
-  else
-  begin
-    DBMemo1.Color := clWindow;
-  end;
-
-  PageCtlEditorsChange(self);
-end;
-
-
 
 // Searchbox unfocused
 function TMDIChild.mask(str: WideString) : WideString;
@@ -4064,11 +3584,11 @@ end;
 
 
 
-function TMDIChild.GetActiveGrid: TTntDBGrid;
+function TMDIChild.GetActiveGrid: TVirtualStringTree;
 begin
   Result := nil;
-  if PageControlMain.ActivePage = tabData then Result := gridData;
-  if PageControlMain.ActivePage = tabQuery then Result := gridQuery;
+  if PageControlMain.ActivePage = tabData then Result := DataGrid
+  else if PageControlMain.ActivePage = tabQuery then Result := QueryGrid;
 end;
 
 
@@ -5201,7 +4721,6 @@ begin
   end;
 end;
 
-
 {**
   Fetch table engines from server
   Currently used in tbl_properties and createtable
@@ -5882,5 +5401,578 @@ begin
   btnFilterApply.Default := False;
 end;
 
+
+{**
+  A grid cell fetches its text content 
+}
+procedure TMDIChild.GridGetText(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
+    WideString);
+const
+  NullText = '(NULL)';
+var
+  c: TGridCell;
+  EditingCell: Boolean;
+begin
+  if Column = -1 then
+    Exit;
+  if Sender = DataGrid then c := FDataGridResult.Rows[Node.Index].Cells[Column]
+  else c := FQueryGridResult.Rows[Node.Index].Cells[Column];
+  EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn); 
+  if c.Modified then begin
+    if c.NewIsNull then begin
+      if EditingCell then CellText := ''
+      else CellText := NullText;
+    end else
+      CellText := c.NewText;
+  end else begin
+    if c.IsNull then begin
+      if EditingCell then CellText := ''
+      else CellText := NullText;
+    end else
+      CellText := c.Text;
+  end;
+end;
+
+
+{**
+  Cell in data- or query grid gets painted. Colorize font. This procedure is
+  called extremely often for repainting the grid cells. Keep it highly optimized.
+}
+procedure TMDIChild.GridPaintText(Sender: TBaseVirtualTree; const
+    TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
+    TVSTTextType);
+var
+  isNull: Boolean;
+  cl: TColor;
+  r: TGridResult;
+begin
+  if Column = -1 then
+    Exit;
+
+  if Sender = DataGrid then r := FDataGridResult
+  else r := FQueryGridResult;
+
+  // Make primary key columns bold
+  if r.Columns[Column].IsPK then
+    TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+
+  // Do not apply any color on a selected, highlighted node to keep readability
+  if vsSelected in Node.States then
+    Exit;
+
+  // NULL value
+  isNull := r.Rows[Node.Index].Cells[Column].IsNull;
+  // Numeric field
+  if r.Columns[Column].isNumeric then
+    if isNull then cl := $FF9090 else cl := clBlue
+  // Date field
+  else if r.Columns[Column].isDate then
+    if isNull then cl := $6060CC else cl := clMaroon
+  // Text field
+  else if r.Columns[Column].isMemo then
+    if isNull then cl := $60CC60 else cl := clGreen
+  // Text field
+  else if r.Columns[Column].isBlob then
+    if isNull then cl := $CC60CC else cl := clPurple
+  else
+    if isNull then cl := COLOR_NULLVALUE else cl := clWindowText;
+  TargetCanvas.Font.Color := cl;
+end;
+
+
+{**
+  Header column in datagrid clicked.
+  Left button: handle ORDER BY
+  Right button: show column selection box
+}
+procedure TMDIChild.DataGridHeaderClick(Sender: TVTHeader; Column:
+    TColumnIndex; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  c : TOrderCol;
+  frm: TForm;
+begin
+  if Button = mbLeft then begin
+    c := TOrderCol.Create;
+    c.ColumnName := Sender.Columns[Column].Text;
+    HandleOrderColumns(c);
+    ViewData(Sender);
+  end else begin
+    frm := TColumnSelectionForm.Create(self);
+    // Position new form relative to btn's position
+    frm.Top := Y + DataGrid.ClientOrigin.Y - Integer(DataGrid.Header.Height);
+    frm.Left := X + DataGrid.ClientOrigin.X;
+    // Display form
+    frm.Show;
+  end;
+end;
+
+
+{**
+  Only allow grid editing if there is a good key available
+}
+procedure TMDIChild.setNULL1Click(Sender: TObject);
+begin
+  DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := '';
+  FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
+  FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].Modified := True;
+  FDataGridResult.Rows[DataGrid.FocusedNode.Index].State := grsModified;
+  Mainform.actDataPost.Enabled := True;
+  Mainform.actDataCancelEdit.Enabled := True;
+  DataGrid.RepaintNode(DataGrid.FocusedNode);
+end;
+
+
+{**
+  Content of a grid cell was modified
+}
+procedure TMDIChild.DataGridNewText(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; NewText: WideString);
+var
+  Row: TGridRow;
+  AllowEditing: Boolean;
+begin
+  Row := FDataGridResult.Rows[Node.Index];
+  AllowEditing := True;
+  if Row.State = grsDefault then
+    AllowEditing := CheckUniqueKeyClause;
+  if AllowEditing then begin
+    // Remember new value
+    Row.Cells[Column].NewText := NewText;
+    Row.Cells[Column].Modified := True;
+    // Set state of row for UPDATE mode, don't touch grsInserted
+    if Row.State = grsDefault then
+      FDataGridResult.Rows[Node.Index].State := grsModified;
+    Mainform.actDataPost.Enabled := True;
+    Mainform.actDataCancelEdit.Enabled := True;
+  end;
+end;
+
+
+{**
+  Checks if there is a unique key available which can be used for UPDATEs and INSERTs
+}
+function TMDIChild.CheckUniqueKeyClause: Boolean;
+var
+  mres: Integer;
+begin
+  Result := GetKeyColumns(FSelectedTableKeys).Count > 0;
+  if not Result then begin
+    mres := MessageDlg('Grid editing is blocked because this table does not have a primary '+
+      'or a unique key. You can create such a key using the index manager.'+CRLF+CRLF+
+      'Press'+CRLF+
+      '  [Ok] to cancel editing and call the index manager'+CRLF+
+      '  [Cancel] to cancel editing.',
+      mtWarning, [mbOK, mbCancel], 0);
+    if mres = mrOK then
+      MainForm.actEditIndexesExecute(DataGrid);
+  end;
+end;
+
+
+{**
+  DataGrid: node focus has changed
+}
+procedure TMDIChild.DataGridChange(Sender: TBaseVirtualTree; Node:
+    PVirtualNode);
+begin
+  if not Assigned(Node) then
+    Exit;
+  Mainform.actDataFirst.Enabled := Node <> Sender.GetFirst;
+  Mainform.actDataLast.Enabled := Node <> Sender.GetLast;
+  Mainform.actDataDelete.Enabled := Sender.SelectedCount > 0;
+end;
+
+
+{**
+  DataGrid: node and/or column focus is about to change. See if we allow that.
+}
+procedure TMDIChild.DataGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
+    NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed:
+    Boolean);
+begin
+  // Detect changed focus and update row
+  if Assigned(OldNode) and Assigned(NewNode) and (OldNode <> NewNode) then
+    Allowed := DataGridPostUpdateOrInsert(OldNode)
+  else
+    Allowed := True;
+end;
+
+
+{**
+  DataGrid: invoke update or insert routine
+}
+function TMDIChild.DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
+begin
+  Result := True;
+  if Cardinal(High(FDataGridResult.Rows)) >= Node.Index then
+    case FDataGridResult.Rows[Node.Index].State of
+      grsModified: Result := GridPostUpdate(DataGrid);
+      grsInserted: Result := GridPostInsert(DataGrid);
+    end;
+end;
+
+
+{**
+  DataGrid: compose and fire UPDATE query
+}
+function TMDIChild.GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
+var
+  i: Integer;
+  sql, Val: WideString;
+  Row: TGridRow;
+  ds: TDataSet;
+begin
+  sql := 'UPDATE '+mask(SelectedTable)+' SET';
+  Row := FDataGridResult.Rows[Sender.FocusedNode.Index];
+  for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+    if Row.Cells[i].Modified then begin
+      Val := Row.Cells[i].NewText;
+      if Not FDataGridResult.Columns[i].IsNumeric then Val := esc(Val);
+      if Row.Cells[i].NewIsNull then Val := 'NULL';
+      sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
+    end;
+  end;
+  // Cut trailing comma
+  sql := Copy(sql, 1, Length(sql)-2);
+  sql := sql + ' WHERE ' + GetWhereClause(Row, FDataGridResult.Columns, FSelectedTableKeys);
+  try
+    // Send UPDATE query
+    ExecUpdateQuery(sql, False, True);
+    Result := True;
+  except
+    Result := False;
+  end;
+
+  if Result then begin
+    // Reselect just updated row in grid from server to ensure displaying
+    // correct values which were silently converted by the server
+    for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+      if not Row.Cells[i].Modified then
+        Continue;
+      Row.Cells[i].Text := Row.Cells[i].NewText;
+      Row.Cells[i].IsNull := Row.Cells[i].NewIsNull;
+    end;
+    GridFinalizeEditing(Sender);
+    sql := 'SELECT ';
+    for i := 0 to Length(FDataGridResult.Columns) - 1 do
+      sql := sql + mask(FDataGridResult.Columns[i].Name) + ', ';
+    // Cut trailing comma
+    sql := Copy(sql, 1, Length(sql)-2);
+    sql := sql + ' FROM ' + mask(SelectedTable)
+      + ' WHERE ' + GetWhereClause(Row, FDataGridResult.Columns, FSelectedTableKeys);
+    ds := ExecSelectQuery(sql);
+    if ds.RecordCount = 1 then begin
+      for i := 0 to ds.FieldCount - 1 do begin
+        Row.Cells[i].Text := ds.Fields[i].AsWideString;
+        Row.Cells[i].IsNull := ds.Fields[i].IsNull;
+      end;
+      Sender.RepaintNode(Sender.FocusedNode);
+    end else begin
+      logsql('Unable to identify updated row, found '+FormatNumber(ds.RecordCount)+' identical row(s). Doing full reload.');
+      viewdata(Sender);
+    end;
+    ds.Free;
+  end;
+end;
+
+
+{**
+  Repaint edited node and reset state of grid row
+}
+procedure TMDIChild.GridFinalizeEditing(Sender: TBaseVirtualTree);
+var
+  i, c: Integer;
+begin
+  c := Sender.FocusedNode.Index;
+  FDataGridResult.Rows[c].State := grsDefault;
+  for i := 0 to Length(FDataGridResult.Rows[c].Cells) - 1 do begin
+    FDataGridResult.Rows[c].Cells[i].NewText := '';
+    FDataGridResult.Rows[c].Cells[i].Modified := False;
+  end;
+  Sender.RepaintNode(Sender.FocusedNode);
+  Mainform.actDataPost.Enabled := False;
+  Mainform.actDataCancelEdit.Enabled := False;
+end;
+
+
+{**
+  Compose a WHERE clause used for UPDATEs and DELETEs
+}
+function TMDIChild.GetWhereClause(Row: TGridRow; Columns: TGridColumns; KeyList: TDataSet): WideString;
+var
+  i, j: Integer;
+  KeyVal: WideString;
+  KeyCols: WideStrings.TWideStringlist;
+begin
+  Result := '';
+  KeyCols := GetKeyColumns(KeyList);
+  for i := 0 to KeyCols.Count - 1 do begin
+    for j := 0 to Length(Columns) - 1 do begin
+      if Columns[j].Name = KeyCols[i] then
+        break;
+    end;
+    // Find old value of key column
+    KeyVal := Row.Cells[j].Text;
+    // Quote if needed
+    if Not Columns[j].IsNumeric then KeyVal := esc(KeyVal);
+    if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
+    else KeyVal := '=' + KeyVal;
+    Result := Result + mask(KeyCols[i]) + KeyVal + ' AND ';
+  end;
+  // Cut trailing AND
+  Result := Copy(Result, 1, Length(Result)-5);
+end;
+
+
+{**
+  Find key columns for a WHERE clause by analysing a SHOW KEYS FROM ... resultset
+}
+function TMDIChild.GetKeyColumns(KeyList: TDataset): WideStrings.TWideStringlist;
+var
+  preferredKey: WideString;
+begin
+  // Find best key for updates
+  KeyList.First;
+  while not KeyList.Eof do begin
+    if KeyList.FieldByName('Non_unique').AsInteger = 0 then begin
+      preferredKey := KeyList.FieldByName('Key_name').AsWideString;
+      if preferredKey = 'PRIMARY' then
+        break;
+    end;
+    KeyList.Next;
+  end;
+  // Find relevant key column names
+  Result := WideStrings.TWideStringlist.Create;
+  if preferredKey <> '' then begin
+    // Found a unique key
+    KeyList.First;
+    while not KeyList.Eof do begin
+      if KeyList.FieldByName('Key_name').AsWideString = preferredKey then
+        Result.Add(KeyList.FieldByName('Column_name').AsWideString);
+      KeyList.Next;
+    end;
+  end;
+end;
+
+
+{**
+  DataGrid: compose and fire UPDATE query
+}
+procedure TMDIChild.DataGridInsertRow;
+var
+  i, j: Integer;
+begin
+  i := Length(FDataGridResult.Rows);
+  SetLength(FDataGridResult.Rows, i+1);
+  SetLength(FDataGridResult.Rows[i].Cells, Length(FDataGridResult.Columns));
+  FDataGridResult.Rows[i].State := grsInserted;
+  for j := 0 to Length(FDataGridResult.Rows[i].Cells) - 1 do begin
+    FDataGridResult.Rows[i].Cells[j].Text := '';
+  end;
+  DataGrid.AddChild(nil);
+  DataGrid.FocusedNode := DataGrid.GetLast;
+  DataGrid.ClearSelection;
+  DataGrid.Selected[DataGrid.FocusedNode] := True;
+  Mainform.actDataPost.Enabled := True;
+  Mainform.actDataCancelEdit.Enabled := True;
+end;
+
+
+{**
+  DataGrid: compose and fire INSERT query
+}
+function TMDIChild.GridPostInsert(Sender: TBaseVirtualTree): Boolean;
+var
+  Row: TGridRow;
+  sql, Cols, Val, Vals, Value: WideString;
+  i, j: Integer;
+  Node: PVirtualNode;
+  KeyCols: WideStrings.TWideStringlist;
+  ds: TDataset;
+begin
+  Node := Sender.FocusedNode;
+  Row := FDataGridResult.Rows[Node.Index];
+  Cols := '';
+  Vals := '';
+  for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+    FSelectedTableColumns.RecNo := i;
+    if Row.Cells[i].Modified then begin
+      Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
+      Val := Row.Cells[i].NewText;
+      if Not FDataGridResult.Columns[i].IsNumeric then Val := esc(Val);
+      if Row.Cells[i].NewIsNull then Val := 'NULL';
+      Vals := Vals + Val + ', ';
+    end;
+  end;
+  if Length(Cols) = 0 then begin
+    // No field was manually modified, cancel the INSERT in that case
+    Sender.BeginUpdate;
+    Sender.DeleteNode(Node);
+    SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
+    Sender.EndUpdate;
+    Result := True; // Important for DataGridFocusChanging to allow moving focus
+  end else begin
+    // At least one field was modified, assume this INSERT should be posted
+    Vals := Copy(Vals, 1, Length(Vals)-2);
+    Cols := Copy(Cols, 1, Length(Cols)-2);
+    sql := 'INSERT INTO '+mask(SelectedTable)+' ('+Cols+') VALUES ('+Vals+')';
+    try
+      // Send INSERT query
+      ExecUpdateQuery(sql, False, True);
+      Result := True;
+    except
+      Result := False;
+    end;
+
+    if Result then begin
+      // Reselect just inserted row in grid from server to ensure displaying
+      // correct values which were silently converted by the server
+      sql := 'SELECT * FROM ' + mask(SelectedTable) + ' WHERE ';
+      KeyCols := GetKeyColumns(FSelectedTableKeys);
+      for i := 0 to KeyCols.Count - 1 do begin
+        Value := '';
+        FSelectedTableColumns.First;
+        for j:=0 to FSelectedTableColumns.RecordCount-1 do begin
+          // Check if there is an auto_increment'ed PK which was NOT manually edited
+          if FSelectedTableColumns.FieldByName('Field').AsWideString = KeyCols[i] then begin
+            if (FSelectedTableColumns.FieldByName('Extra').AsString = 'auto_increment') and
+              (not Row.Cells[j].Modified) then
+              Value := '=' + GetVar('SELECT LAST_INSERT_ID()')
+            else if Row.Cells[j].Modified then begin
+              if Row.Cells[j].NewIsNull then Value := ' IS NULL'
+              else Value := '=' + esc(Row.Cells[j].NewText);
+            end else
+              Value := '=''''';
+            break;
+          end;
+          FSelectedTableColumns.Next;
+        end;
+        sql := sql + ' ' + mask(KeyCols[i]) + Value + ' AND';
+      end;
+
+      if KeyCols.Count = 0 then begin
+        // No PK existant. Try a non unique WHERE clause and assume the last row was the just inserted one
+        for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+          if Row.Cells[i].Modified then begin
+            if Row.Cells[i].NewIsNull then Value := ' IS NULL'
+            else Value := '=' + esc(Row.Cells[i].NewText);
+            sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + Value + ' AND';
+          end;
+        end;
+      end;
+
+      // Cut trailing AND
+      sql := Copy(sql, 1, Length(sql)-4);
+
+      GridFinalizeEditing(Sender);
+      ds := ExecSelectQuery(sql);
+      if ds.RecordCount > 0 then begin
+        // Make sure we're fetching the last inserted row which matches the WHERE clause
+        ds.Last;
+        for i := 0 to ds.FieldCount - 1 do begin
+          Row.Cells[i].Text := ds.Fields[i].AsWideString;
+          Row.Cells[i].IsNull := ds.Fields[i].IsNull;
+        end;
+        Sender.RepaintNode(Sender.FocusedNode);
+      end else begin
+        logsql('Unable to identify inserted row. Doing full reload.');
+        viewdata(Sender);
+      end;
+      ds.Free;
+    end;
+  end;
+end;
+
+
+{**
+  DataGrid: compose and fire DELETE query
+}
+function TMDIChild.GridPostDelete(Sender: TBaseVirtualTree): Boolean;
+var
+  Node: PVirtualNode;
+  sql: WideString;
+  Affected: Int64;
+  Selected: Integer;
+  Offset: Cardinal;
+  msg: String;
+begin
+  Node := Sender.GetFirstSelected;
+  sql := 'DELETE FROM '+mask(SelectedTable)+' WHERE';
+  while Assigned(Node) do begin
+    sql := sql + ' (' +
+      GetWhereClause(FDataGridResult.Rows[Node.Index], FDataGridResult.Columns, FSelectedTableKeys) +
+      ') OR';
+    Node := Sender.GetNextSelected(Node);
+  end;
+  sql := Copy(sql, 1, Length(sql)-3);
+
+  try
+    // Send DELETE query
+    ExecUpdateQuery(sql, False, True);
+    Result := True;
+  except
+    Result := False;
+  end;
+
+  if Result then begin
+    // Remove deleted row nodes out of the grid
+    Affected := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
+    Selected := Sender.SelectedCount;
+    if Affected = Selected then begin
+      // Fine. Number of deleted rows equals the selected node count.
+      // In this case, just remove the selected nodes, avoid a full reload
+      Sender.BeginUpdate;
+      Node := Sender.GetFirstSelected;
+      Offset := 0; // Needed to decrease the array index after one element was deleted
+      while Assigned(Node) do begin
+        if Node.Index + 1 - Offset < Cardinal(High(FDataGridResult.Rows)) then begin
+          // Delete node somewhere in the middle of the array
+          System.Move(
+            FDataGridResult.Rows[Node.Index + 1 - Offset],
+            FDataGridResult.Rows[Node.Index - Offset],
+            (Cardinal(Length(FDataGridResult.Rows)) - (Node.Index - Offset - Cardinal(Low(FDataGridResult.Rows))) - 1) * SizeOf(TGridRow)
+          );
+        end;
+        SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
+        inc(Offset);
+        Node := Sender.GetNextSelected(Node);
+      end;
+      Sender.DeleteSelectedNodes;
+      Sender.EndUpdate;
+    end else begin
+      // Should never get called as we block DELETEs on tables without a unique key
+      ViewData(Sender);
+      msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
+        + 'The last DELETE query affected ' + FormatNumber(Affected) + ' rows, when it should have touched '+FormatNumber(Selected)+' row(s)!'
+        + CRLF + CRLF
+        + 'This is most likely caused by not having a primary key in the table''s definition.';
+      LogSQL( msg );
+      MessageDlg( msg, mtWarning, [mbOK], 0);
+    end;
+  end;
+end;
+
+
+{**
+  DataGrid: cancel INSERT or UPDATE mode, reset modified node data
+}
+procedure TMDIChild.DataGridCancelEdit(Sender: TObject);
+var
+  i: Integer;
+begin
+  case FDataGridResult.Rows[DataGrid.FocusedNode.Index].State of
+    grsModified: GridFinalizeEditing(DataGrid);
+    grsInserted: begin
+      i := Length(FDataGridResult.Rows);
+      DataGrid.DeleteNode(DataGrid.FocusedNode, False);
+      SetLength(FDataGridResult.Rows, i-1);
+      // Focus+select last node if possible
+      Mainform.actDataLastExecute(Sender);
+    end;
+  end;
+  Mainform.actDataPost.Enabled := False;
+  Mainform.actDataCancelEdit.Enabled := False;
+end;
 
 end.

@@ -208,27 +208,27 @@ object MainForm: TMainForm
       object ToolButton3: TToolButton
         Left = 0
         Top = 0
-        Action = actDataSetFirst
+        Action = actDataFirst
       end
       object ToolButton4: TToolButton
         Left = 23
         Top = 0
-        Action = actDataSetLast
+        Action = actDataLast
       end
       object ToolButton7: TToolButton
         Left = 46
         Top = 0
-        Action = actDataSetInsert
+        Action = actDataInsert
       end
       object ToolButton8: TToolButton
         Left = 69
         Top = 0
-        Action = actDataSetDelete
+        Action = actDataDelete
       end
       object ToolButton10: TToolButton
         Left = 92
         Top = 0
-        Action = actDataSetPost
+        Action = actDataPost
       end
       object PanelLimit: TPanel
         Left = 115
@@ -898,38 +898,46 @@ object MainForm: TMainForm
       ImageIndex = 102
       OnExecute = actCreateViewExecute
     end
-    object actDataSetFirst: TDataSetFirst
+    object actDataFirst: TAction
       Category = 'Data'
       Caption = '&First'
+      Enabled = False
       Hint = 'First'
       ImageIndex = 89
+      OnExecute = actDataFirstExecute
     end
-    object actDataSetLast: TDataSetLast
+    object actDataLast: TAction
       Category = 'Data'
       Caption = '&Last'
+      Enabled = False
       Hint = 'Last'
       ImageIndex = 90
+      OnExecute = actDataLastExecute
     end
-    object actDataSetInsert: TDataSetInsert
+    object actDataInsert: TAction
       Category = 'Data'
-      Caption = '&Insert'
-      Hint = 'Insert'
+      Caption = '&Insert row'
+      Hint = 'Insert row into table'
       ImageIndex = 45
+      ShortCut = 45
+      OnExecute = actDataInsertExecute
     end
-    object actDataSetDelete: TDataSetDelete
+    object actDataDelete: TAction
       Category = 'Data'
-      Caption = '&Delete'
+      Caption = '&Delete selected row(s)'
       Enabled = False
-      Hint = 'Delete'
+      Hint = 'Delete selected row(s)'
       ImageIndex = 46
       ShortCut = 16430
-      OnExecute = actDataSetDeleteExecute
+      OnExecute = actDataDeleteExecute
     end
-    object actDataSetPost: TDataSetPost
+    object actDataPost: TAction
       Category = 'Data'
       Caption = 'P&ost'
+      Enabled = False
       Hint = 'Post'
       ImageIndex = 55
+      OnExecute = actDataPostExecute
     end
     object actCreateTable: TAction
       Category = 'Database'
@@ -1256,6 +1264,15 @@ object MainForm: TMainForm
       ImageIndex = 55
       ShortCut = 120
       OnExecute = actApplyFilterExecute
+    end
+    object actDataCancelEdit: TAction
+      Category = 'Data'
+      Caption = 'Cancel editing'
+      Enabled = False
+      Hint = 'Cancel editing'
+      ImageIndex = 26
+      ShortCut = 27
+      OnExecute = actDataCancelEditExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -4425,6 +4442,28 @@ object MainForm: TMainForm
           E38CFEF1FD2FC3D52B6FD6BE58EB104272344A251D7BF4FF3BC3C53F6F3E06BE
           DEEDF987B6E960041B0000CAD0BEE161DA12680000000049454E44AE426082}
         Name = 'PngImage107'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          61000000017352474200AECE1CE90000001874455874536F6674776172650050
+          61696E742E4E45542076332E313072B22592000000414944415478DA63FCFFFF
+          3F03258071D4001A1B307BF6ECFFA9A9A98C641900D20C63E33304AB01C89A09
+          1982610036CDF80C4131009F665C860CF2681C1A06000066E343E1676FA2A300
+          00000049454E44AE426082}
+        Name = 'PngImage109'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          61000000017352474200AECE1CE90000001874455874536F6674776172650050
+          61696E742E4E45542076332E313072B22592000000434944415478DA63FCFFFF
+          3F03258071D4002A1B307BF66C82A6A5A6A632E275013E43D035E3F4023643B0
+          69C61B06C886E0D24C30104186E0D34CD00062C0A8010C0C0066E343E141CDA7
+          F50000000049454E44AE426082}
+        Name = 'PngImage110'
         Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]

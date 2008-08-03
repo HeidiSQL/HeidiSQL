@@ -216,10 +216,10 @@ begin
     cwin.SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
     cwin.SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
     cwin.SynMemoQuery.ActiveLineColor := self.pnlActiveLine.Color;
-    cwin.gridData.Font := self.Panel8.font;
-    cwin.gridQuery.Font := self.Panel8.font;
-    cwin.DBMemo1.Font := self.Panel8.font;
-    cwin.gridData.Refresh;
+    cwin.DataGrid.Font := self.Panel8.font;
+    cwin.QueryGrid.Font := self.Panel8.font;
+    cwin.DataGrid.Repaint;
+    cwin.QueryGrid.Repaint;
     cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
     cwin.prefLogSqlWidth := self.updownLogSnip.Position;

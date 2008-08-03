@@ -37,6 +37,35 @@ type
     property AsWideString: WideString read GetAsWideString write SetAsWideString;
   end;
 
+  // Structures for result grids, mapped from a TDataset to some handy VirtualTree structure
+  TGridCell = record
+    Text: WideString;
+    NewText: WideString; // Used to create UPDATE clauses with needed columns
+    IsNull: Boolean;
+    NewIsNull: Boolean;
+    Modified: Boolean;
+  end;
+  TGridColumn = record
+    Name: WideString;
+    DataType: Byte; // @see constants in mysql_structures.pas
+    IsPK: Boolean;
+    IsBlob: Boolean;
+    IsMemo: Boolean;
+    IsNumeric: Boolean;
+    IsDate: Boolean;
+  end;
+  TGridColumns = Array of TGridColumn;
+  TGridRowState = (grsDefault, grsDeleted, grsModified, grsInserted);
+  TGridRow = packed record
+    Cells: Array of TGridCell;
+    State: TGridRowState;
+  end;
+  TGridRows = Array of TGridRow;
+  TGridResult = record
+    Rows: TGridRows;
+    Columns: TGridColumns;
+  end;
+
 {$I const.inc}
 
   function trimc(s: String; c: Char) : String;
@@ -49,9 +78,9 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: WideString): WideString;
-  function dataset2html(ds: TDataset; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
-  function dataset2csv(ds: TDataset; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
-  function dataset2xml(ds: TDataset; title: WideString; filename: String = ''): Boolean;
+  function dataset2html(ds: TGridResult; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+  function dataset2csv(ds: TGridResult; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+  function dataset2xml(ds: TGridResult; title: WideString; filename: String = ''): Boolean;
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -707,14 +736,13 @@ end;
   @param string Generator, used for meta-tag in HTML-head
   @return boolean True on access, False in case of any error
 }
-function dataset2html(ds: TDataset; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+function dataset2html(ds: TGridResult; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer, data     : Widestring;
   blobfilename, extension   : WideString;
   bf                        : Textfile;
   header, attribs           : WideString;
-  cursorpos                 : Integer;
   tofile                    : Boolean;
 begin
   tofile := filename <> '';
@@ -726,7 +754,7 @@ begin
       '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
       '  <style type="text/css">' + crlf +
       '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
-      '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.ActiveGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.ActiveGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
+      '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.DataGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.DataGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
       '    table, td {border: 1px solid silver;}' + crlf +
       '    table {border-collapse: collapse;}' + crlf +
       '    td.isnull {background-color: '+TColorToHex(COLOR_NULLVALUE) +'}' + crlf +
@@ -734,26 +762,23 @@ begin
       '  </style>' + crlf +
       '</head>' + crlf + crlf +
       '<body>' + crlf + crlf +
-      '<h3>' + htmltitle + ' (' + inttostr(ds.RecordCount) + ' Records)</h3>' + crlf + crlf +
+      '<h3>' + htmltitle + ' (' + inttostr(Length(ds.Rows)) + ' Records)</h3>' + crlf + crlf +
       '<table >' + crlf +
       '  <tr id="header">' + crlf;
-    for j:=0 to ds.FieldCount-1 do
-      buffer := buffer + '    <th>' + ds.Fields[j].FieldName + '</th>' + crlf;
+    for j:=0 to Length(ds.Columns)-1 do
+      buffer := buffer + '    <th>' + ds.Columns[j].Name + '</th>' + crlf;
     buffer := buffer + '  </tr>' + crlf;
 
     cbuffer := buffer;
 
-    cursorpos := ds.RecNo;
-    ds.DisableControls;
-    ds.First;
-    for I := 0 to ds.RecordCount-1 do
+    for I := 0 to Length(ds.Rows)-1 do
     begin
       Buffer := '  <tr>' + crlf;
       // collect data:
-      for j:=0 to ds.FieldCount-1 do
+      for j:=0 to Length(ds.Rows[i].Cells)-1 do
       begin
-        data := GetFieldValue( ds.Fields[j] );
-        if tofile and ds.Fields[j].IsBlob then begin
+        data := ds.Rows[i].Cells[j].Text;
+        if tofile and ds.Columns[j].IsBlob then begin
           header := copy(data, 0, 20);
           extension := '';
           if pos('JFIF', header) <> 0 then
@@ -778,22 +803,19 @@ begin
             data := htmlentities(data);
           data := WideStringReplace(data, #10, #10+'<br>', [rfReplaceAll]);
         end;
-        if ds.Fields[j].IsNull then
+        if ds.Rows[i].Cells[j].IsNull then
           attribs := ' class="isnull"'
         else begin
           // Primary key field
           attribs := '';
-          if fsBold in Mainform.Childwin.ActiveGrid.Columns[j].Font.Style then
+          if ds.Columns[j].IsPK then
             attribs := ' class="pk"';
         end;
         Buffer := Buffer + '    <td'+attribs+'>' + data + '</td>' + crlf;
       end;
       buffer := buffer + '  </tr>' + crlf;
       cbuffer := cbuffer + buffer;
-      ds.Next;
     end;
-    ds.RecNo := cursorpos;
-    ds.EnableControls;
     // footer:
     buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
       '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
@@ -830,16 +852,12 @@ end;
   @param string Filename to use for saving. If not given, copy to clipboard.
   @return boolean True on access, False in case of any error
 }
-function dataset2csv(ds: TDataSet; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+function dataset2csv(ds: TGridResult; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer           : WideString;
-  cursorpos                 : Integer;
   tofile                    : Boolean;
 begin
-  if ds=nil then
-    MessageDlg ('Invalid dataset!',mterror, [mbOK], 0);
-
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
@@ -848,33 +866,27 @@ begin
   try
     Buffer := '';
     // collect fields:
-    for j:=0 to ds.FieldCount-1 do begin
+    for j:=0 to Length(ds.Columns)-1 do begin
       if j > 0 then
         Buffer := Buffer + Separator;
-      Buffer := Buffer + Encloser + ds.Fields[J].FieldName + Encloser;
+      Buffer := Buffer + Encloser + ds.Columns[J].Name + Encloser;
     end;
     cbuffer := cbuffer + buffer;
 
     // collect data:
-    cursorpos := ds.RecNo;
-    ds.DisableControls;
-    ds.First;
-    for i:=0 to ds.RecordCount-1 do
+    for i:=0 to Length(ds.Rows)-1 do
     begin
       Buffer := '';
       Buffer := Buffer + Terminator;
-      for j:=0 to ds.FieldCount-1 do
+      for j:=0 to Length(ds.Rows[i].Cells)-1 do
       begin
         if j>0 then
           Buffer := Buffer + Separator;
-        Buffer := Buffer + Encloser + GetFieldValue( ds.Fields[j] ) + Encloser;
+        Buffer := Buffer + Encloser + ds.Rows[i].Cells[j].Text + Encloser;
       end;
       // write buffer:
       cbuffer := cbuffer + buffer;
-      ds.Next;
     end;
-    ds.RecNo := cursorpos;
-    ds.EnableControls;
     if tofile then
       SaveUnicodeFile(filename, cbuffer)
     else
@@ -900,11 +912,10 @@ end;
   @param string Filename to use for saving. If not given, copy to clipboard.
   @return boolean True on access, False in case of any error
 }
-function dataset2xml(ds: TDataset; title: WideString; filename: String = ''): Boolean;
+function dataset2xml(ds: TGridResult; title: WideString; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
   Buffer, cbuffer, data     : WideString;
-  cursorpos                 : Integer;
   tofile                    : Boolean;
 begin
   try
@@ -913,25 +924,19 @@ begin
       '<'+title+'>' + crlf;
     cbuffer := buffer;
 
-    cursorpos := ds.RecNo;
-    ds.DisableControls;
-    ds.First;
-    for i:=0 to ds.RecordCount-1 do
+    for i:=0 to Length(ds.Rows)-1 do
     begin
       Buffer := #9'<row>' + crlf;
       // collect data:
-      for j:=0 to ds.FieldCount-1 do
+      for j:=0 to Length(ds.Columns)-1 do
       begin
-        data := GetFieldValue( ds.Fields[j] );
+        data := ds.Rows[i].Cells[j].Text;
         data := htmlentities(data);
-        Buffer := Buffer + #9#9'<'+ds.Fields[j].FieldName+'>' + data + '</'+ds.Fields[j].FieldName+'>' + crlf;
+        Buffer := Buffer + #9#9'<'+ds.Columns[j].Name+'>' + data + '</'+ds.Columns[j].Name+'>' + crlf;
       end;
       buffer := buffer + #9'</row>' + crlf;
       cbuffer := cbuffer + buffer;
-      ds.Next;
     end;
-    ds.RecNo := cursorpos;
-    ds.EnableControls;
     // footer:
     cbuffer := cbuffer + '</'+title+'>' + crlf;
     if tofile then
