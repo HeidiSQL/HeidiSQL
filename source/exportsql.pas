@@ -420,6 +420,7 @@ end;
 function TExportSQLForm.InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
 var
   UnparsedFileName, ParsedFileName, FileName, FilePath : String;
+  header: array[0..1] of Byte;
 begin
   Result := nil;
 
@@ -466,6 +467,9 @@ begin
   // Create the file
   try
     Result := TFileStream.Create(ParsedFileName, fmCreate);
+    header[0] := $FF;
+    header[1] := $FE;
+    Result.WriteBuffer(header, 2);
   except
     MessageDlg('File "'+ParsedFileName+'" could not be opened!' +  CRLF + 'Maybe in use by another application?', mterror, [mbOK], 0);
     Result.Free;
@@ -481,24 +485,24 @@ var
   exportdb,exporttables     : boolean;
   exportdata                : boolean;
   dropquery,createquery,insertquery,
-  columnnames               : String;
+  columnnames               : WideString;
   keylist                   : Array of TMyKey;
-  keystr                    : String;
+  keystr                    : WideString;
   sourceDb, destDb          : String;
   which                     : Integer;
   tofile,todb,tohost        : boolean;
   tcount,tablecounter       : Integer;
   win2export                : THandle;
   StrProgress               : String;
-  value                     : String;
+  value                     : WideString;
   Escaped,fullvalue         : PChar;
   extended_insert           : Boolean;
   max_allowed_packet        : Int64;
-  thesevalues               : String;
+  thesevalues               : WideString;
   valuescount               : Integer;
   donext                    : Boolean;
   PBuffer                   : PChar;
-  sql, current_characterset : String;
+  sql, current_characterset : WideString;
   loopnumber                : Integer;
   target_version            : Integer;
   target_cliwa              : Boolean;
@@ -510,18 +514,18 @@ var
   query                     : TDataSet;
   OldActualDatabase         : String;
 
-function sourceMask(sql: String): String;
+function sourceMask(sql: WideString): WideString;
 begin
   // Same as cwin.mask(sql).
   Result := maskSql(cwin.mysql_version, sql);
 end;
 
-function destMask(sql: String): String;
+function destMask(sql: WideString): WideString;
 begin
   Result := maskSql(target_version, sql);
 end;
 
-function makeConditionalStmt(sql: String; version: integer; tofile: boolean): String;
+function makeConditionalStmt(sql: WideString; version: integer; tofile: boolean): WideString;
 begin
   // End statement with semicolon, unless destination is a live server.
   // Afterwards, wrap in conditional comment.
@@ -938,7 +942,7 @@ begin
         begin
           if k>1 then
             columnnames := columnnames + ', ';
-          columnnames := columnnames + destMask(Query.Fields[0].AsString);
+          columnnames := columnnames + destMask(Query.Fields[0].AsWideString);
           Query.Next;
         end;
         columnnames := columnnames+')';
@@ -1068,11 +1072,11 @@ begin
               else
               case Query.Fields[k].DataType of
                 ftInteger, ftSmallint, ftWord:
-                  value := Query.Fields[k].AsString;
+                  value := Query.Fields[k].AsWideString;
                 ftBoolean:
                   value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
                 else
-                  value := escapeAuto( Query.Fields[k].AsString, current_characterset, target_version );
+                  value := esc( Query.Fields[k].AsWideString, False, target_version );
               end;
               thesevalues := thesevalues + value;
               if k < Query.Fieldcount-1 then
