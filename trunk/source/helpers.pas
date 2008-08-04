@@ -86,19 +86,18 @@ type
   function Max(A, B: Integer): Integer; assembler;
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
-  procedure wfs( var s: TFileStream; str: String = '');
-  function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
+  procedure wfs( var s: TFileStream; str: WideString = '');
+  function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
-  function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
+  function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
   function hasNullChar(Text: string): boolean;
   function hasIrregularChars(Text: string): boolean;
   function hasIrregularNewlines(Text: string): boolean;
-  function escapeAuto(Text: string; CharSet: string; sql_version: integer): string;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
@@ -1043,10 +1042,10 @@ end;
   @param string Text to write
   @return void
 }
-procedure wfs( var s: TFileStream; str: String = '');
+procedure wfs( var s: TFileStream; str: WideString = '');
 begin
   str := str + crlf;
-  s.Write(pchar(str)^, length(str))
+  s.Write(Pointer(str)^, Length(str)*2);
 end;
 
 
@@ -1066,7 +1065,7 @@ end;
   @param integer MySQL-version or SQL_VERSION_ANSI
   @return string SQL
 }
-function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
+function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
 var
   rx : TRegExpr;
 begin
@@ -1075,7 +1074,7 @@ begin
   // For mysqldump and mysql.exe CLI compatibility
   if cli_workarounds then
   begin
-    result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
+    result := WideStringReplace(result, ';*/', '*/;', [rfReplaceAll]);
   end;
 
   // Detect if SQL is a CREATE TABLE statement
@@ -1107,9 +1106,9 @@ begin
 
     // Turn ENGINE to TYPE
     if sql_version < 40102 then
-      result := StringReplace(result, 'ENGINE=', 'TYPE=', [rfReplaceAll])
+      result := WideStringReplace(result, 'ENGINE=', 'TYPE=', [rfReplaceAll])
     else
-      result := StringReplace(result, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
+      result := WideStringReplace(result, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
 
     // Mask USING {BTREE,HASH,RTREE} from older servers.
     rx.Expression := '\s(USING\s+\w+)';
@@ -1323,7 +1322,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function esc(Text: string; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): string;
+function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
 var
   i : Integer;
 begin
@@ -1340,16 +1339,15 @@ begin
     end;
   end
   else begin
-    // Use the API function mysql_real_escape_string to escape text
-    Result := Mainform.Childwin.MysqlConn.Connection.GetEscapeString(Text);
+    Result := WideStringReplace(Text, '''', '\''', [rfReplaceAll]);
   end;
 
   if ProcessJokerChars then
   begin
     // Escape joker-chars which are used in a LIKE-clause
     if sql_version <> SQL_VERSION_ANSI then begin
-      Result := StringReplace(Result, '%', '\%', [rfReplaceAll]);
-      Result := StringReplace(Result, '_', '\_', [rfReplaceAll]);
+      Result := WideStringReplace(Result, '%', '\%', [rfReplaceAll]);
+      Result := WideStringReplace(Result, '_', '\_', [rfReplaceAll]);
     end;
   end
   else
@@ -1449,62 +1447,6 @@ begin
     if b in [10, 13] then exit;
   end;
   result := false;
-end;
-
-
-
-{***
-  Escape everything within a single CHAR() call.
-  Tried a more efficient implementation, but using more than a few CHAR()
-  calls quickly blows mysqld's default stack, effectively limiting us to
-  this approach.
-
-  @todo Instead of CHAR(127, 127), we could use x'7F7F' or 0x7F7F.
-        Find out when these notations were introduced and switch to
-        one of them (0x7F7F ?) if they work on all MySQL versions..
-  @param string Text to escape
-  @return string
-}
-function escAllCharacters(Text: string; CharSet: string; sql_version: integer): string;
-var
-  i: integer;
-  s: string;
-begin
-  if CharSet = '' then raise Exception.Create('Assertion failed in escAllCharacters(): no character set given.');
-  if sql_version <> SQL_VERSION_ANSI then begin
-    s := '0x';
-    for i:=1 to length(Text) do s := s + IntToHex(Ord(Text[i]), 2);
-    // Ensure correct import on servers (v4.1+) supporting multiple character sets.
-    Result := '/*!40100 _' + CharSet + '*/ ' + s;
-  end else begin
-    s := '0x';
-    if CharSet <> 'ucs2' then raise Exception.Create('ANSI SQL supports UCS2 literal strings only.');
-    // Seems that MySQL UCS2 is big endian while ANSI (or at least MS SQL Server) UCS2 is little endian.
-    for i:=1 to length(Text) do if i mod 2 = 0 then s := s + IntToHex(Ord(Text[i + 1]), 2) + IntToHex(Ord(Text[i]), 2);
-    result := 'CAST(' + s + ' AS NATIONAL CHAR)';
-  end;
-end;
-
-
-
-{***
-  Escapes as necessary.
-
-  @param string Text to escape
-  @return string
-}
-function escapeAuto(Text: string; CharSet: string; sql_version: integer): string;
-begin
-    // escAllCharacters() won't work with SQL_VERSION_ANSI until HeidiSQL has UCS2 support,
-    // so for now live with stuff like NUL terminators in exported ANSI SQL script.
-  if hasIrregularChars(Text) and (sql_version <> SQL_VERSION_ANSI) then
-  begin
-    Result := escAllCharacters(Text, CharSet, sql_version);
-  end
-  else
-  begin
-    Result := esc(Text, false, sql_version);
-  end;
 end;
 
 
