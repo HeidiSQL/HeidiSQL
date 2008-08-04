@@ -943,10 +943,14 @@ object MDIChild: TMDIChild
           TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnChange = DataGridChange
+          OnEditCancelled = DataGridEditCancelled
+          OnEdited = DataGridEdited
+          OnEditing = DataGridEditing
           OnFocusChanging = DataGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
           OnHeaderClick = DataGridHeaderClick
+          OnKeyDown = GridKeyDown
           OnKeyUp = controlsKeyUp
           OnNewText = DataGridNewText
           Columns = <>
@@ -1128,6 +1132,7 @@ object MDIChild: TMDIChild
           WantTabs = True
           OnGetText = GridGetText
           OnPaintText = GridPaintText
+          OnKeyDown = GridKeyDown
           OnKeyUp = controlsKeyUp
           Columns = <>
         end

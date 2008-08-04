@@ -355,12 +355,18 @@ type
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DataGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
+    procedure DataGridEdited(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex);
+    procedure DataGridEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex; var Allowed: Boolean);
     procedure DataGridFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure GridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
     procedure DataGridHeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button:
         TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure GridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DataGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; NewText: WideString);
     procedure GridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
@@ -5973,5 +5979,43 @@ begin
   Mainform.actDataPost.Enabled := False;
   Mainform.actDataCancelEdit.Enabled := False;
 end;
+
+
+
+procedure TMDIChild.GridKeyDown(Sender: TObject; var Key: Word; Shift:
+    TShiftState);
+var
+  g: TVirtualStringTree;
+begin
+  g := TVirtualStringTree(Sender);
+  case Key of
+    VK_HOME: g.FocusedColumn := 0;
+    VK_END: g.FocusedColumn := g.Header.Columns.Count-1;
+    VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
+  end;
+end;
+
+
+procedure TMDIChild.DataGridEditing(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+begin
+  // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
+  Mainform.actDataCancelEdit.ShortCut := 0;
+end;
+
+procedure TMDIChild.DataGridEdited(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex);
+begin
+  // Reassign Esc to "Cancel row editing" action
+  Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
+end;
+
+procedure TMDIChild.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
+    TColumnIndex);
+begin
+  // Reassign Esc to "Cancel row editing" action
+  Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
+end;
+
 
 end.
