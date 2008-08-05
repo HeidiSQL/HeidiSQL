@@ -1285,10 +1285,15 @@ begin
           while not FSelectedTableColumns.Eof do begin
             if FSelectedTableColumns.FieldByName('Field').AsWideString = FieldName then begin
               rx := TRegExpr.Create;
-              rx.Expression := '^((tiny|small|medium|big)?int|float|double|decimal)\b';
+              rx.Expression := '^(tiny|small|medium|big)?int\b';
               if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then begin
                 col.Alignment := taRightJustify;
-                FDataGridResult.Columns[i].IsNumeric := True;
+                FDataGridResult.Columns[i].IsInt := True;
+              end;
+              rx.Expression := '^(float|double|decimal)\b';
+              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then begin
+                col.Alignment := taRightJustify;
+                FDataGridResult.Columns[i].IsFloat := True;
               end;
               rx.Expression := '^(date|datetime|time(stamp)?)\b';
               if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
@@ -2440,8 +2445,11 @@ begin
         col.Width := prefDefaultColWidth;
         col.Options := col.Options - [coAllowClick];
         FQueryGridResult.Columns[i].Name := FieldName;
-        if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftFloat, ftLargeint] then begin
-          FQueryGridResult.Columns[i].IsNumeric := True;
+        if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint] then begin
+          FQueryGridResult.Columns[i].IsInt := True;
+          col.Alignment := taRightJustify;
+        end else if ds.Fields[i].DataType in [ftFloat] then begin
+          FQueryGridResult.Columns[i].IsFloat := True;
           col.Alignment := taRightJustify;
         end else if ds.Fields[i].DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp] then
           FQueryGridResult.Columns[i].IsDate := True
@@ -5479,7 +5487,7 @@ begin
   // NULL value
   isNull := r.Rows[Node.Index].Cells[Column].IsNull;
   // Numeric field
-  if r.Columns[Column].isNumeric then
+  if r.Columns[Column].isInt or r.Columns[Column].isFloat then
     if isNull then cl := $FF9090 else cl := clBlue
   // Date field
   else if r.Columns[Column].isDate then
@@ -5643,7 +5651,9 @@ begin
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
-      if Not FDataGridResult.Columns[i].IsNumeric then Val := esc(Val);
+      if FDataGridResult.Columns[i].IsInt then // don't quote or convert
+      else if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val)
+      else Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
@@ -5730,7 +5740,9 @@ begin
     // Find old value of key column
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
-    if Not Columns[j].IsNumeric then KeyVal := esc(KeyVal);
+    if FDataGridResult.Columns[j].IsInt then
+    else if FDataGridResult.Columns[j].IsFloat then KeyVal := FloatStr(KeyVal)
+    else KeyVal := esc(KeyVal);
     if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
     else KeyVal := '=' + KeyVal;
     Result := Result + mask(KeyCols[i]) + KeyVal + ' AND ';
@@ -5815,7 +5827,9 @@ begin
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
-      if Not FDataGridResult.Columns[i].IsNumeric then Val := esc(Val);
+      if FDataGridResult.Columns[i].IsInt then
+      else if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val)
+      else Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       Vals := Vals + Val + ', ';
     end;

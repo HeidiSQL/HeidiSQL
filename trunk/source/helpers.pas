@@ -51,7 +51,8 @@ type
     IsPK: Boolean;
     IsBlob: Boolean;
     IsMemo: Boolean;
-    IsNumeric: Boolean;
+    IsInt: Boolean;
+    IsFloat: Boolean;
     IsDate: Boolean;
   end;
   TGridColumns = Array of TGridColumn;
@@ -94,6 +95,7 @@ type
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
+  function FloatStr(Val: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
   function hasNullChar(Text: string): boolean;
   function hasIrregularChars(Text: string): boolean;
@@ -854,7 +856,7 @@ end;
 function dataset2csv(ds: TGridResult; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
 var
   I, J                      : Integer;
-  Buffer, cbuffer           : WideString;
+  Buffer, cbuffer, val      : WideString;
   tofile                    : Boolean;
 begin
   separator := esc2ascii(separator);
@@ -881,7 +883,9 @@ begin
       begin
         if j>0 then
           Buffer := Buffer + Separator;
-        Buffer := Buffer + Encloser + ds.Rows[i].Cells[j].Text + Encloser;
+        val := ds.Rows[i].Cells[j].Text;
+        if ds.Columns[j].IsFloat then val := FloatStr(val);
+        Buffer := Buffer + Encloser + val + Encloser;
       end;
       // write buffer:
       cbuffer := cbuffer + buffer;
@@ -1306,6 +1310,23 @@ begin
     Result := Result * SIZE_TB
   else if (p_pb > 0) and (p_pb = Length(Str)-Length(NAME_PB)+1) then
     Result := Result * SIZE_PB;
+end;
+
+
+{**
+  Unformat a formatted float value. Used for CSV export and composing WHERE clauses for grid editing.
+}
+function FloatStr(Val: String): String;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i:=1 to Length(Val) do begin
+    if Val[i] in ['0'..'9'] then
+      Result := Result + Val[i]
+    else if Val[i] = DecimalSeparator then
+      Result := Result + '.';   
+  end;
 end;
 
 
