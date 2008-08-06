@@ -355,6 +355,8 @@ type
     function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DataGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure DataGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
     procedure DataGridEdited(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex);
@@ -6049,6 +6051,18 @@ procedure TMDIChild.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
 begin
   // Reassign Esc to "Cancel row editing" action
   Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
+end;
+
+procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
+    PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+var
+  Editor: TMemoEditor;
+begin
+  if FDataGridResult.Columns[Column].IsMemo then begin
+    Editor := TMemoEditor.Create;
+    EditLink := Editor;
+  end else
+    EditLink := TStringEditLink.Create;
 end;
 
 
