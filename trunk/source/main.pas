@@ -18,7 +18,7 @@ uses
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
-  SelectDBObject;
+  SelectDBObject, TntStdCtrls;
 
 type
   TMainForm = class(TForm)
@@ -332,6 +332,33 @@ type
     // Reference to currently active childwindow:
     property Childwin: TMDIChild read GetChildwin;
 end;
+
+
+  TMemoEditor = class(TInterfacedObject, IVTEditLink)
+  private
+    FForm: TForm;
+    FMemo: TTNTMemo;
+    FTree: TCustomVirtualStringTree; // A back reference to the tree calling.
+    FNode: PVirtualNode;             // The node to be edited.
+    FColumn: TColumnIndex;           // The column of the node.
+    FTextBounds: TRect;              // Smallest rectangle around the text.
+    FStopping: Boolean;              // Set to True when the edit link requests stopping the edit action.
+  public
+    FieldType: Integer;
+    MaxInputLength: Integer;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    function BeginEdit: Boolean; virtual; stdcall;
+    function CancelEdit: Boolean; virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall;
+    function GetBounds: TRect; virtual; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
+    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall;
+  end;
+
 
 var
   MainForm            : TMainForm;
@@ -2125,6 +2152,142 @@ procedure TMainForm.actDataCancelEditExecute(Sender: TObject);
 begin
   Childwin.DataGridCancelEdit(Sender);
 end;
+
+
+constructor TMemoEditor.Create;
+begin
+  inherited;
+end;
+
+destructor TMemoEditor.Destroy;
+var
+  reg: TRegistry;
+begin
+  inherited;
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, False) then begin
+    reg.WriteInteger( REGNAME_MEMOEDITOR_WIDTH, FForm.Width );
+    reg.WriteInteger( REGNAME_MEMOEDITOR_HEIGHT, FForm.Height );
+    reg.CloseKey;
+  end;
+  reg.Free;
+end;
+
+
+function TMemoEditor.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+// Retrieves the true text bounds from the owner tree.
+var
+  Text: WideString;
+  F: TFont;
+begin
+  Result := Tree is TCustomVirtualStringTree;
+  if not Result then
+    exit;
+
+  FTree := Tree as TVirtualStringTree;
+  FNode := Node;
+  FColumn := Column;
+  // Initial size, font and text of the node.
+  F := TFont.Create;
+  FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
+
+  FForm := TForm.Create(Ftree);
+  FForm.Parent := Tree;
+  FForm.BorderStyle := bsSizeable;
+  // Hide window caption
+  SetWindowLong(FForm.Handle, GWL_STYLE, GetWindowLong( FForm.Handle, GWL_STYLE ) and not WS_CAPTION );
+  FForm.ClientHeight := FForm.Height;
+
+  FMemo := TTNTMemo.Create(FForm);
+  FMemo.Parent := FForm;
+  FMemo.BorderStyle := bsSingle;
+  FMemo.Top := 0;
+  FMemo.Left := 0;
+  FMemo.Width := FForm.Width-4;
+  FMemo.Height := FForm.Height -25;
+  FMemo.Anchors := [akLeft, akTop, akRight, akBottom];
+  FMemo.Font := F;
+  FMemo.ScrollBars := ssBoth;
+  FMemo.MaxLength := MaxInputLength;
+  FMemo.Text := Text;
+
+  SetWindowSizeGrip(FForm.Handle, True);
+end;
+
+
+function TMemoEditor.BeginEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FForm.Show;
+    FMemo.SelectAll;
+    FMemo.SetFocus;
+  end;
+end;
+
+function TMemoEditor.CancelEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then
+  begin
+    FStopping := True;
+    FForm.Hide;
+    FTree.CancelEditNode;
+  end;
+end;
+
+function TMemoEditor.EndEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then
+  try
+    FStopping := True;
+    if FMemo.Text <> FTree.Text[FNode, FColumn] then
+      FTree.Text[FNode, FColumn] := FMemo.Text;
+    FForm.Hide;
+  except
+    FStopping := False;
+    raise;
+  end;
+end;
+
+function TMemoEditor.GetBounds: TRect; stdcall;
+begin
+  Result := FForm.BoundsRect;
+end;
+
+
+procedure TMemoEditor.ProcessMessage(var Message: TMessage); stdcall;
+begin
+end;
+
+procedure TMemoEditor.SetBounds(R: TRect); stdcall;
+// Sets the outer bounds of the edit control and the actual edit area in the control.
+begin
+  if not FStopping then begin
+    // Set the edit's bounds but make sure there's a minimum width and the right border does not
+    // extend beyond the parent's left/right border.
+    R.Right := R.Left + Mainform.GetRegValue(REGNAME_MEMOEDITOR_WIDTH, DEFAULT_MEMOEDITOR_WIDTH);
+    R.Bottom := R.Top + Mainform.GetRegValue(REGNAME_MEMOEDITOR_HEIGHT, DEFAULT_MEMOEDITOR_HEIGHT);
+    if R.Left < 0 then
+      R.Left := 0;
+    if R.Right - R.Left < 30 then
+      R.Right := R.Left + 30;
+    if R.Right > FTree.ClientWidth then
+      R.Right := FTree.ClientWidth;
+    FForm.BoundsRect := R;
+
+    // The selected text shall exclude the text margins and be centered vertically.
+    // We have to take out the two pixel border of the edit control as well as a one pixel "edit border" the
+    // control leaves around the (selected) text.
+    R := FForm.ClientRect;
+    if not (vsMultiline in FNode.States) then
+      OffsetRect(R, 0, FTextBounds.Top - FForm.Top);
+
+    SendMessage(FForm.Handle, EM_SETRECTNP, 0, Integer(@R));
+  end;
+end;
+
 
 
 end.

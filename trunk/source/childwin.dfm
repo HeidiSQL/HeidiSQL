@@ -943,6 +943,7 @@ object MDIChild: TMDIChild
           TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnChange = DataGridChange
+          OnCreateEditor = DataGridCreateEditor
           OnEditCancelled = DataGridEditCancelled
           OnEdited = DataGridEdited
           OnEditing = DataGridEditing
