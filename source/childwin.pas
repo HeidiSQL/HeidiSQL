@@ -5689,7 +5689,12 @@ begin
     ds := ExecSelectQuery(sql);
     if ds.RecordCount = 1 then begin
       for i := 0 to ds.FieldCount - 1 do begin
-        Row.Cells[i].Text := ds.Fields[i].AsWideString;
+        case ds.Fields[i].DataType of
+          ftWideMemo, ftMemo, ftBlob:
+            Row.Cells[i].Text := Utf8Decode(ds.Fields[i].AsString);
+          else
+            Row.Cells[i].Text := ds.Fields[i].AsWideString;
+        end;
         Row.Cells[i].IsNull := ds.Fields[i].IsNull;
       end;
       Sender.RepaintNode(Sender.FocusedNode);
@@ -5900,7 +5905,12 @@ begin
         // Make sure we're fetching the last inserted row which matches the WHERE clause
         ds.Last;
         for i := 0 to ds.FieldCount - 1 do begin
-          Row.Cells[i].Text := ds.Fields[i].AsWideString;
+          case ds.Fields[i].DataType of
+            ftWideMemo, ftMemo, ftBlob:
+              Row.Cells[i].Text := Utf8Decode(ds.Fields[i].AsString);
+            else
+              Row.Cells[i].Text := ds.Fields[i].AsWideString;
+          end;
           Row.Cells[i].IsNull := ds.Fields[i].IsNull;
         end;
         Sender.RepaintNode(Sender.FocusedNode);
