@@ -1325,12 +1325,7 @@ begin
         for i:=0 to ds.RecordCount-1 do begin
           SetLength(FDataGridResult.Rows[i].Cells, ds.FieldCount);
           for j:=0 to ds.FieldCount-1 do begin
-            case ds.Fields[j].DataType of
-              ftWideMemo, ftMemo, ftBlob:
-                FDataGridResult.Rows[i].Cells[j].Text := Utf8Decode(ds.Fields[j].AsString);
-              else
-                FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-            end;
+            FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
             FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
           end;
           ds.Next;
@@ -2466,12 +2461,7 @@ begin
       for i:=0 to ds.RecordCount-1 do begin
         SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
         for j:=0 to ds.FieldCount-1 do begin
-          case ds.Fields[j].DataType of
-            ftWideMemo, ftMemo, ftBlob:
-              FQueryGridResult.Rows[i].Cells[j].Text := Utf8Decode(ds.Fields[j].AsString);
-            else
-              FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-          end;
+          FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
           FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
         end;
         ds.Next;
