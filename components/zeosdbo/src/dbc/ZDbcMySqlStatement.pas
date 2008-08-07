@@ -179,11 +179,14 @@ end;
 function TZMySQLStatement.ExecuteQuery(const SQL: WideString): IZResultSet;
 var
   nativeSql: string;
+  convertedSql: PChar;
 begin
   Result := nil;
   if not (Connection as IZMySQLConnection).GetAnsiMode then nativeSql := UTF8Encode(SQL)
   else nativeSql := String(SQL);
-  if FPlainDriver.ExecQuery(FHandle, PChar(nativeSql)) = 0 then
+  // TODO: NUL probably does not survive at least one of the following two steps; examine.
+  convertedSql := PChar(nativeSql);
+  if FPlainDriver.ExecQuery(FHandle, convertedSql) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
@@ -217,9 +220,15 @@ function TZMySQLStatement.ExecuteUpdate(const SQL: WideString): Integer;
 var
   QueryHandle: PZMySQLResult;
   HasResultset : Boolean;
+  nativeSql: string;
+  convertedSql: PChar;
 begin
   Result := -1;
-  if FPlainDriver.ExecQuery(FHandle, PChar(UTF8Encode(SQL))) = 0 then
+  if not (Connection as IZMySQLConnection).GetAnsiMode then nativeSql := UTF8Encode(SQL)
+  else nativeSql := String(SQL);
+  // TODO: NUL probably does not survive at least one of the following two steps; examine.
+  convertedSql := PChar(nativeSql);
+  if FPlainDriver.ExecQuery(FHandle, convertedSql) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
@@ -271,9 +280,14 @@ end;
 function TZMySQLStatement.Execute(const SQL: WideString): Boolean;
 var
   HasResultset : Boolean;
-begin
+  nativeSql: string;
+  convertedSql: PChar;
   Result := False;
-  if FPlainDriver.ExecQuery(FHandle, PChar(UTF8Encode(SQL))) = 0 then
+  if not (Connection as IZMySQLConnection).GetAnsiMode then nativeSql := UTF8Encode(SQL)
+  else nativeSql := String(SQL);
+  // TODO: NUL probably does not survive at least one of the following two steps; examine.
+  convertedSql := PChar(nativeSql);
+  if FPlainDriver.ExecQuery(FHandle, convertedSql) = 0 then
   begin
     DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, SQL);
 {$IFDEF ENABLE_MYSQL_DEPRECATED}
