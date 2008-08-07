@@ -1612,10 +1612,15 @@ begin
 
       // Treat tables slightly different than views
       case GetDBObjectType( ds.Fields) of
-        NODETYPE_TABLE: // A normal table
+        NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: // A normal table
         begin
-          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
-          VTRowDataListTables[i-1].NodeType := NODETYPE_TABLE;
+          if GetDBObjectType(ds.Fields) = NODETYPE_CRASHED_TABLE then begin
+            VTRowDataListTables[i-1].ImageIndex := ICONINDEX_CRASHED_TABLE;
+            VTRowDataListTables[i-1].NodeType := NODETYPE_CRASHED_TABLE;
+          end else begin
+            VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
+            VTRowDataListTables[i-1].NodeType := NODETYPE_TABLE;
+          end;
           // Rows
           if ds.FindField('Rows') <> nil then
             ListCaptions.Add( FormatNumber( FieldContent(ds, 'Rows') ) )
@@ -1969,7 +1974,7 @@ begin
   // Check type of first selected node, to en-/disable certain menu items
   if DBObjectSelected then begin
     NodeData := ListTables.GetNodeData( SelectedNodes[0] );
-    TableSelected := NodeData.NodeType = NODETYPE_TABLE;
+    TableSelected := (NodeData.NodeType = NODETYPE_TABLE) or (NodeData.NodeType = NODETYPE_CRASHED_TABLE);
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
   end;
 
@@ -2521,6 +2526,7 @@ var
   begin
     ObjName := Fields[0].AsString;
     case GetDBObjectType(Fields) of
+      NODETYPE_CRASHED_TABLE: ObjType := 'table';
       NODETYPE_TABLE: ObjType := 'table';
       NODETYPE_VIEW: ObjType := 'view';
       else ObjType := 'unknown';
@@ -3146,7 +3152,7 @@ begin
     L := DBtree.GetNodeLevel(DBtree.GetFirstSelected);
   Mainform.actCreateTable.Enabled := L in [1,2];
   Mainform.actCreateView.Enabled := (L in [1,2]) and (mysql_version >= 50001);
-  Mainform.actEditTableProperties.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_TABLE);
+  Mainform.actEditTableProperties.Enabled := (L = 2) and ((GetSelectedNodeType = NODETYPE_TABLE) or (GetSelectedNodeType = NODETYPE_CRASHED_TABLE));
   Mainform.actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
   MainForm.actDropTablesAndViews.Enabled := (L = 2);
 end;
@@ -5010,7 +5016,7 @@ begin
           Bytes := GetTableSize(ds);
           CellText := FormatByteNumber(Bytes);
         end
-        else CellText := ''; // Applies for views
+        else CellText := ''; // Applies for views and crashed tables
       end;
   end;
 end;
@@ -5044,6 +5050,10 @@ begin
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_VIEW_HIGHLIGHT
               else ImageIndex := ICONINDEX_VIEW;
+          NODETYPE_CRASHED_TABLE:
+            if Kind = ikSelected then
+              ImageIndex := ICONINDEX_CRASHED_TABLE_HIGHLIGHT
+              else ImageIndex := ICONINDEX_CRASHED_TABLE;
         end;
       end;
   end;
