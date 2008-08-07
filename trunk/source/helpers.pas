@@ -50,7 +50,7 @@ type
     DataType: Byte; // @see constants in mysql_structures.pas
     IsPK: Boolean;
     IsBlob: Boolean;
-    IsMemo: Boolean;
+    IsText: Boolean;
     IsInt: Boolean;
     IsFloat: Boolean;
     IsDate: Boolean;

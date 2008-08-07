@@ -1300,9 +1300,9 @@ begin
               rx.Expression := '^(date|datetime|time(stamp)?)\b';
               if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
                 FDataGridResult.Columns[i].IsDate := True;
-              rx.Expression := '^(tiny|medium|long)?text\b';
+              rx.Expression := '^((tiny|medium|long)?text|varchar)\b';
               if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
-                FDataGridResult.Columns[i].IsMemo := True;
+                FDataGridResult.Columns[i].IsText := True;
               rx.Expression := '^((tiny|medium|long)?blob|(var)?binary)\b';
               if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
                 FDataGridResult.Columns[i].IsBlob := True;
@@ -2450,8 +2450,8 @@ begin
           col.Alignment := taRightJustify;
         end else if ds.Fields[i].DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp] then
           FQueryGridResult.Columns[i].IsDate := True
-        else if ds.Fields[i].DataType in [ftMemo, ftWideMemo] then
-          FQueryGridResult.Columns[i].IsMemo := True
+        else if ds.Fields[i].DataType in [ftWideString, ftMemo, ftWideMemo] then
+          FQueryGridResult.Columns[i].IsText := True
         else if ds.Fields[i].DataType in [ftBlob] then
           FQueryGridResult.Columns[i].IsBlob := True;
       end;
@@ -5485,7 +5485,7 @@ begin
   else if r.Columns[Column].isDate then
     if isNull then cl := $6060CC else cl := clMaroon
   // Text field
-  else if r.Columns[Column].isMemo then
+  else if r.Columns[Column].isText then
     if isNull then cl := $60CC60 else cl := clGreen
   // Text field
   else if r.Columns[Column].isBlob then
@@ -6036,7 +6036,7 @@ end;
 procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 begin
-  if FDataGridResult.Columns[Column].IsMemo then
+  if FDataGridResult.Columns[Column].IsText then
     EditLink := TMemoEditorLink.Create
   else
     EditLink := TStringEditLink.Create;
