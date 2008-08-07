@@ -555,6 +555,8 @@ begin
 
   // Initialize default-variables
   target_version := SQL_VERSION_DEFAULT;
+  target_cliwa := false;
+  win2export := 0;
   max_allowed_packet := 1024*1024;
 
   // export what?
