@@ -180,6 +180,7 @@ begin
         ds := CWin.FetchDbTableList(CWin.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         case GetDBObjectType(ds.Fields) of
+          NODETYPE_CRASHED_TABLE: ImageIndex := ICONINDEX_CRASHED_TABLE;
           NODETYPE_TABLE: ImageIndex := ICONINDEX_TABLE;
           NODETYPE_VIEW: ImageIndex := ICONINDEX_VIEW;
         end;

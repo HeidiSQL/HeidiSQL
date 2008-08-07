@@ -2092,12 +2092,20 @@ begin
       "Views bla references invalid..."
   }
   Result := NODETYPE_TABLE;
-  if (TableStatus.Count>=3)     // Result from SHOW TABLE STATUS
-    and TableStatus[1].IsNull   // Engine column is NULL for views
-    and TableStatus[2].IsNull then
-    Result := NODETYPE_VIEW
-  else if (TableStatus.Count=2) // Result from SHOW FULL TABLES
-    and (UpperCase(TableStatus[1].AsString) = 'VIEW') then
+  if (TableStatus.Count>=3) then begin
+    // Result from SHOW TABLE STATUS
+    if
+      TableStatus[1].IsNull and  // Engine column is NULL for views
+      TableStatus[2].IsNull and
+      (Pos('VIEW', UpperCase(TableStatus.FieldByName('Comment').AsWideString)) > 0)
+    then Result := NODETYPE_VIEW;
+    if
+      TableStatus[1].IsNull and
+      TableStatus[2].IsNull and
+      (Pos('MARKED AS CRASHED', UpperCase(TableStatus.FieldByName('Comment').AsWideString)) > 0)
+    then Result := NODETYPE_CRASHED_TABLE;
+  end else if (TableStatus.Count=2) // Result from SHOW FULL TABLES
+    and (UpperCase(TableStatus[1].AsWideString) = 'VIEW') then
     Result := NODETYPE_VIEW;
 end;
 
