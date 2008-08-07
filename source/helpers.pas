@@ -87,6 +87,7 @@ type
   function Max(A, B: Integer): Integer; assembler;
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
+  function openfs(filename: String): TFileStream;
   procedure wfs( var s: TFileStream; str: WideString = '');
   function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
@@ -1038,18 +1039,34 @@ begin
 end;
 
 
+{***
+  Create UTF-8 text file
+}
+function openfs(filename: String): TFileStream;
+var
+  header: array[0..2] of Byte;
+begin
+    Result := TFileStream.Create(filename, fmCreate);
+    header[0] := $EF;
+    header[1] := $BB;
+    header[2] := $BF;
+    Result.WriteBuffer(header, 3);
+end;
 
 {***
-  Write text to existing FileStream
+  Write text to existing FileStream in UTF-8
 
   @param TFileStream
   @param string Text to write
   @return void
 }
 procedure wfs( var s: TFileStream; str: WideString = '');
+var
+  utf8: string;
 begin
-  str := str + crlf;
-  s.Write(Pointer(str)^, Length(str)*2);
+  utf8 := Utf8Encode(str);
+  utf8 := utf8 + crlf;
+  s.Write(utf8[1], Length(utf8));
 end;
 
 

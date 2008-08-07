@@ -420,7 +420,6 @@ end;
 function TExportSQLForm.InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
 var
   UnparsedFileName, ParsedFileName, FileName, FilePath : String;
-  header: array[0..1] of Byte;
 begin
   Result := nil;
 
@@ -466,10 +465,7 @@ begin
 
   // Create the file
   try
-    Result := TFileStream.Create(ParsedFileName, fmCreate);
-    header[0] := $FF;
-    header[1] := $FE;
-    Result.WriteBuffer(header, 2);
+    Result := openfs(ParsedFileName);
   except
     MessageDlg('File "'+ParsedFileName+'" could not be opened!' +  CRLF + 'Maybe in use by another application?', mterror, [mbOK], 0);
     Result.Free;
