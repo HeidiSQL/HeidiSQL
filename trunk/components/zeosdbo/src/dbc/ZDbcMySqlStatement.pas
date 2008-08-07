@@ -282,6 +282,7 @@ var
   HasResultset : Boolean;
   nativeSql: string;
   convertedSql: PChar;
+begin
   Result := False;
   if not (Connection as IZMySQLConnection).GetAnsiMode then nativeSql := UTF8Encode(SQL)
   else nativeSql := String(SQL);
