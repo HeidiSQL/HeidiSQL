@@ -171,6 +171,17 @@ begin
   Result := (UNSIGNED_FLAG and FieldFlags) = 0;
 end;
 
+// The BINARY (0x80) flag has been broken in recent libmysql.dll versions, for some reason.
+function Binary: Boolean;
+var
+  Collation: Cardinal;
+begin
+  Result := False;
+  Collation := PlainDriver.GetFieldCollationId(FieldHandle);
+  if Collation = COLLATION_BINARY then Result := True;
+  if Collation = COLLATION_NONE then Result := True;
+end;
+
 begin
   case PlainDriver.GetFieldType(FieldHandle) of
     FIELD_TYPE_TINY:
@@ -220,17 +231,21 @@ begin
       Result := stUnicodeString;
     FIELD_TYPE_TINY_BLOB, FIELD_TYPE_MEDIUM_BLOB,
     FIELD_TYPE_LONG_BLOB, FIELD_TYPE_BLOB:
-      if (FieldFlags and BINARY_FLAG) = 0 then
-        Result := stUnicodeStream
-      else Result := stBinaryStream;
+      // TEXT and BLOB columns.
+      if Binary then Result := stBinaryStream
+      else Result := stUnicodeStream;
     FIELD_TYPE_BIT:
       Result := stBinaryStream;
     FIELD_TYPE_VARCHAR:
       Result := stUnicodeString;
     FIELD_TYPE_VAR_STRING:
-      Result := stUnicodeString;
+      // VARCHAR and VARBINARY columns.
+      if Binary then Result := stBytes
+      else Result := stUnicodeString;
     FIELD_TYPE_STRING:
-      Result := stUnicodeString;
+      // CHAR and BINARY columns.
+      if Binary then Result := stBytes
+      else Result := stUnicodeString;
     FIELD_TYPE_ENUM:
       Result := stUnicodeString;
     FIELD_TYPE_SET:
