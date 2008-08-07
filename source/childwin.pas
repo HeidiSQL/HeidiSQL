@@ -576,7 +576,7 @@ uses
   Main, fieldeditor,
   copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
-  Registry;
+  Registry, memoeditor;
 
 
 type
@@ -6035,13 +6035,10 @@ end;
 
 procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
-var
-  Editor: TMemoEditor;
 begin
-  if FDataGridResult.Columns[Column].IsMemo then begin
-    Editor := TMemoEditor.Create;
-    EditLink := Editor;
-  end else
+  if FDataGridResult.Columns[Column].IsMemo then
+    EditLink := TMemoEditorLink.Create
+  else
     EditLink := TStringEditLink.Create;
 end;
 
