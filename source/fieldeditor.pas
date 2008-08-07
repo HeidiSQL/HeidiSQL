@@ -1101,18 +1101,19 @@ procedure TFieldEditForm.ComboBoxTypeDrawItem(Control: TWinControl; Index:
     Integer; Rect: TRect; State: TOwnerDrawState);
 var
   s: string;
-  osVerInfo: TOSVersionInfo;
+{*dc: HDC;
+  dpi: Integer;*}
 begin
   with Control as TComboBox,Canvas do begin
-    // fix for a weird Vista issue
-     osVerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo) ;
-     if GetVersionEx(osVerInfo) then begin
-       if osVerInfo.dwPlatformId = VER_PLATFORM_WIN32_NT then begin
-         if osVerInfo.dwMajorVersion = 6 then begin
-           Font.Size := 6;
-         end;
-       end;
-     end;
+    // custom DPI support
+    {*
+    // not useful unless SetDPIAware() is issued.
+    dc := GetDC(MainForm.Handle);
+    dpi := GetDeviceCaps(dc, LOGPIXELSX);
+    ReleaseDC(MainForm.Handle, dc);
+    Font.PixelsPerInch := dpi;
+    *}
+    Font.PixelsPerInch := 96;
     // decide colors
     Brush.Color := clWindow;
     Font.Color := clWindowText;
