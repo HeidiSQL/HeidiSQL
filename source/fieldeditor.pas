@@ -438,12 +438,12 @@ begin
   // move field if position changed
   if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) and (cwin.mysql_version < 40001) then
     begin // Move field position
-      if MessageDLG('You are about to move a field''s position in the table-structure. While there is no handy one-query-method in MySQL to do that, this will be done in 4 steps:'+CRLF+
-       ' 1. Adding a temporary field at the specified position'+CRLF+
-       ' 2. Filling the temporary field with the same data as source field'+CRLF+
-       ' 3. Dropping the source-field'+CRLF+
-       ' 4. Renaming the temporary field to it''s original name.'+CRLF+CRLF+
-       'Be aware that this method can mess up existing indexes in your table or even can result in losing data! If you are not sure you should not use this function on indexed fields.'+CRLF+CRLF+
+      if MessageDLG('You are about to move a column''s position in the table definition. While there is no handy MySQL way to do that, this will be done in 4 steps:'+CRLF+
+       ' 1. Add a temporary column at the specified position'+CRLF+
+       ' 2. Fill the temporary column with the same data as the source column'+CRLF+
+       ' 3. Drop the source column'+CRLF+
+       ' 4. Rename the temporary column to the same name the source column had.'+CRLF+CRLF+
+       'Be aware that this method can mess up existing indexes in your table or even result in losing data! If you are not sure you should not use this function, especially on indexed columns.'+CRLF+CRLF+
        'Continue?',
        mtConfirmation,
        [mbYes, mbCancel],

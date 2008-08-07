@@ -78,7 +78,7 @@ object CopyTableForm: TCopyTableForm
     Top = 141
     Width = 97
     Height = 17
-    Caption = 'With all Fields'
+    Caption = 'With all Columns'
     Checked = True
     State = cbChecked
     TabOrder = 1

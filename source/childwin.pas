@@ -285,7 +285,7 @@ type
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
-    function FieldContent(ds: TDataSet; FieldName: String): String;
+    function FieldContent(ds: TDataSet; ColName: String): String;
     procedure LoadDatabaseProperties(db: string);
     procedure ShowHost;
     procedure ShowDatabase(db: String);
@@ -1159,7 +1159,7 @@ var
   DisplayedColumnsList,
   HiddenKeyCols,
   KeyCols              : WideStrings.TWideStringList;
-  Filter, FieldName    : WideString;
+  Filter, ColName      : WideString;
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
   ds                   : TDataSet;
@@ -1235,7 +1235,7 @@ begin
         end;
         // Cut last comma
         select_base := copy( select_base, 1, Length(select_base)-1 );
-        // Signal for the user that we now hide some fields
+        // Signal for the user that we now hide some columns
         tbtnDataColumns.ImageIndex := 108;
       end;
       select_base := select_base + ' FROM ' + mask( SelectedTable );
@@ -1266,11 +1266,11 @@ begin
         MainForm.ShowStatus('Filling grid with record-data...');
         SetLength(FDataGridResult.Columns, ds.FieldCount);
         for i:=0 to ds.FieldCount-1 do begin
-          FieldName := ds.Fields[i].FieldName;
-          FDataGridResult.Columns[i].Name := FieldName;
+          ColName := ds.Fields[i].FieldName;
+          FDataGridResult.Columns[i].Name := ColName;
           col := DataGrid.Header.Columns.Add;
-          col.Text := FieldName;
-          if HiddenKeyCols.IndexOf(FieldName) > -1 then
+          col.Text := ColName;
+          if HiddenKeyCols.IndexOf(ColName) > -1 then
             col.Options := col.Options - [coVisible];
           col.Width := prefDefaultColWidth;
           // Sorting color and title image
@@ -1285,7 +1285,7 @@ begin
           // Right alignment for numeric columns
           FSelectedTableColumns.First;
           while not FSelectedTableColumns.Eof do begin
-            if FSelectedTableColumns.FieldByName('Field').AsWideString = FieldName then begin
+            if FSelectedTableColumns.FieldByName('Field').AsWideString = ColName then begin
               rx := TRegExpr.Create;
               rx.Expression := '^(tiny|small|medium|big)?int\b';
               if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then begin
@@ -1313,7 +1313,7 @@ begin
           FSelectedTableKeys.First;
           for j := 0 to FSelectedTableKeys.RecordCount - 1 do begin
             if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
-              and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = FieldName) then begin
+              and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = ColName) then begin
               FDataGridResult.Columns[i].IsPK := True;
               break;
             end;
@@ -1374,7 +1374,7 @@ begin
   if GetSelectedNodeType = NODETYPE_TABLE then begin
     // Get rowcount from table
     rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
-    lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' records total';
+    lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' rows total';
   end else begin
     // Don't fetch rowcount from views to fix bug #1844952
     rows_total := -1;
@@ -1414,7 +1414,7 @@ begin
 
   if ( rows_matching = rows_total ) and
     (Filter <> '') then
-    lblDataTop.Caption := lblDataTop.Caption + ', filter matches all records';
+    lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
 
   if ( mainform.CheckBoxLimit.Checked ) and
     ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) ) then
@@ -1571,14 +1571,14 @@ end;
 
 
 // Fetch content from a row cell, avoiding NULLs to cause AVs
-function TMDIChild.FieldContent(ds: TDataSet; FieldName: String): String;
+function TMDIChild.FieldContent(ds: TDataSet; ColName: String): String;
 begin
   Result := '';
   if
-    (ds.FindField(FieldName) <> nil) and
-    (not ds.FindField(FieldName).IsNull)
+    (ds.FindField(colName) <> nil) and
+    (not ds.FindField(ColName).IsNull)
   then
-    Result := ds.FieldByName(FieldName).AsString;
+    Result := ds.FieldByName(ColName).AsString;
 end;
 
 
@@ -1616,7 +1616,7 @@ begin
         begin
           VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
           VTRowDataListTables[i-1].NodeType := NODETYPE_TABLE;
-          // Records
+          // Rows
           if ds.FindField('Rows') <> nil then
             ListCaptions.Add( FormatNumber( FieldContent(ds, 'Rows') ) )
           else
@@ -1888,7 +1888,7 @@ begin
 
   pcChange( Self );
   MainForm.ShowStatus( STATUS_MSG_READY );
-  MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' field(s)', 0);
+  MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' column(s)', 0);
   Screen.Cursor := crDefault;
 end;
 
@@ -2318,7 +2318,7 @@ var
   fieldcount        : Integer;
   recordcount       : Integer;
   ds                : TDataSet;
-  FieldName         : WideString;
+  ColName           : WideString;
   col               : TVirtualTreeColumn;
 begin
   if CurrentLine then SQL := parseSQL(SynMemoQuery.LineText)
@@ -2402,8 +2402,8 @@ begin
 
       LabelResultinfo.Caption :=
         FormatNumber( rowsaffected ) +' row(s) affected, '+
-        FormatNumber( fieldcount ) +' field(s) / '+
-        FormatNumber( recordcount ) +' record(s) in last result set.';
+        FormatNumber( fieldcount ) +' column(s) / '+
+        FormatNumber( recordcount ) +' row(s) in last result set.';
       if ( SQL.Count = 1 ) then
       begin
         LabelResultinfo.Caption := LabelResultinfo.Caption +
@@ -2436,12 +2436,12 @@ begin
       SetLength(FQueryGridResult.Columns, 0);
       SetLength(FQueryGridResult.Columns, ds.FieldCount);
       for i:=0 to ds.FieldCount-1 do begin
-        FieldName := ds.Fields[i].FieldName;
+        ColName := ds.Fields[i].FieldName;
         col := QueryGrid.Header.Columns.Add;
-        col.Text := FieldName;
+        col.Text := ColName;
         col.Width := prefDefaultColWidth;
         col.Options := col.Options - [coAllowClick];
-        FQueryGridResult.Columns[i].Name := FieldName;
+        FQueryGridResult.Columns[i].Name := ColName;
         if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint] then begin
           FQueryGridResult.Columns[i].IsInt := True;
           col.Alignment := taRightJustify;

@@ -382,7 +382,7 @@ object CreateTableForm: TCreateTableForm
     Width = 153
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 1
   end
   object ComboBoxTableType: TComboBox
@@ -391,7 +391,7 @@ object CreateTableForm: TCreateTableForm
     Width = 153
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 3
   end
   object comboCharset: TComboBox
@@ -400,7 +400,7 @@ object CreateTableForm: TCreateTableForm
     Width = 153
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
+    ItemHeight = 0
     Sorted = True
     TabOrder = 10
     OnChange = comboCharsetChange
@@ -411,7 +411,7 @@ object CreateTableForm: TCreateTableForm
     Width = 153
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
+    ItemHeight = 0
     Sorted = True
     TabOrder = 12
   end
