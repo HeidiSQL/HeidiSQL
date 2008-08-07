@@ -1075,8 +1075,6 @@ begin
                   value := Query.Fields[k].AsWideString;
                 ftBoolean:
                   value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
-                ftWideMemo, ftMemo, ftBlob:
-                  value := esc( Utf8Decode(Query.Fields[k].AsString), False, target_version );
                 else
                   value := esc( Query.Fields[k].AsWideString, False, target_version );
               end;
