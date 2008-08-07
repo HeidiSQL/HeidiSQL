@@ -763,7 +763,7 @@ begin
       '  </style>' + crlf +
       '</head>' + crlf + crlf +
       '<body>' + crlf + crlf +
-      '<h3>' + htmltitle + ' (' + inttostr(Length(ds.Rows)) + ' Records)</h3>' + crlf + crlf +
+      '<h3>' + htmltitle + ' (' + inttostr(Length(ds.Rows)) + ' rows)</h3>' + crlf + crlf +
       '<table >' + crlf +
       '  <tr id="header">' + crlf;
     for j:=0 to Length(ds.Columns)-1 do

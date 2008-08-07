@@ -1462,7 +1462,7 @@ end;
 
 procedure TMainForm.actDataDeleteExecute(Sender: TObject);
 begin
-  // Delete record(s)
+  // Delete row(s)
   if not Childwin.CheckUniqueKeyClause then
     Exit;
   if Childwin.DataGrid.SelectedCount = 0 then
@@ -1514,7 +1514,7 @@ begin
   // We allow the user to select and delete multiple listItems
   dropList := GetVTCaptions( Childwin.ListColumns, True );
   // User confirmation
-  if MessageDlg('Delete ' + IntToStr(dropList.Count) + ' field(s): ' + ImplodeStr( ', ', dropList ) + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  if MessageDlg('Delete ' + IntToStr(dropList.Count) + ' column(s): ' + ImplodeStr( ', ', dropList ) + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   try
     // Concat fields for ALTER query
     for i := 0 to dropList.Count - 1 do

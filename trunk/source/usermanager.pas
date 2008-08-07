@@ -293,7 +293,7 @@ begin
 
   // Load users into memory
   Users := TUsers.Create;
-  // Enable limitations editors only if relevant fields exist
+  // Enable limitations editors only if relevant columns exist
   lblMaxQuestions.Enabled := dsUser.FindField('max_questions') <> nil;
   editMaxQuestions.Enabled := lblMaxQuestions.Enabled;
   udMaxQuestions.Enabled := lblMaxQuestions.Enabled;
@@ -1121,7 +1121,7 @@ begin
         end;
       end;
       PrivWhere := Delim(PrivUpdates);
-      // Assemble list of key fields for new privilege definition.
+      // Assemble list of key columns for new privilege definition.
       PrivUpdates.Clear;
       PrivValues.Clear;
       // Assemble values of new privilege definition.
@@ -1553,7 +1553,7 @@ begin
       if cropNames.IndexOf(PrivNames[i]) = -1 then PrivNames.Delete(i);
     end;
   end;
-  // Find out what SET fields of tables_priv this server/version has.
+  // Find out what SET columns in tables_priv this server/version has.
   // Only load tables_priv.Table_priv
   i := PrivNames.IndexOf('Table_priv');
   if i > -1 then begin
@@ -1561,7 +1561,7 @@ begin
     PrivNames.AddStrings(GetSETValues('Table'));
   end;
   tables_col_ignore := i > -1;
-  // Find out what SET fields of columns_priv this server/version has.
+  // Find out what SET columns in columns_priv this server/version has.
   i := PrivNames.IndexOf('Column_priv');
   if i > -1 then begin
     PrivNames.Delete(i);

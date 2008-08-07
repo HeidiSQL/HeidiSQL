@@ -70,7 +70,7 @@ type
     procedure EditFieldnameChange(Sender: TObject);
     procedure ListboxColumnsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure refreshfields(Sender: TObject);
+    procedure refreshColumnList(Sender: TObject);
     procedure ButtonChangeClick(Sender: TObject);
     procedure ComboBoxTypeChange(Sender: TObject);
     procedure EditLengthSetChange(Sender: TObject);
@@ -99,7 +99,7 @@ uses
   Main, Childwin, helpers, mysql_structures;
 
 var
-  fields : array of TMysqlField;
+  cols : array of TMysqlField;
 
 {$R *.DFM}
 
@@ -161,12 +161,12 @@ begin
   createQuery := 'CREATE TABLE ' + mainform.mask(DBComboBox.Text) + '.' + mainform.mask(EditTablename.Text) + ' (';
 
   // Columns
-  for i := 0 to length(fields) - 1 do
+  for i := 0 to length(cols) - 1 do
   begin
-    FieldType := MySqlDataTypeArray[fields[i].FieldType];
-    createQuery := createQuery + mainform.mask(fields[i].Name) + ' ' +
-      comboboxtype.items[fields[i].FieldType];                              // Typ
-    LengthSet := fields[i].LengthSet;
+    FieldType := MySqlDataTypeArray[cols[i].FieldType];
+    createQuery := createQuery + mainform.mask(cols[i].Name) + ' ' +
+      comboboxtype.items[cols[i].FieldType];                              // Typ
+    LengthSet := cols[i].LengthSet;
     // Unset length if not allowed for fieldtype
     if not FieldType.HasLength then
       LengthSet := '';
@@ -180,20 +180,20 @@ begin
     end;
     if LengthSet <> '' then
       createQuery := createQuery  + ' (' + LengthSet + ')';                   // Length/Set
-    if FieldType.HasBinary and fields[i].Binary then
+    if FieldType.HasBinary and cols[i].Binary then
       createQuery := createQuery  + ' BINARY';                                // Binary
-    if FieldType.HasUnsigned and fields[i].Unsigned then
+    if FieldType.HasUnsigned and cols[i].Unsigned then
       createQuery := createQuery  + ' UNSIGNED';                              // Unsigned
-    if FieldType.HasZerofill and fields[i].Zerofill then
+    if FieldType.HasZerofill and cols[i].Zerofill then
       createQuery := createQuery  + ' ZEROFILL';                              // Zerofill
-    if fields[i].Default <> '' then
-      createQuery := createQuery  + ' DEFAULT ''' + fields[i].Default + '''';   // Default
-    if fields[i].NotNull then
+    if cols[i].Default <> '' then
+      createQuery := createQuery  + ' DEFAULT ''' + cols[i].Default + '''';   // Default
+    if cols[i].NotNull then
       createQuery := createQuery  + ' NOT NULL';                              // Not null
-    if fields[i].AutoIncrement then
+    if cols[i].AutoIncrement then
       createQuery := createQuery  + ' AUTO_INCREMENT';                         // AutoIncrement
 
-    if i < length(fields)-1 then
+    if i < length(cols)-1 then
       createQuery := createQuery + ', '
   end;
 
@@ -201,22 +201,22 @@ begin
   primaryKey := '';
   uniqueKey := '';
   indexKey := '';
-  for i := 0 to length(fields) - 1 do
+  for i := 0 to length(cols) - 1 do
   begin
-    if fields[i].Primary then
+    if cols[i].Primary then
     begin
       if primaryKey <> '' then primaryKey := primaryKey + ',';
-      primaryKey := primaryKey + mainform.mask(fields[i].Name);
+      primaryKey := primaryKey + mainform.mask(cols[i].Name);
     end;
-    if fields[i].Unique then
+    if cols[i].Unique then
     begin
       if uniqueKey <> '' then uniqueKey := uniqueKey + ',';
-      uniqueKey := uniqueKey + mainform.mask(fields[i].Name);
+      uniqueKey := uniqueKey + mainform.mask(cols[i].Name);
     end;
-    if fields[i].Index then
+    if cols[i].Index then
     begin
       if indexKey <> '' then indexKey := indexKey + ',';
-      indexKey := indexKey + mainform.mask(fields[i].Name);
+      indexKey := indexKey + mainform.mask(cols[i].Name);
     end;
   end;
   if primaryKey <> '' then
@@ -258,16 +258,16 @@ end;
 
 
 
-procedure TCreateTableForm.refreshfields(Sender: TObject);
+procedure TCreateTableForm.refreshColumnList(Sender: TObject);
 var i : word;
 begin
-  // refresh field-list
+  // refresh list of columns
   with ListboxColumns do
   begin
     Items.Clear;
-    if length(fields) > 0 then
-      for i := 0 to length(fields)-1 do
-        Items.Add(fields[i].Name);
+    if length(cols) > 0 then
+      for i := 0 to length(cols)-1 do
+        Items.Add(cols[i].Name);
     ItemIndex := index;
   end;
   if index = -1 then
@@ -293,18 +293,18 @@ end;
 procedure TCreateTableForm.ButtonDeleteClick(Sender: TObject);
 var i : Word;
 begin
-  // delete field
-  if length(fields) > 1 then
-    for i := index to length(fields)-2 do
+  // remove column
+  if length(cols) > 1 then
+    for i := index to length(cols)-2 do
     begin
-      fields[i] := fields[i+1];
+      cols[i] := cols[i+1];
     end;
-  setlength(fields, length(fields)-1);
+  setlength(cols, length(cols)-1);
   dec(index);
-  refreshfields(self);
+  refreshColumnList(self);
   EditFieldNameChange(self);
   ListboxColumnsClick(self);
-  if length(fields) = 0 then
+  if length(cols) = 0 then
   begin
     ButtonMoveUp.Enabled := false;
     ButtonMoveDown.Enabled := false;
@@ -362,14 +362,14 @@ end;
 procedure TCreateTableForm.ComboBoxTypeChange(Sender: TObject);
 begin
   // Type
-  fields[index].FieldType := ComboBoxType.ItemIndex;
+  cols[index].FieldType := ComboBoxType.ItemIndex;
   checktypes(self);
 end;
 
 procedure TCreateTableForm.EditLengthSetChange(Sender: TObject);
 begin
   // LengthSet
-  fields[index].LengthSet := EditLengthSet.Text;
+  cols[index].LengthSet := EditLengthSet.Text;
 end;
 
 
@@ -399,63 +399,63 @@ end;
 procedure TCreateTableForm.EditDefaultChange(Sender: TObject);
 begin
   // Default
-  fields[index].Default := EditDefault.Text;
+  cols[index].Default := EditDefault.Text;
 end;
 
 procedure TCreateTableForm.CheckBoxPrimaryClick(Sender: TObject);
 begin
   // Primary
-  fields[index].Primary := CheckBoxPrimary.Checked;
+  cols[index].Primary := CheckBoxPrimary.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxIndexClick(Sender: TObject);
 begin
   // Index
-  fields[index].Index := CheckBoxIndex.Checked;
+  cols[index].Index := CheckBoxIndex.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxUniqueClick(Sender: TObject);
 begin
   // Unique
-  fields[index].Unique := CheckBoxUnique.Checked;
+  cols[index].Unique := CheckBoxUnique.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxBinaryClick(Sender: TObject);
 begin
   // Binary
-  fields[index].Binary := CheckBoxBinary.Checked;
+  cols[index].Binary := CheckBoxBinary.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxUnsignedClick(Sender: TObject);
 begin
   // Unsigned
-  fields[index].Unsigned := CheckBoxUnsigned.Checked;
+  cols[index].Unsigned := CheckBoxUnsigned.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxZerofillClick(Sender: TObject);
 begin
   // Zerofill
-  fields[index].Zerofill := CheckBoxZerofill.Checked;
+  cols[index].Zerofill := CheckBoxZerofill.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxNotNullClick(Sender: TObject);
 begin
   // Not Null
-  fields[index].NotNull := CheckBoxNotNull.Checked;
+  cols[index].NotNull := CheckBoxNotNull.Checked;
 end;
 
 procedure TCreateTableForm.CheckBoxAutoincrementClick(Sender: TObject);
 begin
   // AutoIncrement
-  fields[index].AutoIncrement := CheckBoxAutoIncrement.Checked;
+  cols[index].AutoIncrement := CheckBoxAutoIncrement.Checked;
 end;
 
 procedure TCreateTableForm.Button1Click(Sender: TObject);
 begin
   // Add new Field
-  index := length(fields);
-  setlength(fields, index+1);
-  with fields[index] do
+  index := length(cols);
+  setlength(cols, index+1);
+  with cols[index] do
   begin
     Name := EditFieldName.Text;
     FieldType := 0;
@@ -471,7 +471,7 @@ begin
     Autoincrement := false;
     ListboxColumns.Items.Add(Name);
   end;
-  refreshfields(self);
+  refreshColumnList(self);
   EditFieldnameChange(self);
   ListboxColumns.ItemIndex := index;
   // Call change-handler of Tablename-edit to check if
@@ -503,8 +503,8 @@ begin
   // ListColumns Change
   index := ListboxColumns.ItemIndex;
   if index > -1 then
-    editfieldname.Text := fields[index].Name;
-  refreshfields(self);
+    editfieldname.Text := cols[index].Name;
+  refreshColumnList(self);
 end;
 
 procedure TCreateTableForm.FormShow(Sender: TObject);
@@ -541,7 +541,7 @@ begin
     
     
   index := -1;
-  setLength(fields, 0);
+  setLength(cols, 0);
   ListboxColumns.Items.Clear;
   EditTableName.Text := 'TableName';
   EditFieldName.Text := 'FieldName';
@@ -568,8 +568,8 @@ end;
 procedure TCreateTableForm.ButtonChangeClick(Sender: TObject);
 begin
   // Change Fieldname
-  fields[index].Name := editfieldname.Text;
-  refreshfields(self);
+  cols[index].Name := editfieldname.Text;
+  refreshColumnList(self);
   editfieldnamechange(self);
 end;
 
@@ -618,7 +618,7 @@ end;
 procedure TCreateTableForm.fillControls(Sender: TObject);
 begin
   // fill controls with values
-  with fields[index] do
+  with cols[index] do
   begin
     ComboBoxType.ItemIndex := FieldType;
     EditLengthSet.Text := LengthSet;
@@ -639,25 +639,25 @@ end;
 procedure TCreateTableForm.ButtonMoveUpClick(Sender: TObject);
 begin
   // move up
-  setlength(fields, length(fields)+1);
-  fields[length(fields)-1] := fields[index-1];
-  fields[index-1] := fields[index];
-  fields[index] := fields[length(fields)-1];
-  setlength(fields, length(fields)-1);
+  setlength(cols, length(cols)+1);
+  cols[length(cols)-1] := cols[index-1];
+  cols[index-1] := cols[index];
+  cols[index] := cols[length(cols)-1];
+  setlength(cols, length(cols)-1);
   dec(index);
-  refreshfields(self);
+  refreshColumnList(self);
 end;
 
 procedure TCreateTableForm.ButtonMoveDownClick(Sender: TObject);
 begin
   // move down
-  setlength(fields, length(fields)+1);
-  fields[length(fields)-1] := fields[index+1];
-  fields[index+1] := fields[index];
-  fields[index] := fields[length(fields)-1];
-  setlength(fields, length(fields)-1);
+  setlength(cols, length(cols)+1);
+  cols[length(cols)-1] := cols[index+1];
+  cols[index+1] := cols[index];
+  cols[index] := cols[length(cols)-1];
+  setlength(cols, length(cols)-1);
   inc(index);
-  refreshfields(self);
+  refreshColumnList(self);
 end;
 
 
