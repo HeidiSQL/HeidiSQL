@@ -37,7 +37,8 @@ uses
   updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck},
   editvar in '..\..\source\editvar.pas' {frmEditVariable},
   view in '..\..\source\view.pas' {frmView},
-  selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject};
+  selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject},
+  memoeditor in '..\..\source\memoeditor.pas' {frmMemoEditor};
 
 {$R *.RES}
 

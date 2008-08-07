@@ -18,7 +18,7 @@ uses
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
-  SelectDBObject, TntStdCtrls;
+  SelectDBObject, TntStdCtrls, memoeditor;
 
 type
   TMainForm = class(TForm)
@@ -336,8 +336,7 @@ end;
 
   TMemoEditor = class(TInterfacedObject, IVTEditLink)
   private
-    FForm: TForm;
-    FMemo: TTNTMemo;
+    FForm: TfrmMemoEditor;
     FTree: TCustomVirtualStringTree; // A back reference to the tree calling.
     FNode: PVirtualNode;             // The node to be edited.
     FColumn: TColumnIndex;           // The column of the node.
@@ -2160,17 +2159,9 @@ begin
 end;
 
 destructor TMemoEditor.Destroy;
-var
-  reg: TRegistry;
 begin
   inherited;
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_MEMOEDITOR_WIDTH, FForm.Width );
-    reg.WriteInteger( REGNAME_MEMOEDITOR_HEIGHT, FForm.Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  FForm.Free;
 end;
 
 
@@ -2187,69 +2178,52 @@ begin
   FTree := Tree as TVirtualStringTree;
   FNode := Node;
   FColumn := Column;
+
   // Initial size, font and text of the node.
   F := TFont.Create;
   FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
 
-  FForm := TForm.Create(Ftree);
+  // Create the editor form
+  FForm := TfrmMemoEditor.Create(Ftree);
   FForm.Parent := Tree;
-  FForm.BorderStyle := bsSizeable;
-  // Hide window caption
-  SetWindowLong(FForm.Handle, GWL_STYLE, GetWindowLong( FForm.Handle, GWL_STYLE ) and not WS_CAPTION );
-  FForm.ClientHeight := FForm.Height;
-
-  FMemo := TTNTMemo.Create(FForm);
-  FMemo.Parent := FForm;
-  FMemo.BorderStyle := bsSingle;
-  FMemo.Top := 0;
-  FMemo.Left := 0;
-  FMemo.Width := FForm.Width-4;
-  FMemo.Height := FForm.Height -25;
-  FMemo.Anchors := [akLeft, akTop, akRight, akBottom];
-  FMemo.Font := F;
-  FMemo.ScrollBars := ssBoth;
-  FMemo.MaxLength := MaxInputLength;
-  FMemo.Text := Text;
-
-  SetWindowSizeGrip(FForm.Handle, True);
+  FForm.memoText.Font := F;
+  FForm.memoText.Text := Text;
 end;
 
 
 function TMemoEditor.BeginEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
-  if Result then begin
+  if Result then
     FForm.Show;
-    FMemo.SelectAll;
-    FMemo.SetFocus;
-  end;
 end;
+
 
 function TMemoEditor.CancelEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
-  if Result then
-  begin
+  if Result then begin
     FStopping := True;
     FForm.Hide;
     FTree.CancelEditNode;
   end;
 end;
 
+
 function TMemoEditor.EndEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
-  if Result then
-  try
+  if Result then try
     FStopping := True;
-    if FMemo.Text <> FTree.Text[FNode, FColumn] then
-      FTree.Text[FNode, FColumn] := FMemo.Text;
+    if FForm.memoText.Text <> FTree.Text[FNode, FColumn] then
+      FTree.Text[FNode, FColumn] := FForm.memoText.Text;
     FForm.Hide;
   except
     FStopping := False;
     raise;
   end;
 end;
+
 
 function TMemoEditor.GetBounds: TRect; stdcall;
 begin
@@ -2261,31 +2235,12 @@ procedure TMemoEditor.ProcessMessage(var Message: TMessage); stdcall;
 begin
 end;
 
+
 procedure TMemoEditor.SetBounds(R: TRect); stdcall;
-// Sets the outer bounds of the edit control and the actual edit area in the control.
 begin
-  if not FStopping then begin
-    // Set the edit's bounds but make sure there's a minimum width and the right border does not
-    // extend beyond the parent's left/right border.
-    R.Right := R.Left + Mainform.GetRegValue(REGNAME_MEMOEDITOR_WIDTH, DEFAULT_MEMOEDITOR_WIDTH);
-    R.Bottom := R.Top + Mainform.GetRegValue(REGNAME_MEMOEDITOR_HEIGHT, DEFAULT_MEMOEDITOR_HEIGHT);
-    if R.Left < 0 then
-      R.Left := 0;
-    if R.Right - R.Left < 30 then
-      R.Right := R.Left + 30;
-    if R.Right > FTree.ClientWidth then
-      R.Right := FTree.ClientWidth;
-    FForm.BoundsRect := R;
-
-    // The selected text shall exclude the text margins and be centered vertically.
-    // We have to take out the two pixel border of the edit control as well as a one pixel "edit border" the
-    // control leaves around the (selected) text.
-    R := FForm.ClientRect;
-    if not (vsMultiline in FNode.States) then
-      OffsetRect(R, 0, FTextBounds.Top - FForm.Top);
-
-    SendMessage(FForm.Handle, EM_SETRECTNP, 0, Integer(@R));
-  end;
+  // Sets the top left corner of the edit control
+  if not FStopping then
+    FForm.TopLeft := R.TopLeft;
 end;
 
 
