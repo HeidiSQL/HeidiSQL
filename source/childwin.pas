@@ -1155,7 +1155,7 @@ var
   reg_value            : String;
   select_base          : String;
   limit, allrows       : Int64;
-  sl_query             : TStringList;
+  sl_query             : TWideStringList;
   DisplayedColumnsList,
   HiddenKeyCols,
   KeyCols              : WideStrings.TWideStringList;
@@ -1169,7 +1169,7 @@ begin
   if dataselected and Mainform.actDataPost.Enabled then
     Mainform.actDataPostExecute(Sender);
   viewingdata := true;
-  sl_query := TStringList.Create();
+  sl_query := TWideStringList.Create();
   try
     // Limit the number of rows automatically if first time this table is shown
     // and the user did not explicitely set the limits and pressed OK in mainform
