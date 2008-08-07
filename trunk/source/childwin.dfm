@@ -1167,7 +1167,6 @@ object MDIChild: TMDIChild
     Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
     RightEdge = 40
-    ScrollBars = ssVertical
     RemovedKeystrokes = <
       item
         Command = ecDeleteLastChar
