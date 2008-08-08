@@ -1448,11 +1448,14 @@ end;
 }
 procedure TMDIChild.pcChange(Sender: TObject);
 begin
-  if (PageControlMain.ActivePage = tabData) and (not dataselected) then
-    viewdata(Sender);
+  // Load data.
+  // Do this only if the user clicked the new tab. Not on automatic tab changes.
+  if Sender = PageControlMain then begin
+    if (PageControlMain.ActivePage = tabData) then viewdata(Sender);
+  end;
 
   // Move focus to relevant controls in order for them to receive keyboard events.
-  // Do this only if the user clicked the new tab. Not on automatic tab changes. 
+  // Do this only if the user clicked the new tab. Not on automatic tab changes.
   if Sender = PageControlMain then begin
     if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
     if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
@@ -5169,6 +5172,8 @@ begin
   end;
   if newDb <> '' then
     LoadDatabaseProperties(newDb);
+  if PageControlMain.ActivePage = tabData then
+    viewData(self);
 end;
 
 
