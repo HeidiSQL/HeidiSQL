@@ -276,7 +276,7 @@ object loaddataform: Tloaddataform
         TabOrder = 1
         OnChange = comboTableChange
       end
-      object chklistColumns: TCheckListBox
+      object chklistColumns: TTntCheckListBox
         Left = 10
         Top = 117
         Width = 133

@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Graphics,
-  Dialogs, StdCtrls, Db, Menus, SynMemo, SynEdit;
+  Dialogs, StdCtrls, Db, Menus, SynMemo, SynEdit, WideStrings;
 
 type
   Ttbl_properties_form = class(TForm)
@@ -263,11 +263,11 @@ procedure Ttbl_properties_form.FormClose(Sender: TObject; var Action:
     TCloseAction);
 var
   sql, tmp : String;
-  AlterSpecs : TStringList;
+  AlterSpecs : TWideStringList;
 begin
   if ModalResult = mrOK then
   begin
-    AlterSpecs := TStringList.Create;
+    AlterSpecs := TWideStringList.Create;
 
     // Rename table
     if currentName <> editName.Text then

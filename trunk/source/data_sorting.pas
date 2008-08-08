@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry, childwin;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry, childwin,
+  WideStrings, TntStdCtrls;
 
 
 type
@@ -21,7 +22,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    ColumnNames : TStringList;
+    ColumnNames : TWideStringList;
     OrderColumns : TOrderColArray;
     reg_name, OldOrderClause : String;
     procedure DisplaySortingControls;
@@ -73,7 +74,7 @@ procedure TDataSortingForm.DisplaySortingControls;
 var
   labelNumber: TLabel;
   buttonDelete: TButton;
-  dropdownCols: TComboBox;
+  dropdownCols: TTNTComboBox;
   buttonOrder: TSpeedButton;
   i, xPosition, topPosition, btnWidth : Integer;
 begin
@@ -110,13 +111,13 @@ begin
     Inc( xPosition, labelNumber.Width + MARGIN );
 
     // 2. Dropdown with columnnames
-    dropdownCols := TComboBox.Create(self);
+    dropdownCols := TTNTComboBox.Create(self);
     dropdownCols.Parent := pnlBevel;
     dropdownCols.Width := 120;
     dropdownCols.Height := LINE_HEIGHT;
     dropdownCols.Left := xPosition;
     dropdownCols.Top := topPosition;
-    dropdownCols.Items := ColumnNames;
+    dropdownCols.Items.Text := ColumnNames.Text;
     dropdownCols.Style := csDropDownList; // Not editable
     dropdownCols.ItemIndex := ColumnNames.IndexOf(OrderColumns[i].ColumnName);
     dropdownCols.Tag := i+1;
@@ -251,14 +252,14 @@ end;
 procedure TDataSortingForm.btnAddColClick(Sender: TObject);
 var
   i, new : Integer;
-  UnusedColumns : TStringList;
+  UnusedColumns : TWideStringList;
 begin
   SetLength( OrderColumns, Length(OrderColumns)+1 );
   new := Length(OrderColumns)-1;
   OrderColumns[new] := TOrderCol.Create;
 
   // Take first unused column as default for new sort column
-  UnusedColumns := TStringList.Create;
+  UnusedColumns := TWideStringList.Create;
   UnusedColumns.AddStrings( ColumnNames );
   for i := 0 to Length(OrderColumns) - 1 do
   begin

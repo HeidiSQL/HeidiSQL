@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, Registry;
+  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, Registry, WideStrings;
 
 type
   TCopyTableForm = class(TForm)
@@ -203,8 +203,8 @@ begin
       begin
         setlength(keylist, length(keylist)+1);
         which := high(keylist);
-        keylist[which].Columns := TStringList.Create;
-        keylist[which].SubParts := TStringList.Create;
+        keylist[which].Columns := TWideStringList.Create;
+        keylist[which].SubParts := TWideStringList.Create;
         with keylist[which] do // set properties for new key
         begin
           if Mainform.ChildWin.mysql_version < 40002 then

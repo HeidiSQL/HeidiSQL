@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, db, Registry, SynEdit, SynMemo;
+  Dialogs, StdCtrls, db, Registry, SynEdit, SynMemo, TntStdCtrls;
 
 type
   TCreateDatabaseForm = class(TForm)
-    editDBName: TEdit;
+    editDBName: TTNTEdit;
     lblDBName: TLabel;
     comboCharset: TComboBox;
     lblCharset: TLabel;
@@ -26,7 +26,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    function GetCreateStatement: String;
+    function GetCreateStatement: WideString;
   private
     { Private declarations }
     dsCollations : TDataSet;
@@ -34,7 +34,7 @@ type
     currentCollation : String;
   public
     { Public declarations }
-    modifyDB : String;
+    modifyDB : WideString;
   end;
 
 
@@ -100,7 +100,7 @@ procedure TCreateDatabaseForm.FormShow(Sender: TObject);
 var
   selectCharset,
   currentCharset,
-  sql_create : String;
+  sql_create : WideString;
 begin
   if modifyDB = '' then
   begin
@@ -224,7 +224,7 @@ end;
 }
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
-  sql : String;
+  sql : WideString;
   cwin: TMDIChild;
 begin
   cwin := Mainform.Childwin;
@@ -281,7 +281,7 @@ end;
 {**
   Generate CREATE DATABASE statement, used for preview and execution
 }
-function TCreateDatabaseForm.GetCreateStatement: String;
+function TCreateDatabaseForm.GetCreateStatement: WideString;
 begin
   Result := 'CREATE DATABASE ' + Mainform.Childwin.mask( editDBName.Text );
   if comboCharset.Enabled and (comboCharset.Text <> '') then

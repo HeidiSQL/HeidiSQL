@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees, Childwin, DB, Registry;
+  Dialogs, StdCtrls, VirtualTrees, Childwin, DB, Registry, WideStrings;
 
 type
   TfrmSelectDBObject = class(TForm)
@@ -39,7 +39,7 @@ type
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
   private
     { Private declarations }
-    FColumns: Array of Array of TStringList;
+    FColumns: Array of Array of TWideStringList;
     function GetSelectedObject: TStringList;
   public
     { Public declarations }
@@ -201,7 +201,7 @@ procedure TfrmSelectDBObject.TreeDBOInitChildren(Sender: TBaseVirtualTree;
     Node: PVirtualNode; var ChildCount: Cardinal);
 var
   ds: TDataset;
-  cols: TStringList;
+  cols: TWideStringList;
 begin
   // Fetch sub nodes
   case Sender.GetNodeLevel(Node) of

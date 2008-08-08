@@ -758,7 +758,7 @@ object MDIChild: TMDIChild
           BevelOuter = bvNone
           BorderWidth = 1
           TabOrder = 0
-          object lblDataTop: TLabel
+          object lblDataTop: TTntLabel
             Left = 1
             Top = 1
             Width = 287

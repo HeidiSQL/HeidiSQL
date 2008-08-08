@@ -302,7 +302,7 @@ object CreateTableForm: TCreateTableForm
       OnClick = CheckBoxAutoincrementClick
     end
   end
-  object EditTablename: TEdit
+  object EditTablename: TTntEdit
     Left = 96
     Top = 14
     Width = 153
@@ -311,7 +311,7 @@ object CreateTableForm: TCreateTableForm
     TabOrder = 0
     OnChange = EditTablenameChange
   end
-  object EditDescription: TEdit
+  object EditDescription: TTntEdit
     Left = 96
     Top = 64
     Width = 153
@@ -376,7 +376,7 @@ object CreateTableForm: TCreateTableForm
     Text = 'FieldName'
     OnChange = EditFieldnameChange
   end
-  object DBComboBox: TComboBox
+  object DBComboBox: TTntComboBox
     Left = 96
     Top = 39
     Width = 153

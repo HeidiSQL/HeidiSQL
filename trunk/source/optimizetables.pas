@@ -10,11 +10,12 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db, Registry;
+  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db, Registry,
+  WideStrings, TntCheckLst;
 
 type
   Toptimize = class(TForm)
-    TablesCheckListBox: TCheckListBox;
+    TablesCheckListBox: TTNTCheckListBox;
     DBComboBox: TComboBox;
     lblSelect: TLabel;
     btnClose: TButton;
@@ -95,7 +96,7 @@ end;
 }
 procedure Toptimize.FormShow(Sender: TObject);
 var
-  Selected: TStringList;
+  Selected: TWideStringList;
 begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
