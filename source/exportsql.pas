@@ -29,7 +29,7 @@ uses
   SynEdit,
   SynMemo,
   ZDataSet,
-  PngSpeedButton, StdActns;
+  PngSpeedButton, StdActns, WideStrings, TntCheckLst;
 
 type
   TExportSQLForm = class(TForm)
@@ -42,7 +42,7 @@ type
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     lblSelectDbTables: TLabel;
-    checkListTables: TCheckListBox;
+    checkListTables: TTNTCheckListBox;
     comboSelectDatabase: TComboBox;
     toolbarSelectTools: TToolBar;
     ToolButton1: TToolButton;
@@ -295,7 +295,7 @@ procedure TExportSQLForm.comboOtherHostSelect(Sender: TObject);
 var
   data: TDataSet;
   j: integer;
-  versions : TStringList;
+  versions : TWideStringList;
 begin
   // Get both databases and version right when the radio
   // is clicked, so we can switch to the 'file' radio
@@ -318,7 +318,7 @@ begin
       'SELECT VERSION()',
       'Probing for remote version...'
     );
-    versions := explode('.', data.Fields[0].AsString);
+    versions := explode('.', data.Fields[0].AsWideString);
     remote_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
     data.Free;
 
@@ -351,7 +351,7 @@ end;
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
-  Selected : TStringList;
+  Selected : TWideStringList;
   sql: string;
   CWin: TMDIChild;
   CheckThisItem: Boolean;
@@ -364,7 +364,7 @@ begin
   sql := 'FROM ' + MainForm.mask(comboSelectDatabase.Text);
   if CWin.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
   else sql := 'SHOW TABLES ' + sql;
-  checkListTables.Items := CWin.GetCol( sql );
+  checkListTables.Items.Text := CWin.GetCol( sql ).Text;
 
   // Fetch selected tables in list
   Selected := GetVTCaptions( CWin.ListTables, True );
@@ -859,7 +859,7 @@ begin
             begin
               setlength(keylist, length(keylist)+1);
               which := high(keylist);
-              keylist[which].Columns := TStringList.Create;
+              keylist[which].Columns := TWideStringList.Create;
               with keylist[which] do // set properties for new key
               begin
                 Name := Query.Fields[2].AsString;

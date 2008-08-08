@@ -83,7 +83,7 @@ object ExportSQLForm: TExportSQLForm
         Height = 13
         Caption = 'Select Database and Table(s):'
       end
-      object checkListTables: TCheckListBox
+      object checkListTables: TTntCheckListBox
         Left = 8
         Top = 52
         Width = 597

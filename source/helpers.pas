@@ -10,13 +10,14 @@ interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
-  shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings;
+  shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
+  TntCheckLst;
 
 type
 
   // Define a record which can hold everything we need for one row / node in a VirtualStringTree
   TVTreeData = record
-    Captions: TStringList;
+    Captions: TWideStringList;
     ImageIndex: Integer;
     NodeType: Byte;
   end;
@@ -70,8 +71,8 @@ type
 {$I const.inc}
 
   function trimc(s: String; c: Char) : String;
-  function implodestr(seperator: String; a: TStringList) :String;
-  function explode(separator, a: String) :TStringList;
+  function implodestr(seperator: String; a: TWideStringList) :WideString;
+  function explode(separator, a: String) :TWideStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
   function parsesql(sql: WideString) : TWideStringList;
@@ -90,8 +91,8 @@ type
   function openfs(filename: String): TFileStream;
   procedure wfs( var s: TFileStream; str: WideString = '');
   function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
+  procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean); Overload;
+  procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean; list_toggle: TWideStringList); Overload;
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
@@ -125,8 +126,8 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
-  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TStringList;
-  procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
+  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TWideStringList;
+  procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
   function GetDBObjectType( TableStatus: TFields ): Byte;
@@ -223,7 +224,7 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: String; a: TStringList) :String;
+function implodestr(seperator: String; a: TWideStringList) :WideString;
 var
   i : Integer;
   text : String;
@@ -246,12 +247,12 @@ end;
   @param string Separator
   @return TStringList
 }
-function explode(separator, a: String) :TStringList;
+function explode(separator, a: String) :TWideStringList;
 var
   i : Integer;
-  item : String;
+  item : WideString;
 begin
-  result := TStringList.Create();
+  result := TWideStringList.Create;
 
   i := pos(separator, a);
   while i > 0 do begin
@@ -1148,7 +1149,7 @@ end;
   @param boolean Check them?
   @return void
 }
-procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
+procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean);
 var
   i : Integer;
 begin
@@ -1166,7 +1167,7 @@ end;
   @param TStringList Second list with items to change
   @return void
 }
-procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList);
+procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean; list_toggle: TWideStringList);
 var
   i : Integer;
 begin
@@ -2007,14 +2008,14 @@ end;
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
-function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TStringList;
+function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TWideStringList;
 var
   SelectedNodes : TNodeArray;
   NodeData: PVTreeData;
   i: Integer;
   a : TVTreeDataArray;
 begin
-  Result := TStringList.Create;
+  Result := TWideStringList.Create;
   if OnlySelected then
   begin
     // Fetch only selected nodes
@@ -2043,7 +2044,7 @@ end;
   The opposite of GetVTCaptions in "OnlySelected"-Mode:
   Set selected nodes in a VirtualTree
 }
-procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
+procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
 var
   Node: PVirtualNode;
   NodeData: PVTreeData;

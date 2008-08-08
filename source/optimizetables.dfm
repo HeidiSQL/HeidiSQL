@@ -35,7 +35,7 @@ object optimize: Toptimize
     Height = 13
     Caption = 'Results:'
   end
-  object TablesCheckListBox: TCheckListBox
+  object TablesCheckListBox: TTntCheckListBox
     Left = 8
     Top = 50
     Width = 239

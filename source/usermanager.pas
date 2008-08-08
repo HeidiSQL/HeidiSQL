@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, StdCtrls, CheckLst, ExtCtrls, Buttons, DB,
-  Registry, ToolWin;
+  Registry, ToolWin, TntCheckLst, WideStrings, WideStrUtils;
 
 {$I const.inc}
 
@@ -21,17 +21,17 @@ type
       FModified: Boolean;
       function GetDBOKey: String;
       function GetDBOPrettyKey: String;
-      function GetPrettyPrivNames: TStringList;
+      function GetPrettyPrivNames: TWideStringList;
     public
       DBONames: TStringList;
-      PrivNames: TStringList;
-      SelectedPrivNames: TStringList;
+      PrivNames: TWideStringList;
+      SelectedPrivNames: TWideStringList;
       constructor Create(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False);
       procedure Merge(Fields: TFields);
       property DBOType: Byte read FDBOType;
       property DBOKey: String read GetDBOKey;
       property DBOPrettyKey: String read GetDBOPrettyKey;
-      property PrettyPrivNames: TStringList read GetPrettyPrivNames;
+      property PrettyPrivNames: TWideStringList read GetPrettyPrivNames;
       property Added: Boolean read FAdded write FAdded;
       property Modified: Boolean read FModified write FModified;
       property Deleted: Boolean read FDeleted write FDeleted;
@@ -124,7 +124,7 @@ type
     btnCancel: TButton;
     btnOK: TButton;
     comboObjects: TComboBoxEx;
-    boxPrivs: TCheckListBox;
+    boxPrivs: TTNTCheckListBox;
     tlbObjects: TToolBar;
     btnAddObject: TToolButton;
     btnDeleteObject: TToolButton;
@@ -570,7 +570,7 @@ begin
   EnableDelete := False;
   if comboObjects.ItemIndex > -1 then begin
     priv := Users[comboUsers.ItemIndex].Privileges[comboObjects.ItemIndex];
-    boxPrivs.Items := priv.PrettyPrivNames;
+    boxPrivs.Items.Text := priv.PrettyPrivNames.Text;
     // Check selected privs
     for i := 0 to priv.PrivNames.Count - 1 do begin
       boxPrivs.Checked[i] := priv.SelectedPrivNames.IndexOf(priv.PrivNames[i]) > -1;
@@ -1532,8 +1532,8 @@ begin
   FAdded := False;
   FModified := False;
   DBONames := TStringList.Create;
-  PrivNames := TStringList.Create;
-  SelectedPrivNames := TStringList.Create;
+  PrivNames := TWideStringList.Create;
+  SelectedPrivNames := TWideStringList.Create;
   // Find out what xxxx_priv privilege columns this server/version has.
   Fields.GetFieldNames(PrivNames);
   for i := PrivNames.Count - 1 downto 0 do begin
@@ -1637,16 +1637,16 @@ begin
   Result := DBONames.DelimitedText;
 end;
 
-function TPrivilege.GetPrettyPrivNames: TStringList;
+function TPrivilege.GetPrettyPrivNames: TWideStringList;
 var
   i: Integer;
-  p: String;
+  p: WideString;
 begin
-  Result := TStringList.Create;
+  Result := TWideStringList.Create;
   for i := 0 to PrivNames.Count - 1 do begin
     // Fetch original name
     p := PrivNames[i];
-    p := StringReplace(p, '_', ' ', [rfReplaceAll]);
+    p := WideStringReplace(p, '_', ' ', [rfReplaceAll]);
     p := Trim(p);
     Result.Add(p);
   end;

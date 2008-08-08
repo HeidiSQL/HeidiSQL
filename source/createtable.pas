@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Buttons, ComCtrls, ImgList, ToolWin,
-  Menus, db, PngSpeedButton;
+  Menus, db, PngSpeedButton, TntStdCtrls;
 
 type
   TCreateTableForm = class(TForm)
@@ -32,10 +32,10 @@ type
     lblFieldType: TLabel;
     lblLengthSet: TLabel;
     lblDefault: TLabel;
-    EditTablename: TEdit;
+    EditTablename: TTNTEdit;
     Label1: TLabel;
     Label2: TLabel;
-    EditDescription: TEdit;
+    EditDescription: TTNTEdit;
     Label3: TLabel;
     ButtonMoveUp: TPngSpeedButton;
     ButtonMoveDown: TPngSpeedButton;
@@ -45,7 +45,7 @@ type
     EditFieldname: TEdit;
     Bevel1: TBevel;
     Label4: TLabel;
-    DBComboBox: TComboBox;
+    DBComboBox: TTNTComboBox;
     ComboBoxTableType: TComboBox;
     Label5: TLabel;
     Bevel2: TBevel;
@@ -152,7 +152,7 @@ end;
 
 procedure TCreateTableForm.ButtonCreateClick(Sender: TObject);
 var
-  createQuery, primaryKey, uniqueKey, indexKey  : String;
+  createQuery, primaryKey, uniqueKey, indexKey  : WideString;
   i : Integer;
   LengthSet : String;
   FieldType : TMysqlDataTypeRecord;

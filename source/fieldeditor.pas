@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons, VirtualTrees,
-  PngSpeedButton;
+  PngSpeedButton, TntStdCtrls;
 
 type
   TFieldEditorMode = (femFieldAdd,femFieldUpdate,femIndexEditor);
@@ -42,8 +42,8 @@ type
     ButtonAdd: TButton;
     ButtonDelete: TButton;
     lblColumnsUsed: TLabel;
-    listColumnsUsed: TListBox;
-    listColumnsAvailable: TListBox;
+    listColumnsUsed: TTNTListBox;
+    listColumnsAvailable: TTNTListBox;
     btnAddColumnToIndex: TPngSpeedButton;
     btnDeleteColumnFromIndex: TPngSpeedButton;
     lblColumnsAvailable: TLabel;
@@ -289,7 +289,7 @@ begin
   ds.Close;
   FreeAndNil(ds);
 
-  listColumnsAvailable.Items := GetVTCaptions(cwin.ListColumns);
+  listColumnsAvailable.Items.Text := GetVTCaptions(cwin.ListColumns).Text;
   showkeys();
 end;
 
@@ -626,7 +626,7 @@ procedure TFieldEditForm.ComboBoxKeysChange(Sender: TObject);
 var i, j : Integer;
 begin
   if ComboBoxKeys.ItemIndex > -1 then begin
-    listColumnsAvailable.Items := GetVTCaptions(Mainform.ChildWin.ListColumns);
+    listColumnsAvailable.Items.Text := GetVTCaptions(Mainform.ChildWin.ListColumns).Text;
     for i:=0 to klist[ComboBoxKeys.ItemIndex].columns.Count-1 do
     begin
       j := listColumnsAvailable.Items.IndexOf(klist[ComboBoxKeys.ItemIndex].columns[i]);
@@ -634,7 +634,7 @@ begin
         listColumnsAvailable.Items.Delete( j );
     end;
     with klist[ComboBoxKeys.ItemIndex] do begin
-      listColumnsUsed.Items := Columns;
+      listColumnsUsed.Items.Text := Columns.Text;
       CheckBoxUnique.OnClick := nil;
       CheckBoxUnique.Checked := Unique;
       CheckBoxUnique.OnClick := CheckBoxUniqueClick;
@@ -962,7 +962,7 @@ end;
 procedure TFieldEditForm.btnAddAllColumnsToIndexClick(Sender: TObject);
 begin
   listColumnsUsed.Items.AddStrings(listColumnsAvailable.Items);
-  klist[ComboBoxKeys.ItemIndex].Columns.AddStrings(listColumnsAvailable.Items);
+  klist[ComboBoxKeys.ItemIndex].Columns.Append(listColumnsAvailable.Items.Text);
   listColumnsAvailable.Items.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
   ValidateControls;

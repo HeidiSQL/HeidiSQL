@@ -24,7 +24,8 @@ uses
   SynCompletionProposal, HeidiComp, SynEditMiscClasses, MysqlQuery,
   MysqlQueryThread, queryprogress, communication, MysqlConn, Tabs,
   VirtualTrees, createdatabase, tbl_properties, createtable,
-  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode;
+  SynRegExpr, EditVar, PngSpeedButton, WideStrings, WideStrUtils, SynUnicode,
+  TntStdCtrls;
 
 type
   TOrderCol = class(TObject)
@@ -198,7 +199,7 @@ type
     MenuFind: TMenuItem;
     MenuReplace: TMenuItem;
     MenuItem2: TMenuItem;
-    lblDataTop: TLabel;
+    lblDataTop: TTNTLabel;
     spltQueryHelpers: TSplitter;
     menuRenameColumn: TMenuItem;
     N22: TMenuItem;
@@ -285,14 +286,14 @@ type
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
-    function FieldContent(ds: TDataSet; ColName: String): String;
-    procedure LoadDatabaseProperties(db: string);
+    function FieldContent(ds: TDataSet; ColName: WideString): WideString;
+    procedure LoadDatabaseProperties(db: WideString);
     procedure ShowHost;
-    procedure ShowDatabase(db: String);
-    procedure ShowDBProperties(db: String);
-    procedure ShowTable(table: String; tab: TTabSheet = nil);
-    procedure ShowTableProperties(table: string);
-    procedure ShowTableData(table: string);
+    procedure ShowDatabase(db: WideString);
+    procedure ShowDBProperties(db: WideString);
+    procedure ShowTable(table: WideString; tab: TTabSheet = nil);
+    procedure ShowTableProperties(table: WideString);
+    procedure ShowTableData(table: WideString);
     procedure viewdata(Sender: TObject);
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
@@ -345,7 +346,7 @@ type
     function GetResults( SQLQuery: WideString;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
     function GetCol( SQLQuery: WideString; x: Integer = 0;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideStrings.TWideStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure MenuTablelistColumnsClick(Sender: TObject);
     function mask(str: WideString) : WideString;
@@ -446,7 +447,7 @@ type
       lastUsedDB                 : String;
       UserQueryFired             : Boolean;
       UserQueryFiring            : Boolean;
-      CachedTableLists           : TStringList;
+      CachedTableLists           : WideStrings.TWideStringList;
       QueryHelpersSelectedItems  : Array[0..3] of Array of Integer;
       EditVariableForm           : TfrmEditVariable;
       FileNameSessionLog         : String;
@@ -467,20 +468,20 @@ type
       function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
       procedure DisplayRowCountStats(ds: TDataSet);
       procedure insertFunction(Sender: TObject);
-      function GetActiveDatabase: string;
-      function GetSelectedTable: string;
-      procedure SetSelectedDatabase(db: string);
-      procedure SetSelectedTable(table: string);
+      function GetActiveDatabase: WideString;
+      function GetSelectedTable: WideString;
+      procedure SetSelectedDatabase(db: WideString);
+      procedure SetSelectedTable(table: WideString);
       procedure SaveListSetup( List: TVirtualStringTree );
       procedure RestoreListSetup( List: TVirtualStringTree );
-      procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
+      procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
       function GetTableSize(ds: TDataSet): Int64;
       procedure ToggleFilterPanel(ForceVisible: Boolean = False);
 
     public
       DatabasesWanted,
-      Databases                  : TStringList;
-      TemporaryDatabase          : String;
+      Databases                  : Widestrings.TWideStringList;
+      TemporaryDatabase          : WideString;
       dataselected               : Boolean;
       editing                    : Boolean;
       mysql_version              : Integer;
@@ -526,14 +527,14 @@ type
       property MysqlConn : TMysqlConn read FMysqlConn;
       property Conn : TOpenConnProf read FConn;
 
-      property ActiveDatabase : string read GetActiveDatabase write SetSelectedDatabase;
-      property SelectedTable : string read GetSelectedTable write SetSelectedTable;
+      property ActiveDatabase : WideString read GetActiveDatabase write SetSelectedDatabase;
+      property SelectedTable : WideString read GetSelectedTable write SetSelectedTable;
 
       function FetchActiveDbTableList: TDataSet;
       function RefreshActiveDbTableList: TDataSet;
-      function FetchDbTableList(db: string): TDataSet;
-      function RefreshDbTableList(db: string): TDataSet;
-      function DbTableListCached(db: String): Boolean;
+      function FetchDbTableList(db: WideString): TDataSet;
+      function RefreshDbTableList(db: WideString): TDataSet;
+      function DbTableListCached(db: WideString): Boolean;
       procedure ClearAllTableLists;
       procedure EnsureDatabase;
       procedure TestVTreeDataArray( P: PVTreeDataArray );
@@ -546,9 +547,9 @@ type
       procedure TableEnginesCombo(var Combobox: TCombobox);
       function GetNodeType(Node: PVirtualNode): Byte;
       function GetSelectedNodeType: Byte;
-      procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
-      procedure RefreshTreeDB(db: String);
-      function FindDBNode(db: String): PVirtualNode;
+      procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
+      procedure RefreshTreeDB(db: WideString);
+      function FindDBNode(db: WideString): PVirtualNode;
       function GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
       function GridPostInsert(Sender: TBaseVirtualTree): Boolean;
       function GridPostDelete(Sender: TBaseVirtualTree): Boolean;
@@ -697,7 +698,7 @@ begin
   UserQueryFired := False;
   UserQueryFiring := False;
   TemporaryDatabase := '';
-  CachedTableLists := TStringList.Create;
+  CachedTableLists := WideStrings.TWideStringList.Create;
   InitializeCriticalSection(SqlMessagesLock);
   EnterCriticalSection(SqlMessagesLock);
   SqlMessages := TWideStringList.Create;
@@ -1119,7 +1120,7 @@ begin
 end;
 
 
-procedure TMDIChild.ShowDatabase(db: String);
+procedure TMDIChild.ShowDatabase(db: WideString);
 begin
   if (not DBtree.Dragging) and (
    (PageControlMain.ActivePage = tabHost) or
@@ -1139,7 +1140,7 @@ end;
 {***
   Do the default action (show table properties or table data) for a table.
 }
-procedure TMDIChild.ShowTable(table: String; tab: TTabSheet = nil);
+procedure TMDIChild.ShowTable(table: WideString; tab: TTabSheet = nil);
 begin
   if tab = nil then tab := tabTable; // Alternative default: tabData
   if tab = tabTable then ShowTableProperties( table );
@@ -1153,7 +1154,7 @@ var
   i, j                 : Integer;
   OrderColumns         : TOrderColArray;
   reg_value            : String;
-  select_base          : String;
+  select_base          : WideString;
   limit, allrows       : Int64;
   sl_query             : TWideStringList;
   DisplayedColumnsList,
@@ -1479,7 +1480,7 @@ end;
 }
 procedure TMDIChild.EnsureDatabase;
 var
-  db: String;
+  db: WideString;
 begin
   // Some functions temporarily switch away from the database selected by the user, handle that.
   if TemporaryDatabase <> '' then db := TemporaryDatabase
@@ -1504,7 +1505,7 @@ begin
   Result := FetchDbTableList(ActiveDatabase);
 end;
 
-function TMDIChild.FetchDbTableList(db: string): TDataSet;
+function TMDIChild.FetchDbTableList(db: WideString): TDataSet;
 var
   ds: TDataSet;
   OldCursor: TCursor;
@@ -1544,7 +1545,7 @@ begin
   Result := RefreshDbTableList(ActiveDatabase);
 end;
 
-function TMDIChild.RefreshDbTableList(db: string): TDataSet;
+function TMDIChild.RefreshDbTableList(db: WideString): TDataSet;
 var
   idx: Integer;
   o: TObject;
@@ -1577,24 +1578,24 @@ end;
 
 
 // Fetch content from a row cell, avoiding NULLs to cause AVs
-function TMDIChild.FieldContent(ds: TDataSet; ColName: String): String;
+function TMDIChild.FieldContent(ds: TDataSet; ColName: WideString): WideString;
 begin
   Result := '';
   if
     (ds.FindField(colName) <> nil) and
     (not ds.FindField(ColName).IsNull)
   then
-    Result := ds.FieldByName(ColName).AsString;
+    Result := ds.FieldByName(ColName).AsWideString;
 end;
 
 
-procedure TMDIChild.LoadDatabaseProperties(db: string);
+procedure TMDIChild.LoadDatabaseProperties(db: WideString);
 var
   i               : Integer;
   bytes           : Int64;
   ds              : TDataSet;
   ListCaptions,
-  SelectedCaptions: TStringList;
+  SelectedCaptions: WideStrings.TWideStringList;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -1612,9 +1613,9 @@ begin
     SetLength(VTRowDataListTables, ds.RecordCount);
     for i := 1 to ds.RecordCount do
     begin
-      listcaptions := TStringList.Create;
+      listcaptions := WideStrings.TWideStringList.Create;
       // Table
-      ListCaptions.Add( ds.Fields[0].AsString );
+      ListCaptions.Add( ds.Fields[0].AsWideString );
 
       // Treat tables slightly different than views
       case GetDBObjectType( ds.Fields) of
@@ -1744,7 +1745,7 @@ end;
 
 
 { Show tables and their properties on the tabsheet "Database" }
-procedure TMDIChild.ShowDBProperties(db: string);
+procedure TMDIChild.ShowDBProperties(db: WideString);
 begin
   Screen.Cursor := crHourglass;
   pcChange( Self );
@@ -1760,13 +1761,13 @@ begin
 end;
 
 
-procedure TMDIChild.ShowTableProperties(table: string);
+procedure TMDIChild.ShowTableProperties(table: WideString);
 var
   i,j : Integer;
   isFulltext : Boolean;
   dummy: Boolean;
   hasCommentColumn: Boolean;
-  SelectedCaptions: TStringList;
+  SelectedCaptions: WideStrings.TWideStringList;
 begin
   // Table-Properties
   dataselected := false;
@@ -1800,7 +1801,7 @@ begin
     for i:=1 to FSelectedTableColumns.RecordCount do
     begin
       VTRowDataListColumns[i-1].ImageIndex := ICONINDEX_FIELD;
-      VTRowDataListColumns[i-1].Captions := TStringList.Create;
+      VTRowDataListColumns[i-1].Captions := WideStrings.TWideStringList.Create;
       VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Field').AsString );
       VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Type').AsString );
       if lowercase( FSelectedTableColumns.FieldByName('Null').AsString ) = 'yes' then
@@ -2083,7 +2084,7 @@ begin
 end;
 
 
-procedure TMDIChild.ShowTableData(table: string);
+procedure TMDIChild.ShowTableData(table: WideString);
 begin
   dataselected := false;
   PageControlMain.ActivePage := tabData;
@@ -2102,7 +2103,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     SetLength( VTRowDataListCommandStats, Length(VTRowDataListCommandStats)+1 );
     i := Length(VTRowDataListCommandStats)-1;
     VTRowDataListCommandStats[i].ImageIndex := 25;
-    VTRowDataListCommandStats[i].Captions := TStringList.Create;
+    VTRowDataListCommandStats[i].Captions := WideStrings.TWideStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
     VTRowDataListCommandStats[i].Captions.Add( caption );
@@ -2128,7 +2129,7 @@ var
   i : Integer;
   questions : Int64;
   ds : TDataSet;
-  SelectedCaptions: TStringList;
+  SelectedCaptions: WideStrings.TWideStringList;
 begin
   // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
@@ -2144,7 +2145,7 @@ begin
   for i:=1 to ds.RecordCount do
   begin
     VTRowDataListVariables[i-1].ImageIndex := 25;
-    VTRowDataListVariables[i-1].Captions := TStringList.Create;
+    VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
     VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsString );
     VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsString );
     ds.Next;
@@ -2173,7 +2174,7 @@ begin
   for i:=1 to ds.RecordCount do
   begin
     VTRowDataListStatus[i-1].ImageIndex := 25;
-    VTRowDataListStatus[i-1].Captions := TStringList.Create;
+    VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
     VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsString );
     VTRowDataListStatus[i-1].Captions.Add( ds.Fields[1].AsString );
     if lowercase( ds.Fields[0].AsString ) = 'uptime' then
@@ -2230,7 +2231,7 @@ procedure TMDIChild.ShowProcessList(sender: TObject);
 var
   i,j : Integer;
   ds  : TDataSet;
-  SelectedCaptions: TStringList;
+  SelectedCaptions: WideStrings.TWideStringList;
 begin
   // No need to update if it's not visible.
   if PageControlMain.ActivePage <> tabHost then exit;
@@ -2246,7 +2247,7 @@ begin
     SetLength(VTRowDataListProcesses, ds.RecordCount);
     for i:=1 to ds.RecordCount do
     begin
-      VTRowDataListProcesses[i-1].Captions := TStringList.Create;
+      VTRowDataListProcesses[i-1].Captions := WideStrings.TWideStringList.Create;
       VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsWideString );
       if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
         VTRowDataListProcesses[i-1].ImageIndex := 26  // killed
@@ -2281,7 +2282,7 @@ end;
 
 procedure TMDIChild.KillProcess(Sender: TObject);
 var t : Boolean;
-  ProcessIDs : TStringList;
+  ProcessIDs : WideStrings.TWideStringList;
   i : Integer;
 begin
   t := TimerHost.Enabled;
@@ -2645,8 +2646,8 @@ begin
   if (SynCompletionProposal1.ItemList.count = 0) and (Length(CurrentInput)>0) then
   begin
     // Add databases
-    SynCompletionProposal1.InsertList.AddStrings( Databases );
-    SynCompletionProposal1.ItemList.AddStrings( Databases );
+    SynCompletionProposal1.InsertList.Append( Databases.Text );
+    SynCompletionProposal1.ItemList.Append( Databases.Text );
     for i:=0 to SynCompletionProposal1.ItemList.count-1 do
       SynCompletionProposal1.ItemList[i] := '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}database\color{clWindowText}\column{}' + SynCompletionProposal1.ItemList[i];
 
@@ -3473,17 +3474,17 @@ end;
   @param  Integer 0-based column index in the resultset to return
   @return TStringList
 }
-function TMDIChild.GetCol( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : TStringList;
+function TMDIChild.GetCol( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideStrings.TWideStringList;
 var
   i: Integer;
   ds: TDataSet;
 begin
   ds := GetResults( SQLQuery, HandleErrors, DisplayErrors);
-  Result := TStringList.create();
+  Result := WideStrings.TWideStringList.Create;
   if ds = nil then exit;
   for i := 0 to ds.RecordCount - 1 do
   begin
-    Result.Add( ds.Fields[x].AsString );
+    Result.Add( ds.Fields[x].AsWideString );
     ds.Next;
   end;
   ds.Close;
@@ -3619,7 +3620,7 @@ begin
 end;
 
 
-function TMDIChild.GetActiveDatabase: string;
+function TMDIChild.GetActiveDatabase: WideString;
 var
   s: PVirtualNode;
 begin
@@ -3635,7 +3636,7 @@ begin
 end;
 
 
-function TMDIChild.GetSelectedTable: string;
+function TMDIChild.GetSelectedTable: WideString;
 begin
   if DBtree.GetFirstSelected = nil then Result := ''
   else case DBtree.GetNodeLevel(DBtree.GetFirstSelected) of
@@ -3666,7 +3667,7 @@ begin
 end;
 
 
-procedure TMDIChild.SetSelectedTable(table: string);
+procedure TMDIChild.SetSelectedTable(table: WideString);
 var
   i: integer;
   dbnode, tnode, snode: PVirtualNode;
@@ -3710,7 +3711,7 @@ begin
 end;
 
 
-procedure TMDIChild.SetSelectedDatabase(db: string);
+procedure TMDIChild.SetSelectedDatabase(db: WideString);
 var
   n: PVirtualNode;
 begin
@@ -4330,10 +4331,10 @@ end;
 procedure TMDIChild.MenuTablelistColumnsClick(Sender: TObject);
 var
   menuitem : TMenuItem;
-  VisibleColumns : TStringList;
+  VisibleColumns : WideStrings.TWideStringList;
   i : Integer;
 begin
-  VisibleColumns := TStringList.Create;
+  VisibleColumns := WideStrings.TWideStringList.Create;
   menuitem := TMenuItem( Sender );
   menuitem.Checked := not menuitem.Checked;
   for i := 0 to ListTables.Header.Columns.Count - 1 do
@@ -4396,10 +4397,10 @@ procedure TMDIChild.RestoreListSetup( List: TVirtualStringTree );
 var
   i : Byte;
   colwidth, colpos : Integer;
-  Value : String;
-  ValueList : TStringList;
+  Value : WideString;
+  ValueList : WideStrings.TWideStringList;
 begin
-  ValueList := TStringList.Create;
+  ValueList := WideStrings.TWideStringList.Create;
 
   // Column widths
   Value := Mainform.GetRegValue(REGPREFIX_COLWIDTHS + List.Name, '');
@@ -4441,7 +4442,7 @@ end;
 {**
   (Un)hide columns in a VirtualStringTree.
 }
-procedure TMDIChild.SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
+procedure TMDIChild.SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
 var
   i : Integer;
 begin
@@ -4641,8 +4642,8 @@ var
   i, j : Integer;
   reg : TRegistry;
   reg_name : String;
-  old_orderclause, new_orderclause, columnname : String;
-  order_parts, ValidColumns : TStringList;
+  old_orderclause, new_orderclause, columnname : WideString;
+  order_parts, ValidColumns : WideStrings.TWideStringList;
   columnexists : Boolean;
 begin
   SetLength( Result, 0 );
@@ -4956,7 +4957,7 @@ procedure TMDIChild.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     WideString);
 var
   ds: TDataset;
-  db, eng: String;
+  db, eng: WideString;
   i: Integer;
   Bytes: Int64;
   AllListsCached: Boolean;
@@ -4968,7 +4969,7 @@ begin
         2: begin
             ds := FetchDbTableList(Databases[Node.Parent.Index]);
             ds.RecNo := Node.Index+1;
-            CellText := ds.Fields[0].AsString;
+            CellText := ds.Fields[0].AsWideString;
           end;
       end;
     1: case GetNodeType(Node) of
@@ -5073,8 +5074,8 @@ procedure TMDIChild.DBtreeInitChildren(Sender: TBaseVirtualTree; Node:
     PVirtualNode; var ChildCount: Cardinal);
 var
   ds: TDataset;
-  specialDbs: TStringList;
-  dbName: String;
+  specialDbs: WideStrings.TWideStringList;
+  dbName: WideString;
   i: Integer;
 begin
   case Sender.GetNodeLevel(Node) of
@@ -5083,12 +5084,12 @@ begin
         Screen.Cursor := crSQLWait;
         mainform.Showstatus( 'Reading Databases...' );
         try
-          Databases := TStringList.Create;
+          Databases := WideStrings.TWideStringList.Create;
           if DatabasesWanted.Count = 0 then begin
             ds := GetResults( 'SHOW DATABASES' );
-            specialDbs := TStringList.Create;
+            specialDbs := WideStrings.TWideStringList.Create;
             for i:=1 to ds.RecordCount do begin
-              dbName := ds.FieldByName('Database').AsString;
+              dbName := ds.FieldByName('Database').AsWideString;
               if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert( 0, dbName )
               else Databases.Add( dbName );
               ds.Next;
@@ -5100,7 +5101,7 @@ begin
             for i := specialDbs.Count - 1 downto 0 do
               Databases.Insert( 0, specialDbs[i] );
           end else
-            Databases.AddStrings(DatabasesWanted);
+            Databases.Append(DatabasesWanted.Text);
           Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
           ChildCount := Databases.Count;
           // Avoids excessive InitializeKeywordLists() calls.
@@ -5108,7 +5109,7 @@ begin
           SynSQLSyn1.TableNames.Clear;
           // Let synedit know all database names so that they can be highlighted
           // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
-          SynSQLSyn1.TableNames.AddStrings( Databases );
+          SynSQLSyn1.TableNames.Append( Databases.Text );
           SynSQLSyn1.TableNames.EndUpdate;
         finally
           MainForm.ShowStatus( STATUS_MSG_READY );
@@ -5155,7 +5156,7 @@ end;
 }
 procedure TMDIChild.DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
-  newDb: string;
+  newDb: WideString;
 begin
   if not Assigned(Node) then
     Exit;
@@ -5228,11 +5229,11 @@ end;
 {**
   Refresh the whole tree
 }
-procedure TMDIChild.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
+procedure TMDIChild.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
 var
-  oldActiveDatabase, oldSelectedTable, db: String;
+  oldActiveDatabase, oldSelectedTable, db: WideString;
   Node: PVirtualNode;
-  ExpandedDBs, TablesFetched: TStringList;
+  ExpandedDBs, TablesFetched: WideStrings.TWideStringList;
   i: Integer;
 begin
   // Remember currently active database and table
@@ -5243,8 +5244,8 @@ begin
     DBtree.ClearSelection;
 
   // Remember expandation status of all dbs and whether their tables were fetched
-  ExpandedDBs := TStringList.Create;
-  TablesFetched := TStringList.Create;
+  ExpandedDBs := WideStrings.TWideStringList.Create;
+  TablesFetched := WideStrings.TWideStringList.Create;
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
     db := DBtree.Text[Node, 0];
@@ -5288,9 +5289,9 @@ end;
 {**
   Refresh one database node in the db tree
 }
-procedure TMDIChild.RefreshTreeDB(db: String);
+procedure TMDIChild.RefreshTreeDB(db: WideString);
 var
-  oldActiveDatabase: String;
+  oldActiveDatabase: WideString;
   dbnode: PVirtualNode;
 begin
   oldActiveDatabase := ActiveDatabase;
@@ -5306,7 +5307,7 @@ end;
 {**
   Find a database node in the tree by passing its name
 }
-function TMDIChild.FindDBNode(db: String): PVirtualNode;
+function TMDIChild.FindDBNode(db: WideString): PVirtualNode;
 var
   i, s: Integer;
   n: PVirtualNode;
@@ -5373,7 +5374,7 @@ begin
 end;
 
 
-function TMDIChild.DbTableListCached(db: String): Boolean;
+function TMDIChild.DbTableListCached(db: WideString): Boolean;
 begin
   Result := CachedTableLists.IndexOf(db) > -1;
 end;

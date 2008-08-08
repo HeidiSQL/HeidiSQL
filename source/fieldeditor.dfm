@@ -295,7 +295,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 3
         OnClick = ButtonDeleteClick
       end
-      object listColumnsUsed: TListBox
+      object listColumnsUsed: TTntListBox
         Left = 8
         Top = 120
         Width = 113
@@ -306,7 +306,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = listClick
         OnDblClick = RemoveField
       end
-      object listColumnsAvailable: TListBox
+      object listColumnsAvailable: TTntListBox
         Left = 168
         Top = 120
         Width = 113

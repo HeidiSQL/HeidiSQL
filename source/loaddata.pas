@@ -10,7 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry, PngSpeedButton;
+  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry, PngSpeedButton,
+  WideStrings, TntCheckLst;
 
 type
   Tloaddataform = class(TForm)
@@ -25,7 +26,7 @@ type
     lblTable: TLabel;
     comboTable: TComboBox;
     lblColumns: TLabel;
-    chklistColumns: TCheckListBox;
+    chklistColumns: TTNTCheckListBox;
     btnColUp: TPngSpeedButton;
     btnColDown: TPngSpeedButton;
     grpOptions: TGroupBox;
@@ -183,7 +184,7 @@ end;
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   query : string;
-  col   : TStringList;
+  col   : TWideStringList;
   i     : Integer;
   reg   : TRegistry;
 
@@ -248,7 +249,7 @@ begin
   if updownIgnoreLines.Position > 0 then
     query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
-  col := TStringList.Create;
+  col := TWideStringList.Create;
   for i:=0 to chklistColumns.Items.Count - 1 do
   begin
     if chklistColumns.checked[i] then

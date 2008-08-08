@@ -88,7 +88,7 @@ object UserManagerForm: TUserManagerForm
     OnChange = comboObjectsChange
     Images = MainForm.PngImageListMain
   end
-  object boxPrivs: TCheckListBox
+  object boxPrivs: TTntCheckListBox
     Left = 8
     Top = 261
     Width = 336

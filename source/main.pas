@@ -18,7 +18,7 @@ uses
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
-  SelectDBObject;
+  SelectDBObject, Widestrings;
 
 type
   TMainForm = class(TForm)
@@ -250,7 +250,7 @@ type
     procedure ButtonOKClick(Sender: TObject);
     procedure LimitPanelEnter(Sender: TObject);
     procedure LimitPanelExit(Sender: TObject);
-    function mask(str: String) : String;
+    function mask(str: WideString) : WideString;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actExecuteSelectionExecute(Sender: TObject);
     procedure actCopyAsXMLExecute(Sender: TObject);
@@ -358,8 +358,8 @@ const
 type TMyKey = record
   Name     : String;
   _type    : String;
-  Columns  : TStringList;
-  SubParts : TStringList;
+  Columns  : TWideStringList;
+  SubParts : TWideStringList;
 end;
 
 implementation
@@ -1017,7 +1017,7 @@ end;
 
 
 // Escape database, table, field, index or key name.
-function TMainform.mask(str: String) : String;
+function TMainform.mask(str: WideString) : WideString;
 begin
   if ActiveMDIChild = nil then
     raise Exception.Create('Cannot mask SQL without active MDI');
@@ -1181,7 +1181,7 @@ end;
 procedure TMainForm.actDropTablesAndViewsExecute(Sender: TObject);
 var
   i : Integer;
-  Tables, Views : TStringList;
+  Tables, Views : TWideStringList;
   msg, sql, activeDB : String;
 begin
   debug('drop table activated');
@@ -1189,8 +1189,8 @@ begin
   // Can be overwritten when someone selects a table in dbtree from different database
   activeDB := Childwin.ActiveDatabase;
 
-  Tables := TStringlist.Create;
-  Views := TStringlist.Create;
+  Tables := TWideStringlist.Create;
+  Views := TWideStringlist.Create;
   if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
     // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
     Tables := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_TABLE);
@@ -1485,7 +1485,7 @@ procedure TMainForm.actDropFieldsExecute(Sender: TObject);
 var
   i: Integer;
   dropCmd: String;
-  dropList: TStringList;
+  dropList: TWideStringList;
 begin
   // We allow the user to select and delete multiple listItems
   dropList := GetVTCaptions( Childwin.ListColumns, True );
@@ -1530,7 +1530,7 @@ end;
 
 procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
-  t: TStringList;
+  t: TWideStringList;
   i: Integer;
   sql_pattern: String;
 begin

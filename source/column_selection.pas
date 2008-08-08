@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, CheckLst, ExtCtrls, Registry;
+  Dialogs, StdCtrls, CheckLst, ExtCtrls, Registry, TntCheckLst, WideStrings;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -12,7 +12,7 @@ type
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
-    chklistColumns: TCheckListBox;
+    chklistColumns: TTNTCheckListBox;
     chkSort: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -44,10 +44,10 @@ uses MAIN, helpers;
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
-  reg_columns : TStringList;
+  reg_columns : TWideStringList;
 begin
   // Take column names from listColumns and add here
-  chklistColumns.Items := GetVTCaptions(Mainform.Childwin.ListColumns);
+  chklistColumns.Items.Text := GetVTCaptions(Mainform.Childwin.ListColumns).Text;
 
   // Set global reg_name (also used in btnOKClick)
   reg_name := REGNAME_DISPLAYEDCOLUMNS + '_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
@@ -199,7 +199,7 @@ begin
 
     // Add all fieldnames again and check those which are in the checkedfields list
     chklistColumns.Items.BeginUpdate;
-    chklistColumns.Items := GetVTCaptions(Mainform.Childwin.ListColumns);
+    chklistColumns.Items.Text := GetVTCaptions(Mainform.Childwin.ListColumns).Text;
     for i := 0 to chklistColumns.Items.Count-1 do
     begin
       if checkedfields.IndexOf( chklistColumns.Items[i] ) > -1 then
