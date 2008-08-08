@@ -412,6 +412,7 @@ object MDIChild: TMDIChild
                 Highlighter = SynSQLSyn1
                 Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
                 ReadOnly = True
+                WordWrap = True
               end
             end
             object pnlFilterProcesses: TPanel
