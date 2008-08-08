@@ -2410,7 +2410,7 @@ begin
 
       LabelResultinfo.Caption :=
         FormatNumber( rowsaffected ) +' row(s) affected, '+
-        FormatNumber( fieldcount ) +' column(s) / '+
+        FormatNumber( fieldcount ) +' column(s) x '+
         FormatNumber( recordcount ) +' row(s) in last result set.';
       if ( SQL.Count = 1 ) then
       begin
