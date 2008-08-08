@@ -62,7 +62,7 @@ type
     { Public declarations }
   end;
 
-  function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
+  function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Integer;
 
 
 implementation
@@ -72,12 +72,12 @@ implementation
 
 {$R *.DFM}
 
-function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Boolean;
+function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Integer;
 var
   f : Tconnform;
 begin
   f := Tconnform.Create(AOwner);
-  Result := (f.ShowModal = mrOK);
+  Result := f.ShowModal;
   FreeAndNil (f);
 end;
 
@@ -120,9 +120,9 @@ begin
       reg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
     reg.CloseKey;
     reg.Free;
-    Close;
-  end else
+  end else begin
     ButtonConnect.Enabled := True;
+  end;
   Screen.Cursor := crDefault;
 end;
 

@@ -3070,6 +3070,7 @@ object connform: Tconnform
     Anchors = [akRight, akBottom]
     Caption = 'Connect!'
     Default = True
+    ModalResult = 1
     TabOrder = 9
     OnClick = ButtonConnectClick
   end
@@ -3110,6 +3111,7 @@ object connform: Tconnform
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Save + Connect'
+    ModalResult = 1
     TabOrder = 12
     OnClick = ButtonSaveAndConnectClick
   end
