@@ -543,8 +543,8 @@ begin
   index := -1;
   setLength(cols, 0);
   ListboxColumns.Items.Clear;
-  EditTableName.Text := 'TableName';
-  EditFieldName.Text := 'FieldName';
+  EditTableName.Text := 'Enter table name';
+  EditFieldName.Text := 'Enter column name';
   Editdescription.Text := '';
   ButtonCreate.Enabled := false;
   ButtonAdd.Enabled := true;

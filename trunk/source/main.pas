@@ -2016,7 +2016,7 @@ begin
   ok := False;
   while not ok do begin
     newVal := delimiter;
-    if InputQuery('Set delimiter', 'Delimiter used within SQL execution:', newVal) then try
+    if InputQuery('Set delimiter', 'SQL statement delimiter (default is ";"):', newVal) then try
       // Set new value
       Delimiter := newVal;
       ok := True;
