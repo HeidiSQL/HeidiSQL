@@ -1643,10 +1643,13 @@ end;
 
 
 procedure TMainForm.actOpenSessionExecute(Sender: TObject);
+var
+  dlgResult: Integer;
 begin
-  if ActiveMDIChild = nil then
-    ConnectionWindow(Self)
-  else begin
+  if ActiveMDIChild = nil then begin
+    dlgResult := ConnectionWindow(Self);
+    if dlgResult = mrCancel then Close;
+  end else begin
     debug('perf: new connection clicked.');
     ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
   end;
