@@ -1511,18 +1511,21 @@ begin
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
     MainForm.ShowStatus('Fetching tables from "' + db + '" ...');
-    if (mysql_version >= 32300) and (not prefPreferShowTables) then begin
-      ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
-    end else begin
-      // contains table names, nothing else.
-      ds := GetResults('SHOW /*!50002 FULL */ TABLES FROM ' + mask(db), false, false);
-      // could clean up data (rename first column to 'Name') and
-      // and add row counters to data set as a new field by using
-      // SELECT COUNT(*), but that would potentially be rather slow.
+    try
+      if (mysql_version >= 32300) and (not prefPreferShowTables) then begin
+        ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
+      end else begin
+        // contains table names, nothing else.
+        ds := GetResults('SHOW /*!50002 FULL */ TABLES FROM ' + mask(db), false, false);
+        // could clean up data (rename first column to 'Name') and
+        // and add row counters to data set as a new field by using
+        // SELECT COUNT(*), but that would potentially be rather slow.
+      end;
+      CachedTableLists.AddObject(db, ds);
+    finally
+      MainForm.ShowStatus(STATUS_MSG_READY);
+      Screen.Cursor := OldCursor;
     end;
-    CachedTableLists.AddObject(db, ds);
-    MainForm.ShowStatus(STATUS_MSG_READY);
-    Screen.Cursor := OldCursor;
   end;
   Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
   Result.First;
@@ -1729,10 +1732,10 @@ begin
     SetVTSelection(ListTables, SelectedCaptions);
     Mainform.showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)', 0);
     tabDatabase.Caption := sstr('Database: ' + db, 30);
-    // Ensure tree db node displays its chidren initialized
-    DBtree.ReinitChildren(FindDBNode(db), False);
     MainForm.ShowStatus(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
+    // Ensure tree db node displays its chidren initialized
+    DBtree.ReinitChildren(FindDBNode(db), False);
   end;
 end;
 
@@ -5076,40 +5079,50 @@ begin
     0: begin
         Screen.Cursor := crSQLWait;
         mainform.Showstatus( 'Reading Databases...' );
-        Databases := TStringList.Create;
-        if DatabasesWanted.Count = 0 then begin
-          ds := GetResults( 'SHOW DATABASES' );
-          specialDbs := TStringList.Create;
-          for i:=1 to ds.RecordCount do begin
-            dbName := ds.FieldByName('Database').AsString;
-            if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert( 0, dbName )
-            else Databases.Add( dbName );
-            ds.Next;
-          end;
-          ds.Close;
-          FreeAndNil(ds);
-          Databases.Sort;
-          // Prioritised position of system-databases
-          for i := specialDbs.Count - 1 downto 0 do
-            Databases.Insert( 0, specialDbs[i] );
-        end else
-          Databases.AddStrings(DatabasesWanted);
-        Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
-        ChildCount := Databases.Count;
-        // Avoids excessive InitializeKeywordLists() calls.
-        SynSQLSyn1.TableNames.BeginUpdate;
-        SynSQLSyn1.TableNames.Clear;
-        // Let synedit know all database names so that they can be highlighted
-        // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
-        SynSQLSyn1.TableNames.AddStrings( Databases );
-        SynSQLSyn1.TableNames.EndUpdate;
-        MainForm.ShowStatus( STATUS_MSG_READY );
-        Screen.Cursor := crDefault;
+        try
+          Databases := TStringList.Create;
+          if DatabasesWanted.Count = 0 then begin
+            ds := GetResults( 'SHOW DATABASES' );
+            specialDbs := TStringList.Create;
+            for i:=1 to ds.RecordCount do begin
+              dbName := ds.FieldByName('Database').AsString;
+              if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert( 0, dbName )
+              else Databases.Add( dbName );
+              ds.Next;
+            end;
+            ds.Close;
+            FreeAndNil(ds);
+            Databases.Sort;
+            // Prioritised position of system-databases
+            for i := specialDbs.Count - 1 downto 0 do
+              Databases.Insert( 0, specialDbs[i] );
+          end else
+            Databases.AddStrings(DatabasesWanted);
+          Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
+          ChildCount := Databases.Count;
+          // Avoids excessive InitializeKeywordLists() calls.
+          SynSQLSyn1.TableNames.BeginUpdate;
+          SynSQLSyn1.TableNames.Clear;
+          // Let synedit know all database names so that they can be highlighted
+          // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
+          SynSQLSyn1.TableNames.AddStrings( Databases );
+          SynSQLSyn1.TableNames.EndUpdate;
+        finally
+          MainForm.ShowStatus( STATUS_MSG_READY );
+          Screen.Cursor := crDefault;
+        end;
       end;
     // DB node expanding
     1: begin
-      ds := FetchDbTableList(Databases[Node.Index]);
-      ChildCount := ds.RecordCount;
+        Screen.Cursor := crSQLWait;
+        mainform.Showstatus( 'Reading Tables...' );
+        try
+          ds := FetchDbTableList(Databases[Node.Index]);
+          ChildCount := ds.RecordCount;
+        finally
+          MainForm.ShowStatus( STATUS_MSG_READY );
+          Screen.Cursor := crDefault;
+        end;
     end;
     else Exit;
   end;
