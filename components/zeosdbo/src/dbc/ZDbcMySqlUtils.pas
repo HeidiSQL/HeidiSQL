@@ -240,11 +240,13 @@ begin
       Result := stUnicodeString;
     FIELD_TYPE_VAR_STRING:
       // VARCHAR and VARBINARY columns.
-      if Binary then Result := stBytes
+      // ftBytes cause breakage in Variant handling code.
+      // Not sure about ftVarBytes; haven't attempted.
+      if Binary then Result := stBinaryStream
       else Result := stUnicodeString;
     FIELD_TYPE_STRING:
       // CHAR and BINARY columns.
-      if Binary then Result := stBytes
+      if Binary then Result := stBinaryStream
       else Result := stUnicodeString;
     FIELD_TYPE_ENUM:
       Result := stUnicodeString;

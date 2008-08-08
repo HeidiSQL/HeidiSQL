@@ -2129,7 +2129,7 @@ const
     'DATE', 'TIME', 'DATETIME', 'TIMESTAMP');
   TypeCodes: array[1..MaxTypeCount] of TZSQLType = (
     stBinaryStream, stBoolean, stShort, stLong, stBinaryStream, stBinaryStream,
-    stBinaryStream, stBinaryStream, stBinaryStream, stBytes, stBytes,
+    stBinaryStream, stBinaryStream, stBinaryStream, stBinaryStream, stBinaryStream,
     stUnicodeString, stUnicodeStream, stUnicodeStream, stUnicodeStream, stUnicodeStream,
     stUnicodeString, stUnicodeString, stBigDecimal, stBigDecimal, stInteger, stInteger,
     stInteger, stShort, stDouble, stFloat, stFloat, stUnicodeString, stUnicodeString,
