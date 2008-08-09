@@ -5574,22 +5574,16 @@ procedure TMDIChild.DataGridNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
   Row: TGridRow;
-  AllowEditing: Boolean;
 begin
   Row := FDataGridResult.Rows[Node.Index];
-  AllowEditing := True;
+  // Remember new value
+  Row.Cells[Column].NewText := NewText;
+  Row.Cells[Column].Modified := True;
+  // Set state of row for UPDATE mode, don't touch grsInserted
   if Row.State = grsDefault then
-    AllowEditing := CheckUniqueKeyClause;
-  if AllowEditing then begin
-    // Remember new value
-    Row.Cells[Column].NewText := NewText;
-    Row.Cells[Column].Modified := True;
-    // Set state of row for UPDATE mode, don't touch grsInserted
-    if Row.State = grsDefault then
-      FDataGridResult.Rows[Node.Index].State := grsModified;
-    Mainform.actDataPost.Enabled := True;
-    Mainform.actDataCancelEdit.Enabled := True;
-  end;
+    FDataGridResult.Rows[Node.Index].State := grsModified;
+  Mainform.actDataPost.Enabled := True;
+  Mainform.actDataCancelEdit.Enabled := True;
 end;
 
 
@@ -6044,8 +6038,13 @@ end;
 procedure TMDIChild.DataGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
-  // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
-  Mainform.actDataCancelEdit.ShortCut := 0;
+  Allowed := True;
+  if FDataGridResult.Rows[Node.Index].State = grsDefault then
+    Allowed := CheckUniqueKeyClause;
+  if Allowed then begin
+    // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
+    Mainform.actDataCancelEdit.ShortCut := 0;
+  end;
 end;
 
 procedure TMDIChild.DataGridEdited(Sender: TBaseVirtualTree; Node:
