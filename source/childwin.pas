@@ -2750,7 +2750,7 @@ begin
   try
     ensureValidIdentifier( NewText );
     // rename table
-    ExecUpdateQuery( 'ALTER TABLE ' + mask(NodeData.Captions[0]) + ' RENAME ' + mask(NewText), False, False );
+    ExecUpdateQuery( 'RENAME TABLE ' + mask(NodeData.Captions[0]) + ' TO ' + mask(NewText), False, False );
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);
