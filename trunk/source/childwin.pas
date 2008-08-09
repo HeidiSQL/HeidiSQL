@@ -577,7 +577,7 @@ uses
   Main, fieldeditor,
   copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
-  Registry, memoeditor;
+  Registry, grideditlinks;
 
 
 type
