@@ -86,6 +86,7 @@ begin
     FStopping := True;
     FForm.Hide;
     FTree.CancelEditNode;
+    FTree.SetFocus;
   end;
 end;
 
@@ -98,6 +99,7 @@ begin
     if FForm.memoText.Text <> FTree.Text[FNode, FColumn] then
       FTree.Text[FNode, FColumn] := FForm.memoText.Text;
     FForm.Hide;
+    FTree.SetFocus;
   except
     FStopping := False;
     raise;
