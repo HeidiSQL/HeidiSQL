@@ -175,8 +175,7 @@ begin
     // Probably rename view
     if (EditViewName <> '') and (EditViewName <> editName.Text) then begin
       renamed := Mainform.mask(editName.Text);
-      Mainform.Childwin.ExecUpdateQuery('ALTER TABLE '+viewname
-        + ' RENAME '+renamed);
+      Mainform.Childwin.ExecUpdateQuery('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
     Mainform.ChildWin.RefreshTreeDB(Mainform.ChildWin.ActiveDatabase);
   except
