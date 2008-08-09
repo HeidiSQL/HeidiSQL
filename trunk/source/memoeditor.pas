@@ -3,7 +3,7 @@ unit memoeditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Controls, Forms, StdCtrls, TntStdCtrls, Registry;
+  Windows, Classes, Graphics, Controls, Forms, StdCtrls, TntStdCtrls, Registry, VirtualTrees;
 
 {$I const.inc}
 
@@ -12,6 +12,7 @@ type
     memoText: TTntMemo;
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
   public
@@ -58,5 +59,18 @@ begin
 end;
 
 
+procedure TfrmMemoEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
+    TShiftState);
+var
+  Tree: TCustomVirtualStringTree;
+begin
+  Tree := TCustomVirtualStringTree(Parent);
+  case Key of
+    // Cancel by Escape
+    VK_ESCAPE: Tree.CancelEditNode;
+    // Apply changes and end editing by Ctrl + Enter
+    VK_RETURN: if ssCtrl in Shift then Tree.EndEditNode;
+  end;
+end;
 
 end.

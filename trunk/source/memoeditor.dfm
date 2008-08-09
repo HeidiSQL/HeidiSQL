@@ -27,5 +27,6 @@ object frmMemoEditor: TfrmMemoEditor
     ScrollBars = ssBoth
     TabOrder = 0
     WantTabs = True
+    OnKeyDown = memoTextKeyDown
   end
 end
