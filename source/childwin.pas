@@ -2138,6 +2138,10 @@ var
   ds : TDataSet;
   SelectedCaptions: WideStrings.TWideStringList;
 begin
+  // Prevent auto update from executing queries if the host tab is not activated
+  if (Sender is TTimer) and (PageControlMain.ActivePage <> tabHost) then
+    Exit;
+
   // Refresh variables and process-list
   Screen.Cursor := crSQLWait;
 
