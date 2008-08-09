@@ -38,7 +38,8 @@ uses
   editvar in '..\..\source\editvar.pas' {frmEditVariable},
   view in '..\..\source\view.pas' {frmView},
   selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject},
-  memoeditor in '..\..\source\memoeditor.pas' {frmMemoEditor};
+  memoeditor in '..\..\source\memoeditor.pas' {frmMemoEditor},
+  grideditlinks in '..\..\source\grideditlinks.pas';
 
 {$R *.RES}
 
