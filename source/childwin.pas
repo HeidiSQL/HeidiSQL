@@ -1526,6 +1526,13 @@ begin
         // SELECT COUNT(*), but that would potentially be rather slow.
       end;
       CachedTableLists.AddObject(db, ds);
+      // Add table names to SQL highlighter
+      SynSQLSyn1.TableNames.BeginUpdate;
+      while not ds.Eof do begin
+        SynSQLSyn1.TableNames.Add(ds.Fields[0].AsWideString);
+        ds.Next;
+      end;
+      SynSQLSyn1.TableNames.EndUpdate;
     finally
       MainForm.ShowStatus(STATUS_MSG_READY);
       Screen.Cursor := OldCursor;
