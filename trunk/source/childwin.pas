@@ -1303,7 +1303,7 @@ begin
               rx.Expression := '^(date|datetime|time(stamp)?)\b';
               if rx.Exec(ColType) then
                 FDataGridResult.Columns[i].IsDate := True;
-              rx.Expression := '^((tiny|medium|long)?text|varchar)\b(\(\d+\))?';
+              rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
               if rx.Exec(ColType) then begin
                 FDataGridResult.Columns[i].IsText := True;
                 if ColType = 'tinytext' then
@@ -1314,8 +1314,8 @@ begin
                   FDataGridResult.Columns[i].MaxLength := 16777215
                 else if ColType = 'longtext' then
                   FDataGridResult.Columns[i].MaxLength := 4294967295
-                else if rx.Match[3] <> '' then
-                  FDataGridResult.Columns[i].MaxLength := MakeInt(rx.Match[3])
+                else if rx.Match[4] <> '' then
+                  FDataGridResult.Columns[i].MaxLength := MakeInt(rx.Match[4])
                 else // Fallback for unknown column types
                   FDataGridResult.Columns[i].MaxLength := MaxInt;
               end;
