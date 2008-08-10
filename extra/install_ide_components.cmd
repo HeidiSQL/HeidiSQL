@@ -121,13 +121,13 @@ call :install heidisql HeidiComponents
 if not %err% == 0 goto end
 
 
-rem Install VirtualTreeView
-call :install virtualtreeview VirtualTreesD
+rem Install TNTUnicodeControls
+call :install tntunictrls TntUnicodeVcl_Design
 if not %err% == 0 goto end
 
 
-rem Install TNTUnicodeControls
-call :install tntunictrls TntUnicodeVcl_Design
+rem Install VirtualTreeView
+call :install virtualtreeview VirtualTreesD
 if not %err% == 0 goto end
 
 

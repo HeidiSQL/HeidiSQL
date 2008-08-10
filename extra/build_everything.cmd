@@ -208,17 +208,17 @@ call :compile heidisql HeidiComponents
 if not %err% == 0 goto end
 
 
-rem Build VirtualTreeView
-call :compile virtualtreeview VirtualTreesR
-if not %err% == 0 goto end
-call :compile virtualtreeview VirtualTreesD
-if not %err% == 0 goto end
-
-
 rem Build TNT Unicode Controls
 call :compile tntunictrls TntUnicodeVcl
 if not %err% == 0 goto end
 call :compile tntunictrls TntUnicodeVcl_Design
+if not %err% == 0 goto end
+
+
+rem Build VirtualTreeView
+call :compile virtualtreeview VirtualTreesR
+if not %err% == 0 goto end
+call :compile virtualtreeview VirtualTreesD
 if not %err% == 0 goto end
 
 
