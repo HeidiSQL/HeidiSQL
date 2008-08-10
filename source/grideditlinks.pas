@@ -17,7 +17,7 @@ type
     FStopping: Boolean;              // Set to True when the edit link requests stopping the edit action.
   public
     FieldType: Integer;
-    MaxInputLength: Integer;
+    MaxLength: Integer;
     constructor Create;
     destructor Destroy; override;
     function BeginEdit: Boolean; virtual; stdcall;
@@ -68,6 +68,7 @@ begin
   FForm.Parent := Tree;
   FForm.memoText.Font := F;
   FForm.memoText.Text := Text;
+  FForm.memoText.MaxLength := MaxLength;
 end;
 
 
