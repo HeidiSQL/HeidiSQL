@@ -49,6 +49,7 @@ type
   TGridColumn = record
     Name: WideString;
     DataType: Byte; // @see constants in mysql_structures.pas
+    MaxLength: Cardinal;
     IsPK: Boolean;
     IsBlob: Boolean;
     IsText: Boolean;

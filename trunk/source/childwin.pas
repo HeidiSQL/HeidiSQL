@@ -1164,6 +1164,7 @@ var
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
   ds                   : TDataSet;
+  ColType              : String;
 begin
   Screen.Cursor := crHourglass;
   // Post pending UPDATE
@@ -1287,25 +1288,39 @@ begin
           FSelectedTableColumns.First;
           while not FSelectedTableColumns.Eof do begin
             if FSelectedTableColumns.FieldByName('Field').AsWideString = ColName then begin
+              ColType := FSelectedTableColumns.FieldByName('Type').AsString;
               rx := TRegExpr.Create;
               rx.Expression := '^(tiny|small|medium|big)?int\b';
-              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then begin
+              if rx.Exec(ColType) then begin
                 col.Alignment := taRightJustify;
                 FDataGridResult.Columns[i].IsInt := True;
               end;
               rx.Expression := '^(float|double|decimal)\b';
-              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then begin
+              if rx.Exec(ColType) then begin
                 col.Alignment := taRightJustify;
                 FDataGridResult.Columns[i].IsFloat := True;
               end;
               rx.Expression := '^(date|datetime|time(stamp)?)\b';
-              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
+              if rx.Exec(ColType) then
                 FDataGridResult.Columns[i].IsDate := True;
-              rx.Expression := '^((tiny|medium|long)?text|varchar)\b';
-              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
+              rx.Expression := '^((tiny|medium|long)?text|varchar)\b(\(\d+\))?';
+              if rx.Exec(ColType) then begin
                 FDataGridResult.Columns[i].IsText := True;
+                if ColType = 'tinytext' then
+                  FDataGridResult.Columns[i].MaxLength := 255
+                else if ColType = 'text' then
+                  FDataGridResult.Columns[i].MaxLength := 65535
+                else if ColType = 'mediumtext' then
+                  FDataGridResult.Columns[i].MaxLength := 16777215
+                else if ColType = 'longtext' then
+                  FDataGridResult.Columns[i].MaxLength := 4294967295
+                else if rx.Match[3] <> '' then
+                  FDataGridResult.Columns[i].MaxLength := MakeInt(rx.Match[3])
+                else // Fallback for unknown column types
+                  FDataGridResult.Columns[i].MaxLength := MaxInt;
+              end;
               rx.Expression := '^((tiny|medium|long)?blob|(var)?binary)\b';
-              if rx.Exec(FSelectedTableColumns.FieldByName('Type').AsWideString) then
+              if rx.Exec(ColType) then
                 FDataGridResult.Columns[i].IsBlob := True;
             end;
             FSelectedTableColumns.Next;
@@ -6067,10 +6082,14 @@ end;
 
 procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+var
+  MemoEditor: TMemoEditorLink;
 begin
-  if FDataGridResult.Columns[Column].IsText then
-    EditLink := TMemoEditorLink.Create
-  else
+  if FDataGridResult.Columns[Column].IsText then begin
+    MemoEditor := TMemoEditorLink.Create;
+    MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
+    EditLink := MemoEditor;
+  end else
     EditLink := TStringEditLink.Create;
 end;
 
