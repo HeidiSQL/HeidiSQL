@@ -5946,10 +5946,10 @@ end;
 function TMDIChild.GridPostDelete(Sender: TBaseVirtualTree): Boolean;
 var
   Node: PVirtualNode;
+  Nodes: TNodeArray;
   sql: WideString;
   Affected: Int64;
-  Selected: Integer;
-  Offset: Cardinal;
+  Selected, i, j: Integer;
   msg: String;
 begin
   Node := Sender.GetFirstSelected;
@@ -5978,21 +5978,14 @@ begin
       // Fine. Number of deleted rows equals the selected node count.
       // In this case, just remove the selected nodes, avoid a full reload
       Sender.BeginUpdate;
-      Node := Sender.GetFirstSelected;
-      Offset := 0; // Needed to decrease the array index after one element was deleted
-      while Assigned(Node) do begin
-        if Node.Index + 1 - Offset < Cardinal(High(FDataGridResult.Rows)) then begin
-          // Delete node somewhere in the middle of the array
-          System.Move(
-            FDataGridResult.Rows[Node.Index + 1 - Offset],
-            FDataGridResult.Rows[Node.Index - Offset],
-            (Cardinal(Length(FDataGridResult.Rows)) - (Node.Index - Offset - Cardinal(Low(FDataGridResult.Rows))) - 1) * SizeOf(TGridRow)
-          );
+      Nodes := Sender.GetSortedSelection(True);
+      for i:=High(Nodes) downto Low(Nodes) do begin
+        for j := Nodes[i].Index to High(FDataGridResult.Rows)-1 do begin
+          // Move upper rows by one so the selected row gets overwritten
+          FDataGridResult.Rows[j] := FDataGridResult.Rows[j+1];
         end;
-        SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
-        inc(Offset);
-        Node := Sender.GetNextSelected(Node);
       end;
+      SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - Selected);
       Sender.DeleteSelectedNodes;
       Sender.EndUpdate;
     end else begin
