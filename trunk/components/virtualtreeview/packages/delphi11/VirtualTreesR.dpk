@@ -29,7 +29,8 @@ package VirtualTreesR;
 
 requires
   vcl,
-  vclx;
+  vclx,
+  TntUnicodeVcl;
 
 contains
   VirtualTrees in '..\..\Source\VirtualTrees.pas',

@@ -20,6 +20,6 @@
 // See below for more info about it.
 {.$define UseLocalMemoryManager}
 
-{.$define TntSupport} // Added by Igor Afanasyev to support unicode-aware inplace editors. This implementation uses
+{$define TntSupport} // Added by Igor Afanasyev to support unicode-aware inplace editors. This implementation uses
                      // Troy Wolbrink's TNT controls, which can be found at:
                      // http://home.ccci.org/wolbrink/tnt/delphi_unicode_controls.htm.
