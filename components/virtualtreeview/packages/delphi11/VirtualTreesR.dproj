@@ -96,6 +96,7 @@
     </DelphiCompile>
     <DCCReference Include="..\..\Source\VirtualTrees.pas" />
     <DCCReference Include="..\..\Source\VTHeaderPopup.pas" />
+    <DCCReference Include="TntUnicodeVcl.dcp" />
     <DCCReference Include="vcl.dcp" />
     <DCCReference Include="vclx.dcp" />
   </ItemGroup>
