@@ -1301,8 +1301,13 @@ begin
                 FDataGridResult.Columns[i].IsFloat := True;
               end;
               rx.Expression := '^(date|datetime|time(stamp)?)\b';
-              if rx.Exec(ColType) then
+              if rx.Exec(ColType) then begin
                 FDataGridResult.Columns[i].IsDate := True;
+                if rx.Match[1] = 'date' then FDataGridResult.Columns[i].DataType := tpDATE
+                else if rx.Match[1] = 'time' then FDataGridResult.Columns[i].DataType := tpTIME
+                else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[i].DataType := tpTIMESTAMP
+                else FDataGridResult.Columns[i].DataType := tpDATETIME;
+              end;
               rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
               if rx.Exec(ColType) then begin
                 FDataGridResult.Columns[i].IsText := True;
@@ -6084,11 +6089,16 @@ procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
   MemoEditor: TMemoEditorLink;
+  DateTimeEditor: TDateTimeEditorLink;
 begin
   if FDataGridResult.Columns[Column].IsText then begin
     MemoEditor := TMemoEditorLink.Create;
     MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
     EditLink := MemoEditor;
+  end else if FDataGridResult.Columns[Column].IsDate then begin
+    DateTimeEditor := TDateTimeEditorLink.Create;
+    DateTimeEditor.DataType := FDataGridResult.Columns[Column].DataType;
+    EditLink := DateTimeEditor;
   end else
     EditLink := TStringEditLink.Create;
 end;
