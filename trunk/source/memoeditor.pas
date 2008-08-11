@@ -52,7 +52,6 @@ begin
   Top := TopLeft.Y;
   // Hide window caption
   SetWindowLong(Handle, GWL_STYLE, GetWindowLong( Handle, GWL_STYLE ) and not WS_CAPTION );
-  ClientHeight := Height;
   SetWindowSizeGrip(Handle, True);
   memoText.SelectAll;
   memoText.SetFocus;
