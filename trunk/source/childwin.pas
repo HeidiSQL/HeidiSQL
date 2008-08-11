@@ -1307,7 +1307,7 @@ begin
           for j := 0 to FSelectedTableKeys.RecordCount - 1 do begin
             if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
               and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = ColName) then begin
-              FDataGridResult.Columns[i].IsPK := True;
+              FDataGridResult.Columns[i].IsPriPart := True;
               break;
             end;
             FSelectedTableKeys.Next;
@@ -5501,7 +5501,7 @@ begin
   else r := FQueryGridResult;
 
   // Make primary key columns bold
-  if r.Columns[Column].IsPK then
+  if r.Columns[Column].IsPriPart then
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
   // Do not apply any color on a selected, highlighted node to keep readability
