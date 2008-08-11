@@ -839,25 +839,11 @@ end;
 
 procedure TMDIChild.ReadWindowOptions;
 var
-  ws          : String;
   i           : Integer;
   menuitem    : Tmenuitem;
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
 begin
-  ws := Mainform.GetRegValue(REGNAME_CHILDWINSTATE, 'Normal');
-  if ws = 'Normal' then begin
-    WindowState := wsNormal;
-    Left := Mainform.GetRegValue(REGNAME_CHILDWINLEFT, Left);
-    Top := Mainform.GetRegValue(REGNAME_CHILDWINTOP, Top);
-    Width := Mainform.GetRegValue(REGNAME_CHILDWINWIDTH, Width );
-    Height := Mainform.GetRegValue(REGNAME_CHILDWINHEIGHT, Height );
-  end
-  else if ws = 'Minimized' then
-    WindowState := wsMinimized
-  else if ( ws = 'Maximized' ) then
-    WindowState := wsMaximized;
-
   // Other values:
   pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
@@ -935,13 +921,11 @@ begin
     menuitem.Checked := coVisible in ListTables.Header.Columns[i].Options;
     popupDbGridHeader.Items.Add( menuitem );
   end;
-
 end;
 
 
 procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
-  ws    : String;
   reg   : TRegistry;
 begin
   SetWindowConnected( false );
@@ -959,22 +943,10 @@ begin
   FreeAndNil(SqlMessages);
   LeaveCriticalSection(SqlMessagesLock);
 
-  // Saving some vars into registry
-  case WindowState of
-    wsNormal    : ws := 'Normal';
-    wsMinimized : ws := 'Minimized';
-    wsMaximized : ws := 'Maximized';
-  end;
-
   reg := TRegistry.Create();
   if reg.OpenKey( REGPATH, true ) then
   begin
-    // Window state and position
-    reg.WriteString( REGNAME_CHILDWINSTATE, ws );
-    reg.WriteInteger( REGNAME_CHILDWINLEFT, Left );
-    reg.WriteInteger( REGNAME_CHILDWINTOP, Top );
-    reg.WriteInteger( REGNAME_CHILDWINWIDTH, Width );
-    reg.WriteInteger( REGNAME_CHILDWINHEIGHT, Height );
+    WindowState := wsMaximized;
 
     reg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
     reg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );

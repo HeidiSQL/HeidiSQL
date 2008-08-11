@@ -12,6 +12,7 @@ object MDIChild: TMDIChild
   OldCreateOrder = True
   Position = poDefault
   Visible = True
+  WindowState = wsMaximized
   OnActivate = FormActivate
   OnClose = FormClose
   OnShow = FormShow
