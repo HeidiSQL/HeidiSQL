@@ -165,24 +165,33 @@ end;
 }
 function ConvertMySQLHandleToSQLType(PlainDriver: IZMySQLPlainDriver;
   FieldHandle: PZMySQLField; FieldFlags: Integer): TZSQLType;
+var
+  Collation: Cardinal;
 
 function Signed: Boolean;
 begin
   Result := (UNSIGNED_FLAG and FieldFlags) = 0;
 end;
 
-// The BINARY (0x80) flag has been broken in recent libmysql.dll versions, for some reason.
+// The BINARY (0x80) flag has been broken in recent libmysql.dll versions,
+// regardless of the server version, the flag is always present.
 function Binary: Boolean;
-var
-  Collation: Cardinal;
 begin
   Result := False;
-  Collation := PlainDriver.GetFieldCollationId(FieldHandle);
   if Collation = COLLATION_BINARY then Result := True;
+end;
+
+// Returns true if the server does not support different character sets,
+// which usually means that the user has stored data in his/her local
+// ANSI code page.
+function Ansi: Boolean;
+begin
+  Result := False;
   if Collation = COLLATION_NONE then Result := True;
 end;
 
 begin
+  Collation := PlainDriver.GetFieldCollationId(FieldHandle);
   case PlainDriver.GetFieldType(FieldHandle) of
     FIELD_TYPE_TINY:
       begin
