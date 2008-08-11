@@ -50,7 +50,7 @@ type
     Name: WideString;
     DataType: Byte; // @see constants in mysql_structures.pas
     MaxLength: Cardinal;
-    IsPK: Boolean;
+    IsPriPart: Boolean;
     IsBlob: Boolean;
     IsText: Boolean;
     IsInt: Boolean;
@@ -812,7 +812,7 @@ begin
         else begin
           // Primary key field
           attribs := '';
-          if ds.Columns[j].IsPK then
+          if ds.Columns[j].IsPriPart then
             attribs := ' class="pk"';
         end;
         Buffer := Buffer + '    <td'+attribs+'>' + data + '</td>' + crlf;
