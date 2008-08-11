@@ -568,7 +568,7 @@ begin
 
   // (no save here - see above.)
   refreshMonitorConfig;
-  // (no load here - see above.)
+  // (no wait for WindowPosChanged + load here - see above.)
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
