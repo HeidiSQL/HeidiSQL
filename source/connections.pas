@@ -188,7 +188,6 @@ begin
     main.appstarted := true;
     if AutoReconnect and (ComboBoxDescription.ItemIndex > -1) then
     begin
-      ButtonConnectClick(self);
       TimerCloseFormReminder.Enabled := true;
     end;
   end;
@@ -352,7 +351,7 @@ end;
 procedure Tconnform.TimerCloseFormReminderTimer(Sender: TObject);
 begin
   TimerCloseFormReminder.Enabled := false;
-  close;
+  ButtonConnect.Click;
 end;
 
 
