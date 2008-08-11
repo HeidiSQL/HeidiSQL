@@ -224,6 +224,10 @@ type
     actSetDelimiter: TAction;
     btnSetDelimiter: TToolButton;
     actDataCancelEdit: TAction;
+    procedure refreshMonitorConfig;
+    procedure loadWindowConfig;
+    procedure saveWindowConfig;
+    procedure setDefaultWindowConfig;
     procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
@@ -232,6 +236,7 @@ type
     procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
+    procedure DisplayChange(var msg: TMessage); message WM_DISPLAYCHANGE;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -310,6 +315,7 @@ type
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
   public
+    virtualDesktopName: string;
     regMain : TRegistry;
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
@@ -435,6 +441,89 @@ begin
   StatusBar.Repaint;
 end;
 
+procedure TMainForm.refreshMonitorConfig;
+var
+  Screen: TScreen;
+  Monitor: TMonitor;
+  Name: String;
+  i: Integer;
+begin
+  debug('main: Refresh monitor configuration.');
+  // Monitors are enumerated when a TScreen is constructed;
+  // so we have to construct a new TScreen.
+  Screen := TScreen.Create(nil);
+  Name := '';
+  virtualDesktopName := 'WindowPos_';
+  try
+    for i := 1 to Screen.MonitorCount do begin
+      Monitor := Screen.Monitors[i - 1];
+      Name := Name +
+        IntToStr(Monitor.Left) + 'x_' +
+        IntToStr(Monitor.Top) + 'y_' +
+        IntToStr(Monitor.Width) + 'w_' +
+        IntToStr(Monitor.Height) + 'h'
+      ;
+    end;
+    virtualDesktopName := virtualDesktopName + Name;
+  finally
+    Screen.Free;
+  end;
+end;
+
+procedure TMainForm.saveWindowConfig;
+var
+  ws: String;
+begin
+  with TRegistry.Create do begin
+    if OpenKey(REGPATH + virtualDesktopName + '\', True) then begin
+      // Convert set to string.
+      if WindowState = wsNormal then ws := 'Normal' else
+      if WindowState = wsMinimized then ws := 'Minimized' else
+      if WindowState = wsMaximized then ws := 'Maximized';
+      // Set WindowState to normal to put the correct restore bounds in
+      // Left, Top, Width and Height; the call is processed immediately.
+      WindowState := wsNormal;
+      // Write out the results.
+      WriteString(REGNAME_WINDOWSTATE, ws);
+      WriteInteger(REGNAME_WINDOWLEFT, Left);
+      WriteInteger(REGNAME_WINDOWTOP, Top);
+      WriteInteger(REGNAME_WINDOWWIDTH, Width);
+      WriteInteger(REGNAME_WINDOWHEIGHT, Height);
+    end;
+    CloseKey;
+    Free;
+  end;
+end;
+
+procedure TMainForm.loadWindowConfig;
+var
+  ws: String;
+begin
+  // Called on application start or when monitor configuration has changed.
+  with TRegistry.Create do begin
+    if not OpenKey(REGPATH + virtualDesktopName + '\', False) then begin
+      // Switch to default configuration if nothing was stored.
+      setDefaultWindowConfig;
+    end else begin
+      // If found, load stored configuration for MainForm.
+      Left := ReadInteger(REGNAME_WINDOWLEFT);
+      Top := ReadInteger(REGNAME_WINDOWTOP);
+      Width := ReadInteger(REGNAME_WINDOWWIDTH);
+      Height := ReadInteger(REGNAME_WINDOWHEIGHT);
+      ws := ReadString(REGNAME_WINDOWSTATE);
+      if ws = 'Normal' then WindowState := wsNormal else
+      if ws = 'Minimized' then WindowState := wsMinimized else
+      if ws = 'Maximized' then WindowState := wsMaximized;
+    end;
+  end;
+end;
+
+procedure TMainForm.setDefaultWindowConfig;
+begin
+  // If there are any default adjustments for the main form
+  // when no window config is found, they should go here.
+end;
+
 procedure TMainForm.actExitApplicationExecute(Sender: TObject);
 begin
   Close;
@@ -458,31 +547,44 @@ begin
   end;
 end;
 
+procedure TMainForm.DisplayChange(var msg: TMessage);
+begin
+  // At this point, the virtual desktop reconfiguration is complete,
+  // but windows have not yet been resized and repositioned.
+  //
+  // HeidiSQL could save the current config here, and do a restore
+  // after the automatic resize/reposition is done; this is signalled
+  // by the first WM_WINDOWPOSCHANGED event to arrive after this procedure
+  // has completed.
+  //
+  // However, that would require a complete save/restore for all windows,
+  // not just the main window, so it would be a bit annoying to code.
+  //
+  // So for now, HeidiSQL trusts MS-Windows to replace windows correctly,
+  // which has the slight annoyance factor that a user connecting with
+  // remote desktop will have an automatic replacement applied instead
+  // of a save/load transition using the last parameters for that virtual
+  // desktop.
+
+  // (no save here - see above.)
+  refreshMonitorConfig;
+  // (no load here - see above.)
+end;
+
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
-  ws : String;
   filename : String;
   buffer   : array[0..MAX_PATH] of char;
 begin
   if ActiveMDIChild <> nil then
     ActiveMDIChild.Close;
 
-  if windowstate = wsNormal
-    then ws := 'Normal' else
-  if windowstate = wsMinimized
-    then ws := 'Minimized' else
-  if windowstate = wsMaximized
-    then ws := 'Maximized';
+  saveWindowConfig;
 
   with TRegistry.Create do
   begin
     if OpenKey(REGPATH, true) then
     begin
-      WriteString(REGNAME_WINDOWSTATE, ws);
-      WriteInteger(REGNAME_WINDOWLEFT, left);
-      WriteInteger(REGNAME_WINDOWTOP, top);
-      WriteInteger(REGNAME_WINDOWWIDTH, width);
-      WriteInteger(REGNAME_WINDOWHEIGHT, height);
       // Position of Toolbars
       WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
       WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
@@ -530,35 +632,18 @@ end;
   to complete and can be annoying.
 }
 procedure TMainForm.FormCreate(Sender: TObject);
-var
-  ws : String;
-  Monitor: TMonitor;
-const
-  MoveWinThreshold: Byte = 80;
 begin
   caption := APPNAME;
   setLocales;
 
-  ws := GetRegValue('windowstate', 'Normal');
-  if ws = 'Minimized'
-    then windowstate := wsMinimized else
-  if ws = 'Normal' then begin
-    windowstate := wsNormal;
-    Left := GetRegValue(REGNAME_WINDOWLEFT, Left);
-    Top := GetRegValue(REGNAME_WINDOWTOP, Top);
-    Width := GetRegValue(REGNAME_WINDOWWIDTH, Width);
-    Height := GetRegValue(REGNAME_WINDOWHEIGHT, Height);
-    // Ensure main window (that means: the upper left corner) is placed inside
-    // current monitor resolution, important e.g. after having plugged off a second monitor
-    // Ensures a minimum visible area of 80x80 pixels, so the user can manually resize and move it
-    Monitor := Screen.MonitorFromWindow(Self.Handle);
-    if Left > Monitor.Left + Monitor.Width - MoveWinThreshold then
-      Left := Monitor.Left + Monitor.Width - MoveWinThreshold; // Set minimal visible width
-    if Top > Monitor.Top + Monitor.Height - MoveWinThreshold then
-      Top := Monitor.Top + Monitor.Height - MoveWinThreshold; // Set minimal visible height
-  end else
-  if ws = 'Maximized'
-    then windowstate := wsMaximized;
+  // Make Vista miniature window work.
+  //Application.MainFormOnTaskBar := True;
+
+  // Use new Vista dialogs per default.
+  //UseLatestCommonDialogs := True;
+
+  refreshMonitorConfig;
+  loadWindowConfig;
 
   // Position of Toolbars
   ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
