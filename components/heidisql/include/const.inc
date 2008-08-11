@@ -101,11 +101,6 @@ const
   REGNAME_TOOLBARDATATOP = 'ToolBarDataTop';
   REGNAME_TOOLBARQUERYLEFT = 'ToolBarQueryLeft';
   REGNAME_TOOLBARQUERYTOP = 'ToolBarQueryTop';
-  REGNAME_CHILDWINSTATE = 'childwinstate';
-  REGNAME_CHILDWINLEFT = 'childwinleft';
-  REGNAME_CHILDWINTOP = 'childwintop';
-  REGNAME_CHILDWINWIDTH = 'childwinwidth';
-  REGNAME_CHILDWINHEIGHT = 'childwinheight';
   REGNAME_QUERYMEMOHEIGHT = 'querymemoheight';
   REGNAME_DBTREEWIDTH = 'dbtreewidth';
   REGNAME_SQLOUTHEIGHT = 'sqloutheight';
