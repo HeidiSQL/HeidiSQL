@@ -56,14 +56,14 @@ end;
 
 procedure TfrmMemoEditor.FormShow(Sender: TObject);
 begin
+  // Hide window caption
+  SetWindowLong(Handle, GWL_STYLE, GetWindowLong( Handle, GWL_STYLE ) and not WS_CAPTION );
   // Restore form dimensions
   Width := Mainform.GetRegValue(REGNAME_MEMOEDITOR_WIDTH, DEFAULT_MEMOEDITOR_WIDTH);
   Height := Mainform.GetRegValue(REGNAME_MEMOEDITOR_HEIGHT, DEFAULT_MEMOEDITOR_HEIGHT);
   // Set top left corner to match the edited cell
   Left := TopLeft.X;
   Top := TopLeft.Y;
-  // Hide window caption
-  SetWindowLong(Handle, GWL_STYLE, GetWindowLong( Handle, GWL_STYLE ) and not WS_CAPTION );
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   SetWindowSizeGrip(Handle, True);
