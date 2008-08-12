@@ -1355,8 +1355,6 @@ begin
       if Filter <> '' then sl_query.Add('WHERE ' + Filter);
       // Apply custom ORDER BY if detected in registry
       if sorting <> '' then sl_query.Add( sorting );
-      // Apply LIMIT
-      sl_query.Add('LIMIT %d, %d');
       DataGridCurrentQuery := sl_query.Text;
 
       SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
@@ -5484,7 +5482,7 @@ begin
     start := Node.Index - (Node.Index mod GridMaxRows);
     limit := DataGrid.RootNodeCount - start;
     if limit > GridMaxRows then limit := GridMaxRows;
-    query := Format(DataGridCurrentQuery, [start, limit]);
+    query := DataGridCurrentQuery + Format(' LIMIT %d, %d', [start, limit]);
 
     // start query
     MainForm.ShowStatus('Retrieving data...');
