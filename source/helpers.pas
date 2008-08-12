@@ -62,6 +62,7 @@ type
   TGridRow = packed record
     Cells: Array of TGridCell;
     State: TGridRowState;
+    Loaded: Boolean;
   end;
   TGridRows = Array of TGridRow;
   TGridResult = record

@@ -294,6 +294,7 @@ type
     procedure ShowTable(table: WideString; tab: TTabSheet = nil);
     procedure ShowTableProperties(table: WideString);
     procedure ShowTableData(table: WideString);
+    procedure EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
@@ -339,10 +340,10 @@ type
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
-    function GetNamedVar( SQLQuery: WideString; x: String;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
+    function GetNamedVar( SQLQuery: WideString; x: WideString;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideString;
     function GetVar( SQLQuery: WideString; x: Integer = 0;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : String;
+      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideString;
     function GetResults( SQLQuery: WideString;
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
     function GetCol( SQLQuery: WideString; x: Integer = 0;
@@ -466,7 +467,7 @@ type
       function GetActiveGrid: TVirtualStringTree;
       procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
       function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
-      procedure DisplayRowCountStats(ds: TDataSet);
+      procedure DisplayRowCountStats;
       procedure insertFunction(Sender: TObject);
       function GetActiveDatabase: WideString;
       function GetSelectedTable: WideString;
@@ -512,6 +513,7 @@ type
       TablePropertiesForm        : Ttbl_properties_form;
       FDataGridResult,
       FQueryGridResult           : TGridResult;
+      DataGridCurrentQuery       : WideString;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -1123,11 +1125,12 @@ end;
 procedure TMDIChild.viewdata(Sender: TObject);
 var
   sorting              : String;
-  i, j                 : Integer;
+  i                    : Integer;
   OrderColumns         : TOrderColArray;
+  ColCount             : Integer;
   reg_value            : String;
   select_base          : WideString;
-  limit, allrows       : Int64;
+  select_from          : WideString;
   sl_query             : TWideStringList;
   DisplayedColumnsList,
   HiddenKeyCols,
@@ -1135,8 +1138,83 @@ var
   Filter, ColName      : WideString;
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
-  ds                   : TDataSet;
   ColType              : String;
+
+procedure InitColumn(idx: Integer; name: WideString);
+var
+  ColType: String;
+  k: Integer;
+begin
+  FDataGridResult.Columns[idx].Name := name;
+  col := DataGrid.Header.Columns.Add;
+  col.Text := name;
+  if HiddenKeyCols.IndexOf(name) > -1 then col.Options := col.Options - [coVisible];
+  col.Width := prefDefaultColWidth;
+  // Sorting color and title image
+  for k:=0 to Length(OrderColumns)-1 do begin
+    if OrderColumns[k].ColumnName = name then begin
+      case OrderColumns[k].SortDirection of
+        ORDER_ASC:  begin col.Color := COLOR_SORTCOLUMN_ASC;  col.ImageIndex := 109; end;
+        ORDER_DESC: begin col.Color := COLOR_SORTCOLUMN_DESC; col.ImageIndex := 110; end;
+      end;
+    end;
+  end;
+  // Right alignment for numeric columns
+  FSelectedTableColumns.First;
+  while not FSelectedTableColumns.Eof do begin
+    if FSelectedTableColumns.FieldByName('Field').AsWideString = name then begin
+      ColType := FSelectedTableColumns.FieldByName('Type').AsString;
+      rx.Expression := '^(tiny|small|medium|big)?int\b';
+      if rx.Exec(ColType) then begin
+        col.Alignment := taRightJustify;
+        FDataGridResult.Columns[idx].IsInt := True;
+      end;
+      rx.Expression := '^(float|double|decimal)\b';
+      if rx.Exec(ColType) then begin
+        col.Alignment := taRightJustify;
+        FDataGridResult.Columns[idx].IsFloat := True;
+      end;
+      rx.Expression := '^(date|datetime|time(stamp)?)\b';
+      if rx.Exec(ColType) then begin
+        FDataGridResult.Columns[idx].IsDate := True;
+        if rx.Match[1] = 'date' then FDataGridResult.Columns[idx].DataType := tpDATE
+        else if rx.Match[1] = 'time' then FDataGridResult.Columns[idx].DataType := tpTIME
+        else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[idx].DataType := tpTIMESTAMP
+        else FDataGridResult.Columns[idx].DataType := tpDATETIME;
+      end;
+      rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
+      if rx.Exec(ColType) then begin
+        FDataGridResult.Columns[idx].IsText := True;
+        if ColType = 'tinytext' then
+          FDataGridResult.Columns[idx].MaxLength := 255
+        else if ColType = 'text' then
+          FDataGridResult.Columns[idx].MaxLength := 65535
+        else if ColType = 'mediumtext' then
+          FDataGridResult.Columns[idx].MaxLength := 16777215
+        else if ColType = 'longtext' then
+          FDataGridResult.Columns[idx].MaxLength := 4294967295
+        else if rx.Match[4] <> '' then
+          FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
+        else // Fallback for unknown column types
+          FDataGridResult.Columns[idx].MaxLength := MaxInt;
+      end;
+      rx.Expression := '^((tiny|medium|long)?blob|(var)?binary)\b';
+      if rx.Exec(ColType) then
+        FDataGridResult.Columns[idx].IsBlob := True;
+    end;
+    FSelectedTableColumns.Next;
+  end;
+  FSelectedTableKeys.First;
+  for k := 0 to FSelectedTableKeys.RecordCount - 1 do begin
+    if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
+      and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = name) then begin
+      FDataGridResult.Columns[idx].IsPriPart := True;
+      break;
+    end;
+    FSelectedTableKeys.Next;
+  end;
+end;
+
 begin
   Screen.Cursor := crHourglass;
   // Post pending UPDATE
@@ -1145,22 +1223,6 @@ begin
   viewingdata := true;
   sl_query := TWideStringList.Create();
   try
-    // Limit the number of rows automatically if first time this table is shown
-    // and the user did not explicitely set the limits and pressed OK in mainform
-    if (Sender <> Mainform.ButtonOK) and (not dataselected) then begin
-      // limit number of rows fetched if more than ~ 5 MB of data
-      GetCalculatedLimit( SelectedTable, limit, allrows );
-
-      // adjust limit in GUI:
-      // Uncheck checkbox if calculated limit is larger than wanted rowcount
-      if (limit <= 0) and (AllRows > MakeInt(mainform.EditLimitEnd.Text)) then
-        mainform.CheckBoxLimit.Checked := false;
-      if limit > 0 then begin
-        mainform.CheckBoxLimit.Checked := true;
-        mainform.EditLimitEnd.Text := IntToStr(limit);
-      end;
-      mainform.Repaint;
-    end;
     // Read cached ORDER-clause and set Grid.Sortcolumns
     sorting := '';
     OrderColumns := HandleOrderColumns;
@@ -1185,6 +1247,30 @@ begin
       DisplayedColumnsList.DelimitedText := reg_value;
       HiddenKeyCols := WideStrings.TWideStringlist.Create;
 
+      SynMemoFilter.Color := clWindow;
+      rx := TRegExpr.Create;
+      MainForm.ShowStatus('Freeing data...');
+      DataGrid.BeginUpdate;
+      DataGrid.Header.Columns.BeginUpdate;
+      DataGrid.RootNodeCount := 0;
+      DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
+      DataGrid.Header.Columns.Clear;
+      SetLength(FDataGridResult.Columns, 0);
+      SetLength(FDataGridResult.Rows, 0);
+
+      // Initialize column array to correct length.
+      if DisplayedColumnsList.Count = 0 then begin
+        ColCount := 0;
+        FSelectedTableColumns.First;
+        while not FSelectedTableColumns.Eof do begin
+          ColCount := ColCount + 1;
+          FSelectedTableColumns.Next;
+        end;
+      end else begin
+        ColCount := DisplayedColumnsList.Count;
+      end;
+      SetLength(FDataGridResult.Columns, ColCount);
+
       // Prepare SELECT statement
       select_base := 'SELECT ';
       // Try to calc the rowcount regardless of a given LIMIT
@@ -1194,139 +1280,61 @@ begin
         select_base := select_base + ' SQL_CALC_FOUND_ROWS';
       // Selected columns
       if DisplayedColumnsList.Count = 0 then begin
-        select_base := select_base + ' *';
+        FSelectedTableColumns.First;
+        while not FSelectedTableColumns.Eof do begin
+          DisplayedColumnsList.Add(FSelectedTableColumns.FieldByName('Field').AsWideString);
+          FSelectedTableColumns.Next;
+        end;
         tbtnDataColumns.ImageIndex := 107;
       end else begin
-        // Ensure key columns are included to enable editing
-        KeyCols := GetKeyColumns(FSelectedTableKeys);
-        for i := 0 to KeyCols.Count - 1 do
-          if DisplayedColumnsList.IndexOf(KeyCols[i]) = -1 then begin
-            DisplayedColumnsList.Add(KeyCols[i]);
-            HiddenKeyCols.Add(KeyCols[i]);
-          end;
-        for i := 0 to DisplayedColumnsList.Count - 1 do begin
-          select_base := select_base + ' ' + mask(DisplayedColumnsList[i]) + ',';
-        end;
-        // Cut last comma
-        select_base := copy( select_base, 1, Length(select_base)-1 );
         // Signal for the user that we now hide some columns
         tbtnDataColumns.ImageIndex := 108;
       end;
-      select_base := select_base + ' FROM ' + mask( SelectedTable );
-      sl_query.Add( select_base );
-      // Apply custom WHERE filter
-      if Filter <> '' then
-        sl_query.Add('WHERE ' + Filter);
-      // Apply custom ORDER BY if detected in registry
-      if sorting <> '' then
-        sl_query.Add( sorting );
-      // Apply LIMIT
-      if mainform.CheckBoxLimit.Checked then
-        sl_query.Add('LIMIT ' + mainform.EditLimitStart.Text + ', ' + mainform.EditLimitEnd.Text );
+      // Ensure key columns are included to enable editing
+      KeyCols := GetKeyColumns(FSelectedTableKeys);
+      for i := 0 to KeyCols.Count - 1 do
+      if DisplayedColumnsList.IndexOf(KeyCols[i]) = -1 then begin
+        DisplayedColumnsList.Add(KeyCols[i]);
+        HiddenKeyCols.Add(KeyCols[i]);
+      end;
+      for i := 0 to DisplayedColumnsList.Count - 1 do begin
+        ColName := DisplayedColumnsList[i];
+        FSelectedTableColumns.First;
+        while not FSelectedTableColumns.Eof do begin
+          if FSelectedTableColumns.FieldByName('Field').AsWideString = ColName then begin
+            ColType := FSelectedTableColumns.FieldByName('Type').AsString;
+            rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
+            if rx.Exec(ColType) then begin
+              select_base := select_base + ' ' + 'LEFT(' + Mask(ColName) + ', ' + IntToStr(GridMaxData) + ')' + ',';
+            end else begin
+              select_base := select_base + ' ' + Mask(ColName) + ',';
+            end;
+            Break;
+          end;
+          FSelectedTableColumns.Next;
+        end;
+      end;
+      for i := 0 to DisplayedColumnsList.Count - 1 do begin
+        ColName := DisplayedColumnsList[i];
+        InitColumn(i, ColName);
+      end;
+      // Cut last comma
+      select_base := copy( select_base, 1, Length(select_base)-1 );
+      select_from := ' FROM ' + mask( SelectedTable );
 
       try
-        SynMemoFilter.Color := clWindow;
-        MainForm.ShowStatus('Freeing data...');
-        DataGrid.BeginUpdate;
-        DataGrid.Header.Columns.BeginUpdate;
-        DataGrid.RootNodeCount := 0;
-        DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
-        DataGrid.Header.Columns.Clear;
-        SetLength(FDataGridResult.Columns, 0);
-        SetLength(FDataGridResult.Rows, 0);
-        // start query (with wait dialog)
-        MainForm.ShowStatus('Retrieving data...');
-        ds := GetResults(sl_query.Text, false);
-        MainForm.ShowStatus('Filling grid with record-data...');
-        SetLength(FDataGridResult.Columns, ds.FieldCount);
-        for i:=0 to ds.FieldCount-1 do begin
-          ColName := ds.Fields[i].FieldName;
-          FDataGridResult.Columns[i].Name := ColName;
-          col := DataGrid.Header.Columns.Add;
-          col.Text := ColName;
-          if HiddenKeyCols.IndexOf(ColName) > -1 then
-            col.Options := col.Options - [coVisible];
-          col.Width := prefDefaultColWidth;
-          // Sorting color and title image
-          for j:=0 to Length(OrderColumns)-1 do begin
-            if OrderColumns[j].ColumnName = ds.Fields[i].FieldName then begin
-              case OrderColumns[j].SortDirection of
-                ORDER_ASC:  begin col.Color := COLOR_SORTCOLUMN_ASC;  col.ImageIndex := 109; end;
-                ORDER_DESC: begin col.Color := COLOR_SORTCOLUMN_DESC; col.ImageIndex := 110; end;
-              end;
-            end;
-          end;
-          // Right alignment for numeric columns
-          FSelectedTableColumns.First;
-          while not FSelectedTableColumns.Eof do begin
-            if FSelectedTableColumns.FieldByName('Field').AsWideString = ColName then begin
-              ColType := FSelectedTableColumns.FieldByName('Type').AsString;
-              rx := TRegExpr.Create;
-              rx.Expression := '^(tiny|small|medium|big)?int\b';
-              if rx.Exec(ColType) then begin
-                col.Alignment := taRightJustify;
-                FDataGridResult.Columns[i].IsInt := True;
-              end;
-              rx.Expression := '^(float|double|decimal)\b';
-              if rx.Exec(ColType) then begin
-                col.Alignment := taRightJustify;
-                FDataGridResult.Columns[i].IsFloat := True;
-              end;
-              rx.Expression := '^(date|datetime|time(stamp)?)\b';
-              if rx.Exec(ColType) then begin
-                FDataGridResult.Columns[i].IsDate := True;
-                if rx.Match[1] = 'date' then FDataGridResult.Columns[i].DataType := tpDATE
-                else if rx.Match[1] = 'time' then FDataGridResult.Columns[i].DataType := tpTIME
-                else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[i].DataType := tpTIMESTAMP
-                else FDataGridResult.Columns[i].DataType := tpDATETIME;
-              end;
-              rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
-              if rx.Exec(ColType) then begin
-                FDataGridResult.Columns[i].IsText := True;
-                if ColType = 'tinytext' then
-                  FDataGridResult.Columns[i].MaxLength := 255
-                else if ColType = 'text' then
-                  FDataGridResult.Columns[i].MaxLength := 65535
-                else if ColType = 'mediumtext' then
-                  FDataGridResult.Columns[i].MaxLength := 16777215
-                else if ColType = 'longtext' then
-                  FDataGridResult.Columns[i].MaxLength := 4294967295
-                else if rx.Match[4] <> '' then
-                  FDataGridResult.Columns[i].MaxLength := MakeInt(rx.Match[4])
-                else // Fallback for unknown column types
-                  FDataGridResult.Columns[i].MaxLength := MaxInt;
-              end;
-              rx.Expression := '^((tiny|medium|long)?blob|(var)?binary)\b';
-              if rx.Exec(ColType) then
-                FDataGridResult.Columns[i].IsBlob := True;
-            end;
-            FSelectedTableColumns.Next;
-          end;
-
-          FSelectedTableKeys.First;
-          for j := 0 to FSelectedTableKeys.RecordCount - 1 do begin
-            if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
-              and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = ColName) then begin
-              FDataGridResult.Columns[i].IsPriPart := True;
-              break;
-            end;
-            FSelectedTableKeys.Next;
-          end;
-        end;
-        SetLength(FDataGridResult.Rows, ds.RecordCount);
-        ds.First;
-        for i:=0 to ds.RecordCount-1 do begin
-          SetLength(FDataGridResult.Rows[i].Cells, ds.FieldCount);
-          for j:=0 to ds.FieldCount-1 do begin
-            FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-            FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
-          end;
-          ds.Next;
-        end;
-        DataGrid.RootNodeCount := Length(FDataGridResult.Rows);
-        DisplayRowCountStats(ds);
+        MainForm.ShowStatus('Counting rows...');
+        sl_query.Add('SELECT COUNT(*)');
+        sl_query.Add(select_from);
+        // Apply custom WHERE filter
+        if Filter <> '' then sl_query.Add('WHERE ' + Filter);
+        // Apply custom ORDER BY if detected in registry
+        if sorting <> '' then sl_query.Add( sorting );
+        DataGrid.RootNodeCount := StrToInt(GetVar(sl_query.Text));
+        DisplayRowCountStats;
         dataselected := true;
-      except on E:Exception do begin
+      except
+        on E:Exception do begin
           // Most likely we have a wrong filter-clause when this happens
           // Put the user with his nose onto the wrong filter
           // either specified by user or
@@ -1335,17 +1343,33 @@ begin
           SynMemoFilter.Color := $008080FF; // light pink
           DataGrid.Header.Options := DataGrid.Header.Options - [hoVisible];
           MessageDlg( E.Message, mtError, [mbOK], 0 );
+          raise;
         end;
       end;
-
       MainForm.ShowStatus( STATUS_MSG_READY );
+
+      sl_query.Clear;
+      sl_query.Add( select_base );
+      sl_query.Add(select_from);
+      // Apply custom WHERE filter
+      if Filter <> '' then sl_query.Add('WHERE ' + Filter);
+      // Apply custom ORDER BY if detected in registry
+      if sorting <> '' then sl_query.Add( sorting );
+      // Apply LIMIT
+      sl_query.Add('LIMIT %d, %d');
+      DataGridCurrentQuery := sl_query.Text;
+
+      SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
+      for i:=0 to DataGrid.RootNodeCount-1 do begin
+        FDataGridResult.Rows[i].Loaded := False;
+      end;
+
       pcChange(self);
     end;
   finally
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
-    FreeAndNil(ds);
     viewingdata := false;
     Screen.Cursor := crDefault;
   end;
@@ -1356,7 +1380,7 @@ end;
   Calculate + display total rowcount and found rows matching to filter
   in data-tab
 }
-procedure TMDIChild.DisplayRowCountStats(ds: TDataSet);
+procedure TMDIChild.DisplayRowCountStats;
 var
   rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
@@ -1364,16 +1388,20 @@ var
 begin
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
 
+  Filter := GetFilter;
   if GetSelectedNodeType = NODETYPE_TABLE then begin
-    // Get rowcount from table
-    rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
+    if Filter <> '' then begin
+      // Get rowcount from table
+      rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
+    end else begin
+      rows_total := DataGrid.RootNodeCount
+    end;
     lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' rows total';
   end else begin
     // Don't fetch rowcount from views to fix bug #1844952
     rows_total := -1;
     lblDataTop.Caption := lblDataTop.Caption + ' [View]';
   end;
-
 
   {***
     @note: FOUND_ROWS() gives us a correct number, but this number
@@ -1390,13 +1418,11 @@ begin
     @see TZMySQLResultSet:Create
     @see TZMySQLResultSet:Open
   }
-  Filter := GetFilter;
-  if Filter <> '' then
-  begin
+  if Filter <> '' then begin
     if mysql_version >= 40000 then
       rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0)
     else
-      rows_matching := ds.RecordCount;
+      rows_matching := DataGrid.RootNodeCount;
   end
   else
     rows_matching := rows_total;
@@ -1408,10 +1434,6 @@ begin
   if ( rows_matching = rows_total ) and
     (Filter <> '') then
     lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
-
-  if ( mainform.CheckBoxLimit.Checked ) and
-    ( rows_matching > StrToIntDef( mainform.EditLimitEnd.Text, 0 ) ) then
-    lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber( ds.RecordCount );
 end;
 
 
@@ -1424,10 +1446,12 @@ begin
     debug( 'Showing progress form.' );
     WaitForm.ShowModal();
   end else begin
-    signal := WaitForSingleObject(query.EventHandle, 300);
-    if signal = 0 then debug( 'Query completed within 300msec.' )
+    signal := WaitForSingleObject(query.EventHandle, QueryWaitTime);
+    if signal = 0 then debug( 'Query completed within ' + IntToStr(QueryWaitTime) + 'msec.' )
     else begin
-      debug( '300msec passed, showing progress form.' );
+      debug( IntToStr(QueryWaitTime) + 'msec passed, showing progress form.' );
+      // Hack: Prevent dynamic loading of records in the context of the wait form's message loop.
+      DataGrid.Visible := False;
       WaitForm.ShowModal();
     end;
   end;
@@ -2032,12 +2056,6 @@ begin
 
   // Data tab
   Mainform.actDataInsert.Enabled := inDataTab;
-  Mainform.CheckBoxLimit.Enabled := inTableTab or inDataTab;
-  Mainform.EditLimitStart.Enabled := inTableTab or inDataTab;
-  Mainform.UpDownLimitStart.Enabled := inTableTab or inDataTab;
-  Mainform.EditLimitEnd.Enabled := inTableTab or inDataTab;
-  Mainform.UpDownLimitEnd.Enabled := inTableTab or inDataTab;
-  Mainform.ButtonOK.Enabled := inTableTab or inDataTab;
   // Activate export-options if we're on Data- or Query-tab
   MainForm.actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
@@ -2474,6 +2492,7 @@ begin
       SetLength(FQueryGridResult.Rows, ds.RecordCount);
       ds.First;
       for i:=0 to ds.RecordCount-1 do begin
+        FQueryGridResult.Rows[i].Loaded := True;
         SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
         for j:=0 to ds.FieldCount-1 do begin
           FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
@@ -3431,25 +3450,25 @@ end;
 {***
   Execute a query and return String from column x
 }
-function TMDIChild.GetVar( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
+function TMDIChild.GetVar( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : WideString;
 var
   ds: TDataSet;
 begin
   ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
   if ds = nil then exit;
-  Result := ds.Fields[x].AsString;
+  Result := ds.Fields[x].AsWideString;
   ds.Close;
   FreeAndNil(ds);
 end;
 
 
-function TMDIChild.GetNamedVar( SQLQuery: WideString; x: String; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : String;
+function TMDIChild.GetNamedVar( SQLQuery: WideString; x: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : WideString;
 var
   ds: TDataSet;
 begin
   ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
   if ds = nil then exit;
-  Result := ds.Fields.FieldByName(x).AsString;
+  Result := ds.Fields.FieldByName(x).AsWideString;
   ds.Close;
   FreeAndNil(ds);
 end;
@@ -3577,6 +3596,8 @@ begin
   finally
     FQueryRunning := false;
   end;
+  // Hack: Un-prevent dynamic loading of records in the context of the wait form's message loop.
+  if not DataGrid.Visible then DataGrid.Visible := True;
 end;
 
 
@@ -5449,8 +5470,49 @@ begin
 end;
 
 
+procedure TMDIChild.EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  res: TGridResult;
+  start, limit: Cardinal;
+  query: String;
+  ds: TDataSet;
+  i, j: LongInt;
+begin
+  if Sender = DataGrid then res := FDataGridResult
+  else res := FQueryGridResult;
+  if not res.Rows[Node.Index].Loaded then begin
+    start := Node.Index - (Node.Index mod GridMaxRows);
+    limit := DataGrid.RootNodeCount - start;
+    if limit > GridMaxRows then limit := GridMaxRows;
+    query := Format(DataGridCurrentQuery, [start, limit]);
+
+    // start query
+    MainForm.ShowStatus('Retrieving data...');
+    ds := GetResults(query);
+    if Cardinal(ds.RecordCount) < limit then begin
+      limit := ds.RecordCount;
+      DataGrid.RootNodeCount := start + limit + 1;
+    end;
+
+    // fill in data
+    MainForm.ShowStatus('Filling grid with record-data...');
+    for i := start to start + limit - 1 do begin
+      SetLength(FDataGridResult.Rows[i].Cells, ds.Fields.Count);
+      for j := 0 to ds.Fields.Count - 1 do begin
+        FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+        FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+      end;
+      FDataGridResult.Rows[i].Loaded := True;
+      ds.Next;
+    end;
+
+    MainForm.ShowStatus( STATUS_MSG_READY );
+    FreeAndNil(ds);
+  end;
+end;
+
 {**
-  A grid cell fetches its text content 
+  A grid cell fetches its text content
 }
 procedure TMDIChild.GridGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
@@ -5463,21 +5525,23 @@ var
 begin
   if Column = -1 then
     Exit;
+  EnsureDataLoaded(Sender, Node);
   if Sender = DataGrid then c := FDataGridResult.Rows[Node.Index].Cells[Column]
   else c := FQueryGridResult.Rows[Node.Index].Cells[Column];
-  EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn); 
+  EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   if c.Modified then begin
     if c.NewIsNull then begin
       if EditingCell then CellText := ''
       else CellText := NullText;
-    end else
-      CellText := c.NewText;
+    end else CellText := c.NewText;
   end else begin
     if c.IsNull then begin
       if EditingCell then CellText := ''
       else CellText := NullText;
-    end else
+    end else begin
       CellText := c.Text;
+      if Length(c.Text) = GridMaxData then CellText := CellText + ' [...]';
+    end;
   end;
 end;
 
@@ -6033,6 +6097,11 @@ end;
 
 procedure TMDIChild.DataGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+var
+  Cell: TGridCell;
+  Row: TGridRow;
+  Col: TGridColumn;
+  sql: WideString;
 begin
   Allowed := True;
   if FDataGridResult.Rows[Node.Index].State = grsDefault then
@@ -6040,6 +6109,19 @@ begin
   if Allowed then begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
     Mainform.actDataCancelEdit.ShortCut := 0;
+    // Load entire data for field.
+    Cell := FDataGridResult.Rows[Node.Index].Cells[Column];
+    if Length(Cell.Text) >= GridMaxData then begin
+      Col := FDataGridResult.Columns[Column];
+      Row := FDataGridResult.Rows[Node.Index];
+      sql :=
+        'SELECT ' + mask(Col.Name) +
+        ' FROM ' + mask(SelectedTable) +
+        ' WHERE ' + GetWhereClause(Row, FDataGridResult.Columns, FSelectedTableKeys)
+      ;
+      Cell.Text := GetVar(sql);
+      FDataGridResult.Rows[Node.Index].Cells[Column].Text := Cell.Text;
+    end;
   end;
 end;
 

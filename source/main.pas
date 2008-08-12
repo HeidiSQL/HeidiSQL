@@ -94,13 +94,6 @@ type
     ButtonExport: TToolButton;
     ButtonUserManager: TToolButton;
     ToolBarData: TToolBar;
-    PanelLimit: TPanel;
-    CheckBoxLimit: TCheckBox;
-    EditLimitStart: TEdit;
-    EditLimitEnd: TEdit;
-    ButtonOK: TButton;
-    UpDownLimitStart: TUpDown;
-    UpDownLimitEnd: TUpDown;
     actUndo: TEditUndo;
     ToolButton14: TToolButton;
     actExecuteQuery: TAction;
@@ -252,9 +245,6 @@ type
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure showstatus(msg: string=''; panel: Integer=4);
-    procedure ButtonOKClick(Sender: TObject);
-    procedure LimitPanelEnter(Sender: TObject);
-    procedure LimitPanelExit(Sender: TObject);
     function mask(str: WideString) : WideString;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actExecuteSelectionExecute(Sender: TObject);
@@ -597,9 +587,6 @@ begin
       WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
       WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
-      WriteInteger(REGNAME_DATALIMITSTART, UpdownLimitStart.Position);
-      WriteInteger(REGNAME_DATALIMITEND, UpdownLimitEnd.Position);
-
       // Save delimiter
       WriteString( REGNAME_DELIMITER, Delimiter );
     end;
@@ -656,9 +643,6 @@ begin
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
-
-  UpdownLimitStart.Position := GetRegValue(REGNAME_DATALIMITSTART, DEFAULT_DATALIMITSTART);
-  UpdownLimitEnd.Position := GetRegValue(REGNAME_DATALIMITEND, DEFAULT_DATALIMITEND);
 
   // Delimiter
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
@@ -1020,24 +1004,6 @@ begin
   CopyTableWindow(self);
 end;
 
-
-procedure TMainForm.ButtonOKClick(Sender: TObject);
-begin
-  ChildWin.DBTree.SetFocus;
-  ChildWin.viewdata(Sender);
-end;
-
-procedure TMainForm.LimitPanelEnter(Sender: TObject);
-begin
-  // Entering Data-Toolbar
-  ButtonOK.Default := true;
-end;
-
-procedure TMainForm.LimitPanelExit(Sender: TObject);
-begin
-  // Exiting Data-Toolbar
-  ButtonOK.Default := false;
-end;
 
 procedure TMainForm.focusWindow(Sender: TObject);
 begin
