@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses Windows, Graphics, messages, VirtualTrees, memoeditor, ComCtrls, SysUtils, Classes,
-  mysql_structures;
+  mysql_structures, Main;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -83,14 +83,18 @@ begin
   FNode := Node;
   FColumn := Column;
 
-  // Initial size, font and text of the node.
+  // Initial size, font and text (ANSI) of the node.
   F := TFont.Create;
   FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
+
+  // Get wide text of the node.
+  Text := MainForm.ChildWin.FDataGridResult.Rows[Node.Index].Cells[Column].Text;
 
   // Create the editor form
   FForm := TfrmMemoEditor.Create(Ftree);
   FForm.Parent := Tree;
   FForm.memoText.Font := F;
+  // TODO: The Text property is ANSI.
   FForm.memoText.Text := Text;
   FForm.memoText.MaxLength := MaxLength;
 end;

@@ -237,3 +237,12 @@ const
   NODETYPE_COLUMN = 4;
   NODETYPE_CRASHED_TABLE = 5;
 
+  // Data grid: How many bytes to fetch from data fields that are potentially large.
+  GRIDMAXDATA: Integer = 256;
+
+  // Data grid: How many rows to fetch at a time.
+  GRIDMAXROWS: Cardinal = 500;
+
+  // How many milliseconds to wait before showing a 'waiting for database' sign.
+  QUERYWAITTIME: Integer = 2500;
+
