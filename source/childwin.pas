@@ -292,7 +292,7 @@ type
     procedure ShowDatabase(db: WideString);
     procedure ShowDBProperties(db: WideString);
     procedure ShowTable(table: WideString; tab: TTabSheet = nil);
-    procedure ShowTableProperties(table: WideString);
+    procedure ShowTableProperties;
     procedure ShowTableData(table: WideString);
     procedure EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
@@ -459,8 +459,8 @@ type
       dsHaveEngines              : TDataSet;
       FilterPanelManuallyOpened  : Boolean;
       winName                    : String;
-      FSelectedTableColumns,
-      FSelectedTableKeys         : TDataset;
+      FLastSelectedTableColumns,
+      FLastSelectedTableKeys     : TDataset;
       ViewDataPrevTable          : WideString;
 
       function GetQueryRunning: Boolean;
@@ -479,6 +479,8 @@ type
       procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
       function GetTableSize(ds: TDataSet): Int64;
       procedure ToggleFilterPanel(ForceVisible: Boolean = False);
+      function GetSelTableColumns: TDataset;
+      function GetSelTableKeys: TDataset;
 
     public
       DatabasesWanted,
@@ -563,6 +565,8 @@ type
       function CheckUniqueKeyClause: Boolean;
       procedure DataGridInsertRow;
       procedure DataGridCancelEdit(Sender: TObject);
+      property FSelectedTableColumns: TDataset read GetSelTableColumns write FLastSelectedTableColumns;
+      property FSelectedTableKeys: TDataset read GetSelTableKeys write FLastSelectedTableKeys;
   end;
 
 type
@@ -1118,7 +1122,7 @@ end;
 procedure TMDIChild.ShowTable(table: WideString; tab: TTabSheet = nil);
 begin
   if tab = nil then tab := tabTable; // Alternative default: tabData
-  if tab = tabTable then ShowTableProperties( table );
+  if tab = tabTable then ShowTableProperties;
   if tab = tabData then ShowTableData( table );
   Caption := winName + ' - /' + ActiveDatabase + '/' + SelectedTable;
 end;
@@ -1155,7 +1159,7 @@ begin
   if ViewDataPrevTable = SelectedTable then begin
     // Restore column layout
     k := PrevCols.IndexOf(name);
-    if PrevCols.Count > k+1 then
+    if (k>-1) and (PrevCols.Count > k+1) then
       col.Width := StrToInt(PrevCols[k+1])
   end;
   // Sorting color and title image
@@ -1800,11 +1804,11 @@ end;
 { Show columns of selected table, indicate indexed columns by certain icons }
 procedure TMDIChild.RefreshFieldListClick(Sender: TObject);
 begin
-  ShowTableProperties(SelectedTable);
+  ShowTableProperties;
 end;
 
 
-procedure TMDIChild.ShowTableProperties(table: WideString);
+procedure TMDIChild.ShowTableProperties;
 var
   i,j : Integer;
   isFulltext : Boolean;
@@ -1825,16 +1829,16 @@ begin
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
 
-  tabTable.Caption := sstr('Table: ' + table, 30);
+  tabTable.Caption := sstr('Table: ' + SelectedTable, 30);
 
   MainForm.ShowStatus( 'Reading table properties...' );
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListColumns, True);
   ListColumns.BeginUpdate;
   ListColumns.Clear;
+  FSelectedTableColumns := nil;
+  FSelectedTableKeys := nil;
   Try
-    FSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(table), false );
-
     // Hide column "Comment" on old servers.
     hasCommentColumn := FSelectedTableColumns.FindField('Comment') <> nil;
     if not hasCommentColumn then
@@ -1882,7 +1886,6 @@ begin
       tabsetQueryHelpers.OnChange( Self, tabsetQueryHelpers.TabIndex, dummy);
 
     Screen.Cursor := crHourglass;
-    FSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(table) );
     for i:=1 to FSelectedTableKeys.RecordCount do
     begin
       // Search for the column name in listColumns
@@ -1943,7 +1946,7 @@ begin
 
   pcChange( Self );
   MainForm.ShowStatus( STATUS_MSG_READY );
-  MainForm.showstatus(ActiveDatabase + ': '+ table + ': ' + IntToStr(ListColumns.RootNodeCount) +' column(s)', 0);
+  MainForm.showstatus(ActiveDatabase + ': '+ SelectedTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' column(s)', 0);
   Screen.Cursor := crDefault;
 end;
 
@@ -4052,6 +4055,9 @@ begin
     // Fire ALTER query
     ExecUpdateQuery( sql_update, False, False );
 
+    FSelectedTableColumns := nil;
+    FSelectedTableKeys := nil;
+
     // Update listitem
     NodeData.Captions[0] := NewText;
   except
@@ -6119,5 +6125,19 @@ begin
     EditLink := TStringEditLink.Create;
 end;
 
+
+function TMDIChild.GetSelTableColumns: TDataset;
+begin
+  if FLastSelectedTableColumns = nil then
+    FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
+  Result := FLastSelectedTableColumns;
+end;
+
+function TMDIChild.GetSelTableKeys: TDataset;
+begin
+  if FLastSelectedTableKeys = nil then
+    FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
+  Result := FLastSelectedTableKeys;
+end;
 
 end.
