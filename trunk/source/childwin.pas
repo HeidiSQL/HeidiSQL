@@ -5478,7 +5478,7 @@ var
 begin
   if Sender = DataGrid then res := FDataGridResult
   else res := FQueryGridResult;
-  if not res.Rows[Node.Index].Loaded then begin
+  if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
     start := Node.Index - (Node.Index mod GridMaxRows);
     limit := DataGrid.RootNodeCount - start;
     if limit > GridMaxRows then limit := GridMaxRows;
