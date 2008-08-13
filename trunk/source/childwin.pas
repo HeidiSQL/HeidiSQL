@@ -1217,9 +1217,9 @@ end;
 
 begin
   Screen.Cursor := crHourglass;
-  // Post pending UPDATE
-  if dataselected and Mainform.actDataPost.Enabled then
-    Mainform.actDataPostExecute(Sender);
+  // Unposted row modifications get lost
+  Mainform.actDataPost.Enabled := False;
+  Mainform.actDataCancelEdit.Enabled := False;
   viewingdata := true;
   sl_query := TWideStringList.Create();
   try
