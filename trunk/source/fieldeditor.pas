@@ -560,7 +560,7 @@ begin
         end;
       end;
     end;
-    cwin.ShowTableProperties(cwin.SelectedTable);
+    cwin.ShowTableProperties;
   except
     on E: THandledSQLError do
     begin
@@ -914,7 +914,7 @@ begin
       // Send query
       Mainform.ChildWin.ExecUpdateQuery(query);
       // Refresh listColumns to display correct field-icons
-      Mainform.ChildWin.ShowTableProperties(Mainform.ChildWin.SelectedTable);
+      Mainform.ChildWin.ShowTableProperties;
     except
       On E : Exception do
       begin

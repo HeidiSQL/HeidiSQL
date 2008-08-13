@@ -1555,6 +1555,8 @@ begin
     Childwin.ListColumns.BeginUpdate;
     Childwin.ListColumns.DeleteSelectedNodes;
     Childwin.ListColumns.EndUpdate;
+    Childwin.FSelectedTableColumns := nil;
+    Childwin.FSelectedTableKeys := nil;
     // Set focus on first item
     Childwin.ListColumns.FocusedNode := Childwin.ListColumns.GetFirstVisible;
   except
@@ -1747,7 +1749,7 @@ begin
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabDatabase then
     ChildWin.MenuRefreshClick(self)
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabTable then
-    ChildWin.ShowTableProperties(ChildWin.SelectedTable)
+    ChildWin.ShowTableProperties
   else if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
     ChildWin.viewdata(Sender)
   else
