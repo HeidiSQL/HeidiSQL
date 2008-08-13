@@ -461,6 +461,7 @@ type
       winName                    : String;
       FSelectedTableColumns,
       FSelectedTableKeys         : TDataset;
+      ViewDataPrevTable          : WideString;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -1139,6 +1140,7 @@ var
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
   ColType              : String;
+  PrevCols             : WideStrings.TWideStringList;
 
 procedure InitColumn(idx: Integer; name: WideString);
 var
@@ -1150,6 +1152,12 @@ begin
   col.Text := name;
   if HiddenKeyCols.IndexOf(name) > -1 then col.Options := col.Options - [coVisible];
   col.Width := prefDefaultColWidth;
+  if ViewDataPrevTable = SelectedTable then begin
+    // Restore column layout
+    k := PrevCols.IndexOf(name);
+    if PrevCols.Count > k+1 then
+      col.Width := StrToInt(PrevCols[k+1])
+  end;
   // Sorting color and title image
   for k:=0 to Length(OrderColumns)-1 do begin
     if OrderColumns[k].ColumnName = name then begin
@@ -1254,6 +1262,14 @@ begin
       DataGrid.Header.Columns.BeginUpdate;
       DataGrid.RootNodeCount := 0;
       DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
+      if ViewDataPrevTable = SelectedTable then begin
+        // Remember column layout
+        PrevCols := WideStrings.TWideStringList.Create;
+        for i := 0 to DataGrid.Header.Columns.Count - 1 do begin
+          PrevCols.Add(DataGrid.Header.Columns[i].Text);
+          PrevCols.Add(IntToStr(DataGrid.Header.Columns[i].Width));
+        end;
+      end;
       DataGrid.Header.Columns.Clear;
       SetLength(FDataGridResult.Columns, 0);
       SetLength(FDataGridResult.Rows, 0);
@@ -1331,6 +1347,9 @@ begin
         // Apply custom ORDER BY if detected in registry
         if sorting <> '' then sl_query.Add( sorting );
         DataGrid.RootNodeCount := StrToInt(GetVar(sl_query.Text));
+        // Scroll to top left if switched to another table
+        if ViewDataPrevTable <> SelectedTable then
+          DataGrid.OffsetXY := Point(0, 0);
         DisplayRowCountStats;
         dataselected := true;
       except
@@ -1368,9 +1387,12 @@ begin
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
+    if PrevCols <> nil then
+      FreeAndNil(PrevCols);
     viewingdata := false;
     Screen.Cursor := crDefault;
   end;
+  ViewDataPrevTable := SelectedTable;
 end;
 
 
