@@ -5892,11 +5892,9 @@ end;
 function TMDIChild.GridPostInsert(Sender: TBaseVirtualTree): Boolean;
 var
   Row: TGridRow;
-  sql, Cols, Val, Vals, Value: WideString;
-  i, j: Integer;
+  sql, Cols, Val, Vals: WideString;
+  i: Integer;
   Node: PVirtualNode;
-  KeyCols: WideStrings.TWideStringlist;
-  ds: TDataset;
 begin
   Node := Sender.FocusedNode;
   Row := FDataGridResult.Rows[Node.Index];
@@ -5930,65 +5928,9 @@ begin
       // Send INSERT query
       ExecUpdateQuery(sql, False, True);
       Result := True;
+      GridFinalizeEditing(Sender);
     except
       Result := False;
-    end;
-
-    if Result then begin
-      // Reselect just inserted row in grid from server to ensure displaying
-      // correct values which were silently converted by the server
-      sql := 'SELECT * FROM ' + mask(SelectedTable) + ' WHERE ';
-      KeyCols := GetKeyColumns(FSelectedTableKeys);
-      for i := 0 to KeyCols.Count - 1 do begin
-        Value := '';
-        FSelectedTableColumns.First;
-        for j:=0 to FSelectedTableColumns.RecordCount-1 do begin
-          // Check if there is an auto_increment'ed PK which was NOT manually edited
-          if FSelectedTableColumns.FieldByName('Field').AsWideString = KeyCols[i] then begin
-            if (FSelectedTableColumns.FieldByName('Extra').AsString = 'auto_increment') and
-              (not Row.Cells[j].Modified) then
-              Value := '=' + GetVar('SELECT LAST_INSERT_ID()')
-            else if Row.Cells[j].Modified then begin
-              if Row.Cells[j].NewIsNull then Value := ' IS NULL'
-              else Value := '=' + esc(Row.Cells[j].NewText);
-            end else
-              Value := '=''''';
-            break;
-          end;
-          FSelectedTableColumns.Next;
-        end;
-        sql := sql + ' ' + mask(KeyCols[i]) + Value + ' AND';
-      end;
-
-      if KeyCols.Count = 0 then begin
-        // No PK existant. Try a non unique WHERE clause and assume the last row was the just inserted one
-        for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
-          if Row.Cells[i].Modified then begin
-            if Row.Cells[i].NewIsNull then Value := ' IS NULL'
-            else Value := '=' + esc(Row.Cells[i].NewText);
-            sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + Value + ' AND';
-          end;
-        end;
-      end;
-
-      // Cut trailing AND
-      sql := Copy(sql, 1, Length(sql)-4);
-
-      GridFinalizeEditing(Sender);
-      ds := ExecSelectQuery(sql);
-      if ds.RecordCount > 0 then begin
-        // Make sure we're fetching the last inserted row which matches the WHERE clause
-        ds.Last;
-        for i := 0 to ds.FieldCount - 1 do begin
-          Row.Cells[i].Text := ds.Fields[i].AsWideString;
-          Row.Cells[i].IsNull := ds.Fields[i].IsNull;
-        end;
-        Sender.RepaintNode(Sender.FocusedNode);
-      end else begin
-        logsql('Unable to identify inserted row. Doing full reload.');
-        viewdata(Sender);
-      end;
-      ds.Free;
     end;
   end;
 end;
