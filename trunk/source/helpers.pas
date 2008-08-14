@@ -1365,7 +1365,8 @@ end;
 }
 function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
 var
-  i : Integer;
+  i,len : Integer;
+  c: WideChar;
 begin
   if sql_version = SQL_VERSION_ANSI then begin
     // Do a manual iteration + replacing of single quotes, which is much
@@ -1380,7 +1381,14 @@ begin
     end;
   end
   else begin
-    Result := WideStringReplace(Text, '''', '\''', [rfReplaceAll]);
+    len := Length(Text);
+    Result := '';
+    for i := 1 to len do begin
+      c := Text[i];
+      if (c = '''') or (c = '\') then
+        Result := Result + '\';
+      Result := Result + c;
+    end;
   end;
 
   if ProcessJokerChars then
