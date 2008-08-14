@@ -217,6 +217,8 @@ var
   ColumnInfo: TZColumnInfo;
   FieldHandle: PZMySQLField;
   FieldFlags: Integer;
+  Version: Cardinal;
+  Bug10491: Boolean;
 begin
   if ResultSetConcurrency = rcUpdatable then
     raise EZSQLException.Create(SLiveResultSetsAreNotSupported);
@@ -246,6 +248,15 @@ begin
   if not Assigned(FQueryHandle) then
     raise EZSQLException.Create(SCanNotRetrieveResultSetData);
 
+  // Automatically enable workaround for bug 10491 and friends?
+  // (See also http://bugs.mysql.com/10491.)
+  Version := FPlainDriver.GetServerVersion(FHandle);
+  Bug10491 :=
+    (Version < 50046) and
+    (Version >= 40100) and
+    (UpperCase(Copy(Trim(FSQL), 1, 4)) = 'SHOW')
+  ;
+
   { Fills the column info. }
   ColumnsInfo.Clear;
   if Assigned(FQueryHandle) then for I := 0 to FPlainDriver.GetFieldCount(FQueryHandle) - 1 do
@@ -265,7 +276,7 @@ begin
       TableName := FPlainDriver.GetFieldTable(FieldHandle);
       ReadOnly := (FPlainDriver.GetFieldTable(FieldHandle) = '');
       Writable := not ReadOnly;
-      ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver, FieldHandle, FieldFlags);
+      ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver, FieldHandle, FieldFlags, Bug10491);
       ColMaxWidth := FPlainDriver.GetFieldLength(FieldHandle);
       // Note: In USE_RESULT mode, the driver does not know the length of the widest field,
       //       thus the value returned below will always be 0.  Same goes for prepared

@@ -76,7 +76,7 @@ type
   @return a SQL undepended type.
 }
 function ConvertMySQLHandleToSQLType(PlainDriver: IZMySQLPlainDriver;
-  FieldHandle: PZMySQLField; FieldFlags: Integer): TZSQLType;
+  FieldHandle: PZMySQLField; FieldFlags: Integer; Bug10491: Boolean): TZSQLType;
 
 {**
   Convert string mysql field type to SQLType
@@ -164,7 +164,7 @@ end;
   @return a SQL undepended type.
 }
 function ConvertMySQLHandleToSQLType(PlainDriver: IZMySQLPlainDriver;
-  FieldHandle: PZMySQLField; FieldFlags: Integer): TZSQLType;
+  FieldHandle: PZMySQLField; FieldFlags: Integer; Bug10491: Boolean): TZSQLType;
 var
   Collation: Cardinal;
 
@@ -240,19 +240,35 @@ begin
       Result := stUnicodeString;
     FIELD_TYPE_TINY_BLOB, FIELD_TYPE_MEDIUM_BLOB,
     FIELD_TYPE_LONG_BLOB, FIELD_TYPE_BLOB:
-      // TEXT and BLOB columns.
-      if Binary then Result := stBinaryStream
-      else Result := stUnicodeStream;
+      begin
+        // TEXT and BLOB columns.
+        if Binary then Result := stBinaryStream
+        else Result := stUnicodeStream;
+        // Workaround for bug 10491.
+        // Note: Unicode is wrong, depending on the function used, the
+        //       data returned is mixed garbage.  Decoding as UTF-8 gets
+        //       a-z right though, so for users with database and table
+        //       names in plain English, this will work.
+        if Bug10491 and Binary then Result := stUnicodeStream;
+      end;
     FIELD_TYPE_BIT:
       Result := stBinaryStream;
     FIELD_TYPE_VARCHAR:
       Result := stUnicodeString;
     FIELD_TYPE_VAR_STRING:
-      // VARCHAR and VARBINARY columns.
-      // ftBytes cause breakage in Variant handling code.
-      // Not sure about ftVarBytes; haven't attempted.
-      if Binary then Result := stBinaryStream
-      else Result := stUnicodeString;
+      begin
+        // VARCHAR and VARBINARY columns.
+        // ftBytes cause breakage in Variant handling code.
+        // Not sure about ftVarBytes; haven't attempted.
+        if Binary then Result := stBinaryStream
+        else Result := stUnicodeString;
+        // Workaround for bug 10491.
+        // Note: Unicode is wrong, depending on the function used, the
+        //       data returned is mixed garbage.  Decoding as UTF-8 gets
+        //       a-z right though, so for users with database and table
+        //       names in plain English, this will work.
+        if Bug10491 and Binary then Result := stUnicodeStream;
+      end;
     FIELD_TYPE_STRING:
       // CHAR and BINARY columns.
       if Binary then Result := stBinaryStream
