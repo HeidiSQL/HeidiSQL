@@ -39,7 +39,6 @@
     <DCC_ResourcePath>..\..\..\compilerdetection\include</DCC_ResourcePath>
     <DCC_ObjPath>..\..\..\compilerdetection\include</DCC_ObjPath>
     <DCC_IncludePath>..\..\..\compilerdetection\include</DCC_IncludePath>
-    <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
     <DCC_BplOutput>..\..\build\</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build\</DCC_DcpOutput>
   </PropertyGroup>

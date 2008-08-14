@@ -766,7 +766,7 @@ function CharSetToCodePage(ciCharset: UINT): Cardinal;
 var
   C: TCharsetInfo;
 begin
-  Win32Check(TranslateCharsetInfo(PDWORD(ciCharset), C, TCI_SRCCHARSET));
+  TntWin32Check(TranslateCharsetInfo(PDWORD(ciCharset), C, TCI_SRCCHARSET));
   Result := C.ciACP
 end;
 
@@ -1388,7 +1388,9 @@ initialization
   {$IFNDEF COMPILER_9_UP}
   StartupDefaultUserCodePage := DefaultSystemCodePage;
   {$ENDIF}
+  {$WARN SYMBOL_PLATFORM OFF}
   IsDebugging := DebugHook > 0;
+  {$WARN SYMBOL_PLATFORM ON}
 
 finalization
   UninstallSystemOverrides;

@@ -343,11 +343,24 @@ function GetDefaultCurrencyFmt: TCurrencyFmtW;
 
 // ........ misc functions .........
 
+function TntWin32Check(RetVal: BOOL): BOOL;
+
 {TNT-WARN GetLocaleStr}
 function WideGetLocaleStr(LocaleID: LCID; LocaleType: Integer; const Default: WideString): WideString;
 {TNT-WARN SysErrorMessage}
 function WideSysErrorMessage(ErrorCode: Integer): WideString;
 procedure WideRaiseLastOSError;
+
+const
+  // Windows-only constants.
+  {$WARN SYMBOL_PLATFORM OFF}
+  fawReadOnly = faReadOnly;
+  fawHidden   = faHidden;
+  fawSysFile  = faSysFile;
+  {$WARN SYMBOL_DEPRECATED OFF}
+  fawVolumeID = faVolumeID;  // not used in Win32
+  {$WARN SYMBOL_DEPRECATED ON}
+  {$WARN SYMBOL_PLATFORM ON}
 
 // ......... introduced .........
 
@@ -1213,7 +1226,7 @@ end;
 
 function WideFileIsReadOnly(const FileName: WideString): Boolean;
 begin
-  Result := (Tnt_GetFileAttributesW(PWideChar(FileName)) and faReadOnly) <> 0;
+  Result := (Tnt_GetFileAttributesW(PWideChar(FileName)) and fawReadOnly) <> 0;
 end;
 
 function WideFileSetReadOnly(const FileName: WideString; ReadOnly: Boolean): Boolean;
@@ -1224,9 +1237,9 @@ begin
   Flags := Tnt_GetFileAttributesW(PWideChar(FileName));
   if Flags = -1 then Exit;
   if ReadOnly then
-    Flags := Flags or faReadOnly
+    Flags := Flags or fawReadOnly
   else
-    Flags := Flags and not faReadOnly;
+    Flags := Flags and not fawReadOnly;
   Result := Tnt_SetFileAttributesW(PWideChar(FileName), Flags);
 end;
 
@@ -1306,7 +1319,7 @@ end;
 
 function WideFindFirst(const Path: WideString; Attr: Integer; var F: TSearchRecW): Integer;
 const
-  faSpecial = faHidden or faSysFile {$IFNDEF COMPILER_9_UP} or faVolumeID {$ENDIF} or faDirectory;
+  faSpecial = fawHidden or fawSysFile {$IFNDEF COMPILER_9_UP} or faVolumeID {$ENDIF} or faDirectory;
 begin
   F.ExcludeAttr := not Attr and faSpecial;
   F.FindHandle := Tnt_FindFirstFileW(PWideChar(Path), F.FindData);
@@ -1532,7 +1545,9 @@ var
   L: Integer;
 begin
   if (not Win32PlatformIsUnicode) then
+    {$WARN SYMBOL_PLATFORM OFF}
     Result := GetLocaleStr{TNT-ALLOW GetLocaleStr}(LocaleID, LocaleType, Default)
+    {$WARN SYMBOL_PLATFORM ON}
   else begin
     SetLength(Result, 255);
     L := GetLocaleInfoW(LocaleID, LocaleType, PWideChar(Result), Length(Result));
@@ -1657,9 +1672,16 @@ begin
   end;
 end;
 
+function TntWin32Check(RetVal: BOOL): BOOL;
+begin
+  {$WARN SYMBOL_PLATFORM OFF}
+  Result := Win32Check(RetVal);
+  {$WARN SYMBOL_PLATFORM ON}
+end;
+
 function _WideCharType(WC: WideChar; dwInfoType: Cardinal): Word;
 begin
-  Win32Check(Tnt_GetStringTypeExW(GetThreadLocale, dwInfoType, PWideChar(@WC), 1, Result))
+  TntWin32Check(Tnt_GetStringTypeExW(GetThreadLocale, dwInfoType, PWideChar(@WC), 1, Result))
 end;
 
 function IsWideCharUpper(WC: WideChar): Boolean;

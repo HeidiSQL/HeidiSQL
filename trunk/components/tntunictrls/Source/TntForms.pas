@@ -897,7 +897,7 @@ procedure InitTntEnvironment;
           DummyResult: Cardinal;
         begin
           try
-            Win32Check(WriteProfileString(PAnsiChar(Section), PAnsiChar(Key), PAnsiChar(Value)));
+            TntWin32Check(WriteProfileString(PAnsiChar(Section), PAnsiChar(Key), PAnsiChar(Value)));
             if Win32Platform = VER_PLATFORM_WIN32_WINDOWS then
               WriteProfileString(nil, nil, nil); {this flushes the WIN.INI cache}
             SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, Integer(PAnsiChar(Section)),
