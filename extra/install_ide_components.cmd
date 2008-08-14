@@ -4,7 +4,7 @@ setlocal enableextensions 2>nul:
 if not %errorlevel% == 0 goto extensions_failure
 
 setlocal enabledelayexpansion 2>nul:
-if not %errorlevel% == 0 goto delayexpansion_failure
+rem if not %errorlevel% == 0 goto delayexpansion_failure
 goto tool_tests
 
 :extensions_failure
