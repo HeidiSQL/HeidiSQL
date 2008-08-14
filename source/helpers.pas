@@ -1046,14 +1046,9 @@ end;
   Create UTF-8 text file
 }
 function openfs(filename: String): TFileStream;
-var
-  header: array[0..2] of Byte;
 begin
     Result := TFileStream.Create(filename, fmCreate);
-    header[0] := $EF;
-    header[1] := $BB;
-    header[2] := $BF;
-    Result.WriteBuffer(header, 3);
+    Result.WriteBuffer(sUTF8BOMString, 3);
 end;
 
 {***
@@ -1350,6 +1345,50 @@ begin
 end;
 
 
+{***
+ Attempt to do string replacement faster than StringReplace and WideStringReplace.
+}
+function escChars(Text: WideString; Char1: WideChar; Char2: WideChar; Char3: WideChar; Char4: WideChar): WideString;
+const
+  // Attempt to match whatever the CPU cache will hold.
+  block: Cardinal = 65536;
+var
+  bstart, bend, matches, i: Cardinal;
+  // These could be bumped to uint64 if necessary.
+  len, respos: Cardinal;
+begin
+  len := Length(Text);
+  Result := '';
+  bend := 0;
+  respos := 0;
+  repeat
+    bstart := bend + 1;
+    bend := bstart + block - 1;
+    if bend > len then bend := len;
+    matches := 0;
+    for i := bstart to bend do if
+      (Text[i] = Char1) or
+      (Text[i] = Char2) or
+      (Text[i] = Char3) or
+      (Text[i] = Char4)
+    then Inc(matches);
+    SetLength(Result, bend + 1 - bstart + matches + respos);
+    for i := bstart to bend do begin
+      if
+        (Text[i] = Char1) or
+        (Text[i] = Char2) or
+        (Text[i] = Char3) or
+        (Text[i] = Char4)
+      then begin
+        Inc(respos);
+        Result[respos] := '\';
+      end;
+      Inc(respos);
+      Result[respos] := Text[i];
+    end;
+  until bend = len;
+end;
+
 
 {***
   Escape all kinds of characters:
@@ -1365,49 +1404,28 @@ end;
 }
 function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
 var
-  i,len : Integer;
-  c: WideChar;
+  c1, c2, c3, c4: WideChar;
 begin
-  if sql_version = SQL_VERSION_ANSI then begin
-    // Do a manual iteration + replacing of single quotes, which is much
-    // faster than StringReplace on text with a large amount of replacements
-    Result := '';
-    for i := 1 to Length(Text) do
-    begin
-      if Text[i] = #39 then
-        Result := Result + #39#39
-      else
-        Result := Result + Text[i];
-    end;
-  end
-  else begin
-    len := Length(Text);
-    Result := '';
-    for i := 1 to len do begin
-      c := Text[i];
-      if (c = '''') or (c = '\') then
-        Result := Result + '\';
-      Result := Result + c;
-    end;
+  c1 := '''';
+  c2 := '\';
+  c3 := '%';
+  c4 := '_';
+  if (not ProcessJokerChars) or (sql_version = SQL_VERSION_ANSI) then begin
+    // Do not escape joker-chars which are used in a LIKE-clause
+    c4 := '''';
+    c3 := '''';
   end;
-
-  if ProcessJokerChars then
-  begin
-    // Escape joker-chars which are used in a LIKE-clause
-    if sql_version <> SQL_VERSION_ANSI then begin
-      Result := WideStringReplace(Result, '%', '\%', [rfReplaceAll]);
-      Result := WideStringReplace(Result, '_', '\_', [rfReplaceAll]);
-    end;
-  end
-  else
-  begin
+  if sql_version = SQL_VERSION_ANSI then begin
+    c2 := '''';
+  end;
+  Result := escChars(Text, c1, c2, c3, c4);
+  if not ProcessJokerChars then begin
     // Add surrounding single quotes only for non-LIKE-values
     // because in all cases we're using ProcessLIKEChars we
     // need to add leading and/or trailing joker-chars by hand
     // without being escaped
-    Result := #39 + Result + #39;
+    Result := WideChar(#39) + Result + WideChar(#39);
   end;
-
 end;
 
 
