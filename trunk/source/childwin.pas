@@ -5549,13 +5549,17 @@ const
   NullText = '(NULL)';
 var
   c: TGridCell;
+  gr: TGridResult;
   EditingCell: Boolean;
 begin
   if Column = -1 then
     Exit;
+  if Sender = DataGrid then gr := FDataGridResult
+  else gr := FQueryGridResult;
+  if Node.Index >= Cardinal(Length(gr.Rows)) then
+    Exit;
   EnsureDataLoaded(Sender, Node);
-  if Sender = DataGrid then c := FDataGridResult.Rows[Node.Index].Cells[Column]
-  else c := FQueryGridResult.Rows[Node.Index].Cells[Column];
+  c := gr.Rows[Node.Index].Cells[Column];
   EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   if c.Modified then begin
     if c.NewIsNull then begin
@@ -5592,6 +5596,9 @@ begin
   if Sender = DataGrid then r := FDataGridResult
   else r := FQueryGridResult;
 
+  if Node.Index >= Cardinal(Length(r.Rows)) then
+    Exit;
+    
   // Make primary key columns bold
   if r.Columns[Column].IsPriPart then
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
