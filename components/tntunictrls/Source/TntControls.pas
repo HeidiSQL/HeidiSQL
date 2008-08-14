@@ -760,7 +760,7 @@ begin
     ClassRegistered := GetClassInfoW(hInstance, PWideChar(WideWinClassName), TempClass);
     if (not ClassRegistered) or (TempClass.lpfnWndProc <> InitialProc)
     then begin
-      if ClassRegistered then Win32Check(Windows.UnregisterClassW(PWideChar(WideWinClassName), hInstance));
+      if ClassRegistered then TntWin32Check(Windows.UnregisterClassW(PWideChar(WideWinClassName), hInstance));
       // Prepare a TWndClassW record
       WideClass := TWndClassW(WindowClass);
       WideClass.hInstance := hInstance;

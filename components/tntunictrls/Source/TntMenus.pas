@@ -711,7 +711,7 @@ var
     begin
       MenuItemInfo.dwTypeData := PWideChar(Value);
       MenuItemInfo.cch := Length(Value);
-      Win32Check(SetMenuItemInfoW(ParentHandle, Command, False, MenuItemInfo));
+      TntWin32Check(SetMenuItemInfoW(ParentHandle, Command, False, MenuItemInfo));
     end;
   end;
 
