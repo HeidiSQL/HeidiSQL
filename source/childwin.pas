@@ -5759,9 +5759,8 @@ begin
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].IsInt then // don't quote or convert
-      else if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val)
-      else Val := esc(Val);
+      if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
+      Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
@@ -5848,9 +5847,8 @@ begin
     // Find old value of key column
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
-    if FDataGridResult.Columns[j].IsInt then
-    else if FDataGridResult.Columns[j].IsFloat then KeyVal := FloatStr(KeyVal)
-    else KeyVal := esc(KeyVal);
+    if FDataGridResult.Columns[j].IsFloat then KeyVal := FloatStr(KeyVal);
+    KeyVal := esc(KeyVal);
     if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
     else KeyVal := '=' + KeyVal;
     Result := Result + mask(KeyCols[i]) + KeyVal + ' AND ';
@@ -5933,9 +5931,8 @@ begin
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].IsInt then
-      else if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val)
-      else Val := esc(Val);
+      if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
+      Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       Vals := Vals + Val + ', ';
     end;
