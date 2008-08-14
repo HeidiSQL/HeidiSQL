@@ -174,13 +174,6 @@ goto :eof
 :build
 echo.
 
-rem Build EDBImage
-call :compile edbimage VCLSer
-if not %err% == 0 goto end
-call :compile edbimage DCLSer
-if not %err% == 0 goto end
-
-
 rem Build SynEdit
 call :compile synedit SynEditR
 if not %err% == 0 goto end

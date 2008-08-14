@@ -8,24 +8,6 @@
     <BorlandProject>
   <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
   </ProjectExtensions>
-  <Target Name="VCLSer">
-    <MSBuild Projects="..\..\components\edbimage\packages\delphi11\VCLSer.dproj" Targets="" />
-  </Target>
-  <Target Name="VCLSer:Clean">
-    <MSBuild Projects="..\..\components\edbimage\packages\delphi11\VCLSer.dproj" Targets="Clean" />
-  </Target>
-  <Target Name="VCLSer:Make">
-    <MSBuild Projects="..\..\components\edbimage\packages\delphi11\VCLSer.dproj" Targets="Make" />
-  </Target>
-  <Target Name="DCLSer">
-    <MSBuild Projects="..\..\components\edbimage\packages\delphi11\DCLSer.dproj" Targets="" />
-  </Target>
-  <Target Name="DCLSer:Clean">
-    <MSBuild Projects="..\..\components\edbimage\packages\delphi11\DCLSer.dproj" Targets="Clean" />
-  </Target>
-  <Target Name="DCLSer:Make">
-    <MSBuild Projects="..\..\components\edbimage\packages\delphi11\DCLSer.dproj" Targets="Make" />
-  </Target>
   <Target Name="SynEditR">
     <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditR.dproj" Targets="" />
   </Target>
@@ -180,12 +162,12 @@
     <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
-    <CallTarget Targets="VCLSer;DCLSer;SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;TntUnicodeVcl;TntUnicodeVcl_Design;VirtualTreesR;VirtualTreesD;PNG;PngComponents;PngComponentsD;heidisql" />
+    <CallTarget Targets="SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;TntUnicodeVcl;TntUnicodeVcl_Design;VirtualTreesR;VirtualTreesD;PNG;PngComponents;PngComponentsD;heidisql" />
   </Target>
   <Target Name="Clean">
-    <CallTarget Targets="VCLSer:Clean;DCLSer:Clean;SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;PNG:Clean;PngComponents:Clean;PngComponentsD:Clean;heidisql:Clean" />
+    <CallTarget Targets="SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;PNG:Clean;PngComponents:Clean;PngComponentsD:Clean;heidisql:Clean" />
   </Target>
   <Target Name="Make">
-    <CallTarget Targets="VCLSer:Make;DCLSer:Make;SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;VirtualTreesR:Make;VirtualTreesD:Make;PNG:Make;PngComponents:Make;PngComponentsD:Make;heidisql:Make" />
+    <CallTarget Targets="SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;VirtualTreesR:Make;VirtualTreesD:Make;PNG:Make;PngComponents:Make;PngComponentsD:Make;heidisql:Make" />
   </Target>
 </Project>
