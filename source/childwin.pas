@@ -5330,8 +5330,10 @@ begin
   ExpandedDBs.Free;
   TablesFetched.Free;
 
-  if oldSelectedTable <> '' then
-    SelectedTable := oldSelectedTable;
+  try
+    if oldSelectedTable <> '' then SelectedTable := oldSelectedTable;
+  except
+  end;
   DBTree.EndUpdate;
 end;
 
