@@ -1296,8 +1296,6 @@ begin
       // Try to calc the rowcount regardless of a given LIMIT
       // Only needed if the user specified a WHERE-clause
       Filter := GetFilter;
-      if (mysql_version >= 40000) and (Filter <> '') then
-        select_base := select_base + ' SQL_CALC_FOUND_ROWS';
       // Selected columns
       if DisplayedColumnsList.Count = 0 then begin
         FSelectedTableColumns.First;
@@ -1427,29 +1425,7 @@ begin
     lblDataTop.Caption := lblDataTop.Caption + ' [View]';
   end;
 
-  {***
-    @note: FOUND_ROWS() gives us a correct number, but this number
-      belongs in most cases to a different query than the previous SELECT,
-      because Zeos does some automagically
-        SHOW TABLES LIKE '' and
-        SHOW COLUMNS LIKE '%'
-      between the above SELECT and a following "SELECT FOUND_ROWS()".
-      This problem has been introduced with the fix of
-      a faulty caching-mechanism in Zeos (rev 312).
-      and those queries seem to reset the FOUND_ROWS() since MySQL 5.0
-      The workaround is to store FOUND_ROWS() immediately after query-execution
-      in a variable, which we are selecting here.
-    @see TZMySQLResultSet:Create
-    @see TZMySQLResultSet:Open
-  }
-  if Filter <> '' then begin
-    if mysql_version >= 40000 then
-      rows_matching := StrToInt64Def(GetVar('SELECT @found_rows'), 0)
-    else
-      rows_matching := DataGrid.RootNodeCount;
-  end
-  else
-    rows_matching := rows_total;
+  rows_matching := DataGrid.RootNodeCount;
 
   if( rows_matching <> rows_total ) and
     (Filter <> '') then
