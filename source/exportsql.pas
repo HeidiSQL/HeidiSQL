@@ -575,7 +575,7 @@ begin
   // Export to .sql-file on disk
   if tofile then begin
     // Extract name part of selected target version
-    target_version := StrToIntDef( target_versions.Names[ comboTargetCompat.ItemIndex ], SQL_VERSION_DEFAULT );
+    target_version := MakeInt(target_versions.Names[ comboTargetCompat.ItemIndex ]);
     target_cliwa := Pos('mysqldump', target_versions.Names[comboTargetCompat.ItemIndex]) > 0;
     max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     f := InitFileStream('header');

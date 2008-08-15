@@ -1292,7 +1292,7 @@ begin
   StrNumber := '';
   for i:=1 to Length(Str) do
   begin
-    if Str[i] in ['0'..'9', DecimalSeparator] then
+    if (Str[i] in ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (StrNumber='')) then
     begin
       StrNumber := StrNumber + Str[i];
     end;
