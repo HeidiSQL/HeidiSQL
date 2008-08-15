@@ -36,10 +36,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\..\compilerdetection\include;..\..\resources</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\..\compilerdetection\include;..\..\resources</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\..\compilerdetection\include;..\..\resources</DCC_ObjPath>
-    <DCC_IncludePath>..\..\..\compilerdetection\include;..\..\resources</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\..\compilerdetection\include;..\..\resources;..\..\..\tntunictrls\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\..\compilerdetection\include;..\..\resources;..\..\..\tntunictrls\build</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\..\compilerdetection\include;..\..\resources;..\..\..\tntunictrls\build</DCC_ObjPath>
+    <DCC_IncludePath>..\..\..\compilerdetection\include;..\..\resources;..\..\..\tntunictrls\build</DCC_IncludePath>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
