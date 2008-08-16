@@ -1278,19 +1278,6 @@ begin
       SetLength(FDataGridResult.Columns, 0);
       SetLength(FDataGridResult.Rows, 0);
 
-      // Initialize column array to correct length.
-      if DisplayedColumnsList.Count = 0 then begin
-        ColCount := 0;
-        FSelectedTableColumns.First;
-        while not FSelectedTableColumns.Eof do begin
-          ColCount := ColCount + 1;
-          FSelectedTableColumns.Next;
-        end;
-      end else begin
-        ColCount := DisplayedColumnsList.Count;
-      end;
-      SetLength(FDataGridResult.Columns, ColCount);
-
       // Prepare SELECT statement
       select_base := 'SELECT ';
       // Try to calc the rowcount regardless of a given LIMIT
@@ -1315,6 +1302,8 @@ begin
         DisplayedColumnsList.Add(KeyCols[i]);
         HiddenKeyCols.Add(KeyCols[i]);
       end;
+      // Initialize column array to correct length.
+      SetLength(FDataGridResult.Columns, DisplayedColumnsList.Count);
       for i := 0 to DisplayedColumnsList.Count - 1 do begin
         ColName := DisplayedColumnsList[i];
         FSelectedTableColumns.First;
