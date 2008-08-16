@@ -1132,7 +1132,6 @@ var
   sorting              : String;
   i                    : Integer;
   OrderColumns         : TOrderColArray;
-  ColCount             : Integer;
   reg_value            : String;
   select_base          : WideString;
   select_from          : WideString;
