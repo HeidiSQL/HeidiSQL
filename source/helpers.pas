@@ -1348,7 +1348,7 @@ end;
 {***
  Attempt to do string replacement faster than StringReplace and WideStringReplace.
 }
-function escChars(Text: WideString; Char1: WideChar; Char2: WideChar; Char3: WideChar; Char4: WideChar): WideString;
+function escChars(Text: WideString; EscChar, Char1, Char2, Char3, Char4: WideChar): WideString;
 const
   // Attempt to match whatever the CPU cache will hold.
   block: Cardinal = 65536;
@@ -1381,7 +1381,7 @@ begin
         (Text[i] = Char4)
       then begin
         Inc(respos);
-        Result[respos] := '\';
+        Result[respos] := EscChar;
       end;
       Inc(respos);
       Result[respos] := Text[i];
@@ -1404,12 +1404,13 @@ end;
 }
 function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
 var
-  c1, c2, c3, c4: WideChar;
+  c1, c2, c3, c4, EscChar: WideChar;
 begin
   c1 := '''';
   c2 := '\';
   c3 := '%';
   c4 := '_';
+  EscChar := '\';
   if (not ProcessJokerChars) or (sql_version = SQL_VERSION_ANSI) then begin
     // Do not escape joker-chars which are used in a LIKE-clause
     c4 := '''';
@@ -1417,8 +1418,9 @@ begin
   end;
   if sql_version = SQL_VERSION_ANSI then begin
     c2 := '''';
+    EscChar := '''';
   end;
-  Result := escChars(Text, c1, c2, c3, c4);
+  Result := escChars(Text, EscChar, c1, c2, c3, c4);
   if not ProcessJokerChars then begin
     // Add surrounding single quotes only for non-LIKE-values
     // because in all cases we're using ProcessLIKEChars we
