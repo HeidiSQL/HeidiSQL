@@ -874,6 +874,7 @@ object MainForm: TMainForm
       Caption = 'Table properties'
       Enabled = False
       ImageIndex = 44
+      ShortCut = 13
       OnExecute = actEditTableFieldsExecute
     end
     object actEditTableProperties: TAction
@@ -890,6 +891,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Edit field properties'
       ImageIndex = 93
+      ShortCut = 13
       OnExecute = actEditFieldExecute
     end
     object actCreateField: TAction
