@@ -959,26 +959,6 @@ begin
 end;
 
 
-procedure TMainForm.actCopyAsCSVExecute(Sender: TObject);
-begin
-  // Copy data in actual dataset as CSV
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2csv(ChildWin.GetVisualDataset(), ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2csv(ChildWin.GetVisualDataset(), ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator);
-end;
-
-
-procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
-begin
-  // Copy data in actual dataset as HTML
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2html(ChildWin.GetVisualDataset(), 'Result', '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion )
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2html(ChildWin.GetVisualDataset(), 'Result', '', ChildWin.prefConvertHTMLEntities, APPNAME + ' ' + FullAppVersion);
-end;
-
-
 procedure TMainForm.actPrintListExecute(Sender: TObject);
 var
   page : TTabSheet;
@@ -1109,64 +1089,121 @@ begin
   ChildWin.ExecSqlClick(sender, false, true);
 end;
 
-procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
+
+procedure TMainForm.actCopyAsCSVExecute(Sender: TObject);
+var
+  S: TMemoryStream;
 begin
-  // Copy data in actual dataset as XML
-  if ChildWin.PageControlMain.ActivePage = ChildWin.tabData then
-    dataset2xml(ChildWin.GetVisualDataset(), ChildWin.SelectedTable)
-  else if ChildWin.PageControlMain.ActivePage = ChildWin.tabQuery then
-    dataset2xml(ChildWin.GetVisualDataset(), 'SQL-query');
+  // Copy data in focused grid as CSV
+  Screen.Cursor := crHourglass;
+  S := TMemoryStream.Create;
+  try
+    GridToCsv(ChildWin.ActiveGrid, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, S);
+    StreamToClipboard(S);
+  finally
+    ShowStatus('Freeing data...');
+    S.Free;
+    ShowStatus(STATUS_MSG_READY);
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
+var
+  S: TMemoryStream;
+  Title: WideString;
+begin
+  // Copy data in focused grid as HTML table
+  Screen.Cursor := crHourglass;
+  S := TMemoryStream.Create;
+  if ChildWin.ActiveGrid = Childwin.DataGrid then Title := Childwin.SelectedTable
+  else Title := 'SQL query';
+  try
+    GridToHtml(ChildWin.ActiveGrid, Title, ChildWin.prefConvertHTMLEntities, S);
+    StreamToClipboard(S);
+  finally
+    ShowStatus('Freeing data...');
+    S.Free;
+    ShowStatus(STATUS_MSG_READY);
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
+var
+  S: TMemoryStream;
+  Root: WideString;
+begin
+  // Copy data in focused grid as XML
+  Screen.Cursor := crHourglass;
+  S := TMemoryStream.Create;
+  if ChildWin.ActiveGrid = Childwin.DataGrid then Root := Childwin.SelectedTable
+  else Root := 'SQL query';
+  try
+    GridToXml(ChildWin.ActiveGrid, Root, S);
+    StreamToClipboard(S);
+  finally
+    ShowStatus('Freeing data...');
+    S.Free;
+    ShowStatus(STATUS_MSG_READY);
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
-  query : TGridResult;
+  Grid: TVirtualStringTree;
+  Dialog: TExportSaveDialog;
+  FS: TFileStream;
+  Title: WideString;
 begin
   // Save data in current dataset as CSV, HTML or XML
+  Dialog := ChildWin.SaveDialogExportData;
 
-  case ChildWin.PageControlMain.ActivePageIndex of
-    3 : begin query := ChildWin.GetVisualDataset(){ZQuery2}; ChildWin.SaveDialogExportData.Filename := ChildWin.SelectedTable; end;
-    4 : begin query := ChildWin.GetVisualDataset() {ZQuery1}; ChildWin.SaveDialogExportData.Filename := 'SQL-query'; end;
-    else
-      raise Exception.Create('Internal error: Cannot fetch query with no related active tab.');
-  end;
+  Grid := Mainform.Childwin.ActiveGrid;
+  if Grid = Mainform.Childwin.DataGrid then
+    Title := ChildWin.SelectedTable
+  else
+    Title := 'SQL-query';
 
-  with ChildWin.SaveDialogExportData do
-  begin
-    Title := 'Export result-set from '+Filename+'...';
-    FieldSep := ChildWin.prefCSVSeparator;
-    LineSep := ChildWin.prefCSVTerminator;
-    FieldEncl := ChildWin.prefCSVEncloser;
-    ConvertHTMLSpecialChars := ChildWin.prefConvertHTMLEntities;
+  Dialog.FileName := Title;
+  Dialog.Title := 'Export result-set from '+Dialog.Filename+'...';
+  Dialog.FieldSep := ChildWin.prefCSVSeparator;
+  Dialog.LineSep := ChildWin.prefCSVTerminator;
+  Dialog.FieldEncl := ChildWin.prefCSVEncloser;
+  Dialog.ConvertHTMLSpecialChars := ChildWin.prefConvertHTMLEntities;
 
-
-    if Execute and (FileName <> '') then
-    begin
-      Screen.Cursor := crHourGlass;
-      case FilterIndex of
-        1 : dataset2csv(query, FieldSep, FieldEncl, LineSep, Filename);
-        2 : dataset2html(query, FileName, FileName, ConvertHTMLSpecialChars, APPNAME+' '+FullAppVersion);
-        3 : dataset2xml(query, FileName, FileName);
-      end;
-      ChildWin.prefCSVSeparator := FieldSep;
-      ChildWin.prefCSVTerminator := LineSep;
-      ChildWin.prefCSVEncloser := FieldEncl;
-      ChildWin.prefConvertHTMLEntities := ConvertHTMLSpecialChars;
-      with TRegistry.Create do
-      begin
-        openkey(REGPATH, true);
-        WriteBool(REGNAME_CONVERTHTMLENTITIES, ConvertHTMLSpecialChars);
-        WriteString(REGNAME_CSV_SEPARATOR, FieldSep);
-        WriteString(REGNAME_CSV_ENCLOSER, FieldEncl);
-        WriteString(REGNAME_CSV_TERMINATOR, LineSep);
-        closekey();
-        Free;
-      end;
-      Screen.Cursor := crDefault;
+  if Dialog.Execute and (Dialog.FileName <> '') then try
+    Screen.Cursor := crHourGlass;
+    FS := CreateUnicodeFileStream(Dialog.FileName);
+    case Dialog.FilterIndex of
+      1: GridToCsv(Grid, Dialog.FieldSep, Dialog.FieldEncl, Dialog.LineSep, FS);
+      2: GridToHtml(Grid, Title, Dialog.ConvertHTMLSpecialChars, FS);
+      3: GridToXml(Grid, Title, FS);
     end;
+    ShowStatus('Freeing data...');
+    FS.Free;
+    ShowStatus('Storing preferences...');
+    ChildWin.prefCSVSeparator := Dialog.FieldSep;
+    ChildWin.prefCSVTerminator := Dialog.LineSep;
+    ChildWin.prefCSVEncloser := Dialog.FieldEncl;
+    ChildWin.prefConvertHTMLEntities := Dialog.ConvertHTMLSpecialChars;
+    with TRegistry.Create do begin
+      openkey(REGPATH, true);
+      WriteBool(REGNAME_CONVERTHTMLENTITIES, Dialog.ConvertHTMLSpecialChars);
+      WriteString(REGNAME_CSV_SEPARATOR, Dialog.FieldSep);
+      WriteString(REGNAME_CSV_ENCLOSER, Dialog.FieldEncl);
+      WriteString(REGNAME_CSV_TERMINATOR, Dialog.LineSep);
+      Closekey;
+      Free;
+    end;
+  finally
+    ShowStatus(STATUS_MSG_READY);
+    Screen.Cursor := crDefault;
   end;
-
 end;
 
 
