@@ -2482,7 +2482,10 @@ begin
         FQueryGridResult.Rows[i].Loaded := True;
         SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
         for j:=0 to ds.FieldCount-1 do begin
-          FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+          if FQueryGridResult.Columns[j].IsBlob then
+            FQueryGridResult.Rows[i].Cells[j].Text := Utf8Decode(ds.Fields[j].AsString)
+          else
+            FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
           FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
         end;
         ds.Next;
@@ -5491,7 +5494,10 @@ begin
     for i := start to start + limit - 1 do begin
       SetLength(FDataGridResult.Rows[i].Cells, ds.Fields.Count);
       for j := 0 to ds.Fields.Count - 1 do begin
-        FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+        if FDataGridResult.Columns[j].IsBlob then
+          FDataGridResult.Rows[i].Cells[j].Text := Utf8Decode(ds.Fields[j].AsString)
+        else
+          FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
       end;
       FDataGridResult.Rows[i].Loaded := True;
@@ -5769,7 +5775,10 @@ begin
     ds := ExecSelectQuery(sql);
     if ds.RecordCount = 1 then begin
       for i := 0 to ds.FieldCount - 1 do begin
-        Row.Cells[i].Text := ds.Fields[i].AsWideString;
+        if FDataGridResult.Columns[i].IsBlob then
+          Row.Cells[i].Text := Utf8Decode(ds.Fields[i].AsString)
+        else
+          Row.Cells[i].Text := ds.Fields[i].AsWideString;
         Row.Cells[i].IsNull := ds.Fields[i].IsNull;
       end;
       Sender.RepaintNode(Sender.FocusedNode);
