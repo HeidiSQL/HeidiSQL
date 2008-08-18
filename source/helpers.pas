@@ -82,9 +82,9 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: WideString): WideString;
-  function dataset2html(ds: TGridResult; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
-  function dataset2csv(ds: TGridResult; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
-  function dataset2xml(ds: TGridResult; title: WideString; filename: String = ''): Boolean;
+  procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; ConvertHTMLEntities: Boolean; S: TStream);
+  procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
+  procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -135,11 +135,13 @@ type
   function GetDBObjectType( TableStatus: TFields ): Byte;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
+  function CreateUnicodeFileStream(Filename: String): TFileStream;
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
   function GetFileCharset(Stream: TFileStream): TFileCharset;
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
   function ReadTextfile(Filename: String): WideString;
   procedure CopyToClipboard(Value: WideString);
+  procedure StreamToClipboard(S: TMemoryStream);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -729,235 +731,180 @@ begin
 end;
 
 
+procedure ExportStatusMsg(Node: PVirtualNode; RootNodeCount: Cardinal; StreamSize: Int64);
+begin
+  Mainform.Showstatus('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(RootNodeCount)+
+    ' ('+IntToStr(Trunc((Node.Index+1) / RootNodeCount *100))+'%, '+FormatByteNumber(StreamSize)+')'
+    );
+end;
+
 
 {***
-  Converts a TDataSet to a HTML-Table.
-  If a filename is given, save HTML to disk, otherwise copy content to clipboard
-
-  @param TDataSet Object which holds data to export
+  Converts a Grid to a HTML-Table.
+  @param Grid Object which holds data to export
   @param string Text used in <title>
-  @param string Filename to use for saving. If not given, copy to clipboard.
   @param boolean Use htmlentities() on cell-contents?
-  @param string Generator, used for meta-tag in HTML-head
-  @return boolean True on access, False in case of any error
 }
-function dataset2html(ds: TGridResult; htmltitle: WideString; filename: String = ''; ConvertHTMLEntities: Boolean = true; Generator: String = ''): Boolean;
+procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; ConvertHTMLEntities: Boolean; S: TStream);
 var
-  I, J                      : Integer;
-  Buffer, cbuffer, data     : Widestring;
-  blobfilename, extension   : WideString;
-  bf                        : Textfile;
-  header, attribs           : WideString;
-  tofile                    : Boolean;
+  i: Integer;
+  tmp, Data, Attribs, Generator: WideString;
+  Node: PVirtualNode;
 begin
-  tofile := filename <> '';
-  try
-    buffer := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + crlf + crlf +
-      '<html>' + crlf +
-      '<head>' + crlf +
-      '  <title>' + htmltitle + '</title>' + crlf +
-      '  <meta name="GENERATOR" content="'+ Generator + '">' + crlf +
-      '  <style type="text/css">' + crlf +
-      '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + crlf +
-      '    th, td {vertical-align: top; font-family: "'+Mainform.Childwin.DataGrid.Font.Name+'"; font-size: '+IntToStr(Mainform.Childwin.DataGrid.Font.Size)+'pt; padding: 0.5em; }' + crlf +
-      '    table, td {border: 1px solid silver;}' + crlf +
-      '    table {border-collapse: collapse;}' + crlf +
-      '    td.isnull {background-color: '+TColorToHex(COLOR_NULLVALUE) +'}' + crlf +
-      '    td.pk {background-color: #EEEEEE; font-weight: bold;}' + crlf +
-      '  </style>' + crlf +
-      '</head>' + crlf + crlf +
-      '<body>' + crlf + crlf +
-      '<h3>' + htmltitle + ' (' + inttostr(Length(ds.Rows)) + ' rows)</h3>' + crlf + crlf +
-      '<table >' + crlf +
-      '  <tr id="header">' + crlf;
-    for j:=0 to Length(ds.Columns)-1 do
-      buffer := buffer + '    <th>' + ds.Columns[j].Name + '</th>' + crlf;
-    buffer := buffer + '  </tr>' + crlf;
-
-    cbuffer := buffer;
-
-    for I := 0 to Length(ds.Rows)-1 do
-    begin
-      Buffer := '  <tr>' + crlf;
-      // collect data:
-      for j:=0 to Length(ds.Rows[i].Cells)-1 do
-      begin
-        data := ds.Rows[i].Cells[j].Text;
-        if tofile and ds.Columns[j].IsBlob then begin
-          header := copy(data, 0, 20);
-          extension := '';
-          if pos('JFIF', header) <> 0 then
-            extension := 'jpg'
-          else if StrCmpBegin('GIF', header) then
-            extension := 'gif'
-          else if StrCmpBegin('BM', header) then
-            extension := 'bmp';
-          if extension <> '' then begin
-            blobfilename := 'rec'+inttostr(i)+'fld'+inttostr(j)+'.'+extension;
-            AssignFile(bf, blobfilename);
-            Rewrite(bf);
-            Write(bf, data);
-            CloseFile(bf);
-            data := '<a href="'+blobfilename+'"><img border="0" src="'+blobfilename+'" alt="'+blobfilename+' ('+floattostr(length(data) div 1024)+' KB)" width="100" /></a>';
-          end else begin
-            if ConvertHTMLEntities then data := htmlentities(data);
-            data := WideStringReplace(data, #10, #10+'<br>', [rfReplaceAll]);
-          end;
-        end else begin
-          if ConvertHTMLEntities then
-            data := htmlentities(data);
-          data := WideStringReplace(data, #10, #10+'<br>', [rfReplaceAll]);
-        end;
-        if ds.Rows[i].Cells[j].IsNull then
-          attribs := ' class="isnull"'
-        else begin
-          // Primary key field
-          attribs := '';
-          if ds.Columns[j].IsPriPart then
-            attribs := ' class="pk"';
-        end;
-        Buffer := Buffer + '    <td'+attribs+'>' + data + '</td>' + crlf;
-      end;
-      buffer := buffer + '  </tr>' + crlf;
-      cbuffer := cbuffer + buffer;
-    end;
-    // footer:
-    buffer := '</table>' + crlf +  crlf + '<p>' + crlf +
-      '<em>generated ' + datetostr(now) + ' ' + timetostr(now) +
-      ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + crlf + crlf +
-      '</body></html>';
-    cbuffer := cbuffer + buffer;
-    if tofile then
-      SaveUnicodeFile(filename, cbuffer)
-    else
-      CopyToClipboard(cbuffer);
-    result := true;
-  except
-    on e: Exception do begin
-      MessageDlg(e.Message, mtError, [mbOK], 0);
-      result := false;
-    end;
+  Generator := APPNAME+' '+FullAppVersion;
+  tmp := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
+    '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
+    '<html>' + CRLF +
+    '<head>' + CRLF +
+    '  <title>' + Title + '</title>' + CRLF +
+    '  <meta name="GENERATOR" content="'+ Generator + '">' + CRLF +
+    '  <style type="text/css">' + CRLF +
+    '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
+    '    th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
+    '    table, td {border: 1px solid silver;}' + CRLF +
+    '    table {border-collapse: collapse;}' + CRLF +
+    '  </style>' + CRLF +
+    '</head>' + CRLF + CRLF +
+    '<body>' + CRLF + CRLF +
+    '<table caption="' + Title + ' (' + inttostr(Grid.RootNodeCount) + ' rows)">' + CRLF +
+    '  <tr id="header">' + CRLF;
+  for i:=0 to Grid.Header.Columns.Count-1 do begin
+    if not (coVisible in Grid.Header.Columns[i].Options) then
+      continue;
+    tmp := tmp + '    <th style="width:'+IntToStr(Grid.Header.Columns[i].Width)+'px">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
   end;
-  Screen.Cursor := crDefault;
-  // open file:
-  if tofile and FileExists(filename) then
-    ShellExec( filename );
+  tmp := tmp + '  </tr>' + CRLF;
+  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+
+  Node := Grid.GetFirst;
+  while Assigned(Node) do begin
+    if (Node.Index+1) mod 100 = 0 then
+      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+    tmp := '  <tr>' + CRLF;
+    // collect data:
+    for i:=0 to Grid.Header.Columns.Count-1 do begin
+      // Skip hidden key columns
+      if not (coVisible in Grid.Header.Columns[i].Options) then
+        Continue;
+      Data := Grid.Text[Node, i];
+      if ConvertHTMLEntities then
+        Data := htmlentities(Data);
+      Data := WideStringReplace(Data, #10, #10+'<br>', [rfReplaceAll]);
+      if Grid.Header.Columns[i].Alignment = taRightJustify then
+        Attribs := ' style="text-align: right;"'
+      else
+        Attribs := '';
+      tmp := tmp + '    <td'+Attribs+'>' + Data + '</td>' + CRLF;
+    end;
+    tmp := tmp + '  </tr>' + CRLF;
+    S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+    Node := Grid.GetNext(Node);
+  end;
+  // footer:
+  tmp := '</table>' + CRLF +  CRLF + '<p>' + CRLF +
+    '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
+    ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + CRLF + CRLF +
+    '</body></html>';
+  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  Mainform.Showstatus(STATUS_MSG_READY);
 end;
 
 
 
 {***
   Converts a TDataSet to CSV-values.
-  If a filename is given, save CSV-data to disk, otherwise copy content to clipboard
-
-  @param TDataSet Object which holds data to export
+  @param Grid Object which holds data to export
   @param string Field-separator
   @param string Field-encloser
   @param string Line-terminator
-  @param string Filename to use for saving. If not given, copy to clipboard.
-  @return boolean True on access, False in case of any error
 }
-function dataset2csv(ds: TGridResult; Separator, Encloser, Terminator: String; filename: String = ''): Boolean;
+procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
 var
-  I, J                      : Integer;
-  Buffer, cbuffer, val      : WideString;
-  tofile                    : Boolean;
+  i: Integer;
+  tmp, Data: WideString;
+  Node: PVirtualNode;
 begin
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
-  tofile := filename <> '';
 
-  try
-    Buffer := '';
-    // collect fields:
-    for j:=0 to Length(ds.Columns)-1 do begin
-      if j > 0 then
-        Buffer := Buffer + Separator;
-      Buffer := Buffer + Encloser + ds.Columns[J].Name + Encloser;
-    end;
-    cbuffer := cbuffer + buffer;
-
-    // collect data:
-    for i:=0 to Length(ds.Rows)-1 do
-    begin
-      Buffer := '';
-      Buffer := Buffer + Terminator;
-      for j:=0 to Length(ds.Rows[i].Cells)-1 do
-      begin
-        if j>0 then
-          Buffer := Buffer + Separator;
-        val := ds.Rows[i].Cells[j].Text;
-        if ds.Columns[j].IsFloat then val := FloatStr(val);
-        Buffer := Buffer + Encloser + val + Encloser;
-      end;
-      // write buffer:
-      cbuffer := cbuffer + buffer;
-    end;
-    if tofile then
-      SaveUnicodeFile(filename, cbuffer)
-    else
-      CopyToClipboard(cbuffer);
-    result := true;
-  except
-    on e: Exception do begin
-      MessageDlg(e.Message, mtError, [mbOK], 0);
-      result := false;
-    end;
+  tmp := '';
+  // Columns
+  for i:=0 to Grid.Header.Columns.Count-1 do begin
+    // Skip hidden key columns
+    if not (coVisible in Grid.Header.Columns[i].Options) then
+      Continue;
+    if tmp <> '' then
+      tmp := tmp + Separator;
+    tmp := tmp + Encloser + Grid.Header.Columns[i].Text + Encloser;
   end;
-  Screen.Cursor := crDefault;
+  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+
+  // Data:
+  Node := Grid.GetFirst;
+  while Assigned(Node) do begin
+    if (Node.Index+1) mod 100 = 0 then
+      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+    tmp := Terminator;
+    for i:=0 to Grid.Header.Columns.Count-1 do begin
+      // Skip hidden key columns
+      if not (coVisible in Grid.Header.Columns[i].Options) then
+        Continue;
+      Data := Grid.Text[Node, i];
+      // Unformat float values
+      if Grid.Header.Columns[i].Alignment = taRightJustify then
+        Data := FloatStr(Data);
+      tmp := tmp + Encloser + Data + Encloser + Separator;
+    end;
+    S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+    Node := Grid.GetNext(Node);
+  end;
+  Mainform.showstatus(STATUS_MSG_READY);
 end;
 
 
 
 {***
   Converts a TDataSet to XML.
-  If a filename is given, save XML to disk, otherwise copy content to clipboard
-
-  @param TDataSet Object which holds data to export
+  @param Grid Object which holds data to export
   @param string Text used as root-element
-  @param string Filename to use for saving. If not given, copy to clipboard.
-  @return boolean True on access, False in case of any error
 }
-function dataset2xml(ds: TGridResult; title: WideString; filename: String = ''): Boolean;
+procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
 var
-  I, J                      : Integer;
-  Buffer, cbuffer, data     : WideString;
-  tofile                    : Boolean;
+  i: Integer;
+  tmp, Data: WideString;
+  Node: PVirtualNode;
 begin
-  try
-    tofile := filename <> '';
-    buffer := '<?xml version="1.0"?>' + crlf + crlf +
-      '<'+title+'>' + crlf;
-    cbuffer := buffer;
+  tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
+      '<'+root+'>' + CRLF;
+  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
 
-    for i:=0 to Length(ds.Rows)-1 do
-    begin
-      Buffer := #9'<row>' + crlf;
-      // collect data:
-      for j:=0 to Length(ds.Columns)-1 do
-      begin
-        data := ds.Rows[i].Cells[j].Text;
-        data := htmlentities(data);
-        Buffer := Buffer + #9#9'<'+ds.Columns[j].Name+'>' + data + '</'+ds.Columns[j].Name+'>' + crlf;
-      end;
-      buffer := buffer + #9'</row>' + crlf;
-      cbuffer := cbuffer + buffer;
+  Node := Grid.GetFirst;
+  while Assigned(Node) do begin
+    if (Node.Index+1) mod 100 = 0 then
+      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+    tmp := #9'<row>' + CRLF;
+    // Data:
+    for i:=0 to Grid.Header.Columns.Count-1 do begin
+      // Skip hidden key columns
+      if not (coVisible in Grid.Header.Columns[i].Options) then
+        Continue;
+      Data := Grid.Text[Node, i];
+      // Unformat float values
+      if Grid.Header.Columns[i].Alignment = taRightJustify then
+        Data := FloatStr(Data)
+      else
+        Data := htmlentities(Data);
+      tmp := tmp + #9#9'<'+Grid.Header.Columns[i].Text+'>' + Data + '</'+Grid.Header.Columns[i].Text+'>' + CRLF;
     end;
-    // footer:
-    cbuffer := cbuffer + '</'+title+'>' + crlf;
-    if tofile then
-      SaveUnicodeFile(filename, cbuffer)
-    else
-      CopyToClipboard(cbuffer);
-    result := true;
-  except
-    on e: Exception do begin
-      MessageDlg(e.Message, mtError, [mbOK], 0);
-      result := false;
-    end;
+    tmp := tmp + #9'</row>' + CRLF;
+    S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+    Node := Grid.GetNext(Node);
   end;
-  Screen.Cursor := crDefault;
+  // footer:
+  tmp := '</'+root+'>' + CRLF;
+  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  Mainform.showstatus(STATUS_MSG_READY);
 end;
 
 
@@ -2283,17 +2230,21 @@ end;
 procedure SaveUnicodeFile(Filename: String; Text: WideString);
 var
   f: TFileStream;
+begin
+  f := CreateUnicodeFileStream(Filename);
+  f.WriteBuffer(Pointer(Text)^, Length(Text) * 2);
+  f.Free;
+end;
+
+
+function CreateUnicodeFileStream(Filename: String): TFileStream;
+var
   header: array[0..1] of Byte;
 begin
   header[0] := $FF;
   header[1] := $FE;
-  f := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
-  try
-    f.WriteBuffer(header, 2);
-    f.WriteBuffer(Pointer(Text)^, Length(Text) * 2);
-  finally
-    f.Free;
-  end;
+  Result := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
+  Result.WriteBuffer(header, 2);
 end;
 
 
@@ -2544,6 +2495,20 @@ begin
   CB := TUniClipboard.Create;
   CB.AsWideString := Value;
 end;
+
+
+procedure StreamToClipboard(S: TMemoryStream);
+var
+  Content: WideString;
+begin
+  SetLength(Content, S.Size);
+  S.Position := 0;
+  S.Read(Pointer(Content)^, S.Size);
+  CopyToClipboard(Content);
+  // Free memory
+  SetString(Content, nil, 0);
+end;
+
 
 initialization
 
