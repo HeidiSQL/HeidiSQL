@@ -74,7 +74,7 @@ type
 
   function trimc(s: String; c: Char) : String;
   function implodestr(seperator: String; a: TWideStringList) :WideString;
-  function explode(separator, a: String) :TWideStringList;
+  function explode(separator, a: WideString) :TWideStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
   function parsesql(sql: WideString) : TWideStringList;
@@ -251,7 +251,7 @@ end;
   @param string Separator
   @return TStringList
 }
-function explode(separator, a: String) :TWideStringList;
+function explode(separator, a: WideString) :TWideStringList;
 var
   i : Integer;
   item : WideString;
