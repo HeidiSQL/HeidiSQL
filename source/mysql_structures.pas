@@ -14,7 +14,7 @@ uses
 type
   // MySQL Index structure
   TMysqlIndex = record
-    Name:     String[64];
+    Name:     WideString;
     Columns:  TStringList;
     Unique:   Boolean;
     Fulltext: Boolean;
