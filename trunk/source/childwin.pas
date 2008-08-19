@@ -743,11 +743,9 @@ begin
   end;
 
   SessionName := FMysqlConn.SessionName;
-  DatabasesWanted := explode( ';', FConn.DatabaseList );
-  if ( FConn.DatabaseListSort ) then
-  begin
-    DatabasesWanted.Sort();
-  end;
+  DatabasesWanted := explode(';', FConn.DatabaseList);
+  if FConn.DatabaseListSort then
+    DatabasesWanted.Sort;
 
   // Fill variables-list, processlist and DB-tree
   ShowVariablesAndProcesses( Self );

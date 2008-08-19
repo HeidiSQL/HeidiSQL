@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver,
-  PngSpeedButton;
+  PngSpeedButton, TntStdCtrls;
 
 type
   Tconnform = class(TForm)
@@ -35,7 +35,7 @@ type
     CheckBoxCompressed: TCheckBox;
     lblSeconds: TLabel;
     lblOnlyDBs: TLabel;
-    EditOnlyDBs: TEdit;
+    EditOnlyDBs: TTNTEdit;
     TimerCloseFormReminder: TTimer;
     CheckBoxSorted: TCheckBox;
     ButtonSaveAndConnect: TButton;
@@ -215,7 +215,7 @@ begin
       WriteString(REGNAME_PORT, EditPort.Text);
       WriteString(REGNAME_TIMEOUT, EditTimeout.Text);
       WriteBool(REGNAME_COMPRESSED, CheckBoxCompressed.Checked);
-      WriteString(REGNAME_ONLYDBS, EditOnlyDBs.Text);
+      WriteString(REGNAME_ONLYDBS, Utf8Encode(EditOnlyDBs.Text));
       WriteBool(REGNAME_ONLYDBSSORTED, CheckBoxSorted.Checked);
       CloseKey;
     end;
@@ -304,7 +304,7 @@ begin
   EditPort.Text := Mainform.GetRegValue(REGNAME_PORT, '', sessname);
   EditTimeout.Text := Mainform.GetRegValue(REGNAME_TIMEOUT, '', sessname);;
   CheckBoxCompressed.Checked := Mainform.GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, sessname);
-  EditOnlyDBs.Text := Mainform.GetRegValue(REGNAME_ONLYDBS, '', sessname);
+  EditOnlyDBs.Text := Utf8Decode(Mainform.GetRegValue(REGNAME_ONLYDBS, '', sessname));
   CheckBoxSorted.Checked := Mainform.GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, sessname);
   btnSave.Enabled := false;
   ButtonSaveAndConnect.Enabled := btnSave.Enabled;

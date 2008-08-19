@@ -324,7 +324,7 @@ type
     function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
     function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
     function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
-    function CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: String): Boolean;
+    function CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: WideString): Boolean;
 
     // Reference to currently active childwindow:
     property Childwin: TMDIChild read GetChildwin;
@@ -1469,7 +1469,7 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: String): Boolean;
+function TMainform.CreateMDIChild(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: WideString): Boolean;
 var
   cp : TOpenConnProf;
   mysqlconn : TMysqlConn;

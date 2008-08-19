@@ -3085,7 +3085,7 @@ object connform: Tconnform
     TabOrder = 6
     OnClick = Modified
   end
-  object EditOnlyDBs: TEdit
+  object EditOnlyDBs: TTntEdit
     Left = 232
     Top = 233
     Width = 220
