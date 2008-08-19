@@ -262,6 +262,7 @@ type
     SynMemoSQLLog: TSynMemo;
     Insert1: TMenuItem;
     Cancelediting1: TMenuItem;
+    DataPost1: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -6056,6 +6057,7 @@ begin
   if Allowed then begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
     Mainform.actDataCancelEdit.ShortCut := 0;
+    Mainform.actDataPost.ShortCut := 0;
     // Load entire data for field.
     Cell := FDataGridResult.Rows[Node.Index].Cells[Column];
     if Length(Cell.Text) >= GridMaxData then begin
@@ -6077,6 +6079,7 @@ procedure TMDIChild.DataGridEdited(Sender: TBaseVirtualTree; Node:
 begin
   // Reassign Esc to "Cancel row editing" action
   Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
+  Mainform.actDataPost.ShortCut := TextToShortcut('Ctrl+Enter');
 end;
 
 procedure TMDIChild.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
@@ -6084,6 +6087,7 @@ procedure TMDIChild.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
 begin
   // Reassign Esc to "Cancel row editing" action
   Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
+  Mainform.actDataPost.ShortCut := TextToShortcut('Ctrl+Enter');
 end;
 
 procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:

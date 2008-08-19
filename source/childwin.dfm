@@ -1460,6 +1460,9 @@ object MDIChild: TMDIChild
     object Insert1: TMenuItem
       Action = MainForm.actDataInsert
     end
+    object DataPost1: TMenuItem
+      Action = MainForm.actDataPost
+    end
     object Cancelediting1: TMenuItem
       Action = MainForm.actDataCancelEdit
     end

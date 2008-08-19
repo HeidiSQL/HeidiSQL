@@ -217,6 +217,7 @@ type
     actSetDelimiter: TAction;
     btnSetDelimiter: TToolButton;
     actDataCancelEdit: TAction;
+    ToolButton1: TToolButton;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
