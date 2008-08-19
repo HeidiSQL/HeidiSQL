@@ -25,10 +25,10 @@ type
     lblType: TLabel;
     lblLengthSet: TLabel;
     lblDefault: TLabel;
-    EditDefault: TEdit;
+    EditDefault: TTntEdit;
     EditLength: TEdit;
     ComboBoxType: TComboBox;
-    EditFieldname: TEdit;
+    EditFieldname: TTntEdit;
     GroupBoxAttributes: TGroupBox;
     CheckBoxBinary: TCheckBox;
     CheckBoxUnsigned: TCheckBox;
@@ -55,7 +55,7 @@ type
     btnDeleteAllColumnsFromIndex: TPngSpeedButton;
     btnDatatypeHelp: TButton;
     lblComment: TLabel;
-    EditComment: TEdit;
+    EditComment: TTntEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -427,7 +427,7 @@ var
   strComment,
   strPosition,
   fielddef,
-  sql_alterfield   : String;
+  sql_alterfield   : WideString;
   cwin : TMDIChild;
   i: Integer;
 begin
@@ -813,8 +813,8 @@ end;
 procedure TFieldEditForm.UpdateKeys(Sender: TObject);
 var
   i,j,k, index : Integer;
-  query : String;
-  columns_sql : String;
+  query : WideString;
+  columns_sql : WideString;
   modifiedKeys : Array of Integer;
 begin
   query := '';

@@ -1812,8 +1812,8 @@ begin
     begin
       VTRowDataListColumns[i-1].ImageIndex := ICONINDEX_FIELD;
       VTRowDataListColumns[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Field').AsString );
-      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Type').AsString );
+      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Field').AsWideString );
+      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Type').AsWideString );
       if lowercase( FSelectedTableColumns.FieldByName('Null').AsString ) = 'yes' then
         VTRowDataListColumns[i-1].Captions.Add('Yes')
         else VTRowDataListColumns[i-1].Captions.Add('No');
@@ -1831,11 +1831,11 @@ begin
           // No default value.
           VTRowDataListColumns[i-1].Captions.Add('')
       else
-        VTRowDataListColumns[i-1].Captions.Add('''' + FSelectedTableColumns.FieldByName('Default').AsString + '''');
+        VTRowDataListColumns[i-1].Captions.Add('''' + FSelectedTableColumns.FieldByName('Default').AsWideString + '''');
 
-      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Extra').AsString );
+      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Extra').AsWideString );
       if hasCommentColumn then
-        VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Comment').AsString )
+        VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Comment').AsWideString )
       else
         VTRowDataListColumns[i-1].Captions.Add('');
 

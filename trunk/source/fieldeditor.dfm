@@ -89,7 +89,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 3
         OnClick = btnDatatypeHelpClick
       end
-      object EditDefault: TEdit
+      object EditDefault: TTntEdit
         Left = 88
         Top = 109
         Width = 192
@@ -116,7 +116,7 @@ object FieldEditForm: TFieldEditForm
         OnKeyDown = ComboBoxTypeKeyDown
         OnKeyUp = ComboBoxTypeKeyUp
       end
-      object EditFieldname: TEdit
+      object EditFieldname: TTntEdit
         Left = 88
         Top = 37
         Width = 192
@@ -182,7 +182,7 @@ object FieldEditForm: TFieldEditForm
         ItemHeight = 13
         TabOrder = 0
       end
-      object EditComment: TEdit
+      object EditComment: TTntEdit
         Left = 88
         Top = 133
         Width = 192
