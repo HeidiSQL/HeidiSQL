@@ -10,14 +10,14 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Graphics,
-  Dialogs, StdCtrls, Db, Menus, SynMemo, SynEdit, WideStrings;
+  Dialogs, StdCtrls, Db, Menus, SynMemo, SynEdit, WideStrings, TntStdCtrls;
 
 type
   Ttbl_properties_form = class(TForm)
     lblName: TLabel;
-    editName: TEdit;
+    editName: TTntEdit;
     lblComment: TLabel;
-    editComment: TEdit;
+    editComment: TTntEdit;
     lblEngine: TLabel;
     comboEngine: TComboBox;
     lblCharset: TLabel;
@@ -50,9 +50,9 @@ type
     currentEngine,
     currentCharset,
     currentCollation,
-    currentAutoincrement : String;
+    currentAutoincrement : WideString;
   public
-    TableName : String;
+    TableName : WideString;
   end;
 
 implementation
@@ -123,7 +123,7 @@ end;
 procedure Ttbl_properties_form.FormShow(Sender: TObject);
 var
   ds: TDataSet;
-  sql : String;
+  sql : WideString;
 begin
   // Fetch table properties
   sql := 'SHOW TABLE STATUS ';
@@ -131,11 +131,11 @@ begin
   ds := Mainform.Childwin.GetResults(sql);
 
   // Table name
-  currentName := ds.FieldByName('Name').AsString;
+  currentName := ds.FieldByName('Name').AsWideString;
   editName.Text := currentName;
 
   // Comment
-  currentComment := ds.FieldByName('Comment').AsString;
+  currentComment := ds.FieldByName('Comment').AsWideString;
   editComment.Text := currentComment;
 
   // Engine
@@ -262,7 +262,7 @@ end;
 procedure Ttbl_properties_form.FormClose(Sender: TObject; var Action:
     TCloseAction);
 var
-  sql, tmp : String;
+  sql, tmp : WideString;
   AlterSpecs : TWideStringList;
 begin
   if ModalResult = mrOK then

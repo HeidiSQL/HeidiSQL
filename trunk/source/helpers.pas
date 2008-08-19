@@ -73,7 +73,7 @@ type
 {$I const.inc}
 
   function trimc(s: String; c: Char) : String;
-  function implodestr(seperator: String; a: TWideStringList) :WideString;
+  function implodestr(seperator: WideString; a: TWideStringList) :WideString;
   function explode(separator, a: WideString) :TWideStringList;
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
@@ -228,19 +228,17 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: String; a: TWideStringList) :WideString;
+function implodestr(seperator: WideString; a: TWideStringList) :WideString;
 var
   i : Integer;
-  text : String;
 begin
-  result := '';
+  Result := '';
   for i:=0 to a.Count-1 do
   begin
-    text := text + a[i];
+    Result := Result + a[i];
     if i < a.Count-1 then
-      text := text + seperator;
+      Result := Result + seperator;
   end;
-  result := text;
 end;
 
 

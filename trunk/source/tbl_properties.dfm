@@ -111,7 +111,7 @@ object tbl_properties_form: Ttbl_properties_form
     ModalResult = 2
     TabOrder = 7
   end
-  object editName: TEdit
+  object editName: TTntEdit
     Left = 88
     Top = 17
     Width = 216
@@ -121,7 +121,7 @@ object tbl_properties_form: Ttbl_properties_form
     Text = 'editName'
     OnChange = editNameChange
   end
-  object editComment: TEdit
+  object editComment: TTntEdit
     Left = 88
     Top = 42
     Width = 216
