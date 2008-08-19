@@ -195,7 +195,7 @@ object MainForm: TMainForm
     object ToolBarData: TToolBar
       Left = 11
       Top = 28
-      Width = 374
+      Width = 138
       Height = 22
       Align = alNone
       AutoSize = True
@@ -229,6 +229,11 @@ object MainForm: TMainForm
         Left = 92
         Top = 0
         Action = actDataPost
+      end
+      object ToolButton1: TToolButton
+        Left = 115
+        Top = 0
+        Action = actDataCancelEdit
       end
     end
     object ToolBarDatabase: TToolBar
@@ -850,6 +855,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Post'
       ImageIndex = 55
+      ShortCut = 16397
       OnExecute = actDataPostExecute
     end
     object actCreateTable: TAction
