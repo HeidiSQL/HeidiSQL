@@ -21,8 +21,8 @@ type
 
   // Mysql protocol-relevant connection parameter structure
   TMysqlConnParams = record
-    Host,
-    Database,
+    Host: String;
+    Database: WideString;
     Protocol,
     User,
     Pass : String;

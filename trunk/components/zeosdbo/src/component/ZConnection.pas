@@ -112,7 +112,7 @@ type
     FProtocol: string;
     FHostName: string;
     FPort: Integer;
-    FDatabase: string;
+    FDatabase: WideString;
     FUser: string;
     FPassword: string;
     FCatalog: string;
@@ -218,7 +218,7 @@ type
     property Protocol: string read FProtocol write FProtocol;
     property HostName: string read FHostName write FHostName;
     property Port: Integer read FPort write FPort default 0;
-    property Database: string read FDatabase write FDatabase;
+    property Database: WideString read FDatabase write FDatabase;
     property User: string read FUser write FUser;
     property Password: string read FPassword write FPassword;
     property Catalog: string read FCatalog write FCatalog;
