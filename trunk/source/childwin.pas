@@ -5471,7 +5471,7 @@ procedure TMDIChild.EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNod
 var
   res: TGridResult;
   start, limit: Cardinal;
-  query: String;
+  query: WideString;
   ds: TDataSet;
   i, j: LongInt;
 begin
@@ -5481,7 +5481,7 @@ begin
     start := Node.Index - (Node.Index mod GridMaxRows);
     limit := DataGrid.RootNodeCount - start;
     if limit > GridMaxRows then limit := GridMaxRows;
-    query := DataGridCurrentQuery + Format(' LIMIT %d, %d', [start, limit]);
+    query := DataGridCurrentQuery + WideFormat(' LIMIT %d, %d', [start, limit]);
 
     // start query
     MainForm.ShowStatus('Retrieving data...');
