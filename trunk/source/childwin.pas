@@ -2659,8 +2659,10 @@ begin
   if (SynCompletionProposal1.ItemList.count = 0) and (Length(CurrentInput)>0) then
   begin
     // Add databases
-    SynCompletionProposal1.InsertList.Append( Databases.Text );
-    SynCompletionProposal1.ItemList.Append( Databases.Text );
+    for i := 0 to Databases.Count - 1 do begin
+      SynCompletionProposal1.InsertList.Add(Databases[i]);
+      SynCompletionProposal1.ItemList.Add(Databases[i]);
+    end;
     for i:=0 to SynCompletionProposal1.ItemList.count-1 do
       SynCompletionProposal1.ItemList[i] := '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}database\color{clWindowText}\column{}' + SynCompletionProposal1.ItemList[i];
 
@@ -5118,8 +5120,8 @@ begin
             // Prioritised position of system-databases
             for i := specialDbs.Count - 1 downto 0 do
               Databases.Insert( 0, specialDbs[i] );
-          end else
-            Databases.Append(DatabasesWanted.Text);
+          end else for i:=0 to DatabasesWanted.Count-1 do
+            Databases.Add(DatabasesWanted[i]);
           Mainform.showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
           ChildCount := Databases.Count;
           // Avoids excessive InitializeKeywordLists() calls.
@@ -5127,7 +5129,8 @@ begin
           SynSQLSyn1.TableNames.Clear;
           // Let synedit know all database names so that they can be highlighted
           // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
-          SynSQLSyn1.TableNames.Append( Databases.Text );
+          for i := 0 to Databases.Count - 1 do
+            SynSQLSyn1.TableNames.Add(Databases[i]);
           SynSQLSyn1.TableNames.EndUpdate;
         finally
           MainForm.ShowStatus( STATUS_MSG_READY );

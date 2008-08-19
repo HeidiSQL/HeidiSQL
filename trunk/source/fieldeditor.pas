@@ -960,9 +960,12 @@ end;
   Add all columns to index
 }
 procedure TFieldEditForm.btnAddAllColumnsToIndexClick(Sender: TObject);
+var
+  i: Integer;
 begin
   listColumnsUsed.Items.AddStrings(listColumnsAvailable.Items);
-  klist[ComboBoxKeys.ItemIndex].Columns.Append(listColumnsAvailable.Items.Text);
+  for i := 0 to listColumnsAvailable.Items.Count - 1 do
+    klist[ComboBoxKeys.ItemIndex].Columns.Add(listColumnsAvailable.Items[i]);
   listColumnsAvailable.Items.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
   ValidateControls;
