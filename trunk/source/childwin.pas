@@ -779,7 +779,7 @@ begin
   if MainForm.GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) and ( lastUsedDB <> '' ) then
   begin
     try
-      ActiveDatabase := lastUsedDB;
+      ActiveDatabase := Utf8Decode(lastUsedDB);
     except
       // Suppress exception message when db was dropped externally or
       // the session was just opened with "OnlyDBs" in place and the
@@ -972,7 +972,7 @@ begin
     // Open server-specific registry-folder.
     // relative from already opened folder!
     reg.OpenKey( REGKEY_SESSIONS + FConn.Description, true );
-    reg.WriteString( REGNAME_LASTUSEDDB, ActiveDatabase );
+    reg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
   end;
   FreeAndNil(reg);
 
