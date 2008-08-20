@@ -3967,7 +3967,7 @@ procedure TMDIChild.ListColumnsNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
   def : TDataSet;
-  sql_update, sql_null, sql_default, sql_extra, DefaultValue : String;
+  sql_update, sql_null, sql_default, sql_extra, sql_comment, DefaultValue : String;
   NodeData : PVTreeData;
 begin
   // Try to rename, on any error abort and don't rename ListItem
@@ -3978,7 +3978,7 @@ begin
     NodeData := ListColumns.GetNodeData(Node);
 
     // Fetch column definition
-    def := GetResults( 'SHOW COLUMNS FROM ' + mask(SelectedTable) + ' LIKE ' + esc(NodeData.Captions[0]), False, False );
+    def := GetResults( 'SHOW FULL COLUMNS FROM ' + mask(SelectedTable) + ' LIKE ' + esc(NodeData.Captions[0]), False, False );
 
     // Check NOT NULL
     sql_null := 'NULL ';
@@ -3998,7 +3998,12 @@ begin
     // Check extra options (auto_increment)
     sql_extra := '';
     if def.FieldByName('Extra').AsString <> '' then
-      sql_default := ' '+UpperCase(def.FieldByName('Extra').AsString) + ' ';
+      sql_extra := ' '+UpperCase(def.FieldByName('Extra').AsString);
+
+    // Comment
+    sql_comment := '';
+    if def.FieldByName('Comment').AsWideString <> '' then
+      sql_comment := ' COMMENT '+esc(def.FieldByName('Comment').AsWideString);
 
     // Concat column definition
     sql_update := 'ALTER TABLE ' + mask(SelectedTable) +
@@ -4007,12 +4012,13 @@ begin
       def.FieldByName('Type').AsString + ' ' +
       sql_null +
       sql_default +
-      sql_extra;
+      sql_extra +
+      sql_comment;
 
     // Cleanup
     def.Close;
     FreeAndNil(def);
-    
+
     // Fire ALTER query
     ExecUpdateQuery( sql_update, False, False );
 

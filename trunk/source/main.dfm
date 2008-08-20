@@ -897,7 +897,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Edit field properties'
       ImageIndex = 93
-      ShortCut = 13
+      ShortCut = 32781
       OnExecute = actEditFieldExecute
     end
     object actCreateField: TAction
