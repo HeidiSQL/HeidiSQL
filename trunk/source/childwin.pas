@@ -1972,14 +1972,7 @@ begin
   inTableTab := FrmIsFocussed and (PageControlMain.ActivePage = tabTable);
   inDataTab := FrmIsFocussed and (PageControlMain.ActivePage = tabData);
   inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
-  // Both the Query and the Data grid may have a nil DataSet reference,
-  // either in case the relevant grid has not been used yet, or when
-  // an error has occurred.
-  inDataOrQueryTabNotEmpty := inDataOrQueryTab and
-    not (
-      (GetVisualDataset.Rows = nil)
-      or (Length(GetVisualDataset.Rows) = 0)
-    );
+  inDataOrQueryTabNotEmpty := inDataOrQueryTab and (hoVisible in ActiveGrid.Header.Options);
   inQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
 
   SelectedNodes := ListTables.GetSortedSelection(False);
