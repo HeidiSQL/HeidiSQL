@@ -1208,7 +1208,7 @@ begin
         else // Fallback for unknown column types
           FDataGridResult.Columns[idx].MaxLength := MaxInt;
       end;
-      rx.Expression := '^((tiny|medium|long)?blob|(var)?binary)\b';
+      rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
       if rx.Exec(ColType) then
         FDataGridResult.Columns[idx].IsBlob := True;
     end;
