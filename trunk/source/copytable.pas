@@ -242,7 +242,7 @@ begin
       begin
         if i > 0 then
           keystr := keystr + ', ';
-        keystr := keystr + keylist[k].Columns[i];
+        keystr := keystr + mainform.mask(keylist[k].Columns[i]);
         if keylist[k].SubParts[i] <> '' then
           keystr := keystr + '(' + keylist[k].SubParts[i] + ')';
       end;
