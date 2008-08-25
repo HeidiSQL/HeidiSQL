@@ -46,7 +46,7 @@ object optimize: Toptimize
     ItemHeight = 13
     TabOrder = 2
   end
-  object DBComboBox: TComboBox
+  object DBComboBox: TTntComboBox
     Left = 54
     Top = 26
     Width = 193

@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry, PngSpeedButton,
-  WideStrings, TntCheckLst;
+  WideStrings, TntCheckLst, TntStdCtrls;
 
 type
   Tloaddataform = class(TForm)
@@ -22,9 +22,9 @@ type
     tabSource: TTabSheet;
     tabDestination: TTabSheet;
     lblDatabase: TLabel;
-    comboDatabase: TComboBox;
+    comboDatabase: TTNTComboBox;
     lblTable: TLabel;
-    comboTable: TComboBox;
+    comboTable: TTNTComboBox;
     lblColumns: TLabel;
     chklistColumns: TTNTCheckListBox;
     btnColUp: TPngSpeedButton;
@@ -142,7 +142,7 @@ begin
   seltable := Mainform.ChildWin.SelectedTable;
   ds := Mainform.ChildWin.FetchDbTableList(comboDatabase.Text);
   while not ds.Eof do begin
-    comboTable.Items.Add(ds.Fields[0].AsString);
+    comboTable.Items.Add(ds.Fields[0].AsWideString);
     count := comboTable.Items.Count-1;
     if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
       comboTable.ItemIndex := count;
@@ -166,7 +166,7 @@ begin
     ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text));
     for i:=1 to ds.RecordCount do
     begin
-      chklistColumns.Items.Add(ds.Fields[0].AsString);
+      chklistColumns.Items.Add(ds.Fields[0].AsWideString);
       ds.Next;
     end;
     ds.Close;
@@ -183,7 +183,7 @@ end;
 
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
-  query : string;
+  query : WideString;
   col   : TWideStringList;
   i     : Integer;
   reg   : TRegistry;

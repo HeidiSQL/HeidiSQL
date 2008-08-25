@@ -29,7 +29,7 @@ uses
 
 type
   TOrderCol = class(TObject)
-    ColumnName: String;
+    ColumnName: WideString;
     SortDirection: Byte;
   end;
   TOrderColArray = Array of TOrderCol;
@@ -185,7 +185,7 @@ type
     N21: TMenuItem;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
-    lboxQueryHelpers: TListBox;
+    lboxQueryHelpers: TTnTListBox;
     popupQuery: TPopupMenu;
     MenuRun: TMenuItem;
     MenuRunSelection: TMenuItem;
@@ -1854,7 +1854,7 @@ begin
       // Search for the column name in listColumns
       for j:=0 to Length(VTRowDataListColumns)-1 do
       begin
-        if FSelectedTableKeys.FieldByName('Column_name').AsString = VTRowDataListColumns[j].Captions[0] then
+        if FSelectedTableKeys.FieldByName('Column_name').AsWideString = VTRowDataListColumns[j].Captions[0] then
         begin
           // Only apply a new icon if it was not already changed
           if VTRowDataListColumns[j].ImageIndex <> ICONINDEX_FIELD then
@@ -2091,7 +2091,7 @@ end;
 
 procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
 
-  procedure addLVitem( caption: String; commandCount: Int64; totalCount: Int64 );
+  procedure addLVitem( caption: WideString; commandCount: Int64; totalCount: Int64 );
   var
     i : Integer;
     tmpval : Double;
@@ -2101,7 +2101,7 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
     VTRowDataListCommandStats[i].ImageIndex := 25;
     VTRowDataListCommandStats[i].Captions := WideStrings.TWideStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
-    caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
+    caption := WideStringReplace( caption, '_', ' ', [rfReplaceAll] );
     VTRowDataListCommandStats[i].Captions.Add( caption );
     // Total Frequency
     VTRowDataListCommandStats[i].Captions.Add( FormatNumber( commandCount ) );
@@ -2146,8 +2146,8 @@ begin
   begin
     VTRowDataListVariables[i-1].ImageIndex := 25;
     VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsString );
-    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsString );
+    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
+    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
     ds.Next;
   end;
   ds.Close;
@@ -2175,8 +2175,8 @@ begin
   begin
     VTRowDataListStatus[i-1].ImageIndex := 25;
     VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsString );
-    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[1].AsString );
+    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
+    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[1].AsWideString );
     if lowercase( ds.Fields[0].AsString ) = 'uptime' then
       uptime := MakeInt(ds.Fields[1].AsString);
     if lowercase( ds.Fields[0].AsString ) = 'questions' then
@@ -2204,7 +2204,7 @@ begin
   begin
     if LowerCase( Copy( ds.Fields[0].AsString, 1, 4 ) ) = 'com_' then
     begin
-      addLVitem( ds.Fields[0].AsString, MakeInt(ds.Fields[1].AsString), questions );
+      addLVitem( ds.Fields[0].AsWideString, MakeInt(ds.Fields[1].AsString), questions );
     end;
     ds.Next;
   end;
@@ -2527,15 +2527,15 @@ procedure TMDIChild.SynCompletionProposal1Execute(Kind: SynCompletionType;
 var
   i,j              : Integer;
   ds               : TDataset;
-  sql, TableClauses: String;
+  sql, TableClauses: WideString;
   Tables           : TStringList;
-  tablename        : String;
+  tablename        : WideString;
   rx               : TRegExpr;
 
   procedure addTable( Fields: TFields );
-  var ObjName, ObjType: String;
+  var ObjName, ObjType: WideString;
   begin
-    ObjName := Fields[0].AsString;
+    ObjName := Fields[0].AsWideString;
     case GetDBObjectType(Fields) of
       NODETYPE_CRASHED_TABLE: ObjType := 'table';
       NODETYPE_TABLE: ObjType := 'table';
@@ -2546,9 +2546,9 @@ var
     SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}'+ObjType+'\color{clWindowText}\column{}' + ObjName );
   end;
 
-  procedure addColumns( tablename: String );
+  procedure addColumns( tablename: WideString );
   var
-    dbname : String;
+    dbname : WideString;
     i : Integer;
     ds : TDataSet;
   begin
@@ -2566,8 +2566,8 @@ var
     if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
     begin
-      SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsString );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ds.FieldByName( 'Field' ).AsString + '\style{-B} ' + ds.FieldByName( 'Type' ).AsString );
+      SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsWideString );
+      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ds.FieldByName( 'Field' ).AsWideString + '\style{-B} ' + ds.FieldByName( 'Type' ).AsString );
       ds.Next;
     end;
     ds.Close;
@@ -2602,7 +2602,7 @@ begin
   if rx.Exec(sql) then begin
     TableClauses := rx.Match[2];
     // Ensure tables in JOIN clause(s) are splitted by comma
-    TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+    TableClauses := WideStringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
     // Split table clauses by commas
     Tables := TStringList.Create;
     Tables.Delimiter := ',';
@@ -3075,7 +3075,7 @@ procedure TMDIChild.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 var
   src : TControl;
-  Text : String;
+  Text : WideString;
   LoadText : Boolean;
   i: Integer;
 begin
@@ -3811,6 +3811,7 @@ procedure TMDIChild.tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
 var
   i : Integer;
   SnippetsAccessible : Boolean;
+  Files: TStringList;
 begin
   lboxQueryHelpers.Items.BeginUpdate;
   lboxQueryHelpers.Items.Clear;
@@ -3852,13 +3853,17 @@ begin
     begin
       // State of items in popupmenu
       menuHelp.Enabled := True;
-      lboxQueryHelpers.Items := MYSQL_KEYWORDS;
+      for i := 0 to MYSQL_KEYWORDS.Count - 1 do
+        lboxQueryHelpers.Items.Add(MYSQL_KEYWORDS[i]);
     end;
 
     3: // SQL Snippets
     begin
       lboxQueryHelpers.MultiSelect := False;
-      lboxQueryHelpers.Items := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+      Files := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+      for i := 0 to Files.Count - 1 do
+        lboxQueryHelpers.Items.Add(Files[i]);
+	  Files.Free;
       // State of items in popupmenu
       SnippetsAccessible := lboxQueryHelpers.Items.Count > 0;
       menuDeleteSnippet.Enabled := SnippetsAccessible;
@@ -3890,7 +3895,7 @@ end;
 }
 procedure TMDIChild.lboxQueryHelpersDblClick(Sender: TObject);
 var
-  text: String;
+  text: WideString;
   i: Integer;
 begin
   for i := 0 to lboxQueryHelpers.Items.Count - 1 do begin
@@ -3967,7 +3972,7 @@ procedure TMDIChild.ListColumnsNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
   def : TDataSet;
-  sql_update, sql_null, sql_default, sql_extra, sql_comment, DefaultValue : String;
+  sql_update, sql_null, sql_default, sql_extra, sql_comment, DefaultValue : WideString;
   NodeData : PVTreeData;
 begin
   // Try to rename, on any error abort and don't rename ListItem
@@ -3987,7 +3992,7 @@ begin
 
     // Check default value, take care of non-literals / functions
     sql_default := '';
-    DefaultValue := def.FieldByName('Default').AsString;
+    DefaultValue := def.FieldByName('Default').AsWideString;
     if DefaultValue <> '' then
     begin
       if (UpperCase(def.FieldByName('Type').AsString) <> 'TIMESTAMP') and (DefaultValue <> 'CURRENT_TIMESTAMP') then
@@ -3998,7 +4003,7 @@ begin
     // Check extra options (auto_increment)
     sql_extra := '';
     if def.FieldByName('Extra').AsString <> '' then
-      sql_extra := ' '+UpperCase(def.FieldByName('Extra').AsString);
+      sql_extra := ' '+WideUpperCase(def.FieldByName('Extra').AsString);
 
     // Comment
     sql_comment := '';

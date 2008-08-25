@@ -11,12 +11,12 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db, Registry,
-  WideStrings, TntCheckLst;
+  WideStrings, TntCheckLst, TntStdCtrls, WideStrUtils;
 
 type
   Toptimize = class(TForm)
     TablesCheckListBox: TTNTCheckListBox;
-    DBComboBox: TComboBox;
+    DBComboBox: TTnTComboBox;
     lblSelect: TLabel;
     btnClose: TButton;
     cbxQuickRepair: TCheckBox;
@@ -46,7 +46,7 @@ type
     procedure AddResults(ds: TDataSet);
     procedure btnHelpClick(Sender: TObject);
     procedure TablesCheckListBoxClickCheck(Sender: TObject);
-    procedure RunIterated(pseudoSql: string);
+    procedure RunIterated(pseudoSql: WideString);
     procedure ValidateControls;
   private
     { Private declarations }
@@ -126,7 +126,7 @@ begin
   ds := Mainform.ChildWin.FetchDbTableList(DBComboBox.Text);
   TablesCheckListBox.Items.Clear;
   while not ds.Eof do begin
-    TablesCheckListBox.Items.Add(ds.Fields[0].AsString);
+    TablesCheckListBox.Items.Add(ds.Fields[0].AsWideString);
     ds.Next;
   end;
   // Check all
@@ -150,11 +150,11 @@ end;
 {**
   Parse and run SQL template for all maintenance actions
 }
-procedure Toptimize.RunIterated(pseudoSql: string);
+procedure Toptimize.RunIterated(pseudoSql: WideString);
 var
   i: integer;
   ds: TDataSet;
-  sql: string;
+  sql: WideString;
 begin
   Screen.Cursor := crSQLWait;
   Mainform.ChildWin.TemporaryDatabase := self.DBComboBox.Text;
@@ -162,7 +162,7 @@ begin
   try
     for i := 0 to TablesCheckListBox.Items.Count - 1 do begin
       if TablesCheckListBox.Checked[i] then begin
-        sql := StringReplace(pseudoSql, '$table', mainform.mask(TablesCheckListBox.Items[i]), [rfReplaceAll]);
+        sql := WideStringReplace(pseudoSql, '$table', mainform.mask(TablesCheckListBox.Items[i]), [rfReplaceAll]);
         ds := Mainform.ChildWin.GetResults(sql);
         AddResults(ds);
         ds.Close;
@@ -192,7 +192,7 @@ end;
 }
 procedure Toptimize.Check(Sender: TObject);
 var
-  querystr  : String;
+  querystr  : WideString;
 begin
   querystr := 'CHECK TABLE $table';
   if cbxQuickCheck.Checked then
@@ -217,7 +217,7 @@ end;
 }
 procedure Toptimize.Repair(Sender: TObject);
 var
-  querystr  : String;
+  querystr  : WideString;
 begin
   querystr := 'REPAIR TABLE $table';
   if cbxQuickRepair.Checked then
@@ -265,6 +265,7 @@ begin
   for i:=1 to ds.RecordCount do
   begin
     li := ListResults.Items.Add;
+    // Todo: TListView is not unicode safe, switch to VTree
     li.Caption := ds.Fields[0].AsString;
     for j := 1 to fieldcount -1 do // fill cells
       li.SubItems.Add(ds.Fields[j].AsString);

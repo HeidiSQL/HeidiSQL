@@ -183,9 +183,9 @@ end;
 }
 procedure TDataSortingForm.dropdownColsChange( Sender: TObject );
 var
-  combo : TComboBox;
+  combo : TTnTComboBox;
 begin
-  combo := Sender as TComboBox;
+  combo := Sender as TTnTComboBox;
   OrderColumns[combo.Tag-1].ColumnName := combo.Text;
 
   // Enables OK button

@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons, VirtualTrees,
-  PngSpeedButton, TntStdCtrls;
+  PngSpeedButton, TntStdCtrls, WideStrings;
 
 type
   TFieldEditorMode = (femFieldAdd,femFieldUpdate,femIndexEditor);
@@ -90,7 +90,7 @@ type
     TempKeys : TStringList;
     FMode : TFieldEditorMode;
     FModeWhenCalled : TFieldEditorMode;
-    FFieldName : String;
+    FFieldName : WideString;
     FLastKey: Word;
     procedure ValidateControls;
     function IsCategory(index: Integer): Boolean;
@@ -100,7 +100,7 @@ type
     { Public declarations }
   end;
 
-  function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
+  function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : WideString = '') : Boolean;
 
 {$I const.inc}
 
@@ -120,7 +120,7 @@ var
 {***
   Create form
 }
-function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : String = '') : Boolean;
+function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : WideString = '') : Boolean;
 begin
   if FieldEditForm = nil then
     FieldEditForm := TFieldEditForm.Create(AOwner);
@@ -269,13 +269,13 @@ begin
   ds := cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.SelectedTable) );
   for i:=1 to ds.RecordCount do
   begin
-    if TempKeys.IndexOf(ds.Fields[2].AsString) = -1 then
+    if TempKeys.IndexOf(ds.Fields[2].AsWideString) = -1 then
     begin
-      TempKeys.Add(ds.Fields[2].AsString);
+      TempKeys.Add(ds.Fields[2].AsWideString);
       setlength(klist, length(klist)+1);
       klist[length(klist)-1].Name := ds.Fields[2].AsString;
-      klist[length(klist)-1].Columns := TStringList.Create;
-      klist[length(klist)-1].Columns.Add(ds.Fields[4].AsString);
+      klist[length(klist)-1].Columns := TWideStringList.Create;
+      klist[length(klist)-1].Columns.Add(ds.Fields[4].AsWideString);
       klist[length(klist)-1].Modified := false;
       klist[length(klist)-1].Unique := (ds.Fields[1].AsString = '0');
       if cwin.mysql_version < 40002 then
@@ -283,7 +283,7 @@ begin
       else
         klist[length(klist)-1].Fulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT')
     end else
-      klist[TempKeys.IndexOf(ds.Fields[2].AsString)].Columns.Add(ds.Fields[4].AsString);
+      klist[TempKeys.IndexOf(ds.Fields[2].AsWideString)].Columns.Add(ds.Fields[4].AsWideString);
     ds.Next;
   end;
   ds.Close;
@@ -663,7 +663,7 @@ begin
   end;
   setlength(klist, length(klist)+1);
   klist[length(klist)-1].Name := kname;
-  klist[length(klist)-1].Columns := TStringList.Create;
+  klist[length(klist)-1].Columns := TWideStringList.Create;
   klist[length(klist)-1].Unique := false;
   klist[length(klist)-1].Fulltext := false;
   klist[length(klist)-1].Modified := true;
@@ -699,7 +699,7 @@ procedure TFieldEditForm.ButtonAddPrimaryClick(Sender: TObject);
 begin
   setlength(klist, length(klist)+1);
   klist[length(klist)-1].Name := 'PRIMARY';
-  klist[length(klist)-1].Columns := TStringList.Create;
+  klist[length(klist)-1].Columns := TWideStringList.Create;
   klist[length(klist)-1].Unique := false;
   klist[length(klist)-1].Fulltext := false;
   klist[length(klist)-1].Modified := true;
@@ -939,7 +939,7 @@ end;
 procedure TFieldEditForm.AddField(Sender: TObject);
 var
   idx : Integer;
-  item: string;
+  item: WideString;
 begin
   if listColumnsAvailable.ItemIndex > -1 then begin
     idx := listColumnsAvailable.ItemIndex;
@@ -979,7 +979,7 @@ end;
 procedure TFieldEditForm.RemoveField(Sender: TObject);
 var
   idx : Integer;
-  item: string;
+  item: WideString;
 begin
   if listColumnsUsed.ItemIndex > -1 then begin
     idx := listColumnsUsed.ItemIndex;

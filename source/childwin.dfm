@@ -1082,7 +1082,7 @@ object MDIChild: TMDIChild
               OnChange = tabsetQueryHelpersChange
               OnGetImageIndex = tabsetQueryHelpersGetImageIndex
             end
-            object lboxQueryHelpers: TListBox
+            object lboxQueryHelpers: TTntListBox
               Left = 0
               Top = 0
               Width = 160

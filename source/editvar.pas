@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  Dialogs, StdCtrls, ExtCtrls, TntStdCtrls;
 
 type
   TfrmEditVariable = class(TForm)
-    editValue: TEdit;
+    editValue: TTnTEdit;
     rgScope: TRadioGroup;
     lblValue: TLabel;
     btnOK: TButton;
@@ -20,7 +20,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    VarName, VarValue: String;
+    VarName, VarValue: WideString;
   end;
 
 implementation
@@ -44,7 +44,7 @@ end;
 }
 procedure TfrmEditVariable.btnOKClick(Sender: TObject);
 var
-  sql: String;
+  sql: WideString;
 begin
   // Syntax taken from http://dev.mysql.com/doc/refman/4.1/en/using-system-variables.html
   sql := 'SET @@';
