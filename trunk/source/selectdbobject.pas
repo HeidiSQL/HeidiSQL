@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees, Childwin, DB, Registry, WideStrings;
+  Dialogs, StdCtrls, VirtualTrees, Childwin, DB, Registry, WideStrings,
+  TntStdCtrls;
 
 type
   TfrmSelectDBObject = class(TForm)
@@ -12,9 +13,9 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     lblSelect: TLabel;
-    editDB: TEdit;
-    editTable: TEdit;
-    editCol: TEdit;
+    editDB: TTnTEdit;
+    editTable: TTnTEdit;
+    editCol: TTnTEdit;
     lblDB: TLabel;
     lblTable: TLabel;
     lblCol: TLabel;
@@ -40,13 +41,13 @@ type
   private
     { Private declarations }
     FColumns: Array of Array of TWideStringList;
-    function GetSelectedObject: TStringList;
+    function GetSelectedObject: TWideStringList;
   public
     { Public declarations }
-    property SelectedObject: TStringList read GetSelectedObject;
+    property SelectedObject: TWideStringList read GetSelectedObject;
   end;
 
-function SelectDBO: TStringList;
+function SelectDBO: TWideStringList;
 
 var
   CWin: TMDIChild;
@@ -57,7 +58,7 @@ uses main, helpers;
 
 {$R *.dfm}
 
-function SelectDBO: TStringList;
+function SelectDBO: TWideStringList;
 begin
   if Mainform.SelectDBObjectForm = nil then
     Mainform.SelectDBObjectForm := TfrmSelectDBObject.Create(Mainform);
@@ -123,11 +124,11 @@ begin
 end;
 
 
-function TfrmSelectDBObject.GetSelectedObject: TStringList;
+function TfrmSelectDBObject.GetSelectedObject: TWideStringList;
 begin
   Result := nil;
   if editDb.Text <> '' then begin
-    Result := TStringList.Create;
+    Result := TWideStringList.Create;
     Result.Add(editDb.Text);
     if editTable.Text <> '' then Result.Add(editTable.Text);
     if editCol.Text <> '' then Result.Add(editCol.Text);
@@ -137,23 +138,21 @@ end;
 
 procedure TfrmSelectDBObject.TreeDBOFocusChanged(Sender: TBaseVirtualTree;
     Node: PVirtualNode; Column: TColumnIndex);
-var
-  s: TStringList;
 begin
   editDB.Clear;
   editTable.Clear;
   editCol.Clear;
-  if Assigned(TreeDBO.FocusedNode) then begin
-    s := TStringList.Create;
-    s.Delimiter := '.';
-    s.DelimitedText := TreeDBO.Path(TreeDBO.FocusedNode, -1, ttStatic, '.');
-    // Tree.Path is buggy, has mostly one superflous empty item at the end. Cut that.
-    while s.Count > 3 do
-      s.Delete(s.Count-1);
-    if s.Count >= 1 then editDB.Text := s[0];
-    if s.Count >= 2 then editTable.Text := s[1];
-    if s.Count >= 3 then editCol.Text := s[2];
-    s.Free;
+  if Assigned(Node) then case TreeDBO.GetNodeLevel(Node) of
+    0: editDB.Text := TreeDBO.Text[Node, 0];
+    1: begin
+      editDB.Text := TreeDBO.Text[Node.Parent, 0];
+      editTable.Text := TreeDBO.Text[Node, 0];
+    end;
+    2: begin
+      editDB.Text := TreeDBO.Text[Node.Parent.Parent, 0];
+      editTable.Text := TreeDBO.Text[Node.Parent, 0];
+      editCol.Text := TreeDBO.Text[Node, 0];
+    end;
   end;
 end;
 
@@ -215,7 +214,7 @@ begin
         ds.RecNo := Node.Index+1;
         cols := CWin.GetCol('SHOW COLUMNS FROM '
           + Mainform.mask(CWin.Databases[Node.Parent.Index])+'.'
-          + Mainform.Mask(ds.Fields[0].AsString));
+          + Mainform.Mask(ds.Fields[0].AsWideString));
         FColumns[Node.Parent.Index][Node.Index] := cols;
         ChildCount := cols.Count;
       end;
@@ -235,7 +234,7 @@ begin
     1: begin
         ds := CWin.FetchDbTableList(CWin.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
-        CellText := ds.Fields[0].AsString;
+        CellText := ds.Fields[0].AsWideString;
       end;
     2: CellText := FColumns[Node.Parent.Parent.Index][Node.Parent.Index][Node.Index];
   end;
@@ -245,7 +244,7 @@ end;
 procedure TfrmSelectDBObject.TreeDBOInitNode(Sender: TBaseVirtualTree;
     ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 begin
-  // Ensure plus sign is visible for dbs and tables 
+  // Ensure plus sign is visible for dbs and tables
   if Sender.GetNodeLevel(Node) in [0,1] then
     InitialStates := InitialStates + [ivsHasChildren];
 end;

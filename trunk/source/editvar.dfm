@@ -26,7 +26,7 @@ object frmEditVariable: TfrmEditVariable
     Height = 13
     Caption = 'New value:'
   end
-  object editValue: TEdit
+  object editValue: TTntEdit
     Left = 8
     Top = 29
     Width = 285

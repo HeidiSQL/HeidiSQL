@@ -33,7 +33,7 @@ object CopyTableForm: TCopyTableForm
     Height = 13
     Caption = 'Target Database:'
   end
-  object editNewTablename: TEdit
+  object editNewTablename: TTntEdit
     Left = 16
     Top = 32
     Width = 270
@@ -62,7 +62,7 @@ object CopyTableForm: TCopyTableForm
     TabStop = True
     OnClick = radioStructureAndDataClick
   end
-  object CheckListBoxFields: TCheckListBox
+  object CheckListBoxFields: TTntCheckListBox
     Left = 16
     Top = 165
     Width = 270
@@ -105,7 +105,7 @@ object CopyTableForm: TCopyTableForm
     State = cbChecked
     TabOrder = 6
   end
-  object ComboSelectDatabase: TComboBox
+  object ComboSelectDatabase: TTntComboBox
     Left = 16
     Top = 83
     Width = 270

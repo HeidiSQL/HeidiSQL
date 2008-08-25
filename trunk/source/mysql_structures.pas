@@ -7,7 +7,7 @@ unit mysql_structures;
 interface
 
 uses
-  Classes;
+  Classes, Widestrings;
 
 {$I const.inc}
 
@@ -15,7 +15,7 @@ type
   // MySQL Index structure
   TMysqlIndex = record
     Name:     WideString;
-    Columns:  TStringList;
+    Columns:  TWideStringList;
     Unique:   Boolean;
     Fulltext: Boolean;
     Modified: Boolean;

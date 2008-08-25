@@ -10,20 +10,21 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, Registry, WideStrings;
+  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, Registry, WideStrings,
+  TntStdCtrls, TntCheckLst;
 
 type
   TCopyTableForm = class(TForm)
-    editNewTablename: TEdit;
+    editNewTablename: TTntEdit;
     lblNewTablename: TLabel;
     radioStructure: TRadioButton;
     radioStructureAndData: TRadioButton;
-    CheckListBoxFields: TCheckListBox;
+    CheckListBoxFields: TTntCheckListBox;
     CheckBoxWithAllFields: TCheckBox;
     ButtonCancel: TButton;
     CheckBoxWithIndexes: TCheckBox;
     lblTargetDB: TLabel;
-    ComboSelectDatabase: TComboBox;
+    ComboSelectDatabase: TTntComboBox;
     ButtonOK: TButton;
     procedure radioStructureClick(Sender: TObject);
     procedure radioStructureAndDataClick(Sender: TObject);
@@ -33,7 +34,7 @@ type
     procedure ButtonOKClick(Sender: TObject);
   private
     { Private declarations }
-    oldTableName : String;
+    oldTableName : WideString;
   public
     { Public declarations }
   end;
@@ -127,7 +128,7 @@ begin
   ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName) );
   for i:=1 to ds.RecordCount do
   begin
-    CheckListBoxFields.Items.Add( ds.Fields[0].AsString );
+    CheckListBoxFields.Items.Add( ds.Fields[0].AsWideString );
     ds.Next;
   end;
   ds.Close;
@@ -156,11 +157,11 @@ end;
 
 procedure TCopyTableForm.ButtonOKClick(Sender: TObject);
 var
-  strquery     : String;
+  strquery     : WideString;
   i,which,k    : Integer;
   keylist      : Array of TMyKey;
-  keystr       : String;
-  ai_q, notnull, default    : String;
+  keystr       : WideString;
+  ai_q, notnull, default    : WideString;
   zq           : TDataSet;
   isFulltext   : Boolean;
   struc_data   : Byte;
@@ -223,8 +224,8 @@ begin
         end;
       end;
       // add column
-      keylist[which].Columns.add( zq.FieldByName('Column_Name').AsString );
-      keylist[which].SubParts.add( zq.FieldByName('Sub_part').AsString );
+      keylist[which].Columns.add( zq.FieldByName('Column_Name').AsWideString );
+      keylist[which].SubParts.add( zq.FieldByName('Sub_part').AsWideString );
       zq.Next;
     end;
     zq.Close;
@@ -278,8 +279,8 @@ begin
   begin
     if zq.Fields[5].AsString = 'auto_increment' then begin
       if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
-      if zq.Fields[4].AsString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsString+'"' else default := '';
-      ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsString)+' '+mainform.mask(zq.Fields[0].AsString)+' '+zq.Fields[1].AsString+' '+default+' '+notnull+' AUTO_INCREMENT';
+      if zq.Fields[4].AsWideString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsWideString+'"' else default := '';
+      ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsWideString)+' '+mainform.mask(zq.Fields[0].AsWideString)+' '+zq.Fields[1].AsWideString+' '+default+' '+notnull+' AUTO_INCREMENT';
       Mainform.ChildWin.ExecUpdateQuery(ai_q);
     end;
     zq.Next;

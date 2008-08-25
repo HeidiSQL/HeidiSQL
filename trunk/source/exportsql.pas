@@ -29,7 +29,7 @@ uses
   SynEdit,
   SynMemo,
   ZDataSet,
-  PngSpeedButton, StdActns, WideStrings, TntCheckLst;
+  PngSpeedButton, StdActns, WideStrings, TntCheckLst, TntStdCtrls;
 
 type
   TExportSQLForm = class(TForm)
@@ -43,7 +43,7 @@ type
     TabSheet2: TTabSheet;
     lblSelectDbTables: TLabel;
     checkListTables: TTNTCheckListBox;
-    comboSelectDatabase: TComboBox;
+    comboSelectDatabase: TTNTComboBox;
     toolbarSelectTools: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
@@ -52,10 +52,10 @@ type
     editFileName: TEdit;
     radioOtherDatabase: TRadioButton;
     radioFile: TRadioButton;
-    comboOtherDatabase: TComboBox;
+    comboOtherDatabase: TTNTComboBox;
     radioOtherHost: TRadioButton;
     comboOtherHost: TComboBox;
-    comboOtherHostDatabase: TComboBox;
+    comboOtherHostDatabase: TTNTComboBox;
     groupExampleSql: TGroupBox;
     SynMemoExampleSQL: TSynMemo;
     groupOptions: TGroupBox;
@@ -308,7 +308,7 @@ begin
     );
     comboOtherHostDatabase.Clear;
     for j:=0 to data.RecordCount - 1 do begin
-      comboOtherHostDatabase.Items.Add(data.FieldByName('Database').AsString);
+      comboOtherHostDatabase.Items.Add(data.FieldByName('Database').AsWideString);
       data.Next;
     end;
     data.Free;
@@ -352,7 +352,7 @@ procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
   Selected : TWideStringList;
-  sql: string;
+  sql: WideString;
   CWin: TMDIChild;
   CheckThisItem: Boolean;
 begin
@@ -484,7 +484,7 @@ var
   columnnames               : WideString;
   keylist                   : Array of TMyKey;
   keystr                    : WideString;
-  sourceDb, destDb          : String;
+  sourceDb, destDb          : WideString;
   which                     : Integer;
   tofile,todb,tohost        : boolean;
   tcount,tablecounter       : Integer;
@@ -505,10 +505,10 @@ var
   ansi                      : Boolean;
   RecordCount_all, RecordCount_one, RecordNo_all,
   offset, limit             : Int64;
-  sql_select                : String;
+  sql_select                : WideString;
   cwin                      : TMDIChild;
   query                     : TDataSet;
-  OldActualDatabase         : String;
+  OldActualDatabase         : WideString;
 
 function sourceMask(sql: WideString): WideString;
 begin
@@ -809,7 +809,7 @@ begin
         if cwin.mysql_version >= 32320 then
         begin
           Query := cwin.GetResults('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]));
-          sql := Query.Fields[1].AsString;
+          sql := Query.Fields[1].AsWideString;
           Query.Close;
           FreeAndNil(Query);
           sql := fixNewlines(sql);
@@ -826,13 +826,13 @@ begin
             sql := sql + 'CREATE TABLE ' + destMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' (' + crlf;
           for j := 1 to Query.Fieldcount do
           begin
-            sql := sql + '  ' + destMask(Query.Fields[0].AsString) + ' ' + Query.Fields[1].AsString;
+            sql := sql + '  ' + destMask(Query.Fields[0].AsWideString) + ' ' + Query.Fields[1].AsWideString;
             if Query.Fields[2].AsString <> 'YES' then
               sql := sql + ' NOT NULL';
-            if Query.Fields[4].AsString <> '' then
-              sql := sql + ' DEFAULT ''' + Query.Fields[4].AsString + '''';
-            if Query.Fields[5].AsString <> '' then
-              sql := sql + ' ' + Query.Fields[5].AsString;
+            if Query.Fields[4].AsWideString <> '' then
+              sql := sql + ' DEFAULT ''' + Query.Fields[4].AsWideString + '''';
+            if Query.Fields[5].AsWideString <> '' then
+              sql := sql + ' ' + Query.Fields[5].AsWideString;
             if j < Query.Fieldcount then
               sql := sql + ',' + crlf;
           end;
@@ -873,7 +873,7 @@ begin
                   _type := 'UNIQUE';
               end;
             end;
-            keylist[which].Columns.add(destMask(Query.Fields[4].AsString)); // add column(s)
+            keylist[which].Columns.add(destMask(Query.Fields[4].AsWideString)); // add column(s)
             Query.Next;
           end;
           Query.Close;

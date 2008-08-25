@@ -93,7 +93,7 @@ object ExportSQLForm: TExportSQLForm
         TabOrder = 1
         OnKeyDown = checkListTablesKeyDown
       end
-      object comboSelectDatabase: TComboBox
+      object comboSelectDatabase: TTntComboBox
         Left = 63
         Top = 24
         Width = 542
@@ -206,7 +206,7 @@ object ExportSQLForm: TExportSQLForm
           OnClick = radioFileOrDirClick
           OnDblClick = btnFileBrowseClick
         end
-        object comboOtherDatabase: TComboBox
+        object comboOtherDatabase: TTntComboBox
           Left = 26
           Top = 127
           Width = 340
@@ -239,7 +239,7 @@ object ExportSQLForm: TExportSQLForm
           TabOrder = 5
           OnSelect = comboOtherHostSelect
         end
-        object comboOtherHostDatabase: TComboBox
+        object comboOtherHostDatabase: TTntComboBox
           Left = 168
           Top = 169
           Width = 198

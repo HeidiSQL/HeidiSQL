@@ -23,7 +23,7 @@ type
       function GetDBOPrettyKey: String;
       function GetPrettyPrivNames: TWideStringList;
     public
-      DBONames: TStringList;
+      DBONames: TWideStringList;
       PrivNames: TWideStringList;
       SelectedPrivNames: TWideStringList;
       constructor Create(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False);
@@ -201,7 +201,7 @@ type
     { Public declarations }
   end;
 
-procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: Byte; out DBONames: TStringList);
+procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: Byte; out DBONames: TWideStringList);
 
 implementation
 
@@ -589,7 +589,7 @@ end;
 
 procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
 var
-  NewObj: TStringList;
+  NewObj: TWideStringList;
   ds, FieldDefs: TDataset;
   NewPriv: TPrivilege;
   u: TUser;
@@ -870,7 +870,7 @@ var
   sql, TableName, SetFieldName: String;
   TableSet: TDataSet;
   AcctWhere, AcctValues, PrivWhere: String;
-  AcctUpdates, PrivValues, PrivUpdates: TStringList;
+  AcctUpdates, PrivValues, PrivUpdates: TWideStringList;
   procedure LogSQL(sql: String);
   begin
     Mainform.Childwin.LogSQL(sql);
@@ -884,7 +884,7 @@ var
   begin
     Result := Mainform.Mask(sql);
   end;
-  function Delim(list: TStringList; spacing: Boolean = True): String;
+  function Delim(list: TWideStringList; spacing: Boolean = True): String;
   var
     i: Integer;
   begin
@@ -925,7 +925,7 @@ begin
     Exec(sql + mask(PRIVTABLE_USERS) + AcctWhere);
   end;
 
-  AcctUpdates := TStringList.Create;
+  AcctUpdates := TWideStringList.Create;
   AcctUpdates.Delimiter := ',';
   LogSQL('Propagating key changes for renamed and redesignated accounts...');
   for i := 0 to Users.Count - 1 do begin
@@ -1032,9 +1032,9 @@ begin
   end;
 
   LogSQL('Applying privilege changes...');
-  PrivUpdates := TStringList.Create;
+  PrivUpdates := TWideStringList.Create;
   PrivUpdates.Delimiter := ',';
-  PrivValues := TStringList.Create;
+  PrivValues := TWideStringList.Create;
   PrivValues.Delimiter := ',';
   for i := 0 to Users.Count - 1 do begin
     u := Users[i];
@@ -1188,7 +1188,7 @@ constructor TUsers.Create;
 var
   u: TUser;
   i: Integer;
-  user, host: String;
+  user, host: WideString;
 begin
   dsUser := CWin.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
@@ -1223,22 +1223,22 @@ begin
   // Find orphaned privileges in mysql.db.
   for i := 1 to dsDb.RecordCount do begin
     dsDb.RecNo := i;
-    user := dsDb.Fields.FieldByName('User').AsString;
-    host := dsDb.Fields.FieldByName('Host').AsString;
+    user := dsDb.Fields.FieldByName('User').AsWideString;
+    host := dsDb.Fields.FieldByName('Host').AsWideString;
     if FindUser(user, host) = nil then AddUser(TUser.Create(user, host));
   end;
   // Find orphaned privileges in mysql.tables_priv.
   for i := 1 to dsTables.RecordCount do begin
     dsTables.RecNo := i;
-    user := dsTables.Fields.FieldByName('User').AsString;
-    host := dsTables.Fields.FieldByName('Host').AsString;
+    user := dsTables.Fields.FieldByName('User').AsWideString;
+    host := dsTables.Fields.FieldByName('Host').AsWideString;
     if FindUser(user, host) = nil then AddUser(TUser.Create(user, host));
   end;
   // Find orphaned privileges in mysql.columns_priv.
   for i := 1 to dsColumns.RecordCount do begin
     dsColumns.RecNo := i;
-    user := dsColumns.Fields.FieldByName('User').AsString;
-    host := dsColumns.Fields.FieldByName('Host').AsString;
+    user := dsColumns.Fields.FieldByName('User').AsWideString;
+    host := dsColumns.Fields.FieldByName('Host').AsWideString;
     if FindUser(user, host) = nil then AddUser(TUser.Create(user, host));
   end;
 end;
@@ -1321,8 +1321,8 @@ begin
   FPasswordModified := False;
   FDisabled := False;
   FNameChanged := False;
-  FOldName := Fields.FieldByName('User').AsString;
-  FOldHost := Fields.FieldByName('Host').AsString;
+  FOldName := Fields.FieldByName('User').AsWideString;
+  FOldHost := Fields.FieldByName('Host').AsWideString;
   if FOldHost = '' then begin
     // Get rid of duplicate entries.
     // Todo: handle collisions.
@@ -1415,8 +1415,8 @@ var
     // When cropping the priv table 'user' to load only db privileges, use '%' for db.
     simulateDb := cropDbFieldDefs <> nil;
     while not ds.Eof do begin
-      if hasUserField then user := ds.FieldByName('User').AsString;
-      host := ds.FieldByName('Host').AsString;
+      if hasUserField then user := ds.FieldByName('User').AsWideString;
+      host := ds.FieldByName('Host').AsWideString;
       // Canonicalize: Host='' and Host='%' means the same.
       if host = '' then host := '%';
       if (host = FOwner.FOldHost) and (user = FOwner.FOldName) then begin
@@ -1462,7 +1462,7 @@ function TPrivileges.FindPrivilege(Fields: TFields; SimulateDbField: Boolean): T
 var
   i : Integer;
   DBOType: Byte;
-  DBONames: TStringList;
+  DBONames: TWideStringList;
 begin
   Result := nil;
   GetPrivilegeRowKey(Fields, SimulateDbField, DBOType, DBONames);
@@ -1512,16 +1512,16 @@ constructor TPrivilege.Create(Fields: TFields; FieldDefs: TDataset = nil; AvoidF
 var
   i: Integer;
   tables_col_ignore: Boolean;
-  cropNames: TStringList;
+  cropNames: TWideStringList;
   // Find possible values for the given SET column
-  function GetSETValues(FieldName: String): TStringList;
+  function GetSETValues(FieldName: String): TWideStringList;
   begin
     FieldDefs.First;
-    Result := TStringList.Create;
+    Result := TWideStringList.Create;
     while not FieldDefs.Eof do begin
-      if FieldDefs.FieldByName('Field').AsString = FieldName + '_priv' then begin
+      if FieldDefs.FieldByName('Field').AsWideString = FieldName + '_priv' then begin
         Result.QuoteChar := '''';
-        Result.DelimitedText := getEnumValues( FieldDefs.FieldByName('Type').AsString );
+        Result.DelimitedText := getEnumValues( FieldDefs.FieldByName('Type').AsWideString );
       end;
       FieldDefs.Next;
     end;
@@ -1531,7 +1531,7 @@ begin
   FDeleted := False;
   FAdded := False;
   FModified := False;
-  DBONames := TStringList.Create;
+  DBONames := TWideStringList.Create;
   PrivNames := TWideStringList.Create;
   SelectedPrivNames := TWideStringList.Create;
   // Find out what xxxx_priv privilege columns this server/version has.
@@ -1547,7 +1547,7 @@ begin
     PrivNames.Delete(i)
   end;
   if CropFieldDefs <> nil then begin
-    cropNames := TStringList.Create;
+    cropNames := TWideStringList.Create;
     CropFieldDefs.Fields.GetFieldNames(cropNames);
     for i := PrivNames.Count - 1 downto 0 do begin
       if cropNames.IndexOf(PrivNames[i]) = -1 then PrivNames.Delete(i);
@@ -1653,10 +1653,10 @@ begin
 end;
 
 
-procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: Byte; out DBONames: TStringList);
+procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: Byte; out DBONames: TWideStringList);
 begin
   DBOType := NODETYPE_DEFAULT;
-  DBONames := TStringList.Create;
+  DBONames := TWideStringList.Create;
   DBONames.Delimiter := '.';
   if SimulateDbField then begin
     DBOType := NODETYPE_DB;
