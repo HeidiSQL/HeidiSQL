@@ -25,8 +25,10 @@ type
     procedure FormShow(Sender: TObject);
     procedure memoTextChange(Sender: TObject);
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
+    FModified: Boolean;
   public
     { Public declarations }
   end;
@@ -70,20 +72,18 @@ begin
   memoText.SelectAll;
   memoText.SetFocus;
   memoTextChange(Sender);
+  FModified := False;
 end;
 
 
 procedure TfrmMemoEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
-var
-  Tree: TCustomVirtualStringTree;
 begin
-  Tree := TCustomVirtualStringTree(Parent);
   case Key of
     // Cancel by Escape
-    VK_ESCAPE: Tree.CancelEditNode;
+    VK_ESCAPE: btnCancelClick(Sender);
     // Apply changes and end editing by Ctrl + Enter
-    VK_RETURN: if ssCtrl in Shift then Tree.EndEditNode;
+    VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
   end;
 end;
 
@@ -119,8 +119,24 @@ end;
 
 
 procedure TfrmMemoEditor.btnCancelClick(Sender: TObject);
+var
+  DoPost: Boolean;
 begin
-  TCustomVirtualStringTree(Parent).CancelEditNode;
+  if FModified then
+    DoPost := MessageDlg('Apply modifications?', mtConfirmation, [mbYes, mbNo], 0) = mrYes
+  else
+    DoPost := False;
+  if DoPost then
+    TCustomVirtualStringTree(Parent).EndEditNode
+  else
+    TCustomVirtualStringTree(Parent).CancelEditNode;
+end;
+
+
+procedure TfrmMemoEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  btnCancelClick(Sender);
+  CanClose := False; // Done by editor link
 end;
 
 
@@ -135,6 +151,7 @@ begin
   lblTextLength.Caption := FormatNumber(Length(memoText.Text)) + ' characters.';
   if memoText.MaxLength > 0 then
     lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(memoText.MaxLength)+')';
+  FModified := True;
 end;
 
 end.
