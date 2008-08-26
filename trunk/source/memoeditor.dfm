@@ -1,7 +1,8 @@
 object frmMemoEditor: TfrmMemoEditor
   Left = 0
   Top = 0
-  Caption = 'frmMemoEditor'
+  BorderStyle = bsSizeToolWin
+  Caption = 'Text editor'
   ClientHeight = 95
   ClientWidth = 215
   Color = clBtnFace
