@@ -100,7 +100,7 @@ procedure Tconnform.ButtonConnectClick(Sender: TObject);
 var
   reg : TRegistry;
 begin
-  Screen.Cursor := crSQLWait;
+  Screen.Cursor := crHourglass;
   ButtonConnect.Enabled := false;
 
   if Mainform.CreateMDIChild(

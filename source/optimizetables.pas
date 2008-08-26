@@ -156,7 +156,7 @@ var
   ds: TDataSet;
   sql: WideString;
 begin
-  Screen.Cursor := crSQLWait;
+  Screen.Cursor := crHourglass;
   Mainform.ChildWin.TemporaryDatabase := self.DBComboBox.Text;
   ClearResults;
   try

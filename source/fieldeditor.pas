@@ -453,7 +453,7 @@ begin
       Exit;
     end;
 
-  Screen.Cursor := crSQLWait;
+  Screen.Cursor := crHourglass;
   strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
   strNull := '';
   strDefault := '';
