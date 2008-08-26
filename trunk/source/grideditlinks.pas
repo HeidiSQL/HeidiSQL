@@ -171,9 +171,7 @@ end;
 
 procedure TMemoEditorLink.SetBounds(R: TRect); stdcall;
 begin
-  // Sets the top left corner of the edit control
-  if not FStopping then
-    FForm.TopLeft := R.TopLeft;
+  // See OnFormShow in the form object itself
 end;
 
 
