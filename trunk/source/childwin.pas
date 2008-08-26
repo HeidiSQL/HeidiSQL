@@ -1211,6 +1211,13 @@ begin
       rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
       if rx.Exec(ColType) then
         FDataGridResult.Columns[idx].IsBlob := True;
+      if Copy(ColType, 1, 5) = 'enum(' then begin
+        FDataGridResult.Columns[idx].IsEnum := True;
+        FDataGridResult.Columns[idx].EnumVals := WideStrings.TWideStringList.Create;
+        FDataGridResult.Columns[idx].EnumVals.QuoteChar := '''';
+        FDataGridResult.Columns[idx].EnumVals.Delimiter := ',';
+        FDataGridResult.Columns[idx].EnumVals.DelimitedText := GetEnumValues(ColType);
+      end;
     end;
     FSelectedTableColumns.Next;
   end;
@@ -6100,6 +6107,7 @@ procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
 var
   MemoEditor: TMemoEditorLink;
   DateTimeEditor: TDateTimeEditorLink;
+  EnumEditor: TEnumEditorLink;
 begin
   if FDataGridResult.Columns[Column].IsText then begin
     MemoEditor := TMemoEditorLink.Create;
@@ -6109,6 +6117,10 @@ begin
     DateTimeEditor := TDateTimeEditorLink.Create;
     DateTimeEditor.DataType := FDataGridResult.Columns[Column].DataType;
     EditLink := DateTimeEditor;
+  end else if FDataGridResult.Columns[Column].IsEnum then begin
+    EnumEditor := TEnumEditorLink.Create;
+    EnumEditor.ValueList := FDataGridResult.Columns[Column].EnumVals;
+    EditLink := EnumEditor;
   end else
     EditLink := TStringEditLink.Create;
 end;
