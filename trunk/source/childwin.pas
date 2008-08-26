@@ -1971,7 +1971,7 @@ procedure TMDIChild.ValidateControls( FrmIsFocussed: Boolean = true );
 var
   DBObjectSelected, TableSelected, ViewSelected,
   inDbTab, inTableTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
-  FieldsSelected, FieldFocused, dummy : Boolean;
+  FieldsSelected, FieldFocused, dummy, DBfocused : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
 begin
@@ -2020,8 +2020,9 @@ begin
   Mainform.actEditView.Enabled := inDbTab and ViewSelected and (mysql_version >= 50001);
   Mainform.actCreateView.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50001);
   MainForm.actCreateDatabase.Enabled := FrmIsFocussed;
-  MainForm.actDropDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  MainForm.actEditDatabase.Enabled := (ActiveDatabase <> '') and FrmIsFocussed and (mysql_version >= 50002);
+  DBfocused := Assigned(DBtree.FocusedNode) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
+  MainForm.actDropDatabase.Enabled := DBfocused and FrmIsFocussed;
+  MainForm.actEditDatabase.Enabled := DBfocused and FrmIsFocussed and (mysql_version >= 50002);
   if mysql_version < 50002 then
     MainForm.actEditDatabase.Hint := STR_NOTSUPPORTED
   else
