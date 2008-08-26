@@ -142,6 +142,7 @@ const
   REGNAME_EXP_OUTFILE = 'exportfilename';
   REGNAME_EXP_OUTDIR = 'ExportDirectory';
   REGNAME_EXP_TARGET = 'ExportSQL_OutputTo';
+  REGNAME_EXP_DESTDB = 'ExportSQL_DestDB';
   REGNAME_EXP_WINWIDTH = 'ExportSQL_WindowWidth';
   REGNAME_EXP_WINHEIGHT = 'ExportSQL_WindowHeight';
   REGNAME_CSV_SEPARATOR = 'CSVSeparator';
