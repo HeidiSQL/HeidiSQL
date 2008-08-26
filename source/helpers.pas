@@ -53,9 +53,11 @@ type
     IsPriPart: Boolean;
     IsBlob: Boolean;
     IsText: Boolean;
+    IsEnum: Boolean;
     IsInt: Boolean;
     IsFloat: Boolean;
     IsDate: Boolean;
+    EnumVals: TWideStringList;
   end;
   TGridColumns = Array of TGridColumn;
   TGridRowState = (grsDefault, grsDeleted, grsModified, grsInserted);

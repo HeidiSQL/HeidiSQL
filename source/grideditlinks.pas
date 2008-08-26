@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses Windows, Graphics, messages, VirtualTrees, memoeditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main;
+  mysql_structures, Main, TntStdCtrls, WideStrings, StdCtrls;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -42,6 +42,28 @@ type
     procedure PickerChange(Sender: TObject);
   public
     DataType: Byte; // @see mysql_structures
+    constructor Create;
+    destructor Destroy; override;
+    function BeginEdit: Boolean; virtual; stdcall;
+    function CancelEdit: Boolean; virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall;
+    function GetBounds: TRect; virtual; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
+    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall;
+  end;
+
+type
+  TEnumEditorLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FCombo: TTnTComboBox;
+    FTree: TCustomVirtualStringTree;
+    FNode: PVirtualNode;
+    FColumn: TColumnIndex;
+    FStopping: Boolean;
+    procedure ComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  public
+    ValueList: TWideStringList;
     constructor Create;
     destructor Destroy; override;
     function BeginEdit: Boolean; virtual; stdcall;
@@ -289,6 +311,109 @@ end;
 procedure TDateTimeEditorLink.PickerChange(Sender: TObject);
 begin
   FModified := True;
+end;
+
+
+
+
+{ Enum editor }
+
+constructor TEnumEditorLink.Create;
+begin
+  inherited;
+end;
+
+
+destructor TEnumEditorLink.Destroy;
+begin
+  inherited;
+  FCombo.Free;
+end;
+
+
+function TEnumEditorLink.BeginEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then
+    FCombo.Show;
+end;
+
+
+function TEnumEditorLink.CancelEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    FCombo.Hide;
+    FTree.CancelEditNode;
+    FTree.SetFocus;
+  end;
+end;
+
+
+function TEnumEditorLink.EndEdit: Boolean; stdcall;
+var
+  newtext: WideString;
+begin
+  Result := not FStopping;
+  if Not Result then
+    Exit;
+  newText := FCombo.Text;
+  if newtext <> FTree.Text[FNode, FColumn] then
+    FTree.Text[FNode, FColumn] := newtext;
+  FCombo.Hide;
+  FTree.SetFocus;
+end;
+
+
+function TEnumEditorLink.GetBounds: TRect; stdcall;
+begin
+  Result := FCombo.BoundsRect;
+end;
+
+
+function TEnumEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  i: Integer;
+begin
+  Result := Tree is TCustomVirtualStringTree;
+  if not Result then
+    Exit;
+  Ftree := Tree as TCustomVirtualStringTree;
+  FNode := Node;
+  FColumn := Column;
+  FCombo := TTnTComboBox.Create(Tree);
+  FCombo.Parent := FTree;
+  // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
+  FCombo.Style := csOwnerDrawFixed;
+  for i := 0 to ValueList.Count - 1 do
+    FCombo.Items.Add(ValueList[i]);
+  FCombo.ItemIndex := FCombo.Items.IndexOf(FTree.Text[FNode, FColumn]);
+  FCombo.SetFocus;
+  FCombo.OnKeyDown := ComboKeyDown;
+end;
+
+
+procedure TEnumEditorLink.ProcessMessage(var Message: TMessage); stdcall;
+begin
+end;
+
+
+procedure TEnumEditorLink.SetBounds(R: TRect); stdcall;
+begin
+  FCombo.BoundsRect := R;
+  FCombo.ItemHeight := R.Bottom - R.Top - 4;
+end;
+
+
+procedure TEnumEditorLink.ComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    // Cancel by Escape
+    VK_ESCAPE: FTree.CancelEditNode;
+    // Apply changes and end editing by [Ctrl +] Enter
+    VK_RETURN: FTree.EndEditNode;
+  end;
 end;
 
 end.
