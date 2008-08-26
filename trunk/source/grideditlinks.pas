@@ -110,7 +110,7 @@ begin
   FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
 
   // Get wide text of the node.
-  Text := MainForm.ChildWin.FDataGridResult.Rows[Node.Index].Cells[Column].Text;
+  Text := FTree.Text[FNode, FColumn];
 
   // Create the editor form
   FForm := TfrmMemoEditor.Create(Ftree);
