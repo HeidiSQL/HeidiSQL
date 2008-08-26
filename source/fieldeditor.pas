@@ -196,6 +196,7 @@ begin
     femFieldAdd, femIndexEditor:
     begin
       CheckBoxAutoIncrement.Enabled := false;
+      CheckBoxAutoIncrement.Checked := false;
       EditFieldName.Text := 'Enter column name';
       ComboBoxType.ItemIndex := 1;
       EditLength.Text := '';
