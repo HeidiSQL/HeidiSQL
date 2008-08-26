@@ -835,6 +835,7 @@ object MainForm: TMainForm
     object actDataInsert: TAction
       Category = 'Data'
       Caption = '&Insert row'
+      Enabled = False
       Hint = 'Insert row into table'
       ImageIndex = 45
       ShortCut = 45
