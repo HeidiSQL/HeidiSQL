@@ -1210,10 +1210,16 @@ begin
 end;
 
 procedure TExportSQLForm.fillcombo_anotherdb(Sender: TObject);
+var
+  lastdb: WideString;
 begin
   comboOtherDatabase.Items := comboSelectDatabase.Items;
   comboOtherDatabase.Items.delete(comboSelectDatabase.ItemIndex);
-  if comboOtherDatabase.ItemIndex = -1 then
+  if comboOtherDatabase.ItemIndex = -1 then begin
+    lastdb := Utf8Decode(Mainform.GetRegValue(REGNAME_EXP_DESTDB, ''));
+    comboOtherDatabase.ItemIndex := comboOtherDatabase.Items.IndexOf(lastdb);
+  end;
+  if (comboOtherDatabase.ItemIndex = -1) and (comboOtherDatabase.Items.Count > 0) then
     comboOtherDatabase.ItemIndex := 0;
 end;
 
@@ -1514,6 +1520,7 @@ begin
     else if radioOtherHost.checked then
       OutputTo := OUTPUT_HOST;
     WriteInteger(REGNAME_EXP_TARGET,     OutputTo );
+    WriteString(REGNAME_EXP_DESTDB,      Utf8Encode(comboOtherDatabase.Text));
     WriteInteger(REGNAME_EXP_WINWIDTH,   Width );
     WriteInteger(REGNAME_EXP_WINHEIGHT,  Height );
     CloseKey();
