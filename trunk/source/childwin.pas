@@ -2140,7 +2140,7 @@ begin
     Exit;
 
   // Refresh variables and process-list
-  Screen.Cursor := crSQLWait;
+  Screen.Cursor := crHourglass;
 
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListVariables, True);
@@ -2244,7 +2244,7 @@ begin
   // No need to update if it's not visible.
   if PageControlMain.ActivePage <> tabHost then exit;
   if PageControlHost.ActivePage <> tabProcesslist then exit;
-  Screen.Cursor := crSQLWait;
+  Screen.Cursor := crHourglass;
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListProcesses, True);
   try
@@ -5111,7 +5111,7 @@ begin
   case Sender.GetNodeLevel(Node) of
     // Root node has only one single child (user@host)
     0: begin
-        Screen.Cursor := crSQLWait;
+        Screen.Cursor := crHourglass;
         mainform.Showstatus( 'Reading Databases...' );
         try
           Databases := WideStrings.TWideStringList.Create;
@@ -5149,7 +5149,7 @@ begin
       end;
     // DB node expanding
     1: begin
-        Screen.Cursor := crSQLWait;
+        Screen.Cursor := crHourglass;
         mainform.Showstatus( 'Reading Tables...' );
         try
           ds := FetchDbTableList(Databases[Node.Index]);
