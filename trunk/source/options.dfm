@@ -445,13 +445,6 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
-      object lblLoadSize: TLabel
-        Left = 8
-        Top = 58
-        Width = 196
-        Height = 13
-        Caption = 'Data size for auto calculating LIMIT [KB]:'
-      end
       object GroupBox2: TGroupBox
         Left = 0
         Top = 80
@@ -560,26 +553,6 @@ object optionsform: Toptionsform
         State = cbChecked
         TabOrder = 0
         OnClick = Modified
-      end
-      object editLoadSize: TEdit
-        Left = 219
-        Top = 55
-        Width = 42
-        Height = 21
-        TabOrder = 4
-        Text = '1'
-      end
-      object updownLoadSize: TUpDown
-        Left = 261
-        Top = 55
-        Width = 17
-        Height = 21
-        Associate = editLoadSize
-        Min = 1
-        Max = 32767
-        Position = 1
-        TabOrder = 5
-        Wrap = True
       end
     end
     object TabSheet5: TTabSheet

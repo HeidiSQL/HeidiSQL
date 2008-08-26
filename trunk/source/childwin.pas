@@ -377,7 +377,6 @@ type
     procedure GridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuDeleteSnippetClick(Sender: TObject);
-    procedure GetCalculatedLimit(Table: String; out Limit, AllRows: Int64);
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
@@ -505,8 +504,7 @@ type
       prefConvertHTMLEntities    : Boolean;
       prefLogsqlnum,
       prefLogSqlWidth,
-      prefDefaultColWidth,
-      prefLoadSize               : Integer;
+      prefDefaultColWidth        : Integer;
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
@@ -868,7 +866,6 @@ begin
   prefCSVTerminator := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefRememberFilters := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   prefPreferShowTables := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
-  prefLoadSize := Mainform.GetRegValue(REGNAME_LOADSIZE, DEFAULT_LOADSIZE);
 
   // SQL-Font:
   fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
@@ -3736,45 +3733,6 @@ begin
     DBtree.Selected[n] := true
   else
     raise Exception.Create('Database node ' + db + ' not found in tree.');
-end;
-
-
-{***
-  Detect average row size and limit the number of rows fetched at
-  once if more than ~ 5 MB of data
-}
-procedure TMDIChild.GetCalculatedLimit(Table: String; out Limit, AllRows: Int64);
-var
-  AvgRowSize : Int64;
-  ds: TDataSet;
-const
-  // how much overhead this application has per row
-  ROW_SIZE_OVERHEAD : Integer = 1150;
-  // average row size guess for mysql server < 5.0
-  ROW_SIZE_GUESS: Integer = 2048;
-begin
-  Limit := -1;
-  try
-    ds := GetResults('SHOW TABLE STATUS LIKE ' + esc(Table));
-    if ds = nil then exit;
-    if ds.FieldByName('Avg_row_length').IsNull or ds.FieldByName('Rows').IsNull then begin
-      // Guessing row size and count for views, fixes bug #346
-      AvgRowSize := ROW_SIZE_GUESS + ROW_SIZE_OVERHEAD;
-      AllRows := MaxInt;
-    end else begin
-      AvgRowSize := MakeInt( ds.FieldByName( 'Avg_row_length' ).AsString ) + ROW_SIZE_OVERHEAD;
-      AllRows := MakeInt( ds.FieldByName( 'Rows' ).AsString );
-    end;
-    if AvgRowSize * AllRows > prefLoadSize then
-    begin
-      Limit := Trunc( prefLoadSize / AvgRowSize );
-      if Limit >= AllRows then Limit := -1;
-    end;
-    ds.Close;
-    FreeAndNil(ds);
-  finally
-    debug( 'GetCalculatedLimit: ' + formatnumber(Limit) );
-  end;
 end;
 
 

@@ -973,12 +973,10 @@ begin
           end;
         end;
 
-        {***
-          Detect average row size and limit the number of rows fetched at
-          once if more than ~ 5 MB of data
-          Be sure to do this step before the table is locked!
-        }
-        cwin.GetCalculatedLimit( checkListTables.Items[i], limit, RecordCount_all);
+        // Set rows per step limit and detect total row count
+        // Be sure to do this step before the table is locked!
+        limit := 5000;
+        RecordCount_all := MakeInt(cwin.GetNamedVar('SHOW TABLE STATUS LIKE '+esc(checkListTables.Items[i]), 'Rows'));
 
         if RecordCount_all = 0 then begin
           if tofile then

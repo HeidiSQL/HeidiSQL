@@ -92,9 +92,6 @@ type
     updownUpdatecheckInterval: TUpDown;
     chkPreferShowTables: TCheckBox;
     chkUpdateCheckBuilds: TCheckBox;
-    lblLoadSize: TLabel;
-    editLoadSize: TEdit;
-    updownLoadSize: TUpDown;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -176,7 +173,6 @@ begin
   reg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
   reg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
-  reg.WriteInteger(REGNAME_LOADSIZE, updownLoadSize.Position*SIZE_KB);
 
   // Clean registry from unwanted WHERE clauses if "Remember WHERE filters" was unchecked
   if not chkRememberFilters.Checked then begin
@@ -235,7 +231,6 @@ begin
     cwin.prefCSVTerminator := self.Edit3.text;
     cwin.prefConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
     cwin.prefPreferShowTables := chkPreferShowTables.Checked;
-    cwin.prefLoadSize := updownLoadSize.Position * SIZE_KB;
   end;
 
   // Settings have been applied, send a signal to the user
@@ -284,7 +279,6 @@ begin
   updownUpdatecheckInterval.Position := Mainform.GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
   chkUpdatecheckClick(Sender);
   chkPreferShowTables.Checked := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
-  updownLoadSize.Position := Mainform.GetRegValue(REGNAME_LOADSIZE, DEFAULT_LOADSIZE) div SIZE_KB;
 
   // Default Column-Width in DBGrids:
   updownDefaultColWidth.Position := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);

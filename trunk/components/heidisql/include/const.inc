@@ -58,8 +58,6 @@ const
   DEFAULT_DATALIMITEND = 5000;
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function
-  REGNAME_LOADSIZE = 'DataLoadSize';
-  DEFAULT_LOADSIZE = 5*1024*1024;
   REGNAME_LOGSQLNUM = 'logsqlnum';
   DEFAULT_LOGSQLNUM = 300;
   REGNAME_LOGSQLWIDTH = 'logsqlwidth';
