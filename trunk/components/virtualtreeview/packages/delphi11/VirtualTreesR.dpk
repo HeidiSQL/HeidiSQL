@@ -34,7 +34,12 @@ requires
 
 contains
   VirtualTrees in '..\..\Source\VirtualTrees.pas',
-  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas';
+  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas',
+  VTAccessibilityFactory in '..\..\Source\VTAccessibilityFactory.pas',
+  VTAccessibility in '..\..\Source\VTAccessibility.pas';
+  // @note, Ansgar: MSAAIntf.pas is not included in the distribution,
+  //                but anyway only needed for Delphi up to 2005
+  //, MSAAIntf in '..\..\Source\MSAAIntf.pas';
 
 end.
 

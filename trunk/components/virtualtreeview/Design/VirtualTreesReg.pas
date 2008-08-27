@@ -561,7 +561,7 @@ begin
        'AutoScroll*',
        'ButtonStyle',
        'DefaultNodeHeight',
-       '*Images*', 'OnGetImageIndex',
+       '*Images*', 'OnGetImageIndex', 'OnGetImageText',
        'Header',
        'Indent',
        'LineStyle', 'OnGetLineStyle',
@@ -583,7 +583,7 @@ begin
 
     RegisterPropertiesInCategory({$ifdef COMPILER_5} THelpCategory, {$endif} {$ifdef COMPILER_6_UP} sHelpCategoryName, {$endif COMPILER_6_UP}
       TBaseVirtualTree,
-      ['Hint*', 'On*Hint*', 'On*Help*']);
+      ['AccessibleName', 'Hint*', 'On*Hint*', 'On*Help*']);
 
     RegisterPropertiesInCategory({$ifdef COMPILER_5} TDragNDropCategory, {$endif} {$ifdef COMPILER_6_UP} sDragNDropCategoryName, {$endif COMPILER_6_UP}
       TBaseVirtualTree,

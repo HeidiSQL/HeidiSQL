@@ -424,8 +424,8 @@ type
         HintText: WideString);
     procedure ProcessSqlLog;
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
-        TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
-        TRect);
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure editFilterVTChange(Sender: TObject);
     procedure ListColumnsDblClick(Sender: TObject);
@@ -4597,8 +4597,8 @@ end;
   Draw a progress bar on it to visualize its percentage value.
 }
 procedure TMDIChild.ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
-    TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect:
-    TRect);
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
   percent : Extended;
   barwidth, cellwidth: Integer;

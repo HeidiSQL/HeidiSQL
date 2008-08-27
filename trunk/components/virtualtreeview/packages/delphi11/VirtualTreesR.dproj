@@ -95,6 +95,8 @@
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
     <DCCReference Include="..\..\Source\VirtualTrees.pas" />
+    <DCCReference Include="..\..\Source\VTAccessibility.pas" />
+    <DCCReference Include="..\..\Source\VTAccessibilityFactory.pas" />
     <DCCReference Include="..\..\Source\VTHeaderPopup.pas" />
     <DCCReference Include="TntUnicodeVcl.dcp" />
     <DCCReference Include="vcl.dcp" />
