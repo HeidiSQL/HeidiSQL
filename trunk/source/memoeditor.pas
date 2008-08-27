@@ -82,13 +82,18 @@ begin
 end;
 
 procedure TfrmMemoEditor.btnWrapClick(Sender: TObject);
+var
+  WasModified: Boolean;
 begin
   Screen.Cursor := crHourglass;
+  // Changing the scrollbars invoke the OnChange event. We avoid thinking the text was really modified.
+  WasModified := FModified;
   if memoText.ScrollBars = ssBoth then
     memoText.ScrollBars := ssVertical
   else
     memoText.ScrollBars := ssBoth;
   TToolbutton(Sender).Down := memoText.ScrollBars = ssVertical;
+  FModified := WasModified;
   Screen.Cursor := crDefault;
 end;
 
