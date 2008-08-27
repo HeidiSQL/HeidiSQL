@@ -1149,6 +1149,7 @@ begin
   FDataGridResult.Columns[idx].Name := name;
   col := DataGrid.Header.Columns.Add;
   col.Text := name;
+  col.Options := col.Options + [coSmartResize];
   if HiddenKeyCols.IndexOf(name) > -1 then col.Options := col.Options - [coVisible];
   col.Width := prefDefaultColWidth;
   if ViewDataPrevTable = SelectedTable then begin
