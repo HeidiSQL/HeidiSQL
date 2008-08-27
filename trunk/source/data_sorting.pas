@@ -56,8 +56,8 @@ begin
   ColumnNames := GetVTCaptions( Mainform.Childwin.ListColumns );
 
   // Read original ORDER clause from registry
-  reg_name := REGPREFIX_ORDERCLAUSE + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
-  OldOrderClause := Mainform.GetRegValue(reg_name, '', Mainform.Childwin.SessionName);
+  reg_name := Utf8Encode(REGPREFIX_ORDERCLAUSE + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable);
+  OldOrderClause := Utf8Decode(Mainform.GetRegValue(reg_name, '', Mainform.Childwin.SessionName));
 
   OrderColumns := Mainform.Childwin.HandleOrderColumns;
 
@@ -303,7 +303,7 @@ var
 begin
   reg := TRegistry.Create();
   reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.SessionName, true );
-  reg.WriteString( reg_name, Mainform.Childwin.ComposeOrderClause(OrderColumns) );
+  reg.WriteString( reg_name, Utf8Encode(Mainform.Childwin.ComposeOrderClause(OrderColumns)) );
   reg.CloseKey;
   FreeAndNil(reg);
   Mainform.Childwin.viewdata(Sender);
