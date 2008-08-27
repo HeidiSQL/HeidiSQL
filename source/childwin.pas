@@ -547,7 +547,7 @@ type
       procedure DeactivateFileLogging;
       procedure TrimSQLLog;
       function HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
-      function ComposeOrderClause( Cols: TOrderColArray ): String;
+      function ComposeOrderClause( Cols: TOrderColArray ): WideString;
       procedure TableEnginesCombo(var Combobox: TCombobox);
       function GetNodeType(Node: PVirtualNode): Byte;
       function GetSelectedNodeType: Byte;
@@ -1125,7 +1125,7 @@ end;
 
 procedure TMDIChild.viewdata(Sender: TObject);
 var
-  sorting              : String;
+  sorting              : WideString;
   i                    : Integer;
   OrderColumns         : TOrderColArray;
   reg_value            : String;
@@ -4630,7 +4630,7 @@ function TMDIChild.HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderCol
 var
   i, j : Integer;
   reg : TRegistry;
-  reg_name : String;
+  reg_name : WideString;
   old_orderclause, new_orderclause, columnname : WideString;
   order_parts, ValidColumns : WideStrings.TWideStringList;
   columnexists : Boolean;
@@ -4638,8 +4638,8 @@ begin
   SetLength( Result, 0 );
 
   // Read ORDER clause from registry
-  reg_name := REGPREFIX_ORDERCLAUSE + ActiveDatabase + '.' + SelectedTable;
-  old_orderclause := Mainform.GetRegValue(reg_name, '', FConn.Description);
+  reg_name := Utf8Encode(REGPREFIX_ORDERCLAUSE + ActiveDatabase + '.' + SelectedTable);
+  old_orderclause := Utf8Decode(Mainform.GetRegValue(reg_name, '', FConn.Description));
 
   if old_orderclause <> '' then
   begin
@@ -4649,7 +4649,7 @@ begin
     for i := 0 to order_parts.Count - 1 do
     begin
       columnname := Trim( Copy( order_parts[i], 0, LastPos( ' ', order_parts[i] ) ) );
-      columnname := trimc( columnname, '`' );
+      columnname := WideDequotedStr(columnname, '`');
       columnexists := ValidColumns.IndexOf(columnname) > -1;
 
       if not columnexists then
@@ -4708,7 +4708,7 @@ begin
     reg := TRegistry.Create();
     reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
     if new_orderclause <> '' then
-      reg.WriteString(reg_name , new_orderclause)
+      reg.WriteString(reg_name , Utf8Encode(new_orderclause))
     else
       reg.DeleteValue(reg_name);
     reg.Free;
@@ -4720,7 +4720,7 @@ end;
 {**
   Concat all sort options to a ORDER clause
 }
-function TMDIChild.ComposeOrderClause(Cols: TOrderColArray): String;
+function TMDIChild.ComposeOrderClause(Cols: TOrderColArray): WideString;
 var
   i : Integer;
   sort : String;
