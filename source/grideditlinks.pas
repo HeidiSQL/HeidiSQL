@@ -114,7 +114,6 @@ begin
 
   // Create the editor form
   FForm := TfrmMemoEditor.Create(Ftree);
-  FForm.Parent := Tree;
   FForm.memoText.Font := F;
   // TODO: The Text property is ANSI.
   FForm.memoText.Text := Text;
@@ -171,7 +170,7 @@ end;
 
 procedure TMemoEditorLink.SetBounds(R: TRect); stdcall;
 begin
-  // See OnFormShow in the form object itself
+  // Not in use, form's position is centered on mainform
 end;
 
 
