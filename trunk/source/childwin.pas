@@ -2619,7 +2619,7 @@ begin
       // If the just typed word equals the alias of this table or the
       // tablename itself, set tablename var and break loop
       if rx.Exec(Tables[i]) then begin
-        if (TrimC(SynCompletionProposal1.PreviousToken,'`') = TrimC(rx.Match[4],'`') )
+        if (WideDequotedStr(SynCompletionProposal1.PreviousToken,'`') = WideDequotedStr(rx.Match[4],'`') )
           or (SynCompletionProposal1.PreviousToken = rx.Match[1]) then begin
           tablename := Trim(rx.Match[1]);
           break;

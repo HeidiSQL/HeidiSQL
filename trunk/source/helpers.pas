@@ -74,7 +74,6 @@ type
 
 {$I const.inc}
 
-  function trimc(s: String; c: Char) : String;
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
   function explode(separator, a: WideString) :TWideStringList;
   procedure ensureValidIdentifier(name: String);
@@ -184,41 +183,6 @@ var
   dbgCounter: Integer = 0;
   DecimalSeparatorSystemdefault: Char;
 
-
-
-{***
-  Trim off chars from string
-
-  @param string Input-string
-  @param char Which character to to use for trimming
-  @return string
-}
-function trimc(s: String; c: char) : String;
-var a,z: Integer;
-begin
-  if c = '' then c := '"';
-  if s <> '' then
-  begin
-
-    a := 1;
-    while s[a] = c do
-    begin
-      delete(s, a, 1);
-      if s = '' then
-        exit;
-    end;
-
-    z := length(s);
-    while s[z] = c do
-    begin
-      delete(s, z, 1);
-      dec(z);
-    end;
-
-  end;
-
-  result := s;
-end;
 
 
 
