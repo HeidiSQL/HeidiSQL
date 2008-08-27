@@ -29,6 +29,8 @@ type
   private
     { Private declarations }
     FModified: Boolean;
+    procedure SetModified(NewVal: Boolean);
+    property Modified: Boolean read FModified write SetModified;
   public
     { Public declarations }
   end;
@@ -66,7 +68,7 @@ begin
   memoText.SelectAll;
   memoText.SetFocus;
   memoTextChange(Sender);
-  FModified := False;
+  Modified := False;
 end;
 
 
@@ -87,13 +89,13 @@ var
 begin
   Screen.Cursor := crHourglass;
   // Changing the scrollbars invoke the OnChange event. We avoid thinking the text was really modified.
-  WasModified := FModified;
+  WasModified := Modified;
   if memoText.ScrollBars = ssBoth then
     memoText.ScrollBars := ssVertical
   else
     memoText.ScrollBars := ssBoth;
   TToolbutton(Sender).Down := memoText.ScrollBars = ssVertical;
-  FModified := WasModified;
+  Modified := WasModified;
   Screen.Cursor := crDefault;
 end;
 
@@ -121,7 +123,7 @@ procedure TfrmMemoEditor.btnCancelClick(Sender: TObject);
 var
   DoPost: Boolean;
 begin
-  if FModified then
+  if Modified then
     DoPost := MessageDlg('Apply modifications?', mtConfirmation, [mbYes, mbNo], 0) = mrYes
   else
     DoPost := False;
@@ -150,7 +152,17 @@ begin
   lblTextLength.Caption := FormatNumber(Length(memoText.Text)) + ' characters.';
   if memoText.MaxLength > 0 then
     lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(memoText.MaxLength)+')';
-  FModified := True;
+  Modified := True;
 end;
+
+
+procedure TfrmMemoEditor.SetModified(NewVal: Boolean);
+begin
+  if FModified <> NewVal then begin
+    FModified := NewVal;
+    btnApply.Enabled := FModified;
+  end;
+end;
+
 
 end.
