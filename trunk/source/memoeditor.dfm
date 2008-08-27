@@ -14,6 +14,7 @@ object frmMemoEditor: TfrmMemoEditor
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poMainFormCenter
   OnCloseQuery = FormCloseQuery
   OnDestroy = FormDestroy
   OnShow = FormShow
