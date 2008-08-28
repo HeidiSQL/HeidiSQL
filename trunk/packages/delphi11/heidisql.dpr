@@ -39,7 +39,8 @@ uses
   view in '..\..\source\view.pas' {frmView},
   selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject},
   memoeditor in '..\..\source\memoeditor.pas' {frmMemoEditor},
-  grideditlinks in '..\..\source\grideditlinks.pas';
+  grideditlinks in '..\..\source\grideditlinks.pas',
+  uVistaFuncs in '..\..\source\uVistaFuncs.pas';
 
 {$R *.RES}
 
