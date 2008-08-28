@@ -713,6 +713,7 @@ procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; ConvertHTMLEnt
 var
   i: Integer;
   tmp, Data, Attribs, Generator: WideString;
+  utf8: String;
   Node: PVirtualNode;
 begin
   Generator := APPNAME+' '+FullAppVersion;
@@ -738,7 +739,8 @@ begin
     tmp := tmp + '    <th style="width:'+IntToStr(Grid.Header.Columns[i].Width)+'px">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
   end;
   tmp := tmp + '  </tr>' + CRLF;
-  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  utf8 := Utf8Encode(tmp);
+  S.Write(utf8[1], Length(utf8));
 
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
@@ -761,7 +763,8 @@ begin
       tmp := tmp + '    <td'+Attribs+'>' + Data + '</td>' + CRLF;
     end;
     tmp := tmp + '  </tr>' + CRLF;
-    S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+    utf8 := Utf8Encode(tmp);
+    S.Write(utf8[1], Length(utf8));
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -769,7 +772,8 @@ begin
     '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
     ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + CRLF + CRLF +
     '</body></html>';
-  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  utf8 := Utf8Encode(tmp);
+  S.Write(utf8[1], Length(utf8));
   Mainform.Showstatus(STATUS_MSG_READY);
 end;
 
@@ -786,6 +790,7 @@ procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: S
 var
   i: Integer;
   tmp, Data: WideString;
+  utf8: String;
   Node: PVirtualNode;
 begin
   separator := esc2ascii(separator);
@@ -802,7 +807,8 @@ begin
       tmp := tmp + Separator;
     tmp := tmp + Encloser + Grid.Header.Columns[i].Text + Encloser;
   end;
-  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  utf8 := Utf8Encode(tmp);
+  S.Write(utf8[1], Length(utf8));
 
   // Data:
   Node := Grid.GetFirst;
@@ -820,7 +826,8 @@ begin
         Data := FloatStr(Data);
       tmp := tmp + Encloser + Data + Encloser + Separator;
     end;
-    S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+    utf8 := Utf8Encode(tmp);
+    S.Write(utf8[1], Length(utf8));
     Node := Grid.GetNext(Node);
   end;
   Mainform.showstatus(STATUS_MSG_READY);
@@ -837,11 +844,13 @@ procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
 var
   i: Integer;
   tmp, Data: WideString;
+  utf8: String;
   Node: PVirtualNode;
 begin
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
       '<'+root+'>' + CRLF;
-  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  utf8 := Utf8Encode(tmp);
+  S.Write(utf8[1], Length(utf8));
 
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
@@ -862,12 +871,14 @@ begin
       tmp := tmp + #9#9'<'+Grid.Header.Columns[i].Text+'>' + Data + '</'+Grid.Header.Columns[i].Text+'>' + CRLF;
     end;
     tmp := tmp + #9'</row>' + CRLF;
-    S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+    utf8 := Utf8Encode(tmp);
+    S.Write(utf8[1], Length(utf8));
     Node := Grid.GetNext(Node);
   end;
   // footer:
   tmp := '</'+root+'>' + CRLF;
-  S.Write(tmp[1], Length(tmp) * Sizeof(WideChar));
+  utf8 := Utf8Encode(tmp);
+  S.Write(utf8[1], Length(utf8));
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 
@@ -2463,12 +2474,12 @@ end;
 
 procedure StreamToClipboard(S: TMemoryStream);
 var
-  Content: WideString;
+  Content: String;
 begin
   SetLength(Content, S.Size);
   S.Position := 0;
   S.Read(Pointer(Content)^, S.Size);
-  CopyToClipboard(Content);
+  CopyToClipboard(Utf8Decode(Content));
   // Free memory
   SetString(Content, nil, 0);
 end;

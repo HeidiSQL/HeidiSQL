@@ -1179,7 +1179,7 @@ begin
 
   if Dialog.Execute and (Dialog.FileName <> '') then try
     Screen.Cursor := crHourGlass;
-    FS := CreateUnicodeFileStream(Dialog.FileName);
+    FS := openfs(Dialog.FileName);
     case Dialog.FilterIndex of
       1: GridToCsv(Grid, Dialog.FieldSep, Dialog.FieldEncl, Dialog.LineSep, FS);
       2: GridToHtml(Grid, Title, Dialog.ConvertHTMLSpecialChars, FS);
