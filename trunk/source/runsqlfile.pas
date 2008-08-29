@@ -23,6 +23,7 @@ type
     lblAffectedRowsName: TLabel;
     lblAffectedRowsValue: TLabel;
     procedure FormActivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     SQLFileName : String;
@@ -163,5 +164,10 @@ begin
   btnClose.Enabled := True;
 end;
 
+
+procedure TRunSQLFileForm.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 end.

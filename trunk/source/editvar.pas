@@ -16,6 +16,7 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure editValueChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -28,6 +29,12 @@ implementation
 uses main, helpers;
 
 {$R *.dfm}
+
+
+procedure TfrmEditVariable.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 
 procedure TfrmEditVariable.FormShow(Sender: TObject);

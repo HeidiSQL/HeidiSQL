@@ -848,6 +848,17 @@ var
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
 begin
+  InheritFont(Font);
+  InheritFont(ListVariables.Header.Font);
+  InheritFont(ListStatus.Header.Font);
+  InheritFont(ListProcesses.Header.Font);
+  InheritFont(ListCommandstats.Header.Font);
+  InheritFont(ListTables.Header.Font);
+  InheritFont(ListColumns.Header.Font);
+  InheritFont(DataGrid.Header.Font);
+  InheritFont(QueryGrid.Header.Font);
+  InheritFont(tabsetQueryHelpers.Font);
+  InheritFont(SynCompletionProposal1.Font);
   // Other values:
   pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);

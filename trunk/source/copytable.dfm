@@ -13,6 +13,7 @@ object CopyTableForm: TCopyTableForm
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     302

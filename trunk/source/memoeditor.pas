@@ -26,6 +26,7 @@ type
     procedure memoTextChange(Sender: TObject);
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -41,6 +42,12 @@ implementation
 uses main, helpers;
 
 {$R *.dfm}
+
+
+procedure TfrmMemoEditor.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 
 procedure TfrmMemoEditor.FormDestroy(Sender: TObject);

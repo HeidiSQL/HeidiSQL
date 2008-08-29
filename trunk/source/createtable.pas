@@ -116,6 +116,8 @@ begin
   ButtonMoveUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
   ButtonMoveDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
 
+  InheritFont(Font);
+
   try
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
     // Detect servers default charset

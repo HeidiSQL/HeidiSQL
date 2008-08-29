@@ -232,6 +232,7 @@ begin
   Height := Mainform.GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   db := Mainform.Mask(DBNAME_MYSQL);
   SetWindowSizeGrip( Self.Handle, True );
+  InheritFont(Font);
 end;
 
 

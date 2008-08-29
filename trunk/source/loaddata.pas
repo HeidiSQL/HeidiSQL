@@ -102,6 +102,7 @@ begin
   btnOpenFile.PngImage := Mainform.PngImageListMain.PngImages[52].PngImage;
   btnColUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
   btnColDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
+  InheritFont(Font);
 end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);

@@ -22,6 +22,7 @@ type
     procedure chkSortClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDeactivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -37,6 +38,13 @@ uses MAIN, helpers;
 
 
 {$R *.dfm}
+
+
+
+procedure TColumnSelectionForm.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 
 {**

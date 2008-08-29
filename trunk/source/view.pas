@@ -48,6 +48,7 @@ begin
   SynMemoSelect.Highlighter := Mainform.ChildWin.SynSQLSyn1;
   SynMemoSelect.Font := Mainform.ChildWin.SynMemoQuery.Font;
   SetWindowSizeGrip( Self.Handle, True );
+  InheritFont(Font);
 end;
 
 

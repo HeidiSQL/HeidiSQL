@@ -5,7 +5,7 @@ interface
 uses Forms, Windows, Graphics;
 
 function IsWindowsVista: Boolean;  
-procedure SetVistaFonts(const AForm: TCustomForm);
+procedure SetVistaFonts(const AFont: TFont);
 procedure SetVistaContentFonts(const AFont: TFont);     
 procedure SetDesktopIconFonts(const AFont: TFont);
 procedure ExtendGlass(const AHandle: THandle; const AMargins: TRect);  
@@ -57,14 +57,14 @@ begin
     SetWindowTheme(AHandle, 'explorer', nil);
 end;
 
-procedure SetVistaFonts(const AForm: TCustomForm);
+procedure SetVistaFonts(const AFont: TFont);
 begin
   if (IsWindowsVista or not CheckOSVerForFonts)
-    and not SameText(AForm.Font.Name, VistaFont)
+    and not SameText(AFont.Name, VistaFont)
     and (Screen.Fonts.IndexOf(VistaFont) >= 0) then
   begin
-    AForm.Font.Size := AForm.Font.Size + 1;
-    AForm.Font.Name := VistaFont;
+    AFont.Size := AFont.Size + 1;
+    AFont.Name := VistaFont;
   end;
 end;
 

@@ -70,6 +70,8 @@ procedure Ttbl_properties_form.FormCreate(Sender: TObject);
 var
   charset : String;
 begin
+  InheritFont(Font);
+
   try
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
   except

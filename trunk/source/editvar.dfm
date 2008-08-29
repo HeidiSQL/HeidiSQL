@@ -13,6 +13,7 @@ object frmEditVariable: TfrmEditVariable
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     301

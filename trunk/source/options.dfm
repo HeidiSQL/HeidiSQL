@@ -14,6 +14,7 @@ object optionsform: Toptionsform
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     421

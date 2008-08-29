@@ -105,15 +105,9 @@ object MDIChild: TMDIChild
       Height = 336
       ActivePage = tabHost
       Align = alClient
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      Font.Style = []
       HotTrack = True
       Images = MainForm.PngImageListMain
       MultiLine = True
-      ParentFont = False
       TabHeight = 22
       TabOrder = 1
       OnChange = pcChange
@@ -768,12 +762,6 @@ object MDIChild: TMDIChild
             Anchors = [akLeft, akTop, akRight, akBottom]
             AutoSize = False
             Caption = 'Data'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clBlack
-            Font.Height = -11
-            Font.Name = 'Tahoma'
-            Font.Style = [fsBold]
-            ParentFont = False
             Layout = tlCenter
             WordWrap = True
           end
