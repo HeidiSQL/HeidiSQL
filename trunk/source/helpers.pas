@@ -93,6 +93,7 @@ type
   function urlencode(url: String): String;
   function openfs(filename: String): TFileStream;
   procedure wfs( var s: TFileStream; str: WideString = '');
+  procedure StreamWrite(S: TStream; Text: WideString = '');
   function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
   procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean; list_toggle: TWideStringList); Overload;
@@ -713,7 +714,6 @@ procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; ConvertHTMLEnt
 var
   i: Integer;
   tmp, Data, Attribs, Generator: WideString;
-  utf8: String;
   Node: PVirtualNode;
 begin
   Generator := APPNAME+' '+FullAppVersion;
@@ -739,8 +739,7 @@ begin
     tmp := tmp + '    <th style="width:'+IntToStr(Grid.Header.Columns[i].Width)+'px">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
   end;
   tmp := tmp + '  </tr>' + CRLF;
-  utf8 := Utf8Encode(tmp);
-  S.Write(utf8[1], Length(utf8));
+  StreamWrite(S, tmp);
 
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
@@ -763,8 +762,7 @@ begin
       tmp := tmp + '    <td'+Attribs+'>' + Data + '</td>' + CRLF;
     end;
     tmp := tmp + '  </tr>' + CRLF;
-    utf8 := Utf8Encode(tmp);
-    S.Write(utf8[1], Length(utf8));
+    StreamWrite(S, tmp);
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -772,8 +770,7 @@ begin
     '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
     ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + CRLF + CRLF +
     '</body></html>';
-  utf8 := Utf8Encode(tmp);
-  S.Write(utf8[1], Length(utf8));
+  StreamWrite(S, tmp);
   Mainform.Showstatus(STATUS_MSG_READY);
 end;
 
@@ -790,7 +787,6 @@ procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: S
 var
   i: Integer;
   tmp, Data: WideString;
-  utf8: String;
   Node: PVirtualNode;
 begin
   separator := esc2ascii(separator);
@@ -807,8 +803,7 @@ begin
       tmp := tmp + Separator;
     tmp := tmp + Encloser + Grid.Header.Columns[i].Text + Encloser;
   end;
-  utf8 := Utf8Encode(tmp);
-  S.Write(utf8[1], Length(utf8));
+  StreamWrite(S, tmp);
 
   // Data:
   Node := Grid.GetFirst;
@@ -826,8 +821,7 @@ begin
         Data := FloatStr(Data);
       tmp := tmp + Encloser + Data + Encloser + Separator;
     end;
-    utf8 := Utf8Encode(tmp);
-    S.Write(utf8[1], Length(utf8));
+    StreamWrite(S, tmp);
     Node := Grid.GetNext(Node);
   end;
   Mainform.showstatus(STATUS_MSG_READY);
@@ -844,13 +838,11 @@ procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
 var
   i: Integer;
   tmp, Data: WideString;
-  utf8: String;
   Node: PVirtualNode;
 begin
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
       '<'+root+'>' + CRLF;
-  utf8 := Utf8Encode(tmp);
-  S.Write(utf8[1], Length(utf8));
+  StreamWrite(S, tmp);
 
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
@@ -871,14 +863,12 @@ begin
       tmp := tmp + #9#9'<'+Grid.Header.Columns[i].Text+'>' + Data + '</'+Grid.Header.Columns[i].Text+'>' + CRLF;
     end;
     tmp := tmp + #9'</row>' + CRLF;
-    utf8 := Utf8Encode(tmp);
-    S.Write(utf8[1], Length(utf8));
+    StreamWrite(S, tmp);
     Node := Grid.GetNext(Node);
   end;
   // footer:
   tmp := '</'+root+'>' + CRLF;
-  utf8 := Utf8Encode(tmp);
-  S.Write(utf8[1], Length(utf8));
+  StreamWrite(S, tmp);
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 
@@ -974,19 +964,26 @@ begin
 end;
 
 {***
-  Write text to existing FileStream in UTF-8
-
+  Write a line of text plus CRLF to existing FileStream in UTF-8
   @param TFileStream
   @param string Text to write
   @return void
 }
 procedure wfs( var s: TFileStream; str: WideString = '');
+begin
+  StreamWrite(s, str + CRLF);
+end;
+
+
+{**
+  Write some UTF8 text to a file- or memorystream
+}
+procedure StreamWrite(S: TStream; Text: WideString = '');
 var
   utf8: string;
 begin
-  utf8 := Utf8Encode(str);
-  utf8 := utf8 + crlf;
-  s.Write(utf8[1], Length(utf8));
+  utf8 := Utf8Encode(Text);
+  S.Write(utf8[1], Length(utf8));
 end;
 
 
