@@ -13,6 +13,7 @@ object ColumnSelectionForm: TColumnSelectionForm
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
+  OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96

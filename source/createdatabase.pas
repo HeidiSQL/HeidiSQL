@@ -52,6 +52,8 @@ procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
 var
   charset: String;
 begin
+  InheritFont(Font);
+
   try
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
     // Detect servers default charset

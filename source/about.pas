@@ -91,6 +91,10 @@ begin
   // Define the current cursor like a clock
   Screen.Cursor := crHourGlass;
 
+  InheritFont(Font);
+  InheritFont(ProductName.Font);
+  InheritFont(LabelWebpage.Font);
+
   // Avoid scroll by removing blank line outside visible area in Authors text box
   MemoAuthors.Text := TrimRight(MemoAuthors.Text);
 

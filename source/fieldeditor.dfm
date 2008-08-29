@@ -256,9 +256,9 @@ object FieldEditForm: TFieldEditForm
         OnClick = btnDeleteAllColumnsFromIndexClick
       end
       object ComboBoxKeys: TComboBoxEx
-        Left = 72
+        Left = 82
         Top = 8
-        Width = 209
+        Width = 199
         Height = 22
         ItemsEx = <>
         Style = csExDropDownList
@@ -277,18 +277,18 @@ object FieldEditForm: TFieldEditForm
         OnClick = CheckBoxUniqueClick
       end
       object ButtonAdd: TButton
-        Left = 144
+        Left = 175
         Top = 32
-        Width = 65
+        Width = 50
         Height = 25
         Caption = 'Add'
         TabOrder = 2
         OnClick = ButtonAddClick
       end
       object ButtonDelete: TButton
-        Left = 216
+        Left = 231
         Top = 32
-        Width = 65
+        Width = 50
         Height = 25
         Caption = 'Delete'
         Enabled = False
@@ -318,9 +318,9 @@ object FieldEditForm: TFieldEditForm
         OnDblClick = AddField
       end
       object ButtonAddPrimary: TButton
-        Left = 72
+        Left = 82
         Top = 32
-        Width = 67
+        Width = 87
         Height = 25
         Caption = 'Add Primary'
         Enabled = False

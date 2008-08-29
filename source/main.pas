@@ -331,6 +331,9 @@ type
 end;
 
 
+procedure InheritFont(AFont: TFont);
+
+
 var
   MainForm            : TMainForm;
   appstarted          : Boolean = false;               // see connections.pas
@@ -378,10 +381,17 @@ uses
   UpdateCheck,
   fieldeditor,
   createdatabase,
-  createtable;
+  createtable,
+  uVistaFuncs;
 
 {$R *.DFM}
 
+
+procedure InheritFont(AFont: TFont);
+begin
+  AFont.Name := Mainform.Font.Name;
+  AFont.Size := Mainform.Font.Size;
+end;
 
 procedure TMainForm.HandleWMComplete(var msg: TMessage);
 begin
@@ -629,6 +639,9 @@ begin
 
   // Use new Vista dialogs per default.
   //UseLatestCommonDialogs := True;
+
+  // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
+  SetVistaFonts(Font);
 
   refreshMonitorConfig;
   loadWindowConfig;

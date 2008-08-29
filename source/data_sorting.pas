@@ -20,6 +20,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     ColumnNames : TWideStringList;
@@ -45,6 +46,12 @@ implementation
 uses main, helpers;
 
 {$R *.dfm}
+
+
+procedure TDataSortingForm.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 
 {**

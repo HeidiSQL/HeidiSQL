@@ -290,6 +290,7 @@ begin
   ListViewFiles.SmallImages:=SmallImages;
   DragAcceptFiles( Handle , True );
   SetWindowSizeGrip( Self.Handle, True );
+  InheritFont(Font);
 end;
 
 

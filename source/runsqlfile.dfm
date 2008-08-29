@@ -14,6 +14,7 @@ object RunSQLFileForm: TRunSQLFileForm
   OldCreateOrder = False
   Position = poMainFormCenter
   OnActivate = FormActivate
+  OnCreate = FormCreate
   DesignSize = (
     394
     254)

@@ -68,6 +68,7 @@ procedure TfrmSQLhelp.FormCreate(Sender: TObject);
 begin
   // Assign images from main imagelist to speedbuttons
   btnSearchOnline.PngImage := Mainform.PngImageListMain.PngImages[69].PngImage;
+  InheritFont(Font);
 end;
 
 

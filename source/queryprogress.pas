@@ -12,6 +12,7 @@ type
     lblStatusMsg: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnAbortClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     procedure HandleQueryNotificationMsg(var AMessage : TMessage); message WM_MYSQL_THREAD_NOTIFY;
   public
@@ -25,7 +26,8 @@ implementation
 
 uses
   ChildWin,
-  helpers;
+  helpers,
+  main;
 
 {$R *.dfm}
 
@@ -40,6 +42,11 @@ procedure TfrmQueryProgress.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   Action := caFree;
+end;
+
+procedure TfrmQueryProgress.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
 end;
 
 {***

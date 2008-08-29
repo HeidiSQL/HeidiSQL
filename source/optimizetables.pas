@@ -70,6 +70,7 @@ begin
   Width := Mainform.GetRegValue(REGNAME_MAINTWINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_MAINTWINHEIGHT, Height);
   SetWindowSizeGrip( Self.Handle, True );
+  InheritFont(Font);
 end;
 
 

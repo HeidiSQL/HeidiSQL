@@ -51,6 +51,7 @@ procedure TfrmUpdateCheck.FormCreate(Sender: TObject);
 begin
   // Should be false by default. Callers can set this to True after Create()
   AutoClose := False;
+  InheritFont(Font);
 end;
 
 {**

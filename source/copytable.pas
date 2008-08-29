@@ -32,6 +32,7 @@ type
     procedure editNewTablenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ButtonOKClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     oldTableName : WideString;
@@ -100,6 +101,12 @@ begin
     editNewTablename.Color := clYellow;
     ButtonOK.Enabled := False;
   end;
+end;
+
+
+procedure TCopyTableForm.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
 end;
 
 

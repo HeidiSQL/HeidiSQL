@@ -168,6 +168,7 @@ begin
   btnFileBrowse.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
   btnDirectoryBrowse.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
   SetWindowSizeGrip( Self.Handle, True );
+  InheritFont(Font);
 end;
 
 

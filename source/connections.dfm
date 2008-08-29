@@ -7,7 +7,7 @@ object connform: Tconnform
   ClientHeight = 326
   ClientWidth = 462
   Color = clBtnFace
-  Constraints.MaxHeight = 360
+  Constraints.MaxHeight = 362
   Constraints.MinHeight = 360
   Constraints.MinWidth = 470
   Font.Charset = DEFAULT_CHARSET
@@ -100,9 +100,9 @@ object connform: Tconnform
     Tag = 13
     Left = 152
     Top = 234
-    Width = 66
-    Height = 39
-    Caption = 'Data&base(s): (separated by semicolon)'
+    Width = 63
+    Height = 13
+    Caption = 'Data&base(s):'
     FocusControl = EditOnlyDBs
     WordWrap = True
   end
@@ -3045,7 +3045,7 @@ object connform: Tconnform
     AutoCompleteDelay = 5000
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
+    ItemHeight = 0
     TabOrder = 0
     OnClick = ComboBoxDescriptionClick
   end
@@ -3090,7 +3090,10 @@ object connform: Tconnform
     Top = 233
     Width = 220
     Height = 21
+    Hint = 'A list of wanted databases, separated by semicolon'
     Anchors = [akLeft, akTop, akRight]
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 7
     OnChange = Modified
   end

@@ -104,6 +104,7 @@ type
       var AllowChange: Boolean);
     procedure btnOpenLogFolderClick(Sender: TObject);
     procedure chkUpdatecheckClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -240,6 +241,11 @@ begin
 end;
 
 
+
+procedure Toptionsform.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 procedure Toptionsform.FormShow(Sender: TObject);
 

@@ -92,6 +92,7 @@ begin
   btnSave.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
   btnDelete.PngImage := Mainform.PngImageListMain.PngImages[26].PngImage;
   btnEditDesc.PngImage := Mainform.PngImageListMain.PngImages[33].PngImage;
+  InheritFont(Font);
 end;
 
 

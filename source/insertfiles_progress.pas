@@ -21,6 +21,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure ProcessFiles(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     FInsertFilesForm : Pointer;
     canceled : Boolean;
@@ -148,6 +149,11 @@ procedure TfrmInsertFilesProgress.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   Action := caFree;
+end;
+
+procedure TfrmInsertFilesProgress.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
 end;
 
 procedure TfrmInsertFilesProgress.FormShow(Sender: TObject);

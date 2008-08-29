@@ -145,6 +145,7 @@ begin
   btnAddColumnToIndex.PngImage := Mainform.PngImageListMain.PngImages[76].PngImage;
   btnDeleteAllColumnsFromIndex.PngImage := Mainform.PngImageListMain.PngImages[79].PngImage;
   btnDeleteColumnFromIndex.PngImage := Mainform.PngImageListMain.PngImages[77].PngImage;
+  InheritFont(Font);
 end;
 
 

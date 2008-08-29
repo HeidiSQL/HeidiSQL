@@ -35,9 +35,9 @@ object frmSQLhelp: TfrmSQLhelp
     object lblTopics: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 7
+      Top = 8
       Width = 147
-      Height = 14
+      Height = 13
       Align = alBottom
       Caption = 'Topics:'
     end

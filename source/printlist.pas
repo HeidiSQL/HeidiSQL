@@ -27,6 +27,7 @@ type
     procedure btnPrintClick(Sender: TObject);
     procedure chkAllColumnsClick(Sender: TObject);
     procedure comboPrintersChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     list : TVirtualStringTree;
     title : String;
@@ -57,6 +58,11 @@ begin
   FreeAndNil(f);
 end;
 
+
+procedure TprintlistForm.FormCreate(Sender: TObject);
+begin
+  InheritFont(Font);
+end;
 
 procedure TprintlistForm.FormShow(Sender: TObject);
 var
