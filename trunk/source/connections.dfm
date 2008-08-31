@@ -4,12 +4,13 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Connection to MySQL-Host...'
-  ClientHeight = 326
-  ClientWidth = 462
+  ClientHeight = 274
+  ClientWidth = 446
   Color = clBtnFace
-  Constraints.MaxHeight = 362
-  Constraints.MinHeight = 360
-  Constraints.MinWidth = 470
+  Constraints.MaxHeight = 310
+  Constraints.MaxWidth = 800
+  Constraints.MinHeight = 310
+  Constraints.MinWidth = 462
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -21,14 +22,14 @@ object connform: Tconnform
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    462
-    326)
+    446
+    274)
   PixelsPerInch = 96
   TextHeight = 13
   object lblHost: TLabel
     Tag = 6
-    Left = 152
-    Top = 115
+    Left = 135
+    Top = 71
     Width = 72
     Height = 13
     Caption = '&Hostname / IP:'
@@ -36,8 +37,8 @@ object connform: Tconnform
   end
   object lblUsername: TLabel
     Tag = 7
-    Left = 152
-    Top = 139
+    Left = 135
+    Top = 95
     Width = 26
     Height = 13
     Caption = '&User:'
@@ -45,8 +46,8 @@ object connform: Tconnform
   end
   object lblPassword: TLabel
     Tag = 8
-    Left = 152
-    Top = 163
+    Left = 135
+    Top = 119
     Width = 50
     Height = 13
     Caption = '&Password:'
@@ -54,8 +55,8 @@ object connform: Tconnform
   end
   object lblPort: TLabel
     Tag = 9
-    Left = 152
-    Top = 187
+    Left = 135
+    Top = 143
     Width = 24
     Height = 13
     Caption = 'P&ort:'
@@ -63,8 +64,8 @@ object connform: Tconnform
   end
   object lblTimeout: TLabel
     Tag = 10
-    Left = 287
-    Top = 187
+    Left = 275
+    Top = 143
     Width = 42
     Height = 13
     Caption = '&Timeout:'
@@ -72,102 +73,54 @@ object connform: Tconnform
   end
   object lblDescription: TLabel
     Tag = 5
-    Left = 152
-    Top = 67
+    Left = 135
+    Top = 44
     Width = 57
     Height = 13
     Caption = '&Description:'
     FocusControl = ComboBoxDescription
   end
-  object Bevel1: TBevel
-    Left = 0
-    Top = 285
-    Width = 462
-    Height = 41
-    Align = alBottom
-    Shape = bsTopLine
-  end
   object lblSeconds: TLabel
     Tag = 11
-    Left = 391
-    Top = 187
-    Width = 39
+    Left = 387
+    Top = 143
+    Width = 54
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
   end
   object lblOnlyDBs: TLabel
     Tag = 13
-    Left = 152
-    Top = 234
+    Left = 135
+    Top = 190
     Width = 63
     Height = 13
     Caption = 'Data&base(s):'
     FocusControl = EditOnlyDBs
     WordWrap = True
   end
-  object btnNew: TPngSpeedButton
-    Left = 152
-    Top = 17
-    Width = 89
-    Height = 25
-    Caption = 'New'
-    OnClick = ButtonNewClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
-  object btnSave: TPngSpeedButton
-    Left = 258
-    Top = 17
-    Width = 89
-    Height = 25
-    Caption = 'Save'
-    OnClick = ButtonSaveClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
-  object btnDelete: TPngSpeedButton
-    Left = 363
-    Top = 17
-    Width = 91
-    Height = 25
-    Caption = 'Delete'
-    OnClick = ButtonDeleteClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
-  object btnEditDesc: TPngSpeedButton
-    Left = 431
-    Top = 64
-    Width = 21
-    Height = 21
-    Hint = 'Edit description ...'
-    Anchors = [akTop, akRight]
-    Flat = True
-    ParentShowHint = False
-    ShowHint = True
-    OnClick = ButtonEditDescClick
-    PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
-  end
   object EditHost: TEdit
-    Left = 232
-    Top = 112
-    Width = 220
+    Left = 226
+    Top = 68
+    Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
     OnChange = Modified
   end
   object EditUsername: TEdit
-    Left = 232
-    Top = 136
-    Width = 220
+    Left = 226
+    Top = 92
+    Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
     OnChange = Modified
   end
   object EditPassword: TEdit
-    Left = 232
-    Top = 160
-    Width = 220
+    Left = 226
+    Top = 116
+    Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     PasswordChar = '*'
@@ -175,24 +128,24 @@ object connform: Tconnform
     OnChange = Modified
   end
   object EditPort: TEdit
-    Left = 232
-    Top = 184
-    Width = 49
+    Left = 226
+    Top = 140
+    Width = 43
     Height = 21
     TabOrder = 4
     OnChange = Modified
   end
   object EditTimeout: TEdit
-    Left = 334
-    Top = 183
+    Left = 327
+    Top = 139
     Width = 51
     Height = 21
     TabOrder = 5
     OnChange = Modified
   end
   object pnlScreen: TPanel
-    Left = 16
-    Top = 16
+    Left = 8
+    Top = 8
     Width = 119
     Height = 259
     AutoSize = True
@@ -3038,57 +2991,31 @@ object connform: Tconnform
     end
   end
   object ComboBoxDescription: TComboBox
-    Left = 232
-    Top = 64
-    Width = 193
+    Left = 226
+    Top = 41
+    Width = 215
     Height = 21
     AutoCompleteDelay = 5000
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 0
+    ItemHeight = 13
     TabOrder = 0
     OnClick = ComboBoxDescriptionClick
   end
-  object ButtonCancel: TButton
-    Tag = 16
-    Left = 363
-    Top = 293
-    Width = 89
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 10
-  end
-  object ButtonConnect: TButton
-    Tag = 15
-    Left = 258
-    Top = 293
-    Width = 89
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Connect!'
-    Default = True
-    ModalResult = 1
-    TabOrder = 9
-    OnClick = ButtonConnectClick
-  end
   object CheckBoxCompressed: TCheckBox
     Tag = 12
-    Left = 232
-    Top = 210
-    Width = 212
+    Left = 226
+    Top = 166
+    Width = 215
     Height = 17
-    Anchors = [akLeft, akTop, akRight]
-    Caption = 'Use &compressed client/server protocol'
+    Caption = '&Compressed client/server protocol'
     TabOrder = 6
     OnClick = Modified
   end
   object EditOnlyDBs: TTntEdit
-    Left = 232
-    Top = 233
-    Width = 220
+    Left = 226
+    Top = 187
+    Width = 215
     Height = 21
     Hint = 'A list of wanted databases, separated by semicolon'
     Anchors = [akLeft, akTop, akRight]
@@ -3098,25 +3025,93 @@ object connform: Tconnform
     OnChange = Modified
   end
   object CheckBoxSorted: TCheckBox
-    Left = 232
-    Top = 258
-    Width = 222
+    Left = 226
+    Top = 214
+    Width = 215
     Height = 17
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Sort databases alphabetically'
-    TabOrder = 11
+    TabOrder = 9
     OnClick = Modified
   end
   object ButtonSaveAndConnect: TButton
-    Left = 152
-    Top = 293
-    Width = 89
+    Left = 135
+    Top = 243
+    Width = 95
     Height = 25
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop, akRight]
     Caption = 'Save + Connect'
     ModalResult = 1
-    TabOrder = 12
+    TabOrder = 10
     OnClick = ButtonSaveAndConnectClick
+  end
+  object ButtonConnect: TButton
+    Tag = 15
+    Left = 241
+    Top = 243
+    Width = 95
+    Height = 25
+    Anchors = [akTop, akRight]
+    Caption = 'Connect!'
+    Default = True
+    ModalResult = 1
+    TabOrder = 11
+    OnClick = ButtonConnectClick
+  end
+  object ButtonCancel: TButton
+    Tag = 16
+    Left = 346
+    Top = 243
+    Width = 95
+    Height = 25
+    Anchors = [akTop, akRight]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 12
+  end
+  object ToolBar1: TToolBar
+    Left = 135
+    Top = 8
+    Width = 303
+    Height = 22
+    Align = alNone
+    Anchors = [akLeft, akTop, akRight]
+    ButtonWidth = 66
+    Caption = 'tlbEdit'
+    Images = MainForm.PngImageListMain
+    List = True
+    ShowCaptions = True
+    TabOrder = 13
+    Wrapable = False
+    object btnNew: TToolButton
+      Left = 0
+      Top = 0
+      Caption = 'New'
+      ImageIndex = 45
+      OnClick = ButtonNewClick
+    end
+    object btnSave: TToolButton
+      Left = 66
+      Top = 0
+      Caption = 'Save'
+      ImageIndex = 10
+      OnClick = ButtonSaveClick
+    end
+    object btnDelete: TToolButton
+      Left = 132
+      Top = 0
+      Caption = 'Delete'
+      ImageIndex = 46
+      OnClick = ButtonDeleteClick
+    end
+    object btnEditDesc: TToolButton
+      Left = 198
+      Top = 0
+      Caption = 'Rename'
+      ImageIndex = 33
+      OnClick = ButtonEditDescClick
+    end
   end
   object TimerCloseFormReminder: TTimer
     Enabled = False
