@@ -489,7 +489,7 @@ var
   which                     : Integer;
   tofile,todb,tohost        : boolean;
   samehost                  : boolean;
-  sameuuid                  : String;
+  sameuuid                  : TGuid;
   tcount,tablecounter       : Integer;
   win2export                : THandle;
   StrProgress               : String;
@@ -660,18 +660,30 @@ begin
     }
     samehost := todb;
     if tohost then begin
-      sameuuid := cwin.GetVar('SELECT UUID()');
-      i := StrToInt(cwin.GetVar('SELECT GET_LOCK(' + esc(sameuuid) + ', 5)'));
-      if i = 0 then raise Exception.Create('Could not create a server lock.');
-      query := RemoteExecQuery(
-        win2export,
-        'SELECT IS_FREE_LOCK(' + esc(sameuuid) + ')',
-        'Checking for same server...'
-      );
-      i := query.Fields[0].AsInteger;
-      if i = 0 then samehost := true;
-      query.Free;
-      cwin.ExecuteNonQuery('SELECT RELEASE_LOCK(' + esc(sameuuid) + ')');
+      i := CreateGuid(sameuuid);
+      if i <> 0 then raise Exception.Create('Could not create a GUID.');
+      sql := esc(appName + '_' + GuidToString(sameuuid));
+      try
+        i := StrToInt(cwin.GetVar('SELECT GET_LOCK(' + sql + ', 0)'));
+        if i <> 1 then raise Exception.Create('Could not create a server lock.');
+        query := RemoteExecQuery(
+          win2export,
+          'SELECT GET_LOCK(' + sql + ', 0)',
+          'Checking for same server...'
+        );
+        i := query.Fields[0].AsInteger;
+        query.Free;
+        if i <> 1 then samehost := true
+        else begin
+        query := RemoteExecQuery(
+          win2export,
+          'SELECT RELEASE_LOCK(' + sql + ')',
+          'Releasing remote lock...'
+        );
+        end;
+      finally
+        cwin.ExecuteNonQuery('SELECT RELEASE_LOCK(' + sql + ')');
+      end;
     end;
 
     {***
