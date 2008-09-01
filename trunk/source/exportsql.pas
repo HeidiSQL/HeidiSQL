@@ -488,6 +488,8 @@ var
   sourceDb, destDb          : WideString;
   which                     : Integer;
   tofile,todb,tohost        : boolean;
+  samehost                  : boolean;
+  sameuuid                  : String;
   tcount,tablecounter       : Integer;
   win2export                : THandle;
   StrProgress               : String;
@@ -652,6 +654,35 @@ begin
     else
       // todo: test this
       current_characterset := 'binary';
+
+    {***
+      Check if source and destination session is connected to the same server.
+    }
+    samehost := todb;
+    if tohost then begin
+      sameuuid := cwin.GetVar('SELECT UUID()');
+      i := StrToInt(cwin.GetVar('SELECT GET_LOCK(' + esc(sameuuid) + ', 5)'));
+      if i = 0 then raise Exception.Create('Could not create a server lock.');
+      query := RemoteExecQuery(
+        win2export,
+        'SELECT IS_FREE_LOCK(' + esc(sameuuid) + ')',
+        'Checking for same server...'
+      );
+      i := query.Fields[0].AsInteger;
+      if i = 0 then samehost := true;
+      query.Free;
+      cwin.ExecuteNonQuery('SELECT RELEASE_LOCK(' + esc(sameuuid) + ')');
+    end;
+
+    {***
+     Avoid destructive actions (DROP before CREATE) on same host and database.
+    }
+    if tohost and samehost then begin
+      if exportdb and (comboDatabase.ItemIndex = DB_DROP_CREATE) then raise Exception.Create('Aborted: selected action "database recreate" on same source/destination host would drop source database.');
+      if exporttables and (comboTables.ItemIndex = TAB_DROP_CREATE) then begin
+        if sourceDb = destDb then raise Exception.Create('Aborted: selected action "tables recreate" on same source/destination host and database would drop source tables.');
+      end;
+    end;
 
     {***
       Some actions which are only needed if we're not in OtherDatabase-mode:
