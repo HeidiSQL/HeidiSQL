@@ -5735,6 +5735,7 @@ begin
       if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
       if not FDataGridResult.Columns[i].IsBinary then Val := esc(Val);
       if FDataGridResult.Columns[i].IsBinary then CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
+      if Val = '0x' then Val := esc('');
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
@@ -5826,6 +5827,7 @@ begin
     // Quote if needed
     if FDataGridResult.Columns[j].IsFloat then KeyVal := FloatStr(KeyVal);
     if not FDataGridResult.Columns[j].IsBinary then KeyVal := esc(KeyVal);
+    if KeyVal = '0x' then KeyVal := esc('');
     if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
     else KeyVal := '=' + KeyVal;
     Result := Result + mask(KeyCols[i]) + KeyVal + ' AND ';
@@ -5911,6 +5913,7 @@ begin
       if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
       if not FDataGridResult.Columns[i].IsBinary then Val := esc(Val);
       if FDataGridResult.Columns[i].IsBinary then CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
+      if Val = '0x' then Val := esc('');
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       Vals := Vals + Val + ', ';
     end;
