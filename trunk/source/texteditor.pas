@@ -1,15 +1,15 @@
-unit memoeditor;
+unit texteditor;
 
 interface
 
 uses
-  Windows, Classes, Graphics, Controls, Forms, StdCtrls, TntStdCtrls, Registry, VirtualTrees,
+  Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, Registry, VirtualTrees,
   ComCtrls, ToolWin, Dialogs;
 
 {$I const.inc}
 
 type
-  TfrmMemoEditor = class(TForm)
+  TfrmTextEditor = class(TMemoEditor)
     memoText: TTntMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
@@ -33,42 +33,66 @@ type
     procedure SetModified(NewVal: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
-    { Public declarations }
+    function GetText: WideString; override;
+    procedure SetText(text: WideString); override;
+    procedure SetMaxLength(len: integer); override;
+    procedure SetFont(font: TFont); override;
   end;
 
 
 implementation
 
-uses main, helpers;
+uses main;
 
 {$R *.dfm}
 
 
-procedure TfrmMemoEditor.FormCreate(Sender: TObject);
+function TfrmTextEditor.GetText: WideString;
+begin
+  Result := memoText.Text;
+end;
+
+procedure TfrmTextEditor.SetText(text: WideString);
+begin
+  // TODO: Text property is ANSI !!!
+  memoText.Text := text;
+end;
+
+procedure TfrmTextEditor.SetMaxLength(len: integer);
+begin
+  memoText.MaxLength := len;
+end;
+
+procedure TfrmTextEditor.SetFont(font: TFont);
+begin
+  memoText.Font := font;
+end;
+
+procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
 end;
 
 
-procedure TfrmMemoEditor.FormDestroy(Sender: TObject);
+procedure TfrmTextEditor.FormDestroy(Sender: TObject);
 var
   reg: TRegistry;
 begin
   reg := TRegistry.Create;
   if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_MEMOEDITOR_WIDTH, Width );
-    reg.WriteInteger( REGNAME_MEMOEDITOR_HEIGHT, Height );
+    reg.WriteInteger( REGNAME_EDITOR_WIDTH, Width );
+    reg.WriteInteger( REGNAME_EDITOR_HEIGHT, Height );
     reg.CloseKey;
   end;
   reg.Free;
 end;
 
 
-procedure TfrmMemoEditor.FormShow(Sender: TObject);
+procedure TfrmTextEditor.FormShow(Sender: TObject);
 begin
   // Restore form dimensions
-  Width := Mainform.GetRegValue(REGNAME_MEMOEDITOR_WIDTH, DEFAULT_MEMOEDITOR_WIDTH);
-  Height := Mainform.GetRegValue(REGNAME_MEMOEDITOR_HEIGHT, DEFAULT_MEMOEDITOR_HEIGHT);
+  Width := Mainform.GetRegValue(REGNAME_EDITOR_WIDTH, DEFAULT_EDITOR_WIDTH);
+  Height := Mainform.GetRegValue(REGNAME_EDITOR_HEIGHT, DEFAULT_EDITOR_HEIGHT);
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   SetWindowSizeGrip(Handle, True);
@@ -79,7 +103,7 @@ begin
 end;
 
 
-procedure TfrmMemoEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
+procedure TfrmTextEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
   case Key of
@@ -90,7 +114,7 @@ begin
   end;
 end;
 
-procedure TfrmMemoEditor.btnWrapClick(Sender: TObject);
+procedure TfrmTextEditor.btnWrapClick(Sender: TObject);
 var
   WasModified: Boolean;
 begin
@@ -107,7 +131,7 @@ begin
 end;
 
 
-procedure TfrmMemoEditor.btnLoadTextClick(Sender: TObject);
+procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
   d: TOpenDialog;
 begin
@@ -126,7 +150,7 @@ begin
 end;
 
 
-procedure TfrmMemoEditor.btnCancelClick(Sender: TObject);
+procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
 var
   DoPost: Boolean;
 begin
@@ -141,20 +165,20 @@ begin
 end;
 
 
-procedure TfrmMemoEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TfrmTextEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   btnCancelClick(Sender);
   CanClose := False; // Done by editor link
 end;
 
 
-procedure TfrmMemoEditor.btnApplyClick(Sender: TObject);
+procedure TfrmTextEditor.btnApplyClick(Sender: TObject);
 begin
   TCustomVirtualStringTree(Owner).EndEditNode;
 end;
 
 
-procedure TfrmMemoEditor.memoTextChange(Sender: TObject);
+procedure TfrmTextEditor.memoTextChange(Sender: TObject);
 begin
   lblTextLength.Caption := FormatNumber(Length(memoText.Text)) + ' characters.';
   if memoText.MaxLength > 0 then
@@ -163,7 +187,7 @@ begin
 end;
 
 
-procedure TfrmMemoEditor.SetModified(NewVal: Boolean);
+procedure TfrmTextEditor.SetModified(NewVal: Boolean);
 begin
   if FModified <> NewVal then begin
     FModified := NewVal;

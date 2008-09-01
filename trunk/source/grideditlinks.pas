@@ -4,13 +4,13 @@ unit grideditlinks;
 
 interface
 
-uses Windows, Graphics, messages, VirtualTrees, memoeditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main, TntStdCtrls, WideStrings, StdCtrls;
+uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, ComCtrls, SysUtils, Classes,
+  mysql_structures, Main, helpers, TntStdCtrls, WideStrings, StdCtrls;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
   private
-    FForm: TfrmMemoEditor;
+    FForm: TMemoEditor;
     FTree: TCustomVirtualStringTree; // A back reference to the tree calling.
     FNode: PVirtualNode;             // The node to be edited.
     FColumn: TColumnIndex;           // The column of the node.
@@ -82,12 +82,13 @@ implementation
 constructor TMemoEditorLink.Create;
 begin
   inherited;
+  FForm := nil;
 end;
 
 destructor TMemoEditorLink.Destroy;
 begin
   inherited;
-  FForm.Free;
+  FreeAndNil(FForm);
 end;
 
 
@@ -113,11 +114,10 @@ begin
   Text := FTree.Text[FNode, FColumn];
 
   // Create the editor form
-  FForm := TfrmMemoEditor.Create(Ftree);
-  FForm.memoText.Font := F;
-  // TODO: The Text property is ANSI.
-  FForm.memoText.Text := Text;
-  FForm.memoText.MaxLength := MaxLength;
+  FForm := TfrmTextEditor.Create(Ftree);
+  FForm.SetFont(F);
+  FForm.SetText(Text);
+  FForm.SetMaxLength(MaxLength);
 end;
 
 
@@ -146,8 +146,8 @@ begin
   Result := not FStopping;
   if Result then try
     FStopping := True;
-    if FForm.memoText.Text <> FTree.Text[FNode, FColumn] then
-      FTree.Text[FNode, FColumn] := FForm.memoText.Text;
+    if FForm.GetText <> FTree.Text[FNode, FColumn] then
+      FTree.Text[FNode, FColumn] := FForm.GetText;
     FForm.Hide;
     FTree.SetFocus;
   except
