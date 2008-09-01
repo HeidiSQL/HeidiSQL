@@ -72,6 +72,14 @@ type
     Columns: TGridColumns;
   end;
 
+  TMemoEditor = class(TForm)
+  public
+    function GetText: WideString; virtual; abstract;
+    procedure SetText(text: WideString); virtual; abstract;
+    procedure SetMaxLength(len: integer); virtual; abstract;
+    procedure SetFont(font: TFont); virtual; abstract;
+  end;
+
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;

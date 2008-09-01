@@ -1,4 +1,4 @@
-object frmMemoEditor: TfrmMemoEditor
+object frmTextEditor: TfrmTextEditor
   Left = 0
   Top = 0
   BorderStyle = bsSizeToolWin

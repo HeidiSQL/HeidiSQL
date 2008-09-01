@@ -38,7 +38,7 @@ uses
   editvar in '..\..\source\editvar.pas' {frmEditVariable},
   view in '..\..\source\view.pas' {frmView},
   selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject},
-  memoeditor in '..\..\source\memoeditor.pas' {frmMemoEditor},
+  texteditor in '..\..\source\texteditor.pas' {frmTextEditor},
   grideditlinks in '..\..\source\grideditlinks.pas',
   uVistaFuncs in '..\..\source\uVistaFuncs.pas';
 
