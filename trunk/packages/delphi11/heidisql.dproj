@@ -63,6 +63,9 @@
     <DCCReference Include="..\..\source\about.pas">
       <Form>AboutBox</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\bineditor.pas">
+      <Form>frmBinEditor</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\childwin.pas">
       <Form>MDIChild</Form>
     </DCCReference>
@@ -109,7 +112,6 @@
       <Form>MainForm</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\mysql_structures.pas" />
-    <DCCReference Include="..\..\source\memoeditor.pas">
       <Form>frmMemoEditor</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\mysqlconn.pas" />
@@ -139,6 +141,9 @@
     <DCCReference Include="..\..\source\synchronization.pas" />
     <DCCReference Include="..\..\source\tbl_properties.pas">
       <Form>tbl_properties_form</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\texteditor.pas">
+      <Form>frmTextEditor</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\threading.pas" />
     <DCCReference Include="..\..\source\updatecheck.pas">

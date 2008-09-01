@@ -51,7 +51,7 @@ type
     DataType: Byte; // @see constants in mysql_structures.pas
     MaxLength: Cardinal;
     IsPriPart: Boolean;
-    IsBlob: Boolean;
+    IsBinary: Boolean;
     IsText: Boolean;
     IsEnum: Boolean;
     IsInt: Boolean;
@@ -150,8 +150,12 @@ type
   function GetFileCharset(Stream: TFileStream): TFileCharset;
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
   function ReadTextfile(Filename: String): WideString;
+  function ReadBinaryFile(Filename: String; MaxBytes: Int64): string;
   procedure CopyToClipboard(Value: WideString);
   procedure StreamToClipboard(S: TMemoryStream);
+  function WideHexToBin(text: WideString): string;
+  function BinToWideHex(bin: string): WideString;
+  procedure CheckHex(text: WideString; errorMessage: string);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -193,6 +197,38 @@ var
   DecimalSeparatorSystemdefault: Char;
 
 
+
+function WideHexToBin(text: WideString): string;
+var
+  buf: string;
+begin
+  // Todo: test.
+  buf := text;
+  SetLength(Result, Length(text) div 2);
+  HexToBin(@buf[1], @Result[1], Length(Result));
+end;
+
+function BinToWideHex(bin: string): WideString;
+var
+  buf: string;
+begin
+  SetLength(buf, Length(bin) * 2);
+  BinToHex(@bin[1], @buf[1], Length(buf));
+  Result := buf;
+end;
+
+  procedure CheckHex(text: WideString; errorMessage: string);
+const
+  allowed: string = '0123456789abcdefABCDEF';
+var
+  i: Cardinal;
+begin
+  for i := 1 to Length(text) do begin
+    if Pos(text[i], allowed) < 1 then begin
+      raise Exception.Create(errorMessage);
+    end;
+  end;
+end;
 
 
 {***
@@ -2444,6 +2480,17 @@ begin
   Stream.Free;
 end;
 
+function ReadBinaryFile(Filename: String; MaxBytes: Int64): string;
+var
+  Stream: TFileStream;
+begin
+  Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
+  Stream.Position := 0;
+  if (MaxBytes < 1) or (MaxBytes > Stream.Size) then MaxBytes := Stream.Size;
+  SetLength(Result, MaxBytes);
+  Stream.Read(PChar(Result)^, Length(Result));
+  Stream.Free;
+end;
 
 { TUniClipboard }
 

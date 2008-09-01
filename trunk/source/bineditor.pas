@@ -1,4 +1,4 @@
-unit texteditor;
+unit bineditor;
 
 interface
 
@@ -9,17 +9,17 @@ uses
 {$I const.inc}
 
 type
-  TfrmTextEditor = class(TMemoEditor)
+  TfrmBinEditor = class(TMemoEditor)
     memoText: TTntMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
-    btnLoadText: TToolButton;
+    btnLoadBinary: TToolButton;
     btnApply: TToolButton;
     btnCancel: TToolButton;
     lblTextLength: TLabel;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
-    procedure btnLoadTextClick(Sender: TObject);
+    procedure btnLoadBinaryClick(Sender: TObject);
     procedure btnWrapClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -47,35 +47,35 @@ uses main;
 {$R *.dfm}
 
 
-function TfrmTextEditor.GetText: WideString;
+function TfrmBinEditor.GetText: WideString;
 begin
-  Result := memoText.Text;
+  Result := '0x' + memoText.Text;
 end;
 
-procedure TfrmTextEditor.SetText(text: WideString);
+procedure TfrmBinEditor.SetText(text: WideString);
 begin
-  // TODO: Text property is ANSI !!!
-  memoText.Text := text;
+  // Skip '0x'.
+  memoText.Text := Copy(text, 3);
 end;
 
-procedure TfrmTextEditor.SetMaxLength(len: integer);
+procedure TfrmBinEditor.SetMaxLength(len: integer);
 begin
-  // Input: Length in number of bytes.
-  memoText.MaxLength := len;
+  // Input: Length in bytes.
+  memoText.MaxLength := len * 2;
 end;
 
-procedure TfrmTextEditor.SetFont(font: TFont);
+procedure TfrmBinEditor.SetFont(font: TFont);
 begin
   memoText.Font := font;
 end;
 
-procedure TfrmTextEditor.FormCreate(Sender: TObject);
+procedure TfrmBinEditor.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
 end;
 
 
-procedure TfrmTextEditor.FormDestroy(Sender: TObject);
+procedure TfrmBinEditor.FormDestroy(Sender: TObject);
 var
   reg: TRegistry;
 begin
@@ -89,7 +89,7 @@ begin
 end;
 
 
-procedure TfrmTextEditor.FormShow(Sender: TObject);
+procedure TfrmBinEditor.FormShow(Sender: TObject);
 begin
   // Restore form dimensions
   Width := Mainform.GetRegValue(REGNAME_EDITOR_WIDTH, DEFAULT_EDITOR_WIDTH);
@@ -104,7 +104,7 @@ begin
 end;
 
 
-procedure TfrmTextEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
+procedure TfrmBinEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
   case Key of
@@ -115,7 +115,7 @@ begin
   end;
 end;
 
-procedure TfrmTextEditor.btnWrapClick(Sender: TObject);
+procedure TfrmBinEditor.btnWrapClick(Sender: TObject);
 var
   WasModified: Boolean;
 begin
@@ -132,18 +132,16 @@ begin
 end;
 
 
-procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
+procedure TfrmBinEditor.btnLoadBinaryClick(Sender: TObject);
 var
   d: TOpenDialog;
 begin
   d := TOpenDialog.Create(Self);
-  d.Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
+  d.Filter := 'All binary files (*.*)|*.*';
   d.FilterIndex := 0;
   if d.Execute then try
     Screen.Cursor := crHourglass;
-    memoText.Text := ReadTextFile(d.FileName);
-    if (memoText.MaxLength > 0) and (Length(memoText.Text) > memoText.MaxLength) then
-      memoText.Text := copy(memoText.Text, 0, memoText.MaxLength);
+    memoText.Text := BinToWideHex(ReadBinaryFile(d.FileName, memoText.MaxLength));
   finally
     Screen.Cursor := crDefault;
   end;
@@ -151,7 +149,7 @@ begin
 end;
 
 
-procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
+procedure TfrmBinEditor.btnCancelClick(Sender: TObject);
 var
   DoPost: Boolean;
 begin
@@ -166,29 +164,29 @@ begin
 end;
 
 
-procedure TfrmTextEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TfrmBinEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   btnCancelClick(Sender);
   CanClose := False; // Done by editor link
 end;
 
 
-procedure TfrmTextEditor.btnApplyClick(Sender: TObject);
+procedure TfrmBinEditor.btnApplyClick(Sender: TObject);
 begin
   TCustomVirtualStringTree(Owner).EndEditNode;
 end;
 
 
-procedure TfrmTextEditor.memoTextChange(Sender: TObject);
+procedure TfrmBinEditor.memoTextChange(Sender: TObject);
 begin
-  lblTextLength.Caption := FormatNumber(Length(memoText.Text)) + ' characters.';
+  lblTextLength.Caption := FormatNumber(Length(memoText.Text) / 2) + ' bytes.';
   if memoText.MaxLength > 0 then
-    lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(memoText.MaxLength)+')';
+    lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(memoText.MaxLength / 2)+')';
   Modified := True;
 end;
 
 
-procedure TfrmTextEditor.SetModified(NewVal: Boolean);
+procedure TfrmBinEditor.SetModified(NewVal: Boolean);
 begin
   if FModified <> NewVal then begin
     FModified := NewVal;

@@ -4,8 +4,8 @@ unit grideditlinks;
 
 interface
 
-uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main, helpers, TntStdCtrls, WideStrings, StdCtrls;
+uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
+  mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -95,6 +95,7 @@ end;
 function TMemoEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 // Retrieves the true text bounds from the owner tree.
 var
+  IsBinary: Boolean;
   Text: WideString;
   F: TFont;
 begin
@@ -110,11 +111,15 @@ begin
   F := TFont.Create;
   FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
 
+  IsBinary := MainForm.ChildWin.FDataGridResult.Columns[Column].IsBinary;
+
   // Get wide text of the node.
   Text := FTree.Text[FNode, FColumn];
 
-  // Create the editor form
-  FForm := TfrmTextEditor.Create(Ftree);
+  // Create the text editor form
+  if IsBinary then FForm := TfrmBinEditor.Create(Ftree)
+  else FForm := TfrmTextEditor.Create(Ftree);
+
   FForm.SetFont(F);
   FForm.SetText(Text);
   FForm.SetMaxLength(MaxLength);
