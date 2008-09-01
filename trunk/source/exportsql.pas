@@ -576,7 +576,7 @@ begin
   // Export to .sql-file on disk
   if tofile then begin
     // Extract name part of selected target version
-    target_version := MakeInt(target_versions.Names[ comboTargetCompat.ItemIndex ]);
+    target_version := MakeInt(target_versions.Names[comboTargetCompat.ItemIndex]);
     target_cliwa := Pos('mysqldump', target_versions.Names[comboTargetCompat.ItemIndex]) > 0;
     max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     f := InitFileStream('header');
@@ -605,14 +605,13 @@ begin
     max_allowed_packet := remote_max_allowed_packet;
     win2export := appHandles[comboOtherHost.ItemIndex];
     sourceDb := comboSelectDatabase.Text;
-    if cbxDatabase.Checked then
-    begin
+    if exportdb then begin
       // Use original DB-name from source-server
       destDb := comboSelectDatabase.Text;
-    end
-    else
+    end else begin
       // Use existing DB-name on target-server
       destDb := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
+    end;
   end;
 
   // MySQL has supported extended insert since 3.23.
@@ -1323,7 +1322,6 @@ begin
   end else if radioOtherHost.Checked then begin
     comboOtherHost.Enabled := True;
     comboOtherHost.Color := EnabledColor;
-    comboOtherHostDatabase.Enabled := not (cbxStructure.Checked and cbxDatabase.Checked);
     comboOtherHostDatabase.Color := EnabledColor;
     ControlToFocus := comboOtherHost;
   end;
@@ -1336,18 +1334,20 @@ end;
 
 procedure TExportSQLForm.validateControls(Sender: TObject);
 begin
-  cbxDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioDirectory.Checked or radioOtherHost.Checked );
-  comboDatabase.Enabled := cbxStructure.Checked and ( radioFile.Checked or radioDirectory.Checked or radioOtherHost.Checked ) and cbxDatabase.Checked;
-  comboOtherHostDatabase.Enabled := not cbxDatabase.Checked;
+  cbxDatabase.Enabled := cbxStructure.Checked and (radioFile.Checked or radioDirectory.Checked or radioOtherHost.Checked);
+  comboDatabase.Enabled := cbxDatabase.Enabled and cbxDatabase.Checked;
 
   cbxTables.Enabled := cbxStructure.Checked;
-  comboTables.Enabled := cbxStructure.Checked and cbxTables.Checked;
+  comboTables.Enabled := cbxTables.Enabled and cbxTables.Checked;
 
   comboData.Enabled := cbxData.Checked;
 
+  // Should possible be in validateRadioControls() but is dependent on properties decided above.
+  comboOtherHostDatabase.Enabled := not (cbxDatabase.Enabled and cbxDatabase.Checked);
+
   // Prevent choosing export of db struct + data but no table struct.
   if cbxData.Checked then begin
-    if Sender = cbxTables then cbxDatabase.Checked := cbxDatabase.Checked And cbxTables.Checked
+    if Sender = cbxTables then cbxDatabase.Checked := cbxDatabase.Checked and cbxTables.Checked
     else cbxTables.Checked := cbxTables.Checked or cbxDatabase.Checked;
   end;
 
