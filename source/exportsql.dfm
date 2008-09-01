@@ -221,9 +221,9 @@ object ExportSQLForm: TExportSQLForm
         object radioOtherHost: TRadioButton
           Left = 9
           Top = 152
-          Width = 161
+          Width = 256
           Height = 17
-          Caption = 'Another host and database'
+          Caption = 'Another host and optionally another database'
           TabOrder = 8
           OnClick = radioOtherHostClick
         end
@@ -257,7 +257,7 @@ object ExportSQLForm: TExportSQLForm
           Width = 352
           Height = 17
           Anchors = [akLeft, akTop, akRight]
-          Caption = 'Directory (one .sql-file per table)'
+          Caption = 'Directory (one .sql-file per object)'
           TabOrder = 2
           OnClick = radioFileOrDirClick
           OnDblClick = btnDirectoryBrowseClick
@@ -287,6 +287,7 @@ object ExportSQLForm: TExportSQLForm
           Top = 15
           Width = 372
           Height = 90
+          SingleLineMode = False
           Align = alClient
           Color = clBtnFace
           Font.Charset = DEFAULT_CHARSET
