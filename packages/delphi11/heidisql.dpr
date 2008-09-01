@@ -39,6 +39,7 @@ uses
   view in '..\..\source\view.pas' {frmView},
   selectdbobject in '..\..\source\selectdbobject.pas' {frmSelectDBObject},
   texteditor in '..\..\source\texteditor.pas' {frmTextEditor},
+  bineditor in '..\..\source\bineditor.pas' {frmBinEditor},
   grideditlinks in '..\..\source\grideditlinks.pas',
   uVistaFuncs in '..\..\source\uVistaFuncs.pas';
 

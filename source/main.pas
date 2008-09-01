@@ -1230,7 +1230,7 @@ var
   f              : Textfile;
   tmppath        : array[0..MAX_PATH] of char;
   Content        : WideString;
-  IsBlob         : Boolean;
+  IsBinary       : Boolean;
 begin
   g := ChildWin.ActiveGrid;
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
@@ -1238,19 +1238,19 @@ begin
   showstatus('Saving contents to file...');
   if g = Childwin.DataGrid then begin
     Content := Childwin.FDataGridResult.Rows[Childwin.DataGrid.FocusedNode.Index].Cells[Childwin.DataGrid.FocusedColumn].Text;
-    IsBlob := Childwin.FDataGridResult.Columns[Childwin.DataGrid.FocusedColumn].IsBlob;
+    IsBinary := Childwin.FDataGridResult.Columns[Childwin.DataGrid.FocusedColumn].IsBinary;
   end else begin
     Content := Childwin.FQueryGridResult.Rows[Childwin.QueryGrid.FocusedNode.Index].Cells[Childwin.QueryGrid.FocusedColumn].Text;
-    IsBlob := Childwin.FQueryGridResult.Columns[Childwin.QueryGrid.FocusedColumn].IsBlob;
+    IsBinary := Childwin.FQueryGridResult.Columns[Childwin.QueryGrid.FocusedColumn].IsBinary;
   end;
   childwin.logsql(g.Name);
 
   GetTempPath(MAX_PATH, tmppath);
   filename := tmppath;
   filename := filename+'\'+APPNAME+'-preview.';
-  if IsBlob then begin
+  if IsBinary then begin
     if pos('JFIF', copy(Content, 0, 20)) <> 0 then
-      filename := filename + 'jpg'
+      filename := filename + 'jpeg'
     else if StrCmpBegin('GIF', Content) then
       filename := filename + 'gif'
     else if StrCmpBegin('BM', Content) then

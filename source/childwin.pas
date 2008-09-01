@@ -1204,7 +1204,11 @@ begin
       rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
       if rx.Exec(ColType) then begin
         FDataGridResult.Columns[idx].IsText := True;
-        if ColType = 'tinytext' then
+        if rx.Match[4] <> '' then
+          FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
+        else if ColType = 'tinytext' then
+          // 255 is the width in bytes. If characters that use multiple bytes are
+          // contained, the width in characters is decreased below this number.
           FDataGridResult.Columns[idx].MaxLength := 255
         else if ColType = 'text' then
           FDataGridResult.Columns[idx].MaxLength := 65535
@@ -1212,14 +1216,13 @@ begin
           FDataGridResult.Columns[idx].MaxLength := 16777215
         else if ColType = 'longtext' then
           FDataGridResult.Columns[idx].MaxLength := 4294967295
-        else if rx.Match[4] <> '' then
-          FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
-        else // Fallback for unknown column types
+        else
+          // Fallback for unknown column types
           FDataGridResult.Columns[idx].MaxLength := MaxInt;
       end;
       rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
       if rx.Exec(ColType) then
-        FDataGridResult.Columns[idx].IsBlob := True;
+        FDataGridResult.Columns[idx].IsBinary := True;
       if Copy(ColType, 1, 5) = 'enum(' then begin
         FDataGridResult.Columns[idx].IsEnum := True;
         FDataGridResult.Columns[idx].EnumVals := WideStrings.TWideStringList.Create;
@@ -2482,7 +2485,7 @@ begin
         else if ds.Fields[i].DataType in [ftWideString, ftMemo, ftWideMemo] then
           FQueryGridResult.Columns[i].IsText := True
         else if ds.Fields[i].DataType in [ftBlob] then
-          FQueryGridResult.Columns[i].IsBlob := True;
+          FQueryGridResult.Columns[i].IsBinary := True;
       end;
       SetLength(FQueryGridResult.Rows, 0);
       SetLength(FQueryGridResult.Rows, ds.RecordCount);
@@ -2491,8 +2494,8 @@ begin
         FQueryGridResult.Rows[i].Loaded := True;
         SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
         for j:=0 to ds.FieldCount-1 do begin
-          if FQueryGridResult.Columns[j].IsBlob then
-            FQueryGridResult.Rows[i].Cells[j].Text := Utf8Decode(ds.Fields[j].AsString)
+          if FQueryGridResult.Columns[j].IsBinary then
+            FQueryGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
           else
             FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
           FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -3575,6 +3578,12 @@ begin
     end;
 
     // Create instance of the progress form (but don't show it yet)
+    // Todo: This apparently causes an exception if invoked via an event handler?
+    //       Classes.TStream.ReadComponent(???)
+    //       Classes.InternalReadComponentRes(???,???,???)
+    //       Classes.InitComponent(TfrmQueryProgress)
+    //       Classes.InitInheritedComponent($17E0710,TForm)
+    //       Forms.TCustomForm.Create(???)
     FProgressForm := TFrmQueryProgress.Create(Self);
 
     { Launch a thread of execution that passes the query to the server
@@ -5478,8 +5487,8 @@ begin
     for i := start to start + limit - 1 do begin
       SetLength(FDataGridResult.Rows[i].Cells, ds.Fields.Count);
       for j := 0 to ds.Fields.Count - 1 do begin
-        if FDataGridResult.Columns[j].IsBlob then
-          FDataGridResult.Rows[i].Cells[j].Text := Utf8Decode(ds.Fields[j].AsString)
+        if FDataGridResult.Columns[j].IsBinary then
+          FDataGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
         else
           FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -5489,6 +5498,7 @@ begin
     end;
 
     MainForm.ShowStatus( STATUS_MSG_READY );
+    // Todo: Seen an AV next line when this method was invoked via an event handler.
     FreeAndNil(ds);
   end;
 end;
@@ -5573,7 +5583,7 @@ begin
   else if r.Columns[Column].isText then
     if isNull then cl := $60CC60 else cl := clGreen
   // Text field
-  else if r.Columns[Column].isBlob then
+  else if r.Columns[Column].isBinary then
     if isNull then cl := $CC60CC else cl := clPurple
   else
     if isNull then cl := COLOR_NULLVALUE else cl := clWindowText;
@@ -5723,7 +5733,8 @@ begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
       if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
-      Val := esc(Val);
+      if not FDataGridResult.Columns[i].IsBinary then Val := esc(Val);
+      if FDataGridResult.Columns[i].IsBinary then CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
@@ -5759,8 +5770,8 @@ begin
     ds := ExecSelectQuery(sql);
     if ds.RecordCount = 1 then begin
       for i := 0 to ds.FieldCount - 1 do begin
-        if FDataGridResult.Columns[i].IsBlob then
-          Row.Cells[i].Text := Utf8Decode(ds.Fields[i].AsString)
+        if FDataGridResult.Columns[i].IsBinary then
+          Row.Cells[i].Text := '0x' + BinToWideHex(ds.Fields[i].AsString)
         else
           Row.Cells[i].Text := ds.Fields[i].AsWideString;
         Row.Cells[i].IsNull := ds.Fields[i].IsNull;
@@ -5814,7 +5825,7 @@ begin
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
     if FDataGridResult.Columns[j].IsFloat then KeyVal := FloatStr(KeyVal);
-    KeyVal := esc(KeyVal);
+    if not FDataGridResult.Columns[j].IsBinary then KeyVal := esc(KeyVal);
     if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
     else KeyVal := '=' + KeyVal;
     Result := Result + mask(KeyCols[i]) + KeyVal + ' AND ';
@@ -5898,7 +5909,8 @@ begin
       Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
       if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
-      Val := esc(Val);
+      if not FDataGridResult.Columns[i].IsBinary then Val := esc(Val);
+      if FDataGridResult.Columns[i].IsBinary then CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       Vals := Vals + Val + ', ';
     end;
@@ -6080,7 +6092,10 @@ var
   DateTimeEditor: TDateTimeEditorLink;
   EnumEditor: TEnumEditorLink;
 begin
-  if FDataGridResult.Columns[Column].IsText then begin
+  if
+    FDataGridResult.Columns[Column].IsText or
+    FDataGridResult.Columns[Column].IsBinary
+  then begin
     MemoEditor := TMemoEditorLink.Create;
     MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
     EditLink := MemoEditor;
