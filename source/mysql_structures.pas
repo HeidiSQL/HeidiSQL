@@ -87,8 +87,8 @@ const
   tpCHAR       = 13;
   tpVARCHAR    = 14;
   tpTINYTEXT   = 15;
-  tpMEDIUMTEXT = 16;
-  tpTEXT       = 17;
+  tpTEXT       = 16;
+  tpMEDIUMTEXT = 17;
   tpLONGTEXT   = 18;
   tpBINARY     = 19;
   tpVARBINARY  = 20;
@@ -343,8 +343,8 @@ var
       Category:        catText;
     ),
     (
-      Index:           tpMEDIUMTEXT;
-      Name:            'MEDIUMTEXT';
+      Index:           tpTEXT;
+      Name:            'TEXT';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -354,8 +354,8 @@ var
       Category:        catText;
     ),
     (
-      Index:           tpTEXT;
-      Name:            'TEXT';
+      Index:           tpMEDIUMTEXT;
+      Name:            'MEDIUMTEXT';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
