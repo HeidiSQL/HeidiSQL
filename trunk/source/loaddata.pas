@@ -163,7 +163,7 @@ begin
   selCharsetIndex := comboCharset.ItemIndex;
   comboCharset.Enabled := False;
   comboCharset.Clear;
-  try
+  if Mainform.Childwin.mysql_version >= 50117 then begin
     if dsCharsets = nil then
       dsCharsets := Mainform.Childwin.GetResults('SHOW CHARSET');
     comboCharset.Enabled := True;
@@ -187,9 +187,9 @@ begin
       dsCharsets.Next;
     end;
     comboCharset.ItemIndex := selCharsetIndex;
-  except
-    // Ignore it when the above statements don't work on pre 4.1 servers.
-    // In that case, the combobox is disabled and we load the file without specifying charset.
+  end else begin
+    comboCharset.Items.Add('Unsupported by this server (>= 5.1.17)');
+    comboCharset.ItemIndex := 0;
   end;
 end;
 
