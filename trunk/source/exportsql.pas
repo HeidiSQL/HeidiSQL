@@ -200,7 +200,7 @@ begin
   with target_versions do
   begin
     Add( IntToStr( SQL_VERSION_ANSI ) + '=ANSI SQL' );
-    Add( IntToStr( CWin.mysql_version ) + '=Same as source ('+CWin.GetVar('SELECT VERSION()') +')' );
+    Add( IntToStr( CWin.mysql_version ) + '=Same as source (' + ConvertServerVersion(CWin.mysql_version) + ')');
     Add( '50100=HeidiSQL w/ MySQL Server 5.1' );
     Add( '50000=HeidiSQL w/ MySQL Server 5.0' );
     Add( '40100=HeidiSQL w/ MySQL Server 4.1' );
