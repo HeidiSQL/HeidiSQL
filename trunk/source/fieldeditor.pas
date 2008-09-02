@@ -146,6 +146,9 @@ begin
   btnDeleteAllColumnsFromIndex.PngImage := Mainform.PngImageListMain.PngImages[79].PngImage;
   btnDeleteColumnFromIndex.PngImage := Mainform.PngImageListMain.PngImages[77].PngImage;
   InheritFont(Font);
+  // The datatype pulldown does OwnerDrawing which enables its ItemHeight property. Use that to make it fit on higher DPI settings
+  ComboBoxType.Height := EditFieldname.Height;
+  ComboBoxType.ItemHeight := ComboBoxType.Height - 8;
 end;
 
 
@@ -1106,19 +1109,8 @@ procedure TFieldEditForm.ComboBoxTypeDrawItem(Control: TWinControl; Index:
     Integer; Rect: TRect; State: TOwnerDrawState);
 var
   s: string;
-{*dc: HDC;
-  dpi: Integer;*}
 begin
   with Control as TComboBox,Canvas do begin
-    // custom DPI support
-    {*
-    // not useful unless SetDPIAware() is issued.
-    dc := GetDC(MainForm.Handle);
-    dpi := GetDeviceCaps(dc, LOGPIXELSX);
-    ReleaseDC(MainForm.Handle, dc);
-    Font.PixelsPerInch := dpi;
-    *}
-    Font.PixelsPerInch := 96;
     // decide colors
     Brush.Color := clWindow;
     Font.Color := clWindowText;
