@@ -2714,6 +2714,8 @@ begin
       GetMem(FBlobData, FBlobSize);
       Stream.Position := 0;
       Stream.ReadBuffer(FBlobData^, FBlobSize);
+    end else begin
+      FBlobData := nil;
     end;
   end
   else
@@ -2927,11 +2929,6 @@ begin
       Value.Position := 0;
       Value.ReadBuffer(FBlobData^, FBlobSize);
     end;
-  end
-  else
-  begin
-    FBlobSize := -1;
-    FBlobData := nil;
   end;
   FUpdated := True;
 end;
