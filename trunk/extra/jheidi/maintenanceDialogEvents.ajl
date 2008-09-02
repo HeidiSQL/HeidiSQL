@@ -11,7 +11,7 @@
   {
     String selection = ((Combo)context.get("/dbs")).getText();
     DB db = context.get("db");
-    DB.Result result = db.execute("show tables from " + selection);
+    DB.Result result = db.execute("show tables from `" + selection + "`");
     
     ListBoxUtils.populate(tables, result, 0);
   }
@@ -31,7 +31,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+(String)o;
+          sql+=sep+"`"+(String)o+"`";
           sep=",";
        }
      }
@@ -45,7 +45,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+(String)o;
+          sql+=sep+"`"+(String)o+"`";
           sep=",";
        }
      }
@@ -58,7 +58,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+(String)o;
+          sql+=sep+"`"+(String)o+"`";
           sep=",";
        }
      }
@@ -71,7 +71,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+(String)o;
+          sql+=sep+"`"+(String)o+"`";
           sep=",";
        }
      }
@@ -86,7 +86,7 @@
   {
     DB db = context.get("db");
     db.begin();
-    db.execute("use " + ((Combo)context.get("/dbs")).getText());
+    db.execute("use `" + ((Combo)context.get("/dbs")).getText() + "`");
     DB.Result result = db.execute(sql);
     db.end();
     TableUtils.populate((Table)context.get("/results"), result);

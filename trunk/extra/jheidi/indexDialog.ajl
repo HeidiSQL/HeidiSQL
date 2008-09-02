@@ -56,8 +56,8 @@
     DB db = context.get("db");
     db.begin();
     db.execute("use " + (String)context.get("currentDB"));
-    DB.Result result = db.execute("show keys from " + (String) context.get("currentTable"));
-    DB.Result allColumns = db.execute("show columns from " + context.get("currentTable"));
+    DB.Result result = db.execute("show keys from `" + (String) context.get("currentTable") + "`");
+    DB.Result allColumns = db.execute("show columns from `" + context.get("currentTable") + "`");
     db.end();
    
     Combo indexes = context.get("/indexes");

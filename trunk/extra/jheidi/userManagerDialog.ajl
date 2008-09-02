@@ -53,7 +53,7 @@
 	    
       
   DB db = context.get("db");
-  DB.Result result = db.execute("show columns from mysql.user where field like '%_priv'");
+  DB.Result result = db.execute("show columns from `mysql`.`user` where field like '%_priv'");
   String[] privList = new String[result.size()];
   int[] selections = new int[8];
   int c = 0;

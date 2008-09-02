@@ -52,7 +52,7 @@
   for ( HashObject _dbs : databases )
   {
       String dbName = (String) _dbs.get(0);
-      DB.Result tables = db.execute("show tables from " + dbName);
+      DB.Result tables = db.execute("show tables from `" + dbName + "`");
       log.debug("adding tables to node (" + dbName + ") " + dbNodes.getObject(dbName)); 
       TreeUtils.populateList((NodeInfo)dbNodes.getObject(dbName), tables, 0, "table");
   }

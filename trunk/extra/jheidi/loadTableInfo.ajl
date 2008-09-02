@@ -4,8 +4,8 @@
   DB db = context.get("db");
   
   db.begin();
-  db.execute("use " + arg("dbName"));
-  DB.Result tables = db.execute("show full columns from " + arg("tableName"));
+  db.execute("use `" + arg("dbName") + "`");
+  DB.Result tables = db.execute("show full columns from `" + arg("tableName") + "`");
   db.end();
   
   Text banner = context.get("/mainTabs/Table/toolbar/banner");

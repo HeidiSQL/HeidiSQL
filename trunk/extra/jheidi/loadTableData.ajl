@@ -6,9 +6,9 @@
   Table table = context.get("/mainTabs/Data/table");
   
   db.begin();
-  db.execute("use " + arg("dbName"));
-  DB.Result count = db.query("select count(*) from " + arg("tableName"));
-  DB.Result data = db.query("select * from " + arg("tableName") + " limit 50");
+  db.execute("use `" + arg("dbName") + "`");
+  DB.Result count = db.query("select count(*) from `" + arg("tableName") + "`");
+  DB.Result data = db.query("select * from `" + arg("tableName") + "` limit 50");
   db.end();
   
   Text banner = context.get("/mainTabs/Data/toolbar/banner");

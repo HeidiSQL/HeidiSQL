@@ -2,7 +2,7 @@
   WindowContext context = argObj("windowContext");
  
   DB db = context.get("db");
-  DB.Result databases = db.execute("show table status from " + arg("dbName"));
+  DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
    
   Text banner = context.get("/mainTabs/Database/toolbar/banner");
   banner.setText("Database " + arg("dbName") + ": " + databases.size() + " table(s)");

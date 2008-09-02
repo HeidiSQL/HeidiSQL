@@ -15,7 +15,7 @@
   {
     String selection = ((Combo)source.get("dbs")).getText();
     DB db = context.get("db");
-    DB.Result result = db.execute("show tables from " + selection);
+    DB.Result result = db.execute("show tables from `" + selection + "`");
     
     ListBoxUtils.populate(tables, result, 0);
   }
@@ -130,7 +130,7 @@
     String version = db.execute("select version()").first().get("version()");
     String compileOS = db.execute("show variables like 'version_compile_os'").first().get("value");
     String characterSet = db.execute("show variables like 'character_set_connection'").first().get("value");
-    String dbCreate = db.execute("show create database " + selection).first().get("create database");
+    String dbCreate = db.execute("show create database `" + selection + "`").first().get("create database");
     String tableCreate = "";
    
     buffer.append("# jHeidi Dump").append(lineSep)
@@ -166,7 +166,7 @@
     {
       for ( String table : (List<String>) tableList ) 
       {
-        DB.Result createTable = db.execute("show create table " + table);
+        DB.Result createTable = db.execute("show create table `" + table + "`");
         tableCreate = createTable.first().get("create table");
       
         buffer.append("#").append(lineSep)
@@ -186,8 +186,8 @@
         
         if ( !"Don't create".equals(dataOption) )
         {
-          DB.Result tableValues = db.execute("select * from " + table);
-          DB.Result showFields = db.execute("show fields from " + table);          
+          DB.Result tableValues = db.execute("select * from `" + table + "`");
+          DB.Result showFields = db.execute("show fields from `" + table + "`");
          
           buffer.append("#").append(lineSep)
                 .append("# Dumping data for table '").append(table).append("'").append(lineSep)
