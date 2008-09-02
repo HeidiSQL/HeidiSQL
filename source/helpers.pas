@@ -203,9 +203,8 @@ function WideHexToBin(text: WideString): string;
 var
   buf: string;
 begin
-  // Todo: test.
   buf := text;
-  SetLength(Result, Length(text) div 2);
+  Result := StringOfChar(' ', Length(text) div 2);
   HexToBin(@buf[1], @Result[1], Length(Result));
 end;
 
@@ -213,12 +212,12 @@ function BinToWideHex(bin: string): WideString;
 var
   buf: string;
 begin
-  SetLength(buf, Length(bin) * 2);
-  BinToHex(@bin[1], @buf[1], Length(buf));
+  buf := StringOfChar(' ', Length(bin) * 2);
+  BinToHex(@bin[1], @buf[1], Length(bin));
   Result := buf;
 end;
 
-  procedure CheckHex(text: WideString; errorMessage: string);
+procedure CheckHex(text: WideString; errorMessage: string);
 const
   allowed: string = '0123456789abcdefABCDEF';
 var
