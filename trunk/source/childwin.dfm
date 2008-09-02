@@ -1738,15 +1738,13 @@ object MDIChild: TMDIChild
     Left = 72
     Top = 157
   end
-  object SaveDialogExportData: TExportSaveDialog
+  object SaveDialogExportData: TSaveDialog
     DefaultExt = 'csv'
     Filter = 
       'CSV-Files (*.csv)|*.csv|Hypertext-Files (*.html)|*.html|XML-File' +
       's (*.xml)|*.xml'
     Options = [ofOverwritePrompt, ofEnableSizing]
     OnTypeChange = SaveDialogExportDataTypeChange
-    VisibleOptions = voCSV
-    ConvertHTMLSpecialChars = False
     Left = 72
     Top = 120
   end

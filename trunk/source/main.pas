@@ -1170,7 +1170,7 @@ end;
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
-  Dialog: TExportSaveDialog;
+  Dialog: TSaveDialog;
   FS: TFileStream;
   Title: WideString;
 begin
@@ -1185,35 +1185,17 @@ begin
 
   Dialog.FileName := Title;
   Dialog.Title := 'Export result-set from '+Dialog.Filename+'...';
-  Dialog.FieldSep := ChildWin.prefCSVSeparator;
-  Dialog.LineSep := ChildWin.prefCSVTerminator;
-  Dialog.FieldEncl := ChildWin.prefCSVEncloser;
-  Dialog.ConvertHTMLSpecialChars := ChildWin.prefConvertHTMLEntities;
 
   if Dialog.Execute and (Dialog.FileName <> '') then try
     Screen.Cursor := crHourGlass;
     FS := openfs(Dialog.FileName);
     case Dialog.FilterIndex of
-      1: GridToCsv(Grid, Dialog.FieldSep, Dialog.FieldEncl, Dialog.LineSep, FS);
-      2: GridToHtml(Grid, Title, Dialog.ConvertHTMLSpecialChars, FS);
+      1: GridToCsv(Grid, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, FS);
+      2: GridToHtml(Grid, Title, ChildWin.prefConvertHTMLEntities, FS);
       3: GridToXml(Grid, Title, FS);
     end;
     ShowStatus('Freeing data...');
     FS.Free;
-    ShowStatus('Storing preferences...');
-    ChildWin.prefCSVSeparator := Dialog.FieldSep;
-    ChildWin.prefCSVTerminator := Dialog.LineSep;
-    ChildWin.prefCSVEncloser := Dialog.FieldEncl;
-    ChildWin.prefConvertHTMLEntities := Dialog.ConvertHTMLSpecialChars;
-    with TRegistry.Create do begin
-      openkey(REGPATH, true);
-      WriteBool(REGNAME_CONVERTHTMLENTITIES, Dialog.ConvertHTMLSpecialChars);
-      WriteString(REGNAME_CSV_SEPARATOR, Dialog.FieldSep);
-      WriteString(REGNAME_CSV_ENCLOSER, Dialog.FieldEncl);
-      WriteString(REGNAME_CSV_TERMINATOR, Dialog.LineSep);
-      Closekey;
-      Free;
-    end;
   finally
     ShowStatus(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
