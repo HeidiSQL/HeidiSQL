@@ -143,7 +143,7 @@
   
     String selection = ((Combo)dest.get("dbs")).getText();
     DB db = context.get("db");
-    DB.Result tables = db.execute("show tables from " + selection);
+    DB.Result tables = db.execute("show tables from `" + selection + "`");
     
     Combo combo = dest.get("tables");
     ComboUtils.populate(combo, tables, 0);
@@ -164,7 +164,7 @@
     String selection = ((Combo)context.get("/tabs/Destination/tables")).getText();
     String dbsel = ((Combo)context.get("/tabs/Destination/dbs")).getText();
     DB db = context.get("db");
-    DB.Result fields = db.execute("show columns from " + dbsel + "." + selection);
+    DB.Result fields = db.execute("show columns from `" + dbsel + "`.`" + selection + "`");
     
     ListBox listbox = dest.get("fields");
     ListBoxUtils.populate(listbox, fields, 0);

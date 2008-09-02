@@ -70,7 +70,7 @@
     DB db = context.get("db");
     db.begin();
     db.execute("use " + (String)context.get("currentDB"));
-    DB.Result result = db.execute("show full columns from " + (String) context.get("currentTable"));
+    DB.Result result = db.execute("show full columns from `" + (String) context.get("currentTable") + "`");
     db.end();
       
     Combo positions = context.get("/positions");

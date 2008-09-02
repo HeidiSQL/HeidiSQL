@@ -70,7 +70,7 @@
      ListBox privs = editTab.get("privs");
      
      DB db = context.get("db");
-     DB.Result result = db.execute("select * from mysql.user where user='" + userHost[0] + "' and host='" + userHost[1] + "'");
+     DB.Result result = db.execute("select * from `mysql`.`user` where user='" + userHost[0] + "' and host='" + userHost[1] + "'");
      HashObject user = result.first();
      
      int c = 0;

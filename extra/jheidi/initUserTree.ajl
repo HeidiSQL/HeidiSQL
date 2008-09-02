@@ -12,7 +12,7 @@
   DB db = context.get("db");
   db.begin();
   db.execute("use mysql");
-  DB.Result users = db.execute("select * from user order by user, host");
+  DB.Result users = db.execute("select * from `user` order by user, host");
   db.end();
   
   List userList = new ArrayList(users.size());
