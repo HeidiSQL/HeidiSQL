@@ -60,18 +60,18 @@ object loaddataform: Tloaddataform
         415
         282)
       object grpFilename: TGroupBox
-        Left = 10
-        Top = 10
-        Width = 394
-        Height = 63
+        Left = 5
+        Top = 2
+        Width = 403
+        Height = 90
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Filename'
+        Caption = 'File'
         TabOrder = 0
         DesignSize = (
-          394
-          63)
+          403
+          90)
         object btnOpenFile: TPngSpeedButton
-          Left = 353
+          Left = 362
           Top = 24
           Width = 22
           Height = 22
@@ -79,10 +79,26 @@ object loaddataform: Tloaddataform
           Flat = True
           OnClick = btnOpenFileClick
         end
+        object lblFilename: TLabel
+          Left = 10
+          Top = 27
+          Width = 46
+          Height = 13
+          Caption = 'Filename:'
+          FocusControl = editFilename
+        end
+        object lblCharset: TLabel
+          Left = 10
+          Top = 54
+          Width = 70
+          Height = 13
+          Caption = '&Character set:'
+          FocusControl = comboCharset
+        end
         object editFilename: TEdit
-          Left = 16
+          Left = 104
           Top = 24
-          Width = 331
+          Width = 252
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
@@ -90,11 +106,20 @@ object loaddataform: Tloaddataform
           OnChange = editFilenameChange
           OnDblClick = btnOpenFileClick
         end
+        object comboCharset: TComboBox
+          Left = 104
+          Top = 51
+          Width = 252
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 1
+        end
       end
       object grpFields: TGroupBox
-        Left = 10
-        Top = 78
-        Width = 394
+        Left = 5
+        Top = 93
+        Width = 403
         Height = 109
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Fields'
@@ -153,9 +178,9 @@ object loaddataform: Tloaddataform
         end
       end
       object grpLines: TGroupBox
-        Left = 10
-        Top = 193
-        Width = 394
+        Left = 5
+        Top = 202
+        Width = 403
         Height = 74
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Lines'
