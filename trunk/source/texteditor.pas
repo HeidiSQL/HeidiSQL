@@ -54,7 +54,8 @@ end;
 
 procedure TfrmTextEditor.SetText(text: WideString);
 begin
-  // TODO: Text property is ANSI !!!
+  // TODO: Find out why the Delphi IDE insists hinting that this
+  //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;
 end;
 
