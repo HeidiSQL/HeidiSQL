@@ -1177,8 +1177,8 @@ begin
   // Save data in current dataset as CSV, HTML or XML
   Dialog := ChildWin.SaveDialogExportData;
 
-  Grid := Mainform.Childwin.ActiveGrid;
-  if Grid = Mainform.Childwin.DataGrid then
+  Grid := Childwin.ActiveGrid;
+  if Grid = Childwin.DataGrid then
     Title := ChildWin.SelectedTable
   else
     Title := 'SQL-query';
