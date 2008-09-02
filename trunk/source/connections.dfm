@@ -3077,6 +3077,7 @@ object connform: Tconnform
     Height = 22
     Align = alNone
     Anchors = [akLeft, akTop, akRight]
+    AutoSize = True
     ButtonWidth = 66
     Caption = 'tlbEdit'
     Images = MainForm.PngImageListMain
