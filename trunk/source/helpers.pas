@@ -761,35 +761,42 @@ var
   Node: PVirtualNode;
 begin
   Generator := APPNAME+' '+FullAppVersion;
-  tmp := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
+  tmp :=
+    '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
     '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
     '<html>' + CRLF +
-    '<head>' + CRLF +
-    '  <title>' + Title + '</title>' + CRLF +
-    '  <meta name="GENERATOR" content="'+ Generator + '">' + CRLF +
-    '  <style type="text/css">' + CRLF +
-    '    tr#header {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
-    '    th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
-    '    table, td {border: 1px solid silver;}' + CRLF +
-    '    table {border-collapse: collapse;}' + CRLF +
-    '  </style>' + CRLF +
-    '</head>' + CRLF + CRLF +
-    '<body>' + CRLF + CRLF +
-    '<table caption="' + Title + ' (' + inttostr(Grid.RootNodeCount) + ' rows)">' + CRLF +
-    '  <tr id="header">' + CRLF;
+    '  <head>' + CRLF +
+    '    <title>' + Title + '</title>' + CRLF +
+    '    <meta name="GENERATOR" content="'+ Generator + '">' + CRLF +
+    '    <style type="text/css">' + CRLF +
+    '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
+    '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
+    '      table, td {border: 1px solid silver;}' + CRLF +
+    '      table {border-collapse: collapse;}' + CRLF +
+    '    </style>' + CRLF +
+    '  </head>' + CRLF + CRLF +
+    '  <body>' + CRLF + CRLF +
+    '    <table caption="' + Title + ' (' + inttostr(Grid.RootNodeCount) + ' rows)">' + CRLF +
+    '      <thead>' + CRLF +
+    '        <tr>' + CRLF;
   for i:=0 to Grid.Header.Columns.Count-1 do begin
     if not (coVisible in Grid.Header.Columns[i].Options) then
       continue;
-    tmp := tmp + '    <th style="width:'+IntToStr(Grid.Header.Columns[i].Width)+'px">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
+    tmp := tmp + '          <th style="width:'+IntToStr(Grid.Header.Columns[i].Width)+'px">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
   end;
-  tmp := tmp + '  </tr>' + CRLF;
+  tmp := tmp +
+    '        </tr>' + CRLF +
+    '      </thead>' + CRLF +
+    '      <tbody>' + CRLF;
   StreamWrite(S, tmp);
 
+  // TODO: Load complete data before exporting, fx using a variation
+  //       of DataGridCurrentQuery without LEFT(<>, 256) in it.
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
-    tmp := '  <tr>' + CRLF;
+    tmp := '        <tr>' + CRLF;
     // collect data:
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
@@ -798,22 +805,27 @@ begin
       Data := Grid.Text[Node, i];
       if ConvertHTMLEntities then
         Data := htmlentities(Data);
-      Data := WideStringReplace(Data, #10, #10+'<br>', [rfReplaceAll]);
+      Data := WideStringReplace(Data, #10, #10+'<br />', [rfReplaceAll]);
       if Grid.Header.Columns[i].Alignment = taRightJustify then
         Attribs := ' style="text-align: right;"'
       else
         Attribs := '';
-      tmp := tmp + '    <td'+Attribs+'>' + Data + '</td>' + CRLF;
+      tmp := tmp + '          <td'+Attribs+'>' + Data + '</td>' + CRLF;
     end;
-    tmp := tmp + '  </tr>' + CRLF;
+    tmp := tmp + '        </tr>' + CRLF;
     StreamWrite(S, tmp);
     Node := Grid.GetNext(Node);
   end;
   // footer:
-  tmp := '</table>' + CRLF +  CRLF + '<p>' + CRLF +
-    '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-    ' by <a href="'+APPDOMAIN+'">' + Generator + '</a></em></p>' + CRLF + CRLF +
-    '</body></html>';
+  tmp :=
+    '      </tbody>' + CRLF +
+    '    </table>' + CRLF + CRLF +
+    '    <p>' + CRLF +
+    '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
+    '      by <a href="'+APPDOMAIN+'">' + Generator + '</a></em>' + CRLF +
+    '    </p>' + CRLF + CRLF +
+    '  </body>' + CRLF +
+    '</html>' + CRLF;
   StreamWrite(S, tmp);
   Mainform.Showstatus(STATUS_MSG_READY);
 end;
@@ -845,11 +857,14 @@ begin
       Continue;
     if tmp <> '' then
       tmp := tmp + Separator;
+    // TODO: Write HEX() in header if it's a hex-encoded binary column
     tmp := tmp + Encloser + Grid.Header.Columns[i].Text + Encloser;
   end;
   StreamWrite(S, tmp);
 
   // Data:
+  // TODO: Load complete data before exporting, fx using a variation
+  //       of DataGridCurrentQuery without LEFT(<>, 256) in it.
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
@@ -863,6 +878,9 @@ begin
       // Unformat float values
       if Grid.Header.Columns[i].Alignment = taRightJustify then
         Data := FloatStr(Data);
+      // TODO: Write unenclosed NULL if field is null
+      // TODO: Escape encloser characters within data
+      // TODO: superfluous field separator at end of each row
       tmp := tmp + Encloser + Data + Encloser + Separator;
     end;
     StreamWrite(S, tmp);
@@ -885,9 +903,11 @@ var
   Node: PVirtualNode;
 begin
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
-      '<'+root+'>' + CRLF;
+      '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
 
+  // TODO: Load complete data before exporting, fx using a variation
+  //       of DataGridCurrentQuery without LEFT(<>, 256) in it.
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
@@ -903,6 +923,8 @@ begin
       if Grid.Header.Columns[i].Alignment = taRightJustify then
         Data := FloatStr(Data)
       else
+      // TODO: if binary (hex) data, set an attribute format="hex" on field
+      // TODO: if null value, end field using /> and set attribute isnull="true" 
         Data := htmlentities(Data);
       tmp := tmp + #9#9'<'+Grid.Header.Columns[i].Text+'>' + Data + '</'+Grid.Header.Columns[i].Text+'>' + CRLF;
     end;
@@ -911,7 +933,7 @@ begin
     Node := Grid.GetNext(Node);
   end;
   // footer:
-  tmp := '</'+root+'>' + CRLF;
+  tmp := '</table>' + CRLF;
   StreamWrite(S, tmp);
   Mainform.showstatus(STATUS_MSG_READY);
 end;
