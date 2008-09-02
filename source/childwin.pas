@@ -849,16 +849,18 @@ var
   fontsize, datafontsize : Integer;
 begin
   InheritFont(Font);
-  InheritFont(ListVariables.Header.Font);
-  InheritFont(ListStatus.Header.Font);
-  InheritFont(ListProcesses.Header.Font);
-  InheritFont(ListCommandstats.Header.Font);
-  InheritFont(ListTables.Header.Font);
-  InheritFont(ListColumns.Header.Font);
-  InheritFont(DataGrid.Header.Font);
-  InheritFont(QueryGrid.Header.Font);
   InheritFont(tabsetQueryHelpers.Font);
   InheritFont(SynCompletionProposal1.Font);
+  // Fix header font and adjust node height on Virtual Trees to DPI settings
+  FixVT(DBTree);
+  FixVT(ListVariables);
+  FixVT(ListStatus);
+  FixVT(ListProcesses);
+  FixVT(ListCommandStats);
+  FixVT(ListTables);
+  FixVT(ListColumns);
+  FixVT(DataGrid);
+  FixVT(QueryGrid);
   // Other values:
   pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);

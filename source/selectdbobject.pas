@@ -74,6 +74,7 @@ begin
   Height := Mainform.GetRegValue(REGNAME_SELECTDBO_WINHEIGHT, Height);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
+  FixVT(TreeDBO);
 end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);

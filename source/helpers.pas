@@ -156,6 +156,7 @@ type
   function WideHexToBin(text: WideString): string;
   function BinToWideHex(bin: string): WideString;
   procedure CheckHex(text: WideString; errorMessage: string);
+  procedure FixVT(VT: TVirtualStringTree);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2557,6 +2558,20 @@ begin
   // Free memory
   SetString(Content, nil, 0);
 end;
+
+
+procedure FixVT(VT: TVirtualStringTree);
+var
+  newHeight: Integer;
+begin
+  // Vist font fix: VT.Header doesn't have a ParentFont property, so we apply the font manually
+  InheritFont(VT.Header.Font);
+  // Resize hardcoded node height to work with different DPI settings
+  newHeight := VT.Canvas.TextHeight('A') + VT.TextMargin*2;
+  VT.DefaultNodeHeight := newHeight;
+  VT.Header.Height := newHeight;
+end;
+
 
 
 initialization
