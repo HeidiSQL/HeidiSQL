@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry, PngSpeedButton,
-  WideStrings, TntCheckLst, TntStdCtrls;
+  WideStrings, TntCheckLst, TntStdCtrls, db, SynRegExpr;
 
 type
   Tloaddataform = class(TForm)
@@ -52,6 +52,9 @@ type
     editLineTerminator: TEdit;
     lblLineTerminator: TLabel;
     lblIgnoreLines: TLabel;
+    lblFilename: TLabel;
+    comboCharset: TComboBox;
+    lblCharset: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -65,6 +68,7 @@ type
     procedure btnColDownClick(Sender: TObject);
   private
     { Private declarations }
+    dsCharsets: TDataset;
   public
     { Public declarations }
   end;
@@ -73,7 +77,7 @@ type
 
 implementation
 
-uses Main, Childwin, helpers, Db;
+uses Main, Childwin, helpers;
 
 {$R *.DFM}
 
@@ -133,9 +137,11 @@ end;
 
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
-  count: Integer;
+  count, i, selCharsetIndex: Integer;
   ds: TDataset;
-  seldb, seltable: String;
+  seldb, seltable, dbcreate: WideString;
+  rx: TRegExpr;
+  DefCharset: String;
 begin
   // read tables from db
   comboTable.Items.Clear;
@@ -153,6 +159,38 @@ begin
     comboTable.ItemIndex := 0;
 
   comboTableChange(self);
+
+  selCharsetIndex := comboCharset.ItemIndex;
+  comboCharset.Enabled := False;
+  comboCharset.Clear;
+  try
+    if dsCharsets = nil then
+      dsCharsets := Mainform.Childwin.GetResults('SHOW CHARSET');
+    comboCharset.Enabled := True;
+    // Detect db charset
+    DefCharset := 'Let server/database decide';
+    dbcreate := Mainform.Childwin.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
+    rx := TRegExpr.Create;
+    rx.ModifierG := True;
+    rx.Expression := 'CHARACTER SET (\w+)';
+    if rx.Exec(dbcreate) then
+      DefCharset := DefCharset + ' ('+rx.Match[1]+')';
+    comboCharset.Items.Add(DefCharset);
+    dsCharsets.First;
+    for i:=1 to dsCharsets.RecordCount do begin
+      comboCharset.Items.Add(dsCharsets.Fields[1].AsWideString + ' ('+dsCharsets.Fields[0].AsWideString+')');
+      if dsCharsets.Fields[0].AsWideString = 'utf8' then begin
+        comboCharset.Items[i] := comboCharset.Items[i] + ' - '+APPNAME+' output';
+        if selCharsetIndex = -1 then
+          selCharsetIndex := i;
+      end;
+      dsCharsets.Next;
+    end;
+    comboCharset.ItemIndex := selCharsetIndex;
+  except
+    // Ignore it when the above statements don't work on pre 4.1 servers.
+    // In that case, the combobox is disabled and we load the file without specifying charset.
+  end;
 end;
 
 
@@ -229,6 +267,11 @@ begin
   else if chkIgnore.Checked then
     query := query + 'IGNORE ';
   query := query + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
+
+  if comboCharset.ItemIndex > 0 then begin
+    dsCharsets.RecNo := comboCharset.ItemIndex;
+    query := query + 'CHARACTER SET '+dsCharsets.Fields[0].AsString+' ';
+  end;
 
   // Fields:
   if (editFieldTerminator.Text <> '') or (editFieldEncloser.Text <> '') or (editFieldEscaper.Text <> '') then
