@@ -47,7 +47,7 @@
     </DelphiCompile>
     <DCCReference Include="..\..\source\heidicomp.pas" />
     <DCCReference Include="dbrtl.dcp" />
-    <DCCReference Include="vcl.dcp" />
+    <DCCReference Include="rtl.dcp" />
     <DCCReference Include="ZComponent.dcp" />
     <DCCReference Include="ZCore.dcp" />
     <DCCReference Include="ZDbc.dcp" />
