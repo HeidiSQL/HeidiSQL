@@ -147,7 +147,7 @@ type
     CopyasXMLdata2: TMenuItem;
     Exportdata1: TMenuItem;
     Exportdata2: TMenuItem;
-    SaveDialogExportData: TExportSaveDialog;
+    SaveDialogExportData: TSaveDialog;
     N11: TMenuItem;
     ProgressBarQuery: TProgressBar;
     Copy4: TMenuItem;
@@ -3261,18 +3261,9 @@ begin
   // Set default file-extension of saved file and options on the dialog to show
   with SaveDialogExportData do begin
     Case FilterIndex of
-      1 : begin
-        DefaultExt := 'csv';
-        VisibleOptions := voCSV;
-      end;
-      2 : begin
-        DefaultExt := 'html';
-        VisibleOptions := voHTML;
-      end;
-      3 : begin
-        DefaultExt := 'xml';
-        VisibleOptions := voHTML;
-      end;
+      1: DefaultExt := 'csv';
+      2: DefaultExt := 'html';
+      3: DefaultExt := 'xml';
     end;
   end;
 end;
