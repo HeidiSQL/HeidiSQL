@@ -702,17 +702,6 @@ begin
     }
     if tofile or tohost then
     begin
-      if current_characterset <> '' then
-      begin
-        sql := makeConditionalStmt('SET CHARACTER SET ' + current_characterset, 40100, tofile);
-        sql := fixSQL( sql, target_version, target_cliwa );
-        if tofile then begin
-          wfs(f, sql)
-        end else if tohost then begin
-          RemoteExecNonQuery(win2export, sql );
-        end;
-      end;
-
       // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL
       if target_version = SQL_VERSION_ANSI then
       begin
