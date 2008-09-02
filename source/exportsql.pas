@@ -1013,7 +1013,7 @@ begin
         if RecordCount_all = 0 then begin
           if tofile then
           begin
-            wfs(f, '# (No data found.)');
+            wfs(f, '# No data found.');
             wfs(f);
           end;
         end
@@ -1103,6 +1103,8 @@ begin
                   value := Query.Fields[k].AsWideString;
                 ftBoolean:
                   value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
+                ftBlob:
+                  value := '0x' + BinToWideHex(Query.Fields[k].AsString);
                 else
                   value := esc( Query.Fields[k].AsWideString, False, target_version );
               end;
