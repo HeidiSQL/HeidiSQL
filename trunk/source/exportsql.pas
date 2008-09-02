@@ -629,16 +629,16 @@ begin
     if tofile then
     begin
       wfs(f, '# --------------------------------------------------------');
-      wfs(f, Format('# %-30s%s', ['Host:', cwin.MysqlConn.Connection.HostName]));
-      wfs(f, Format('# %-30s%s', ['Database:', sourceDb]));
-      wfs(f, Format('# %-30s%s', ['Server version:', cwin.GetVar('SELECT VERSION()')]));
-      wfs(f, Format('# %-30s%s', ['Server OS:', cwin.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]));
-      wfs(f, Format('# %-30s%s', ['Target compatibility:', comboTargetCompat.Text]));
+      wfs(f, WideFormat('# %-30s%s', ['Host:', cwin.MysqlConn.Connection.HostName]));
+      wfs(f, WideFormat('# %-30s%s', ['Database:', sourceDb]));
+      wfs(f, WideFormat('# %-30s%s', ['Server version:', cwin.GetVar('SELECT VERSION()')]));
+      wfs(f, WideFormat('# %-30s%s', ['Server OS:', cwin.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]));
+      wfs(f, WideFormat('# %-30s%s', ['Target compatibility:', comboTargetCompat.Text]));
       if extended_insert then
       begin
-        wfs(f, Format('# %-30s%d', ['Target max_allowed_packet:', max_allowed_packet]));
+        wfs(f, WideFormat('# %-30s%d', ['Target max_allowed_packet:', max_allowed_packet]));
       end;
-      wfs(f, Format('# %-30s%s', [APPNAME + ' version:', appversion]));
+      wfs(f, WideFormat('# %-30s%s', [APPNAME + ' version:', appversion]));
       wfs(f, '# --------------------------------------------------------');
       wfs(f);
     end;
