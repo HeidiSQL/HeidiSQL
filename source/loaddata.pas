@@ -137,7 +137,7 @@ end;
 
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
-  count, i, selCharsetIndex: Integer;
+  count, i, selCharsetIndex, v: Integer;
   ds: TDataset;
   seldb, seltable, dbcreate: WideString;
   rx: TRegExpr;
@@ -163,7 +163,8 @@ begin
   selCharsetIndex := comboCharset.ItemIndex;
   comboCharset.Enabled := False;
   comboCharset.Clear;
-  if Mainform.Childwin.mysql_version >= 50117 then begin
+  v := Mainform.Childwin.mysql_version;
+  if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
     if dsCharsets = nil then
       dsCharsets := Mainform.Childwin.GetResults('SHOW CHARSET');
     comboCharset.Enabled := True;
@@ -188,7 +189,7 @@ begin
     end;
     comboCharset.ItemIndex := selCharsetIndex;
   end else begin
-    comboCharset.Items.Add('Unsupported by this server (>= 5.1.17)');
+    comboCharset.Items.Add('Unsupported by this server');
     comboCharset.ItemIndex := 0;
   end;
 end;
