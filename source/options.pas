@@ -55,7 +55,6 @@ type
     Label15: TLabel;
     Label16: TLabel;
     Label17: TLabel;
-    CheckBoxConvertHTMLEntities: TCheckBox;
     Label18: TLabel;
     TabSheet7: TTabSheet;
     GroupBox2: TGroupBox;
@@ -148,7 +147,6 @@ begin
 
   // Save values
   reg.WriteBool(REGNAME_AUTORECONNECT, CheckBoxAutoReconnect.Checked);
-  reg.WriteBool(REGNAME_CONVERTHTMLENTITIES, CheckBoxConvertHTMLEntities.Checked);
   reg.WriteBool(REGNAME_RESTORELASTUSEDDB, CheckBoxRestoreLastUsedDB.Checked);
   reg.WriteString(REGNAME_FONTNAME, ComboBoxFonts.Text);
   reg.WriteInteger(REGNAME_FONTSIZE, UpDownFontSize.Position);
@@ -230,7 +228,6 @@ begin
     cwin.prefCSVSeparator := self.Edit1.text;
     cwin.prefCSVEncloser := self.Edit2.text;
     cwin.prefCSVTerminator := self.Edit3.text;
-    cwin.prefConvertHTMLEntities := self.CheckBoxConvertHTMLEntities.Checked;
     cwin.prefPreferShowTables := chkPreferShowTables.Checked;
   end;
 
@@ -276,7 +273,6 @@ begin
   datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
   datafontsize := Mainform.GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
   CheckBoxAutoReconnect.Checked := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
-  CheckBoxConvertHTMLEntities.Checked := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
   CheckBoxRestoreLastUsedDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
   updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);

@@ -46,6 +46,7 @@ type
     NewIsNull: Boolean;
     Modified: Boolean;
   end;
+  PGridCell = ^TGridCell;
   TGridColumn = record
     Name: WideString;
     DataType: Byte; // @see constants in mysql_structures.pas
@@ -59,18 +60,29 @@ type
     IsDate: Boolean;
     EnumVals: TWideStringList;
   end;
+  PGridColumn = ^TGridColumn;
   TGridColumns = Array of TGridColumn;
+  // Delphi reminder, from Rudy Velthuis (usenet):
+  // Records and arrays are passed as pointers, but in the preamble of the
+  // called function the pointed-to data is copied onto the stack.  So either
+  // use "const x: TBlah" to pass by reference, or create a pointer type.
+  // Objects are passed as pointers.
+  // (Orthogonal to this, when specifying "var", a pointer (possibly to a pointer)
+  // is passed, allowing the called function to alter the caller's reference.)
+  PGridColumns = ^TGridColumns;
   TGridRowState = (grsDefault, grsDeleted, grsModified, grsInserted);
   TGridRow = packed record
     Cells: Array of TGridCell;
     State: TGridRowState;
     Loaded: Boolean;
   end;
+  PGridRow = ^TGridRow;
   TGridRows = Array of TGridRow;
   TGridResult = record
     Rows: TGridRows;
     Columns: TGridColumns;
   end;
+  PGridResult = ^TGridResult;
 
   TMemoEditor = class(TForm)
   public
@@ -91,9 +103,9 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: WideString): WideString;
-  procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; ConvertHTMLEntities: Boolean; S: TStream);
-  procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
-  procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
+  procedure GridToHtml(Grid: TVirtualStringTree; GridData: PGridResult; Title: WideString; S: TStream);
+  procedure GridToCsv(Grid: TVirtualStringTree; GridData: PGridResult; Separator, Encloser, Terminator: String; S: TStream);
+  procedure GridToXml(Grid: TVirtualStringTree; GridData: PGridResult; root: WideString; S: TStream);
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -752,12 +764,11 @@ end;
   Converts a Grid to a HTML-Table.
   @param Grid Object which holds data to export
   @param string Text used in <title>
-  @param boolean Use htmlentities() on cell-contents?
 }
-procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; ConvertHTMLEntities: Boolean; S: TStream);
+procedure GridToHtml(Grid: TVirtualStringTree; GridData: PGridResult; Title: WideString; S: TStream);
 var
   i: Integer;
-  tmp, Data, Attribs, Generator: WideString;
+  tmp, Data, Generator: WideString;
   Node: PVirtualNode;
 begin
   Generator := APPNAME+' '+FullAppVersion;
@@ -770,19 +781,41 @@ begin
     '    <meta name="GENERATOR" content="'+ Generator + '">' + CRLF +
     '    <style type="text/css">' + CRLF +
     '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
+    '      tbody tr {white-space: pre;}' + CRLF +
     '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
     '      table, td {border: 1px solid silver;}' + CRLF +
-    '      table {border-collapse: collapse;}' + CRLF +
+    '      table {border-collapse: collapse;}' + CRLF;
+  for i:=0 to Length(GridData.Columns) - 1 do begin
+    // Skip hidden key columns.
+    if not (coVisible in Grid.Header.Columns[i].Options) then
+      Continue;
+    // Adjust preferred width of columns.
+    tmp := tmp +
+     '      thead .col' + IntToStr(i) + ' {width: ' + IntToStr(Grid.Header.Columns[i].Width) + 'px;}' + CRLF;
+    // Right-justify all cells to match the grid on screen.
+    if Grid.Header.Columns[i].Alignment = taRightJustify then
+      tmp := tmp +
+        '      .col' + IntToStr(i) + ' {text-align: right;}' + CRLF;
+  end;
+  // Note for above:
+  // Indentation seems to be a mess.  I think we should stick to putting long lines on one line,
+  // and just let the editor figure out how to break it if it doesn't fit on screen.  That way
+  // the editor can break, indent, and put a visual marker in the gutter to denote the wrap.
+
+  tmp := tmp +
     '    </style>' + CRLF +
     '  </head>' + CRLF + CRLF +
     '  <body>' + CRLF + CRLF +
     '    <table caption="' + Title + ' (' + inttostr(Grid.RootNodeCount) + ' rows)">' + CRLF +
     '      <thead>' + CRLF +
     '        <tr>' + CRLF;
-  for i:=0 to Grid.Header.Columns.Count-1 do begin
+  for i:=0 to Length(GridData.Columns) - 1 do begin
+    // Skip hidden key columns.
     if not (coVisible in Grid.Header.Columns[i].Options) then
-      continue;
-    tmp := tmp + '          <th style="width:'+IntToStr(Grid.Header.Columns[i].Width)+'px">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
+      Continue;
+    // Add header item.
+    Data := GridData.Columns[i].Name;
+    tmp := tmp + '          <th class="col' + IntToStr(i) + '">' + Data + '</th>' + CRLF;
   end;
   tmp := tmp +
     '        </tr>' + CRLF +
@@ -790,30 +823,30 @@ begin
     '      <tbody>' + CRLF;
   StreamWrite(S, tmp);
 
-  // TODO: Load complete data before exporting, fx using a variation
-  //       of DataGridCurrentQuery without LEFT(<>, 256) in it.
+  Grid.Visible := false;
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
+    // Update status once in a while.
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := '        <tr>' + CRLF;
-    // collect data:
-    for i:=0 to Grid.Header.Columns.Count-1 do begin
+    // Add cells.
+    for i:=0 to Length(GridData.Columns) - 1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
+      // Ensure basic data is loaded and load remainder of large fields.
+      Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+      Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
-      if ConvertHTMLEntities then
-        Data := htmlentities(Data);
-      Data := WideStringReplace(Data, #10, #10+'<br />', [rfReplaceAll]);
-      if Grid.Header.Columns[i].Alignment = taRightJustify then
-        Attribs := ' style="text-align: right;"'
-      else
-        Attribs := '';
-      tmp := tmp + '          <td'+Attribs+'>' + Data + '</td>' + CRLF;
+      // Escape HTML control characters in data.
+      Data := htmlentities(Data);
+      tmp := tmp + '          <td class="col' + IntToStr(i) + '">' + Data + '</td>' + CRLF;
     end;
     tmp := tmp + '        </tr>' + CRLF;
     StreamWrite(S, tmp);
+    // Release some memory.
+    Mainform.Childwin.DiscardData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -827,6 +860,7 @@ begin
     '  </body>' + CRLF +
     '</html>' + CRLF;
   StreamWrite(S, tmp);
+  Grid.Visible := true;
   Mainform.Showstatus(STATUS_MSG_READY);
 end;
 
@@ -839,7 +873,7 @@ end;
   @param string Field-encloser
   @param string Line-terminator
 }
-procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
+procedure GridToCsv(Grid: TVirtualStringTree; GridData: PGridResult; Separator, Encloser, Terminator: String; S: TStream);
 var
   i: Integer;
   tmp, Data: WideString;
@@ -855,37 +889,50 @@ begin
     // Skip hidden key columns
     if not (coVisible in Grid.Header.Columns[i].Options) then
       Continue;
-    if tmp <> '' then
-      tmp := tmp + Separator;
-    // TODO: Write HEX() in header if it's a hex-encoded binary column
-    tmp := tmp + Encloser + Grid.Header.Columns[i].Text + Encloser;
+    Data := GridData.Columns[i].Name;
+    // Alter column name in header if data is not raw.
+    if GridData.Columns[i].IsBinary then Data := 'HEX(' + Data + ')';
+    // Add header item.
+    if tmp <> '' then tmp := tmp + Separator;
+    tmp := tmp + Encloser + Data + Encloser;
   end;
+  tmp := tmp + Terminator;
   StreamWrite(S, tmp);
 
+  Grid.Visible := false;
+
   // Data:
-  // TODO: Load complete data before exporting, fx using a variation
-  //       of DataGridCurrentQuery without LEFT(<>, 256) in it.
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
-    tmp := Terminator;
+    tmp := '';
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
+      // Ensure basic data is loaded and load remainder of large fields.
+      Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+      Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Unformat float values
-      if Grid.Header.Columns[i].Alignment = taRightJustify then
-        Data := FloatStr(Data);
-      // TODO: Write unenclosed NULL if field is null
-      // TODO: Escape encloser characters within data
-      // TODO: superfluous field separator at end of each row
-      tmp := tmp + Encloser + Data + Encloser + Separator;
+      if Grid.Header.Columns[i].Alignment = taRightJustify then Data := FloatStr(Data);
+      // Escape encloser characters inside data per de-facto CSV.
+      Data := WideStringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
+      // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
+      if GridData.Rows[Node.Index].Cells[i].IsNull then Data := 'NULL'
+      else Data := Encloser + Data + Encloser;
+      // Add cell.
+      if tmp <> '' then tmp := tmp + Separator;
+      tmp := tmp + Data;
     end;
+    tmp := tmp + Terminator;
     StreamWrite(S, tmp);
+    // Release some memory.
+    Mainform.Childwin.DiscardData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
+  Grid.Visible := true;
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 
@@ -896,7 +943,7 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as root-element
 }
-procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
+procedure GridToXml(Grid: TVirtualStringTree; GridData: PGridResult; root: WideString; S: TStream);
 var
   i: Integer;
   tmp, Data: WideString;
@@ -906,35 +953,46 @@ begin
       '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
 
-  // TODO: Load complete data before exporting, fx using a variation
-  //       of DataGridCurrentQuery without LEFT(<>, 256) in it.
+  // Avoid reloading discarded data before the end.
+  Grid.Visible := false;
   Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
-      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+     ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := #9'<row>' + CRLF;
     // Data:
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      Data := Grid.Text[Node, i];
-      // Unformat float values
-      if Grid.Header.Columns[i].Alignment = taRightJustify then
-        Data := FloatStr(Data)
-      else
-      // TODO: if binary (hex) data, set an attribute format="hex" on field
-      // TODO: if null value, end field using /> and set attribute isnull="true" 
+      // Print cell start tag.
+      tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
+      if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
+      else begin
+        if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
+        tmp := tmp + '>';
+        // Ensure basic data is loaded and load remainder of large fields.
+        Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+        Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
+        Data := Grid.Text[Node, i];
+        // Unformat float values
+        if Grid.Header.Columns[i].Alignment = taRightJustify then Data := FloatStr(Data);
+        // Escape XML control characters in data.
         Data := htmlentities(Data);
-      tmp := tmp + #9#9'<'+Grid.Header.Columns[i].Text+'>' + Data + '</'+Grid.Header.Columns[i].Text+'>' + CRLF;
+        // Add data and cell end tag.
+        tmp := tmp + Data + '</' + Grid.Header.Columns[i].Text + '>' + CRLF;
+      end;
     end;
     tmp := tmp + #9'</row>' + CRLF;
     StreamWrite(S, tmp);
+    // Release some memory.
+    Mainform.Childwin.DiscardData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
   tmp := '</table>' + CRLF;
   StreamWrite(S, tmp);
+  Grid.Visible := true;
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 

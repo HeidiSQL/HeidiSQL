@@ -295,7 +295,9 @@ type
     procedure ShowTable(table: WideString; tab: TTabSheet = nil);
     procedure ShowTableProperties;
     procedure ShowTableData(table: WideString);
+    procedure EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode);
     procedure EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DiscardData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
@@ -469,6 +471,7 @@ type
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
       function GetActiveGrid: TVirtualStringTree;
+      function GetActiveData: PGridResult;
       procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
       function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
       procedure DisplayRowCountStats;
@@ -503,8 +506,7 @@ type
       FProgressForm              : TFrmQueryProgress;
 
       // Variables set by preferences dialog
-      prefRememberFilters,
-      prefConvertHTMLEntities    : Boolean;
+      prefRememberFilters        : Boolean;
       prefLogsqlnum,
       prefLogSqlWidth,
       prefDefaultColWidth        : Integer;
@@ -523,7 +525,7 @@ type
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
       //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
-      function GetVisualDataset: TGridResult;
+      function GetVisualDataset: PGridResult;
 
       function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
       function ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
@@ -531,6 +533,7 @@ type
 
       property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
       property ActiveGrid: TVirtualStringTree read GetActiveGrid;
+      property ActiveData: PGridResult read GetActiveData;
       property MysqlConn : TMysqlConn read FMysqlConn;
       property Conn : TOpenConnProf read FConn;
 
@@ -562,7 +565,7 @@ type
       function GridPostDelete(Sender: TBaseVirtualTree): Boolean;
       function DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
       procedure GridFinalizeEditing(Sender: TBaseVirtualTree);
-      function GetWhereClause(Row: TGridRow; Columns: TGridColumns; KeyList: TDataSet): WideString;
+      function GetWhereClause(Row: PGridRow; Columns: PGridColumns; KeyList: TDataSet): WideString;
       function GetKeyColumns(KeyList: TDataset): WideStrings.TWideStringlist;
       function CheckUniqueKeyClause: Boolean;
       procedure DataGridInsertRow;
@@ -876,7 +879,6 @@ begin
     prefDefaultColWidth := DEFAULT_DEFAULTCOLWIDTH;
   prefLogsqlnum := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   prefLogSqlWidth := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
-  prefConvertHTMLEntities := Mainform.GetRegValue(REGNAME_CONVERTHTMLENTITIES, DEFAULT_CONVERTHTMLENTITIES);
   prefCSVSeparator := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   prefCSVEncloser := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   prefCSVTerminator := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
@@ -3474,17 +3476,17 @@ begin
 end;
 
 {***
-  This returns the dataset object that is currently visible to the user,
+  This returns the GridResult object that is currently visible to the user,
   depending on with tabsheet is active.
 
-  @return TDataset if data/query tab is active, nil otherwise.
+  @return PGridResult if data/query tab is active, nil otherwise.
 }
-function TMDIChild.GetVisualDataset: TGridResult;
+function TMDIChild.GetVisualDataset: PGridResult;
 begin
-
+  Result := nil;
   case PageControlMain.ActivePageIndex of
-    3: Result := FDataGridResult;
-    4: Result := FQueryGridResult;
+    3: Result := @FDataGridResult;
+    4: Result := @FQueryGridResult;
   end;
 end;
 
@@ -3648,6 +3650,14 @@ begin
   if PageControlMain.ActivePage = tabData then Result := DataGrid
   else if PageControlMain.ActivePage = tabQuery then Result := QueryGrid;
 end;
+
+function TMDIChild.GetActiveData: PGridResult;
+begin
+  Result := nil;
+  if PageControlMain.ActivePage = tabData then Result := @FDataGridResult
+  else if PageControlMain.ActivePage = tabQuery then Result := @FQueryGridResult;
+end;
+
 
 
 function TMDIChild.GetActiveDatabase: WideString;
@@ -5456,14 +5466,14 @@ end;
 
 procedure TMDIChild.EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
-  res: TGridResult;
+  res: PGridResult;
   start, limit: Cardinal;
   query: WideString;
   ds: TDataSet;
   i, j: LongInt;
 begin
-  if Sender = DataGrid then res := FDataGridResult
-  else res := FQueryGridResult;
+  if Sender = DataGrid then res := @FDataGridResult
+  else res := @FQueryGridResult;
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
     start := Node.Index - (Node.Index mod GridMaxRows);
     limit := DataGrid.RootNodeCount - start;
@@ -5499,6 +5509,20 @@ begin
   end;
 end;
 
+procedure TMDIChild.DiscardData(Sender: TVirtualStringTree; Node: PVirtualNode);
+var
+  Data: PGridResult;
+begin
+  // Avoid discarding query data as it will never be reloaded.
+  if Sender <> DataGrid then Exit;
+  Data := @FDataGridResult;
+  // Avoid rows being edited.
+  if Data.Rows[Node.Index].State = grsDefault then begin
+    Data.Rows[Node.Index].Loaded := false;
+    SetLength(Data.Rows[Node.Index].Cells, 0);
+  end;
+end;
+
 {**
   A grid cell fetches its text content
 }
@@ -5508,18 +5532,18 @@ procedure TMDIChild.GridGetText(Sender: TBaseVirtualTree; Node:
 const
   NullText = '(NULL)';
 var
-  c: TGridCell;
-  gr: TGridResult;
+  c: PGridCell;
+  gr: PGridResult;
   EditingCell: Boolean;
 begin
   if Column = -1 then
     Exit;
-  if Sender = DataGrid then gr := FDataGridResult
-  else gr := FQueryGridResult;
+  if Sender = DataGrid then gr := @FDataGridResult
+  else gr := @FQueryGridResult;
   if Node.Index >= Cardinal(Length(gr.Rows)) then
     Exit;
   EnsureDataLoaded(Sender, Node);
-  c := gr.Rows[Node.Index].Cells[Column];
+  c := @gr.Rows[Node.Index].Cells[Column];
   EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   if c.Modified then begin
     if c.NewIsNull then begin
@@ -5548,13 +5572,13 @@ procedure TMDIChild.GridPaintText(Sender: TBaseVirtualTree; const
 var
   isNull: Boolean;
   cl: TColor;
-  r: TGridResult;
+  r: PGridResult;
 begin
   if Column = -1 then
     Exit;
 
-  if Sender = DataGrid then r := FDataGridResult
-  else r := FQueryGridResult;
+  if Sender = DataGrid then r := @FDataGridResult
+  else r := @FQueryGridResult;
 
   if Node.Index >= Cardinal(Length(r.Rows)) then
     Exit;
@@ -5648,9 +5672,9 @@ end;
 procedure TMDIChild.DataGridNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
-  Row: TGridRow;
+  Row: PGridRow;
 begin
-  Row := FDataGridResult.Rows[Node.Index];
+  Row := @FDataGridResult.Rows[Node.Index];
   // Remember new value
   Row.Cells[Column].NewText := NewText;
   Row.Cells[Column].Modified := True;
@@ -5733,11 +5757,11 @@ function TMDIChild.GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
 var
   i: Integer;
   sql, Val: WideString;
-  Row: TGridRow;
+  Row: PGridRow;
   ds: TDataSet;
 begin
   sql := 'UPDATE '+mask(SelectedTable)+' SET';
-  Row := FDataGridResult.Rows[Sender.FocusedNode.Index];
+  Row := @FDataGridResult.Rows[Sender.FocusedNode.Index];
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
@@ -5751,7 +5775,7 @@ begin
   end;
   // Cut trailing comma
   sql := Copy(sql, 1, Length(sql)-2);
-  sql := sql + ' WHERE ' + GetWhereClause(Row, FDataGridResult.Columns, FSelectedTableKeys);
+  sql := sql + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys);
   try
     // Send UPDATE query
     ExecUpdateQuery(sql, False, True);
@@ -5776,7 +5800,7 @@ begin
     // Cut trailing comma
     sql := Copy(sql, 1, Length(sql)-2);
     sql := sql + ' FROM ' + mask(SelectedTable)
-      + ' WHERE ' + GetWhereClause(Row, FDataGridResult.Columns, FSelectedTableKeys);
+      + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys);
     ds := ExecSelectQuery(sql);
     if ds.RecordCount = 1 then begin
       for i := 0 to ds.FieldCount - 1 do begin
@@ -5818,7 +5842,7 @@ end;
 {**
   Compose a WHERE clause used for UPDATEs and DELETEs
 }
-function TMDIChild.GetWhereClause(Row: TGridRow; Columns: TGridColumns; KeyList: TDataSet): WideString;
+function TMDIChild.GetWhereClause(Row: PGridRow; Columns: PGridColumns; KeyList: TDataSet): WideString;
 var
   i, j: Integer;
   KeyVal: WideString;
@@ -5827,8 +5851,8 @@ begin
   Result := '';
   KeyCols := GetKeyColumns(KeyList);
   for i := 0 to KeyCols.Count - 1 do begin
-    for j := 0 to Length(Columns) - 1 do begin
-      if Columns[j].Name = KeyCols[i] then
+    for j := 0 to Length(Columns^) - 1 do begin
+      if Columns^[j].Name = KeyCols[i] then
         break;
     end;
     // Find old value of key column
@@ -5905,13 +5929,13 @@ end;
 }
 function TMDIChild.GridPostInsert(Sender: TBaseVirtualTree): Boolean;
 var
-  Row: TGridRow;
+  Row: PGridRow;
   sql, Cols, Val, Vals: WideString;
   i: Integer;
   Node: PVirtualNode;
 begin
   Node := Sender.FocusedNode;
-  Row := FDataGridResult.Rows[Node.Index];
+  Row := @FDataGridResult.Rows[Node.Index];
   Cols := '';
   Vals := '';
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
@@ -5967,7 +5991,7 @@ begin
   sql := 'DELETE FROM '+mask(SelectedTable)+' WHERE';
   while Assigned(Node) do begin
     sql := sql + ' (' +
-      GetWhereClause(FDataGridResult.Rows[Node.Index], FDataGridResult.Columns, FSelectedTableKeys) +
+      GetWhereClause(@FDataGridResult.Rows[Node.Index], @FDataGridResult.Columns, FSelectedTableKeys) +
       ') OR';
     Node := Sender.GetNextSelected(Node);
   end;
@@ -6050,13 +6074,47 @@ begin
 end;
 
 
+// TODO: Version of EnsureFullWidth() that fetches all width limited columns
+//       for a row, and fetches 500 rows at a time, for use with GridTo{Xml,Csv,Html}.
+//       Would reduce number of database roundtrips; also the per-query overhead
+//       right now is horrendous for some reason (thinking mysqlquerythread).
+procedure TMDIChild.EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode);
+var
+  Data: PGridResult;
+  Cell: PGridCell;
+  Row: PGridRow;
+  Col: PGridColumn;
+  sql: WideString;
+  len: Int64;
+  ds: TDataSet;
+begin
+  // Only the data grid uses delayed loading of full-width data.
+  if Grid <> DataGrid then Exit;
+  Data := @FDataGridResult;
+
+  // Load entire data for field.
+  Col := @Data.Columns[Column];
+  Row := @Data.Rows[Node.Index];
+  Cell := @Data.Rows[Node.Index].Cells[Column];
+  len := Length(Cell.Text);
+  // Recalculate due to textual formatting of raw binary data.
+  if (Col.IsBinary) and (len > 2) then len := (len - 2) div 2;
+  // Assume width limit in effect if data exactly at limit threshold.
+  if len = GridMaxData then begin
+    sql :=
+      'SELECT ' + mask(Col.Name) +
+      ' FROM ' + mask(SelectedTable) +
+      ' WHERE ' + GetWhereClause(Row, @Data.Columns, FSelectedTableKeys)
+    ;
+    ds := GetResults(sql);
+    if Col.IsBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
+    else Cell.Text := ds.Fields[0].AsWideString;
+    Cell.IsNull := ds.Fields[0].IsNull;
+  end;
+end;
+
 procedure TMDIChild.DataGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
-var
-  Cell: TGridCell;
-  Row: TGridRow;
-  Col: TGridColumn;
-  sql: WideString;
 begin
   Allowed := True;
   if FDataGridResult.Rows[Node.Index].State = grsDefault then
@@ -6065,19 +6123,7 @@ begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
     Mainform.actDataCancelEdit.ShortCut := 0;
     Mainform.actDataPost.ShortCut := 0;
-    // Load entire data for field.
-    Cell := FDataGridResult.Rows[Node.Index].Cells[Column];
-    if Length(Cell.Text) >= GridMaxData then begin
-      Col := FDataGridResult.Columns[Column];
-      Row := FDataGridResult.Rows[Node.Index];
-      sql :=
-        'SELECT ' + mask(Col.Name) +
-        ' FROM ' + mask(SelectedTable) +
-        ' WHERE ' + GetWhereClause(Row, FDataGridResult.Columns, FSelectedTableKeys)
-      ;
-      Cell.Text := GetVar(sql);
-      FDataGridResult.Rows[Node.Index].Cells[Column].Text := Cell.Text;
-    end;
+    EnsureFullWidth(Sender, Column, Node);
   end;
 end;
 
