@@ -69,17 +69,6 @@ object optionsform: Toptionsform
         TabOrder = 0
         OnClick = Modified
       end
-      object CheckBoxConvertHTMLEntities: TCheckBox
-        Left = 16
-        Top = 57
-        Width = 305
-        Height = 17
-        Caption = 'Convert HTML-entities when copying/saving data (<, >)'
-        Checked = True
-        State = cbChecked
-        TabOrder = 1
-        OnClick = Modified
-      end
       object updownLogSQLNum: TUpDown
         Left = 114
         Top = 79
@@ -89,7 +78,7 @@ object optionsform: Toptionsform
         Min = 1
         Max = 32767
         Position = 1
-        TabOrder = 2
+        TabOrder = 1
         Wrap = True
         OnChanging = anyUpDownLimitChanging
       end
@@ -98,7 +87,7 @@ object optionsform: Toptionsform
         Top = 79
         Width = 53
         Height = 21
-        TabOrder = 3
+        TabOrder = 2
         Text = '1'
         OnChange = Modified
       end
@@ -110,7 +99,7 @@ object optionsform: Toptionsform
         Caption = 'Restore last used database on startup'
         Checked = True
         State = cbChecked
-        TabOrder = 4
+        TabOrder = 3
         OnClick = Modified
       end
       object chkLogToFile: TCheckBox
@@ -120,7 +109,7 @@ object optionsform: Toptionsform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Write SQL log to file'
-        TabOrder = 5
+        TabOrder = 4
         OnClick = Modified
       end
       object btnOpenLogFolder: TButton
@@ -129,7 +118,7 @@ object optionsform: Toptionsform
         Width = 106
         Height = 20
         Caption = 'Open log folder ...'
-        TabOrder = 6
+        TabOrder = 5
         OnClick = btnOpenLogFolderClick
       end
       object editLogSnip: TEdit
@@ -137,7 +126,7 @@ object optionsform: Toptionsform
         Top = 107
         Width = 72
         Height = 21
-        TabOrder = 7
+        TabOrder = 6
         Text = '2000'
       end
       object updownLogSnip: TUpDown
@@ -148,7 +137,7 @@ object optionsform: Toptionsform
         Associate = editLogSnip
         Max = 32767
         Position = 2000
-        TabOrder = 8
+        TabOrder = 7
         OnChanging = anyUpDownLimitChanging
       end
       object chkUpdatecheck: TCheckBox
@@ -157,7 +146,7 @@ object optionsform: Toptionsform
         Width = 268
         Height = 17
         Caption = 'Automatically check for updates / Interval [days]:'
-        TabOrder = 9
+        TabOrder = 8
         OnClick = chkUpdatecheckClick
       end
       object editUpdatecheckInterval: TEdit
@@ -166,7 +155,7 @@ object optionsform: Toptionsform
         Width = 43
         Height = 21
         Enabled = False
-        TabOrder = 10
+        TabOrder = 9
         Text = '1'
       end
       object updownUpdatecheckInterval: TUpDown
@@ -179,7 +168,7 @@ object optionsform: Toptionsform
         Min = 1
         Max = 999
         Position = 1
-        TabOrder = 11
+        TabOrder = 10
         OnChanging = anyUpDownLimitChanging
       end
       object chkPreferShowTables: TCheckBox
@@ -191,7 +180,7 @@ object optionsform: Toptionsform
         Caption = 
           'Use SHOW TABLES instead of SHOW TABLE STATUS (faster for large d' +
           'atabases, but disables certain functionalities)'
-        TabOrder = 12
+        TabOrder = 11
         WordWrap = True
         OnClick = Modified
       end
@@ -202,7 +191,7 @@ object optionsform: Toptionsform
         Height = 17
         Caption = 'Also check for updated nightly builds'
         Enabled = False
-        TabOrder = 13
+        TabOrder = 12
       end
     end
     object TabSheet2: TTabSheet

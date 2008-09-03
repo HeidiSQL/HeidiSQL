@@ -1107,12 +1107,14 @@ end;
 procedure TMainForm.actCopyAsCSVExecute(Sender: TObject);
 var
   S: TMemoryStream;
+  GridData: PGridResult;
 begin
   // Copy data in focused grid as CSV
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
   try
-    GridToCsv(ChildWin.ActiveGrid, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, S);
+    GridData := ChildWin.ActiveData;
+    GridToCsv(ChildWin.ActiveGrid, GridData, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -1127,6 +1129,7 @@ procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
   Title: WideString;
+  GridData: PGridResult;
 begin
   // Copy data in focused grid as HTML table
   Screen.Cursor := crHourglass;
@@ -1134,7 +1137,8 @@ begin
   if ChildWin.ActiveGrid = Childwin.DataGrid then Title := Childwin.SelectedTable
   else Title := 'SQL query';
   try
-    GridToHtml(ChildWin.ActiveGrid, Title, ChildWin.prefConvertHTMLEntities, S);
+    GridData := ChildWin.ActiveData;
+    GridToHtml(ChildWin.ActiveGrid, GridData, Title, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -1149,6 +1153,7 @@ procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
   Root: WideString;
+  GridData: PGridResult;
 begin
   // Copy data in focused grid as XML
   Screen.Cursor := crHourglass;
@@ -1156,7 +1161,8 @@ begin
   if ChildWin.ActiveGrid = Childwin.DataGrid then Root := Childwin.SelectedTable
   else Root := 'SQL query';
   try
-    GridToXml(ChildWin.ActiveGrid, Root, S);
+    GridData := ChildWin.ActiveData;
+    GridToXml(ChildWin.ActiveGrid, GridData, Root, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -1170,6 +1176,7 @@ end;
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
+  GridData: PGridResult;
   Dialog: TSaveDialog;
   FS: TFileStream;
   Title: WideString;
@@ -1178,21 +1185,22 @@ begin
   Dialog := ChildWin.SaveDialogExportData;
 
   Grid := Childwin.ActiveGrid;
+  GridData := Childwin.ActiveData;
   if Grid = Childwin.DataGrid then
     Title := ChildWin.SelectedTable
   else
-    Title := 'SQL-query';
+    Title := 'SQL query';
 
   Dialog.FileName := Title;
-  Dialog.Title := 'Export result-set from '+Dialog.Filename+'...';
+  Dialog.Title := 'Export result set from '+Dialog.Filename+'...';
 
   if Dialog.Execute and (Dialog.FileName <> '') then try
     Screen.Cursor := crHourGlass;
     FS := openfs(Dialog.FileName);
     case Dialog.FilterIndex of
-      1: GridToCsv(Grid, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, FS);
-      2: GridToHtml(Grid, Title, ChildWin.prefConvertHTMLEntities, FS);
-      3: GridToXml(Grid, Title, FS);
+      1: GridToCsv(Grid, GridData, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, FS);
+      2: GridToHtml(Grid, GridData, Title, FS);
+      3: GridToXml(Grid, GridData, Title, FS);
     end;
     ShowStatus('Freeing data...');
     FS.Free;
