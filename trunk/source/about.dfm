@@ -1543,14 +1543,12 @@ object AboutBox: TAboutBox
       Anchors = [akLeft, akTop, akRight, akBottom]
       Lines.Strings = (
         'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
+        'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
         'SynEdit under LGPL - http://synedit.sourceforge.net'
         'TNT Unicode Controls - '
         'http://www.mh-nexus.de/tntunicodecontrols.htm'
-        'Inno Setup - http://www.jrsoftware.org/'
-        'Sebasti'#225'n Mayor'#225' for EDBImage'
-        'Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/'
         'Mark James for his Silk icon set'
-        'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
+        'Inno Setup - http://www.jrsoftware.org/'
         'MySQL for great database software')
       ReadOnly = True
       ScrollBars = ssVertical
