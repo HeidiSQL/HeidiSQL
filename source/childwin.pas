@@ -437,6 +437,9 @@ type
     procedure SynMemoFilterChange(Sender: TObject);
     procedure tabsetQueryHelpersGetImageIndex(Sender: TObject; TabIndex: Integer;
         var ImageIndex: Integer);
+    procedure DataGridAfterCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellRect: TRect);
 
     private
       uptime                     : Integer;
@@ -5581,6 +5584,19 @@ begin
   else
     if isNull then cl := COLOR_NULLVALUE else cl := clWindowText;
   TargetCanvas.Font.Color := cl;
+end;
+
+
+procedure TMDIChild.DataGridAfterCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellRect: TRect);
+begin
+  // Don't waist time
+  if Column = -1 then
+    Exit;
+  // Paint a red triangle at the top left corner of the cell
+  if FDataGridResult.Rows[Node.Index].Cells[Column].Modified then
+    Mainform.PngImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
 end;
 
 

@@ -933,6 +933,7 @@ object MDIChild: TMDIChild
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
           TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
           WantTabs = True
+          OnAfterCellPaint = DataGridAfterCellPaint
           OnChange = DataGridChange
           OnCreateEditor = DataGridCreateEditor
           OnEditCancelled = DataGridEditCancelled
