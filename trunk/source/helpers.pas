@@ -839,6 +839,8 @@ begin
       Mainform.Childwin.EnsureDataLoaded(Grid, Node);
       Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
+      // Handle nulls.
+      if GridData.Rows[Node.Index].Cells[i].IsNull then Data := TEXT_NULL;
       // Escape HTML control characters in data.
       Data := htmlentities(Data);
       tmp := tmp + '          <td class="col' + IntToStr(i) + '">' + Data + '</td>' + CRLF;
@@ -915,6 +917,8 @@ begin
       Mainform.Childwin.EnsureDataLoaded(Grid, Node);
       Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
+      // Remove 0x.
+      if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
       // Unformat float values
       if Grid.Header.Columns[i].Alignment = taRightJustify then Data := FloatStr(Data);
       // Escape encloser characters inside data per de-facto CSV.
@@ -975,6 +979,8 @@ begin
         Mainform.Childwin.EnsureDataLoaded(Grid, Node);
         Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
         Data := Grid.Text[Node, i];
+        // Remove 0x.
+        if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
         // Unformat float values
         if Grid.Header.Columns[i].Alignment = taRightJustify then Data := FloatStr(Data);
         // Escape XML control characters in data.

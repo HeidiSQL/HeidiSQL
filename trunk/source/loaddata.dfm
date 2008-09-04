@@ -151,7 +151,7 @@ object loaddataform: Tloaddataform
           Width = 49
           Height = 21
           TabOrder = 0
-          Text = '\\'
+          Text = '"'
         end
         object editFieldEncloser: TEdit
           Left = 104
@@ -159,6 +159,7 @@ object loaddataform: Tloaddataform
           Width = 49
           Height = 21
           TabOrder = 1
+          Text = '"'
         end
         object editFieldTerminator: TEdit
           Left = 104
@@ -166,7 +167,7 @@ object loaddataform: Tloaddataform
           Width = 49
           Height = 21
           TabOrder = 2
-          Text = '\t'
+          Text = ';'
         end
         object chkFieldsEnclosedOptionally: TCheckBox
           Left = 167
@@ -174,6 +175,8 @@ object loaddataform: Tloaddataform
           Width = 73
           Height = 17
           Caption = 'optionally'
+          Checked = True
+          State = cbChecked
           TabOrder = 3
         end
       end
@@ -230,7 +233,7 @@ object loaddataform: Tloaddataform
           Width = 49
           Height = 21
           TabOrder = 2
-          Text = '\n'
+          Text = '\r\n'
         end
       end
     end
