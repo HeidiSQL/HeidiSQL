@@ -16,6 +16,9 @@ const
   // Related field things
   TEMPFIELDNAME             = 'temp_fieldname';
 
+  // Placeholder text for NULL values
+  TEXT_NULL                 = '(NULL)';
+
   // General things
   APPNAME          = 'HeidiSQL';
   APPDOMAIN        = 'http://www.heidisql.com/';
@@ -149,9 +152,9 @@ const
   DEFAULT_CSV_ENCLOSER = '"';
   REGNAME_CSV_TERMINATOR = 'CSVTerminator';
   DEFAULT_CSV_TERMINATOR = '\r\n';
-  REGNAME_CSV_ESCAPER = 'CSVImportFieldEscaper';
+  REGNAME_CSV_ESCAPER = 'CSVImportFieldEscaperV2';
   REGNAME_CSV_FILENAME = 'loadfilename';
-  REGNAME_CSV_ENCLOPTION = 'CSVImportFieldsEnclosedOptionally';
+  REGNAME_CSV_ENCLOPTION = 'CSVImportFieldsEnclosedOptionallyV2';
   REGNAME_CSV_IGNORELINES = 'CSVImportIgnoreLines';
   REGNAME_CSV_LOWPRIO = 'CSVImportLowPriority';
   REGNAME_CSV_REPLACE = 'CSVImportReplace';
