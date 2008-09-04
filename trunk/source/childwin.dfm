@@ -66,12 +66,10 @@ object MDIChild: TMDIChild
       Images = MainForm.PngImageListMain
       IncrementalSearch = isInitializedOnly
       Indent = 16
-      Margin = 2
       ParentShowHint = False
       PopupMenu = popupTreeView
       ShowHint = True
       TabOrder = 0
-      TextMargin = 2
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toRightClickSelect]

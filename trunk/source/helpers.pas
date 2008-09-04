@@ -2630,7 +2630,7 @@ begin
   // Vist font fix: VT.Header doesn't have a ParentFont property, so we apply the font manually
   InheritFont(VT.Header.Font);
   // Resize hardcoded node height to work with different DPI settings
-  newHeight := VT.Canvas.TextHeight('A') + VT.TextMargin*2;
+  newHeight := VT.Canvas.TextHeight('A') + 6;
   VT.DefaultNodeHeight := newHeight;
   VT.Header.Height := newHeight;
 end;
