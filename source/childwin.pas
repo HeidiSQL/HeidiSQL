@@ -5529,8 +5529,6 @@ end;
 procedure TMDIChild.GridGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
     WideString);
-const
-  NullText = '(NULL)';
 var
   c: PGridCell;
   gr: PGridResult;
@@ -5548,12 +5546,12 @@ begin
   if c.Modified then begin
     if c.NewIsNull then begin
       if EditingCell then CellText := ''
-      else CellText := NullText;
+      else CellText := TEXT_NULL;
     end else CellText := c.NewText;
   end else begin
     if c.IsNull then begin
       if EditingCell then CellText := ''
-      else CellText := NullText;
+      else CellText := TEXT_NULL;
     end else begin
       CellText := c.Text;
       if Length(c.Text) = GridMaxData then CellText := CellText + ' [...]';
