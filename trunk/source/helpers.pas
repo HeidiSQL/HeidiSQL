@@ -920,7 +920,7 @@ begin
       // Remove 0x.
       if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
       // Unformat float values
-      if Grid.Header.Columns[i].Alignment = taRightJustify then Data := FloatStr(Data);
+      if GridData.Columns[i].IsFloat then Data := FloatStr(Data);
       // Escape encloser characters inside data per de-facto CSV.
       Data := WideStringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
@@ -971,18 +971,19 @@ begin
         Continue;
       // Print cell start tag.
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
+      // Ensure basic data is loaded.
+      Mainform.Childwin.EnsureDataLoaded(Grid, Node);
       if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
         if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
-        // Ensure basic data is loaded and load remainder of large fields.
-        Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+        // Load remainder of large fields.
         Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
         // Unformat float values
-        if Grid.Header.Columns[i].Alignment = taRightJustify then Data := FloatStr(Data);
+        if GridData.Columns[i].IsFloat then Data := FloatStr(Data);
         // Escape XML control characters in data.
         Data := htmlentities(Data);
         // Add data and cell end tag.
