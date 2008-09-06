@@ -139,6 +139,7 @@ object MDIChild: TMDIChild
               Header.Font.Style = []
               Header.Height = 20
               Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+              Header.ParentFont = True
               Header.SortColumn = 0
               HintMode = hmTooltip
               Images = MainForm.PngImageListMain
@@ -215,6 +216,7 @@ object MDIChild: TMDIChild
               Header.Font.Style = []
               Header.Height = 20
               Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+              Header.ParentFont = True
               Header.SortColumn = 0
               HintMode = hmTooltip
               Images = MainForm.PngImageListMain
@@ -299,6 +301,7 @@ object MDIChild: TMDIChild
               Header.Font.Style = []
               Header.Height = 20
               Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+              Header.ParentFont = True
               Header.SortColumn = 0
               Header.SortDirection = sdDescending
               HintMode = hmTooltip
@@ -450,6 +453,7 @@ object MDIChild: TMDIChild
               Header.Font.Style = []
               Header.Height = 20
               Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+              Header.ParentFont = True
               Header.SortColumn = 1
               Header.SortDirection = sdDescending
               HintMode = hmTooltip
@@ -524,6 +528,7 @@ object MDIChild: TMDIChild
           Header.Font.Style = []
           Header.Height = 20
           Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+          Header.ParentFont = True
           Header.PopupMenu = popupDbGridHeader
           Header.SortColumn = 0
           HintMode = hmTooltip
@@ -682,6 +687,7 @@ object MDIChild: TMDIChild
           Header.Font.Style = []
           Header.Height = 20
           Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+          Header.ParentFont = True
           HintMode = hmTooltip
           Images = MainForm.PngImageListMain
           IncrementalSearch = isInitializedOnly
@@ -922,6 +928,7 @@ object MDIChild: TMDIChild
           Header.Images = MainForm.PngImageListMain
           Header.MainColumn = -1
           Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
+          Header.ParentFont = True
           IncrementalSearch = isAll
           LineStyle = lsSolid
           PopupMenu = popupDataGrid
@@ -1113,6 +1120,7 @@ object MDIChild: TMDIChild
           Header.Height = 20
           Header.MainColumn = -1
           Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint]
+          Header.ParentFont = True
           IncrementalSearch = isAll
           LineStyle = lsSolid
           PopupMenu = popupResultGrid

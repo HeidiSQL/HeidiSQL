@@ -857,7 +857,7 @@ begin
   InheritFont(Font);
   InheritFont(tabsetQueryHelpers.Font);
   InheritFont(SynCompletionProposal1.Font);
-  // Fix header font and adjust node height on Virtual Trees to DPI settings
+  // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
   FixVT(ListVariables);
   FixVT(ListStatus);
@@ -865,8 +865,6 @@ begin
   FixVT(ListCommandStats);
   FixVT(ListTables);
   FixVT(ListColumns);
-  FixVT(DataGrid);
-  FixVT(QueryGrid);
   // Other values:
   pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
@@ -904,6 +902,8 @@ begin
   QueryGrid.Font.Name := datafontname;
   DataGrid.Font.Size := datafontsize;
   QueryGrid.Font.Size := datafontsize;
+  FixVT(DataGrid);
+  FixVT(QueryGrid);
 
   // Color coding:
   SynSQLSyn1.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));

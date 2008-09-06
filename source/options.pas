@@ -215,6 +215,8 @@ begin
     cwin.QueryGrid.Font := self.Panel8.font;
     cwin.DataGrid.Repaint;
     cwin.QueryGrid.Repaint;
+    FixVT(cwin.QueryGrid);
+    FixVT(cwin.DataGrid);
     cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
     cwin.prefLogSqlWidth := self.updownLogSnip.Position;
