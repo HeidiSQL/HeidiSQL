@@ -26,6 +26,7 @@ type
     lblTargetDB: TLabel;
     ComboSelectDatabase: TTntComboBox;
     ButtonOK: TButton;
+    chkSelectAll: TCheckBox;
     procedure radioStructureClick(Sender: TObject);
     procedure radioStructureAndDataClick(Sender: TObject);
     procedure CheckBoxWithAllFieldsClick(Sender: TObject);
@@ -33,6 +34,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure ButtonOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure CheckListBoxFieldsClickCheck(Sender: TObject);
+    procedure chkSelectAllClick(Sender: TObject);
   private
     { Private declarations }
     oldTableName : WideString;
@@ -42,13 +45,6 @@ type
 
   function CopyTableWindow(AOwner: TComponent): Boolean;
 
-const
-  OPTION_UNDEFINED = 255;
-  OPTION_STRUCTURE = 0;
-  OPTION_STRUCTURE_AND_DATA = 1;
-  OPTION_REGNAME_STRUC_DATA = 'CopyTable_Option_StructureData';
-  OPTION_REGNAME_WITH_INDEXES = 'CopyTable_Option_WithIndexes';
-  OPTION_REGNAME_WITH_ALL_FIELDS = 'CopyTable_Option_WithAllFields';
 
 implementation
 
@@ -84,6 +80,7 @@ end;
 procedure TCopyTableForm.CheckBoxWithAllFieldsClick(Sender: TObject);
 begin
   CheckListBoxFields.Enabled := not CheckBoxWithAllFields.Checked;
+  chkSelectAll.Enabled := CheckListBoxFields.Enabled;
 end;
 
 
@@ -121,7 +118,7 @@ begin
   oldTableName := NodeData.Captions[0];
   editNewTablename.Text := oldTableName + '_copy';
   editNewTablename.SetFocus;
-  lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new Table:';
+  lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new table:';
 
 	// Select TargetDatabase
   ComboSelectDatabase.Items.Clear;
@@ -149,16 +146,19 @@ begin
     restore last settings
     @see feature #1647058
   }
-  struc_data := mainform.GetRegValue( OPTION_REGNAME_STRUC_DATA, OPTION_STRUCTURE_AND_DATA );
+  struc_data := mainform.GetRegValue( REGNAME_COPYTABLE_STRUCDATA, DEFAULT_COPYTABLE_STRUCDATA );
   case struc_data of
-    OPTION_STRUCTURE:
+    REGVAL_COPYTABLE_STRUCTURE:
       radioStructure.Checked := true;
-    OPTION_STRUCTURE_AND_DATA:
+    REGVAL_COPYTABLE_STRUCTURE_AND_DATA:
       radioStructureAndData.Checked := true;
   end;
-  CheckBoxWithIndexes.Checked := mainform.GetRegValue( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
-  CheckBoxWithAllFields.Checked := mainform.GetRegValue( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
-
+  CheckBoxWithIndexes.Checked := mainform.GetRegValue( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
+  CheckBoxWithAllFields.Checked := mainform.GetRegValue( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
+  // Ensure CheckListBoxFields + chkSelectAll are en/disabled
+  CheckBoxWithAllFieldsClick(Sender);
+  // Ensure chkSelectAll shows its correct state
+  CheckListBoxFieldsClickCheck(Sender);
 end;
 
 
@@ -177,15 +177,14 @@ begin
   // copy table!
 
   // store settings
-  struc_data := OPTION_UNDEFINED;
-  if radioStructure.Checked then struc_data := OPTION_STRUCTURE;
-  if radioStructureAndData.Checked then struc_data := OPTION_STRUCTURE_AND_DATA;
+  if radioStructure.Checked then struc_data := REGVAL_COPYTABLE_STRUCTURE
+  else struc_data := REGVAL_COPYTABLE_STRUCTURE_AND_DATA;
 
   reg := TRegistry.Create;
   if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( OPTION_REGNAME_STRUC_DATA, struc_data );
-    reg.WriteBool( OPTION_REGNAME_WITH_INDEXES, CheckBoxWithIndexes.Checked );
-    reg.WriteBool( OPTION_REGNAME_WITH_ALL_FIELDS, CheckBoxWithAllFields.Checked );
+    reg.WriteInteger( REGNAME_COPYTABLE_STRUCDATA, struc_data );
+    reg.WriteBool( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
+    reg.WriteBool( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
     reg.CloseKey;
   end;
   reg.Free;
@@ -298,6 +297,35 @@ begin
   Mainform.Childwin.MenuRefreshClick(Self);
   close;
 
+end;
+
+procedure TCopyTableForm.CheckListBoxFieldsClickCheck(Sender: TObject);
+var
+  i : Integer;
+  allSelected, noneSelected : Boolean;
+begin
+  allselected := True;
+  noneSelected := True;
+  for i := 0 to CheckListBoxFields.Items.Count - 1 do begin
+    if CheckListBoxFields.Checked[i] then
+      noneSelected := False
+    else
+      allSelected := False;
+  end;
+  if noneSelected then
+    chkSelectAll.State := cbUnchecked
+  else if allSelected then
+    chkSelectAll.State := cbChecked
+  else
+    chkSelectAll.State := cbGrayed;
+end;
+
+
+procedure TCopyTableForm.chkSelectAllClick(Sender: TObject);
+begin
+  // Avoid executing when checkbox was toggled by code (see proc below)
+  if (Sender as TCheckBox).Focused then
+    ToggleCheckListBox( CheckListBoxFields, (Sender as TCheckBox).Checked );
 end;
 
 end.

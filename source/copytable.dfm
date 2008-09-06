@@ -21,41 +21,41 @@ object CopyTableForm: TCopyTableForm
   PixelsPerInch = 96
   TextHeight = 13
   object lblNewTablename: TLabel
-    Left = 16
-    Top = 16
-    Width = 105
+    Left = 8
+    Top = 8
+    Width = 103
     Height = 13
-    Caption = 'Copy .. to new Table:'
+    Caption = 'Copy .. to new table:'
   end
   object lblTargetDB: TLabel
-    Left = 16
-    Top = 64
-    Width = 85
+    Left = 8
+    Top = 56
+    Width = 84
     Height = 13
-    Caption = 'Target Database:'
+    Caption = 'Target database:'
   end
   object editNewTablename: TTntEdit
-    Left = 16
-    Top = 32
-    Width = 270
+    Left = 8
+    Top = 24
+    Width = 286
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     OnChange = editNewTablenameChange
   end
   object radioStructure: TRadioButton
-    Left = 160
-    Top = 117
-    Width = 81
+    Left = 154
+    Top = 109
+    Width = 140
     Height = 17
     Caption = 'Structure'
     TabOrder = 3
     OnClick = radioStructureClick
   end
   object radioStructureAndData: TRadioButton
-    Left = 160
-    Top = 141
-    Width = 113
+    Left = 154
+    Top = 133
+    Width = 140
     Height = 17
     Caption = 'Structure and Data'
     Checked = True
@@ -64,30 +64,30 @@ object CopyTableForm: TCopyTableForm
     OnClick = radioStructureAndDataClick
   end
   object CheckListBoxFields: TTntCheckListBox
-    Left = 16
-    Top = 165
-    Width = 270
+    Left = 8
+    Top = 157
+    Width = 286
     Height = 108
+    OnClickCheck = CheckListBoxFieldsClickCheck
     Anchors = [akLeft, akTop, akBottom]
     Columns = 2
-    Enabled = False
     ItemHeight = 13
     TabOrder = 2
   end
   object CheckBoxWithAllFields: TCheckBox
-    Left = 16
-    Top = 141
-    Width = 97
+    Left = 8
+    Top = 133
+    Width = 121
     Height = 17
-    Caption = 'With all Columns'
+    Caption = 'Include all columns'
     Checked = True
     State = cbChecked
     TabOrder = 1
     OnClick = CheckBoxWithAllFieldsClick
   end
   object ButtonCancel: TButton
-    Left = 203
-    Top = 293
+    Left = 211
+    Top = 296
     Width = 83
     Height = 25
     Anchors = [akRight, akBottom]
@@ -97,19 +97,19 @@ object CopyTableForm: TCopyTableForm
     TabOrder = 5
   end
   object CheckBoxWithIndexes: TCheckBox
-    Left = 16
-    Top = 117
-    Width = 97
+    Left = 8
+    Top = 109
+    Width = 121
     Height = 17
-    Caption = 'With Indexes'
+    Caption = 'Include indexes'
     Checked = True
     State = cbChecked
     TabOrder = 6
   end
   object ComboSelectDatabase: TTntComboBox
-    Left = 16
-    Top = 83
-    Width = 270
+    Left = 8
+    Top = 72
+    Width = 286
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
@@ -117,8 +117,8 @@ object CopyTableForm: TCopyTableForm
     TabOrder = 7
   end
   object ButtonOK: TButton
-    Left = 114
-    Top = 293
+    Left = 122
+    Top = 296
     Width = 83
     Height = 25
     Anchors = [akRight, akBottom]
@@ -127,5 +127,14 @@ object CopyTableForm: TCopyTableForm
     ModalResult = 1
     TabOrder = 8
     OnClick = ButtonOKClick
+  end
+  object chkSelectAll: TCheckBox
+    Left = 8
+    Top = 271
+    Width = 286
+    Height = 17
+    Caption = 'Select / deselect all'
+    TabOrder = 9
+    OnClick = chkSelectAllClick
   end
 end
