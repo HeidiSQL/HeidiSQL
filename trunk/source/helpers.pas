@@ -2626,14 +2626,29 @@ end;
 
 procedure FixVT(VT: TVirtualStringTree);
 var
-  newHeight: Integer;
+  ReadOnlyNodeHeight: Integer;
+  DC: HDC;
+  SaveFont: HFont;
+  I: Integer;
+  SysMetrics, Metrics: TTextMetric;
 begin
-  // Vist font fix: VT.Header doesn't have a ParentFont property, so we apply the font manually
-  InheritFont(VT.Header.Font);
   // Resize hardcoded node height to work with different DPI settings
-  newHeight := VT.Canvas.TextHeight('A') + 6;
-  VT.DefaultNodeHeight := newHeight;
-  VT.Header.Height := newHeight;
+  ReadOnlyNodeHeight := VT.Canvas.TextHeight('A') + 6;
+  if toEditable in VT.TreeOptions.MiscOptions then begin
+    // Editable nodes must have enough height for a TEdit, including its cursor
+    // Code taken from StdCtrls.TCustomEdit.AdjustHeight
+    DC := GetDC(0);
+    GetTextMetrics(DC, SysMetrics);
+    SaveFont := SelectObject(DC, VT.Font.Handle);
+    GetTextMetrics(DC, Metrics);
+    SelectObject(DC, SaveFont);
+    ReleaseDC(0, DC);
+    I := GetSystemMetrics(SM_CYBORDER) * 6;
+    VT.DefaultNodeHeight := Metrics.tmHeight + I;
+  end else
+    VT.DefaultNodeHeight := ReadOnlyNodeHeight;
+  // The header needs slightly more height than the normal nodes
+  VT.Header.Height := Trunc(ReadOnlyNodeHeight * 1.2);
 end;
 
 
