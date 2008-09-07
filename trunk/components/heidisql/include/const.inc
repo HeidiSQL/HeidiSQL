@@ -183,6 +183,29 @@ const
   REGNAME_COPYTABLE_INDEXES = 'CopyTable_Option_WithIndexes';
   REGNAME_COPYTABLE_ALLFIELDS = 'CopyTable_Option_WithAllFields';
 
+  REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
+  REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
+  REGNAME_FIELDCOLOR_BINARY = 'FieldColor_Binary';
+  REGNAME_FIELDCOLOR_DATETIME = 'FieldColor_Datetime';
+  REGNAME_FIELDCOLOR_ENUM = 'FieldColor_Enum';
+  DEFAULT_FIELDCOLOR_NUMERIC = $00FF0000; // clBlue
+  DEFAULT_FIELDCOLOR_TEXT = $00008000; // clGreen
+  DEFAULT_FIELDCOLOR_BINARY = $00800080; // clPurple
+  DEFAULT_FIELDCOLOR_DATETIME = $00000080; // clMaroon
+  DEFAULT_FIELDCOLOR_ENUM = $00008080; // clOlive
+  COLORSHIFT_NULLFIELDS = 30; // Percentage of brightness to add to normal field colors for NULL values
+
+  REGNAME_FIELDEDITOR_NUMERIC = 'FieldEditor_Numeric';
+  REGNAME_FIELDEDITOR_TEXT = 'FieldEditor_Text';
+  REGNAME_FIELDEDITOR_BINARY = 'FieldEditor_Binary';
+  REGNAME_FIELDEDITOR_DATETIME = 'FieldEditor_Datetime';
+  REGNAME_FIELDEDITOR_ENUM = 'FieldEditor_Enum';
+  DEFAULT_FIELDEDITOR_NUMERIC = True;
+  DEFAULT_FIELDEDITOR_TEXT = True;
+  DEFAULT_FIELDEDITOR_BINARY = True;
+  DEFAULT_FIELDEDITOR_DATETIME = True;
+  DEFAULT_FIELDEDITOR_ENUM = True;
+
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
@@ -229,7 +252,6 @@ const
   // Used by ListViews and Grids
   COLOR_SORTCOLUMN_ASC = $00F7F7F7; // light grey
   COLOR_SORTCOLUMN_DESC = $00EEEEEE; // medium grey
-  COLOR_NULLVALUE = $00707070; // darker gray
   ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
   ORDER_DESC = 1;           // dito
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button

@@ -87,6 +87,21 @@ type
     updownUpdatecheckInterval: TUpDown;
     chkPreferShowTables: TCheckBox;
     chkUpdateCheckBuilds: TCheckBox;
+    grpFieldLayout: TGroupBox;
+    lblFieldDatetime: TLabel;
+    cboxText: TColorBox;
+    chkEditorText: TCheckBox;
+    lblFieldText: TLabel;
+    lblFieldBinary: TLabel;
+    lblFieldNumeric: TLabel;
+    lblFieldEnum: TLabel;
+    cboxBinary: TColorBox;
+    cboxDatetime: TColorBox;
+    cboxNumeric: TColorBox;
+    cboxEnum: TColorBox;
+    chkEditorBinary: TCheckBox;
+    chkEditorDatetime: TCheckBox;
+    chkEditorEnum: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -168,6 +183,17 @@ begin
   reg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
   reg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
+  // Save color settings
+  reg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
+  reg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
+  reg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, cboxBinary.Selected);
+  reg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
+  reg.WriteInteger(REGNAME_FIELDCOLOR_ENUM, cboxEnum.Selected);
+  // Editor enablings
+  reg.WriteBool(REGNAME_FIELDEDITOR_TEXT, chkEditorText.Checked);
+  reg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
+  reg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
+  reg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
 
   // Clean registry from unwanted WHERE clauses if "Remember WHERE filters" was unchecked
   if not chkRememberFilters.Checked then begin
@@ -211,8 +237,6 @@ begin
     cwin.QueryGrid.Font.Name := self.comboDataFont.Text;
     cwin.DataGrid.Font.Size := self.udDataFontSize.Position;
     cwin.QueryGrid.Font.Size := self.udDataFontSize.Position;
-    cwin.DataGrid.Repaint;
-    cwin.QueryGrid.Repaint;
     FixVT(cwin.QueryGrid);
     FixVT(cwin.DataGrid);
     cwin.prefRememberFilters := chkRememberFilters.Checked;
@@ -229,6 +253,18 @@ begin
     cwin.prefCSVEncloser := self.Edit2.text;
     cwin.prefCSVTerminator := self.Edit3.text;
     cwin.prefPreferShowTables := chkPreferShowTables.Checked;
+    cwin.prefFieldColorNumeric := cboxNumeric.Selected;
+    cwin.prefFieldColorText := cboxText.Selected;
+    cwin.prefFieldColorBinary := cboxBinary.Selected;
+    cwin.prefFieldColorDatetime := cboxDatetime.Selected;
+    cwin.prefFieldColorEnum := cboxEnum.Selected;
+    cwin.CalcNullColors;
+    cwin.DataGrid.Repaint;
+    cwin.QueryGrid.Repaint;
+    cwin.prefEnableTextEditor := chkEditorText.Checked;
+    cwin.prefEnableBinaryEditor := chkEditorBinary.Checked;
+    cwin.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
+    cwin.prefEnableEnumEditor := chkEditorEnum.Checked;
   end;
 
   // Settings have been applied, send a signal to the user
@@ -322,6 +358,17 @@ begin
     ItemIndex := Items.IndexOf(datafontname);
   end;
   udDataFontSize.Position := datafontsize;
+  // Load color settings
+  cboxNumeric.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
+  cboxText.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
+  cboxBinary.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
+  cboxDatetime.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
+  cboxEnum.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
+  // Editor enablings
+  chkEditorText.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
+  chkEditorBinary.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
+  chkEditorDatetime.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
+  chkEditorEnum.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
 
   ButtonApply.Enabled := false;
   screen.Cursor := crdefault;

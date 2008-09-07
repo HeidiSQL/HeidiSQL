@@ -511,6 +511,140 @@ object optionsform: Toptionsform
         Position = 8
         TabOrder = 5
       end
+      object grpFieldLayout: TGroupBox
+        Left = 8
+        Top = 84
+        Width = 391
+        Height = 148
+        Caption = 'Field colors and editors'
+        TabOrder = 6
+        object lblFieldDatetime: TLabel
+          Left = 12
+          Top = 96
+          Width = 51
+          Height = 13
+          Caption = '&Date/time:'
+          FocusControl = cboxDatetime
+        end
+        object lblFieldText: TLabel
+          Left = 12
+          Top = 48
+          Width = 26
+          Height = 13
+          Caption = '&Text:'
+          FocusControl = cboxText
+        end
+        object lblFieldBinary: TLabel
+          Left = 12
+          Top = 72
+          Width = 34
+          Height = 13
+          Caption = '&Binary:'
+          FocusControl = cboxBinary
+        end
+        object lblFieldNumeric: TLabel
+          Left = 12
+          Top = 24
+          Width = 46
+          Height = 13
+          Caption = '&Numbers:'
+          FocusControl = cboxNumeric
+        end
+        object lblFieldEnum: TLabel
+          Left = 12
+          Top = 120
+          Width = 30
+          Height = 13
+          Caption = '&Enum:'
+          FocusControl = cboxEnum
+        end
+        object cboxText: TColorBox
+          Left = 100
+          Top = 45
+          Width = 120
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 0
+          OnChange = Modified
+        end
+        object chkEditorText: TCheckBox
+          Left = 234
+          Top = 47
+          Width = 154
+          Height = 17
+          Caption = 'Enable popup text editor'
+          TabOrder = 1
+          OnClick = Modified
+        end
+        object cboxBinary: TColorBox
+          Left = 100
+          Top = 69
+          Width = 120
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 2
+          OnChange = Modified
+        end
+        object cboxDatetime: TColorBox
+          Left = 100
+          Top = 93
+          Width = 120
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 3
+          OnChange = Modified
+        end
+        object cboxNumeric: TColorBox
+          Left = 100
+          Top = 21
+          Width = 120
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 4
+          OnChange = Modified
+        end
+        object cboxEnum: TColorBox
+          Left = 100
+          Top = 117
+          Width = 120
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 5
+          OnChange = Modified
+        end
+        object chkEditorBinary: TCheckBox
+          Left = 234
+          Top = 71
+          Width = 154
+          Height = 17
+          Caption = 'Enable popup HEX editor'
+          TabOrder = 6
+          OnClick = Modified
+        end
+        object chkEditorDatetime: TCheckBox
+          Left = 234
+          Top = 96
+          Width = 154
+          Height = 17
+          Caption = 'Enable calendar editor'
+          TabOrder = 7
+          OnClick = Modified
+        end
+        object chkEditorEnum: TCheckBox
+          Left = 234
+          Top = 120
+          Width = 154
+          Height = 17
+          Caption = 'Enable pulldown editor'
+          TabOrder = 8
+          OnClick = Modified
+        end
+      end
     end
     object TabSheet5: TTabSheet
       BorderWidth = 5
