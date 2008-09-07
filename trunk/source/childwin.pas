@@ -263,6 +263,7 @@ type
     Insert1: TMenuItem;
     Cancelediting1: TMenuItem;
     DataPost1: TMenuItem;
+    menuShowSizeColumn: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -442,6 +443,7 @@ type
     procedure DataGridAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
+    procedure menuShowSizeColumnClick(Sender: TObject);
 
     private
       uptime                     : Integer;
@@ -942,6 +944,13 @@ begin
   SynSQLSyn1.CommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
   SynSQLSyn1.TablenameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
   SynMemoQuery.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+
+  // Switch off/on displaying table/db sized in tree
+  menuShowSizeColumn.Checked := Mainform.GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
+  if menuShowSizeColumn.Checked then
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
+  else
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListVariables);
@@ -6225,6 +6234,25 @@ begin
   if FLastSelectedTableKeys = nil then
     FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
   Result := FLastSelectedTableKeys;
+end;
+
+
+procedure TMDIChild.menuShowSizeColumnClick(Sender: TObject);
+var
+  reg: TRegistry;
+  NewVal: Boolean;
+begin
+  NewVal := not TMenuItem(Sender).Checked;
+  TMenuItem(Sender).Checked := newVal;
+  if NewVal then
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
+  else
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
+  reg := TRegistry.Create;
+  reg.OpenKey(REGPATH, true);
+  reg.WriteBool(REGNAME_SIZECOL_TREE, NewVal);
+  reg.CloseKey;
+  FreeAndNil(reg);
 end;
 
 end.
