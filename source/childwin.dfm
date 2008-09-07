@@ -1231,6 +1231,10 @@ object MDIChild: TMDIChild
       ImageIndex = 88
       OnClick = menuTreeCollapseAllClick
     end
+    object menuShowSizeColumn: TMenuItem
+      Caption = 'Display size of objects'
+      OnClick = menuShowSizeColumnClick
+    end
     object menuRefreshDBTree: TMenuItem
       Caption = 'Refresh'
       ImageIndex = 0
