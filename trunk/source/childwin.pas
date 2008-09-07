@@ -6068,6 +6068,8 @@ begin
     VK_HOME: g.FocusedColumn := 0;
     VK_END: g.FocusedColumn := g.Header.Columns.Count-1;
     VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
+    VK_DOWN: if (g = DataGrid) and Assigned(g.FocusedNode) and (g.FocusedNode.Index = g.RootNodeCount-1) then
+      Mainform.actDataInsertExecute(Sender);
   end;
 end;
 
