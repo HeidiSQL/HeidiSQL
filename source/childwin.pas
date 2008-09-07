@@ -3784,9 +3784,10 @@ var
   n: PVirtualNode;
 begin
   n := FindDBNode(db);
-  if Assigned(n) then
-    DBtree.Selected[n] := true
-  else
+  if Assigned(n) then begin
+    DBtree.Selected[n] := true;
+    DBtree.FocusedNode := n;
+  end else
     raise Exception.Create('Database node ' + db + ' not found in tree.');
 end;
 
