@@ -435,84 +435,23 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
-      object GroupBox2: TGroupBox
-        Left = 0
-        Top = 80
-        Width = 403
-        Height = 153
-        Align = alBottom
-        Caption = 
-          'Change this font in order to view special language characters in' +
-          ' data-grids:'
-        TabOrder = 3
-        object Label21: TLabel
-          Left = 20
-          Top = 24
-          Width = 26
-          Height = 13
-          Caption = 'Font:'
-        end
-        object Label23: TLabel
-          Left = 20
-          Top = 51
-          Width = 23
-          Height = 13
-          Caption = 'Size:'
-        end
-        object Label24: TLabel
-          Left = 20
-          Top = 80
-          Width = 40
-          Height = 13
-          Caption = 'Pattern:'
-        end
-        object Label22: TLabel
-          Left = 160
-          Top = 52
-          Width = 29
-          Height = 13
-          Caption = 'points'
-        end
-        object Panel8: TPanel
-          Left = 97
-          Top = 80
-          Width = 193
-          Height = 25
-          BevelOuter = bvLowered
-          Caption = 'Aa Bb Cc 123'
-          TabOrder = 0
-        end
-        object ComboBoxDataFonts: TComboBox
-          Left = 97
-          Top = 21
-          Width = 193
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 0
-          TabOrder = 1
-          OnChange = DataFontsChange
-        end
-        object Edit4: TEdit
-          Left = 97
-          Top = 48
-          Width = 41
-          Height = 21
-          TabOrder = 2
-          Text = '8'
-          OnChange = DataFontsChange
-        end
-        object UpDownDataFontSize: TUpDown
-          Left = 138
-          Top = 48
-          Width = 16
-          Height = 21
-          Associate = Edit4
-          Position = 8
-          TabOrder = 3
-        end
+      object lblDataFontPoints: TLabel
+        Left = 344
+        Top = 61
+        Width = 29
+        Height = 13
+        Caption = 'points'
+      end
+      object lblDataFont: TLabel
+        Left = 8
+        Top = 61
+        Width = 26
+        Height = 13
+        Caption = '&Font:'
+        FocusControl = comboDataFont
       end
       object editDefaultColWidth: TEdit
-        Left = 219
+        Left = 281
         Top = 30
         Width = 42
         Height = 21
@@ -521,7 +460,7 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownDefaultColWidth: TUpDown
-        Left = 261
+        Left = 323
         Top = 30
         Width = 16
         Height = 21
@@ -543,6 +482,34 @@ object optionsform: Toptionsform
         State = cbChecked
         TabOrder = 0
         OnClick = Modified
+      end
+      object comboDataFont: TComboBox
+        Left = 64
+        Top = 57
+        Width = 193
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 0
+        TabOrder = 3
+        OnChange = DataFontsChange
+      end
+      object editDataFontSize: TEdit
+        Left = 281
+        Top = 57
+        Width = 42
+        Height = 21
+        TabOrder = 4
+        Text = '8'
+        OnChange = DataFontsChange
+      end
+      object udDataFontSize: TUpDown
+        Left = 323
+        Top = 57
+        Width = 16
+        Height = 21
+        Associate = editDataFontSize
+        Position = 8
+        TabOrder = 5
       end
     end
     object TabSheet5: TTabSheet

@@ -57,16 +57,12 @@ type
     Label17: TLabel;
     Label18: TLabel;
     TabSheet7: TTabSheet;
-    GroupBox2: TGroupBox;
-    Panel8: TPanel;
-    Label21: TLabel;
-    Label23: TLabel;
-    ComboBoxDataFonts: TComboBox;
-    Edit4: TEdit;
-    UpDownDataFontSize: TUpDown;
-    Label24: TLabel;
+    lblDataFont: TLabel;
+    comboDataFont: TComboBox;
+    editDataFontSize: TEdit;
+    udDataFontSize: TUpDown;
     Label25: TLabel;
-    Label22: TLabel;
+    lblDataFontPoints: TLabel;
     EditFontSize: TEdit;
     UpDownFontSize: TUpDown;
     Label19: TLabel;
@@ -164,8 +160,8 @@ begin
   reg.WriteString(REGNAME_CSV_ENCLOSER, Edit2.Text);
   reg.WriteString(REGNAME_CSV_TERMINATOR, Edit3.Text);
   reg.WriteInteger(REGNAME_DEFAULTCOLWIDTH, updownDefaultColWidth.Position);
-  reg.WriteString(REGNAME_DATAFONTNAME, Panel8.Font.Name);
-  reg.WriteInteger(REGNAME_DATAFONTSIZE, UpDownDataFontSize.Position);
+  reg.WriteString(REGNAME_DATAFONTNAME, comboDataFont.Text);
+  reg.WriteInteger(REGNAME_DATAFONTSIZE, udDataFontSize.Position);
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
   reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
   reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
@@ -211,8 +207,10 @@ begin
     cwin.SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
     cwin.SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
     cwin.SynMemoQuery.ActiveLineColor := self.pnlActiveLine.Color;
-    cwin.DataGrid.Font := self.Panel8.font;
-    cwin.QueryGrid.Font := self.Panel8.font;
+    cwin.DataGrid.Font.Name := self.comboDataFont.Text;
+    cwin.QueryGrid.Font.Name := self.comboDataFont.Text;
+    cwin.DataGrid.Font.Size := self.udDataFontSize.Position;
+    cwin.QueryGrid.Font.Size := self.udDataFontSize.Position;
     cwin.DataGrid.Repaint;
     cwin.QueryGrid.Repaint;
     FixVT(cwin.QueryGrid);
@@ -319,16 +317,11 @@ begin
   end;
 
   // Data-Appearance:
-  with ComboBoxDataFonts do begin
+  with comboDataFont do begin
     Items := Screen.Fonts;
     ItemIndex := Items.IndexOf(datafontname);
   end;
-  UpDownDataFontSize.Position := datafontsize;
-  with Panel8.Font do begin
-    Name := datafontname;
-    Size := datafontsize;
-  end;
-
+  udDataFontSize.Position := datafontsize;
 
   ButtonApply.Enabled := false;
   screen.Cursor := crdefault;
@@ -364,11 +357,6 @@ end;
 
 procedure Toptionsform.DataFontsChange(Sender: TObject);
 begin
-  with Panel8.Font do begin
-    Name := ComboBoxDataFonts.Text;
-//    Charset := GREEK_CHARSET;
-    Size := UpDownDataFontSize.Position;
-  end;
   Modified(self);
 end;
 
