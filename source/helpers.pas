@@ -169,6 +169,7 @@ type
   function BinToWideHex(bin: string): WideString;
   procedure CheckHex(text: WideString; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
+  function ColorAdjustBrightness(Col: TColor; ShiftPercent: ShortInt): TColor;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2651,6 +2652,28 @@ begin
   VT.Header.Height := Trunc(ReadOnlyNodeHeight * 1.2);
 end;
 
+
+function ColorAdjustBrightness(Col: TColor; ShiftPercent: ShortInt): TColor;
+var
+  r, g, b, ShiftBytes: SmallInt;
+begin
+  // Split colors
+  r := GetRValue(Col);
+  g := GetGValue(Col);
+  b := GetBValue(Col);
+  // Convert percent value to bytes
+  ShiftBytes := Round(ShiftPercent * 255 / 100);
+  // Adjust single colors
+  r := r + ShiftBytes;
+  g := g + ShiftBytes;
+  b := b + ShiftBytes;
+  // Fix exceeded bounds
+  if r > 255 then r := 255 else if r < 0 then r := 0;
+  if g > 255 then g := 255 else if g < 0 then g := 0;
+  if b > 255 then b := 255 else if b < 0 then b := 0;
+  // Merge result
+  Result := RGB(r, g, b);
+end;
 
 
 initialization
