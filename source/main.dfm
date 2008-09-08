@@ -228,12 +228,12 @@ object MainForm: TMainForm
       object ToolButton10: TToolButton
         Left = 92
         Top = 0
-        Action = actDataPost
+        Action = actDataPostChanges
       end
       object ToolButton1: TToolButton
         Left = 115
         Top = 0
-        Action = actDataCancelEdit
+        Action = actDataCancelChanges
       end
     end
     object ToolBarDatabase: TToolBar
@@ -850,14 +850,14 @@ object MainForm: TMainForm
       ShortCut = 16430
       OnExecute = actDataDeleteExecute
     end
-    object actDataPost: TAction
+    object actDataPostChanges: TAction
       Category = 'Data'
       Caption = 'P&ost'
       Enabled = False
       Hint = 'Post'
       ImageIndex = 55
       ShortCut = 16397
-      OnExecute = actDataPostExecute
+      OnExecute = actDataPostChangesExecute
     end
     object actCreateTable: TAction
       Category = 'Database'
@@ -1187,14 +1187,14 @@ object MainForm: TMainForm
       ShortCut = 120
       OnExecute = actApplyFilterExecute
     end
-    object actDataCancelEdit: TAction
+    object actDataCancelChanges: TAction
       Category = 'Data'
       Caption = 'Cancel editing'
       Enabled = False
       Hint = 'Cancel editing'
       ImageIndex = 26
       ShortCut = 27
-      OnExecute = actDataCancelEditExecute
+      OnExecute = actDataCancelChangesExecute
     end
   end
   object SaveDialog2: TSaveDialog
