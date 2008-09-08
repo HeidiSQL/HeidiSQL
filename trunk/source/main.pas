@@ -138,7 +138,7 @@ type
     actDataLast: TAction;
     actDataInsert: TAction;
     actDataDelete: TAction;
-    actDataPost: TAction;
+    actDataPostChanges: TAction;
     ToolButton4: TToolButton;
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
@@ -216,7 +216,7 @@ type
     btnExecuteLine: TToolButton;
     actSetDelimiter: TAction;
     btnSetDelimiter: TToolButton;
-    actDataCancelEdit: TAction;
+    actDataCancelChanges: TAction;
     ToolButton1: TToolButton;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
@@ -251,7 +251,7 @@ type
     procedure actExecuteSelectionExecute(Sender: TObject);
     procedure actCopyAsXMLExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
-    procedure actDataCancelEditExecute(Sender: TObject);
+    procedure actDataCancelChangesExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
     procedure actExecuteLineExecute(Sender: TObject);
     procedure actHTMLviewExecute(Sender: TObject);
@@ -261,7 +261,7 @@ type
     procedure actDataFirstExecute(Sender: TObject);
     procedure actDataInsertExecute(Sender: TObject);
     procedure actDataLastExecute(Sender: TObject);
-    procedure actDataPostExecute(Sender: TObject);
+    procedure actDataPostChangesExecute(Sender: TObject);
     procedure actDropDatabaseExecute(Sender: TObject);
     procedure actDropFieldsExecute(Sender: TObject);
     procedure actDropTablesAndViewsExecute(Sender: TObject);
@@ -2208,7 +2208,7 @@ begin
   end;
 end;
 
-procedure TMainForm.actDataPostExecute(Sender: TObject);
+procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
 begin
   Childwin.DataGridPostUpdateOrInsert(Childwin.Datagrid.FocusedNode);
 end;
@@ -2221,9 +2221,9 @@ begin
 end;
 
 
-procedure TMainForm.actDataCancelEditExecute(Sender: TObject);
+procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
 begin
-  Childwin.DataGridCancelEdit(Sender);
+  Childwin.DataGridCancel(Sender);
 end;
 
 

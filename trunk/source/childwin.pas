@@ -587,7 +587,7 @@ type
       function GetKeyColumns(KeyList: TDataset): WideStrings.TWideStringlist;
       function CheckUniqueKeyClause: Boolean;
       procedure DataGridInsertRow;
-      procedure DataGridCancelEdit(Sender: TObject);
+      procedure DataGridCancel(Sender: TObject);
       property FSelectedTableColumns: TDataset read GetSelTableColumns write FLastSelectedTableColumns;
       property FSelectedTableKeys: TDataset read GetSelTableKeys write FLastSelectedTableKeys;
       procedure CalcNullColors;
@@ -2103,8 +2103,8 @@ begin
   Mainform.actDataDelete.Enabled := inDataTab and (DataGrid.SelectedCount > 0);
   Mainform.actDataFirst.Enabled := inDataTab;
   Mainform.actDataLast.Enabled := inDataTab;
-  Mainform.actDataPost.Enabled := inDataTab and DataGridHasChanges;
-  Mainform.actDataCancelEdit.Enabled := inDataTab and DataGridHasChanges;
+  Mainform.actDataPostChanges.Enabled := inDataTab and DataGridHasChanges;
+  Mainform.actDataCancelChanges.Enabled := inDataTab and DataGridHasChanges;
 
   // Activate export-options if we're on Data- or Query-tab
   MainForm.actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
@@ -6095,7 +6095,7 @@ end;
 {**
   DataGrid: cancel INSERT or UPDATE mode, reset modified node data
 }
-procedure TMDIChild.DataGridCancelEdit(Sender: TObject);
+procedure TMDIChild.DataGridCancel(Sender: TObject);
 var
   i: Integer;
 begin
@@ -6178,8 +6178,8 @@ begin
     Allowed := CheckUniqueKeyClause;
   if Allowed then begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
-    Mainform.actDataCancelEdit.ShortCut := 0;
-    Mainform.actDataPost.ShortCut := 0;
+    Mainform.actDataCancelChanges.ShortCut := 0;
+    Mainform.actDataPostChanges.ShortCut := 0;
     EnsureFullWidth(Sender, Column, Node);
   end;
 end;
@@ -6188,16 +6188,16 @@ procedure TMDIChild.DataGridEdited(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex);
 begin
   // Reassign Esc to "Cancel row editing" action
-  Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
-  Mainform.actDataPost.ShortCut := TextToShortcut('Ctrl+Enter');
+  Mainform.actDataCancelChanges.ShortCut := TextToShortcut('Esc');
+  Mainform.actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
 end;
 
 procedure TMDIChild.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
     TColumnIndex);
 begin
   // Reassign Esc to "Cancel row editing" action
-  Mainform.actDataCancelEdit.ShortCut := TextToShortcut('Esc');
-  Mainform.actDataPost.ShortCut := TextToShortcut('Ctrl+Enter');
+  Mainform.actDataCancelChanges.ShortCut := TextToShortcut('Esc');
+  Mainform.actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
 end;
 
 procedure TMDIChild.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
