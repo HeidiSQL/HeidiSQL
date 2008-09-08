@@ -6008,6 +6008,7 @@ begin
   end;
   if Length(Cols) = 0 then begin
     // No field was manually modified, cancel the INSERT in that case
+    GridFinalizeEditing(Sender);
     Sender.BeginUpdate;
     Sender.DeleteNode(Node);
     SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
