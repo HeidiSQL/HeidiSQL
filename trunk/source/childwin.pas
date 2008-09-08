@@ -297,8 +297,9 @@ type
     procedure ShowTableProperties;
     procedure ShowTableData(table: WideString);
     procedure EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode);
-    procedure EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure DiscardData(Sender: TVirtualStringTree; Node: PVirtualNode);
+    procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
+    procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
@@ -538,7 +539,9 @@ type
       TablePropertiesForm        : Ttbl_properties_form;
       FDataGridResult,
       FQueryGridResult           : TGridResult;
-      DataGridCurrentQuery       : WideString;
+      DataGridCurrentSelect      : WideString;
+      DataGridCurrentFilter      : WideString;
+      DataGridCurrentSort        : WideString;
 
 
       procedure Init(AConn : POpenConnProf; AMysqlConn : TMysqlConn);
@@ -1419,14 +1422,9 @@ begin
       end;
       MainForm.ShowStatus( STATUS_MSG_READY );
 
-      sl_query.Clear;
-      sl_query.Add( select_base );
-      sl_query.Add(select_from);
-      // Apply custom WHERE filter
-      if Filter <> '' then sl_query.Add('WHERE ' + Filter);
-      // Apply custom ORDER BY if detected in registry
-      if sorting <> '' then sl_query.Add( sorting );
-      DataGridCurrentQuery := sl_query.Text;
+      DataGridCurrentSelect := select_base + select_from;
+      DataGridCurrentFilter := Filter;
+      DataGridCurrentSort := sorting;
 
       SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
       for i:=0 to DataGrid.RootNodeCount-1 do begin
@@ -3622,12 +3620,6 @@ begin
     end;
 
     // Create instance of the progress form (but don't show it yet)
-    // Todo: This apparently causes an exception if invoked via an event handler?
-    //       Classes.TStream.ReadComponent(???)
-    //       Classes.InternalReadComponentRes(???,???,???)
-    //       Classes.InitComponent(TfrmQueryProgress)
-    //       Classes.InitInheritedComponent($17E0710,TForm)
-    //       Forms.TCustomForm.Create(???)
     FProgressForm := TFrmQueryProgress.Create(Self);
 
     { Launch a thread of execution that passes the query to the server
@@ -5511,7 +5503,56 @@ begin
 end;
 
 
-procedure TMDIChild.EnsureDataLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+procedure TMDIChild.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
+var
+  res: PGridResult;
+  query: WideString;
+  ds: TDataSet;
+  i, j: LongInt;
+begin
+  if Sender = DataGrid then res := @FDataGridResult
+  else res := @FQueryGridResult;
+  if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
+    query := DataGridCurrentSelect;
+    if DataGridCurrentFilter = '' then begin
+      query := query + ' WHERE ' + WhereClause;
+    end else begin
+      query := query + ' WHERE (' + DataGridCurrentFilter + ') AND (' + WhereClause + ')';
+    end;
+
+    // start query
+    MainForm.ShowStatus('Retrieving data...');
+    ds := GetResults(query);
+    // If new data does not match current filter, remove from tree.
+    if Cardinal(ds.RecordCount) < 1 then begin
+      // Remove entry from dynamic array.
+      for i := Node.Index to Length(res.Rows) - 1 do begin
+        if i < Length(res.Rows) - 1 then res.Rows[i] := res.Rows[i + 1];
+      end;
+      SetLength(res.Rows, Length(res.Rows) - 1);
+      // Remove entry from node list.
+      Sender.DeleteNode(Node);
+    end;
+
+    // fill in data
+    MainForm.ShowStatus('Filling grid with record-data...');
+    SetLength(res.Rows[Node.Index].Cells, ds.Fields.Count);
+    i := Node.Index;
+    for j := 0 to ds.Fields.Count - 1 do begin
+      if res.Columns[j].IsBinary then
+        res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+      else
+        res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+      res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+    end;
+    res.Rows[Node.Index].Loaded := True;
+
+    MainForm.ShowStatus( STATUS_MSG_READY );
+    FreeAndNil(ds);
+  end;
+end;
+
+procedure TMDIChild.EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
   res: PGridResult;
   start, limit: Cardinal;
@@ -5523,40 +5564,42 @@ begin
   else res := @FQueryGridResult;
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
     start := Node.Index - (Node.Index mod GridMaxRows);
-    limit := DataGrid.RootNodeCount - start;
+    limit := TVirtualStringTree(Sender).RootNodeCount - start;
     if limit > GridMaxRows then limit := GridMaxRows;
-    query := DataGridCurrentQuery + WideFormat(' LIMIT %d, %d', [start, limit]);
+    query := DataGridCurrentSelect;
+    if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
+    query := query + DataGridCurrentSort + WideFormat(' LIMIT %d, %d', [start, limit]);
 
     // start query
     MainForm.ShowStatus('Retrieving data...');
     ds := GetResults(query);
     if Cardinal(ds.RecordCount) < limit then begin
       limit := ds.RecordCount;
-      DataGrid.RootNodeCount := start + limit + 1;
+      TVirtualStringTree(Sender).RootNodeCount := start + limit;
+      SetLength(res.Rows, start + limit);
     end;
 
     // fill in data
     MainForm.ShowStatus('Filling grid with record-data...');
     for i := start to start + limit - 1 do begin
-      SetLength(FDataGridResult.Rows[i].Cells, ds.Fields.Count);
+      SetLength(res.Rows[i].Cells, ds.Fields.Count);
       for j := 0 to ds.Fields.Count - 1 do begin
-        if FDataGridResult.Columns[j].IsBinary then
-          FDataGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+        if res.Columns[j].IsBinary then
+          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
         else
-          FDataGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-        FDataGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+          res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+        res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
       end;
-      FDataGridResult.Rows[i].Loaded := True;
+      res.Rows[i].Loaded := True;
       ds.Next;
     end;
 
     MainForm.ShowStatus( STATUS_MSG_READY );
-    // Todo: Seen an AV next line when this method was invoked via an event handler.
     FreeAndNil(ds);
   end;
 end;
 
-procedure TMDIChild.DiscardData(Sender: TVirtualStringTree; Node: PVirtualNode);
+procedure TMDIChild.DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
 var
   Data: PGridResult;
 begin
@@ -5585,9 +5628,9 @@ begin
     Exit;
   if Sender = DataGrid then gr := @FDataGridResult
   else gr := @FQueryGridResult;
-  if Node.Index >= Cardinal(Length(gr.Rows)) then
-    Exit;
-  EnsureDataLoaded(Sender, Node);
+  if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
+  EnsureChunkLoaded(Sender, Node);
+  if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
   c := @gr.Rows[Node.Index].Cells[Column];
   EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   if c.Modified then begin
@@ -5675,8 +5718,8 @@ procedure TMDIChild.DataGridAfterCellPaint(Sender: TBaseVirtualTree;
   CellRect: TRect);
 begin
   // Don't waist time
-  if Column = -1 then
-    Exit;
+  if Column = -1 then Exit;
+  if Node.Index >= Cardinal(Length(FDataGridResult.Rows)) then Exit;
   // Paint a red triangle at the top left corner of the cell
   if FDataGridResult.Rows[Node.Index].Cells[Column].Modified then
     Mainform.PngImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
@@ -5813,7 +5856,6 @@ var
   i: Integer;
   sql, Val: WideString;
   Row: PGridRow;
-  ds: TDataSet;
 begin
   sql := 'UPDATE '+mask(SelectedTable)+' SET';
   Row := @FDataGridResult.Rows[Sender.FocusedNode.Index];
@@ -5849,28 +5891,8 @@ begin
       Row.Cells[i].IsNull := Row.Cells[i].NewIsNull;
     end;
     GridFinalizeEditing(Sender);
-    sql := 'SELECT ';
-    for i := 0 to Length(FDataGridResult.Columns) - 1 do
-      sql := sql + mask(FDataGridResult.Columns[i].Name) + ', ';
-    // Cut trailing comma
-    sql := Copy(sql, 1, Length(sql)-2);
-    sql := sql + ' FROM ' + mask(SelectedTable)
-      + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys);
-    ds := ExecSelectQuery(sql);
-    if ds.RecordCount = 1 then begin
-      for i := 0 to ds.FieldCount - 1 do begin
-        if FDataGridResult.Columns[i].IsBinary then
-          Row.Cells[i].Text := '0x' + BinToWideHex(ds.Fields[i].AsString)
-        else
-          Row.Cells[i].Text := ds.Fields[i].AsWideString;
-        Row.Cells[i].IsNull := ds.Fields[i].IsNull;
-      end;
-      Sender.RepaintNode(Sender.FocusedNode);
-    end else begin
-      logsql('Unable to identify updated row, found '+FormatNumber(ds.RecordCount)+' identical row(s). Doing full reload.');
-      viewdata(Sender);
-    end;
-    ds.Free;
+    Row.Loaded := false;
+    EnsureNodeLoaded(Sender, Sender.FocusedNode, GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys));
   end;
 end;
 
@@ -6019,14 +6041,12 @@ begin
     Vals := Copy(Vals, 1, Length(Vals)-2);
     Cols := Copy(Cols, 1, Length(Cols)-2);
     sql := 'INSERT INTO '+mask(SelectedTable)+' ('+Cols+') VALUES ('+Vals+')';
-    try
-      // Send INSERT query
-      ExecUpdateQuery(sql, False, True);
-      Result := True;
-      GridFinalizeEditing(Sender);
-    except
-      Result := False;
-    end;
+    // Send INSERT query
+    ExecUpdateQuery(sql, False, True);
+    Result := True;
+    Row.Loaded := false;
+    EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys));
+    GridFinalizeEditing(Sender);
   end;
 end;
 

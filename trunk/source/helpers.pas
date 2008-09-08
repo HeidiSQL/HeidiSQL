@@ -837,7 +837,7 @@ begin
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       // Ensure basic data is loaded and load remainder of large fields.
-      Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
       Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Handle nulls.
@@ -849,7 +849,7 @@ begin
     tmp := tmp + '        </tr>' + CRLF;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardData(Grid, Node);
+    Mainform.Childwin.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -915,7 +915,7 @@ begin
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       // Ensure basic data is loaded and load remainder of large fields.
-      Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
       Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Remove 0x.
@@ -934,7 +934,7 @@ begin
     tmp := tmp + Terminator;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardData(Grid, Node);
+    Mainform.Childwin.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   Grid.Visible := true;
@@ -973,7 +973,7 @@ begin
       // Print cell start tag.
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
       // Ensure basic data is loaded.
-      Mainform.Childwin.EnsureDataLoaded(Grid, Node);
+      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
       if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
         if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
@@ -994,7 +994,7 @@ begin
     tmp := tmp + #9'</row>' + CRLF;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardData(Grid, Node);
+    Mainform.Childwin.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
