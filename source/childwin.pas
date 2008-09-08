@@ -469,6 +469,7 @@ type
       FLastSelectedTableColumns,
       FLastSelectedTableKeys     : TDataset;
       ViewDataPrevTable          : WideString;
+      DataGridHasChanges         : Boolean;
 
       function GetQueryRunning: Boolean;
       procedure SetQueryRunning(running: Boolean);
@@ -1291,8 +1292,7 @@ end;
 begin
   Screen.Cursor := crHourglass;
   // Unposted row modifications get lost
-  Mainform.actDataPost.Enabled := False;
-  Mainform.actDataCancelEdit.Enabled := False;
+  DataGridHasChanges := False;
   viewingdata := true;
   sl_query := TWideStringList.Create();
   try
@@ -2097,8 +2097,15 @@ begin
   Mainform.actEditIndexes.Enabled := inTableTab;
   menuRenameColumn.Enabled := FieldFocused and FieldsSelected;
 
-  // Data tab
+  // Data tab - if query results are made editable, these will need
+  //            to be changed to look at which tab is focused.
   Mainform.actDataInsert.Enabled := inDataTab;
+  Mainform.actDataDelete.Enabled := inDataTab and (DataGrid.SelectedCount > 0);
+  Mainform.actDataFirst.Enabled := inDataTab;
+  Mainform.actDataLast.Enabled := inDataTab;
+  Mainform.actDataPost.Enabled := inDataTab and DataGridHasChanges;
+  Mainform.actDataCancelEdit.Enabled := inDataTab and DataGridHasChanges;
+
   // Activate export-options if we're on Data- or Query-tab
   MainForm.actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
@@ -2790,6 +2797,8 @@ end;
 
 procedure TMDIChild.FormShow(Sender: TObject);
 begin
+  DataGridHasChanges := False;
+
   { TODO : only load file when autoconnected ?? }
   if (paramstr(1) <> '') and Main.loadsqlfile then
   try
@@ -5710,9 +5719,9 @@ begin
   FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
   FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].Modified := True;
   FDataGridResult.Rows[DataGrid.FocusedNode.Index].State := grsModified;
-  Mainform.actDataPost.Enabled := True;
-  Mainform.actDataCancelEdit.Enabled := True;
+  DataGridHasChanges := True;
   DataGrid.RepaintNode(DataGrid.FocusedNode);
+  ValidateControls;
 end;
 
 
@@ -5731,8 +5740,8 @@ begin
   // Set state of row for UPDATE mode, don't touch grsInserted
   if Row.State = grsDefault then
     FDataGridResult.Rows[Node.Index].State := grsModified;
-  Mainform.actDataPost.Enabled := True;
-  Mainform.actDataCancelEdit.Enabled := True;
+  DataGridHasChanges := True;
+  ValidateControls;
 end;
 
 
@@ -5763,11 +5772,7 @@ end;
 procedure TMDIChild.DataGridChange(Sender: TBaseVirtualTree; Node:
     PVirtualNode);
 begin
-  if not Assigned(Node) then
-    Exit;
-  Mainform.actDataFirst.Enabled := Node <> Sender.GetFirst;
-  Mainform.actDataLast.Enabled := Node <> Sender.GetLast;
-  Mainform.actDataDelete.Enabled := Sender.SelectedCount > 0;
+  ValidateControls;
 end;
 
 
@@ -5884,8 +5889,8 @@ begin
     FDataGridResult.Rows[c].Cells[i].Modified := False;
   end;
   Sender.RepaintNode(Sender.FocusedNode);
-  Mainform.actDataPost.Enabled := False;
-  Mainform.actDataCancelEdit.Enabled := False;
+  DataGridHasChanges := False;
+  ValidateControls;
 end;
 
 
@@ -5969,8 +5974,8 @@ begin
   DataGrid.FocusedNode := DataGrid.GetLast;
   DataGrid.ClearSelection;
   DataGrid.Selected[DataGrid.FocusedNode] := True;
-  Mainform.actDataPost.Enabled := True;
-  Mainform.actDataCancelEdit.Enabled := True;
+  DataGridHasChanges := True;
+  ValidateControls;
 end;
 
 
@@ -6104,8 +6109,8 @@ begin
       Mainform.actDataLastExecute(Sender);
     end;
   end;
-  Mainform.actDataPost.Enabled := False;
-  Mainform.actDataCancelEdit.Enabled := False;
+  DataGridHasChanges := False;
+  ValidateControls;
 end;
 
 
