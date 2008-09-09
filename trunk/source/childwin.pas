@@ -1404,8 +1404,6 @@ begin
         sl_query.Add(select_from);
         // Apply custom WHERE filter
         if Filter <> '' then sl_query.Add('WHERE ' + Filter);
-        // Apply custom ORDER BY if detected in registry
-        if sorting <> '' then sl_query.Add('ORDER BY ' + sorting);
         DataGrid.RootNodeCount := StrToInt(GetVar(sl_query.Text));
         // Scroll to top left if switched to another table
         if ViewDataPrevTable <> SelectedTable then
