@@ -990,6 +990,10 @@ procedure TMDIChild.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   reg   : TRegistry;
 begin
+  // Post pending UPDATE
+  if DataGridHasChanges then
+    Mainform.actDataPostChangesExecute(Sender);
+
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
@@ -1294,8 +1298,9 @@ end;
 
 begin
   Screen.Cursor := crHourglass;
-  // Unposted row modifications get lost
-  DataGridHasChanges := False;
+  // Post pending UPDATE
+  if DataGridHasChanges then
+    Mainform.actDataPostChangesExecute(Sender);
   viewingdata := true;
   sl_query := TWideStringList.Create();
   try
