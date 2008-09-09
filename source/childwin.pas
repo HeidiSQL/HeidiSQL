@@ -1303,7 +1303,7 @@ begin
     sorting := '';
     OrderColumns := HandleOrderColumns;
     if Length(OrderColumns) > 0 then begin
-      sorting := 'ORDER BY ' + ComposeOrderClause(OrderColumns);
+      sorting := ComposeOrderClause(OrderColumns);
       // Signal for the user that we applied an ORDER-clause
       tbtnDataSorting.ImageIndex := 108;
     end else
@@ -1400,7 +1400,7 @@ begin
         // Apply custom WHERE filter
         if Filter <> '' then sl_query.Add('WHERE ' + Filter);
         // Apply custom ORDER BY if detected in registry
-        if sorting <> '' then sl_query.Add( sorting );
+        if sorting <> '' then sl_query.Add('ORDER BY ' + sorting);
         DataGrid.RootNodeCount := StrToInt(GetVar(sl_query.Text));
         // Scroll to top left if switched to another table
         if ViewDataPrevTable <> SelectedTable then
@@ -5568,7 +5568,8 @@ begin
     if limit > GridMaxRows then limit := GridMaxRows;
     query := DataGridCurrentSelect;
     if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
-    query := query + DataGridCurrentSort + WideFormat(' LIMIT %d, %d', [start, limit]);
+    if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
+    query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
 
     // start query
     MainForm.ShowStatus('Retrieving data...');
