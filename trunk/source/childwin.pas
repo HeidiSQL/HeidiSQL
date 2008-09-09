@@ -5759,6 +5759,8 @@ end;
 }
 procedure TMDIChild.setNULL1Click(Sender: TObject);
 begin
+  if not CheckUniqueKeyClause then
+    Exit;
   DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := '';
   FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
   FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].Modified := True;
