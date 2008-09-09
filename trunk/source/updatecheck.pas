@@ -7,6 +7,12 @@ uses
   Dialogs, StdCtrls, ExtActns, IniFiles, Controls, Graphics, Registry;
 
 type
+  TUrlMonUrlMkSetSessionOption = function(dwOption: Cardinal; pBuffer: PChar; dwBufferLength: Cardinal; dwReserved: Cardinal): HRESULT; stdcall;
+  TDownloadUrl2 = class(TDownloadUrl)
+  public
+    procedure SetUserAgent(name: string);
+  end;
+
   TfrmUpdateCheck = class(TForm)
     btnCancel: TButton;
     groupBuild: TGroupBox;
@@ -22,7 +28,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    CheckfileDownload : TDownLoadURL;
+    CheckfileDownload : TDownLoadURL2;
     ReleaseURL, BuildURL : String;
     procedure Status(txt: String);
     procedure ReadCheckFile;
@@ -43,6 +49,23 @@ uses helpers, main;
 
 {$I const.inc}
 
+
+procedure TDownloadUrl2.SetUserAgent(name: string);
+const
+  UrlMonLib = 'URLMON.DLL';
+  sUrlMkSetSessionOptionA = 'UrlMkSetSessionOption';
+  URLMON_OPTION_USERAGENT = $10000001;
+var
+  UrlMonHandle: HMODULE;
+  UrlMkSetSessionOption: TUrlMonUrlMkSetSessionOption;
+begin
+  UrlMonHandle := LoadLibrary(UrlMonLib);
+  if UrlMonHandle = 0 then raise Exception.Create('Could not get handle to urlmon.dll.');
+  UrlMkSetSessionOption := GetProcAddress(UrlMonHandle, PChar(sUrlMkSetSessionOptionA));
+  if not Assigned(UrlMkSetSessionOption) then raise Exception.Create('Could not get handle to UrlMonUrlMkSetSessionOption().');
+  // TODO: Rumoured to be broken in IE8, test when it hits the stores. 
+  if UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, PChar(name), Length(name), 0) <> 0 then raise Exception.Create('Could not set User-Agent via UrlMonUrlMkSetSessionOption().');
+end;
 
 {**
   Set defaults
@@ -82,7 +105,8 @@ begin
   memoBuild.Clear;
 
   // Prepare download
-  CheckfileDownload := TDownLoadURL.Create(Self);
+  CheckfileDownload := TDownLoadURL2.Create(Self);
+  CheckfileDownload.SetUserAgent(APPNAME + ' ' + APPVERSION + ' ' + APPREVISION + ' update checker tool');
   CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php';
   CheckfileDownload.Filename := GetTempDir + APPNAME + '_updatecheck.ini';
 
