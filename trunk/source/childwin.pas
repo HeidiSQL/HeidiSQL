@@ -586,8 +586,8 @@ type
       function GridPostDelete(Sender: TBaseVirtualTree): Boolean;
       function DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
       procedure GridFinalizeEditing(Sender: TBaseVirtualTree);
-      function GetWhereClause(Row: PGridRow; Columns: PGridColumns; KeyList: TDataSet): WideString;
-      function GetKeyColumns(KeyList: TDataset): WideStrings.TWideStringlist;
+      function GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideString;
+      function GetKeyColumns: WideStrings.TWideStringlist;
       function CheckUniqueKeyClause: Boolean;
       procedure DataGridInsertRow;
       procedure DataGridCancel(Sender: TObject);
@@ -1360,7 +1360,7 @@ begin
         tbtnDataColumns.ImageIndex := 108;
       end;
       // Ensure key columns are included to enable editing
-      KeyCols := GetKeyColumns(FSelectedTableKeys);
+      KeyCols := GetKeyColumns;
       for i := 0 to KeyCols.Count - 1 do
       if DisplayedColumnsList.IndexOf(KeyCols[i]) = -1 then begin
         DisplayedColumnsList.Add(KeyCols[i]);
@@ -5796,10 +5796,11 @@ function TMDIChild.CheckUniqueKeyClause: Boolean;
 var
   mres: Integer;
 begin
-  Result := GetKeyColumns(FSelectedTableKeys).Count > 0;
+  Result := GetKeyColumns.Count > 0;
   if not Result then begin
     mres := MessageDlg('Grid editing is blocked because this table does not have a primary '+
-      'or a unique key. You can create such a key using the index manager.'+CRLF+CRLF+
+      'or a unique key, or it only contains a unique key which allows NULLs which turns that '+
+      'key to be non unique again. You can create or edit the keys using the index manager.'+CRLF+CRLF+
       'Press'+CRLF+
       '  [Ok] to cancel editing and call the index manager'+CRLF+
       '  [Cancel] to cancel editing.',
@@ -5873,7 +5874,7 @@ begin
   end;
   // Cut trailing comma
   sql := Copy(sql, 1, Length(sql)-2);
-  sql := sql + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys);
+  sql := sql + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns);
   try
     // Send UPDATE query
     ExecUpdateQuery(sql, False, True);
@@ -5893,7 +5894,7 @@ begin
     end;
     GridFinalizeEditing(Sender);
     Row.Loaded := false;
-    EnsureNodeLoaded(Sender, Sender.FocusedNode, GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys));
+    EnsureNodeLoaded(Sender, Sender.FocusedNode, GetWhereClause(Row, @FDataGridResult.Columns));
   end;
 end;
 
@@ -5920,14 +5921,14 @@ end;
 {**
   Compose a WHERE clause used for UPDATEs and DELETEs
 }
-function TMDIChild.GetWhereClause(Row: PGridRow; Columns: PGridColumns; KeyList: TDataSet): WideString;
+function TMDIChild.GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideString;
 var
   i, j: Integer;
   KeyVal: WideString;
   KeyCols: WideStrings.TWideStringlist;
 begin
   Result := '';
-  KeyCols := GetKeyColumns(KeyList);
+  KeyCols := GetKeyColumns;
   for i := 0 to KeyCols.Count - 1 do begin
     for j := 0 to Length(Columns^) - 1 do begin
       if Columns^[j].Name = KeyCols[i] then
@@ -5951,30 +5952,56 @@ end;
 {**
   Find key columns for a WHERE clause by analysing a SHOW KEYS FROM ... resultset
 }
-function TMDIChild.GetKeyColumns(KeyList: TDataset): WideStrings.TWideStringlist;
+function TMDIChild.GetKeyColumns: WideStrings.TWideStringlist;
 var
-  preferredKey: WideString;
-begin
-  // Find best key for updates
-  KeyList.First;
-  while not KeyList.Eof do begin
-    if KeyList.FieldByName('Non_unique').AsInteger = 0 then begin
-      preferredKey := KeyList.FieldByName('Key_name').AsWideString;
-      if preferredKey = 'PRIMARY' then
-        break;
+  i: Integer;
+  AllowsNull: Boolean;
+
+  procedure FindColumns(const KeyName: WideString);
+  begin
+    // Find relevant key column names
+    Result.Clear;
+    FSelectedTableKeys.First;
+    while not FSelectedTableKeys.Eof do begin
+      if FSelectedTableKeys.FieldByName('Key_name').AsWideString = KeyName then
+        Result.Add(FSelectedTableKeys.FieldByName('Column_name').AsWideString);
+      FSelectedTableKeys.Next;
     end;
-    KeyList.Next;
   end;
-  // Find relevant key column names
+
+begin
   Result := WideStrings.TWideStringlist.Create;
-  if preferredKey <> '' then begin
-    // Found a unique key
-    KeyList.First;
-    while not KeyList.Eof do begin
-      if KeyList.FieldByName('Key_name').AsWideString = preferredKey then
-        Result.Add(KeyList.FieldByName('Column_name').AsWideString);
-      KeyList.Next;
+  // Find best key for updates
+  FSelectedTableKeys.First;
+  // 1. round: find a primary key
+  while not FSelectedTableKeys.Eof do begin
+    if FSelectedTableKeys.FieldByName('Key_name').AsWideString = 'PRIMARY' then begin
+      FindColumns(FSelectedTableKeys.FieldByName('Key_name').AsWideString);
+      Exit;
     end;
+    FSelectedTableKeys.Next;
+  end;
+  // no primary key available -> 2. round: find a unique key
+  FSelectedTableKeys.First;
+  while not FSelectedTableKeys.Eof do begin
+    if FSelectedTableKeys.FieldByName('Non_unique').AsInteger = 0 then begin
+      // We found a UNIQUE key - better than nothing. Check if one of the key
+      // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
+      FindColumns(FSelectedTableKeys.FieldByName('Key_name').AsWideString);
+      FSelectedTableColumns.First;
+      AllowsNull := False;
+      for i := 0 to Result.Count - 1 do begin
+        while (not FSelectedTableColumns.Eof) and (not AllowsNull) do begin
+          if FSelectedTableColumns.FieldByName('Field').AsWideString = Result[i] then
+            AllowsNull := UpperCase(FSelectedTableColumns.FieldByName('Null').AsString) = 'YES';
+          FSelectedTableColumns.Next;
+        end;
+        if AllowsNull then break;
+      end;
+      if AllowsNull then Result.Clear
+      else break;
+    end;
+    FSelectedTableKeys.Next;
   end;
 end;
 
@@ -6046,7 +6073,7 @@ begin
     ExecUpdateQuery(sql, False, True);
     Result := True;
     Row.Loaded := false;
-    EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @FDataGridResult.Columns, FSelectedTableKeys));
+    EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @FDataGridResult.Columns));
     GridFinalizeEditing(Sender);
   end;
 end;
@@ -6068,7 +6095,7 @@ begin
   sql := 'DELETE FROM '+mask(SelectedTable)+' WHERE';
   while Assigned(Node) do begin
     sql := sql + ' (' +
-      GetWhereClause(@FDataGridResult.Rows[Node.Index], @FDataGridResult.Columns, FSelectedTableKeys) +
+      GetWhereClause(@FDataGridResult.Rows[Node.Index], @FDataGridResult.Columns) +
       ') OR';
     Node := Sender.GetNextSelected(Node);
   end;
@@ -6183,7 +6210,7 @@ begin
     sql :=
       'SELECT ' + mask(Col.Name) +
       ' FROM ' + mask(SelectedTable) +
-      ' WHERE ' + GetWhereClause(Row, @Data.Columns, FSelectedTableKeys)
+      ' WHERE ' + GetWhereClause(Row, @Data.Columns)
     ;
     ds := GetResults(sql);
     if Col.IsBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
