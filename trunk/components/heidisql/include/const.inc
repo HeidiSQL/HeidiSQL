@@ -193,7 +193,7 @@ const
   DEFAULT_FIELDCOLOR_BINARY = $00800080; // clPurple
   DEFAULT_FIELDCOLOR_DATETIME = $00000080; // clMaroon
   DEFAULT_FIELDCOLOR_ENUM = $00008080; // clOlive
-  COLORSHIFT_NULLFIELDS = 30; // Percentage of brightness to add to normal field colors for NULL values
+  COLORSHIFT_NULLFIELDS = 45; // Percentage of brightness to add to normal field colors for NULL values
 
   REGNAME_FIELDEDITOR_NUMERIC = 'FieldEditor_Numeric';
   REGNAME_FIELDEDITOR_TEXT = 'FieldEditor_Text';
