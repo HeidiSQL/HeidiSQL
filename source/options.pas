@@ -9,8 +9,8 @@ unit options;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Registry, ExtCtrls, DBGrids;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, ComCtrls, Registry, ExtCtrls;
 
 type
   Toptionsform = class(TForm)
