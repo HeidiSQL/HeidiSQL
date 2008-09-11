@@ -491,6 +491,7 @@ type
       procedure ToggleFilterPanel(ForceVisible: Boolean = False);
       function GetSelTableColumns: TDataset;
       function GetSelTableKeys: TDataset;
+      procedure AutoCalcColWidths(Tree: TVirtualStringTree);
 
     public
       DatabasesWanted,
@@ -1189,7 +1190,7 @@ end;
 procedure TMDIChild.viewdata(Sender: TObject);
 var
   sorting              : WideString;
-  i, ColTextWidth      : Integer;
+  i                    : Integer;
   OrderColumns         : TOrderColArray;
   reg_value            : String;
   select_base          : WideString;
@@ -1203,7 +1204,6 @@ var
   rx                   : TRegExpr;
   ColType              : String;
   PrevCols             : WideStrings.TWideStringList;
-  Node                 : PVirtualNode;
 
 procedure InitColumn(idx: Integer; name: WideString);
 var
@@ -1442,33 +1442,8 @@ begin
     FreeAndNil(sl_query);
     if PrevCols <> nil then
       FreeAndNil(PrevCols)
-    else begin
-      // Find optimal default width for columns. Needs to be done late, after the SQL
-      // composing to enable text width calculation based on actual table content
-      DataGrid.BeginUpdate;
-      // Weird: Fixes first time calculation always based on Tahoma/8pt font
-      DataGrid.Canvas.Font := DataGrid.Font;
-      for i := 0 to DataGrid.Header.Columns.Count - 1 do begin
-        if not (coVisible in DataGrid.Header.Columns[i].Options) then
-          continue;
-        ColTextWidth := DataGrid.Canvas.TextWidth(DataGrid.Header.Columns[i].Text);
-        Node := DataGrid.GetFirst;
-        while Assigned(Node) do begin
-          ColTextWidth := Max(ColTextWidth, DataGrid.Canvas.TextWidth(DataGrid.Text[Node, i]));
-          if Node.Index > 100 then
-            break;
-          Node := DataGrid.GetNext(Node);
-        end;
-        // Add space for sort glyph
-        if DataGrid.Header.Columns[i].ImageIndex > -1 then
-          ColTextWidth := ColTextWidth + 20;
-        // text margins and minimal extra space  
-        ColTextWidth := ColTextWidth + DataGrid.TextMargin*2 + 5;
-        ColTextWidth := Min(ColTextWidth, self.prefDefaultColWidth);
-        DataGrid.Header.Columns[i].Width := ColTextWidth;
-      end;
-      DataGrid.EndUpdate;
-    end;
+    else
+      AutoCalcColWidths(DataGrid);
 
     viewingdata := false;
     Screen.Cursor := crDefault;
@@ -2551,7 +2526,6 @@ begin
         ColName := ds.Fields[i].FieldName;
         col := QueryGrid.Header.Columns.Add;
         col.Text := ColName;
-        col.Width := prefDefaultColWidth;
         col.Options := col.Options - [coAllowClick];
         FQueryGridResult.Columns[i].Name := ColName;
         if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint] then begin
@@ -2585,6 +2559,7 @@ begin
       ds.Free;
       QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
       QueryGrid.EndUpdate;
+      AutoCalcColWidths(QueryGrid);
     end;
     // Ensure controls are in a valid state
     ValidateControls;
@@ -6340,6 +6315,39 @@ begin
   reg.WriteBool(REGNAME_SIZECOL_TREE, NewVal);
   reg.CloseKey;
   FreeAndNil(reg);
+end;
+
+
+procedure TMDIChild.AutoCalcColWidths(Tree: TVirtualStringTree);
+var
+  Node: PVirtualNode;
+  i, ColTextWidth: Integer;
+begin
+  // Find optimal default width for columns. Needs to be done late, after the SQL
+  // composing to enable text width calculation based on actual table content
+  Tree.BeginUpdate;
+  // Weird: Fixes first time calculation always based on Tahoma/8pt font
+  Tree.Canvas.Font := Tree.Font;
+  for i := 0 to Tree.Header.Columns.Count - 1 do begin
+    if not (coVisible in Tree.Header.Columns[i].Options) then
+      continue;
+    ColTextWidth := Tree.Canvas.TextWidth(Tree.Header.Columns[i].Text);
+    Node := Tree.GetFirst;
+    while Assigned(Node) do begin
+      ColTextWidth := Max(ColTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, i]));
+      if Node.Index > 100 then
+        break;
+      Node := Tree.GetNext(Node);
+    end;
+    // Add space for sort glyph
+    if Tree.Header.Columns[i].ImageIndex > -1 then
+      ColTextWidth := ColTextWidth + 20;
+    // text margins and minimal extra space
+    ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
+    ColTextWidth := Min(ColTextWidth, self.prefDefaultColWidth);
+    Tree.Header.Columns[i].Width := ColTextWidth;
+  end;
+  Tree.EndUpdate;
 end;
 
 end.
