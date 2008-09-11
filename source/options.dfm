@@ -450,7 +450,7 @@ object optionsform: Toptionsform
         Caption = '&Font:'
         FocusControl = comboDataFont
       end
-      object editDefaultColWidth: TEdit
+      object editMaxColWidth: TEdit
         Left = 281
         Top = 30
         Width = 42
@@ -459,12 +459,12 @@ object optionsform: Toptionsform
         Text = '1'
         OnChange = Modified
       end
-      object updownDefaultColWidth: TUpDown
+      object updownMaxColWidth: TUpDown
         Left = 323
         Top = 30
         Width = 16
         Height = 21
-        Associate = editDefaultColWidth
+        Associate = editMaxColWidth
         Min = 1
         Max = 1000
         Position = 1

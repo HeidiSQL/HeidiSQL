@@ -514,7 +514,7 @@ type
       prefRememberFilters        : Boolean;
       prefLogsqlnum,
       prefLogSqlWidth,
-      prefDefaultColWidth        : Integer;
+      prefMaxColWidth            : Integer;
       prefCSVSeparator,
       prefCSVEncloser,
       prefCSVTerminator          : String[10];
@@ -893,11 +893,11 @@ begin
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
   DBtree.Width := Mainform.GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
   SynMemoSQLLog.Height := Mainform.GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
-  prefDefaultColWidth := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
+  prefMaxColWidth := Mainform.GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
-  if prefDefaultColWidth <= 0 then
-    prefDefaultColWidth := DEFAULT_DEFAULTCOLWIDTH;
+  if prefMaxColWidth <= 0 then
+    prefMaxColWidth := DEFAULT_MAXCOLWIDTH;
   prefLogsqlnum := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   prefLogSqlWidth := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   prefCSVSeparator := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
@@ -6344,7 +6344,7 @@ begin
       ColTextWidth := ColTextWidth + 20;
     // text margins and minimal extra space
     ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 8;
-    ColTextWidth := Min(ColTextWidth, self.prefDefaultColWidth);
+    ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
     Tree.Header.Columns[i].Width := ColTextWidth;
   end;
   Tree.EndUpdate;
