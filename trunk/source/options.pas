@@ -70,8 +70,8 @@ type
     pnlTablenames: TPanel;
     updownLogSQLNum: TUpDown;
     editLogSQLNum: TEdit;
-    editDefaultColWidth: TEdit;
-    updownDefaultColWidth: TUpDown;
+    editMaxColWidth: TEdit;
+    updownMaxColWidth: TUpDown;
     CheckBoxRestoreLastUsedDB: TCheckBox;
     chkRememberFilters: TCheckBox;
     chkLogToFile: TCheckBox;
@@ -174,7 +174,7 @@ begin
   reg.WriteString(REGNAME_CSV_SEPARATOR, Edit1.Text);
   reg.WriteString(REGNAME_CSV_ENCLOSER, Edit2.Text);
   reg.WriteString(REGNAME_CSV_TERMINATOR, Edit3.Text);
-  reg.WriteInteger(REGNAME_DEFAULTCOLWIDTH, updownDefaultColWidth.Position);
+  reg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
   reg.WriteString(REGNAME_DATAFONTNAME, comboDataFont.Text);
   reg.WriteInteger(REGNAME_DATAFONTSIZE, udDataFontSize.Position);
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
@@ -248,7 +248,7 @@ begin
     else if cwin.prefLogToFile then
       cwin.DeactivateFileLogging;
     btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
-    cwin.prefDefaultColWidth := updownDefaultColWidth.Position;
+    cwin.prefMaxColWidth := updownMaxColWidth.Position;
     cwin.prefCSVSeparator := self.Edit1.text;
     cwin.prefCSVEncloser := self.Edit2.text;
     cwin.prefCSVTerminator := self.Edit3.text;
@@ -319,7 +319,7 @@ begin
   chkPreferShowTables.Checked := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // Default Column-Width in DBGrids:
-  updownDefaultColWidth.Position := Mainform.GetRegValue(REGNAME_DEFAULTCOLWIDTH, DEFAULT_DEFAULTCOLWIDTH);
+  updownMaxColWidth.Position := Mainform.GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // Color-coding:
   pnlKeywords.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
   pnlFunctions.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
