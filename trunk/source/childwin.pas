@@ -1189,7 +1189,7 @@ end;
 procedure TMDIChild.viewdata(Sender: TObject);
 var
   sorting              : WideString;
-  i                    : Integer;
+  i, ColTextWidth      : Integer;
   OrderColumns         : TOrderColArray;
   reg_value            : String;
   select_base          : WideString;
@@ -1203,6 +1203,7 @@ var
   rx                   : TRegExpr;
   ColType              : String;
   PrevCols             : WideStrings.TWideStringList;
+  Node                 : PVirtualNode;
 
 procedure InitColumn(idx: Integer; name: WideString);
 var
@@ -1214,7 +1215,6 @@ begin
   col.Text := name;
   col.Options := col.Options + [coSmartResize];
   if HiddenKeyCols.IndexOf(name) > -1 then col.Options := col.Options - [coVisible];
-  col.Width := prefDefaultColWidth;
   if ViewDataPrevTable = SelectedTable then begin
     // Restore column layout
     k := PrevCols.IndexOf(name);
@@ -1441,7 +1441,35 @@ begin
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
     if PrevCols <> nil then
-      FreeAndNil(PrevCols);
+      FreeAndNil(PrevCols)
+    else begin
+      // Find optimal default width for columns. Needs to be done late, after the SQL
+      // composing to enable text width calculation based on actual table content
+      DataGrid.BeginUpdate;
+      // Weird: Fixes first time calculation always based on Tahoma/8pt font
+      DataGrid.Canvas.Font := DataGrid.Font;
+      for i := 0 to DataGrid.Header.Columns.Count - 1 do begin
+        if not (coVisible in DataGrid.Header.Columns[i].Options) then
+          continue;
+        ColTextWidth := DataGrid.Canvas.TextWidth(DataGrid.Header.Columns[i].Text);
+        Node := DataGrid.GetFirst;
+        while Assigned(Node) do begin
+          ColTextWidth := Max(ColTextWidth, DataGrid.Canvas.TextWidth(DataGrid.Text[Node, i]));
+          if Node.Index > 100 then
+            break;
+          Node := DataGrid.GetNext(Node);
+        end;
+        // Add space for sort glyph
+        if DataGrid.Header.Columns[i].ImageIndex > -1 then
+          ColTextWidth := ColTextWidth + 20;
+        // text margins and minimal extra space  
+        ColTextWidth := ColTextWidth + DataGrid.TextMargin*2 + 5;
+        ColTextWidth := Min(ColTextWidth, self.prefDefaultColWidth);
+        DataGrid.Header.Columns[i].Width := ColTextWidth;
+      end;
+      DataGrid.EndUpdate;
+    end;
+
     viewingdata := false;
     Screen.Cursor := crDefault;
   end;
