@@ -6343,7 +6343,7 @@ begin
     if Tree.Header.Columns[i].ImageIndex > -1 then
       ColTextWidth := ColTextWidth + 20;
     // text margins and minimal extra space
-    ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
+    ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 8;
     ColTextWidth := Min(ColTextWidth, self.prefDefaultColWidth);
     Tree.Header.Columns[i].Width := ColTextWidth;
   end;
