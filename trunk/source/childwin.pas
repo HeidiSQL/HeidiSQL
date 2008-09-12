@@ -2518,7 +2518,9 @@ begin
     viewingdata := true;
 
     if ds <> nil then begin
+      QueryGrid.BeginUpdate;
       QueryGrid.Header.Options := QueryGrid.Header.Options + [hoVisible];
+      QueryGrid.Header.Columns.BeginUpdate;
       QueryGrid.Header.Columns.Clear;
       SetLength(FQueryGridResult.Columns, 0);
       SetLength(FQueryGridResult.Columns, ds.FieldCount);
@@ -2558,6 +2560,9 @@ begin
       end;
       ds.Free;
       QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
+      QueryGrid.Header.Columns.EndUpdate;
+      QueryGrid.ClearSelection;
+      QueryGrid.OffsetXY := Point(0, 0);
       QueryGrid.EndUpdate;
       AutoCalcColWidths(QueryGrid);
     end;
