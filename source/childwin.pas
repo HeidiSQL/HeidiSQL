@@ -6327,6 +6327,7 @@ procedure TMDIChild.AutoCalcColWidths(Tree: TVirtualStringTree);
 var
   Node: PVirtualNode;
   i, ColTextWidth: Integer;
+  Rect: TRect;
 begin
   // Find optimal default width for columns. Needs to be done late, after the SQL
   // composing to enable text width calculation based on actual table content
@@ -6337,18 +6338,19 @@ begin
     if not (coVisible in Tree.Header.Columns[i].Options) then
       continue;
     ColTextWidth := Tree.Canvas.TextWidth(Tree.Header.Columns[i].Text);
+    // Add space for sort glyph
+    if Tree.Header.Columns[i].ImageIndex > -1 then
+      ColTextWidth := ColTextWidth + 20;
     Node := Tree.GetFirst;
     while Assigned(Node) do begin
-      ColTextWidth := Max(ColTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, i]));
+      Rect := Tree.GetDisplayRect(Node, i, True, True);
+      ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
       if Node.Index > 100 then
         break;
       Node := Tree.GetNext(Node);
     end;
-    // Add space for sort glyph
-    if Tree.Header.Columns[i].ImageIndex > -1 then
-      ColTextWidth := ColTextWidth + 20;
     // text margins and minimal extra space
-    ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 8;
+    ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
     ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
     Tree.Header.Columns[i].Width := ColTextWidth;
   end;
