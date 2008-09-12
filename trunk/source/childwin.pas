@@ -1850,16 +1850,16 @@ begin
   dataselected := false;
   Screen.Cursor := crHourGlass;
 
-  if (not DBtree.Dragging) and (
-   (PageControlMain.ActivePage = tabHost) or
-   (PageControlMain.ActivePage = tabDatabase)
-  ) then PageControlMain.ActivePage := tabTable;
+  tabTable.Caption := sstr('Table: ' + SelectedTable, 30);
 
   tabDatabase.TabVisible := true;
   tabTable.TabVisible := true;
   tabData.TabVisible := true;
 
-  tabTable.Caption := sstr('Table: ' + SelectedTable, 30);
+  if (not DBtree.Dragging) and (
+   (PageControlMain.ActivePage = tabHost) or
+   (PageControlMain.ActivePage = tabDatabase)
+  ) then PageControlMain.ActivePage := tabTable;
 
   MainForm.ShowStatus( 'Reading table properties...' );
   // Remember selected nodes
