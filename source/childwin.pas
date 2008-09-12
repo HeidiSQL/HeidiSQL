@@ -6071,11 +6071,12 @@ begin
   end;
   if Length(Cols) = 0 then begin
     // No field was manually modified, cancel the INSERT in that case
-    GridFinalizeEditing(Sender);
     Sender.BeginUpdate;
     Sender.DeleteNode(Node);
     SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
     Sender.EndUpdate;
+    DataGridHasChanges := False;
+    ValidateControls;
     Result := True; // Important for DataGridFocusChanging to allow moving focus
   end else begin
     // At least one field was modified, assume this INSERT should be posted
