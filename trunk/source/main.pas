@@ -1283,7 +1283,8 @@ begin
 
   Tables := TWideStringlist.Create;
   Views := TWideStringlist.Create;
-  if Childwin.PageControlMain.ActivePage = Childwin.tabDatabase then begin
+  if (Childwin.PageControlMain.ActivePage = Childwin.tabDatabase) and
+    ((Sender as TAction).ActionComponent <> Childwin.PopupMenuDropTable) then begin
     // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
     Tables := GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_TABLE);
     Tables.AddStrings(GetVTCaptions(Childwin.ListTables, True, 0, NODETYPE_CRASHED_TABLE));
