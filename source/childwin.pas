@@ -445,6 +445,7 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
     procedure menuShowSizeColumnClick(Sender: TObject);
+    procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 
     private
       uptime                     : Integer;
@@ -470,6 +471,7 @@ type
       FLastSelectedTableColumns,
       FLastSelectedTableKeys     : TDataset;
       ViewDataPrevTable          : WideString;
+      PrevTableColWidths         : WideStrings.TWideStringList;
       DataGridHasChanges         : Boolean;
 
       function GetQueryRunning: Boolean;
@@ -491,7 +493,7 @@ type
       procedure ToggleFilterPanel(ForceVisible: Boolean = False);
       function GetSelTableColumns: TDataset;
       function GetSelTableKeys: TDataset;
-      procedure AutoCalcColWidths(Tree: TVirtualStringTree);
+      procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
 
     public
       DatabasesWanted,
@@ -1203,7 +1205,6 @@ var
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
   ColType              : String;
-  PrevCols             : WideStrings.TWideStringList;
 
 procedure InitColumn(idx: Integer; name: WideString);
 var
@@ -1215,12 +1216,6 @@ begin
   col.Text := name;
   col.Options := col.Options + [coSmartResize];
   if HiddenKeyCols.IndexOf(name) > -1 then col.Options := col.Options - [coVisible];
-  if ViewDataPrevTable = SelectedTable then begin
-    // Restore column layout
-    k := PrevCols.IndexOf(name);
-    if (k>-1) and (PrevCols.Count > k+1) then
-      col.Width := StrToInt(PrevCols[k+1])
-  end;
   // Sorting color and title image
   for k:=0 to Length(OrderColumns)-1 do begin
     if OrderColumns[k].ColumnName = name then begin
@@ -1335,14 +1330,6 @@ begin
       DataGrid.Header.Columns.BeginUpdate;
       DataGrid.RootNodeCount := 0;
       DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
-      if ViewDataPrevTable = SelectedTable then begin
-        // Remember column layout
-        PrevCols := WideStrings.TWideStringList.Create;
-        for i := 0 to DataGrid.Header.Columns.Count - 1 do begin
-          PrevCols.Add(DataGrid.Header.Columns[i].Text);
-          PrevCols.Add(IntToStr(DataGrid.Header.Columns[i].Width));
-        end;
-      end;
       DataGrid.Header.Columns.Clear;
       SetLength(FDataGridResult.Columns, 0);
       SetLength(FDataGridResult.Rows, 0);
@@ -1405,9 +1392,11 @@ begin
         // Apply custom WHERE filter
         if Filter <> '' then sl_query.Add('WHERE ' + Filter);
         DataGrid.RootNodeCount := StrToInt(GetVar(sl_query.Text));
-        // Scroll to top left if switched to another table
-        if ViewDataPrevTable <> SelectedTable then
-          DataGrid.OffsetXY := Point(0, 0);
+        // Switched to another table
+        if ViewDataPrevTable <> SelectedTable then begin
+          DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
+          FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
+        end;
         DisplayRowCountStats;
         dataselected := true;
       except
@@ -1440,11 +1429,7 @@ begin
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
-    if PrevCols <> nil then
-      FreeAndNil(PrevCols)
-    else
-      AutoCalcColWidths(DataGrid);
-
+    AutoCalcColWidths(DataGrid, PrevTableColWidths);
     viewingdata := false;
     Screen.Cursor := crDefault;
   end;
@@ -6324,11 +6309,12 @@ begin
 end;
 
 
-procedure TMDIChild.AutoCalcColWidths(Tree: TVirtualStringTree);
+procedure TMDIChild.AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
 var
   Node: PVirtualNode;
   i, ColTextWidth: Integer;
   Rect: TRect;
+  Col: TVirtualTreeColumn;
 begin
   // Find optimal default width for columns. Needs to be done late, after the SQL
   // composing to enable text width calculation based on actual table content
@@ -6336,11 +6322,16 @@ begin
   // Weird: Fixes first time calculation always based on Tahoma/8pt font
   Tree.Canvas.Font := Tree.Font;
   for i := 0 to Tree.Header.Columns.Count - 1 do begin
-    if not (coVisible in Tree.Header.Columns[i].Options) then
+    Col := Tree.Header.Columns[i];
+    if not (coVisible in Col.Options) then
       continue;
+    if (PrevLayout <> nil) and (PrevLayout.IndexOfName(Col.Text) > -1) then begin
+      Col.Width := MakeInt(PrevLayout.Values[Col.Text]);
+      continue;
+    end;
     ColTextWidth := Tree.Canvas.TextWidth(Tree.Header.Columns[i].Text);
     // Add space for sort glyph
-    if Tree.Header.Columns[i].ImageIndex > -1 then
+    if Col.ImageIndex > -1 then
       ColTextWidth := ColTextWidth + 20;
     Node := Tree.GetFirst;
     while Assigned(Node) do begin
@@ -6353,9 +6344,27 @@ begin
     // text margins and minimal extra space
     ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
     ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
-    Tree.Header.Columns[i].Width := ColTextWidth;
+    Col.Width := ColTextWidth;
   end;
   Tree.EndUpdate;
+end;
+
+
+procedure TMDIChild.DataGridColumnResize(Sender: TVTHeader;
+  Column: TColumnIndex);
+var
+  col: TVirtualTreeColumn;
+begin
+  // Avoid AVs
+  if Column < 0 then
+    Exit;
+  // Don't waste time storing changes while a column is automatically resized
+  if tsUpdating in Sender.Treeview.TreeStates then
+    Exit;
+  if PrevTableColWidths = nil then
+    PrevTableColWidths := WideStrings.TWideStringList.Create;
+  col := Sender.Columns[Column];
+  PrevTableColWidths.Values[col.Text] := inttostr(col.Width);
 end;
 
 end.
