@@ -939,6 +939,7 @@ object MDIChild: TMDIChild
           WantTabs = True
           OnAfterCellPaint = DataGridAfterCellPaint
           OnChange = DataGridChange
+          OnColumnResize = DataGridColumnResize
           OnCreateEditor = DataGridCreateEditor
           OnEditCancelled = DataGridEditCancelled
           OnEdited = DataGridEdited
