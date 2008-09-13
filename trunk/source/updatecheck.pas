@@ -39,6 +39,7 @@ type
     AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
     CurrentRevision: Integer;
     CheckForBuildsInAutoMode: Boolean;
+    BuildSize: Integer;
   end;
 
 implementation
@@ -192,6 +193,7 @@ begin
   if Ini.SectionExists(INISECT_BUILD) then begin
     BuildRevision := Ini.ReadInteger(INISECT_BUILD, 'Revision', 0);
     BuildURL := Ini.ReadString(INISECT_BUILD, 'URL', '');
+    BuildSize := Ini.ReadInteger(INISECT_BUILD, 'Size', 0);
     memoBuild.Lines.Add( 'Revision ' + IntToStr(BuildRevision) + ' (yours: '+AppRevision+')' );
     FileAge(ParamStr(0), Compiled);
     memoBuild.Lines.Add( 'Compiled: ' + Ini.ReadString(INISECT_BUILD, 'Date', '') + ' (yours: '+DateToStr(Compiled)+')' );
@@ -312,7 +314,7 @@ end;
 }
 procedure TfrmUpdateCheck.URLOnDownloadProgress;
 begin
-  Status('Downloading: '+FormatByteNumber(Progress)+' / '+FormatByteNumber(ProgressMax) + ' ...');
+  Status('Downloading: '+FormatByteNumber(Progress)+' / '+FormatByteNumber(BuildSize) + ' ...');
 end;
 
 
