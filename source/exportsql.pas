@@ -808,11 +808,13 @@ begin
       StrProgress := 'Table ' + inttostr(tablecounter) + '/' + inttostr(tcount) + ': ' + checkListTables.Items[i];
       lblProgress.caption := StrProgress;
 
+      if tofile then
+        f := InitFileStream(checkListTables.Items[i], f);
+
       if exporttables then
       begin
         if tofile then
         begin
-          f := InitFileStream(checkListTables.Items[i], f);
           if f = nil then
           begin
             Screen.Cursor := crDefault;
