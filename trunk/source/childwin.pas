@@ -2067,7 +2067,7 @@ begin
   MainForm.actInsertFiles.Enabled := FrmIsFocussed;
   // PrintList should only be active if we're focussing one of the ListViews,
   // at least as long we are not able to print DBGrids
-  MainForm.actPrintList.Enabled := (not inDataOrQueryTab) and FrmIsFocussed;
+  MainForm.actPrintList.Enabled := FrmIsFocussed;
   MainForm.actSQLhelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
   MainForm.actImportCSV.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
   MainForm.actExportTables.Enabled := FrmIsFocussed;
