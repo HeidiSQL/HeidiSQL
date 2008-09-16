@@ -74,6 +74,7 @@ object MDIChild: TMDIChild
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toRightClickSelect]
       OnChange = DBtreeChange
+      OnClick = DBtreeClick
       OnDblClick = DBtreeDblClick
       OnGetText = DBtreeGetText
       OnPaintText = DBtreePaintText
