@@ -1002,6 +1002,7 @@ begin
   SetWindowName( main.discname );
   Application.Title := APPNAME;
 
+  debug('mem: clearing query and browse data.');
   SetLength(FDataGridResult.Rows, 0);
   SetLength(FDataGridResult.Columns, 0);
   SetLength(FQueryGridResult.Rows, 0);
@@ -1334,6 +1335,7 @@ begin
       DataGrid.RootNodeCount := 0;
       DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
       DataGrid.Header.Columns.Clear;
+      debug('mem: clearing browse data.');
       SetLength(FDataGridResult.Columns, 0);
       SetLength(FDataGridResult.Rows, 0);
 
@@ -1362,6 +1364,7 @@ begin
         HiddenKeyCols.Add(KeyCols[i]);
       end;
       // Initialize column array to correct length.
+      debug('mem: initializing browse columns.');
       SetLength(FDataGridResult.Columns, DisplayedColumnsList.Count);
       for i := 0 to DisplayedColumnsList.Count - 1 do begin
         ColName := DisplayedColumnsList[i];
@@ -1384,6 +1387,7 @@ begin
         ColName := DisplayedColumnsList[i];
         InitColumn(i, ColName);
       end;
+      debug('mem: browse column initialization complete.');
       // Cut last comma
       select_base := copy( select_base, 1, Length(select_base)-1 );
       select_from := ' FROM ' + mask( SelectedTable );
@@ -1421,10 +1425,12 @@ begin
       DataGridCurrentFilter := Filter;
       DataGridCurrentSort := sorting;
 
+      debug('mem: initializing browse rows.');
       SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
       for i:=0 to DataGrid.RootNodeCount-1 do begin
         FDataGridResult.Rows[i].Loaded := False;
       end;
+      debug('mem: browse row initialization complete.');
 
       pcChange(self);
     end;
@@ -2510,6 +2516,7 @@ begin
       QueryGrid.Header.Options := QueryGrid.Header.Options + [hoVisible];
       QueryGrid.Header.Columns.BeginUpdate;
       QueryGrid.Header.Columns.Clear;
+      debug('mem: clearing and initializing query columns.');
       SetLength(FQueryGridResult.Columns, 0);
       SetLength(FQueryGridResult.Columns, ds.FieldCount);
       for i:=0 to ds.FieldCount-1 do begin
@@ -2531,6 +2538,8 @@ begin
         else if ds.Fields[i].DataType in [ftBlob] then
           FQueryGridResult.Columns[i].IsBinary := True;
       end;
+      debug('mem: query column initialization complete.');
+      debug('mem: clearing and initializing query rows.');
       SetLength(FQueryGridResult.Rows, 0);
       SetLength(FQueryGridResult.Rows, ds.RecordCount);
       ds.First;
@@ -2547,6 +2556,7 @@ begin
         ds.Next;
       end;
       ds.Free;
+      debug('mem: query row initialization complete.');
       QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
       QueryGrid.Header.Columns.EndUpdate;
       QueryGrid.ClearSelection;
@@ -5578,6 +5588,7 @@ begin
       TVirtualStringTree(Sender).RootNodeCount := start + limit;
       SetLength(res.Rows, start + limit);
     end;
+    debug(Format('mem: loaded data from row %d to %d', [start, limit]));
 
     // fill in data
     MainForm.ShowStatus('Filling grid with record-data...');
