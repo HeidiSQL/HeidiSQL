@@ -1003,7 +1003,7 @@ begin
   Application.Title := APPNAME;
 
   SetLength(FDataGridResult.Rows, 0);
-  SetLength(FQueryGridResult.Rows, 0);
+  SetLength(FQueryGridResult.Columns, 0);
 
   // Closing connection
   FMysqlConn.Disconnect;
