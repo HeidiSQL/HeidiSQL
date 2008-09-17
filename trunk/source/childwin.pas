@@ -1419,8 +1419,8 @@ begin
       DataGridCurrentSort := sorting;
 
       debug('mem: initializing browse rows (internal data).');
-      SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
-      for i:=0 to DataGrid.RootNodeCount-1 do begin
+      SetLength(FDataGridResult.Rows, count);
+      for i := 0 to count - 1 do begin
         FDataGridResult.Rows[i].Loaded := False;
       end;
       debug('mem: initializing browse rows (grid).');
