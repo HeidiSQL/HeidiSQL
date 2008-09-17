@@ -4,12 +4,12 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Connection to MySQL-Host...'
-  ClientHeight = 274
-  ClientWidth = 446
+  ClientHeight = 284
+  ClientWidth = 456
   Color = clBtnFace
-  Constraints.MaxHeight = 310
+  Constraints.MaxHeight = 320
   Constraints.MaxWidth = 800
-  Constraints.MinHeight = 310
+  Constraints.MinHeight = 320
   Constraints.MinWidth = 462
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,14 +22,14 @@ object connform: Tconnform
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    446
-    274)
+    456
+    284)
   PixelsPerInch = 96
   TextHeight = 13
   object lblHost: TLabel
     Tag = 6
-    Left = 135
-    Top = 71
+    Left = 139
+    Top = 76
     Width = 72
     Height = 13
     Caption = '&Hostname / IP:'
@@ -37,8 +37,8 @@ object connform: Tconnform
   end
   object lblUsername: TLabel
     Tag = 7
-    Left = 135
-    Top = 95
+    Left = 139
+    Top = 100
     Width = 26
     Height = 13
     Caption = '&User:'
@@ -46,8 +46,8 @@ object connform: Tconnform
   end
   object lblPassword: TLabel
     Tag = 8
-    Left = 135
-    Top = 119
+    Left = 139
+    Top = 124
     Width = 50
     Height = 13
     Caption = '&Password:'
@@ -55,8 +55,8 @@ object connform: Tconnform
   end
   object lblPort: TLabel
     Tag = 9
-    Left = 135
-    Top = 143
+    Left = 139
+    Top = 148
     Width = 24
     Height = 13
     Caption = 'P&ort:'
@@ -64,8 +64,8 @@ object connform: Tconnform
   end
   object lblTimeout: TLabel
     Tag = 10
-    Left = 275
-    Top = 143
+    Left = 279
+    Top = 148
     Width = 42
     Height = 13
     Caption = '&Timeout:'
@@ -73,8 +73,8 @@ object connform: Tconnform
   end
   object lblDescription: TLabel
     Tag = 5
-    Left = 135
-    Top = 44
+    Left = 139
+    Top = 49
     Width = 57
     Height = 13
     Caption = '&Description:'
@@ -82,17 +82,17 @@ object connform: Tconnform
   end
   object lblSeconds: TLabel
     Tag = 11
-    Left = 387
-    Top = 143
-    Width = 54
+    Left = 391
+    Top = 148
+    Width = 49
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
   end
   object lblOnlyDBs: TLabel
     Tag = 13
-    Left = 135
-    Top = 190
+    Left = 139
+    Top = 195
     Width = 63
     Height = 13
     Caption = 'Data&base(s):'
@@ -100,8 +100,8 @@ object connform: Tconnform
     WordWrap = True
   end
   object EditHost: TEdit
-    Left = 226
-    Top = 68
+    Left = 230
+    Top = 73
     Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -109,8 +109,8 @@ object connform: Tconnform
     OnChange = Modified
   end
   object EditUsername: TEdit
-    Left = 226
-    Top = 92
+    Left = 230
+    Top = 97
     Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -118,8 +118,8 @@ object connform: Tconnform
     OnChange = Modified
   end
   object EditPassword: TEdit
-    Left = 226
-    Top = 116
+    Left = 230
+    Top = 121
     Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -128,24 +128,24 @@ object connform: Tconnform
     OnChange = Modified
   end
   object EditPort: TEdit
-    Left = 226
-    Top = 140
+    Left = 230
+    Top = 145
     Width = 43
     Height = 21
     TabOrder = 4
     OnChange = Modified
   end
   object EditTimeout: TEdit
-    Left = 327
-    Top = 139
+    Left = 331
+    Top = 144
     Width = 51
     Height = 21
     TabOrder = 5
     OnChange = Modified
   end
   object pnlScreen: TPanel
-    Left = 8
-    Top = 8
+    Left = 12
+    Top = 13
     Width = 119
     Height = 259
     AutoSize = True
@@ -2991,8 +2991,8 @@ object connform: Tconnform
     end
   end
   object ComboBoxDescription: TComboBox
-    Left = 226
-    Top = 41
+    Left = 230
+    Top = 46
     Width = 215
     Height = 21
     AutoCompleteDelay = 5000
@@ -3004,8 +3004,8 @@ object connform: Tconnform
   end
   object CheckBoxCompressed: TCheckBox
     Tag = 12
-    Left = 226
-    Top = 166
+    Left = 230
+    Top = 171
     Width = 215
     Height = 17
     Caption = '&Compressed client/server protocol'
@@ -3013,8 +3013,8 @@ object connform: Tconnform
     OnClick = Modified
   end
   object EditOnlyDBs: TTntEdit
-    Left = 226
-    Top = 187
+    Left = 230
+    Top = 192
     Width = 215
     Height = 21
     Hint = 'A list of wanted databases, separated by semicolon'
@@ -3025,8 +3025,8 @@ object connform: Tconnform
     OnChange = Modified
   end
   object CheckBoxSorted: TCheckBox
-    Left = 226
-    Top = 214
+    Left = 230
+    Top = 219
     Width = 215
     Height = 17
     Anchors = [akLeft, akTop, akRight]
@@ -3035,8 +3035,8 @@ object connform: Tconnform
     OnClick = Modified
   end
   object ButtonSaveAndConnect: TButton
-    Left = 135
-    Top = 243
+    Left = 139
+    Top = 248
     Width = 95
     Height = 25
     Anchors = [akTop, akRight]
@@ -3047,8 +3047,8 @@ object connform: Tconnform
   end
   object ButtonConnect: TButton
     Tag = 15
-    Left = 241
-    Top = 243
+    Left = 245
+    Top = 248
     Width = 95
     Height = 25
     Anchors = [akTop, akRight]
@@ -3060,8 +3060,8 @@ object connform: Tconnform
   end
   object ButtonCancel: TButton
     Tag = 16
-    Left = 346
-    Top = 243
+    Left = 350
+    Top = 248
     Width = 95
     Height = 25
     Anchors = [akTop, akRight]
@@ -3071,9 +3071,9 @@ object connform: Tconnform
     TabOrder = 12
   end
   object ToolBar1: TToolBar
-    Left = 135
-    Top = 8
-    Width = 303
+    Left = 139
+    Top = 13
+    Width = 264
     Height = 22
     Align = alNone
     Anchors = [akLeft, akTop, akRight]
