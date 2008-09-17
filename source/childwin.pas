@@ -1418,12 +1418,13 @@ begin
       DataGridCurrentFilter := Filter;
       DataGridCurrentSort := sorting;
 
-      debug('mem: initializing browse rows.');
-      DataGrid.RootNodeCount := count;
+      debug('mem: initializing browse rows (internal data).');
       SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
       for i:=0 to DataGrid.RootNodeCount-1 do begin
         FDataGridResult.Rows[i].Loaded := False;
       end;
+      debug('mem: initializing browse rows (grid).');
+      DataGrid.RootNodeCount := count;
       debug('mem: browse row initialization complete.');
 
       // Switched to another table
@@ -2541,7 +2542,7 @@ begin
           FQueryGridResult.Columns[i].IsBinary := True;
       end;
       debug('mem: query column initialization complete.');
-      debug('mem: clearing and initializing query rows.');
+      debug('mem: clearing and initializing query rows (internal data).');
       SetLength(FQueryGridResult.Rows, 0);
       SetLength(FQueryGridResult.Rows, ds.RecordCount);
       ds.First;
@@ -2558,6 +2559,7 @@ begin
         ds.Next;
       end;
       ds.Free;
+      debug('mem: initializing query rows (grid).');
       QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
       debug('mem: query row initialization complete.');
       QueryGrid.Header.Columns.EndUpdate;
