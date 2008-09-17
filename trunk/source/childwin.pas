@@ -1842,6 +1842,7 @@ var
   dummy: Boolean;
   hasCommentColumn: Boolean;
   SelectedCaptions: WideStrings.TWideStringList;
+  defaultVal: WideString;
 begin
   // Table-Properties
   dataselected := false;
@@ -1894,8 +1895,12 @@ begin
         else
           // No default value.
           VTRowDataListColumns[i-1].Captions.Add('')
-      else
-        VTRowDataListColumns[i-1].Captions.Add('''' + FSelectedTableColumns.FieldByName('Default').AsWideString + '''');
+      else begin
+        defaultVal := FSelectedTableColumns.FieldByName('Default').AsWideString;
+        if UpperCase(defaultVal) <> 'CURRENT_TIMESTAMP' then
+          defaultVal := '''' + defaultVal + '''';
+        VTRowDataListColumns[i-1].Captions.Add(defaultVal);
+      end;
 
       VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Extra').AsWideString );
       if hasCommentColumn then

@@ -73,7 +73,7 @@ object FieldEditForm: TFieldEditForm
       end
       object lblComment: TLabel
         Left = 8
-        Top = 136
+        Top = 160
         Width = 49
         Height = 13
         Caption = '&Comment:'
@@ -91,7 +91,7 @@ object FieldEditForm: TFieldEditForm
       end
       object EditDefault: TTntEdit
         Left = 88
-        Top = 109
+        Top = 132
         Width = 192
         Height = 21
         TabOrder = 5
@@ -125,22 +125,22 @@ object FieldEditForm: TFieldEditForm
       end
       object GroupBoxAttributes: TGroupBox
         Left = 8
-        Top = 168
+        Top = 184
         Width = 272
-        Height = 113
+        Height = 97
         Caption = 'Attributes'
         TabOrder = 7
         object CheckBoxBinary: TCheckBox
-          Left = 16
-          Top = 24
+          Left = 9
+          Top = 21
           Width = 65
           Height = 17
           Caption = 'Binary'
           TabOrder = 0
         end
         object CheckBoxUnsigned: TCheckBox
-          Left = 16
-          Top = 48
+          Left = 9
+          Top = 45
           Width = 65
           Height = 17
           Caption = 'Unsigned'
@@ -148,8 +148,8 @@ object FieldEditForm: TFieldEditForm
           OnClick = CheckBoxUnsignedClick
         end
         object CheckBoxZerofill: TCheckBox
-          Left = 16
-          Top = 72
+          Left = 9
+          Top = 69
           Width = 57
           Height = 17
           Caption = 'Zerofill'
@@ -157,16 +157,16 @@ object FieldEditForm: TFieldEditForm
           OnClick = CheckBoxZerofillClick
         end
         object CheckBoxNotNull: TCheckBox
-          Left = 128
-          Top = 24
+          Left = 121
+          Top = 21
           Width = 69
           Height = 17
           Caption = 'Not Null'
           TabOrder = 3
         end
         object CheckBoxAutoIncrement: TCheckBox
-          Left = 128
-          Top = 48
+          Left = 121
+          Top = 45
           Width = 97
           Height = 17
           Caption = 'AutoIncrement'
@@ -184,10 +184,24 @@ object FieldEditForm: TFieldEditForm
       end
       object EditComment: TTntEdit
         Left = 88
-        Top = 133
+        Top = 157
         Width = 192
         Height = 21
         TabOrder = 6
+      end
+      object comboDefault: TComboBox
+        Left = 88
+        Top = 109
+        Width = 192
+        Height = 21
+        Style = csDropDownList
+        ItemHeight = 13
+        TabOrder = 8
+        OnChange = comboDefaultChange
+        Items.Strings = (
+          'NULL'
+          'CURRENT_TIMESTAMP'
+          'Custom string ...')
       end
     end
     object tabIndexes: TTabSheet
