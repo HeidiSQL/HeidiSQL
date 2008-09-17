@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ImgList, ToolWin, ExtCtrls, Buttons, VirtualTrees,
-  PngSpeedButton, TntStdCtrls, WideStrings;
+  PngSpeedButton, TntStdCtrls, WideStrings, WideStrUtils;
 
 type
   TFieldEditorMode = (femFieldAdd,femFieldUpdate,femIndexEditor);
@@ -56,6 +56,7 @@ type
     btnDatatypeHelp: TButton;
     lblComment: TLabel;
     EditComment: TTntEdit;
+    comboDefault: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure btnDatatypeHelpClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -85,6 +86,7 @@ type
         TShiftState);
     procedure ComboBoxTypeKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure listClick(Sender: TObject);
+    procedure comboDefaultChange(Sender: TObject);
   private
     { Private declarations }
     TempKeys : TStringList;
@@ -103,6 +105,12 @@ type
   function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : WideString = '') : Boolean;
 
 {$I const.inc}
+
+const
+  DEFAULT_NULL = 0;
+  DEFAULT_CURTS = 1;
+  DEFAULT_CUSTOM = 2;
+
 
 implementation
 
@@ -204,6 +212,7 @@ begin
       EditFieldName.Text := 'Enter column name';
       ComboBoxType.ItemIndex := 1;
       EditLength.Text := '';
+      comboDefault.ItemIndex := DEFAULT_NULL;
       EditDefault.Text := '';
       EditComment.Text := '';
       CheckBoxUnsigned.Checked := true;
@@ -220,7 +229,15 @@ begin
       NodeData := ListColumns.GetNodeData(ListColumns.GetFirstSelected);
       EditFieldname.Text := FFieldName;
       EditLength.Text := getEnumValues( NodeData.Captions[1] );
-      EditDefault.Text := NodeData.Captions[3];
+      editDefault.Text := '';
+      if NodeData.Captions[3] = 'NULL' then
+        comboDefault.ItemIndex := DEFAULT_NULL
+      else if NodeData.Captions[3] = 'CURRENT_TIMESTAMP' then
+        comboDefault.ItemIndex := DEFAULT_CURTS
+      else begin
+        comboDefault.ItemIndex := DEFAULT_CUSTOM;
+        EditDefault.Text := WideDequotedStr(NodeData.Captions[3], '''');
+      end;
       EditComment.Text := NodeData.Captions[5];
 
       // extract field type
@@ -410,12 +427,18 @@ begin
   end;
 
   // DEFAULT
-  EditDefault.Enabled := FieldType.HasDefault;
-  lblDefault.Enabled := EditDefault.Enabled;
+  comboDefault.Enabled := FieldType.HasDefault;
+  EditDefault.Enabled := FieldType.HasDefault and (comboDefault.ItemIndex = DEFAULT_CUSTOM);
+  lblDefault.Enabled := comboDefault.Enabled;
   if not EditDefault.Enabled then
     EditDefault.Text := ''; // Ensure text is empty
 end;
 
+
+procedure TFieldEditForm.comboDefaultChange(Sender: TObject);
+begin
+  editDefault.Enabled := TCombobox(Sender).ItemIndex = DEFAULT_CUSTOM;
+end;
 
 
 {***
@@ -472,10 +495,14 @@ begin
   if CheckBoxZerofill.Checked = true then
     strAttributes := strAttributes + ' ZEROFILL';
 
-  if (length(EditDefault.Text) > 0) and EditDefault.Enabled then
+  if comboDefault.Enabled then
   begin
-    strDefault := ' DEFAULT ';
-    strDefault := strDefault + EditDefault.Text
+    case comboDefault.ItemIndex of
+      DEFAULT_NULL: strDefault := 'NULL';
+      DEFAULT_CURTS: strDefault := 'CURRENT_TIMESTAMP';
+      DEFAULT_CUSTOM: strDefault := esc(editDefault.Text);
+    end;
+    strDefault := ' DEFAULT '+strDefault;
   end;
 
   if CheckBoxNotNull.Enabled then
