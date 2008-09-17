@@ -1196,7 +1196,7 @@ end;
 procedure TMDIChild.viewdata(Sender: TObject);
 var
   sorting              : WideString;
-  i                    : Integer;
+  i, count             : Integer;
   OrderColumns         : TOrderColArray;
   reg_value            : String;
   select_base          : WideString;
@@ -1331,13 +1331,13 @@ begin
       rx := TRegExpr.Create;
       MainForm.ShowStatus('Freeing data...');
       DataGrid.BeginUpdate;
-      DataGrid.Header.Columns.BeginUpdate;
-      DataGrid.RootNodeCount := 0;
-      DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
-      DataGrid.Header.Columns.Clear;
       debug('mem: clearing browse data.');
       SetLength(FDataGridResult.Columns, 0);
       SetLength(FDataGridResult.Rows, 0);
+      DataGrid.RootNodeCount := 0;
+      DataGrid.Header.Columns.BeginUpdate;
+      DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
+      DataGrid.Header.Columns.Clear;
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
@@ -1398,14 +1398,7 @@ begin
         sl_query.Add(select_from);
         // Apply custom WHERE filter
         if Filter <> '' then sl_query.Add('WHERE ' + Filter);
-        DataGrid.RootNodeCount := StrToInt(GetVar(sl_query.Text));
-        // Switched to another table
-        if ViewDataPrevTable <> SelectedTable then begin
-          DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
-          FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
-        end;
-        DisplayRowCountStats;
-        dataselected := true;
+        count := StrToInt(GetVar(sl_query.Text));
       except
         on E:Exception do begin
           // Most likely we have a wrong filter-clause when this happens
@@ -1426,11 +1419,20 @@ begin
       DataGridCurrentSort := sorting;
 
       debug('mem: initializing browse rows.');
+      DataGrid.RootNodeCount := count;
       SetLength(FDataGridResult.Rows, DataGrid.RootNodeCount);
       for i:=0 to DataGrid.RootNodeCount-1 do begin
         FDataGridResult.Rows[i].Loaded := False;
       end;
       debug('mem: browse row initialization complete.');
+
+      // Switched to another table
+      if ViewDataPrevTable <> SelectedTable then begin
+        DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
+        FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
+      end;
+      DisplayRowCountStats;
+      dataselected := true;
 
       pcChange(self);
     end;
@@ -2556,8 +2558,8 @@ begin
         ds.Next;
       end;
       ds.Free;
-      debug('mem: query row initialization complete.');
       QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
+      debug('mem: query row initialization complete.');
       QueryGrid.Header.Columns.EndUpdate;
       QueryGrid.ClearSelection;
       QueryGrid.OffsetXY := Point(0, 0);
@@ -5582,13 +5584,14 @@ begin
 
     // start query
     MainForm.ShowStatus('Retrieving data...');
+    debug(Format('mem: loading data chunk from row %d to %d', [start, limit]));
     ds := GetResults(query);
     if Cardinal(ds.RecordCount) < limit then begin
       limit := ds.RecordCount;
       TVirtualStringTree(Sender).RootNodeCount := start + limit;
       SetLength(res.Rows, start + limit);
     end;
-    debug(Format('mem: loaded data from row %d to %d', [start, limit]));
+    debug(Format('mem: loaded data chunk from row %d to %d', [start, limit]));
 
     // fill in data
     MainForm.ShowStatus('Filling grid with record-data...');
