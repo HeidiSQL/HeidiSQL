@@ -5532,10 +5532,11 @@ begin
   else res := @FQueryGridResult;
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
     query := DataGridCurrentSelect;
-    if DataGridCurrentFilter = '' then begin
+    // Passed WhereClause has prio over current filter, fixes bug #754
+    if WhereClause <> '' then begin
       query := query + ' WHERE ' + WhereClause;
-    end else begin
-      query := query + ' WHERE (' + DataGridCurrentFilter + ') AND (' + WhereClause + ')';
+    end else if DataGridCurrentFilter <> '' then begin
+      query := query + ' WHERE ' + DataGridCurrentFilter;
     end;
 
     // start query
