@@ -108,7 +108,7 @@ begin
   // Prepare download
   CheckfileDownload := TDownLoadURL2.Create(Self);
   CheckfileDownload.SetUserAgent(APPNAME + ' ' + APPVERSION + ' ' + APPREVISION + ' update checker tool');
-  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php';
+  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php?r='+APPREVISION;
   CheckfileDownload.Filename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
@@ -199,7 +199,7 @@ begin
     memoBuild.Lines.Add( 'Compiled: ' + Ini.ReadString(INISECT_BUILD, 'Date', '') + ' (yours: '+DateToStr(Compiled)+')' );
     Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
     if Note <> '' then
-      memoBuild.Lines.Add( 'Note: ' + Note );
+      memoBuild.Lines.Add( 'Notes: * ' + StringReplace(Note, '%||%', CRLF+'* ', [rfReplaceAll] ) );
     btnBuild.Caption := 'Download and install build ' + IntToStr(BuildRevision);
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here

@@ -3,7 +3,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Check for updates ...'
-  ClientHeight = 273
+  ClientHeight = 340
   ClientWidth = 384
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,12 +17,12 @@ object frmUpdateCheck: TfrmUpdateCheck
   OnShow = FormShow
   DesignSize = (
     384
-    273)
+    340)
   PixelsPerInch = 96
   TextHeight = 13
   object lblStatus: TLabel
     Left = 8
-    Top = 240
+    Top = 307
     Width = 256
     Height = 28
     Anchors = [akLeft, akRight, akBottom]
@@ -33,7 +33,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   end
   object btnCancel: TButton
     Left = 270
-    Top = 240
+    Top = 307
     Width = 106
     Height = 25
     Anchors = [akRight, akBottom]
@@ -47,17 +47,17 @@ object frmUpdateCheck: TfrmUpdateCheck
     Left = 8
     Top = 123
     Width = 368
-    Height = 110
+    Height = 177
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Nightly build'
     Enabled = False
     TabOrder = 1
     DesignSize = (
       368
-      110)
+      177)
     object btnBuild: TButton
       Left = 6
-      Top = 78
+      Top = 145
       Width = 355
       Height = 25
       Anchors = [akLeft, akRight, akBottom]
@@ -70,7 +70,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       Left = 6
       Top = 16
       Width = 355
-      Height = 60
+      Height = 127
       Anchors = [akLeft, akTop, akRight, akBottom]
       BorderStyle = bsNone
       Color = clBtnFace
