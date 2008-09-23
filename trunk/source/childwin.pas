@@ -1276,10 +1276,17 @@ begin
         FDataGridResult.Columns[idx].IsBinary := True;
       if Copy(ColType, 1, 5) = 'enum(' then begin
         FDataGridResult.Columns[idx].IsEnum := True;
-        FDataGridResult.Columns[idx].EnumVals := WideStrings.TWideStringList.Create;
-        FDataGridResult.Columns[idx].EnumVals.QuoteChar := '''';
-        FDataGridResult.Columns[idx].EnumVals.Delimiter := ',';
-        FDataGridResult.Columns[idx].EnumVals.DelimitedText := GetEnumValues(ColType);
+        FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+        FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+        FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
+        FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
+      end;
+      if Copy(ColType, 1, 4) = 'set(' then begin
+        FDataGridResult.Columns[idx].IsSet := True;
+        FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+        FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+        FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
+        FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
       end;
     end;
     FSelectedTableColumns.Next;
@@ -6279,6 +6286,7 @@ var
   MemoEditor: TMemoEditorLink;
   DateTimeEditor: TDateTimeEditorLink;
   EnumEditor: TEnumEditorLink;
+  SetEditor: TSetEditorLink;
 begin
   if
     (FDataGridResult.Columns[Column].IsText and prefEnableTextEditor) or
@@ -6293,8 +6301,12 @@ begin
     EditLink := DateTimeEditor;
   end else if FDataGridResult.Columns[Column].IsEnum and prefEnableEnumEditor then begin
     EnumEditor := TEnumEditorLink.Create;
-    EnumEditor.ValueList := FDataGridResult.Columns[Column].EnumVals;
+    EnumEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := EnumEditor;
+  end else if FDataGridResult.Columns[Column].IsSet then begin
+    SetEditor := TSetEditorLink.Create;
+    SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
+    EditLink := SetEditor;
   end else
     EditLink := TStringEditLink.Create;
 end;
