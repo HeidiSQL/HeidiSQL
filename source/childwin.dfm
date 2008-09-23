@@ -930,7 +930,7 @@ object MDIChild: TMDIChild
           Header.MainColumn = -1
           Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
           Header.ParentFont = True
-          IncrementalSearch = isAll
+          IncrementalSearch = isInitializedOnly
           LineStyle = lsSolid
           PopupMenu = popupDataGrid
           TabOrder = 2
