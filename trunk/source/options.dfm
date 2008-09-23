@@ -4,7 +4,7 @@ object optionsform: Toptionsform
   BorderStyle = bsDialog
   BorderWidth = 5
   Caption = 'Preferences'
-  ClientHeight = 336
+  ClientHeight = 359
   ClientWidth = 421
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,14 +18,14 @@ object optionsform: Toptionsform
   OnShow = FormShow
   DesignSize = (
     421
-    336)
+    359)
   PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
     Left = 0
     Top = 0
     Width = 421
-    Height = 303
+    Height = 326
     ActivePage = TabSheet1
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -202,7 +202,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 403
-        Height = 265
+        Height = 288
         ActivePage = TabSheet3
         Align = alClient
         TabOrder = 0
@@ -515,7 +515,7 @@ object optionsform: Toptionsform
         Left = 8
         Top = 84
         Width = 391
-        Height = 180
+        Height = 203
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Field colors and editors'
         TabOrder = 6
@@ -565,6 +565,13 @@ object optionsform: Toptionsform
           Width = 20
           Height = 13
           Caption = '&Set:'
+        end
+        object lblFieldNull: TLabel
+          Left = 12
+          Top = 168
+          Width = 28
+          Height = 13
+          Caption = 'N&ULL:'
         end
         object cboxText: TColorBox
           Left = 100
@@ -669,6 +676,25 @@ object optionsform: Toptionsform
           Caption = 'Enable checkbox editor'
           TabOrder = 10
         end
+        object chkNullBG: TCheckBox
+          Left = 234
+          Top = 167
+          Width = 154
+          Height = 17
+          Caption = 'Enable background color'
+          TabOrder = 11
+          OnClick = chkNullBGClick
+        end
+        object cboxNullBG: TColorBox
+          Left = 100
+          Top = 165
+          Width = 120
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          Enabled = False
+          ItemHeight = 16
+          TabOrder = 12
+        end
       end
     end
     object TabSheet5: TTabSheet
@@ -679,7 +705,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 403
-        Height = 265
+        Height = 288
         Align = alClient
         Caption = 'CSV-Strings for copying/saving CSV-data'
         TabOrder = 0
@@ -767,7 +793,7 @@ object optionsform: Toptionsform
   end
   object ButtonCancel: TButton
     Left = 266
-    Top = 310
+    Top = 333
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -778,7 +804,7 @@ object optionsform: Toptionsform
   end
   object ButtonOK: TButton
     Left = 186
-    Top = 310
+    Top = 333
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -789,7 +815,7 @@ object optionsform: Toptionsform
   end
   object ButtonApply: TButton
     Left = 346
-    Top = 310
+    Top = 333
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
