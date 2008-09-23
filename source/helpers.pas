@@ -55,10 +55,11 @@ type
     IsBinary: Boolean;
     IsText: Boolean;
     IsEnum: Boolean;
+    IsSet: Boolean;
     IsInt: Boolean;
     IsFloat: Boolean;
     IsDate: Boolean;
-    EnumVals: TWideStringList;
+    ValueList: TWideStringList;
   end;
   PGridColumn = ^TGridColumn;
   TGridColumns = Array of TGridColumn;

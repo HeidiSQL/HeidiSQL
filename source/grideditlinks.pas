@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls;
+  mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -62,6 +62,33 @@ type
     FColumn: TColumnIndex;
     FStopping: Boolean;
     procedure ComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  public
+    ValueList: TWideStringList;
+    constructor Create;
+    destructor Destroy; override;
+    function BeginEdit: Boolean; virtual; stdcall;
+    function CancelEdit: Boolean; virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall;
+    function GetBounds: TRect; virtual; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
+    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall;
+  end;
+
+type
+  TSetEditorLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FPanel: TPanel;
+    FCheckList: TTNTCheckListBox;
+    FBtnOK, FBtnCancel: TButton;
+    FTree: TCustomVirtualStringTree;
+    FNode: PVirtualNode;
+    FColumn: TColumnIndex;
+    FTextBounds: TRect;
+    FStopping: Boolean;
+    procedure CheckListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure BtnOkClick(Sender: TObject);
+    procedure BtnCancelClick(Sender: TObject);
   public
     ValueList: TWideStringList;
     constructor Create;
@@ -416,6 +443,168 @@ begin
     // Apply changes and end editing by [Ctrl +] Enter
     VK_RETURN: FTree.EndEditNode;
   end;
+end;
+
+
+
+
+{ SET editor }
+
+constructor TSetEditorLink.Create;
+begin
+  inherited;
+end;
+
+
+destructor TSetEditorLink.Destroy;
+begin
+  inherited;
+  FCheckList.Free;
+  FPanel.Free;
+end;
+
+
+function TSetEditorLink.BeginEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then
+    FPanel.Show;
+end;
+
+
+function TSetEditorLink.CancelEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    FPanel.Hide;
+    FTree.CancelEditNode;
+    FTree.SetFocus;
+  end;
+end;
+
+
+function TSetEditorLink.EndEdit: Boolean; stdcall;
+var
+  newtext: WideString;
+  i: Integer;
+begin
+  Result := not FStopping;
+  if Not Result then
+    Exit;
+  newText := '';
+  for i := 0 to FCheckList.Items.Count - 1 do
+    if FCheckList.Checked[i] then newText := newText + FCheckList.Items[i] + ',';
+  Delete(newText, Length(newText), 1);
+    
+  if newtext <> FTree.Text[FNode, FColumn] then
+    FTree.Text[FNode, FColumn] := newtext;
+  FPanel.Hide;
+  FTree.SetFocus;
+end;
+
+
+function TSetEditorLink.GetBounds: TRect; stdcall;
+begin
+  Result := FPanel.BoundsRect;
+end;
+
+
+function TSetEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  F: TFont;
+  SelValues: TWideStringList;
+  Text: WideString;
+begin
+  Result := Tree is TCustomVirtualStringTree;
+  if not Result then
+    Exit;
+  Ftree := Tree as TCustomVirtualStringTree;
+  FNode := Node;
+  FColumn := Column;
+
+  // Initial size, font and text of the node.
+  F := TFont.Create;
+  FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
+  SelValues := TWideStringList.Create;
+  SelValues.Delimiter := ',';
+  SelValues.StrictDelimiter := True;
+  SelValues.DelimitedText := Text;
+
+  FPanel := TPanel.Create(Tree);
+  FPanel.Parent := FTree;
+  FPanel.Left := FTextBounds.Left;
+  FPanel.Top := FTextBounds.Top;
+
+  FCheckList := TTNTCheckListBox.Create(FPanel);
+  FCheckList.Parent := FPanel;
+  FCheckList.Font := F;
+  FCheckList.Items.Assign(ValueList);
+  ToggleCheckListBox(FCheckList, True, SelValues);
+  FCheckList.SetFocus;
+  FCheckList.OnKeyDown := CheckListKeyDown;
+
+  FBtnOk := TButton.Create(FPanel);
+  FBtnOk.Parent := FPanel;
+  FBtnOk.Caption := 'OK';
+  FBtnOk.OnClick := BtnOkClick;
+
+  FBtnCancel := TButton.Create(FPanel);
+  FBtnCancel.Parent := FPanel;
+  FBtnCancel.Caption := 'Cancel';
+  FBtnCancel.OnClick := BtnCancelClick;
+end;
+
+
+procedure TSetEditorLink.ProcessMessage(var Message: TMessage); stdcall;
+begin
+end;
+
+
+procedure TSetEditorLink.SetBounds(R: TRect); stdcall;
+const
+  margin = 3;
+begin
+  FPanel.Top := R.Top;
+  FPanel.Left := R.Left;
+  FPanel.Width := R.Right - R.Left;
+  FPanel.Height := 200;
+
+  FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
+  FBtnOk.Left := margin;
+  FBtnOk.Height := 24;
+  FBtnOk.Top := FPanel.Height - margin - FBtnOk.Height;
+
+  FBtnCancel.Width := FBtnOk.Width;
+  FBtnCancel.Left := 2*margin + FBtnOk.Width;
+  FBtnCancel.Height := FBtnOk.Height;
+  FBtnCancel.Top := FBtnOk.Top;
+
+  FCheckList.Top := margin;
+  FCheckList.Left := margin;
+  FCheckList.Width := FPanel.Width - 2*margin;
+  FCheckList.Height := FPanel.Height - 3*margin - FBtnOk.Height;
+end;
+
+
+procedure TSetEditorLink.CheckListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    // Cancel by Escape
+    VK_ESCAPE: FTree.CancelEditNode;
+    // Apply changes and end editing by [Ctrl +] Enter
+    VK_RETURN: FTree.EndEditNode;
+  end;
+end;
+
+procedure TSetEditorLink.BtnOkClick(Sender: TObject);
+begin
+  FTree.EndEditNode;
+end;
+
+procedure TSetEditorLink.BtnCancelClick(Sender: TObject);
+begin
+  FTree.CancelEditNode;
 end;
 
 end.
