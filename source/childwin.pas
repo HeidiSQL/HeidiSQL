@@ -526,17 +526,20 @@ type
       prefEnableTextEditor,
       prefEnableBinaryEditor,
       prefEnableDatetimeEditor,
-      prefEnableEnumEditor       : Boolean;
+      prefEnableEnumEditor,
+      prefEnableSetEditor        : Boolean;
       prefFieldColorNumeric,
       prefFieldColorText,
       prefFieldColorBinary,
       prefFieldColorDatetime,
       prefFieldColorEnum,
+      prefFieldColorSet,
       prefNullColorNumeric,
       prefNullColorText,
       prefNullColorBinary,
       prefNullColorDatetime,
       prefNullColorEnum,
+      prefNullColorSet,
       prefNullColorDefault       : TColor;
       CreateDatabaseForm         : TCreateDatabaseForm;
       CreateTableForm            : TCreateTableForm;
@@ -936,12 +939,14 @@ begin
   prefFieldColorBinary := Mainform.GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
   prefFieldColorDatetime := Mainform.GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
   prefFieldColorEnum := Mainform.GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
+  prefFieldColorSet := Mainform.GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
   CalcNullColors;
   // Editor enablings
   prefEnableTextEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
   prefEnableBinaryEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   prefEnableDatetimeEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   prefEnableEnumEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
+  prefEnableSetEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 
   // Color coding:
   SynSQLSyn1.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
@@ -5686,6 +5691,7 @@ begin
   prefNullColorBinary := ColorAdjustBrightness(prefFieldColorBinary, COLORSHIFT_NULLFIELDS);
   prefNullColorDatetime := ColorAdjustBrightness(prefFieldColorDatetime, COLORSHIFT_NULLFIELDS);
   prefNullColorEnum := ColorAdjustBrightness(prefFieldColorEnum, COLORSHIFT_NULLFIELDS);
+  prefNullColorSet := ColorAdjustBrightness(prefFieldColorSet, COLORSHIFT_NULLFIELDS);
   prefNullColorDefault := ColorAdjustBrightness(clWindow, COLORSHIFT_NULLFIELDS);
 end;
 
@@ -5736,6 +5742,9 @@ begin
   // Enum field
   else if r.Columns[Column].isEnum then
     if isNull then cl := prefNullColorEnum else cl := prefFieldColorEnum
+  // Set field
+  else if r.Columns[Column].isSet then
+    if isNull then cl := prefNullColorSet else cl := prefFieldColorSet
   else
     if isNull then cl := prefNullColorDefault else cl := clWindowText;
   TargetCanvas.Font.Color := cl;
@@ -6303,7 +6312,7 @@ begin
     EnumEditor := TEnumEditorLink.Create;
     EnumEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := EnumEditor;
-  end else if FDataGridResult.Columns[Column].IsSet then begin
+  end else if FDataGridResult.Columns[Column].IsSet and prefEnableSetEditor then begin
     SetEditor := TSetEditorLink.Create;
     SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := SetEditor;

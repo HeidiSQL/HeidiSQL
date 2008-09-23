@@ -102,6 +102,9 @@ type
     chkEditorBinary: TCheckBox;
     chkEditorDatetime: TCheckBox;
     chkEditorEnum: TCheckBox;
+    lblFieldSet: TLabel;
+    cboxSet: TColorBox;
+    chkEditorSet: TCheckBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -189,11 +192,13 @@ begin
   reg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, cboxBinary.Selected);
   reg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
   reg.WriteInteger(REGNAME_FIELDCOLOR_ENUM, cboxEnum.Selected);
+  reg.WriteInteger(REGNAME_FIELDCOLOR_SET, cboxSet.Selected);
   // Editor enablings
   reg.WriteBool(REGNAME_FIELDEDITOR_TEXT, chkEditorText.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
+  reg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
 
   // Clean registry from unwanted WHERE clauses if "Remember WHERE filters" was unchecked
   if not chkRememberFilters.Checked then begin
@@ -258,6 +263,7 @@ begin
     cwin.prefFieldColorBinary := cboxBinary.Selected;
     cwin.prefFieldColorDatetime := cboxDatetime.Selected;
     cwin.prefFieldColorEnum := cboxEnum.Selected;
+    cwin.prefFieldColorSet := cboxSet.Selected;
     cwin.CalcNullColors;
     cwin.DataGrid.Repaint;
     cwin.QueryGrid.Repaint;
@@ -265,6 +271,7 @@ begin
     cwin.prefEnableBinaryEditor := chkEditorBinary.Checked;
     cwin.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
     cwin.prefEnableEnumEditor := chkEditorEnum.Checked;
+    cwin.prefEnableSetEditor := chkEditorSet.Checked;
   end;
 
   // Settings have been applied, send a signal to the user
@@ -364,11 +371,13 @@ begin
   cboxBinary.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
   cboxDatetime.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
   cboxEnum.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
+  cboxSet.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
   // Editor enablings
   chkEditorText.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
   chkEditorBinary.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   chkEditorDatetime.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   chkEditorEnum.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
+  chkEditorSet.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 
   ButtonApply.Enabled := false;
   screen.Cursor := crdefault;
