@@ -210,6 +210,11 @@ const
   DEFAULT_FIELDEDITOR_ENUM = True;
   DEFAULT_FIELDEDITOR_SET = True;
 
+  REGNAME_BG_NULL = 'Field_NullBackground';
+  DEFAULT_BG_NULL = $00FF00FF; // clMagenta
+  REGNAME_BG_NULL_ENABLED = 'FieldNull_EnableBackground';
+  DEFAULT_BG_NULL_ENABLED = False;
+
   REGNAME_SIZECOL_TREE = 'DisplayObjectSizeColumn';
   DEFAULT_SIZECOL_TREE = True;
 

@@ -105,6 +105,9 @@ type
     lblFieldSet: TLabel;
     cboxSet: TColorBox;
     chkEditorSet: TCheckBox;
+    chkNullBG: TCheckBox;
+    lblFieldNull: TLabel;
+    cboxNullBG: TColorBox;
     procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -118,6 +121,7 @@ type
     procedure btnOpenLogFolderClick(Sender: TObject);
     procedure chkUpdatecheckClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure chkNullBGClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -193,12 +197,14 @@ begin
   reg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
   reg.WriteInteger(REGNAME_FIELDCOLOR_ENUM, cboxEnum.Selected);
   reg.WriteInteger(REGNAME_FIELDCOLOR_SET, cboxSet.Selected);
+  reg.WriteInteger(REGNAME_BG_NULL, cboxNullBg.Selected);
   // Editor enablings
   reg.WriteBool(REGNAME_FIELDEDITOR_TEXT, chkEditorText.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
+  reg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
 
   // Clean registry from unwanted WHERE clauses if "Remember WHERE filters" was unchecked
   if not chkRememberFilters.Checked then begin
@@ -264,6 +270,7 @@ begin
     cwin.prefFieldColorDatetime := cboxDatetime.Selected;
     cwin.prefFieldColorEnum := cboxEnum.Selected;
     cwin.prefFieldColorSet := cboxSet.Selected;
+    cwin.prefNullBG := cboxNullBg.Selected;
     cwin.CalcNullColors;
     cwin.DataGrid.Repaint;
     cwin.QueryGrid.Repaint;
@@ -272,6 +279,7 @@ begin
     cwin.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
     cwin.prefEnableEnumEditor := chkEditorEnum.Checked;
     cwin.prefEnableSetEditor := chkEditorSet.Checked;
+    cwin.prefEnableNullBG := chkNullBg.Checked;
   end;
 
   // Settings have been applied, send a signal to the user
@@ -372,12 +380,14 @@ begin
   cboxDatetime.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
   cboxEnum.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
   cboxSet.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  cboxNullBG.Selected := Mainform.GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   // Editor enablings
   chkEditorText.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
   chkEditorBinary.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   chkEditorDatetime.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   chkEditorEnum.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   chkEditorSet.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
+  chkNullBG.Checked := Mainform.GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
   ButtonApply.Enabled := false;
   screen.Cursor := crdefault;
@@ -440,6 +450,11 @@ begin
   editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
   Modified(sender);
+end;
+
+procedure Toptionsform.chkNullBGClick(Sender: TObject);
+begin
+  cboxNullBG.Enabled := (Sender as TCheckbox).Checked;
 end;
 
 end.

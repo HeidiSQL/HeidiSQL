@@ -447,6 +447,9 @@ type
     procedure menuShowSizeColumnClick(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
     procedure DBtreeClick(Sender: TObject);
+    procedure GridBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 
     private
       uptime                     : Integer;
@@ -527,7 +530,8 @@ type
       prefEnableBinaryEditor,
       prefEnableDatetimeEditor,
       prefEnableEnumEditor,
-      prefEnableSetEditor        : Boolean;
+      prefEnableSetEditor,
+      prefEnableNullBG           : Boolean;
       prefFieldColorNumeric,
       prefFieldColorText,
       prefFieldColorBinary,
@@ -540,7 +544,8 @@ type
       prefNullColorDatetime,
       prefNullColorEnum,
       prefNullColorSet,
-      prefNullColorDefault       : TColor;
+      prefNullColorDefault,
+      prefNullBG                 : TColor;
       CreateDatabaseForm         : TCreateDatabaseForm;
       CreateTableForm            : TCreateTableForm;
       TablePropertiesForm        : Ttbl_properties_form;
@@ -940,6 +945,7 @@ begin
   prefFieldColorDatetime := Mainform.GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
   prefFieldColorEnum := Mainform.GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
   prefFieldColorSet := Mainform.GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  prefNullBG := Mainform.GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   CalcNullColors;
   // Editor enablings
   prefEnableTextEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
@@ -947,6 +953,7 @@ begin
   prefEnableDatetimeEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   prefEnableEnumEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   prefEnableSetEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
+  prefEnableNullBG := Mainform.GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
   // Color coding:
   SynSQLSyn1.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
@@ -5667,7 +5674,10 @@ begin
   if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
   c := @gr.Rows[Node.Index].Cells[Column];
   EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
-  if c.Modified then begin
+  if prefEnableNullBG and (c.IsNull or c.NewIsNull) then begin
+    // Don't display any text if NULL background was activated. In most cases better readable
+    CellText := '';
+  end else if c.Modified then begin
     if c.NewIsNull then begin
       if EditingCell then CellText := ''
       else CellText := TEXT_NULL;
@@ -6419,6 +6429,23 @@ begin
   // Auto resize "Size" column in dbtree when needed
   if coVisible in DBTree.Header.Columns[1].Options then
     DBTree.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
+end;
+
+
+procedure TMDIChild.GridBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+var
+  gr: PGridResult;
+begin
+  if Column = -1 then
+    Exit;
+  if Sender = DataGrid then gr := @FDataGridResult
+  else gr := @FQueryGridResult;
+  if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
+    TargetCanvas.Brush.Color := prefNullBG;
+    TargetCanvas.FillRect(CellRect);
+  end;
 end;
 
 
