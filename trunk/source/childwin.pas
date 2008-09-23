@@ -3177,7 +3177,7 @@ begin
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then
     Text := DBtree.Text[DBtree.GetFirstSelected, 0]
-  else if (src = lboxQueryHelpers) and ((src as TListBox).ItemIndex > -1) then begin
+  else if (src = lboxQueryHelpers) and (lboxQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
     if tabsetQueryHelpers.TabIndex = 3 then begin
       QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
