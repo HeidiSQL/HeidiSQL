@@ -94,7 +94,7 @@ object FieldEditForm: TFieldEditForm
         Top = 132
         Width = 192
         Height = 21
-        TabOrder = 5
+        TabOrder = 6
       end
       object EditLength: TEdit
         Left = 88
@@ -129,7 +129,7 @@ object FieldEditForm: TFieldEditForm
         Width = 272
         Height = 97
         Caption = 'Attributes'
-        TabOrder = 7
+        TabOrder = 8
         object CheckBoxBinary: TCheckBox
           Left = 9
           Top = 21
@@ -187,7 +187,7 @@ object FieldEditForm: TFieldEditForm
         Top = 157
         Width = 192
         Height = 21
-        TabOrder = 6
+        TabOrder = 7
       end
       object comboDefault: TComboBox
         Left = 88
@@ -196,7 +196,7 @@ object FieldEditForm: TFieldEditForm
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 8
+        TabOrder = 5
         OnChange = comboDefaultChange
         Items.Strings = (
           'NULL'
