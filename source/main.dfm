@@ -283,38 +283,6 @@ object MainForm: TMainForm
         Action = actCopyTable
       end
     end
-    object ToolbarTable: TToolBar
-      Left = 579
-      Top = 2
-      Width = 92
-      Height = 22
-      Align = alNone
-      AutoSize = True
-      Caption = 'ToolbarTable'
-      Images = PngImageListMain
-      TabOrder = 3
-      Wrapable = False
-      object btnTableEditField: TToolButton
-        Left = 0
-        Top = 0
-        Action = actEditField
-      end
-      object btnTableAddField: TToolButton
-        Left = 23
-        Top = 0
-        Action = actCreateField
-      end
-      object btnTableDropField: TToolButton
-        Left = 46
-        Top = 0
-        Action = actDropFields
-      end
-      object btnTableManageIndexes: TToolButton
-        Left = 69
-        Top = 0
-        Action = actEditIndexes
-      end
-    end
     object ToolBarQuery: TToolBar
       Left = 398
       Top = 28
@@ -326,7 +294,7 @@ object MainForm: TMainForm
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = PngImageListMain
-      TabOrder = 4
+      TabOrder = 3
       Wrapable = False
       object btnExecuteQuery: TToolButton
         Left = 0
