@@ -2674,7 +2674,7 @@ var
     // Rely on what the user typed is already a valid masked/quoted identifier.
     if dbname <> '' then
       tablename := dbname + '.' + tablename;
-    ds := getResults( 'SHOW COLUMNS FROM '+Mask(tablename), true, false );
+    ds := getResults( 'SHOW COLUMNS FROM '+tablename, true, false );
     if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
     begin
