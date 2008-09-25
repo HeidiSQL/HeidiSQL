@@ -1532,13 +1532,21 @@ end;
 procedure TMainForm.actDataDeleteExecute(Sender: TObject);
 begin
   // Delete row(s)
-  if not Childwin.CheckUniqueKeyClause then
-    Exit;
-  if Childwin.DataGrid.SelectedCount = 0 then
-    MessageDLG('Please select one or more rows to delete them.', mtError, [mbOK], 0)
-  else if MessageDLG('Delete '+inttostr(Childwin.DataGrid.SelectedCount)+' row(s)?',
-      mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
-    Childwin.GridPostDelete(Childwin.DataGrid);
+  if (Childwin.DataGrid.SelectedCount = 1) and
+    (Childwin.FDataGridResult.Rows[Childwin.DataGrid.GetFirstSelected.Index].State = grsInserted)
+    then begin
+    // Deleting the virtual row which is only in memory by stopping edit mode
+    actDataCancelChanges.Execute;
+  end else begin
+    // The "normal" case: Delete existing rows
+    if not Childwin.CheckUniqueKeyClause then
+      Exit;
+    if Childwin.DataGrid.SelectedCount = 0 then
+      MessageDLG('Please select one or more rows to delete them.', mtError, [mbOK], 0)
+    else if MessageDLG('Delete '+inttostr(Childwin.DataGrid.SelectedCount)+' row(s)?',
+        mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
+      Childwin.GridPostDelete(Childwin.DataGrid);
+    end;
   end;
 end;
 
