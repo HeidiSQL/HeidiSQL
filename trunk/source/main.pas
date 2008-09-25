@@ -149,11 +149,6 @@ type
     btnDBCopyTable: TToolButton;
     btnCreateTable: TToolButton;
     btnCreateView: TToolButton;
-    ToolbarTable: TToolBar;
-    btnTableEditField: TToolButton;
-    btnTableAddField: TToolButton;
-    btnTableDropField: TToolButton;
-    btnTableManageIndexes: TToolButton;
     actCreateTable: TAction;
     actEmptyTables: TAction;
     actEditTableFields: TAction;
@@ -591,8 +586,6 @@ begin
       WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
       WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
       WriteInteger(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
-      WriteInteger(REGNAME_TOOLBARTABLELEFT, ToolBarTable.Left);
-      WriteInteger(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
       WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
       WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
       WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
@@ -651,8 +644,6 @@ begin
   ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
   ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
   ToolBarDatabase.Top := GetRegValue(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
-  ToolBarTable.Left := GetRegValue(REGNAME_TOOLBARTABLELEFT, ToolBarTable.Left);
-  ToolBarTable.Top := GetRegValue(REGNAME_TOOLBARTABLETOP, ToolBarTable.Top);
   ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
