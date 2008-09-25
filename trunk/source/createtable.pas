@@ -450,6 +450,8 @@ procedure TCreateTableForm.CheckBoxAutoincrementClick(Sender: TObject);
 begin
   // AutoIncrement
   cols[index].AutoIncrement := CheckBoxAutoIncrement.Checked;
+  // Fix bug #160 - auto increment is only valid for PK columns
+  CheckboxPrimary.Checked := True;
 end;
 
 procedure TCreateTableForm.Button1Click(Sender: TObject);
