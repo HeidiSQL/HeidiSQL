@@ -577,6 +577,7 @@ type
       function RefreshActiveDbTableList: TDataSet;
       function FetchDbTableList(db: WideString): TDataSet;
       function RefreshDbTableList(db: WideString): TDataSet;
+      procedure ClearDbTableList(db: WideString);
       function DbTableListCached(db: WideString): Boolean;
       procedure ClearAllTableLists;
       procedure EnsureDatabase;
@@ -1639,6 +1640,12 @@ begin
 end;
 
 function TMDIChild.RefreshDbTableList(db: WideString): TDataSet;
+begin
+  ClearDbTableList(db);
+  Result := FetchDbTableList(db);
+end;
+
+procedure TMDIChild.ClearDbTableList(db: WideString);
 var
   idx: Integer;
   o: TObject;
@@ -1649,7 +1656,6 @@ begin
     FreeAndNil(o);
     CachedTableLists.Delete(idx);
   end;
-  Result := FetchDbTableList(db);
 end;
 
 

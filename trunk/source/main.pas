@@ -1709,6 +1709,7 @@ begin
   Screen.Cursor := crHourglass;
   try
     Childwin.ExecUpdateQuery( 'DROP DATABASE ' + mask(db) );
+    Childwin.ClearDbTableList(db);
     if Childwin.DatabasesWanted.IndexOf(db) > -1 then begin
       Childwin.DatabasesWanted.Delete( Childwin.DatabasesWanted.IndexOf(db) );
       with TRegistry.Create do begin
