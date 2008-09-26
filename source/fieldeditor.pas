@@ -1046,8 +1046,15 @@ end;
   Call SQL help for selected datatype
 }
 procedure TFieldEditForm.btnDatatypeHelpClick(Sender: TObject);
+var
+  kw: String;
 begin
-  Mainform.CallSQLHelpWithKeyword(ComboBoxType.Text);
+  kw := ComboBoxType.Text;
+  kw := UpperCase(kw);
+  // Some data types are also functions, be sure to call the data type help
+  if (kw = 'YEAR') or (kw = 'SET') or (kw = 'BLOB') then
+    kw := kw + ' DATA TYPE';
+  Mainform.CallSQLHelpWithKeyword(kw);
 end;
 
 
