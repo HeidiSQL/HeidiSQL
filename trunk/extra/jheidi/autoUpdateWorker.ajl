@@ -1,0 +1,84 @@
+  import java.util.*;
+  
+  WindowContext context = argObj("windowContext");
+  
+  if (arg("backgroundTask") != null)
+  {
+    HashObject results = new HashObject();
+       
+    try
+    {
+      AutoUpdater updater = (AutoUpdater)env("updater");
+      if ( updater.updateExists() )
+      {
+         results.put("updateExists", "true");
+      }
+    }
+    catch (Exception e) 
+    {
+      if ( e.getCause() != null )
+      {
+        Throwable cause = e.getCause();
+        if ( cause.getMessage() != null && cause.getMessage().contains("HTTP") )
+        {
+          results.put("error", "The update server could not be contacted\nPlease try again later.");
+        }
+        else
+        {
+          results.put("error", cause.getMessage());
+        }
+      }
+      else
+      {
+        results.put("error", e.getMessage()); 
+      }
+    }
+    
+    publish(results);
+   
+  }
+  else if (arg("update") != null)
+  {   
+    HashObject result = (HashObject)((List)argObj("taskResult")).get(0);
+    
+    if ( result.get("error") != null )
+    {
+      Frame f = context.get("/");
+    
+      ((Frame)context.get("/")).popupMessage("Auto Update Error", result.get("error"));
+    }
+    else if (result.get("updateExists") != null)
+    {
+      script("updateDialog", args());
+    }
+    else
+    {
+      ((Frame)context.get("/")).popupMessage("Auto Update", "No updates for jHeidi are currently available.");
+    }
+    
+  }
+  
+    
+
+  
+  
+
+  
+
+ 
+    
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
