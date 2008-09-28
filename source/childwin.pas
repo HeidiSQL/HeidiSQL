@@ -3922,7 +3922,7 @@ begin
     begin
       // Keep native order of columns
       lboxQueryHelpers.Sorted := False;
-      for i := 0 to High(VTRowDataListColumns) do
+      if SelectedTable <> '' then for i := 0 to High(VTRowDataListColumns) do
       begin
         lboxQueryHelpers.Items.Add(VTRowDataListColumns[i].Captions[0]);
       end;
