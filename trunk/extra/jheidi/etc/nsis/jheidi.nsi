@@ -21,7 +21,13 @@ Section ""
   StrCpy $0 '"$R0" -classpath "${CLASSPATH}" ${CLASS}'
  
   SetOutPath $EXEDIR
+
+  ClearErrors
   Exec $0
+
+  IfErrors 0 +2
+  messageBox MB_OK "The Java Runtime Environment has not been installed.  Please visit javasoft.com and download the latest version."
+   
 SectionEnd
  
 Function GetJRE
