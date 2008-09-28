@@ -3,10 +3,17 @@
   ListBox l = context.get("/fields");
  
   HashObject ho = l.getProperty(arg("fieldKey"));
+  
+  if ( ho == null )
+  {
+     ho = new HashObject();
+     l.setProperty(arg("fieldKey"), ho);
+  }
       
   log.debug("storing props for: " + arg("fieldKey"));
       
   //put all values in col map
+  log.debug("ho:" + ho);
   ho.put("type", ((Combo)context.get("/types")).getText());
   ho.put("length", ((Field)context.get("/lengthSet")).getText());
   ho.put("default", ((Field)context.get("/defaultValue")).getText());
