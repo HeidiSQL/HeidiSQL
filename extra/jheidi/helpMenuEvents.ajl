@@ -35,38 +35,7 @@ else if ("About".equals(who))
 }
 else if ("Check For Updates".equals(who))
 {
-   try
-   {
-     AutoUpdater updater = (AutoUpdater)env("updater");
-     if ( updater.updateExists() )
-     {
-        Frame f = context.get("/");
-        script("updateDialog", args());
-     }
-     else
-     {
-        ((Frame)context.get("/")).popupMessage("Auto Update", "No updates for jHeidi are currently available");
-     }
-   }
-   catch (Exception e) 
-   {
-     if ( e.getCause() != null )
-     {
-       Throwable cause = e.getCause();
-       if ( cause.getMessage() != null && cause.getMessage().contains("HTTP") )
-       {
-         ((Frame)context.get("/")).popupMessage("Auto Update", "The update server could not be contacted\nPlease try again later.");
-       }
-       else
-       {
-         ((Frame)context.get("/")).popupMessage("Auto Update Error", cause.getMessage());
-       }
-     }
-     else
-     {
-       ((Frame)context.get("/")).popupMessage("Auto Update Error", e.getMessage());
-     }
-   }
+   worker("autoUpdateWorker", args());
 }
 else
 {
