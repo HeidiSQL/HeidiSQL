@@ -5,58 +5,41 @@
   String lastSel = l.getProperty("lastSel");
   String item = (String)l.getSelectedValue();
   
+  boolean addingNewItem = context.get("addField") != null;
+  context.put("addField", null);
   
-  if ( lastSel == null )
+  log.debug("adding new?:" + addingNewItem);
+  log.debug("curItem:" + item);
+  log.debug("lastSel:" + lastSel);
+
+  if ( addingNewItem )
   {
      l.setProperty("lastSel", item);
      HashObject ho = new HashObject();
      ho.put("colName", item);
      l.setProperty(item, ho);
   }
-  else
+
+  args().put("fieldKey", addingNewItem? item : lastSel);
+  script("createTableState", args());
+  
+  l.setProperty("lastSel", item);
+  HashObject ho = l.getProperty(item);
+
+  if ( ho != null && !item.equals(lastSel) )
   {
-    if ( !lastSel.equals(item) )
-    {
-      args().put("fieldKey", lastSel);
-      script("createTableState", args());
-      
-      l.setProperty("lastSel", item);
-      HashObject ho = l.getProperty(item);
-      log.debug("getting props for: " + item);
-      if ( ho != null )
-      {
-        log.debug("populating props for: " + item);
-        ((Combo)context.get("/types")).select(ho.get("type"));
-        ((Field)context.get("/lengthSet")).setText(ho.get("length"));
-        ((Field)context.get("/defaultValue")).setText(ho.get("default"));
-        ((JCheckBox)context.get("/primary")).setSelected((Boolean)ho.getObject("primary"));
-        ((JCheckBox)context.get("/unique")).setSelected((Boolean)ho.getObject("unique"));
-        ((JCheckBox)context.get("/index")).setSelected((Boolean)ho.getObject("index"));
-        ((JCheckBox)context.get("/notNull")).setSelected((Boolean)ho.getObject("notNull"));
-        ((JCheckBox)context.get("/autoInc")).setSelected((Boolean)ho.getObject("autoInc"));
-        ((JCheckBox)context.get("/binary")).setSelected((Boolean)ho.getObject("binary"));
-        ((JCheckBox)context.get("/unsigned")).setSelected((Boolean)ho.getObject("unsigned"));
-        ((JCheckBox)context.get("/zeroFill")).setSelected((Boolean)ho.getObject("zeroFill"));
-      }
-      else 
-      {
-        log.debug("no props yet for: " + item + " clearing fields setting new props");
-        //set the type to clear the fields
-        ((Combo)context.get("/types")).setProperty("currentCheckState", null);
-        ((Combo)context.get("/types")).select(((Combo)context.get("/types")).getText());
-        l.setProperty(item, new HashObject());
-      }
-        
-      
-      
-    }
+    log.debug("populating props for: " + item);
+    ((Combo)context.get("/types")).select(ho.get("type"));
+    ((Field)context.get("/lengthSet")).setText(ho.get("length"));
+    ((Field)context.get("/defaultValue")).setText(ho.get("default"));
+    ((JCheckBox)context.get("/primary")).setSelected((Boolean)ho.getObject("primary"));
+    ((JCheckBox)context.get("/unique")).setSelected((Boolean)ho.getObject("unique"));
+    ((JCheckBox)context.get("/index")).setSelected((Boolean)ho.getObject("index"));
+    ((JCheckBox)context.get("/notNull")).setSelected((Boolean)ho.getObject("notNull"));
+    ((JCheckBox)context.get("/autoInc")).setSelected((Boolean)ho.getObject("autoInc"));
+    ((JCheckBox)context.get("/binary")).setSelected((Boolean)ho.getObject("binary"));
+    ((JCheckBox)context.get("/unsigned")).setSelected((Boolean)ho.getObject("unsigned"));
+    ((JCheckBox)context.get("/zeroFill")).setSelected((Boolean)ho.getObject("zeroFill"));
   }
-    
   
   
-  
-  
-  
-    
-
-
