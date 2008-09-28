@@ -167,6 +167,7 @@
   else if ("Add".equals(who) )
   {
     Field f = context.get("/fieldName");
+    Dialog d = context.get("/");
     ListBox l = context.get("/fields");
     ListDataModel model = (ListDataModel)l.getModel();
     String fieldName = f.getText();
@@ -183,7 +184,7 @@
     }
     else if ( model.contains(fieldName.trim()) )
     {
-      d.popupMessage("Create Table", "Field name + " fieldName.trim() + "  already exists in this table.");
+      d.popupMessage("Create Table", "Field name '" + fieldName.trim() + "'  already exists in this table.");
     }
   }
   else if ("Remove".equals(who) )
