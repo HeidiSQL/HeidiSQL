@@ -1,39 +1,39 @@
 
-String who = arg("source");
+String src = arg("source");
 
 WindowContext context = argObj("windowContext");
 
-log.debug("Event received: " + who);
+log.debug("Event received: " + src);
 
-if ("SQL Help".equals(who))
+if (src == "SQL Help")
 {
   script("helpDialog", args());
 }
-else if ("Heidi SQL Website".equals(who))
+else if (src == "Heidi SQL Website")
 {
    BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
 }
-else if ( "Downloads".equals(who) )
+else if (src == "Downloads")
 {
    BareBonesBrowserLaunch.openURL("http://www.heidisql.com/download.php");
 }
-else if ( "Support Forums".equals(who) )
+else if (src == "Support Forums")
 {
    BareBonesBrowserLaunch.openURL("http://www.heidisql.com/forum/");
 }
-else if ( "Bug Tracker".equals(who) )
+else if (src == "Bug Tracker")
 {
-  BareBonesBrowserLaunch.openURL("http://sourceforge.net/tracker/?group_id=164593&atid=832347");
+  BareBonesBrowserLaunch.openURL("http://code.google.com/p/heidisql/issues/list?q=type:Defect");
 }
-else if ( "Feature Tracker".equals(who) )
+else if (src == "Feature Tracker")
 {
-  BareBonesBrowserLaunch.openURL("http://sourceforge.net/tracker/?group_id=164593&atid=832350");
+  BareBonesBrowserLaunch.openURL("http://code.google.com/p/heidisql/issues/list?q=type:Enhancement");
 }
-else if ("About".equals(who))
+else if (src == "About")
 {
    script("aboutDialog", args());
 }
-else if ("Check For Updates".equals(who))
+else if (src == "Check For Updates")
 {
    worker("autoUpdateWorker", args());
 }
