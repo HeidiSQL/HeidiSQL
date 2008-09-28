@@ -177,7 +177,14 @@
       model.add(fieldName);
       l.setSelectedIndex(model.indexOf(fieldName));
     }
-    
+    else if ( fieldName == null || fieldName.trim().length() == 0 )
+    {
+      d.popupMessage("Create Table", "Please enter a field name to add.");
+    }
+    else if ( model.contains(fieldName.trim()) )
+    {
+      d.popupMessage("Create Table", "Field name + " fieldName.trim() + "  already exists in this table.");
+    }
   }
   else if ("Remove".equals(who) )
   {
