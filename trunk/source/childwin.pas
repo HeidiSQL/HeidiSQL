@@ -3033,11 +3033,28 @@ end;
 function TMDIChild.GetFilter: WideString;
 var
   SomeFilter: Boolean;
+  reg: TRegistry;
+  regCrashIndicName, regFilterName: String;
 begin
   // Read cached WHERE-clause and set filter
-  if prefRememberFilters then
-    Result := Mainform.GetRegValue( REGPREFIX_WHERECLAUSE + ActiveDatabase + '.' + SelectedTable, '', FConn.Description )
-  else
+  if prefRememberFilters then begin
+    regFilterName := Utf8Encode(REGPREFIX_WHERECLAUSE + ActiveDatabase + '.' + SelectedTable);
+    Result := Mainform.GetRegValue(regFilterName, '', FConn.Description );
+    if Result <> '' then begin
+      // Check for crash indicator on current table
+      regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
+      if(Mainform.GetRegValue(regCrashIndicName, False, FConn.Description)) then begin
+        LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. Filter was automatically reset to avoid the same crash for now.');
+        Result := '';
+        reg := TRegistry.Create;
+        reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
+        // Filter was nuked. Reset crash indicator.
+        reg.DeleteValue(regFilterName);
+        reg.CloseKey;
+        reg.Free;
+      end;
+    end;
+  end else
     Result := SynMemoFilter.Text;
   SomeFilter := Result <> '';
   if SomeFilter then tbtnDataFilter.ImageIndex := 108
@@ -4742,6 +4759,7 @@ var
   old_orderclause, new_orderclause, columnname : WideString;
   order_parts, ValidColumns : WideStrings.TWideStringList;
   columnexists : Boolean;
+  regCrashIndicName: String;
 begin
   SetLength( Result, 0 );
 
@@ -4751,28 +4769,40 @@ begin
 
   if old_orderclause <> '' then
   begin
-    // Parse ORDER clause
-    order_parts := explode( ',', old_orderclause );
-    ValidColumns := GetVTCaptions( ListColumns );
-    for i := 0 to order_parts.Count - 1 do
-    begin
-      columnname := Trim( Copy( order_parts[i], 0, LastPos( ' ', order_parts[i] ) ) );
-      columnname := WideDequotedStr(columnname, '`');
-      columnexists := ValidColumns.IndexOf(columnname) > -1;
-
-      if not columnexists then
+    // Check for crash indicator on current table
+    regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
+    if(Mainform.GetRegValue(regCrashIndicName, False, FConn.Description)) then begin
+      LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. A stored ORDER clause was automatically reset to avoid the same crash for now.');
+      reg := TRegistry.Create;
+      reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
+      // Remove ORDER BY clause from registry
+      reg.DeleteValue(reg_name);
+      reg.CloseKey;
+      reg.Free;
+    end else begin
+      // Parse ORDER clause
+      order_parts := explode( ',', old_orderclause );
+      ValidColumns := GetVTCaptions( ListColumns );
+      for i := 0 to order_parts.Count - 1 do
       begin
-        LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
-          'because the column "' + columnname + '" does not exist!');
-        Continue;
+        columnname := Trim( Copy( order_parts[i], 0, LastPos( ' ', order_parts[i] ) ) );
+        columnname := WideDequotedStr(columnname, '`');
+        columnexists := ValidColumns.IndexOf(columnname) > -1;
+
+        if not columnexists then
+        begin
+          LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
+            'because the column "' + columnname + '" does not exist!');
+          Continue;
+        end;
+
+        // Add part of order clause to result array
+        SetLength(Result, Length(Result)+1);
+        Result[Length(Result)-1] := TOrderCol.Create;
+        Result[Length(Result)-1].ColumnName := columnname;
+        Result[Length(Result)-1].SortDirection := Integer( Copy( order_parts[i], ( Length( order_parts[i] ) - 3 ), 4 ) = 'DESC' );
+
       end;
-
-      // Add part of order clause to result array
-      SetLength(Result, Length(Result)+1);
-      Result[Length(Result)-1] := TOrderCol.Create;
-      Result[Length(Result)-1].ColumnName := columnname;
-      Result[Length(Result)-1].SortDirection := Integer( Copy( order_parts[i], ( Length( order_parts[i] ) - 3 ), 4 ) = 'DESC' );
-
     end;
   end;
 
@@ -5603,6 +5633,8 @@ var
   query: WideString;
   ds: TDataSet;
   i, j: LongInt;
+  reg: TRegistry;
+  regCrashIndicName: String;
 begin
   if Sender = DataGrid then res := @FDataGridResult
   else res := @FQueryGridResult;
@@ -5615,6 +5647,12 @@ begin
     if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
     query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
 
+    // Set indicator for possibly crashing query
+    reg := TRegistry.Create;
+    reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
+    regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
+    reg.WriteBool(regCrashIndicName, True);
+
     // start query
     MainForm.ShowStatus('Retrieving data...');
     debug(Format('mem: loading data chunk from row %d to %d', [start, limit]));
@@ -5625,6 +5663,11 @@ begin
       SetLength(res.Rows, start + limit);
     end;
     debug(Format('mem: loaded data chunk from row %d to %d', [start, limit]));
+
+    // Query was completed successfully. Reset crash indicator.
+    reg.DeleteValue(regCrashIndicName);
+    reg.CloseKey;
+    reg.Free;
 
     // fill in data
     MainForm.ShowStatus('Filling grid with record-data...');
