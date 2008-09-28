@@ -6338,6 +6338,7 @@ begin
   // Reassign Esc to "Cancel row editing" action
   Mainform.actDataCancelChanges.ShortCut := TextToShortcut('Esc');
   Mainform.actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
+  AutoCalcColWidths(DataGrid, PrevTableColWidths);
 end;
 
 procedure TMDIChild.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
@@ -6417,7 +6418,7 @@ end;
 procedure TMDIChild.AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
 var
   Node: PVirtualNode;
-  i, ColTextWidth: Integer;
+  i, j, ColTextWidth: Integer;
   Rect: TRect;
   Col: TVirtualTreeColumn;
 begin
@@ -6438,13 +6439,26 @@ begin
     // Add space for sort glyph
     if Col.ImageIndex > -1 then
       ColTextWidth := ColTextWidth + 20;
-    Node := Tree.GetFirst;
+    Node := Tree.GetFirstVisible;
+    // Go backwards 50 nodes from focused one if tree was scrolled
+    j := 0;
+    if Assigned(Tree.FocusedNode) then begin
+      Node := Tree.FocusedNode;
+      while Assigned(Node) do begin
+        inc(j);
+        if (Node = Tree.GetFirst) or (j > 50) then
+          break;
+        Node := Tree.GetPreviousVisible(Node);
+      end;
+    end;
+    j := 0;
     while Assigned(Node) do begin
       Rect := Tree.GetDisplayRect(Node, i, True, True);
       ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
-      if Node.Index > 100 then
+      inc(j);
+      if j > 100 then
         break;
-      Node := Tree.GetNext(Node);
+      Node := Tree.GetNextVisible(Node);
     end;
     // text margins and minimal extra space
     ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
