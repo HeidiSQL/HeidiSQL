@@ -4,16 +4,10 @@
  
   HashObject ho = l.getProperty(arg("fieldKey"));
   
-  if ( ho == null )
-  {
-     ho = new HashObject();
-     l.setProperty(arg("fieldKey"), ho);
-  }
-      
   log.debug("storing props for: " + arg("fieldKey"));
       
   //put all values in col map
-  log.debug("ho:" + ho);
+  log.debug("ho (before store):" + ho);
   ho.put("type", ((Combo)context.get("/types")).getText());
   ho.put("length", ((Field)context.get("/lengthSet")).getText());
   ho.put("default", ((Field)context.get("/defaultValue")).getText());
@@ -25,7 +19,7 @@
   ho.put("binary", ((CheckBox)context.get("/binary")).isSelected());
   ho.put("unsigned", ((CheckBox)context.get("/unsigned")).isSelected());
   ho.put("zeroFill", ((CheckBox)context.get("/zeroFill")).isSelected());
-    
+  log.debug("ho (after store):" + ho);  
     
   
   

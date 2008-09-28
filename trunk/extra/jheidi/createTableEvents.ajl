@@ -171,18 +171,23 @@
     ListBox l = context.get("/fields");
     ListDataModel model = (ListDataModel)l.getModel();
     String fieldName = f.getText();
+    if ( fieldName != null )
+    {
+      fieldName = fieldName.trim();
+    }
     
-    if ( fieldName != null && (fieldName.trim().length() > 0) &&
-         !model.contains(fieldName.trim()))
+    if ( fieldName != null && (fieldName.length() > 0) &&
+         !model.contains(fieldName))
     {
       model.add(fieldName);
-      l.setSelectedIndex(model.indexOf(fieldName));
+      context.put("addField", true);
+      l.setSelectedIndex(model.indexOf(fieldName)); //why isnt this firing?
     }
-    else if ( fieldName == null || fieldName.trim().length() == 0 )
+    else if ( fieldName == null || fieldName.length() == 0 )
     {
       d.popupMessage("Create Table", "Please enter a field name to add.");
     }
-    else if ( model.contains(fieldName.trim()) )
+    else if ( model.contains(fieldName) )
     {
       d.popupMessage("Create Table", "Field name '" + fieldName.trim() + "'  already exists in this table.");
     }
