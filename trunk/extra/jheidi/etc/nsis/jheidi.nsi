@@ -25,9 +25,10 @@ Section ""
   ClearErrors
   Exec $0
 
-  IfErrors 0 +2
-  messageBox MB_OK "The Java Runtime Environment has not been installed.  Please visit javasoft.com and download the latest version."
-   
+  IfErrors 0 +3
+    messageBox MB_OK "The Java Runtime Environment has not been installed.  Please visit javasoft.com and download the latest version."
+    Exec "rundll32 url.dll,FileProtocolHandler http://www.java.com/en/download/index.jsp"
+
 SectionEnd
  
 Function GetJRE
