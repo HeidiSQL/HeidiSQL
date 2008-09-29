@@ -15,7 +15,7 @@ else if (src == "Heidi SQL Website")
 }
 else if (src == "Downloads")
 {
-   BareBonesBrowserLaunch.openURL("http://www.heidisql.com/download.php");
+   BareBonesBrowserLaunch.openURL("http://download.heidisql.com/");
 }
 else if (src == "Support Forums")
 {
