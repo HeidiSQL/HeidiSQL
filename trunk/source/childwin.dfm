@@ -1167,7 +1167,7 @@ object MDIChild: TMDIChild
     Highlighter = SynSQLSyn1
     Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
-    RightEdge = 40
+    RightEdge = -1
     RemovedKeystrokes = <
       item
         Command = ecDeleteLastChar
