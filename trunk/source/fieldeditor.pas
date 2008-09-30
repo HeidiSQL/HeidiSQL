@@ -98,6 +98,7 @@ type
     function IsCategory(index: Integer): Boolean;
     function IndexToType(index: Integer): Integer;
     function TypeToIndex(t: Integer): Integer;
+    procedure FillAvailColumns;
   public
     { Public declarations }
   end;
@@ -655,16 +656,8 @@ end;
   @todo code cleanup, get rid of WITH statement
 }
 procedure TFieldEditForm.ComboBoxKeysChange(Sender: TObject);
-var i, j : Integer;
 begin
   if ComboBoxKeys.ItemIndex > -1 then begin
-    listColumnsAvailable.Items.Text := GetVTCaptions(Mainform.ChildWin.ListColumns).Text;
-    for i:=0 to klist[ComboBoxKeys.ItemIndex].columns.Count-1 do
-    begin
-      j := listColumnsAvailable.Items.IndexOf(klist[ComboBoxKeys.ItemIndex].columns[i]);
-      if j > -1 then
-        listColumnsAvailable.Items.Delete( j );
-    end;
     with klist[ComboBoxKeys.ItemIndex] do begin
       listColumnsUsed.Items.Text := Columns.Text;
       CheckBoxUnique.OnClick := nil;
@@ -674,6 +667,7 @@ begin
       CheckBoxFulltext.Checked := Fulltext;
       CheckBoxFulltext.OnClick := CheckBoxFulltextClick;
     end;
+    FillAvailColumns;
   end;
   ValidateControls;
 end;
@@ -1018,8 +1012,8 @@ begin
     item := listColumnsUsed.Items[idx];
     klist[ComboBoxKeys.ItemIndex].Columns.Delete(idx);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
-    listColumnsAvailable.Items.Add(item);
     listColumnsUsed.Items.Delete(idx);
+    FillAvailColumns;
     // Highlight previous item to removed one.
     listColumnsUsed.ItemIndex := Min(Max(idx - 1, 0), listColumnsUsed.Items.Count - 1);
   end;
@@ -1177,6 +1171,27 @@ procedure TFieldEditForm.ComboBoxTypeKeyUp(Sender: TObject; var Key: Word;
     Shift: TShiftState);
 begin
   FLastKey := 0;
+end;
+
+
+procedure TFieldEditForm.FillAvailColumns;
+var
+  ds: TDataset;
+  i: Integer;
+  col: WideString;
+begin
+  listColumnsAvailable.Items.BeginUpdate;
+  listColumnsAvailable.Clear;
+  ds := Mainform.ChildWin.FSelectedTableColumns;
+  ds.First;
+  while not ds.Eof do begin
+    col := ds.Fields[0].AsWideString;
+    i := listColumnsUsed.Items.IndexOf(col);
+    if i = -1 then
+      listColumnsAvailable.Items.Add(col);
+    ds.Next;
+  end;
+  listColumnsAvailable.Items.EndUpdate;
 end;
 
 
