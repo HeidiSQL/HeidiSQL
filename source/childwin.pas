@@ -1222,6 +1222,7 @@ var
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
   ColType              : String;
+  ColExists            : Boolean;
 
 procedure InitColumn(idx: Integer; name: WideString);
 var
@@ -1373,6 +1374,19 @@ begin
         end;
         tbtnDataColumns.ImageIndex := 107;
       end else begin
+        for i := DisplayedColumnsList.Count - 1 downto 0 do begin
+          ColExists := False;
+          FSelectedTableColumns.First;
+          while not FSelectedTableColumns.Eof do begin
+            if DisplayedColumnsList[i] = FSelectedTableColumns.FieldByName('Field').AsWideString then begin
+              ColExists := True;
+              break;
+            end;
+            FSelectedTableColumns.Next;
+          end;
+          if not ColExists then
+            DisplayedColumnsList.Delete(i);
+        end;
         // Signal for the user that we now hide some columns
         tbtnDataColumns.ImageIndex := 108;
       end;
