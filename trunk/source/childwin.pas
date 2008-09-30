@@ -5884,6 +5884,7 @@ begin
   Row := @FDataGridResult.Rows[Node.Index];
   // Remember new value
   Row.Cells[Column].NewText := NewText;
+  Row.Cells[Column].NewIsNull := False;
   Row.Cells[Column].Modified := True;
   // Set state of row for UPDATE mode, don't touch grsInserted
   if Row.State = grsDefault then
