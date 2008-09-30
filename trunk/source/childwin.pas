@@ -3024,7 +3024,9 @@ begin
     filter := menuitem.Caption;
   end;
 
-  SynmemoFilter.Text := filter;
+  SynMemoFilter.UndoList.AddGroupBreak;
+  SynMemoFilter.SelectAll;
+  SynmemoFilter.SelText := filter;
   SaveFilter(filter);
   viewdata(Sender);
 end;
@@ -3065,7 +3067,11 @@ begin
   // Hide it if it was auto opened previously
   if (not SomeFilter) and pnlFilter.Visible and (not FilterPanelManuallyOpened) then
     ToggleFilterPanel;
-  SynMemoFilter.Text := Result;
+  if SynMemoFilter.Text <> Result then begin
+    SynMemoFilter.UndoList.AddGroupBreak;
+    SynMemoFilter.SelectAll;
+    SynMemoFilter.SelText := Result;
+  end;
   SynMemoFilterChange(Self);
 end;
 
@@ -5531,7 +5537,9 @@ begin
     if Add <> '' then
       Clause := Clause + Add;
   end;
-  SynMemoFilter.Text := Clause;
+  SynMemoFilter.UndoList.AddGroupBreak;
+  SynMemoFilter.SelectAll;
+  SynMemoFilter.SelText := Clause;
   SynMemoFilterChange(Sender);
 end;
 
@@ -5558,8 +5566,6 @@ begin
   ShowIt := ForceVisible or (not pnlFilter.Visible);
   tbtnDataFilter.Down := ShowIt;
   pnlFilter.Visible := ShowIt;
-  if ShowIt and SynMemoFilter.CanFocus and (not SynMemoFilter.Focused) then
-    SynMemoFilter.SetFocus;
 end;
 
 
