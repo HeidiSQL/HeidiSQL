@@ -27,6 +27,7 @@ type
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -168,6 +169,13 @@ procedure TfrmBinEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   btnCancelClick(Sender);
   CanClose := False; // Done by editor link
+end;
+
+
+procedure TfrmBinEditor.FormDeactivate(Sender: TObject);
+begin
+  // Fixes an AV when another control steels focus, reported in bug #774
+  btnCancelClick(Sender);
 end;
 
 

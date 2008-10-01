@@ -18,6 +18,7 @@ object frmBinEditor: TfrmBinEditor
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnDeactivate = FormDeactivate
   OnShow = FormShow
   DesignSize = (
     215
