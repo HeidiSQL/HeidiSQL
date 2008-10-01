@@ -285,7 +285,6 @@ var
   ds: TDataSet;
 begin
   listColumnsUsed.Items.Clear;
-  listColumnsAvailable.Items.Clear;
   setlength(klist, 0);
   TempKeys := TStringList.Create;
   cwin := Mainform.ChildWin;
@@ -312,7 +311,7 @@ begin
   ds.Close;
   FreeAndNil(ds);
 
-  listColumnsAvailable.Items.Text := GetVTCaptions(cwin.ListColumns).Text;
+  FillAvailColumns;
   showkeys();
 end;
 
@@ -972,8 +971,8 @@ begin
     item := listColumnsAvailable.Items[idx];
     listColumnsUsed.Items.Add(item);
     klist[ComboBoxKeys.ItemIndex].Columns.Add(item);
-    listColumnsAvailable.Items.Delete(idx);
     klist[ComboBoxKeys.ItemIndex].Modified := true;
+    FillAvailColumns;
     // Highlight previous item to added one.
     listColumnsAvailable.ItemIndex := Min(Max(idx - 1, 0), listColumnsAvailable.Items.Count - 1);
   end;
@@ -992,7 +991,7 @@ begin
   listColumnsUsed.Items.AddStrings(listColumnsAvailable.Items);
   for i := 0 to listColumnsAvailable.Items.Count - 1 do
     klist[ComboBoxKeys.ItemIndex].Columns.Add(listColumnsAvailable.Items[i]);
-  listColumnsAvailable.Items.Clear;
+  FillAvailColumns;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
   ValidateControls;
 end;
@@ -1029,8 +1028,8 @@ procedure TFieldEditForm.btnDeleteAllColumnsFromIndexClick(Sender: TObject);
 begin
   klist[ComboBoxKeys.ItemIndex].Columns.Clear;
   klist[ComboBoxKeys.ItemIndex].Modified := true;
-  listColumnsAvailable.Items.AddStrings(listColumnsUsed.Items);
   listColumnsUsed.Items.Clear;
+  FillAvailColumns;
   ValidateControls;
 end;
 
