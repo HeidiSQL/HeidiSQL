@@ -15,10 +15,9 @@ object frmTextEditor: TfrmTextEditor
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
-  OnCloseQuery = FormCloseQuery
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnDeactivate = FormDeactivate
   OnShow = FormShow
   DesignSize = (
     215

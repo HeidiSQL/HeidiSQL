@@ -25,12 +25,12 @@ type
     procedure FormShow(Sender: TObject);
     procedure memoTextChange(Sender: TObject);
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
-    procedure FormDeactivate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FModified: Boolean;
+    FStopping: Boolean;
     procedure SetModified(NewVal: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
@@ -157,6 +157,9 @@ procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
 var
   DoPost: Boolean;
 begin
+  if FStopping then
+    Exit;
+  FStopping := True;
   if Modified then
     DoPost := MessageDlg('Apply modifications?', mtConfirmation, [mbYes, mbNo], 0) = mrYes
   else
@@ -168,22 +171,15 @@ begin
 end;
 
 
-procedure TfrmTextEditor.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TfrmTextEditor.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  btnCancelClick(Sender);
-  CanClose := False; // Done by editor link
-end;
-
-
-procedure TfrmTextEditor.FormDeactivate(Sender: TObject);
-begin
-  // Fixes an AV when another control steels focus, reported in bug #774
   btnCancelClick(Sender);
 end;
 
 
 procedure TfrmTextEditor.btnApplyClick(Sender: TObject);
 begin
+  FStopping := True;
   TCustomVirtualStringTree(Owner).EndEditNode;
 end;
 

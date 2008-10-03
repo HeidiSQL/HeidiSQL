@@ -157,7 +157,7 @@ function TMemoEditorLink.BeginEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
   if Result then
-    FForm.Show;
+    FForm.ShowModal;
 end;
 
 
@@ -166,7 +166,7 @@ begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    FForm.Hide;
+    FForm.Close;
     FTree.CancelEditNode;
     FTree.SetFocus;
   end;
@@ -180,7 +180,7 @@ begin
     FStopping := True;
     if FForm.GetText <> FTree.Text[FNode, FColumn] then
       FTree.Text[FNode, FColumn] := FForm.GetText;
-    FForm.Hide;
+    FForm.Close;
     FTree.SetFocus;
   except
     FStopping := False;
