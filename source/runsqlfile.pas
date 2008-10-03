@@ -104,7 +104,7 @@ begin
     begin
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      lines := ReadTextfileChunk(Stream, FileCharset, 50);
+      lines := ReadTextfileChunk(Stream, FileCharset, 5*SIZE_MB);
 
       // Display position in file
       lblPositionValue.Caption := FormatByteNumber( Stream.Position ) + ' / ' + FormatByteNumber( filesize );
