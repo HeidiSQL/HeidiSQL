@@ -2239,9 +2239,12 @@ procedure TMDIChild.ShowVariablesAndProcesses(Sender: TObject);
 
 var
   i : Integer;
-  questions : Int64;
+  questions, valcount : Int64;
+  tmpval : Double;
   ds : TDataSet;
   SelectedCaptions: WideStrings.TWideStringList;
+  val, avg_perhour, avg_persec: WideString;
+  valIsBytes, valIsNumber: Boolean;
 begin
   // Prevent auto update from executing queries if the host tab is not activated
   if (Sender is TTimer) and (PageControlMain.ActivePage <> tabHost) then
@@ -2281,22 +2284,56 @@ begin
   // STATUS
   uptime := 1; // avoids division by zero :)
   questions := 1;
-  // Remember selected nodes
-  SelectedCaptions := GetVTCaptions(ListStatus, True);
-  ListStatus.BeginUpdate;
-  ListStatus.Clear;
+
   ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
-  SetLength( VTRowDataListStatus, ds.RecordCount );
-  for i:=1 to ds.RecordCount do
-  begin
-    VTRowDataListStatus[i-1].ImageIndex := 25;
-    VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
-    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[1].AsWideString );
+
+  // Find uptime and total query count
+  while not ds.Eof do begin
     if lowercase( ds.Fields[0].AsString ) = 'uptime' then
       uptime := MakeInt(ds.Fields[1].AsString);
     if lowercase( ds.Fields[0].AsString ) = 'questions' then
       questions := MakeInt(ds.Fields[1].AsString);
+    ds.Next;
+  end;
+
+  // Remember selected nodes
+  SelectedCaptions := GetVTCaptions(ListStatus, True);
+  ListStatus.BeginUpdate;
+  ListStatus.Clear;
+  SetLength( VTRowDataListStatus, ds.RecordCount );
+  ds.First;
+  for i:=1 to ds.RecordCount do begin
+    VTRowDataListStatus[i-1].ImageIndex := 25;
+    VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
+    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
+    val := ds.Fields[1].AsWideString;
+    avg_perhour := '';
+    avg_persec := '';
+
+    // Format numeric or byte values
+    valIsBytes := Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_';
+    valIsNumber := IntToStr(MakeInt(val)) = val;
+    if valIsBytes then
+      val := FormatByteNumber(val)
+    else if valIsNumber then
+      val := FormatNumber(val);
+
+    // Calculate average values ...
+    if valIsNumber then begin
+      valCount := MakeInt(val);
+      // ... per hour
+      tmpval := valCount / ( uptime / 60 / 60 );
+      if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
+      else avg_perhour := FormatNumber( tmpval, 1 );
+      // ... per second
+      tmpval := valCount / uptime;
+      if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
+      else avg_persec := FormatNumber( tmpval, 1 );
+    end;
+
+    VTRowDataListStatus[i-1].Captions.Add( val );
+    VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
+    VTRowDataListStatus[i-1].Captions.Add(avg_persec);
     ds.Next;
   end;
   // Tell VirtualTree the number of nodes it will display
