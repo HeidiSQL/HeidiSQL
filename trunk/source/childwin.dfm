@@ -246,9 +246,22 @@ object MDIChild: TMDIChild
                   WideText = 'Variable'
                 end
                 item
+                  Alignment = taRightJustify
                   Position = 1
-                  Width = 328
+                  Width = 124
                   WideText = 'Value'
+                end
+                item
+                  Alignment = taRightJustify
+                  Position = 2
+                  Width = 100
+                  WideText = 'Avg per hour'
+                end
+                item
+                  Alignment = taRightJustify
+                  Position = 3
+                  Width = 100
+                  WideText = 'Avg per second'
                 end>
             end
             object pnlFilterStatus: TPanel
