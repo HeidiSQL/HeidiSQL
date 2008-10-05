@@ -5801,7 +5801,7 @@ begin
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
   // Do not apply any color on a selected, highlighted node to keep readability
-  if vsSelected in Node.States then
+  if (Column = Sender.FocusedColumn) and (vsSelected in Node.States) then
     Exit;
 
   // NULL value

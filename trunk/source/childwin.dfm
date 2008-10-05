@@ -936,7 +936,7 @@ object MDIChild: TMDIChild
           TabOrder = 2
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-          TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+          TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnAfterCellPaint = DataGridAfterCellPaint
           OnBeforeCellPaint = GridBeforeCellPaint
@@ -1129,7 +1129,7 @@ object MDIChild: TMDIChild
           TabOrder = 2
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-          TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+          TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnBeforeCellPaint = GridBeforeCellPaint
           OnGetText = GridGetText
