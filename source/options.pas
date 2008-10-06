@@ -14,74 +14,73 @@ uses
 
 type
   Toptionsform = class(TForm)
-    PageControl1: TPageControl;
-    TabSheet1: TTabSheet;
-    ButtonCancel: TButton;
-    ButtonOK: TButton;
-    ButtonApply: TButton;
-    TabSheet2: TTabSheet;
-    CheckBoxAutoReconnect: TCheckBox;
-    PageControl2: TPageControl;
-    TabSheet3: TTabSheet;
-    TabSheet4: TTabSheet;
-    Panel1: TPanel;
-    Label2: TLabel;
-    Label1: TLabel;
-    Label3: TLabel;
-    ComboBoxFonts: TComboBox;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
-    pnlKeywords: TPanel;
-    ColorDialog1: TColorDialog;
-    Label7: TLabel;
-    pnlFunctions: TPanel;
-    Label8: TLabel;
-    pnlDatatypes: TPanel;
-    Label9: TLabel;
-    pnlNumeric: TPanel;
-    Label10: TLabel;
-    pnlString: TPanel;
-    Label11: TLabel;
-    pnlComments: TPanel;
-    TabSheet5: TTabSheet;
-    GroupBox1: TGroupBox;
-    Label12: TLabel;
-    Edit1: TEdit;
-    Edit2: TEdit;
-    Label13: TLabel;
-    Label14: TLabel;
-    Edit3: TEdit;
-    Label15: TLabel;
-    Label16: TLabel;
-    Label17: TLabel;
-    Label18: TLabel;
-    TabSheet7: TTabSheet;
+    pagecontrolMain: TPageControl;
+    tabMisc: TTabSheet;
+    btnCancel: TButton;
+    btnOK: TButton;
+    btnApply: TButton;
+    tabSQL: TTabSheet;
+    chkAutoReconnect: TCheckBox;
+    pagecontrolSQL: TPageControl;
+    tabSQLfont: TTabSheet;
+    tabSQLcolors: TTabSheet;
+    pnlSQLFontPattern: TPanel;
+    lblSQLFontSizeHint: TLabel;
+    lblSQLFontSize: TLabel;
+    lblSQLFontName: TLabel;
+    comboSQLFontName: TComboBox;
+    lblLogLinesHint: TLabel;
+    lblSQLColKeywords: TLabel;
+    pnlSQLColKeywords: TPanel;
+    coldlgSQLColors: TColorDialog;
+    lblSQLColFunctions: TLabel;
+    pnlSQLColFunctions: TPanel;
+    lblSQLColNumeric: TLabel;
+    pnlSQLColDatatypes: TPanel;
+    lblSQLColDatatypes: TLabel;
+    pnlSQLColNumeric: TPanel;
+    lblSQLColString: TLabel;
+    pnlSQLColString: TPanel;
+    lblSQLColComments: TLabel;
+    pnlSQLColComments: TPanel;
+    tabCSV: TTabSheet;
+    grpCSV: TGroupBox;
+    lblCSVSeparator: TLabel;
+    editCSVSeparator: TEdit;
+    editCSVEncloser: TEdit;
+    lblCSVTerminator: TLabel;
+    lblCSVEncloser: TLabel;
+    editCSVTerminator: TEdit;
+    lblCSVHintCR: TLabel;
+    lblCSVHintLF: TLabel;
+    lblCSVHintTAB: TLabel;
+    lblCSVHintEscaped: TLabel;
+    tabData: TTabSheet;
     lblDataFont: TLabel;
-    comboDataFont: TComboBox;
+    comboDataFontName: TComboBox;
     editDataFontSize: TEdit;
-    udDataFontSize: TUpDown;
-    Label25: TLabel;
-    lblDataFontPoints: TLabel;
-    EditFontSize: TEdit;
-    UpDownFontSize: TUpDown;
-    Label19: TLabel;
-    Label28: TLabel;
-    pnlTablenames: TPanel;
-    updownLogSQLNum: TUpDown;
-    editLogSQLNum: TEdit;
+    updownDataFontSize: TUpDown;
+    lblSQLFontPattern: TLabel;
+    lblDataFontHint: TLabel;
+    editSQLFontSize: TEdit;
+    updownSQLFontSize: TUpDown;
+    lblMaxColWidth: TLabel;
+    lblSQLColTablenames: TLabel;
+    pnlSQLColTablenames: TPanel;
+    updownLogLines: TUpDown;
+    editLogLines: TEdit;
     editMaxColWidth: TEdit;
     updownMaxColWidth: TUpDown;
-    CheckBoxRestoreLastUsedDB: TCheckBox;
+    chkRestoreLastDB: TCheckBox;
     chkRememberFilters: TCheckBox;
     chkLogToFile: TCheckBox;
     btnOpenLogFolder: TButton;
-    Label29: TLabel;
-    pnlActiveLine: TPanel;
-    labelLogSnip: TLabel;
+    lblSQLColActiveLine: TLabel;
+    pnlSQLColActiveLine: TPanel;
+    lblLogSnip: TLabel;
     editLogSnip: TEdit;
     updownLogSnip: TUpDown;
-    labelSqlSnipHint: TLabel;
+    lblLogSnipHint: TLabel;
     chkUpdatecheck: TCheckBox;
     editUpdatecheckInterval: TEdit;
     updownUpdatecheckInterval: TUpDown;
@@ -108,11 +107,9 @@ type
     chkNullBG: TCheckBox;
     lblFieldNull: TLabel;
     cboxNullBG: TColorBox;
-    procedure ButtonCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
-    procedure ButtonOKClick(Sender: TObject);
     procedure FontsChange(Sender: TObject);
     procedure CallColorDialog(Sender: TObject);
     procedure DataFontsChange(Sender: TObject);
@@ -134,16 +131,11 @@ uses childwin, main, helpers;
 {$R *.DFM}
 
 
-procedure Toptionsform.ButtonCancelClick(Sender: TObject);
-begin
-  // Cancel
-  ModalResult := mrCancel;
-end;
-
 procedure Toptionsform.Modified(Sender: TObject);
 begin
   // Modified
-  ButtonApply.Enabled := true;
+  btnOK.Enabled := True;
+  btnApply.Enabled := True;
 end;
 
 
@@ -164,26 +156,26 @@ begin
   reg.OpenKey(REGPATH, true);
 
   // Save values
-  reg.WriteBool(REGNAME_AUTORECONNECT, CheckBoxAutoReconnect.Checked);
-  reg.WriteBool(REGNAME_RESTORELASTUSEDDB, CheckBoxRestoreLastUsedDB.Checked);
-  reg.WriteString(REGNAME_FONTNAME, ComboBoxFonts.Text);
-  reg.WriteInteger(REGNAME_FONTSIZE, UpDownFontSize.Position);
-  reg.WriteInteger(REGNAME_LOGSQLNUM, updownLogSQLNum.Position);
+  reg.WriteBool(REGNAME_AUTORECONNECT, chkAutoReconnect.Checked);
+  reg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
+  reg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
+  reg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
+  reg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
   reg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
-  reg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(pnlKeywords.Color));
-  reg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(pnlFunctions.Color));
-  reg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(pnlDatatypes.Color));
-  reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(pnlNumeric.Color));
-  reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(pnlString.Color));
-  reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(pnlComments.Color));
-  reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(pnlTablenames.Color));
-  reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(pnlActiveLine.Color));
-  reg.WriteString(REGNAME_CSV_SEPARATOR, Edit1.Text);
-  reg.WriteString(REGNAME_CSV_ENCLOSER, Edit2.Text);
-  reg.WriteString(REGNAME_CSV_TERMINATOR, Edit3.Text);
+  reg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(pnlSQLColKeywords.Color));
+  reg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(pnlSQLColFunctions.Color));
+  reg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(pnlSQLColDatatypes.Color));
+  reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(pnlSQLColNumeric.Color));
+  reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(pnlSQLColString.Color));
+  reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(pnlSQLColComments.Color));
+  reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(pnlSQLColTablenames.Color));
+  reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(pnlSQLColActiveLine.Color));
+  reg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
+  reg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
+  reg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
   reg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
-  reg.WriteString(REGNAME_DATAFONTNAME, comboDataFont.Text);
-  reg.WriteInteger(REGNAME_DATAFONTSIZE, udDataFontSize.Position);
+  reg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
+  reg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
   reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
   reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
   reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
@@ -232,27 +224,27 @@ begin
   cwin := Mainform.Childwin;
   if cwin <> nil then
   begin
-    cwin.SynMemoQuery.Font := self.Panel1.Font;
-    cwin.SynMemoSQLLog.Font := self.Panel1.Font;
-    cwin.SynMemoProcessView.Font := self.Panel1.Font;
-    cwin.SynMemoFilter.Font := self.Panel1.Font;
-    cwin.SynSQLSyn1.KeyAttri.Foreground := self.pnlKeywords.Color;
-    cwin.SynSQLSyn1.FunctionAttri.Foreground := self.pnlFunctions.Color;
-    cwin.SynSQLSyn1.DataTypeAttri.Foreground := self.pnlDatatypes.Color;
-    cwin.SynSQLSyn1.NumberAttri.Foreground := self.pnlNumeric.Color;
-    cwin.SynSQLSyn1.StringAttri.Foreground := self.pnlString.Color;
-    cwin.SynSQLSyn1.CommentAttri.Foreground := self.pnlComments.Color;
-    cwin.SynSQLSyn1.TablenameAttri.Foreground := self.pnlTablenames.Color;
-    cwin.SynMemoQuery.ActiveLineColor := self.pnlActiveLine.Color;
-    cwin.DataGrid.Font.Name := self.comboDataFont.Text;
-    cwin.QueryGrid.Font.Name := self.comboDataFont.Text;
-    cwin.DataGrid.Font.Size := self.udDataFontSize.Position;
-    cwin.QueryGrid.Font.Size := self.udDataFontSize.Position;
+    cwin.SynMemoQuery.Font := pnlSQLFontPattern.Font;
+    cwin.SynMemoSQLLog.Font := pnlSQLFontPattern.Font;
+    cwin.SynMemoProcessView.Font := pnlSQLFontPattern.Font;
+    cwin.SynMemoFilter.Font := pnlSQLFontPattern.Font;
+    cwin.SynSQLSyn1.KeyAttri.Foreground := pnlSQLColKeywords.Color;
+    cwin.SynSQLSyn1.FunctionAttri.Foreground := pnlSQLColFunctions.Color;
+    cwin.SynSQLSyn1.DataTypeAttri.Foreground := pnlSQLColDatatypes.Color;
+    cwin.SynSQLSyn1.NumberAttri.Foreground := pnlSQLColNumeric.Color;
+    cwin.SynSQLSyn1.StringAttri.Foreground := pnlSQLColString.Color;
+    cwin.SynSQLSyn1.CommentAttri.Foreground := pnlSQLColComments.Color;
+    cwin.SynSQLSyn1.TablenameAttri.Foreground := pnlSQLColTablenames.Color;
+    cwin.SynMemoQuery.ActiveLineColor := pnlSQLColActiveLine.Color;
+    cwin.DataGrid.Font.Name := comboDataFontName.Text;
+    cwin.QueryGrid.Font.Name := comboDataFontName.Text;
+    cwin.DataGrid.Font.Size := updownDataFontSize.Position;
+    cwin.QueryGrid.Font.Size := updownDataFontSize.Position;
     FixVT(cwin.QueryGrid);
     FixVT(cwin.DataGrid);
     cwin.prefRememberFilters := chkRememberFilters.Checked;
-    cwin.prefLogsqlnum := self.updownLogSQLNum.Position;
-    cwin.prefLogSqlWidth := self.updownLogSnip.Position;
+    cwin.prefLogsqlnum := updownLogLines.Position;
+    cwin.prefLogSqlWidth := updownLogSnip.Position;
     cwin.TrimSQLLog;
     if chkLogToFile.Checked then
       cwin.ActivateFileLogging
@@ -260,9 +252,9 @@ begin
       cwin.DeactivateFileLogging;
     btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
     cwin.prefMaxColWidth := updownMaxColWidth.Position;
-    cwin.prefCSVSeparator := self.Edit1.text;
-    cwin.prefCSVEncloser := self.Edit2.text;
-    cwin.prefCSVTerminator := self.Edit3.text;
+    cwin.prefCSVSeparator := editCSVSeparator.Text;
+    cwin.prefCSVEncloser := editCSVEncloser.Text;
+    cwin.prefCSVTerminator := editCSVTerminator.Text;
     cwin.prefPreferShowTables := chkPreferShowTables.Checked;
     cwin.prefFieldColorNumeric := cboxNumeric.Selected;
     cwin.prefFieldColorText := cboxText.Selected;
@@ -283,8 +275,8 @@ begin
   end;
 
   // Settings have been applied, send a signal to the user
-  ButtonApply.Enabled := false;
-
+  btnOK.Enabled := False;
+  btnApply.Enabled := False;
   Screen.Cursor := crDefault;
 end;
 
@@ -311,21 +303,21 @@ begin
 end;
 
 var
-  fontname : String;
-  fontsize : Integer;
+  sqlfontname : String;
+  sqlfontsize : Integer;
   datafontname : String;
   datafontsize : Integer;
 begin
   screen.Cursor := crHourGlass;
 
   // Read and display values
-  fontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
-  fontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  sqlfontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
+  sqlfontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
   datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
   datafontsize := Mainform.GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
-  CheckBoxAutoReconnect.Checked := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
-  CheckBoxRestoreLastUsedDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-  updownLogSQLNum.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
+  chkAutoReconnect.Checked := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+  chkRestoreLastDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
+  updownLogLines.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
   chkUpdatecheckBuilds.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
@@ -336,18 +328,18 @@ begin
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := Mainform.GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // Color-coding:
-  pnlKeywords.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
-  pnlFunctions.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
-  pnlDatatypes.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
-  pnlNumeric.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
-  pnlString.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
-  pnlComments.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
-  pnlTablenames.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
-  pnlActiveLine.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+  pnlSQLColKeywords.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
+  pnlSQLColFunctions.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
+  pnlSQLColDatatypes.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
+  pnlSQLColNumeric.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
+  pnlSQLColString.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
+  pnlSQLColComments.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  pnlSQLColTablenames.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  pnlSQLColActiveLine.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   // CSV-Options:
-  Edit1.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  Edit2.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  Edit3.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  editCSVSeparator.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  editCSVEncloser.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  editCSVTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   // Remember data pane filters across sessions
   chkRememberFilters.Checked := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   // Log to file
@@ -358,21 +350,17 @@ begin
   EnumFontFamilies(Canvas.Handle,  // HDC of Device-Context.
                    nil,            // Name of Font-Family (PChar)
                    @EnumFixedProc, // Address of Callback-Function
-                   LPARAM(Pointer(ComboBoxFonts.Items))); // customized data
+                   LPARAM(Pointer(comboSQLFontName.Items))); // customized data
 
-  ComboBoxFonts.ItemIndex := ComboBoxFonts.Items.IndexOf(fontname);
-  UpDownFontSize.Position := fontsize;
-  with Panel1.Font do begin
-    Name := fontname;
-    Size := fontsize;
-  end;
+  comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
+  updownSQLFontSize.Position := sqlfontsize;
+  pnlSQLFontPattern.Font.Name := sqlfontname;
+  pnlSQLFontPattern.Font.Size := sqlfontsize;
 
   // Data-Appearance:
-  with comboDataFont do begin
-    Items := Screen.Fonts;
-    ItemIndex := Items.IndexOf(datafontname);
-  end;
-  udDataFontSize.Position := datafontsize;
+  comboDataFontName.Items := Screen.Fonts;
+  comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(datafontname);
+  updownDataFontSize.Position := datafontsize;
   // Load color settings
   cboxNumeric.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
   cboxText.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
@@ -389,47 +377,40 @@ begin
   chkEditorSet.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
   chkNullBG.Checked := Mainform.GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
-  ButtonApply.Enabled := false;
+  btnOK.Enabled := False;
+  btnApply.Enabled := False;
   screen.Cursor := crdefault;
 end;
 
 
 
-procedure Toptionsform.ButtonOKClick(Sender: TObject);
-begin
-  Apply(self);
-  ModalResult := mrOK;
-end;
-
 procedure Toptionsform.FontsChange(Sender: TObject);
 begin
-  with Panel1.Font do begin
-    Name := ComboBoxFonts.Items[ComboBoxFonts.ItemIndex];
-    Size := UpDownFontSize.Position;
-  end;
-  Modified(self);
+  pnlSQLFontPattern.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
+  pnlSQLFontPattern.Font.Size := updownSQLFontSize.Position;
+  Modified(Sender);
 end;
 
 
 procedure Toptionsform.CallColorDialog(Sender: TObject);
 begin
-  colordialog1.Color := (sender as TPanel).Color;
-  if ColorDialog1.Execute then
+  coldlgSQLColors.Color := (sender as TPanel).Color;
+  if coldlgSQLColors.Execute then
   begin
-    (sender as TPanel).Color := ColorDialog1.Color;
-    modified(self);
+    (sender as TPanel).Color := coldlgSQLColors.Color;
+    Modified(Sender);
   end;
 end;
 
 procedure Toptionsform.DataFontsChange(Sender: TObject);
 begin
-  Modified(self);
+  Modified(Sender);
 end;
 
 procedure Toptionsform.anyUpDownLimitChanging(Sender: TObject;
   var AllowChange: Boolean);
 begin
-  modified(sender);
+  Modified(Sender);
 end;
 
 
@@ -449,12 +430,13 @@ begin
   updownUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
-  Modified(sender);
+  Modified(Sender);
 end;
 
 procedure Toptionsform.chkNullBGClick(Sender: TObject);
 begin
   cboxNullBG.Enabled := (Sender as TCheckbox).Checked;
+  Modified(Sender);
 end;
 
 end.
