@@ -10,7 +10,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Registry, ExtCtrls;
+  StdCtrls, ComCtrls, Registry, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
+  SynEdit, SynMemo;
 
 type
   Toptionsform = class(TForm)
@@ -21,28 +22,7 @@ type
     btnApply: TButton;
     tabSQL: TTabSheet;
     chkAutoReconnect: TCheckBox;
-    pagecontrolSQL: TPageControl;
-    tabSQLfont: TTabSheet;
-    tabSQLcolors: TTabSheet;
-    pnlSQLFontPattern: TPanel;
-    lblSQLFontSizeHint: TLabel;
-    lblSQLFontSize: TLabel;
-    lblSQLFontName: TLabel;
-    comboSQLFontName: TComboBox;
     lblLogLinesHint: TLabel;
-    lblSQLColKeywords: TLabel;
-    pnlSQLColKeywords: TPanel;
-    coldlgSQLColors: TColorDialog;
-    lblSQLColFunctions: TLabel;
-    pnlSQLColFunctions: TPanel;
-    lblSQLColNumeric: TLabel;
-    pnlSQLColDatatypes: TPanel;
-    lblSQLColDatatypes: TLabel;
-    pnlSQLColNumeric: TPanel;
-    lblSQLColString: TLabel;
-    pnlSQLColString: TPanel;
-    lblSQLColComments: TLabel;
-    pnlSQLColComments: TPanel;
     tabCSV: TTabSheet;
     grpCSV: TGroupBox;
     lblCSVSeparator: TLabel;
@@ -60,13 +40,8 @@ type
     comboDataFontName: TComboBox;
     editDataFontSize: TEdit;
     updownDataFontSize: TUpDown;
-    lblSQLFontPattern: TLabel;
     lblDataFontHint: TLabel;
-    editSQLFontSize: TEdit;
-    updownSQLFontSize: TUpDown;
     lblMaxColWidth: TLabel;
-    lblSQLColTablenames: TLabel;
-    pnlSQLColTablenames: TPanel;
     updownLogLines: TUpDown;
     editLogLines: TEdit;
     editMaxColWidth: TEdit;
@@ -75,8 +50,6 @@ type
     chkRememberFilters: TCheckBox;
     chkLogToFile: TCheckBox;
     btnOpenLogFolder: TButton;
-    lblSQLColActiveLine: TLabel;
-    pnlSQLColActiveLine: TPanel;
     lblLogSnip: TLabel;
     editLogSnip: TEdit;
     updownLogSnip: TUpDown;
@@ -107,11 +80,23 @@ type
     chkNullBG: TCheckBox;
     lblFieldNull: TLabel;
     cboxNullBG: TColorBox;
+    grpSQLFont: TGroupBox;
+    comboSQLFontName: TComboBox;
+    lblSQLFontSize: TLabel;
+    editSQLFontSize: TEdit;
+    updownSQLFontSize: TUpDown;
+    grpSQLColors: TGroupBox;
+    comboSQLColElement: TComboBox;
+    lblSQLColElement: TLabel;
+    lblSQLColColor: TLabel;
+    cboxSQLColColor: TColorBox;
+    grpSQLSample: TGroupBox;
+    SynMemoSQLSample: TSynMemo;
+    SynSQLSynSQLSample: TSynSQLSyn;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
-    procedure FontsChange(Sender: TObject);
-    procedure CallColorDialog(Sender: TObject);
+    procedure SQLFontChange(Sender: TObject);
     procedure DataFontsChange(Sender: TObject);
     procedure anyUpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
@@ -119,6 +104,7 @@ type
     procedure chkUpdatecheckClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure chkNullBGClick(Sender: TObject);
+    procedure comboSQLColElementChange(Sender: TObject);
   private
     { Private declarations }
   public
@@ -129,6 +115,16 @@ type
 implementation
 uses childwin, main, helpers;
 {$R *.DFM}
+
+const
+  SQLEL_KEYWORD = 'Keywords';
+  SQLEL_FUNCTION = 'Functions';
+  SQLEL_DATATYPE = 'Data types';
+  SQLEL_NUMBER = 'Numeric values';
+  SQLEL_STRING = 'String values';
+  SQLEL_COMMENT = 'Comments';
+  SQLEL_TABLE = 'Table names';
+  SQLEL_ACTLINE = 'Active line background';
 
 
 procedure Toptionsform.Modified(Sender: TObject);
@@ -162,14 +158,14 @@ begin
   reg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
   reg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
   reg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
-  reg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(pnlSQLColKeywords.Color));
-  reg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(pnlSQLColFunctions.Color));
-  reg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(pnlSQLColDatatypes.Color));
-  reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(pnlSQLColNumeric.Color));
-  reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(pnlSQLColString.Color));
-  reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(pnlSQLColComments.Color));
-  reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(pnlSQLColTablenames.Color));
-  reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(pnlSQLColActiveLine.Color));
+  reg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(SynSQLSynSQLSample.KeyAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(SynSQLSynSQLSample.FunctionAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(SynSQLSynSQLSample.DataTypeAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(SynSQLSynSQLSample.NumberAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(SynSQLSynSQLSample.StringAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(SynSQLSynSQLSample.CommentAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(SynSQLSynSQLSample.TableNameAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
   reg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
   reg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
   reg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
@@ -224,18 +220,18 @@ begin
   cwin := Mainform.Childwin;
   if cwin <> nil then
   begin
-    cwin.SynMemoQuery.Font := pnlSQLFontPattern.Font;
-    cwin.SynMemoSQLLog.Font := pnlSQLFontPattern.Font;
-    cwin.SynMemoProcessView.Font := pnlSQLFontPattern.Font;
-    cwin.SynMemoFilter.Font := pnlSQLFontPattern.Font;
-    cwin.SynSQLSyn1.KeyAttri.Foreground := pnlSQLColKeywords.Color;
-    cwin.SynSQLSyn1.FunctionAttri.Foreground := pnlSQLColFunctions.Color;
-    cwin.SynSQLSyn1.DataTypeAttri.Foreground := pnlSQLColDatatypes.Color;
-    cwin.SynSQLSyn1.NumberAttri.Foreground := pnlSQLColNumeric.Color;
-    cwin.SynSQLSyn1.StringAttri.Foreground := pnlSQLColString.Color;
-    cwin.SynSQLSyn1.CommentAttri.Foreground := pnlSQLColComments.Color;
-    cwin.SynSQLSyn1.TablenameAttri.Foreground := pnlSQLColTablenames.Color;
-    cwin.SynMemoQuery.ActiveLineColor := pnlSQLColActiveLine.Color;
+    cwin.SynMemoQuery.Font := SynMemoSQLSample.Font;
+    cwin.SynMemoSQLLog.Font := SynMemoSQLSample.Font;
+    cwin.SynMemoProcessView.Font := SynMemoSQLSample.Font;
+    cwin.SynMemoFilter.Font := SynMemoSQLSample.Font;
+    cwin.SynSQLSyn1.KeyAttri.Foreground := SynSQLSynSQLSample.KeyAttri.Foreground;
+    cwin.SynSQLSyn1.FunctionAttri.Foreground := SynSQLSynSQLSample.FunctionAttri.Foreground;
+    cwin.SynSQLSyn1.DataTypeAttri.Foreground := SynSQLSynSQLSample.DataTypeAttri.Foreground;
+    cwin.SynSQLSyn1.NumberAttri.Foreground := SynSQLSynSQLSample.NumberAttri.Foreground;
+    cwin.SynSQLSyn1.StringAttri.Foreground := SynSQLSynSQLSample.StringAttri.Foreground;
+    cwin.SynSQLSyn1.CommentAttri.Foreground := SynSQLSynSQLSample.CommentAttri.Foreground;
+    cwin.SynSQLSyn1.TablenameAttri.Foreground := SynSQLSynSQLSample.TablenameAttri.Foreground;
+    cwin.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
     cwin.DataGrid.Font.Name := comboDataFontName.Text;
     cwin.QueryGrid.Font.Name := comboDataFontName.Text;
     cwin.DataGrid.Font.Size := updownDataFontSize.Position;
@@ -327,15 +323,6 @@ begin
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := Mainform.GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
-  // Color-coding:
-  pnlSQLColKeywords.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
-  pnlSQLColFunctions.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
-  pnlSQLColDatatypes.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
-  pnlSQLColNumeric.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
-  pnlSQLColString.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
-  pnlSQLColComments.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
-  pnlSQLColTablenames.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
-  pnlSQLColActiveLine.Color := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   // CSV-Options:
   editCSVSeparator.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   editCSVEncloser.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
@@ -352,10 +339,33 @@ begin
                    @EnumFixedProc, // Address of Callback-Function
                    LPARAM(Pointer(comboSQLFontName.Items))); // customized data
 
+  // Color-coding:
+  SynSQLSynSQLSample.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
+  SynSQLSynSQLSample.FunctionAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
+  SynSQLSynSQLSample.DataTypeAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
+  SynSQLSynSQLSample.NumberAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
+  SynSQLSynSQLSample.StringAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
+  SynSQLSynSQLSample.CommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  SynSQLSynSQLSample.TableNameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  SynMemoSQLSample.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
   updownSQLFontSize.Position := sqlfontsize;
-  pnlSQLFontPattern.Font.Name := sqlfontname;
-  pnlSQLFontPattern.Font.Size := sqlfontsize;
+  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
+    '  ''String literal'' AS lit' + CRLF +
+    'FROM tableA AS ta -- A comment' + CRLF +
+    'WHERE `columnA` IS NULL; # More comment' + CRLF +
+    CRLF +
+    'CREATE TABLE tableB' + CRLF +
+    '  (id INT, name VARCHAR(30) DEFAULT "standard")';
+  SynMemoSQLSample.Font.Name := sqlfontname;
+  SynMemoSQLSample.Font.Size := sqlfontsize;
+  SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
+  comboSQLColElement.Items.Delimiter := ',';
+  comboSQLColElement.Items.StrictDelimiter := True;
+  comboSQLColElement.Items.DelimitedText := SQLEL_KEYWORD+','+SQLEL_FUNCTION+','+SQLEL_DATATYPE+','+
+    SQLEL_NUMBER+','+SQLEL_STRING+','+SQLEL_COMMENT+','+SQLEL_TABLE+','+SQLEL_ACTLINE;
+  comboSQLColElement.ItemIndex := 0;
+  comboSQLColElementChange(Sender);
 
   // Data-Appearance:
   comboDataFontName.Items := Screen.Fonts;
@@ -384,23 +394,31 @@ end;
 
 
 
-procedure Toptionsform.FontsChange(Sender: TObject);
+procedure Toptionsform.SQLFontChange(Sender: TObject);
+var
+  elem: String;
+  attr: TSynHighlighterAttributes;
+  col: TColor;
 begin
-  pnlSQLFontPattern.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
-  pnlSQLFontPattern.Font.Size := updownSQLFontSize.Position;
+  SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
+  SynMemoSQLSample.Font.Size := updownSQLFontSize.Position;
+  elem := comboSQLColElement.Text;
+  col := cboxSQLColColor.Selected;
+  if elem = SQLEL_ACTLINE then begin
+    SynMemoSQLSample.ActiveLineColor := col;
+  end else begin
+    if elem = SQLEL_KEYWORD then attr := SynSqlSynSQLSample.KeyAttri
+    else if elem = SQLEL_FUNCTION then attr := SynSqlSynSQLSample.FunctionAttri
+    else if elem = SQLEL_DATATYPE then attr := SynSqlSynSQLSample.DatatypeAttri
+    else if elem = SQLEL_NUMBER then attr := SynSqlSynSQLSample.NumberAttri
+    else if elem = SQLEL_STRING then attr := SynSqlSynSQLSample.StringAttri
+    else if elem = SQLEL_COMMENT then attr := SynSqlSynSQLSample.CommentAttri
+    else attr := SynSqlSynSQLSample.TablenameAttri;
+    attr.Foreground := col;
+  end;
   Modified(Sender);
 end;
 
-
-procedure Toptionsform.CallColorDialog(Sender: TObject);
-begin
-  coldlgSQLColors.Color := (sender as TPanel).Color;
-  if coldlgSQLColors.Execute then
-  begin
-    (sender as TPanel).Color := coldlgSQLColors.Color;
-    Modified(Sender);
-  end;
-end;
 
 procedure Toptionsform.DataFontsChange(Sender: TObject);
 begin
@@ -438,5 +456,29 @@ begin
   cboxNullBG.Enabled := (Sender as TCheckbox).Checked;
   Modified(Sender);
 end;
+
+
+procedure Toptionsform.comboSQLColElementChange(Sender: TObject);
+var
+  elem: String;
+  attr: TSynHighlighterAttributes;
+  col: TColor;
+begin
+  elem := comboSQLColElement.Text;
+  if elem = SQLEL_ACTLINE then begin
+    col := SynMemoSQLSample.ActiveLineColor;
+  end else begin
+    if elem = SQLEL_KEYWORD then attr := SynSqlSynSQLSample.KeyAttri
+    else if elem = SQLEL_FUNCTION then attr := SynSqlSynSQLSample.FunctionAttri
+    else if elem = SQLEL_DATATYPE then attr := SynSqlSynSQLSample.DatatypeAttri
+    else if elem = SQLEL_NUMBER then attr := SynSqlSynSQLSample.NumberAttri
+    else if elem = SQLEL_STRING then attr := SynSqlSynSQLSample.StringAttri
+    else if elem = SQLEL_COMMENT then attr := SynSqlSynSQLSample.CommentAttri
+    else attr := SynSqlSynSQLSample.TablenameAttri;
+    col := attr.Foreground;
+  end;
+  cboxSQLColColor.Selected := col;
+end;
+
 
 end.
