@@ -196,229 +196,127 @@ object optionsform: Toptionsform
       BorderWidth = 5
       Caption = 'SQL'
       ImageIndex = 1
-      object pagecontrolSQL: TPageControl
-        Left = 0
-        Top = 0
-        Width = 399
-        Height = 288
-        ActivePage = tabSQLfont
-        Align = alClient
+      object grpSQLFont: TGroupBox
+        Left = 1
+        Top = 1
+        Width = 397
+        Height = 56
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Caption = 'Editor font'
         TabOrder = 0
-        object tabSQLfont: TTabSheet
-          Caption = 'Font'
-          object lblSQLFontSizeHint: TLabel
-            Left = 156
-            Top = 60
-            Width = 29
-            Height = 13
-            Caption = 'points'
-          end
-          object lblSQLFontSize: TLabel
-            Left = 16
-            Top = 59
-            Width = 23
-            Height = 13
-            Caption = 'Size:'
-          end
-          object lblSQLFontName: TLabel
-            Left = 16
-            Top = 32
-            Width = 26
-            Height = 13
-            Caption = 'Font:'
-          end
-          object lblSQLFontPattern: TLabel
-            Left = 16
-            Top = 96
-            Width = 40
-            Height = 13
-            Caption = 'Pattern:'
-          end
-          object pnlSQLFontPattern: TPanel
-            Left = 93
-            Top = 96
-            Width = 193
-            Height = 41
-            BevelOuter = bvLowered
-            Caption = 'Aa Bb Cc 123'
-            TabOrder = 3
-          end
-          object comboSQLFontName: TComboBox
-            Left = 93
-            Top = 29
-            Width = 193
-            Height = 21
-            Style = csDropDownList
-            ItemHeight = 13
-            TabOrder = 0
-            OnChange = FontsChange
-          end
-          object editSQLFontSize: TEdit
-            Left = 93
-            Top = 56
-            Width = 41
-            Height = 21
-            TabOrder = 1
-            Text = '9'
-            OnChange = FontsChange
-          end
-          object updownSQLFontSize: TUpDown
-            Left = 134
-            Top = 56
-            Width = 16
-            Height = 21
-            Associate = editSQLFontSize
-            Position = 9
-            TabOrder = 2
-          end
+        object lblSQLFontSize: TLabel
+          Left = 248
+          Top = 26
+          Width = 23
+          Height = 13
+          Caption = 'Size:'
         end
-        object tabSQLcolors: TTabSheet
-          Caption = 'Color-Coding'
-          ImageIndex = 1
-          object lblSQLColKeywords: TLabel
-            Left = 16
-            Top = 27
-            Width = 51
-            Height = 13
-            Caption = 'Keywords:'
-          end
-          object lblSQLColFunctions: TLabel
-            Left = 16
-            Top = 61
-            Width = 50
-            Height = 13
-            Caption = 'Functions:'
-          end
-          object lblSQLColNumeric: TLabel
-            Left = 192
-            Top = 27
-            Width = 76
-            Height = 13
-            Caption = 'Numeric Values:'
-          end
-          object lblSQLColDatatypes: TLabel
-            Left = 16
-            Top = 94
-            Width = 59
-            Height = 13
-            Caption = 'Data Types:'
-          end
-          object lblSQLColString: TLabel
-            Left = 192
-            Top = 61
-            Width = 66
-            Height = 13
-            Caption = 'String Values:'
-          end
-          object lblSQLColComments: TLabel
-            Left = 192
-            Top = 94
-            Width = 54
-            Height = 13
-            Caption = 'Comments:'
-          end
-          object lblSQLColTablenames: TLabel
-            Left = 16
-            Top = 127
-            Width = 66
-            Height = 13
-            Caption = 'Table-Names:'
-          end
-          object lblSQLColActiveLine: TLabel
-            Left = 16
-            Top = 169
-            Width = 112
-            Height = 13
-            Caption = 'Active line background:'
-          end
-          object pnlSQLColKeywords: TPanel
-            Left = 104
-            Top = 25
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 0
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColFunctions: TPanel
-            Left = 104
-            Top = 56
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 1
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColDatatypes: TPanel
-            Left = 104
-            Top = 87
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 2
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColNumeric: TPanel
-            Left = 296
-            Top = 24
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 3
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColString: TPanel
-            Left = 296
-            Top = 56
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 4
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColComments: TPanel
-            Left = 296
-            Top = 88
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 6
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColTablenames: TPanel
-            Left = 104
-            Top = 121
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 5
-            OnClick = CallColorDialog
-          end
-          object pnlSQLColActiveLine: TPanel
-            Left = 156
-            Top = 165
-            Width = 25
-            Height = 25
-            Cursor = crHandPoint
-            BevelOuter = bvLowered
-            ParentBackground = False
-            TabOrder = 7
-            OnClick = CallColorDialog
-          end
+        object comboSQLFontName: TComboBox
+          Left = 16
+          Top = 23
+          Width = 193
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 0
+          OnChange = SQLFontChange
+        end
+        object editSQLFontSize: TEdit
+          Left = 294
+          Top = 23
+          Width = 41
+          Height = 21
+          TabOrder = 1
+          Text = '9'
+          OnChange = SQLFontChange
+        end
+        object updownSQLFontSize: TUpDown
+          Left = 335
+          Top = 23
+          Width = 16
+          Height = 21
+          Associate = editSQLFontSize
+          Position = 9
+          TabOrder = 2
+        end
+      end
+      object grpSQLColors: TGroupBox
+        Left = 1
+        Top = 61
+        Width = 397
+        Height = 68
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Caption = 'Syntax colors'
+        TabOrder = 1
+        object lblSQLColElement: TLabel
+          Left = 19
+          Top = 18
+          Width = 42
+          Height = 13
+          Caption = 'Element:'
+        end
+        object lblSQLColColor: TLabel
+          Left = 192
+          Top = 18
+          Width = 29
+          Height = 13
+          Caption = 'Color:'
+        end
+        object comboSQLColElement: TComboBox
+          Left = 16
+          Top = 33
+          Width = 161
+          Height = 21
+          Style = csDropDownList
+          ItemHeight = 13
+          TabOrder = 0
+          OnChange = comboSQLColElementChange
+        end
+        object cboxSQLColColor: TColorBox
+          Left = 192
+          Top = 33
+          Width = 177
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 1
+          OnChange = SQLFontChange
+        end
+      end
+      object grpSQLSample: TGroupBox
+        Left = 0
+        Top = 132
+        Width = 397
+        Height = 153
+        Caption = 'Sample'
+        TabOrder = 2
+        object SynMemoSQLSample: TSynMemo
+          AlignWithMargins = True
+          Left = 5
+          Top = 18
+          Width = 387
+          Height = 130
+          SingleLineMode = False
+          Align = alClient
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Courier New'
+          Font.Style = []
+          TabOrder = 0
+          Gutter.Font.Charset = DEFAULT_CHARSET
+          Gutter.Font.Color = clWindowText
+          Gutter.Font.Height = -11
+          Gutter.Font.Name = 'Courier New'
+          Gutter.Font.Style = []
+          Gutter.Visible = False
+          Highlighter = SynSQLSynSQLSample
+          Lines.WideStrings = 'SynMemoSQLSample'
+          Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+          ReadOnly = True
+          TabWidth = 2
+          WordWrap = True
+          OnChange = SQLFontChange
         end
       end
     end
@@ -827,9 +725,9 @@ object optionsform: Toptionsform
     TabOrder = 2
     OnClick = Apply
   end
-  object coldlgSQLColors: TColorDialog
-    Options = [cdFullOpen, cdSolidColor]
-    Left = 1
-    Top = 274
+  object SynSQLSynSQLSample: TSynSQLSyn
+    SQLDialect = sqlMySQL
+    Left = 8
+    Top = 336
   end
 end
