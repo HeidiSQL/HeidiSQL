@@ -14364,7 +14364,7 @@ procedure TBaseVirtualTree.SetChildCount(Node: PVirtualNode; NewChildCount: Card
 var
   Remaining: Cardinal;
   Index: Cardinal;
-  Child: PVirtualNode;
+  Child, Run: PVirtualNode;
   Count: Integer;
   NewHeight: Integer;
 
@@ -14388,7 +14388,7 @@ begin
         begin
           Remaining := NewChildCount - Node.ChildCount;
           Count := Remaining;
-          
+
           // New nodes to add.
           if Assigned(Node.LastChild) then
             Index := Node.LastChild.Index + 1
@@ -14402,7 +14402,26 @@ begin
           // New nodes are by default always visible, so we don't need to check the visibility.
           while Remaining > 0 do
           begin
-            Child := MakeNewNode;
+            try
+              Child := MakeNewNode;
+            except
+              // HeidiSQL addition: out of memory? prevent mem leak.
+              on e: Exception do begin
+                Run := Node.LastChild;
+                while Assigned(Run) do begin
+                  Child := Run;
+                  Run := Run.PrevSibling;
+                  if Assigned(Child) then
+                  Child.NextSibling := nil;
+                  DoFreeNode(Child);
+                end;
+                Node.ChildCount := 0;
+                Node.FirstChild := nil;
+                Node.LastChild := nil;
+                InvalidateCache;
+                raise Exception.Create('Ran out of memory while allocating virtual tree nodes.');
+              end;
+            end;
             Child.Index := Index;
             Child.PrevSibling := Node.LastChild;
             if Assigned(Node.LastChild) then

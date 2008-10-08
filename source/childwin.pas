@@ -1453,12 +1453,19 @@ begin
       DataGridCurrentSort := sorting;
 
       debug('mem: initializing browse rows (internal data).');
-      SetLength(FDataGridResult.Rows, count);
-      for i := 0 to count - 1 do begin
-        FDataGridResult.Rows[i].Loaded := False;
+      try
+        SetLength(FDataGridResult.Rows, count);
+        for i := 0 to count - 1 do begin
+          FDataGridResult.Rows[i].Loaded := False;
+        end;
+        debug('mem: initializing browse rows (grid).');
+        DataGrid.RootNodeCount := count;
+      except
+        DataGrid.RootNodeCount := 0;
+        SetLength(FDataGridResult.Rows, 0);
+        PageControlMain.ActivePage := tabTable;
+        raise;
       end;
-      debug('mem: initializing browse rows (grid).');
-      DataGrid.RootNodeCount := count;
       debug('mem: browse row initialization complete.');
 
       // Switched to another table

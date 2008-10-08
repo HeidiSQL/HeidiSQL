@@ -26,6 +26,7 @@ const
   WM_PROCESSLOG                = WM_APP + 2;
   WM_MYSQL_THREAD_NOTIFY       = WM_APP + 3;
   WM_CLEAR_RIGHTCLICK_POINTER  = WM_APP + 4;
+  WM_REFILL_SPAREBUF           = WM_APP + 5;
   // Our message subtypes for WM_COPYDATA messages.
   CMD_EXECUTEQUERY_NORESULTS     = 1; { Slightly faster  - Fire-and-forget, no results }
   CMD_EXECUTEQUERY_RESULTS       = 2; { Normal           - Wait for completion, fetch results }
