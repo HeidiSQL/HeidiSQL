@@ -292,6 +292,7 @@ type
     procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
     procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
     procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
+    procedure HandleWMRefill(var msg: TMessage); message WM_REFILL_SPAREBUF;
     procedure ReplaceDialogQueryFind(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
   private
@@ -615,6 +616,32 @@ begin
 end;
 
 
+var
+  spareMemory: Pointer = nil;
+
+procedure HandleRuntimeError(ErrorCode: Byte; ErrorAddr: Pointer);
+begin
+  if spareMemory <> nil then FreeMem(spareMemory);
+  debug('mem: released spare block.');
+  spareMemory := nil;
+  if MainForm <> nil then begin
+    PostMessage(MainForm.Handle, WM_REFILL_SPAREBUF, 0, 0);
+  end;
+  raise Exception.Create('Runtime error ' + IntToStr(ErrorCode) + ' at ' + IntToHex(Cardinal(ErrorAddr), 8) + '.');
+end;
+
+procedure SpareBufRefill;
+begin
+  debug('mem: reallocating spare block.');
+  if spareMemory = nil then spareMemory := AllocMem(6543210);
+end;
+
+procedure TMainForm.HandleWMRefill(var msg: TMessage);
+begin
+  SpareBufRefill;
+end;
+
+
 {***
   OnCreate Event
   Important to set the windowstate here instead of in OnShow
@@ -635,6 +662,9 @@ begin
 
   // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
   SetVistaFonts(Font);
+
+  SpareBufRefill;
+  ErrorProc := HandleRuntimeError;
 
   refreshMonitorConfig;
   loadWindowConfig;
