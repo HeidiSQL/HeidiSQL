@@ -191,7 +191,7 @@ begin
       PrepareResultSqlData(GetPlainDriver, GetDBHandle, GetDialect,
           SQL, StmtHandle, SQLData);
 
-      GetPlainDriver.isc_dsql_execute(@FStatusVector, GetTrHandle,
+      GetPlainDriver.isc_dsql_execute(PISC_STATUS(@FStatusVector), GetTrHandle,
         @StmtHandle, GetDialect, SQLData.GetData);
       CheckInterbase6Error(SQL);
 
@@ -201,7 +201,7 @@ begin
         if CursorName <> '' then
         begin
           Cursor := CursorName;
-          GetPlainDriver.isc_dsql_set_cursor_name(@FStatusVector,
+          GetPlainDriver.isc_dsql_set_cursor_name(PISC_STATUS(@FStatusVector),
             @StmtHandle, PChar(Cursor), 0);
           CheckInterbase6Error(SQL);
         end;
@@ -252,7 +252,7 @@ begin
 //      if StatementType in [stExecProc, stSelect, stSelectForUpdate] then
 //        raise EZSQLException.Create(SStatementIsNotAllowed);
 
-      GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle,
+      GetPlainDriver.isc_dsql_execute2(PISC_STATUS(@FStatusVector), GetTrHandle,
         @StmtHandle, GetDialect, nil, nil);
       CheckInterbase6Error(SQL);
 
@@ -328,7 +328,7 @@ begin
       end;
 
       { Execute prepared statement }
-      GetPlainDriver.isc_dsql_execute(@FStatusVector, GetTrHandle,
+      GetPlainDriver.isc_dsql_execute(PISC_STATUS(@FStatusVector), GetTrHandle,
               @StmtHandle, GetDialect, nil);
       CheckInterbase6Error(Sql);
       { Set updated rows count }
@@ -347,7 +347,7 @@ begin
         if CursorName <> '' then
         begin
           Cursor := CursorName;
-          GetPlainDriver.isc_dsql_set_cursor_name(@FStatusVector,
+          GetPlainDriver.isc_dsql_set_cursor_name(PISC_STATUS(@FStatusVector),
             @StmtHandle, PChar(Cursor), 0);
           CheckInterbase6Error(SQL);
         end;
@@ -473,7 +473,7 @@ begin
       PrepareParameters(GetPlainDriver, SQL, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
 
-      GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle, @StmtHandle,
+      GetPlainDriver.isc_dsql_execute2(PISC_STATUS(@FStatusVector), GetTrHandle, @StmtHandle,
             GetDialect, FParamSQLData.GetData, nil);
       CheckInterbase6Error(SQL);
 
@@ -557,7 +557,7 @@ begin
       PrepareParameters(GetPlainDriver, SQL, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
 
-      GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle, @StmtHandle,
+      GetPlainDriver.isc_dsql_execute2(PISC_STATUS(@FStatusVector), GetTrHandle, @StmtHandle,
         GetDialect, FParamSQLData.GetData, nil);
       CheckInterbase6Error(SQL);
 
@@ -567,7 +567,7 @@ begin
         if CursorName <> '' then
         begin
           Cursor := CursorName;
-          GetPlainDriver.isc_dsql_set_cursor_name(@FStatusVector,
+          GetPlainDriver.isc_dsql_set_cursor_name(PISC_STATUS(@FStatusVector),
             @StmtHandle, PChar(Cursor), 0);
           CheckInterbase6Error(SQL);
         end;  
@@ -639,7 +639,7 @@ begin
       PrepareParameters(GetPlainDriver, SQL, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
 
-      GetPlainDriver.isc_dsql_execute(@FStatusVector, GetTrHandle,
+      GetPlainDriver.isc_dsql_execute(PISC_STATUS(@FStatusVector), GetTrHandle,
         @StmtHandle, GetDialect, FParamSQLData.GetData);
       CheckInterbase6Error(SQL);
 
@@ -755,7 +755,7 @@ begin
         SQL, StmtHandle, SQLData);
       PrepareParameters(GetPlainDriver, ProcSql, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
-      GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle, @StmtHandle,
+      GetPlainDriver.isc_dsql_execute2(PISC_STATUS(@FStatusVector), GetTrHandle, @StmtHandle,
             GetDialect, FParamSQLData.GetData, SQLData.GetData);
       CheckInterbase6Error(SQL);
 
@@ -846,7 +846,7 @@ begin
       PrepareParameters(GetPlainDriver, ProcSql, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
 
-      GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle, @StmtHandle,
+      GetPlainDriver.isc_dsql_execute2(PISC_STATUS(@FStatusVector), GetTrHandle, @StmtHandle,
         GetDialect, FParamSQLData.GetData, nil);
       CheckInterbase6Error(ProcSql);
 
@@ -856,7 +856,7 @@ begin
         if CursorName <> '' then
         begin
           Cursor := CursorName;
-          GetPlainDriver.isc_dsql_set_cursor_name(@FStatusVector,
+          GetPlainDriver.isc_dsql_set_cursor_name(PISC_STATUS(@FStatusVector),
             @StmtHandle, PChar(Cursor), 0);
           CheckInterbase6Error(ProcSql);
         end;  
@@ -931,7 +931,7 @@ begin
       PrepareParameters(GetPlainDriver, ProcSql, InParamValues, InParamTypes,
         InParamCount, GetDialect, StmtHandle, FParamSQLData);
 
-      GetPlainDriver.isc_dsql_execute2(@FStatusVector, GetTrHandle, @StmtHandle,
+      GetPlainDriver.isc_dsql_execute2(PISC_STATUS(@FStatusVector), GetTrHandle, @StmtHandle,
         GetDialect, FParamSQLData.GetData, SQLData.GetData);
       CheckInterbase6Error(ProcSql);
 

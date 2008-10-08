@@ -754,7 +754,7 @@ begin
           begin
             FPlainDriver.dbConvert(FHandle, SQLMONEY4,
               FPlainDriver.dbRetData(FHandle, ParamIndex), 4, SQLMONEY,
-              @DatMoney, 8);
+              PByte(@DatMoney), 8);
             DefVarManager.SetAsFloat(Temp, DatMoney);
           end;
         SQLMONEY:
@@ -765,7 +765,7 @@ begin
             FPLainDriver.dbConvert(FHandle, SQLDECIMAL,
               FPLainDriver.dbRetData(FHandle, ParamIndex),
               FPLainDriver.dbRetLen(FHandle, ParamIndex),
-              SQLFLT8, @DatDouble, 8);
+              SQLFLT8, PByte(@DatDouble), 8);
             DefVarManager.SetAsFloat(Temp, DatDouble);
           end;
         SQLNUMERIC:
@@ -773,14 +773,14 @@ begin
             FPLainDriver.dbConvert(FHandle, SQLNUMERIC,
               FPLainDriver.dbRetData(FHandle, ParamIndex),
               FPLainDriver.dbRetLen(FHandle, ParamIndex),
-              SQLFLT8, @DatDouble, 8);
+              SQLFLT8, PByte(@DatDouble), 8);
             DefVarManager.SetAsFloat(Temp, DatDouble);
           end;
         SQLDATETIM4:
           begin
             FPLainDriver.dbConvert(FHandle, SQLDATETIM4,
               FPLainDriver.dbRetData(FHandle, ParamIndex), 4,
-              SQLDATETIME, @DatDBDATETIME, 8);
+              SQLDATETIME, PByte(@DatDBDATETIME), 8);
             DefVarManager.SetAsDateTime(Temp,
               DatDBDATETIME.dtdays + 2 + (DatDBDATETIME.dttime / 25920000));
           end;

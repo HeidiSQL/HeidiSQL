@@ -28,7 +28,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_Optimize>False</DCC_Optimize>
     <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
     <DCC_RangeChecking>True</DCC_RangeChecking>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
@@ -41,6 +40,7 @@
     <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ResourcePath>
     <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ObjPath>
     <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_IncludePath>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

@@ -1239,7 +1239,7 @@ begin
       {In case it needs an output buffer}
       if (avail_out = 0) then
       begin
-        next_out := @Buffer;
+        next_out := PChar(@Buffer);
         avail_out := SizeOf(Buffer);
       end {if (avail_out = 0)};
 
@@ -1297,7 +1297,7 @@ begin
       if avail_out = 0 then
       begin
         {Restore buffer}
-        next_out := @Buffer;
+        next_out := PChar(@Buffer);
         avail_out := SizeOf(Buffer);
       end {if avail_out = 0};
 
@@ -1804,7 +1804,7 @@ begin
   {If there is data for the chunk, write it}
   if DataSize > 0 then Stream.Write(Data^, DataSize);
   {Calculates and write CRC}
-  ChunkCRC := update_crc($ffffffff, @fName[0], 4);
+  ChunkCRC := update_crc($ffffffff, pByteArray(@fName[0]), 4);
   ChunkCRC := Byteswap(update_crc(ChunkCRC, Data, DataSize) xor $ffffffff);
   Stream.Write(ChunkCRC, 4);
 
@@ -1835,7 +1835,7 @@ begin
 
   {Check if crc readed is valid}
   {$IFDEF CheckCRC}
-    RightCRC := update_crc($ffffffff, @ChunkName[0], 4);
+    RightCRC := update_crc($ffffffff, pByteArray(@ChunkName[0]), 4);
     RightCRC := update_crc(RightCRC, fData, Size) xor $ffffffff;
     Result := RightCRC = CheckCrc;
 
@@ -2436,7 +2436,7 @@ begin
 
         {Calculate chunk name part of the crc}
         {$IFDEF CheckCRC}
-          crcfile := update_crc($ffffffff, @IDATHeader[0], 4);
+          crcfile := update_crc($ffffffff, pByteArray(@IDATHeader[0]), 4);
         {$ENDIF}
         EndPos := fStream.Position + ByteSwap(EndPos);
       end;
@@ -2840,7 +2840,7 @@ begin
         FilterRow;
         {Copy image data}
 
-        CopyProc(CurrentPass, @Row_Buffer[RowUsed][1], Data, Trans
+        CopyProc(CurrentPass, PAnsiChar(@Row_Buffer[RowUsed][1]), Data, Trans
           {$IFDEF Store16bits}, Extra{$ENDIF});
 
         {Use the other RowBuffer item}
@@ -3097,7 +3097,7 @@ begin
     {Filter the current row}
     FilterRow;
     {Copies non interlaced row to image}
-    CopyProc(@Row_Buffer[RowUsed][1], Data, Trans{$IFDEF Store16bits}, Extra
+    CopyProc(PAnsiChar(@Row_Buffer[RowUsed][1]), Data, Trans{$IFDEF Store16bits}, Extra
       {$ENDIF});
 
     {Invert line used}
@@ -3196,7 +3196,7 @@ begin
 
   {Initialize to calculate CRC}
   {$IFDEF CheckCRC}
-    CRCFile := update_crc($ffffffff, @ChunkName[0], 4);
+    CRCFile := update_crc($ffffffff, pByteArray(@ChunkName[0]), 4);
   {$ENDIF}
 
   Owner.GetPixelInfo(Row_Bytes, Offset); {Obtain line information}
@@ -3308,7 +3308,7 @@ begin
   ChunkLen := ByteSwap(Length);
   Stream.Write(ChunkLen, 4);                      {Chunk length}
   Stream.Write(IDATHeader[0], 4);                 {Idat header}
-  CRC := update_crc($ffffffff, @IDATHeader[0], 4); {Crc part for header}
+  CRC := update_crc($ffffffff, pByteArray(@IDATHeader[0]), 4); {Crc part for header}
 
   {Writes IDAT data and calculates CRC for data}
   Stream.Write(Data^, Length);

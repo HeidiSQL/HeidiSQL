@@ -33,6 +33,10 @@
     <DCC_ResourcePath>..\..\..\zeosdbo\build;..\..\..\..\source;..\..\include</DCC_ResourcePath>
     <DCC_ObjPath>..\..\..\zeosdbo\build;..\..\..\..\source;..\..\include</DCC_ObjPath>
     <DCC_IncludePath>..\..\..\zeosdbo\build;..\..\..\..\source;..\..\include</DCC_IncludePath>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
+    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

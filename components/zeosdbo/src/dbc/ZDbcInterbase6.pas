@@ -338,11 +338,11 @@ begin
   begin
     if AutoCommit then
     begin
-      FPlainDriver.isc_commit_transaction(@FStatusVector, @FTrHandle);
+      FPlainDriver.isc_commit_transaction(PISC_STATUS(@FStatusVector), @FTrHandle);
       DriverManager.LogMessage(lcTransaction, FPlainDriver.GetProtocol,
         Format('COMMITT TRANSACTION "%s"', [Database]));
     end else begin
-      FPlainDriver.isc_rollback_transaction(@FStatusVector, @FTrHandle);
+      FPlainDriver.isc_rollback_transaction(PISC_STATUS(@FStatusVector), @FTrHandle);
       DriverManager.LogMessage(lcTransaction, FPlainDriver.GetProtocol,
         Format('ROLLBACK TRANSACTION "%s"', [Database]));
     end;
@@ -352,7 +352,7 @@ begin
 
   if FHandle <> nil then
   begin
-    FPlainDriver.isc_detach_database(@FStatusVector, @FHandle);
+    FPlainDriver.isc_detach_database(PISC_STATUS(@FStatusVector), @FHandle);
     FHandle := nil;
     CheckInterbase6Error(FPlainDriver, FStatusVector, lcDisconnect);
   end;
@@ -372,7 +372,7 @@ begin
 
   if FTrHandle <> nil then
   begin
-    FPlainDriver.isc_commit_retaining(@FStatusVector, @FTrHandle);
+    FPlainDriver.isc_commit_retaining(PISC_STATUS(@FStatusVector), @FTrHandle);
     CheckInterbase6Error(FPlainDriver, FStatusVector, lcTransaction);
     DriverManager.LogMessage(lcTransaction,
       FPlainDriver.GetProtocol, 'TRANSACTION COMMIT');
@@ -534,7 +534,7 @@ begin
 
     { Connect to Interbase6 database. }
     FHandle := nil;
-    FPlainDriver.isc_attach_database(@FStatusVector, StrLen(DBName), DBName,
+    FPlainDriver.isc_attach_database(PISC_STATUS(@FStatusVector), StrLen(DBName), DBName,
         @FHandle, FDPBLength, DPB);
 
     { Check connection error }
@@ -642,7 +642,7 @@ procedure TZInterbase6Connection.Rollback;
 begin
   if FTrHandle <> nil then
   begin
-    FPlainDriver.isc_rollback_retaining(@FStatusVector, @FTrHandle);
+    FPlainDriver.isc_rollback_retaining(PISC_STATUS(@FStatusVector), @FTrHandle);
     CheckInterbase6Error(FPlainDriver, FStatusVector);
     DriverManager.LogMessage(lcTransaction,
       FPlainDriver.GetProtocol, 'TRANSACTION ROLLBACK');
@@ -690,7 +690,7 @@ begin
     { GenerateTPB return PTEB with null pointer tpb_address from defaul
       transaction }
     PTEB := GenerateTPB(Params, FHandle);
-    FPlainDriver.isc_start_multiple(@FStatusVector, @FTrHandle, 1, PTEB);
+    FPlainDriver.isc_start_multiple(PISC_STATUS(@FStatusVector), @FTrHandle, 1, PTEB);
     CheckInterbase6Error(FPlainDriver, FStatusVector, lcTransaction);
     DriverManager.LogMessage(lcTransaction, FPlainDriver.GetProtocol,
       'TRANSACTION STARTED.');
@@ -713,10 +713,10 @@ begin
   Close;
   DbHandle := nil;
   TrHandle := nil;
-  FPlainDriver.isc_dsql_execute_immediate(@FStatusVector, @DbHandle, @TrHandle, 0, PChar(sql),
+  FPlainDriver.isc_dsql_execute_immediate(PISC_STATUS(@FStatusVector), PISC_DB_HANDLE(@DbHandle), PISC_TR_HANDLE(@TrHandle), 0, PChar(sql),
                                           FDialect, nil);
   CheckInterbase6Error(FPlainDriver, FStatusVector, lcExecute, SQL);
-  FPlainDriver.isc_detach_database(@FStatusVector, @DbHandle);
+  FPlainDriver.isc_detach_database(PISC_STATUS(@FStatusVector), PISC_DB_HANDLE(@DbHandle));
   CheckInterbase6Error(FPlainDriver, FStatusVector, lcExecute, SQL);
 end;
 
