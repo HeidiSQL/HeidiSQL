@@ -94,6 +94,7 @@ type
     FModeWhenCalled : TFieldEditorMode;
     FFieldName : WideString;
     FLastKey: Word;
+    FWasAutoIncrement: Boolean;
     procedure ValidateControls;
     function IsCategory(index: Integer): Boolean;
     function IndexToType(index: Integer): Integer;
@@ -208,7 +209,6 @@ begin
     // "Field" tab in Add-mode
     femFieldAdd, femIndexEditor:
     begin
-      CheckBoxAutoIncrement.Enabled := false;
       CheckBoxAutoIncrement.Checked := false;
       EditFieldName.Text := 'Enter column name';
       ComboBoxType.ItemIndex := 1;
@@ -266,6 +266,7 @@ begin
       CheckBoxUnsigned.Checked := pos('unsigned', strtype) > 0;
       CheckBoxNotNull.Checked := lowercase(NodeData.Captions[2]) <> 'yes';
       CheckBoxAutoIncrement.Checked := lowercase(NodeData.Captions[4]) = 'auto_increment';
+      FWasAutoIncrement := CheckBoxAutoIncrement.Checked;
 
       // TODO: Disable 'auto increment' checkbox if field is not part of index or primary key.
     end;
@@ -410,6 +411,8 @@ begin
   if not CheckBoxZerofill.Enabled then
     CheckBoxZerofill.Checked := false; // Ensure checkbox is not ticked
 
+  CheckboxAutoincrement.Enabled := FieldType.Category = catInteger;
+
   // Length/Set
   EditLength.Enabled := FieldType.HasLength;
   lblLengthSet.Enabled := EditLength.Enabled;
@@ -458,10 +461,12 @@ var
   sql_alterfield   : WideString;
   cwin : TMDIChild;
   i: Integer;
+  strSetPK: WideString;
 begin
   // Apply Changes to field-definition
 
   cwin := Mainform.ChildWin;
+  strSetPK := '';
 
   // move field if position changed
   if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) and (cwin.mysql_version < 40001) then
@@ -479,6 +484,24 @@ begin
        ) <> mrYes then
       Exit;
     end;
+
+  if CheckboxAutoIncrement.Checked and CheckboxAutoIncrement.Enabled and (not FWasAutoIncrement) then begin
+    if MessageDlg('Adding the auto_increment attribute will remove an existing primary key (if present) '
+      + 'from the table and reapply that to this column.', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
+      // Only drop the PK if it exists
+      cwin.FSelectedTableKeys.First;
+      while not cwin.FSelectedTableKeys.Eof do begin
+        if cwin.FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY' then begin
+          strSetPK := ', DROP PRIMARY KEY';
+          break;
+        end;
+        cwin.FSelectedTableKeys.Next;
+      end;
+      strSetPK := strSetPK + ', ADD PRIMARY KEY('+Mainform.mask(EditFieldName.Text)+')';
+    end else
+      Exit;
+  end;
+
 
   Screen.Cursor := crHourglass;
   strAttributes := ''; // none of the 3 attributes binary, unsigned, zerofill
@@ -512,7 +535,7 @@ begin
     strNull := strNull + ' NULL';
   end;
 
-  if CheckBoxAutoIncrement.Checked = True then
+  if CheckBoxAutoIncrement.Checked and CheckboxAutoIncrement.Enabled then
     strAutoIncrement := ' AUTO_INCREMENT';
 
   if (EditLength.text <> '') and EditLength.Enabled then
@@ -551,7 +574,8 @@ begin
         'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +  // table
         'ADD ' + mainform.mask(EditFieldname.Text) + ' ' +        // new name
         fielddef +
-        strPosition                                               // Position
+        strPosition +                                             // Position
+        strSetPK
       );
     end else if (FMode = femFieldUpdate) then begin
 
@@ -564,11 +588,11 @@ begin
       begin
         // MySQL 4.0.1+ allows column moving in a ALTER TABLE statement.
         // @see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-        cwin.ExecUpdateQuery( sql_alterfield + strPosition );
+        cwin.ExecUpdateQuery( sql_alterfield + strPosition + strSetPK );
       end
       else begin
         // Use manual mechanism on older servers
-        cwin.ExecUpdateQuery( sql_alterfield );
+        cwin.ExecUpdateQuery( sql_alterfield + strSetPK );
 
         //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
 
