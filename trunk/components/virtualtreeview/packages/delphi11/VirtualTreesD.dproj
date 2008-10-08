@@ -30,7 +30,6 @@
     <Version>7.0</Version>
     <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
     <DCC_RangeChecking>True</DCC_RangeChecking>
-    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     <DCC_ImageBase>30400000</DCC_ImageBase>
     <DCC_Define>DEBUG</DCC_Define>
     <DCC_DcuOutput>..\..\build</DCC_DcuOutput>
@@ -42,6 +41,8 @@
     <DCC_ResourcePath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ResourcePath>
     <DCC_ObjPath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ObjPath>
     <DCC_IncludePath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_IncludePath>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
+    <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

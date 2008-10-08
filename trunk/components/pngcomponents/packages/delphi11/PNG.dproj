@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{3adf4b67-001b-48bd-8974-5d17cf2057f3}</ProjectGuid>
@@ -26,6 +26,10 @@
     <DCC_ResourcePath>..\..\build</DCC_ResourcePath>
     <DCC_ObjPath>..\..\build</DCC_ObjPath>
     <DCC_IncludePath>..\..\build</DCC_IncludePath>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
+    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

@@ -2158,7 +2158,7 @@ function GetTempDir: String;
 var
   TempPath: array[0..MAX_PATH] of Char;
 begin
-  GetTempPath(MAX_PATH, @TempPath);
+  GetTempPath(MAX_PATH, PAnsiChar(@TempPath));
   Result := StrPas(TempPath);
 end;
 

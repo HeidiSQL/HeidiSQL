@@ -792,11 +792,11 @@ begin
   if (StatusVector[0] = 1) and (StatusVector[1] > 0) then
   begin
     ErrorMessage:='';
-    PStatusVector := @StatusVector;
+    PStatusVector := PISC_STATUS(@StatusVector);
     while PlainDriver.isc_interprete(Msg, @PStatusVector) > 0 do
       ErrorMessage := ErrorMessage + ' ' + StrPas(Msg);
 
-    ErrorCode := PlainDriver.isc_sqlcode(@StatusVector);
+    ErrorCode := PlainDriver.isc_sqlcode(PISC_STATUS(@StatusVector));
     PlainDriver.isc_sql_interprete(ErrorCode, Msg, 1024);
     ErrorSqlMessage := StrPas(Msg);
 
@@ -842,11 +842,11 @@ var
   StatusVector: TARRAY_ISC_STATUS;
 begin
   { Allocate an sql statement }
-  PlainDriver.isc_dsql_alloc_statement2(@StatusVector, Handle, @StmtHandle);
+  PlainDriver.isc_dsql_alloc_statement2(PISC_STATUS(@StatusVector), Handle, @StmtHandle);
   CheckInterbase6Error(PlainDriver, StatusVector, lcExecute, Sql);
 
   { Prepare an sql statement }
-  PlainDriver.isc_dsql_prepare(@StatusVector, TrHandle, @StmtHandle,
+  PlainDriver.isc_dsql_prepare(PISC_STATUS(@StatusVector), TrHandle, @StmtHandle,
     0, PChar(SQL), Dialect, nil);
   CheckInterbase6Error(PlainDriver, StatusVector, lcExecute, SQL);
 
@@ -876,14 +876,14 @@ var
   StatusVector: TARRAY_ISC_STATUS;
 begin
   { Initialise ouput param and fields }
-  PlainDriver.isc_dsql_describe(@StatusVector, @StmtHandle, Dialect,
+  PlainDriver.isc_dsql_describe(PISC_STATUS(@StatusVector), @StmtHandle, Dialect,
     SqlData.GetData);
   CheckInterbase6Error(PlainDriver, StatusVector, lcExecute, SQL);
 
   if SqlData.GetData^.sqld > SqlData.GetData^.sqln then
   begin
     SqlData.AllocateSQLDA;
-    PlainDriver.isc_dsql_describe(@StatusVector, @StmtHandle,
+    PlainDriver.isc_dsql_describe(PISC_STATUS(@StatusVector), @StmtHandle,
       Dialect, SqlData.GetData);
     CheckInterbase6Error(PlainDriver, StatusVector, lcExecute, Sql);
   end;
@@ -908,7 +908,7 @@ begin
   TypeItem := Char(isc_info_sql_stmt_type);
 
   { Get information about a prepared DSQL statement. }
-  PlainDriver.isc_dsql_sql_info(@StatusVector, @StmtHandle, 1,
+  PlainDriver.isc_dsql_sql_info(PISC_STATUS(@StatusVector), @StmtHandle, 1,
     @TypeItem, SizeOf(StatementBuffer), StatementBuffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
 
@@ -933,7 +933,7 @@ var
 begin
   if StatementHandle <> nil then
   begin
-    PlainDriver.isc_dsql_free_statement(@StatusVector, @StatementHandle,
+    PlainDriver.isc_dsql_free_statement(PISC_STATUS(@StatusVector), @StatementHandle,
       DSQL_drop);
     CheckInterbase6Error(PlainDriver, StatusVector);
   end;
@@ -957,7 +957,7 @@ begin
   Result := -1;
   ReqInfo := Char(isc_info_sql_records);
 
-  if PlainDriver.isc_dsql_sql_info(@StatusVector, @StmtHandle, 1,
+  if PlainDriver.isc_dsql_sql_info(PISC_STATUS(@StatusVector), @StmtHandle, 1,
     @ReqInfo, SizeOf(OutBuffer), OutBuffer) > 0 then
     Exit;
   CheckInterbase6Error(PlainDriver, StatusVector);
@@ -992,7 +992,7 @@ var
   StatusVector: TARRAY_ISC_STATUS;
 begin
   {check dynamic sql}
-  PlainDriver.isc_dsql_describe_bind(@StatusVector, @StmtHandle, Dialect,
+  PlainDriver.isc_dsql_describe_bind(PISC_STATUS(@StatusVector), @StmtHandle, Dialect,
     ParamSqlData.GetData);
   CheckInterbase6Error(PlainDriver, StatusVector, lcExecute, SQL);
 
@@ -1000,7 +1000,7 @@ begin
   if ParamSqlData.GetData^.sqld > ParamSqlData.GetData^.sqln then
   begin
     ParamSqlData.AllocateSQLDA;
-    PlainDriver.isc_dsql_describe_bind(@StatusVector, @StmtHandle, Dialect,
+    PlainDriver.isc_dsql_describe_bind(PISC_STATUS(@StatusVector), @StmtHandle, Dialect,
       ParamSqlData.GetData);
     CheckInterbase6Error(PlainDriver, StatusVector, lcExecute, SQL);
   end;
@@ -1106,7 +1106,7 @@ begin
   Items[2] := Char(isc_info_blob_total_length);
   Items[3] := Char(isc_info_blob_type);
 
-  if integer(PlainDriver.isc_blob_info(@StatusVector, @BlobHandle, 4, @items[0],
+  if integer(PlainDriver.isc_blob_info(PISC_STATUS(@StatusVector), @BlobHandle, 4, @items[0],
     SizeOf(Results), @Results[0])) > 0 then
   CheckInterbase6Error(PlainDriver, StatusVector);
 
@@ -1156,7 +1156,7 @@ begin
   //SegmentLenght := UShort(DefaultBlobSegmentSize);
 
   { open blob }
-  PlainDriver.isc_open_blob2(@StatusVector, Handle,
+  PlainDriver.isc_open_blob2(PISC_STATUS(@StatusVector), Handle,
          TransactionHandle, @BlobHandle, @BlobId, 0 , nil);
   CheckInterbase6Error(PlainDriver, StatusVector);
 
@@ -1176,7 +1176,7 @@ begin
   begin
     if (CurPos + SegmentLenght > BlobSize) then
       SegmentLenght := BlobSize - CurPos;
-    if not(PlainDriver.isc_get_segment(@StatusVector, @BlobHandle,
+    if not(PlainDriver.isc_get_segment(PISC_STATUS(@StatusVector), @BlobHandle,
            @BytesRead, SegmentLenght, TempBuffer) = 0) or
           (StatusVector[1] <> isc_segment) then
       CheckInterbase6Error(PlainDriver, StatusVector);
@@ -1186,7 +1186,7 @@ begin
   end;
 
   { close blob handle }
-  PlainDriver.isc_close_blob(@StatusVector, @BlobHandle);
+  PlainDriver.isc_close_blob(PISC_STATUS(@StatusVector), @BlobHandle);
   CheckInterbase6Error(PlainDriver, StatusVector);
 end;
 
@@ -1204,7 +1204,7 @@ var
   Buffer: array[0..IBBigLocalBufferLength - 1] of Char;
 begin
   DatabaseInfoCommand := Char(isc_info_version);
-  PlainDriver.isc_database_info(@StatusVector, Handle, 1, @DatabaseInfoCommand,
+  PlainDriver.isc_database_info(PISC_STATUS(@StatusVector), Handle, 1, @DatabaseInfoCommand,
                         IBBigLocalBufferLength, Buffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
   Buffer[5 + Integer(Buffer[4])] := #0;
@@ -1225,7 +1225,7 @@ var
   Buffer: array[0..IBBigLocalBufferLength - 1] of Char;
 begin
   DatabaseInfoCommand := Char(isc_info_implementation);
-  PlainDriver.isc_database_info(@StatusVector, Handle, 1, @DatabaseInfoCommand,
+  PlainDriver.isc_database_info(PISC_STATUS(@StatusVector), Handle, 1, @DatabaseInfoCommand,
                         IBLocalBufferLength, Buffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
   result := PlainDriver.isc_vax_integer(@Buffer[3], 1);
@@ -1245,7 +1245,7 @@ var
   Buffer: array[0..IBBigLocalBufferLength - 1] of Char;
 begin
   DatabaseInfoCommand := Char(isc_info_implementation);
-  PlainDriver.isc_database_info(@StatusVector, Handle, 1, @DatabaseInfoCommand,
+  PlainDriver.isc_database_info(PISC_STATUS(@StatusVector), Handle, 1, @DatabaseInfoCommand,
                         IBLocalBufferLength, Buffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
   result := PlainDriver.isc_vax_integer(@Buffer[4], 1);
@@ -1267,7 +1267,7 @@ var
   Buffer: array[0..IBBigLocalBufferLength - 1] of Char;
 begin
   DatabaseInfoCommand1 := Char(DatabaseInfoCommand);
-  PlainDriver.isc_database_info(@StatusVector, Handle, 1, @DatabaseInfoCommand1,
+  PlainDriver.isc_database_info(PISC_STATUS(@StatusVector), Handle, 1, @DatabaseInfoCommand1,
                         IBLocalBufferLength, Buffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
   Length := PlainDriver.isc_vax_integer(@Buffer[1], 2);
@@ -1289,7 +1289,7 @@ var
   Buffer: array[0..IBBigLocalBufferLength - 1] of Char;
 begin
   DatabaseInfoCommand1 := Char(DatabaseInfoCommand);
-  PlainDriver.isc_database_info(@StatusVector, Handle, 1, @DatabaseInfoCommand1,
+  PlainDriver.isc_database_info(PISC_STATUS(@StatusVector), Handle, 1, @DatabaseInfoCommand1,
                         IBLocalBufferLength, Buffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
   Buffer[4 + Integer(Buffer[3])] := #0;
@@ -1311,7 +1311,7 @@ var
   Buffer: array[0..IBBigLocalBufferLength - 1] of Char;
 begin
   DatabaseInfoCommand1 := Char(isc_info_db_SQL_Dialect);
-  PlainDriver.isc_database_info(@StatusVector, Handle, 1, @DatabaseInfoCommand1,
+  PlainDriver.isc_database_info(PISC_STATUS(@StatusVector), Handle, 1, @DatabaseInfoCommand1,
                         IBLocalBufferLength, Buffer);
   CheckInterbase6Error(PlainDriver, StatusVector);
   if (Buffer[0] <> Char(isc_info_db_SQL_dialect)) then
@@ -1443,7 +1443,7 @@ begin
   {$R-}
   for Result := 0 to GetFieldCount - 1 do
     if FXSQLDA.sqlvar[Result].aliasname_length = Length(name) then
-      if StrLIComp(@FXSQLDA.sqlvar[Result].aliasname, PChar(Name),
+      if StrLIComp(PChar(@FXSQLDA.sqlvar[Result].aliasname), PChar(Name),
         FXSQLDA.sqlvar[Result].aliasname_length) = 0 then Exit;
   raise Exception.Create(Format(SFieldNotFound1, [name]));
   {$IFOPT D+}
@@ -2375,7 +2375,7 @@ begin
   Stream.Seek(0, 0);
 
   { create blob handle }
-  FPlainDriver.isc_create_blob2(@StatusVector, FHandle, FTransactionHandle,
+  FPlainDriver.isc_create_blob2(PISC_STATUS(@StatusVector), FHandle, FTransactionHandle,
     @BlobHandle, @BlobId, 0, nil);
   CheckInterbase6Error(FPlainDriver, StatusVector);
 
@@ -2392,14 +2392,14 @@ begin
     begin
       if (CurPos + SegLen > BlobSize) then
         SegLen := BlobSize - CurPos;
-      if FPlainDriver.isc_put_segment(@StatusVector, @BlobHandle, SegLen,
+      if FPlainDriver.isc_put_segment(PISC_STATUS(@StatusVector), @BlobHandle, SegLen,
            PChar(@Buffer[CurPos])) > 0 then
         CheckInterbase6Error(FPlainDriver, StatusVector);
       Inc(CurPos, SegLen);
     end;
 
     { close blob handle }
-    FPlainDriver.isc_close_blob(@StatusVector, @BlobHandle);
+    FPlainDriver.isc_close_blob(PISC_STATUS(@StatusVector), @BlobHandle);
     CheckInterbase6Error(FPlainDriver, StatusVector);
 
     Stream.Seek(0, 0);

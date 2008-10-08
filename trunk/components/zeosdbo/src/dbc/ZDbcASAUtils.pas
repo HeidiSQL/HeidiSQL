@@ -1,4 +1,4 @@
-{*********************************************************}
+﻿{*********************************************************}
 {                                                         }
 {                 Zeos Database Objects                   }
 {           ASA Database Connectivity Classes             }
@@ -493,7 +493,7 @@ function TZASASQLDA.GetFieldIndex(const Name: String): Word;
 begin
   for Result := 0 to FSQLDA.sqld - 1 do
     if FSQLDA.sqlvar[Result].sqlname.length = Length(name) then
-      if StrLIComp( @FSQLDA.sqlvar[ Result].sqlname.data, PChar(Name),
+      if StrLIComp(PChar(@FSQLDA.sqlvar[Result].sqlname.data), PChar(Name),
         Length(name)) = 0 then Exit;
   CreateException( Format( SFieldNotFound1, [name]));
   Result := 0; // satisfy compiler

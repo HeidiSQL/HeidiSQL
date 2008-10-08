@@ -555,7 +555,7 @@ begin
   begin
     with FIBConnection do
     begin
-      FFetchStat := GetPlainDriver.isc_dsql_fetch(@StatusVector,
+      FFetchStat := GetPlainDriver.isc_dsql_fetch(PISC_STATUS(@StatusVector),
         @FStmtHandle, GetDialect, FSqlData.GetData);
       CheckInterbase6Error(GetPlainDriver, StatusVector);
     end;

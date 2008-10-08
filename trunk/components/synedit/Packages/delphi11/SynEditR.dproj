@@ -25,7 +25,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_WriteableConstants>True</DCC_WriteableConstants>
     <DCC_DcuOutput>..\..\build</DCC_DcuOutput>
     <DCC_ObjOutput>..\..\build</DCC_ObjOutput>
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
@@ -35,6 +34,10 @@
     <DCC_ResourcePath>..\..\resources;..\..\..\compilerdetection\include</DCC_ResourcePath>
     <DCC_ObjPath>..\..\resources;..\..\..\compilerdetection\include</DCC_ObjPath>
     <DCC_IncludePath>..\..\resources;..\..\..\compilerdetection\include</DCC_IncludePath>
+    <DCC_IntegerOverflowCheck>True</DCC_IntegerOverflowCheck>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
+    <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

@@ -823,7 +823,7 @@ begin
   begin
     case FColumnTypes[ColumnIndex - 1] of
       stString:
-        Result := @FBuffer.Columns[FColumnOffsets[ColumnIndex - 1] + 1];
+        Result := PChar(@FBuffer.Columns[FColumnOffsets[ColumnIndex - 1] + 1]);
       else
       begin
         FTemp := GetString(ColumnIndex, IsNull);
@@ -1949,7 +1949,7 @@ begin
         if Value <> nil then
         begin
           FBuffer.Columns[FColumnOffsets[ColumnIndex - 1]] := 0;
-          StrLCopy(@FBuffer.Columns[FColumnOffsets[ColumnIndex - 1] + 1], Value,
+          StrLCopy(PChar(@FBuffer.Columns[FColumnOffsets[ColumnIndex - 1] + 1]), Value,
             FColumnLengths[ColumnIndex - 1] - 1);
         end else
           FBuffer.Columns[FColumnOffsets[ColumnIndex - 1]] := 1;
@@ -1994,7 +1994,7 @@ begin
     stString:
       begin
         FBuffer.Columns[FColumnOffsets[ColumnIndex - 1]] := 0;
-        StrPLCopy(@FBuffer.Columns[FColumnOffsets[ColumnIndex - 1] + 1], Value,
+        StrPLCopy(PChar(@FBuffer.Columns[FColumnOffsets[ColumnIndex - 1] + 1]), Value,
           FColumnLengths[ColumnIndex - 1] - 1);
       end;
     stUnicodeString: SetUnicodeString(ColumnIndex, Value);

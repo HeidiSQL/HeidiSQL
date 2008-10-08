@@ -331,7 +331,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLBIT,
-        @Result, SizeOf(Result));
+        PByte(@Result), SizeOf(Result));
     end;
   end;
   FDBLibConnection.CheckDBLibError(lcOther, 'GETBOOLEAN');
@@ -368,7 +368,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLINT1,
-        @Result, SizeOf(Result));
+        PByte(@Result), SizeOf(Result));
     end;
   end;
   FDBLibConnection.CheckDBLibError(lcOther, 'GETBYTE');
@@ -405,7 +405,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLINT2,
-        @Result, SizeOf(Result));
+        PByte(@Result), SizeOf(Result));
     end;
   end;
   FDBLibConnection.CheckDBLibError(lcOther, 'GETSHORT');
@@ -442,7 +442,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLINT4,
-        @Result, SizeOf(Result));
+        PByte(@Result), SizeOf(Result));
     end;
   end;
   FDBLibConnection.CheckDBLibError(lcOther, 'GETINT');
@@ -493,7 +493,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLFLT4,
-        @Result, SizeOf(Result));
+        PByte(@Result), SizeOf(Result));
     end;
   end;
   FDBLibConnection.CheckDBLibError(lcOther, 'GETFLOAT');
@@ -530,7 +530,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLFLT8,
-        @Result, SizeOf(Result));
+        PByte(@Result), SizeOf(Result));
     end;
   end;
   FDBLibConnection.CheckDBLibError(lcOther, 'GETDOUBLE');
@@ -640,7 +640,7 @@ begin
     else
     begin
       FPlainDriver.dbconvert(FHandle, DT, Data, DL, SQLDATETIME,
-        @TempDate, SizeOf(TempDate));
+        PByte(@TempDate), SizeOf(TempDate));
     end;
     Result := TempDate.dtdays + 2 + (TempDate.dttime / 25920000);
     //Perfect conversion no need to crack and reencode the date.

@@ -37,6 +37,8 @@
     <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ResourcePath>
     <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ObjPath>
     <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_IncludePath>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

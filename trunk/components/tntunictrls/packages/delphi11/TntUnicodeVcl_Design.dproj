@@ -41,6 +41,7 @@
     <DCC_IncludePath>..\..\..\compilerdetection\include;..\..\build\</DCC_IncludePath>
     <DCC_BplOutput>..\..\build\</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build\</DCC_DcpOutput>
+    <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

@@ -1,4 +1,5 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{da7f2734-bcd8-458c-88ac-5f8b8ad80a42}</ProjectGuid>
     <MainSource>ZComponentDesign.dpk</MainSource>
@@ -37,6 +38,8 @@
     <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ResourcePath>
     <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ObjPath>
     <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_IncludePath>
+    <DCC_RangeChecking>True</DCC_RangeChecking>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>
