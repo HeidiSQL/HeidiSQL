@@ -1352,12 +1352,8 @@ begin
 
   // Convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
-  try
-    Result := StrToFloat( StrNumber );
-  except
-    // Fallback for empty strings
-    Result := 0;
-  end;
+  if StrNumber = '' then Result := 0
+  else Result := StrToFloat( StrNumber );
 
   // Detect if the string was previously formatted by FormatByteNumber
   // and convert it back by multiplying it with its byte unit
