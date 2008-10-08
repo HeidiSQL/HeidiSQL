@@ -292,7 +292,8 @@ begin
   setlength(klist, 0);
   TempKeys := TStringList.Create;
   cwin := Mainform.ChildWin;
-  ds := cwin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(cwin.SelectedTable) );
+  ds := cwin.FSelectedTableKeys;
+  ds.First;
   for i:=1 to ds.RecordCount do
   begin
     if TempKeys.IndexOf(ds.Fields[2].AsWideString) = -1 then
@@ -312,8 +313,6 @@ begin
       klist[TempKeys.IndexOf(ds.Fields[2].AsWideString)].Columns.Add(ds.Fields[4].AsWideString);
     ds.Next;
   end;
-  ds.Close;
-  FreeAndNil(ds);
 
   FillAvailColumns;
   showkeys();
