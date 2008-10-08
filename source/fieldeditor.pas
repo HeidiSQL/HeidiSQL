@@ -109,9 +109,10 @@ type
 {$I const.inc}
 
 const
-  DEFAULT_NULL = 0;
-  DEFAULT_CURTS = 1;
-  DEFAULT_CUSTOM = 2;
+  DEFAULT_NO = 0;
+  DEFAULT_NULL = 1;
+  DEFAULT_CURTS = 2;
+  DEFAULT_CUSTOM = 3;
 
 
 implementation
@@ -213,7 +214,7 @@ begin
       EditFieldName.Text := 'Enter column name';
       ComboBoxType.ItemIndex := 1;
       EditLength.Text := '';
-      comboDefault.ItemIndex := DEFAULT_NULL;
+      comboDefault.ItemIndex := DEFAULT_NO;
       EditDefault.Text := '';
       EditComment.Text := '';
       CheckBoxUnsigned.Checked := true;
@@ -231,7 +232,9 @@ begin
       EditFieldname.Text := FFieldName;
       EditLength.Text := getEnumValues( NodeData.Captions[1] );
       editDefault.Text := '';
-      if NodeData.Captions[3] = 'NULL' then
+      if NodeData.Captions[3] = '' then
+        comboDefault.ItemIndex := DEFAULT_NO
+      else if NodeData.Captions[3] = 'NULL' then
         comboDefault.ItemIndex := DEFAULT_NULL
       else if NodeData.Captions[3] = 'CURRENT_TIMESTAMP' then
         comboDefault.ItemIndex := DEFAULT_CURTS
@@ -525,7 +528,8 @@ begin
       DEFAULT_CURTS: strDefault := 'CURRENT_TIMESTAMP';
       DEFAULT_CUSTOM: strDefault := esc(editDefault.Text);
     end;
-    strDefault := ' DEFAULT '+strDefault;
+    if strDefault <> '' then
+      strDefault := ' DEFAULT '+strDefault;
   end;
 
   if CheckBoxNotNull.Enabled then
