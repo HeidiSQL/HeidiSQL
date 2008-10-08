@@ -123,7 +123,11 @@ const
   SQLEL_NUMBER = 'Numeric values';
   SQLEL_STRING = 'String values';
   SQLEL_COMMENT = 'Comments';
+  SQLEL_CONDCOMM = 'Conditional comments';
   SQLEL_TABLE = 'Table names';
+  SQLEL_SYMBOL = 'Symbols';
+  SQLEL_IDENT = 'Identifiers';
+  SQLEL_DELIMIDENT = 'Delimited identifiers';
   SQLEL_ACTLINE = 'Active line background';
 
 
@@ -164,7 +168,11 @@ begin
   reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(SynSQLSynSQLSample.NumberAttri.Foreground));
   reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(SynSQLSynSQLSample.StringAttri.Foreground));
   reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(SynSQLSynSQLSample.CommentAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLCONDCOMMATTRI, colortostring(SynSQLSynSQLSample.ConditionalCommentAttri.Foreground));
   reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(SynSQLSynSQLSample.TableNameAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLSYMBOLATTRI, colortostring(SynSQLSynSQLSample.SymbolAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLIDENTATTRI, colortostring(SynSQLSynSQLSample.IdentifierAttri.Foreground));
+  reg.WriteString(REGNAME_SQLCOLDELIMIDENTATTRI, colortostring(SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground));
   reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
   reg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
   reg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
@@ -230,7 +238,11 @@ begin
     cwin.SynSQLSyn1.NumberAttri.Foreground := SynSQLSynSQLSample.NumberAttri.Foreground;
     cwin.SynSQLSyn1.StringAttri.Foreground := SynSQLSynSQLSample.StringAttri.Foreground;
     cwin.SynSQLSyn1.CommentAttri.Foreground := SynSQLSynSQLSample.CommentAttri.Foreground;
+    cwin.SynSQLSyn1.ConditionalCommentAttri.Foreground := SynSQLSynSQLSample.ConditionalCommentAttri.Foreground;
     cwin.SynSQLSyn1.TablenameAttri.Foreground := SynSQLSynSQLSample.TablenameAttri.Foreground;
+    cwin.SynSQLSyn1.SymbolAttri.Foreground := SynSQLSynSQLSample.SymbolAttri.Foreground;
+    cwin.SynSQLSyn1.IdentifierAttri.Foreground := SynSQLSynSQLSample.IdentifierAttri.Foreground;
+    cwin.SynSQLSyn1.DelimitedIdentifierAttri.Foreground := SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground;
     cwin.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
     cwin.DataGrid.Font.Name := comboDataFontName.Text;
     cwin.QueryGrid.Font.Name := comboDataFontName.Text;
@@ -346,7 +358,11 @@ begin
   SynSQLSynSQLSample.NumberAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
   SynSQLSynSQLSample.StringAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
   SynSQLSynSQLSample.CommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  SynSQLSynSQLSample.ConditionalCommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCONDCOMMATTRI, ColorToString(DEFAULT_SQLCOLCONDCOMMATTRI)));
   SynSQLSynSQLSample.TableNameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  SynSQLSynSQLSample.SymbolAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSYMBOLATTRI, ColorToString(DEFAULT_SQLCOLSYMBOLATTRI)));
+  SynSQLSynSQLSample.IdentifierAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLIDENTATTRI, ColorToString(DEFAULT_SQLCOLIDENTATTRI)));
+  SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDELIMIDENTATTRI, ColorToString(DEFAULT_SQLCOLDELIMIDENTATTRI)));
   SynMemoSQLSample.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
   updownSQLFontSize.Position := sqlfontsize;
@@ -355,7 +371,7 @@ begin
     'FROM tableA AS ta -- A comment' + CRLF +
     'WHERE `columnA` IS NULL; # More comment' + CRLF +
     CRLF +
-    'CREATE TABLE tableB' + CRLF +
+    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
     '  (id INT, name VARCHAR(30) DEFAULT "standard")';
   SynMemoSQLSample.Font.Name := sqlfontname;
   SynMemoSQLSample.Font.Size := sqlfontsize;
@@ -363,7 +379,8 @@ begin
   comboSQLColElement.Items.Delimiter := ',';
   comboSQLColElement.Items.StrictDelimiter := True;
   comboSQLColElement.Items.DelimitedText := SQLEL_KEYWORD+','+SQLEL_FUNCTION+','+SQLEL_DATATYPE+','+
-    SQLEL_NUMBER+','+SQLEL_STRING+','+SQLEL_COMMENT+','+SQLEL_TABLE+','+SQLEL_ACTLINE;
+    SQLEL_NUMBER+','+SQLEL_STRING+','+SQLEL_COMMENT+','+SQLEL_CONDCOMM+','+SQLEL_TABLE+','+
+    SQLEL_SYMBOL+','+SQLEL_IDENT+','+SQLEL_DELIMIDENT+','+SQLEL_ACTLINE;
   comboSQLColElement.ItemIndex := 0;
   comboSQLColElementChange(Sender);
 
@@ -413,7 +430,11 @@ begin
     else if elem = SQLEL_NUMBER then attr := SynSqlSynSQLSample.NumberAttri
     else if elem = SQLEL_STRING then attr := SynSqlSynSQLSample.StringAttri
     else if elem = SQLEL_COMMENT then attr := SynSqlSynSQLSample.CommentAttri
-    else attr := SynSqlSynSQLSample.TablenameAttri;
+    else if elem = SQLEL_CONDCOMM then attr := SynSqlSynSQLSample.ConditionalCommentAttri
+    else if elem = SQLEL_TABLE then attr := SynSqlSynSQLSample.TablenameAttri
+    else if elem = SQLEL_SYMBOL then attr := SynSqlSynSQLSample.SymbolAttri
+    else if elem = SQLEL_IDENT then attr := SynSqlSynSQLSample.IdentifierAttri
+    else attr := SynSqlSynSQLSample.DelimitedIdentifierAttri;
     attr.Foreground := col;
   end;
   Modified(Sender);
@@ -474,7 +495,11 @@ begin
     else if elem = SQLEL_NUMBER then attr := SynSqlSynSQLSample.NumberAttri
     else if elem = SQLEL_STRING then attr := SynSqlSynSQLSample.StringAttri
     else if elem = SQLEL_COMMENT then attr := SynSqlSynSQLSample.CommentAttri
-    else attr := SynSqlSynSQLSample.TablenameAttri;
+    else if elem = SQLEL_CONDCOMM then attr := SynSqlSynSQLSample.ConditionalCommentAttri
+    else if elem = SQLEL_TABLE then attr := SynSqlSynSQLSample.TablenameAttri
+    else if elem = SQLEL_SYMBOL then attr := SynSqlSynSQLSample.SymbolAttri
+    else if elem = SQLEL_IDENT then attr := SynSqlSynSQLSample.IdentifierAttri
+    else attr := SynSqlSynSQLSample.DelimitedIdentifierAttri;
     col := attr.Foreground;
   end;
   cboxSQLColColor.Selected := col;
