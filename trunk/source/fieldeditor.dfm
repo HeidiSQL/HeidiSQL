@@ -199,6 +199,7 @@ object FieldEditForm: TFieldEditForm
         TabOrder = 5
         OnChange = comboDefaultChange
         Items.Strings = (
+          'No default value'
           'NULL'
           'CURRENT_TIMESTAMP'
           'Custom string ...')
