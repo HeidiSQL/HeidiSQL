@@ -87,6 +87,7 @@ type
     procedure ComboBoxTypeKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure listClick(Sender: TObject);
     procedure comboDefaultChange(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     TempKeys : TStringList;
@@ -160,6 +161,7 @@ begin
   // The datatype pulldown does OwnerDrawing which enables its ItemHeight property. Use that to make it fit on higher DPI settings
   ComboBoxType.Height := EditFieldname.Height;
   ComboBoxType.ItemHeight := ComboBoxType.Height - 8;
+  SetWindowSizeGrip( Handle, True );
 end;
 
 
@@ -1218,6 +1220,27 @@ begin
     ds.Next;
   end;
   listColumnsAvailable.Items.EndUpdate;
+end;
+
+
+procedure TFieldEditForm.FormResize(Sender: TObject);
+var
+  boxw, btnw: Integer;
+const
+  marg = 8;
+begin
+  btnw := btnAddColumnToIndex.Width;
+  boxw := (pc.Width div 2) - marg - btnw;
+
+  listColumnsUsed.Width := boxw;
+  listColumnsAvailable.Width := boxw;
+  listColumnsAvailable.Left := marg + boxw + marg + btnw + marg;
+  lblColumnsAvailable.Left := listColumnsAvailable.Left;
+
+  btnAddAllColumnsToIndex.Left := marg + boxw + marg;
+  btnAddColumnToIndex.Left := btnAddAllColumnsToIndex.Left;
+  btnDeleteColumnFromIndex.Left := btnAddAllColumnsToIndex.Left;
+  btnDeleteAllColumnsFromIndex.Left := btnAddAllColumnsToIndex.Left;
 end;
 
 

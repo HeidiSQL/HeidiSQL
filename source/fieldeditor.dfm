@@ -1,12 +1,13 @@
 object FieldEditForm: TFieldEditForm
   Left = 572
   Top = 111
-  BorderStyle = bsDialog
-  BorderWidth = 5
+  BorderIcons = [biSystemMenu]
   Caption = 'Field-Editor'
   ClientHeight = 354
-  ClientWidth = 297
+  ClientWidth = 294
   Color = clBtnFace
+  Constraints.MinHeight = 390
+  Constraints.MinWidth = 310
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -15,16 +16,17 @@ object FieldEditForm: TFieldEditForm
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
+  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pc: TPageControl
-    Left = 0
-    Top = 0
-    Width = 297
-    Height = 321
+    Left = 8
+    Top = 8
+    Width = 278
+    Height = 305
     ActivePage = tabField
-    Align = alTop
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.PngImageListMain
     TabOrder = 0
     OnChange = pcChange
@@ -80,11 +82,12 @@ object FieldEditForm: TFieldEditForm
         FocusControl = EditComment
       end
       object btnDatatypeHelp: TButton
-        Left = 259
+        Left = 244
         Top = 61
         Width = 21
         Height = 21
         Hint = 'Help on selected datatype'
+        Anchors = [akTop, akRight]
         Caption = '?'
         TabOrder = 3
         OnClick = btnDatatypeHelpClick
@@ -92,23 +95,26 @@ object FieldEditForm: TFieldEditForm
       object EditDefault: TTntEdit
         Left = 88
         Top = 132
-        Width = 192
+        Width = 177
         Height = 21
+        Anchors = [akLeft, akTop, akRight]
         TabOrder = 6
       end
       object EditLength: TEdit
         Left = 88
         Top = 85
-        Width = 192
+        Width = 177
         Height = 21
+        Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
       end
       object ComboBoxType: TComboBox
         Left = 88
         Top = 61
-        Width = 165
+        Width = 150
         Height = 19
         Style = csOwnerDrawFixed
+        Anchors = [akLeft, akTop, akRight]
         ItemHeight = 13
         TabOrder = 2
         OnChange = ComboBoxTypeChange
@@ -119,20 +125,22 @@ object FieldEditForm: TFieldEditForm
       object EditFieldname: TTntEdit
         Left = 88
         Top = 37
-        Width = 192
+        Width = 177
         Height = 21
+        Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
       end
       object GroupBoxAttributes: TGroupBox
         Left = 8
         Top = 184
-        Width = 272
-        Height = 97
+        Width = 257
+        Height = 87
+        Anchors = [akLeft, akTop, akRight]
         Caption = 'Attributes'
         TabOrder = 8
         object CheckBoxBinary: TCheckBox
           Left = 9
-          Top = 21
+          Top = 18
           Width = 65
           Height = 17
           Caption = 'Binary'
@@ -140,7 +148,7 @@ object FieldEditForm: TFieldEditForm
         end
         object CheckBoxUnsigned: TCheckBox
           Left = 9
-          Top = 45
+          Top = 40
           Width = 65
           Height = 17
           Caption = 'Unsigned'
@@ -149,7 +157,7 @@ object FieldEditForm: TFieldEditForm
         end
         object CheckBoxZerofill: TCheckBox
           Left = 9
-          Top = 69
+          Top = 62
           Width = 57
           Height = 17
           Caption = 'Zerofill'
@@ -158,7 +166,7 @@ object FieldEditForm: TFieldEditForm
         end
         object CheckBoxNotNull: TCheckBox
           Left = 121
-          Top = 21
+          Top = 18
           Width = 69
           Height = 17
           Caption = 'Not Null'
@@ -166,7 +174,7 @@ object FieldEditForm: TFieldEditForm
         end
         object CheckBoxAutoIncrement: TCheckBox
           Left = 121
-          Top = 45
+          Top = 40
           Width = 97
           Height = 17
           Caption = 'AutoIncrement'
@@ -176,25 +184,28 @@ object FieldEditForm: TFieldEditForm
       object ComboBoxPosition: TComboBox
         Left = 88
         Top = 14
-        Width = 192
+        Width = 177
         Height = 21
         Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
         ItemHeight = 13
         TabOrder = 0
       end
       object EditComment: TTntEdit
         Left = 88
         Top = 157
-        Width = 192
+        Width = 177
         Height = 21
+        Anchors = [akLeft, akTop, akRight]
         TabOrder = 7
       end
       object comboDefault: TComboBox
         Left = 88
         Top = 109
-        Width = 192
+        Width = 177
         Height = 21
         Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
         ItemHeight = 13
         TabOrder = 5
         OnChange = comboDefaultChange
@@ -226,7 +237,7 @@ object FieldEditForm: TFieldEditForm
         Caption = 'Columns used:'
       end
       object lblColumnsAvailable: TLabel
-        Left = 168
+        Left = 160
         Top = 104
         Width = 90
         Height = 13
@@ -234,7 +245,7 @@ object FieldEditForm: TFieldEditForm
       end
       object btnAddColumnToIndex: TPngSpeedButton
         Tag = 1
-        Left = 133
+        Left = 123
         Top = 152
         Width = 25
         Height = 25
@@ -244,7 +255,7 @@ object FieldEditForm: TFieldEditForm
       end
       object btnDeleteColumnFromIndex: TPngSpeedButton
         Tag = 2
-        Left = 133
+        Left = 123
         Top = 184
         Width = 25
         Height = 25
@@ -253,7 +264,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = RemoveField
       end
       object btnAddAllColumnsToIndex: TPngSpeedButton
-        Left = 133
+        Left = 123
         Top = 120
         Width = 25
         Height = 25
@@ -262,7 +273,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = btnAddAllColumnsToIndexClick
       end
       object btnDeleteAllColumnsFromIndex: TPngSpeedButton
-        Left = 133
+        Left = 123
         Top = 216
         Width = 25
         Height = 25
@@ -273,10 +284,11 @@ object FieldEditForm: TFieldEditForm
       object ComboBoxKeys: TComboBoxEx
         Left = 82
         Top = 8
-        Width = 199
+        Width = 180
         Height = 22
         ItemsEx = <>
         Style = csExDropDownList
+        Anchors = [akLeft, akTop, akRight]
         ItemHeight = 16
         TabOrder = 0
         OnChange = ComboBoxKeysChange
@@ -292,7 +304,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = CheckBoxUniqueClick
       end
       object ButtonAdd: TButton
-        Left = 175
+        Left = 160
         Top = 32
         Width = 50
         Height = 25
@@ -301,7 +313,7 @@ object FieldEditForm: TFieldEditForm
         OnClick = ButtonAddClick
       end
       object ButtonDelete: TButton
-        Left = 231
+        Left = 213
         Top = 32
         Width = 50
         Height = 25
@@ -313,8 +325,9 @@ object FieldEditForm: TFieldEditForm
       object listColumnsUsed: TTntListBox
         Left = 8
         Top = 120
-        Width = 113
-        Height = 161
+        Width = 105
+        Height = 150
+        Anchors = [akLeft, akTop, akBottom]
         Enabled = False
         ItemHeight = 13
         TabOrder = 4
@@ -322,10 +335,11 @@ object FieldEditForm: TFieldEditForm
         OnDblClick = RemoveField
       end
       object listColumnsAvailable: TTntListBox
-        Left = 168
+        Left = 160
         Top = 120
-        Width = 113
-        Height = 161
+        Width = 105
+        Height = 150
+        Anchors = [akLeft, akTop, akBottom]
         Enabled = False
         ItemHeight = 13
         TabOrder = 5
@@ -335,7 +349,7 @@ object FieldEditForm: TFieldEditForm
       object ButtonAddPrimary: TButton
         Left = 82
         Top = 32
-        Width = 87
+        Width = 76
         Height = 25
         Caption = 'Add Primary'
         Enabled = False
@@ -354,20 +368,22 @@ object FieldEditForm: TFieldEditForm
     end
   end
   object ButtonCancel: TButton
-    Left = 207
-    Top = 327
+    Left = 196
+    Top = 322
     Width = 90
     Height = 25
+    Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
   end
   object ButtonOK: TButton
-    Left = 111
-    Top = 327
+    Left = 100
+    Top = 322
     Width = 90
     Height = 25
+    Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
     ModalResult = 1
