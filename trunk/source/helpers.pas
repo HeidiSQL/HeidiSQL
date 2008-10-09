@@ -1352,7 +1352,7 @@ begin
 
   // Convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
-  if StrNumber = '' then Result := 0
+  if (StrNumber = '') or (StrNumber = '-') then Result := 0
   else Result := StrToFloat( StrNumber );
 
   // Detect if the string was previously formatted by FormatByteNumber
