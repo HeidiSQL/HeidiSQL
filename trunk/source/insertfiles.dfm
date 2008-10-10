@@ -176,7 +176,7 @@ object frmInsertFiles: TfrmInsertFiles
     Width = 290
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
-    Caption = 'Show only BLOB- and MEMO-columns'
+    Caption = 'Show only BLOB and TEXT columns'
     Checked = True
     State = cbChecked
     TabOrder = 7
@@ -199,7 +199,7 @@ object frmInsertFiles: TfrmInsertFiles
     Width = 492
     Height = 129
     Anchors = [akLeft, akRight, akBottom]
-    Caption = 'Other field-values'
+    Caption = 'Other field values'
     TabOrder = 10
     DesignSize = (
       492
@@ -210,8 +210,8 @@ object frmInsertFiles: TfrmInsertFiles
       Width = 215
       Height = 39
       Caption = 
-        'Note: Don'#39't quote functions or NULL-values, otherwise they will ' +
-        'be inserted as ordinary string-values.'
+        'Note: Don'#39't quote functions or NULL values, otherwise they will ' +
+        'be inserted as strings.'
       WordWrap = True
     end
     object ListBoxOtherFields: TListBox

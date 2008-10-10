@@ -18,7 +18,7 @@ type
 
   TFieldEditForm = class(TForm)
     pc: TPageControl;
-    tabField: TTabSheet;
+    tabColumn: TTabSheet;
     ButtonCancel: TButton;
     ButtonOK: TButton;
     lblName: TLabel;
@@ -329,7 +329,7 @@ procedure TFieldEditForm.FormShow(Sender: TObject);
 begin
   if fMode in [femFieldUpdate, femFieldAdd] then
     begin
-      pc.ActivePage := tabField;
+      pc.ActivePage := tabColumn;
       EditFieldName.SetFocus();
     end;
 
@@ -640,7 +640,7 @@ end;
 procedure TFieldEditForm.pcChange(Sender: TObject);
 begin
   // Set FMode, according to selected tab
-  if pc.ActivePage = tabField then
+  if pc.ActivePage = tabColumn then
   begin
     if FModeWhenCalled = femFieldUpdate then
     begin
@@ -1094,12 +1094,12 @@ begin
 
     femFieldUpdate:
     begin
-      ButtonOK.Caption := 'Update Field';
+      ButtonOK.Caption := 'Update Column';
     end;
 
     femFieldAdd:
     begin
-      ButtonOK.Caption := 'Add Field';
+      ButtonOK.Caption := 'Add Column';
     end;
 
     femIndexEditor:

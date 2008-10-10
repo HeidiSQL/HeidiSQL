@@ -612,9 +612,9 @@ object MainForm: TMainForm
     object actUserManager: TAction
       Tag = 34
       Category = 'Tools'
-      Caption = 'User-Manager'
+      Caption = 'User manager'
       Enabled = False
-      Hint = 'User-Manager'
+      Hint = 'Manage user authentication and privileges'
       ImageIndex = 11
       OnExecute = actUserManagerExecute
     end
@@ -652,34 +652,34 @@ object MainForm: TMainForm
     object actCopyAsHTML: TAction
       Tag = 49
       Category = 'Export/Import'
-      Caption = 'Copy as HTML-table'
+      Caption = 'Copy grid data as HTML'
       Enabled = False
-      Hint = 'Copy data as HTML-table'
+      Hint = 'Copy grid data as HTML'
       ImageIndex = 32
       OnExecute = actCopyAsHTMLExecute
     end
     object actCopyAsCSV: TAction
       Tag = 48
       Category = 'Export/Import'
-      Caption = 'Copy as CSV-data'
+      Caption = 'Copy grid data as CSV'
       Enabled = False
-      Hint = 'Copy data as CSV-data'
+      Hint = 'Copy grid contents as CSV data'
       ImageIndex = 49
       OnExecute = actCopyAsCSVExecute
     end
     object actCopyAsXML: TAction
       Category = 'Export/Import'
-      Caption = 'Copy as XML-data'
+      Caption = 'Copy grid data as XML'
       Enabled = False
-      Hint = 'Copy data as XML-data'
+      Hint = 'Copy grid data as XML'
       ImageIndex = 48
       OnExecute = actCopyAsXMLExecute
     end
     object actExportData: TAction
       Category = 'Export/Import'
-      Caption = 'Export data ...'
+      Caption = 'Export grid data as CSV/HTML/XML...'
       Enabled = False
-      Hint = 'Save table-data to file ...'
+      Hint = 'Save grid data to file'
       ImageIndex = 20
       OnExecute = actExportDataExecute
     end
@@ -738,24 +738,24 @@ object MainForm: TMainForm
     end
     object actInsertFiles: TAction
       Category = 'Export/Import'
-      Caption = 'Insert files into BLOB-fields...'
+      Caption = 'Insert files into BLOB fields...'
       Enabled = False
       ImageIndex = 47
       OnExecute = actInsertFilesExecute
     end
     object actExportTables: TAction
       Category = 'Export/Import'
-      Caption = 'Export tables as SQL'
+      Caption = 'Export database as SQL'
       Enabled = False
-      Hint = 'Dump tables to an SQL file'
+      Hint = 'Dump database objects to an SQL file'
       ImageIndex = 20
       OnExecute = actExportTablesExecute
     end
     object actLoadSQL: TAction
       Category = 'SQL'
-      Caption = 'Load SQL-file ...'
+      Caption = 'Load SQL file...'
       Enabled = False
-      Hint = 'Load SQL-file ...'
+      Hint = 'Load SQL file...'
       ImageIndex = 52
       ShortCut = 16463
       OnExecute = actLoadSQLExecute
@@ -862,26 +862,26 @@ object MainForm: TMainForm
     end
     object actEditField: TAction
       Category = 'Table'
-      Caption = 'Edit field'
+      Caption = 'Edit column'
       Enabled = False
-      Hint = 'Edit field properties'
+      Hint = 'Edit column properties'
       ImageIndex = 93
       ShortCut = 32781
       OnExecute = actEditFieldExecute
     end
     object actCreateField: TAction
       Category = 'Table'
-      Caption = 'Add field'
+      Caption = 'Add column'
       Enabled = False
-      Hint = 'Create new field in selected table'
+      Hint = 'Create new column in selected table'
       ImageIndex = 91
       OnExecute = actCreateFieldExecute
     end
     object actDropFields: TAction
       Category = 'Table'
-      Caption = 'Delete selected field(s) ...'
+      Caption = 'Delete selected column(s) ...'
       Enabled = False
-      Hint = 'Delete selected field(s)'
+      Hint = 'Delete selected column(s)'
       ImageIndex = 92
       OnExecute = actDropFieldsExecute
     end
@@ -895,7 +895,7 @@ object MainForm: TMainForm
     end
     object actDropDatabase: TAction
       Category = 'Database'
-      Caption = 'Drop Database'
+      Caption = 'Drop database'
       Enabled = False
       Hint = 'Delete database and all contained tables and objects'
       ImageIndex = 7
@@ -936,7 +936,7 @@ object MainForm: TMainForm
     end
     object actImportCSV: TAction
       Category = 'Export/Import'
-      Caption = 'Import CSV file'
+      Caption = 'Import CSV file...'
       Enabled = False
       Hint = 'Import a CSV or tab delimited file'
       ImageIndex = 50

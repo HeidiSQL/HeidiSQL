@@ -2,7 +2,7 @@ object FieldEditForm: TFieldEditForm
   Left = 572
   Top = 111
   BorderIcons = [biSystemMenu]
-  Caption = 'Field-Editor'
+  Caption = 'Column and Index editor'
   ClientHeight = 354
   ClientWidth = 294
   Color = clBtnFace
@@ -25,13 +25,13 @@ object FieldEditForm: TFieldEditForm
     Top = 8
     Width = 278
     Height = 305
-    ActivePage = tabField
+    ActivePage = tabColumn
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.PngImageListMain
     TabOrder = 0
     OnChange = pcChange
-    object tabField: TTabSheet
-      Caption = 'Field'
+    object tabColumn: TTabSheet
+      Caption = 'Column'
       ImageIndex = 42
       object lblName: TLabel
         Left = 8
