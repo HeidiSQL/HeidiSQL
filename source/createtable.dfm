@@ -25,7 +25,7 @@ object CreateTableForm: TCreateTableForm
     Top = 16
     Width = 71
     Height = 13
-    Caption = 'Table-Name:'
+    Caption = 'Table name:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -61,14 +61,14 @@ object CreateTableForm: TCreateTableForm
     Top = 41
     Width = 63
     Height = 13
-    Caption = 'In Database:'
+    Caption = 'In database:'
   end
   object Label5: TLabel
     Left = 264
     Top = 16
     Width = 58
     Height = 13
-    Caption = 'Table-Type:'
+    Caption = 'Table type:'
     OnClick = Button1Click
   end
   object Bevel2: TBevel
@@ -140,7 +140,7 @@ object CreateTableForm: TCreateTableForm
     Width = 225
     Height = 185
     Anchors = [akLeft, akRight, akBottom]
-    Caption = 'Column-Properties:'
+    Caption = 'Column properties:'
     TabOrder = 9
     object lblFieldType: TLabel
       Left = 16
