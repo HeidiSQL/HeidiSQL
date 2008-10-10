@@ -6180,6 +6180,9 @@ procedure TMDIChild.DataGridInsertRow;
 var
   i, j: Integer;
 begin
+  // Scroll to the bottom to ensure we append the new row at the very last FDataGridResult chunk 
+  DataGrid.FocusedNode := DataGrid.GetLast;
+  DataGrid.Repaint;
   i := Length(FDataGridResult.Rows);
   SetLength(FDataGridResult.Rows, i+1);
   SetLength(FDataGridResult.Rows[i].Cells, Length(FDataGridResult.Columns));
@@ -6187,8 +6190,7 @@ begin
   for j := 0 to Length(FDataGridResult.Rows[i].Cells) - 1 do begin
     FDataGridResult.Rows[i].Cells[j].Text := '';
   end;
-  DataGrid.AddChild(nil);
-  DataGrid.FocusedNode := DataGrid.GetLast;
+  DataGrid.FocusedNode := DataGrid.AddChild(nil);
   DataGrid.ClearSelection;
   DataGrid.Selected[DataGrid.FocusedNode] := True;
   DataGridHasChanges := True;
