@@ -297,7 +297,7 @@ type
     procedure ShowTableProperties;
     procedure ShowTableData(table: WideString);
     procedure EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode);
-    procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
+    procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
     procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
@@ -5644,7 +5644,7 @@ begin
 end;
 
 
-procedure TMDIChild.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
+procedure TMDIChild.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
 var
   res: PGridResult;
   query: WideString;
@@ -5678,16 +5678,18 @@ begin
 
     // fill in data
     MainForm.ShowStatus('Filling grid with record-data...');
-    SetLength(res.Rows[Node.Index].Cells, ds.Fields.Count);
-    i := Node.Index;
-    for j := 0 to ds.Fields.Count - 1 do begin
-      if res.Columns[j].IsBinary then
-        res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
-      else
-        res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-      res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+    if Cardinal(ds.RecordCount) > 0 then begin
+      SetLength(res.Rows[Node.Index].Cells, ds.Fields.Count);
+      i := Node.Index;
+      for j := 0 to ds.Fields.Count - 1 do begin
+        if res.Columns[j].IsBinary then
+          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+        else
+          res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+        res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+      end;
+      res.Rows[Node.Index].Loaded := True;
     end;
-    res.Rows[Node.Index].Loaded := True;
 
     MainForm.ShowStatus( STATUS_MSG_READY );
     FreeAndNil(ds);
@@ -6044,7 +6046,9 @@ begin
   sql := sql + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns);
   try
     // Send UPDATE query
-    ExecUpdateQuery(sql, False, True);
+    if (ExecUpdateQuery(sql, False, True) = 0) then begin
+      MessageBox(Self.Handle, 'Failed to update data: server could not find source row.', 'Error', 0);
+    end;
     Result := True;
   except
     Result := False;
@@ -6240,7 +6244,9 @@ begin
     Cols := Copy(Cols, 1, Length(Cols)-2);
     sql := 'INSERT INTO '+mask(SelectedTable)+' ('+Cols+') VALUES ('+Vals+')';
     // Send INSERT query
-    ExecUpdateQuery(sql, False, True);
+    if (ExecUpdateQuery(sql, False, True) = 0) then begin
+      MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
+    end;
     Result := True;
     Row.Loaded := false;
     EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @FDataGridResult.Columns));
