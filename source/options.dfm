@@ -28,6 +28,8 @@ object optionsform: Toptionsform
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 3
+    OnChange = pagecontrolMainChange
+    OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'Miscellaneous'
       object Label4: TLabel
