@@ -105,8 +105,12 @@ type
     procedure FormCreate(Sender: TObject);
     procedure chkNullBGClick(Sender: TObject);
     procedure comboSQLColElementChange(Sender: TObject);
+    procedure pagecontrolMainChanging(Sender: TObject;
+      var AllowChange: Boolean);
+    procedure pagecontrolMainChange(Sender: TObject);
   private
     { Private declarations }
+    FWasModified: Boolean;
   public
     { Public declarations }
   end;
@@ -136,6 +140,23 @@ begin
   // Modified
   btnOK.Enabled := True;
   btnApply.Enabled := True;
+end;
+
+
+procedure Toptionsform.pagecontrolMainChanging(Sender: TObject;
+  var AllowChange: Boolean);
+begin
+  // Remember modification state. First tab switch leads TEdit's with TUpDown
+  // to fire OnChange. Avoid enabling the buttons in that case.
+  FWasModified := btnOK.Enabled;
+end;
+
+
+procedure Toptionsform.pagecontrolMainChange(Sender: TObject);
+begin
+  // See OnChanging procedure
+  btnOK.Enabled := FWasModified;
+  btnApply.Enabled := FWasModified;
 end;
 
 
