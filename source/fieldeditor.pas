@@ -174,6 +174,7 @@ var
   i, j           : Integer;
   ListColumns    : TVirtualStringTree;
   NodeData       : PVTreeData;
+  origDefault    : WideString;
 begin
 
   // Initiate "Position"-combobox
@@ -234,15 +235,16 @@ begin
       EditFieldname.Text := FFieldName;
       EditLength.Text := getEnumValues( NodeData.Captions[1] );
       editDefault.Text := '';
-      if NodeData.Captions[3] = '' then
+      origDefault := NodeData.Captions[3];
+      if origDefault = '' then
         comboDefault.ItemIndex := DEFAULT_NO
-      else if NodeData.Captions[3] = 'NULL' then
+      else if origDefault = 'NULL' then
         comboDefault.ItemIndex := DEFAULT_NULL
-      else if NodeData.Captions[3] = 'CURRENT_TIMESTAMP' then
+      else if origDefault = 'CURRENT_TIMESTAMP' then
         comboDefault.ItemIndex := DEFAULT_CURTS
       else begin
         comboDefault.ItemIndex := DEFAULT_CUSTOM;
-        EditDefault.Text := WideDequotedStr(NodeData.Captions[3], '''');
+        EditDefault.Text := Copy(origDefault, 2, Length(origDefault)-2);
       end;
       EditComment.Text := NodeData.Captions[5];
 
