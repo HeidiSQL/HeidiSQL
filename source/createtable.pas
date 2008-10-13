@@ -486,9 +486,16 @@ end;
 procedure TCreateTableForm.EditFieldnameChange(Sender: TObject);
 var
   colExists, colSelected : Boolean;
+  i: Integer;
 begin
   // Field Name EditChange
-  colExists := ListboxColumns.Items.IndexOf(EditFieldName.Text) > -1;
+  colExists := False;
+  for i:=0 to ListboxColumns.Items.Count-1 do begin
+    if EditFieldName.Text = ListboxColumns.Items[i] then begin
+      colExists := True;
+      break;
+    end;
+  end;
   colSelected := index > -1;
   buttonAdd.Enabled := not colExists;
   buttonChange.Enabled := (not colExists) and colSelected;
