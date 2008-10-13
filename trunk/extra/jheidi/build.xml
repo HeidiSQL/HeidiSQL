@@ -322,7 +322,7 @@
     </copy>
     
     <copy file="${etc}/${.connectionProfiles}" tofile="${osx.java}/${.connectionProfiles}"/>
-    <copy file="${win.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
+    <copy file="${osx.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
     <zip destfile="${upload.dir}/${jheidi.osx.name}.zip" basedir="${dist.dir}"/>
   </target>
 
