@@ -1,6 +1,6 @@
 app=jHeidi
 version=Alpha 3 Update 4
-timestamp=20080523000000
+timestamp=20070523000000
 url=http://heidisql.com/jheidi/files/autoupdater/win/jheidi-win-autoupdater
 restartCommand=jheidi.exe
 processKey=Launch

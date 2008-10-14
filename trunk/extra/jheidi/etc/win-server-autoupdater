@@ -1,5 +1,5 @@
 version=Alpha 3 Update 4
-timestamp=20080523000000
+timestamp=20070523000000
 urlRoot=http://heidisql.com/jheidi/files/autoupdater/win
 jar=autoupdater.jar
 urls=jheidi.jar:lib/ajl.jar
