@@ -28,13 +28,6 @@ uses
   TntStdCtrls;
 
 type
-  TOrderCol = class(TObject)
-    ColumnName: WideString;
-    SortDirection: Byte;
-  end;
-  TOrderColArray = Array of TOrderCol;
-
-type
   TMDIChild = class(TForm)
     panelTop: TPanel;
     DBtree: TVirtualStringTree;
@@ -264,6 +257,11 @@ type
     Cancelediting1: TMenuItem;
     DataPost1: TMenuItem;
     menuShowSizeColumn: TMenuItem;
+    tbtnDataView: TToolButton;
+    popupDataView: TPopupMenu;
+    menuViewSave: TMenuItem;
+    N25: TMenuItem;
+    menuViewDefault: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -324,9 +322,6 @@ type
     procedure ListTablesDblClick(Sender: TObject);
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
-    function GetFilter: WideString;
-    procedure SaveFilter(Clause: WideString = '');
-    procedure DropFilter1Click(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
     procedure Autoupdate1Click(Sender: TObject);
@@ -450,6 +445,9 @@ type
     procedure GridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure popupDataViewPopup(Sender: TObject);
+    procedure menuViewDefaultClick(Sender: TObject);
+    procedure menuViewSaveClick(Sender: TObject);
 
     private
       uptime                     : Integer;
@@ -551,6 +549,8 @@ type
       TablePropertiesForm        : Ttbl_properties_form;
       FDataGridResult,
       FQueryGridResult           : TGridResult;
+      FDataGridSelect            : WideStrings.TWideStringList;
+      FDataGridSort              : TOrderColArray;
       DataGridCurrentSelect      : WideString;
       DataGridCurrentFilter      : WideString;
       DataGridCurrentSort        : WideString;
@@ -586,8 +586,6 @@ type
       procedure ActivateFileLogging;
       procedure DeactivateFileLogging;
       procedure TrimSQLLog;
-      function HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
-      function ComposeOrderClause( Cols: TOrderColArray ): WideString;
       procedure TableEnginesCombo(var Combobox: TCombobox);
       function GetNodeType(Node: PVirtualNode): Byte;
       function GetSelectedNodeType: Byte;
@@ -607,6 +605,11 @@ type
       property FSelectedTableColumns: TDataset read GetSelTableColumns write FLastSelectedTableColumns;
       property FSelectedTableKeys: TDataset read GetSelTableKeys write FLastSelectedTableKeys;
       procedure CalcNullColors;
+      procedure FillDataViewPopup;
+      procedure GetDataViews(List: TStrings);
+      procedure DataViewClick(Sender: TObject);
+      procedure LoadDataView(ViewName: String);
+      function GetRegKeyTable: String;
   end;
 
 type
@@ -624,7 +627,7 @@ uses
   Main, fieldeditor,
   copytable, sqlhelp, printlist,
   column_selection, data_sorting, runsqlfile, mysql_structures,
-  Registry, grideditlinks;
+  Registry, grideditlinks, DataViewSave;
 
 
 type
@@ -1212,103 +1215,95 @@ end;
 
 procedure TMDIChild.viewdata(Sender: TObject);
 var
-  sorting              : WideString;
   i, count             : Integer;
-  OrderColumns         : TOrderColArray;
-  reg_value            : String;
   select_base          : WideString;
   select_from          : WideString;
   sl_query             : TWideStringList;
-  DisplayedColumnsList,
-  HiddenKeyCols,
   KeyCols              : WideStrings.TWideStringList;
-  Filter, ColName      : WideString;
+  ColName              : WideString;
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
   ColType              : String;
-  ColExists            : Boolean;
+  ColExists, ShowIt    : Boolean;
+  reg                  : TRegistry;
 
-procedure InitColumn(idx: Integer; name: WideString);
+procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
 var
-  ColType: String;
   k: Integer;
+  idx: Integer;
 begin
+  idx := Length(FDataGridResult.Columns);
+  SetLength(FDataGridResult.Columns, idx+1);
   FDataGridResult.Columns[idx].Name := name;
   col := DataGrid.Header.Columns.Add;
   col.Text := name;
   col.Options := col.Options + [coSmartResize];
-  if HiddenKeyCols.IndexOf(name) > -1 then col.Options := col.Options - [coVisible];
+  if not visible then col.Options := col.Options - [coVisible];
   // Sorting color and title image
-  for k:=0 to Length(OrderColumns)-1 do begin
-    if OrderColumns[k].ColumnName = name then begin
-      case OrderColumns[k].SortDirection of
+  for k:=0 to Length(FDataGridSort)-1 do begin
+    if FDataGridSort[k].ColumnName = name then begin
+      case FDataGridSort[k].SortDirection of
         ORDER_ASC:  begin col.Color := COLOR_SORTCOLUMN_ASC;  col.ImageIndex := 109; end;
         ORDER_DESC: begin col.Color := COLOR_SORTCOLUMN_DESC; col.ImageIndex := 110; end;
       end;
     end;
   end;
-  // Right alignment for numeric columns
-  FSelectedTableColumns.First;
-  while not FSelectedTableColumns.Eof do begin
-    if FSelectedTableColumns.FieldByName('Field').AsWideString = name then begin
-      ColType := FSelectedTableColumns.FieldByName('Type').AsString;
-      rx.Expression := '^(tiny|small|medium|big)?int\b';
-      if rx.Exec(ColType) then begin
-        col.Alignment := taRightJustify;
-        FDataGridResult.Columns[idx].IsInt := True;
-      end;
-      rx.Expression := '^(float|double|decimal)\b';
-      if rx.Exec(ColType) then begin
-        col.Alignment := taRightJustify;
-        FDataGridResult.Columns[idx].IsFloat := True;
-      end;
-      rx.Expression := '^(date|datetime|time(stamp)?)\b';
-      if rx.Exec(ColType) then begin
-        FDataGridResult.Columns[idx].IsDate := True;
-        if rx.Match[1] = 'date' then FDataGridResult.Columns[idx].DataType := tpDATE
-        else if rx.Match[1] = 'time' then FDataGridResult.Columns[idx].DataType := tpTIME
-        else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[idx].DataType := tpTIMESTAMP
-        else FDataGridResult.Columns[idx].DataType := tpDATETIME;
-      end;
-      rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
-      if rx.Exec(ColType) then begin
-        FDataGridResult.Columns[idx].IsText := True;
-        if rx.Match[4] <> '' then
-          FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
-        else if ColType = 'tinytext' then
-          // 255 is the width in bytes. If characters that use multiple bytes are
-          // contained, the width in characters is decreased below this number.
-          FDataGridResult.Columns[idx].MaxLength := 255
-        else if ColType = 'text' then
-          FDataGridResult.Columns[idx].MaxLength := 65535
-        else if ColType = 'mediumtext' then
-          FDataGridResult.Columns[idx].MaxLength := 16777215
-        else if ColType = 'longtext' then
-          FDataGridResult.Columns[idx].MaxLength := 4294967295
-        else
-          // Fallback for unknown column types
-          FDataGridResult.Columns[idx].MaxLength := MaxInt;
-      end;
-      rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
-      if rx.Exec(ColType) then
-        FDataGridResult.Columns[idx].IsBinary := True;
-      if Copy(ColType, 1, 5) = 'enum(' then begin
-        FDataGridResult.Columns[idx].IsEnum := True;
-        FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
-        FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-        FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
-        FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
-      end;
-      if Copy(ColType, 1, 4) = 'set(' then begin
-        FDataGridResult.Columns[idx].IsSet := True;
-        FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
-        FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-        FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
-        FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
-      end;
-    end;
-    FSelectedTableColumns.Next;
+  // Detect data type
+  rx.Expression := '^(tiny|small|medium|big)?int\b';
+  if rx.Exec(ColType) then begin
+    col.Alignment := taRightJustify;
+    FDataGridResult.Columns[idx].IsInt := True;
   end;
+  rx.Expression := '^(float|double|decimal)\b';
+  if rx.Exec(ColType) then begin
+    col.Alignment := taRightJustify;
+    FDataGridResult.Columns[idx].IsFloat := True;
+  end;
+  rx.Expression := '^(date|datetime|time(stamp)?)\b';
+  if rx.Exec(ColType) then begin
+    FDataGridResult.Columns[idx].IsDate := True;
+    if rx.Match[1] = 'date' then FDataGridResult.Columns[idx].DataType := tpDATE
+    else if rx.Match[1] = 'time' then FDataGridResult.Columns[idx].DataType := tpTIME
+    else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[idx].DataType := tpTIMESTAMP
+    else FDataGridResult.Columns[idx].DataType := tpDATETIME;
+  end;
+  rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
+  if rx.Exec(ColType) then begin
+    FDataGridResult.Columns[idx].IsText := True;
+    if rx.Match[4] <> '' then
+      FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
+    else if ColType = 'tinytext' then
+      // 255 is the width in bytes. If characters that use multiple bytes are
+      // contained, the width in characters is decreased below this number.
+      FDataGridResult.Columns[idx].MaxLength := 255
+    else if ColType = 'text' then
+      FDataGridResult.Columns[idx].MaxLength := 65535
+    else if ColType = 'mediumtext' then
+      FDataGridResult.Columns[idx].MaxLength := 16777215
+    else if ColType = 'longtext' then
+      FDataGridResult.Columns[idx].MaxLength := 4294967295
+    else
+      // Fallback for unknown column types
+      FDataGridResult.Columns[idx].MaxLength := MaxInt;
+  end;
+  rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
+  if rx.Exec(ColType) then
+    FDataGridResult.Columns[idx].IsBinary := True;
+  if Copy(ColType, 1, 5) = 'enum(' then begin
+    FDataGridResult.Columns[idx].IsEnum := True;
+    FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+    FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+    FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
+    FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
+  end;
+  if Copy(ColType, 1, 4) = 'set(' then begin
+    FDataGridResult.Columns[idx].IsSet := True;
+    FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+    FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+    FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
+    FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
+  end;
+
   FSelectedTableKeys.First;
   for k := 0 to FSelectedTableKeys.RecordCount - 1 do begin
     if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
@@ -1328,16 +1323,6 @@ begin
   viewingdata := true;
   sl_query := TWideStringList.Create();
   try
-    // Read cached ORDER-clause and set Grid.Sortcolumns
-    sorting := '';
-    OrderColumns := HandleOrderColumns;
-    if Length(OrderColumns) > 0 then begin
-      sorting := ComposeOrderClause(OrderColumns);
-      // Signal for the user that we applied an ORDER-clause
-      tbtnDataSorting.ImageIndex := 108;
-    end else
-      tbtnDataSorting.ImageIndex := 107;
-
     if (SelectedTable <> '') and (ActiveDatabase <> '') then begin
       // Ensure <Table> and <Data> are visible
       tabTable.TabVisible := true;
@@ -1345,12 +1330,34 @@ begin
       // Switch to <Data>
       PageControlMain.ActivePage := tabData;
 
-      // Read columns to display from registry
-      reg_value := Mainform.GetRegValue(REGNAME_DISPLAYEDCOLUMNS + '_' + ActiveDatabase + '.' + SelectedTable, '', SessionName);
-      DisplayedColumnsList := WideStrings.TWideStringlist.Create;
-      DisplayedColumnsList.Delimiter := '`';
-      DisplayedColumnsList.DelimitedText := reg_value;
-      HiddenKeyCols := WideStrings.TWideStringlist.Create;
+      if FDataGridSelect = nil then begin
+        FDataGridSelect := WideStrings.TWideStringlist.Create;
+        FDataGridSelect.Delimiter := REGDELIM;
+        FDataGridSelect.StrictDelimiter := True;
+      end;
+      if ViewDataPrevTable <> SelectedTable then begin
+        FDataGridSelect.Clear;
+        SynMemoFilter.Clear;
+        SetLength(FDataGridSort, 0);
+        // Load default view settings
+        reg := TRegistry.Create;
+        if reg.OpenKey(GetRegKeyTable, False) then begin
+          if reg.ValueExists(REGNAME_DEFAULTVIEW) then begin
+            // Disable default if crash indicator on current table is found
+            if reg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
+              reg.DeleteValue(REGNAME_DEFAULTVIEW);
+              LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. Filtering was automatically reset to avoid the same crash for now.');
+              // Reset crash indicator.
+              reg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
+            end else begin
+              LoadDataView(reg.ReadString(REGNAME_DEFAULTVIEW));
+            end;
+          end;
+        end;
+        reg.CloseKey;
+        reg.Free;
+      end;
+      FillDataViewPopup;
 
       SynMemoFilter.Color := clWindow;
       rx := TRegExpr.Create;
@@ -1366,76 +1373,72 @@ begin
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
-      // Try to calc the rowcount regardless of a given LIMIT
-      // Only needed if the user specified a WHERE-clause
-      Filter := GetFilter;
       // Selected columns
-      if DisplayedColumnsList.Count = 0 then begin
-        FSelectedTableColumns.First;
-        while not FSelectedTableColumns.Eof do begin
-          DisplayedColumnsList.Add(FSelectedTableColumns.FieldByName('Field').AsWideString);
-          FSelectedTableColumns.Next;
-        end;
+      if FDataGridSelect.Count = 0 then begin
         tbtnDataColumns.ImageIndex := 107;
       end else begin
-        for i := DisplayedColumnsList.Count - 1 downto 0 do begin
+        for i := FDataGridSelect.Count - 1 downto 0 do begin
           ColExists := False;
           FSelectedTableColumns.First;
           while not FSelectedTableColumns.Eof do begin
-            if DisplayedColumnsList[i] = FSelectedTableColumns.FieldByName('Field').AsWideString then begin
+            if FDataGridSelect[i] = FSelectedTableColumns.FieldByName('Field').AsWideString then begin
               ColExists := True;
               break;
             end;
             FSelectedTableColumns.Next;
           end;
           if not ColExists then
-            DisplayedColumnsList.Delete(i);
+            FDataGridSelect.Delete(i);
         end;
         // Signal for the user that we now hide some columns
         tbtnDataColumns.ImageIndex := 108;
       end;
       // Ensure key columns are included to enable editing
       KeyCols := GetKeyColumns;
-      for i := 0 to KeyCols.Count - 1 do
-      if DisplayedColumnsList.IndexOf(KeyCols[i]) = -1 then begin
-        DisplayedColumnsList.Add(KeyCols[i]);
-        HiddenKeyCols.Add(KeyCols[i]);
-      end;
-      // Initialize column array to correct length.
+      // Truncate column array.
+      SetLength(FDataGridResult.Columns, 0);
       debug('mem: initializing browse columns.');
-      SetLength(FDataGridResult.Columns, DisplayedColumnsList.Count);
-      for i := 0 to DisplayedColumnsList.Count - 1 do begin
-        ColName := DisplayedColumnsList[i];
-        FSelectedTableColumns.First;
-        while not FSelectedTableColumns.Eof do begin
-          if FSelectedTableColumns.FieldByName('Field').AsWideString = ColName then begin
-            ColType := FSelectedTableColumns.FieldByName('Type').AsString;
-            rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
-            if rx.Exec(ColType) then begin
-              select_base := select_base + ' ' + 'LEFT(' + Mask(ColName) + ', ' + IntToStr(GridMaxData) + ')' + ',';
-            end else begin
-              select_base := select_base + ' ' + Mask(ColName) + ',';
-            end;
-            Break;
+      FSelectedTableColumns.First;
+      while not FSelectedTableColumns.Eof do begin
+        ColName := FSelectedTableColumns.FieldByName('Field').AsWideString;
+        ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(ColName)>-1);
+        if ShowIt or (KeyCols.IndexOf(ColName)>-1) then begin
+          ColType := FSelectedTableColumns.FieldByName('Type').AsString;
+          rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
+          if rx.Exec(ColType) then begin
+            select_base := select_base + ' ' + 'LEFT(' + Mask(ColName) + ', ' + IntToStr(GridMaxData) + ')' + ',';
+          end else begin
+            select_base := select_base + ' ' + Mask(ColName) + ',';
           end;
-          FSelectedTableColumns.Next;
+          InitColumn(ColName, FSelectedTableColumns.FieldByName('Type').AsString, ShowIt);
         end;
-      end;
-      for i := 0 to DisplayedColumnsList.Count - 1 do begin
-        ColName := DisplayedColumnsList[i];
-        InitColumn(i, ColName);
+        FSelectedTableColumns.Next;
       end;
       debug('mem: browse column initialization complete.');
       // Cut last comma
       select_base := copy( select_base, 1, Length(select_base)-1 );
       select_from := ' FROM ' + mask( SelectedTable );
 
+      // Final SELECT segments
+      DataGridCurrentSelect := select_base + select_from;
+      DataGridCurrentFilter := SynMemoFilter.Text;
+      if Length(FDataGridSort) > 0 then
+        DataGridCurrentSort := ComposeOrderClause(FDataGridSort)
+      else
+        DataGridCurrentSort := '';
+
+      // Set button icons
+      if DataGridCurrentFilter <> '' then tbtnDataFilter.ImageIndex := 108
+      else tbtnDataFilter.ImageIndex := 107;
+      if DataGridCurrentSort <> '' then tbtnDataSorting.ImageIndex := 108
+      else tbtnDataSorting.ImageIndex := 107;
+
       try
         MainForm.ShowStatus('Counting rows...');
         sl_query.Add('SELECT COUNT(*)');
         sl_query.Add(select_from);
         // Apply custom WHERE filter
-        if Filter <> '' then sl_query.Add('WHERE ' + Filter);
+        if DataGridCurrentFilter <> '' then sl_query.Add('WHERE ' + DataGridCurrentFilter);
         count := StrToInt(GetVar(sl_query.Text));
       except
         on E:Exception do begin
@@ -1443,7 +1446,6 @@ begin
           // Put the user with his nose onto the wrong filter
           // either specified by user or
           // created by HeidiSQL by using the search box
-          ToggleFilterPanel(True);
           SynMemoFilter.Color := $008080FF; // light pink
           DataGrid.Header.Options := DataGrid.Header.Options - [hoVisible];
           MessageDlg( E.Message, mtError, [mbOK], 0 );
@@ -1451,10 +1453,6 @@ begin
         end;
       end;
       MainForm.ShowStatus( STATUS_MSG_READY );
-
-      DataGridCurrentSelect := select_base + select_from;
-      DataGridCurrentFilter := Filter;
-      DataGridCurrentSort := sorting;
 
       debug('mem: initializing browse rows (internal data).');
       try
@@ -1502,13 +1500,13 @@ procedure TMDIChild.DisplayRowCountStats;
 var
   rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
-  filter           : WideString;
+  IsFiltered: Boolean;
 begin
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
 
-  Filter := GetFilter;
+  IsFiltered := SynMemoFilter.GetTextLen > 0;
   if GetSelectedNodeType = NODETYPE_TABLE then begin
-    if Filter <> '' then begin
+    if IsFiltered then begin
       // Get rowcount from table
       rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
     end else begin
@@ -1523,12 +1521,10 @@ begin
 
   rows_matching := DataGrid.RootNodeCount;
 
-  if( rows_matching <> rows_total ) and
-    (Filter <> '') then
+  if( rows_matching <> rows_total ) and IsFiltered then
     lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
 
-  if ( rows_matching = rows_total ) and
-    (Filter <> '') then
+  if ( rows_matching = rows_total ) and IsFiltered then
     lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
 end;
 
@@ -3089,73 +3085,7 @@ begin
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.SelectAll;
   SynmemoFilter.SelText := filter;
-  SaveFilter(filter);
-  viewdata(Sender);
-end;
-
-
-function TMDIChild.GetFilter: WideString;
-var
-  SomeFilter: Boolean;
-  reg: TRegistry;
-  regCrashIndicName, regFilterName: String;
-begin
-  // Read cached WHERE-clause and set filter
-  if prefRememberFilters then begin
-    regFilterName := Utf8Encode(REGPREFIX_WHERECLAUSE + ActiveDatabase + '.' + SelectedTable);
-    Result := Mainform.GetRegValue(regFilterName, '', FConn.Description );
-    if Result <> '' then begin
-      // Check for crash indicator on current table
-      regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
-      if(Mainform.GetRegValue(regCrashIndicName, False, FConn.Description)) then begin
-        LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. Filter was automatically reset to avoid the same crash for now.');
-        Result := '';
-        reg := TRegistry.Create;
-        reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
-        // Filter was nuked. Reset crash indicator.
-        reg.DeleteValue(regFilterName);
-        reg.CloseKey;
-        reg.Free;
-      end;
-    end;
-  end else
-    Result := SynMemoFilter.Text;
-  SomeFilter := Result <> '';
-  if SomeFilter then tbtnDataFilter.ImageIndex := 108
-  else tbtnDataFilter.ImageIndex := 107;
-  // Ensure filter panel is visible
-  if SomeFilter then
-    ToggleFilterPanel(True);
-  // Hide it if it was auto opened previously
-  if (not SomeFilter) and pnlFilter.Visible and (not FilterPanelManuallyOpened) then
-    ToggleFilterPanel;
-  if SynMemoFilter.Text <> Result then begin
-    SynMemoFilter.UndoList.AddGroupBreak;
-    SynMemoFilter.SelectAll;
-    SynMemoFilter.SelText := Result;
-  end;
-  SynMemoFilterChange(Self);
-end;
-
-
-procedure TMDIChild.SaveFilter(Clause: WideString = '');
-var
-  regname: String;
-begin
-  // Store whereclause in Registry
-  if prefRememberFilters then begin
-    Mainform.regMain.openkey( REGPATH + REGKEY_SESSIONS + FConn.Description, false );
-    regname := REGPREFIX_WHERECLAUSE + ActiveDatabase + '.' + SelectedTable;
-    if Clause <> '' then Mainform.regMain.WriteString( regname, Clause )
-    else if Mainform.regMain.ValueExists( regname ) then Mainform.regMain.DeleteValue( regname );
-  end
-end;
-
-
-procedure TMDIChild.DropFilter1Click(Sender: TObject);
-begin
-  // Drop Filter
-  SaveFilter;
+  ToggleFilterPanel(True);
   viewdata(Sender);
 end;
 
@@ -4819,131 +4749,6 @@ begin
 end;
 
 
-function TMDIChild.HandleOrderColumns( AddOrderCol: TOrderCol = nil ): TOrderColArray;
-var
-  i, j : Integer;
-  reg : TRegistry;
-  reg_name : WideString;
-  old_orderclause, new_orderclause, columnname : WideString;
-  order_parts, ValidColumns : WideStrings.TWideStringList;
-  columnexists : Boolean;
-  regCrashIndicName: String;
-begin
-  SetLength( Result, 0 );
-
-  // Read ORDER clause from registry
-  reg_name := Utf8Encode(REGPREFIX_ORDERCLAUSE + ActiveDatabase + '.' + SelectedTable);
-  old_orderclause := Utf8Decode(Mainform.GetRegValue(reg_name, '', FConn.Description));
-
-  if old_orderclause <> '' then
-  begin
-    // Check for crash indicator on current table
-    regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
-    if(Mainform.GetRegValue(regCrashIndicName, False, FConn.Description)) then begin
-      LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. A stored ORDER clause was automatically reset to avoid the same crash for now.');
-      reg := TRegistry.Create;
-      reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
-      // Remove ORDER BY clause from registry
-      reg.DeleteValue(reg_name);
-      reg.CloseKey;
-      reg.Free;
-    end else begin
-      // Parse ORDER clause
-      order_parts := explode( ',', old_orderclause );
-      ValidColumns := GetVTCaptions( ListColumns );
-      for i := 0 to order_parts.Count - 1 do
-      begin
-        columnname := Trim( Copy( order_parts[i], 0, LastPos( ' ', order_parts[i] ) ) );
-        columnname := WideDequotedStr(columnname, '`');
-        columnexists := ValidColumns.IndexOf(columnname) > -1;
-
-        if not columnexists then
-        begin
-          LogSQL( 'Notice: A stored ORDER-BY clause could not be applied, '+
-            'because the column "' + columnname + '" does not exist!');
-          Continue;
-        end;
-
-        // Add part of order clause to result array
-        SetLength(Result, Length(Result)+1);
-        Result[Length(Result)-1] := TOrderCol.Create;
-        Result[Length(Result)-1].ColumnName := columnname;
-        Result[Length(Result)-1].SortDirection := Integer( Copy( order_parts[i], ( Length( order_parts[i] ) - 3 ), 4 ) = 'DESC' );
-
-      end;
-    end;
-  end;
-
-  // Add a new order column after a columns title has been clicked
-  if AddOrderCol <> nil then
-  begin
-    // Check if order column is already existant
-    columnexists := False;
-    for i := Low(Result) to High(Result) do
-    begin
-      if Result[i].ColumnName = AddOrderCol.ColumnName then
-      begin
-        // AddOrderCol is already in the list. Switch its direction:
-        // ASC > DESC > [delete col]
-        columnexists := True;
-        if Result[i].SortDirection = ORDER_ASC then
-          Result[i].SortDirection := ORDER_DESC
-        else
-        begin
-          // Delete order col
-          for j := i to High(Result) - 1 do
-            Result[j] := Result[j+1];
-          SetLength(Result, Length(Result)-1);
-        end;
-        // We found the matching column, no need to loop further
-        break;
-      end;
-    end;
-
-    if not columnexists then
-    begin
-      SetLength(Result, Length(Result)+1);
-      Result[Length(Result)-1] := AddOrderCol;
-    end;
-  end;
-
-  // Update registry
-  new_orderclause := ComposeOrderClause(Result);
-  if new_orderclause <> old_orderclause then
-  begin
-    reg := TRegistry.Create();
-    reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
-    if new_orderclause <> '' then
-      reg.WriteString(reg_name , Utf8Encode(new_orderclause))
-    else
-      reg.DeleteValue(reg_name);
-    reg.Free;
-  end;
-
-end;
-
-
-{**
-  Concat all sort options to a ORDER clause
-}
-function TMDIChild.ComposeOrderClause(Cols: TOrderColArray): WideString;
-var
-  i : Integer;
-  sort : String;
-begin
-  result := '';
-  for i := 0 to Length(Cols) - 1 do
-  begin
-    if result <> '' then
-      result := result + ', ';
-    if Cols[i].SortDirection = ORDER_ASC then
-      sort := TXT_ASC
-    else
-      sort := TXT_DESC;
-    result := result + Mainform.Mask( Cols[i].ColumnName ) + ' ' + sort;
-  end;
-end;
-
 {**
   Fetch table engines from server
   Currently used in tbl_properties and createtable
@@ -5901,13 +5706,41 @@ end;
 procedure TMDIChild.DataGridHeaderClick(Sender: TVTHeader; Column:
     TColumnIndex; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  c : TOrderCol;
   frm: TForm;
+  i, j : Integer;
+  columnexists : Boolean;
+  ColName: WideString;
 begin
   if Button = mbLeft then begin
-    c := TOrderCol.Create;
-    c.ColumnName := Sender.Columns[Column].Text;
-    HandleOrderColumns(c);
+    ColName := Sender.Columns[Column].Text;
+    // Add a new order column after a columns title has been clicked
+    // Check if order column is already existant
+    columnexists := False;
+    for i := Low(FDataGridSort) to High(FDataGridSort) do begin
+      if FDataGridSort[i].ColumnName = ColName then begin
+        // AddOrderCol is already in the list. Switch its direction:
+        // ASC > DESC > [delete col]
+        columnexists := True;
+        if FDataGridSort[i].SortDirection = ORDER_ASC then
+          FDataGridSort[i].SortDirection := ORDER_DESC
+        else begin
+          // Delete order col
+          for j := i to High(FDataGridSort) - 1 do
+            FDataGridSort[j] := FDataGridSort[j+1];
+          SetLength(FDataGridSort, Length(FDataGridSort)-1);
+        end;
+        // We found the matching column, no need to loop further
+        break;
+      end;
+    end;
+
+    if not columnexists then begin
+      i := Length(FDataGridSort);
+      SetLength(FDataGridSort, i+1);
+      FDataGridSort[i] := TOrderCol.Create;
+      FDataGridSort[i].ColumnName := ColName;
+      FDataGridSort[i].SortDirection := ORDER_ASC;
+    end;
     ViewData(Sender);
   end else begin
     frm := TColumnSelectionForm.Create(self);
@@ -6586,6 +6419,145 @@ begin
     TargetCanvas.Brush.Color := prefNullBG;
     TargetCanvas.FillRect(CellRect);
   end;
+end;
+
+
+procedure TMDIChild.FillDataViewPopup;
+var
+  i: Integer;
+  DataViews: TStringList;
+  mi: TMenuItem;
+  reg: TRegistry;
+begin
+  // Load all view names into popupmenu
+  for i := popupDataView.Items.Count-1 downto 0 do begin
+    if popupDataView.Items[i].Caption = '-' then
+      break;
+    popupDataView.Items.Delete(i);
+  end;
+  // Unhide "Load xyz by default" item if default is set
+  menuViewDefault.Visible := False;
+  reg := TRegistry.Create;
+  if reg.OpenKey(GetRegKeyTable, False) then begin
+    if reg.ValueExists(REGNAME_DEFAULTVIEW) then begin
+      menuViewDefault.Caption := 'Load view "'+reg.ReadString(REGNAME_DEFAULTVIEW)+'" by default';
+      menuViewDefault.Visible := True;
+    end;
+  end;
+  reg.CloseKey;
+  reg.Free;
+  // Add views
+  DataViews := TStringList.Create;
+  GetDataViews(DataViews);
+  for i := 0 to DataViews.Count - 1 do begin
+    mi := TMenuItem.Create(popupDataView);
+    mi.Caption := DataViews[i];
+    mi.OnClick := DataViewClick;
+    popupDataView.Items.Add(mi);
+  end;
+  // Highlight drop down button if views are available
+  if DataViews.Count = 0 then
+    tbtnDataView.ImageIndex := 107
+  else
+    tbtnDataView.ImageIndex := 108;
+end;
+
+
+procedure TMDIChild.popupDataViewPopup(Sender: TObject);
+begin
+  // Only enable "Save view" menu if any view part is set
+  menuViewSave.Enabled := (FDataGridSelect.Count > 0) or
+    (Length(FDataGridSort)>0) or (SynMemoFilter.GetTextLen > 0);
+end;
+
+
+procedure TMDIChild.GetDataViews(List: TStrings);
+var
+  reg: TRegistry;
+  i: Integer;
+begin
+  // Load all view names into popupmenu
+  reg := TRegistry.Create;
+  if reg.OpenKey(GetRegKeyTable, False) then begin
+    reg.GetKeyNames(List);
+    for i := 0 to List.Count - 1 do
+      List[i] := Copy(List[i], Length(REGPREFIX_DATAVIEW)+1, Length(List[i]));
+    reg.CloseKey;
+  end;
+  FreeAndNil(reg);
+end;
+
+
+procedure TMDIChild.menuViewSaveClick(Sender: TObject);
+var
+  frm: TFrmDataViewSave;
+begin
+  frm := TFrmDataViewSave.Create(Self);
+  if frm.ShowModal = mrOK then
+    FillDataViewPopup;
+  frm.Free;
+end;
+
+
+procedure TMDIChild.menuViewDefaultClick(Sender: TObject);
+var
+  reg: TRegistry;
+begin
+  menuViewDefault.Visible := False;
+  reg := TRegistry.Create;
+  if reg.OpenKey(GetRegKeyTable, False) then begin
+    if reg.ValueExists(REGNAME_DEFAULTVIEW) then
+      reg.DeleteValue(REGNAME_DEFAULTVIEW)
+  end;
+  reg.CloseKey;
+  reg.Free;
+end;
+
+
+procedure TMDIChild.DataViewClick(Sender: TObject);
+begin
+  LoadDataView((Sender as TMenuItem).Caption);
+  ViewData(tbtnDataView);
+end;
+
+
+procedure TMDIChild.LoadDataView(ViewName: String);
+var
+  reg: TRegistry;
+  rx: TRegExpr;
+  idx: Integer;
+begin
+  reg := TRegistry.Create;
+  if reg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + ViewName, False) then begin
+    // Columns
+    FDataGridSelect.DelimitedText := Utf8Decode(reg.ReadString(REGNAME_DISPLAYEDCOLUMNS));
+    // Filter
+    SynMemoFilter.Text := Utf8Decode(reg.ReadString(REGNAME_FILTER));
+    if SynMemoFilter.GetTextLen > 0 then
+      ToggleFilterPanel(True);
+    // Sort
+    SetLength(FDataGridSort, 0);
+    rx := TRegExpr.Create;
+    rx.Expression := '\b(\d)_(.+)\'+REGDELIM;
+    rx.ModifierG := False;
+    if rx.Exec(Utf8Decode(reg.ReadString(REGNAME_SORT))) then while true do begin
+      idx := Length(FDataGridSort);
+      SetLength(FDataGridSort, idx+1);
+      FDataGridSort[idx] := TOrderCol.Create;
+      FDataGridSort[idx].ColumnName := rx.Match[2];
+      FDataGridSort[idx].SortDirection := StrToIntDef(rx.Match[1], ORDER_ASC);
+      if not rx.ExecNext then
+        break;
+    end;
+  end;
+end;
+
+
+function TMDIChild.GetRegKeyTable: String;
+begin
+  // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
+  Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
+    Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable);
 end;
 
 

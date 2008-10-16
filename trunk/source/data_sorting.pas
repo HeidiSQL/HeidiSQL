@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry, childwin,
-  WideStrings, TntStdCtrls;
+  WideStrings, TntStdCtrls, helpers;
 
 
 type
@@ -25,7 +25,7 @@ type
     { Private declarations }
     ColumnNames : TWideStringList;
     OrderColumns : TOrderColArray;
-    reg_name, OldOrderClause : String;
+    OldOrderClause : String;
     procedure DisplaySortingControls;
     procedure dropdownColsChange( Sender: TObject );
     procedure buttonOrderClick( Sender: TObject );
@@ -43,7 +43,7 @@ const
 
 implementation
 
-uses main, helpers;
+uses main;
 
 {$R *.dfm}
 
@@ -62,11 +62,8 @@ begin
   // Take column names from listColumns and add here
   ColumnNames := GetVTCaptions( Mainform.Childwin.ListColumns );
 
-  // Read original ORDER clause from registry
-  reg_name := Utf8Encode(REGPREFIX_ORDERCLAUSE + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable);
-  OldOrderClause := Utf8Decode(Mainform.GetRegValue(reg_name, '', Mainform.Childwin.SessionName));
-
-  OrderColumns := Mainform.Childwin.HandleOrderColumns;
+  OrderColumns := Mainform.Childwin.FDataGridSort;
+  OldOrderClause := ComposeOrderClause(OrderColumns);
 
   // First creation of controls
   DisplaySortingControls;
@@ -297,7 +294,7 @@ end;
 }
 procedure TDataSortingForm.Modified;
 begin
-  btnOk.Enabled := Mainform.Childwin.ComposeOrderClause(OrderColumns) <> OldOrderClause;
+  btnOk.Enabled := ComposeOrderClause(OrderColumns) <> OldOrderClause;
 end;
 
 
@@ -305,14 +302,9 @@ end;
   OK clicked: Write ORDER clause to registry
 }
 procedure TDataSortingForm.btnOKClick(Sender: TObject);
-var
-  reg : TRegistry;
 begin
-  reg := TRegistry.Create();
-  reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.SessionName, true );
-  reg.WriteString( reg_name, Utf8Encode(Mainform.Childwin.ComposeOrderClause(OrderColumns)) );
-  reg.CloseKey;
-  FreeAndNil(reg);
+  // TODO: apply ordering
+  Mainform.Childwin.FDataGridSort := OrderColumns;
   Mainform.Childwin.viewdata(Sender);
   btnCancel.OnClick(Sender);
 end;

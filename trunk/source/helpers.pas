@@ -93,6 +93,12 @@ type
     procedure SetFont(font: TFont); virtual; abstract;
   end;
 
+  TOrderCol = class(TObject)
+    ColumnName: WideString;
+    SortDirection: Byte;
+  end;
+  TOrderColArray = Array of TOrderCol;
+
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
@@ -171,6 +177,7 @@ type
   procedure CheckHex(text: WideString; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
   function ColorAdjustBrightness(Col: TColor; ShiftPercent: ShortInt): TColor;
+  function ComposeOrderClause(Cols: TOrderColArray): WideString;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2670,6 +2677,28 @@ begin
   if b > 255 then b := 255 else if b < 0 then b := 0;
   // Merge result
   Result := RGB(r, g, b);
+end;
+
+
+{**
+  Concat all sort options to a ORDER clause
+}
+function ComposeOrderClause(Cols: TOrderColArray): WideString;
+var
+  i : Integer;
+  sort : String;
+begin
+  result := '';
+  for i := 0 to Length(Cols) - 1 do
+  begin
+    if result <> '' then
+      result := result + ', ';
+    if Cols[i].SortDirection = ORDER_ASC then
+      sort := TXT_ASC
+    else
+      sort := TXT_DESC;
+    result := result + Mainform.Mask( Cols[i].ColumnName ) + ' ' + sort;
+  end;
 end;
 
 

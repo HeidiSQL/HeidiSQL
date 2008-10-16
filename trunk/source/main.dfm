@@ -827,6 +827,15 @@ object MainForm: TMainForm
       ShortCut = 16397
       OnExecute = actDataPostChangesExecute
     end
+    object actDataCancelChanges: TAction
+      Category = 'Data'
+      Caption = 'Cancel editing'
+      Enabled = False
+      Hint = 'Cancel editing'
+      ImageIndex = 26
+      ShortCut = 27
+      OnExecute = actDataCancelChangesExecute
+    end
     object actCreateTable: TAction
       Category = 'Database'
       Caption = 'Create new table'
@@ -1155,14 +1164,11 @@ object MainForm: TMainForm
       ShortCut = 120
       OnExecute = actApplyFilterExecute
     end
-    object actDataCancelChanges: TAction
+    object actRemoveFilter: TAction
       Category = 'Data'
-      Caption = 'Cancel editing'
-      Enabled = False
-      Hint = 'Cancel editing'
+      Caption = 'Remove filter'
       ImageIndex = 26
-      ShortCut = 27
-      OnExecute = actDataCancelChangesExecute
+      OnExecute = actRemoveFilterExecute
     end
   end
   object SaveDialog2: TSaveDialog

@@ -774,7 +774,7 @@ object MDIChild: TMDIChild
           object lblDataTop: TTntLabel
             Left = 1
             Top = 1
-            Width = 287
+            Width = 148
             Height = 23
             Align = alLeft
             Anchors = [akLeft, akTop, akRight, akBottom]
@@ -784,9 +784,9 @@ object MDIChild: TMDIChild
             WordWrap = True
           end
           object tlbDataButtons: TToolBar
-            Left = 294
+            Left = 227
             Top = 1
-            Width = 201
+            Width = 268
             Height = 23
             Align = alRight
             AutoSize = True
@@ -822,6 +822,13 @@ object MDIChild: TMDIChild
               Caption = 'Filter'
               ImageIndex = 107
               OnClick = btnDataClick
+            end
+            object tbtnDataView: TToolButton
+              Left = 201
+              Top = 0
+              Caption = 'View'
+              DropdownMenu = popupDataView
+              ImageIndex = 107
             end
           end
         end
@@ -1591,9 +1598,7 @@ object MDIChild: TMDIChild
         Caption = '-'
       end
       object DropFilter1: TMenuItem
-        Caption = 'Drop Filter'
-        ImageIndex = 26
-        OnClick = DropFilter1Click
+        Action = MainForm.actRemoveFilter
       end
     end
     object N9: TMenuItem
@@ -1964,6 +1969,27 @@ object MDIChild: TMDIChild
       Action = MainForm.actApplyFilter
     end
     object N20: TMenuItem
+      Caption = '-'
+    end
+  end
+  object popupDataView: TPopupMenu
+    AutoHotkeys = maManual
+    OnPopup = popupDataViewPopup
+    Left = 104
+    Top = 80
+    object menuViewSave: TMenuItem
+      Caption = 'Save view ...'
+      Hint = 'Save current view details (columns, filter, sorting) permanently'
+      ImageIndex = 10
+      OnClick = menuViewSaveClick
+    end
+    object menuViewDefault: TMenuItem
+      Caption = 'Load xyz by default'
+      Checked = True
+      Visible = False
+      OnClick = menuViewDefaultClick
+    end
+    object N25: TMenuItem
       Caption = '-'
     end
   end
