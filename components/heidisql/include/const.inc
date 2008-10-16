@@ -24,6 +24,8 @@ const
   APPDOMAIN        = 'http://www.heidisql.com/';
   REGPATH          = '\Software\' + APPNAME + '\';
   REGKEY_SESSIONS  = 'Servers\';
+  // Some unique char, used to separate e.g. selected columns in registry
+  REGDELIM = '|';
   STATUS_MSG_READY = 'Ready.';
   STR_NOTSUPPORTED = 'Not supported by this server';
 
@@ -37,6 +39,8 @@ const
   // User-changable variables have a default value
   // Note: Color values are in HEX format: $00BBGGRR
   REGNAME_DISPLAYEDCOLUMNS = 'DisplayedColumns';
+  REGNAME_FILTER = 'Filter';
+  REGNAME_SORT = 'Sort';
   REGNAME_SORTDISPLAYEDCOLUMNS = 'DisplayedColumnsSorted';
   REGNAME_LISTTABLESCOLUMNNAMES = 'ListTablesColumnNames';
   REGNAME_LASTSESSION = 'lastcon';
@@ -188,6 +192,7 @@ const
   DEFAULT_COPYTABLE_STRUCDATA = REGVAL_COPYTABLE_STRUCTURE_AND_DATA;
   REGNAME_COPYTABLE_INDEXES = 'CopyTable_Option_WithIndexes';
   REGNAME_COPYTABLE_ALLFIELDS = 'CopyTable_Option_WithAllFields';
+  REGNAME_DEFAULTVIEW = 'DefaultView';
 
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
@@ -225,11 +230,9 @@ const
   DEFAULT_SIZECOL_TREE = True;
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
-  REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
-  REGPREFIX_WHERECLAUSE = 'WHERECLAUSE_';
-  REGPREFIX_ORDERCLAUSE = 'ORDERCLAUSE_';
   REGPREFIX_CRASH_IN_DATA = 'DataCrashIndicator_';
+  REGPREFIX_DATAVIEW = 'View_';
 
   // Various iconindexes
   ICONINDEX_PRIMARYKEY = 25;

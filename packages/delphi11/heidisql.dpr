@@ -41,7 +41,8 @@ uses
   texteditor in '..\..\source\texteditor.pas' {frmTextEditor},
   bineditor in '..\..\source\bineditor.pas' {frmBinEditor},
   grideditlinks in '..\..\source\grideditlinks.pas',
-  uVistaFuncs in '..\..\source\uVistaFuncs.pas';
+  uVistaFuncs in '..\..\source\uVistaFuncs.pas',
+  dataviewsave in '..\..\source\dataviewsave.pas' {FrmDataViewSave};
 
 {$R *.RES}
 

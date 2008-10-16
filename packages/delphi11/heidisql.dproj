@@ -83,6 +83,9 @@
     <DCCReference Include="..\..\source\createtable.pas">
       <Form>CreateTableForm</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\dataviewsave.pas">
+      <Form>FrmDataViewSave</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\data_sorting.pas">
       <Form>DataSortingForm</Form>
     </DCCReference>

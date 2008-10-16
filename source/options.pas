@@ -47,7 +47,6 @@ type
     editMaxColWidth: TEdit;
     updownMaxColWidth: TUpDown;
     chkRestoreLastDB: TCheckBox;
-    chkRememberFilters: TCheckBox;
     chkLogToFile: TCheckBox;
     btnOpenLogFolder: TButton;
     lblLogSnip: TLabel;
@@ -167,8 +166,6 @@ procedure Toptionsform.Apply(Sender: TObject);
 var
   cwin : TMDIChild;
   reg  : TRegistry;
-  ServerKeys, ValueNames: TStringList;
-  i, j: Integer;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -201,7 +198,6 @@ begin
   reg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
   reg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
   reg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
-  reg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
   reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
   reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
   reg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
@@ -222,24 +218,6 @@ begin
   reg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
   reg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
-
-  // Clean registry from unwanted WHERE clauses if "Remember WHERE filters" was unchecked
-  if not chkRememberFilters.Checked then begin
-    reg.OpenKey(REGKEY_SESSIONS, True);
-    ServerKeys := TStringList.Create;
-    reg.GetKeyNames(ServerKeys);
-    for i := 0 to ServerKeys.Count - 1 do begin
-      reg.OpenKey(REGPATH + REGKEY_SESSIONS + ServerKeys[i], True);
-      ValueNames := TStringList.Create;
-      reg.GetValueNames(ValueNames);
-      for j := 0 to ValueNames.Count - 1 do begin
-        if Pos(REGPREFIX_WHERECLAUSE, ValueNames[j]) = 1 then
-          reg.DeleteValue(ValueNames[j]);
-      end;
-      ValueNames.Free;
-    end;
-    ServerKeys.Free;
-  end;
 
   // Close registry key
   reg.CloseKey;
@@ -271,7 +249,6 @@ begin
     cwin.QueryGrid.Font.Size := updownDataFontSize.Position;
     FixVT(cwin.QueryGrid);
     FixVT(cwin.DataGrid);
-    cwin.prefRememberFilters := chkRememberFilters.Checked;
     cwin.prefLogsqlnum := updownLogLines.Position;
     cwin.prefLogSqlWidth := updownLogSnip.Position;
     cwin.TrimSQLLog;
@@ -360,8 +337,6 @@ begin
   editCSVSeparator.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   editCSVEncloser.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   editCSVTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
-  // Remember data pane filters across sessions
-  chkRememberFilters.Checked := Mainform.GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   // Log to file
   chkLogToFile.Checked := Mainform.GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);

@@ -327,96 +327,84 @@ object optionsform: Toptionsform
       Caption = 'Data'
       ImageIndex = 4
       object lblMaxColWidth: TLabel
-        Left = 8
-        Top = 33
+        Left = 4
+        Top = 12
         Width = 177
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
       object lblDataFontHint: TLabel
-        Left = 344
-        Top = 61
+        Left = 340
+        Top = 40
         Width = 29
         Height = 13
         Caption = 'points'
       end
       object lblDataFont: TLabel
-        Left = 8
-        Top = 61
+        Left = 4
+        Top = 40
         Width = 26
         Height = 13
         Caption = '&Font:'
         FocusControl = comboDataFontName
       end
       object editMaxColWidth: TEdit
-        Left = 281
-        Top = 30
+        Left = 277
+        Top = 9
         Width = 42
         Height = 21
-        TabOrder = 1
+        TabOrder = 0
         Text = '1'
         OnChange = Modified
       end
       object updownMaxColWidth: TUpDown
-        Left = 323
-        Top = 30
+        Left = 319
+        Top = 9
         Width = 16
         Height = 21
         Associate = editMaxColWidth
         Min = 1
         Max = 1000
         Position = 1
-        TabOrder = 2
+        TabOrder = 1
         OnChanging = anyUpDownLimitChanging
       end
-      object chkRememberFilters: TCheckBox
-        Left = 8
-        Top = 6
-        Width = 387
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Remember WHERE filters'
-        Checked = True
-        State = cbChecked
-        TabOrder = 0
-        OnClick = Modified
-      end
       object comboDataFontName: TComboBox
-        Left = 64
-        Top = 57
+        Left = 60
+        Top = 36
         Width = 193
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 3
+        TabOrder = 2
         OnChange = DataFontsChange
       end
       object editDataFontSize: TEdit
-        Left = 281
-        Top = 57
+        Left = 277
+        Top = 36
         Width = 42
         Height = 21
-        TabOrder = 4
+        TabOrder = 3
         Text = '8'
         OnChange = DataFontsChange
       end
       object updownDataFontSize: TUpDown
-        Left = 323
-        Top = 57
+        Left = 319
+        Top = 36
         Width = 16
         Height = 21
         Associate = editDataFontSize
         Position = 8
-        TabOrder = 5
+        TabOrder = 4
       end
       object grpFieldLayout: TGroupBox
-        Left = 8
-        Top = 84
+        Left = 4
+        Top = 72
         Width = 391
-        Height = 203
+        Height = 209
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Field colors and editors'
-        TabOrder = 6
+        TabOrder = 5
         object lblFieldDatetime: TLabel
           Left = 12
           Top = 96

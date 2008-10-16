@@ -51,21 +51,15 @@ end;
   FormShow
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
-var
-  reg_columns : TWideStringList;
 begin
   // Take column names from listColumns and add here
   chklistColumns.Items.Text := GetVTCaptions(Mainform.Childwin.ListColumns).Text;
 
-  // Set global reg_name (also used in btnOKClick)
-  reg_name := REGNAME_DISPLAYEDCOLUMNS + '_' + Mainform.Childwin.ActiveDatabase + '.' + Mainform.Childwin.SelectedTable;
-
-  // Read reg value and check items!
-  reg_columns := explode( '`', Mainform.GetRegValue( reg_name, '', Mainform.Childwin.Conn.Description ) );
-  if reg_columns.Count = 0 then // Simply check all items
+  // Check items!
+  if Mainform.Childwin.FDataGridSelect.Count = 0 then // Simply check all items
     ToggleCheckListBox( chklistColumns, True )
   else // Only check selected items
-    ToggleCheckListBox( chklistColumns, True, reg_columns );
+    ToggleCheckListBox( chklistColumns, True, Mainform.Childwin.FDataGridSelect );
 
   // Call check-event to update state of "Select / Deselect all" checkbox
   chklistColumnsClickCheck( Sender );
@@ -80,60 +74,24 @@ end;
 }
 procedure TColumnSelectionForm.btnOKClick(Sender: TObject);
 var
-  reg_oldvalue, reg_newvalue : String;
   i : Integer;
-  allSelected : Boolean;
-  reg : TRegistry;
 begin
-  // Open registry registry key
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH + REGKEY_SESSIONS + Mainform.Childwin.Conn.Description, true );
-
-  // Set initial values
-  reg_oldvalue := Mainform.GetRegValue(reg_name, '', Mainform.Childwin.Conn.Description);
-  reg_newvalue := '';
-
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
   // be extracted safely later
-  allSelected := True;
+  Mainform.Childwin.FDataGridSelect.Clear;
   for i := 0 to chklistColumns.Items.Count - 1 do
   begin
     if chklistColumns.Checked[i] then
-    begin
-      if reg_newvalue <> '' then
-        reg_newvalue := reg_newvalue + '`';
-      reg_newvalue := reg_newvalue + chklistColumns.Items[i];
-    end
-    else
-    begin
-      allSelected := False;
-    end;
+      Mainform.Childwin.FDataGridSelect.Add(chklistColumns.Items[i]);
   end;
 
   // If all columns were selected, delete existing superflous reg-value
   // Otherwise, save value
-  if allSelected then
-  begin
-    if reg.ValueExists( reg_name ) then
-      reg.DeleteValue( reg_name );
-    reg_newvalue := '';
-  end
-  else
-  begin
-    reg.WriteString( reg_name, reg_newvalue );
-  end;
+  if Mainform.Childwin.FDataGridSelect.Count = chklistColumns.Items.Count then
+    Mainform.Childwin.FDataGridSelect.Clear;
 
-  // Store state of sort-checkbox in registry
-  reg.OpenKey( REGPATH, false );
-  reg.WriteBool( REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.checked );
-
-  reg.CloseKey;
-  FreeAndNil(reg);
-
-  // Signalizes childwin to refresh grid-data
-  if reg_oldvalue <> reg_newvalue then
-    Mainform.Childwin.viewdata(Sender);
+  Mainform.Childwin.viewdata(Sender);
 
   btnCancel.OnClick(Sender);
 end;

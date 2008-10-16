@@ -213,6 +213,7 @@ type
     btnSetDelimiter: TToolButton;
     actDataCancelChanges: TAction;
     ToolButton1: TToolButton;
+    actRemoveFilter: TAction;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -2205,7 +2206,6 @@ end;
 
 procedure TMainForm.actApplyFilterExecute(Sender: TObject);
 begin
-  Childwin.SaveFilter(Childwin.SynMemoFilter.Text);
   Childwin.viewdata(Sender);
 end;
 
@@ -2246,8 +2246,7 @@ end;
 
 procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
 begin
-  Childwin.SynmemoFilter.Clear;
-  Childwin.SaveFilter;
+  actClearFilterEditor.Execute;
   Childwin.viewdata(Sender);
 end;
 
@@ -2256,6 +2255,5 @@ procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
 begin
   Childwin.DataGridCancel(Sender);
 end;
-
 
 end.
