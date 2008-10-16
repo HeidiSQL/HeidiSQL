@@ -15,6 +15,7 @@ object MDIChild: TMDIChild
   WindowState = wsMaximized
   OnActivate = FormActivate
   OnClose = FormClose
+  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -774,7 +775,7 @@ object MDIChild: TMDIChild
           object lblDataTop: TTntLabel
             Left = 1
             Top = 1
-            Width = 148
+            Width = 220
             Height = 23
             Align = alLeft
             Anchors = [akLeft, akTop, akRight, akBottom]

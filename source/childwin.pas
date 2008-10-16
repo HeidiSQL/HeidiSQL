@@ -448,6 +448,7 @@ type
     procedure popupDataViewPopup(Sender: TObject);
     procedure menuViewDefaultClick(Sender: TObject);
     procedure menuViewSaveClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
 
     private
       uptime                     : Integer;
@@ -6558,6 +6559,12 @@ begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
   Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
     Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable);
+end;
+
+
+procedure TMDIChild.FormResize(Sender: TObject);
+begin
+  lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
 end;
 
 
