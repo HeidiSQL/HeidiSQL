@@ -230,6 +230,7 @@ const
   DEFAULT_SIZECOL_TREE = True;
 
   REGPREFIX_COLWIDTHS = 'ColWidths_';
+  REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
   REGPREFIX_CRASH_IN_DATA = 'DataCrashIndicator_';
   REGPREFIX_DATAVIEW = 'View_';
