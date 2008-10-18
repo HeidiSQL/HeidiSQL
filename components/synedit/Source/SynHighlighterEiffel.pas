@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterEiffel.pas,v 1.3.2.7 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterEiffel.pas,v 1.3.2.8 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -55,10 +55,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -209,18 +211,18 @@ type
     procedure StringOpenProc;
     procedure StringProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
-    function GetKeyWords(TokenKind: Integer): WideString; override;
+    function GetKeyWords(TokenKind: Integer): UnicodeString; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
@@ -249,7 +251,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..118] of WideString = (
+  KeyWords: array[0..118] of UnicodeString = (
     '-', '!', '#', '$', '%u', '&', '(', ')', '*', '.', '/', '//', '/=', ':', 
     ':=', ';', '@', '[', '\\', ']', '^', '|', '+', '<', '<>', '=', '>', 'adapt', 
     'alias', 'all', 'and', 'array', 'as', 'assertion', 'bit', 'boolean', 
@@ -1246,35 +1248,35 @@ begin
       Inc(Run);
       Exit;
     end;
-  if fLine[Run] in [WideChar(#35)..WideChar(#44)] then
+  if CharInSet(fLine[Run], [#35..#44]) then
     begin
       fRange := rsOperatorAndSymbolProc;
       fTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if fLine[Run] in [WideChar(#46)..WideChar(#47)] then
+  if CharInSet(fLine[Run], [#46..#47]) then
     begin
       fRange := rsOperatorAndSymbolProc;
       fTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if fLine[Run] in [WideChar(#58)..WideChar(#64)] then
+  if CharInSet(fLine[Run], [#58..#64]) then
     begin
       fRange := rsOperatorAndSymbolProc;
       fTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if fLine[Run] in [WideChar(#91)..WideChar(#96)] then
+  if CharInSet(fLine[Run], [#91..#96]) then
     begin
       fRange := rsOperatorAndSymbolProc;
       fTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if fLine[Run] in [WideChar(#123)..WideChar(#127)] then
+  if CharInSet(fLine[Run], [#123..#127]) then
     begin
       fRange := rsOperatorAndSymbolProc;
       fTokenID := tkOperatorAndSymbols;
@@ -1436,7 +1438,7 @@ begin
   Result := Run = fLineLen + 1;
 end;
 
-function TSynEiffelSyn.GetKeyWords(TokenKind: Integer): WideString;
+function TSynEiffelSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
 begin
   Result :=
     '-,!,#,$,%U,&,(,),*,.,/,//,/=,:,:=,;,@,[,\\,],^,|,+,<,<>,=,>,adapt,ali' +
@@ -1479,7 +1481,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynEiffelSyn.GetSampleSource: WideString;
+function TSynEiffelSyn.GetSampleSource: UnicodeString;
 begin
   Result := '-- Eiffel sample source from SmartEiffel'#13#10 +
     'class FIBONACCI'#13#10 +
@@ -1554,7 +1556,7 @@ begin
   end;
 end;
 
-class function TSynEiffelSyn.GetFriendlyLanguageName: WideString;
+class function TSynEiffelSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangEiffel;
 end;

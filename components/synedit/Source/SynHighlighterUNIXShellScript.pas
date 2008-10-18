@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterUNIXShellScript.pas,v 1.7.2.10 2006/08/19 16:12:12 maelh Exp $
+$Id: SynHighlighterUNIXShellScript.pas,v 1.7.2.11 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -120,12 +120,12 @@ type
     procedure HeredocProc;
 {$ENDIF}
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -134,8 +134,8 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: WideString): Boolean; override;
-    function IsSecondKeyWord(AToken: WideString): Boolean;
+    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
+    function IsSecondKeyWord(AToken: UnicodeString): Boolean;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: Integer; override;
     procedure Next; override;
@@ -173,7 +173,7 @@ uses
 {$ENDIF}
 
 const
-  ShellScriptKeys: array[0..109] of WideString = (
+  ShellScriptKeys: array[0..109] of UnicodeString = (
     'awk', 'banner', 'basename', 'bdiff', 'bg', 'break', 'case', 'cat', 'cc',
     'cd', 'chdir', 'chgrp', 'chmod', 'chown', 'clear', 'compress', 'continue',
     'cp', 'cpio', 'cut', 'date', 'dd', 'df', 'diff', 'do', 'done', 'dtpad',
@@ -188,17 +188,17 @@ const
     'uuencode', 'vi', 'wait', 'wc', 'while', 'who', 'xtern', 'zcat', 'zip'
   );
 
-  ShellScriptSecondKeys: array[0..22] of WideString = (
+  ShellScriptSecondKeys: array[0..22] of UnicodeString = (
     'cdpath', 'editor', 'home', 'ifs', 'lang', 'lc_messages', 'lc_type',
     'ld_library_path', 'logname', 'mail', 'mailcheck', 'mailpath', 'manpath',
     'path', 'ps1', 'ps2', 'pwd', 'shacct', 'shell', 'shlib_path', 'term',
     'termcap', 'tz'
   );
 
-function TSynUNIXShellScriptSyn.IsKeyword(const AKeyword: WideString): Boolean;
+function TSynUNIXShellScriptSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := High(ShellScriptKeys);
@@ -219,10 +219,10 @@ begin
   end;
 end; { IsKeyWord }
 
-function TSynUNIXShellScriptSyn.IsSecondKeyWord(AToken: WideString): Boolean;
+function TSynUNIXShellScriptSyn.IsSecondKeyWord(AToken: UnicodeString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := High(ShellScriptSecondKeys);
@@ -316,7 +316,7 @@ procedure TSynUNIXShellScriptSyn.DotProc;
     result := False;
     i := Run;
     inc(i);
-    while (FLine[i] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z')]) do
+    while CharInSet(FLine[i], ['a'..'z', 'A'..'Z']) do
       inc(i);
     if i > (Run + 1) then
       Result := True;
@@ -756,7 +756,7 @@ begin
   Result := SYNS_LangNameUNIXShellScript;
 end;
 
-function TSynUNIXShellScriptSyn.GetSampleSource: WideString;
+function TSynUNIXShellScriptSyn.GetSampleSource: UnicodeString;
 begin
   Result := '######################################'#13#10 +
             '# Here is a comment about some stuff #'#13#10 +
@@ -775,7 +775,7 @@ begin
             'esac';
 end;
 
-class function TSynUNIXShellScriptSyn.GetFriendlyLanguageName: WideString;
+class function TSynUNIXShellScriptSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangNameUNIXShellScript;
 end;

@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterDml.pas,v 1.11.2.6 2005/11/27 22:43:32 maelh Exp $
+$Id: SynHighlighterDml.pas,v 1.11.2.7 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -382,7 +384,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -433,7 +435,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..263] of WideString = (
+  KeyWords: array[0..263] of UnicodeString = (
     'abs', 'absolute_position', 'account', 'acos', 'actual_break', 'add', 
     'add_form', 'alternate_form', 'ascii', 'asin', 'atan', 'atan2', 
     'attributes', 'back', 'base', 'batch', 'begin_block', 'begin_case', 
@@ -3272,7 +3274,7 @@ procedure TSynDmlSyn.NumberProc;
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in [WideChar('0')..WideChar('9'), WideChar('.')] do
+  while CharInSet(FLine[Run], ['0'..'9', '.']) do
   begin
     case FLine[Run] of
       '.':
@@ -3296,7 +3298,7 @@ begin
   p := PWideChar(@fLine[Run - 1]);
   while p >= fLine do
   begin
-    if not (p^ in [WideChar(#9), WideChar(#32)]) then
+    if not CharInSet(p^, [#9, #32]) then
     begin
       inc(Run);
       fTokenID := tkSymbol;
@@ -3438,7 +3440,7 @@ begin
   Result := SYNS_LangGembase;
 end;
 
-class function TSynDmlSyn.GetFriendlyLanguageName: WideString;
+class function TSynDmlSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangGembase;
 end;

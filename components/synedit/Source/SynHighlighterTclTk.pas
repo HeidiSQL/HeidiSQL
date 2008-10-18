@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterTclTk.pas,v 1.18.2.10 2006/08/19 16:12:12 maelh Exp $
+$Id: SynHighlighterTclTk.pas,v 1.18.2.12 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -67,12 +67,6 @@ uses
   SysUtils,
   Classes;
 
-const
-  SYNS_AttrOptions = 'Options';
-  SYNS_AttrPath = 'PathName';
-  SYNS_TixKeyWords = 'Tix keywords';
-  SYNS_WidgetWords = 'BWidget keywords';
-
 type
   TtkTokenKind = (tkSymbol, tkKey, tkComment, tkIdentifier, tkNull, tkNumber, tkSecondKey,
     tkTixKey, tkSpace, tkString, tkOptions, tkVariable, tkWidgetKey, tkPath, tkUnknown);
@@ -95,11 +89,11 @@ type
     fOptionsAttri: TSynHighlighterAttributes;
     fVariableAttri: TSynHighlighterAttributes;
     fPathAttri: TSynHighlighterAttributes;
-    fKeyWords: TWideStrings;
-    fSecondKeys: TWideStrings;
-    fTixWords: TWideStrings;
+    fKeyWords: TUnicodeStrings;
+    fSecondKeys: TUnicodeStrings;
+    fTixWords: TUnicodeStrings;
     fTixKeyAttri: TSynHighlighterAttributes;
-    fWidgetWords: TWideStrings;
+    fWidgetWords: TUnicodeStrings;
     fWidgetKeyAttri: TSynHighlighterAttributes;
     procedure BraceOpenProc;
     procedure PointCommaProc;
@@ -120,18 +114,18 @@ type
     procedure PathProc;
     procedure MinusProc;
     procedure SymbolProc;
-    procedure SetKeyWords(const Value: TWideStrings);
-    procedure SetSecondKeys(const Value: TWideStrings);
+    procedure SetKeyWords(const Value: TUnicodeStrings);
+    procedure SetSecondKeys(const Value: TUnicodeStrings);
     function IsKeywordListStored: Boolean;
     function IsSecondKeywordListStored: Boolean;
-    function InternalIsKeyword(const AKeyword: WideString;
-        KeyWordList: TWideStrings; ACaseSensitive: Boolean = False): Boolean;
+    function InternalIsKeyword(const AKeyword: UnicodeString;
+        KeyWordList: TUnicodeStrings; ACaseSensitive: Boolean = False): Boolean;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -140,7 +134,7 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: WideString): Boolean; override;
+    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     procedure Next; override;
@@ -156,18 +150,18 @@ type
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
       write fIdentifierAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property KeyWords: TWideStrings read fKeyWords write SetKeyWords
+    property KeyWords: TUnicodeStrings read fKeyWords write SetKeyWords
       stored IsKeywordListStored;
     property SecondKeyAttri: TSynHighlighterAttributes read fSecondKeyAttri
       write fSecondKeyAttri;
-    property SecondKeyWords: TWideStrings read fSecondKeys write SetSecondKeys
+    property SecondKeyWords: TUnicodeStrings read fSecondKeys write SetSecondKeys
       stored IsSecondKeywordListStored;
     property TixKeyAttri: TSynHighlighterAttributes read fTixKeyAttri
       write fTixKeyAttri;
-    property TixWords: TWideStrings read fTixWords;
+    property TixWords: TUnicodeStrings read fTixWords;
     property WidgetKeyAttri: TSynHighlighterAttributes read fWidgetKeyAttri
       write fWidgetKeyAttri;
-    property WidgetWords: TWideStrings read fWidgetWords;
+    property WidgetWords: TUnicodeStrings read fWidgetWords;
 
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
@@ -195,7 +189,7 @@ uses
 {$ENDIF}
 
 const
-  TclTkKeys: array[0..128] of WideString = (
+  TclTkKeys: array[0..128] of UnicodeString = (
     'after', 'append', 'array', 'auto_execok', 'auto_import', 'auto_load', 
     'auto_mkindex', 'auto_mkindex_old', 'auto_qualify', 'auto_reset', 'base', 
     'bgerror', 'binary', 'body', 'break', 'catch', 'cd', 'class', 'clock', 
@@ -217,7 +211,7 @@ const
     'update', 'uplevel', 'upvar', 'variable', 'vwait', 'while' 
   );
    
-  SecondTclTkKeys: array[0..91] of WideString = (
+  SecondTclTkKeys: array[0..91] of UnicodeString = (
     'bell', 'bind', 'bindidproc', 'bindproc', 'bindtags', 'bitmap', 'button', 
     'canvas', 'checkbutton', 'clipboard', 'colors', 'combobox', 'console', 
     'cursors', 'debug', 'destroy', 'entry', 'event', 'exp_after', 'exp_before', 
@@ -235,7 +229,7 @@ const
     'tkerror', 'tkvars', 'tkwait', 'toplevel', 'wait', 'winfo', 'wm' 
   );
 
-  TixKeys: array[0..43] of WideString = (
+  TixKeys: array[0..43] of UnicodeString = (
     'compound', 'pixmap', 'tix', 'tixballoon', 'tixbuttonbox', 'tixchecklist', 
     'tixcombobox', 'tixcontrol', 'tixdestroy', 'tixdirlist', 
     'tixdirselectdialog', 'tixdirtree', 'tixdisplaystyle', 'tixexfileselectbox', 
@@ -248,7 +242,7 @@ const
     'tixstdbuttonbox', 'tixtlist', 'tixtree', 'tixutils', 'tixwish' 
   );
   
-  WidgetKeys: array[0..32] of WideString = (
+  WidgetKeys: array[0..32] of UnicodeString = (
     'ArrowButton', 'Button', 'ButtonBox', 'BWidget', 'ComboBox', 'Dialog', 
     'DragSite', 'DropSite', 'DynamicHelp', 'Entry', 'Label', 'LabelEntry', 
     'LabelFrame', 'ListBox', 'MainFrame', 'MessageDlg', 'NoteBook', 
@@ -258,11 +252,11 @@ const
     'Widget' 
   );
 
-function TSynTclTkSyn.InternalIsKeyword(const AKeyword: WideString;
-  KeyWordList: TWideStrings; ACaseSensitive: Boolean = False): Boolean;
+function TSynTclTkSyn.InternalIsKeyword(const AKeyword: UnicodeString;
+  KeyWordList: TUnicodeStrings; ACaseSensitive: Boolean = False): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := KeyWordList.Count - 1;
@@ -285,7 +279,7 @@ begin
   end;
 end;
 
-function TSynTclTkSyn.IsKeyword(const AKeyword: WideString): Boolean;
+function TSynTclTkSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
 begin
   Result := InternalIsKeyword(AKeyword, fWidgetWords, True) or
     InternalIsKeyword(AKeyword, fTixWords) or
@@ -301,18 +295,18 @@ begin
 
   fCaseSensitive := False;
 
-  fKeyWords := TWideStringList.Create;
-  TWideStringList(fKeyWords).Sorted := True;
-  TWideStringList(fKeyWords).Duplicates := dupIgnore;
-  fSecondKeys := TWideStringList.Create;
-  TWideStringList(fSecondKeys).Sorted := True;
-  TWideStringList(fSecondKeys).Duplicates := dupIgnore;
-  fTixWords := TWideStringList.Create;
-  TWideStringList(fTixWords).Sorted := True;
-  TWideStringList(fTixWords).Duplicates := dupIgnore;
-  fWidgetWords := TWideStringList.Create;
-  TWideStringList(fWidgetWords).Sorted := True;
-  TWideStringList(fWidgetWords).Duplicates := dupIgnore;
+  fKeyWords := TUnicodeStringList.Create;
+  TUnicodeStringList(fKeyWords).Sorted := True;
+  TUnicodeStringList(fKeyWords).Duplicates := dupIgnore;
+  fSecondKeys := TUnicodeStringList.Create;
+  TUnicodeStringList(fSecondKeys).Sorted := True;
+  TUnicodeStringList(fSecondKeys).Duplicates := dupIgnore;
+  fTixWords := TUnicodeStringList.Create;
+  TUnicodeStringList(fTixWords).Sorted := True;
+  TUnicodeStringList(fTixWords).Duplicates := dupIgnore;
+  fWidgetWords := TUnicodeStringList.Create;
+  TUnicodeStringList(fWidgetWords).Sorted := True;
+  TUnicodeStringList(fWidgetWords).Duplicates := dupIgnore;
   fKeyWords.BeginUpdate;
   for i := Low(TclTkKeys) to High(TclTkKeys) do
     FKeyWords.Add(TclTkKeys[i]);
@@ -342,11 +336,11 @@ begin
   fSecondKeyAttri.Style := [fsBold];
   AddAttribute(fSecondKeyAttri);
 
-  fTixKeyAttri := TSynHighlighterAttributes.Create(SYNS_TixKeyWords, SYNS_TixKeyWords);
+  fTixKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrTixKeyWords, SYNS_FriendlyAttrTixKeyWords);
   fTixKeyAttri.Style := [fsBold, fsItalic];
   AddAttribute(fTixKeyAttri);
 
-  fWidgetKeyAttri := TSynHighlighterAttributes.Create(SYNS_WidgetWords, SYNS_WidgetWords);
+  fWidgetKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrWidgetWords, SYNS_FriendlyAttrWidgetWords);
   fWidgetKeyAttri.Style := [fsBold, fsItalic];
   AddAttribute(fWidgetKeyAttri);
 
@@ -359,11 +353,11 @@ begin
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
-  fOptionsAttri := TSynHighlighterAttributes.Create(SYNS_AttrOptions, SYNS_AttrOptions);
+  fOptionsAttri := TSynHighlighterAttributes.Create(SYNS_AttrOptions, SYNS_FriendlyAttrOptions);
   AddAttribute(fOptionsAttri);
   fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
   AddAttribute(fVariableAttri);
-  fPathAttri := TSynHighlighterAttributes.Create(SYNS_AttrPath, SYNS_AttrPath);
+  fPathAttri := TSynHighlighterAttributes.Create(SYNS_AttrPath, SYNS_FriendlyAttrPath);
   AddAttribute(fPathAttri);
 
   fRange := rsUnknown;
@@ -702,7 +696,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynTclTkSyn.SetKeyWords(const Value: TWideStrings);
+procedure TSynTclTkSyn.SetKeyWords(const Value: TUnicodeStrings);
 var
   i: Integer;
 begin
@@ -717,7 +711,7 @@ begin
   DefHighLightChange(nil);
 end;
 
-procedure TSynTclTkSyn.SetSecondKeys(const Value: TWideStrings);
+procedure TSynTclTkSyn.SetSecondKeys(const Value: TUnicodeStrings);
 var
   i: Integer;
 begin
@@ -781,11 +775,11 @@ end;
 
 function TSynTclTkSyn.IsKeywordListStored: Boolean;
 var
-  Keys: TWideStringList;
+  Keys: TUnicodeStringList;
   DefKey: Integer;
   Index: Integer;
 begin
-  Keys := TWideStringList.Create;
+  Keys := TUnicodeStringList.Create;
   try
     Keys.Assign(KeyWords);
     Index := 0;
@@ -804,7 +798,7 @@ begin
   end;
 end;
 
-function TSynTclTkSyn.GetSampleSource: WideString;
+function TSynTclTkSyn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '#!/usr/local/tclsh8.0'#13#10 +
@@ -814,41 +808,41 @@ begin
     '}';
 end;
 
-class function TSynTclTkSyn.GetFriendlyLanguageName: WideString;
+class function TSynTclTkSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangTclTk;
 end;
 
 procedure TSynTclTkSyn.MinusProc;
 const
-  EmptyChars = [WideChar(' '), WideChar(#9), WideChar(#0), WideChar(#10), WideChar(#13)];
+  EmptyChars = [' ', #9, #0, #10, #13];
 var
   OK: Boolean;
 begin
   OK := False;
   Inc(Run);
   { minus like symbol }
-  if fLine[Run] in [WideChar('0')..WideChar('9')] then
+  if CharInSet(fLine[Run], ['0'..'9']) then
     FTokenID := tkSymbol
   else
   { special option -- }
-  if (fLine[Run] = '-') and (fLine[Run + 1] in EmptyChars) then
+  if (fLine[Run] = '-') and CharInSet(fLine[Run + 1], EmptyChars) then
   begin
     OK := True;
     Inc(Run);
   end
   { normal options -options }
   else begin
-    if fLine[Run] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z')] then
+    if CharInSet(fLine[Run], ['a'..'z', 'A'..'Z']) then
     begin
       Inc(Run);
-      while FLine[Run] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z')] do
+      while CharInSet(FLine[Run], ['a'..'z', 'A'..'Z']) do
         Inc(Run);
-      OK := fLine[Run] in EmptyChars;
+      OK := CharInSet(fLine[Run], EmptyChars);
     end
     { bad option syntax }
     else
-      while not (FLine[Run] in EmptyChars) do
+      while not CharInSet(FLine[Run], EmptyChars) do
         Inc(Run);
   end;
   if OK then
@@ -859,12 +853,11 @@ end;
 
 procedure TSynTclTkSyn.PathProc;
 begin
-  if FLine[Run + 1] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z')] then
+  if CharInSet(FLine[Run + 1], ['a'..'z', 'A'..'Z']) then
   begin
     fTokenID := tkPath;
     Inc(Run);
-    while FLine[Run] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z'),
-      WideChar('0')..WideChar('9')] do Inc(Run);
+    while CharInSet(FLine[Run], ['a'..'z', 'A'..'Z', '0'..'9']) do Inc(Run);
   end
   else
   begin
@@ -877,17 +870,16 @@ procedure TSynTclTkSyn.VariableProc;
 begin
   fTokenId := tkVariable;
   Inc(Run);
-  while FLine[Run] in [WideChar('_'), WideChar('0')..WideChar('9'),
-    WideChar('A')..WideChar('Z'), WideChar('a')..WideChar('z')] do Inc(Run);
+  while CharInSet(FLine[Run], ['_', '0'..'9', 'A'..'Z', 'a'..'z']) do Inc(Run);
 end;
 
 function TSynTclTkSyn.IsSecondKeywordListStored: Boolean;
 var
-  Keys: TWideStringList;
+  Keys: TUnicodeStringList;
   DefKey: Integer;
   Index: Integer;
 begin
-  Keys := TWideStringList.Create;
+  Keys := TUnicodeStringList.Create;
   try
     Keys.Assign(SecondKeyWords);
     Index := 0;

@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterAsm.pas,v 1.14.2.5 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterAsm.pas,v 1.14.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -59,11 +59,13 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
   QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -99,14 +101,14 @@ type
     procedure SingleQuoteStringProc;
     procedure SymbolProc;
     procedure UnknownProc;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;    
+    class function GetFriendlyLanguageName: UnicodeString; override;    
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -143,7 +145,7 @@ uses
 {$ENDIF}
 
 const
-  Mnemonics: WideString =
+  Mnemonics: UnicodeString =
     'aaa,aad,aam,adc,add,and,arpl,bound,bsf,bsr,bswap,bt,btc,' +
     'btr,bts,call,cbw,cdq,clc,cld,cli,clts,cmc,cmp,cmps,cmpsb,cmpsd,cmpsw,' +
     'cmpxchg,cwd,cwde,daa,das,dec,div,emms,enter,f2xm1,fabs,fadd,faddp,fbld,' +
@@ -176,7 +178,7 @@ const
     'sldt,smsw,stc,std,sti,stos,stosb,stosd,stosw,str,sub,test,verr,verw,' +
     'wait,wbinvd,xadd,xchg,xlat,xlatb,xor';
 
-procedure TSynAsmSyn.DoAddKeyword(AKeyword: WideString; AKind: integer);
+procedure TSynAsmSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
 var
   HashValue: Cardinal;
 begin
@@ -294,7 +296,7 @@ procedure TSynAsmSyn.LowerProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in [WideChar('='), WideChar('>')] then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '>']) then Inc(Run);
 end;
 
 procedure TSynAsmSyn.NullProc;
@@ -465,7 +467,7 @@ begin
   Result := fDefaultFilter <> SYNS_FilterX86Assembly;
 end;
 
-function TSynAsmSyn.GetSampleSource: WideString;
+function TSynAsmSyn.GetSampleSource: UnicodeString;
 begin
   Result := '; x86 assembly sample source'#13#10 +
             '  CODE	SEGMENT	BYTE PUBLIC'#13#10 +
@@ -486,7 +488,7 @@ begin
             'END';
 end;
 
-class function TSynAsmSyn.GetFriendlyLanguageName: WideString;
+class function TSynAsmSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangX86Asm;
 end;

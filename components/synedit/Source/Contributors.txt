@@ -6,7 +6,7 @@ Contributors to the SynEdit project:
     James D. Richardson, Jan Fiala, Jeff Rafter, Johan Visser, Jordan Russell, 
     Jorg Jans, Jonathan Halterman, Kirys, Lasse Vagsather Karlsen, Leon Brown, 
     Lorant Toth, Maël Hörz, Marko Njezic, Martin Pley, Massimo Maria Ghisalberti, 
-	  Mattias Gaertner, Michael Beck, Michael Hieke, Mike Gibbard,
+    Mattias Gaertner, Michael Beck, Michael Hieke, Mike Gibbard,
     Morten J. Skovrup, Murad Kakabayev, Pieter Polak, Primoz Gabrijelcic,
     Roman Silin, Ruggero Bandera, Satya, Stefan van As, Steve Sutherland,
     Sven Blankenberg, Tony De Buys, Woo Young Bum
@@ -37,4 +37,4 @@ of appearance):
     Eden Kirin,  Max Horváth,  riceball,  Ewart Nijburg,  Nils Springob,
     Jeff D. Smith,  Pavel Krehula,  Peter Wolters
 
-$Id: Contributors.txt,v 1.1 2006/01/25 12:58:07 etrusco Exp $
+$Id: Contributors.txt,v 1.20.2.2 2004/12/10 15:31:01 maelh Exp $

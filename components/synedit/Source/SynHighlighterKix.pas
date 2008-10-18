@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterKix.pas,v 1.12.2.5 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterKix.pas,v 1.12.2.6 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -56,10 +56,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -104,11 +106,11 @@ type
     procedure StringProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -148,7 +150,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..168] of WideString = (
+  KeyWords: array[0..168] of UnicodeString = (
     'addkey', 'addprinterconnection', 'addprogramgroup', 'addprogramitem', 
     'address', 'asc', 'at', 'backupeventlog', 'beep', 'big', 'box', 'break', 
     'call', 'case', 'cd', 'chr', 'cleareventlog', 'close', 'cls', 'color', 
@@ -322,7 +324,7 @@ procedure TSynKixSyn.AsciiCharProc;
 begin
   fTokenID := tkString;
   inc(Run);
-  while FLine[Run] in [WideChar('0')..WideChar('9')] do inc(Run);
+  while CharInSet(FLine[Run], ['0'..'9']) do inc(Run);
 end;
 
 procedure TSynKixSyn.CRProc;
@@ -519,7 +521,7 @@ begin
   Result := fDefaultFilter <> SYNS_FilterKIX;
 end;
 
-function TSynKixSyn.GetSampleSource: WideString;
+function TSynKixSyn.GetSampleSource: UnicodeString;
 begin
   Result := '; KiXtart sample source'#13#10 +
             'break on'#13#10 +
@@ -530,7 +532,7 @@ begin
             'AT(1, 30) $USERID';
 end;
 
-class function TSynKixSyn.GetFriendlyLanguageName: WideString;
+class function TSynKixSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangKIX;
 end;

@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterFortran.pas,v 1.15.2.8 2006/08/19 16:12:11 maelh Exp $
+$Id: SynHighlighterFortran.pas,v 1.15.2.9 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -117,7 +119,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -147,15 +149,13 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  KeyWords: array[0..69] of WideString = (
+  KeyWords: array[0..69] of UnicodeString = (
     'allocatable', 'allocate', 'allocated', 'associated', 'call', 'case', 
     'character', 'close', 'common', 'complex', 'contains', 'continue', 'cycle', 
     'data', 'deallocate', 'default', 'define', 'dimension', 'do', 'else', 
@@ -341,7 +341,7 @@ end;
 
 procedure TSynFortranSyn.IdentProc;
 begin
-  if (FLine[Run] in [WideChar('C'), WideChar('c')]) and (Run = 0) then
+  if CharInSet(FLine[Run], ['C', 'c']) and (Run = 0) then
   begin   //Fortran comments
     inc(Run, 1);
     CommentProc;
@@ -437,8 +437,8 @@ end;
 
 procedure TSynFortranSyn.PointProc;
 begin
-  if (((SynWideUpperCase(FLine[Run + 1]) = 'G') and (SynWideUpperCase(FLine[Run + 2])[1] in [WideChar('E'), WideChar('T')])) {.ge. .gt.}
-       or ((SynWideUpperCase(FLine[Run + 1]) = 'L') and (SynWideUpperCase(FLine[Run + 2])[1] in [WideChar('E'), WideChar('T')])) {.le. .lt.}
+  if (((SynWideUpperCase(FLine[Run + 1]) = 'G') and CharInSet(SynWideUpperCase(FLine[Run + 2])[1], ['E', 'T'])) {.ge. .gt.}
+       or ((SynWideUpperCase(FLine[Run + 1]) = 'L') and CharInSet(SynWideUpperCase(FLine[Run + 2])[1], ['E', 'T'])) {.le. .lt.}
        or ((SynWideUpperCase(FLine[Run + 1]) = 'N') and (SynWideUpperCase(FLine[Run + 2]) = 'E')) {.ne.}
        or ((SynWideUpperCase(FLine[Run + 1]) = 'E') and (SynWideUpperCase(FLine[Run + 2]) = 'Q')) {.eq.}
        or ((SynWideUpperCase(FLine[Run + 1]) = 'O') and (SynWideUpperCase(FLine[Run + 2]) = 'R'))){.or.}
@@ -647,7 +647,7 @@ begin
   Result := SYNS_LangFortran;
 end;
 
-class function TSynFortranSyn.GetFriendlyLanguageName: WideString;
+class function TSynFortranSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangFortran;
 end;

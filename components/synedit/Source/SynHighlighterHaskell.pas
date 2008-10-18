@@ -62,10 +62,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -147,13 +149,13 @@ type
     procedure XOrSymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function GetExtTokenID: TxtkTokenKind;
     function IsFilterStored: Boolean; override;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -196,7 +198,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..23] of WideString = (
+  KeyWords: array[0..23] of UnicodeString = (
     'Bool', 'Char', 'class', 'data', 'deriving', 'Double', 'else', 'False', 
     'Float', 'if', 'import', 'in', 'instance', 'Int', 'Integer', 'IO', 'let', 
     'module', 'otherwise', 'String', 'then', 'True', 'type', 'where' 
@@ -359,7 +361,7 @@ begin
   fTokenID := tkString;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [WideChar(#39), WideChar('\')] then
+      if CharInSet(fLine[Run + 1], [#39, '\']) then
         inc(Run);
     end;
     inc(Run);
@@ -757,7 +759,7 @@ begin
   fTokenID := tkString;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [WideChar(#34), WideChar('\')] then
+      if CharInSet(fLine[Run + 1], [#34, '\']) then
         Inc(Run);
     end;
     inc(Run);
@@ -956,7 +958,7 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-function TSynHaskellSyn.GetSampleSource: WideString;
+function TSynHaskellSyn.GetSampleSource: UnicodeString;
 begin
   Result := '-- Haskell Sample Source'#13#10 +
             'tail :: [a] -> [a]'#13#10 +
@@ -964,7 +966,7 @@ begin
             '';
 end;
 
-class function TSynHaskellSyn.GetFriendlyLanguageName: WideString;
+class function TSynHaskellSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangHaskell;
 end;

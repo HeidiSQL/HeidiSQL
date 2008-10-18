@@ -56,7 +56,7 @@
                         Added BaseStyle property to TheFontFont class.
  ==============================================================================}
 
-// $Id: SynTextDrawer.pas,v 1.6.2.11 2006/05/21 11:59:35 maelh Exp $
+// $Id: SynTextDrawer.pas,v 1.6.2.17 2008/09/17 13:59:12 maelh Exp $
 
 // SynEdit note: The name had to be changed to get SynEdit to install 
 //   together with mwEdit into the same Delphi installation
@@ -89,8 +89,7 @@ type
   TheFontData = record
     Style: TFontStyles;
     Handle: HFont;
-    CharAdv: Integer;       // char advance of single-byte code
-    DBCharAdv: Integer;     // char advance of double-byte code
+    CharAdv: Integer;
     CharHeight: Integer;
   end;
 
@@ -105,7 +104,6 @@ type
     // font information
     BaseFont: TFont;
     BaseLF: TLogFont;
-    IsDBCSFont: Boolean;
     IsTrueType: Boolean;
     FontsData: TheFontsData;
   end;
@@ -131,8 +129,10 @@ type
 
   { TheFontStock }
 
-  TheExtTextOutProc = procedure (X, Y: Integer; fuOptions: UINT;
-    const ARect: TRect; const Text: WideString; Length: Integer) of object;
+  TTextOutOptions = set of (tooOpaque, tooClipped);
+
+  TheExtTextOutProc = procedure (X, Y: Integer; fuOptions: TTextOutOptions;
+    const ARect: TRect; const Text: UnicodeString; Length: Integer) of object;
 
   EheFontStockException = class(Exception);
 
@@ -153,17 +153,14 @@ type
     // local font info
     FBaseLF: TLogFont;
     function GetBaseFont: TFont;
-    function GetIsDBCSFont: Boolean;
     function GetIsTrueType: Boolean;
   protected
     function InternalGetDC: HDC; virtual;
     procedure InternalReleaseDC(Value: HDC); virtual;
     function InternalCreateFont(Style: TFontStyles): HFONT; virtual;
-    function CalcFontAdvance(DC: HDC;
-      pCharHeight, pDBCharAdvance: PInteger): Integer; virtual;
+    function CalcFontAdvance(DC: HDC; pCharHeight: PInteger): Integer; virtual;
     function GetCharAdvance: Integer; virtual;
     function GetCharHeight: Integer; virtual;
-    function GetDBCharAdvance: Integer; virtual;
     function GetFontData(idx: Integer): PheFontData; virtual;
     procedure UseFontHandles;
     procedure ReleaseFontsInfo;
@@ -180,8 +177,6 @@ type
     property FontHandle: HFONT read FCrntFont;
     property CharAdvance: Integer read GetCharAdvance;
     property CharHeight: Integer read GetCharHeight;
-    property DBCharAdvance: Integer read GetDBCharAdvance;
-    property IsDBCSFont: Boolean read GetIsDBCSFont;
     property IsTrueType: Boolean read GetIsTrueType;
   end;
 
@@ -228,11 +223,11 @@ type
     procedure BeginDrawing(DC: HDC); virtual;
     procedure EndDrawing; virtual;
     procedure TextOut(X, Y: Integer; Text: PWideChar; Length: Integer); virtual;
-    procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; ARect: TRect;
-      const Text: WideString; Length: Integer); virtual;
-    function TextExtent(const Text: WideString): TSize; overload;
+    procedure ExtTextOut(X, Y: Integer; Options: TTextOutOptions; ARect: TRect;
+      Text: PWideChar; Length: Integer); virtual;
+    function TextExtent(const Text: UnicodeString): TSize; overload;
     function TextExtent(Text: PWideChar; Count: Integer): TSize; overload;
-    function TextWidth(const Text: WideString): Integer; overload;
+    function TextWidth(const Text: UnicodeString): Integer; overload;
     function TextWidth(Text: PWideChar; Count: Integer): Integer; overload;
     procedure SetBaseFont(Value: TFont); virtual;
     procedure SetBaseStyle(const Value: TFontStyles); virtual;
@@ -251,70 +246,20 @@ type
     property CharExtra: Integer read FCharExtra write SetCharExtra;
   end;
 
-  { TheTextDrawer2 }
+function GetFontsInfoManager: TheFontsInfoManager;
 
-  TheTextDrawer2 = class(TheTextDrawer)
-  private
-    FFonts: array[TheStockFontPatterns] of HFONT;
-  public
-    procedure SetStyle(Value: TFontStyles); override;
-    procedure SetBaseFont(Value: TFont); override;
-  end;
-
-  { TheTextDrawerEx }
-
-  TheTextDrawerEx = class(TheTextDrawer)
-  private
-    // current font properties
-    FCrntDx: Integer;
-    FCrntDBDx: Integer;               // for a double-byte character
-    // Text drawing procedure reference for optimization
-    FExtTextOutProc: TheExtTextOutProc;
-  protected
-    procedure AfterStyleSet; override;
-    procedure DoSetCharExtra(Value: Integer); override;
-    procedure TextOutOrExtTextOut(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; const Text: WideString; Length: Integer); virtual;
-    procedure ExtTextOutFixed(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; const Text: WideString; Length: Integer); virtual;
-    procedure ExtTextOutWithETO(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; const Text: WideString; Length: Integer); virtual;
-    procedure ExtTextOutForDBCS(X, Y: Integer; fuOptions: UINT;
-      const ARect: TRect; Text: PAnsiChar; Length: Integer); virtual;
-  public
-    procedure ExtTextOut(X, Y: Integer; fuOptions: UINT; ARect: TRect;
-      const Text: WideString; Length: Integer); override;
-  end;
-
-  function GetFontsInfoManager: TheFontsInfoManager;
-
-{$IFNDEF VER93}
-{$IFNDEF VER90}
-{$IFNDEF VER80}
-{$DEFINE HE_ASSERT}
-{$DEFINE HE_LEADBYTES}
-{$DEFINE HE_COMPAREMEM}
-{$ENDIF}
-{$ENDIF}
-{$ENDIF}
-
-{$IFNDEF HE_LEADBYTES}
-type
-  TheLeadByteChars = set of AnsiChar;
-
-  function SetLeadBytes(const Value: TheLeadByteChars): TheLeadByteChars;
-{$ENDIF}
+function UniversalExtTextOut(DC: HDC; X, Y: Integer; Options: TTextOutOptions;
+  Rect: TRect; Str: PWideChar; Count: Integer; ETODist: PIntegerArray): Boolean;
 
 implementation
 
-const
-  DBCHAR_CALCULATION_FALED  = $7FFFFFFF;
+{$IFDEF SYN_UNISCRIBE}
+uses
+  SynUsp10;
+{$ENDIF}
 
 var
   gFontsInfoManager: TheFontsInfoManager;
-{$IFNDEF HE_LEADBYTES}
-  LeadBytes: TheLeadByteChars;
-{$ENDIF}
 
 { utility routines }
 
@@ -330,44 +275,70 @@ begin
   if x < y then Result := x else Result := y;
 end;
 
-{$IFNDEF HE_ASSERT}
-procedure ASSERT(Expression: Boolean);
+// UniversalExtTextOut uses UniScribe where available for the best possible
+// output quality. This also avoids a bug in (Ext)TextOut that surfaces when
+// displaying a combination of Chinese and Korean text.
+//
+// See here for details: http://groups.google.com/group/microsoft.public.win32.programmer.international/browse_thread/thread/77cd596f2b96dc76/146300208098285c?lnk=st&q=font+substitution+problem#146300208098285c
+function UniversalExtTextOut(DC: HDC; X, Y: Integer; Options: TTextOutOptions;
+  Rect: TRect; Str: PWideChar; Count: Integer; ETODist: PIntegerArray): Boolean;
+{$IFDEF SYN_UNISCRIBE}
+const
+  SSAnalyseFlags = SSA_GLYPHS or SSA_FALLBACK or SSA_LINK;
+  SpaceString: UnicodeString = ' ';
+{$ENDIF}
+var
+  TextOutFlags: DWORD;
+{$IFDEF SYN_UNISCRIBE}
+  GlyphBufferSize: Integer;
+  saa: TScriptStringAnalysis;
+{$ENDIF}
 begin
-  if not Expression then
-    raise EheTextDrawerException.Create('Assertion failed.');
-end;
-{$ENDIF}
+  TextOutFlags := 0;
+  if tooOpaque in Options then
+    TextOutFlags := TextOutFlags or ETO_OPAQUE;
+  if tooClipped in Options then
+    TextOutFlags := TextOutFlags or ETO_CLIPPED;
 
-{$IFNDEF HE_LEADBYTES}
-function SetLeadBytes(const Value: TheLeadByteChars): TheLeadByteChars;
-begin
-  Result := LeadBytes;
-  LeadBytes := Value;
-end;
-{$ENDIF}
+{$IFDEF SYN_UNISCRIBE}
+  if Usp10IsInstalled then
+  begin
+    // UniScribe requires that the string contains at least one character.
+    // If UniversalExtTextOut should be used to fill the background we can just
+    // pass a string made of a space.
+    if Count <= 0 then
+      if tooOpaque in Options then
+      begin
+        // Clipping is necessary, since depending on X, Y the space will be
+        // printed outside Rect and potentially fill more than we want.
+        TextOutFlags := TextOutFlags or ETO_CLIPPED;
+        Str := PWideChar(SpaceString);
+        Count := 1;
+      end
+      else
+      begin
+        Result := False;
+        Exit;
+      end;
 
-{$IFNDEF HE_COMPAREMEM}
-function CompareMem(P1, P2: Pointer; Length: Integer): Boolean; assembler;
-asm
-        PUSH    ESI
-        PUSH    EDI
-        MOV     ESI,P1
-        MOV     EDI,P2
-        MOV     EDX,ECX
-        XOR     EAX,EAX
-        AND     EDX,3
-        SHR     ECX,1
-        SHR     ECX,1
-        REPE    CMPSD
-        JNE     @@2
-        MOV     ECX,EDX
-        REPE    CMPSB
-        JNE     @@2
-@@1:    INC     EAX
-@@2:    POP     EDI
-        POP     ESI
-end;
+    // According to the MS Windows SDK (1.5 * Count + 16) is the recommended
+    // value for GlyphBufferSize (see documentation of cGlyphs parameter of
+    // ScriptStringAnalyse function)
+    GlyphBufferSize := (3 * Count) div 2 + 16;
+    
+    Result := Succeeded(ScriptStringAnalyse(DC, Str, Count, GlyphBufferSize, -1,
+      SSAnalyseFlags, 0, nil, nil, Pointer(ETODist), nil, nil, @saa));
+    Result := Result and Succeeded(ScriptStringOut(saa, X, Y, TextOutFlags,
+      @Rect, 0, 0, False));
+    Result := Result and Succeeded(ScriptStringFree(@saa));
+  end
+  else
 {$ENDIF}
+  begin
+    Result := ExtTextOutW(DC, X, Y, TextOutFlags, @Rect, Str, Count,
+      Pointer(ETODist));
+  end;
+end;
 
 { TheFontsInfoManager }
 
@@ -386,9 +357,6 @@ end;
 
 function TheFontsInfoManager.CreateFontsInfo(ABaseFont: TFont;
   const LF: TLogFont): PheSharedFontsInfo;
-var
-  DC: HDC;
-  hOldFont: HFont;
 begin
   New(Result);
   FillChar(Result^, SizeOf(TheSharedFontsInfo), 0);
@@ -398,12 +366,6 @@ begin
       BaseFont.Assign(ABaseFont);
       BaseLF := LF;
       IsTrueType := (0 <> (TRUETYPE_FONTTYPE and LF.lfPitchAndFamily));
-      // find out whether the font `IsDBCSFont'
-      DC := GetDC(0);
-      hOldFont := SelectObject(DC, ABaseFont.Handle);
-      IsDBCSFont := (0 <> (GCP_DBCS and GetFontLanguageInfo(DC)));
-      SelectObject(DC, hOldFont);
-      ReleaseDC(0, DC);
   except
     Result^.BaseFont.Free;
     Dispose(Result);
@@ -513,7 +475,7 @@ end;
 procedure TheFontsInfoManager.RetrieveLogFontForComparison(ABaseFont: TFont;
   var LF: TLogFont);
 var
-  pEnd: PAnsiChar;
+  pEnd: PChar;
 begin
   GetObject(ABaseFont.Handle, SizeOf(TLogFont), @LF);
   with LF do
@@ -530,13 +492,10 @@ end;
 
 // CalcFontAdvance : Calculation a advance of a character of a font.
 //  [*]hCalcFont will be selected as FDC's font if FDC wouldn't be zero.
-function TheFontStock.CalcFontAdvance(DC: HDC;
-  pCharHeight, pDBCharAdvance: PInteger): Integer;
+function TheFontStock.CalcFontAdvance(DC: HDC; pCharHeight: PInteger): Integer;
 var
   TM: TTextMetric;
   ABC: TABC;
-  ABC2: TABC;
-  w: Integer;
   HasABC: Boolean;
 begin
   // Calculate advance of a character.
@@ -563,50 +522,6 @@ begin
   // pCharHeight
   if Assigned(pCharHeight) then
     pCharHeight^ := Abs(TM.tmHeight) {+ TM.tmInternalLeading};
-  // pDBCharAdvance
-  if Assigned(pDBCharAdvance) then
-  begin
-    pDBCharAdvance^ := DBCHAR_CALCULATION_FALED;
-    if IsDBCSFont then
-    begin
-      case TM.tmCharSet of
-        SHIFTJIS_CHARSET:
-          if HasABC and
-             GetCharABCWidths(DC, $8201, $8201, ABC) and    // max width(maybe)
-             GetCharABCWidths(DC, $82A0, $82A0, ABC2) then  // HIRAGANA 'a'
-          begin
-            with ABC do
-              w := abcA + Integer(abcB) + abcC;
-            if w > (1.5 * Result) then // it should be over 150% wider than SBChar(I think)
-              with ABC2 do
-                if w = (abcA + Integer(abcB) + abcC) then
-                  pDBCharAdvance^ := w;
-          end;
-        // About the following character sets,
-        // I don't know with what character should be calculated.
-{
-        ANSI_CHARSET:
-        DEFAULT_CHARSET:
-        SYMBOL_CHARSET:
-        HANGUL_CHARSET:
-        GB2312_CHARSET:
-        CHINESEBIG5_CHARSET:
-        OEM_CHARSET:
-        JOHAB_CHARSET:
-        HEBREW_CHARSET:
-        ARABIC_CHARSET:
-        GREEK_CHARSET:
-        TURKISH_CHARSET:
-        VIETNAMESE_CHARSET:
-        THAI_CHARSET:
-        EASTEUROPE_CHARSET:
-        RUSSIAN_CHARSET:
-        MAC_CHARSET:
-        BALTIC_CHARSET:
-}
-      end;
-    end;
-  end;
 end;
 
 constructor TheFontStock.Create(InitialFont: TFont);
@@ -639,19 +554,9 @@ begin
   Result := FpCrntFontData^.CharHeight;
 end;
 
-function TheFontStock.GetDBCharAdvance: Integer;
-begin
-  Result := FpCrntFontData^.DBCharAdv;
-end;
-
 function TheFontStock.GetFontData(idx: Integer): PheFontData;
 begin
   Result := @FpInfo^.FontsData[idx];
-end;
-
-function TheFontStock.GetIsDBCSFont: Boolean;
-begin
-  Result := FpInfo^.IsDBCSFont;
 end;
 
 function TheFontStock.GetIsTrueType: Boolean;
@@ -783,10 +688,7 @@ begin
   with FpCrntFontData^ do
   begin
     Handle := FCrntFont;
-    if IsDBCSFont then
-      CharAdv := CalcFontAdvance(DC, @CharHeight, @DBCharAdv)
-    else
-      CharAdv := CalcFontAdvance(DC, @CharHeight, nil);
+    CharAdv := CalcFontAdvance(DC, @CharHeight);
   end;
 
   SelectObject(DC, hOldFont);
@@ -964,12 +866,15 @@ end;
 
 procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PWideChar;
   Length: Integer);
+var
+  r: TRect;
 begin
-  Windows.TextOutW(FDC, X, Y, Text, Length);
+  r := Rect(X, Y, X, Y);
+  UniversalExtTextOut(FDC, X, Y, [], r, Text, Length, nil);
 end;
 
-procedure TheTextDrawer.ExtTextOut(X, Y: Integer; fuOptions: UINT;
-  ARect: TRect; const Text: WideString; Length: Integer);
+procedure TheTextDrawer.ExtTextOut(X, Y: Integer; Options: TTextOutOptions;
+  ARect: TRect; Text: PWideChar; Length: Integer);
 
   procedure InitETODist(CharWidth: Integer);
   var
@@ -977,10 +882,10 @@ procedure TheTextDrawer.ExtTextOut(X, Y: Integer; fuOptions: UINT;
     i: Integer;
   begin
     ReallocMem(FETODist, Length * SizeOf(Integer));
-    for i := 1 to Length do
+    for i := 0 to Length - 1 do
     begin
-      Size := TextExtent(@Text[i], 1);
-      FETODist[i - 1] := Ceil(Size.cx / CharWidth) * CharWidth;
+      Size := TextExtent(PWideChar(@Text[i]), 1);
+      FETODist[i] := Ceil(Size.cx / CharWidth) * CharWidth;
     end;
   end;
 
@@ -993,7 +898,7 @@ procedure TheTextDrawer.ExtTextOut(X, Y: Integer; fuOptions: UINT;
   begin
     if Length <= 0 then Exit;
     
-    LastChar := Ord(Text[Length]);
+    LastChar := Ord(Text[Length - 1]);
     CharWidth := FETODist[Length - 1];
     RealCharWidth := CharWidth;
     if Win32PlatformIsUnicode then
@@ -1032,8 +937,7 @@ procedure TheTextDrawer.ExtTextOut(X, Y: Integer; fuOptions: UINT;
 begin
   InitETODist(GetCharWidth);
   AdjustLastCharWidthAndRect;
-  Windows.ExtTextOutW(FDC, X, Y, fuOptions, @ARect, PWideChar(Text),
-    Length, PInteger(FETODist));
+  UniversalExtTextOut(FDC, X, Y, Options, ARect, Text, Length, FETODist);
 end;
 
 procedure TheTextDrawer.ReleaseTemporaryResources;
@@ -1041,217 +945,29 @@ begin
   FFontStock.ReleaseFontHandles;
 end;
 
-function TheTextDrawer.TextExtent(const Text: WideString): TSize;
+function TheTextDrawer.TextExtent(const Text: UnicodeString): TSize;
 begin
   Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text);
 end;
 
 function TheTextDrawer.TextExtent(Text: PWideChar; Count: Integer): TSize;
 begin
-  Result := GetTextSize(FStockBitmap.Canvas.Handle, Text, Count);
+  Result := SynUnicode.GetTextSize(FStockBitmap.Canvas.Handle, Text, Count);
 end;
 
-function TheTextDrawer.TextWidth(const Text: WideString): Integer;
+function TheTextDrawer.TextWidth(const Text: UnicodeString): Integer;
 begin
   Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
 end;
 
 function TheTextDrawer.TextWidth(Text: PWideChar; Count: Integer): Integer;
 begin
-  Result := GetTextSize(FStockBitmap.Canvas.Handle, Text, Count).cX;
+  Result := SynUnicode.GetTextSize(FStockBitmap.Canvas.Handle, Text, Count).cX;
 end;
-
-{ TheTextDrawer2 }
-
-procedure TheTextDrawer2.SetStyle(Value: TFontStyles);
-var
-  idx: Integer;
-begin
-  idx := PByte(@Value)^;
-  if FFonts[idx] <> 0 then
-  begin
-    FCrntFont := FFonts[idx];
-    AfterStyleSet;
-  end
-  else
-  begin
-    inherited;
-    FFonts[idx] := FCrntFont;
-  end;
-end;
-
-procedure TheTextDrawer2.SetBaseFont(Value: TFont);
-var
-  i: Integer;
-begin
-  for i := Low(FFonts) to High(FFonts) do
-    FFonts[i] := 0;
-  inherited;
-end;
-
-{ TheTextDrawerEx }
-
-procedure TheTextDrawerEx.AfterStyleSet;
-begin
-  inherited;
-  with FontStock do
-  begin
-    FCrntDx := BaseCharWidth - CharAdvance;
-    case IsDBCSFont of
-      False:
-        begin
-          if StockDC <> 0 then
-            SetTextCharacterExtra(StockDC, CharExtra + FCrntDx);
-          if IsTrueType or (not (fsItalic in Style)) then
-            FExtTextOutProc := TextOutOrExtTextOut
-          else
-            FExtTextOutProc := ExtTextOutFixed;
-        end;
-      True:
-        begin
-          FCrntDBDx := DBCHAR_CALCULATION_FALED;
-          FExtTextOutProc := ExtTextOutWithETO;
-        end;
-    end;
-  end;
-end;
-
-procedure TheTextDrawerEx.DoSetCharExtra(Value: Integer);
-begin
-  if not FontStock.IsDBCSFont then
-  begin
-    SetBkMode(StockDC, OPAQUE);
-    SetTextCharacterExtra(StockDC, Value + FCrntDx);
-  end
-  else if FCrntDBDx = DBCHAR_CALCULATION_FALED then
-    SetTextCharacterExtra(StockDC, Value);
-end;
-
-procedure TheTextDrawerEx.ExtTextOut(X, Y: Integer; fuOptions: UINT;
-  ARect: TRect; const Text: WideString; Length: Integer);
-begin
-  FExtTextOutProc(X, Y, fuOptions, ARect, Text, Length);
-end;
-
-procedure TheTextDrawerEx.ExtTextOutFixed(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; const Text: WideString; Length: Integer);
-begin
-  Windows.ExtTextOutW(StockDC, X, Y, fuOptions, @ARect, @Text[1], Length, nil);
-end;
-
-procedure TheTextDrawerEx.ExtTextOutForDBCS(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; Text: PAnsiChar; Length: Integer);
-var
-  pCrnt: PAnsiChar;
-  pTail: PAnsiChar;
-  pRun: PAnsiChar;
-
-  procedure GetSBCharRange;
-  begin
-    while (pRun <> pTail) and (not (pRun^ in LeadBytes)) do
-      Inc(pRun);
-  end;
-
-  procedure GetDBCharRange;
-  begin
-    while (pRun <> pTail) and (pRun^ in LeadBytes) do
-      Inc(pRun, 2);
-  end;
-
-var
-  TmpRect: TRect;
-  Len: Integer;
-  n: Integer;
-begin
-  pCrnt := Text;
-  pRun := Text;
-  pTail := PAnsiChar(Integer(Text) + Length);
-  TmpRect := ARect;
-  while pCrnt < pTail do
-  begin
-    GetSBCharRange;
-    if pRun <> pCrnt then
-    begin
-      SetTextCharacterExtra(StockDC, FCharExtra + FCrntDx);
-      Len := Integer(pRun) - Integer(pCrnt);
-      with TmpRect do
-      begin
-        n := GetCharWidth * Len;
-        Right := Min(Left + n + GetCharWidth, ARect.Right);
-        Windows.ExtTextOut(StockDC, X, Y, fuOptions, @TmpRect, pCrnt, Len, nil);
-        Inc(X, n);
-        Inc(Left, n);
-      end;
-    end;
-    pCrnt := pRun;
-    if pRun = pTail then
-      break;
-    
-    GetDBCharRange;
-    SetTextCharacterExtra(StockDC, FCharExtra + FCrntDBDx);
-    Len := Integer(pRun) - Integer(pCrnt);
-    with TmpRect do
-    begin
-      n := GetCharWidth * Len;
-      Right := Min(Left + n + GetCharWidth, ARect.Right);
-      Windows.ExtTextOut(StockDC, X, Y, fuOptions, @TmpRect, pCrnt, Len, nil);
-      Inc(X, n);
-      Inc(Left, n);
-    end;
-    pCrnt := pRun;
-  end;
-
-  if (pCrnt = Text) or // maybe Text is not assigned or Length is 0
-     (TmpRect.Right < ARect.Right) then
-  begin
-    SetTextCharacterExtra(StockDC, FCharExtra + FCrntDx);
-    Windows.ExtTextOut(StockDC, X, Y, fuOptions, @TmpRect, nil, 0, nil);
-  end;
-end;
-
-procedure TheTextDrawerEx.ExtTextOutWithETO(X, Y: Integer; fuOptions: UINT;
-  const ARect: TRect; const Text: WideString; Length: Integer);
-begin
-  inherited ExtTextOut(X, Y, fuOptions, ARect, Text, Length);
-end;
-
-procedure TheTextDrawerEx.TextOutOrExtTextOut(X, Y: Integer;
-  fuOptions: UINT; const ARect: TRect; const Text: WideString; Length: Integer);
-begin
-  // this function may be used when:
-  //  a. the text does not containing any multi-byte characters
-  // AND
-  //   a-1. current font is TrueType.
-  //   a-2. current font is RasterType and it is not italicic.
-  with ARect do
-    if (Length > 0) and
-       (Left = X) and (Top = Y) and
-       ((Bottom - Top) = GetCharHeight) and
-       (Left + GetCharWidth * (Length + 1) > Right) then
-    Windows.TextOutW(StockDC, X, Y, @Text[1], Length)
-  else
-    Windows.ExtTextOutW(StockDC, X, Y, fuOptions, @ARect, @Text[1], Length, nil)
-end;
-
-{$IFNDEF HE_LEADBYTES}
-procedure InitializeLeadBytes;
-var
-  c: AnsiChar;
-begin
-  for c := Low(AnsiChar) to High(AnsiChar) do
-    if IsDBCSLeadByte(Byte(c)) then
-      Include(LeadBytes, c);
-end;
-{$ENDIF} // HE_LEADBYTES
 
 initialization
 
-{$IFNDEF HE_LEADBYTES}
-  InitializeLeadBytes;
-{$ENDIF} 
-
 finalization
-
   gFontsInfoManager.Free;
 
 end.

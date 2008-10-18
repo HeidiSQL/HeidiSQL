@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrint.pas,v 1.34.2.9 2006/05/21 11:59:34 maelh Exp $
+$Id: SynEditPrint.pas,v 1.34.2.12 2008/09/23 14:02:08 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -134,12 +134,12 @@ type
     FCopies: Integer;                                                           
     FFooter: TFooter;
     FHeader: THeader;
-    FLines: TWideStrings;
+    FLines: TUnicodeStrings;
     FMargins: TSynEditPrintMargins;
     FPageCount: Integer;
     FFont: TFont;
-    FTitle: WideString;
-    FDocTitle: WideString;                                                      
+    FTitle: UnicodeString;
+    FDocTitle: UnicodeString;                                                      
     FPrinterInfo: TSynEditPrinterInfo;
     FPages: TList;
     FCanvas: TCanvas;
@@ -176,15 +176,15 @@ type
     fBlockEnd: TBufferCoord;
     FETODist: PIntArray;
     procedure CalcPages;
-    procedure SetLines(const Value: TWideStrings);
+    procedure SetLines(const Value: TUnicodeStrings);
     procedure SetFont(const Value: TFont);
     procedure SetCharWidth(const Value: Integer);
     procedure SetMaxLeftChar(const Value: Integer);
     procedure PrintPage(Num: Integer);
-    procedure WriteLine(const Text: WideString);
+    procedure WriteLine(const Text: UnicodeString);
     procedure WriteLineNumber;
-    procedure HandleWrap(const Text: WideString; MaxWidth: Integer);
-    procedure TextOut(const Text: WideString; AList: TList);
+    procedure HandleWrap(const Text: UnicodeString; MaxWidth: Integer);
+    procedure TextOut(const Text: UnicodeString; AList: TList);
     procedure SetHighlighter(const Value: TSynCustomHighlighter);
     procedure RestoreCurrentFont;
     procedure SaveCurrentFont;
@@ -196,8 +196,8 @@ type
     procedure SetFooter(const Value: TFooter);
     procedure SetHeader(const Value: THeader);
     procedure SetMargins(const Value: TSynEditPrintMargins);
-    function ClipLineToRect(S: WideString; R: TRect): WideString;
-    function ExpandAtWideGlyphs(const S: WideString): WideString;
+    function ClipLineToRect(S: UnicodeString; R: TRect): UnicodeString;
+    function ExpandAtWideGlyphs(const S: UnicodeString): UnicodeString;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     property MaxLeftChar: Integer read FMaxLeftChar write SetMaxLeftChar;
@@ -223,10 +223,10 @@ type
     property Header: THeader read FHeader write SetHeader;
     property Footer: TFooter read FFooter write SetFooter;
     property Margins: TSynEditPrintMargins read FMargins write SetMargins;
-    property Lines: TWideStrings read FLines write SetLines;
+    property Lines: TUnicodeStrings read FLines write SetLines;
     property Font: TFont read FFont write SetFont;
-    property Title: WideString read FTitle write FTitle;
-    property DocTitle: WideString read FDocTitle write FDocTitle;               
+    property Title: UnicodeString read FTitle write FTitle;
+    property DocTitle: UnicodeString read FDocTitle write FDocTitle;               
     property Wrap: Boolean read FWrap write FWrap default True;
     property Highlight: Boolean read FHighlight write FHighlight default True;
     property SelectedOnly: Boolean read FSelectedOnly write FSelectedOnly       
@@ -260,7 +260,7 @@ begin
   FCopies := 1;
   FFooter := TFooter.Create;
   FHeader := THeader.Create;
-  FLines := TWideStringList.Create;
+  FLines := TUnicodeStringList.Create;
   FMargins := TSynEditPrintMargins.Create;
   FPrinterInfo := TSynEditPrinterInfo.Create;
   FFont := TFont.Create;
@@ -299,14 +299,16 @@ end;
 procedure TSynEditPrint.DefineProperties(Filer: TFiler);
 begin
   inherited;
+{$IFNDEF UNICODE}
   UnicodeDefineProperties(Filer, Self);
+{$ENDIF}
 end;
 
-procedure TSynEditPrint.SetLines(const Value: TWideStrings);
+procedure TSynEditPrint.SetLines(const Value: TUnicodeStrings);
 var
   i, j: Integer;
   ConvertTabsProc: TConvertTabsProc;
-  TmpString: WideString;
+  TmpString: UnicodeString;
 begin
   ConvertTabsProc := GetBestConvertTabsProc(FTabWidth);
   with FLines do
@@ -361,7 +363,7 @@ end;
 // are usually wider than latin glpyhs)
 // This is only to simplify paint-operations and has nothing to do with
 // multi-byte chars.
-function TSynEditPrint.ExpandAtWideGlyphs(const S: WideString): WideString;
+function TSynEditPrint.ExpandAtWideGlyphs(const S: UnicodeString): UnicodeString;
 var
   i, j, CountOfAvgGlyphs: Integer;
 begin
@@ -466,7 +468,7 @@ end;
 // Calculates the total number of pages
 procedure TSynEditPrint.CalcPages;
 var
-  AStr, Text: WideString;
+  AStr, Text: UnicodeString;
   StrWidth: Integer;
   i, j: Integer;
   AList: TList;
@@ -502,8 +504,8 @@ begin
   {FTestString is used to Calculate MaxWidth when prewiewing and printing -
    else the length is not calculated correctly when prewiewing and the
    zoom is different from 0.25,0.5,1,2,4 (as for example 1.20) - WHY???}
-//  fTestString := WideStringOfChar('W', FMaxCol);
-  AStr := WideStringOfChar('W', FMaxCol);
+//  fTestString := UnicodeStringOfChar('W', FMaxCol);
+  AStr := UnicodeStringOfChar('W', FMaxCol);
   FMaxWidth := TextWidth(FCanvas, AStr);
   FPageCount := 1;
   PageLine := TPageLine.Create;
@@ -584,7 +586,7 @@ end;
   the linenumbers should not be placed in the margin) }
 procedure TSynEditPrint.WriteLineNumber;
 var
-  AStr: AnsiString;
+  AStr: UnicodeString;
 begin
   SaveCurrentFont;
   AStr := IntToStr(FLineNumber + FLineOffset) + ': ';
@@ -600,9 +602,9 @@ begin
   RestoreCurrentFont;
 end;
 
-procedure TSynEditPrint.HandleWrap(const Text: WideString; MaxWidth: Integer);
+procedure TSynEditPrint.HandleWrap(const Text: UnicodeString; MaxWidth: Integer);
 var
-  AStr: WideString;
+  AStr: UnicodeString;
   AList: TList;
   j: Integer;
 
@@ -660,7 +662,7 @@ begin
   FCanvas.Font.Assign(FOldFont);
 end;
 
-function TSynEditPrint.ClipLineToRect(S: WideString; R: TRect): WideString;
+function TSynEditPrint.ClipLineToRect(S: UnicodeString; R: TRect): UnicodeString;
 begin
  while TextWidth(FCanvas, S) > FMaxWidth do
     SetLength(S, Length(S) - 1);
@@ -669,24 +671,24 @@ begin
 end;
 
 //Does the actual printing
-procedure TSynEditPrint.TextOut(const Text: WideString; AList: TList);
+procedure TSynEditPrint.TextOut(const Text: UnicodeString; AList: TList);
 var
-  Token: WideString;
+  Token: UnicodeString;
   TokenPos: Integer;
   Attr: TSynHighlighterAttributes;
   AColor: TColor;
   TokenStart: Integer;
   LCount: Integer;
   Handled: Boolean;
-  aStr: WideString;
+  aStr: UnicodeString;
   i, WrapPos, OldWrapPos: Integer;
-  Lines: TWideStringList;
+  Lines: TUnicodeStringList;
   ClipRect: TRect;
-  sLine, sLineExpandedAtWideGlyhs: WideString;
+  sLine, sLineExpandedAtWideGlyphs: UnicodeString;
   ExpandedPos: Integer;
 
   {$IFNDEF SYN_CLX}
-  procedure InitETODist(CharWidth: Integer; const Text: WideString);
+  procedure InitETODist(CharWidth: Integer; const Text: UnicodeString);
   var
     Size: TSize;
     i: Integer;
@@ -700,7 +702,7 @@ var
   end;
   {$ENDIF}
   
-  procedure ClippedTextOut(X, Y: Integer; Text: WideString);
+  procedure ClippedTextOut(X, Y: Integer; Text: UnicodeString);
   begin
     Text := ClipLineToRect(Text, ClipRect);
     {$IFDEF SYN_CLX}
@@ -714,7 +716,7 @@ var
 
   procedure SplitToken;
   var
-    AStr: WideString;
+    AStr: UnicodeString;
     Last: Integer;
     FirstPos: Integer;
     TokenEnd: Integer;
@@ -747,8 +749,8 @@ begin
     SaveCurrentFont;
     FHighlighter.SetRange(FLines.Objects[FLineNumber - 1]);
     sLine := Text;
-    sLineExpandedAtWideGlyhs := ExpandAtWideGlyphs(sLine);
-    FHighlighter.SetLineExpandedAtWideGlyhs(sLine, sLineExpandedAtWideGlyhs, FLineNumber);
+    sLineExpandedAtWideGlyphs := ExpandAtWideGlyphs(sLine);
+    FHighlighter.SetLineExpandedAtWideGlyphs(sLine, sLineExpandedAtWideGlyphs, FLineNumber);
 
     Token := '';
     TokenStart := 0;
@@ -818,7 +820,7 @@ begin
   end
   else
   begin
-    Lines := TWideStringList.Create;
+    Lines := TUnicodeStringList.Create;
     try
       OldWrapPos := 0;
       if Assigned(AList) then
@@ -847,7 +849,7 @@ begin
   end
 end;
 
-procedure TSynEditPrint.WriteLine(const Text: WideString);
+procedure TSynEditPrint.WriteLine(const Text: UnicodeString);
 var
   StrWidth: Integer;
 begin
@@ -1055,7 +1057,7 @@ begin
     GetMem(Buffer, BufferSize + sizeof(WideChar));
     try
       Read(Buffer^, BufferSize);
-      Buffer[BufferSize] := #0;
+      Buffer[BufferSize div sizeof(WideChar)] := #0;
       FTitle := Buffer;
     finally
       FreeMem(Buffer);
@@ -1065,7 +1067,7 @@ begin
     GetMem(Buffer, BufferSize + sizeof(WideChar));
     try
       Read(Buffer^, BufferSize);
-      Buffer[BufferSize] := #0;
+      Buffer[BufferSize div sizeof(WideChar)] := #0;
       FDocTitle := Buffer;
     finally
       FreeMem(Buffer);

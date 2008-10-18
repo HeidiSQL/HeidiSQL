@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCS.pas,v 1.8.2.6 2005/12/16 20:09:37 maelh Exp $
+$Id: SynHighlighterCS.pas,v 1.8.2.7 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of SynEdit from the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -62,11 +62,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynEditMiscClasses,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -230,12 +232,12 @@ type
   protected
     function GetExtTokenID: TxtkTokenKind;
     function IsFilterStored: Boolean; override;
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     procedure NextProcedure;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -283,7 +285,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..74] of WideString = (
+  KeyWords: array[0..74] of UnicodeString = (
     'abstract', 'as', 'base', 'bool', 'break', 'byte', 'case', 'catch', 'char', 
     'checked', 'class', 'const', 'continue', 'decimal', 'default', 'delegate', 
     'do', 'double', 'else', 'enum', 'event', 'explicit', 'extern', 'false', 
@@ -1135,7 +1137,7 @@ begin
   fTokenID := tkString;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [WideChar(#39), WideChar('\')] then
+      if CharInSet(fLine[Run + 1], [#39, '\']) then
         inc(Run);
     end;
     inc(Run);
@@ -1992,7 +1994,7 @@ begin
   {$ENDIF}
 end; { TSynCSSyn.UseUserSettings }
 
-function TSynCSSyn.GetSampleSource: WideString;
+function TSynCSSyn.GetSampleSource: UnicodeString;
 begin
   Result := '/* Syntax Highlighting */'#13#10 +
 				'int num = 12345;'#13#10 +
@@ -2015,7 +2017,7 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-class function TSynCSSyn.GetFriendlyLanguageName: WideString;
+class function TSynCSSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCS;
 end;

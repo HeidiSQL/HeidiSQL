@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterIni.pas,v 1.13.2.4 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterIni.pas,v 1.13.2.5 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   Classes;
 
@@ -93,11 +95,11 @@ type
     procedure StringProc;  // ""
     procedure StringProc1; // ''
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;   
@@ -419,7 +421,7 @@ begin
   Result := SYNS_LangINI;
 end;
 
-function TSynIniSyn.GetSampleSource: WideString;
+function TSynIniSyn.GetSampleSource: UnicodeString;
 begin
   Result := '; Syntax highlighting'#13#10+
             '[Section]'#13#10+
@@ -429,7 +431,7 @@ begin
 end;
 
 {$IFNDEF SYN_CPPB_1}
-class function TSynIniSyn.GetFriendlyLanguageName: WideString;
+class function TSynIniSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangINI;
 end;

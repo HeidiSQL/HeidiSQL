@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPython.pas,v 1.18.2.6 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterPython.pas,v 1.18.2.7 2008/09/14 16:25:02 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -85,7 +85,7 @@ type
     fStringStarter: WideChar;  // used only for rsMultilineString3 stuff
     fRange: TRangeState;
     FTokenID: TtkTokenKind;
-    FKeywords: TWideStringList;
+    FKeywords: TUnicodeStringList;
     fStringAttri: TSynHighlighterAttributes;
     fDocStringAttri: TSynHighlighterAttributes;
     fNumberAttri: TSynHighlighterAttributes;
@@ -118,14 +118,14 @@ type
     procedure StringEndProc(EndChar: WideChar);
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
-    function GetKeywordIdentifiers: TWideStringList;
-    property Keywords: TWideStringList read FKeywords;
+    function GetKeywordIdentifiers: TUnicodeStringList;
+    property Keywords: TUnicodeStringList read FKeywords;
     property TokenID: TtkTokenKind read FTokenID;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -179,15 +179,15 @@ uses
 {$ENDIF}
 
 var
-  GlobalKeywords: TWideStringList;
+  GlobalKeywords: TUnicodeStringList;
 
-function TSynPythonSyn.GetKeywordIdentifiers: TWideStringList;
+function TSynPythonSyn.GetKeywordIdentifiers: TUnicodeStringList;
 const
   // No need to localise keywords!
 
   // List of keywords
   KEYWORDCOUNT = 29;
-  KEYWORDS: array [1..KEYWORDCOUNT] of WideString =
+  KEYWORDS: array [1..KEYWORDCOUNT] of UnicodeString =
     (
     'and',
     'assert',
@@ -222,7 +222,7 @@ const
 
   // List of non-keyword identifiers
   NONKEYWORDCOUNT = 66;
-  NONKEYWORDS: array [1..NONKEYWORDCOUNT] of WideString =
+  NONKEYWORDS: array [1..NONKEYWORDCOUNT] of UnicodeString =
     (
     '__future__',
     '__import__',
@@ -297,7 +297,7 @@ begin
   if not Assigned (GlobalKeywords) then
   begin
     // Create the string list of keywords - only once
-    GlobalKeywords := TWideStringList.Create;
+    GlobalKeywords := TUnicodeStringList.Create;
 
     for f := 1 to KEYWORDCOUNT do
       GlobalKeywords.AddObject(KEYWORDS[f], Pointer(Ord(tkKey)));
@@ -311,7 +311,7 @@ function TSynPythonSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   i: Integer;
   temp: PWideChar;
-  s: WideString;
+  s: UnicodeString;
 begin
   // Extract the identifier out - it is assumed to terminate in a
   //   non-alphanumeric character
@@ -325,7 +325,7 @@ begin
   SetString(s, fToIdent, fStringLen);
   if FKeywords.Find(s, i) then
   begin
-    // TWideStringList is not case sensitive!
+    // TUnicodeStringList is not case sensitive!
     if s <> FKeywords[i] then
       i := -1;
   end
@@ -353,7 +353,7 @@ begin
 
   fCaseSensitive := True;
 
-  FKeywords := TWideStringList.Create;
+  FKeywords := TUnicodeStringList.Create;
   FKeywords.Sorted := True; 
   FKeywords.Duplicates := dupError;
   FKeywords.Assign (GetKeywordIdentifiers);
@@ -506,7 +506,7 @@ var
       // Look for dot (.)
       '.': begin
         // .45
-        if FLine[Run] in [WideChar('0')..WideChar('9')] then
+        if CharInSet(FLine[Run], ['0'..'9']) then
         begin
           Inc (Run);
           fTokenID := tkFloat;
@@ -527,7 +527,7 @@ var
       '0': begin
         temp := FLine[Run];
         // 0x123ABC
-        if temp in [WideChar('x'), WideChar('X')] then begin
+        if CharInSet(temp, ['x', 'X']) then begin
           Inc (Run);
           fTokenID := tkHex;
           State := nsHex;
@@ -536,10 +536,10 @@ var
           Inc (Run);
           State := nsDotFound;
           fTokenID := tkFloat;
-        end else if temp in [WideChar('0')..WideChar('9')] then begin
+        end else if CharInSet(temp, ['0'..'9']) then begin
           Inc (Run);
           // 0123 or 0123.45
-          if temp in [WideChar('0')..WideChar('7')] then begin
+          if CharInSet(temp, ['0'..'7']) then begin
             fTokenID := tkOct;
             State := nsOct;
           // 0899.45
@@ -568,10 +568,10 @@ var
     State := nsExpFound;
     fTokenID := tkFloat;
     // Skip e[+/-]
-    if FLine[Run+1] in [WideChar('+'), WideChar('-')] then
+    if CharInSet(FLine[Run+1], ['+', '-']) then
       Inc (Run);
     // Invalid token : 1.0e
-    if not (FLine[Run+1] in [WideChar('0')..WideChar('9')]) then begin
+    if not CharInSet(FLine[Run+1], ['0'..'9']) then begin
       Inc (Run);
       Result := HandleBadNumber;
       Exit;
@@ -593,13 +593,13 @@ var
   function CheckStart: Boolean;
   begin
     // 1234
-    if temp in [WideChar('0')..WideChar('9')] then begin
+    if CharInSet(temp, ['0'..'9']) then begin
       Result := True;
     //123e4
-    end else if temp in [WideChar('e'), WideChar('E')] then begin
+    end else if CharInSet(temp, ['e', 'E']) then begin
       Result := HandleExponent;
     // 123.45j
-    end else if temp in [WideChar('j'), WideChar('J')] then begin
+    end else if CharInSet(temp, ['j', 'J']) then begin
       Inc (Run);
       fTokenID := tkFloat;
       Result := False;
@@ -618,13 +618,13 @@ var
   function CheckDotFound: Boolean;
   begin
     // 1.0e4
-    if temp in [WideChar('e'), WideChar('E')] then begin
+    if CharInSet(temp, ['e', 'E']) then begin
       Result := HandleExponent;
     // 123.45
-    end else if temp in [WideChar('0')..WideChar('9')] then begin
+    end else if CharInSet(temp, ['0'..'9']) then begin
       Result := True;
     // 123.45j
-    end else if temp in [WideChar('j'), WideChar('J')] then begin
+    end else if CharInSet(temp, ['j', 'J']) then begin
       Inc (Run);
       Result := False;
     // 123.45.45: Error!
@@ -644,16 +644,16 @@ var
   function CheckFloatNeeded: Boolean;
   begin
     // 091.0e4
-    if temp in [WideChar('e'), WideChar('E')] then begin
+    if CharInSet(temp, ['e', 'E']) then begin
       Result := HandleExponent;
     // 0912345
-    end else if temp in [WideChar('0')..WideChar('9')] then begin
+    end else if CharInSet(temp, ['0'..'9']) then begin
       Result := True;
     // 09123.45
     end else if temp = '.' then begin
       Result := HandleDot or HandleBadNumber; // Bad octal
     // 09123.45j
-    end else if temp in [WideChar('j'), WideChar('J')] then begin
+    end else if CharInSet(temp, ['j', 'J']) then begin
       Inc (Run);
       Result := False;
     // End of number (error: Bad oct number) 0912345
@@ -665,12 +665,11 @@ var
   function CheckHex: Boolean;
   begin
     // 0x123ABC
-    if temp in [WideChar('a')..WideChar('f'), WideChar('A')..WideChar('F'),
-      WideChar('0')..WideChar('9')] then
+    if CharInSet(temp, ['a'..'f', 'A'..'F', '0'..'9']) then
     begin
       Result := True;
     // 0x123ABCL
-    end else if temp in [WideChar('l'), WideChar('L')] then begin
+    end else if CharInSet(temp, ['l', 'L']) then begin
       Inc (Run);
       Result := False;
     // 0x123.45: Error!
@@ -690,21 +689,21 @@ var
   function CheckOct: Boolean;
   begin
     // 012345
-    if temp in [WideChar('0')..WideChar('9')] then begin
-      if not (temp in [WideChar('0')..WideChar('7')]) then begin
+    if CharInSet(temp, ['0'..'9']) then begin
+      if not CharInSet(temp, ['0'..'7']) then begin
         State := nsFloatNeeded;
         fTokenID := tkFloat;
       end; // if
       Result := True;
     // 012345L
-    end else if temp in [WideChar('l'), WideChar('L')] then begin
+    end else if CharInSet(temp, ['l', 'L']) then begin
       Inc (Run);
       Result := False;
     // 0123e4
-    end else if temp in [WideChar('e'), WideChar('E')] then begin
+    end else if CharInSet(temp, ['e', 'E']) then begin
       Result := HandleExponent;
     // 0123j
-    end else if temp in [WideChar('j'), WideChar('J')] then begin
+    end else if CharInSet(temp, ['j', 'J']) then begin
       Inc (Run);
       fTokenID := tkFloat;
       Result := False;
@@ -723,10 +722,10 @@ var
   function CheckExpFound: Boolean;
   begin
     // 1e+123
-    if temp in [WideChar('0')..WideChar('9')] then begin
+    if CharInSet(temp, ['0'..'9']) then begin
       Result := True;
     // 1e+123j
-    end else if temp in [WideChar('j'), WideChar('J')] then begin
+    end else if CharInSet(temp, ['j', 'J']) then begin
       Inc (Run);
       Result := False;
     // 1e4.5: Error!
@@ -890,8 +889,8 @@ procedure TSynPythonSyn.UnicodeStringProc;
 begin
   // Handle python raw and unicode strings
   // Valid syntax: u"", or ur""
-  if (FLine[Run + 1] in [WideChar('r'), WideChar('R')]) and
-    (FLine[Run + 2] in [WideChar(''''), WideChar('"')]) then
+  if CharInSet(FLine[Run + 1], ['r', 'R']) and
+    CharInSet(FLine[Run + 2], ['''', '"']) then
   begin
     // for ur, Remove the "u" and...
     Inc (Run);
@@ -1166,7 +1165,7 @@ begin
   Result := SYNS_LangPython;
 end;
 
-function TSynPythonSyn.GetSampleSource: WideString;
+function TSynPythonSyn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '#!/usr/local/bin/python'#13#10 +
@@ -1177,7 +1176,7 @@ begin
     '    sys.exit(0)';
 end;
 
-class function TSynPythonSyn.GetFriendlyLanguageName: WideString;
+class function TSynPythonSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangPython;
 end;

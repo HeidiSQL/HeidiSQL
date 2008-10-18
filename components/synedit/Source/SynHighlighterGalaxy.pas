@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGalaxy.pas,v 1.12.2.7 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterGalaxy.pas,v 1.12.2.8 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -83,7 +83,7 @@ type
     fCommentAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyWords: TWideStrings;
+    fKeyWords: TUnicodeStrings;
     procedure PointCommaProc;
     procedure CRProc;
     procedure IdentProc;
@@ -93,12 +93,12 @@ type
     procedure StringProc;
     procedure UnknownProc;
     procedure MessageStyleProc;
-    procedure SetKeyWords(const Value: TWideStrings);
+    procedure SetKeyWords(const Value: TUnicodeStrings);
   protected
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -110,7 +110,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
-    function IsKeyword(const AKeyword: WideString): Boolean; override;
+    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -124,7 +124,7 @@ type
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
       write fIdentifierAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property KeyWords: TWideStrings read fKeyWords write SetKeyWords;
+    property KeyWords: TUnicodeStrings read fKeyWords write SetKeyWords;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
       write fSpaceAttri;
     property MessageAttri: TSynHighlighterAttributes read fMessageAttri
@@ -150,10 +150,10 @@ begin
   end;
 end;
 
-function TSynGalaxySyn.IsKeyword(const AKeyword: WideString): Boolean;
+function TSynGalaxySyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := fKeywords.Count - 1;
@@ -178,10 +178,10 @@ begin
 
   fCaseSensitive := False;
 
-  fKeyWords := TWideStringList.Create;
-  TWideStringList(fKeyWords).Sorted := True;
-  TWideStringList(fKeyWords).Duplicates := dupIgnore;
-  TWideStringList(fKeyWords).CommaText :=
+  fKeyWords := TUnicodeStringList.Create;
+  TUnicodeStringList(fKeyWords).Sorted := True;
+  TUnicodeStringList(fKeyWords).Duplicates := dupIgnore;
+  TUnicodeStringList(fKeyWords).CommaText :=
     '#end,#galaxy,a,anonymous,autounload,b,battleprotocol,c,cap,cargo,col,' +
     'compress,d,drive,e,emp,f,fleet,fleettables,g,galaxytv,gplus,groupforecast,' +
     'h,i,j,l,m,machinereport,mat,n,namecase,no,o,options,p,planetforecast,' +
@@ -381,7 +381,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynGalaxySyn.SetKeyWords(const Value: TWideStrings);
+procedure TSynGalaxySyn.SetKeyWords(const Value: TUnicodeStrings);
 var
   i: Integer;
 begin
@@ -447,7 +447,7 @@ begin
 end;
 {$ENDIF}
 
-class function TSynGalaxySyn.GetFriendlyLanguageName: WideString;
+class function TSynGalaxySyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangGalaxy;
 end;

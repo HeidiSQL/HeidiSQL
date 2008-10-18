@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPHP.pas,v 1.22.2.7 2005/12/16 20:09:37 maelh Exp $
+$Id: SynHighlighterPHP.pas,v 1.22.2.8 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -58,11 +58,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -153,12 +155,12 @@ type
     procedure HeredocProc;
 {$ENDIF}
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -201,7 +203,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..55] of WideString = (
+  KeyWords: array[0..55] of UnicodeString = (
     '__file__', '__line__', 'and', 'array', 'break', 'case', 'cfunction', 
     'class', 'const', 'continue', 'default', 'die', 'do', 'double', 'echo', 
     'else', 'elseif', 'empty', 'endfor', 'endif', 'endswitch', 'endwhile', 
@@ -1190,7 +1192,7 @@ begin
   Result := SYNS_LangPHP;
 end;
 
-function TSynPHPSyn.GetSampleSource: WideString;
+function TSynPHPSyn.GetSampleSource: UnicodeString;
 begin
   Result := '// Syntax highlighting'#13#10+
             'function printNumber()'#13#10+
@@ -1207,7 +1209,7 @@ begin
 
 end;
 
-class function TSynPHPSyn.GetFriendlyLanguageName: WideString;
+class function TSynPHPSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangPHP;
 end;

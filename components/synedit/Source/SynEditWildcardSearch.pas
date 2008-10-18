@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditWildcardSearch.pas,v 1.2.2.1 2004/08/31 12:55:18 maelh Exp $
+$Id: SynEditWildcardSearch.pas,v 1.2.2.2 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -60,21 +60,21 @@ uses
 type
   TSynEditWildcardSearch = class(TSynEditRegexSearch)
   private
-    fPattern: WideString;
+    fPattern: UnicodeString;
   protected
-    function GetPattern: WideString; override;
-    procedure SetPattern(const Value: WideString); override;
+    function GetPattern: UnicodeString; override;
+    procedure SetPattern(const Value: UnicodeString); override;
     procedure SetOptions(const Value: TSynSearchOptions); override;
     function GetLength(Index: Integer): Integer; override;
     function GetResult(Index: Integer): Integer; override;
     function GetResultCount: Integer; override;
     // Converts the Wildcard to a regular expression
-    function WildCardToRegExpr(AWildCard: WideString): WideString;
+    function WildCardToRegExpr(AWildCard: UnicodeString): UnicodeString;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function FindAll(const NewText: WideString): Integer; override;
-    function Replace(const aOccurrence, aReplacement: WideString): WideString; override;        //slm 11/29/02
+    function FindAll(const NewText: UnicodeString): Integer; override;
+    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; override;        //slm 11/29/02
   end;
 
 implementation
@@ -99,12 +99,12 @@ begin
   inherited;
 end;
 
-function TSynEditWildcardSearch.FindAll(const NewText: WideString): integer;
+function TSynEditWildcardSearch.FindAll(const NewText: UnicodeString): integer;
 begin
   Result := inherited FindAll(NewText);
 end;
 
-function TSynEditWildcardSearch.Replace(const aOccurrence, aReplacement: WideString): WideString;
+function TSynEditWildcardSearch.Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString;
 begin
   Result := inherited Replace(aOccurrence, aReplacement);
 end;   
@@ -114,7 +114,7 @@ begin
   Result := inherited GetLength(Index);
 end;
 
-function TSynEditWildcardSearch.GetPattern: WideString;
+function TSynEditWildcardSearch.GetPattern: UnicodeString;
 begin
   Result := fPattern;
 end;
@@ -134,7 +134,7 @@ begin
   inherited;
 end;
 
-procedure TSynEditWildcardSearch.SetPattern(const Value: WideString);
+procedure TSynEditWildcardSearch.SetPattern(const Value: UnicodeString);
 begin
   fPattern := Value;
   // Convert into a real regular expression and assign it
@@ -142,7 +142,7 @@ begin
 end;
 
 function TSynEditWildcardSearch.WildCardToRegExpr(
-  AWildCard: WideString): WideString;
+  AWildCard: UnicodeString): UnicodeString;
 var
   i: Integer;
 begin

@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterVBScript.pas,v 1.14.2.6 2005/12/16 17:13:16 maelh Exp $
+$Id: SynHighlighterVBScript.pas,v 1.14.2.7 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,11 +57,13 @@ uses
   QGraphics,
   QSynEditHighlighter,
   QSynEditTypes,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   SynEditHighlighter,
   SynEditTypes,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -105,11 +107,11 @@ type
     procedure SymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -145,7 +147,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..83] of WideString = (
+  KeyWords: array[0..83] of UnicodeString = (
     'and', 'as', 'boolean', 'byref', 'byte', 'byval', 'call', 'case', 'class', 
     'const', 'currency', 'debug', 'dim', 'do', 'double', 'each', 'else', 
     'elseif', 'empty', 'end', 'endif', 'enum', 'eqv', 'erase', 'error', 'event', 
@@ -318,7 +320,7 @@ procedure TSynVBScriptSyn.LowerProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('>')] then Inc(Run);
+  if CharInSet(fLine[Run], ['=', '>']) then Inc(Run);
 end;
 
 procedure TSynVBScriptSyn.NullProc;
@@ -452,7 +454,7 @@ begin
   Result := SYNS_LangVBSScript;
 end;
 
-function TSynVBScriptSyn.GetSampleSource: WideString;
+function TSynVBScriptSyn.GetSampleSource: UnicodeString;
 begin
   Result := ''' Syntax highlighting'#13#10 +
             'function printNumber()'#13#10 +
@@ -464,7 +466,7 @@ begin
             'end function';
 end;
 
-class function TSynVBScriptSyn.GetFriendlyLanguageName: WideString;
+class function TSynVBScriptSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangVBSScript;
 end;

@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterURI.pas,v 1.16.2.8 2006/08/19 16:12:12 maelh Exp $
+$Id: SynHighlighterURI.pas,v 1.16.2.9 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of SynEdit from the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -79,10 +79,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -95,7 +97,7 @@ type
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Key: Integer): TtkTokenKind of object;
 
-  TAlreadyVisitedURIFunc = function (URI: WideString): Boolean of object;
+  TAlreadyVisitedURIFunc = function (URI: UnicodeString): Boolean of object;
 
   TSynURISyn = class(TSynCustomHighlighter)
   private
@@ -147,13 +149,13 @@ type
     procedure SetURIAttri(const Value: TSynHighlighterAttributes);
     procedure SetVisitedURIAttri(const Value: TSynHighlighterAttributes);
   protected
-    function GetSampleSource: WideString; override;
-    function IsCurrentToken(const Token: WideString): Boolean; override;
+    function GetSampleSource: UnicodeString; override;
+    function IsCurrentToken(const Token: UnicodeString): Boolean; override;
     function IsFilterStored: Boolean; override;
     procedure SetAlreadyVisitedURIFunc(Value: TAlreadyVisitedURIFunc);
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -179,15 +181,13 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst, SynUnicode;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  KeyWords: array[0..15] of WideString = (
+  KeyWords: array[0..15] of UnicodeString = (
     '', 'http://', '', 'https://', 'news:', 'gopher://', '', 'prospero://',
     'news://', 'www', 'nntp://', 'ftp://', 'wais://', '', 'telnet://', 'mailto:'
   );
@@ -195,7 +195,7 @@ const
 function TSynURISyn.HashKey(Str: PWideChar): Integer;
 begin
   Result := 0;
-  while Str^ in [WideChar('A')..WideChar('Z'), WideChar('a')..WideChar('z')] do 
+  while CharInSet(Str^, ['A'..'Z', 'a'..'z']) do
   begin
     Result := (Result * 3 + Ord(Str^) div 9) mod 16;
     inc(Str);
@@ -243,7 +243,7 @@ begin
   fIdentFuncTable[9] := FuncWeb;
 end;
 
-function TSynURISyn.IsCurrentToken(const Token: WideString): Boolean;
+function TSynURISyn.IsCurrentToken(const Token: UnicodeString): Boolean;
 var
   I: Integer;
   Temp: PWideChar;
@@ -409,7 +409,7 @@ begin
   Result := SYNS_LangURI;
 end;
 
-function TSynURISyn.GetSampleSource: WideString;
+function TSynURISyn.GetSampleSource: UnicodeString;
 begin
   Result := 'Universal Resource Identifier highlighting'#13#10#13#10 +
             'http://www.somewhere.org'#13#10 +
@@ -710,7 +710,7 @@ begin
             (SecondDotPos > WWWEndPos + 1) and (SecondDotPos < Run);
 end;
 
-class function TSynURISyn.GetFriendlyLanguageName: WideString;
+class function TSynURISyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangURI;
 end;

@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCobol.pas,v 1.5.2.6 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterCobol.pas,v 1.5.2.7 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -109,7 +109,7 @@ type
     fTagAreaAttri: TSynHighlighterAttributes;
     fDebugLinesAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure IdentProc;
@@ -128,7 +128,7 @@ type
     procedure CommentProc;
     procedure DebugProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
 
@@ -139,7 +139,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -180,10 +180,10 @@ uses
 {$ENDIF}
 
 const
-  BooleanWords: WideString =
+  BooleanWords: UnicodeString =
     'false, true';
 
-  KeyWords: WideString =
+  KeyWords: UnicodeString =
     'accept, access, acquire, add, address, advancing, after, all, allowing, ' +
     'alphabet, alphabetic, alphabetic-lower, alphabetic-upper, alphanumeric, ' +
     'alphanumeric-edited, also, alter, alternate, and, any, apply, are, ' +
@@ -264,22 +264,22 @@ const
     'value, values, variable, varying, wait, when, when-compiled, with, ' +
     'within, words, working-storage, write, write-only, zero-fill';
 
-  PreprocessorWords: WideString =
+  PreprocessorWords: UnicodeString =
     'basis, cbl, control, copy, delete, eject, insert, ready, reload, ' +
     'replace, reset, service, skip1, skip2, skip3, title, trace, use';
 
-  StringWords: WideString =
+  StringWords: UnicodeString =
     'high-value, high-values, low-value, low-values, null, nulls, quote, ' +
     'quotes, space, spaces, zero, zeroes, zeros';
 
   // Ambigious means that a simple string comparision is not enough
-  AmbigiousWords: WideString =
+  AmbigiousWords: UnicodeString =
     'label';
 
 const
   StringChars: array[TRangeState] of WideChar = (#0, '"', '''', '=',  '"', '''');
 
-procedure TSynCobolSyn.DoAddKeyword(AKeyword: WideString; AKind: integer);
+procedure TSynCobolSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
 var
   HashValue: integer;
 begin
@@ -344,7 +344,7 @@ begin
             I := Run + Length('label');
             while fLine[I] = ' ' do
               Inc(I);
-            if (StrLCompW(PWideChar(@fLine[I]), 'record', Length('record')) = 0)
+            if (WStrLComp(PWideChar(@fLine[I]), 'record', Length('record')) = 0)
               and (I + Length('record') - 1 <= fCodeEndPos) then
                 Result := tkKey
               else
@@ -366,7 +366,7 @@ begin
   fTokenID := tkSpace;
   repeat
     inc(Run);
-  until not (fLine[Run] in [WideChar(#1)..WideChar(#32)]);
+  until not CharInSet(fLine[Run], [#1..#32]);
 end;
 
 procedure TSynCobolSyn.FirstCharsProc;
@@ -392,7 +392,7 @@ begin
              I := Run + 1;
              while fLine[I] = ' ' do
                Inc(I);
-             if (StrLCompW(PWideChar(@fLine[I]), PWideChar(WideStringOfChar(StringChars[fRange], 2)), 2) <> 0)
+             if (WStrLComp(PWideChar(@fLine[I]), PWideChar(UnicodeStringOfChar(StringChars[fRange], 2)), 2) <> 0)
                or (I + 1 > fCodeEndPos) then
                  fRange := rsUnknown;
            end;
@@ -446,8 +446,7 @@ end;
 
 procedure TSynCobolSyn.PointProc;
 begin
-  if (Run < fCodeEndPos) and
-    (FLine[Run + 1] in [WideChar('0')..WideChar('9'), WideChar('e'), WideChar('E')]) then
+  if (Run < fCodeEndPos) and CharInSet(FLine[Run + 1], ['0'..'9', 'e', 'E']) then
     NumberProc
   else
     UnknownProc;
@@ -476,17 +475,17 @@ begin
   begin
     case FLine[Run] of
       '.':
-        if not (FLine[Run + 1] in [WideChar('0')..WideChar('9'), WideChar('e'), WideChar('E')]) then
+        if not CharInSet(FLine[Run + 1], ['0'..'9', 'e', 'E']) then
           Break
         else
           fFloat := True;
       'e', 'E':
-          if not (FLine[Run - 1] in [WideChar('0')..WideChar('9'), WideChar('.')]) then
+          if not CharInSet(FLine[Run - 1], ['0'..'9', '.']) then
             Break
           else fFloat := True;
       '-', '+':
         begin
-          if (not fFloat) or (not (FLine[Run - 1] in [WideChar('e'), WideChar('E')])) then
+          if not fFloat or not CharInSet(FLine[Run - 1], ['e', 'E']) then
             Break;
         end;
     end;
@@ -670,8 +669,8 @@ end;
 
 procedure TSynCobolSyn.IdentProc;
 begin
-  if (fLine[Run] in [WideChar('x'), WideChar('g'), WideChar('X'), WideChar('G')])
-    and (Run < fCodeEndPos) and (fLine[Run + 1] in [WideChar('"'), WideChar('''')]) then
+  if CharInSet(fLine[Run], ['x', 'g', 'X', 'G'])
+    and (Run < fCodeEndPos) and CharInSet(fLine[Run + 1], ['"', '''']) then
   begin
     Inc(Run);
     StringOpenProc;
@@ -787,7 +786,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynCobolSyn.GetSampleSource: WideString;
+function TSynCobolSyn.GetSampleSource: UnicodeString;
 begin
   Result := '000100* This is a sample file to be used to show all TSynCobolSyn''s'#13#10 +
             '000200* features.'#13#10 +
@@ -933,7 +932,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-class function TSynCobolSyn.GetFriendlyLanguageName: WideString;
+class function TSynCobolSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCOBOL;
 end;

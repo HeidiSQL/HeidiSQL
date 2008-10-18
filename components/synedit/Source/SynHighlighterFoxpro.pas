@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterFoxpro.pas,v 1.12.2.9 2006/08/19 16:12:12 maelh Exp $
+$Id: SynHighlighterFoxpro.pas,v 1.12.2.10 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -126,7 +128,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -156,15 +158,13 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  KeyWords: array[0..809] of WideString = (
+  KeyWords: array[0..809] of UnicodeString = (
     '_curobj', '_msysmenu', '_pageno', '_screen', '_vfp', 'abs', 'accept', 
     'aclass', 'acopy', 'acos', 'acti', 'activate', 'adatabases', 'adbobjects', 
     'add', 'additive', 'adel', 'adir', 'aelement', 'aerror', 'afields', 'afont', 
@@ -1768,7 +1768,7 @@ begin
   Result := SYNS_LangFoxpro;
 end;
 
-class function TSynFoxproSyn.GetFriendlyLanguageName: WideString;
+class function TSynFoxproSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangFoxpro;
 end;

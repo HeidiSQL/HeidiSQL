@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCAC.pas,v 1.10.2.7 2005/11/27 22:43:32 maelh Exp $
+$Id: SynHighlighterCAC.pas,v 1.10.2.8 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -109,7 +111,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -150,7 +152,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..142] of WideString = (
+  KeyWords: array[0..142] of UnicodeString = (
     'aadd', 'abs', 'and', 'announce', 'asc', 'at', 'average', 'begin', 'bof', 
     'break', 'call', 'cancel', 'cdow', 'chr', 'clear', 'close', 'cmonth', 'col', 
     'commit', 'continue', 'copy', 'count', 'create', 'ctod', 'date', 'day', 
@@ -604,7 +606,7 @@ begin
   end;
 end;
 
-class function TSynCACSyn.GetFriendlyLanguageName: WideString;
+class function TSynCACSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCAClipper;
 end;

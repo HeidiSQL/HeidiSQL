@@ -30,7 +30,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditAutoComplete.pas,v 1.10.2.3 2006/05/21 11:59:34 maelh Exp $
+$Id: SynEditAutoComplete.pas,v 1.10.2.4 2008/09/14 16:24:58 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -66,23 +66,23 @@ uses
 type
   TCustomSynAutoComplete = class(TComponent)
   protected
-    fAutoCompleteList: TWideStrings;
-    fCompletions: TWideStrings;
-    fCompletionComments: TWideStrings;
-    fCompletionValues: TWideStrings;
+    fAutoCompleteList: TUnicodeStrings;
+    fCompletions: TUnicodeStrings;
+    fCompletionComments: TUnicodeStrings;
+    fCompletionValues: TUnicodeStrings;
     fEditor: TCustomSynEdit;
     fEditors: TList;
-    fEOTokenChars: WideString;
+    fEOTokenChars: UnicodeString;
     fCaseSensitive: boolean;
     fParsed: boolean;
     procedure CompletionListChanged(Sender: TObject);
     procedure DefineProperties(Filer: TFiler); override;    
-    function GetCompletions: TWideStrings;
-    function GetCompletionComments: TWideStrings;
-    function GetCompletionValues: TWideStrings;
+    function GetCompletions: TUnicodeStrings;
+    function GetCompletionComments: TUnicodeStrings;
+    function GetCompletionValues: TUnicodeStrings;
     function GetEditorCount: integer;
     function GetNthEditor(Index: integer): TCustomSynEdit;
-    procedure SetAutoCompleteList(Value: TWideStrings); virtual;
+    procedure SetAutoCompleteList(Value: TUnicodeStrings); virtual;
     procedure SetEditor(Value: TCustomSynEdit);
     procedure SynEditCommandHandler(Sender: TObject; AfterProcessing: boolean;
       var Handled: boolean; var Command: TSynEditorCommand; var AChar: WideChar;
@@ -96,22 +96,22 @@ type
     function AddEditor(AEditor: TCustomSynEdit): boolean;
     function RemoveEditor(AEditor: TCustomSynEdit): boolean;
 
-    procedure AddCompletion(const AToken, AValue, AComment: WideString);
+    procedure AddCompletion(const AToken, AValue, AComment: UnicodeString);
     procedure Execute(AEditor: TCustomSynEdit); virtual;
-    procedure ExecuteCompletion(const AToken: WideString; AEditor: TCustomSynEdit);
+    procedure ExecuteCompletion(const AToken: UnicodeString; AEditor: TCustomSynEdit);
       virtual;
     procedure ParseCompletionList; virtual;
   public
-    property AutoCompleteList: TWideStrings read fAutoCompleteList
+    property AutoCompleteList: TUnicodeStrings read fAutoCompleteList
       write SetAutoCompleteList;
     property CaseSensitive: boolean read fCaseSensitive write fCaseSensitive;
-    property Completions: TWideStrings read GetCompletions;
-    property CompletionComments: TWideStrings read GetCompletionComments;
-    property CompletionValues: TWideStrings read GetCompletionValues;
+    property Completions: TUnicodeStrings read GetCompletions;
+    property CompletionComments: TUnicodeStrings read GetCompletionComments;
+    property CompletionValues: TUnicodeStrings read GetCompletionValues;
     property Editor: TCustomSynEdit read fEditor write SetEditor;
     property EditorCount: integer read GetEditorCount;
     property Editors[Index: integer]: TCustomSynEdit read GetNthEditor;
-    property EndOfTokenChr: WideString read fEOTokenChars write fEOTokenChars;
+    property EndOfTokenChr: UnicodeString read fEOTokenChars write fEOTokenChars;
   end;
 
   TSynAutoComplete = class(TCustomSynAutoComplete)
@@ -134,7 +134,7 @@ uses
 
 { TCustomSynAutoComplete }
 
-procedure TCustomSynAutoComplete.AddCompletion(const AToken, AValue, AComment: WideString);
+procedure TCustomSynAutoComplete.AddCompletion(const AToken, AValue, AComment: UnicodeString);
 begin
   if AToken <> '' then
   begin
@@ -173,11 +173,11 @@ end;
 constructor TCustomSynAutoComplete.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fAutoCompleteList := TWideStringList.Create;
-  TWideStringList(fAutoCompleteList).OnChange := CompletionListChanged;
-  fCompletions := TWideStringList.Create;
-  fCompletionComments := TWideStringList.Create;
-  fCompletionValues := TWideStringList.Create;
+  fAutoCompleteList := TUnicodeStringList.Create;
+  TUnicodeStringList(fAutoCompleteList).OnChange := CompletionListChanged;
+  fCompletions := TUnicodeStringList.Create;
+  fCompletionComments := TUnicodeStringList.Create;
+  fCompletionValues := TUnicodeStringList.Create;
   fEditors := TList.Create;
   fEOTokenChars := '()[]{}.';
 end;
@@ -199,12 +199,14 @@ end;
 procedure TCustomSynAutoComplete.DefineProperties(Filer: TFiler);
 begin
   inherited;
+{$IFNDEF UNICODE}
   UnicodeDefineProperties(Filer, Self);
+{$ENDIF}
 end;
 
 procedure TCustomSynAutoComplete.Execute(AEditor: TCustomSynEdit);
 var
-  s: WideString;
+  s: UnicodeString;
   i, j: integer;
 begin
   if AEditor <> nil then
@@ -224,15 +226,15 @@ begin
   end;
 end;
 
-procedure TCustomSynAutoComplete.ExecuteCompletion(const AToken: WideString;
+procedure TCustomSynAutoComplete.ExecuteCompletion(const AToken: UnicodeString;
   AEditor: TCustomSynEdit);
 var
   i, j, Len, IndentLen: integer;
-  s: WideString;
+  s: UnicodeString;
   IdxMaybe, NumMaybe: integer;
   p: TBufferCoord;
   NewCaretPos: boolean;
-  Temp: TWideStringList;
+  Temp: TUnicodeStringList;
 begin
   if not fParsed then
     ParseCompletionList;
@@ -288,13 +290,13 @@ begin
         IndentLen := p.Char - Len - 1;
         p := AEditor.BlockBegin;
         NewCaretPos := False;
-        Temp := TWideStringList.Create;
+        Temp := TUnicodeStringList.Create;
         try
           Temp.Text := fCompletionValues[i];
           // indent lines
           if (IndentLen > 0) and (Temp.Count > 1) then
           begin
-            s := WideStringOfChar(' ', IndentLen);
+            s := UnicodeStringOfChar(' ', IndentLen);
             for i := 1 to Temp.Count - 1 do
               Temp[i] := s + Temp[i];
           end;
@@ -338,21 +340,21 @@ begin
   end;
 end;
 
-function TCustomSynAutoComplete.GetCompletions: TWideStrings;
+function TCustomSynAutoComplete.GetCompletions: TUnicodeStrings;
 begin
   if not fParsed then
     ParseCompletionList;
   Result := fCompletions;
 end;
 
-function TCustomSynAutoComplete.GetCompletionComments: TWideStrings;
+function TCustomSynAutoComplete.GetCompletionComments: TUnicodeStrings;
 begin
   if not fParsed then
     ParseCompletionList;
   Result := fCompletionComments;
 end;
 
-function TCustomSynAutoComplete.GetCompletionValues: TWideStrings;
+function TCustomSynAutoComplete.GetCompletionValues: TUnicodeStrings;
 begin
   if not fParsed then
     ParseCompletionList;
@@ -389,7 +391,7 @@ procedure TCustomSynAutoComplete.ParseCompletionList;
 var
   BorlandDCI: boolean;
   i, j, Len: integer;
-  s, sCompl, sComment, sComplValue: WideString;
+  s, sCompl, sComment, sComplValue: UnicodeString;
 
   procedure SaveEntry;
   begin
@@ -495,7 +497,7 @@ begin
   Result := False;
 end;
 
-procedure TCustomSynAutoComplete.SetAutoCompleteList(Value: TWideStrings);
+procedure TCustomSynAutoComplete.SetAutoCompleteList(Value: TUnicodeStrings);
 begin
   fAutoCompleteList.Assign(Value);
   fParsed := False;

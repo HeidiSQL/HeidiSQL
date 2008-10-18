@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditKeyCmds.pas,v 1.23.2.3 2007/01/23 03:29:55 etrusco Exp $
+$Id: SynEditKeyCmds.pas,v 1.23.2.4 2008/09/14 16:24:58 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -47,8 +47,10 @@ interface
 uses
 {$IFDEF SYN_CLX}
   QMenus,
+  QSynUnicode,
 {$ELSE}
   Menus,
+  SynUnicode,
 {$ENDIF}
   Classes,
   SysUtils;
@@ -894,8 +896,8 @@ begin
     WorkStr := '';
 
     for i := length(AString) downto 1 do
-      if (AString[i] in ['A'..'Z', '0'..'9']) and (i > 1) and
-         not(AString[i - 1] in ['A'..'Z', '0'..'9']) then
+      if CharInSet(AString[i], ['A'..'Z', '0'..'9']) and (i > 1) and
+         not CharInSet(AString[i - 1], ['A'..'Z', '0'..'9']) then
       begin
         WorkStr := ' ' + AString[i] + WorkStr
       end

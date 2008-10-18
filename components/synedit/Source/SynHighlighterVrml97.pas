@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterVrml97.pas,v 1.6.2.7 2005/12/16 20:09:37 maelh Exp $
+$Id: SynHighlighterVrml97.pas,v 1.6.2.8 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -82,6 +82,7 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
   QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Messages,
@@ -90,7 +91,8 @@ uses
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-  SynHighlighterHashEntries,  
+  SynHighlighterHashEntries,
+  SynUnicode,  
 {$ENDIF}
   SysUtils,
   Classes;
@@ -165,7 +167,7 @@ type
     fX3DHeaderAttri :TSynHighlighterAttributes;
 
     fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure AndSymbolProc;
@@ -192,13 +194,13 @@ type
     procedure StringProc;
     procedure SymbolProc;
     procedure UnknownProc;
-    function NextTokenIs(T: WideString) :Boolean;
+    function NextTokenIs(T: UnicodeString) :Boolean;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -253,13 +255,13 @@ uses
 {$ENDIF}
 
 const
-  Events: WideString =
+  Events: UnicodeString =
     'onAbort, onBlur, onChange, onClick, onDblClick, onError, onFocus, ' +
     'onKeyDown, onKeyPress, onKeyUp, onLoad, onMouseDown, onMouseMove, ' +
     'onMouseOut, onMouseOver, onMouseUp, onReset, onSelect, onSubmit, ' +
     'onUnload';
 
-  KeyWords: WideString =
+  KeyWords: UnicodeString =
     'abstract, boolean, break, byte, callee, case, catch, char, class, ' +
     'const, constructor, continue, debugger, default, delete, do, DOCTYPE, ' +
     'double, else, enum, export, extends, false, final, finally, float, for, ' +
@@ -269,7 +271,7 @@ const
     'super, switch, synchronized, this, throw, throws, transient, true, try, ' +
     'typeof, var, void, while, with, xml';
 
-  NonReservedKeys: WideString =
+  NonReservedKeys: UnicodeString =
     'abs, acos, action, alert, align, alinkColor, all, All, anchor, anchors, ' +
     'appCodeName, Applet, applets, appName, appVersion, Area, arguments, ' +
     'Arguments, Array, asin, atan, atan2, back, background, bgColor, big, ' +
@@ -314,12 +316,12 @@ const
     'version, visibility, vlinkColor, vspace, watch, width, window, Window, ' +
     'write, writeln, zIndex';
 
-  VrmlAppearances: WideString =
+  VrmlAppearances: UnicodeString =
     'Appearance, ImageTexture, Material, NurbsTextureSurface, PixelTexture, ' +
     'TextureBackground, TextureCoordinate, TextureCoordinateGenerator, ' +
     'TextureTransform';
 
-  VrmlAttributes: WideString =
+  VrmlAttributes: UnicodeString =
     'addChildren, ambientIntensity, appearance, attenuation, autoOffset, ' +
     'avatarSize, axisOfRotation, backUrl, bboxCenter, bboxSize, beamWidth, ' +
     'beginCap, bindTime, bottom, bottomRadius, bottomUrl, ccw, center, children, ' +
@@ -352,33 +354,33 @@ const
     'visibilityLimit, visibilityRange, whichChoice, xDimension, xSpacing, ' +
     'zDimension, zSpacing';
 
-  VrmlDefinitions: WideString =
+  VrmlDefinitions: UnicodeString =
     'MFColor, MFFloat, MFInt32, MFNode, MFRotation, MFString, MFTime, ' +
     'MFVec2f, MFVec3f, SFBool, SFColor, SFFloat, SFImage, SFInt32, SFNode, ' +
     'SFRotation, SFString, SFTime, SFVec2f, SFVec3f';
 
-  VrmlEvents: WideString =
+  VrmlEvents: UnicodeString =
     'eventIn, eventOut, exposedField, field';
 
-  VrmlGroupings: WideString =
+  VrmlGroupings: UnicodeString =
     'Anchor, Billboard, Collision, ESPDUTransform, Group, Inline, LOD, ' +
     'NurbsGroup, ReceiverPdu, SignalPdu, StaticGroup, Switch, Transform, ' +
     'Transform2D, TransmitterPdu';
 
-  VrmlInterpolators: WideString =
+  VrmlInterpolators: UnicodeString =
     'ColorInterpolator, CoordinateInterpolator, CoordinateInterpolator2D, ' +
     'GeoPositionInterpolator, NormalInterpolator, NurbsPositionInterpolator, ' +
     'OrientationInterpolator, PositionInterpolator, PositionInterpolator2D, ' +
     'ScalarInterpolator';
 
-  VrmlLights: WideString =
+  VrmlLights: UnicodeString =
     'DirectionalLight, PointLight, SpotLight';
 
-  VrmlNodes: WideString =
+  VrmlNodes: UnicodeString =
     'Background, Color, Coordinate, CoordinateDeformer, Fog, FontStyle, ' +
     'Joint, NavigationInfo, Normal, Script, Site, Sound';
 
-  VrmlParameters: WideString =
+  VrmlParameters: UnicodeString =
     'ALL, AUTO, BINDINGS, BOLD, BOTTOM, CENTER, CLAMP, CLOCKWISE, CONVEX, ' +
     'COUNTERCLOCKWISE, CULLING, DEFAULT, DEFAULTS, Displacer, ENUMS, FACE, FALSE, ' +
     'FAMILY, FILE, FORMAT, ITALIC, JUSTIFICATION, LEFT, NONE, NULL, OFF, ON, ' +
@@ -387,7 +389,7 @@ const
     'STYLE, TRUE, TYPE, UNKNOWN_FACE_TYPE, UNKNOWN_ORDERING, ' +
     'UNKNOWN_SHAPE_TYPE, WRAP';
 
-  VrmlProtos: WideString =
+  VrmlProtos: UnicodeString =
     'DEF, EXTERNPROTO, IS, PROTO, ROUTE, Scene, TO, USE, VRML, X3D, ' +
     'X3DAppearanceNode, X3DAppearanceChildNode, X3DBackgroundNode, X3DBindableNode, ' +
     'X3DBoundedObject, X3DChildNode, X3DColorNode, X3DComposedGeometryNode, ' +
@@ -403,33 +405,33 @@ const
     'X3DTextureTransformNode, X3DTimeDependentNode, X3DTouchSensorNode, ' +
     'X3DTriggerNode, X3DUrlObject';
 
-  VrmlSensors: WideString =
+  VrmlSensors: UnicodeString =
     'BooleanFilter, BooleanSequencer, BooleanToggle, BooleanTrigger, ' +
     'CylinderSensor, GeoTouchSensor, IntegerTrigger, KeySensor, LoadSensor, ' +
     'PlaneSensor, ProximitySensor, SphereSensor, StringSensor, TimeSensor, ' +
     'TouchSensor, VisibilitySensor';
 
-  VrmlShapes: WideString =
+  VrmlShapes: UnicodeString =
     'Arc2D, ArcClose2D, Box, Circle2D, Cone, Contour2D, ContourPolyline2D, ' +
     'Cylinder, Disk2D, ElevationGrid, Humanoid, NurbsCurve, NurbsCurve2D, ' +
     'NurbsSurface, PointSet, Polyline2D, Polypoint2D, Rectangle2D, Segment, ' +
     'Shape, Shape2D, Sphere, Text, TriangleFanSet, TriangleSet, TriangleSet2D, ' +
     'TriangleStripSet, TrimmedSurface';
 
-  VrmlShape_Hints: WideString =
+  VrmlShape_Hints: UnicodeString =
     'Extrusion, IndexedFaceSet, IndexedLineSet';
 
-  VrmlTime_dependents: WideString =
+  VrmlTime_dependents: UnicodeString =
     'AudioClip, IntegerSequencer, MovieTexture, TimeTrigger';
 
-  VrmlViewpoints: WideString =
+  VrmlViewpoints: UnicodeString =
     'GeoViewpoint, Viewpoint';
 
-  VrmlWorldInfos: WideString =
+  VrmlWorldInfos: UnicodeString =
     'WorldInfo';
 
 
-procedure TSynVrml97Syn.DoAddKeyword(AKeyword: WideString; AKind: integer);
+procedure TSynVrml97Syn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
 var
   HashValue: integer;
 begin
@@ -690,10 +692,10 @@ procedure TSynVrml97Syn.AndSymbolProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('&')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '&']) then inc(Run);
 end;
 
-function TSynVrml97Syn.NextTokenIs(T: WideString): Boolean;
+function TSynVrml97Syn.NextTokenIs(T: UnicodeString): Boolean;
 var
   I, Len: Integer;
 begin
@@ -863,7 +865,7 @@ procedure TSynVrml97Syn.MinusProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('-'), WideChar('>')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '-', '>']) then inc(Run);
 end;
 
 procedure TSynVrml97Syn.ModSymbolProc;
@@ -912,8 +914,7 @@ begin
         begin
           if (FLine[idx1] <> '0') or (Run > Succ(idx1)) then
             Break;
-          if not (FLine[Succ(Run)] in [WideChar('0')..WideChar('9'),
-            WideChar('a')..WideChar('f'), WideChar('A')..WideChar('F')]) then
+          if not CharInSet(FLine[Succ(Run)], ['0'..'9', 'a'..'f', 'A'..'F']) then
           begin
             Break;
           end;
@@ -928,14 +929,14 @@ procedure TSynVrml97Syn.OrSymbolProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('|')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '|']) then inc(Run);
 end;
 
 procedure TSynVrml97Syn.PlusProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('+')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '+']) then inc(Run);
 end;
 
 procedure TSynVrml97Syn.PointProc;
@@ -996,7 +997,7 @@ end;
 
 procedure TSynVrml97Syn.StringProc;
 var
-  l_strChar: WideString;
+  l_strChar: UnicodeString;
 begin
   fTokenID := tkString;
   l_strChar := FLine[Run]; // We could have '"' or #39
@@ -1147,7 +1148,7 @@ begin
   Result := SYNS_LangVrml97;
 end;
 
-function TSynVrml97Syn.GetSampleSource: WideString;
+function TSynVrml97Syn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '#VRML V2.0 utf8'#13#10 +
@@ -1208,7 +1209,7 @@ begin
     '}';
 end;
 
-class function TSynVrml97Syn.GetFriendlyLanguageName: WideString;
+class function TSynVrml97Syn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangVrml97;
 end;

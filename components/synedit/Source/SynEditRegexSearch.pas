@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditRegexSearch.pas,v 1.5.2.1 2004/08/31 12:55:18 maelh Exp $
+$Id: SynEditRegexSearch.pas,v 1.5.2.2 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -47,10 +47,12 @@ uses
   QSynEditTypes,
   QSynRegExpr,
   QSynEditMiscClasses,
+  QSynUnicode,
 {$ELSE}
   SynEditTypes,
   SynRegExpr,
   SynEditMiscClasses,
+  SynUnicode,
 {$ENDIF}
   Classes;
 
@@ -61,8 +63,8 @@ type
     fPositions: TList;
     fLengths: TList;
   protected
-    function GetPattern: WideString; override;
-    procedure SetPattern(const Value: WideString); override;
+    function GetPattern: UnicodeString; override;
+    procedure SetPattern(const Value: UnicodeString); override;
     procedure SetOptions(const Value: TSynSearchOptions); override;
     function GetLength(Index: Integer): Integer; override;
     function GetResult(Index: Integer): Integer; override;
@@ -70,8 +72,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function FindAll(const NewText: WideString): Integer; override;
-    function Replace(const aOccurrence, aReplacement: WideString): WideString; override;
+    function FindAll(const NewText: UnicodeString): Integer; override;
+    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; override;
   end;
 
 implementation
@@ -101,7 +103,7 @@ begin
   fLengths.Free;
 end;
 
-function TSynEditRegexSearch.FindAll(const NewText: WideString): Integer;
+function TSynEditRegexSearch.FindAll(const NewText: UnicodeString): Integer;
 
   procedure AddResult(const aPos, aLength: Integer);
   begin
@@ -126,7 +128,7 @@ begin
     Result := 0;
 end;
 
-function TSynEditRegexSearch.Replace(const aOccurrence, aReplacement: WideString): WideString;
+function TSynEditRegexSearch.Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString;
 begin
   Result := fRegex.Replace(aOccurrence, aReplacement, True);
 end;   
@@ -136,7 +138,7 @@ begin
   Result := Integer(fLengths[Index]);
 end;
 
-function TSynEditRegexSearch.GetPattern: WideString;
+function TSynEditRegexSearch.GetPattern: UnicodeString;
 begin
   Result := fRegex.Expression;
 end;
@@ -156,7 +158,7 @@ begin
   fRegex.ModifierI := not(ssoMatchCase in Value);
 end;
 
-procedure TSynEditRegexSearch.SetPattern(const Value: WideString);
+procedure TSynEditRegexSearch.SetPattern(const Value: UnicodeString);
 begin
   fRegex.Expression := Value;
 end;

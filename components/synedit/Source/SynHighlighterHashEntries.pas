@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHashEntries.pas,v 1.5.2.2 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterHashEntries.pas,v 1.5.2.3 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -74,7 +74,7 @@ type
     { Length of the keyword. }
     fKeyLen: integer;
     { The keyword itself. }
-    fKeyword: WideString;
+    fKeyword: UnicodeString;
     { Keyword token kind, has to be typecasted to the real token kind type. }
     fKind: integer;
   public
@@ -84,12 +84,12 @@ type
       to Self. This way the order of keyword length is preserved. }
     function AddEntry(NewEntry: TSynHashEntry): TSynHashEntry; virtual;
     { Creates a keyword entry for the given keyword and token kind. }
-    constructor Create(const AKey: WideString; AKind: integer);
+    constructor Create(const AKey: UnicodeString; AKind: integer);
     { Destroys the keyword entry and all other keyword entries Next points to. }
     destructor Destroy; override;
   public
     { The keyword itself. }
-    property Keyword: WideString read fKeyword;
+    property Keyword: UnicodeString read fKeyword;
     { Length of the keyword. }
     property KeywordLen: integer read fKeyLen;
     { Keyword token kind, has to be typecasted to the real token kind type. }
@@ -133,13 +133,13 @@ type
 
   { Procedural type for adding keyword entries to a TSynHashEntryList when
     iterating over all the keywords contained in a string. }
-  TEnumerateKeywordEvent = procedure(AKeyword: WideString; AKind: integer)
+  TEnumerateKeywordEvent = procedure(AKeyword: UnicodeString; AKind: integer)
     of object;
 
 { This procedure will call AKeywordProc for all keywords in KeywordList. A
   keyword is considered any number of successive chars that are contained in
   Identifiers, with chars not contained in Identifiers before and after them. }
-procedure EnumerateKeywords(AKind: integer; KeywordList: WideString;
+procedure EnumerateKeywords(AKind: integer; KeywordList: UnicodeString;
   IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 
 implementation
@@ -147,11 +147,11 @@ implementation
 uses
   SysUtils;
 
-procedure EnumerateKeywords(AKind: integer; KeywordList: WideString;
+procedure EnumerateKeywords(AKind: integer; KeywordList: UnicodeString;
   IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 var
   pStart, pEnd: PWideChar;
-  Keyword: WideString;
+  Keyword: UnicodeString;
 begin
   if Assigned(AKeywordProc) and (KeywordList <> '') then
   begin
@@ -178,7 +178,7 @@ end;
 
 { TSynHashEntry }
 
-constructor TSynHashEntry.Create(const AKey: WideString; AKind: integer);
+constructor TSynHashEntry.Create(const AKey: UnicodeString; AKind: integer);
 begin
   inherited Create;
   fKeyLen := Length(AKey);

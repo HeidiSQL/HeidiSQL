@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterADSP21xx.pas,v 1.16.2.6 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterADSP21xx.pas,v 1.16.2.7 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -56,10 +56,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -296,7 +298,7 @@ type
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -342,7 +344,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..178] of WideString = (
+  KeyWords: array[0..178] of UnicodeString = (
     'abs', 'abstract', 'ac', 'af', 'alt_reg', 'and', 'ar', 'ar_sat', 'ashift', 
     'astat', 'aux', 'av', 'av_latch', 'ax0', 'ax1', 'ay0', 'ay1', 'b', 
     'bit_rev', 'bm', 'boot', 'by', 'cache', 'call', 'ce', 'circ', 'clear', 
@@ -2359,12 +2361,11 @@ procedure TSynADSP21xxSyn.BinaryNumber;
 begin
   inc(Run);
   fRange := rsUnKnown;
-  while FLine[Run] in [WideChar('0')..WideChar('1')] do
+  while CharInSet(FLine[Run], ['0'..'1']) do
   begin
     inc(Run);
   end;
-  if FLine[Run] in [WideChar('2')..WideChar('9'), WideChar('A')..WideChar('F'),
-    WideChar('a')..WideChar('f')] then
+  if CharInSet(FLine[Run], ['2'..'9', 'A'..'F', 'a'..'f']) then
   begin
     fTokenID := tkIdentifier
   end
@@ -2635,7 +2636,7 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-class function TSynADSP21xxSyn.GetFriendlyLanguageName: WideString;
+class function TSynADSP21xxSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangADSP21xx;
 end;

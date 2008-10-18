@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHtml.pas,v 1.24.2.10 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterHtml.pas,v 1.24.2.11 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -52,14 +52,19 @@ interface
 {$I SynEdit.inc}
 
 uses
+{$IFDEF UNICODE}
+  WideStrUtils,
+{$ENDIF}
 {$IFDEF SYN_CLX}
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -363,12 +368,12 @@ type
     procedure StringProc;
     procedure AmpersandProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -404,15 +409,13 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  KeyWords: array[0..201] of WideString = (
+  KeyWords: array[0..201] of UnicodeString = (
     '!doctype', '/a', '/abbr', '/acronym', '/address', '/applet', '/b', '/bdo', 
     '/big', '/blink', '/blockquote', '/body', '/button', '/caption', '/center', 
     '/cite', '/code', '/colgroup', '/comment', '/dd', '/del', '/dfn', '/dir', 
@@ -530,7 +533,7 @@ const
 function TSynHTMLSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
-  while IsIdentChar(Str^) or (Str^ in [WideChar('!'), WideChar('/')]) do
+  while IsIdentChar(Str^) or CharInSet(Str^, ['!', '/']) do
   begin
     Result := Result * 932 + Ord(Str^) * 46;
     inc(Str);
@@ -749,7 +752,7 @@ procedure TSynHTMLSyn.TextProc;
 var
   i: Integer;
 begin
-  if fLine[Run] in ([WideChar(#0)..WideChar(#31), WideChar('<')]) then
+  if CharInSet(fLine[Run], [#0..#31, '<']) then
   begin
     NextProcedure;
     exit;
@@ -768,14 +771,14 @@ begin
         fAndCode := -1;
         i := Run;
         inc(Run, 2);
-        if fLine[Run] in [WideChar('X'), WideChar('x')] then
+        if CharInSet(fLine[Run], ['X', 'x']) then
         begin
           inc(Run);
           while IsNumberChar do
             inc(Run);
         end
         else
-          while (fLine[Run] in [WideChar('0')..WideChar('9')]) do
+          while CharInSet(fLine[Run], ['0'..'9']) do
             inc(Run);
         if (fLine[Run] = ';') then
         begin
@@ -787,7 +790,7 @@ begin
       end
       else
         for i := Low(EscapeAmps) To High(EscapeAmps) do
-          if (StrLCompW((fLine + Run), EscapeAmps[i], StrLenW(EscapeAmps[i])) = 0) then
+          if (WStrLComp((fLine + Run), EscapeAmps[i], WStrLen(EscapeAmps[i])) = 0) then
           begin
             fAndCode := i;
             fRange := rsAmpersand;
@@ -831,21 +834,21 @@ begin
   Low(EscapeAmps)..High(EscapeAmps):
     begin
       fTokenID := tkAmpersand;
-      Inc(Run, StrLenW(EscapeAmps[fAndCode]));
+      Inc(Run, WStrLen(EscapeAmps[fAndCode]));
     end;
     else begin
       if (fLine[Run + 1] = '#') then
       begin
         fAndCode := -1;
         inc(Run, 2);
-        if fLine[Run] in [WideChar('X'), WideChar('x')] then
+        if CharInSet(fLine[Run], ['X', 'x']) then
         begin
           inc(Run);
           while IsNumberChar do
             inc(Run);
         end
         else
-          while (fLine[Run] in [WideChar('0')..WideChar('9')]) do
+          while CharInSet(fLine[Run], ['0'..'9']) do
             inc(Run);
         if (fLine[Run] = ';') then begin
           inc(Run);
@@ -865,7 +868,7 @@ begin
   fTokenID := tkSpace;
   while fLine[Run] <= #32 do
   begin
-    if fLine[Run] in [WideChar(#0), WideChar(#9), WideChar(#10), WideChar(#13)] then break;
+    if CharInSet(fLine[Run], [#0, #9, #10, #13]) then break;
     Inc(Run);
   end;
 end;
@@ -1027,7 +1030,7 @@ begin
   Result := SYNS_LangHTML;
 end;
 
-function TSynHTMLSyn.GetSampleSource: WideString;
+function TSynHTMLSyn.GetSampleSource: UnicodeString;
 begin
   Result := '<!-- Syntax highlighting -->'#13#10 +
             #13#10 +
@@ -1042,7 +1045,7 @@ begin
             '</html>';
 end;
 
-class function TSynHTMLSyn.GetFriendlyLanguageName: WideString;
+class function TSynHTMLSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangHTML;
 end;

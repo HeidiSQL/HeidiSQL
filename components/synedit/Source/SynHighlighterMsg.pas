@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterMsg.pas,v 1.8.2.5 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterMsg.pas,v 1.8.2.6 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -48,10 +48,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -109,12 +111,12 @@ type
     procedure StringOpenProc;
     procedure StringProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -145,7 +147,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..6] of WideString = (
+  KeyWords: array[0..6] of UnicodeString = (
     'beginproc', 'chars', 'enclosedby', 'endproc', 'keys', 'samplesource', 
     'tokentypes' 
   );
@@ -477,7 +479,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynMsgSyn.GetSampleSource: WideString;
+function TSynMsgSyn.GetSampleSource: UnicodeString;
 begin
   Result := 'TSynSampleSyn   {first identifier is the class name }'#13#10 +
             'tk              {second identifier is the prefix }'#13#10 +
@@ -523,7 +525,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-class function TSynMsgSyn.GetFriendlyLanguageName: WideString;
+class function TSynMsgSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangSynGenMsgfiles;
 end;

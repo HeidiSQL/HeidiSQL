@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPlugins.pas,v 1.8.2.1 2004/08/31 12:55:17 maelh Exp $
+$Id: SynEditPlugins.pas,v 1.8.2.2 2008/09/14 16:24:58 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -50,11 +50,13 @@ uses
   QMenus,
   QSynEdit,
   QSynEditKeyCmds,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Menus,
   SynEdit,
   SynEditKeyCmds,
+  SynUnicode,
 {$ENDIF}
   Classes;
 
@@ -128,19 +130,19 @@ type
 
   TAbstractSynCompletion = class(TAbstractSynSingleHookPlugin)
   protected
-    fCurrentString: WideString;
+    fCurrentString: UnicodeString;
   protected
-    procedure SetCurrentString(const Value: WideString); virtual;
+    procedure SetCurrentString(const Value: UnicodeString); virtual;
     procedure OnCommand(Sender: TObject; AfterProcessing: boolean;
       var Handled: boolean; var Command: TSynEditorCommand; var AChar: WideChar;
       Data: pointer; HandlerData: pointer); override;
     procedure DoExecute; override;
     procedure DoAccept; override;
     procedure DoCancel; override;
-    function GetCurrentEditorString: WideString; virtual;
+    function GetCurrentEditorString: UnicodeString; virtual;
   public
     procedure AddEditor(aEditor: TCustomSynEdit);
-    property CurrentString: WideString read fCurrentString write SetCurrentString;
+    property CurrentString: UnicodeString read fCurrentString write SetCurrentString;
   end;
 
 function NewPluginCommand: TSynEditorCommand;
@@ -449,9 +451,9 @@ end;
 
 { TAbstractSynCompletion }
 
-function TAbstractSynCompletion.GetCurrentEditorString: WideString;
+function TAbstractSynCompletion.GetCurrentEditorString: UnicodeString;
 var
-  S: WideString;
+  S: UnicodeString;
   Col: integer;
 begin
   S := CurrentEditor.LineText;
@@ -485,7 +487,7 @@ procedure TAbstractSynCompletion.OnCommand(Sender: TObject;
   var Command: TSynEditorCommand; var AChar: WideChar; Data,
   HandlerData: Pointer);
 var
-  S: WideString;
+  S: UnicodeString;
 begin  
   if not Executing then
   begin
@@ -557,7 +559,7 @@ begin
     end; {endif Sender = CurrentEditor}
 end;
 
-procedure TAbstractSynCompletion.SetCurrentString(const Value: WideString);
+procedure TAbstractSynCompletion.SetCurrentString(const Value: UnicodeString);
 begin
   fCurrentString := Value;
 end;

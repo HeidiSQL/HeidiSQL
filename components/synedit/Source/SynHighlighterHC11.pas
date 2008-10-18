@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterHC11.pas,v 1.13.2.4 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterHC11.pas,v 1.13.2.5 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -58,12 +58,14 @@ uses
   QGraphics,
   QSynEditHighlighter,
   QSynEditTypes,
-  QSynHighlighterHashEntries,  
+  QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditHighlighter,
   SynEditTypes,
   SynHighlighterHashEntries,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -77,7 +79,7 @@ type
   PHashListEntry = ^THashListEntry;
   THashListEntry = record
     Next: PHashListEntry;
-    Token: WideString;
+    Token: UnicodeString;
     Kind: TtkTokenKind;
     Op: Boolean;
   end;
@@ -96,7 +98,7 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: Integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure SymAsciiCharProc;
@@ -113,11 +115,11 @@ type
     procedure SymStringProc;
     procedure SymUnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -163,7 +165,7 @@ const
     Also the SampleSource uses EQU_ and EQU, so it isn't clear what is
     the correct syntax: with other without the underscores.
   }
-  KeyWords: WideString = (
+  KeyWords: UnicodeString = (
     'ABA,ABX,ABY,ADCA_,ADCB_,ADDA_,ADDB_,ADDD_,ANDA_,ANDB_,ASLA,ASLB,' +
     'ASL_,ASLD,ASRA,ASRB,ASR_,BCC_,BCLR_,BCS_,BEQ_,BGE_,BGT_,BHI_,BHS' +
     '_,BITA_,BITB_,BLE_,BLO_,BLS_,BLT_,BMI_,BNE_,BPL_,BRA_,BRCLR_,BRN' +
@@ -179,11 +181,11 @@ const
     'FCC_,FCB_,BSZ_,FDB_' // codegenerating directives
   );
 
-  Directives: WideString = (
+  Directives: UnicodeString = (
     'EQU_,OPT_,PAGE,ORG_,RMB_,END'  // directives
   );
 
-procedure TSynHC11Syn.DoAddKeyword(AKeyword: WideString; AKind: Integer);
+procedure TSynHC11Syn.DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
 var
   HashValue: Integer;
 begin
@@ -307,8 +309,7 @@ procedure TSynHC11Syn.SymDollarProc;
 begin
   fTokenID := tkNumber;
   inc(Run);
-  while FLine[Run] in [WideChar('0')..WideChar('9'),
-    WideChar('A')..WideChar('F'), WideChar('a')..WideChar('f')] do
+  while CharInSet(FLine[Run], ['0'..'9', 'A'..'F', 'a'..'f']) do
   begin
     inc(Run);
   end;
@@ -340,7 +341,7 @@ procedure TSynHC11Syn.SymPercentProc;
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in [WideChar('0')..WideChar('1')] do
+  while CharInSet(FLine[Run], ['0'..'1']) do
     inc(Run);
 end;
 
@@ -354,7 +355,7 @@ procedure TSynHC11Syn.SymNumberProc;
 begin
   inc(Run);
   fTokenID := tkNumber;
-  while FLine[Run] in [WideChar('0')..WideChar('9')] do
+  while CharInSet(FLine[Run], ['0'..'9']) do
     inc(Run);
 end;
 
@@ -486,7 +487,7 @@ begin
   Result := SYNS_Lang68HC11;
 end;
 
-function TSynHC11Syn.GetSampleSource: WideString;
+function TSynHC11Syn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '* TX.ASM'#13#10 +
@@ -501,7 +502,7 @@ begin
     '	END';
 end;
 
-class function TSynHC11Syn.GetFriendlyLanguageName: WideString;
+class function TSynHC11Syn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLang68HC11;
 end;

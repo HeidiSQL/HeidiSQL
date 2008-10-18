@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterSml.pas,v 1.14.2.5 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterSml.pas,v 1.14.2.6 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -58,11 +58,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -117,11 +119,11 @@ type
     procedure StringEndProc;
     procedure PoundProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -168,7 +170,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..40] of WideString = (
+  KeyWords: array[0..40] of UnicodeString = (
     'abstype', 'and', 'andalso', 'as', 'case', 'datatype', 'do', 'else', 'end', 
     'eqtype', 'exception', 'fn', 'fun', 'functor', 'handle', 'if', 'in', 
     'include', 'infix', 'infixr', 'let', 'local', 'nonfix', 'of', 'op', 'open', 
@@ -235,7 +237,7 @@ function TSynSMLSyn.IsValidMLCharacter: Boolean;
   end;
 
 var
-  ASCIIStr: WideString;
+  ASCIIStr: UnicodeString;
   ASCIICode, Error: Integer;
 begin
   Result := False;
@@ -644,7 +646,7 @@ begin
   Result := SYNS_LangSML;
 end;
 
-function TSynSMLSyn.GetSampleSource: WideString;
+function TSynSMLSyn.GetSampleSource: UnicodeString;
 begin
   Result := '(* Syntax highlighting *)'#13#10 +
             'load "Real";'#13#10 +
@@ -673,7 +675,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-class function TSynSMLSyn.GetFriendlyLanguageName: WideString;
+class function TSynSMLSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangSML;
 end;

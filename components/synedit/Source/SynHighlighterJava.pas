@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterJava.pas,v 1.18.2.9 2007/01/24 03:03:26 etrusco Exp $
+$Id: SynHighlighterJava.pas,v 1.18.2.10 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -56,10 +56,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils, Classes;
 
@@ -143,12 +145,12 @@ type
     procedure XOrSymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function GetExtTokenID: TxtkTokenKind;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;    
@@ -193,7 +195,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..51] of WideString = (
+  KeyWords: array[0..51] of UnicodeString = (
     'abstract', 'assert', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 
     'class', 'const', 'continue', 'default', 'do', 'double', 'else', 'extends', 
     'false', 'final', 'finally', 'float', 'for', 'goto', 'if', 'implements', 
@@ -665,7 +667,7 @@ end;
 procedure TSynJavaSyn.PointProc;
 begin
   inc(Run);                            {point}
-  if FLine[Run] in [WideChar('0')..WideChar('9')] then
+  if CharInSet(FLine[Run], ['0'..'9']) then
   begin
     NumberProc;
     Exit;
@@ -988,7 +990,7 @@ begin
   Result := SYNS_LangJava;
 end;
 
-function TSynJavaSyn.GetSampleSource: WideString;
+function TSynJavaSyn.GetSampleSource: UnicodeString;
 begin
   Result := '/* Java syntax highlighting */'#13#10 +
             'import java.util.*;'#13#10 +
@@ -1003,7 +1005,7 @@ begin
             '}';
 end;
 
-class function TSynJavaSyn.GetFriendlyLanguageName: WideString;
+class function TSynJavaSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangJava;
 end;

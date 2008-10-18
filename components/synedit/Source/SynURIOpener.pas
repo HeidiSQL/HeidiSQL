@@ -61,11 +61,13 @@ uses
   QSynEditTypes,
   QSynEdit,
   QSynHighlighterURI,
+  QSynUnicode,
   {$ELSE}
   Controls,
   SynEditTypes,
   SynEdit,
   SynHighlighterURI,
+  SynUnicode,
   {$ENDIF}
   Classes;
 
@@ -110,7 +112,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function VisitedURI(URI: WideString): Boolean;
+    function VisitedURI(URI: UnicodeString): Boolean;
   published
     property CtrlActivatesLinks: Boolean read FCtrlActivatesLinks
       write FCtrlActivatesLinks default True;
@@ -229,7 +231,7 @@ procedure TSynURIOpener.NewMouseCursor(Sender: TObject;
   const aLineCharPos: TBufferCoord; var aCursor: TCursor);
 var
   TokenType, Start: Integer;
-  Token: WideString;
+  Token: UnicodeString;
   Attri: TSynHighlighterAttributes;
 begin
   FControlDown := IsControlPressed;
@@ -262,7 +264,7 @@ procedure TSynURIOpener.NewMouseUp(Sender: TObject; Button: TMouseButton;
 var
   ptLineCol: TBufferCoord;
   TokenType, Start: Integer;
-  Token: WideString;
+  Token: UnicodeString;
   Attri: TSynHighlighterAttributes;
 begin
   if (Button <> mbLeft) or (FCtrlActivatesLinks and not FControlDown) or
@@ -338,7 +340,7 @@ begin
   end;
   Libc.system(PAnsiChar(CmdLine + ' &')); // add an ampersand to return immediately
   {$ELSE}
-  ShellExecute(0, nil, PAnsiChar(URI), nil, nil, 1{SW_SHOWNORMAL});
+  ShellExecute(0, nil, PChar(URI), nil, nil, 1{SW_SHOWNORMAL});
   {$ENDIF}
 end;
 
@@ -385,7 +387,7 @@ begin
     TAccessSynURISyn(FURIHighlighter).SetAlreadyVisitedURIFunc(VisitedURI);
 end;
 
-function TSynURIOpener.VisitedURI(URI: WideString): Boolean;
+function TSynURIOpener.VisitedURI(URI: UnicodeString): Boolean;
 var
   Dummy: Integer;
 begin

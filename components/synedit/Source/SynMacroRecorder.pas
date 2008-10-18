@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynMacroRecorder.pas,v 1.31.2.2 2006/05/21 11:59:35 maelh Exp $
+$Id: SynMacroRecorder.pas,v 1.31.2.3 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -56,6 +56,7 @@ uses
   QSynEditKeyCmds,
   QSynEditPlugins,
   QSynEditTypes,
+  QSynUnicode,
 {$ELSE}
   StdCtrls,
   Controls,
@@ -67,6 +68,10 @@ uses
   SynEditKeyCmds,
   SynEditPlugins,
   SynEditTypes,
+  SynUnicode,
+{$ENDIF}
+{$IFDEF UNICODE}
+  WideStrUtils,
 {$ENDIF}
   Classes;
 
@@ -87,8 +92,8 @@ type
   TSynMacroEvent = class(TObject)
   protected
     fRepeatCount: Byte;
-    function GetAsString: WideString; virtual; abstract;
-    procedure InitEventParameters(aStr: WideString); virtual; abstract;
+    function GetAsString: UnicodeString; virtual; abstract;
+    procedure InitEventParameters(aStr: UnicodeString); virtual; abstract;
   public
     constructor Create; virtual;
     procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
@@ -98,15 +103,15 @@ type
     procedure LoadFromStream(aStream: TStream); virtual; abstract;
     procedure SaveToStream(aStream: TStream); virtual; abstract;
     procedure Playback(aEditor: TCustomSynEdit); virtual; abstract;
-    property AsString: WideString read GetAsString;
+    property AsString: UnicodeString read GetAsString;
     property RepeatCount: Byte read fRepeatCount write fRepeatCount;
   end;
 
   TSynBasicEvent = class(TSynMacroEvent)
   protected
     fCommand: TSynEditorCommand;
-    function GetAsString: WideString; override;
-    procedure InitEventParameters(aStr: WideString); override;
+    function GetAsString: UnicodeString; override;
+    procedure InitEventParameters(aStr: UnicodeString); override;
   public
     procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
@@ -120,8 +125,8 @@ type
   TSynCharEvent = class(TSynMacroEvent)
   protected
     fKey: WideChar;
-    function GetAsString: WideString; override;
-    procedure InitEventParameters(aStr: WideString); override;
+    function GetAsString: UnicodeString; override;
+    procedure InitEventParameters(aStr: UnicodeString); override;
   public
     procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
@@ -134,9 +139,9 @@ type
 
   TSynStringEvent = class(TSynMacroEvent)
   protected
-    fString: WideString;
-    function GetAsString: WideString; override;
-    procedure InitEventParameters(aStr: WideString); override;
+    fString: UnicodeString;
+    function GetAsString: UnicodeString; override;
+    procedure InitEventParameters(aStr: UnicodeString); override;
   public
     procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
@@ -144,14 +149,14 @@ type
     procedure SaveToStream(aStream: TStream); override;
     procedure Playback(aEditor: TCustomSynEdit); override;
   public
-    property Value: WideString read fString write fString;
+    property Value: UnicodeString read fString write fString;
   end;
 
   TSynPositionEvent = class(TSynBasicEvent)
   protected
     fPosition: TBufferCoord;
-    function GetAsString: WideString; override;
-    procedure InitEventParameters(aStr: WideString); override;
+    function GetAsString: UnicodeString; override;
+    procedure InitEventParameters(aStr: UnicodeString); override;
   public
     procedure Initialize(aCmd: TSynEditorCommand; aChar: WideChar; aData: Pointer);
       override;
@@ -195,8 +200,8 @@ type
     fSaveMarkerPos: boolean;
     function GetEvent(aIndex: integer): TSynMacroEvent;
     function GetEventCount: integer;
-    function GetAsString: WideString;
-    procedure SetAsString(const Value: WideString);
+    function GetAsString: UnicodeString;
+    procedure SetAsString(const Value: UnicodeString);
   protected
     fCurrentEditor: TCustomSynEdit;
     fState: TSynMacroState;
@@ -247,7 +252,7 @@ type
       read fShortCuts[mcPlayback] write SetShortCut;
     property SaveMarkerPos: boolean read fSaveMarkerPos
       write fSaveMarkerPos default False;
-    property AsString: WideString read GetAsString write SetAsString;
+    property AsString: UnicodeString read GetAsString write SetAsString;
     property MacroName: string read fMacroName write fMacroName;
     property OnStateChange: TNotifyEvent read fOnStateChange write fOnStateChange;
     property OnUserCommand: TSynUserCommandEvent read fOnUserCommand
@@ -269,11 +274,9 @@ uses
 {$IFDEF SYN_CLX}
   QForms,
   QSynEditMiscProcs,
-  QSynUnicode,
 {$ELSE}
   Forms,
   SynEditMiscProcs,
-  SynUnicode,
 {$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
 {$ENDIF}
@@ -659,10 +662,10 @@ begin
   StateChanged;
 end;
 
-function TCustomSynMacroRecorder.GetAsString: WideString;
+function TCustomSynMacroRecorder.GetAsString: UnicodeString;
 var
   i: integer;
-  eStr: WideString;
+  eStr: UnicodeString;
 begin
   Result := 'macro ' + MacroName + #13#10 + 'begin' + #13#10;
   if Assigned(fEvents) then
@@ -677,18 +680,18 @@ begin
   Result := Result + 'end';
 end;
 
-procedure TCustomSynMacroRecorder.SetAsString(const Value: WideString);
+procedure TCustomSynMacroRecorder.SetAsString(const Value: UnicodeString);
 var
   i, p, Cmd: Integer;
-  S: TWideStrings;
-  cmdStr: WideString;
+  S: TUnicodeStrings;
+  cmdStr: UnicodeString;
   iEvent: TSynMacroEvent;
 begin
   Stop;
   Clear;
   fEvents := TList.Create;
   // process file line by line and create events
-  S := TWideStringList.Create;
+  S := TUnicodeStringList.Create;
   try
     S.Text := Value;
     for i := 0 to S.Count - 1 do
@@ -741,7 +744,7 @@ end;
 
 { TSynBasicEvent }
 
-function TSynBasicEvent.GetAsString: WideString;
+function TSynBasicEvent.GetAsString: UnicodeString;
 var
   Ident: string;
 begin
@@ -751,7 +754,7 @@ begin
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynBasicEvent.InitEventParameters(aStr: WideString);
+procedure TSynBasicEvent.InitEventParameters(aStr: UnicodeString);
 begin
   // basic events have no parameters but can contain an optional repeat count
   RepeatCount := StrToIntDef(WideTrim(aStr), 1);
@@ -788,7 +791,7 @@ end;
 
 { TSynCharEvent }
 
-function TSynCharEvent.GetAsString: WideString;
+function TSynCharEvent.GetAsString: UnicodeString;
 var
   Ident: string;
 begin
@@ -798,7 +801,7 @@ begin
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynCharEvent.InitEventParameters(aStr: WideString);
+procedure TSynCharEvent.InitEventParameters(aStr: UnicodeString);
 begin
   // aStr should be a Key value one character in length
   // with an optional repeat count whitespace separated
@@ -842,7 +845,7 @@ end;
 
 { TSynPositionEvent }
 
-function TSynPositionEvent.GetAsString: WideString;
+function TSynPositionEvent.GetAsString: UnicodeString;
 begin
   Result := inherited GetAsString;
   // add position data here
@@ -851,10 +854,10 @@ begin
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynPositionEvent.InitEventParameters(aStr: WideString);
+procedure TSynPositionEvent.InitEventParameters(aStr: UnicodeString);
 var
   i, o, c, x, y: Integer;
-  valStr: WideString;
+  valStr: UnicodeString;
 begin
   inherited;
   // aStr should be (x, y) with optional repeat count whitespace separated
@@ -910,7 +913,7 @@ end;
 
 { TSynStringEvent }
 
-function TSynStringEvent.GetAsString: WideString;
+function TSynStringEvent.GetAsString: UnicodeString;
 var
   Ident: string;
 begin
@@ -920,16 +923,16 @@ begin
     Result := Result + ' ' + IntToStr(RepeatCount);
 end;
 
-procedure TSynStringEvent.InitEventParameters(aStr: WideString);
+procedure TSynStringEvent.InitEventParameters(aStr: UnicodeString);
 var
   o, c: Integer;
-  valStr: WideString;
+  valStr: UnicodeString;
 begin                      
   // aStr = 'test' with optional whitespace separated repeat count
   o := Pos('''', aStr);
   c := WideLastDelimiter('''', aStr);
   valStr := Copy(aStr, o + 1, c - o - 1);
-  Value := WideStringReplace(valStr, '''''', '''', [rfReplaceAll]);
+  Value := UnicodeStringReplace(valStr, '''''', '''', [rfReplaceAll]);
   Delete(aStr, 1, c);
   RepeatCount := StrToIntDef(WideTrim(aStr), 1);
 end;
@@ -937,7 +940,7 @@ end;
 procedure TSynStringEvent.Initialize(aCmd: TSynEditorCommand; aChar: WideChar;
   aData: Pointer);
 begin
-  Value := WideString(aData);
+  Value := UnicodeString(aData);
 end;
 
 procedure TSynStringEvent.LoadFromStream(aStream: TStream);
@@ -988,7 +991,7 @@ begin
   {$IFNDEF SYN_CLX}
     FillMemory(Buff, l, 0);
   {$ENDIF}
-    StrCopyW(Buff, PWideChar(Value));
+    WStrCopy(Buff, PWideChar(Value));
     aStream.Write(Buff^, l * sizeof(WideChar));
   finally
     FreeMem(Buff);

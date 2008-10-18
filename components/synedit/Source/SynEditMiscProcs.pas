@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditMiscProcs.pas,v 1.35.2.6 2006/05/21 12:57:56 maelh Exp $
+$Id: SynEditMiscProcs.pas,v 1.35.2.7 2008/09/14 16:24:58 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -87,44 +87,44 @@ procedure InternalFillRect(dc: HDC; const rcPaint: TRect);
 // Converting tabs to spaces: To use the function several times it's better
 // to use a function pointer that is set to the fastest conversion function.
 type
-  TConvertTabsProc = function(const Line: WideString;
-    TabWidth: Integer): WideString;
+  TConvertTabsProc = function(const Line: UnicodeString;
+    TabWidth: Integer): UnicodeString;
 
 function GetBestConvertTabsProc(TabWidth: Integer): TConvertTabsProc;
 // This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabs(const Line: WideString; TabWidth: Integer): WideString;
+function ConvertTabs(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
 
 type
-  TConvertTabsProcEx = function(const Line: WideString; TabWidth: Integer;
-    var HasTabs: Boolean): WideString;
+  TConvertTabsProcEx = function(const Line: UnicodeString; TabWidth: Integer;
+    var HasTabs: Boolean): UnicodeString;
 
 function GetBestConvertTabsProcEx(TabWidth: Integer): TConvertTabsProcEx;
 // This is the slowest conversion function which can handle TabWidth <> 2^n.
-function ConvertTabsEx(const Line: WideString; TabWidth: Integer;
-  var HasTabs: Boolean): WideString;
+function ConvertTabsEx(const Line: UnicodeString; TabWidth: Integer;
+  var HasTabs: Boolean): UnicodeString;
 
-function GetExpandedLength(const aStr: WideString; aTabWidth: Integer): Integer;
+function GetExpandedLength(const aStr: UnicodeString; aTabWidth: Integer): Integer;
 
 function CharIndex2CaretPos(Index, TabWidth: Integer;
-  const Line: WideString): Integer;
-function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: WideString;
+  const Line: UnicodeString): Integer;
+function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: UnicodeString;
   var InsideTabChar: Boolean): Integer;
 
 // search for the first char of set AChars in Line, starting at index Start
-function StrScanForCharInCategory(const Line: WideString; Start: Integer;
+function StrScanForCharInCategory(const Line: UnicodeString; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 // the same, but searching backwards
-function StrRScanForCharInCategory(const Line: WideString; Start: Integer;
+function StrRScanForCharInCategory(const Line: UnicodeString; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 
 function GetEOL(Line: PWideChar): PWideChar;
 
 // Remove all '/' characters from string by changing them into '\.'.
 // Change all '\' characters into '\\' to allow for unique decoding.
-function EncodeString(s: WideString): WideString;
+function EncodeString(s: UnicodeString): UnicodeString;
 
 // Decodes string, encoded with EncodeString.
-function DecodeString(s: WideString): WideString;
+function DecodeString(s: UnicodeString): UnicodeString;
 
 {$IFNDEF SYN_COMPILER_5_UP}
 procedure FreeAndNil(var Obj);
@@ -135,15 +135,15 @@ procedure Assert(Expr: Boolean);  { stub for Delphi 2 }
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: WideString): Integer;
+function LastDelimiter(const Delimiters, S: UnicodeString): Integer;
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_4_UP}
 type
   TReplaceFlags = set of (rfReplaceAll, rfIgnoreCase);
 
-function StringReplace(const S, OldPattern, NewPattern: WideString;
-  Flags: TReplaceFlags): WideString;
+function StringReplace(const S, OldPattern, NewPattern: UnicodeString;
+  Flags: TReplaceFlags): UnicodeString;
 {$ENDIF}
 
 {$IFDEF SYN_CLX}
@@ -269,8 +269,8 @@ begin
 end;
 
 
-function ConvertTabs1Ex(const Line: WideString; TabWidth: Integer;
-  var HasTabs: Boolean): WideString;
+function ConvertTabs1Ex(const Line: UnicodeString; TabWidth: Integer;
+  var HasTabs: Boolean): UnicodeString;
 var
   pDest: PWideChar;
   nBeforeTab: Integer;
@@ -291,15 +291,15 @@ begin
     HasTabs := False;
 end;
 
-function ConvertTabs1(const Line: WideString; TabWidth: Integer): WideString;
+function ConvertTabs1(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
 var
   HasTabs: Boolean;
 begin
   Result := ConvertTabs1Ex(Line, TabWidth, HasTabs);
 end;
 
-function ConvertTabs2nEx(const Line: WideString; TabWidth: Integer;
-  var HasTabs: Boolean): WideString;
+function ConvertTabs2nEx(const Line: UnicodeString; TabWidth: Integer;
+  var HasTabs: Boolean): UnicodeString;
 var
   i, DestLen, TabCount, TabMask: Integer;
   pSrc, pDest: PWideChar;
@@ -366,15 +366,15 @@ begin
     HasTabs := False;
 end;
 
-function ConvertTabs2n(const Line: WideString; TabWidth: Integer): WideString;
+function ConvertTabs2n(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
 var
   HasTabs: Boolean;
 begin
   Result := ConvertTabs2nEx(Line, TabWidth, HasTabs);
 end;
 
-function ConvertTabsEx(const Line: WideString; TabWidth: Integer;
-  var HasTabs: Boolean): WideString;
+function ConvertTabsEx(const Line: UnicodeString; TabWidth: Integer;
+  var HasTabs: Boolean): UnicodeString;
 var
   i, DestLen, TabCount: Integer;
   pSrc, pDest: PWideChar;
@@ -437,7 +437,7 @@ begin
     HasTabs := False;
 end;
 
-function ConvertTabs(const Line: WideString; TabWidth: Integer): WideString;
+function ConvertTabs(const Line: UnicodeString; TabWidth: Integer): UnicodeString;
 var
   HasTabs: Boolean;
 begin
@@ -474,7 +474,7 @@ begin
       Result := ConvertTabsEx;
 end;
 
-function GetExpandedLength(const aStr: WideString; aTabWidth: Integer): Integer;
+function GetExpandedLength(const aStr: UnicodeString; aTabWidth: Integer): Integer;
 var
   iRun: PWideChar;
 begin
@@ -491,7 +491,7 @@ begin
 end;
 
 function CharIndex2CaretPos(Index, TabWidth: Integer;
-  const Line: WideString): Integer;
+  const Line: UnicodeString): Integer;
 var
   iChar: Integer;
   pNext: PWideChar;
@@ -542,7 +542,7 @@ begin
     Result := 1;
 end;
 
-function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: WideString;
+function CaretPos2CharIndex(Position, TabWidth: Integer; const Line: UnicodeString;
   var InsideTabChar: Boolean): Integer;
 var
   iPos: Integer;
@@ -590,7 +590,7 @@ begin
     Result := Position;
 end;
 
-function StrScanForCharInCategory(const Line: WideString; Start: Integer;
+function StrScanForCharInCategory(const Line: UnicodeString; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 var
   p: PWideChar;
@@ -611,7 +611,7 @@ begin
   Result := 0;
 end;
 
-function StrRScanForCharInCategory(const Line: WideString; Start: Integer;
+function StrRScanForCharInCategory(const Line: UnicodeString; Start: Integer;
   IsOfCategory: TCategoryMethod): Integer;
 var
   I: Integer;
@@ -638,7 +638,7 @@ end;
 
 {$IFOPT R+}{$DEFINE RestoreRangeChecking}{$ELSE}{$UNDEF RestoreRangeChecking}{$ENDIF}
 {$R-}
-function EncodeString(s: WideString): WideString;
+function EncodeString(s: UnicodeString): UnicodeString;
 var
   i, j: Integer;
 begin
@@ -665,7 +665,7 @@ begin
   SetLength(Result, j);
 end; { EncodeString }
 
-function DecodeString(s: WideString): WideString;
+function DecodeString(s: UnicodeString): UnicodeString;
 var
   i, j: Integer;
 begin
@@ -709,7 +709,7 @@ end;
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_3_UP}
-function LastDelimiter(const Delimiters, S: WideString): Integer;
+function LastDelimiter(const Delimiters, S: UnicodeString): Integer;
 var
   P: PWideChar;
 begin
@@ -725,10 +725,10 @@ end;
 {$ENDIF}
 
 {$IFNDEF SYN_COMPILER_4_UP}
-function StringReplace(const S, OldPattern, NewPattern: WideString;
-  Flags: TReplaceFlags): WideString;
+function StringReplace(const S, OldPattern, NewPattern: UnicodeString;
+  Flags: TReplaceFlags): UnicodeString;
 var
-  SearchStr, Patt, NewStr: WideString;
+  SearchStr, Patt, NewStr: UnicodeString;
   Offset: Integer;
 begin
   if rfIgnoreCase in Flags then
@@ -796,7 +796,7 @@ end;
 function DeleteTypePrefixAndSynSuffix(S: string): string;
 begin
   Result := S;
-  if Result[1] in ['T', 't'] then //ClassName is never empty so no AV possible
+  if CharInSet(Result[1], ['T', 't']) then //ClassName is never empty so no AV possible
     if Pos('tsyn', LowerCase(Result)) = 1 then
       Delete(Result, 1, 4)
     else

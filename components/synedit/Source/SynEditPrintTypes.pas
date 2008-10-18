@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintTypes.pas,v 1.4.2.2 2004/10/09 18:23:11 maelh Exp $
+$Id: SynEditPrintTypes.pas,v 1.4.2.3 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -50,6 +50,11 @@ unit SynEditPrintTypes;
 interface
 
 uses
+{$IFDEF SYN_CLX}
+  QSynUnicode,
+{$ELSE}
+  SynUnicode,
+{$ENDIF}
   Classes, SysUtils;
 
 const
@@ -75,7 +80,6 @@ type
     PageNumber: Integer; var Abort: Boolean) of object;
 //Event raised when a line is printed (can be used to generate Table of Contents)
   TPrintLineEvent = procedure(Sender: TObject; LineNumber, PageNumber: Integer) of object;
-  TSysCharSet = set of Char;
 type
   TWrapPos = class
   public
@@ -85,13 +89,13 @@ type
 function IntToRoman(Value: Integer): string;
 
 // TODO: BreakChars is ANSI only but SynEditPrint only uses Ansi chars and should be rewritten to use WordWrap of SynEdit anyway
-function WrapTextEx(const Line: WideString; BreakChars: TSysCharSet;
+function WrapTextEx(const Line: UnicodeString; BreakChars: TSysCharSet;
   MaxCol: Integer; AList: TList): Boolean;
 
 implementation
 
 //Returns wrapping positions in AList.
-function WrapTextEx(const Line: WideString; BreakChars: TSysCharSet;
+function WrapTextEx(const Line: UnicodeString; BreakChars: TSysCharSet;
   MaxCol: Integer; AList: TList): Boolean;
 var
   WrapPos: TWrapPos;
@@ -111,7 +115,7 @@ begin
   while Pos <= Length(Line) do
   begin
     Found := (Pos - PreviousPos > MaxCol) and (WrapPos.Index <> 0);
-    if not Found and (Line[Pos] <= High(Char)) and (Char(Line[Pos]) in BreakChars) then // We found a possible break
+    if not Found and (Line[Pos] <= High(Char)) and CharInSet(Char(Line[Pos]), BreakChars) then // We found a possible break
       WrapPos.Index := Pos;
 
     if Found then

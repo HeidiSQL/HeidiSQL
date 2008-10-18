@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGeneral.pas,v 1.15.2.7 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterGeneral.pas,v 1.15.2.8 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -83,7 +83,7 @@ type
 type
   TSynGeneralSyn = class(TSynCustomHighlighter)
   private
-    fIdentChars: WideString;
+    fIdentChars: UnicodeString;
     fRange: TRangeState;
     fTokenID: TtkTokenKind;
     fCommentAttri: TSynHighlighterAttributes;
@@ -94,7 +94,7 @@ type
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
-    fKeyWords: TWideStrings;
+    fKeyWords: TUnicodeStrings;
     fComments: TCommentStyles;
     fStringDelimCh: WideChar;
     fDetectPreprocessor: Boolean;
@@ -115,16 +115,16 @@ type
     procedure AnsiProc;
     procedure PasStyleProc;
     procedure CStyleProc;
-    procedure SetKeyWords(const Value: TWideStrings);
+    procedure SetKeyWords(const Value: TUnicodeStrings);
     procedure SetComments(Value: TCommentStyles);
     function GetStringDelim: TStringDelim;
     procedure SetStringDelim(const Value: TStringDelim);
-    function GetIdentifierChars: WideString;
-    procedure SetIdentifierChars(const Value: WideString);
+    function GetIdentifierChars: UnicodeString;
+    procedure SetIdentifierChars(const Value: UnicodeString);
     procedure SetDetectPreprocessor(Value: boolean);
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -136,7 +136,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
-    function IsKeyword(const AKeyword: WideString): Boolean; override;
+    function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
     function IsWordBreakChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
     procedure ResetRange; override;
@@ -153,10 +153,10 @@ type
       write SetDetectPreprocessor;
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
       write fIdentifierAttri;
-    property IdentifierChars: WideString read GetIdentifierChars
+    property IdentifierChars: UnicodeString read GetIdentifierChars
       write SetIdentifierChars;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property KeyWords: TWideStrings read fKeyWords write SetKeyWords;
+    property KeyWords: TUnicodeStrings read fKeyWords write SetKeyWords;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
     property PreprocessorAttri: TSynHighlighterAttributes
@@ -193,10 +193,10 @@ begin
     end;
 end;
 
-function TSynGeneralSyn.IsKeyword(const AKeyword: WideString): Boolean;
+function TSynGeneralSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := fKeywords.Count - 1;
@@ -226,9 +226,9 @@ end;
 constructor TSynGeneralSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fKeyWords := TWideStringList.Create;
-  TWideStringList(fKeyWords).Sorted := True;
-  TWideStringList(fKeyWords).Duplicates := dupIgnore;
+  fKeyWords := TUnicodeStringList.Create;
+  TUnicodeStringList(fKeyWords).Sorted := True;
+  TUnicodeStringList(fKeyWords).Duplicates := dupIgnore;
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
@@ -335,7 +335,7 @@ begin
     fTokenID := tkString;
     repeat
       inc(Run);
-    until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
+    until not CharInSet(fLine[Run], ['0'..'9']);
   end;
 end;
 
@@ -670,7 +670,7 @@ begin
   fRange := TRangeState(Value);
 end;
 
-procedure TSynGeneralSyn.SetKeyWords(const Value: TWideStrings);
+procedure TSynGeneralSyn.SetKeyWords(const Value: TUnicodeStrings);
 var
   i: Integer;
 begin
@@ -752,12 +752,12 @@ begin
     fStringDelimCh := newCh;
 end;
 
-function TSynGeneralSyn.GetIdentifierChars: WideString;
+function TSynGeneralSyn.GetIdentifierChars: UnicodeString;
 begin
   Result := fIdentChars;
 end;
 
-procedure TSynGeneralSyn.SetIdentifierChars(const Value: WideString);
+procedure TSynGeneralSyn.SetIdentifierChars(const Value: UnicodeString);
 begin
   fIdentChars := Value;
 end;
@@ -771,7 +771,7 @@ begin
   end;
 end;
 
-class function TSynGeneralSyn.GetFriendlyLanguageName: WideString;
+class function TSynGeneralSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangGeneral;
 end;

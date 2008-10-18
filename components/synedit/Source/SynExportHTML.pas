@@ -31,7 +31,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynExportHTML.pas,v 1.19.2.6 2006/05/21 11:59:34 maelh Exp $
+$Id: SynExportHTML.pas,v 1.19.2.7 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -88,10 +88,10 @@ type
     procedure FormatBeforeFirstAttribute(BackgroundChanged,
       ForegroundChanged: boolean; FontStylesChanged: TFontStyles); override;
     procedure FormatNewLine; override;
-    function GetFooter: WideString; override;
+    function GetFooter: UnicodeString; override;
     function GetFormatName: string; override;
-    function GetHeader: WideString; override;
-    function ReplaceReservedChar(AChar: WideChar): WideString; override;
+    function GetHeader: UnicodeString; override;
+    function ReplaceReservedChar(AChar: WideChar): UnicodeString; override;
     function UseBom: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -178,7 +178,7 @@ var
   RGBColor: longint;
   RGBValue: byte;
 const
-  Digits: array[0..15] of AnsiChar = '0123456789ABCDEF';
+  Digits: array[0..15] of Char = '0123456789ABCDEF';
 begin
   RGBColor := ColorToRGB(AColor);
   Result := '#000000';
@@ -236,7 +236,7 @@ begin
   AddNewLine;
 end;
 
-function TSynExporterHTML.GetFooter: WideString;
+function TSynExporterHTML.GetFooter: UnicodeString;
 begin
   Result := '';
   if fExportAsText then
@@ -252,7 +252,7 @@ begin
   Result := SYNS_ExporterFormatHTML;
 end;
 
-function TSynExporterHTML.GetHeader: WideString;
+function TSynExporterHTML.GetHeader: UnicodeString;
 const
   DescriptionSize = 105;
   FooterSize1 = 47;
@@ -322,13 +322,13 @@ var
 begin
   Result := LowerCase(Name);
   for i := Length(Result) downto 1 do
-    if Result[i] in ['.', '_'] then
+    if CharInSet(Result[i], ['.', '_']) then
       Result[i] := '-'
-    else if not(Result[i] in ['a'..'z', '0'..'9', '-']) then
+    else if not CharInSet(Result[i], ['a'..'z', '0'..'9', '-']) then
       Delete(Result, i, 1);
 end;
 
-function TSynExporterHTML.ReplaceReservedChar(AChar: WideChar): WideString;
+function TSynExporterHTML.ReplaceReservedChar(AChar: WideChar): UnicodeString;
 begin
   case AChar of
     '&': Result := '&amp;';

@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCPM.pas,v 1.16.2.5 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterCPM.pas,v 1.16.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -46,10 +46,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -257,11 +259,11 @@ type
     procedure UnknownProc;
     procedure BraceCommentProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -298,7 +300,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..145] of WideString = (
+  KeyWords: array[0..145] of UnicodeString = (
     'allentities', 'allproducts', 'allproperties', 'allqualityproperties', 
     'allsuppliers', 'assign', 'begin', 'block', 'case', 'category', 'centerstr', 
     'charreplacestr', 'charrlenstr', 'charrllenstr', 'chr', 'client', 
@@ -1977,7 +1979,7 @@ begin
   inc(Run);
 end; { LFProc }
 
-function TSynCPMSyn.GetSampleSource: WideString;
+function TSynCPMSyn.GetSampleSource: UnicodeString;
 begin
   Result := '{ COAS Product Manager report (RDF) }'#13#10 +
             'PARAM'#13#10 +
@@ -2065,7 +2067,7 @@ begin
   Result := Pointer((fCommentLevel * $10000) + Integer(fRange));
 end; { GetRange }
 
-class function TSynCPMSyn.GetFriendlyLanguageName: WideString;
+class function TSynCPMSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCPM;
 end;

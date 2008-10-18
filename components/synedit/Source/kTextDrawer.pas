@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: kTextDrawer.pas,v 1.10.2.2 2004/11/02 19:26:11 maelh Exp $
+$Id: kTextDrawer.pas,v 1.10.2.3 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -514,7 +514,7 @@ var
   ch: WideChar;
   w: Integer;
   fi: QFontInfoH;
-  family: WideString;
+  family: UnicodeString;
 begin
   fi := QFontInfo_create(fBaseFont.Handle);
   try

@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterTeX.pas,v 1.5.2.4 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterTeX.pas,v 1.5.2.5 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file from sproessig@bs-webdesign.de
 
@@ -48,10 +48,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   Classes;
 
@@ -71,7 +73,7 @@ type
     fBracketAttri: TSynHighlighterAttributes;
     fBraceAttri: TSynHighlighterAttributes;
 
-    function CreateHighlighterAttributes(Name: string; FriendlyName: WideString;
+    function CreateHighlighterAttributes(Name: string; FriendlyName: UnicodeString;
       Foreground, Background: TColor; FontStyles: TFontStyles): TSynHighlighterAttributes;
     procedure CRProc;
     procedure TextProc;
@@ -86,11 +88,11 @@ type
     procedure BracketCloseProc;
     procedure MathmodeProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;    
+    class function GetFriendlyLanguageName: UnicodeString; override;    
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -328,7 +330,7 @@ begin
   Result := SYNS_LangTeX;
 end;  { GetLanguageName }
 
-function TSynTeXSyn.CreateHighlighterAttributes(Name: string; FriendlyName: WideString;
+function TSynTeXSyn.CreateHighlighterAttributes(Name: string; FriendlyName: UnicodeString;
   Foreground, Background: TColor; FontStyles: TFontStyles): TSynHighlighterAttributes;
 begin
   Result := TSynHighlighterAttributes.Create(Name, FriendlyName);
@@ -337,7 +339,7 @@ begin
   Result.Style := FontStyles;
 end;
 
-function TSynTeXSyn.GetSampleSource: WideString;
+function TSynTeXSyn.GetSampleSource: UnicodeString;
 begin
   Result:='\documentclass[a4paper]{article}'+#13#10+
           '% LaTeX sample source'+#13#10+
@@ -347,7 +349,7 @@ begin
 end;
 
 {$IFNDEF SYN_CPPB_1}
-class function TSynTeXSyn.GetFriendlyLanguageName: WideString;
+class function TSynTeXSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangTeX;
 end;

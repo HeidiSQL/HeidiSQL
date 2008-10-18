@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditMiscClasses.pas,v 1.35.2.6 2006/05/21 11:59:34 maelh Exp $
+$Id: SynEditMiscClasses.pas,v 1.35.2.9 2008/09/17 13:59:12 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -144,6 +144,7 @@ type
     procedure SetGradientStartColor(const Value: TColor);
     procedure SetGradientEndColor(const Value: TColor);
     procedure SetGradientSteps(const Value: Integer);
+    function GetWidth: integer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -172,7 +173,7 @@ type
     property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle
       default True;
     property Visible: boolean read fVisible write SetVisible default TRUE;
-    property Width: integer read fWidth write SetWidth default 30;
+    property Width: integer read GetWidth write SetWidth default 30;
     property ZeroStart: boolean read fZeroStart write SetZeroStart
       default False;
     property LineNumberStart: Integer read fLineNumberStart write SetLineNumberStart default 1;
@@ -363,16 +364,16 @@ type
 
   TSynEditSearchCustom = class(TComponent)
   protected
-    function GetPattern: WideString; virtual; abstract;
-    procedure SetPattern(const Value: WideString); virtual; abstract;
+    function GetPattern: UnicodeString; virtual; abstract;
+    procedure SetPattern(const Value: UnicodeString); virtual; abstract;
     function GetLength(Index: Integer): Integer; virtual; abstract;
     function GetResult(Index: Integer): Integer; virtual; abstract;
     function GetResultCount: Integer; virtual; abstract;
     procedure SetOptions(const Value: TSynSearchOptions); virtual; abstract;
   public
-    function FindAll(const NewText: WideString): Integer; virtual; abstract;
-    function Replace(const aOccurrence, aReplacement: WideString): WideString; virtual; abstract;
-    property Pattern: WideString read GetPattern write SetPattern;
+    function FindAll(const NewText: UnicodeString): Integer; virtual; abstract;
+    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; virtual; abstract;
+    property Pattern: UnicodeString read GetPattern write SetPattern;
     property ResultCount: Integer read GetResultCount;
     property Results[Index: Integer]: Integer read GetResult;
     property Lengths[Index: Integer]: Integer read GetLength;
@@ -532,7 +533,7 @@ begin
     Dec(Line)
   else if fLineNumberStart > 1 then
     Inc(Line, fLineNumberStart - 1);
-  Str(Line : fAutoSizeDigitCount, Result);
+  Result := Format('%*d', [fAutoSizeDigitCount, Line]);
   if fLeadingZeros then
     for i := 1 to fAutoSizeDigitCount - 1 do begin
       if (Result[i] <> ' ') then break;
@@ -719,6 +720,14 @@ begin
       fGradientSteps := 2;
     if Assigned(fOnChange) then fOnChange(Self);
   end;
+end;
+
+function TSynGutter.GetWidth: integer;
+begin
+  if not Visible then
+    Result := 0
+  else
+    Result := fWidth;
 end;
 
 { TSynBookMarkOpt }
@@ -1235,7 +1244,7 @@ begin
     Result := hcNone;
 end;
 
-function ShortCutToTextEx(Key: Word; Shift: TShiftState): WideString;
+function ShortCutToTextEx(Key: Word; Shift: TShiftState): UnicodeString;
 begin
   if ssCtrl in Shift then Result := SmkcCtrl;
   if ssShift in Shift then Result := Result + SmkcShift;
@@ -1518,7 +1527,7 @@ begin
 
   if not Relative then Delete(S, 1, 1);
   TempKey := 0;
-  Result := RegOpenKeyEx(GetBaseKey(Relative), PAnsiChar(S), 0,
+  Result := RegOpenKeyEx(GetBaseKey(Relative), PChar(S), 0,
       KEY_READ, TempKey) = ERROR_SUCCESS;
   if Result then
   begin

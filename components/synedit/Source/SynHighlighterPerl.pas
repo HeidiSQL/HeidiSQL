@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPerl.pas,v 1.14.2.7 2005/12/16 20:09:37 maelh Exp $
+$Id: SynHighlighterPerl.pas,v 1.14.2.8 2008/09/14 16:25:01 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -59,10 +59,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -399,11 +401,11 @@ type
     procedure XOrSymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -448,7 +450,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..281] of WideString = (
+  KeyWords: array[0..281] of UnicodeString = (
     '$ACCUMULATOR', '$ARG', '$ARGV', '$BASETIME', '$CHILD_ERROR', '$DEBUGGING', 
     '$EFFECTIVE_GROUP_ID', '$EFFECTIVE_USER_ID', '$EGID', '$ENV', '$ERRNO', 
     '$EUID', '$EVAL_ERROR', '$EXECUTABLE_NAME', '$FORMAT_FORMFEED', 
@@ -633,7 +635,7 @@ const
 function TSynPerlSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
-  while IsIdentChar(Str^) or (Str^ in [WideChar('$'), WideChar('%'), WideChar('@')]) do
+  while IsIdentChar(Str^) or CharInSet(Str^, ['$', '%', '@']) do
   begin
     Result := Result * 975 + Ord(Str^) * 515;
     inc(Str);
@@ -3809,7 +3811,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynPerlSyn.GetSampleSource: WideString;
+function TSynPerlSyn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '#!/bin/perl'#13#10 +
@@ -3844,7 +3846,7 @@ begin
   Result := SYNS_LangPerl;
 end;
 
-class function TSynPerlSyn.GetFriendlyLanguageName: WideString;
+class function TSynPerlSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangPerl;
 end;

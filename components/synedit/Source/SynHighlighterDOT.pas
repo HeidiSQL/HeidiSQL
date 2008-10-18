@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterDOT.pas,v 1.3.2.6 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterDOT.pas,v 1.3.2.7 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,12 +57,14 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Controls,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -268,18 +270,18 @@ type
     procedure SymbolProc;
     procedure DirectionsProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
-    function GetKeyWords(TokenKind: Integer): WideString; override;
+    function GetKeyWords(TokenKind: Integer): UnicodeString; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
@@ -309,7 +311,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..145] of WideString = (
+  KeyWords: array[0..145] of UnicodeString = (
     'all', 'appendix', 'arrowhead', 'arrowsize', 'arrowtail', 'auto', 'back', 
     'bgcolor', 'bold', 'both', 'bottomlabel', 'box', 'center', 'circle', 
     'clusterrank', 'color', 'comment', 'compound', 'concentrate', 'constraint', 
@@ -1966,7 +1968,7 @@ begin
   Result := Run = fLineLen + 1;
 end;
 
-function TSynDOTSyn.GetKeyWords(TokenKind: Integer): WideString;
+function TSynDOTSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
 begin
   Result :=
     '--,->,all,appendix,arrowhead,arrowsize,arrowtail,auto,back,bgcolor,bo' +
@@ -2018,7 +2020,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynDOTSyn.GetSampleSource: WideString;
+function TSynDOTSyn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '// ATT DOT Graphic description language'#13#10 +
@@ -2098,7 +2100,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-class function TSynDOTSyn.GetFriendlyLanguageName: WideString;
+class function TSynDOTSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangDOT;
 end;

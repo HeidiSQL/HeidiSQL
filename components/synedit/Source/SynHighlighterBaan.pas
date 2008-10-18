@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterBaan.pas,v 1.13.2.5 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterBaan.pas,v 1.13.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   Qt, QControls, QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils, Classes;
 
@@ -129,7 +131,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -170,7 +172,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..112] of WideString = (
+  KeyWords: array[0..112] of UnicodeString = (
     '__based', '__cdecl', '__declspe', '__except', '__export', '__far', 
     '__fastcal', '__fortran', '__import', '__int16', '__int32', '__int64', 
     '__int8', '__interrup', '__loadds', '__near', '__pascal', '__rtti', 
@@ -832,7 +834,7 @@ begin
   Result := SYNS_LangBaan;
 end;
 
-class function TSynBaanSyn.GetFriendlyLanguageName: WideString;
+class function TSynBaanSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangBaan;
 end;

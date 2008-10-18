@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterST.pas,v 1.9.2.5 2005/11/27 22:22:45 maelh Exp $ by Ruggero Bandera
+$Id: SynHighlighterST.pas,v 1.9.2.6 2008/09/14 16:25:03 maelh Exp $ by Ruggero Bandera
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -50,12 +50,14 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Controls,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -114,7 +116,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -154,7 +156,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..74] of WideString = (
+  KeyWords: array[0..74] of UnicodeString = (
     'action', 'and', 'any', 'any_num', 'array', 'at', 'bool', 'by', 'byte', 
     'case', 'configuration', 'constant', 'dint', 'do', 'dword', 'else', 'elsif', 
     'end_action', 'end_case', 'end_configuration', 'end_for', 'end_if', 
@@ -277,7 +279,7 @@ procedure TSynSTSyn.AsciiCharProc;
 begin
   fTokenID := tkString;
   inc(Run);
-  while FLine[Run] in [WideChar('0')..WideChar('9')] do inc(Run);
+  while CharInSet(FLine[Run], ['0'..'9']) do inc(Run);
 end;
 
 procedure TSynSTSyn.BorProc;
@@ -361,7 +363,7 @@ procedure TSynSTSyn.LowerProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('>')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '>']) then inc(Run);
 end;
 
 procedure TSynSTSyn.NullProc;
@@ -399,7 +401,7 @@ procedure TSynSTSyn.PointProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('.'), WideChar(')')] then inc(Run);
+  if CharInSet(fLine[Run], ['.', ')']) then inc(Run);
 end;
 
 procedure TSynSTSyn.AnsiProc;
@@ -621,7 +623,7 @@ begin
   Result := fDefaultFilter <> SYNS_FilterST;
 end;
 
-class function TSynSTSyn.GetFriendlyLanguageName: WideString;
+class function TSynSTSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangST;
 end;
