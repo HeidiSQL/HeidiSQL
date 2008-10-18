@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditWordWrap.pas,v 1.8.2.5 2007/01/24 00:16:24 etrusco Exp $
+$Id: SynEditWordWrap.pas,v 1.8.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -407,7 +407,7 @@ function TSynWordWrapPlugin.ReWrapLine(aIndex: TLineIndex): integer;
 // Returns RowCount delta (how many wrapped lines were added or removed by this change).
 var
   vMaxNewRows: Cardinal;
-  vLine: WideString;
+  vLine: UnicodeString;
   vLineRowCount: Integer; //numbers of rows parsed in this line
   vTempRowLengths: PRowLengthArray;
   vRowBegin: PWideChar;
@@ -434,11 +434,11 @@ begin
     vLineEnd := vRowBegin + Length(vLine);
     while vRowEnd < vLineEnd do
     begin
-      if OldWhitespaceBehaviour and (vRowEnd^ in [WideChar(#32), WideChar(#9)]) then
+      if OldWhitespaceBehaviour and CharInSet(vRowEnd^, [#32, #9]) then
       begin
         repeat
           Inc(vRowEnd);
-        until not(vRowEnd^ in [WideChar(#32), WideChar(#9)]);
+        until not CharInSet(vRowEnd^, [#32, #9]);
       end
       else
       begin
@@ -523,7 +523,7 @@ procedure TSynWordWrapPlugin.WrapLines;
 var
   cRow: Integer;
   cLine: Integer;
-  vLine: WideString;
+  vLine: UnicodeString;
   vMaxNewRows: Integer;
   vRowBegin: PWideChar;
   vLineEnd: PWideChar;
@@ -555,11 +555,11 @@ begin
     vLineEnd := vRowBegin + Length(vLine);
     while vRowEnd < vLineEnd do
     begin
-      if OldWhitespaceBehaviour and (vRowEnd^ in [WideChar(#32), WideChar(#9)]) then
+      if OldWhitespaceBehaviour and CharInSet(vRowEnd^, [#32, #9]) then
       begin
         repeat
           Inc(vRowEnd);
-        until not(vRowEnd^ in [WideChar(#32), WideChar(#9)]);
+        until not CharInSet(vRowEnd^, [#32, #9]);
       end
       else
       begin

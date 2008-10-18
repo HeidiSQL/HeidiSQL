@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCache.pas,v 1.13.2.5 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterCache.pas,v 1.13.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -125,7 +127,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -183,7 +185,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..274] of WideString = (
+  KeyWords: array[0..274] of UnicodeString = (
     '$a', '$ascii', '$c', '$char', '$d', '$data', '$device', '$e', '$ec', 
     '$ecode', '$es', '$estack', '$et', '$etrap', '$extract', '$f', '$find', 
     '$fn', '$fnumber', '$g', '$get', '$h', '$horolog', '$i', '$in', 
@@ -500,8 +502,7 @@ begin
     end;
     FRange := rsCommand;
     inc(Run, fStringLen);
-    if not (IsLineEnd(Run) or (fLine[Run] in
-      [WideChar(#32), WideChar(':')])) and (fir <> '^') then
+    if not (IsLineEnd(Run) or CharInSet(fLine[Run], [#32, ':'])) and (fir <> '^') then
     begin
       fTokenID := tkIdentifier;
     end
@@ -535,7 +536,7 @@ procedure TSynCacheSyn.NumberProc;
   end;
 
 begin
-  if (fTokenPos = 0) and (FLine[Run] in [WideChar('0')..WideChar('9')]) then
+  if (fTokenPos = 0) and CharInSet(FLine[Run], ['0'..'9']) then
   begin
     fTokenID := tkLabel;
     while IsIdentChar(fLine[Run]) do inc(Run);
@@ -764,7 +765,7 @@ begin
   else
   begin
     for i := fTokenPos downto 0 do
-      if not(FLine[i] in [WideChar(#32), WideChar('#')]) then
+      if not CharInSet(FLine[i], [#32, '#']) then
       begin
         fTokenID := tkSymbol;
         inc(Run);
@@ -825,7 +826,7 @@ begin
   end;
 end;
 
-class function TSynCacheSyn.GetFriendlyLanguageName: WideString;
+class function TSynCacheSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCache;
 end;

@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterModelica.pas,v 1.12.2.5 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterModelica.pas,v 1.12.2.6 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -47,11 +47,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -112,7 +114,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -153,7 +155,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..47] of WideString = (
+  KeyWords: array[0..47] of UnicodeString = (
     'algorithm', 'and', 'annotation', 'assert', 'block', 'Boolean', 'class', 
     'connect', 'connector', 'constant', 'der', 'discrete', 'else', 'elseif', 
     'end', 'equation', 'extends', 'external', 'false', 'final', 'flow', 'for', 
@@ -257,7 +259,7 @@ procedure TSynModelicaSyn.AndSymbolProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in [WideChar('='), WideChar('&')] then
+  if CharInSet(fLine[Run], ['=', '&']) then
     Inc(Run);
 end;
 
@@ -344,7 +346,7 @@ procedure TSynModelicaSyn.MinusProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in [WideChar('='), WideChar('-'), WideChar('>')] then
+  if CharInSet(fLine[Run], ['=', '-', '>']) then
     Inc(Run);
 end;
 
@@ -383,7 +385,7 @@ procedure TSynModelicaSyn.OrSymbolProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in [WideChar('='), WideChar('|')] then
+  if CharInSet(fLine[Run], ['=', '|']) then
     Inc(Run);
 end;
 
@@ -391,7 +393,7 @@ procedure TSynModelicaSyn.PlusProc;
 begin
   Inc(Run);
   fTokenID := tkSymbol;
-  if fLine[Run] in [WideChar('='), WideChar('+')] then
+  if CharInSet(fLine[Run], ['=', '+']) then
     Inc(Run);
 end;
 
@@ -642,7 +644,7 @@ begin
   Result := SYNS_LangModelica;
 end;
 
-class function TSynModelicaSyn.GetFriendlyLanguageName: WideString;
+class function TSynModelicaSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangModelica;
 end;

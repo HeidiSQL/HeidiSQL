@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynExportTeX.pas,v 1.8.2.4 2006/08/19 16:12:10 maelh Exp $
+$Id: SynExportTeX.pas,v 1.8.2.5 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -98,11 +98,11 @@ type
       ForegroundChanged: Boolean; FontStylesChanged: TFontStyles); override;
 
     procedure FormatNewLine; override;
-    procedure FormatToken(Token: WideString); override;
-    function GetFooter: WideString; override;
+    procedure FormatToken(Token: UnicodeString); override;
+    function GetFooter: UnicodeString; override;
     function GetFormatName: string; override;
-    function GetHeader: WideString; override;
-    function ReplaceReservedChar(AChar: WideChar): WideString; override;
+    function GetHeader: UnicodeString; override;
+    function ReplaceReservedChar(AChar: WideChar): UnicodeString; override;
     procedure SetTokenAttribute(Attri: TSynHighlighterAttributes); override;
     function UseBom: Boolean; override;
   public
@@ -143,7 +143,11 @@ uses
 // different (for example a comma).
 function DotDecSepFormat(const Format: string; const Args: array of const): string;
 var
+{$IFDEF UNICODE}
+  OldDecimalSeparator: WideChar;
+{$ELSE}
   OldDecimalSeparator: AnsiChar;
+{$ENDIF}
 begin
   OldDecimalSeparator := DecimalSeparator;
   DecimalSeparator := '.';
@@ -254,7 +258,7 @@ begin
     Result := True;
 end;
 
-procedure TSynExporterTeX.FormatToken(Token: WideString);
+procedure TSynExporterTeX.FormatToken(Token: UnicodeString);
 var
   CommandName: string;
 begin
@@ -290,7 +294,7 @@ begin
   EnumHighlighterAttris(Highlighter, False, CommandNameCallback, [Attri, @Result]);
 end;
 
-function TSynExporterTeX.GetFooter: WideString;
+function TSynExporterTeX.GetFooter: UnicodeString;
 begin
   if not fCreateTeXFragment then
     Result := SLineBreak + '\end{ttfamily}' + SLineBreak + '\end{document}'
@@ -303,7 +307,7 @@ begin
   Result := SYNS_ExporterFormatTeX;
 end;
 
-function TSynExporterTeX.GetHeader: WideString;
+function TSynExporterTeX.GetHeader: UnicodeString;
 const
   TeXHeader   = '\documentclass[a4paper, %dpt]{article}' + SLineBreak +
                 '\usepackage[a4paper, margin=%dcm]{geometry}' + SLineBreak +
@@ -373,15 +377,15 @@ begin
   Result := Name;
   
   for i := Length(Result) downto 1 do
-  if Result[i] in ['1'..'9'] then
-    Result[i] := AnsiChar(Ord('A') + Ord(Result[i]) - Ord('1'))
+  if CharInSet(Result[i], ['1'..'9']) then
+    Result[i] := Char(Ord('A') + Ord(Result[i]) - Ord('1'))
   else if Result[i] = '0' then
     Result[i] := 'Z'
-  else if not(Result[i] in ['a'..'z', 'A'..'Z']) then
+  else if not CharInSet(Result[i], ['a'..'z', 'A'..'Z']) then
     Delete(Result, i, 1);
 end;
 
-function TSynExporterTeX.ReplaceReservedChar(AChar: WideChar): WideString;
+function TSynExporterTeX.ReplaceReservedChar(AChar: WideChar): UnicodeString;
 begin
   case AChar of
     '{': Result := '\{';

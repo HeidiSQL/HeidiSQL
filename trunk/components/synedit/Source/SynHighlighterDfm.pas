@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterDfm.pas,v 1.16.2.6 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterDfm.pas,v 1.16.2.7 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -103,11 +103,11 @@ type
     procedure SymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -136,14 +136,18 @@ type
       write fSymbolAttri;
   end;
 
-function LoadDFMFile2Strings(const AFile: WideString; AStrings: TWideStrings;
-  var WasText: Boolean): Integer; overload;
+function LoadDFMFile2Strings(const AFile: UnicodeString; AStrings: TUnicodeStrings;
+  var WasText: Boolean): Integer; {$IFNDEF UNICODE} overload; {$ENDIF}
+{$IFNDEF UNICODE}
 function LoadDFMFile2Strings(const AFile: string; AStrings: TStrings;
   var WasText: Boolean): Integer; overload;
-function SaveStrings2DFMFile(AStrings: TWideStrings;
-  const AFile: WideString): Integer; overload;
+{$ENDIF}
+function SaveStrings2DFMFile(AStrings: TUnicodeStrings;
+  const AFile: UnicodeString): Integer; {$IFNDEF UNICODE} overload; {$ENDIF}
+{$IFNDEF UNICODE}
 function SaveStrings2DFMFile(AStrings: TStrings;
   const AFile: string): Integer; overload;
+{$ENDIF}
 
 implementation
 
@@ -156,7 +160,7 @@ uses
 
 { A couple of useful Delphi Form functions }
 
-function LoadDFMFile2Strings(const AFile: WideString; AStrings: TWideStrings;
+function LoadDFMFile2Strings(const AFile: UnicodeString; AStrings: TUnicodeStrings;
   var WasText: Boolean): Integer;
 var
   Src, Dest: TStream;
@@ -187,6 +191,7 @@ begin
   end;
 end;
 
+{$IFNDEF UNICODE}
 function LoadDFMFile2Strings(const AFile: string; AStrings: TStrings;
   var WasText: Boolean): Integer;
 var
@@ -223,20 +228,27 @@ begin
     else Result := -1;
   end;
 end;
+{$ENDIF}
 
-function SaveStrings2DFMFile(AStrings: TWideStrings; const AFile: WideString): Integer;
+function SaveStrings2DFMFile(AStrings: TUnicodeStrings; const AFile: UnicodeString): Integer;
 var
   Src, Dest: TStream;
+{$IFNDEF UNICODE}
   OldSaveUnicode: Boolean;
+{$ENDIF}
 begin
   Result := 0;
   try
     Src := TMemoryStream.Create;
     try
+{$IFNDEF UNICODE}
       OldSaveUnicode := AStrings.SaveUnicode;
       AStrings.SaveUnicode := False;
+{$ENDIF}
       AStrings.SaveToStream(Src);
+{$IFNDEF UNICODE}
       AStrings.SaveUnicode := OldSaveUnicode;
+{$ENDIF}
       Src.Seek(0, soFromBeginning);
       Dest := TWideFileStream.Create(AFile, fmCreate);
       try
@@ -253,6 +265,7 @@ begin
   end;
 end;
 
+{$IFNDEF UNICODE}
 function SaveStrings2DFMFile(AStrings: TStrings; const AFile: string): Integer;
 var
   Src, Dest: TStream;
@@ -277,6 +290,7 @@ begin
     else Result := -1;
   end;
 end;
+{$ENDIF}
 
 { TSynDfmSyn }
 
@@ -320,7 +334,7 @@ begin
   fTokenID := tkString;
   repeat
     Inc(Run);
-  until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
+  until not CharInSet(fLine[Run], ['0'..'9']);
 end;
 
 procedure TSynDfmSyn.BraceCloseProc;
@@ -358,13 +372,15 @@ end;
 
 procedure TSynDfmSyn.EndProc;
 begin
-  if (fLine[Run + 1] in [WideChar('n'), WideChar('N')]) and
-     (fLine[Run + 2] in [WideChar('d'), WideChar('D')]) and
+  if CharInSet(fLine[Run + 1], ['n', 'N']) and
+     CharInSet(fLine[Run + 2], ['d', 'D']) and
      not IsIdentChar(fLine[Run + 3])
-  then begin
+  then
+  begin
     fTokenID := tkKey;
     Inc(Run, 3);
-  end else
+  end
+  else
     AltProc;
 end;
 
@@ -425,11 +441,11 @@ end;
 
 procedure TSynDfmSyn.ObjectProc;
 begin
-  if (fLine[Run + 1] in [WideChar('b'), WideChar('B')]) and
-     (fLine[Run + 2] in [WideChar('j'), WideChar('J')]) and
-     (fLine[Run + 3] in [WideChar('e'), WideChar('E')]) and
-     (fLine[Run + 4] in [WideChar('c'), WideChar('C')]) and
-     (fLine[Run + 5] in [WideChar('t'), WideChar('T')]) and
+  if CharInSet(fLine[Run + 1], ['b', 'B']) and
+     CharInSet(fLine[Run + 2], ['j', 'J']) and
+     CharInSet(fLine[Run + 3], ['e', 'E']) and
+     CharInSet(fLine[Run + 4], ['c', 'C']) and
+     CharInSet(fLine[Run + 5], ['t', 'T']) and
      not IsIdentChar(fLine[Run + 6])
   then
   begin
@@ -442,25 +458,25 @@ end;
 
 procedure TSynDfmSyn.InheritedProc;
 begin
-  if (fLine[Run + 1] in [WideChar('n'), WideChar('N')]) and
-     (fLine[Run + 2] in [WideChar('h'), WideChar('H')]) and
-     (fLine[Run + 3] in [WideChar('e'), WideChar('E')]) and
-     (fLine[Run + 4] in [WideChar('r'), WideChar('R')]) and
-     (fLine[Run + 5] in [WideChar('i'), WideChar('I')]) and
-     (fLine[Run + 6] in [WideChar('t'), WideChar('T')]) and
-     (fLine[Run + 7] in [WideChar('e'), WideChar('E')]) and
-     (fLine[Run + 8] in [WideChar('d'), WideChar('D')]) and
+  if CharInSet(fLine[Run + 1], ['n', 'N']) and
+     CharInSet(fLine[Run + 2], ['h', 'H']) and
+     CharInSet(fLine[Run + 3], ['e', 'E']) and
+     CharInSet(fLine[Run + 4], ['r', 'R']) and
+     CharInSet(fLine[Run + 5], ['i', 'I']) and
+     CharInSet(fLine[Run + 6], ['t', 'T']) and
+     CharInSet(fLine[Run + 7], ['e', 'E']) and
+     CharInSet(fLine[Run + 8], ['d', 'D']) and
      not IsIdentChar(fLine[Run + 9])
   then
   begin
     fTokenID := tkKey;
     Inc(Run, 9);
   end
-  else if (fLine[Run + 1] in [WideChar('n'), WideChar('N')]) and
-          (fLine[Run + 2] in [WideChar('l'), WideChar('L')]) and
-          (fLine[Run + 3] in [WideChar('i'), WideChar('I')]) and
-          (fLine[Run + 4] in [WideChar('n'), WideChar('N')]) and
-          (fLine[Run + 5] in [WideChar('e'), WideChar('E')]) and
+  else if CharInSet(fLine[Run + 1], ['n', 'N']) and
+          CharInSet(fLine[Run + 2], ['l', 'L']) and
+          CharInSet(fLine[Run + 3], ['i', 'I']) and
+          CharInSet(fLine[Run + 4], ['n', 'N']) and
+          CharInSet(fLine[Run + 5], ['e', 'E']) and
           not IsIdentChar(fLine[Run + 6])
   then
   begin
@@ -520,11 +536,11 @@ begin
       '{': BraceOpenProc;
       #13: CRProc;
       'A'..'Z', 'a'..'z', '_':
-        if fLine[Run] in [WideChar('e'), WideChar('E')] then
+        if CharInSet(fLine[Run], ['e', 'E']) then
           EndProc
-        else if fLine[Run] in [WideChar('o'), WideChar('O')] then
+        else if CharInSet(fLine[Run], ['o', 'O']) then
           ObjectProc
-        else if fLine[Run] in [WideChar('i'), WideChar('I')] then
+        else if CharInSet(fLine[Run], ['i', 'I']) then
           InheritedProc
         else
           AltProc;
@@ -609,7 +625,7 @@ begin
   Result := SYNS_LangDfm;
 end;
 
-function TSynDfmSyn.GetSampleSource: WideString;
+function TSynDfmSyn.GetSampleSource: UnicodeString;
 begin
   Result := '{ Delphi/C++ Builder Form Definitions }'#13#10 +
             'object TestForm: TTestForm'#13#10 +
@@ -619,7 +635,7 @@ begin
             'end';
 end; { GetSampleSource }
 
-class function TSynDfmSyn.GetFriendlyLanguageName: WideString;
+class function TSynDfmSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangDfm;
 end;

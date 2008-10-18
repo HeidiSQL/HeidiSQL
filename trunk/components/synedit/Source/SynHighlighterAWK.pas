@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterAWK.pas,v 1.10.2.5 2006/05/21 11:59:34 maelh Exp $
+$Id: SynHighlighterAWK.pas,v 1.10.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -72,7 +72,7 @@ type
 
   TSynAWKSyn = class(TSynCustomHighLighter)
   private
-    AWKSyntaxList: TWideStringList;
+    AWKSyntaxList: TUnicodeStringList;
     FTokenID: TtkTokenKind;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
@@ -106,7 +106,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -140,6 +140,9 @@ type
 implementation
 
 uses
+{$IFDEF UNICODE}
+  WideStrUtils,
+{$ENDIF}
 {$IFDEF SYN_CLX}
   QSynEditStrConst;
 {$ELSE}
@@ -229,7 +232,7 @@ procedure TSynAWKSyn.NumberProc;
 begin
   fTokenID := tkNumber;
   Inc(Run);
-  while (fLine[Run] in [WideChar('0')..WideChar('9')]) do
+  while CharInSet(fLine[Run], ['0'..'9']) do
     Inc(Run);
 end;
 
@@ -237,13 +240,13 @@ procedure TSynAWKSyn.IdentProc;
 var
   i: Integer;
   idx: Integer;
-  s: WideString;
+  s: UnicodeString;
 begin
   i := Run;
-  while (fLine[i] in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z')]) do
+  while CharInSet(fLine[i], ['a'..'z', 'A'..'Z']) do
     Inc(i);
   SetLength(s, i - Run);
-  StrLCopyW(PWideChar(s), fLine + Run, i - Run);
+  WStrLCopy(PWideChar(s), fLine + Run, i - Run);
   Run := i;
   if AWKSyntaxList.Find(s, idx) and (AWKSyntaxList.Strings[idx] = s) then
   begin
@@ -259,7 +262,7 @@ begin
           (fLine[i + 1] = 'i') and
           (fLine[i + 2] = 'l') and
           (fLine[i + 3] = 'e') and
-          (fLine[i + 4] in [WideChar(#0)..WideChar(#32), WideChar(';')]) then
+          CharInSet(fLine[i + 4], [#0..#32, ';']) then
         begin
           Run := (i + 4);
         end;
@@ -306,7 +309,7 @@ begin
       Inc(Run);
       Exit;
     end;
-  until (fLine[Run] in [WideChar(#0)..WideChar(#31)]);
+  until CharInSet(fLine[Run], [#0..#31]);
   fTokenID := tkIdentifier;
 end;
 
@@ -331,8 +334,7 @@ procedure TSynAWKSyn.FieldRefProc;
 
 begin
   Inc(Run);
-  if (fLine[Run] in [WideChar('0')..WideChar('9')]) and
-    not IsAlphaNumChar(Run + 1) then
+  if CharInSet(fLine[Run], ['0'..'9']) and not IsAlphaNumChar(Run + 1) then
   begin
     fTokenID := tkSymbol;
     Inc(Run);
@@ -351,7 +353,7 @@ procedure TSynAWKSyn.PlusProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] in [WideChar('+'), WideChar('=')]) then
+  if CharInSet(fLine[Run], ['+', '=']) then
     Inc(Run);
 end;
 
@@ -359,7 +361,7 @@ procedure TSynAWKSyn.MinusProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] in [WideChar('-'), WideChar('=')]) then
+  if CharInSet(fLine[Run], ['-', '=']) then
     Inc(Run);
 end;
 
@@ -375,7 +377,7 @@ procedure TSynAWKSyn.ExclamProc;
 begin
   fTokenID := tkSymbol;
   Inc(Run);
-  if (fLine[Run] in [WideChar('='), WideChar('~')]) then
+  if CharInSet(fLine[Run], ['=', '~']) then
     Inc(Run);
 end;
 
@@ -459,7 +461,7 @@ begin
 
   SetAttributesOnChange(DefHighlightChange);
 
-  AWKSyntaxList := TWideStringList.Create;
+  AWKSyntaxList := TUnicodeStringList.Create;
   MakeSyntaxList;
 
   fDefaultFilter := SYNS_FilterAWK;
@@ -552,7 +554,7 @@ begin
   Result := SYNS_LangAWK;
 end;
 
-class function TSynAWKSyn.GetFriendlyLanguageName: WideString;
+class function TSynAWKSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangAWK;
 end;

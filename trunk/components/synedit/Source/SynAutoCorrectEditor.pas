@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynAutoCorrectEditor.pas,v 1.9.2.2 2006/05/21 11:59:34 maelh Exp $
+$Id: SynAutoCorrectEditor.pas,v 1.9.2.3 2008/09/14 16:24:57 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -112,7 +112,7 @@ end;
 procedure TfrmAutoCorrectEditor.lbxItemsDrawItemCLX(Sender: TObject;
   Index: Integer; Rect: TRect; State: TOwnerDrawState; var Handled: Boolean);
 var
-  s: WideString;
+  s: UnicodeString;
 begin
   with lbxItems do
   begin
@@ -165,8 +165,7 @@ begin
   {$IFDEF SYN_CLX}
     ShowMessage(SPleaseSelectItem);  // TODO: use MessageDlg instead
   {$ELSE}
-    MessageBox(0, PAnsiChar(SPleaseSelectItem), PAnsiChar(SError),
-      MB_ICONERROR or MB_OK);
+    MessageBox(0, PChar(SPleaseSelectItem), PChar(SError), MB_ICONERROR or MB_OK);
   {$ENDIF}
 
     Exit;
@@ -188,8 +187,7 @@ begin
   {$IFDEF SYN_CLX}
     ShowMessage(SPleaseSelectItem); // TODO: use MessageDlg instead
   {$ELSE}
-    MessageBox(0, PAnsiChar(SPleaseSelectItem), PAnsiChar(SError),
-      MB_ICONERROR or MB_OK);
+    MessageBox(0, PChar(SPleaseSelectItem), PChar(SError), MB_ICONERROR or MB_OK);
   {$ENDIF}
     Exit;
   end;
@@ -221,7 +219,7 @@ end;
 procedure TfrmAutoCorrectEditor.btnClearClick(Sender: TObject);
 begin
 {$IFNDEF SYN_CLX}                               // TODO: also a MsgBox for CLX
-  if MessageBox(0, PAnsiChar(SClearListConfirmation), PAnsiChar(SConfirmation),
+  if MessageBox(0, PChar(SClearListConfirmation), PChar(SConfirmation),
     MB_YESNO or MB_ICONQUESTION) <> IDYES then Exit;
 {$ENDIF}
   SynAutoCorrect.Items.Clear;

@@ -30,7 +30,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditExport.pas,v 1.17.2.6 2006/05/21 11:59:34 maelh Exp $
+$Id: SynEditExport.pas,v 1.17.2.8 2008/09/17 13:59:12 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -90,10 +90,10 @@ type
     procedure SetExportAsText(Value: Boolean);
     procedure SetFont(Value: TFont);
     procedure SetHighlighter(Value: TSynCustomHighlighter);
-    procedure SetTitle(const Value: WideString);
+    procedure SetTitle(const Value: UnicodeString);
     procedure SetUseBackground(const Value: Boolean);
-    function StringSize(const AText: WideString): Integer;
-    procedure WriteString(const AText: WideString);
+    function StringSize(const AText: UnicodeString): Integer;
+    procedure WriteString(const AText: UnicodeString);
   protected
     fBackgroundColor: TColor;
     fClipboardFormat: UINT;
@@ -105,12 +105,12 @@ type
     fLastBG: TColor;
     fLastFG: TColor;
     fLastStyle: TFontStyles;
-    fTitle: WideString;
+    fTitle: UnicodeString;
     fUseBackground: Boolean;
     { Adds a string to the output buffer. }
-    procedure AddData(const AText: WideString);
+    procedure AddData(const AText: UnicodeString);
     { Adds a string and a trailing newline to the output buffer. }
-    procedure AddDataNewLine(const AText: WideString);
+    procedure AddDataNewLine(const AText: UnicodeString);
     { Adds a newline to the output buffer. }
     procedure AddNewLine;
     { Copies the data under this format to the clipboard. The clipboard has to
@@ -137,7 +137,7 @@ type
       virtual; abstract;
     { Has to be overridden in descendant classes to add the formatted text of
       the actual token text to the output buffer. }
-    procedure FormatToken(Token: WideString); virtual;
+    procedure FormatToken(Token: UnicodeString); virtual;
     { Has to be overridden in descendant classes to add a newline in the output
       format to the output buffer. }
     procedure FormatNewLine; virtual; abstract;
@@ -148,21 +148,21 @@ type
     function GetClipboardFormat: UINT; virtual;
     { Has to be overridden in descendant classes to return the correct output
       format footer. }
-    function GetFooter: WideString; virtual; abstract;
+    function GetFooter: UnicodeString; virtual; abstract;
     { Has to be overridden in descendant classes to return the name of the
       output format. }
     function GetFormatName: string; virtual;
     { Has to be overridden in descendant classes to return the correct output
       format header. }
-    function GetHeader: WideString; virtual; abstract;
+    function GetHeader: UnicodeString; virtual; abstract;
     { Inserts a data block at the given position into the output buffer.  Is
       used to insert the format header after the exporting, since some header
       data may be known only after the conversion is done. }
-    procedure InsertData(APos: Integer; const AText: WideString);
-    function ReplaceReservedChar(AChar: WideChar): WideString; virtual; abstract;
+    procedure InsertData(APos: Integer; const AText: UnicodeString);
+    function ReplaceReservedChar(AChar: WideChar): UnicodeString; virtual; abstract;
     { Returns a string that has all the invalid chars of the output format
       replaced with the entries in the replacement array. }
-    function ReplaceReservedChars(AToken: WideString): WideString;
+    function ReplaceReservedChars(AToken: UnicodeString): UnicodeString;
     { Sets the token attribute of the next token to determine the changes
       of colors and font styles so the properties of the next token can be
       added to the output buffer. }
@@ -180,11 +180,11 @@ type
       or as text depending on the ExportAsText property. }
     procedure CopyToClipboard;
     { Exports everything in the strings parameter to the output buffer. }
-    procedure ExportAll(ALines: TWideStrings);
+    procedure ExportAll(ALines: TUnicodeStrings);
     { Exports the given range of the strings parameter to the output buffer. }
-    procedure ExportRange(ALines: TWideStrings; Start, Stop: TBufferCoord);
+    procedure ExportRange(ALines: TUnicodeStrings; Start, Stop: TBufferCoord);
     { Saves the contents of the output buffer to a file. }
-    procedure SaveToFile(const FileName: WideString);
+    procedure SaveToFile(const FileName: UnicodeString);
     { Saves the contents of the output buffer to a stream. }
     procedure SaveToStream(Stream: TStream);
     function SupportedEncodings: TSynEncodings; virtual; abstract;
@@ -206,7 +206,7 @@ type
     property Highlighter: TSynCustomHighlighter
       read fHighlighter write SetHighlighter;
     { The title to embedd into the output header. }
-    property Title: WideString read fTitle write SetTitle;
+    property Title: UnicodeString read fTitle write SetTitle;
     { Use the token attribute background for the exporting. }
     property UseBackground: Boolean read fUseBackground write SetUseBackground;
   end;
@@ -257,7 +257,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSynCustomExporter.AddData(const AText: WideString);
+procedure TSynCustomExporter.AddData(const AText: UnicodeString);
 begin
   if AText <> '' then
   begin
@@ -266,7 +266,7 @@ begin
   end;
 end;
 
-procedure TSynCustomExporter.AddDataNewLine(const AText: WideString);
+procedure TSynCustomExporter.AddDataNewLine(const AText: UnicodeString);
 begin
   AddData(AText);
   AddNewLine;
@@ -301,7 +301,7 @@ begin
   fLastFG := clWindowText;
 end;
 
-procedure SetClipboardText(Text: WideString);
+procedure SetClipboardText(Text: UnicodeString);
 {$IFDEF SYN_CLX}
 begin
   Clipboard.AsText := Text;
@@ -327,7 +327,7 @@ begin
         try
           if P <> nil then
           begin
-            Move(PAnsiChar(string(Text))^, P^, SLen + 1);
+            Move(PAnsiChar(AnsiString(Text))^, P^, SLen + 1);
             Clipboard.SetAsHandle(CF_TEXT, Mem);
           end;
         finally
@@ -365,7 +365,7 @@ procedure TSynCustomExporter.CopyToClipboard;
 const
   Nulls: array[0..1] of Byte = (0, 0);
 var
-  S: WideString;
+  S: UnicodeString;
 begin
   if fExportAsText then
   begin
@@ -380,9 +380,13 @@ begin
           StrSwapByteOrder(PWideChar(S));
         end;
       seUTF8:
-        S := UTF8Decode(PChar(fBuffer.Memory));
+{$IFDEF UNICODE}
+        S := UTF8ToUnicodeString(PAnsiChar(fBuffer.Memory));
+{$ELSE}
+        S := UTF8Decode(PAnsiChar(fBuffer.Memory));
+{$ENDIF}
       seAnsi:
-        S := PAnsiChar(fBuffer.Memory);
+        S := UnicodeString(PAnsiChar(fBuffer.Memory));
     end;
     SetClipboardText(S);
   end
@@ -426,18 +430,20 @@ end;
 procedure TSynCustomExporter.DefineProperties(Filer: TFiler);
 begin
   inherited;
+{$IFNDEF UNICODE}
   UnicodeDefineProperties(Filer, Self);
+{$ENDIF}
 end;
 
-procedure TSynCustomExporter.ExportAll(ALines: TWideStrings);
+procedure TSynCustomExporter.ExportAll(ALines: TUnicodeStrings);
 begin
   ExportRange(ALines, BufferCoord(1, 1), BufferCoord(MaxInt, MaxInt));
 end;
 
-procedure TSynCustomExporter.ExportRange(ALines: TWideStrings; Start, Stop: TBufferCoord);
+procedure TSynCustomExporter.ExportRange(ALines: TUnicodeStrings; Start, Stop: TBufferCoord);
 var
   i: Integer;
-  Line, Token: WideString;
+  Line, Token: UnicodeString;
   Attri: TSynHighlighterAttributes;
 begin
   FStreaming := True;
@@ -480,9 +486,12 @@ begin
       while not Highlighter.GetEOL do
       begin
         Attri := Highlighter.GetTokenAttribute;
-        Token := ReplaceReservedChars(Highlighter.GetToken);
-        SetTokenAttribute(Attri);
-        FormatToken(Token);
+        if Assigned(Attri) then // The .pas highlighter, for example, can return a nil Attri above for a trailing EOF/null that was loaded from a stream
+        begin
+          Token := ReplaceReservedChars(Highlighter.GetToken);
+          SetTokenAttribute(Attri);
+          FormatToken(Token);
+        end;
         Highlighter.Next;
       end;
       FormatNewLine;
@@ -499,7 +508,7 @@ begin
   end
 end;
 
-procedure TSynCustomExporter.FormatToken(Token: WideString);
+procedure TSynCustomExporter.FormatToken(Token: UnicodeString);
 begin
   AddData(Token);
 end;
@@ -519,7 +528,7 @@ begin
   Result := '';
 end;
 
-procedure TSynCustomExporter.InsertData(APos: Integer; const AText: WideString);
+procedure TSynCustomExporter.InsertData(APos: Integer; const AText: UnicodeString);
 var
   Size, ToMove, SizeNeeded: Integer;
   Dest: PByte;
@@ -542,10 +551,10 @@ begin
   end;
 end;
 
-function TSynCustomExporter.ReplaceReservedChars(AToken: WideString): WideString;
+function TSynCustomExporter.ReplaceReservedChars(AToken: UnicodeString): UnicodeString;
 var
   I, ISrc, IDest, SrcLen, DestLen: Integer;
-  Replace: WideString;
+  Replace: UnicodeString;
   c: WideChar;                                                                      //mh 2000-10-10
 begin
   if AToken <> '' then
@@ -590,7 +599,7 @@ begin
     Result := '';
 end;
 
-procedure TSynCustomExporter.SaveToFile(const FileName: WideString);
+procedure TSynCustomExporter.SaveToFile(const FileName: UnicodeString);
 var
   Stream: TStream;
 begin
@@ -660,7 +669,7 @@ begin
   end;
 end;
 
-procedure TSynCustomExporter.SetTitle(const Value: WideString);
+procedure TSynCustomExporter.SetTitle(const Value: UnicodeString);
 begin
   if fTitle <> Value then
   begin
@@ -722,7 +731,7 @@ begin
     fBackgroundColor := fHighlighter.WhitespaceAttribute.Background;
 end;
 
-function TSynCustomExporter.StringSize(const AText: WideString): Integer;
+function TSynCustomExporter.StringSize(const AText: UnicodeString): Integer;
 begin
   Result := 0;
   case Encoding of
@@ -731,12 +740,12 @@ begin
     seUTF16LE, seUTF16BE:
       Result := Length(AText);
     seAnsi:
-      Result := Length(WideCharToString(PWideChar(AText)));
+      Result := Length(AnsiString(PWideChar(AText)));
   end;
   Result := Result * FCharSize;
 end;
 
-procedure TSynCustomExporter.WriteString(const AText: WideString);
+procedure TSynCustomExporter.WriteString(const AText: UnicodeString);
 var
   UTF8Str: UTF8String;
   AnsiStr: AnsiString;
@@ -756,7 +765,7 @@ begin
       end;
     seAnsi:
       begin
-        AnsiStr := WideCharToString(PWideChar(AText));
+        AnsiStr := AnsiString(PWideChar(AText));
         fBuffer.WriteBuffer(AnsiStr[1], Length(AnsiStr));
       end;
   end;

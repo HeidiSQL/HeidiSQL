@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterManager.pas,v 1.7.2.1 2004/08/31 12:55:21 maelh Exp $
+$Id: SynHighlighterManager.pas,v 1.7.2.2 2008/03/01 18:32:02 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -158,7 +158,7 @@ var
     for i := 0 to form.ComponentCount-1 do begin
       j := highlight.FindByClass(form.Components[i]);
       if j >= 0 then begin
-        j := synForm.clbHighlighters.Items.IndexOf(highlight[j].GetLanguageName);
+        j := synForm.clbHighlighters.Items.IndexOf(highlight[j].GetFriendlyLanguageName);
         if j >= 0 then
           synForm.clbHighlighters.Checked[j] := true;
       end;
@@ -258,7 +258,7 @@ var
     // in second.
     for i := 0 to synForm.clbHighlighters.Items.Count-1 do begin
       if not synForm.clbHighlighters.Checked[i] then begin // unchecked - remove
-        high := highlight.FindByName(synForm.clbHighlighters.Items[i]);
+        high := highlight.FindByFriendlyName(synForm.clbHighlighters.Items[i]);
         if high >= 0 then begin
           comp := FindHighlighterComp(highlight[high]);
           if comp >= 0 then
@@ -268,7 +268,7 @@ var
     end; //for
     for i := 0 to synForm.clbHighlighters.Items.Count-1 do begin
       if synForm.clbHighlighters.Checked[i] then begin // checked - add
-        high := highlight.FindByName(synForm.clbHighlighters.Items[i]);
+        high := highlight.FindByFriendlyName(synForm.clbHighlighters.Items[i]);
         if high >= 0 then begin
           if FindHighlighterComp(highlight[high]) < 0 then begin
             GetFreeCoordinates;
@@ -459,7 +459,7 @@ var
 begin
   clbHighlighters.Clear;
   for i := 0 to Highlight.Count-1 do begin
-    clbHighlighters.Items.Add(Highlight[i].GetLanguageName); 
+    clbHighlighters.Items.Add(Highlight[i].GetFriendlyLanguageName); 
   end; //for
 end;
 

@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterRuby.pas,v 1.10.2.8 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterRuby.pas,v 1.10.2.9 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -99,8 +99,8 @@ type
     fCommentAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyWords: TWideStrings;
-    fSecondKeys: TWideStrings;
+    fKeyWords: TUnicodeStrings;
+    fSecondKeys: TUnicodeStrings;
     procedure BraceOpenProc;
     procedure PointCommaProc;
     procedure CRProc;
@@ -117,14 +117,14 @@ type
 {$IFDEF SYN_HEREDOC}
     procedure HeredocProc;
 {$ENDIF}
-    procedure SetSecondKeys(const Value: TWideStrings);
+    procedure SetSecondKeys(const Value: TUnicodeStrings);
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -133,8 +133,8 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
-    function IsKeyword(const AKeyword: WideString): boolean; override;
-    function IsSecondKeyWord(aToken: WideString): Boolean;
+    function IsKeyword(const AKeyword: UnicodeString): boolean; override;
+    function IsSecondKeyWord(aToken: UnicodeString): Boolean;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     procedure Next; override;
@@ -148,7 +148,7 @@ type
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
     property SecondKeyAttri: TSynHighlighterAttributes read fSecondKeyAttri
       write fSecondKeyAttri;
-    property SecondKeyWords: TWideStrings read fSecondKeys write SetSecondKeys;
+    property SecondKeyWords: TUnicodeStrings read fSecondKeys write SetSecondKeys;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
@@ -172,17 +172,17 @@ uses
 
 const
   RubyKeysCount = 43;
-  RubyKeys: array[1..RubyKeysCount] of WideString = (
+  RubyKeys: array[1..RubyKeysCount] of UnicodeString = (
     'alias', 'attr', 'begin', 'break', 'case', 'class', 'def', 'do', 'else',
     'elsif', 'end', 'ensure', 'exit', 'extend', 'false', 'for', 'gets', 'if',
     'in', 'include', 'load', 'loop', 'module', 'next', 'nil', 'not', 'print',
     'private', 'public', 'puts', 'raise', 'redo', 'require', 'rescue', 'retry',
     'return', 'self', 'then', 'true', 'unless', 'when', 'while', 'yield');
 
-function TSynRubySyn.IsKeyword(const AKeyword: WideString): Boolean;
+function TSynRubySyn.IsKeyword(const AKeyword: UnicodeString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := fKeywords.Count - 1;
@@ -205,10 +205,10 @@ begin
   end;
 end; { IsKeyWord }
 
-function TSynRubySyn.IsSecondKeyWord(aToken: WideString): Boolean;
+function TSynRubySyn.IsSecondKeyWord(aToken: UnicodeString): Boolean;
 var
   First, Last, I, Compare: Integer;
-  Token: WideString;
+  Token: UnicodeString;
 begin
   First := 0;
   Last := fSecondKeys.Count - 1;
@@ -238,12 +238,12 @@ begin
 
   fCaseSensitive := False;
 
-  fKeyWords := TWideStringList.Create;
-  TWideStringList(fKeyWords).Sorted := True;
-  TWideStringList(fKeyWords).Duplicates := dupIgnore;
-  fSecondKeys := TWideStringList.Create;
-  TWideStringList(fSecondKeys).Sorted := True;
-  TWideStringList(fSecondKeys).Duplicates := dupIgnore;
+  fKeyWords := TUnicodeStringList.Create;
+  TUnicodeStringList(fKeyWords).Sorted := True;
+  TUnicodeStringList(fKeyWords).Duplicates := dupIgnore;
+  fSecondKeys := TUnicodeStringList.Create;
+  TUnicodeStringList(fSecondKeys).Sorted := True;
+  TUnicodeStringList(fSecondKeys).Duplicates := dupIgnore;
   if not (csDesigning in ComponentState) then
     for i := 1 to RubyKeysCount do
       fKeyWords.Add(RubyKeys[i]);
@@ -694,7 +694,7 @@ begin
 {$ENDIF}
 end;
 
-procedure TSynRubySyn.SetSecondKeys(const Value: TWideStrings);
+procedure TSynRubySyn.SetSecondKeys(const Value: TUnicodeStrings);
 var
   i: Integer;
 begin
@@ -719,7 +719,7 @@ begin
   Result := SYNS_LangRuby;
 end;
 
-function TSynRubySyn.GetSampleSource: WideString;
+function TSynRubySyn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '# Factorial'+#13#10+
@@ -733,7 +733,7 @@ begin
     'print fact(ARGV[0].to_i), "\n"';
 end;
 
-class function TSynRubySyn.GetFriendlyLanguageName: WideString;
+class function TSynRubySyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangRuby;
 end;

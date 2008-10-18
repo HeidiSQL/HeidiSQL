@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynMemo.pas,v 1.15.2.2 2006/05/21 11:59:35 maelh Exp $
+$Id: SynMemo.pas,v 1.15.2.3 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -205,6 +205,9 @@ type
 implementation
 
 uses
+{$IFDEF UNICODE}
+  WideStrUtils,
+{$ENDIF}
 {$IFDEF SYN_CLX}
   QSynUnicode,
   QSynEditMiscProcs;
@@ -262,9 +265,9 @@ begin
   if Message.lParam <> 0 then
   begin
     if IsWindowUnicode(Handle) then
-      StrLCopyW(PWideChar(Message.lParam), PWideChar(SelText), Length(SelText))
+      WStrLCopy(PWideChar(Message.lParam), PWideChar(SelText), Length(SelText))
     else
-      StrLCopy(PAnsiChar(Message.lParam), PAnsiChar(string(SelText)), Length(SelText));
+      StrLCopy(PAnsiChar(Message.lParam), PAnsiChar(AnsiString(SelText)), Length(SelText));
     Message.Result := Length(SelText);
   end;                          
 end;
@@ -295,7 +298,7 @@ begin
       if IsWindowUnicode(Handle) then
         SelText := PWideChar(Message.lParam)
       else
-        SelText := PAnsiChar(Message.lParam)
+        SelText := UnicodeString(PAnsiChar(Message.lParam))
     finally
       UnlockUndo;
     end;
@@ -326,13 +329,13 @@ begin
     begin
       DestWide := PWideChar(Message.LParam);
       SourceWide := PWideChar(Lines[Message.WParam]);
-      StrLCopyW(DestWide, SourceWide, PWord(Message.LParam)^);
-      Message.Result := StrLenW(DestWide);
+      WStrLCopy(DestWide, SourceWide, PWord(Message.LParam)^);
+      Message.Result := WStrLen(DestWide);
     end
     else
     begin
       DestAnsi := PAnsiChar(Message.LParam);
-      SourceAnsi := PAnsiChar(string(Lines[Message.WParam]));
+      SourceAnsi := PAnsiChar(AnsiString(Lines[Message.WParam]));
       StrLCopy(DestAnsi, SourceAnsi, PWord(Message.LParam)^);
       Message.Result := StrLen(DestAnsi);
     end

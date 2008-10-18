@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterJScript.pas,v 1.21.2.7 2005/12/16 16:10:37 maelh Exp $
+$Id: SynHighlighterJScript.pas,v 1.21.2.8 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,11 +57,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils, Classes;
 
@@ -497,11 +499,11 @@ type
     procedure SymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -542,7 +544,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..398] of WideString = (
+  KeyWords: array[0..398] of UnicodeString = (
     'abs', 'abstract', 'acos', 'action', 'alert', 'align', 'alinkColor', 'all',
     'All', 'anchor', 'Anchor', 'anchors', 'appCodeName', 'Applet', 'applets',
     'appName', 'appVersion', 'Area', 'arguments', 'Arguments', 'Array', 'asin',
@@ -4443,7 +4445,7 @@ procedure TSynJScriptSyn.AndSymbolProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('&')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '&']) then inc(Run);
 end;
 
 procedure TSynJScriptSyn.CommentProc;
@@ -4489,7 +4491,7 @@ procedure TSynJScriptSyn.MinusProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('-'), WideChar('>')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '-', '>']) then inc(Run);
 end;
 
 procedure TSynJScriptSyn.ModSymbolProc;
@@ -4561,14 +4563,14 @@ procedure TSynJScriptSyn.OrSymbolProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('|')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '|']) then inc(Run);
 end;
 
 procedure TSynJScriptSyn.PlusProc;
 begin
   fTokenID := tkSymbol;
   inc(Run);
-  if fLine[Run] in [WideChar('='), WideChar('+')] then inc(Run);
+  if CharInSet(fLine[Run], ['=', '+']) then inc(Run);
 end;
 
 procedure TSynJScriptSyn.PointProc;
@@ -4625,7 +4627,7 @@ end;
 
 procedure TSynJScriptSyn.StringProc;
 var
-  l_strChar: WideString;
+  l_strChar: UnicodeString;
 begin
   fTokenID := tkString;
   l_strChar := FLine[Run];   // We could have '"' or #39
@@ -4750,7 +4752,7 @@ begin
   Result := SYNS_LangJScript;
 end;
 
-function TSynJScriptSyn.GetSampleSource: WideString;
+function TSynJScriptSyn.GetSampleSource: UnicodeString;
 begin
   Result := '// Syntax highlighting'#13#10+
             'function printNumber()'#13#10+
@@ -4769,7 +4771,7 @@ begin
             'body.onLoad = printNumber;';
 end;
 
-class function TSynJScriptSyn.GetFriendlyLanguageName: WideString;
+class function TSynJScriptSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangJScript;
 end;

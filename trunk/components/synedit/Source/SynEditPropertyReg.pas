@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPropertyReg.pas,v 1.17.2.5 2006/05/21 11:59:34 maelh Exp $
+$Id: SynEditPropertyReg.pas,v 1.17.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -71,11 +71,11 @@ uses
 
 type
 {$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
-  // Wrapper around TWideStringListProperty to enable the TNT property editor to
-  // handle TWideStrings
-  TSynWideStringListProperty = class(TWideStringListProperty)
+  // Wrapper around TUnicodeStringListProperty to enable the TNT property editor to
+  // handle TUnicodeStrings
+  TSynUnicodeStringListProperty = class(TWideStringListProperty)
   private
-    FWideStrings: TWideStrings;
+    FUnicodeStrings: TUnicodeStrings;
     FTntStrings: TTntStrings;
   protected
     function GetStrings: TTntStrings; override;
@@ -170,57 +170,57 @@ uses
 
 {$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
 
-{ TSynWideStringListProperty }
+{ TSynUnicodeStringListProperty }
 
 {$IFDEF SYN_COMPILER_6_UP}
-constructor TSynWideStringListProperty.Create(const ADesigner: IDesigner; APropCount: Integer);
+constructor TSynUnicodeStringListProperty.Create(const ADesigner: IDesigner; APropCount: Integer);
 {$ELSE}
-constructor TSynWideStringListProperty.Create(const ADesigner: IFormDesigner; APropCount: Integer);
+constructor TSynUnicodeStringListProperty.Create(const ADesigner: IFormDesigner; APropCount: Integer);
 {$ENDIF}
 begin
   inherited;
-  FWideStrings := TWideStringList.Create;
+  FUnicodeStrings := TUnicodeStringList.Create;
   FTntStrings := TTntStringList.Create;
 end;
 
-destructor TSynWideStringListProperty.Destroy;
+destructor TSynUnicodeStringListProperty.Destroy;
 begin
   FTntStrings.Free;
-  FWideStrings.Free;
+  FUnicodeStrings.Free;
   inherited;
 end;
 
-function TSynWideStringListProperty.GetStrings: TTntStrings;
+function TSynUnicodeStringListProperty.GetStrings: TTntStrings;
 var
-  WideStrings: TWideStrings;
+  UnicodeStrings: TUnicodeStrings;
   i: Integer;
 begin
-  WideStrings := TWideStrings(GetOrdValue);
+  UnicodeStrings := TUnicodeStrings(GetOrdValue);
   
   FTntStrings.Clear;
   FTntStrings.BeginUpdate;
   try
-    for i := 0 to WideStrings.Count - 1 do
-      FTntStrings.AddObject(WideStrings[i], WideStrings.Objects[i]);
+    for i := 0 to UnicodeStrings.Count - 1 do
+      FTntStrings.AddObject(UnicodeStrings[i], UnicodeStrings.Objects[i]);
   finally
     FTntStrings.EndUpdate;
   end;
   Result := FTntStrings;
 end;
 
-procedure TSynWideStringListProperty.SetStrings(const Value: TTntStrings);
+procedure TSynUnicodeStringListProperty.SetStrings(const Value: TTntStrings);
 var
   i: Integer;
 begin
-  FWideStrings.Clear;
-  FWideStrings.BeginUpdate;
+  FUnicodeStrings.Clear;
+  FUnicodeStrings.BeginUpdate;
   try
     for i := 0 to Value.Count - 1 do
-      FWideStrings.AddObject(Value[I], Value.Objects[I]);
+      FUnicodeStrings.AddObject(Value[I], Value.Objects[I]);
   finally
-    FWideStrings.EndUpdate;
+    FUnicodeStrings.EndUpdate;
   end;
-  SetOrdValue(Longint(FWideStrings));
+  SetOrdValue(Longint(FUnicodeStrings));
 end;
 {$ENDIF}
 
@@ -395,16 +395,16 @@ begin
 // TODO: Delphi 2005 has native Unicode property editors, we should use them (but I don't have D2005 to test)
 {$IFDEF USE_TNT_DESIGNTIME_SUPPORT}
   // Troy Wolbrink added my (Maël Hörz) WideChar property editor to
-  // TntWideStringProperty_Design.pas.
+  // TntUnicodeStringProperty_Design.pas.
   // As it is registered there, no need to do it a second time here.
-  // However as he uses TTntStrings and we use TWideStrings, we need
+  // However as he uses TTntStrings and we use TUnicodeStrings, we need
   // a wrapper to do the "translation".
-  RegisterPropertyEditor(TypeInfo(TWideStrings), nil,
-     '', TSynWideStringListProperty);
+  RegisterPropertyEditor(TypeInfo(TUnicodeStrings), nil,
+     '', TSynUnicodeStringListProperty);
 {$ELSE}
   RegisterPropertyEditor(TypeInfo(WideChar), nil,
      '', TCharProperty);
-  RegisterPropertyEditor(TypeInfo(TWideStrings), nil,
+  RegisterPropertyEditor(TypeInfo(TUnicodeStrings), nil,
      '', TStringListProperty);
 {$ENDIF}
 

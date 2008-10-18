@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterCpp.pas,v 1.22.2.8 2006/08/19 16:12:11 maelh Exp $
+$Id: SynHighlighterCpp.pas,v 1.22.2.9 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -156,12 +158,12 @@ type
     procedure StringEndProc;
   protected
     function GetExtTokenID: TxtkTokenKind;
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -210,16 +212,14 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
   Windows,
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  KeyWords: array[0..94] of WideString = (
+  KeyWords: array[0..94] of UnicodeString = (
     '__asm', '__automated', '__cdecl', '__classid', '__closure', '__declspec', 
     '__dispid', '__except', '__export', '__fastcall', '__finally', '__import', 
     '__int16', '__int32', '__int64', '__int8', '__pascal', '__property', 
@@ -441,7 +441,7 @@ begin
   fTokenID := tkChar;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [WideChar(#39), WideChar('\')] then
+      if CharInSet(fLine[Run + 1], [#39, '\']) then
         inc(Run);
     end;
     inc(Run);
@@ -825,7 +825,7 @@ begin
         begin
           if fTokenID <> tkFloat then // number <> float. an arithmetic operator
             Exit;
-          if not (FLine[Pred(Run)] in [WideChar('e'), WideChar('E')]) then
+          if not CharInSet(FLine[Pred(Run)], ['e', 'E']) then
             Exit; // number = float, but no exponent. an arithmetic operator
           if not IsDigitPlusMinusChar(Succ(Run)) then // invalid
           begin
@@ -846,10 +846,10 @@ begin
           Break;
       'e', 'E':
         if (fTokenID <> tkHex) then
-          if FLine[Pred(Run)] in [WideChar('0')..WideChar('9')] then // exponent
+          if CharInSet(FLine[Pred(Run)], ['0'..'9']) then // exponent
           begin
             for i := idx1 to Pred(Run) do
-              if FLine[i] in [WideChar('e'), WideChar('E')] then // too many exponents
+              if CharInSet(FLine[i], ['e', 'E']) then // too many exponents
               begin
                 fTokenID := tkUnknown;
                 Exit;
@@ -865,14 +865,14 @@ begin
         if fTokenID <> tkHex then
         begin
           for i := idx1 to Pred(Run) do
-            if FLine[i] in [WideChar('f'), WideChar('F')] then // declaration syntax error
+            if CharInSet(FLine[i], ['f', 'F']) then // declaration syntax error
             begin
               fTokenID := tkUnknown;
               Exit;
             end;
           if fTokenID = tkFloat then
           begin
-            if fLine[Pred(Run)] in [WideChar('l'), WideChar('L')] then // can't mix
+            if CharInSet(fLine[Pred(Run)], ['l', 'L']) then // can't mix
               Break;
           end
           else
@@ -881,13 +881,13 @@ begin
       'l', 'L':
         begin
           for i := idx1 to Run - 2 do
-            if FLine[i] in [WideChar('l'), WideChar('L')] then // declaration syntax error
+            if CharInSet(FLine[i], ['l', 'L']) then // declaration syntax error
             begin
               fTokenID := tkUnknown;
               Exit;
             end;
           if fTokenID = tkFloat then
-            if fLine[Pred(Run)] in [WideChar('f'), WideChar('F')] then // can't mix
+            if CharInSet(fLine[Pred(Run)], ['f', 'F']) then // can't mix
               Break;
         end;
       'u', 'U':
@@ -895,7 +895,7 @@ begin
           Break
         else
           for i := idx1 to Pred(Run) do
-            if FLine[i] in [WideChar('u'), WideChar('U')] then // declaration syntax error
+            if CharInSet(FLine[i], ['u', 'U']) then // declaration syntax error
             begin
               fTokenID := tkUnknown;
               Exit;
@@ -908,7 +908,7 @@ begin
            else // invalid char
            begin
              if not IsIdentChar(fLine[Succ(Run)]) and
-                (FLine[Succ(idx1)] in [WideChar('x'), WideChar('X')]) then
+                CharInSet(FLine[Succ(idx1)], ['x', 'X']) then
              begin
                Inc(Run); // highlight 'x' too
                fTokenID := tkUnknown;
@@ -975,7 +975,7 @@ begin
       FExtTokenID := xtkEllipse;
     end
   else
-    if FLine[Run + 1] in [WideChar('0')..WideChar('9')] then // float
+    if CharInSet(FLine[Run + 1], ['0'..'9']) then // float
     begin
       Dec(Run); // numberproc must see the point
       NumberProc;
@@ -1524,7 +1524,7 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-function TSynCppSyn.GetSampleSource: WideString;
+function TSynCppSyn.GetSampleSource: UnicodeString;
 begin
   Result := '// Syntax Highlighting'#13#10+
             'void __fastcall TForm1::Button1Click(TObject *Sender)'#13#10+
@@ -1550,7 +1550,7 @@ begin
 
 end;
 
-class function TSynCppSyn.GetFriendlyLanguageName: WideString;
+class function TSynCppSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCPP;
 end;

@@ -332,7 +332,7 @@ type
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-      AFiles: TWideStrings);
+      AFiles: TUnicodeStrings);
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupTreeViewPopup(Sender: TObject);
@@ -3243,7 +3243,7 @@ end;
 
 
 procedure TMDIChild.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-  AFiles: TWideStrings);
+  AFiles: TUnicodeStrings);
 var
   i        : Integer;
 begin

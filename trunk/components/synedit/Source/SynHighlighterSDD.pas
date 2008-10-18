@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterSDD.pas,v 1.13.2.5 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterSDD.pas,v 1.13.2.6 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -46,11 +46,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -127,11 +129,11 @@ type
     procedure UnknownProc;
     procedure SymbolProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;   
+    class function GetFriendlyLanguageName: UnicodeString; override;   
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -164,7 +166,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..26] of WideString = (
+  KeyWords: array[0..26] of UnicodeString = (
     'array', 'binarydata', 'block', 'byte', 'database', 'date', 'end',
     'endblock', 'integer', 'keys', 'longint', 'memotext', 'object', 'objects',
     'of', 'owner', 'partition', 'partitions', 'primary', 'real', 'secondary',
@@ -526,7 +528,7 @@ begin
   fTokenID := tkSpace;
   repeat
     inc(Run);
-  until not (fLine[Run] in [WideChar(#1)..WideChar(#32)]);
+  until not CharInSet(fLine[Run], [#1..#32]);
 end; { SpaceProc }
 
 procedure TSynSDDSyn.BraceCommentProc;
@@ -590,7 +592,7 @@ begin
   inc(Run);
 end; { LFProc }
 
-function TSynSDDSyn.GetSampleSource: WideString;
+function TSynSDDSyn.GetSampleSource: UnicodeString;
 begin
   Result := '{ Semanta data dictionary }'#13#10 +
             'database Sample.001;'#13#10 +
@@ -708,7 +710,7 @@ begin
   fTokenID := tkSymbol;
 end;
 
-class function TSynSDDSyn.GetFriendlyLanguageName: WideString;
+class function TSynSDDSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangSDD;
 end;

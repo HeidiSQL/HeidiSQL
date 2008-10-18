@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterXML.pas,v 1.11.2.5 2005/11/27 22:22:46 maelh Exp $
+$Id: SynHighlighterXML.pas,v 1.11.2.6 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -62,10 +62,12 @@ uses
   Qt, QControls, QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -133,17 +135,17 @@ type
     procedure EqualProc;
     procedure IdentProc;
     procedure NextProcedure;
-    function NextTokenIs(Token: WideString): Boolean;
+    function NextTokenIs(Token: UnicodeString): Boolean;
     procedure EntityRefProc;
     procedure QEntityRefProc;
     procedure AEntityRefProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     function IsNameChar: Boolean; virtual;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -302,7 +304,7 @@ begin
   fTokenID := tkSpace;
   while fLine[Run] <= #32 do
   begin
-    if fLine[Run] in [WideChar(#0), WideChar(#9), WideChar(#10), WideChar(#13)] then break;
+    if CharInSet(fLine[Run], [#0, #9, #10, #13]) then break;
     Inc(Run);
   end;
 end;
@@ -503,7 +505,7 @@ end;
 procedure TSynXMLSyn.AttributeProc;
 begin
   //Check if we are starting on a closing quote
-  if (fLine[Run] in [WideChar(#34), WideChar(#39)]) then
+  if CharInSet(fLine[Run], [#34, #39]) then
   begin
     fTokenID := tkSymbol;
     fRange := rsAttribute;
@@ -739,7 +741,7 @@ begin
   end;
 end;
 
-function TSynXMLSyn.NextTokenIs(Token: WideString): Boolean;
+function TSynXMLSyn.NextTokenIs(Token: UnicodeString): Boolean;
 var
   I, Len: Integer;
 begin
@@ -849,7 +851,7 @@ begin
   Result := SYNS_LangXML;
 end;
 
-function TSynXMLSyn.GetSampleSource: WideString;
+function TSynXMLSyn.GetSampleSource: UnicodeString;
 begin
   Result:= '<?xml version="1.0"?>'#13#10+
            '<!DOCTYPE root ['#13#10+
@@ -861,7 +863,7 @@ begin
 end;
 
 {$IFNDEF SYN_CPPB_1}
-class function TSynXMLSyn.GetFriendlyLanguageName: WideString;
+class function TSynXMLSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangXML;
 end;

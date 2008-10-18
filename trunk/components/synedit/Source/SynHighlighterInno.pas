@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterInno.pas,v 1.22.2.8 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterInno.pas,v 1.22.2.9 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,11 +57,13 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
   QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -101,13 +103,13 @@ type
     procedure SemiColonProc;
     procedure StringProc;
     procedure UnknownProc;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
   protected
-    function IsCurrentToken(const Token: WideString): Boolean; override;
+    function IsCurrentToken(const Token: UnicodeString): Boolean; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -146,10 +148,8 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
@@ -160,7 +160,7 @@ const
   {Ref:  Keywords and Parameters are updated as they last appeared in
          Inno Setup / ISX version 1.3.26}
 
-  Keywords: WideString =
+  Keywords: UnicodeString =
     'adminprivilegesrequired,allownoicons,allowrootdirectory,allowuncpath,' +
     'alwayscreateuninstallicon,alwaysrestart,alwaysshowcomponentslist,' +
     'alwaysshowdironreadypage,alwaysshowgrouponreadypage,' +
@@ -188,7 +188,7 @@ const
     'windowvisible,wizardimagebackcolor,wizardimagefile,wizardsmallimagefile,' +
     'wizardstyle,workingdir';
 
-  Parameters: WideString =
+  Parameters: UnicodeString =
     'hkcc,hkcr,hkcu,hklm,hku,alwaysoverwrite,alwaysskipifsameorolder,append,' +
     'binary,classic,closeonexit,comparetimestampalso,confirmoverwrite,' +
     'createkeyifdoesntexist,createonlyiffileexists,createvalueifdoesntexist,' +
@@ -205,7 +205,7 @@ const
     'uninsdeletesection,uninsdeletesectionifempty,uninsdeletevalue,' +
     'uninsneveruninstall,useapppaths,verysilent,waituntilidle';
 
-  KeyOrParameter: WideString = 'string';
+  KeyOrParameter: UnicodeString = 'string';
 
 function TSynInnoSyn.HashKey(Str: PWideChar): Integer;
 
@@ -255,7 +255,7 @@ begin
   Result := tkIdentifier;
 end;
 
-function TSynInnoSyn.IsCurrentToken(const Token: WideString): Boolean;
+function TSynInnoSyn.IsCurrentToken(const Token: UnicodeString): Boolean;
   var
   I: Integer;
   Temp: PWideChar;
@@ -383,7 +383,7 @@ begin
   if fTokenID = tkKeyOrParameter then
   begin
     LookAhead := Run;
-    while fLine[LookAhead] in [WideChar(#9), WideChar(' ')] do
+    while CharInSet(fLine[LookAhead], [#9, ' ']) do
       Inc(LookAhead);
     if fLine[LookAhead] = ':' then
       fTokenID := tkKey
@@ -431,7 +431,7 @@ begin
   fTokenID := tkNumber;
   repeat
     Inc(Run);
-  until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
+  until not CharInSet(fLine[Run], ['0'..'9']);
 end;
 
 procedure TSynInnoSyn.ConstantProc;
@@ -600,7 +600,7 @@ begin
   Result := SYNS_LangInno;
 end;
 
-procedure TSynInnoSyn.DoAddKeyword(AKeyword: WideString; AKind: integer);
+procedure TSynInnoSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
 var
   HashValue: Integer;
 begin
@@ -608,7 +608,7 @@ begin
   fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
-class function TSynInnoSyn.GetFriendlyLanguageName: WideString;
+class function TSynInnoSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangInno;
 end;

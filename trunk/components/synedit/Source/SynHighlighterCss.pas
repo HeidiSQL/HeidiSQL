@@ -65,11 +65,13 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
   QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -97,7 +99,7 @@ type
     fValueAttri: TSynHighlighterAttributes;
     fUndefPropertyAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure TextProc;
@@ -116,12 +118,12 @@ type
     procedure HashProc;
     procedure SlashProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -163,15 +165,13 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  Properties: WideString =
+  Properties: UnicodeString =
     'azimuth,background,background-attachment,background-color,background-image,'+
     'background-position,background-repeat,border,border-collapse,border-color,'+
     'border-spacing,border-style,border-top border-right border-bottom border-left,'+
@@ -199,8 +199,7 @@ const
 function TSynCssSyn.HashKey(Str: PWideChar): Integer;
 begin
   Result := 0;
-  while (Str^ in [WideChar('a')..WideChar('z'), WideChar('A')..WideChar('Z'),
-    WideChar('_'), WideChar('-')]) do
+  while CharInSet(Str^, ['a'..'z', 'A'..'Z', '_', '-']) do
   begin
     if Str^ <> '-' then
     case Str^ of
@@ -210,7 +209,7 @@ begin
     end;
     Inc(Str);
   end;
-  while (Str^ In [WideChar('0')..WideChar('9')]) do
+  while CharInSet(Str^, ['0'..'9']) do
   begin
     Inc(Result, Ord(Str^) - Ord('0'));
     Inc(Str);
@@ -240,7 +239,7 @@ begin
   Result := tkUndefProperty;
 end;
 
-procedure TSynCssSyn.DoAddKeyword(AKeyword: WideString; AKind: Integer);
+procedure TSynCssSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
 var
   HashValue: Integer;
 begin
@@ -365,13 +364,13 @@ end;
 
 procedure TSynCssSyn.NumberProc;
 begin
-  if (FLine[Run] = '-') and not (FLine[Run + 1] in [WideChar('0')..WideChar('9')]) then
+  if (FLine[Run] = '-') and not CharInSet(FLine[Run + 1], ['0'..'9']) then
     IdentProc
   else
   begin
     inc(Run);
     fTokenID := tkNumber;
-    while FLine[Run] in [WideChar('0')..WideChar('9'), WideChar('.')] do
+    while CharInSet(FLine[Run], ['0'..'9', '.']) do
     begin
       case FLine[Run] of
         '.':
@@ -397,7 +396,7 @@ begin
         fTokenID := tkValue;
 
         while not IsLineEnd(Run) and
-          not (fLine[Run] in [WideChar('}'), WideChar(';'), WideChar(',')]) do
+          not CharInSet(fLine[Run], ['}', ';', ',']) do
         begin
           Inc(Run);
         end;
@@ -406,8 +405,7 @@ begin
       fTokenID := IdentKind((fLine + Run));
       repeat
         Inc(Run);
-      until (fLine[Run] <= #32) or (fLine[Run] in
-        [WideChar(':'), WideChar('"'), WideChar('}'), WideChar(';')]);
+      until (fLine[Run] <= #32) or CharInSet(fLine[Run], [':', '"', '}', ';']);
   end;
 end;
 
@@ -587,7 +585,7 @@ begin
   fRange:= rsText;
 end;
 
-function TSynCssSyn.GetSampleSource: WideString;
+function TSynCssSyn.GetSampleSource: UnicodeString;
 begin
   Result := '/* Syntax Highlighting */'#13#10 +
         'body { font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif; font-size: 8pt }'#13#10 +
@@ -614,7 +612,7 @@ begin
   end;
 end;
 
-class function TSynCssSyn.GetFriendlyLanguageName: WideString;
+class function TSynCssSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCSS;
 end;

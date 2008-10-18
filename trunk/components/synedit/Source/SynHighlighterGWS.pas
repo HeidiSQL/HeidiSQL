@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGWS.pas,v 1.13.2.6 2005/12/16 20:09:37 maelh Exp $
+$Id: SynHighlighterGWS.pas,v 1.13.2.7 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -50,10 +50,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -159,7 +161,7 @@ Type
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetDefaultAttribute (Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
@@ -192,7 +194,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..12] of WideString = (
+  KeyWords: array[0..12] of UnicodeString = (
     'bool', 'break', 'char', 'do', 'else', 'false', 'for', 'if', 'int', 
     'return', 'string', 'true', 'while' 
   );
@@ -456,7 +458,7 @@ begin
   fTokenID := tkString;
   repeat
     if fLine[Run] = '\' then begin
-      if fLine[Run + 1] in [WideChar(#39), WideChar('\')] then
+      if CharInSet(fLine[Run + 1], [#39, '\']) then
         inc(Run);
     end;
     inc(Run);
@@ -1039,7 +1041,7 @@ begin
   end;
 end;
 
-class function TSynGWScriptSyn.GetFriendlyLanguageName: WideString;
+class function TSynGWScriptSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangGWS;
 end;

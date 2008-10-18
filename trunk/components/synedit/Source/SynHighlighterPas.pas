@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPas.pas,v 1.27.2.8 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterPas.pas,v 1.27.2.9 2008/09/14 16:25:01 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -61,11 +61,13 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -170,12 +172,12 @@ type
     procedure SetDelphiVersion(const Value: TDelphiVersion);
     procedure SetPackageSource(const Value: Boolean);
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
@@ -222,16 +224,14 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
   // if the language is case-insensitive keywords *must* be in lowercase
-  KeyWords: array[0..110] of WideString = (
+  KeyWords: array[0..110] of UnicodeString = (
     'absolute', 'abstract', 'and', 'array', 'as', 'asm', 'assembler',
     'automated', 'begin', 'case', 'cdecl', 'class', 'const', 'constructor',
     'contains', 'default', 'deprecated', 'destructor', 'dispid',
@@ -1152,7 +1152,7 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
   begin { ReadDelphiSettings }
     {$IFDEF SYN_COMPILER_7_UP}
     {$IFNDEF SYN_COMPILER_9_UP}
-    //Result := False; // Silence the compiler warning 
+    Result := False; // Silence the compiler warning 
     {$ENDIF}
     {$ENDIF}
     iVersions := TStringList.Create;
@@ -1219,7 +1219,7 @@ begin
 {$ENDIF}
 end;
 
-function TSynPasSyn.GetSampleSource: WideString;                                   
+function TSynPasSyn.GetSampleSource: UnicodeString;                                   
 begin
   Result := '{ Syntax highlighting }'#13#10 +
              'procedure TForm1.Button1Click(Sender: TObject);'#13#10 +
@@ -1282,7 +1282,7 @@ begin
   end;
 end;
 
-class function TSynPasSyn.GetFriendlyLanguageName: WideString;
+class function TSynPasSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangPascal;
 end;

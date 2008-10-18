@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditStrConst.pas,v 1.41.2.3 2006/05/22 10:50:11 maelh Exp $
+$Id: SynEditStrConst.pas,v 1.41.2.4 2008/01/30 20:39:46 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -46,46 +46,51 @@ const
   SYNS_ComponentsPage           =  'SynEdit';
   SYNS_HighlightersPage         =  'SynEdit Highlighters';
 
-// NOTE: the following constants are used to store information to the registry.
-//       If you want translated/more detailed descriptions use the resourcestrings,
-//       i.e. the "friendly" versions below.
+// NOTE: the following constants are used to store information to the registry,
+//       INI files or XML files. For maximum compatibility only the chars
+//       'A'..'Z', 'a'..'z', '0'..'9', '_' and '-' are allowed!
+//
+//       If you want translated/"pretty"/more detailed descriptions use the
+//       resourcestrings, i.e. the "friendly" versions below.
 
 // constant names for highlighter attributes
+//
+//
 const
-  SYNS_AttrAreaAIdentifier      =  'Area A Identifier';
+  SYNS_AttrAreaAIdentifier      =  'Area_A_Identifier';
   SYNS_AttrArrowHead            =  'ArrowHead';
   SYNS_AttrAsm                  =  'Asm';
-  SYNS_AttrAsmComment           =  'Asm Comment';
-  SYNS_AttrAsmKey               =  'Asm Key';
+  SYNS_AttrAsmComment           =  'AsmComment';
+  SYNS_AttrAsmKey               =  'AsmKey';
   SYNS_AttrAssembler            =  'Assembler';
   SYNS_AttrAttribute            =  'Attribute';
-  SYNS_AttrAttributeName        =  'Attribute Name';
-  SYNS_AttrAttributeValue       =  'Attribute Value';
-  SYNS_AttrBasicTypes           =  'Basic Types';
+  SYNS_AttrAttributeName        =  'AttributeName';
+  SYNS_AttrAttributeValue       =  'AttributeValue';
+  SYNS_AttrBasicTypes           =  'BasicTypes';
   SYNS_AttrBlock                =  'Block';
-  SYNS_AttrBoolean              =  'Boolean value';
+  SYNS_AttrBoolean              =  'Booleanvalue';
   SYNS_AttrBrackets             =  'Brackets';
-  SYNS_AttrCDATASection         =  'CDATA Section';
+  SYNS_AttrCDATASection         =  'CDATA-Section';
   SYNS_AttrCharacter            =  'Character';
   SYNS_AttrClass                =  'Class';
-  SYNS_AttrColor                =  'Color Value';
+  SYNS_AttrColor                =  'ColorValue';
   SYNS_AttrComment              =  'Comment';
   SYNS_AttrCondition            =  'Condition';
-  SYNS_AttrConditionalComment   =  'Conditional Comment';
-  SYNS_AttrDataType             =  'Data Type';
-  SYNS_AttrDebugLines           =  'Debugging Lines';
-  SYNS_AttrDefaultPackage       =  'Default Packages';
-  SYNS_AttrDelimitedIdentifier  =  'Delimited Identifier';
+  SYNS_AttrConditionalComment   =  'ConditionalComment';
+  SYNS_AttrDataType             =  'DataType';
+  SYNS_AttrDebugLines           =  'DebuggingLines';
+  SYNS_AttrDefaultPackage       =  'DefaultPackages';
+  SYNS_AttrDelimitedIdentifier  =  'DelimitedIdentifier';
   SYNS_AttrDir                  =  'Direction';
   SYNS_AttrDirections           =  'Directions';
   SYNS_AttrDirective            =  'Directive';
-  SYNS_AttrDOCTYPESection       =  'DOCTYPE Section';
+  SYNS_AttrDOCTYPESection       =  'DOCTYPE-Section';
   SYNS_AttrDocumentation        =  'Documentation';
-  SYNS_AttrElementName          =  'Element Name';
-  SYNS_AttrEmbedSQL             =  'Embedded SQL';
-  SYNS_AttrEmbedText            =  'Embedded Text';
-  SYNS_AttrEntityReference      =  'Entity Reference';
-  SYNS_AttrEscapeAmpersand      =  'Escape Ampersand';
+  SYNS_AttrElementName          =  'ElementName';
+  SYNS_AttrEmbedSQL             =  'EmbeddedSQL';
+  SYNS_AttrEmbedText            =  'EmbeddedText';
+  SYNS_AttrEntityReference      =  'EntityReference';
+  SYNS_AttrEscapeAmpersand      =  'EscapeAmpersand';
   SYNS_AttrEvent                =  'Event';
   SYNS_AttrException            =  'Exception';
   SYNS_AttrFirstTri             =  'FirstTri';
@@ -94,82 +99,85 @@ const
   SYNS_AttrFourthTri            =  'FourthTri';
   SYNS_AttrFunction             =  'Function';
   SYNS_AttrHexadecimal          =  'Hexadecimal';
-  SYNS_AttrIcon                 =  'Icon Reference';
+  SYNS_AttrIcon                 =  'IconReference';
   SYNS_AttrIdentifier           =  'Identifier';
-  SYNS_AttrIllegalChar          =  'Illegal Char';
+  SYNS_AttrIllegalChar          =  'IllegalChar';
   SYNS_AttrInclude              =  'Include';
-  SYNS_AttrIndicator            =  'Indicator Area';
+  SYNS_AttrIndicator            =  'IndicatorArea';
   SYNS_AttrIndirect             =  'Indirect';
-  SYNS_AttrInvalidSymbol        =  'Invalid Symbol';
-  SYNS_AttrInternalFunction     =  'Internal Function';
+  SYNS_AttrInvalidSymbol        =  'InvalidSymbol';
+  SYNS_AttrInternalFunction     =  'InternalFunction';
   SYNS_AttrKey                  =  'Key';
   SYNS_AttrLabel                =  'Label';
   SYNS_AttrLace                 =  'Lace';
   SYNS_AttrLine                 =  'Line';
   SYNS_AttrMacro                =  'Macro';
   SYNS_AttrMarker               =  'Marker';
-  SYNS_AttrMathMode             =  'Math Mode';
+  SYNS_AttrMathMode             =  'MathMode';
   SYNS_AttrMessage              =  'Message';
   SYNS_AttrMiscellaneous        =  'Miscellaneous';
-  SYNS_AttrNamespaceAttrName    =  'Namespace Attribute Name';
-  SYNS_AttrNamespaceAttrValue   =  'Namespace Attribute Value';
-  SYNS_AttrNonReservedKeyword   =  'Non-reserved Keyword';
+  SYNS_AttrNamespaceAttrName    =  'NamespaceAttributeName';
+  SYNS_AttrNamespaceAttrValue   =  'NamespaceAttributeValue';
+  SYNS_AttrNonReservedKeyword   =  'NonreservedKeyword';
   SYNS_AttrNull                 =  'Null';
   SYNS_AttrNumber               =  'Number';
   SYNS_AttrOctal                =  'Octal';
   SYNS_AttrOperator             =  'Operator';
-  SYNS_AttrOperatorAndSymbols   =  'Operator And Symbols';
+  SYNS_AttrOperatorAndSymbols   =  'OperatorAndSymbols';
   SYNS_AttrOpLine               =  'OpLine';
-  SYNS_AttrPLSQL                =  'PL/SQL Reserved Word';
+  SYNS_AttrOptions              =  'Options';
+  SYNS_AttrPath                 =  'PathName';  
+  SYNS_AttrPLSQL                =  'PLSQL-ReservedWord';
   SYNS_AttrPragma               =  'Pragma';
   SYNS_AttrPredefined           =  'Predefined';
   SYNS_AttrPreprocessor         =  'Preprocessor';
-  SYNS_AttrProcessingInstr      =  'Processing Instruction';
+  SYNS_AttrProcessingInstr      =  'ProcessingInstruction';
   SYNS_AttrProperty             =  'Property';
   SYNS_AttrQuad                 =  'Quad';
   SYNS_AttrQualifier            =  'Qualifier';
   SYNS_AttrRegister             =  'Register';
-  SYNS_AttrReservedWord         =  'Reserved Word';
-  SYNS_AttrResultValue          =  'Result Value';
-  SYNS_AttrRoundBracket         =  'Round Bracket';
+  SYNS_AttrReservedWord         =  'ReservedWord';
+  SYNS_AttrResultValue          =  'ResultValue';
+  SYNS_AttrRoundBracket         =  'RoundBracket';
   SYNS_AttrRpl                  =  'Rpl';
-  SYNS_AttrRplKey               =  'Rpl Key';
-  SYNS_AttrRplComment           =  'Rpl Comment';
+  SYNS_AttrRplKey               =  'Rpl-Key';
+  SYNS_AttrRplComment           =  'Rpl-Comment';
   SYNS_AttrSASM                 =  'SASM';
-  SYNS_AttrSASMComment          =  'SASM Comment';
-  SYNS_AttrSASMKey              =  'SASM Key';
-  SYNS_AttrSecondReservedWord   =  'Second Reserved Word';
+  SYNS_AttrSASMComment          =  'SASM-Comment';
+  SYNS_AttrSASMKey              =  'SASM-Key';
+  SYNS_AttrSecondReservedWord   =  'SecondReservedWord';
   SYNS_AttrSecondTri            =  'SecondTri';
   SYNS_AttrSection              =  'Section';
-  SYNS_AttrSequence             =  'Sequence Number Area';
+  SYNS_AttrSequence             =  'SequenceNumberArea';
   SYNS_AttrShape                =  'Shape';
-  SYNS_AttrSingleString         =  'Single Quoted String';
+  SYNS_AttrSingleString         =  'SingleQuotedString';
   SYNS_AttrSpace                =  'Space';
-  SYNS_AttrSpecialVariable      =  'Special Variable';
-  SYNS_AttrSQLKey               =  'SQL Keyword';
-  SYNS_AttrSQLPlus              =  'SQL*Plus Command';
-  SYNS_AttrSquareBracket        =  'Square Bracket';
+  SYNS_AttrSpecialVariable      =  'SpecialVariable';
+  SYNS_AttrSQLKey               =  'SQL-Keyword';
+  SYNS_AttrSQLPlus              =  'SQLPlus-Command';
+  SYNS_AttrSquareBracket        =  'SquareBracket';
   SYNS_AttrString               =  'String';
   SYNS_AttrSymbol               =  'Symbol';
-  SYNS_AttrSyntaxError          =  'Syntax Error';
-  SYNS_AttrSystem               =  'System Functions and Variables';
-  SYNS_AttrSystemValue          =  'System Value';
-  SYNS_AttrTagArea              =  'Tag Area';
-  SYNS_AttrTableName            =  'Table Name';
+  SYNS_AttrSyntaxError          =  'SyntaxError';
+  SYNS_AttrSystem               =  'SystemFunctionsAndVariables';
+  SYNS_AttrSystemValue          =  'SystemValue';
+  SYNS_AttrTagArea              =  'TagArea';
+  SYNS_AttrTableName            =  'TableName';
   SYNS_AttrTerminator           =  'Terminator';
-  SYNS_AttrTeXCommand           =  'TeX Command';
+  SYNS_AttrTeXCommand           =  'TeX-Command';
   SYNS_AttrText                 =  'Text';
-  SYNS_AttrTextMathMode         =  'Text in Math Mode';
+  SYNS_AttrTextMathMode         =  'TextInMathMode';
   SYNS_AttrThirdTri             =  'ThirdTri';
+  SYNS_AttrTixKeyWords          =  'Tix-Keywords';
   SYNS_AttrTriangle             =  'Triangle';
-  SYNS_AttrUndefinedProperty    =  'Undefined Property';
-  SYNS_AttrUnknownWord          =  'Unknown Word';
+  SYNS_AttrUndefinedProperty    =  'UndefinedProperty';
+  SYNS_AttrUnknownWord          =  'UnknownWord';
   SYNS_AttrURI                  =  'URI';
-  SYNS_AttrUser                 =  'User Functions and Variables';
-  SYNS_AttrUserFunction         =  'User Functions';
+  SYNS_AttrUser                 =  'UserFunctionsAndVariables';
+  SYNS_AttrUserFunction         =  'UserFunctions';
   SYNS_AttrValue                =  'Value';
   SYNS_AttrVariable             =  'Variable';
-  SYNS_AttrVisitedURI           =  'Visited URI';
+  SYNS_AttrVisitedURI           =  'VisitedURI';
   SYNS_AttrVrmlAppearance       =  'Vrml_Appearance';
   SYNS_AttrVrmlAttribute        =  'Vrml_Attribute';
   SYNS_AttrVrmlDefinition       =  'Vrml_Definition';
@@ -187,65 +195,66 @@ const
   SYNS_AttrVrmlViewpoint        =  'Vrml_Viewpoint';
   SYNS_AttrVrmlWorldInfo        =  'Vrml_WorldInfo';
   SYNS_AttrWhitespace           =  'Whitespace';
+  SYNS_AttrWidgetWords          =  'Widget-Keywords';
   SYNS_AttrX3DDocType           =  'X3DDocType';
   SYNS_AttrX3DHeader            =  'X3DHeader';
 
   // constant language names
   SYNS_LangHP48                 =  'HP48';
   SYNS_LangCAClipper            =  'CA-Clipper';
-  SYNS_LangCPM                  =  'COAS Product Manager Report';
-  SYNS_LangCPP                  =  'C/C++';
-  SYNS_LangCS                   =  'C#';
+  SYNS_LangCPM                  =  'COAS_Product_Manager_Report';
+  SYNS_LangCPP                  =  'CandCPlusPlus';
+  SYNS_LangCS                   =  'CSharp';
   SYNS_LangJava                 =  'Java';
   SYNS_LangPerl                 =  'Perl';
-  SYNS_LangBatch                =  'MS-DOS Batch';
-  SYNS_LangDfm                  =  'Borland Forms';
+  SYNS_LangBatch                =  'MS-DOS_Batch';
+  SYNS_LangDfm                  =  'BorlandForms';
   SYNS_LangAWK                  =  'AWK';
-  SYNS_LangCORBAIDL             =  'CORBA IDL';
+  SYNS_LangCORBAIDL             =  'CORBA_IDL';
   SYNS_LangHTML                 =  'HTML';
-  SYNS_LangVBSScript            =  'MS VBScript';
+  SYNS_LangVBSScript            =  'MS-VBScript';
   SYNS_LangGalaxy               =  'Galaxy';
   SYNS_LangGeneral              =  'General';
-  SYNS_LangPascal               =  'Object Pascal';
-  SYNS_LangX86Asm               =  'x86 Assembly';
+  SYNS_LangPascal               =  'ObjectPascal';
+  SYNS_LangX86Asm               =  'x86Assembly';
   SYNS_LangPython               =  'Python';
-  SYNS_LangTclTk                =  'Tcl/Tk';
+  SYNS_LangTclTk                =  'TclTk';
   SYNS_LangSQL                  =  'SQL';
   SYNS_LangGembase              =  'Gembase';
   SYNS_LangINI                  =  'INI';
-  SYNS_LangSML                  =  'Standard ML';
-  SYNS_LangVisualBASIC          =  'Visual Basic';
+  SYNS_LangSML                  =  'StandardML';
+  SYNS_LangVisualBASIC          =  'VisualBasic';
   SYNS_LangADSP21xx             =  'ADSP21xx';
   SYNS_LangPHP                  =  'PHP';
-  SYNS_LangSybaseSQL            =  'Sybase SQL';
-  SYNS_LangGeneralMulti         =  'General Multi-Highlighter';
-  SYNS_LangCache                =  'Cache Object Script';
-  SYNS_LangCSS                  =  'Cascading Style Sheet';
+  SYNS_LangSybaseSQL            =  'SybaseSQL';
+  SYNS_LangGeneralMulti         =  'General_Multi-Highlighter';
+  SYNS_LangCache                =  'CacheObjectScript';
+  SYNS_LangCSS                  =  'CascadingStyleSheet';
   SYNS_LangJScript              =  'JavaScript';
   SYNS_LangKIX                  =  'KiXtart';
-  SYNS_LangBaan                 =  'Baan 4GL';
+  SYNS_LangBaan                 =  'Baan_4GL';
   SYNS_LangFoxpro               =  'Foxpro';
   SYNS_LangFortran              =  'Fortran';
-  SYNS_Lang68HC11               =  '68HC11 Assembler';
+  SYNS_Lang68HC11               =  '68HC11_Assembler';
   SYNS_LangProgress             =  'Progress';
-  SYNS_LangInno                 =  'Inno Setup Script';
+  SYNS_LangInno                 =  'InnoSetupScript';
   SYNS_LangModelica             =  'Modelica';
-  SYNS_LangModula3              =  'Modula 3';
-  SYNS_LangSDD                  =  'Semanta Data Dictionary';
+  SYNS_LangModula3              =  'Modula3';
+  SYNS_LangSDD                  =  'SemantaDataDictionary';
   SYNS_LangXML                  =  'XML';
   SYNS_LangGWS                  =  'GW-TEL';
-  SYNS_LangSynGenMsgfiles       =  'SynGen Msg';
+  SYNS_LangSynGenMsgfiles       =  'SynGen_Msg';
   SYNS_LangUnreal               =  'Unreal';
-  SYNS_LangST                   =  'Structured Text';
+  SYNS_LangST                   =  'StructuredText';
   SYNS_LangCOBOL                =  'COBOL';
   SYNS_LangTeX                  =  'TeX';
   SYNS_LangRC                   =  'Resource';
   SYNS_LangRuby                 =  'Ruby';
-  SYNS_LangNameUNIXShellScript  =  'UNIX Shell Script';
+  SYNS_LangNameUNIXShellScript  =  'UNIXShellScript';
   SYNS_LangHaskell              =  'Haskell';
-  SYNS_LangDOT                  =  'DOT Graph Drawing Description language';
+  SYNS_LangDOT                  =  'DOT_Graph_Drawing_Description_language';
   SYNS_LangEiffel               =  'Eiffel';
-  SYNS_LangLDraw                =  'LEGO LDraw';
+  SYNS_LangLDraw                =  'LEGO_LDraw';
   SYNS_LangUnknown              =  '<Unknown>';
   SYNS_LangURI                  =  'URI';
   SYNS_LangVrml97               =  'Vrml97';
@@ -279,7 +288,7 @@ resourcestring
   SYNS_FriendlyAttrDataType             =  'Data Type';
   SYNS_FriendlyAttrDebugLines           =  'Debugging Lines';
   SYNS_FriendlyAttrDefaultPackage       =  'Default Packages';
-  SYNS_FriendlyAttrDelimitedIdentifier  =  'Delimited Identifier';  
+  SYNS_FriendlyAttrDelimitedIdentifier  =  'Delimited Identifier';
   SYNS_FriendlyAttrDir                  =  'Direction';
   SYNS_FriendlyAttrDirections           =  'Directions';
   SYNS_FriendlyAttrDirective            =  'Directive';
@@ -324,6 +333,8 @@ resourcestring
   SYNS_FriendlyAttrOperator             =  'Operator';
   SYNS_FriendlyAttrOperatorAndSymbols   =  'Operator And Symbols';
   SYNS_FriendlyAttrOpLine               =  'OpLine';
+  SYNS_FriendlyAttrOptions              =  'Options';
+  SYNS_FriendlyAttrPath                 =  'Pathname';    
   SYNS_FriendlyAttrPLSQL                =  'PL/SQL Reserved Word';
   SYNS_FriendlyAttrPragma               =  'Pragma';
   SYNS_FriendlyAttrPredefined           =  'Predefined';
@@ -365,8 +376,9 @@ resourcestring
   SYNS_FriendlyAttrText                 =  'Text';
   SYNS_FriendlyAttrTextMathMode         =  'Text in Math Mode';
   SYNS_FriendlyAttrThirdTri             =  'ThirdTri';
+  SYNS_FriendlyAttrTixKeyWords          =  'Tix Keywords';  
   SYNS_FriendlyAttrTriangle             =  'Triangle';
-  SYNS_FriendlyAttrUndefinedProperty    =  'Undefined Property';  
+  SYNS_FriendlyAttrUndefinedProperty    =  'Undefined Property';
   SYNS_FriendlyAttrUnknownWord          =  'Unknown Word';
   SYNS_FriendlyAttrURI                  =  'URI';
   SYNS_FriendlyAttrUser                 =  'User Functions and Variables';
@@ -391,6 +403,7 @@ resourcestring
   SYNS_FriendlyAttrVrmlViewpoint        =  'Vrml_Viewpoint';
   SYNS_FriendlyAttrVrmlWorldInfo        =  'Vrml_WorldInfo';
   SYNS_FriendlyAttrWhitespace           =  'Whitespace';
+  SYNS_FriendlyAttrWidgetWords          =  'Widget Keywords';  
   SYNS_FriendlyAttrX3DDocType           =  'X3DDocType';
   SYNS_FriendlyAttrX3DHeader            =  'X3DHeader';
 

@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterLDraw.pas,v 1.7.2.6 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterLDraw.pas,v 1.7.2.7 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -55,9 +55,11 @@ uses
   Qt, QControls, QGraphics,
   QSynEditHighlighter,
   QSynEditTypes,
+  QSynUnicode,
 {$ELSE}
   Windows, Controls, Graphics,
   SynEditHighlighter, SynEditTypes,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -115,18 +117,18 @@ type
     procedure LFProc;
     function FirstChar(DatLine: PWideChar): WideChar;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
-    function GetKeyWords(TokenKind: Integer): WideString; override;
+    function GetKeyWords(TokenKind: Integer): UnicodeString; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
@@ -157,7 +159,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..0] of WideString = (
+  KeyWords: array[0..0] of UnicodeString = (
     'author' 
   );
 
@@ -383,7 +385,7 @@ begin
     else
       fTokenID := tkIdentifier;
   end;
-  while FLine[Run] in [WideChar('0')..WideChar('9'), WideChar('.')] do inc(Run);
+  while CharInSet(FLine[Run], ['0'..'9', '.']) do inc(Run);
 end;
 
 procedure TSynLDRSyn.UnknownProc;
@@ -422,7 +424,7 @@ begin
   Result := Run = fLineLen + 1;
 end;
 
-function TSynLDRSyn.GetKeyWords(TokenKind: Integer): WideString;
+function TSynLDRSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
 begin
   Result := 'Author';
 end;
@@ -458,7 +460,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynLDRSyn.GetSampleSource: WideString;
+function TSynLDRSyn.GetSampleSource: UnicodeString;
 begin
   Result := #13#10 +
             'Sample source for: '#13#10 +
@@ -506,7 +508,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-class function TSynLDRSyn.GetFriendlyLanguageName: WideString;
+class function TSynLDRSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangLDraw;
 end;

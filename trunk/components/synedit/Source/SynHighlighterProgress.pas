@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterProgress.pas,v 1.16.2.4 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterProgress.pas,v 1.16.2.5 2008/09/14 16:25:02 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -59,11 +59,13 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
   QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -109,7 +111,7 @@ type
     fDataTypeAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fHashList: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: Integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure AsciiCharProc;
@@ -130,11 +132,11 @@ type
   protected
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
       override;
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
 {$IFDEF DEBUG}
   public
     property Keywords: TSynHashEntryList read fHashList;
@@ -178,7 +180,7 @@ type
   end;
 
 const
-  DefaultKeywords: WideString =
+  DefaultKeywords: UnicodeString =
                     'accum accumulate active-window add alias ' +
                     'all alter ambig ambiguous analyze ' +
                     'analyze-resume analyze-suspend and any apply ' +
@@ -271,7 +273,7 @@ const
                     '_servers _startup _trace _trans _user ' +
                     '_userio _userlock _view _view-col _view-ref';
 
-  DefaultNonReservedKeywords: WideString =
+  DefaultNonReservedKeywords: UnicodeString =
                                'abs absolute accelerator across add-events-procedure ' +
                                'add-first add-last advise alert-box allow-replication ' +
                                'ansi-only anywhere append appl-alert appl-alert-boxes ' +
@@ -426,7 +428,7 @@ const
                                'x-of y year year-offset yes-no ' +
                                'yes-no-cancel y-of';
 
-  DefaultEvents: WideString =
+  DefaultEvents: UnicodeString =
                     'abort any-key any-printable append-line backspace ' +
                     'back-tab block blue bottom-column break-line ' +
                     'bs cancel cancel-move cancel-pick cancel-resize ' +
@@ -473,7 +475,7 @@ const
                     'u8 u9 unix-end up-arrow value-changed ' +
                     'white window-close window-resized window-restored';
 
-  DefaultDataTypes: WideString =
+  DefaultDataTypes: UnicodeString =
     'char character com-handle date dec ' +
     'decimal double float handle int ' +
     'integer log logical raw rowid ' +
@@ -538,7 +540,7 @@ begin
   Result := tkIdentifier;
 end;
 
-procedure TSynProgressSyn.DoAddKeyword(AKeyword: WideString; AKind: Integer);
+procedure TSynProgressSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
 var
   HashValue: Integer;
 begin
@@ -637,7 +639,7 @@ begin
   p := PWideChar(@fLine[Run]);
   repeat
     Inc(p);
-  until not (p^ in [WideChar('0')..WideChar('9')]);
+  until not CharInSet(p^, ['0'..'9']);
   Run := p - fLine;
 end;
 
@@ -1052,7 +1054,7 @@ begin
   Result := SYNS_LangProgress;
 end;
 
-function TSynProgressSyn.GetSampleSource: WideString;
+function TSynProgressSyn.GetSampleSource: UnicodeString;
 begin
   Result := '&scoped-define FirstChar 65'#13#10+
             '&scoped-define LastChar  90'#13#10+
@@ -1076,7 +1078,7 @@ begin
             'display s.';
 end;
 
-class function TSynProgressSyn.GetFriendlyLanguageName: WideString;
+class function TSynProgressSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangProgress;
 end;

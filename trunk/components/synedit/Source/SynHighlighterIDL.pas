@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterIDL.pas,v 1.8.2.6 2006/05/21 11:59:35 maelh Exp $
+$Id: SynHighlighterIDL.pas,v 1.8.2.7 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -48,10 +48,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -158,12 +160,12 @@ type
     procedure CharProc;
     procedure PreProcessorProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -190,15 +192,13 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynUnicode,
   QSynEditStrConst;
 {$ELSE}
-  SynUnicode,
   SynEditStrConst;
 {$ENDIF}
 
 const
-  KeyWords: array[0..47] of WideString = (
+  KeyWords: array[0..47] of UnicodeString = (
     'abstract', 'any', 'attribute', 'boolean', 'case', 'char', 'const', 
     'context', 'custom', 'default', 'double', 'enum', 'exception', 'factory', 
     'FALSE', 'fixed', 'float', 'in', 'inout', 'interface', 'local', 'long', 
@@ -1007,7 +1007,7 @@ begin
   Result := Ord(fTokenId);
 end;
 
-function TSynIdlSyn.GetSampleSource: WideString;
+function TSynIdlSyn.GetSampleSource: UnicodeString;
 begin
   Result := '/* CORBA IDL sample source */'#13#10 +
             '#include <sample.idl>'#13#10 +
@@ -1057,7 +1057,7 @@ begin
   Result := Pointer(fRange);
 end;
 
-class function TSynIdlSyn.GetFriendlyLanguageName: WideString;
+class function TSynIdlSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangCORBAIDL;
 end;

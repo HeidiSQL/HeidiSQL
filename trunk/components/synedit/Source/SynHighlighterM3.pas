@@ -24,7 +24,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterM3.pas,v 1.11.2.4 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterM3.pas,v 1.11.2.5 2008/09/14 16:25:00 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -53,12 +53,14 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
   QSynHighlighterHashEntries,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -90,7 +92,7 @@ type
     fSymbolAttri: TSynHighlighterAttributes;
     fSyntaxErrorAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: WideString; AKind: integer);
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     function HashKey(Str: PWideChar): integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure SymAsciiCharProc;
@@ -112,7 +114,7 @@ type
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
 {$IFDEF SYN_DEVELOPMENT_CHECKS}
   public
     property _Keywords: TSynHashEntryList read fKeywords;
@@ -162,20 +164,20 @@ uses
 {$ENDIF}
 
 const
-  Keywords: WideString =
+  Keywords: UnicodeString =
     'AS,AND,ANY,ARRAY,BEGIN,BITS,BRANDED,BY,CASE,CONST,DIV,DO,ELSE,ELSIF,END,' +
     'EVAL,EXCEPT,EXCEPTION,EXIT,EXPORTS,FINALLY,FOR,FROM,GENERIC,IF,IMPORT,' +
     'IN,INTERFACE,LOCK,LOOP,METHODS,MOD,MODULE,NOT,OBJECT,OF,OR,OVERRIDES,' +
     'PROCEDURE,RAISE,RAISES,READONLY,RECORD,REF,REPEAT,RETURN,REVEAL,ROOT,' +
     'SET,THEN,TO,TRY,TYPE,TYPECASE,UNSAFE,UNTIL,UNTRACED,VALUE,VAR,WHILE,WITH';
 
-  ReservedWords: WideString =
+  ReservedWords: UnicodeString =
     'ABS,ADDRESS,ADR,ADRSIZE,BITSIZE,BOOLEAN,BYTESIZE,CARDINAL,CEILING,CHAR,' +
     'DEC,DISPOSE,FALSE,FIRST,FLOAT,FLOOR,INC,INTEGER,ISTYPE,LAST,LONGFLOAT,' +
     'LONGREAL,LOOPHOLE,MAX,MIN,MUTEX,NARROW,NEW,NIL,NULL,NUMBER,ORD,REAL,' +
     'REFANY,ROUND,SUBARRAY,TEXT,TRUE,TRUNC,TYPECODE,VAL';
 
-procedure TSynM3Syn.DoAddKeyword(AKeyword: WideString; AKind: integer);
+procedure TSynM3Syn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
 var
   HashValue: integer;
 begin
@@ -406,13 +408,13 @@ begin
   if not IsIdentChar(fLine[Run]) then
     exit;
   // check for numbers with a base prefix
-  if (fLine[Run] in [WideChar('2')..WideChar('9')]) and (fLine[Run + 1] = '_') then
+  if CharInSet(fLine[Run], ['2'..'9']) and (fLine[Run + 1] = '_') then
   begin
     BasedNumber := True;
     MaxDigit := Ord(fLine[Run]) - Ord('0') - 1;
     Inc(Run, 2);
   end
-  else if (fLine[Run] = '1') and (fLine[Run + 1] in [WideChar('0')..WideChar('6')])
+  else if (fLine[Run] = '1') and CharInSet(fLine[Run + 1], ['0'..'6'])
     and (fLine[Run + 2] = '_') then
   begin
     BasedNumber := True;
@@ -436,16 +438,16 @@ begin
     // "normal" numbers
     repeat
       Inc(Run);
-    until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
+    until not CharInSet(fLine[Run], ['0'..'9']);
     // can include a decimal point and an exponent
     if fLine[Run] = '.' then
     begin
       Inc(Run);
-      if fLine[Run] in [WideChar('0')..WideChar('9')] then
+      if CharInSet(fLine[Run], ['0'..'9']) then
       begin
         repeat
           Inc(Run);
-        until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
+        until not CharInSet(fLine[Run], ['0'..'9']);
       end
       else
         fTokenID := tkSyntaxError; // must be a number after the '.'
@@ -454,13 +456,13 @@ begin
     if IsExponentChar then
     begin
       Inc(Run);
-      if fLine[Run] in [WideChar('+'), WideChar('-')] then
+      if CharInSet(fLine[Run], ['+', '-']) then
         Inc(Run);
-      if fLine[Run] in [WideChar('0')..WideChar('9')] then
+      if CharInSet(fLine[Run], ['0'..'9']) then
       begin
         repeat
           Inc(Run);
-        until not (fLine[Run] in [WideChar('0')..WideChar('9')]);
+        until not CharInSet(fLine[Run], ['0'..'9']);
       end
       else // exponent must include a number
         fTokenID := tkSyntaxError;
@@ -537,7 +539,7 @@ begin
              Inc(Run);
              break;
            end;
-      '\': if fLine[Run + 1] in [WideChar(#34), WideChar('\')] then
+      '\': if CharInSet(fLine[Run + 1], [#34, '\']) then
              Inc(Run);
     end;
     Inc(Run);
@@ -655,7 +657,7 @@ begin
   fRange.p := Value;
 end;
 
-class function TSynM3Syn.GetFriendlyLanguageName: WideString;
+class function TSynM3Syn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangModula3;
 end;

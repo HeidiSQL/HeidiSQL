@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditSearch.pas,v 1.12.2.3 2006/05/21 11:59:34 maelh Exp $
+$Id: SynEditSearch.pas,v 1.12.2.4 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -62,7 +62,7 @@ type
     Run: PWideChar;
     Origin: PWideChar;
     TheEnd: PWideChar;
-    Pat, CasedPat: WideString;
+    Pat, CasedPat: UnicodeString;
     fCount: Integer;
     fTextLen: Integer;
     Look_At: Integer;
@@ -77,8 +77,8 @@ type
     procedure SetCaseSensitive(const Value: Boolean);
   protected
     function TestWholeWord: Boolean;
-    procedure SetPattern(const Value: WideString); override;
-    function GetPattern: WideString; override;
+    procedure SetPattern(const Value: UnicodeString); override;
+    function GetPattern: UnicodeString; override;
     function GetLength(Index: Integer): Integer; override;
     function GetResult(Index: Integer): Integer; override;
     function GetResultCount: Integer; override;
@@ -86,9 +86,9 @@ type
   public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
-    function FindAll(const NewText: WideString): Integer; override;
-    function Replace(const aOccurrence, aReplacement: WideString): WideString; override;
-    function FindFirst(const NewText: WideString): Integer;
+    function FindAll(const NewText: UnicodeString): Integer; override;
+    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; override;
+    function FindFirst(const NewText: UnicodeString): Integer;
     procedure FixResults(First, Delta: Integer);
     function Next: Integer;
     property Count: Integer read fCount write fCount;
@@ -230,7 +230,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSynEditSearch.SetPattern(const Value: WideString);
+procedure TSynEditSearch.SetPattern(const Value: UnicodeString);
 begin
   if Pat <> Value then
   begin
@@ -257,7 +257,7 @@ begin
   end;
 end;
 
-function TSynEditSearch.FindAll(const NewText: WideString): Integer;
+function TSynEditSearch.FindAll(const NewText: UnicodeString): Integer;
 var
   Found: Integer;
 begin
@@ -272,12 +272,12 @@ begin
   Result := fResults.Count;
 end;
 
-function TSynEditSearch.Replace(const aOccurrence, aReplacement: WideString): WideString;
+function TSynEditSearch.Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString;
 begin
   Result := aReplacement;
 end;                     
 
-function TSynEditSearch.FindFirst(const NewText: WideString): Integer;
+function TSynEditSearch.FindFirst(const NewText: UnicodeString): Integer;
 begin
   if not fShiftInitialized then
     InitShiftTable;
@@ -300,7 +300,7 @@ begin
   Result := PatLen;  
 end;
 
-function TSynEditSearch.GetPattern: WideString;
+function TSynEditSearch.GetPattern: UnicodeString;
 begin
   Result := CasedPat; 
 end;

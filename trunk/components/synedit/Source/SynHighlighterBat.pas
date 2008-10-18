@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterBat.pas,v 1.14.2.5 2005/11/27 22:22:44 maelh Exp $
+$Id: SynHighlighterBat.pas,v 1.14.2.6 2008/09/14 16:24:59 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -57,10 +57,12 @@ uses
   QGraphics,
   QSynEditTypes,
   QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -119,11 +121,11 @@ type
     procedure SpaceProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;        
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -157,7 +159,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..20] of WideString = (
+  KeyWords: array[0..20] of UnicodeString = (
     'call', 'cd', 'cls', 'copy', 'del', 'do', 'echo', 'errorlevel', 'exist', 
     'for', 'goto', 'if', 'in', 'not', 'off', 'on', 'pause', 'set', 'shift', 
     'start', 'title' 
@@ -490,13 +492,13 @@ begin
   fTokenID := tkNumber;
   repeat
     Inc(Run);
-  until not (fLine[Run] in [WideChar('0')..WideChar('9'), WideChar('.')]);
+  until not CharInSet(fLine[Run], ['0'..'9', '.']);
 end;
 
 procedure TSynBatSyn.REMCommentProc;
 begin
-  if (FLine[Run + 1] in [WideChar('E'), WideChar('e')]) and
-    (FLine[Run + 2] in [WideChar('M'), WideChar('m')]) and
+  if CharInSet(FLine[Run + 1], ['E', 'e']) and
+    CharInSet(FLine[Run + 2], ['M', 'm']) and
     (FLine[Run + 3] < #33) then
   begin
     fTokenID := tkComment;
@@ -600,7 +602,7 @@ begin
   Result := SYNS_LangBatch;
 end;
 
-function TSynBatSyn.GetSampleSource: WideString;
+function TSynBatSyn.GetSampleSource: UnicodeString;
 begin
   Result := 'rem MS-DOS batch file'#13#10 +
             'rem'#13#10 +
@@ -614,7 +616,7 @@ begin
             'if errorlevel 1 echo Error in copy action!';
 end;
 
-class function TSynBatSyn.GetFriendlyLanguageName: WideString;
+class function TSynBatSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangBatch;
 end;

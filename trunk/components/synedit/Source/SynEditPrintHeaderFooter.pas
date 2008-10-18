@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditPrintHeaderFooter.pas,v 1.10.2.5 2007/01/24 02:46:57 etrusco Exp $
+$Id: SynEditPrintHeaderFooter.pas,v 1.10.2.7 2008/09/23 14:02:08 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -61,7 +61,7 @@ CONTENTS:
       MirrorPosition : Mirror position of left/right aligned THeaderFooterItem's
                        Can be used when printing 2-sided.
     Run-time methods:
-      function Add(Text: WideString; Font: TFont;
+      function Add(Text: UnicodeString; Font: TFont;
                    Alignment: TAlignment;
                    LineNumber: Integer) : Integer;
         Add a THeaderFooterItem. If Font is nil or not specified then DefaultFont
@@ -85,7 +85,7 @@ CONTENTS:
       procedure SetPixPrInch(Value : Integer);
         Corrects the PixPerInch property of fonts. Used internally by
         TSynEditPrint.
-      procedure InitPrint(ACanvas : TCanvas;NumPages : Integer; Title : WideString;
+      procedure InitPrint(ACanvas : TCanvas;NumPages : Integer; Title : UnicodeString;
                           Margins : TSynEditPrintMargins);
         Prepares the header or footer for printing. Used internally by
         TSynEditPrint.
@@ -126,29 +126,29 @@ type
   //fonts).
   THeaderFooterItem = class
   private
-    FText: WideString;
+    FText: UnicodeString;
     FFont: TFont;
     FLineNumber: Integer;
     FAlignment: TAlignment;
         {Used to store the original Index when the item was added - the index
          might change when the list is sorted}
     FIndex: Integer;
-    function GetAsString: WideString;
-    procedure SetAsString(const Value: WideString);
+    function GetAsString: UnicodeString;
+    procedure SetAsString(const Value: UnicodeString);
     procedure SetFont(const Value: TFont);
   public
     constructor Create;
     destructor Destroy; override;
     function GetText(NumPages, PageNum: Integer; Roman: Boolean;
-      Title, ATime, ADate: WideString): WideString;
+      Title, ATime, ADate: UnicodeString): UnicodeString;
     procedure LoadFromStream(AStream: TStream);
     procedure SaveToStream(AStream: TStream);
   public
     property Alignment: TAlignment read FAlignment write FAlignment;
-    property AsString: WideString read GetAsString write SetAsString;
+    property AsString: UnicodeString read GetAsString write SetAsString;
     property Font: TFont read FFont write SetFont;
     property LineNumber: Integer read FLineNumber write FLineNumber;
-    property Text: WideString read FText write FText;
+    property Text: UnicodeString read FText write FText;
   end;
 
   THeaderFooterType = (hftHeader, hftFooter);
@@ -170,9 +170,9 @@ type
     FLineColor: TColor;
     FItems: TList;
     FDefaultFont: TFont;
-    FDate, FTime: WideString;
+    FDate, FTime: UnicodeString;
     FNumPages: Integer;
-    FTitle: WideString;
+    FTitle: UnicodeString;
     FMargins: TSynEditPrintMargins;
     FFrameHeight: Integer;
     FOldPen: TPen;
@@ -187,24 +187,24 @@ type
     procedure CalcHeight(ACanvas: TCanvas);
     procedure SaveFontPenBrush(ACanvas: TCanvas);
     procedure RestoreFontPenBrush(ACanvas: TCanvas);
-    function GetAsString: WideString;
-    procedure SetAsString(const Value: WideString);
+    function GetAsString: UnicodeString;
+    procedure SetAsString(const Value: UnicodeString);
   public
     constructor Create;
     destructor Destroy; override;
-    function Add(Text: WideString; Font: TFont; Alignment: TAlignment;
+    function Add(Text: UnicodeString; Font: TFont; Alignment: TAlignment;
       LineNumber: Integer): Integer;
     procedure Delete(Index: Integer);
     procedure Clear;
     function Count: Integer;
     function Get(Index: Integer): THeaderFooterItem;
     procedure SetPixPrInch(Value: Integer);
-    procedure InitPrint(ACanvas: TCanvas; NumPages: Integer; Title: WideString;
+    procedure InitPrint(ACanvas: TCanvas; NumPages: Integer; Title: UnicodeString;
       Margins: TSynEditPrintMargins);
     procedure Print(ACanvas: TCanvas; PageNum: Integer);
     procedure Assign(Source: TPersistent); override;
     procedure FixLines;
-    property AsString: WideString read GetAsString write SetAsString;
+    property AsString: UnicodeString read GetAsString write SetAsString;
     procedure LoadFromStream(AStream: TStream);
     procedure SaveToStream(AStream: TStream);
   published
@@ -249,7 +249,7 @@ uses
 {$ENDIF}
 
 // Helper routine for AsString processing.
-function GetFirstEl(var Value: WideString; Delim: WideChar): WideString;
+function GetFirstEl(var Value: UnicodeString; Delim: WideChar): UnicodeString;
 var
   p: Integer;
 begin
@@ -277,7 +277,7 @@ end;
 
 // Returns string representation of THeaderFooterItem to alleviate storing
 // items into external storage (registry, ini file).
-function THeaderFooterItem.GetAsString: WideString;
+function THeaderFooterItem.GetAsString: UnicodeString;
 begin
   Result :=
     EncodeString(FText) + '/' +
@@ -305,12 +305,12 @@ end;
 { This is basically copied from original SynEditPrint.pas. Returns the
   header/footer text with macros expanded }
 function THeaderFooterItem.GetText(NumPages, PageNum: Integer;
-  Roman: Boolean; Title, ATime, ADate: WideString): WideString;
+  Roman: Boolean; Title, ATime, ADate: UnicodeString): UnicodeString;
 var
   Len, Start, Run: Integer;
-  AStr: WideString;
+  AStr: UnicodeString;
 
-  procedure DoAppend(AText: WideString);
+  procedure DoAppend(AText: UnicodeString);
   begin
     Result := Result + AText;
   end;
@@ -324,7 +324,7 @@ var
   end;
   function TryExecuteMacro: Boolean;
   var
-    Macro: WideString;
+    Macro: UnicodeString;
   begin
     Result := True;
     Macro := SynWideUpperCase(Copy(FText, Start, Run - Start + 1));
@@ -439,7 +439,7 @@ begin
     GetMem(Buffer, BufferSize + sizeof(WideChar));
     try
       Read(Buffer^, BufferSize);
-      PWideChar(Buffer)[BufferSize] := #0;
+      PWideChar(Buffer)[BufferSize div sizeof(WideChar)] := #0;
       FText := PWideChar(Buffer);
     finally
       FreeMem(Buffer);
@@ -453,8 +453,8 @@ begin
     GetMem(Buffer, BufferSize + 1);
     try
       Read(Buffer^, BufferSize);
-      PAnsiChar(Buffer)[BufferSize] := #0;
-      aName := PAnsiChar(Buffer);
+      PAnsiChar(Buffer)[BufferSize div sizeof(AnsiChar)] := #0;
+      aName := string(PAnsiChar(Buffer));
     finally
       FreeMem(Buffer);
     end;
@@ -511,7 +511,7 @@ begin
     {$IFDEF SYN_COMPILER_2}           // In D2 TFontName is a ShortString
     Write(PAnsiChar(@aName[1])^, aLen);   // D2 cannot convert ShortStrings to PAnsiChar
     {$ELSE}
-    Write(PAnsiChar(aName)^, aLen);
+    Write(PAnsiChar(AnsiString(aName))^, aLen);
     {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));
@@ -520,9 +520,9 @@ begin
   end;
 end;
 
-procedure THeaderFooterItem.SetAsString(const Value: WideString);
+procedure THeaderFooterItem.SetAsString(const Value: UnicodeString);
 var
-  s: WideString;
+  s: UnicodeString;
   sty: TFontStyles;
 begin
   s := Value;
@@ -593,7 +593,7 @@ begin
   inherited;
 end;
 
-function THeaderFooter.Add(Text: WideString; Font: TFont;
+function THeaderFooter.Add(Text: UnicodeString; Font: TFont;
   Alignment: TAlignment; LineNumber: Integer): Integer;
 var
   AItem: THeaderFooterItem;
@@ -724,7 +724,7 @@ begin
   end;
 end;
 
-procedure THeaderFooter.InitPrint(ACanvas: TCanvas; NumPages: Integer; Title: WideString;
+procedure THeaderFooter.InitPrint(ACanvas: TCanvas; NumPages: Integer; Title: UnicodeString;
   Margins: TSynEditPrintMargins);
 begin
   SaveFontPenBrush(ACanvas);
@@ -791,7 +791,7 @@ end;
 procedure THeaderFooter.Print(ACanvas: TCanvas; PageNum: Integer);
 var
   i, X, Y, CurLine: Integer;
-  AStr: WideString;
+  AStr: UnicodeString;
   AItem: THeaderFooterItem;
 {$IFNDEF SYN_CLX}
   OldAlign: UINT;
@@ -882,7 +882,7 @@ begin
   Result := THeaderFooterItem(FItems[Index]);
 end;
 
-function THeaderFooter.GetAsString: WideString;
+function THeaderFooter.GetAsString: UnicodeString;
 var
   i: integer;
 begin
@@ -894,10 +894,10 @@ begin
   end; //for
 end;
 
-procedure THeaderFooter.SetAsString(const Value: WideString);
+procedure THeaderFooter.SetAsString(const Value: UnicodeString);
 var
   item: THeaderFooterItem;
-  s: WideString;
+  s: UnicodeString;
 begin
   Clear;
   item := THeaderFooterItem.Create;
@@ -942,7 +942,7 @@ begin
     try
       Read(buffer^, bufSize);
       buffer[bufSize] := #0;
-      aName := buffer;
+      aName := string(buffer);
     finally
       FreeMem(buffer);
     end;
@@ -1009,7 +1009,7 @@ begin
     {$IFDEF SYN_COMPILER_2}                    // In D2 TFontName is a ShortString
     Write(PAnsiChar(@aName[1])^, Length(aName));   // D2 cannot convert ShortStrings to PAnsiChar
     {$ELSE}
-    Write(PAnsiChar(aName)^, Length(aName));
+    Write(PAnsiChar(AnsiString(aName))^, Length(aName));
     {$ENDIF}
     Write(aPitch, SizeOf(aPitch));
     Write(aSize, SizeOf(aSize));

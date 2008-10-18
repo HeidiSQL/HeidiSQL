@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterUnreal.pas,v 1.17.2.7 2005/12/16 20:09:37 maelh Exp $
+$Id: SynHighlighterUnreal.pas,v 1.17.2.8 2008/09/14 16:25:03 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -54,12 +54,14 @@ uses
   QGraphics,
   QSynEditHighlighter,
   QSynEditTypes,
+  QSynUnicode,
 {$ELSE}
   Graphics,
   Registry,
   Windows, // registry constants
   SynEditHighlighter,
   SynEditTypes,
+  SynUnicode,
 {$ENDIF}
   SysUtils,
   Classes;
@@ -300,13 +302,13 @@ type
     procedure UnknownProc;
   protected
     function GetExtTokenID: TxtkTokenKind;
-    function GetSampleSource: WideString; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
     procedure NextProcedure;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: WideString; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
     function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
@@ -355,7 +357,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..142] of WideString = (
+  KeyWords: array[0..142] of UnicodeString = (
     'abstract', 'always', 'array', 'arraycount', 'assert', 'auto', 'automated', 
     'bool', 'boundingbox', 'boundingvolume', 'break', 'button', 'byte', 'cache', 
     'cacheexempt', 'case', 'catch', 'class', 'coerce', 'collapsecategories', 
@@ -2645,7 +2647,7 @@ begin
   Result := inherited GetCapabilities + [hcUserSettings];
 end;
 
-function TSynUnrealSyn.GetSampleSource: WideString;
+function TSynUnrealSyn.GetSampleSource: UnicodeString;
 begin
   Result := '//----Comment-----------------------------------------------------------'#13#10+
             'class TestObject expands Object native;'#13#10+
@@ -2667,7 +2669,7 @@ begin
             '}';
 end;
 
-class function TSynUnrealSyn.GetFriendlyLanguageName: WideString;
+class function TSynUnrealSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangUnreal;
 end;

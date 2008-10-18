@@ -25,7 +25,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterRC.pas,v 1.6.2.7 2005/11/27 22:22:45 maelh Exp $
+$Id: SynHighlighterRC.pas,v 1.6.2.8 2008/09/14 16:25:02 maelh Exp $
 
 You may retrieve the latest version of SynEdit from the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -44,12 +44,14 @@ uses
 {$IFDEF SYN_CLX}
   QGraphics, 
   QSynEditTypes, 
-  QSynEditHighlighter, 
+  QSynEditHighlighter,
+  QSynUnicode,
 {$ELSE}
-  Windows, Controls, 
-  Graphics, 
-  SynEditTypes, 
-  SynEditHighlighter, 
+  Windows, Controls,
+  Graphics,
+  SynEditTypes,
+  SynEditHighlighter,
+  SynUnicode,   
 {$ENDIF}
   SysUtils,
   Classes;
@@ -94,12 +96,12 @@ type
    procedure SymbolProc;
    procedure UnknownProc;
   protected
-   function GetSampleSource: WideString; override;
+   function GetSampleSource: UnicodeString; override;
    function IsFilterStored: Boolean; override;
   public
    class function GetCapabilities: TSynHighlighterCapabilities; override;
    class function GetLanguageName: string; override;
-   class function GetFriendlyLanguageName: WideString; override;
+   class function GetFriendlyLanguageName: UnicodeString; override;
   public
    constructor Create(aOwner: TComponent); override;
    destructor Destroy; override;
@@ -135,7 +137,7 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..77] of WideString = (
+  KeyWords: array[0..77] of UnicodeString = (
     'ACCELERATORS', 'ALT', 'ASCII', 'AUTO3STATE', 'AUTOCHECKBOX', 
     'AUTORADIOBUTTON', 'BITMAP', 'BLOCK', 'CAPTION', 'CHARACTERISTICS', 
     'CHECKBOX', 'CHECKED', 'CLASS', 'COMBOBOX', 'COMMENTS', 'COMPANYNAME', 
@@ -533,12 +535,12 @@ begin
   Result := SYNS_LangRC;
 end;
 
-function TSynRCSyn.GetSampleSource: WideString;
+function TSynRCSyn.GetSampleSource: UnicodeString;
 begin
   Result := '';
 end;
 
-class function TSynRCSyn.GetFriendlyLanguageName: WideString;
+class function TSynRCSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangRC;
 end;
