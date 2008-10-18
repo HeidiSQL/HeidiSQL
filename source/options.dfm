@@ -312,8 +312,9 @@ object optionsform: Toptionsform
           Gutter.Font.Name = 'Courier New'
           Gutter.Font.Style = []
           Gutter.Visible = False
+          Gutter.Width = 0
           Highlighter = SynSQLSynSQLSample
-          Lines.WideStrings = 'SynMemoSQLSample'
+          Lines.UnicodeStrings = 'SynMemoSQLSample'
           Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
           ReadOnly = True
           TabWidth = 2
