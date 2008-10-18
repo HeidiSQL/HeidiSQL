@@ -18,7 +18,7 @@ uses
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, Childwin, VirtualTrees,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
-  SelectDBObject, Widestrings;
+  SelectDBObject, Widestrings, ShlObj;
 
 type
   TMainForm = class(TForm)
