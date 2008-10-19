@@ -2111,7 +2111,7 @@ end;
 type
   TAccessWinControl = class(TWinControl);
 
-{$MESSAGE 'Check what must be adapted in DoKeyPressW and related methods'}
+{.$MESSAGE 'Check what must be adapted in DoKeyPressW and related methods'}
 procedure TCustomSynEdit.DoKeyPressW(var Message: TWMKey);
 var
   Form: TCustomForm;
