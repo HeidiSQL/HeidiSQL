@@ -6424,6 +6424,9 @@ begin
   if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
     TargetCanvas.Brush.Color := prefNullBG;
     TargetCanvas.FillRect(CellRect);
+  end else if (vsSelected in Node.States) and (Column <> Sender.FocusedColumn) then begin
+    TargetCanvas.Brush.Color := clInfoBk;
+    TargetCanvas.FillRect(CellRect);
   end;
 end;
 
