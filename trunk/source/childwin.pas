@@ -5836,7 +5836,7 @@ procedure TMDIChild.DataGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
     Boolean);
 begin
   // Detect changed focus and update row
-  if Assigned(OldNode) and Assigned(NewNode) and (OldNode <> NewNode) then
+  if Assigned(OldNode) and (OldNode <> NewNode) then
     Allowed := DataGridPostUpdateOrInsert(OldNode)
   else
     Allowed := True;
@@ -6027,8 +6027,8 @@ begin
   // Scroll to the bottom to ensure we append the new row at the very last FDataGridResult chunk
   DataGrid.FocusedNode := DataGrid.GetLast;
   DataGrid.Repaint;
-  DataGrid.BeginUpdate;
-  DataGrid.FocusedNode := DataGrid.AddChild(nil);
+  // Steeling focus now to invoke posting a pending row update
+  DataGrid.FocusedNode := nil;
   i := Length(FDataGridResult.Rows);
   SetLength(FDataGridResult.Rows, i+1);
   SetLength(FDataGridResult.Rows[i].Cells, Length(FDataGridResult.Columns));
@@ -6036,7 +6036,7 @@ begin
   for j := 0 to Length(FDataGridResult.Rows[i].Cells) - 1 do begin
     FDataGridResult.Rows[i].Cells[j].Text := '';
   end;
-  DataGrid.EndUpdate;
+  DataGrid.FocusedNode := DataGrid.AddChild(nil);
   DataGrid.ClearSelection;
   DataGrid.Selected[DataGrid.FocusedNode] := True;
   DataGridHasChanges := True;
