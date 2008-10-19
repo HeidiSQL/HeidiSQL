@@ -5765,13 +5765,10 @@ procedure TMDIChild.setNULL1Click(Sender: TObject);
 begin
   if not CheckUniqueKeyClause then
     Exit;
+  // Internally calls OnNewText event:
   DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := '';
   FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
-  FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].Modified := True;
-  FDataGridResult.Rows[DataGrid.FocusedNode.Index].State := grsModified;
-  DataGridHasChanges := True;
   DataGrid.RepaintNode(DataGrid.FocusedNode);
-  ValidateControls;
 end;
 
 
