@@ -449,6 +449,9 @@ type
     procedure menuViewDefaultClick(Sender: TObject);
     procedure menuViewSaveClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
+      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+      var Allowed: Boolean);
 
     private
       uptime                     : Integer;
@@ -497,6 +500,7 @@ type
       function GetSelTableColumns: TDataset;
       function GetSelTableKeys: TDataset;
       procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
+      procedure FocusGridCol(Grid: TBaseVirtualTree; Column: TColumnIndex);
 
     public
       DatabasesWanted,
@@ -5836,6 +5840,8 @@ begin
     Allowed := DataGridPostUpdateOrInsert(OldNode)
   else
     Allowed := True;
+  if Allowed and (OldColumn <> NewColumn) then
+    FocusGridCol(Sender, NewColumn);
 end;
 
 
@@ -6565,6 +6571,33 @@ end;
 procedure TMDIChild.FormResize(Sender: TObject);
 begin
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
+end;
+
+
+procedure TMDIChild.QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
+  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+  var Allowed: Boolean);
+begin
+  if OldColumn <> NewColumn then
+    FocusGridCol(Sender, NewColumn);
+end;
+
+
+procedure TMDIChild.FocusGridCol(Grid: TBaseVirtualTree; Column: TColumnIndex);
+var
+  g: TVirtualStringTree;
+  MinX, MaxX, i: Integer;
+begin
+  g := Grid as TVirtualStringTree;
+  MinX := 0;
+  for i:=0 to Column do
+    MinX := MinX + g.Header.Columns[i].Width;
+  MaxX := -(MinX - g.Header.Columns[Column].Width);
+  MinX := -(MinX - g.Width + 20); // Assume 20px for vertical scrollbar.
+  if g.OffsetX > MinX then
+    g.OffsetX := MinX
+  else if g.OffsetX < MaxX then
+    g.OffsetX := MaxX;
 end;
 
 
