@@ -2169,6 +2169,7 @@ begin
   MainForm.actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actExportData.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actHTMLView.Enabled := inDataOrQueryTabNotEmpty;
+  setNull1.Enabled := inDataTab and Assigned(DataGrid.FocusedNode);
 
   // Query tab
   MainForm.actLoadSQL.Enabled := FrmIsFocussed;
