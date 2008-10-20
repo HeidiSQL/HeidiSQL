@@ -15,7 +15,7 @@
     args().put("selectedTab", "Host");
     thread("resetTabs", args(), true);
   }
-  else if ( "db".equals(nodeType) )
+  else if ( "db" == nodeType )
   {
      String dbName = node.getText();
      Panel tab = tabs.select("Database");
@@ -26,10 +26,13 @@
         args().put("selectedTab", "Database");
         thread("resetTabs", args(), true);
         args().put("dbName", dbName);
-        thread("loadDatabaseInfo", args(), true);
+        args().put("waitOperation", "show table status from `" + dbName + "`");
+        Worker w = worker("showTableStatusWorker", args());
+        args().put("worker", w);
+        LongRunningTask.detect("progressWaiter", args(), w , 350);
      }
   }
-  else if ( "table".equals(nodeType) )
+  else if ( "table" == nodeType )
   {
      String dbName = node.getParent().getText();
      String tableName = node.getText();
@@ -44,8 +47,11 @@
      {
          context.put("currentDB", dbName);
          args().put("dbName", dbName);
-         thread("loadDatabaseInfo", args(), true);
-     }
+         args().put("waitOperation", "show table status from `" + dbName + "`");
+         Worker w = worker("showTableStatusWorker", args());
+         args().put("worker", w);
+         LongRunningTask.detect("progressWaiter", args(), w , 350);
+      }
 
      if ( !tableName.equals(context.get("currentTable")) || !dbName.equals(context.get("currentDB")) )
      {
