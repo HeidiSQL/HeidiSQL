@@ -16,21 +16,16 @@
     }
     catch (Exception e) 
     {
-      if ( e.getCause() != null )
+      log.error("Auto Update Check Failed!", e);
+      Throwable rootCause = ExceptionUtil.getRootCause(e);
+      
+      if ( rootCause.getMessage().contains("HTTP") || rootCause.getMessage().contains("refused") )
       {
-        Throwable cause = e.getCause();
-        if ( cause.getMessage() != null && cause.getMessage().contains("HTTP") )
-        {
-          results.put("error", "The update server could not be contacted\nPlease try again later.");
-        }
-        else
-        {
-          results.put("error", cause.getMessage());
-        }
+         results.put("error", "The update server could not be contacted\nPlease try again later.");
       }
       else
       {
-        results.put("error", e.getMessage()); 
+        results.put("error", rootCause.getMessage());
       }
     }
     
