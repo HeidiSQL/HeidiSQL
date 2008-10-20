@@ -1007,6 +1007,7 @@ object MDIChild: TMDIChild
           BevelOuter = bvNone
           Constraints.MinHeight = 10
           TabOrder = 0
+          OnCanResize = pnlQueryMemoCanResize
           object spltQueryHelpers: TSplitter
             Left = 332
             Top = 0
@@ -1078,6 +1079,7 @@ object MDIChild: TMDIChild
             Align = alRight
             BevelOuter = bvNone
             TabOrder = 1
+            OnCanResize = pnlQueryHelpersCanResize
             object tabsetQueryHelpers: TTabSet
               Left = 0
               Top = 72

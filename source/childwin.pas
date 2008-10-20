@@ -454,6 +454,10 @@ type
       var Allowed: Boolean);
     procedure GridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
+    procedure pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
+      NewHeight: Integer; var Resize: Boolean);
+    procedure pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
+      NewHeight: Integer; var Resize: Boolean);
 
     private
       uptime                     : Integer;
@@ -6619,6 +6623,22 @@ begin
     g.OffsetX := MinX
   else if g.OffsetX < MaxX then
     g.OffsetX := MaxX;
+end;
+
+
+procedure TMDIChild.pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
+  NewHeight: Integer; var Resize: Boolean);
+begin
+  // Ensure minimum width for query helpers while resizing
+  Resize := NewWidth >= 20;
+end;
+
+
+procedure TMDIChild.pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
+  NewHeight: Integer; var Resize: Boolean);
+begin
+  // Ensure visibility of query memo while resizing
+  Resize := NewWidth >= pnlQueryHelpers.Width + spltQueryHelpers.Width + 40;
 end;
 
 
