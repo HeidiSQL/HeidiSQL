@@ -452,6 +452,8 @@ type
     procedure QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
+    procedure GridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
 
     private
       uptime                     : Integer;
@@ -5662,7 +5664,9 @@ begin
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
   // Do not apply any color on a selected, highlighted node to keep readability
-  if (Column = Sender.FocusedColumn) and (vsSelected in Node.States) then
+  if (vsSelected in Node.States) and (
+    (Column = Sender.FocusedColumn) or (toFullRowSelect in TVirtualStringTree(Sender).TreeOptions.SelectionOptions)
+    ) then
     Exit;
 
   // NULL value
@@ -5840,6 +5844,20 @@ begin
     Allowed := True;
   if Allowed and (OldColumn <> NewColumn) then
     FocusGridCol(Sender, NewColumn);
+end;
+
+
+procedure TMDIChild.GridFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
+var
+  g: TVirtualStringTree;
+begin
+  // Switch to full row selecting if > 1 node is selected
+  g := (Sender as TVirtualStringTree);
+  if g.SelectedCount <= 1 then
+    g.TreeOptions.SelectionOptions := g.TreeOptions.SelectionOptions - [toFullRowSelect]
+  else
+    g.TreeOptions.SelectionOptions := g.TreeOptions.SelectionOptions + [toFullRowSelect];
 end;
 
 
