@@ -441,7 +441,6 @@ type
       CellRect: TRect);
     procedure menuShowSizeColumnClick(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
-    procedure DBtreeClick(Sender: TObject);
     procedure GridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
@@ -5140,7 +5139,10 @@ begin
           MainForm.ShowStatus( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
         end;
-    end;
+        // Auto resize "Size" column in dbtree when needed
+        if coVisible in (Sender as TVirtualStringTree).Header.Columns[1].Options then
+          (Sender as TVirtualStringTree).Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
+      end;
     else Exit;
   end;
 end;
@@ -6423,14 +6425,6 @@ begin
     PrevTableColWidths := WideStrings.TWideStringList.Create;
   col := Sender.Columns[Column];
   PrevTableColWidths.Values[col.Text] := inttostr(col.Width);
-end;
-
-
-procedure TMDIChild.DBtreeClick(Sender: TObject);
-begin
-  // Auto resize "Size" column in dbtree when needed
-  if coVisible in DBTree.Header.Columns[1].Options then
-    DBTree.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
 end;
 
 
