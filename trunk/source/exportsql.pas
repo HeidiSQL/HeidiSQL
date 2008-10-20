@@ -29,7 +29,7 @@ uses
   SynEdit,
   SynMemo,
   ZDataSet,
-  PngSpeedButton, StdActns, WideStrings, TntCheckLst, TntStdCtrls;
+  PngSpeedButton, StdActns, WideStrings, TntCheckLst, TntStdCtrls, Menus;
 
 type
   TExportSQLForm = class(TForm)
@@ -99,12 +99,11 @@ type
     procedure SaveSettings;
   private
     { Private declarations }
+    SelectedTables: TWideStringList;
     function InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
   public
     { Public declarations }
   end;
-
-  function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
 
 {$I const.inc}
 
@@ -152,18 +151,30 @@ var
   remote_max_allowed_packet : Int64;
   target_versions : TStringList;
 
-function ExportTablesWindow (AOwner : TComponent; Flags : String = '') : Boolean;
-var
-  f : TExportSQLForm;
-begin
-  f := TExportSQLForm.Create(AOwner);
-  // todo: pass params if needed
-  Result := (f.ShowModal = mrOK);
-  FreeAndNil (f);
-end;
 
 procedure TExportSQLForm.FormCreate(Sender: TObject);
+var
+  menu: TMenu;
+  ds: TDataset;
 begin
+  menu := nil;
+  if Owner is TMenuItem then
+    menu := (Owner as TMenuItem).GetParentMenu;
+  if menu = Mainform.ChildWin.popupTreeView then begin
+    SelectedTables := TWideStringlist.Create;
+    // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
+    if Mainform.ChildWin.SelectedTable <> '' then
+      SelectedTables.Add(Mainform.ChildWin.SelectedTable)
+    else begin
+      ds := Mainform.ChildWin.FetchDbTableList(Mainform.ChildWin.ActiveDatabase);
+      while not ds.Eof do begin
+        SelectedTables.Add(ds.Fields[0].AsWideString);
+        ds.Next;
+      end;
+    end;
+  end else
+    SelectedTables := GetVTCaptions( Mainform.ChildWin.ListTables, True );
+
   // Assign images from main imagelist to speedbuttons
   btnFileBrowse.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
   btnDirectoryBrowse.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
@@ -352,7 +363,6 @@ end;
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
-  Selected : TWideStringList;
   sql: WideString;
   CWin: TMDIChild;
   CheckThisItem: Boolean;
@@ -367,14 +377,11 @@ begin
   else sql := 'SHOW TABLES ' + sql;
   checkListTables.Items.Text := CWin.GetCol( sql ).Text;
 
-  // Fetch selected tables in list
-  Selected := GetVTCaptions( CWin.ListTables, True );
-
   // select all/some:
   for i:=0 to checkListTables.Items.Count-1 do
   begin
     if CWin.ActiveDatabase = comboSelectDatabase.Text then
-      CheckThisItem := Selected.IndexOf( checkListTables.Items[i] ) > -1
+      CheckThisItem := SelectedTables.IndexOf( checkListTables.Items[i] ) > -1
     else
       CheckThisItem := true;
     checkListTables.checked[i] := CheckThisItem;
