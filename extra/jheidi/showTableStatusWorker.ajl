@@ -4,12 +4,7 @@
   
   if (arg("backgroundTask") != null)
   {
-    
-    try
-    {
-      Thread.sleep(3000);
-    } catch (InterruptedException ie) {}
-    
+
     DB db = ((DB)context.get("db")).clone();
     DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
 
