@@ -33,7 +33,7 @@
     {
       pbar = new ProgressBar();
       pbar.setIndeterminate(true);
-      pbar.setPreferredSize(new java.awt.Dimension(75, 10));      
+      pbar.setPreferredSize(new java.awt.Dimension(100, 10));      
       pbar.setBorder(new BevelBorder(BevelBorder.LOWERED));
       statusBar.setProperty("pbar", pbar);
     }
@@ -55,17 +55,26 @@
     
   while (!worker.isDone()) {};
   
-  synchronized(this.getClass())
+  /*
+   * if the worker is Cancelled - we know that the user probably tried to invoke the same function 
+   * albeit with different parameters or restarted the operation.
+   * hopefully this is normally a safe assumption if we just check "done" instead of cancelled
+   * we will unneccesarily go back to the ready state and then change to the next wait message
+   */
+  if ( !worker.isCancelled() )
   {
-    if ( messages.size() > 0)
+    synchronized(this.getClass())
     {
-       text.setText("Waiting for " + (String) messages.pop());
-    }
-    else
-    {
-       text.setText("Ready");
-       statusBar.remove(1);
-       statusBar.updateUI();
+      if ( messages.size() > 0)
+      {
+         text.setText("Waiting for " + (String) messages.pop());
+      }
+      else
+      {
+         text.setText("Ready");
+         statusBar.remove(1);
+         statusBar.updateUI();
+      }
     }
   }
       
