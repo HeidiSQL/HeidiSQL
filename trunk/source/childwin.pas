@@ -3850,6 +3850,7 @@ begin
   end;
   if Assigned(snode) then begin
     // Ensure table node will be visible
+    DBTree.ScrollIntoView(snode, False);
     DBtree.Expanded[dbnode] := True;
     DBtree.Selected[snode] := True;
     exit;
