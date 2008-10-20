@@ -1286,9 +1286,12 @@ begin
 end;
 
 procedure TMainForm.actExportTablesExecute(Sender: TObject);
+var
+  f: TExportSQLForm;
 begin
-  // Export SQL
-  ExportTablesWindow (Self);
+  f := TExportSQLForm.Create((Sender as TAction).ActionComponent);
+  f.ShowModal;
+  FreeAndNil(f);
 end;
 
 // Drop Table(s)
