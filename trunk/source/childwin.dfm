@@ -968,6 +968,7 @@ object MDIChild: TMDIChild
           OnEditCancelled = DataGridEditCancelled
           OnEdited = DataGridEdited
           OnEditing = DataGridEditing
+          OnFocusChanged = GridFocusChanged
           OnFocusChanging = DataGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
@@ -1155,6 +1156,7 @@ object MDIChild: TMDIChild
           TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnBeforeCellPaint = GridBeforeCellPaint
+          OnFocusChanged = GridFocusChanged
           OnFocusChanging = QueryGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
