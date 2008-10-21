@@ -481,7 +481,7 @@ type
       winName                    : String;
       FLastSelectedTableColumns,
       FLastSelectedTableKeys     : TDataset;
-      ViewDataPrevTable          : WideString;
+      DataGridDB, DataGridTable  : WideString;
       PrevTableColWidths         : WideStrings.TWideStringList;
       DataGridHasChanges         : Boolean;
 
@@ -1327,9 +1327,6 @@ end;
 
 begin
   Screen.Cursor := crHourglass;
-  // Post pending UPDATE
-  if DataGridHasChanges then
-    Mainform.actDataPostChangesExecute(Sender);
   viewingdata := true;
   sl_query := TWideStringList.Create();
   try
@@ -1345,7 +1342,7 @@ begin
         FDataGridSelect.Delimiter := REGDELIM;
         FDataGridSelect.StrictDelimiter := True;
       end;
-      if ViewDataPrevTable <> SelectedTable then begin
+      if DataGridTable <> SelectedTable then begin
         FDataGridSelect.Clear;
         SynMemoFilter.Clear;
         SetLength(FDataGridSort, 0);
@@ -1427,7 +1424,8 @@ begin
       debug('mem: browse column initialization complete.');
       // Cut last comma
       select_base := copy( select_base, 1, Length(select_base)-1 );
-      select_from := ' FROM ' + mask( SelectedTable );
+      // Include db name for cases in which dbtree is switching databases and pending updates are in process
+      select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable);
 
       // Final SELECT segments
       DataGridCurrentSelect := select_base + select_from;
@@ -1481,7 +1479,7 @@ begin
       debug('mem: browse row initialization complete.');
 
       // Switched to another table
-      if ViewDataPrevTable <> SelectedTable then begin
+      if DataGridTable <> SelectedTable then begin
         DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
         FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
       end;
@@ -1498,7 +1496,8 @@ begin
     viewingdata := false;
     Screen.Cursor := crDefault;
   end;
-  ViewDataPrevTable := SelectedTable;
+  DataGridDB := ActiveDatabase;
+  DataGridTable := SelectedTable;
 end;
 
 
@@ -5176,6 +5175,9 @@ var
 begin
   if not Assigned(Node) then
     Exit;
+  // Post pending UPDATE
+  if DataGridHasChanges then
+    Mainform.actDataPostChangesExecute(Sender);
   case Sender.GetNodeLevel(Node) of
     0: ShowHost;
     1: begin
@@ -5891,7 +5893,7 @@ var
   sql, Val: WideString;
   Row: PGridRow;
 begin
-  sql := 'UPDATE '+mask(SelectedTable)+' SET';
+  sql := 'UPDATE '+mask(DataGridDB)+'.'+mask(DataGridTable)+' SET';
   Row := @FDataGridResult.Rows[Sender.FocusedNode.Index];
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
@@ -6107,7 +6109,7 @@ begin
     // At least one field was modified, assume this INSERT should be posted
     Vals := Copy(Vals, 1, Length(Vals)-2);
     Cols := Copy(Cols, 1, Length(Cols)-2);
-    sql := 'INSERT INTO '+mask(SelectedTable)+' ('+Cols+') VALUES ('+Vals+')';
+    sql := 'INSERT INTO '+mask(DataGridDB)+'.'+mask(DataGridTable)+' ('+Cols+') VALUES ('+Vals+')';
     // Send INSERT query
     if (ExecUpdateQuery(sql, False, True) = 0) then begin
       MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
