@@ -2,7 +2,7 @@ object FrmDataViewSave: TFrmDataViewSave
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 'Save view'
+  Caption = 'Save perspective'
   ClientHeight = 129
   ClientWidth = 273
   Color = clBtnFace
@@ -22,9 +22,9 @@ object FrmDataViewSave: TFrmDataViewSave
   object lblSave: TLabel
     Left = 8
     Top = 13
-    Width = 69
+    Width = 103
     Height = 13
-    Caption = 'Name of view:'
+    Caption = 'Name of perspective:'
   end
   object comboSave: TComboBox
     Left = 8
@@ -65,7 +65,7 @@ object FrmDataViewSave: TFrmDataViewSave
     Width = 257
     Height = 17
     Anchors = [akLeft, akTop, akRight]
-    Caption = 'Save as default view for this table'
+    Caption = 'Save as default perspective for this table'
     TabOrder = 1
   end
 end

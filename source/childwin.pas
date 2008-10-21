@@ -6473,9 +6473,9 @@ begin
   end;
   // Highlight drop down button if views are available
   if DataViews.Count = 0 then
-    tbtnDataView.ImageIndex := 107
+    tbtnDataView.ImageIndex := 113
   else
-    tbtnDataView.ImageIndex := 108;
+    tbtnDataView.ImageIndex := 112;
 end;
 
 

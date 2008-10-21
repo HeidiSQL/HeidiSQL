@@ -784,13 +784,13 @@ object MDIChild: TMDIChild
             WordWrap = True
           end
           object tlbDataButtons: TToolBar
-            Left = 227
+            Left = 163
             Top = 1
-            Width = 268
+            Width = 332
             Height = 23
             Align = alRight
             AutoSize = True
-            ButtonWidth = 67
+            ButtonWidth = 83
             Caption = 'tlbDataButtons'
             Images = MainForm.PngImageListMain
             List = True
@@ -807,7 +807,7 @@ object MDIChild: TMDIChild
               OnClick = btnDataClick
             end
             object tbtnDataColumns: TToolButton
-              Left = 67
+              Left = 83
               Top = 0
               AllowAllUp = True
               Caption = 'Columns'
@@ -816,7 +816,7 @@ object MDIChild: TMDIChild
               OnClick = btnDataClick
             end
             object tbtnDataFilter: TToolButton
-              Left = 134
+              Left = 166
               Top = 0
               AllowAllUp = True
               Caption = 'Filter'
@@ -824,11 +824,11 @@ object MDIChild: TMDIChild
               OnClick = btnDataClick
             end
             object tbtnDataView: TToolButton
-              Left = 201
+              Left = 249
               Top = 0
-              Caption = 'View'
+              Caption = 'Perspective'
               DropdownMenu = popupDataView
-              ImageIndex = 107
+              ImageIndex = 112
             end
           end
         end
@@ -1984,7 +1984,7 @@ object MDIChild: TMDIChild
     Left = 104
     Top = 80
     object menuViewSave: TMenuItem
-      Caption = 'Save view ...'
+      Caption = 'Save perspective ...'
       Hint = 'Save current view details (columns, filter, sorting) permanently'
       ImageIndex = 10
       OnClick = menuViewSaveClick
