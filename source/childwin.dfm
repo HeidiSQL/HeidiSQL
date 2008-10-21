@@ -894,6 +894,7 @@ object MDIChild: TMDIChild
             Gutter.RightOffset = 0
             Gutter.ShowLineNumbers = True
             Gutter.Visible = False
+            Gutter.Width = 0
             Highlighter = SynSQLSyn1
             Options = [eoAutoIndent, eoDragDropEditing, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
             RightEdge = 0

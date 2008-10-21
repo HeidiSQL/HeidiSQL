@@ -303,6 +303,7 @@ object ExportSQLForm: TExportSQLForm
           Gutter.Font.Name = 'Terminal'
           Gutter.Font.Style = []
           Gutter.Visible = False
+          Gutter.Width = 0
           Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
           ReadOnly = True
           RemovedKeystrokes = <
