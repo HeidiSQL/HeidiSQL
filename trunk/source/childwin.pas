@@ -451,8 +451,6 @@ type
     procedure QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
-    procedure GridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex);
     procedure pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
       NewHeight: Integer; var Resize: Boolean);
     procedure pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
@@ -5672,16 +5670,14 @@ begin
   if r.Columns[Column].IsPriPart then
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
-  // Do not apply any color on a selected, highlighted node to keep readability
-  if (vsSelected in Node.States) and (
-    (Column = Sender.FocusedColumn) or (toFullRowSelect in TVirtualStringTree(Sender).TreeOptions.SelectionOptions)
-    ) then
-    Exit;
-
   // NULL value
   isNull := r.Rows[Node.Index].Cells[Column].IsNull;
+
+  // Do not apply any color on a selected, highlighted cell to keep readability
+  if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
+    cl := clHighlightText
   // Numeric field
-  if r.Columns[Column].isInt or r.Columns[Column].isFloat then
+  else if r.Columns[Column].isInt or r.Columns[Column].isFloat then
     if isNull then cl := prefNullColorNumeric else cl := prefFieldColorNumeric
   // Date field
   else if r.Columns[Column].isDate then
@@ -5853,20 +5849,6 @@ begin
     Allowed := True;
   if Allowed and (OldColumn <> NewColumn) then
     FocusGridCol(Sender, NewColumn);
-end;
-
-
-procedure TMDIChild.GridFocusChanged(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex);
-var
-  g: TVirtualStringTree;
-begin
-  // Switch to full row selecting if > 1 node is selected
-  g := (Sender as TVirtualStringTree);
-  if g.SelectedCount <= 1 then
-    g.TreeOptions.SelectionOptions := g.TreeOptions.SelectionOptions - [toFullRowSelect]
-  else
-    g.TreeOptions.SelectionOptions := g.TreeOptions.SelectionOptions + [toFullRowSelect];
 end;
 
 
@@ -6444,7 +6426,10 @@ begin
   if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
     TargetCanvas.Brush.Color := prefNullBG;
     TargetCanvas.FillRect(CellRect);
-  end else if (vsSelected in Node.States) and (Column <> Sender.FocusedColumn) then begin
+  end else if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
+    TargetCanvas.Brush.Color := clHighlight;
+    TargetCanvas.FillRect(CellRect);
+  end else if vsSelected in Node.States then begin
     TargetCanvas.Brush.Color := clInfoBk;
     TargetCanvas.FillRect(CellRect);
   end;
