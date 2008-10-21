@@ -9,41 +9,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 	<meta name="description" content="Information file for installing and using the HeidiSQL sources." />
 	<meta name="author" content="Ansgar Becker, David Dindorp" />
-	<style type="text/css">
-		body {
-			font-family: Verdana, Arial, Helvetica, sans-serif;
-			font-size: 80%;
-		}
-		h1, h2 {
-			color: rgb(121,211,31);
-		}
-		img {
-			border: none;
-		}
-		table {
-			margin-left: 5em;
-			border-collapse: collapse;
-		}
-		td, th {
-			text-align: left;
-			border: 1px solid gray;
-			padding: 0.3em;
-		}
-		td {
-			font-style: italic;
-		}
-		hr {
-			margin-top: 1em;
-			margin-bottom: 1em;
-		}
-		cite {
-			display: block;
-			margin: 1em;
-		}
-		code {
-			background-color: lightsteelblue;
-		}
-	</style>
+	<link rel='stylesheet' type='text/css' href='styles.css' />
 </head>
 
 <body>
@@ -59,35 +25,29 @@
 
 	<h2 id="contents">Table of contents</h2>
 	<ol>
-		<li><a href="#requirements">Prerequisites</a></li>
+		<li><a href="#introduction">Introduction</a></li>
+		<li><a href="#requirements">Necessary software</a></li>
 		<li><a href="#compiler">What is Delphi?</a></li>
 		<li><a href="#downloading">Downloading the source code</a></li>
 		<li><a href="#quickstart">Quick-start tutorial</a></li>
-		<li><a href="#gettingstarted">Manual build</a></li>
-		<li><a href="#furtherdevelopment">Further development</a></li>
-		<li><a href="#troubleshooting">Troubleshooting</a></li>
-		<li><a href="#notes">Notes</a></li>
-		<li><a href="#releasing">Releasing (for core developers)</a></li>
+		<li class='separatebullet'><a href="#furtherdevelopment">Further development</a></li>
+		<li class='separatebullet'><a href="#moreinfo">More information</a></li>
 	</ol>
 
 	<hr />
 
 
-	<h2 id="requirements">Prerequisites</h2>
+	<h2 id="introduction">Introduction</h2>
 	<p>
-		We will assume that you have some general developer experience.<br />
-		If you do find anything which you don't understand in this document, feel free to ask.
-	</p>
-	<p>
-		You will need the following software for building HeidiSQL.  Install in any order you prefer.
-		<ul><li><a href='http://www.codegear.com/downloads/free/delphi'>CodeGear Delphi 2007</a></li></ul>
-		<ul><li><a href='http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=91&amp;filter=setup.exe'>Subversion</a> command line tools</li></ul>
-		<ul><li><a href='http://tortoisesvn.net/downloads'>TortoiseSVN</a> graphical Subversion client</li></ul>
+		This document describes how you can download and setup a few pieces of necessary
+		software and quickly start compiling your own version of HeidiSQL.
 	</p>
 
 	<p>
-		All other third party components and dependencies used by HeidiSQL are
-		included in the Subversion repository and the source package.
+		We've tried to make this guide as easy to read as possible.  If something is unclear, or you
+		have questions regarding how the project or code is structured, please feel free to ask the
+		developers.  They can be reached via the project's general mailing list, or by email addresses
+		listed on the project homepage.
 	</p>
 
 	<p>
@@ -97,12 +57,32 @@
 	<hr />
 
 
-	<h2 id="compiler">What is Delphi?</h2>
+	<h2 id="requirements">Prerequisites</h2>
 	<p>
-		Delphi is a graphical user interface for developing code, also known as an IDE.
+		You will need the following software for building HeidiSQL.  Install in any order you prefer.
+		<ul><li><a href='http://www.codegear.com/downloads/free/delphi'>CodeGear Delphi 2007</a> (or later)</li></ul>
+		<ul><li><a href='http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=91&amp;filter=Setup-Subversion*.msi'>Subversion</a> command line tools</li></ul>
+		<ul><li><a href='http://tortoisesvn.net/downloads'>TortoiseSVN</a> graphical Subversion client</li></ul>
+	</p>
+
+	<p>
+		All other necessities and dependencies used by HeidiSQL are
+		included in both the Subversion repository and the source package.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="compiler">What is Delphi? <span class='skip'>(<a href='#downloading'>skip</a>)</span></h2>
+	<p>
+		Delphi is a graphical user interface for developing code, also known as an IDE (integrated development environment).
 		Delphi was the original name for Borland's IDE products, but nowadays refer to the part of the IDE
-		that deals with code in the Pascal language.  You don't need the full-fledged Developer Studio, a
-		plain Delphi IDE is enough to build HeidiSQL.
+		that deals with code in the Pascal language.  You don't need the full-fledged Developer Studio,
+		plain Delphi is enough to build HeidiSQL.
 	</p>
 
 	<p>
@@ -177,83 +157,8 @@
 	</p>
 
 	<p>
-		<a href="#contents">To table of contents</a>
-	</p>
-
-	<hr />
-
-
-	<h2 id="gettingstarted">Manual build</h2>
-	<p>
-		We'll start by compiling and installing the components that HeidiSQL depends on and then HeidiSQL itself.
-	</p>
-
-	<p>
-		HeidiSQL has one directory named "packages" for each component and for HeidiSQL itself, this is where
-		you'll find the project files.
-	</p>
-
-	<p>
-		Delphi has a distinction between "design-time components" and "run-time components".  To compile
-		HeidiSQL correctly, the designtime components that it depends on needs to be "Installed" into the
-		Borland environment, otherwise Delphi will fail to compile HeidiSQL.  You can Install a project
-		by right-clicking the project in the "Project Manager" in Delphi and choosing "Install".
-	</p>
-
-	<p>
-		Open these projects in Delphi 2007 and perform the action listed.<br />
-		Note: Before you can install components into the IDE, you will also need to either (a) copy the generated BPL files from the build folders to somewhere in your path, or (b) add the build folders to your Delphi PATH environment variable override.  The override can be found under Tools --> Options --> Environment Options --> Environment Variables.
-	</p>
-	<table>
-		<tr>
-			<th>Relative path</th>
-			<th>Action</th>
-		</tr>
-		<tr>
-			<td>components/edbimage/packages/delphi11/EDBImage.groupproj</td>
-			<td>Build All + Install "DCLSer"</td>
-		</tr>
-		<tr>
-			<td>components/tntunictrls/packages/delphi11/TntUnicodeVcl.groupproj</td>
-			<td>Build All + Install "TntUnicodeVcl_Design"</td>
-		</tr>
-		<tr>
-			<td>components/synedit/packages/delphi11/SynEdit.groupproj</td>
-			<td>Build All + Install "SynEditD"</td>
-		</tr>
-		<tr>
-			<td>components/zeosdbo/packages/delphi11/ZeosDbo.groupproj</td>
-			<td>Build All + Install "ZComponentDesign"</td>
-		</tr>
-		<tr>
-			<td>components/heidisql/packages/delphi11/HeidiComponents.groupproj</td>
-			<td>Build All + Install "HeidiComponents"</td>
-		</tr>
-		<tr>
-			<td>components/virtualtreeview/packages/delphi11/VirtualTrees.groupproj</td>
-			<td>Build All + Install "VirtualTreesD"</td>
-		</tr>
-	</table>
-
-	<p>
-		Once you're done, you are ready to compile HeidiSQL itself:
-	</p>
-	<table>
-		<tr>
-			<th>Relative path</th>
-			<th>Action</th>
-		</tr>
-		<tr>
-			<td>packages/delphi11/heidisql.dproj</td>
-			<td>Build All</td>
-		</tr>
-	</table>
-
-	<p>
-		You should end up with a "heidisql.exe" binary in the "out" folder.
-	</p>
-	<p>
-		Ta-ta!  We're done ;-).
+		If for some reason you would like to perform a manual build without using the build
+		scripts, please refer to <a href='additional.html#gettingstarted'>this document</a>.
 	</p>
 
 	<p>
@@ -294,258 +199,11 @@
 	<hr />
 
 
-	<h2 id="troubleshooting">Troubleshooting</h2>
-
-	<h3>"Error Reading Form" / "Class Not Found" error messages</h3>
-	<p>
-		You might have forgotten to Install some of the components.
-	</p>
-	<p>
-		First, make sure that you choose "Cancel" in this dialog!
-		If you do not, BDS will make devastating changes to the source,
-		and you'll need to revert those actions (fx. with SVN) before things
-		are going to work again.
-	</p>
-	<p>
-		Go back to <a href="#gettingstarted">Getting started</a>, and remember to
-		Install the components where it says so ;-).
-	</p>
-	<p>
-		If you still have problems, you can also opt to <a href='#cleaning'>start over</a>.
-	</p>
-
-	<h3 id="troubleshooting_1">"Unable to install component" error message</h3>
-	<p>
-		Remove the (already installed) component by going to Project --> Options --> Packages,
-		selecting the relevant component and clicking 'Remove'.
-	</p>
-	<p>
-		Then try installing the component again.
-	</p>
-	<p>
-		Once you've successfully installed a design-time component, Delphi should reinstall
-		it the next time you compile the package containing the component.
-	</p>
-
-	<h3>Component installation seemed to work, but components are still missing</h3>
-	<p>
-		Nuke all files in your package output directory, eg.
-		"%ALLUSERSPROFILE%\Documents\RAD Studio\5.0\Bpl"
-	</p>
-	<p>
-		Then repeat the <a href='#troubleshooting_1'>above step</a>.
-	</p>
-
-	<h3 id="cleaning">How can I completely clean my build environment?</h3>
-	<p>
-		If the HeidiSQL build process has changed, or you think you might have done something
-		wrong during building, you might want to clean your build environment.
-		You can do like this:
-		<ul>
-			<li>Either close all Delphi windows and delete the registry key
-				<code>HKEY_CURRENT_USER\Software\Borland</code>, or perform the next three steps:
-				<ul>
-					<li>Close all Delphi <strong>projects</strong>, but leave a Delphi
-						<strong>window</strong> open (or open a new one).
-					</li>
-					<li>Choose Project --> Default Options --> Delphi for Win32</li>
-					<li>Choose "Packages".  Highlight the following packages one by one and
-						click the "Remove" button after highlighting each one:
-						<ul>
-							<li>EDBImage</li>
-							<li>HeidiSQL helper components</li>
-							<li>TNTWare Unicode Controls</li>
-							<li>SynEdit component suite</li>
-							<li>Zeos Database Components</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-			<li>Nuke all files in your package output directory, eg.
-				"%ALLUSERSPROFILE%\Documents\RAD Studio\5.0\Bpl".</li>
-			<li>Nuke all files from all HeidiSQL "build" directories, for
-				example by performing a fresh checkout.</li>
-		</ul>
-	</p>
-	<p>
-		Now you can restart your <a href='#gettingstarted'>build process</a>.
-	</p>
-
-
-	<h3>Compiler-error: "FOO.pas: E2225 Never-build package BAR must be recompiled"</h3>
-	<p>
-		If you get this error while building any component, nuke all files in the
-		"build"-folder of the package which causes the problem, then try to recompile.
-	</p>
-	<p>
-		At least for me that worked as I couldn't build the ZComponentDesign-package
-		and got this message:<br />
-		<cite>ZPropertyEditor.pas: E2225 Never-build package ZComponent must be recompiled</cite>
-	</p>
-
-
-	<h3>Compiler error F1026: "File not found: XYZ", although file exists</h3>
-	<p>
-		It seems that especially the file ZPlainMysql.inc in the package ZPlain
-		is affected by this phenomen. This is a bug in BDS which has been reported
-		in 2004, closed for version 10.0.2097.6343. 
-		See also <a href="http://qc.borland.com/wc/qcmain.aspx?d=9783">http://qc.borland.com/wc/qcmain.aspx?d=9783</a>:
-		<cite>
-			Charles Pope: (...) It looks like Error Insight is performing some kind
-			of file locking preventing the compiler from being able to access the
-			file. (...)
-		</cite>
-	</p>
-	<p>
-		Workaround:
-		<ol>
-			<li>Go to Tools &gt; Options &gt; Editor Options &gt; Code Insight</li>
-			<li>Uncheck at least "Error Insight"</li>
-			<li>Restart Delphi</li>
-		</ol>  
-	</p>
+	<h2 id="moreinfo">More information</h2>
 
 	<p>
-		<a href="#contents">To table of contents</a>
+		Advanced information can be found <a href='additional.html'>here</a>.
 	</p>
-	
-	<hr />
-
-
-	<h2 id="notes">Notes</h2>
-
-	<h3>What's the difference between designtime and runtime components?</h3>
-	<p>
-		(Note: "a component" in this context equals "a project".)
-	</p>
-	<p>
-		Designtime components are meant to provide functionality to the Borland environment.  For example,
-		a designtime component often has a procedure named "Register", which will install the component into
-		the Borland environment.
-	</p>
-	<p>
-		The idea of separating designtime and runtime is that designtime code does not need to be linked
-		into the final executable, thus saving space.  See this article for details:<br />
-		<a href='http://community.borland.com/article/0,1410,27717,00.html'>http://community.borland.com/article/0,1410,27717,00.html</a>
-	</p>
-	<p>
-		If in doubt, you can always choose "designtime and runtime".  If you do designate a project as being
-		"designtime only", but some code is really required at runtime, the linker seems to be clever enough
-		to include the component in the final executable anyway.
-	</p>
-	<p>
-		Runtime components are meant to be included in the final executable.  Runtime components can probably
-		not be "Installed" into the Borland environment.  Runtime components can be compiled into BPL files,
-		which is a sort of fancy DLL.
-	</p>
-	<p>
-		You can Google for more information about components here:<br />
-		<a href='http://groups.google.com/groups/dir?sel=33614735'>borland.public.delphi.vcl usenet groups</a><br />
-		<a href='http://groups.google.com/groups/dir?sel=33614713'>borland.public.cppbuilder.vcl usenet groups</a>
-	</p>
-
-	<h3>How do I find out what's changed in a ".res" file?</h3>
-	<p>
-		I have no clue.  If you find out, please update this readme.<br />
-		Supposedly, one can use textual RC files instead of binary RES files, and by adding the RC files to
-		a project, Delphi should compile them into RES files on demand.  That's probably what we should do.
-	</p>
-	<p>
-		(Hint: Delphi comes with two resource compilers, brc32.exe and brcc32.exe.  The Delphi compiler
-		can be called with --drc to generate text resource files at compile time (?).)
-	</p>
-
-	<h3>What tool is practical for editing the multi-icon bitmap in /res/icons8bit.bmp?</h3>
-	<p>
-		While this file is a simple windows-bitmap (.bmp) with 256 colors, one way is to
-		use "Paint" from within the Windows accessories - it has everything you need for this task.
-		But obviously design-people would prefer a more powerful software like Photoshop or
-		something similar. However, a good and free alternative for beginners and intermediate
-		designers is <a href="http://www.google.com/search?q=paint.net+download">Paint.NET</a>.
-	</p>
-
-	<h3>What should I do before editing this readme?</h3>
-	<p>
-		You need to put yourself in the shoes of a newbie, and make
-		<strong>sure</strong> that the method you're proposing actually works.
-	</p>
-	<ul>
-		<li>
-			First, go through the actions listed in <a href="#cleaning">cleaning the build environment</a> methodically.
-		</li>
-		<li>
-			Next, try your solution step-by-step.
-		</li>
-		<li>
-			If everything works, you're good to change the readme!
-		</li>
-	</ul>
-
-	<p>
-		<a href="#contents">To table of contents</a>
-	</p>
-
-	<hr />
-
-
-	<h2 id="releasing">Releasing a new version (for core developers)</h2>
-
-	<p>
-		In order to keep version numbers in the repository and the released executables in sync,
-		it is important to perform releases using an established method.
-	</p>
-	<p>
-		Note: All steps are important!
-	</p>
-	<p>
-		Note: Order is important!
-	</p>
-	<ol>
-		<li>
-			<strong>Make sure your working copy contains both "trunk" and "tags" from repository.</strong><br />
-			If you need to check out "tags", you may put a tick in 'checkout top folder only' to spare bandwidth.<br />
-			<br />
-		</li>
-		<li>
-			<strong>Run 'svn update -rHEAD' on the trunk folder.</strong><br />
-    		This step ensures that all files copied in the next step are at the same source revision.<br />
-		   Using the TortoiseSVN 'svn update' command is fine too.<br />
-			<br />
-		</li>
-		<li>
-			<strong>Run 'svn copy trunk tags/4.0rc1'.</strong><br />
-			This step creates an exact duplicate of the current HEAD revision of trunk.<br />
-			<br />
-		</li>
-		<li>
-			<strong>Edit the release code variable "appversion" in tags/4.0rc1/main.pas.</strong><br />
-			This step modifies above duplicate so it is now different from trunk.<br />
-			<br />
-		</li>
-		<li>
-			<strong>Run 'svn commit tags' to commit "tags" and all subitems.</strong><br />
-			This step creates a repository revision containing the copy with the new appversion.<br />
-			This step also writes the new revision number of this change into $Revision$ in main.pas.<br />
-			<i>Point of no return!</i>  After this step, the version number is final.<br />
-			<br />
-		</li>
-		<li><strong><a href='#cleaning'>Clean</a> your build environment.</strong><br />
-			This step prevents old binary components from being included in the new version.<br />
-			<br />
-		</li>
-		<li><strong><a href='#gettingstarted'>Build HeidiSQL</a> from tags/4.0rc1.</strong><br />
-			(Under some circumstances it is OK to use one of the superpackages instead of this and the previous step.  If in doubt, don't ;-).)<br />
-			<br />
-		</li>
-		<li>
-			<strong>Build installer in the tags/4.0rc1 directory.</strong><br />
-			<br />
-		</li>
-		<li>
-			<strong>Upload!</strong><br />
-			<br />
-		</li>
-	</ol>
 
 	<p>
 		<a href="#contents">To table of contents</a>
