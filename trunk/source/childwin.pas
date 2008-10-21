@@ -5676,6 +5676,8 @@ begin
   // Do not apply any color on a selected, highlighted cell to keep readability
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := clHighlightText
+  else if vsSelected in Node.States then
+    cl := clBlack
   // Numeric field
   else if r.Columns[Column].isInt or r.Columns[Column].isFloat then
     if isNull then cl := prefNullColorNumeric else cl := prefFieldColorNumeric
@@ -6430,7 +6432,7 @@ begin
     TargetCanvas.Brush.Color := clHighlight;
     TargetCanvas.FillRect(CellRect);
   end else if vsSelected in Node.States then begin
-    TargetCanvas.Brush.Color := clInfoBk;
+    TargetCanvas.Brush.Color := clSkyBlue;
     TargetCanvas.FillRect(CellRect);
   end;
 end;
