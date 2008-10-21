@@ -957,7 +957,7 @@ object MDIChild: TMDIChild
           TabOrder = 2
           TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toDisableAutoscrollOnFocus, toDisableAutoscrollOnEdit]
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
           TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnAfterCellPaint = DataGridAfterCellPaint
@@ -968,7 +968,6 @@ object MDIChild: TMDIChild
           OnEditCancelled = DataGridEditCancelled
           OnEdited = DataGridEdited
           OnEditing = DataGridEditing
-          OnFocusChanged = GridFocusChanged
           OnFocusChanging = DataGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
@@ -1154,11 +1153,10 @@ object MDIChild: TMDIChild
           TabOrder = 2
           TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toDisableAutoscrollOnFocus, toDisableAutoscrollOnEdit]
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
           TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
           OnBeforeCellPaint = GridBeforeCellPaint
-          OnFocusChanged = GridFocusChanged
           OnFocusChanging = QueryGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
