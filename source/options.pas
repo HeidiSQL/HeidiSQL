@@ -228,7 +228,9 @@ begin
   if cwin <> nil then
   begin
     cwin.SynMemoQuery.Font := SynMemoSQLSample.Font;
+    cwin.SynMemoQuery.Gutter.Font := SynMemoSQLSample.Font;
     cwin.SynMemoSQLLog.Font := SynMemoSQLSample.Font;
+    cwin.SynMemoSQLLog.Gutter.Font := SynMemoSQLSample.Font;
     cwin.SynMemoProcessView.Font := SynMemoSQLSample.Font;
     cwin.SynMemoFilter.Font := SynMemoSQLSample.Font;
     cwin.SynSQLSyn1.KeyAttri.Foreground := SynSQLSynSQLSample.KeyAttri.Foreground;

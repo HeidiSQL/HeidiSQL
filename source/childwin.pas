@@ -934,10 +934,14 @@ begin
   fontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
   SynMemoQuery.Font.Name := fontname;
   SynMemoQuery.Font.Size := fontsize;
+  SynMemoQuery.Gutter.Font.Name := fontname;
+  SynMemoQuery.Gutter.Font.Size := fontsize;
   SynMemoFilter.Font.Name := fontname;
   SynMemoFilter.Font.Size := fontsize;
   SynMemoSQLLog.Font.Name := fontname;
   SynMemoSQLLog.Font.Size := fontsize;
+  SynMemoSQLLog.Gutter.Font.Name := fontname;
+  SynMemoSQLLog.Gutter.Font.Size := fontsize;
   SynMemoProcessView.Font.Name := fontname;
   SynMemoProcessView.Font.Size := fontsize;
 
