@@ -1,0 +1,78 @@
+  import java.util.*;
+  
+  WindowContext context = argObj("windowContext");
+  HashObject profile = context.get("profile");
+  Tree tree = context.get("/schemaTree");
+  NodeInfo root = (NodeInfo)tree.getModel().getRoot();
+  
+  if ( root.getText().equals("A Tree") )
+  {
+    //we are new and not in a refresh
+    tree.setCellRenderer(new IconicCellRenderer("images/db.gif", "images/instance.gif", "images/table.gif"));
+    root.setText(profile.get("user") + "@" + profile.get("host"));
+    root.setIcon("instance");
+  } 
+  else 
+  {
+     tree.saveState();
+  }
+  root.removeAllChildren();
+  
+  DB db = context.get("db");
+  db.begin();
+  String dbs = profile.get("dbs");
+
+  DB.Result databases = null;
+  if ( dbs == null || dbs.length() == 0 )
+  {
+     databases = db.execute("show databases");
+  }
+  else
+  {
+     String[] dbArray = dbs.split(";");
+     String sql = "show databases where `database` in (";
+     String sep="";
+     for (String aDb: dbArray)
+     {
+        sql+=sep+"'"+aDb + "'";
+        sep=",";
+     }
+     sql+=")";
+     databases = db.execute(sql);
+  }
+        
+  if ( "true".equals(profile.get("sort")))
+  {
+     Collections.sort(databases, databases.getComparator(0));
+  }
+      
+  log.debug("database count:" + databases.size());
+  HashObject dbNodes = TreeUtils.populateList(root, databases, 0, "db");
+  
+  for ( HashObject _dbs : databases )
+  {
+      String dbName = (String) _dbs.get(0);
+      DB.Result tables = db.execute("show tables from `" + dbName + "`");
+      log.debug("adding tables to node (" + dbName + ") " + dbNodes.getObject(dbName)); 
+      TreeUtils.populateList((NodeInfo)dbNodes.getObject(dbName), tables, 0, "table");
+  }
+  
+  db.end();
+  
+  tree.updateUI();
+  tree.restoreState();
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

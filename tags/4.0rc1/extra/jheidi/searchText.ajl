@@ -1,0 +1,59 @@
+import java.awt.Color;
+import javax.swing.text.*;
+
+WindowContext context = argObj("windowContext");
+Editor editor = context.get("/mainTabs/Query/editor");
+String searchText = arg("searchText");
+
+Highlighter hilit = editor.getHighlighter();
+Highlighter.HighlightPainter painter = context.get("editorPainter");
+
+if ( painter == null )
+{
+   Color HILIT_COLOR = Color.LIGHT_GRAY;
+   hilit = new DefaultHighlighter();
+   painter = new DefaultHighlighter.DefaultHighlightPainter(HILIT_COLOR);
+   editor.setHighlighter(hilit);
+   context.put("editorPainter", painter);
+}
+else
+{
+  painter = context.get("editorPainter");
+  hilit.removeAllHighlights();
+}
+
+String content = editor.getText();
+int index = content.indexOf(searchText, 0);
+if (index >= 0)
+{ 
+  try
+  {
+    int end = index + searchText.length();
+    hilit.addHighlight(index, end, painter);
+    editor.setCaretPosition(end);
+    
+    while (index != -1)
+    {
+      index = content.indexOf(searchText, end);
+      if ( index>=0 )
+      {
+         end = index + searchText.length();
+         hilit.addHighlight(index, end, painter);
+      }
+    }
+  } catch (BadLocationException e)
+  {
+       e.printStackTrace();
+  }
+}
+else
+{
+    Frame f = context.get("/");
+    f.popupMessage("Search", "Search Text Not Found!");
+}
+
+
+
+
+
+

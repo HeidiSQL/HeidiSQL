@@ -1,0 +1,107 @@
+  import java.awt.BorderLayout;
+  import java.awt.Insets;
+  import java.awt.Component;
+  import javax.swing.*;
+  import javax.swing.border.*;
+  
+  log.debug("task is long running!");
+  
+  WindowContext context = argObj("windowContext");
+  Worker worker = argObj("worker");
+  
+  String message = arg("waitOperation");
+  
+  Panel statusBar = context.get("/statusBar");
+ 
+  JLabel text = statusBar.getProperty("text");
+  ProgressBar pbar = statusBar.getProperty("pbar");
+  Stack messages = statusBar.getProperty("messages");
+
+   
+  synchronized (this.getClass())
+  {
+    if ( text == null )
+    {
+       text = (JLabel)statusBar.getComponent(0);
+       statusBar.setProperty("text", text);
+    }
+    
+    if ( messages == null )
+    {
+       messages = new Stack();
+       statusBar.setProperty("messages", messages);
+    }
+    
+    if ( pbar == null )
+    {
+      pbar = new ProgressBar();
+      pbar.setIndeterminate(true);
+      pbar.setPreferredSize(new java.awt.Dimension(100, 10));      
+      pbar.setBorder(new BevelBorder(BevelBorder.LOWERED));
+      statusBar.setProperty("pbar", pbar);
+    }
+      
+    messages.push(message);
+    
+    text.setText("Waiting for " + (String)messages.pop());
+
+    try
+    {
+      statusBar.getComponent(1);
+    }
+    catch (Exception e)
+    {
+      statusBar.add(pbar, BorderLayout.EAST);
+    }
+    statusBar.updateUI();
+  }
+    
+  while (!worker.isDone()) {}; 
+  
+  /*
+   * if the worker is Cancelled - we know that the user probably tried to invoke the same function 
+   * albeit with different parameters or restarted the operation.
+   * hopefully this is normally a safe assumption if we just check "done" instead of cancelled
+   * we will unneccesarily go back to the ready state and then change to the next wait message
+   */
+  if ( !worker.isCancelled() )
+  {
+    synchronized(this.getClass())
+    {
+      if ( messages.size() > 0)
+      {
+         text.setText("Waiting for " + (String) messages.pop());
+      }
+      else
+      {
+         text.setText("Ready");
+         statusBar.remove(1);
+         statusBar.updateUI();
+      }
+    }
+  }
+      
+  
+
+  
+  
+  
+     
+ 
+        
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

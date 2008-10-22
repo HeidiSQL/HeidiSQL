@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+	<title>HeidiSQL - information file for developers</title>
+	<meta name="Content-Language" content="en" />
+	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+	<meta name="description" content="Information file for installing and using the HeidiSQL sources." />
+	<meta name="author" content="Ansgar Becker, David Dindorp" />
+	<link rel='stylesheet' type='text/css' href='styles.css' />
+</head>
+
+<body>
+
+	<a href="http://www.heidisql.com/" title="Go to project homepage">
+		<img src="http://www.heidisql.com/images/heidisql_logo.png" alt="HeidiSQL Logo" />
+	</a>
+
+	<h1>HeidiSQL - information file for developers</h1>
+
+	<hr />
+
+
+	<h2 id="contents">Table of contents</h2>
+	<ol>
+		<li><a href="#introduction">Introduction</a></li>
+		<li><a href="#requirements">Necessary software</a></li>
+		<li><a href="#compiler">What is Delphi?</a></li>
+		<li><a href="#downloading">Downloading the source code</a></li>
+		<li><a href="#quickstart">Quick-start tutorial</a></li>
+		<li class='separatebullet'><a href="#furtherdevelopment">Further development</a></li>
+		<li class='separatebullet'><a href="#moreinfo">More information</a></li>
+	</ol>
+
+	<hr />
+
+
+	<h2 id="introduction">Introduction</h2>
+	<p>
+		This document describes how you can download and setup a few pieces of necessary
+		software and quickly start compiling your own version of HeidiSQL.
+	</p>
+
+	<p>
+		We've tried to make this guide as easy to read as possible.  If something is unclear, or you
+		have questions regarding how the project or code is structured, please feel free to ask the
+		developers.  They can be reached via the project's general mailing list, or by email addresses
+		listed on the project homepage.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="requirements">Prerequisites</h2>
+	<p>
+		You will need the following software for building HeidiSQL.  Install in any order you prefer.
+		<ul><li><a href='http://www.codegear.com/downloads/free/delphi'>CodeGear Delphi 2007</a> (or later)</li></ul>
+		<ul><li><a href='http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=91&amp;filter=Setup-Subversion*.msi'>Subversion</a> command line tools</li></ul>
+		<ul><li><a href='http://tortoisesvn.net/downloads'>TortoiseSVN</a> graphical Subversion client</li></ul>
+	</p>
+
+	<p>
+		All other necessities and dependencies used by HeidiSQL are
+		included in both the Subversion repository and the source package.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="compiler">What is Delphi? <span class='skip'>(<a href='#downloading'>skip</a>)</span></h2>
+	<p>
+		Delphi is a graphical user interface for developing code, also known as an IDE (integrated development environment).
+		Delphi was the original name for Borland's IDE products, but nowadays refer to the part of the IDE
+		that deals with code in the Pascal language.  You don't need the full-fledged Developer Studio,
+		plain Delphi is enough to build HeidiSQL.
+	</p>
+
+	<p>
+		Pascal is a language which is as powerful as C++, but has a much cleaner syntax.  Pascal is a modern
+		language, with major benefits compared to other languages, among them is limited garbage collection,
+		great support for Structured Exception Handling, the various types of strings in existence,
+		componentized development, and other things.  It also has it's drawbacks, mostly minor things on the
+		technical front like for example the newbie-friendly but overly verbose "begin -> end" scope
+		declarators and lack of various syntactic sugar such as "+=" and "?:".
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="downloading">Downloading the source code</h2>
+	<p>
+		If you haven't already done so, retrieve a copy of the source code.<br />
+		Preferably, use Subversion to check out a working copy.
+	</p>
+	<p>
+		To check out the latest source code anonymously for <strong>read only</strong>
+		purposes, you can use TortoiseSVN, or the command line Subversion client like so:
+		<div>
+			<code>svn co <strong>http</strong>://heidisql.googlecode.com/svn/trunk/ heidisql</code>
+		</div>
+	</p>
+	<p>
+		Alternatively, download a source tarball from the file area:<br />
+		<a href='http://sourceforge.net/project/showfiles.php?group_id=164593&package_id=186427'>
+			HeidiSQL file area on SourceForge
+		</a>
+	</p>
+	<p>
+		If you are a project member and <strong>plan to make changes</strong>, use this
+		command to check out the code as yourself using HTTPS:
+		<div>
+			<code>svn co <strong>https</strong>://heidisql.googlecode.com/svn/trunk/ heidisql --username john.doe</code>
+		</div>
+	</p>
+	<p>
+		See <a href="http://code.google.com/p/heidisql/source/checkout">here</a> for detailed
+		instructions on SVN and for your SVN password (it's not your usual Google password).
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="quickstart">Getting started</h2>
+	<p>
+		To quickly setup a HeidiSQL build environment, follow these instructions.
+	</p>
+	<p>
+		<ol>
+			<li>Install the software listed in <a href="#requirements">prerequisites</a>.</li>
+			<li><a href="#downloading">Get a copy</a> of the source code.</li>
+			<li>Run the script <code>heidisql/extra/build_everything.cmd</code>.</li>
+			<li>Run the script <code>heidisql/extra/install_ide_components.cmd</code>.</li>
+			<li>Done!</li>
+		</ol>
+	</p>
+	<p>
+		The final executable should now be in <code>heidisql/out/</code>, and you should be able
+		to modify the project by opening <code>heidisql/packages/delphiXX/heidisql.bdsproj</code>.
+	</p>
+
+	<p>
+		If for some reason you would like to perform a manual build without using the build
+		scripts, please refer to <a href='additional.html#gettingstarted'>this document</a>.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="furtherdevelopment">Further development</h2>
+	<p>
+		Once you've performed the initial steps, Delphi will take care of automatically re-installing
+		components when you compile them.
+		Thus the "Install" step is no longer necessary, "Build" is all that is needed!
+	</p>
+	<p>
+		For your convenience, there is a project group under <em>superpackages/delphi11/heidisql.groupproj</em>
+		which includes both HeidiSQL and all of it's dependencies.
+	</p>
+	<p>
+		Using this project group, you have all of the HeidiSQL source code
+		conveniently located at your finger tips!
+	</p>
+	<p>
+		You can rebuild and re-install everything by performing a <strong>Build All</strong>
+		on the big project group.
+	</p>
+	<p>
+		Note: Using the big project group can drain resources.
+		If your hardware is not in the big league, you might want to use the
+		individual projects instead.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<h2 id="moreinfo">More information</h2>
+
+	<p>
+		Advanced information can be found <a href='additional.html'>here</a>.
+	</p>
+
+	<p>
+		<a href="#contents">To table of contents</a>
+	</p>
+
+	<hr />
+
+
+	<p>
+		Revision of this file: <em>$Rev$</em><br />
+		Last changed: <em>$Date$</em><br />
+		Last author: <em>$Author$</em>
+	</p>
+
+
+</body>
+
+</html>

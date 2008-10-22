@@ -1,0 +1,33 @@
+import java.util.*;
+
+HashObject userQueries = argObj("userQueries");
+WindowContext context = argObj("windowContext");
+
+DB.Result results = null;
+DB db = context.get("db");
+db.begin();
+if (context.get("currentDB") != null)
+{
+  db.execute("use " + context.get("currentDB"));
+}
+db.setLimit(1000);
+for (String userQuery : (List<String>)userQueries)
+{
+  try {
+    results = db.execute(userQuery);
+  }
+  catch (Exception e)
+  {
+    log.error("",e);
+  }
+}
+db.setLimit(-1);
+db.end();
+
+//if the last statement didnt have any results oh well!
+Table t = context.get("/mainTabs/Query/results");
+TableUtils.populate(t, results);
+
+context.put("lastQuerySQL", userQueries.get(userQueries.size()-1));
+context.put("lastQueryResults", results);
+

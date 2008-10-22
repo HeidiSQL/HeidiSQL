@@ -1,0 +1,98 @@
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  
+  ListBox tables = context.get("/tables");
+  Object[] values = tables.getSelectedValues();
+  String sql = null;
+  
+  log.debug("event received: " + who);
+  
+  if ("dbs".equals(who))
+  {
+    String selection = ((Combo)context.get("/dbs")).getText();
+    DB db = context.get("db");
+    DB.Result result = db.execute("show tables from `" + selection + "`");
+    
+    ListBoxUtils.populate(tables, result, 0);
+  }
+  else if ( "Select All".equals(who) )
+  {
+      tables.selectAll();
+  }
+  else if ( "Deselect".equals(who) )
+  {
+    tables.clearSelection();
+  }
+  else if ( "Optimize".equals(who) )
+  {
+     if ( values.length >0 )
+     {
+       sql = "optimize table ";
+       String sep="";
+       for (Object o: values)
+       {
+          sql+=sep+"`"+(String)o+"`";
+          sep=",";
+       }
+     }
+     
+  } 
+  else if ( "Analyze".equals(who) )
+  {
+    if ( values.length >0 )
+     {
+       sql = "analyze table ";
+       String sep="";
+       for (Object o: values)
+       {
+          sql+=sep+"`"+(String)o+"`";
+          sep=",";
+       }
+     }
+  }
+  else if ( "Check".equals(who) )
+  {
+    if ( values.length >0 )
+     {
+       sql = "check table ";
+       String sep="";
+       for (Object o: values)
+       {
+          sql+=sep+"`"+(String)o+"`";
+          sep=",";
+       }
+     }
+  }
+  else if ( "Repair".equals(who) )
+  {
+   if ( values.length >0 )
+     {
+       sql = "repair table ";
+       String sep="";
+       for (Object o: values)
+       {
+          sql+=sep+"`"+(String)o+"`";
+          sep=",";
+       }
+     }
+  }
+  else if ( "Close".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  
+  if ( sql != null )
+  {
+    DB db = context.get("db");
+    db.begin();
+    db.execute("use `" + ((Combo)context.get("/dbs")).getText() + "`");
+    DB.Result result = db.execute(sql);
+    db.end();
+    TableUtils.populate((Table)context.get("/results"), result);
+  }
+    
+    
+    
+    
+  

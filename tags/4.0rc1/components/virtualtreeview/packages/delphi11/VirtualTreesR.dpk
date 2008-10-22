@@ -1,0 +1,45 @@
+package VirtualTreesR;
+
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS ON}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $30400000}
+{$DESCRIPTION 'Virtual Treeview runtime package'}
+{$LIBSUFFIX '110'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+{$DEFINE DEBUG}
+
+requires
+  vcl,
+  vclx,
+  TntUnicodeVcl;
+
+contains
+  VirtualTrees in '..\..\Source\VirtualTrees.pas',
+  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas',
+  VTAccessibilityFactory in '..\..\Source\VTAccessibilityFactory.pas',
+  VTAccessibility in '..\..\Source\VTAccessibility.pas';
+  // @note, Ansgar: MSAAIntf.pas is not included in the distribution,
+  //                but anyway only needed for Delphi up to 2005
+  //, MSAAIntf in '..\..\Source\MSAAIntf.pas';
+
+end.
+

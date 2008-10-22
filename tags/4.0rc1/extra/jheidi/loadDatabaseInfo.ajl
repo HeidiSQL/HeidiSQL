@@ -1,0 +1,34 @@
+
+  WindowContext context = argObj("windowContext");
+ 
+  DB db = context.get("db");
+  DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
+   
+  Text banner = context.get("/mainTabs/Database/toolbar/banner");
+  banner.setText("Database " + arg("dbName") + ": " + databases.size() + " table(s)");
+  
+  banner = context.get("/mainTabs/Query/toolbar/banner");
+  banner.setText("SQL query on database: " + arg("dbName"));
+  
+  TableUtils.populate((Table)context.get("/mainTabs/Database/table"), databases);
+  
+  //let the refresh button know what to do
+  Panel tab = context.get("/mainTabs/Database");
+  tab.setProperty("refreshScript", "loadDatabaseInfo");
+  tab.setProperty("refreshArgs", args());
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

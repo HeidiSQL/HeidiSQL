@@ -1,0 +1,269 @@
+  import java.util.*;
+
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  
+  Dialog dlg = context.get("/");    
+  Panel source = context.get("/tabs/Source");
+  Panel dest = context.get("/tabs/Destination");
+  
+  ListBox tables = source.get("tables");
+
+  log.debug("event received: " + who);
+  
+  if ("dbs".equals(who))
+  {
+    String selection = ((Combo)source.get("dbs")).getText();
+    DB db = context.get("db");
+    DB.Result result = db.execute("show tables from `" + selection + "`");
+    
+    ListBoxUtils.populate(tables, result, 0);
+  }
+  else if ( "database".equals(who) )
+  {
+    String dbCreateOption = ((Combo)dest.get("database")).getText();
+    if ( "Recreate (remove tables)".equals(dbCreateOption) )
+    {
+      ((Combo)dest.get("tables")).select("Create");
+      ((Combo)dest.get("tables")).setEnabled(false);
+      ((Combo)dest.get("data")).select("Insert");
+      ((Combo)dest.get("data")).setEnabled(false);
+    } else {
+      ((Combo)dest.get("tables")).setEnabled(true);
+      ((Combo)dest.get("data")).setEnabled(true);
+    }
+  }
+  else if ( "tables".equals(who) )
+  {
+    String tableCreateOption = ((Combo)dest.get("database")).getText();
+    if ( "Recreate (remove data)".equals(tableCreateOption) )
+    {
+      ((Combo)dest.get("data")).select("Insert");
+      ((Combo)dest.get("data")).setEnabled(false);
+    } else {    
+      ((Combo)dest.get("data")).setEnabled(true);
+    }
+    
+  }  
+  else if ( "Select All".equals(who) )
+  {
+     if (tables.getModel().getSize() > 0)
+     {
+       tables.setSelectionInterval(0, tables.getModel().getSize()-1);
+     }
+  }
+  else if ( "Deselect".equals(who) )
+  {
+    tables.clearSelection();
+  }
+
+  else if ( "Cancel".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  }
+  else if ("saveFile".equals(who))
+  {
+    String file = dlg.saveFile(null, "sql", new String[] {"sql"});
+    Field f = dest.get("fileName");
+    if (file != null)
+    {
+      f.setText(file);
+    }
+  }
+  else if ( "Export".equals(who) )
+  {        
+    //flush and validate
+    Tabs tabs = context.get("/tabs");
+
+    List tableList = new ArrayList(tables.getModel().getSize());
+    tableList.addAll(Arrays.asList(tables.getSelectedValues()));
+      
+    String selection = ((Combo)source.get("dbs")).getText();
+    String destFile = ((Field)dest.get("fileName")).getText();   
+    String databaseOption  = ((Combo)dest.get("database")).getText();
+    String tableOption = ((Combo)dest.get("tables")).getText();
+    String dataOption = ((Combo)dest.get("data")).getText();
+    String lineSep = System.getProperty("line.separator");
+    String endStmt = ";" + lineSep;
+    String endBlock = endStmt + lineSep;    
+    String doubleSep = lineSep + lineSep;
+    String quotes = "'";
+   
+    if ( selection == null || selection == "") 
+    {
+      dlg.popupMessage("Export Tables as SQL","Please select a database to export.");
+      ((Combo)source.get("dbs")).requestFocus();
+      return;
+    }    
+    
+    if ( "Don't create".equals(databaseOption) && "Don't create".equals(tableOption) && "Don't create".equals(dataOption) ) 
+    {
+      dlg.popupMessage("Export Tables as SQL","No valid creation options set.\nPlease select creation options from the destination tab.");
+      ((Combo)dest.get("database")).requestFocus();
+      return;
+    }
+    
+    if ( "".equals(destFile.trim()) )
+    {
+      tabs.select("Destination");
+      dlg.popupMessage("Export Tables as SQL", "Please provide a file to export to.");
+      ((Field)dest.get("fileName")).requestFocus();      
+      return;
+    }      
+    
+    if (FileUtil.fileExists(destFile)) 
+    {
+      if ( !dlg.popupConfirm("File Exists", "Do you want to overwrite " + destFile + "?")) 
+      {
+        return;
+      }
+    }  
+    
+    DB db = context.get("db");
+    db.begin();
+    db.execute("use " + ((Combo)source.get("dbs")).getText());
+
+    StringBuilder buffer = new StringBuilder(1000);      
+    HashObject profile = context.get("profile");
+    String host = profile.get("host");    
+    String version = db.execute("select version()").first().get("version()");
+    String compileOS = db.execute("show variables like 'version_compile_os'").first().get("value");
+    String characterSet = db.execute("show variables like 'character_set_connection'").first().get("value");
+    String dbCreate = db.execute("show create database `" + selection + "`").first().get("create database");
+    String tableCreate = "";
+   
+    buffer.append("# jHeidi Dump").append(lineSep)
+          .append("#").append(lineSep)
+          .append("# --------------------------------------------------------").append(lineSep)
+          .append("# Host:                 ").append(host).append(lineSep)
+          .append("# Database:             ").append(selection).append(lineSep)
+          .append("# Server Version:       ").append(version).append(lineSep)
+          .append("# Server OS:            ").append(compileOS).append(lineSep)
+          .append("# jHeidi Version:       Alpha").append(lineSep)
+          .append("# --------------------------------------------------------").append(doubleSep)
+    
+          .append("SET CHARACTER SET ").append(characterSet).append(endStmt)
+          .append("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0").append(endBlock)
+    
+          .append("#").append(lineSep)
+          .append("# Database structure for database '").append(selection).append("'").append(lineSep)
+          .append("#").append(doubleSep);
+      
+    if ( "Create if necessary".equals(databaseOption) ) 
+    {  
+      dbCreate = dbCreate.replace("CREATE DATABASE","CREATE DATABASE IF NOT EXISTS");
+    }
+    else if ( "Recreate (remove tables)".equals(databaseOption)) 
+    {
+      buffer.append("DROP DATABASE ").append(selection).append(endStmt);
+    }
+      
+    buffer.append(dbCreate).append(endBlock)
+          .append("USE `").append(selection).append("`").append(endBlock);
+          
+    if ( !"Don't create".equals(tableOption)) 
+    {
+      for ( String table : (List<String>) tableList ) 
+      {
+        DB.Result createTable = db.execute("show create table `" + table + "`");
+        tableCreate = createTable.first().get("create table");
+      
+        buffer.append("#").append(lineSep)
+              .append("# Creating table structure for '").append(table).append("'").append(lineSep)
+              .append("#").append(doubleSep);
+
+        if ( "Create if necessary".equals(tableOption) ) 
+        {
+          tableCreate = tableCreate.replace("CREATE TABLE","CREATE TABLE IF NOT EXISTS");              
+        }
+        else if ( "Recreate tables (remove data)".equals(tableOption) ) 
+        {
+          buffer.append("DROP TABLE ").append(table).append(endStmt);                
+        }
+        
+        buffer.append(tableCreate).append(endBlock);
+        
+        if ( !"Don't create".equals(dataOption) )
+        {
+          DB.Result tableValues = db.execute("select * from `" + table + "`");
+          DB.Result showFields = db.execute("show fields from `" + table + "`");
+         
+          buffer.append("#").append(lineSep)
+                .append("# Dumping data for table '").append(table).append("'").append(lineSep)
+                .append("#").append(doubleSep);
+        
+          if ( tableValues.isEmpty()) 
+          {
+            buffer.append("# (No data found.)").append(doubleSep);
+          } 
+          else 
+          {
+            buffer.append("LOCK TABLES `").append(table).append("` WRITE;").append(lineSep)
+                  .append("ALTER TABLE `").append(table).append("` DISABLE KEYS;").append(lineSep);
+            if ( "Update existing data".equals(dataOption) ) 
+            {
+              buffer.append("REPLACE INTO `");
+            }
+            else if ( "Insert".equals(dataOption) ) 
+            {
+              buffer.append("INSERT INTO `");
+            }
+            else if ( "Do not update existing".equals(dataOption) ) 
+            {
+              buffer.append("INSERT IGNORE INTO `");
+            }
+            else if ( "Replace (truncate existing)".equals(dataOption) ) 
+            {
+              buffer.append("INSERT INTO `");
+            }        
+          
+            buffer.append(table).append("` ");
+            String sep = "(";
+          
+            for ( HashObject field : showFields ) 
+            {
+              buffer.append(sep).append("`").append(field.get("field")).append("`");
+              sep = ",";
+            }
+          
+            buffer.append(") VALUES").append(lineSep);
+          
+            for ( HashObject row : tableValues ) 
+            {       
+              sep ="      (";                    
+              for ( HashObject field : showFields ) 
+              {
+                String fieldType = field.get("type");
+                String colData = row.get(field.get("field"));
+                if ( colData == null )
+                {
+                  buffer.append(sep).append("null");
+                } 
+                else if ( fieldType.contains("char") || fieldType.contains("text") ||
+                          fieldType.contains("time") || fieldType.contains("year") ) 
+                {
+                  colData = colData.replace("\'","\\'");                
+                  buffer.append(sep).append(quotes).append(colData).append(quotes);                                
+                }             
+                else 
+                {
+                  buffer.append(sep).append(colData);
+                }
+                
+                sep = ",";
+              }           
+              buffer.append("),").append(lineSep);           
+            }            
+            buffer.append("ALTER TABLE `").append(table).append("` ENABLE KEYS;").append(lineSep)
+                  .append("UNLOCK TABLES").append(endBlock);
+          
+          } 
+        } 
+      }
+      buffer.append("SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;");
+      db.end();
+      String s = buffer.toString().replace(")," + lineSep + "ALTER TABLE", ");" + lineSep + "ALTER TABLE");
+      FileUtil.fromString(destFile, s);
+    }
+  }    

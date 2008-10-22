@@ -1,0 +1,260 @@
+  import java.io.*;
+  import javax.swing.*;
+  
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  Dialog dlg = context.get("/");
+  log.debug("event received: *" + who + "*");
+ 
+  if ( "Import".equals(who) )
+  {
+     int fileCount = ((Table)dlg.get("files")).getModel().getRowCount();
+     String intoDB = ((Combo)dlg.get("dbs")).getText();
+     String intoTable = ((Combo)dlg.get("tables")).getText();
+     String intoColumn = ((Combo)dlg.get("blobColumns")).getText();
+
+     if ( fileCount == 0 )
+     {
+       dlg.popupMessage("Import Files Into Blobs", "Please select a file to import.");
+       ((Button)dlg.get("Add")).requestFocus();
+       return;
+     }
+     
+     if ( intoDB == null )
+     {
+       dlg.popupMessage("Import Files Into Blobs", "Please select a database to import the data.");
+       ((Combo)dlg.get("dbs")).requestFocus();
+       return;
+     }
+     
+     if ( intoTable == null )
+     {
+       dlg.popupMessage("Import Files Into Blobs", "Please select a table to import the data.");
+       ((Combo)dlg.get("tables")).requestFocus();
+       return;
+     }
+     
+     if ( intoColumn == null )
+     {
+       dlg.popupMessage("Import Files Into Blobs", "Please select a blob column to import the data.");
+       ((Combo)dlg.get("blobColumns")).requestFocus();
+       return;
+     }
+     
+     Table files = dlg.get("files");
+     ListBox otherCols = dlg.get("otherFields");
+     Combo values = dlg.get("values");
+     HashObject userValues = values.getProperty("userValues");
+  
+     /*
+       flush last item selected in the 'other fields' list since
+       it would not be flushed automatically on tabout  */
+     String selVal = (String)otherCols.getSelectedValue();
+     if ( selVal != null )
+     {
+       userValues.put(selVal, values.getEditor().getItem());
+     }
+
+     for (int i=0; i < fileCount; i++)
+     {
+       String fileName = (String)files.getValueAt(i, 0);
+       String fileSize = (String)files.getValueAt(i, 1);
+
+       if ( fileSize.contains("<") )
+       {
+          fileSize = "1";
+       }
+       
+       StringBuilder buffer = new StringBuilder(Integer.parseInt(fileSize) * 1000 + 500);
+       buffer.append("insert into ").append(intoDB).append(".").append(intoTable)
+       .append(" (").append(intoColumn);
+       
+       ListModel cols = otherCols.getModel(); 
+       for (int c=0; c < cols.getSize(); c++)
+       {
+          String col = (String)cols.getElementAt(c);
+          buffer.append(",").append(col);
+       }
+       buffer.append(") values ('");
+       
+       buffer.append(FileUtil.toString(fileName)).append("'");
+       String colValue = null;
+       
+       for (int c=0; c < cols.getSize(); c++)
+       {
+          if ( userValues == null )
+          {
+            colValue = null;
+          }
+          else 
+          {
+            colValue = userValues.get(cols.getElementAt(c));
+          }
+          if ( colValue == null )
+          {
+             colValue = "null";
+          }
+          buffer.append(",").append(colValue);
+       }
+       
+       buffer.append(")");
+       log.debug("heres the stmt:" + buffer.toString());
+    
+       DB db = context.get("db");
+       db.execute(buffer.toString());
+    }
+    dlg.dispose();
+  }
+  else if ( "Cancel".equals(who) )
+  {
+    dlg.dispose();
+  } 
+  else if ("Add".equals(who) )
+  {
+    File[] files = dlg.openFiles();
+    Table fileTable = dlg.get("files");
+    
+    if ( files != null )
+    {
+      for ( File f: files)
+      {
+        fileTable.addRow(new String[] { f.getAbsolutePath(), f.length() < 1000? "< 1" : Long.toString(f.length()/1000) } );
+      }
+    }
+     
+  }
+  else if ("Remove".equals(who) )
+  {
+     Table fileTable = dlg.get("files");
+     fileTable.removeSelectedRows();
+  }
+  else if ("dbs".equals(who))
+  {
+  
+    String selection = ((Combo)dlg.get("dbs")).getText();
+    DB db = context.get("db");
+    DB.Result tables = db.execute("show tables from `" + selection + "`");
+    
+    Combo combo = dlg.get("tables");
+    ComboUtils.populate(combo, tables, 0);
+
+    if ( context.get("currentTable") != null && selection.equals(context.get("currentDB")) )
+    {
+      combo.select((String)context.get("currentTable"));
+    }
+    else
+    {    
+      ListBox l = dlg.get("otherFields");
+      ((ListDataModel)l.getModel()).clear();
+
+	    combo = dlg.get("blobColumns");
+      combo.clear();
+    }
+
+    combo = dlg.get("values");
+    combo.setProperty("userValues", null);
+    combo.setProperty("lastSel", null);
+    combo.getEditor().setItem("null");
+    
+  }
+  else if ("tables".equals(who))
+  {
+    String selection = ((Combo)context.get("/tables")).getText();
+    String dbsel = ((Combo)context.get("/dbs")).getText();
+    DB db = context.get("db");
+    DB.Result otherFields = db.execute("show columns from `" + dbsel + "`.`" + selection + "` where type not like '%blob'");
+    DB.Result blobFields = db.execute("show columns from `" + dbsel + "`.`" + selection + "` where type like '%blob'");
+    
+	  Combo combo = dlg.get("blobColumns");
+    if (!blobFields.isEmpty())
+    {
+	    ComboUtils.populate(combo, blobFields, 0);
+    }
+	  else {
+		  combo.clear();
+	  }
+
+	  ListBox listbox = dlg.get("otherFields");
+	  if ( !otherFields.isEmpty())
+	  {
+	    ListBoxUtils.populate(listbox, otherFields, 0);
+	  }
+	  else
+	  {
+		  ((ListDataModel)listbox.getModel()).clear();
+    }
+    combo = dlg.get("values");
+    combo.setProperty("userValues", null);
+    combo.setProperty("lastSel", null);
+    combo.getEditor().setItem("null");
+  }
+  else if ("blobColumns".equals(who))
+  {
+    Combo combo = dlg.get("blobColumns");
+    if ( !(combo.getModel() instanceof ResultListModel) )
+    {
+      return;
+    }
+    ResultListModel blobCols = (ResultListModel)combo.getModel();
+    ListBox listbox = dlg.get("otherFields");
+    ListDataModel otherCols = (ListDataModel)listbox.getModel();
+    
+    String selCol = ((ListItemInfo)blobCols.getSelectedItem()).getText();
+    System.out.println("selected blob col:" + selCol);
+    for (int i=0; i < blobCols.getSize(); i++)
+    {
+        String col = ((ListItemInfo)blobCols.getElementAt(i)).getText();
+        if ( col.equals(selCol) )
+        {
+          int pos = otherCols.indexOf(col);
+          if ( pos != -1 )
+          {
+            otherCols.remove(pos);
+          }
+        }
+        else
+        {
+          if (!otherCols.contains(col))
+          {
+             otherCols.add(col);
+          }
+        }
+    }
+  }
+  else if ("otherFields".equals(who))
+  {
+	  ListBox listbox = dlg.get("otherFields");
+	  Combo values = dlg.get("values");
+	  HashObject userValues = values.getProperty("userValues");
+ 	  String selection = (String)listbox.getSelectedValue();
+ 	  String lastSel = values.getProperty("lastSel");
+ 	  String value = (String)values.getEditor().getItem();
+ 	  
+	  if ( userValues == null )
+	  {
+		  userValues = new HashObject();
+		  values.setProperty("userValues", userValues);
+	  }
+	
+	  userValues.put(lastSel, value);
+	  if ( userValues.get(selection) == null )
+	  {
+	    userValues.put(selection, "null");
+	  }
+	
+	  values.getEditor().setItem(userValues.get(selection));
+	  values.setProperty("lastSel", selection);
+	  
+  }
+  
+    
+  
+ 
+ 
+  
+  
+  
+  
+    
+
+

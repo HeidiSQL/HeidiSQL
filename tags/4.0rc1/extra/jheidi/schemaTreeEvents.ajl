@@ -1,0 +1,83 @@
+  
+  NodeInfo node = argObj("node");
+  WindowContext context = argObj("windowContext");
+  
+  Tabs tabs = context.get("/mainTabs");
+  String selectedTab = tabs.selected();
+  String nodeType = node.getType();
+    
+  log.debug("node type = " + nodeType);
+  log.debug("selected tab = " + selectedTab);
+  
+  if ( nodeType == null )
+  {
+    tabs.select("Host");
+    args().put("selectedTab", "Host");
+    thread("resetTabs", args(), true);
+  }
+  else if ( "db" == nodeType )
+  {
+     String dbName = node.getText();
+     Panel tab = tabs.select("Database");
+     if ( !dbName.equals(context.get("currentDB")) )
+     {
+        context.put("currentDB", dbName);
+        context.remove("currentTable");
+        args().put("selectedTab", "Database");
+        thread("resetTabs", args(), true);
+        args().put("dbName", dbName);
+        args().put("waitOperation", "show table status from `" + dbName + "`");
+        Worker w = worker("showTableStatusWorker", args());
+        args().put("worker", w);
+        LongRunningTask.detect("progressWaiter", args(), w , 350);
+     }
+  }
+  else if ( "table" == nodeType )
+  {
+     String dbName = node.getParent().getText();
+     String tableName = node.getText();
+     
+     Panel tab = tabs.get("Table");
+     if ("Host".equals(selectedTab) || "Database".equals(selectedTab))
+     {
+        tabs.select("Table");
+     }
+  
+     if (!dbName.equals(context.get("currentDB")))
+     {
+         context.put("currentDB", dbName);
+         args().put("dbName", dbName);
+         args().put("waitOperation", "show table status from `" + dbName + "`");
+         Worker w = worker("showTableStatusWorker", args());
+         args().put("worker", w);
+         LongRunningTask.detect("progressWaiter", args(), w , 350);
+      }
+
+     if ( !tableName.equals(context.get("currentTable")) || !dbName.equals(context.get("currentDB")) )
+     {
+        context.put("currentTable", node.getText());
+        args().put("dbName", dbName);
+        args().put("tableName", tableName);
+        thread("loadTableInfo", args(), true);
+        thread("loadTableData", args(), true);
+     }
+  }
+  
+  
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

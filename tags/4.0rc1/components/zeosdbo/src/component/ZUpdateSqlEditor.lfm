@@ -1,0 +1,247 @@
+object ZUpdateSQLEditForm: TZUpdateSQLEditForm
+  BorderStyle = bsDialog
+  Caption = 'ZUpdateSQLEditForm'
+  ClientHeight = 258
+  ClientWidth = 398
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 75
+  Position = poScreenCenter
+  TextHeight = 13
+  HorzScrollBar.Page = 397
+  VertScrollBar.Page = 257
+  Left = 339
+  Height = 258
+  Top = 271
+  Width = 398
+  object OkButton: TButton
+    Anchors = [akRight, akBottom]
+    Caption = '&OK'
+    Default = True
+    ModalResult = 1
+    OnClick = OkButtonClick
+    TabOrder = 0
+    Left = 176
+    Height = 22
+    Top = 230
+    Width = 65
+  end
+  object CancelButton: TButton
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+    Left = 253
+    Height = 22
+    Top = 230
+    Width = 65
+  end
+  object HelpButton: TButton
+    Anchors = [akRight, akBottom]
+    Caption = '&Help'
+    OnClick = HelpButtonClick
+    TabOrder = 2
+    Left = 329
+    Height = 22
+    Top = 230
+    Width = 65
+  end
+  object PageControl: TPageControl
+    ActivePage = FieldsPage
+    Align = alTop
+    TabIndex = 0
+    TabOrder = 3
+    OnChanging = PageControlChanging
+    Height = 222
+    Width = 398
+    object FieldsPage: TTabSheet
+      Caption = 'Options'
+      ClientHeight = 192
+      ClientWidth = 394
+      Left = 2
+      Height = 192
+      Top = 28
+      Width = 394
+      object GroupBox1: TGroupBox
+        Align = alClient
+        Caption = ' SQL Generation '
+        ClientHeight = 175
+        ClientWidth = 390
+        ParentColor = True
+        TabOrder = 0
+        Height = 192
+        Width = 394
+        object Label1: TLabel
+          Caption = 'Table &Name:'
+          Color = clNone
+          FocusControl = UpdateTableName
+          Left = 16
+          Height = 13
+          Top = 8
+          Width = 61
+        end
+        object Label3: TLabel
+          Anchors = [akTop, akRight]
+          Caption = '&Key Fields:'
+          Color = clNone
+          FocusControl = KeyFieldList
+          Left = 140
+          Height = 13
+          Top = 8
+          Width = 59
+        end
+        object Label4: TLabel
+          Anchors = [akTop, akRight]
+          Caption = 'Update &Fields:'
+          Color = clNone
+          FocusControl = UpdateFieldList
+          Left = 268
+          Height = 13
+          Top = 8
+          Width = 70
+        end
+        object QuoteFields: TCheckBox
+          Caption = '&Quote Field Names'
+          OnClick = SettingsChanged
+          TabOrder = 5
+          Left = 16
+          Height = 18
+          Top = 152
+          Width = 130
+        end
+        object UpdateTableName: TComboBox
+          ItemHeight = 13
+          MaxLength = 0
+          OnChange = UpdateTableNameChange
+          OnClick = UpdateTableNameClick
+          TabOrder = 0
+          Left = 16
+          Height = 21
+          Top = 24
+          Width = 113
+        end
+        object GenerateButton: TButton
+          Caption = '&Generate SQL'
+          OnClick = GenerateButtonClick
+          TabOrder = 4
+          Left = 16
+          Height = 22
+          Top = 120
+          Width = 113
+        end
+        object PrimaryKeyButton: TButton
+          Caption = 'Select &Primary Keys'
+          OnClick = PrimaryKeyButtonClick
+          TabOrder = 3
+          Left = 16
+          Height = 22
+          Top = 96
+          Width = 113
+        end
+        object DefaultButton: TButton
+          Caption = '&Dataset Defaults'
+          Enabled = False
+          OnClick = DefaultButtonClick
+          TabOrder = 2
+          Left = 16
+          Height = 21
+          Top = 72
+          Width = 113
+        end
+        object GetTableFieldsButton: TButton
+          Caption = 'Get &Table Fields'
+          OnClick = GetTableFieldsButtonClick
+          TabOrder = 1
+          Left = 16
+          Height = 21
+          Top = 48
+          Width = 113
+        end
+        object UpdateFieldList: TListBox
+          Anchors = [akTop, akRight, akBottom]
+          ItemHeight = 13
+          MultiSelect = True
+          OnClick = SettingsChanged
+          PopupMenu = FieldListPopup
+          TabOrder = 7
+          TopIndex = -1
+          Left = 268
+          Height = 142
+          Top = 24
+          Width = 118
+        end
+        object KeyFieldList: TListBox
+          Anchors = [akTop, akRight, akBottom]
+          ItemHeight = 13
+          MultiSelect = True
+          OnClick = SettingsChanged
+          PopupMenu = FieldListPopup
+          TabOrder = 6
+          TopIndex = -1
+          Left = 140
+          Height = 142
+          Top = 24
+          Width = 117
+        end
+      end
+    end
+    object SQLPage: TTabSheet
+      Caption = 'SQL'
+      ClientHeight = 192
+      ClientWidth = 394
+      Left = 2
+      Height = 192
+      Top = 28
+      Width = 394
+      object Label2: TLabel
+        Caption = 'S&QL Text:'
+        Color = clNone
+        FocusControl = SQLMemo
+        Left = 8
+        Height = 13
+        Top = 40
+        Width = 48
+      end
+      object SQLMemo: TMemo
+        Align = alCustom
+        OnKeyPress = SQLMemoKeyPress
+        ScrollBars = ssVertical
+        TabOrder = 0
+        Left = 8
+        Height = 129
+        Top = 56
+        Width = 377
+      end
+      object StatementType: TRadioGroup
+        Align = alTop
+        Caption = 'Statement Type'
+        Columns = 3
+        Items.Strings = (
+          '&Modify'
+          '&Insert'
+          '&Delete'
+        )
+        OnClick = StatementTypeClick
+        ParentColor = True
+        Height = 35
+        Width = 394
+      end
+    end
+  end
+  object FieldListPopup: TPopupMenu
+    left = 54
+    top = 270
+    object miSelectAll: TMenuItem
+      Caption = '&Select All'
+      OnClick = SelectAllClick
+    end
+    object miClearAll: TMenuItem
+      Caption = '&Clear All'
+      OnClick = ClearAllClick
+    end
+  end
+end

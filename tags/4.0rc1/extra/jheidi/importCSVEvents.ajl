@@ -1,0 +1,192 @@
+  
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  
+  Dialog dlg = context.get("/");
+  Panel source = context.get("/tabs/Source");
+  Panel dest = context.get("/tabs/Destination");
+  
+  log.debug("event received: " + who);
+  
+  if ( "Import".equals(who) )
+  {
+     //flush and validate
+     Tabs tabs = context.get("/tabs");
+          
+     String fileName = ((Field)source.get("fileName")).getText();
+     String fieldSep = ((Field)source.get("fieldSep")).getText();
+     String enclosedBy = ((Field)source.get("enclosedBy")).getText();
+     String escapedBy = ((Field)source.get("escapedBy")).getText();
+     String lineSep = ((Field)source.get("lineSep")).getText();
+     String ignore = ((Field)source.get("ignore")).getText();    
+     String intoDB = ((Combo)dest.get("dbs")).getText();
+     String intoTable = ((Combo)dest.get("tables")).getText();
+     Object[] selectedFields = ((ListBox)dest.get("fields")).getSelectedValues();
+          
+     if ( "".equals(fileName.trim()) )
+     {
+       tabs.select("Source");
+       dlg.popupMessage("Import CSV File", "Please provide a file to import.");
+       ((Field)source.get("fileName")).requestFocus();
+       return;
+     }
+     
+     if ( "".equals(fieldSep.trim()) )
+     {
+       tabs.select("Source");
+       dlg.popupMessage("Import CSV File", "Please provide a field separator.");
+       ((Field)source.get("fieldSep")).requestFocus();
+       return;
+     }
+     
+     if ( "".equals(lineSep.trim()) )
+     {
+       tabs.select("Source");
+       dlg.popupMessage("Import CSV File", "Please provide a line separator (eg. \\r\\n).");
+       ((Field)source.get("lineSep")).requestFocus();
+       return;
+     }
+     
+     if ( intoDB == null )
+     {
+       tabs.select("Destination");
+       dlg.popupMessage("Import CSV File", "Please select a database to import the data.");
+       ((Combo)dest.get("dbs")).requestFocus();
+       return;
+     }
+     
+     if ( intoTable == null )
+     {
+       tabs.select("Destination");
+       dlg.popupMessage("Import CSV File", "Please select a table to import the data.");
+       ((Combo)dest.get("tables")).requestFocus();
+       return;
+     }
+     
+     if ( selectedFields.length == 0 )
+     {
+       tabs.select("Destination");
+       dlg.popupMessage("Import CSV File", "Please select columns corresponding to the values in the import file.");
+       ((ListBox)dest.get("fields")).requestFocus();
+       return;
+     }
+     
+     StringBuilder buffer = new StringBuilder(500);
+     buffer.append("load data local infile '").append(fileName.replace("\\", "\\\\")).append("' into table ")
+     .append(intoDB).append(".").append(intoTable).append(" fields terminated by '")
+     .append(fieldSep).append("' ");
+     
+     if (!"".equals(enclosedBy.trim()))
+     {
+       buffer.append("enclosed by '").append(enclosedBy).append("' ");
+     }
+     
+     if (!"".equals(escapedBy.trim()))
+     {
+       buffer.append("escaped by '").append(enclosedBy).append("' ");
+     }
+     
+     buffer.append("lines terminated by '").append(lineSep).append("' ");
+     
+     if (!"".equals(ignore.trim()))
+     {
+       buffer.append("ignore ").append(ignore).append(" lines ");
+     }
+     
+     buffer.append("(");
+     
+     String sep = "";
+     for (Object o: selectedFields)
+     {
+        buffer.append(sep).append((String)o);
+        sep = ",";
+     }
+     
+     buffer.append(")");
+     
+     DB db = context.get("db");
+     try
+     {
+      db.execute(buffer.toString());
+     }
+     finally
+     {
+      dlg.dispose();
+     }
+  }
+  else if ( "Cancel".equals(who) )
+  {
+    dlg.dispose();
+  } 
+  else if ("Up".equals(who) )
+  {
+    ListBox l = dest.get("fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 ) {
+      ((ListDataModel)l.getModel()).moveUp(sel);
+      l.setSelectedIndex(sel-1 < 0 ? 0: sel-1);
+    }
+     
+  }
+  else if ("Down".equals(who) )
+  {
+    ListBox l = dest.get("fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 ) {
+      ListDataModel model = (ListDataModel)l.getModel();
+      model.moveDown(sel);
+      l.setSelectedIndex(sel+1 > model.size()-1 ? model.size()-1 : sel+1);
+    }   
+  }
+  else if ("dbs".equals(who))
+  {
+  
+    String selection = ((Combo)dest.get("dbs")).getText();
+    DB db = context.get("db");
+    DB.Result tables = db.execute("show tables from `" + selection + "`");
+    
+    Combo combo = dest.get("tables");
+    ComboUtils.populate(combo, tables, 0);
+    if ( context.get("currentTable") != null && selection.equals(context.get("currentDB")) )
+    {
+      combo.select((String)context.get("currentTable"));
+    }
+    else
+    {    
+      ListBox l = dest.get("fields");
+      ((ListDataModel)l.getModel()).clear();
+    }
+  }
+  else if ("tables".equals(who))
+  {
+  
+    System.out.println("tables event fired...");
+    String selection = ((Combo)context.get("/tabs/Destination/tables")).getText();
+    String dbsel = ((Combo)context.get("/tabs/Destination/dbs")).getText();
+    DB db = context.get("db");
+    DB.Result fields = db.execute("show columns from `" + dbsel + "`.`" + selection + "`");
+    
+    ListBox listbox = dest.get("fields");
+    ListBoxUtils.populate(listbox, fields, 0);
+  
+  }
+  else if ("openFile".equals(who))
+  {
+    String file = dlg.openFile(null, "CSV", new String[] {"csv"});
+    Field f = source.get("fileName");
+    if (file != null)
+    {
+      f.setText(file);
+    }
+  }
+    
+  
+ 
+ 
+  
+  
+  
+  
+    
+
+

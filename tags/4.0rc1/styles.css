@@ -1,0 +1,48 @@
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 80%;
+}
+h1, h2 {
+	color: rgb(121,211,31);
+}
+li {
+	padding-top: 4pt;
+}
+.separatebullet {
+	padding-top: 12pt;
+}
+img {
+	border: none;
+}
+table {
+	margin-left: 5em;
+	border-collapse: collapse;
+}
+td, th {
+	text-align: left;
+	border: 1px solid gray;
+	padding: 0.3em;
+}
+td {
+	font-style: italic;
+}
+hr {
+	margin-top: 5em;
+	margin-bottom: 1em;
+}
+cite {
+	display: block;
+	margin: 1em;
+}
+code {
+	background-color: lightsteelblue;
+}
+.skip {
+	font-size: x-small;
+}
+a {
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}

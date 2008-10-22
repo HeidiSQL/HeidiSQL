@@ -1,0 +1,39 @@
+
+  WindowContext parentContext = argObj("windowContext");
+  AutoUpdater updater = (AutoUpdater)env("updater");
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"aboutDialog", "About jHeidi " + updater.appProps.version);
+  WindowContext context = dlg.getWindowContext();
+ 
+  dlg.events("aboutDialogEvents");
+  dlg.tabLayout()
+     .insets(10, 10)
+    .space(10)
+    .icon("images/heidi.png")
+	  .image("logo", "images/heidi.png")		
+	  .space(15)
+	  .vspace(5)
+	  .textArea("notes", 400, 210)
+    .nextRow()
+    .baseline(context.get("/logo"))
+    .text(updater.appProps.version, 150, Text.CENTER)
+    .baseline(context.get("/notesScrollPane"), "South")
+    .vspace(7)
+    .space(LF.isWin?294:295)
+    .button("Close", 110)
+    .setDefaultButton("Close");
+    
+    TextArea text = context.get("/notes");
+    text.setEditable(false);
+    text.setText("Project Lead: Bill Culp\n\nTeam: Scott Gorlick, Jeremy Unruh\n\nThanks To: Ansgar Becker, The HeidiSQL Team,\nWerner Randelshofer, Josh Fleming"
+             + "\n\n" + ((updater.appProps.releaseNotes == null) ? "" :updater.appProps.releaseNotes));
+    
+    text.setCaretPosition(0);
+    
+    dlg.visible();
+     
+
+    
+    
+    
+

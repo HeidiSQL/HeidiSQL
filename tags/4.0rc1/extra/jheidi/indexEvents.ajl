@@ -1,0 +1,357 @@
+  import javax.swing.*;
+  import java.util.*;
+ 
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  log.debug("event received: " + who);
+  
+  ListBox indexFields = context.get("/indexFields");
+  ListBox fields = context.get("/fields");
+  Combo indexes = context.get("/indexes");
+    
+  
+  if ("unique".equals(who))
+  {
+    ((CheckBox)context.get("/fullText")).setSelected(false);
+  }
+  else if ("fullText".equals(who))
+  {
+    ((CheckBox)context.get("/unique")).setSelected(false);
+  }
+  else if ("Add Primary".equals(who))
+  {
+    DefaultComboBoxModel model = (DefaultComboBoxModel)indexes.getModel();
+    model.addElement("PRIMARY");
+    model.setSelectedItem("PRIMARY");
+    ((Button)context.get("/Delete")).setEnabled(true);
+    ((Button)context.get("/Add Primary")).setEnabled(false);
+  }
+  else if ("Add".equals(who))
+  {
+    Dialog d = context.get("/");
+    
+    String newIndex = d.popupQuestion("Add Index", "Enter a name for the new index:");
+    if ( newIndex != null && newIndex.trim().length() > 0)
+    {
+      DefaultComboBoxModel model = (DefaultComboBoxModel)indexes.getModel();
+      newIndex = newIndex.trim().toLowerCase();
+      if ( model.getIndexOf( newIndex ) != -1 )
+      {
+        d.popupMessage("Invalid Index Name", "That index name already exists.");
+      }
+      else
+      {
+        model.addElement(newIndex);
+        model.setSelectedItem(newIndex);
+        ((Button)context.get("/Delete")).setEnabled(true);
+      }
+      
+    }
+  
+  }
+  else if ("Delete".equals(who))
+  {
+    Dialog d = context.get("/");
+    String indexToDelete = indexes.getText();
+    
+    if (d.popupConfirm("Confirm Delete!", "Are you sure you want to delete index '" + indexToDelete + "'?"))
+    {
+      ((DefaultComboBoxModel)indexes.getModel()).removeElement(indexToDelete);
+      if ( ((DefaultComboBoxModel)indexes.getModel()).getSize() == 0 )
+      {
+        ((Button)context.get("/Delete")).setEnabled(false);
+      }
+      if ( "PRIMARY".equals(indexToDelete) )
+      {
+        ((Button)context.get("/Add Primary")).setEnabled(true);
+      }
+      
+      HashObject storedVals = indexes.getProperty("storedValues");
+      HashObject indexMap = indexes.getProperty("indexMap");
+      
+      if ( indexMap.getObject(indexToDelete) != null )
+      {
+         storedVals.remove(storedVals.getObject(indexToDelete));
+         storedVals.keySet().remove(indexToDelete);
+         context.put("lastIndex", null);
+      }
+
+    }
+  }
+  else if ("Update Indexes".equals(who))
+  {
+    String indexName = indexes.getText();
+    List<String> deletes = new ArrayList<String>();
+    List<String> adds = new ArrayList<String>();
+    HashObject indexMap = indexes.getProperty("indexMap");
+    HashObject storedVals = indexes.getProperty("storedValues");
+    
+    //flush the view to storage
+    if ( indexName != null )
+    {
+      log.debug("index selected in combo: storing to hash");
+      HashObject h = storedVals.getObject(indexName) == null ? 
+          (HashObject)new HashObject() : (HashObject)storedVals.getObject(indexName);
+      h.put("indexListModel", indexFields.getModel());
+      h.put("fieldListModel", fields.getModel());
+      h.put("unique", new Boolean(((CheckBox)context.get("/unique")).isSelected()));
+      h.put("fullText", new Boolean(((CheckBox)context.get("/fullText")).isSelected()));
+      storedVals.put(indexName, h); 
+    }
+    
+    log.debug("iterating indexes combo count: " + indexes.getItemCount());
+    for ( int i=0; i < indexes.getItemCount(); i++ )
+    {
+       indexName = (String)indexes.getItemAt(i);
+       HashObject index = (HashObject)indexMap.getObject(indexName);
+       HashObject storedIndex = (HashObject)storedVals.getObject(indexName);
+       
+       if ( index == null )
+       {
+          log.debug("added index: " + indexName);
+          //storedIndex cannot be null for adds
+          ListDataModel listModel = storedIndex.getObject("indexListModel");
+          if ( listModel.size() > 0 )
+          {
+            adds.add(indexName);
+          }
+          else
+          {
+            log.debug("skipping index with no cols: " + indexName);
+          }
+          
+       }
+       else if ( storedIndex != null ) 
+       {  
+          log.debug("diffing: " + indexName);
+          boolean isUnique = "0".equals(((HashObject)index.get(0)).get("non_unique"));
+          boolean isFullText = "FULLTEXT".equals(((HashObject)index.get(0)).get("index_type"));
+          
+          ListDataModel listModel = storedIndex.getObject("indexListModel");
+          
+          if ( listModel.size() == 0 )
+          {
+            log.debug("skipping index with no cols: " + indexName);
+            continue;
+          }
+          
+          if ( listModel.size() != index.size() ||
+               !((Boolean)storedIndex.getObject("unique")).equals(Boolean.valueOf(isUnique)) ||
+               !((Boolean)storedIndex.getObject("fullText")).equals(Boolean.valueOf(isFullText)) )
+          {
+            deletes.add(indexName);
+            adds.add(indexName);
+            break;
+          }
+          else
+          {
+            int count = 0;
+            for (HashObject col : (List<HashObject>)index )
+            {
+               if ( !col.get("column_name").equals( listModel.get(count) ) )
+               {
+                  deletes.add(indexName);
+                  adds.add(indexName);
+                  break;
+               }
+            }
+          }
+          log.debug("no changes to: " + indexName);
+       } 
+    }
+    
+    for ( String key: (Set<String>)indexMap.keySet() )
+    {
+      if ( ((DefaultComboBoxModel)indexes.getModel()).getIndexOf(key) == -1 )
+      {
+        log.debug("deleted: " + key);
+        deletes.add( key );
+      }
+    }
+    
+    if ( deletes.size() > 0 || adds.size() > 0 )
+    {
+        log.debug("changes were made - generating statement");
+        //ALTER TABLE `tablename` DROP INDEX `NewIndex`, ADD FULLTEXT `NewIndex` (`another`, `FieldName`, `whoever`)
+        StringBuilder buffer = new StringBuilder(500);
+        buffer.append("alter table ").append(context.get("currentTable"));
+        
+        String sep=" ";
+        for (String ndx : deletes)
+        {
+            if ( "PRIMARY".equals(ndx) )
+            {
+              buffer.append(sep).append("drop primary key");
+            }
+            else 
+            {
+              buffer.append(sep).append("drop index ").append(ndx);
+            }
+            sep=", ";
+        }
+        for (String ndx : adds)
+        {
+            log.debug("iterating adds: added: " + ndx);
+            HashObject storedIndex = (HashObject)storedVals.getObject(ndx);
+            ListDataModel listModel = storedIndex.getObject("indexListModel");
+
+            buffer.append(sep).append("add ");
+            if ("PRIMARY".equals(ndx))
+            {
+              buffer.append("primary key ");
+            }
+            else if (Boolean.TRUE.equals((Boolean)storedIndex.getObject("unique")))
+            {
+              buffer.append("unique ").append(ndx);
+            }
+            else if (Boolean.TRUE.equals((Boolean)storedIndex.getObject("fullText")))
+            {
+              buffer.append("fulltext ").append(ndx);
+            }
+            else
+            {
+              buffer.append("index ").append(ndx);
+            }  
+            buffer.append(" (");
+            
+            String sep2="";
+            for (String colName :  listModel)
+            {
+              buffer.append(sep2).append(colName);
+              sep2=", ";
+            }
+            buffer.append(")");
+            sep=", ";
+        }
+        log.debug("The sql is: " + buffer.toString());
+        
+        DB db = context.get("db");
+        db.begin();
+        db.execute("use " + context.get("currentDB"));
+        db.execute(buffer.toString());
+        db.end();
+        
+        context.put("dlgResult", Boolean.TRUE);
+     
+    }
+    ((Dialog)context.get("/")).dispose();
+            
+  }
+  else if ( "indexes".equals(who) )
+  {
+      //this must diff the avail cols with the cols in index
+      //keeping both in order shifitng in and out as the user changes sel
+      if ( indexes.getText() == null )
+      {
+        //user deleted all indexes?
+        indexFields.setModel(new ListDataModel(new String[0]));
+        fields.setModel(new ListDataModel(new String[0]));
+        return;
+      }
+      if ( !indexes.getText().equals(context.get("lastIndex")))
+      {
+        HashObject indexMap = indexes.getProperty("indexMap");
+        HashObject storedVals = indexes.getProperty("storedValues");
+
+        if ( context.get("lastIndex") != null )
+        {
+          String indexName = context.get("lastIndex");
+          //store the last indexes properties
+          HashObject h = storedVals.getObject(indexName) == null ? (HashObject)new HashObject() : (HashObject)storedVals.getObject(indexName);
+
+          h.put("indexListModel", indexFields.getModel());
+          h.put("fieldListModel", fields.getModel());
+          h.put("unique", new Boolean(((CheckBox)context.get("/unique")).isSelected()));
+          h.put("fullText", new Boolean(((CheckBox)context.get("/fullText")).isSelected()));
+          storedVals.put(indexName, h);
+        }
+        
+        HashObject index = (HashObject)indexMap.getObject(indexes.getText());
+        if ( storedVals.getObject(indexes.getText()) != null )
+        {
+           HashObject h = storedVals.getObject(indexes.getText());
+           indexFields.setModel((ListDataModel)h.getObject("indexListModel"));
+           fields.setModel((ListDataModel)h.getObject("fieldListModel"));
+           ((CheckBox)context.get("/unique")).setSelected((Boolean)h.getObject("unique"));
+           ((CheckBox)context.get("/fullText")).setSelected((Boolean)h.getObject("fullText"));
+        }
+        else 
+        {
+          String[] allCols = indexes.getProperty("allColumns");
+          
+          List cols = new ArrayList();
+          List indexCols = new ArrayList();
+          
+          boolean isUnique = index != null && "0".equals(((HashObject)index.get(0)).get("non_unique"));
+          boolean isFullText = index != null && "FULLTEXT".equals(((HashObject)index.get(0)).get("index_type"));
+          
+          for (String col: allCols)
+          {
+             if ( index==null ||  index.getObject(col) == null )
+             {
+                cols.add(col);
+             }
+          }
+          if ( index != null )
+          {
+            for (HashObject h : (List<HashObject>)index)
+                 indexCols.add(h.get("column_name"));
+          }
+             
+          fields.setModel(new ListDataModel(cols.toArray()));
+          indexFields.setModel(new ListDataModel(indexCols.toArray()));
+          ((CheckBox)context.get("/unique")).setSelected(isUnique);
+          ((CheckBox)context.get("/fullText")).setSelected(isFullText);
+        }
+
+        boolean enableChecks = !"PRIMARY".equals(indexes.getText());
+        ((CheckBox)context.get("/unique")).setEnabled(enableChecks);
+        ((CheckBox)context.get("/fullText")).setEnabled(enableChecks);
+          
+        context.put("lastIndex", indexes.getText());
+      }
+
+  }
+  else if ("fields".equals(who) )
+  {
+     if ( fields.getSelectedIndex() > -1 )
+     {
+      indexFields.clearSelection();
+     }
+  }
+  else if ("indexFields".equals(who) )
+  {
+     if ( indexFields.getSelectedIndex() > -1 )
+     {
+       fields.clearSelection();
+     }
+  }  
+  else if ("left".equals(who) )
+  {
+    if ( indexFields.getSelectedValue() != null)
+    {
+      ((ListDataModel)fields.getModel()).add(indexFields.getSelectedValue());
+      ((ListDataModel)indexFields.getModel()).remove(indexFields.getSelectedIndex());
+    }
+  }
+  else if ("right".equals(who) )
+  {
+    if ( fields.getSelectedValue() != null)
+    {
+      ((ListDataModel)indexFields.getModel()).add(fields.getSelectedValue());
+      ((ListDataModel)fields.getModel()).remove(fields.getSelectedIndex());
+    }
+  }
+  else if ( "Cancel".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  
+  
+  
+  
+  
+    
+
+

@@ -1,0 +1,54 @@
+
+String src = arg("source");
+
+WindowContext context = argObj("windowContext");
+
+log.debug("Event received: " + src);
+
+if (src == "SQL Help")
+{
+  script("helpDialog", args());
+}
+else if (src == "Heidi SQL Website")
+{
+   BareBonesBrowserLaunch.openURL("http://www.heidisql.com");
+}
+else if (src == "Downloads")
+{
+   BareBonesBrowserLaunch.openURL("http://download.heidisql.com/");
+}
+else if (src == "Support Forums")
+{
+   BareBonesBrowserLaunch.openURL("http://www.heidisql.com/forum/");
+}
+else if (src == "Bug Tracker")
+{
+  BareBonesBrowserLaunch.openURL("http://code.google.com/p/heidisql/issues/list?q=type:Defect");
+}
+else if (src == "Feature Tracker")
+{
+  BareBonesBrowserLaunch.openURL("http://code.google.com/p/heidisql/issues/list?q=type:Enhancement");
+}
+else if (src == "About")
+{
+   script("aboutDialog", args());
+}
+else if (src == "Check For Updates")
+{
+   worker("autoUpdateWorker", args());
+}
+else
+{
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+  
+    
+  
+  
+
+
+  
+
+
+
+

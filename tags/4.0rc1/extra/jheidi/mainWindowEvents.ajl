@@ -1,0 +1,177 @@
+
+String who = arg("source");
+WindowContext context = argObj("windowContext");
+log.debug("Event received: " + who);
+
+if ("Close".equals(who) )
+{
+  Frame window = context.get("/");
+  script("removeFromWindowMenu", args());
+  window.dispose();
+}
+else if ("Connection".equals(who))
+{
+  script("jheidi");
+}
+else if ("Refresh".equals(who))
+{
+  
+  thread("initTree", args(), true);
+  
+  Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
+  String script = tab.getProperty("refreshScript");
+  if ( script != null )
+  {
+    thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+  }
+  
+}
+//we may need a better way of doing this?
+else if ("Cut".equals(who) || "Copy".equals(who) || "Paste".equals(who) )
+{
+  Editor editor = context.get("/mainTabs/Query/editor");
+  log.debug("editor focus? " + editor.hasFocus());
+  if ( true /*for now editor.hasFocus()*/ )
+  {
+     if ( "Cut".equals(who) )
+     {
+        editor.cut();
+     }
+     else if ("Copy".equals(who))
+     {
+        editor.copy();
+     }
+     else if ("Paste".equals(who))
+     {
+        editor.paste();
+     }
+  }
+} 
+else if ("Drop Table".equals(who))
+{
+  Tree schemaTree = context.get("/schemaTree");
+  NodeInfo node = schemaTree.getSelectedNode();
+  if ( node != null && "table".equals(node.getType()) )
+  {
+     NodeInfo dbNode = node.getParent();
+     Frame f = context.get("/");
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?"))
+     {
+       args().put("tableToDrop", node.getText());
+       script("dropTable", args());
+       node.remove();
+       //force the tabs to refresh and the db info to reload
+       //schema tree events will be called by the tree itself
+       context.put("currentDB", null);
+       schemaTree.select(dbNode);
+     }
+  }
+  
+}
+else if ("Create Database".equals(who))
+{
+  if ( script("createDBDialog", args()) != null )
+  {
+    Tree schemaTree = context.get("/schemaTree");
+    thread("initTree", args(), true);
+  }
+  
+}
+else if ("Create Table".equals(who))
+{
+  if ( script("createTableDialog", args()) != null )
+  {
+    Tree schemaTree = context.get("/schemaTree");
+    thread("initTree", args(), true);
+  }
+  
+}
+else if ("Drop Database".equals(who))
+{
+  Tree schemaTree = context.get("/schemaTree");
+  NodeInfo node = schemaTree.getSelectedNode();
+  NodeInfo root = node.getParent();
+  if ( node != null && "db".equals(node.getType()) )
+  {
+     Frame f = context.get("/");
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop db '" + node.getText() + "'?"))
+     {
+      args().put("dbToDrop", node.getText());
+      DB db = context.get("db");
+      db.execute("drop database " + node.getText());
+      node.remove();
+      schemaTree.select(root);
+     }
+  }
+}
+else if ("Maintenance".equals(who))
+{
+  script("maintenanceDialog", args());
+}
+else if ("User Manager".equals(who))
+{
+  script ("userManagerDialog", args());
+}
+else if ("Load SQL File".equals(who))
+{
+  Frame f = context.get("/");
+  Tabs tabs = context.get("/mainTabs");
+  tabs.select("Query");
+  String file = f.openFile(null, "SQL Script Files", "sql");
+  if (file != null)
+  {
+    Editor editor = context.get("/mainTabs/Query/editor");
+    editor.setText(FileUtil.toString(file));
+    editor.setProperty("filePath", file);
+  }
+}
+else if ("Import CSV File".equals(who))
+{
+  script("importCSVDialog",args());
+}
+else if ("Copy as CSV Data".equals(who))
+{
+  String csv = (String)script("resultsToCSV",args());
+  SystemUtil.copyToClipboard(csv);
+}
+else if ("Copy as HTML Data".equals(who))
+{
+  String html = (String)script("resultsToHTML",args());
+  SystemUtil.copyToClipboard(html);
+}
+else if ("Copy as XML Data".equals(who))
+{
+  String xml = (String)script("resultsToXML",args());
+  SystemUtil.copyToClipboard(xml);
+}
+else if ("Export Data...".equals(who))
+{
+  DB.Result results = context.get("lastQueryResults");
+  if ( results != null && !results.isEmpty())
+  {
+    Frame f = context.get("/");
+    args().put("source", "exportAsFile");
+    f.saveFileWithCallback("mainWindowEvents", args(), false, null, "CSV", "csv", "HTML", "html",  "XML", "xml" );
+  }
+}
+else if ("exportAsFile".equals(who))
+{
+   String output = (String)script("resultsTo" + arg("fileType"), args());
+   FileUtil.fromString(arg("filePath"), output);
+}
+else if ( "Export Tables as SQL".equals(who) )
+{
+  script("exportDDLDialog",args());
+} 
+else if ( "Import Files Into Blob Fields".equals(who) )
+{
+  script("filesToBlobsDialog",args());
+}
+else if ( "Exit".equals(who) )
+{
+  System.exit(0);
+} 
+else {
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+
