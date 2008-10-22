@@ -67,7 +67,8 @@ end;
 
 procedure TfrmBinEditor.SetFont(font: TFont);
 begin
-  memoText.Font := font;
+  memoText.Font.Name := font.Name;
+  memoText.Font.Size := font.Size;
 end;
 
 procedure TfrmBinEditor.FormCreate(Sender: TObject);
