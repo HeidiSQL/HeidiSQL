@@ -1392,7 +1392,7 @@ var
 begin
   Result := '';
   for i:=1 to Length(Val) do begin
-    if Val[i] in ['0'..'9'] then
+    if (Val[i] in ['0'..'9']) or ((i=1) and (Val[i]='-')) then
       Result := Result + Val[i]
     else if Val[i] = DecimalSeparator then
       Result := Result + '.';   
