@@ -1331,6 +1331,11 @@ begin
   Screen.Cursor := crHourglass;
   viewingdata := true;
   sl_query := TWideStringList.Create();
+
+  // Post pending update and set post + cancel buttons to valid state
+  if DataGridHasChanges then
+    Mainform.actDataPostChangesExecute(Sender);
+
   try
     if (SelectedTable <> '') and (ActiveDatabase <> '') then begin
       // Ensure <Table> and <Data> are visible
