@@ -5900,7 +5900,14 @@ begin
   try
     // Send UPDATE query
     if (ExecUpdateQuery(sql, False, True) = 0) then begin
-      MessageBox(Self.Handle, 'Failed to update data: server could not find source row.', 'Error', 0);
+      MessageDlg('Your change did not affect any row! This can have several causes:' + CRLF + CRLF +
+        'a) Your changes were silently converted by the server. For instance, if you tried to ' +
+        'update an unsigned TINYINT field from its maximum value 255 to a higher value.' + CRLF + CRLF +
+        'b) The server could not find the source row because it was deleted ' +
+        'from outside.' + CRLF + CRLF +
+        'c) The server could not find the source row because its primary key fields were modified ' +
+        'from outside.',
+        mtInformation, [mbOK], 0);
     end;
     Result := True;
   except
