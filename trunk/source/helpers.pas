@@ -203,7 +203,7 @@ type
   end;
 
 const
-  charset_conv_table: array[0..6] of CharacterSet = (
+  charset_conv_table: array[0..7] of CharacterSet = (
     (codepage: 1250; charset: 'cp1250'), // ANSI Central European; Central European (Windows)
     (codepage: 1251; charset: 'cp1251'), // ANSI Cyrillic; Cyrillic (Windows)
     (codepage: 1252; charset: 'latin1'), // ANSI Latin 1; Western European (Windows)
