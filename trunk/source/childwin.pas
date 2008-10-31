@@ -6442,7 +6442,7 @@ begin
     TargetCanvas.Brush.Color := clHighlight;
     TargetCanvas.FillRect(CellRect);
   end else if vsSelected in Node.States then begin
-    TargetCanvas.Brush.Color := clSkyBlue;
+    TargetCanvas.Brush.Color := $0040FFFF;
     TargetCanvas.FillRect(CellRect);
   end else if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
     TargetCanvas.Brush.Color := prefNullBG;
