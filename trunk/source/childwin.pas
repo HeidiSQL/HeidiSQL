@@ -6441,14 +6441,14 @@ begin
     Exit;
   if Sender = DataGrid then gr := @FDataGridResult
   else gr := @FQueryGridResult;
-  if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
-    TargetCanvas.Brush.Color := prefNullBG;
-    TargetCanvas.FillRect(CellRect);
-  end else if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
+  if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     TargetCanvas.Brush.Color := clHighlight;
     TargetCanvas.FillRect(CellRect);
   end else if vsSelected in Node.States then begin
     TargetCanvas.Brush.Color := clSkyBlue;
+    TargetCanvas.FillRect(CellRect);
+  end else if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
+    TargetCanvas.Brush.Color := prefNullBG;
     TargetCanvas.FillRect(CellRect);
   end;
 end;
