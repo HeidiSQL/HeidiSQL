@@ -5622,10 +5622,7 @@ begin
   if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
   c := @gr.Rows[Node.Index].Cells[Column];
   EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
-  if prefEnableNullBG and (c.IsNull or c.NewIsNull) then begin
-    // Don't display any text if NULL background was activated. In most cases better readable
-    CellText := '';
-  end else if c.Modified then begin
+  if c.Modified then begin
     if c.NewIsNull then begin
       if EditingCell then CellText := ''
       else CellText := TEXT_NULL;
