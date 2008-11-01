@@ -152,6 +152,15 @@ end;
 
 
 procedure TfrmBinEditor.btnCancelClick(Sender: TObject);
+begin
+  if FStopping then
+    Exit;
+  FStopping := True;
+  TCustomVirtualStringTree(Owner).CancelEditNode;
+end;
+
+
+procedure TfrmBinEditor.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   DoPost: Boolean;
 begin
@@ -166,12 +175,6 @@ begin
     TCustomVirtualStringTree(Owner).EndEditNode
   else
     TCustomVirtualStringTree(Owner).CancelEditNode;
-end;
-
-
-procedure TfrmBinEditor.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  btnCancelClick(Sender);
 end;
 
 
