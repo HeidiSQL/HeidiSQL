@@ -1090,7 +1090,6 @@ object MDIChild: TMDIChild
               Font.Height = -11
               Font.Name = 'Tahoma'
               Font.Style = []
-              Images = MainForm.PngImageListMain
               ParentShowHint = False
               ShowHint = False
               Style = tsModernTabs
@@ -1101,7 +1100,6 @@ object MDIChild: TMDIChild
                 'Snippets')
               TabIndex = 0
               OnChange = tabsetQueryHelpersChange
-              OnGetImageIndex = tabsetQueryHelpersGetImageIndex
             end
             object lboxQueryHelpers: TTntListBox
               Left = 0
