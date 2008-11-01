@@ -3148,9 +3148,10 @@ begin
     then begin
     Grid := Sender as TVirtualStringTree;
     // TODO: Clipboard.AsText is not Unicode safe!
-    if Key = Ord('C') then
+    if Key = Ord('C') then begin
+      EnsureFullWidth(Grid, Grid.FocusedColumn, Grid.FocusedNode);
       CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn])
-    else if Key = Ord('V') then begin
+    end else if Key = Ord('V') then begin
       CB := TUniClipboard.Create;
       Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := CB.AsWideString;
     end
