@@ -10,7 +10,7 @@ Highlighter.HighlightPainter painter = context.get("editorPainter");
 
 if ( painter == null )
 {
-   Color HILIT_COLOR = Color.LIGHT_GRAY;
+   Color HILIT_COLOR = new Color(203, 223, 245);
    hilit = new DefaultHighlighter();
    painter = new DefaultHighlighter.DefaultHighlightPainter(HILIT_COLOR);
    editor.setHighlighter(hilit);
