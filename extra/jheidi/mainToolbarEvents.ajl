@@ -14,6 +14,9 @@ if ("Connect".equals(who) )
 else if ("Refresh".equals(who))
 {
   
+  DB db = context.get("db");
+  db.flushCache();
+   
   thread("initTree", args(), true);
   
   Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
