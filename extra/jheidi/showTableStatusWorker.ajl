@@ -26,7 +26,7 @@
   
     //let the refresh button know what to do
     Panel tab = context.get("/mainTabs/Database");
-    tab.setProperty("refreshScript", "loadDatabaseInfo");
+    tab.setProperty("refreshScript", "showTableStatusWorker");
     tab.setProperty("refreshArgs", args());
     
   }
