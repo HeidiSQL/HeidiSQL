@@ -14,6 +14,8 @@
      DB db = context.get("db");
      db.execute("create database " + dbName.getText() + " default character set '"
            + charSet.getText() + "' default collate '" + coll.getText() + "'");
+
+     db.flushStatement("show databases");
      
      context.put("dlgResult", Boolean.TRUE);
      
