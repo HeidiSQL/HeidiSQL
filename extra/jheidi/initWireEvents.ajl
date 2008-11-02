@@ -2,8 +2,6 @@
 
  WindowContext context = argObj("windowContext");
  
- System.out.println(context.get("/Edit/Copy"));
-
  context.wireEvent("/mainTabs/Query/editor", "/Edit:/Edit/Copy:/Edit/Paste:/Edit/Cut:/mainToolbar/Cut:/mainToolbar/Copy:/mainToolbar/Paste", "focusGained:focusLost", "enabled:disabled");
  context.wireEvent("/consoleTabs/SQL Log/outputWindow", "/Edit:/Edit/Copy:/mainToolbar/Copy", "focusGained:focusLost", "enabled:disabled");
 
