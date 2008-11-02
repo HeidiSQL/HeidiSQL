@@ -6,7 +6,7 @@ Editor editor = context.get("/mainTabs/Query/editor");
 
 log.debug("Event received: " + who);
 
-if ("Run".equals(who) || "Run Selection".equals(who) )
+if ("Run" == who || "Run Selection" == who )
 {
   String editorText = who.startsWith("Run S") ? editor.getSelectedText() : editor.getText();
   if ( editorText != null  )
@@ -47,7 +47,13 @@ if ("Run".equals(who) || "Run Selection".equals(who) )
     if ( queries.size() > 0 )
     {
       args().put("userQueries", queries);
-      thread("runUserQueries", args(), true);
+      String firstQuery = ((String)queries.get(0)).length() > 150? ((String)queries.get(0)).substring(0, 149) : (String)queries.get(0);
+      ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
+      btn.setEnabled(true);
+      args().put("waitOperation", "user query \"" + firstQuery + "\"...");
+      Worker w = worker("runUserQueriesWorker", args());
+      args().put("worker", w);
+      LongRunningTask.detect("progressWaiter", args(), w , 350);
     }
   }
 }
@@ -88,6 +94,13 @@ else if ("Search".equals(who) && !LF.isWin)
      script("searchText", args());
   } 
   
+}
+else if ("Stop" == who)
+{
+  ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
+  btn.setEnabled(false);
+  
+  Worker.cancel("runUserQueriesWorker");
 }
 else if ("Clear".equals(who))
 {

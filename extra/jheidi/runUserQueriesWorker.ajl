@@ -1,0 +1,77 @@
+  import java.util.*;
+  
+  WindowContext context = argObj("windowContext");
+  HashObject userQueries = argObj("userQueries");
+  Worker w = argObj("worker");
+  
+  if (arg("backgroundTask") != null)
+  {
+    DB.Result results = null;
+    
+    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+
+    db.begin();
+    if (context.get("currentDB") != null)
+    {
+      db.execute("use " + context.get("currentDB"));
+    }
+    db.setLimit(1000);
+    for (String userQuery : (List<String>)userQueries)
+    {
+      try {
+        results = db.execute(userQuery);
+      }
+      catch (Exception e)
+      {
+        log.error("",e);
+        
+      }
+    }
+    db.setLimit(-1);
+    db.end();
+    
+    publish(results);
+  
+  }
+  else if (arg("update") != null)
+  {   
+    DB.Result results = (DB.Result)((List)argObj("taskResult")).get(0);
+    
+    if ( results != null )
+    {
+    //if the last statement didnt have any results oh well!
+      Table t = context.get("/mainTabs/Query/results");
+      TableUtils.populate(t, results);
+      
+      context.put("lastQuerySQL", userQueries.get(userQueries.size()-1));
+      context.put("lastQueryResults", results);
+    }
+    
+    ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
+    btn.setEnabled(false);
+  }
+  
+    
+
+  
+  
+
+  
+
+ 
+    
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+	
