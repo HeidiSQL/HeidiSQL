@@ -23,6 +23,8 @@ else
 }
 
 String content = editor.getText();
+content = content.replace("\r\n", "\n");
+
 int index = content.indexOf(searchText, 0);
 if (index >= 0)
 { 
