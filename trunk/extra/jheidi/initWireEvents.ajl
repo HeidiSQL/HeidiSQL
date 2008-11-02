@@ -8,6 +8,15 @@
  context.wireEvent("/mainTabs/Query/editor", "/mainTabs/Query/toolbar/Run:/mainTabs/Query/toolbar/Search:/mainTabs/Query/toolbar/Clear",  "containsText", "enabled:disabled");
  context.wireEvent("/mainTabs/Query/editor", "/mainTabs/Query/toolbar/Run Selection",  "selectedText", "enabled:disabled");    
  
-    
+ ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
+ btn.setEnabled(false);
+ 
+ btn = context.get("/mainTabs/Table/toolbar/New Field");
+ btn.setEnabled(false);
+ 
+ btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+ btn.setEnabled(false);
+
+ 
 
  
