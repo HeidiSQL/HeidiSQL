@@ -52,7 +52,9 @@
 	    
 	    
       
-  DB db = context.get("db");
+  DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+  db.useCache(false);
+  
   DB.Result result = db.execute("show columns from `mysql`.`user` where field like '%_priv'");
   String[] privList = new String[result.size()];
   int[] selections = new int[8];
