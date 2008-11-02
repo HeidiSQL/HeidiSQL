@@ -1,6 +1,4 @@
   import java.awt.BorderLayout;
-  import java.awt.Insets;
-  import java.awt.Component;
   import javax.swing.*;
   import javax.swing.border.*;
   
@@ -12,10 +10,10 @@
   String message = arg("waitOperation");
   
   Panel statusBar = context.get("/statusBar");
- 
   JLabel text = statusBar.getProperty("text");
   ProgressBar pbar = statusBar.getProperty("pbar");
   Stack messages = statusBar.getProperty("messages");
+  Stack workers = statusBar.getProperty("workers");
 
    
   synchronized (this.getClass())
@@ -32,6 +30,12 @@
        statusBar.setProperty("messages", messages);
     }
     
+    if ( workers == null )
+    {
+       workers = new Stack();
+       statusBar.setProperty("workers", workers);
+    }
+    
     if ( pbar == null )
     {
       pbar = new ProgressBar();
@@ -42,8 +46,9 @@
     }
       
     messages.push(message);
+    workers.push(worker);
     
-    text.setText("Waiting for " + (String)messages.pop());
+    text.setText("Waiting for " + message);
 
     try
     {
@@ -56,7 +61,7 @@
     statusBar.updateUI();
   }
     
-  while (!worker.isDone()) {}; 
+  while (!worker.isDone()) {};
   
   /*
    * if the worker is Cancelled - we know that the user probably tried to invoke the same function 
@@ -64,22 +69,34 @@
    * hopefully this is normally a safe assumption if we just check "done" instead of cancelled
    * we will unneccesarily go back to the ready state and then change to the next wait message
    */
-  if ( !worker.isCancelled() )
-  {
+   
     synchronized(this.getClass())
     {
-      if ( messages.size() > 0)
+      while(workers.size() > 0)
       {
-         text.setText("Waiting for " + (String) messages.pop());
+        worker = (Worker)workers.peek();
+        if (worker.isDone())
+        {
+           workers.pop();
+           messages.pop();
+        }
+        else
+        {
+          text.setText("Waiting for " + (String) messages.peek());
+        } 
       }
-      else
+      
+      if ( workers.size() == 0)
       {
-         text.setText("Ready");
-         statusBar.remove(1);
-         statusBar.updateUI();
+        text.setText("Ready");
+        statusBar.remove(1);
+        statusBar.updateUI();
       }
+
     }
-  }
+      
+    
+  
       
   
 
