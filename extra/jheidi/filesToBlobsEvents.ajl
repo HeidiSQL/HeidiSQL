@@ -132,7 +132,8 @@
   {
   
     String selection = ((Combo)dlg.get("dbs")).getText();
-    DB db = context.get("db");
+    DB db = new SQLLoggingDB(((SQLLoggingDB)context.get("db"));
+    db.useCache(false);
     DB.Result tables = db.execute("show tables from `" + selection + "`");
     
     Combo combo = dlg.get("tables");
@@ -161,7 +162,8 @@
   {
     String selection = ((Combo)context.get("/tables")).getText();
     String dbsel = ((Combo)context.get("/dbs")).getText();
-    DB db = context.get("db");
+    DB db = new SQLLoggingDB(((SQLLoggingDB)context.get("db"));
+    db.useCache(false);
     DB.Result otherFields = db.execute("show columns from `" + dbsel + "`.`" + selection + "` where type not like '%blob'");
     DB.Result blobFields = db.execute("show columns from `" + dbsel + "`.`" + selection + "` where type like '%blob'");
     

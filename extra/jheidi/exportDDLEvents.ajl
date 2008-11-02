@@ -15,6 +15,7 @@
   {
     String selection = ((Combo)source.get("dbs")).getText();
     DB db = context.get("db");
+    db.flushStatement("show tables from `" + selection + "`");
     DB.Result result = db.execute("show tables from `" + selection + "`");
     
     ListBoxUtils.populate(tables, result, 0);
@@ -120,7 +121,9 @@
       }
     }  
     
-    DB db = context.get("db");
+    DB db = new SQLLoggingDB(((SQLLoggingDB)context.get("db"));
+    db.useCache(false);
+    
     db.begin();
     db.execute("use " + ((Combo)source.get("dbs")).getText());
 

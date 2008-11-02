@@ -71,8 +71,7 @@
       db.execute("use " + context.get("currentDB"));
       db.execute(buffer.toString());
       db.end();
-    
-     
+      
      context.put("dlgResult", Boolean.TRUE);
      
      d.dispose();
