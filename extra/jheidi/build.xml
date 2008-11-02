@@ -142,7 +142,8 @@
        of showing the ant call target and making it look like that target took over in the output -->
     
   <target name="clean.compile">
-    <delete dir="${classes}"/>     
+    <delete dir="${classes}"/>   
+    <mkdir dir="${classes}"/>  
   </target> 
   
   <target name="compile.ajl">
@@ -198,6 +199,7 @@
       <fileset dir="${classes}"/>
     </copy>
     <zip destfile="${lib}/${ajl.jar}" basedir="${build.classes}"/>
+    <antcall target="clean.compile"/>
   </target>
   
   <target name="autoupdater.jar" depends="compile.autoupdater">
@@ -211,6 +213,7 @@
     </copy>
     <copy file="${autoupdater.manifest}" tofile="${build.meta-inf}/MANIFEST.MF"/>
     <zip destfile="${lib}/${autoupdater.jar}" basedir="${build.classes}"/>
+    <antcall target="clean.compile"/>
   </target>
   
   <target name="jheidi.jar" depends="compile">
