@@ -15,14 +15,25 @@ else if ("Connection".equals(who))
 }
 else if ("Refresh".equals(who))
 {
-  
+  DB db = context.get("db");
+  db.flushCache();
+   
   thread("initTree", args(), true);
   
   Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
   String script = tab.getProperty("refreshScript");
   if ( script != null )
   {
-    thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+    if ( script.endsWith("Worker") )
+    {
+        Worker w = worker(script, (HashObject)tab.getProperty("refreshArgs"));
+        args().put("worker", w);
+        LongRunningTask.detect("progressWaiter", args(), w , 350);
+    }
+    else
+    {
+      thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+    }
   }
   
 }
