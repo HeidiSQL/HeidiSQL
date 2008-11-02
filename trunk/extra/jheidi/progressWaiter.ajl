@@ -63,37 +63,30 @@
     
   while (!worker.isDone()) {};
   
-  /*
-   * if the worker is Cancelled - we know that the user probably tried to invoke the same function 
-   * albeit with different parameters or restarted the operation.
-   * hopefully this is normally a safe assumption if we just check "done" instead of cancelled
-   * we will unneccesarily go back to the ready state and then change to the next wait message
-   */
-   
-    synchronized(this.getClass())
+  synchronized(this.getClass())
+  {
+    while(workers.size() > 0)
     {
-      while(workers.size() > 0)
+      worker = (Worker)workers.peek();
+      if (worker.isDone())
       {
-        worker = (Worker)workers.peek();
-        if (worker.isDone())
-        {
-           workers.pop();
-           messages.pop();
-        }
-        else
-        {
-          text.setText("Waiting for " + (String) messages.peek());
-        } 
+         workers.pop();
+         messages.pop();
       }
-      
-      if ( workers.size() == 0)
+      else
       {
-        text.setText("Ready");
-        statusBar.remove(1);
-        statusBar.updateUI();
-      }
-
+        text.setText("Waiting for " + (String) messages.peek());
+      } 
     }
+    
+    if ( workers.size() == 0)
+    {
+      text.setText("Ready");
+      statusBar.remove(1);
+      statusBar.updateUI();
+    }
+
+  }
       
     
   
