@@ -75,6 +75,7 @@
           .button("Cancel", 110);
           
   DB db = context.get("db");
+  db.flushStatement("show databases");
   db.begin();
   DB.Result dbs = db.execute("show databases");
   db.end();  

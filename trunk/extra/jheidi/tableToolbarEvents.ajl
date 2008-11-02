@@ -7,17 +7,18 @@ boolean refreshTableTab = false;
 
 log.debug("Event received: " + who);
 
-if ( context.get("currentTable") == null )
+String tableName = context.get("currentTable");
+if ( tableName  == null )
 {
   return;
 }
+
 
 if ("Delete Field".equals(who) )
 {
   if ( table.getSelectedRow() != -1 )
   {
      Frame frame = context.get("/");
-     String tableName = context.get("currentTable");
      String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
      if (frame.popupConfirm("Confirm Delete!", "Are you sure you want to drop field '" + tableName + "." + fieldName + "'?", "images/deletefield.gif"))
      {
@@ -65,6 +66,9 @@ else
 
 if ( refreshTableTab )
 {
+  DB db = context.get("db");
+  db.flushStatement("show full columns from `" + tableName + "`");
+  
   Panel tab = context.get("/mainTabs/Table");
   String script = tab.getProperty("refreshScript");
   thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
