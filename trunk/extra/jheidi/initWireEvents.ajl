@@ -5,6 +5,8 @@
  context.wireEvent("/mainTabs/Query/editor", "/Edit:/Edit/Copy:/Edit/Paste:/Edit/Cut:/mainToolbar/Cut:/mainToolbar/Copy:/mainToolbar/Paste", "focusGained:focusLost", "enabled:disabled");
  context.wireEvent("/consoleTabs/SQL Log/outputWindow", "/Edit:/Edit/Copy:/mainToolbar/Copy", "focusGained:focusLost", "enabled:disabled");
  context.wireEvent("/mainTabs/Table/table", "/mainTabs/Table/toolbar/Edit Field:/mainTabs/Table/toolbar/Delete Field",  "rowSelected", "enabled:disabled");
+ context.wireEvent("/schemaTree", "/mainToolbar/Drop Database:/Tools/Drop Database",  "selectedType:db", "enabled:disabled");
+ context.wireEvent("/schemaTree", "/mainToolbar/Drop Table:/Tools/Drop Table",  "selectedType:table", "enabled:disabled");
  context.wireEvent("/mainTabs/Query/editor", "/mainTabs/Query/toolbar/Run:/mainTabs/Query/toolbar/Search:/mainTabs/Query/toolbar/Clear",  "containsText", "enabled:disabled");
  context.wireEvent("/mainTabs/Query/editor", "/mainTabs/Query/toolbar/Run Selection",  "selectedText", "enabled:disabled");    
  
