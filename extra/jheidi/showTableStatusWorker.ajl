@@ -4,8 +4,9 @@
   
   if (arg("backgroundTask") != null)
   {
-
-    DB db = ((DB)context.get("db")).clone();
+    
+    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    
     DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
 
     publish(databases);
