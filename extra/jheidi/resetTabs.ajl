@@ -29,7 +29,13 @@
   banner.setText("No table selected");
   table = context.get("/mainTabs/Data/table");
   table.clear();
+ 
+  ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
+  btn.setEnabled(false);
   
+  btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+  btn.setEnabled(false);
+
  
   
     
