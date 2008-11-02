@@ -9,6 +9,7 @@
     DB.Result results = null;
     
     DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    db.useCache(false);
 
     db.begin();
     if (context.get("currentDB") != null)
