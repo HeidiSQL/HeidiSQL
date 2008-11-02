@@ -25,6 +25,7 @@ try
   ds.setLoginTimeout(Integer.parseInt(profile.get("timeout")));
 
   db = new SQLLoggingDB((DataSource)ds, editor);
+  db.useCache(true);
 
 } catch (Exception e) {
    throw new RuntimeException(e);
