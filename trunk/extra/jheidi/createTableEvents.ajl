@@ -133,6 +133,8 @@
       
      DB db = context.get("db");
      db.execute(buffer.toString());
+    
+     db.flushStatement("show tables from `" + dbName + "`");
      
      context.put("dlgResult", Boolean.TRUE);
      
