@@ -18,6 +18,12 @@
   tab.setProperty("refreshScript", "loadTableInfo");
   tab.setProperty("refreshArgs", args());
   
+  ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
+  btn.setEnabled(true);
+  
+  btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+  btn.setEnabled(true);
+  
  
   
   
