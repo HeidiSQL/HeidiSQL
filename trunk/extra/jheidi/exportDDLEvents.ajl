@@ -121,7 +121,7 @@
       }
     }  
     
-    DB db = new SQLLoggingDB(((SQLLoggingDB)context.get("db"));
+    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     db.useCache(false);
     
     db.begin();
