@@ -384,13 +384,17 @@ end;
 }
 procedure TUserManagerForm.comboUsersChange(Sender: TObject);
 var
-  uid, i, Icon: Integer;
+  uid, i, Icon, PrevSelObject: Integer;
   u: TUser;
   OneSelected, Enable: Boolean;
   t: TNotifyEvent;
+  pname: WideString;
 begin
   lblWarning.Visible := False;
   uid := comboUsers.ItemIndex;
+  PrevSelObject := comboObjects.ItemIndex;
+  if PrevSelObject = -1 then
+    PrevSelObject := 0;
   comboObjects.ItemsEx.Clear;
   OneSelected := uid > -1;
   Enable := OneSelected;
@@ -439,9 +443,6 @@ begin
 
     // Display priv objects
     for i := 0 to u.Privileges.Count - 1 do begin
-      // Hide deleted priv objects
-      if u.Privileges[i].Deleted then
-        Continue;
       Icon := -1;
       case u.Privileges[i].DBOType of
         NODETYPE_DEFAULT:   Icon := ICONINDEX_SERVER;
@@ -450,10 +451,15 @@ begin
         NODETYPE_VIEW:      Icon := ICONINDEX_VIEW;
         NODETYPE_COLUMN:    Icon := ICONINDEX_FIELD;
       end;
-      comboObjects.ItemsEx.AddItem(u.Privileges[i].DBOPrettyKey, Icon, Icon, -1, 0, nil);
+      pname := u.Privileges[i].DBOPrettyKey;
+      if u.Privileges[i].Deleted then begin
+        pname := pname + ' (deleted)';
+        Icon := 46;
+      end;
+      comboObjects.ItemsEx.AddItem(pname, Icon, Icon, -1, 0, nil);
     end;
-    if comboObjects.ItemsEx.Count > 0 then
-      comboObjects.ItemIndex := 0;
+    if comboObjects.ItemsEx.Count > PrevSelObject then
+      comboObjects.ItemIndex := PrevSelObject;
     comboObjectsChange(Sender);
   end else begin
     editUsername.Text := '';
@@ -577,7 +583,7 @@ begin
       boxPrivs.Checked[i] := priv.SelectedPrivNames.IndexOf(priv.PrivNames[i]) > -1;
     end;
     EnableDelete := (priv.DBOType <> NODETYPE_DEFAULT) and
-      (priv.DBOKey <> '%');
+      (priv.DBOKey <> '%') and (not priv.Deleted);
   end;
   if comboUsers.ItemIndex > -1 then
     EnableDelete := EnableDelete and (not Users[comboUsers.ItemIndex].Deleted);
@@ -601,7 +607,7 @@ begin
     u := Users[comboUsers.ItemIndex];
     for i := 0 to u.Privileges.Count - 1 do begin
       NewObj.Delimiter := u.Privileges[i].DBONames.Delimiter;
-      if u.Privileges[i].DBOKey = NewObj.DelimitedText then begin
+      if (u.Privileges[i].DBOKey = NewObj.DelimitedText) and (not u.Privileges[i].Deleted) then begin
         MessageDlg(NewObj.DelimitedText+' already exists.', mtError, [mbOK], 0);
         comboObjects.ItemIndex := i;
         comboObjectsChange(Sender);
