@@ -6092,7 +6092,7 @@ begin
     Cols := Copy(Cols, 1, Length(Cols)-2);
     sql := 'INSERT INTO '+mask(DataGridDB)+'.'+mask(DataGridTable)+' ('+Cols+') VALUES ('+Vals+')';
     // Send INSERT query
-    if (ExecUpdateQuery(sql, False, True) = 0) then begin
+    if (ExecUpdateQuery(sql) = 0) then begin
       MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
     end;
     Result := True;
