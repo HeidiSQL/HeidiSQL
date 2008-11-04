@@ -1874,6 +1874,7 @@ begin
     Screen.Cursor := crDefault;
     // Ensure tree db node displays its chidren initialized
     DBtree.ReinitChildren(FindDBNode(db), False);
+    ValidateControls;
   end;
 end;
 
