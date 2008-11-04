@@ -213,7 +213,7 @@ object FieldEditForm: TFieldEditForm
           'No default value'
           'NULL'
           'CURRENT_TIMESTAMP'
-          'Custom string ...')
+          'Custom value ...')
       end
     end
     object tabIndexes: TTabSheet
