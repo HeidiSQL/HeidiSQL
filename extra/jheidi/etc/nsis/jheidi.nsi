@@ -23,7 +23,7 @@ Section ""
   SetOutPath $EXEDIR
 
   ClearErrors
-  Exec $0
+  ExecWait $0
 
   IfErrors 0 +3
     messageBox MB_OK "The Java Runtime Environment has not been installed.  Please visit javasoft.com and download the latest version."
