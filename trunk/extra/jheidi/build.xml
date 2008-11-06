@@ -267,6 +267,13 @@
      <path refid="bin.bin"/>
     </copy>
     
+    <chmod perm="777">
+      <fileset dir="${bin.dist}">
+        <include name="jheidi"/>
+        <include name="jheidi-osx"/>
+      </fileset>
+    </chmod>
+    
     <copy file="${etc}/${.connectionProfiles}" tofile="${bin.dist}/${.connectionProfiles}"/>
     <copy file="${bin.client.autoupdater}" tofile="${bin.dist}/${.autoupdater}"/>
     <zip destfile="${upload.dir}/${jheidi.bin.name}.zip" basedir="${dist.dir}"/>
@@ -302,6 +309,8 @@
     <copy todir="${osx.macos}">
       <path refid="osx.bin"/>
     </copy>
+    
+    <chmod file="${osx.macos}/JavaApplicationStub" perm="777"/>
     
     <copy todir="${osx.jheidi.app}">
       <fileset file="${lib}/libquaqua.jnilib"/>
