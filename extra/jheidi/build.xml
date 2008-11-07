@@ -366,6 +366,7 @@
      <mkdir dir="${win.dist}/${images}"/>
      <mkdir dir="${win.dist}/${logs}"/>
 	 <mkdir dir="${win.dist}/${innosetup}"/>
+	 <mkdir dir="${win.dist}/${bin}"/>
           
     <copy todir="${win.dist}/${lib}">
       <path refid="jheidi.libs"/>
@@ -374,6 +375,11 @@
     <copy todir="${win.dist}/${images}">
      <fileset dir="${images}"/>
     </copy>
+
+	<!-- this is the mutex stub NOT the app exe -->
+	<copy todir="${win.dist}/${bin}">
+	 <fileset file="${bin}/${jheidi.exe}"/>
+	</copy>
     
     <copy todir="${win.dist}/${logs}">
      <fileset dir="${logs}"/>
