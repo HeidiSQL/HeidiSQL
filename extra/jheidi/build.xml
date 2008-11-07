@@ -276,7 +276,12 @@
     
     <copy file="${etc}/${.connectionProfiles}" tofile="${bin.dist}/${.connectionProfiles}"/>
     <copy file="${bin.client.autoupdater}" tofile="${bin.dist}/${.autoupdater}"/>
-    <zip destfile="${upload.dir}/${jheidi.bin.name}.zip" basedir="${dist.dir}"/>
+    
+    <exec executable="zip" dir="${dist.dir}">
+      <arg value="-r"/>
+      <arg value="../${upload.dir}/${jheidi.bin.name}"/>
+      <arg value="${jheidi.bin.name}"/>
+    </exec>
   </target>
   
   <target name="deploy.osx" depends="jheidi.jar">
@@ -335,7 +340,12 @@
     
     <copy file="${etc}/${.connectionProfiles}" tofile="${osx.java}/${.connectionProfiles}"/>
     <copy file="${osx.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
-    <zip destfile="${upload.dir}/${jheidi.osx.name}.zip" basedir="${dist.dir}"/>
+    
+    <exec executable="zip" dir="${dist.dir}">
+      <arg value="-r"/>
+      <arg value="../${upload.dir}/${jheidi.osx.name}"/>
+      <arg value="jHeidi"/>
+    </exec>
   </target>
 
   <target name="jheidi.exe" if="nsis.cmd">
