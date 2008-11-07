@@ -32,7 +32,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}";
 
 [Files]
-Source: "..\jheidi.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.connectionProfiles"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.autoupdater"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\jheidi.cmd"; DestDir: "{app}"; Flags: ignoreversion
@@ -41,6 +40,7 @@ Source: "..\jheidi.jar"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\images\*"; DestDir: "{app}\images"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\logs\*"; DestDir: "{app}\logs"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
