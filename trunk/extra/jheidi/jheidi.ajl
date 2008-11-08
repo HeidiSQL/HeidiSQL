@@ -4,7 +4,7 @@
   if (LF.isWin)
   {
     /*
-      This ugly bit uses a mutex exe to show up in the windows task bar
+      This ugly bit uses a mutex exe to show up in the windows task mgr
       This way the instance can be killed by name since all java processes have the same
       name in the windows task list.
 
