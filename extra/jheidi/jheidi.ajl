@@ -3,45 +3,7 @@
 
   if (LF.isWin)
   {
-    /*
-      This ugly bit uses a mutex exe to show up in the windows task mgr
-      This way the instance can be killed by name since all java processes have the same
-      name in the windows task list.
-
-      If either this process or the mutex dies, both die.
-      This was required by the autoupdater to "kill all running instances" of jheidi
-      to copy over files which would be otherwise locked.
-
-      A similar technique could be used to prevent more than one instance from running.
-      TODO: wrap this up in a util method.
-    */
-    HashMap processes = (HashMap)env("SystemUtil.RunningProcesses");
-    Process p = null;
-    if ( processes != null )
-    {
-       p = (Process)processes.get("bin/jheidi.exe");
-    }
-    
-    if ( p == null )
-    {
-      Thread mutexThread = new Thread("mutex-thread") {
-        public void run() {
-           Runtime.getRuntime().addShutdownHook( new Thread() {
-              public void run() {
-                try
-                {
-                  HashMap processes = (HashMap)env("SystemUtil.RunningProcesses");
-                  Process p = (Process)processes.get("bin/jheidi.exe");
-                  p.destroy();
-                } catch (Exception e) {  log.debug("error in shutdown hook", e); }
-              }});
-
-           SystemUtil.attachTo("bin/jheidi.exe", new String[] {}, false, new StreamOutput());
-           System.exit(0);
-       }};
-       mutexThread.setDaemon(true);
-       mutexThread.start();
-    }
+    SystemUtil.loadWindowsTaskListExePeer("bin/jheidi");
   }
   
   Frame app = new Frame("connectDialog", "Connection To MySQL");
