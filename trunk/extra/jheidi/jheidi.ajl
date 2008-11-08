@@ -3,7 +3,7 @@
 
   if (LF.isWin)
   {
-    SystemUtil.loadWindowsTaskListExePeer("bin/jheidi");
+    SystemUtil.loadWindowsTaskListExePeer("bin/jheidi.exe");
   }
   
   Frame app = new Frame("connectDialog", "Connection To MySQL");
