@@ -2,12 +2,13 @@
   
   final WindowContext context = argObj("windowContext");
   final HashObject userQueries = argObj("userQueries");
-  Worker w = argObj("worker");
+  final Worker w = argObj("worker");
   
   if (arg("backgroundTask") != null)
   {
 
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    w.setProperty("db", db);
     db.useCache(false);
     
     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {

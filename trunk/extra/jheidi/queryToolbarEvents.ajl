@@ -1,3 +1,4 @@
+import java.sql.Statement;
 
 String who = arg("source");
 
@@ -57,7 +58,7 @@ if ("Run" == who || "Run Selection" == who )
     }
   }
 }
-else if ("Open Script".equals(who))
+else if ("Open Script" == who)
 {
   Frame f = context.get("/");
   String file = f.openFile(null, "SQL Script Files", "sql");
@@ -67,7 +68,7 @@ else if ("Open Script".equals(who))
     editor.setProperty("filePath", file);
   }
 }
-else if ("Save".equals(who) || "Save As".equals(who))
+else if ("Save" == who || "Save As" == who)
 {
   Frame f = context.get("/");
   if ( editor.getProperty("filePath") != null && "Save".equals(who))
@@ -84,7 +85,7 @@ else if ("Save".equals(who) || "Save As".equals(who))
     }
   }
 }
-else if ("Search".equals(who))
+else if ("Search" == who )
 {
   Frame f = context.get("/");
   String txt = f.popupQuestion("Search", "Enter text to search for:");
@@ -100,9 +101,19 @@ else if ("Stop" == who)
   ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
   btn.setEnabled(false);
   
-  Worker.cancel("runUserQueriesWorker");
+  Worker w = Worker.getWorker("runUserQueriesWorker");
+  if ( w != null )
+  {
+    DB db = w.getProperty("db");
+    if ( db != null )
+    {
+      db.cancel();
+    }
+    w.cancel();
+  }
+  
 }
-else if ("Clear".equals(who))
+else if ("Clear" == who)
 {
   editor.setText("");
 }
