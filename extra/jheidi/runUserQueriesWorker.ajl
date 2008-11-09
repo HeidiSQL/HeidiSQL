@@ -6,8 +6,7 @@
   
   if (arg("backgroundTask") != null)
   {
-    
-    
+
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     db.useCache(false);
     
