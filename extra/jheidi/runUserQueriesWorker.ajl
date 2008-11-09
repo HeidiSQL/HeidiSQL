@@ -1,37 +1,43 @@
   import java.util.*;
   
-  WindowContext context = argObj("windowContext");
-  HashObject userQueries = argObj("userQueries");
+  final WindowContext context = argObj("windowContext");
+  final HashObject userQueries = argObj("userQueries");
   Worker w = argObj("worker");
   
   if (arg("backgroundTask") != null)
   {
-    DB.Result results = null;
     
-    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     db.useCache(false);
-
-    db.begin();
-    if (context.get("currentDB") != null)
-    {
-      db.execute("use " + context.get("currentDB"));
-    }
-    db.setLimit(1000);
-    for (String userQuery : (List<String>)userQueries)
-    {
-      try {
-        results = db.execute(userQuery);
-      }
-      catch (Exception e)
-      {
-        log.error("",e);
-        
-      }
-    }
-    db.setLimit(-1);
-    db.end();
     
-    publish(results);
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() throws Exception {
+        
+        DB.Result results = null;
+        
+        if (context.get("currentDB") != null)
+        {
+          db.execute("use " + context.get("currentDB"));
+        }
+    
+        db.setLimit(1000);
+        try
+        {
+          for (String userQuery : (List<String>)userQueries)
+          {
+             results = db.execute(userQuery);
+          }
+          db.setLimit(-1);
+        }
+        finally
+        {
+          publish(results);
+        }
+      }
+    };
+    
+    db.execute(tx);
   
   }
   else if (arg("update") != null)
