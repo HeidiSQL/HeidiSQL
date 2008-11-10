@@ -5,7 +5,16 @@
   if (arg("backgroundTask") != null)
   {
     
-    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    
+    Worker w = argObj("worker");
+    
+    w.onCancelDo( new Runnable() {
+      public void run()
+      {
+        db.cancel();
+      }
+    });
     
     DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
 
