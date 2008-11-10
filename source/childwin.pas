@@ -2334,8 +2334,8 @@ begin
     avg_persec := '';
 
     // Format numeric or byte values
-    valIsBytes := Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_';
     valIsNumber := IntToStr(MakeInt(val)) = val;
+    valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
     if valIsBytes then
       val := FormatByteNumber(val)
     else if valIsNumber then
