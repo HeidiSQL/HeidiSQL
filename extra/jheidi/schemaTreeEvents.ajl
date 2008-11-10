@@ -28,7 +28,7 @@
         args().put("dbName", dbName);
         args().put("waitOperation", "show table status from `" + dbName + "`");
         args().put("workerKey", dbName);
-        Worker w = worker("showTableStatusWorker", args());
+        Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
         args().put("worker", w);
         LongRunningTask.detect("progressWaiter", args(), w , 350);
      }
@@ -50,7 +50,7 @@
          args().put("dbName", dbName);
          args().put("waitOperation", "show table status from `" + dbName + "`");
          args().put("workerKey", dbName);
-         Worker w = worker("showTableStatusWorker", args());
+         Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
          args().put("worker", w);
          LongRunningTask.detect("progressWaiter", args(), w , 350);
       }
