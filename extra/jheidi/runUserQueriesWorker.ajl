@@ -8,7 +8,14 @@
   {
 
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
-    w.setProperty("db", db);
+    
+    w.onCancelDo( new Runnable() {
+      public void run()
+      {
+        db.cancel();
+      }
+    });
+    
     db.useCache(false);
     
     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
@@ -56,6 +63,16 @@
     
     ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
     btn.setEnabled(false);
+    
+    btn = context.get("/mainTabs/Query/toolbar/Run");
+    btn.setEnabled(true);
+    
+    Editor editor = context.get("/mainTabs/Query/editor");
+    if (editor.getSelectedText() != null && editor.getSelectedText().length() > 0)
+    {
+       btn = context.get("/mainTabs/Query/toolbar/Run Selection");
+       btn.setEnabled(true);
+    }
   }
   
     
