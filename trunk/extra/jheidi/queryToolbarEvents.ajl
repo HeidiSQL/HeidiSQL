@@ -51,6 +51,10 @@ if ("Run" == who || "Run Selection" == who )
       String firstQuery = ((String)queries.get(0)).length() > 150? ((String)queries.get(0)).substring(0, 149) : (String)queries.get(0);
       ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
       btn.setEnabled(true);
+      btn = context.get("/mainTabs/Query/toolbar/Run");
+      btn.setEnabled(false);
+      btn = context.get("/mainTabs/Query/toolbar/Run Selection");
+      btn.setEnabled(false);
       args().put("waitOperation", "user query \"" + firstQuery + "\"...");
       Worker w = worker("runUserQueriesWorker", args());
       args().put("worker", w);
@@ -101,14 +105,19 @@ else if ("Stop" == who)
   ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
   btn.setEnabled(false);
   
+  btn = context.get("/mainTabs/Query/toolbar/Run");
+  btn.setEnabled(true);
+  
+  if (editor.getSelectedText() != null && editor.getSelectedText().length() > 0)
+  {
+     btn = context.get("/mainTabs/Query/toolbar/Run Selection");
+     btn.setEnabled(true);
+  }
+    
+  
   Worker w = Worker.getWorker("runUserQueriesWorker");
   if ( w != null )
   {
-    DB db = w.getProperty("db");
-    if ( db != null )
-    {
-      db.cancel();
-    }
     w.cancel();
   }
   
