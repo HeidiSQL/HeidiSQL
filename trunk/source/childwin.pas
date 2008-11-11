@@ -2333,13 +2333,9 @@ begin
     avg_perhour := '';
     avg_persec := '';
 
-    // Format numeric or byte values
+    // Detect value type
     valIsNumber := IntToStr(MakeInt(val)) = val;
     valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
-    if valIsBytes then
-      val := FormatByteNumber(val)
-    else if valIsNumber then
-      val := FormatNumber(val);
 
     // Calculate average values ...
     if valIsNumber then begin
@@ -2353,6 +2349,12 @@ begin
       if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
       else avg_persec := FormatNumber( tmpval, 1 );
     end;
+
+    // Format numeric or byte values
+    if valIsBytes then
+      val := FormatByteNumber(val)
+    else if valIsNumber then
+      val := FormatNumber(val);
 
     VTRowDataListStatus[i-1].Captions.Add( val );
     VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
