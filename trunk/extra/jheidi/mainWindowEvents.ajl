@@ -22,17 +22,18 @@ else if ("Refresh".equals(who))
   
   Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
   String script = tab.getProperty("refreshScript");
+  HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
   if ( script != null )
   {
     if ( script.endsWith("Worker") )
     {
-        Worker w = worker(script, (HashObject)tab.getProperty("refreshArgs"));
-        args().put("worker", w);
-        LongRunningTask.detect("progressWaiter", args(), w , 350);
+      Worker w = worker(script, scriptArgs, Worker.RunOption.LET_FINISH_IF_RUNNING);
+      scriptArgs.put("worker", w);
+      LongRunningTask.detect("progressWaiter",scriptArgs, w , 350);
     }
     else
     {
-      thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+      thread(script, scriptArgs, true);
     }
   }
   
