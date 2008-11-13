@@ -267,7 +267,7 @@
      <path refid="bin.bin"/>
     </copy>
     
-    <chmod perm="777">
+    <chmod perm="755">
       <fileset dir="${bin.dist}">
         <include name="jheidi"/>
         <include name="jheidi-osx"/>
@@ -315,7 +315,7 @@
       <path refid="osx.bin"/>
     </copy>
     
-    <chmod file="${osx.macos}/JavaApplicationStub" perm="777"/>
+    <chmod file="${osx.macos}/JavaApplicationStub" perm="755"/>
     
     <copy todir="${osx.jheidi.app}">
       <fileset file="${lib}/libquaqua.jnilib"/>
