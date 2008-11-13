@@ -13,6 +13,7 @@
   {
     tabs.select("Host");
     args().put("selectedTab", "Host");
+    context.put("currentDB", null);
     thread("resetTabs", args(), true);
   }
   else if ( "db" == nodeType )
