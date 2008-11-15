@@ -2,13 +2,15 @@
 
  final WindowContext context = argObj("windowContext");
  
- context.wireEvent("/mainTabs/Query/editor", "/Edit:/Edit/Copy:/Edit/Paste:/Edit/Cut:/mainToolbar/Cut:/mainToolbar/Copy:/mainToolbar/Paste", "focusGained:focusLost", "enabled:disabled");
- context.wireEvent("/consoleTabs/SQL Log/outputWindow", "/Edit:/Edit/Copy:/mainToolbar/Copy", "focusGained:focusLost", "enabled:disabled");
+ context.wireEvent("/mainTabs/Query/editor", "/Edit:/Edit/Paste:/mainToolbar/Paste", "focusGained:focusLost", "enabled:disabled");
+ context.wireEvent("/mainTabs/Query/editor", "/Edit/Copy:/Edit/Cut:/mainToolbar/Cut:/mainToolbar/Copy", "selectedText", "enabled:disabled");
+ context.wireEvent("/consoleTabs/SQL Log/outputWindow", "/Edit/Cut:/mainToolbar/Cut:/Edit/Paste:/mainToolbar/Paste", "focusGained", "disabled");
+ context.wireEvent("/consoleTabs/SQL Log/outputWindow", "/Edit:/Edit/Copy:/mainToolbar/Copy", "selectedText", "enabled:disabled");
  context.wireEvent("/mainTabs/Table/table", "/mainTabs/Table/toolbar/Edit Field:/mainTabs/Table/toolbar/Delete Field",  "rowSelected", "enabled:disabled");
  context.wireEvent("/schemaTree", "/mainToolbar/Drop Database:/Tools/Drop Database",  "selectedType:db", "enabled:disabled");
  context.wireEvent("/schemaTree", "/mainToolbar/Drop Table:/Tools/Drop Table",  "selectedType:table", "enabled:disabled");
  
- WireEvent.Condition condition = new WireEvent.Condition() {
+ Condition condition = new Condition() {
    public boolean satisfied() {
      ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
      return !btn.isEnabled();
@@ -29,6 +31,14 @@
  
  btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
  btn.setEnabled(false);
+ 
+ Condition menuCondition = new Condition() {
+   public boolean satisfied() {
+     Editor editor = context.get("/mainTabs/Query/editor");
+     return editor.getDocument().getLength() > 0;
+   }};
+ 
+ context.wireMenu("/mainTabs/Query/editor:/consoleTabs/SQL Log/outputWindow", "/Edit");
 
  
 

@@ -1,19 +1,22 @@
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+
 
 String who = arg("source");
 WindowContext context = argObj("windowContext");
 log.debug("Event received: " + who);
 
-if ("Close".equals(who) )
+if ("Close" == who )
 {
   Frame window = context.get("/");
   script("removeFromWindowMenu", args());
   window.dispose();
 }
-else if ("Connection".equals(who))
+else if ("Connection" == who)
 {
   script("jheidi");
 }
-else if ("Refresh".equals(who))
+else if ("Refresh" == who)
 {
   DB db = context.get("db");
    
@@ -47,27 +50,29 @@ else if ("Refresh".equals(who))
   
 }
 //we may need a better way of doing this?
-else if ("Cut".equals(who) || "Copy".equals(who) || "Paste".equals(who) )
+else if ("Cut" == who || "Copy" == who || "Paste" == who )
 {
-  Editor editor = context.get("/mainTabs/Query/editor");
-  log.debug("editor focus? " + editor.hasFocus());
-  if ( true /*for now editor.hasFocus()*/ )
+  Component compFocusOwner =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+  
+  if ( compFocusOwner instanceof Editor)
   {
-     if ( "Cut".equals(who) )
-     {
-        editor.cut();
-     }
-     else if ("Copy".equals(who))
-     {
-        editor.copy();
-     }
-     else if ("Paste".equals(who))
-     {
-        editor.paste();
-     }
+    Editor editor = (Editor)compFocusOwner;
+    if ( "Cut" == who )
+    {
+      editor.cut();
+    }
+    else if ("Copy" == who)
+    {
+      editor.copy();
+    }
+    else if ("Paste" == who)
+    {
+      editor.paste();
+    }
   }
 } 
-else if ("Drop Table".equals(who))
+else if ("Drop Table" == who)
 {
   Tree schemaTree = context.get("/schemaTree");
   NodeInfo node = schemaTree.getSelectedNode();
@@ -88,7 +93,7 @@ else if ("Drop Table".equals(who))
   }
   
 }
-else if ("Create Database".equals(who))
+else if ("Create Database" == who)
 {
   if ( script("createDBDialog", args()) != null )
   {
@@ -97,7 +102,7 @@ else if ("Create Database".equals(who))
   }
   
 }
-else if ("Create Table".equals(who))
+else if ("Create Table" == who)
 {
   if ( script("createTableDialog", args()) != null )
   {
@@ -106,7 +111,7 @@ else if ("Create Table".equals(who))
   }
   
 }
-else if ("Drop Database".equals(who))
+else if ("Drop Database" == who)
 {
   Tree schemaTree = context.get("/schemaTree");
   NodeInfo node = schemaTree.getSelectedNode();
@@ -124,15 +129,15 @@ else if ("Drop Database".equals(who))
      }
   }
 }
-else if ("Maintenance".equals(who))
+else if ("Maintenance" == who)
 {
   script("maintenanceDialog", args());
 }
-else if ("User Manager".equals(who))
+else if ("User Manager" == who)
 {
   script ("userManagerDialog", args());
 }
-else if ("Load SQL File".equals(who))
+else if ("Load SQL File" == who)
 {
   Frame f = context.get("/");
   Tabs tabs = context.get("/mainTabs");
@@ -145,26 +150,26 @@ else if ("Load SQL File".equals(who))
     editor.setProperty("filePath", file);
   }
 }
-else if ("Import CSV File".equals(who))
+else if ("Import CSV File" == who)
 {
   script("importCSVDialog",args());
 }
-else if ("Copy as CSV Data".equals(who))
+else if ("Copy as CSV Data" == who)
 {
   String csv = (String)script("resultsToCSV",args());
   SystemUtil.copyToClipboard(csv);
 }
-else if ("Copy as HTML Data".equals(who))
+else if ("Copy as HTML Data" == who)
 {
   String html = (String)script("resultsToHTML",args());
   SystemUtil.copyToClipboard(html);
 }
-else if ("Copy as XML Data".equals(who))
+else if ("Copy as XML Data" == who)
 {
   String xml = (String)script("resultsToXML",args());
   SystemUtil.copyToClipboard(xml);
 }
-else if ("Export Data...".equals(who))
+else if ("Export Data..." == who)
 {
   DB.Result results = context.get("lastQueryResults");
   if ( results != null && !results.isEmpty())
@@ -174,20 +179,20 @@ else if ("Export Data...".equals(who))
     f.saveFileWithCallback("mainWindowEvents", args(), false, null, "CSV", "csv", "HTML", "html",  "XML", "xml" );
   }
 }
-else if ("exportAsFile".equals(who))
+else if ("exportAsFile" == who)
 {
    String output = (String)script("resultsTo" + arg("fileType"), args());
    FileUtil.fromString(arg("filePath"), output);
 }
-else if ( "Export Tables as SQL".equals(who) )
+else if ( "Export Tables as SQL" == who )
 {
   script("exportDDLDialog",args());
 } 
-else if ( "Import Files Into Blob Fields".equals(who) )
+else if ( "Import Files Into Blob Fields" == who )
 {
   script("filesToBlobsDialog",args());
 }
-else if ( "Exit".equals(who) )
+else if ( "Exit" == who )
 {
   System.exit(0);
 } 
