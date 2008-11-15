@@ -32,12 +32,6 @@
  btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
  btn.setEnabled(false);
  
- Condition menuCondition = new Condition() {
-   public boolean satisfied() {
-     Editor editor = context.get("/mainTabs/Query/editor");
-     return editor.getDocument().getLength() > 0;
-   }};
- 
  context.wireMenu("/mainTabs/Query/editor:/consoleTabs/SQL Log/outputWindow", "/Edit");
 
  
