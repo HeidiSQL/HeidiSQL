@@ -23,14 +23,15 @@
         
         DB.Result results = null;
         
-        if (context.get("currentDB") != null)
-        {
-          db.execute("use " + context.get("currentDB"));
-        }
-    
-        db.setLimit(1000);
         try
         {
+          if (context.get("currentDB") != null)
+          {
+            db.execute("use " + context.get("currentDB"));
+          }
+    
+          db.setLimit(1000);
+
           for (String userQuery : (List<String>)userQueries)
           {
              results = db.execute(userQuery);
