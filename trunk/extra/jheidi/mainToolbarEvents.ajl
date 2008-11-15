@@ -1,5 +1,8 @@
 import javax.swing.tree.*;
 import javax.swing.*;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+
 
 String who = arg("source");
 
@@ -7,11 +10,11 @@ WindowContext context = argObj("windowContext");
 
 log.debug("Event received: " + who);
 
-if ("Connect".equals(who) )
+if ("Connect" == who )
 {
   script("jheidi");
 }
-else if ("Refresh".equals(who))
+else if ("Refresh" == who)
 {
   
   DB db = context.get("db");
@@ -45,26 +48,29 @@ else if ("Refresh".equals(who))
   }
   
 }
-else if ("Cut".equals(who) || "Copy".equals(who) || "Paste".equals(who) )
+else if ("Cut" == who || "Copy" == who || "Paste" == who )
 {
-  Editor editor = context.get("/mainTabs/Query/editor");
-  if ( editor.hasFocus() )
+  Component compFocusOwner =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+  
+  if ( compFocusOwner instanceof Editor)
   {
-     if ( "Cut".equals(who) )
-     {
-        editor.cut();
-     }
-     else if ("Copy".equals(who))
-     {
-        editor.copy();
-     }
-     else if ("Paste".equals(who))
-     {
-        editor.paste();
-     }
+    Editor editor = (Editor)compFocusOwner;
+    if ( "Cut" == who )
+    {
+      editor.cut();
+    }
+    else if ("Copy" == who)
+    {
+      editor.copy();
+    }
+    else if ("Paste" == who)
+    {
+      editor.paste();
+    }
   }
 }
-else if ("Drop Table".equals(who))
+else if ("Drop Table" == who)
 {
   Tree schemaTree = context.get("/schemaTree");
   NodeInfo node = schemaTree.getSelectedNode();
@@ -85,7 +91,7 @@ else if ("Drop Table".equals(who))
   }
   
 }
-else if ("Create Database".equals(who))
+else if ("Create Database" == who)
 {
   if ( script("createDBDialog", args()) != null )
   {
@@ -94,7 +100,7 @@ else if ("Create Database".equals(who))
   }
   
 }
-else if ("Create Table".equals(who))
+else if ("Create Table" == who)
 {
   if ( script("createTableDialog", args()) != null )
   {
@@ -103,7 +109,7 @@ else if ("Create Table".equals(who))
   }
   
 }
-else if ("Drop Database".equals(who))
+else if ("Drop Database" == who)
 {
   Tree schemaTree = context.get("/schemaTree");
   NodeInfo node = schemaTree.getSelectedNode();
@@ -121,23 +127,23 @@ else if ("Drop Database".equals(who))
      }
   }
 }
-else if ("Print".equals(who))
+else if ("Print" == who)
 {
   //this is total shit - but it does work if you try to print something that might fit on 
   //the page....omg this is bad.
   Table table = null;
   String selectedTab = ((Tabs)context.get("/mainTabs")).selected();
 
-  if (!"Host".equals(selectedTab) && !"Query".equals(selectedTab))
+  if ("Host" != selectedTab && "Query" != selectedTab)
   {
      table = context.get("/mainTabs/"+selectedTab+"/table");
   }
-  else if ("Host".equals(selectedTab))
+  else if ("Host" == selectedTab)
     {
      String subTab = ((Tabs)context.get("/mainTabs/Host/tabs")).selected();
      table = context.get("/mainTabs/Host/tabs/"+subTab+"/table");
   }
-  else if ("Query".equals(selectedTab))
+  else if ("Query" == selectedTab)
   {
      table = context.get("/mainTabs/Query/results");
   }
@@ -147,27 +153,27 @@ else if ("Print".equals(who))
       table.print();
   } catch (Exception e) {e.printStackTrace();}
 }
-else if ("Import".equals(who))
+else if ("Import" == who)
 {
   script("importCSVDialog",args());
 }
-else if ("Export".equals(who))
+else if ("Export" == who)
 {
   script("exportDDLDialog",args());
 }
-else if ("User Manager".equals(who))
+else if ("User Manager" == who)
 {
   script ("userManagerDialog", args());
 }
-else if ("Maintenance".equals(who))
+else if ("Maintenance" == who)
 {
   script("maintenanceDialog", args());
 }
-else if ("Help".equals(who) )
+else if ("Help" == who )
 {
   script("helpDialog", args());
 }
-else if ("Close".equals(who) )
+else if ("Close" == who )
 {
   Frame window = context.get("/");
   script("removeFromWindowMenu", args());
