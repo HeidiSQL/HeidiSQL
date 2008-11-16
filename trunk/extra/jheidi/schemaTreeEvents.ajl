@@ -20,9 +20,12 @@
   {
      final String dbName = node.getText();
      Panel tab = tabs.select("Database");
-     
+    
      if ( !dbName.equals(context.get("currentDB")) )
      {
+       context.put("currentDB", dbName);
+       context.remove("currentTable");
+
        Runnable preloadIfLazy = new Runnable() {
          public void run() {
            if ( ((String)context.get("currentDB")).equals(dbName))
@@ -47,8 +50,6 @@
        };
        
        
-       context.put("currentDB", dbName);
-       context.remove("currentTable");
        args().put("selectedTab", "Database");
        thread("resetTabs", args(), true);
        args().put("dbName", dbName);
@@ -57,6 +58,13 @@
        args().put("waitOperation", "show table status from `" + dbName + "`");
        args().put("workerKey", dbName);
        Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+       //explain: the worker was already running but the state change needs to happen anyway
+       //no need to run detection thread
+       if ( w.isCancelled() )
+       {
+         preloadIfLazy.run();
+         return;
+       }
        args().put("worker", w);
        LongRunningTask.detect("progressWaiter", args(), w , 250);
      }
