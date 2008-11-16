@@ -1,4 +1,8 @@
   import java.awt.BorderLayout;
+  import java.awt.Dimension;
+  import java.awt.Insets;
+  import java.awt.event.*;
+  
   import javax.swing.*;
   import javax.swing.border.*;
   
@@ -9,12 +13,18 @@
   
   String message = arg("waitOperation");
   
-  Panel statusBar = context.get("/statusBar");
-  JLabel text = statusBar.getProperty("text");
-  ProgressBar pbar = statusBar.getProperty("pbar");
+  StatusBar statusBar = context.get("/statusBar");
+  JLabel text = statusBar.get("Ready");
+  ProgressBar pbar = statusBar.get("pbar");
+  Button btn = statusBar.get("stop");
   Stack messages = statusBar.getProperty("messages");
   Stack workers = statusBar.getProperty("workers");
-
+  Runnable preloadIfLazy = argObj("preloadIfLazy");
+  
+  if (preloadIfLazy != null)
+  {
+    preloadIfLazy.run();
+  }
    
   synchronized (this.getClass())
   {
@@ -40,25 +50,43 @@
     {
       pbar = new ProgressBar();
       pbar.setIndeterminate(true);
-      pbar.setPreferredSize(new java.awt.Dimension(100, 10));      
-      pbar.setBorder(new BevelBorder(BevelBorder.LOWERED));
-      statusBar.setProperty("pbar", pbar);
+      pbar.setPreferredSize(new Dimension(100, 17));
+      pbar.setName("pbar");
+      pbar.setBorder(new EmptyBorder(LF.isWin?3:1,0,0,0));
+      btn = new Button("", new ImageIcon("images/stop.gif"));
+      btn.setName("stop");
+      btn.setContentAreaFilled(false);
+      btn.setPreferredSize(new Dimension(22, 19)); 
+      statusBar.add(btn);
+      statusBar.add(pbar);
+      statusBar.updateUI();
     }
-      
+    else if ( pbar.getParent() == null )
+    {
+      statusBar.add(btn);
+      statusBar.add(pbar);
+      statusBar.updateUI();
+    }
+    
+    final Button myButton = btn;
+    final Worker myWorker = worker;
+    btn.addActionListener( new ActionListener() {
+      Button btn = myButton;
+      public void actionPerformed(ActionEvent e)
+      {
+        if ( !myWorker.isDone() )
+        {
+          myWorker.cancel();
+        }
+        btn.removeActionListener(this);
+      }
+    });
+    
     messages.push(message);
     workers.push(worker);
     
     text.setText("Waiting for " + message);
-
-    try
-    {
-      statusBar.getComponent(1);
-    }
-    catch (Exception e)
-    {
-      statusBar.add(pbar, BorderLayout.EAST);
-    }
-    statusBar.updateUI();
+   
   }
     
   while (!worker.isDone()) {};
@@ -82,8 +110,19 @@
     if ( workers.size() == 0)
     {
       text.setText("Ready");
-      statusBar.remove(1);
+      statusBar.remove(pbar);
+      statusBar.remove(btn);
       statusBar.updateUI();
+      for (ActionListener listener: btn.getActionListeners())
+      {
+        try
+        {
+          btn.removeActionListener(listener);
+        }
+        catch (Exception e) {}
+      }
+      
+        
     }
 
   }

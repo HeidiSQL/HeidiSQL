@@ -4,6 +4,10 @@
   
   if (arg("backgroundTask") != null)
   {
+    /*try
+    {
+      Thread.sleep(5000);
+    } catch (Exception e) {}*/
     
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     
@@ -25,18 +29,18 @@
   {   
     DB.Result databases = (DB.Result)((List)argObj("taskResult")).get(0);
       
-    Text banner = context.get("/mainTabs/Database/toolbar/banner");
-    banner.setText("Database " + arg("dbName") + ": " + databases.size() + " table(s)");
-  
-    banner = context.get("/mainTabs/Query/toolbar/banner");
-    banner.setText("SQL query on database: " + arg("dbName"));
-  
-    TableUtils.populate((Table)context.get("/mainTabs/Database/table"), databases);
-  
-    //let the refresh button know what to do
-    Panel tab = context.get("/mainTabs/Database");
-    tab.setProperty("refreshScript", "showTableStatusWorker");
-    tab.setProperty("refreshArgs", args());
+    if ( ((String)context.get("currentDB")).equals(arg("dbName")) )
+    {
+      Text banner = context.get("/mainTabs/Database/toolbar/banner");
+      banner.setText("Database " + arg("dbName") + ": " + databases.size() + " table(s)");
+      
+      TableUtils.populate((Table)context.get("/mainTabs/Database/table"), databases);
+    
+      //let the refresh button know what to do
+      Panel tab = context.get("/mainTabs/Database");
+      tab.setProperty("refreshScript", "showTableStatusWorker");
+      tab.setProperty("refreshArgs", args());
+    }
     
   }
   
