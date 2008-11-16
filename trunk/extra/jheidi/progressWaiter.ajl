@@ -20,6 +20,7 @@
   Stack messages = statusBar.getProperty("messages");
   Stack workers = statusBar.getProperty("workers");
   Runnable preloadIfLazy = argObj("preloadIfLazy");
+  final Runnable postCancel = argObj("postCancel");
   
   if (preloadIfLazy != null)
   {
@@ -55,6 +56,7 @@
       pbar.setBorder(new EmptyBorder(LF.isWin?3:1,0,0,0));
       btn = new Button("", new ImageIcon("images/stop.gif"));
       btn.setName("stop");
+      btn.setToolTipText("Cancel All Pending Operations");
       btn.setContentAreaFilled(false);
       btn.setPreferredSize(new Dimension(22, 19)); 
       statusBar.add(btn);
@@ -77,6 +79,10 @@
         if ( !myWorker.isDone() )
         {
           myWorker.cancel();
+          if ( postCancel != null )
+          {
+            postCancel.run();
+          }
         }
         btn.removeActionListener(this);
       }
