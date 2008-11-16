@@ -1,6 +1,6 @@
   
   NodeInfo node = argObj("node");
-  WindowContext context = argObj("windowContext");
+  final WindowContext context = argObj("windowContext");
   
   Tabs tabs = context.get("/mainTabs");
   String selectedTab = tabs.selected();
@@ -18,20 +18,35 @@
   }
   else if ( "db" == nodeType )
   {
-     String dbName = node.getText();
+     final String dbName = node.getText();
      Panel tab = tabs.select("Database");
+     
      if ( !dbName.equals(context.get("currentDB")) )
      {
-        context.put("currentDB", dbName);
-        context.remove("currentTable");
-        args().put("selectedTab", "Database");
-        thread("resetTabs", args(), true);
-        args().put("dbName", dbName);
-        args().put("waitOperation", "show table status from `" + dbName + "`");
-        args().put("workerKey", dbName);
-        Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
-        args().put("worker", w);
-        LongRunningTask.detect("progressWaiter", args(), w , 350);
+       Runnable preloadIfLazy = new Runnable() {
+         public void run() {
+           if ( ((String)context.get("currentDB")).equals(dbName))
+           {
+             Text banner = context.get("/mainTabs/Database/toolbar/banner");
+             banner.setText("Database " + dbName + ": (loading)");
+             banner = context.get("/mainTabs/Query/toolbar/banner");
+             banner.setText("SQL query on database: " + arg("dbName"));
+             ((Table)context.get("/mainTabs/Database/table")).clear();
+           }
+         }
+       };
+       
+       context.put("currentDB", dbName);
+       context.remove("currentTable");
+       args().put("selectedTab", "Database");
+       thread("resetTabs", args(), true);
+       args().put("dbName", dbName);
+       args().put("preloadIfLazy", preloadIfLazy);
+       args().put("waitOperation", "show table status from `" + dbName + "`");
+       args().put("workerKey", dbName);
+       Worker w = worker("showTableStatusWorker", args());//, Worker.RunOption.LET_FINISH_IF_RUNNING);
+       args().put("worker", w);
+       LongRunningTask.detect("progressWaiter", args(), w , 250);
      }
   }
   else if ( "table" == nodeType )
@@ -53,7 +68,7 @@
          args().put("workerKey", dbName);
          Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
          args().put("worker", w);
-         LongRunningTask.detect("progressWaiter", args(), w , 350);
+         LongRunningTask.detect("progressWaiter", args(), w , 250);
       }
 
      if ( !tableName.equals(context.get("currentTable")) || !dbName.equals(context.get("currentDB")) )
