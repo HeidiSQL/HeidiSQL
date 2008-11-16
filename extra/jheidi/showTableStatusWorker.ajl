@@ -6,7 +6,7 @@
   {
     /*try
     {
-      Thread.sleep(5000);
+      Thread.sleep(10000);
     } catch (Exception e) {}*/
     
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));

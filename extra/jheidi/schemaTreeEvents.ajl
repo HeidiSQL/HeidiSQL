@@ -36,15 +36,27 @@
          }
        };
        
+       Runnable postCancelUpdate = new Runnable() {
+         public void run() {
+           if ( ((String)context.get("currentDB")).equals(dbName))
+           {
+             Text banner = context.get("/mainTabs/Database/toolbar/banner");
+             banner.setText("Database " + dbName + ": (load canceled)");
+           }
+         }
+       };
+       
+       
        context.put("currentDB", dbName);
        context.remove("currentTable");
        args().put("selectedTab", "Database");
        thread("resetTabs", args(), true);
        args().put("dbName", dbName);
        args().put("preloadIfLazy", preloadIfLazy);
+       args().put("postCancel", postCancelUpdate);
        args().put("waitOperation", "show table status from `" + dbName + "`");
        args().put("workerKey", dbName);
-       Worker w = worker("showTableStatusWorker", args());//, Worker.RunOption.LET_FINISH_IF_RUNNING);
+       Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
        args().put("worker", w);
        LongRunningTask.detect("progressWaiter", args(), w , 250);
      }
