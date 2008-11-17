@@ -98,8 +98,10 @@
      return;
    }
 
-    args().put("worker", w);
-    LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
+   args().put("worker", w);
+   LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
+
+   
  }
 
  if (tableChanged)
