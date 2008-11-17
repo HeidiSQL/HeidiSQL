@@ -16,6 +16,9 @@
   final Worker worker = argObj("worker");
   final String message = arg("waitOperation");
   
+  if ( worker.isDone() )
+    return;
+
   if (preloadIfLazy != null)
     {
       try
@@ -47,6 +50,9 @@
     
   try
   {
+    if ( worker.isDone() ) 
+      return;
+
     SwingUtilities.invokeAndWait( new Runnable() {
       public void run()
       {
