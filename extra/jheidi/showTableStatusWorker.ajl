@@ -29,7 +29,7 @@
   {   
     DB.Result databases = (DB.Result)((List)argObj("taskResult")).get(0);
       
-    if ( ((String)context.get("currentDB")).equals(arg("dbName")) )
+    if ( arg("dbName").equals((String)context.get("currentDB")))
     {
       Text banner = context.get("/mainTabs/Database/toolbar/banner");
       banner.setText("Database " + arg("dbName") + ": " + databases.size() + " table(s)");
@@ -41,7 +41,6 @@
       tab.setProperty("refreshScript", "showTableStatusWorker");
       tab.setProperty("refreshArgs", args());
     }
-    
   }
   
     
