@@ -1,0 +1,69 @@
+
+  WindowContext context = argObj("windowContext");
+
+  if ( arg("backgroundTask") != null )
+  {
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+
+    Worker w = argObj("worker");
+    
+    w.onCancelDo( new Runnable() {
+      public void run()
+      {
+        db.cancel();
+      }
+    });
+
+    DB.Result tables = db.execute("show full columns from `" + arg("dbName") + "`.`" + arg("tableName") + "`");
+
+    publish(tables);
+
+  }
+  else if (arg("update") != null)
+  {
+    DB.Result tables = (DB.Result)((List)argObj("taskResult")).get(0);
+
+    if ( ((String)context.get("currentTable")).equals(arg("tableName")) &&
+        ((String)context.get("currentDB")).equals(arg("dbName")))
+    {
+      Text banner = context.get("/mainTabs/Table/toolbar/banner");
+      banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") );
+      TableUtils.populate((Table)context.get("/mainTabs/Table/table"), tables);
+
+      Panel tab = context.get("/mainTabs/Table");
+      tab.setProperty("refreshScript", "loadTableInfoWorker");
+      tab.setProperty("refreshArgs", args());
+  
+      ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
+      btn.setEnabled(true);
+  
+      btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+      btn.setEnabled(true);
+    
+    }
+
+
+  
+  
+  
+
+  
+  
+ 
+  
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
