@@ -1,7 +1,7 @@
-  
+    
   NodeInfo node = argObj("node");
   final WindowContext context = argObj("windowContext");
-  
+      
   Tabs tabs = context.get("/mainTabs");
   String selectedTab = tabs.selected();
   String nodeType = node.getType();
@@ -50,14 +50,15 @@
 
   if (dbChanged)
   {
-   final String dbName = selectedTab == "Database"?node.getText():node.getParent().getText();
+   final String dbName = tabs.selected() == "Database"?node.getText():node.getParent().getText();
+   log.debug("selectedTab: " + selectedTab + " dbName: " + dbName);
 
    context.put("currentDB", dbName);
    context.remove("currentTable");
 
    Runnable preloadIfLazy = new Runnable() {
      public void run() {
-       if ( ((String)context.get("currentDB")).equals(dbName))
+       if ( dbName.equals((String)context.get("currentDB")))
        {
          Toolbar tb = context.get("/mainTabs/Database/toolbar");
          Text banner = context.get("/mainTabs/Database/toolbar/banner");
@@ -65,16 +66,15 @@
          banner = context.get("/mainTabs/Query/toolbar/banner");
          banner.setText("SQL query on database: " + dbName);
          Table table = context.get("/mainTabs/Database/table");
-         tb.updateUI();
          table.clear();
-         table.updateUI();
+         tb.updateUI();
        }
      }
    };
    
    Runnable postCancelUpdate = new Runnable() {
      public void run() {
-       if ( ((String)context.get("currentDB")).equals(dbName))
+       if (dbName.equals((String)context.get("currentDB")) )
        {
          Text banner = context.get("/mainTabs/Database/toolbar/banner");
          banner.setText("Database " + dbName + ": (load canceled)");
@@ -97,8 +97,9 @@
      preloadIfLazy.run();
      return;
    }
-   args().put("worker", w);
-   LongRunningTask.detect("progressWaiter", args(), w , 250);
+
+    args().put("worker", w);
+    LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
  }
 
  if (tableChanged)
@@ -109,25 +110,24 @@
    context.put("currentTable", tableName);
 
    Runnable preloadIfLazy = new Runnable() {
-     public void run() {
-       if ( ((String)context.get("currentTable")).equals(tableName)) &&
-            ((String)context.get("currentDB")).equals(dbName))
+     public void run()  {
+       if ( tableName.equals((String)context.get("currentTable")) &&
+            dbName.equals((String)context.get("currentDB")))
        {
          Toolbar tb = context.get("/mainTabs/Table/toolbar");
          Text banner = context.get("/mainTabs/Table/toolbar/banner");
          banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") + " (loading)");
          Table table = context.get("/mainTabs/Table/table");
-         tb.updateUI();
          table.clear();
-         table.updateUI();
+         tb.updateUI();
        }
      }
    };
 
    Runnable postCancelUpdate = new Runnable() {
      public void run() {
-       if ( ((String)context.get("currentTable")).equals(tableName)) &&
-            ((String)context.get("currentDB")).equals(dbName))
+       if ( tableName.equals((String)context.get("currentTable")) &&
+            dbName.equals((String)context.get("currentDB")))
        {
          Text banner = context.get("/mainTabs/Table/toolbar/banner");
          banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") + " (load canceled)");
@@ -148,9 +148,8 @@
      preloadIfLazy.run();
      return;
    }
-
    args().put("worker", w);
-   LongRunningTask.detect("progressWaiter", args(), w , 250);
+   LongRunningTask.detect(dbName+tableName, "progressWaiter", args(), w , 250);
 
    thread("loadTableData", args(), true);
  }
