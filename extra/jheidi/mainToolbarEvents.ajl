@@ -30,8 +30,13 @@ else if ("Refresh" == who)
       db.flushCache();
     }
   }
+  else
+  {
+    db.flushCache();
+  }
     
   String script = tab.getProperty("refreshScript");
+  log.info("refreshing: " + script);
   HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
   if ( script != null )
   {
