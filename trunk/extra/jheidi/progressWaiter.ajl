@@ -108,9 +108,6 @@
   messages.push(message);
   workers.push(worker);
 
-  if ( statusBar.getProperty("progressReaper") != null )
-    log.info("didnt kick off the reaper");
-
   if ( statusBar.getProperty("progressReaper") == null )
   {
     final Stack myWorkers = workers;
@@ -166,7 +163,6 @@
       
     });
     statusBar.setProperty("progressReaper", t);
-    log.info("starting reaper");
     t.start();
   }
 
