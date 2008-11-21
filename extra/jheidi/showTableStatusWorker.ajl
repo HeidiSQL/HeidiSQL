@@ -23,10 +23,10 @@
     
     DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
     
-    try
+    /*try
     {
       Thread.sleep(10000);
-    } catch (Exception e) {}
+    } catch (Exception e) {}*/
 
     publish(databases);
    
