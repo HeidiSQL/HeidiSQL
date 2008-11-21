@@ -1,14 +1,9 @@
   import java.util.*;
   
-  WindowContext context = argObj("windowContext");
+  final WindowContext context = argObj("windowContext");
   
   if (arg("backgroundTask") != null)
   {
-    /*try
-    {
-      Thread.sleep(10000);
-    } catch (Exception e) {}*/
-    
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     
     Worker w = argObj("worker");
@@ -16,11 +11,22 @@
     w.onCancelDo( new Runnable() {
       public void run()
       {
+        if ( arg("dbName").equals((String)context.get("currentDB")))
+        {
+          Panel tab = context.get("/mainTabs/Database");
+          tab.setProperty("refreshScript", "showTableStatusWorker");
+          tab.setProperty("refreshArgs", args());
+        }
         db.cancel();
       }
     });
     
     DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
+    
+    try
+    {
+      Thread.sleep(10000);
+    } catch (Exception e) {}
 
     publish(databases);
    
