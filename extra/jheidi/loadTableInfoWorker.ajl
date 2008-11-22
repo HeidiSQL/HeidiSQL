@@ -1,7 +1,13 @@
   import java.util.*;
   
-  WindowContext context = argObj("windowContext");
   String event = arg("workerEvent");
+  
+  if ( event == "init" || event == "done")
+  {
+    return;
+  }
+  
+  WindowContext context = argObj("windowContext");
   Text banner = context.get("/mainTabs/Table/toolbar/banner");
   Panel tab = context.get("/mainTabs/Table");
   Worker worker = argObj("worker");
@@ -14,6 +20,9 @@
   
   if ( event == "longRunningTask" || event == "alreadyRunning")
   {
+    if ( worker.isDone() )
+      return;
+    
     if ( tableName.equals((String)context.get("currentTable")) &&
          dbName.equals((String)context.get("currentDB")))
     {
