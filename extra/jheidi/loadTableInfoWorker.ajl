@@ -63,10 +63,10 @@
     
     DB.Result tables = db.execute("show full columns from `" + arg("dbName") + "`.`" + arg("tableName") + "`");
     
-    try
+    /*try
     {
       Thread.sleep(5000);
-    } catch (Exception e) {}
+    } catch (Exception e) {}*/
 
     publish(tables);
 
