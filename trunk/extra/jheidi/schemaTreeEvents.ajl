@@ -61,7 +61,10 @@
     args().put("waitOperation", "show table status from `" + dbName + "`");
     args().put("workerKey", dbName);
     Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
-    LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
+    
+    //in case its already running dont run the detector
+    if (!w.isCancelled())
+      LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
   }
 
  if (tableChanged)
@@ -76,8 +79,11 @@
    args().put("waitOperation", "show full columns from `" + dbName + "`.`" + tableName + "`");
    args().put("workerKey", dbName+tableName);
    Worker w = worker("loadTableInfoWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
-   LongRunningTask.detect(dbName+tableName, "progressWaiter", args(), w , 250);
-
+   
+   //in case its already running dont run the detector
+   if ( !w.isCancelled() )
+     LongRunningTask.detect(dbName+tableName, "progressWaiter", args(), w , 250);
+   
    thread("loadTableData", args(), true);
  }
 
