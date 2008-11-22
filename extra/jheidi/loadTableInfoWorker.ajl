@@ -1,26 +1,56 @@
   import java.util.*;
   
-  final WindowContext context = argObj("windowContext");
+  WindowContext context = argObj("windowContext");
+  String event = arg("workerEvent");
+  Text banner = context.get("/mainTabs/Table/toolbar/banner");
+  Panel tab = context.get("/mainTabs/Table");
+  Worker worker = argObj("worker");
+  Table table = context.get("/mainTabs/Table/table");
+  Toolbar tb = context.get("/mainTabs/Table/toolbar");
+  String tableName = arg("tableName");
+  String dbName = arg("dbName");
+  boolean setRefresh = false;
 
-  if ( arg("backgroundTask") != null )
+  
+  if ( event == "longRunningTask" || event == "alreadyRunning")
   {
-    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
-
-    Worker w = argObj("worker");
-    
-    w.onCancelDo( new Runnable() {
-      public void run()
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText("Table properties for " + dbName + "." + tableName + " (loading)");
+      table.clear();
+      tb.updateUI();
+      
+      if ( event == "longRunningTask" )
       {
-        if ( arg("tableName").equals((String)context.get("currentTable")) &&
-             arg("dbName").equals((String)context.get("currentDB")))
-        {
-          Panel tab = context.get("/mainTabs/Table");
-          tab.setProperty("refreshScript", "loadTableInfoWorker");
-          tab.setProperty("refreshArgs", args());
-        }
-        db.cancel();
+        ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
+        btn.setEnabled(false);
+  
+        btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+        btn.setEnabled(false);
       }
-    });
+    }
+  }
+  else if ( event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    
+    if ( db != null )
+      db.cancel();
+    
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") + " (load canceled)");
+      setRefresh = true;
+    }
+    
+  }
+  else if ( event == "backgroundTask" )
+  {
+    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+
+    worker.setProperty("db", db);
     
     DB.Result tables = db.execute("show full columns from `" + arg("dbName") + "`.`" + arg("tableName") + "`");
     
@@ -32,30 +62,33 @@
     publish(tables);
 
   }
-  else if (arg("update") != null)
+  else if ( event == "update")
   {
   
     DB.Result tables = (DB.Result)((List)argObj("taskResult")).get(0);
 
-    if ( arg("tableName").equals((String)context.get("currentTable")) &&
-        arg("dbName").equals((String)context.get("currentDB")))
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
     {
-      Text banner = context.get("/mainTabs/Table/toolbar/banner");
+      
       banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") );
-      TableUtils.populate((Table)context.get("/mainTabs/Table/table"), tables);
-
-      Panel tab = context.get("/mainTabs/Table");
-      tab.setProperty("refreshScript", "loadTableInfoWorker");
-      tab.setProperty("refreshArgs", args());
-  
+      TableUtils.populate(table, tables);
+      
       ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
       btn.setEnabled(true);
   
       btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
       btn.setEnabled(true);
+      setRefresh = true;
     
     }
 
+  }
+  
+  if ( setRefresh )
+  {
+    tab.setProperty("refreshScript", "loadTableInfoWorker");
+    tab.setProperty("refreshArgs", args());
   }
 
 
