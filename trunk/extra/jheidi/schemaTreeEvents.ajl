@@ -50,107 +50,32 @@
 
   if (dbChanged)
   {
-   final String dbName = tabs.selected() == "Database"?node.getText():node.getParent().getText();
-   log.debug("selectedTab: " + selectedTab + " dbName: " + dbName);
-
-   context.put("currentDB", dbName);
-   context.remove("currentTable");
-
-   Runnable preloadIfLazy = new Runnable() {
-     public void run() {
-       if ( dbName.equals((String)context.get("currentDB")))
-       {
-         Toolbar tb = context.get("/mainTabs/Database/toolbar");
-         Text banner = context.get("/mainTabs/Database/toolbar/banner");
-         banner.setText("Database " + dbName + ": (loading)");
-         banner = context.get("/mainTabs/Query/toolbar/banner");
-         banner.setText("SQL query on database: " + dbName);
-         Table table = context.get("/mainTabs/Database/table");
-         table.clear();
-         tb.updateUI();
-       }
-     }
-   };
-   
-   Runnable postCancelUpdate = new Runnable() {
-     public void run() {
-       if (dbName.equals((String)context.get("currentDB")) )
-       {
-         Text banner = context.get("/mainTabs/Database/toolbar/banner");
-         banner.setText("Database " + dbName + ": (load canceled)");
-       }
-     }
-   };
-   
-   args().put("selectedTab", "Database");
-   thread("resetTabs", args(), true);
-   args().put("dbName", dbName);
-   args().put("preloadIfLazy", preloadIfLazy);
-   args().put("postCancel", postCancelUpdate);
-   args().put("waitOperation", "show table status from `" + dbName + "`");
-   args().put("workerKey", dbName);
-   Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
-   //explain: the worker was already running but the state change needs to happen anyway
-   //no need to run detection thread
-   if ( w.isCancelled() )
-   {
-     preloadIfLazy.run();
-     return;
-   }
-
-   args().put("worker", w);
-   LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
-
-   
- }
+    String dbName = tabs.selected() == "Database"?node.getText():node.getParent().getText();
+    log.debug("selectedTab: " + selectedTab + " dbName: " + dbName);
+    context.put("currentDB", dbName);
+    context.remove("currentTable");
+    
+    args().put("selectedTab", "Database");
+    thread("resetTabs", args(), true);
+    args().put("dbName", dbName);
+    args().put("waitOperation", "show table status from `" + dbName + "`");
+    args().put("workerKey", dbName);
+    Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
+  }
 
  if (tableChanged)
  {
-   final String dbName = node.getParent().getText();
-   final String tableName = node.getText();
+   String dbName = node.getParent().getText();
+   String tableName = node.getText();
 
    context.put("currentTable", tableName);
 
-   Runnable preloadIfLazy = new Runnable() {
-     public void run()  {
-       if ( tableName.equals((String)context.get("currentTable")) &&
-            dbName.equals((String)context.get("currentDB")))
-       {
-         Toolbar tb = context.get("/mainTabs/Table/toolbar");
-         Text banner = context.get("/mainTabs/Table/toolbar/banner");
-         banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") + " (loading)");
-         Table table = context.get("/mainTabs/Table/table");
-         table.clear();
-         tb.updateUI();
-       }
-     }
-   };
-
-   Runnable postCancelUpdate = new Runnable() {
-     public void run() {
-       if ( tableName.equals((String)context.get("currentTable")) &&
-            dbName.equals((String)context.get("currentDB")))
-       {
-         Text banner = context.get("/mainTabs/Table/toolbar/banner");
-         banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") + " (load canceled)");
-       }
-     }
-   };
-
    args().put("dbName", dbName);
    args().put("tableName", tableName);
-   args().put("preloadIfLazy", preloadIfLazy);
-   args().put("postCancel", postCancelUpdate);
    args().put("waitOperation", "show full columns from `" + dbName + "`.`" + tableName + "`");
    args().put("workerKey", dbName+tableName);
    Worker w = worker("loadTableInfoWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
-   //worker was already running
-   if ( w.isCancelled() )
-   {
-     preloadIfLazy.run();
-     return;
-   }
-   args().put("worker", w);
    LongRunningTask.detect(dbName+tableName, "progressWaiter", args(), w , 250);
 
    thread("loadTableData", args(), true);

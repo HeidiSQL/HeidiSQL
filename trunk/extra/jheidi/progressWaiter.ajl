@@ -9,8 +9,6 @@
   log.debug("task is long running!");
   
   final WindowContext context = argObj("windowContext");
-  final Runnable preloadIfLazy = argObj("preloadIfLazy");
-  final Runnable postCancel = argObj("postCancel");
   final StatusBar statusBar = context.get("/statusBar");
   final Text text = statusBar.get("Ready");
   final Worker worker = argObj("worker");
@@ -19,22 +17,9 @@
   if ( worker.isDone() )
     return;
 
-  if (preloadIfLazy != null)
-    {
-      try
-      {
-        SwingUtilities.invokeAndWait(new Runnable() {
-          public void run() {
-            preloadIfLazy.run();
-          }
-        });
-      } catch (Exception e) { log.error("SWIW", e); }
-    }
-    
   Stack messages = statusBar.getProperty("messages");
   Stack workers = statusBar.getProperty("workers");
   ProgressBar pbar = statusBar.get("pbar");
-  
      
   if ( messages == null )
   {
@@ -91,10 +76,6 @@
             if ( !worker.isDone() )
             {
               worker.cancel();
-              if ( postCancel != null )
-              {
-                postCancel.run();
-              }
             }
             btn.removeActionListener(this);
           }
