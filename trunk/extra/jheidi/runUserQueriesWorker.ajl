@@ -1,22 +1,22 @@
   import java.util.*;
   
+  String event = arg("workerEvent");
+  if ( event == "init" || event == "done" || event == "longRunningTask")
+  {
+    return;
+  }
+  
   final WindowContext context = argObj("windowContext");
   final HashObject userQueries = argObj("userQueries");
-  final Worker w = argObj("worker");
+  Worker worker = argObj("worker");
   
-  if (arg("backgroundTask") != null)
+  if (event == "backgroundTask")
   {
-
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     
-    w.onCancelDo( new Runnable() {
-      public void run()
-      {
-        db.cancel();
-      }
-    });
-    
     db.useCache(false);
+    
+    worker.setProperty("db", db);
     
     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
       public void execute() throws Exception {
@@ -46,9 +46,8 @@
     };
     
     db.execute(tx);
-  
   }
-  else if (arg("update") != null)
+  else if ( event == "update" )
   {   
     DB.Result results = (DB.Result)((List)argObj("taskResult")).get(0);
     
@@ -74,6 +73,13 @@
        btn = context.get("/mainTabs/Query/toolbar/Run Selection");
        btn.setEnabled(true);
     }
+  }
+  else if (event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    
+    if ( db != null )
+      db.cancel();
   }
   
     
