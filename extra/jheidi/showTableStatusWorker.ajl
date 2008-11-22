@@ -18,11 +18,14 @@
   
   if (event == "longRunningTask" || event == "alreadyRunning" )
   {
-    if ( worker.isDone() )
+    if ( worker.isDone() && event == "longRunningTask" )
       return;
     
+    log.info("currentDB: " + dbName + "=" + context.get("currentDB"));
+      
     if ( dbName.equals((String)context.get("currentDB")))
     {
+      log.info("updating banner");
       banner.setText("Database " + dbName + ": (loading)");
       banner = context.get("/mainTabs/Query/toolbar/banner");
       banner.setText("SQL query on database: " + dbName);
@@ -51,10 +54,10 @@
     
     DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
     
-    /*try
+    try
     {
       Thread.sleep(10000);
-    } catch (Exception e) {}*/
+    } catch (Exception e) {}
 
     publish(databases);
    

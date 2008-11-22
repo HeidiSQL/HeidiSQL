@@ -20,7 +20,7 @@
   
   if ( event == "longRunningTask" || event == "alreadyRunning")
   {
-    if ( worker.isDone() )
+    if ( worker.isDone() && event=="longRunningTask" )
       return;
     
     if ( tableName.equals((String)context.get("currentTable")) &&
@@ -63,10 +63,10 @@
     
     DB.Result tables = db.execute("show full columns from `" + arg("dbName") + "`.`" + arg("tableName") + "`");
     
-    /*try
+    try
     {
       Thread.sleep(5000);
-    } catch (Exception e) {}*/
+    } catch (Exception e) {}
 
     publish(tables);
 
