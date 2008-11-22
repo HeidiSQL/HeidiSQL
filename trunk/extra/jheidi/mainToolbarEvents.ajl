@@ -42,18 +42,8 @@ else if ("Refresh" == who)
     if ( script.endsWith("Worker") )
     {
       Worker w = worker(script, scriptArgs, Worker.RunOption.LET_FINISH_IF_RUNNING);
-      Runnable preloadIfLazy = scriptArgs.getObject("preloadIfLazy");
-      if (preloadIfLazy != null )
-      {
-        //they hit refresh in quick succession
-        if ( w.isCancelled() )
-        {
-          preloadIfLazy.run();
-          return;
-        }
-      }
-      scriptArgs.put("worker", w);
-      LongRunningTask.detect("progressWaiter",scriptArgs, w , 250);
+      if (!w.isCancelled())
+        LongRunningTask.detect("progressWaiter",scriptArgs, w , 250);
     }
     else
     {
