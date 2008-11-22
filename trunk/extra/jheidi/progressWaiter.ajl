@@ -163,6 +163,7 @@
       
     });
     statusBar.setProperty("progressReaper", t);
+    t.setDaemon(true);
     t.start();
   }
 
