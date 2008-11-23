@@ -24,7 +24,9 @@ else if ("Refresh" == who)
     db.flushCache();
   }
 
-  worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+  Worker w = worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+  if ( !w.isCancelled())
+    LongRunningTask.detect("initTreeWorker", "progressWaiter", args(), w , 250);
   
   String script = tab.getProperty("refreshScript");
   HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
@@ -32,9 +34,12 @@ else if ("Refresh" == who)
   {
     if ( script.endsWith("Worker") )
     {
-      Worker w = worker(script, scriptArgs, Worker.RunOption.LET_FINISH_IF_RUNNING);
+      w = worker(script, scriptArgs, Worker.RunOption.LET_FINISH_IF_RUNNING);
+      if ( scriptArgs.get("workerKey") != null)
+         script = scriptArgs.get("workerKey");
+      
       if (!w.isCancelled())
-        LongRunningTask.detect("progressWaiter",scriptArgs, w , 250);
+        LongRunningTask.detect(script, "progressWaiter",scriptArgs, w , 250);
     }
     else
     {
