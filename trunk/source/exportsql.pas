@@ -165,7 +165,7 @@ begin
     // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
     if Mainform.ChildWin.SelectedTable <> '' then
       SelectedTables.Add(Mainform.ChildWin.SelectedTable)
-    else begin
+    else if Mainform.ChildWin.ActiveDatabase <> '' then begin
       ds := Mainform.ChildWin.FetchDbTableList(Mainform.ChildWin.ActiveDatabase);
       while not ds.Eof do begin
         SelectedTables.Add(ds.Fields[0].AsWideString);
