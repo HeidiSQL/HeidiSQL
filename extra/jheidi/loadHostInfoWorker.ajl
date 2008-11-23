@@ -1,0 +1,78 @@
+
+  String event = arg("workerEvent");
+  if ( event == "init" || event == "done" || event == "alreadyRunning" )
+    return;
+  
+  WindowContext context = argObj("windowContext");
+  Worker worker = argObj("worker");
+  
+  if ( event == "backgroundTask" )
+  {
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    worker.setProperty("db", db);
+
+    db.useCache(false);
+    
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+        public void execute() throws Exception
+        {
+          DB.Result version = db.execute("select version()");
+          DB.Result vars = db.execute("show variables");
+          DB.Result processes = db.execute("show full processlist");
+            
+          HashObject ho = new HashObject();
+          ho.put("version", version);
+          ho.put("vars", vars);
+          ho.put("processes", processes);
+        
+          publish(ho);
+        }
+      };
+    
+    db.execute(tx);
+  }
+  else if ( event == "update" )
+  {
+    HashObject resultSets = (HashObject)((java.util.List)argObj("taskResult")).get(0);
+
+    DB.Result version =  resultSets.getObject("version");
+    DB.Result vars =  resultSets.getObject("vars");
+    DB.Result processes =  resultSets.getObject("processes");
+    
+    Text  banner = context.get("/mainTabs/Host/toolbar/banner");
+    banner.setText("MySQL " + version.first().get(0));
+    Table varTable = context.get("/mainTabs/Host/tabs/Variables/table");
+    TableUtils.populate(varTable, vars);
+    Table processTable = context.get("/mainTabs/Host/tabs/Processes/table");
+    TableUtils.populate(processTable, processes);
+  
+    //let the refresh button know what to do
+    Panel tab = context.get("/mainTabs/Host");
+    args().put("waitOperation", "select version(); show variables; show full processlist");
+    tab.setProperty("refreshScript", "loadHostInfoWorker");
+    tab.setProperty("refreshArgs", args());
+  }
+  else if ( event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    if ( db != null )
+      db.cancel();
+
+  }
+  
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
