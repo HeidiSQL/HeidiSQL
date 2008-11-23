@@ -1354,6 +1354,9 @@ begin
   begin
     if (Str[i] in ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (StrNumber='')) then
     begin
+      // Avoid confusion and AV in StrToFloat()
+      if (ThousandSeparator = DecimalSeparator) and (Str[i] = DecimalSeparator) then
+        continue;
       StrNumber := StrNumber + Str[i];
     end;
   end;
