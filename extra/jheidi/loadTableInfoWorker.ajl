@@ -50,7 +50,7 @@
     if ( tableName.equals((String)context.get("currentTable")) &&
          dbName.equals((String)context.get("currentDB")))
     {
-      banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") + " (load canceled)");
+      banner.setText("Table properties for " + dbName + "." + tableName + " (load canceled)");
       setRefresh = true;
     }
     
@@ -60,8 +60,9 @@
     DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
 
     worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "show full columns from `" + dbName + "`.`" + tableName + "`");
     
-    DB.Result tables = db.execute("show full columns from `" + arg("dbName") + "`.`" + arg("tableName") + "`");
+    DB.Result tables = db.execute("show full columns from `" + dbName + "`.`" + tableName + "`");
     
     /*try
     {
@@ -80,7 +81,7 @@
          dbName.equals((String)context.get("currentDB")))
     {
       
-      banner.setText("Table properties for " + arg("dbName") + "." + arg("tableName") );
+      banner.setText("Table properties for " + dbName + "." + tableName );
       TableUtils.populate(table, tables);
       
       ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
