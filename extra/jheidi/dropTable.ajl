@@ -4,10 +4,8 @@ String table = arg("tableToDrop");
 
 DB db = context.get("db");
 
-db.begin();
-db.execute("use " + context.get("currentDB"));
-db.execute("drop table `" + table + "`");
+db.execute("drop table `" + context.get("currentDB") + "`.`" + table + "`");
 db.flushStatement("show tables from `" + context.get("currentDB") + "`");
-db.end();
+
 
 
