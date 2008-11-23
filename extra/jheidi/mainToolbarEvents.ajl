@@ -96,7 +96,11 @@ else if ("Create Database" == who)
   if ( script("createDBDialog", args()) != null )
   {
     Tree schemaTree = context.get("/schemaTree");
-    thread("initTree", args(), true);
+    Worker w = worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    if (!w.isCancelled())
+    {
+      LongRunningTask.detect("initTreeWorker", "progressWaiter", args(),w, 250);
+    }
   }
   
 }
@@ -105,7 +109,11 @@ else if ("Create Table" == who)
   if ( script("createTableDialog", args()) != null )
   {
     Tree schemaTree = context.get("/schemaTree");
-    thread("initTree", args(), true);
+    Worker w = worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    if (!w.isCancelled())
+    {
+      LongRunningTask.detect("initTreeWorker", "progressWaiter", args(), w, 250);
+    }
   }
   
 }
