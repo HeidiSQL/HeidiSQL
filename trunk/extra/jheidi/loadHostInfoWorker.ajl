@@ -1,15 +1,25 @@
 
   String event = arg("workerEvent");
-  if ( event == "init" || event == "done" || event == "alreadyRunning" )
+  if ( event == "init" || event == "done")
     return;
   
   WindowContext context = argObj("windowContext");
   Worker worker = argObj("worker");
+  boolean setRefresh = false;
   
-  if ( event == "backgroundTask" )
+  if ( event == "longRunningTask" || event == "alreadyRunning")
+  {
+    if ( worker.isDone() && event=="longRunningTask" )
+      return;
+    
+    Text  banner = context.get("/mainTabs/Host/toolbar/banner");
+    banner.setText("MySQL (loading)");
+  }
+  else if ( event == "backgroundTask" )
   {
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     worker.setProperty("db", db);
+    worker.setProperty("waitOperation","select version(); show variables; show full processlist;");
 
     db.useCache(false);
     
@@ -24,6 +34,11 @@
           ho.put("version", version);
           ho.put("vars", vars);
           ho.put("processes", processes);
+          
+          try
+          {
+            Thread.sleep(5000);
+          } catch (Exception e) {}
         
           publish(ho);
         }
@@ -45,21 +60,28 @@
     TableUtils.populate(varTable, vars);
     Table processTable = context.get("/mainTabs/Host/tabs/Processes/table");
     TableUtils.populate(processTable, processes);
-  
-    //let the refresh button know what to do
-    Panel tab = context.get("/mainTabs/Host");
-    args().put("waitOperation", "select version(); show variables; show full processlist");
-    tab.setProperty("refreshScript", "loadHostInfoWorker");
-    tab.setProperty("refreshArgs", args());
+    setRefresh = true;
+    
   }
   else if ( event == "cancelled" )
   {
     DB db = worker.getProperty("db");
     if ( db != null )
       db.cancel();
+    
+    Text  banner = context.get("/mainTabs/Host/toolbar/banner");
+    banner.setText("MySQL (load canceled)");
+    setRefresh = true;
 
   }
   
+  if ( setRefresh )
+  {
+    //let the refresh button know what to do
+    Panel tab = context.get("/mainTabs/Host");
+    tab.setProperty("refreshScript", "loadHostInfoWorker");
+    tab.setProperty("refreshArgs", args());
+  }
   
  
   
