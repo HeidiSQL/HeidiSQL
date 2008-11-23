@@ -12,7 +12,7 @@
   final StatusBar statusBar = context.get("/statusBar");
   final Text text = statusBar.get("Ready");
   final Worker worker = argObj("worker");
-  final String message = arg("waitOperation");
+  final String message = arg("waitOperation") == null ? (String)worker.getProperty("waitOperation") : (String)arg("waitOperation");
   
   if ( worker.isDone() )
     return;
