@@ -35,10 +35,10 @@
           ho.put("vars", vars);
           ho.put("processes", processes);
           
-          try
+          /*try
           {
             Thread.sleep(5000);
-          } catch (Exception e) {}
+          } catch (Exception e) {}*/
         
           publish(ho);
         }
