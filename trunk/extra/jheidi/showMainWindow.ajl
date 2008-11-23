@@ -134,6 +134,5 @@
   script("initTree", args());
   script("initWireEvents", args());
   script("addToWindowMenu", args());
-  thread("loadHostInfo", args(), true);
-
+  worker("loadHostInfoWorker", args());
 		
