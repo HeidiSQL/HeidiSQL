@@ -19,22 +19,14 @@ else if ("Connection" == who)
 else if ("Refresh" == who)
 {
   DB db = context.get("db");
-   
-  thread("initTree", args(), true);
-  
+
   Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
-  if ( tab.getName() == "Host" )
-  {
-    tab = (Panel)((Tabs)tab.get("tabs")).getSelectedComponent();
-    if ( tab.getName() != "Processes")
-    {
-      db.flushCache();
-    }
-  }
-  else
+  if ( tab.getName() != "Host" )
   {
     db.flushCache();
   }
+
+  thread("initTree", args(), true);
     
   String script = tab.getProperty("refreshScript");
   HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
