@@ -131,7 +131,7 @@
 		
   args().put("windowContext", context);
   script("initDB", args());
-  script("initTree", args());
+  script("initTree", args()); 
   script("initWireEvents", args());
   script("addToWindowMenu", args());
   worker("loadHostInfoWorker", args());
