@@ -1106,17 +1106,17 @@ begin
 
     femFieldUpdate:
     begin
-      ButtonOK.Caption := 'Update Column';
+      ButtonOK.Caption := 'Update column';
     end;
 
     femFieldAdd:
     begin
-      ButtonOK.Caption := 'Add Column';
+      ButtonOK.Caption := 'Add column';
     end;
 
     femIndexEditor:
     begin
-      ButtonOK.Caption := 'Update Indexes';
+      ButtonOK.Caption := 'Update indexes';
       KeySelected := ComboBoxKeys.ItemIndex > -1;
       // Disable the button if
       //  1) a key was selected and no columns are listed on the left
@@ -1138,7 +1138,6 @@ begin
     end;
 
   end;
-  Caption := Mainform.ChildWin.SessionName + ' - ' + ButtonOK.Caption;
 end;
 
 
