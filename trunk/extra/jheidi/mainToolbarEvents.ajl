@@ -129,7 +129,7 @@ else if ("Drop Database" == who)
      {
       args().put("dbToDrop", node.getText());
       DB db = context.get("db");
-      db.execute("drop database " + node.getText());
+      db.execute("drop database `" + node.getText() + "`");
       node.remove();
       schemaTree.select(root);
      }
