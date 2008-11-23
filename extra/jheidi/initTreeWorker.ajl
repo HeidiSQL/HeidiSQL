@@ -31,6 +31,7 @@
   {
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "show databases");
     
     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
       public void execute() 
