@@ -131,8 +131,10 @@
 		
   args().put("windowContext", context);
   script("initDB", args());
-  worker("initTreeWorker", args());
-  worker("loadHostInfoWorker", args());
+  Worker w = worker("initTreeWorker", args());
+  LongRunningTask.detect("initTreeWorker", "progressWaiter",  args(), w , 250);
+  w = worker("loadHostInfoWorker", args());
+  LongRunningTask.detect("loadHostInfoWorker", "progressWaiter", args(), w , 250);
   script("initWireEvents", args());
   script("addToWindowMenu", args());
   
