@@ -37,7 +37,7 @@
      args().put("fieldKey", l.getSelectedValue());
      script("createTableState", args());
      
-     buffer.append("create table ").append(dbName).append(".").append(tableName).append(" (");
+     buffer.append("create table `").append(dbName).append("`.`").append(tableName).append("` (");
 
      List<String> priKeys = new ArrayList<String>();
      List<String> uniques = new ArrayList<String>();
