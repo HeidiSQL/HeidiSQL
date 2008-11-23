@@ -2,7 +2,7 @@
   
   
   String event = arg("workerEvent");
-  if ( event == "alreadyRunning" || event == "done")
+  if ( event == "done" || event =="alreadyRunning" || event == "longRunningTask")
     return;
   
   final WindowContext context = argObj("windowContext");
@@ -41,7 +41,7 @@
         String sql = null;
         if ( dbs == null || dbs.length() == 0 )
         {
-           sql = ("show databases");
+           sql = "show databases";
         }
         else
         {
