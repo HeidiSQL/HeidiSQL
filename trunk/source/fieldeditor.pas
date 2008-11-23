@@ -88,6 +88,7 @@ type
     procedure listClick(Sender: TObject);
     procedure comboDefaultChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     TempKeys : TStringList;
@@ -123,7 +124,6 @@ uses
 
 var
   klist : Array of TMysqlIndex;
-  FieldEditForm : TFieldEditForm;
 
 {$R *.DFM}
 
@@ -133,9 +133,10 @@ var
   Create form
 }
 function FieldEditorWindow (AOwner : TComponent; AMode : TFieldEditorMode; AFieldName : WideString = '') : Boolean;
+var
+  FieldEditForm : TFieldEditForm;
 begin
-  if FieldEditForm = nil then
-    FieldEditForm := TFieldEditForm.Create(AOwner);
+  FieldEditForm := TFieldEditForm.Create(AOwner);
   FieldEditForm.FMode := AMode;
   // Also remember original mode for restoring when switching pagecontrol tabs
   FieldEditForm.FModeWhenCalled := AMode;
@@ -162,6 +163,15 @@ begin
   ComboBoxType.Height := EditFieldname.Height;
   ComboBoxType.ItemHeight := ComboBoxType.Height - 8;
   SetWindowSizeGrip( Handle, True );
+end;
+
+
+{**
+  FormClose - don't recycle this form, see bug #870
+}
+procedure TFieldEditForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 
