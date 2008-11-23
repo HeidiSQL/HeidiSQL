@@ -82,6 +82,8 @@ type
     procedure ButtonMoveUpClick(Sender: TObject);
     procedure ButtonMoveDownClick(Sender: TObject);
     procedure comboCharsetChange(Sender: TObject);
+    procedure EditFieldnameEnter(Sender: TObject);
+    procedure EditFieldnameExit(Sender: TObject);
   private
     index : Integer;
     dsCollations : TDataSet;
@@ -501,7 +503,6 @@ begin
   buttonAdd.Enabled := not colExists;
   buttonChange.Enabled := (not colExists) and colSelected;
   buttonDelete.Enabled := colSelected;
-  ButtonAdd.Default := not colExists;
   try
     ensureValidIdentifier(EditFieldName.Text);
   except
@@ -708,5 +709,20 @@ begin
 
   comboCollation.Items.EndUpdate;
 end;
+
+
+procedure TCreateTableForm.EditFieldnameEnter(Sender: TObject);
+begin
+  ButtonAdd.Default := True;
+  ButtonCreate.Default := False;
+end;
+
+
+procedure TCreateTableForm.EditFieldnameExit(Sender: TObject);
+begin
+  ButtonAdd.Default := False;
+  ButtonCreate.Default := True;
+end;
+
 
 end.
