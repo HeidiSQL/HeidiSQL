@@ -77,6 +77,7 @@
 	Tabs hostTabs = host.tabs("tabs");
 	hostTabs.tab("Variables").table("table", new String[] {"\t"}, new String[][] {{""}});
 	hostTabs.tab("Processes").table("table", new String[] {"\t"}, new String[][] {{""}});
+  hostTabs.tab("Status").table("table", new String[] {"\t"}, new String[][] {{""}});
 	
 	Panel dbTab = tabs.tab("Database", "images/db-center.gif");
 	dbTab.toolbar("toolbar", 32)

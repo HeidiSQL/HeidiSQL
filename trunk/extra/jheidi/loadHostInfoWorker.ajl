@@ -19,7 +19,7 @@
   {
     final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
     worker.setProperty("db", db);
-    worker.setProperty("waitOperation","select version(); show variables; show full processlist;");
+    worker.setProperty("waitOperation","host information");
 
     db.useCache(false);
     
@@ -29,11 +29,12 @@
           DB.Result version = db.execute("select version()");
           DB.Result vars = db.execute("show variables");
           DB.Result processes = db.execute("show full processlist");
-            
+          DB.Result status = db.execute("show /*!50002 global*/ status");
           HashObject ho = new HashObject();
           ho.put("version", version);
           ho.put("vars", vars);
           ho.put("processes", processes);
+          ho.put("status", status);
           
           /*try
           {
@@ -53,6 +54,7 @@
     DB.Result version =  resultSets.getObject("version");
     DB.Result vars =  resultSets.getObject("vars");
     DB.Result processes =  resultSets.getObject("processes");
+    DB.Result status = resultSets.getObject("status");
     
     Text  banner = context.get("/mainTabs/Host/toolbar/banner");
     banner.setText("MySQL " + version.first().get(0));
@@ -60,6 +62,8 @@
     TableUtils.populate(varTable, vars);
     Table processTable = context.get("/mainTabs/Host/tabs/Processes/table");
     TableUtils.populate(processTable, processes);
+    Table statusTable = context.get("/mainTabs/Host/tabs/Status/table");
+    TableUtils.populate(statusTable, status);
     setRefresh = true;
     
   }
