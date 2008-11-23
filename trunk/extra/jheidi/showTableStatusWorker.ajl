@@ -48,8 +48,9 @@
     DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
 
     worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "show table status from `" + dbName + "`");
     
-    DB.Result databases = db.execute("show table status from `" + arg("dbName") + "`");
+    DB.Result databases = db.execute("show table status from `" + dbName + "`");
     
     /*try
     {
@@ -63,9 +64,9 @@
   {   
     DB.Result databases = (DB.Result)((List)argObj("taskResult")).get(0);
       
-    if ( arg("dbName").equals((String)context.get("currentDB")))
+    if ( dbName.equals((String)context.get("currentDB")))
     {
-      banner.setText("Database " + arg("dbName") + ": " + databases.size() + " table(s)");
+      banner.setText("Database " + dbName + ": " + databases.size() + " table(s)");
       TableUtils.populate(table, databases);
       setRefresh = true;
     }
