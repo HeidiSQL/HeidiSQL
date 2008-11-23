@@ -24,7 +24,7 @@ else if ("Refresh" == who)
     db.flushCache();
   }
 
-  thread("initTree", args(), true);
+  worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
   
   String script = tab.getProperty("refreshScript");
   HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
