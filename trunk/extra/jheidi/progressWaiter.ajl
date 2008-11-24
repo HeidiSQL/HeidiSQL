@@ -17,135 +17,169 @@
   if ( worker.isDone() )
     return;
 
-  Stack messages = statusBar.getProperty("messages");
-  Stack workers = statusBar.getProperty("workers");
-  ProgressBar pbar = statusBar.get("pbar");
-     
-  if ( messages == null )
+  synchronized (this.getClass())
   {
-     messages = new Stack();
-     statusBar.setProperty("messages", messages);
-  }
-  
-  if ( workers == null )
-  {
-     workers = new Stack();
-     statusBar.setProperty("workers", workers);
-  }
+    Stack messages = statusBar.getProperty("messages");
+    Stack workers = statusBar.getProperty("workers");
+    ProgressBar pbar = statusBar.get("pbar");
+       
+    if ( messages == null )
+    {
+       messages = new Stack();
+       statusBar.setProperty("messages", messages);
+    }
     
-  try
-  {
-    if ( worker.isDone() ) 
-      return;
+    if ( workers == null )
+    {
+       workers = new Stack();
+       statusBar.setProperty("workers", workers);
+    }
+      
+    try
+    {
+      if ( worker.isDone() ) 
+        return;
 
-    SwingUtilities.invokeAndWait( new Runnable() {
-      public void run()
-      {
-        Button btn = statusBar.get("stop");
-        ProgressBar pbar = statusBar.get("pbar");
-        
-        if ( pbar == null )
+      SwingUtilities.invokeAndWait( new Runnable() {
+        public void run()
         {
-          pbar = new ProgressBar();
-          pbar.setIndeterminate(true);
-          pbar.setPreferredSize(new Dimension(100, 17));
-          pbar.setName("pbar");
-          pbar.setBorder(new EmptyBorder(LF.isWin?3:1,0,0,0));
-          btn = new Button("", new ImageIcon("images/stop.gif"));
-          btn.setName("stop");
-          btn.setToolTipText("Cancel All Pending Operations");
-          btn.setContentAreaFilled(false);
-          btn.setPreferredSize(new Dimension(22, 19)); 
-          statusBar.add(btn);
-          statusBar.add(pbar);
-          statusBar.updateUI();
-        }
-        else if ( pbar.getParent() == null )
-        {
-          statusBar.add(btn);
-          statusBar.add(pbar);
-          statusBar.updateUI();
-        }
-        
-        final Button myButton = btn;
-        
-        btn.addActionListener( new ActionListener() {
-          Button btn = myButton;
-          public void actionPerformed(ActionEvent e)
+          Button btn = statusBar.get("stop");
+          ProgressBar pbar = statusBar.get("pbar");
+          
+          if ( pbar == null )
           {
-            if ( !worker.isDone() )
+            pbar = new ProgressBar();
+            pbar.setIndeterminate(true);
+            pbar.setPreferredSize(new Dimension(100, 17));
+            pbar.setName("pbar");
+            pbar.setBorder(new EmptyBorder(LF.isWin?3:1,0,0,0));
+            btn = new Button("", new ImageIcon("images/stop.gif"));
+            btn.setName("stop");
+            btn.setToolTipText("Cancel All Pending Operations");
+            btn.setContentAreaFilled(false);
+            btn.setPreferredSize(new Dimension(22, 19)); 
+            statusBar.add(btn);
+            statusBar.add(pbar);
+            statusBar.updateUI();
+          }
+          else if ( pbar.getParent() == null )
+          {
+            statusBar.add(btn);
+            statusBar.add(pbar);
+            statusBar.updateUI();
+          }
+          
+          final Button myButton = btn;
+          
+          btn.addActionListener( new ActionListener() {
+            Button btn = myButton;
+            public void actionPerformed(ActionEvent e)
             {
-              worker.cancel();
+              if ( !worker.isDone() )
+              {
+                worker.cancel();
+              }
+              btn.removeActionListener(this);
             }
-            btn.removeActionListener(this);
-          }
-        });
-        
-        text.setText("Waiting for " + message);
-      }
-    });
-  } catch (Exception e) { log.error("SWIW", e); }
-
-  messages.push(message);
-  workers.push(worker);
-
-  if ( statusBar.getProperty("progressReaper") == null )
-  {
-    final Stack myWorkers = workers;
-    final Stack myMessages = messages;
-    final Button btn = statusBar.get("stop");
-    final ProgressBar mypbar = statusBar.get("pbar");
-    Thread t =  new Thread( new Runnable() {
-      public void run()
-      {
-        while(myWorkers.size() > 0)
-        {
-          Worker myWorker = (Worker)myWorkers.peek();
-          if (myWorker.isDone())
-          {
-             myWorkers.pop();
-             myMessages.pop();
-          }
-          else
-          {
-            try
-            {
-              SwingUtilities.invokeAndWait( new Runnable() {
-                public void run() {
-                  text.setText("Waiting for " + myMessages.peek());
-                }
-              });
-            } catch (Exception e) { log.error("SWIW threw", e); }
-          } 
+          });
+          
+          text.setText("Waiting for " + message);
         }
-        try
+      });
+    } catch (Exception e) { log.error("SWIW", e); }
+
+    synchronized (workers)
+    {
+      log.trace("got the push lock");
+      messages.push(message);
+      workers.push(worker);
+    }
+
+    if ( statusBar.getProperty("progressReaper") == null )
+    {
+      final Stack myWorkers = workers;
+      final Stack myMessages = messages;
+      final Button btn = statusBar.get("stop");
+      final ProgressBar mypbar = statusBar.get("pbar");
+      final Class myClass = this.getClass();
+      final Runnable progressReaper = new Runnable() {
+        public void run()
         {
-          SwingUtilities.invokeAndWait( new Runnable() {
-            public void run() {
-              
-              text.setText("Ready");
-              statusBar.remove(mypbar);
-              statusBar.remove(btn);
-              statusBar.updateUI();
-              for (ActionListener listener: btn.getActionListeners())
+          while(myWorkers.size() > 0)
+          {
+            synchronized(myWorkers) {
+              log.trace("got the peek lock");
+              Worker myWorker = (Worker)myWorkers.peek();
+              if (myWorker.isDone())
+              {
+                 myWorkers.pop();
+                 myMessages.pop();
+              }
+              else
               {
                 try
                 {
-                  btn.removeActionListener(listener);
-                }
-                catch (Exception e) {}
-              }
+                  SwingUtilities.invokeAndWait( new Runnable() {
+                    public void run() {
+                      text.setText("Waiting for " + myMessages.peek());
+                    }
+                  });
+                } catch (Exception e) { log.error("SWIW threw", e); }
+              } 
             }
-          });
-        } catch (Exception e) { log.error("SWIW threw", e); }
+            try
+            {
+              //so as not to hog the lock
+              Thread.sleep(100);
+            } catch (Exception e) {}
+          }
+          synchronized (myClass)
+          {
+            if ( myWorkers.size() > 0 )
+            {
+              log.trace("we ended but need to restart");
+              Thread t = new Thread(this);
+              statusBar.setProperty("progressReaper", t);
+              t.setDaemon(true);
+              t.setName("Progress Bar Task Reaper");
+              t.start();
+            }
+            else
+            {
+              log.trace("we are locked and shutting down");
+              try
+              {
+                SwingUtilities.invokeAndWait( new Runnable() {
+                  public void run() {
+                    
+                    text.setText("Ready");
+                    statusBar.remove(mypbar);
+                    statusBar.remove(btn);
+                    statusBar.updateUI();
+                    for (ActionListener listener: btn.getActionListeners())
+                    {
+                      try
+                      {
+                        btn.removeActionListener(listener);
+                      }
+                      catch (Exception e) {}
+                    }
+                  }
+                });
+              } catch (Exception e) { log.error("SWIW threw", e); }
 
-        statusBar.setProperty("progressReaper", null);
-      }
-      
-    });
-    statusBar.setProperty("progressReaper", t);
-    t.setDaemon(true);
-    t.start();
+              statusBar.setProperty("progressReaper", null);
+            }
+          }
+        }
+        
+      };
+      Thread t = new Thread(progressReaper);
+      statusBar.setProperty("progressReaper", t);
+      t.setDaemon(true);
+      t.setName("Progress Bar Task Reaper");
+      t.start();
+    }
   }
 
 
