@@ -1,8 +1,12 @@
   import java.util.*;
   
+  String event = arg("workerEvent");
+  if ( event == "init" || event == "done")
+    return;
+
   WindowContext context = argObj("windowContext");
   
-  if (arg("backgroundTask") != null)
+  if (event == "backgroundTask")
   {
     HashObject results = new HashObject();
        
@@ -32,7 +36,7 @@
     publish(results);
    
   }
-  else if (arg("update") != null)
+  else if ( event == "update")
   {   
     HashObject result = (HashObject)((List)argObj("taskResult")).get(0);
     
