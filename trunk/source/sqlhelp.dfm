@@ -126,7 +126,7 @@ object frmSQLhelp: TfrmSQLhelp
         Align = alTop
         Caption = 'Description:'
       end
-      object memoDescription: TMemo
+      object memoDescription: TSynMemo
         AlignWithMargins = True
         Left = 0
         Top = 44
@@ -136,13 +136,27 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Top = 5
         Margins.Right = 0
         Margins.Bottom = 0
+        SingleLineMode = False
         Align = alClient
-        Lines.Strings = (
-          'memoDescription')
-        ReadOnly = True
-        ScrollBars = ssBoth
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = []
         TabOrder = 0
         OnKeyDown = memosKeyDown
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Courier New'
+        Gutter.Font.Style = []
+        Gutter.Visible = False
+        Gutter.Width = 0
+        Highlighter = URIHighlighter
+        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+        ReadOnly = True
+        RightEdge = 0
+        WordWrap = True
       end
     end
     object pnlRightBottom: TPanel
@@ -178,7 +192,7 @@ object frmSQLhelp: TfrmSQLhelp
         Caption = 'Search online'
         OnClick = ButtonOnlinehelpClick
       end
-      object MemoExample: TMemo
+      object MemoExample: TSynMemo
         AlignWithMargins = True
         Left = 0
         Top = 23
@@ -188,14 +202,28 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Top = 5
         Margins.Right = 0
         Margins.Bottom = 0
+        SingleLineMode = False
         Align = alTop
         Anchors = [akLeft, akTop, akRight, akBottom]
-        Lines.Strings = (
-          'MemoExample')
-        ReadOnly = True
-        ScrollBars = ssBoth
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = []
         TabOrder = 0
         OnKeyDown = memosKeyDown
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Courier New'
+        Gutter.Font.Style = []
+        Gutter.Visible = False
+        Gutter.Width = 0
+        Highlighter = URIHighlighter
+        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+        ReadOnly = True
+        RightEdge = 0
+        WordWrap = True
       end
       object ButtonClose: TButton
         Left = 316
@@ -211,5 +239,21 @@ object frmSQLhelp: TfrmSQLhelp
         OnClick = ButtonCloseClick
       end
     end
+  end
+  object URIOpenerDescription: TSynURIOpener
+    Editor = memoDescription
+    URIHighlighter = URIHighlighter
+    Left = 448
+    Top = 8
+  end
+  object URIHighlighter: TSynURISyn
+    Left = 416
+    Top = 8
+  end
+  object URIOpenerExample: TSynURIOpener
+    Editor = MemoExample
+    URIHighlighter = URIHighlighter
+    Left = 480
+    Top = 8
   end
 end
