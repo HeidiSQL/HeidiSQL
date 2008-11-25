@@ -6286,10 +6286,12 @@ var
   SetEditor: TSetEditorLink;
   InplaceEditor: TInplaceEditorLink;
 begin
-  if
-    (FDataGridResult.Columns[Column].IsText and prefEnableTextEditor) or
-    (FDataGridResult.Columns[Column].IsBinary and prefEnableBinaryEditor)
-  then begin
+  if FDataGridResult.Columns[Column].IsText then begin
+    InplaceEditor := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
+    InplaceEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
+    InplaceEditor.ButtonVisible := true;
+    EditLink := InplaceEditor;
+  end else if FDataGridResult.Columns[Column].IsBinary and prefEnableBinaryEditor then begin
     MemoEditor := TMemoEditorLink.Create;
     MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
     EditLink := MemoEditor;
@@ -6305,12 +6307,8 @@ begin
     SetEditor := TSetEditorLink.Create;
     SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := SetEditor;
-  end else begin
-    InplaceEditor := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
-    InplaceEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
-    InplaceEditor.ButtonVisible := true;
-    EditLink := InplaceEditor;
-  end;
+  end else
+    EditLink := TStringEditLink.Create;
 end;
 
 
