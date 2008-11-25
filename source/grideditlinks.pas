@@ -6,7 +6,7 @@ interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
   mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
-  Buttons, Controls, Types;
+  Buttons, Controls, Types, PngSpeedButton;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -119,7 +119,7 @@ type
   private
     FPanel: TPanel;
     FEdit: TTntEdit;
-    FButton: TSpeedButton;
+    FButton: TPNGSpeedButton;
     FTextEditor: TfrmTextEditor;
     FTree: TVirtualStringTree;
     FNode: PVirtualNode;
@@ -149,7 +149,7 @@ type
     procedure SetBounds(R: TRect); virtual; stdcall;
     property Panel: TPanel read FPanel;
     property Edit: TTntEdit read FEdit;
-    property Button: TSpeedButton read FButton;
+    property Button: TPNGSpeedButton read FButton;
     property ButtonVisible: boolean read FButtonVisible write SetButtonVisible;
     property MaxLength: integer read FMaxLength write FMaxLength; // Used for frmTextEditor initialization
     property OnButtonClick: TButtonClickEvent read FOnButtonClick write FOnButtonClick;
@@ -684,12 +684,13 @@ begin
   FEdit.Color := clWindow;
   FEdit.OnKeyDown := EditKeyDown;
 
-  FButton := TSpeedButton.Create(FPanel);
+  FButton := TPNGSpeedButton.Create(FPanel);
+  FButton.PNGImage := Mainform.PngImageListMain.PngImages[33].PngImage;
   FButton.Hide;
   FButton.Parent := FPanel;
-  FButton.Width := 16;
-  FButton.Caption := '···';
-  FButton.Font.Style := [fsBold];
+  FButton.Width := 20;
+  FButton.Hint := 'Edit text in popup editor ...';
+  FButton.ShowHint := True;
   FButton.OnClick := ButtonClick;
 end;
 
