@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons, Registry,
-  childwin, PngSpeedButton;
+  childwin, PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
+  SynURIOpener, SynEdit;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -18,13 +19,16 @@ type
     pnlRightTop: TPanel;
     lblKeyword: TLabel;
     lblDescription: TLabel;
-    memoDescription: TMemo;
+    memoDescription: TSynMemo;
     Splitter2: TSplitter;
     pnlRightBottom: TPanel;
     lblExample: TLabel;
-    MemoExample: TMemo;
+    MemoExample: TSynMemo;
     ButtonClose: TButton;
     btnSearchOnline: TPngSpeedButton;
+    URIOpenerDescription: TSynURIOpener;
+    URIHighlighter: TSynURISyn;
+    URIOpenerExample: TSynURIOpener;
     procedure FormCreate(Sender: TObject);
     procedure treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
