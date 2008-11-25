@@ -470,15 +470,6 @@ object optionsform: Toptionsform
           TabOrder = 1
           OnChange = Modified
         end
-        object chkEditorText: TCheckBox
-          Left = 234
-          Top = 47
-          Width = 154
-          Height = 17
-          Caption = 'Enable popup text editor'
-          TabOrder = 2
-          OnClick = Modified
-        end
         object cboxBinary: TColorBox
           Left = 100
           Top = 69
@@ -486,7 +477,7 @@ object optionsform: Toptionsform
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
-          TabOrder = 3
+          TabOrder = 2
           OnChange = Modified
         end
         object cboxDatetime: TColorBox
@@ -496,7 +487,7 @@ object optionsform: Toptionsform
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
-          TabOrder = 5
+          TabOrder = 4
           OnChange = Modified
         end
         object cboxNumeric: TColorBox
@@ -516,7 +507,7 @@ object optionsform: Toptionsform
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
-          TabOrder = 7
+          TabOrder = 6
           OnChange = Modified
         end
         object chkEditorBinary: TCheckBox
@@ -525,7 +516,7 @@ object optionsform: Toptionsform
           Width = 154
           Height = 17
           Caption = 'Enable popup HEX editor'
-          TabOrder = 4
+          TabOrder = 3
           OnClick = Modified
         end
         object chkEditorDatetime: TCheckBox
@@ -534,7 +525,7 @@ object optionsform: Toptionsform
           Width = 154
           Height = 17
           Caption = 'Enable calendar editor'
-          TabOrder = 6
+          TabOrder = 5
           OnClick = Modified
         end
         object chkEditorEnum: TCheckBox
@@ -543,7 +534,7 @@ object optionsform: Toptionsform
           Width = 154
           Height = 17
           Caption = 'Enable pulldown editor'
-          TabOrder = 8
+          TabOrder = 7
           OnClick = Modified
         end
         object cboxSet: TColorBox
@@ -553,7 +544,7 @@ object optionsform: Toptionsform
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
-          TabOrder = 9
+          TabOrder = 8
           OnChange = Modified
         end
         object chkEditorSet: TCheckBox
@@ -562,7 +553,7 @@ object optionsform: Toptionsform
           Width = 154
           Height = 17
           Caption = 'Enable checkbox editor'
-          TabOrder = 10
+          TabOrder = 9
           OnClick = Modified
         end
         object chkNullBG: TCheckBox
@@ -571,7 +562,7 @@ object optionsform: Toptionsform
           Width = 154
           Height = 17
           Caption = 'Enable background color'
-          TabOrder = 12
+          TabOrder = 11
           OnClick = chkNullBGClick
         end
         object cboxNullBG: TColorBox
@@ -582,7 +573,7 @@ object optionsform: Toptionsform
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           Enabled = False
           ItemHeight = 16
-          TabOrder = 11
+          TabOrder = 10
           OnChange = Modified
         end
       end
