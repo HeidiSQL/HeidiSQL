@@ -5,7 +5,8 @@ unit grideditlinks;
 interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst;
+  mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
+  Buttons, Controls, Types;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -102,6 +103,57 @@ type
     procedure SetBounds(R: TRect); virtual; stdcall;
   end;
 
+  // TntEdit, but without TAB behaviour
+  TInplaceTntEdit = class(TTntEdit)
+  private
+    procedure WMChar(var Message: TWMChar); message WM_CHAR;
+    procedure WMGetDlgCode(var Message: TWMGetDlgCode); message WM_GETDLGCODE;
+  end;
+
+  // Handler for custom button click processing
+  TButtonClickEvent = procedure (Sender: TObject; Tree: TBaseVirtualTree;
+    Node: PVirtualNode; Column: TColumnIndex);
+
+  // Inplace editor with button
+  TInplaceEditorLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FPanel: TPanel;
+    FEdit: TTntEdit;
+    FButton: TSpeedButton;
+    FTextEditor: TfrmTextEditor;
+    FTree: TVirtualStringTree;
+    FNode: PVirtualNode;
+    FColumn: TColumnIndex;
+    FAlignment: TAlignment;
+    FTextBounds: TRect;
+    FStopping: Boolean;
+    FButtonVisible: boolean;
+    FOnButtonClick: TButtonClickEvent;
+    FMaxLength: integer;
+    procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ButtonClick(Sender: TObject);
+    procedure SetButtonVisible(const Value: boolean);
+  protected
+    procedure DoButtonClick;
+    procedure CalcEditorPosition;
+    procedure CalcButtonPosition;
+  public
+    constructor Create(Tree: TVirtualStringTree); overload;
+    destructor Destroy; override;
+    function BeginEdit: Boolean; virtual; stdcall;
+    function CancelEdit: Boolean; virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall;
+    function GetBounds: TRect; virtual; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
+    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall;
+    property Panel: TPanel read FPanel;
+    property Edit: TTntEdit read FEdit;
+    property Button: TSpeedButton read FButton;
+    property ButtonVisible: boolean read FButtonVisible write SetButtonVisible;
+    property MaxLength: integer read FMaxLength write FMaxLength; // Used for frmTextEditor initialization
+    property OnButtonClick: TButtonClickEvent read FOnButtonClick write FOnButtonClick;
+  end;
 
 implementation
 
@@ -605,6 +657,238 @@ end;
 procedure TSetEditorLink.BtnCancelClick(Sender: TObject);
 begin
   FTree.CancelEditNode;
+end;
+
+{ TInplaceEditorLink }
+
+constructor TInplaceEditorLink.Create(Tree: TVirtualStringTree);
+begin
+  inherited Create;
+  FTree := Tree;
+  SendMessage(FTree.Handle, WM_SETREDRAW, 0, 0);  // Avoid flikering
+  FButtonVisible := false;
+  FOnButtonClick := nil;
+  FTextEditor := nil;
+
+  FPanel := TPanel.Create(nil);
+  FPanel.Hide;
+  FPanel.BevelOuter := bvNone;
+  FPanel.ParentBackground := false; // Prevents transparency under XP theme
+  FPanel.ParentColor := false;
+  FPanel.Color := clWindow;
+
+  FEdit := TInplaceTntEdit.Create(FPanel);
+  FEdit.Hide;
+  FEdit.Parent := FPanel;
+  FEdit.BorderStyle := bsNone;
+  FEdit.Color := clWindow;
+  FEdit.OnKeyDown := EditKeyDown;
+
+  FButton := TSpeedButton.Create(FPanel);
+  FButton.Hide;
+  FButton.Parent := FPanel;
+  FButton.Width := 16;
+  FButton.Caption := '···';
+  FButton.Font.Style := [fsBold];
+  FButton.OnClick := ButtonClick;
+end;
+
+destructor TInplaceEditorLink.Destroy;
+begin
+  if Assigned(FTextEditor) then
+    FTextEditor.Release;
+  FPanel.Free;
+  inherited;
+end;
+
+function TInplaceEditorLink.BeginEdit: Boolean;
+begin
+  Result := not FStopping;
+  if Result then begin
+    if FButtonVisible then
+      FButton.Show;
+    FEdit.SelectAll;
+    FEdit.Show;
+    FPanel.Show;
+    FEdit.SetFocus;
+    SendMessage(FTree.Handle, WM_SETREDRAW, 1, 0); // See
+    FPanel.Invalidate;
+    FEdit.Invalidate;
+  end;
+end;
+
+function TInplaceEditorLink.CancelEdit: Boolean;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    if Assigned(FTextEditor) then
+      FTextEditor.Close;
+    FPanel.Hide;
+    FTree.CancelEditNode;
+    FTree.SetFocus;
+  end;
+end;
+
+function TInplaceEditorLink.EndEdit: Boolean;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    if Assigned(FTextEditor) then begin
+      if (FTextEditor.memoText.Modified) then
+        FTree.Text[FNode, FColumn] := FTextEditor.GetText;
+      FTextEditor.Close;
+    end else begin
+      if FEdit.Modified then
+        FTree.Text[FNode, FColumn] := FEdit.Text;
+    end;
+    FPanel.Hide;
+    FTree.SetFocus;
+  end;
+end;
+
+procedure TInplaceEditorLink.EditKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      FTree.CancelEditNode;
+    VK_RETURN:
+      begin
+        if (ssCtrl in Shift) then begin
+          Key := 0;
+          ButtonClick(FButton);
+        end else
+          FTree.EndEditNode;
+      end;
+  end;
+end;
+
+procedure TInplaceEditorLink.ButtonClick(Sender: TObject);
+begin
+  if not FButtonVisible then Exit; // Button was invisible, but hotkey was pressed
+  if Assigned(FOnButtonClick) then
+    FOnButtonClick(Self, FTree, FNode, FColumn)
+  else
+    DoButtonClick;
+end;
+
+procedure TInplaceEditorLink.DoButtonClick;
+begin
+  FTextEditor := TfrmTextEditor.Create(FTree);
+  FTextEditor.SetFont(FEdit.Font);
+  FTextEditor.SetText(FTree.Text[FNode, FColumn]);
+  FTextEditor.SetMaxLength(Self.FMaxLength);
+  FTextEditor.ShowModal;
+end;
+
+function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex): Boolean;
+var
+  NodeText: widestring;
+begin
+  FNode := Node;
+  FColumn := Column;
+
+  FTree.GetTextInfo(Node, Column, FEdit.Font, FTextBounds, NodeText);
+  FPanel.Parent := FTree;
+  FEdit.Font.Color := clWindowText;
+  FEdit.Text := NodeText;
+
+  if Column <= NoColumn then begin
+    FEdit.BidiMode := FTree.BidiMode;
+    FAlignment := FTree.Alignment;
+  end else begin
+    FEdit.BidiMode := FTree.Header.Columns[Column].BidiMode;
+    FAlignment := FTree.Header.Columns[Column].Alignment;
+  end;
+  if FEdit.BidiMode <> bdLeftToRight then
+    ChangeBidiModeAlignment(FAlignment);
+  Result := true;
+end;
+
+procedure TInplaceEditorLink.ProcessMessage(var Message: TMessage);
+begin
+  FEdit.WindowProc(Message);
+end;
+
+function TInplaceEditorLink.GetBounds: TRect;
+begin
+  Result := FPanel.BoundsRect;
+end;
+
+procedure TInplaceEditorLink.SetBounds(R: TRect);
+begin
+  if not FStopping then begin
+    // Fix for wrong rect calculation, when left alignment is used
+    if FAlignment = taLeftJustify then begin
+      Dec(R.Left, 4);
+      Dec(R.Right, 1);
+    end;
+    // Set the edit's bounds but make sure there's a minimum width and the right border does not
+    // extend beyond the parent's left/right border.
+    if R.Left < 0 then
+      R.Left := 0;
+    if R.Right - R.Left < 30 then begin
+      if FAlignment = taRightJustify then
+        R.Left := R.Right - 30
+      else
+        R.Right := R.Left + 30;
+    end;
+    if R.Right > FTree.ClientWidth then
+      R.Right := FTree.ClientWidth;
+    FPanel.BoundsRect := R;
+    // Position edit control according to FTextBounds
+    CalcEditorPosition;
+    CalcButtonPosition;
+  end;
+end;
+
+procedure TInplaceEditorLink.CalcEditorPosition;
+var
+  R: TRect;
+begin
+  if not Assigned(FTree) then
+    Exit;
+  R.Top := FTextBounds.Top - FPanel.Top;
+  R.Bottom := FTextBounds.Bottom - FPanel.Top;
+  R.Left := FTree.TextMargin;
+  R.Right := FPanel.Width - R.Left;
+  if FButtonVisible then
+    Dec(R.Right, FButton.Width);
+  FEdit.BoundsRect := R;
+end;
+
+procedure TInplaceEditorLink.CalcButtonPosition;
+var
+  R: TRect;
+begin
+  R.Top := 0;
+  R.Bottom := FPanel.Height;
+  R.Left := FPanel.Width - 16;
+  R.Right := FPanel.Width;
+  FButton.BoundsRect := R;
+end;
+
+procedure TInplaceEditorLink.SetButtonVisible(const Value: boolean);
+begin
+  FButtonVisible := Value;
+  CalcEditorPosition;
+end;
+
+{ TInplaceTntEdit }
+
+procedure TInplaceTntEdit.WMChar(var Message: TWMChar);
+begin
+  if not (Message.CharCode in [VK_ESCAPE, VK_TAB]) then
+    inherited;
+end;
+
+procedure TInplaceTntEdit.WMGetDlgCode(var Message: TWMGetDlgCode);
+begin
+  inherited;
+  Message.Result := Message.Result or DLGC_WANTALLKEYS or DLGC_WANTTAB or DLGC_WANTARROWS;
 end;
 
 end.
