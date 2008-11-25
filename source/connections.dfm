@@ -3054,7 +3054,6 @@ object connform: Tconnform
     Anchors = [akTop, akRight]
     Caption = 'Connect!'
     Default = True
-    ModalResult = 1
     TabOrder = 11
     OnClick = ButtonConnectClick
   end

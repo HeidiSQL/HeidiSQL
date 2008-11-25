@@ -95,6 +95,7 @@ end;
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
 var
   reg : TRegistry;
+  btn: TButton;
 begin
   Screen.Cursor := crHourglass;
   // Save last connection name to registry
@@ -104,9 +105,10 @@ begin
   reg.CloseKey;
   reg.Free;
 
-  ButtonConnect.Enabled := false;
+  btn := Sender as TButton;
+  btn.Enabled := false;
 
-  Mainform.CreateMDIChild(
+  if Mainform.CreateMDIChild(
     EditHost.Text,
     EditPort.Text,
     EditUsername.Text,
@@ -115,9 +117,13 @@ begin
     EditTimeout.Text,
     IntToStr(Integer(CheckBoxCompressed.Checked)),
     IntToStr(Integer(CheckboxSorted.Checked)),
-    ComboboxDescription.Text);
+    ComboboxDescription.Text) then
+    ModalResult := mrOK
+  else begin
+    ModalResult := mrNone;
+    btn.Enabled := True;
+  end;
 
-  ButtonConnect.Enabled := True;
   Screen.Cursor := crDefault;
 end;
 
