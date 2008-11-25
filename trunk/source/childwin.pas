@@ -530,7 +530,6 @@ type
       prefCSVTerminator          : String[10];
       prefLogToFile,
       prefPreferShowTables,
-      prefEnableTextEditor,
       prefEnableBinaryEditor,
       prefEnableDatetimeEditor,
       prefEnableEnumEditor,
@@ -962,7 +961,6 @@ begin
   prefNullBG := Mainform.GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   CalcNullColors;
   // Editor enablings
-  prefEnableTextEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
   prefEnableBinaryEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   prefEnableDatetimeEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   prefEnableEnumEditor := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);

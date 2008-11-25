@@ -209,13 +209,11 @@ const
   COLORSHIFT_NULLFIELDS = 45; // Percentage of brightness to add to normal field colors for NULL values
 
   REGNAME_FIELDEDITOR_NUMERIC = 'FieldEditor_Numeric';
-  REGNAME_FIELDEDITOR_TEXT = 'FieldEditor_Text';
   REGNAME_FIELDEDITOR_BINARY = 'FieldEditor_Binary';
   REGNAME_FIELDEDITOR_DATETIME = 'FieldEditor_Datetime';
   REGNAME_FIELDEDITOR_ENUM = 'FieldEditor_Enum';
   REGNAME_FIELDEDITOR_SET = 'FieldEditor_Set';
   DEFAULT_FIELDEDITOR_NUMERIC = True;
-  DEFAULT_FIELDEDITOR_TEXT = True;
   DEFAULT_FIELDEDITOR_BINARY = True;
   DEFAULT_FIELDEDITOR_DATETIME = True;
   DEFAULT_FIELDEDITOR_ENUM = True;

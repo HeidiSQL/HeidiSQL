@@ -61,7 +61,6 @@ type
     grpFieldLayout: TGroupBox;
     lblFieldDatetime: TLabel;
     cboxText: TColorBox;
-    chkEditorText: TCheckBox;
     lblFieldText: TLabel;
     lblFieldBinary: TLabel;
     lblFieldNumeric: TLabel;
@@ -212,7 +211,6 @@ begin
   reg.WriteInteger(REGNAME_FIELDCOLOR_SET, cboxSet.Selected);
   reg.WriteInteger(REGNAME_BG_NULL, cboxNullBg.Selected);
   // Editor enablings
-  reg.WriteBool(REGNAME_FIELDEDITOR_TEXT, chkEditorText.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
   reg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
@@ -274,7 +272,6 @@ begin
     cwin.CalcNullColors;
     cwin.DataGrid.Repaint;
     cwin.QueryGrid.Repaint;
-    cwin.prefEnableTextEditor := chkEditorText.Checked;
     cwin.prefEnableBinaryEditor := chkEditorBinary.Checked;
     cwin.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
     cwin.prefEnableEnumEditor := chkEditorEnum.Checked;
@@ -395,7 +392,6 @@ begin
   cboxSet.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
   cboxNullBG.Selected := Mainform.GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   // Editor enablings
-  chkEditorText.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_TEXT, DEFAULT_FIELDEDITOR_TEXT);
   chkEditorBinary.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   chkEditorDatetime.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   chkEditorEnum.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
