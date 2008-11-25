@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{DFF14130-FF9F-450A-A1C8-206A92A4E3DF}
 AppName=jHeidi
-AppVerName=jHeidi Alpha 3 update 5
+AppVerName=jHeidi Alpha 3.6
 AppPublisher=jheidi.com
 AppPublisherURL=http://www.jheidi.com/
 AppSupportURL=http://forum.heidisql.com/
