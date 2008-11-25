@@ -97,9 +97,16 @@ var
   reg : TRegistry;
 begin
   Screen.Cursor := crHourglass;
+  // Save last connection name to registry
+  reg := TRegistry.Create;
+  if reg.OpenKey(REGPATH, true) then
+    reg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
+  reg.CloseKey;
+  reg.Free;
+
   ButtonConnect.Enabled := false;
 
-  if Mainform.CreateMDIChild(
+  Mainform.CreateMDIChild(
     EditHost.Text,
     EditPort.Text,
     EditUsername.Text,
@@ -108,17 +115,9 @@ begin
     EditTimeout.Text,
     IntToStr(Integer(CheckBoxCompressed.Checked)),
     IntToStr(Integer(CheckboxSorted.Checked)),
-    ComboboxDescription.Text) then
-  begin
-    // Save last connection name to registry
-    reg := TRegistry.Create;
-    if reg.OpenKey(REGPATH, true) then
-      reg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
-    reg.CloseKey;
-    reg.Free;
-  end else begin
-    ButtonConnect.Enabled := True;
-  end;
+    ComboboxDescription.Text);
+
+  ButtonConnect.Enabled := True;
   Screen.Cursor := crDefault;
 end;
 
