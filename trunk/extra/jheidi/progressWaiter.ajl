@@ -82,18 +82,12 @@
               btn.removeActionListener(this);
             }
           });
-          
-          text.setText("Waiting for " + message);
         }
       });
     } catch (Exception e) { log.error("SWIW", e); }
 
-    synchronized (workers)
-    {
-      log.trace("got the push lock");
-      messages.push(message);
-      workers.push(worker);
-    }
+    messages.push(message);
+    workers.push(worker);
 
     if ( statusBar.getProperty("progressReaper") == null )
     {
@@ -105,15 +99,34 @@
       final Runnable progressReaper = new Runnable() {
         public void run()
         {
-          while(myWorkers.size() > 0)
+          while(true)
           {
-            synchronized(myWorkers) {
-              log.trace("got the peek lock");
-              Worker myWorker = (Worker)myWorkers.peek();
-              if (myWorker.isDone())
+            try
+            {
+              Thread.sleep(50);
+            } catch (Exception e) {}
+
+            synchronized(myClass)
+            {
+              if ( myWorkers.size() > 0 )
               {
-                 myWorkers.pop();
-                 myMessages.pop();
+                Worker myWorker = (Worker)myWorkers.peek();
+                if (myWorker.isDone())
+                {
+                   myWorkers.pop();
+                   myMessages.pop();
+                }
+                else
+                {
+                  try
+                  {
+                    SwingUtilities.invokeAndWait( new Runnable() {
+                      public void run() {
+                        text.setText("Waiting for " + myMessages.peek());
+                      }
+                    });
+                  } catch (Exception e) { log.error("SWIW threw", e); }
+                }
               }
               else
               {
@@ -121,59 +134,31 @@
                 {
                   SwingUtilities.invokeAndWait( new Runnable() {
                     public void run() {
-                      text.setText("Waiting for " + myMessages.peek());
+                      
+                      text.setText("Ready");
+                      statusBar.remove(mypbar);
+                      statusBar.remove(btn);
+                      statusBar.updateUI();
+                      for (ActionListener listener: btn.getActionListeners())
+                      {
+                        try
+                        {
+                          btn.removeActionListener(listener);
+                        }
+                        catch (Exception e) {}
+                      }
                     }
                   });
                 } catch (Exception e) { log.error("SWIW threw", e); }
-              } 
-            }
-            try
-            {
-              //so as not to hog the lock
-              Thread.sleep(100);
-            } catch (Exception e) {}
-          }
-          synchronized (myClass)
-          {
-            if ( myWorkers.size() > 0 )
-            {
-              log.trace("we ended but need to restart");
-              Thread t = new Thread(this);
-              statusBar.setProperty("progressReaper", t);
-              t.setDaemon(true);
-              t.setName("Progress Bar Task Reaper");
-              t.start();
-            }
-            else
-            {
-              log.trace("we are locked and shutting down");
-              try
-              {
-                SwingUtilities.invokeAndWait( new Runnable() {
-                  public void run() {
-                    
-                    text.setText("Ready");
-                    statusBar.remove(mypbar);
-                    statusBar.remove(btn);
-                    statusBar.updateUI();
-                    for (ActionListener listener: btn.getActionListeners())
-                    {
-                      try
-                      {
-                        btn.removeActionListener(listener);
-                      }
-                      catch (Exception e) {}
-                    }
-                  }
-                });
-              } catch (Exception e) { log.error("SWIW threw", e); }
 
-              statusBar.setProperty("progressReaper", null);
+                statusBar.setProperty("progressReaper", null);
+                break;
+              }
             }
           }
         }
-        
       };
+
       Thread t = new Thread(progressReaper);
       statusBar.setProperty("progressReaper", t);
       t.setDaemon(true);
