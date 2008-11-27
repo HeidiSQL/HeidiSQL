@@ -6262,8 +6262,10 @@ procedure TMDIChild.DataGridEdited(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex);
 begin
   // Reassign Esc to "Cancel row editing" action
-  Mainform.actDataCancelChanges.ShortCut := TextToShortcut('Esc');
-  Mainform.actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
+  if ([tsEditing, tsEditPending] * Sender.TreeStates) = [] then begin
+    Mainform.actDataCancelChanges.ShortCut := TextToShortcut('Esc');
+    Mainform.actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
+  end;
   AutoCalcColWidths(DataGrid, PrevTableColWidths);
 end;
 
