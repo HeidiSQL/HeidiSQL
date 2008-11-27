@@ -103,13 +103,6 @@ type
     procedure SetBounds(R: TRect); virtual; stdcall;
   end;
 
-  // TntEdit, but without TAB behaviour
-  TInplaceTntEdit = class(TTntEdit)
-  private
-    procedure WMChar(var Message: TWMChar); message WM_CHAR;
-    procedure WMGetDlgCode(var Message: TWMGetDlgCode); message WM_GETDLGCODE;
-  end;
-
   // Handler for custom button click processing
   TButtonClickEvent = procedure (Sender: TObject; Tree: TBaseVirtualTree;
     Node: PVirtualNode; Column: TColumnIndex);
@@ -129,10 +122,13 @@ type
     FStopping: Boolean;
     FButtonVisible: boolean;
     FOnButtonClick: TButtonClickEvent;
+    FFinalAction: integer;
     FMaxLength: integer;
+    FOldWndProc: TWndMethod;
     procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ButtonClick(Sender: TObject);
     procedure SetButtonVisible(const Value: boolean);
+    procedure EditWndProc(var Message: TMessage);
   protected
     procedure DoButtonClick;
     procedure CalcEditorPosition;
@@ -677,12 +673,14 @@ begin
   FPanel.ParentColor := false;
   FPanel.Color := clWindow;
 
-  FEdit := TInplaceTntEdit.Create(FPanel);
+  FEdit := TTntEdit.Create(FPanel);
   FEdit.Hide;
   FEdit.Parent := FPanel;
   FEdit.BorderStyle := bsNone;
   FEdit.Color := clWindow;
   FEdit.OnKeyDown := EditKeyDown;
+  FOldWndProc := FEdit.WindowProc;
+  FEdit.WindowProc := EditWndProc;
 
   FButton := TPNGSpeedButton.Create(FPanel);
   FButton.PNGImage := Mainform.PngImageListMain.PngImages[33].PngImage;
@@ -699,6 +697,12 @@ begin
   if Assigned(FTextEditor) then
     FTextEditor.Release;
   FPanel.Free;
+  case FFinalAction of
+    VK_TAB: begin
+      SendMessage(FTree.Handle, WM_KEYDOWN, VK_TAB, 0);
+      SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
+    end;
+  end;
   inherited;
 end;
 
@@ -712,9 +716,10 @@ begin
     FEdit.Show;
     FPanel.Show;
     FEdit.SetFocus;
-    SendMessage(FTree.Handle, WM_SETREDRAW, 1, 0); // See
-    FPanel.Invalidate;
-    FEdit.Invalidate;
+    SendMessage(FTree.Handle, WM_SETREDRAW, 1, 0);
+    FTree.Repaint;
+    FPanel.Repaint;
+    FEdit.Repaint;
   end;
 end;
 
@@ -726,7 +731,6 @@ begin
     if Assigned(FTextEditor) then
       FTextEditor.Close;
     FPanel.Hide;
-    FTree.CancelEditNode;
     FTree.SetFocus;
   end;
 end;
@@ -763,6 +767,11 @@ begin
         end else
           FTree.EndEditNode;
       end;
+    VK_TAB:
+      begin
+        FFinalAction := VK_TAB;
+        FTree.EndEditNode;
+      end;
   end;
 end;
 
@@ -784,11 +793,26 @@ begin
   FTextEditor.ShowModal;
 end;
 
+procedure TInplaceEditorLink.EditWndProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_CHAR:
+      if not (TWMChar(Message).CharCode in [VK_ESCAPE, VK_TAB]) then
+        FOldWndProc(Message);
+    WM_GETDLGCODE:
+      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
+  else
+    FOldWndProc(Message);
+  end;
+end;
+
 function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   NodeText: widestring;
 begin
+  Result := not FStopping;
+  if not Result then Exit; 
   FNode := Node;
   FColumn := Column;
 
@@ -876,20 +900,6 @@ procedure TInplaceEditorLink.SetButtonVisible(const Value: boolean);
 begin
   FButtonVisible := Value;
   CalcEditorPosition;
-end;
-
-{ TInplaceTntEdit }
-
-procedure TInplaceTntEdit.WMChar(var Message: TWMChar);
-begin
-  if not (Message.CharCode in [VK_ESCAPE, VK_TAB]) then
-    inherited;
-end;
-
-procedure TInplaceTntEdit.WMGetDlgCode(var Message: TWMGetDlgCode);
-begin
-  inherited;
-  Message.Result := Message.Result or DLGC_WANTALLKEYS or DLGC_WANTTAB or DLGC_WANTARROWS;
 end;
 
 end.
