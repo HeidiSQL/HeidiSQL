@@ -6307,8 +6307,11 @@ begin
     SetEditor := TSetEditorLink.Create;
     SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := SetEditor;
-  end else
-    EditLink := TStringEditLink.Create;
+  end else begin
+    InplaceEditor := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
+    InplaceEditor.ButtonVisible := False;
+    EditLink := InplaceEditor;
+  end;
 end;
 
 
