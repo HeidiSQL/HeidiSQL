@@ -43,7 +43,7 @@ else if ("Refresh" == who)
     }
     else
     {
-      thread(script, scriptArgs, true);
+      script(script, scriptArgs);
     }
   }
   
