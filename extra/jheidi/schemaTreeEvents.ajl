@@ -17,7 +17,7 @@
     tabs.select("Host");
     args().put("selectedTab", "Host");
     context.put("currentDB", null);
-    thread("resetTabs", args(), true);
+    script("resetTabs", args());
   }
   else if ( "db" == nodeType )
   {
@@ -56,7 +56,7 @@
     context.remove("currentTable");
     
     args().put("selectedTab", "Database");
-    thread("resetTabs", args(), true);
+    script("resetTabs", args());
     args().put("dbName", dbName);
     args().put("workerKey", dbName);
     Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);

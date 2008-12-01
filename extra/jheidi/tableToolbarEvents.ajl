@@ -1,11 +1,11 @@
 
-String who = arg("source");
+String event = arg("source");
 
 WindowContext context = argObj("windowContext");
 Table table = context.get("/mainTabs/Table/table");
 boolean refreshTableTab = false;
 
-log.debug("Event received: " + who);
+log.debug("Event received: " + event);
 
 String tableName = context.get("currentTable");
 if ( tableName  == null )
@@ -14,7 +14,7 @@ if ( tableName  == null )
 }
 
 
-if ("Delete Field".equals(who) )
+if (event == "Delete Field" )
 {
   if ( table.getSelectedRow() != -1 )
   {
@@ -29,7 +29,7 @@ if ("Delete Field".equals(who) )
   }
   
 }
-else if ("New Field".equals(who))
+else if (event == "New Field")
 {
   args().put("fieldMode", "Add");
   if ( script("fieldDialog", args()) != null )
@@ -38,7 +38,7 @@ else if ("New Field".equals(who))
   }
   
 }
-else if ("Edit Field".equals(who))
+else if (event == "Edit Field")
 {
   if ( table.getSelectedRow() != -1 )
   {
@@ -51,7 +51,7 @@ else if ("Edit Field".equals(who))
     }
   }
 }
-else if ("Manage Indexes".equals(who))
+else if (event == "Manage Indexes")
 {
   if ( script("indexDialog", args()) != null )
   {
@@ -71,7 +71,7 @@ if ( refreshTableTab )
   
   Panel tab = context.get("/mainTabs/Table");
   String script = tab.getProperty("refreshScript");
-  thread(script, (HashObject)tab.getProperty("refreshArgs"), true);
+  script(script, (HashObject)tab.getProperty("refreshArgs"));
 }
 
   
