@@ -684,7 +684,7 @@ end;
 }
 function sstr(str: WideString; len: Integer) : WideString;
 begin
-  if length(str) >= len then
+  if length(str) > len then
   begin
     str := copy(str, 0, len);
     str := str + '...';
