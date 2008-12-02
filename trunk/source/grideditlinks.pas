@@ -583,6 +583,7 @@ begin
   FPanel.Parent := FTree;
   FPanel.Left := FTextBounds.Left;
   FPanel.Top := FTextBounds.Top;
+  FPanel.ParentBackground := False;
 
   FCheckList := TTNTCheckListBox.Create(FPanel);
   FCheckList.Parent := FPanel;
