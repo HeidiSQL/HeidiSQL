@@ -586,7 +586,8 @@ begin
 
   FCheckList := TTNTCheckListBox.Create(FPanel);
   FCheckList.Parent := FPanel;
-  FCheckList.Font := F;
+  FCheckList.Font.Name := F.Name;
+  FCheckList.Font.Size := F.Size;
   FCheckList.Items.Assign(ValueList);
   ToggleCheckListBox(FCheckList, True, SelValues);
   FCheckList.SetFocus;
