@@ -967,11 +967,11 @@ begin
   ViewForm.EditViewName := '';
   if (Sender as TAction) = actEditView then begin
     // Edit mode
-    if Assigned(Childwin.ListTables.FocusedNode) then begin
+    if actEditView.ActionComponent = Childwin.menuEditView then begin
       // "Edit view" was clicked in ListTables' context menu
       NodeData := Childwin.ListTables.GetNodeData(Childwin.ListTables.FocusedNode);
       ViewForm.EditViewName := NodeData.Captions[0];
-    end else if Childwin.DBtree.GetFirstSelected <> nil then begin
+    end else if actEditView.ActionComponent = Childwin.menuTreeEditView then begin
       // "Edit view" was clicked in DBTree's context menu
       ds := Childwin.FetchDbTableList(Childwin.ActiveDatabase);
       ds.RecNo := Childwin.DBtree.GetFirstSelected.Index+1;

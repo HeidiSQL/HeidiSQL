@@ -230,7 +230,7 @@ type
     lblFilterProcesses: TLabel;
     editFilterProcesses: TEdit;
     menuEditVariable: TMenuItem;
-    actView1: TMenuItem;
+    menuEditView: TMenuItem;
     Createview1: TMenuItem;
     menuTreeCreateView: TMenuItem;
     menuTreeEditView: TMenuItem;
