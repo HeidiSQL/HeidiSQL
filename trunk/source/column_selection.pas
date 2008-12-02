@@ -148,30 +148,27 @@ var
   checkedfields : TStringList;
   i: Integer;
 begin
+  // Memorize checked items in a list
+  checkedfields := TStringList.Create;
+  for i := 0 to chklistColumns.Items.Count - 1 do begin
+    if chklistColumns.Checked[i] then
+      checkedfields.Add(chklistColumns.Items[i]);
+  end;
+
   chklistColumns.Sorted := TCheckBox(Sender).Checked;
 
   // Setting Sorted to false doesn't resort anything in the list.
   // So we have to add all items again in original order
-  if( not chklistColumns.Sorted ) then
-  begin
-
-    // Memorize checked items in a list
-    checkedfields := TStringList.Create;
-    for i := 0 to chklistColumns.Items.Count - 1 do
-    begin
-      if chklistColumns.Checked[i] then
-        checkedfields.Add(chklistColumns.Items[i]);
-    end;
-
-    // Add all fieldnames again and check those which are in the checkedfields list
+  if not chklistColumns.Sorted then begin
+    // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
     chklistColumns.Items.Text := GetVTCaptions(Mainform.Childwin.ListColumns).Text;
-    for i := 0 to chklistColumns.Items.Count-1 do
-    begin
-      if checkedfields.IndexOf( chklistColumns.Items[i] ) > -1 then
-        chklistColumns.Checked[i] := True;
-    end;
     chklistColumns.Items.EndUpdate;
+  end;
+
+  // check those which are in the checkedfields list
+  for i := 0 to chklistColumns.Items.Count-1 do begin
+    chklistColumns.Checked[i] := checkedfields.IndexOf( chklistColumns.Items[i] ) > -1;
   end;
 end;
 
