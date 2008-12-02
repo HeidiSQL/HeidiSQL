@@ -1282,7 +1282,7 @@ object MDIChild: TMDIChild
     object menuAlterTable: TMenuItem
       Action = MainForm.actEditTableProperties
     end
-    object actView1: TMenuItem
+    object menuEditView: TMenuItem
       Action = MainForm.actEditView
     end
     object InsertfilesintoBLOBfields1: TMenuItem
