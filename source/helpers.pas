@@ -687,7 +687,7 @@ begin
   if length(str) > len then
   begin
     str := copy(str, 0, len);
-    str := str + '...';
+    str := str + '…';
   end;
   result := str;
 end;
