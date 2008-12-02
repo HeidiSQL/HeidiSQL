@@ -1328,6 +1328,11 @@ begin
   viewingdata := true;
   sl_query := TWideStringList.Create();
 
+  // Ensure grid has left editing mode so DataGrid.OnNewText applies its changes
+  // to the old data, not to the new or some non referenced data
+  if DataGrid.IsEditing then
+    DataGrid.EndEditNode;
+
   // Post pending update and set post + cancel buttons to valid state
   if DataGridHasChanges then
     Mainform.actDataPostChangesExecute(Sender);
