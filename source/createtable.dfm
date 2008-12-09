@@ -375,6 +375,8 @@ object CreateTableForm: TCreateTableForm
     TabOrder = 4
     Text = 'FieldName'
     OnChange = EditFieldnameChange
+    OnEnter = EditFieldnameEnter
+    OnExit = EditFieldnameExit
   end
   object DBComboBox: TTntComboBox
     Left = 96
