@@ -241,7 +241,7 @@ type
     procedure actCopyAsCSVExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
-    procedure showstatus(msg: string=''; panel: Integer=4);
+    procedure showstatus(msg: string=''; panel: Integer=5);
     function mask(str: WideString) : WideString;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actExecuteSelectionExecute(Sender: TObject);
@@ -432,7 +432,7 @@ begin
   ChildWin.ExecuteNonQuery(query);
 end;
 
-procedure TMainForm.showstatus(msg: string=''; panel: Integer=4);
+procedure TMainForm.showstatus(msg: string=''; panel: Integer=5);
 begin
   // show Message in statusbar
   StatusBar.Panels[panel].Text := msg;
