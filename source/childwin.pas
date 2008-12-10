@@ -683,7 +683,7 @@ begin
     rx.Free;
     mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
     tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
-    Mainform.showstatus('MySQL '+v1+'.'+v2+'.'+v3, 2);
+    Mainform.showstatus('MySQL '+v1+'.'+v2+'.'+v3, 3);
 
     // On Re-Connection, try to restore lost properties
     if FMysqlConn.Connection.Database <> '' then
@@ -2191,11 +2191,15 @@ begin
     tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
   ValidateQueryControls(FrmIsFocussed);
 
+  if not inQueryTab then // Empty panel with "Line:Char"
+    MainForm.showstatus('', 1);
+
   if not FrmIsFocussed then begin
     // Empty "connected" and "uptime"
     MainForm.showstatus('', 1);
     MainForm.showstatus('', 2);
     MainForm.showstatus('', 3);
+    MainForm.showstatus('', 4);
   end;
 end;
 
@@ -2883,8 +2887,12 @@ end;
 
 procedure TMDIChild.SynMemoQueryStatusChange(Sender: TObject; Changes:
     TSynStatusChanges);
+var
+  sm: TSynMemo;
 begin
+  sm := Sender as TSynMemo;
   ValidateQueryControls;
+  Mainform.showstatus(FormatNumber(sm.CaretY)+' : '+FormatNumber(sm.CaretX), 1);
 end;
 
 
@@ -2906,7 +2914,7 @@ begin
   msg := Format('%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]);
   if TimerHostUptime.Enabled then msg := Format('Uptime: %s', [msg])
   else msg := '';
-  Mainform.showstatus(msg, 3);
+  Mainform.showstatus(msg, 4);
 end;
 
 
@@ -2978,14 +2986,14 @@ end;
 procedure TMDIChild.TimerConnectedTimer(Sender: TObject);
 begin
   if not TimerConnected.Enabled then begin
-    MainForm.showstatus('Disconnected.', 1);
+    MainForm.showstatus('Disconnected.', 2);
     exit;
   end;
 
   inc(time_connected);
 
   // calculate and display connection-time
-  MainForm.showstatus( 'Connected: ' + FormatTimeNumber(time_connected), 1 );
+  MainForm.showstatus( 'Connected: ' + FormatTimeNumber(time_connected), 2 );
 end;
 
 

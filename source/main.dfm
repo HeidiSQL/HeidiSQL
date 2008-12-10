@@ -29,6 +29,9 @@ object MainForm: TMainForm
         Width = 170
       end
       item
+        Width = 90
+      end
+      item
         Width = 130
       end
       item
