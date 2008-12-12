@@ -142,11 +142,14 @@ object optionsform: Toptionsform
       end
       object chkUpdatecheck: TCheckBox
         Left = 16
-        Top = 178
+        Top = 176
         Width = 281
-        Height = 17
-        Caption = 'Automatically check for updates / Interval [days]:'
+        Height = 28
+        Caption = 
+          'Automatically check for updates / Interval [days]:'#13#10'(0 = each ti' +
+          'me the application is started)'
         TabOrder = 8
+        WordWrap = True
         OnClick = chkUpdatecheckClick
       end
       object editUpdatecheckInterval: TEdit
@@ -165,7 +168,6 @@ object optionsform: Toptionsform
         Height = 21
         Associate = editUpdatecheckInterval
         Enabled = False
-        Min = 1
         Max = 999
         Position = 1
         TabOrder = 10
@@ -173,7 +175,7 @@ object optionsform: Toptionsform
       end
       object chkPreferShowTables: TCheckBox
         Left = 16
-        Top = 231
+        Top = 242
         Width = 373
         Height = 34
         Anchors = [akLeft, akTop, akRight]
@@ -186,7 +188,7 @@ object optionsform: Toptionsform
       end
       object chkUpdateCheckBuilds: TCheckBox
         Left = 34
-        Top = 198
+        Top = 210
         Width = 247
         Height = 17
         Caption = 'Also check for updated nightly builds'
