@@ -646,6 +646,7 @@ begin
         wfs(f, WideFormat('# %-30s%d', ['Target max_allowed_packet:', max_allowed_packet]));
       end;
       wfs(f, WideFormat('# %-30s%s', [APPNAME + ' version:', appversion]));
+      wfs(f, WideFormat('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]));
       wfs(f, '# --------------------------------------------------------');
       wfs(f);
     end;
