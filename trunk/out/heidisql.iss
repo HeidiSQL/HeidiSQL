@@ -29,6 +29,7 @@ SetupIconFile=.\..\res\mainicon.ico
 ; MinVersion=4,3.51
 UsePreviousAppDir=yes
 DirExistsWarning=auto
+PrivilegesRequired=none
 ; uncomment the two following lines if you want to build an update installation
 ;CreateUninstallRegKey=no
 ;UpdateUninstallLogAppName=no
