@@ -939,6 +939,7 @@ object MDIChild: TMDIChild
           Width = 496
           Height = 213
           Align = alClient
+          BottomSpace = 120
           EditDelay = 0
           Header.AutoSizeIndex = -1
           Header.Font.Charset = DEFAULT_CHARSET

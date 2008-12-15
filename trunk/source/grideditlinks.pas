@@ -618,7 +618,7 @@ begin
   FPanel.Top := R.Top;
   FPanel.Left := R.Left;
   FPanel.Width := R.Right - R.Left;
-  FPanel.Height := 200;
+  FPanel.Height := 130;
 
   FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
   FBtnOk.Left := margin;
