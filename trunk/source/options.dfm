@@ -311,6 +311,7 @@ object optionsform: Toptionsform
           Font.Name = 'Courier New'
           Font.Style = []
           TabOrder = 0
+          OnClick = SynMemoSQLSampleClick
           Gutter.Font.Charset = DEFAULT_CHARSET
           Gutter.Font.Color = clWindowText
           Gutter.Font.Height = -11
@@ -320,7 +321,7 @@ object optionsform: Toptionsform
           Gutter.Width = 0
           Highlighter = SynSQLSynSQLSample
           Lines.UnicodeStrings = 'SynMemoSQLSample'
-          Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+          Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoNoCaret, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
           ReadOnly = True
           TabWidth = 2
           WordWrap = True
