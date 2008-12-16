@@ -234,7 +234,7 @@ object optionsform: Toptionsform
           Height = 21
           TabOrder = 1
           Text = '9'
-          OnChange = SQLFontChange
+          OnExit = SQLFontChange
         end
         object updownSQLFontSize: TUpDown
           Left = 335
@@ -244,6 +244,7 @@ object optionsform: Toptionsform
           Associate = editSQLFontSize
           Position = 9
           TabOrder = 2
+          OnClick = updownSQLFontSizeClick
         end
       end
       object grpSQLColors: TGroupBox

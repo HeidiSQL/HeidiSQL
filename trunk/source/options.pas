@@ -106,6 +106,7 @@ type
     procedure pagecontrolMainChanging(Sender: TObject;
       var AllowChange: Boolean);
     procedure pagecontrolMainChange(Sender: TObject);
+    procedure updownSQLFontSizeClick(Sender: TObject; Button: TUDBtnType);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -497,6 +498,13 @@ begin
     col := attr.Foreground;
   end;
   cboxSQLColColor.Selected := col;
+end;
+
+
+procedure Toptionsform.updownSQLFontSizeClick(Sender: TObject;
+  Button: TUDBtnType);
+begin
+  SQLFontChange(Sender);
 end;
 
 
