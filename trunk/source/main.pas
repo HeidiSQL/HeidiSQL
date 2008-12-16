@@ -1250,12 +1250,11 @@ begin
   showstatus('Saving contents to file...');
   if g = Childwin.DataGrid then begin
     Childwin.EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode);
-    Content := Childwin.FDataGridResult.Rows[Childwin.DataGrid.FocusedNode.Index].Cells[Childwin.DataGrid.FocusedColumn].Text;
     IsBinary := Childwin.FDataGridResult.Columns[Childwin.DataGrid.FocusedColumn].IsBinary;
   end else begin
-    Content := Childwin.FQueryGridResult.Rows[Childwin.QueryGrid.FocusedNode.Index].Cells[Childwin.QueryGrid.FocusedColumn].Text;
     IsBinary := Childwin.FQueryGridResult.Columns[Childwin.QueryGrid.FocusedColumn].IsBinary;
   end;
+  Content := g.Text[g.FocusedNode, g.FocusedColumn];
   childwin.logsql(g.Name);
 
   GetTempPath(MAX_PATH, tmppath);
