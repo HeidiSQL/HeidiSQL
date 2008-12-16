@@ -128,6 +128,7 @@ object optionsform: Toptionsform
         Height = 21
         TabOrder = 4
         Text = '2000'
+        OnChange = Modified
       end
       object updownLogSnip: TUpDown
         Left = 212
@@ -160,6 +161,7 @@ object optionsform: Toptionsform
         Enabled = False
         TabOrder = 9
         Text = '1'
+        OnChange = Modified
       end
       object updownUpdatecheckInterval: TUpDown
         Left = 359
