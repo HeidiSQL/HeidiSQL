@@ -1249,6 +1249,7 @@ begin
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
   if g = Childwin.DataGrid then begin
+    Childwin.EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode);
     Content := Childwin.FDataGridResult.Rows[Childwin.DataGrid.FocusedNode.Index].Cells[Childwin.DataGrid.FocusedColumn].Text;
     IsBinary := Childwin.FDataGridResult.Columns[Childwin.DataGrid.FocusedColumn].IsBinary;
   end else begin
