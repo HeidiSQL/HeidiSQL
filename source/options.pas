@@ -107,6 +107,7 @@ type
       var AllowChange: Boolean);
     procedure pagecontrolMainChange(Sender: TObject);
     procedure updownSQLFontSizeClick(Sender: TObject; Button: TUDBtnType);
+    procedure SynMemoSQLSampleClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -505,6 +506,40 @@ procedure Toptionsform.updownSQLFontSizeClick(Sender: TObject;
   Button: TUDBtnType);
 begin
   SQLFontChange(Sender);
+end;
+
+
+{**
+  Select attribute in pulldown by click into SynMemo
+}
+procedure Toptionsform.SynMemoSQLSampleClick(Sender: TObject);
+var
+  Token: WideString;
+  Start, TokenTypeInt: Integer;
+  Attri: TSynHighlighterAttributes;
+  sm: TSynMemo;
+  f: String;
+begin
+  sm := Sender as TSynMemo;
+  sm.GetHighlighterAttriAtRowColEx(sm.CaretXY, Token, TokenTypeInt, Start, Attri);
+  case TtkTokenKind(TokenTypeInt) of
+    tkKey: f := SQLEL_KEYWORD;
+    tkFunction: f := SQLEL_FUNCTION;
+    tkDatatype: f := SQLEL_DATATYPE;
+    tkNumber: f := SQLEL_NUMBER;
+    tkString: f := SQLEL_STRING;
+    tkComment: f := SQLEL_COMMENT;
+    tkConditionalComment: f := SQLEL_CONDCOMM;
+    tkTableName: f := SQLEL_TABLE;
+    tkSymbol: f := SQLEL_SYMBOL;
+    tkIdentifier: f := SQLEL_IDENT;
+    tkDelimitedIdentifier: f := SQLEL_DELIMIDENT;
+    else f := '';
+  end;
+  if f = '' then
+    Exit;
+  ComboSQLColElement.ItemIndex := ComboSQLColElement.Items.IndexOf(f);
+  ComboSQLColElement.OnChange(Sender);
 end;
 
 
