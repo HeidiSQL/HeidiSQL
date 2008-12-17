@@ -279,19 +279,21 @@ begin
 
   Mainform.ChildWin.ExecUpdateQuery(strquery);
 
-  // Find a auto_increment-column
-  zq := Mainform.ChildWin.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
-  for i:=1 to zq.RecordCount do
-  begin
-    if zq.Fields[5].AsString = 'auto_increment' then begin
-      if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
-      if zq.Fields[4].AsWideString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsWideString+'"' else default := '';
-      ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsWideString)+' '+mainform.mask(zq.Fields[0].AsWideString)+' '+zq.Fields[1].AsWideString+' '+default+' '+notnull+' AUTO_INCREMENT';
-      Mainform.ChildWin.ExecUpdateQuery(ai_q);
+  if CheckBoxWithIndexes.Checked then begin
+    // Find a auto_increment-column
+    zq := Mainform.ChildWin.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
+    for i:=1 to zq.RecordCount do
+    begin
+      if zq.Fields[5].AsString = 'auto_increment' then begin
+        if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
+        if zq.Fields[4].AsWideString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsWideString+'"' else default := '';
+        ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsWideString)+' '+mainform.mask(zq.Fields[0].AsWideString)+' '+zq.Fields[1].AsWideString+' '+default+' '+notnull+' AUTO_INCREMENT';
+        Mainform.ChildWin.ExecUpdateQuery(ai_q);
+      end;
+      zq.Next;
     end;
-    zq.Next;
+    zq.Close;
   end;
-  zq.Close;
   FreeAndNil(zq);
 
   Mainform.Childwin.MenuRefreshClick(Self);
