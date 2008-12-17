@@ -243,7 +243,7 @@ begin
       if keylist[k].Name = 'PRIMARY' then
         keystr := keystr + '  PRIMARY KEY ('
       else
-        keystr := keystr + '  ' + keylist[k]._type + ' KEY ' + keylist[k].Name + ' (';
+        keystr := keystr + '  ' + keylist[k]._type + ' KEY ' + Mainform.Mask(keylist[k].Name) + ' (';
       for i := 0 to keylist[k].Columns.count - 1 do
       begin
         if i > 0 then
