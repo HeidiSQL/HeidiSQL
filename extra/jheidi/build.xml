@@ -151,7 +151,7 @@
     <echo message="compile.ajl--------------------------------------------------"/>  
     <mkdir dir="${classes}"/>  
     <javac fork="true" target="${java.target}" srcdir="${autoupdater.src}" destdir="${classes}" includes="**/*.java" classpath="${autoupdater.swingworker}"/>
-    <javac fork="true" debug="true" debuglevel="lines" target="${java.target}" nowarn="on" srcdir="${ajl.src}" destdir="${classes}" 
+    <javac fork="true" debug="on" debuglevel="lines, source, vars" target="${java.target}" nowarn="on" srcdir="${ajl.src}" destdir="${classes}" 
       includes="com/rendion/ajl/**, com/rendion/ajl/gui/**, com/rendion/ajl/servlet/**">
        <classpath refid="ajl.classpath"/>     
     </javac>  
