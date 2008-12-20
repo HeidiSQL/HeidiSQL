@@ -1,1 +1,1 @@
-name=Default Local (Oracle):host=orcl@localhost:user=root:password=:port=5521:timeout=30:compress=false:sort=true:dbs=
+name=Default Local (Oracle):host=orcl@localhost:user=root:password=:port=1521:timeout=30:compress=false:sort=true:dbs=
